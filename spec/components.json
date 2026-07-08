@@ -35,6 +35,770 @@
       "placeholder"
     ]
   },
+
+  "dataTypes": [
+    {
+      "name": "Contact",
+      "symbol": "FlareContact",
+      "kind": "interface",
+      "summary": {
+        "en": "A directory contact.",
+        "zh": "通讯录联系人。"
+      },
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Stable unique id.",
+            "zh": "稳定唯一 id。"
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Display name.",
+            "zh": "显示名。"
+          }
+        },
+        {
+          "name": "avatarUrl",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Avatar image URL; falls back to initials when absent.",
+            "zh": "头像图 URL；缺省时回退首字母。"
+          }
+        },
+        {
+          "name": "signature",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Personal bio / signature line.",
+            "zh": "个性签名。"
+          }
+        },
+        {
+          "name": "presence",
+          "type": "\"online\" | \"offline\" | \"busy\" | \"away\"",
+          "required": false,
+          "description": {
+            "en": "Presence state shown as a status dot.",
+            "zh": "在线状态，显示为状态圆点。"
+          }
+        },
+        {
+          "name": "indexKey",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Explicit A–Z index letter; derived from name when absent.",
+            "zh": "显式 A–Z 索引字母；缺省时由名字推导。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "FriendRequest",
+      "symbol": "FlareFriendRequest",
+      "kind": "interface",
+      "summary": {
+        "en": "An incoming friend/contact request.",
+        "zh": "收到的好友申请。"
+      },
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Request id.",
+            "zh": "申请 id。"
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Requester display name.",
+            "zh": "申请人显示名。"
+          }
+        },
+        {
+          "name": "avatarUrl",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Requester avatar URL.",
+            "zh": "申请人头像 URL。"
+          }
+        },
+        {
+          "name": "message",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Optional greeting attached to the request.",
+            "zh": "申请附言（可选）。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "GroupSummary",
+      "symbol": "FlareGroupSummary",
+      "kind": "interface",
+      "summary": {
+        "en": "A group shown in a group list.",
+        "zh": "群组列表中的群摘要。"
+      },
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Group id.",
+            "zh": "群 id。"
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Group name.",
+            "zh": "群名。"
+          }
+        },
+        {
+          "name": "avatarUrl",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Group avatar URL.",
+            "zh": "群头像 URL。"
+          }
+        },
+        {
+          "name": "memberCount",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "Member count shown as a subtitle.",
+            "zh": "成员数，作为副标题显示。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "UserProfile",
+      "symbol": "FlareUserProfile",
+      "kind": "interface",
+      "summary": {
+        "en": "The signed-in user's profile.",
+        "zh": "当前登录用户的资料。"
+      },
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "User id.",
+            "zh": "用户 id。"
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Display name.",
+            "zh": "显示名。"
+          }
+        },
+        {
+          "name": "avatarUrl",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Avatar URL.",
+            "zh": "头像 URL。"
+          }
+        },
+        {
+          "name": "signature",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Bio / signature line.",
+            "zh": "个性签名。"
+          }
+        },
+        {
+          "name": "flareId",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Optional external/business id shown on the profile.",
+            "zh": "可选的外部/业务号，展示在资料页。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "SettingsItem",
+      "symbol": "FlareSettingsItem",
+      "kind": "interface",
+      "summary": {
+        "en": "One row in a settings section.",
+        "zh": "设置分组中的一行。"
+      },
+      "fields": [
+        {
+          "name": "key",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Stable row key emitted on interaction.",
+            "zh": "稳定行键，交互时回传。"
+          }
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Row label.",
+            "zh": "行标题。"
+          }
+        },
+        {
+          "name": "icon",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Leading icon name.",
+            "zh": "前置图标名。"
+          }
+        },
+        {
+          "name": "kind",
+          "type": "FlareSettingKind",
+          "required": false,
+          "description": {
+            "en": "Row kind — navigation, toggle or value.",
+            "zh": "行类型——导航 / 开关 / 取值。"
+          }
+        },
+        {
+          "name": "value",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "Toggle state (for `kind: \"toggle\"`).",
+            "zh": "开关状态（`kind: \"toggle\"` 时）。"
+          }
+        },
+        {
+          "name": "detail",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Trailing detail text (for `kind: \"value\"`).",
+            "zh": "尾部详情文本（`kind: \"value\"` 时）。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "SettingsSection",
+      "symbol": "FlareSettingsSection",
+      "kind": "interface",
+      "summary": {
+        "en": "A titled group of settings rows.",
+        "zh": "带标题的设置分组。"
+      },
+      "fields": [
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Optional section header.",
+            "zh": "分组标题（可选）。"
+          }
+        },
+        {
+          "name": "items",
+          "type": "FlareSettingsItem[]",
+          "required": true,
+          "description": {
+            "en": "Rows in this section.",
+            "zh": "分组内的行。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "NavItem",
+      "symbol": "FlareNavItem",
+      "kind": "interface",
+      "summary": {
+        "en": "A primary navigation entry.",
+        "zh": "主导航项。"
+      },
+      "fields": [
+        {
+          "name": "key",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Route/tab key.",
+            "zh": "路由/标签键。"
+          }
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Nav label.",
+            "zh": "导航文案。"
+          }
+        },
+        {
+          "name": "icon",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Icon name.",
+            "zh": "图标名。"
+          }
+        },
+        {
+          "name": "badge",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "Unread/notification badge count.",
+            "zh": "未读/通知徽标数。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ConversationRowModel",
+      "symbol": "FlareConversationRowModel",
+      "kind": "interface",
+      "summary": {
+        "en": "Package-owned conversation row view state (no SDK coupling).",
+        "zh": "包自有的会话行视图状态（不耦合 SDK）。"
+      },
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Conversation id.",
+            "zh": "会话 id。"
+          }
+        },
+        {
+          "name": "displayName",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Conversation title.",
+            "zh": "会话标题。"
+          }
+        },
+        {
+          "name": "avatarUrl",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Conversation avatar URL.",
+            "zh": "会话头像 URL。"
+          }
+        },
+        {
+          "name": "updatedAt",
+          "type": "number | string",
+          "required": false,
+          "description": {
+            "en": "Last-activity timestamp for ordering/time display.",
+            "zh": "最后活跃时间，用于排序/时间显示。"
+          }
+        },
+        {
+          "name": "unreadCount",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "Unread badge count.",
+            "zh": "未读徽标数。"
+          }
+        },
+        {
+          "name": "lastMessagePreview",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Rendered last-message preview text.",
+            "zh": "已渲染的最后一条消息预览文本。"
+          }
+        },
+        {
+          "name": "previewPending",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "Preview is still syncing.",
+            "zh": "预览仍在同步中。"
+          }
+        },
+        {
+          "name": "draft",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Unsent draft; shown with a draft tag.",
+            "zh": "未发送草稿；带草稿标签显示。"
+          }
+        },
+        {
+          "name": "lastMessage",
+          "type": "{ text?; time?; content? } | null",
+          "required": false,
+          "description": {
+            "en": "Structured last message (alternative to preview).",
+            "zh": "结构化最后消息（预览的替代来源）。"
+          }
+        },
+        {
+          "name": "pinned",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "Pinned to the top.",
+            "zh": "置顶。"
+          }
+        },
+        {
+          "name": "muted",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "Notifications muted.",
+            "zh": "已免打扰。"
+          }
+        },
+        {
+          "name": "archived",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "Archived out of the main list.",
+            "zh": "已归档。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "PinnedMessageItem",
+      "symbol": "PinnedMessageItem",
+      "kind": "interface",
+      "summary": {
+        "en": "A pinned message shown in the pinned bar.",
+        "zh": "置顶栏中的置顶消息。"
+      },
+      "fields": [
+        {
+          "name": "serverId",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Server message id.",
+            "zh": "服务端消息 id。"
+          }
+        },
+        {
+          "name": "clientMsgId",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Client message id.",
+            "zh": "客户端消息 id。"
+          }
+        },
+        {
+          "name": "senderDisplayName",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Sender name shown on the pin.",
+            "zh": "置顶上显示的发送者名。"
+          }
+        },
+        {
+          "name": "content",
+          "type": "{ contentType?; data? }",
+          "required": false,
+          "description": {
+            "en": "Message content used to render the preview.",
+            "zh": "用于渲染预览的消息内容。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "VoteOption",
+      "symbol": "FlareVoteOption",
+      "kind": "interface",
+      "summary": {
+        "en": "One option in a vote/poll message.",
+        "zh": "投票消息中的一个选项。"
+      },
+      "fields": [
+        {
+          "name": "text",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Option label.",
+            "zh": "选项文案。"
+          }
+        },
+        {
+          "name": "pct",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "Result percentage (0–100) for the bar.",
+            "zh": "结果百分比（0–100），用于进度条。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "MediaResolveRequest",
+      "symbol": "FlareMediaResolveRequest",
+      "kind": "interface",
+      "summary": {
+        "en": "What a `MediaResolver` receives to produce a displayable URL.",
+        "zh": "`MediaResolver` 收到的、用于产出可显示 URL 的请求。"
+      },
+      "fields": [
+        {
+          "name": "kind",
+          "type": "FlareMediaKind",
+          "required": true,
+          "description": {
+            "en": "Media kind being resolved.",
+            "zh": "要解析的媒体类型。"
+          }
+        },
+        {
+          "name": "messageId",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Owning message id.",
+            "zh": "所属消息 id。"
+          }
+        },
+        {
+          "name": "fileId",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Backend file id.",
+            "zh": "后端文件 id。"
+          }
+        },
+        {
+          "name": "url",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Pre-known URL, if any.",
+            "zh": "已知 URL（若有）。"
+          }
+        },
+        {
+          "name": "localPath",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Local cached path, if any.",
+            "zh": "本地缓存路径（若有）。"
+          }
+        },
+        {
+          "name": "mimeType",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "MIME type hint.",
+            "zh": "MIME 类型提示。"
+          }
+        },
+        {
+          "name": "fileName",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Original file name.",
+            "zh": "原始文件名。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "SettingKind",
+      "symbol": "FlareSettingKind",
+      "kind": "enum",
+      "summary": {
+        "en": "How a settings row renders and behaves.",
+        "zh": "设置行的渲染与行为方式。"
+      },
+      "values": [
+        "navigation",
+        "toggle",
+        "value"
+      ]
+    },
+    {
+      "name": "ConversationAction",
+      "symbol": "FlareConversationAction",
+      "kind": "enum",
+      "summary": {
+        "en": "Actions emitted from a conversation row/details.",
+        "zh": "会话行/详情抛出的操作。"
+      },
+      "values": [
+        "open",
+        "mark_read",
+        "mark_unread",
+        "pin",
+        "unpin",
+        "mute",
+        "unmute",
+        "archive",
+        "unarchive",
+        "clear_history",
+        "delete"
+      ]
+    },
+    {
+      "name": "ConversationFilter",
+      "symbol": "FlareConversationFilter",
+      "kind": "enum",
+      "summary": {
+        "en": "Conversation-list filter tabs.",
+        "zh": "会话列表筛选标签。"
+      },
+      "values": [
+        "all",
+        "unread",
+        "mention",
+        "pinned",
+        "muted",
+        "archived",
+        "draft"
+      ]
+    },
+    {
+      "name": "ComposerState",
+      "symbol": "FlareComposerState",
+      "kind": "enum",
+      "summary": {
+        "en": "Composer status driving hints and disabled state.",
+        "zh": "输入框状态，驱动提示与禁用。"
+      },
+      "values": [
+        "idle",
+        "typing",
+        "sending",
+        "failed",
+        "disabled",
+        "offline",
+        "permissionDenied",
+        "capabilityUnavailable",
+        "runtimeUnavailable"
+      ]
+    },
+    {
+      "name": "MediaKind",
+      "symbol": "FlareMediaKind",
+      "kind": "enum",
+      "summary": {
+        "en": "Media variant a resolver is asked for.",
+        "zh": "解析器被请求的媒体变体。"
+      },
+      "values": [
+        "image",
+        "imageThumbnail",
+        "imageGroupItem",
+        "video",
+        "videoCover",
+        "audio",
+        "file",
+        "string (custom)"
+      ]
+    },
+    {
+      "name": "ViewportKind",
+      "symbol": "FlareViewportKind",
+      "kind": "enum",
+      "summary": {
+        "en": "Resolved viewport class.",
+        "zh": "解析出的视口类别。"
+      },
+      "values": [
+        "pc",
+        "ipad",
+        "h5"
+      ]
+    },
+    {
+      "name": "LayoutMode",
+      "symbol": "FlareLayoutMode",
+      "kind": "enum",
+      "summary": {
+        "en": "Layout override mode.",
+        "zh": "布局覆盖模式。"
+      },
+      "values": [
+        "auto",
+        "pc",
+        "ipad",
+        "h5"
+      ]
+    },
+    {
+      "name": "DensityMode",
+      "symbol": "FlareDensityMode",
+      "kind": "enum",
+      "summary": {
+        "en": "UI density.",
+        "zh": "界面密度。"
+      },
+      "values": [
+        "comfortable",
+        "compact"
+      ]
+    }
+  ]
+,
   "components": [
     {
       "name": "Avatar",
@@ -234,7 +998,7 @@
       "props": [
         {
           "name": "items",
-          "type": "ConversationRow[]",
+          "type": "ConversationRowModel[]",
           "required": true,
           "description": {
             "en": "Ordered conversation rows from the view.",
@@ -307,7 +1071,7 @@
       "props": [
         {
           "name": "item",
-          "type": "ConversationRow",
+          "type": "ConversationRowModel",
           "required": true,
           "description": {
             "en": "The row's data (title, preview, unread, time, flags).",
@@ -860,7 +1624,7 @@
       "props": [
         {
           "name": "items",
-          "type": "PinnedMessage[]",
+          "type": "PinnedMessageItem[]",
           "required": true,
           "description": {
             "en": "Pinned messages; if several, the bar cycles through them.",

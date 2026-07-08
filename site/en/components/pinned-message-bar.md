@@ -20,7 +20,7 @@ title: PinnedMessageBar
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `items` | `PinnedMessage[]` | ✔ | — | Pinned messages; if several, the bar cycles through them. |
+| `items` | [`PinnedMessageItem[]`](/en/reference/data-types#pinned-message-item) | ✔ | — | Pinned messages; if several, the bar cycles through them. |
 
 
 ## States

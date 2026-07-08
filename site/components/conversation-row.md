@@ -20,7 +20,7 @@ title: ConversationRow
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `item` | `ConversationRow` | ✔ | — | 该行数据（标题、预览、未读、时间、标记）。 |
+| `item` | [`ConversationRowModel`](/reference/data-types#conversation-row-model) | ✔ | — | 该行数据（标题、预览、未读、时间、标记）。 |
 | `active` | `boolean` |  | — | 渲染选中 / 打开态。 |
 | `draftPreview` | `string` |  | — | 未发送的草稿文本；替代末条消息显示。 |
 

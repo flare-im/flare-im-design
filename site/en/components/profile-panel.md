@@ -20,7 +20,7 @@ title: ProfilePanel
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `user` | `UserProfile` | ✔ | — | The signed-in user's profile. |
+| `user` | [`UserProfile`](/en/reference/data-types#user-profile) | ✔ | — | The signed-in user's profile. |
 
 
 ## States

@@ -20,7 +20,7 @@ title: NewFriendRequests
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `items` | `FriendRequest[]` | ✔ | — | Pending and resolved requests to list. |
+| `items` | [`FriendRequest[]`](/en/reference/data-types#friend-request) | ✔ | — | Pending and resolved requests to list. |
 
 
 ## States

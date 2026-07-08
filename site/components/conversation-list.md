@@ -20,7 +20,7 @@ title: ConversationList
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `items` | `ConversationRow[]` | ✔ | — | 视图给出的有序会话行。 |
+| `items` | [`ConversationRowModel[]`](/reference/data-types#conversation-row-model) | ✔ | — | 视图给出的有序会话行。 |
 | `activeId` | `string` |  | — | 当前打开的会话，在列表中高亮。 |
 | `loading` | `boolean` |  | — | 首屏加载时显示骨架 / 转圈。 |
 

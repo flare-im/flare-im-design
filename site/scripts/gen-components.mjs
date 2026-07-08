@@ -33,6 +33,10 @@ const UI = {
     overview: "组件总览",
     overviewLead: (n, c) => `一套契约，四端原生实现。共 **${n}** 个组件、**${c}** 大类。`,
     freeCompose: "自由组合（用 parts 自己拼）", noRequired: "无必填 props",
+    refTitle: "数据类型",
+    refLead: "组件 props 里用到的共享数据结构。从你自己的数据源把这些对象喂给组件即可——组件不耦合 SDK。",
+    fieldsH: "字段", valuesH: "取值", usedByH: "被使用于",
+    interfacesH: "接口", enumsH: "枚举 / 联合类型",
   },
   en: {
     props: "Props", name: "Name", type: "Type", required: "Req.", default: "Default", desc: "Description",
@@ -42,8 +46,30 @@ const UI = {
     overview: "Components",
     overviewLead: (n, c) => `One contract, four native implementations. **${n}** components across **${c}** categories.`,
     freeCompose: "Free composition (assemble from parts)", noRequired: "no required props",
+    refTitle: "Data Types",
+    refLead: "Shared data structures used by component props. Feed these objects to the components from your own data source — the components carry no SDK coupling.",
+    fieldsH: "Fields", valuesH: "Values", usedByH: "Used by",
+    interfacesH: "Interfaces", enumsH: "Enums / unions",
   },
 };
+
+// ---- data-type linking ---------------------------------------------------
+// anchor keyed by both the display name and the real symbol → slug(name)
+const typeAnchor = {};
+for (const dt of spec.dataTypes ?? []) {
+  typeAnchor[dt.name] = slug(dt.name);
+  if (dt.symbol) typeAnchor[dt.symbol] = slug(dt.name);
+}
+const refBaseFor = (loc) => (loc === "zh" ? "/reference/data-types" : "/en/reference/data-types");
+const compBaseFor = (loc) => (loc === "zh" ? "/components" : "/en/components");
+// strip decorations to find the base type token (Contact[] / readonly X[] / X?)
+const baseType = (type) =>
+  String(type).replace(/readonly\s+/g, "").replace(/\[\]/g, "").replace(/\?/g, "").trim();
+// render a type as a link to the data-types page when it references a known type
+function typeCell(type, loc) {
+  const anchor = typeAnchor[baseType(type)];
+  return anchor ? `[\`${esc(type)}\`](${refBaseFor(loc)}#${anchor})` : `\`${esc(type)}\``;
+}
 
 // Resolve the real Vue *public export* name from vue-im-ui's barrel, keyed by
 // the .vue file basename (which is the spec's vue symbol).
@@ -107,7 +133,7 @@ function propsTable(props, t, loc) {
   if (!props?.length) return t.none + "\n";
   let out = `| ${t.name} | ${t.type} | ${t.required} | ${t.default} | ${t.desc} |\n|---|---|:---:|---|---|\n`;
   for (const p of props) {
-    out += `| \`${esc(p.name)}\` | \`${esc(p.type)}\` | ${p.required ? "✔" : ""} | ${p.default ? `\`${esc(p.default)}\`` : "—"} | ${esc(pick(p.description, loc)) || "—"} |\n`;
+    out += `| \`${esc(p.name)}\` | ${typeCell(p.type, loc)} | ${p.required ? "✔" : ""} | ${p.default ? `\`${esc(p.default)}\`` : "—"} | ${esc(pick(p.description, loc)) || "—"} |\n`;
   }
   return out;
 }
@@ -253,6 +279,45 @@ ${usage(c, t)}
 ${extraExamples(c, t, loc)}`;
 }
 
+function usedByComponents(dt) {
+  const names = new Set([dt.name, dt.symbol].filter(Boolean));
+  return spec.components
+    .filter((c) => (c.props ?? []).some((p) => names.has(baseType(p.type))))
+    .map((c) => c.name);
+}
+
+function dataTypesPage(loc) {
+  const t = UI[loc];
+  const dts = spec.dataTypes ?? [];
+  const interfaces = dts.filter((d) => d.kind !== "enum");
+  const enums = dts.filter((d) => d.kind === "enum");
+  const compBase = compBaseFor(loc);
+  const usedBy = (dt) => {
+    const list = usedByComponents(dt);
+    if (!list.length) return "";
+    return `\n**${t.usedByH}${loc === "zh" ? "：" : ": "}**` +
+      list.map((n) => `[${n}](${compBase}/${slug(n)})`).join(" · ") + "\n";
+  };
+  let out = `---\ntitle: ${t.refTitle}\n---\n\n# ${t.refTitle}\n\n> ${t.refLead}\n`;
+  if (interfaces.length) {
+    out += `\n## ${t.interfacesH}\n`;
+    for (const dt of interfaces) {
+      out += `\n### ${dt.name} {#${slug(dt.name)}}\n\n\`${dt.symbol}\`\n\n> ${pick(dt.summary, loc)}\n${usedBy(dt)}\n`;
+      out += `| ${t.name} | ${t.type} | ${t.required} | ${t.desc} |\n|---|---|:---:|---|\n`;
+      for (const fld of dt.fields ?? [])
+        out += `| \`${esc(fld.name)}\` | ${typeCell(fld.type, loc)} | ${fld.required ? "✔" : ""} | ${esc(pick(fld.description, loc)) || "—"} |\n`;
+    }
+  }
+  if (enums.length) {
+    out += `\n## ${t.enumsH}\n`;
+    for (const dt of enums) {
+      out += `\n### ${dt.name} {#${slug(dt.name)}}\n\n\`${dt.symbol}\`\n\n> ${pick(dt.summary, loc)}\n${usedBy(dt)}\n`;
+      out += (dt.values ?? []).map((v) => `\`${esc(v)}\``).join(" · ") + "\n";
+    }
+  }
+  return out;
+}
+
 // merge curated examples once
 for (const c of spec.components) c.examples = curatedExamples[c.name] ?? c.examples;
 
@@ -273,4 +338,14 @@ for (const { code, dir, base } of LOCALES) {
   }
   writeFileSync(join(dir, "index.md"), idx);
   console.log(`generated ${spec.components.length} ${code} component pages + index into ${base}/`);
+}
+
+// data-types reference page (both locales)
+for (const { code, dir } of [
+  { code: "zh", dir: join(here, "../reference") },
+  { code: "en", dir: join(here, "../en/reference") },
+]) {
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, "data-types.md"), dataTypesPage(code));
+  console.log(`generated ${code} data-types reference (${(spec.dataTypes ?? []).length} types)`);
 }
