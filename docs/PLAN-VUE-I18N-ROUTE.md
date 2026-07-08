@@ -12,15 +12,15 @@
 - `*.test.ts`（smoke.test.ts 40 处）不在包内（files 排除），且中文是测试数据/断言 → **不动**（除非断言依赖被改默认，届时再改）。
 - 语言选择器自称名 `简体中文`/`English` 保留。
 
-## Status: IN PROGRESS (checkpoint 1 committed: plumbing + utils + composables)
-Current focus: message-enhancements（messageTypeRegistry）+ demo app 组件
+## Status: IN PROGRESS (part1 e8e2870 + part2 852fbe1 pushed；剩 demo-workbench UI)
+Current focus: demo-workbench .vue 组件（10 文件 ~250 串）——最后一层，纯示例 app UI
 
 ## Steps
 - [x] **plumbing ✅**：messages.ts 加 `resolveFlareMessage(locale,key,params)` + 模块级 runtime locale(`setFlareRuntimeLocale`/`currentFlareRuntimeLocale`/`translateFlare`)；useFlareI18n 复用 resolver + provider.setLocale/init 同步 runtime；i18n barrel 导出。vue-tsc 绿。
 - [x] **utils 层 ✅**（已线程 locale → resolveFlareMessage；无 locale → translateFlare）：`messagePreview.ts`(34,+`preview.*` 32 键含 named/count 变体) + `markdown.ts`(1,`preview.imageNamed`) + `buildMessageMenuOptions.ts`(删中文 fallback 字典→`translateFlare(messageMenu.*)`) + `conversationTitle.ts`(1,`title.groupMembers`/`memberSeparator`)。vue-tsc 绿。
 - [x] **composables 层 ✅**：`useFlareCoreClient.ts`(58→`translateFlare`，补 `notify.sent.*`/`sync.*`/`call.*`/`error.*`/`transport.*`；regex 启发式去中文备选) + `useViewport.ts`(dev 错误改英文字面量)。vue-tsc 绿。
-- [ ] **message-enhancements**：`messageTypeRegistry.ts`(67) + `messageOperations.ts`(5) + 4 个 modal .vue → translateFlare/t。补 `composeType.*`/`availability.*` keys；620 复用 messageMenu.pin/unpin。
-- [ ] **demo app 组件**：FlareWorkbenchLayout(42)/FlareChatWorkspace(40)/FlareSdkLabPanel(12)/FlareConversationsPanel(4)/FlareHomeSyncScreen(4) → useFlareI18n().t。补 `workbench.*` keys。语言自称名(`简体中文`/`English`)保留。
+- [x] **message-enhancements（非 UI）✅ part2**：`messageTypeRegistry.ts`(67→composeType.*/field/error + availability.* + 620 复用 messageMenu.pin/unpin) + `messageOperations.ts`(5→error.*/forward.*)。vue-tsc 绿。
+- [ ] **demo-workbench UI（最后一层，~250 串/10 文件）**：`FlareWorkbenchLayout.vue`(~70：抽屉/搜索状态/账号菜单/主题·变体·语言选择器[自称名留]) + `FlareChatWorkspace.vue`(~60：toast 全家桶 message.error/warning/success + 批量结果模板) + 4 modal(`ComposerPayloadModal` 31 字段标签/`ForwardModal` 12/`MediaComposerPreviewModal` 8/`MessageBatchToolbar` 10) + `FlareSdkLabPanel`(13 tab/placeholder) + `FlareHomeSyncScreen`(6,需接线 useFlareI18n) + `FlareConversationsPanel`(4) + `FlareChatPlaceholder`(2)。需给未接线文件补 `const { t } = useFlareI18n()`；模板文本→`{{ t() }}`、attr→`:attr="t()"`、script→`t()`；补 `workbench.*`/`enhance.*` keys（复用 common.cancel/common.retry/sync.failedTitle/messageMenu.*/composeType.field.*）。语言自称名 `简体中文`/`English` 保留。
 - [ ] **收尾**：全域 han 复扫=0（除 messages.ts zh locale + 语言自称名 + 测试）；vue-tsc + vitest 绿；commit + force main/dev。
 
 ## Notes / open questions
