@@ -1,4 +1,5 @@
 import { computed, onBeforeUnmount, reactive, readonly, ref, watch } from "vue";
+import { translateFlare } from "../shared/i18n/messages";
 import type {
   AudioContentPayload,
   Conversation,
@@ -303,7 +304,7 @@ export function isRecoverableLoginTransportError(
 }
 
 function loginTransportLabel(transportMode: LoginTransportMode): string {
-  return normalizeLoginTransportMode(transportMode) === "race" ? "竞速" : "QUIC";
+  return normalizeLoginTransportMode(transportMode) === "race" ? translateFlare("login.transport.race") : "QUIC";
 }
 
 function loginTransportFallbackReason(error: unknown): string {
@@ -321,8 +322,8 @@ export function loginTransportFallbackMessage(
   error: unknown,
 ): string {
   const reason = loginTransportFallbackReason(error);
-  const suffix = reason ? `原因：${reason}` : "原因：当前 runtime 不支持所选协议";
-  return `${loginTransportLabel(transportMode)} 当前不可用，已自动切换到 WebSocket。${suffix}`;
+  const suffix = reason ? translateFlare("transport.fallbackReason", { reason }) : translateFlare("transport.fallbackReasonGeneric");
+  return translateFlare("transport.switchedToWebsocket", { label: loginTransportLabel(transportMode), suffix });
 }
 
 export function normalizeLoginIdentityForSdk(input: Pick<LoginFormState, "userId" | "tenantId">): LoginIdentity {
@@ -762,50 +763,50 @@ function devCoreTokenRequest(
 export function desktopNotificationBodyForMessage(message: Message): string {
   switch (message.content?.contentType ?? messageContentTypeFromPreview(message.textPreview)) {
     case MessageContentType.Text:
-      return "发送了一条文本消息";
+      return translateFlare("notify.sent.text");
     case MessageContentType.Image:
-      return "发送了一张图片";
+      return translateFlare("notify.sent.image");
     case MessageContentType.ImageGroup:
-      return "发送了一组图片";
+      return translateFlare("notify.sent.imageGroup");
     case MessageContentType.Video:
-      return "发送了一段视频";
+      return translateFlare("notify.sent.video");
     case MessageContentType.Audio:
-      return "发送了一条语音";
+      return translateFlare("notify.sent.audio");
     case MessageContentType.File:
-      return "发送了一个文件";
+      return translateFlare("notify.sent.file");
     case MessageContentType.Sticker:
     case MessageContentType.Emoji:
-      return "发送了一个表情";
+      return translateFlare("notify.sent.emoji");
     case MessageContentType.Location:
-      return "发送了一个位置";
+      return translateFlare("notify.sent.location");
     case MessageContentType.Card:
-      return "发送了一张名片";
+      return translateFlare("notify.sent.card");
     case MessageContentType.Schedule:
-      return "发送了一个日程";
+      return translateFlare("notify.sent.schedule");
     case MessageContentType.Task:
-      return "发送了一个任务";
+      return translateFlare("notify.sent.task");
     case MessageContentType.Vote:
-      return "发送了一个投票";
+      return translateFlare("notify.sent.vote");
     case MessageContentType.Notification:
-      return "发送了一条通知";
+      return translateFlare("notify.sent.notification");
     case MessageContentType.Announcement:
-      return "发送了一条公告";
+      return translateFlare("notify.sent.announcement");
     case MessageContentType.RichText:
-      return "发送了一篇富文本";
+      return translateFlare("notify.sent.richText");
     case MessageContentType.LinkCard:
-      return "发送了一个链接";
+      return translateFlare("notify.sent.link");
     case MessageContentType.Forward:
-      return "发送了一条转发消息";
+      return translateFlare("notify.sent.forward");
     case MessageContentType.Thread:
-      return "发送了一个话题";
+      return translateFlare("notify.sent.thread");
     case MessageContentType.MiniProgram:
-      return "发送了一个小程序";
+      return translateFlare("notify.sent.miniProgram");
     case MessageContentType.System:
-      return "发送了一条系统消息";
+      return translateFlare("notify.sent.system");
     case MessageContentType.Quote:
-      return "发送了一条引用消息";
+      return translateFlare("notify.sent.quote");
     default:
-      return message.textPreview.trim() ? "发送了一条文本消息" : "发送了一条消息";
+      return message.textPreview.trim() ? translateFlare("notify.sent.text") : translateFlare("notify.sent.generic");
   }
 }
 
@@ -911,8 +912,8 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
   const homeSyncError = ref("");
   const homeSyncProgress = ref<HomeSyncProgress>({
     step: "idle",
-    title: "准备同步",
-    detail: "等待 SDK 会话建立",
+    title: translateFlare("sync.prepareTitle"),
+    detail: translateFlare("sync.prepareDetail"),
     percent: 0,
   });
   const sdkRuntimeStatus = ref<SdkRuntimeStatus>(defaultSdkRuntimeStatus);
@@ -2029,8 +2030,8 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
           if (homeSyncing.value) {
             setHomeSyncProgress({
               step: "history",
-              title: "补齐历史",
-              detail: `正在同步历史 ${index + 1}/${conversationIds.length} · ${round}`,
+              title: translateFlare("sync.backfillTitle"),
+              detail: translateFlare("sync.backfillDetail", { index: index + 1, total: conversationIds.length, round }),
               percent: Math.min(92, 72 + Math.round(((index + 1) / conversationIds.length) * 18)),
             });
           }
@@ -2076,7 +2077,7 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
     }
 
     if (failures.length > 0) {
-      const detail = `历史消息补齐未完全确认 ${failures.length}/${conversationIds.length}: ${failures.slice(0, 3).join("; ")}`;
+      const detail = translateFlare("sync.backfillIncomplete", { failed: failures.length, total: conversationIds.length, detail: failures.slice(0, 3).join("; ") });
       if (strict) {
         throw new Error(detail);
       }
@@ -2246,7 +2247,7 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
     if (foregroundInActiveConversation) return;
 
     const senderLabel = message.senderDisplayName.trim() || message.senderName.trim() || senderId || "Flare IM";
-    const title = kind === "call" ? `${senderLabel} 发起通话` : senderLabel;
+    const title = kind === "call" ? translateFlare("call.startedBy", { sender: senderLabel }) : senderLabel;
     const body = kind === "call" ? callNotificationBody(message) : desktopNotificationBodyForMessage(message);
     emitDesktopNotification({
       kind,
@@ -2268,8 +2269,8 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
     const conversationId = readStringField(event, "conversationId");
     emitDesktopNotification({
       kind: "call",
-      title: "Flare 通话",
-      body: "收到新的通话请求",
+      title: translateFlare("call.title"),
+      body: translateFlare("call.incoming"),
       conversationId,
       unreadCount: Math.max(1, totalUnread.value),
       requireAttention: true,
@@ -2289,7 +2290,7 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
       ...Object.values(message.attributes ?? {}),
       ...Object.values(message.content?.data ?? {}).map((value) => String(value ?? "")),
     ].join(" ").toLowerCase();
-    return /\brtc\.call\b|\bcall\b|\bwebrtc\b|\bsfu\b|\b通话\b/.test(text);
+    return /\brtc\.call\b|\bcall\b|\bwebrtc\b|\bsfu\b/.test(text);
   }
 
   function isCallSignalPayload(payload: unknown): boolean {
@@ -2305,7 +2306,7 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
       message.textPreview,
       readStringField(message.content?.data, "title"),
       readStringField(message.content?.data, "body"),
-    ) || "收到新的通话请求";
+    ) || translateFlare("call.incoming");
   }
 
   function firstNonEmpty(...values: Array<string | undefined>): string {
@@ -2745,8 +2746,8 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
     transportFallbackNotice.value = "";
     setHomeSyncProgress({
       step: "session",
-      title: "建立会话",
-      detail: "正在连接 Flare IM Core",
+      title: translateFlare("sync.connectTitle"),
+      detail: translateFlare("sync.connectDetail"),
       percent: 8,
     });
     try {
@@ -2783,7 +2784,7 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
         log("login_transport_fallback", notice);
         setHomeSyncProgress({
           step: "session",
-          title: "切换 WebSocket",
+          title: translateFlare("sync.switchWsTitle"),
           detail: notice,
           percent: 10,
         });
@@ -2800,8 +2801,8 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
       messageBuildCatalog.value = [...snapshot.messageBuildCatalog];
       setHomeSyncProgress({
         step: "session",
-        title: "会话已建立",
-        detail: "准备同步首页数据",
+        title: translateFlare("sync.sessionReadyTitle"),
+        detail: translateFlare("sync.sessionReadyDetail"),
         percent: 18,
       });
       persistSavedSessionProfile(savedSessionProfileFromForm(identity, token));
@@ -2880,8 +2881,8 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
     busy.value = true;
     setHomeSyncProgress({
       step: "session",
-      title: "恢复会话",
-      detail: "从本地数据直接出图",
+      title: translateFlare("sync.restoreTitle"),
+      detail: translateFlare("sync.restoreDetail"),
       percent: 30,
     });
     try {
@@ -2925,8 +2926,8 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
       homeSyncReady.value = true;
       setHomeSyncProgress({
         step: "ready",
-        title: "本地就绪",
-        detail: "首屏来自本地数据，连接在后台建立",
+        title: translateFlare("sync.localReadyTitle"),
+        detail: translateFlare("sync.localReadyDetail"),
         percent: 100,
       });
       log("session_resume_local_ready", `${conversations.value.length} conversations`);
@@ -2941,8 +2942,8 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
       homeSyncReady.value = false;
       setHomeSyncProgress({
         step: "idle",
-        title: "准备同步",
-        detail: "等待 SDK 会话建立",
+        title: translateFlare("sync.prepareTitle"),
+        detail: translateFlare("sync.prepareDetail"),
         percent: 0,
       });
       return false;
@@ -3059,7 +3060,7 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
 
   async function syncHomeBeforeEnter(): Promise<void> {
     if (!loggedIn.value) {
-      throw new Error("请先登录后再同步首页");
+      throw new Error(translateFlare("error.loginBeforeSync"));
     }
     if (homeSyncReady.value && conversations.value.length) {
       return;
@@ -3070,15 +3071,15 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
     try {
       setHomeSyncProgress({
         step: "session",
-        title: "检查连接",
-        detail: "确认 SDK 会话和连接状态",
+        title: translateFlare("sync.checkTitle"),
+        detail: translateFlare("sync.checkDetail"),
         percent: 20,
       });
       await refreshConnectionStateSafely("home_sync");
       setHomeSyncProgress({
         step: "conversations",
-        title: "同步会话",
-        detail: "读取 core-sdk 启动快照",
+        title: translateFlare("sync.syncTitle"),
+        detail: translateFlare("sync.syncDetail"),
         percent: 45,
       });
       const startupHome = await withTimeout(
@@ -3095,8 +3096,8 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
       );
       setHomeSyncProgress({
         step: "unread",
-        title: "应用快照",
-        detail: "会话列表和未读数已从 core-sdk 返回",
+        title: translateFlare("sync.applyTitle"),
+        detail: translateFlare("sync.applyDetail"),
         percent: 70,
       });
       applyConversationListViewSnapshot(startupHome.snapshot);
@@ -3108,17 +3109,17 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
       }
       setHomeSyncProgress({
         step: "preview",
-        title: "准备预览",
+        title: translateFlare("sync.previewTitle"),
         detail: startupHome.backgroundConvergenceStarted
-          ? "首屏已就绪，历史收敛在后台继续"
-          : "首屏已就绪",
+          ? translateFlare("sync.previewDetailBackground")
+          : translateFlare("sync.previewDetail"),
         percent: 90,
       });
       homeSyncReady.value = true;
       setHomeSyncProgress({
         step: "ready",
-        title: "同步完成",
-        detail: "首页已准备好",
+        title: translateFlare("sync.doneTitle"),
+        detail: translateFlare("sync.doneDetail"),
         percent: 100,
       });
       log("home_sync_ready", `${conversations.value.length} conversations`);
@@ -3128,8 +3129,8 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
       homeSyncError.value = errorMessage(error);
       setHomeSyncProgress({
         step: "failed",
-        title: "同步失败",
-        detail: homeSyncError.value || "首页数据同步失败",
+        title: translateFlare("sync.failedTitle"),
+        detail: homeSyncError.value || translateFlare("sync.failedDetail"),
         percent: 100,
       });
       log("home_sync_failed", homeSyncError.value);
@@ -3265,8 +3266,8 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
     homeSyncError.value = "";
     setHomeSyncProgress({
       step: "idle",
-      title: "准备同步",
-      detail: "等待 SDK 会话建立",
+      title: translateFlare("sync.prepareTitle"),
+      detail: translateFlare("sync.prepareDetail"),
       percent: 0,
     });
     try {
@@ -3500,7 +3501,7 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
 
   async function sendText(text: string, mentionUsers: readonly string[] = []): Promise<void> {
     if (!activeConversationId.value) {
-      throw new Error("请先通过「+」打开会话后再发送");
+      throw new Error(translateFlare("error.openConversationBeforeSend"));
     }
     const conversationId = activeConversationId.value;
     const resolvedMentionUsers = inferMentionUsers(text, mentionUsers);
@@ -3536,7 +3537,7 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
 
   async function buildAndSendMessage(op = sdkLab.buildOp, overrides: Record<string, unknown> = {}): Promise<void> {
     if (!activeConversationId.value) {
-      throw new Error("请先通过「+」打开会话后再发送");
+      throw new Error(translateFlare("error.openConversationBeforeSend"));
     }
     const conversationId = activeConversationId.value;
     const params = {
@@ -3702,8 +3703,8 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
       await client.messages.setTyping({ conversationId: activeConversationId.value, typing });
     } catch (error) {
       const detail = errorMessage(error);
-      if (/OPERATION_TIMEOUT|NOT_CONNECTED|未连接|CLOSING|CLOSED|typing|realtime control/i.test(detail)) {
-        if (/NOT_CONNECTED|未连接|CLOSING|CLOSED/i.test(detail)) {
+      if (/OPERATION_TIMEOUT|NOT_CONNECTED|CLOSING|CLOSED|typing|realtime control/i.test(detail)) {
+        if (/NOT_CONNECTED|CLOSING|CLOSED/i.test(detail)) {
           connectionState.value = "reconnecting";
         }
         return;
@@ -4163,7 +4164,7 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
       if (kind === "send_no_oss") {
         // message.send_no_oss：不走 OSS 上传的直发（文本探针）。
         if (!activeConversationId.value) {
-          throw new Error("请先通过「+」打开会话后再发送");
+          throw new Error(translateFlare("error.openConversationBeforeSend"));
         }
         const draft = await client.messageBuilder.buildText({
           conversationId: activeConversationId.value,

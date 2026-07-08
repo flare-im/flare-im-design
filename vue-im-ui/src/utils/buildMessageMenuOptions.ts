@@ -12,6 +12,7 @@ import type { MessageLike } from "../shared/contracts/messageRow";
 import { messageStateToNumber } from "./messageState";
 import { renderMessageMenuIcon } from "./messageMenuIcons";
 import { hasDownloadableMessageMedia } from "./messageMedia";
+import { translateFlare } from "../shared/i18n/messages";
 
 export type MessageMenuSheetIcon =
   | "reply"
@@ -72,32 +73,14 @@ const MENU_LABEL_KEY: Record<string, string> = {
   noop: "messageMenu.noActions",
 };
 
-const MENU_LABEL_FALLBACK: Record<string, string> = {
-  reply: "回复",
-  forward: "转发",
-  recall: "撤回",
-  resend: "重新发送",
-  "multi-select": "多选",
-  mark: "标记",
-  pin: "置顶消息",
-  pinSelf: "仅自己置顶",
-  unpin: "取消置顶",
-  copy: "复制",
-  edit: "编辑",
-  preview: "预览",
-  downloadMedia: "下载",
-  openMediaFolder: "打开所在文件夹",
-  delete: "删除",
-  noop: "暂无可用操作",
-};
-
 function menuLabel(key: string, t?: MessageMenuTranslator): string {
   const i18nKey = MENU_LABEL_KEY[key];
-  if (t && i18nKey) {
+  if (!i18nKey) return key;
+  if (t) {
     const resolved = t(i18nKey);
     if (resolved !== i18nKey) return resolved;
   }
-  return MENU_LABEL_FALLBACK[key] ?? key;
+  return translateFlare(i18nKey);
 }
 
 function messageKey(message: MessageLike): string {

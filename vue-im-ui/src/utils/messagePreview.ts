@@ -4,6 +4,7 @@ import type { ContentElem, MessageContentLike } from "./contentElem";
 import { normalizeToContentElem, pickNestedPayload, textBodyFromContent } from "./contentElem";
 import { imageInfoIsMotion } from "./motionImage";
 import { markdownToPlainText } from "./markdown";
+import { resolveFlareMessage } from "../shared/i18n/messages";
 
 export function getContentDecodedPreview(decoded: ContentElem | null | undefined, locale?: string): string {
   if (!decoded) return "";
@@ -32,88 +33,88 @@ export function getContentDecodedPreview(decoded: ContentElem | null | undefined
         || readString(richOuter, "plainText", "plain_text", "text")
         || readString(root, "plainText", "plain_text", "text");
       const richText = markdown || (title && plain ? `${title} ${plain}` : title || plain);
-      return formatPreviewText(richText, locale) || "[富文本]";
+      return formatPreviewText(richText, locale) || resolveFlareMessage(locale, "preview.richText");
     }
     case "image": {
       const image = pickNestedPayload(decoded, "image");
       const payload = Object.keys(image).length ? image : root;
       if (imageInfoIsMotion(payload as { animated?: boolean; format?: number; mimeType?: string })) {
-        return "[动图]";
+        return resolveFlareMessage(locale, "preview.gif");
       }
-      return readString(payload, "description", "title") || "[图片]";
+      return readString(payload, "description", "title") || resolveFlareMessage(locale, "preview.image");
     }
     case "video":
-      return readString(pickNestedPayload(decoded, "video"), "description", "title") || "[视频]";
+      return readString(pickNestedPayload(decoded, "video"), "description", "title") || resolveFlareMessage(locale, "preview.video");
     case "audio":
-      return readString(pickNestedPayload(decoded, "audio"), "description", "title") || "[语音]";
+      return readString(pickNestedPayload(decoded, "audio"), "description", "title") || resolveFlareMessage(locale, "preview.audio");
     case "file": {
       const file = pickNestedPayload(decoded, "file");
       const name = readString(file, "fileName", "title");
-      return name ? `[文件] ${name}` : "[文件]";
+      return name ? resolveFlareMessage(locale, "preview.fileNamed", { name }) : resolveFlareMessage(locale, "preview.file");
     }
     case "location": {
       const loc = pickNestedPayload(decoded, "location");
       const title = readString(loc, "title") || readString(root, "title");
       const address = readString(loc, "address") || readString(root, "address");
-      return title || address ? `[位置] ${title || address}` : "[位置]";
+      return title || address ? resolveFlareMessage(locale, "preview.locationNamed", { label: title || address }) : resolveFlareMessage(locale, "preview.location");
     }
     case "card": {
       const card = pickNestedPayload(decoded, "card");
       const title = readString(card, "title") || readString(root, "title");
       const id = readString(card, "id");
-      return title || id ? `[名片] ${title || id}` : "[名片]";
+      return title || id ? resolveFlareMessage(locale, "preview.cardNamed", { label: title || id }) : resolveFlareMessage(locale, "preview.card");
     }
     case "sticker":
-      return "[贴纸]";
+      return resolveFlareMessage(locale, "preview.sticker");
     case "emoji": {
       const emoji = pickNestedPayload(decoded, "emoji");
       const key = readString(emoji, "emoji", "key") || readString(root, "emoji", "key");
-      return key ? emojiPackLabel(key, locale) : "[表情]";
+      return key ? emojiPackLabel(key, locale) : resolveFlareMessage(locale, "preview.emoji");
     }
     case "quote": {
       const quote = pickNestedPayload(decoded, "quote");
       const current = quote.currentContent as ContentElem | undefined;
       if (current) return getContentDecodedPreview(current, locale) || readString(quote, "quotedTextPreview");
-      return readString(quote, "quotedTextPreview", "preview") || readString(root, "text", "body") || "[引用]";
+      return readString(quote, "quotedTextPreview", "preview") || readString(root, "text", "body") || resolveFlareMessage(locale, "preview.quote");
     }
     case "link_card":
-      return readString(pickNestedPayload(decoded, "link_card"), "title") || "[链接]";
+      return readString(pickNestedPayload(decoded, "link_card"), "title") || resolveFlareMessage(locale, "preview.link");
     case "forward": {
       const forward = pickNestedPayload(decoded, "forward");
       const items = readArray(forward, "items").length ? readArray(forward, "items") : readArray(root, "items");
-      if (items.length > 1) return `[转发] ${items.length} 条消息`;
+      if (items.length > 1) return resolveFlareMessage(locale, "preview.forwardCount", { count: items.length });
       if (items.length === 1) {
         const first = asRecord(items[0]);
-        return formatPreviewText(readString(first, "plainText", "text"), locale) || "[转发]";
+        return formatPreviewText(readString(first, "plainText", "text"), locale) || resolveFlareMessage(locale, "preview.forward");
       }
-      return readString(forward, "title") || "[转发]";
+      return readString(forward, "title") || resolveFlareMessage(locale, "preview.forward");
     }
     case "thread":
-      return readString(pickNestedPayload(decoded, "thread"), "threadTitle", "title") || "[话题]";
+      return readString(pickNestedPayload(decoded, "thread"), "threadTitle", "title") || resolveFlareMessage(locale, "preview.thread");
     case "mini_program":
-      return readString(pickNestedPayload(decoded, "mini_program"), "title") || "[小程序]";
+      return readString(pickNestedPayload(decoded, "mini_program"), "title") || resolveFlareMessage(locale, "preview.miniProgram");
     case "image_group":
-      return `[多图] ${readArray(pickNestedPayload(decoded, "image_group"), "images").length || readArray(root, "images").length} 张`;
+      return resolveFlareMessage(locale, "preview.imageGroupCount", { count: readArray(pickNestedPayload(decoded, "image_group"), "images").length || readArray(root, "images").length });
     case "system":
-      return readString(pickNestedPayload(decoded, "system"), "body", "text") || "[系统消息]";
+      return readString(pickNestedPayload(decoded, "system"), "body", "text") || resolveFlareMessage(locale, "preview.system");
     case "notification":
       return (
         readString(pickNestedPayload(decoded, "notification"), "body", "text") ||
         readString(pickNestedPayload(decoded, "notification"), "title") ||
-        "[通知]"
+        resolveFlareMessage(locale, "preview.notification")
       );
     case "vote":
-      return "[投票]";
+      return resolveFlareMessage(locale, "preview.vote");
     case "task":
-      return readString(pickNestedPayload(decoded, "task"), "title") || "[任务]";
+      return readString(pickNestedPayload(decoded, "task"), "title") || resolveFlareMessage(locale, "preview.task");
     case "schedule":
-      return readString(pickNestedPayload(decoded, "schedule"), "title") || "[日程]";
+      return readString(pickNestedPayload(decoded, "schedule"), "title") || resolveFlareMessage(locale, "preview.schedule");
     case "announcement":
-      return readString(pickNestedPayload(decoded, "announcement"), "title", "body") || "[公告]";
+      return readString(pickNestedPayload(decoded, "announcement"), "title", "body") || resolveFlareMessage(locale, "preview.announcement");
     case "custom":
-      return readString(pickNestedPayload(decoded, "custom"), "description", "text") || "[自定义]";
+      return readString(pickNestedPayload(decoded, "custom"), "description", "text") || resolveFlareMessage(locale, "preview.custom");
     case "placeholder":
-      return readString(pickNestedPayload(decoded, "placeholder"), "fallbackText") || "[占位]";
+      return readString(pickNestedPayload(decoded, "placeholder"), "fallbackText") || resolveFlareMessage(locale, "preview.placeholder");
     default:
       return "";
   }
@@ -157,14 +158,14 @@ export function previewVisualFromMessageContent(
   if (type === "emoji") {
     const emoji = pickNestedPayload(elem, "emoji");
     const key = readString(emoji, "emoji", "key") || readString(root, "emoji", "key");
-    if (!key) return { kind: "text", text: "[表情]" };
+    if (!key) return { kind: "text", text: resolveFlareMessage(locale, "preview.emoji") };
     return { kind: "emoji", key, label: emojiPackLabel(key, locale) };
   }
   if (type === "sticker") {
     const sticker = pickNestedPayload(elem, "sticker");
     return {
       kind: "sticker",
-      label: locale?.toLowerCase().startsWith("en") ? "Sticker" : "贴纸",
+      label: resolveFlareMessage(locale, "preview.stickerLabel"),
       stickerId: readString(sticker, "stickerId", "sticker_id", "id") || readString(root, "stickerId", "sticker_id", "id"),
       packageId: readString(sticker, "packageId", "package_id") || readString(root, "packageId", "package_id"),
       url: readString(sticker, "url") || readString(root, "url"),
@@ -201,25 +202,25 @@ function storedPreviewPayloadVisual(payload: StoredPreviewPayload, locale?: stri
     case "im.preview.user_text":
       return textPreview(readString(args, "t"));
     case "im.preview.rich_text":
-      return textPreview(joinText(readString(args, "title"), readString(args, "body"), readString(args, "markdown")) || "[富文本]");
+      return textPreview(joinText(readString(args, "title"), readString(args, "body"), readString(args, "markdown")) || resolveFlareMessage(locale, "preview.richText"));
     case "im.preview.file": {
       const name = readString(args, "n");
-      return textPreview(name ? `[文件] ${name}` : "[文件]");
+      return textPreview(name ? resolveFlareMessage(locale, "preview.fileNamed", { name }) : resolveFlareMessage(locale, "preview.file"));
     }
     case "im.preview.image":
-      return textPreview(readBool(args, "m") ? "[动图]" : readString(args, "d") || "[图片]");
+      return textPreview(readBool(args, "m") ? resolveFlareMessage(locale, "preview.gif") : readString(args, "d") || resolveFlareMessage(locale, "preview.image"));
     case "im.preview.video":
-      return textPreview(readString(args, "d") || "[视频]");
+      return textPreview(readString(args, "d") || resolveFlareMessage(locale, "preview.video"));
     case "im.preview.audio":
-      return textPreview(readString(args, "d") || "[语音]");
+      return textPreview(readString(args, "d") || resolveFlareMessage(locale, "preview.audio"));
     case "im.preview.location":
-      return textPreview(readString(args, "label") ? `[位置] ${readString(args, "label")}` : "[位置]");
+      return textPreview(readString(args, "label") ? resolveFlareMessage(locale, "preview.locationNamed", { label: readString(args, "label") }) : resolveFlareMessage(locale, "preview.location"));
     case "im.preview.card":
-      return textPreview(readString(args, "label") ? `[名片] ${readString(args, "label")}` : "[名片]");
+      return textPreview(readString(args, "label") ? resolveFlareMessage(locale, "preview.cardNamed", { label: readString(args, "label") }) : resolveFlareMessage(locale, "preview.card"));
     case "im.preview.sticker":
       return {
         kind: "sticker",
-        label: locale?.toLowerCase().startsWith("en") ? "Sticker" : "贴纸",
+        label: resolveFlareMessage(locale, "preview.stickerLabel"),
         stickerId: readString(args, "sid", "stickerId", "sticker_id", "id", "s"),
         packageId: readString(args, "pid", "packageId", "package_id"),
         url: readString(args, "u", "url"),
@@ -227,39 +228,39 @@ function storedPreviewPayloadVisual(payload: StoredPreviewPayload, locale?: stri
     case "im.preview.emoji":
       return emojiPreviewVisual(args, locale);
     case "im.preview.quote":
-      return textPreview(storedPreviewPayloadText(asRecord(args.inner) as StoredPreviewPayload, locale) || "[引用]");
+      return textPreview(storedPreviewPayloadText(asRecord(args.inner) as StoredPreviewPayload, locale) || resolveFlareMessage(locale, "preview.quote"));
     case "im.preview.link":
-      return textPreview(readString(args, "t") || "[链接]");
+      return textPreview(readString(args, "t") || resolveFlareMessage(locale, "preview.link"));
     case "im.preview.forward_empty":
-      return textPreview("[转发]");
+      return textPreview(resolveFlareMessage(locale, "preview.forward"));
     case "im.preview.forward_many": {
       const count = readNumber(args, 0, "n");
-      return textPreview(count > 0 ? `[转发] ${count} 条消息` : "[转发]");
+      return textPreview(count > 0 ? resolveFlareMessage(locale, "preview.forwardCount", { count }) : resolveFlareMessage(locale, "preview.forward"));
     }
     case "im.preview.thread":
-      return textPreview(readString(args, "t") || "[话题]");
+      return textPreview(readString(args, "t") || resolveFlareMessage(locale, "preview.thread"));
     case "im.preview.mini_program":
-      return textPreview(readString(args, "t") || "[小程序]");
+      return textPreview(readString(args, "t") || resolveFlareMessage(locale, "preview.miniProgram"));
     case "im.preview.image_group":
-      return textPreview("[多图]");
+      return textPreview(resolveFlareMessage(locale, "preview.imageGroup"));
     case "im.preview.system":
-      return textPreview(readString(args, "fb", "t", "body", "title", "ik", "ek") || "[系统消息]");
+      return textPreview(readString(args, "fb", "t", "body", "title", "ik", "ek") || resolveFlareMessage(locale, "preview.system"));
     case "im.preview.notification":
-      return textPreview(readString(args, "fb", "body", "title", "ik") || "[通知]");
+      return textPreview(readString(args, "fb", "body", "title", "ik") || resolveFlareMessage(locale, "preview.notification"));
     case "im.preview.vote":
-      return textPreview("[投票]");
+      return textPreview(resolveFlareMessage(locale, "preview.vote"));
     case "im.preview.task":
-      return textPreview(readString(args, "t") || "[任务]");
+      return textPreview(readString(args, "t") || resolveFlareMessage(locale, "preview.task"));
     case "im.preview.schedule":
-      return textPreview("[日程]");
+      return textPreview(resolveFlareMessage(locale, "preview.schedule"));
     case "im.preview.announcement":
-      return textPreview(readString(args, "t") || "[公告]");
+      return textPreview(readString(args, "t") || resolveFlareMessage(locale, "preview.announcement"));
     case "im.preview.custom":
-      return textPreview(readString(args, "d") || "[自定义]");
+      return textPreview(readString(args, "d") || resolveFlareMessage(locale, "preview.custom"));
     case "im.preview.placeholder":
-      return textPreview(readString(args, "t") || "[占位]");
+      return textPreview(readString(args, "t") || resolveFlareMessage(locale, "preview.placeholder"));
     case "im.preview.unknown":
-      return textPreview("[未知]");
+      return textPreview(resolveFlareMessage(locale, "preview.unknown"));
     default:
       return null;
   }
@@ -313,7 +314,7 @@ export function getMessageText(message: MessageTextSource): string {
 
 function emojiPreviewText(args: Record<string, unknown>, locale?: string): string {
   const visual = emojiPreviewVisual(args, locale);
-  if (!visual) return "[表情]";
+  if (!visual) return resolveFlareMessage(locale, "preview.emoji");
   return visual.kind === "emoji" ? visual.label : visual.text;
 }
 
@@ -322,6 +323,6 @@ function emojiPreviewVisual(
   locale?: string,
 ): Extract<MessagePreviewVisual, { kind: "text" | "emoji" }> {
   const key = readString(args, "e", "emoji", "key");
-  if (!key) return { kind: "text", text: "[表情]" };
+  if (!key) return { kind: "text", text: resolveFlareMessage(locale, "preview.emoji") };
   return { kind: "emoji", key, label: emojiPackLabel(key, locale) };
 }

@@ -41,6 +41,8 @@ const MARKDOWN_PATTERNS = [
   /^\|.*\|.*$/m,
 ];
 
+import { translateFlare } from "../shared/i18n/messages";
+
 export function isMarkdown(content: string): boolean {
   const text = normalizeMarkdownText(content).trim();
   if (!text) return false;
@@ -76,7 +78,7 @@ export function markdownToPlainText(content: string): string {
     .replace(/```(?:[^\n`]*)\n?([\s\S]*?)```/g, "$1")
     .replace(/!\[([^\]\n]*)\]\([^)]+\)/g, (_match, alt: string) => {
       const label = alt.trim();
-      return label ? `[图片] ${label}` : "[图片]";
+      return label ? translateFlare("preview.imageNamed", { label }) : translateFlare("preview.image");
     })
     .replace(/\[([^\]\n]+)\]\([^)]+\)/g, "$1")
     .replace(/^#{1,6}\s+/gm, "")

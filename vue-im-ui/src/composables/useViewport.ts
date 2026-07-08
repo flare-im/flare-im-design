@@ -83,7 +83,7 @@ export function useViewportProvider(): ViewportContext {
 export function useViewport(): ViewportContext {
   const ctx = inject(viewportKey);
   if (!ctx) {
-    throw new Error("useViewport() 需要在 App 根组件调用 useViewportProvider()");
+    throw new Error("useViewport() requires useViewportProvider() at the app root");
   }
   return ctx;
 }
