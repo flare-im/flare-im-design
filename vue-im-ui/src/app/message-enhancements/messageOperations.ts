@@ -1,10 +1,11 @@
 import { ref } from "vue";
+import { translateFlare } from "../../shared/i18n/messages";
 import type { BatchOperationResult, ComposerPayloadRequest, ForwardRequest, MessageOperationSdk, MessagePinScope } from "./types";
 
 export type MessageOperationAdapter = ReturnType<typeof createMessageOperationAdapter>;
 
 function errorText(error: unknown): string {
-  return error instanceof Error ? error.message : String(error || "操作失败");
+  return error instanceof Error ? error.message : String(error || translateFlare("error.operationFailed"));
 }
 
 function emptyResult(total: number): BatchOperationResult {
@@ -31,7 +32,7 @@ export function createMessageOperationAdapter(sdk: MessageOperationSdk) {
 
   async function sendComposerPayload(request: ComposerPayloadRequest): Promise<void> {
     const conversationId = sdk.activeConversationId.value.trim();
-    if (!conversationId) throw new Error("请先选择会话");
+    if (!conversationId) throw new Error(translateFlare("error.selectConversationFirst"));
     const key = `send:${request.kind}`;
     setBusy(key, true);
     try {
@@ -54,7 +55,7 @@ export function createMessageOperationAdapter(sdk: MessageOperationSdk) {
   async function forwardMessages(request: ForwardRequest): Promise<BatchOperationResult> {
     const ids = [...request.messageIds].filter(Boolean);
     const result = emptyResult(ids.length);
-    if (!request.targetConversationId) throw new Error("请选择转发目标");
+    if (!request.targetConversationId) throw new Error(translateFlare("error.selectForwardTarget"));
     if (!ids.length) return result;
     const key = `forward:${request.mode}`;
     setBusy(key, true);
@@ -65,7 +66,7 @@ export function createMessageOperationAdapter(sdk: MessageOperationSdk) {
             conversationId: request.targetConversationId,
             messageIds: ids,
             merge: true,
-            title: request.title || `聊天记录 ${ids.length} 条`,
+            title: request.title || translateFlare("forward.chatHistoryCount", { count: ids.length }),
           });
           result.succeeded.push(...ids);
         } catch (error) {
@@ -78,7 +79,7 @@ export function createMessageOperationAdapter(sdk: MessageOperationSdk) {
               conversationId: request.targetConversationId,
               messageIds: [messageId],
               merge: false,
-              title: request.title || "转发消息",
+              title: request.title || translateFlare("forward.defaultTitle"),
             });
             result.succeeded.push(messageId);
           } catch (error) {

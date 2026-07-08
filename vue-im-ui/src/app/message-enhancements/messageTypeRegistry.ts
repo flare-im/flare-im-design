@@ -1,4 +1,5 @@
 import { MessageBuildOp, MessageContentType } from "flare-core-typescript-sdk/web";
+import { translateFlare } from "../../shared/i18n/messages";
 import type { Message } from "flare-core-typescript-sdk/web";
 import type {
   CapabilityContext,
@@ -160,7 +161,7 @@ function requireFileOrTextParam(
 ): string {
   const value = textParam(params, key);
   const sourcePath = textParam(params, "sourcePath");
-  if (!value && !sourcePath) throw new Error(`请选择真实文件或填写真实 ${label}`);
+  if (!value && !sourcePath) throw new Error(translateFlare("composeType.error.needRealFileOr", { label }));
   return sourcePath || value;
 }
 
@@ -178,13 +179,13 @@ function generatedId(prefix: string): string {
 
 function scheduleTimeMs(params: Record<string, unknown>): number {
   const raw = textParam(params, "time");
-  if (!raw) throw new Error("日程时间 is required");
+  if (!raw) throw new Error(translateFlare("composeType.error.scheduleTimeRequired"));
   const numeric = Number(raw);
   if (Number.isFinite(numeric) && numeric > 0) {
     return numeric > 10_000_000_000 ? Math.trunc(numeric) : Math.trunc(numeric * 1000);
   }
   const parsed = Date.parse(raw);
-  if (!Number.isFinite(parsed)) throw new Error("日程时间 must be a valid date/time");
+  if (!Number.isFinite(parsed)) throw new Error(translateFlare("composeType.error.scheduleTimeInvalid"));
   return parsed;
 }
 
@@ -192,14 +193,14 @@ export const composerActions: ComposerActionDefinition[] = [
   {
     kind: "file",
     op: "create_file",
-    label: "文件",
-    description: "发送文件并展示名称、大小、类型和下载入口",
+    label: translateFlare("composeType.file.label"),
+    description: translateFlare("composeType.file.description"),
     acceptsFiles: true,
     maxFileBytes: 100 * MB,
     defaultParams: () => ({ sourcePath: "", fileId: "", fileName: "", mimeType: "", fileSize: 0 }),
     buildRequest: (params, files = []) => {
       const sourcePath = requireFileOrTextParam(params, "fileId", "fileId");
-      const fileName = mediaFileName(params, files, sourcePath, "文件");
+      const fileName = mediaFileName(params, files, sourcePath, translateFlare("composeType.file.label"));
       const mimeType = mediaMimeType(params, files, "application/octet-stream");
       const fileSize = mediaFileSize(params, files);
       return mediaContentRequest(
@@ -220,8 +221,8 @@ export const composerActions: ComposerActionDefinition[] = [
   {
     kind: "image",
     op: "create_image",
-    label: "照片",
-    description: "发送单张图片，支持加载失败占位和预览",
+    label: translateFlare("composeType.image.label"),
+    description: translateFlare("composeType.image.description"),
     acceptsFiles: true,
     maxFileBytes: 30 * MB,
     defaultParams: () => ({ sourcePath: "", imageId: "", description: "", url: "", mimeType: "", width: 0, height: 0 }),
@@ -245,22 +246,22 @@ export const composerActions: ComposerActionDefinition[] = [
           thumbnail: source,
           description: String(params.description ?? ""),
         },
-        String(params.description || "图片"),
+        String(params.description || translateFlare("composer.image")),
       );
     },
   },
   {
     kind: "video",
     op: "create_video",
-    label: "视频",
-    description: "发送视频并保留封面、时长和文件限制状态",
+    label: translateFlare("composeType.video.label"),
+    description: translateFlare("composeType.video.description"),
     acceptsFiles: true,
     maxFileBytes: 500 * MB,
     defaultParams: () => ({ sourcePath: "", videoId: "", description: "", durationMs: 0, mimeType: "" }),
     buildRequest: (params, files = []) => {
       const sourcePath = requireFileOrTextParam(params, "videoId", "videoId");
       const mimeType = mediaMimeType(params, files, "video/mp4");
-      const fileName = mediaFileName(params, files, sourcePath, "视频");
+      const fileName = mediaFileName(params, files, sourcePath, translateFlare("composeType.video.label"));
       const description = textParam(params, "description") || fileName;
       const durationMs = optionalNumberParam(params, "durationMs");
       return mediaContentRequest(
@@ -290,8 +291,8 @@ export const composerActions: ComposerActionDefinition[] = [
   {
     kind: "audio",
     op: "create_audio",
-    label: "语音",
-    description: "发送语音，展示时长、播放和已播放状态",
+    label: translateFlare("composeType.audio.label"),
+    description: translateFlare("composeType.audio.description"),
     acceptsFiles: true,
     maxFileBytes: 50 * MB,
     defaultParams: () => ({ sourcePath: "", audioId: "", sourceUrl: "", description: "", durationMs: 0, mimeType: "" }),
@@ -316,24 +317,24 @@ export const composerActions: ComposerActionDefinition[] = [
           },
           description: String(params.description ?? ""),
         },
-        String(params.description || "语音"),
+        String(params.description || translateFlare("composeType.audio.label")),
       );
     },
   },
   {
     kind: "location",
     op: "create_location",
-    label: "位置",
-    description: "发送地点名称、地址、坐标和地图缩略图",
+    label: translateFlare("composeType.location.label"),
+    description: translateFlare("composeType.location.description"),
     defaultParams: () => ({ title: "", address: "", latitude: "", longitude: "" }),
     buildRequest: (params) => ({
       op: "create_location",
       kind: "location",
-      previewText: requireTextParam(params, "title", "位置名称"),
+      previewText: requireTextParam(params, "title", translateFlare("composeType.field.locationName")),
       params: {
-        latitude: requireTextParam(params, "latitude", "纬度"),
-        longitude: requireTextParam(params, "longitude", "经度"),
-        title: requireTextParam(params, "title", "位置名称"),
+        latitude: requireTextParam(params, "latitude", translateFlare("composeType.field.latitude")),
+        longitude: requireTextParam(params, "longitude", translateFlare("composeType.field.longitude")),
+        title: requireTextParam(params, "title", translateFlare("composeType.field.locationName")),
         address: textParam(params, "address"),
       },
     }),
@@ -341,17 +342,17 @@ export const composerActions: ComposerActionDefinition[] = [
   {
     kind: "card",
     op: "create_card",
-    label: "名片",
-    description: "发送联系人名片，支持查看详情和转发",
+    label: translateFlare("composeType.card.label"),
+    description: translateFlare("composeType.card.description"),
     defaultParams: () => ({ id: "", cardType: "user", title: "", subtitle: "", avatar: "" }),
     buildRequest: (params) => ({
       op: "create_card",
       kind: "card",
-      previewText: requireTextParam(params, "title", "名片标题"),
+      previewText: requireTextParam(params, "title", translateFlare("composeType.field.cardTitle")),
       params: {
-        id: requireTextParam(params, "id", "名片 ID"),
+        id: requireTextParam(params, "id", translateFlare("composeType.field.cardId")),
         cardType: textParam(params, "cardType") || "user",
-        title: requireTextParam(params, "title", "名片标题"),
+        title: requireTextParam(params, "title", translateFlare("composeType.field.cardTitle")),
         subtitle: textParam(params, "subtitle"),
         avatar: textParam(params, "avatar"),
       },
@@ -360,18 +361,18 @@ export const composerActions: ComposerActionDefinition[] = [
   {
     kind: "schedule",
     op: "create_schedule",
-    label: "日程",
-    description: "发送标题、时间、地点和参与人",
+    label: translateFlare("composeType.schedule.label"),
+    description: translateFlare("composeType.schedule.description"),
     defaultParams: () => ({ scheduleId: generatedId("schedule"), title: "", time: "", location: "", participantUserIds: [] }),
     buildRequest: (params) => {
       const startTimeMs = scheduleTimeMs(params);
       return {
         op: "create_schedule",
         kind: "schedule",
-        previewText: requireTextParam(params, "title", "日程标题"),
+        previewText: requireTextParam(params, "title", translateFlare("composeType.field.scheduleTitle")),
         params: {
           scheduleId: textParam(params, "scheduleId") || generatedId("schedule"),
-          title: requireTextParam(params, "title", "日程标题"),
+          title: requireTextParam(params, "title", translateFlare("composeType.field.scheduleTitle")),
           startTimeMs,
           endTimeMs: startTimeMs + 60 * 60 * 1000,
           participantUserIds: Array.isArray(params.participantUserIds) ? params.participantUserIds : [],
@@ -383,16 +384,16 @@ export const composerActions: ComposerActionDefinition[] = [
   {
     kind: "task",
     op: "create_task",
-    label: "任务",
-    description: "发送负责人、截止时间和状态",
+    label: translateFlare("composeType.task.label"),
+    description: translateFlare("composeType.task.description"),
     defaultParams: () => ({ taskId: generatedId("task"), title: "", assignee: "", dueTime: "", status: "todo", participantUserIds: [] }),
     buildRequest: (params) => ({
       op: "create_task",
       kind: "task",
-        previewText: requireTextParam(params, "title", "任务标题"),
+        previewText: requireTextParam(params, "title", translateFlare("composeType.field.taskTitle")),
         params: {
         taskId: textParam(params, "taskId") || generatedId("task"),
-        title: requireTextParam(params, "title", "任务标题"),
+        title: requireTextParam(params, "title", translateFlare("composeType.field.taskTitle")),
         status: textParam(params, "status") || "todo",
         participantUserIds: Array.isArray(params.participantUserIds) ? params.participantUserIds : [],
       },
@@ -401,15 +402,15 @@ export const composerActions: ComposerActionDefinition[] = [
   {
     kind: "linkCard",
     op: "create_link_card",
-    label: "链接",
-    description: "自动识别链接并生成标题、描述、封面和域名预览",
+    label: translateFlare("composeType.link.label"),
+    description: translateFlare("composeType.link.description"),
     defaultParams: () => ({ url: "", title: "", description: "", domain: "" }),
     buildRequest: (params) => ({
       op: "create_link_card",
       kind: "linkCard",
-      previewText: textParam(params, "title") || requireTextParam(params, "url", "链接地址"),
+      previewText: textParam(params, "title") || requireTextParam(params, "url", translateFlare("composeType.field.linkUrl")),
       params: {
-        url: requireTextParam(params, "url", "链接地址"),
+        url: requireTextParam(params, "url", translateFlare("composeType.field.linkUrl")),
         title: textParam(params, "title"),
         description: textParam(params, "description"),
         thumbnailUrl: textParam(params, "thumbnailUrl"),
@@ -420,24 +421,24 @@ export const composerActions: ComposerActionDefinition[] = [
   {
     kind: "richText",
     op: "create_rich_doc",
-    label: "富文本",
-    description: "发送结构化富文本，支持标题、正文、列表、引用、链接和代码块",
+    label: translateFlare("composeType.richText.label"),
+    description: translateFlare("composeType.richText.description"),
     defaultParams: () => ({ title: "", markdown: "" }),
     buildRequest: (params) => ({
       op: "create_rich_doc",
       kind: "richText",
-      previewText: requireTextParam(params, "title", "富文本标题"),
+      previewText: requireTextParam(params, "title", translateFlare("composeType.field.richTitle")),
       params: {
-        markdown: requireTextParam(params, "markdown", "富文本 Markdown"),
-        title: requireTextParam(params, "title", "富文本标题"),
+        markdown: requireTextParam(params, "markdown", translateFlare("composeType.field.richMarkdown")),
+        title: requireTextParam(params, "title", translateFlare("composeType.field.richTitle")),
       },
     }),
   },
   {
     kind: "imageGroup",
     op: "create_image_group",
-    label: "多图",
-    description: "一次选择多张图片，按顺序九宫格展示",
+    label: translateFlare("composeType.imageGroup.label"),
+    description: translateFlare("composeType.imageGroup.description"),
     acceptsFiles: true,
     multipleFiles: true,
     maxFileBytes: 80 * MB,
@@ -447,7 +448,7 @@ export const composerActions: ComposerActionDefinition[] = [
       const imageSources = Array.isArray(params.imageSources)
         ? params.imageSources as ImageSourceParam[]
         : [];
-      if (!imageSources.length) throw new Error("请选择真实图片文件");
+      if (!imageSources.length) throw new Error(translateFlare("composeType.error.needRealImages"));
       const description = String(params.description ?? "");
       return mediaContentRequest(
         "imageGroup",
@@ -467,24 +468,24 @@ export const composerActions: ComposerActionDefinition[] = [
             imageCount: String(imageSources.length),
           },
         },
-        description || imageSources.map((item) => item.fileName || "图片").join("、"),
+        description || imageSources.map((item) => item.fileName || translateFlare("composer.image")).join(translateFlare("title.memberSeparator")),
       );
     },
   },
   {
     kind: "miniProgram",
     op: "create_mini_program",
-    label: "小程序",
-    description: "发送小程序名称、图标、标题、描述和入口路径",
+    label: translateFlare("composeType.miniProgram.label"),
+    description: translateFlare("composeType.miniProgram.description"),
     defaultParams: () => ({ appId: "", appName: "", pagePath: "", title: "", description: "", thumbnailUrl: "" }),
     buildRequest: (params) => ({
       op: "create_mini_program",
       kind: "miniProgram",
-      previewText: requireTextParam(params, "title", "小程序标题"),
+      previewText: requireTextParam(params, "title", translateFlare("composeType.field.miniTitle")),
       params: {
-        appId: requireTextParam(params, "appId", "小程序 App ID"),
+        appId: requireTextParam(params, "appId", translateFlare("composeType.field.miniAppId")),
         pagePath: textParam(params, "pagePath"),
-        title: requireTextParam(params, "title", "小程序标题"),
+        title: requireTextParam(params, "title", translateFlare("composeType.field.miniTitle")),
         thumbnailUrl: textParam(params, "thumbnailUrl"),
         extra: {
           appName: textParam(params, "appName"),
@@ -496,20 +497,20 @@ export const composerActions: ComposerActionDefinition[] = [
   {
     kind: "vote",
     op: "create_vote",
-    label: "投票",
-    description: "创建单选/多选投票，支持截止时间和匿名配置",
+    label: translateFlare("composeType.vote.label"),
+    description: translateFlare("composeType.vote.description"),
     defaultParams: () => ({ voteId: generatedId("vote"), title: "", options: [], multiple: false, anonymous: false, deadline: "", participantUserIds: [] }),
     buildRequest: (params) => {
       if (!Array.isArray(params.options) || params.options.length === 0) {
-        throw new Error("投票选项 is required");
+        throw new Error(translateFlare("composeType.error.voteOptionsRequired"));
       }
       return {
         op: "create_vote",
           kind: "vote",
-          previewText: requireTextParam(params, "title", "投票标题"),
+          previewText: requireTextParam(params, "title", translateFlare("composeType.field.voteTitle")),
           params: {
           voteId: textParam(params, "voteId") || generatedId("vote"),
-          title: requireTextParam(params, "title", "投票标题"),
+          title: requireTextParam(params, "title", translateFlare("composeType.field.voteTitle")),
           options: params.options,
           participantUserIds: Array.isArray(params.participantUserIds) ? params.participantUserIds : [],
         },
@@ -519,15 +520,15 @@ export const composerActions: ComposerActionDefinition[] = [
   {
     kind: "thread",
     op: "create_thread_reply",
-    label: "话题",
-    description: "从消息引用创建话题或线程入口",
+    label: translateFlare("composeType.thread.label"),
+    description: translateFlare("composeType.thread.description"),
     defaultParams: () => ({ threadId: "", text: "", title: "", summary: "" }),
     buildRequest: (params) => {
       const text =
         textParam(params, "text") ||
         textParam(params, "title") ||
         textParam(params, "summary");
-      if (!text) throw new Error("话题回复 is required");
+      if (!text) throw new Error(translateFlare("composeType.error.threadReplyRequired"));
       return {
         op: "create_thread_reply",
         kind: "thread",
@@ -542,32 +543,32 @@ export const composerActions: ComposerActionDefinition[] = [
   {
     kind: "notification",
     op: "create_notification",
-    label: "通知",
-    description: "发送会话内通知消息",
+    label: translateFlare("composeType.notification.label"),
+    description: translateFlare("composeType.notification.description"),
     defaultParams: () => ({ title: "", text: "" }),
     buildRequest: (params) => ({
       op: "create_notification",
       kind: "notification",
-      previewText: requireTextParam(params, "text", "通知内容"),
+      previewText: requireTextParam(params, "text", translateFlare("composeType.field.notificationBody")),
       params: {
-        title: textParam(params, "title") || "通知",
-        body: requireTextParam(params, "text", "通知内容"),
+        title: textParam(params, "title") || translateFlare("composeType.notification.label"),
+        body: requireTextParam(params, "text", translateFlare("composeType.field.notificationBody")),
       },
     }),
   },
   {
     kind: "announcement",
     op: "create_announcement",
-    label: "公告",
-    description: "发送会话公告",
+    label: translateFlare("composeType.announcement.label"),
+    description: translateFlare("composeType.announcement.description"),
     defaultParams: () => ({ title: "", text: "" }),
     buildRequest: (params) => ({
       op: "create_announcement",
       kind: "announcement",
-      previewText: textParam(params, "title") || requireTextParam(params, "text", "公告内容"),
+      previewText: textParam(params, "title") || requireTextParam(params, "text", translateFlare("composeType.field.announcementBody")),
       params: {
-        title: textParam(params, "title") || "公告",
-        body: requireTextParam(params, "text", "公告内容"),
+        title: textParam(params, "title") || translateFlare("composeType.announcement.label"),
+        body: requireTextParam(params, "text", translateFlare("composeType.field.announcementBody")),
       },
     }),
   },
@@ -599,25 +600,25 @@ export function resolveMessageCapabilities(message: Message, context: Capability
   const sending = isLocalSending(message);
   const failed = isLocalFailed(message);
   const deleted = !id;
-  const offlineReason = context.connected ? undefined : "当前连接不可用";
+  const offlineReason = context.connected ? undefined : translateFlare("availability.offline");
   const active = context.connected && !recalled && !deleted;
   const self = message.senderId === context.currentUserId;
 
   return {
-    canReact: available(active && !sending, sending ? "消息发送中" : offlineReason || "消息不可回应"),
-    canReply: available(!context.multiSelectMode && !recalled && !deleted, "多选模式或消息不可回复"),
-    canForward: available(!recalled && !deleted && !sending, "消息不可转发"),
-    canCopy: available(!recalled && !deleted, "消息不可复制"),
-    canEdit: available(!context.multiSelectMode && self && active && !sending && !failed, "只能编辑自己已发送的消息"),
-    canDelete: available(active, offlineReason || "消息不可删除"),
-    canRecall: available(!context.multiSelectMode && self && active && !failed, "只能撤回自己已发送的消息"),
-    canPin: available(active && !sending, sending ? "消息发送中" : offlineReason || "消息不可置顶"),
-    canMultiSelect: available(!recalled && !deleted, "消息不可多选"),
+    canReact: available(active && !sending, sending ? translateFlare("availability.sending") : offlineReason || translateFlare("availability.cannotReact")),
+    canReply: available(!context.multiSelectMode && !recalled && !deleted, translateFlare("availability.cannotReply")),
+    canForward: available(!recalled && !deleted && !sending, translateFlare("availability.cannotForward")),
+    canCopy: available(!recalled && !deleted, translateFlare("availability.cannotCopy")),
+    canEdit: available(!context.multiSelectMode && self && active && !sending && !failed, translateFlare("availability.cannotEdit")),
+    canDelete: available(active, offlineReason || translateFlare("availability.cannotDelete")),
+    canRecall: available(!context.multiSelectMode && self && active && !failed, translateFlare("availability.cannotRecall")),
+    canPin: available(active && !sending, sending ? translateFlare("availability.sending") : offlineReason || translateFlare("availability.cannotPin")),
+    canMultiSelect: available(!recalled && !deleted, translateFlare("availability.cannotMultiSelect")),
   };
 }
 
 export function messagePinnedLabel(message: Message): string {
-  return messageIsPinned(message) ? "取消置顶" : "置顶消息";
+  return translateFlare(messageIsPinned(message) ? "messageMenu.unpin" : "messageMenu.pin");
 }
 
 export function resolveMessageMenuActions(
