@@ -8,15 +8,16 @@ import 'flare_empty_state.dart';
 /// My groups — group avatar, name, member count.
 /// Spec: Contacts/GroupList (`FlareGroupList`).
 class FlareGroupList extends StatelessWidget {
-  const FlareGroupList({super.key, required this.items, this.onSelect});
+  const FlareGroupList({super.key, required this.items, this.onSelect, this.emptyText = 'No groups yet'});
 
   final List<FlareGroupSummary> items;
   final ValueChanged<FlareGroupSummary>? onSelect;
+  final String emptyText;
 
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(Theme.of(context).brightness);
-    if (items.isEmpty) return const FlareEmptyState(title: 'No groups yet');
+    if (items.isEmpty) return FlareEmptyState(title: emptyText);
     return ListView.builder(
       itemCount: items.length,
       itemBuilder: (context, i) {

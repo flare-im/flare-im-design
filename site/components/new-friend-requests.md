@@ -21,6 +21,7 @@ title: NewFriendRequests
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
 | `items` | [`FriendRequest[]`](/reference/data-types#friend-request) | ✔ | — | 待处理与已处理的申请列表。 |
+| `emptyText` | `string` |  | — | 无好友申请时的空态标题。默认 "No new friend requests"。 |
 
 
 ## States
@@ -52,6 +53,7 @@ import { FlareNewFriendRequests } from "flare-core-vue-im-ui";
 <template>
   <FlareNewFriendRequests
   :items="items"
+  :emptyText="emptyText"
   @accept="onAccept"
   @reject="onReject"
   @view="onView"
@@ -62,6 +64,7 @@ import { FlareNewFriendRequests } from "flare-core-vue-im-ui";
 ```dart [Flutter]
 FlareNewFriendRequests(
   items: items,
+  emptyText: emptyText,
   onAccept: onAccept,
   onReject: onReject,
   onView: onView,
@@ -69,12 +72,13 @@ FlareNewFriendRequests(
 ```
 
 ```swift [iOS]
-NewFriendRequestsView(items: items, onAccept: onAccept, onReject: onReject, onView: onView)
+NewFriendRequestsView(items: items, emptyText: emptyText, onAccept: onAccept, onReject: onReject, onView: onView)
 ```
 
 ```kotlin [Android]
 NewFriendRequests(
   items = items,
+  emptyText = emptyText,
   onAccept = onAccept,
   onReject = onReject,
   onView = onView,

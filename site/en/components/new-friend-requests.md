@@ -21,6 +21,7 @@ title: NewFriendRequests
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
 | `items` | [`FriendRequest[]`](/en/reference/data-types#friend-request) | ✔ | — | Pending and resolved requests to list. |
+| `emptyText` | `string` |  | — | Empty-state title shown when there are no requests. Defaults to "No new friend requests". |
 
 
 ## States
@@ -52,6 +53,7 @@ import { FlareNewFriendRequests } from "flare-core-vue-im-ui";
 <template>
   <FlareNewFriendRequests
   :items="items"
+  :emptyText="emptyText"
   @accept="onAccept"
   @reject="onReject"
   @view="onView"
@@ -62,6 +64,7 @@ import { FlareNewFriendRequests } from "flare-core-vue-im-ui";
 ```dart [Flutter]
 FlareNewFriendRequests(
   items: items,
+  emptyText: emptyText,
   onAccept: onAccept,
   onReject: onReject,
   onView: onView,
@@ -69,12 +72,13 @@ FlareNewFriendRequests(
 ```
 
 ```swift [iOS]
-NewFriendRequestsView(items: items, onAccept: onAccept, onReject: onReject, onView: onView)
+NewFriendRequestsView(items: items, emptyText: emptyText, onAccept: onAccept, onReject: onReject, onView: onView)
 ```
 
 ```kotlin [Android]
 NewFriendRequests(
   items = items,
+  emptyText = emptyText,
   onAccept = onAccept,
   onReject = onReject,
   onView = onView,

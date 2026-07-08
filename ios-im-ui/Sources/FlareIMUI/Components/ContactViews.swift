@@ -146,16 +146,17 @@ public struct NewFriendRequestsView: View {
     private let items: [FriendRequest]
     private let onAccept: ((FriendRequest) -> Void)?
     private let onReject: ((FriendRequest) -> Void)?
+    private let emptyText: String
     @Environment(\.colorScheme) private var scheme
 
-    public init(items: [FriendRequest], onAccept: ((FriendRequest) -> Void)? = nil, onReject: ((FriendRequest) -> Void)? = nil) {
-        self.items = items; self.onAccept = onAccept; self.onReject = onReject
+    public init(items: [FriendRequest], emptyText: String = "No new friend requests", onAccept: ((FriendRequest) -> Void)? = nil, onReject: ((FriendRequest) -> Void)? = nil) {
+        self.items = items; self.emptyText = emptyText; self.onAccept = onAccept; self.onReject = onReject
     }
 
     public var body: some View {
         let colors = FlareColors.of(scheme)
         if items.isEmpty {
-            EmptyStateView(title: "No new friend requests", systemImage: "person.badge.plus")
+            EmptyStateView(title: emptyText, systemImage: "person.badge.plus")
         } else {
             ScrollView {
                 LazyVStack(spacing: 0) {
@@ -184,16 +185,17 @@ public struct NewFriendRequestsView: View {
 public struct GroupListView: View {
     private let items: [GroupSummary]
     private let onSelect: ((GroupSummary) -> Void)?
+    private let emptyText: String
     @Environment(\.colorScheme) private var scheme
 
-    public init(items: [GroupSummary], onSelect: ((GroupSummary) -> Void)? = nil) {
-        self.items = items; self.onSelect = onSelect
+    public init(items: [GroupSummary], emptyText: String = "No groups yet", onSelect: ((GroupSummary) -> Void)? = nil) {
+        self.items = items; self.emptyText = emptyText; self.onSelect = onSelect
     }
 
     public var body: some View {
         let colors = FlareColors.of(scheme)
         if items.isEmpty {
-            EmptyStateView(title: "No groups yet", systemImage: "person.3")
+            EmptyStateView(title: emptyText, systemImage: "person.3")
         } else {
             ScrollView {
                 LazyVStack(spacing: 0) {
