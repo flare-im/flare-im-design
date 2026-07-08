@@ -1,0 +1,12 @@
+/* Semantic layout hooks shared across Web/Electron/Tauri/uni-app H5 */
+[data-flare-viewport="h5"] {
+  --flare-shell-columns: 1;
+}
+
+[data-flare-viewport="ipad"] {
+  --flare-shell-columns: 2;
+}
+
+[data-flare-viewport="pc"] {
+  --flare-shell-columns: 3;
+}

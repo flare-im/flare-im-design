@@ -1,0 +1,147 @@
+.conversation-route {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--flare-surface-raised) 74%, transparent), transparent 180px),
+    var(--flare-surface);
+}
+
+.flutter-list-header {
+  padding: calc(14px + env(safe-area-inset-top)) 16px 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--flare-border) 72%, transparent);
+  background: color-mix(in srgb, var(--flare-surface) 94%, transparent);
+  backdrop-filter: blur(14px);
+}
+
+.conversation-heading {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.conversation-heading__meta {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--flare-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conversation-filter-row {
+  display: flex;
+  gap: 6px;
+  margin: 2px 16px 12px;
+  padding: 3px;
+  overflow-x: auto;
+  border: 1px solid var(--flare-border);
+  border-radius: 8px;
+  background: var(--flare-app-bg-soft);
+  scrollbar-width: none;
+}
+
+.conversation-filter-row::-webkit-scrollbar {
+  display: none;
+}
+
+.conversation-filter {
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 6px;
+  color: var(--im-text-secondary);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.conversation-filter:hover,
+.conversation-filter:focus-visible {
+  color: var(--im-text-primary);
+  background: color-mix(in srgb, var(--im-bg-surface) 78%, transparent);
+  outline: 0;
+}
+
+.conversation-filter--active {
+  color: var(--flare-accent);
+  background: var(--im-bg-surface);
+  box-shadow: var(--flare-shadow-subtle);
+}
+
+.runtime-status-banner {
+  margin-inline: 16px;
+  border-radius: 8px;
+}
+
+.flutter-divider {
+  background: var(--flare-border);
+}
+
+.flutter-list-scroll {
+  padding: 10px 10px 18px;
+}
+
+.flutter-list-scroll .im-conv-list {
+  gap: 6px;
+  background: transparent;
+}
+
+.flutter-list-scroll .im-conv-item {
+  min-height: 72px;
+  margin-bottom: 0;
+  padding: 3px 5px 3px 0;
+  border: 1px solid color-mix(in srgb, var(--flare-border) 56%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--flare-surface-raised) 88%, var(--flare-surface));
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--im-bg-surface) 70%, transparent);
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.flutter-list-scroll .im-conv-item:hover {
+  border-color: color-mix(in srgb, var(--flare-accent) 22%, var(--flare-border));
+  background: color-mix(in srgb, var(--flare-accent) 5%, var(--flare-surface-raised));
+  box-shadow: var(--flare-shadow-subtle);
+}
+
+.flutter-list-scroll .im-conv-item--active {
+  border-color: color-mix(in srgb, var(--flare-accent) 34%, var(--flare-border));
+  background: color-mix(in srgb, var(--flare-accent) 12%, var(--flare-surface));
+  box-shadow:
+    inset 3px 0 0 var(--flare-accent),
+    var(--flare-shadow-subtle);
+}
+
+.flutter-list-scroll .im-conv-item__select {
+  min-height: 64px;
+  padding-left: 10px;
+}
+
+.flutter-list-scroll .im-conv-item__menu {
+  margin-right: 2px;
+}
+
+.flutter-list-scroll .im-conv-item__tag {
+  max-width: 58px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.flutter-list-scroll .im-conv-item__unread-pill {
+  background: #ef4444;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--flare-surface-raised) 88%, var(--flare-surface));
+}
+
+.flutter-section-label {
+  padding: 10px 4px 7px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}

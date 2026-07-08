@@ -1,0 +1,93 @@
+@media (min-width: 900px) {
+  .workbench-shell--conversations,
+  .workbench-shell--chat {
+    grid-template-columns:
+      var(--im-workbench-rail-width, 56px)
+      var(--im-workbench-conversation-width, minmax(318px, 382px))
+      minmax(0, 1fr)
+      var(--im-workbench-details-width, minmax(280px, 340px));
+  }
+
+  .conversation-route,
+  .chat-route,
+  .sdk-lab-route {
+    border-color: var(--flare-border);
+  }
+
+  .flutter-list-header {
+    padding-top: 18px;
+  }
+
+  .flutter-list-scroll {
+    padding-inline: 12px;
+  }
+
+}
+
+@media (min-width: 900px) and (max-width: 1499px) {
+  .workbench-shell--conversations,
+  .workbench-shell--chat {
+    grid-template-columns:
+      var(--im-workbench-rail-width, 56px)
+      var(--im-workbench-conversation-width, minmax(318px, 372px))
+      minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 899px) {
+  .auth-session-strip {
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    max-width: none;
+  }
+
+  .runtime-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sdk-lab-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .sdk-lab-hero__actions,
+  .sdk-lab-hero__copy {
+    grid-row: auto;
+    grid-column: auto;
+  }
+
+  .sdk-lab-hero__actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 599px) {
+  .flutter-list-header {
+    padding-inline: 14px;
+  }
+
+  .conversation-filter-row {
+    margin-inline: 14px;
+  }
+
+  .chat-placeholder {
+    width: calc(100% - 28px);
+    padding: 20px;
+  }
+
+  .chat-placeholder__metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .chat-placeholder__actions {
+    display: grid;
+  }
+
+  .sdk-lab-hero {
+    margin-inline: 12px;
+  }
+
+  .runtime-card-grid {
+    grid-template-columns: 1fr;
+  }
+}

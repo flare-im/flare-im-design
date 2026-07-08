@@ -1,0 +1,17 @@
+/* Import in consumer apps: import "flare-core-vue-im-ui/style.css" */
+/* L3 design tokens — single source of truth: flare-im-design/tokens */
+@import "flare-im-design-tokens/tokens.css";
+@import "./layout-tokens.css";
+@import "./responsive.css";
+@import "./flutter-shell.css";
+@import "./workbench.css";
+@import "./auth-layout.css";
+@import "./auth.css";
+@import "./conversation-list.css";
+@import "./chat/messages.css";
+@import "./chat/message-bubble.css";
+@import "./chat/message-menu.css";
+@import "./chat/message-context-sheet.css";
+@import "./sheets-modals.css";
+@import "./messages-view.css";
+@import "./diagnostics.css";

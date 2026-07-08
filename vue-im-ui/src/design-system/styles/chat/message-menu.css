@@ -1,0 +1,275 @@
+/* 消息菜单：PC / 平板 / H5 分端交互 */
+
+.message-bubble-host {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: min(var(--im-bubble-max-width), 100%);
+}
+
+.message-bubble-host--self {
+  align-items: flex-end;
+  margin-left: auto;
+}
+
+.message-bubble-host--toolbar-beside {
+  width: max-content;
+  max-width: min(var(--im-bubble-max-width), 100%);
+}
+
+@media (max-width: 899px) {
+  .message-bubble-host,
+  .message-bubble-host--toolbar-beside {
+    max-width: min(var(--im-bubble-max-width), calc(100% - var(--im-message-tail-space, 0px)));
+  }
+}
+
+/* DOM：气泡 → 工具条；对方消息工具条在右，己方 row-reverse 工具条在左 */
+.message-bubble-toolbar-row {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+  pointer-events: none;
+}
+
+.message-bubble-toolbar-row > * {
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
+}
+
+.message-bubble-toolbar-row--self {
+  flex-direction: row-reverse;
+}
+
+@media (min-width: 900px) {
+  .message-bubble-toolbar-row > :deep(.n-dropdown) {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
+.message-menu-anchor {
+  position: relative;
+  max-width: 100%;
+}
+
+/* PC：工具条贴在气泡侧面（对齐 shared-im-ui），仅在 hover/focus 时出现 */
+.message-bubble-host--toolbar-beside .im-floating-bar--beside-bubble {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: calc(100% + 8px);
+  flex-shrink: 0;
+  opacity: 0;
+  transform: translate(-4px, -50%);
+  pointer-events: none;
+  transition:
+    opacity var(--im-motion-fast, 140ms ease),
+    transform var(--im-motion-fast, 140ms ease);
+}
+
+.message-bubble-toolbar-row--self .im-floating-bar--beside-bubble {
+  right: calc(100% + 8px);
+  left: auto;
+  transform: translate(4px, -50%);
+}
+
+.message-bubble-host--toolbar-beside:hover .im-floating-bar--beside-bubble,
+.message-bubble-host--toolbar-beside:focus-within .im-floating-bar--beside-bubble,
+.message-row:hover .message-bubble-host--toolbar-beside .im-floating-bar--beside-bubble,
+.message-row:focus-within .message-bubble-host--toolbar-beside .im-floating-bar--beside-bubble,
+.message-bubble-host--toolbar-beside .im-floating-bar--beside-bubble:hover,
+.message-bubble-host--toolbar-beside .im-floating-bar--beside-bubble:focus-within {
+  opacity: 1;
+  transform: translate(0, -50%);
+  pointer-events: auto;
+}
+
+.message-hover-time {
+  position: absolute;
+  right: 0;
+  top: -20px;
+  bottom: auto;
+  z-index: 2;
+  padding: 2px 6px;
+  border-radius: var(--im-radius-pill, 999px);
+  color: var(--im-text-tertiary);
+  background: color-mix(in srgb, var(--im-bg-surface) 86%, transparent);
+  box-shadow: 0 1px 4px color-mix(in srgb, #111827 10%, transparent);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.25;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(2px);
+  pointer-events: none;
+  transition:
+    opacity var(--im-motion-fast, 140ms ease),
+    transform var(--im-motion-fast, 140ms ease);
+}
+
+.message-row:not(.message-row--self) .message-hover-time {
+  right: auto;
+  left: 0;
+}
+
+.message-row:hover .message-hover-time,
+.message-row:focus-within .message-hover-time,
+.message-bubble-host--toolbar-beside:hover .message-hover-time,
+.message-bubble-host--toolbar-beside:focus-within .message-hover-time {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.message-bubble-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-top: 4px;
+  border: 1px solid var(--im-border-subtle, var(--im-border));
+  border-radius: 999px;
+  color: var(--im-text-secondary);
+  background: var(--im-bg-surface);
+  box-shadow: var(--im-shadow-panel);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    color var(--im-motion-fast, 140ms ease),
+    background var(--im-motion-fast, 140ms ease),
+    opacity var(--im-motion-fast, 140ms ease);
+}
+
+.message-row:hover .message-bubble-more,
+.message-row:focus-within .message-bubble-more {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.message-bubble-more:hover,
+.message-bubble-more:focus-visible {
+  color: var(--im-primary);
+  background: color-mix(in srgb, var(--im-primary) 8%, var(--im-bg-surface));
+  outline: none;
+}
+
+@media (max-width: 899px) {
+  .message-bubble-more {
+    display: none !important;
+  }
+}
+
+.message-bubble-host--self .message-bubble-more {
+  align-self: flex-end;
+}
+
+.message-row:not(.message-row--self) .message-bubble-more {
+  align-self: flex-start;
+}
+
+.message-menu-anchor .message-bubble {
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+.message-menu-anchor .message-bubble :deep(.im-text),
+.message-menu-anchor .message-bubble :deep(a) {
+  user-select: text;
+}
+
+.message-menu-dropdown {
+  min-width: 196px;
+  padding: 6px !important;
+}
+
+.message-menu-dropdown .n-dropdown-option {
+  min-height: 40px;
+  padding-inline: 10px !important;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.message-menu-dropdown .n-dropdown-option .n-dropdown-option-body {
+  gap: 10px;
+}
+
+.message-menu-dropdown .n-dropdown-option-body__prefix {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  margin-inline-end: 2px;
+}
+
+.message-menu-dropdown .n-dropdown-divider {
+  margin: 6px 4px;
+}
+
+.message-menu-dropdown .n-dropdown-option-body__label {
+  font-weight: 600;
+}
+
+.message-menu-option--danger,
+.message-menu-dropdown .message-menu-option--danger {
+  color: var(--im-danger) !important;
+}
+
+.message-menu-drawer .n-drawer-body-content-wrapper {
+  padding: 0 !important;
+}
+
+@media (max-width: 899px) {
+  .message-bubble-host--toolbar-beside .im-floating-bar {
+    display: none !important;
+  }
+}
+
+@media (min-width: 900px) {
+  .message-bubble-more {
+    display: none !important;
+  }
+}
+
+/* PC：己方消息更贴右缘 */
+[data-viewport="desktop"] .message-row--self .message-bubble-host,
+[data-viewport="desktop"] .message-row--self .message-meta,
+[data-viewport="desktop"] .message-row--self .message-reactions {
+  max-width: min(82%, 640px);
+}
+
+[data-viewport="desktop"] .message-row--self .message-bubble {
+  max-width: 100%;
+}
+
+.message-bubble-host--chromeless-card {
+  --im-chromeless-card-host-max-width: min(var(--im-rich-card-width, 332px), 100%);
+
+  width: fit-content;
+  max-width: var(--im-chromeless-card-host-max-width);
+}
+
+.message-bubble-host--chromeless-card .message-bubble-toolbar-row,
+.message-bubble-host--chromeless-card .message-menu-anchor {
+  width: fit-content;
+  min-width: 0;
+  max-width: 100%;
+}
+
+[data-viewport="desktop"] .message-row--self .message-bubble-host--chromeless-card {
+  max-width: var(--im-chromeless-card-host-max-width);
+}
+
+[data-viewport="desktop"] .message-bubble-host:hover .message-bubble,
+[data-viewport="desktop"] .message-bubble-host:focus-within .message-bubble {
+  /* 桌面悬停工具条在侧面，不额外改气泡样式 */
+}

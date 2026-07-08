@@ -1,0 +1,32 @@
+# dependencies
+**/node_modules/
+
+# site build output — NOTE: tokens/dist is a committed generated artifact the
+# site + packages consume, so it is intentionally NOT ignored here.
+site/.vitepress/dist/
+site/.vitepress/cache/
+
+# generated download archives (regenerate via site/scripts/pack-downloads.sh)
+site/public/downloads/
+
+# Flutter
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/*.iml
+
+# Swift / iOS
+**/.build/
+**/DerivedData/
+**/Pods/
+**/*.xcuserstate
+
+# build outputs (Flutter build/, Android build/)
+**/build/
+**/.gradle/
+android-im-ui/local.properties
+**/*.hprof
+
+# macOS / editors / logs
+.DS_Store
+*.log
