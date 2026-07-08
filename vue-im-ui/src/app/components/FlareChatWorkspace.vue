@@ -519,7 +519,7 @@ async function ensureMessageLocated(messageId: string): Promise<boolean> {
       await sdk.loadOlderMessages();
     } catch (error) {
       const detail = error instanceof Error ? error.message : String(error);
-      message.error(detail || "加载历史消息失败");
+      message.error(detail || t("toast.loadHistoryFailed"));
       return false;
     }
     await nextTick();
@@ -634,7 +634,7 @@ function prepareComposerSend(): void {
 }
 
 function composerSendTimeoutError(): Error {
-  const error = new Error("发送超时，请检查网络后重试");
+  const error = new Error(t("toast.sendTimeout"));
   (error as Error & { code?: string; operation?: string; details?: Record<string, string> }).code = "timeout";
   (error as Error & { code?: string; operation?: string; details?: Record<string, string> }).operation = "composer.send";
   (error as Error & { code?: string; operation?: string; details?: Record<string, string> }).details = {
@@ -652,12 +652,12 @@ function titleFromRichMarkdown(markdown: string): string {
     .split(/\r?\n/)
     .map((line) => line.trim())
     .find(Boolean) ?? "";
-  return (firstLine || "富文本").slice(0, 48);
+  return (firstLine || t("composeType.richText.label")).slice(0, 48);
 }
 
 function buildRichTextPayload(markdown: string): ComposerPayloadRequest {
   const action = resolveComposerAction("create_rich_doc");
-  if (!action) throw new Error("富文本构建器不可用");
+  if (!action) throw new Error(t("toast.richBuilderUnavailable"));
   return action.buildRequest({
     markdown,
     title: titleFromRichMarkdown(markdown),
@@ -671,11 +671,11 @@ function textLooksLikeRichMarkdown(text: string): boolean {
 async function sendText(submittedText?: string): Promise<void> {
   const text = (submittedText ?? composerText.value).trim();
   if (!text) {
-    message.warning("请输入要发送的内容");
+    message.warning(t("toast.enterContent"));
     return;
   }
   if (!sdk.activeConversationId.value) {
-    message.warning("请先选择会话");
+    message.warning(t("error.selectConversationFirst"));
     return;
   }
   if (sending.value) return;
@@ -725,7 +725,7 @@ async function sendText(submittedText?: string): Promise<void> {
       console.warn("[flare-web] post_send_cleanup_failed", detail);
       return;
     }
-    message.error(detail || "发送失败");
+    message.error(detail || t("toast.sendFailed"));
     if (!composerText.value.trim()) {
       setComposerTextSilently(text);
       void flushComposerDraftNow(sdk.activeConversationId.value, text);
@@ -740,7 +740,7 @@ async function reactMessage(id: string, emoji: string): Promise<void> {
     await operations.toggleReaction(id, emoji);
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
-    message.error(detail || "表情回应失败");
+    message.error(detail || t("toast.reactFailed"));
   }
 }
 
@@ -755,19 +755,19 @@ async function recallMessage(id: string): Promise<void> {
     if (editingMessageId.value === id) cancelEditingMessage();
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
-    message.error(detail || "撤回失败");
+    message.error(detail || t("toast.recallFailed"));
   }
 }
 
 function editMessage(id: string): void {
   const target = findMessage(id);
   if (!target) {
-    message.warning("未找到要编辑的消息");
+    message.warning(t("toast.editNotFound"));
     return;
   }
   const text = getMessageText(target).trim();
   if (!text) {
-    message.warning("这条消息暂无可编辑文本");
+    message.warning(t("toast.editNoText"));
     return;
   }
   editingMessageId.value = id;
@@ -789,12 +789,12 @@ async function markMessage(id: string): Promise<void> {
 
 async function deleteMessage(id: string): Promise<void> {
   const result = await operations.deleteMessagesForSelf([id]);
-  showBatchResult("删除", result);
+  showBatchResult(t("toast.batchAction.delete"), result);
 }
 
 async function pinMessage(id: string, pinned: boolean, scope: MessagePinScope = "conversation"): Promise<void> {
   const result = await operations.setMessagesPinned([id], pinned, scope);
-  showBatchResult(pinned ? "置顶" : "取消置顶", result);
+  showBatchResult(pinned ? t("toast.batchAction.pin") : t("toast.batchAction.unpin"), result);
 }
 
 function startReply(id: string): void {
@@ -826,28 +826,28 @@ function forwardSelected(merge: boolean): void {
 
 async function deleteSelectedForSelf(): Promise<void> {
   const result = await operations.deleteMessagesForSelf(selectedMessageIds.value);
-  showBatchResult("删除", result);
+  showBatchResult(t("toast.batchAction.delete"), result);
   if (!result.failed.length) exitMultiSelect();
 }
 
 async function pinSelected(): Promise<void> {
   const result = await operations.setMessagesPinned(selectedMessageIds.value, true, "conversation");
-  showBatchResult("置顶", result);
+  showBatchResult(t("toast.batchAction.pin"), result);
   if (!result.failed.length) exitMultiSelect();
 }
 
 async function pinSelectedForSelf(): Promise<void> {
   const result = await operations.setMessagesPinned(selectedMessageIds.value, true, "self");
-  showBatchResult("仅自己置顶", result);
+  showBatchResult(t("toast.batchAction.pinSelf"), result);
   if (!result.failed.length) exitMultiSelect();
 }
 
 function showBatchResult(action: string, result: BatchOperationResult): void {
   if (result.failed.length) {
-    message.error(`${action}完成 ${result.succeeded.length}/${result.total}，失败 ${result.failed.length} 项：${result.failed[0]?.reason ?? ""}`);
+    message.error(t("toast.batchPartial", { action, ok: result.succeeded.length, total: result.total, fail: result.failed.length, detail: result.failed[0]?.reason ?? "" }));
     return;
   }
-  message.success(`${action}成功 ${result.succeeded.length}/${result.total}`);
+  message.success(t("toast.batchSuccess", { action, ok: result.succeeded.length, total: result.total }));
 }
 
 function openPreview(id: string): void {
@@ -930,7 +930,7 @@ async function downloadMediaSource(source: MessageMediaDownloadSource): Promise<
     const savedPath = savedPathFromResponse(response);
     if (savedPath) {
       setMediaDownloadState(source, "downloaded");
-      message.success("已下载");
+      message.success(t("toast.downloaded"));
       return;
     }
   } catch (error) {
@@ -943,7 +943,7 @@ async function downloadMediaSource(source: MessageMediaDownloadSource): Promise<
   const browserUrl = await resolveBrowserDownloadUrl(source);
   if (!browserUrl) {
     setMediaDownloadState(source, "notDownloaded");
-    throw new Error("没有可下载地址");
+    throw new Error(t("toast.noDownloadUrl"));
   }
   try {
     await startBrowserDownload(browserUrl, source.displayFileName);
@@ -976,7 +976,7 @@ async function openDownloadedMediaFolder(source: MessageMediaDownloadSource): Pr
       fileId: source.fileId,
     });
     setMediaDownloadState(source, "notDownloaded");
-    message.warning("本地文件不存在，请重新下载");
+    message.warning(t("toast.localFileMissing"));
   } catch (error) {
     if (!isNativeDownloadUnsupported(error)) {
       throw error;
@@ -1000,7 +1000,7 @@ async function handleMediaAction(id: string, action: MediaDownloadAction): Promi
     }
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
-    message.error(detail || "下载失败");
+    message.error(detail || t("toast.downloadFailed"));
   }
 }
 
@@ -1189,7 +1189,7 @@ function uploadNumberValue(source: Record<string, unknown>, ...keys: string[]): 
 function mediaSourceFromUpload(uploaded: unknown, fallback: Omit<ComposerMediaSource, "sourcePath">): ComposerMediaSource {
   const record = normalizedUploadRecord(uploaded);
   const mediaId = uploadStringValue(record, "fileId", "file_id", "mediaId", "media_id", "id", "uuid", "objectId", "object_id", "key");
-  if (!mediaId) throw new Error("媒体上传未返回 fileId");
+  if (!mediaId) throw new Error(t("toast.mediaNoFileId"));
   const sourceUrl = uploadStringValue(record, "cdnUrl", "cdn_url", "mediaUrl", "media_url", "downloadUrl", "download_url", "accessUrl", "access_url", "tempUrl", "temp_url", "sourceUrl", "source_url", "url");
   const mimeType = uploadStringValue(record, "mimeType", "mime_type", "contentType", "content_type", "type") || fallback.mimeType;
   const fileSize = uploadNumberValue(record, "size", "fileSize", "file_size", "bytes", "sizeBytes", "size_bytes") || fallback.fileSize;
@@ -1284,13 +1284,13 @@ async function sendMediaPreview(description: string): Promise<void> {
 
 async function sendVoiceRecording(recording: VoiceRecordingPayload): Promise<void> {
   if (!sdk.activeConversationId.value) {
-    message.warning("请先选择会话");
+    message.warning(t("error.selectConversationFirst"));
     return;
   }
   if (sending.value) return;
   const action = resolveComposerAction("create_audio");
   if (!action) {
-    message.error("语音构建器不可用");
+    message.error(t("toast.voiceBuilderUnavailable"));
     return;
   }
 
@@ -1317,16 +1317,16 @@ async function sendVoiceRecording(recording: VoiceRecordingPayload): Promise<voi
       size: source.fileSize || size,
       fileSize: source.fileSize || size,
       durationMs: recording.durationMs,
-      description: "语音消息",
+      description: t("toast.voiceMessageDesc"),
     })));
     setComposerTextSilently("");
     clearComposerDraft(undefined, true);
     composerPanel.value = null;
     await messageListRef.value?.scrollToBottom();
-    message.success("语音已发送");
+    message.success(t("toast.voiceSent"));
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
-    message.error(detail || "语音发送失败");
+    message.error(detail || t("toast.voiceSendFailed"));
   } finally {
     sending.value = false;
   }
@@ -1346,7 +1346,7 @@ function handleComposerVoiceDomEvent(event: Event): void {
 
 async function buildFromAction(op: string): Promise<void> {
   if (!sdk.activeConversationId.value) {
-    message.warning("请先选择会话");
+    message.warning(t("error.selectConversationFirst"));
     return;
   }
   const action = resolveComposerAction(op);
@@ -1375,7 +1375,7 @@ async function buildFromAction(op: string): Promise<void> {
     await messageListRef.value?.scrollToBottom();
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
-    message.error(detail || "发送失败");
+    message.error(detail || t("toast.sendFailed"));
   } finally {
     sending.value = false;
   }
@@ -1396,10 +1396,10 @@ async function sendComposerPayload(
     clearComposerDraft(undefined, true);
     composerPanel.value = null;
     await messageListRef.value?.scrollToBottom();
-    message.success(`${payload.previewText} 已发送`);
+    message.success(t("toast.sentNamed", { name: payload.previewText }));
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
-    message.error(detail || "发送失败");
+    message.error(detail || t("toast.sendFailed"));
     if (options.rethrow) throw error;
   } finally {
     sending.value = false;
@@ -1414,7 +1414,7 @@ async function confirmForward(payload: { targetConversationId: string; title: st
     title: payload.title,
     messageIds: selectedMessageIds.value,
   });
-  showBatchResult(mode === "merged" ? "合并转发" : "逐条转发", result);
+  showBatchResult(mode === "merged" ? t("toast.batchAction.forwardMerged") : t("toast.batchAction.forwardEach"), result);
   if (!result.failed.length) {
     interactions.closeForward();
     exitMultiSelect();
@@ -1429,7 +1429,7 @@ async function resendMessage(clientMsgId: string): Promise<void> {
     await messageListRef.value?.scrollToBottom();
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
-    message.error(detail || "重发失败");
+    message.error(detail || t("toast.resendFailed"));
   } finally {
     sending.value = false;
   }
@@ -1459,7 +1459,7 @@ function onSendStickerFromPanel(payload: { picks: ComposerStickerSendPick[] }): 
 
 async function sendStickerItem(sticker: ComposerStickerSendPick): Promise<void> {
   if (!sdk.activeConversationId.value) {
-    message.warning("请先选择会话");
+    message.warning(t("error.selectConversationFirst"));
     return;
   }
   try {
@@ -1472,7 +1472,7 @@ async function sendStickerItem(sticker: ComposerStickerSendPick): Promise<void> 
     await messageListRef.value?.scrollToBottom();
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
-    message.error(detail || "贴纸发送失败");
+    message.error(detail || t("toast.stickerSendFailed"));
   }
 }
 
@@ -1560,7 +1560,7 @@ async function syncEmptyChat(): Promise<void> {
     await messageListRef.value?.scrollToBottom();
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
-    message.error(detail || "同步失败");
+    message.error(detail || t("sync.failedTitle"));
   }
 }
 
@@ -1569,7 +1569,7 @@ async function loadOlderMessages(): Promise<void> {
     await sdk.loadOlderMessages();
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
-    message.error(detail || "加载历史消息失败");
+    message.error(detail || t("toast.loadHistoryFailed"));
   }
 }
 
@@ -1591,7 +1591,7 @@ async function focusPinnedMessage(messageId: string): Promise<void> {
         <n-button
           circle
           quaternary
-          :aria-label="multiSelectMode ? '退出多选' : '返回会话列表'"
+          :aria-label="multiSelectMode ? t('enhance.exitMultiSelect') : t('workbench.backToList')"
           :class="{ 'chat-nav-back': !multiSelectMode }"
           @click="back"
         >
@@ -1612,7 +1612,7 @@ async function focusPinnedMessage(messageId: string): Promise<void> {
       </template>
       <template #actions>
         <template v-if="multiSelectMode">
-          <n-button circle quaternary :disabled="operationBusy || allSelected" title="全选" @click="interactions.selectAll">
+          <n-button circle quaternary :disabled="operationBusy || allSelected" :title="t('enhance.selectAll')" @click="interactions.selectAll">
             <template #icon><n-icon :component="LibraryOutline" /></template>
           </n-button>
           <n-button circle quaternary :disabled="!selectedMessageIds.length" @click="forwardSelected(false)">
@@ -1624,7 +1624,7 @@ async function focusPinnedMessage(messageId: string): Promise<void> {
           <n-button circle quaternary :disabled="!selectedMessageIds.length" @click="pinSelected">
             <template #icon><n-icon :component="PinOutline" /></template>
           </n-button>
-          <n-button circle quaternary :disabled="!selectedMessageIds.length" title="仅自己置顶" @click="pinSelectedForSelf">
+          <n-button circle quaternary :disabled="!selectedMessageIds.length" :title="t('toast.batchAction.pinSelf')" @click="pinSelectedForSelf">
             <template #icon><n-icon :component="PinOutline" /></template>
           </n-button>
           <n-button circle quaternary :disabled="!selectedMessageIds.length" @click="deleteSelectedForSelf">
@@ -1632,19 +1632,19 @@ async function focusPinnedMessage(messageId: string): Promise<void> {
           </n-button>
         </template>
         <template v-else>
-          <n-button circle quaternary title="语音信令" @click="sdk.runCapabilityOperation('call_signal')">
+          <n-button circle quaternary :title="t('workbench.voiceSignal')" @click="sdk.runCapabilityOperation('call_signal')">
             <template #icon><n-icon :component="CallOutline" /></template>
           </n-button>
-          <n-button circle quaternary title="视频信令" @click="sdk.runCapabilityOperation('call_signal')">
+          <n-button circle quaternary :title="t('workbench.videoSignal')" @click="sdk.runCapabilityOperation('call_signal')">
             <template #icon><n-icon :component="VideocamOutline" /></template>
           </n-button>
-          <n-button circle quaternary title="搜索消息" @click="workbenchUi.openChatSearch()">
+          <n-button circle quaternary :title="t('workbench.searchMessages')" @click="workbenchUi.openChatSearch()">
             <template #icon><n-icon :component="SearchOutline" /></template>
           </n-button>
-          <n-button circle quaternary title="SDK 消息类型" @click="workbenchUi.openSdkBuild()">
+          <n-button circle quaternary :title="t('workbench.sdkMsgType')" @click="workbenchUi.openSdkBuild()">
             <template #icon><n-icon :component="LibraryOutline" /></template>
           </n-button>
-          <n-button circle quaternary title="更多" @click="workbenchUi.openMore()">
+          <n-button circle quaternary :title="t('workbench.more')" @click="workbenchUi.openMore()">
             <template #icon><n-icon :component="EllipsisHorizontalOutline" /></template>
           </n-button>
         </template>
@@ -1773,7 +1773,7 @@ async function focusPinnedMessage(messageId: string): Promise<void> {
         v-if="mediaPanelOpen"
         type="button"
         class="chat-media-dismiss"
-        aria-label="关闭表情与贴纸面板"
+        :aria-label="t('workbench.closeEmojiPanel')"
         @click="dismissMediaPanel"
       />
     </div>

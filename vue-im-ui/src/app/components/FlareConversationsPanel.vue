@@ -36,7 +36,7 @@ const conversationStats = computed(() => {
 
 const conversationStatusText = computed(() => {
   const stats = conversationStats.value;
-  return `${stats.total} 会话 · ${stats.pinned} 置顶 · ${stats.state}`;
+  return t("workbench.convStats", { total: stats.total, pinned: stats.pinned, state: stats.state });
 });
 
 async function selectConversation(id: string): Promise<void> {
@@ -76,15 +76,15 @@ async function runConversationAction(action: FlareConversationAction, id: string
         <n-button
           circle
           secondary
-          :aria-label="conversationSearchOpen ? '关闭会话搜索' : '搜索会话'"
+          :aria-label="conversationSearchOpen ? t('workbench.closeConvSearch') : t('workbench.searchConv')"
           @click="conversationSearchOpen = !conversationSearchOpen"
         >
           <template #icon><n-icon :component="conversationSearchOpen ? CloseOutline : SearchOutline" /></template>
         </n-button>
-        <n-button circle type="primary" aria-label="新建会话" @click="workbenchUi.openStartChat()">
+        <n-button circle type="primary" :aria-label="t('workbench.newChat')" @click="workbenchUi.openStartChat()">
           <template #icon><n-icon :component="AddOutline" /></template>
         </n-button>
-        <n-button circle secondary aria-label="更多会话操作" @click="workbenchUi.openMore()">
+        <n-button circle secondary :aria-label="t('workbench.moreConvActions')" @click="workbenchUi.openMore()">
           <template #icon><n-icon :component="EllipsisHorizontalOutline" /></template>
         </n-button>
       </div>

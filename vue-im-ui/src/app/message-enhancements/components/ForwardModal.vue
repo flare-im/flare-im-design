@@ -4,6 +4,8 @@ import { NButton, NModal, NSelect, NTag } from "naive-ui";
 import type { Conversation, Message } from "flare-core-typescript-sdk/web";
 import type { ForwardMode } from "../types";
 import { messageStableId } from "../types";
+import { useFlareI18n } from "../../shared/i18n";
+const { t } = useFlareI18n();
 
 const props = defineProps<{
   show: boolean;
@@ -37,7 +39,7 @@ const orderedMessages = computed(() =>
 );
 
 const defaultTitle = computed(() =>
-  props.mode === "merged" ? `聊天记录 ${orderedMessages.value.length} 条` : "逐条转发消息",
+  props.mode === "merged" ? t("forward.chatHistoryCount", { count: orderedMessages.value.length }) : t("enhance.forwardEachMessages"),
 );
 
 watch(
@@ -61,32 +63,32 @@ function previewText(message: Message): string {
     :show="show"
     preset="card"
     class="forward-modal"
-    title="转发确认"
+    :title="t('enhance.forwardConfirmTitle')"
     :bordered="false"
     @update:show="emit('update:show', $event)"
   >
     <div class="forward-modal__body">
       <div class="forward-modal__row">
-        <span>模式</span>
-        <n-tag size="small" round>{{ mode === "merged" ? "合并转发" : "逐条转发" }}</n-tag>
+        <span>{{ t('enhance.modeLabel') }}</span>
+        <n-tag size="small" round>{{ mode === "merged" ? t('enhance.forwardMerged') : t('enhance.forwardEach') }}</n-tag>
       </div>
       <label class="forward-modal__field">
-        <span>目标会话</span>
+        <span>{{ t('enhance.targetConv') }}</span>
         <n-select
           v-model:value="targetConversationId"
           :options="options"
           filterable
-          placeholder="选择目标会话"
+          :placeholder="t('enhance.selectTargetConv')"
         />
       </label>
       <label class="forward-modal__field">
-        <span>预览标题</span>
-        <input v-model="title" class="forward-modal__input" placeholder="转发标题" />
+        <span>{{ t('enhance.previewTitleLabel') }}</span>
+        <input v-model="title" class="forward-modal__input" :placeholder="t('enhance.forwardTitlePlaceholder')" />
       </label>
       <div class="forward-modal__preview">
         <div class="forward-modal__preview-head">
-          <strong>消息预览</strong>
-          <span>{{ orderedMessages.length }} 条</span>
+          <strong>{{ t('enhance.messagePreview') }}</strong>
+          <span>{{ t('enhance.itemsCount', { count: orderedMessages.length }) }}</span>
         </div>
         <ol>
           <li v-for="item in orderedMessages" :key="messageStableId(item)">
@@ -97,14 +99,14 @@ function previewText(message: Message): string {
     </div>
     <template #footer>
       <div class="forward-modal__footer">
-        <n-button :disabled="loading" @click="emit('update:show', false)">取消</n-button>
+        <n-button :disabled="loading" @click="emit('update:show', false)">{{ t('common.cancel') }}</n-button>
         <n-button
           type="primary"
           :loading="loading"
           :disabled="!targetConversationId || orderedMessages.length === 0"
           @click="emit('confirm', { targetConversationId, title: title || defaultTitle })"
         >
-          确认转发
+          {{ t('enhance.confirmForward') }}
         </n-button>
       </div>
     </template>
