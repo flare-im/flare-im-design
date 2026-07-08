@@ -2,6 +2,8 @@
 import { computed, ref, watch } from "vue";
 import { NButton, NInput, NModal } from "naive-ui";
 import type { EnhancedMessageKind, MediaComposerPreviewItem } from "../types";
+import { useFlareI18n } from "../../shared/i18n";
+const { t } = useFlareI18n();
 
 const props = defineProps<{
   show: boolean;
@@ -22,10 +24,10 @@ const mediaCount = computed(() => props.items.length);
 const isSingle = computed(() => mediaCount.value === 1);
 const primaryItem = computed(() => props.items[0]);
 const descriptionPlaceholder = computed(() => {
-  if (props.kind === "file") return "添加文件说明";
-  if (props.kind === "video") return "添加视频描述";
-  if (props.kind === "imageGroup") return "添加这组图片的描述";
-  return "添加描述";
+  if (props.kind === "file") return t("enhance.mediaDescFile");
+  if (props.kind === "video") return t("enhance.mediaDescVideo");
+  if (props.kind === "imageGroup") return t("enhance.mediaDescGroup");
+  return t("enhance.mediaDesc");
 });
 
 watch(
@@ -131,8 +133,8 @@ function formatBytes(value: number): string {
 
       <label class="media-composer-preview__caption">
         <span>
-          描述
-          <small>随媒体一起发送，可留空</small>
+          {{ t("enhance.description") }}
+          <small>{{ t("enhance.mediaDescHint") }}</small>
         </span>
         <NInput
           v-model:value="description"
@@ -146,9 +148,9 @@ function formatBytes(value: number): string {
 
     <template #footer>
       <div class="media-composer-preview__footer">
-        <NButton secondary :disabled="loading" @click="close">取消</NButton>
+        <NButton secondary :disabled="loading" @click="close">{{ t("common.cancel") }}</NButton>
         <NButton type="primary" :loading="loading" :disabled="!items.length" @click="submit">
-          发送
+          {{ t("enhance.send") }}
         </NButton>
       </div>
     </template>

@@ -3,6 +3,8 @@ import { computed, reactive, watch } from "vue";
 import { NButton, NModal, NTag } from "naive-ui";
 import { resolveComposerAction } from "../messageTypeRegistry";
 import type { ComposerPayloadRequest } from "../types";
+import { useFlareI18n } from "../../shared/i18n";
+const { t } = useFlareI18n();
 
 const props = defineProps<{
   show: boolean;
@@ -23,7 +25,7 @@ const action = computed(() => {
   const resolved = resolveComposerAction(props.op);
   return resolved?.acceptsFiles ? undefined : resolved;
 });
-const title = computed(() => action.value?.label ?? "消息");
+const title = computed(() => action.value?.label ?? t("enhance.messageFallback"));
 
 watch(
   () => props.show,
@@ -67,7 +69,7 @@ function submit(): void {
     :show="show"
     preset="card"
     class="composer-payload-modal"
-    :title="`发送${title}`"
+    :title="t('enhance.sendTitle', { title })"
     :bordered="false"
     @update:show="emit('update:show', $event)"
   >
@@ -79,11 +81,11 @@ function submit(): void {
 
       <template v-if="action.kind === 'richText'">
         <label class="composer-payload-modal__field">
-          <span>标题</span>
+          <span>{{ t('enhance.title') }}</span>
           <input v-model="form.title" class="composer-payload-modal__input" />
         </label>
         <label class="composer-payload-modal__field">
-          <span>富文本 Markdown</span>
+          <span>{{ t('composeType.field.richMarkdown') }}</span>
           <textarea
             :value="fieldText('markdown')"
             class="composer-payload-modal__textarea composer-payload-modal__textarea--rich"
@@ -94,16 +96,16 @@ function submit(): void {
 
       <template v-else-if="action.kind === 'vote'">
         <label class="composer-payload-modal__field">
-          <span>投票标题</span>
+          <span>{{ t('composeType.field.voteTitle') }}</span>
           <input v-model="form.title" class="composer-payload-modal__input" />
         </label>
         <label class="composer-payload-modal__field">
-          <span>选项（每行一个）</span>
+          <span>{{ t('enhance.optionsPerLine') }}</span>
           <textarea :value="optionsText()" class="composer-payload-modal__textarea" @input="setOptionsFromEvent" />
         </label>
         <div class="composer-payload-modal__switches">
-          <label><input v-model="form.multiple" type="checkbox" /> 多选</label>
-          <label><input v-model="form.anonymous" type="checkbox" /> 匿名</label>
+          <label><input v-model="form.multiple" type="checkbox" /> {{ t('enhance.multiple') }}</label>
+          <label><input v-model="form.anonymous" type="checkbox" /> {{ t('enhance.anonymous') }}</label>
         </div>
       </template>
 
@@ -121,31 +123,31 @@ function submit(): void {
           <input v-model="form.appId" class="composer-payload-modal__input" />
         </label>
         <label v-if="'cardType' in form" class="composer-payload-modal__field">
-          <span>名片类型</span>
+          <span>{{ t('enhance.cardType') }}</span>
           <input v-model="form.cardType" class="composer-payload-modal__input" />
         </label>
         <label v-if="'pagePath' in form" class="composer-payload-modal__field">
-          <span>路径</span>
+          <span>{{ t('enhance.path') }}</span>
           <input v-model="form.pagePath" class="composer-payload-modal__input" />
         </label>
         <label v-if="'title' in form" class="composer-payload-modal__field">
-          <span>标题/名称</span>
+          <span>{{ t('enhance.titleOrName') }}</span>
           <input v-model="form.title" class="composer-payload-modal__input" />
         </label>
         <label v-if="'subtitle' in form" class="composer-payload-modal__field">
-          <span>副标题</span>
+          <span>{{ t('enhance.subtitle') }}</span>
           <input v-model="form.subtitle" class="composer-payload-modal__input" />
         </label>
         <label v-if="'avatar' in form" class="composer-payload-modal__field">
-          <span>头像</span>
+          <span>{{ t('enhance.avatar') }}</span>
           <input v-model="form.avatar" class="composer-payload-modal__input" />
         </label>
         <label v-if="'appName' in form" class="composer-payload-modal__field">
-          <span>应用名称</span>
+          <span>{{ t('enhance.appName') }}</span>
           <input v-model="form.appName" class="composer-payload-modal__input" />
         </label>
         <label v-if="'description' in form" class="composer-payload-modal__field">
-          <span>描述</span>
+          <span>{{ t('enhance.description') }}</span>
           <textarea
             :value="fieldText('description')"
             class="composer-payload-modal__textarea"
@@ -153,7 +155,7 @@ function submit(): void {
           />
         </label>
         <label v-if="'text' in form" class="composer-payload-modal__field">
-          <span>内容</span>
+          <span>{{ t('enhance.content') }}</span>
           <textarea
             :value="fieldText('text')"
             class="composer-payload-modal__textarea"
@@ -161,15 +163,15 @@ function submit(): void {
           />
         </label>
         <label v-if="'address' in form" class="composer-payload-modal__field">
-          <span>地址</span>
+          <span>{{ t('enhance.address') }}</span>
           <input v-model="form.address" class="composer-payload-modal__input" />
         </label>
         <label v-if="'url' in form" class="composer-payload-modal__field">
-          <span>链接</span>
+          <span>{{ t('enhance.link') }}</span>
           <input v-model="form.url" class="composer-payload-modal__input" />
         </label>
         <label v-if="'thumbnailUrl' in form" class="composer-payload-modal__field">
-          <span>缩略图</span>
+          <span>{{ t('enhance.thumbnail') }}</span>
           <input v-model="form.thumbnailUrl" class="composer-payload-modal__input" />
         </label>
         <label v-if="'mimeType' in form" class="composer-payload-modal__field">
@@ -177,43 +179,43 @@ function submit(): void {
           <input v-model="form.mimeType" class="composer-payload-modal__input" />
         </label>
         <label v-if="'fileName' in form" class="composer-payload-modal__field">
-          <span>文件名</span>
+          <span>{{ t('enhance.fileName') }}</span>
           <input v-model="form.fileName" class="composer-payload-modal__input" />
         </label>
         <label v-if="'latitude' in form" class="composer-payload-modal__field">
-          <span>纬度</span>
+          <span>{{ t('composeType.field.latitude') }}</span>
           <input v-model="form.latitude" class="composer-payload-modal__input" />
         </label>
         <label v-if="'longitude' in form" class="composer-payload-modal__field">
-          <span>经度</span>
+          <span>{{ t('composeType.field.longitude') }}</span>
           <input v-model="form.longitude" class="composer-payload-modal__input" />
         </label>
         <label v-if="'assignee' in form" class="composer-payload-modal__field">
-          <span>负责人</span>
+          <span>{{ t('enhance.assignee') }}</span>
           <input v-model="form.assignee" class="composer-payload-modal__input" />
         </label>
         <label v-if="'dueTime' in form" class="composer-payload-modal__field">
-          <span>截止时间</span>
+          <span>{{ t('enhance.dueTime') }}</span>
           <input v-model="form.dueTime" class="composer-payload-modal__input" />
         </label>
         <label v-if="'deadline' in form" class="composer-payload-modal__field">
-          <span>截止时间</span>
+          <span>{{ t('enhance.dueTime') }}</span>
           <input v-model="form.deadline" class="composer-payload-modal__input" />
         </label>
         <label v-if="'status' in form" class="composer-payload-modal__field">
-          <span>状态</span>
+          <span>{{ t('enhance.status') }}</span>
           <input v-model="form.status" class="composer-payload-modal__input" />
         </label>
         <label v-if="'time' in form" class="composer-payload-modal__field">
-          <span>时间</span>
+          <span>{{ t('enhance.time') }}</span>
           <input v-model="form.time" class="composer-payload-modal__input" />
         </label>
         <label v-if="'location' in form" class="composer-payload-modal__field">
-          <span>地点</span>
+          <span>{{ t('enhance.place') }}</span>
           <input v-model="form.location" class="composer-payload-modal__input" />
         </label>
         <label v-if="'summary' in form" class="composer-payload-modal__field">
-          <span>摘要</span>
+          <span>{{ t('enhance.summary') }}</span>
           <textarea
             :value="fieldText('summary')"
             class="composer-payload-modal__textarea"
@@ -224,8 +226,8 @@ function submit(): void {
     </div>
     <template #footer>
       <div class="composer-payload-modal__footer">
-        <n-button :disabled="loading" @click="emit('update:show', false)">取消</n-button>
-        <n-button type="primary" :loading="loading" @click="submit">发送</n-button>
+        <n-button :disabled="loading" @click="emit('update:show', false)">{{ t('common.cancel') }}</n-button>
+        <n-button type="primary" :loading="loading" @click="submit">{{ t('enhance.send') }}</n-button>
       </div>
     </template>
   </n-modal>

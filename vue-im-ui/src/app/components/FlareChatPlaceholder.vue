@@ -54,11 +54,11 @@ function openLab(): void {
       <div class="chat-placeholder__actions">
         <n-button type="primary" @click="workbenchUi.openStartChat()">
           <template #icon><n-icon :component="ChatbubbleEllipsesOutline" /></template>
-          新建会话
+          {{ t("workbench.newChat") }}
         </n-button>
         <n-button secondary @click="workbenchUi.openChatSearch()">
           <template #icon><n-icon :component="SearchOutline" /></template>
-          搜索消息
+          {{ t("workbench.searchMessages") }}
         </n-button>
         <n-button secondary @click="openLab">
           <template #icon><n-icon :component="FlaskOutline" /></template>
