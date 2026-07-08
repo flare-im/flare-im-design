@@ -27,12 +27,13 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun NewFriendRequests(
     items: List<FriendRequest>,
+    emptyText: String = "No new friend requests",
     onAccept: ((FriendRequest) -> Unit)? = null,
     onReject: ((FriendRequest) -> Unit)? = null,
 ) {
     val colors = flareColors()
     if (items.isEmpty()) {
-        EmptyState(title = "No new friend requests")
+        EmptyState(title = emptyText)
         return
     }
     LazyColumn(Modifier.fillMaxWidth()) {

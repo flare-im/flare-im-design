@@ -21,6 +21,7 @@ title: GroupList
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
 | `items` | [`GroupSummary[]`](/en/reference/data-types#group-summary) | ✔ | — | Group summaries to list. |
+| `emptyText` | `string` |  | — | Empty-state title shown when there are no groups. Defaults to "No groups yet". |
 
 
 ## States
@@ -52,6 +53,7 @@ import { FlareGroupList } from "flare-core-vue-im-ui";
 <template>
   <FlareGroupList
   :items="items"
+  :emptyText="emptyText"
   @select="onSelect"
   />
 </template>
@@ -60,17 +62,19 @@ import { FlareGroupList } from "flare-core-vue-im-ui";
 ```dart [Flutter]
 FlareGroupList(
   items: items,
+  emptyText: emptyText,
   onSelect: onSelect,
 );
 ```
 
 ```swift [iOS]
-GroupListView(items: items, onSelect: onSelect)
+GroupListView(items: items, emptyText: emptyText, onSelect: onSelect)
 ```
 
 ```kotlin [Android]
 GroupList(
   items = items,
+  emptyText = emptyText,
   onSelect = onSelect,
 )
 ```

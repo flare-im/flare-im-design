@@ -21,6 +21,7 @@ title: GroupList
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
 | `items` | [`GroupSummary[]`](/reference/data-types#group-summary) | ✔ | — | 要列出的群摘要。 |
+| `emptyText` | `string` |  | — | 无群组时的空态标题。默认 "No groups yet"。 |
 
 
 ## States
@@ -52,6 +53,7 @@ import { FlareGroupList } from "flare-core-vue-im-ui";
 <template>
   <FlareGroupList
   :items="items"
+  :emptyText="emptyText"
   @select="onSelect"
   />
 </template>
@@ -60,17 +62,19 @@ import { FlareGroupList } from "flare-core-vue-im-ui";
 ```dart [Flutter]
 FlareGroupList(
   items: items,
+  emptyText: emptyText,
   onSelect: onSelect,
 );
 ```
 
 ```swift [iOS]
-GroupListView(items: items, onSelect: onSelect)
+GroupListView(items: items, emptyText: emptyText, onSelect: onSelect)
 ```
 
 ```kotlin [Android]
 GroupList(
   items = items,
+  emptyText = emptyText,
   onSelect = onSelect,
 )
 ```

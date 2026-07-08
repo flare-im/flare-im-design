@@ -19,7 +19,8 @@ Current focus: 提交里程碑；评估是否再做一轮真·新增 props（跨
 - [x] 生成器 ✅：产 `reference/data-types.md`(zh)+`en/reference/data-types.md`；`typeCell()` 把 prop/字段的对象型 type 链接到 `#锚点`（自定义 `{#slug}`）；`usedByComponents()` 反查"被使用于"。propsTable 接入 typeCell。13 组件页现有 type→数据类型链接。
 - [x] config.mts sidebar+nav ✅：两语加"数据类型/Data Types"（nav + 组件总览组 + 独立 `/reference/` sidebar）。
 - [x] 验证 ✅：validate 51/9 绿、vitepress build 绿（自定义锚点+跨页链接全解析）、Claude_Preview 实测：数据类型页 11 表 + 锚点(contact/conversation-row-model/setting-kind)全在、"被使用于"链有效、组件页 prop type 反链到 `#contact`、明暗双色、无横向溢出、控制台净、EN 页 Interfaces+Enums 齐。
-- [ ] （可选后续）真·新增宿主控制 props（emptyText/labels 等）到薄组件——需跨端 parity，另起一轮。
+- [x] **真·新增 props（第一批）✅**：给 GroupList + NewFriendRequests 加 `emptyText`（宿主可覆盖空态标题，默认英文），**四端 + spec 全落**：Vue(`emptyText?: string` + `:title="emptyText || 'No groups yet'"`)、Flutter(`this.emptyText = '...'`)、iOS(init `emptyText: String = "..."`)、Compose(`emptyText: String = "..."`)。**vue-tsc / flutter analyze0 / swift build / compileDebugKotlin / validate 51/9 / vitepress build 全绿**；doc 页 prop 表 + 四端 usage 示例均现 emptyText。
+- [ ] （后续可继续）更多宿主控制 props（如 ContactDetail 动作按钮 label、SettingsList title）——同款四端 parity 流程。
 
 ## Notes
 - 现状薄组件多因传"1 个对象 prop"（contact: Contact 等），真值在对象字段里 → 文档化字段是主要杠杆。

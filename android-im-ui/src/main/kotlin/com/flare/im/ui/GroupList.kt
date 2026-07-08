@@ -24,11 +24,12 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun GroupList(
     items: List<GroupSummary>,
+    emptyText: String = "No groups yet",
     onSelect: ((GroupSummary) -> Unit)? = null,
 ) {
     val colors = flareColors()
     if (items.isEmpty()) {
-        EmptyState(title = "No groups yet")
+        EmptyState(title = emptyText)
         return
     }
     LazyColumn(Modifier.fillMaxWidth()) {

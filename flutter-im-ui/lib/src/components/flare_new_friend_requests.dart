@@ -14,18 +14,20 @@ class FlareNewFriendRequests extends StatelessWidget {
     this.onAccept,
     this.onReject,
     this.onView,
+    this.emptyText = 'No new friend requests',
   });
 
   final List<FlareFriendRequest> items;
   final ValueChanged<FlareFriendRequest>? onAccept;
   final ValueChanged<FlareFriendRequest>? onReject;
   final ValueChanged<FlareFriendRequest>? onView;
+  final String emptyText;
 
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(Theme.of(context).brightness);
     if (items.isEmpty) {
-      return const FlareEmptyState(title: 'No new friend requests');
+      return FlareEmptyState(title: emptyText);
     }
     return ListView.builder(
       itemCount: items.length,
