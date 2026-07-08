@@ -8,7 +8,12 @@ import {
   type Ref,
 } from "vue";
 import { enUS, dateEnUS, zhCN, dateZhCN } from "naive-ui";
-import { flareMessages, type FlareLocale } from "./messages";
+import {
+  flareMessages,
+  resolveFlareMessage,
+  setFlareRuntimeLocale,
+  type FlareLocale,
+} from "./messages";
 
 export type { FlareLocale };
 
@@ -31,42 +36,35 @@ function readStoredLocale(): FlareLocale {
   return raw === "en-US" ? "en-US" : "zh-CN";
 }
 
-function lookup(tree: Record<string, unknown>, key: string): string | undefined {
-  const parts = key.split(".");
-  let cursor: unknown = tree;
-  for (const part of parts) {
+function hasMessage(locale: FlareLocale, key: string): boolean {
+  let cursor: unknown = flareMessages[locale];
+  for (const part of key.split(".")) {
     if (!cursor || typeof cursor !== "object" || !(part in (cursor as Record<string, unknown>))) {
-      return undefined;
+      return false;
     }
     cursor = (cursor as Record<string, unknown>)[part];
   }
-  return typeof cursor === "string" ? cursor : undefined;
-}
-
-function interpolate(template: string, params?: Record<string, string | number>): string {
-  if (!params) return template;
-  return template.replace(/\{(\w+)\}/g, (_, name: string) => String(params[name] ?? `{${name}}`));
+  return typeof cursor === "string";
 }
 
 export function useFlareI18nProvider(initialLocale: FlareLocale = readStoredLocale()): FlareI18nContext {
   const locale = ref<FlareLocale>(initialLocale);
+  setFlareRuntimeLocale(initialLocale);
 
   const naiveLocale = computed(() => (locale.value === "en-US" ? enUS : zhCN));
   const naiveDateLocale = computed(() => (locale.value === "en-US" ? dateEnUS : dateZhCN));
 
   function t(key: string, params?: Record<string, string | number>): string {
-    const localized = lookup(flareMessages[locale.value] as Record<string, unknown>, key);
-    if (localized) return interpolate(localized, params);
-    const fallback = lookup(flareMessages["zh-CN"] as Record<string, unknown>, key);
-    return interpolate(fallback ?? key, params);
+    return resolveFlareMessage(locale.value, key, params);
   }
 
   function hasKey(key: string): boolean {
-    return Boolean(lookup(flareMessages[locale.value] as Record<string, unknown>, key));
+    return hasMessage(locale.value, key);
   }
 
   function setLocale(next: FlareLocale): void {
     locale.value = next;
+    setFlareRuntimeLocale(next);
     if (typeof localStorage !== "undefined") {
       localStorage.setItem(STORAGE_KEY, next);
     }

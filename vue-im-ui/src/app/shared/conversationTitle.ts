@@ -1,4 +1,5 @@
 import { ConversationType } from "flare-core-typescript-sdk/web";
+import { translateFlare } from "../../shared/i18n/messages";
 
 export type ConversationTitleParticipant = {
   readonly userId?: string;
@@ -65,7 +66,10 @@ function firstText(...values: Array<string | undefined>): string {
 
 function buildGroupMemberTitle(item: ConversationTitleSource): string | undefined {
   const labels = collectGroupMemberLabels(item);
-  return labels.length >= 2 ? `群聊(${labels.join("、")})` : undefined;
+  const separator = translateFlare("title.memberSeparator");
+  return labels.length >= 2
+    ? translateFlare("title.groupMembers", { names: labels.join(separator) })
+    : undefined;
 }
 
 function isMemberOnlyGroupTitle(displayName: string, item: ConversationTitleSource): boolean {

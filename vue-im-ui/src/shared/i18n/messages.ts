@@ -6,6 +6,113 @@ export type FlareMessageTree = {
 
 export const flareMessages: Record<FlareLocale, FlareMessageTree> = {
   "zh-CN": {
+    preview: {
+      richText: "[富文本]",
+      gif: "[动图]",
+      image: "[图片]",
+      imageNamed: "[图片] {label}",
+      video: "[视频]",
+      audio: "[语音]",
+      file: "[文件]",
+      fileNamed: "[文件] {name}",
+      location: "[位置]",
+      locationNamed: "[位置] {label}",
+      card: "[名片]",
+      cardNamed: "[名片] {label}",
+      sticker: "[贴纸]",
+      stickerLabel: "贴纸",
+      emoji: "[表情]",
+      quote: "[引用]",
+      link: "[链接]",
+      forward: "[转发]",
+      forwardCount: "[转发] {count} 条消息",
+      thread: "[话题]",
+      miniProgram: "[小程序]",
+      imageGroup: "[多图]",
+      imageGroupCount: "[多图] {count} 张",
+      system: "[系统消息]",
+      notification: "[通知]",
+      vote: "[投票]",
+      task: "[任务]",
+      schedule: "[日程]",
+      announcement: "[公告]",
+      custom: "[自定义]",
+      placeholder: "[占位]",
+      unknown: "[未知]",
+    },
+    title: {
+      groupMembers: "群聊({names})",
+      memberSeparator: "、",
+    },
+    notify: {
+      sent: {
+        text: "发送了一条文本消息",
+        image: "发送了一张图片",
+        imageGroup: "发送了一组图片",
+        video: "发送了一段视频",
+        audio: "发送了一条语音",
+        file: "发送了一个文件",
+        emoji: "发送了一个表情",
+        location: "发送了一个位置",
+        card: "发送了一张名片",
+        schedule: "发送了一个日程",
+        task: "发送了一个任务",
+        vote: "发送了一个投票",
+        notification: "发送了一条通知",
+        announcement: "发送了一条公告",
+        richText: "发送了一篇富文本",
+        link: "发送了一个链接",
+        forward: "发送了一条转发消息",
+        thread: "发送了一个话题",
+        miniProgram: "发送了一个小程序",
+        system: "发送了一条系统消息",
+        quote: "发送了一条引用消息",
+        generic: "发送了一条消息",
+      },
+    },
+    sync: {
+      prepareTitle: "准备同步",
+      prepareDetail: "等待 SDK 会话建立",
+      backfillTitle: "补齐历史",
+      backfillDetail: "正在同步历史 {index}/{total} · {round}",
+      backfillIncomplete: "历史消息补齐未完全确认 {failed}/{total}: {detail}",
+      connectTitle: "建立会话",
+      connectDetail: "正在连接 Flare IM Core",
+      switchWsTitle: "切换 WebSocket",
+      sessionReadyTitle: "会话已建立",
+      sessionReadyDetail: "准备同步首页数据",
+      restoreTitle: "恢复会话",
+      restoreDetail: "从本地数据直接出图",
+      localReadyTitle: "本地就绪",
+      localReadyDetail: "首屏来自本地数据，连接在后台建立",
+      checkTitle: "检查连接",
+      checkDetail: "确认 SDK 会话和连接状态",
+      syncTitle: "同步会话",
+      syncDetail: "读取 core-sdk 启动快照",
+      applyTitle: "应用快照",
+      applyDetail: "会话列表和未读数已从 core-sdk 返回",
+      previewTitle: "准备预览",
+      previewDetail: "首屏已就绪",
+      previewDetailBackground: "首屏已就绪，历史收敛在后台继续",
+      doneTitle: "同步完成",
+      doneDetail: "首页已准备好",
+      failedTitle: "同步失败",
+      failedDetail: "首页数据同步失败",
+    },
+    call: {
+      title: "Flare 通话",
+      incoming: "收到新的通话请求",
+      startedBy: "{sender} 发起通话",
+    },
+    error: {
+      loginBeforeSync: "请先登录后再同步首页",
+      openConversationBeforeSend: "请先通过「+」打开会话后再发送",
+    },
+    transport: {
+      fallbackReason: "原因：{reason}",
+      fallbackReasonGeneric: "原因：当前 runtime 不支持所选协议",
+      switchedToWebsocket: "{label} 当前不可用，已自动切换到 WebSocket。{suffix}",
+    },
     nav: {
       login: "登录",
       conversations: "消息",
@@ -315,6 +422,113 @@ export const flareMessages: Record<FlareLocale, FlareMessageTree> = {
     },
   },
   "en-US": {
+    preview: {
+      richText: "[Rich text]",
+      gif: "[GIF]",
+      image: "[Image]",
+      imageNamed: "[Image] {label}",
+      video: "[Video]",
+      audio: "[Voice]",
+      file: "[File]",
+      fileNamed: "[File] {name}",
+      location: "[Location]",
+      locationNamed: "[Location] {label}",
+      card: "[Contact]",
+      cardNamed: "[Contact] {label}",
+      sticker: "[Sticker]",
+      stickerLabel: "Sticker",
+      emoji: "[Emoji]",
+      quote: "[Quote]",
+      link: "[Link]",
+      forward: "[Forward]",
+      forwardCount: "[Forward] {count} messages",
+      thread: "[Thread]",
+      miniProgram: "[Mini Program]",
+      imageGroup: "[Album]",
+      imageGroupCount: "[Album] {count}",
+      system: "[System]",
+      notification: "[Notification]",
+      vote: "[Poll]",
+      task: "[Task]",
+      schedule: "[Schedule]",
+      announcement: "[Announcement]",
+      custom: "[Custom]",
+      placeholder: "[Placeholder]",
+      unknown: "[Unknown]",
+    },
+    title: {
+      groupMembers: "Group ({names})",
+      memberSeparator: ", ",
+    },
+    notify: {
+      sent: {
+        text: "Sent a text message",
+        image: "Sent a photo",
+        imageGroup: "Sent photos",
+        video: "Sent a video",
+        audio: "Sent a voice message",
+        file: "Sent a file",
+        emoji: "Sent an emoji",
+        location: "Sent a location",
+        card: "Sent a contact card",
+        schedule: "Sent a schedule",
+        task: "Sent a task",
+        vote: "Sent a poll",
+        notification: "Sent a notification",
+        announcement: "Sent an announcement",
+        richText: "Sent a rich-text message",
+        link: "Sent a link",
+        forward: "Sent a forwarded message",
+        thread: "Sent a thread",
+        miniProgram: "Sent a mini program",
+        system: "Sent a system message",
+        quote: "Sent a quoted message",
+        generic: "Sent a message",
+      },
+    },
+    sync: {
+      prepareTitle: "Preparing sync",
+      prepareDetail: "Waiting for SDK session",
+      backfillTitle: "Backfilling history",
+      backfillDetail: "Syncing history {index}/{total} · {round}",
+      backfillIncomplete: "History backfill not fully confirmed {failed}/{total}: {detail}",
+      connectTitle: "Establishing session",
+      connectDetail: "Connecting to Flare IM Core",
+      switchWsTitle: "Switching to WebSocket",
+      sessionReadyTitle: "Session established",
+      sessionReadyDetail: "Preparing to sync home data",
+      restoreTitle: "Restoring session",
+      restoreDetail: "Rendering from local data",
+      localReadyTitle: "Local ready",
+      localReadyDetail: "First screen from local data; connecting in the background",
+      checkTitle: "Checking connection",
+      checkDetail: "Verifying SDK session and connection",
+      syncTitle: "Syncing conversations",
+      syncDetail: "Reading core-sdk startup snapshot",
+      applyTitle: "Applying snapshot",
+      applyDetail: "Conversation list and unread counts returned from core-sdk",
+      previewTitle: "Preparing preview",
+      previewDetail: "First screen ready",
+      previewDetailBackground: "First screen ready; history converging in the background",
+      doneTitle: "Sync complete",
+      doneDetail: "Home is ready",
+      failedTitle: "Sync failed",
+      failedDetail: "Home data sync failed",
+    },
+    call: {
+      title: "Flare call",
+      incoming: "Incoming call request",
+      startedBy: "{sender} started a call",
+    },
+    error: {
+      loginBeforeSync: "Please sign in before syncing the home page",
+      openConversationBeforeSend: "Open a conversation with + before sending",
+    },
+    transport: {
+      fallbackReason: "Reason: {reason}",
+      fallbackReasonGeneric: "Reason: the current runtime does not support the selected protocol",
+      switchedToWebsocket: "{label} is unavailable; automatically switched to WebSocket. {suffix}",
+    },
     nav: {
       login: "Login",
       conversations: "Messages",
@@ -624,3 +838,53 @@ export const flareMessages: Record<FlareLocale, FlareMessageTree> = {
     },
   },
 };
+
+function lookupMessage(tree: Record<string, unknown>, key: string): string | undefined {
+  let cursor: unknown = tree;
+  for (const part of key.split(".")) {
+    if (!cursor || typeof cursor !== "object" || !(part in (cursor as Record<string, unknown>))) {
+      return undefined;
+    }
+    cursor = (cursor as Record<string, unknown>)[part];
+  }
+  return typeof cursor === "string" ? cursor : undefined;
+}
+
+function interpolateMessage(template: string, params?: Record<string, string | number>): string {
+  if (!params) return template;
+  return template.replace(/\{(\w+)\}/g, (_, name: string) => String(params[name] ?? `{${name}}`));
+}
+
+/**
+ * Locale-explicit message resolver over {@link flareMessages}. Pure (no Vue
+ * context), so plain modules that already thread a `locale` can localize
+ * without the `useFlareI18n` provider. Falls back to zh-CN, then the key.
+ */
+export function resolveFlareMessage(
+  locale: FlareLocale | string | undefined,
+  key: string,
+  params?: Record<string, string | number>,
+): string {
+  const loc: FlareLocale = String(locale ?? "").toLowerCase().startsWith("en") ? "en-US" : "zh-CN";
+  const hit = lookupMessage(flareMessages[loc] as Record<string, unknown>, key)
+    ?? lookupMessage(flareMessages["zh-CN"] as Record<string, unknown>, key);
+  return interpolateMessage(hit ?? key, params);
+}
+
+// Runtime locale mirror, kept in sync by the i18n provider's setLocale so plain
+// modules with no `locale` in hand (SDK glue, message-type registry) can still
+// translate via translateFlare().
+let runtimeLocale: FlareLocale = "zh-CN";
+
+export function setFlareRuntimeLocale(locale: FlareLocale): void {
+  runtimeLocale = locale;
+}
+
+export function currentFlareRuntimeLocale(): FlareLocale {
+  return runtimeLocale;
+}
+
+/** Translate against the current runtime locale (see {@link setFlareRuntimeLocale}). */
+export function translateFlare(key: string, params?: Record<string, string | number>): string {
+  return resolveFlareMessage(runtimeLocale, key, params);
+}
