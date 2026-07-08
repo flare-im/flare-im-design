@@ -29,7 +29,7 @@ _None_
 
 ## Events
 
-_None_
+<span class="flare-tag">click</span>
 
 > [!TIP]
 > Decoupled & presentational — you pass simple props. For live, SDK-driven messages, let [MessageContentView](/en/components/message-content-view) dispatch by `content.type` instead.
@@ -55,6 +55,7 @@ import { FlareEmojiMessage } from "flare-core-vue-im-ui";
 <template>
   <FlareEmojiMessage
   :emoji="emoji"
+  @click="onClick"
   />
 </template>
 ```
@@ -62,16 +63,18 @@ import { FlareEmojiMessage } from "flare-core-vue-im-ui";
 ```dart [Flutter]
 FlareEmojiMessage(
   emoji: emoji,
+  onClick: onClick,
 );
 ```
 
 ```swift [iOS]
-EmojiMessageView(emoji: emoji)
+EmojiMessageView(emoji: emoji, onClick: onClick)
 ```
 
 ```kotlin [Android]
 EmojiMessage(
   emoji = emoji,
+  onClick = onClick,
 )
 ```
 

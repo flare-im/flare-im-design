@@ -8,8 +8,9 @@ import '../../tokens/flare_tokens.dart';
 class FlareVoiceHoldButton extends StatefulWidget {
   const FlareVoiceHoldButton({
     super.key,
-    this.label = '按住 说话',
-    this.recordingLabel = '松开 发送 · 上滑取消',
+    this.label = 'Hold to talk',
+    this.recordingLabel = 'Release to send · slide up to cancel',
+    this.cancelLabel = 'Release to cancel',
     this.cancelThreshold = 80,
     this.onStart,
     this.onEnd,
@@ -18,6 +19,9 @@ class FlareVoiceHoldButton extends StatefulWidget {
 
   final String label;
   final String recordingLabel;
+
+  /// Text shown while sliding up to cancel (host-provided, no baked-in language).
+  final String cancelLabel;
 
   /// Vertical drag (upward) beyond this many logical px cancels the recording.
   final double cancelThreshold;
@@ -70,7 +74,7 @@ class _FlareVoiceHoldButtonState extends State<FlareVoiceHoldButton> {
         ),
         child: Text(
           _pressing
-              ? (_willCancel ? '松开 取消' : widget.recordingLabel)
+              ? (_willCancel ? widget.cancelLabel : widget.recordingLabel)
               : widget.label,
           style: TextStyle(
               color: fg,

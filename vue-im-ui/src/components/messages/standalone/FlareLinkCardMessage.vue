@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import MsgIcon from "./MsgIcon.vue";
 // Presentational — emits `open`; the host opens the link.
-withDefaults(defineProps<{ title?: string; domain?: string; thumb?: string }>(), { title: "link", domain: "" });
+withDefaults(defineProps<{ title?: string; domain?: string; thumb?: string; description?: string }>(), { title: "link", domain: "" });
 const emit = defineEmits<{ (e: "open"): void }>();
 </script>
 <template>
@@ -9,6 +9,7 @@ const emit = defineEmits<{ (e: "open"): void }>();
     <div class="thumb"><img v-if="thumb" :src="thumb" alt="" /><MsgIcon v-else name="image" :size="22" /></div>
     <div class="meta">
       <b>{{ title }}</b>
+      <span v-if="description" class="desc">{{ description }}</span>
       <small><MsgIcon name="link" :size="12" />{{ domain }}</small>
     </div>
   </div>
@@ -19,5 +20,6 @@ const emit = defineEmits<{ (e: "open"): void }>();
 .thumb img { width: 100%; height: 100%; object-fit: cover; }
 .meta { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .meta b { font-size: 14px; font-weight: 500; color: var(--im-text-primary, #111318); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.meta .desc { font-size: 12px; color: var(--im-text-secondary, #6b7280); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .meta small { display: flex; align-items: center; gap: 3px; color: var(--im-text-tertiary, #a3a7ae); }
 </style>

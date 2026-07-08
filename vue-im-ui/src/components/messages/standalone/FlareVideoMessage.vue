@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import MsgIcon from "./MsgIcon.vue";
 // Presentational — emits `play`; the host opens the player.
-withDefaults(defineProps<{ poster?: string; duration?: string }>(), { duration: "00:00" });
+withDefaults(defineProps<{ poster?: string; duration?: string; alt?: string }>(), { duration: "00:00", alt: "" });
 const emit = defineEmits<{ (e: "play"): void }>();
 </script>
 <template>
   <button class="fm-video" @click="emit('play')">
-    <img v-if="poster" :src="poster" alt="" />
+    <img v-if="poster" :src="poster" :alt="alt" />
     <MsgIcon v-else name="video" :size="24" class="ph" />
     <span class="play"><MsgIcon name="play" :size="30" /></span>
     <span class="dur">{{ duration }}</span>

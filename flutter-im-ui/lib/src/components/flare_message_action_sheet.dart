@@ -27,15 +27,16 @@ class FlareMessageActionSheet extends StatelessWidget {
   final List<FlareComposerAction> actions;
   final void Function(FlareComposerAction action)? onAction;
 
+  // Neutral English sample set — the host passes its own `actions` (i18n).
   static const List<FlareComposerAction> defaultActions = [
-    FlareComposerAction(key: 'image', label: '图片', icon: Icons.image_outlined),
-    FlareComposerAction(key: 'camera', label: '拍摄', icon: Icons.camera_alt_outlined),
-    FlareComposerAction(key: 'file', label: '文件', icon: Icons.folder_outlined),
-    FlareComposerAction(key: 'location', label: '位置', icon: Icons.location_on_outlined),
-    FlareComposerAction(key: 'card', label: '名片', icon: Icons.contact_page_outlined),
-    FlareComposerAction(key: 'vote', label: '投票', icon: Icons.how_to_vote_outlined),
-    FlareComposerAction(key: 'task', label: '任务', icon: Icons.checklist_rounded),
-    FlareComposerAction(key: 'schedule', label: '日程', icon: Icons.event_outlined),
+    FlareComposerAction(key: 'image', label: 'Image', icon: Icons.image_outlined),
+    FlareComposerAction(key: 'camera', label: 'Camera', icon: Icons.camera_alt_outlined),
+    FlareComposerAction(key: 'file', label: 'File', icon: Icons.folder_outlined),
+    FlareComposerAction(key: 'location', label: 'Location', icon: Icons.location_on_outlined),
+    FlareComposerAction(key: 'card', label: 'Card', icon: Icons.contact_page_outlined),
+    FlareComposerAction(key: 'poll', label: 'Poll', icon: Icons.how_to_vote_outlined),
+    FlareComposerAction(key: 'task', label: 'Task', icon: Icons.checklist_rounded),
+    FlareComposerAction(key: 'schedule', label: 'Schedule', icon: Icons.event_outlined),
   ];
 
   /// Convenience: present this sheet as a modal bottom sheet and return the

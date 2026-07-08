@@ -65,6 +65,8 @@ dependencies {
     implementation("androidx.compose.foundation:foundation")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
+    // Network image loading for URL-backed message bodies (Image/Video/Location/Contact/LinkCard).
+    implementation("io.coil-kt:coil-compose:2.7.0")
 
     testImplementation(kotlin("test"))
 }

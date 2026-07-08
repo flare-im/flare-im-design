@@ -12,7 +12,7 @@ const emit = defineEmits<{ (e: "open"): void; (e: "download"): void }>();
       <slot name="icon"><MsgIcon name="folder" :size="20" /></slot>
     </span>
     <span class="meta"><b>{{ name }}</b><small>{{ size }}<template v-if="ext"> · {{ ext }}</template></small></span>
-    <button class="dl" aria-label="下载" @click.stop="emit('download')"><MsgIcon name="download" :size="17" /></button>
+    <button class="dl" aria-label="Download" @click.stop="emit('download')"><MsgIcon name="download" :size="17" /></button>
   </div>
 </template>
 <style scoped>

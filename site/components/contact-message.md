@@ -21,7 +21,8 @@ title: ContactMessage
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
 | `name` | `string` | ✔ | — | 联系人名（驱动 pastel 头像）。 |
-| `flareId` | `string` |  | — | 名称下方显示的 Flare ID。 |
+| `avatarUrl` | `string` |  | — | 头像图；无则回退到 pastel 首字母。 |
+| `subtitle` | `string` |  | — | 自由副标题（用户名 / ID / 部门…）。 |
 
 
 ## States
@@ -56,7 +57,8 @@ import { FlareContactMessage } from "flare-core-vue-im-ui";
 <template>
   <FlareContactMessage
   :name="name"
-  :flareId="flareId"
+  :avatarUrl="avatarUrl"
+  :subtitle="subtitle"
   @open="onOpen"
   />
 </template>
@@ -65,19 +67,21 @@ import { FlareContactMessage } from "flare-core-vue-im-ui";
 ```dart [Flutter]
 FlareContactMessage(
   name: name,
-  flareId: flareId,
+  avatarUrl: avatarUrl,
+  subtitle: subtitle,
   onOpen: onOpen,
 );
 ```
 
 ```swift [iOS]
-ContactMessageView(name: name, flareId: flareId, onOpen: onOpen)
+ContactMessageView(name: name, avatarUrl: avatarUrl, subtitle: subtitle, onOpen: onOpen)
 ```
 
 ```kotlin [Android]
 ContactMessage(
   name = name,
-  flareId = flareId,
+  avatarUrl = avatarUrl,
+  subtitle = subtitle,
   onOpen = onOpen,
 )
 ```

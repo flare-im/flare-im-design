@@ -2,11 +2,11 @@ package com.flare.im.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.BarChart
@@ -29,20 +30,31 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 
 /*
  * Standalone, presentational per-type message bodies (clean params, no SDK /
- * media coupling) — drop any single one into your own layout. The SDK-driven
+ * media coupling) — drop any single one into your own layout. Interaction is
+ * surfaced as callbacks: the host owns the URLs/handlers. The SDK-driven
  * dispatcher MessageContentView stays the batteries-included path.
  * Spec: Message/MessageContentView content types, decomposed into components.
  */
@@ -53,43 +65,96 @@ private fun Modifier.bubbleCard(colors: FlareColors): Modifier = this
     .background(colors.bgPrimary)
     .border(1.dp, colors.borderSecondary, RoundedCornerShape(16.dp))
 
-/** text — a plain text bubble (self flips to the brand-purple side). */
+/** Attach an optional click handler without changing layout. */
+private fun Modifier.onClickIf(action: (() -> Unit)?): Modifier =
+    if (action != null) this.clickable { action() } else this
+
+/** A network image (host-provided URL) that falls back to a placeholder. */
 @Composable
-fun TextMessage(text: String, self: Boolean = false) {
-    val colors = flareColors()
-    Text(
-        text,
-        color = if (self) Color.White else colors.textPrimary,
-        fontSize = FlareSizes.fontSizeXl.value.sp,
-        lineHeight = (FlareSizes.fontSizeXl.value * 1.45f).sp,
-        modifier = Modifier
-            .then(
-                if (self) Modifier.clip(RoundedCornerShape(16.dp)).background(colors.bubbleSelf)
-                else Modifier.bubbleCard(colors),
-            )
-            .padding(horizontal = 14.dp, vertical = 9.dp),
-    )
+private fun NetImage(
+    url: String?,
+    modifier: Modifier,
+    contentDescription: String? = null,
+    placeholder: @Composable () -> Unit,
+) {
+    if (!url.isNullOrEmpty()) {
+        AsyncImage(model = url, contentDescription = contentDescription, modifier = modifier, contentScale = ContentScale.Crop)
+    } else {
+        Box(modifier, contentAlignment = Alignment.Center) { placeholder() }
+    }
 }
 
-/** image — a rounded thumbnail placeholder. */
+/** Linkify bare URLs; taps report the href via [onLinkTap]. */
+private fun linkify(text: String, linkColor: Color, onLinkTap: ((String) -> Unit)?): AnnotatedString {
+    val regex = Regex("((?:https?://)?[a-z0-9.-]+\\.[a-z]{2,}(?:/\\S*)?)", RegexOption.IGNORE_CASE)
+    return buildAnnotatedString {
+        var last = 0
+        for (m in regex.findAll(text)) {
+            if (m.range.first > last) append(text.substring(last, m.range.first))
+            val href = m.value
+            val url = if (href.startsWith("http")) href else "https://$href"
+            val style = SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline)
+            if (onLinkTap != null) {
+                withLink(LinkAnnotation.Url(url, TextLinkStyles(style)) { onLinkTap(url) }) { append(href) }
+            } else {
+                withStyle(style) { append(href) }
+            }
+            last = m.range.last + 1
+        }
+        if (last < text.length) append(text.substring(last))
+    }
+}
+
+/** text — linkifies bare URLs and reports [onLinkTap]; [selectable] allows copy. */
 @Composable
-fun ImageMessage(width: Int = 132, height: Int = 92) {
+fun TextMessage(
+    text: String,
+    self: Boolean = false,
+    selectable: Boolean = false,
+    onLinkTap: ((String) -> Unit)? = null,
+) {
     val colors = flareColors()
-    Box(
-        Modifier.size(width.dp, height.dp).clip(RoundedCornerShape(12.dp)).background(colors.bgTertiary),
-        contentAlignment = Alignment.Center,
+    val linkColor = if (self) Color.White else colors.primary
+    val annotated = remember(text, linkColor, onLinkTap) { linkify(text, linkColor, onLinkTap) }
+    val content: @Composable () -> Unit = {
+        Text(
+            annotated,
+            color = if (self) Color.White else colors.textPrimary,
+            fontSize = FlareSizes.fontSizeXl.value.sp,
+            lineHeight = (FlareSizes.fontSizeXl.value * 1.45f).sp,
+            modifier = Modifier
+                .then(
+                    if (self) Modifier.clip(RoundedCornerShape(16.dp)).background(colors.bubbleSelf)
+                    else Modifier.bubbleCard(colors),
+                )
+                .padding(horizontal = 14.dp, vertical = 9.dp),
+        )
+    }
+    if (selectable) SelectionContainer { content() } else content()
+}
+
+/** image — a rounded thumbnail; emits [onTap]. */
+@Composable
+fun ImageMessage(src: String? = null, width: Int = 132, height: Int = 92, alt: String? = null, onTap: (() -> Unit)? = null) {
+    val colors = flareColors()
+    NetImage(
+        src,
+        Modifier.size(width.dp, height.dp).clip(RoundedCornerShape(12.dp)).background(colors.bgTertiary).onClickIf(onTap),
+        contentDescription = alt,
     ) { Icon(Icons.Outlined.Image, null, Modifier.size(26.dp), tint = colors.textTertiary) }
 }
 
-/** video — a thumbnail with a play overlay and duration badge. */
+/** video — a thumbnail with a play overlay and duration badge; emits [onPlay]. */
 @Composable
-fun VideoMessage(duration: String = "00:00") {
+fun VideoMessage(poster: String? = null, duration: String = "00:00", alt: String? = null, onPlay: (() -> Unit)? = null) {
     val colors = flareColors()
     Box(
-        Modifier.size(148.dp, 92.dp).clip(RoundedCornerShape(12.dp)).background(colors.bgTertiary),
+        Modifier.size(148.dp, 92.dp).clip(RoundedCornerShape(12.dp)).background(colors.bgTertiary).onClickIf(onPlay),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(Icons.Outlined.Videocam, null, Modifier.size(24.dp), tint = colors.textTertiary.copy(alpha = 0.5f))
+        NetImage(poster, Modifier.fillMaxWidth().height(92.dp), contentDescription = alt) {
+            Icon(Icons.Outlined.Videocam, null, Modifier.size(24.dp), tint = colors.textTertiary.copy(alpha = 0.5f))
+        }
         Box(Modifier.fillMaxWidth().height(92.dp).background(Color.Black.copy(alpha = 0.28f)))
         Icon(Icons.Filled.PlayArrow, null, Modifier.size(34.dp), tint = Color.White)
         Box(Modifier.fillMaxWidth().height(92.dp).padding(6.dp), contentAlignment = Alignment.BottomEnd) {
@@ -102,16 +167,19 @@ fun VideoMessage(duration: String = "00:00") {
     }
 }
 
-/** audio / voice — a compact bubble with a waveform and duration. */
+/** audio / voice — waveform + duration; [playing] drives the look, emits [onPlay]. */
 @Composable
-fun VoiceMessage(seconds: Int = 1) {
+fun VoiceMessage(seconds: Int = 1, playing: Boolean = false, onPlay: (() -> Unit)? = null) {
     val colors = flareColors()
     Row(
-        Modifier.bubbleCard(colors).padding(horizontal = 14.dp, vertical = 9.dp),
+        Modifier.bubbleCard(colors).onClickIf(onPlay).padding(horizontal = 14.dp, vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Icon(Icons.Outlined.VolumeUp, null, Modifier.size(17.dp), tint = colors.textSecondary)
+        Icon(
+            if (playing) Icons.Outlined.VolumeUp else Icons.Filled.PlayArrow, null,
+            Modifier.size(17.dp), tint = if (playing) colors.primary else colors.textSecondary,
+        )
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
             for (n in 1..9) {
                 Box(Modifier.size(2.dp, (4 + (n * 5) % 13).dp).clip(RoundedCornerShape(2.dp)).background(colors.primary))
@@ -121,36 +189,49 @@ fun VoiceMessage(seconds: Int = 1) {
     }
 }
 
-/** file — a file card with name / size / ext and a download affordance. */
+/** file — icon / name / size / ext; emits [onOpen] (card) and [onDownload].
+ *  Override the leading [icon] slot to show a per-file-type glyph. */
 @Composable
-fun FileMessage(name: String, size: String = "", ext: String? = null) {
+fun FileMessage(
+    name: String,
+    size: String = "",
+    ext: String? = null,
+    icon: (@Composable () -> Unit)? = null,
+    onOpen: (() -> Unit)? = null,
+    onDownload: (() -> Unit)? = null,
+) {
     val colors = flareColors()
     val sub = if (!ext.isNullOrEmpty()) "$size · $ext" else size
     Row(
-        Modifier.widthIn(max = 300.dp).bubbleCard(colors).padding(horizontal = 14.dp, vertical = 9.dp),
+        Modifier.widthIn(max = 300.dp).bubbleCard(colors).onClickIf(onOpen).padding(horizontal = 14.dp, vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Icon(Icons.Outlined.Folder, null, Modifier.size(20.dp), tint = colors.primary)
+        if (icon != null) icon() else Icon(Icons.Outlined.Folder, null, Modifier.size(20.dp), tint = colors.primary)
         Column(Modifier.weight(1f, fill = false)) {
             Text(name, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp,
                 fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(sub, color = colors.textTertiary, fontSize = 11.sp)
         }
-        Icon(Icons.Outlined.FileDownload, null, Modifier.size(17.dp), tint = colors.textTertiary)
+        Icon(
+            Icons.Outlined.FileDownload, null,
+            Modifier.size(17.dp).onClickIf(onDownload), tint = colors.textTertiary,
+        )
     }
 }
 
-/** location — a map placeholder over a title / address. */
+/** location — a map image (or placeholder) over title / address; emits [onOpen]. */
 @Composable
-fun LocationMessage(title: String, address: String = "") {
+fun LocationMessage(title: String, address: String = "", mapImage: String? = null, onOpen: (() -> Unit)? = null) {
     val colors = flareColors()
-    Column(Modifier.width(264.dp).bubbleCard(colors)) {
-        Box(
-            Modifier.fillMaxWidth().height(84.dp)
-                .background(colors.primary.copy(alpha = 0.08f).compositeOverColor(colors.bgTertiary)),
-            contentAlignment = Alignment.Center,
-        ) { Icon(Icons.Outlined.LocationOn, null, Modifier.size(22.dp), tint = colors.primary) }
+    Column(Modifier.width(264.dp).bubbleCard(colors).onClickIf(onOpen)) {
+        NetImage(mapImage, Modifier.fillMaxWidth().height(84.dp)) {
+            Box(
+                Modifier.fillMaxWidth().height(84.dp)
+                    .background(colors.primary.copy(alpha = 0.08f).compositeOverColor(colors.bgTertiary)),
+                contentAlignment = Alignment.Center,
+            ) { Icon(Icons.Outlined.LocationOn, null, Modifier.size(22.dp), tint = colors.primary) }
+        }
         Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
             Text(title, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp, fontWeight = FontWeight.Medium)
             Text(address, color = colors.textTertiary, fontSize = 11.sp)
@@ -158,44 +239,47 @@ fun LocationMessage(title: String, address: String = "") {
     }
 }
 
-/** contact / business card — pastel avatar + name / id. */
+/** contact / business card — avatar (image or pastel initials) + name / subtitle; emits [onOpen]. */
 @Composable
-fun ContactMessage(name: String, flareId: String? = null) {
+fun ContactMessage(name: String, subtitle: String? = null, avatarUrl: String? = null, onOpen: (() -> Unit)? = null) {
     val colors = flareColors()
     val tint = seedTint(name)
     Row(
-        Modifier.widthIn(min = 240.dp).bubbleCard(colors).padding(horizontal = 14.dp, vertical = 9.dp),
+        Modifier.widthIn(min = 240.dp).bubbleCard(colors).onClickIf(onOpen).padding(horizontal = 14.dp, vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Box(Modifier.size(44.dp).clip(RoundedCornerShape(10.dp)).background(tint.first), contentAlignment = Alignment.Center) {
+        NetImage(avatarUrl, Modifier.size(44.dp).clip(RoundedCornerShape(10.dp)).background(tint.first)) {
             Text(initials(name), color = tint.second, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
         }
         Column(Modifier.weight(1f, fill = false)) {
             Text(name, color = colors.textPrimary, fontSize = FlareSizes.fontSizeXl.value.sp, fontWeight = FontWeight.SemiBold)
-            if (!flareId.isNullOrEmpty()) {
-                Text("Flare ID: $flareId", color = colors.textTertiary, fontSize = 11.sp)
+            if (!subtitle.isNullOrEmpty()) {
+                Text(subtitle, color = colors.textTertiary, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
         Icon(Icons.Outlined.ChevronRight, null, Modifier.size(16.dp), tint = colors.textTertiary)
     }
 }
 
-/** link card — thumbnail + title + domain. */
+/** link card — thumbnail + title + optional description + domain; emits [onOpen]. */
 @Composable
-fun LinkCardMessage(title: String, domain: String = "") {
+fun LinkCardMessage(title: String, domain: String = "", thumb: String? = null, description: String? = null, onOpen: (() -> Unit)? = null) {
     val colors = flareColors()
     Row(
-        Modifier.widthIn(max = 300.dp).bubbleCard(colors).padding(horizontal = 10.dp, vertical = 8.dp),
+        Modifier.widthIn(max = 300.dp).bubbleCard(colors).onClickIf(onOpen).padding(horizontal = 10.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Box(Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)).background(colors.bgTertiary), contentAlignment = Alignment.Center) {
+        NetImage(thumb, Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)).background(colors.bgTertiary)) {
             Icon(Icons.Outlined.Image, null, Modifier.size(22.dp), tint = colors.textTertiary)
         }
         Column(Modifier.weight(1f, fill = false), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Text(title, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp,
                 fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (!description.isNullOrEmpty()) {
+                Text(description, color = colors.textSecondary, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                 Icon(Icons.Outlined.Link, null, Modifier.size(12.dp), tint = colors.textTertiary)
                 Text(domain, color = colors.textTertiary, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -207,9 +291,14 @@ fun LinkCardMessage(title: String, domain: String = "") {
 /** A vote option for [VoteMessage]. */
 data class FlareVoteOption(val text: String, val pct: Int)
 
-/** vote — a title over option rows with proportional bars. */
+/** vote — a title over option rows with proportional bars; emits [onSelect]. */
 @Composable
-fun VoteMessage(title: String, options: List<FlareVoteOption> = emptyList()) {
+fun VoteMessage(
+    title: String,
+    options: List<FlareVoteOption> = emptyList(),
+    total: String? = null,
+    onSelect: ((FlareVoteOption, Int) -> Unit)? = null,
+) {
     val colors = flareColors()
     Column(
         Modifier.widthIn(min = 220.dp).bubbleCard(colors).padding(horizontal = 12.dp, vertical = 10.dp),
@@ -219,8 +308,11 @@ fun VoteMessage(title: String, options: List<FlareVoteOption> = emptyList()) {
             Icon(Icons.Outlined.BarChart, null, Modifier.size(16.dp), tint = colors.textPrimary)
             Text(title, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp, fontWeight = FontWeight.SemiBold)
         }
-        options.forEach { o ->
-            Box(Modifier.fillMaxWidth().height(30.dp).clip(RoundedCornerShape(7.dp)).background(colors.bgSecondary)) {
+        options.forEachIndexed { i, o ->
+            Box(
+                Modifier.fillMaxWidth().height(30.dp).clip(RoundedCornerShape(7.dp)).background(colors.bgSecondary)
+                    .onClickIf(if (onSelect != null) ({ onSelect(o, i) }) else null),
+            ) {
                 Box(Modifier.fillMaxWidth((o.pct.coerceIn(0, 100)) / 100f).height(30.dp)
                     .background(colors.primary.copy(alpha = 0.16f)))
                 Row(Modifier.fillMaxWidth().height(30.dp).padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -229,12 +321,13 @@ fun VoteMessage(title: String, options: List<FlareVoteOption> = emptyList()) {
                 }
             }
         }
+        if (!total.isNullOrEmpty()) Text(total, color = colors.textTertiary, fontSize = 11.sp)
     }
 }
 
-/** task — checkbox + title (struck through when done) + meta. */
+/** task — checkbox + title (struck through when done) + meta; emits [onToggle]. */
 @Composable
-fun TaskMessage(title: String, meta: String? = null, done: Boolean = false) {
+fun TaskMessage(title: String, meta: String? = null, done: Boolean = false, onToggle: (() -> Unit)? = null) {
     val colors = flareColors()
     Row(
         Modifier.widthIn(min = 220.dp).bubbleCard(colors).padding(horizontal = 14.dp, vertical = 9.dp),
@@ -242,7 +335,7 @@ fun TaskMessage(title: String, meta: String? = null, done: Boolean = false) {
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Box(
-            Modifier.size(20.dp).clip(RoundedCornerShape(6.dp))
+            Modifier.size(20.dp).clip(RoundedCornerShape(6.dp)).onClickIf(onToggle)
                 .then(if (done) Modifier.background(colors.primary) else Modifier.border(1.5.dp, colors.borderPrimary, RoundedCornerShape(6.dp))),
             contentAlignment = Alignment.Center,
         ) { if (done) Icon(Icons.Rounded.Check, null, Modifier.size(13.dp), tint = Color.White) }
@@ -258,16 +351,16 @@ fun TaskMessage(title: String, meta: String? = null, done: Boolean = false) {
     }
 }
 
-/** sticker — a bare, larger glyph (no bubble). */
+/** sticker — a bare, larger glyph (no bubble); emits [onTap]. */
 @Composable
-fun StickerMessage(emoji: String = "🐱") {
-    Text(emoji, fontSize = 72.sp)
+fun StickerMessage(emoji: String = "🐱", onTap: (() -> Unit)? = null) {
+    Text(emoji, fontSize = 72.sp, modifier = Modifier.onClickIf(onTap))
 }
 
-/** emoji — a bare, large emoji (no bubble). */
+/** emoji — a bare, large emoji (no bubble); emits [onTap]. */
 @Composable
-fun EmojiMessage(emoji: String = "🎉") {
-    Text(emoji, fontSize = 40.sp)
+fun EmojiMessage(emoji: String = "🎉", onTap: (() -> Unit)? = null) {
+    Text(emoji, fontSize = 40.sp, modifier = Modifier.onClickIf(onTap))
 }
 
 /** notification / system — a centered pill. */

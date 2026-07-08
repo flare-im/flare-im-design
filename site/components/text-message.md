@@ -22,6 +22,7 @@ title: TextMessage
 |---|---|:---:|---|---|
 | `text` | `string` | ✔ | — | 要渲染的文本。 |
 | `self` | `boolean` |  | — | 渲染发送方（品牌紫）一侧。 |
+| `selectable` | `boolean` |  | — | 允许文本被选中 / 复制。 |
 
 
 ## States
@@ -30,7 +31,7 @@ _无_
 
 ## Events
 
-_无_
+<span class="flare-tag">linkClick</span>
 
 > [!TIP]
 > 解耦的展示型组件 —— 由你直接喂 props。实时、SDK 驱动的消息请交给 [MessageContentView](/components/message-content-view) 按 `content.type` 自动分派。
@@ -57,6 +58,8 @@ import { FlareTextMessage } from "flare-core-vue-im-ui";
   <FlareTextMessage
   :text="text"
   :self="self"
+  :selectable="selectable"
+  @linkClick="onLinkClick"
   />
 </template>
 ```
@@ -65,17 +68,21 @@ import { FlareTextMessage } from "flare-core-vue-im-ui";
 FlareTextMessage(
   text: text,
   self: self,
+  selectable: selectable,
+  onLinkClick: onLinkClick,
 );
 ```
 
 ```swift [iOS]
-TextMessageView(text: text, self: self)
+TextMessageView(text: text, self: self, selectable: selectable, onLinkClick: onLinkClick)
 ```
 
 ```kotlin [Android]
 TextMessage(
   text = text,
   self = self,
+  selectable = selectable,
+  onLinkClick = onLinkClick,
 )
 ```
 

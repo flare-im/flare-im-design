@@ -22,6 +22,7 @@ title: LocationMessage
 |---|---|:---:|---|---|
 | `title` | `string` | ✔ | — | Place name. |
 | `address` | `string` |  | — | Full address line. |
+| `mapImage` | `string` |  | — | Static map image URL; falls back to a pin placeholder. |
 
 
 ## States
@@ -57,6 +58,7 @@ import { FlareLocationMessage } from "flare-core-vue-im-ui";
   <FlareLocationMessage
   :title="title"
   :address="address"
+  :mapImage="mapImage"
   @open="onOpen"
   />
 </template>
@@ -66,18 +68,20 @@ import { FlareLocationMessage } from "flare-core-vue-im-ui";
 FlareLocationMessage(
   title: title,
   address: address,
+  mapImage: mapImage,
   onOpen: onOpen,
 );
 ```
 
 ```swift [iOS]
-LocationMessageView(title: title, address: address, onOpen: onOpen)
+LocationMessageView(title: title, address: address, mapImage: mapImage, onOpen: onOpen)
 ```
 
 ```kotlin [Android]
 LocationMessage(
   title = title,
   address = address,
+  mapImage = mapImage,
   onOpen = onOpen,
 )
 ```

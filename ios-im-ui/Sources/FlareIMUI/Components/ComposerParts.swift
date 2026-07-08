@@ -1,34 +1,53 @@
 import SwiftUI
 
-/// Hold-to-talk voice button (语音) — a composable composer part. Press and hold
-/// to record, release to send. The host owns recording via the callbacks.
+/// Hold-to-talk voice button — a composable composer part. Press and hold to
+/// record, release to send, slide up past the threshold to cancel. The host
+/// owns the actual recording via the callbacks; all labels are host-provided.
 public struct FlareVoiceHoldButton: View {
     private let label: String
     private let recordingLabel: String
+    private let cancelLabel: String
+    private let cancelThreshold: CGFloat
     private let onStart: (() -> Void)?
     private let onEnd: (() -> Void)?
+    private let onCancel: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
     @State private var pressing = false
+    @State private var willCancel = false
 
-    public init(label: String = "按住 说话", recordingLabel: String = "松开 发送",
-                onStart: (() -> Void)? = nil, onEnd: (() -> Void)? = nil) {
+    public init(label: String = "Hold to talk",
+                recordingLabel: String = "Release to send · slide up to cancel",
+                cancelLabel: String = "Release to cancel",
+                cancelThreshold: CGFloat = 80,
+                onStart: (() -> Void)? = nil, onEnd: (() -> Void)? = nil,
+                onCancel: (() -> Void)? = nil) {
         self.label = label; self.recordingLabel = recordingLabel
-        self.onStart = onStart; self.onEnd = onEnd
+        self.cancelLabel = cancelLabel; self.cancelThreshold = cancelThreshold
+        self.onStart = onStart; self.onEnd = onEnd; self.onCancel = onCancel
     }
 
     public var body: some View {
         let colors = FlareColors.of(scheme)
-        Text(pressing ? recordingLabel : label)
+        let bg = !pressing ? colors.bgSecondary : (willCancel ? colors.error : colors.primary)
+        let fg = !pressing ? colors.textSecondary : Color.white
+        Text(pressing ? (willCancel ? cancelLabel : recordingLabel) : label)
             .font(.system(size: FlareSizes.fontSizeLg, weight: .medium))
-            .foregroundColor(pressing ? .white : colors.textSecondary)
+            .foregroundColor(fg)
             .frame(maxWidth: .infinity, minHeight: 40)
-            .background(RoundedRectangle(cornerRadius: FlareSizes.radiusXl)
-                .fill(pressing ? colors.primary : colors.bgSecondary))
-            .onLongPressGesture(minimumDuration: 60, maximumDistance: 10000,
-                                pressing: { p in
-                                    pressing = p
-                                    if p { onStart?() } else { onEnd?() }
-                                }, perform: {})
+            .background(RoundedRectangle(cornerRadius: FlareSizes.radiusXl).fill(bg))
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { v in
+                        if !pressing { pressing = true; willCancel = false; onStart?() }
+                        let cancel = v.translation.height < -cancelThreshold
+                        if cancel != willCancel { willCancel = cancel }
+                    }
+                    .onEnded { _ in
+                        let cancel = willCancel
+                        pressing = false; willCancel = false
+                        cancel ? onCancel?() : onEnd?()
+                    }
+            )
     }
 }
 
@@ -103,12 +122,15 @@ public struct FlareComposerSendButton: View {
 public struct FlareComposerReplyStrip: View {
     private let senderName: String
     private let summary: String
+    private let label: String
     private let onCancel: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
 
-    public init(senderName: String, summary: String, onCancel: (() -> Void)? = nil) {
+    public init(senderName: String, summary: String, label: String = "Reply",
+                onCancel: (() -> Void)? = nil) {
         self.senderName = senderName
         self.summary = summary
+        self.label = label
         self.onCancel = onCancel
     }
 
@@ -116,7 +138,7 @@ public struct FlareComposerReplyStrip: View {
         let colors = FlareColors.of(scheme)
         HStack(spacing: 8) {
             VStack(alignment: .leading, spacing: 1) {
-                Text("回复 \(senderName)")
+                Text("\(label) \(senderName)")
                     .font(.system(size: FlareSizes.fontSizeXs, weight: .semibold))
                     .foregroundColor(colors.primary)
                 Text(summary)

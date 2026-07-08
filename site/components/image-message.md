@@ -23,6 +23,7 @@ title: ImageMessage
 | `src` | `string` |  | — | 图源；不传则显示占位。 |
 | `width` | `number` |  | `132` | 缩略图宽（px）。 |
 | `height` | `number` |  | `92` | 缩略图高（px）。 |
+| `alt` | `string` |  | — | 图片的无障碍描述。 |
 
 
 ## States

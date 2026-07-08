@@ -22,6 +22,7 @@ title: VoteMessage
 |---|---|:---:|---|---|
 | `title` | `string` | ✔ | — | Poll question. |
 | `options` | `FlareVoteOption[]` |  | — | Options as { text, pct }. |
+| `total` | `string` |  | — | Optional footer, e.g. "12 voted". |
 
 
 ## States
@@ -30,7 +31,7 @@ _None_
 
 ## Events
 
-_None_
+<span class="flare-tag">select</span>
 
 > [!TIP]
 > Decoupled & presentational — you pass simple props. For live, SDK-driven messages, let [MessageContentView](/en/components/message-content-view) dispatch by `content.type` instead.
@@ -57,6 +58,8 @@ import { FlareVoteMessage } from "flare-core-vue-im-ui";
   <FlareVoteMessage
   :title="title"
   :options="options"
+  :total="total"
+  @select="onSelect"
   />
 </template>
 ```
@@ -65,17 +68,21 @@ import { FlareVoteMessage } from "flare-core-vue-im-ui";
 FlareVoteMessage(
   title: title,
   options: options,
+  total: total,
+  onSelect: onSelect,
 );
 ```
 
 ```swift [iOS]
-VoteMessageView(title: title, options: options)
+VoteMessageView(title: title, options: options, total: total, onSelect: onSelect)
 ```
 
 ```kotlin [Android]
 VoteMessage(
   title = title,
   options = options,
+  total = total,
+  onSelect = onSelect,
 )
 ```
 

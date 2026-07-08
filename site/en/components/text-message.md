@@ -22,6 +22,7 @@ title: TextMessage
 |---|---|:---:|---|---|
 | `text` | `string` | ✔ | — | The text to render. |
 | `self` | `boolean` |  | — | Render the outgoing (brand-purple) side. |
+| `selectable` | `boolean` |  | — | Allow the text to be selected/copied. |
 
 
 ## States
@@ -30,7 +31,7 @@ _None_
 
 ## Events
 
-_None_
+<span class="flare-tag">linkClick</span>
 
 > [!TIP]
 > Decoupled & presentational — you pass simple props. For live, SDK-driven messages, let [MessageContentView](/en/components/message-content-view) dispatch by `content.type` instead.
@@ -57,6 +58,8 @@ import { FlareTextMessage } from "flare-core-vue-im-ui";
   <FlareTextMessage
   :text="text"
   :self="self"
+  :selectable="selectable"
+  @linkClick="onLinkClick"
   />
 </template>
 ```
@@ -65,17 +68,21 @@ import { FlareTextMessage } from "flare-core-vue-im-ui";
 FlareTextMessage(
   text: text,
   self: self,
+  selectable: selectable,
+  onLinkClick: onLinkClick,
 );
 ```
 
 ```swift [iOS]
-TextMessageView(text: text, self: self)
+TextMessageView(text: text, self: self, selectable: selectable, onLinkClick: onLinkClick)
 ```
 
 ```kotlin [Android]
 TextMessage(
   text = text,
   self = self,
+  selectable = selectable,
+  onLinkClick = onLinkClick,
 )
 ```
 

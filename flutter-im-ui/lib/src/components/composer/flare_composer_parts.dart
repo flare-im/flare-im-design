@@ -69,11 +69,15 @@ class FlareComposerReplyStrip extends StatelessWidget {
     super.key,
     required this.senderName,
     required this.summary,
+    this.label = 'Reply',
     this.onCancel,
   });
 
   final String senderName;
   final String summary;
+
+  /// Leading text before the sender (host-provided, no baked-in language).
+  final String label;
   final VoidCallback? onCancel;
 
   @override
@@ -95,7 +99,7 @@ class FlareComposerReplyStrip extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('回复 $senderName',
+                Text('$label $senderName',
                     style: TextStyle(
                         color: colors.primary,
                         fontSize: FlareSizes.fontSizeXs,

@@ -31,7 +31,7 @@ _None_
 
 ## Events
 
-_None_
+<span class="flare-tag">toggle</span>
 
 > [!TIP]
 > Decoupled & presentational — you pass simple props. For live, SDK-driven messages, let [MessageContentView](/en/components/message-content-view) dispatch by `content.type` instead.
@@ -59,6 +59,7 @@ import { FlareTaskMessage } from "flare-core-vue-im-ui";
   :title="title"
   :meta="meta"
   :done="done"
+  @toggle="onToggle"
   />
 </template>
 ```
@@ -68,11 +69,12 @@ FlareTaskMessage(
   title: title,
   meta: meta,
   done: done,
+  onToggle: onToggle,
 );
 ```
 
 ```swift [iOS]
-TaskMessageView(title: title, meta: meta, done: done)
+TaskMessageView(title: title, meta: meta, done: done, onToggle: onToggle)
 ```
 
 ```kotlin [Android]
@@ -80,6 +82,7 @@ TaskMessage(
   title = title,
   meta = meta,
   done = done,
+  onToggle = onToggle,
 )
 ```
 

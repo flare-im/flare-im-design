@@ -2,5 +2,5 @@
 import C from "../FlareContactMessage.vue";
 </script>
 <template>
-  <C name="Ivy Chen" flare-id="ivy_chen" />
+  <C name="Ivy Chen" subtitle="@ivy_chen · 产品经理" />
 </template>

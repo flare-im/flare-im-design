@@ -21,6 +21,7 @@ title: ComposerSendButton
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
 | `active` | `boolean` | ✔ | — | Enabled/purple when there is content to send. |
+| `label` | `string` |  | `Send` | Accessible label. |
 
 
 ## States
@@ -55,6 +56,7 @@ import { FlareComposerSendButton } from "flare-core-vue-im-ui";
 <template>
   <FlareComposerSendButton
   :active="active"
+  :label="label"
   @send="onSend"
   />
 </template>
@@ -63,17 +65,19 @@ import { FlareComposerSendButton } from "flare-core-vue-im-ui";
 ```dart [Flutter]
 FlareComposerSendButton(
   active: active,
+  label: label,
   onSend: onSend,
 );
 ```
 
 ```swift [iOS]
-FlareComposerSendButton(active: active, onSend: onSend)
+FlareComposerSendButton(active: active, label: label, onSend: onSend)
 ```
 
 ```kotlin [Android]
 FlareComposerSendButton(
   active = active,
+  label = label,
   onSend = onSend,
 )
 ```

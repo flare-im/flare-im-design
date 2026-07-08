@@ -22,6 +22,7 @@ title: ComposerReplyStrip
 |---|---|:---:|---|---|
 | `senderName` | `string` | ✔ | — | Name of the person being replied to. |
 | `summary` | `string` | ✔ | — | One-line preview of the quoted message. |
+| `label` | `string` |  | `Reply` | Leading text before the sender. |
 
 
 ## States
@@ -57,6 +58,7 @@ import { FlareComposerReplyStrip } from "flare-core-vue-im-ui";
   <FlareComposerReplyStrip
   :senderName="senderName"
   :summary="summary"
+  :label="label"
   @cancel="onCancel"
   />
 </template>
@@ -66,18 +68,20 @@ import { FlareComposerReplyStrip } from "flare-core-vue-im-ui";
 FlareComposerReplyStrip(
   senderName: senderName,
   summary: summary,
+  label: label,
   onCancel: onCancel,
 );
 ```
 
 ```swift [iOS]
-FlareComposerReplyStrip(senderName: senderName, summary: summary, onCancel: onCancel)
+FlareComposerReplyStrip(senderName: senderName, summary: summary, label: label, onCancel: onCancel)
 ```
 
 ```kotlin [Android]
 FlareComposerReplyStrip(
   senderName = senderName,
   summary = summary,
+  label = label,
   onCancel = onCancel,
 )
 ```

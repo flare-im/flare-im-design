@@ -31,7 +31,7 @@ void main() {
 
     testWidgets('contact derives initials from name', (tester) async {
       await tester.pumpWidget(
-        _host(const FlareContactMessage(name: 'Ivy Chen', flareId: 'ivy')),
+        _host(const FlareContactMessage(name: 'Ivy Chen', subtitle: '@ivy')),
       );
       expect(find.text('IC'), findsOneWidget);
       expect(find.text('Ivy Chen'), findsOneWidget);

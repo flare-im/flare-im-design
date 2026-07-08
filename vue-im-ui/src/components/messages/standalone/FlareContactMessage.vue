@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import MsgIcon from "./MsgIcon.vue";
-const props = withDefaults(defineProps<{ name?: string; flareId?: string }>(), { name: "contact" });
+// Presentational — emits `open`. Shows an avatar image when given, else a pastel
+// initials chip. `subtitle` is any free secondary line (handle, id, department).
+const props = withDefaults(
+  defineProps<{ name?: string; avatarUrl?: string; subtitle?: string }>(),
+  { name: "contact" },
+);
 const emit = defineEmits<{ (e: "open"): void }>();
-// pastel identity, matching FlareAvatar
 const av = computed(() => {
   const pairs = [
     { bg: "#DBEAFE", fg: "#1D4ED8" }, { bg: "#E9D5FF", fg: "#6D28D9" }, { bg: "#FBCFE8", fg: "#BE185D" },
@@ -20,16 +24,18 @@ const initials = computed(() => {
 </script>
 <template>
   <div class="fm-contact" @click="emit('open')">
-    <span class="av" :style="{ background: av.bg, color: av.fg }">{{ initials }}</span>
-    <span class="meta"><b>{{ name }}</b><small v-if="flareId">Flare ID: {{ flareId }}</small></span>
+    <img v-if="avatarUrl" class="av img" :src="avatarUrl" :alt="name" />
+    <span v-else class="av" :style="{ background: av.bg, color: av.fg }">{{ initials }}</span>
+    <span class="meta"><b>{{ name }}</b><small v-if="subtitle">{{ subtitle }}</small></span>
     <MsgIcon name="chevronRight" :size="16" class="chev" />
   </div>
 </template>
 <style scoped>
 .fm-contact { display: inline-flex; align-items: center; gap: 12px; min-width: 240px; padding: 9px 14px; border-radius: 16px 16px 16px 4px; background: var(--im-bg-surface, #fff); border: 1px solid var(--im-border-subtle, #eef0f4); box-shadow: var(--im-bubble-shadow, 0 2px 10px rgba(0,0,0,.05)); cursor: pointer; }
-.av { width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; font-weight: 600; font-size: 14px; }
-.meta { flex: 1; display: flex; flex-direction: column; }
+.av { width: 44px; height: 44px; border-radius: 10px; flex: none; display: grid; place-items: center; font-weight: 600; font-size: 14px; }
+.av.img { object-fit: cover; }
+.meta { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .meta b { font-size: 15px; font-weight: 600; color: var(--im-text-primary, #111318); }
-.meta small { font-size: 11px; color: var(--im-text-tertiary, #a3a7ae); }
+.meta small { font-size: 11px; color: var(--im-text-tertiary, #a3a7ae); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chev { color: var(--im-text-tertiary, #a3a7ae); }
 </style>
