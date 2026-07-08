@@ -1,0 +1,327 @@
+/**
+ * flare-core-web-app 响应式层（H5 + PC）
+ * 断点与 useViewport.ts 中 BREAKPOINT_* 保持一致
+ */
+
+:root {
+  --bp-desktop: 900px;
+  --bp-tablet: 600px;
+  --im-page-padding-inline: 12px;
+  /* 消息区左右留白：贴近聊天边缘，头像和气泡自己承担视觉呼吸感。 */
+  --im-message-gutter-inline: 8px;
+  --im-composer-toolbar-icon: 26px;
+  --im-sheet-width: 100%;
+  --im-sheet-height: min(70dvh, 560px);
+}
+
+@media (min-width: 600px) and (max-width: 899px) {
+  :root {
+    --im-page-padding-inline: 14px;
+    --im-message-gutter-inline: 10px;
+    --im-sheet-height: min(72dvh, 620px);
+  }
+}
+
+@media (min-width: 900px) {
+  :root {
+    --im-page-padding-inline: 16px;
+    --im-bubble-max-width: 62%;
+    --im-composer-toolbar-icon: 24px;
+    --im-sheet-width: min(440px, 36vw);
+    --im-sheet-height: 100%;
+  }
+}
+
+@media (max-width: 899px) {
+  :root {
+    --im-bubble-max-width: 82%;
+  }
+}
+
+@media (max-width: 599px) {
+  :root {
+    --im-page-padding-inline: 10px;
+    --im-message-gutter-inline: 8px;
+    --im-composer-toolbar-icon: 24px;
+  }
+}
+
+/* —— 工具类 —— */
+.u-only-mobile {
+  display: none !important;
+}
+
+.u-only-desktop {
+  display: block;
+}
+
+@media (max-width: 899px) {
+  .u-only-mobile {
+    display: revert !important;
+  }
+
+  .u-only-desktop {
+    display: none !important;
+  }
+}
+
+/* —— Shell / 页面根 —— */
+.flutter-shell,
+.flutter-page,
+.chat-route,
+.conversation-route,
+.sdk-lab-route {
+  min-height: 0;
+  max-height: 100dvh;
+}
+
+@media (max-width: 899px) {
+  .chat-composer-stack,
+  .footer.chat-composer-stack {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .workbench-shell {
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .flutter-page {
+    width: 100%;
+    min-height: 0;
+    flex: 1;
+  }
+}
+
+/* —— 导航返回：桌面多栏时隐藏 —— */
+[data-viewport="desktop"] .chat-nav-back,
+[data-viewport="desktop"] .page-nav-back {
+  display: none !important;
+}
+
+/* —— 消息区 —— */
+.message-list.message-list-virtual {
+  --message-list-padding-inline: var(--im-message-gutter-inline, 8px);
+}
+
+@media (max-width: 899px) {
+  .chat-route .message-list-root,
+  .chat-message-stage .message-list-root {
+    padding-inline: var(--im-message-gutter-inline, 8px);
+    box-sizing: border-box;
+  }
+
+  .message-list.message-list-virtual {
+    --im-bubble-max-width: 88%;
+    --im-message-tail-space: 10px;
+    padding-inline: 0 !important;
+    overflow-x: hidden !important;
+  }
+
+  .message-row .message-meta {
+    max-width: min(var(--im-bubble-max-width), 100%);
+  }
+
+  .message-row,
+  .message-list-content,
+  .message-bubble-host,
+  .message-menu-anchor,
+  .message-bubble,
+  .message-bubble-body,
+  .im-content-view {
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .message-bubble:not(.message-bubble--chromeless-media) {
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
+
+  .message-bubble--image:not(.message-bubble--chromeless-media),
+  .message-bubble--video:not(.message-bubble--chromeless-media),
+  .message-bubble--location:not(.message-bubble--chromeless-card),
+  .message-bubble--file,
+  .message-bubble--card:not(.message-bubble--chromeless-card),
+  .message-bubble--link_card:not(.message-bubble--chromeless-card),
+  .message-bubble--linkCard:not(.message-bubble--chromeless-card),
+  .message-bubble--rich_text:not(.message-bubble--chromeless-card),
+  .message-bubble--richText:not(.message-bubble--chromeless-card),
+  .message-bubble--image_group:not(.message-bubble--chromeless-media),
+  .message-bubble--imageGroup:not(.message-bubble--chromeless-media),
+  .message-bubble--forward:not(.message-bubble--chromeless-card),
+  .message-bubble--task:not(.message-bubble--chromeless-card),
+  .message-bubble--schedule:not(.message-bubble--chromeless-card),
+  .message-bubble--mini_program:not(.message-bubble--chromeless-card),
+  .message-bubble--miniProgram:not(.message-bubble--chromeless-card),
+  .message-bubble--vote:not(.message-bubble--chromeless-card),
+  .message-bubble--announcement:not(.message-bubble--chromeless-card),
+  .message-bubble--thread:not(.message-bubble--chromeless-card),
+  .message-bubble--notification:not(.message-bubble--chromeless-card) {
+    min-width: min(var(--im-bubble-rich-min-width), 100%) !important;
+  }
+
+  .message-content-view .message-media-card,
+  .message-content-view .message-location-card,
+  .message-content-view .message-image-group,
+  .message-content-view .message-info-card,
+  .message-content-view .message-link-card,
+  .message-content-view .message-rich-text,
+  .message-content-view .message-file-card,
+  .message-content-view .message-quote-card,
+  .message-content-view .message-placeholder-card,
+  .im-rich-message-card,
+  .business-message-view {
+    width: min(100%, var(--im-rich-card-width, 320px));
+    min-width: 0;
+  }
+
+  .message-actions {
+    opacity: 1;
+    transform: none;
+  }
+
+  .chat-composer-stack .composer {
+    padding-inline: var(--im-message-gutter-inline, 8px);
+  }
+}
+
+@media (min-width: 900px) {
+  .message-list.message-list-virtual {
+    --message-list-padding-inline: clamp(10px, 1.5vw, 20px);
+    padding-inline: var(--message-list-padding-inline) !important;
+    padding-block: 16px calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  [data-viewport="desktop"] .message-row--self {
+    padding-inline-end: 4px;
+  }
+
+  [data-viewport="desktop"] .message-row:not(.message-row--self) {
+    padding-inline-start: 4px;
+  }
+}
+
+@media (min-width: 700px) and (max-width: 899px) {
+  .message-list.message-list-virtual {
+    --message-list-padding-inline: 10px;
+    padding-inline: var(--message-list-padding-inline) !important;
+  }
+}
+
+/* —— 输入区 —— */
+@media (max-width: 480px) {
+  .composer-toolbar {
+    padding-inline: 2px;
+  }
+}
+
+.composer-toolbar .n-button .n-icon {
+  font-size: var(--im-composer-toolbar-icon);
+}
+
+.composer-emoji-sticker-panel .panel-scroll {
+  max-height: min(42dvh, 360px);
+}
+
+@media (max-width: 599px) {
+  .composer-emoji-sticker-panel .panel-scroll {
+    max-height: min(38dvh, 300px);
+  }
+
+  .composer-emoji-sticker-panel .asset-grid--emoji {
+    grid-template-columns: repeat(auto-fill, minmax(50px, 50px));
+  }
+}
+
+@media (min-width: 900px) {
+  .composer-emoji-sticker-panel .panel-scroll {
+    max-height: min(36dvh, 320px);
+  }
+}
+
+/* —— 会话列表 —— */
+@media (max-width: 899px) {
+  .flutter-list-header {
+    padding-inline: var(--im-page-padding-inline);
+  }
+
+  .flutter-list-scroll {
+    padding-inline: 0;
+  }
+}
+
+/* —— SDK Lab —— */
+@media (max-width: 899px) {
+  .sdk-lab-tabs {
+    padding-inline: var(--im-page-padding-inline);
+  }
+
+  .runtime-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lab-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 899px) {
+  .runtime-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 900px) {
+  .sdk-lab-tabs {
+    padding-inline: 20px 24px 24px;
+  }
+
+  .runtime-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* —— 抽屉 / 弹层 —— */
+@media (max-width: 899px) {
+  .mobile-sheet .n-drawer-body-content-wrapper {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .preview-card {
+    width: min(100vw - 24px, 480px) !important;
+    max-width: 100%;
+  }
+
+  .start-dialog-card {
+    width: min(100vw - 32px, 400px);
+    margin-inline: 16px;
+  }
+}
+
+@media (min-width: 900px) {
+  .workbench-sheet--side.n-drawer {
+    max-width: var(--im-sheet-width);
+  }
+
+  .workbench-sheet--side .n-drawer-body-content-wrapper {
+    padding: 16px 18px 20px;
+  }
+
+  .preview-card {
+    width: min(560px, 52vw) !important;
+  }
+
+  .composer-more-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* —— 详情侧栏（桌面第四列） —— */
+@media (max-width: 899px) {
+  .workbench-details {
+    display: none !important;
+  }
+}

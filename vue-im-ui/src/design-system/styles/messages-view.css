@@ -1,0 +1,93 @@
+:root {
+  --im-media-card-min-width: min(64vw, 260px);
+  --im-media-image-max-width: min(68vw, 280px);
+  --im-media-video-width: min(68vw, 280px);
+  --im-bubble-rich-min-width: min(74vw, 280px);
+  --im-bubble-system-max-width: min(78vw, 520px);
+}
+
+@media (max-width: 599px) {
+  :root {
+    --im-media-card-min-width: min(88vw, 300px);
+    --im-media-image-max-width: min(76vw, 240px);
+    --im-media-video-width: min(76vw, 240px);
+    --im-bubble-rich-min-width: min(88vw, 300px);
+    --im-bubble-system-max-width: min(92vw, 420px);
+  }
+}
+
+@media (min-width: 900px) {
+  :root {
+    --im-media-card-min-width: min(320px, 34vw);
+    --im-media-image-max-width: min(360px, 38vw);
+    --im-media-video-width: min(360px, 38vw);
+    --im-bubble-rich-min-width: min(320px, 38vw);
+    --im-bubble-system-max-width: min(520px, 72%);
+  }
+}
+
+.im-content-view .message-text,
+.im-content-view .im-text {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.message-bubble .im-content-view--system,
+.message-bubble .im-content-view--notification,
+.message-row--system .message-bubble {
+  background: transparent;
+  box-shadow: none;
+}
+
+.message-bubble-self:not(.message-bubble--chromeless-media) .im-media-caption,
+.message-bubble-self:not(.message-bubble--chromeless-media) .im-image__desc,
+.message-bubble-self:not(.message-bubble--chromeless-media) .im-image-group__title,
+.message-bubble-self:not(.message-bubble--chromeless-media) .im-image-group__desc,
+.message-bubble-self:not(.message-bubble--chromeless-media) .im-video__title {
+  color: var(--im-bubble-sent-text, #fff);
+}
+
+.message-bubble-self:not(.message-bubble--chromeless-media) .im-info-card {
+  --im-text-primary: var(--im-bubble-sent-text, #fff);
+  --im-text-secondary: rgba(255, 255, 255, 0.78);
+}
+
+.message-bubble-self:not(.message-bubble--chromeless-media):not(.message-bubble--chromeless-card) .im-info-card strong,
+.message-bubble-self:not(.message-bubble--chromeless-media):not(.message-bubble--chromeless-card) .business-message-view__title {
+  color: var(--im-bubble-sent-text, #fff);
+}
+
+.message-bubble-self:not(.message-bubble--chromeless-media):not(.message-bubble--chromeless-card) .im-info-card span,
+.message-bubble-self:not(.message-bubble--chromeless-media):not(.message-bubble--chromeless-card) .business-message-view__body {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.message-bubble-self:not(.message-bubble--chromeless-media):not(.message-bubble--chromeless-card) .business-message-view__body {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.message-bubble-self:not(.message-bubble--chromeless-media):not(.message-bubble--chromeless-card) .business-detail-block {
+  --im-text-primary: #172033;
+  --im-text-secondary: #4b5563;
+  --im-text-tertiary: #667085;
+  --im-border: #d7dce5;
+  --im-bg-surface: #ffffff;
+  --im-bg-surface-alt: #f4f6fb;
+
+  color: #172033;
+}
+
+.message-bubble:not(.message-bubble--chromeless-media) .im-image__media,
+.message-bubble:not(.message-bubble--chromeless-media) .im-image-group__grid,
+.message-bubble:not(.message-bubble--chromeless-media) .im-video__button {
+  box-shadow: none;
+}
+
+.preview-modal__body .im-content-view {
+  width: 100%;
+}
+
+.preview-modal__body .im-image__thumb,
+.preview-modal__body .im-video__poster {
+  max-width: min(100%, 420px);
+}

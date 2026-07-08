@@ -1,0 +1,3488 @@
+{
+  "$schema": "./spec.schema.md",
+  "version": "0.3.0",
+  "note": "L2 — framework-neutral component catalogue for the Flare IM UI Kit. Each component is one contract (props/states/events + core-view data source), realised natively per platform. Grounded in the current flare-core-vue-im-ui reference implementation (props/events extracted from source).",
+  "categories": [
+    "General",
+    "Conversation",
+    "Message",
+    "Composer",
+    "Media",
+    "Contacts",
+    "Profile",
+    "Call",
+    "Layout"
+  ],
+  "contentTypes": {
+    "note": "MessageBubble/MessageContentView dispatch body rendering to a per-content-type view via a registry. Products register new types here.",
+    "registered": [
+      "text",
+      "image",
+      "video",
+      "audio",
+      "file",
+      "location",
+      "card",
+      "linkCard",
+      "sticker",
+      "emoji",
+      "vote",
+      "task",
+      "schedule",
+      "announcement",
+      "miniProgram",
+      "notification",
+      "placeholder"
+    ]
+  },
+  "components": [
+    {
+      "name": "Avatar",
+      "category": "General",
+      "summary": {
+        "en": "User or group avatar — image, initials fallback, optional presence dot.",
+        "zh": "用户 / 群组头像 —— 图片、首字母兜底、可选在线状态点。"
+      },
+      "dataSource": {
+        "en": "identity fields from the conversation/message view (displayName, avatarUrl); presence from client.views presence",
+        "zh": "取会话 / 消息视图的身份字段（displayName、avatarUrl）；在线状态来自 client.views 的 presence"
+      },
+      "props": [
+        {
+          "name": "userId",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Stable id, used to derive the fallback color when no image loads.",
+            "zh": "稳定 id，无图片时据此派生兜底底色。"
+          }
+        },
+        {
+          "name": "displayName",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Name to render; its initials become the fallback.",
+            "zh": "展示名；其首字母作为兜底。"
+          }
+        },
+        {
+          "name": "avatarUrl",
+          "type": "string",
+          "description": {
+            "en": "Image URL; on load failure it falls back to initials.",
+            "zh": "头像图 URL；加载失败回退到首字母。"
+          }
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "default": "42",
+          "description": {
+            "en": "Diameter in px.",
+            "zh": "直径（px）。"
+          }
+        },
+        {
+          "name": "presence",
+          "type": "'online' | 'offline' | 'busy' | 'away'",
+          "description": {
+            "en": "Presence ring/dot; omit to hide.",
+            "zh": "在线状态圈点；不传则隐藏。"
+          }
+        }
+      ],
+      "states": [
+        "image",
+        "fallback",
+        "presence"
+      ],
+      "events": [
+        "click"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareAvatar"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareAvatar"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "AvatarView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "Avatar"
+        }
+      }
+    },
+    {
+      "name": "TimeStamp",
+      "category": "General",
+      "summary": {
+        "en": "Relative/absolute time label for a message or conversation row.",
+        "zh": "消息或会话行的相对 / 绝对时间标签。"
+      },
+      "dataSource": {
+        "en": "message.createdAt / conversation.lastMessageAt from the view",
+        "zh": "取视图的 message.createdAt / conversation.lastMessageAt"
+      },
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Preformatted time string; formatting lives in core so all platforms agree.",
+            "zh": "已格式化的时间串；格式化在 core 完成，各端一致。"
+          }
+        }
+      ],
+      "states": [],
+      "events": [],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "TimeStamp"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareTimeStamp"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "TimeStampView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "TimeStamp"
+        }
+      }
+    },
+    {
+      "name": "MessageStatus",
+      "category": "General",
+      "summary": {
+        "en": "Delivery status indicator — sending spinner, sent/read ticks, failed with retry.",
+        "zh": "送达状态指示 —— 发送中转圈、已发送 / 已读勾、失败可重试。"
+      },
+      "dataSource": {
+        "en": "message.status from the timeline view (optimistic, reconciled by send-ack)",
+        "zh": "取时间线视图的 message.status（乐观显示，由 send-ack 校正）"
+      },
+      "props": [
+        {
+          "name": "status",
+          "type": "'pending' | 'sent' | 'read' | 'failed'",
+          "required": true,
+          "description": {
+            "en": "Current delivery state; drives icon and color.",
+            "zh": "当前送达态；决定图标与颜色。"
+          }
+        },
+        {
+          "name": "variant",
+          "type": "'tick' | 'compact'",
+          "description": {
+            "en": "`tick` shows ticks; `compact` shows a minimal dot.",
+            "zh": "`tick` 显示勾；`compact` 显示极简圆点。"
+          }
+        }
+      ],
+      "states": [
+        "pending",
+        "sent",
+        "read",
+        "failed"
+      ],
+      "events": [
+        "resend"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "MessageStatus"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareMessageStatus"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "MessageStatusView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "MessageStatus"
+        }
+      }
+    },
+    {
+      "name": "ConversationList",
+      "category": "Conversation",
+      "summary": {
+        "en": "The inbox — virtualised rows of conversations (avatar, title, preview, unread, timestamp).",
+        "zh": "会话收件箱 —— 虚拟化的会话行（头像、标题、预览、未读、时间）。"
+      },
+      "dataSource": {
+        "en": "client.views.openConversationList(); one observable list, reorders + updates unread live",
+        "zh": "client.views.openConversationList()；一份可观察列表，实时重排并更新未读"
+      },
+      "props": [
+        {
+          "name": "items",
+          "type": "ConversationRow[]",
+          "required": true,
+          "description": {
+            "en": "Ordered conversation rows from the view.",
+            "zh": "视图给出的有序会话行。"
+          }
+        },
+        {
+          "name": "activeId",
+          "type": "string",
+          "description": {
+            "en": "Currently open conversation, highlighted in the list.",
+            "zh": "当前打开的会话，在列表中高亮。"
+          }
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "description": {
+            "en": "Shows a skeleton/spinner while the first page loads.",
+            "zh": "首屏加载时显示骨架 / 转圈。"
+          }
+        }
+      ],
+      "states": [
+        "loading",
+        "empty",
+        "unread",
+        "muted",
+        "pinned"
+      ],
+      "events": [
+        "select",
+        "longPress",
+        "loadMore"
+      ],
+      "notes": {
+        "en": "Must virtualise (native list per platform); O(visible), no full re-layout on update.",
+        "zh": "必须虚拟化（各端用原生列表）；O(visible)，更新不整表重排。"
+      },
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareConversationList"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareConversationList"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ConversationListView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ConversationList"
+        }
+      }
+    },
+    {
+      "name": "ConversationRow",
+      "category": "Conversation",
+      "summary": {
+        "en": "A single inbox row — avatar, title, last-message/draft preview, unread badge, time, mute/pin markers.",
+        "zh": "单个会话行 —— 头像、标题、末条 / 草稿预览、未读角标、时间、免打扰 / 置顶标记。"
+      },
+      "dataSource": {
+        "en": "one ConversationRow item from the conversation-list view",
+        "zh": "会话列表视图里的一条 ConversationRow"
+      },
+      "props": [
+        {
+          "name": "item",
+          "type": "ConversationRow",
+          "required": true,
+          "description": {
+            "en": "The row's data (title, preview, unread, time, flags).",
+            "zh": "该行数据（标题、预览、未读、时间、标记）。"
+          }
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "description": {
+            "en": "Renders the selected/open state.",
+            "zh": "渲染选中 / 打开态。"
+          }
+        },
+        {
+          "name": "draftPreview",
+          "type": "string",
+          "description": {
+            "en": "Unsent draft text; shown in place of the last message.",
+            "zh": "未发送的草稿文本；替代末条消息显示。"
+          }
+        }
+      ],
+      "states": [
+        "unread",
+        "muted",
+        "pinned",
+        "active"
+      ],
+      "events": [
+        "select",
+        "action"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareConversationRow"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareConversationRow"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ConversationRowView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ConversationRow"
+        }
+      }
+    },
+    {
+      "name": "ConversationDetails",
+      "category": "Conversation",
+      "summary": {
+        "en": "The conversation info/settings panel — counts, connection state, and per-conversation actions (mute/pin/archive/clear/delete/sync).",
+        "zh": "会话信息 / 设置面板 —— 统计、连接状态，以及单会话操作（免打扰 / 置顶 / 归档 / 清空 / 删除 / 同步）。"
+      },
+      "dataSource": {
+        "en": "conversation summary from the view + connection state from the client",
+        "zh": "取视图的会话摘要 + client 的连接状态"
+      },
+      "props": [
+        {
+          "name": "conversation",
+          "type": "Conversation",
+          "required": true,
+          "description": {
+            "en": "The conversation summary to describe.",
+            "zh": "要展示的会话摘要。"
+          }
+        },
+        {
+          "name": "connectionText",
+          "type": "string",
+          "description": {
+            "en": "Human-readable connection label (e.g. connected/reconnecting).",
+            "zh": "可读的连接文案（如已连接 / 重连中）。"
+          }
+        },
+        {
+          "name": "connectionTone",
+          "type": "'ok' | 'warn' | 'error'",
+          "description": {
+            "en": "Severity of the connection label — drives its color.",
+            "zh": "连接文案的语义级别 —— 决定其颜色。"
+          }
+        },
+        {
+          "name": "messageCount",
+          "type": "number",
+          "description": {
+            "en": "Total messages, shown in the stats row.",
+            "zh": "消息总数，显示在统计行。"
+          }
+        },
+        {
+          "name": "latestMessageId",
+          "type": "string",
+          "description": {
+            "en": "Id of the newest message, for diagnostics/jump.",
+            "zh": "最新消息 id，用于诊断 / 跳转。"
+          }
+        }
+      ],
+      "states": [
+        "muted",
+        "pinned",
+        "archived"
+      ],
+      "events": [
+        "mute",
+        "pin",
+        "archive",
+        "clear-history",
+        "delete",
+        "mark-read",
+        "mark-unread",
+        "sync",
+        "open-devtools"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "ConversationDetails"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareConversationDetails"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ConversationDetailsView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ConversationDetails"
+        }
+      }
+    },
+    {
+      "name": "StartConversationDialog",
+      "category": "Conversation",
+      "summary": {
+        "en": "New-conversation entry — pick a contact or create a group.",
+        "zh": "发起会话入口 —— 选联系人或建群。"
+      },
+      "dataSource": {
+        "en": "contacts/directory from the product; confirm creates/opens a conversation via the client",
+        "zh": "联系人 / 通讯录由产品提供；确认经 client 创建 / 打开会话"
+      },
+      "props": [
+        {
+          "name": "busy",
+          "type": "boolean",
+          "description": {
+            "en": "Disables confirm and shows a spinner while creating.",
+            "zh": "创建中禁用确认并转圈。"
+          }
+        }
+      ],
+      "states": [
+        "idle",
+        "busy"
+      ],
+      "events": [
+        "confirm"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareStartConversationDialog"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareStartConversationSheet"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "StartConversationView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "StartConversationDialog"
+        }
+      }
+    },
+    {
+      "name": "MessageBubble",
+      "category": "Message",
+      "summary": {
+        "en": "One message in a thread — content, sender, grouping, delivery status. Delegates body to a per-content-type view.",
+        "zh": "线程里的一条消息 —— 内容、发送者、分组、送达状态。正文按内容类型委派给对应视图。"
+      },
+      "dataSource": {
+        "en": "one item from client.views.openTimeline(conversationId); status drives state",
+        "zh": "取 client.views.openTimeline(conversationId) 的一条；status 驱动状态"
+      },
+      "props": [
+        {
+          "name": "message",
+          "type": "Message",
+          "required": true,
+          "description": {
+            "en": "The message to render.",
+            "zh": "要渲染的消息。"
+          }
+        },
+        {
+          "name": "currentUserId",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Viewer's id; decides self vs. other side.",
+            "zh": "当前用户 id；判定自己 / 对方。"
+          }
+        },
+        {
+          "name": "self",
+          "type": "boolean",
+          "default": "message.senderId === currentUserId",
+          "description": {
+            "en": "Force the outgoing side; defaults from sender == current user.",
+            "zh": "强制发送方；默认由 sender==当前用户 推导。"
+          }
+        },
+        {
+          "name": "conversationType",
+          "type": "'single' | 'group' | 'ai'",
+          "default": "single",
+          "description": {
+            "en": "Single/group/AI — affects sender name & grouping.",
+            "zh": "单聊 / 群 / AI —— 影响发送者名与分组。"
+          }
+        },
+        {
+          "name": "groupStart",
+          "type": "boolean",
+          "description": {
+            "en": "First bubble of a same-sender run (shows avatar/name).",
+            "zh": "同发送者连发的首条（显示头像 / 名）。"
+          }
+        },
+        {
+          "name": "groupEnd",
+          "type": "boolean",
+          "description": {
+            "en": "Last bubble of a run (carries the tail & time).",
+            "zh": "连发的末条（带尾角与时间）。"
+          }
+        },
+        {
+          "name": "multiSelectMode",
+          "type": "boolean",
+          "description": {
+            "en": "Renders the selection checkbox.",
+            "zh": "渲染多选勾选框。"
+          }
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "description": {
+            "en": "Whether this bubble is checked in multi-select.",
+            "zh": "多选态下是否被选中。"
+          }
+        },
+        {
+          "name": "menuConfig",
+          "type": "MessageMenuConfig",
+          "description": {
+            "en": "Which long-press actions are enabled for this message.",
+            "zh": "该消息长按可用的操作集合。"
+          }
+        },
+        {
+          "name": "mediaDownloadState",
+          "type": "MessageMediaDownloadUiState",
+          "description": {
+            "en": "Progress/state for media bodies (image/video/file).",
+            "zh": "媒体正文（图 / 视频 / 文件）的下载进度 / 状态。"
+          }
+        }
+      ],
+      "states": [
+        "pending",
+        "sent",
+        "read",
+        "failed"
+      ],
+      "events": [
+        "react",
+        "reply",
+        "edit",
+        "delete",
+        "pin",
+        "mark",
+        "preview"
+      ],
+      "notes": {
+        "en": "Optimistic: status from the core view, never a network wait.",
+        "zh": "乐观：status 来自 core 视图，绝不等网络。"
+      },
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "MessageBubble"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareMessageBubble"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "MessageBubbleView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "MessageBubble"
+        }
+      }
+    },
+    {
+      "name": "MessageList",
+      "category": "Message",
+      "summary": {
+        "en": "The virtualised message thread — grouping, load-older, multi-select, per-message actions, media state.",
+        "zh": "虚拟化消息线程 —— 分组、加载更早、多选、逐条操作、媒体状态。"
+      },
+      "dataSource": {
+        "en": "client.views.openTimeline(conversationId); windowed, load-older via view.loadOlder()",
+        "zh": "client.views.openTimeline(conversationId)；窗口化，加载更早经 view.loadOlder()"
+      },
+      "props": [
+        {
+          "name": "conversationId",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Which timeline to open.",
+            "zh": "打开哪条时间线。"
+          }
+        },
+        {
+          "name": "conversationType",
+          "type": "'single' | 'group' | 'ai'",
+          "description": {
+            "en": "Single/group/AI — affects bubble layout.",
+            "zh": "单聊 / 群 / AI —— 影响气泡版式。"
+          }
+        },
+        {
+          "name": "messages",
+          "type": "Message[]",
+          "required": true,
+          "description": {
+            "en": "Windowed message slice from the view.",
+            "zh": "视图给出的窗口化消息片段。"
+          }
+        },
+        {
+          "name": "currentUserId",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Viewer's id, for self/other resolution.",
+            "zh": "当前用户 id，用于自 / 他判定。"
+          }
+        },
+        {
+          "name": "multiSelectMode",
+          "type": "boolean",
+          "description": {
+            "en": "Turns on per-bubble selection.",
+            "zh": "开启逐条多选。"
+          }
+        },
+        {
+          "name": "selectedIds",
+          "type": "string[]",
+          "description": {
+            "en": "Ids currently checked in multi-select.",
+            "zh": "多选态下已勾选的 id。"
+          }
+        },
+        {
+          "name": "loadingOlder",
+          "type": "boolean",
+          "description": {
+            "en": "Shows the load-older spinner at the top.",
+            "zh": "顶部显示加载更早的转圈。"
+          }
+        },
+        {
+          "name": "hasOlder",
+          "type": "boolean",
+          "description": {
+            "en": "Whether more history exists to page in.",
+            "zh": "是否还有更早历史可翻。"
+          }
+        },
+        {
+          "name": "bottomInset",
+          "type": "number",
+          "description": {
+            "en": "Extra bottom padding (e.g. above the composer).",
+            "zh": "底部额外内边距（如让开输入框）。"
+          }
+        },
+        {
+          "name": "menuConfig",
+          "type": "MessageMenuConfig",
+          "description": {
+            "en": "Enabled long-press actions across the list.",
+            "zh": "整表可用的长按操作集合。"
+          }
+        },
+        {
+          "name": "mediaDownloadStates",
+          "type": "Record<string, MessageMediaDownloadUiState>",
+          "description": {
+            "en": "Map of messageId → media download state.",
+            "zh": "messageId → 媒体下载状态 的映射。"
+          }
+        }
+      ],
+      "states": [
+        "loading",
+        "empty",
+        "loadingOlder",
+        "atBottom",
+        "multiSelect"
+      ],
+      "events": [
+        "atBottomChange",
+        "react",
+        "reply",
+        "edit",
+        "delete",
+        "recall",
+        "forward",
+        "pin",
+        "mark",
+        "preview",
+        "resend",
+        "mediaAction",
+        "multiSelect"
+      ],
+      "notes": {
+        "en": "60fps virtualised; O(visible); scroll anchoring on append/prepend.",
+        "zh": "60fps 虚拟化；O(visible)；追加 / 前插时锚定滚动位。"
+      },
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "MessageList"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareMessageList"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "MessageListView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "MessageList"
+        }
+      }
+    },
+    {
+      "name": "ChatHeader",
+      "category": "Message",
+      "summary": {
+        "en": "The active conversation's header — title, subtitle/presence, and header actions (search/call/details).",
+        "zh": "当前会话头部 —— 标题、副标题 / 在线态，以及头部操作（搜索 / 通话 / 详情）。"
+      },
+      "dataSource": {
+        "en": "active conversation summary + peer presence from the view",
+        "zh": "取视图的当前会话摘要 + 对端在线态"
+      },
+      "props": [
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Conversation name shown in the header.",
+            "zh": "头部显示的会话名。"
+          }
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "description": {
+            "en": "Secondary line (member count, typing, last-seen…).",
+            "zh": "副标题行（成员数、正在输入、最后在线…）。"
+          }
+        },
+        {
+          "name": "presence",
+          "type": "'online' | 'offline' | 'busy' | 'away'",
+          "description": {
+            "en": "Peer presence for a 1:1 chat; drives the status dot.",
+            "zh": "单聊对端在线态；驱动状态点。"
+          }
+        }
+      ],
+      "states": [
+        "online",
+        "offline"
+      ],
+      "events": [
+        "search",
+        "call",
+        "details"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "ChatConversationHeader"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareChatHeader"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ChatHeaderView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ChatHeader"
+        }
+      }
+    },
+    {
+      "name": "PinnedMessageBar",
+      "category": "Message",
+      "summary": {
+        "en": "Sticky bar showing pinned messages above the thread; tap to focus the pinned message.",
+        "zh": "线程上方的置顶消息吸顶条；点按定位到被置顶的消息。"
+      },
+      "dataSource": {
+        "en": "pinned messages from the timeline view",
+        "zh": "取时间线视图的置顶消息"
+      },
+      "props": [
+        {
+          "name": "items",
+          "type": "PinnedMessage[]",
+          "required": true,
+          "description": {
+            "en": "Pinned messages; if several, the bar cycles through them.",
+            "zh": "置顶消息集；多条时条内轮播。"
+          }
+        }
+      ],
+      "states": [
+        "empty",
+        "single",
+        "many"
+      ],
+      "events": [
+        "focus"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "PinnedMessageBar"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlarePinnedMessageBar"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "PinnedMessageBarView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "PinnedMessageBar"
+        }
+      }
+    },
+    {
+      "name": "MessageContentView",
+      "category": "Message",
+      "summary": {
+        "en": "Content-type dispatcher — renders a message body by type via the content-type registry (text/image/video/card/vote/task/…). Extension point for products.",
+        "zh": "内容类型分发器 —— 经内容类型注册表按类型渲染消息正文（文本 / 图片 / 视频 / 名片 / 投票 / 任务 / …）。产品扩展点。"
+      },
+      "dataSource": {
+        "en": "message.content from the timeline view",
+        "zh": "取时间线视图的 message.content"
+      },
+      "props": [
+        {
+          "name": "content",
+          "type": "MessageContent",
+          "required": true,
+          "description": {
+            "en": "The typed message body to dispatch on.",
+            "zh": "要分发的带类型消息正文。"
+          }
+        },
+        {
+          "name": "self",
+          "type": "boolean",
+          "description": {
+            "en": "Outgoing side — some bodies restyle (e.g. text color).",
+            "zh": "发送方 —— 部分正文据此换样式（如文字色）。"
+          }
+        },
+        {
+          "name": "previewMode",
+          "type": "boolean",
+          "description": {
+            "en": "Compact render for quotes/reply strips/search hits.",
+            "zh": "紧凑渲染，用于引用 / 回复条 / 搜索命中。"
+          }
+        },
+        {
+          "name": "messageId",
+          "type": "string",
+          "description": {
+            "en": "Id, for media actions and locate-message.",
+            "zh": "消息 id，用于媒体操作与定位。"
+          }
+        },
+        {
+          "name": "messageExtra",
+          "type": "Record<string, unknown>",
+          "description": {
+            "en": "Type-specific extra payload passed to the renderer.",
+            "zh": "按类型透传给渲染器的额外载荷。"
+          }
+        },
+        {
+          "name": "senderName",
+          "type": "string",
+          "description": {
+            "en": "Sender name, used by some content types (e.g. cards).",
+            "zh": "发送者名，部分内容类型会用（如名片）。"
+          }
+        },
+        {
+          "name": "mediaState",
+          "type": "MessageMediaDownloadUiState",
+          "description": {
+            "en": "Download/progress state for media bodies.",
+            "zh": "媒体正文的下载 / 进度状态。"
+          }
+        }
+      ],
+      "states": [
+        "ready",
+        "downloading",
+        "unsupported"
+      ],
+      "events": [
+        "locate-message",
+        "media-action"
+      ],
+      "notes": {
+        "en": "Built-in types live in `contentTypes.registered`; register new ones for product content. Each type is also a standalone component: [TextMessage](/en/components/text-message) · [ImageMessage](/en/components/image-message) · [VideoMessage](/en/components/video-message) · [VoiceMessage](/en/components/voice-message) · [FileMessage](/en/components/file-message) · [LocationMessage](/en/components/location-message) · [ContactMessage](/en/components/contact-message) · [LinkCardMessage](/en/components/link-card-message) · [VoteMessage](/en/components/vote-message) · [TaskMessage](/en/components/task-message) · [StickerMessage](/en/components/sticker-message) · [EmojiMessage](/en/components/emoji-message) · [SystemMessage](/en/components/system-message).",
+        "zh": "内建类型见 `contentTypes.registered`，产品内容可注册新类型。每种类型也都是独立组件：[TextMessage](/components/text-message) · [ImageMessage](/components/image-message) · [VideoMessage](/components/video-message) · [VoiceMessage](/components/voice-message) · [FileMessage](/components/file-message) · [LocationMessage](/components/location-message) · [ContactMessage](/components/contact-message) · [LinkCardMessage](/components/link-card-message) · [VoteMessage](/components/vote-message) · [TaskMessage](/components/task-message) · [StickerMessage](/components/sticker-message) · [EmojiMessage](/components/emoji-message) · [SystemMessage](/components/system-message)。"
+      },
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "MessageContentView"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareMessageContentView"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "MessageContentView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "MessageContentView"
+        }
+      }
+    },
+    {
+      "name": "TextMessage",
+      "category": "Message",
+      "summary": {
+        "en": "Text message body — linkifies bare URLs; self flips to the brand bubble.",
+        "zh": "文本消息体 —— 自动识别链接；self 切换为己方品牌气泡。"
+      },
+      "dataSource": {
+        "en": "product-provided props — a decoupled presentational body (no SDK/media coupling). The dispatcher MessageContentView builds these from message.content.",
+        "zh": "产品直接喂 props —— 解耦的展示型消息体（无 SDK / 媒体耦合）。分发器 MessageContentView 由 message.content 构建它们。"
+      },
+      "states": [],
+      "events": [],
+      "props": [
+        {
+          "name": "text",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "The text to render.",
+            "zh": "要渲染的文本。"
+          }
+        },
+        {
+          "name": "self",
+          "type": "boolean",
+          "description": {
+            "en": "Render the outgoing (brand-purple) side.",
+            "zh": "渲染发送方（品牌紫）一侧。"
+          }
+        }
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareTextMessage"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareTextMessage"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "TextMessageView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "TextMessage"
+        }
+      },
+      "notes": {
+        "en": "Decoupled & presentational — you pass simple props. For live, SDK-driven messages, let [MessageContentView](/en/components/message-content-view) dispatch by `content.type` instead.",
+        "zh": "解耦的展示型组件 —— 由你直接喂 props。实时、SDK 驱动的消息请交给 [MessageContentView](/components/message-content-view) 按 `content.type` 自动分派。"
+      }
+    },
+    {
+      "name": "ImageMessage",
+      "category": "Message",
+      "summary": {
+        "en": "Image message body — a rounded thumbnail.",
+        "zh": "图片消息体 —— 圆角缩略图。"
+      },
+      "dataSource": {
+        "en": "product-provided props — a decoupled presentational body (no SDK/media coupling). The dispatcher MessageContentView builds these from message.content.",
+        "zh": "产品直接喂 props —— 解耦的展示型消息体（无 SDK / 媒体耦合）。分发器 MessageContentView 由 message.content 构建它们。"
+      },
+      "states": [],
+      "events": [
+        "click"
+      ],
+      "props": [
+        {
+          "name": "src",
+          "type": "string",
+          "description": {
+            "en": "Image source; omit to show a placeholder.",
+            "zh": "图源；不传则显示占位。"
+          }
+        },
+        {
+          "name": "width",
+          "type": "number",
+          "default": "132",
+          "description": {
+            "en": "Thumbnail width in px.",
+            "zh": "缩略图宽（px）。"
+          }
+        },
+        {
+          "name": "height",
+          "type": "number",
+          "default": "92",
+          "description": {
+            "en": "Thumbnail height in px.",
+            "zh": "缩略图高（px）。"
+          }
+        }
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareImageMessage"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareImageMessage"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ImageMessageView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ImageMessage"
+        }
+      },
+      "notes": {
+        "en": "Decoupled & presentational — you pass simple props. For live, SDK-driven messages, let [MessageContentView](/en/components/message-content-view) dispatch by `content.type` instead.",
+        "zh": "解耦的展示型组件 —— 由你直接喂 props。实时、SDK 驱动的消息请交给 [MessageContentView](/components/message-content-view) 按 `content.type` 自动分派。"
+      }
+    },
+    {
+      "name": "VideoMessage",
+      "category": "Message",
+      "summary": {
+        "en": "Video message body — poster with a play overlay and duration badge.",
+        "zh": "视频消息体 —— 封面 + 播放叠层 + 时长角标。"
+      },
+      "dataSource": {
+        "en": "product-provided props — a decoupled presentational body (no SDK/media coupling). The dispatcher MessageContentView builds these from message.content.",
+        "zh": "产品直接喂 props —— 解耦的展示型消息体（无 SDK / 媒体耦合）。分发器 MessageContentView 由 message.content 构建它们。"
+      },
+      "states": [],
+      "events": [
+        "play"
+      ],
+      "props": [
+        {
+          "name": "duration",
+          "type": "string",
+          "default": "\"00:00\"",
+          "description": {
+            "en": "Duration label (mm:ss).",
+            "zh": "时长文案（mm:ss）。"
+          }
+        },
+        {
+          "name": "poster",
+          "type": "string",
+          "description": {
+            "en": "Poster image; omit to show a placeholder.",
+            "zh": "封面图；不传则显示占位。"
+          }
+        }
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareVideoMessage"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareVideoMessage"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "VideoMessageView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "VideoMessage"
+        }
+      },
+      "notes": {
+        "en": "Decoupled & presentational — you pass simple props. For live, SDK-driven messages, let [MessageContentView](/en/components/message-content-view) dispatch by `content.type` instead.",
+        "zh": "解耦的展示型组件 —— 由你直接喂 props。实时、SDK 驱动的消息请交给 [MessageContentView](/components/message-content-view) 按 `content.type` 自动分派。"
+      }
+    },
+    {
+      "name": "VoiceMessage",
+      "category": "Message",
+      "summary": {
+        "en": "Audio / voice message body — a waveform and duration.",
+        "zh": "语音消息体 —— 波形 + 时长。"
+      },
+      "dataSource": {
+        "en": "product-provided props — a decoupled presentational body (no SDK/media coupling). The dispatcher MessageContentView builds these from message.content.",
+        "zh": "产品直接喂 props —— 解耦的展示型消息体（无 SDK / 媒体耦合）。分发器 MessageContentView 由 message.content 构建它们。"
+      },
+      "states": [],
+      "events": [],
+      "props": [
+        {
+          "name": "seconds",
+          "type": "number",
+          "default": "1",
+          "description": {
+            "en": "Clip length in seconds.",
+            "zh": "语音时长（秒）。"
+          }
+        }
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareVoiceMessage"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareVoiceMessage"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "VoiceMessageView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "VoiceMessage"
+        }
+      },
+      "notes": {
+        "en": "Decoupled & presentational — you pass simple props. For live, SDK-driven messages, let [MessageContentView](/en/components/message-content-view) dispatch by `content.type` instead.",
+        "zh": "解耦的展示型组件 —— 由你直接喂 props。实时、SDK 驱动的消息请交给 [MessageContentView](/components/message-content-view) 按 `content.type` 自动分派。"
+      }
+    },
+    {
+      "name": "FileMessage",
+      "category": "Message",
+      "summary": {
+        "en": "File message body — icon, name / size / ext, download affordance.",
+        "zh": "文件消息体 —— 图标、名称 / 大小 / 类型、下载。"
+      },
+      "dataSource": {
+        "en": "product-provided props — a decoupled presentational body (no SDK/media coupling). The dispatcher MessageContentView builds these from message.content.",
+        "zh": "产品直接喂 props —— 解耦的展示型消息体（无 SDK / 媒体耦合）。分发器 MessageContentView 由 message.content 构建它们。"
+      },
+      "states": [],
+      "events": [
+        "open",
+        "download"
+      ],
+      "props": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "File name.",
+            "zh": "文件名。"
+          }
+        },
+        {
+          "name": "size",
+          "type": "string",
+          "description": {
+            "en": "Human-readable size (e.g. 2.4 MB).",
+            "zh": "可读大小（如 2.4 MB）。"
+          }
+        },
+        {
+          "name": "ext",
+          "type": "string",
+          "description": {
+            "en": "Extension / kind label.",
+            "zh": "扩展名 / 类型标签。"
+          }
+        },
+        {
+          "name": "icon",
+          "type": "slot",
+          "description": {
+            "en": "Custom leading icon (a slot / icon param), e.g. a per-file-type glyph. Defaults to a folder.",
+            "zh": "自定义前置图标（slot / icon 参数），如按文件类型的图标。默认文件夹。"
+          }
+        }
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareFileMessage"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareFileMessage"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "FileMessageView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FileMessage"
+        }
+      },
+      "notes": {
+        "en": "Decoupled — you pass props; `download` / `open` are handled by the host (the component never touches the URL), and the leading icon is customizable. For live SDK-driven messages use [MessageContentView](/en/components/message-content-view).",
+        "zh": "解耦 —— 你喂 props；`download` / `open` 由宿主处理（组件不碰 URL），前置图标可自定义。实时 SDK 驱动的消息用 [MessageContentView](/components/message-content-view)。"
+      }
+    },
+    {
+      "name": "LocationMessage",
+      "category": "Message",
+      "summary": {
+        "en": "Location message body — a map placeholder over title / address.",
+        "zh": "位置消息体 —— 地图占位 + 标题 / 地址。"
+      },
+      "dataSource": {
+        "en": "product-provided props — a decoupled presentational body (no SDK/media coupling). The dispatcher MessageContentView builds these from message.content.",
+        "zh": "产品直接喂 props —— 解耦的展示型消息体（无 SDK / 媒体耦合）。分发器 MessageContentView 由 message.content 构建它们。"
+      },
+      "states": [],
+      "events": [
+        "open"
+      ],
+      "props": [
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Place name.",
+            "zh": "地点名。"
+          }
+        },
+        {
+          "name": "address",
+          "type": "string",
+          "description": {
+            "en": "Full address line.",
+            "zh": "详细地址。"
+          }
+        }
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareLocationMessage"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareLocationMessage"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "LocationMessageView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "LocationMessage"
+        }
+      },
+      "notes": {
+        "en": "Decoupled & presentational — you pass simple props. For live, SDK-driven messages, let [MessageContentView](/en/components/message-content-view) dispatch by `content.type` instead.",
+        "zh": "解耦的展示型组件 —— 由你直接喂 props。实时、SDK 驱动的消息请交给 [MessageContentView](/components/message-content-view) 按 `content.type` 自动分派。"
+      }
+    },
+    {
+      "name": "ContactMessage",
+      "category": "Message",
+      "summary": {
+        "en": "Contact / business card — pastel avatar + name / id.",
+        "zh": "名片消息体 —— pastel 头像 + 名称 / ID。"
+      },
+      "dataSource": {
+        "en": "product-provided props — a decoupled presentational body (no SDK/media coupling). The dispatcher MessageContentView builds these from message.content.",
+        "zh": "产品直接喂 props —— 解耦的展示型消息体（无 SDK / 媒体耦合）。分发器 MessageContentView 由 message.content 构建它们。"
+      },
+      "states": [],
+      "events": [
+        "open"
+      ],
+      "props": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Contact name (drives the pastel avatar).",
+            "zh": "联系人名（驱动 pastel 头像）。"
+          }
+        },
+        {
+          "name": "flareId",
+          "type": "string",
+          "description": {
+            "en": "Flare ID shown under the name.",
+            "zh": "名称下方显示的 Flare ID。"
+          }
+        }
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareContactMessage"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareContactMessage"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ContactMessageView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ContactMessage"
+        }
+      },
+      "notes": {
+        "en": "Decoupled & presentational — you pass simple props. For live, SDK-driven messages, let [MessageContentView](/en/components/message-content-view) dispatch by `content.type` instead.",
+        "zh": "解耦的展示型组件 —— 由你直接喂 props。实时、SDK 驱动的消息请交给 [MessageContentView](/components/message-content-view) 按 `content.type` 自动分派。"
+      }
+    },
+    {
+      "name": "LinkCardMessage",
+      "category": "Message",
+      "summary": {
+        "en": "Link card — thumbnail + title + domain.",
+        "zh": "链接卡片 —— 缩略图 + 标题 + 域名。"
+      },
+      "dataSource": {
+        "en": "product-provided props — a decoupled presentational body (no SDK/media coupling). The dispatcher MessageContentView builds these from message.content.",
+        "zh": "产品直接喂 props —— 解耦的展示型消息体（无 SDK / 媒体耦合）。分发器 MessageContentView 由 message.content 构建它们。"
+      },
+      "states": [],
+      "events": [
+        "open"
+      ],
+      "props": [
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Link title.",
+            "zh": "链接标题。"
+          }
+        },
+        {
+          "name": "domain",
+          "type": "string",
+          "description": {
+            "en": "Domain shown with a link glyph.",
+            "zh": "带链接图标显示的域名。"
+          }
+        }
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareLinkCardMessage"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareLinkCardMessage"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "LinkCardMessageView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "LinkCardMessage"
+        }
+      },
+      "notes": {
+        "en": "Decoupled & presentational — you pass simple props. For live, SDK-driven messages, let [MessageContentView](/en/components/message-content-view) dispatch by `content.type` instead.",
+        "zh": "解耦的展示型组件 —— 由你直接喂 props。实时、SDK 驱动的消息请交给 [MessageContentView](/components/message-content-view) 按 `content.type` 自动分派。"
+      }
+    },
+    {
+      "name": "VoteMessage",
+      "category": "Message",
+      "summary": {
+        "en": "Vote message body — a title over options with proportional bars.",
+        "zh": "投票消息体 —— 标题 + 带进度条的选项。"
+      },
+      "dataSource": {
+        "en": "product-provided props — a decoupled presentational body (no SDK/media coupling). The dispatcher MessageContentView builds these from message.content.",
+        "zh": "产品直接喂 props —— 解耦的展示型消息体（无 SDK / 媒体耦合）。分发器 MessageContentView 由 message.content 构建它们。"
+      },
+      "states": [],
+      "events": [],
+      "props": [
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Poll question.",
+            "zh": "投票标题。"
+          }
+        },
+        {
+          "name": "options",
+          "type": "FlareVoteOption[]",
+          "description": {
+            "en": "Options as { text, pct }.",
+            "zh": "选项 { text, pct } 列表。"
+          }
+        }
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareVoteMessage"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareVoteMessage"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "VoteMessageView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "VoteMessage"
+        }
+      },
+      "notes": {
+        "en": "Decoupled & presentational — you pass simple props. For live, SDK-driven messages, let [MessageContentView](/en/components/message-content-view) dispatch by `content.type` instead.",
+        "zh": "解耦的展示型组件 —— 由你直接喂 props。实时、SDK 驱动的消息请交给 [MessageContentView](/components/message-content-view) 按 `content.type` 自动分派。"
+      }
+    },
+    {
+      "name": "TaskMessage",
+      "category": "Message",
+      "summary": {
+        "en": "Task message body — checkbox + title (struck when done) + meta.",
+        "zh": "任务消息体 —— 勾选框 + 标题（完成划线）+ 附注。"
+      },
+      "dataSource": {
+        "en": "product-provided props — a decoupled presentational body (no SDK/media coupling). The dispatcher MessageContentView builds these from message.content.",
+        "zh": "产品直接喂 props —— 解耦的展示型消息体（无 SDK / 媒体耦合）。分发器 MessageContentView 由 message.content 构建它们。"
+      },
+      "states": [],
+      "events": [],
+      "props": [
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Task title.",
+            "zh": "任务标题。"
+          }
+        },
+        {
+          "name": "meta",
+          "type": "string",
+          "description": {
+            "en": "Secondary line (due / status).",
+            "zh": "次级行（截止 / 状态）。"
+          }
+        },
+        {
+          "name": "done",
+          "type": "boolean",
+          "description": {
+            "en": "Completed — checks the box and strikes the title.",
+            "zh": "已完成 —— 勾选并划线标题。"
+          }
+        }
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareTaskMessage"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareTaskMessage"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "TaskMessageView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "TaskMessage"
+        }
+      },
+      "notes": {
+        "en": "Decoupled & presentational — you pass simple props. For live, SDK-driven messages, let [MessageContentView](/en/components/message-content-view) dispatch by `content.type` instead.",
+        "zh": "解耦的展示型组件 —— 由你直接喂 props。实时、SDK 驱动的消息请交给 [MessageContentView](/components/message-content-view) 按 `content.type` 自动分派。"
+      }
+    },
+    {
+      "name": "StickerMessage",
+      "category": "Message",
+      "summary": {
+        "en": "Sticker body — a bare, larger glyph / image (no bubble).",
+        "zh": "贴纸消息体 —— 裸的大图 / emoji（无气泡）。"
+      },
+      "dataSource": {
+        "en": "product-provided props — a decoupled presentational body (no SDK/media coupling). The dispatcher MessageContentView builds these from message.content.",
+        "zh": "产品直接喂 props —— 解耦的展示型消息体（无 SDK / 媒体耦合）。分发器 MessageContentView 由 message.content 构建它们。"
+      },
+      "states": [],
+      "events": [],
+      "props": [
+        {
+          "name": "emoji",
+          "type": "string",
+          "default": "\"🐱\"",
+          "description": {
+            "en": "Emoji fallback when no image.",
+            "zh": "无图片时的 emoji 兜底。"
+          }
+        },
+        {
+          "name": "src",
+          "type": "string",
+          "description": {
+            "en": "Sticker image source.",
+            "zh": "贴纸图源。"
+          }
+        }
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareStickerMessage"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareStickerMessage"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "StickerMessageView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "StickerMessage"
+        }
+      },
+      "notes": {
+        "en": "Decoupled & presentational — you pass simple props. For live, SDK-driven messages, let [MessageContentView](/en/components/message-content-view) dispatch by `content.type` instead.",
+        "zh": "解耦的展示型组件 —— 由你直接喂 props。实时、SDK 驱动的消息请交给 [MessageContentView](/components/message-content-view) 按 `content.type` 自动分派。"
+      }
+    },
+    {
+      "name": "EmojiMessage",
+      "category": "Message",
+      "summary": {
+        "en": "Large-emoji body — bare, no bubble.",
+        "zh": "大 emoji 消息体 —— 裸，无气泡。"
+      },
+      "dataSource": {
+        "en": "product-provided props — a decoupled presentational body (no SDK/media coupling). The dispatcher MessageContentView builds these from message.content.",
+        "zh": "产品直接喂 props —— 解耦的展示型消息体（无 SDK / 媒体耦合）。分发器 MessageContentView 由 message.content 构建它们。"
+      },
+      "states": [],
+      "events": [],
+      "props": [
+        {
+          "name": "emoji",
+          "type": "string",
+          "default": "\"🎉\"",
+          "description": {
+            "en": "The emoji to render large.",
+            "zh": "要放大渲染的 emoji。"
+          }
+        }
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareEmojiMessage"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareEmojiMessage"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "EmojiMessageView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "EmojiMessage"
+        }
+      },
+      "notes": {
+        "en": "Decoupled & presentational — you pass simple props. For live, SDK-driven messages, let [MessageContentView](/en/components/message-content-view) dispatch by `content.type` instead.",
+        "zh": "解耦的展示型组件 —— 由你直接喂 props。实时、SDK 驱动的消息请交给 [MessageContentView](/components/message-content-view) 按 `content.type` 自动分派。"
+      }
+    },
+    {
+      "name": "SystemMessage",
+      "category": "Message",
+      "summary": {
+        "en": "System / notification body — a centered pill.",
+        "zh": "系统 / 通知消息体 —— 居中 pill。"
+      },
+      "dataSource": {
+        "en": "product-provided props — a decoupled presentational body (no SDK/media coupling). The dispatcher MessageContentView builds these from message.content.",
+        "zh": "产品直接喂 props —— 解耦的展示型消息体（无 SDK / 媒体耦合）。分发器 MessageContentView 由 message.content 构建它们。"
+      },
+      "states": [],
+      "events": [],
+      "props": [
+        {
+          "name": "text",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Notice text.",
+            "zh": "通知文本。"
+          }
+        }
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareSystemMessage"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareSystemMessage"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "SystemMessageView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "SystemMessage"
+        }
+      },
+      "notes": {
+        "en": "Decoupled & presentational — you pass simple props. For live, SDK-driven messages, let [MessageContentView](/en/components/message-content-view) dispatch by `content.type` instead.",
+        "zh": "解耦的展示型组件 —— 由你直接喂 props。实时、SDK 驱动的消息请交给 [MessageContentView](/components/message-content-view) 按 `content.type` 自动分派。"
+      }
+    },
+    {
+      "name": "Composer",
+      "category": "Composer",
+      "summary": {
+        "en": "The input — rich or plain text, emoji, format bar, attachments, reply strip. Emits built content; send is optimistic.",
+        "zh": "输入框 —— 富文本 / 纯文本、表情、格式条、附件、回复条。产出内容；发送为乐观。"
+      },
+      "dataSource": {
+        "en": "writes through client.messages.send(...); local echo < 16 ms, status via the view",
+        "zh": "经 client.messages.send(...) 写入；本地回显 < 16ms，状态经视图"
+      },
+      "props": [
+        {
+          "name": "conversationId",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Target conversation for sends and the draft.",
+            "zh": "发送与草稿归属的目标会话。"
+          }
+        },
+        {
+          "name": "replyTo",
+          "type": "Message | null",
+          "description": {
+            "en": "Message being replied to; shows the reply strip.",
+            "zh": "被回复的消息；显示回复条。"
+          }
+        },
+        {
+          "name": "rich",
+          "type": "boolean",
+          "description": {
+            "en": "Enable rich (Markdown/RichDoc) editing vs. plain text.",
+            "zh": "启用富文本（Markdown/RichDoc）编辑，否则纯文本。"
+          }
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "description": {
+            "en": "Empty-field hint text.",
+            "zh": "空输入时的占位提示。"
+          }
+        }
+      ],
+      "states": [
+        "draft",
+        "sending",
+        "typing",
+        "disabled"
+      ],
+      "events": [
+        "send",
+        "attach",
+        "typing"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "EnhancedComposer"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareComposer"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ComposerView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "Composer"
+        }
+      },
+      "notes": {
+        "en": "Composed from reusable parts you can also use standalone: [VoiceHoldButton](/en/components/voice-hold-button) · [ComposerActionPanel](/en/components/composer-action-panel) · [ComposerSendButton](/en/components/composer-send-button) · [ComposerReplyStrip](/en/components/composer-reply-strip).",
+        "zh": "由可复用的部件组成，这些部件也能单独使用：[VoiceHoldButton](/components/voice-hold-button) · [ComposerActionPanel](/components/composer-action-panel) · [ComposerSendButton](/components/composer-send-button) · [ComposerReplyStrip](/components/composer-reply-strip)。"
+      }
+    },
+    {
+      "name": "VoiceHoldButton",
+      "category": "Composer",
+      "summary": {
+        "en": "Hold-to-talk voice button — press to record, slide up to cancel. A composable Composer part.",
+        "zh": "按住说话的语音按钮 —— 按住录音、上滑取消。可自由组合的 Composer 部件。"
+      },
+      "dataSource": {
+        "en": "presentational — raises start / end / cancel; the host records and sends",
+        "zh": "纯展示 —— 抛出 start / end / cancel；录音与发送由宿主处理"
+      },
+      "states": [
+        "idle",
+        "recording",
+        "cancelHint"
+      ],
+      "events": [
+        "start",
+        "end",
+        "cancel"
+      ],
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "description": {
+            "en": "Idle label (e.g. Hold to talk).",
+            "zh": "空闲态文案（如「按住 说话」）。"
+          }
+        },
+        {
+          "name": "recordingLabel",
+          "type": "string",
+          "description": {
+            "en": "Label while recording.",
+            "zh": "录音态文案。"
+          }
+        }
+      ],
+      "notes": {
+        "en": "A part of [Composer](/en/components/composer) — use it standalone to build your own input bar.",
+        "zh": "属于 [Composer](/components/composer) 的部件 —— 可单独使用，自拼输入栏。"
+      },
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareVoiceHoldButton"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareVoiceHoldButton"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "FlareVoiceHoldButton"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlareVoiceHoldButton"
+        }
+      }
+    },
+    {
+      "name": "ComposerActionPanel",
+      "category": "Composer",
+      "summary": {
+        "en": "The attachment action grid (image/file/card/vote/…) — the expandable panel behind the composer's + button.",
+        "zh": "下方功能区 —— 附件动作网格（图片 / 文件 / 名片 / 投票 / …），Composer「＋」展开的面板。"
+      },
+      "dataSource": {
+        "en": "presentational — an `actions` list in, an `action` callback out with the chosen item",
+        "zh": "纯展示 —— 传入 `actions` 列表，选择经 `action` 回调带回所选项"
+      },
+      "states": [
+        "default"
+      ],
+      "events": [
+        "action"
+      ],
+      "props": [
+        {
+          "name": "actions",
+          "type": "FlareComposerActionItem[]",
+          "description": {
+            "en": "Action items (icon + label + key); a sensible default set is provided.",
+            "zh": "动作项（图标 + 文案 + key）；内置一套默认项。"
+          }
+        },
+        {
+          "name": "columns",
+          "type": "number",
+          "default": "4",
+          "description": {
+            "en": "Grid columns.",
+            "zh": "网格列数。"
+          }
+        }
+      ],
+      "notes": {
+        "en": "A part of [Composer](/en/components/composer) — use it standalone to build your own input bar.",
+        "zh": "属于 [Composer](/components/composer) 的部件 —— 可单独使用，自拼输入栏。"
+      },
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareComposerActionPanel"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareComposerActionPanel"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "FlareComposerActionPanel"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlareComposerActionPanel"
+        }
+      }
+    },
+    {
+      "name": "ComposerSendButton",
+      "category": "Composer",
+      "summary": {
+        "en": "Send button (发送) — brand-purple when active, disabled otherwise. A composable Composer part.",
+        "zh": "发送按钮 —— active 时品牌紫、否则禁用。可自由组合的 Composer 部件。"
+      },
+      "dataSource": {
+        "en": "presentational — an `active` flag in, a `send` callback out (only when active)",
+        "zh": "纯展示 —— 传入 `active`，仅 active 时经 `send` 回调发出"
+      },
+      "states": [
+        "disabled",
+        "active"
+      ],
+      "events": [
+        "send"
+      ],
+      "props": [
+        {
+          "name": "active",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "Enabled/purple when there is content to send.",
+            "zh": "有内容可发时为可点 / 紫色。"
+          }
+        }
+      ],
+      "notes": {
+        "en": "A part of [Composer](/en/components/composer) — use it standalone to build your own input bar.",
+        "zh": "属于 [Composer](/components/composer) 的部件 —— 可单独使用，自拼输入栏。"
+      },
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareComposerSendButton"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareComposerSendButton"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "FlareComposerSendButton"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlareComposerSendButton"
+        }
+      }
+    },
+    {
+      "name": "ComposerReplyStrip",
+      "category": "Composer",
+      "summary": {
+        "en": "Reply strip (回复条) — shown above the input when replying: left brand rail + sender / summary + cancel.",
+        "zh": "回复条 —— 回复时显示在输入框上方：左侧品牌竖条 + 发送者 / 摘要 + 取消。"
+      },
+      "dataSource": {
+        "en": "presentational — sender + summary in, a `cancel` callback out",
+        "zh": "纯展示 —— 传入 sender + summary，经 `cancel` 回调取消"
+      },
+      "states": [
+        "default"
+      ],
+      "events": [
+        "cancel"
+      ],
+      "props": [
+        {
+          "name": "senderName",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Name of the person being replied to.",
+            "zh": "被回复者的名称。"
+          }
+        },
+        {
+          "name": "summary",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "One-line preview of the quoted message.",
+            "zh": "被引用消息的一行预览。"
+          }
+        }
+      ],
+      "notes": {
+        "en": "A part of [Composer](/en/components/composer) — use it standalone to build your own input bar.",
+        "zh": "属于 [Composer](/components/composer) 的部件 —— 可单独使用，自拼输入栏。"
+      },
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareComposerReplyStrip"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareComposerReplyStrip"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "FlareComposerReplyStrip"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlareComposerReplyStrip"
+        }
+      }
+    },
+    {
+      "name": "RichMarkdownInput",
+      "category": "Composer",
+      "summary": {
+        "en": "The rich (RichDoc/Markdown) text field with formatting preview and length limit — used inside Composer.",
+        "zh": "富文本（RichDoc/Markdown）编辑域，带格式预览与字数限制 —— Composer 内部使用。"
+      },
+      "dataSource": {
+        "en": "produces normalized RichDoc/Markdown content (normalized by core)",
+        "zh": "产出规范化的 RichDoc/Markdown 内容（由 core 归一化）"
+      },
+      "props": [
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "description": {
+            "en": "Read-only, non-editable state.",
+            "zh": "只读、不可编辑态。"
+          }
+        },
+        {
+          "name": "formattingPreview",
+          "type": "boolean",
+          "description": {
+            "en": "Render inline formatting live while typing.",
+            "zh": "输入时实时渲染内联格式。"
+          }
+        },
+        {
+          "name": "maxLength",
+          "type": "number",
+          "description": {
+            "en": "Character cap; over-limit blocks input and warns.",
+            "zh": "字数上限；超限拦截输入并告警。"
+          }
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "description": {
+            "en": "Empty-field hint text.",
+            "zh": "空输入时的占位提示。"
+          }
+        }
+      ],
+      "states": [
+        "empty",
+        "focused",
+        "atLimit",
+        "disabled"
+      ],
+      "events": [
+        "focus",
+        "blur",
+        "keydown"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "ComposerRichMarkdownInput"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareRichMarkdownInput"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "RichMarkdownInputView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "RichMarkdownInput"
+        }
+      }
+    },
+    {
+      "name": "MessageActionSheet",
+      "category": "Message",
+      "summary": {
+        "en": "The message long-press action sheet — a reaction strip, quick actions (reply/forward/recall), and grouped actions (multi-select/mark/pin/copy/edit/delete). Delete in red.",
+        "zh": "消息长按操作面板 —— 表情条、快捷操作（回复 / 转发 / 撤回）、分组操作（多选 / 标记 / 置顶 / 复制 / 编辑 / 删除）。删除为红色。"
+      },
+      "dataSource": {
+        "en": "driven by the message's menuConfig (which actions are enabled); actions dispatch through the timeline view / client",
+        "zh": "由消息的 menuConfig 驱动（启用哪些操作）；操作经时间线视图 / client 分发"
+      },
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "Whether the sheet is shown.",
+            "zh": "面板是否展开。"
+          }
+        },
+        {
+          "name": "reactions",
+          "type": "string[]",
+          "description": {
+            "en": "Emoji shown in the reaction strip (the trailing chip opens the full picker).",
+            "zh": "表情条里的表情（末尾按钮展开完整选择器）。"
+          }
+        },
+        {
+          "name": "menuConfig",
+          "type": "MessageMenuConfig",
+          "description": {
+            "en": "Which actions are enabled for this message; disabled ones are hidden.",
+            "zh": "该消息启用哪些操作；未启用的隐藏。"
+          }
+        },
+        {
+          "name": "canRecall",
+          "type": "boolean",
+          "description": {
+            "en": "Show the recall action (own, recent messages only).",
+            "zh": "是否显示撤回（仅己方近期消息）。"
+          }
+        }
+      ],
+      "states": [
+        "reactionStrip",
+        "quickActions",
+        "emojiExpanded"
+      ],
+      "events": [
+        "react",
+        "reply",
+        "forward",
+        "recall",
+        "multiSelect",
+        "mark",
+        "pin",
+        "copy",
+        "edit",
+        "delete"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "MessageActionSheet"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareMessageActionSheet"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "MessageActionSheetView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "MessageActionSheet"
+        }
+      }
+    },
+    {
+      "name": "ImagePreviewModal",
+      "category": "Media",
+      "summary": {
+        "en": "Full-screen image viewer — zoom/pan, download with progress.",
+        "zh": "全屏图片查看器 —— 缩放 / 拖动，带进度下载。"
+      },
+      "dataSource": {
+        "en": "media resolved via client.media (off-thread, progressive)",
+        "zh": "图源经 client.media 解析（离主线程、渐进）"
+      },
+      "props": [
+        {
+          "name": "show",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "Controls open/close of the viewer.",
+            "zh": "控制查看器开 / 关。"
+          }
+        },
+        {
+          "name": "imageSrc",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Resolved image source to display.",
+            "zh": "已解析、待展示的图源。"
+          }
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "description": {
+            "en": "Full-res still resolving.",
+            "zh": "原图仍在解析中。"
+          }
+        },
+        {
+          "name": "alt",
+          "type": "string",
+          "description": {
+            "en": "Accessible description of the image.",
+            "zh": "图片的无障碍描述。"
+          }
+        },
+        {
+          "name": "downloading",
+          "type": "boolean",
+          "description": {
+            "en": "A save is in progress.",
+            "zh": "正在保存中。"
+          }
+        },
+        {
+          "name": "progressPct",
+          "type": "number",
+          "description": {
+            "en": "Download progress, 0–100.",
+            "zh": "下载进度，0–100。"
+          }
+        },
+        {
+          "name": "zoomMin",
+          "type": "number",
+          "description": {
+            "en": "Minimum zoom factor.",
+            "zh": "最小缩放倍数。"
+          }
+        },
+        {
+          "name": "zoomMax",
+          "type": "number",
+          "description": {
+            "en": "Maximum zoom factor.",
+            "zh": "最大缩放倍数。"
+          }
+        }
+      ],
+      "states": [
+        "loading",
+        "ready",
+        "zoomed",
+        "downloading"
+      ],
+      "events": [
+        "close",
+        "download"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "ImagePreviewModal"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareImagePreview"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ImagePreviewView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ImagePreview"
+        }
+      }
+    },
+    {
+      "name": "VideoPlayerModal",
+      "category": "Media",
+      "summary": {
+        "en": "Full-screen video player with poster and title.",
+        "zh": "全屏视频播放器，带封面与标题。"
+      },
+      "dataSource": {
+        "en": "media resolved via client.media (off-thread streaming)",
+        "zh": "视频经 client.media 解析（离主线程流式）"
+      },
+      "props": [
+        {
+          "name": "show",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "Controls open/close of the player.",
+            "zh": "控制播放器开 / 关。"
+          }
+        },
+        {
+          "name": "videoSrc",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Resolved video source to play.",
+            "zh": "已解析、待播放的视频源。"
+          }
+        },
+        {
+          "name": "poster",
+          "type": "string",
+          "description": {
+            "en": "Still shown before playback starts.",
+            "zh": "开播前展示的封面图。"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": {
+            "en": "Title shown in the player chrome.",
+            "zh": "播放器顶部显示的标题。"
+          }
+        }
+      ],
+      "states": [
+        "loading",
+        "playing",
+        "paused"
+      ],
+      "events": [
+        "close"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "VideoPlayerModal"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareVideoPlayer"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "VideoPlayerView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "VideoPlayer"
+        }
+      }
+    },
+    {
+      "name": "MarkdownPreview",
+      "category": "Media",
+      "summary": {
+        "en": "Rendered read-only Markdown/RichDoc content with optional stats.",
+        "zh": "只读渲染的 Markdown/RichDoc 内容，可选字数统计。"
+      },
+      "dataSource": {
+        "en": "normalized Markdown/RichDoc content (from core)",
+        "zh": "规范化的 Markdown/RichDoc 内容（来自 core）"
+      },
+      "props": [
+        {
+          "name": "content",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Markdown/RichDoc string to render read-only.",
+            "zh": "只读渲染的 Markdown/RichDoc 串。"
+          }
+        },
+        {
+          "name": "showStats",
+          "type": "boolean",
+          "description": {
+            "en": "Show word/char counts under the content.",
+            "zh": "在内容下方显示字 / 词数。"
+          }
+        }
+      ],
+      "states": [
+        "rendered"
+      ],
+      "events": [],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "MarkdownPreview"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareMarkdownPreview"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "MarkdownPreviewView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "MarkdownPreview"
+        }
+      }
+    },
+    {
+      "name": "SearchBar",
+      "category": "General",
+      "summary": {
+        "en": "Unified search field — the entry to conversation/contact/message search, with clear and submit.",
+        "zh": "统一搜索框 —— 会话 / 联系人 / 消息的入口，带清除与提交。"
+      },
+      "dataSource": {
+        "en": "controlled input; results are queried by the product (local view or server)",
+        "zh": "受控输入；结果由产品侧查询（本地视图或服务端）"
+      },
+      "props": [
+        {
+          "name": "modelValue",
+          "type": "string",
+          "description": {
+            "en": "Two-way bound query text.",
+            "zh": "双向绑定的查询文本。"
+          }
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "default": "搜索",
+          "description": {
+            "en": "Empty-field hint text.",
+            "zh": "空输入时的占位提示。"
+          }
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "description": {
+            "en": "Shows a spinner while a query is running.",
+            "zh": "查询进行中显示转圈。"
+          }
+        }
+      ],
+      "states": [
+        "idle",
+        "typing",
+        "loading"
+      ],
+      "events": [
+        "input",
+        "submit",
+        "clear"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareSearchBar"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareSearchBar"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "SearchBarView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "SearchBar"
+        }
+      }
+    },
+    {
+      "name": "Input",
+      "category": "General",
+      "summary": {
+        "en": "General text input — single/multi-line, char limit, clearable, disabled/read-only; the backbone of forms and search.",
+        "zh": "通用文本输入框 —— 单 / 多行、字数限制、可清除、禁用 / 只读，撑起表单与搜索。"
+      },
+      "dataSource": {
+        "en": "controlled value; the product owns validation and submit",
+        "zh": "受控值；产品决定校验与提交"
+      },
+      "props": [
+        {
+          "name": "modelValue",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Two-way bound value.",
+            "zh": "双向绑定的值。"
+          }
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "description": {
+            "en": "Empty-field hint text.",
+            "zh": "空输入时的占位提示。"
+          }
+        },
+        {
+          "name": "multiline",
+          "type": "boolean",
+          "description": {
+            "en": "Grow into a textarea instead of a single line.",
+            "zh": "变为多行文本域而非单行。"
+          }
+        },
+        {
+          "name": "maxLength",
+          "type": "number",
+          "description": {
+            "en": "Character cap; shows a counter.",
+            "zh": "字数上限；显示计数。"
+          }
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "description": {
+            "en": "Non-editable, dimmed state.",
+            "zh": "不可编辑、置灰态。"
+          }
+        },
+        {
+          "name": "clearable",
+          "type": "boolean",
+          "description": {
+            "en": "Show a clear (×) button when non-empty.",
+            "zh": "非空时显示清除（×）按钮。"
+          }
+        }
+      ],
+      "states": [
+        "empty",
+        "focused",
+        "atLimit",
+        "disabled"
+      ],
+      "events": [
+        "input",
+        "submit",
+        "focus",
+        "blur",
+        "clear"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareInput"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareInput"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "InputView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "Input"
+        }
+      }
+    },
+    {
+      "name": "EmptyState",
+      "category": "General",
+      "summary": {
+        "en": "Empty-state placeholder — icon + title + description + optional action; for empty inbox/search/contacts.",
+        "zh": "空状态占位 —— 图标 + 标题 + 说明 + 可选操作，用于空会话 / 空搜索 / 空联系人。"
+      },
+      "dataSource": {
+        "en": "presentational only",
+        "zh": "纯展示"
+      },
+      "props": [
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Primary line explaining the emptiness.",
+            "zh": "说明空状态的主标题。"
+          }
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "description": {
+            "en": "Secondary help text.",
+            "zh": "次级说明文字。"
+          }
+        },
+        {
+          "name": "actionText",
+          "type": "string",
+          "description": {
+            "en": "Label for the optional call-to-action button.",
+            "zh": "可选行动按钮的文案。"
+          }
+        }
+      ],
+      "states": [
+        "default"
+      ],
+      "events": [
+        "action"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareEmptyState"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareEmptyState"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "EmptyStateView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "EmptyState"
+        }
+      }
+    },
+    {
+      "name": "ContactList",
+      "category": "Contacts",
+      "summary": {
+        "en": "The address book — contacts grouped A–Z by pinyin/letter, with a side index bar and quick jump.",
+        "zh": "通讯录 —— 按拼音 / 字母 A–Z 分组的联系人列表，带侧边索引条与快速跳转。"
+      },
+      "dataSource": {
+        "en": "client.views contacts/friends view; grouping and index in the presentation layer",
+        "zh": "client.views 联系人 / 好友视图；分组与索引在展示层"
+      },
+      "props": [
+        {
+          "name": "items",
+          "type": "Contact[]",
+          "required": true,
+          "description": {
+            "en": "Contacts to group and render.",
+            "zh": "要分组渲染的联系人。"
+          }
+        },
+        {
+          "name": "indexed",
+          "type": "boolean",
+          "default": "true",
+          "description": {
+            "en": "Show the A–Z side index bar.",
+            "zh": "显示 A–Z 侧边索引条。"
+          }
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "description": {
+            "en": "First-load skeleton/spinner.",
+            "zh": "首屏骨架 / 转圈。"
+          }
+        }
+      ],
+      "states": [
+        "loading",
+        "empty",
+        "indexed"
+      ],
+      "events": [
+        "select",
+        "longPress"
+      ],
+      "notes": {
+        "en": "Virtualised + sticky group headers; A–Z side index jumps.",
+        "zh": "虚拟化 + 分组吸顶 header；侧边 A–Z 索引跳转。"
+      },
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareContactList"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareContactList"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ContactListView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ContactList"
+        }
+      }
+    },
+    {
+      "name": "ContactItem",
+      "category": "Contacts",
+      "summary": {
+        "en": "A contact row — avatar, name, signature/department, presence.",
+        "zh": "通讯录行 —— 头像、名称、签名 / 部门、在线状态。"
+      },
+      "dataSource": {
+        "en": "one Contact",
+        "zh": "一个 Contact"
+      },
+      "props": [
+        {
+          "name": "item",
+          "type": "Contact",
+          "required": true,
+          "description": {
+            "en": "The contact's data.",
+            "zh": "该联系人的数据。"
+          }
+        },
+        {
+          "name": "showPresence",
+          "type": "boolean",
+          "description": {
+            "en": "Render the presence dot.",
+            "zh": "渲染在线状态点。"
+          }
+        }
+      ],
+      "states": [
+        "online",
+        "offline"
+      ],
+      "events": [
+        "select"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareContactItem"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareContactItem"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ContactItemView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ContactItem"
+        }
+      }
+    },
+    {
+      "name": "ContactDetail",
+      "category": "Contacts",
+      "summary": {
+        "en": "Contact card — avatar/name/signature + profile fields + message/voice/video/more actions.",
+        "zh": "联系人名片 —— 头像 / 名称 / 签名 + 资料字段 + 发消息 / 语音 / 视频 / 更多操作。"
+      },
+      "dataSource": {
+        "en": "one Contact's detail; actions open a conversation / start a call via the client",
+        "zh": "一个 Contact 详情；操作经 client 打开会话 / 发起通话"
+      },
+      "props": [
+        {
+          "name": "contact",
+          "type": "Contact",
+          "required": true,
+          "description": {
+            "en": "The contact to profile.",
+            "zh": "要展示的联系人。"
+          }
+        }
+      ],
+      "states": [
+        "default"
+      ],
+      "events": [
+        "message",
+        "call",
+        "video",
+        "edit",
+        "remove",
+        "block"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareContactDetail"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareContactDetail"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ContactDetailView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ContactDetail"
+        }
+      }
+    },
+    {
+      "name": "NewFriendRequests",
+      "category": "Contacts",
+      "summary": {
+        "en": "New friends — friend-request list with accept/reject and request notes.",
+        "zh": "新的朋友 —— 好友申请列表，接受 / 拒绝，带申请附言。"
+      },
+      "dataSource": {
+        "en": "friend-request view",
+        "zh": "好友申请视图"
+      },
+      "props": [
+        {
+          "name": "items",
+          "type": "FriendRequest[]",
+          "required": true,
+          "description": {
+            "en": "Pending and resolved requests to list.",
+            "zh": "待处理与已处理的申请列表。"
+          }
+        }
+      ],
+      "states": [
+        "empty",
+        "pending"
+      ],
+      "events": [
+        "accept",
+        "reject",
+        "view"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareNewFriendRequests"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareNewFriendRequests"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "NewFriendRequestsView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "NewFriendRequests"
+        }
+      }
+    },
+    {
+      "name": "GroupList",
+      "category": "Contacts",
+      "summary": {
+        "en": "My groups — group avatar, name, member count.",
+        "zh": "我的群组 —— 群头像、名称、成员数。"
+      },
+      "dataSource": {
+        "en": "groups view",
+        "zh": "群组视图"
+      },
+      "props": [
+        {
+          "name": "items",
+          "type": "GroupSummary[]",
+          "required": true,
+          "description": {
+            "en": "Group summaries to list.",
+            "zh": "要列出的群摘要。"
+          }
+        }
+      ],
+      "states": [
+        "empty"
+      ],
+      "events": [
+        "select"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareGroupList"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareGroupList"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "GroupListView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "GroupList"
+        }
+      }
+    },
+    {
+      "name": "ProfilePanel",
+      "category": "Profile",
+      "summary": {
+        "en": "Personal center — avatar/name/id/QR + entry list (favorites/settings/about), with logout.",
+        "zh": "个人中心 —— 头像 / 名称 / ID / 二维码 + 入口列表（我的收藏 / 设置 / 关于），支持退出。"
+      },
+      "dataSource": {
+        "en": "current user profile + app entry configuration",
+        "zh": "当前用户资料 + 应用入口配置"
+      },
+      "props": [
+        {
+          "name": "user",
+          "type": "UserProfile",
+          "required": true,
+          "description": {
+            "en": "The signed-in user's profile.",
+            "zh": "已登录用户的资料。"
+          }
+        }
+      ],
+      "states": [
+        "default"
+      ],
+      "events": [
+        "edit",
+        "openSettings",
+        "action",
+        "logout"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareProfilePanel"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareProfilePanel"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ProfilePanelView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ProfilePanel"
+        }
+      }
+    },
+    {
+      "name": "ProfileEditor",
+      "category": "Profile",
+      "summary": {
+        "en": "Profile editor — edit and save avatar, nickname, signature and similar fields.",
+        "zh": "资料编辑 —— 头像、昵称、签名等字段编辑与保存。"
+      },
+      "dataSource": {
+        "en": "controlled draft; save is submitted via the client",
+        "zh": "受控草稿；保存经 client 提交"
+      },
+      "props": [
+        {
+          "name": "user",
+          "type": "UserProfile",
+          "required": true,
+          "description": {
+            "en": "Initial profile the draft starts from.",
+            "zh": "草稿初始的资料。"
+          }
+        },
+        {
+          "name": "busy",
+          "type": "boolean",
+          "description": {
+            "en": "Disables save and shows a spinner while submitting.",
+            "zh": "提交中禁用保存并转圈。"
+          }
+        }
+      ],
+      "states": [
+        "idle",
+        "dirty",
+        "saving"
+      ],
+      "events": [
+        "save",
+        "cancel",
+        "pickAvatar"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareProfileEditor"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareProfileEditor"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ProfileEditorView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ProfileEditor"
+        }
+      }
+    },
+    {
+      "name": "SettingsList",
+      "category": "Profile",
+      "summary": {
+        "en": "Settings list — grouped toggles/navigation/choice rows; a general settings container.",
+        "zh": "设置列表 —— 分组的开关 / 跳转 / 选择项，通用设置容器。"
+      },
+      "dataSource": {
+        "en": "product-defined settings sections",
+        "zh": "产品定义的设置项分组"
+      },
+      "props": [
+        {
+          "name": "sections",
+          "type": "SettingsSection[]",
+          "required": true,
+          "description": {
+            "en": "Grouped settings rows to render.",
+            "zh": "要渲染的分组设置行。"
+          }
+        }
+      ],
+      "states": [
+        "default"
+      ],
+      "events": [
+        "toggle",
+        "select"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareSettingsList"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareSettingsList"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "SettingsListView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "SettingsList"
+        }
+      }
+    },
+    {
+      "name": "CallView",
+      "category": "Call",
+      "summary": {
+        "en": "In-call surface — peer video/avatar, state, duration, with an overlaid control bar. Video render is host-injected.",
+        "zh": "音视频通话中界面 —— 对端画面 / 头像、状态、时长，叠加控制条。视频渲染由宿主注入。"
+      },
+      "dataSource": {
+        "en": "RTC session state (core/media layer); video track rendered by the host",
+        "zh": "RTC 会话状态（core / 媒体层）；画面轨道由宿主渲染"
+      },
+      "props": [
+        {
+          "name": "peerName",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Name of the person on the call.",
+            "zh": "通话对端的名称。"
+          }
+        },
+        {
+          "name": "mode",
+          "type": "'audio' | 'video'",
+          "required": true,
+          "description": {
+            "en": "Audio or video — changes the layout.",
+            "zh": "音频或视频 —— 改变版式。"
+          }
+        },
+        {
+          "name": "state",
+          "type": "'calling' | 'ringing' | 'connected'",
+          "required": true,
+          "description": {
+            "en": "Calling / ringing / connected.",
+            "zh": "呼叫中 / 响铃中 / 已接通。"
+          }
+        },
+        {
+          "name": "durationLabel",
+          "type": "string",
+          "description": {
+            "en": "Preformatted elapsed time (mm:ss).",
+            "zh": "已格式化的通话时长（mm:ss）。"
+          }
+        },
+        {
+          "name": "peerAvatarUrl",
+          "type": "string",
+          "description": {
+            "en": "Peer avatar, shown for audio calls.",
+            "zh": "对端头像，音频通话时显示。"
+          }
+        }
+      ],
+      "states": [
+        "calling",
+        "ringing",
+        "connected"
+      ],
+      "events": [
+        "hangup",
+        "toggleMute",
+        "toggleCamera",
+        "toggleSpeaker",
+        "switchCamera"
+      ],
+      "notes": {
+        "en": "Video track uses a host-injected render slot; the control bar is CallControls.",
+        "zh": "视频轨道用宿主注入的渲染 slot；控制条为 CallControls。"
+      },
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareCallView"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareCallView"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "CallView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "CallView"
+        }
+      }
+    },
+    {
+      "name": "IncomingCall",
+      "category": "Call",
+      "summary": {
+        "en": "Incoming call / invite — caller avatar/name, audio/video kind, accept & reject.",
+        "zh": "来电 / 通话邀请 —— 来电人头像 / 名称、音视频类型，接听 / 拒绝。"
+      },
+      "dataSource": {
+        "en": "RTC incoming-call signaling",
+        "zh": "RTC 来电信令"
+      },
+      "props": [
+        {
+          "name": "callerName",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Name of the caller.",
+            "zh": "来电人的名称。"
+          }
+        },
+        {
+          "name": "mode",
+          "type": "'audio' | 'video'",
+          "required": true,
+          "description": {
+            "en": "Audio or video invite.",
+            "zh": "音频或视频邀请。"
+          }
+        },
+        {
+          "name": "callerAvatarUrl",
+          "type": "string",
+          "description": {
+            "en": "Caller's avatar.",
+            "zh": "来电人的头像。"
+          }
+        }
+      ],
+      "states": [
+        "ringing"
+      ],
+      "events": [
+        "accept",
+        "reject"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareIncomingCall"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareIncomingCall"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "IncomingCallView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "IncomingCall"
+        }
+      }
+    },
+    {
+      "name": "CallControls",
+      "category": "Call",
+      "summary": {
+        "en": "Call control bar — mute, camera, speaker, flip camera, hang up (adapts to audio/video).",
+        "zh": "通话控制条 —— 静音、摄像头、扬声器、翻转摄像头、挂断（音 / 视频自适应）。"
+      },
+      "dataSource": {
+        "en": "local RTC device state",
+        "zh": "本地 RTC 设备状态"
+      },
+      "props": [
+        {
+          "name": "muted",
+          "type": "boolean",
+          "description": {
+            "en": "Mic is muted.",
+            "zh": "麦克风已静音。"
+          }
+        },
+        {
+          "name": "cameraOn",
+          "type": "boolean",
+          "description": {
+            "en": "Camera is on (video mode).",
+            "zh": "摄像头已开（视频模式）。"
+          }
+        },
+        {
+          "name": "speakerOn",
+          "type": "boolean",
+          "description": {
+            "en": "Speaker is on (audio mode).",
+            "zh": "扬声器已开（音频模式）。"
+          }
+        },
+        {
+          "name": "mode",
+          "type": "'audio' | 'video'",
+          "default": "video",
+          "description": {
+            "en": "Audio hides camera/flip; video hides speaker.",
+            "zh": "音频隐藏摄像头 / 翻转；视频隐藏扬声器。"
+          }
+        }
+      ],
+      "states": [
+        "audio",
+        "video"
+      ],
+      "events": [
+        "toggleMute",
+        "toggleCamera",
+        "toggleSpeaker",
+        "switchCamera",
+        "hangup"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareCallControls"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareCallControls"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "CallControlsView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "CallControls"
+        }
+      }
+    },
+    {
+      "name": "AppShell",
+      "category": "Layout",
+      "summary": {
+        "en": "App shell — responsive navigation (mobile bottom tab / tablet-desktop side rail) + content area; the skeleton of the whole IM app.",
+        "zh": "应用外壳 —— 自适应导航（手机底部 Tab / 平板·PC 侧栏）+ 内容区，撑起整个 IM 应用骨架。"
+      },
+      "dataSource": {
+        "en": "nav item configuration + current route",
+        "zh": "导航项配置 + 当前路由"
+      },
+      "props": [
+        {
+          "name": "items",
+          "type": "NavItem[]",
+          "required": true,
+          "description": {
+            "en": "Navigation destinations, with icon/label/badge.",
+            "zh": "导航目的地，含图标 / 文案 / 角标。"
+          }
+        },
+        {
+          "name": "activeKey",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Currently selected nav key.",
+            "zh": "当前选中的导航 key。"
+          }
+        }
+      ],
+      "states": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "events": [
+        "navigate"
+      ],
+      "notes": {
+        "en": "Breakpoint-adaptive: mobile = bottom nav; tablet/desktop = side rail.",
+        "zh": "断点自适应：手机=底部导航；平板 / PC=侧边导航。"
+      },
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareAppShell"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareAppShell"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "AppShellView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "AppShell"
+        }
+      }
+    },
+    {
+      "name": "ResponsiveLayout",
+      "category": "Layout",
+      "summary": {
+        "en": "Responsive conversation layout — mobile single column (list↔chat), tablet two columns (list+chat), desktop three columns (list+chat+detail).",
+        "zh": "自适应会话布局 —— 手机单栏（列表↔聊天切换）、平板双栏（列表+聊天）、PC 三栏（列表+聊天+详情）。"
+      },
+      "dataSource": {
+        "en": "layout only; the three slots (list/chat/detail) are filled by the product",
+        "zh": "纯布局；三个 slot（list/chat/detail）由产品填充"
+      },
+      "props": [
+        {
+          "name": "hasDetail",
+          "type": "boolean",
+          "description": {
+            "en": "Whether a detail pane exists (enables 3-column).",
+            "zh": "是否存在详情栏（启用三栏）。"
+          }
+        },
+        {
+          "name": "activePane",
+          "type": "'list' | 'chat' | 'detail'",
+          "description": {
+            "en": "Which pane is foregrounded on mobile.",
+            "zh": "手机端前置显示哪个栏。"
+          }
+        }
+      ],
+      "states": [
+        "single",
+        "dual",
+        "triple"
+      ],
+      "events": [
+        "paneChange"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareResponsiveLayout"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareResponsiveLayout"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ResponsiveLayoutView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ResponsiveLayout"
+        }
+      }
+    }
+  ],
+  "categoryLabels": {
+    "General": {
+      "en": "General",
+      "zh": "通用"
+    },
+    "Conversation": {
+      "en": "Conversation",
+      "zh": "会话"
+    },
+    "Message": {
+      "en": "Message",
+      "zh": "消息"
+    },
+    "Composer": {
+      "en": "Composer",
+      "zh": "输入"
+    },
+    "Media": {
+      "en": "Media",
+      "zh": "媒体"
+    },
+    "Contacts": {
+      "en": "Contacts",
+      "zh": "通讯录"
+    },
+    "Profile": {
+      "en": "Profile",
+      "zh": "个人中心"
+    },
+    "Call": {
+      "en": "Call",
+      "zh": "音视频通话"
+    },
+    "Layout": {
+      "en": "Layout",
+      "zh": "布局"
+    }
+  }
+}

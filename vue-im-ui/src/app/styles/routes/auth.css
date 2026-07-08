@@ -1,0 +1,120 @@
+.auth-route {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.58), transparent 34%),
+    var(--flare-app-bg);
+}
+
+html[data-theme="dark"] .auth-route {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 34%),
+    var(--flare-app-bg);
+}
+
+.auth-brand {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(138deg, #4c1d95 0%, #7c3aed 48%, #6366f1 100%) !important;
+  background-size: 44px 44px, 44px 44px, auto !important;
+}
+
+.auth-brand__ambient {
+  opacity: 0.16;
+  background:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.2), transparent 42%),
+    linear-gradient(0deg, rgba(10, 18, 32, 0.16), transparent 52%) !important;
+}
+
+.auth-brand__ambient::after {
+  display: none;
+}
+
+.auth-brand .brand-lockup h1 {
+  letter-spacing: 0;
+}
+
+.auth-brand__features {
+  padding: 16px !important;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.auth-panel {
+  border-left-color: var(--flare-border);
+}
+
+.auth-panel__intro h2 {
+  margin-top: 6px;
+  letter-spacing: 0;
+}
+
+.auth-hint,
+.auth-transport-control,
+.auth-server-toggle,
+.auth-server-fields,
+.auth-login-btn {
+  border-radius: 8px !important;
+}
+
+.auth-transport-field {
+  margin-top: 4px;
+  margin-bottom: 14px;
+}
+
+.auth-transport-control {
+  width: 100%;
+}
+
+.auth-transport-select {
+  width: 100%;
+}
+
+.auth-transport-select .n-base-selection {
+  border-radius: 8px !important;
+}
+
+.auth-transport-hint {
+  margin: 8px 0 0;
+  color: var(--im-text-tertiary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.auth-runtime-alert {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  left: 50%;
+  z-index: 20;
+  width: min(560px, calc(100vw - 32px));
+  margin: 0;
+  transform: translateX(-50%);
+  box-shadow: var(--flare-shadow-soft);
+}
+
+.auth-session-strip {
+  position: fixed;
+  right: 18px;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  z-index: 8;
+  display: flex;
+  max-width: min(520px, calc(100vw - 36px));
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--flare-border);
+  border-radius: 8px;
+  color: var(--im-text-secondary);
+  background: color-mix(in srgb, var(--im-bg-surface) 88%, transparent);
+  box-shadow: var(--flare-shadow-soft);
+  backdrop-filter: blur(12px);
+  font-size: 12px;
+}
+
+.auth-session-strip > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

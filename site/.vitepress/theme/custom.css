@@ -1,0 +1,155 @@
+/* Flare IM Design — brand theming over VitePress default. Brand = #7C3AED. */
+:root {
+  --vp-c-brand-1: #6d28d9;
+  --vp-c-brand-2: #7c3aed;
+  --vp-c-brand-3: #8b5cf6;
+  --vp-c-brand-soft: rgba(124, 58, 237, 0.14);
+
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(120deg, #7c3aed 30%, #6d5df6);
+  --vp-home-hero-image-background-image: linear-gradient(
+    45deg,
+    rgba(124, 58, 237, 0.4),
+    rgba(109, 93, 246, 0.4)
+  );
+  --vp-home-hero-image-filter: blur(48px);
+}
+
+.dark {
+  --vp-c-brand-1: #a78bfa;
+  --vp-c-brand-2: #8b5cf6;
+  --vp-c-brand-3: #7c3aed;
+}
+
+/* Homepage: the content block below the feature grid. */
+.flare-home {
+  max-width: 1152px;
+  margin: 0 auto;
+  padding: 24px 24px 64px;
+}
+.flare-home h2 {
+  border-top: none;
+  margin: 8px 0 20px;
+  padding-top: 0;
+  font-size: 24px;
+  letter-spacing: -0.01em;
+}
+.flare-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  margin: 8px 0 48px;
+}
+.flare-stats div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px 18px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  background: var(--vp-c-bg-soft);
+}
+.flare-stats b {
+  font-size: 30px;
+  line-height: 1.1;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--vp-c-brand-1);
+}
+.flare-stats span {
+  font-size: 13px;
+  color: var(--vp-c-text-3);
+}
+
+/* Demo stage — the framed preview above each component's code. Faint chat-canvas
+   tint (the reference app's #F7F6FB) reads calmer than a graph-paper grid, and a
+   whisper of dots keeps the demo distinct from the page without shouting. */
+.flare-demo {
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 14px;
+  padding: 32px 24px;
+  margin: 16px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+  background-color: color-mix(in srgb, var(--vp-c-brand-1) 4%, var(--vp-c-bg));
+  background-image:
+    radial-gradient(circle at 1px 1px,
+      color-mix(in srgb, var(--vp-c-text-1) 6%, transparent) 1px, transparent 0);
+  background-size: 22px 22px;
+}
+.dark .flare-demo {
+  background-color: color-mix(in srgb, var(--vp-c-brand-1) 8%, var(--vp-c-bg));
+}
+.flare-demo--stack {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* API table polish — full-bleed columns on wide screens… */
+.vp-doc table {
+  display: table;
+  width: 100%;
+}
+/* …but a wide API table must scroll inside itself, never push the page body
+   sideways. Restores VitePress's default block/scroll behaviour on narrow
+   viewports, which the `display: table` above would otherwise cancel out. */
+@media (max-width: 720px) {
+  .vp-doc table {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+.flare-tag {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--vp-font-family-mono);
+  background: var(--vp-c-brand-soft);
+  color: var(--vp-c-brand-1);
+}
+.flare-tag.planned {
+  background: color-mix(in srgb, #f59e0b 18%, transparent);
+  color: #b45309;
+}
+.dark .flare-tag.planned { color: #fbbf24; }
+
+/* dark full-screen demos (calls) framed inside the doc */
+.flare-callframe {
+  width: 300px;
+  max-width: 100%;
+  height: 420px;
+  border-radius: 22px;
+  background: #111318;
+  position: relative;
+  overflow: hidden;
+  color: #fff;
+  border: 6px solid #0b0d11;
+}
+.flare-platform-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+.flare-platform-card {
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.flare-platform-card h4 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--vp-c-text-2);
+}
+.flare-platform-card code {
+  font-size: 13px;
+}

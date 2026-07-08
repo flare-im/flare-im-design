@@ -1,0 +1,14 @@
+# Heavy demo sticker/emoji image binaries are NOT shipped — consumers provide their own packs.
+# Manifests (*.json) are kept so the panels build; images resolve at runtime from the product's assets.
+**/assets/**/*.webp
+**/assets/**/*.png
+**/assets/**/*.jpg
+**/assets/**/*.gif
+
+# tests / scripts / config not needed by consumers
+**/*.test.ts
+**/*.spec.ts
+**/__tests__/
+scripts/
+tsconfig*.json
+vitest.config.*

@@ -1,0 +1,23 @@
+name: flare_im_ui
+description: >-
+  Flare IM UI Kit — Flutter component package (L1). One neutral design contract
+  (flare-im-ui-spec), realised natively; design tokens generated from
+  flare-im-design-tokens. Components are pure/presentational — behaviour and data
+  come from the core observable views via the app.
+version: 0.1.0
+publish_to: none
+repository: https://github.com/flare-im/flare-im-design
+
+environment:
+  sdk: ^3.10.1
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:

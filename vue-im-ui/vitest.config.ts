@@ -1,0 +1,87 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+import vue from "@vitejs/plugin-vue";
+import { defineConfig } from "vitest/config";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.resolve(__dirname, "../..");
+const typeScriptSdkRoot = path.resolve(__dirname, "../flare-core-typescript-sdk/src");
+const vueImUiRoot = path.resolve(__dirname, "src");
+
+export default defineConfig({
+  plugins: [vue()],
+  resolve: {
+    alias: [
+      {
+        find: "flare-core-typescript-sdk/web",
+        replacement: path.join(typeScriptSdkRoot, "adapters/web/index.ts"),
+      },
+      {
+        find: /^flare-core-typescript-sdk\/(.+)$/,
+        replacement: path.join(typeScriptSdkRoot, "$1"),
+      },
+      {
+        find: "flare-core-vue-im-ui/style.css",
+        replacement: path.join(vueImUiRoot, "design-system/styles/index.css"),
+      },
+      {
+        find: "flare-core-vue-im-ui/theme",
+        replacement: path.join(vueImUiRoot, "design-system/theme/index.ts"),
+      },
+      {
+        find: "flare-core-vue-im-ui/i18n",
+        replacement: path.join(vueImUiRoot, "shared/i18n/index.ts"),
+      },
+      {
+        find: "flare-core-vue-im-ui/components",
+        replacement: path.join(vueImUiRoot, "components/index.ts"),
+      },
+      {
+        find: "flare-core-vue-im-ui/utils",
+        replacement: path.join(vueImUiRoot, "utils/index.ts"),
+      },
+      {
+        find: "flare-core-vue-im-ui/composables",
+        replacement: path.join(vueImUiRoot, "composables/index.ts"),
+      },
+      {
+        find: "flare-core-vue-im-ui/contracts",
+        replacement: path.join(vueImUiRoot, "shared/contracts/index.ts"),
+      },
+      {
+        find: "flare-core-vue-im-ui/sdk-lab",
+        replacement: path.join(vueImUiRoot, "app/components/FlareSdkLabPanel.vue"),
+      },
+      {
+        find: "flare-core-vue-im-ui/app/style.css",
+        replacement: path.join(vueImUiRoot, "app/styles/index.css"),
+      },
+      {
+        find: /^flare-core-vue-im-ui\/app\/components\/(.+)$/,
+        replacement: path.join(vueImUiRoot, "app/components/$1"),
+      },
+      {
+        find: "flare-core-vue-im-ui/app",
+        replacement: path.join(vueImUiRoot, "app/index.ts"),
+      },
+      {
+        find: "flare-core-vue-im-ui",
+        replacement: path.join(vueImUiRoot, "index.ts"),
+      },
+      {
+        find: "flare-core-typescript-sdk",
+        replacement: path.join(typeScriptSdkRoot, "index.ts"),
+      },
+    ],
+  },
+  server: {
+    fs: {
+      allow: [repoRoot],
+    },
+  },
+  test: {
+    environment: "node",
+    include: ["src/app/shared/testing/**/*.test.ts"],
+  },
+});

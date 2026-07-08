@@ -1,0 +1,31 @@
+{
+  "name": "flare-im-design-tokens",
+  "version": "0.1.0",
+  "description": "Flare IM design tokens — one neutral source of visual truth, generated per platform (L3 of the Flare IM UI Kit).",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/tokens.js",
+  "types": "./dist/tokens.ts",
+  "sideEffects": ["*.css"],
+  "files": ["dist", "tokens.json", "build.mjs", "theme.js", "theme.d.ts", "README.md"],
+  "exports": {
+    ".": {
+      "types": "./dist/tokens.ts",
+      "default": "./dist/tokens.js"
+    },
+    "./tokens.css": "./dist/tokens.css",
+    "./tokens.json": "./tokens.json",
+    "./theme": {
+      "types": "./theme.d.ts",
+      "default": "./theme.js"
+    }
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "prepublishOnly": "node build.mjs"
+  },
+  "keywords": ["flare", "im", "design-tokens", "theme", "css-variables"],
+  "publishConfig": {
+    "access": "public"
+  }
+}

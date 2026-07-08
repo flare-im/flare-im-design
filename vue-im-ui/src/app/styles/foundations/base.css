@@ -1,0 +1,45 @@
+html,
+body {
+  background: var(--flare-app-bg);
+}
+
+body {
+  color: var(--im-text-primary);
+  font-family: var(--im-font-family);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+.n-button {
+  --n-border-radius: 8px !important;
+}
+
+.n-input,
+.n-base-selection {
+  --n-border-radius: 8px !important;
+}
+
+.conversation-heading__eyebrow,
+.sdk-lab-title span,
+.auth-panel__eyebrow {
+  color: var(--flare-text-muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.flutter-title-row h1,
+.sdk-lab-header h1 {
+  font-size: 22px;
+  letter-spacing: 0;
+}
+
+.flutter-empty {
+  border-radius: 8px;
+}
+
+.account-sheet-header,
+.more-action-list button {
+  border-radius: 8px;
+}
