@@ -68,7 +68,7 @@ public struct ConversationDetailsView: View {
                         .font(.system(size: FlareSizes.fontSize4xl, weight: .semibold))
                         .foregroundColor(colors.textPrimary)
                     if conversation.kind == .group, let n = conversation.memberCount {
-                        Text("\(n) 名成员")
+                        Text("\(n) members")
                             .font(.system(size: FlareSizes.fontSizeSm))
                             .foregroundColor(colors.textTertiary)
                     }
@@ -87,7 +87,7 @@ public struct ConversationDetailsView: View {
             if let count = messageCount {
                 Section {
                     HStack {
-                        Text("消息数").foregroundColor(colors.textSecondary)
+                        Text("Messages").foregroundColor(colors.textSecondary)
                         Spacer()
                         Text("\(count)").foregroundColor(colors.textPrimary)
                     }
@@ -97,28 +97,28 @@ public struct ConversationDetailsView: View {
             Section {
                 if onMute != nil {
                     Toggle(isOn: Binding(get: { muted }, set: { muted = $0; onMute?($0) })) {
-                        Label("免打扰", systemImage: "bell.slash")
+                        Label("Mute", systemImage: "bell.slash")
                     }
                 }
                 if onPin != nil {
                     Toggle(isOn: Binding(get: { pinned }, set: { pinned = $0; onPin?($0) })) {
-                        Label("置顶会话", systemImage: "pin")
+                        Label("Pin conversation", systemImage: "pin")
                     }
                 }
             }
 
             Section {
-                if let onMarkRead { row("标记已读", "envelope.open", onMarkRead, colors) }
-                if let onMarkUnread { row("标记未读", "envelope.badge", onMarkUnread, colors) }
-                if let onSync { row("同步会话", "arrow.triangle.2.circlepath", onSync, colors) }
+                if let onMarkRead { row("Mark as read", "envelope.open", onMarkRead, colors) }
+                if let onMarkUnread { row("Mark as unread", "envelope.badge", onMarkUnread, colors) }
+                if let onSync { row("Sync conversation", "arrow.triangle.2.circlepath", onSync, colors) }
             }
 
             Section {
                 if let onArchive {
-                    row(conversation.archived ? "取消归档" : "归档会话", "archivebox", onArchive, colors)
+                    row(conversation.archived ? "Unarchive" : "Archive conversation", "archivebox", onArchive, colors)
                 }
-                if let onClearHistory { row("清空聊天记录", "trash.slash", onClearHistory, colors) }
-                if let onDelete { row("删除会话", "trash", onDelete, colors, danger: true) }
+                if let onClearHistory { row("Clear chat history", "trash.slash", onClearHistory, colors) }
+                if let onDelete { row("Delete conversation", "trash", onDelete, colors, danger: true) }
             }
         }
     }

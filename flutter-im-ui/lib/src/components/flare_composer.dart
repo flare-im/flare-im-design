@@ -30,7 +30,7 @@ class FlareComposer extends StatefulWidget {
   const FlareComposer({
     super.key,
     this.rich = false,
-    this.placeholder = '发送消息…',
+    this.placeholder = 'Message',
     this.disabled = false,
     this.replyTo,
     this.maxLength,

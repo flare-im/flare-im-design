@@ -62,7 +62,7 @@ function buildStickerItem(packageId: string, filename: string, index: number): C
     stickerId,
     packageId,
     loadUrl: () => loadStickerUrl(packageId, stickerId),
-    alt: `贴纸 ${stickerId}`,
+    alt: `Sticker ${stickerId}`,
   };
 }
 

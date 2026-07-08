@@ -54,9 +54,9 @@ fun ContactDetail(
         Spacer(Modifier.height(FlareSizes.spacing2xl))
         Row(Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacingLg),
             horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
-            action("发消息", Icons.Outlined.Message, onMessage, colors, Modifier.weight(1f), primary = true)
-            action("语音", Icons.Outlined.Phone, onCall, colors, Modifier.weight(1f))
-            action("视频", Icons.Outlined.Videocam, onVideo, colors, Modifier.weight(1f))
+            action("Message", Icons.Outlined.Message, onMessage, colors, Modifier.weight(1f), primary = true)
+            action("Voice", Icons.Outlined.Phone, onCall, colors, Modifier.weight(1f))
+            action("Video", Icons.Outlined.Videocam, onVideo, colors, Modifier.weight(1f))
         }
     }
 }

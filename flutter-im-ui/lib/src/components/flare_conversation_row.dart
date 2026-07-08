@@ -126,7 +126,7 @@ class FlareConversationRow extends StatelessWidget {
     final spans = <InlineSpan>[];
     if (item.hasDraft) {
       spans.add(TextSpan(
-        text: '[草稿] ',
+        text: '[Draft] ',
         style: base.copyWith(
           color: colors.error,
           fontWeight: FontWeight.w500,
@@ -136,7 +136,7 @@ class FlareConversationRow extends StatelessWidget {
     } else {
       if (item.mentioned) {
         spans.add(TextSpan(
-          text: '[@我] ',
+          text: '[@me] ',
           style: base.copyWith(
             color: colors.error,
             fontWeight: FontWeight.w600,

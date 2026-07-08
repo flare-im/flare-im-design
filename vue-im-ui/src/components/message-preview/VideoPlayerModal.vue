@@ -10,14 +10,14 @@ const props = withDefaults(
     poster?: string;
     title?: string;
   }>(),
-  { poster: "", title: "视频预览" },
+  { poster: "", title: "Video preview" },
 );
 
 const emit = defineEmits<{ "update:show": [value: boolean] }>();
 
 const videoRef = ref<HTMLVideoElement | null>(null);
 
-const displayTitle = computed(() => props.title.trim() || "视频预览");
+const displayTitle = computed(() => props.title.trim() || "Video preview");
 
 function requestClose(): void {
   emit("update:show", false);
@@ -58,7 +58,7 @@ onBeforeUnmount(() => {
     <div v-if="show" class="video-player-modal" role="dialog" aria-modal="true" @click.self="requestClose">
       <header class="video-player-modal__header">
         <strong class="video-player-modal__title">{{ displayTitle }}</strong>
-        <button type="button" class="video-player-modal__close" aria-label="关闭" @click="requestClose">
+        <button type="button" class="video-player-modal__close" aria-label="Close" @click="requestClose">
           <n-icon :component="CloseOutline" />
         </button>
       </header>
@@ -73,7 +73,7 @@ onBeforeUnmount(() => {
           playsinline
           preload="metadata"
         />
-        <div v-else class="video-player-modal__empty">无法播放：缺少视频地址</div>
+        <div v-else class="video-player-modal__empty">Can't play: missing video URL</div>
       </div>
     </div>
   </Teleport>

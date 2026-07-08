@@ -44,7 +44,7 @@ public struct MessageListView: View {
             if loading {
                 ProgressView()
             } else {
-                Text("还没有消息")
+                Text("No messages yet")
                     .font(.system(size: FlareSizes.fontSizeLg))
                     .foregroundColor(colors.textTertiary)
             }

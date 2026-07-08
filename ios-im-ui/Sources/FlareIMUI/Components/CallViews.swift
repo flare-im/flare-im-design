@@ -27,12 +27,12 @@ public struct CallControlsView: View {
 
     public var body: some View {
         HStack(spacing: FlareSizes.spacingLg) {
-            ctrl(muted ? "mic.slash" : "mic", "麦克风", muted, onToggleMute)
+            ctrl(muted ? "mic.slash" : "mic", "Microphone", muted, onToggleMute)
             if mode == .video {
-                ctrl(cameraOn ? "video" : "video.slash", "摄像头", !cameraOn, onToggleCamera)
-                ctrl("arrow.triangle.2.circlepath.camera", "翻转", false, onSwitchCamera)
+                ctrl(cameraOn ? "video" : "video.slash", "Camera", !cameraOn, onToggleCamera)
+                ctrl("arrow.triangle.2.circlepath.camera", "Flip", false, onSwitchCamera)
             } else {
-                ctrl("speaker.wave.2", "扬声器", speakerOn, onToggleSpeaker)
+                ctrl("speaker.wave.2", "Speaker", speakerOn, onToggleSpeaker)
             }
             hangup
         }
@@ -89,9 +89,9 @@ public struct CallView: View {
 
     private var statusText: String {
         switch state {
-        case .connected: return durationLabel ?? "已接通"
-        case .ringing: return "对方正在响铃…"
-        case .calling: return mode == .video ? "正在等待对方接受邀请…" : "正在呼叫…"
+        case .connected: return durationLabel ?? "Connected"
+        case .ringing: return "Ringing…"
+        case .calling: return mode == .video ? "Waiting for answer…" : "Calling…"
         }
     }
 
@@ -138,14 +138,14 @@ public struct IncomingCallView: View {
             VStack(spacing: FlareSizes.spacingMd) {
                 AvatarView(userId: callerName, displayName: callerName, avatarURL: callerAvatarURL, size: 104)
                 Text(callerName).font(.system(size: FlareSizes.fontSize4xl, weight: .semibold)).foregroundColor(.white)
-                Text(mode == .video ? "邀请你视频通话" : "邀请你语音通话").font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(.white.opacity(0.7))
+                Text(mode == .video ? "is inviting you to a video call" : "is inviting you to a voice call").font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(.white.opacity(0.7))
             }.padding(.bottom, 120)
             VStack {
                 Spacer()
                 HStack {
-                    action("phone.down", "拒绝", Color(.sRGB, red: 0.937, green: 0.267, blue: 0.267, opacity: 1), onReject)
+                    action("phone.down", "Decline", Color(.sRGB, red: 0.937, green: 0.267, blue: 0.267, opacity: 1), onReject)
                     Spacer()
-                    action(mode == .video ? "video" : "phone", "接听", Color(.sRGB, red: 0.133, green: 0.773, blue: 0.369, opacity: 1), onAccept)
+                    action(mode == .video ? "video" : "phone", "Answer", Color(.sRGB, red: 0.133, green: 0.773, blue: 0.369, opacity: 1), onAccept)
                 }
                 .padding(.horizontal, 56).padding(.bottom, 56)
             }

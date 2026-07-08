@@ -86,7 +86,7 @@ fun CallView(
 }
 
 private fun statusLabel(state: FlareCallState, mode: FlareCallMode, duration: String?): String = when (state) {
-    FlareCallState.Calling -> if (mode == FlareCallMode.Video) "正在等待对方接受邀请…" else "正在呼叫…"
-    FlareCallState.Ringing -> "对方正在响铃…"
-    FlareCallState.Connected -> duration ?: "已接通"
+    FlareCallState.Calling -> if (mode == FlareCallMode.Video) "Waiting for answer…" else "Calling…"
+    FlareCallState.Ringing -> "Ringing…"
+    FlareCallState.Connected -> duration ?: "Connected"
 }

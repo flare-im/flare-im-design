@@ -89,7 +89,7 @@ function retryImage(): void {
         <img
           :key="`${thumbUrl}:${imageRetryKey}`"
           :src="thumbUrl"
-          :alt="description || '图片'"
+          :alt="description || 'Image'"
           class="im-image__thumb"
           loading="lazy"
           decoding="async"
@@ -106,13 +106,13 @@ function retryImage(): void {
         @click="retryImage"
       >
         <n-icon :component="ImageOutline" />
-        <span>{{ resolvedThumb.loading.value || resolvedFull.loading.value ? "图片加载中" : thumbUrl ? "图片加载失败" : "查看图片" }}</span>
+        <span>{{ resolvedThumb.loading.value || resolvedFull.loading.value ? "Loading image" : thumbUrl ? "Image failed to load" : "View image" }}</span>
         <small v-if="resolvedThumb.error.value || resolvedFull.error.value">{{ resolvedThumb.error.value || resolvedFull.error.value }}</small>
-        <small v-else-if="thumbUrl">点击重试</small>
+        <small v-else-if="thumbUrl">Tap to retry</small>
       </button>
     </div>
     <p v-if="description" class="im-media-caption im-image__desc">{{ description }}</p>
-    <ImagePreviewModal v-model:show="previewOpen" :image-src="fullUrl" :alt="description || '原图'" />
+    <ImagePreviewModal v-model:show="previewOpen" :image-src="fullUrl" :alt="description || 'Original'" />
   </div>
 </template>
 

@@ -55,7 +55,7 @@ fun MarkdownPreview(content: String, showStats: Boolean = false) {
         }
         if (showStats) {
             val words = content.split(Regex("\\s+")).count { it.isNotEmpty() }
-            Text("$words 词 · ${content.length} 字", color = colors.textTertiary, fontSize = FlareSizes.fontSizeXs.value.sp)
+            Text("$words words · ${content.length} chars", color = colors.textTertiary, fontSize = FlareSizes.fontSizeXs.value.sp)
         }
     }
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 withDefaults(
   defineProps<{ modelValue?: string; placeholder?: string; loading?: boolean }>(),
-  { modelValue: "", placeholder: "搜索", loading: false },
+  { modelValue: "", placeholder: "Search", loading: false },
 );
 const emit = defineEmits<{
   (e: "update:modelValue", v: string): void;

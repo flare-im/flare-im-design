@@ -28,12 +28,12 @@ const props = withDefaults(
   {
     mode: "conversations",
     brandLabel: "F",
-    moreTitle: "更多",
+    moreTitle: "More",
     moreActionCount: 2,
     messageUnreadCount: 0,
-    chatSearchTitle: "搜索消息",
-    sdkBuildTitle: "SDK 消息类型",
-    previewTitle: "消息预览",
+    chatSearchTitle: "Search messages",
+    sdkBuildTitle: "SDK message type",
+    previewTitle: "Message preview",
     previewPreset: "card",
   },
 );
@@ -87,7 +87,7 @@ const resolvedMoreSheetHeight = computed(() => {
 
 <template>
   <main class="flutter-shell workbench-shell" :class="shellClass">
-    <nav class="workbench-rail" aria-label="flare IM 工作台导航">
+    <nav class="workbench-rail" aria-label="Flare IM workbench navigation">
       <button
         type="button"
         class="workbench-rail__brand"
@@ -100,7 +100,7 @@ const resolvedMoreSheetHeight = computed(() => {
         type="button"
         class="workbench-rail__item"
         :class="{ 'workbench-rail__item--active': messagesNavActive }"
-        title="消息"
+        title="Messages"
         @click="emit('navigate-messages')"
       >
         <n-icon :component="ChatbubbleEllipsesOutline" />
@@ -110,13 +110,13 @@ const resolvedMoreSheetHeight = computed(() => {
         type="button"
         class="workbench-rail__item"
         :class="{ 'workbench-rail__item--active': labNavActive }"
-        title="SDK 能力中心"
+        title="SDK Lab"
         @click="emit('navigate-lab')"
       >
         <n-icon :component="InformationCircleOutline" />
       </button>
       <span class="workbench-rail__spacer" />
-      <button type="button" class="workbench-rail__item" title="退出登录" @click="emit('logout')">
+      <button type="button" class="workbench-rail__item" title="Log out" @click="emit('logout')">
         <n-icon :component="LogOutOutline" />
       </button>
     </nav>

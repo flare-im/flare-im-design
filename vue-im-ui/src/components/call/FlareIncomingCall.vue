@@ -10,16 +10,16 @@ const emit = defineEmits<{ (e: "accept"): void; (e: "reject"): void }>();
     <div class="flare-incoming__peer">
       <FlareAvatar :user-id="callerName" :display-name="callerName" :avatar-url="callerAvatarUrl" :size="104" />
       <div class="flare-incoming__name">{{ callerName }}</div>
-      <div class="flare-incoming__hint">{{ mode === "video" ? "邀请你视频通话" : "邀请你语音通话" }}</div>
+      <div class="flare-incoming__hint">{{ mode === "video" ? "is inviting you to a video call" : "is inviting you to a voice call" }}</div>
     </div>
     <div class="flare-incoming__actions">
       <div class="flare-incoming__col" @click="emit('reject')">
         <span class="flare-incoming__ico is-reject">📵</span>
-        <span class="flare-incoming__lbl">拒绝</span>
+        <span class="flare-incoming__lbl">Decline</span>
       </div>
       <div class="flare-incoming__col" @click="emit('accept')">
         <span class="flare-incoming__ico is-accept">{{ mode === "video" ? "📹" : "📞" }}</span>
-        <span class="flare-incoming__lbl">接听</span>
+        <span class="flare-incoming__lbl">Answer</span>
       </div>
     </div>
   </div>

@@ -51,13 +51,13 @@ const currentText = computed(() => {
       @click.stop="emit('locate-message', quotedMessageId)"
     >
       <n-icon :component="ReturnUpBackOutline" />
-      <span>{{ quotedSender || "原消息" }}</span>
-      <strong>{{ quotedPreview || "引用消息" }}</strong>
+      <span>{{ quotedSender || "Original message" }}</span>
+      <strong>{{ quotedPreview || "Quote message" }}</strong>
     </button>
     <div v-else class="im-quote__source">
       <n-icon :component="ReturnUpBackOutline" />
-      <span>{{ quotedSender || "原消息" }}</span>
-      <strong>{{ quotedPreview || "引用消息" }}</strong>
+      <span>{{ quotedSender || "Original message" }}</span>
+      <strong>{{ quotedPreview || "Quote message" }}</strong>
     </div>
     <PlainTextEmojiRich class="im-quote__body" :text="currentText" />
   </div>

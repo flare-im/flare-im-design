@@ -35,11 +35,11 @@ function preview(item: PinnedMessageItem): string {
   const text = String(data.text ?? data.body ?? data.preview ?? "").trim();
   if (text) return text;
   const type = item.content?.contentType;
-  if (type === "image") return "[图片]";
-  if (type === "video") return "[视频]";
-  if (type === "file") return "[文件]";
-  if (type === "location") return `[位置] ${String(data.title ?? data.address ?? "")}`;
-  return type ? `[${type}]` : "置顶消息";
+  if (type === "image") return "[Image]";
+  if (type === "video") return "[Video]";
+  if (type === "file") return "[File]";
+  if (type === "location") return `[Location] ${String(data.title ?? data.address ?? "")}`;
+  return type ? `[${type}]` : "Pinned message";
 }
 
 function senderInitial(item: PinnedMessageItem): string {

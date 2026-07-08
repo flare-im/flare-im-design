@@ -113,7 +113,7 @@ const viewProps = computed((): ViewBaseProps | null => {
   return base;
 });
 
-const fallbackText = computed(() => getContentDecodedPreview(decoded.value) || "[未知消息类型]");
+const fallbackText = computed(() => getContentDecodedPreview(decoded.value) || "[Unknown message type]");
 </script>
 
 <template>

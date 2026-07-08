@@ -58,7 +58,7 @@ public struct ContactListView: View {
     public var body: some View {
         let colors = FlareColors.of(scheme)
         if items.isEmpty {
-            if loading { ProgressView() } else { EmptyStateView(title: "还没有联系人", systemImage: "person.2") }
+            if loading { ProgressView() } else { EmptyStateView(title: "No contacts yet", systemImage: "person.2") }
         } else {
             ScrollViewReader { proxy in
                 ZStack(alignment: .trailing) {
@@ -121,9 +121,9 @@ public struct ContactDetailView: View {
                 Text(s).font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textTertiary)
             }
             HStack(spacing: FlareSizes.spacingMd) {
-                actionButton("发消息", "message", onMessage, colors, primary: true)
-                actionButton("语音", "phone", onCall, colors)
-                actionButton("视频", "video", onVideo, colors)
+                actionButton("Message", "message", onMessage, colors, primary: true)
+                actionButton("Voice", "phone", onCall, colors)
+                actionButton("Video", "video", onVideo, colors)
             }
             .padding(.top, FlareSizes.spacingLg)
         }
@@ -155,7 +155,7 @@ public struct NewFriendRequestsView: View {
     public var body: some View {
         let colors = FlareColors.of(scheme)
         if items.isEmpty {
-            EmptyStateView(title: "没有新的好友申请", systemImage: "person.badge.plus")
+            EmptyStateView(title: "No new friend requests", systemImage: "person.badge.plus")
         } else {
             ScrollView {
                 LazyVStack(spacing: 0) {
@@ -169,8 +169,8 @@ public struct NewFriendRequestsView: View {
                                 }
                             }
                             Spacer()
-                            Button("拒绝") { onReject?(req) }.buttonStyle(.bordered).controlSize(.small)
-                            Button("接受") { onAccept?(req) }.buttonStyle(.borderedProminent).controlSize(.small).tint(colors.primary)
+                            Button("Decline") { onReject?(req) }.buttonStyle(.bordered).controlSize(.small)
+                            Button("Accept") { onAccept?(req) }.buttonStyle(.borderedProminent).controlSize(.small).tint(colors.primary)
                         }
                         .padding(.horizontal, FlareSizes.spacingMd).padding(.vertical, FlareSizes.spacingSm)
                     }
@@ -193,7 +193,7 @@ public struct GroupListView: View {
     public var body: some View {
         let colors = FlareColors.of(scheme)
         if items.isEmpty {
-            EmptyStateView(title: "还没有群组", systemImage: "person.3")
+            EmptyStateView(title: "No groups yet", systemImage: "person.3")
         } else {
             ScrollView {
                 LazyVStack(spacing: 0) {
@@ -203,7 +203,7 @@ public struct GroupListView: View {
                                 AvatarView(userId: g.id, displayName: g.name, avatarURL: g.avatarURL, size: 44)
                                 VStack(alignment: .leading) {
                                     Text(g.name).font(.system(size: FlareSizes.fontSizeXl, weight: .medium)).foregroundColor(colors.textPrimary)
-                                    Text("\(g.memberCount) 名成员").font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
+                                    Text("\(g.memberCount) members").font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
                                 }
                                 Spacer()
                             }

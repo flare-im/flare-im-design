@@ -39,7 +39,7 @@ fun MessageList(
     if (messages.isEmpty()) {
         Box(Modifier.fillMaxSize().background(colors.bgSecondary), contentAlignment = Alignment.Center) {
             if (loading) CircularProgressIndicator()
-            else Text("还没有消息", color = colors.textTertiary, fontSize = FlareSizes.fontSizeLg.value.sp)
+            else Text("No messages yet", color = colors.textTertiary, fontSize = FlareSizes.fontSizeLg.value.sp)
         }
         return
     }

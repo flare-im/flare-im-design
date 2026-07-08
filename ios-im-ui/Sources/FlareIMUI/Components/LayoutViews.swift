@@ -111,7 +111,7 @@ public struct ResponsiveLayoutView: View {
             VStack(spacing: 0) {
                 HStack {
                     Button { onPaneChange?(.list) } label: {
-                        Label("返回", systemImage: "chevron.left").foregroundColor(FlareColors.of(scheme).primary)
+                        Label("Back", systemImage: "chevron.left").foregroundColor(FlareColors.of(scheme).primary)
                     }
                     .buttonStyle(.plain)
                     Spacer()

@@ -66,7 +66,7 @@ const resolved = useResolvedMediaUrl(request);
 const resolvedFull = useResolvedMediaUrl(fullRequest);
 const url = computed(() => resolved.url.value);
 const fullUrl = computed(() => resolvedFull.url.value || url.value);
-const alt = computed(() => readString(props.image, "description", "title") || `图片 ${props.index + 1}`);
+const alt = computed(() => readString(props.image, "description", "title") || `Image ${props.index + 1}`);
 const canPreview = computed(() => Boolean(fullUrl.value));
 
 async function downloadImage(): Promise<void> {
@@ -86,7 +86,7 @@ watch(url, () => {
       type="button"
       class="im-image-group-cell__preview"
       :disabled="!canPreview"
-      :aria-label="`预览${alt}`"
+      :aria-label="`Preview ${alt}`"
       @click="previewOpen = true"
     >
       <img
@@ -99,17 +99,17 @@ watch(url, () => {
     </button>
     <span v-else class="im-image-group-cell__placeholder">
       <n-icon :component="ImageOutline" />
-      <small v-if="resolved.loading.value">加载中</small>
+      <small v-if="resolved.loading.value">Loading</small>
     </span>
-    <div v-if="canPreview" class="im-image-group-cell__actions" aria-label="图片操作">
-      <button type="button" class="im-image-group-cell__action" title="预览" aria-label="预览图片" @click.stop="previewOpen = true">
+    <div v-if="canPreview" class="im-image-group-cell__actions" aria-label="Image actions">
+      <button type="button" class="im-image-group-cell__action" title="Preview" aria-label="Preview image" @click.stop="previewOpen = true">
         <n-icon :component="EyeOutline" />
       </button>
       <button
         type="button"
         class="im-image-group-cell__action"
-        title="下载"
-        aria-label="下载图片"
+        title="Download"
+        aria-label="Download image"
         @click.stop="downloadImage"
       >
         <n-icon :component="DownloadOutline" />

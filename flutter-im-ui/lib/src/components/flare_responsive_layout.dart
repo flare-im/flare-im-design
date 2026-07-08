@@ -62,7 +62,7 @@ class FlareResponsiveLayout extends StatelessWidget {
               child: TextButton.icon(
                 onPressed: () => onPaneChange?.call(FlarePane.list),
                 icon: const Icon(Icons.chevron_left),
-                label: const Text('返回'),
+                label: const Text('Back'),
                 style: TextButton.styleFrom(foregroundColor: colors.primary),
               ),
             ),

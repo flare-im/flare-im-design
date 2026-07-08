@@ -36,14 +36,14 @@ class FlareCallControls extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _ctrl(muted ? Icons.mic_off : Icons.mic_none, '麦克风', muted, onToggleMute),
+        _ctrl(muted ? Icons.mic_off : Icons.mic_none, 'Microphone', muted, onToggleMute),
         const SizedBox(width: FlareSizes.spacingLg),
         if (mode == FlareCallMode.video) ...[
-          _ctrl(cameraOn ? Icons.videocam_outlined : Icons.videocam_off_outlined, '摄像头', !cameraOn, onToggleCamera),
+          _ctrl(cameraOn ? Icons.videocam_outlined : Icons.videocam_off_outlined, 'Camera', !cameraOn, onToggleCamera),
           const SizedBox(width: FlareSizes.spacingLg),
-          _ctrl(Icons.cameraswitch, '翻转', false, onSwitchCamera),
+          _ctrl(Icons.cameraswitch, 'Flip', false, onSwitchCamera),
         ] else
-          _ctrl(Icons.volume_up_outlined, '扬声器', speakerOn, onToggleSpeaker),
+          _ctrl(Icons.volume_up_outlined, 'Speaker', speakerOn, onToggleSpeaker),
         const SizedBox(width: FlareSizes.spacingLg),
         _hangup(),
       ],

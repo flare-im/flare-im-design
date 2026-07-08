@@ -18,19 +18,19 @@ const emit = defineEmits<{
 <template>
   <section class="start-sheet">
     <div class="sheet-section">
-      <div class="sheet-title">发起会话</div>
-      <n-input v-model:value="peerUserId" round clearable placeholder="输入真实用户 ID" />
+      <div class="sheet-title">Start conversation</div>
+      <n-input v-model:value="peerUserId" round clearable placeholder="Enter a real user ID" />
       <n-button block type="primary" :loading="busy" @click="emit('open-peer')">
-        打开单聊
+        Open direct chat
       </n-button>
     </div>
 
     <div class="sheet-section">
-      <div class="sheet-title">会话运维</div>
-      <n-input v-model:value="query" round clearable placeholder="按名称、ID 或最近消息查询" />
+      <div class="sheet-title">Conversation ops</div>
+      <n-input v-model:value="query" round clearable placeholder="Search by name, ID, or recent message" />
       <div class="sheet-actions">
-        <n-button secondary :loading="busy" @click="emit('query')">查询</n-button>
-        <n-button secondary :loading="busy" @click="emit('mark-all-read')">全部已读</n-button>
+        <n-button secondary :loading="busy" @click="emit('query')">Query</n-button>
+        <n-button secondary :loading="busy" @click="emit('mark-all-read')">Mark all read</n-button>
       </div>
     </div>
   </section>

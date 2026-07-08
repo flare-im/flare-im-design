@@ -68,7 +68,7 @@ class FlareConversationDetails extends StatelessWidget {
                       fontSize: FlareSizes.fontSize4xl,
                       fontWeight: FontWeight.w600)),
               if (c.kind == FlareConversationKind.group && c.memberCount != null)
-                Text('${c.memberCount} 名成员',
+                Text('${c.memberCount} members',
                     style: TextStyle(
                         color: colors.textTertiary,
                         fontSize: FlareSizes.fontSizeSm)),
@@ -80,35 +80,35 @@ class FlareConversationDetails extends StatelessWidget {
         if (connectionText != null && connectionText!.isNotEmpty)
           _connectionChip(colors),
         if (messageCount != null)
-          _infoRow('消息数', '$messageCount', colors),
+          _infoRow('Messages', '$messageCount', colors),
 
         _sectionGap(colors),
         if (onMute != null)
-          _switchRow('免打扰', Icons.notifications_off_outlined, c.muted,
+          _switchRow('Mute', Icons.notifications_off_outlined, c.muted,
               onMute!, colors),
         if (onPin != null)
-          _switchRow('置顶会话', Icons.push_pin_outlined, c.pinned, onPin!, colors),
+          _switchRow('Pin conversation', Icons.push_pin_outlined, c.pinned, onPin!, colors),
 
         _sectionGap(colors),
         if (onMarkRead != null)
-          _actionRow('标记已读', Icons.mark_email_read_outlined, onMarkRead!, colors),
+          _actionRow('Mark as read', Icons.mark_email_read_outlined, onMarkRead!, colors),
         if (onMarkUnread != null)
-          _actionRow('标记未读', Icons.mark_email_unread_outlined, onMarkUnread!,
+          _actionRow('Mark as unread', Icons.mark_email_unread_outlined, onMarkUnread!,
               colors),
         if (onSync != null)
-          _actionRow('同步会话', Icons.sync_rounded, onSync!, colors),
+          _actionRow('Sync conversation', Icons.sync_rounded, onSync!, colors),
         if (onOpenDevtools != null)
-          _actionRow('开发者工具', Icons.bug_report_outlined, onOpenDevtools!, colors),
+          _actionRow('Developer tools', Icons.bug_report_outlined, onOpenDevtools!, colors),
 
         _sectionGap(colors),
         if (onArchive != null)
-          _actionRow(c.archived ? '取消归档' : '归档会话', Icons.archive_outlined,
+          _actionRow(c.archived ? 'Unarchive' : 'Archive conversation', Icons.archive_outlined,
               onArchive!, colors),
         if (onClearHistory != null)
-          _actionRow('清空聊天记录', Icons.cleaning_services_outlined,
+          _actionRow('Clear chat history', Icons.cleaning_services_outlined,
               onClearHistory!, colors),
         if (onDelete != null)
-          _actionRow('删除会话', Icons.delete_outline, onDelete!, colors,
+          _actionRow('Delete conversation', Icons.delete_outline, onDelete!, colors,
               danger: true),
       ],
     );

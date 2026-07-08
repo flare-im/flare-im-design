@@ -85,10 +85,10 @@ function updateTransportMode(value: string | number | boolean | null): void {
           <p>{{ t("login.brandSubtitle") }}</p>
         </div>
       </div>
-      <ul class="auth-brand__features" aria-label="产品特性">
-        <li>多端实时同步，离线可续传</li>
-        <li>TLS 加密通道，安全可审计</li>
-        <li>会话、未读与推送一体</li>
+      <ul class="auth-brand__features" aria-label="Features">
+        <li>Real-time sync across devices, resumable offline</li>
+        <li>TLS-encrypted channel, auditable</li>
+        <li>Conversations, unread and push unified</li>
       </ul>
     </section>
 
@@ -191,8 +191,8 @@ function updateTransportMode(value: string | number | boolean | null): void {
         </n-form>
 
         <footer class="auth-panel__footer">
-          <p class="auth-footnote">ID 由管理员分配，可在邀请邮件中查看</p>
-          <p class="auth-footnote auth-footnote--muted">仅支持 ID 登录 · 安全连接已启用</p>
+          <p class="auth-footnote">Your ID is assigned by an admin and shown in the invite email</p>
+          <p class="auth-footnote auth-footnote--muted">ID sign-in only · secure connection enabled</p>
         </footer>
       </div>
     </section>

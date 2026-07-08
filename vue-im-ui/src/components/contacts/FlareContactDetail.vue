@@ -19,9 +19,9 @@ const emit = defineEmits<{
     <div class="flare-contact-detail__name">{{ contact.name }}</div>
     <div v-if="contact.signature" class="flare-contact-detail__sig">{{ contact.signature }}</div>
     <div class="flare-contact-detail__actions">
-      <button class="is-primary" @click="emit('message')">💬 发消息</button>
-      <button @click="emit('call')">📞 语音</button>
-      <button @click="emit('video')">📹 视频</button>
+      <button class="is-primary" @click="emit('message')">💬 Message</button>
+      <button @click="emit('call')">📞 Voice</button>
+      <button @click="emit('video')">📹 Video</button>
     </div>
   </div>
 </template>

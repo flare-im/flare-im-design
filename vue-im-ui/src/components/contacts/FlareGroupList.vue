@@ -9,12 +9,12 @@ const emit = defineEmits<{ (e: "select", g: FlareGroupSummary): void }>();
 
 <template>
   <div class="flare-group-list">
-    <FlareEmptyState v-if="!items.length" title="还没有群组" />
+    <FlareEmptyState v-if="!items.length" title="No groups yet" />
     <div v-for="g in items" :key="g.id" class="flare-group-list__row" @click="emit('select', g)">
       <FlareAvatar :user-id="g.id" :display-name="g.name" :avatar-url="g.avatarUrl" :size="44" />
       <div>
         <div class="flare-group-list__name">{{ g.name }}</div>
-        <div class="flare-group-list__count">{{ g.memberCount ?? 0 }} 名成员</div>
+        <div class="flare-group-list__count">{{ g.memberCount ?? 0 }} members</div>
       </div>
     </div>
   </div>

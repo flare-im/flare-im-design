@@ -40,18 +40,18 @@ const markdownBody = computed(() => {
 
 const title = computed(() => {
   const labels: Record<string, string> = {
-    image: "图片预览",
-    video: "视频预览",
-    audio: "语音预览",
-    file: "文件预览",
-    location: "位置",
-    quote: "引用消息",
-    forward: "转发消息",
-    richText: "富文本",
-    sticker: "贴纸",
-    emoji: "表情",
+    image: "Image preview",
+    video: "Video preview",
+    audio: "Voice preview",
+    file: "File preview",
+    location: "Location",
+    quote: "Quote message",
+    forward: "Forwarded message",
+    richText: "Rich text",
+    sticker: "Sticker",
+    emoji: "Emoji",
   };
-  return labels[type.value] ?? "消息详情";
+  return labels[type.value] ?? "Message details";
 });
 
 const timeText = computed(() => {
@@ -69,7 +69,7 @@ const timeText = computed(() => {
       <div>
         <strong>{{ title }}</strong>
         <span>{{
-          message.senderDisplayName || message.senderId || "未知发送者"
+          message.senderDisplayName || message.senderId || "Unknown sender"
         }}</span>
         <small v-if="timeText">{{ timeText }}</small>
       </div>
@@ -92,7 +92,7 @@ const timeText = computed(() => {
       v-if="message.content?.data && Object.keys(message.content.data).length"
       class="preview-modal__raw"
     >
-      <summary>原始 payload</summary>
+      <summary>Raw payload</summary>
       <pre>{{ JSON.stringify(message.content.data, null, 2) }}</pre>
     </details>
   </section>

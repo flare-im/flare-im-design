@@ -52,7 +52,7 @@ class _FlareContactListState extends State<FlareContactList> {
     if (widget.items.isEmpty) {
       return widget.loading
           ? const Center(child: CircularProgressIndicator())
-          : const Center(child: FlareEmptyState(title: '还没有联系人'));
+          : const Center(child: FlareEmptyState(title: 'No contacts yet'));
     }
     final groups = _groups;
 

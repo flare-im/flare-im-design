@@ -39,7 +39,7 @@ const canOpen = computed(() => {
   return protocol === "http:" || protocol === "https:";
 });
 const host = computed(() => parsedUrl.value?.hostname.replace(/^www\./i, "") ?? "");
-const title = computed(() => rawTitle.value || siteName.value || host.value || rawUrl.value || "链接");
+const title = computed(() => rawTitle.value || siteName.value || host.value || rawUrl.value || "Link");
 const subtitle = computed(() => description.value || (siteName.value && siteName.value !== title.value ? siteName.value : ""));
 const showThumb = computed(() => Boolean(thumbnailUrl.value) && !thumbFailed.value);
 const rootTag = computed(() => (canOpen.value ? "a" : "div"));
@@ -49,7 +49,7 @@ const rootAttrs = computed(() =>
     : { role: "group", "aria-label": [title.value, subtitle.value, rawUrl.value].filter(Boolean).join("，") },
 );
 const footline = computed(() => {
-  if (!rawUrl.value) return siteName.value || "链接";
+  if (!rawUrl.value) return siteName.value || "Link";
   if (!parsedUrl.value) return rawUrl.value.length > 48 ? `${rawUrl.value.slice(0, 46)}…` : rawUrl.value;
   const path = parsedUrl.value.pathname === "/" ? "" : parsedUrl.value.pathname;
   const full = `${host.value}${path}${parsedUrl.value.search}`;
@@ -80,14 +80,14 @@ const footline = computed(() => {
         <n-icon :component="LinkOutline" />
       </span>
       <div class="im-rich-message-card__main">
-        <span class="im-rich-message-card__kicker">{{ siteName || host || "链接" }}</span>
+        <span class="im-rich-message-card__kicker">{{ siteName || host || "Link" }}</span>
         <strong class="im-rich-message-card__title">{{ title }}</strong>
         <p v-if="subtitle" class="im-rich-message-card__subtitle">{{ subtitle }}</p>
       </div>
     </header>
     <footer class="im-rich-message-card__footer">
       <span>{{ footline }}</span>
-      <span v-if="canOpen" class="im-rich-message-card__footer-action">打开</span>
+      <span v-if="canOpen" class="im-rich-message-card__footer-action">Open</span>
     </footer>
   </component>
 </template>

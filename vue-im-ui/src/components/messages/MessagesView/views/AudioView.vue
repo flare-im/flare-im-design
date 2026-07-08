@@ -71,7 +71,7 @@ const progressPercent = computed(() => {
   return Math.min(100, Math.max(0, (currentSeconds.value / durationSeconds.value) * 100));
 });
 const playbackLabel = computed(() => {
-  if (!durationSeconds.value) return audioUrl.value ? "语音" : "语音不可播放";
+  if (!durationSeconds.value) return audioUrl.value ? "Voice" : "Voice not playable";
   if (isPlaying.value || currentSeconds.value > 0) {
     return `${formatTime(currentSeconds.value)} / ${formatTime(durationSeconds.value)}`;
   }
@@ -142,14 +142,14 @@ onBeforeUnmount(() => {
       type="button"
       class="im-audio__play"
       :disabled="!audioUrl"
-      :aria-label="isPlaying ? '暂停语音' : '播放语音'"
+      :aria-label="isPlaying ? 'Pause' : 'Play'"
       @click="togglePlay"
     >
       <n-icon :component="!audioUrl ? MicOutline : isPlaying ? PauseOutline : PlayOutline" />
     </button>
     <div class="im-audio__body">
       <div class="im-audio__meta">
-        <strong>语音消息</strong>
+        <strong>Voice message</strong>
         <span>{{ playbackLabel }}</span>
       </div>
       <div class="im-audio__track" :style="{ '--im-audio-progress': `${progressPercent}%` }">
@@ -164,11 +164,11 @@ onBeforeUnmount(() => {
           max="100"
           step="1"
           :value="progressPercent"
-          aria-label="语音播放进度"
+          aria-label="Voice progress"
           @input="onSeek"
         />
       </div>
-      <p v-if="playbackError" class="im-audio__error">音频暂时无法播放</p>
+      <p v-if="playbackError" class="im-audio__error">Audio can't be played right now</p>
     </div>
     <audio
       v-if="audioUrl"

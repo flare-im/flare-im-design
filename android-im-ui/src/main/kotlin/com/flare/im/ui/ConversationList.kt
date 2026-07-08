@@ -31,7 +31,7 @@ fun ConversationList(
             if (loading) {
                 CircularProgressIndicator()
             } else {
-                Text("暂无会话", color = colors.textTertiary, fontSize = FlareSizes.fontSizeLg.value.sp)
+                Text("No conversations", color = colors.textTertiary, fontSize = FlareSizes.fontSizeLg.value.sp)
             }
         }
     } else {

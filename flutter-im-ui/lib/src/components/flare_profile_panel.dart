@@ -21,9 +21,9 @@ class FlareProfilePanel extends StatelessWidget {
   final ValueChanged<FlareSettingsItem>? onEntry;
 
   static const List<FlareSettingsItem> defaultEntries = [
-    FlareSettingsItem(key: 'favorites', label: '我的收藏', icon: Icons.star_outline),
-    FlareSettingsItem(key: 'moments', label: '朋友圈', icon: Icons.photo_library_outlined),
-    FlareSettingsItem(key: 'settings', label: '设置', icon: Icons.settings_outlined),
+    FlareSettingsItem(key: 'favorites', label: 'Favorites', icon: Icons.star_outline),
+    FlareSettingsItem(key: 'moments', label: 'Moments', icon: Icons.photo_library_outlined),
+    FlareSettingsItem(key: 'settings', label: 'Settings', icon: Icons.settings_outlined),
   ];
 
   @override

@@ -47,11 +47,11 @@ class FlareCallView extends StatelessWidget {
   String get _statusText {
     switch (state) {
       case FlareCallState.connected:
-        return durationLabel ?? '已接通';
+        return durationLabel ?? 'Connected';
       case FlareCallState.ringing:
-        return '对方正在响铃…';
+        return 'Ringing…';
       case FlareCallState.calling:
-        return mode == FlareCallMode.video ? '正在等待对方接受邀请…' : '正在呼叫…';
+        return mode == FlareCallMode.video ? 'Waiting for answer…' : 'Calling…';
     }
   }
 

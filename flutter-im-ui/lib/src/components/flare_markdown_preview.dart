@@ -46,7 +46,7 @@ class FlareMarkdownPreview extends StatelessWidget {
         .split(RegExp(r'\s+'))
         .where((w) => w.isNotEmpty)
         .length;
-    return '$words 词 · $chars 字';
+    return '$words words · $chars chars';
   }
 
   List<Widget> _parseBlocks(String src, FlareColors colors) {

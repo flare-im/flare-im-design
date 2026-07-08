@@ -25,9 +25,9 @@ const emit = defineEmits<{
 }>();
 
 const statusText = computed(() => {
-  if (props.state === "connected") return props.durationLabel ?? "已接通";
-  if (props.state === "ringing") return "对方正在响铃…";
-  return props.mode === "video" ? "正在等待对方接受邀请…" : "正在呼叫…";
+  if (props.state === "connected") return props.durationLabel ?? "Connected";
+  if (props.state === "ringing") return "Ringing…";
+  return props.mode === "video" ? "Waiting for answer…" : "Calling…";
 });
 </script>
 

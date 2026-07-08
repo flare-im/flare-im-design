@@ -53,7 +53,7 @@ fun IncomingCall(
             Text(callerName, color = Color.White, fontSize = FlareSizes.fontSize4xl.value.sp, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(FlareSizes.spacingXs))
             Text(
-                if (mode == FlareCallMode.Video) "邀请你视频通话" else "邀请你语音通话",
+                if (mode == FlareCallMode.Video) "is inviting you to a video call" else "is inviting you to a voice call",
                 color = Color.White.copy(alpha = 0.7f), fontSize = FlareSizes.fontSizeLg.value.sp,
             )
         }
@@ -62,8 +62,8 @@ fun IncomingCall(
             Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(bottom = 56.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
-            action(Icons.Outlined.CallEnd, "拒绝", Color(0xFFEF4444), onReject)
-            action(Icons.Outlined.Call, "接听", Color(0xFF22C55E), onAccept)
+            action(Icons.Outlined.CallEnd, "Decline", Color(0xFFEF4444), onReject)
+            action(Icons.Outlined.Call, "Answer", Color(0xFF22C55E), onAccept)
         }
     }
 }

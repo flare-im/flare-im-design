@@ -23,7 +23,7 @@ const emojiLoadSrc = computed(() => {
 });
 
 const fallbackText = computed(() =>
-  payload.value.key ? formatEmojiPackBracket(payload.value.key) : "[表情]",
+  payload.value.key ? formatEmojiPackBracket(payload.value.key) : "[Emoji]",
 );
 </script>
 

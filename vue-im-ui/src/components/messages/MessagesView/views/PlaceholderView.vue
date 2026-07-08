@@ -7,7 +7,7 @@ import { getContentDecodedPreview } from "../../../../utils/messagePreview";
 
 const props = defineProps<{ content: ContentElem; isSelf: boolean }>();
 
-const preview = computed(() => getContentDecodedPreview(props.content) || "[暂不支持的消息]");
+const preview = computed(() => getContentDecodedPreview(props.content) || "[Unsupported message]");
 </script>
 
 <template>

@@ -25,7 +25,7 @@ class FlareNewFriendRequests extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = FlareColors.of(Theme.of(context).brightness);
     if (items.isEmpty) {
-      return const FlareEmptyState(title: '没有新的好友申请');
+      return const FlareEmptyState(title: 'No new friend requests');
     }
     return ListView.builder(
       itemCount: items.length,
@@ -66,7 +66,7 @@ class FlareNewFriendRequests extends StatelessWidget {
                 onPressed: onReject == null ? null : () => onReject!(r),
                 style: OutlinedButton.styleFrom(
                     visualDensity: VisualDensity.compact),
-                child: const Text('拒绝'),
+                child: const Text('Decline'),
               ),
               const SizedBox(width: FlareSizes.spacingSm),
               FilledButton(
@@ -74,7 +74,7 @@ class FlareNewFriendRequests extends StatelessWidget {
                 style: FilledButton.styleFrom(
                     backgroundColor: colors.primary,
                     visualDensity: VisualDensity.compact),
-                child: const Text('接受'),
+                child: const Text('Accept'),
               ),
             ],
           ),

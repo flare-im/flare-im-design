@@ -27,8 +27,8 @@ let gen = 0;
 
 const fallbackText = computed(() => {
   const { packageId, stickerId } = stickerAsset.value;
-  if (stickerId) return `[贴纸:${packageId}/${stickerId}]`;
-  return "[贴纸]";
+  if (stickerId) return `[Sticker:${packageId}/${stickerId}]`;
+  return "[Sticker]";
 });
 
 watch(
@@ -52,7 +52,7 @@ watch(
     <img
       v-if="(stickerUrl || resolvedStickerUrl) && playAnimated"
       :src="stickerUrl || resolvedStickerUrl"
-      alt="贴纸"
+      alt="Sticker"
       class="im-sticker__img"
       loading="lazy"
       decoding="async"
@@ -61,7 +61,7 @@ watch(
       v-else-if="stickerUrl || resolvedStickerUrl"
       class="im-sticker__img"
       :src="stickerUrl || resolvedStickerUrl"
-      alt="贴纸"
+      alt="Sticker"
       object-fit="contain"
     />
     <span v-else class="im-sticker__fallback">{{ fallbackText }}</span>

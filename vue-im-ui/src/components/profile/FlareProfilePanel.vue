@@ -3,9 +3,9 @@ import FlareAvatar from "../conversation/FlareAvatar.vue";
 import type { FlareUserProfile, FlareSettingsItem } from "../../shared/contracts";
 
 const defaultEntries: FlareSettingsItem[] = [
-  { key: "favorites", label: "我的收藏", icon: "⭐" },
-  { key: "moments", label: "朋友圈", icon: "🖼️" },
-  { key: "settings", label: "设置", icon: "⚙️" },
+  { key: "favorites", label: "Favorites", icon: "⭐" },
+  { key: "moments", label: "Moments", icon: "🖼️" },
+  { key: "settings", label: "Settings", icon: "⚙️" },
 ];
 
 withDefaults(defineProps<{ user: FlareUserProfile; entries?: FlareSettingsItem[] }>(), {

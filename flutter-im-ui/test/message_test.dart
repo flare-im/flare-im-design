@@ -105,7 +105,7 @@ void main() {
         messages: [],
         currentUserId: 'me',
       )));
-      expect(find.text('还没有消息'), findsOneWidget);
+      expect(find.text('No messages yet'), findsOneWidget);
     });
 
     testWidgets('renders each message', (tester) async {

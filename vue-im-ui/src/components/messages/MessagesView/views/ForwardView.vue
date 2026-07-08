@@ -13,15 +13,15 @@ const payload = computed(() => {
   return Object.keys(nested).length ? nested : (props.content as Record<string, unknown>);
 });
 
-const title = computed(() => readString(payload.value, "title") || "转发消息");
+const title = computed(() => readString(payload.value, "title") || "Forwarded message");
 const items = computed(() => readArray(payload.value, "items"));
 const summary = computed(() => {
-  if (items.value.length > 1) return `${items.value.length} 条消息`;
+  if (items.value.length > 1) return `${items.value.length} messages`;
   if (items.value.length === 1) {
     const first = asRecord(items.value[0]);
-    return readString(first, "plainText", "text") || "1 条消息";
+    return readString(first, "plainText", "text") || "1 message";
   }
-  return readString(payload.value, "plainText") || "转发内容";
+  return readString(payload.value, "plainText") || "Forwarded content";
 });
 </script>
 

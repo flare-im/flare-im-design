@@ -62,7 +62,7 @@ const videoUrl = computed(() => resolvedVideo.url.value);
 const posterUrl = computed(() => resolvedPoster.url.value);
 const displayPosterUrl = computed(() => posterUrl.value || generatedPosterUrl.value);
 const description = computed(() => readString(payload.value, "description", "caption"));
-const title = computed(() => description.value || readString(payload.value, "title") || "视频");
+const title = computed(() => description.value || readString(payload.value, "title") || "Video");
 
 watch(posterUrl, () => {
   posterLoadFailed.value = false;
@@ -189,10 +189,10 @@ watch(
         <span>
           {{
             resolvedPoster.loading.value || generatingPoster
-              ? "封面生成中"
+              ? "Generating cover"
               : posterUrl || generatedPosterFailed
-                ? "封面加载失败"
-                : "视频"
+                ? "Cover failed to load"
+                : "Video"
           }}
         </span>
       </div>

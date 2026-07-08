@@ -84,7 +84,7 @@ class _DefaultEmpty extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(FlareSizes.spacing2xl),
       child: Text(
-        '暂无会话',
+        'No conversations',
         style: TextStyle(color: colors.textTertiary, fontSize: FlareSizes.fontSizeLg),
       ),
     );

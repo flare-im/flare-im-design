@@ -49,7 +49,7 @@ const emit = defineEmits<{
 
 <template>
   <section class="sdk-lab">
-    <div class="pane-title">开发者诊断</div>
+    <div class="pane-title">Developer diagnostics</div>
     <div class="lab-grid">
       <n-button size="small" secondary :loading="labBusy" @click="emit('session')">Session</n-button>
       <n-button size="small" secondary @click="emit('events')">Events</n-button>
@@ -60,18 +60,18 @@ const emit = defineEmits<{
     <div class="lab-field">
       <span>Message Build</span>
       <n-select v-model:value="sdkLab.buildOp" size="small" :options="buildOptions" />
-      <n-input v-model:value="sdkLab.messageText" size="small" placeholder="消息/标题文本" />
-      <n-input v-model:value="sdkLab.jsonParams" size="small" placeholder="JSON 参数" />
+      <n-input v-model:value="sdkLab.messageText" size="small" placeholder="Message / title text" />
+      <n-input v-model:value="sdkLab.jsonParams" size="small" placeholder="JSON payload" />
       <n-button size="small" type="primary" block @click="emit('build-send')">Build + Send</n-button>
     </div>
 
     <div class="lab-field">
       <span>Message Dispatch</span>
       <n-select v-model:value="sdkLab.dispatchOp" size="small" :options="dispatchOptions" />
-      <n-input v-model:value="sdkLab.messageId" size="small" placeholder="message id，默认最新消息" />
-      <n-input v-model:value="sdkLab.query" size="small" placeholder="搜索关键词" />
+      <n-input v-model:value="sdkLab.messageId" size="small" placeholder="message id, defaults to latest" />
+      <n-input v-model:value="sdkLab.query" size="small" placeholder="Search keyword" />
       <n-input v-model:value="sdkLab.reaction" size="small" placeholder="reaction / mark color" />
-      <n-input v-model:value="sdkLab.jsonParams" size="small" placeholder="JSON 参数" />
+      <n-input v-model:value="sdkLab.jsonParams" size="small" placeholder="JSON payload" />
       <n-button size="small" secondary block @click="emit('dispatch')">Dispatch</n-button>
     </div>
 

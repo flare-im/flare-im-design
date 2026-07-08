@@ -21,7 +21,7 @@ export type ComposerStickerPick = {
 
 const props = withDefaults(
   defineProps<{
-    /** 由父级工具栏决定打开表情还是贴纸 */
+    /** 由父级工具栏决定Open表情还是贴纸 */
     activeTab: "emoji" | "sticker";
     /** 仅表情：隐藏底部贴纸包 / @ 切换条 */
     emojiOnly?: boolean;
@@ -133,7 +133,7 @@ const recentStickerItemsInPack = computed(() => {
 });
 
 const stickerPackSectionTitle = computed(() =>
-  stickerPackTab.value === "classic" ? "头像贴纸" : "默认贴纸",
+  stickerPackTab.value === "classic" ? "Avatar stickers" : "Default stickers",
 );
 
 const defaultPackTabIconSrc = computed(() => COMPOSER_STICKER_PACK_TAB_ICON_URL.default?.trim() ?? "");
@@ -184,12 +184,12 @@ function onPanelSendClick(): void {
   <section
     class="composer-emoji-sticker-panel"
     :class="{ 'composer-emoji-sticker-panel--emoji-only': emojiOnly }"
-    aria-label="表情"
+    aria-label="Emoji"
   >
     <div class="panel-scroll">
       <template v-if="activeTab === 'emoji'">
         <section v-if="recentEmojiItems.length > 0" class="panel-section">
-          <h3 class="section-heading">最常使用</h3>
+          <h3 class="section-heading">Frequently used</h3>
           <div class="asset-grid asset-grid--emoji">
             <button
               v-for="item in recentEmojiItems"
@@ -204,7 +204,7 @@ function onPanelSendClick(): void {
           </div>
         </section>
         <section class="panel-section">
-          <h3 class="section-heading">默认表情</h3>
+          <h3 class="section-heading">Default emoji</h3>
           <div class="asset-grid asset-grid--emoji">
             <button
               v-for="item in COMPOSER_EMOJI_ITEMS"
@@ -221,7 +221,7 @@ function onPanelSendClick(): void {
       </template>
       <template v-else>
         <section v-if="recentStickerItemsInPack.length > 0" class="panel-section">
-          <h3 class="section-heading">最常使用</h3>
+          <h3 class="section-heading">Frequently used</h3>
           <div class="asset-grid asset-grid--sticker">
             <button
               v-for="item in recentStickerItemsInPack"
@@ -261,14 +261,14 @@ function onPanelSendClick(): void {
           </div>
         </section>
         <section v-else class="panel-section">
-          <p class="section-empty">该包暂无贴纸资源</p>
+          <p class="section-empty">No stickers in this pack</p>
         </section>
       </template>
     </div>
 
-    <div v-if="!emojiOnly" class="panel-tabbar" aria-label="表情与贴纸切换">
+    <div v-if="!emojiOnly" class="panel-tabbar" aria-label="Toggle emoji / stickers">
       <div class="tabbar-row tabbar-row--main">
-        <button type="button" class="tab-btn tab-btn--plus" title="更多表情包">
+        <button type="button" class="tab-btn tab-btn--plus" title="More emoji">
           <n-icon :size="22">
             <AddCircleOutline />
           </n-icon>
@@ -277,7 +277,7 @@ function onPanelSendClick(): void {
           type="button"
           class="tab-btn"
           :class="{ 'tab-btn--active': activeTab === 'emoji' }"
-          title="表情"
+          title="Emoji"
           @click="setTab('emoji')"
         >
           <n-icon :size="22">
@@ -287,15 +287,15 @@ function onPanelSendClick(): void {
         <div
           v-if="defaultPackTabIconSrc || classicPackTabIconSrc || defaultPackTabIconLoadSrc || classicPackTabIconLoadSrc"
           class="sticker-pack-tabs"
-          aria-label="贴纸包"
+          aria-label="Sticker packs"
         >
           <button
             v-if="classicPackTabIconSrc || classicPackTabIconLoadSrc"
             type="button"
             class="pack-tab pack-tab--thumb"
             :class="{ 'pack-tab--active': activeTab === 'sticker' && stickerPackTab === 'classic' }"
-            aria-label="头像贴纸"
-            title="头像贴纸"
+            aria-label="Avatar stickers"
+            title="Avatar stickers"
             @click="setStickerPack('classic')"
           >
             <span class="pack-tab-thumb-shell">
@@ -312,8 +312,8 @@ function onPanelSendClick(): void {
             type="button"
             class="pack-tab pack-tab--thumb"
             :class="{ 'pack-tab--active': activeTab === 'sticker' && stickerPackTab === 'default' }"
-            aria-label="默认贴纸"
-            title="默认贴纸"
+            aria-label="Default stickers"
+            title="Default stickers"
             @click="setStickerPack('default')"
           >
             <span class="pack-tab-thumb-shell">
@@ -333,7 +333,7 @@ function onPanelSendClick(): void {
           :disabled="!canSend || sending"
           @click.stop="onPanelSendClick"
         >
-          {{ sending ? "发送中" : "发送" }}
+          {{ sending ? "Sending" : "Send" }}
         </button>
       </div>
     </div>

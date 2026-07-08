@@ -67,10 +67,10 @@ public struct ConversationRowView: View {
                     .foregroundColor(colors.textTertiary)
             }
             if item.hasDraft {
-                Text("[草稿] ").foregroundColor(colors.error)
+                Text("[Draft] ").foregroundColor(colors.error)
                     + Text(item.draftPreview ?? "").foregroundColor(colors.textSecondary)
             } else if item.mentioned {
-                (Text("[@我] ").foregroundColor(colors.error).bold()
+                (Text("[@me] ").foregroundColor(colors.error).bold()
                     + Text(item.preview).foregroundColor(colors.textSecondary))
             } else {
                 Text(item.preview).foregroundColor(colors.textSecondary)

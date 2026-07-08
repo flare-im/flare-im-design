@@ -52,7 +52,7 @@ data class FlareReplyTarget(val senderName: String, val summary: String)
 @Composable
 fun Composer(
     rich: Boolean = false,
-    placeholder: String = "发送消息…",
+    placeholder: String = "Message",
     disabled: Boolean = false,
     replyTo: FlareReplyTarget? = null,
     maxLength: Int? = null,
@@ -165,7 +165,7 @@ private fun ReplyStrip(reply: FlareReplyTarget, colors: FlareColors, onCancel: (
         Box(Modifier.width(3.dp).size(width = 3.dp, height = 28.dp).background(colors.primary))
         Spacer(Modifier.width(FlareSizes.spacingSm))
         Column(Modifier.weight(1f)) {
-            Text("回复 ${reply.senderName}", color = colors.primary, fontSize = FlareSizes.fontSizeXs.value.sp, fontWeight = FontWeight.SemiBold)
+            Text("Reply ${reply.senderName}", color = colors.primary, fontSize = FlareSizes.fontSizeXs.value.sp, fontWeight = FontWeight.SemiBold)
             Text(reply.summary, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm.value.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         IconButton(onClick = { onCancel?.invoke() }) { Icon(Icons.Rounded.Close, null, Modifier.size(18.dp), tint = colors.textTertiary) }

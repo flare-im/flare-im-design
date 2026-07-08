@@ -8,7 +8,7 @@ public struct SearchBarView: View {
     private let onSubmit: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
 
-    public init(text: Binding<String>, placeholder: String = "搜索", loading: Bool = false, onSubmit: (() -> Void)? = nil) {
+    public init(text: Binding<String>, placeholder: String = "Search", loading: Bool = false, onSubmit: (() -> Void)? = nil) {
         self._text = text; self.placeholder = placeholder; self.loading = loading; self.onSubmit = onSubmit
     }
 

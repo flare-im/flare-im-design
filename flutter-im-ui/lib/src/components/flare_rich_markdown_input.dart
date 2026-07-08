@@ -142,11 +142,11 @@ class _FlareRichMarkdownInputState extends State<FlareRichMarkdownInput> {
         );
     return Row(
       children: [
-        btn(Icons.format_bold_rounded, () => _wrap('**'), '加粗'),
-        btn(Icons.format_italic_rounded, () => _wrap('*'), '斜体'),
-        btn(Icons.code_rounded, () => _wrap('`'), '代码'),
-        btn(Icons.format_list_bulleted_rounded, () => _wrap('\n- ', ''), '列表'),
-        btn(Icons.link_rounded, () => _wrap('[', '](url)'), '链接'),
+        btn(Icons.format_bold_rounded, () => _wrap('**'), 'Bold'),
+        btn(Icons.format_italic_rounded, () => _wrap('*'), 'Italic'),
+        btn(Icons.code_rounded, () => _wrap('`'), 'Code'),
+        btn(Icons.format_list_bulleted_rounded, () => _wrap('\n- ', ''), 'List'),
+        btn(Icons.link_rounded, () => _wrap('[', '](url)'), 'Link'),
       ],
     );
   }
