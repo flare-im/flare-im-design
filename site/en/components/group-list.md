@@ -20,7 +20,7 @@ title: GroupList
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `items` | `GroupSummary[]` | ✔ | — | Group summaries to list. |
+| `items` | [`GroupSummary[]`](/en/reference/data-types#group-summary) | ✔ | — | Group summaries to list. |
 
 
 ## States

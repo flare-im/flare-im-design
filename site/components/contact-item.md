@@ -20,7 +20,7 @@ title: ContactItem
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `item` | `Contact` | ✔ | — | 该联系人的数据。 |
+| `item` | [`Contact`](/reference/data-types#contact) | ✔ | — | 该联系人的数据。 |
 | `showPresence` | `boolean` |  | — | 渲染在线状态点。 |
 
 

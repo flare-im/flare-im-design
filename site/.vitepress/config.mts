@@ -57,6 +57,7 @@ export default defineConfig({
           { text: "设计 Tokens", link: "/guide/tokens" },
           { text: "主题定制", link: "/guide/theming" },
           { text: "组件", link: `/components/${first}` },
+          { text: "数据类型", link: "/reference/data-types" },
           {
             text: `v${spec.version}`,
             items: [
@@ -79,8 +80,17 @@ export default defineConfig({
             },
           ],
           "/components/": [
-            { text: "总览", items: [{ text: "全部组件", link: "/components/" }] },
+            {
+              text: "总览",
+              items: [
+                { text: "全部组件", link: "/components/" },
+                { text: "数据类型", link: "/reference/data-types" },
+              ],
+            },
             ...componentSidebar("zh", ""),
+          ],
+          "/reference/": [
+            { text: "参考", items: [{ text: "数据类型", link: "/reference/data-types" }] },
           ],
         },
         outline: { level: [2, 3], label: "本页目录" },
@@ -105,6 +115,7 @@ export default defineConfig({
           { text: "Tokens", link: "/en/guide/tokens" },
           { text: "Theming", link: "/en/guide/theming" },
           { text: "Components", link: `/en/components/${first}` },
+          { text: "Data Types", link: "/en/reference/data-types" },
           {
             text: `v${spec.version}`,
             items: [
@@ -127,8 +138,17 @@ export default defineConfig({
             },
           ],
           "/en/components/": [
-            { text: "Overview", items: [{ text: "All components", link: "/en/components/" }] },
+            {
+              text: "Overview",
+              items: [
+                { text: "All components", link: "/en/components/" },
+                { text: "Data Types", link: "/en/reference/data-types" },
+              ],
+            },
             ...componentSidebar("en", "/en"),
+          ],
+          "/en/reference/": [
+            { text: "Reference", items: [{ text: "Data Types", link: "/en/reference/data-types" }] },
           ],
         },
         outline: { level: [2, 3], label: "On this page" },

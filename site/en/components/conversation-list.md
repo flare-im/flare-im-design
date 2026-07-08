@@ -20,7 +20,7 @@ title: ConversationList
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `items` | `ConversationRow[]` | ✔ | — | Ordered conversation rows from the view. |
+| `items` | [`ConversationRowModel[]`](/en/reference/data-types#conversation-row-model) | ✔ | — | Ordered conversation rows from the view. |
 | `activeId` | `string` |  | — | Currently open conversation, highlighted in the list. |
 | `loading` | `boolean` |  | — | Shows a skeleton/spinner while the first page loads. |
 

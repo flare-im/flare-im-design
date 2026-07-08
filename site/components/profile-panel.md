@@ -20,7 +20,7 @@ title: ProfilePanel
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `user` | `UserProfile` | ✔ | — | 已登录用户的资料。 |
+| `user` | [`UserProfile`](/reference/data-types#user-profile) | ✔ | — | 已登录用户的资料。 |
 
 
 ## States

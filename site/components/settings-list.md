@@ -20,7 +20,7 @@ title: SettingsList
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `sections` | `SettingsSection[]` | ✔ | — | 要渲染的分组设置行。 |
+| `sections` | [`SettingsSection[]`](/reference/data-types#settings-section) | ✔ | — | 要渲染的分组设置行。 |
 
 
 ## States

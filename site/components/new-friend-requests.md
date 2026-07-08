@@ -20,7 +20,7 @@ title: NewFriendRequests
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `items` | `FriendRequest[]` | ✔ | — | 待处理与已处理的申请列表。 |
+| `items` | [`FriendRequest[]`](/reference/data-types#friend-request) | ✔ | — | 待处理与已处理的申请列表。 |
 
 
 ## States

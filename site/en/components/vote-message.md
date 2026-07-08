@@ -21,7 +21,7 @@ title: VoteMessage
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
 | `title` | `string` | ✔ | — | Poll question. |
-| `options` | `FlareVoteOption[]` |  | — | Options as { text, pct }. |
+| `options` | [`FlareVoteOption[]`](/en/reference/data-types#vote-option) |  | — | Options as { text, pct }. |
 | `total` | `string` |  | — | Optional footer, e.g. "12 voted". |
 
 

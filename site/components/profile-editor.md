@@ -20,7 +20,7 @@ title: ProfileEditor
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `user` | `UserProfile` | ✔ | — | 草稿初始的资料。 |
+| `user` | [`UserProfile`](/reference/data-types#user-profile) | ✔ | — | 草稿初始的资料。 |
 | `busy` | `boolean` |  | — | 提交中禁用保存并转圈。 |
 
 

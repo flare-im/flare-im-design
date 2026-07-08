@@ -20,7 +20,7 @@ title: SettingsList
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `sections` | `SettingsSection[]` | ✔ | — | Grouped settings rows to render. |
+| `sections` | [`SettingsSection[]`](/en/reference/data-types#settings-section) | ✔ | — | Grouped settings rows to render. |
 
 
 ## States

@@ -20,7 +20,7 @@ title: ContactDetail
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `contact` | `Contact` | ✔ | — | 要展示的联系人。 |
+| `contact` | [`Contact`](/reference/data-types#contact) | ✔ | — | 要展示的联系人。 |
 
 
 ## States

@@ -20,7 +20,7 @@ title: PinnedMessageBar
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `items` | `PinnedMessage[]` | ✔ | — | 置顶消息集；多条时条内轮播。 |
+| `items` | [`PinnedMessageItem[]`](/reference/data-types#pinned-message-item) | ✔ | — | 置顶消息集；多条时条内轮播。 |
 
 
 ## States
