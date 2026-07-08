@@ -35,7 +35,7 @@ public struct ComposerView: View {
 
     public init(
         rich: Bool = false,
-        placeholder: String = "发送消息…",
+        placeholder: String = "Message",
         disabled: Bool = false,
         replyTo: FlareReplyTarget? = nil,
         maxLength: Int? = nil,
@@ -129,7 +129,7 @@ public struct ComposerView: View {
     private func replyStrip(_ r: FlareReplyTarget, _ colors: FlareColors) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 1) {
-                Text("回复 \(r.senderName)").font(.system(size: FlareSizes.fontSizeXs, weight: .semibold))
+                Text("Reply \(r.senderName)").font(.system(size: FlareSizes.fontSizeXs, weight: .semibold))
                     .foregroundColor(colors.primary)
                 Text(r.summary).font(.system(size: FlareSizes.fontSizeSm))
                     .foregroundColor(colors.textSecondary).lineLimit(1)

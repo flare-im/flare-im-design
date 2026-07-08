@@ -96,7 +96,7 @@ void main() {
       )));
       expect(find.textContaining('Title'), findsOneWidget);
       expect(find.textContaining('item one'), findsOneWidget);
-      expect(find.textContaining('词'), findsOneWidget); // stats footer
+      expect(find.textContaining('words'), findsOneWidget); // stats footer
     });
   });
 
@@ -153,7 +153,7 @@ void main() {
       )));
       expect(find.text('Team'), findsOneWidget);
       expect(find.text('已连接'), findsOneWidget);
-      await tester.tap(find.text('免打扰'));
+      await tester.tap(find.text('Mute'));
       expect(muted, isTrue);
     });
 
@@ -163,7 +163,7 @@ void main() {
         conversation: const FlareConversationSummary(id: 'c1', title: 'Team'),
         onDelete: () => deleted = true,
       )));
-      await tester.tap(find.text('删除会话'));
+      await tester.tap(find.text('Delete conversation'));
       expect(deleted, isTrue);
     });
   });
@@ -180,7 +180,7 @@ void main() {
       )));
       await tester.tap(find.text('Ann'));
       await tester.pump();
-      await tester.tap(find.textContaining('确定'));
+      await tester.tap(find.textContaining('OK'));
       expect(ids, ['u1']);
     });
 

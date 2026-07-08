@@ -20,14 +20,14 @@ public struct MessageActionSheetView: View {
     @Environment(\.colorScheme) private var scheme
 
     public static let defaultActions: [FlareComposerAction] = [
-        .init(id: "image", label: "图片", systemImage: "photo"),
-        .init(id: "camera", label: "拍摄", systemImage: "camera"),
-        .init(id: "file", label: "文件", systemImage: "folder"),
-        .init(id: "location", label: "位置", systemImage: "mappin.and.ellipse"),
-        .init(id: "card", label: "名片", systemImage: "person.crop.rectangle"),
-        .init(id: "vote", label: "投票", systemImage: "checkmark.square"),
-        .init(id: "task", label: "任务", systemImage: "checklist"),
-        .init(id: "schedule", label: "日程", systemImage: "calendar"),
+        .init(id: "image", label: "Image", systemImage: "photo"),
+        .init(id: "camera", label: "Camera", systemImage: "camera"),
+        .init(id: "file", label: "File", systemImage: "folder"),
+        .init(id: "location", label: "Location", systemImage: "mappin.and.ellipse"),
+        .init(id: "card", label: "Contact", systemImage: "person.crop.rectangle"),
+        .init(id: "vote", label: "Poll", systemImage: "checkmark.square"),
+        .init(id: "task", label: "Task", systemImage: "checklist"),
+        .init(id: "schedule", label: "Schedule", systemImage: "calendar"),
     ]
 
     public init(

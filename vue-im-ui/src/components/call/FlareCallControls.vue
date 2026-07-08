@@ -21,25 +21,25 @@ const emit = defineEmits<{
   <div class="flare-call-controls">
     <button class="flare-call-controls__btn" @click="emit('toggleMute')">
       <span class="ico" :class="{ on: muted }">{{ muted ? "🔇" : "🎙️" }}</span>
-      <span class="lbl">麦克风</span>
+      <span class="lbl">Microphone</span>
     </button>
     <template v-if="mode === 'video'">
       <button class="flare-call-controls__btn" @click="emit('toggleCamera')">
         <span class="ico" :class="{ on: !cameraOn }">{{ cameraOn ? "🎥" : "🚫" }}</span>
-        <span class="lbl">摄像头</span>
+        <span class="lbl">Camera</span>
       </button>
       <button class="flare-call-controls__btn" @click="emit('switchCamera')">
         <span class="ico">🔄</span>
-        <span class="lbl">翻转</span>
+        <span class="lbl">Flip</span>
       </button>
     </template>
     <button v-else class="flare-call-controls__btn" @click="emit('toggleSpeaker')">
       <span class="ico" :class="{ on: speakerOn }">🔊</span>
-      <span class="lbl">扬声器</span>
+      <span class="lbl">Speaker</span>
     </button>
     <button class="flare-call-controls__btn" @click="emit('hangup')">
       <span class="ico is-end">📞</span>
-      <span class="lbl">挂断</span>
+      <span class="lbl">Hang up</span>
     </button>
   </div>
 </template>

@@ -49,7 +49,7 @@ void main() {
       await tester.pumpWidget(
         _host(FlareConversationRow(item: _row('c1', 'A', draft: 'wip'))),
       );
-      expect(find.textContaining('草稿'), findsOneWidget);
+      expect(find.textContaining('Draft'), findsOneWidget);
       expect(find.textContaining('wip'), findsOneWidget);
     });
 
@@ -76,7 +76,7 @@ void main() {
   group('FlareConversationList', () {
     testWidgets('empty shows placeholder', (tester) async {
       await tester.pumpWidget(_host(const FlareConversationList(items: [])));
-      expect(find.text('暂无会话'), findsOneWidget);
+      expect(find.text('No conversations'), findsOneWidget);
     });
 
     testWidgets('loading with no items shows spinner', (tester) async {

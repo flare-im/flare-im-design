@@ -16,7 +16,7 @@ class FlareGroupList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(Theme.of(context).brightness);
-    if (items.isEmpty) return const FlareEmptyState(title: '还没有群组');
+    if (items.isEmpty) return const FlareEmptyState(title: 'No groups yet');
     return ListView.builder(
       itemCount: items.length,
       itemBuilder: (context, i) {
@@ -39,7 +39,7 @@ class FlareGroupList extends StatelessWidget {
                             color: colors.textPrimary,
                             fontSize: FlareSizes.fontSizeXl,
                             fontWeight: FontWeight.w500)),
-                    Text('${g.memberCount} 名成员',
+                    Text('${g.memberCount} members',
                         style: TextStyle(
                             color: colors.textTertiary,
                             fontSize: FlareSizes.fontSizeSm)),

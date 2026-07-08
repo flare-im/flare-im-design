@@ -54,7 +54,7 @@ fun ProfilePanel(
                     Text("Flare ID: ${user.flareId}", color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
                 }
             }
-            Icon(Icons.Outlined.QrCode, "二维码", tint = colors.textTertiary)
+            Icon(Icons.Outlined.QrCode, "QR code", tint = colors.textTertiary)
         }
         Spacer(Modifier.size(FlareSizes.spacingSm))
         entries.forEachIndexed { i, e ->
@@ -73,7 +73,7 @@ fun ProfilePanel(
 }
 
 val defaultProfileEntries: List<SettingsItem> = listOf(
-    SettingsItem("favorites", "我的收藏", Icons.Outlined.Star),
-    SettingsItem("moments", "朋友圈", Icons.Outlined.Collections),
-    SettingsItem("settings", "设置", Icons.Outlined.Settings),
+    SettingsItem("favorites", "Favorites", Icons.Outlined.Star),
+    SettingsItem("moments", "Moments", Icons.Outlined.Collections),
+    SettingsItem("settings", "Settings", Icons.Outlined.Settings),
 )

@@ -13,15 +13,15 @@ const emit = defineEmits<{
 
 <template>
   <div class="flare-new-friends">
-    <FlareEmptyState v-if="!items.length" title="没有新的好友申请" />
+    <FlareEmptyState v-if="!items.length" title="No new friend requests" />
     <div v-for="r in items" :key="r.id" class="flare-new-friends__row">
       <FlareAvatar :user-id="r.id" :display-name="r.name" :avatar-url="r.avatarUrl" :size="44" />
       <div class="flare-new-friends__body" @click="emit('view', r)">
         <div class="flare-new-friends__name">{{ r.name }}</div>
         <div v-if="r.message" class="flare-new-friends__msg">{{ r.message }}</div>
       </div>
-      <button class="is-ghost" @click="emit('reject', r)">拒绝</button>
-      <button class="is-primary" @click="emit('accept', r)">接受</button>
+      <button class="is-ghost" @click="emit('reject', r)">Decline</button>
+      <button class="is-primary" @click="emit('accept', r)">Accept</button>
     </div>
   </div>
 </template>

@@ -48,7 +48,7 @@ const options = computed<VoteOptionView[]>(() =>
     .map((item, index) => optionView(item, index, countLookup.value, totalVotes.value))
     .filter((item): item is VoteOptionView => Boolean(item)),
 );
-const voteMeta = computed(() => `${options.value.length} 个选项 · ${totalVotes.value} 票`);
+const voteMeta = computed(() => `${options.value.length} options · ${totalVotes.value} votes`);
 
 function optionView(
   item: unknown,
@@ -143,7 +143,7 @@ function formatPercent(value: number): string {
       >
         <div class="business-vote-option__row">
           <span class="business-vote-option__label">{{ option.label }}</span>
-          <span class="business-vote-option__meta">{{ option.votes }} 票 · {{ formatPercent(option.percent) }}</span>
+          <span class="business-vote-option__meta">{{ option.votes }} votes · {{ formatPercent(option.percent) }}</span>
         </div>
         <div class="business-vote-option__bar" aria-hidden="true" />
       </div>

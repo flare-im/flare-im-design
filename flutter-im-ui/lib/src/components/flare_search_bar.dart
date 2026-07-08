@@ -8,7 +8,7 @@ class FlareSearchBar extends StatefulWidget {
   const FlareSearchBar({
     super.key,
     this.controller,
-    this.placeholder = '搜索',
+    this.placeholder = 'Search',
     this.loading = false,
     this.onChanged,
     this.onSubmitted,

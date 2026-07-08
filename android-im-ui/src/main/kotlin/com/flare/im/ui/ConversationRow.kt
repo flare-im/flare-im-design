@@ -107,11 +107,11 @@ fun ConversationRow(
 private fun previewText(item: ConversationRowData, colors: FlareColors): AnnotatedString = buildAnnotatedString {
     when {
         item.hasDraft -> {
-            withStyle(SpanStyle(color = colors.error, fontWeight = FontWeight.Medium)) { append("[草稿] ") }
+            withStyle(SpanStyle(color = colors.error, fontWeight = FontWeight.Medium)) { append("[Draft] ") }
             append(item.draftPreview ?: "")
         }
         item.mentioned -> {
-            withStyle(SpanStyle(color = colors.error, fontWeight = FontWeight.SemiBold)) { append("[@我] ") }
+            withStyle(SpanStyle(color = colors.error, fontWeight = FontWeight.SemiBold)) { append("[@me] ") }
             append(item.preview)
         }
         else -> append(item.preview)

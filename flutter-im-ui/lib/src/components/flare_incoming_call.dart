@@ -40,7 +40,7 @@ class FlareIncomingCall extends StatelessWidget {
                     style: const TextStyle(
                         color: Colors.white, fontSize: FlareSizes.fontSize4xl, fontWeight: FontWeight.w600)),
                 const SizedBox(height: FlareSizes.spacingXs),
-                Text(mode == FlareCallMode.video ? '邀请你视频通话' : '邀请你语音通话',
+                Text(mode == FlareCallMode.video ? 'is inviting you to a video call' : 'is inviting you to a voice call',
                     style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: FlareSizes.fontSizeLg)),
               ],
             ),
@@ -52,8 +52,8 @@ class FlareIncomingCall extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _action(Icons.call_end, '拒绝', const Color(0xFFEF4444), onReject),
-                _action(mode == FlareCallMode.video ? Icons.videocam_outlined : Icons.call_outlined, '接听',
+                _action(Icons.call_end, 'Decline', const Color(0xFFEF4444), onReject),
+                _action(mode == FlareCallMode.video ? Icons.videocam_outlined : Icons.call_outlined, 'Answer',
                     const Color(0xFF22C55E), onAccept),
               ],
             ),

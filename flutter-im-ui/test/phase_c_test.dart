@@ -47,7 +47,7 @@ void main() {
       items: const [FlareFriendRequest(id: 'r1', name: 'Bob', message: 'hi')],
       onAccept: (r) => accepted = r,
     )));
-    await tester.tap(find.text('接受'));
+    await tester.tap(find.text('Accept'));
     expect(accepted?.id, 'r1');
   });
 
@@ -55,7 +55,7 @@ void main() {
     await tester.pumpWidget(_host(const FlareGroupList(
         items: [FlareGroupSummary(id: 'g1', name: 'Team', memberCount: 4)])));
     expect(find.text('Team'), findsOneWidget);
-    expect(find.text('4 名成员'), findsOneWidget);
+    expect(find.text('4 members'), findsOneWidget);
   });
 
   testWidgets('FlareProfilePanel + ProfileEditor + SettingsList construct', (tester) async {
@@ -84,7 +84,7 @@ void main() {
     expect(find.text('02:14'), findsOneWidget);
 
     await tester.pumpWidget(_host(const FlareIncomingCall(callerName: 'Ivy', mode: FlareCallMode.audio)));
-    expect(find.text('邀请你语音通话'), findsOneWidget);
+    expect(find.text('is inviting you to a voice call'), findsOneWidget);
   });
 
   testWidgets('FlareResponsiveLayout: wide shows two panes, narrow single', (tester) async {

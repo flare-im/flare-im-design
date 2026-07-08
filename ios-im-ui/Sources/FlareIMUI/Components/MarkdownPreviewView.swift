@@ -28,7 +28,7 @@ public struct MarkdownPreviewView: View {
     private var stats: String {
         let chars = content.count
         let words = content.split { $0 == " " || $0 == "\n" || $0 == "\t" }.count
-        return "\(words) 词 · \(chars) 字"
+        return "\(words) words · \(chars) chars"
     }
 
     private enum Block {

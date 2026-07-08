@@ -14,7 +14,7 @@ const payload = computed(() => {
 
 const images = computed(() => readArray(payload.value, "images"));
 const description = computed(() => readString(payload.value, "description"));
-const title = computed(() => readString(payload.value, "title") || `[多图] ${images.value.length || 0} 张`);
+const title = computed(() => readString(payload.value, "title") || `[Album] ${images.value.length || 0} photos`);
 const imageCells = computed(() =>
   images.value.slice(0, 4).map((image, index) => {
     const item = asRecord(image);

@@ -47,11 +47,11 @@ class FlareContactDetail extends StatelessWidget {
             const SizedBox(height: FlareSizes.spacing2xl),
             Row(
               children: [
-                _action('发消息', Icons.chat_bubble_outline, onMessage, colors, primary: true),
+                _action('Message', Icons.chat_bubble_outline, onMessage, colors, primary: true),
                 const SizedBox(width: FlareSizes.spacingMd),
-                _action('语音', Icons.call_outlined, onCall, colors),
+                _action('Voice', Icons.call_outlined, onCall, colors),
                 const SizedBox(width: FlareSizes.spacingMd),
-                _action('视频', Icons.videocam_outlined, onVideo, colors),
+                _action('Video', Icons.videocam_outlined, onVideo, colors),
               ],
             ),
           ],

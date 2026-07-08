@@ -44,7 +44,7 @@ fun Input(
             maxLines = if (multiline) 6 else 1,
             placeholder = placeholder?.let { { Text(it, color = colors.textTertiary) } },
             trailingIcon = if (clearable && value.isNotEmpty()) {
-                { IconButton(onClick = { onValueChange("") }) { Icon(Icons.Outlined.Cancel, "清除", tint = colors.textTertiary) } }
+                { IconButton(onClick = { onValueChange("") }) { Icon(Icons.Outlined.Cancel, "Clear", tint = colors.textTertiary) } }
             } else null,
             keyboardOptions = KeyboardOptions(imeAction = if (multiline) ImeAction.Default else ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { onSubmit?.invoke() }),

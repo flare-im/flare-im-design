@@ -32,7 +32,7 @@ fun NewFriendRequests(
 ) {
     val colors = flareColors()
     if (items.isEmpty()) {
-        EmptyState(title = "没有新的好友申请")
+        EmptyState(title = "No new friend requests")
         return
     }
     LazyColumn(Modifier.fillMaxWidth()) {
@@ -51,13 +51,13 @@ fun NewFriendRequests(
                     }
                 }
                 OutlinedButton(onClick = { onReject?.invoke(req) }, contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 4.dp)) {
-                    Text("拒绝", fontSize = 13.sp)
+                    Text("Decline", fontSize = 13.sp)
                 }
                 Spacer(Modifier.width(8.dp))
                 Button(onClick = { onAccept?.invoke(req) },
                     colors = ButtonDefaults.buttonColors(containerColor = colors.primary),
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 14.dp, vertical = 4.dp)) {
-                    Text("接受", fontSize = 13.sp)
+                    Text("Accept", fontSize = 13.sp)
                 }
             }
         }

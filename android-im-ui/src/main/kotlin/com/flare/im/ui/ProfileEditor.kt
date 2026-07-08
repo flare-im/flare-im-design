@@ -55,18 +55,18 @@ fun ProfileEditor(
                     Modifier.size(28.dp).clip(CircleShape).background(colors.primary)
                         .clickable { onPickAvatar?.invoke() },
                     contentAlignment = Alignment.Center,
-                ) { Icon(Icons.Outlined.PhotoCamera, "更换头像", tint = Color.White, modifier = Modifier.size(16.dp)) }
+                ) { Icon(Icons.Outlined.PhotoCamera, "Change avatar", tint = Color.White, modifier = Modifier.size(16.dp)) }
             }
         }
         Spacer(Modifier.height(FlareSizes.spacingLg))
-        Text("昵称", color = colors.textSecondary)
-        Input(value = name, onValueChange = { name = it }, placeholder = "昵称", maxLength = 24, clearable = true)
+        Text("Nickname", color = colors.textSecondary)
+        Input(value = name, onValueChange = { name = it }, placeholder = "Nickname", maxLength = 24, clearable = true)
         Spacer(Modifier.height(FlareSizes.spacingMd))
-        Text("个性签名", color = colors.textSecondary)
-        Input(value = signature, onValueChange = { signature = it }, placeholder = "介绍一下自己", multiline = true, maxLength = 60)
+        Text("Bio", color = colors.textSecondary)
+        Input(value = signature, onValueChange = { signature = it }, placeholder = "Tell us about yourself", multiline = true, maxLength = 60)
         Spacer(Modifier.height(FlareSizes.spacingLg))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
-            OutlinedButton(onClick = { onCancel?.invoke() }, modifier = Modifier.weight(1f)) { Text("取消") }
+            OutlinedButton(onClick = { onCancel?.invoke() }, modifier = Modifier.weight(1f)) { Text("Cancel") }
             Button(
                 onClick = { onSave?.invoke(name, signature) },
                 enabled = name.isNotBlank() && !busy,
@@ -74,7 +74,7 @@ fun ProfileEditor(
                 modifier = Modifier.weight(1f),
             ) {
                 if (busy) CircularProgressIndicator(Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
-                else Text("保存")
+                else Text("Save")
             }
         }
     }

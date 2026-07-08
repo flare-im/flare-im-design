@@ -18,11 +18,11 @@ const readingTime = computed(() => estimateReadingTime(props.content));
 <template>
   <section class="markdown-preview">
     <header v-if="showStats && content" class="markdown-preview__header">
-      <span>{{ wordCount }} 字</span>
-      <span>约 {{ readingTime }} 分钟</span>
+      <span>{{ wordCount }} chars</span>
+      <span>~{{ readingTime }} min</span>
     </header>
     <div v-if="content" class="markdown-preview__body" v-html="renderedContent" />
-    <p v-else class="markdown-preview__empty">暂无 Markdown 内容</p>
+    <p v-else class="markdown-preview__empty">No Markdown content</p>
   </section>
 </template>
 

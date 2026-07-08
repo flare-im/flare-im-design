@@ -37,7 +37,7 @@ import androidx.compose.material3.Text
 fun SearchBar(
     value: String,
     onValueChange: (String) -> Unit,
-    placeholder: String = "搜索",
+    placeholder: String = "Search",
     loading: Boolean = false,
     onSubmit: (() -> Unit)? = null,
 ) {
@@ -68,7 +68,7 @@ fun SearchBar(
             CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp, color = colors.textTertiary)
         } else if (value.isNotEmpty()) {
             Icon(
-                Icons.Outlined.Cancel, "清除", Modifier.size(18.dp).clickable { onValueChange("") },
+                Icons.Outlined.Cancel, "Clear", Modifier.size(18.dp).clickable { onValueChange("") },
                 tint = colors.textTertiary,
             )
         }

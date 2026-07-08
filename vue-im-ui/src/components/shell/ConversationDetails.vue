@@ -24,12 +24,12 @@ const emit = defineEmits<{
   (event: "open-devtools"): void;
 }>();
 
-const title = computed(() => props.conversation?.displayName || "会话详情");
+const title = computed(() => props.conversation?.displayName || "Conversation details");
 const subtitle = computed(() => {
   const item = props.conversation;
-  if (!item) return "请选择会话";
-  if (item.conversationType === "group") return `${item.membersCount} 位成员`;
-  if (item.conversationType === "ai") return "智能助手";
+  if (!item) return "Select a conversation";
+  if (item.conversationType === "group") return `${item.membersCount} members`;
+  if (item.conversationType === "ai") return "Assistant";
   return item.channelId;
 });
 </script>
@@ -50,32 +50,32 @@ const subtitle = computed(() => {
         <p>{{ subtitle }}</p>
         <div class="details-tags">
           <n-tag round size="small" :type="connectionTone">{{ connectionText }}</n-tag>
-          <n-tag v-if="conversation.isPinned" round size="small" type="info">置顶</n-tag>
-          <n-tag v-if="conversation.isMuted" round size="small">免打扰</n-tag>
+          <n-tag v-if="conversation.isPinned" round size="small" type="info">Pinned</n-tag>
+          <n-tag v-if="conversation.isMuted" round size="small">Muted</n-tag>
         </div>
       </section>
 
       <section class="details-actions">
-        <n-button secondary size="small" @click="emit('sync')">同步</n-button>
-        <n-button secondary size="small" @click="emit('mark-read')">标为已读</n-button>
-        <n-button secondary size="small" @click="emit('mark-unread')">标为未读</n-button>
+        <n-button secondary size="small" @click="emit('sync')">Sync</n-button>
+        <n-button secondary size="small" @click="emit('mark-read')">Mark read</n-button>
+        <n-button secondary size="small" @click="emit('mark-unread')">Mark unread</n-button>
         <n-button secondary size="small" @click="emit('pin', !conversation.isPinned)">
-          {{ conversation.isPinned ? "取消置顶" : "置顶" }}
+          {{ conversation.isPinned ? "Unpin" : "Pin" }}
         </n-button>
         <n-button secondary size="small" @click="emit('mute', !conversation.isMuted)">
-          {{ conversation.isMuted ? "取消免打扰" : "免打扰" }}
+          {{ conversation.isMuted ? "Unmute" : "Mute" }}
         </n-button>
         <n-button secondary size="small" @click="emit('archive', !conversation.isArchived)">
-          {{ conversation.isArchived ? "取消归档" : "归档" }}
+          {{ conversation.isArchived ? "Unarchive" : "Archive" }}
         </n-button>
-        <n-button secondary size="small" @click="emit('clear-history')">清空记录</n-button>
-        <n-button secondary size="small" type="error" @click="emit('delete')">删除</n-button>
+        <n-button secondary size="small" @click="emit('clear-history')">Clear history</n-button>
+        <n-button secondary size="small" type="error" @click="emit('delete')">Delete</n-button>
       </section>
 
       <n-divider />
 
       <section class="details-section">
-        <div class="pane-title">会话状态</div>
+        <div class="pane-title">Conversation status</div>
         <dl>
           <div><dt>Conversation ID</dt><dd>{{ conversation.conversationId }}</dd></div>
           <div><dt>Channel</dt><dd>{{ conversation.channelId }}</dd></div>
@@ -88,19 +88,19 @@ const subtitle = computed(() => {
       <n-divider />
 
       <section class="details-section">
-        <div class="pane-title">扩展入口</div>
+        <div class="pane-title">Extensions</div>
         <div class="extension-list">
-          <button type="button">成员与权限</button>
-          <button type="button">文件与媒体</button>
-          <button type="button">会话插件</button>
-          <button type="button" @click="emit('open-devtools')">SDK 诊断</button>
+          <button type="button">Members & permissions</button>
+          <button type="button">Files & media</button>
+          <button type="button">Conversation plugins</button>
+          <button type="button" @click="emit('open-devtools')">SDK diagnostics</button>
         </div>
       </section>
     </template>
 
     <section v-else class="details-empty">
-      <h2>选择会话</h2>
-      <p>会话资料、成员、媒体与扩展能力会显示在这里。</p>
+      <h2>Select a conversation</h2>
+      <p>Conversation info, members, media and extensions appear here.</p>
     </section>
   </aside>
 </template>

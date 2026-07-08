@@ -15,11 +15,11 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <section class="msg-ctx-emoji-panel" aria-label="选择表情">
+  <section class="msg-ctx-emoji-panel" aria-label="Choose emoji">
     <header class="msg-ctx-emoji-panel__header">
-      <h3 class="msg-ctx-emoji-panel__title">选择表情</h3>
+      <h3 class="msg-ctx-emoji-panel__title">Choose emoji</h3>
       <button type="button" class="msg-ctx-emoji-panel__collapse" @click="emit('collapse')">
-        <span>收起</span>
+        <span>Collapse</span>
         <n-icon :component="ChevronDownOutline" />
       </button>
     </header>
@@ -31,7 +31,7 @@ const emit = defineEmits<{
         type="button"
         class="msg-ctx-emoji-panel__cell"
         role="option"
-        :aria-label="`表情 ${emoji}`"
+        :aria-label="`Emoji ${emoji}`"
         @click="emit('select', emoji)"
       >
         {{ emoji }}

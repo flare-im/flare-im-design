@@ -42,7 +42,7 @@ const triple = computed(() => kind.value === "pc" && props.hasDetail);
     <slot v-if="activePane === 'list'" name="list" />
     <template v-else>
       <div class="flare-rl__bar">
-        <button class="flare-rl__back" @click="emit('paneChange', 'list')">‹ 返回</button>
+        <button class="flare-rl__back" @click="emit('paneChange', 'list')">‹ Back</button>
       </div>
       <slot v-if="activePane === 'detail'" name="detail" />
       <slot v-else name="chat" />

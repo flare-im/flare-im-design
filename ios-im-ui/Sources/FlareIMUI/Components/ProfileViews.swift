@@ -9,9 +9,9 @@ public struct ProfilePanelView: View {
     @Environment(\.colorScheme) private var scheme
 
     public static let defaultEntries: [FlareSettingsItem] = [
-        FlareSettingsItem(key: "favorites", label: "我的收藏", systemImage: "star"),
-        FlareSettingsItem(key: "moments", label: "朋友圈", systemImage: "photo.on.rectangle"),
-        FlareSettingsItem(key: "settings", label: "设置", systemImage: "gearshape"),
+        FlareSettingsItem(key: "favorites", label: "Favorites", systemImage: "star"),
+        FlareSettingsItem(key: "moments", label: "Moments", systemImage: "photo.on.rectangle"),
+        FlareSettingsItem(key: "settings", label: "Settings", systemImage: "gearshape"),
     ]
 
     public init(user: UserProfile, entries: [FlareSettingsItem] = ProfilePanelView.defaultEntries,
@@ -93,15 +93,15 @@ public struct ProfileEditorView: View {
             .buttonStyle(.plain)
             .frame(maxWidth: .infinity)
 
-            Text("昵称").font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textSecondary)
-            InputView(text: $name, placeholder: "昵称", maxLength: 24, clearable: true)
-            Text("个性签名").font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textSecondary)
-            InputView(text: $signature, placeholder: "介绍一下自己", multiline: true, maxLength: 60)
+            Text("Nickname").font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textSecondary)
+            InputView(text: $name, placeholder: "Nickname", maxLength: 24, clearable: true)
+            Text("Bio").font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textSecondary)
+            InputView(text: $signature, placeholder: "Tell us about yourself", multiline: true, maxLength: 60)
 
             HStack(spacing: FlareSizes.spacingMd) {
-                Button("取消") { onCancel?() }.buttonStyle(.bordered).frame(maxWidth: .infinity)
+                Button("Cancel") { onCancel?() }.buttonStyle(.bordered).frame(maxWidth: .infinity)
                 Button { onSave?(name, signature) } label: {
-                    if busy { ProgressView().controlSize(.small) } else { Text("保存").frame(maxWidth: .infinity) }
+                    if busy { ProgressView().controlSize(.small) } else { Text("Save").frame(maxWidth: .infinity) }
                 }
                 .buttonStyle(.borderedProminent).tint(colors.primary).frame(maxWidth: .infinity)
                 .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || busy)

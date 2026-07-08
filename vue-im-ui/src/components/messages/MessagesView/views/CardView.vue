@@ -13,8 +13,8 @@ const payload = computed(() => {
   return Object.keys(nested).length ? nested : (props.content as Record<string, unknown>);
 });
 
-const title = computed(() => readString(payload.value, "title") || readString(payload.value, "id") || "名片");
-const subtitle = computed(() => readString(payload.value, "subtitle", "cardType", "card_type") || "联系人");
+const title = computed(() => readString(payload.value, "title") || readString(payload.value, "id") || "Contact");
+const subtitle = computed(() => readString(payload.value, "subtitle", "cardType", "card_type") || "Contact");
 const avatar = computed(() => readString(payload.value, "avatar", "avatarUrl"));
 const cardType = computed(() => readString(payload.value, "cardType", "card_type"));
 const cardId = computed(() => readString(payload.value, "id"));
@@ -27,11 +27,11 @@ watch(avatar, () => {
 const showAvatar = computed(() => Boolean(avatar.value) && !avatarFailed.value);
 const typeLabel = computed(() => {
   const t = cardType.value.toLowerCase();
-  if (t === "user") return "个人名片";
-  if (t === "group") return "群名片";
-  return cardType.value || "名片";
+  if (t === "user") return "Contact card";
+  if (t === "group") return "Group card";
+  return cardType.value || "Contact";
 });
-const avatarInitial = computed(() => Array.from(title.value.trim() || "名")[0] ?? "名");
+const avatarInitial = computed(() => Array.from(title.value.trim() || "?")[0] ?? "?");
 </script>
 
 <template>
@@ -55,7 +55,7 @@ const avatarInitial = computed(() => Array.from(title.value.trim() || "名")[0] 
       </div>
     </header>
     <footer class="im-rich-message-card__footer">
-      <span>名片</span>
+      <span>Contact</span>
       <span v-if="cardId">{{ cardId }}</span>
     </footer>
   </div>

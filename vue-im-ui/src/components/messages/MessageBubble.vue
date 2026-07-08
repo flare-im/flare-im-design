@@ -214,7 +214,7 @@ function mediaActionModel(id: MessageMenuMediaAction): MediaHoverActionModel {
     return {
       id,
       action: "openFolder",
-      label: translateOrFallback("messageMenu.openMediaFolder", "打开所在文件夹"),
+      label: translateOrFallback("messageMenu.openMediaFolder", "Open containing folder"),
       icon: FolderOpenOutline,
       state: "openFolder",
     };
@@ -222,7 +222,7 @@ function mediaActionModel(id: MessageMenuMediaAction): MediaHoverActionModel {
   return {
     id,
     action: "download",
-    label: translateOrFallback("messageMenu.downloadMedia", "下载"),
+    label: translateOrFallback("messageMenu.downloadMedia", "Download"),
     icon: DownloadOutline,
     state: "idle",
   };
@@ -233,7 +233,7 @@ function mediaStateModel(state: MessageMediaDownloadUiState): MediaHoverActionMo
     return {
       id: "downloadMedia",
       action: null,
-      label: "下载中",
+      label: "Downloading",
       icon: RefreshOutline,
       state,
     };
@@ -242,7 +242,7 @@ function mediaStateModel(state: MessageMediaDownloadUiState): MediaHoverActionMo
     return {
       id: "downloadMedia",
       action: null,
-      label: "已下载",
+      label: "Downloaded",
       icon: CloudDoneOutline,
       state,
     };
@@ -302,32 +302,32 @@ const dropdownPlacement = computed(() =>
 
 const reactionPickerOptions: DropdownOption[] = [
   {
-    label: "赞",
+    label: "Like",
     key: "👍",
     icon: () => h("span", { style: "font-size:16px" }, "👍"),
   },
   {
-    label: "喜欢",
+    label: "Love",
     key: "❤️",
     icon: () => h("span", { style: "font-size:16px" }, "❤️"),
   },
   {
-    label: "大笑",
+    label: "Haha",
     key: "😂",
     icon: () => h("span", { style: "font-size:16px" }, "😂"),
   },
   {
-    label: "惊讶",
+    label: "Wow",
     key: "😮",
     icon: () => h("span", { style: "font-size:16px" }, "😮"),
   },
   {
-    label: "悲伤",
+    label: "Sad",
     key: "😢",
     icon: () => h("span", { style: "font-size:16px" }, "😢"),
   },
   {
-    label: "合十",
+    label: "Pray",
     key: "🙏",
     icon: () => h("span", { style: "font-size:16px" }, "🙏"),
   },

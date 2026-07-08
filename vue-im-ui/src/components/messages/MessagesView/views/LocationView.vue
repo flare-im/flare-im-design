@@ -15,7 +15,7 @@ const payload = computed(() => {
 
 const latitude = computed(() => readNumber(payload.value, 0, "latitude", "lat"));
 const longitude = computed(() => readNumber(payload.value, 0, "longitude", "lng"));
-const title = computed(() => readString(payload.value, "title", "name") || readString(payload.value, "address", "subtitle") || "位置");
+const title = computed(() => readString(payload.value, "title", "name") || readString(payload.value, "address", "subtitle") || "Location");
 const address = computed(() => readString(payload.value, "address", "subtitle"));
 const snapshotUrl = computed(() => readString(payload.value, "snapshotUrl", "snapshot_url", "url"));
 const mapHref = computed(() => {
@@ -48,13 +48,13 @@ const coordText = computed(() => {
       <n-icon v-else :component="LocationOutline" />
     </div>
     <div class="im-rich-message-card__body">
-      <span class="im-rich-message-card__kicker">位置</span>
+      <span class="im-rich-message-card__kicker">Location</span>
       <strong class="im-rich-message-card__title">{{ title }}</strong>
       <p v-if="address" class="im-rich-message-card__subtitle">{{ address }}</p>
     </div>
     <footer class="im-rich-message-card__footer">
-      <span>{{ coordText || "地图位置" }}</span>
-      <span v-if="canOpen" class="im-rich-message-card__footer-action">打开地图</span>
+      <span>{{ coordText || "Map location" }}</span>
+      <span v-if="canOpen" class="im-rich-message-card__footer-action">Open map</span>
     </footer>
   </component>
 </template>

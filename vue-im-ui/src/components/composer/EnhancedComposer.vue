@@ -129,11 +129,11 @@ const hasInlineEmoji = computed(() => /\[[a-z][a-z0-9_]*\]/.test(value.value));
 const useRichEditor = computed(() => props.richMode || hasInlineEmoji.value);
 const showReply = computed(() => Boolean(props.replySender?.trim() || props.replyPreview?.trim()));
 const showEdit = computed(() => props.editing);
-const replyPreviewWarn = computed(() => /失败|错误|fail|error|invalid|expired|警告|异常/i.test(props.replyPreview ?? ""));
+const replyPreviewWarn = computed(() => /fail|error|invalid|expired|warn/i.test(props.replyPreview ?? ""));
 const inputExpanded = ref(false);
 const mentionMenuOpen = ref(false);
 const inputPlaceholder = computed(
-  () => props.placeholder || (props.editing ? t("composer.editingPlaceholder") : `发送给 ${props.targetName || "会话"}`),
+  () => props.placeholder || (props.editing ? t("composer.editingPlaceholder") : `To ${props.targetName || "Conversation"}`),
 );
 const mentionCandidates = computed(() => {
   const seen = new Set<string>();
@@ -172,22 +172,22 @@ const replyTitle = computed(() =>
 const sendTitle = computed(() => (props.editing ? t("composer.saveEdit") : t("composer.send")));
 const formatActionGroups: ReadonlyArray<ReadonlyArray<FormatAction>> = [
   [
-    { key: "bold", glyph: "B", title: "加粗" },
-    { key: "strike", glyph: "S", title: "删除线" },
-    { key: "italic", glyph: "I", title: "斜体" },
-    { key: "underline", glyph: "U", title: "下划线" },
+    { key: "bold", glyph: "B", title: "Bold" },
+    { key: "strike", glyph: "S", title: "Strikethrough" },
+    { key: "italic", glyph: "I", title: "Italic" },
+    { key: "underline", glyph: "U", title: "Underline" },
   ],
   [
-    { key: "ordered", icon: ReorderThreeOutline, title: "有序列表" },
-    { key: "bullet", icon: ListOutline, title: "无序列表" },
-    { key: "quote", icon: ReaderOutline, title: "引用" },
+    { key: "ordered", icon: ReorderThreeOutline, title: "Numbered list" },
+    { key: "bullet", icon: ListOutline, title: "Bulleted list" },
+    { key: "quote", icon: ReaderOutline, title: "Quote" },
   ],
   [
-    { key: "link", icon: LinkOutline, title: "链接" },
-    { key: "image", icon: ImageOutline, title: "图片" },
-    { key: "code", icon: CodeSlashOutline, title: "行内代码" },
-    { key: "codeBlock", icon: CodeWorkingOutline, title: "代码块" },
-    { key: "divider", icon: RemoveOutline, title: "分割线" },
+    { key: "link", icon: LinkOutline, title: "Link" },
+    { key: "image", icon: ImageOutline, title: "Image" },
+    { key: "code", icon: CodeSlashOutline, title: "Inline code" },
+    { key: "codeBlock", icon: CodeWorkingOutline, title: "Code block" },
+    { key: "divider", icon: RemoveOutline, title: "Divider" },
   ],
 ];
 const headingOptions: ReadonlyArray<{ level: RichHeadingLevel | null; label: string }> = [
@@ -213,7 +213,7 @@ const richFormatState = ref<RichMarkdownFormatState>({
 const inputFocused = ref(false);
 const richInputRef = ref<InstanceType<typeof ComposerRichMarkdownInput> | null>(null);
 const plainInputResetKey = ref(0);
-const inputExpandTitle = computed(() => (inputExpanded.value ? "收起输入" : t("composer.expandInput")));
+const inputExpandTitle = computed(() => (inputExpanded.value ? "Collapse" : t("composer.expandInput")));
 const formatPointerActive = ref(false);
 const voiceRecording = ref(false);
 const voiceCancelling = ref(false);
@@ -436,7 +436,7 @@ function handleVoiceStop(mimeType: string): void {
   if (cancelled) return;
   const blob = new Blob(chunks, { type: mimeType || "audio/webm" });
   if (!blob.size || durationMs < 250) {
-    showVoiceError("录音太短");
+    showVoiceError("Recording too short");
     return;
   }
   const finalMimeType = blob.type || mimeType || "audio/webm";
@@ -473,7 +473,7 @@ async function startVoiceRecording(event: PointerEvent): Promise<void> {
   inputExpanded.value = false;
   if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
     releaseVoicePointer();
-    showVoiceError("当前环境不支持录音");
+    showVoiceError("Recording not supported here");
     return;
   }
 
@@ -493,7 +493,7 @@ async function startVoiceRecording(event: PointerEvent): Promise<void> {
     recorder.onstop = () => handleVoiceStop(recorder.mimeType || mimeType);
     recorder.onerror = () => {
       voiceStopCancelled = true;
-      showVoiceError("录音失败");
+      showVoiceError("Recording failed");
     };
     recorder.start(250);
     voiceRecording.value = true;
@@ -505,7 +505,7 @@ async function startVoiceRecording(event: PointerEvent): Promise<void> {
   } catch (error) {
     stopVoiceStream();
     resetVoiceRecordingState();
-    showVoiceError(error instanceof Error ? error.message : "无法访问麦克风");
+    showVoiceError(error instanceof Error ? error.message : "Cannot access microphone");
   }
 }
 
@@ -588,15 +588,15 @@ function applyFormat(key: FormatActionKey): void {
     richInputRef.value?.applyFormat(key);
     return;
   }
-  if (key === "bold") replaceSelection("**", "**", "加粗");
-  else if (key === "strike") replaceSelection("~~", "~~", "删除线");
-  else if (key === "italic") replaceSelection("*", "*", "斜体");
-  else if (key === "underline") replaceSelection("<u>", "</u>", "下划线");
+  if (key === "bold") replaceSelection("**", "**", "Bold");
+  else if (key === "strike") replaceSelection("~~", "~~", "Strikethrough");
+  else if (key === "italic") replaceSelection("*", "*", "Italic");
+  else if (key === "underline") replaceSelection("<u>", "</u>", "Underline");
   else if (key === "ordered") prefixSelection("1. ");
   else if (key === "bullet") prefixSelection("- ");
   else if (key === "quote") prefixSelection("> ");
-  else if (key === "link") replaceSelection("[", "](https://)", "链接");
-  else if (key === "image") replaceSelection("![", "](https://)", "图片描述");
+  else if (key === "link") replaceSelection("[", "](https://)", "Link");
+  else if (key === "image") replaceSelection("![", "](https://)", "Image description");
   else if (key === "code") replaceSelection("`", "`", "code");
   else if (key === "codeBlock") replaceSelection("```\n", "\n```", "code");
   else if (key === "divider") insertAtCursor("\n---\n");
@@ -752,8 +752,8 @@ onBeforeUnmount(() => {
       }"
       @click.self="focusInput"
     >
-      <div v-if="richMode" class="composer-format-strip" aria-label="富文本格式" @mousedown.stop>
-        <div class="composer-format-group composer-format-group--heading" role="group" aria-label="标题级别">
+      <div v-if="richMode" class="composer-format-strip" aria-label="Rich text" @mousedown.stop>
+        <div class="composer-format-group composer-format-group--heading" role="group" aria-label="Heading level">
           <span class="composer-format-heading-icon" aria-hidden="true">
             <n-icon :size="16" :component="TextOutline" />
           </span>
@@ -761,8 +761,8 @@ onBeforeUnmount(() => {
             class="composer-heading-select"
             :value="richFormatState.headingLevel ?? ''"
             :disabled="disabled"
-            title="标题级别"
-            aria-label="标题级别"
+            title="Heading level"
+            aria-label="Heading level"
             @mousedown.stop
             @change="applyHeadingLevel(($event.target as HTMLSelectElement).value)"
           >
@@ -863,8 +863,8 @@ onBeforeUnmount(() => {
             <n-icon :component="voiceCancelling ? CloseOutline : MicOutline" />
           </span>
           <span class="composer-voice-overlay__copy">
-            <strong>{{ voiceCancelling ? "松手取消" : "松开发送" }}</strong>
-            <span>{{ voiceCancelling ? "下滑恢复发送" : "上滑取消" }}</span>
+            <strong>{{ voiceCancelling ? "Release to cancel" : "Release to send" }}</strong>
+            <span>{{ voiceCancelling ? "Slide down to resume" : "Slide up to cancel" }}</span>
           </span>
           <span class="composer-voice-overlay__timer">{{ voiceElapsedLabel }} / 1:05</span>
           <span class="composer-voice-overlay__meter" aria-hidden="true">

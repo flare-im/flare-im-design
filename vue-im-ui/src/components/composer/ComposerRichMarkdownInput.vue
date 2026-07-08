@@ -189,7 +189,7 @@ function parseToken(token: string): RichSegment | null {
     return {
       kind: "image",
       token,
-      label: linkedImageMatch[1]?.trim() || "图片",
+      label: linkedImageMatch[1]?.trim() || "Image",
       meta: linkedImageMatch[3]?.trim() || linkedImageMatch[2]?.trim(),
     };
   }
@@ -199,7 +199,7 @@ function parseToken(token: string): RichSegment | null {
     return {
       kind: "image",
       token,
-      label: imageMatch[1]?.trim() || "图片",
+      label: imageMatch[1]?.trim() || "Image",
       meta: imageMatch[2]?.trim(),
     };
   }
@@ -209,7 +209,7 @@ function parseToken(token: string): RichSegment | null {
     return {
       kind: "link",
       token,
-      label: linkMatch[1]?.trim() || "链接",
+      label: linkMatch[1]?.trim() || "Link",
       meta: linkMatch[2]?.trim(),
     };
   }
@@ -241,25 +241,25 @@ function parseRichTextLine(source: string): RichSegment[] {
 
     const dividerMatch = /^\s{0,3}---+\s*$/.exec(source);
     if (dividerMatch) {
-      out.push({ kind: "divider", token: source, label: "分割线" });
+      out.push({ kind: "divider", token: source, label: "Divider" });
       return out;
     }
 
     const orderedMatch = /^\s{0,3}(\d+)\.\s+([\s\S]+)$/.exec(source);
     if (orderedMatch) {
-      out.push({ kind: "ordered", token: source, label: orderedMatch[2] || "列表项", meta: `${orderedMatch[1]}.` });
+      out.push({ kind: "ordered", token: source, label: orderedMatch[2] || "List item", meta: `${orderedMatch[1]}.` });
       return out;
     }
 
     const bulletMatch = /^\s{0,3}[-*+]\s+([\s\S]+)$/.exec(source);
     if (bulletMatch) {
-      out.push({ kind: "bullet", token: source, label: bulletMatch[1] || "列表项", meta: "•" });
+      out.push({ kind: "bullet", token: source, label: bulletMatch[1] || "List item", meta: "•" });
       return out;
     }
 
     const quoteMatch = /^\s{0,3}>\s?([\s\S]+)$/.exec(source);
     if (quoteMatch) {
-      out.push({ kind: "quote", token: source, label: quoteMatch[1] || "引用" });
+      out.push({ kind: "quote", token: source, label: quoteMatch[1] || "Quote" });
       return out;
     }
   }
@@ -365,7 +365,7 @@ function createTokenElement(segment: RichTokenSegment): HTMLElement {
     tokenEl.contentEditable = "false";
     const icon = document.createElement("span");
     icon.className = "composer-md-token__icon";
-    icon.textContent = segment.kind === "image" ? "图" : "↗";
+    icon.textContent = segment.kind === "image" ? "IMG" : "↗";
     const text = document.createElement("span");
     text.className = "composer-md-token__text";
     text.textContent = segment.label;
@@ -894,7 +894,7 @@ function linesWithPrefix(text: string, prefix: (index: number) => string, fallba
   return source.split("\n").map((line, index) => `${prefix(index)}${line || fallback}`).join("\n");
 }
 
-function applyHeadingToLines(text: string, level: RichHeadingLevel | null, fallback = "标题"): string {
+function applyHeadingToLines(text: string, level: RichHeadingLevel | null, fallback = "Heading"): string {
   const prefix = level ? `${"#".repeat(level)} ` : "";
   const source = text || fallback;
   return source
@@ -938,11 +938,11 @@ function applyFormat(key: RichMarkdownFormatKey): void {
   };
 
   if (isInlineMark(key)) toggleInlineMark(key, range, selected);
-  else if (key === "link") replaceRangeWithMarkdown(range, `[${hasSelection ? selectedText : "链接"}](https://)`, !hasSelection);
-  else if (key === "image") replaceRangeWithMarkdown(range, `![${hasSelection ? selectedText : "图片描述"}](https://)`, !hasSelection);
-  else if (key === "ordered") replaceRangeWithMarkdown(range, linesWithPrefix(selectedText, (index) => `${index + 1}. `, "列表项"), !hasSelection);
-  else if (key === "bullet") replaceRangeWithMarkdown(range, linesWithPrefix(selectedText, () => "- ", "列表项"), !hasSelection);
-  else if (key === "quote") replaceRangeWithMarkdown(range, linesWithPrefix(selectedText, () => "> ", "引用"), !hasSelection);
+  else if (key === "link") replaceRangeWithMarkdown(range, `[${hasSelection ? selectedText : "Link"}](https://)`, !hasSelection);
+  else if (key === "image") replaceRangeWithMarkdown(range, `![${hasSelection ? selectedText : "Image description"}](https://)`, !hasSelection);
+  else if (key === "ordered") replaceRangeWithMarkdown(range, linesWithPrefix(selectedText, (index) => `${index + 1}. `, "List item"), !hasSelection);
+  else if (key === "bullet") replaceRangeWithMarkdown(range, linesWithPrefix(selectedText, () => "- ", "List item"), !hasSelection);
+  else if (key === "quote") replaceRangeWithMarkdown(range, linesWithPrefix(selectedText, () => "> ", "Quote"), !hasSelection);
   else if (key === "codeBlock") replaceRangeWithMarkdown(range, `\n\`\`\`\n${hasSelection ? selectedText : "code"}\n\`\`\`\n`, !hasSelection);
   else if (key === "divider") replaceRangeWithMarkdown(range, "\n---\n");
   else wrap("", "");

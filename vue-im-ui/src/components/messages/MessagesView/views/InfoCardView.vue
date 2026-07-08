@@ -12,7 +12,7 @@ const props = defineProps<{
   fallbackLabel?: string;
 }>();
 
-const preview = computed(() => getContentDecodedPreview(props.content) || props.fallbackLabel || "[消息]");
+const preview = computed(() => getContentDecodedPreview(props.content) || props.fallbackLabel || "[Message]");
 </script>
 
 <template>
@@ -29,7 +29,7 @@ const preview = computed(() => getContentDecodedPreview(props.content) || props.
     </header>
     <footer class="im-rich-message-card__footer">
       <span>{{ nestedKey }}</span>
-      <span>消息卡片</span>
+      <span>Message card</span>
     </footer>
   </div>
 </template>

@@ -28,7 +28,7 @@ public struct ConversationListView: View {
             if loading {
                 ProgressView()
             } else {
-                Text("暂无会话")
+                Text("No conversations")
                     .font(.system(size: FlareSizes.fontSizeLg))
                     .foregroundColor(colors.textTertiary)
             }

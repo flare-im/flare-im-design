@@ -12,8 +12,8 @@
           <button
             type="button"
             class="image-preview-modal__icon-btn"
-            title="缩小"
-            aria-label="缩小"
+            title="Zoom out"
+            aria-label="Zoom out"
             :disabled="!canTransform"
             @click="zoomOut"
           >
@@ -23,8 +23,8 @@
           <button
             type="button"
             class="image-preview-modal__icon-btn"
-            title="放大"
-            aria-label="放大"
+            title="Zoom in"
+            aria-label="Zoom in"
             :disabled="!canTransform"
             @click="zoomIn"
           >
@@ -33,8 +33,8 @@
           <button
             type="button"
             class="image-preview-modal__icon-btn image-preview-modal__icon-btn--text"
-            title="实际大小 (100%)"
-            aria-label="实际大小"
+            title="Actual size (100%)"
+            aria-label="Actual size"
             :disabled="!canTransform"
             @click="actualSize"
           >
@@ -43,8 +43,8 @@
           <button
             type="button"
             class="image-preview-modal__icon-btn"
-            title="重置缩放与旋转"
-            aria-label="重置视图"
+            title="Reset zoom & rotation"
+            aria-label="Reset view"
             :disabled="!canTransform"
             @click="resetView"
           >
@@ -53,8 +53,8 @@
           <button
             type="button"
             class="image-preview-modal__icon-btn"
-            title="顺时针旋转 90°"
-            aria-label="旋转"
+            title="Rotate 90°"
+            aria-label="Rotate"
             :disabled="!canTransform"
             @click="rotateCw"
           >
@@ -73,15 +73,15 @@
           >
             <n-icon :size="22" :component="primaryActionIcon" />
           </button>
-          <button type="button" class="image-preview-modal__icon-btn" aria-label="关闭" @click="requestClose">
+          <button type="button" class="image-preview-modal__icon-btn" aria-label="Close" @click="requestClose">
             <span class="image-preview-modal__close-x" aria-hidden="true">×</span>
           </button>
         </div>
       </div>
 
       <div class="image-preview-modal__body" @click.stop>
-        <div v-if="loading" class="image-preview-modal__state">加载中…</div>
-        <div v-else-if="!imageSrc.trim()" class="image-preview-modal__state">无法显示图片</div>
+        <div v-if="loading" class="image-preview-modal__state">Loading…</div>
+        <div v-else-if="!imageSrc.trim()" class="image-preview-modal__state">Can't display image</div>
         <div v-else class="image-preview-modal__stage">
           <div v-if="downloading" class="image-preview-modal__progress" role="status" aria-live="polite">
             <span class="image-preview-modal__progress-label">{{ progressLabel }}</span>

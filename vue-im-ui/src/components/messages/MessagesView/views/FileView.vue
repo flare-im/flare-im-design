@@ -33,7 +33,7 @@ const payload = computed(() => {
   return Object.keys(nested).length ? nested : (props.content as Record<string, unknown>);
 });
 
-const fileName = computed(() => readString(payload.value, "fileName", "title") || "文件");
+const fileName = computed(() => readString(payload.value, "fileName", "title") || "File");
 const fileSize = computed(() => formatFileSize(readNumber(payload.value, 0, "fileSize", "size")));
 const description = computed(() => readString(payload.value, "description"));
 const fileRequest = computed(() =>
@@ -74,21 +74,21 @@ const primaryActionIcon = computed<Component>(() =>
 );
 const primaryActionTitle = computed(() =>
   resolvedMediaState.value === "openFolder"
-    ? "在文件夹中显示"
+    ? "Show in folder"
     : isDownloaded.value
-      ? "已下载"
+      ? "Downloaded"
       : isDownloading.value
-        ? "下载中"
-        : "下载文件",
+        ? "Downloading"
+        : "Download file",
 );
 const availabilityText = computed(() => {
-  if (isDownloading.value) return "下载中";
-  if (isDownloaded.value) return "已下载";
-  if (resolvedMediaState.value === "openFolder") return "已保存到本机";
+  if (isDownloading.value) return "Downloading";
+  if (isDownloaded.value) return "Downloaded";
+  if (resolvedMediaState.value === "openFolder") return "Saved to device";
   if (fileSize.value) return fileSize.value;
-  if (props.mediaAction === "download") return "文件消息";
-  if (resolvedFile.loading.value) return "解析下载地址中";
-  return fileUrl.value ? "文件消息" : "暂无下载地址";
+  if (props.mediaAction === "download") return "File message";
+  if (resolvedFile.loading.value) return "Resolving download URL";
+  return fileUrl.value ? "File message" : "No download URL";
 });
 
 function onPrimaryAction(): void {
@@ -114,7 +114,7 @@ function onPrimaryAction(): void {
       <span v-if="description" class="im-file__description">{{ description }}</span>
       <span class="im-file__meta">{{ availabilityText }}</span>
     </div>
-    <div class="im-file__actions" role="group" aria-label="文件操作">
+    <div class="im-file__actions" role="group" aria-label="File actions">
       <button
         type="button"
         class="im-file__action"

@@ -21,17 +21,17 @@ const signature = ref(props.user.signature ?? "");
       <FlareAvatar :user-id="user.id" :display-name="name || user.name" :avatar-url="user.avatarUrl" :size="80" />
       <span class="flare-profile-editor__cam">📷</span>
     </div>
-    <label class="flare-profile-editor__label">昵称</label>
-    <FlareInput v-model="name" placeholder="昵称" :max-length="24" clearable />
-    <label class="flare-profile-editor__label">个性签名</label>
-    <FlareInput v-model="signature" placeholder="介绍一下自己" multiline :max-length="60" />
+    <label class="flare-profile-editor__label">Nickname</label>
+    <FlareInput v-model="name" placeholder="Nickname" :max-length="24" clearable />
+    <label class="flare-profile-editor__label">Bio</label>
+    <FlareInput v-model="signature" placeholder="Tell us about yourself" multiline :max-length="60" />
     <div class="flare-profile-editor__actions">
-      <button @click="emit('cancel')">取消</button>
+      <button @click="emit('cancel')">Cancel</button>
       <button
         class="is-primary"
         :disabled="!name.trim() || busy"
         @click="emit('save', { name, signature })"
-      >{{ busy ? "保存中…" : "保存" }}</button>
+      >{{ busy ? "Saving…" : "Save" }}</button>
     </div>
   </div>
 </template>

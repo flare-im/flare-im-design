@@ -81,17 +81,17 @@ class _FlareProfileEditorState extends State<FlareProfileEditor> {
             ),
           ),
           const SizedBox(height: FlareSizes.spacingLg),
-          Text('昵称', style: TextStyle(color: colors.textSecondary)),
-          FlareInput(controller: _name, placeholder: '昵称', maxLength: 24, clearable: true),
+          Text('Nickname', style: TextStyle(color: colors.textSecondary)),
+          FlareInput(controller: _name, placeholder: 'Nickname', maxLength: 24, clearable: true),
           const SizedBox(height: FlareSizes.spacingMd),
-          Text('个性签名', style: TextStyle(color: colors.textSecondary)),
-          FlareInput(controller: _signature, placeholder: '介绍一下自己', multiline: true, maxLength: 60),
+          Text('Bio', style: TextStyle(color: colors.textSecondary)),
+          FlareInput(controller: _signature, placeholder: 'Tell us about yourself', multiline: true, maxLength: 60),
           const SizedBox(height: FlareSizes.spacingLg),
           Row(
             children: [
               Expanded(
                 child: OutlinedButton(
-                    onPressed: widget.onCancel, child: const Text('取消')),
+                    onPressed: widget.onCancel, child: const Text('Cancel')),
               ),
               const SizedBox(width: FlareSizes.spacingMd),
               Expanded(
@@ -103,7 +103,7 @@ class _FlareProfileEditorState extends State<FlareProfileEditor> {
                   child: widget.busy
                       ? const SizedBox(
                           width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text('保存'),
+                      : const Text('Save'),
                 ),
               ),
             ],

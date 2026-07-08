@@ -28,7 +28,7 @@ fun GroupList(
 ) {
     val colors = flareColors()
     if (items.isEmpty()) {
-        EmptyState(title = "还没有群组")
+        EmptyState(title = "No groups yet")
         return
     }
     LazyColumn(Modifier.fillMaxWidth()) {
@@ -43,7 +43,7 @@ fun GroupList(
                 Spacer(Modifier.width(FlareSizes.spacingMd))
                 Column {
                     Text(g.name, color = colors.textPrimary, fontWeight = FontWeight.Medium, fontSize = FlareSizes.fontSizeXl.value.sp)
-                    Text("${g.memberCount} 名成员", color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
+                    Text("${g.memberCount} members", color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
                 }
             }
         }

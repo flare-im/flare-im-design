@@ -74,7 +74,7 @@ fun ConversationDetails(
             Spacer(Modifier.size(FlareSizes.spacingSm))
             Text(conversation.title, color = colors.textPrimary, fontSize = FlareSizes.fontSize4xl.value.sp, fontWeight = FontWeight.SemiBold)
             if (conversation.kind == FlareConversationKind.Group && conversation.memberCount != null) {
-                Text("${conversation.memberCount} 名成员", color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
+                Text("${conversation.memberCount} members", color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
             }
             if (!connectionText.isNullOrEmpty()) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = FlareSizes.spacingSm)) {
@@ -86,21 +86,21 @@ fun ConversationDetails(
         }
         Spacer(Modifier.size(FlareSizes.spacingLg))
 
-        if (messageCount != null) infoRow("消息数", "$messageCount", colors)
+        if (messageCount != null) infoRow("Messages", "$messageCount", colors)
 
         gap(colors)
-        if (onMute != null) switchRow("免打扰", Icons.Outlined.NotificationsOff, muted, colors) { muted = it; onMute(it) }
-        if (onPin != null) switchRow("置顶会话", Icons.Outlined.PushPin, pinned, colors) { pinned = it; onPin(it) }
+        if (onMute != null) switchRow("Mute", Icons.Outlined.NotificationsOff, muted, colors) { muted = it; onMute(it) }
+        if (onPin != null) switchRow("Pin conversation", Icons.Outlined.PushPin, pinned, colors) { pinned = it; onPin(it) }
 
         gap(colors)
-        onMarkRead?.let { actionRow("标记已读", Icons.Outlined.MarkEmailRead, colors, it) }
-        onMarkUnread?.let { actionRow("标记未读", Icons.Outlined.MarkEmailUnread, colors, it) }
-        onSync?.let { actionRow("同步会话", Icons.Rounded.Sync, colors, it) }
+        onMarkRead?.let { actionRow("Mark as read", Icons.Outlined.MarkEmailRead, colors, it) }
+        onMarkUnread?.let { actionRow("Mark as unread", Icons.Outlined.MarkEmailUnread, colors, it) }
+        onSync?.let { actionRow("Sync conversation", Icons.Rounded.Sync, colors, it) }
 
         gap(colors)
-        onArchive?.let { actionRow(if (conversation.archived) "取消归档" else "归档会话", Icons.Outlined.Archive, colors, it) }
-        onClearHistory?.let { actionRow("清空聊天记录", Icons.Outlined.CleaningServices, colors, it) }
-        onDelete?.let { actionRow("删除会话", Icons.Outlined.Delete, colors, it, danger = true) }
+        onArchive?.let { actionRow(if (conversation.archived) "Unarchive" else "Archive conversation", Icons.Outlined.Archive, colors, it) }
+        onClearHistory?.let { actionRow("Clear chat history", Icons.Outlined.CleaningServices, colors, it) }
+        onDelete?.let { actionRow("Delete conversation", Icons.Outlined.Delete, colors, it, danger = true) }
     }
 }
 

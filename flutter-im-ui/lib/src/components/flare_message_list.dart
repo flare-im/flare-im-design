@@ -140,7 +140,7 @@ class _Empty extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(Theme.of(context).brightness);
-    return Text('还没有消息',
+    return Text('No messages yet',
         style:
             TextStyle(color: colors.textTertiary, fontSize: FlareSizes.fontSizeLg));
   }

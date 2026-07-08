@@ -251,9 +251,9 @@ function timeLabel(timestamp: number): string {
   const date = new Date(timestamp);
   const now = Date.now();
   const diffMs = Math.max(0, now - timestamp);
-  if (diffMs < 60_000) return "刚刚";
+  if (diffMs < 60_000) return "Just now";
   if (diffMs < 60 * 60_000) {
-    return `${Math.floor(diffMs / 60_000)} 分钟前`;
+    return `${Math.floor(diffMs / 60_000)} min ago`;
   }
 
   const today = new Date(now);
@@ -264,11 +264,11 @@ function timeLabel(timestamp: number): string {
     minute: "2-digit",
   });
   if (date.toDateString() === today.toDateString()) return time;
-  if (date.toDateString() === yesterday.toDateString()) return `昨天 ${time}`;
+  if (date.toDateString() === yesterday.toDateString()) return `Yesterday ${time}`;
   const datePart =
     date.getFullYear() === today.getFullYear()
-      ? `${date.getMonth() + 1}月${date.getDate()}日`
-      : `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+      ? `${date.getMonth() + 1}/${date.getDate()}`
+      : `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
   return `${datePart} ${time}`;
 }
 

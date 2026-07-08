@@ -57,7 +57,7 @@ fun StartConversationDialog(
         OutlinedTextField(
             value = query, onValueChange = { query = it },
             leadingIcon = { Icon(Icons.Rounded.Search, null) },
-            placeholder = { Text("搜索联系人") },
+            placeholder = { Text("Search contacts") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth().padding(FlareSizes.spacingMd),
         )
@@ -99,7 +99,7 @@ fun StartConversationDialog(
                 if (busy) {
                     CircularProgressIndicator(Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
                 } else {
-                    Text(if (selected.isEmpty()) "确定" else "确定 (${selected.size})")
+                    Text(if (selected.isEmpty()) "OK" else "OK (${selected.size})")
                 }
             }
         }

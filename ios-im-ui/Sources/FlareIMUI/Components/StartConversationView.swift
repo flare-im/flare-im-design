@@ -38,7 +38,7 @@ public struct StartConversationView: View {
         VStack(spacing: 0) {
             HStack(spacing: FlareSizes.spacingSm) {
                 Image(systemName: "magnifyingglass").foregroundColor(colors.textTertiary)
-                TextField("搜索联系人", text: $query)
+                TextField("Search contacts", text: $query)
             }
             .padding(FlareSizes.spacingSm)
             .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.bgSecondary))
@@ -76,7 +76,7 @@ public struct StartConversationView: View {
                         if busy {
                             ProgressView().tint(.white)
                         } else {
-                            Text(selected.isEmpty ? "确定" : "确定 (\(selected.count))")
+                            Text(selected.isEmpty ? "OK" : "OK (\(selected.count))")
                                 .fontWeight(.semibold)
                         }
                     }

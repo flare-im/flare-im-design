@@ -79,7 +79,7 @@ class _FlareStartConversationSheetState
               decoration: InputDecoration(
                 isDense: true,
                 prefixIcon: const Icon(Icons.search_rounded),
-                hintText: '搜索联系人',
+                hintText: 'Search contacts',
                 filled: true,
                 fillColor: colors.bgSecondary,
                 border: OutlineInputBorder(
@@ -93,7 +93,7 @@ class _FlareStartConversationSheetState
             child: _filtered.isEmpty
                 ? Padding(
                     padding: const EdgeInsets.all(FlareSizes.spacing2xl),
-                    child: Text('没有找到联系人',
+                    child: Text('No contacts found',
                         style: TextStyle(color: colors.textTertiary)),
                   )
                 : ListView.builder(
@@ -162,8 +162,8 @@ class _FlareStartConversationSheetState
                               strokeWidth: 2, color: Colors.white),
                         )
                       : Text(_selected.isEmpty
-                          ? '确定'
-                          : '确定 (${_selected.length})'),
+                          ? 'OK'
+                          : 'OK (${_selected.length})'),
                 ),
               ),
             ),
