@@ -130,7 +130,7 @@ final class FlareIMUITests: XCTestCase {
         _ = VoiceMessageView(seconds: 7)
         _ = FileMessageView(name: "spec.pdf", size: "2.4 MB", ext: "PDF")
         _ = LocationMessageView(title: "HQ", address: "Beijing")
-        _ = ContactMessageView(name: "Ivy Chen", flareId: "ivy")
+        _ = ContactMessageView(name: "Ivy Chen", subtitle: "Product Designer")
         _ = LinkCardMessageView(title: "Flare", domain: "flare.im")
         _ = VoteMessageView(title: "When?", options: [FlareVoteOption("Thu", 62), FlareVoteOption("Fri", 38)])
         _ = TaskMessageView(title: "Sync", meta: "done", done: true)

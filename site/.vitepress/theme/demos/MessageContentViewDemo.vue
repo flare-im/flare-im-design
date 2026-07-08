@@ -38,7 +38,7 @@ import FlareSystemMessage from "./messages/FlareSystemMessage.vue";
       <FlareLocationMessage title="字节跳动 · 三里屯" address="北京市朝阳区工人体育场北路" />
     </div>
     <div class="item"><span class="tag">&lt;FlareContactMessage&gt;</span>
-      <FlareContactMessage name="Ivy Chen" flare-id="ivy_chen" />
+      <FlareContactMessage name="Ivy Chen" subtitle="@ivy_chen" />
     </div>
     <div class="item"><span class="tag">&lt;FlareLinkCardMessage&gt;</span>
       <FlareLinkCardMessage title="Flare IM Design — 跨端 IM UI 组件库" domain="flare.im" />

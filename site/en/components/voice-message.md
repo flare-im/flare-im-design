@@ -21,6 +21,7 @@ title: VoiceMessage
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
 | `seconds` | `number` |  | `1` | Clip length in seconds. |
+| `playing` | `boolean` |  | — | Whether it is currently playing (drives the waveform/icon). |
 
 
 ## States
@@ -29,7 +30,7 @@ _None_
 
 ## Events
 
-_None_
+<span class="flare-tag">play</span>
 
 > [!TIP]
 > Decoupled & presentational — you pass simple props. For live, SDK-driven messages, let [MessageContentView](/en/components/message-content-view) dispatch by `content.type` instead.
@@ -55,6 +56,8 @@ import { FlareVoiceMessage } from "flare-core-vue-im-ui";
 <template>
   <FlareVoiceMessage
   :seconds="seconds"
+  :playing="playing"
+  @play="onPlay"
   />
 </template>
 ```
@@ -62,16 +65,20 @@ import { FlareVoiceMessage } from "flare-core-vue-im-ui";
 ```dart [Flutter]
 FlareVoiceMessage(
   seconds: seconds,
+  playing: playing,
+  onPlay: onPlay,
 );
 ```
 
 ```swift [iOS]
-VoiceMessageView(seconds: seconds)
+VoiceMessageView(seconds: seconds, playing: playing, onPlay: onPlay)
 ```
 
 ```kotlin [Android]
 VoiceMessage(
   seconds = seconds,
+  playing = playing,
+  onPlay = onPlay,
 )
 ```
 

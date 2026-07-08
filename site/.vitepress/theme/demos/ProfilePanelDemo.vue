@@ -14,7 +14,7 @@ const entries = [
       <div class="av">Me</div>
       <div class="meta">
         <div class="name">我的账号</div>
-        <div class="id">Flare ID: flare_me</div>
+        <div class="id">@flare_me</div>
       </div>
       <span class="qr"><DemoIcon name="qr" /></span>
     </div>

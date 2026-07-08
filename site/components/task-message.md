@@ -31,7 +31,7 @@ _无_
 
 ## Events
 
-_无_
+<span class="flare-tag">toggle</span>
 
 > [!TIP]
 > 解耦的展示型组件 —— 由你直接喂 props。实时、SDK 驱动的消息请交给 [MessageContentView](/components/message-content-view) 按 `content.type` 自动分派。
@@ -59,6 +59,7 @@ import { FlareTaskMessage } from "flare-core-vue-im-ui";
   :title="title"
   :meta="meta"
   :done="done"
+  @toggle="onToggle"
   />
 </template>
 ```
@@ -68,11 +69,12 @@ FlareTaskMessage(
   title: title,
   meta: meta,
   done: done,
+  onToggle: onToggle,
 );
 ```
 
 ```swift [iOS]
-TaskMessageView(title: title, meta: meta, done: done)
+TaskMessageView(title: title, meta: meta, done: done, onToggle: onToggle)
 ```
 
 ```kotlin [Android]
@@ -80,6 +82,7 @@ TaskMessage(
   title = title,
   meta = meta,
   done = done,
+  onToggle = onToggle,
 )
 ```
 

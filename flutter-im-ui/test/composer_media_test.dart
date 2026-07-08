@@ -39,7 +39,7 @@ void main() {
         replyTo: const FlareReplyTarget(senderName: 'Bob', summary: 'hey'),
         onCancelReply: () => cancelled = true,
       )));
-      expect(find.text('回复 Bob'), findsOneWidget);
+      expect(find.text('Reply Bob'), findsOneWidget);
       await tester.tap(find.byIcon(Icons.close_rounded));
       expect(cancelled, isTrue);
     });
@@ -49,7 +49,7 @@ void main() {
       expect(find.byType(TextField), findsOneWidget);
       await tester.tap(find.byIcon(Icons.mic_none));
       await tester.pump();
-      expect(find.text('按住 说话'), findsOneWidget);
+      expect(find.text('Hold to talk'), findsOneWidget);
       expect(find.byType(TextField), findsNothing);
     });
 
@@ -62,8 +62,8 @@ void main() {
       )));
       await tester.tap(find.byIcon(Icons.add_circle_outline_rounded));
       await tester.pumpAndSettle();
-      expect(find.text('图片'), findsWidgets);
-      await tester.tap(find.text('文件').first);
+      expect(find.text('Image'), findsWidgets);
+      await tester.tap(find.text('File').first);
       expect(picked?.key, 'file');
     });
   });
@@ -106,9 +106,9 @@ void main() {
       await tester.pumpWidget(_host(FlareMessageActionSheet(
         onAction: (a) => picked = a,
       )));
-      expect(find.text('图片'), findsOneWidget);
-      expect(find.text('文件'), findsOneWidget);
-      await tester.tap(find.text('文件'));
+      expect(find.text('Image'), findsOneWidget);
+      expect(find.text('File'), findsOneWidget);
+      await tester.tap(find.text('File'));
       expect(picked?.key, 'file');
     });
   });

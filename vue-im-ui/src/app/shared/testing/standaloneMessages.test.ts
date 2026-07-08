@@ -54,7 +54,7 @@ describe("standalone per-type message components", () => {
   });
 
   it("contact derives initials from the name", async () => {
-    const html = await render(FlareContactMessage, { name: "Ivy Chen", flareId: "ivy" });
+    const html = await render(FlareContactMessage, { name: "Ivy Chen", subtitle: "@ivy" });
     expect(html).toContain("IC");
     expect(html).toContain("Ivy Chen");
   });

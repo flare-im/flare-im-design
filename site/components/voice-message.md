@@ -21,6 +21,7 @@ title: VoiceMessage
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
 | `seconds` | `number` |  | `1` | 语音时长（秒）。 |
+| `playing` | `boolean` |  | — | 是否正在播放（驱动波形 / 图标）。 |
 
 
 ## States
@@ -29,7 +30,7 @@ _无_
 
 ## Events
 
-_无_
+<span class="flare-tag">play</span>
 
 > [!TIP]
 > 解耦的展示型组件 —— 由你直接喂 props。实时、SDK 驱动的消息请交给 [MessageContentView](/components/message-content-view) 按 `content.type` 自动分派。
@@ -55,6 +56,8 @@ import { FlareVoiceMessage } from "flare-core-vue-im-ui";
 <template>
   <FlareVoiceMessage
   :seconds="seconds"
+  :playing="playing"
+  @play="onPlay"
   />
 </template>
 ```
@@ -62,16 +65,20 @@ import { FlareVoiceMessage } from "flare-core-vue-im-ui";
 ```dart [Flutter]
 FlareVoiceMessage(
   seconds: seconds,
+  playing: playing,
+  onPlay: onPlay,
 );
 ```
 
 ```swift [iOS]
-VoiceMessageView(seconds: seconds)
+VoiceMessageView(seconds: seconds, playing: playing, onPlay: onPlay)
 ```
 
 ```kotlin [Android]
 VoiceMessage(
   seconds = seconds,
+  playing = playing,
+  onPlay = onPlay,
 )
 ```
 

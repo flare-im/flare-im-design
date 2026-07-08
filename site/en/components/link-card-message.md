@@ -22,6 +22,8 @@ title: LinkCardMessage
 |---|---|:---:|---|---|
 | `title` | `string` | ✔ | — | Link title. |
 | `domain` | `string` |  | — | Domain shown with a link glyph. |
+| `thumb` | `string` |  | — | Thumbnail image; falls back to a placeholder. |
+| `description` | `string` |  | — | Optional description line under the title. |
 
 
 ## States
@@ -57,6 +59,7 @@ import { FlareLinkCardMessage } from "flare-core-vue-im-ui";
   <FlareLinkCardMessage
   :title="title"
   :domain="domain"
+  :thumb="thumb"
   @open="onOpen"
   />
 </template>
@@ -66,18 +69,20 @@ import { FlareLinkCardMessage } from "flare-core-vue-im-ui";
 FlareLinkCardMessage(
   title: title,
   domain: domain,
+  thumb: thumb,
   onOpen: onOpen,
 );
 ```
 
 ```swift [iOS]
-LinkCardMessageView(title: title, domain: domain, onOpen: onOpen)
+LinkCardMessageView(title: title, domain: domain, thumb: thumb, onOpen: onOpen)
 ```
 
 ```kotlin [Android]
 LinkCardMessage(
   title = title,
   domain = domain,
+  thumb = thumb,
   onOpen = onOpen,
 )
 ```

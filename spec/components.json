@@ -1009,7 +1009,9 @@
         "zh": "产品直接喂 props —— 解耦的展示型消息体（无 SDK / 媒体耦合）。分发器 MessageContentView 由 message.content 构建它们。"
       },
       "states": [],
-      "events": [],
+      "events": [
+        "linkClick"
+      ],
       "props": [
         {
           "name": "text",
@@ -1026,6 +1028,14 @@
           "description": {
             "en": "Render the outgoing (brand-purple) side.",
             "zh": "渲染发送方（品牌紫）一侧。"
+          }
+        },
+        {
+          "name": "selectable",
+          "type": "boolean",
+          "description": {
+            "en": "Allow the text to be selected/copied.",
+            "zh": "允许文本被选中 / 复制。"
           }
         }
       ],
@@ -1093,6 +1103,14 @@
             "en": "Thumbnail height in px.",
             "zh": "缩略图高（px）。"
           }
+        },
+        {
+          "name": "alt",
+          "type": "string",
+          "description": {
+            "en": "Accessible description of the image.",
+            "zh": "图片的无障碍描述。"
+          }
         }
       ],
       "platforms": {
@@ -1150,6 +1168,14 @@
             "en": "Poster image; omit to show a placeholder.",
             "zh": "封面图；不传则显示占位。"
           }
+        },
+        {
+          "name": "alt",
+          "type": "string",
+          "description": {
+            "en": "Accessible description of the video.",
+            "zh": "视频的无障碍描述。"
+          }
         }
       ],
       "platforms": {
@@ -1187,7 +1213,9 @@
         "zh": "产品直接喂 props —— 解耦的展示型消息体（无 SDK / 媒体耦合）。分发器 MessageContentView 由 message.content 构建它们。"
       },
       "states": [],
-      "events": [],
+      "events": [
+        "play"
+      ],
       "props": [
         {
           "name": "seconds",
@@ -1196,6 +1224,14 @@
           "description": {
             "en": "Clip length in seconds.",
             "zh": "语音时长（秒）。"
+          }
+        },
+        {
+          "name": "playing",
+          "type": "boolean",
+          "description": {
+            "en": "Whether it is currently playing (drives the waveform/icon).",
+            "zh": "是否正在播放（驱动波形 / 图标）。"
           }
         }
       ],
@@ -1328,6 +1364,14 @@
             "en": "Full address line.",
             "zh": "详细地址。"
           }
+        },
+        {
+          "name": "mapImage",
+          "type": "string",
+          "description": {
+            "en": "Static map image URL; falls back to a pin placeholder.",
+            "zh": "静态地图图 URL；无则回退到定位占位。"
+          }
         }
       ],
       "platforms": {
@@ -1379,11 +1423,19 @@
           }
         },
         {
-          "name": "flareId",
+          "name": "avatarUrl",
           "type": "string",
           "description": {
-            "en": "Flare ID shown under the name.",
-            "zh": "名称下方显示的 Flare ID。"
+            "en": "Avatar image; falls back to a pastel initials chip.",
+            "zh": "头像图；无则回退到 pastel 首字母。"
+          }
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "description": {
+            "en": "Free secondary line (handle, id, department…).",
+            "zh": "自由副标题（用户名 / ID / 部门…）。"
           }
         }
       ],
@@ -1442,6 +1494,22 @@
             "en": "Domain shown with a link glyph.",
             "zh": "带链接图标显示的域名。"
           }
+        },
+        {
+          "name": "thumb",
+          "type": "string",
+          "description": {
+            "en": "Thumbnail image; falls back to a placeholder.",
+            "zh": "缩略图；无则回退占位。"
+          }
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "description": {
+            "en": "Optional description line under the title.",
+            "zh": "标题下的可选描述行。"
+          }
         }
       ],
       "platforms": {
@@ -1479,7 +1547,9 @@
         "zh": "产品直接喂 props —— 解耦的展示型消息体（无 SDK / 媒体耦合）。分发器 MessageContentView 由 message.content 构建它们。"
       },
       "states": [],
-      "events": [],
+      "events": [
+        "select"
+      ],
       "props": [
         {
           "name": "title",
@@ -1496,6 +1566,14 @@
           "description": {
             "en": "Options as { text, pct }.",
             "zh": "选项 { text, pct } 列表。"
+          }
+        },
+        {
+          "name": "total",
+          "type": "string",
+          "description": {
+            "en": "Optional footer, e.g. \"12 voted\".",
+            "zh": "可选页脚，如「12 人已投」。"
           }
         }
       ],
@@ -1534,7 +1612,9 @@
         "zh": "产品直接喂 props —— 解耦的展示型消息体（无 SDK / 媒体耦合）。分发器 MessageContentView 由 message.content 构建它们。"
       },
       "states": [],
-      "events": [],
+      "events": [
+        "toggle"
+      ],
       "props": [
         {
           "name": "title",
@@ -1597,7 +1677,9 @@
         "zh": "产品直接喂 props —— 解耦的展示型消息体（无 SDK / 媒体耦合）。分发器 MessageContentView 由 message.content 构建它们。"
       },
       "states": [],
-      "events": [],
+      "events": [
+        "click"
+      ],
       "props": [
         {
           "name": "emoji",
@@ -1652,7 +1734,9 @@
         "zh": "产品直接喂 props —— 解耦的展示型消息体（无 SDK / 媒体耦合）。分发器 MessageContentView 由 message.content 构建它们。"
       },
       "states": [],
-      "events": [],
+      "events": [
+        "click"
+      ],
       "props": [
         {
           "name": "emoji",
@@ -1962,6 +2046,15 @@
             "en": "Enabled/purple when there is content to send.",
             "zh": "有内容可发时为可点 / 紫色。"
           }
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "default": "Send",
+          "description": {
+            "en": "Accessible label.",
+            "zh": "无障碍标签。"
+          }
         }
       ],
       "notes": {
@@ -2021,6 +2114,15 @@
           "description": {
             "en": "One-line preview of the quoted message.",
             "zh": "被引用消息的一行预览。"
+          }
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "default": "Reply",
+          "description": {
+            "en": "Leading text before the sender.",
+            "zh": "发送者前的引导文案。"
           }
         }
       ],

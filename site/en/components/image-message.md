@@ -23,6 +23,7 @@ title: ImageMessage
 | `src` | `string` |  | — | Image source; omit to show a placeholder. |
 | `width` | `number` |  | `132` | Thumbnail width in px. |
 | `height` | `number` |  | `92` | Thumbnail height in px. |
+| `alt` | `string` |  | — | Accessible description of the image. |
 
 
 ## States

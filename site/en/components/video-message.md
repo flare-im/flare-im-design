@@ -22,6 +22,7 @@ title: VideoMessage
 |---|---|:---:|---|---|
 | `duration` | `string` |  | `"00:00"` | Duration label (mm:ss). |
 | `poster` | `string` |  | — | Poster image; omit to show a placeholder. |
+| `alt` | `string` |  | — | Accessible description of the video. |
 
 
 ## States
@@ -57,6 +58,7 @@ import { FlareVideoMessage } from "flare-core-vue-im-ui";
   <FlareVideoMessage
   :duration="duration"
   :poster="poster"
+  :alt="alt"
   @play="onPlay"
   />
 </template>
@@ -66,18 +68,20 @@ import { FlareVideoMessage } from "flare-core-vue-im-ui";
 FlareVideoMessage(
   duration: duration,
   poster: poster,
+  alt: alt,
   onPlay: onPlay,
 );
 ```
 
 ```swift [iOS]
-VideoMessageView(duration: duration, poster: poster, onPlay: onPlay)
+VideoMessageView(duration: duration, poster: poster, alt: alt, onPlay: onPlay)
 ```
 
 ```kotlin [Android]
 VideoMessage(
   duration = duration,
   poster = poster,
+  alt = alt,
   onPlay = onPlay,
 )
 ```

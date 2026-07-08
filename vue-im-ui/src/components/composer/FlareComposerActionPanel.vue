@@ -5,15 +5,17 @@ export interface FlareComposerActionItem {
   icon?: string;
 }
 
+// Neutral English sample set — the host passes its own `actions` (with its own
+// labels / i18n). Kept minimal so the component carries no product wording.
 const defaultActions: FlareComposerActionItem[] = [
-  { key: "image", label: "图片", icon: "🖼️" },
-  { key: "camera", label: "拍摄", icon: "📷" },
-  { key: "file", label: "文件", icon: "📁" },
-  { key: "location", label: "位置", icon: "📍" },
-  { key: "card", label: "名片", icon: "👤" },
-  { key: "vote", label: "投票", icon: "🗳️" },
-  { key: "task", label: "任务", icon: "✅" },
-  { key: "schedule", label: "日程", icon: "📅" },
+  { key: "image", label: "Image", icon: "🖼️" },
+  { key: "camera", label: "Camera", icon: "📷" },
+  { key: "file", label: "File", icon: "📁" },
+  { key: "location", label: "Location", icon: "📍" },
+  { key: "card", label: "Card", icon: "👤" },
+  { key: "poll", label: "Poll", icon: "🗳️" },
+  { key: "task", label: "Task", icon: "✅" },
+  { key: "schedule", label: "Schedule", icon: "📅" },
 ];
 
 withDefaults(

@@ -22,6 +22,8 @@ title: LinkCardMessage
 |---|---|:---:|---|---|
 | `title` | `string` | ✔ | — | 链接标题。 |
 | `domain` | `string` |  | — | 带链接图标显示的域名。 |
+| `thumb` | `string` |  | — | 缩略图；无则回退占位。 |
+| `description` | `string` |  | — | 标题下的可选描述行。 |
 
 
 ## States
@@ -57,6 +59,7 @@ import { FlareLinkCardMessage } from "flare-core-vue-im-ui";
   <FlareLinkCardMessage
   :title="title"
   :domain="domain"
+  :thumb="thumb"
   @open="onOpen"
   />
 </template>
@@ -66,18 +69,20 @@ import { FlareLinkCardMessage } from "flare-core-vue-im-ui";
 FlareLinkCardMessage(
   title: title,
   domain: domain,
+  thumb: thumb,
   onOpen: onOpen,
 );
 ```
 
 ```swift [iOS]
-LinkCardMessageView(title: title, domain: domain, onOpen: onOpen)
+LinkCardMessageView(title: title, domain: domain, thumb: thumb, onOpen: onOpen)
 ```
 
 ```kotlin [Android]
 LinkCardMessage(
   title = title,
   domain = domain,
+  thumb = thumb,
   onOpen = onOpen,
 )
 ```

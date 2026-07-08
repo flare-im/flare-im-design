@@ -22,6 +22,7 @@ title: ComposerReplyStrip
 |---|---|:---:|---|---|
 | `senderName` | `string` | ✔ | — | 被回复者的名称。 |
 | `summary` | `string` | ✔ | — | 被引用消息的一行预览。 |
+| `label` | `string` |  | `Reply` | 发送者前的引导文案。 |
 
 
 ## States
@@ -57,6 +58,7 @@ import { FlareComposerReplyStrip } from "flare-core-vue-im-ui";
   <FlareComposerReplyStrip
   :senderName="senderName"
   :summary="summary"
+  :label="label"
   @cancel="onCancel"
   />
 </template>
@@ -66,18 +68,20 @@ import { FlareComposerReplyStrip } from "flare-core-vue-im-ui";
 FlareComposerReplyStrip(
   senderName: senderName,
   summary: summary,
+  label: label,
   onCancel: onCancel,
 );
 ```
 
 ```swift [iOS]
-FlareComposerReplyStrip(senderName: senderName, summary: summary, onCancel: onCancel)
+FlareComposerReplyStrip(senderName: senderName, summary: summary, label: label, onCancel: onCancel)
 ```
 
 ```kotlin [Android]
 FlareComposerReplyStrip(
   senderName = senderName,
   summary = summary,
+  label = label,
   onCancel = onCancel,
 )
 ```

@@ -1,17 +1,20 @@
 <script setup lang="ts">
-// Reply strip (回复条) — a composable composer part shown above the input when
-// replying. Left brand rail + sender/summary + cancel.
-defineProps<{ senderName: string; summary: string }>();
+// Reply strip — a composable composer part shown above the input when replying.
+// Left rail + label/sender + summary + cancel. `label` is host-provided text
+// (default "Reply") so the component carries no baked-in language.
+withDefaults(defineProps<{ senderName: string; summary: string; label?: string }>(), {
+  label: "Reply",
+});
 const emit = defineEmits<{ (e: "cancel"): void }>();
 </script>
 
 <template>
   <div class="flare-reply">
     <div class="body">
-      <div class="who">回复 {{ senderName }}</div>
+      <div class="who">{{ label }} {{ senderName }}</div>
       <div class="sum">{{ summary }}</div>
     </div>
-    <button class="x" aria-label="取消回复" @click="emit('cancel')">
+    <button class="x" aria-label="Cancel reply" @click="emit('cancel')">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
         stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M6 6l12 12M18 6L6 18" />

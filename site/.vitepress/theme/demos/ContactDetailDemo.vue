@@ -9,7 +9,7 @@ const av = tint("Henry Ford");
     <div class="av" :style="{ background: av.bg, color: av.fg }">HF</div>
     <div class="n">Henry Ford</div>
     <div class="s">在设计新版本</div>
-    <div class="id">Flare ID: henry_f</div>
+    <div class="id">@henry_f</div>
     <div class="acts">
       <button class="primary"><DemoIcon name="message" :size="18" /><span>发消息</span></button>
       <button><DemoIcon name="call" :size="18" /><span>语音</span></button>

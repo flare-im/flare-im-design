@@ -22,6 +22,7 @@ title: LocationMessage
 |---|---|:---:|---|---|
 | `title` | `string` | ✔ | — | 地点名。 |
 | `address` | `string` |  | — | 详细地址。 |
+| `mapImage` | `string` |  | — | 静态地图图 URL；无则回退到定位占位。 |
 
 
 ## States
@@ -57,6 +58,7 @@ import { FlareLocationMessage } from "flare-core-vue-im-ui";
   <FlareLocationMessage
   :title="title"
   :address="address"
+  :mapImage="mapImage"
   @open="onOpen"
   />
 </template>
@@ -66,18 +68,20 @@ import { FlareLocationMessage } from "flare-core-vue-im-ui";
 FlareLocationMessage(
   title: title,
   address: address,
+  mapImage: mapImage,
   onOpen: onOpen,
 );
 ```
 
 ```swift [iOS]
-LocationMessageView(title: title, address: address, onOpen: onOpen)
+LocationMessageView(title: title, address: address, mapImage: mapImage, onOpen: onOpen)
 ```
 
 ```kotlin [Android]
 LocationMessage(
   title = title,
   address = address,
+  mapImage = mapImage,
   onOpen = onOpen,
 )
 ```

@@ -21,7 +21,8 @@ title: ContactMessage
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
 | `name` | `string` | ✔ | — | Contact name (drives the pastel avatar). |
-| `flareId` | `string` |  | — | Flare ID shown under the name. |
+| `avatarUrl` | `string` |  | — | Avatar image; falls back to a pastel initials chip. |
+| `subtitle` | `string` |  | — | Free secondary line (handle, id, department…). |
 
 
 ## States
@@ -56,7 +57,8 @@ import { FlareContactMessage } from "flare-core-vue-im-ui";
 <template>
   <FlareContactMessage
   :name="name"
-  :flareId="flareId"
+  :avatarUrl="avatarUrl"
+  :subtitle="subtitle"
   @open="onOpen"
   />
 </template>
@@ -65,19 +67,21 @@ import { FlareContactMessage } from "flare-core-vue-im-ui";
 ```dart [Flutter]
 FlareContactMessage(
   name: name,
-  flareId: flareId,
+  avatarUrl: avatarUrl,
+  subtitle: subtitle,
   onOpen: onOpen,
 );
 ```
 
 ```swift [iOS]
-ContactMessageView(name: name, flareId: flareId, onOpen: onOpen)
+ContactMessageView(name: name, avatarUrl: avatarUrl, subtitle: subtitle, onOpen: onOpen)
 ```
 
 ```kotlin [Android]
 ContactMessage(
   name = name,
-  flareId = flareId,
+  avatarUrl = avatarUrl,
+  subtitle = subtitle,
   onOpen = onOpen,
 )
 ```

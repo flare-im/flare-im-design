@@ -22,6 +22,7 @@ title: VoteMessage
 |---|---|:---:|---|---|
 | `title` | `string` | ✔ | — | 投票标题。 |
 | `options` | `FlareVoteOption[]` |  | — | 选项 { text, pct } 列表。 |
+| `total` | `string` |  | — | 可选页脚，如「12 人已投」。 |
 
 
 ## States
@@ -30,7 +31,7 @@ _无_
 
 ## Events
 
-_无_
+<span class="flare-tag">select</span>
 
 > [!TIP]
 > 解耦的展示型组件 —— 由你直接喂 props。实时、SDK 驱动的消息请交给 [MessageContentView](/components/message-content-view) 按 `content.type` 自动分派。
@@ -57,6 +58,8 @@ import { FlareVoteMessage } from "flare-core-vue-im-ui";
   <FlareVoteMessage
   :title="title"
   :options="options"
+  :total="total"
+  @select="onSelect"
   />
 </template>
 ```
@@ -65,17 +68,21 @@ import { FlareVoteMessage } from "flare-core-vue-im-ui";
 FlareVoteMessage(
   title: title,
   options: options,
+  total: total,
+  onSelect: onSelect,
 );
 ```
 
 ```swift [iOS]
-VoteMessageView(title: title, options: options)
+VoteMessageView(title: title, options: options, total: total, onSelect: onSelect)
 ```
 
 ```kotlin [Android]
 VoteMessage(
   title = title,
   options = options,
+  total = total,
+  onSelect = onSelect,
 )
 ```
 

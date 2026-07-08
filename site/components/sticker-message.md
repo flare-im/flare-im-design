@@ -30,7 +30,7 @@ _无_
 
 ## Events
 
-_无_
+<span class="flare-tag">click</span>
 
 > [!TIP]
 > 解耦的展示型组件 —— 由你直接喂 props。实时、SDK 驱动的消息请交给 [MessageContentView](/components/message-content-view) 按 `content.type` 自动分派。
@@ -57,6 +57,7 @@ import { FlareStickerMessage } from "flare-core-vue-im-ui";
   <FlareStickerMessage
   :emoji="emoji"
   :src="src"
+  @click="onClick"
   />
 </template>
 ```
@@ -65,17 +66,19 @@ import { FlareStickerMessage } from "flare-core-vue-im-ui";
 FlareStickerMessage(
   emoji: emoji,
   src: src,
+  onClick: onClick,
 );
 ```
 
 ```swift [iOS]
-StickerMessageView(emoji: emoji, src: src)
+StickerMessageView(emoji: emoji, src: src, onClick: onClick)
 ```
 
 ```kotlin [Android]
 StickerMessage(
   emoji = emoji,
   src = src,
+  onClick = onClick,
 )
 ```
 

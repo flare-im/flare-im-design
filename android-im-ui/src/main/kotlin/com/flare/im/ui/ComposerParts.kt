@@ -2,7 +2,8 @@ package com.flare.im.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,31 +40,48 @@ import androidx.compose.ui.unit.sp
  */
 @Composable
 fun FlareVoiceHoldButton(
-    label: String = "按住 说话",
-    recordingLabel: String = "松开 发送",
+    label: String = "Hold to talk",
+    recordingLabel: String = "Release to send · slide up to cancel",
+    cancelLabel: String = "Release to cancel",
+    cancelThreshold: Float = 80f,
     onStart: (() -> Unit)? = null,
     onEnd: (() -> Unit)? = null,
     onCancel: (() -> Unit)? = null,
 ) {
     val colors = flareColors()
     var pressing by remember { mutableStateOf(false) }
+    var willCancel by remember { mutableStateOf(false) }
+    val bg = if (!pressing) colors.bgSecondary else if (willCancel) colors.error else colors.primary
     Box(
         Modifier.fillMaxWidth().height(40.dp)
             .clip(RoundedCornerShape(FlareSizes.radiusXl))
-            .background(if (pressing) colors.primary else colors.bgSecondary)
-            .pointerInput(Unit) {
-                detectTapGestures(onPress = {
+            .background(bg)
+            .pointerInput(cancelThreshold) {
+                val cancelPx = cancelThreshold * density
+                awaitEachGesture {
+                    val down = awaitFirstDown()
                     pressing = true
+                    willCancel = false
                     onStart?.invoke()
-                    val released = tryAwaitRelease()
+                    var cancelled = false
+                    while (true) {
+                        val event = awaitPointerEvent()
+                        val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                        // Sliding up past the threshold from the press origin arms cancel.
+                        val c = (change.position.y - down.position.y) < -cancelPx
+                        if (c != willCancel) willCancel = c
+                        cancelled = c
+                        if (!change.pressed) break
+                    }
                     pressing = false
-                    if (released) onEnd?.invoke() else onCancel?.invoke()
-                })
+                    willCancel = false
+                    if (cancelled) onCancel?.invoke() else onEnd?.invoke()
+                }
             },
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            if (pressing) recordingLabel else label,
+            if (!pressing) label else if (willCancel) cancelLabel else recordingLabel,
             color = if (pressing) Color.White else colors.textSecondary,
             fontSize = FlareSizes.fontSizeLg.value.sp,
             fontWeight = FontWeight.Medium,
@@ -123,7 +141,7 @@ fun FlareComposerSendButton(active: Boolean, onSend: (() -> Unit)? = null) {
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            Icons.AutoMirrored.Filled.Send, "发送", Modifier.size(16.dp),
+            Icons.AutoMirrored.Filled.Send, "Send", Modifier.size(16.dp),
             tint = if (active) Color.White else colors.textDisabled,
         )
     }
@@ -134,7 +152,12 @@ fun FlareComposerSendButton(active: Boolean, onSend: (() -> Unit)? = null) {
  * replying. Left brand rail + sender / summary + cancel.
  */
 @Composable
-fun FlareComposerReplyStrip(senderName: String, summary: String, onCancel: (() -> Unit)? = null) {
+fun FlareComposerReplyStrip(
+    senderName: String,
+    summary: String,
+    label: String = "Reply",
+    onCancel: (() -> Unit)? = null,
+) {
     val colors = flareColors()
     Row(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(FlareSizes.radiusMd))
@@ -146,7 +169,7 @@ fun FlareComposerReplyStrip(senderName: String, summary: String, onCancel: (() -
             Modifier.weight(1f).padding(horizontal = FlareSizes.spacingSm, vertical = FlareSizes.spacingXs),
         ) {
             Text(
-                "回复 $senderName", color = colors.primary,
+                "$label $senderName", color = colors.primary,
                 fontSize = FlareSizes.fontSizeXs.value.sp, fontWeight = FontWeight.SemiBold,
             )
             Text(summary, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm.value.sp, maxLines = 1)
@@ -154,6 +177,6 @@ fun FlareComposerReplyStrip(senderName: String, summary: String, onCancel: (() -
         Box(
             Modifier.padding(end = FlareSizes.spacingSm).size(18.dp).clickable { onCancel?.invoke() },
             contentAlignment = Alignment.Center,
-        ) { Icon(Icons.Rounded.Close, "取消回复", Modifier.size(18.dp), tint = colors.textTertiary) }
+        ) { Icon(Icons.Rounded.Close, "Cancel reply", Modifier.size(18.dp), tint = colors.textTertiary) }
     }
 }

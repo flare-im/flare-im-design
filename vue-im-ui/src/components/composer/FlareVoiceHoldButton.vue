@@ -3,7 +3,7 @@ import { ref } from "vue";
 
 withDefaults(
   defineProps<{ label?: string; recordingLabel?: string }>(),
-  { label: "按住 说话", recordingLabel: "松开 发送" },
+  { label: "Hold to talk", recordingLabel: "Release to send" },
 );
 const emit = defineEmits<{
   (e: "start"): void;
