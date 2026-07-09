@@ -72,6 +72,7 @@ export default defineConfig({
               text: "指南",
               items: [
                 { text: "快速开始", link: "/guide/getting-started" },
+                { text: "接你自己的后端", link: "/guide/standalone" },
                 { text: "安装与引用", link: "/guide/install" },
                 { text: "设计 Tokens", link: "/guide/tokens" },
                 { text: "主题定制", link: "/guide/theming" },
@@ -130,6 +131,7 @@ export default defineConfig({
               text: "Guide",
               items: [
                 { text: "Getting started", link: "/en/guide/getting-started" },
+                { text: "Bring your own backend", link: "/en/guide/standalone" },
                 { text: "Install & reference", link: "/en/guide/install" },
                 { text: "Design tokens", link: "/en/guide/tokens" },
                 { text: "Theming", link: "/en/guide/theming" },

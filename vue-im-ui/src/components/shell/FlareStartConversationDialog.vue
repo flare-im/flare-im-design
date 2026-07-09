@@ -52,7 +52,7 @@ function submitDialog(): void {
         v-model:value="peerUserId"
         size="large"
         clearable
-        :placeholder="conversationType === 'group' ? 'Enter member userIds, separated by comma or space' : 'Enter the user's real userId'"
+        :placeholder="conversationType === 'group' ? 'Enter member userIds, separated by comma or space' : 'Enter a real user ID'"
         @keydown.enter.prevent="submitDialog"
       />
       <small class="start-dialog-hint">

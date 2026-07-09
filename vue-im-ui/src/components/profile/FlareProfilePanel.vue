@@ -2,14 +2,13 @@
 import FlareAvatar from "../conversation/FlareAvatar.vue";
 import type { FlareUserProfile, FlareSettingsItem } from "../../shared/contracts";
 
-const defaultEntries: FlareSettingsItem[] = [
-  { key: "favorites", label: "Favorites", icon: "⭐" },
-  { key: "moments", label: "Moments", icon: "🖼️" },
-  { key: "settings", label: "Settings", icon: "⚙️" },
-];
 
 withDefaults(defineProps<{ user: FlareUserProfile; entries?: FlareSettingsItem[] }>(), {
-  entries: () => defaultEntries,
+  entries: () =>   [
+    { key: "favorites", label: "Favorites", icon: "⭐" },
+    { key: "moments", label: "Moments", icon: "🖼️" },
+    { key: "settings", label: "Settings", icon: "⚙️" },
+  ],
 });
 const emit = defineEmits<{
   (e: "edit"): void;
