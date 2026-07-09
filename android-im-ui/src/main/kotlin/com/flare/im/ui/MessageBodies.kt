@@ -169,18 +169,31 @@ fun ImageMessage(
 
 /** video — a thumbnail with a play overlay and duration badge; emits [onPlay]. */
 @Composable
-fun VideoMessage(poster: String? = null, duration: String = "00:00", alt: String? = null, onPlay: (() -> Unit)? = null) {
+fun VideoMessage(
+    poster: String? = null,
+    posterContent: (@Composable () -> Unit)? = null,
+    duration: String = "00:00",
+    alt: String? = null,
+    onPlay: (() -> Unit)? = null,
+) {
     val colors = flareColors()
+    // With posterContent (e.g. a host-generated frame bitmap of any size) the slot
+    // defines the size; otherwise the fixed 148×92 thumbnail from the poster URL.
+    val outer = if (posterContent != null) Modifier else Modifier.size(148.dp, 92.dp)
     Box(
-        Modifier.size(148.dp, 92.dp).clip(RoundedCornerShape(12.dp)).background(colors.bgTertiary).onClickIf(onPlay),
+        outer.clip(RoundedCornerShape(12.dp)).background(colors.bgTertiary).onClickIf(onPlay),
         contentAlignment = Alignment.Center,
     ) {
-        NetImage(poster, Modifier.fillMaxWidth().height(92.dp), contentDescription = alt) {
-            Icon(Icons.Outlined.Videocam, null, Modifier.size(24.dp), tint = colors.textTertiary.copy(alpha = 0.5f))
+        if (posterContent != null) {
+            posterContent()
+        } else {
+            NetImage(poster, Modifier.matchParentSize(), contentDescription = alt) {
+                Icon(Icons.Outlined.Videocam, null, Modifier.size(24.dp), tint = colors.textTertiary.copy(alpha = 0.5f))
+            }
         }
-        Box(Modifier.fillMaxWidth().height(92.dp).background(Color.Black.copy(alpha = 0.28f)))
+        Box(Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.28f)))
         Icon(Icons.Filled.PlayArrow, null, Modifier.size(34.dp), tint = Color.White)
-        Box(Modifier.fillMaxWidth().height(92.dp).padding(6.dp), contentAlignment = Alignment.BottomEnd) {
+        Box(Modifier.matchParentSize().padding(6.dp), contentAlignment = Alignment.BottomEnd) {
             Text(
                 duration, color = Color.White, fontSize = 10.sp,
                 modifier = Modifier.clip(RoundedCornerShape(5.dp)).background(Color.Black.copy(alpha = 0.45f))
