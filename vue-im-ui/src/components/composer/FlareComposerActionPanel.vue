@@ -7,20 +7,19 @@ export interface FlareComposerActionItem {
 
 // Neutral English sample set — the host passes its own `actions` (with its own
 // labels / i18n). Kept minimal so the component carries no product wording.
-const defaultActions: FlareComposerActionItem[] = [
-  { key: "image", label: "Image", icon: "🖼️" },
-  { key: "camera", label: "Camera", icon: "📷" },
-  { key: "file", label: "File", icon: "📁" },
-  { key: "location", label: "Location", icon: "📍" },
-  { key: "card", label: "Card", icon: "👤" },
-  { key: "poll", label: "Poll", icon: "🗳️" },
-  { key: "task", label: "Task", icon: "✅" },
-  { key: "schedule", label: "Schedule", icon: "📅" },
-];
 
 withDefaults(
   defineProps<{ actions?: FlareComposerActionItem[]; columns?: number }>(),
-  { actions: () => defaultActions, columns: 4 },
+  { actions: () =>   [
+    { key: "image", label: "Image", icon: "🖼️" },
+    { key: "camera", label: "Camera", icon: "📷" },
+    { key: "file", label: "File", icon: "📁" },
+    { key: "location", label: "Location", icon: "📍" },
+    { key: "card", label: "Card", icon: "👤" },
+    { key: "poll", label: "Poll", icon: "🗳️" },
+    { key: "task", label: "Task", icon: "✅" },
+    { key: "schedule", label: "Schedule", icon: "📅" },
+  ], columns: 4 },
 );
 const emit = defineEmits<{ (e: "action", action: FlareComposerActionItem): void }>();
 </script>
