@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -135,13 +136,35 @@ fun TextMessage(
 
 /** image — a rounded thumbnail; emits [onTap]. */
 @Composable
-fun ImageMessage(src: String? = null, width: Int = 132, height: Int = 92, alt: String? = null, onTap: (() -> Unit)? = null) {
+fun ImageMessage(
+    src: String? = null,
+    width: Int = 132,
+    height: Int = 92,
+    maxWidth: Int? = null,
+    maxHeight: Int? = null,
+    alt: String? = null,
+    onTap: (() -> Unit)? = null,
+) {
     val colors = flareColors()
-    NetImage(
-        src,
-        Modifier.size(width.dp, height.dp).clip(RoundedCornerShape(12.dp)).background(colors.bgTertiary).onClickIf(onTap),
-        contentDescription = alt,
-    ) { Icon(Icons.Outlined.Image, null, Modifier.size(26.dp), tint = colors.textTertiary) }
+    // Flexible mode: given maxWidth/maxHeight, size within bounds preserving aspect
+    // (Fit); otherwise the fixed width×height thumbnail (Crop).
+    val flexible = maxWidth != null || maxHeight != null
+    val sizeMod = if (flexible)
+        Modifier.sizeIn(maxWidth = (maxWidth ?: 10_000).dp, maxHeight = (maxHeight ?: 10_000).dp)
+    else Modifier.size(width.dp, height.dp)
+    val mod = sizeMod.clip(RoundedCornerShape(12.dp)).background(colors.bgTertiary).onClickIf(onTap)
+    if (!src.isNullOrEmpty()) {
+        AsyncImage(
+            model = src,
+            contentDescription = alt,
+            modifier = mod,
+            contentScale = if (flexible) ContentScale.Fit else ContentScale.Crop,
+        )
+    } else {
+        Box(mod, contentAlignment = Alignment.Center) {
+            Icon(Icons.Outlined.Image, null, Modifier.size(26.dp), tint = colors.textTertiary)
+        }
+    }
 }
 
 /** video — a thumbnail with a play overlay and duration badge; emits [onPlay]. */
