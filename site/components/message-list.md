@@ -8,7 +8,7 @@ title: MessageList
 
 > 虚拟化消息线程 —— 分组、加载更早、多选、逐条操作、媒体状态。
 
-**数据源**：client.views.openTimeline(conversationId)；窗口化，加载更早经 view.loadOlder()
+**数据源**：消息数组（你的数据），窗口化渲染，加载更早由你的 onLoadOlder 回调触发；可选接 Flare core 时间线的 loadOlder()
 
 ## 预览
 

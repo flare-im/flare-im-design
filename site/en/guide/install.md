@@ -3,7 +3,7 @@
 Each platform package is published independently and can be referenced three ways — a **package manager**, a **Git dependency**, or a **downloaded source archive**. Below, per platform.
 
 > [!TIP]
-> Components are pure presentation: props in, callbacks out. IM behavior and data come from the core's observable views (see [Getting started](/en/guide/getting-started)).
+> Components are pure presentation: props in, events out — no SDK lock-in, so they drop onto your existing IM backend; wire the Flare core only if you want batteries-included send & sync (see [Getting started](/en/guide/getting-started)).
 
 ## Download source archives
 

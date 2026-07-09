@@ -8,7 +8,7 @@ title: ContactList
 
 > The address book — contacts grouped A–Z by pinyin/letter, with a side index bar and quick jump.
 
-**Data source**: client.views contacts/friends view; grouping and index in the presentation layer
+**Data source**: an array of contacts/friends (your data); grouping and A–Z index done in the presentation layer
 
 ## Preview
 

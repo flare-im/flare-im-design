@@ -8,7 +8,7 @@ title: MessageList
 
 > The virtualised message thread — grouping, load-older, multi-select, per-message actions, media state.
 
-**Data source**: client.views.openTimeline(conversationId); windowed, load-older via view.loadOlder()
+**Data source**: an array of messages (your data), windowed; load-older via your onLoadOlder callback, or optionally a Flare core timeline's loadOlder()
 
 ## Preview
 

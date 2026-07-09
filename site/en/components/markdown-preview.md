@@ -8,7 +8,7 @@ title: MarkdownPreview
 
 > Rendered read-only Markdown/RichDoc content with optional stats.
 
-**Data source**: normalized Markdown/RichDoc content (from core)
+**Data source**: a Markdown / RichDoc string (your data)
 
 ## Preview
 

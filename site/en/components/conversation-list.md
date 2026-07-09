@@ -8,7 +8,7 @@ title: ConversationList
 
 > The inbox — virtualised rows of conversations (avatar, title, preview, unread, timestamp).
 
-**Data source**: client.views.openConversationList(); one observable list, reorders + updates unread live
+**Data source**: an array of conversations (your data); optionally the Flare core openConversationList() observable list that reorders + updates unread live
 
 ## Preview
 

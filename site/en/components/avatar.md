@@ -8,7 +8,7 @@ title: Avatar
 
 > User or group avatar — image, initials fallback, optional presence dot.
 
-**Data source**: identity fields from the conversation/message view (displayName, avatarUrl); presence from client.views presence
+**Data source**: identity fields (displayName, avatarUrl) you pass in; presence optionally from Flare core
 
 ## Preview
 

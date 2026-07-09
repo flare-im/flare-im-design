@@ -1,17 +1,19 @@
 # Getting started
 
-Flare IM Design is a **cross-platform IM UI kit**: one framework-neutral component contract, implemented natively on Vue, Flutter, iOS and Android, sharing the same design tokens and same-name / same-semantics components.
+Flare IM Design is a **standalone, cross-platform IM UI kit**: one framework-neutral component contract, implemented natively on Vue, Flutter, iOS and Android, sharing the same design tokens and same-name / same-semantics components. Components are **pure presentation** — props in, events out, **no SDK lock-in** — so they drop onto your existing IM backend.
 
 ## Architecture layers
 
+The kit itself is **L1–L3, usable on its own**; where the data (L4) comes from is up to you.
+
 | Layer | Content | Location |
 |---|---|---|
-| **L4** | Observable views (behavior: send / sync / ordering / optimistic UI) | Rust `flare-im-core-sdk` (`client.views`) |
-| **L3** | Design tokens (color / spacing / type / radius / shadow, light + dark) | `flare-im-design/tokens` |
-| **L2** | Component contract (props / states / events + data source) | `flare-im-design/spec` |
-| **L1** | Per-platform component packages | Vue / Flutter / iOS / Android |
+| **L4 · optional** | Data source: your IM backend / SDK, or the Flare core's observable views (reliable send / sync / ordering / optimistic UI) | Your backend · or Rust `flare-im-core-sdk` (`client.views`) |
+| **L3** | Design tokens (color / spacing / type / radius / shadow, light + dark, re-themeable at runtime) | `flare-im-design/tokens` |
+| **L2** | Component contract (props / states / events + the data it takes) | `flare-im-design/spec` |
+| **L1** | Per-platform component packages (pure presentation) | Vue / Flutter / iOS / Android |
 
-Components are **pure presentation**: props in, callbacks out. IM behavior and state come from the core's observable views and are fed to components by the host app.
+Feed data (conversations, messages, contacts…) to the components via props and listen for the interaction events they emit. That data can come from your existing IM backend / SDK; or you can **optionally** wire the Flare core's observable views for reliable send and multi-device sync — but the components don't depend on it.
 
 ## Install
 
