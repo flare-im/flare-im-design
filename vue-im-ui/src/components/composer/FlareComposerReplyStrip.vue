@@ -30,14 +30,14 @@ const emit = defineEmits<{ (e: "cancel"): void }>();
   gap: 8px;
   padding: 6px 8px;
   border-radius: var(--flare-size-radius-md, 6px);
-  background: var(--flare-color-bg-secondary, #f5f6f8);
-  border-left: 3px solid var(--flare-color-primary, #7c3aed);
+  background: var(--flare-color-bg-secondary, var(--flare-color-bg-secondary, #f5f6f8));
+  border-left: 3px solid var(--flare-color-primary, var(--flare-color-primary, #7c3aed));
 }
 .body { flex: 1; min-width: 0; }
-.who { font-size: 11px; font-weight: 600; color: var(--flare-color-primary, #7c3aed); }
+.who { font-size: 11px; font-weight: 600; color: var(--flare-color-primary, var(--flare-color-primary, #7c3aed)); }
 .sum {
   font-size: 12px;
-  color: var(--flare-color-text-secondary, #6b7280);
+  color: var(--flare-color-text-secondary, var(--flare-color-text-secondary, #6b7280));
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -48,7 +48,7 @@ const emit = defineEmits<{ (e: "cancel"): void }>();
   background: none;
   padding: 0;
   display: flex;
-  color: var(--flare-color-text-tertiary, #a3a7ae);
+  color: var(--flare-color-text-tertiary, var(--flare-color-text-tertiary, #a3a7ae));
   cursor: pointer;
 }
 </style>

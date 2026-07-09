@@ -344,7 +344,7 @@ function onPanelSendClick(): void {
 .composer-emoji-sticker-panel {
   display: flex;
   flex-direction: column;
-  background: var(--composer-emoji-panel-bg, #f2f3f5);
+  background: var(--composer-emoji-panel-bg, var(--flare-color-bg-tertiary, #f2f3f5));
   border-top: 1px solid var(--im-border, #dfe3ea);
 }
 
@@ -437,8 +437,8 @@ function onPanelSendClick(): void {
 
 .panel-tabbar {
   padding: 6px 10px calc(8px + env(safe-area-inset-bottom, 0px));
-  background: var(--composer-emoji-tabbar-bg, #ffffff);
-  border-top: 1px solid var(--composer-emoji-tabbar-border, #e7e9ee);
+  background: var(--composer-emoji-tabbar-bg, var(--flare-color-bg-primary, #ffffff));
+  border-top: 1px solid var(--composer-emoji-tabbar-border, var(--flare-color-border-primary, #e7e9ee));
 }
 
 .tabbar-row--main {

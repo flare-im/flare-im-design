@@ -13,9 +13,9 @@ const emit = defineEmits<{ (e: "play"): void }>();
   </button>
 </template>
 <style scoped>
-.fm-voice { border: 1px solid var(--im-border-subtle, #eef0f4); display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 16px 16px 16px 4px; background: var(--im-bg-surface, #fff); box-shadow: var(--im-bubble-shadow, 0 2px 10px rgba(0,0,0,.05)); color: var(--im-text-secondary, #6b7280); cursor: pointer; }
-.fm-voice.playing { color: var(--im-primary, #7c3aed); }
+.fm-voice { border: 1px solid var(--im-border-subtle, var(--flare-color-border-secondary, #eef0f4)); display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 16px 16px 16px 4px; background: var(--im-bg-surface, #fff); box-shadow: var(--im-bubble-shadow, 0 2px 10px rgba(0,0,0,.05)); color: var(--im-text-secondary, var(--flare-color-text-secondary, #6b7280)); cursor: pointer; }
+.fm-voice.playing { color: var(--im-primary, var(--flare-color-primary, #7c3aed)); }
 .wave { display: flex; align-items: center; gap: 2px; }
-.wave i { width: 2px; border-radius: 2px; background: var(--im-primary, #7c3aed); }
-.dur { font-size: 12px; color: var(--im-text-tertiary, #a3a7ae); }
+.wave i { width: 2px; border-radius: 2px; background: var(--im-primary, var(--flare-color-primary, #7c3aed)); }
+.dur { font-size: 12px; color: var(--im-text-tertiary, var(--flare-color-text-tertiary, #a3a7ae)); }
 </style>

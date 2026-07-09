@@ -31,7 +31,7 @@ function click() {
   transition: background 0.15s, color 0.15s;
 }
 .flare-send.active {
-  background: var(--flare-color-primary, #7c3aed);
+  background: var(--flare-color-primary, var(--flare-color-primary, #7c3aed));
   color: #fff;
   cursor: pointer;
 }

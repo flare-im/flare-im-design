@@ -11,6 +11,6 @@ const emit = defineEmits<{ (e: "click"): void }>();
   </button>
 </template>
 <style scoped>
-.fm-img { padding: 0; border: none; border-radius: 12px; overflow: hidden; background: var(--im-bg-surface-alt, #f2f3f5); display: grid; place-items: center; color: var(--im-text-tertiary, #a3a7ae); cursor: pointer; }
+.fm-img { padding: 0; border: none; border-radius: 12px; overflow: hidden; background: var(--im-bg-surface-alt, var(--flare-color-bg-tertiary, #f2f3f5)); display: grid; place-items: center; color: var(--im-text-tertiary, var(--flare-color-text-tertiary, #a3a7ae)); cursor: pointer; }
 .fm-img img { width: 100%; height: 100%; object-fit: cover; }
 </style>

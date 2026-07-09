@@ -55,7 +55,7 @@ const imageCells = computed(() =>
   overflow: hidden;
   padding: 6px;
   border-radius: 14px;
-  background: color-mix(in srgb, var(--im-bg-surface-alt, #f2f3f5) 92%, #ffffff 8%);
+  background: color-mix(in srgb, var(--im-bg-surface-alt, var(--flare-color-bg-tertiary, #f2f3f5)) 92%, #ffffff 8%);
   box-shadow: var(--im-bubble-shadow, 0 1px 2px rgba(17, 19, 24, 0.06));
 }
 
@@ -66,7 +66,7 @@ const imageCells = computed(() =>
   aspect-ratio: 1 / 1;
   min-height: 96px;
   border-radius: 10px;
-  background: color-mix(in srgb, var(--im-bg-surface, #ffffff) 82%, var(--im-bg-surface-alt, #f2f3f5));
+  background: color-mix(in srgb, var(--im-bg-surface, var(--flare-color-bg-primary, #ffffff)) 82%, var(--im-bg-surface-alt, var(--flare-color-bg-tertiary, #f2f3f5)));
   color: var(--im-text-secondary);
 }
 

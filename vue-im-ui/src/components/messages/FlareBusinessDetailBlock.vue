@@ -161,7 +161,7 @@ function toggleExpanded(): void {
   display: grid;
   margin: 0;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--im-border, #d7dce5) 54%, transparent);
+  border: 1px solid color-mix(in srgb, var(--im-border, var(--flare-color-border-hover, #d7dce5)) 54%, transparent);
   border-radius: 8px;
   background: color-mix(in srgb, var(--im-bg-surface-alt, #f4f6fb) 44%, var(--im-bg-surface, #fff));
 }
@@ -172,7 +172,7 @@ function toggleExpanded(): void {
   gap: 10px;
   align-items: start;
   padding: 8px 9px;
-  border-top: 1px solid color-mix(in srgb, var(--im-border, #d7dce5) 30%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--im-border, var(--flare-color-border-hover, #d7dce5)) 30%, transparent);
 }
 
 .business-detail-block__row:first-child {
@@ -217,7 +217,7 @@ function toggleExpanded(): void {
   min-height: 38px;
   margin: 10px -12px -11px;
   overflow: hidden;
-  border-top: 1px solid color-mix(in srgb, var(--im-border, #d7dce5) 56%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--im-border, var(--flare-color-border-hover, #d7dce5)) 56%, transparent);
   background: color-mix(in srgb, var(--im-bg-surface-alt, #f4f6fb) 42%, var(--im-bg-surface, #fff));
 }
 
@@ -249,20 +249,20 @@ function toggleExpanded(): void {
 
 .business-detail-block__toggle {
   flex: 0 0 auto;
-  border-right: 1px solid color-mix(in srgb, var(--im-border, #d7dce5) 46%, transparent);
+  border-right: 1px solid color-mix(in srgb, var(--im-border, var(--flare-color-border-hover, #d7dce5)) 46%, transparent);
 }
 
 .business-detail-block__action {
   flex: 1 1 auto;
   justify-content: flex-end;
-  color: color-mix(in srgb, var(--im-primary, #7c3aed) 88%, var(--im-text-primary, #111827));
+  color: color-mix(in srgb, var(--im-primary, var(--flare-color-primary, #7c3aed)) 88%, var(--im-text-primary, #111827));
 }
 
 .business-detail-block__toggle:hover,
 .business-detail-block__toggle:focus-visible,
 .business-detail-block__action:hover,
 .business-detail-block__action:focus-visible {
-  background: color-mix(in srgb, var(--im-primary, #7c3aed) 6%, transparent);
+  background: color-mix(in srgb, var(--im-primary, var(--flare-color-primary, #7c3aed)) 6%, transparent);
   outline: none;
 }
 

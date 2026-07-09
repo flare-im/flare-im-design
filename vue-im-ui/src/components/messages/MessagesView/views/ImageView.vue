@@ -133,7 +133,7 @@ function retryImage(): void {
   width: 100%;
   min-height: 132px;
   border-radius: 14px;
-  background: color-mix(in srgb, var(--im-bg-surface-alt, #f2f3f5) 92%, #ffffff 8%);
+  background: color-mix(in srgb, var(--im-bg-surface-alt, var(--flare-color-bg-tertiary, #f2f3f5)) 92%, #ffffff 8%);
   box-shadow:
     0 10px 22px rgb(15 23 42 / 10%),
     0 1px 0 rgb(15 23 42 / 5%);

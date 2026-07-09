@@ -23,9 +23,9 @@ function onClick(e: MouseEvent) {
   <div class="fm-text" :class="{ 'is-self': self, selectable }" v-html="html" @click="onClick" />
 </template>
 <style scoped>
-.fm-text { display: inline-block; padding: 9px 14px; border-radius: 16px 16px 16px 4px; background: var(--im-bg-surface, #fff); border: 1px solid var(--im-border-subtle, #eef0f4); box-shadow: var(--im-bubble-shadow, 0 2px 10px rgba(0,0,0,.05)); color: var(--im-text-primary, #111318); font-size: 15px; line-height: 1.45; user-select: none; }
+.fm-text { display: inline-block; padding: 9px 14px; border-radius: 16px 16px 16px 4px; background: var(--im-bg-surface, #fff); border: 1px solid var(--im-border-subtle, var(--flare-color-border-secondary, #eef0f4)); box-shadow: var(--im-bubble-shadow, 0 2px 10px rgba(0,0,0,.05)); color: var(--im-text-primary, var(--flare-color-text-primary, #111318)); font-size: 15px; line-height: 1.45; user-select: none; }
 .fm-text.selectable { user-select: text; }
-.fm-text.is-self { background: var(--im-bubble-sent, #7c3aed); border-color: transparent; color: #fff; border-radius: 16px 16px 4px 16px; }
-.fm-text :deep(a) { color: var(--im-bubble-link, #7c3aed); }
+.fm-text.is-self { background: var(--im-bubble-sent, var(--flare-color-primary, #7c3aed)); border-color: transparent; color: #fff; border-radius: 16px 16px 4px 16px; }
+.fm-text :deep(a) { color: var(--im-bubble-link, var(--flare-color-primary, #7c3aed)); }
 .fm-text.is-self :deep(a) { color: #fff; text-decoration: underline; }
 </style>

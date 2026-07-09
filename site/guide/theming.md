@@ -8,6 +8,48 @@
 
 <ThemePlayground />
 
+## 引入即用（纯 CSS · 任何项目）
+
+最通用的方式：导入一次样式，再用普通 CSS 覆盖几个变量——**不需要 JS、不需要 SDK、不挑框架**。
+
+```ts
+// 1) 应用入口导入一次基础样式
+import "flare-core-vue-im-ui/style.css";
+```
+
+```css
+/* 2) 覆盖权威变量即整体换肤：组件的每处颜色最终都解析到这组 --flare-color-* */
+:root {
+  --flare-color-primary: #0d9488;      /* 主色：未读徽标 / 发送键 / 选中 / 强调 */
+  --flare-color-bubble-self: #0d9488;  /* 己方气泡 */
+  --flare-color-text-link: #0d9488;    /* 链接 */
+  --flare-color-bg-selected: #d5f5f0;  /* 选中行底 */
+}
+
+/* 只想局部换肤？作用到某个容器即可，多主题可共存 */
+.brand-b {
+  --flare-color-primary: #e11d48;
+  --flare-color-bubble-self: #e11d48;
+}
+```
+
+想从**一个主色自动派生**整套（hover / active / 气泡 / 链接 / 选中）？用下面的 `deriveFlareTheme`。
+
+### 可覆盖的权威变量
+
+| 变量 | 作用 |
+|---|---|
+| `--flare-color-primary` · `-hover` · `-active` | 主色及其悬停 / 按下态 |
+| `--flare-color-bubble-self` | 己方消息气泡底色 |
+| `--flare-color-text-link` · `-link-hover` | 链接色 |
+| `--flare-color-bg-primary` · `-secondary` · `-tertiary` | 背景层级 |
+| `--flare-color-bg-selected` · `-hover` | 选中 / 悬停底 |
+| `--flare-color-text-primary` · `-secondary` · `-tertiary` | 文本层级 |
+| `--flare-color-border-primary` · `-secondary` | 描边 |
+| `--flare-color-success` · `error` · `warning` | 语义色（换品牌色时通常保留） |
+
+完整清单见[设计 Tokens](/guide/tokens)。
+
 ## 用法
 
 `flare-im-design-tokens/theme` 提供框架无关的运行时 API：

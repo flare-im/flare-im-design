@@ -1044,7 +1044,7 @@ onBeforeUnmount(() => {
 }
 
 .composer-mention-option__id {
-  color: var(--text-color-3, #64748b);
+  color: var(--text-color-3, var(--flare-color-robot, #64748b));
   font-size: 12px;
 }
 </style>

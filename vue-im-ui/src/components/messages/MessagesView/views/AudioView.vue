@@ -333,7 +333,7 @@ onBeforeUnmount(() => {
 
 .im-audio__error {
   margin: 0;
-  color: var(--im-danger, #ef4444);
+  color: var(--im-danger, var(--flare-color-error, #ef4444));
   font-size: 11px;
   line-height: 1.25;
 }

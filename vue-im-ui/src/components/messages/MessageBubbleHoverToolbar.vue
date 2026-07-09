@@ -121,6 +121,6 @@ function openMoreMenu(): void {
 
 .im-bar-btn:hover {
   color: var(--im-primary) !important;
-  background: var(--im-bg-card, #eef1f6);
+  background: var(--im-bg-card, var(--flare-color-bg-hover, #eef1f6));
 }
 </style>

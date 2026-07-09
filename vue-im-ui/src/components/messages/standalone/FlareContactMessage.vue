@@ -31,11 +31,11 @@ const initials = computed(() => {
   </div>
 </template>
 <style scoped>
-.fm-contact { display: inline-flex; align-items: center; gap: 12px; min-width: 240px; padding: 9px 14px; border-radius: 16px 16px 16px 4px; background: var(--im-bg-surface, #fff); border: 1px solid var(--im-border-subtle, #eef0f4); box-shadow: var(--im-bubble-shadow, 0 2px 10px rgba(0,0,0,.05)); cursor: pointer; }
+.fm-contact { display: inline-flex; align-items: center; gap: 12px; min-width: 240px; padding: 9px 14px; border-radius: 16px 16px 16px 4px; background: var(--im-bg-surface, #fff); border: 1px solid var(--im-border-subtle, var(--flare-color-border-secondary, #eef0f4)); box-shadow: var(--im-bubble-shadow, 0 2px 10px rgba(0,0,0,.05)); cursor: pointer; }
 .av { width: 44px; height: 44px; border-radius: 10px; flex: none; display: grid; place-items: center; font-weight: 600; font-size: 14px; }
 .av.img { object-fit: cover; }
 .meta { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.meta b { font-size: 15px; font-weight: 600; color: var(--im-text-primary, #111318); }
-.meta small { font-size: 11px; color: var(--im-text-tertiary, #a3a7ae); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.chev { color: var(--im-text-tertiary, #a3a7ae); }
+.meta b { font-size: 15px; font-weight: 600; color: var(--im-text-primary, var(--flare-color-text-primary, #111318)); }
+.meta small { font-size: 11px; color: var(--im-text-tertiary, var(--flare-color-text-tertiary, #a3a7ae)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chev { color: var(--im-text-tertiary, var(--flare-color-text-tertiary, #a3a7ae)); }
 </style>

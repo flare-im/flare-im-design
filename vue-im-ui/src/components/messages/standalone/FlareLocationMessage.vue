@@ -14,10 +14,10 @@ const emit = defineEmits<{ (e: "open"): void }>();
   </div>
 </template>
 <style scoped>
-.fm-loc { display: inline-block; width: 264px; max-width: 100%; border-radius: 16px 16px 16px 4px; overflow: hidden; background: var(--im-bg-surface, #fff); border: 1px solid var(--im-border-subtle, #eef0f4); box-shadow: var(--im-bubble-shadow, 0 2px 10px rgba(0,0,0,.05)); cursor: pointer; }
-.map { height: 84px; display: grid; place-items: center; overflow: hidden; color: var(--im-primary, #7c3aed); background: color-mix(in srgb, var(--im-primary, #7c3aed) 8%, var(--im-bg-surface-alt, #f2f3f5)); }
+.fm-loc { display: inline-block; width: 264px; max-width: 100%; border-radius: 16px 16px 16px 4px; overflow: hidden; background: var(--im-bg-surface, #fff); border: 1px solid var(--im-border-subtle, var(--flare-color-border-secondary, #eef0f4)); box-shadow: var(--im-bubble-shadow, 0 2px 10px rgba(0,0,0,.05)); cursor: pointer; }
+.map { height: 84px; display: grid; place-items: center; overflow: hidden; color: var(--im-primary, var(--flare-color-primary, #7c3aed)); background: color-mix(in srgb, var(--im-primary, var(--flare-color-primary, #7c3aed)) 8%, var(--im-bg-surface-alt, var(--flare-color-bg-tertiary, #f2f3f5))); }
 .map img { width: 100%; height: 100%; object-fit: cover; }
 .meta { padding: 8px 12px; display: flex; flex-direction: column; }
-.meta b { font-size: 14px; font-weight: 500; color: var(--im-text-primary, #111318); }
-.meta small { font-size: 11px; color: var(--im-text-tertiary, #a3a7ae); }
+.meta b { font-size: 14px; font-weight: 500; color: var(--im-text-primary, var(--flare-color-text-primary, #111318)); }
+.meta small { font-size: 11px; color: var(--im-text-tertiary, var(--flare-color-text-tertiary, #a3a7ae)); }
 </style>

@@ -210,7 +210,7 @@
 }
 
 .message-bubble:not(.message-bubble--chromeless-media) {
-  --im-bubble-tail-fill: color-mix(in srgb, var(--im-message-incoming, #ffffff) 94%, var(--im-bg-surface));
+  --im-bubble-tail-fill: color-mix(in srgb, var(--im-message-incoming, var(--flare-color-bg-primary, #ffffff)) 94%, var(--im-bg-surface));
 
   padding: 8px 11px;
   border: 1px solid color-mix(in srgb, var(--im-border) 74%, transparent);
@@ -233,15 +233,15 @@
 }
 
 .message-bubble.message-bubble-self:not(.message-bubble--chromeless-media) {
-  --im-bubble-tail-fill: color-mix(in srgb, var(--im-message-outgoing, #7c3aed) 96%, #ffffff 4%);
+  --im-bubble-tail-fill: color-mix(in srgb, var(--im-message-outgoing, var(--flare-color-primary, #7c3aed)) 96%, #ffffff 4%);
 
   border-color: color-mix(in srgb, var(--im-message-outgoing) 38%, transparent);
   border-radius: 14px 14px 10px 14px;
-  color: var(--im-message-outgoing-text, #ffffff);
+  color: var(--im-message-outgoing-text, var(--flare-color-bg-primary, #ffffff));
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--im-message-outgoing, #7c3aed) 92%, #ffffff 8%),
-    var(--im-message-outgoing, #7c3aed)
+    color-mix(in srgb, var(--im-message-outgoing, var(--flare-color-primary, #7c3aed)) 92%, #ffffff 8%),
+    var(--im-message-outgoing, var(--flare-color-primary, #7c3aed))
   );
   box-shadow: 0 8px 18px color-mix(in srgb, var(--im-message-outgoing) 16%, transparent);
 }

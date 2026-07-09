@@ -214,7 +214,7 @@ watch(
   padding: 0;
   border: 0;
   border-radius: 14px;
-  background: color-mix(in srgb, var(--im-bg-surface-alt, #f2f3f5) 92%, #ffffff 8%);
+  background: color-mix(in srgb, var(--im-bg-surface-alt, var(--flare-color-bg-tertiary, #f2f3f5)) 92%, #ffffff 8%);
   box-shadow: var(--im-bubble-shadow, 0 1px 2px rgba(17, 19, 24, 0.06));
   cursor: pointer;
 }
@@ -240,7 +240,7 @@ watch(
   place-items: center;
   gap: 6px;
   min-height: 120px;
-  background: var(--im-bg-surface-alt, #f2f3f5);
+  background: var(--im-bg-surface-alt, var(--flare-color-bg-tertiary, #f2f3f5));
   color: var(--im-text-secondary);
   font-size: 12px;
 }

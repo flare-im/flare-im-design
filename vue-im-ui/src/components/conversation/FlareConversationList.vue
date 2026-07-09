@@ -35,12 +35,12 @@ const { t } = useFlareI18n();
   flex-direction: column;
   min-height: 0;
   overflow: auto;
-  background: var(--im-bg-surface, #ffffff);
+  background: var(--im-bg-surface, var(--flare-color-bg-primary, #ffffff));
 }
 
 .im-conv-list__state {
   padding: 42px 16px;
-  color: var(--im-text-secondary, #6b7280);
+  color: var(--im-text-secondary, var(--flare-color-text-secondary, #6b7280));
   font-size: 13px;
   text-align: center;
 }
