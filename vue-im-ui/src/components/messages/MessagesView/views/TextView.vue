@@ -105,7 +105,7 @@ const renderedHtml = computed(() => {
 }
 
 .im-text :deep(pre) {
-  background: var(--im-bg-surface-alt, #f2f3f5);
+  background: var(--im-bg-surface-alt, var(--flare-color-bg-tertiary, #f2f3f5));
   border-radius: 8px;
   padding: 10px;
   overflow-x: auto;

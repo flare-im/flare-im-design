@@ -114,7 +114,7 @@ watch(
   bottom: 0;
   width: 9px;
   height: 9px;
-  border: 2px solid var(--im-bg-surface, #ffffff);
+  border: 2px solid var(--im-bg-surface, var(--flare-color-bg-primary, #ffffff));
   border-radius: 50%;
 }
 
@@ -123,10 +123,10 @@ watch(
 }
 
 .im-avatar__status--busy {
-  background: var(--im-danger, #ef4444);
+  background: var(--im-danger, var(--flare-color-error, #ef4444));
 }
 
 .im-avatar__status--offline {
-  background: var(--im-text-tertiary, #a3a7ae);
+  background: var(--im-text-tertiary, var(--flare-color-text-tertiary, #a3a7ae));
 }
 </style>

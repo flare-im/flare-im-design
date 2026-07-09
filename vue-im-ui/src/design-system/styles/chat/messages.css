@@ -77,10 +77,10 @@
   max-width: 100%;
   box-sizing: border-box;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--im-border, #d7dce5) 66%, transparent);
+  border: 1px solid color-mix(in srgb, var(--im-border, var(--flare-color-border-hover, #d7dce5)) 66%, transparent);
   border-radius: 10px;
   color: var(--im-text-primary, #111827);
-  background: var(--im-bg-surface, #ffffff);
+  background: var(--im-bg-surface, var(--flare-color-bg-primary, #ffffff));
   box-shadow: 0 2px 8px color-mix(in srgb, #111827 5%, transparent);
 }
 
@@ -96,10 +96,10 @@
 
 a.im-rich-message-card:hover,
 a.im-rich-message-card:focus-visible {
-  border-color: color-mix(in srgb, var(--im-primary, #7c3aed) 34%, var(--im-border, #d7dce5));
+  border-color: color-mix(in srgb, var(--im-primary, var(--flare-color-primary, #7c3aed)) 34%, var(--im-border, var(--flare-color-border-hover, #d7dce5)));
   box-shadow:
     0 8px 20px color-mix(in srgb, #111827 9%, transparent),
-    0 0 0 1px color-mix(in srgb, var(--im-primary, #7c3aed) 8%, transparent);
+    0 0 0 1px color-mix(in srgb, var(--im-primary, var(--flare-color-primary, #7c3aed)) 8%, transparent);
   outline: none;
   transform: translateY(-1px);
 }
@@ -137,10 +137,10 @@ a.im-rich-message-card:focus-visible {
   place-items: center;
   width: 30px;
   height: 30px;
-  border: 1px solid color-mix(in srgb, var(--im-primary, #7c3aed) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--im-primary, var(--flare-color-primary, #7c3aed)) 14%, transparent);
   border-radius: 8px;
-  color: color-mix(in srgb, var(--im-primary, #7c3aed) 86%, var(--im-text-primary, #111827));
-  background: color-mix(in srgb, var(--im-primary, #7c3aed) 7%, var(--im-bg-surface-alt, #f4f6fb));
+  color: color-mix(in srgb, var(--im-primary, var(--flare-color-primary, #7c3aed)) 86%, var(--im-text-primary, #111827));
+  background: color-mix(in srgb, var(--im-primary, var(--flare-color-primary, #7c3aed)) 7%, var(--im-bg-surface-alt, #f4f6fb));
   font-weight: 700;
   line-height: 1;
 }
@@ -157,10 +157,10 @@ a.im-rich-message-card:focus-visible {
   width: 34px;
   height: 34px;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--im-border, #d7dce5) 60%, transparent);
+  border: 1px solid color-mix(in srgb, var(--im-border, var(--flare-color-border-hover, #d7dce5)) 60%, transparent);
   border-radius: 8px;
-  color: var(--im-primary, #7c3aed);
-  background: color-mix(in srgb, var(--im-primary, #7c3aed) 8%, var(--im-bg-surface-alt, #f4f6fb));
+  color: var(--im-primary, var(--flare-color-primary, #7c3aed));
+  background: color-mix(in srgb, var(--im-primary, var(--flare-color-primary, #7c3aed)) 8%, var(--im-bg-surface-alt, #f4f6fb));
   font-size: 14px;
   font-weight: 700;
 }
@@ -217,7 +217,7 @@ a.im-rich-message-card:focus-visible {
 .business-message-view__body {
   margin: 3px 0 0;
   overflow: hidden;
-  color: var(--im-text-secondary, #6b7280);
+  color: var(--im-text-secondary, var(--flare-color-text-secondary, #6b7280));
   font-size: 12px;
   line-height: 1.42;
   overflow-wrap: anywhere;
@@ -236,8 +236,8 @@ a.im-rich-message-card:focus-visible {
   place-items: center;
   height: var(--im-rich-card-media-height);
   overflow: hidden;
-  color: color-mix(in srgb, var(--im-primary, #7c3aed) 78%, var(--im-text-secondary, #6b7280));
-  background: color-mix(in srgb, var(--im-primary, #7c3aed) 5%, var(--im-bg-surface-alt, #f4f6fb));
+  color: color-mix(in srgb, var(--im-primary, var(--flare-color-primary, #7c3aed)) 78%, var(--im-text-secondary, var(--flare-color-text-secondary, #6b7280)));
+  background: color-mix(in srgb, var(--im-primary, var(--flare-color-primary, #7c3aed)) 5%, var(--im-bg-surface-alt, #f4f6fb));
 }
 
 .im-rich-message-card__media img {
@@ -259,7 +259,7 @@ a.im-rich-message-card:focus-visible {
   min-height: 36px;
   min-width: 0;
   padding: 0 12px;
-  border-top: 1px solid color-mix(in srgb, var(--im-border, #d7dce5) 54%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--im-border, var(--flare-color-border-hover, #d7dce5)) 54%, transparent);
   color: var(--im-text-tertiary, #98a2b3);
   background: color-mix(in srgb, var(--im-bg-surface-alt, #f4f6fb) 36%, var(--im-bg-surface, #fff));
   font-size: 11px;
@@ -275,7 +275,7 @@ a.im-rich-message-card:focus-visible {
 
 .im-rich-message-card__footer-action {
   flex: 0 0 auto;
-  color: color-mix(in srgb, var(--im-primary, #7c3aed) 88%, var(--im-text-primary, #111827));
+  color: color-mix(in srgb, var(--im-primary, var(--flare-color-primary, #7c3aed)) 88%, var(--im-text-primary, #111827));
   font-weight: 650;
 }
 
@@ -287,8 +287,8 @@ a.im-rich-message-card:focus-visible {
   max-width: 92px;
   padding: 2px 7px;
   border-radius: var(--im-radius-pill, 999px);
-  color: var(--im-primary, #7c3aed);
-  background: color-mix(in srgb, var(--im-primary, #7c3aed) 9%, var(--im-bg-surface, #fff));
+  color: var(--im-primary, var(--flare-color-primary, #7c3aed));
+  background: color-mix(in srgb, var(--im-primary, var(--flare-color-primary, #7c3aed)) 9%, var(--im-bg-surface, #fff));
   font-size: 11px;
   font-weight: 700;
   line-height: 1.35;
@@ -305,18 +305,18 @@ a.im-rich-message-card:focus-visible {
 }
 
 .business-message-view__status--success {
-  color: var(--im-success, #22c55e);
-  background: color-mix(in srgb, var(--im-success, #22c55e) 11%, var(--im-bg-surface, #fff));
+  color: var(--im-success, var(--flare-color-success, #22c55e));
+  background: color-mix(in srgb, var(--im-success, var(--flare-color-success, #22c55e)) 11%, var(--im-bg-surface, #fff));
 }
 
 .business-message-view__status--warning {
-  color: var(--im-warning, #f59e0b);
-  background: color-mix(in srgb, var(--im-warning, #f59e0b) 12%, var(--im-bg-surface, #fff));
+  color: var(--im-warning, var(--flare-color-warning, #f59e0b));
+  background: color-mix(in srgb, var(--im-warning, var(--flare-color-warning, #f59e0b)) 12%, var(--im-bg-surface, #fff));
 }
 
 .business-message-view__status--danger {
-  color: var(--im-danger, #ef4444);
-  background: color-mix(in srgb, var(--im-danger, #ef4444) 11%, var(--im-bg-surface, #fff));
+  color: var(--im-danger, var(--flare-color-error, #ef4444));
+  background: color-mix(in srgb, var(--im-danger, var(--flare-color-error, #ef4444)) 11%, var(--im-bg-surface, #fff));
 }
 
 .business-message-view__status--info {
@@ -340,9 +340,9 @@ a.im-rich-message-card:focus-visible {
   min-width: 0;
   max-width: 100%;
   padding: 5px 8px;
-  border: 1px solid color-mix(in srgb, var(--im-border, #d7dce5) 58%, transparent);
+  border: 1px solid color-mix(in srgb, var(--im-border, var(--flare-color-border-hover, #d7dce5)) 58%, transparent);
   border-radius: 8px;
-  color: var(--im-text-secondary, #6b7280);
+  color: var(--im-text-secondary, var(--flare-color-text-secondary, #6b7280));
   background: color-mix(in srgb, var(--im-bg-surface-alt, #f4f6fb) 54%, var(--im-bg-surface, #fff));
   font-size: 12px;
   line-height: 1.35;
@@ -669,7 +669,7 @@ a.im-rich-message-card:focus-visible {
   padding: 8px 8px calc(14px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--im-border, #dfe3ea);
   border-radius: 10px 10px 0 0;
-  background: var(--im-composer-bar-bg, #eef1f6);
+  background: var(--im-composer-bar-bg, var(--flare-color-bg-hover, #eef1f6));
   box-shadow: 0 -6px 18px rgb(15 23 42 / 5%);
 }
 
@@ -682,7 +682,7 @@ a.im-rich-message-card:focus-visible {
 }
 
 .composer--disabled .composer-input .n-input-wrapper {
-  background: color-mix(in srgb, var(--im-bg-surface-alt, #f2f3f5) 72%, var(--im-bg-surface));
+  background: color-mix(in srgb, var(--im-bg-surface-alt, var(--flare-color-bg-tertiary, #f2f3f5)) 72%, var(--im-bg-surface));
 }
 
 .composer-reply-strip {
@@ -742,20 +742,20 @@ a.im-rich-message-card:focus-visible {
 }
 
 .composer-reply-strip--edit {
-  border-color: color-mix(in srgb, var(--im-warning, #f59e0b) 38%, #ffffff);
+  border-color: color-mix(in srgb, var(--im-warning, var(--flare-color-warning, #f59e0b)) 38%, #ffffff);
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--im-warning, #f59e0b) 8%, #ffffff),
-    color-mix(in srgb, var(--im-warning, #f59e0b) 4%, #ffffff)
+    color-mix(in srgb, var(--im-warning, var(--flare-color-warning, #f59e0b)) 8%, #ffffff),
+    color-mix(in srgb, var(--im-warning, var(--flare-color-warning, #f59e0b)) 4%, #ffffff)
   );
 }
 
 .composer-reply-strip--edit .composer-reply-strip__divider {
-  background: color-mix(in srgb, var(--im-warning, #f59e0b) 32%, #ffffff);
+  background: color-mix(in srgb, var(--im-warning, var(--flare-color-warning, #f59e0b)) 32%, #ffffff);
 }
 
 .composer-reply-strip--edit strong {
-  color: color-mix(in srgb, var(--im-warning, #f59e0b) 72%, #1f2937);
+  color: color-mix(in srgb, var(--im-warning, var(--flare-color-warning, #f59e0b)) 72%, #1f2937);
 }
 
 .composer-input-row {
@@ -769,7 +769,7 @@ a.im-rich-message-card:focus-visible {
   min-height: 44px;
   border: 1px solid color-mix(in srgb, var(--im-border) 88%, transparent);
   border-radius: 14px;
-  background: var(--im-bg-surface, #ffffff);
+  background: var(--im-bg-surface, var(--flare-color-bg-primary, #ffffff));
   transition:
     border-color var(--im-motion-fast, 140ms ease),
     box-shadow var(--im-motion-fast, 140ms ease),
@@ -843,20 +843,20 @@ a.im-rich-message-card:focus-visible {
   gap: 0 10px;
   min-height: 44px;
   padding: 6px 12px;
-  border: 1px solid color-mix(in srgb, var(--im-brand-primary, #7c3aed) 22%, var(--im-border, #dfe3ea));
+  border: 1px solid color-mix(in srgb, var(--im-brand-primary, var(--flare-color-primary, #7c3aed)) 22%, var(--im-border, #dfe3ea));
   border-radius: 14px;
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--im-bg-surface, #ffffff) 96%, transparent), color-mix(in srgb, var(--im-bg-surface-alt, #f4f6fb) 90%, transparent)),
-    var(--im-bg-surface, #ffffff);
+    linear-gradient(180deg, color-mix(in srgb, var(--im-bg-surface, var(--flare-color-bg-primary, #ffffff)) 96%, transparent), color-mix(in srgb, var(--im-bg-surface-alt, #f4f6fb) 90%, transparent)),
+    var(--im-bg-surface, var(--flare-color-bg-primary, #ffffff));
   box-shadow: 0 10px 22px rgb(15 23 42 / 10%);
   pointer-events: none;
 }
 
 .composer-voice-overlay--cancel {
-  border-color: color-mix(in srgb, var(--im-danger, #ef4444) 34%, var(--im-border, #dfe3ea));
+  border-color: color-mix(in srgb, var(--im-danger, var(--flare-color-error, #ef4444)) 34%, var(--im-border, #dfe3ea));
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--im-danger, #ef4444) 7%, #ffffff), #ffffff),
-    var(--im-bg-surface, #ffffff);
+    linear-gradient(180deg, color-mix(in srgb, var(--im-danger, var(--flare-color-error, #ef4444)) 7%, #ffffff), #ffffff),
+    var(--im-bg-surface, var(--flare-color-bg-primary, #ffffff));
 }
 
 .composer-voice-overlay__icon {
@@ -865,13 +865,13 @@ a.im-rich-message-card:focus-visible {
   width: 36px;
   height: 36px;
   border-radius: 999px;
-  color: var(--im-brand-primary, #7c3aed);
-  background: color-mix(in srgb, var(--im-brand-primary, #7c3aed) 12%, transparent);
+  color: var(--im-brand-primary, var(--flare-color-primary, #7c3aed));
+  background: color-mix(in srgb, var(--im-brand-primary, var(--flare-color-primary, #7c3aed)) 12%, transparent);
 }
 
 .composer-voice-overlay--cancel .composer-voice-overlay__icon {
-  color: var(--im-danger, #ef4444);
-  background: color-mix(in srgb, var(--im-danger, #ef4444) 12%, transparent);
+  color: var(--im-danger, var(--flare-color-error, #ef4444));
+  background: color-mix(in srgb, var(--im-danger, var(--flare-color-error, #ef4444)) 12%, transparent);
 }
 
 .composer-voice-overlay__copy {
@@ -888,13 +888,13 @@ a.im-rich-message-card:focus-visible {
 }
 
 .composer-voice-overlay__copy span {
-  color: var(--im-text-secondary, #6b7280);
+  color: var(--im-text-secondary, var(--flare-color-text-secondary, #6b7280));
   font-size: 12px;
   line-height: 1.2;
 }
 
 .composer-voice-overlay__timer {
-  color: var(--im-text-secondary, #6b7280);
+  color: var(--im-text-secondary, var(--flare-color-text-secondary, #6b7280));
   font-size: 12px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -902,7 +902,7 @@ a.im-rich-message-card:focus-visible {
 }
 
 .composer-voice-overlay--cancel .composer-voice-overlay__timer {
-  color: var(--im-danger, #ef4444);
+  color: var(--im-danger, var(--flare-color-error, #ef4444));
 }
 
 .composer-voice-overlay__meter {
@@ -911,24 +911,24 @@ a.im-rich-message-card:focus-visible {
   height: 3px;
   overflow: hidden;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--im-text-secondary, #6b7280) 12%, transparent);
+  background: color-mix(in srgb, var(--im-text-secondary, var(--flare-color-text-secondary, #6b7280)) 12%, transparent);
 }
 
 .composer-voice-overlay__meter span {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--im-brand-primary, #7c3aed);
+  background: var(--im-brand-primary, var(--flare-color-primary, #7c3aed));
   transition: width 140ms linear, background var(--im-motion-fast, 140ms ease);
 }
 
 .composer-voice-overlay--cancel .composer-voice-overlay__meter span {
-  background: var(--im-danger, #ef4444);
+  background: var(--im-danger, var(--flare-color-error, #ef4444));
 }
 
 .composer-voice-error {
   margin: -2px 8px 0;
-  color: var(--im-danger, #ef4444);
+  color: var(--im-danger, var(--flare-color-error, #ef4444));
   font-size: 12px;
   line-height: 1.35;
 }
@@ -1093,7 +1093,7 @@ a.im-rich-message-card:focus-visible {
 }
 
 .composer-md-token--strike {
-  color: var(--im-text-secondary, #6b7280);
+  color: var(--im-text-secondary, var(--flare-color-text-secondary, #6b7280));
   text-decoration: line-through;
 }
 
@@ -1129,7 +1129,7 @@ a.im-rich-message-card:focus-visible {
 
 .composer-md-token--heading-6 {
   font-size: 1em;
-  color: var(--im-text-secondary, #6b7280);
+  color: var(--im-text-secondary, var(--flare-color-text-secondary, #6b7280));
 }
 
 .composer-md-token--code {
@@ -1173,7 +1173,7 @@ a.im-rich-message-card:focus-visible {
 }
 
 .composer-md-token--divider .composer-md-token__text {
-  color: var(--im-text-secondary, #6b7280);
+  color: var(--im-text-secondary, var(--flare-color-text-secondary, #6b7280));
   font-weight: 500;
 }
 
@@ -1184,7 +1184,7 @@ a.im-rich-message-card:focus-visible {
   width: 20px;
   height: 20px;
   border-radius: 6px;
-  color: var(--im-brand-primary, #7c3aed);
+  color: var(--im-brand-primary, var(--flare-color-primary, #7c3aed));
   background: color-mix(in srgb, var(--im-brand-primary) 12%, #ffffff);
   font-size: 12px;
   font-weight: 700;
@@ -1258,7 +1258,7 @@ a.im-rich-message-card:focus-visible {
   --n-height: 34px;
   --n-width: 40px;
   color: #ffffff;
-  background: var(--im-message-outgoing, #7c3aed) !important;
+  background: var(--im-message-outgoing, var(--flare-color-primary, #7c3aed)) !important;
   border: none !important;
   border-radius: 9px !important;
   box-shadow: 0 6px 16px color-mix(in srgb, var(--im-message-outgoing) 24%, transparent);
@@ -1273,23 +1273,23 @@ a.im-rich-message-card:focus-visible {
 }
 
 .composer-toolbar .n-button.is-selected {
-  color: var(--im-message-outgoing, #7c3aed);
+  color: var(--im-message-outgoing, var(--flare-color-primary, #7c3aed));
   background: color-mix(in srgb, var(--im-message-outgoing) 12%, transparent);
 }
 
 .composer-toolbar .n-button.is-cancel {
-  color: var(--im-danger, #ef4444);
-  background: color-mix(in srgb, var(--im-danger, #ef4444) 12%, transparent);
+  color: var(--im-danger, var(--flare-color-error, #ef4444));
+  background: color-mix(in srgb, var(--im-danger, var(--flare-color-error, #ef4444)) 12%, transparent);
 }
 
 .composer-format-strip {
-  --composer-format-surface: color-mix(in srgb, var(--im-bg-surface, #ffffff) 92%, var(--im-bg-surface-alt, #f4f6fb));
-  --composer-format-surface-raised: color-mix(in srgb, var(--im-bg-surface, #ffffff) 96%, var(--im-bg-surface-alt, #f4f6fb));
+  --composer-format-surface: color-mix(in srgb, var(--im-bg-surface, var(--flare-color-bg-primary, #ffffff)) 92%, var(--im-bg-surface-alt, #f4f6fb));
+  --composer-format-surface-raised: color-mix(in srgb, var(--im-bg-surface, var(--flare-color-bg-primary, #ffffff)) 96%, var(--im-bg-surface-alt, #f4f6fb));
   --composer-format-control-bg: color-mix(in srgb, var(--im-bg-surface-alt, #f4f6fb) 62%, transparent);
-  --composer-format-control-hover: color-mix(in srgb, var(--im-brand-primary, #7c3aed) 10%, var(--im-bg-surface, #ffffff));
-  --composer-format-control-active: color-mix(in srgb, var(--im-brand-primary, #7c3aed) 14%, var(--im-bg-surface, #ffffff));
+  --composer-format-control-hover: color-mix(in srgb, var(--im-brand-primary, var(--flare-color-primary, #7c3aed)) 10%, var(--im-bg-surface, var(--flare-color-bg-primary, #ffffff)));
+  --composer-format-control-active: color-mix(in srgb, var(--im-brand-primary, var(--flare-color-primary, #7c3aed)) 14%, var(--im-bg-surface, var(--flare-color-bg-primary, #ffffff)));
   --composer-format-divider: color-mix(in srgb, var(--im-border, #dfe3ea) 72%, transparent);
-  --composer-format-highlight: color-mix(in srgb, var(--im-brand-primary, #7c3aed) 24%, transparent);
+  --composer-format-highlight: color-mix(in srgb, var(--im-brand-primary, var(--flare-color-primary, #7c3aed)) 24%, transparent);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1348,7 +1348,7 @@ a.im-rich-message-card:focus-visible {
   padding: 0 22px 0 6px;
   border: 0;
   border-radius: 8px;
-  color: var(--im-text-secondary, #6b7280);
+  color: var(--im-text-secondary, var(--flare-color-text-secondary, #6b7280));
   background: var(--composer-format-control-bg);
   font: 700 13px/1 var(--im-font-family, inherit);
   outline: none;
@@ -1358,7 +1358,7 @@ a.im-rich-message-card:focus-visible {
 
 .composer-heading-select:hover,
 .composer-heading-select:focus-visible {
-  color: var(--im-brand-primary, #7c3aed);
+  color: var(--im-brand-primary, var(--flare-color-primary, #7c3aed));
   background: var(--composer-format-control-hover);
 }
 
@@ -1377,7 +1377,7 @@ a.im-rich-message-card:focus-visible {
   padding: 0;
   border: 1px solid transparent;
   border-radius: 8px;
-  color: var(--im-text-secondary, #6b7280);
+  color: var(--im-text-secondary, var(--flare-color-text-secondary, #6b7280));
   background: transparent;
   font: 700 14px/1 var(--im-font-family, inherit);
   cursor: pointer;
@@ -1430,7 +1430,7 @@ a.im-rich-message-card:focus-visible {
 .composer-format-button:hover,
 .composer-format-button:focus-visible,
 .composer-format-button.is-active {
-  color: var(--im-brand-primary, #7c3aed);
+  color: var(--im-brand-primary, var(--flare-color-primary, #7c3aed));
   border-color: var(--composer-format-highlight);
   background: var(--composer-format-control-active);
   box-shadow: 0 5px 12px color-mix(in srgb, var(--im-brand-primary) 12%, transparent);
@@ -1459,10 +1459,10 @@ a.im-rich-message-card:focus-visible {
   --composer-format-surface: color-mix(in srgb, var(--im-bg-surface, #1a1d23) 88%, var(--im-bg-surface-alt, #22262e));
   --composer-format-surface-raised: color-mix(in srgb, var(--im-bg-surface, #1a1d23) 92%, rgb(255 255 255 / 7%));
   --composer-format-control-bg: color-mix(in srgb, var(--im-bg-surface-alt, #22262e) 68%, transparent);
-  --composer-format-control-hover: color-mix(in srgb, var(--im-brand-primary, #7c3aed) 18%, var(--im-bg-surface-alt, #22262e));
-  --composer-format-control-active: color-mix(in srgb, var(--im-brand-primary, #7c3aed) 26%, var(--im-bg-surface-alt, #22262e));
+  --composer-format-control-hover: color-mix(in srgb, var(--im-brand-primary, var(--flare-color-primary, #7c3aed)) 18%, var(--im-bg-surface-alt, #22262e));
+  --composer-format-control-active: color-mix(in srgb, var(--im-brand-primary, var(--flare-color-primary, #7c3aed)) 26%, var(--im-bg-surface-alt, #22262e));
   --composer-format-divider: color-mix(in srgb, var(--im-border, rgb(255 255 255 / 10%)) 86%, transparent);
-  --composer-format-highlight: color-mix(in srgb, var(--im-brand-primary, #7c3aed) 42%, transparent);
+  --composer-format-highlight: color-mix(in srgb, var(--im-brand-primary, var(--flare-color-primary, #7c3aed)) 42%, transparent);
   border-color: color-mix(in srgb, var(--im-border, rgb(255 255 255 / 10%)) 92%, transparent);
   box-shadow:
     0 1px 0 rgb(0 0 0 / 24%),
@@ -1489,7 +1489,7 @@ a.im-rich-message-card:focus-visible {
     border: 1px solid color-mix(in srgb, var(--im-border, #dfe3ea) 88%, transparent);
     border-bottom: 1px solid color-mix(in srgb, var(--im-border, #dfe3ea) 74%, transparent);
     border-radius: 14px 14px 0 0;
-    background: var(--im-bg-surface, #ffffff);
+    background: var(--im-bg-surface, var(--flare-color-bg-primary, #ffffff));
     box-shadow: none;
     overflow-x: auto;
     overflow-y: hidden;
@@ -1526,7 +1526,7 @@ a.im-rich-message-card:focus-visible {
     border: 1px solid color-mix(in srgb, var(--im-border, #dfe3ea) 88%, transparent);
     border-top: 0;
     border-radius: 0 0 14px 14px;
-    background: var(--im-bg-surface, #ffffff);
+    background: var(--im-bg-surface, var(--flare-color-bg-primary, #ffffff));
     box-shadow: none;
   }
 
@@ -1589,7 +1589,7 @@ a.im-rich-message-card:focus-visible {
     min-height: 0;
     padding: 8px 10px calc(14px + env(safe-area-inset-bottom));
     border-radius: 0;
-    background: var(--im-composer-bar-bg, #f5f6f8);
+    background: var(--im-composer-bar-bg, var(--flare-color-bg-secondary, #f5f6f8));
     box-shadow: none;
   }
 
@@ -1813,7 +1813,7 @@ a.im-rich-message-card:focus-visible {
   }
 
   .composer--input-expanded .composer-format-button.is-active {
-    color: var(--im-brand-primary, #7c3aed);
+    color: var(--im-brand-primary, var(--flare-color-primary, #7c3aed));
     background: var(--composer-format-control-active, color-mix(in srgb, var(--im-brand-primary) 12%, var(--im-bg-surface)));
   }
 
@@ -1857,7 +1857,7 @@ a.im-rich-message-card:focus-visible {
     background:
       linear-gradient(
         180deg,
-        color-mix(in srgb, var(--im-bg-surface, #ffffff) 94%, transparent),
+        color-mix(in srgb, var(--im-bg-surface, var(--flare-color-bg-primary, #ffffff)) 94%, transparent),
         color-mix(in srgb, var(--im-bg-surface-alt, #f4f6fb) 86%, transparent)
       ),
       color-mix(in srgb, var(--im-bg-surface-alt, #f4f6fb) 68%, transparent);

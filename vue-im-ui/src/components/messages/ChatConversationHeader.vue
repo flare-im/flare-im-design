@@ -18,8 +18,8 @@
   min-height: var(--layout-header, 60px);
   min-width: 0;
   padding: 8px 16px;
-  border-bottom: 1px solid var(--im-chat-hdr-border, #e7e9ee);
-  background: var(--im-chat-hdr-bg, #ffffff);
+  border-bottom: 1px solid var(--im-chat-hdr-border, var(--flare-color-border-primary, #e7e9ee));
+  background: var(--im-chat-hdr-bg, var(--flare-color-bg-primary, #ffffff));
   box-shadow: none;
 }
 

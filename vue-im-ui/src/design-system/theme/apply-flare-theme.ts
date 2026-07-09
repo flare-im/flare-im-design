@@ -11,12 +11,12 @@ export function generateWebAppThemeExtensions(isDark = false): string {
   color-scheme: ${isDark ? "dark" : "light"};
   --im-font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
     "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", "Inter", "Segoe UI", Arial, sans-serif;
-  --im-brand-primary: #7C3AED;
-  --im-brand-primary-soft: ${isDark ? "rgba(124, 58, 237, 0.24)" : "#F1EAFF"};
-  --im-gradient-start: #7c3aed;
-  --im-gradient-end: #6366f1;
+  --im-brand-primary: var(--flare-color-primary, #7C3AED);
+  --im-brand-primary-soft: ${isDark ? "rgba(124, 58, 237, 0.24)" : "var(--flare-color-bg-selected, #F1EAFF)"};
+  --im-gradient-start: var(--flare-color-primary, #7c3aed);
+  --im-gradient-end: var(--flare-color-info, #6366f1);
   --im-primary-soft: var(--im-brand-primary-soft);
-  --im-message-outgoing: ${colors.bubble.self};
+  --im-message-outgoing: ${isDark ? colors.bubble.self : `var(--flare-color-bubble-self, ${colors.bubble.self})`};
   --im-message-outgoing-text: #ffffff;
   // Received bubble = white card (Flare thread grammar), aligned with the
   // native packages + reference app. The bubble CSS already supplies the
@@ -26,7 +26,7 @@ export function generateWebAppThemeExtensions(isDark = false): string {
   --im-message-pinned-bg: ${isDark ? "rgba(245, 158, 11, 0.14)" : "#FFF7DE"};
   --im-message-pinned-border: ${isDark ? "rgba(245, 158, 11, 0.34)" : "#F2C94C"};
   --im-message-pinned-text: ${isDark ? "#FFE8A3" : "#8A5A00"};
-  --im-presence-online: ${colors.success};
+  --im-presence-online: var(--flare-color-success, ${colors.success});
   --im-composer-bar-bg: ${isDark ? "#1a1d23" : "#eef1f6"};
   --im-composer-desktop-height: 46px;
   --im-composer-mobile-min-height: 96px;

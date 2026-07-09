@@ -158,10 +158,10 @@ function onPrimaryAction(): void {
   justify-content: center;
   width: 42px;
   height: 42px;
-  border: 1px solid color-mix(in srgb, var(--im-brand-primary, #7c3aed) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--im-brand-primary, var(--flare-color-primary, #7c3aed)) 20%, transparent);
   border-radius: 12px;
-  color: var(--im-brand-primary, #7c3aed);
-  background: color-mix(in srgb, var(--im-brand-primary, #7c3aed) 12%, var(--im-bg-surface-alt, #f4f6fb));
+  color: var(--im-brand-primary, var(--flare-color-primary, #7c3aed));
+  background: color-mix(in srgb, var(--im-brand-primary, var(--flare-color-primary, #7c3aed)) 12%, var(--im-bg-surface-alt, #f4f6fb));
 }
 
 .im-file__type-icon .n-icon {
@@ -234,8 +234,8 @@ function onPrimaryAction(): void {
   padding: 0;
   border: 0;
   border-radius: 12px;
-  color: var(--im-brand-primary, #7c3aed);
-  background: color-mix(in srgb, var(--im-brand-primary, #7c3aed) 12%, transparent);
+  color: var(--im-brand-primary, var(--flare-color-primary, #7c3aed));
+  background: color-mix(in srgb, var(--im-brand-primary, var(--flare-color-primary, #7c3aed)) 12%, transparent);
   cursor: pointer;
   transition:
     background-color var(--im-motion-fast, 140ms ease),
@@ -250,7 +250,7 @@ function onPrimaryAction(): void {
 
 .im-file__action:hover:not(:disabled),
 .im-file__action:focus-visible {
-  background: color-mix(in srgb, var(--im-brand-primary, #7c3aed) 18%, transparent);
+  background: color-mix(in srgb, var(--im-brand-primary, var(--flare-color-primary, #7c3aed)) 18%, transparent);
   transform: translateY(-1px);
   outline: none;
 }

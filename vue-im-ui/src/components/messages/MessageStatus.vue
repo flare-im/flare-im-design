@@ -121,7 +121,7 @@ const resendLabel = computed(() => t("message.resendAria"));
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--im-danger, #ef4444);
+  color: var(--im-danger, var(--flare-color-error, #ef4444));
   cursor: pointer;
 }
 
@@ -145,21 +145,21 @@ const resendLabel = computed(() => t("message.resendAria"));
 
 .status-sending .status-icon {
   opacity: 0.72;
-  color: var(--im-text-tertiary, #a3a7ae);
+  color: var(--im-text-tertiary, var(--flare-color-text-tertiary, #a3a7ae));
 }
 
 .status-sent .status-icon {
-  color: var(--im-text-tertiary, #a3a7ae);
+  color: var(--im-text-tertiary, var(--flare-color-text-tertiary, #a3a7ae));
   opacity: 0.92;
 }
 
 .status-delivered .status-icon,
 .status-read .status-icon {
-  color: var(--im-success, #22c55e);
+  color: var(--im-success, var(--flare-color-success, #22c55e));
 }
 
 .status-read-path {
-  stroke: var(--im-success, #22c55e) !important;
+  stroke: var(--im-success, var(--flare-color-success, #22c55e)) !important;
 }
 
 .status-failed .status-icon circle,

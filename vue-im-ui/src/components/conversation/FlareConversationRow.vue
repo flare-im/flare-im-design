@@ -446,7 +446,7 @@ function openContextMenu(event: MouseEvent): void {
   height: 20px;
   padding: 0 6px;
   border-radius: 999px;
-  background: var(--im-conv-unread-bg, var(--primary, #7c3aed));
+  background: var(--im-conv-unread-bg, var(--primary, var(--flare-color-primary, #7c3aed)));
   color: #fff;
   font-size: 11px;
   font-weight: 800;
@@ -464,10 +464,10 @@ function openContextMenu(event: MouseEvent): void {
   place-items: center;
   width: 30px;
   height: 30px;
-  border: 1px solid color-mix(in srgb, var(--im-primary, #7c3aed) 22%, transparent);
+  border: 1px solid color-mix(in srgb, var(--im-primary, var(--flare-color-primary, #7c3aed)) 22%, transparent);
   border-radius: 8px;
-  color: var(--im-primary, #7c3aed);
-  background: color-mix(in srgb, var(--im-primary, #7c3aed) 10%, var(--im-bg-surface, #fff));
+  color: var(--im-primary, var(--flare-color-primary, #7c3aed));
+  background: color-mix(in srgb, var(--im-primary, var(--flare-color-primary, #7c3aed)) 10%, var(--im-bg-surface, #fff));
   font-size: 15px;
   pointer-events: none;
 }
@@ -509,7 +509,7 @@ function openContextMenu(event: MouseEvent): void {
 }
 
 :global(.im-conv-dropdown .n-dropdown-option-body--pending) {
-  background: color-mix(in srgb, var(--im-primary, #7c3aed) 9%, transparent) !important;
+  background: color-mix(in srgb, var(--im-primary, var(--flare-color-primary, #7c3aed)) 9%, transparent) !important;
 }
 
 :global(.im-conv-dropdown .n-dropdown-option-body__prefix) {
@@ -529,7 +529,7 @@ function openContextMenu(event: MouseEvent): void {
   align-items: center;
   min-width: 0;
   height: 100%;
-  color: var(--im-text-primary, #111318);
+  color: var(--im-text-primary, var(--flare-color-text-primary, #111318));
   font-size: 14px;
   font-weight: 650;
   line-height: 1.25;
@@ -543,7 +543,7 @@ function openContextMenu(event: MouseEvent): void {
 
 :global(.im-conv-dropdown .im-conv-menu-option--danger .n-dropdown-option-body__prefix),
 :global(.im-conv-dropdown .im-conv-menu-option--danger .n-dropdown-option-body__label) {
-  color: var(--im-danger, #ef4444) !important;
+  color: var(--im-danger, var(--flare-color-error, #ef4444)) !important;
 }
 
 @media (hover: none) {

@@ -201,7 +201,7 @@ function formatPercent(value: number): string {
   height: 6px;
   overflow: hidden;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--im-primary, #7c3aed) 8%, var(--im-bg-surface-alt, #f4f6fb));
+  background: color-mix(in srgb, var(--im-primary, var(--flare-color-primary, #7c3aed)) 8%, var(--im-bg-surface-alt, #f4f6fb));
 }
 
 .business-vote-option__bar::before {
@@ -209,7 +209,7 @@ function formatPercent(value: number): string {
   inset: 0 auto 0 0;
   width: var(--vote-percent, 0%);
   border-radius: inherit;
-  background: color-mix(in srgb, var(--im-primary, #7c3aed) 72%, var(--im-text-primary, #111827));
+  background: color-mix(in srgb, var(--im-primary, var(--flare-color-primary, #7c3aed)) 72%, var(--im-text-primary, #111827));
   content: "";
   transition: width var(--im-motion-normal, 180ms ease);
 }

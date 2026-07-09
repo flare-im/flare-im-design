@@ -94,10 +94,10 @@ const readingTime = computed(() => estimateReadingTime(props.content));
 
 .markdown-preview__body :deep(blockquote) {
   padding: 6px 10px;
-  border-left: 3px solid color-mix(in srgb, var(--im-primary, #7c3aed) 46%, transparent);
+  border-left: 3px solid color-mix(in srgb, var(--im-primary, var(--flare-color-primary, #7c3aed)) 46%, transparent);
   border-radius: 0 7px 7px 0;
   color: var(--im-text-secondary);
-  background: color-mix(in srgb, var(--im-primary, #7c3aed) 6%, var(--im-bg-surface-alt, #f4f6fb));
+  background: color-mix(in srgb, var(--im-primary, var(--flare-color-primary, #7c3aed)) 6%, var(--im-bg-surface-alt, #f4f6fb));
 }
 
 .markdown-preview__body :deep(pre) {
@@ -110,8 +110,8 @@ const readingTime = computed(() => estimateReadingTime(props.content));
 .markdown-preview__body :deep(code) {
   padding: 0.1em 0.32em;
   border-radius: 5px;
-  color: color-mix(in srgb, var(--im-primary, #7c3aed) 76%, var(--im-text-primary));
-  background: color-mix(in srgb, var(--im-primary, #7c3aed) 7%, var(--im-bg-surface-alt, #f4f6fb));
+  color: color-mix(in srgb, var(--im-primary, var(--flare-color-primary, #7c3aed)) 76%, var(--im-text-primary));
+  background: color-mix(in srgb, var(--im-primary, var(--flare-color-primary, #7c3aed)) 7%, var(--im-bg-surface-alt, #f4f6fb));
   font-size: 0.92em;
 }
 
@@ -126,7 +126,7 @@ const readingTime = computed(() => estimateReadingTime(props.content));
   max-width: 100%;
   max-height: min(260px, 38dvh);
   margin: 8px 0;
-  border: 1px solid color-mix(in srgb, var(--im-border, #d7dce5) 54%, transparent);
+  border: 1px solid color-mix(in srgb, var(--im-border, var(--flare-color-border-hover, #d7dce5)) 54%, transparent);
   border-radius: 8px;
   object-fit: cover;
 }
@@ -141,7 +141,7 @@ const readingTime = computed(() => estimateReadingTime(props.content));
 .markdown-preview__body :deep(th),
 .markdown-preview__body :deep(td) {
   padding: 5px 7px;
-  border: 1px solid color-mix(in srgb, var(--im-border, #d7dce5) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--im-border, var(--flare-color-border-hover, #d7dce5)) 70%, transparent);
 }
 
 .markdown-preview__body :deep(th) {
