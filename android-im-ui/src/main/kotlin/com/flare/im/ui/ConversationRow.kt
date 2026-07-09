@@ -2,7 +2,9 @@ package com.flare.im.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Column
@@ -38,6 +40,7 @@ import androidx.compose.ui.unit.sp
  * A single inbox row — avatar, title, preview/draft, unread badge, time, and
  * mute/pin markers. Spec: Conversation/ConversationRow (`ConversationRow`).
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ConversationRow(
     item: ConversationRowData,
@@ -51,7 +54,14 @@ fun ConversationRow(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .then(if (onSelect != null) Modifier.clickable { onSelect() } else Modifier)
+            .then(
+                if (onSelect != null || onLongPress != null)
+                    Modifier.combinedClickable(
+                        onClick = { onSelect?.invoke() },
+                        onLongClick = onLongPress?.let { lp -> { lp() } },
+                    )
+                else Modifier,
+            )
             .background(if (active) colors.bgSelected else Color.Transparent)
             .padding(horizontal = FlareSizes.spacingSm, vertical = FlareSizes.spacingMd),
     ) {
