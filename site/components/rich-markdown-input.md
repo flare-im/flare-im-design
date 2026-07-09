@@ -8,7 +8,7 @@ title: RichMarkdownInput
 
 > 富文本（RichDoc/Markdown）编辑域，带格式预览与字数限制 —— Composer 内部使用。
 
-**数据源**：产出规范化的 RichDoc/Markdown 内容（由 core 归一化）
+**数据源**：产出规范化的 RichDoc / Markdown 内容，交给你的发送逻辑（可选由 Flare core 归一化）
 
 ## 预览
 

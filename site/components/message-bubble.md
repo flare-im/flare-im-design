@@ -8,7 +8,7 @@ title: MessageBubble
 
 > 线程里的一条消息 —— 内容、发送者、分组、送达状态。正文按内容类型委派给对应视图。
 
-**数据源**：取 client.views.openTimeline(conversationId) 的一条；status 驱动状态
+**数据源**：一条消息对象（你的数据）；status 驱动状态；可选来自 Flare core 时间线
 
 ## 预览
 

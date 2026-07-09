@@ -1,6 +1,6 @@
 # 组件契约 (L2 spec)
 
-组件契约是这套 UI Kit 的**单一真源**：[`spec/components.json`](https://github.com/flare-im/flare-im-design) 用框架中立的方式描述每个组件的 `props` / `states` / `events`，以及它的 **core 数据源**。本站的组件页、侧边栏、API 表全部由它生成。
+组件契约是这套 UI Kit 的**单一真源**：[`spec/components.json`](https://github.com/flare-im/flare-im-design) 用框架中立的方式描述每个组件的 `props` / `states` / `events`，以及它**需要的数据形状**。本站的组件页、侧边栏、API 表全部由它生成。
 
 ## 一个组件契约长什么样
 

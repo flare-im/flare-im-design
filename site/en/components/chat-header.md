@@ -8,7 +8,7 @@ title: ChatHeader
 
 > The active conversation's header — title, subtitle/presence, and header actions (search/call/details).
 
-**Data source**: active conversation summary + peer presence from the view
+**Data source**: active conversation summary + peer presence (your data)
 
 ## Preview
 

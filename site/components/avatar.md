@@ -8,7 +8,7 @@ title: Avatar
 
 > 用户 / 群组头像 —— 图片、首字母兜底、可选在线状态点。
 
-**数据源**：取会话 / 消息视图的身份字段（displayName、avatarUrl）；在线状态来自 client.views 的 presence
+**数据源**：身份字段（displayName、avatarUrl）由你传入；在线状态可选来自 Flare core presence
 
 ## 预览
 

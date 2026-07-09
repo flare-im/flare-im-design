@@ -8,7 +8,7 @@ title: MessageBubble
 
 > One message in a thread — content, sender, grouping, delivery status. Delegates body to a per-content-type view.
 
-**Data source**: one item from client.views.openTimeline(conversationId); status drives state
+**Data source**: one message object (your data); status drives state; optionally from a Flare core timeline
 
 ## Preview
 

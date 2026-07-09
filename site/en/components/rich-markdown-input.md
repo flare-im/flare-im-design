@@ -8,7 +8,7 @@ title: RichMarkdownInput
 
 > The rich (RichDoc/Markdown) text field with formatting preview and length limit — used inside Composer.
 
-**Data source**: produces normalized RichDoc/Markdown content (normalized by core)
+**Data source**: produces normalized RichDoc / Markdown content for your send logic (optionally normalized by Flare core)
 
 ## Preview
 

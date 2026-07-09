@@ -808,8 +808,8 @@
         "zh": "用户 / 群组头像 —— 图片、首字母兜底、可选在线状态点。"
       },
       "dataSource": {
-        "en": "identity fields from the conversation/message view (displayName, avatarUrl); presence from client.views presence",
-        "zh": "取会话 / 消息视图的身份字段（displayName、avatarUrl）；在线状态来自 client.views 的 presence"
+        "en": "identity fields (displayName, avatarUrl) you pass in; presence optionally from Flare core",
+        "zh": "身份字段（displayName、avatarUrl）由你传入；在线状态可选来自 Flare core presence"
       },
       "props": [
         {
@@ -992,8 +992,8 @@
         "zh": "会话收件箱 —— 虚拟化的会话行（头像、标题、预览、未读、时间）。"
       },
       "dataSource": {
-        "en": "client.views.openConversationList(); one observable list, reorders + updates unread live",
-        "zh": "client.views.openConversationList()；一份可观察列表，实时重排并更新未读"
+        "en": "an array of conversations (your data); optionally the Flare core openConversationList() observable list that reorders + updates unread live",
+        "zh": "会话数组（你的数据）；可选 Flare core 的 openConversationList() 可观察列表，实时重排并更新未读"
       },
       "props": [
         {
@@ -1268,8 +1268,8 @@
         "zh": "线程里的一条消息 —— 内容、发送者、分组、送达状态。正文按内容类型委派给对应视图。"
       },
       "dataSource": {
-        "en": "one item from client.views.openTimeline(conversationId); status drives state",
-        "zh": "取 client.views.openTimeline(conversationId) 的一条；status 驱动状态"
+        "en": "one message object (your data); status drives state; optionally from a Flare core timeline",
+        "zh": "一条消息对象（你的数据）；status 驱动状态；可选来自 Flare core 时间线"
       },
       "props": [
         {
@@ -1403,8 +1403,8 @@
         "zh": "虚拟化消息线程 —— 分组、加载更早、多选、逐条操作、媒体状态。"
       },
       "dataSource": {
-        "en": "client.views.openTimeline(conversationId); windowed, load-older via view.loadOlder()",
-        "zh": "client.views.openTimeline(conversationId)；窗口化，加载更早经 view.loadOlder()"
+        "en": "an array of messages (your data), windowed; load-older via your onLoadOlder callback, or optionally a Flare core timeline's loadOlder()",
+        "zh": "消息数组（你的数据），窗口化渲染，加载更早由你的 onLoadOlder 回调触发；可选接 Flare core 时间线的 loadOlder()"
       },
       "props": [
         {
@@ -1552,8 +1552,8 @@
         "zh": "当前会话头部 —— 标题、副标题 / 在线态，以及头部操作（搜索 / 通话 / 详情）。"
       },
       "dataSource": {
-        "en": "active conversation summary + peer presence from the view",
-        "zh": "取视图的当前会话摘要 + 对端在线态"
+        "en": "active conversation summary + peer presence (your data)",
+        "zh": "当前会话摘要 + 对端在线态（你的数据）"
       },
       "props": [
         {
@@ -2921,8 +2921,8 @@
         "zh": "富文本（RichDoc/Markdown）编辑域，带格式预览与字数限制 —— Composer 内部使用。"
       },
       "dataSource": {
-        "en": "produces normalized RichDoc/Markdown content (normalized by core)",
-        "zh": "产出规范化的 RichDoc/Markdown 内容（由 core 归一化）"
+        "en": "produces normalized RichDoc / Markdown content for your send logic (optionally normalized by Flare core)",
+        "zh": "产出规范化的 RichDoc / Markdown 内容，交给你的发送逻辑（可选由 Flare core 归一化）"
       },
       "props": [
         {
@@ -3260,8 +3260,8 @@
         "zh": "只读渲染的 Markdown/RichDoc 内容，可选字数统计。"
       },
       "dataSource": {
-        "en": "normalized Markdown/RichDoc content (from core)",
-        "zh": "规范化的 Markdown/RichDoc 内容（来自 core）"
+        "en": "a Markdown / RichDoc string (your data)",
+        "zh": "Markdown / RichDoc 字符串（你的数据）"
       },
       "props": [
         {
@@ -3537,8 +3537,8 @@
         "zh": "通讯录 —— 按拼音 / 字母 A–Z 分组的联系人列表，带侧边索引条与快速跳转。"
       },
       "dataSource": {
-        "en": "client.views contacts/friends view; grouping and index in the presentation layer",
-        "zh": "client.views 联系人 / 好友视图；分组与索引在展示层"
+        "en": "an array of contacts/friends (your data); grouping and A–Z index done in the presentation layer",
+        "zh": "联系人 / 好友数组（你的数据）；分组与 A–Z 索引在展示层完成"
       },
       "props": [
         {
@@ -3986,8 +3986,8 @@
         "zh": "音视频通话中界面 —— 对端画面 / 头像、状态、时长，叠加控制条。视频渲染由宿主注入。"
       },
       "dataSource": {
-        "en": "RTC session state (core/media layer); video track rendered by the host",
-        "zh": "RTC 会话状态（core / 媒体层）；画面轨道由宿主渲染"
+        "en": "RTC session state (your data / media layer); the video track is rendered by the host",
+        "zh": "RTC 会话状态（你的数据 / 媒体层）；画面轨道由宿主渲染"
       },
       "props": [
         {

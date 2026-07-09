@@ -8,7 +8,7 @@ title: CallView
 
 > In-call surface — peer video/avatar, state, duration, with an overlaid control bar. Video render is host-injected.
 
-**Data source**: RTC session state (core/media layer); video track rendered by the host
+**Data source**: RTC session state (your data / media layer); the video track is rendered by the host
 
 ## Preview
 

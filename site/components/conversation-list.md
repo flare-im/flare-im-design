@@ -8,7 +8,7 @@ title: ConversationList
 
 > 会话收件箱 —— 虚拟化的会话行（头像、标题、预览、未读、时间）。
 
-**数据源**：client.views.openConversationList()；一份可观察列表，实时重排并更新未读
+**数据源**：会话数组（你的数据）；可选 Flare core 的 openConversationList() 可观察列表，实时重排并更新未读
 
 ## 预览
 

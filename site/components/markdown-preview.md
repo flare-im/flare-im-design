@@ -8,7 +8,7 @@ title: MarkdownPreview
 
 > 只读渲染的 Markdown/RichDoc 内容，可选字数统计。
 
-**数据源**：规范化的 Markdown/RichDoc 内容（来自 core）
+**数据源**：Markdown / RichDoc 字符串（你的数据）
 
 ## 预览
 

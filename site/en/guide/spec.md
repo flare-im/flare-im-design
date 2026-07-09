@@ -1,6 +1,6 @@
 # Component spec (L2)
 
-The component contract is the **single source of truth** for this UI kit: [`spec/components.json`](https://github.com/flare-im/flare-im-design) describes each component's `props` / `states` / `events` and its **core data source**, in a framework-neutral way. This site's component pages, sidebar and API tables are all generated from it.
+The component contract is the **single source of truth** for this UI kit: [`spec/components.json`](https://github.com/flare-im/flare-im-design) describes each component's `props` / `states` / `events` and **the data it takes**, in a framework-neutral way. This site's component pages, sidebar and API tables are all generated from it.
 
 ## What a contract looks like
 
