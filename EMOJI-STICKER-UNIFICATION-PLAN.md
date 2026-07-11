@@ -91,9 +91,25 @@ model already AGREES across platforms** (emoji key=filename stem=`[key]`; sticke
 - [ ] Commit+push kit (flare-im-design). Note: the devtools-plugin edit is uncommittable (client-sdk not git);
   its behavior is inherited by all flare-core Vue apps automatically.
 
-## Follow-up passes (native, per user scope decision — NOT this pass)
-- [ ] Flutter kit (`flutter-im-ui`): promote the app's emoji/sticker impl (picker/sticker-msg/inline/i18n/
-  recents) into the kit; bundle central assets via a copy step or pubspec path; drop the app's local copy.
+## Follow-up passes (native)
+### Pass 2 — Flutter kit emoji/sticker — DONE
+- [x] Investigated flutter-im-ui (empty assets, glyph stubs) + the app's Dart impl (resolver/i18n/views/segments).
+- [x] Bundled central assets via **symlink** `flutter-im-ui/assets/emoji-sticker → ../../assets/emoji-sticker`
+  (true single source, no dup) + pubspec `assets:` (manifest/locales/emoji/classic/default). CLEAN names.
+- [x] Ported kit APIs → `lib/src/emoji_sticker/`: `FlareEmojiStickerCatalog` (manifest loader + resolver:
+  emoji key→asset, sticker packageId+id→asset with default→gifs, hasEmojiKey, i18n labels),
+  `FlareStaticAssetImage` (first-frame decode for pickers).
+- [x] Ported kit widgets: `FlareEmojiPackMessage`, `FlareStickerPackMessage`, `FlarePlainTextEmojiRich`
+  (inline `[key]`), `FlareEmojiStickerPicker` (tabs: emoji + sticker packs). Wired into
+  `FlareMessageContentView` (emoji/sticker cases now use pack widgets); extended `FlareStickerContent`
+  with optional packageId/stickerId/width/height (non-breaking); exported from barrel.
+- [x] Verified: `flutter analyze` (lib + example) **No issues found**; `flutter build bundle` ✓ with **250
+  webp bundled from the symlinked central source** into flutter_assets — single-source works end-to-end.
+- Note: the design-source app still has its own copy; switching it to the kit widgets/central assets is
+  optional app-side follow-up (app is non-git, and is the reference impl).
+
+### Remaining passes
+- [ ] Original follow-up items below (Android/iOS native, app dedup).
 - [ ] Android kit (`im-ui-compose`): real pack-based emoji/sticker (replace glyph stubs); bundle central.
 - [ ] iOS kit (`FlareIMUI`): emoji/sticker components + bundle central.
 - [ ] Each native app: consume the kit widgets + central assets; delete per-app dupes.
