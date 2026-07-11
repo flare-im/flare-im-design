@@ -1,24 +1,25 @@
 <script setup>
-import { ref } from "vue";
-import DemoIcon from "./DemoIcon.vue";
-const log = ref("");
+import FlareComposerSendButton from "flare-core-vue-im-ui/components/composer/FlareComposerSendButton.vue";
+import DemoStage from "./DemoStage.vue";
 </script>
+
 <template>
-  <div class="wrap">
+  <DemoStage>
     <div class="row">
-      <span class="lbl">禁用</span>
-      <button class="send" disabled><DemoIcon name="send" :size="16" /></button>
-      <span class="lbl">可发送</span>
-      <button class="send active" @click="log = 'send · 已发送'"><DemoIcon name="send" :size="16" /></button>
+      <div class="cell">
+        <FlareComposerSendButton :active="false" />
+        <span class="lbl">无内容</span>
+      </div>
+      <div class="cell">
+        <FlareComposerSendButton :active="true" />
+        <span class="lbl">可发送</span>
+      </div>
     </div>
-    <div class="echo">{{ log || "active 时才可点，抛 send 回调" }}</div>
-  </div>
+  </DemoStage>
 </template>
+
 <style scoped>
-.wrap { width: 100%; max-width: 320px; }
-.row { display: flex; align-items: center; gap: 12px; }
+.row { display: flex; gap: 28px; }
+.cell { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .lbl { font-size: 12px; color: var(--flare-color-text-tertiary); }
-.send { width: 34px; height: 34px; border: none; border-radius: 50%; display: grid; place-items: center; background: var(--flare-color-bg-disabled); color: var(--flare-color-text-disabled); cursor: not-allowed; }
-.send.active { background: var(--flare-color-primary); color: #fff; cursor: pointer; }
-.echo { margin-top: 10px; font-size: 12px; color: var(--flare-color-text-tertiary); }
 </style>

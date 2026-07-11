@@ -1,6 +1,9 @@
 import DefaultTheme from "vitepress/theme";
 import "./custom.css";
 import "../../../tokens/dist/tokens.css";
+// Real kit component styles (--im-* tokens + component CSS). Demos now render the actual
+// flare-core-vue-im-ui components, so the docs can no longer drift from the shipped kit.
+import "flare-core-vue-im-ui/style.css";
 
 import AvatarDemo from "./demos/AvatarDemo.vue";
 import TimeStampDemo from "./demos/TimeStampDemo.vue";

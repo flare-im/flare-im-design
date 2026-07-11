@@ -2,19 +2,19 @@
 // Each message type is its own standalone component (clean props, freely
 // composable). MessageContentView just dispatches to the right one by type —
 // but you can drop any single one into your own layout.
-import FlareTextMessage from "./messages/FlareTextMessage.vue";
-import FlareImageMessage from "./messages/FlareImageMessage.vue";
-import FlareVideoMessage from "./messages/FlareVideoMessage.vue";
-import FlareVoiceMessage from "./messages/FlareVoiceMessage.vue";
-import FlareFileMessage from "./messages/FlareFileMessage.vue";
-import FlareLocationMessage from "./messages/FlareLocationMessage.vue";
-import FlareContactMessage from "./messages/FlareContactMessage.vue";
-import FlareLinkCardMessage from "./messages/FlareLinkCardMessage.vue";
-import FlareVoteMessage from "./messages/FlareVoteMessage.vue";
-import FlareTaskMessage from "./messages/FlareTaskMessage.vue";
-import FlareStickerMessage from "./messages/FlareStickerMessage.vue";
-import FlareEmojiMessage from "./messages/FlareEmojiMessage.vue";
-import FlareSystemMessage from "./messages/FlareSystemMessage.vue";
+import FlareTextMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareTextMessage.vue";
+import FlareImageMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareImageMessage.vue";
+import FlareVideoMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareVideoMessage.vue";
+import FlareVoiceMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareVoiceMessage.vue";
+import FlareFileMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareFileMessage.vue";
+import FlareLocationMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareLocationMessage.vue";
+import FlareContactMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareContactMessage.vue";
+import FlareLinkCardMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareLinkCardMessage.vue";
+import FlareVoteMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareVoteMessage.vue";
+import FlareTaskMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareTaskMessage.vue";
+import FlareStickerMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareStickerMessage.vue";
+import FlareEmojiMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareEmojiMessage.vue";
+import FlareSystemMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareSystemMessage.vue";
 </script>
 
 <template>

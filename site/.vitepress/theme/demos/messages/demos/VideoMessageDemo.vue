@@ -1,5 +1,5 @@
 <script setup>
-import C from "../FlareVideoMessage.vue";
+import C from "flare-core-vue-im-ui/components/messages/standalone/FlareVideoMessage.vue";
 </script>
 <template>
   <C duration="00:42" />
