@@ -2,20 +2,47 @@
 import { computed } from "vue";
 import type { ContentElem } from "../../../../utils/contentElem";
 import { pickNestedPayload } from "../../../../utils/contentElem";
-import { readString } from "../../../../utils/contentData";
+import { asRecord, readString } from "../../../../utils/contentData";
 import { getContentDecodedPreview } from "../../../../utils/messagePreview";
+import {
+  useFlareNotificationResolver,
+  type FlareNotificationPayload,
+} from "../../../../composables/useNotificationRenderer";
+
+// A host may inject a richer renderer; the dispatcher binds shared view props
+// this view doesn't consume, so keep them off the DOM root.
+defineOptions({ inheritAttrs: false });
 
 const props = defineProps<{ content: ContentElem; isSelf: boolean; senderName?: string }>();
 
-const title = computed(() => readString(pickNestedPayload(props.content, "notification"), "title"));
-const body = computed(() => {
-  const nested = pickNestedPayload(props.content, "notification");
-  return readString(nested, "body", "text") || getContentDecodedPreview(props.content);
+const nested = computed(() => pickNestedPayload(props.content, "notification"));
+
+const title = computed(() => readString(nested.value, "title"));
+const body = computed(
+  () => readString(nested.value, "body", "text") || getContentDecodedPreview(props.content),
+);
+
+// Normalized payload for host renderers (call-signal tiles, custom cards, …).
+const payload = computed<FlareNotificationPayload>(() => {
+  const raw = asRecord(nested.value.data ?? (props.content as Record<string, unknown>).data);
+  const data: Record<string, string> = {};
+  for (const [k, v] of Object.entries(raw)) data[k] = v == null ? "" : String(v);
+  return {
+    title: title.value,
+    body: body.value,
+    notificationType: readString(nested.value, "notificationType") || readString(props.content, "notificationType"),
+    data,
+  };
 });
+
+const resolver = useFlareNotificationResolver();
+const custom = computed(() => resolver(payload.value));
+const hidden = computed(() => custom.value === false);
 </script>
 
 <template>
-  <div class="im-notification">
+  <component :is="custom" v-if="custom" :payload="payload" />
+  <div v-else-if="!hidden" class="im-notification">
     <strong v-if="senderName || title">{{ senderName || title }}</strong>
     <span>{{ body }}</span>
   </div>

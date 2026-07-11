@@ -19,6 +19,28 @@ import FlareSystemMessage from "flare-core-vue-im-ui/components/messages/standal
 // same content pipeline, so ContentView drives it directly from a content elem.
 import ContentView from "flare-core-vue-im-ui/components/messages/MessagesView/ContentView.vue";
 import DemoStage from "./DemoStage.vue";
+import { defineComponent, h } from "vue";
+import { useFlareNotificationProvider } from "flare-core-vue-im-ui/composables/useNotificationRenderer";
+
+// Notifications are a host extension point: the kit renders a neutral line by
+// default, but a product can inject a richer notice (here a call-signal tile)
+// and hide variants it surfaces elsewhere (invite/accept live in the call UI).
+const CallSignalTile = defineComponent({
+  props: { payload: { type: Object, default: () => ({}) } },
+  setup(props) {
+    return () =>
+      h("span", { class: "demo-call-tile" }, [
+        h("span", { class: "demo-call-tile__dot" }),
+        h("span", props.payload?.body || "通话已结束"),
+      ]);
+  },
+});
+useFlareNotificationProvider((payload) => {
+  if (payload.notificationType !== "call_signal") return null;
+  const variant = payload.data?.variant;
+  if (variant === "invite" || variant === "accept") return false; // handled by call UI
+  return CallSignalTile;
+});
 
 // Wire shape mirrors the SDK: the type payload lives under `data`; the kit
 // normalizes it (flattened to root + nested under the type key) before dispatch.
@@ -50,6 +72,17 @@ const forwardContent = {
       },
     ],
   },
+};
+
+// call_signal "ended" → the injected CallSignalTile; a generic notification →
+// the default centered line; an "invite" variant → hidden by the resolver.
+const callEndedContent = {
+  contentType: "notification",
+  data: { notificationType: "call_signal", body: "通话已结束 · 时长 03:21", data: { variant: "ended" } },
+};
+const genericNotificationContent = {
+  contentType: "notification",
+  data: { title: "系统通知", body: "群管理员已开启全员禁言" },
 };
 </script>
 
@@ -98,6 +131,12 @@ const forwardContent = {
     <div class="item"><span class="tag">&lt;ContentView&gt; forward</span>
       <ContentView :content="forwardContent" />
     </div>
+    <div class="item"><span class="tag">notification · call (injected)</span>
+      <ContentView :content="callEndedContent" />
+    </div>
+    <div class="item"><span class="tag">notification · default line</span>
+      <ContentView :content="genericNotificationContent" />
+    </div>
   </div>
   </DemoStage>
 </template>
@@ -106,6 +145,8 @@ const forwardContent = {
 .canvas { width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 14px; background: var(--flare-color-bg-secondary); }
 .item { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .tag { width: 168px; flex: none; font-size: 11px; font-family: var(--vp-font-family-mono, monospace); color: var(--flare-color-text-tertiary); white-space: nowrap; }
+.demo-call-tile { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; font-size: 12px; color: var(--flare-color-text-secondary); background: var(--flare-color-bg-tertiary, rgba(0,0,0,0.05)); border: 1px solid var(--flare-color-border, rgba(0,0,0,0.08)); }
+.demo-call-tile__dot { width: 6px; height: 6px; border-radius: 50%; background: #12b76a; flex: none; }
 @media (max-width: 640px) {
   .item { flex-direction: column; align-items: flex-start; gap: 4px; }
   .tag { width: auto; }
