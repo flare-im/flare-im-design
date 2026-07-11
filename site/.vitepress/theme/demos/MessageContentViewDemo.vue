@@ -84,6 +84,17 @@ const genericNotificationContent = {
   contentType: "notification",
   data: { title: "系统通知", body: "群管理员已开启全员禁言" },
 };
+
+// A burn-after-read tombstone resolves to the localized "burned" line; a plain
+// placeholder shows its fallback text.
+const burnedPlaceholderContent = {
+  contentType: "placeholder",
+  data: { reason: "burn_after_read", fallbackText: "" },
+};
+const genericPlaceholderContent = {
+  contentType: "placeholder",
+  data: { reason: "unsupported", fallbackText: "[暂不支持的消息类型]" },
+};
 </script>
 
 <template>
@@ -136,6 +147,12 @@ const genericNotificationContent = {
     </div>
     <div class="item"><span class="tag">notification · default line</span>
       <ContentView :content="genericNotificationContent" />
+    </div>
+    <div class="item"><span class="tag">placeholder · burned</span>
+      <ContentView :content="burnedPlaceholderContent" />
+    </div>
+    <div class="item"><span class="tag">placeholder · fallback</span>
+      <ContentView :content="genericPlaceholderContent" />
     </div>
   </div>
   </DemoStage>
