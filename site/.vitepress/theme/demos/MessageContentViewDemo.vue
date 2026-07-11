@@ -15,9 +15,46 @@ import FlareTaskMessage from "flare-core-vue-im-ui/components/messages/standalon
 import FlareStickerMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareStickerMessage.vue";
 import FlareEmojiMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareEmojiMessage.vue";
 import FlareSystemMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareSystemMessage.vue";
+// The merged-forward body renders its nested messages recursively through the
+// same content pipeline, so ContentView drives it directly from a content elem.
+import ContentView from "flare-core-vue-im-ui/components/messages/MessagesView/ContentView.vue";
+import DemoStage from "./DemoStage.vue";
+
+// Wire shape mirrors the SDK: the type payload lives under `data`; the kit
+// normalizes it (flattened to root + nested under the type key) before dispatch.
+// Each nested item's own `content` is `{ contentType, data }` too, so the drawer
+// can render it recursively through the same pipeline.
+const forwardContent = {
+  contentType: "forward",
+  data: {
+    mode: 2,
+    title: "这是上周设计评审的结论，请查收",
+    items: [
+      {
+        sourceSenderName: "Ivy Chen",
+        sourceMessageTimeMs: Date.now() - 3600_000,
+        plainText: "气泡圆角统一到 16px，白描边接收气泡定稿。",
+        content: { contentType: "text", data: { text: "气泡圆角统一到 16px，白描边接收气泡定稿。" } },
+      },
+      {
+        sourceSenderName: "Leo Wang",
+        sourceMessageTimeMs: Date.now() - 3000_000,
+        plainText: "[位置] 字节跳动 · 三里屯",
+        content: { contentType: "location", data: { title: "字节跳动 · 三里屯", address: "北京市朝阳区工人体育场北路" } },
+      },
+      {
+        sourceSenderName: "Mia Zhao",
+        sourceMessageTimeMs: Date.now() - 1800_000,
+        plainText: "[文件] 设计规范 v2.pdf",
+        content: { contentType: "file", data: { name: "设计规范 v2.pdf", size: 2_517_000, ext: "PDF" } },
+      },
+    ],
+  },
+};
 </script>
 
 <template>
+  <DemoStage>
   <div class="canvas">
     <div class="item"><span class="tag">&lt;FlareTextMessage&gt;</span>
       <FlareTextMessage text="带链接的文本消息，点 flare.im 查看详情。" />
@@ -58,7 +95,11 @@ import FlareSystemMessage from "flare-core-vue-im-ui/components/messages/standal
     <div class="item"><span class="tag">&lt;FlareSystemMessage&gt;</span>
       <FlareSystemMessage text="Ivy 撤回了一条消息" />
     </div>
+    <div class="item"><span class="tag">&lt;ContentView&gt; forward</span>
+      <ContentView :content="forwardContent" />
+    </div>
   </div>
+  </DemoStage>
 </template>
 
 <style scoped>
