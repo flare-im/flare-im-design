@@ -114,6 +114,14 @@ export const flareMessages: Record<FlareLocale, FlareMessageTree> = {
     forward: {
       defaultTitle: "转发消息",
       chatHistoryCount: "聊天记录 {count} 条",
+      merged: "合并转发",
+      remark: "附言",
+      empty: "暂无转发内容",
+      viewDetail: "点击查看详情",
+      moreMessages: "还有 {count} 条消息…",
+      totalMessages: "共 {count} 条消息",
+      unknownSender: "未知发送者",
+      countSuffix: "（{count} 条）",
     },
     transport: {
       fallbackReason: "原因：{reason}",
@@ -758,6 +766,14 @@ export const flareMessages: Record<FlareLocale, FlareMessageTree> = {
     forward: {
       defaultTitle: "Forwarded messages",
       chatHistoryCount: "Chat history · {count} messages",
+      merged: "Merged forward",
+      remark: "Note",
+      empty: "No forwarded content",
+      viewDetail: "View details",
+      moreMessages: "{count} more messages…",
+      totalMessages: "{count} messages in total",
+      unknownSender: "Unknown sender",
+      countSuffix: " · {count}",
     },
     transport: {
       fallbackReason: "Reason: {reason}",
