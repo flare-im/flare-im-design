@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import { useResolvedMediaUrl } from "../../composables/useMediaResolver";
 
 const props = withDefaults(
   defineProps<{
@@ -20,6 +21,21 @@ const props = withDefaults(
 );
 
 const imageFailed = ref(false);
+
+// `avatarUrl` may be a ready URL/path OR an opaque media fileId. If it has no scheme
+// or slash, resolve it as a fileId through the host's media resolver (a no-op default
+// when none is provided → falls back to initials).
+const rawAvatar = computed(() => (props.avatarUrl ?? "").trim());
+const looksLikeUrl = (u: string) => /^[a-z][a-z0-9+.-]*:/i.test(u) || u.includes("/");
+const mediaRequest = computed(() =>
+  rawAvatar.value && !looksLikeUrl(rawAvatar.value)
+    ? { kind: "image" as const, fileId: rawAvatar.value }
+    : null,
+);
+const { url: resolvedAvatar } = useResolvedMediaUrl(mediaRequest);
+const displaySrc = computed(() =>
+  !rawAvatar.value ? "" : looksLikeUrl(rawAvatar.value) ? rawAvatar.value : resolvedAvatar.value,
+);
 
 const initials = computed(() => {
   const source = props.displayName || props.userId || "U";
@@ -51,20 +67,17 @@ const style = computed(() => ({
   "--avatar-size": `${props.size}px`,
 }));
 
-watch(
-  () => props.avatarUrl,
-  () => {
-    imageFailed.value = false;
-  },
-);
+watch(displaySrc, () => {
+  imageFailed.value = false;
+});
 </script>
 
 <template>
   <span class="im-avatar" :style="style">
     <img
-      v-if="avatarUrl && !imageFailed"
+      v-if="displaySrc && !imageFailed"
       class="im-avatar__image"
-      :src="avatarUrl"
+      :src="displaySrc"
       :alt="displayName || userId"
       @error="imageFailed = true"
     />
