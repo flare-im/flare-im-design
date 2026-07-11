@@ -190,6 +190,12 @@ function openContextMenu(event: MouseEvent): void {
       <span class="im-conv-item__body">
         <span class="im-conv-item__top">
           <span class="im-conv-item__title">{{ displayName }}</span>
+          <span
+            v-for="(tag, ti) in (item.tags ?? [])"
+            :key="ti"
+            class="im-conv-item__tag"
+            :class="`im-conv-item__tag--tone-${tag.tone ?? 'neutral'}`"
+          >{{ tag.text }}</span>
           <span v-if="draft" class="im-conv-item__tag im-conv-item__tag--draft">{{ t("conversation.draftTag") }}</span>
           <span v-if="item.muted" class="im-conv-item__tag im-conv-item__tag--muted">{{ t("conversation.muteTag") }}</span>
           <span class="im-conv-item__time">{{ timeText }}</span>
@@ -358,6 +364,21 @@ function openContextMenu(event: MouseEvent): void {
 
 .im-conv-item__tag--muted {
   color: var(--text-secondary);
+  background: var(--bg-tertiary);
+}
+
+.im-conv-item__tag--tone-info {
+  color: var(--im-info, var(--info, #6d5df6));
+  background: color-mix(in srgb, var(--im-info, var(--info, #6d5df6)) 12%, transparent);
+}
+
+.im-conv-item__tag--tone-warning {
+  color: var(--warning, #f59e0b);
+  background: color-mix(in srgb, var(--warning, #f59e0b) 12%, transparent);
+}
+
+.im-conv-item__tag--tone-neutral {
+  color: var(--text-tertiary, #86909c);
   background: var(--bg-tertiary);
 }
 

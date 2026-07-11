@@ -9,6 +9,7 @@ const item = {
   updatedAt: Date.now() - 90000,
   unreadCount: 3,
   pinned: true,
+  tags: [{ text: "Official", tone: "warning" }],
 };
 </script>
 
