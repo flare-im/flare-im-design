@@ -68,6 +68,10 @@ type FormatAction = {
 };
 
 const value = defineModel<string>({ default: "" });
+// Optional controlled rich-doc state — a host with its own rich-doc send flow can
+// v-model these alongside the text model (universal API; unused by hosts that don't).
+const richTitle = defineModel<string>("richTitle", { default: "" });
+const sendAsRichDoc = defineModel<boolean>("sendAsRichDoc", { default: false });
 const composerInputProps = {
   spellcheck: false,
   autocomplete: "off",
@@ -120,13 +124,17 @@ const emit = defineEmits<{
   (event: "clear-edit"): void;
   (event: "send-voice", payload: VoiceRecordingPayload): void;
   (event: "send", text: string): void;
+  (event: "user-input", text: string): void;
 }>();
 
 const root = ref<HTMLElement | null>(null);
+
+// Notify hosts of typing (e.g. to drive typing indicators). Fires on the text model.
+watch(value, (next) => emit("user-input", next ?? ""));
 const { t } = useFlareI18n();
 const canSend = computed(() => !props.disabled && !props.sending && value.value.trim().length > 0);
 const hasInlineEmoji = computed(() => /\[[a-z][a-z0-9_]*\]/.test(value.value));
-const useRichEditor = computed(() => props.richMode || hasInlineEmoji.value);
+const useRichEditor = computed(() => props.richMode || sendAsRichDoc.value || hasInlineEmoji.value);
 const showReply = computed(() => Boolean(props.replySender?.trim() || props.replyPreview?.trim()));
 const showEdit = computed(() => props.editing);
 const replyPreviewWarn = computed(() => /fail|error|invalid|expired|warn/i.test(props.replyPreview ?? ""));
