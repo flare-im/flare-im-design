@@ -3,7 +3,7 @@
  * 协议与存储：`EmojiContent.emoji = key`，正文用 `[key]`；此处相当于 i18n 的 `emoji.<key>` 列（按语言分桶）。
  */
 
-import packLocales from "../shared/assets/i18n/emoji-locales.json";
+import packLocales from "../../../assets/emoji-sticker/emoji-locales.json";
 
 export type EmojiPackLocaleColumn = "zh-Hans" | "en";
 

@@ -4,7 +4,7 @@
  * - **`default/`**：沿用原 `assets/gifs` 语义，**`packageId = gifs`**。
  * - 其他子目录名即 `packageId`（如 `stickers/acme/foo.webp` → `packageId=acme`）。
  */
-import classicManifest from "../../../assets/stickers/classic/manifest.json";
+import classicManifest from "../../../../../assets/emoji-sticker/stickers/classic/manifest.json";
 
 export const CLASSIC_STICKER_PACKAGE_ID = "classic";
 export const DEFAULT_STICKER_PACKAGE_ID = "gifs";
