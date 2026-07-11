@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../emoji_sticker/emoji_sticker.dart';
 import '../models/message_content.dart';
 import '../tokens/flare_tokens.dart';
 
@@ -100,9 +101,15 @@ class FlareMessageContentView extends StatelessWidget {
           ),
         );
       case FlareEmojiContent c:
-        return Text(c.emoji, style: const TextStyle(fontSize: 34));
+        return FlareEmojiPackMessage(emoji: c.emoji);
       case FlareStickerContent c:
-        return _media(context, c.url, size: 96, colors: colors, fallbackIcon: Icons.sticky_note_2_outlined);
+        return FlareStickerPackMessage(
+          stickerId: c.stickerId ?? '',
+          packageId: c.packageId,
+          url: c.url,
+          width: c.width,
+          height: c.height,
+        );
       case FlareImageContent c:
         return _image(context, c, colors);
       case FlareVideoContent c:
@@ -339,17 +346,6 @@ class FlareMessageContentView extends StatelessWidget {
       child: Text(label,
           style: TextStyle(
               color: colors.textSecondary, fontSize: FlareSizes.fontSizeSm)),
-    );
-  }
-
-  Widget _media(BuildContext context, String url,
-      {required double size,
-      required FlareColors colors,
-      required IconData fallbackIcon}) {
-    return SizedBox(
-      width: size,
-      height: size,
-      child: _networkImage(url, colors, fallbackIcon),
     );
   }
 

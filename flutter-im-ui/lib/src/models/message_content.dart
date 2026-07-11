@@ -85,9 +85,23 @@ class FlareLocationContent extends FlareMessageContent {
 }
 
 class FlareStickerContent extends FlareMessageContent {
-  const FlareStickerContent({required this.url, this.label});
+  const FlareStickerContent({
+    required this.url,
+    this.label,
+    this.packageId,
+    this.stickerId,
+    this.width,
+    this.height,
+  });
   final String url;
   final String? label;
+
+  /// Protocol pack identity — when set, the sticker resolves to a bundled pack
+  /// asset (via [FlareEmojiStickerCatalog]) before falling back to [url].
+  final String? packageId;
+  final String? stickerId;
+  final double? width;
+  final double? height;
   @override
   String get type => 'sticker';
 }

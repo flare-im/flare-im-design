@@ -15,6 +15,7 @@ export 'src/primitives/flare_presence_dot.dart';
 
 export 'src/models/conversation_row_data.dart';
 export 'src/models/message_content.dart';
+export 'src/emoji_sticker/emoji_sticker.dart';
 export 'src/models/message_data.dart';
 export 'src/models/pinned_message_data.dart';
 export 'src/models/conversation_summary.dart';
