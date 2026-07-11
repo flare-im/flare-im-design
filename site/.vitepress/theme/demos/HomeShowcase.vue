@@ -4,6 +4,8 @@ import { useData } from "vitepress";
 import { flarePresets, applyFlareTheme } from "../../../../tokens/theme.js";
 import DemoIcon from "./DemoIcon.vue";
 import { tint } from "./tint.js";
+import FlareMessageBubble from "flare-core-vue-im-ui/components/messages/MessageBubble.vue";
+import DemoStage from "./DemoStage.vue";
 
 // The homepage signature: a whole IM surface, composed from the kit and
 // re-themed live. Everything below is driven by the same tokens the four
@@ -60,6 +62,32 @@ const rooms = computed(() => T.value.rooms.map((r) => ({ ...r, av: tint(r.n) }))
 const thread = computed(() =>
   T.value.thread.map((m) => (m.self || m.kind ? m : { ...m, av: ivy })),
 );
+
+// Real message objects for the kit MessageBubble (the hero renders the shipped
+// component, re-themed live by the same tokens the four platforms consume).
+const bubbleThread = computed(() =>
+  T.value.thread
+    .filter((m) => !m.kind)
+    .map((m, i) => ({
+      row: {
+        serverId: String(m.id),
+        clientMsgId: String(m.id),
+        senderId: m.self ? "me" : "ivy",
+        senderDisplayName: m.self ? "" : "Ivy Chen",
+        conversationSeq: m.id,
+        createdAt: Date.now() + i,
+        clientCreatedAt: Date.now() + i,
+        messageType: 1,
+        content: { contentType: "text", text: { text: m.text } },
+        status: m.read ? 4 : 2,
+        isRecalled: false,
+        isRead: true,
+        timelineKey: String(m.id),
+        timelineSortTs: Date.now() + i,
+      },
+      self: !!m.self,
+    })),
+);
 </script>
 
 <template>
@@ -101,19 +129,19 @@ const thread = computed(() =>
           </header>
 
           <div class="canvas">
-            <template v-for="m in thread" :key="m.id">
-              <div v-if="m.kind === 'date'" class="date">{{ m.text }}</div>
-              <div v-else class="line" :class="{ self: m.self }">
-                <span v-if="!m.self" class="av xs" :style="{ background: m.av.bg, color: m.av.fg }">{{ m.ini }}</span>
-                <div class="bubble" :class="{ self: m.self }">
-                  <span>{{ m.text }}</span>
-                  <span class="meta">
-                    {{ m.time }}
-                    <DemoIcon v-if="m.read" name="checkDouble" :size="13" />
-                  </span>
-                </div>
-              </div>
-            </template>
+            <div class="date">{{ T.today }}</div>
+            <DemoStage>
+              <FlareMessageBubble
+                v-for="(b, i) in bubbleThread"
+                :key="i"
+                :message="b.row"
+                current-user-id="me"
+                :self="b.self"
+                conversation-type="single"
+                :group-start="true"
+                :group-end="true"
+              />
+            </DemoStage>
           </div>
 
           <footer>

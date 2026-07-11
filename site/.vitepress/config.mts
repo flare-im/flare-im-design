@@ -30,10 +30,42 @@ const componentSidebar = (loc: "zh" | "en", prefix: string) =>
 
 const first = slug(spec.components[0].name);
 
+const kitSrc = join(here, "../../vue-im-ui/src");
+
 export default defineConfig({
   title: "Flare IM Design",
   cleanUrls: true,
   appearance: true,
+  vite: {
+    resolve: {
+      // Consume the kit as source (deep imports avoid the barrel dragging the optional SDK).
+      alias: [
+        { find: /^flare-core-vue-im-ui\/style\.css$/, replacement: join(kitSrc, "design-system/styles/index.css") },
+        { find: /^flare-core-vue-im-ui$/, replacement: join(kitSrc, "index.ts") },
+        { find: /^flare-core-vue-im-ui\/(.+)$/, replacement: join(kitSrc, "$1") },
+      ],
+      dedupe: ["vue", "vue-router", "naive-ui", "@vicons/ionicons5"],
+    },
+    // The kit ships .vue source → SSR must transform (not externalize) it, plus naive-ui and
+    // its CommonJS deps (vueuc/css-render/... — the standard naive-ui + VitePress SSR set).
+    ssr: {
+      noExternal: [
+        "flare-core-vue-im-ui",
+        "naive-ui",
+        "@vicons/ionicons5",
+        "vueuc",
+        "css-render",
+        "@css-render/vue3-ssr",
+        "date-fns",
+        "@juggle/resize-observer",
+        "seemly",
+        "treemate",
+        "vooks",
+        "evtd",
+      ],
+    },
+    server: { fs: { allow: [join(here, "../..")] } },
+  },
   // /downloads/* are static package archives in public/, not pages
   ignoreDeadLinks: [/^\/downloads\//],
   themeConfig: {
