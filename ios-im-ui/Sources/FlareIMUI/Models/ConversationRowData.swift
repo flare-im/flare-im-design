@@ -1,5 +1,26 @@
 import Foundation
 
+/// Tone for a small inline row tag (group / bot / official / mention markers).
+public enum FlareTagTone: Sendable {
+    case info
+    case warning
+    case neutral
+}
+
+/// A small inline label rendered next to a conversation title (e.g. "Group",
+/// "Bot", "Official", "@"). Product decides the text/tone; the kit renders it.
+public struct ConversationRowTag: Identifiable, Sendable {
+    public let id: String
+    public let text: String
+    public let tone: FlareTagTone
+
+    public init(text: String, tone: FlareTagTone = .neutral) {
+        self.id = text
+        self.text = text
+        self.tone = tone
+    }
+}
+
 /// Neutral, presentational data for one inbox row — the spec's `ConversationRow`
 /// data type. The host maps a core conversation-list-view item into this; all
 /// product-specific formatting is resolved upstream into `preview`.
@@ -15,6 +36,8 @@ public struct ConversationRowData: Identifiable, Sendable {
     public let mentioned: Bool
     public let draftPreview: String?
     public let presence: FlarePresence?
+    /// Inline title tags (group / role / mention). Empty by default.
+    public let tags: [ConversationRowTag]
 
     public init(
         id: String,
@@ -27,7 +50,8 @@ public struct ConversationRowData: Identifiable, Sendable {
         muted: Bool = false,
         mentioned: Bool = false,
         draftPreview: String? = nil,
-        presence: FlarePresence? = nil
+        presence: FlarePresence? = nil,
+        tags: [ConversationRowTag] = []
     ) {
         self.id = id
         self.title = title
@@ -40,6 +64,7 @@ public struct ConversationRowData: Identifiable, Sendable {
         self.mentioned = mentioned
         self.draftPreview = draftPreview
         self.presence = presence
+        self.tags = tags
     }
 
     public var hasUnread: Bool { unreadCount > 0 }

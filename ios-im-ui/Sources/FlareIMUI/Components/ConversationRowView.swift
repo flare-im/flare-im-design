@@ -36,12 +36,13 @@ public struct ConversationRowView: View {
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                HStack {
+                HStack(spacing: FlareSizes.spacingSm) {
                     Text(item.title)
                         .font(.system(size: FlareSizes.fontSize3xl,
                                       weight: item.hasUnread ? .bold : .semibold))
                         .foregroundColor(colors.textPrimary)
                         .lineLimit(1)
+                    if !item.tags.isEmpty { tagStrip(colors) }
                     Spacer(minLength: FlareSizes.spacingSm)
                     TimeStampView(label: item.timestampLabel)
                 }
@@ -78,6 +79,29 @@ public struct ConversationRowView: View {
         }
         .font(.system(size: FlareSizes.fontSizeLg))
         .lineLimit(1)
+    }
+
+    @ViewBuilder
+    private func tagStrip(_ colors: FlareColors) -> some View {
+        HStack(spacing: 4) {
+            ForEach(item.tags) { tag in
+                let tint = tagTint(tag.tone, colors)
+                Text(tag.text)
+                    .font(.system(size: FlareSizes.fontSizeXs, weight: .semibold))
+                    .foregroundColor(tint)
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 1)
+                    .background(Capsule().fill(tint.opacity(0.12)))
+            }
+        }
+    }
+
+    private func tagTint(_ tone: FlareTagTone, _ colors: FlareColors) -> Color {
+        switch tone {
+        case .info: return colors.info
+        case .warning: return colors.warning
+        case .neutral: return colors.textTertiary
+        }
     }
 
     private func unreadBadge(_ colors: FlareColors) -> some View {
