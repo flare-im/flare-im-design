@@ -123,6 +123,10 @@ export const flareMessages: Record<FlareLocale, FlareMessageTree> = {
       unknownSender: "未知发送者",
       countSuffix: "（{count} 条）",
     },
+    placeholder: {
+      burned: "消息已焚毁",
+      fallback: "[占位]",
+    },
     transport: {
       fallbackReason: "原因：{reason}",
       fallbackReasonGeneric: "原因：当前 runtime 不支持所选协议",
@@ -774,6 +778,10 @@ export const flareMessages: Record<FlareLocale, FlareMessageTree> = {
       totalMessages: "{count} messages in total",
       unknownSender: "Unknown sender",
       countSuffix: " · {count}",
+    },
+    placeholder: {
+      burned: "Message burned",
+      fallback: "[Placeholder]",
     },
     transport: {
       fallbackReason: "Reason: {reason}",
