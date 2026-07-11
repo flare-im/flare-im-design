@@ -3,6 +3,8 @@ import { computed } from "vue";
 import { TextOutline } from "@vicons/ionicons5";
 import { NIcon } from "naive-ui";
 import type { ContentElem } from "../../../../utils/contentElem";
+import { pickNestedPayload } from "../../../../utils/contentElem";
+import { readString } from "../../../../utils/contentData";
 import { getContentDecodedPreview } from "../../../../utils/messagePreview";
 
 const props = defineProps<{
@@ -12,24 +14,31 @@ const props = defineProps<{
   fallbackLabel?: string;
 }>();
 
-const preview = computed(() => getContentDecodedPreview(props.content) || props.fallbackLabel || "[Message]");
+const nested = computed(() => pickNestedPayload(props.content, props.nestedKey));
+
+// `getContentDecodedPreview` already surfaces the meaningful field per type
+// (thread → threadTitle, custom → description); a secondary line shows any
+// distinct hint/subtitle the payload carries.
+const title = computed(
+  () => getContentDecodedPreview(props.content) || props.fallbackLabel || props.nestedKey,
+);
+const subtitle = computed(() => {
+  const line = readString(nested.value, "hint", "subtitle", "description", "type");
+  return line && line !== title.value ? line : "";
+});
 </script>
 
 <template>
   <div class="im-rich-message-card im-rich-message-card--compact im-info-card">
     <header class="im-rich-message-card__header">
       <span class="im-rich-message-card__icon" aria-hidden="true">
-      <n-icon :component="TextOutline" />
+        <n-icon :component="TextOutline" />
       </span>
       <div class="im-rich-message-card__main">
         <span class="im-rich-message-card__kicker">{{ nestedKey }}</span>
-        <strong class="im-rich-message-card__title">{{ preview }}</strong>
-        <p class="im-rich-message-card__subtitle">{{ content.contentType }}</p>
+        <strong class="im-rich-message-card__title">{{ title }}</strong>
+        <p v-if="subtitle" class="im-rich-message-card__subtitle">{{ subtitle }}</p>
       </div>
     </header>
-    <footer class="im-rich-message-card__footer">
-      <span>{{ nestedKey }}</span>
-      <span>Message card</span>
-    </footer>
   </div>
 </template>
