@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -78,13 +79,19 @@ fun ConversationRow(
         Spacer(Modifier.width(FlareSizes.spacingMd))
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    item.title, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    color = colors.textPrimary,
-                    fontSize = FlareSizes.fontSize3xl.value.sp,
-                    fontWeight = if (item.hasUnread) FontWeight.Bold else FontWeight.SemiBold,
-                    modifier = Modifier.weight(1f),
-                )
+                Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        item.title, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        color = colors.textPrimary,
+                        fontSize = FlareSizes.fontSize3xl.value.sp,
+                        fontWeight = if (item.hasUnread) FontWeight.Bold else FontWeight.SemiBold,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                    if (item.tags.isNotEmpty()) {
+                        Spacer(Modifier.width(4.dp))
+                        TagStrip(item.tags, colors)
+                    }
+                }
                 Spacer(Modifier.width(FlareSizes.spacingSm))
                 TimeStamp(item.timestampLabel)
             }
@@ -125,5 +132,32 @@ private fun previewText(item: ConversationRowData, colors: FlareColors): Annotat
             append(item.preview)
         }
         else -> append(item.preview)
+    }
+}
+
+@Composable
+private fun TagStrip(tags: List<ConversationRowTag>, colors: FlareColors) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        tags.forEach { tag ->
+            val tint = when (tag.tone) {
+                FlareTagTone.Info -> colors.info
+                FlareTagTone.Warning -> colors.warning
+                FlareTagTone.Neutral -> colors.textTertiary
+            }
+            Text(
+                tag.text,
+                color = tint,
+                fontSize = FlareSizes.fontSizeXs.value.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(tint.copy(alpha = 0.12f))
+                    .padding(horizontal = 5.dp, vertical = 1.dp),
+            )
+        }
     }
 }

@@ -1,21 +1,39 @@
 import MarkdownIt from "markdown-it";
 
+// Locally-typed markdown-it renderer surface. The `@types/markdown-it` default-export
+// shape resolves inconsistently across consumers (ESM vs CJS `export =`, differing
+// `@types` versions in a monorepo), which can make `md.renderer` type-check-invisible in
+// a strict downstream app even though it exists at runtime. Typing the small slice we use
+// keeps this file compiling under any consumer's module resolution.
+type MdToken = { attrSet(name: string, value: string): void };
+type MdRuleSelf = { renderToken(tokens: MdToken[], idx: number, options: unknown): string };
+type MdRenderRule = (
+  tokens: MdToken[],
+  idx: number,
+  options: unknown,
+  env: unknown,
+  self: MdRuleSelf,
+) => string;
+type MdRenderer = { rules: Record<string, MdRenderRule | undefined> };
+
 const md = new MarkdownIt({
   html: false,
   linkify: true,
   breaks: true,
 });
 
-const defaultLinkOpen = md.renderer.rules.link_open;
-md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
+const renderer = (md as unknown as { renderer: MdRenderer }).renderer;
+
+const defaultLinkOpen = renderer.rules.link_open;
+renderer.rules.link_open = (tokens, idx, options, env, self) => {
   const token = tokens[idx];
   token.attrSet("target", "_blank");
   token.attrSet("rel", "noopener noreferrer");
   return defaultLinkOpen ? defaultLinkOpen(tokens, idx, options, env, self) : self.renderToken(tokens, idx, options);
 };
 
-const defaultImage = md.renderer.rules.image;
-md.renderer.rules.image = (tokens, idx, options, env, self) => {
+const defaultImage = renderer.rules.image;
+renderer.rules.image = (tokens, idx, options, env, self) => {
   const token = tokens[idx];
   token.attrSet("loading", "lazy");
   token.attrSet("decoding", "async");
