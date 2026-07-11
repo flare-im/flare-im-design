@@ -1,0 +1,585 @@
+{
+  "version": 1,
+  "description": "Canonical cross-platform emoji-pack + sticker manifest for flare-im-design. Consumed by Vue/Flutter/Android/iOS kits.",
+  "assetBasePath": "/flare-im-ui-assets",
+  "emoji": {
+    "format": "webp",
+    "dir": "emoji",
+    "localesFile": "emoji-locales.json",
+    "count": 157,
+    "keys": [
+      "alien",
+      "alien_monster",
+      "anger_symbol",
+      "angry_face",
+      "angry_face_with_horns",
+      "anguished_face",
+      "anxious_face_with_sweat",
+      "astonished_face",
+      "beaming_face_with_smiling_eyes",
+      "beating_heart",
+      "blue_heart",
+      "broken_heart",
+      "brown_heart",
+      "cat_with_tears_of_joy",
+      "cat_with_wry_smile",
+      "check_mark_button",
+      "clown_face",
+      "cold_face",
+      "collision",
+      "confounded_face",
+      "confused_face",
+      "cowboy_hat_face",
+      "crying_cat",
+      "crying_face",
+      "disappointed_face",
+      "disguised_face",
+      "dizzy",
+      "dotted_line_face",
+      "downcast_face_with_sweat",
+      "drooling_face",
+      "enraged_face",
+      "exploding_head",
+      "expressionless_face",
+      "face_blowing_a_kiss",
+      "face_exhaling",
+      "face_holding_back_tears",
+      "face_in_clouds",
+      "face_savoring_food",
+      "face_screaming_in_fear",
+      "face_vomiting",
+      "face_with_crossed_out_eyes",
+      "face_with_diagonal_mouth",
+      "face_with_hand_over_mouth",
+      "face_with_head_bandage",
+      "face_with_medical_mask",
+      "face_with_monocle",
+      "face_with_open_eyes_and_hand_over_mouth",
+      "face_with_open_mouth",
+      "face_with_peeking_eye",
+      "face_with_raised_eyebrow",
+      "face_with_rolling_eyes",
+      "face_with_spiral_eyes",
+      "face_with_steam_from_nose",
+      "face_with_symbols_on_mouth",
+      "face_with_tears_of_joy",
+      "face_with_thermometer",
+      "face_with_tongue",
+      "face_without_mouth",
+      "fearful_face",
+      "fire",
+      "flushed_face",
+      "frowning_face",
+      "frowning_face_with_open_mouth",
+      "ghost",
+      "goblin",
+      "green_heart",
+      "grimacing_face",
+      "grinning_cat",
+      "grinning_cat_with_smiling_eyes",
+      "grinning_face",
+      "grinning_face_with_big_eyes",
+      "grinning_face_with_smiling_eyes",
+      "grinning_face_with_sweat",
+      "grinning_squinting_face",
+      "growing_heart",
+      "hear_no_evil_monkey",
+      "heart_decoration",
+      "heart_exclamation",
+      "heart_on_fire",
+      "heart_with_arrow",
+      "heart_with_ribbon",
+      "hot_face",
+      "hundred_points",
+      "hushed_face",
+      "kiss_mark",
+      "kissing_cat",
+      "kissing_face",
+      "kissing_face_with_closed_eyes",
+      "loudly_crying_face",
+      "love_letter",
+      "lying_face",
+      "melting_face",
+      "mending_heart",
+      "money_mouth_face",
+      "nauseated_face",
+      "nerd_face",
+      "neutral_face",
+      "ogre",
+      "orange_heart",
+      "partying_face",
+      "pensive_face",
+      "persevering_face",
+      "pile_of_poo",
+      "pleading_face",
+      "pouting_cat",
+      "purple_heart",
+      "red_heart",
+      "relieved_face",
+      "revolving_hearts",
+      "right_anger_bubble",
+      "robot",
+      "rolling_on_the_floor_laughing",
+      "sad_but_relieved_face",
+      "saluting_face",
+      "see_no_evil_monkey",
+      "shushing_face",
+      "skull",
+      "skull_and_crossbones",
+      "sleeping_face",
+      "sleepy_face",
+      "slightly_frowning_face",
+      "slightly_smiling_face",
+      "smiling_cat_with_heart_eyes",
+      "smiling_face",
+      "smiling_face_with_halo",
+      "smiling_face_with_hearts",
+      "smiling_face_with_horns",
+      "smiling_face_with_open_hands",
+      "smiling_face_with_smiling_eyes",
+      "smiling_face_with_sunglasses",
+      "smiling_face_with_tear",
+      "smirking_face",
+      "sneezing_face",
+      "sparkling_heart",
+      "speak_no_evil_monkey",
+      "speech_balloon",
+      "squinting_face_with_tongue",
+      "star_struck",
+      "strawberry",
+      "thinking_face",
+      "thought_balloon",
+      "tired_face",
+      "two_hearts",
+      "unamused_face",
+      "upside_down_face",
+      "weary_cat",
+      "weary_face",
+      "white_heart",
+      "winking_face",
+      "winking_face_with_tongue",
+      "woozy_face",
+      "worried_face",
+      "yawning_face",
+      "yellow_heart",
+      "zany_face",
+      "zipper_mouth_face",
+      "zzz"
+    ]
+  },
+  "stickerPacks": [
+    {
+      "id": "classic",
+      "dir": "stickers/classic",
+      "title": "Classic",
+      "format": "webp",
+      "items": [
+        {
+          "id": "001",
+          "file": "001.webp",
+          "mediaPath": "l5D8ovvoLhglBUvEmi"
+        },
+        {
+          "id": "002",
+          "file": "002.webp",
+          "mediaPath": "Z9uKDgdieXPh5tNtHF"
+        },
+        {
+          "id": "003",
+          "file": "003.webp",
+          "mediaPath": "jOVlPJYjV47PoH9lfP"
+        },
+        {
+          "id": "004",
+          "file": "004.webp",
+          "mediaPath": "MeD1PtR4Ko2sueV2BT"
+        },
+        {
+          "id": "005",
+          "file": "005.webp",
+          "mediaPath": "dZQVKRWeIDZd4alIXI"
+        },
+        {
+          "id": "006",
+          "file": "006.webp",
+          "mediaPath": "Rk887DcmCgu0Pxm1yz"
+        },
+        {
+          "id": "007",
+          "file": "007.webp",
+          "mediaPath": "KEMdB5Pcck4eIrbXYa"
+        },
+        {
+          "id": "008",
+          "file": "008.webp",
+          "mediaPath": "TiJigWIdW0F7vEUr85"
+        },
+        {
+          "id": "009",
+          "file": "009.webp",
+          "mediaPath": "YnAK9VqQFmM9mcn9SY"
+        },
+        {
+          "id": "010",
+          "file": "010.webp",
+          "mediaPath": "4a2XoP2x9F8PIsYgtd"
+        },
+        {
+          "id": "011",
+          "file": "011.webp",
+          "mediaPath": "fLmtSgFrEjsNCezlzX"
+        },
+        {
+          "id": "012",
+          "file": "012.webp",
+          "mediaPath": "2wS9xmYJNsFUTzcNKU"
+        },
+        {
+          "id": "013",
+          "file": "013.webp",
+          "mediaPath": "2ikvP2h6IOJJQttBrl"
+        },
+        {
+          "id": "014",
+          "file": "014.webp",
+          "mediaPath": "sRHTG2cBcxsXHHUAU8"
+        },
+        {
+          "id": "015",
+          "file": "015.webp",
+          "mediaPath": "1bINdsKnA5xsxJE5z2"
+        },
+        {
+          "id": "016",
+          "file": "016.webp",
+          "mediaPath": "2mB7HmtTkexMLHbE7o"
+        },
+        {
+          "id": "017",
+          "file": "017.webp",
+          "mediaPath": "dsZAX3EZh0aolaZnOc"
+        },
+        {
+          "id": "018",
+          "file": "018.webp",
+          "mediaPath": "Oj5HrQ9A7cjrPvWqHf"
+        },
+        {
+          "id": "019",
+          "file": "019.webp",
+          "mediaPath": "QN46gDf5eFtKsKeCSj"
+        },
+        {
+          "id": "020",
+          "file": "020.webp",
+          "mediaPath": "8F9qTOPWjR4jFnbhEE"
+        },
+        {
+          "id": "021",
+          "file": "021.webp",
+          "mediaPath": "1UVC4rmmwEVVUuAI4i"
+        },
+        {
+          "id": "022",
+          "file": "022.webp",
+          "mediaPath": "1nR7M1kxocswvzZhSf"
+        },
+        {
+          "id": "023",
+          "file": "023.webp",
+          "mediaPath": "9JpTOkrdrycS4lgD9k"
+        },
+        {
+          "id": "024",
+          "file": "024.webp",
+          "mediaPath": "8YmZMCdbCK219I6ABB"
+        },
+        {
+          "id": "025",
+          "file": "025.webp",
+          "mediaPath": "UW7uBAnJgzjg6YzGmZ"
+        }
+      ]
+    },
+    {
+      "id": "gifs",
+      "dir": "stickers/default",
+      "title": "Default",
+      "format": "webp",
+      "items": [
+        {
+          "id": "001",
+          "file": "001.webp"
+        },
+        {
+          "id": "002",
+          "file": "002.webp"
+        },
+        {
+          "id": "003",
+          "file": "003.webp"
+        },
+        {
+          "id": "004",
+          "file": "004.webp"
+        },
+        {
+          "id": "005",
+          "file": "005.webp"
+        },
+        {
+          "id": "006",
+          "file": "006.webp"
+        },
+        {
+          "id": "007",
+          "file": "007.webp"
+        },
+        {
+          "id": "008",
+          "file": "008.webp"
+        },
+        {
+          "id": "009",
+          "file": "009.webp"
+        },
+        {
+          "id": "010",
+          "file": "010.webp"
+        },
+        {
+          "id": "011",
+          "file": "011.webp"
+        },
+        {
+          "id": "012",
+          "file": "012.webp"
+        },
+        {
+          "id": "013",
+          "file": "013.webp"
+        },
+        {
+          "id": "014",
+          "file": "014.webp"
+        },
+        {
+          "id": "015",
+          "file": "015.webp"
+        },
+        {
+          "id": "016",
+          "file": "016.webp"
+        },
+        {
+          "id": "017",
+          "file": "017.webp"
+        },
+        {
+          "id": "018",
+          "file": "018.webp"
+        },
+        {
+          "id": "019",
+          "file": "019.webp"
+        },
+        {
+          "id": "020",
+          "file": "020.webp"
+        },
+        {
+          "id": "021",
+          "file": "021.webp"
+        },
+        {
+          "id": "022",
+          "file": "022.webp"
+        },
+        {
+          "id": "023",
+          "file": "023.webp"
+        },
+        {
+          "id": "024",
+          "file": "024.webp"
+        },
+        {
+          "id": "025",
+          "file": "025.webp"
+        },
+        {
+          "id": "026",
+          "file": "026.webp"
+        },
+        {
+          "id": "027",
+          "file": "027.webp"
+        },
+        {
+          "id": "028",
+          "file": "028.webp"
+        },
+        {
+          "id": "029",
+          "file": "029.webp"
+        },
+        {
+          "id": "030",
+          "file": "030.webp"
+        },
+        {
+          "id": "031",
+          "file": "031.webp"
+        },
+        {
+          "id": "032",
+          "file": "032.webp"
+        },
+        {
+          "id": "033",
+          "file": "033.webp"
+        },
+        {
+          "id": "034",
+          "file": "034.webp"
+        },
+        {
+          "id": "035",
+          "file": "035.webp"
+        },
+        {
+          "id": "036",
+          "file": "036.webp"
+        },
+        {
+          "id": "037",
+          "file": "037.webp"
+        },
+        {
+          "id": "038",
+          "file": "038.webp"
+        },
+        {
+          "id": "039",
+          "file": "039.webp"
+        },
+        {
+          "id": "040",
+          "file": "040.webp"
+        },
+        {
+          "id": "041",
+          "file": "041.webp"
+        },
+        {
+          "id": "042",
+          "file": "042.webp"
+        },
+        {
+          "id": "043",
+          "file": "043.webp"
+        },
+        {
+          "id": "044",
+          "file": "044.webp"
+        },
+        {
+          "id": "045",
+          "file": "045.webp"
+        },
+        {
+          "id": "046",
+          "file": "046.webp"
+        },
+        {
+          "id": "047",
+          "file": "047.webp"
+        },
+        {
+          "id": "048",
+          "file": "048.webp"
+        },
+        {
+          "id": "049",
+          "file": "049.webp"
+        },
+        {
+          "id": "050",
+          "file": "050.webp"
+        },
+        {
+          "id": "051",
+          "file": "051.webp"
+        },
+        {
+          "id": "052",
+          "file": "052.webp"
+        },
+        {
+          "id": "053",
+          "file": "053.webp"
+        },
+        {
+          "id": "054",
+          "file": "054.webp"
+        },
+        {
+          "id": "055",
+          "file": "055.webp"
+        },
+        {
+          "id": "056",
+          "file": "056.webp"
+        },
+        {
+          "id": "057",
+          "file": "057.webp"
+        },
+        {
+          "id": "058",
+          "file": "058.webp"
+        },
+        {
+          "id": "059",
+          "file": "059.webp"
+        },
+        {
+          "id": "060",
+          "file": "060.webp"
+        },
+        {
+          "id": "061",
+          "file": "061.webp"
+        },
+        {
+          "id": "062",
+          "file": "062.webp"
+        },
+        {
+          "id": "063",
+          "file": "063.webp"
+        },
+        {
+          "id": "064",
+          "file": "064.webp"
+        },
+        {
+          "id": "065",
+          "file": "065.webp"
+        },
+        {
+          "id": "066",
+          "file": "066.webp"
+        },
+        {
+          "id": "067",
+          "file": "067.webp"
+        },
+        {
+          "id": "068",
+          "file": "068.webp"
+        }
+      ]
+    }
+  ]
+}

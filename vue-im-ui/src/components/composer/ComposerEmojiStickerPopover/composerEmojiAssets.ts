@@ -3,7 +3,7 @@
  * 展示文案见 `emoji-locales.json`（`utils/emojiPackI18n.ts`）。
  */
 
-import packLocales from "../../../shared/assets/i18n/emoji-locales.json";
+import packLocales from "../../../../../assets/emoji-sticker/emoji-locales.json";
 
 type AssetUrlLoader = () => Promise<string>;
 
