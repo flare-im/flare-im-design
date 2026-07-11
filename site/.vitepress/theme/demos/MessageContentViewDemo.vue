@@ -95,6 +95,17 @@ const genericPlaceholderContent = {
   contentType: "placeholder",
   data: { reason: "unsupported", fallbackText: "[暂不支持的消息类型]" },
 };
+
+// thread / custom route through the generic InfoCardView, which surfaces the
+// payload's own fields (thread → threadTitle, custom → description + type).
+const threadContent = {
+  contentType: "thread",
+  data: { threadId: "t1", threadTitle: "版本发布计划讨论" },
+};
+const customContent = {
+  contentType: "custom",
+  data: { type: "vote_result", description: "投票已结束 · 周四 15:00 胜出" },
+};
 </script>
 
 <template>
@@ -153,6 +164,12 @@ const genericPlaceholderContent = {
     </div>
     <div class="item"><span class="tag">placeholder · fallback</span>
       <ContentView :content="genericPlaceholderContent" />
+    </div>
+    <div class="item"><span class="tag">thread · InfoCard</span>
+      <ContentView :content="threadContent" />
+    </div>
+    <div class="item"><span class="tag">custom · InfoCard</span>
+      <ContentView :content="customContent" />
     </div>
   </div>
   </DemoStage>
