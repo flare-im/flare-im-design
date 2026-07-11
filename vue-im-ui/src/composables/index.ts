@@ -30,6 +30,12 @@ export {
   type FlareMediaResolverContext,
 } from "./useMediaResolver";
 export {
+  useFlareNotificationProvider,
+  useFlareNotificationResolver,
+  type FlareNotificationPayload,
+  type FlareNotificationResolver,
+} from "./useNotificationRenderer";
+export {
   useFlareCoreClient,
   buildLoginTransportConfig,
   desktopNotificationBodyForMessage,
