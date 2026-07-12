@@ -168,8 +168,19 @@ model already AGREES across platforms** (emoji key=filename stem=`[key]`; sticke
 - [x] Verified: `swift build` clean; `swift test` **17/17** (+3: catalog-loads-from-central, gifs alias,
   bundled-webp-decodes-to-frames). iOS now animates → parity with Flutter/Android/Vue.
 
+### Pass 8 — iOS APP dedup + kit hardening — DONE
+- [x] iOS app (NON-git) `EmojiPresentation.emojiURL`/`stickerURL` repointed to `FlareEmojiStickerCatalog`
+  (kit's bundled central source); deleted the app's local `Resources/FlareAssets/{emoji,stickers}` (250
+  webp) + removed the `.copy` resource decl. **Non-downgrade**: the app keeps its richer animated
+  `FlareAssetImageView` rendering (travel/rotation) + inline composer emoji — only the resource source moved.
+- [x] **KIT hardened (committable)**: `emojiImageURL`/`stickerImageURL` now guard components against path
+  traversal/injection (`^[A-Za-z0-9_-]+$`) → nil for `../001` etc.
+- [x] Verified: `swift build` (app) clean; app `swift test` **43/43** incl. the repointed
+  `testEmojiPresentationResolvesKitBundledAssets` (emojiURL resolves from the FlareIMUI bundle, `../001`→nil);
+  kit `swift test` still 17/17.
+
 ### Remaining passes
-- **ALL FOUR PLATFORM KITS support emoji/sticker from the central source (all animated); docs serve + showcase it; the Android app consumes the kit with its dupe removed.**
+- **ALL FOUR PLATFORM KITS support emoji/sticker from the central source (all animated); docs serve + showcase it; Android + iOS apps both consume the kit with their dupes removed.**
 - [ ] Optional Vue view-chrome gaps (web/electron bespoke banners/tabs/search-panel/settings drawers).
 - [ ] Optional: iOS animated-webp (needs a decoder lib or manual frame animation).
 - [ ] Android kit (`im-ui-compose`): real pack-based emoji/sticker (replace glyph stubs); bundle central.
