@@ -53,6 +53,9 @@ export { default as FlareThemeProvider } from "../design-system/provider/FlareTh
 export { default as FlareSearchBar } from "./general/FlareSearchBar.vue";
 export { default as FlareInput } from "./general/FlareInput.vue";
 export { default as FlareEmptyState } from "./general/FlareEmptyState.vue";
+export { default as FlareStatusBanner } from "./general/FlareStatusBanner.vue";
+export { default as FlareFilterTabs } from "./general/FlareFilterTabs.vue";
+export type { FlareFilterTabOption } from "./general/FlareFilterTabs.vue";
 export { default as FlareContactItem } from "./contacts/FlareContactItem.vue";
 export { default as FlareContactList } from "./contacts/FlareContactList.vue";
 export { default as FlareContactDetail } from "./contacts/FlareContactDetail.vue";
