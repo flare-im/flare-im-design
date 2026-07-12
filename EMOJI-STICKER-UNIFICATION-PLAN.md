@@ -146,9 +146,22 @@ model already AGREES across platforms** (emoji key=filename stem=`[key]`; sticke
   (外星人 …) from the central manifest. Thumbnails don't paint ONLY because this pane's viewport is 0×0 so
   the IntersectionObserver lazy-load can't fire — a pane limitation, not a kit/unification issue.
 
+### Pass 6 — Android APP adopts the kit + dedup (IN PROGRESS)
+- [x] Rewired the app to the kit emoji/sticker widgets (NON-git app, working-tree only):
+  - `EmojiMessageView.kt` → `FlareEmojiPackMessage(content.str("emoji","key"))`.
+  - `StickerMessageView.kt` → `FlareStickerPackMessage(stickerId, packageId)`.
+  - `TextMessageView.kt` lone-emoji → `FlareEmojiPackMessage`.
+  - `ComposerView.kt` `EmojiStickerPanel` → kit `FlareEmojiStickerPicker` (upgrade: full 157 emoji + all packs
+    vs the app's old 21-emoji/12-sticker subset). Dropped the app's `FlowGrid` helper.
+- [x] Deleted the app's local dupe: `app/src/main/assets/{emoji,stickers}` (250 webp) — now provided by the
+  kit AAR at `emoji-sticker/`.
+- [x] **Verified end-to-end**: `:app:assembleDebug` BUILD SUCCESSFUL (JDK17). The APK merges **250
+  emoji-sticker webp from the kit AAR** (central source) and has **0 old `assets/emoji/` or
+  `assets/stickers/` paths** — the app's local dupe is fully eliminated. Chain proven: central source →
+  kit → AAR → app APK. (App is non-git → uncommittable working-tree change; kit already committed.)
+
 ### Remaining passes
-- **ALL FOUR PLATFORM KITS now support emoji/sticker from the central source; the docs serve + showcase it.**
-- [ ] Each native app: consume kit widgets + central assets; delete per-app dupes (apps are non-git; optional).
+- **ALL FOUR PLATFORM KITS support emoji/sticker from the central source; the docs serve + showcase it.**
 - [ ] Optional Vue view-chrome gaps (web/electron bespoke banners/tabs/search-panel/settings drawers).
 - [ ] Optional: iOS animated-webp (needs a decoder lib or manual frame animation).
 - [ ] Android kit (`im-ui-compose`): real pack-based emoji/sticker (replace glyph stubs); bundle central.
