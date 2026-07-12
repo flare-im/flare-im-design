@@ -135,8 +135,19 @@ model already AGREES across platforms** (emoji key=filename stem=`[key]`; sticke
   `FlareStickerContent` with packageId/stickerId/width/height (non-breaking).
 - [x] Verified: `swift build` ✓ (250 webp bundled), `swift test` 14/14, no warnings.
 
+### Pass 5 — Docs site validation + showcase — DONE
+- [x] Added a vite plugin to `site/.vitepress/config.mts` serving `/flare-im-ui-assets/` from the central
+  `assets/emoji-sticker` (dev middleware + build writeBundle copy → 250 webp into dist).
+- [x] Added `EmojiStickerPanelDemo.vue` (the real `FlareComposerEmojiStickerPanel`), registered + embedded
+  in `components/sticker-message.md` (+ en).
+- [x] Verified: `vitepress build` ✓ (250 webp in dist). Runtime (in-app browser): `/flare-im-ui-assets/
+  emoji/red_heart.webp` → **200 image/webp, decodes 240×240**; the exact freeze pipeline (fetch→blob→
+  createImageBitmap→canvas→PNG dataURL) succeeds; the panel renders 157 emoji buttons with localized titles
+  (外星人 …) from the central manifest. Thumbnails don't paint ONLY because this pane's viewport is 0×0 so
+  the IntersectionObserver lazy-load can't fire — a pane limitation, not a kit/unification issue.
+
 ### Remaining passes
-- **ALL FOUR PLATFORM KITS now support emoji/sticker from the central source.**
+- **ALL FOUR PLATFORM KITS now support emoji/sticker from the central source; the docs serve + showcase it.**
 - [ ] Each native app: consume kit widgets + central assets; delete per-app dupes (apps are non-git; optional).
 - [ ] Optional Vue view-chrome gaps (web/electron bespoke banners/tabs/search-panel/settings drawers).
 - [ ] Optional: iOS animated-webp (needs a decoder lib or manual frame animation).
