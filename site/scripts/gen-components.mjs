@@ -96,6 +96,7 @@ const demoOf = {
   MessageBubble: "MessageBubbleDemo", ChatHeader: "ChatHeaderDemo", PinnedMessageBar: "PinnedBarDemo",
   Composer: "ComposerDemo", MarkdownPreview: "MarkdownPreviewDemo",
   SearchBar: "SearchBarDemo", Input: "InputDemo", EmptyState: "EmptyStateDemo",
+  StatusBanner: "StatusBannerDemo", FilterTabs: "FilterTabsDemo",
   ContactList: "ContactListDemo", ProfilePanel: "ProfilePanelDemo",
   CallView: "CallViewDemo", IncomingCall: "IncomingCallDemo", CallControls: "CallControlsDemo",
   MessageList: "MessageListDemo", MessageContentView: "MessageContentViewDemo",
@@ -165,9 +166,7 @@ function exampleProps(c) {
 
 function usage(c, t) {
   const v = vueExportFor(c);
-  const f = c.platforms.flutter.symbol;
-  const i = c.platforms.ios.symbol;
-  const k = c.platforms.compose.symbol;
+  const p = c.platforms ?? {};
   const props = exampleProps(c);
   const events = (c.events ?? []).slice(0, 3);
 
@@ -188,9 +187,10 @@ function usage(c, t) {
     ...events.map((e) => `  ${onName(e)} = ${onName(e)},`),
   ].join("\n");
 
-  return `::: code-group
-
-\`\`\`vue [Vue]
+  // Only emit code blocks for the platforms a component actually ships on
+  // (some components — e.g. Vue-only view chrome — have no native counterpart).
+  const blocks = [
+    `\`\`\`vue [Vue]
 <script setup>
 import { ${v} } from "flare-core-vue-im-ui";
 </script>
@@ -199,26 +199,13 @@ import { ${v} } from "flare-core-vue-im-ui";
 ${vueAttrs || `  <!-- ${t.noRequired} -->`}
   />
 </template>
-\`\`\`
+\`\`\``,
+  ];
+  if (p.flutter) blocks.push(`\`\`\`dart [Flutter]\n${p.flutter.symbol}(\n${dartArgs}\n);\n\`\`\``);
+  if (p.ios) blocks.push(`\`\`\`swift [iOS]\n${p.ios.symbol}(${swiftArgs})\n\`\`\``);
+  if (p.compose) blocks.push(`\`\`\`kotlin [Android]\n${p.compose.symbol}(\n${kotlinArgs}\n)\n\`\`\``);
 
-\`\`\`dart [Flutter]
-${f}(
-${dartArgs}
-);
-\`\`\`
-
-\`\`\`swift [iOS]
-${i}(${swiftArgs})
-\`\`\`
-
-\`\`\`kotlin [Android]
-${k}(
-${kotlinArgs}
-)
-\`\`\`
-
-:::
-`;
+  return `::: code-group\n\n${blocks.join("\n\n")}\n\n:::\n`;
 }
 
 function extraExamples(c, t, loc) {
