@@ -138,4 +138,27 @@ final class FlareIMUITests: XCTestCase {
         _ = EmojiMessageView(emoji: "🎉")
         _ = SystemMessageView(text: "recalled")
     }
+
+    func testEmojiStickerCatalogLoadsFromCentralSource() {
+        let catalog = FlareEmojiStickerCatalog.shared
+        XCTAssertGreaterThan(catalog.loadedEmojiKeys().count, 100)
+        XCTAssertTrue(catalog.hasEmojiKey("red_heart"))
+        let packs = catalog.loadedStickerPacks()
+        XCTAssertTrue(packs.contains { $0.id == "gifs" })
+        XCTAssertTrue(packs.contains { $0.id == "classic" })
+    }
+
+    func testStickerSubdirGifsAlias() {
+        XCTAssertEqual(FlareEmojiStickerCatalog.stickerSubdir(forPackageId: "gifs"), "default")
+        XCTAssertEqual(FlareEmojiStickerCatalog.stickerSubdir(forPackageId: "classic"), "classic")
+        XCTAssertEqual(FlareEmojiStickerCatalog.stickerSubdir(forPackageId: nil), "default")
+    }
+
+    func testBundledWebpDecodesToFrames() {
+        let url = FlareEmojiStickerCatalog.shared.emojiImageURL("red_heart")
+        XCTAssertNotNil(url)
+        let decoded = flareDecodeAnimatedWebp(url: url)
+        XCTAssertNotNil(decoded)
+        XCTAssertGreaterThanOrEqual(decoded?.frames.count ?? 0, 1)
+    }
 }

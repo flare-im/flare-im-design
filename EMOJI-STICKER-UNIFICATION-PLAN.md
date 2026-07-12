@@ -160,8 +160,16 @@ model already AGREES across platforms** (emoji key=filename stem=`[key]`; sticke
   `assets/stickers/` paths** — the app's local dupe is fully eliminated. Chain proven: central source →
   kit → AAR → app APK. (App is non-git → uncommittable working-tree change; kit already committed.)
 
+### Pass 7 — iOS animated webp — DONE
+- [x] `flareDecodeAnimatedWebp(url:)` in the catalog decodes every webp frame + per-frame duration via
+  ImageIO (`kCGImagePropertyWebPDictionary`/`…DelayTime`) — no third-party dep. `FlareAnimatedBundleImage`
+  cycles frames at each frame's own duration (`.task` + `Task.sleep`, cancels on disappear).
+- [x] `FlareEmojiPackMessage` + `FlareStickerPackMessage` use it (picker stays static-first-frame by design).
+- [x] Verified: `swift build` clean; `swift test` **17/17** (+3: catalog-loads-from-central, gifs alias,
+  bundled-webp-decodes-to-frames). iOS now animates → parity with Flutter/Android/Vue.
+
 ### Remaining passes
-- **ALL FOUR PLATFORM KITS support emoji/sticker from the central source; the docs serve + showcase it.**
+- **ALL FOUR PLATFORM KITS support emoji/sticker from the central source (all animated); docs serve + showcase it; the Android app consumes the kit with its dupe removed.**
 - [ ] Optional Vue view-chrome gaps (web/electron bespoke banners/tabs/search-panel/settings drawers).
 - [ ] Optional: iOS animated-webp (needs a decoder lib or manual frame animation).
 - [ ] Android kit (`im-ui-compose`): real pack-based emoji/sticker (replace glyph stubs); bundle central.
