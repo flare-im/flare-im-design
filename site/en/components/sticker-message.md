@@ -16,6 +16,16 @@ title: StickerMessage
   <StickerMessageDemo />
 </div>
 
+## Emoji & sticker picker
+
+The real composer picker — 157 animated emoji + sticker packs, all resolved from the
+single cross-platform source `flare-im-design/assets/emoji-sticker` (served in the docs
+at `/flare-im-ui-assets/`). Tap an emoji to insert `[key]`, tap a sticker to send it.
+
+<div class="flare-demo">
+  <EmojiStickerPanelDemo />
+</div>
+
 ## Props
 
 | Name | Type | Req. | Default | Description |

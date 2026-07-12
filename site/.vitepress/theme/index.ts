@@ -63,8 +63,10 @@ import TaskMessageDemo from "./demos/messages/demos/TaskMessageDemo.vue";
 import StickerMessageDemo from "./demos/messages/demos/StickerMessageDemo.vue";
 import EmojiMessageDemo from "./demos/messages/demos/EmojiMessageDemo.vue";
 import SystemMessageDemo from "./demos/messages/demos/SystemMessageDemo.vue";
+import EmojiStickerPanelDemo from "./demos/EmojiStickerPanelDemo.vue";
 
 const demos = {
+  EmojiStickerPanelDemo,
   HomeShowcase,
   VoiceHoldButtonDemo,
   ComposerActionPanelDemo,

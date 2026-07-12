@@ -1,9 +1,38 @@
 import { defineConfig } from "vitepress";
-import { readFileSync } from "node:fs";
+import { createReadStream, cpSync, existsSync, readFileSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
+import { dirname, join, normalize } from "node:path";
 
 const here = dirname(fileURLToPath(import.meta.url));
+
+// Serve the centralized emoji/sticker resources at /flare-im-ui-assets/ (the
+// runtime base the kit's composer panel + message views resolve against), so the
+// docs render the real animated webp packs. Single source: assets/emoji-sticker.
+const emojiStickerRoot = join(here, "../../assets/emoji-sticker");
+const ASSET_BASE = "/flare-im-ui-assets/";
+const mimeFor = (p: string) =>
+  p.endsWith(".webp") ? "image/webp" : p.endsWith(".json") ? "application/json" : "application/octet-stream";
+
+function flareEmojiStickerAssets() {
+  return {
+    name: "flare-emoji-sticker-assets",
+    configureServer(server: { middlewares: { use: (fn: (req: any, res: any, next: () => void) => void) => void } }) {
+      server.middlewares.use((req, res, next) => {
+        const url = (req.url ?? "").split("?")[0];
+        if (!url.startsWith(ASSET_BASE)) return next();
+        const rel = decodeURIComponent(url.slice(ASSET_BASE.length));
+        const file = normalize(join(emojiStickerRoot, rel));
+        if (!file.startsWith(emojiStickerRoot) || !existsSync(file) || !statSync(file).isFile()) return next();
+        res.setHeader("Content-Type", mimeFor(file));
+        createReadStream(file).pipe(res);
+      });
+    },
+    writeBundle() {
+      const dest = join(here, "dist", ASSET_BASE.replace(/^\/|\/$/g, ""));
+      if (existsSync(emojiStickerRoot)) cpSync(emojiStickerRoot, dest, { recursive: true });
+    },
+  };
+}
 const spec = JSON.parse(
   readFileSync(join(here, "../../spec/components.json"), "utf8"),
 );
@@ -37,6 +66,7 @@ export default defineConfig({
   cleanUrls: true,
   appearance: true,
   vite: {
+    plugins: [flareEmojiStickerAssets()],
     resolve: {
       // Consume the kit as source (deep imports avoid the barrel dragging the optional SDK).
       alias: [

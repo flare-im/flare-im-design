@@ -16,6 +16,14 @@ title: StickerMessage
   <StickerMessageDemo />
 </div>
 
+## 表情包 / 贴纸选择器
+
+真实的输入框选择器 —— 157 个动图表情 + 贴纸包，资源统一来自 `flare-im-design/assets/emoji-sticker`（四端共享的单一真相源，站内经 `/flare-im-ui-assets/` 服务）。点选表情插入 `[key]`，点选贴纸即发送。
+
+<div class="flare-demo">
+  <EmojiStickerPanelDemo />
+</div>
+
 ## Props
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
