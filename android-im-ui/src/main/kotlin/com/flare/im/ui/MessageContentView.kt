@@ -77,8 +77,15 @@ fun MessageContentView(
 
     when (content) {
         is FlareTextContent -> Text(content.text, color = onBubble, fontSize = FlareSizes.fontSizeXl.value.sp, lineHeight = (FlareSizes.fontSizeXl.value * 1.45f).sp)
-        is FlareEmojiContent -> Text(content.emoji, fontSize = 34.sp)
-        is FlareStickerContent -> mediaPlaceholder(96.dp, colors, Icons.Outlined.Image)
+        is FlareEmojiContent -> FlareEmojiPackMessage(content.emoji, isSelf = ctx.isSelf)
+        is FlareStickerContent -> FlareStickerPackMessage(
+            stickerId = content.stickerId.orEmpty(),
+            packageId = content.packageId,
+            url = content.url,
+            width = content.width,
+            height = content.height,
+            isSelf = ctx.isSelf,
+        )
         is FlareImageContent -> Box {
             mediaPlaceholder(200.dp, colors, Icons.Outlined.Image, onClick = { onMediaAction?.invoke(content) })
             if (mediaState?.isDownloading == true) {

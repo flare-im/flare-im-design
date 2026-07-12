@@ -108,8 +108,23 @@ model already AGREES across platforms** (emoji key=filename stem=`[key]`; sticke
 - Note: the design-source app still has its own copy; switching it to the kit widgets/central assets is
   optional app-side follow-up (app is non-git, and is the reference impl).
 
+### Pass 3 — Android kit emoji/sticker — DONE
+- [x] Symlink `android-im-ui/src/main/assets/emoji-sticker → ../../../../assets/emoji-sticker`; AGP bundles it.
+- [x] `EmojiStickerCatalog.kt`: `FlareEmojiStickerCatalog` (reads manifest.json + emoji-locales.json from
+  `assets` via org.json; emoji keys/packs, hasEmojiKey, i18n labels, `file:///android_asset/...` URIs,
+  default→gifs) + `flareEmojiStickerImageLoader` (Coil + ImageDecoderDecoder for animated webp, API 28+).
+- [x] `EmojiStickerViews.kt`: `FlareEmojiPackMessage`, `FlareStickerPackMessage` (Coil SubcomposeAsyncImage
+  + fallbacks), `FlarePlainTextEmojiRich` (inline `[key]` via InlineTextContent), `FlareEmojiStickerPicker`
+  (tabs + LazyVerticalGrid). Added `coil-gif:2.7.0` dep.
+- [x] Wired `MessageContentView` emoji/sticker → pack widgets; extended `FlareStickerContent` with
+  packageId/stickerId/width/height (defaults, non-breaking).
+- [x] Verified: `compileReleaseKotlin` ✓, `assembleRelease` ✓ with **250 webp bundled in the AAR from the
+  symlinked source**; `publishToMavenLocal` ✓ (JDK17). Only pre-existing deprecation warnings.
+
 ### Remaining passes
-- [ ] Original follow-up items below (Android/iOS native, app dedup).
+- [ ] iOS kit (`FlareIMUI`): emoji/sticker components + bundle central (symlink + Xcode resources).
+- [ ] Each native app: consume kit widgets + central assets; delete per-app dupes.
+- [ ] Optional Vue view-chrome gaps (web/electron bespoke banners/tabs/search-panel/settings drawers).
 - [ ] Android kit (`im-ui-compose`): real pack-based emoji/sticker (replace glyph stubs); bundle central.
 - [ ] iOS kit (`FlareIMUI`): emoji/sticker components + bundle central.
 - [ ] Each native app: consume the kit widgets + central assets; delete per-app dupes.
