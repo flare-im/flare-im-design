@@ -67,6 +67,8 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     // Network image loading for URL-backed message bodies (Image/Video/Location/Contact/LinkCard).
     implementation("io.coil-kt:coil-compose:2.7.0")
+    // Animated webp (emoji packs / stickers) via ImageDecoderDecoder (API 28+).
+    implementation("io.coil-kt:coil-gif:2.7.0")
 
     testImplementation(kotlin("test"))
 }

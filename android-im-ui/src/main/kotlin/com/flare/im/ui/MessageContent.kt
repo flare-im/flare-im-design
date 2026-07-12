@@ -34,7 +34,14 @@ data class FlareLocationContent(val name: String, val address: String = "") : Fl
     override val type get() = "location"
 }
 
-data class FlareStickerContent(val url: String) : FlareMessageContent {
+data class FlareStickerContent(
+    val url: String = "",
+    /** Protocol pack identity — when set, resolves a bundled pack asset before [url]. */
+    val packageId: String? = null,
+    val stickerId: String? = null,
+    val width: Int? = null,
+    val height: Int? = null,
+) : FlareMessageContent {
     override val type get() = "sticker"
 }
 
