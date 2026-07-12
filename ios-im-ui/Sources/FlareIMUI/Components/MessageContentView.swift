@@ -72,9 +72,10 @@ public struct MessageContentView: View {
                     .lineSpacing(4)
                     .foregroundColor(onBubble)
             case let c as FlareEmojiContent:
-                Text(c.emoji).font(.system(size: 34))
+                FlareEmojiPackMessage(emoji: c.emoji, isSelf: ctx.isSelf)
             case let c as FlareStickerContent:
-                mediaThumb(c.url, side: 96, colors: colors, fallback: "square.on.square")
+                FlareStickerPackMessage(stickerId: c.stickerId ?? "", packageId: c.packageId,
+                                        url: c.url, width: c.width, height: c.height, isSelf: ctx.isSelf)
             case let c as FlareImageContent:
                 imageBody(c.thumbnailURL ?? c.url, colors: colors)
             case let c as FlareVideoContent:
@@ -180,10 +181,6 @@ public struct MessageContentView: View {
             .font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textSecondary)
             .padding(.horizontal, FlareSizes.spacingSm).padding(.vertical, FlareSizes.spacingXs)
             .background(RoundedRectangle(cornerRadius: FlareSizes.radiusSm).fill(colors.bgTertiary))
-    }
-
-    private func mediaThumb(_ url: String, side: CGFloat, colors: FlareColors, fallback: String) -> some View {
-        asyncImage(url, colors: colors, fallback: fallback).frame(width: side, height: side)
     }
 
     private func asyncImage(_ url: String, colors: FlareColors, fallback: String) -> some View {

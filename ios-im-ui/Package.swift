@@ -19,7 +19,13 @@ let package = Package(
         .library(name: "FlareIMUI", targets: ["FlareIMUI"]),
     ],
     targets: [
-        .target(name: "FlareIMUI"),
+        .target(
+            name: "FlareIMUI",
+            // Emoji-pack + sticker resources. Resources/emoji-sticker is a symlink
+            // to the cross-platform source at flare-im-design/assets/emoji-sticker,
+            // so this package ships the same webp + manifest every platform uses.
+            resources: [.copy("Resources/emoji-sticker")]
+        ),
         .testTarget(name: "FlareIMUITests", dependencies: ["FlareIMUI"]),
     ]
 )
