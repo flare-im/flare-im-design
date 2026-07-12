@@ -67,7 +67,19 @@ public struct FlareLocationContent: FlareMessageContent {
 
 public struct FlareStickerContent: FlareMessageContent {
     public let url: String
-    public init(url: String) { self.url = url }
+    /// Protocol pack identity — when set, resolves a bundled pack asset before `url`.
+    public let packageId: String?
+    public let stickerId: String?
+    public let width: Int?
+    public let height: Int?
+    public init(url: String, packageId: String? = nil, stickerId: String? = nil,
+                width: Int? = nil, height: Int? = nil) {
+        self.url = url
+        self.packageId = packageId
+        self.stickerId = stickerId
+        self.width = width
+        self.height = height
+    }
     public var type: String { "sticker" }
 }
 
