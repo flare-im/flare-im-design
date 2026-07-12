@@ -181,7 +181,19 @@ model already AGREES across platforms** (emoji key=filename stem=`[key]`; sticke
 
 ### Remaining passes
 - **ALL FOUR PLATFORM KITS support emoji/sticker from the central source (all animated); docs serve + showcase it; Android + iOS apps both consume the kit with their dupes removed.**
-- [ ] Optional Vue view-chrome gaps (web/electron bespoke banners/tabs/search-panel/settings drawers).
+
+### Pass 9 — Vue view-chrome → reusable kit components (IN PROGRESS)
+- [x] Added 2 reusable kit components (committable, close the audit's recurring Vue-chrome gaps):
+  - `FlareStatusBanner` (general/) — tone (info/success/warning/danger/neutral) + optional pulsing dot +
+    optional inline action. Replaces the 3 bespoke banner variants (runtime/connection/message-sync).
+  - `FlareFilterTabs` (general/) — scrollable tablist ({value,label,badge?}) + v-model active + `change`.
+    Replaces the bespoke conversation-filter rows.
+  - Both use kit design tokens (semantic colors via color-mix), a11y (role=tab/status, focus-visible,
+    reduced-motion). Exported from the barrel. Kit `vue-tsc` 0 + `vitepress build` ✓.
+- [x] Wired the **web app**: `ConversationsView` filter row → `FlareFilterTabs`, runtime banner →
+  `FlareStatusBanner`; `ChatView` connection + message-sync banners → `FlareStatusBanner` (action slot for
+  retry). Added a defensive `statusTone` mapper. **Verified**: web app `vue-tsc` 0 + `vite build` ✓.
+- [ ] Optional: electron app (same banners); site demo pages; settings/more drawers + search panel (larger).
 - [ ] Optional: iOS animated-webp (needs a decoder lib or manual frame animation).
 - [ ] Android kit (`im-ui-compose`): real pack-based emoji/sticker (replace glyph stubs); bundle central.
 - [ ] iOS kit (`FlareIMUI`): emoji/sticker components + bundle central.
