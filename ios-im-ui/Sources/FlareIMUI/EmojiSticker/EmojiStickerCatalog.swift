@@ -129,14 +129,22 @@ public final class FlareEmojiStickerCatalog: @unchecked Sendable {
         Bundle.module.url(forResource: name, withExtension: ext, subdirectory: subdir)
     }
 
+    /// Guards asset lookups against path traversal / injection from untrusted keys/ids.
+    private static func isSafeComponent(_ value: String) -> Bool {
+        !value.isEmpty && value.range(of: "^[A-Za-z0-9_-]+$", options: .regularExpression) != nil
+    }
+
     public func emojiImageURL(_ key: String) -> URL? {
-        Self.resourceURL(name: key.trimmingCharacters(in: .whitespaces), ext: "webp",
-                         subdir: "\(Self.resourceRoot)/emoji")
+        let k = key.trimmingCharacters(in: .whitespaces)
+        guard Self.isSafeComponent(k) else { return nil }
+        return Self.resourceURL(name: k, ext: "webp", subdir: "\(Self.resourceRoot)/emoji")
     }
 
     public func stickerImageURL(stickerId: String, packageId: String?) -> URL? {
-        Self.resourceURL(name: stickerId.trimmingCharacters(in: .whitespaces), ext: "webp",
-                         subdir: "\(Self.resourceRoot)/stickers/\(Self.stickerSubdir(forPackageId: packageId))")
+        let sid = stickerId.trimmingCharacters(in: .whitespaces)
+        let subdir = Self.stickerSubdir(forPackageId: packageId)
+        guard Self.isSafeComponent(sid), Self.isSafeComponent(subdir) else { return nil }
+        return Self.resourceURL(name: sid, ext: "webp", subdir: "\(Self.resourceRoot)/stickers/\(subdir)")
     }
 
     /// Localized emoji-pack label; falls back to the raw key.
