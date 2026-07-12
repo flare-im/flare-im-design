@@ -200,7 +200,12 @@ model already AGREES across platforms** (emoji key=filename stem=`[key]`; sticke
   (was crashing on `platforms.flutter.symbol`). Generated zh+en pages; restored the Pass-5
   `EmojiStickerPanelDemo` section on sticker-message (gen overwrites it — it's a manual post-gen add).
   `vitepress build` ✓.
-- [ ] Optional (deferred — larger, app-specific): in-conversation search panel, settings/more drawers.
+- [x] **FilterTabs icon support** — enriched `FlareFilterTabOption` with an optional `icon` (any Vue
+  component) so it covers icon-chip rows without downgrade. Wired the web + electron search-panel
+  kind-filter chips → `FlareFilterTabs` (dropped the bespoke icon buttons). Web `vue-tsc` 0 + `vite build`
+  ✓; electron `vue-tsc` 0. Demo shows the icon variant. Kit `vue-tsc` 0 + `vitepress build` ✓.
+- [ ] Deferred (poor ROI — large + SDK-coupled): the rest of the in-conversation search panel (query +
+  results, tightly bound to the app's SDK search state machine) and settings/more drawers.
 - [ ] Optional: iOS animated-webp (needs a decoder lib or manual frame animation).
 - [ ] Android kit (`im-ui-compose`): real pack-based emoji/sticker (replace glyph stubs); bundle central.
 - [ ] iOS kit (`FlareIMUI`): emoji/sticker components + bundle central.

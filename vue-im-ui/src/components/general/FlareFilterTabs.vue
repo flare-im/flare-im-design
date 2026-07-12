@@ -1,8 +1,12 @@
 <script lang="ts">
+import type { Component } from "vue";
+
 export interface FlareFilterTabOption {
   value: string;
   label: string;
   badge?: number;
+  /** Optional leading icon (any Vue component, e.g. a `@vicons` glyph). */
+  icon?: Component;
 }
 </script>
 
@@ -31,6 +35,7 @@ function select(value: string): void {
       :aria-selected="active === option.value"
       @click="select(option.value)"
     >
+      <component :is="option.icon" v-if="option.icon" class="flare-filter-tab__icon" />
       {{ option.label }}
       <span v-if="option.badge" class="flare-filter-tab__badge">{{ option.badge }}</span>
     </button>
@@ -80,6 +85,17 @@ function select(value: string): void {
   background: color-mix(in srgb, var(--flare-color-primary) 12%, transparent);
   border-color: color-mix(in srgb, var(--flare-color-primary) 26%, transparent);
   font-weight: 600;
+}
+
+.flare-filter-tab__icon {
+  display: inline-flex;
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+.flare-filter-tab__icon :deep(svg) {
+  width: 100%;
+  height: 100%;
 }
 
 .flare-filter-tab__badge {
