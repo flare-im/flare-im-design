@@ -1,4 +1,5 @@
 import Foundation
+import ImageIO
 import SwiftUI
 
 #if canImport(UIKit)
@@ -8,6 +9,42 @@ public typealias FlarePlatformImage = UIImage
 import AppKit
 public typealias FlarePlatformImage = NSImage
 #endif
+
+/// Decoded animated-webp frames + per-frame durations (empty durations ⇒ static).
+public struct FlareAnimatedFrames {
+    public let frames: [FlarePlatformImage]
+    public let durations: [Double]
+    public var isAnimated: Bool { frames.count > 1 }
+}
+
+/// Decodes every frame of a (possibly animated) webp via ImageIO — no third-party
+/// dependency. Returns nil if the file can't be read.
+public func flareDecodeAnimatedWebp(url: URL?) -> FlareAnimatedFrames? {
+    guard let url, let source = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
+    let count = CGImageSourceGetCount(source)
+    guard count > 0 else { return nil }
+    var frames: [FlarePlatformImage] = []
+    var durations: [Double] = []
+    for i in 0..<count {
+        guard let cg = CGImageSourceCreateImageAtIndex(source, i, nil) else { continue }
+        #if canImport(UIKit)
+        frames.append(UIImage(cgImage: cg))
+        #else
+        frames.append(NSImage(cgImage: cg, size: CGSize(width: cg.width, height: cg.height)))
+        #endif
+        var delay = 0.1
+        if let props = CGImageSourceCopyPropertiesAtIndex(source, i, nil) as? [CFString: Any],
+           let webp = props[kCGImagePropertyWebPDictionary] as? [CFString: Any] {
+            if let d = webp[kCGImagePropertyWebPUnclampedDelayTime] as? Double, d > 0 {
+                delay = d
+            } else if let d = webp[kCGImagePropertyWebPDelayTime] as? Double, d > 0 {
+                delay = d
+            }
+        }
+        durations.append(delay)
+    }
+    return frames.isEmpty ? nil : FlareAnimatedFrames(frames: frames, durations: durations)
+}
 
 /// One sticker pack from the manifest.
 public struct FlareStickerPack: Sendable, Identifiable {

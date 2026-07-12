@@ -29,6 +29,52 @@ private func flareResized(_ image: FlarePlatformImage, to side: CGFloat) -> Flar
     #endif
 }
 
+/// An animated (or static) webp from the bundled resource, with a fallback view.
+/// Decodes every frame via ImageIO and cycles them at each frame's own duration.
+public struct FlareAnimatedBundleImage<Fallback: View>: View {
+    private let url: URL?
+    private let fallback: () -> Fallback
+    @State private var frames: [FlarePlatformImage] = []
+    @State private var durations: [Double] = []
+    @State private var index = 0
+    @State private var decoded = false
+
+    public init(url: URL?, @ViewBuilder fallback: @escaping () -> Fallback) {
+        self.url = url
+        self.fallback = fallback
+    }
+
+    public var body: some View {
+        Group {
+            if !frames.isEmpty {
+                Image(flarePlatformImage: frames[min(index, frames.count - 1)])
+                    .resizable().scaledToFit()
+            } else if decoded {
+                fallback()
+            } else {
+                Color.clear
+            }
+        }
+        .task(id: url) {
+            index = 0
+            frames = []
+            durations = []
+            decoded = false
+            let result = flareDecodeAnimatedWebp(url: url)
+            frames = result?.frames ?? []
+            durations = result?.durations ?? []
+            decoded = true
+            guard frames.count > 1 else { return }
+            while !Task.isCancelled {
+                let delay = durations.indices.contains(index) ? durations[index] : 0.1
+                try? await Task.sleep(nanoseconds: UInt64(max(0.02, delay) * 1_000_000_000))
+                if Task.isCancelled { break }
+                index = (index + 1) % frames.count
+            }
+        }
+    }
+}
+
 /// A static webp image from the bundled resource, with a fallback view.
 public struct FlareBundleImage<Fallback: View>: View {
     private let url: URL?
@@ -62,7 +108,7 @@ public struct FlareEmojiPackMessage: View {
         let colors = FlareColors.of(scheme)
         if let key = resolvePackKey(emoji) {
             let label = FlareEmojiStickerCatalog.shared.emojiBracketLabel(key, locale: locale.identifier)
-            FlareBundleImage(url: FlareEmojiStickerCatalog.shared.emojiImageURL(key)) {
+            FlareAnimatedBundleImage(url: FlareEmojiStickerCatalog.shared.emojiImageURL(key)) {
                 Text(label)
                     .font(.system(size: 20, weight: .medium))
                     .foregroundColor(colors.textSecondary)
@@ -107,7 +153,7 @@ public struct FlareStickerPackMessage: View {
         let bundleURL = stickerId.trimmingCharacters(in: .whitespaces).isEmpty
             ? nil
             : FlareEmojiStickerCatalog.shared.stickerImageURL(stickerId: stickerId, packageId: packageId)
-        return FlareBundleImage(url: bundleURL) {
+        return FlareAnimatedBundleImage(url: bundleURL) {
             RoundedRectangle(cornerRadius: FlareSizes.radiusLg)
                 .fill(colors.bgHover)
                 .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).stroke(colors.borderPrimary))
