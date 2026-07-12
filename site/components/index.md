@@ -1,6 +1,6 @@
 # 组件总览
 
-一套契约，四端原生实现。共 **51** 个组件、**9** 大类。
+一套契约，四端原生实现。共 **53** 个组件、**9** 大类。
 
 ## 通用
 
@@ -10,6 +10,8 @@
 - [**SearchBar**](/components/search-bar) — 统一搜索框 —— 会话 / 联系人 / 消息的入口，带清除与提交。
 - [**Input**](/components/input) — 通用文本输入框 —— 单 / 多行、字数限制、可清除、禁用 / 只读，撑起表单与搜索。
 - [**EmptyState**](/components/empty-state) — 空状态占位 —— 图标 + 标题 + 说明 + 可选操作，用于空会话 / 空搜索 / 空联系人。
+- [**StatusBanner**](/components/status-banner) — 紧凑状态条（连接 / 同步 / 运行时）—— 语气色 + 可选脉冲圆点 + 可选内联操作。
+- [**FilterTabs**](/components/filter-tabs) — 可横滚筛选标签（{value,label,badge?}）—— v-model 绑定当前值 + change 事件。
 
 ## 会话
 

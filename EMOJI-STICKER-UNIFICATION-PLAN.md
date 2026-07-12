@@ -193,7 +193,14 @@ model already AGREES across platforms** (emoji key=filename stem=`[key]`; sticke
 - [x] Wired the **web app**: `ConversationsView` filter row → `FlareFilterTabs`, runtime banner →
   `FlareStatusBanner`; `ChatView` connection + message-sync banners → `FlareStatusBanner` (action slot for
   retry). Added a defensive `statusTone` mapper. **Verified**: web app `vue-tsc` 0 + `vite build` ✓.
-- [ ] Optional: electron app (same banners); site demo pages; settings/more drawers + search panel (larger).
+- [x] Wired the **electron app** (same banners/filter, mirrors web). `vue-tsc` 0. (`vite build` fails on a
+  PRE-EXISTING, unrelated `wa-sqlite` resolution issue in the storage worker — not my change.)
+- [x] **Docs**: added `StatusBanner` + `FilterTabs` to `spec/components.json` (Vue-only), demos +
+  registration, and **hardened `gen-components.mjs`** to support components without native platforms
+  (was crashing on `platforms.flutter.symbol`). Generated zh+en pages; restored the Pass-5
+  `EmojiStickerPanelDemo` section on sticker-message (gen overwrites it — it's a manual post-gen add).
+  `vitepress build` ✓.
+- [ ] Optional (deferred — larger, app-specific): in-conversation search panel, settings/more drawers.
 - [ ] Optional: iOS animated-webp (needs a decoder lib or manual frame animation).
 - [ ] Android kit (`im-ui-compose`): real pack-based emoji/sticker (replace glyph stubs); bundle central.
 - [ ] iOS kit (`FlareIMUI`): emoji/sticker components + bundle central.

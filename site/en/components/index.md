@@ -1,6 +1,6 @@
 # Components
 
-One contract, four native implementations. **51** components across **9** categories.
+One contract, four native implementations. **53** components across **9** categories.
 
 ## General
 
@@ -10,6 +10,8 @@ One contract, four native implementations. **51** components across **9** catego
 - [**SearchBar**](/en/components/search-bar) — Unified search field — the entry to conversation/contact/message search, with clear and submit.
 - [**Input**](/en/components/input) — General text input — single/multi-line, char limit, clearable, disabled/read-only; the backbone of forms and search.
 - [**EmptyState**](/en/components/empty-state) — Empty-state placeholder — icon + title + description + optional action; for empty inbox/search/contacts.
+- [**StatusBanner**](/en/components/status-banner) — Compact status strip (connection / sync / runtime) with a tone, an optional pulsing dot and an optional inline action.
+- [**FilterTabs**](/en/components/filter-tabs) — Scrollable filter tablist ({value,label,badge?}) with a v-model active value and a change event.
 
 ## Conversation
 

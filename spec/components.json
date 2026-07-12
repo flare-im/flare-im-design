@@ -3530,6 +3530,45 @@
       }
     },
     {
+      "name": "StatusBanner",
+      "category": "General",
+      "summary": {
+        "en": "Compact status strip (connection / sync / runtime) with a tone, an optional pulsing dot and an optional inline action.",
+        "zh": "紧凑状态条（连接 / 同步 / 运行时）—— 语气色 + 可选脉冲圆点 + 可选内联操作。"
+      },
+      "dataSource": { "en": "presentational only", "zh": "纯展示" },
+      "props": [
+        { "name": "text", "type": "string", "required": true, "description": { "en": "The status message.", "zh": "状态文案。" } },
+        { "name": "tone", "type": "\"info\" | \"success\" | \"warning\" | \"danger\" | \"neutral\"", "description": { "en": "Semantic tone (default info).", "zh": "语义色（默认 info）。" } },
+        { "name": "dot", "type": "boolean", "description": { "en": "Show the leading dot (default true).", "zh": "显示前置圆点（默认 true）。" } },
+        { "name": "pulse", "type": "boolean", "description": { "en": "Pulse the dot; respects reduced-motion.", "zh": "圆点脉冲动画；尊重 reduced-motion。" } },
+        { "name": "actionText", "type": "string", "description": { "en": "Optional inline action label.", "zh": "可选内联操作按钮文案。" } }
+      ],
+      "states": ["default"],
+      "events": ["action"],
+      "platforms": {
+        "vue": { "package": "flare-core-vue-im-ui", "symbol": "FlareStatusBanner" }
+      }
+    },
+    {
+      "name": "FilterTabs",
+      "category": "General",
+      "summary": {
+        "en": "Scrollable filter tablist ({value,label,badge?}) with a v-model active value and a change event.",
+        "zh": "可横滚筛选标签（{value,label,badge?}）—— v-model 绑定当前值 + change 事件。"
+      },
+      "dataSource": { "en": "presentational only", "zh": "纯展示" },
+      "props": [
+        { "name": "options", "type": "FlareFilterTabOption[]", "required": true, "description": { "en": "Tab options: { value, label, badge? }.", "zh": "标签项：{ value, label, badge? }。" } },
+        { "name": "v-model", "type": "string", "description": { "en": "The active tab value.", "zh": "当前选中的标签值。" } }
+      ],
+      "states": ["default", "active"],
+      "events": ["change", "update:modelValue"],
+      "platforms": {
+        "vue": { "package": "flare-core-vue-im-ui", "symbol": "FlareFilterTabs" }
+      }
+    },
+    {
       "name": "ContactList",
       "category": "Contacts",
       "summary": {
