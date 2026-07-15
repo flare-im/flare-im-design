@@ -31,6 +31,7 @@ fun MessageList(
     loading: Boolean = false,
     loadingOlder: Boolean = false,
     mediaDownloadStates: Map<String, FlareMediaDownloadState> = emptyMap(),
+    emptyText: String = "No messages yet",
     onMessageLongPress: ((FlareMessageData) -> Unit)? = null,
     onMediaAction: ((FlareMessageData, FlareMessageContent) -> Unit)? = null,
     onResend: ((FlareMessageData) -> Unit)? = null,
@@ -39,7 +40,7 @@ fun MessageList(
     if (messages.isEmpty()) {
         Box(Modifier.fillMaxSize().background(colors.bgSecondary), contentAlignment = Alignment.Center) {
             if (loading) CircularProgressIndicator()
-            else Text("No messages yet", color = colors.textTertiary, fontSize = FlareSizes.fontSizeLg.value.sp)
+            else EmptyState(title = emptyText)
         }
         return
     }

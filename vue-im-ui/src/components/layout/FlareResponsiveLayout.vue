@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
+import { NIcon } from "naive-ui";
+import { ChevronBackOutline } from "@vicons/ionicons5";
 import { FLARE_BREAKPOINT_H5_MAX, FLARE_BREAKPOINT_IPAD_MAX } from "../../shared/contracts";
 
 type Pane = "list" | "chat" | "detail";
@@ -42,7 +44,9 @@ const triple = computed(() => kind.value === "pc" && props.hasDetail);
     <slot v-if="activePane === 'list'" name="list" />
     <template v-else>
       <div class="flare-rl__bar">
-        <button class="flare-rl__back" @click="emit('paneChange', 'list')">‹ Back</button>
+        <button class="flare-rl__back" @click="emit('paneChange', 'list')">
+          <n-icon :size="18" :component="ChevronBackOutline" /><span>Back</span>
+        </button>
       </div>
       <slot v-if="activePane === 'detail'" name="detail" />
       <slot v-else name="chat" />
@@ -59,6 +63,7 @@ const triple = computed(() => kind.value === "pc" && props.hasDetail);
 .flare-rl--single .flare-rl__list { width: 100%; border: none; }
 .flare-rl__bar { border-bottom: 1px solid var(--flare-color-border-primary); }
 .flare-rl__back {
+  display: inline-flex; align-items: center; gap: 4px;
   border: none; background: none; padding: 10px 14px;
   color: var(--flare-color-primary); font-size: 14px; cursor: pointer;
 }

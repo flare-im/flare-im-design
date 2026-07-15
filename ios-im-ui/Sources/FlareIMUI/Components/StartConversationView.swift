@@ -5,6 +5,7 @@ import SwiftUI
 /// from the product; `onConfirm` returns the selected ids.
 public struct StartConversationView: View {
     private let contacts: [FlareContactOption]
+    private let searchPlaceholder: String
     private let allowGroup: Bool
     private let busy: Bool
     private let onConfirm: (([String]) -> Void)?
@@ -15,11 +16,13 @@ public struct StartConversationView: View {
 
     public init(
         contacts: [FlareContactOption],
+        searchPlaceholder: String = "Search contacts",
         allowGroup: Bool = true,
         busy: Bool = false,
         onConfirm: (([String]) -> Void)? = nil
     ) {
         self.contacts = contacts
+        self.searchPlaceholder = searchPlaceholder
         self.allowGroup = allowGroup
         self.busy = busy
         self.onConfirm = onConfirm
@@ -38,7 +41,7 @@ public struct StartConversationView: View {
         VStack(spacing: 0) {
             HStack(spacing: FlareSizes.spacingSm) {
                 Image(systemName: "magnifyingglass").foregroundColor(colors.textTertiary)
-                TextField("Search contacts", text: $query)
+                TextField(searchPlaceholder, text: $query)
             }
             .padding(FlareSizes.spacingSm)
             .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.bgSecondary))

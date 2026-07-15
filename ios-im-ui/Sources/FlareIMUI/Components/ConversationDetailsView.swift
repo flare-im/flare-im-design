@@ -8,8 +8,47 @@ public enum FlareConnectionTone: Sendable {
 /// The conversation info/settings panel — counts, connection state, and
 /// per-conversation actions. Spec: Conversation/ConversationDetails
 /// (`ConversationDetailsView`).
+/// Localizable row labels for ``ConversationDetailsView``. Defaults keep today's English copy.
+public struct FlareConversationDetailsLabels: Sendable {
+    public var messages: String
+    public var mute: String
+    public var pin: String
+    public var markRead: String
+    public var markUnread: String
+    public var sync: String
+    public var archive: String
+    public var unarchive: String
+    public var clearHistory: String
+    public var delete: String
+
+    public init(
+        messages: String = "Messages",
+        mute: String = "Mute",
+        pin: String = "Pin conversation",
+        markRead: String = "Mark as read",
+        markUnread: String = "Mark as unread",
+        sync: String = "Sync conversation",
+        archive: String = "Archive conversation",
+        unarchive: String = "Unarchive",
+        clearHistory: String = "Clear chat history",
+        delete: String = "Delete conversation"
+    ) {
+        self.messages = messages
+        self.mute = mute
+        self.pin = pin
+        self.markRead = markRead
+        self.markUnread = markUnread
+        self.sync = sync
+        self.archive = archive
+        self.unarchive = unarchive
+        self.clearHistory = clearHistory
+        self.delete = delete
+    }
+}
+
 public struct ConversationDetailsView: View {
     private let conversation: FlareConversationSummary
+    private let labels: FlareConversationDetailsLabels
     private let connectionText: String?
     private let connectionTone: FlareConnectionTone
     private let messageCount: Int?
@@ -29,6 +68,7 @@ public struct ConversationDetailsView: View {
 
     public init(
         conversation: FlareConversationSummary,
+        labels: FlareConversationDetailsLabels = FlareConversationDetailsLabels(),
         connectionText: String? = nil,
         connectionTone: FlareConnectionTone = .ok,
         messageCount: Int? = nil,
@@ -42,6 +82,7 @@ public struct ConversationDetailsView: View {
         onSync: (() -> Void)? = nil
     ) {
         self.conversation = conversation
+        self.labels = labels
         self.connectionText = connectionText
         self.connectionTone = connectionTone
         self.messageCount = messageCount
@@ -87,7 +128,7 @@ public struct ConversationDetailsView: View {
             if let count = messageCount {
                 Section {
                     HStack {
-                        Text("Messages").foregroundColor(colors.textSecondary)
+                        Text(labels.messages).foregroundColor(colors.textSecondary)
                         Spacer()
                         Text("\(count)").foregroundColor(colors.textPrimary)
                     }
@@ -97,28 +138,28 @@ public struct ConversationDetailsView: View {
             Section {
                 if onMute != nil {
                     Toggle(isOn: Binding(get: { muted }, set: { muted = $0; onMute?($0) })) {
-                        Label("Mute", systemImage: "bell.slash")
+                        Label(labels.mute, systemImage: "bell.slash")
                     }
                 }
                 if onPin != nil {
                     Toggle(isOn: Binding(get: { pinned }, set: { pinned = $0; onPin?($0) })) {
-                        Label("Pin conversation", systemImage: "pin")
+                        Label(labels.pin, systemImage: "pin")
                     }
                 }
             }
 
             Section {
-                if let onMarkRead { row("Mark as read", "envelope.open", onMarkRead, colors) }
-                if let onMarkUnread { row("Mark as unread", "envelope.badge", onMarkUnread, colors) }
-                if let onSync { row("Sync conversation", "arrow.triangle.2.circlepath", onSync, colors) }
+                if let onMarkRead { row(labels.markRead, "envelope.open", onMarkRead, colors) }
+                if let onMarkUnread { row(labels.markUnread, "envelope.badge", onMarkUnread, colors) }
+                if let onSync { row(labels.sync, "arrow.triangle.2.circlepath", onSync, colors) }
             }
 
             Section {
                 if let onArchive {
-                    row(conversation.archived ? "Unarchive" : "Archive conversation", "archivebox", onArchive, colors)
+                    row(conversation.archived ? labels.unarchive : labels.archive, "archivebox", onArchive, colors)
                 }
-                if let onClearHistory { row("Clear chat history", "trash.slash", onClearHistory, colors) }
-                if let onDelete { row("Delete conversation", "trash", onDelete, colors, danger: true) }
+                if let onClearHistory { row(labels.clearHistory, "trash.slash", onClearHistory, colors) }
+                if let onDelete { row(labels.delete, "trash", onDelete, colors, danger: true) }
             }
         }
     }

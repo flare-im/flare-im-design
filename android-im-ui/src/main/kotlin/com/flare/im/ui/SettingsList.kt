@@ -39,27 +39,48 @@ fun SettingsList(
                         modifier = Modifier.padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingSm))
                 }
             }
-            section.items.forEachIndexed { i, it ->
-                item(key = it.key) {
+            section.items.forEachIndexed { i, item ->
+                item(key = item.key) {
                     if (i > 0) Divider(color = colors.borderSecondary, modifier = Modifier.padding(start = FlareSizes.spacingMd))
-                    Row(
-                        Modifier.fillMaxWidth()
-                            .then(if (it.kind != FlareSettingKind.Toggle) Modifier.clickable { onSelect?.invoke(it) } else Modifier)
-                            .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingMd),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        it.icon?.let { ic -> Icon(ic, null, tint = colors.textSecondary); Spacer(Modifier.width(FlareSizes.spacingMd)) }
-                        Text(it.label, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp, modifier = Modifier.weight(1f))
-                        when (it.kind) {
-                            FlareSettingKind.Toggle -> Switch(checked = it.value, onCheckedChange = { v -> onToggle?.invoke(it, v) })
-                            FlareSettingKind.Value -> Text(it.detail ?: "", color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd.value.sp)
-                            FlareSettingKind.Navigation -> {
-                                it.detail?.let { d -> Text(d, color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd.value.sp); Spacer(Modifier.width(6.dp)) }
-                                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = colors.textTertiary)
-                            }
-                        }
-                    }
+                    SettingsRow(item = item, onToggle = onToggle, onSelect = onSelect)
                 }
+            }
+        }
+    }
+}
+
+/**
+ * One settings/profile entry row — icon, label, then the trailing affordance for its
+ * [FlareSettingKind]: a switch (Toggle), a value (Value), or detail + chevron (Navigation).
+ *
+ * Shared by [SettingsList] and [ProfilePanel] so the two can't drift — previously `ProfilePanel`
+ * re-implemented this row and silently dropped `kind` and `detail`, rendering every entry as a bare
+ * label + chevron.
+ */
+@Composable
+fun SettingsRow(
+    item: SettingsItem,
+    onToggle: ((SettingsItem, Boolean) -> Unit)? = null,
+    onSelect: ((SettingsItem) -> Unit)? = null,
+) {
+    val colors = flareColors()
+    Row(
+        Modifier.fillMaxWidth()
+            .then(if (item.kind != FlareSettingKind.Toggle) Modifier.clickable { onSelect?.invoke(item) } else Modifier)
+            .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingMd),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        item.icon?.let { ic -> Icon(ic, null, tint = colors.textSecondary); Spacer(Modifier.width(FlareSizes.spacingMd)) }
+        Text(item.label, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp, modifier = Modifier.weight(1f))
+        when (item.kind) {
+            FlareSettingKind.Toggle -> Switch(checked = item.value, onCheckedChange = { v -> onToggle?.invoke(item, v) })
+            FlareSettingKind.Value -> Text(item.detail ?: "", color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd.value.sp)
+            FlareSettingKind.Navigation -> {
+                item.detail?.let { d ->
+                    Text(d, color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd.value.sp)
+                    Spacer(Modifier.width(6.dp))
+                }
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = colors.textTertiary)
             }
         }
     }

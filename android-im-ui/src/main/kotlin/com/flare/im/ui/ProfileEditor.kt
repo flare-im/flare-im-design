@@ -38,6 +38,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun ProfileEditor(
     user: UserProfile,
+    /** Field / button labels — overridable so hosts can localize them. */
+    labels: FlareProfileEditorLabels = FlareProfileEditorLabels(),
     busy: Boolean = false,
     onSave: ((name: String, signature: String) -> Unit)? = null,
     onCancel: (() -> Unit)? = null,
@@ -59,14 +61,14 @@ fun ProfileEditor(
             }
         }
         Spacer(Modifier.height(FlareSizes.spacingLg))
-        Text("Nickname", color = colors.textSecondary)
-        Input(value = name, onValueChange = { name = it }, placeholder = "Nickname", maxLength = 24, clearable = true)
+        Text(labels.nickname, color = colors.textSecondary)
+        Input(value = name, onValueChange = { name = it }, placeholder = labels.nicknamePlaceholder, maxLength = 24, clearable = true)
         Spacer(Modifier.height(FlareSizes.spacingMd))
-        Text("Bio", color = colors.textSecondary)
-        Input(value = signature, onValueChange = { signature = it }, placeholder = "Tell us about yourself", multiline = true, maxLength = 60)
+        Text(labels.bio, color = colors.textSecondary)
+        Input(value = signature, onValueChange = { signature = it }, placeholder = labels.bioPlaceholder, multiline = true, maxLength = 60)
         Spacer(Modifier.height(FlareSizes.spacingLg))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
-            OutlinedButton(onClick = { onCancel?.invoke() }, modifier = Modifier.weight(1f)) { Text("Cancel") }
+            OutlinedButton(onClick = { onCancel?.invoke() }, modifier = Modifier.weight(1f)) { Text(labels.cancel) }
             Button(
                 onClick = { onSave?.invoke(name, signature) },
                 enabled = name.isNotBlank() && !busy,
@@ -74,8 +76,18 @@ fun ProfileEditor(
                 modifier = Modifier.weight(1f),
             ) {
                 if (busy) CircularProgressIndicator(Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
-                else Text("Save")
+                else Text(labels.save)
             }
         }
     }
 }
+
+/** Localizable labels for [ProfileEditor]. Defaults keep today's English copy. */
+data class FlareProfileEditorLabels(
+    val nickname: String = "Nickname",
+    val nicknamePlaceholder: String = "Nickname",
+    val bio: String = "Bio",
+    val bioPlaceholder: String = "Tell us about yourself",
+    val cancel: String = "Cancel",
+    val save: String = "Save",
+)

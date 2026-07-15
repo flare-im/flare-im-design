@@ -86,7 +86,6 @@ class FlareMessageBubble extends StatelessWidget {
       children: [
         if (!self) _leadingAvatar(showAvatar),
         Flexible(child: _bubbleColumn(context, colors, self, showName)),
-        if (self) _trailingStatus(colors),
       ],
     );
 
@@ -196,18 +195,40 @@ class FlareMessageBubble extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         body,
-        if (message.timeLabel.isNotEmpty)
+        // Inline meta: time + (self) delivery status, kept inside the bubble.
+        if (message.timeLabel.isNotEmpty || self)
           Padding(
             padding: const EdgeInsets.only(top: 3),
-            child: Text(
-              message.timeLabel,
-              style: TextStyle(
-                fontSize: FlareSizes.fontSizeXs,
-                height: 1,
-                color: self
-                    ? Colors.white.withValues(alpha: 0.8)
-                    : colors.textTertiary,
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (message.timeLabel.isNotEmpty)
+                  Text(
+                    message.timeLabel,
+                    style: TextStyle(
+                      fontSize: FlareSizes.fontSizeXs,
+                      height: 1,
+                      color: self
+                          ? Colors.white.withValues(alpha: 0.8)
+                          : colors.textTertiary,
+                    ),
+                  ),
+                if (self) ...[
+                  const SizedBox(width: 4),
+                  GestureDetector(
+                    onTap: message.status == FlareMessageDeliveryStatus.failed
+                        ? () => onResend?.call(message)
+                        : null,
+                    child: FlareMessageStatus(
+                      status: message.status,
+                      variant: FlareMessageStatusVariant.compact,
+                      tint: message.status == FlareMessageDeliveryStatus.failed
+                          ? null
+                          : Colors.white.withValues(alpha: 0.85),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
       ],
@@ -230,24 +251,6 @@ class FlareMessageBubble extends StatelessWidget {
               elevated: true,
               child: content,
             ),
-    );
-  }
-
-  Widget _trailingStatus(FlareColors colors) {
-    if (message.status == FlareMessageDeliveryStatus.failed) {
-      return Padding(
-        padding: const EdgeInsets.only(left: FlareSizes.spacingXs, top: 4),
-        child: GestureDetector(
-          onTap: () => onResend?.call(message),
-          child: const FlareMessageStatus(
-            status: FlareMessageDeliveryStatus.failed,
-          ),
-        ),
-      );
-    }
-    return Padding(
-      padding: const EdgeInsets.only(left: FlareSizes.spacingXs, top: 4),
-      child: FlareMessageStatus(status: message.status),
     );
   }
 

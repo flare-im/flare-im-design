@@ -12,9 +12,11 @@ title: ResponsiveLayout
 
 ## 预览
 
-<div class="flare-demo flare-demo--stack">
-  <ResponsiveLayoutDemo />
-</div>
+在 **PC** 与 **App** 间切换：宽屏是**三栏**（会话列表 + 聊天 + 详情），平板降为**双栏**，手机是**单栏**逐页切换。可交互。
+
+<ClientOnly>
+  <ResponsivePreview embed="/embed/responsive-layout-frame" pc-hint="桌面 · 三栏" app-hint="移动 · 单栏" :pc-height="420" :app-height="560" />
+</ClientOnly>
 
 ## Props
 

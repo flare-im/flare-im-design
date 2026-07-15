@@ -16,14 +16,17 @@ public enum FlareMessageStatusVariant: Sendable {
 public struct MessageStatusView: View {
     private let status: FlareMessageDeliveryStatus
     private let variant: FlareMessageStatusVariant
+    private let tint: Color?
     @Environment(\.colorScheme) private var scheme
 
     public init(
         status: FlareMessageDeliveryStatus,
-        variant: FlareMessageStatusVariant = .tick
+        variant: FlareMessageStatusVariant = .tick,
+        tint: Color? = nil
     ) {
         self.status = status
         self.variant = variant
+        self.tint = tint
     }
 
     public var body: some View {
@@ -35,14 +38,15 @@ public struct MessageStatusView: View {
             ProgressView()
                 .controlSize(.mini)
                 .frame(width: dim, height: dim)
+                .tint(tint ?? colors.textTertiary)
         case .sent:
             Image(systemName: "checkmark")
                 .font(.system(size: dim - 2))
-                .foregroundColor(colors.textTertiary)
+                .foregroundColor(tint ?? colors.textTertiary)
         case .read:
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: dim - 1))
-                .foregroundColor(colors.primary)
+                .foregroundColor(tint ?? colors.primary)
         case .failed:
             Image(systemName: "exclamationmark.circle")
                 .font(.system(size: dim - 1))

@@ -38,26 +38,33 @@ public struct InputView: View {
     private let maxLength: Int?
     private let disabled: Bool
     private let clearable: Bool
+    private let secure: Bool
     private let onSubmit: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @FocusState private var focused: Bool
 
     public init(text: Binding<String>, placeholder: String = "", multiline: Bool = false,
                 maxLength: Int? = nil, disabled: Bool = false, clearable: Bool = false,
+                /// Mask the value (password entry). Forces single-line.
+                secure: Bool = false,
                 onSubmit: (() -> Void)? = nil) {
         self._text = text; self.placeholder = placeholder; self.multiline = multiline
-        self.maxLength = maxLength; self.disabled = disabled; self.clearable = clearable; self.onSubmit = onSubmit
+        self.maxLength = maxLength; self.disabled = disabled; self.clearable = clearable
+        self.secure = secure; self.onSubmit = onSubmit
     }
 
     public var body: some View {
         let colors = FlareColors.of(scheme)
         VStack(alignment: .trailing, spacing: 4) {
             HStack {
-                if multiline {
-                    TextField(placeholder, text: $text, axis: .vertical).lineLimit(2...6)
+                if secure {
+                    SecureField(placeholder, text: $text).focused($focused).onSubmit { onSubmit?() }
+                } else if multiline {
+                    TextField(placeholder, text: $text, axis: .vertical).lineLimit(2...6).focused($focused)
                 } else {
-                    TextField(placeholder, text: $text).onSubmit { onSubmit?() }
+                    TextField(placeholder, text: $text).focused($focused).onSubmit { onSubmit?() }
                 }
-                if clearable && !text.isEmpty && !disabled {
+                if clearable && !text.isEmpty && !disabled && !secure {
                     Button { text = "" } label: { Image(systemName: "xmark.circle").foregroundColor(colors.textTertiary) }
                         .buttonStyle(.plain)
                 }
@@ -67,6 +74,11 @@ public struct InputView: View {
             .padding(.horizontal, FlareSizes.spacingMd)
             .padding(.vertical, FlareSizes.spacingSm)
             .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.bgSecondary))
+            .overlay(
+                RoundedRectangle(cornerRadius: FlareSizes.radiusLg)
+                    .stroke(focused ? colors.primary : colors.borderPrimary, lineWidth: 1)
+            )
+            .animation(.easeOut(duration: 0.15), value: focused)
             .onChange(of: text) { newValue in
                 if let m = maxLength, newValue.count > m { text = String(newValue.prefix(m)) }
             }

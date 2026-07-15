@@ -15,6 +15,10 @@ export function generateWebAppThemeExtensions(isDark = false): string {
   --im-brand-primary-soft: ${isDark ? "rgba(124, 58, 237, 0.24)" : "var(--flare-color-bg-selected, #F1EAFF)"};
   --im-gradient-start: var(--flare-color-primary, #7c3aed);
   --im-gradient-end: var(--flare-color-info, #6366f1);
+  /* "Considered violet" signature — a subtle brand gradient for primary action
+     surfaces (send, CTAs), giving them depth without a flat fill. */
+  --im-brand-gradient: linear-gradient(135deg, var(--flare-color-primary, #7C3AED), ${isDark ? "#7C3AED" : "var(--flare-color-primary-active, #5B21B6)"});
+  --im-focus-ring: var(--flare-color-focus-ring, rgba(124, 58, 237, 0.35));
   --im-primary-soft: var(--im-brand-primary-soft);
   --im-message-outgoing: ${isDark ? colors.bubble.self : `var(--flare-color-bubble-self, ${colors.bubble.self})`};
   --im-message-outgoing-text: #ffffff;

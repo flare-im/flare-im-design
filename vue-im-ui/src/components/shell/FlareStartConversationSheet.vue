@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { NButton, NInput } from "naive-ui";
+import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
+
+const { t } = useFlareI18n();
 
 const peerUserId = defineModel<string>("peerUserId", { default: "" });
 const query = defineModel<string>("query", { default: "" });
@@ -18,19 +21,19 @@ const emit = defineEmits<{
 <template>
   <section class="start-sheet">
     <div class="sheet-section">
-      <div class="sheet-title">Start conversation</div>
-      <n-input v-model:value="peerUserId" round clearable placeholder="Enter a real user ID" />
+      <div class="sheet-title">{{ t("startConversation.title") }}</div>
+      <n-input v-model:value="peerUserId" round clearable :placeholder='t("startConversation.userIdPlaceholder")' />
       <n-button block type="primary" :loading="busy" @click="emit('open-peer')">
-        Open direct chat
+        {{ t("startConversation.openDirectChat") }}
       </n-button>
     </div>
 
     <div class="sheet-section">
-      <div class="sheet-title">Conversation ops</div>
-      <n-input v-model:value="query" round clearable placeholder="Search by name, ID, or recent message" />
+      <div class="sheet-title">{{ t("startConversation.conversationOps") }}</div>
+      <n-input v-model:value="query" round clearable :placeholder='t("startConversation.searchByNameIdMessage")' />
       <div class="sheet-actions">
-        <n-button secondary :loading="busy" @click="emit('query')">Query</n-button>
-        <n-button secondary :loading="busy" @click="emit('mark-all-read')">Mark all read</n-button>
+        <n-button secondary :loading="busy" @click="emit('query')">{{ t("startConversation.query") }}</n-button>
+        <n-button secondary :loading="busy" @click="emit('mark-all-read')">{{ t("startConversation.markAllRead") }}</n-button>
       </div>
     </div>
   </section>

@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
  */
 @Composable
 fun StartConversationDialog(
+    searchPlaceholder: String = "Search contacts",
     contacts: List<FlareContactOption>,
     allowGroup: Boolean = true,
     busy: Boolean = false,
@@ -57,7 +58,7 @@ fun StartConversationDialog(
         OutlinedTextField(
             value = query, onValueChange = { query = it },
             leadingIcon = { Icon(Icons.Rounded.Search, null) },
-            placeholder = { Text("Search contacts") },
+            placeholder = { Text(searchPlaceholder) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth().padding(FlareSizes.spacingMd),
         )

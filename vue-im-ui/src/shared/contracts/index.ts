@@ -1,13 +1,21 @@
+export type { FlareCallMode, FlareCallState, FlareCallParticipant } from "./call";
 export type {
   FlareConversationAction,
   FlareConversationRowModel,
   FlareConversationFilter,
+  FlareForwardTarget,
 } from "./conversation";
 export type {
   FlareContentElem,
   FlareMessageContentLike,
   FlareBusinessDetailRow,
+  FlareReactionGroup,
 } from "./message";
+export type {
+  FlareSearchResultKind,
+  FlareSearchResultItem,
+  FlareSearchResultGroup,
+} from "./search";
 export type {
   FlareViewportKind,
   FlareLayoutMode,
@@ -18,12 +26,22 @@ export {
   FLARE_BREAKPOINT_IPAD_MAX,
   FLARE_BREAKPOINT_DESKTOP_MIN,
 } from "./layout";
-export type { FlareComposerState } from "./composer";
+export type {
+  FlareComposerState,
+  FlareQuickPhrase,
+  FlareQuickPhraseGroup,
+  FlareSlashCommand,
+  FlareEmojiCategory,
+  FlareStickerItem,
+  FlareStickerPack,
+} from "./composer";
 export type { MessageLike } from "./messageRow";
 export type {
   FlareMediaKind,
   FlareMediaResolveRequest,
   FlareMediaResolver,
+  FlareGridImage,
+  FlareWallpaperOption,
 } from "./media";
 export type { FlareWorkbenchShellMode } from "./workbench";
 export { workbenchShellClass } from "./workbench";
@@ -36,4 +54,5 @@ export type {
   FlareSettingsItem,
   FlareSettingsSection,
   FlareNavItem,
+  FlareMentionCandidate,
 } from "./directory";

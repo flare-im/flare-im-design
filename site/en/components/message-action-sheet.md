@@ -6,11 +6,20 @@ title: MessageActionSheet
 
 <p><span class="flare-tag">Message</span></p>
 
-> The message long-press action sheet — a reaction strip, quick actions (reply/forward/recall), and grouped actions (multi-select/mark/pin/copy/edit/delete). Delete in red.
+> Message actions — reaction, quick actions (reply/forward/recall), and grouped actions (multi-select/mark/pin/copy/edit/delete). Delete in red.
 
-**Data source**: driven by the message's menuConfig (which actions are enabled); actions dispatch through the timeline view / client
+The interaction is **platform-split** (same actions, two presentations):
+
+- **Desktop**: hovering a bubble reveals <strong>react · reply · more</strong>; the rest open from "more" as a dropdown. Right-click works too.
+- **Mobile**: long-press a bubble opens a bottom **sheet** (reaction strip + quick grid + full action list).
+
+Which one shows is decided automatically by viewport / pointer capability (see `MessageBubble`); you only supply `menuConfig` to enable actions. Both platforms share one reaction set (`MESSAGE_QUICK_REACTIONS`).
+
+**Data source**: driven by the message's menuConfig (which actions are enabled); actions dispatch through the timeline view / client.
 
 ## Preview
+
+Hover any bubble below for the desktop three-button bar; on mobile it's a long-press sheet.
 
 <div class="flare-demo flare-demo--stack">
   <MessageActionSheetDemo />

@@ -25,12 +25,15 @@ const props = withDefaults(
     activeTab: "emoji" | "sticker";
     /** 仅表情：隐藏底部贴纸包 / @ 切换条 */
     emojiOnly?: boolean;
+    /** 仅贴纸：隐藏表情页签，直接停在贴纸包（用于独立贴纸选择器）。 */
+    stickerOnly?: boolean;
     canSend?: boolean;
     sending?: boolean;
   }>(),
   {
     activeTab: "emoji",
     emojiOnly: false,
+    stickerOnly: false,
     canSend: false,
     sending: false,
   },
@@ -183,11 +186,14 @@ function onPanelSendClick(): void {
 <template>
   <section
     class="composer-emoji-sticker-panel"
-    :class="{ 'composer-emoji-sticker-panel--emoji-only': emojiOnly }"
+    :class="{
+      'composer-emoji-sticker-panel--emoji-only': emojiOnly,
+      'composer-emoji-sticker-panel--sticker-only': stickerOnly,
+    }"
     aria-label="Emoji"
   >
     <div class="panel-scroll">
-      <template v-if="activeTab === 'emoji'">
+      <template v-if="!stickerOnly && activeTab === 'emoji'">
         <section v-if="recentEmojiItems.length > 0" class="panel-section">
           <h3 class="section-heading">Frequently used</h3>
           <div class="asset-grid asset-grid--emoji">
@@ -268,12 +274,13 @@ function onPanelSendClick(): void {
 
     <div v-if="!emojiOnly" class="panel-tabbar" aria-label="Toggle emoji / stickers">
       <div class="tabbar-row tabbar-row--main">
-        <button type="button" class="tab-btn tab-btn--plus" title="More emoji">
+        <button v-if="!stickerOnly" type="button" class="tab-btn tab-btn--plus" title="More emoji">
           <n-icon :size="22">
             <AddCircleOutline />
           </n-icon>
         </button>
         <button
+          v-if="!stickerOnly"
           type="button"
           class="tab-btn"
           :class="{ 'tab-btn--active': activeTab === 'emoji' }"

@@ -147,10 +147,16 @@ public struct NewFriendRequestsView: View {
     private let onAccept: ((FriendRequest) -> Void)?
     private let onReject: ((FriendRequest) -> Void)?
     private let emptyText: String
+    private let acceptLabel: String
+    private let declineLabel: String
     @Environment(\.colorScheme) private var scheme
 
-    public init(items: [FriendRequest], emptyText: String = "No new friend requests", onAccept: ((FriendRequest) -> Void)? = nil, onReject: ((FriendRequest) -> Void)? = nil) {
-        self.items = items; self.emptyText = emptyText; self.onAccept = onAccept; self.onReject = onReject
+    public init(items: [FriendRequest], emptyText: String = "No new friend requests",
+                acceptLabel: String = "Accept", declineLabel: String = "Decline",
+                onAccept: ((FriendRequest) -> Void)? = nil, onReject: ((FriendRequest) -> Void)? = nil) {
+        self.items = items; self.emptyText = emptyText
+        self.acceptLabel = acceptLabel; self.declineLabel = declineLabel
+        self.onAccept = onAccept; self.onReject = onReject
     }
 
     public var body: some View {
@@ -170,8 +176,8 @@ public struct NewFriendRequestsView: View {
                                 }
                             }
                             Spacer()
-                            Button("Decline") { onReject?(req) }.buttonStyle(.bordered).controlSize(.small)
-                            Button("Accept") { onAccept?(req) }.buttonStyle(.borderedProminent).controlSize(.small).tint(colors.primary)
+                            Button(declineLabel) { onReject?(req) }.buttonStyle(.bordered).controlSize(.small)
+                            Button(acceptLabel) { onAccept?(req) }.buttonStyle(.borderedProminent).controlSize(.small).tint(colors.primary)
                         }
                         .padding(.horizontal, FlareSizes.spacingMd).padding(.vertical, FlareSizes.spacingSm)
                     }

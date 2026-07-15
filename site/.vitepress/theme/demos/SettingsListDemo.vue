@@ -6,15 +6,15 @@ const sections = [
   {
     title: "通用",
     items: [
-      { key: "notify", label: "新消息通知", kind: "switch", value: true },
-      { key: "sound", label: "声音", kind: "switch", value: false },
+      { key: "notify", label: "新消息通知", kind: "toggle", value: true },
+      { key: "sound", label: "声音", kind: "toggle", value: false },
       { key: "lang", label: "语言", detail: "简体中文" },
     ],
   },
   {
     title: "隐私",
     items: [
-      { key: "read", label: "已读回执", kind: "switch", value: true },
+      { key: "read", label: "已读回执", kind: "toggle", value: true },
       { key: "block", label: "黑名单", detail: "2 人" },
     ],
   },

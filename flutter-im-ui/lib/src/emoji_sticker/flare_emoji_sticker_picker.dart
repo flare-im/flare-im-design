@@ -72,7 +72,7 @@ class _FlareEmojiStickerPickerState extends State<FlareEmojiStickerPicker> {
     );
   }
 
-  Widget _tabBar(FlareColors colors, List<FlareStickerPack> packs, int tab) {
+  Widget _tabBar(FlareColors colors, List<FlareStickerManifestPack> packs, int tab) {
     final labels = <String>[widget.emojiLabel, ...packs.map((p) => p.title)];
     return Container(
       height: 44,
@@ -132,7 +132,7 @@ class _FlareEmojiStickerPickerState extends State<FlareEmojiStickerPicker> {
     );
   }
 
-  Widget _stickerGrid(FlareColors colors, FlareStickerPack pack) {
+  Widget _stickerGrid(FlareColors colors, FlareStickerManifestPack pack) {
     return GridView.builder(
       padding: const EdgeInsets.all(10),
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(

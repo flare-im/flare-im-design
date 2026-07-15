@@ -31,6 +31,15 @@ export interface FlareConversationRowModel {
   tags?: FlareConversationRowTag[];
 }
 
+/** A forward destination — a conversation the user can forward messages into. */
+export interface FlareForwardTarget {
+  id: string;
+  name: string;
+  avatarUrl?: string;
+  /** Secondary line — member count, @handle, or "Group". */
+  subtitle?: string;
+}
+
 export type FlareConversationAction =
   | "open"
   | "mark_read"

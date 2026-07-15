@@ -34,7 +34,14 @@ export { default as FlareImagePreview } from "./message-preview/ImagePreviewModa
 export { default as FlareVideoPreview } from "./message-preview/VideoPlayerModal.vue";
 export { default as FlareMarkdownPreview } from "./message-preview/MarkdownPreview.vue";
 export { default as FlareComposer } from "./composer/EnhancedComposer.vue";
+export type {
+  FlareComposerAttachAction,
+  FlareComposerActionTone,
+  FlareComposerMentionCandidate,
+} from "./composer/EnhancedComposer.vue";
 export { default as FlareComposerEmojiStickerPanel } from "./composer/ComposerEmojiStickerPanel/index.vue";
+export { default as FlareStickerPicker } from "./composer/FlareStickerPicker.vue";
+export { default as FlareComposerRichInput } from "./composer/ComposerRichMarkdownInput.vue";
 export { default as FlareMessageActionSheet } from "./composer/MessageActionSheet.vue";
 export { default as FlareBusinessDetailBlock } from "./messages/FlareBusinessDetailBlock.vue";
 export { default as FlareTaskMessageView } from "./messages/business/FlareTaskMessageView.vue";
@@ -64,9 +71,65 @@ export { default as FlareGroupList } from "./contacts/FlareGroupList.vue";
 export { default as FlareProfilePanel } from "./profile/FlareProfilePanel.vue";
 export { default as FlareProfileEditor } from "./profile/FlareProfileEditor.vue";
 export { default as FlareSettingsList } from "./profile/FlareSettingsList.vue";
+export { default as FlareSettingsRow } from "./profile/FlareSettingsRow.vue";
 export { default as FlareCallView } from "./call/FlareCallView.vue";
+export { default as FlareGroupCallView } from "./call/FlareGroupCallView.vue";
 export { default as FlareIncomingCall } from "./call/FlareIncomingCall.vue";
 export { default as FlareCallControls } from "./call/FlareCallControls.vue";
+export { default as FlareTypingIndicator } from "./messages/FlareTypingIndicator.vue";
+export { default as FlareUnreadDivider } from "./messages/FlareUnreadDivider.vue";
+export { default as FlareScrollToLatest } from "./messages/FlareScrollToLatest.vue";
+export { default as FlareProfileCard } from "./profile/FlareProfileCard.vue";
+export { default as FlareGroupMemberGrid } from "./contacts/FlareGroupMemberGrid.vue";
+
+// Feishu-parity IM primitives (reactions, read receipts, mention, batch, search, skeleton, quick phrases)
+export { default as FlareReactionSummary } from "./messages/FlareReactionSummary.vue";
+export { default as FlareReadReceiptSheet } from "./messages/FlareReadReceiptSheet.vue";
+export { default as FlareMessageBatchToolbar } from "./messages/FlareMessageBatchToolbar.vue";
+export { default as FlareMentionPicker } from "./composer/FlareMentionPicker.vue";
+export { default as FlareQuickPhrases } from "./composer/FlareQuickPhrases.vue";
+export { default as FlareSearchResults } from "./general/FlareSearchResults.vue";
+export { default as FlareSkeleton } from "./general/FlareSkeleton.vue";
+
+export type { FlareReactionGroup } from "../shared/contracts";
+export type { FlareMentionCandidate } from "../shared/contracts";
+export type { FlareQuickPhrase, FlareQuickPhraseGroup } from "../shared/contracts";
+export type {
+  FlareSearchResultKind,
+  FlareSearchResultItem,
+  FlareSearchResultGroup,
+} from "../shared/contracts";
+
+// Batch 2 — forward picker, toast, minimized call dock, announcement banner, date pill
+export { default as FlareForwardPicker } from "./conversation/FlareForwardPicker.vue";
+export { default as FlareToast } from "./general/FlareToast.vue";
+export type { FlareToastVariant } from "./general/FlareToast.vue";
+export { default as FlareCallDock } from "./call/FlareCallDock.vue";
+export { default as FlareAnnouncementBanner } from "./messages/FlareAnnouncementBanner.vue";
+export { default as FlareDatePill } from "./messages/FlareDatePill.vue";
+export type { FlareForwardTarget } from "../shared/contracts";
+
+// Batch 3 — red packet, slash-command menu, inline translation, QR name card
+export { default as FlareRedPacketCard } from "./messages/FlareRedPacketCard.vue";
+export { default as FlareTranslationView } from "./messages/FlareTranslationView.vue";
+export { default as FlareSlashCommandMenu } from "./composer/FlareSlashCommandMenu.vue";
+export { default as FlareQRCard } from "./profile/FlareQRCard.vue";
+export type { FlareSlashCommand } from "../shared/contracts";
+
+// Batch 4 — adaptive image grid, voice-recording bar, poll composer, wallpaper picker
+export { default as FlareImageGrid } from "./messages/FlareImageGrid.vue";
+export { default as FlareVoiceRecordingBar } from "./composer/FlareVoiceRecordingBar.vue";
+export { default as FlarePollComposer } from "./composer/FlarePollComposer.vue";
+export { default as FlareChatWallpaperPicker } from "./conversation/FlareChatWallpaperPicker.vue";
+export type { FlareGridImage, FlareWallpaperOption } from "../shared/contracts";
+
+// Batch 5 (deepen) — rich voice player, full emoji picker, categorized sticker panel
+export { default as FlareVoicePlayer } from "./messages/FlareVoicePlayer.vue";
+export { default as FlareEmojiPicker } from "./composer/FlareEmojiPicker.vue";
+export { default as FlareStickerPanel } from "./composer/FlareStickerPanel.vue";
+export type { FlareEmojiCategory, FlareStickerItem, FlareStickerPack } from "../shared/contracts";
+
+export type { FlareCallMode, FlareCallState, FlareCallParticipant } from "../shared/contracts";
 export { default as FlareAppShell } from "./layout/FlareAppShell.vue";
 export { default as FlareResponsiveLayout } from "./layout/FlareResponsiveLayout.vue";
 

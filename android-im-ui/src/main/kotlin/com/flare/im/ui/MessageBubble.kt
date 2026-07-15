@@ -70,14 +70,7 @@ fun MessageBubble(
         }
         Column(horizontalAlignment = if (self) Alignment.End else Alignment.Start) {
             if (showAvatar) Text(message.senderName, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
-            bubble(message, self, colors, mediaState, onMediaAction)
-        }
-        if (self) {
-            Spacer(Modifier.width(FlareSizes.spacingXs))
-            Box(Modifier.padding(top = 4.dp).then(
-                if (message.status == FlareMessageDeliveryStatus.Failed && onResend != null)
-                    Modifier.clickable { onResend(message) } else Modifier,
-            )) { MessageStatus(message.status) }
+            bubble(message, self, colors, mediaState, onResend, onMediaAction)
         }
     }
 }
@@ -88,6 +81,7 @@ private fun bubble(
     self: Boolean,
     colors: FlareColors,
     mediaState: FlareMediaDownloadState?,
+    onResend: ((FlareMessageData) -> Unit)?,
     onMediaAction: ((FlareMessageData, FlareMessageContent) -> Unit)?,
 ) {
     val bare = isBareMedia(message.content)
@@ -112,13 +106,34 @@ private fun bubble(
     val inner: @Composable () -> Unit = {
         Column(horizontalAlignment = if (self) Alignment.End else Alignment.Start) {
             body()
-            if (message.timeLabel.isNotEmpty()) {
-                Text(
-                    message.timeLabel,
-                    fontSize = FlareSizes.fontSizeXs.value.sp,
-                    color = if (self) Color.White.copy(alpha = 0.8f) else colors.textTertiary,
+            // Inline meta: time + (self) delivery status, kept inside the bubble.
+            if (message.timeLabel.isNotEmpty() || self) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
                     modifier = Modifier.padding(top = 3.dp),
-                )
+                ) {
+                    if (message.timeLabel.isNotEmpty()) {
+                        Text(
+                            message.timeLabel,
+                            fontSize = FlareSizes.fontSizeXs.value.sp,
+                            color = if (self) Color.White.copy(alpha = 0.8f) else colors.textTertiary,
+                        )
+                    }
+                    if (self) {
+                        Box(
+                            if (message.status == FlareMessageDeliveryStatus.Failed && onResend != null)
+                                Modifier.clickable { onResend(message) } else Modifier,
+                        ) {
+                            MessageStatus(
+                                message.status,
+                                variant = FlareMessageStatusVariant.Compact,
+                                tint = if (message.status == FlareMessageDeliveryStatus.Failed) null
+                                else Color.White.copy(alpha = 0.85f),
+                            )
+                        }
+                    }
+                }
             }
         }
     }

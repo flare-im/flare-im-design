@@ -41,13 +41,24 @@ class FlareComposer extends StatefulWidget {
     this.onCancelReply,
     this.actions,
     this.onAction,
+    this.replyLabel = 'Reply',
     this.enableVoice = false,
+    this.voiceLabel = 'Hold to talk',
+    this.voiceRecordingLabel = 'Release to send · slide up to cancel',
+    this.voiceCancelLabel = 'Release to cancel',
     this.onVoiceStart,
     this.onVoiceEnd,
     this.onVoiceCancel,
   });
 
   final bool rich;
+
+  /// Copy for the inline reply strip and the hold-to-talk button. Defaults keep
+  /// today's English text; hosts localize by passing their own.
+  final String replyLabel;
+  final String voiceLabel;
+  final String voiceRecordingLabel;
+  final String voiceCancelLabel;
   final String placeholder;
   final bool disabled;
   final FlareReplyTarget? replyTo;
@@ -135,6 +146,7 @@ class _FlareComposerState extends State<FlareComposer> {
               children: [
                 if (widget.replyTo != null)
                   FlareComposerReplyStrip(
+                    label: widget.replyLabel,
                     senderName: widget.replyTo!.senderName,
                     summary: widget.replyTo!.summary,
                     onCancel: widget.onCancelReply,
@@ -190,6 +202,9 @@ class _FlareComposerState extends State<FlareComposer> {
 
   Widget _voiceBar() {
     return FlareVoiceHoldButton(
+      label: widget.voiceLabel,
+      recordingLabel: widget.voiceRecordingLabel,
+      cancelLabel: widget.voiceCancelLabel,
       onStart: widget.onVoiceStart,
       onEnd: widget.onVoiceEnd,
       onCancel: widget.onVoiceCancel,

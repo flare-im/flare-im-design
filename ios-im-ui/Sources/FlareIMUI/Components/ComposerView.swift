@@ -17,6 +17,7 @@ public struct ComposerView: View {
     private let placeholder: String
     private let disabled: Bool
     private let replyTo: FlareReplyTarget?
+    private let replyLabel: String
     private let maxLength: Int?
     private let onSend: ((String) -> Void)?
     private let onAttach: (() -> Void)?
@@ -27,6 +28,11 @@ public struct ComposerView: View {
     private let enableVoice: Bool
     private let onVoiceStart: (() -> Void)?
     private let onVoiceEnd: (() -> Void)?
+    private let onVoiceCancel: (() -> Void)?
+    private let voiceLabel: String
+    private let voiceRecordingLabel: String
+    private let voiceCancelLabel: String
+    private let sendAccent: AnyShapeStyle?
 
     @Environment(\.colorScheme) private var scheme
     @State private var text = ""
@@ -38,7 +44,11 @@ public struct ComposerView: View {
         placeholder: String = "Message",
         disabled: Bool = false,
         replyTo: FlareReplyTarget? = nil,
+        /// Prefix on the reply strip above the input, e.g. "Reply Ivy".
+        replyLabel: String = "Reply",
         maxLength: Int? = nil,
+        /// Optional brand accent for the active send button (e.g. a gradient). Defaults to `primary`.
+        sendAccent: AnyShapeStyle? = nil,
         onSend: ((String) -> Void)? = nil,
         onAttach: (() -> Void)? = nil,
         onEmoji: (() -> Void)? = nil,
@@ -46,14 +56,21 @@ public struct ComposerView: View {
         actions: [FlareComposerAction]? = nil,
         onAction: ((FlareComposerAction) -> Void)? = nil,
         enableVoice: Bool = false,
+        /// Hold-to-talk labels — forwarded to `FlareVoiceHoldButton` so hosts can localize them.
+        voiceLabel: String = "Hold to talk",
+        voiceRecordingLabel: String = "Release to send · slide up to cancel",
+        voiceCancelLabel: String = "Release to cancel",
         onVoiceStart: (() -> Void)? = nil,
-        onVoiceEnd: (() -> Void)? = nil
+        onVoiceEnd: (() -> Void)? = nil,
+        onVoiceCancel: (() -> Void)? = nil
     ) {
         self.rich = rich
         self.placeholder = placeholder
         self.disabled = disabled
         self.replyTo = replyTo
+        self.replyLabel = replyLabel
         self.maxLength = maxLength
+        self.sendAccent = sendAccent
         self.onSend = onSend
         self.onAttach = onAttach
         self.onEmoji = onEmoji
@@ -61,8 +78,12 @@ public struct ComposerView: View {
         self.actions = actions
         self.onAction = onAction
         self.enableVoice = enableVoice
+        self.voiceLabel = voiceLabel
+        self.voiceRecordingLabel = voiceRecordingLabel
+        self.voiceCancelLabel = voiceCancelLabel
         self.onVoiceStart = onVoiceStart
         self.onVoiceEnd = onVoiceEnd
+        self.onVoiceCancel = onVoiceCancel
     }
 
     private var canSend: Bool { !text.trimmingCharacters(in: .whitespaces).isEmpty && !disabled }
@@ -81,10 +102,15 @@ public struct ComposerView: View {
                         if actions != nil { panelOpen.toggle() } else { onAttach?() }
                     }, colors, active: panelOpen)
                     if voiceMode {
-                        FlareVoiceHoldButton(onStart: onVoiceStart, onEnd: onVoiceEnd)
+                        FlareVoiceHoldButton(
+                            label: voiceLabel,
+                            recordingLabel: voiceRecordingLabel,
+                            cancelLabel: voiceCancelLabel,
+                            onStart: onVoiceStart, onEnd: onVoiceEnd, onCancel: onVoiceCancel)
                     } else {
+                        // Emoji lives *inside* the pill (see `inputField`) so the input gets the full
+                        // width and the row reads calm instead of four competing controls.
                         inputField(colors)
-                        iconButton("face.smiling", onEmoji, colors)
                         sendButton(colors)
                     }
                 }
@@ -101,35 +127,49 @@ public struct ComposerView: View {
         .overlay(Divider(), alignment: .top)
     }
 
+    /// The input pill — text plus the emoji control tucked inside its trailing edge.
     @ViewBuilder
     private func inputField(_ colors: FlareColors) -> some View {
-        let field = Group {
-            if rich {
-                RichMarkdownInputView(text: $text, disabled: disabled,
-                                      maxLength: maxLength, placeholder: placeholder)
-            } else {
-                ZStack(alignment: .leading) {
-                    if text.isEmpty {
-                        Text(placeholder).foregroundColor(colors.textTertiary)
+        HStack(spacing: 6) {
+            Group {
+                if rich {
+                    RichMarkdownInputView(text: $text, disabled: disabled,
+                                          maxLength: maxLength, placeholder: placeholder)
+                } else {
+                    ZStack(alignment: .leading) {
+                        if text.isEmpty {
+                            Text(placeholder).foregroundColor(colors.textTertiary)
+                                .font(.system(size: FlareSizes.fontSizeLg))
+                        }
+                        TextField("", text: $text, axis: .vertical)
+                            .lineLimit(1...5).disabled(disabled)
                             .font(.system(size: FlareSizes.fontSizeLg))
+                            .onSubmit(send)
                     }
-                    TextField("", text: $text, axis: .vertical)
-                        .lineLimit(1...5).disabled(disabled)
-                        .font(.system(size: FlareSizes.fontSizeLg))
-                        .onSubmit(send)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Button { onEmoji?() } label: {
+                Image(systemName: "face.smiling")
+                    .font(.system(size: 22))
+                    .foregroundColor(colors.textSecondary)
+            }
+            .buttonStyle(.plain)
+            .disabled(disabled)
         }
-        field
-            .padding(.horizontal, FlareSizes.spacingMd)
-            .padding(.vertical, FlareSizes.spacingSm)
-            .background(RoundedRectangle(cornerRadius: FlareSizes.radiusXl).fill(colors.bgSecondary))
+        .padding(.leading, 14)
+        .padding(.trailing, 8)
+        .padding(.vertical, 8)
+        .background(RoundedRectangle(cornerRadius: FlareSizes.radiusXl).fill(colors.bgSecondary))
+        .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusXl)
+            .strokeBorder(colors.borderPrimary, lineWidth: 1))
     }
 
     private func replyStrip(_ r: FlareReplyTarget, _ colors: FlareColors) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 1) {
-                Text("Reply \(r.senderName)").font(.system(size: FlareSizes.fontSizeXs, weight: .semibold))
+                Text("\(replyLabel) \(r.senderName)").font(.system(size: FlareSizes.fontSizeXs, weight: .semibold))
                     .foregroundColor(colors.primary)
                 Text(r.summary).font(.system(size: FlareSizes.fontSizeSm))
                     .foregroundColor(colors.textSecondary).lineLimit(1)
@@ -157,10 +197,15 @@ public struct ComposerView: View {
         Button(action: send) {
             Image(systemName: "arrow.up").font(.system(size: 18, weight: .semibold))
                 .foregroundColor(canSend ? .white : colors.textDisabled)
-                .frame(width: 34, height: 34)
-                .background(Circle().fill(canSend ? colors.primary : colors.bgDisabled))
+                .frame(width: 36, height: 36)
+                .background(Circle().fill(sendFill(colors)))
         }
         .buttonStyle(.plain).disabled(!canSend)
+    }
+
+    private func sendFill(_ colors: FlareColors) -> AnyShapeStyle {
+        guard canSend else { return AnyShapeStyle(colors.bgDisabled) }
+        return sendAccent ?? AnyShapeStyle(colors.primary)
     }
 
     private func send() {

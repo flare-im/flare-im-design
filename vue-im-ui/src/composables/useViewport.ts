@@ -28,7 +28,10 @@ const viewportKey: InjectionKey<ViewportContext> = Symbol("flare-viewport");
 
 function readWidth(): number {
   if (typeof window === "undefined") return BREAKPOINT_DESKTOP_PX;
-  return window.innerWidth;
+  // `innerWidth` can read 0 before the window/iframe has laid out; a 0 would
+  // wrongly classify as mobile and stick until a resize. Fall back to the layout
+  // width, then to the desktop breakpoint, so first paint isn't misclassified.
+  return window.innerWidth || document.documentElement?.clientWidth || BREAKPOINT_DESKTOP_PX;
 }
 
 function resolveMode(width: number): ViewportMode {

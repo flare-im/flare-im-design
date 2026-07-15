@@ -16,6 +16,7 @@ class FlareMessageStatus extends StatelessWidget {
     super.key,
     required this.status,
     this.variant = FlareMessageStatusVariant.tick,
+    this.tint,
   });
 
   /// Current delivery state.
@@ -23,6 +24,10 @@ class FlareMessageStatus extends StatelessWidget {
 
   /// Rendering density; [FlareMessageStatusVariant.compact] is slightly smaller.
   final FlareMessageStatusVariant variant;
+
+  /// Optional tint override for sent/read/pending (e.g. white on a self bubble);
+  /// failed always keeps the error color for visibility.
+  final Color? tint;
 
   @override
   Widget build(BuildContext context) {
@@ -39,14 +44,14 @@ class FlareMessageStatus extends StatelessWidget {
             padding: const EdgeInsets.all(1),
             child: CircularProgressIndicator(
               strokeWidth: 1.5,
-              color: colors.textTertiary,
+              color: tint ?? colors.textTertiary,
             ),
           ),
         );
       case FlareMessageDeliveryStatus.sent:
-        return Icon(Icons.check, size: dim, color: colors.textTertiary);
+        return Icon(Icons.check, size: dim, color: tint ?? colors.textTertiary);
       case FlareMessageDeliveryStatus.read:
-        return Icon(Icons.done_all, size: dim, color: colors.primary);
+        return Icon(Icons.done_all, size: dim, color: tint ?? colors.primary);
       case FlareMessageDeliveryStatus.failed:
         return Icon(Icons.error_outline, size: dim, color: colors.error);
     }

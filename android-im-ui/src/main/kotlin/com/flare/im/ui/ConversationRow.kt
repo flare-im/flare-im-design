@@ -45,6 +45,9 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun ConversationRow(
     item: ConversationRowData,
+    /** Inline preview prefixes — overridable so hosts can localize them. */
+    draftLabel: String = "[Draft] ",
+    mentionLabel: String = "[@me] ",
     active: Boolean = false,
     avatarSize: Dp = 48.dp,
     onSelect: (() -> Unit)? = null,
@@ -100,7 +103,7 @@ fun ConversationRow(
                     Icon(Icons.Outlined.NotificationsOff, null, Modifier.size(14.dp).padding(end = 2.dp), tint = colors.textTertiary)
                 }
                 Text(
-                    previewText(item, colors), maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    previewText(item, colors, draftLabel, mentionLabel), maxLines = 1, overflow = TextOverflow.Ellipsis,
                     fontSize = FlareSizes.fontSizeLg.value.sp, color = colors.textSecondary,
                     modifier = Modifier.weight(1f),
                 )
@@ -121,14 +124,19 @@ fun ConversationRow(
     }
 }
 
-private fun previewText(item: ConversationRowData, colors: FlareColors): AnnotatedString = buildAnnotatedString {
+private fun previewText(
+    item: ConversationRowData,
+    colors: FlareColors,
+    draftLabel: String,
+    mentionLabel: String,
+): AnnotatedString = buildAnnotatedString {
     when {
         item.hasDraft -> {
-            withStyle(SpanStyle(color = colors.error, fontWeight = FontWeight.Medium)) { append("[Draft] ") }
+            withStyle(SpanStyle(color = colors.error, fontWeight = FontWeight.Medium)) { append(draftLabel) }
             append(item.draftPreview ?: "")
         }
         item.mentioned -> {
-            withStyle(SpanStyle(color = colors.error, fontWeight = FontWeight.SemiBold)) { append("[@me] ") }
+            withStyle(SpanStyle(color = colors.error, fontWeight = FontWeight.SemiBold)) { append(mentionLabel) }
             append(item.preview)
         }
         else -> append(item.preview)

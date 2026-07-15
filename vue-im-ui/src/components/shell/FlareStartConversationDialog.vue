@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { nextTick, ref, watch } from "vue";
 import { NButton, NInput, NModal, NSelect } from "naive-ui";
+import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
+
+const { t } = useFlareI18n();
 
 const open = defineModel<boolean>("open", { default: false });
 const peerUserId = defineModel<string>("peerUserId", { default: "" });
@@ -37,7 +40,7 @@ function submitDialog(): void {
   <n-modal
     v-model:show="open"
     preset="card"
-    title="Open conversation"
+    :title='t("startConversation.openConversation")'
     class="start-dialog-modal"
     :auto-focus="false"
     :trap-focus="true"
@@ -52,7 +55,7 @@ function submitDialog(): void {
         v-model:value="peerUserId"
         size="large"
         clearable
-        :placeholder="conversationType === 'group' ? 'Enter member userIds, separated by comma or space' : 'Enter a real user ID'"
+        :placeholder="conversationType === 'group' ? t('startConversation.membersPlaceholder') : t('startConversation.userIdPlaceholder')"
         @keydown.enter.prevent="submitDialog"
       />
       <small class="start-dialog-hint">
@@ -64,7 +67,7 @@ function submitDialog(): void {
       </small>
     </div>
     <div class="start-dialog-field">
-      <span>Conversation type</span>
+      <span>{{ t("startConversation.conversationType") }}</span>
       <n-select
         v-model:value="conversationType"
         :options="[
@@ -74,7 +77,7 @@ function submitDialog(): void {
       />
     </div>
     <template #action>
-      <n-button text @click="closeDialog">Cancel</n-button>
+      <n-button text @click="closeDialog">{{ t("startConversation.cancel") }}</n-button>
       <n-button type="primary" :loading="busy" :disabled="!peerUserId.trim()" @click="submitDialog">
         Open
       </n-button>

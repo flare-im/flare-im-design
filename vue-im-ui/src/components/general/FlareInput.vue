@@ -7,8 +7,10 @@ const props = withDefaults(
     maxLength?: number;
     disabled?: boolean;
     clearable?: boolean;
+    /** Mask the value (password entry). Ignored when `multiline`. */
+    secure?: boolean;
   }>(),
-  { placeholder: "", multiline: false, disabled: false, clearable: false },
+  { placeholder: "", multiline: false, disabled: false, clearable: false, secure: false },
 );
 const emit = defineEmits<{
   (e: "update:modelValue", v: string): void;
@@ -42,6 +44,7 @@ function onInput(e: Event) {
       <input
         v-else
         class="flare-input__el"
+        :type="secure ? 'password' : 'text'"
         :value="modelValue"
         :placeholder="placeholder"
         :disabled="disabled"
@@ -69,9 +72,16 @@ function onInput(e: Event) {
   align-items: center;
   gap: 8px;
   padding: 10px 14px;
-  border-radius: var(--flare-size-radius-lg, 8px);
+  border-radius: var(--flare-size-radius-lg, 10px);
   background: var(--flare-color-bg-secondary);
-  border-bottom: 2px solid var(--flare-color-primary);
+  border: 1px solid var(--flare-color-border-primary);
+  transition:
+    border-color var(--flare-transition-fast, 150ms ease),
+    box-shadow var(--flare-transition-fast, 150ms ease);
+}
+.flare-input__field:focus-within {
+  border-color: var(--flare-color-primary);
+  box-shadow: 0 0 0 3px var(--flare-color-focus-ring, rgba(124, 58, 237, 0.28));
 }
 .flare-input__field.is-disabled { opacity: 0.6; }
 .flare-input__el {

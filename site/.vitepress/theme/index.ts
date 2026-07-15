@@ -14,6 +14,13 @@ import MessageBubbleDemo from "./demos/MessageBubbleDemo.vue";
 import ChatHeaderDemo from "./demos/ChatHeaderDemo.vue";
 import PinnedBarDemo from "./demos/PinnedBarDemo.vue";
 import ComposerDemo from "./demos/ComposerDemo.vue";
+import ComposerCustomMenuDemo from "./demos/ComposerCustomMenuDemo.vue";
+import ComposerChatFrame from "./demos/ComposerChatFrame.vue";
+import ComposerResponsivePreview from "./demos/ComposerResponsivePreview.vue";
+import ResponsivePreview from "./demos/ResponsivePreview.vue";
+import AppShellFrame from "./demos/AppShellFrame.vue";
+import ResponsiveLayoutFrame from "./demos/ResponsiveLayoutFrame.vue";
+import StartConversationFrame from "./demos/StartConversationFrame.vue";
 import MarkdownPreviewDemo from "./demos/MarkdownPreviewDemo.vue";
 import ThemePlayground from "./demos/ThemePlayground.vue";
 import SearchBarDemo from "./demos/SearchBarDemo.vue";
@@ -22,6 +29,37 @@ import EmptyStateDemo from "./demos/EmptyStateDemo.vue";
 import ContactListDemo from "./demos/ContactListDemo.vue";
 import ProfilePanelDemo from "./demos/ProfilePanelDemo.vue";
 import CallViewDemo from "./demos/CallViewDemo.vue";
+import GroupCallViewDemo from "./demos/GroupCallViewDemo.vue";
+import TypingIndicatorDemo from "./demos/TypingIndicatorDemo.vue";
+import UnreadDividerDemo from "./demos/UnreadDividerDemo.vue";
+import ScrollToLatestDemo from "./demos/ScrollToLatestDemo.vue";
+import ProfileCardDemo from "./demos/ProfileCardDemo.vue";
+import GroupMemberGridDemo from "./demos/GroupMemberGridDemo.vue";
+import ReactionSummaryDemo from "./demos/ReactionSummaryDemo.vue";
+import ReadReceiptSheetDemo from "./demos/ReadReceiptSheetDemo.vue";
+import MentionPickerDemo from "./demos/MentionPickerDemo.vue";
+import MessageBatchToolbarDemo from "./demos/MessageBatchToolbarDemo.vue";
+import SearchResultsDemo from "./demos/SearchResultsDemo.vue";
+import SkeletonDemo from "./demos/SkeletonDemo.vue";
+import QuickPhrasesDemo from "./demos/QuickPhrasesDemo.vue";
+import ForwardPickerDemo from "./demos/ForwardPickerDemo.vue";
+import ToastDemo from "./demos/ToastDemo.vue";
+import CallDockDemo from "./demos/CallDockDemo.vue";
+import AnnouncementBannerDemo from "./demos/AnnouncementBannerDemo.vue";
+import DatePillDemo from "./demos/DatePillDemo.vue";
+import RedPacketCardDemo from "./demos/RedPacketCardDemo.vue";
+import SlashCommandMenuDemo from "./demos/SlashCommandMenuDemo.vue";
+import TranslationViewDemo from "./demos/TranslationViewDemo.vue";
+import QRCardDemo from "./demos/QRCardDemo.vue";
+import ImageGridDemo from "./demos/ImageGridDemo.vue";
+import VoiceRecordingBarDemo from "./demos/VoiceRecordingBarDemo.vue";
+import PollComposerDemo from "./demos/PollComposerDemo.vue";
+import ChatWallpaperPickerDemo from "./demos/ChatWallpaperPickerDemo.vue";
+import VoicePlayerDemo from "./demos/VoicePlayerDemo.vue";
+import EmojiPickerDemo from "./demos/EmojiPickerDemo.vue";
+import StickerPanelDemo from "./demos/StickerPanelDemo.vue";
+import ComponentGallery from "./demos/ComponentGallery.vue";
+import ComponentApi from "./demos/ComponentApi.vue";
 import IncomingCallDemo from "./demos/IncomingCallDemo.vue";
 import CallControlsDemo from "./demos/CallControlsDemo.vue";
 
@@ -98,6 +136,13 @@ const demos = {
   ChatHeaderDemo,
   PinnedBarDemo,
   ComposerDemo,
+  ComposerCustomMenuDemo,
+  ComposerChatFrame,
+  ComposerResponsivePreview,
+  ResponsivePreview,
+  AppShellFrame,
+  ResponsiveLayoutFrame,
+  StartConversationFrame,
   MarkdownPreviewDemo,
   ThemePlayground,
   SearchBarDemo,
@@ -106,6 +151,37 @@ const demos = {
   ContactListDemo,
   ProfilePanelDemo,
   CallViewDemo,
+  GroupCallViewDemo,
+  TypingIndicatorDemo,
+  UnreadDividerDemo,
+  ScrollToLatestDemo,
+  ProfileCardDemo,
+  GroupMemberGridDemo,
+  ReactionSummaryDemo,
+  ReadReceiptSheetDemo,
+  MentionPickerDemo,
+  MessageBatchToolbarDemo,
+  SearchResultsDemo,
+  SkeletonDemo,
+  QuickPhrasesDemo,
+  ForwardPickerDemo,
+  ToastDemo,
+  CallDockDemo,
+  AnnouncementBannerDemo,
+  DatePillDemo,
+  RedPacketCardDemo,
+  SlashCommandMenuDemo,
+  TranslationViewDemo,
+  QRCardDemo,
+  ImageGridDemo,
+  VoiceRecordingBarDemo,
+  PollComposerDemo,
+  ChatWallpaperPickerDemo,
+  VoicePlayerDemo,
+  EmojiPickerDemo,
+  StickerPanelDemo,
+  ComponentGallery,
+  ComponentApi,
   IncomingCallDemo,
   CallControlsDemo,
   MessageListDemo,
