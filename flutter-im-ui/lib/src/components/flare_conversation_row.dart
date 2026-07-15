@@ -17,6 +17,8 @@ class FlareConversationRow extends StatelessWidget {
     required this.item,
     this.active = false,
     this.avatarSize = 48,
+    this.draftLabel = '[Draft] ',
+    this.mentionLabel = '[@me] ',
     this.onSelect,
     this.onAction,
   });
@@ -28,6 +30,12 @@ class FlareConversationRow extends StatelessWidget {
 
   /// Avatar diameter.
   final double avatarSize;
+
+  /// Prefix shown when the row has an unsent draft.
+  final String draftLabel;
+
+  /// Prefix shown when the row has an unread @-mention.
+  final String mentionLabel;
 
   /// Tap.
   final VoidCallback? onSelect;
@@ -126,7 +134,7 @@ class FlareConversationRow extends StatelessWidget {
     final spans = <InlineSpan>[];
     if (item.hasDraft) {
       spans.add(TextSpan(
-        text: '[Draft] ',
+        text: draftLabel,
         style: base.copyWith(
           color: colors.error,
           fontWeight: FontWeight.w500,
@@ -136,7 +144,7 @@ class FlareConversationRow extends StatelessWidget {
     } else {
       if (item.mentioned) {
         spans.add(TextSpan(
-          text: '[@me] ',
+          text: mentionLabel,
           style: base.copyWith(
             color: colors.error,
             fontWeight: FontWeight.w600,

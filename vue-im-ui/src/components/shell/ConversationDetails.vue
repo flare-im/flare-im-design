@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { NButton, NDivider, NTag } from "naive-ui";
 import Avatar from "../conversation/FlareAvatar.vue";
+import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 import type { Conversation } from "flare-core-typescript-sdk/web";
 
 const props = defineProps<{
@@ -24,12 +25,14 @@ const emit = defineEmits<{
   (event: "open-devtools"): void;
 }>();
 
-const title = computed(() => props.conversation?.displayName || "Conversation details");
+const { t } = useFlareI18n();
+
+const title = computed(() => props.conversation?.displayName || t("conversationDetails.title"));
 const subtitle = computed(() => {
   const item = props.conversation;
-  if (!item) return "Select a conversation";
-  if (item.conversationType === "group") return `${item.membersCount} members`;
-  if (item.conversationType === "ai") return "Assistant";
+  if (!item) return t("conversationDetails.selectHint");
+  if (item.conversationType === "group") return t("conversationDetails.members", { count: item.membersCount });
+  if (item.conversationType === "ai") return t("conversationDetails.assistant");
   return item.channelId;
 });
 </script>
@@ -50,57 +53,57 @@ const subtitle = computed(() => {
         <p>{{ subtitle }}</p>
         <div class="details-tags">
           <n-tag round size="small" :type="connectionTone">{{ connectionText }}</n-tag>
-          <n-tag v-if="conversation.isPinned" round size="small" type="info">Pinned</n-tag>
-          <n-tag v-if="conversation.isMuted" round size="small">Muted</n-tag>
+          <n-tag v-if="conversation.isPinned" round size="small" type="info">{{ t("conversationDetails.pinned") }}</n-tag>
+          <n-tag v-if="conversation.isMuted" round size="small">{{ t("conversationDetails.muted") }}</n-tag>
         </div>
       </section>
 
       <section class="details-actions">
-        <n-button secondary size="small" @click="emit('sync')">Sync</n-button>
-        <n-button secondary size="small" @click="emit('mark-read')">Mark read</n-button>
-        <n-button secondary size="small" @click="emit('mark-unread')">Mark unread</n-button>
+        <n-button secondary size="small" @click="emit('sync')">{{ t("conversationDetails.sync") }}</n-button>
+        <n-button secondary size="small" @click="emit('mark-read')">{{ t("conversationDetails.markRead") }}</n-button>
+        <n-button secondary size="small" @click="emit('mark-unread')">{{ t("conversationDetails.markUnread") }}</n-button>
         <n-button secondary size="small" @click="emit('pin', !conversation.isPinned)">
-          {{ conversation.isPinned ? "Unpin" : "Pin" }}
+          {{ conversation.isPinned ? t("conversationDetails.unpin") : t("conversationDetails.pin") }}
         </n-button>
         <n-button secondary size="small" @click="emit('mute', !conversation.isMuted)">
-          {{ conversation.isMuted ? "Unmute" : "Mute" }}
+          {{ conversation.isMuted ? t("conversationDetails.unmute") : t("conversationDetails.mute") }}
         </n-button>
         <n-button secondary size="small" @click="emit('archive', !conversation.isArchived)">
-          {{ conversation.isArchived ? "Unarchive" : "Archive" }}
+          {{ conversation.isArchived ? t("conversationDetails.unarchive") : t("conversationDetails.archive") }}
         </n-button>
-        <n-button secondary size="small" @click="emit('clear-history')">Clear history</n-button>
-        <n-button secondary size="small" type="error" @click="emit('delete')">Delete</n-button>
+        <n-button secondary size="small" @click="emit('clear-history')">{{ t("conversationDetails.clearHistory") }}</n-button>
+        <n-button secondary size="small" type="error" @click="emit('delete')">{{ t("conversationDetails.delete") }}</n-button>
       </section>
 
       <n-divider />
 
       <section class="details-section">
-        <div class="pane-title">Conversation status</div>
+        <div class="pane-title">{{ t("conversationDetails.status") }}</div>
         <dl>
-          <div><dt>Conversation ID</dt><dd>{{ conversation.conversationId }}</dd></div>
-          <div><dt>Channel</dt><dd>{{ conversation.channelId }}</dd></div>
-          <div><dt>Unread</dt><dd>{{ conversation.unreadCount }}</dd></div>
-          <div><dt>Messages</dt><dd>{{ messageCount }}</dd></div>
-          <div><dt>Latest Message</dt><dd>{{ latestMessageId || "-" }}</dd></div>
+          <div><dt>{{ t("conversationDetails.conversationId") }}</dt><dd>{{ conversation.conversationId }}</dd></div>
+          <div><dt>{{ t("conversationDetails.channel") }}</dt><dd>{{ conversation.channelId }}</dd></div>
+          <div><dt>{{ t("conversationDetails.unread") }}</dt><dd>{{ conversation.unreadCount }}</dd></div>
+          <div><dt>{{ t("conversationDetails.messages") }}</dt><dd>{{ messageCount }}</dd></div>
+          <div><dt>{{ t("conversationDetails.latestMessage") }}</dt><dd>{{ latestMessageId || "-" }}</dd></div>
         </dl>
       </section>
 
       <n-divider />
 
       <section class="details-section">
-        <div class="pane-title">Extensions</div>
+        <div class="pane-title">{{ t("conversationDetails.extensions") }}</div>
         <div class="extension-list">
-          <button type="button">Members & permissions</button>
-          <button type="button">Files & media</button>
-          <button type="button">Conversation plugins</button>
-          <button type="button" @click="emit('open-devtools')">SDK diagnostics</button>
+          <button type="button">{{ t("conversationDetails.membersAndPermissions") }}</button>
+          <button type="button">{{ t("conversationDetails.filesAndMedia") }}</button>
+          <button type="button">{{ t("conversationDetails.plugins") }}</button>
+          <button type="button" @click="emit('open-devtools')">{{ t("conversationDetails.diagnostics") }}</button>
         </div>
       </section>
     </template>
 
     <section v-else class="details-empty">
-      <h2>Select a conversation</h2>
-      <p>Conversation info, members, media and extensions appear here.</p>
+      <h2>{{ t("conversationDetails.selectHint") }}</h2>
+      <p>{{ t("conversationDetails.emptyHint") }}</p>
     </section>
   </aside>
 </template>

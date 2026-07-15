@@ -12,18 +12,23 @@ export type ContentElem = Record<string, unknown> & {
 
 export function normalizeToContentElem(content?: MessageContentLike | null): ContentElem | null {
   if (!content?.contentType) return null;
-  try {
-    const ui = buildUiTaggedMessageContent({
-      contentType: content.contentType,
-      data: content.data ?? {},
-    });
-    return ui as ContentElem;
-  } catch {
-    return {
-      contentType: messageContentTypeForUi(content.contentType),
-      ...content.data,
-    } as ContentElem;
+  const rec = content as Record<string, unknown>;
+  const data =
+    rec.data && typeof rec.data === "object" && !Array.isArray(rec.data)
+      ? (rec.data as Record<string, unknown>)
+      : undefined;
+  // `{ contentType, data: {...} }` shape (kit builders / mocks): expand the data bag.
+  if (data) {
+    try {
+      return buildUiTaggedMessageContent({ contentType: content.contentType, data }) as ContentElem;
+    } catch {
+      return { contentType: messageContentTypeForUi(content.contentType), ...data } as ContentElem;
+    }
   }
+  // Flattened Rust-tagged Elem (`{ contentType, text, mentions, image, ... }`) — the shape the
+  // core SDK actually emits. Pass it through so the view extractors (`textBodyFromContent`,
+  // `pickNestedPayload`) find the root fields; the old code wrapped an empty `data` and dropped them.
+  return { ...rec, contentType: messageContentTypeForUi(content.contentType) } as ContentElem;
 }
 
 export function pickNestedPayload(content: ContentElem, key: string): Record<string, unknown> {

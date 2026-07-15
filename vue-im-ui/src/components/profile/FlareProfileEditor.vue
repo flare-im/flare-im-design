@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { NIcon } from "naive-ui";
+import { CameraOutline } from "@vicons/ionicons5";
 import FlareAvatar from "../conversation/FlareAvatar.vue";
 import FlareInput from "../general/FlareInput.vue";
+import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 import type { FlareUserProfile } from "../../shared/contracts";
 
 const props = withDefaults(defineProps<{ user: FlareUserProfile; busy?: boolean }>(), { busy: false });
@@ -11,6 +14,7 @@ const emit = defineEmits<{
   (e: "pickAvatar"): void;
 }>();
 
+const { t } = useFlareI18n();
 const name = ref(props.user.name);
 const signature = ref(props.user.signature ?? "");
 </script>
@@ -19,19 +23,19 @@ const signature = ref(props.user.signature ?? "");
   <div class="flare-profile-editor">
     <div class="flare-profile-editor__avatar" @click="emit('pickAvatar')">
       <FlareAvatar :user-id="user.id" :display-name="name || user.name" :avatar-url="user.avatarUrl" :size="80" />
-      <span class="flare-profile-editor__cam">📷</span>
+      <span class="flare-profile-editor__cam"><n-icon :size="15" :component="CameraOutline" /></span>
     </div>
-    <label class="flare-profile-editor__label">Nickname</label>
-    <FlareInput v-model="name" placeholder="Nickname" :max-length="24" clearable />
-    <label class="flare-profile-editor__label">Bio</label>
-    <FlareInput v-model="signature" placeholder="Tell us about yourself" multiline :max-length="60" />
+    <label class="flare-profile-editor__label">{{ t("profileEditor.nickname") }}</label>
+    <FlareInput v-model="name" :placeholder='t("profileEditor.nicknamePlaceholder")' :max-length="24" clearable />
+    <label class="flare-profile-editor__label">{{ t("profileEditor.bio") }}</label>
+    <FlareInput v-model="signature" :placeholder='t("profileEditor.bioPlaceholder")' multiline :max-length="60" />
     <div class="flare-profile-editor__actions">
-      <button @click="emit('cancel')">Cancel</button>
+      <button @click="emit('cancel')">{{ t("profileEditor.cancel") }}</button>
       <button
         class="is-primary"
         :disabled="!name.trim() || busy"
         @click="emit('save', { name, signature })"
-      >{{ busy ? "Saving…" : "Save" }}</button>
+      >{{ busy ? t("profileEditor.saving") : t("profileEditor.save") }}</button>
     </div>
   </div>
 </template>

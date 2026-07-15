@@ -15,6 +15,9 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
+        // First so an already-installed artifact is served locally — Maven Central
+        // truncates the 57MB kotlin-compiler-embeddable jar on some networks.
+        mavenLocal()
         google()
         mavenCentral()
     }

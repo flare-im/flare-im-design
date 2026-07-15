@@ -22,22 +22,27 @@ fun ConversationList(
     items: List<ConversationRowData>,
     activeId: String? = null,
     loading: Boolean = false,
+    emptyText: String = "No conversations",
+    draftLabel: String = "[Draft] ",
+    mentionLabel: String = "[@me] ",
+    emptyDescription: String? = null,
     onSelect: ((ConversationRowData) -> Unit)? = null,
     onLongPress: ((ConversationRowData) -> Unit)? = null,
 ) {
-    val colors = flareColors()
     if (items.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             if (loading) {
                 CircularProgressIndicator()
             } else {
-                Text("No conversations", color = colors.textTertiary, fontSize = FlareSizes.fontSizeLg.value.sp)
+                EmptyState(title = emptyText, description = emptyDescription)
             }
         }
     } else {
         LazyColumn(Modifier.fillMaxSize()) {
             items(items, key = { it.id }) { item ->
                 ConversationRow(
+                    draftLabel = draftLabel,
+                    mentionLabel = mentionLabel,
                     item = item,
                     active = item.id == activeId,
                     onSelect = onSelect?.let { cb -> { cb(item) } },

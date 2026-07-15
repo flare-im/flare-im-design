@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 
 /// One sticker pack from the manifest.
-class FlareStickerPack {
-  const FlareStickerPack({
+class FlareStickerManifestPack {
+  const FlareStickerManifestPack({
     required this.id,
     required this.dir,
     required this.title,
@@ -42,12 +42,12 @@ class FlareEmojiStickerCatalog {
   bool _loaded = false;
   List<String> _emojiKeys = const <String>[];
   Set<String> _emojiKeySet = const <String>{};
-  List<FlareStickerPack> _stickerPacks = const <FlareStickerPack>[];
+  List<FlareStickerManifestPack> _stickerPacks = const <FlareStickerManifestPack>[];
   Map<String, dynamic> _locales = const <String, dynamic>{};
 
   bool get isLoaded => _loaded;
   List<String> get emojiKeys => _emojiKeys;
-  List<FlareStickerPack> get stickerPacks => _stickerPacks;
+  List<FlareStickerManifestPack> get stickerPacks => _stickerPacks;
 
   /// Loads the manifest + locale labels once. Safe to call repeatedly.
   Future<void> ensureLoaded() async {
@@ -67,7 +67,7 @@ class FlareEmojiStickerCatalog {
         .map((raw) {
           final map = raw as Map<String, dynamic>;
           final items = (map['items'] as List?) ?? const [];
-          return FlareStickerPack(
+          return FlareStickerManifestPack(
             id: map['id']?.toString() ?? '',
             dir: map['dir']?.toString() ?? '',
             title: map['title']?.toString() ?? '',

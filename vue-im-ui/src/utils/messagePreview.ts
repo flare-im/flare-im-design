@@ -244,9 +244,17 @@ function storedPreviewPayloadVisual(payload: StoredPreviewPayload, locale?: stri
     case "im.preview.image_group":
       return textPreview(resolveFlareMessage(locale, "preview.imageGroup"));
     case "im.preview.system":
-      return textPreview(readString(args, "fb", "t", "body", "title", "ik", "ek") || resolveFlareMessage(locale, "preview.system"));
+      return textPreview(
+        readString(args, "fb", "t", "body", "title")
+          || resolveSystemEventText(args, locale)
+          || resolveFlareMessage(locale, "preview.system"),
+      );
     case "im.preview.notification":
-      return textPreview(readString(args, "fb", "body", "title", "ik") || resolveFlareMessage(locale, "preview.notification"));
+      return textPreview(
+        readString(args, "fb", "body", "title")
+          || resolveSystemEventText(args, locale)
+          || resolveFlareMessage(locale, "preview.notification"),
+      );
     case "im.preview.vote":
       return textPreview(resolveFlareMessage(locale, "preview.vote"));
     case "im.preview.task":
@@ -269,6 +277,20 @@ function storedPreviewPayloadVisual(payload: StoredPreviewPayload, locale?: stri
 function textPreview(text: string): MessagePreviewVisual | null {
   const t = markdownToPlainText(text).trim();
   return t ? { kind: "text", text: t } : null;
+}
+
+/**
+ * Localize a social system/notification event whose stored preview token has no `fb` string, by
+ * mapping its event key (`ek`, e.g. `group.member_kicked`) to `systemEvent.<ek>` in the i18n catalog.
+ * Returns "" when the event is unknown so callers fall back to the generic system/notification label
+ * instead of leaking the raw internal key.
+ */
+function resolveSystemEventText(args: Record<string, unknown>, locale?: string): string {
+  const ek = readString(args, "ek").trim();
+  if (!ek) return "";
+  const key = `systemEvent.${ek}`;
+  const resolved = resolveFlareMessage(locale, key);
+  return resolved === key ? "" : resolved;
 }
 
 function readBool(record: Record<string, unknown>, key: string): boolean {

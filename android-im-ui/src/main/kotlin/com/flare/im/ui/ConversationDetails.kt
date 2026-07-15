@@ -52,6 +52,8 @@ enum class FlareConnectionTone { Ok, Warn, Error }
 @Composable
 fun ConversationDetails(
     conversation: FlareConversationSummary,
+    /** Row labels — overridable so hosts can localize them. */
+    labels: FlareConversationDetailsLabels = FlareConversationDetailsLabels(),
     connectionText: String? = null,
     connectionTone: FlareConnectionTone = FlareConnectionTone.Ok,
     messageCount: Int? = null,
@@ -86,21 +88,21 @@ fun ConversationDetails(
         }
         Spacer(Modifier.size(FlareSizes.spacingLg))
 
-        if (messageCount != null) infoRow("Messages", "$messageCount", colors)
+        if (messageCount != null) infoRow(labels.messages, "$messageCount", colors)
 
         gap(colors)
-        if (onMute != null) switchRow("Mute", Icons.Outlined.NotificationsOff, muted, colors) { muted = it; onMute(it) }
-        if (onPin != null) switchRow("Pin conversation", Icons.Outlined.PushPin, pinned, colors) { pinned = it; onPin(it) }
+        if (onMute != null) switchRow(labels.mute, Icons.Outlined.NotificationsOff, muted, colors) { muted = it; onMute(it) }
+        if (onPin != null) switchRow(labels.pin, Icons.Outlined.PushPin, pinned, colors) { pinned = it; onPin(it) }
 
         gap(colors)
-        onMarkRead?.let { actionRow("Mark as read", Icons.Outlined.MarkEmailRead, colors, it) }
-        onMarkUnread?.let { actionRow("Mark as unread", Icons.Outlined.MarkEmailUnread, colors, it) }
-        onSync?.let { actionRow("Sync conversation", Icons.Rounded.Sync, colors, it) }
+        onMarkRead?.let { actionRow(labels.markRead, Icons.Outlined.MarkEmailRead, colors, it) }
+        onMarkUnread?.let { actionRow(labels.markUnread, Icons.Outlined.MarkEmailUnread, colors, it) }
+        onSync?.let { actionRow(labels.sync, Icons.Rounded.Sync, colors, it) }
 
         gap(colors)
-        onArchive?.let { actionRow(if (conversation.archived) "Unarchive" else "Archive conversation", Icons.Outlined.Archive, colors, it) }
-        onClearHistory?.let { actionRow("Clear chat history", Icons.Outlined.CleaningServices, colors, it) }
-        onDelete?.let { actionRow("Delete conversation", Icons.Outlined.Delete, colors, it, danger = true) }
+        onArchive?.let { actionRow(if (conversation.archived) labels.unarchive else labels.archive, Icons.Outlined.Archive, colors, it) }
+        onClearHistory?.let { actionRow(labels.clearHistory, Icons.Outlined.CleaningServices, colors, it) }
+        onDelete?.let { actionRow(labels.delete, Icons.Outlined.Delete, colors, it, danger = true) }
     }
 }
 
@@ -145,3 +147,17 @@ private fun actionRow(label: String, icon: ImageVector, colors: FlareColors, onC
 private fun gap(colors: FlareColors) {
     Divider(Modifier.padding(vertical = FlareSizes.spacingSm), color = colors.borderSecondary)
 }
+
+/** Localizable row labels for [ConversationDetails]. Defaults keep today's English copy. */
+data class FlareConversationDetailsLabels(
+    val messages: String = "Messages",
+    val mute: String = "Mute",
+    val pin: String = "Pin conversation",
+    val markRead: String = "Mark as read",
+    val markUnread: String = "Mark as unread",
+    val sync: String = "Sync conversation",
+    val archive: String = "Archive conversation",
+    val unarchive: String = "Unarchive",
+    val clearHistory: String = "Clear chat history",
+    val delete: String = "Delete conversation",
+)

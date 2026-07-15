@@ -25,6 +25,7 @@ import {
   type MessageMenuMediaAction,
 } from "../../shared/config/messageMenu";
 import { buildMessageMenuContext } from "../../utils/buildMessageMenuOptions";
+import { MESSAGE_QUICK_REACTIONS } from "../../shared/constants/messageReactions";
 import {
   isChromelessCardBubble,
   isChromelessMediaBubble,
@@ -300,38 +301,13 @@ const dropdownPlacement = computed(() =>
   profile.value.mode === "tablet" ? "right-start" : "bottom-start",
 );
 
-const reactionPickerOptions: DropdownOption[] = [
-  {
-    label: "Like",
-    key: "👍",
-    icon: () => h("span", { style: "font-size:16px" }, "👍"),
-  },
-  {
-    label: "Love",
-    key: "❤️",
-    icon: () => h("span", { style: "font-size:16px" }, "❤️"),
-  },
-  {
-    label: "Haha",
-    key: "😂",
-    icon: () => h("span", { style: "font-size:16px" }, "😂"),
-  },
-  {
-    label: "Wow",
-    key: "😮",
-    icon: () => h("span", { style: "font-size:16px" }, "😮"),
-  },
-  {
-    label: "Sad",
-    key: "😢",
-    icon: () => h("span", { style: "font-size:16px" }, "😢"),
-  },
-  {
-    label: "Pray",
-    key: "🙏",
-    icon: () => h("span", { style: "font-size:16px" }, "🙏"),
-  },
-];
+// Reaction quick-set — shared with the mobile long-press sheet so PC hover and
+// mobile show the exact same emoji (single source: MESSAGE_QUICK_REACTIONS).
+const reactionPickerOptions: DropdownOption[] = MESSAGE_QUICK_REACTIONS.map((emoji) => ({
+  label: emoji,
+  key: emoji,
+  icon: () => h("span", { style: "font-size:16px" }, emoji),
+}));
 
 useLongPress(bubbleAnchorRef, {
   enabled: () => showMenuChrome.value && profile.value.enableLongPress,

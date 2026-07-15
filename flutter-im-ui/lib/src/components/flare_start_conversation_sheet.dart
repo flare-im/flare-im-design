@@ -13,6 +13,9 @@ class FlareStartConversationSheet extends StatefulWidget {
   const FlareStartConversationSheet({
     super.key,
     required this.contacts,
+    this.searchPlaceholder = 'Search contacts',
+    this.emptyText = 'No contacts found',
+    this.confirmLabel = 'OK',
     this.allowGroup = true,
     this.busy = false,
     this.onConfirm,
@@ -20,6 +23,11 @@ class FlareStartConversationSheet extends StatefulWidget {
   });
 
   final List<FlareContactOption> contacts;
+
+  /// Copy — defaults keep today's English text.
+  final String searchPlaceholder;
+  final String emptyText;
+  final String confirmLabel;
   final bool allowGroup;
   final bool busy;
 
@@ -79,7 +87,7 @@ class _FlareStartConversationSheetState
               decoration: InputDecoration(
                 isDense: true,
                 prefixIcon: const Icon(Icons.search_rounded),
-                hintText: 'Search contacts',
+                hintText: widget.searchPlaceholder,
                 filled: true,
                 fillColor: colors.bgSecondary,
                 border: OutlineInputBorder(
@@ -93,7 +101,7 @@ class _FlareStartConversationSheetState
             child: _filtered.isEmpty
                 ? Padding(
                     padding: const EdgeInsets.all(FlareSizes.spacing2xl),
-                    child: Text('No contacts found',
+                    child: Text(widget.emptyText,
                         style: TextStyle(color: colors.textTertiary)),
                   )
                 : ListView.builder(
@@ -162,8 +170,8 @@ class _FlareStartConversationSheetState
                               strokeWidth: 2, color: Colors.white),
                         )
                       : Text(_selected.isEmpty
-                          ? 'OK'
-                          : 'OK (${_selected.length})'),
+                          ? widget.confirmLabel
+                          : '${widget.confirmLabel} (${_selected.length})'),
                 ),
               ),
             ),

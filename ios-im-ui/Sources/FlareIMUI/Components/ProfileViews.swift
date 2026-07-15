@@ -27,6 +27,10 @@ public struct ProfilePanelView: View {
                     AvatarView(userId: user.id, displayName: user.name, avatarURL: user.avatarURL, size: 56)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(user.name).font(.system(size: FlareSizes.fontSize3xl, weight: .semibold)).foregroundColor(colors.textPrimary)
+                        // The model carries a signature — render it (it was silently dropped before).
+                        if let s = user.signature, !s.isEmpty {
+                            Text(s).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textSecondary)
+                        }
                         if let f = user.flareId, !f.isEmpty {
                             Text("Flare ID: \(f)").font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
                         }
@@ -40,20 +44,12 @@ public struct ProfilePanelView: View {
             }
             .buttonStyle(.plain)
 
+            // Shared row → `kind` (toggle/value/navigation) and `detail` are honoured here too.
             VStack(spacing: 0) {
                 ForEach(Array(entries.enumerated()), id: \.element.id) { i, e in
                     if i > 0 { Divider() }
-                    Button { onEntry?(e) } label: {
-                        HStack(spacing: FlareSizes.spacingMd) {
-                            if let ic = e.systemImage { Image(systemName: ic).foregroundColor(colors.textSecondary) }
-                            Text(e.label).foregroundColor(colors.textPrimary)
-                            Spacer()
-                            Image(systemName: "chevron.right").font(.system(size: 13)).foregroundColor(colors.textTertiary)
-                        }
+                    FlareSettingsRow(item: e, onSelect: { onEntry?($0) })
                         .padding(FlareSizes.spacingMd)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
                 }
             }
             .padding(.top, FlareSizes.spacingSm)
@@ -65,6 +61,7 @@ public struct ProfilePanelView: View {
 /// Profile editor. Spec: Profile/ProfileEditor (`ProfileEditorView`).
 public struct ProfileEditorView: View {
     private let user: UserProfile
+    private let labels: FlareProfileEditorLabels
     private let busy: Bool
     private let onSave: ((String, String) -> Void)?
     private let onCancel: (() -> Void)?
@@ -73,9 +70,9 @@ public struct ProfileEditorView: View {
     @State private var name: String
     @State private var signature: String
 
-    public init(user: UserProfile, busy: Bool = false,
+    public init(user: UserProfile, labels: FlareProfileEditorLabels = FlareProfileEditorLabels(), busy: Bool = false,
                 onSave: ((String, String) -> Void)? = nil, onCancel: (() -> Void)? = nil, onPickAvatar: (() -> Void)? = nil) {
-        self.user = user; self.busy = busy; self.onSave = onSave; self.onCancel = onCancel; self.onPickAvatar = onPickAvatar
+        self.user = user; self.labels = labels; self.busy = busy; self.onSave = onSave; self.onCancel = onCancel; self.onPickAvatar = onPickAvatar
         _name = State(initialValue: user.name)
         _signature = State(initialValue: user.signature ?? "")
     }
@@ -93,15 +90,15 @@ public struct ProfileEditorView: View {
             .buttonStyle(.plain)
             .frame(maxWidth: .infinity)
 
-            Text("Nickname").font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textSecondary)
-            InputView(text: $name, placeholder: "Nickname", maxLength: 24, clearable: true)
-            Text("Bio").font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textSecondary)
-            InputView(text: $signature, placeholder: "Tell us about yourself", multiline: true, maxLength: 60)
+            Text(labels.nickname).font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textSecondary)
+            InputView(text: $name, placeholder: labels.nicknamePlaceholder, maxLength: 24, clearable: true)
+            Text(labels.bio).font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textSecondary)
+            InputView(text: $signature, placeholder: labels.bioPlaceholder, multiline: true, maxLength: 60)
 
             HStack(spacing: FlareSizes.spacingMd) {
-                Button("Cancel") { onCancel?() }.buttonStyle(.bordered).frame(maxWidth: .infinity)
+                Button(labels.cancel) { onCancel?() }.buttonStyle(.bordered).frame(maxWidth: .infinity)
                 Button { onSave?(name, signature) } label: {
-                    if busy { ProgressView().controlSize(.small) } else { Text("Save").frame(maxWidth: .infinity) }
+                    if busy { ProgressView().controlSize(.small) } else { Text(labels.save).frame(maxWidth: .infinity) }
                 }
                 .buttonStyle(.borderedProminent).tint(colors.primary).frame(maxWidth: .infinity)
                 .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || busy)
@@ -129,27 +126,79 @@ public struct SettingsListView: View {
             ForEach(sections) { section in
                 Section {
                     ForEach(section.items) { item in
-                        HStack {
-                            if let ic = item.systemImage { Image(systemName: ic).foregroundColor(colors.textSecondary) }
-                            Text(item.label).foregroundColor(colors.textPrimary)
-                            Spacer()
-                            switch item.kind {
-                            case .toggle:
-                                Toggle("", isOn: Binding(get: { item.value }, set: { onToggle?(item, $0) })).labelsHidden().tint(colors.primary)
-                            case .value:
-                                Text(item.detail ?? "").foregroundColor(colors.textTertiary)
-                            case .navigation:
-                                if let d = item.detail { Text(d).foregroundColor(colors.textTertiary) }
-                                Image(systemName: "chevron.right").font(.system(size: 12)).foregroundColor(colors.textTertiary)
-                            }
-                        }
-                        .contentShape(Rectangle())
-                        .onTapGesture { if item.kind != .toggle { onSelect?(item) } }
+                        FlareSettingsRow(item: item, onToggle: onToggle, onSelect: onSelect)
                     }
                 } header: {
                     if let t = section.title { Text(t) }
                 }
             }
         }
+        .background(colors.bgSecondary)
+    }
+}
+
+/// One settings/profile entry row — icon, label, then the trailing affordance for its
+/// `FlareSettingKind`: a switch (toggle), a value (value), or detail + chevron (navigation).
+///
+/// Shared by ``SettingsListView`` and ``ProfilePanelView`` so the two can't drift — previously
+/// `ProfilePanelView` re-implemented this row and silently dropped `kind` and `detail`, rendering
+/// every entry as a bare label + chevron.
+public struct FlareSettingsRow: View {
+    private let item: FlareSettingsItem
+    private let onToggle: ((FlareSettingsItem, Bool) -> Void)?
+    private let onSelect: ((FlareSettingsItem) -> Void)?
+    @Environment(\.colorScheme) private var scheme
+
+    public init(item: FlareSettingsItem,
+                onToggle: ((FlareSettingsItem, Bool) -> Void)? = nil,
+                onSelect: ((FlareSettingsItem) -> Void)? = nil) {
+        self.item = item; self.onToggle = onToggle; self.onSelect = onSelect
+    }
+
+    public var body: some View {
+        let colors = FlareColors.of(scheme)
+        HStack(spacing: FlareSizes.spacingMd) {
+            if let ic = item.systemImage { Image(systemName: ic).foregroundColor(colors.textSecondary) }
+            Text(item.label).foregroundColor(colors.textPrimary)
+            Spacer()
+            switch item.kind {
+            case .toggle:
+                Toggle("", isOn: Binding(get: { item.value }, set: { onToggle?(item, $0) }))
+                    .labelsHidden().tint(colors.primary)
+            case .value:
+                Text(item.detail ?? "").foregroundColor(colors.textTertiary)
+            case .navigation:
+                if let d = item.detail { Text(d).foregroundColor(colors.textTertiary) }
+                Image(systemName: "chevron.right").font(.system(size: 12)).foregroundColor(colors.textTertiary)
+            }
+        }
+        .contentShape(Rectangle())
+        .onTapGesture { if item.kind != .toggle { onSelect?(item) } }
+    }
+}
+
+/// Localizable labels for ``ProfileEditorView``. Defaults keep today's English copy.
+public struct FlareProfileEditorLabels: Sendable {
+    public var nickname: String
+    public var nicknamePlaceholder: String
+    public var bio: String
+    public var bioPlaceholder: String
+    public var cancel: String
+    public var save: String
+
+    public init(
+        nickname: String = "Nickname",
+        nicknamePlaceholder: String = "Nickname",
+        bio: String = "Bio",
+        bioPlaceholder: String = "Tell us about yourself",
+        cancel: String = "Cancel",
+        save: String = "Save"
+    ) {
+        self.nickname = nickname
+        self.nicknamePlaceholder = nicknamePlaceholder
+        self.bio = bio
+        self.bioPlaceholder = bioPlaceholder
+        self.cancel = cancel
+        self.save = save
     }
 }

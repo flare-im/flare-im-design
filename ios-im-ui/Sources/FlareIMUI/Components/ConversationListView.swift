@@ -7,6 +7,7 @@ public struct ConversationListView: View {
     private let items: [ConversationRowData]
     private let activeId: String?
     private let loading: Bool
+    private let emptyText: String
     private let onSelect: ((ConversationRowData) -> Void)?
     @Environment(\.colorScheme) private var scheme
 
@@ -14,11 +15,13 @@ public struct ConversationListView: View {
         items: [ConversationRowData],
         activeId: String? = nil,
         loading: Bool = false,
+        emptyText: String = "No conversations",
         onSelect: ((ConversationRowData) -> Void)? = nil
     ) {
         self.items = items
         self.activeId = activeId
         self.loading = loading
+        self.emptyText = emptyText
         self.onSelect = onSelect
     }
 
@@ -28,7 +31,7 @@ public struct ConversationListView: View {
             if loading {
                 ProgressView()
             } else {
-                Text("No conversations")
+                Text(emptyText)
                     .font(.system(size: FlareSizes.fontSizeLg))
                     .foregroundColor(colors.textTertiary)
             }

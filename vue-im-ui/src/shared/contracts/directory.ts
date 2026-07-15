@@ -8,6 +8,11 @@ export interface FlareContact {
   presence?: "online" | "offline" | "busy" | "away";
   /** Explicit A-Z index letter; derived from name when absent. */
   indexKey?: string;
+  /** Optional profile detail — surfaced by ContactDetail's info card. */
+  remark?: string;
+  region?: string;
+  phone?: string;
+  tags?: string[];
 }
 
 export interface FlareFriendRequest {
@@ -53,4 +58,15 @@ export interface FlareNavItem {
   label: string;
   icon?: string;
   badge?: number;
+}
+
+/** A candidate person (or "@all") in the mention picker. */
+export interface FlareMentionCandidate {
+  id: string;
+  name: string;
+  avatarUrl?: string;
+  /** Secondary line — role, department, or handle. */
+  detail?: string;
+  /** Marks the synthetic "@everyone" row so it can be styled / pinned. */
+  isEveryone?: boolean;
 }

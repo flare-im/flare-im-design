@@ -11,6 +11,7 @@ class FlareProfileEditor extends StatefulWidget {
   const FlareProfileEditor({
     super.key,
     required this.user,
+    this.labels = const FlareProfileEditorLabels(),
     this.busy = false,
     this.onSave,
     this.onCancel,
@@ -18,6 +19,9 @@ class FlareProfileEditor extends StatefulWidget {
   });
 
   final FlareUserProfile user;
+
+  /// Field / button copy — defaults keep today's English text.
+  final FlareProfileEditorLabels labels;
   final bool busy;
   final void Function(String name, String signature)? onSave;
   final VoidCallback? onCancel;
@@ -81,17 +85,17 @@ class _FlareProfileEditorState extends State<FlareProfileEditor> {
             ),
           ),
           const SizedBox(height: FlareSizes.spacingLg),
-          Text('Nickname', style: TextStyle(color: colors.textSecondary)),
-          FlareInput(controller: _name, placeholder: 'Nickname', maxLength: 24, clearable: true),
+          Text(widget.labels.nickname, style: TextStyle(color: colors.textSecondary)),
+          FlareInput(controller: _name, placeholder: widget.labels.nickname, maxLength: 24, clearable: true),
           const SizedBox(height: FlareSizes.spacingMd),
-          Text('Bio', style: TextStyle(color: colors.textSecondary)),
-          FlareInput(controller: _signature, placeholder: 'Tell us about yourself', multiline: true, maxLength: 60),
+          Text(widget.labels.bio, style: TextStyle(color: colors.textSecondary)),
+          FlareInput(controller: _signature, placeholder: widget.labels.bioPlaceholder, multiline: true, maxLength: 60),
           const SizedBox(height: FlareSizes.spacingLg),
           Row(
             children: [
               Expanded(
                 child: OutlinedButton(
-                    onPressed: widget.onCancel, child: const Text('Cancel')),
+                    onPressed: widget.onCancel, child: Text(widget.labels.cancel)),
               ),
               const SizedBox(width: FlareSizes.spacingMd),
               Expanded(
@@ -103,7 +107,7 @@ class _FlareProfileEditorState extends State<FlareProfileEditor> {
                   child: widget.busy
                       ? const SizedBox(
                           width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text('Save'),
+                      : Text(widget.labels.save),
                 ),
               ),
             ],
@@ -112,4 +116,21 @@ class _FlareProfileEditorState extends State<FlareProfileEditor> {
       ),
     );
   }
+}
+
+/// Localizable copy for [FlareProfileEditor].
+class FlareProfileEditorLabels {
+  const FlareProfileEditorLabels({
+    this.nickname = 'Nickname',
+    this.bio = 'Bio',
+    this.bioPlaceholder = 'Tell us about yourself',
+    this.cancel = 'Cancel',
+    this.save = 'Save',
+  });
+
+  final String nickname;
+  final String bio;
+  final String bioPlaceholder;
+  final String cancel;
+  final String save;
 }

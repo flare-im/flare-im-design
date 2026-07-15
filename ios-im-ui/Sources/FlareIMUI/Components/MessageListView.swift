@@ -9,6 +9,7 @@ public struct MessageListView: View {
     private let conversationKind: FlareConversationKind
     private let loading: Bool
     private let loadingOlder: Bool
+    private let emptyText: String
     private let mediaDownloadStates: [String: FlareMediaDownloadState]
     private let onMessageLongPress: ((FlareMessageData) -> Void)?
     private let onMediaAction: ((FlareMessageData, FlareMessageContent) -> Void)?
@@ -22,6 +23,7 @@ public struct MessageListView: View {
         conversationKind: FlareConversationKind = .single,
         loading: Bool = false,
         loadingOlder: Bool = false,
+        emptyText: String = "No messages yet",
         mediaDownloadStates: [String: FlareMediaDownloadState] = [:],
         onMessageLongPress: ((FlareMessageData) -> Void)? = nil,
         onMediaAction: ((FlareMessageData, FlareMessageContent) -> Void)? = nil,
@@ -32,6 +34,7 @@ public struct MessageListView: View {
         self.conversationKind = conversationKind
         self.loading = loading
         self.loadingOlder = loadingOlder
+        self.emptyText = emptyText
         self.mediaDownloadStates = mediaDownloadStates
         self.onMessageLongPress = onMessageLongPress
         self.onMediaAction = onMediaAction
@@ -44,7 +47,7 @@ public struct MessageListView: View {
             if loading {
                 ProgressView()
             } else {
-                Text("No messages yet")
+                Text(emptyText)
                     .font(.system(size: FlareSizes.fontSizeLg))
                     .foregroundColor(colors.textTertiary)
             }

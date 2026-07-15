@@ -661,16 +661,49 @@ a.im-rich-message-card:focus-visible {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 6px;
+  gap: 4px;
   width: 100%;
   min-width: 0;
   max-width: 100%;
   box-sizing: border-box;
-  padding: 8px 8px calc(14px + env(safe-area-inset-bottom));
+  padding: 6px 6px calc(8px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--im-border, #dfe3ea);
   border-radius: 10px 10px 0 0;
   background: var(--im-composer-bar-bg, var(--flare-color-bg-hover, #eef1f6));
   box-shadow: 0 -6px 18px rgb(15 23 42 / 5%);
+}
+
+/* Mobile: expand button docked inside the input field (top-right). Desktop hides
+   it (the toolbar owns expand); it also hides once the editor is expanded. */
+.composer-field-expand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  margin: 0 4px 0 2px;
+  border: 0;
+  border-radius: 9px;
+  color: var(--im-text-tertiary, #8a919e);
+  background: transparent;
+  cursor: pointer;
+  transition: color var(--im-motion-fast, 140ms ease), background var(--im-motion-fast, 140ms ease);
+}
+
+.composer-field-expand:hover {
+  color: var(--im-brand-primary, var(--flare-color-primary, #7c3aed));
+  background: color-mix(in srgb, var(--im-brand-primary) 10%, transparent);
+}
+
+.composer-field-expand:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Only one expand affordance shows at a time: field-expand on mobile compact. */
+.composer--input-expanded .composer-field-expand {
+  display: none;
 }
 
 .chat-composer-stack .composer-reply-strip {
@@ -803,7 +836,7 @@ a.im-rich-message-card:focus-visible {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
   min-width: 0;
   max-width: 100%;
 }
@@ -1258,11 +1291,29 @@ a.im-rich-message-card:focus-visible {
   --n-height: 34px;
   --n-width: 40px;
   color: #ffffff;
-  background: var(--im-message-outgoing, var(--flare-color-primary, #7c3aed)) !important;
+  background: var(--im-brand-gradient, var(--im-message-outgoing, var(--flare-color-primary, #7c3aed))) !important;
   border: none !important;
-  border-radius: 9px !important;
-  box-shadow: 0 6px 16px color-mix(in srgb, var(--im-message-outgoing) 24%, transparent);
+  border-radius: 10px !important;
+  box-shadow:
+    0 2px 5px color-mix(in srgb, var(--im-message-outgoing) 30%, transparent),
+    0 8px 20px color-mix(in srgb, var(--im-message-outgoing) 22%, transparent);
   cursor: pointer;
+  transition:
+    transform var(--im-motion-fast, 150ms ease),
+    box-shadow var(--im-motion-fast, 150ms ease),
+    filter var(--im-motion-fast, 150ms ease);
+}
+
+.composer-toolbar > .composer-toolbar__send:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: saturate(1.06) brightness(1.03);
+  box-shadow:
+    0 3px 7px color-mix(in srgb, var(--im-message-outgoing) 34%, transparent),
+    0 12px 26px color-mix(in srgb, var(--im-message-outgoing) 26%, transparent);
+}
+
+.composer-toolbar > .composer-toolbar__send:active:not(:disabled) {
+  transform: translateY(0) scale(0.96);
 }
 
 .composer-toolbar > .composer-toolbar__send:disabled,
@@ -1568,17 +1619,70 @@ a.im-rich-message-card:focus-visible {
 
 .composer-toolbar {
   display: grid;
-  /* 展开 + 表情 + @提及 + 语音 + 图片 + 富文本 + 更多 + 发送 = 8 槽均分（对齐 Flutter 工具栏图标集，新增 @提及） */
-  grid-template-columns: repeat(8, minmax(0, 1fr));
+  /* Mobile: expand moved onto the input field, so the bar carries 7 icons —
+     表情 + @提及 + 语音 + 图片 + 富文本 + 更多 + 发送. (Desktop re-shows expand.) */
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   align-items: center;
   justify-items: center;
   column-gap: 2px;
   min-width: 0;
   max-width: 100%;
-  min-height: 44px;
+  min-height: 40px;
   margin: 0;
-  padding: 4px;
+  padding: 2px;
   border-top: none;
+}
+
+/* Mobile: the toolbar's own expand button is hidden (field-expand replaces it). */
+.composer-toolbar > .composer-expand {
+  display: none;
+}
+
+/* Feishu-style expand header — a titled bar with an explicit collapse control.
+   In the base (mobile / stacked) layout it's an in-flow row atop the field. */
+.composer-expand-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 34px;
+  padding: 2px 2px 2px 4px;
+}
+
+.composer-expand-header__title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--im-text-secondary, #5f6875);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.composer-expand-header__collapse {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--im-brand-primary, var(--flare-color-primary, #7c3aed));
+  background: color-mix(in srgb, var(--im-brand-primary) 10%, transparent);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--im-motion-fast, 140ms ease);
+}
+
+.composer-expand-header__collapse:hover {
+  background: color-mix(in srgb, var(--im-brand-primary) 16%, transparent);
+}
+
+.composer-expand-header__collapse:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 @media (min-width: 900px) {
@@ -1591,6 +1695,16 @@ a.im-rich-message-card:focus-visible {
     border-radius: 0;
     background: var(--im-composer-bar-bg, var(--flare-color-bg-secondary, #f5f6f8));
     box-shadow: none;
+  }
+
+  /* Desktop keeps expand in the toolbar (single-row layout); the mobile
+     field-expand is hidden here. */
+  .composer-field-expand {
+    display: none;
+  }
+
+  .composer-toolbar > .composer-expand {
+    display: inline-flex;
   }
 
   .composer-field {
@@ -1631,13 +1745,14 @@ a.im-rich-message-card:focus-visible {
 
   .composer--input-expanded .composer-field {
     position: relative;
-    height: clamp(300px, 34dvh, 420px);
-    min-height: 300px;
-    max-height: 420px;
+    height: clamp(320px, 36dvh, 440px);
+    min-height: 320px;
+    max-height: 440px;
     display: grid;
     grid-template-rows: 40px minmax(0, 1fr) 44px;
     row-gap: 8px;
-    padding: 10px 12px;
+    /* Top padding reserves the band for the absolute expand header (title + collapse). */
+    padding: 46px 12px 10px;
     border-color: color-mix(in srgb, var(--im-brand-primary) 34%, var(--im-border));
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--im-brand-primary) 4%, transparent), transparent 42%),
@@ -1647,15 +1762,41 @@ a.im-rich-message-card:focus-visible {
       0 0 0 3px color-mix(in srgb, var(--im-brand-primary) 9%, transparent);
   }
 
-  .composer--input-expanded .composer-field::after {
+  /* Header floats over the reserved top band — no grid-row juggling, so the
+     dense expanded grid (format-strip / editor / toolbar) is left untouched. */
+  .composer--input-expanded .composer-expand-header {
     position: absolute;
-    right: 14px;
-    top: 12px;
-    width: 42px;
-    height: 2px;
-    border-radius: 999px;
-    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--im-brand-primary) 55%, transparent));
+    left: 14px;
+    right: 12px;
+    top: 9px;
+    min-height: 28px;
+    padding: 0;
+  }
+
+  .composer--input-expanded .composer-expand-header::after {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -7px;
+    height: 1px;
+    background: color-mix(in srgb, var(--im-border) 80%, transparent);
     content: "";
+  }
+
+  /* On desktop the compact single-line field puts the toolbar as a right-side
+     rail; the bottom-right keyboard hint collided with it. Show the hint only
+     when there's vertical room (multiline / expanded) and anchor it bottom-left. */
+  .composer-input-hint {
+    display: none;
+  }
+
+  .composer:has(.composer-field--multiline) .composer-input-hint,
+  .composer--input-expanded .composer-input-hint {
+    display: block;
+    right: auto;
+    left: 16px;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    text-align: left;
   }
 
   .composer--input-expanded .composer-field--multiline {

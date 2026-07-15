@@ -28,6 +28,8 @@ import androidx.compose.ui.unit.sp
 fun NewFriendRequests(
     items: List<FriendRequest>,
     emptyText: String = "No new friend requests",
+    acceptLabel: String = "Accept",
+    declineLabel: String = "Decline",
     onAccept: ((FriendRequest) -> Unit)? = null,
     onReject: ((FriendRequest) -> Unit)? = null,
 ) {
@@ -52,13 +54,13 @@ fun NewFriendRequests(
                     }
                 }
                 OutlinedButton(onClick = { onReject?.invoke(req) }, contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 4.dp)) {
-                    Text("Decline", fontSize = 13.sp)
+                    Text(declineLabel, fontSize = 13.sp)
                 }
                 Spacer(Modifier.width(8.dp))
                 Button(onClick = { onAccept?.invoke(req) },
                     colors = ButtonDefaults.buttonColors(containerColor = colors.primary),
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 14.dp, vertical = 4.dp)) {
-                    Text("Accept", fontSize = 13.sp)
+                    Text(acceptLabel, fontSize = 13.sp)
                 }
             }
         }

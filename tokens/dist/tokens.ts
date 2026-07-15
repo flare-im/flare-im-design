@@ -3,26 +3,27 @@
 export const flareDesignTokens = {
   "colors": {
     "bg": {
-      "disabled": "#F2F3F5",
-      "hover": "#EEF1F6",
+      "disabled": "#F3F1F9",
+      "hover": "#F1EEF8",
       "primary": "#FFFFFF",
-      "secondary": "#F5F6F8",
+      "secondary": "#F6F5FB",
       "selected": "#F1EAFF",
-      "tertiary": "#F2F3F5"
+      "tertiary": "#F3F1F9"
     },
     "border": {
-      "hover": "#D7DBE3",
-      "primary": "#E7E9EE",
-      "secondary": "#EEF0F4",
+      "hover": "#DAD5E7",
+      "primary": "#E9E6F1",
+      "secondary": "#F0EDF7",
       "selected": "#7C3AED"
     },
     "bubble": {
       "other": "#ECE5FF",
       "robot": "#F4F0FF",
       "self": "#7C3AED",
-      "system": "#F2F3F5"
+      "system": "#F3F1F9"
     },
     "error": "#EF4444",
+    "focusRing": "rgba(124, 58, 237, 0.35)",
     "important": "#F59E0B",
     "info": "#6D5DF6",
     "pinned": "#7C3AED",
@@ -32,30 +33,32 @@ export const flareDesignTokens = {
     "robot": "#64748B",
     "success": "#22C55E",
     "text": {
-      "disabled": "#C9CDD4",
+      "disabled": "#CCC8D8",
       "link": "#7C3AED",
       "linkHover": "#6D28D9",
-      "primary": "#111318",
-      "secondary": "#6B7280",
-      "tertiary": "#A3A7AE"
+      "primary": "#15131C",
+      "secondary": "#6B6780",
+      "tertiary": "#A7A2B4"
     },
     "warning": "#F59E0B"
   },
   "composer": {
-    "attachMenuShadow": "0 4px 16px rgba(31, 35, 41, 0.12)",
-    "expandedShadow": "0 8px 32px rgba(31, 35, 41, 0.12)",
-    "surfaceShadow": "0 1px 2px rgba(31, 35, 41, 0.06)"
+    "attachMenuShadow": "0 8px 28px rgba(21, 18, 32, 0.12)",
+    "expandedShadow": "0 8px 32px rgba(21, 18, 32, 0.14)",
+    "surfaceShadow": "0 1px 2px rgba(21, 18, 32, 0.06)"
   },
   "dark": {
     "colors": {
       "bg": {
+        "disabled": "#272334",
         "hover": "rgba(255, 255, 255, 0.06)",
-        "primary": "#1A1D23",
-        "secondary": "#111318",
+        "primary": "#1B1922",
+        "secondary": "#131019",
         "selected": "rgba(124, 58, 237, 0.20)",
-        "tertiary": "#22262E"
+        "tertiary": "#232030"
       },
       "border": {
+        "hover": "rgba(255, 255, 255, 0.16)",
         "primary": "rgba(255, 255, 255, 0.10)",
         "secondary": "rgba(255, 255, 255, 0.08)",
         "selected": "#A78BFA"
@@ -63,9 +66,12 @@ export const flareDesignTokens = {
       "bubble": {
         "other": "#241D33",
         "robot": "#2B2340",
-        "self": "#8B5CF6"
+        "self": "#8B5CF6",
+        "system": "#232030"
       },
+      "focusRing": "rgba(167, 139, 250, 0.40)",
       "text": {
+        "disabled": "rgba(255, 255, 255, 0.28)",
         "link": "#C4B5FD",
         "primary": "rgba(255, 255, 255, 0.94)",
         "secondary": "rgba(255, 255, 255, 0.62)",
@@ -73,17 +79,17 @@ export const flareDesignTokens = {
       }
     },
     "composer": {
-      "attachMenuShadow": "0 4px 16px rgba(0, 0, 0, 0.35)",
-      "expandedShadow": "0 8px 32px rgba(0, 0, 0, 0.35)",
-      "surfaceShadow": "0 1px 2px rgba(0, 0, 0, 0.2)"
+      "attachMenuShadow": "0 8px 28px rgba(0, 0, 0, 0.40)",
+      "expandedShadow": "0 8px 32px rgba(0, 0, 0, 0.40)",
+      "surfaceShadow": "0 1px 2px rgba(0, 0, 0, 0.22)"
     }
   },
   "shadows": {
-    "lg": "0 18px 48px rgba(17, 19, 24, 0.18)",
-    "md": "0 6px 18px rgba(17, 19, 24, 0.10)",
+    "lg": "0 6px 12px rgba(21, 18, 32, 0.06), 0 22px 50px rgba(21, 18, 32, 0.16)",
+    "md": "0 2px 6px rgba(21, 18, 32, 0.05), 0 10px 26px rgba(21, 18, 32, 0.09)",
     "none": "none",
-    "sm": "0 1px 2px rgba(17, 19, 24, 0.06)",
-    "xl": "0 24px 64px rgba(17, 19, 24, 0.22)"
+    "sm": "0 1px 2px rgba(21, 18, 32, 0.05), 0 1px 1px rgba(21, 18, 32, 0.04)",
+    "xl": "0 10px 20px rgba(21, 18, 32, 0.08), 0 34px 76px rgba(21, 18, 32, 0.20)"
   },
   "sizes": {
     "fontSize": {
@@ -109,11 +115,13 @@ export const flareDesignTokens = {
       "tight": "1.2"
     },
     "radius": {
-      "lg": "8px",
-      "md": "6px",
-      "sm": "4px",
-      "xl": "12px",
-      "xs": "2px"
+      "2xl": "18px",
+      "full": "999px",
+      "lg": "10px",
+      "md": "8px",
+      "sm": "6px",
+      "xl": "14px",
+      "xs": "3px"
     },
     "spacing": {
       "2xl": "24px",
@@ -125,9 +133,10 @@ export const flareDesignTokens = {
     }
   },
   "transitions": {
-    "fast": "140ms ease",
-    "normal": "180ms ease",
-    "slow": "220ms ease"
+    "fast": "150ms cubic-bezier(0.22, 1, 0.36, 1)",
+    "normal": "200ms cubic-bezier(0.22, 1, 0.36, 1)",
+    "slow": "260ms cubic-bezier(0.22, 1, 0.36, 1)",
+    "spring": "360ms cubic-bezier(0.34, 1.4, 0.5, 1)"
   }
 } as const;
 

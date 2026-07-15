@@ -30,7 +30,9 @@ const adaptiveKey: InjectionKey<FlareAdaptiveContext> = Symbol("flare-adaptive")
 
 function readWidth(): number {
   if (typeof window === "undefined") return FLARE_BREAKPOINT_DESKTOP_MIN;
-  return window.innerWidth;
+  // Guard against a 0 innerWidth at first paint (iframe / pre-layout) which would
+  // wrongly classify as the smallest breakpoint until a resize fires.
+  return window.innerWidth || document.documentElement?.clientWidth || FLARE_BREAKPOINT_DESKTOP_MIN;
 }
 
 function resolveViewportKind(width: number): FlareViewportKind {

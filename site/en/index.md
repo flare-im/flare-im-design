@@ -16,7 +16,7 @@ hero:
       link: /en/guide/tokens
 features:
   - icon: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 7.5l9 4.5 9-4.5z"/><path d="M3 12l9 4.5 9-4.5"/><path d="M3 16.5 12 21l9-4.5"/></svg>'
-    title: 51 components · 9 categories
+    title: 82 components · 9 categories
     details: General / Conversation / Message / Composer / Media / Contacts / Profile / Call / Layout. One framework-neutral contract per component, natively implemented on Vue, Flutter, iOS and Android — same name, same semantics.
   - icon: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="9.8" r="4.6"/><circle cx="15" cy="9.8" r="4.6"/><circle cx="12" cy="15" r="4.6"/></svg>'
     title: One set of design tokens
@@ -38,7 +38,7 @@ features:
 <div class="flare-home">
 
 <div class="flare-stats">
-  <div><b>51</b><span>components</span></div>
+  <div><b>82</b><span>components</span></div>
   <div><b>9</b><span>categories</span></div>
   <div><b>4</b><span>native platforms</span></div>
   <div><b>1</b><span>token source</span></div>

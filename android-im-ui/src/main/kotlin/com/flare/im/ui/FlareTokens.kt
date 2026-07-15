@@ -24,6 +24,7 @@ data class FlareColors(
     val bubbleSelf: Color,
     val bubbleSystem: Color,
     val error: Color,
+    val focusRing: Color,
     val important: Color,
     val info: Color,
     val pinned: Color,
@@ -42,21 +43,22 @@ data class FlareColors(
 ) {
     companion object {
         val Light = FlareColors(
-            bgDisabled = Color(0xFFF2F3F5),
-            bgHover = Color(0xFFEEF1F6),
+            bgDisabled = Color(0xFFF3F1F9),
+            bgHover = Color(0xFFF1EEF8),
             bgPrimary = Color(0xFFFFFFFF),
-            bgSecondary = Color(0xFFF5F6F8),
+            bgSecondary = Color(0xFFF6F5FB),
             bgSelected = Color(0xFFF1EAFF),
-            bgTertiary = Color(0xFFF2F3F5),
-            borderHover = Color(0xFFD7DBE3),
-            borderPrimary = Color(0xFFE7E9EE),
-            borderSecondary = Color(0xFFEEF0F4),
+            bgTertiary = Color(0xFFF3F1F9),
+            borderHover = Color(0xFFDAD5E7),
+            borderPrimary = Color(0xFFE9E6F1),
+            borderSecondary = Color(0xFFF0EDF7),
             borderSelected = Color(0xFF7C3AED),
             bubbleOther = Color(0xFFECE5FF),
             bubbleRobot = Color(0xFFF4F0FF),
             bubbleSelf = Color(0xFF7C3AED),
-            bubbleSystem = Color(0xFFF2F3F5),
+            bubbleSystem = Color(0xFFF3F1F9),
             error = Color(0xFFEF4444),
+            focusRing = Color(0x597C3AED),
             important = Color(0xFFF59E0B),
             info = Color(0xFF6D5DF6),
             pinned = Color(0xFF7C3AED),
@@ -65,30 +67,31 @@ data class FlareColors(
             primaryHover = Color(0xFF6D28D9),
             robot = Color(0xFF64748B),
             success = Color(0xFF22C55E),
-            textDisabled = Color(0xFFC9CDD4),
+            textDisabled = Color(0xFFCCC8D8),
             textLink = Color(0xFF7C3AED),
             textLinkHover = Color(0xFF6D28D9),
-            textPrimary = Color(0xFF111318),
-            textSecondary = Color(0xFF6B7280),
-            textTertiary = Color(0xFFA3A7AE),
+            textPrimary = Color(0xFF15131C),
+            textSecondary = Color(0xFF6B6780),
+            textTertiary = Color(0xFFA7A2B4),
             warning = Color(0xFFF59E0B),
         )
         val Dark = FlareColors(
-            bgDisabled = Color(0xFFF2F3F5),
+            bgDisabled = Color(0xFF272334),
             bgHover = Color(0x0FFFFFFF),
-            bgPrimary = Color(0xFF1A1D23),
-            bgSecondary = Color(0xFF111318),
+            bgPrimary = Color(0xFF1B1922),
+            bgSecondary = Color(0xFF131019),
             bgSelected = Color(0x337C3AED),
-            bgTertiary = Color(0xFF22262E),
-            borderHover = Color(0xFFD7DBE3),
+            bgTertiary = Color(0xFF232030),
+            borderHover = Color(0x29FFFFFF),
             borderPrimary = Color(0x1AFFFFFF),
             borderSecondary = Color(0x14FFFFFF),
             borderSelected = Color(0xFFA78BFA),
             bubbleOther = Color(0xFF241D33),
             bubbleRobot = Color(0xFF2B2340),
             bubbleSelf = Color(0xFF8B5CF6),
-            bubbleSystem = Color(0xFFF2F3F5),
+            bubbleSystem = Color(0xFF232030),
             error = Color(0xFFEF4444),
+            focusRing = Color(0x66A78BFA),
             important = Color(0xFFF59E0B),
             info = Color(0xFF6D5DF6),
             pinned = Color(0xFF7C3AED),
@@ -97,7 +100,7 @@ data class FlareColors(
             primaryHover = Color(0xFF6D28D9),
             robot = Color(0xFF64748B),
             success = Color(0xFF22C55E),
-            textDisabled = Color(0xFFC9CDD4),
+            textDisabled = Color(0x47FFFFFF),
             textLink = Color(0xFFC4B5FD),
             textLinkHover = Color(0xFF6D28D9),
             textPrimary = Color(0xF0FFFFFF),
@@ -130,11 +133,13 @@ object FlareSizes {
     val lineHeightNormal: Dp = 1.5.dp
     val lineHeightRelaxed: Dp = 1.6.dp
     val lineHeightTight: Dp = 1.2.dp
-    val radiusLg: Dp = 8.dp
-    val radiusMd: Dp = 6.dp
-    val radiusSm: Dp = 4.dp
-    val radiusXl: Dp = 12.dp
-    val radiusXs: Dp = 2.dp
+    val radius2xl: Dp = 18.dp
+    val radiusFull: Dp = 999.dp
+    val radiusLg: Dp = 10.dp
+    val radiusMd: Dp = 8.dp
+    val radiusSm: Dp = 6.dp
+    val radiusXl: Dp = 14.dp
+    val radiusXs: Dp = 3.dp
     val spacing2xl: Dp = 24.dp
     val spacingLg: Dp = 16.dp
     val spacingMd: Dp = 12.dp

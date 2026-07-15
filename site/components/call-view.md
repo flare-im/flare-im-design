@@ -6,15 +6,18 @@ title: CallView
 
 <p><span class="flare-tag">音视频通话</span></p>
 
-> 音视频通话中界面 —— 对端画面 / 头像、状态、时长，叠加控制条。视频渲染由宿主注入。
+> 音视频通话中界面 —— 对端画面 / 头像、状态、时长，叠加控制条。视频渲染由宿主注入。支持**单聊**（1 对 1）与**群聊多人通话**（参与者网格）。
 
 **数据源**：RTC 会话状态（你的数据 / 媒体层）；画面轨道由宿主渲染
 
-## 预览
+## 预览（单聊 · 1 对 1）
 
 <div class="flare-demo flare-demo--stack">
   <CallViewDemo />
 </div>
+
+> [!TIP]
+> 需要**群聊多人通话**（参与者网格、说话高亮、加人）？见独立组件 [GroupCallView](/components/group-call-view)。
 
 ## Props
 

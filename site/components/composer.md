@@ -6,14 +6,27 @@ title: Composer
 
 <p><span class="flare-tag">输入</span></p>
 
-> 输入框 —— 富文本 / 纯文本、表情、格式条、附件、回复条。产出内容；发送为乐观。
+> 输入框 —— 富文本 / 纯文本、表情、贴纸、格式条、语音、附件、回复条。PC / 移动自适应，支持飞书式展开收起。产出内容；发送为乐观。
 
 **数据源**：经 client.messages.send(...) 写入；本地回显 < 16ms，状态经视图
 
 ## 预览
 
+在 **PC** 与 **App** 间切换，查看同一个组件在两种尺寸下的真实样式；预览是**可交互的** —— 直接打字发送、点表情/贴纸、点「＋」加号菜单、点最左的**展开**进入飞书式大编辑窗。
+
+<ClientOnly>
+  <ComposerResponsivePreview />
+</ClientOnly>
+
+> [!TIP]
+> 桌面端工具栏收敛为右侧栏、单行紧凑；移动端堆叠为触摸友好的一行 —— 同一个组件按宽度自适应。展开态在两端都是「标题 + 收起条 + 大编辑区」。
+
+### 自定义加号（＋）菜单
+
+加号菜单由 `attach-actions` 决定 —— 租户传入自己支持的动作（顺序、文案、图标、色调都自定义），不传则用内置默认集。适配多租户。
+
 <div class="flare-demo flare-demo--stack">
-  <ComposerDemo />
+  <ComposerCustomMenuDemo />
 </div>
 
 ### 自由组合（用 parts 自己拼）
@@ -30,6 +43,10 @@ title: Composer
 | `replyTo` | `Message \| null` |  | — | 被回复的消息；显示回复条。 |
 | `rich` | `boolean` |  | — | 启用富文本（Markdown/RichDoc）编辑，否则纯文本。 |
 | `placeholder` | `string` |  | — | 空输入时的占位提示。 |
+| `attach-actions` | `FlareComposerAttachAction[]` |  | 内置默认集 | 自定义加号（＋）菜单。`{ op, label, icon?, tone? }`；传入即替换默认集，适配多租户。 |
+
+> [!TIP]
+> 组成 Composer 的部件都可单独使用：[VoiceHoldButton](/components/voice-hold-button) · [ComposerActionPanel](/components/composer-action-panel) · [ComposerSendButton](/components/composer-send-button) · [ComposerReplyStrip](/components/composer-reply-strip)。另外 `FlareComposerRichInput`（富文本核心）、`FlareComposerEmojiStickerPanel`（表情+贴纸）、`FlareStickerPicker`（纯贴纸）也已独立导出，可脱离 Composer 复用。
 
 
 ## States

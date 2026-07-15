@@ -10,6 +10,7 @@ class FlareInput extends StatefulWidget {
     this.controller,
     this.placeholder,
     this.multiline = false,
+    this.secure = false,
     this.maxLength,
     this.disabled = false,
     this.clearable = false,
@@ -20,6 +21,9 @@ class FlareInput extends StatefulWidget {
   final TextEditingController? controller;
   final String? placeholder;
   final bool multiline;
+
+  /// Mask the value (password entry). Mutually exclusive with [multiline].
+  final bool secure;
   final int? maxLength;
   final bool disabled;
   final bool clearable;
@@ -33,7 +37,9 @@ class FlareInput extends StatefulWidget {
 class _FlareInputState extends State<FlareInput> {
   late final TextEditingController _controller =
       widget.controller ?? TextEditingController();
+  late final FocusNode _focus = FocusNode()..addListener(_onFocus);
   bool _own = false;
+  bool _focused = false;
 
   @override
   void initState() {
@@ -47,9 +53,13 @@ class _FlareInputState extends State<FlareInput> {
     if (widget.maxLength != null || widget.clearable) setState(() {});
   }
 
+  void _onFocus() => setState(() => _focused = _focus.hasFocus);
+
   @override
   void dispose() {
     _controller.removeListener(_onChange);
+    _focus.removeListener(_onFocus);
+    _focus.dispose();
     if (_own) _controller.dispose();
     super.dispose();
   }
@@ -67,7 +77,10 @@ class _FlareInputState extends State<FlareInput> {
           decoration: BoxDecoration(
             color: colors.bgSecondary,
             borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
-            border: Border(bottom: BorderSide(color: colors.primary, width: 2)),
+            border: Border.all(
+              color: _focused ? colors.primary : colors.borderPrimary,
+              width: 1,
+            ),
           ),
           padding: const EdgeInsets.symmetric(
               horizontal: FlareSizes.spacingMd, vertical: FlareSizes.spacingSm),
@@ -76,7 +89,9 @@ class _FlareInputState extends State<FlareInput> {
             children: [
               Expanded(
                 child: TextField(
+      obscureText: widget.secure && !widget.multiline,
                   controller: _controller,
+                  focusNode: _focus,
                   enabled: !widget.disabled,
                   minLines: 1,
                   maxLines: widget.multiline ? 6 : 1,

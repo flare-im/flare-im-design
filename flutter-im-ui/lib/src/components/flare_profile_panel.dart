@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/directory_data.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_avatar.dart';
+import 'flare_settings_list.dart';
 
 /// Personal center — avatar / name / id + entry list. Spec: Profile/ProfilePanel
 /// (`FlareProfilePanel`).
@@ -13,12 +14,17 @@ class FlareProfilePanel extends StatelessWidget {
     this.entries = defaultEntries,
     this.onEdit,
     this.onEntry,
+    this.onToggle,
   });
 
   final FlareUserProfile user;
   final List<FlareSettingsItem> entries;
   final VoidCallback? onEdit;
   final ValueChanged<FlareSettingsItem>? onEntry;
+
+  /// Toggle-row callback — without this a `FlareSettingKind.toggle` entry can't
+  /// report back, so hosts that pass toggles must supply it.
+  final void Function(FlareSettingsItem item, bool value)? onToggle;
 
   static const List<FlareSettingsItem> defaultEntries = [
     FlareSettingsItem(key: 'favorites', label: 'Favorites', icon: Icons.star_outline),
@@ -56,6 +62,13 @@ class FlareProfilePanel extends StatelessWidget {
                             style: TextStyle(
                                 color: colors.textTertiary,
                                 fontSize: FlareSizes.fontSizeSm)),
+                      if (user.signature != null && user.signature!.isNotEmpty)
+                        Text(user.signature!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                color: colors.textSecondary,
+                                fontSize: FlareSizes.fontSizeSm)),
                     ],
                   ),
                 ),
@@ -67,26 +80,8 @@ class FlareProfilePanel extends StatelessWidget {
         const SizedBox(height: FlareSizes.spacingSm),
         for (var i = 0; i < entries.length; i++) ...[
           if (i > 0) Divider(height: 1, color: colors.borderSecondary),
-          InkWell(
-            onTap: onEntry == null ? null : () => onEntry!(entries[i]),
-            child: Padding(
-              padding: const EdgeInsets.all(FlareSizes.spacingMd),
-              child: Row(
-                children: [
-                  if (entries[i].icon != null) ...[
-                    Icon(entries[i].icon, color: colors.textSecondary),
-                    const SizedBox(width: FlareSizes.spacingMd),
-                  ],
-                  Expanded(
-                      child: Text(entries[i].label,
-                          style: TextStyle(
-                              color: colors.textPrimary,
-                              fontSize: FlareSizes.fontSizeLg))),
-                  Icon(Icons.chevron_right, color: colors.textTertiary),
-                ],
-              ),
-            ),
-          ),
+          // Shared with FlareSettingsList: renders kind (toggle/value/navigation) + detail.
+          FlareSettingsRow(item: entries[i], onSelect: onEntry, onToggle: onToggle),
         ],
       ],
     );

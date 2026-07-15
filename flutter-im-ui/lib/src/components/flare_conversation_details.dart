@@ -15,6 +15,7 @@ class FlareConversationDetails extends StatelessWidget {
   const FlareConversationDetails({
     super.key,
     required this.conversation,
+    this.labels = const FlareConversationDetailsLabels(),
     this.connectionText,
     this.connectionTone = FlareConnectionTone.ok,
     this.messageCount,
@@ -30,6 +31,9 @@ class FlareConversationDetails extends StatelessWidget {
   });
 
   final FlareConversationSummary conversation;
+
+  /// Row copy — defaults keep today's English text; hosts localize by passing their own.
+  final FlareConversationDetailsLabels labels;
   final String? connectionText;
   final FlareConnectionTone connectionTone;
   final int? messageCount;
@@ -80,35 +84,35 @@ class FlareConversationDetails extends StatelessWidget {
         if (connectionText != null && connectionText!.isNotEmpty)
           _connectionChip(colors),
         if (messageCount != null)
-          _infoRow('Messages', '$messageCount', colors),
+          _infoRow(labels.messages, '$messageCount', colors),
 
         _sectionGap(colors),
         if (onMute != null)
-          _switchRow('Mute', Icons.notifications_off_outlined, c.muted,
+          _switchRow(labels.mute, Icons.notifications_off_outlined, c.muted,
               onMute!, colors),
         if (onPin != null)
-          _switchRow('Pin conversation', Icons.push_pin_outlined, c.pinned, onPin!, colors),
+          _switchRow(labels.pin, Icons.push_pin_outlined, c.pinned, onPin!, colors),
 
         _sectionGap(colors),
         if (onMarkRead != null)
-          _actionRow('Mark as read', Icons.mark_email_read_outlined, onMarkRead!, colors),
+          _actionRow(labels.markRead, Icons.mark_email_read_outlined, onMarkRead!, colors),
         if (onMarkUnread != null)
-          _actionRow('Mark as unread', Icons.mark_email_unread_outlined, onMarkUnread!,
+          _actionRow(labels.markUnread, Icons.mark_email_unread_outlined, onMarkUnread!,
               colors),
         if (onSync != null)
-          _actionRow('Sync conversation', Icons.sync_rounded, onSync!, colors),
+          _actionRow(labels.sync, Icons.sync_rounded, onSync!, colors),
         if (onOpenDevtools != null)
-          _actionRow('Developer tools', Icons.bug_report_outlined, onOpenDevtools!, colors),
+          _actionRow(labels.devtools, Icons.bug_report_outlined, onOpenDevtools!, colors),
 
         _sectionGap(colors),
         if (onArchive != null)
-          _actionRow(c.archived ? 'Unarchive' : 'Archive conversation', Icons.archive_outlined,
+          _actionRow(c.archived ? labels.unarchive : labels.archive, Icons.archive_outlined,
               onArchive!, colors),
         if (onClearHistory != null)
-          _actionRow('Clear chat history', Icons.cleaning_services_outlined,
+          _actionRow(labels.clearHistory, Icons.cleaning_services_outlined,
               onClearHistory!, colors),
         if (onDelete != null)
-          _actionRow('Delete conversation', Icons.delete_outline, onDelete!, colors,
+          _actionRow(labels.delete, Icons.delete_outline, onDelete!, colors,
               danger: true),
       ],
     );
@@ -185,4 +189,33 @@ class FlareConversationDetails extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: FlareSizes.spacingSm),
         child: Divider(height: 1, color: colors.borderSecondary),
       );
+}
+
+/// Localizable row copy for [FlareConversationDetails].
+class FlareConversationDetailsLabels {
+  const FlareConversationDetailsLabels({
+    this.messages = 'Messages',
+    this.mute = 'Mute',
+    this.pin = 'Pin conversation',
+    this.markRead = 'Mark as read',
+    this.markUnread = 'Mark as unread',
+    this.sync = 'Sync conversation',
+    this.devtools = 'Developer tools',
+    this.archive = 'Archive conversation',
+    this.unarchive = 'Unarchive',
+    this.clearHistory = 'Clear chat history',
+    this.delete = 'Delete conversation',
+  });
+
+  final String messages;
+  final String mute;
+  final String pin;
+  final String markRead;
+  final String markUnread;
+  final String sync;
+  final String devtools;
+  final String archive;
+  final String unarchive;
+  final String clearHistory;
+  final String delete;
 }

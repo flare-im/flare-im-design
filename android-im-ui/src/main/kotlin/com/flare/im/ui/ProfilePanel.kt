@@ -50,6 +50,10 @@ fun ProfilePanel(
             Spacer(Modifier.width(FlareSizes.spacingMd))
             Column(Modifier.weight(1f)) {
                 Text(user.name, color = colors.textPrimary, fontSize = FlareSizes.fontSize3xl.value.sp, fontWeight = FontWeight.SemiBold)
+                // The model carries a signature — render it (it was silently dropped before).
+                if (!user.signature.isNullOrEmpty()) {
+                    Text(user.signature, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm.value.sp)
+                }
                 if (!user.flareId.isNullOrEmpty()) {
                     Text("Flare ID: ${user.flareId}", color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
                 }
@@ -57,17 +61,10 @@ fun ProfilePanel(
             Icon(Icons.Outlined.QrCode, "QR code", tint = colors.textTertiary)
         }
         Spacer(Modifier.size(FlareSizes.spacingSm))
+        // Shared row → `kind` (Toggle/Value/Navigation) and `detail` are honoured here too.
         entries.forEachIndexed { i, e ->
             if (i > 0) Divider(color = colors.borderSecondary)
-            Row(
-                Modifier.fillMaxWidth().clickable { onEntry?.invoke(e) }
-                    .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingMd),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                e.icon?.let { Icon(it, null, tint = colors.textSecondary); Spacer(Modifier.width(FlareSizes.spacingMd)) }
-                Text(e.label, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp, modifier = Modifier.weight(1f))
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = colors.textTertiary)
-            }
+            SettingsRow(item = e, onSelect = { onEntry?.invoke(it) })
         }
     }
 }

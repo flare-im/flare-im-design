@@ -12,9 +12,11 @@ title: AppShell
 
 ## 预览
 
-<div class="flare-demo flare-demo--stack">
-  <AppShellDemo />
-</div>
+在 **PC** 与 **App** 间切换：宽屏是**侧边导航栏**，窄屏自动变成**底部 tab 栏**（同一个组件按宽度切换）。可交互。
+
+<ClientOnly>
+  <ResponsivePreview embed="/embed/app-shell-frame" pc-hint="桌面 · 侧边导航栏" app-hint="移动 · 底部 tab 栏" :pc-height="420" :app-height="560" />
+</ClientOnly>
 
 ## Props
 

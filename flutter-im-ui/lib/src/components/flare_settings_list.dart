@@ -33,14 +33,28 @@ class FlareSettingsList extends StatelessWidget {
             ),
           for (var i = 0; i < section.items.length; i++) ...[
             if (i > 0) Divider(height: 1, indent: FlareSizes.spacingMd, color: colors.borderSecondary),
-            _row(section.items[i], colors),
+            FlareSettingsRow(item: section.items[i], onToggle: onToggle, onSelect: onSelect),
           ],
         ],
       ],
     );
   }
 
-  Widget _row(FlareSettingsItem item, FlareColors colors) {
+}
+
+/// One settings row — the single source of truth for how a [FlareSettingsItem]
+/// renders (toggle / value / navigation). Shared by [FlareSettingsList] and
+/// [FlareProfilePanel] so the two can't drift apart.
+class FlareSettingsRow extends StatelessWidget {
+  const FlareSettingsRow({super.key, required this.item, this.onToggle, this.onSelect});
+
+  final FlareSettingsItem item;
+  final void Function(FlareSettingsItem item, bool value)? onToggle;
+  final ValueChanged<FlareSettingsItem>? onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = FlareColors.of(Theme.of(context).brightness);
     return InkWell(
       onTap: item.kind == FlareSettingKind.toggle ? null : () => onSelect?.call(item),
       child: Padding(

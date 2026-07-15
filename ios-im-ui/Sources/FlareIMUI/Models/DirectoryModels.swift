@@ -9,11 +9,34 @@ public struct Contact: Identifiable, Sendable {
     public let presence: FlarePresence?
     /// Explicit A-Z index letter; derived from name when nil.
     public let indexKey: String?
+    /// Optional profile detail — surfaced by ContactDetail / ProfileCard.
+    public let remark: String?
+    public let region: String?
+    public let phone: String?
+    public let tags: [String]
 
     public init(id: String, name: String, avatarURL: String? = nil, signature: String? = nil,
-                presence: FlarePresence? = nil, indexKey: String? = nil) {
+                presence: FlarePresence? = nil, indexKey: String? = nil,
+                remark: String? = nil, region: String? = nil, phone: String? = nil, tags: [String] = []) {
         self.id = id; self.name = name; self.avatarURL = avatarURL; self.signature = signature
         self.presence = presence; self.indexKey = indexKey
+        self.remark = remark; self.region = region; self.phone = phone; self.tags = tags
+    }
+}
+
+/// One participant in a group (multi-party) call.
+public struct CallParticipant: Identifiable, Sendable {
+    public let id: String
+    public let name: String
+    public let avatarURL: String?
+    public let muted: Bool
+    public let cameraOff: Bool
+    public let speaking: Bool
+    public let isSelf: Bool
+    public init(id: String, name: String, avatarURL: String? = nil, muted: Bool = false,
+                cameraOff: Bool = false, speaking: Bool = false, isSelf: Bool = false) {
+        self.id = id; self.name = name; self.avatarURL = avatarURL; self.muted = muted
+        self.cameraOff = cameraOff; self.speaking = speaking; self.isSelf = isSelf
     }
 }
 
@@ -73,6 +96,25 @@ public struct FlareSettingsSection: Identifiable {
         self.title = title; self.items = items
     }
 }
+
+public struct ReactionGroup: Identifiable, Sendable { public var id: String { emoji }; public let emoji: String; public let count: Int; public let reactedBySelf: Bool; public let users: [String]; public init(emoji: String, count: Int, reactedBySelf: Bool = false, users: [String] = []) { self.emoji = emoji; self.count = count; self.reactedBySelf = reactedBySelf; self.users = users } }
+public struct MentionCandidate: Identifiable, Sendable { public let id: String; public let name: String; public let avatarURL: String?; public let detail: String?; public let isEveryone: Bool; public init(id: String, name: String, avatarURL: String? = nil, detail: String? = nil, isEveryone: Bool = false) { self.id = id; self.name = name; self.avatarURL = avatarURL; self.detail = detail; self.isEveryone = isEveryone } }
+public struct QuickPhrase: Identifiable, Sendable { public let id: String; public let text: String; public init(id: String, text: String) { self.id = id; self.text = text } }
+public struct QuickPhraseGroup: Identifiable, Sendable { public var id: String { key }; public let key: String; public let title: String; public let phrases: [QuickPhrase]; public init(key: String, title: String, phrases: [QuickPhrase] = []) { self.key = key; self.title = title; self.phrases = phrases } }
+public enum SearchResultKind: String, Sendable { case contact, group, message }
+public struct SearchResultItem: Identifiable, Sendable { public let id: String; public let kind: SearchResultKind; public let title: String; public let subtitle: String?; public let avatarURL: String?; public let meta: String?; public init(id: String, kind: SearchResultKind, title: String, subtitle: String? = nil, avatarURL: String? = nil, meta: String? = nil) { self.id = id; self.kind = kind; self.title = title; self.subtitle = subtitle; self.avatarURL = avatarURL; self.meta = meta } }
+public struct SearchResultGroup: Identifiable, Sendable { public var id: String { kind.rawValue }; public let kind: SearchResultKind; public let label: String; public let items: [SearchResultItem]; public let total: Int?; public init(kind: SearchResultKind, label: String, items: [SearchResultItem] = [], total: Int? = nil) { self.kind = kind; self.label = label; self.items = items; self.total = total } }
+
+public struct ForwardTarget: Identifiable, Sendable { public let id: String; public let name: String; public let avatarURL: String?; public let subtitle: String?; public init(id: String, name: String, avatarURL: String? = nil, subtitle: String? = nil) { self.id = id; self.name = name; self.avatarURL = avatarURL; self.subtitle = subtitle } }
+
+public struct SlashCommand: Identifiable, Sendable { public var id: String { command }; public let command: String; public let description: String?; public let hint: String?; public init(command: String, description: String? = nil, hint: String? = nil) { self.command = command; self.description = description; self.hint = hint } }
+
+public struct GridImage: Identifiable, Sendable { public let id = UUID(); public let url: String?; public let alt: String?; public init(url: String? = nil, alt: String? = nil) { self.url = url; self.alt = alt } }
+public struct WallpaperOption: Identifiable, Sendable { public let id: String; public let color: String?; public let imageURL: String?; public let label: String?; public init(id: String, color: String? = nil, imageURL: String? = nil, label: String? = nil) { self.id = id; self.color = color; self.imageURL = imageURL; self.label = label } }
+
+public struct EmojiCategory: Identifiable, Sendable { public var id: String { key }; public let key: String; public let label: String; public let symbol: String?; public let emojis: [String]; public init(key: String, label: String, symbol: String? = nil, emojis: [String] = []) { self.key = key; self.label = label; self.symbol = symbol; self.emojis = emojis } }
+public struct StickerItem: Identifiable, Sendable { public let id: String; public let url: String?; public let placeholder: String?; public init(id: String, url: String? = nil, placeholder: String? = nil) { self.id = id; self.url = url; self.placeholder = placeholder } }
+public struct StickerPack: Identifiable, Sendable { public var id: String { key }; public let key: String; public let label: String; public let coverURL: String?; public let coverEmoji: String?; public let stickers: [StickerItem]; public init(key: String, label: String, coverURL: String? = nil, coverEmoji: String? = nil, stickers: [StickerItem] = []) { self.key = key; self.label = label; self.coverURL = coverURL; self.coverEmoji = coverEmoji; self.stickers = stickers } }
 
 public struct FlareNavItem: Identifiable, Sendable {
     public var id: String { key }

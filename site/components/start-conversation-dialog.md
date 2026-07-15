@@ -6,15 +6,17 @@ title: StartConversationDialog
 
 <p><span class="flare-tag">会话</span></p>
 
-> 发起会话入口 —— 选联系人或建群。
+> 发起会话入口 —— 选联系人或建群。**按端分流**：桌面是居中**弹窗**（`FlareStartConversationDialog`），移动端是底部 **sheet**（`FlareStartConversationSheet`），由宿主按视口选用。
 
 **数据源**：联系人 / 通讯录由产品提供；确认经 client 创建 / 打开会话
 
 ## 预览
 
-<div class="flare-demo flare-demo--stack">
-  <StartConversationDialogDemo />
-</div>
+在 **PC** 与 **App** 间切换，查看弹窗与底部 sheet 两种形态。
+
+<ClientOnly>
+  <ResponsivePreview embed="/embed/start-conversation-frame" pc-hint="桌面 · 居中弹窗" app-hint="移动 · 底部 sheet" :pc-height="440" :app-height="560" />
+</ClientOnly>
 
 ## Props
 

@@ -7,6 +7,7 @@ import {
   CalendarOutline,
   ChatbubblesOutline,
   CheckboxOutline,
+  ChevronDownOutline,
   CloseOutline,
   CodeSlashOutline,
   CodeWorkingOutline,
@@ -40,6 +41,22 @@ export type FlareComposerMentionCandidate = {
   userId: string;
   label?: string;
   avatarUrl?: string;
+};
+/** Tone tints available to the "+" attach grid. Unknown tones simply render neutral. */
+export type FlareComposerActionTone =
+  | "amber" | "cyan" | "green" | "indigo" | "violet" | "rose"
+  | "lime" | "sky" | "emerald" | "fuchsia" | "yellow" | "red";
+/**
+ * One entry in the customizable "+" attach menu. Tenants pass their own list via
+ * `attach-actions` — `op` is the id emitted on `build`, `icon` is any Vue component
+ * (e.g. a `@vicons` glyph), `tone` tints the tile. Omit the prop to keep the
+ * built-in rich default set.
+ */
+export type FlareComposerAttachAction = {
+  op: string;
+  label: string;
+  icon?: Component;
+  tone?: FlareComposerActionTone;
 };
 type VoiceRecordingPayload = {
   blob: Blob;
@@ -96,6 +113,12 @@ const props = withDefaults(defineProps<{
   statusHint?: string;
   statusHintPulse?: boolean;
   mentionCandidates?: FlareComposerMentionCandidate[];
+  /**
+   * Customize the "+" attach grid. When provided, replaces the built-in default
+   * set — a tenant supplies exactly the actions it supports, in its own order,
+   * with its own labels and icons. Omit to keep the default rich set.
+   */
+  attachActions?: FlareComposerAttachAction[];
   sendVoiceHandler?: (payload: VoiceRecordingPayload) => void | Promise<void>;
 }>(), {
   sending: false,
@@ -113,6 +136,7 @@ const props = withDefaults(defineProps<{
   statusHint: "",
   statusHintPulse: false,
   mentionCandidates: () => [],
+  attachActions: undefined,
   sendVoiceHandler: undefined,
 });
 
@@ -123,6 +147,8 @@ const emit = defineEmits<{
   (event: "clear-reply"): void;
   (event: "clear-edit"): void;
   (event: "send-voice", payload: VoiceRecordingPayload): void;
+  /** The user aborted the recording (slid up to cancel, or it failed) — nothing was sent. */
+  (event: "voice-cancel"): void;
   (event: "send", text: string): void;
   (event: "user-input", text: string): void;
 }>();
@@ -159,7 +185,8 @@ const mentionCandidates = computed(() => {
     .slice(0, 8);
 });
 
-const moreActions = computed(() => [
+// The built-in rich set — used only when the host does not pass `attachActions`.
+const defaultAttachActions = computed<FlareComposerAttachAction[]>(() => [
   { op: "create_file", label: t("composer.file"), icon: FolderOpenOutline, tone: "amber" },
   { op: "create_video", label: t("composer.video"), icon: VideocamOutline, tone: "cyan" },
   { op: "create_location", label: t("composer.location"), icon: LocationOutline, tone: "green" },
@@ -172,7 +199,12 @@ const moreActions = computed(() => [
   { op: "create_thread_reply", label: t("composer.thread"), icon: ChatbubblesOutline, tone: "fuchsia" },
   { op: "create_notification", label: t("composer.notification"), icon: NotificationsOutline, tone: "yellow" },
   { op: "create_announcement", label: t("business.announcement"), icon: MegaphoneOutline, tone: "red" },
-] as const);
+]);
+// Host-provided actions win; otherwise the default set. This is the single seam
+// that makes the "+" menu tenant-configurable.
+const moreActions = computed<FlareComposerAttachAction[]>(() =>
+  props.attachActions && props.attachActions.length > 0 ? props.attachActions : defaultAttachActions.value,
+);
 
 const replyTitle = computed(() =>
   t("composer.replyTo", { name: props.replySender?.trim() || t("composer.replyFallback") }),
@@ -441,10 +473,14 @@ function handleVoiceStop(mimeType: string): void {
   const chunks = [...voiceChunks];
   stopVoiceStream();
   resetVoiceRecordingState();
-  if (cancelled) return;
+  if (cancelled) {
+    emit("voice-cancel");
+    return;
+  }
   const blob = new Blob(chunks, { type: mimeType || "audio/webm" });
   if (!blob.size || durationMs < 250) {
-    showVoiceError("Recording too short");
+    showVoiceError(t("composer.voiceTooShort"));
+    emit("voice-cancel");
     return;
   }
   const finalMimeType = blob.type || mimeType || "audio/webm";
@@ -501,7 +537,8 @@ async function startVoiceRecording(event: PointerEvent): Promise<void> {
     recorder.onstop = () => handleVoiceStop(recorder.mimeType || mimeType);
     recorder.onerror = () => {
       voiceStopCancelled = true;
-      showVoiceError("Recording failed");
+      showVoiceError(t("composer.voiceFailed"));
+      emit("voice-cancel");
     };
     recorder.start(250);
     voiceRecording.value = true;
@@ -760,6 +797,21 @@ onBeforeUnmount(() => {
       }"
       @click.self="focusInput"
     >
+      <div v-if="inputExpanded" class="composer-expand-header">
+        <span class="composer-expand-header__title">{{ inputPlaceholder }}</span>
+        <button
+          type="button"
+          class="composer-expand-header__collapse"
+          :title="t('composer.collapseInput')"
+          :aria-label="t('composer.collapseInput')"
+          :disabled="disabled"
+          @click.stop="toggleInputExpanded"
+        >
+          <n-icon :size="16" :component="ChevronDownOutline" />
+          <span>{{ t("composer.collapse") }}</span>
+        </button>
+      </div>
+
       <div v-if="richMode" class="composer-format-strip" aria-label="Rich text" @mousedown.stop>
         <div class="composer-format-group composer-format-group--heading" role="group" aria-label="Heading level">
           <span class="composer-format-heading-icon" aria-hidden="true">
@@ -858,6 +910,18 @@ onBeforeUnmount(() => {
             @blur="inputFocused = false"
             @keydown="handleKeydown"
           />
+          <!-- Mobile: expand lives on the input field itself (top-right). Hidden on
+               desktop (the toolbar carries expand) and while already expanded. -->
+          <button
+            type="button"
+            class="composer-field-expand"
+            :title="inputExpandTitle"
+            :aria-label="inputExpandTitle"
+            :disabled="disabled"
+            @click.stop="toggleInputExpanded"
+          >
+            <n-icon :size="20" :component="ExpandOutline" />
+          </button>
         </div>
 
         <div
@@ -871,8 +935,8 @@ onBeforeUnmount(() => {
             <n-icon :component="voiceCancelling ? CloseOutline : MicOutline" />
           </span>
           <span class="composer-voice-overlay__copy">
-            <strong>{{ voiceCancelling ? "Release to cancel" : "Release to send" }}</strong>
-            <span>{{ voiceCancelling ? "Slide down to resume" : "Slide up to cancel" }}</span>
+            <strong>{{ voiceCancelling ? t("composer.voiceReleaseCancel") : t("composer.voiceReleaseSend") }}</strong>
+            <span>{{ voiceCancelling ? t("composer.voiceSlideDownResume") : t("composer.voiceSlideUpCancel") }}</span>
           </span>
           <span class="composer-voice-overlay__timer">{{ voiceElapsedLabel }} / 1:05</span>
           <span class="composer-voice-overlay__meter" aria-hidden="true">
@@ -967,12 +1031,12 @@ onBeforeUnmount(() => {
         :key="action.op"
         type="button"
         class="composer-more-tile"
-        :class="`composer-more-tile--${action.tone}`"
+        :class="action.tone ? `composer-more-tile--${action.tone}` : ''"
         :disabled="disabled"
         @click="build(action.op)"
       >
         <span class="composer-more-tile__icon">
-          <n-icon :component="action.icon" />
+          <n-icon :component="action.icon ?? AddCircleOutline" />
         </span>
         <span>{{ action.label }}</span>
       </button>

@@ -3,7 +3,7 @@ import { computed } from "vue";
 import type { ContentElem } from "../../../../utils/contentElem";
 import { pickNestedPayload } from "../../../../utils/contentElem";
 import { asRecord, readString } from "../../../../utils/contentData";
-import { getContentDecodedPreview } from "../../../../utils/messagePreview";
+import { displayTextFromStoredPreview, getContentDecodedPreview } from "../../../../utils/messagePreview";
 import {
   useFlareNotificationResolver,
   type FlareNotificationPayload,
@@ -13,14 +13,25 @@ import {
 // this view doesn't consume, so keep them off the DOM root.
 defineOptions({ inheritAttrs: false });
 
-const props = defineProps<{ content: ContentElem; isSelf: boolean; senderName?: string }>();
+const props = defineProps<{
+  content: ContentElem;
+  isSelf: boolean;
+  senderName?: string;
+  messageExtra?: Record<string, unknown>;
+}>();
 
 const nested = computed(() => pickNestedPayload(props.content, "notification"));
 
 const title = computed(() => readString(nested.value, "title"));
-const body = computed(
-  () => readString(nested.value, "body", "text") || getContentDecodedPreview(props.content),
-);
+const body = computed(() => {
+  const direct = readString(nested.value, "body", "text");
+  if (direct) return direct;
+  // Same as SystemView: social notifications carry their text only in the stored preview token
+  // (`message.textPreview`), not in the content elem — resolve it before the generic fallback.
+  const raw = props.messageExtra?.textPreview;
+  const fromPreview = typeof raw === "string" ? displayTextFromStoredPreview(raw) : "";
+  return fromPreview || getContentDecodedPreview(props.content);
+});
 
 // Normalized payload for host renderers (call-signal tiles, custom cards, …).
 const payload = computed<FlareNotificationPayload>(() => {

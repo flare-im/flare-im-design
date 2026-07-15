@@ -54,7 +54,7 @@ public struct MessageBubbleView: View {
                 if !isSelf { leadingAvatar }
                 if isSelf { Spacer(minLength: 40) }
                 bubbleColumn(colors)
-                if isSelf { trailingStatus(colors) } else { Spacer(minLength: 40) }
+                if !isSelf { Spacer(minLength: 40) }
             }
             .padding(.horizontal, FlareSizes.spacingMd)
             .padding(.top, groupStart ? FlareSizes.spacingSm : 2)
@@ -92,14 +92,33 @@ public struct MessageBubbleView: View {
                 content: message.content, isSelf: isSelf, senderName: message.senderName,
                 mediaState: mediaState,
                 onMediaAction: onMediaAction == nil ? nil : { onMediaAction?(message, $0) })
-            if !message.timeLabel.isEmpty {
-                Text(message.timeLabel)
-                    .font(.system(size: FlareSizes.fontSizeXs))
-                    .foregroundColor(isSelf ? Color.white.opacity(0.8) : colors.textTertiary)
+            // Inline meta: time + (self) delivery status, kept inside the bubble.
+            if !message.timeLabel.isEmpty || isSelf {
+                HStack(spacing: 4) {
+                    if !message.timeLabel.isEmpty {
+                        Text(message.timeLabel)
+                            .font(.system(size: FlareSizes.fontSizeXs))
+                            .foregroundColor(isSelf ? Color.white.opacity(0.8) : colors.textTertiary)
+                    }
+                    if isSelf {
+                        MessageStatusView(status: message.status, variant: .compact,
+                                          tint: message.status == .failed ? nil : Color.white.opacity(0.85))
+                            .modifier(TapToResend(enabled: message.status == .failed) { onResend?(message) })
+                    }
+                }
             }
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 9)
+    }
+
+    /// Conditionally attach a resend tap gesture (failed messages only).
+    private struct TapToResend: ViewModifier {
+        let enabled: Bool
+        let action: () -> Void
+        func body(content: Content) -> some View {
+            if enabled { content.onTapGesture(perform: action) } else { content }
+        }
     }
 
     // Flare thread grammar: received = white card + hairline border + whisper of
@@ -120,18 +139,6 @@ public struct MessageBubbleView: View {
                 .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(colors.borderSecondary, lineWidth: 1))
                 .shadow(color: Color.black.opacity(0.05), radius: 5, y: 2)
         }
-    }
-
-    private func trailingStatus(_ colors: FlareColors) -> some View {
-        Group {
-            if message.status == .failed {
-                MessageStatusView(status: .failed)
-                    .onTapGesture { onResend?(message) }
-            } else {
-                MessageStatusView(status: message.status)
-            }
-        }
-        .padding(.top, 4)
     }
 
     static func isBareMedia(_ content: FlareMessageContent) -> Bool {
