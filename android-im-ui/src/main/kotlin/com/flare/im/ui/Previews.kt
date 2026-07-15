@@ -222,3 +222,20 @@ private fun AppShellPreview() = AppShell(items = listOf(
 @Preview(showBackground = true)
 @Composable
 private fun ResponsiveLayoutPreview() = ResponsiveLayout(list = { Text("会话列表") }, chat = { Text("聊天窗口") })
+
+@Preview(showBackground = true)
+@Composable
+private fun ScreenHeaderPreview() = ScreenHeader(title = "消息")
+
+@Preview(showBackground = true)
+@Composable
+private fun PrimaryButtonPreview() = Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    PrimaryButton(text = "登录", onClick = {})
+    PrimaryButton(text = "登录", loadingText = "连接中…", loading = true, onClick = {})
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SegmentedControlPreview() =
+    SegmentedControl(options = listOf("联系人", "群组", "新的联系人"), selectedIndex = 0, onSelect = {},
+        modifier = Modifier.padding(12.dp))

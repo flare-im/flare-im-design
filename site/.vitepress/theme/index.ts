@@ -60,6 +60,9 @@ import EmojiPickerDemo from "./demos/EmojiPickerDemo.vue";
 import StickerPanelDemo from "./demos/StickerPanelDemo.vue";
 import ComponentGallery from "./demos/ComponentGallery.vue";
 import ComponentApi from "./demos/ComponentApi.vue";
+import PrimaryButtonDemo from "./demos/PrimaryButtonDemo.vue";
+import SegmentedControlDemo from "./demos/SegmentedControlDemo.vue";
+import ScreenHeaderDemo from "./demos/ScreenHeaderDemo.vue";
 import IncomingCallDemo from "./demos/IncomingCallDemo.vue";
 import CallControlsDemo from "./demos/CallControlsDemo.vue";
 
@@ -182,6 +185,9 @@ const demos = {
   StickerPanelDemo,
   ComponentGallery,
   ComponentApi,
+  PrimaryButtonDemo,
+  SegmentedControlDemo,
+  ScreenHeaderDemo,
   IncomingCallDemo,
   CallControlsDemo,
   MessageListDemo,

@@ -132,6 +132,11 @@ export type { FlareEmojiCategory, FlareStickerItem, FlareStickerPack } from "../
 export type { FlareCallMode, FlareCallState, FlareCallParticipant } from "../shared/contracts";
 export { default as FlareAppShell } from "./layout/FlareAppShell.vue";
 export { default as FlareResponsiveLayout } from "./layout/FlareResponsiveLayout.vue";
+export { default as FlareScreenHeader } from "./layout/FlareScreenHeader.vue";
+
+// General primitives surfaced by the example-app migration (button / segmented control)
+export { default as FlarePrimaryButton } from "./general/FlarePrimaryButton.vue";
+export { default as FlareSegmentedControl } from "./general/FlareSegmentedControl.vue";
 
 // composer parts (freely composable)
 export { default as FlareVoiceHoldButton } from "./composer/FlareVoiceHoldButton.vue";
