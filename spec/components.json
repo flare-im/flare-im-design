@@ -6395,6 +6395,187 @@
           "symbol": "StickerPanel"
         }
       }
+    },
+    {
+      "name": "PrimaryButton",
+      "category": "General",
+      "summary": {
+        "zh": "主操作按钮 —— 品牌填充整宽 pill,内置加载/禁用态与可选图标。",
+        "en": "Primary action button — full-width brand pill with built-in loading/disabled + optional icon."
+      },
+      "dataSource": {
+        "zh": "由你传入",
+        "en": "passed in by you"
+      },
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "description": {
+            "zh": "按钮文案。",
+            "en": "Button label."
+          }
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "zh": "加载态:不可交互 + 内联转圈。",
+            "en": "Loading — non-interactive with an inline spinner."
+          }
+        },
+        {
+          "name": "loadingLabel",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "加载时替换文案(缺省用 label)。",
+            "en": "Text while loading (falls back to label)."
+          }
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "zh": "禁用态。",
+            "en": "Disabled state."
+          }
+        },
+        {
+          "name": "icon",
+          "type": "Component",
+          "required": false,
+          "description": {
+            "zh": "可选前导图标。",
+            "en": "Optional leading icon."
+          }
+        }
+      ],
+      "states": [],
+      "events": [
+        "click"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlarePrimaryButton"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlarePrimaryButton"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "PrimaryButtonView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "PrimaryButton"
+        }
+      }
+    },
+    {
+      "name": "SegmentedControl",
+      "category": "General",
+      "summary": {
+        "zh": "分段选择器 —— 等宽互斥选项的紧凑页内筛选,选中项浮起。",
+        "en": "Segmented control — a compact equal-width mutually-exclusive in-page filter; selected chip raised."
+      },
+      "dataSource": {
+        "zh": "由你传入",
+        "en": "passed in by you"
+      },
+      "props": [
+        {
+          "name": "options",
+          "type": "string[]",
+          "required": true,
+          "description": {
+            "zh": "分段文案列表。",
+            "en": "Segment labels."
+          }
+        },
+        {
+          "name": "modelValue",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "description": {
+            "zh": "v-model 绑定当前选中索引。",
+            "en": "v-model bound selected index."
+          }
+        }
+      ],
+      "states": [],
+      "events": [
+        "change"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareSegmentedControl"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareSegmentedControl"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "SegmentedControlView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "SegmentedControl"
+        }
+      }
+    },
+    {
+      "name": "ScreenHeader",
+      "category": "Layout",
+      "summary": {
+        "zh": "大标题屏头 —— tab 页(消息/通讯录/我)的安静顶栏,带 actions 插槽;区别于会话 ChatHeader。",
+        "en": "Large-title screen header — the quiet top bar for a tab surface, with an actions slot; distinct from ChatHeader."
+      },
+      "dataSource": {
+        "zh": "由你传入",
+        "en": "passed in by you"
+      },
+      "props": [
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": {
+            "zh": "大标题文案。",
+            "en": "Large title text."
+          }
+        }
+      ],
+      "states": [],
+      "events": [],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareScreenHeader"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareScreenHeader"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ScreenHeaderView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ScreenHeader"
+        }
+      }
     }
   ],
   "categoryLabels": {

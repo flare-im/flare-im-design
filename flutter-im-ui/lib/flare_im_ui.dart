@@ -64,6 +64,9 @@ export 'src/components/flare_voice_recording_bar.dart';
 export 'src/components/flare_voice_player.dart';
 export 'src/components/flare_emoji_picker.dart';
 export 'src/components/flare_sticker_panel.dart';
+export 'src/components/flare_primary_button.dart';
+export 'src/components/flare_segmented_control.dart';
+export 'src/components/flare_screen_header.dart';
 export 'src/components/flare_poll_composer.dart';
 export 'src/components/flare_chat_wallpaper_picker.dart';
 

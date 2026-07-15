@@ -91,6 +91,113 @@ public struct InputView: View {
     }
 }
 
+/// Primary call-to-action button. Spec: General/Button (`PrimaryButtonView`).
+/// Full-width, brand-filled pill with an optional leading icon and a built-in busy state
+/// (spinner + `loadingLabel`). Used for the primary action on a screen (sign-in, submit, …).
+public struct PrimaryButtonView: View {
+    private let title: String
+    private let loadingLabel: String
+    private let systemImage: String?
+    private let loading: Bool
+    private let disabled: Bool
+    private let action: () -> Void
+    @Environment(\.colorScheme) private var scheme
+
+    public init(_ title: String, systemImage: String? = nil, loading: Bool = false,
+                loadingLabel: String? = nil, disabled: Bool = false, action: @escaping () -> Void) {
+        self.title = title; self.systemImage = systemImage; self.loading = loading
+        self.loadingLabel = loadingLabel ?? title; self.disabled = disabled; self.action = action
+    }
+
+    public var body: some View {
+        let colors = FlareColors.of(scheme)
+        Button(action: action) {
+            Group {
+                if loading {
+                    HStack(spacing: FlareSizes.spacingSm) {
+                        ProgressView().tint(.white)
+                        Text(loadingLabel)
+                    }
+                } else if let systemImage {
+                    Label(title, systemImage: systemImage)
+                } else {
+                    Text(title)
+                }
+            }
+            .font(.system(size: FlareSizes.fontSizeXl, weight: .semibold))
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity, minHeight: 48)
+            .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.primary))
+        }
+        .buttonStyle(.plain)
+        .disabled(disabled || loading)
+        .opacity(disabled ? 0.55 : 1)
+    }
+}
+
+/// Compact equal-width segmented selector (分段选择器). Spec: General/SegmentedControl.
+/// Mutually-exclusive `options`; the selected segment is surfaced on a raised chip.
+public struct SegmentedControlView: View {
+    private let options: [String]
+    private let selectedIndex: Int
+    private let onSelect: ((Int) -> Void)?
+    @Environment(\.colorScheme) private var scheme
+
+    public init(options: [String], selectedIndex: Int, onSelect: ((Int) -> Void)? = nil) {
+        self.options = options; self.selectedIndex = selectedIndex; self.onSelect = onSelect
+    }
+
+    public var body: some View {
+        let colors = FlareColors.of(scheme)
+        HStack(spacing: 0) {
+            ForEach(Array(options.enumerated()), id: \.offset) { i, label in
+                let active = i == selectedIndex
+                Button { onSelect?(i) } label: {
+                    Text(label)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(active ? colors.primary : colors.textSecondary)
+                        .frame(minWidth: 64).padding(.horizontal, 16).padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: FlareSizes.radiusMd)
+                                .fill(active ? colors.bgPrimary : Color.clear)
+                                .shadow(color: active ? Color.black.opacity(0.1) : .clear, radius: 3, y: 1)
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(3)
+        .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.bgSecondary))
+        .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).stroke(colors.borderPrimary, lineWidth: 1))
+        .animation(.easeOut(duration: 0.15), value: selectedIndex)
+    }
+}
+
+/// Screen-level large-title header — the quiet top bar for a tab surface
+/// (inbox / directory / me). Spec: Layout/ScreenHeader. Distinct from ChatHeaderView.
+public struct ScreenHeaderView<Actions: View>: View {
+    private let title: String
+    private let actions: Actions
+    @Environment(\.colorScheme) private var scheme
+
+    public init(title: String, @ViewBuilder actions: () -> Actions = { EmptyView() }) {
+        self.title = title; self.actions = actions()
+    }
+
+    public var body: some View {
+        let colors = FlareColors.of(scheme)
+        HStack(spacing: 12) {
+            Text(title).font(.system(size: 24, weight: .bold)).foregroundColor(colors.textPrimary)
+                .lineLimit(1)
+            Spacer(minLength: 0)
+            actions
+        }
+        .padding(.horizontal, 16).padding(.vertical, 14)
+        .frame(maxWidth: .infinity)
+        .background(colors.bgPrimary)
+    }
+}
+
 /// Empty-state placeholder. Spec: General/EmptyState (`EmptyStateView`).
 public struct EmptyStateView: View {
     private let title: String
