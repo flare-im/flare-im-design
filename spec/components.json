@@ -7501,6 +7501,101 @@
           "symbol": "Select"
         }
       }
+    },
+    {
+      "name": "Icon",
+      "category": "General",
+      "summary": {
+        "zh": "图标库 —— 一套跨端语义化命名图标(search/send/heart/…),四端映射同名到各自 glyph 源。",
+        "en": "Icon library — a cross-platform set of semantic icon names (search/send/heart/…); each platform maps the same names."
+      },
+      "dataSource": {
+        "zh": "由你传入",
+        "en": "passed in by you"
+      },
+      "props": [
+        {
+          "name": "name",
+          "type": "FlareIconName",
+          "required": true,
+          "description": {
+            "zh": "图标名(见画廊)。",
+            "en": "Icon name (see the gallery)."
+          }
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "required": false,
+          "default": "20",
+          "description": {
+            "zh": "像素尺寸。",
+            "en": "Pixel size."
+          }
+        }
+      ],
+      "states": [],
+      "events": [],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareIcon"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareIcon"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "IconView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "Icon"
+        }
+      }
+    },
+    {
+      "name": "ConfigProvider",
+      "category": "Layout",
+      "summary": {
+        "zh": "全局配置 —— 在根部设默认控件尺寸/密度,Button/IconButton/Select 等未显式指定时继承。",
+        "en": "Global config — set default control size/density at the root; Button/IconButton/Select inherit when unset."
+      },
+      "dataSource": {
+        "zh": "由你传入",
+        "en": "passed in by you"
+      },
+      "props": [
+        {
+          "name": "size",
+          "type": "FlareControlSize",
+          "required": false,
+          "default": "\"md\"",
+          "description": {
+            "zh": "默认控件尺寸。",
+            "en": "Default control size."
+          }
+        },
+        {
+          "name": "density",
+          "type": "'compact' | 'default'",
+          "required": false,
+          "default": "\"default\"",
+          "description": {
+            "zh": "密度(预留)。",
+            "en": "Density (reserved)."
+          }
+        }
+      ],
+      "states": [],
+      "events": [],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareConfigProvider"
+        }
+      }
     }
   ],
   "categoryLabels": {

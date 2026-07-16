@@ -1,12 +1,14 @@
 <script setup lang="ts">
+import { computed, type Component } from "vue";
 import { NIcon } from "naive-ui";
-import type { Component } from "vue";
 import type { FlareButtonVariant, FlareControlSize } from "../../shared/contracts";
+import { useFlareConfig } from "../../shared/useFlareConfig";
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     label?: string;
     variant?: FlareButtonVariant;
+    /** Falls back to the global config size (default "md") when omitted. */
     size?: FlareControlSize;
     loading?: boolean;
     disabled?: boolean;
@@ -15,16 +17,18 @@ withDefaults(
     /** Optional leading glyph. */
     icon?: Component;
   }>(),
-  { variant: "primary", size: "md", loading: false, disabled: false, block: false },
+  { variant: "primary", loading: false, disabled: false, block: false },
 );
 const emit = defineEmits<{ (e: "click"): void }>();
+const config = useFlareConfig();
+const rsize = computed(() => props.size ?? config.value.size);
 </script>
 
 <template>
   <button
     type="button"
     class="flare-button"
-    :class="[`flare-button--${variant}`, `flare-button--${size}`, { 'is-block': block, 'is-loading': loading }]"
+    :class="[`flare-button--${variant}`, `flare-button--${rsize}`, { 'is-block': block, 'is-loading': loading }]"
     :disabled="disabled || loading"
     @click="emit('click')"
   >
