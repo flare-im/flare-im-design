@@ -27,11 +27,23 @@ const interactive = computed(() => !props.disabled && !props.readonly);
 
 function enter(n: number): void { if (interactive.value) hover.value = n; }
 function leave(): void { hover.value = 0; }
-function pick(n: number): void {
-  if (!interactive.value) return;
-  const next = props.clearable && value.value === n ? 0 : n;
+function commit(next: number): void {
   value.value = next;
   emit("change", next);
+}
+function pick(n: number): void {
+  if (!interactive.value) return;
+  commit(props.clearable && value.value === n ? 0 : n);
+}
+// The one star in the tab order: the current value, or the first when unset.
+const tabStar = computed(() => value.value || 1);
+function onKey(e: KeyboardEvent): void {
+  if (!interactive.value) return;
+  const lo = props.clearable ? 0 : 1;
+  if (e.key === "ArrowLeft" || e.key === "ArrowDown") { e.preventDefault(); commit(Math.max(lo, value.value - 1)); }
+  else if (e.key === "ArrowRight" || e.key === "ArrowUp") { e.preventDefault(); commit(Math.min(props.count, value.value + 1)); }
+  else if (e.key === "Home") { e.preventDefault(); commit(lo === 0 ? 0 : 1); }
+  else if (e.key === "End") { e.preventDefault(); commit(props.count); }
 }
 </script>
 
@@ -41,6 +53,7 @@ function pick(n: number): void {
     :class="{ 'is-disabled': disabled, 'is-readonly': readonly }"
     role="radiogroup"
     @mouseleave="leave"
+    @keydown="onKey"
   >
     <button
       v-for="n in stars"
@@ -51,7 +64,8 @@ function pick(n: number): void {
       :style="{ fontSize: `${size}px` }"
       :disabled="disabled || readonly"
       :aria-label="`${n}`"
-      :aria-checked="n <= value"
+      :aria-checked="n === value"
+      :tabindex="interactive && n === tabStar ? 0 : -1"
       role="radio"
       @mouseenter="enter(n)"
       @click="pick(n)"

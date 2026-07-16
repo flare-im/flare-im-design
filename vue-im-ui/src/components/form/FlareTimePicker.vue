@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, watch, onBeforeUnmount, nextTick } from "vue";
+import { ref, computed, onBeforeUnmount, nextTick } from "vue";
 import { NIcon } from "naive-ui";
 import { TimeOutline } from "@vicons/ionicons5";
 import type { FlareControlSize } from "../../shared/contracts";
 import { useFlareConfig } from "../../shared/useFlareConfig";
 import { useFlareAdaptiveSafe } from "../../composables/useAdaptiveMode";
-import { useFlareOverlayContainer } from "../../shared/useOverlayContainer";
+import FlareBottomSheet from "../general/FlareBottomSheet.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -28,15 +28,12 @@ const config = useFlareConfig();
 const rsize = computed(() => props.size ?? config.size.value);
 const zh = computed(() => config.locale.value === "zh-CN");
 const adaptive = useFlareAdaptiveSafe();
-const overlayContainer = useFlareOverlayContainer();
 const asSheet = computed(() => adaptive.isH5.value);
 
 const pad = (n: number) => String(n).padStart(2, "0");
 const hours = Array.from({ length: 24 }, (_, i) => i);
-const minutes = computed(() => {
-  const step = Math.max(1, Math.min(30, props.minuteStep));
-  return Array.from({ length: Math.ceil(60 / step) }, (_, i) => i * step);
-});
+const step = computed(() => Math.max(1, Math.min(30, Math.round(props.minuteStep) || 1)));
+const minutes = computed(() => Array.from({ length: Math.ceil(60 / step.value) }, (_, i) => i * step.value));
 
 const open = ref(false);
 const root = ref<HTMLElement | null>(null);
@@ -48,6 +45,12 @@ const minCol = ref<HTMLElement | null>(null);
 function parse(v: string): { h: number; m: number } {
   const [h, m] = v.split(":");
   return { h: Number(h) || 0, m: Number(m) || 0 };
+}
+/** Clamp to 0-59 and snap to the nearest step so a cell always matches. */
+function snapMinute(m: number): number {
+  const s = step.value;
+  const last = minutes.value[minutes.value.length - 1];
+  return Math.min(last, Math.max(0, Math.round(Math.min(59, Math.max(0, m)) / s) * s));
 }
 
 function scrollSelectedIntoView(): void {
@@ -65,8 +68,8 @@ function scrollSelectedIntoView(): void {
 function show(): void {
   if (props.disabled) return;
   const { h, m } = parse(value.value);
-  th.value = h;
-  tm.value = m;
+  th.value = Math.min(23, Math.max(0, h));
+  tm.value = snapMinute(m);
   open.value = true;
   nextTick(scrollSelectedIntoView);
 }
@@ -77,19 +80,23 @@ function confirm(): void {
   emit("change", next);
   open.value = false;
 }
-function onDocClick(e: MouseEvent): void {
-  if (asSheet.value) return;
+// Outside-click for the DESKTOP popover only (capture phase → still fires when
+// another trigger stops propagation). Escape closes the popover.
+function onDocPointer(e: MouseEvent): void {
+  if (asSheet.value || !open.value) return;
   if (root.value && !root.value.contains(e.target as Node)) open.value = false;
 }
-watch([open, asSheet], ([isOpen, sheet]) => {
-  if (typeof document === "undefined") return;
-  document.body.style.overflow = isOpen && sheet ? "hidden" : "";
-});
-if (typeof document !== "undefined") document.addEventListener("click", onDocClick);
+function onDocKey(e: KeyboardEvent): void {
+  if (e.key === "Escape" && !asSheet.value && open.value) open.value = false;
+}
+if (typeof document !== "undefined") {
+  document.addEventListener("click", onDocPointer, true);
+  document.addEventListener("keydown", onDocKey);
+}
 onBeforeUnmount(() => {
   if (typeof document !== "undefined") {
-    document.removeEventListener("click", onDocClick);
-    document.body.style.overflow = "";
+    document.removeEventListener("click", onDocPointer, true);
+    document.removeEventListener("keydown", onDocKey);
   }
 });
 </script>
@@ -121,31 +128,21 @@ onBeforeUnmount(() => {
     </transition>
 
     <!-- Phone / native app: bottom sheet -->
-    <Teleport v-if="asSheet" :to="overlayContainer">
-      <transition name="flare-sheet-fade">
-        <div v-if="open" class="flare-sheet-scrim" @click="close">
-          <transition name="flare-sheet-rise" appear>
-            <div class="flare-sheet flare-tp__sheet" role="dialog" aria-modal="true" @click.stop>
-              <div class="flare-sheet__grip" aria-hidden="true" />
-              <div v-if="title || placeholder" class="flare-sheet__title">{{ title || placeholder }}</div>
-              <div class="flare-tp__cols is-sheet">
-                <div ref="hourCol" class="flare-tp__col" role="listbox" :aria-label="zh ? '时' : 'Hour'">
-                  <button v-for="h in hours" :key="h" type="button" class="flare-tp__cell" :class="{ 'is-selected': h === th }" @click="th = h">{{ pad(h) }}</button>
-                </div>
-                <span class="flare-tp__sep">:</span>
-                <div ref="minCol" class="flare-tp__col" role="listbox" :aria-label="zh ? '分' : 'Minute'">
-                  <button v-for="m in minutes" :key="m" type="button" class="flare-tp__cell" :class="{ 'is-selected': m === tm }" @click="tm = m">{{ pad(m) }}</button>
-                </div>
-              </div>
-              <div class="flare-tp__footer is-sheet">
-                <button type="button" class="flare-tp__btn is-ghost" @click="close">{{ zh ? "取消" : "Cancel" }}</button>
-                <button type="button" class="flare-tp__btn is-primary" @click="confirm">{{ zh ? "确定" : "Done" }}</button>
-              </div>
-            </div>
-          </transition>
+    <FlareBottomSheet v-if="asSheet" :open="open" :title="title || placeholder || undefined" max-height="82vh" @close="close">
+      <div class="flare-tp__cols is-sheet">
+        <div ref="hourCol" class="flare-tp__col" role="listbox" :aria-label="zh ? '时' : 'Hour'">
+          <button v-for="h in hours" :key="h" type="button" class="flare-tp__cell" :class="{ 'is-selected': h === th }" @click="th = h">{{ pad(h) }}</button>
         </div>
-      </transition>
-    </Teleport>
+        <span class="flare-tp__sep">:</span>
+        <div ref="minCol" class="flare-tp__col" role="listbox" :aria-label="zh ? '分' : 'Minute'">
+          <button v-for="m in minutes" :key="m" type="button" class="flare-tp__cell" :class="{ 'is-selected': m === tm }" @click="tm = m">{{ pad(m) }}</button>
+        </div>
+      </div>
+      <div class="flare-tp__footer is-sheet">
+        <button type="button" class="flare-tp__btn is-ghost" @click="close">{{ zh ? "取消" : "Cancel" }}</button>
+        <button type="button" class="flare-tp__btn is-primary" @click="confirm">{{ zh ? "确定" : "Done" }}</button>
+      </div>
+    </FlareBottomSheet>
   </div>
 </template>
 
@@ -246,38 +243,6 @@ onBeforeUnmount(() => {
 }
 .flare-tp__btn.is-primary:hover { filter: brightness(0.97); }
 
-/* Bottom sheet shell (shared with Select) */
-.flare-sheet-scrim {
-  position: fixed;
-  inset: 0;
-  z-index: 3000;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  background: rgba(21, 18, 32, 0.44);
-}
-.flare-sheet {
-  width: 100%;
-  max-width: 640px;
-  max-height: 82vh;
-  display: flex;
-  flex-direction: column;
-  padding: 8px 8px calc(4px + env(safe-area-inset-bottom, 0px));
-  background: var(--flare-color-bg-primary, #fff);
-  border-radius: 20px 20px 0 0;
-  box-shadow: var(--flare-shadow-lg, 0 -8px 32px rgba(21, 18, 32, 0.22));
-}
-.flare-sheet__grip { width: 36px; height: 4px; border-radius: 999px; background: var(--flare-color-border-primary, #e9e6f1); margin: 6px auto 8px; flex: 0 0 auto; }
-.flare-sheet__title { padding: 4px 12px 6px; font-size: 13px; font-weight: 500; color: var(--flare-color-text-tertiary, #a7a2b4); text-align: center; }
-
-.flare-sheet-fade-enter-active, .flare-sheet-fade-leave-active { transition: opacity 0.22s ease; }
-.flare-sheet-fade-enter-from, .flare-sheet-fade-leave-to { opacity: 0; }
-.flare-sheet-rise-enter-active { transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1); }
-.flare-sheet-rise-leave-active { transition: transform 0.2s ease; }
-.flare-sheet-rise-enter-from, .flare-sheet-rise-leave-to { transform: translateY(100%); }
-@media (prefers-reduced-motion: reduce) {
-  .flare-sheet-rise-enter-active, .flare-sheet-rise-leave-active { transition: none; }
-}
 .flare-tp-pop-enter-active, .flare-tp-pop-leave-active { transition: opacity 0.14s ease, transform 0.14s ease; }
 .flare-tp-pop-enter-from, .flare-tp-pop-leave-to { opacity: 0; transform: translateY(-4px); }
 </style>
