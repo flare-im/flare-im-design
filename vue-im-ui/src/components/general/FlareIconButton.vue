@@ -1,12 +1,14 @@
 <script setup lang="ts">
+import { computed, type Component } from "vue";
 import { NIcon } from "naive-ui";
-import type { Component } from "vue";
 import type { FlareControlSize } from "../../shared/contracts";
+import { useFlareConfig } from "../../shared/useFlareConfig";
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     icon: Component;
     ariaLabel: string;
+    /** Falls back to the global config size when omitted. */
     size?: FlareControlSize;
     /** Visual weight. */
     variant?: "plain" | "tinted" | "solid";
@@ -15,16 +17,18 @@ withDefaults(
     /** Toggle-active look (e.g. a selected filter). */
     active?: boolean;
   }>(),
-  { size: "md", variant: "plain", shape: "circle", disabled: false, active: false },
+  { variant: "plain", shape: "circle", disabled: false, active: false },
 );
 const emit = defineEmits<{ (e: "click"): void }>();
+const config = useFlareConfig();
+const rsize = computed(() => props.size ?? config.value.size);
 </script>
 
 <template>
   <button
     type="button"
     class="flare-icon-button"
-    :class="[`flare-icon-button--${size}`, `flare-icon-button--${variant}`, `is-${shape}`, { 'is-active': active }]"
+    :class="[`flare-icon-button--${rsize}`, `flare-icon-button--${variant}`, `is-${shape}`, { 'is-active': active }]"
     :aria-label="ariaLabel"
     :aria-pressed="active"
     :disabled="disabled"

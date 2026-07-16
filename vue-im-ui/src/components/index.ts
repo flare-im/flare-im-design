@@ -141,6 +141,15 @@ export { default as FlareSegmentedControl } from "./general/FlareSegmentedContro
 // Foundation — buttons + form controls
 export { default as FlareButton } from "./general/FlareButton.vue";
 export { default as FlareIconButton } from "./general/FlareIconButton.vue";
+export { default as FlareIcon } from "./general/FlareIcon.vue";
+export { default as FlareConfigProvider } from "./general/FlareConfigProvider.vue";
+export { flareIcons, flareIconNames, type FlareIconName } from "../shared/icons";
+export {
+  provideFlareConfig,
+  useFlareConfig,
+  type FlareConfig,
+  type FlareDensity,
+} from "../shared/useFlareConfig";
 export { default as FlareFormField } from "./form/FlareFormField.vue";
 export { default as FlareSwitch } from "./form/FlareSwitch.vue";
 export { default as FlareCheckbox } from "./form/FlareCheckbox.vue";

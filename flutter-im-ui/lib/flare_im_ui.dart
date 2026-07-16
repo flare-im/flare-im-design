@@ -68,6 +68,7 @@ export 'src/components/flare_primary_button.dart';
 export 'src/components/flare_segmented_control.dart';
 export 'src/components/flare_button.dart';
 export 'src/components/flare_icon_button.dart';
+export 'src/components/flare_icon.dart';
 export 'src/components/flare_form_field.dart';
 export 'src/components/flare_switch.dart';
 export 'src/components/flare_checkbox.dart';

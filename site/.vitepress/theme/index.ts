@@ -76,6 +76,8 @@ import CheckboxDemo from "./demos/CheckboxDemo.vue";
 import RadioGroupDemo from "./demos/RadioGroupDemo.vue";
 import SelectDemo from "./demos/SelectDemo.vue";
 import FormFieldDemo from "./demos/FormFieldDemo.vue";
+import IconDemo from "./demos/IconDemo.vue";
+import ConfigProviderDemo from "./demos/ConfigProviderDemo.vue";
 import IncomingCallDemo from "./demos/IncomingCallDemo.vue";
 import CallControlsDemo from "./demos/CallControlsDemo.vue";
 
@@ -214,6 +216,8 @@ const demos = {
   RadioGroupDemo,
   SelectDemo,
   FormFieldDemo,
+  IconDemo,
+  ConfigProviderDemo,
   IncomingCallDemo,
   CallControlsDemo,
   MessageListDemo,

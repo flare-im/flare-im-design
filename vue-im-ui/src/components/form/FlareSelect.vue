@@ -3,19 +3,23 @@ import { ref, computed, onBeforeUnmount } from "vue";
 import { NIcon } from "naive-ui";
 import { ChevronDownOutline, CheckmarkOutline } from "@vicons/ionicons5";
 import type { FlareSelectOption, FlareControlSize } from "../../shared/contracts";
+import { useFlareConfig } from "../../shared/useFlareConfig";
 
 const props = withDefaults(
   defineProps<{
     options: FlareSelectOption[];
     placeholder?: string;
     disabled?: boolean;
+    /** Falls back to the global config size when omitted. */
     size?: FlareControlSize;
   }>(),
-  { placeholder: "", disabled: false, size: "md" },
+  { placeholder: "", disabled: false },
 );
 const value = defineModel<string>({ default: "" });
 const emit = defineEmits<{ (e: "change", value: string): void }>();
 
+const config = useFlareConfig();
+const rsize = computed(() => props.size ?? config.value.size);
 const open = ref(false);
 const root = ref<HTMLElement | null>(null);
 const current = computed(() => props.options.find((o) => o.value === value.value));
@@ -40,7 +44,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="root" class="flare-select" :class="[`flare-select--${size}`, { 'is-open': open, 'is-disabled': disabled }]">
+  <div ref="root" class="flare-select" :class="[`flare-select--${rsize}`, { 'is-open': open, 'is-disabled': disabled }]">
     <button type="button" class="flare-select__trigger" :disabled="disabled" @click.stop="toggle">
       <span class="flare-select__value" :class="{ 'is-placeholder': !current }">{{ current ? current.label : placeholder }}</span>
       <n-icon :size="16" :component="ChevronDownOutline" class="flare-select__chevron" />
