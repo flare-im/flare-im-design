@@ -21,7 +21,10 @@ const props = withDefaults(
 const value = defineModel<number>({ default: 0 });
 const emit = defineEmits<{ (e: "change", value: number): void }>();
 
-const rsize = computed(() => props.size ?? useFlareConfig().size.value);
+// Resolve the config once at setup — calling inject() lazily inside a computed
+// can bind to a throwaway default if first evaluated outside render.
+const config = useFlareConfig();
+const rsize = computed(() => props.size ?? config.size.value);
 const canDec = computed(() => !props.disabled && value.value > props.min);
 const canInc = computed(() => !props.disabled && value.value < props.max);
 
@@ -37,8 +40,13 @@ function set(n: number): void {
 function dec(): void { if (canDec.value) set(value.value - props.step); }
 function inc(): void { if (canInc.value) set(value.value + props.step); }
 function onInput(e: Event): void {
-  const raw = Number((e.target as HTMLInputElement).value);
+  const el = e.target as HTMLInputElement;
+  const raw = Number(el.value);
   if (!Number.isNaN(raw)) set(raw);
+  // Always re-sync the DOM to the normalized model — a clamped or invalid entry
+  // (e.g. "999" → max, or "abc") leaves the model unchanged, so Vue won't repaint
+  // the input on its own and it would keep showing the stale raw text.
+  el.value = String(value.value);
 }
 </script>
 

@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, onBeforeUnmount, watch } from "vue";
+import { ref, computed, onBeforeUnmount } from "vue";
 import { NIcon } from "naive-ui";
 import { ChevronDownOutline, CheckmarkOutline } from "@vicons/ionicons5";
 import type { FlareSelectOption, FlareControlSize } from "../../shared/contracts";
 import { useFlareConfig } from "../../shared/useFlareConfig";
 import { useFlareAdaptiveSafe } from "../../composables/useAdaptiveMode";
-import { useFlareOverlayContainer } from "../../shared/useOverlayContainer";
+import FlareBottomSheet from "../general/FlareBottomSheet.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -25,7 +25,6 @@ const emit = defineEmits<{ (e: "change", value: string): void }>();
 const config = useFlareConfig();
 const rsize = computed(() => props.size ?? config.size.value);
 const adaptive = useFlareAdaptiveSafe();
-const overlayContainer = useFlareOverlayContainer();
 // Desktop/tablet → anchored dropdown; phone (H5) / native app → bottom sheet.
 const asSheet = computed(() => adaptive.isH5.value);
 
@@ -46,20 +45,24 @@ function pick(o: FlareSelectOption): void {
   emit("change", o.value);
   open.value = false;
 }
-function onDocClick(e: MouseEvent): void {
-  if (asSheet.value) return; // sheet closes via its own scrim
-  if (root.value && !root.value.contains(e.target as Node)) open.value = false;
+// Outside-click for the DESKTOP dropdown only (the sheet closes via its scrim).
+// Capture phase so a click on another trigger — which stops propagation — still
+// reaches here and closes this instance.
+function onDocPointer(e: MouseEvent): void {
+  if (asSheet.value || !open.value) return;
+  if (root.value && !root.value.contains(e.target as Node)) close();
 }
-// Lock body scroll while the sheet is up.
-watch([open, asSheet], ([isOpen, sheet]) => {
-  if (typeof document === "undefined") return;
-  document.body.style.overflow = isOpen && sheet ? "hidden" : "";
-});
-if (typeof document !== "undefined") document.addEventListener("click", onDocClick);
+function onDocKey(e: KeyboardEvent): void {
+  if (e.key === "Escape" && !asSheet.value && open.value) close();
+}
+if (typeof document !== "undefined") {
+  document.addEventListener("click", onDocPointer, true);
+  document.addEventListener("keydown", onDocKey);
+}
 onBeforeUnmount(() => {
   if (typeof document !== "undefined") {
-    document.removeEventListener("click", onDocClick);
-    document.body.style.overflow = "";
+    document.removeEventListener("click", onDocPointer, true);
+    document.removeEventListener("keydown", onDocKey);
   }
 });
 </script>
@@ -73,49 +76,43 @@ onBeforeUnmount(() => {
 
     <!-- Desktop / tablet: anchored dropdown -->
     <transition v-if="!asSheet" name="flare-select-pop">
-      <ul v-if="open" class="flare-select__menu" role="listbox">
-        <li
+      <div v-if="open" class="flare-select__menu" role="listbox">
+        <button
           v-for="o in options"
           :key="o.value"
+          type="button"
           class="flare-select__option"
           :class="{ 'is-selected': o.value === value, 'is-disabled': o.disabled }"
           role="option"
           :aria-selected="o.value === value"
+          :disabled="o.disabled"
           @click="pick(o)"
         >
           <span>{{ o.label }}</span>
           <n-icon v-if="o.value === value" :size="15" :component="CheckmarkOutline" />
-        </li>
-      </ul>
+        </button>
+      </div>
     </transition>
 
     <!-- Phone / native app: bottom sheet -->
-    <Teleport v-if="asSheet" :to="overlayContainer">
-      <transition name="flare-sheet-fade">
-        <div v-if="open" class="flare-sheet-scrim" @click="close">
-          <transition name="flare-sheet-rise" appear>
-            <div class="flare-sheet" role="dialog" aria-modal="true" @click.stop>
-              <div class="flare-sheet__grip" aria-hidden="true" />
-              <div v-if="title || placeholder" class="flare-sheet__title">{{ title || placeholder }}</div>
-              <ul class="flare-sheet__list" role="listbox">
-                <li
-                  v-for="o in options"
-                  :key="o.value"
-                  class="flare-sheet__option"
-                  :class="{ 'is-selected': o.value === value, 'is-disabled': o.disabled }"
-                  role="option"
-                  :aria-selected="o.value === value"
-                  @click="pick(o)"
-                >
-                  <span>{{ o.label }}</span>
-                  <n-icon v-if="o.value === value" :size="19" :component="CheckmarkOutline" />
-                </li>
-              </ul>
-            </div>
-          </transition>
-        </div>
-      </transition>
-    </Teleport>
+    <FlareBottomSheet v-if="asSheet" :open="open" :title="title || placeholder || undefined" @close="close">
+      <div class="flare-select__list" role="listbox">
+        <button
+          v-for="o in options"
+          :key="o.value"
+          type="button"
+          class="flare-select__option is-sheet"
+          :class="{ 'is-selected': o.value === value, 'is-disabled': o.disabled }"
+          role="option"
+          :aria-selected="o.value === value"
+          :disabled="o.disabled"
+          @click="pick(o)"
+        >
+          <span>{{ o.label }}</span>
+          <n-icon v-if="o.value === value" :size="19" :component="CheckmarkOutline" />
+        </button>
+      </div>
+    </FlareBottomSheet>
   </div>
 </template>
 
@@ -155,8 +152,6 @@ onBeforeUnmount(() => {
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  list-style: none;
-  margin: 0;
   padding: 4px;
   max-height: 240px;
   overflow-y: auto;
@@ -165,69 +160,40 @@ onBeforeUnmount(() => {
   border: 1px solid var(--flare-color-border-primary, #e9e6f1);
   box-shadow: var(--flare-shadow-lg, 0 12px 28px rgba(21, 18, 32, 0.16));
 }
+/* Sheet option list */
+.flare-select__list { padding: 0 4px 4px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
 .flare-select__option {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font: inherit;
   padding: 8px 10px;
   border-radius: var(--flare-size-radius-md, 8px);
   font-size: 14px;
   color: var(--flare-color-text-primary, #15131c);
   cursor: pointer;
 }
-.flare-select__option:hover:not(.is-disabled) { background: var(--flare-color-bg-secondary, #f6f5fb); }
+.flare-select__option:hover:not(.is-disabled),
+.flare-select__option:focus-visible:not(.is-disabled) { background: var(--flare-color-bg-secondary, #f6f5fb); outline: none; }
 .flare-select__option.is-selected { color: var(--flare-color-primary, #7c3aed); font-weight: 500; }
 .flare-select__option.is-disabled { opacity: 0.45; cursor: not-allowed; }
-.flare-select-pop-enter-active, .flare-select-pop-leave-active { transition: opacity 0.14s ease, transform 0.14s ease; }
-.flare-select-pop-enter-from, .flare-select-pop-leave-to { opacity: 0; transform: translateY(-4px); }
 
-/* Bottom sheet (mobile) */
-.flare-sheet-scrim {
-  position: fixed;
-  inset: 0;
-  z-index: 3000;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  background: rgba(21, 18, 32, 0.44);
-}
-.flare-sheet {
-  width: 100%;
-  max-width: 640px;
-  max-height: 72vh;
-  display: flex;
-  flex-direction: column;
-  padding: 8px 8px calc(10px + env(safe-area-inset-bottom, 0px));
-  background: var(--flare-color-bg-primary, #fff);
-  border-radius: 20px 20px 0 0;
-  box-shadow: var(--flare-shadow-lg, 0 -8px 32px rgba(21, 18, 32, 0.22));
-}
-.flare-sheet__grip { width: 36px; height: 4px; border-radius: 999px; background: var(--flare-color-border-primary, #e9e6f1); margin: 6px auto 8px; flex: 0 0 auto; }
-.flare-sheet__title { padding: 4px 12px 10px; font-size: 13px; font-weight: 500; color: var(--flare-color-text-tertiary, #a7a2b4); text-align: center; }
-.flare-sheet__list { list-style: none; margin: 0; padding: 0 4px 4px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-.flare-sheet__option {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.flare-select__option.is-sheet {
   gap: 10px;
   min-height: 52px;
   padding: 0 16px;
   border-radius: var(--flare-size-radius-lg, 12px);
   font-size: 16px;
-  color: var(--flare-color-text-primary, #15131c);
-  cursor: pointer;
 }
-.flare-sheet__option:active:not(.is-disabled) { background: var(--flare-color-bg-secondary, #f6f5fb); }
-.flare-sheet__option.is-selected { color: var(--flare-color-primary, #7c3aed); font-weight: 600; }
-.flare-sheet__option.is-disabled { opacity: 0.4; cursor: not-allowed; }
+.flare-select__option.is-sheet:active:not(.is-disabled) { background: var(--flare-color-bg-secondary, #f6f5fb); }
+.flare-select__option.is-sheet.is-selected { font-weight: 600; }
 
-.flare-sheet-fade-enter-active, .flare-sheet-fade-leave-active { transition: opacity 0.22s ease; }
-.flare-sheet-fade-enter-from, .flare-sheet-fade-leave-to { opacity: 0; }
-.flare-sheet-rise-enter-active { transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1); }
-.flare-sheet-rise-leave-active { transition: transform 0.2s ease; }
-.flare-sheet-rise-enter-from, .flare-sheet-rise-leave-to { transform: translateY(100%); }
-@media (prefers-reduced-motion: reduce) {
-  .flare-sheet-rise-enter-active, .flare-sheet-rise-leave-active { transition: none; }
-}
+.flare-select-pop-enter-active, .flare-select-pop-leave-active { transition: opacity 0.14s ease, transform 0.14s ease; }
+.flare-select-pop-enter-from, .flare-select-pop-leave-to { opacity: 0; transform: translateY(-4px); }
 </style>
