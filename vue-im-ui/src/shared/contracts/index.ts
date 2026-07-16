@@ -43,6 +43,12 @@ export type {
   FlareGridImage,
   FlareWallpaperOption,
 } from "./media";
+export type {
+  FlareMomentAuthor,
+  FlareMomentLike,
+  FlareMomentComment,
+  FlareMoment,
+} from "./moments";
 export type { FlareWorkbenchShellMode } from "./workbench";
 export { workbenchShellClass } from "./workbench";
 export type {

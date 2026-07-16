@@ -92,3 +92,11 @@ export 'src/components/flare_call_view.dart';
 export 'src/components/flare_incoming_call.dart';
 export 'src/components/flare_app_shell.dart';
 export 'src/components/flare_responsive_layout.dart';
+
+// Moments (社交圈子 / social feed)
+export 'src/components/flare_topic_chip.dart';
+export 'src/components/flare_comment_thread.dart';
+export 'src/components/flare_moment_action_popover.dart';
+export 'src/components/flare_moments_cover_header.dart';
+export 'src/components/flare_moment_composer.dart';
+export 'src/components/flare_moment_card.dart';

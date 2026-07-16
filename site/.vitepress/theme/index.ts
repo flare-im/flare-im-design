@@ -63,6 +63,12 @@ import ComponentApi from "./demos/ComponentApi.vue";
 import PrimaryButtonDemo from "./demos/PrimaryButtonDemo.vue";
 import SegmentedControlDemo from "./demos/SegmentedControlDemo.vue";
 import ScreenHeaderDemo from "./demos/ScreenHeaderDemo.vue";
+import MomentCardDemo from "./demos/MomentCardDemo.vue";
+import MomentComposerDemo from "./demos/MomentComposerDemo.vue";
+import MomentsCoverHeaderDemo from "./demos/MomentsCoverHeaderDemo.vue";
+import CommentThreadDemo from "./demos/CommentThreadDemo.vue";
+import MomentActionPopoverDemo from "./demos/MomentActionPopoverDemo.vue";
+import TopicChipDemo from "./demos/TopicChipDemo.vue";
 import IncomingCallDemo from "./demos/IncomingCallDemo.vue";
 import CallControlsDemo from "./demos/CallControlsDemo.vue";
 
@@ -188,6 +194,12 @@ const demos = {
   PrimaryButtonDemo,
   SegmentedControlDemo,
   ScreenHeaderDemo,
+  MomentCardDemo,
+  MomentComposerDemo,
+  MomentsCoverHeaderDemo,
+  CommentThreadDemo,
+  MomentActionPopoverDemo,
+  TopicChipDemo,
   IncomingCallDemo,
   CallControlsDemo,
   MessageListDemo,

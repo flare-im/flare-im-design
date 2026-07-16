@@ -11,6 +11,7 @@
     "Contacts",
     "Profile",
     "Call",
+    "Moments",
     "Layout"
   ],
   "contentTypes": {
@@ -6576,6 +6577,363 @@
           "symbol": "ScreenHeader"
         }
       }
+    },
+    {
+      "name": "MomentCard",
+      "category": "Moments",
+      "summary": {
+        "zh": "动态卡片 —— 头像/正文/九宫格/位置/时间 + 「···」赞评弹条 + 点赞行 + 评论。圈子的签名件。",
+        "en": "Moment card — author/text/photo grid/location/time + a ··· like-comment popover + likers row + comments. The feed's hero."
+      },
+      "dataSource": {
+        "zh": "由你传入",
+        "en": "passed in by you"
+      },
+      "props": [
+        {
+          "name": "moment",
+          "type": "FlareMoment",
+          "required": true,
+          "description": {
+            "zh": "动态数据。",
+            "en": "The moment data."
+          }
+        }
+      ],
+      "states": [],
+      "events": [
+        "like",
+        "comment",
+        "openImage",
+        "selectAuthor",
+        "selectLiker",
+        "selectComment"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareMomentCard"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareMomentCard"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "MomentCardView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "MomentCard"
+        }
+      }
+    },
+    {
+      "name": "MomentComposer",
+      "category": "Moments",
+      "summary": {
+        "zh": "发动态 —— 文本 + 加图九宫格 + 位置/可见范围 + 发表。",
+        "en": "Moment composer — text + add-photo grid + location/visibility + post."
+      },
+      "dataSource": {
+        "zh": "由你传入",
+        "en": "passed in by you"
+      },
+      "props": [
+        {
+          "name": "images",
+          "type": "string[]",
+          "required": false,
+          "default": "[]",
+          "description": {
+            "zh": "已选图片缩略 URL。",
+            "en": "Picked image thumbnail URLs."
+          }
+        },
+        {
+          "name": "maxImages",
+          "type": "number",
+          "required": false,
+          "default": "9",
+          "description": {
+            "zh": "加图上限。",
+            "en": "Max images."
+          }
+        },
+        {
+          "name": "location",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "位置文案。",
+            "en": "Location label."
+          }
+        },
+        {
+          "name": "visibility",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "可见范围文案。",
+            "en": "Visibility label."
+          }
+        },
+        {
+          "name": "busy",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "zh": "发表中。",
+            "en": "Posting."
+          }
+        }
+      ],
+      "states": [],
+      "events": [
+        "submit",
+        "cancel",
+        "addImage",
+        "removeImage",
+        "pickLocation",
+        "pickVisibility"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareMomentComposer"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareMomentComposer"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "MomentComposerView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "MomentComposer"
+        }
+      }
+    },
+    {
+      "name": "MomentActionPopover",
+      "category": "Moments",
+      "summary": {
+        "zh": "赞/评论弹条 —— 从「···」滑出的深色胶囊(仿微信黑气泡)。",
+        "en": "Like/comment popover — a dark capsule that slides from the ··· button."
+      },
+      "dataSource": {
+        "zh": "由你传入",
+        "en": "passed in by you"
+      },
+      "props": [
+        {
+          "name": "liked",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "zh": "是否已赞(切换文案)。",
+            "en": "Whether liked (toggles the label)."
+          }
+        }
+      ],
+      "states": [],
+      "events": [
+        "like",
+        "comment"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareMomentActionPopover"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareMomentActionPopover"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "MomentActionPopoverView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "MomentActionPopover"
+        }
+      }
+    },
+    {
+      "name": "MomentsCoverHeader",
+      "category": "Moments",
+      "summary": {
+        "zh": "圈子封面头 —— 大封面图 + 名字 + 头像叠在右下角(经典朋友圈头)。",
+        "en": "Moments cover header — a cover photo + name + avatar overlapping the bottom-right."
+      },
+      "dataSource": {
+        "zh": "由你传入",
+        "en": "passed in by you"
+      },
+      "props": [
+        {
+          "name": "userId",
+          "type": "string",
+          "required": true,
+          "description": {
+            "zh": "用户 id(头像兜底底色)。",
+            "en": "User id (avatar fallback tint)."
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "description": {
+            "zh": "用户名。",
+            "en": "User name."
+          }
+        },
+        {
+          "name": "coverUrl",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "封面图。",
+            "en": "Cover image."
+          }
+        },
+        {
+          "name": "avatarUrl",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "头像。",
+            "en": "Avatar image."
+          }
+        },
+        {
+          "name": "signature",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "个性签名。",
+            "en": "Signature line."
+          }
+        }
+      ],
+      "states": [],
+      "events": [
+        "editCover",
+        "avatar"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareMomentsCoverHeader"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareMomentsCoverHeader"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "MomentsCoverHeaderView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "MomentsCoverHeader"
+        }
+      }
+    },
+    {
+      "name": "CommentThread",
+      "category": "Moments",
+      "summary": {
+        "zh": "评论列表 —— 「A：内容」或「A 回复 B：内容」。",
+        "en": "Comment thread — \"A: text\" or \"A replying to B: text\"."
+      },
+      "dataSource": {
+        "zh": "由你传入",
+        "en": "passed in by you"
+      },
+      "props": [
+        {
+          "name": "comments",
+          "type": "FlareMomentComment[]",
+          "required": true,
+          "description": {
+            "zh": "评论列表。",
+            "en": "The comments."
+          }
+        }
+      ],
+      "states": [],
+      "events": [
+        "select",
+        "selectAuthor"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareCommentThread"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareCommentThread"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "CommentThreadView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "CommentThread"
+        }
+      }
+    },
+    {
+      "name": "TopicChip",
+      "category": "Moments",
+      "summary": {
+        "zh": "话题标签 —— 正文里的 #话题,品牌色可点。",
+        "en": "Topic chip — an inline #hashtag, brand-colored and tappable."
+      },
+      "dataSource": {
+        "zh": "由你传入",
+        "en": "passed in by you"
+      },
+      "props": [
+        {
+          "name": "topic",
+          "type": "string",
+          "required": true,
+          "description": {
+            "zh": "话题名(不含 #)。",
+            "en": "Topic name (without #)."
+          }
+        }
+      ],
+      "states": [],
+      "events": [
+        "click"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareTopicChip"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareTopicChip"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "TopicChipView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "TopicChip"
+        }
+      }
     }
   ],
   "categoryLabels": {
@@ -6614,6 +6972,10 @@
     "Layout": {
       "en": "Layout",
       "zh": "布局"
+    },
+    "Moments": {
+      "en": "Moments",
+      "zh": "圈子"
     }
   }
 }

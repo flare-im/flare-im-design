@@ -138,6 +138,20 @@ export { default as FlareScreenHeader } from "./layout/FlareScreenHeader.vue";
 export { default as FlarePrimaryButton } from "./general/FlarePrimaryButton.vue";
 export { default as FlareSegmentedControl } from "./general/FlareSegmentedControl.vue";
 
+// Moments (圈子) — social feed
+export { default as FlareMomentCard } from "./moments/FlareMomentCard.vue";
+export { default as FlareMomentComposer } from "./moments/FlareMomentComposer.vue";
+export { default as FlareMomentActionPopover } from "./moments/FlareMomentActionPopover.vue";
+export { default as FlareMomentsCoverHeader } from "./moments/FlareMomentsCoverHeader.vue";
+export { default as FlareCommentThread } from "./moments/FlareCommentThread.vue";
+export { default as FlareTopicChip } from "./moments/FlareTopicChip.vue";
+export type {
+  FlareMomentAuthor,
+  FlareMomentLike,
+  FlareMomentComment,
+  FlareMoment,
+} from "../shared/contracts";
+
 // composer parts (freely composable)
 export { default as FlareVoiceHoldButton } from "./composer/FlareVoiceHoldButton.vue";
 export { default as FlareComposerActionPanel } from "./composer/FlareComposerActionPanel.vue";

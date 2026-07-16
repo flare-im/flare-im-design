@@ -247,6 +247,62 @@ class FlareWallpaperOption {
   });
 }
 
+/// Author of a moment / social-feed post or comment.
+class FlareMomentAuthor {
+  final String id;
+  final String name;
+  final String? avatarUrl;
+  const FlareMomentAuthor({required this.id, required this.name, this.avatarUrl});
+}
+
+/// A single "like" on a moment.
+class FlareMomentLike {
+  final String id;
+  final String name;
+  const FlareMomentLike({required this.id, required this.name});
+}
+
+/// A comment on a moment. When [replyToName] is set the line renders
+/// "A replying to B".
+class FlareMomentComment {
+  final String id;
+  final FlareMomentAuthor author;
+  final String text;
+  final String? replyToName;
+  final String? time;
+  const FlareMomentComment({
+    required this.id,
+    required this.author,
+    required this.text,
+    this.replyToName,
+    this.time,
+  });
+}
+
+/// A social-feed (Moments / 圈子) post.
+class FlareMoment {
+  final String id;
+  final FlareMomentAuthor author;
+  final String? text;
+  final List<FlareGridImage> images;
+  final String? location;
+  final String? time;
+  final List<FlareMomentLike> likes;
+  final List<FlareMomentComment> comments;
+  final bool likedBySelf;
+  const FlareMoment({
+    required this.id,
+    required this.author,
+    this.text,
+    this.images = const [],
+    this.location,
+    this.time,
+    this.likes = const [],
+    this.comments = const [],
+    this.likedBySelf = false,
+  });
+}
+
 /// A category of emojis in the emoji picker.
 class FlareEmojiCategory {
   final String key;
