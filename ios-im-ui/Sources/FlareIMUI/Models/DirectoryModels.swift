@@ -123,6 +123,12 @@ public struct MomentLike: Identifiable, Sendable { public let id: String; public
 public struct MomentComment: Identifiable, Sendable { public let id: String; public let author: MomentAuthor; public let text: String; public let replyToName: String?; public let time: String?; public init(id: String, author: MomentAuthor, text: String, replyToName: String? = nil, time: String? = nil) { self.id = id; self.author = author; self.text = text; self.replyToName = replyToName; self.time = time } }
 public struct Moment: Identifiable, Sendable { public let id: String; public let author: MomentAuthor; public let text: String?; public let images: [GridImage]; public let location: String?; public let time: String?; public let likes: [MomentLike]; public let comments: [MomentComment]; public let likedBySelf: Bool; public init(id: String, author: MomentAuthor, text: String? = nil, images: [GridImage] = [], location: String? = nil, time: String? = nil, likes: [MomentLike] = [], comments: [MomentComment] = [], likedBySelf: Bool = false) { self.id = id; self.author = author; self.text = text; self.images = images; self.location = location; self.time = time; self.likes = likes; self.comments = comments; self.likedBySelf = likedBySelf } }
 
+// MARK: - Form / control models
+
+public enum FlareButtonVariant: Sendable { case primary, secondary, ghost, danger, text }
+public enum FlareControlSize: Sendable { case sm, md, lg }
+public struct FlareSelectOption: Identifiable, Sendable { public var id: String { value }; public let value: String; public let label: String; public let disabled: Bool; public init(value: String, label: String, disabled: Bool = false) { self.value = value; self.label = label; self.disabled = disabled } }
+
 public struct FlareNavItem: Identifiable, Sendable {
     public var id: String { key }
     public let key: String

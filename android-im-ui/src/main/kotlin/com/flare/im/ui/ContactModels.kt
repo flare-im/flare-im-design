@@ -154,6 +154,12 @@ data class StickerPack(
     val stickers: List<StickerItem> = emptyList(),
 )
 
+// --- Form / controls ---
+enum class FlareButtonVariant { Primary, Secondary, Ghost, Danger, Text }
+enum class FlareControlSize { Sm, Md, Lg }
+enum class FlareIconButtonVariant { Plain, Tinted, Solid }
+data class FlareSelectOption(val value: String, val label: String, val disabled: Boolean = false)
+
 // --- Moments (圈子) social feed ---
 data class MomentAuthor(val id: String, val name: String, val avatarUrl: String? = null)
 data class MomentLike(val id: String, val name: String)

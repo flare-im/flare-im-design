@@ -95,6 +95,24 @@ class FlareUserProfile {
   final String? flareId;
 }
 
+/// Visual weight of a [FlareButton].
+enum FlareButtonVariant { primary, secondary, ghost, danger, text }
+
+/// Height/size step shared by form + button controls (sm 32 / md 40 / lg 48).
+enum FlareControlSize { sm, md, lg }
+
+/// One choice in a [FlareSelect] / [FlareRadioGroup].
+class FlareSelectOption {
+  final String value;
+  final String label;
+  final bool disabled;
+  const FlareSelectOption({
+    required this.value,
+    required this.label,
+    this.disabled = false,
+  });
+}
+
 enum FlareSettingKind { navigation, toggle, value }
 
 class FlareSettingsItem {
