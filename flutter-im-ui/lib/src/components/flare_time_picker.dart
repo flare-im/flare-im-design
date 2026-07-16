@@ -19,6 +19,8 @@ class FlareTimePicker extends StatefulWidget {
     this.size = FlareControlSize.md,
     this.minuteStep = 5,
     this.disabled = false,
+    this.cancelLabel = '取消',
+    this.confirmLabel = '确定',
     this.onChanged,
   });
 
@@ -34,6 +36,10 @@ class FlareTimePicker extends StatefulWidget {
   /// Minute granularity. Clamped to 1–30. Matches the Vue `minuteStep` prop.
   final int minuteStep;
   final bool disabled;
+
+  /// Footer button labels; override to localize (default Chinese 取消 / 确定).
+  final String cancelLabel;
+  final String confirmLabel;
 
   /// Flutter idiom replacing the Vue v-model; emits the chosen `"HH:mm"`.
   final void Function(String)? onChanged;
@@ -76,6 +82,8 @@ class _FlareTimePickerState extends State<FlareTimePicker> {
         value: widget.value,
         title: widget.title ?? widget.placeholder,
         minuteStep: widget.minuteStep,
+        cancelLabel: widget.cancelLabel,
+        confirmLabel: widget.confirmLabel,
         colors: colors,
       ),
     );
@@ -147,12 +155,16 @@ class _TimeSheet extends StatefulWidget {
     required this.value,
     required this.title,
     required this.minuteStep,
+    required this.cancelLabel,
+    required this.confirmLabel,
     required this.colors,
   });
 
   final String value;
   final String? title;
   final int minuteStep;
+  final String cancelLabel;
+  final String confirmLabel;
   final FlareColors colors;
 
   @override
@@ -300,7 +312,7 @@ class _TimeSheetState extends State<_TimeSheet> {
               children: [
                 Expanded(
                   child: _footerButton(
-                    label: '取消',
+                    label: widget.cancelLabel,
                     primary: false,
                     onTap: () => Navigator.of(context).pop(),
                   ),
@@ -308,7 +320,7 @@ class _TimeSheetState extends State<_TimeSheet> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: _footerButton(
-                    label: '确定',
+                    label: widget.confirmLabel,
                     primary: true,
                     onTap: () => Navigator.of(context)
                         .pop('${_pad(_hour)}:${_pad(_minute)}'),

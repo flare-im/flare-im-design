@@ -253,8 +253,9 @@ private fun FormControlsPreview() {
     var stars by remember { mutableStateOf(3) }
     var sel by remember { mutableStateOf("a") }
     var time by remember { mutableStateOf("09:30") }
+    var date by remember { mutableStateOf("2026-07-16") }
     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Textarea(value = text, showCount = true, maxlength = 120, onChange = { text = it })
+        Textarea(value = text, showCount = true, maxlength = 120, maxRows = 6, onChange = { text = it })
         Stepper(value = qty, min = 0, max = 9, onChange = { qty = it })
         Slider(value = vol, showValue = true, onChange = { vol = it })
         Rating(value = stars, clearable = true, onChange = { stars = it })
@@ -263,5 +264,6 @@ private fun FormControlsPreview() {
             value = sel, placeholder = "请选择", onChange = { sel = it },
         )
         TimePicker(value = time, placeholder = "选择时间", title = "选择时间", onChange = { time = it })
+        DatePicker(value = date, placeholder = "选择日期", title = "选择日期", onChange = { date = it })
     }
 }

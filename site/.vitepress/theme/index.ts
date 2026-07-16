@@ -80,6 +80,7 @@ import StepperDemo from "./demos/StepperDemo.vue";
 import SliderDemo from "./demos/SliderDemo.vue";
 import RatingDemo from "./demos/RatingDemo.vue";
 import TimePickerDemo from "./demos/TimePickerDemo.vue";
+import DatePickerDemo from "./demos/DatePickerDemo.vue";
 import FormFieldDemo from "./demos/FormFieldDemo.vue";
 import IconDemo from "./demos/IconDemo.vue";
 import ConfigProviderDemo from "./demos/ConfigProviderDemo.vue";
@@ -225,6 +226,7 @@ const demos = {
   SliderDemo,
   RatingDemo,
   TimePickerDemo,
+  DatePickerDemo,
   FormFieldDemo,
   IconDemo,
   ConfigProviderDemo,

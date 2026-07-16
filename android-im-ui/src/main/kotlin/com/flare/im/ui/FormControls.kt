@@ -1,5 +1,6 @@
 package com.flare.im.ui
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
@@ -25,6 +27,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.CalendarToday
+import androidx.compose.material.icons.outlined.ChevronLeft
+import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Star
@@ -45,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -58,6 +64,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.max
 import kotlin.math.round
+import java.time.LocalDate
+import java.time.YearMonth
 
 // MARK: - Textarea
 
@@ -68,6 +76,7 @@ fun Textarea(
     placeholder: String? = null,
     size: FlareControlSize = FlareControlSize.Md,
     rows: Int = 3,
+    maxRows: Int = 0,
     showCount: Boolean = false,
     maxlength: Int? = null,
     disabled: Boolean = false,
@@ -91,6 +100,7 @@ fun Textarea(
             value = value,
             onValueChange = { next -> if (!disabled) onChange?.invoke(if (maxlength != null) next.take(maxlength) else next) },
             enabled = !disabled,
+            maxLines = if (maxRows > 0) maxRows else Int.MAX_VALUE,
             textStyle = TextStyle(color = colors.textPrimary, fontSize = font.sp, lineHeight = (font * 1.5).sp),
             cursorBrush = SolidColor(colors.primary),
             modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = minH)
@@ -128,6 +138,7 @@ fun Stepper(
     onChange: ((Int) -> Unit)? = null,
 ) {
     val colors = flareColors()
+    val h = when (size) { FlareControlSize.Sm -> 32; FlareControlSize.Md -> 40; FlareControlSize.Lg -> 48 }
     val btn = when (size) { FlareControlSize.Sm -> 30; FlareControlSize.Md -> 38; FlareControlSize.Lg -> 46 }
     val glyph = when (size) { FlareControlSize.Sm -> 15; FlareControlSize.Md -> 18; FlareControlSize.Lg -> 20 }
     val font = when (size) { FlareControlSize.Sm -> 13; FlareControlSize.Md -> 14; FlareControlSize.Lg -> 15 }
@@ -138,7 +149,7 @@ fun Stepper(
     fun set(n: Int) { val c = n.coerceIn(min, max); if (c != value) onChange?.invoke(c) }
 
     Row(
-        Modifier.height((btn).dp).clip(shape).background(colors.bgSecondary)
+        Modifier.height(h.dp).clip(shape).background(colors.bgSecondary)
             .border(1.dp, colors.borderPrimary, shape).alpha(if (disabled) 0.55f else 1f),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -177,6 +188,8 @@ fun Slider(
     val pct = ((value - min) / span).coerceIn(0f, 1f)
     val thumb = 18.dp
     val density = LocalDensity.current
+    var dragging by remember { mutableStateOf(false) }
+    val thumbScale by animateFloatAsState(if (dragging) 1.14f else 1f, label = "thumb")
 
     fun emit(fraction: Float) {
         val raw = min + fraction.coerceIn(0f, 1f) * span
@@ -194,7 +207,11 @@ fun Slider(
         val usable = max(1f, trackPx - thumbPx)
         val gestureMod = if (!disabled) {
             Modifier.pointerInput(min, max, step) {
-                detectHorizontalDragGestures { change, _ ->
+                detectHorizontalDragGestures(
+                    onDragStart = { dragging = true },
+                    onDragEnd = { dragging = false },
+                    onDragCancel = { dragging = false },
+                ) { change, _ ->
                     change.consume()
                     emit((change.position.x - thumbPx / 2f) / usable)
                 }
@@ -210,9 +227,9 @@ fun Slider(
                 .background(Brush.horizontalGradient(listOf(colors.primary, colors.primaryActive))),
         )
         // thumb
-        Box(Modifier.offset(x = (trackW - thumb) * pct).size(thumb).clip(CircleShape)
+        Box(Modifier.offset(x = (trackW - thumb) * pct).size(thumb).scale(thumbScale).clip(CircleShape)
             .background(Color.White).border(2.dp, colors.primary, CircleShape))
-        if (showValue) {
+        if (showValue && dragging) {
             Box(Modifier.offset(x = (trackW - thumb) * pct - 8.dp, y = (-16).dp)) {
                 Text(
                     "${round(value).toInt()}", color = Color.White, fontSize = 12.sp,
@@ -279,6 +296,8 @@ fun TimePicker(
     minuteStep: Int = 5,
     title: String? = null,
     disabled: Boolean = false,
+    cancelLabel: String = "取消",
+    confirmLabel: String = "确定",
     onChange: ((String) -> Unit)? = null,
 ) {
     val colors = flareColors()
@@ -342,11 +361,11 @@ fun TimePicker(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 Box(Modifier.weight(1f)) {
-                    Button(label = "取消", variant = FlareButtonVariant.Secondary, block = true, onClick = { open = false })
+                    Button(label = cancelLabel, variant = FlareButtonVariant.Secondary, block = true, onClick = { open = false })
                 }
                 Box(Modifier.weight(1f)) {
                     Button(
-                        label = "确定", variant = FlareButtonVariant.Primary, block = true,
+                        label = confirmLabel, variant = FlareButtonVariant.Primary, block = true,
                         onClick = {
                             onChange?.invoke("${pad(th)}:${pad(tm)}")
                             open = false
@@ -389,6 +408,128 @@ private fun androidx.compose.foundation.layout.RowScope.TimeColumn(
                     .clickable { onPick(v) }
                     .padding(vertical = 10.dp),
             )
+        }
+    }
+}
+
+// MARK: - DatePicker
+
+/**
+ * Date picker — a native app is always mobile, so it presents a month calendar
+ * in a bottom sheet. Trigger mirrors the Select pill with a calendar icon.
+ * value is "YYYY-MM-DD". Spec: Form/DatePicker.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DatePicker(
+    value: String,
+    placeholder: String? = null,
+    size: FlareControlSize = FlareControlSize.Md,
+    min: String? = null,
+    max: String? = null,
+    title: String? = null,
+    disabled: Boolean = false,
+    cancelLabel: String = "取消",
+    todayLabel: String = "今天",
+    onChange: ((String) -> Unit)? = null,
+) {
+    val colors = flareColors()
+    val trigH = when (size) { FlareControlSize.Sm -> 32; FlareControlSize.Md -> 40; FlareControlSize.Lg -> 48 }
+    val trigPad = when (size) { FlareControlSize.Sm -> 10; FlareControlSize.Md -> 12; FlareControlSize.Lg -> 14 }
+    val trigFont = when (size) { FlareControlSize.Sm -> 13; FlareControlSize.Md -> 14; FlareControlSize.Lg -> 15 }
+    val shape = RoundedCornerShape(FlareSizes.radiusLg)
+    var open by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    fun pad(n: Int) = n.toString().padStart(2, '0')
+    fun fmt(d: LocalDate) = "${d.year}-${pad(d.monthValue)}-${pad(d.dayOfMonth)}"
+    val today = LocalDate.now()
+    val todayStr = fmt(today)
+    val parsed = runCatching { LocalDate.parse(value) }.getOrNull()
+    var viewYm by remember(value, open) { mutableStateOf(YearMonth.from(parsed ?: today)) }
+
+    Row(
+        Modifier.height(trigH.dp).clip(shape).background(colors.bgSecondary)
+            .border(1.dp, if (open) colors.primary else colors.borderPrimary, shape)
+            .alpha(if (disabled) 0.55f else 1f)
+            .then(if (!disabled) Modifier.clickable { open = true } else Modifier)
+            .padding(horizontal = trigPad.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Icon(Icons.Outlined.CalendarToday, contentDescription = null, tint = colors.textTertiary, modifier = Modifier.size(16.dp))
+        Text(
+            value.ifEmpty { placeholder ?: "" },
+            color = if (value.isNotEmpty()) colors.textPrimary else colors.textTertiary,
+            fontSize = trigFont.sp, maxLines = 1,
+        )
+    }
+
+    if (open) {
+        ModalBottomSheet(
+            onDismissRequest = { open = false },
+            sheetState = sheetState,
+            containerColor = colors.bgPrimary,
+        ) {
+            val heading = title ?: placeholder
+            if (heading != null) {
+                Text(heading, color = colors.textTertiary, fontSize = 13.sp, fontWeight = FontWeight.Medium,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp), textAlign = TextAlign.Center)
+            }
+            Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                // month nav
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                    IconButton(Icons.Outlined.ChevronLeft, "上个月") { viewYm = viewYm.minusMonths(1) }
+                    Text("${viewYm.year}年${viewYm.monthValue}月", color = colors.textPrimary, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+                    IconButton(Icons.Outlined.ChevronRight, "下个月") { viewYm = viewYm.plusMonths(1) }
+                }
+                // weekday row
+                Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                    listOf("日", "一", "二", "三", "四", "五", "六").forEach {
+                        Text(it, color = colors.textTertiary, fontSize = 12.sp, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
+                    }
+                }
+                // day grid
+                val lead = viewYm.atDay(1).dayOfWeek.value % 7
+                val daysIn = viewYm.lengthOfMonth()
+                val cells = (0 until lead).map<Int, Int?> { null } + (1..daysIn).toList()
+                val weeks = cells.chunked(7).map { w -> if (w.size < 7) w + List(7 - w.size) { null } else w }
+                weeks.forEach { week ->
+                    Row(Modifier.fillMaxWidth()) {
+                        week.forEach { d ->
+                            if (d == null) {
+                                Box(Modifier.weight(1f).aspectRatio(1f))
+                            } else {
+                                val ds = fmt(viewYm.atDay(d))
+                                val selected = ds == value
+                                val isToday = ds == todayStr
+                                val dis = (min != null && ds < min) || (max != null && ds > max)
+                                Box(
+                                    Modifier.weight(1f).aspectRatio(1f).padding(2.dp)
+                                        .clip(RoundedCornerShape(FlareSizes.radiusMd))
+                                        .then(if (selected) Modifier.background(Brush.linearGradient(listOf(colors.primary, colors.primaryActive))) else Modifier)
+                                        .then(if (isToday && !selected) Modifier.border(1.dp, colors.primary, RoundedCornerShape(FlareSizes.radiusMd)) else Modifier)
+                                        .alpha(if (dis) 0.32f else 1f)
+                                        .then(if (!dis) Modifier.clickable { onChange?.invoke(ds); open = false } else Modifier),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Text(
+                                        "$d",
+                                        color = if (selected) Color.White else if (isToday) colors.primary else colors.textPrimary,
+                                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                                        fontSize = 14.sp,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                // footer
+                Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Box(Modifier.weight(1f)) { Button(label = cancelLabel, variant = FlareButtonVariant.Secondary, block = true, onClick = { open = false }) }
+                    Box(Modifier.weight(1f)) { Button(label = todayLabel, variant = FlareButtonVariant.Primary, block = true, onClick = { onChange?.invoke(todayStr); open = false }) }
+                }
+            }
         }
     }
 }

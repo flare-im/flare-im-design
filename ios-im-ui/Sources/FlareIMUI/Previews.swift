@@ -248,6 +248,7 @@ private struct FormControlsDemo: View {
     @State private var volume: Double = 40
     @State private var stars = 3
     @State private var time = "09:30"
+    @State private var date = "2026-07-16"
 
     private let cities = [
         FlareSelectOption(value: "sf", label: "San Francisco"),
@@ -266,7 +267,12 @@ private struct FormControlsDemo: View {
                 }
                 Group {
                     Text("TimePicker（底部 Sheet + 原生滚轮）").font(.system(size: 13, weight: .medium))
-                    TimePickerView(value: $time, placeholder: "选择时间", title: "选择时间")
+                    TimePickerView(value: $time, placeholder: "选择时间", minuteStep: 15, title: "选择时间")
+                }
+                Group {
+                    Text("DatePicker（底部 Sheet + 月历）").font(.system(size: 13, weight: .medium))
+                    DatePickerView(value: $date, placeholder: "选择日期",
+                                   min: "2026-01-01", max: "2026-12-31", title: "选择日期")
                 }
                 Group {
                     Text("Textarea").font(.system(size: 13, weight: .medium))

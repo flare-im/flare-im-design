@@ -8011,6 +8011,110 @@
       }
     },
     {
+      "name": "DatePicker",
+      "category": "Form",
+      "summary": {
+        "zh": "日期选择器 —— 自适应:PC 锚定 popover(月历),App/H5 底部 Sheet;v-model 取 \"YYYY-MM-DD\",支持 min/max。",
+        "en": "DatePicker — adaptive: anchored month-calendar popover on PC, bottom sheet on App/H5; v-model as \"YYYY-MM-DD\", min/max supported."
+      },
+      "dataSource": {
+        "zh": "由你传入",
+        "en": "passed in by you"
+      },
+      "props": [
+        {
+          "name": "modelValue",
+          "type": "string",
+          "required": false,
+          "default": "\"\"",
+          "description": {
+            "zh": "v-model 日期(\"YYYY-MM-DD\")。",
+            "en": "v-model date (\"YYYY-MM-DD\")."
+          }
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "占位。",
+            "en": "Placeholder."
+          }
+        },
+        {
+          "name": "min",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "最早可选日期。",
+            "en": "Earliest selectable date."
+          }
+        },
+        {
+          "name": "max",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "最晚可选日期。",
+            "en": "Latest selectable date."
+          }
+        },
+        {
+          "name": "size",
+          "type": "FlareControlSize",
+          "required": false,
+          "default": "\"md\"",
+          "description": {
+            "zh": "尺寸。",
+            "en": "Size."
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "移动端 Sheet 顶部标题(缺省用 placeholder)。",
+            "en": "Sheet header title on mobile (defaults to placeholder)."
+          }
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "zh": "禁用。",
+            "en": "Disabled."
+          }
+        }
+      ],
+      "states": [
+        "open"
+      ],
+      "events": [
+        "change"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareDatePicker"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareDatePicker"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "DatePickerView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "DatePicker"
+        }
+      }
+    },
+    {
       "name": "Icon",
       "category": "General",
       "summary": {
