@@ -7559,8 +7559,8 @@
       "name": "ConfigProvider",
       "category": "Layout",
       "summary": {
-        "zh": "全局配置 —— 在根部设默认控件尺寸/密度,Button/IconButton/Select 等未显式指定时继承。",
-        "en": "Global config — set default control size/density at the root; Button/IconButton/Select inherit when unset."
+        "zh": "全局配置 —— 在根部统一默认控件尺寸/密度,并驱动多语言(locale)与主题(浅色/深色)切换;后代用 useFlareConfig() 读取与切换。",
+        "en": "Global config — unify default control size/density at the root and drive language (locale) + theme (light/dark) switching; descendants read and switch via useFlareConfig()."
       },
       "dataSource": {
         "zh": "由你传入",
@@ -7586,10 +7586,32 @@
             "zh": "密度(预留)。",
             "en": "Density (reserved)."
           }
+        },
+        {
+          "name": "locale",
+          "type": "FlareLocale",
+          "required": false,
+          "default": "已存偏好 / \"zh-CN\"",
+          "description": {
+            "zh": "初始语言('zh-CN' | 'en-US');后代用 useFlareConfig().setLocale() 切换,自动持久化。",
+            "en": "Initial language ('zh-CN' | 'en-US'); switch via useFlareConfig().setLocale(), persisted automatically."
+          }
+        },
+        {
+          "name": "theme",
+          "type": "FlareThemeMode",
+          "required": false,
+          "default": "已存偏好 / \"system\"",
+          "description": {
+            "zh": "初始主题('light' | 'dark' | 'system');后代用 useFlareConfig().setThemeMode()/toggleTheme() 切换,自动持久化。",
+            "en": "Initial theme ('light' | 'dark' | 'system'); switch via useFlareConfig().setThemeMode()/toggleTheme(), persisted automatically."
+          }
         }
       ],
       "states": [],
-      "events": [],
+      "events": [
+        "useFlareConfig() → { size,setSize, locale,setLocale, themeMode,isDark,setThemeMode,toggleTheme }"
+      ],
       "platforms": {
         "vue": {
           "package": "flare-core-vue-im-ui",

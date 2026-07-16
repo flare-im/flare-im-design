@@ -19,7 +19,7 @@ const value = defineModel<string>({ default: "" });
 const emit = defineEmits<{ (e: "change", value: string): void }>();
 
 const config = useFlareConfig();
-const rsize = computed(() => props.size ?? config.value.size);
+const rsize = computed(() => props.size ?? config.size.value);
 const open = ref(false);
 const root = ref<HTMLElement | null>(null);
 const current = computed(() => props.options.find((o) => o.value === value.value));

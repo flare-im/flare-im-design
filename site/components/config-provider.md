@@ -6,7 +6,7 @@ title: ConfigProvider
 
 <p><span class="flare-tag">布局</span></p>
 
-> 全局配置 —— 在根部设默认控件尺寸/密度,Button/IconButton/Select 等未显式指定时继承。
+> 全局配置 —— 在根部统一默认控件尺寸/密度,并驱动多语言(locale)与主题(浅色/深色)切换;后代用 useFlareConfig() 读取与切换。
 
 ## 预览
 

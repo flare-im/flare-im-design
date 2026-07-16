@@ -147,7 +147,7 @@ export { flareIcons, flareIconNames, type FlareIconName } from "../shared/icons"
 export {
   provideFlareConfig,
   useFlareConfig,
-  type FlareConfig,
+  type FlareConfigApi,
   type FlareDensity,
 } from "../shared/useFlareConfig";
 export { default as FlareFormField } from "./form/FlareFormField.vue";
