@@ -69,6 +69,13 @@ import MomentsCoverHeaderDemo from "./demos/MomentsCoverHeaderDemo.vue";
 import CommentThreadDemo from "./demos/CommentThreadDemo.vue";
 import MomentActionPopoverDemo from "./demos/MomentActionPopoverDemo.vue";
 import TopicChipDemo from "./demos/TopicChipDemo.vue";
+import ButtonDemo from "./demos/ButtonDemo.vue";
+import IconButtonDemo from "./demos/IconButtonDemo.vue";
+import SwitchDemo from "./demos/SwitchDemo.vue";
+import CheckboxDemo from "./demos/CheckboxDemo.vue";
+import RadioGroupDemo from "./demos/RadioGroupDemo.vue";
+import SelectDemo from "./demos/SelectDemo.vue";
+import FormFieldDemo from "./demos/FormFieldDemo.vue";
 import IncomingCallDemo from "./demos/IncomingCallDemo.vue";
 import CallControlsDemo from "./demos/CallControlsDemo.vue";
 
@@ -200,6 +207,13 @@ const demos = {
   CommentThreadDemo,
   MomentActionPopoverDemo,
   TopicChipDemo,
+  ButtonDemo,
+  IconButtonDemo,
+  SwitchDemo,
+  CheckboxDemo,
+  RadioGroupDemo,
+  SelectDemo,
+  FormFieldDemo,
   IncomingCallDemo,
   CallControlsDemo,
   MessageListDemo,

@@ -4,6 +4,7 @@
   "note": "L2 — framework-neutral component catalogue for the Flare IM UI Kit. Each component is one contract (props/states/events + core-view data source), realised natively per platform. Grounded in the current flare-core-vue-im-ui reference implementation (props/events extracted from source).",
   "categories": [
     "General",
+    "Form",
     "Conversation",
     "Message",
     "Composer",
@@ -6934,6 +6935,572 @@
           "symbol": "TopicChip"
         }
       }
+    },
+    {
+      "name": "Button",
+      "category": "General",
+      "summary": {
+        "zh": "按钮 —— primary/secondary/ghost/danger/text 五变体 × sm/md/lg 三尺寸,内置加载/禁用/图标/整宽。",
+        "en": "Button — primary/secondary/ghost/danger/text variants × sm/md/lg sizes, with loading/disabled/icon/block."
+      },
+      "dataSource": {
+        "zh": "由你传入",
+        "en": "passed in by you"
+      },
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "文案(也可用默认插槽)。",
+            "en": "Label (or the default slot)."
+          }
+        },
+        {
+          "name": "variant",
+          "type": "FlareButtonVariant",
+          "required": false,
+          "default": "\"primary\"",
+          "description": {
+            "zh": "变体。",
+            "en": "Visual variant."
+          }
+        },
+        {
+          "name": "size",
+          "type": "FlareControlSize",
+          "required": false,
+          "default": "\"md\"",
+          "description": {
+            "zh": "尺寸。",
+            "en": "Size."
+          }
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "zh": "加载态。",
+            "en": "Loading."
+          }
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "zh": "禁用。",
+            "en": "Disabled."
+          }
+        },
+        {
+          "name": "block",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "zh": "整宽。",
+            "en": "Full width."
+          }
+        },
+        {
+          "name": "icon",
+          "type": "Component",
+          "required": false,
+          "description": {
+            "zh": "前导图标。",
+            "en": "Leading icon."
+          }
+        }
+      ],
+      "states": [
+        "primary",
+        "secondary",
+        "ghost",
+        "danger",
+        "text"
+      ],
+      "events": [
+        "click"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareButton"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareButton"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ButtonView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "Button"
+        }
+      }
+    },
+    {
+      "name": "IconButton",
+      "category": "General",
+      "summary": {
+        "zh": "图标按钮 —— plain/tinted/solid × sm/md/lg × 圆/方,支持 active 选中态。",
+        "en": "Icon button — plain/tinted/solid × sm/md/lg × circle/square, with an active state."
+      },
+      "dataSource": {
+        "zh": "由你传入",
+        "en": "passed in by you"
+      },
+      "props": [
+        {
+          "name": "icon",
+          "type": "Component",
+          "required": true,
+          "description": {
+            "zh": "图标。",
+            "en": "The icon."
+          }
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "required": true,
+          "description": {
+            "zh": "无障碍标签。",
+            "en": "Accessibility label."
+          }
+        },
+        {
+          "name": "size",
+          "type": "FlareControlSize",
+          "required": false,
+          "default": "\"md\"",
+          "description": {
+            "zh": "尺寸。",
+            "en": "Size."
+          }
+        },
+        {
+          "name": "variant",
+          "type": "'plain' | 'tinted' | 'solid'",
+          "required": false,
+          "default": "\"plain\"",
+          "description": {
+            "zh": "视觉权重。",
+            "en": "Visual weight."
+          }
+        },
+        {
+          "name": "shape",
+          "type": "'circle' | 'square'",
+          "required": false,
+          "default": "\"circle\"",
+          "description": {
+            "zh": "形状。",
+            "en": "Shape."
+          }
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "zh": "禁用。",
+            "en": "Disabled."
+          }
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "zh": "选中态。",
+            "en": "Active/pressed look."
+          }
+        }
+      ],
+      "states": [],
+      "events": [
+        "click"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareIconButton"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareIconButton"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "IconButtonView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "IconButton"
+        }
+      }
+    },
+    {
+      "name": "FormField",
+      "category": "Form",
+      "summary": {
+        "zh": "表单字段 —— 标签(+必填星号)+ 控件插槽 + 提示/错误(有错误时替换提示)。",
+        "en": "Form field — label (+ required mark) + control slot + hint/error (error replaces hint)."
+      },
+      "dataSource": {
+        "zh": "由你传入",
+        "en": "passed in by you"
+      },
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "标签。",
+            "en": "Field label."
+          }
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "zh": "必填星号。",
+            "en": "Required mark."
+          }
+        },
+        {
+          "name": "hint",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "提示文案。",
+            "en": "Hint text."
+          }
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "错误文案(替换提示)。",
+            "en": "Error text (replaces hint)."
+          }
+        }
+      ],
+      "states": [],
+      "events": [],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareFormField"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareFormField"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "FormFieldView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FormField"
+        }
+      }
+    },
+    {
+      "name": "Switch",
+      "category": "Form",
+      "summary": {
+        "zh": "开关 —— 布尔 v-model,平滑滑块。",
+        "en": "Switch — boolean v-model with a sliding knob."
+      },
+      "dataSource": {
+        "zh": "由你传入",
+        "en": "passed in by you"
+      },
+      "props": [
+        {
+          "name": "modelValue",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "zh": "v-model 开关值。",
+            "en": "v-model on/off."
+          }
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "zh": "禁用。",
+            "en": "Disabled."
+          }
+        }
+      ],
+      "states": [],
+      "events": [
+        "change"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareSwitch"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareSwitch"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "SwitchView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "Switch"
+        }
+      }
+    },
+    {
+      "name": "Checkbox",
+      "category": "Form",
+      "summary": {
+        "zh": "复选框 —— 勾选/半选(indeterminate)+ 标签。",
+        "en": "Checkbox — checked / indeterminate + label."
+      },
+      "dataSource": {
+        "zh": "由你传入",
+        "en": "passed in by you"
+      },
+      "props": [
+        {
+          "name": "modelValue",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "zh": "v-model 勾选。",
+            "en": "v-model checked."
+          }
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "标签(也可用默认插槽)。",
+            "en": "Label (or default slot)."
+          }
+        },
+        {
+          "name": "indeterminate",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "zh": "半选态。",
+            "en": "Indeterminate."
+          }
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "zh": "禁用。",
+            "en": "Disabled."
+          }
+        }
+      ],
+      "states": [],
+      "events": [
+        "change"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareCheckbox"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareCheckbox"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "CheckboxView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "Checkbox"
+        }
+      }
+    },
+    {
+      "name": "RadioGroup",
+      "category": "Form",
+      "summary": {
+        "zh": "单选组 —— 互斥选项,可横排/竖排,单项可禁用。",
+        "en": "Radio group — mutually-exclusive options, inline or vertical, per-option disable."
+      },
+      "dataSource": {
+        "zh": "由你传入",
+        "en": "passed in by you"
+      },
+      "props": [
+        {
+          "name": "options",
+          "type": "FlareSelectOption[]",
+          "required": true,
+          "description": {
+            "zh": "选项。",
+            "en": "Options."
+          }
+        },
+        {
+          "name": "modelValue",
+          "type": "string",
+          "required": false,
+          "default": "\"\"",
+          "description": {
+            "zh": "v-model 当前值。",
+            "en": "v-model selected value."
+          }
+        },
+        {
+          "name": "vertical",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "zh": "竖排。",
+            "en": "Stack vertically."
+          }
+        }
+      ],
+      "states": [],
+      "events": [
+        "change"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareRadioGroup"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareRadioGroup"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "RadioGroupView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "RadioGroup"
+        }
+      }
+    },
+    {
+      "name": "Select",
+      "category": "Form",
+      "summary": {
+        "zh": "下拉选择 —— 触发器 + 下拉列表 + 勾选态,单项可禁用,聚焦焦点环。",
+        "en": "Select — trigger + dropdown list with a checked state, per-option disable, focus ring."
+      },
+      "dataSource": {
+        "zh": "由你传入",
+        "en": "passed in by you"
+      },
+      "props": [
+        {
+          "name": "options",
+          "type": "FlareSelectOption[]",
+          "required": true,
+          "description": {
+            "zh": "选项。",
+            "en": "Options."
+          }
+        },
+        {
+          "name": "modelValue",
+          "type": "string",
+          "required": false,
+          "default": "\"\"",
+          "description": {
+            "zh": "v-model 当前值。",
+            "en": "v-model value."
+          }
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "占位。",
+            "en": "Placeholder."
+          }
+        },
+        {
+          "name": "size",
+          "type": "FlareControlSize",
+          "required": false,
+          "default": "\"md\"",
+          "description": {
+            "zh": "尺寸。",
+            "en": "Size."
+          }
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "zh": "禁用。",
+            "en": "Disabled."
+          }
+        }
+      ],
+      "states": [
+        "open"
+      ],
+      "events": [
+        "change"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareSelect"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareSelect"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "SelectView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "Select"
+        }
+      }
     }
   ],
   "categoryLabels": {
@@ -6976,6 +7543,10 @@
     "Moments": {
       "en": "Moments",
       "zh": "圈子"
+    },
+    "Form": {
+      "en": "Form",
+      "zh": "表单"
     }
   }
 }

@@ -138,6 +138,16 @@ export { default as FlareScreenHeader } from "./layout/FlareScreenHeader.vue";
 export { default as FlarePrimaryButton } from "./general/FlarePrimaryButton.vue";
 export { default as FlareSegmentedControl } from "./general/FlareSegmentedControl.vue";
 
+// Foundation — buttons + form controls
+export { default as FlareButton } from "./general/FlareButton.vue";
+export { default as FlareIconButton } from "./general/FlareIconButton.vue";
+export { default as FlareFormField } from "./form/FlareFormField.vue";
+export { default as FlareSwitch } from "./form/FlareSwitch.vue";
+export { default as FlareCheckbox } from "./form/FlareCheckbox.vue";
+export { default as FlareRadioGroup } from "./form/FlareRadioGroup.vue";
+export { default as FlareSelect } from "./form/FlareSelect.vue";
+export type { FlareButtonVariant, FlareControlSize, FlareSelectOption } from "../shared/contracts";
+
 // Moments (圈子) — social feed
 export { default as FlareMomentCard } from "./moments/FlareMomentCard.vue";
 export { default as FlareMomentComposer } from "./moments/FlareMomentComposer.vue";

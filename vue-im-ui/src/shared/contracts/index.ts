@@ -49,6 +49,11 @@ export type {
   FlareMomentComment,
   FlareMoment,
 } from "./moments";
+export type {
+  FlareButtonVariant,
+  FlareControlSize,
+  FlareSelectOption,
+} from "./form";
 export type { FlareWorkbenchShellMode } from "./workbench";
 export { workbenchShellClass } from "./workbench";
 export type {
