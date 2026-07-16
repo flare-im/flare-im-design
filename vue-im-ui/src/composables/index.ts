@@ -1,5 +1,6 @@
 export {
   useFlareAdaptive,
+  useFlareAdaptiveSafe,
   useFlareAdaptiveProvider,
   type FlareAdaptiveContext,
 } from "./useAdaptiveMode";

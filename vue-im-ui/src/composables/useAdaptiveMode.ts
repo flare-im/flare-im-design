@@ -100,3 +100,24 @@ export function useFlareAdaptive(): FlareAdaptiveContext {
   }
   return ctx;
 }
+
+/**
+ * Graceful adaptive accessor for standalone components (Select, sheets…) that
+ * must render sensibly with no provider. Falls back to a static "pc" context so
+ * a component used bare defaults to the desktop presentation.
+ */
+export function useFlareAdaptiveSafe(): FlareAdaptiveContext {
+  const ctx = inject(adaptiveKey);
+  if (ctx) return ctx;
+  const width = readonly(ref(FLARE_BREAKPOINT_DESKTOP_MIN));
+  const viewportKind = readonly(ref<FlareViewportKind>("pc"));
+  return {
+    width,
+    viewportKind,
+    layoutMode: readonly(ref<FlareLayoutMode>("auto")),
+    isPc: readonly(ref(true)),
+    isIpad: readonly(ref(false)),
+    isH5: readonly(ref(false)),
+    setLayoutMode: () => {},
+  };
+}

@@ -22,10 +22,11 @@ import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,6 +42,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -239,7 +241,12 @@ fun RadioGroup(
 
 // MARK: - Select
 
-/** Dropdown select. Spec: Form/Select. */
+/**
+ * Select — adaptive: on a native app (always mobile) it presents its options as
+ * a bottom sheet. The trigger is a token-styled pill; the sheet lists options
+ * with the selected row on brand primary + a check. Spec: Form/Select.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Select(
     options: List<FlareSelectOption>,
@@ -247,45 +254,66 @@ fun Select(
     placeholder: String? = null,
     size: FlareControlSize = FlareControlSize.Md,
     disabled: Boolean = false,
+    title: String? = null,
     onChange: ((String) -> Unit)? = null,
 ) {
     val colors = flareColors()
     var open by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val spec = sizeSpec(size)
     val current = options.firstOrNull { it.value == value }
     val shape = RoundedCornerShape(FlareSizes.radiusLg)
-    Box {
-        Row(
-            Modifier.height(spec.height.dp).clip(shape).background(colors.bgSecondary)
-                .border(1.dp, if (open) colors.primary else colors.borderPrimary, shape)
-                .alpha(if (disabled) 0.55f else 1f)
-                .then(if (!disabled) Modifier.clickable { open = !open } else Modifier)
-                .padding(horizontal = spec.hPad.dp),
-            verticalAlignment = Alignment.CenterVertically,
+
+    Row(
+        Modifier.height(spec.height.dp).clip(shape).background(colors.bgSecondary)
+            .border(1.dp, if (open) colors.primary else colors.borderPrimary, shape)
+            .alpha(if (disabled) 0.55f else 1f)
+            .then(if (!disabled) Modifier.clickable { open = true } else Modifier)
+            .padding(horizontal = spec.hPad.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            current?.label ?: (placeholder ?: ""),
+            color = if (current != null) colors.textPrimary else colors.textTertiary,
+            fontSize = spec.font.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.width(120.dp),
+        )
+        Spacer(Modifier.width(8.dp))
+        Icon(Icons.Outlined.ExpandMore, contentDescription = null, tint = colors.textTertiary,
+            modifier = Modifier.size(16.dp).rotate(if (open) 180f else 0f))
+    }
+
+    if (open) {
+        ModalBottomSheet(
+            onDismissRequest = { open = false },
+            sheetState = sheetState,
+            containerColor = colors.bgPrimary,
         ) {
-            Text(
-                current?.label ?: (placeholder ?: ""),
-                color = if (current != null) colors.textPrimary else colors.textTertiary,
-                fontSize = spec.font.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.width(120.dp),
-            )
-            Spacer(Modifier.width(8.dp))
-            Icon(Icons.Outlined.ExpandMore, contentDescription = null, tint = colors.textTertiary,
-                modifier = Modifier.size(16.dp).rotate(if (open) 180f else 0f))
-        }
-        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            options.forEach { o ->
-                DropdownMenuItem(
-                    text = {
-                        Row(Modifier.width(160.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text(o.label, color = if (o.value == value) colors.primary else colors.textPrimary,
-                                fontSize = 14.sp, modifier = Modifier.weight(1f))
-                            if (o.value == value) Icon(Icons.Outlined.Check, contentDescription = null, tint = colors.primary, modifier = Modifier.size(15.dp))
-                        }
-                    },
-                    enabled = !o.disabled,
-                    onClick = { onChange?.invoke(o.value); open = false },
+            val heading = title ?: placeholder
+            if (heading != null) {
+                Text(
+                    heading,
+                    color = colors.textTertiary, fontSize = 13.sp, fontWeight = FontWeight.Medium,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp), textAlign = TextAlign.Center,
                 )
+            }
+            Column(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp)) {
+                options.forEach { o ->
+                    val selected = o.value == value
+                    Row(
+                        Modifier.fillMaxWidth().height(52.dp).clip(RoundedCornerShape(FlareSizes.radiusLg))
+                            .alpha(if (o.disabled) 0.4f else 1f)
+                            .then(if (!o.disabled) Modifier.clickable { onChange?.invoke(o.value); open = false } else Modifier)
+                            .padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(o.label, color = if (selected) colors.primary else colors.textPrimary,
+                            fontSize = 16.sp, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                            modifier = Modifier.weight(1f))
+                        if (selected) Icon(Icons.Outlined.Check, contentDescription = null, tint = colors.primary, modifier = Modifier.size(19.dp))
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
             }
         }
     }

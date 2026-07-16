@@ -4,12 +4,14 @@
 // descendant kit component at once.
 import { computed } from "vue";
 import { useFlareConfig } from "flare-core-vue-im-ui/shared/useFlareConfig";
+import { useFlareAdaptive } from "flare-core-vue-im-ui/composables/useAdaptiveMode";
 import FlareButton from "flare-core-vue-im-ui/components/general/FlareButton.vue";
 import FlareIconButton from "flare-core-vue-im-ui/components/general/FlareIconButton.vue";
 import FlareSelect from "flare-core-vue-im-ui/components/form/FlareSelect.vue";
 import { SendOutline } from "@vicons/ionicons5";
 
 const cfg = useFlareConfig();
+const adaptive = useFlareAdaptive();
 const sizes = ["sm", "md", "lg"];
 const zh = computed(() => cfg.locale.value === "zh-CN");
 const opts = computed(() =>
@@ -40,7 +42,13 @@ const secondaryLabel = computed(() => (zh.value ? "取消" : "Cancel"));
         <span class="k">{{ zh ? "尺寸" : "Size" }}</span>
         <button v-for="s in sizes" :key="s" class="seg" :class="{ on: cfg.size.value === s }" @click="cfg.setSize(s)">{{ s }}</button>
       </div>
+      <div class="group">
+        <span class="k">{{ zh ? "视口" : "Viewport" }}</span>
+        <button class="seg" :class="{ on: !adaptive.isH5.value }" @click="adaptive.setLayoutMode('pc')">PC</button>
+        <button class="seg" :class="{ on: adaptive.isH5.value }" @click="adaptive.setLayoutMode('h5')">H5</button>
+      </div>
     </div>
+    <p class="hint">{{ adaptive.isH5.value ? (zh ? "H5 视口:Select 以底部 Sheet 展示 ↓" : "H5 viewport: Select opens as a bottom sheet ↓") : (zh ? "PC 视口:Select 以下拉展示 ↓" : "PC viewport: Select opens as a dropdown ↓") }}</p>
 
     <div class="preview">
       <FlareButton :label="sendLabel" :icon="SendOutline" />
@@ -60,6 +68,7 @@ const secondaryLabel = computed(() => (zh.value ? "取消" : "Cancel"));
 .toolbar { display: flex; flex-wrap: wrap; gap: 18px; }
 .group { display: flex; align-items: center; gap: 6px; }
 .k { font-size: 12px; color: var(--flare-color-text-tertiary); margin-right: 2px; }
+.hint { margin: 0; font-size: 12px; color: var(--flare-color-primary); }
 .seg { min-width: 34px; height: 30px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--flare-color-border-primary); background: var(--flare-color-bg-secondary); color: var(--flare-color-text-secondary); font-size: 13px; cursor: pointer; transition: all 0.15s ease; }
 .seg.wide { min-width: 92px; }
 .seg:hover { color: var(--flare-color-text-primary); }
