@@ -6,8 +6,10 @@
 import { ref } from "vue";
 import { useFlareI18nProvider, type FlareLocale } from "../../shared/i18n/useFlareI18n";
 import { useFlareThemeProvider, type FlareThemeMode } from "../../design-system/theme/use-flare-theme";
+import { useFlareAdaptiveProvider } from "../../composables/useAdaptiveMode";
 import { provideFlareConfig, type FlareConfigApi, type FlareDensity } from "../../shared/useFlareConfig";
 import type { FlareControlSize } from "../../shared/contracts";
+import type { FlareLayoutMode } from "../../shared/contracts/layout";
 
 const props = withDefaults(
   defineProps<{
@@ -17,12 +19,15 @@ const props = withDefaults(
     locale?: FlareLocale;
     /** Initial theme mode. */
     theme?: FlareThemeMode;
+    /** Adaptive layout mode; "auto" tracks viewport width. Drives Select's dropdown-vs-sheet. */
+    layoutMode?: FlareLayoutMode;
   }>(),
-  { size: "md", density: "default" },
+  { size: "md", density: "default", layoutMode: "auto" },
 );
 
 const i18n = useFlareI18nProvider(props.locale);
 const themeCtx = useFlareThemeProvider(props.theme);
+useFlareAdaptiveProvider(props.layoutMode);
 
 const size = ref<FlareControlSize>(props.size);
 const api: FlareConfigApi = {

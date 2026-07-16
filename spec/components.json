@@ -7420,8 +7420,8 @@
       "name": "Select",
       "category": "Form",
       "summary": {
-        "zh": "下拉选择 —— 触发器 + 下拉列表 + 勾选态,单项可禁用,聚焦焦点环。",
-        "en": "Select — trigger + dropdown list with a checked state, per-option disable, focus ring."
+        "zh": "选择器 —— 自适应:桌面为下拉列表,H5/原生 app 为底部 Sheet;勾选态、单项可禁用、聚焦焦点环。",
+        "en": "Select — adaptive: dropdown on desktop, bottom sheet on H5 / native app; checked state, per-option disable, focus ring."
       },
       "dataSource": {
         "zh": "由你传入",
@@ -7475,6 +7475,15 @@
             "zh": "禁用。",
             "en": "Disabled."
           }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "移动端 Sheet 顶部标题(缺省用 placeholder)。",
+            "en": "Sheet header title on mobile (defaults to placeholder)."
+          }
         }
       ],
       "states": [
@@ -7499,6 +7508,409 @@
         "compose": {
           "package": "com.flare.im:im-ui-compose",
           "symbol": "Select"
+        }
+      }
+    },
+    {
+      "name": "Textarea",
+      "category": "Form",
+      "summary": {
+        "zh": "多行输入 —— 自动增高、字数统计、⌘/Ctrl+Enter 提交。",
+        "en": "Multi-line input — auto-grow, character counter, ⌘/Ctrl+Enter to submit."
+      },
+      "dataSource": {
+        "zh": "由你传入",
+        "en": "passed in by you"
+      },
+      "props": [
+        {
+          "name": "modelValue",
+          "type": "string",
+          "required": false,
+          "default": "\"\"",
+          "description": {
+            "zh": "v-model 文本。",
+            "en": "v-model text."
+          }
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "占位。",
+            "en": "Placeholder."
+          }
+        },
+        {
+          "name": "rows",
+          "type": "number",
+          "required": false,
+          "default": "3",
+          "description": {
+            "zh": "初始行数。",
+            "en": "Initial rows."
+          }
+        },
+        {
+          "name": "maxRows",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "description": {
+            "zh": "自动增高上限行数(0=不限)。",
+            "en": "Auto-grow cap in rows (0 = uncapped)."
+          }
+        },
+        {
+          "name": "showCount",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "zh": "显示字数。",
+            "en": "Show character count."
+          }
+        },
+        {
+          "name": "maxlength",
+          "type": "number",
+          "required": false,
+          "description": {
+            "zh": "最大长度。",
+            "en": "Max length."
+          }
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "zh": "禁用。",
+            "en": "Disabled."
+          }
+        }
+      ],
+      "states": [],
+      "events": [
+        "enter",
+        "change"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareTextarea"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareTextarea"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "TextareaView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "Textarea"
+        }
+      }
+    },
+    {
+      "name": "Stepper",
+      "category": "Form",
+      "summary": {
+        "zh": "步进器 —— −/+ 数字增减,min/max/step,可只读。",
+        "en": "Stepper — −/+ numeric increment with min/max/step; can be read-only."
+      },
+      "dataSource": {
+        "zh": "由你传入",
+        "en": "passed in by you"
+      },
+      "props": [
+        {
+          "name": "modelValue",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "description": {
+            "zh": "v-model 数值。",
+            "en": "v-model value."
+          }
+        },
+        {
+          "name": "min",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "description": {
+            "zh": "最小值。",
+            "en": "Minimum."
+          }
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "required": false,
+          "default": "Infinity",
+          "description": {
+            "zh": "最大值。",
+            "en": "Maximum."
+          }
+        },
+        {
+          "name": "step",
+          "type": "number",
+          "required": false,
+          "default": "1",
+          "description": {
+            "zh": "步进。",
+            "en": "Step."
+          }
+        },
+        {
+          "name": "size",
+          "type": "FlareControlSize",
+          "required": false,
+          "default": "\"md\"",
+          "description": {
+            "zh": "尺寸。",
+            "en": "Size."
+          }
+        },
+        {
+          "name": "readonly",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "zh": "只读(隐藏输入框)。",
+            "en": "Read-only (static middle)."
+          }
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "zh": "禁用。",
+            "en": "Disabled."
+          }
+        }
+      ],
+      "states": [],
+      "events": [
+        "change"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareStepper"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareStepper"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "StepperView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "Stepper"
+        }
+      }
+    },
+    {
+      "name": "Slider",
+      "category": "Form",
+      "summary": {
+        "zh": "滑块 —— 范围取值,品牌渐变填充,可选值气泡。",
+        "en": "Slider — range value with brand-gradient fill and an optional value bubble."
+      },
+      "dataSource": {
+        "zh": "由你传入",
+        "en": "passed in by you"
+      },
+      "props": [
+        {
+          "name": "modelValue",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "description": {
+            "zh": "v-model 数值。",
+            "en": "v-model value."
+          }
+        },
+        {
+          "name": "min",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "description": {
+            "zh": "最小值。",
+            "en": "Minimum."
+          }
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "required": false,
+          "default": "100",
+          "description": {
+            "zh": "最大值。",
+            "en": "Maximum."
+          }
+        },
+        {
+          "name": "step",
+          "type": "number",
+          "required": false,
+          "default": "1",
+          "description": {
+            "zh": "步进。",
+            "en": "Step."
+          }
+        },
+        {
+          "name": "showValue",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "zh": "拖动时显示值气泡。",
+            "en": "Show value bubble while dragging."
+          }
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "zh": "禁用。",
+            "en": "Disabled."
+          }
+        }
+      ],
+      "states": [],
+      "events": [
+        "change"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareSlider"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareSlider"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "SliderView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "Slider"
+        }
+      }
+    },
+    {
+      "name": "Rating",
+      "category": "Form",
+      "summary": {
+        "zh": "评分 —— 星级取值,悬停预览,可只读/可清除。",
+        "en": "Rating — star value with hover preview; read-only / clearable."
+      },
+      "dataSource": {
+        "zh": "由你传入",
+        "en": "passed in by you"
+      },
+      "props": [
+        {
+          "name": "modelValue",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "description": {
+            "zh": "v-model 分值。",
+            "en": "v-model value."
+          }
+        },
+        {
+          "name": "count",
+          "type": "number",
+          "required": false,
+          "default": "5",
+          "description": {
+            "zh": "星数。",
+            "en": "Number of stars."
+          }
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "required": false,
+          "default": "24",
+          "description": {
+            "zh": "图标像素大小。",
+            "en": "Glyph size in px."
+          }
+        },
+        {
+          "name": "readonly",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "zh": "只读。",
+            "en": "Read-only."
+          }
+        },
+        {
+          "name": "clearable",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "zh": "再点当前值清零。",
+            "en": "Click current value to clear."
+          }
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "zh": "禁用。",
+            "en": "Disabled."
+          }
+        }
+      ],
+      "states": [],
+      "events": [
+        "change"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareRating"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareRating"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "RatingView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "Rating"
         }
       }
     },

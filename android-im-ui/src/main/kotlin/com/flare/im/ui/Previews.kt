@@ -10,6 +10,10 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -239,3 +243,23 @@ private fun PrimaryButtonPreview() = Column(Modifier.padding(12.dp), verticalArr
 private fun SegmentedControlPreview() =
     SegmentedControl(options = listOf("联系人", "群组", "新的联系人"), selectedIndex = 0, onSelect = {},
         modifier = Modifier.padding(12.dp))
+
+@Preview(showBackground = true)
+@Composable
+private fun FormControlsPreview() {
+    var text by remember { mutableStateOf("这一刻的想法…") }
+    var qty by remember { mutableStateOf(2) }
+    var vol by remember { mutableStateOf(40f) }
+    var stars by remember { mutableStateOf(3) }
+    var sel by remember { mutableStateOf("a") }
+    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Textarea(value = text, showCount = true, maxlength = 120, onChange = { text = it })
+        Stepper(value = qty, min = 0, max = 9, onChange = { qty = it })
+        Slider(value = vol, showValue = true, onChange = { vol = it })
+        Rating(value = stars, clearable = true, onChange = { stars = it })
+        Select(
+            options = listOf(FlareSelectOption("a", "选项 A"), FlareSelectOption("b", "选项 B")),
+            value = sel, placeholder = "请选择", onChange = { sel = it },
+        )
+    }
+}

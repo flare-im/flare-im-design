@@ -155,6 +155,10 @@ export { default as FlareSwitch } from "./form/FlareSwitch.vue";
 export { default as FlareCheckbox } from "./form/FlareCheckbox.vue";
 export { default as FlareRadioGroup } from "./form/FlareRadioGroup.vue";
 export { default as FlareSelect } from "./form/FlareSelect.vue";
+export { default as FlareTextarea } from "./form/FlareTextarea.vue";
+export { default as FlareStepper } from "./form/FlareStepper.vue";
+export { default as FlareSlider } from "./form/FlareSlider.vue";
+export { default as FlareRating } from "./form/FlareRating.vue";
 export type { FlareButtonVariant, FlareControlSize, FlareSelectOption } from "../shared/contracts";
 
 // Moments (圈子) — social feed

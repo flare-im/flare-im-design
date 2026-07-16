@@ -75,6 +75,10 @@ import SwitchDemo from "./demos/SwitchDemo.vue";
 import CheckboxDemo from "./demos/CheckboxDemo.vue";
 import RadioGroupDemo from "./demos/RadioGroupDemo.vue";
 import SelectDemo from "./demos/SelectDemo.vue";
+import TextareaDemo from "./demos/TextareaDemo.vue";
+import StepperDemo from "./demos/StepperDemo.vue";
+import SliderDemo from "./demos/SliderDemo.vue";
+import RatingDemo from "./demos/RatingDemo.vue";
 import FormFieldDemo from "./demos/FormFieldDemo.vue";
 import IconDemo from "./demos/IconDemo.vue";
 import ConfigProviderDemo from "./demos/ConfigProviderDemo.vue";
@@ -215,6 +219,10 @@ const demos = {
   CheckboxDemo,
   RadioGroupDemo,
   SelectDemo,
+  TextareaDemo,
+  StepperDemo,
+  SliderDemo,
+  RatingDemo,
   FormFieldDemo,
   IconDemo,
   ConfigProviderDemo,

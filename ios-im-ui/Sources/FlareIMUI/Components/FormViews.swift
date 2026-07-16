@@ -285,38 +285,30 @@ public struct RadioGroupView: View {
     }
 }
 
-/// Dropdown select with a custom-styled trigger. Spec: Form/Select (`SelectView`).
+/// Select with a token-styled trigger that presents its options as a bottom sheet.
+/// Spec: Form/Select (`SelectView`). A native app is always mobile, so the adaptive
+/// contract resolves to the H5/native bottom-sheet presentation (not the desktop dropdown).
 public struct SelectView: View {
     private let options: [FlareSelectOption]
     @Binding private var selection: String
     private let placeholder: String?
+    private let title: String?
     private let size: FlareControlSize
     private let disabled: Bool
     @State private var open = false
     @Environment(\.colorScheme) private var scheme
 
     public init(options: [FlareSelectOption], selection: Binding<String>, placeholder: String? = nil,
-                size: FlareControlSize = .md, disabled: Bool = false) {
+                title: String? = nil, size: FlareControlSize = .md, disabled: Bool = false) {
         self.options = options; self._selection = selection; self.placeholder = placeholder
-        self.size = size; self.disabled = disabled
+        self.title = title; self.size = size; self.disabled = disabled
     }
 
     public var body: some View {
         let colors = FlareColors.of(scheme)
         let selectedLabel = options.first { $0.value == selection }?.label
-        Menu {
-            ForEach(options) { option in
-                Button {
-                    selection = option.value
-                } label: {
-                    if option.value == selection {
-                        Label(option.label, systemImage: "checkmark")
-                    } else {
-                        Text(option.label)
-                    }
-                }
-                .disabled(option.disabled)
-            }
+        Button {
+            if !disabled { open = true }
         } label: {
             HStack(spacing: FlareSizes.spacingSm) {
                 Text(selectedLabel ?? placeholder ?? "")
@@ -337,10 +329,70 @@ public struct SelectView: View {
                     .stroke(open ? colors.primary : colors.borderPrimary, lineWidth: 1)
             )
         }
-        .menuStyle(.borderlessButton)
+        .buttonStyle(.plain)
         .disabled(disabled)
         .opacity(disabled ? 0.5 : 1)
-        .onTapGesture { if !disabled { open.toggle() } }
         .animation(.easeOut(duration: 0.15), value: open)
+        .sheet(isPresented: $open) {
+            SelectSheet(options: options, selection: $selection, title: title ?? placeholder ?? "选择")
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
+    }
+}
+
+/// Bottom-sheet body for `SelectView`: a titled, scrollable option list.
+private struct SelectSheet: View {
+    let options: [FlareSelectOption]
+    @Binding var selection: String
+    let title: String
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var scheme
+
+    var body: some View {
+        let colors = FlareColors.of(scheme)
+        VStack(spacing: 0) {
+            Text(title)
+                .font(.system(size: FlareSizes.fontSize2xl, weight: .semibold))
+                .foregroundColor(colors.textPrimary)
+                .frame(maxWidth: .infinity)
+                .padding(.top, FlareSizes.spacingXl)
+                .padding(.bottom, FlareSizes.spacingMd)
+                .padding(.horizontal, FlareSizes.spacingLg)
+            Divider().overlay(colors.borderSecondary)
+            ScrollView {
+                LazyVStack(spacing: 0) {
+                    ForEach(options) { option in
+                        let selected = option.value == selection
+                        HStack(spacing: FlareSizes.spacingSm) {
+                            Text(option.label)
+                                .font(.system(size: FlareSizes.fontSizeXl,
+                                               weight: selected ? .semibold : .regular))
+                                .foregroundColor(option.disabled ? colors.textTertiary
+                                                 : selected ? colors.primary : colors.textPrimary)
+                            Spacer(minLength: 0)
+                            if selected {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: FlareSizes.fontSizeXl, weight: .semibold))
+                                    .foregroundColor(colors.primary)
+                            }
+                        }
+                        .padding(.horizontal, FlareSizes.spacingLg)
+                        .frame(minHeight: 52)
+                        .frame(maxWidth: .infinity)
+                        .contentShape(Rectangle())
+                        .opacity(option.disabled ? 0.5 : 1)
+                        .onTapGesture {
+                            if !option.disabled {
+                                selection = option.value
+                                dismiss()
+                            }
+                        }
+                        Divider().overlay(colors.borderSecondary).padding(.leading, FlareSizes.spacingLg)
+                    }
+                }
+            }
+        }
+        .background(colors.bgPrimary.ignoresSafeArea())
     }
 }

@@ -237,4 +237,66 @@ struct FlareCall_Previews: PreviewProvider {
 struct FlareCallView_Previews: PreviewProvider {
     static var previews: some View { CallView(peerName: "Ivy Chen", mode: .video, state: .connected, durationLabel: "03:24") }
 }
+
+// MARK: Form controls
+
+/// Stateful host so the interactive form controls can be driven inside the canvas.
+private struct FormControlsDemo: View {
+    @State private var select = "sf"
+    @State private var bio = "Flare IM 设计系统 —— 多行输入，聚焦有焦点环，自动增高。"
+    @State private var qty: Double = 2
+    @State private var volume: Double = 40
+    @State private var stars = 3
+
+    private let cities = [
+        FlareSelectOption(value: "sf", label: "San Francisco"),
+        FlareSelectOption(value: "ny", label: "New York"),
+        FlareSelectOption(value: "tk", label: "Tokyo"),
+        FlareSelectOption(value: "sh", label: "Shanghai（暂不可选）", disabled: true),
+        FlareSelectOption(value: "ld", label: "London"),
+    ]
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                Group {
+                    Text("Select（底部 Sheet）").font(.system(size: 13, weight: .medium))
+                    SelectView(options: cities, selection: $select, placeholder: "选择城市", title: "选择城市")
+                }
+                Group {
+                    Text("Textarea").font(.system(size: 13, weight: .medium))
+                    TextareaView(text: $bio, placeholder: "介绍一下…", rows: 3, maxRows: 6,
+                                 showCount: true, maxlength: 120)
+                }
+                Group {
+                    Text("Stepper").font(.system(size: 13, weight: .medium))
+                    HStack(spacing: 16) {
+                        StepperView(value: $qty, min: 0, max: 10, size: .sm)
+                        StepperView(value: $qty, min: 0, max: 10)
+                        StepperView(value: $qty, min: 0, max: 10, size: .lg, readonly: true)
+                    }
+                }
+                Group {
+                    Text("Slider").font(.system(size: 13, weight: .medium))
+                    SliderView(value: $volume, showValue: true)
+                }
+                Group {
+                    Text("Rating").font(.system(size: 13, weight: .medium))
+                    VStack(alignment: .leading, spacing: 10) {
+                        RatingView(value: $stars, clearable: true)
+                        RatingView(value: .constant(4), size: 18, readonly: true)
+                    }
+                }
+            }
+            .padding()
+        }
+    }
+}
+
+struct FlareFormControls_Previews: PreviewProvider {
+    static var previews: some View {
+        FormControlsDemo()
+        FormControlsDemo().preferredColorScheme(.dark)
+    }
+}
 #endif

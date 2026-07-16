@@ -4,15 +4,17 @@ import '../models/directory_data.dart';
 import '../tokens/flare_tokens.dart';
 
 /// A custom select — a token-styled trigger (bgSecondary, borderPrimary, pill)
-/// that opens an overlay list of [options]. The selected row shows the brand
-/// primary + a check; disabled rows are non-tappable. Custom-built from Flare
-/// tokens. Spec: Form/Select.
+/// that, because a native app is always mobile, presents its [options] as a
+/// **modal bottom sheet**. The selected row shows the brand primary + a check;
+/// disabled rows are non-tappable. Custom-built from Flare tokens.
+/// Spec: Form/Select.
 class FlareSelect extends StatefulWidget {
   const FlareSelect({
     super.key,
     required this.options,
     required this.value,
     this.placeholder,
+    this.title,
     this.size = FlareControlSize.md,
     this.disabled = false,
     this.onChanged,
@@ -21,6 +23,10 @@ class FlareSelect extends StatefulWidget {
   final List<FlareSelectOption> options;
   final String value;
   final String? placeholder;
+
+  /// Sheet header title (defaults to [placeholder]). Matches the Vue `title`
+  /// prop.
+  final String? title;
   final FlareControlSize size;
   final bool disabled;
   final void Function(String)? onChanged;
@@ -30,8 +36,6 @@ class FlareSelect extends StatefulWidget {
 }
 
 class _FlareSelectState extends State<FlareSelect> {
-  final _controller = OverlayPortalController();
-  final _link = LayerLink();
   bool _open = false;
 
   double get _height => switch (widget.size) {
@@ -52,25 +56,25 @@ class _FlareSelectState extends State<FlareSelect> {
         FlareControlSize.lg => 15,
       };
 
-  void _toggle() {
+  Future<void> _openSheet() async {
     if (widget.disabled) return;
-    setState(() => _open = !_open);
-    if (_open) {
-      _controller.show();
-    } else {
-      _controller.hide();
-    }
-  }
-
-  void _close() {
-    setState(() => _open = false);
-    _controller.hide();
-  }
-
-  void _pick(FlareSelectOption o) {
-    if (o.disabled) return;
-    widget.onChanged?.call(o.value);
-    _close();
+    setState(() => _open = true);
+    final brightness = Theme.of(context).brightness;
+    final colors = FlareColors.of(brightness);
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      barrierColor: const Color(0xFF151220).withValues(alpha: 0.44),
+      isScrollControlled: true,
+      builder: (ctx) => _OptionsSheet(
+        options: widget.options,
+        value: widget.value,
+        title: widget.title ?? widget.placeholder,
+        colors: colors,
+      ),
+    );
+    if (mounted) setState(() => _open = false);
+    if (picked != null) widget.onChanged?.call(picked);
   }
 
   @override
@@ -84,122 +88,151 @@ class _FlareSelectState extends State<FlareSelect> {
       }
     }
 
-    return CompositedTransformTarget(
-      link: _link,
-      child: OverlayPortal(
-        controller: _controller,
-        overlayChildBuilder: (context) => _buildOverlay(context, colors),
-        child: Opacity(
-          opacity: widget.disabled ? 0.55 : 1,
-          child: MouseRegion(
-            cursor: widget.disabled ? SystemMouseCursors.basic : SystemMouseCursors.click,
-            child: GestureDetector(
-              onTap: _toggle,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
-                height: _height,
-                padding: EdgeInsets.symmetric(horizontal: _hPad),
-                constraints: const BoxConstraints(minWidth: 160),
-                decoration: BoxDecoration(
-                  color: colors.bgSecondary,
-                  borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
-                  border: Border.all(
-                    color: _open ? colors.primary : colors.borderPrimary,
+    return Opacity(
+      opacity: widget.disabled ? 0.55 : 1,
+      child: MouseRegion(
+        cursor: widget.disabled
+            ? SystemMouseCursors.basic
+            : SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: _openSheet,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            height: _height,
+            padding: EdgeInsets.symmetric(horizontal: _hPad),
+            constraints: const BoxConstraints(minWidth: 160),
+            decoration: BoxDecoration(
+              color: colors.bgSecondary,
+              borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
+              border: Border.all(
+                color: _open ? colors.primary : colors.borderPrimary,
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    current?.label ?? widget.placeholder ?? '',
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: _fontSize,
+                      color: current != null
+                          ? colors.textPrimary
+                          : colors.textTertiary,
+                    ),
                   ),
                 ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        current?.label ?? widget.placeholder ?? '',
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: _fontSize,
-                          color: current != null ? colors.textPrimary : colors.textTertiary,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    AnimatedRotation(
-                      duration: const Duration(milliseconds: 150),
-                      turns: _open ? 0.5 : 0,
-                      child: Icon(
-                        Icons.keyboard_arrow_down,
-                        size: 18,
-                        color: colors.textTertiary,
-                      ),
-                    ),
-                  ],
+                const SizedBox(width: 8),
+                AnimatedRotation(
+                  duration: const Duration(milliseconds: 150),
+                  turns: _open ? 0.5 : 0,
+                  child: Icon(
+                    Icons.keyboard_arrow_down,
+                    size: 18,
+                    color: colors.textTertiary,
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildOverlay(BuildContext context, FlareColors colors) {
-    return Stack(
-      children: [
-        // Full-screen barrier to dismiss on outside tap.
-        Positioned.fill(
-          child: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onTap: _close,
-          ),
+/// The modal bottom sheet content: rounded top corners, a drag grip, an optional
+/// centered title, and a scrollable option list (min 52px rows). Selected row =
+/// [FlareColors.primary] + [Icons.check]; disabled rows are non-tappable at
+/// 0.45 opacity.
+class _OptionsSheet extends StatelessWidget {
+  const _OptionsSheet({
+    required this.options,
+    required this.value,
+    required this.title,
+    required this.colors,
+  });
+
+  final List<FlareSelectOption> options;
+  final String value;
+  final String? title;
+  final FlareColors colors;
+
+  @override
+  Widget build(BuildContext context) {
+    final maxHeight = MediaQuery.of(context).size.height * 0.72;
+    final bottomInset = MediaQuery.of(context).padding.bottom;
+    return Container(
+      constraints: BoxConstraints(maxHeight: maxHeight),
+      decoration: BoxDecoration(
+        color: colors.bgPrimary,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(FlareSizes.radius2xl),
         ),
-        CompositedTransformFollower(
-          link: _link,
-          showWhenUnlinked: false,
-          targetAnchor: Alignment.bottomLeft,
-          followerAnchor: Alignment.topLeft,
-          offset: const Offset(0, 4),
-          child: Align(
-            alignment: Alignment.topLeft,
-            child: Material(
-              color: Colors.transparent,
-              child: Container(
-                constraints: const BoxConstraints(minWidth: 160, maxHeight: 240),
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: colors.bgPrimary,
-                  borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
-                  border: Border.all(color: colors.borderPrimary),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF151220).withValues(alpha: 0.16),
-                      blurRadius: 28,
-                      offset: const Offset(0, 12),
-                    ),
-                  ],
-                ),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: widget.options.map((o) => _option(colors, o)).toList(),
-                  ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF151220).withValues(alpha: 0.22),
+            blurRadius: 32,
+            offset: const Offset(0, -8),
+          ),
+        ],
+      ),
+      padding: EdgeInsets.fromLTRB(8, 8, 8, 10 + bottomInset),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Drag grip.
+          Container(
+            width: 36,
+            height: 4,
+            margin: const EdgeInsets.fromLTRB(0, 6, 0, 8),
+            decoration: BoxDecoration(
+              color: colors.borderPrimary,
+              borderRadius: BorderRadius.circular(FlareSizes.radiusFull),
+            ),
+          ),
+          if (title != null && title!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 10),
+              child: Text(
+                title!,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: colors.textTertiary,
                 ),
               ),
             ),
+          Flexible(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(4, 0, 4, 4),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children:
+                    options.map((o) => _option(context, o)).toList(growable: false),
+              ),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _option(FlareColors colors, FlareSelectOption o) {
-    final selected = o.value == widget.value;
+  Widget _option(BuildContext context, FlareSelectOption o) {
+    final selected = o.value == value;
     return Opacity(
       opacity: o.disabled ? 0.45 : 1,
       child: MouseRegion(
         cursor: o.disabled ? SystemMouseCursors.basic : SystemMouseCursors.click,
         child: GestureDetector(
-          onTap: o.disabled ? null : () => _pick(o),
+          onTap: o.disabled ? null : () => Navigator.of(context).pop(o.value),
+          behavior: HitTestBehavior.opaque,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            constraints: const BoxConstraints(minHeight: 52),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(FlareSizes.radiusMd),
+              borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
             ),
             child: Row(
               children: [
@@ -207,13 +240,14 @@ class _FlareSelectState extends State<FlareSelect> {
                   child: Text(
                     o.label,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 16,
                       color: selected ? colors.primary : colors.textPrimary,
-                      fontWeight: selected ? FontWeight.w500 : FontWeight.w400,
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
                     ),
                   ),
                 ),
-                if (selected) Icon(Icons.check, size: 15, color: colors.primary),
+                if (selected)
+                  Icon(Icons.check, size: 19, color: colors.primary),
               ],
             ),
           ),

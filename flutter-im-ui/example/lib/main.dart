@@ -135,8 +135,82 @@ class _Gallery extends StatelessWidget {
             currentUserId: 'me',
             conversationKind: FlareConversationKind.group,
           ))),
+          const _FormShowcase(),
         ],
       ),
+    );
+  }
+}
+
+/// Stateful showcase for the interactive Form components (Select sheet, Textarea,
+/// Stepper, Slider, Rating). Each renders the REAL flare_im_ui widget with local
+/// state wired through value / onChanged.
+class _FormShowcase extends StatefulWidget {
+  const _FormShowcase();
+
+  @override
+  State<_FormShowcase> createState() => _FormShowcaseState();
+}
+
+class _FormShowcaseState extends State<_FormShowcase> {
+  String _selectValue = '';
+  String _textareaValue = '';
+  num _stepperValue = 1;
+  double _sliderValue = 40;
+  int _ratingValue = 3;
+
+  static const _selectOptions = [
+    FlareSelectOption(value: 'online', label: '在线'),
+    FlareSelectOption(value: 'busy', label: '忙碌'),
+    FlareSelectOption(value: 'away', label: '离开'),
+    FlareSelectOption(value: 'invisible', label: '隐身', disabled: true),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _Section('Select (bottom sheet)', Align(
+          alignment: Alignment.centerLeft,
+          child: FlareSelect(
+            options: _selectOptions,
+            value: _selectValue,
+            placeholder: '选择状态',
+            title: '设置在线状态',
+            onChanged: (v) => setState(() => _selectValue = v),
+          ),
+        )),
+        _Section('Textarea', FlareTextarea(
+          value: _textareaValue,
+          placeholder: '说点什么…（⌘/Ctrl+Enter 提交）',
+          showCount: true,
+          maxlength: 140,
+          maxRows: 5,
+          onChanged: (v) => setState(() => _textareaValue = v),
+        )),
+        _Section('Stepper', Align(
+          alignment: Alignment.centerLeft,
+          child: FlareStepper(
+            value: _stepperValue,
+            min: 0,
+            max: 10,
+            onChanged: (v) => setState(() => _stepperValue = v),
+          ),
+        )),
+        _Section('Slider', FlareSlider(
+          value: _sliderValue,
+          showValue: true,
+          onChanged: (v) => setState(() => _sliderValue = v),
+        )),
+        _Section('Rating', Align(
+          alignment: Alignment.centerLeft,
+          child: FlareRating(
+            value: _ratingValue,
+            clearable: true,
+            onChanged: (v) => setState(() => _ratingValue = v),
+          ),
+        )),
+      ],
     );
   }
 }
