@@ -161,6 +161,7 @@ export { default as FlareStepper } from "./form/FlareStepper.vue";
 export { default as FlareSlider } from "./form/FlareSlider.vue";
 export { default as FlareRating } from "./form/FlareRating.vue";
 export { default as FlareTimePicker } from "./form/FlareTimePicker.vue";
+export { default as FlareDatePicker } from "./form/FlareDatePicker.vue";
 export {
   provideFlareOverlayContainer,
   useFlareOverlayContainer,

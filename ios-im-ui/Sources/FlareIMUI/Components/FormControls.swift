@@ -344,13 +344,17 @@ public struct TimePickerView: View {
     private let minuteStep: Int
     private let title: String?
     private let disabled: Bool
+    private let cancelLabel: String
+    private let confirmLabel: String
     @State private var open = false
     @Environment(\.colorScheme) private var scheme
 
     public init(value: Binding<String>, placeholder: String? = nil, size: FlareControlSize = .md,
-                minuteStep: Int = 5, title: String? = nil, disabled: Bool = false) {
+                minuteStep: Int = 5, title: String? = nil, disabled: Bool = false,
+                cancelLabel: String = "取消", confirmLabel: String = "确定") {
         self._value = value; self.placeholder = placeholder; self.size = size
         self.minuteStep = minuteStep; self.title = title; self.disabled = disabled
+        self.cancelLabel = cancelLabel; self.confirmLabel = confirmLabel
     }
 
     public var body: some View {
@@ -384,7 +388,8 @@ public struct TimePickerView: View {
         .animation(.easeOut(duration: 0.15), value: open)
         .sheet(isPresented: $open) {
             TimePickerSheet(value: $value, minuteStep: minuteStep,
-                            title: title ?? placeholder ?? "选择时间")
+                            title: title ?? placeholder ?? "选择时间",
+                            cancelLabel: cancelLabel, confirmLabel: confirmLabel)
                 .presentationDetents([.medium])
                 .presentationDragIndicator(.visible)
         }
@@ -398,6 +403,8 @@ private struct TimePickerSheet: View {
     @Binding var value: String
     let minuteStep: Int
     let title: String
+    let cancelLabel: String
+    let confirmLabel: String
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var scheme
     @State private var temp = Date()
@@ -407,7 +414,7 @@ private struct TimePickerSheet: View {
         VStack(spacing: 0) {
             HStack {
                 Button { dismiss() } label: {
-                    Text("取消")
+                    Text(cancelLabel)
                         .font(.system(size: FlareSizes.fontSizeLg))
                         .foregroundColor(colors.textSecondary)
                 }
@@ -418,7 +425,7 @@ private struct TimePickerSheet: View {
                     .lineLimit(1)
                 Spacer(minLength: 0)
                 Button { commit() } label: {
-                    Text("确定")
+                    Text(confirmLabel)
                         .font(.system(size: FlareSizes.fontSizeLg, weight: .semibold))
                         .foregroundColor(colors.primary)
                 }
@@ -427,24 +434,28 @@ private struct TimePickerSheet: View {
             .padding(.top, FlareSizes.spacingXl)
             .padding(.bottom, FlareSizes.spacingMd)
             Divider().overlay(colors.borderSecondary)
-            // 24-hour wheel: en_GB locale forces the hour/minute wheel (no AM/PM column).
-            // `.wheel` is iOS-only; the macOS fallback keeps the package host-buildable.
+            // 24-hour wheel constrained to `minuteStep`.
+            // iOS uses a UIDatePicker wrapper so `minuteInterval` snaps the minute wheel and
+            // prevents off-step selection; macOS falls back to `.graphical` to stay buildable.
             wheel
-                .labelsHidden()
-                .environment(\.locale, Locale(identifier: "en_GB"))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .background(colors.bgPrimary.ignoresSafeArea())
         .onAppear { temp = seededDate() }
     }
 
+    private var clampedStep: Int { Swift.max(1, Swift.min(30, minuteStep)) }
+
     @ViewBuilder
     private var wheel: some View {
-        let picker = DatePicker("", selection: $temp, displayedComponents: .hourAndMinute)
         #if os(iOS)
-        picker.datePickerStyle(.wheel)
+        // 24-hour hour/minute wheel with the minute column locked to the step.
+        SteppedTimeWheel(selection: $temp, minuteInterval: clampedStep)
         #else
-        picker.datePickerStyle(.graphical)
+        DatePicker("", selection: $temp, displayedComponents: .hourAndMinute)
+            .datePickerStyle(.graphical)
+            .labelsHidden()
+            .environment(\.locale, Locale(identifier: "en_GB"))
         #endif
     }
 
@@ -466,4 +477,228 @@ private struct TimePickerSheet: View {
         value = String(format: "%02d:%02d", comps.hour ?? 0, comps.minute ?? 0)
         dismiss()
     }
+}
+
+#if os(iOS)
+import UIKit
+
+/// A `UIDatePicker` (`.wheels`, hour+minute, 24-hour) whose `minuteInterval` locks the minute
+/// column to the step so a user can never land on an off-step minute — SwiftUI's native
+/// `DatePicker(.wheel)` has no `minuteStep` knob, hence this thin UIKit bridge.
+private struct SteppedTimeWheel: UIViewRepresentable {
+    @Binding var selection: Date
+    let minuteInterval: Int
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    func makeUIView(context: Context) -> UIDatePicker {
+        let picker = UIDatePicker()
+        picker.datePickerMode = .time
+        picker.preferredDatePickerStyle = .wheels
+        picker.minuteInterval = Swift.max(1, Swift.min(30, minuteInterval))
+        // en_GB forces the 24-hour hour/minute layout (no AM/PM column).
+        picker.locale = Locale(identifier: "en_GB")
+        picker.setDate(selection, animated: false)
+        picker.addTarget(context.coordinator, action: #selector(Coordinator.changed(_:)), for: .valueChanged)
+        picker.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        return picker
+    }
+
+    func updateUIView(_ picker: UIDatePicker, context: Context) {
+        let step = Swift.max(1, Swift.min(30, minuteInterval))
+        if picker.minuteInterval != step { picker.minuteInterval = step }
+        if abs(picker.date.timeIntervalSince(selection)) > 1 {
+            picker.setDate(selection, animated: false)
+        }
+    }
+
+    final class Coordinator: NSObject {
+        private let parent: SteppedTimeWheel
+        init(_ parent: SteppedTimeWheel) { self.parent = parent }
+        @objc func changed(_ picker: UIDatePicker) { parent.selection = picker.date }
+    }
+}
+#endif
+
+// MARK: - DatePicker
+
+/// Date picker with a token-styled trigger (calendar icon + `YYYY-MM-DD`) that presents a
+/// graphical month calendar inside a bottom sheet. Spec: Form/DatePicker (`DatePickerView`).
+/// Ref: vue-im-ui `FlareDatePicker.vue`.
+///
+/// A native app is always mobile, so this uses the bottom-sheet presentation (the app form of
+/// the Vue component's adaptive "H5 sheet" branch), not the desktop popover. `value` is the
+/// bound date as "YYYY-MM-DD". `min`/`max` (same format) bound the selectable range. The
+/// graphical picker commits live, so tapping a day (or 今天) sets `value` and dismisses.
+public struct DatePickerView: View {
+    @Binding private var value: String
+    private let placeholder: String?
+    private let size: FlareControlSize
+    private let min: String?
+    private let max: String?
+    private let title: String?
+    private let disabled: Bool
+    private let cancelLabel: String
+    private let todayLabel: String
+    @State private var open = false
+    @Environment(\.colorScheme) private var scheme
+
+    public init(value: Binding<String>, placeholder: String? = nil, size: FlareControlSize = .md,
+                min: String? = nil, max: String? = nil, title: String? = nil, disabled: Bool = false,
+                cancelLabel: String = "取消", todayLabel: String = "今天") {
+        self._value = value; self.placeholder = placeholder; self.size = size
+        self.min = min; self.max = max; self.title = title; self.disabled = disabled
+        self.cancelLabel = cancelLabel; self.todayLabel = todayLabel
+    }
+
+    public var body: some View {
+        let colors = FlareColors.of(scheme)
+        let hasValue = !value.isEmpty
+        Button {
+            if !disabled { open = true }
+        } label: {
+            HStack(spacing: FlareSizes.spacingSm) {
+                Image(systemName: "calendar")
+                    .font(.system(size: size.font, weight: .medium))
+                    .foregroundColor(colors.textTertiary)
+                Text(hasValue ? value : (placeholder ?? ""))
+                    .font(.system(size: size.font))
+                    .monospacedDigit()
+                    .foregroundColor(hasValue ? colors.textPrimary : colors.textTertiary)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+            }
+            .frame(height: size.height)
+            .padding(.horizontal, size.hPadding)
+            .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.bgSecondary))
+            .overlay(
+                RoundedRectangle(cornerRadius: FlareSizes.radiusLg)
+                    .stroke(open ? colors.primary : colors.borderPrimary, lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .disabled(disabled)
+        .opacity(disabled ? 0.5 : 1)
+        .animation(.easeOut(duration: 0.15), value: open)
+        .sheet(isPresented: $open) {
+            DatePickerSheet(value: $value, min: min, max: max,
+                            title: title ?? placeholder ?? "选择日期",
+                            cancelLabel: cancelLabel, todayLabel: todayLabel)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
+    }
+}
+
+/// Bottom-sheet body for `DatePickerView`: a titled header with 取消/今天 plus a graphical
+/// month calendar. Seeds a temp `Date` from the "YYYY-MM-DD" value and, on a day tap, formats
+/// it back to "YYYY-MM-DD". `min`/`max` become a `ClosedRange`/`PartialRangeFrom`/
+/// `PartialRangeThrough` bound on the picker.
+private struct DatePickerSheet: View {
+    @Binding var value: String
+    let min: String?
+    let max: String?
+    let title: String
+    let cancelLabel: String
+    let todayLabel: String
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var scheme
+    @State private var temp: Date
+
+    init(value: Binding<String>, min: String?, max: String?, title: String,
+         cancelLabel: String, todayLabel: String) {
+        self._value = value; self.min = min; self.max = max; self.title = title
+        self.cancelLabel = cancelLabel; self.todayLabel = todayLabel
+        // Seed from the bound value in init so the first render does NOT fire the onChange
+        // that dismisses the sheet — only a real user tap should commit + dismiss.
+        _temp = State(initialValue: Self.parse(value.wrappedValue) ?? Self.startOfToday())
+    }
+
+    var body: some View {
+        let colors = FlareColors.of(scheme)
+        VStack(spacing: 0) {
+            HStack {
+                Button { dismiss() } label: {
+                    Text(cancelLabel)
+                        .font(.system(size: FlareSizes.fontSizeLg))
+                        .foregroundColor(colors.textSecondary)
+                }
+                Spacer(minLength: 0)
+                Text(title)
+                    .font(.system(size: FlareSizes.fontSizeLg, weight: .semibold))
+                    .foregroundColor(colors.textPrimary)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+                Button { goToday() } label: {
+                    Text(todayLabel)
+                        .font(.system(size: FlareSizes.fontSizeLg, weight: .semibold))
+                        .foregroundColor(colors.primary)
+                }
+            }
+            .padding(.horizontal, FlareSizes.spacingLg)
+            .padding(.top, FlareSizes.spacingXl)
+            .padding(.bottom, FlareSizes.spacingMd)
+            Divider().overlay(colors.borderSecondary)
+            calendar
+                .tint(colors.primary)
+                .padding(.horizontal, FlareSizes.spacingMd)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        }
+        .background(colors.bgPrimary.ignoresSafeArea())
+    }
+
+    @ViewBuilder
+    private var calendar: some View {
+        let lower = Self.parse(min ?? "")
+        let upper = Self.parse(max ?? "")
+        Group {
+            if let lower, let upper {
+                styled(DatePicker("", selection: $temp, in: lower...upper, displayedComponents: .date))
+            } else if let lower {
+                styled(DatePicker("", selection: $temp, in: lower..., displayedComponents: .date))
+            } else if let upper {
+                styled(DatePicker("", selection: $temp, in: ...upper, displayedComponents: .date))
+            } else {
+                styled(DatePicker("", selection: $temp, displayedComponents: .date))
+            }
+        }
+        .onChange(of: temp) { newValue in
+            value = Self.format(newValue)
+            dismiss()
+        }
+    }
+
+    // `.graphical` is iOS-only; `.compact` keeps the SPM macOS host build green.
+    @ViewBuilder
+    private func styled<V: View>(_ picker: V) -> some View {
+        #if os(iOS)
+        picker.datePickerStyle(.graphical).labelsHidden()
+        #else
+        picker.datePickerStyle(.compact).labelsHidden()
+        #endif
+    }
+
+    private func goToday() {
+        var today = Self.startOfToday()
+        if let lower = Self.parse(min ?? ""), today < lower { today = lower }
+        if let upper = Self.parse(max ?? ""), today > upper { today = upper }
+        value = Self.format(today)
+        dismiss()
+    }
+
+    // MARK: "YYYY-MM-DD" <-> Date helpers (Gregorian / POSIX / current time zone)
+
+    private static func formatter() -> DateFormatter {
+        let f = DateFormatter()
+        f.calendar = Calendar(identifier: .gregorian)
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = TimeZone.current
+        f.dateFormat = "yyyy-MM-dd"
+        return f
+    }
+    private static func parse(_ s: String) -> Date? {
+        s.isEmpty ? nil : formatter().date(from: s)
+    }
+    private static func format(_ d: Date) -> String { formatter().string(from: d) }
+    private static func startOfToday() -> Date { Calendar.current.startOfDay(for: Date()) }
 }

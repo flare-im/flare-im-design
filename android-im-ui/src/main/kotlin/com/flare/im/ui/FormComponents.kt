@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -265,7 +266,7 @@ fun Select(
     val shape = RoundedCornerShape(FlareSizes.radiusLg)
 
     Row(
-        Modifier.height(spec.height.dp).clip(shape).background(colors.bgSecondary)
+        Modifier.height(spec.height.dp).defaultMinSize(minWidth = 160.dp).clip(shape).background(colors.bgSecondary)
             .border(1.dp, if (open) colors.primary else colors.borderPrimary, shape)
             .alpha(if (disabled) 0.55f else 1f)
             .then(if (!disabled) Modifier.clickable { open = true } else Modifier)
@@ -276,7 +277,7 @@ fun Select(
             current?.label ?: (placeholder ?: ""),
             color = if (current != null) colors.textPrimary else colors.textTertiary,
             fontSize = spec.font.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.width(120.dp),
+            modifier = Modifier.weight(1f),
         )
         Spacer(Modifier.width(8.dp))
         Icon(Icons.Outlined.ExpandMore, contentDescription = null, tint = colors.textTertiary,
