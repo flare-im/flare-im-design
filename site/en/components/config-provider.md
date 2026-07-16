@@ -6,7 +6,7 @@ title: ConfigProvider
 
 <p><span class="flare-tag">Layout</span></p>
 
-> Global config — set default control size/density at the root; Button/IconButton/Select inherit when unset.
+> Global config — unify default control size/density at the root and drive language (locale) + theme (light/dark) switching; descendants read and switch via useFlareConfig().
 
 ## Preview
 

@@ -21,7 +21,7 @@ const props = withDefaults(
 );
 const emit = defineEmits<{ (e: "click"): void }>();
 const config = useFlareConfig();
-const rsize = computed(() => props.size ?? config.value.size);
+const rsize = computed(() => props.size ?? config.size.value);
 </script>
 
 <template>
