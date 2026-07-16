@@ -116,6 +116,13 @@ public struct EmojiCategory: Identifiable, Sendable { public var id: String { ke
 public struct StickerItem: Identifiable, Sendable { public let id: String; public let url: String?; public let placeholder: String?; public init(id: String, url: String? = nil, placeholder: String? = nil) { self.id = id; self.url = url; self.placeholder = placeholder } }
 public struct StickerPack: Identifiable, Sendable { public var id: String { key }; public let key: String; public let label: String; public let coverURL: String?; public let coverEmoji: String?; public let stickers: [StickerItem]; public init(key: String, label: String, coverURL: String? = nil, coverEmoji: String? = nil, stickers: [StickerItem] = []) { self.key = key; self.label = label; self.coverURL = coverURL; self.coverEmoji = coverEmoji; self.stickers = stickers } }
 
+// MARK: - Moments (social feed)
+
+public struct MomentAuthor: Identifiable, Sendable { public let id: String; public let name: String; public let avatarURL: String?; public init(id: String, name: String, avatarURL: String? = nil) { self.id = id; self.name = name; self.avatarURL = avatarURL } }
+public struct MomentLike: Identifiable, Sendable { public let id: String; public let name: String; public init(id: String, name: String) { self.id = id; self.name = name } }
+public struct MomentComment: Identifiable, Sendable { public let id: String; public let author: MomentAuthor; public let text: String; public let replyToName: String?; public let time: String?; public init(id: String, author: MomentAuthor, text: String, replyToName: String? = nil, time: String? = nil) { self.id = id; self.author = author; self.text = text; self.replyToName = replyToName; self.time = time } }
+public struct Moment: Identifiable, Sendable { public let id: String; public let author: MomentAuthor; public let text: String?; public let images: [GridImage]; public let location: String?; public let time: String?; public let likes: [MomentLike]; public let comments: [MomentComment]; public let likedBySelf: Bool; public init(id: String, author: MomentAuthor, text: String? = nil, images: [GridImage] = [], location: String? = nil, time: String? = nil, likes: [MomentLike] = [], comments: [MomentComment] = [], likedBySelf: Bool = false) { self.id = id; self.author = author; self.text = text; self.images = images; self.location = location; self.time = time; self.likes = likes; self.comments = comments; self.likedBySelf = likedBySelf } }
+
 public struct FlareNavItem: Identifiable, Sendable {
     public var id: String { key }
     public let key: String

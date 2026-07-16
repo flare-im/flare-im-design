@@ -154,6 +154,28 @@ data class StickerPack(
     val stickers: List<StickerItem> = emptyList(),
 )
 
+// --- Moments (圈子) social feed ---
+data class MomentAuthor(val id: String, val name: String, val avatarUrl: String? = null)
+data class MomentLike(val id: String, val name: String)
+data class MomentComment(
+    val id: String,
+    val author: MomentAuthor,
+    val text: String,
+    val replyToName: String? = null,
+    val time: String? = null,
+)
+data class Moment(
+    val id: String,
+    val author: MomentAuthor,
+    val text: String? = null,
+    val images: List<GridImage> = emptyList(),
+    val location: String? = null,
+    val time: String? = null,
+    val likes: List<MomentLike> = emptyList(),
+    val comments: List<MomentComment> = emptyList(),
+    val likedBySelf: Boolean = false,
+)
+
 enum class SearchResultKind { Contact, Group, Message }
 
 /** A single result row in unified search. */
