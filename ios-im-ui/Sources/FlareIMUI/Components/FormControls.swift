@@ -15,6 +15,8 @@ private extension FlareControlSize {
     var glyph: CGFloat { self == .sm ? 15 : self == .md ? 18 : 20 }
     /// Field content padding (horizontal, vertical) for the textarea.
     var pad: (h: CGFloat, v: CGFloat) { self == .sm ? (10, 8) : self == .md ? (12, 10) : (14, 12) }
+    /// Horizontal padding for text triggers (matches the Select trigger). 12 / 16 / 20.
+    var hPadding: CGFloat { self == .sm ? 12 : self == .md ? 16 : 20 }
 }
 
 // MARK: - Textarea
@@ -322,5 +324,146 @@ public struct RatingView: View {
         }
         .opacity(disabled ? 0.5 : 1)
         .animation(.easeOut(duration: 0.12), value: value)
+    }
+}
+
+// MARK: - TimePicker
+
+/// Time picker with a token-styled trigger (clock icon + `HH:mm`) that presents a native
+/// wheel picker inside a bottom sheet. Spec: Form/TimePicker (`TimePickerView`).
+/// Ref: vue-im-ui `FlareTimePicker.vue`.
+///
+/// A native app is always mobile, so this uses the bottom-sheet presentation (the app form
+/// of the Vue component's adaptive "H5 sheet" branch), not a popover. The Vue two-column
+/// hour/minute list is replaced by iOS's native `DatePicker` wheel — expected on iOS.
+/// `value` is the bound time as "HH:mm" (24-hour, zero-padded).
+public struct TimePickerView: View {
+    @Binding private var value: String
+    private let placeholder: String?
+    private let size: FlareControlSize
+    private let minuteStep: Int
+    private let title: String?
+    private let disabled: Bool
+    @State private var open = false
+    @Environment(\.colorScheme) private var scheme
+
+    public init(value: Binding<String>, placeholder: String? = nil, size: FlareControlSize = .md,
+                minuteStep: Int = 5, title: String? = nil, disabled: Bool = false) {
+        self._value = value; self.placeholder = placeholder; self.size = size
+        self.minuteStep = minuteStep; self.title = title; self.disabled = disabled
+    }
+
+    public var body: some View {
+        let colors = FlareColors.of(scheme)
+        let hasValue = !value.isEmpty
+        Button {
+            if !disabled { open = true }
+        } label: {
+            HStack(spacing: FlareSizes.spacingSm) {
+                Image(systemName: "clock")
+                    .font(.system(size: size.font, weight: .medium))
+                    .foregroundColor(colors.textTertiary)
+                Text(hasValue ? value : (placeholder ?? ""))
+                    .font(.system(size: size.font))
+                    .monospacedDigit()
+                    .foregroundColor(hasValue ? colors.textPrimary : colors.textTertiary)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+            }
+            .frame(height: size.height)
+            .padding(.horizontal, size.hPadding)
+            .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.bgSecondary))
+            .overlay(
+                RoundedRectangle(cornerRadius: FlareSizes.radiusLg)
+                    .stroke(open ? colors.primary : colors.borderPrimary, lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .disabled(disabled)
+        .opacity(disabled ? 0.5 : 1)
+        .animation(.easeOut(duration: 0.15), value: open)
+        .sheet(isPresented: $open) {
+            TimePickerSheet(value: $value, minuteStep: minuteStep,
+                            title: title ?? placeholder ?? "选择时间")
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
+        }
+    }
+}
+
+/// Bottom-sheet body for `TimePickerView`: a titled header with 取消/确定 plus a native
+/// 24-hour wheel `DatePicker`. Seeds a temp `Date` from the "HH:mm" value (minute snapped to
+/// `minuteStep` where practical) and, on 确定, formats it back to "HH:mm".
+private struct TimePickerSheet: View {
+    @Binding var value: String
+    let minuteStep: Int
+    let title: String
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var scheme
+    @State private var temp = Date()
+
+    var body: some View {
+        let colors = FlareColors.of(scheme)
+        VStack(spacing: 0) {
+            HStack {
+                Button { dismiss() } label: {
+                    Text("取消")
+                        .font(.system(size: FlareSizes.fontSizeLg))
+                        .foregroundColor(colors.textSecondary)
+                }
+                Spacer(minLength: 0)
+                Text(title)
+                    .font(.system(size: FlareSizes.fontSizeLg, weight: .semibold))
+                    .foregroundColor(colors.textPrimary)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+                Button { commit() } label: {
+                    Text("确定")
+                        .font(.system(size: FlareSizes.fontSizeLg, weight: .semibold))
+                        .foregroundColor(colors.primary)
+                }
+            }
+            .padding(.horizontal, FlareSizes.spacingLg)
+            .padding(.top, FlareSizes.spacingXl)
+            .padding(.bottom, FlareSizes.spacingMd)
+            Divider().overlay(colors.borderSecondary)
+            // 24-hour wheel: en_GB locale forces the hour/minute wheel (no AM/PM column).
+            // `.wheel` is iOS-only; the macOS fallback keeps the package host-buildable.
+            wheel
+                .labelsHidden()
+                .environment(\.locale, Locale(identifier: "en_GB"))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .background(colors.bgPrimary.ignoresSafeArea())
+        .onAppear { temp = seededDate() }
+    }
+
+    @ViewBuilder
+    private var wheel: some View {
+        let picker = DatePicker("", selection: $temp, displayedComponents: .hourAndMinute)
+        #if os(iOS)
+        picker.datePickerStyle(.wheel)
+        #else
+        picker.datePickerStyle(.graphical)
+        #endif
+    }
+
+    private func seededDate() -> Date {
+        let cal = Calendar.current
+        var h = 0, m = 0
+        let parts = value.split(separator: ":")
+        if parts.count == 2 { h = Int(parts[0]) ?? 0; m = Int(parts[1]) ?? 0 }
+        let step = Swift.max(1, Swift.min(30, minuteStep))
+        m = (Int((Double(m) / Double(step)).rounded()) * step) % 60
+        var comps = cal.dateComponents([.year, .month, .day], from: Date())
+        comps.hour = Swift.min(23, Swift.max(0, h))
+        comps.minute = m
+        return cal.date(from: comps) ?? Date()
+    }
+
+    private func commit() {
+        let comps = Calendar.current.dateComponents([.hour, .minute], from: temp)
+        value = String(format: "%02d:%02d", comps.hour ?? 0, comps.minute ?? 0)
+        dismiss()
     }
 }

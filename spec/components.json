@@ -7915,6 +7915,102 @@
       }
     },
     {
+      "name": "TimePicker",
+      "category": "Form",
+      "summary": {
+        "zh": "时间选择器 —— 自适应:PC 锚定 popover(时/分列),App/H5 底部 Sheet;v-model 取 \"HH:mm\"。",
+        "en": "TimePicker — adaptive: anchored popover (hour/minute columns) on PC, bottom sheet on App/H5; v-model as \"HH:mm\"."
+      },
+      "dataSource": {
+        "zh": "由你传入",
+        "en": "passed in by you"
+      },
+      "props": [
+        {
+          "name": "modelValue",
+          "type": "string",
+          "required": false,
+          "default": "\"\\\"\\\"\"",
+          "description": {
+            "zh": "v-model 时间(\"HH:mm\")。",
+            "en": "v-model time (\"HH:mm\")."
+          }
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "占位。",
+            "en": "Placeholder."
+          }
+        },
+        {
+          "name": "minuteStep",
+          "type": "number",
+          "required": false,
+          "default": "5",
+          "description": {
+            "zh": "分钟步进。",
+            "en": "Minute granularity."
+          }
+        },
+        {
+          "name": "size",
+          "type": "FlareControlSize",
+          "required": false,
+          "default": "\"md\"",
+          "description": {
+            "zh": "尺寸。",
+            "en": "Size."
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "移动端 Sheet 顶部标题(缺省用 placeholder)。",
+            "en": "Sheet header title on mobile (defaults to placeholder)."
+          }
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "zh": "禁用。",
+            "en": "Disabled."
+          }
+        }
+      ],
+      "states": [
+        "open"
+      ],
+      "events": [
+        "change"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareTimePicker"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareTimePicker"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "TimePickerView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "TimePicker"
+        }
+      }
+    },
+    {
       "name": "Icon",
       "category": "General",
       "summary": {

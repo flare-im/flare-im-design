@@ -7,6 +7,7 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
@@ -16,18 +17,27 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Remove
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.outlined.StarBorder
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -42,6 +52,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -248,6 +259,136 @@ fun Rating(
                     modifier = Modifier.size(size.dp),
                 )
             }
+        }
+    }
+}
+
+// MARK: - TimePicker
+
+/**
+ * Time picker — a native app is always mobile, so it presents its hour/minute
+ * columns as a bottom sheet. Trigger mirrors the Select pill with a clock icon.
+ * value is "HH:mm". Spec: Form/TimePicker.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TimePicker(
+    value: String,
+    placeholder: String? = null,
+    size: FlareControlSize = FlareControlSize.Md,
+    minuteStep: Int = 5,
+    title: String? = null,
+    disabled: Boolean = false,
+    onChange: ((String) -> Unit)? = null,
+) {
+    val colors = flareColors()
+    val trigH = when (size) { FlareControlSize.Sm -> 32; FlareControlSize.Md -> 40; FlareControlSize.Lg -> 48 }
+    val trigPad = when (size) { FlareControlSize.Sm -> 10; FlareControlSize.Md -> 12; FlareControlSize.Lg -> 14 }
+    val trigFont = when (size) { FlareControlSize.Sm -> 13; FlareControlSize.Md -> 14; FlareControlSize.Lg -> 15 }
+    val shape = RoundedCornerShape(FlareSizes.radiusLg)
+    var open by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val step = minuteStep.coerceIn(1, 30)
+    val hours = (0..23).toList()
+    val mins = (0 until 60 step step).toList()
+
+    fun pad(n: Int) = n.toString().padStart(2, '0')
+    val parsed = value.split(":")
+    val curH = parsed.getOrNull(0)?.toIntOrNull() ?: 0
+    val curM = parsed.getOrNull(1)?.toIntOrNull() ?: 0
+    var th by remember(value, open) { mutableIntStateOf(curH) }
+    var tm by remember(value, open) { mutableIntStateOf(curM) }
+
+    Row(
+        Modifier.height(trigH.dp).clip(shape).background(colors.bgSecondary)
+            .border(1.dp, if (open) colors.primary else colors.borderPrimary, shape)
+            .alpha(if (disabled) 0.55f else 1f)
+            .then(if (!disabled) Modifier.clickable { open = true } else Modifier)
+            .padding(horizontal = trigPad.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Icon(Icons.Outlined.Schedule, contentDescription = null, tint = colors.textTertiary, modifier = Modifier.size(16.dp))
+        Text(
+            value.ifEmpty { placeholder ?: "" },
+            color = if (value.isNotEmpty()) colors.textPrimary else colors.textTertiary,
+            fontSize = trigFont.sp, maxLines = 1,
+        )
+    }
+
+    if (open) {
+        ModalBottomSheet(
+            onDismissRequest = { open = false },
+            sheetState = sheetState,
+            containerColor = colors.bgPrimary,
+        ) {
+            val heading = title ?: placeholder
+            if (heading != null) {
+                Text(heading, color = colors.textTertiary, fontSize = 13.sp, fontWeight = FontWeight.Medium,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp), textAlign = TextAlign.Center)
+            }
+            Row(
+                Modifier.fillMaxWidth().height(232.dp).padding(horizontal = 24.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TimeColumn(hours, th, colors) { th = it }
+                Text(":", color = colors.textTertiary, fontWeight = FontWeight.SemiBold, fontSize = 18.sp,
+                    modifier = Modifier.padding(horizontal = 12.dp))
+                TimeColumn(mins, tm, colors) { tm = it }
+            }
+            Row(
+                Modifier.fillMaxWidth().padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Box(Modifier.weight(1f)) {
+                    Button(label = "取消", variant = FlareButtonVariant.Secondary, block = true, onClick = { open = false })
+                }
+                Box(Modifier.weight(1f)) {
+                    Button(
+                        label = "确定", variant = FlareButtonVariant.Primary, block = true,
+                        onClick = {
+                            onChange?.invoke("${pad(th)}:${pad(tm)}")
+                            open = false
+                        },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun androidx.compose.foundation.layout.RowScope.TimeColumn(
+    values: List<Int>,
+    selected: Int,
+    colors: FlareColors,
+    onPick: (Int) -> Unit,
+) {
+    val listState = rememberLazyListState()
+    LaunchedEffect(Unit) {
+        val idx = values.indexOf(selected)
+        if (idx >= 0) listState.scrollToItem(idx.coerceAtLeast(0))
+    }
+    LazyColumn(
+        state = listState,
+        modifier = Modifier.weight(1f).height(232.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        items(values) { v ->
+            val on = v == selected
+            Text(
+                v.toString().padStart(2, '0'),
+                color = if (on) colors.primary else colors.textSecondary,
+                fontWeight = if (on) FontWeight.SemiBold else FontWeight.Normal,
+                fontSize = 17.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                    .clip(RoundedCornerShape(FlareSizes.radiusMd))
+                    .background(if (on) colors.bgSelected else androidx.compose.ui.graphics.Color.Transparent)
+                    .clickable { onPick(v) }
+                    .padding(vertical = 10.dp),
+            )
         }
     }
 }

@@ -5,6 +5,7 @@ import { ChevronDownOutline, CheckmarkOutline } from "@vicons/ionicons5";
 import type { FlareSelectOption, FlareControlSize } from "../../shared/contracts";
 import { useFlareConfig } from "../../shared/useFlareConfig";
 import { useFlareAdaptiveSafe } from "../../composables/useAdaptiveMode";
+import { useFlareOverlayContainer } from "../../shared/useOverlayContainer";
 
 const props = withDefaults(
   defineProps<{
@@ -24,6 +25,7 @@ const emit = defineEmits<{ (e: "change", value: string): void }>();
 const config = useFlareConfig();
 const rsize = computed(() => props.size ?? config.size.value);
 const adaptive = useFlareAdaptiveSafe();
+const overlayContainer = useFlareOverlayContainer();
 // Desktop/tablet → anchored dropdown; phone (H5) / native app → bottom sheet.
 const asSheet = computed(() => adaptive.isH5.value);
 
@@ -88,7 +90,7 @@ onBeforeUnmount(() => {
     </transition>
 
     <!-- Phone / native app: bottom sheet -->
-    <Teleport v-if="asSheet" to="body">
+    <Teleport v-if="asSheet" :to="overlayContainer">
       <transition name="flare-sheet-fade">
         <div v-if="open" class="flare-sheet-scrim" @click="close">
           <transition name="flare-sheet-rise" appear>

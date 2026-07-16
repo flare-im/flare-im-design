@@ -159,6 +159,12 @@ export { default as FlareTextarea } from "./form/FlareTextarea.vue";
 export { default as FlareStepper } from "./form/FlareStepper.vue";
 export { default as FlareSlider } from "./form/FlareSlider.vue";
 export { default as FlareRating } from "./form/FlareRating.vue";
+export { default as FlareTimePicker } from "./form/FlareTimePicker.vue";
+export {
+  provideFlareOverlayContainer,
+  useFlareOverlayContainer,
+  type FlareOverlayTarget,
+} from "../shared/useOverlayContainer";
 export type { FlareButtonVariant, FlareControlSize, FlareSelectOption } from "../shared/contracts";
 
 // Moments (圈子) — social feed
