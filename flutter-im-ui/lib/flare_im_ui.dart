@@ -74,6 +74,7 @@ export 'src/components/flare_switch.dart';
 export 'src/components/flare_checkbox.dart';
 export 'src/components/flare_radio_group.dart';
 export 'src/components/flare_select.dart';
+export 'src/components/flare_time_picker.dart';
 export 'src/components/flare_textarea.dart';
 export 'src/components/flare_stepper.dart';
 export 'src/components/flare_slider.dart';

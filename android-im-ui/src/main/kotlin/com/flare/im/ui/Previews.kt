@@ -252,6 +252,7 @@ private fun FormControlsPreview() {
     var vol by remember { mutableStateOf(40f) }
     var stars by remember { mutableStateOf(3) }
     var sel by remember { mutableStateOf("a") }
+    var time by remember { mutableStateOf("09:30") }
     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Textarea(value = text, showCount = true, maxlength = 120, onChange = { text = it })
         Stepper(value = qty, min = 0, max = 9, onChange = { qty = it })
@@ -261,5 +262,6 @@ private fun FormControlsPreview() {
             options = listOf(FlareSelectOption("a", "选项 A"), FlareSelectOption("b", "选项 B")),
             value = sel, placeholder = "请选择", onChange = { sel = it },
         )
+        TimePicker(value = time, placeholder = "选择时间", title = "选择时间", onChange = { time = it })
     }
 }

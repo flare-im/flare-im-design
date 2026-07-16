@@ -154,6 +154,7 @@ class _FormShowcase extends StatefulWidget {
 
 class _FormShowcaseState extends State<_FormShowcase> {
   String _selectValue = '';
+  String _timeValue = '';
   String _textareaValue = '';
   num _stepperValue = 1;
   double _sliderValue = 40;
@@ -178,6 +179,15 @@ class _FormShowcaseState extends State<_FormShowcase> {
             placeholder: '选择状态',
             title: '设置在线状态',
             onChanged: (v) => setState(() => _selectValue = v),
+          ),
+        )),
+        _Section('TimePicker (bottom sheet)', Align(
+          alignment: Alignment.centerLeft,
+          child: FlareTimePicker(
+            value: _timeValue,
+            placeholder: '选择时间',
+            title: '设置提醒时间',
+            onChanged: (v) => setState(() => _timeValue = v),
           ),
         )),
         _Section('Textarea', FlareTextarea(

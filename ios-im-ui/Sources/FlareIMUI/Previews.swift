@@ -247,6 +247,7 @@ private struct FormControlsDemo: View {
     @State private var qty: Double = 2
     @State private var volume: Double = 40
     @State private var stars = 3
+    @State private var time = "09:30"
 
     private let cities = [
         FlareSelectOption(value: "sf", label: "San Francisco"),
@@ -262,6 +263,10 @@ private struct FormControlsDemo: View {
                 Group {
                     Text("Select（底部 Sheet）").font(.system(size: 13, weight: .medium))
                     SelectView(options: cities, selection: $select, placeholder: "选择城市", title: "选择城市")
+                }
+                Group {
+                    Text("TimePicker（底部 Sheet + 原生滚轮）").font(.system(size: 13, weight: .medium))
+                    TimePickerView(value: $time, placeholder: "选择时间", title: "选择时间")
                 }
                 Group {
                     Text("Textarea").font(.system(size: 13, weight: .medium))
