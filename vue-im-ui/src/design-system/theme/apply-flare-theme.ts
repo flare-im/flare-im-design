@@ -85,6 +85,9 @@ export function applyFlareTheme(isDark = false, variant: "default" | "compact" |
   }
   el.textContent = buildFlareThemeStylesheet(isDark, variant);
   document.documentElement.dataset.theme = isDark ? "dark" : "light";
+  // tokens.css 的暗色块 key 在 [data-flare-theme="dark"]（tokens/build.mjs），
+  // 不设它 --flare-color-* 会停在亮色，与注入的 --im-*/--bg-* 混成半暗态。
+  document.documentElement.dataset.flareTheme = isDark ? "dark" : "light";
   document.documentElement.dataset.themeVariant = variant;
 }
 
