@@ -63,6 +63,7 @@ const MAP = {
   PeopleCircleOutline: ["UsersRound"], PlaySkipBackOutline: ["SkipBack"], PlaySkipForwardOutline: ["SkipForward"],
   ReorderFourOutline: ["List"], ReturnDownBackOutline: ["CornerDownLeft"], ShieldCheckmarkOutline: ["ShieldCheck"],
   SparklesOutline: ["Sparkles"], Time: ["Clock", true], WifiOutline: ["Wifi"],
+  PodiumOutline: ["Vote"],
 };
 
 function walk(dir) {

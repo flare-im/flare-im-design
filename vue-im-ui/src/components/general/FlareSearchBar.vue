@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FlareIcon from "./FlareIcon.vue";
 withDefaults(
   defineProps<{ modelValue?: string; placeholder?: string; loading?: boolean }>(),
   { modelValue: "", placeholder: "Search", loading: false },
@@ -19,7 +20,7 @@ function clear() {
 
 <template>
   <div class="flare-search">
-    <span class="flare-search__ico">🔍</span>
+    <span class="flare-search__ico"><FlareIcon name="search" :size="16" /></span>
     <input
       class="flare-search__input"
       :value="modelValue"
@@ -28,7 +29,7 @@ function clear() {
       @keyup.enter="emit('submit')"
     />
     <span v-if="loading" class="flare-search__spin" />
-    <span v-else-if="modelValue" class="flare-search__clear" @click="clear">✕</span>
+    <span v-else-if="modelValue" class="flare-search__clear" @click="clear"><FlareIcon name="close" :size="14" /></span>
   </div>
 </template>
 
