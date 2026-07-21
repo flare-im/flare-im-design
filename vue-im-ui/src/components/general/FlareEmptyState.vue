@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FlareGlyph from "./FlareGlyph.vue";
 withDefaults(
   defineProps<{ title: string; description?: string; actionText?: string; icon?: string }>(),
   { icon: "📭" },
@@ -8,7 +9,7 @@ const emit = defineEmits<{ (e: "action"): void }>();
 
 <template>
   <div class="flare-empty">
-    <div class="flare-empty__ico">{{ icon }}</div>
+    <div class="flare-empty__ico"><FlareGlyph :icon="icon" :size="44" /></div>
     <div class="flare-empty__title">{{ title }}</div>
     <div v-if="description" class="flare-empty__desc">{{ description }}</div>
     <button v-if="actionText" class="flare-empty__act" @click="emit('action')">{{ actionText }}</button>

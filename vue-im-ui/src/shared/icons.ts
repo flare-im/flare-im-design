@@ -56,6 +56,13 @@ import {
   EyeOffOutline,
   LockClosedOutline,
   QrCodeOutline,
+  BanOutline,
+  PricetagOutline,
+  MegaphoneOutline,
+  MoonOutline,
+  LanguageOutline,
+  PhonePortraitOutline,
+  LogOutOutline,
 } from "./icon-glyphs";
 
 /** The canonical Flare icon name set (single source; native maps the same keys). */
@@ -112,6 +119,13 @@ export const flareIcons = {
   "eye-off": EyeOffOutline,
   lock: LockClosedOutline,
   qr: QrCodeOutline,
+  block: BanOutline,
+  tag: PricetagOutline,
+  announcement: MegaphoneOutline,
+  theme: MoonOutline,
+  language: LanguageOutline,
+  devices: PhonePortraitOutline,
+  logout: LogOutOutline,
 } satisfies Record<string, Component>;
 
 export type FlareIconName = keyof typeof flareIcons;

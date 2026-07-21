@@ -6,6 +6,7 @@
  */
 import { NIcon } from "naive-ui";
 import { ChevronForwardOutline } from "../../shared/icon-glyphs";
+import FlareGlyph from "../general/FlareGlyph.vue";
 import type { FlareSettingsItem } from "../../shared/contracts";
 
 defineProps<{ item: FlareSettingsItem }>();
@@ -20,7 +21,7 @@ const emit = defineEmits<{
     class="flare-settings__row"
     @click="item.kind !== 'toggle' && emit('select', item)"
   >
-    <span v-if="item.icon" class="flare-settings__ico">{{ item.icon }}</span>
+    <span v-if="item.icon" class="flare-settings__ico"><FlareGlyph :icon="item.icon" :size="18" /></span>
     <span class="flare-settings__label">{{ item.label }}</span>
     <label
       v-if="item.kind === 'toggle'"

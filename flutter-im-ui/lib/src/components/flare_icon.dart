@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../tokens/flare_tokens.dart';
 
-/// The 52 semantic icon names exposed by [FlareIcon], in canonical order.
+/// The 59 semantic icon names exposed by [FlareIcon], in canonical order.
 ///
 /// Kept in lock-step with the cross-platform icon-library contract so every
 /// platform ships the same fixed vocabulary of glyphs.
@@ -59,6 +59,13 @@ const List<String> flareIconNames = <String>[
   'qr',
   'chats',
   'moments',
+  'block',
+  'tag',
+  'announcement',
+  'theme',
+  'language',
+  'devices',
+  'logout',
 ];
 
 /// Maps each semantic name in [flareIconNames] to the closest Material glyph.
@@ -118,6 +125,13 @@ const Map<String, IconData> flareIconMap = <String, IconData>{
   'qr': Icons.qr_code,
   'chats': Icons.forum_outlined,
   'moments': Icons.explore_outlined,
+  'block': Icons.block,
+  'tag': Icons.label_outline,
+  'announcement': Icons.campaign_outlined,
+  'theme': Icons.dark_mode_outlined,
+  'language': Icons.language,
+  'devices': Icons.devices_outlined,
+  'logout': Icons.logout,
 };
 
 /// A cross-platform icon rendered from a fixed semantic [name].

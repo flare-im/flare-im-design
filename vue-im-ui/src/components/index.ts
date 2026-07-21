@@ -142,6 +142,7 @@ export { default as FlareSegmentedControl } from "./general/FlareSegmentedContro
 export { default as FlareButton } from "./general/FlareButton.vue";
 export { default as FlareIconButton } from "./general/FlareIconButton.vue";
 export { default as FlareIcon } from "./general/FlareIcon.vue";
+export { default as FlareGlyph } from "./general/FlareGlyph.vue";
 export { default as FlareConfigProvider } from "./general/FlareConfigProvider.vue";
 export { default as FlareBottomSheet } from "./general/FlareBottomSheet.vue";
 export { flareIcons, flareIconNames, type FlareIconName } from "../shared/icons";
