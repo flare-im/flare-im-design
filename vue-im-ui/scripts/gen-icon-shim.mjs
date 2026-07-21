@@ -56,6 +56,13 @@ const MAP = {
   ThumbsUpOutline: ["ThumbsUp"], TimeOutline: ["Clock"], TrashOutline: ["Trash2"], VideocamOffOutline: ["VideoOff"],
   VideocamOutline: ["Video"], VolumeHighOutline: ["Volume2"], VolumeMuteOutline: ["VolumeX"],
   WarningOutline: ["TriangleAlert"],
+  // Extra ionicons used by consumer apps (e.g. flare-social-tauri-app's im-shared)
+  // that redirect their @vicons imports here — kept so the shim covers them too.
+  AlertCircle: ["CircleAlert", true], CropOutline: ["Crop"], DocumentAttachOutline: ["Paperclip"],
+  Flame: ["Flame", true], FlameOutline: ["Flame"], MailOutline: ["Mail"], NavigateOutline: ["Navigation"],
+  PeopleCircleOutline: ["UsersRound"], PlaySkipBackOutline: ["SkipBack"], PlaySkipForwardOutline: ["SkipForward"],
+  ReorderFourOutline: ["List"], ReturnDownBackOutline: ["CornerDownLeft"], ShieldCheckmarkOutline: ["ShieldCheck"],
+  SparklesOutline: ["Sparkles"], Time: ["Clock", true], WifiOutline: ["Wifi"],
 };
 
 function walk(dir) {
@@ -111,7 +118,7 @@ import * as lucide from "lucide-vue-next";
 
 const STROKE = ${STROKE};
 function glyph(name: string, filled = false): FunctionalComponent {
-  const Lucide = (lucide as Record<string, Component>)[name];
+  const Lucide = (lucide as unknown as Record<string, Component>)[name];
   const C: FunctionalComponent = (_props, { attrs }) =>
     h(Lucide, { size: "1em", "stroke-width": STROKE, ...(filled ? { fill: "currentColor" } : {}), ...attrs });
   (C as { displayName?: string }).displayName = name;

@@ -40,7 +40,8 @@
     "./sdk-lab": "./src/app/components/FlareSdkLabPanel.vue",
     "./app": "./src/app/index.ts",
     "./app/components/*": "./src/app/components/*",
-    "./app/style.css": "./src/app/styles/index.css"
+    "./app/style.css": "./src/app/styles/index.css",
+    "./icon-glyphs": "./src/shared/icon-glyphs.ts"
   },
   "dependencies": {
     "@vicons/ionicons5": "^0.12.0",

@@ -12,7 +12,7 @@ import * as lucide from "lucide-vue-next";
 
 const STROKE = 1.75;
 function glyph(name: string, filled = false): FunctionalComponent {
-  const Lucide = (lucide as Record<string, Component>)[name];
+  const Lucide = (lucide as unknown as Record<string, Component>)[name];
   const C: FunctionalComponent = (_props, { attrs }) =>
     h(Lucide, { size: "1em", "stroke-width": STROKE, ...(filled ? { fill: "currentColor" } : {}), ...attrs });
   (C as { displayName?: string }).displayName = name;
@@ -128,3 +128,19 @@ export const VideocamOutline = /*#__PURE__*/ glyph("Video");
 export const VolumeHighOutline = /*#__PURE__*/ glyph("Volume2");
 export const VolumeMuteOutline = /*#__PURE__*/ glyph("VolumeX");
 export const WarningOutline = /*#__PURE__*/ glyph("TriangleAlert");
+export const AlertCircle = /*#__PURE__*/ glyph("CircleAlert", true);
+export const CropOutline = /*#__PURE__*/ glyph("Crop");
+export const DocumentAttachOutline = /*#__PURE__*/ glyph("Paperclip");
+export const Flame = /*#__PURE__*/ glyph("Flame", true);
+export const FlameOutline = /*#__PURE__*/ glyph("Flame");
+export const MailOutline = /*#__PURE__*/ glyph("Mail");
+export const NavigateOutline = /*#__PURE__*/ glyph("Navigation");
+export const PeopleCircleOutline = /*#__PURE__*/ glyph("UsersRound");
+export const PlaySkipBackOutline = /*#__PURE__*/ glyph("SkipBack");
+export const PlaySkipForwardOutline = /*#__PURE__*/ glyph("SkipForward");
+export const ReorderFourOutline = /*#__PURE__*/ glyph("List");
+export const ReturnDownBackOutline = /*#__PURE__*/ glyph("CornerDownLeft");
+export const ShieldCheckmarkOutline = /*#__PURE__*/ glyph("ShieldCheck");
+export const SparklesOutline = /*#__PURE__*/ glyph("Sparkles");
+export const Time = /*#__PURE__*/ glyph("Clock", true);
+export const WifiOutline = /*#__PURE__*/ glyph("Wifi");

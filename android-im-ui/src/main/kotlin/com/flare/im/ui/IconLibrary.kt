@@ -51,6 +51,7 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PersonAddAlt
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.QrCode
+import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material.icons.outlined.Schedule
@@ -71,8 +72,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * Cross-platform icon-library composable. Maps a fixed set of 50 semantic
- * Cross-platform icon-library composable. Maps a fixed set of 59 semantic
+ * Cross-platform icon-library composable. Maps a fixed set of 60 semantic
  * names to the closest Material [ImageVector]s so every Flare platform can
  * share one naming contract.
  */
@@ -136,9 +136,10 @@ private val flareIconMap: Map<String, ImageVector> = mapOf(
     "language" to Icons.Outlined.Language,
     "devices" to Icons.Outlined.Devices,
     "logout" to Icons.AutoMirrored.Outlined.Logout,
+    "pin" to Icons.Outlined.PushPin,
 )
 
-/** The 50 semantic icon names, in canonical order. */
+/** The 60 semantic icon names, in canonical order. */
 val flareIconNames: List<String> = listOf(
     "search", "send", "more", "back", "close", "check", "add", "remove",
     "edit", "delete", "heart", "heart-filled", "comment", "share", "camera",
@@ -149,6 +150,7 @@ val flareIconNames: List<String> = listOf(
     "info", "success", "error", "calendar", "clock", "eye", "eye-off",
     "lock", "qr", "chats", "moments", "block", "tag", "announcement",
     "theme", "language", "devices", "logout",
+    "pin",
 )
 
 /** Resolve a semantic icon [name] to a Material [ImageVector]; unknown → HelpOutline. */
