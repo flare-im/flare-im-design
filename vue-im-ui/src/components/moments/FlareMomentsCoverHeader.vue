@@ -50,17 +50,37 @@ const { t } = useFlareI18n();
   padding: 0;
   cursor: pointer;
   background-color: var(--flare-color-bg-tertiary, #ece9f3);
-  background-image: linear-gradient(135deg, #6d5bd0, #b48bf0);
+  /* Aurora: a violet light source rather than a flat gradient. Only shows when
+     the user has no cover photo (an inline background-image overrides it). */
+  background-image:
+    radial-gradient(120% 100% at 12% -10%, rgba(196, 181, 253, 0.6), transparent 55%),
+    radial-gradient(90% 90% at 105% 15%, rgba(124, 58, 237, 0.65), transparent 55%),
+    linear-gradient(160deg, #3b1f7a 0%, #7c3aed 55%, #a78bfa 100%);
   background-size: cover;
   background-position: center;
   position: relative;
 }
+/* Bottom scrim so the name + avatar stay legible over any cover image. */
+.flare-moments-cover__photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 45%, rgba(15, 12, 25, 0.42));
+  pointer-events: none;
+}
 .flare-moments-cover__hint {
   position: absolute;
+  z-index: 1;
   right: 14px;
   bottom: 40px;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(15, 12, 25, 0.28);
+  backdrop-filter: blur(6px);
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.92);
 }
 .flare-moments-cover__id {
   display: flex;

@@ -48,16 +48,25 @@ const emit = defineEmits<{
 .flare-profile { width: 100%; }
 .flare-profile__hdr {
   display: flex; align-items: center; gap: 14px;
-  padding: 20px 16px; cursor: pointer;
-  background: var(--flare-color-bg-selected);
+  padding: 26px 16px 24px; cursor: pointer;
+  position: relative; overflow: hidden;
+  /* Aurora glow header — a violet light source, white text over it. */
+  background:
+    radial-gradient(120% 150% at 6% -30%, rgba(196, 181, 253, 0.5), transparent 52%),
+    radial-gradient(95% 130% at 102% -10%, rgba(124, 58, 237, 0.6), transparent 55%),
+    linear-gradient(150deg, #3b1f7a 0%, #7c3aed 62%, #8b5cf6 100%);
+}
+.flare-profile__hdr :deep(.im-avatar),
+.flare-profile__hdr :deep(.flare-avatar) {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.22), 0 6px 16px rgba(0, 0, 0, 0.28);
 }
 .flare-profile__meta { flex: 1; min-width: 0; }
-.flare-profile__name { font-size: 18px; font-weight: 600; color: var(--flare-color-text-primary); }
+.flare-profile__name { font-size: 18px; font-weight: 700; color: #fff; }
 .flare-profile__sig {
-  font-size: 13px; color: var(--flare-color-text-secondary); margin-top: 2px;
+  font-size: 13px; color: rgba(255, 255, 255, 0.82); margin-top: 3px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.flare-profile__id { font-size: 12px; color: var(--flare-color-text-tertiary); margin-top: 2px; }
-.flare-profile__qr { color: var(--flare-color-text-tertiary); font-size: 18px; }
+.flare-profile__id { font-size: 12px; color: rgba(255, 255, 255, 0.62); margin-top: 3px; }
+.flare-profile__qr { color: rgba(255, 255, 255, 0.9); font-size: 18px; }
 .flare-profile__list { margin-top: 8px; }
 </style>
