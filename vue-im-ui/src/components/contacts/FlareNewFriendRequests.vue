@@ -13,7 +13,7 @@ const emit = defineEmits<{
 
 <template>
   <div class="flare-new-friends">
-    <FlareEmptyState v-if="!items.length" :title="emptyText || 'No new friend requests'" />
+    <FlareEmptyState v-if="!items.length" icon="person-add" :title="emptyText || 'No new friend requests'" />
     <div v-for="r in items" :key="r.id" class="flare-new-friends__row">
       <FlareAvatar :user-id="r.id" :display-name="r.name" :avatar-url="r.avatarUrl" :size="44" />
       <div class="flare-new-friends__body" @click="emit('view', r)">

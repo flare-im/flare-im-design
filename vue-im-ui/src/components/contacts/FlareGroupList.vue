@@ -9,7 +9,7 @@ const emit = defineEmits<{ (e: "select", g: FlareGroupSummary): void }>();
 
 <template>
   <div class="flare-group-list">
-    <FlareEmptyState v-if="!items.length" :title="emptyText || 'No groups yet'" />
+    <FlareEmptyState v-if="!items.length" icon="people" :title="emptyText || 'No groups yet'" />
     <div v-for="g in items" :key="g.id" class="flare-group-list__row" @click="emit('select', g)">
       <FlareAvatar :user-id="g.id" :display-name="g.name" :avatar-url="g.avatarUrl" :size="44" />
       <div>
