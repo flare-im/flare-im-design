@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.automirrored.outlined.Forward
+import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.automirrored.outlined.Reply
 import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.filled.Favorite
@@ -24,8 +25,14 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Block
+import androidx.compose.material.icons.outlined.Campaign
+import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.Devices
 import androidx.compose.material.icons.outlined.EmojiEmotions
 import androidx.compose.material.icons.outlined.Explore
+import androidx.compose.material.icons.outlined.Label
+import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Folder
@@ -65,7 +72,7 @@ import androidx.compose.ui.unit.dp
 
 /**
  * Cross-platform icon-library composable. Maps a fixed set of 50 semantic
- * Cross-platform icon-library composable. Maps a fixed set of 52 semantic
+ * Cross-platform icon-library composable. Maps a fixed set of 59 semantic
  * names to the closest Material [ImageVector]s so every Flare platform can
  * share one naming contract.
  */
@@ -122,6 +129,13 @@ private val flareIconMap: Map<String, ImageVector> = mapOf(
     "qr" to Icons.Outlined.QrCode,
     "chats" to Icons.Outlined.Forum,
     "moments" to Icons.Outlined.Explore,
+    "block" to Icons.Outlined.Block,
+    "tag" to Icons.Outlined.Label,
+    "announcement" to Icons.Outlined.Campaign,
+    "theme" to Icons.Outlined.DarkMode,
+    "language" to Icons.Outlined.Language,
+    "devices" to Icons.Outlined.Devices,
+    "logout" to Icons.AutoMirrored.Outlined.Logout,
 )
 
 /** The 50 semantic icon names, in canonical order. */
@@ -133,7 +147,8 @@ val flareIconNames: List<String> = listOf(
     "file", "folder", "notification", "mute", "copy", "forward", "reply",
     "refresh", "chevron-down", "chevron-right", "arrow-down", "warning",
     "info", "success", "error", "calendar", "clock", "eye", "eye-off",
-    "lock", "qr", "chats", "moments",
+    "lock", "qr", "chats", "moments", "block", "tag", "announcement",
+    "theme", "language", "devices", "logout",
 )
 
 /** Resolve a semantic icon [name] to a Material [ImageVector]; unknown → HelpOutline. */

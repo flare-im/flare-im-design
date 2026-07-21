@@ -45,6 +45,7 @@ const MAP = {
   LibraryOutline: ["Library"], LinkOutline: ["Link"], ListOutline: ["List"], LocationOutline: ["MapPin"],
   LockClosedOutline: ["Lock"], LogInOutline: ["LogIn"], LogOutOutline: ["LogOut"], MailUnreadOutline: ["MailOpen"],
   MegaphoneOutline: ["Megaphone"], MicOffOutline: ["MicOff"], MicOutline: ["Mic"],
+  MoonOutline: ["Moon"], PricetagOutline: ["Tag"], PhonePortraitOutline: ["MonitorSmartphone"],
   NotificationsOffOutline: ["BellOff"], NotificationsOutline: ["Bell"], PauseOutline: ["Pause"],
   PeopleOutline: ["Users"], PersonAddOutline: ["UserPlus"], PersonOutline: ["User"], PinOutline: ["Pin"],
   PlanetOutline: ["Compass"], PlayCircleOutline: ["CirclePlay"], PlayOutline: ["Play"], QrCodeOutline: ["QrCode"],

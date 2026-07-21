@@ -2,16 +2,7 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { FLARE_BREAKPOINT_H5_MAX } from "../../shared/contracts";
 import type { FlareNavItem } from "../../shared/contracts";
-import FlareIcon from "../general/FlareIcon.vue";
-import { flareIcons, type FlareIconName } from "../../shared/icons";
-
-// A nav item's `icon` may be a canonical Flare icon name (rendered as a crisp
-// line glyph via FlareIcon) or any raw string (emoji / single char) for
-// back-compat. Semantic names are preferred — they map to each platform's
-// native glyph source.
-function isFlareIcon(icon?: string): icon is FlareIconName {
-  return !!icon && icon in flareIcons;
-}
+import FlareGlyph from "../general/FlareGlyph.vue";
 
 withDefaults(
   defineProps<{
@@ -53,8 +44,7 @@ const rail = computed(() => width.value > FLARE_BREAKPOINT_H5_MAX);
         @click="emit('navigate', it.key)"
       >
         <span class="flare-shell__ico">
-          <FlareIcon v-if="isFlareIcon(it.icon)" :name="it.icon" :size="22" />
-          <template v-else>{{ it.icon || "•" }}</template>
+          <FlareGlyph :icon="it.icon || '•'" :size="22" />
           <span v-if="it.badge" class="flare-shell__badge">{{ it.badge > 99 ? "99+" : it.badge }}</span>
         </span>
         <span class="flare-shell__label">{{ it.label }}</span>
@@ -72,8 +62,7 @@ const rail = computed(() => width.value > FLARE_BREAKPOINT_H5_MAX);
         @click="emit('navigate', it.key)"
       >
         <span class="flare-shell__ico">
-          <FlareIcon v-if="isFlareIcon(it.icon)" :name="it.icon" :size="22" />
-          <template v-else>{{ it.icon || "•" }}</template>
+          <FlareGlyph :icon="it.icon || '•'" :size="22" />
           <span v-if="it.badge" class="flare-shell__badge">{{ it.badge > 99 ? "99+" : it.badge }}</span>
         </span>
         <span class="flare-shell__label">{{ it.label }}</span>

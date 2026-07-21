@@ -13,7 +13,7 @@
 
 ---
 
-## 一、语义名(52 个,契约,四端一致)
+## 一、语义名(59 个,契约,四端一致)
 
 ```
 search  send  more  back  close  check  add  remove  edit  delete
@@ -22,10 +22,12 @@ location  mic  phone  video  settings  person  people  person-add
 star  bookmark  download  link  emoji  file  folder  notification  mute
 copy  forward  reply  refresh  chevron-down  chevron-right  arrow-down
 warning  info  success  error  calendar  clock  eye  eye-off  lock  qr
+block  tag  announcement  theme  language  devices  logout
 ```
 
 - 这份清单是**跨端契约**,四端的 `flareIconNames` 必须**逐字一致**(数量、拼写、顺序)。改动要四端同步。
 - `chats`(会话/消息 tab)与 `moments`(圈子/发现)是社交场景新增;`comment` 是单条评论气泡,别混用。
+- `block`(拉黑)/`tag`(标签)/`announcement`(公告)/`theme`(深色)/`language`(语言)/`devices`(多设备)/`logout`(退出)服务于通讯录/设置页。
 
 ---
 
@@ -46,6 +48,14 @@ import { FlareIcon } from "flare-core-vue-im-ui";
 - `name` 有 `FlareIconName` 类型约束,拼错会被 TS 拦下。
 - `size` 默认 20;颜色继承 `currentColor`(父级 `color` 或 token)。
 - 也可 `import { flareIconNames } from "flare-core-vue-im-ui/shared/icons"` 遍历全集(画廊/选择器)。
+
+**组件的 `icon?: string` 属性走 `FlareGlyph`**:凡是接受开放 `icon` 字符串的 kit 组件(`FlareEmptyState`、`FlareSettingsRow`/`FlareProfilePanel` 行、`FlareAppShell` 导航项…)内部用 `<FlareGlyph :icon="...">` 渲染 —— 传**语义名**出线性图标,传其它字符串(emoji/单字)则原样回退。业务只需把 `icon` 传成语义名(如 `icon="settings"`)即可,不必自己引图标。
+
+```vue
+<FlareEmptyState icon="chats" title="暂无会话" />
+<!-- settings item -->
+{ key: "theme", label: "深色模式", icon: "theme", kind: "toggle" }
+```
 
 ### Flutter
 
