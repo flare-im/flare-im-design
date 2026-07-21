@@ -2,7 +2,7 @@
 import FlareGlyph from "./FlareGlyph.vue";
 withDefaults(
   defineProps<{ title: string; description?: string; actionText?: string; icon?: string }>(),
-  { icon: "📭" },
+  { icon: "folder" },
 );
 const emit = defineEmits<{ (e: "action"): void }>();
 </script>

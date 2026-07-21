@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import FlareGlyph from "../general/FlareGlyph.vue";
 export interface FlareComposerActionItem {
   key: string;
   label: string;
+  /** A canonical Flare semantic icon name (preferred), or any raw string / emoji. */
   icon?: string;
 }
 
@@ -11,14 +13,14 @@ export interface FlareComposerActionItem {
 withDefaults(
   defineProps<{ actions?: FlareComposerActionItem[]; columns?: number }>(),
   { actions: () =>   [
-    { key: "image", label: "Image", icon: "🖼️" },
-    { key: "camera", label: "Camera", icon: "📷" },
-    { key: "file", label: "File", icon: "📁" },
-    { key: "location", label: "Location", icon: "📍" },
-    { key: "card", label: "Card", icon: "👤" },
-    { key: "poll", label: "Poll", icon: "🗳️" },
-    { key: "task", label: "Task", icon: "✅" },
-    { key: "schedule", label: "Schedule", icon: "📅" },
+    { key: "image", label: "Image", icon: "image" },
+    { key: "camera", label: "Camera", icon: "camera" },
+    { key: "file", label: "File", icon: "file" },
+    { key: "location", label: "Location", icon: "location" },
+    { key: "card", label: "Card", icon: "person" },
+    { key: "poll", label: "Poll", icon: "poll" },
+    { key: "task", label: "Task", icon: "check" },
+    { key: "schedule", label: "Schedule", icon: "calendar" },
   ], columns: 4 },
 );
 const emit = defineEmits<{ (e: "action", action: FlareComposerActionItem): void }>();
@@ -32,7 +34,7 @@ const emit = defineEmits<{ (e: "action", action: FlareComposerActionItem): void 
       class="flare-action-panel__tile"
       @click="emit('action', a)"
     >
-      <span class="flare-action-panel__ico">{{ a.icon || "＋" }}</span>
+      <span class="flare-action-panel__ico"><FlareGlyph :icon="a.icon || 'add'" :size="24" /></span>
       <span class="flare-action-panel__label">{{ a.label }}</span>
     </button>
   </div>

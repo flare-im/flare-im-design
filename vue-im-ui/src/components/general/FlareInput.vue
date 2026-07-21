@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FlareIcon from "./FlareIcon.vue";
 const props = withDefaults(
   defineProps<{
     modelValue: string;
@@ -57,7 +58,7 @@ function onInput(e: Event) {
         v-if="clearable && modelValue && !disabled"
         class="flare-input__clear"
         @click="emit('update:modelValue', ''); emit('clear')"
-      >✕</span>
+      ><FlareIcon name="close" :size="14" /></span>
     </div>
     <div v-if="maxLength != null" class="flare-input__count">
       {{ modelValue.length }}/{{ maxLength }}

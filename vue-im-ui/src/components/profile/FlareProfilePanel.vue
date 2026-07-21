@@ -7,9 +7,9 @@ import type { FlareUserProfile, FlareSettingsItem } from "../../shared/contracts
 
 withDefaults(defineProps<{ user: FlareUserProfile; entries?: FlareSettingsItem[] }>(), {
   entries: () =>   [
-    { key: "favorites", label: "Favorites", icon: "⭐" },
-    { key: "moments", label: "Moments", icon: "🖼️" },
-    { key: "settings", label: "Settings", icon: "⚙️" },
+    { key: "favorites", label: "Favorites", icon: "star" },
+    { key: "moments", label: "Moments", icon: "moments" },
+    { key: "settings", label: "Settings", icon: "settings" },
   ],
 });
 const emit = defineEmits<{

@@ -63,7 +63,7 @@ const list = computed(() => (active.value === "read" ? props.readers : props.unr
       <FlareEmptyState
         v-if="list.length === 0"
         :title="active === 'read' ? t('readReceipt.emptyRead') : t('readReceipt.emptyUnread')"
-        icon="✅"
+        icon="success"
       />
     </div>
   </div>

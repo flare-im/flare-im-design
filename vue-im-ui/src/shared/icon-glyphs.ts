@@ -144,3 +144,4 @@ export const ShieldCheckmarkOutline = /*#__PURE__*/ glyph("ShieldCheck");
 export const SparklesOutline = /*#__PURE__*/ glyph("Sparkles");
 export const Time = /*#__PURE__*/ glyph("Clock", true);
 export const WifiOutline = /*#__PURE__*/ glyph("Wifi");
+export const PodiumOutline = /*#__PURE__*/ glyph("Vote");

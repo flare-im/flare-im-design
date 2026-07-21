@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FlareIcon from "../general/FlareIcon.vue";
 import {
   computed,
   nextTick,
@@ -829,7 +830,7 @@ defineExpose({
         @click="scrollToBottom"
       >
         <span class="message-list-scroll-bottom__icon" aria-hidden="true"
-          >↓</span
+          ><FlareIcon name="arrow-down" :size="16" /></span
         >
         {{ newMessagesButtonLabel }}
       </button>
