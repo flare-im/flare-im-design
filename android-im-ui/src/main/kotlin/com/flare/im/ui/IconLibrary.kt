@@ -25,9 +25,11 @@ import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.EmojiEmotions
+import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Folder
+import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Link
@@ -63,6 +65,7 @@ import androidx.compose.ui.unit.dp
 
 /**
  * Cross-platform icon-library composable. Maps a fixed set of 50 semantic
+ * Cross-platform icon-library composable. Maps a fixed set of 52 semantic
  * names to the closest Material [ImageVector]s so every Flare platform can
  * share one naming contract.
  */
@@ -117,6 +120,8 @@ private val flareIconMap: Map<String, ImageVector> = mapOf(
     "eye-off" to Icons.Outlined.VisibilityOff,
     "lock" to Icons.Outlined.Lock,
     "qr" to Icons.Outlined.QrCode,
+    "chats" to Icons.Outlined.Forum,
+    "moments" to Icons.Outlined.Explore,
 )
 
 /** The 50 semantic icon names, in canonical order. */
@@ -128,7 +133,7 @@ val flareIconNames: List<String> = listOf(
     "file", "folder", "notification", "mute", "copy", "forward", "reply",
     "refresh", "chevron-down", "chevron-right", "arrow-down", "warning",
     "info", "success", "error", "calendar", "clock", "eye", "eye-off",
-    "lock", "qr",
+    "lock", "qr", "chats", "moments",
 )
 
 /** Resolve a semantic icon [name] to a Material [ImageVector]; unknown → HelpOutline. */
