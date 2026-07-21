@@ -2,6 +2,16 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { FLARE_BREAKPOINT_H5_MAX } from "../../shared/contracts";
 import type { FlareNavItem } from "../../shared/contracts";
+import FlareIcon from "../general/FlareIcon.vue";
+import { flareIcons, type FlareIconName } from "../../shared/icons";
+
+// A nav item's `icon` may be a canonical Flare icon name (rendered as a crisp
+// line glyph via FlareIcon) or any raw string (emoji / single char) for
+// back-compat. Semantic names are preferred — they map to each platform's
+// native glyph source.
+function isFlareIcon(icon?: string): icon is FlareIconName {
+  return !!icon && icon in flareIcons;
+}
 
 withDefaults(
   defineProps<{
@@ -43,7 +53,8 @@ const rail = computed(() => width.value > FLARE_BREAKPOINT_H5_MAX);
         @click="emit('navigate', it.key)"
       >
         <span class="flare-shell__ico">
-          {{ it.icon || "•" }}
+          <FlareIcon v-if="isFlareIcon(it.icon)" :name="it.icon" :size="22" />
+          <template v-else>{{ it.icon || "•" }}</template>
           <span v-if="it.badge" class="flare-shell__badge">{{ it.badge > 99 ? "99+" : it.badge }}</span>
         </span>
         <span class="flare-shell__label">{{ it.label }}</span>
@@ -61,7 +72,8 @@ const rail = computed(() => width.value > FLARE_BREAKPOINT_H5_MAX);
         @click="emit('navigate', it.key)"
       >
         <span class="flare-shell__ico">
-          {{ it.icon || "•" }}
+          <FlareIcon v-if="isFlareIcon(it.icon)" :name="it.icon" :size="22" />
+          <template v-else>{{ it.icon || "•" }}</template>
           <span v-if="it.badge" class="flare-shell__badge">{{ it.badge > 99 ? "99+" : it.badge }}</span>
         </span>
         <span class="flare-shell__label">{{ it.label }}</span>
@@ -90,7 +102,10 @@ const rail = computed(() => width.value > FLARE_BREAKPOINT_H5_MAX);
   color: var(--flare-color-text-tertiary); font-size: 11px;
 }
 .flare-shell__item.active { color: var(--flare-color-primary); }
-.flare-shell__ico { position: relative; font-size: 20px; }
+.flare-shell__ico {
+  position: relative; font-size: 20px;
+  display: inline-flex; align-items: center; justify-content: center; min-height: 22px;
+}
 .flare-shell__badge {
   position: absolute; top: -4px; right: -8px;
   background: var(--flare-color-error); color: #fff;
