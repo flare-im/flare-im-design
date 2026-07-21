@@ -146,7 +146,7 @@ fun MomentsCoverHeader(
     Column(Modifier.fillMaxWidth().padding(bottom = 20.dp)) {
         Box(
             Modifier.fillMaxWidth().height(240.dp)
-                .background(Brush.linearGradient(listOf(Color(0xFF6D5BD0), Color(0xFFB48BF0))))
+                .background(Brush.linearGradient(listOf(Color(0xFF3B1F7A), Color(0xFF7C3AED), Color(0xFFA78BFA))))
                 .clickable { onEditCover?.invoke() },
         ) {
             if (coverUrl != null) {
@@ -297,7 +297,7 @@ fun MomentCard(
 ) {
     val colors = flareColors()
     var menuOpen by remember { mutableStateOf(false) }
-    Row(Modifier.fillMaxWidth().background(colors.bgPrimary).padding(16.dp)) {
+    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(colors.bgElevated).padding(16.dp)) {
         Box(Modifier.clickable { onSelectAuthor?.invoke(moment.author.id) }) {
             Avatar(
                 userId = moment.author.id, displayName = moment.author.name, size = 42.dp,

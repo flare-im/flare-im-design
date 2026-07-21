@@ -20,21 +20,48 @@ class FlareSettingsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(Theme.of(context).brightness);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ListView(
+      padding: const EdgeInsets.symmetric(vertical: FlareSizes.spacingSm),
       children: [
         for (final section in sections) ...[
           if (section.title != null)
             Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: FlareSizes.spacingMd, vertical: FlareSizes.spacingSm),
+              padding: const EdgeInsets.fromLTRB(FlareSizes.spacingLg,
+                  FlareSizes.spacingXs, FlareSizes.spacingLg, FlareSizes.spacingXs),
               child: Text(section.title!,
                   style: TextStyle(
                       color: colors.textTertiary, fontSize: FlareSizes.fontSizeSm)),
             ),
-          for (var i = 0; i < section.items.length; i++) ...[
-            if (i > 0) Divider(height: 1, indent: FlareSizes.spacingMd, color: colors.borderSecondary),
-            FlareSettingsRow(item: section.items[i], onToggle: onToggle, onSelect: onSelect),
-          ],
+          // Aurora — rows float together on one elevated grouped card (iOS-style).
+          Container(
+            margin: const EdgeInsets.fromLTRB(FlareSizes.spacingMd, 0,
+                FlareSizes.spacingMd, FlareSizes.spacingLg),
+            decoration: BoxDecoration(
+              color: colors.bgElevated,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: isDark ? const Color(0x80000000) : const Color(0x14151320),
+                  blurRadius: isDark ? 24 : 22,
+                  offset: const Offset(0, 8),
+                ),
+                if (isDark)
+                  const BoxShadow(
+                      color: Color(0x247C3AED), blurRadius: 12, offset: Offset(0, 2)),
+              ],
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: [
+                for (var i = 0; i < section.items.length; i++) ...[
+                  if (i > 0)
+                    Divider(height: 1, indent: FlareSizes.spacingMd, color: colors.borderSecondary),
+                  FlareSettingsRow(item: section.items[i], onToggle: onToggle, onSelect: onSelect),
+                ],
+              ],
+            ),
+          ),
         ],
       ],
     );

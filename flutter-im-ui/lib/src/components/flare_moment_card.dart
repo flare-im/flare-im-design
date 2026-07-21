@@ -55,9 +55,27 @@ class _FlareMomentCardState extends State<FlareMomentCard> {
     final likes = moment.likes;
     final comments = moment.comments;
     final hasSocial = likes.isNotEmpty || comments.isNotEmpty;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      color: colors.bgPrimary,
+      decoration: BoxDecoration(
+        // Aurora — the card floats on a violet-tinted, top-lit shadow in dark.
+        color: colors.bgElevated,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? const Color(0x80000000) : const Color(0x14151320),
+            blurRadius: isDark ? 24 : 22,
+            offset: const Offset(0, 8),
+          ),
+          if (isDark)
+            const BoxShadow(
+              color: Color(0x247C3AED),
+              blurRadius: 12,
+              offset: Offset(0, 2),
+            ),
+        ],
+      ),
       padding: const EdgeInsets.all(FlareSizes.spacingLg),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

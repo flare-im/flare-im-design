@@ -41,7 +41,15 @@ class FlareProfilePanel extends StatelessWidget {
         InkWell(
           onTap: onEdit,
           child: Container(
-            color: colors.bgSelected,
+            // Aurora glow header — a violet light source, white text over it.
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF3B1F7A), Color(0xFF7C3AED), Color(0xFF8B5CF6)],
+                stops: [0.0, 0.62, 1.0],
+              ),
+            ),
             padding: const EdgeInsets.all(FlareSizes.spacingLg),
             child: Row(
               children: [
@@ -54,25 +62,25 @@ class FlareProfilePanel extends StatelessWidget {
                     children: [
                       Text(user.name,
                           style: TextStyle(
-                              color: colors.textPrimary,
+                              color: Colors.white,
                               fontSize: FlareSizes.fontSize3xl,
                               fontWeight: FontWeight.w600)),
                       if (user.flareId != null && user.flareId!.isNotEmpty)
                         Text('Flare ID: ${user.flareId}',
                             style: TextStyle(
-                                color: colors.textTertiary,
+                                color: Colors.white70,
                                 fontSize: FlareSizes.fontSizeSm)),
                       if (user.signature != null && user.signature!.isNotEmpty)
                         Text(user.signature!,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                                color: colors.textSecondary,
+                                color: Colors.white70,
                                 fontSize: FlareSizes.fontSizeSm)),
                     ],
                   ),
                 ),
-                Icon(Icons.qr_code, color: colors.textTertiary),
+                Icon(Icons.qr_code, color: Colors.white70),
               ],
             ),
           ),

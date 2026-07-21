@@ -23,6 +23,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -41,7 +43,9 @@ fun ProfilePanel(
     val colors = flareColors()
     Column(Modifier.fillMaxWidth()) {
         Row(
-            Modifier.fillMaxWidth().background(colors.bgSelected)
+            Modifier.fillMaxWidth()
+                // Aurora glow header — a violet light source, white text over it.
+                .background(Brush.linearGradient(listOf(Color(0xFF3B1F7A), Color(0xFF7C3AED), Color(0xFF8B5CF6))))
                 .clickable(enabled = onEdit != null) { onEdit?.invoke() }
                 .padding(FlareSizes.spacingLg),
             verticalAlignment = Alignment.CenterVertically,
@@ -49,16 +53,16 @@ fun ProfilePanel(
             Avatar(userId = user.id, displayName = user.name, size = 56.dp)
             Spacer(Modifier.width(FlareSizes.spacingMd))
             Column(Modifier.weight(1f)) {
-                Text(user.name, color = colors.textPrimary, fontSize = FlareSizes.fontSize3xl.value.sp, fontWeight = FontWeight.SemiBold)
+                Text(user.name, color = Color.White, fontSize = FlareSizes.fontSize3xl.value.sp, fontWeight = FontWeight.Bold)
                 // The model carries a signature — render it (it was silently dropped before).
                 if (!user.signature.isNullOrEmpty()) {
-                    Text(user.signature, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm.value.sp)
+                    Text(user.signature, color = Color.White.copy(alpha = 0.82f), fontSize = FlareSizes.fontSizeSm.value.sp)
                 }
                 if (!user.flareId.isNullOrEmpty()) {
-                    Text("Flare ID: ${user.flareId}", color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
+                    Text("Flare ID: ${user.flareId}", color = Color.White.copy(alpha = 0.62f), fontSize = FlareSizes.fontSizeSm.value.sp)
                 }
             }
-            Icon(Icons.Outlined.QrCode, "QR code", tint = colors.textTertiary)
+            Icon(Icons.Outlined.QrCode, "QR code", tint = Color.White.copy(alpha = 0.9f))
         }
         Spacer(Modifier.size(FlareSizes.spacingSm))
         // Shared row → `kind` (Toggle/Value/Navigation) and `detail` are honoured here too.
