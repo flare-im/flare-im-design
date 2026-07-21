@@ -133,6 +133,7 @@ export type { FlareCallMode, FlareCallState, FlareCallParticipant } from "../sha
 export { default as FlareAppShell } from "./layout/FlareAppShell.vue";
 export { default as FlareResponsiveLayout } from "./layout/FlareResponsiveLayout.vue";
 export { default as FlareScreenHeader } from "./layout/FlareScreenHeader.vue";
+export { default as FlareScreen } from "./layout/FlareScreen.vue";
 
 // General primitives surfaced by the example-app migration (button / segmented control)
 export { default as FlarePrimaryButton } from "./general/FlarePrimaryButton.vue";
