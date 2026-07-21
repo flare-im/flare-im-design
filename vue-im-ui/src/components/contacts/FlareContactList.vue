@@ -29,7 +29,7 @@ function jump(l: string) {
 
 <template>
   <div class="flare-contact-list">
-    <FlareEmptyState v-if="!items.length && !loading" title="No contacts yet" />
+    <FlareEmptyState v-if="!items.length && !loading" icon="people" title="No contacts yet" />
     <div v-else class="flare-contact-list__scroll">
       <div v-for="[l, people] in groups" :key="l">
         <div :id="`flare-grp-${l}`" class="flare-contact-list__head">{{ l }}</div>
