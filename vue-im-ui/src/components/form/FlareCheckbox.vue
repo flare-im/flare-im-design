@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { NIcon } from "naive-ui";
-import { CheckmarkOutline, RemoveOutline } from "@vicons/ionicons5";
+import { CheckmarkOutline, RemoveOutline } from "../../shared/icon-glyphs";
 
 const props = withDefaults(
   defineProps<{

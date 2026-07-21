@@ -29,7 +29,7 @@ import {
   SendOutline,
   TextOutline,
   VideocamOutline,
-} from "@vicons/ionicons5";
+} from "../../shared/icon-glyphs";
 import { NButton, NIcon, NInput } from "naive-ui";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 import ComposerRichMarkdownInput, {

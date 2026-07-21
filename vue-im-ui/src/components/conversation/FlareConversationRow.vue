@@ -8,7 +8,7 @@ import {
   NotificationsOffOutline,
   PinOutline,
   TrashOutline,
-} from "@vicons/ionicons5";
+} from "../../shared/icon-glyphs";
 import { NDropdown, NIcon } from "naive-ui";
 import { resolveEmojiPackAssetUrlByKey } from "../composer/ComposerEmojiStickerPopover/composerEmojiAssets";
 import { resolveStickerUrlByPackageAndId } from "../composer/ComposerEmojiStickerPopover/composerStickers";

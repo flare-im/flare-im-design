@@ -6,7 +6,7 @@ import {
   ChatbubbleOutline,
   EllipsisHorizontalOutline,
   ThumbsUpOutline,
-} from "@vicons/ionicons5";
+} from "../../shared/icon-glyphs";
 import type { MessageLike } from "../../shared/contracts/messageRow";
 import type { MessageMenuConfig } from "../../shared/config/messageMenu";
 import MessageMenu from "./MessageMenu.vue";

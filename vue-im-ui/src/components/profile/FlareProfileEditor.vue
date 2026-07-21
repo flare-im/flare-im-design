@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { NIcon } from "naive-ui";
-import { CameraOutline } from "@vicons/ionicons5";
+import { CameraOutline } from "../../shared/icon-glyphs";
 import FlareAvatar from "../conversation/FlareAvatar.vue";
 import FlareInput from "../general/FlareInput.vue";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";

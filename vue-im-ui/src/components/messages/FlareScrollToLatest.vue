@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { NIcon } from "naive-ui";
-import { ArrowDownOutline } from "@vicons/ionicons5";
+import { ArrowDownOutline } from "../../shared/icon-glyphs";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 
 const props = withDefaults(defineProps<{ count?: number }>(), { count: 0 });

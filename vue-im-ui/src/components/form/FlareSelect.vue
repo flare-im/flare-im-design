@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onBeforeUnmount } from "vue";
 import { NIcon } from "naive-ui";
-import { ChevronDownOutline, CheckmarkOutline } from "@vicons/ionicons5";
+import { ChevronDownOutline, CheckmarkOutline } from "../../shared/icon-glyphs";
 import type { FlareSelectOption, FlareControlSize } from "../../shared/contracts";
 import { useFlareConfig } from "../../shared/useFlareConfig";
 import { useFlareAdaptiveSafe } from "../../composables/useAdaptiveMode";

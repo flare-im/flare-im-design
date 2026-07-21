@@ -12,7 +12,7 @@ import {
   ShareSocialOutline,
   TrashOutline,
   VideocamOutline,
-} from "@vicons/ionicons5";
+} from "../../shared/icon-glyphs";
 import { NButton, NIcon, useMessage } from "naive-ui";
 import { onBeforeRouteLeave, useRouter } from "vue-router";
 import { MessageContentType, type Message, type MessageContent } from "flare-core-typescript-sdk/web";

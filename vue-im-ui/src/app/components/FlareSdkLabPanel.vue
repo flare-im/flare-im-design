@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { ArrowBackOutline, CheckmarkCircleOutline, FlashOutline, RefreshOutline, TerminalOutline } from "@vicons/ionicons5";
+import { ArrowBackOutline, CheckmarkCircleOutline, FlashOutline, RefreshOutline, TerminalOutline } from "../../shared/icon-glyphs";
 import { NButton, NIcon, NInput, NInputNumber, NList, NListItem, NSelect, NSwitch, NTabPane, NTabs, NTag } from "naive-ui";
 import { NetworkInterfaceKind } from "flare-core-typescript-sdk/web";
 import { useRouter } from "vue-router";

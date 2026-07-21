@@ -11,7 +11,7 @@ import {
   CloseCircle,
   WarningOutline,
   SyncOutline,
-} from "@vicons/ionicons5";
+} from "../../shared/icon-glyphs";
 
 const props = withDefaults(
   defineProps<{

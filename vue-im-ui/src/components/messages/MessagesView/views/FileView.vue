@@ -6,7 +6,7 @@ import {
   DocumentTextOutline,
   FolderOpenOutline,
   RefreshOutline,
-} from "@vicons/ionicons5";
+} from "../../../../shared/icon-glyphs";
 import { NIcon } from "naive-ui";
 import type { Component } from "vue";
 import type { ContentElem } from "../../../../utils/contentElem";

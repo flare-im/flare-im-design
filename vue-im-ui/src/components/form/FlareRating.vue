@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { NIcon } from "naive-ui";
-import { Star, StarOutline } from "@vicons/ionicons5";
+import { Star, StarOutline } from "../../shared/icon-glyphs";
 
 const props = withDefaults(
   defineProps<{

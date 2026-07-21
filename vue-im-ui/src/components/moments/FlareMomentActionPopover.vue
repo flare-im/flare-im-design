@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { NIcon } from "naive-ui";
-import { HeartOutline, HeartDislikeOutline, ChatbubbleOutline } from "@vicons/ionicons5";
+import { HeartOutline, HeartDislikeOutline, ChatbubbleOutline } from "../../shared/icon-glyphs";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 
 defineProps<{ liked?: boolean }>();

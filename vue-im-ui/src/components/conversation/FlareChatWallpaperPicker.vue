@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { NIcon } from "naive-ui";
-import { CheckmarkOutline } from "@vicons/ionicons5";
+import { CheckmarkOutline } from "../../shared/icon-glyphs";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 import type { FlareWallpaperOption } from "../../shared/contracts";
 

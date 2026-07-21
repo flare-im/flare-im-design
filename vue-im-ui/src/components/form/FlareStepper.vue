@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { NIcon } from "naive-ui";
-import { RemoveOutline, AddOutline } from "@vicons/ionicons5";
+import { RemoveOutline, AddOutline } from "../../shared/icon-glyphs";
 import type { FlareControlSize } from "../../shared/contracts";
 import { useFlareConfig } from "../../shared/useFlareConfig";
 

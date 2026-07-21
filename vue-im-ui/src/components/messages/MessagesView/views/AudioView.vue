@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from "vue";
-import { MicOutline, PauseOutline, PlayOutline } from "@vicons/ionicons5";
+import { MicOutline, PauseOutline, PlayOutline } from "../../../../shared/icon-glyphs";
 import { NIcon } from "naive-ui";
 import type { ContentElem } from "../../../../utils/contentElem";
 import { pickNestedPayload } from "../../../../utils/contentElem";

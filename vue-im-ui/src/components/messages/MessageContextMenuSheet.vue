@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import {
   EllipsisHorizontalOutline,
-} from "@vicons/ionicons5";
+} from "../../shared/icon-glyphs";
 import { NIcon } from "naive-ui";
 import type { MessageContextSheetModel, MessageMenuSheetItem } from "../../utils/buildMessageMenuOptions";
 import { MESSAGE_MENU_ICON_COMPONENTS } from "../../utils/messageMenuIcons";

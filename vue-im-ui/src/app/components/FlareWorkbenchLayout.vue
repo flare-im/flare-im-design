@@ -21,7 +21,7 @@ import {
   TimeOutline,
   TrashOutline,
   VideocamOutline,
-} from "@vicons/ionicons5";
+} from "../../shared/icon-glyphs";
 import {
   NButton,
   NIcon,

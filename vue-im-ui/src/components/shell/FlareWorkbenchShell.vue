@@ -4,7 +4,7 @@ import {
   ChatbubbleEllipsesOutline,
   InformationCircleOutline,
   LogOutOutline,
-} from "@vicons/ionicons5";
+} from "../../shared/icon-glyphs";
 import { NDrawer, NDrawerContent, NIcon, NModal } from "naive-ui";
 import {
   workbenchShellClass,

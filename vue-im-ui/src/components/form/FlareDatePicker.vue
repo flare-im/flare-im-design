@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onBeforeUnmount } from "vue";
 import { NIcon } from "naive-ui";
-import { CalendarOutline } from "@vicons/ionicons5";
+import { CalendarOutline } from "../../shared/icon-glyphs";
 import type { FlareControlSize } from "../../shared/contracts";
 import { useFlareConfig } from "../../shared/useFlareConfig";
 import { useFlareAdaptiveSafe } from "../../composables/useAdaptiveMode";

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { CheckmarkDoneOutline, CloseOutline, LibraryOutline, PinOutline, ShareSocialOutline, TrashOutline } from "@vicons/ionicons5";
+import { CheckmarkDoneOutline, CloseOutline, LibraryOutline, PinOutline, ShareSocialOutline, TrashOutline } from "../../../shared/icon-glyphs";
 import { NButton, NIcon } from "naive-ui";
 import { useFlareI18n } from "../../shared/i18n";
 const { t } = useFlareI18n();

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { NIcon } from "naive-ui";
-import { HappyOutline } from "@vicons/ionicons5";
+import { HappyOutline } from "../../shared/icon-glyphs";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 import type { FlareReactionGroup } from "../../shared/contracts";
 

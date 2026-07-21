@@ -5,7 +5,7 @@
 // the emitted events.
 import { computed } from "vue";
 import { NIcon } from "naive-ui";
-import { ChevronBackOutline, ChevronForwardOutline } from "@vicons/ionicons5";
+import { ChevronBackOutline, ChevronForwardOutline } from "../../shared/icon-glyphs";
 
 const props = defineProps<{
   /** Displayed year. */

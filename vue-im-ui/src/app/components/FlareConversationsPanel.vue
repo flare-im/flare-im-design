@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { AddOutline, ChatbubbleEllipsesOutline, CloseOutline, EllipsisHorizontalOutline, SearchOutline } from "@vicons/ionicons5";
+import { AddOutline, ChatbubbleEllipsesOutline, CloseOutline, EllipsisHorizontalOutline, SearchOutline } from "../../shared/icon-glyphs";
 import { NButton, NIcon, NInput } from "naive-ui";
 import { useRouter } from "vue-router";
 import type { FlareConversationAction } from "flare-core-vue-im-ui/contracts";

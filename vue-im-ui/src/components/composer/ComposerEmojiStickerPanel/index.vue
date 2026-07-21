@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { AddCircleOutline, HappyOutline } from "@vicons/ionicons5";
+import { AddCircleOutline, HappyOutline } from "../../../shared/icon-glyphs";
 import { NIcon } from "naive-ui";
 import { COMPOSER_EMOJI_ITEMS, type ComposerEmojiAssetItem } from "../ComposerEmojiStickerPopover/composerEmojiAssets";
 import { emojiPackLabel } from "../../../utils/emojiPackI18n";

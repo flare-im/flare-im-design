@@ -5,7 +5,7 @@
  * `FlareProfilePanel` so the two can't drift apart.
  */
 import { NIcon } from "naive-ui";
-import { ChevronForwardOutline } from "@vicons/ionicons5";
+import { ChevronForwardOutline } from "../../shared/icon-glyphs";
 import type { FlareSettingsItem } from "../../shared/contracts";
 
 defineProps<{ item: FlareSettingsItem }>();

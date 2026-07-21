@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { CalendarOutline } from "@vicons/ionicons5";
+import { CalendarOutline } from "../../../shared/icon-glyphs";
 import { NIcon } from "naive-ui";
 import type { FlareContentElem } from "../../../shared/contracts/message";
 import { useFlareI18n } from "../../../shared/i18n/useFlareI18n";
