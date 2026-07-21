@@ -9,9 +9,11 @@ import {
   ChatbubblesOutline,
   CheckboxOutline,
   ChevronDownOutline,
+  ChevronUpOutline,
   CloseOutline,
   CodeSlashOutline,
   CodeWorkingOutline,
+  ContractOutline,
   DocumentTextOutline,
   ExpandOutline,
   FolderOpenOutline,
@@ -798,21 +800,6 @@ onBeforeUnmount(() => {
       }"
       @click.self="focusInput"
     >
-      <div v-if="inputExpanded" class="composer-expand-header">
-        <span class="composer-expand-header__title">{{ inputPlaceholder }}</span>
-        <button
-          type="button"
-          class="composer-expand-header__collapse"
-          :title="t('composer.collapseInput')"
-          :aria-label="t('composer.collapseInput')"
-          :disabled="disabled"
-          @click.stop="toggleInputExpanded"
-        >
-          <n-icon :size="16" :component="ChevronDownOutline" />
-          <span>{{ t("composer.collapse") }}</span>
-        </button>
-      </div>
-
       <div v-if="richMode" class="composer-format-strip" aria-label="Rich text" @mousedown.stop>
         <div class="composer-format-group composer-format-group--heading" role="group" aria-label="Heading level">
           <span class="composer-format-heading-icon" aria-hidden="true">
@@ -911,8 +898,10 @@ onBeforeUnmount(() => {
             @blur="inputFocused = false"
             @keydown="handleKeydown"
           />
-          <!-- Mobile: expand lives on the input field itself (top-right). Hidden on
-               desktop (the toolbar carries expand) and while already expanded. -->
+          <!-- The expand/collapse toggle lives on the input field's top-right corner.
+               No titled header — a single direction-aware chevron: up expands, down
+               collapses. On desktop the toolbar carries expand when compact; once
+               expanded this corner button is the collapse control. -->
           <button
             type="button"
             class="composer-field-expand"
@@ -921,7 +910,7 @@ onBeforeUnmount(() => {
             :disabled="disabled"
             @click.stop="toggleInputExpanded"
           >
-            <n-icon :size="20" :component="ExpandOutline" />
+            <n-icon :size="20" :component="inputExpanded ? ChevronDownOutline : ChevronUpOutline" />
           </button>
         </div>
 
@@ -958,7 +947,7 @@ onBeforeUnmount(() => {
           @click.stop="toggleInputExpanded"
         >
           <template #icon>
-            <n-icon :size="22" :component="ExpandOutline" />
+            <n-icon :size="22" :component="inputExpanded ? ContractOutline : ExpandOutline" />
           </template>
         </n-button>
         <n-button circle quaternary :title="t('composer.emoji')" :aria-label="t('composer.emoji')" :class="{ 'is-selected': activePanel === 'emoji' }" :disabled="disabled" @click="toggle('emoji')">

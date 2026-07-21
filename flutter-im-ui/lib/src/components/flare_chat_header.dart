@@ -39,12 +39,10 @@ class FlareChatHeader extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(Theme.of(context).brightness);
+    // Transparent bar — no filled surface or divider; it blends into the chat
+    // canvas (no white top area). Back sits to the left of the avatar.
     return Container(
       height: FlareSizes.headerHeight,
-      decoration: BoxDecoration(
-        color: colors.bgPrimary,
-        border: Border(bottom: BorderSide(color: colors.borderPrimary)),
-      ),
       padding: const EdgeInsets.symmetric(horizontal: FlareSizes.spacingSm),
       child: Row(
         children: [

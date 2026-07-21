@@ -74,11 +74,14 @@ function onBuild(op) {
 
 <template>
   <div class="chat-frame">
-    <FlareChatHeader>
+    <FlareChatHeader back @back="() => {}">
       <template #identity>
         <div class="idy">
-          <strong>Ivy Chen</strong>
-          <span class="sub">在线 · 设计评审组</span>
+          <span class="idy__avatar" aria-hidden="true">I</span>
+          <div class="idy__text">
+            <strong>Ivy Chen</strong>
+            <span class="sub">在线 · 设计评审组</span>
+          </div>
         </div>
       </template>
       <template #actions>
@@ -150,7 +153,9 @@ function onBuild(op) {
     border-bottom: 1px solid var(--flare-color-border-secondary, #e7e9ee);
   }
 }
-.idy { display: flex; flex-direction: column; }
+.idy { display: flex; align-items: center; gap: 10px; }
+.idy__avatar { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--flare-color-primary, #7c3aed); color: #fff; font-weight: 700; font-size: 15px; }
+.idy__text { display: flex; flex-direction: column; min-width: 0; }
 .sub { font-size: 12px; color: var(--flare-color-text-tertiary); }
 .act { font-size: 16px; opacity: 0.7; cursor: pointer; }
 </style>
