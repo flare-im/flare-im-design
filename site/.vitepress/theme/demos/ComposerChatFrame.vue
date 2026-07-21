@@ -1,4 +1,5 @@
 <script setup>
+import FlareIcon from "flare-core-vue-im-ui/components/general/FlareIcon.vue";
 import { computed, ref } from "vue";
 import FlareChatHeader from "flare-core-vue-im-ui/components/messages/ChatConversationHeader.vue";
 import FlareMessageList from "flare-core-vue-im-ui/components/messages/MessageList.vue";
@@ -81,9 +82,9 @@ function onBuild(op) {
         </div>
       </template>
       <template #actions>
-        <span class="act">🔍</span>
-        <span class="act">📞</span>
-        <span class="act">⋯</span>
+        <span class="act"><FlareIcon name="search" :size="18" /></span>
+        <span class="act"><FlareIcon name="phone" :size="18" /></span>
+        <span class="act"><FlareIcon name="more" :size="18" /></span>
       </template>
     </FlareChatHeader>
 

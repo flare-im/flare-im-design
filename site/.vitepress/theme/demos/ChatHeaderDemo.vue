@@ -1,4 +1,5 @@
 <script setup>
+import FlareIcon from "flare-core-vue-im-ui/components/general/FlareIcon.vue";
 import FlareChatHeader from "flare-core-vue-im-ui/components/messages/ChatConversationHeader.vue";
 import DemoStage from "./DemoStage.vue";
 </script>
@@ -14,9 +15,9 @@ import DemoStage from "./DemoStage.vue";
           </div>
         </template>
         <template #actions>
-          <span class="act">🔍</span>
-          <span class="act">📞</span>
-          <span class="act">⋯</span>
+          <span class="act"><FlareIcon name="search" :size="18" /></span>
+          <span class="act"><FlareIcon name="phone" :size="18" /></span>
+          <span class="act"><FlareIcon name="more" :size="18" /></span>
         </template>
       </FlareChatHeader>
     </div>
