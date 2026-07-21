@@ -293,8 +293,8 @@ function openContextMenu(event: MouseEvent): void {
 
 .im-conv-item--active {
   background: var(--im-conv-item-active, var(--bg-selected));
-  border-color: color-mix(in srgb, var(--im-conv-item-active-border, var(--info)) 28%, transparent);
-  box-shadow: inset 3px 0 0 var(--im-conv-item-active-border, var(--info));
+  border-color: color-mix(in srgb, var(--im-conv-item-active-border, var(--primary)) 28%, transparent);
+  box-shadow: inset 3px 0 0 var(--im-conv-item-active-border, var(--primary));
 }
 
 .im-conv-item--pinned {
