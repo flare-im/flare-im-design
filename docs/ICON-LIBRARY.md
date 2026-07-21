@@ -13,7 +13,7 @@
 
 ---
 
-## 一、语义名(60 个,契约,四端一致)
+## 一、语义名(61 个,契约,四端一致)
 
 ```
 search  send  more  back  close  check  add  remove  edit  delete
@@ -22,7 +22,7 @@ location  mic  phone  video  settings  person  people  person-add
 star  bookmark  download  link  emoji  file  folder  notification  mute
 copy  forward  reply  refresh  chevron-down  chevron-right  arrow-down
 warning  info  success  error  calendar  clock  eye  eye-off  lock  qr
-block  tag  announcement  theme  language  devices  logout  pin
+block  tag  announcement  theme  language  devices  logout  pin  poll
 ```
 
 - 这份清单是**跨端契约**,四端的 `flareIconNames` 必须**逐字一致**(数量、拼写、顺序)。改动要四端同步。
