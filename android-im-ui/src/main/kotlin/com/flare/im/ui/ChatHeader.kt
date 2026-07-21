@@ -1,6 +1,5 @@
 package com.flare.im.ui
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,7 +12,6 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -42,30 +40,29 @@ fun ChatHeader(
     onDetails: (() -> Unit)? = null,
 ) {
     val colors = flareColors()
-    Column {
-        Row(
-            Modifier.fillMaxWidth().height(FlareSizes.headerHeight).background(colors.bgPrimary)
-                .padding(horizontal = FlareSizes.spacingMd),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (onBack != null) IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, null, tint = colors.textPrimary) }
-            if (avatarUserId != null) {
-                Avatar(userId = avatarUserId, displayName = title, presence = presence, size = 36.dp)
-                Spacer(Modifier.width(FlareSizes.spacingSm))
-            }
-            Column(Modifier.weight(1f)) {
-                Text(title, color = colors.textPrimary, fontSize = FlareSizes.fontSize3xl.value.sp,
-                    fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                if (!subtitle.isNullOrEmpty()) {
-                    Text(subtitle, color = if (presence == FlarePresence.Online) colors.success else colors.textTertiary,
-                        fontSize = FlareSizes.fontSizeSm.value.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                }
-            }
-            onSearch?.let { action(Icons.Rounded.Search, it, colors) }
-            onCall?.let { action(Icons.Outlined.Call, it, colors) }
-            onDetails?.let { action(Icons.Rounded.MoreHoriz, it, colors) }
+    // Transparent bar — no filled surface or divider; it blends into the chat
+    // canvas (no white top area). Back sits to the left of the avatar.
+    Row(
+        Modifier.fillMaxWidth().height(FlareSizes.headerHeight)
+            .padding(horizontal = FlareSizes.spacingMd),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (onBack != null) IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, null, tint = colors.textPrimary) }
+        if (avatarUserId != null) {
+            Avatar(userId = avatarUserId, displayName = title, presence = presence, size = 36.dp)
+            Spacer(Modifier.width(FlareSizes.spacingSm))
         }
-        HorizontalDivider(color = colors.borderPrimary)
+        Column(Modifier.weight(1f)) {
+            Text(title, color = colors.textPrimary, fontSize = FlareSizes.fontSize3xl.value.sp,
+                fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (!subtitle.isNullOrEmpty()) {
+                Text(subtitle, color = if (presence == FlarePresence.Online) colors.success else colors.textTertiary,
+                    fontSize = FlareSizes.fontSizeSm.value.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+        }
+        onSearch?.let { action(Icons.Rounded.Search, it, colors) }
+        onCall?.let { action(Icons.Outlined.Call, it, colors) }
+        onDetails?.let { action(Icons.Rounded.MoreHoriz, it, colors) }
     }
 }
 

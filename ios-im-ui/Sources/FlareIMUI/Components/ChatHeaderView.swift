@@ -66,8 +66,8 @@ public struct ChatHeaderView: View {
         }
         .padding(.horizontal, FlareSizes.spacingMd)
         .frame(height: FlareSizes.headerHeight)
-        .background(colors.bgPrimary)
-        .overlay(Divider(), alignment: .bottom)
+        // Transparent bar — no filled surface or divider; it blends into the chat
+        // canvas (no white top area). Back sits to the left of the avatar.
     }
 
     private func action(_ icon: String, _ handler: @escaping () -> Void, _ colors: FlareColors) -> some View {

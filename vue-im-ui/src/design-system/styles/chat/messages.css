@@ -701,9 +701,15 @@ a.im-rich-message-card:focus-visible {
   cursor: not-allowed;
 }
 
-/* Only one expand affordance shows at a time: field-expand on mobile compact. */
+/* Expanded: no titled header — the collapse control is this single icon button,
+   pinned to the input's top-right corner (anchors to .composer-input-layer,
+   which is position:relative). Direction-aware chevron flips to "down". */
 .composer--input-expanded .composer-field-expand {
-  display: none;
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 4;
+  margin: 0;
 }
 
 .chat-composer-stack .composer-reply-strip {
@@ -1638,53 +1644,6 @@ a.im-rich-message-card:focus-visible {
   display: none;
 }
 
-/* Feishu-style expand header — a titled bar with an explicit collapse control.
-   In the base (mobile / stacked) layout it's an in-flow row atop the field. */
-.composer-expand-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 34px;
-  padding: 2px 2px 2px 4px;
-}
-
-.composer-expand-header__title {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--im-text-secondary, #5f6875);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.composer-expand-header__collapse {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  flex: 0 0 auto;
-  height: 28px;
-  padding: 0 10px;
-  border: 0;
-  border-radius: 999px;
-  color: var(--im-brand-primary, var(--flare-color-primary, #7c3aed));
-  background: color-mix(in srgb, var(--im-brand-primary) 10%, transparent);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background var(--im-motion-fast, 140ms ease);
-}
-
-.composer-expand-header__collapse:hover {
-  background: color-mix(in srgb, var(--im-brand-primary) 16%, transparent);
-}
-
-.composer-expand-header__collapse:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 @media (min-width: 900px) {
   .composer {
     display: flex;
@@ -1751,8 +1710,7 @@ a.im-rich-message-card:focus-visible {
     display: grid;
     grid-template-rows: 40px minmax(0, 1fr) 44px;
     row-gap: 8px;
-    /* Top padding reserves the band for the absolute expand header (title + collapse). */
-    padding: 46px 12px 10px;
+    padding: 12px;
     border-color: color-mix(in srgb, var(--im-brand-primary) 34%, var(--im-border));
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--im-brand-primary) 4%, transparent), transparent 42%),
@@ -1760,27 +1718,6 @@ a.im-rich-message-card:focus-visible {
     box-shadow:
       inset 3px 0 0 color-mix(in srgb, var(--im-brand-primary) 74%, transparent),
       0 0 0 3px color-mix(in srgb, var(--im-brand-primary) 9%, transparent);
-  }
-
-  /* Header floats over the reserved top band — no grid-row juggling, so the
-     dense expanded grid (format-strip / editor / toolbar) is left untouched. */
-  .composer--input-expanded .composer-expand-header {
-    position: absolute;
-    left: 14px;
-    right: 12px;
-    top: 9px;
-    min-height: 28px;
-    padding: 0;
-  }
-
-  .composer--input-expanded .composer-expand-header::after {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -7px;
-    height: 1px;
-    background: color-mix(in srgb, var(--im-border) 80%, transparent);
-    content: "";
   }
 
   /* On desktop the compact single-line field puts the toolbar as a right-side
