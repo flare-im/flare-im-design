@@ -68,5 +68,12 @@ const emit = defineEmits<{
 }
 .flare-profile__id { font-size: 12px; color: rgba(255, 255, 255, 0.62); margin-top: 3px; }
 .flare-profile__qr { color: rgba(255, 255, 255, 0.9); font-size: 18px; }
-.flare-profile__list { margin-top: 8px; }
+.flare-profile__list {
+  margin: 14px 12px 0;
+  border-radius: var(--flare-size-radius-xl, 14px);
+  background: var(--flare-color-bg-elevated, #fff);
+  box-shadow: var(--flare-shadow-card);
+  overflow: hidden;
+}
+.flare-profile__list :deep(.flare-settings__row) { background: transparent; }
 </style>
