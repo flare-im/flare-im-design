@@ -4,6 +4,7 @@ import SwiftUI
 /// Flare IM design colours, theme-aware. Use `FlareColors.of(colorScheme)`.
 public struct FlareColors: Sendable {
     public let bgDisabled: Color
+    public let bgElevated: Color
     public let bgHover: Color
     public let bgPrimary: Color
     public let bgSecondary: Color
@@ -37,6 +38,7 @@ public struct FlareColors: Sendable {
 
     public static let light = FlareColors(
         bgDisabled: Color(.sRGB, red: 0.9529, green: 0.9451, blue: 0.9765, opacity: 1.0),
+        bgElevated: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
         bgHover: Color(.sRGB, red: 0.9451, green: 0.9333, blue: 0.9725, opacity: 1.0),
         bgPrimary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
         bgSecondary: Color(.sRGB, red: 0.9647, green: 0.9608, blue: 0.9843, opacity: 1.0),
@@ -71,6 +73,7 @@ public struct FlareColors: Sendable {
 
     public static let dark = FlareColors(
         bgDisabled: Color(.sRGB, red: 0.1529, green: 0.1373, blue: 0.2039, opacity: 1.0),
+        bgElevated: Color(.sRGB, red: 0.1333, green: 0.1176, blue: 0.1882, opacity: 1.0),
         bgHover: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.0600),
         bgPrimary: Color(.sRGB, red: 0.1059, green: 0.0980, blue: 0.1333, opacity: 1.0),
         bgSecondary: Color(.sRGB, red: 0.0745, green: 0.0627, blue: 0.0980, opacity: 1.0),

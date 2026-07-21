@@ -55,7 +55,12 @@ const lightVars = [
   ...Object.entries(src.shadows).map(([k, v]) => [`--flare-shadow-${kebab(k)}`, v]),
   ...Object.entries(src.transitions).map(([k, v]) => [`--flare-transition-${kebab(k)}`, v]),
 ];
-const darkVars = colorVars(src.dark.colors);
+const darkVars = [
+  ...colorVars(src.dark.colors),
+  // dark-mode elevation overrides — light shadows use dark ink and vanish on a dark
+  // canvas, so the dark theme ships its own violet-tinted, top-lit shadow set.
+  ...Object.entries(src.dark.shadows ?? {}).map(([k, v]) => [`--flare-shadow-${kebab(k)}`, v]),
+];
 
 const block = (sel, vars) =>
   `${sel} {\n${vars.map(([k, v]) => `  ${k}: ${v};`).join("\n")}\n}`;

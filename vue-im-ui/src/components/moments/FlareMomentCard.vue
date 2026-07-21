@@ -95,7 +95,9 @@ function onComment(): void {
   display: flex;
   gap: 12px;
   padding: 16px;
-  background: var(--flare-color-bg-primary, #fff);
+  border-radius: var(--flare-size-radius-2xl, 18px);
+  background: var(--flare-color-bg-elevated, #fff);
+  box-shadow: var(--flare-shadow-card);
 }
 .flare-moment__avatar { border: none; background: none; padding: 0; cursor: pointer; flex: 0 0 auto; line-height: 0; }
 .flare-moment__body { flex: 1; min-width: 0; }

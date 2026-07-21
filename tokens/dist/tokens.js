@@ -4,6 +4,7 @@ export const flareDesignTokens = {
   "colors": {
     "bg": {
       "disabled": "#F3F1F9",
+      "elevated": "#FFFFFF",
       "hover": "#F1EEF8",
       "primary": "#FFFFFF",
       "secondary": "#F6F5FB",
@@ -51,6 +52,7 @@ export const flareDesignTokens = {
     "colors": {
       "bg": {
         "disabled": "#272334",
+        "elevated": "#221E30",
         "hover": "rgba(255, 255, 255, 0.06)",
         "primary": "#1B1922",
         "secondary": "#131019",
@@ -82,9 +84,18 @@ export const flareDesignTokens = {
       "attachMenuShadow": "0 8px 28px rgba(0, 0, 0, 0.40)",
       "expandedShadow": "0 8px 32px rgba(0, 0, 0, 0.40)",
       "surfaceShadow": "0 1px 2px rgba(0, 0, 0, 0.22)"
+    },
+    "shadows": {
+      "card": "inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 10px 30px rgba(0, 0, 0, 0.5), 0 2px 12px rgba(124, 58, 237, 0.16)",
+      "lg": "0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 12px rgba(124, 58, 237, 0.14)",
+      "md": "0 2px 8px rgba(0, 0, 0, 0.44), 0 10px 26px rgba(0, 0, 0, 0.36)",
+      "none": "none",
+      "sm": "0 1px 2px rgba(0, 0, 0, 0.42), 0 1px 1px rgba(0, 0, 0, 0.3)",
+      "xl": "0 16px 48px rgba(0, 0, 0, 0.58), 0 4px 18px rgba(124, 58, 237, 0.2)"
     }
   },
   "shadows": {
+    "card": "0 1px 2px rgba(21, 18, 32, 0.04), 0 10px 28px rgba(21, 18, 32, 0.10)",
     "lg": "0 6px 12px rgba(21, 18, 32, 0.06), 0 22px 50px rgba(21, 18, 32, 0.16)",
     "md": "0 2px 6px rgba(21, 18, 32, 0.05), 0 10px 26px rgba(21, 18, 32, 0.09)",
     "none": "none",

@@ -7,6 +7,7 @@ import 'dart:ui';
 class FlareColors {
   const FlareColors({
     required this.bgDisabled,
+    required this.bgElevated,
     required this.bgHover,
     required this.bgPrimary,
     required this.bgSecondary,
@@ -40,6 +41,7 @@ class FlareColors {
   });
 
   final Color bgDisabled;
+  final Color bgElevated;
   final Color bgHover;
   final Color bgPrimary;
   final Color bgSecondary;
@@ -73,6 +75,7 @@ class FlareColors {
 
   static const FlareColors light = FlareColors(
     bgDisabled: Color(0xFFF3F1F9),
+    bgElevated: Color(0xFFFFFFFF),
     bgHover: Color(0xFFF1EEF8),
     bgPrimary: Color(0xFFFFFFFF),
     bgSecondary: Color(0xFFF6F5FB),
@@ -107,6 +110,7 @@ class FlareColors {
 
   static const FlareColors dark = FlareColors(
     bgDisabled: Color(0xFF272334),
+    bgElevated: Color(0xFF221E30),
     bgHover: Color(0x0FFFFFFF),
     bgPrimary: Color(0xFF1B1922),
     bgSecondary: Color(0xFF131019),
