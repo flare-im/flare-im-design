@@ -63,6 +63,7 @@ import {
   LanguageOutline,
   PhonePortraitOutline,
   LogOutOutline,
+  PinOutline,
 } from "./icon-glyphs";
 
 /** The canonical Flare icon name set (single source; native maps the same keys). */
@@ -126,6 +127,7 @@ export const flareIcons = {
   language: LanguageOutline,
   devices: PhonePortraitOutline,
   logout: LogOutOutline,
+  pin: PinOutline,
 } satisfies Record<string, Component>;
 
 export type FlareIconName = keyof typeof flareIcons;

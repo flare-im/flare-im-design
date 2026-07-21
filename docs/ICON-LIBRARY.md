@@ -13,7 +13,7 @@
 
 ---
 
-## 一、语义名(59 个,契约,四端一致)
+## 一、语义名(60 个,契约,四端一致)
 
 ```
 search  send  more  back  close  check  add  remove  edit  delete
@@ -22,7 +22,7 @@ location  mic  phone  video  settings  person  people  person-add
 star  bookmark  download  link  emoji  file  folder  notification  mute
 copy  forward  reply  refresh  chevron-down  chevron-right  arrow-down
 warning  info  success  error  calendar  clock  eye  eye-off  lock  qr
-block  tag  announcement  theme  language  devices  logout
+block  tag  announcement  theme  language  devices  logout  pin
 ```
 
 - 这份清单是**跨端契约**,四端的 `flareIconNames` 必须**逐字一致**(数量、拼写、顺序)。改动要四端同步。
@@ -109,6 +109,8 @@ vue-im-ui/src/shared/icon-glyphs.ts
 search: SearchOutline,   // ← 实为 Lucide "Search"
 send:   SendOutline,     // ← Lucide "Send"
 ```
+
+**消费方也能直接用 shim**:kit 通过 `exports["./icon-glyphs"]` 对外暴露该 shim。若某个 app 有自己直接 `import ... from "@vicons/ionicons5"` 的代码(如 `flare-social-tauri-app` 的 im-shared),把导入源改成 `"flare-core-vue-im-ui/icon-glyphs"` 即可**整体切到 Lucide 细线**(同名导出、调用点零改)。若用到 shim 尚未覆盖的 ionicons 名,在 `gen-icon-shim.mjs` 的 MAP 补一条再 `npm run gen:icons`。
 
 ---
 
