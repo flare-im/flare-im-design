@@ -17,16 +17,31 @@ FlareMessageData _msg(String id, String name, String text,
   );
 }
 
-class GalleryApp extends StatelessWidget {
+class GalleryApp extends StatefulWidget {
   const GalleryApp({super.key});
+
+  @override
+  State<GalleryApp> createState() => _GalleryAppState();
+}
+
+class _GalleryAppState extends State<GalleryApp> {
+  // Default to dark so the Aurora surfaces (violet-lit cards + glow headers)
+  // are visible on first load; the AppBar action toggles light/dark.
+  ThemeMode _mode = ThemeMode.dark;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'flare_im_ui gallery',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(useMaterial3: true),
-      home: const _Gallery(),
+      theme: ThemeData(useMaterial3: true, brightness: Brightness.light),
+      darkTheme: ThemeData(useMaterial3: true, brightness: Brightness.dark),
+      themeMode: _mode,
+      home: _Gallery(
+        isDark: _mode == ThemeMode.dark,
+        onToggleTheme: () => setState(
+            () => _mode = _mode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark),
+      ),
     );
   }
 }
@@ -54,10 +69,34 @@ class _Section extends StatelessWidget {
 }
 
 class _Gallery extends StatelessWidget {
-  const _Gallery();
+  const _Gallery({required this.isDark, required this.onToggleTheme});
+  final bool isDark;
+  final VoidCallback onToggleTheme;
 
   @override
   Widget build(BuildContext context) {
+    final moment = FlareMoment(
+      id: 'm1',
+      author: const FlareMomentAuthor(id: 'u2', name: 'Ivy Chen'),
+      text: '新版 Aurora 主题上线 ✨ 深色下用品牌紫做「暗处的光源」，卡片浮起来了。',
+      images: const [FlareGridImage(alt: '设计稿一'), FlareGridImage(alt: '设计稿二')],
+      location: '深圳·科技园',
+      time: '刚刚',
+      likes: const [FlareMomentLike(id: 'u1', name: 'Henry'), FlareMomentLike(id: 'u3', name: 'Kai')],
+      comments: const [
+        FlareMomentComment(id: 'c1', author: FlareMomentAuthor(id: 'u1', name: 'Henry'), text: '这个紫太顶了', time: '刚刚'),
+      ],
+      likedBySelf: true,
+    );
+    const profile = FlareUserProfile(
+      id: 'u2', name: 'Ivy Chen', signature: '设计即沟通', flareId: 'ivy_chen',
+    );
+    const profileEntries = [
+      FlareSettingsItem(key: 'moments', label: '我的圈子', icon: Icons.photo_library_outlined, kind: FlareSettingKind.navigation),
+      FlareSettingsItem(key: 'favorites', label: '收藏', icon: Icons.star_outline, kind: FlareSettingKind.navigation),
+      FlareSettingsItem(key: 'settings', label: '设置', icon: Icons.settings_outlined, kind: FlareSettingKind.navigation),
+    ];
+
     final contacts = [
       FlareContact(id: 'u1', name: 'Henry Ford', signature: 'Keep it simple.', presence: FlarePresence.online),
       FlareContact(id: 'u2', name: 'Ivy Chen', signature: '设计即沟通', presence: FlarePresence.busy),
@@ -69,9 +108,41 @@ class _Gallery extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('flare_im_ui · 组件 Gallery')),
+      appBar: AppBar(
+        title: const Text('flare_im_ui · 组件 Gallery'),
+        actions: [
+          IconButton(
+            tooltip: isDark ? '切换浅色' : '切换深色',
+            icon: Icon(isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
+            onPressed: onToggleTheme,
+          ),
+        ],
+      ),
       body: ListView(
         children: [
+          _Section('FlareScreen (aurora)', SizedBox(
+            height: 200,
+            child: FlareScreen(
+              title: '我的',
+              surface: FlareScreenSurface.aurora,
+              scroll: false,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: FlareProfileCard(
+                  user: const FlareContact(
+                      id: 'u2', name: 'Ivy Chen', signature: '设计即沟通', presence: FlarePresence.online),
+                ),
+              ),
+            ),
+          )),
+          _Section('MomentsCoverHeader', FlareMomentsCoverHeader(
+            userId: profile.id, name: profile.name, signature: profile.signature,
+          )),
+          _Section('MomentCard (elevated)', FlareMomentCard(moment: moment)),
+          _Section('ProfilePanel (aurora header)', SizedBox(
+            height: 320,
+            child: FlareProfilePanel(user: profile, entries: profileEntries),
+          )),
           _Section('Avatar', Row(children: const [
             FlareAvatar(userId: 'u1', displayName: 'Ivy Chen', presence: FlarePresence.online),
             SizedBox(width: 12),
