@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { NIcon } from "naive-ui";
-import { GiftOutline } from "@vicons/ionicons5";
+import { GiftOutline } from "../../shared/icon-glyphs";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 
 const props = withDefaults(

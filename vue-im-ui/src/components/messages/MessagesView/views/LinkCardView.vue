@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { LinkOutline } from "@vicons/ionicons5";
+import { LinkOutline } from "../../../../shared/icon-glyphs";
 import { NIcon } from "naive-ui";
 import type { ContentElem } from "../../../../utils/contentElem";
 import { pickNestedPayload } from "../../../../utils/contentElem";

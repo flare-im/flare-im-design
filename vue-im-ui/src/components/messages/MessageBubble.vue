@@ -7,7 +7,7 @@ import {
   FolderOpenOutline,
   PinOutline,
   RefreshOutline,
-} from "@vicons/ionicons5";
+} from "../../shared/icon-glyphs";
 import { NButton, NIcon } from "naive-ui";
 import type { DropdownOption } from "naive-ui";
 import { messageContentTypeForUi } from "../../utils/messageContent";

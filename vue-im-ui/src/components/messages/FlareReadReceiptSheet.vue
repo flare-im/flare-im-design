@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { NIcon } from "naive-ui";
-import { CloseOutline, CheckmarkDoneOutline } from "@vicons/ionicons5";
+import { CloseOutline, CheckmarkDoneOutline } from "../../shared/icon-glyphs";
 import FlareAvatar from "../conversation/FlareAvatar.vue";
 import FlareFilterTabs, { type FlareFilterTabOption } from "../general/FlareFilterTabs.vue";
 import FlareEmptyState from "../general/FlareEmptyState.vue";

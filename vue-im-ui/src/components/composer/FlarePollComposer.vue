@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { NIcon } from "naive-ui";
-import { AddOutline, CloseOutline, CheckboxOutline } from "@vicons/ionicons5";
+import { AddOutline, CloseOutline, CheckboxOutline } from "../../shared/icon-glyphs";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 
 const props = withDefaults(defineProps<{ maxOptions?: number }>(), { maxOptions: 10 });

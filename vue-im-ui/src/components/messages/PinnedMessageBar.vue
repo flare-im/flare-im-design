@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronForwardOutline, PinOutline } from "@vicons/ionicons5";
+import { ChevronForwardOutline, PinOutline } from "../../shared/icon-glyphs";
 import { NIcon } from "naive-ui";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 import { previewTextFromMessageContent } from "../../utils/messagePreview";

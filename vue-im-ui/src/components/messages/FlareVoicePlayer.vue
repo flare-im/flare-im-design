@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { NIcon } from "naive-ui";
-import { PlayOutline, PauseOutline, DocumentTextOutline } from "@vicons/ionicons5";
+import { PlayOutline, PauseOutline, DocumentTextOutline } from "../../shared/icon-glyphs";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 
 const props = withDefaults(

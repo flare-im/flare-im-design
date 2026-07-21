@@ -6,7 +6,7 @@ import {
   CallOutline,
   ExpandOutline,
   VideocamOutline,
-} from "@vicons/ionicons5";
+} from "../../shared/icon-glyphs";
 import FlareAvatar from "../conversation/FlareAvatar.vue";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 import type { FlareCallMode } from "../../shared/contracts";

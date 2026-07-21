@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronDownOutline } from "@vicons/ionicons5";
+import { ChevronDownOutline } from "../../shared/icon-glyphs";
 import { NIcon } from "naive-ui";
 import { MESSAGE_EXTENDED_REACTIONS } from "../../shared/constants/messageReactions";
 

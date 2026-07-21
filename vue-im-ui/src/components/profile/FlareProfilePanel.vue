@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { NIcon } from "naive-ui";
-import { QrCodeOutline } from "@vicons/ionicons5";
+import { QrCodeOutline } from "../../shared/icon-glyphs";
 import FlareAvatar from "../conversation/FlareAvatar.vue";
 import FlareSettingsRow from "./FlareSettingsRow.vue";
 import type { FlareUserProfile, FlareSettingsItem } from "../../shared/contracts";

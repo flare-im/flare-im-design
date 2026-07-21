@@ -1,6 +1,6 @@
 // Flare icon library — a curated set of semantic icon names shared across all
 // four platforms. Each platform maps the SAME name to its native glyph source
-// (Web → @vicons/ionicons5, iOS → SF Symbols, Flutter/Android → Material Icons).
+// (Web → Lucide via ./icon-glyphs, iOS → SF Symbols, Flutter/Android → Material Icons).
 // Consumers use `<FlareIcon name="search" />` instead of importing icons directly.
 import type { Component } from "vue";
 import {
@@ -56,7 +56,7 @@ import {
   EyeOffOutline,
   LockClosedOutline,
   QrCodeOutline,
-} from "@vicons/ionicons5";
+} from "./icon-glyphs";
 
 /** The canonical Flare icon name set (single source; native maps the same keys). */
 export const flareIcons = {

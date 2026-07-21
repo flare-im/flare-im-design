@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { ChevronDownOutline, ChevronForwardOutline, ChevronUpOutline } from "@vicons/ionicons5";
+import { ChevronDownOutline, ChevronForwardOutline, ChevronUpOutline } from "../../shared/icon-glyphs";
 import { NIcon } from "naive-ui";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 import type { FlareBusinessDetailRow } from "../../shared/contracts/message";

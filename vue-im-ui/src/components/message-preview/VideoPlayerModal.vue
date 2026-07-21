@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from "vue";
-import { CloseOutline } from "@vicons/ionicons5";
+import { CloseOutline } from "../../shared/icon-glyphs";
 import { NIcon } from "naive-ui";
 
 const props = withDefaults(

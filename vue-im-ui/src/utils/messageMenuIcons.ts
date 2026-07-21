@@ -12,7 +12,7 @@ import {
   PinOutline,
   RefreshOutline,
   TrashOutline,
-} from "@vicons/ionicons5";
+} from "../shared/icon-glyphs";
 import { NIcon } from "naive-ui";
 import type { MessageMenuSheetIcon } from "./buildMessageMenuOptions";
 

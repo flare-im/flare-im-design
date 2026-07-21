@@ -9,7 +9,7 @@ import {
   LocationOutline,
   TextOutline,
   VideocamOutline,
-} from "@vicons/ionicons5";
+} from "../../shared/icon-glyphs";
 import { NIcon } from "naive-ui";
 
 const actions = [

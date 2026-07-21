@@ -119,7 +119,7 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { NIcon } from 'naive-ui';
 import type { Component } from 'vue';
-import { AddOutline, ContractOutline, RemoveOutline, SyncOutline } from '@vicons/ionicons5';
+import { AddOutline, ContractOutline, RemoveOutline, SyncOutline } from "../../shared/icon-glyphs";
 
 const ZOOM_STEP = 1.15;
 

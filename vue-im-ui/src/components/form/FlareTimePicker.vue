@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onBeforeUnmount, nextTick } from "vue";
 import { NIcon } from "naive-ui";
-import { TimeOutline } from "@vicons/ionicons5";
+import { TimeOutline } from "../../shared/icon-glyphs";
 import type { FlareControlSize } from "../../shared/contracts";
 import { useFlareConfig } from "../../shared/useFlareConfig";
 import { useFlareAdaptiveSafe } from "../../composables/useAdaptiveMode";

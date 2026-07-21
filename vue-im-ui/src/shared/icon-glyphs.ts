@@ -1,0 +1,126 @@
+// AUTO-GENERATED drop-in shim: re-exports the ionicons5 names the kit uses,
+// each backed by a Lucide glyph (thin-line / Feishu style). This is the single
+// seam that swaps the kit's web icon set — all components import their icons from
+// here instead of "./icon-glyphs", so call sites never change.
+//
+// Each export is a functional component sized to 1em so naive-ui <n-icon>'s
+// font-size sizing keeps working, and inheriting currentColor. Regenerate via
+// scratchpad/gen_shim.mjs if the used-icon set changes.
+import { h, type Component, type FunctionalComponent } from "vue";
+import * as lucide from "lucide-vue-next";
+
+const STROKE = 1.75;
+function glyph(name: string, filled = false): FunctionalComponent {
+  const Lucide = (lucide as Record<string, Component>)[name];
+  const C: FunctionalComponent = (_props, { attrs }) =>
+    h(Lucide, { size: "1em", "stroke-width": STROKE, ...(filled ? { fill: "currentColor" } : {}), ...attrs });
+  (C as { displayName?: string }).displayName = name;
+  return C;
+}
+
+export const AddCircleOutline = /*#__PURE__*/ glyph("CirclePlus");
+export const AddOutline = /*#__PURE__*/ glyph("Plus");
+export const AlertCircleOutline = /*#__PURE__*/ glyph("CircleAlert");
+export const AppsOutline = /*#__PURE__*/ glyph("LayoutGrid");
+export const ArchiveOutline = /*#__PURE__*/ glyph("Archive");
+export const ArrowBackOutline = /*#__PURE__*/ glyph("ArrowLeft");
+export const ArrowDownOutline = /*#__PURE__*/ glyph("ArrowDown");
+export const ArrowRedoOutline = /*#__PURE__*/ glyph("Forward");
+export const ArrowUndoOutline = /*#__PURE__*/ glyph("Reply");
+export const AtOutline = /*#__PURE__*/ glyph("AtSign");
+export const BanOutline = /*#__PURE__*/ glyph("Ban");
+export const BookmarkOutline = /*#__PURE__*/ glyph("Bookmark");
+export const CalendarOutline = /*#__PURE__*/ glyph("Calendar");
+export const CallOutline = /*#__PURE__*/ glyph("Phone");
+export const CameraOutline = /*#__PURE__*/ glyph("Camera");
+export const CameraReverseOutline = /*#__PURE__*/ glyph("SwitchCamera");
+export const ChatbubbleEllipsesOutline = /*#__PURE__*/ glyph("MessageCircleMore");
+export const ChatbubbleOutline = /*#__PURE__*/ glyph("MessageCircle");
+export const ChatbubblesOutline = /*#__PURE__*/ glyph("MessagesSquare");
+export const CheckboxOutline = /*#__PURE__*/ glyph("SquareCheck");
+export const CheckmarkCircle = /*#__PURE__*/ glyph("CircleCheck", true);
+export const CheckmarkCircleOutline = /*#__PURE__*/ glyph("CircleCheck");
+export const CheckmarkDoneOutline = /*#__PURE__*/ glyph("CheckCheck");
+export const CheckmarkOutline = /*#__PURE__*/ glyph("Check");
+export const ChevronBackOutline = /*#__PURE__*/ glyph("ChevronLeft");
+export const ChevronDownOutline = /*#__PURE__*/ glyph("ChevronDown");
+export const ChevronForwardOutline = /*#__PURE__*/ glyph("ChevronRight");
+export const ChevronUpOutline = /*#__PURE__*/ glyph("ChevronUp");
+export const CloseCircle = /*#__PURE__*/ glyph("CircleX", true);
+export const CloseCircleOutline = /*#__PURE__*/ glyph("CircleX");
+export const CloseOutline = /*#__PURE__*/ glyph("X");
+export const CloudDoneOutline = /*#__PURE__*/ glyph("CloudCheck");
+export const CloudDownloadOutline = /*#__PURE__*/ glyph("CloudDownload");
+export const CodeSlashOutline = /*#__PURE__*/ glyph("Code");
+export const CodeWorkingOutline = /*#__PURE__*/ glyph("CodeXml");
+export const ContractOutline = /*#__PURE__*/ glyph("Shrink");
+export const CopyOutline = /*#__PURE__*/ glyph("Copy");
+export const CreateOutline = /*#__PURE__*/ glyph("Pencil");
+export const DocumentOutline = /*#__PURE__*/ glyph("File");
+export const DocumentTextOutline = /*#__PURE__*/ glyph("FileText");
+export const DownloadOutline = /*#__PURE__*/ glyph("Download");
+export const EarthOutline = /*#__PURE__*/ glyph("Earth");
+export const EllipsisHorizontal = /*#__PURE__*/ glyph("Ellipsis");
+export const EllipsisHorizontalOutline = /*#__PURE__*/ glyph("Ellipsis");
+export const ExpandOutline = /*#__PURE__*/ glyph("Expand");
+export const EyeOffOutline = /*#__PURE__*/ glyph("EyeOff");
+export const EyeOutline = /*#__PURE__*/ glyph("Eye");
+export const FileTrayOutline = /*#__PURE__*/ glyph("Inbox");
+export const FlagOutline = /*#__PURE__*/ glyph("Flag");
+export const FlashOutline = /*#__PURE__*/ glyph("Zap");
+export const FlaskOutline = /*#__PURE__*/ glyph("FlaskConical");
+export const FolderOpenOutline = /*#__PURE__*/ glyph("FolderOpen");
+export const FolderOutline = /*#__PURE__*/ glyph("Folder");
+export const GiftOutline = /*#__PURE__*/ glyph("Gift");
+export const HappyOutline = /*#__PURE__*/ glyph("Smile");
+export const Heart = /*#__PURE__*/ glyph("Heart", true);
+export const HeartDislikeOutline = /*#__PURE__*/ glyph("HeartOff");
+export const HeartOutline = /*#__PURE__*/ glyph("Heart");
+export const ImageOutline = /*#__PURE__*/ glyph("Image");
+export const InformationCircle = /*#__PURE__*/ glyph("Info", true);
+export const InformationCircleOutline = /*#__PURE__*/ glyph("Info");
+export const LanguageOutline = /*#__PURE__*/ glyph("Languages");
+export const LibraryOutline = /*#__PURE__*/ glyph("Library");
+export const LinkOutline = /*#__PURE__*/ glyph("Link");
+export const ListOutline = /*#__PURE__*/ glyph("List");
+export const LocationOutline = /*#__PURE__*/ glyph("MapPin");
+export const LockClosedOutline = /*#__PURE__*/ glyph("Lock");
+export const LogInOutline = /*#__PURE__*/ glyph("LogIn");
+export const LogOutOutline = /*#__PURE__*/ glyph("LogOut");
+export const MailUnreadOutline = /*#__PURE__*/ glyph("MailOpen");
+export const MegaphoneOutline = /*#__PURE__*/ glyph("Megaphone");
+export const MicOffOutline = /*#__PURE__*/ glyph("MicOff");
+export const MicOutline = /*#__PURE__*/ glyph("Mic");
+export const NotificationsOffOutline = /*#__PURE__*/ glyph("BellOff");
+export const NotificationsOutline = /*#__PURE__*/ glyph("Bell");
+export const PauseOutline = /*#__PURE__*/ glyph("Pause");
+export const PeopleOutline = /*#__PURE__*/ glyph("Users");
+export const PersonAddOutline = /*#__PURE__*/ glyph("UserPlus");
+export const PersonOutline = /*#__PURE__*/ glyph("User");
+export const PinOutline = /*#__PURE__*/ glyph("Pin");
+export const PlanetOutline = /*#__PURE__*/ glyph("Compass");
+export const PlayCircleOutline = /*#__PURE__*/ glyph("CirclePlay");
+export const PlayOutline = /*#__PURE__*/ glyph("Play");
+export const QrCodeOutline = /*#__PURE__*/ glyph("QrCode");
+export const ReaderOutline = /*#__PURE__*/ glyph("Quote");
+export const RefreshOutline = /*#__PURE__*/ glyph("RefreshCw");
+export const RemoveOutline = /*#__PURE__*/ glyph("Minus");
+export const ReorderThreeOutline = /*#__PURE__*/ glyph("ListOrdered");
+export const ReturnUpBackOutline = /*#__PURE__*/ glyph("Reply");
+export const SearchOutline = /*#__PURE__*/ glyph("Search");
+export const SendOutline = /*#__PURE__*/ glyph("Send");
+export const SettingsOutline = /*#__PURE__*/ glyph("Settings");
+export const ShareSocialOutline = /*#__PURE__*/ glyph("Share2");
+export const Star = /*#__PURE__*/ glyph("Star", true);
+export const StarOutline = /*#__PURE__*/ glyph("Star");
+export const SyncOutline = /*#__PURE__*/ glyph("RefreshCw");
+export const TerminalOutline = /*#__PURE__*/ glyph("Terminal");
+export const TextOutline = /*#__PURE__*/ glyph("Type");
+export const ThumbsUpOutline = /*#__PURE__*/ glyph("ThumbsUp");
+export const TimeOutline = /*#__PURE__*/ glyph("Clock");
+export const TrashOutline = /*#__PURE__*/ glyph("Trash2");
+export const VideocamOffOutline = /*#__PURE__*/ glyph("VideoOff");
+export const VideocamOutline = /*#__PURE__*/ glyph("Video");
+export const VolumeHighOutline = /*#__PURE__*/ glyph("Volume2");
+export const VolumeMuteOutline = /*#__PURE__*/ glyph("VolumeX");
+export const WarningOutline = /*#__PURE__*/ glyph("TriangleAlert");

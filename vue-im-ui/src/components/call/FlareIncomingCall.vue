@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { NIcon } from "naive-ui";
-import { CallOutline, VideocamOutline } from "@vicons/ionicons5";
+import { CallOutline, VideocamOutline } from "../../shared/icon-glyphs";
 import FlareAvatar from "../conversation/FlareAvatar.vue";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 

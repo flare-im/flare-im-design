@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { ChatbubbleEllipsesOutline, FlaskOutline, SearchOutline } from "@vicons/ionicons5";
+import { ChatbubbleEllipsesOutline, FlaskOutline, SearchOutline } from "../../shared/icon-glyphs";
 import { NButton, NIcon } from "naive-ui";
 import { useRouter } from "vue-router";
 import { loginTransportDisplayName, useFlareWorkbenchUi } from "flare-core-vue-im-ui/composables";

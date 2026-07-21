@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { NIcon } from "naive-ui";
-import { ChevronBackOutline } from "@vicons/ionicons5";
+import { ChevronBackOutline } from "../../shared/icon-glyphs";
 import { FLARE_BREAKPOINT_H5_MAX, FLARE_BREAKPOINT_IPAD_MAX } from "../../shared/contracts";
 
 type Pane = "list" | "chat" | "detail";

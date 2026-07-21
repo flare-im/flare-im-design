@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { NIcon } from "naive-ui";
-import { EllipsisHorizontal, HeartOutline, LocationOutline } from "@vicons/ionicons5";
+import { EllipsisHorizontal, HeartOutline, LocationOutline } from "../../shared/icon-glyphs";
 import FlareAvatar from "../conversation/FlareAvatar.vue";
 import FlareImageGrid from "../messages/FlareImageGrid.vue";
 import FlareCommentThread from "./FlareCommentThread.vue";

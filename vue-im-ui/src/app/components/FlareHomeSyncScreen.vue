@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { NButton, NIcon, NProgress, NTag, useMessage } from "naive-ui";
-import { ChatbubbleEllipsesOutline, CheckmarkCircleOutline, RefreshOutline } from "@vicons/ionicons5";
+import { ChatbubbleEllipsesOutline, CheckmarkCircleOutline, RefreshOutline } from "../../shared/icon-glyphs";
 import { useFlareSdk } from "../sdk/flareSdkContext";
 import { useFlareI18n } from "../shared/i18n";
 const { t } = useFlareI18n();

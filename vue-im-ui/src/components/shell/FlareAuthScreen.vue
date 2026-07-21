@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { ChatbubbleOutline, ChevronDownOutline, InformationCircleOutline, LogInOutline, PersonOutline } from "@vicons/ionicons5";
+import { ChatbubbleOutline, ChevronDownOutline, InformationCircleOutline, LogInOutline, PersonOutline } from "../../shared/icon-glyphs";
 import { NButton, NCollapseTransition, NForm, NFormItem, NIcon, NInput, NSelect } from "naive-ui";
 import { useViewport } from "../../composables/useViewport";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";

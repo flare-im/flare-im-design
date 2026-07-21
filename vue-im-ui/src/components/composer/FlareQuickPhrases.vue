@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { NIcon } from "naive-ui";
-import { FlashOutline, CreateOutline } from "@vicons/ionicons5";
+import { FlashOutline, CreateOutline } from "../../shared/icon-glyphs";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 import type { FlareQuickPhraseGroup } from "../../shared/contracts";
 

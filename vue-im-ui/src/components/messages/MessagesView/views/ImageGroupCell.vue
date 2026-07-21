@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { DownloadOutline, EyeOutline, ImageOutline } from "@vicons/ionicons5";
+import { DownloadOutline, EyeOutline, ImageOutline } from "../../../../shared/icon-glyphs";
 import { NIcon } from "naive-ui";
 import { asRecord, readString } from "../../../../utils/contentData";
 import { downloadUrlWithFileName } from "../../../../utils/browserDownload";
