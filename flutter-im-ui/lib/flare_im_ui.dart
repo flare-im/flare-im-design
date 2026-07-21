@@ -26,6 +26,7 @@ export 'src/components/flare_avatar.dart';
 export 'src/components/flare_time_stamp.dart';
 export 'src/components/flare_message_status.dart';
 export 'src/components/flare_conversation_row.dart';
+export 'src/components/flare_screen.dart';
 export 'src/components/flare_conversation_list.dart';
 export 'src/components/flare_message_content_view.dart';
 export 'src/components/flare_message_bodies.dart';
