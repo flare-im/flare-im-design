@@ -176,10 +176,12 @@ public struct MomentsCoverHeaderView: View {
     }
 
     private var gradient: some View {
+        // Aurora — a deep violet light source rather than a flat two-stop gradient.
         LinearGradient(
             colors: [
-                Color(.sRGB, red: 0x6D / 255, green: 0x5B / 255, blue: 0xD0 / 255, opacity: 1),
-                Color(.sRGB, red: 0xB4 / 255, green: 0x8B / 255, blue: 0xF0 / 255, opacity: 1),
+                Color(.sRGB, red: 0x3B / 255, green: 0x1F / 255, blue: 0x7A / 255, opacity: 1),
+                Color(.sRGB, red: 0x7C / 255, green: 0x3A / 255, blue: 0xED / 255, opacity: 1),
+                Color(.sRGB, red: 0xA7 / 255, green: 0x8B / 255, blue: 0xFA / 255, opacity: 1),
             ],
             startPoint: .topLeading, endPoint: .bottomTrailing)
     }
@@ -437,7 +439,9 @@ public struct MomentCardView: View {
             }
         }
         .padding(16)
-        .background(colors.bgPrimary)
+        // Aurora — the card floats on an elevated surface + shadow (deeper in dark).
+        .background(RoundedRectangle(cornerRadius: 18).fill(colors.bgElevated))
+        .shadow(color: Color.black.opacity(scheme == .dark ? 0.5 : 0.1), radius: 20, y: 8)
     }
 
     private func meta(_ colors: FlareColors) -> some View {

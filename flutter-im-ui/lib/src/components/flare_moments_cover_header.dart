@@ -157,12 +157,14 @@ class FlareMomentsCoverHeader extends StatelessWidget {
   }
 
   Widget _gradient() {
+    // Aurora — a deep violet light source rather than a flat two-stop gradient.
     return const DecoratedBox(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF6D5BD0), Color(0xFFB48BF0)],
+          colors: [Color(0xFF3B1F7A), Color(0xFF7C3AED), Color(0xFFA78BFA)],
+          stops: [0.0, 0.55, 1.0],
         ),
       ),
     );

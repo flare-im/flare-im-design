@@ -26,20 +26,28 @@ public struct ProfilePanelView: View {
                 HStack(spacing: FlareSizes.spacingMd) {
                     AvatarView(userId: user.id, displayName: user.name, avatarURL: user.avatarURL, size: 56)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(user.name).font(.system(size: FlareSizes.fontSize3xl, weight: .semibold)).foregroundColor(colors.textPrimary)
+                        Text(user.name).font(.system(size: FlareSizes.fontSize3xl, weight: .bold)).foregroundColor(.white)
                         // The model carries a signature — render it (it was silently dropped before).
                         if let s = user.signature, !s.isEmpty {
-                            Text(s).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textSecondary)
+                            Text(s).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(.white.opacity(0.82))
                         }
                         if let f = user.flareId, !f.isEmpty {
-                            Text("Flare ID: \(f)").font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
+                            Text("Flare ID: \(f)").font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(.white.opacity(0.62))
                         }
                     }
                     Spacer()
-                    Image(systemName: "qrcode").foregroundColor(colors.textTertiary)
+                    Image(systemName: "qrcode").foregroundColor(.white.opacity(0.9))
                 }
                 .padding(FlareSizes.spacingLg)
-                .background(colors.bgSelected)
+                // Aurora glow header — a violet light source, white text over it.
+                .background(
+                    LinearGradient(
+                        colors: [
+                            Color(.sRGB, red: 0x3B / 255, green: 0x1F / 255, blue: 0x7A / 255, opacity: 1),
+                            Color(.sRGB, red: 0x7C / 255, green: 0x3A / 255, blue: 0xED / 255, opacity: 1),
+                            Color(.sRGB, red: 0x8B / 255, green: 0x5C / 255, blue: 0xF6 / 255, opacity: 1),
+                        ],
+                        startPoint: .topLeading, endPoint: .bottomTrailing))
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
