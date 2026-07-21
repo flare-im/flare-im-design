@@ -2,8 +2,9 @@
 import { computed, nextTick, onBeforeUnmount, ref, watch, type Component } from "vue";
 import {
   AddCircleOutline,
+  AddOutline,
   AppsOutline,
-  AtCircleOutline,
+  AtOutline,
   CalendarOutline,
   ChatbubblesOutline,
   CheckboxOutline,
@@ -965,7 +966,7 @@ onBeforeUnmount(() => {
         </n-button>
         <div class="composer-mention-anchor">
           <n-button circle quaternary :title="t('composer.mention')" :aria-label="t('composer.mention')" :disabled="disabled" @click="openMentionPicker">
-            <template #icon><n-icon :size="22" :component="AtCircleOutline" /></template>
+            <template #icon><n-icon :size="22" :component="AtOutline" /></template>
           </n-button>
           <div v-if="mentionMenuOpen && mentionCandidates.length" class="composer-mention-menu" role="listbox">
             <button
@@ -1005,7 +1006,7 @@ onBeforeUnmount(() => {
         </n-button>
         <n-button circle quaternary :title="t('composer.more')" :aria-label="t('composer.more')" :disabled="disabled" @click="toggle('more')">
           <template #icon>
-            <n-icon :size="22" :component="activePanel === 'more' ? CloseOutline : AddCircleOutline" />
+            <n-icon :size="22" :component="activePanel === 'more' ? CloseOutline : AddOutline" />
           </template>
         </n-button>
         <button

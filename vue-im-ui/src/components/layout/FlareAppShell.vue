@@ -3,7 +3,19 @@ import { ref, computed, onMounted, onUnmounted } from "vue";
 import { FLARE_BREAKPOINT_H5_MAX } from "../../shared/contracts";
 import type { FlareNavItem } from "../../shared/contracts";
 
-defineProps<{ items: FlareNavItem[]; activeKey: string }>();
+withDefaults(
+  defineProps<{
+    items: FlareNavItem[];
+    activeKey: string;
+    /**
+     * Hide the phone bottom tab bar (e.g. while a conversation is open, so the
+     * chat gets the full height — WeChat/Feishu behaviour). Ignored on the
+     * tablet/desktop side rail, which always stays visible.
+     */
+    hideBottomNav?: boolean;
+  }>(),
+  { hideBottomNav: false },
+);
 const emit = defineEmits<{ (e: "navigate", key: string): void }>();
 
 const width = ref(1280);
@@ -40,7 +52,7 @@ const rail = computed(() => width.value > FLARE_BREAKPOINT_H5_MAX);
 
     <div class="flare-shell__content"><slot /></div>
 
-    <nav v-if="!rail" class="flare-shell__bottom">
+    <nav v-if="!rail && !hideBottomNav" class="flare-shell__bottom">
       <button
         v-for="it in items"
         :key="it.key"
