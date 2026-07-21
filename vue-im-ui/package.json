@@ -76,7 +76,8 @@
   "scripts": {
     "test": "vitest run",
     "test:browser-download": "node scripts/browser-download-regression.mjs",
-    "typecheck": "vue-tsc --noEmit -p tsconfig.json"
+    "typecheck": "vue-tsc --noEmit -p tsconfig.json",
+    "gen:icons": "node scripts/gen-icon-shim.mjs"
   },
   "devDependencies": {
     "@types/markdown-it": "^14.1.2",
