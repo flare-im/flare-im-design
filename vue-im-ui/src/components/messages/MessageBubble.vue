@@ -52,6 +52,8 @@ const props = defineProps<{
   groupStart?: boolean;
   groupEnd?: boolean;
   mediaDownloadState?: MessageMediaDownloadUiState;
+  /** Just-arrived (appended at the tail) — plays a one-shot entrance animation. */
+  fresh?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -365,6 +367,7 @@ function bubbleA11yLabel(): string {
       'message-row--failed': isFailed,
       'message-row--group-start': isGroupStart,
       'message-row--group-end': isGroupEnd,
+      'message-row--fresh': fresh,
       'message-row--with-meta': showSenderMeta,
       'message-row--with-avatar': showSenderAvatar,
     }"

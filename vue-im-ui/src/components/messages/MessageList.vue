@@ -107,6 +107,34 @@ const displayMessages = computed(() =>
   normalizeMessageRowsForVirtualList(props.messages),
 );
 
+// One-shot entrance for messages that arrive at the tail (just sent/received) —
+// NOT history prepends and NOT the initial mount, so the virtualized list never
+// re-animates a bubble that merely scrolls back into view. Ids clear after the
+// animation window.
+const freshIds = ref<Set<string>>(new Set());
+watch(
+  () => props.messages,
+  (next, prev) => {
+    if (!prev || prev.length === 0 || next.length <= prev.length) return;
+    const prevIds = new Set(prev.map((m) => messageActionId(m)));
+    const appended: string[] = [];
+    for (let index = next.length - 1; index >= 0; index -= 1) {
+      const id = messageActionId(next[index]);
+      if (prevIds.has(id)) break; // reached the pre-existing tail → stop
+      appended.push(id);
+    }
+    if (!appended.length) return; // new ids were prepended (history) → skip
+    freshIds.value = new Set([...freshIds.value, ...appended]);
+    const timer = window.setTimeout(() => {
+      const cleared = new Set(freshIds.value);
+      appended.forEach((id) => cleared.delete(id));
+      freshIds.value = cleared;
+      pendingTimers.delete(timer);
+    }, 460);
+    pendingTimers.add(timer);
+  },
+);
+
 const timelineRows = computed<TimelineRow[]>(() => {
   const rows: TimelineRow[] = [];
   const messages = displayMessages.value;
@@ -797,6 +825,7 @@ defineExpose({
             :conversation-type="conversationType"
             :group-start="item.groupStart"
             :group-end="item.groupEnd"
+            :fresh="freshIds.has(messageActionId(item.message))"
             @react="(id: string, emoji: string) => $emit('react', id, emoji)"
             @edit="$emit('edit', $event)"
             @delete="$emit('delete', $event)"
