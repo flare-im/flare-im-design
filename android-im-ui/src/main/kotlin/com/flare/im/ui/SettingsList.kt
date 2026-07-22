@@ -1,5 +1,6 @@
 package com.flare.im.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,6 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Divider
@@ -32,17 +36,30 @@ fun SettingsList(
 ) {
     val colors = flareColors()
     LazyColumn(Modifier.fillMaxWidth()) {
-        sections.forEach { section ->
+        sections.forEachIndexed { sIndex, section ->
             if (!section.title.isNullOrEmpty()) {
                 item(key = "t-${section.title}") {
                     Text(section.title, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp,
-                        modifier = Modifier.padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingSm))
+                        modifier = Modifier.padding(
+                            start = FlareSizes.spacingLg, end = FlareSizes.spacingLg,
+                            top = FlareSizes.spacingMd, bottom = FlareSizes.spacingSm,
+                        ))
                 }
             }
-            section.items.forEachIndexed { i, item ->
-                item(key = item.key) {
-                    if (i > 0) Divider(color = colors.borderSecondary, modifier = Modifier.padding(start = FlareSizes.spacingMd))
-                    SettingsRow(item = item, onToggle = onToggle, onSelect = onSelect)
+            // Aurora — a section's rows float together on one elevated grouped card
+            // (iOS-style), matching the Vue/Flutter settings surface.
+            item(key = "card-${section.title ?: section.items.firstOrNull()?.key ?: sIndex}") {
+                Column(
+                    Modifier.fillMaxWidth()
+                        .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingXs)
+                        .shadow(2.dp, RoundedCornerShape(16.dp), clip = false)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(colors.bgElevated),
+                ) {
+                    section.items.forEachIndexed { i, item ->
+                        if (i > 0) Divider(color = colors.borderSecondary, modifier = Modifier.padding(start = FlareSizes.spacingMd))
+                        SettingsRow(item = item, onToggle = onToggle, onSelect = onSelect)
+                    }
                 }
             }
         }
