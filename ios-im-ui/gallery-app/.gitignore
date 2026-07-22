@@ -1,0 +1,5 @@
+# xcodegen-generated project (regenerate with `xcodegen generate`)
+*.xcodeproj/
+# build output
+build/
+DerivedData/
