@@ -749,10 +749,9 @@
     max-width: min(var(--im-bubble-max-width), calc(100% - var(--im-message-tail-space, 0px)));
   }
 
-  .message-row:not(.message-row--self):not(.message-row--system) {
-    padding-left: 0;
-  }
-
+  /* Reserve the avatar gutter for every received row so a run's messages align
+     (the avatar renders only on the first). */
+  .message-row:not(.message-row--self):not(.message-row--system),
   .message-row--with-avatar:not(.message-row--self):not(.message-row--system) {
     padding-left: 40px;
   }
