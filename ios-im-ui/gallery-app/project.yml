@@ -1,0 +1,31 @@
+# xcodegen spec — a tiny runnable iOS app that renders the FlareIMUI Aurora
+# components on a simulator (verification beyond `swift build`).
+#   xcodegen generate
+#   xcodebuild -project FlareIMUIGallery.xcodeproj -scheme FlareIMUIGallery \
+#     -destination 'platform=iOS Simulator,name=iPhone 16' build
+name: FlareIMUIGallery
+options:
+  bundleIdPrefix: com.flare.im.gallery
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+packages:
+  FlareIMUI:
+    path: ..
+targets:
+  FlareIMUIGallery:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources/GalleryApp
+    dependencies:
+      - package: FlareIMUI
+        product: FlareIMUI
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.flare.im.gallery.app
+        GENERATE_INFOPLIST_FILE: "YES"
+        INFOPLIST_KEY_UILaunchScreen_Generation: "YES"
+        INFOPLIST_KEY_CFBundleDisplayName: FlareGallery
+        ONLY_ACTIVE_ARCH: "YES"
+        SWIFT_VERSION: "6.0"
