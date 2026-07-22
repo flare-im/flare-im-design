@@ -2,6 +2,7 @@ package com.flare.im.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -26,7 +27,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -66,7 +70,12 @@ fun ConversationRow(
                     )
                 else Modifier,
             )
-            .background(if (active) colors.bgSelected else Color.Transparent)
+            // Pinned rows read as a group via a whisper of violet tint; active wins.
+            .background(
+                if (active) colors.bgSelected
+                else if (item.pinned) colors.primary.copy(alpha = 0.05f)
+                else Color.Transparent,
+            )
             .padding(horizontal = FlareSizes.spacingSm, vertical = FlareSizes.spacingMd),
     ) {
         Box(contentAlignment = Alignment.BottomEnd) {
@@ -109,14 +118,33 @@ fun ConversationRow(
                 )
                 if (item.hasUnread) {
                     Spacer(Modifier.width(FlareSizes.spacingSm))
-                    Box(
-                        Modifier.defaultMinSize(minWidth = 22.dp, minHeight = 22.dp)
-                            .clip(RoundedCornerShape(999.dp)).background(colors.primary)
-                            .padding(horizontal = 7.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(if (item.unreadCount > 99) "99+" else "${item.unreadCount}",
-                            color = Color.White, fontSize = FlareSizes.fontSizeXs.value.sp, fontWeight = FontWeight.SemiBold)
+                    if (item.muted) {
+                        // Muted conversations don't shout — a quiet neutral dot.
+                        Box(Modifier.size(9.dp).clip(CircleShape).background(colors.textTertiary))
+                    } else {
+                        // A mini Aurora light source — violet gradient + violet glow,
+                        // echoing the glowing message bubble.
+                        val dark = isSystemInDarkTheme()
+                        val base = colors.primary
+                        val badgeBrush = Brush.linearGradient(
+                            listOf(lerp(base, Color.White, 0.18f), base, lerp(base, Color.Black, 0.12f)),
+                        )
+                        Box(
+                            Modifier.defaultMinSize(minWidth = 22.dp, minHeight = 22.dp)
+                                .shadow(
+                                    if (dark) 8.dp else 5.dp,
+                                    RoundedCornerShape(999.dp),
+                                    clip = false,
+                                    ambientColor = base,
+                                    spotColor = base,
+                                )
+                                .clip(RoundedCornerShape(999.dp)).background(badgeBrush)
+                                .padding(horizontal = 7.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(if (item.unreadCount > 99) "99+" else "${item.unreadCount}",
+                                color = Color.White, fontSize = FlareSizes.fontSizeXs.value.sp, fontWeight = FontWeight.SemiBold)
+                        }
                     }
                 }
             }

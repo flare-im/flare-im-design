@@ -298,7 +298,9 @@ function openContextMenu(event: MouseEvent): void {
 }
 
 .im-conv-item--pinned {
-  padding-right: 36px;
+  padding-right: 30px;
+  /* Pinned rows read as a group — a whisper of violet tint (hover still wins). */
+  background: color-mix(in srgb, var(--im-primary, var(--primary, #7c3aed)) 5%, transparent);
 }
 
 .im-conv-item--pinned .im-conv-item__top {
@@ -462,34 +464,58 @@ function openContextMenu(event: MouseEvent): void {
 }
 
 .im-conv-item__unread-pill {
+  --im-unread: var(--im-conv-unread-bg, var(--primary, var(--flare-color-primary, #7c3aed)));
+
   flex: 0 0 auto;
   min-width: 20px;
   height: 20px;
   padding: 0 6px;
   border-radius: 999px;
-  background: var(--im-conv-unread-bg, var(--primary, var(--flare-color-primary, #7c3aed)));
+  /* A mini Aurora light source — echoes the glowing message bubble: a violet
+     gradient, a luminous top edge, and a soft glow (over the surface ring). */
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--im-unread) 82%, #ffffff 18%),
+    var(--im-unread) 55%,
+    color-mix(in srgb, var(--im-unread) 88%, #000000 12%)
+  );
   color: #fff;
   font-size: 11px;
   font-weight: 800;
   line-height: 20px;
   text-align: center;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 0 0 2px var(--im-bg-surface, #fff),
+    0 2px 8px -1px color-mix(in srgb, var(--im-unread) 46%, transparent);
+}
+
+/* Muted conversations don't shout: an unread there is a quiet neutral dot, not
+   the loud violet badge (standard IM semantics). */
+.im-conv-item--muted .im-conv-item__unread-pill {
+  min-width: 9px;
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  background: var(--im-text-tertiary, var(--text-tertiary, #98a2b3));
+  color: transparent;
+  font-size: 0;
   box-shadow: 0 0 0 2px var(--im-bg-surface, #fff);
 }
 
 .im-conv-item__pin {
   position: absolute;
-  bottom: 8px;
-  right: 8px;
+  top: 10px;
+  right: 10px;
   z-index: 1;
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
-  border: 1px solid color-mix(in srgb, var(--im-primary, var(--flare-color-primary, #7c3aed)) 22%, transparent);
-  border-radius: 8px;
+  width: 16px;
+  height: 16px;
   color: var(--im-primary, var(--flare-color-primary, #7c3aed));
-  background: color-mix(in srgb, var(--im-primary, var(--flare-color-primary, #7c3aed)) 10%, var(--im-bg-surface, #fff));
-  font-size: 15px;
+  background: transparent;
+  font-size: 13px;
+  opacity: 0.6;
   pointer-events: none;
 }
 

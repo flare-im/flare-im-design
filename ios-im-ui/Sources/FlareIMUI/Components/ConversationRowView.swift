@@ -69,13 +69,22 @@ public struct ConversationRowView: View {
                 HStack {
                     previewLine(colors)
                     Spacer(minLength: FlareSizes.spacingSm)
-                    if item.hasUnread { unreadBadge(colors) }
+                    if item.hasUnread {
+                        // Muted conversations don't shout — a quiet neutral dot
+                        // instead of the loud violet badge.
+                        if item.muted {
+                            Circle().fill(colors.textTertiary).frame(width: 9, height: 9)
+                        } else {
+                            unreadBadge(colors)
+                        }
+                    }
                 }
             }
         }
         .padding(.vertical, FlareSizes.spacingMd)
         .padding(.horizontal, FlareSizes.spacingSm)
-        .background(active ? colors.bgSelected : Color.clear)
+        // Pinned rows read as a group via a whisper of violet tint; active wins.
+        .background(active ? colors.bgSelected : (item.pinned ? colors.primary.opacity(0.05) : Color.clear))
         .contentShape(Rectangle())
     }
 
@@ -124,13 +133,24 @@ public struct ConversationRowView: View {
         }
     }
 
+    // A mini Aurora light source — echoes the glowing message bubble: a violet
+    // fill with a lit top-left → deeper diagonal + a soft violet glow (stronger dark).
     private func unreadBadge(_ colors: FlareColors) -> some View {
-        Text(item.unreadCount > 99 ? "99+" : "\(item.unreadCount)")
+        let dark = scheme == .dark
+        return Text(item.unreadCount > 99 ? "99+" : "\(item.unreadCount)")
             .font(.system(size: FlareSizes.fontSizeXs, weight: .semibold))
             .foregroundColor(.white)
             .padding(.horizontal, 7)
             .frame(minWidth: 22, minHeight: 22)
-            .background(Capsule().fill(colors.primary))
+            .background(
+                ZStack {
+                    colors.primary
+                    LinearGradient(colors: [Color.white.opacity(0.20), Color.clear, Color.black.opacity(0.12)],
+                                   startPoint: .topLeading, endPoint: .bottomTrailing)
+                }
+                .clipShape(Capsule())
+            )
+            .shadow(color: colors.primary.opacity(dark ? 0.50 : 0.40), radius: dark ? 5 : 4, y: 2)
     }
 }
 

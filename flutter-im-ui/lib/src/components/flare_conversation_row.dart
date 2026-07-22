@@ -46,8 +46,12 @@ class FlareConversationRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(Theme.of(context).brightness);
+    // Pinned rows read as a group via a whisper of violet tint; active wins.
+    final rowColor = active
+        ? colors.bgSelected
+        : (item.pinned ? colors.primary.withValues(alpha: 0.05) : Colors.transparent);
     return Material(
-      color: active ? colors.bgSelected : Colors.transparent,
+      color: rowColor,
       child: InkWell(
         onTap: onSelect,
         onLongPress: onAction,
@@ -110,7 +114,19 @@ class FlareConversationRow extends StatelessWidget {
                         Expanded(child: _preview(colors)),
                         if (item.hasUnread) ...[
                           const SizedBox(width: FlareSizes.spacingSm),
-                          FlareUnreadBadge(count: item.unreadCount),
+                          // Muted conversations don't shout — a quiet neutral dot
+                          // instead of the loud violet badge.
+                          if (item.muted)
+                            Container(
+                              width: 9,
+                              height: 9,
+                              decoration: BoxDecoration(
+                                color: colors.textTertiary,
+                                shape: BoxShape.circle,
+                              ),
+                            )
+                          else
+                            FlareUnreadBadge(count: item.unreadCount),
                         ],
                       ],
                     ),
