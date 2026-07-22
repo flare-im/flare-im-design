@@ -24,12 +24,33 @@ class FlareUnreadBadge extends StatelessWidget {
       );
     }
 
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final base = colors.primary;
     return Container(
       constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
       padding: const EdgeInsets.symmetric(horizontal: 6),
+      // A mini Aurora light source — echoes the glowing message bubble: a violet
+      // gradient, a luminous top edge (lit corner), and a soft violet glow.
       decoration: BoxDecoration(
-        color: colors.primary,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color.alphaBlend(Colors.white.withValues(alpha: 0.18), base),
+            base,
+            Color.alphaBlend(Colors.black.withValues(alpha: 0.12), base),
+          ],
+          stops: const [0.0, 0.55, 1.0],
+        ),
         borderRadius: BorderRadius.circular(999),
+        boxShadow: [
+          BoxShadow(
+            color: base.withValues(alpha: dark ? 0.50 : 0.40),
+            blurRadius: dark ? 8 : 6,
+            spreadRadius: -1,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       alignment: Alignment.center,
       child: Text(
