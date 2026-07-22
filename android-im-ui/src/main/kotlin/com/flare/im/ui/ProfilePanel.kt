@@ -26,6 +26,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -64,11 +67,20 @@ fun ProfilePanel(
             }
             Icon(Icons.Outlined.QrCode, "QR code", tint = Color.White.copy(alpha = 0.9f))
         }
-        Spacer(Modifier.size(FlareSizes.spacingSm))
-        // Shared row → `kind` (Toggle/Value/Navigation) and `detail` are honoured here too.
-        entries.forEachIndexed { i, e ->
-            if (i > 0) Divider(color = colors.borderSecondary)
-            SettingsRow(item = e, onSelect = { onEntry?.invoke(it) })
+        Spacer(Modifier.size(FlareSizes.spacingMd))
+        // Aurora — entries float together on one elevated grouped card (iOS-style),
+        // matching the settings surface. Shared row honours kind/detail.
+        Column(
+            Modifier.fillMaxWidth()
+                .padding(horizontal = FlareSizes.spacingMd)
+                .shadow(2.dp, RoundedCornerShape(16.dp), clip = false)
+                .clip(RoundedCornerShape(16.dp))
+                .background(colors.bgElevated),
+        ) {
+            entries.forEachIndexed { i, e ->
+                if (i > 0) Divider(color = colors.borderSecondary, modifier = Modifier.padding(start = FlareSizes.spacingMd))
+                SettingsRow(item = e, onSelect = { onEntry?.invoke(it) })
+            }
         }
     }
 }
