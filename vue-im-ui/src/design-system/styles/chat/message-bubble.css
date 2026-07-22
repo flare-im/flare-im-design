@@ -8,7 +8,8 @@
   min-width: 0;
   max-width: 100%;
   padding: 3px 0;
-  margin-bottom: 4px;
+  /* Tight default so consecutive same-sender messages read as one group. */
+  margin-bottom: 2px;
 }
 
 .message-row--locating .message-bubble {
@@ -34,7 +35,7 @@
 }
 
 .message-row--group-end {
-  margin-bottom: 10px;
+  margin-bottom: 4px;
 }
 
 /* One-shot entrance for a just-arrived message (sent/received now). Gated by
@@ -61,7 +62,9 @@
   }
 }
 
-.message-row:not(.message-row--with-meta):not(.message-row--system) {
+/* A clear breath before a new sender's run (any sender); continuations above
+   stay tight — so runs group visually and different senders separate. */
+.message-row--group-start:not(.message-row--system) {
   padding-top: 12px;
 }
 
@@ -242,11 +245,13 @@
   border: 1px solid color-mix(in srgb, var(--im-border) 60%, transparent);
   border-radius: 14px 14px 14px 10px;
   background: var(--im-bubble-tail-fill);
-  /* Matte card that catches a faint top-lit edge (invisible in light, a subtle
-     highlight in dark) plus a theme-aware violet-tinted lift. */
+  /* A gently raised card — a faint top-lit edge (subtle highlight in dark), a
+     theme-aware violet-tinted lift, and a soft ambient shadow so it rises off
+     any canvas (visible in light, near-invisible on the dark canvas). */
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, #ffffff 7%, transparent),
-    var(--flare-shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.04));
+    var(--flare-shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.04)),
+    0 4px 14px -8px rgba(15, 23, 42, 0.09);
   outline: none;
 }
 
