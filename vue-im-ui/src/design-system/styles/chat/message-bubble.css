@@ -183,7 +183,7 @@
 
 .message-meta__name {
   color: var(--im-text-secondary);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .message-meta__time {
@@ -203,21 +203,23 @@
 }
 
 .timestamp-chip {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: max-content;
-  max-width: calc(100% - 48px);
-  margin: 10px auto 12px;
-  padding: 3px 10px;
-  border: 1px solid color-mix(in srgb, var(--im-border) 68%, transparent);
-  border-radius: var(--im-radius-pill, 999px);
+  /* A quiet, intentional time divider — no heavy pill, just well-set centered
+     type with breathing room above (a calm section break). */
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: 18px 0 10px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
   color: var(--im-text-tertiary);
-  background: color-mix(in srgb, var(--im-bg-surface) 76%, transparent);
+  background: none;
   box-shadow: none;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
+  letter-spacing: 0.03em;
   line-height: 1.35;
+  text-align: center;
 }
 
 .message-bubble {
@@ -237,7 +239,7 @@
   --im-bubble-tail-fill: color-mix(in srgb, var(--im-message-incoming, var(--flare-color-bg-primary, #ffffff)) 94%, var(--im-bg-surface));
 
   padding: 8px 11px;
-  border: 1px solid color-mix(in srgb, var(--im-border) 74%, transparent);
+  border: 1px solid color-mix(in srgb, var(--im-border) 60%, transparent);
   border-radius: 14px 14px 14px 10px;
   background: var(--im-bubble-tail-fill);
   /* Matte card that catches a faint top-lit edge (invisible in light, a subtle
