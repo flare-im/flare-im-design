@@ -3,6 +3,7 @@ package com.flare.im.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,7 +37,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
@@ -115,8 +118,18 @@ fun TextMessage(
     onLinkTap: ((String) -> Unit)? = null,
 ) {
     val colors = flareColors()
+    val dark = isSystemInDarkTheme()
     val linkColor = if (self) Color.White else colors.primary
     val annotated = remember(text, linkColor, onLinkTap) { linkify(text, linkColor, onLinkTap) }
+    // Aurora signature — your own bubble is a light source: a dimensional violet
+    // gradient (lit top-left → brand → deeper bottom-right) + a violet-tinted glow.
+    val selfBrush = Brush.linearGradient(
+        listOf(
+            lerp(colors.bubbleSelf, Color.White, 0.24f),
+            colors.bubbleSelf,
+            lerp(colors.bubbleSelf, Color.Black, 0.16f),
+        ),
+    )
     val content: @Composable () -> Unit = {
         Text(
             annotated,
@@ -125,8 +138,20 @@ fun TextMessage(
             lineHeight = (FlareSizes.fontSizeXl.value * 1.45f).sp,
             modifier = Modifier
                 .then(
-                    if (self) Modifier.clip(RoundedCornerShape(16.dp)).background(colors.bubbleSelf)
-                    else Modifier.bubbleCard(colors),
+                    if (self) {
+                        Modifier
+                            .shadow(
+                                if (dark) 14.dp else 8.dp,
+                                RoundedCornerShape(16.dp),
+                                clip = false,
+                                ambientColor = colors.bubbleSelf,
+                                spotColor = colors.bubbleSelf,
+                            )
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(selfBrush)
+                    } else {
+                        Modifier.bubbleCard(colors)
+                    },
                 )
                 .padding(horizontal = 14.dp, vertical = 9.dp),
         )
