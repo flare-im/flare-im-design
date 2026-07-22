@@ -36,6 +36,7 @@ function stickerMsg({ packageId, stickerId, url }) {
 
 const messages = ref([
   textMsg({ name: "Ivy Chen", text: "新版输入框设计稿上传啦，帮忙看下～", ts: base }),
+  textMsg({ name: "Ivy Chen", text: "另外配色也换成新的品牌紫了", ts: base + 20000 }),
   textMsg({ self: true, text: "收到，我过一遍就给你反馈 👍", ts: base + 60000, status: 4 }),
   textMsg({ name: "Ivy Chen", text: "重点看下展开和加号菜单那块", ts: base + 120000 }),
 ]);

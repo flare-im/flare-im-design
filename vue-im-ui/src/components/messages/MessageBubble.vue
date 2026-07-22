@@ -152,7 +152,9 @@ const showSenderAvatar = computed(
     && !isRecalled.value
     && !props.multiSelectMode
     && !props.self
-    && isGroupEnd.value,
+    // Avatar sits WITH the name on the first message of a run (matches
+    // Flutter/iOS), so the run has a clear owner and continuations align.
+    && isGroupStart.value,
 );
 const showFloatingHoverTime = computed(
   () => Boolean(messageTimeText.value) && (props.self || !showSenderMeta.value),

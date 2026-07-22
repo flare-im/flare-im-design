@@ -6,8 +6,17 @@ import { FLARE_BREAKPOINT_H5_MAX, FLARE_BREAKPOINT_IPAD_MAX } from "../../shared
 
 type Pane = "list" | "chat" | "detail";
 const props = withDefaults(
-  defineProps<{ hasDetail?: boolean; activePane?: Pane }>(),
-  { hasDetail: false, activePane: "list" },
+  defineProps<{
+    hasDetail?: boolean;
+    activePane?: Pane;
+    /**
+     * Suppress the phone back-bar. Set this when the chat/detail slot renders its
+     * own header with a back control (e.g. FlareChatHeader `back`), so the app
+     * shows ONE header instead of a redundant "‹ Back" bar stacked above it.
+     */
+    hideMobileBar?: boolean;
+  }>(),
+  { hasDetail: false, activePane: "list", hideMobileBar: false },
 );
 const emit = defineEmits<{ (e: "paneChange", pane: Pane): void }>();
 
@@ -43,7 +52,7 @@ const triple = computed(() => kind.value === "pc" && props.hasDetail);
   <div v-else class="flare-rl flare-rl--single">
     <slot v-if="activePane === 'list'" name="list" />
     <template v-else>
-      <div class="flare-rl__bar">
+      <div v-if="!hideMobileBar" class="flare-rl__bar">
         <button class="flare-rl__back" @click="emit('paneChange', 'list')">
           <n-icon :size="18" :component="ChevronBackOutline" /><span>Back</span>
         </button>
