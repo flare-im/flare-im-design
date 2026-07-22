@@ -56,9 +56,13 @@ fun MessageBubble(
 
     val showAvatar = !self && conversationKind != FlareConversationKind.Single && groupStart
     Row(
+        // Group-aware rhythm (matches Flutter/iOS/web): a clear breath before a
+        // new sender's run, tight within a run.
         Modifier.fillMaxWidth().padding(
-            horizontal = FlareSizes.spacingMd,
-            vertical = 2.dp,
+            start = FlareSizes.spacingMd,
+            end = FlareSizes.spacingMd,
+            top = if (groupStart) FlareSizes.spacingSm else 2.dp,
+            bottom = if (groupEnd) FlareSizes.spacingSm else 2.dp,
         ),
         horizontalArrangement = if (self) Arrangement.End else Arrangement.Start,
         verticalAlignment = Alignment.Top,
