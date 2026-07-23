@@ -2,9 +2,11 @@
 import FlareAvatar from "../conversation/FlareAvatar.vue";
 import FlareEmptyState from "../general/FlareEmptyState.vue";
 import type { FlareGroupSummary } from "../../shared/contracts";
+import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 
 defineProps<{ items: FlareGroupSummary[]; emptyText?: string }>();
 const emit = defineEmits<{ (e: "select", g: FlareGroupSummary): void }>();
+const { t } = useFlareI18n();
 </script>
 
 <template>
@@ -14,7 +16,7 @@ const emit = defineEmits<{ (e: "select", g: FlareGroupSummary): void }>();
       <FlareAvatar :user-id="g.id" :display-name="g.name" :avatar-url="g.avatarUrl" :size="44" />
       <div>
         <div class="flare-group-list__name">{{ g.name }}</div>
-        <div class="flare-group-list__count">{{ g.memberCount ?? 0 }} members</div>
+        <div class="flare-group-list__count">{{ t("group.memberCount", { count: g.memberCount ?? 0 }) }}</div>
       </div>
     </div>
   </div>
