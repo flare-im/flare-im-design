@@ -162,8 +162,10 @@ const showSenderAvatar = computed(
     && !isRecalled.value
     && !props.multiSelectMode
     && !props.self
-    // Avatar sits WITH the name on the first message of a run (matches
-    // Flutter/iOS), so the run has a clear owner and continuations align.
+    // Avatar + name only in GROUPS (matches native iOS/Android/Flutter, and the
+    // modern 1:1 convention — Telegram/iMessage/WhatsApp show neither). In a 1:1
+    // the peer is obvious from the header, so incoming rows are just clean bubbles.
+    && props.conversationType === "group"
     && isGroupStart.value,
 );
 const showFloatingHoverTime = computed(
