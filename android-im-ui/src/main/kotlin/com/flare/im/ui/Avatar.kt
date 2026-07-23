@@ -35,7 +35,10 @@ fun Avatar(
     image: (@Composable () -> Unit)? = null,
 ) {
     val colors = flareColors()
-    val tint = seedTint(userId)
+    // Seed by the stable display name (not the id, which varies by surface — peer
+    // id vs conversation id vs sender id) so a person is one colour everywhere:
+    // list, chat header, message bubbles.
+    val tint = seedTint(displayName.ifEmpty { userId })
     Box(contentAlignment = Alignment.BottomEnd, modifier = Modifier.size(size)) {
         Box(
             modifier = Modifier.size(size).clip(CircleShape).background(tint.first),

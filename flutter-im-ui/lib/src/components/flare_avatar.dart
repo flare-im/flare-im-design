@@ -41,7 +41,10 @@ class FlareAvatar extends StatelessWidget {
     final colors = FlareColors.of(Theme.of(context).brightness);
     final hasImage = avatarUrl != null && avatarUrl!.isNotEmpty;
 
-    final tint = _seedTint(userId);
+    // Seed by the stable display name (not the id, which varies by surface — peer
+    // id vs conversation id vs sender id) so a person is one colour everywhere:
+    // list, chat header, message bubbles.
+    final tint = _seedTint(displayName.isNotEmpty ? displayName : userId);
     final avatar = Container(
       width: size,
       height: size,
