@@ -1,23 +1,46 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { NIcon } from "naive-ui";
-import { QrCodeOutline } from "../../shared/icon-glyphs";
+import { QrCodeOutline, ChevronForwardOutline } from "../../shared/icon-glyphs";
 import FlareAvatar from "../conversation/FlareAvatar.vue";
 import FlareSettingsRow from "./FlareSettingsRow.vue";
-import type { FlareUserProfile, FlareSettingsItem } from "../../shared/contracts";
+import type {
+  FlareUserProfile,
+  FlareSettingsItem,
+  FlareSettingsSection,
+} from "../../shared/contracts";
 
-withDefaults(defineProps<{ user: FlareUserProfile; entries?: FlareSettingsItem[] }>(), {
-  entries: () =>   [
-    { key: "favorites", label: "Favorites", icon: "star" },
-    { key: "moments", label: "Moments", icon: "moments" },
-    { key: "settings", label: "Settings", icon: "settings" },
-  ],
-});
+const props = withDefaults(
+  defineProps<{
+    user: FlareUserProfile;
+    entries?: FlareSettingsItem[];
+    /** Grouped rows (iOS-style cards). Overrides `entries` when provided. */
+    sections?: FlareSettingsSection[];
+    /** Placeholder shown in the header when the user has no signature yet. */
+    signaturePlaceholder?: string;
+  }>(),
+  {
+    entries: () => [
+      { key: "favorites", label: "Favorites", icon: "star" },
+      { key: "moments", label: "Moments", icon: "moments" },
+      { key: "settings", label: "Settings", icon: "settings" },
+    ],
+    sections: undefined,
+    signaturePlaceholder: "",
+  },
+);
 const emit = defineEmits<{
   (e: "edit"): void;
+  (e: "qr"): void;
   (e: "action", item: FlareSettingsItem): void;
   (e: "toggle", item: FlareSettingsItem, value: boolean): void;
   (e: "logout"): void;
 }>();
+
+// Normalize to grouped sections so the template has one render path.
+const groups = computed<FlareSettingsSection[]>(() =>
+  props.sections ?? [{ items: props.entries }],
+);
 </script>
 
 <template>
@@ -27,14 +50,18 @@ const emit = defineEmits<{
       <div class="flare-profile__meta">
         <div class="flare-profile__name">{{ user.name }}</div>
         <div v-if="user.signature" class="flare-profile__sig">{{ user.signature }}</div>
+        <div v-else-if="signaturePlaceholder" class="flare-profile__sig is-placeholder">{{ signaturePlaceholder }}</div>
         <div v-if="user.flareId" class="flare-profile__id">Flare ID: {{ user.flareId }}</div>
       </div>
-      <span class="flare-profile__qr"><n-icon :size="20" :component="QrCodeOutline" /></span>
+      <button type="button" class="flare-profile__qr" @click.stop="emit('qr')">
+        <n-icon :size="20" :component="QrCodeOutline" />
+      </button>
+      <span class="flare-profile__chev"><n-icon :size="18" :component="ChevronForwardOutline" /></span>
     </div>
-    <div class="flare-profile__list">
-      <!-- Shared with FlareSettingsList: renders kind (toggle/value/navigation) + detail. -->
+    <!-- Shared with FlareSettingsList: renders kind (toggle/value/navigation) + detail. -->
+    <div v-for="(group, gi) in groups" :key="gi" class="flare-profile__list">
       <FlareSettingsRow
-        v-for="e in entries"
+        v-for="e in group.items"
         :key="e.key"
         :item="e"
         @select="(i: FlareSettingsItem) => emit('action', i)"
@@ -66,8 +93,16 @@ const emit = defineEmits<{
   font-size: 13px; color: rgba(255, 255, 255, 0.82); margin-top: 3px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+.flare-profile__sig.is-placeholder { color: rgba(255, 255, 255, 0.62); font-style: italic; }
 .flare-profile__id { font-size: 12px; color: rgba(255, 255, 255, 0.62); margin-top: 3px; }
-.flare-profile__qr { color: rgba(255, 255, 255, 0.9); font-size: 18px; }
+.flare-profile__qr {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border: none; border-radius: 50%;
+  color: rgba(255, 255, 255, 0.92); background: rgba(255, 255, 255, 0.14);
+  cursor: pointer; transition: background 0.15s ease;
+}
+.flare-profile__qr:hover { background: rgba(255, 255, 255, 0.24); }
+.flare-profile__chev { color: rgba(255, 255, 255, 0.7); display: inline-flex; margin-left: -4px; }
 .flare-profile__list {
   margin: 14px 12px 0;
   border-radius: var(--flare-size-radius-xl, 14px);
@@ -75,5 +110,6 @@ const emit = defineEmits<{
   box-shadow: var(--flare-shadow-card);
   overflow: hidden;
 }
+.flare-profile__list + .flare-profile__list { margin-top: 12px; }
 .flare-profile__list :deep(.flare-settings__row) { background: transparent; }
 </style>
