@@ -151,6 +151,9 @@ const showSenderMeta = computed(
     && !isRecalled.value
     && !props.multiSelectMode
     && !props.self
+    // Name only in GROUPS. In a 1:1 the peer is already named in the header, so
+    // repeating it over every run reads as clutter (Feishu/WeChat hide it too).
+    && props.conversationType === "group"
     && isGroupStart.value,
 );
 const showSenderAvatar = computed(
