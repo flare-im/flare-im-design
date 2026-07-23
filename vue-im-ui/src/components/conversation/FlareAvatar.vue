@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { useResolvedMediaUrl } from "../../composables/useMediaResolver";
+import { avatarTint } from "../../shared/avatar-tint";
 
 const props = withDefaults(
   defineProps<{
@@ -42,24 +43,11 @@ const initials = computed(() => {
   return source.trim().slice(0, 1).toUpperCase();
 });
 
-// Soft pastel identity — matches the reference app (avatarPastelForKey): a
-// tinted surface with dark initials reads more premium than a saturated solid
-// and stays legible in both themes. Keyed by a stable id.
-const tint = computed(() => {
-  const pairs = [
-    { bg: "#DBEAFE", fg: "#1D4ED8" },
-    { bg: "#E9D5FF", fg: "#6D28D9" },
-    { bg: "#FBCFE8", fg: "#BE185D" },
-    { bg: "#D1FAE5", fg: "#047857" },
-    { bg: "#FEF3C7", fg: "#B45309" },
-    { bg: "#E5E7EB", fg: "#374151" },
-  ];
-  let hash = 0;
-  for (const char of props.userId || props.displayName || "user") {
-    hash = char.charCodeAt(0) + ((hash << 5) - hash);
-  }
-  return pairs[Math.abs(hash) % pairs.length];
-});
+// Soft pastel identity — a tinted surface with dark initials reads more premium
+// than a saturated solid and stays legible in both themes. Seeded by the stable
+// display name (via the shared util) so the same person is the same colour on
+// every surface — list, chat header, message bubbles.
+const tint = computed(() => avatarTint(props.displayName || props.userId));
 
 const style = computed(() => ({
   width: `${props.size}px`,

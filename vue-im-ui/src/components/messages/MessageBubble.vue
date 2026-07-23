@@ -11,6 +11,7 @@ import {
 import { NButton, NIcon } from "naive-ui";
 import type { DropdownOption } from "naive-ui";
 import { messageContentTypeForUi } from "../../utils/messageContent";
+import { avatarTint } from "../../shared/avatar-tint";
 import { useLongPress } from "../../composables/useLongPress";
 import { useMessageMenuInteraction } from "../../composables/chat/useMessageMenuInteraction";
 import MessageContentView from "./MessageContentView.vue";
@@ -126,6 +127,12 @@ const senderInitial = computed(() => {
   const source = senderLabel.value.trim() || props.message.senderId || "?";
   return Array.from(source)[0]?.toUpperCase() ?? "?";
 });
+// Same deterministic pastel FlareAvatar uses, seeded by the display name — so a
+// sender's bubble avatar matches their avatar in the list + chat header (was a
+// fixed blue-cyan gradient for everyone).
+const senderTint = computed(() =>
+  avatarTint(props.message.senderDisplayName || props.message.senderId),
+);
 const recalledHint = computed(() => {
   if (props.self) return t("message.recalledSelf");
   if (props.conversationType === "group") {
@@ -389,6 +396,7 @@ function bubbleA11yLabel(): string {
     <div
       v-if="showSenderAvatar"
       class="message-avatar"
+      :style="senderAvatarUrl ? undefined : { background: senderTint.bg, color: senderTint.fg }"
       aria-hidden="true"
     >
       <img
