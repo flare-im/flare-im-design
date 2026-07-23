@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
 
 /// The dark capsule popover raised by a moment's ··· button: a Like/Unlike
-/// action and a Comment action split by a hairline divider.
+/// action and a Comment action split by a hairline divider, plus a destructive
+/// Delete action shown only for the viewer's own moments ([canDelete]).
 /// Spec: Moments/ActionPopover (`FlareMomentActionPopover`).
 class FlareMomentActionPopover extends StatelessWidget {
   const FlareMomentActionPopover({
     super.key,
     this.liked = false,
+    this.canDelete = false,
     this.onLike,
     this.onComment,
+    this.onDelete,
   });
 
   final bool liked;
+  final bool canDelete;
   final VoidCallback? onLike;
   final VoidCallback? onComment;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -39,18 +44,33 @@ class FlareMomentActionPopover extends StatelessWidget {
             liked ? 'Unlike' : 'Like',
             onLike,
           ),
-          Container(
-            width: 1,
-            margin: const EdgeInsets.symmetric(vertical: 8),
-            color: Colors.white.withValues(alpha: 0.16),
-          ),
+          _divider(),
           _btn(Icons.chat_bubble_outline, 'Comment', onComment),
+          if (canDelete) ...[
+            _divider(),
+            _btn(
+              Icons.delete_outline,
+              'Delete',
+              onDelete,
+              danger: true,
+            ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _btn(IconData icon, String label, VoidCallback? onTap) {
+  Widget _divider() {
+    return Container(
+      width: 1,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      color: Colors.white.withValues(alpha: 0.16),
+    );
+  }
+
+  Widget _btn(IconData icon, String label, VoidCallback? onTap,
+      {bool danger = false}) {
+    final color = danger ? const Color(0xFFFF8A80) : const Color(0xFFF2F0F7);
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -59,14 +79,11 @@ class FlareMomentActionPopover extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: const Color(0xFFF2F0F7)),
+            Icon(icon, size: 16, color: color),
             const SizedBox(width: 5),
             Text(
               label,
-              style: const TextStyle(
-                color: Color(0xFFF2F0F7),
-                fontSize: 13,
-              ),
+              style: TextStyle(color: color, fontSize: 13),
             ),
           ],
         ),

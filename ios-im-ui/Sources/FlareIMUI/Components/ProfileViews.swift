@@ -1,11 +1,18 @@
 import SwiftUI
 
 /// Personal center. Spec: Profile/ProfilePanel (`ProfilePanelView`).
+///
+/// The header is a single tappable-to-edit target (trailing chevron signals it), with the QR
+/// badge carved out as its own tap target (`onQr`). Rows render as one or more grouped section
+/// cards (iOS style): pass `sections` for grouping, or `entries` for a single flat card.
 public struct ProfilePanelView: View {
     private let user: UserProfile
-    private let entries: [FlareSettingsItem]
+    private let sections: [FlareSettingsSection]
+    private let signaturePlaceholder: String?
     private let onEdit: (() -> Void)?
+    private let onQr: (() -> Void)?
     private let onEntry: ((FlareSettingsItem) -> Void)?
+    private let onToggle: ((FlareSettingsItem, Bool) -> Void)?
     @Environment(\.colorScheme) private var scheme
 
     public static let defaultEntries: [FlareSettingsItem] = [
@@ -14,55 +21,87 @@ public struct ProfilePanelView: View {
         FlareSettingsItem(key: "settings", label: "Settings", systemImage: "gearshape"),
     ]
 
-    public init(user: UserProfile, entries: [FlareSettingsItem] = ProfilePanelView.defaultEntries,
-                onEdit: (() -> Void)? = nil, onEntry: ((FlareSettingsItem) -> Void)? = nil) {
-        self.user = user; self.entries = entries; self.onEdit = onEdit; self.onEntry = onEntry
+    public init(user: UserProfile,
+                entries: [FlareSettingsItem] = ProfilePanelView.defaultEntries,
+                sections: [FlareSettingsSection]? = nil,
+                signaturePlaceholder: String? = nil,
+                onEdit: (() -> Void)? = nil, onQr: (() -> Void)? = nil,
+                onEntry: ((FlareSettingsItem) -> Void)? = nil,
+                onToggle: ((FlareSettingsItem, Bool) -> Void)? = nil) {
+        self.user = user
+        // Normalize to grouped sections so the body has one render path (mirrors the Vue panel).
+        self.sections = sections ?? [FlareSettingsSection(items: entries)]
+        self.signaturePlaceholder = signaturePlaceholder
+        self.onEdit = onEdit; self.onQr = onQr; self.onEntry = onEntry; self.onToggle = onToggle
     }
 
     public var body: some View {
         let colors = FlareColors.of(scheme)
         VStack(spacing: 0) {
-            Button { onEdit?() } label: {
-                HStack(spacing: FlareSizes.spacingMd) {
-                    AvatarView(userId: user.id, displayName: user.name, avatarURL: user.avatarURL, size: 56)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(user.name).font(.system(size: FlareSizes.fontSize3xl, weight: .bold)).foregroundColor(.white)
-                        // The model carries a signature — render it (it was silently dropped before).
-                        if let s = user.signature, !s.isEmpty {
-                            Text(s).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(.white.opacity(0.82))
-                        }
-                        if let f = user.flareId, !f.isEmpty {
-                            Text("Flare ID: \(f)").font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(.white.opacity(0.62))
-                        }
-                    }
-                    Spacer()
-                    Image(systemName: "qrcode").foregroundColor(.white.opacity(0.9))
-                }
-                .padding(FlareSizes.spacingLg)
-                // Aurora glow header — a violet light source, white text over it.
-                .background(
-                    LinearGradient(
-                        colors: [
-                            Color(.sRGB, red: 0x3B / 255, green: 0x1F / 255, blue: 0x7A / 255, opacity: 1),
-                            Color(.sRGB, red: 0x7C / 255, green: 0x3A / 255, blue: 0xED / 255, opacity: 1),
-                            Color(.sRGB, red: 0x8B / 255, green: 0x5C / 255, blue: 0xF6 / 255, opacity: 1),
-                        ],
-                        startPoint: .topLeading, endPoint: .bottomTrailing))
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
+            header
 
-            // Shared row → `kind` (toggle/value/navigation) and `detail` are honoured here too.
-            VStack(spacing: 0) {
-                ForEach(Array(entries.enumerated()), id: \.element.id) { i, e in
-                    if i > 0 { Divider() }
-                    FlareSettingsRow(item: e, onSelect: { onEntry?($0) })
-                        .padding(FlareSizes.spacingMd)
+            ForEach(Array(sections.enumerated()), id: \.element.id) { i, section in
+                // Shared row → `kind` (toggle/value/navigation) and `detail` are honoured here too.
+                VStack(spacing: 0) {
+                    ForEach(Array(section.items.enumerated()), id: \.element.id) { j, e in
+                        if j > 0 { Divider() }
+                        FlareSettingsRow(item: e, onToggle: onToggle, onSelect: { onEntry?($0) })
+                            .padding(FlareSizes.spacingMd)
+                    }
                 }
+                .background(RoundedRectangle(cornerRadius: FlareSizes.radiusXl).fill(colors.bgElevated))
+                .clipShape(RoundedRectangle(cornerRadius: FlareSizes.radiusXl))
+                .padding(.horizontal, FlareSizes.spacingMd)
+                .padding(.top, i == 0 ? FlareSizes.spacingMd : FlareSizes.spacingSm)
             }
-            .padding(.top, FlareSizes.spacingSm)
             Spacer()
         }
+    }
+
+    private var header: some View {
+        // The whole row is tap-to-edit; the QR badge is carved out as its own tap target.
+        Button { onEdit?() } label: {
+            HStack(spacing: FlareSizes.spacingMd) {
+                AvatarView(userId: user.id, displayName: user.name, avatarURL: user.avatarURL, size: 56)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(user.name).font(.system(size: FlareSizes.fontSize3xl, weight: .bold)).foregroundColor(.white)
+                    if let s = user.signature, !s.isEmpty {
+                        Text(s).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(.white.opacity(0.82))
+                            .lineLimit(1)
+                    } else if let placeholder = signaturePlaceholder, !placeholder.isEmpty {
+                        // Placeholder when the user hasn't set a signature yet.
+                        Text(placeholder).font(.system(size: FlareSizes.fontSizeSm)).italic()
+                            .foregroundColor(.white.opacity(0.62)).lineLimit(1)
+                    }
+                    if let f = user.flareId, !f.isEmpty {
+                        Text("Flare ID: \(f)").font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(.white.opacity(0.62))
+                    }
+                }
+                Spacer()
+                // Its own tap target — distinct from the header's edit tap.
+                Button { onQr?() } label: {
+                    Image(systemName: "qrcode").font(.system(size: 20)).foregroundColor(.white.opacity(0.92))
+                        .frame(width: 34, height: 34)
+                        .background(Circle().fill(Color.white.opacity(0.14)))
+                }
+                .buttonStyle(.plain)
+                // Trailing chevron — signals the header itself is tappable-to-edit.
+                Image(systemName: "chevron.right").font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.7))
+            }
+            .padding(FlareSizes.spacingLg)
+            // Aurora glow header — a violet light source, white text over it.
+            .background(
+                LinearGradient(
+                    colors: [
+                        Color(.sRGB, red: 0x3B / 255, green: 0x1F / 255, blue: 0x7A / 255, opacity: 1),
+                        Color(.sRGB, red: 0x7C / 255, green: 0x3A / 255, blue: 0xED / 255, opacity: 1),
+                        Color(.sRGB, red: 0x8B / 255, green: 0x5C / 255, blue: 0xF6 / 255, opacity: 1),
+                    ],
+                    startPoint: .topLeading, endPoint: .bottomTrailing))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }
 

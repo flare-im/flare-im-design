@@ -71,16 +71,24 @@ public struct CommentThreadView: View {
 
 // MARK: - MomentActionPopover
 
-/// Dark like / comment popover shown next to a moment's "…" button.
+/// Dark like / comment popover shown next to a moment's "…" button. When `canDelete`
+/// is set (the moment is the current user's) a destructive Delete action is appended.
 /// Spec: Moments/MomentActionPopover (`MomentActionPopoverView`).
 public struct MomentActionPopoverView: View {
     private let liked: Bool
+    private let canDelete: Bool
     private let onLike: (() -> Void)?
     private let onComment: (() -> Void)?
+    private let onDelete: (() -> Void)?
 
-    public init(liked: Bool = false, onLike: (() -> Void)? = nil, onComment: (() -> Void)? = nil) {
-        self.liked = liked; self.onLike = onLike; self.onComment = onComment
+    public init(liked: Bool = false, canDelete: Bool = false,
+                onLike: (() -> Void)? = nil, onComment: (() -> Void)? = nil,
+                onDelete: (() -> Void)? = nil) {
+        self.liked = liked; self.canDelete = canDelete
+        self.onLike = onLike; self.onComment = onComment; self.onDelete = onDelete
     }
+
+    private static let danger = Color(.sRGB, red: 1.0, green: 0x8A / 255, blue: 0x80 / 255, opacity: 1)
 
     public var body: some View {
         HStack(spacing: 0) {
@@ -88,11 +96,18 @@ public struct MomentActionPopoverView: View {
                 item(icon: liked ? "heart.slash" : "heart", label: liked ? "Unlike" : "Like")
             }.buttonStyle(.plain)
 
-            Rectangle().fill(Color.white.opacity(0.16)).frame(width: 1, height: 18)
+            divider
 
             Button { onComment?() } label: {
                 item(icon: "bubble.left", label: "Comment")
             }.buttonStyle(.plain)
+
+            if canDelete {
+                divider
+                Button { onDelete?() } label: {
+                    item(icon: "trash", label: "Delete", tint: Self.danger)
+                }.buttonStyle(.plain)
+            }
         }
         .frame(height: 34)
         .background(
@@ -102,12 +117,16 @@ public struct MomentActionPopoverView: View {
         .shadow(color: Color(.sRGB, red: 21 / 255, green: 18 / 255, blue: 32 / 255, opacity: 0.28), radius: 9, y: 6)
     }
 
-    private func item(icon: String, label: String) -> some View {
+    private var divider: some View {
+        Rectangle().fill(Color.white.opacity(0.16)).frame(width: 1, height: 18)
+    }
+
+    private func item(icon: String, label: String, tint: Color? = nil) -> some View {
         HStack(spacing: 5) {
             Image(systemName: icon).font(.system(size: 14))
             Text(label).font(.system(size: 13))
         }
-        .foregroundColor(Color(.sRGB, red: 0xF2 / 255, green: 0xF0 / 255, blue: 0xF7 / 255, opacity: 1))
+        .foregroundColor(tint ?? Color(.sRGB, red: 0xF2 / 255, green: 0xF0 / 255, blue: 0xF7 / 255, opacity: 1))
         .padding(.horizontal, 14)
         .frame(maxHeight: .infinity)
     }
@@ -134,10 +153,9 @@ public struct MomentsCoverHeaderView: View {
     }
 
     public var body: some View {
-        let colors = FlareColors.of(scheme)
         VStack(spacing: 0) {
             cover
-            identity(colors)
+            identity
                 .padding(.horizontal, 16)
                 .offset(y: -30)
         }
@@ -145,21 +163,30 @@ public struct MomentsCoverHeaderView: View {
     }
 
     private var cover: some View {
-        Button { onEditCover?() } label: {
-            ZStack(alignment: .bottomTrailing) {
-                coverFill
-                if coverURL == nil {
-                    Text("Edit cover")
-                        .font(.system(size: 12))
-                        .foregroundColor(Color.white.opacity(0.85))
-                        .padding(.trailing, 14).padding(.bottom, 40)
+        ZStack(alignment: .topTrailing) {
+            coverFill
+                // Bottom scrim so the white name + signature stay legible over any cover.
+                .overlay(
+                    LinearGradient(
+                        colors: [.clear, .clear, Color(.sRGB, red: 15 / 255, green: 12 / 255, blue: 25 / 255, opacity: 0.42)],
+                        startPoint: .top, endPoint: .bottom))
+                .frame(maxWidth: .infinity)
+                .frame(height: 240)
+                .clipped()
+
+            // Change-cover affordance — a glass chip at the top-right, clear of the avatar.
+            Button { onEditCover?() } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "camera").font(.system(size: 11))
+                    Text("Edit cover").font(.system(size: 12))
                 }
+                .foregroundColor(Color.white.opacity(0.92))
+                .padding(.horizontal, 11).padding(.vertical, 5)
+                .background(Capsule().fill(Color(.sRGB, red: 15 / 255, green: 12 / 255, blue: 25 / 255, opacity: 0.32)))
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: 240)
-            .clipped()
-            .contentShape(Rectangle())
-        }.buttonStyle(.plain)
+            .buttonStyle(.plain)
+            .padding(.trailing, 14).padding(.top, 14)
+        }
     }
 
     @ViewBuilder
@@ -186,31 +213,32 @@ public struct MomentsCoverHeaderView: View {
             startPoint: .topLeading, endPoint: .bottomTrailing)
     }
 
-    private func identity(_ colors: FlareColors) -> some View {
+    private var identity: some View {
         HStack(alignment: .bottom, spacing: 12) {
             Spacer(minLength: 0)
-            VStack(alignment: .trailing, spacing: 4) {
+            VStack(alignment: .trailing, spacing: 5) {
                 Text(name)
                     .font(.system(size: 17, weight: .bold))
                     .foregroundColor(.white)
-                    .shadow(color: Color.black.opacity(0.35), radius: 4, y: 1)
+                    .shadow(color: Color.black.opacity(0.45), radius: 6, y: 1)
                     .lineLimit(1)
                 if let signature {
+                    // Legible over the cover's dark scrim — white with a soft shadow.
                     Text(signature)
-                        .font(.system(size: 12))
-                        .foregroundColor(colors.textSecondary)
+                        .font(.system(size: 12.5))
+                        .foregroundColor(Color.white.opacity(0.88))
+                        .shadow(color: Color.black.opacity(0.4), radius: 4, y: 1)
                         .lineLimit(1)
                 }
             }
-            .padding(.bottom, 6)
+            .padding(.bottom, 20)
 
+            // No white frame around the cover avatar — just a rounded-square with a soft shadow.
             Button { onAvatar?() } label: {
-                AvatarView(userId: userId, displayName: name, avatarURL: avatarURL, size: 64)
-                    .clipShape(RoundedRectangle(cornerRadius: 11))
-                    .padding(3)
-                    .background(RoundedRectangle(cornerRadius: 14).fill(colors.bgPrimary))
-                    .shadow(color: Color(.sRGB, red: 21 / 255, green: 18 / 255, blue: 32 / 255, opacity: 0.2),
-                            radius: 7, y: 4)
+                AvatarView(userId: userId, displayName: name, avatarURL: avatarURL, size: 66)
+                    .clipShape(RoundedRectangle(cornerRadius: 15))
+                    .shadow(color: Color(.sRGB, red: 21 / 255, green: 18 / 255, blue: 32 / 255, opacity: 0.28),
+                            radius: 9, y: 6)
             }.buttonStyle(.plain)
         }
     }
@@ -374,8 +402,10 @@ public struct MomentComposerView: View {
 /// and a likes / comments social panel. Spec: Moments/MomentCard (`MomentCardView`).
 public struct MomentCardView: View {
     private let moment: Moment
+    private let canDelete: Bool
     private let onLike: (() -> Void)?
     private let onComment: (() -> Void)?
+    private let onDelete: (() -> Void)?
     private let onOpenImage: ((Int) -> Void)?
     private let onSelectAuthor: ((String) -> Void)?
     private let onSelectLiker: ((String) -> Void)?
@@ -383,11 +413,12 @@ public struct MomentCardView: View {
     @Environment(\.colorScheme) private var scheme
     @State private var menuOpen = false
 
-    public init(moment: Moment, onLike: (() -> Void)? = nil, onComment: (() -> Void)? = nil,
+    public init(moment: Moment, canDelete: Bool = false, onLike: (() -> Void)? = nil,
+                onComment: (() -> Void)? = nil, onDelete: (() -> Void)? = nil,
                 onOpenImage: ((Int) -> Void)? = nil, onSelectAuthor: ((String) -> Void)? = nil,
                 onSelectLiker: ((String) -> Void)? = nil, onSelectComment: ((MomentComment) -> Void)? = nil) {
-        self.moment = moment; self.onLike = onLike; self.onComment = onComment
-        self.onOpenImage = onOpenImage; self.onSelectAuthor = onSelectAuthor
+        self.moment = moment; self.canDelete = canDelete; self.onLike = onLike; self.onComment = onComment
+        self.onDelete = onDelete; self.onOpenImage = onOpenImage; self.onSelectAuthor = onSelectAuthor
         self.onSelectLiker = onSelectLiker; self.onSelectComment = onSelectComment
     }
 
@@ -461,8 +492,10 @@ public struct MomentCardView: View {
                 if menuOpen {
                     MomentActionPopoverView(
                         liked: moment.likedBySelf,
+                        canDelete: canDelete,
                         onLike: { menuOpen = false; onLike?() },
-                        onComment: { menuOpen = false; onComment?() })
+                        onComment: { menuOpen = false; onComment?() },
+                        onDelete: { menuOpen = false; onDelete?() })
                     .fixedSize()
                     .offset(x: -36)
                 }

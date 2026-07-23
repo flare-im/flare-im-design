@@ -25,7 +25,9 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.Public
@@ -39,8 +41,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.SpanStyle
@@ -100,9 +105,20 @@ fun CommentThread(
 
 // MARK: - MomentActionPopover
 
-/** Dark like/comment capsule from the ··· button. Spec: Moments/MomentActionPopover. */
+/**
+ * Dark like/comment capsule from the ··· button. Spec: Moments/MomentActionPopover.
+ *
+ * [canDelete] adds a trailing destructive **Delete** action — shown only for the current user's own
+ * moments (parity with `FlareMomentActionPopover.vue`'s `canDelete` gate).
+ */
 @Composable
-fun MomentActionPopover(liked: Boolean, onLike: (() -> Unit)? = null, onComment: (() -> Unit)? = null) {
+fun MomentActionPopover(
+    liked: Boolean,
+    canDelete: Boolean = false,
+    onLike: (() -> Unit)? = null,
+    onComment: (() -> Unit)? = null,
+    onDelete: (() -> Unit)? = null,
+) {
     Row(
         Modifier.height(34.dp).clip(RoundedCornerShape(8.dp)).background(Color(0xFF2C2B33)),
         verticalAlignment = Alignment.CenterVertically,
@@ -126,6 +142,18 @@ fun MomentActionPopover(liked: Boolean, onLike: (() -> Unit)? = null, onComment:
             Spacer(Modifier.width(5.dp))
             Text("Comment", color = Color(0xFFF2F0F7), fontSize = 13.sp)
         }
+        if (canDelete) {
+            Box(Modifier.width(1.dp).height(18.dp).background(Color.White.copy(alpha = 0.16f)))
+            Row(
+                Modifier.fillMaxSize().weight(1f, fill = false).clickable { onDelete?.invoke() }.padding(horizontal = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Outlined.DeleteOutline, contentDescription = null,
+                    tint = Color(0xFFFF8A80), modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(5.dp))
+                Text("Delete", color = Color(0xFFFF8A80), fontSize = 13.sp)
+            }
+        }
     }
 }
 
@@ -142,7 +170,9 @@ fun MomentsCoverHeader(
     onEditCover: (() -> Unit)? = null,
     onAvatar: (() -> Unit)? = null,
 ) {
-    val colors = flareColors()
+    // White text over the cover — legible on any photo. A soft shadow lifts each glyph off the image.
+    val titleShadow = Shadow(color = Color(0x73000000), offset = Offset(0f, 1f), blurRadius = 6f)
+    val sigShadow = Shadow(color = Color(0x66000000), offset = Offset(0f, 1f), blurRadius = 4f)
     Column(Modifier.fillMaxWidth().padding(bottom = 20.dp)) {
         Box(
             Modifier.fillMaxWidth().height(240.dp)
@@ -153,6 +183,28 @@ fun MomentsCoverHeader(
                 AsyncImage(model = coverUrl, contentDescription = null,
                     modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
             }
+            // Bottom scrim so the name + signature stay legible over any cover image.
+            Box(
+                Modifier.fillMaxSize().background(
+                    Brush.verticalGradient(
+                        0.45f to Color.Transparent,
+                        1f to Color(0x6B0F0C19),
+                    ),
+                ),
+            )
+            // 换封面 — top-right, clear of the avatar. Its own tap target over the whole-cover click.
+            Row(
+                Modifier.align(Alignment.TopEnd).padding(14.dp)
+                    .clip(RoundedCornerShape(999.dp)).background(Color(0x520F0C19))
+                    .clickable { onEditCover?.invoke() }
+                    .padding(horizontal = 11.dp, vertical = 5.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Outlined.Image, contentDescription = null,
+                    tint = Color.White.copy(alpha = 0.92f), modifier = Modifier.size(14.dp))
+                Spacer(Modifier.width(4.dp))
+                Text("换封面", color = Color.White.copy(alpha = 0.92f), fontSize = 12.sp)
+            }
         }
         Row(
             Modifier.fillMaxWidth().offset(y = (-30).dp).padding(horizontal = 16.dp),
@@ -161,15 +213,19 @@ fun MomentsCoverHeader(
         ) {
             Column(horizontalAlignment = Alignment.End, modifier = Modifier.weight(1f).padding(bottom = 6.dp)) {
                 Text(name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 17.sp,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    style = TextStyle(shadow = titleShadow))
                 signature?.let {
-                    Text(it, color = colors.textSecondary, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    Text(it, color = Color.White.copy(alpha = 0.88f), fontSize = 12.sp, maxLines = 1,
+                        overflow = TextOverflow.Ellipsis, style = TextStyle(shadow = sigShadow),
                         modifier = Modifier.padding(top = 4.dp))
                 }
             }
             Spacer(Modifier.width(12.dp))
+            // Borderless avatar — a soft shadow + rounded-square lifts it off the cover (no white frame).
             Box(
-                Modifier.clip(RoundedCornerShape(14.dp)).background(colors.bgPrimary).padding(3.dp)
+                Modifier.shadow(10.dp, RoundedCornerShape(15.dp), clip = false)
+                    .clip(RoundedCornerShape(15.dp))
                     .clickable { onAvatar?.invoke() },
             ) {
                 Avatar(userId = userId, displayName = name, size = 64.dp)
@@ -288,8 +344,10 @@ private fun composerRow(colors: FlareColors, icon: androidx.compose.ui.graphics.
 @Composable
 fun MomentCard(
     moment: Moment,
+    canDelete: Boolean = false,
     onLike: (() -> Unit)? = null,
     onComment: (() -> Unit)? = null,
+    onDelete: (() -> Unit)? = null,
     onOpenImage: ((Int) -> Unit)? = null,
     onSelectAuthor: ((String) -> Unit)? = null,
     onSelectLiker: ((String) -> Unit)? = null,
@@ -329,8 +387,10 @@ fun MomentCard(
                 if (menuOpen) {
                     MomentActionPopover(
                         liked = moment.likedBySelf,
+                        canDelete = canDelete,
                         onLike = { menuOpen = false; onLike?.invoke() },
                         onComment = { menuOpen = false; onComment?.invoke() },
+                        onDelete = { menuOpen = false; onDelete?.invoke() },
                     )
                     Spacer(Modifier.width(6.dp))
                 }
