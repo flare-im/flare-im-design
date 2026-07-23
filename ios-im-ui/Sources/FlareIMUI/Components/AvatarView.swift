@@ -62,7 +62,10 @@ public struct AvatarView: View {
     }
 
     private var initials: some View {
-        let tint = Self.seedTint(userId)
+        // Seed by the stable display name (not the id, which varies by surface —
+        // peer id vs conversation id vs sender id) so a person is one colour
+        // everywhere: list, chat header, message bubbles.
+        let tint = Self.seedTint(displayName.isEmpty ? userId : displayName)
         return ZStack {
             tint.bg
             Text(Self.initials(displayName))
