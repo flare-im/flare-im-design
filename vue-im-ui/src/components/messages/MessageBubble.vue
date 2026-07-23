@@ -93,6 +93,12 @@ const contentType = computed(() =>
 const isSystemLike = computed(() =>
   ["system", "notification"].includes(contentType.value),
 );
+// System notices ("群聊 X 已创建", "Y 加入群聊") carry a human-readable `body`; show
+// it as centered muted text rather than a chat bubble with a placeholder.
+const systemText = computed(() => {
+  const c = props.message.content as Record<string, unknown> | undefined;
+  return String(c?.body ?? c?.text ?? "").trim();
+});
 const isRecalled = computed(() => props.message.isRecalled);
 const deliveryStatus = computed(() => messageStateToNumber(props.message));
 const reactions = computed(() => (isRecalled.value ? [] : props.message.reactions ?? []));
@@ -420,7 +426,11 @@ function bubbleA11yLabel(): string {
       </span>
     </div>
 
-    <div v-if="isRecalled" class="message-recalled-hint">
+    <div v-if="isSystemLike" class="message-recalled-hint">
+      {{ systemText }}
+    </div>
+
+    <div v-else-if="isRecalled" class="message-recalled-hint">
       {{ recalledHint }}
     </div>
 

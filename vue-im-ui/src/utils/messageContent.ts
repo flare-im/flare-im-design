@@ -2,8 +2,13 @@ import { MessageContentType } from "flare-core-typescript-sdk";
 
 const contentTypeValues = new Set<string>(Object.values(MessageContentType));
 
+// Meta content types the kit renders as centered notices (group created, member
+// joined, …). They aren't in the SDK's MessageContentType enum, but must pass
+// through so `isSystemLike` fires instead of falling back to a Custom bubble.
+const UI_NOTICE_TYPES = new Set(["system", "notification"]);
+
 export function messageContentTypeForUi(value: unknown): string {
-  if (typeof value === "string" && contentTypeValues.has(value)) return value;
+  if (typeof value === "string" && (contentTypeValues.has(value) || UI_NOTICE_TYPES.has(value))) return value;
   if (typeof value === "number") {
     return Object.values(MessageContentType)[value] ?? MessageContentType.Custom;
   }
