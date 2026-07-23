@@ -46,6 +46,8 @@ export interface FlareSettingsItem {
   kind?: FlareSettingKind;
   value?: boolean;
   detail?: string;
+  /** Optional red count badge (e.g. pending friend requests) on a navigation row. */
+  badge?: number;
 }
 
 export interface FlareSettingsSection {

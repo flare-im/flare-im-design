@@ -30,6 +30,7 @@ const emit = defineEmits<{
       @click.stop="emit('toggle', item, !item.value)"
     ><span /></label>
     <template v-else>
+      <span v-if="item.badge" class="flare-settings__badge">{{ item.badge > 99 ? "99+" : item.badge }}</span>
       <span v-if="item.detail" class="flare-settings__detail">{{ item.detail }}</span>
       <span v-if="item.kind !== 'value'" class="flare-settings__chev"><n-icon :size="18" :component="ChevronForwardOutline" /></span>
     </template>
@@ -46,6 +47,12 @@ const emit = defineEmits<{
 .flare-settings__ico { font-size: 18px; }
 .flare-settings__label { flex: 1; color: var(--flare-color-text-primary); }
 .flare-settings__detail { color: var(--flare-color-text-tertiary); font-size: 13px; }
+.flare-settings__badge {
+  min-width: 18px; height: 18px; padding: 0 5px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 999px; background: var(--flare-color-error, #ef4444);
+  color: #fff; font-size: 11px; font-weight: 700; line-height: 1;
+}
 .flare-settings__chev { color: var(--flare-color-text-tertiary); }
 .flare-settings__switch {
   width: 42px; height: 24px; border-radius: 999px;
