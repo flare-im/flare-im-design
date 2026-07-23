@@ -38,6 +38,9 @@ public struct ConversationRowData: Identifiable, Sendable {
     public let presence: FlarePresence?
     /// Inline title tags (group / role / mention). Empty by default.
     public let tags: [ConversationRowTag]
+    /// Member count for group conversations (Feishu-style "N 人" header subtitle).
+    /// `nil` when unknown or not a group.
+    public let memberCount: Int?
 
     public init(
         id: String,
@@ -51,7 +54,8 @@ public struct ConversationRowData: Identifiable, Sendable {
         mentioned: Bool = false,
         draftPreview: String? = nil,
         presence: FlarePresence? = nil,
-        tags: [ConversationRowTag] = []
+        tags: [ConversationRowTag] = [],
+        memberCount: Int? = nil
     ) {
         self.id = id
         self.title = title
@@ -65,6 +69,7 @@ public struct ConversationRowData: Identifiable, Sendable {
         self.draftPreview = draftPreview
         self.presence = presence
         self.tags = tags
+        self.memberCount = memberCount
     }
 
     public var hasUnread: Bool { unreadCount > 0 }
