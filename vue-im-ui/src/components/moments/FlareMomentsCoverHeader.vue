@@ -122,14 +122,14 @@ const { t } = useFlareI18n();
 }
 .flare-moments-cover__avatar {
   flex: 0 0 auto;
-  border: 3px solid var(--flare-color-bg-primary, #fff);
-  border-radius: 14px;
+  border: none;
+  border-radius: 15px;
   padding: 0;
   background: none;
   cursor: pointer;
   overflow: hidden;
-  box-shadow: 0 4px 14px rgba(21, 18, 32, 0.2);
+  box-shadow: 0 6px 18px rgba(21, 18, 32, 0.28);
   line-height: 0;
 }
-.flare-moments-cover__avatar :deep(.im-avatar) { border-radius: 11px; }
+.flare-moments-cover__avatar :deep(.im-avatar) { border-radius: 15px; }
 </style>
