@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { NIcon } from "naive-ui";
-import { HeartOutline, HeartDislikeOutline, ChatbubbleOutline } from "../../shared/icon-glyphs";
+import { HeartOutline, HeartDislikeOutline, ChatbubbleOutline, TrashOutline } from "../../shared/icon-glyphs";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 
-defineProps<{ liked?: boolean }>();
+defineProps<{ liked?: boolean; canDelete?: boolean }>();
 const emit = defineEmits<{
   (e: "like"): void;
   (e: "comment"): void;
+  (e: "delete"): void;
 }>();
 const { t } = useFlareI18n();
 </script>
@@ -22,6 +23,13 @@ const { t } = useFlareI18n();
       <n-icon :size="16" :component="ChatbubbleOutline" />
       {{ t("moment.comment") }}
     </button>
+    <template v-if="canDelete">
+      <span class="flare-moment-actions__divider" />
+      <button type="button" class="flare-moment-actions__btn is-danger" @click="emit('delete')">
+        <n-icon :size="16" :component="TrashOutline" />
+        {{ t("moment.delete") }}
+      </button>
+    </template>
   </div>
 </template>
 
@@ -49,6 +57,8 @@ const { t } = useFlareI18n();
   transition: background 0.15s ease;
 }
 .flare-moment-actions__btn:hover { background: rgba(255, 255, 255, 0.08); }
+.flare-moment-actions__btn.is-danger { color: #ff8a80; }
+.flare-moment-actions__btn.is-danger:hover { background: rgba(255, 138, 128, 0.14); }
 .flare-moment-actions__divider {
   width: 1px;
   margin: 8px 0;

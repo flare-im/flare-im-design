@@ -8,10 +8,11 @@ import FlareCommentThread from "./FlareCommentThread.vue";
 import FlareMomentActionPopover from "./FlareMomentActionPopover.vue";
 import type { FlareMoment, FlareMomentComment } from "../../shared/contracts";
 
-const props = defineProps<{ moment: FlareMoment }>();
+const props = defineProps<{ moment: FlareMoment; canDelete?: boolean }>();
 const emit = defineEmits<{
   (e: "like"): void;
   (e: "comment"): void;
+  (e: "delete"): void;
   (e: "openImage", index: number): void;
   (e: "selectAuthor", id: string): void;
   (e: "selectLiker", id: string): void;
@@ -30,6 +31,10 @@ function onLike(): void {
 function onComment(): void {
   menuOpen.value = false;
   emit("comment");
+}
+function onDelete(): void {
+  menuOpen.value = false;
+  emit("delete");
 }
 </script>
 
@@ -59,8 +64,10 @@ function onComment(): void {
               v-if="menuOpen"
               class="flare-moment__pop"
               :liked="moment.likedBySelf"
+              :can-delete="canDelete"
               @like="onLike"
               @comment="onComment"
+              @delete="onDelete"
             />
           </transition>
           <button type="button" class="flare-moment__more" :class="{ 'is-open': menuOpen }" @click="menuOpen = !menuOpen">

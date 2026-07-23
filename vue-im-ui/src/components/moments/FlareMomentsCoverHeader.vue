@@ -34,7 +34,7 @@ const { t } = useFlareI18n();
         <div v-if="signature" class="flare-moments-cover__sig">{{ signature }}</div>
       </div>
       <button type="button" class="flare-moments-cover__avatar" @click="emit('avatar')">
-        <FlareAvatar :user-id="userId" :display-name="name" :avatar-url="avatarUrl" :size="64" />
+        <FlareAvatar :user-id="userId" :display-name="name" :avatar-url="avatarUrl" :size="66" />
       </button>
     </div>
   </header>
@@ -72,43 +72,50 @@ const { t } = useFlareI18n();
   position: absolute;
   z-index: 1;
   right: 14px;
-  bottom: 40px;
+  top: 14px;
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
+  gap: 4px;
+  padding: 5px 11px;
   border-radius: 999px;
-  background: rgba(15, 12, 25, 0.28);
+  background: rgba(15, 12, 25, 0.32);
   backdrop-filter: blur(6px);
   font-size: 12px;
   color: rgba(255, 255, 255, 0.92);
+  transition: background 0.15s ease;
 }
+.flare-moments-cover__hint:hover { background: rgba(15, 12, 25, 0.48); }
+/* Name + avatar sit OVER the cover's lower scrim (white text stays legible on
+   any cover), with the avatar overhanging the cover's bottom edge. */
 .flare-moments-cover__id {
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 14px;
   padding: 0 16px;
-  margin-top: -30px;
+  margin-top: -62px;
   position: relative;
+  z-index: 1;
 }
 .flare-moments-cover__text {
   text-align: right;
-  padding-bottom: 6px;
+  padding-bottom: 20px;
   min-width: 0;
 }
 .flare-moments-cover__name {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: #fff;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .flare-moments-cover__sig {
-  margin-top: 4px;
-  font-size: 12px;
-  color: var(--flare-color-text-secondary, #6b6780);
+  margin-top: 5px;
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.88);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
