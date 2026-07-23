@@ -148,12 +148,12 @@
   width: 34px;
   height: 34px;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--im-border) 72%, transparent);
   border-radius: 999px;
-  color: #ffffff;
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--im-primary) 82%, #0ea5e9), #0891b2);
-  box-shadow: 0 1px 4px color-mix(in srgb, #111827 12%, transparent);
+  /* Per-user pastel tint (bg + initials colour) is set inline from the shared
+     avatarTint util, matching FlareAvatar in the list + chat header. */
+  background: var(--flare-color-bg-tertiary, #ece9f3);
+  color: var(--flare-color-text-secondary, #6b6780);
+  box-shadow: 0 1px 4px color-mix(in srgb, #111827 10%, transparent);
   font-size: 13px;
   font-weight: 800;
   line-height: 1;
