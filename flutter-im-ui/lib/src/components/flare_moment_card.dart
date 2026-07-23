@@ -15,8 +15,10 @@ class FlareMomentCard extends StatefulWidget {
   const FlareMomentCard({
     super.key,
     required this.moment,
+    this.canDelete = false,
     this.onLike,
     this.onComment,
+    this.onDelete,
     this.onOpenImage,
     this.onSelectAuthor,
     this.onSelectLiker,
@@ -24,8 +26,12 @@ class FlareMomentCard extends StatefulWidget {
   });
 
   final FlareMoment moment;
+
+  /// When true the ··· popover shows a destructive Delete action → [onDelete].
+  final bool canDelete;
   final VoidCallback? onLike;
   final VoidCallback? onComment;
+  final VoidCallback? onDelete;
   final void Function(int index)? onOpenImage;
   final void Function(String id)? onSelectAuthor;
   final void Function(String id)? onSelectLiker;
@@ -46,6 +52,11 @@ class _FlareMomentCardState extends State<FlareMomentCard> {
   void _onComment() {
     setState(() => _menuOpen = false);
     widget.onComment?.call();
+  }
+
+  void _onDelete() {
+    setState(() => _menuOpen = false);
+    widget.onDelete?.call();
   }
 
   @override
@@ -181,8 +192,10 @@ class _FlareMomentCardState extends State<FlareMomentCard> {
             if (_menuOpen) ...[
               FlareMomentActionPopover(
                 liked: moment.likedBySelf,
+                canDelete: widget.canDelete,
                 onLike: _onLike,
                 onComment: _onComment,
+                onDelete: _onDelete,
               ),
               const SizedBox(width: 6),
             ],
