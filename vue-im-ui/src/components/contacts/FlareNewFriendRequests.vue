@@ -2,6 +2,7 @@
 import FlareAvatar from "../conversation/FlareAvatar.vue";
 import FlareEmptyState from "../general/FlareEmptyState.vue";
 import type { FlareFriendRequest } from "../../shared/contracts";
+import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 
 defineProps<{ items: FlareFriendRequest[]; emptyText?: string }>();
 const emit = defineEmits<{
@@ -9,19 +10,20 @@ const emit = defineEmits<{
   (e: "reject", r: FlareFriendRequest): void;
   (e: "view", r: FlareFriendRequest): void;
 }>();
+const { t } = useFlareI18n();
 </script>
 
 <template>
   <div class="flare-new-friends">
-    <FlareEmptyState v-if="!items.length" icon="person-add" :title="emptyText || 'No new friend requests'" />
+    <FlareEmptyState v-if="!items.length" icon="person-add" :title="emptyText || t('newFriends.empty')" />
     <div v-for="r in items" :key="r.id" class="flare-new-friends__row">
       <FlareAvatar :user-id="r.id" :display-name="r.name" :avatar-url="r.avatarUrl" :size="44" />
       <div class="flare-new-friends__body" @click="emit('view', r)">
         <div class="flare-new-friends__name">{{ r.name }}</div>
         <div v-if="r.message" class="flare-new-friends__msg">{{ r.message }}</div>
       </div>
-      <button class="is-ghost" @click="emit('reject', r)">Decline</button>
-      <button class="is-primary" @click="emit('accept', r)">Accept</button>
+      <button class="is-ghost" @click="emit('reject', r)">{{ t('newFriends.decline') }}</button>
+      <button class="is-primary" @click="emit('accept', r)">{{ t('newFriends.accept') }}</button>
     </div>
   </div>
 </template>

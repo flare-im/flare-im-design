@@ -7,6 +7,9 @@ import { downloadUrlWithFileName } from "../../../../utils/browserDownload";
 import { buildMediaResolveRequest, readMediaLocalPath } from "../../../../utils/mediaResolveRequest";
 import { useResolvedMediaUrl } from "../../../../composables/useMediaResolver";
 import ImagePreviewModal from "../../../message-preview/ImagePreviewModal.vue";
+import { useFlareI18n } from "../../../../shared/i18n/useFlareI18n";
+
+const { t } = useFlareI18n();
 
 const props = defineProps<{
   image: Record<string, unknown>;
@@ -99,7 +102,7 @@ watch(url, () => {
     </button>
     <span v-else class="im-image-group-cell__placeholder">
       <n-icon :component="ImageOutline" />
-      <small v-if="resolved.loading.value">Loading</small>
+      <small v-if="resolved.loading.value">{{ t('media.loading') }}</small>
     </span>
     <div v-if="canPreview" class="im-image-group-cell__actions" aria-label="Image actions">
       <button type="button" class="im-image-group-cell__action" title="Preview" aria-label="Preview image" @click.stop="previewOpen = true">

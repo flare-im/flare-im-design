@@ -233,6 +233,14 @@ export const flareMessages: Record<FlareLocale, FlareMessageTree> = {
       busy: "忙碌",
       away: "离开",
     },
+    newFriends: {
+      accept: "接受",
+      decline: "拒绝",
+      empty: "暂无新的好友申请",
+    },
+    media: {
+      loading: "加载中",
+    },
     reaction: {
       add: "添加表情回应",
     },
@@ -1198,6 +1206,14 @@ export const flareMessages: Record<FlareLocale, FlareMessageTree> = {
       offline: "Offline",
       busy: "Busy",
       away: "Away",
+    },
+    newFriends: {
+      accept: "Accept",
+      decline: "Decline",
+      empty: "No new friend requests",
+    },
+    media: {
+      loading: "Loading",
     },
     reaction: {
       add: "Add reaction",
