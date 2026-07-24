@@ -198,17 +198,26 @@ public struct GroupMemberGridView: View {
     private let columns: Int
     private let onSelect: ((String) -> Void)?
     private let onAddMember: (() -> Void)?
+    private let title: String
+    private let ownerLabel: String
+    private let adminLabel: String
+    private let addLabel: String
+    private let memberCountText: (Int) -> String
     @Environment(\.colorScheme) private var scheme
 
     public init(members: [Contact], ownerId: String? = nil, adminIds: [String] = [], showAdd: Bool = true,
-                columns: Int = 5, onSelect: ((String) -> Void)? = nil, onAddMember: (() -> Void)? = nil) {
+                columns: Int = 5, onSelect: ((String) -> Void)? = nil, onAddMember: (() -> Void)? = nil,
+                title: String = "群成员", ownerLabel: String = "群主", adminLabel: String = "管理员",
+                addLabel: String = "加成员", memberCountText: @escaping (Int) -> String = { "\($0) 名成员" }) {
         self.members = members; self.ownerId = ownerId; self.adminIds = adminIds; self.showAdd = showAdd
         self.columns = columns; self.onSelect = onSelect; self.onAddMember = onAddMember
+        self.title = title; self.ownerLabel = ownerLabel; self.adminLabel = adminLabel
+        self.addLabel = addLabel; self.memberCountText = memberCountText
     }
 
     private func role(_ m: Contact) -> String? {
-        if m.id == ownerId { return "Owner" }
-        if adminIds.contains(m.id) { return "Admin" }
+        if m.id == ownerId { return ownerLabel }
+        if adminIds.contains(m.id) { return adminLabel }
         return nil
     }
 
@@ -217,9 +226,9 @@ public struct GroupMemberGridView: View {
         let cols = Array(repeating: GridItem(.flexible(), spacing: 10), count: columns)
         VStack(alignment: .leading, spacing: 14) {
             HStack {
-                Text("Members").font(.system(size: FlareSizes.fontSizeLg, weight: .semibold)).foregroundColor(colors.textPrimary)
+                Text(title).font(.system(size: FlareSizes.fontSizeLg, weight: .semibold)).foregroundColor(colors.textPrimary)
                 Spacer()
-                Text("\(members.count) members").font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
+                Text(memberCountText(members.count)).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
             }
             LazyVGrid(columns: cols, spacing: 14) {
                 ForEach(members) { m in cell(colors, m) }
@@ -253,7 +262,7 @@ public struct GroupMemberGridView: View {
                 Image(systemName: "plus").font(.system(size: 22)).foregroundColor(colors.textTertiary)
                     .frame(width: 48, height: 48)
                     .overlay(Circle().stroke(colors.borderHover, style: StrokeStyle(lineWidth: 1, dash: [4])))
-                Text("Add").font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textSecondary)
+                Text(addLabel).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textSecondary)
             }
         }
         .buttonStyle(.plain)

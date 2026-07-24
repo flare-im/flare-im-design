@@ -240,18 +240,23 @@ fun GroupMemberGrid(
     columns: Int = 5,
     onSelect: ((String) -> Unit)? = null,
     onAddMember: (() -> Unit)? = null,
+    title: String = "群成员",
+    ownerLabel: String = "群主",
+    adminLabel: String = "管理员",
+    addLabel: String = "加成员",
+    memberCountText: (Int) -> String = { "$it 名成员" },
 ) {
     val colors = flareColors()
     fun role(m: Contact): String? = when {
-        m.id == ownerId -> "Owner"
-        adminIds.contains(m.id) -> "Admin"
+        m.id == ownerId -> ownerLabel
+        adminIds.contains(m.id) -> adminLabel
         else -> null
     }
     Column(Modifier.padding(FlareSizes.spacingLg)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("Members", color = colors.textPrimary, fontWeight = FontWeight.SemiBold,
+            Text(title, color = colors.textPrimary, fontWeight = FontWeight.SemiBold,
                 fontSize = FlareSizes.fontSizeLg.value.sp)
-            Text("${members.size} members", color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
+            Text(memberCountText(members.size), color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
         }
         Spacer(Modifier.height(14.dp))
         LazyVerticalGrid(
@@ -285,11 +290,11 @@ fun GroupMemberGrid(
                         Box(Modifier.size(48.dp).clip(CircleShape)
                             .border(BorderStroke(1.dp, colors.borderHover), CircleShape),
                             contentAlignment = Alignment.Center) {
-                            Icon(Icons.Outlined.Add, contentDescription = "Add", tint = colors.textTertiary,
+                            Icon(Icons.Outlined.Add, contentDescription = addLabel, tint = colors.textTertiary,
                                 modifier = Modifier.size(22.dp))
                         }
                         Spacer(Modifier.height(8.dp))
-                        Text("Add", color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm.value.sp)
+                        Text(addLabel, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm.value.sp)
                     }
                 }
             }
