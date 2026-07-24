@@ -11,17 +11,24 @@ class FlareSettingsList extends StatelessWidget {
     required this.sections,
     this.onToggle,
     this.onSelect,
+    this.shrinkWrap = false,
   });
 
   final List<FlareSettingsSection> sections;
   final void Function(FlareSettingsItem item, bool value)? onToggle;
   final ValueChanged<FlareSettingsItem>? onSelect;
 
+  /// When true, sizes to its content and disables its own scrolling — so it can
+  /// be embedded inside another scroll view (e.g. a profile / contact page).
+  final bool shrinkWrap;
+
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(Theme.of(context).brightness);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return ListView(
+      shrinkWrap: shrinkWrap,
+      physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
       padding: const EdgeInsets.symmetric(vertical: FlareSizes.spacingSm),
       children: [
         for (final section in sections) ...[
