@@ -72,3 +72,40 @@ export interface FlareMentionCandidate {
   /** Marks the synthetic "@everyone" row so it can be styled / pinned. */
   isEveryone?: boolean;
 }
+
+/** The full data model for FlareGroupDetail — a group's settings/management page. */
+export interface FlareGroupDetailModel {
+  groupId: string;
+  name: string;
+  avatarUrl?: string;
+  memberCount: number;
+  announcement?: string;
+  members: FlareContact[];
+  ownerId: string;
+  adminIds: string[];
+  /** Muted member ids — drives the per-member mute action label. */
+  mutedIds: string[];
+  /** Viewer owns or administers the group (gates the management sections). */
+  canManage: boolean;
+  isOwner: boolean;
+  /** Viewer's own nickname in this group. */
+  myNickname?: string;
+  /** Viewer's per-group notification/pin preference. */
+  myMuted: boolean;
+  myPinned: boolean;
+  /** Join policy: 1 = invite-only, 2 = approval, 3 = open. */
+  joinPolicy: number;
+  muteAll: boolean;
+  onlyAdminCanAtAll: boolean;
+  onlyAdminCanPin: boolean;
+  shareCardPermission: boolean;
+}
+
+/** A pending group join request, resolved for display. */
+export interface FlareGroupJoinRequestView {
+  requestId: string;
+  applicantId: string;
+  applicantName: string;
+  avatarUrl?: string;
+  message?: string;
+}

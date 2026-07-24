@@ -81,6 +81,7 @@ export { default as FlareUnreadDivider } from "./messages/FlareUnreadDivider.vue
 export { default as FlareScrollToLatest } from "./messages/FlareScrollToLatest.vue";
 export { default as FlareProfileCard } from "./profile/FlareProfileCard.vue";
 export { default as FlareGroupMemberGrid } from "./contacts/FlareGroupMemberGrid.vue";
+export { default as FlareGroupDetail } from "./contacts/FlareGroupDetail.vue";
 
 // Feishu-parity IM primitives (reactions, read receipts, mention, batch, search, skeleton, quick phrases)
 export { default as FlareReactionSummary } from "./messages/FlareReactionSummary.vue";
