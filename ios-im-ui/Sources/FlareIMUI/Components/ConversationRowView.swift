@@ -16,7 +16,7 @@ public struct ConversationRowView: View {
     @Environment(\.colorScheme) private var scheme
 
     public init(item: ConversationRowData, active: Bool = false, avatarSize: CGFloat = 48,
-                draftLabel: String = "[Draft] ", mentionLabel: String = "[@me] ",
+                draftLabel: String = "[草稿] ", mentionLabel: String = "[@我] ",
                 onSelect: ((ConversationRowData) -> Void)? = nil,
                 onLongPress: ((ConversationRowData) -> Void)? = nil) {
         self.draftLabel = draftLabel; self.mentionLabel = mentionLabel

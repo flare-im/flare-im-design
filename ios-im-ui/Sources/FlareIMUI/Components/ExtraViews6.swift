@@ -143,7 +143,7 @@ public struct VoicePlayerView: View {
         Button { onToggleTranscript?() } label: {
             HStack(spacing: 5) {
                 Image(systemName: "doc.text").font(.system(size: 11))
-                Text(transcriptOpen ? "Hide text" : "To text")
+                Text(transcriptOpen ? "收起文字" : "转文字")
                     .font(.system(size: 12, weight: .medium))
             }.foregroundColor(colors.primary)
         }.buttonStyle(.plain)
@@ -222,7 +222,7 @@ public struct EmojiPickerView: View {
         HStack(spacing: 8) {
             HStack(spacing: 6) {
                 Image(systemName: "magnifyingglass").font(.system(size: 12)).foregroundColor(colors.textTertiary)
-                TextField("Search emoji", text: $query)
+                TextField("搜索表情", text: $query)
                     .font(.system(size: 13)).foregroundColor(colors.textPrimary)
                     .textFieldStyle(.plain)
             }
@@ -315,7 +315,7 @@ public struct StickerPanelView: View {
     private var railPacks: [StickerPack] {
         var out = [StickerPack]()
         if !recents.isEmpty {
-            out.append(StickerPack(key: Self.recentKey, label: "Recent", coverEmoji: "🕘", stickers: recents))
+            out.append(StickerPack(key: Self.recentKey, label: "最近", coverEmoji: "🕘", stickers: recents))
         }
         out.append(contentsOf: packs)
         return out

@@ -80,7 +80,7 @@ public struct ReadReceiptSheetView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: FlareSizes.spacingSm) {
                 Image(systemName: "checkmark.circle").font(.system(size: 16)).foregroundColor(colors.primary)
-                Text("Read receipt").font(.system(size: FlareSizes.fontSizeXl, weight: .semibold)).foregroundColor(colors.textPrimary)
+                Text("已读回执").font(.system(size: FlareSizes.fontSizeXl, weight: .semibold)).foregroundColor(colors.textPrimary)
                 Spacer()
                 if dismissible {
                     Button { onClose?() } label: {
@@ -91,15 +91,15 @@ public struct ReadReceiptSheetView: View {
             .padding(.horizontal, FlareSizes.spacingLg).padding(.top, FlareSizes.spacingLg).padding(.bottom, FlareSizes.spacingMd)
 
             HStack(spacing: 0) {
-                tab(colors, 0, "Read (\(readers.count))")
-                tab(colors, 1, "Unread (\(unread.count))")
+                tab(colors, 0, "已读 (\(readers.count))")
+                tab(colors, 1, "未读 (\(unread.count))")
             }
             .padding(.horizontal, FlareSizes.spacingLg)
 
             Divider().overlay(colors.borderPrimary)
 
             if activeList.isEmpty {
-                Text(activeTab == 0 ? "No one has read this yet" : "Everyone has read this")
+                Text(activeTab == 0 ? "还没有人已读" : "所有人都已读")
                     .font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textTertiary)
                     .frame(maxWidth: .infinity).padding(.vertical, 28)
             } else {
@@ -173,13 +173,13 @@ public struct MessageBatchToolbarView: View {
         HStack(spacing: FlareSizes.spacingSm) {
             HStack(spacing: 4) {
                 Text("\(count)").font(.system(size: FlareSizes.fontSizeLg, weight: .bold)).foregroundColor(colors.primary)
-                Text("/ \(total) · selected").font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textSecondary)
+                Text("/ \(total) · 已选").font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textSecondary)
             }
             Spacer(minLength: FlareSizes.spacingMd)
-            button(colors, "checkmark.circle", "Select all", onSelectAll, disabled: total == 0 || busy)
-            button(colors, "arrowshape.turn.up.right", "Forward each", onForwardEach, disabled: count == 0 || busy)
-            button(colors, "square.stack", "Forward merged", onForwardMerged, disabled: count < 2 || busy)
-            button(colors, "trash", "Delete", onDelete, disabled: count == 0 || busy, tint: colors.error)
+            button(colors, "checkmark.circle", "全选", onSelectAll, disabled: total == 0 || busy)
+            button(colors, "arrowshape.turn.up.right", "逐条转发", onForwardEach, disabled: count == 0 || busy)
+            button(colors, "square.stack", "合并转发", onForwardMerged, disabled: count < 2 || busy)
+            button(colors, "trash", "删除", onDelete, disabled: count == 0 || busy, tint: colors.error)
             iconButton(colors, "xmark", onExit)
         }
         .padding(.horizontal, FlareSizes.spacingLg).padding(.vertical, FlareSizes.spacingMd)
@@ -252,7 +252,7 @@ public struct MentionPickerView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: FlareSizes.spacingSm) {
                 Image(systemName: "magnifyingglass").font(.system(size: 14)).foregroundColor(colors.textTertiary)
-                TextField("Search members", text: $query)
+                TextField("搜索成员", text: $query)
                     .textFieldStyle(.plain)
                     .font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textPrimary)
             }
@@ -261,7 +261,7 @@ public struct MentionPickerView: View {
             Divider().overlay(colors.borderPrimary)
 
             if !showEveryone && filtered.isEmpty {
-                Text("No matching members")
+                Text("没有匹配的成员")
                     .font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textTertiary)
                     .frame(maxWidth: .infinity).padding(.vertical, 24)
             } else {
@@ -282,14 +282,14 @@ public struct MentionPickerView: View {
 
     private func everyoneRow(_ colors: FlareColors) -> some View {
         Button {
-            onSelect?(MentionCandidate(id: "__all__", name: "Everyone", isEveryone: true))
+            onSelect?(MentionCandidate(id: "__all__", name: "所有人", isEveryone: true))
         } label: {
             HStack(spacing: FlareSizes.spacingMd) {
                 Image(systemName: "person.2").font(.system(size: 15)).foregroundColor(.white)
                     .frame(width: 32, height: 32).background(Circle().fill(colors.primary))
                 VStack(alignment: .leading, spacing: 1) {
-                    Text("Everyone").font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textPrimary)
-                    Text("Notify all members").font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
+                    Text("所有人").font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textPrimary)
+                    Text("通知全体成员").font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
                 }
                 Spacer(minLength: 0)
             }
@@ -343,13 +343,13 @@ public struct QuickPhrasesView: View {
         VStack(alignment: .leading, spacing: FlareSizes.spacingMd) {
             HStack(spacing: FlareSizes.spacingSm) {
                 Image(systemName: "bolt").font(.system(size: 15)).foregroundColor(colors.primary)
-                Text("Quick phrases").font(.system(size: FlareSizes.fontSizeXl, weight: .semibold)).foregroundColor(colors.textPrimary)
+                Text("快捷短语").font(.system(size: FlareSizes.fontSizeXl, weight: .semibold)).foregroundColor(colors.textPrimary)
                 Spacer()
                 if manageable {
                     Button { onManage?() } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "square.and.pencil").font(.system(size: 13))
-                            Text("Manage").font(.system(size: FlareSizes.fontSizeMd, weight: .medium))
+                            Text("管理").font(.system(size: FlareSizes.fontSizeMd, weight: .medium))
                         }.foregroundColor(colors.textSecondary)
                     }.buttonStyle(.plain)
                 }
@@ -417,7 +417,7 @@ public struct SearchResultsView: View {
     public var body: some View {
         let colors = FlareColors.of(scheme)
         if nonEmpty.isEmpty {
-            Text("No results found")
+            Text("没有找到结果")
                 .font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textTertiary)
                 .frame(maxWidth: .infinity).padding(.vertical, 32)
         } else {
@@ -435,7 +435,7 @@ public struct SearchResultsView: View {
             ForEach(g.items) { item in row(colors, item) }
             if let total = g.total, total > g.items.count {
                 Button { onViewAll?(g.kind) } label: {
-                    Text("View all \(total)").font(.system(size: FlareSizes.fontSizeLg, weight: .medium))
+                    Text("查看全部 \(total)").font(.system(size: FlareSizes.fontSizeLg, weight: .medium))
                         .foregroundColor(colors.primary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 4).padding(.vertical, FlareSizes.spacingSm)

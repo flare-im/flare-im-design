@@ -15,9 +15,9 @@ public struct FlareVoiceHoldButton: View {
     @State private var pressing = false
     @State private var willCancel = false
 
-    public init(label: String = "Hold to talk",
-                recordingLabel: String = "Release to send · slide up to cancel",
-                cancelLabel: String = "Release to cancel",
+    public init(label: String = "按住 说话",
+                recordingLabel: String = "松开发送 · 上滑取消",
+                cancelLabel: String = "松开取消",
                 cancelThreshold: CGFloat = 80,
                 onStart: (() -> Void)? = nil, onEnd: (() -> Void)? = nil,
                 onCancel: (() -> Void)? = nil) {
@@ -126,7 +126,7 @@ public struct FlareComposerReplyStrip: View {
     private let onCancel: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
 
-    public init(senderName: String, summary: String, label: String = "Reply",
+    public init(senderName: String, summary: String, label: String = "回复",
                 onCancel: (() -> Void)? = nil) {
         self.senderName = senderName
         self.summary = summary

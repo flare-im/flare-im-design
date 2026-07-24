@@ -58,7 +58,7 @@ public struct ContactListView: View {
     public var body: some View {
         let colors = FlareColors.of(scheme)
         if items.isEmpty {
-            if loading { ProgressView() } else { EmptyStateView(title: "No contacts yet", systemImage: "person.2") }
+            if loading { ProgressView() } else { EmptyStateView(title: "还没有联系人", systemImage: "person.2") }
         } else {
             ScrollViewReader { proxy in
                 ZStack(alignment: .trailing) {
@@ -121,9 +121,9 @@ public struct ContactDetailView: View {
                 Text(s).font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textTertiary)
             }
             HStack(spacing: FlareSizes.spacingMd) {
-                actionButton("Message", "message", onMessage, colors, primary: true)
-                actionButton("Voice", "phone", onCall, colors)
-                actionButton("Video", "video", onVideo, colors)
+                actionButton("发消息", "message", onMessage, colors, primary: true)
+                actionButton("语音", "phone", onCall, colors)
+                actionButton("视频", "video", onVideo, colors)
             }
             .padding(.top, FlareSizes.spacingLg)
         }
@@ -151,8 +151,8 @@ public struct NewFriendRequestsView: View {
     private let declineLabel: String
     @Environment(\.colorScheme) private var scheme
 
-    public init(items: [FriendRequest], emptyText: String = "No new friend requests",
-                acceptLabel: String = "Accept", declineLabel: String = "Decline",
+    public init(items: [FriendRequest], emptyText: String = "没有新的好友请求",
+                acceptLabel: String = "接受", declineLabel: String = "拒绝",
                 onAccept: ((FriendRequest) -> Void)? = nil, onReject: ((FriendRequest) -> Void)? = nil) {
         self.items = items; self.emptyText = emptyText
         self.acceptLabel = acceptLabel; self.declineLabel = declineLabel
@@ -194,7 +194,7 @@ public struct GroupListView: View {
     private let emptyText: String
     @Environment(\.colorScheme) private var scheme
 
-    public init(items: [GroupSummary], emptyText: String = "No groups yet", onSelect: ((GroupSummary) -> Void)? = nil) {
+    public init(items: [GroupSummary], emptyText: String = "还没有群组", onSelect: ((GroupSummary) -> Void)? = nil) {
         self.items = items; self.emptyText = emptyText; self.onSelect = onSelect
     }
 
@@ -211,7 +211,7 @@ public struct GroupListView: View {
                                 AvatarView(userId: g.id, displayName: g.name, avatarURL: g.avatarURL, size: 44)
                                 VStack(alignment: .leading) {
                                     Text(g.name).font(.system(size: FlareSizes.fontSizeXl, weight: .medium)).foregroundColor(colors.textPrimary)
-                                    Text("\(g.memberCount) members").font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
+                                    Text("\(g.memberCount) 名成员").font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
                                 }
                                 Spacer()
                             }

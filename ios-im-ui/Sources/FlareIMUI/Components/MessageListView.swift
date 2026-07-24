@@ -23,7 +23,7 @@ public struct MessageListView: View {
         conversationKind: FlareConversationKind = .single,
         loading: Bool = false,
         loadingOlder: Bool = false,
-        emptyText: String = "No messages yet",
+        emptyText: String = "还没有消息",
         mediaDownloadStates: [String: FlareMediaDownloadState] = [:],
         onMessageLongPress: ((FlareMessageData) -> Void)? = nil,
         onMediaAction: ((FlareMessageData, FlareMessageContent) -> Void)? = nil,

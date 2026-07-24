@@ -16,7 +16,7 @@ public struct StartConversationView: View {
 
     public init(
         contacts: [FlareContactOption],
-        searchPlaceholder: String = "Search contacts",
+        searchPlaceholder: String = "搜索联系人",
         allowGroup: Bool = true,
         busy: Bool = false,
         onConfirm: (([String]) -> Void)? = nil
@@ -79,7 +79,7 @@ public struct StartConversationView: View {
                         if busy {
                             ProgressView().tint(.white)
                         } else {
-                            Text(selected.isEmpty ? "OK" : "OK (\(selected.count))")
+                            Text(selected.isEmpty ? "确定" : "确定 (\(selected.count))")
                                 .fontWeight(.semibold)
                         }
                     }

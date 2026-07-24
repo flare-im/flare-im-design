@@ -21,9 +21,9 @@ public struct TypingIndicatorView: View {
 
     private var label: String {
         let n = names.filter { !$0.isEmpty }
-        if n.isEmpty { return "typing…" }
-        if n.count == 1 { return "\(n[0]) is typing…" }
-        return "\(n.count) people typing…"
+        if n.isEmpty { return "正在输入…" }
+        if n.count == 1 { return "\(n[0]) 正在输入…" }
+        return "\(n.count) 人正在输入…"
     }
 
     private func dots(_ colors: FlareColors) -> some View {
@@ -77,7 +77,7 @@ public struct UnreadDividerView: View {
 
     public var body: some View {
         let colors = FlareColors.of(scheme)
-        let text = count > 0 ? "\(count) new messages" : "New messages"
+        let text = count > 0 ? "\(count) 条新消息" : "新消息"
         HStack(spacing: FlareSizes.spacingMd) {
             Rectangle().fill(colors.primary.opacity(0.24)).frame(height: 1)
             Text(text).font(.system(size: FlareSizes.fontSizeSm, weight: .medium)).foregroundColor(colors.primary)
@@ -160,7 +160,7 @@ public struct ProfileCardView: View {
                 }.padding(.top, 10)
             }
             HStack(spacing: FlareSizes.spacingSm) {
-                action(colors, "message", "Message", onMessage, primary: true)
+                action(colors, "message", "发消息", onMessage, primary: true)
                 action(colors, "phone", nil, onCall)
                 action(colors, "video", nil, onVideo)
             }.padding(.top, FlareSizes.spacingLg)
@@ -305,9 +305,9 @@ public struct GroupCallView: View {
         if n <= 1 { return 1 }; if n <= 4 { return 2 }; if n <= 9 { return 3 }; return 4
     }
     private var statusText: String {
-        if state == .connected { return durationLabel ?? "Connected" }
-        if state == .ringing { return "Ringing…" }
-        return "Calling…"
+        if state == .connected { return durationLabel ?? "已接通" }
+        if state == .ringing { return "响铃中…" }
+        return "呼叫中…"
     }
 
     public var body: some View {
@@ -361,7 +361,7 @@ public struct GroupCallView: View {
                     Image(systemName: "video.slash.fill").font(.system(size: 10)).foregroundColor(.white)
                         .frame(width: 20, height: 20).background(RoundedRectangle(cornerRadius: 6).fill(Color.black.opacity(0.42)))
                 }
-                Text(p.isSelf ? "\(p.name) (me)" : p.name).font(.system(size: 12)).foregroundColor(.white).lineLimit(1)
+                Text(p.isSelf ? "\(p.name)（我）" : p.name).font(.system(size: 12)).foregroundColor(.white).lineLimit(1)
                     .padding(.horizontal, 8).padding(.vertical, 2)
                     .background(RoundedRectangle(cornerRadius: 6).fill(Color.black.opacity(0.42)))
             }.padding(8)

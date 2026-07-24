@@ -22,16 +22,16 @@ public struct FlareConversationDetailsLabels: Sendable {
     public var delete: String
 
     public init(
-        messages: String = "Messages",
-        mute: String = "Mute",
-        pin: String = "Pin conversation",
-        markRead: String = "Mark as read",
-        markUnread: String = "Mark as unread",
-        sync: String = "Sync conversation",
-        archive: String = "Archive conversation",
-        unarchive: String = "Unarchive",
-        clearHistory: String = "Clear chat history",
-        delete: String = "Delete conversation"
+        messages: String = "消息",
+        mute: String = "免打扰",
+        pin: String = "置顶会话",
+        markRead: String = "标为已读",
+        markUnread: String = "标为未读",
+        sync: String = "同步会话",
+        archive: String = "归档会话",
+        unarchive: String = "取消归档",
+        clearHistory: String = "清空聊天记录",
+        delete: String = "删除会话"
     ) {
         self.messages = messages
         self.mute = mute
@@ -109,7 +109,7 @@ public struct ConversationDetailsView: View {
                         .font(.system(size: FlareSizes.fontSize4xl, weight: .semibold))
                         .foregroundColor(colors.textPrimary)
                     if conversation.kind == .group, let n = conversation.memberCount {
-                        Text("\(n) members")
+                        Text("\(n) 名成员")
                             .font(.system(size: FlareSizes.fontSizeSm))
                             .foregroundColor(colors.textTertiary)
                     }
