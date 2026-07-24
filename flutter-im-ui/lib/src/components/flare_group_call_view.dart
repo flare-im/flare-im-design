@@ -83,12 +83,12 @@ class FlareGroupCallView extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(title ?? 'Group call',
+                      Text(title ?? '群通话',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                               color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
-                      Text('${participants.length} joined · $_status',
+                      Text('${participants.length} 人已加入 · $_status',
                           style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.62), fontSize: 12)),
                     ],

@@ -318,8 +318,8 @@ public struct GroupCallView: View {
                         .frame(width: 36, height: 36).background(Circle().fill(Color.white.opacity(0.12)))
                 }.buttonStyle(.plain)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(title ?? "Group call").font(.system(size: 16, weight: .semibold)).foregroundColor(.white).lineLimit(1)
-                    Text("\(participants.count) joined · \(statusText)").font(.system(size: 12)).foregroundColor(.white.opacity(0.62))
+                    Text(title ?? "群通话").font(.system(size: 16, weight: .semibold)).foregroundColor(.white).lineLimit(1)
+                    Text("\(participants.count) 人已加入 · \(statusText)").font(.system(size: 12)).foregroundColor(.white.opacity(0.62))
                 }
                 Spacer()
             }.padding(.horizontal, 16).padding(.top, 14).padding(.bottom, 4)
