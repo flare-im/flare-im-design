@@ -16,6 +16,11 @@ class FlareGroupMemberGrid extends StatelessWidget {
     this.columns = 5,
     this.onSelect,
     this.onAddMember,
+    this.title = '群成员',
+    this.ownerLabel = '群主',
+    this.adminLabel = '管理员',
+    this.addLabel = '加成员',
+    this.memberCountText,
   });
 
   final List<FlareContact> members;
@@ -25,10 +30,16 @@ class FlareGroupMemberGrid extends StatelessWidget {
   final int columns;
   final void Function(String id)? onSelect;
   final VoidCallback? onAddMember;
+  final String title;
+  final String ownerLabel;
+  final String adminLabel;
+  final String addLabel;
+  /// Formats the right-side member count (defaults to "N 名成员").
+  final String Function(int count)? memberCountText;
 
   String? _role(FlareContact m) {
-    if (m.id == ownerId) return 'Owner';
-    if (adminIds.contains(m.id)) return 'Admin';
+    if (m.id == ownerId) return ownerLabel;
+    if (adminIds.contains(m.id)) return adminLabel;
     return null;
   }
 
@@ -44,12 +55,12 @@ class FlareGroupMemberGrid extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Members',
+              Text(title,
                   style: TextStyle(
                       color: colors.textPrimary,
                       fontSize: FlareSizes.fontSizeLg,
                       fontWeight: FontWeight.w600)),
-              Text('${members.length} members',
+              Text(memberCountText?.call(members.length) ?? '${members.length} 名成员',
                   style: TextStyle(color: colors.textTertiary, fontSize: FlareSizes.fontSizeSm)),
             ],
           ),
@@ -122,7 +133,7 @@ class FlareGroupMemberGrid extends StatelessWidget {
             child: Icon(Icons.add, color: colors.textTertiary, size: 22),
           ),
           const SizedBox(height: 8),
-          Text('Add', style: TextStyle(color: colors.textSecondary, fontSize: FlareSizes.fontSizeSm)),
+          Text(addLabel, style: TextStyle(color: colors.textSecondary, fontSize: FlareSizes.fontSizeSm)),
         ],
       ),
     );
