@@ -344,9 +344,9 @@ fun GroupCallView(
             }
             Spacer(Modifier.width(12.dp))
             Column {
-                Text(title ?: "Group call", color = Color.White, fontWeight = FontWeight.SemiBold,
+                Text(title ?: "群通话", color = Color.White, fontWeight = FontWeight.SemiBold,
                     fontSize = 16.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("${participants.size} joined · $status", color = Color.White.copy(alpha = 0.62f), fontSize = 12.sp)
+                Text("${participants.size} 人已加入 · $status", color = Color.White.copy(alpha = 0.62f), fontSize = 12.sp)
             }
         }
         LazyVerticalGrid(
