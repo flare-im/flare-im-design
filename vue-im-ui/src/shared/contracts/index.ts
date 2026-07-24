@@ -66,4 +66,6 @@ export type {
   FlareSettingsSection,
   FlareNavItem,
   FlareMentionCandidate,
+  FlareGroupDetailModel,
+  FlareGroupJoinRequestView,
 } from "./directory";
