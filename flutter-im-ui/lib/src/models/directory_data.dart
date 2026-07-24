@@ -95,6 +95,79 @@ class FlareUserProfile {
   final String? flareId;
 }
 
+/// The full data model for [FlareGroupDetail] — a group's settings/management
+/// page. Presentational: the host maps its own group state onto this and
+/// performs the SDK writes when the component raises an intent.
+class FlareGroupDetailModel {
+  const FlareGroupDetailModel({
+    required this.groupId,
+    required this.name,
+    this.avatarUrl,
+    required this.memberCount,
+    this.announcement,
+    this.members = const [],
+    required this.ownerId,
+    this.adminIds = const [],
+    this.mutedIds = const [],
+    this.canManage = false,
+    this.isOwner = false,
+    this.myNickname,
+    this.myMuted = false,
+    this.myPinned = false,
+    this.joinPolicy = 3,
+    this.muteAll = false,
+    this.onlyAdminCanAtAll = false,
+    this.onlyAdminCanPin = false,
+    this.shareCardPermission = true,
+  });
+
+  final String groupId;
+  final String name;
+  final String? avatarUrl;
+  final int memberCount;
+  final String? announcement;
+  final List<FlareContact> members;
+  final String ownerId;
+  final List<String> adminIds;
+
+  /// Muted member ids — drives the per-member mute action label.
+  final List<String> mutedIds;
+
+  /// Viewer owns or administers the group (gates the management sections).
+  final bool canManage;
+  final bool isOwner;
+
+  /// Viewer's own nickname in this group.
+  final String? myNickname;
+
+  /// Viewer's per-group notification / pin preference.
+  final bool myMuted;
+  final bool myPinned;
+
+  /// Join policy: 1 = invite-only, 2 = approval, 3 = open.
+  final int joinPolicy;
+  final bool muteAll;
+  final bool onlyAdminCanAtAll;
+  final bool onlyAdminCanPin;
+  final bool shareCardPermission;
+}
+
+/// A pending group join request, resolved for display.
+class FlareGroupJoinRequestView {
+  const FlareGroupJoinRequestView({
+    required this.requestId,
+    required this.applicantId,
+    required this.applicantName,
+    this.avatarUrl,
+    this.message,
+  });
+  final String requestId;
+  final String applicantId;
+  final String applicantName;
+  final String? avatarUrl;
+  final String? message;
+}
+
 /// Visual weight of a [FlareButton].
 enum FlareButtonVariant { primary, secondary, ghost, danger, text }
 

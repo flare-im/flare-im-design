@@ -97,6 +97,7 @@ export 'src/components/flare_empty_state.dart';
 export 'src/components/flare_contact_item.dart';
 export 'src/components/flare_contact_list.dart';
 export 'src/components/flare_contact_detail.dart';
+export 'src/components/flare_group_detail.dart';
 export 'src/components/flare_new_friend_requests.dart';
 export 'src/components/flare_group_list.dart';
 export 'src/components/flare_profile_panel.dart';
