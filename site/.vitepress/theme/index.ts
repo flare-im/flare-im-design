@@ -98,6 +98,7 @@ import ImagePreviewModalDemo from "./demos/ImagePreviewModalDemo.vue";
 import VideoPlayerModalDemo from "./demos/VideoPlayerModalDemo.vue";
 import ContactItemDemo from "./demos/ContactItemDemo.vue";
 import ContactDetailDemo from "./demos/ContactDetailDemo.vue";
+import GroupDetailDemo from "./demos/GroupDetailDemo.vue";
 import NewFriendRequestsDemo from "./demos/NewFriendRequestsDemo.vue";
 import GroupListDemo from "./demos/GroupListDemo.vue";
 import ProfileEditorDemo from "./demos/ProfileEditorDemo.vue";
@@ -242,6 +243,7 @@ const demos = {
   VideoPlayerModalDemo,
   ContactItemDemo,
   ContactDetailDemo,
+  GroupDetailDemo,
   NewFriendRequestsDemo,
   GroupListDemo,
   ProfileEditorDemo,
