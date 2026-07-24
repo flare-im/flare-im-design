@@ -16,9 +16,9 @@ public struct ProfilePanelView: View {
     @Environment(\.colorScheme) private var scheme
 
     public static let defaultEntries: [FlareSettingsItem] = [
-        FlareSettingsItem(key: "favorites", label: "Favorites", systemImage: "star"),
-        FlareSettingsItem(key: "moments", label: "Moments", systemImage: "photo.on.rectangle"),
-        FlareSettingsItem(key: "settings", label: "Settings", systemImage: "gearshape"),
+        FlareSettingsItem(key: "favorites", label: "收藏", systemImage: "star"),
+        FlareSettingsItem(key: "moments", label: "朋友圈", systemImage: "photo.on.rectangle"),
+        FlareSettingsItem(key: "settings", label: "设置", systemImage: "gearshape"),
     ]
 
     public init(user: UserProfile,
@@ -234,12 +234,12 @@ public struct FlareProfileEditorLabels: Sendable {
     public var save: String
 
     public init(
-        nickname: String = "Nickname",
-        nicknamePlaceholder: String = "Nickname",
-        bio: String = "Bio",
-        bioPlaceholder: String = "Tell us about yourself",
-        cancel: String = "Cancel",
-        save: String = "Save"
+        nickname: String = "昵称",
+        nicknamePlaceholder: String = "昵称",
+        bio: String = "个性签名",
+        bioPlaceholder: String = "介绍一下自己吧",
+        cancel: String = "取消",
+        save: String = "保存"
     ) {
         self.nickname = nickname
         self.nicknamePlaceholder = nicknamePlaceholder

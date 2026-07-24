@@ -15,7 +15,7 @@ public struct ConversationListView: View {
         items: [ConversationRowData],
         activeId: String? = nil,
         loading: Bool = false,
-        emptyText: String = "No conversations",
+        emptyText: String = "暂无会话",
         onSelect: ((ConversationRowData) -> Void)? = nil
     ) {
         self.items = items

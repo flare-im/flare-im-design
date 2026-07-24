@@ -41,11 +41,11 @@ public struct ComposerView: View {
 
     public init(
         rich: Bool = false,
-        placeholder: String = "Message",
+        placeholder: String = "输入消息",
         disabled: Bool = false,
         replyTo: FlareReplyTarget? = nil,
         /// Prefix on the reply strip above the input, e.g. "Reply Ivy".
-        replyLabel: String = "Reply",
+        replyLabel: String = "回复",
         maxLength: Int? = nil,
         /// Optional brand accent for the active send button (e.g. a gradient). Defaults to `primary`.
         sendAccent: AnyShapeStyle? = nil,
@@ -57,9 +57,9 @@ public struct ComposerView: View {
         onAction: ((FlareComposerAction) -> Void)? = nil,
         enableVoice: Bool = false,
         /// Hold-to-talk labels — forwarded to `FlareVoiceHoldButton` so hosts can localize them.
-        voiceLabel: String = "Hold to talk",
-        voiceRecordingLabel: String = "Release to send · slide up to cancel",
-        voiceCancelLabel: String = "Release to cancel",
+        voiceLabel: String = "按住 说话",
+        voiceRecordingLabel: String = "松开发送 · 上滑取消",
+        voiceCancelLabel: String = "松开取消",
         onVoiceStart: (() -> Void)? = nil,
         onVoiceEnd: (() -> Void)? = nil,
         onVoiceCancel: (() -> Void)? = nil

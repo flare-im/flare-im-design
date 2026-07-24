@@ -52,7 +52,7 @@ public struct RedPacketCardView: View {
                                startPoint: .topLeading, endPoint: .bottomTrailing))
         )
         .overlay(
-            Text("Flare Packet").font(.system(size: 10)).foregroundColor(.white.opacity(0.5))
+            Text("Flare 红包").font(.system(size: 10)).foregroundColor(.white.opacity(0.5))
                 .padding(10),
             alignment: .bottomTrailing
         )
@@ -65,13 +65,13 @@ public struct RedPacketCardView: View {
     private var status: some View {
         if opened, let amount {
             HStack(spacing: 4) {
-                Text("Received · ").font(.system(size: 12)).foregroundColor(.white.opacity(0.85))
+                Text("已领取 · ").font(.system(size: 12)).foregroundColor(.white.opacity(0.85))
                     + Text(amount).font(.system(size: 12, weight: .semibold)).foregroundColor(gold)
             }
         } else if finished {
-            Text("All claimed").font(.system(size: 12)).foregroundColor(.white.opacity(0.85))
+            Text("已被抢光").font(.system(size: 12)).foregroundColor(.white.opacity(0.85))
         } else {
-            Text("Tap to open").font(.system(size: 12)).foregroundColor(.white.opacity(0.85))
+            Text("点击拆开").font(.system(size: 12)).foregroundColor(.white.opacity(0.85))
         }
     }
 }
@@ -106,13 +106,13 @@ public struct SlashCommandMenuView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 6) {
                 Image(systemName: "terminal").font(.system(size: 11)).foregroundColor(colors.textTertiary)
-                Text("COMMANDS").font(.system(size: 11, weight: .semibold)).foregroundColor(colors.textTertiary)
+                Text("命令").font(.system(size: 11, weight: .semibold)).foregroundColor(colors.textTertiary)
                 Spacer(minLength: 0)
             }
             .padding(.horizontal, 8).padding(.vertical, 6)
 
             if filtered.isEmpty {
-                Text("No matching commands")
+                Text("没有匹配的命令")
                     .font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textTertiary)
                     .frame(maxWidth: .infinity).padding(.vertical, 22)
             } else {
@@ -187,7 +187,7 @@ public struct TranslationView: View {
                 Image(systemName: "globe").font(.system(size: 14)).foregroundColor(colors.textTertiary)
                     .rotationEffect(.degrees(spinning ? 360 : 0))
                     .animation(.linear(duration: 1.2).repeatForever(autoreverses: false), value: spinning)
-                Text("Translating…").font(.system(size: 14)).foregroundColor(colors.textTertiary)
+                Text("翻译中…").font(.system(size: 14)).foregroundColor(colors.textTertiary)
             }
             .onAppear { spinning = true }
         } else {
@@ -195,13 +195,13 @@ public struct TranslationView: View {
                 Text(translated).font(.system(size: 14)).foregroundColor(colors.textPrimary)
                 HStack(spacing: 6) {
                     Image(systemName: "globe").font(.system(size: 11)).foregroundColor(colors.textTertiary)
-                    Text(provider != nil ? "Translated by \(provider!)" : "Translated")
+                    Text(provider != nil ? "由 \(provider!) 翻译" : "已翻译")
                         .font(.system(size: 11)).foregroundColor(colors.textTertiary)
                     Spacer(minLength: FlareSizes.spacingMd)
                     if original != nil {
                         Button { showOriginal.toggle() } label: {
                             HStack(spacing: 3) {
-                                Text(showOriginal ? "Hide original" : "Show original")
+                                Text(showOriginal ? "隐藏原文" : "显示原文")
                                     .font(.system(size: 11, weight: .medium))
                                 Image(systemName: "chevron.down").font(.system(size: 9))
                                     .rotationEffect(.degrees(showOriginal ? 180 : 0))
@@ -249,7 +249,7 @@ public struct QRCardView: View {
 
             qrPanel(colors)
 
-            Text("Scan to add me").font(.system(size: 12)).foregroundColor(colors.textTertiary)
+            Text("扫一扫加我").font(.system(size: 12)).foregroundColor(colors.textTertiary)
                 .frame(maxWidth: .infinity)
         }
         .padding(18)

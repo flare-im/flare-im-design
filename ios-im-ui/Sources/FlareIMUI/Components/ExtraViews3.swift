@@ -40,7 +40,7 @@ public struct ForwardPickerView: View {
         let colors = FlareColors.of(scheme)
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: FlareSizes.spacingSm) {
-                Text("Forward to").font(.system(size: FlareSizes.fontSizeXl, weight: .semibold)).foregroundColor(colors.textPrimary)
+                Text("转发给").font(.system(size: FlareSizes.fontSizeXl, weight: .semibold)).foregroundColor(colors.textPrimary)
                 Spacer()
                 if dismissible {
                     Button { onClose?() } label: {
@@ -52,7 +52,7 @@ public struct ForwardPickerView: View {
 
             HStack(spacing: FlareSizes.spacingSm) {
                 Image(systemName: "magnifyingglass").font(.system(size: 14)).foregroundColor(colors.textTertiary)
-                TextField("Search chats", text: $query)
+                TextField("搜索会话", text: $query)
                     .textFieldStyle(.plain)
                     .font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textPrimary)
             }
@@ -70,10 +70,10 @@ public struct ForwardPickerView: View {
             Divider().overlay(colors.borderPrimary)
 
             HStack(spacing: FlareSizes.spacingMd) {
-                Text("\(selected.count) selected").font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textSecondary)
+                Text("已选 \(selected.count)").font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textSecondary)
                 Spacer()
                 Button { onConfirm?(Array(selected)) } label: {
-                    Text("Send").font(.system(size: FlareSizes.fontSizeLg, weight: .semibold)).foregroundColor(.white)
+                    Text("发送").font(.system(size: FlareSizes.fontSizeLg, weight: .semibold)).foregroundColor(.white)
                         .padding(.horizontal, FlareSizes.spacingLg).frame(height: 34)
                         .background(
                             RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(
@@ -222,7 +222,7 @@ public struct CallDockView: View {
                             .lineLimit(1).frame(maxWidth: 120, alignment: .leading)
                         HStack(spacing: 4) {
                             Image(systemName: mode == .video ? "video" : "phone").font(.system(size: 12))
-                            Text(durationLabel ?? "Connected").font(.system(size: 12))
+                            Text(durationLabel ?? "通话中").font(.system(size: 12))
                         }.foregroundColor(.white.opacity(0.66))
                     }
                     Image(systemName: "arrow.up.left.and.arrow.down.right").font(.system(size: 13)).foregroundColor(.white.opacity(0.5))
@@ -288,7 +288,7 @@ public struct AnnouncementBannerView: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 0) {
-                    Text("Announcement").font(.system(size: 12, weight: .semibold)).foregroundColor(colors.primary)
+                    Text("群公告").font(.system(size: 12, weight: .semibold)).foregroundColor(colors.primary)
                     if let a = author, !a.isEmpty {
                         Text(" · \(a)").font(.system(size: 12)).foregroundColor(colors.textTertiary)
                     }
@@ -298,7 +298,7 @@ public struct AnnouncementBannerView: View {
                 if canToggle {
                     Button { expanded.toggle() } label: {
                         HStack(spacing: 3) {
-                            Text(expanded ? "Collapse" : "Expand").font(.system(size: FlareSizes.fontSizeMd, weight: .medium))
+                            Text(expanded ? "收起" : "展开").font(.system(size: FlareSizes.fontSizeMd, weight: .medium))
                             Image(systemName: "chevron.down").font(.system(size: 10))
                                 .rotationEffect(.degrees(expanded ? 180 : 0))
                         }.foregroundColor(colors.primary)

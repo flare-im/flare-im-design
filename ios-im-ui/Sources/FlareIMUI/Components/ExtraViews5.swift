@@ -173,7 +173,7 @@ public struct VoiceRecordingBarView: View {
     @ViewBuilder
     private func right(_ colors: FlareColors) -> some View {
         if cancelling {
-            Text("Release to cancel").font(.system(size: 12, weight: .medium))
+            Text("松开取消").font(.system(size: 12, weight: .medium))
                 .foregroundColor(colors.error)
                 .padding(.trailing, 6)
         } else {
@@ -220,7 +220,7 @@ public struct PollComposerView: View {
         let colors = FlareColors.of(scheme)
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("New poll").font(.system(size: 15, weight: .semibold)).foregroundColor(colors.textPrimary)
+                Text("发起投票").font(.system(size: 15, weight: .semibold)).foregroundColor(colors.textPrimary)
                 Spacer(minLength: 0)
                 Button { onCancel?() } label: {
                     Image(systemName: "xmark").font(.system(size: 13, weight: .semibold))
@@ -229,7 +229,7 @@ public struct PollComposerView: View {
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                TextField("Ask a question", text: $question)
+                TextField("输入问题", text: $question)
                     .font(.system(size: 15, weight: .medium)).foregroundColor(colors.textPrimary)
                     .textFieldStyle(.plain)
                 Rectangle().fill(colors.borderPrimary).frame(height: 1)
@@ -243,7 +243,7 @@ public struct PollComposerView: View {
                 Button { options.append("") } label: {
                     HStack(spacing: 5) {
                         Image(systemName: "plus").font(.system(size: 12, weight: .semibold))
-                        Text("Add option").font(.system(size: 13, weight: .medium))
+                        Text("添加选项").font(.system(size: 13, weight: .medium))
                     }.foregroundColor(colors.primary)
                 }.buttonStyle(.plain)
             }
@@ -252,7 +252,7 @@ public struct PollComposerView: View {
                 HStack(spacing: 8) {
                     Image(systemName: multiple ? "checkmark.square" : "square")
                         .font(.system(size: 15)).foregroundColor(multiple ? colors.primary : colors.textTertiary)
-                    Text("Allow multiple answers").font(.system(size: 13)).foregroundColor(colors.textSecondary)
+                    Text("允许多选").font(.system(size: 13)).foregroundColor(colors.textSecondary)
                     Spacer(minLength: 0)
                 }.contentShape(Rectangle())
             }.buttonStyle(.plain)
@@ -260,7 +260,7 @@ public struct PollComposerView: View {
             Button {
                 onSubmit?(question.trimmingCharacters(in: .whitespaces), filledOptions, multiple)
             } label: {
-                Text("Create poll").font(.system(size: 14, weight: .semibold)).foregroundColor(.white)
+                Text("创建投票").font(.system(size: 14, weight: .semibold)).foregroundColor(.white)
                     .frame(maxWidth: .infinity).padding(.vertical, 9)
                     .background(
                         RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(
@@ -281,7 +281,7 @@ public struct PollComposerView: View {
 
     private func optionRow(_ colors: FlareColors, _ i: Int) -> some View {
         HStack(spacing: 8) {
-            TextField("Option \(i + 1)", text: $options[i])
+            TextField("选项 \(i + 1)", text: $options[i])
                 .font(.system(size: 14)).foregroundColor(colors.textPrimary)
                 .textFieldStyle(.plain)
             if options.count > 2 {
@@ -313,7 +313,7 @@ public struct ChatWallpaperPickerView: View {
     public var body: some View {
         let colors = FlareColors.of(scheme)
         VStack(alignment: .leading, spacing: 10) {
-            Text("Chat wallpaper").font(.system(size: 13, weight: .semibold)).foregroundColor(colors.textSecondary)
+            Text("聊天背景").font(.system(size: 13, weight: .semibold)).foregroundColor(colors.textSecondary)
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {
                 ForEach(options) { option in
                     swatch(colors, option)
