@@ -17,7 +17,7 @@ const contact = {
 <template>
   <DemoStage>
     <div class="stage">
-      <FlareContactDetail :contact="contact" />
+      <FlareContactDetail :contact="contact" starred description="设计评审组核心 · 响应快" />
     </div>
   </DemoStage>
 </template>
