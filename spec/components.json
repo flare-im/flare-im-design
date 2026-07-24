@@ -3798,8 +3798,10 @@
         "call",
         "video",
         "edit",
-        "remove",
-        "block"
+        "editDescription",
+        "toggleStar",
+        "block",
+        "remove"
       ],
       "platforms": {
         "vue": {
@@ -3812,11 +3814,105 @@
         },
         "ios": {
           "package": "FlareIMUI",
-          "symbol": "ContactDetailView"
+          "symbol": "FlareContactDetail"
         },
         "compose": {
           "package": "com.flare.im:im-ui-compose",
           "symbol": "ContactDetail"
+        }
+      }
+    },
+    {
+      "name": "GroupDetail",
+      "category": "Contacts",
+      "summary": {
+        "en": "Group detail/management — info / my settings / management / permissions, member grid, member actions, join approval, invite link.",
+        "zh": "群详情 / 管理 —— 群信息 / 我在本群 / 群管理 / 群权限 + 成员网格 + 成员操作 + 入群审批 + 邀请链接。"
+      },
+      "dataSource": {
+        "en": "a group's FlareGroupDetailModel + join requests / invite code; the component emits intents and the host performs social.group.* writes.",
+        "zh": "群的 FlareGroupDetailModel + 入群申请 / 邀请码；组件发意图，宿主执行 social.group.* 写。"
+      },
+      "props": [
+        {
+          "name": "model",
+          "type": "FlareGroupDetailModel",
+          "required": true,
+          "description": {
+            "en": "The group detail/management model.",
+            "zh": "群详情 / 管理数据模型。"
+          }
+        },
+        {
+          "name": "joinRequests",
+          "type": "FlareGroupJoinRequestView[]",
+          "required": false,
+          "description": {
+            "en": "Pending join requests to approve/reject.",
+            "zh": "待处理的入群申请。"
+          }
+        },
+        {
+          "name": "inviteCode",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Group invite code to share.",
+            "zh": "可分享的群邀请码。"
+          }
+        },
+        {
+          "name": "invitableContacts",
+          "type": "Contact[]",
+          "required": false,
+          "description": {
+            "en": "Friends that can be invited into the group.",
+            "zh": "可邀请入群的好友。"
+          }
+        }
+      ],
+      "states": [
+        "default",
+        "canManage"
+      ],
+      "events": [
+        "back",
+        "openChat",
+        "updateName",
+        "updateAnnouncement",
+        "updateMyNickname",
+        "setJoinPolicy",
+        "toggleMuteAll",
+        "setFlag",
+        "toggleMyMuted",
+        "toggleMyPinned",
+        "loadJoinRequests",
+        "respondRequest",
+        "ensureInviteLink",
+        "promoteMember",
+        "muteMember",
+        "transferOwner",
+        "removeMember",
+        "loadContacts",
+        "inviteMembers",
+        "leave"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "flare-core-vue-im-ui",
+          "symbol": "FlareGroupDetail"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareGroupDetail"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "FlareGroupDetail"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlareGroupDetail"
         }
       }
     },
