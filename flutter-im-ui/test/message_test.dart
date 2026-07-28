@@ -104,6 +104,7 @@ void main() {
       await tester.pumpWidget(_host(const FlareMessageList(
         messages: [],
         currentUserId: 'me',
+        emptyText: 'No messages yet',
       )));
       expect(find.text('No messages yet'), findsOneWidget);
     });

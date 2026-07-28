@@ -21,6 +21,7 @@ class FlareMessageList extends StatelessWidget {
     this.selectedIds = const {},
     this.loadingOlder = false,
     this.loading = false,
+    this.emptyText = '暂无消息',
     this.mediaDownloadStates = const {},
     this.controller,
     this.onLoadOlder,
@@ -39,6 +40,8 @@ class FlareMessageList extends StatelessWidget {
   final Set<String> selectedIds;
   final bool loadingOlder;
   final bool loading;
+  /// 空态文案。整块替换用 [emptyPlaceholder]，仅换文字用本参数。
+  final String emptyText;
 
   /// Per-message-id media download state.
   final Map<String, FlareMediaDownloadState> mediaDownloadStates;
@@ -63,7 +66,7 @@ class FlareMessageList extends StatelessWidget {
         child: Center(
           child: loading
               ? const CircularProgressIndicator()
-              : (emptyPlaceholder ?? const _Empty()),
+              : (emptyPlaceholder ?? _Empty(emptyText)),
         ),
       );
     }
@@ -136,11 +139,12 @@ class FlareMessageList extends StatelessWidget {
 }
 
 class _Empty extends StatelessWidget {
-  const _Empty();
+  const _Empty(this.text);
+  final String text;
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(Theme.of(context).brightness);
-    return Text('暂无消息',
+    return Text(text,
         style:
             TextStyle(color: colors.textTertiary, fontSize: FlareSizes.fontSizeLg));
   }

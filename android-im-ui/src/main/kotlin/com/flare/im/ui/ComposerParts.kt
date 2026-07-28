@@ -141,7 +141,7 @@ fun FlareComposerSendButton(active: Boolean, onSend: (() -> Unit)? = null) {
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            Icons.AutoMirrored.Filled.Send, "发送", Modifier.size(16.dp),
+            Icons.AutoMirrored.Filled.Send, flareStrings().send, Modifier.size(16.dp),
             tint = if (active) Color.White else colors.textDisabled,
         )
     }
@@ -177,6 +177,6 @@ fun FlareComposerReplyStrip(
         Box(
             Modifier.padding(end = FlareSizes.spacingSm).size(18.dp).clickable { onCancel?.invoke() },
             contentAlignment = Alignment.Center,
-        ) { Icon(Icons.Rounded.Close, "取消回复", Modifier.size(18.dp), tint = colors.textTertiary) }
+        ) { Icon(Icons.Rounded.Close, flareStrings().cancelReply, Modifier.size(18.dp), tint = colors.textTertiary) }
     }
 }
