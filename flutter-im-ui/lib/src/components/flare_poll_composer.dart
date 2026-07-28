@@ -12,11 +12,25 @@ class FlarePollComposer extends StatefulWidget {
     this.maxOptions = 10,
     this.onSubmit,
     this.onCancel,
+    this.title = '发起投票',
+    this.questionPlaceholder = '请输入问题',
+    this.addOptionLabel = '添加选项',
+    this.multipleLabel = '允许多选',
+    this.submitLabel = '创建投票',
+    this.optionPlaceholder,
   });
 
   final int maxOptions;
   final void Function(String question, List<String> options, bool multiple)? onSubmit;
   final VoidCallback? onCancel;
+  final String title;
+  final String questionPlaceholder;
+  final String addOptionLabel;
+  final String multipleLabel;
+  final String submitLabel;
+
+  /// Formats each option's placeholder (defaults to "选项 N").
+  final String Function(int index)? optionPlaceholder;
 
   @override
   State<FlarePollComposer> createState() => _FlarePollComposerState();
@@ -98,7 +112,7 @@ class _FlarePollComposerState extends State<FlarePollComposer> {
           Row(
             children: [
               Expanded(
-                child: Text('New poll',
+                child: Text(widget.title,
                     style: TextStyle(
                         color: colors.textPrimary,
                         fontSize: FlareSizes.fontSize2xl,
@@ -127,7 +141,7 @@ class _FlarePollComposerState extends State<FlarePollComposer> {
                 isCollapsed: true,
                 contentPadding: const EdgeInsets.symmetric(vertical: 8),
                 border: InputBorder.none,
-                hintText: 'Ask a question',
+                hintText: widget.questionPlaceholder,
                 hintStyle: TextStyle(
                     color: colors.textTertiary,
                     fontSize: 15,
@@ -150,7 +164,7 @@ class _FlarePollComposerState extends State<FlarePollComposer> {
                 children: [
                   Icon(Icons.add, size: 17, color: colors.primary),
                   const SizedBox(width: 6),
-                  Text('Add option',
+                  Text(widget.addOptionLabel,
                       style: TextStyle(
                           color: colors.primary,
                           fontSize: FlareSizes.fontSizeLg,
@@ -171,7 +185,7 @@ class _FlarePollComposerState extends State<FlarePollComposer> {
                   color: _multiple ? colors.primary : colors.textTertiary,
                 ),
                 const SizedBox(width: 8),
-                Text('Allow multiple answers',
+                Text(widget.multipleLabel,
                     style: TextStyle(
                         color: colors.textSecondary,
                         fontSize: FlareSizes.fontSizeLg)),
@@ -196,8 +210,8 @@ class _FlarePollComposerState extends State<FlarePollComposer> {
                   ),
                   borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
                 ),
-                child: const Text('Create poll',
-                    style: TextStyle(
+                child: Text(widget.submitLabel,
+                    style: const TextStyle(
                         color: Colors.white,
                         fontSize: FlareSizes.fontSizeLg,
                         fontWeight: FontWeight.w600)),
@@ -228,7 +242,7 @@ class _FlarePollComposerState extends State<FlarePollComposer> {
                 isCollapsed: true,
                 contentPadding: const EdgeInsets.symmetric(vertical: 11),
                 border: InputBorder.none,
-                hintText: 'Option ${index + 1}',
+                hintText: widget.optionPlaceholder?.call(index + 1) ?? '选项 ${index + 1}',
                 hintStyle: TextStyle(
                     color: colors.textTertiary, fontSize: FlareSizes.fontSizeLg),
               ),

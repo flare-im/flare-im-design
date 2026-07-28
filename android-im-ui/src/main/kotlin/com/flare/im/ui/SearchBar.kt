@@ -37,7 +37,7 @@ import androidx.compose.material3.Text
 fun SearchBar(
     value: String,
     onValueChange: (String) -> Unit,
-    placeholder: String = "Search",
+    placeholder: String = "搜索",
     loading: Boolean = false,
     onSubmit: (() -> Unit)? = null,
 ) {

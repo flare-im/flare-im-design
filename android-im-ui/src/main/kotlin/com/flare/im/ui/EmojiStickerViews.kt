@@ -141,7 +141,7 @@ fun FlareStickerPackMessage(
     SubcomposeAsyncImage(
         model = model,
         imageLoader = loader,
-        contentDescription = "sticker",
+        contentDescription = "贴纸",
         modifier = Modifier.size(w.dp, h.dp),
         error = {
             Box(
@@ -222,7 +222,7 @@ fun FlarePlainTextEmojiRich(
 fun FlareEmojiStickerPicker(
     onInsertEmoji: ((String) -> Unit)? = null,
     onSendSticker: ((packageId: String, stickerId: String) -> Unit)? = null,
-    emojiLabel: String = "Emoji",
+    emojiLabel: String = "表情",
     modifier: Modifier = Modifier,
 ) {
     val colors = flareColors()

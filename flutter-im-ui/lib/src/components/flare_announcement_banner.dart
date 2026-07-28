@@ -12,6 +12,9 @@ class FlareAnnouncementBanner extends StatefulWidget {
     this.collapsible = true,
     this.dismissible = false,
     this.onClose,
+    this.title = '群公告',
+    this.expandLabel = '展开',
+    this.collapseLabel = '收起',
   });
 
   final String text;
@@ -19,6 +22,9 @@ class FlareAnnouncementBanner extends StatefulWidget {
   final bool collapsible;
   final bool dismissible;
   final VoidCallback? onClose;
+  final String title;
+  final String expandLabel;
+  final String collapseLabel;
 
   @override
   State<FlareAnnouncementBanner> createState() => _FlareAnnouncementBannerState();
@@ -65,7 +71,7 @@ class _FlareAnnouncementBannerState extends State<FlareAnnouncementBanner> {
               children: [
                 Row(
                   children: [
-                    Text('Announcement',
+                    Text(widget.title,
                         style: TextStyle(
                             color: colors.primary,
                             fontSize: 12,
@@ -93,7 +99,7 @@ class _FlareAnnouncementBannerState extends State<FlareAnnouncementBanner> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(_expanded ? 'Collapse' : 'Expand',
+                        Text(_expanded ? widget.collapseLabel : widget.expandLabel,
                             style: TextStyle(
                                 color: colors.primary,
                                 fontSize: 12,

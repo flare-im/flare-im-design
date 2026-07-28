@@ -14,7 +14,9 @@ class FlareNewFriendRequests extends StatelessWidget {
     this.onAccept,
     this.onReject,
     this.onView,
-    this.emptyText = 'No new friend requests',
+    this.emptyText = '暂无新的好友申请',
+    this.acceptLabel = '接受',
+    this.rejectLabel = '拒绝',
   });
 
   final List<FlareFriendRequest> items;
@@ -22,6 +24,8 @@ class FlareNewFriendRequests extends StatelessWidget {
   final ValueChanged<FlareFriendRequest>? onReject;
   final ValueChanged<FlareFriendRequest>? onView;
   final String emptyText;
+  final String acceptLabel;
+  final String rejectLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +72,7 @@ class FlareNewFriendRequests extends StatelessWidget {
                 onPressed: onReject == null ? null : () => onReject!(r),
                 style: OutlinedButton.styleFrom(
                     visualDensity: VisualDensity.compact),
-                child: const Text('Decline'),
+                child: Text(rejectLabel),
               ),
               const SizedBox(width: FlareSizes.spacingSm),
               FilledButton(
@@ -76,7 +80,7 @@ class FlareNewFriendRequests extends StatelessWidget {
                 style: FilledButton.styleFrom(
                     backgroundColor: colors.primary,
                     visualDensity: VisualDensity.compact),
-                child: const Text('Accept'),
+                child: Text(acceptLabel),
               ),
             ],
           ),

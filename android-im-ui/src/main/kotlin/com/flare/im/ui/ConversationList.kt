@@ -22,7 +22,7 @@ fun ConversationList(
     items: List<ConversationRowData>,
     activeId: String? = null,
     loading: Boolean = false,
-    emptyText: String = "No conversations",
+    emptyText: String = "暂无会话",
     draftLabel: String = "[Draft] ",
     mentionLabel: String = "[@me] ",
     emptyDescription: String? = null,

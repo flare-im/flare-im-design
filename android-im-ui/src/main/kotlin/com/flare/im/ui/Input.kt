@@ -63,7 +63,7 @@ fun Input(
             placeholder = placeholder?.let { { Text(it, color = colors.textTertiary) } },
             visualTransformation = if (secure) PasswordVisualTransformation() else VisualTransformation.None,
             trailingIcon = if (clearable && value.isNotEmpty()) {
-                { IconButton(onClick = { onValueChange("") }) { Icon(Icons.Outlined.Cancel, "Clear", tint = colors.textTertiary) } }
+                { IconButton(onClick = { onValueChange("") }) { Icon(Icons.Outlined.Cancel, "清除", tint = colors.textTertiary) } }
             } else null,
             keyboardOptions = KeyboardOptions(
                 keyboardType = if (secure) KeyboardType.Password else KeyboardType.Text,

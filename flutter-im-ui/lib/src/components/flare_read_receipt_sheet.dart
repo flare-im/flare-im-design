@@ -14,6 +14,11 @@ class FlareReadReceiptSheet extends StatefulWidget {
     this.dismissible = false,
     this.onSelect,
     this.onClose,
+    this.title = '已读回执',
+    this.readTabText,
+    this.unreadTabText,
+    this.readEmptyText = '还没有人查看',
+    this.unreadEmptyText = '所有人都已查看',
   });
 
   final List<FlareContact> readers;
@@ -21,6 +26,15 @@ class FlareReadReceiptSheet extends StatefulWidget {
   final bool dismissible;
   final void Function(String id)? onSelect;
   final VoidCallback? onClose;
+  final String title;
+
+  /// Formats the "read" tab label (defaults to "已读 (N)").
+  final String Function(int count)? readTabText;
+
+  /// Formats the "unread" tab label (defaults to "未读 (N)").
+  final String Function(int count)? unreadTabText;
+  final String readEmptyText;
+  final String unreadEmptyText;
 
   @override
   State<FlareReadReceiptSheet> createState() => _FlareReadReceiptSheetState();
@@ -75,7 +89,7 @@ class _FlareReadReceiptSheetState extends State<FlareReadReceiptSheet> {
           Icon(Icons.done_all, size: 18, color: colors.primary),
           const SizedBox(width: FlareSizes.spacingSm),
           Expanded(
-            child: Text('Read receipt',
+            child: Text(widget.title,
                 style: TextStyle(
                     color: colors.textPrimary,
                     fontSize: FlareSizes.fontSizeLg,
@@ -94,10 +108,10 @@ class _FlareReadReceiptSheetState extends State<FlareReadReceiptSheet> {
   Widget _tabs(FlareColors colors) {
     return Row(
       children: [
-        _tab(colors, 'Read (${widget.readers.length})', _showRead, () {
+        _tab(colors, widget.readTabText?.call(widget.readers.length) ?? '已读 (${widget.readers.length})', _showRead, () {
           setState(() => _showRead = true);
         }),
-        _tab(colors, 'Unread (${widget.unread.length})', !_showRead, () {
+        _tab(colors, widget.unreadTabText?.call(widget.unread.length) ?? '未读 (${widget.unread.length})', !_showRead, () {
           setState(() => _showRead = false);
         }),
       ],
@@ -161,7 +175,7 @@ class _FlareReadReceiptSheetState extends State<FlareReadReceiptSheet> {
       padding: const EdgeInsets.symmetric(vertical: 32, horizontal: FlareSizes.spacingLg),
       child: Center(
         child: Text(
-          _showRead ? 'No one has read this yet' : 'Everyone has read this',
+          _showRead ? widget.readEmptyText : widget.unreadEmptyText,
           textAlign: TextAlign.center,
           style: TextStyle(color: colors.textTertiary, fontSize: FlareSizes.fontSizeMd),
         ),

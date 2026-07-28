@@ -27,9 +27,9 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun NewFriendRequests(
     items: List<FriendRequest>,
-    emptyText: String = "No new friend requests",
-    acceptLabel: String = "Accept",
-    declineLabel: String = "Decline",
+    emptyText: String = "暂无新的好友申请",
+    acceptLabel: String = "接受",
+    declineLabel: String = "拒绝",
     onAccept: ((FriendRequest) -> Unit)? = null,
     onReject: ((FriendRequest) -> Unit)? = null,
 ) {

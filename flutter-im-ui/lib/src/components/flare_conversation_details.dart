@@ -194,17 +194,17 @@ class FlareConversationDetails extends StatelessWidget {
 /// Localizable row copy for [FlareConversationDetails].
 class FlareConversationDetailsLabels {
   const FlareConversationDetailsLabels({
-    this.messages = 'Messages',
-    this.mute = 'Mute',
-    this.pin = 'Pin conversation',
-    this.markRead = 'Mark as read',
-    this.markUnread = 'Mark as unread',
-    this.sync = 'Sync conversation',
-    this.devtools = 'Developer tools',
-    this.archive = 'Archive conversation',
-    this.unarchive = 'Unarchive',
-    this.clearHistory = 'Clear chat history',
-    this.delete = 'Delete conversation',
+    this.messages = '消息',
+    this.mute = '消息免打扰',
+    this.pin = '置顶会话',
+    this.markRead = '标为已读',
+    this.markUnread = '标为未读',
+    this.sync = '同步会话',
+    this.devtools = '开发者工具',
+    this.archive = '归档会话',
+    this.unarchive = '取消归档',
+    this.clearHistory = '清空聊天记录',
+    this.delete = '删除会话',
   });
 
   final String messages;

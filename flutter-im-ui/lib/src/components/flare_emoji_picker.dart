@@ -15,6 +15,8 @@ class FlareEmojiPicker extends StatefulWidget {
     this.skinTones = false,
     this.onSelect,
     this.onToneChange,
+    this.searchPlaceholder = '搜索表情',
+    this.emptyText = '暂无表情',
   });
 
   final List<FlareEmojiCategory> categories;
@@ -22,6 +24,8 @@ class FlareEmojiPicker extends StatefulWidget {
   final bool skinTones;
   final void Function(String emoji)? onSelect;
   final void Function(String tone)? onToneChange;
+  final String searchPlaceholder;
+  final String emptyText;
 
   @override
   State<FlareEmojiPicker> createState() => _FlareEmojiPickerState();
@@ -104,7 +108,7 @@ class _FlareEmojiPickerState extends State<FlareEmojiPicker> {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             child: emojis.isEmpty
                 ? Center(
-                    child: Text('No emoji',
+                    child: Text(widget.emptyText,
                         style: TextStyle(
                             color: colors.textTertiary,
                             fontSize: FlareSizes.fontSizeSm)),
@@ -140,7 +144,7 @@ class _FlareEmojiPickerState extends State<FlareEmojiPicker> {
                 isDense: true,
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.zero,
-                hintText: 'Search emoji',
+                hintText: widget.searchPlaceholder,
                 hintStyle: TextStyle(
                     color: colors.textTertiary, fontSize: FlareSizes.fontSizeMd),
               ),

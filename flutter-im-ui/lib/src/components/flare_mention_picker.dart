@@ -13,12 +13,20 @@ class FlareMentionPicker extends StatefulWidget {
     this.allowEveryone = false,
     this.onSelect,
     this.onClose,
+    this.searchPlaceholder = '搜索成员',
+    this.everyoneLabel = '所有人',
+    this.everyoneDetail = '通知所有成员',
+    this.emptyText = '没有匹配的成员',
   });
 
   final List<FlareMentionCandidate> candidates;
   final bool allowEveryone;
   final void Function(FlareMentionCandidate)? onSelect;
   final VoidCallback? onClose;
+  final String searchPlaceholder;
+  final String everyoneLabel;
+  final String everyoneDetail;
+  final String emptyText;
 
   @override
   State<FlareMentionPicker> createState() => _FlareMentionPickerState();
@@ -105,7 +113,7 @@ class _FlareMentionPickerState extends State<FlareMentionPicker> {
               decoration: InputDecoration(
                 isDense: true,
                 border: InputBorder.none,
-                hintText: 'Search members',
+                hintText: widget.searchPlaceholder,
                 hintStyle:
                     TextStyle(color: colors.textTertiary, fontSize: FlareSizes.fontSizeLg),
               ),
@@ -119,7 +127,7 @@ class _FlareMentionPickerState extends State<FlareMentionPicker> {
   Widget _everyoneRow(FlareColors colors) {
     return GestureDetector(
       onTap: () => widget.onSelect?.call(
-        const FlareMentionCandidate(id: '__all__', name: 'Everyone', isEveryone: true),
+        FlareMentionCandidate(id: '__all__', name: widget.everyoneLabel, isEveryone: true),
       ),
       behavior: HitTestBehavior.opaque,
       child: Padding(
@@ -139,10 +147,10 @@ class _FlareMentionPickerState extends State<FlareMentionPicker> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Everyone',
+                  Text(widget.everyoneLabel,
                       style: TextStyle(
                           color: colors.textPrimary, fontSize: FlareSizes.fontSizeLg)),
-                  Text('Notify all members',
+                  Text(widget.everyoneDetail,
                       style: TextStyle(
                           color: colors.textTertiary, fontSize: FlareSizes.fontSizeSm)),
                 ],
@@ -194,7 +202,7 @@ class _FlareMentionPickerState extends State<FlareMentionPicker> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 28, horizontal: FlareSizes.spacingLg),
       child: Center(
-        child: Text('No matching members',
+        child: Text(widget.emptyText,
             style: TextStyle(color: colors.textTertiary, fontSize: FlareSizes.fontSizeMd)),
       ),
     );

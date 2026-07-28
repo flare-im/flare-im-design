@@ -13,11 +13,15 @@ class FlareStickerPanel extends StatefulWidget {
     required this.packs,
     this.recents = const [],
     this.onSelect,
+    this.recentLabel = '最近',
+    this.emptyText = '暂无贴纸',
   });
 
   final List<FlareStickerPack> packs;
   final List<FlareStickerItem> recents;
   final void Function(FlareStickerItem)? onSelect;
+  final String recentLabel;
+  final String emptyText;
 
   @override
   State<FlareStickerPanel> createState() => _FlareStickerPanelState();
@@ -31,7 +35,7 @@ class _FlareStickerPanelState extends State<FlareStickerPanel> {
         if (widget.recents.isNotEmpty)
           FlareStickerPack(
             key: _recentKey,
-            label: 'Recent',
+            label: widget.recentLabel,
             coverEmoji: '🕘',
             stickers: widget.recents,
           ),
@@ -88,7 +92,7 @@ class _FlareStickerPanelState extends State<FlareStickerPanel> {
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: (pack == null || pack.stickers.isEmpty)
                 ? Center(
-                    child: Text('No stickers',
+                    child: Text(widget.emptyText,
                         style: TextStyle(
                             color: colors.textTertiary,
                             fontSize: FlareSizes.fontSizeSm)),

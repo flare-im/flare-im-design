@@ -50,12 +50,12 @@ fun CallControls(
         horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingLg),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        ctrl(if (muted) Icons.Outlined.MicOff else Icons.Outlined.Mic, "Microphone", muted, onToggleMute)
+        ctrl(if (muted) Icons.Outlined.MicOff else Icons.Outlined.Mic, "麦克风", muted, onToggleMute)
         if (mode == FlareCallMode.Video) {
-            ctrl(if (cameraOn) Icons.Outlined.Videocam else Icons.Outlined.VideocamOff, "Camera", !cameraOn, onToggleCamera)
-            ctrl(Icons.Outlined.Cameraswitch, "Flip", false, onSwitchCamera)
+            ctrl(if (cameraOn) Icons.Outlined.Videocam else Icons.Outlined.VideocamOff, "摄像头", !cameraOn, onToggleCamera)
+            ctrl(Icons.Outlined.Cameraswitch, "翻转", false, onSwitchCamera)
         } else {
-            ctrl(Icons.Outlined.VolumeUp, "Speaker", speakerOn, onToggleSpeaker)
+            ctrl(Icons.Outlined.VolumeUp, "扬声器", speakerOn, onToggleSpeaker)
         }
         hangup(onHangup)
     }
@@ -80,5 +80,5 @@ private fun hangup(onClick: (() -> Unit)?) {
         Modifier.size(56.dp).clip(CircleShape).background(Color(0xFFEF4444))
             .clickable(enabled = onClick != null) { onClick?.invoke() },
         contentAlignment = Alignment.Center,
-    ) { Icon(Icons.Outlined.CallEnd, "Hang up", tint = Color.White) }
+    ) { Icon(Icons.Outlined.CallEnd, "挂断", tint = Color.White) }
 }

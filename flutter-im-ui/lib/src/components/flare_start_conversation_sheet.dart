@@ -13,9 +13,9 @@ class FlareStartConversationSheet extends StatefulWidget {
   const FlareStartConversationSheet({
     super.key,
     required this.contacts,
-    this.searchPlaceholder = 'Search contacts',
-    this.emptyText = 'No contacts found',
-    this.confirmLabel = 'OK',
+    this.searchPlaceholder = '搜索联系人',
+    this.emptyText = '未找到联系人',
+    this.confirmLabel = '确定',
     this.allowGroup = true,
     this.busy = false,
     this.onConfirm,
@@ -24,7 +24,7 @@ class FlareStartConversationSheet extends StatefulWidget {
 
   final List<FlareContactOption> contacts;
 
-  /// Copy — defaults keep today's English text.
+  /// Copy — defaults are Chinese; hosts localize by passing their own.
   final String searchPlaceholder;
   final String emptyText;
   final String confirmLabel;

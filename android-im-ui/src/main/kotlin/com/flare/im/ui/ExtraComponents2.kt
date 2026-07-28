@@ -116,7 +116,7 @@ fun ReactionSummary(
             ) {
                 Icon(
                     Icons.Outlined.AddReaction,
-                    contentDescription = "Add reaction",
+                    contentDescription = "添加表情回复",
                     tint = colors.textTertiary,
                     modifier = Modifier.size(15.dp),
                 )
@@ -151,7 +151,7 @@ fun ReadReceiptSheet(
             Icon(Icons.Outlined.DoneAll, contentDescription = null, tint = colors.primary, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
             Text(
-                "Read receipt",
+                "已读回执",
                 color = colors.textPrimary,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = FlareSizes.fontSizeXl.value.sp,
@@ -160,7 +160,7 @@ fun ReadReceiptSheet(
             if (dismissible) {
                 Icon(
                     Icons.Outlined.Close,
-                    contentDescription = "Close",
+                    contentDescription = "关闭",
                     tint = colors.textTertiary,
                     modifier = Modifier.size(18.dp)
                         .then(if (onClose != null) Modifier.clickable { onClose() } else Modifier),
@@ -168,13 +168,13 @@ fun ReadReceiptSheet(
             }
         }
         Row(Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacingLg)) {
-            receiptTab(colors, "Read (${readers.size})", tab == 0) { tab = 0 }
-            receiptTab(colors, "Unread (${unread.size})", tab == 1) { tab = 1 }
+            receiptTab(colors, "已读 (${readers.size})", tab == 0) { tab = 0 }
+            receiptTab(colors, "未读 (${unread.size})", tab == 1) { tab = 1 }
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderPrimary))
         if (list.isEmpty()) {
             Text(
-                if (tab == 0) "No one has read this yet" else "Everyone has read this",
+                if (tab == 0) "还没有人读过" else "所有人都已读",
                 color = colors.textTertiary,
                 fontSize = FlareSizes.fontSizeSm.value.sp,
                 textAlign = TextAlign.Center,
@@ -246,14 +246,14 @@ fun MessageBatchToolbar(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("$count", color = colors.primary, fontWeight = FontWeight.Bold, fontSize = FlareSizes.fontSizeLg.value.sp)
-            Text(" / $total · selected", color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm.value.sp)
+            Text(" / $total · 已选", color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm.value.sp)
         }
         Spacer(Modifier.weight(1f))
         Row(horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm), verticalAlignment = Alignment.CenterVertically) {
-            batchBtn(colors, Icons.Outlined.DoneAll, "Select all", total > 0 && !busy, onSelectAll)
-            batchBtn(colors, Icons.Outlined.Share, "Forward each", count > 0 && !busy, onForwardEach)
-            batchBtn(colors, Icons.AutoMirrored.Outlined.LibraryBooks, "Forward merged", count >= 2 && !busy, onForwardMerged)
-            batchBtn(colors, Icons.Outlined.DeleteOutline, "Delete", count > 0 && !busy, onDelete, tint = colors.error)
+            batchBtn(colors, Icons.Outlined.DoneAll, "全选", total > 0 && !busy, onSelectAll)
+            batchBtn(colors, Icons.Outlined.Share, "逐条转发", count > 0 && !busy, onForwardEach)
+            batchBtn(colors, Icons.AutoMirrored.Outlined.LibraryBooks, "合并转发", count >= 2 && !busy, onForwardMerged)
+            batchBtn(colors, Icons.Outlined.DeleteOutline, "删除", count > 0 && !busy, onDelete, tint = colors.error)
             batchBtn(colors, Icons.Outlined.Close, null, !busy, onExit)
         }
     }
@@ -315,7 +315,7 @@ fun MentionPicker(
             Spacer(Modifier.width(8.dp))
             Box(Modifier.weight(1f)) {
                 if (query.isEmpty()) {
-                    Text("Search members", color = colors.textTertiary, fontSize = FlareSizes.fontSizeLg.value.sp)
+                    Text("搜索成员", color = colors.textTertiary, fontSize = FlareSizes.fontSizeLg.value.sp)
                 }
                 BasicTextField(
                     value = query,
@@ -335,7 +335,7 @@ fun MentionPicker(
                         .then(
                             if (onSelect != null) {
                                 Modifier.clickable {
-                                    onSelect(MentionCandidate(id = "__all__", name = "Everyone", isEveryone = true))
+                                    onSelect(MentionCandidate(id = "__all__", name = "全体成员", isEveryone = true))
                                 }
                             } else {
                                 Modifier
@@ -352,8 +352,8 @@ fun MentionPicker(
                     }
                     Spacer(Modifier.width(FlareSizes.spacingMd))
                     Column {
-                        Text("Everyone", color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp, fontWeight = FontWeight.Medium)
-                        Text("Notify all members", color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
+                        Text("全体成员", color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp, fontWeight = FontWeight.Medium)
+                        Text("通知所有成员", color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
                     }
                 }
             }
@@ -378,7 +378,7 @@ fun MentionPicker(
             }
             if (!showEveryone && filtered.isEmpty()) {
                 Text(
-                    "No matching members",
+                    "没有匹配的成员",
                     color = colors.textTertiary,
                     fontSize = FlareSizes.fontSizeSm.value.sp,
                     textAlign = TextAlign.Center,
@@ -414,7 +414,7 @@ fun QuickPhrases(
             Icon(Icons.Outlined.FlashOn, contentDescription = null, tint = colors.primary, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
             Text(
-                "Quick phrases",
+                "快捷短语",
                 color = colors.textPrimary,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = FlareSizes.fontSizeXl.value.sp,
@@ -426,7 +426,7 @@ fun QuickPhrases(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    Text("Manage", color = colors.primary, fontSize = FlareSizes.fontSizeMd.value.sp, fontWeight = FontWeight.Medium)
+                    Text("管理", color = colors.primary, fontSize = FlareSizes.fontSizeMd.value.sp, fontWeight = FontWeight.Medium)
                     Icon(Icons.Outlined.Edit, contentDescription = null, tint = colors.primary, modifier = Modifier.size(14.dp))
                 }
             }
@@ -485,7 +485,7 @@ fun SearchResults(
     val nonEmpty = groups.filter { it.items.isNotEmpty() }
     if (nonEmpty.isEmpty()) {
         Text(
-            "No results found",
+            "未找到结果",
             color = colors.textTertiary,
             fontSize = FlareSizes.fontSizeSm.value.sp,
             textAlign = TextAlign.Center,
@@ -538,7 +538,7 @@ fun SearchResults(
             }
             if (g.total != null && g.total > g.items.size) {
                 Text(
-                    "View all ${g.total}",
+                    "查看全部 ${g.total}",
                     color = colors.primary,
                     fontWeight = FontWeight.Medium,
                     fontSize = FlareSizes.fontSizeMd.value.sp,

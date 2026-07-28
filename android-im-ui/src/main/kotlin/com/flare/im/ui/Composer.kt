@@ -76,11 +76,11 @@ private fun composerGlyph(
 fun Composer(
     modifier: Modifier = Modifier,
     rich: Boolean = false,
-    placeholder: String = "Message",
+    placeholder: String = "消息",
     disabled: Boolean = false,
     replyTo: FlareReplyTarget? = null,
     /** Prefix on the reply strip above the input, e.g. "Reply Ivy". */
-    replyLabel: String = "Reply",
+    replyLabel: String = "回复",
     maxLength: Int? = null,
     /** Optional brand accent for the active send button (e.g. a gradient). Defaults to `primary`. */
     sendAccent: androidx.compose.ui.graphics.Brush? = null,
@@ -92,9 +92,9 @@ fun Composer(
     onAction: ((FlareComposerAction) -> Unit)? = null,
     enableVoice: Boolean = false,
     /** Hold-to-talk labels — forwarded to [FlareVoiceHoldButton] so hosts can localize them. */
-    voiceLabel: String = "Hold to talk",
-    voiceRecordingLabel: String = "Release to send · slide up to cancel",
-    voiceCancelLabel: String = "Release to cancel",
+    voiceLabel: String = "按住 说话",
+    voiceRecordingLabel: String = "松开发送 · 上滑取消",
+    voiceCancelLabel: String = "松开取消",
     onVoiceStart: (() -> Unit)? = null,
     onVoiceEnd: (() -> Unit)? = null,
     onVoiceCancel: (() -> Unit)? = null,

@@ -11,6 +11,10 @@ class FlareRedPacketCard extends StatelessWidget {
     this.opened = false,
     this.finished = false,
     this.onOpen,
+    this.brandLabel = 'Flare 红包',
+    this.receivedLabel = '已领取 · ',
+    this.finishedLabel = '已被领完',
+    this.openLabel = '点击领取',
   });
 
   final String blessing;
@@ -18,6 +22,10 @@ class FlareRedPacketCard extends StatelessWidget {
   final bool opened;
   final bool finished;
   final VoidCallback? onOpen;
+  final String brandLabel;
+  final String receivedLabel;
+  final String finishedLabel;
+  final String openLabel;
 
   static const Color _foreground = Color(0xFFFFF5E6);
   static const Color _gold = Color(0xFFFFE9B8);
@@ -73,7 +81,7 @@ class FlareRedPacketCard extends StatelessWidget {
             const SizedBox(height: 8),
             Align(
               alignment: Alignment.centerRight,
-              child: Text('Flare Packet',
+              child: Text(brandLabel,
                   style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.5),
                       fontSize: 10,
@@ -126,7 +134,7 @@ class FlareRedPacketCard extends StatelessWidget {
         TextSpan(
           style: TextStyle(color: color, fontSize: 12),
           children: [
-            const TextSpan(text: 'Received · '),
+            TextSpan(text: receivedLabel),
             TextSpan(
                 text: amount,
                 style: const TextStyle(color: _gold, fontWeight: FontWeight.w600)),
@@ -136,9 +144,9 @@ class FlareRedPacketCard extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
       );
     } else if (finished) {
-      text = 'All claimed';
+      text = finishedLabel;
     } else {
-      text = 'Tap to open';
+      text = openLabel;
     }
     return Text(text,
         maxLines: 1,

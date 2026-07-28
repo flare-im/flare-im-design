@@ -13,12 +13,18 @@ class FlareSearchResults extends StatelessWidget {
     required this.query,
     this.onOpen,
     this.onViewAll,
+    this.emptyText = '未找到结果',
+    this.viewAllText,
   });
 
   final List<FlareSearchResultGroup> groups;
   final String query;
   final void Function(FlareSearchResultItem)? onOpen;
   final void Function(FlareSearchResultKind)? onViewAll;
+  final String emptyText;
+
+  /// Formats the per-group "view all" row (defaults to "查看全部 N").
+  final String Function(int total)? viewAllText;
 
   /// Split [text] into highlighted / plain spans around case-insensitive
   /// occurrences of [query].
@@ -60,7 +66,7 @@ class FlareSearchResults extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 40, horizontal: FlareSizes.spacingLg),
         child: Center(
-          child: Text('No results found',
+          child: Text(emptyText,
               style: TextStyle(color: colors.textTertiary, fontSize: FlareSizes.fontSizeMd)),
         ),
       );
@@ -147,7 +153,7 @@ class FlareSearchResults extends StatelessWidget {
             horizontal: FlareSizes.spacingLg, vertical: FlareSizes.spacingSm),
         child: Align(
           alignment: Alignment.centerLeft,
-          child: Text('View all ${g.total}',
+          child: Text(viewAllText?.call(g.total!) ?? '查看全部 ${g.total}',
               style: TextStyle(
                   color: colors.primary,
                   fontSize: FlareSizes.fontSizeMd,

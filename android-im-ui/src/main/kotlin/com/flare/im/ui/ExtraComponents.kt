@@ -62,9 +62,9 @@ fun TypingIndicator(
     val colors = flareColors()
     val clean = names.filter { it.isNotEmpty() }
     val label = when {
-        clean.isEmpty() -> "typing…"
-        clean.size == 1 -> "${clean[0]} is typing…"
-        else -> "${clean.size} people typing…"
+        clean.isEmpty() -> "正在输入…"
+        clean.size == 1 -> "${clean[0]} 正在输入…"
+        else -> "${clean.size} 人正在输入…"
     }
     val isBubble = variant == TypingVariant.Bubble
     val dotColor = if (isBubble) colors.primary.copy(alpha = 0.65f) else colors.textTertiary
@@ -111,7 +111,7 @@ fun TypingIndicator(
 @Composable
 fun UnreadDivider(count: Int = 0) {
     val colors = flareColors()
-    val text = if (count > 0) "$count new messages" else "New messages"
+    val text = if (count > 0) "$count 条新消息" else "新消息"
     Row(
         Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingSm),
         verticalAlignment = Alignment.CenterVertically,
@@ -193,7 +193,7 @@ fun ProfileCard(
         }
         Spacer(Modifier.height(FlareSizes.spacingLg))
         Row(horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
-            cardAction(colors, Icons.Outlined.ChatBubbleOutline, "Message", onMessage, primary = true, modifier = Modifier.weight(1f))
+            cardAction(colors, Icons.Outlined.ChatBubbleOutline, "发消息", onMessage, primary = true, modifier = Modifier.weight(1f))
             cardAction(colors, Icons.Outlined.Call, null, onCall)
             cardAction(colors, Icons.Outlined.Videocam, null, onVideo)
         }
@@ -327,9 +327,9 @@ fun GroupCallView(
         else -> 4
     }
     val status = when (state) {
-        "connected" -> durationLabel ?: "Connected"
-        "ringing" -> "Ringing…"
-        else -> "Calling…"
+        "connected" -> durationLabel ?: "已接通"
+        "ringing" -> "正在响铃…"
+        else -> "正在呼叫…"
     }
     Column(
         Modifier.fillMaxWidth().background(
@@ -388,7 +388,7 @@ private fun callTile(p: CallParticipant, mode: FlareCallMode) {
                     Icon(Icons.Filled.VideocamOff, contentDescription = null, tint = Color.White, modifier = Modifier.size(12.dp))
                 }
             }
-            Text(if (p.isSelf) "${p.name} (me)" else p.name, color = Color.White, fontSize = 12.sp,
+            Text(if (p.isSelf) "${p.name}（我）" else p.name, color = Color.White, fontSize = 12.sp,
                 maxLines = 1, overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(Color.Black.copy(alpha = 0.42f))
                     .padding(horizontal = 8.dp, vertical = 2.dp))

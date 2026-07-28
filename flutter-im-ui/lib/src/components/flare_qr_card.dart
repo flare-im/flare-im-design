@@ -13,12 +13,14 @@ class FlareQRCard extends StatelessWidget {
     this.subtitle,
     this.avatarUrl,
     this.qrImageUrl,
+    this.hint = '扫一扫，加我为好友',
   });
 
   final String name;
   final String? subtitle;
   final String? avatarUrl;
   final String? qrImageUrl;
+  final String hint;
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +96,7 @@ class FlareQRCard extends StatelessWidget {
           const SizedBox(height: FlareSizes.spacingMd),
           SizedBox(
             width: double.infinity,
-            child: Text('Scan to add me',
+            child: Text(hint,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: colors.textTertiary, fontSize: FlareSizes.fontSizeSm)),

@@ -26,11 +26,13 @@ class FlareChatWallpaperPicker extends StatelessWidget {
     required this.options,
     this.selectedId,
     this.onSelect,
+    this.title = '聊天背景',
   });
 
   final List<FlareWallpaperOption> options;
   final String? selectedId;
   final void Function(String id)? onSelect;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +52,7 @@ class FlareChatWallpaperPicker extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Chat wallpaper',
+          Text(title,
               style: TextStyle(
                   color: colors.textSecondary,
                   fontSize: 13,

@@ -41,7 +41,7 @@ import androidx.compose.ui.unit.sp
  */
 @Composable
 fun StartConversationDialog(
-    searchPlaceholder: String = "Search contacts",
+    searchPlaceholder: String = "搜索联系人",
     contacts: List<FlareContactOption>,
     allowGroup: Boolean = true,
     busy: Boolean = false,
@@ -100,7 +100,7 @@ fun StartConversationDialog(
                 if (busy) {
                     CircularProgressIndicator(Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
                 } else {
-                    Text(if (selected.isEmpty()) "OK" else "OK (${selected.size})")
+                    Text(if (selected.isEmpty()) "确定" else "确定 (${selected.size})")
                 }
             }
         }

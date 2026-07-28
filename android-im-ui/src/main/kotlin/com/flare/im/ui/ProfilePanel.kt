@@ -93,7 +93,7 @@ fun ProfilePanel(
                 Modifier.size(34.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.14f))
                     .clickable(enabled = onQr != null) { onQr?.invoke() },
                 contentAlignment = Alignment.Center,
-            ) { Icon(Icons.Outlined.QrCode, "QR code", tint = Color.White.copy(alpha = 0.92f), modifier = Modifier.size(20.dp)) }
+            ) { Icon(Icons.Outlined.QrCode, "二维码", tint = Color.White.copy(alpha = 0.92f), modifier = Modifier.size(20.dp)) }
             Spacer(Modifier.width(FlareSizes.spacingXs))
             Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null, tint = Color.White.copy(alpha = 0.7f))
         }

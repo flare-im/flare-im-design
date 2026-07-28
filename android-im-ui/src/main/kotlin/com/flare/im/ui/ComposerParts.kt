@@ -40,9 +40,9 @@ import androidx.compose.ui.unit.sp
  */
 @Composable
 fun FlareVoiceHoldButton(
-    label: String = "Hold to talk",
-    recordingLabel: String = "Release to send · slide up to cancel",
-    cancelLabel: String = "Release to cancel",
+    label: String = "按住 说话",
+    recordingLabel: String = "松开发送 · 上滑取消",
+    cancelLabel: String = "松开取消",
     cancelThreshold: Float = 80f,
     onStart: (() -> Unit)? = null,
     onEnd: (() -> Unit)? = null,
@@ -141,7 +141,7 @@ fun FlareComposerSendButton(active: Boolean, onSend: (() -> Unit)? = null) {
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            Icons.AutoMirrored.Filled.Send, "Send", Modifier.size(16.dp),
+            Icons.AutoMirrored.Filled.Send, "发送", Modifier.size(16.dp),
             tint = if (active) Color.White else colors.textDisabled,
         )
     }
@@ -155,7 +155,7 @@ fun FlareComposerSendButton(active: Boolean, onSend: (() -> Unit)? = null) {
 fun FlareComposerReplyStrip(
     senderName: String,
     summary: String,
-    label: String = "Reply",
+    label: String = "回复",
     onCancel: (() -> Unit)? = null,
 ) {
     val colors = flareColors()
@@ -177,6 +177,6 @@ fun FlareComposerReplyStrip(
         Box(
             Modifier.padding(end = FlareSizes.spacingSm).size(18.dp).clickable { onCancel?.invoke() },
             contentAlignment = Alignment.Center,
-        ) { Icon(Icons.Rounded.Close, "Cancel reply", Modifier.size(18.dp), tint = colors.textTertiary) }
+        ) { Icon(Icons.Rounded.Close, "取消回复", Modifier.size(18.dp), tint = colors.textTertiary) }
     }
 }

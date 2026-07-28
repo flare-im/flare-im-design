@@ -8,9 +8,9 @@ import '../../tokens/flare_tokens.dart';
 class FlareVoiceHoldButton extends StatefulWidget {
   const FlareVoiceHoldButton({
     super.key,
-    this.label = 'Hold to talk',
-    this.recordingLabel = 'Release to send · slide up to cancel',
-    this.cancelLabel = 'Release to cancel',
+    this.label = '按住 说话',
+    this.recordingLabel = '松开发送 · 上滑取消',
+    this.cancelLabel = '松开手指，取消发送',
     this.cancelThreshold = 80,
     this.onStart,
     this.onEnd,
