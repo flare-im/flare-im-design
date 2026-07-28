@@ -20,6 +20,11 @@ class FlareMomentComposer extends StatefulWidget {
     this.onRemoveImage,
     this.onPickLocation,
     this.onPickVisibility,
+    this.placeholder = '这一刻的想法…',
+    this.cancelLabel = '取消',
+    this.postLabel = '发表',
+    this.locationLabel = '所在位置',
+    this.visibilityLabel = '谁可以看',
   });
 
   final List<String> images;
@@ -33,6 +38,11 @@ class FlareMomentComposer extends StatefulWidget {
   final void Function(int index)? onRemoveImage;
   final VoidCallback? onPickLocation;
   final VoidCallback? onPickVisibility;
+  final String placeholder;
+  final String cancelLabel;
+  final String postLabel;
+  final String locationLabel;
+  final String visibilityLabel;
 
   @override
   State<FlareMomentComposer> createState() => _FlareMomentComposerState();
@@ -89,7 +99,7 @@ class _FlareMomentComposerState extends State<FlareMomentComposer> {
               decoration: InputDecoration(
                 isCollapsed: true,
                 border: InputBorder.none,
-                hintText: "What's on your mind…",
+                hintText: widget.placeholder,
                 hintStyle: TextStyle(color: colors.textTertiary, fontSize: 15),
               ),
             ),
@@ -104,10 +114,10 @@ class _FlareMomentComposerState extends State<FlareMomentComposer> {
             child: Column(
               children: [
                 _row(colors, Icons.location_on_outlined,
-                    widget.location ?? 'Location', widget.onPickLocation),
+                    widget.location ?? widget.locationLabel, widget.onPickLocation),
                 Divider(height: 1, thickness: 1, color: colors.borderPrimary),
                 _row(colors, Icons.public,
-                    widget.visibility ?? 'Who can see', widget.onPickVisibility),
+                    widget.visibility ?? widget.visibilityLabel, widget.onPickVisibility),
               ],
             ),
           ),
@@ -129,7 +139,7 @@ class _FlareMomentComposerState extends State<FlareMomentComposer> {
             onTap: widget.onCancel,
             behavior: HitTestBehavior.opaque,
             child: Text(
-              'Cancel',
+              widget.cancelLabel,
               style: TextStyle(color: colors.textSecondary, fontSize: 14),
             ),
           ),
@@ -146,9 +156,9 @@ class _FlareMomentComposerState extends State<FlareMomentComposer> {
                   color: colors.primary,
                   borderRadius: BorderRadius.circular(FlareSizes.radiusFull),
                 ),
-                child: const Text(
-                  'Post',
-                  style: TextStyle(
+                child: Text(
+                  widget.postLabel,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,

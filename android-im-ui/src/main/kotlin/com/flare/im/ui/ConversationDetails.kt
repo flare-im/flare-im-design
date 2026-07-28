@@ -76,7 +76,7 @@ fun ConversationDetails(
             Spacer(Modifier.size(FlareSizes.spacingSm))
             Text(conversation.title, color = colors.textPrimary, fontSize = FlareSizes.fontSize4xl.value.sp, fontWeight = FontWeight.SemiBold)
             if (conversation.kind == FlareConversationKind.Group && conversation.memberCount != null) {
-                Text("${conversation.memberCount} members", color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
+                Text("${conversation.memberCount} 名成员", color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
             }
             if (!connectionText.isNullOrEmpty()) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = FlareSizes.spacingSm)) {
@@ -150,14 +150,14 @@ private fun gap(colors: FlareColors) {
 
 /** Localizable row labels for [ConversationDetails]. Defaults keep today's English copy. */
 data class FlareConversationDetailsLabels(
-    val messages: String = "Messages",
-    val mute: String = "Mute",
-    val pin: String = "Pin conversation",
-    val markRead: String = "Mark as read",
-    val markUnread: String = "Mark as unread",
-    val sync: String = "Sync conversation",
-    val archive: String = "Archive conversation",
-    val unarchive: String = "Unarchive",
-    val clearHistory: String = "Clear chat history",
-    val delete: String = "Delete conversation",
+    val messages: String = "消息",
+    val mute: String = "免打扰",
+    val pin: String = "置顶会话",
+    val markRead: String = "标为已读",
+    val markUnread: String = "标为未读",
+    val sync: String = "同步会话",
+    val archive: String = "归档会话",
+    val unarchive: String = "取消归档",
+    val clearHistory: String = "清空聊天记录",
+    val delete: String = "删除会话",
 )

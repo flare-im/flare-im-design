@@ -35,14 +35,14 @@ data class FlareComposerAction(val id: String, val label: String, val icon: Imag
 
 /** Default attachment actions. */
 val defaultComposerActions: List<FlareComposerAction> = listOf(
-    FlareComposerAction("image", "Image", Icons.Outlined.Image),
-    FlareComposerAction("camera", "Camera", Icons.Outlined.CameraAlt),
-    FlareComposerAction("file", "File", Icons.Outlined.Folder),
-    FlareComposerAction("location", "Location", Icons.Outlined.LocationOn),
-    FlareComposerAction("card", "Contact", Icons.Outlined.ContactPage),
-    FlareComposerAction("vote", "Poll", Icons.Outlined.HowToVote),
-    FlareComposerAction("task", "Task", Icons.Outlined.Checklist),
-    FlareComposerAction("schedule", "Schedule", Icons.Outlined.CalendarMonth),
+    FlareComposerAction("image", "图片", Icons.Outlined.Image),
+    FlareComposerAction("camera", "拍摄", Icons.Outlined.CameraAlt),
+    FlareComposerAction("file", "文件", Icons.Outlined.Folder),
+    FlareComposerAction("location", "位置", Icons.Outlined.LocationOn),
+    FlareComposerAction("card", "名片", Icons.Outlined.ContactPage),
+    FlareComposerAction("vote", "投票", Icons.Outlined.HowToVote),
+    FlareComposerAction("task", "任务", Icons.Outlined.Checklist),
+    FlareComposerAction("schedule", "日程", Icons.Outlined.CalendarMonth),
 )
 
 /**

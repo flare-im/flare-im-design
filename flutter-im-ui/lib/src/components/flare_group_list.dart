@@ -8,11 +8,20 @@ import 'flare_empty_state.dart';
 /// My groups — group avatar, name, member count.
 /// Spec: Contacts/GroupList (`FlareGroupList`).
 class FlareGroupList extends StatelessWidget {
-  const FlareGroupList({super.key, required this.items, this.onSelect, this.emptyText = 'No groups yet'});
+  const FlareGroupList({
+    super.key,
+    required this.items,
+    this.onSelect,
+    this.emptyText = '暂无群聊',
+    this.memberCountText,
+  });
 
   final List<FlareGroupSummary> items;
   final ValueChanged<FlareGroupSummary>? onSelect;
   final String emptyText;
+
+  /// Formats the member-count subtitle (defaults to "N 名成员").
+  final String Function(int count)? memberCountText;
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +49,7 @@ class FlareGroupList extends StatelessWidget {
                             color: colors.textPrimary,
                             fontSize: FlareSizes.fontSizeXl,
                             fontWeight: FontWeight.w500)),
-                    Text('${g.memberCount} members',
+                    Text(memberCountText?.call(g.memberCount) ?? '${g.memberCount} 名成员',
                         style: TextStyle(
                             color: colors.textTertiary,
                             fontSize: FlareSizes.fontSizeSm)),

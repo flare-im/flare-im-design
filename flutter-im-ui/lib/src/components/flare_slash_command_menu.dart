@@ -13,12 +13,16 @@ class FlareSlashCommandMenu extends StatelessWidget {
     this.query = '',
     this.onSelect,
     this.onClose,
+    this.headerLabel = '命令',
+    this.emptyText = '没有匹配的命令',
   });
 
   final List<FlareSlashCommand> commands;
   final String query;
   final void Function(FlareSlashCommand)? onSelect;
   final VoidCallback? onClose;
+  final String headerLabel;
+  final String emptyText;
 
   List<FlareSlashCommand> get _filtered {
     var q = query.trim().toLowerCase();
@@ -56,7 +60,7 @@ class FlareSlashCommandMenu extends StatelessWidget {
               children: [
                 Icon(Icons.terminal, size: 13, color: colors.textTertiary),
                 const SizedBox(width: 6),
-                Text('COMMANDS',
+                Text(headerLabel,
                     style: TextStyle(
                         color: colors.textTertiary,
                         fontSize: 11,
@@ -68,7 +72,7 @@ class FlareSlashCommandMenu extends StatelessWidget {
           if (rows.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-              child: Text('No matching commands',
+              child: Text(emptyText,
                   style: TextStyle(
                       color: colors.textTertiary, fontSize: FlareSizes.fontSizeSm)),
             )

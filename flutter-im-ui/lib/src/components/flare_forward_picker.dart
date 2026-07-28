@@ -14,6 +14,10 @@ class FlareForwardPicker extends StatefulWidget {
     this.dismissible = true,
     this.onConfirm,
     this.onClose,
+    this.title = '转发给',
+    this.searchPlaceholder = '搜索会话',
+    this.sendLabel = '发送',
+    this.selectedText,
   });
 
   final List<FlareForwardTarget> targets;
@@ -21,6 +25,12 @@ class FlareForwardPicker extends StatefulWidget {
   final bool dismissible;
   final void Function(List<String> ids)? onConfirm;
   final VoidCallback? onClose;
+  final String title;
+  final String searchPlaceholder;
+  final String sendLabel;
+
+  /// Formats the "N selected" footer text (defaults to "已选 N").
+  final String Function(int count)? selectedText;
 
   @override
   State<FlareForwardPicker> createState() => _FlareForwardPickerState();
@@ -89,7 +99,7 @@ class _FlareForwardPickerState extends State<FlareForwardPicker> {
             child: Row(
               children: [
                 Expanded(
-                  child: Text('Forward to',
+                  child: Text(widget.title,
                       style: TextStyle(
                           color: colors.textPrimary,
                           fontSize: FlareSizes.fontSize2xl,
@@ -129,7 +139,7 @@ class _FlareForwardPickerState extends State<FlareForwardPicker> {
                       decoration: InputDecoration(
                         isCollapsed: true,
                         border: InputBorder.none,
-                        hintText: 'Search chats',
+                        hintText: widget.searchPlaceholder,
                         hintStyle: TextStyle(
                             color: colors.textTertiary, fontSize: FlareSizes.fontSizeLg),
                       ),
@@ -227,7 +237,7 @@ class _FlareForwardPickerState extends State<FlareForwardPicker> {
       child: Row(
         children: [
           Expanded(
-            child: Text('$count selected',
+            child: Text(widget.selectedText?.call(count) ?? '已选 $count',
                 style: TextStyle(
                     color: colors.textSecondary, fontSize: FlareSizes.fontSizeSm)),
           ),
@@ -247,13 +257,13 @@ class _FlareForwardPickerState extends State<FlareForwardPicker> {
                   ),
                   borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.send, size: 15, color: Colors.white),
-                    SizedBox(width: 6),
-                    Text('Send',
-                        style: TextStyle(
+                    const Icon(Icons.send, size: 15, color: Colors.white),
+                    const SizedBox(width: 6),
+                    Text(widget.sendLabel,
+                        style: const TextStyle(
                             color: Colors.white,
                             fontSize: FlareSizes.fontSizeLg,
                             fontWeight: FontWeight.w600)),

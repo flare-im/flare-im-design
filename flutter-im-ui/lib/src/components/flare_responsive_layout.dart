@@ -18,6 +18,7 @@ class FlareResponsiveLayout extends StatelessWidget {
     this.onPaneChange,
     this.listWidth = 300,
     this.detailWidth = 320,
+    this.backLabel = '返回',
   });
 
   final Widget list;
@@ -27,6 +28,7 @@ class FlareResponsiveLayout extends StatelessWidget {
   final ValueChanged<FlarePane>? onPaneChange;
   final double listWidth;
   final double detailWidth;
+  final String backLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +64,7 @@ class FlareResponsiveLayout extends StatelessWidget {
               child: TextButton.icon(
                 onPressed: () => onPaneChange?.call(FlarePane.list),
                 icon: const Icon(Icons.chevron_left),
-                label: const Text('Back'),
+                label: Text(backLabel),
                 style: TextButton.styleFrom(foregroundColor: colors.primary),
               ),
             ),

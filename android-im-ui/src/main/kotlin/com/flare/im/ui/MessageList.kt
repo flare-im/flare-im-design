@@ -31,7 +31,7 @@ fun MessageList(
     loading: Boolean = false,
     loadingOlder: Boolean = false,
     mediaDownloadStates: Map<String, FlareMediaDownloadState> = emptyMap(),
-    emptyText: String = "No messages yet",
+    emptyText: String = "暂无消息",
     onMessageLongPress: ((FlareMessageData) -> Unit)? = null,
     onMediaAction: ((FlareMessageData, FlareMessageContent) -> Unit)? = null,
     onResend: ((FlareMessageData) -> Unit)? = null,

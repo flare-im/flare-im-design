@@ -16,6 +16,11 @@ class FlareMessageBatchToolbar extends StatelessWidget {
     this.onForwardMerged,
     this.onDelete,
     this.onExit,
+    this.selectAllLabel = '全选',
+    this.forwardEachLabel = '逐条转发',
+    this.forwardMergedLabel = '合并转发',
+    this.deleteLabel = '删除',
+    this.selectedLabel = '已选',
   });
 
   final int count;
@@ -26,6 +31,11 @@ class FlareMessageBatchToolbar extends StatelessWidget {
   final VoidCallback? onForwardMerged;
   final VoidCallback? onDelete;
   final VoidCallback? onExit;
+  final String selectAllLabel;
+  final String forwardEachLabel;
+  final String forwardMergedLabel;
+  final String deleteLabel;
+  final String selectedLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +58,7 @@ class FlareMessageBatchToolbar extends StatelessWidget {
                 text: '$count',
                 style: TextStyle(color: colors.primary, fontWeight: FontWeight.w700),
               ),
-              TextSpan(text: ' / $total · selected', style: TextStyle(color: colors.textSecondary)),
+              TextSpan(text: ' / $total · $selectedLabel', style: TextStyle(color: colors.textSecondary)),
             ]),
             style: const TextStyle(fontSize: FlareSizes.fontSizeMd),
           ),
@@ -62,22 +72,22 @@ class FlareMessageBatchToolbar extends StatelessWidget {
               children: [
                 _button(colors,
                     icon: Icons.done_all,
-                    label: 'Select all',
+                    label: selectAllLabel,
                     disabled: total == 0 || busy,
                     onTap: onSelectAll),
                 _button(colors,
                     icon: Icons.forward,
-                    label: 'Forward each',
+                    label: forwardEachLabel,
                     disabled: count == 0 || busy,
                     onTap: onForwardEach),
                 _button(colors,
                     icon: Icons.library_books_outlined,
-                    label: 'Forward merged',
+                    label: forwardMergedLabel,
                     disabled: count < 2 || busy,
                     onTap: onForwardMerged),
                 _button(colors,
                     icon: Icons.delete_outline,
-                    label: 'Delete',
+                    label: deleteLabel,
                     color: colors.error,
                     disabled: count == 0 || busy,
                     onTap: onDelete),

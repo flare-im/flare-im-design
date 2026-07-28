@@ -12,12 +12,16 @@ class FlareQuickPhrases extends StatefulWidget {
     this.manageable = false,
     this.onSelect,
     this.onManage,
+    this.title = '常用语',
+    this.manageLabel = '管理',
   });
 
   final List<FlareQuickPhraseGroup> groups;
   final bool manageable;
   final void Function(String text)? onSelect;
   final VoidCallback? onManage;
+  final String title;
+  final String manageLabel;
 
   @override
   State<FlareQuickPhrases> createState() => _FlareQuickPhrasesState();
@@ -88,7 +92,7 @@ class _FlareQuickPhrasesState extends State<FlareQuickPhrases> {
           Icon(Icons.flash_on, size: 18, color: colors.primary),
           const SizedBox(width: FlareSizes.spacingSm),
           Expanded(
-            child: Text('Quick phrases',
+            child: Text(widget.title,
                 style: TextStyle(
                     color: colors.textPrimary,
                     fontSize: FlareSizes.fontSizeLg,
@@ -103,7 +107,7 @@ class _FlareQuickPhrasesState extends State<FlareQuickPhrases> {
                 children: [
                   Icon(Icons.edit_outlined, size: 15, color: colors.primary),
                   const SizedBox(width: FlareSizes.spacingXs),
-                  Text('Manage',
+                  Text(widget.manageLabel,
                       style: TextStyle(color: colors.primary, fontSize: FlareSizes.fontSizeSm)),
                 ],
               ),

@@ -30,7 +30,7 @@ class FlareComposer extends StatefulWidget {
   const FlareComposer({
     super.key,
     this.rich = false,
-    this.placeholder = 'Message',
+    this.placeholder = '发送消息',
     this.disabled = false,
     this.replyTo,
     this.maxLength,
@@ -41,11 +41,11 @@ class FlareComposer extends StatefulWidget {
     this.onCancelReply,
     this.actions,
     this.onAction,
-    this.replyLabel = 'Reply',
+    this.replyLabel = '回复',
     this.enableVoice = false,
-    this.voiceLabel = 'Hold to talk',
-    this.voiceRecordingLabel = 'Release to send · slide up to cancel',
-    this.voiceCancelLabel = 'Release to cancel',
+    this.voiceLabel = '按住 说话',
+    this.voiceRecordingLabel = '松开发送 · 上滑取消',
+    this.voiceCancelLabel = '松开手指，取消发送',
     this.onVoiceStart,
     this.onVoiceEnd,
     this.onVoiceCancel,
@@ -53,8 +53,8 @@ class FlareComposer extends StatefulWidget {
 
   final bool rich;
 
-  /// Copy for the inline reply strip and the hold-to-talk button. Defaults keep
-  /// today's English text; hosts localize by passing their own.
+  /// Copy for the inline reply strip and the hold-to-talk button. Defaults are
+  /// Chinese; hosts localize by passing their own.
   final String replyLabel;
   final String voiceLabel;
   final String voiceRecordingLabel;

@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun GroupList(
     items: List<GroupSummary>,
-    emptyText: String = "No groups yet",
+    emptyText: String = "暂无群组",
     onSelect: ((GroupSummary) -> Unit)? = null,
 ) {
     val colors = flareColors()
@@ -44,7 +44,7 @@ fun GroupList(
                 Spacer(Modifier.width(FlareSizes.spacingMd))
                 Column {
                     Text(g.name, color = colors.textPrimary, fontWeight = FontWeight.Medium, fontSize = FlareSizes.fontSizeXl.value.sp)
-                    Text("${g.memberCount} members", color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
+                    Text("${g.memberCount} 名成员", color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
                 }
             }
         }

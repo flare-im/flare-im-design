@@ -12,12 +12,24 @@ class FlareTranslationView extends StatefulWidget {
     this.original,
     this.provider,
     this.pending = false,
+    this.translatingLabel = '翻译中…',
+    this.translatedLabel = '已翻译',
+    this.showOriginalLabel = '显示原文',
+    this.hideOriginalLabel = '隐藏原文',
+    this.translatedByText,
   });
 
   final String translated;
   final String? original;
   final String? provider;
   final bool pending;
+  final String translatingLabel;
+  final String translatedLabel;
+  final String showOriginalLabel;
+  final String hideOriginalLabel;
+
+  /// Formats the provider footer (defaults to "由 X 翻译").
+  final String Function(String provider)? translatedByText;
 
   @override
   State<FlareTranslationView> createState() => _FlareTranslationViewState();
@@ -82,7 +94,7 @@ class _FlareTranslationViewState extends State<FlareTranslationView>
       children: [
         icon,
         const SizedBox(width: 8),
-        Text('Translating…',
+        Text(widget.translatingLabel,
             style: TextStyle(
                 color: colors.textTertiary, fontSize: FlareSizes.fontSizeSm)),
       ],
@@ -91,8 +103,8 @@ class _FlareTranslationViewState extends State<FlareTranslationView>
 
   Widget _content(FlareColors colors) {
     final label = widget.provider != null && widget.provider!.isNotEmpty
-        ? 'Translated by ${widget.provider}'
-        : 'Translated';
+        ? (widget.translatedByText?.call(widget.provider!) ?? '由 ${widget.provider} 翻译')
+        : widget.translatedLabel;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -120,7 +132,7 @@ class _FlareTranslationViewState extends State<FlareTranslationView>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(_showOriginal ? 'Hide original' : 'Show original',
+                    Text(_showOriginal ? widget.hideOriginalLabel : widget.showOriginalLabel,
                         style: TextStyle(
                             color: colors.primary,
                             fontSize: FlareSizes.fontSizeXs,

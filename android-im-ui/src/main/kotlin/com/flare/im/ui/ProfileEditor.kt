@@ -57,7 +57,7 @@ fun ProfileEditor(
                     Modifier.size(28.dp).clip(CircleShape).background(colors.primary)
                         .clickable { onPickAvatar?.invoke() },
                     contentAlignment = Alignment.Center,
-                ) { Icon(Icons.Outlined.PhotoCamera, "Change avatar", tint = Color.White, modifier = Modifier.size(16.dp)) }
+                ) { Icon(Icons.Outlined.PhotoCamera, "更换头像", tint = Color.White, modifier = Modifier.size(16.dp)) }
             }
         }
         Spacer(Modifier.height(FlareSizes.spacingLg))
@@ -84,10 +84,10 @@ fun ProfileEditor(
 
 /** Localizable labels for [ProfileEditor]. Defaults keep today's English copy. */
 data class FlareProfileEditorLabels(
-    val nickname: String = "Nickname",
-    val nicknamePlaceholder: String = "Nickname",
-    val bio: String = "Bio",
-    val bioPlaceholder: String = "Tell us about yourself",
-    val cancel: String = "Cancel",
-    val save: String = "Save",
+    val nickname: String = "昵称",
+    val nicknamePlaceholder: String = "昵称",
+    val bio: String = "个性签名",
+    val bioPlaceholder: String = "介绍一下自己吧",
+    val cancel: String = "取消",
+    val save: String = "保存",
 )

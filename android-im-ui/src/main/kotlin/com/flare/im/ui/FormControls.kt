@@ -157,7 +157,7 @@ fun Stepper(
             Modifier.size(btn.dp).alpha(if (canDec) 1f else 0.4f)
                 .then(if (canDec) Modifier.clickable { set(value - step) } else Modifier),
             contentAlignment = Alignment.Center,
-        ) { Icon(Icons.Outlined.Remove, contentDescription = "Decrease", tint = colors.textSecondary, modifier = Modifier.size(glyph.dp)) }
+        ) { Icon(Icons.Outlined.Remove, contentDescription = "减少", tint = colors.textSecondary, modifier = Modifier.size(glyph.dp)) }
         Text(
             "$value", color = colors.textPrimary, fontSize = font.sp, textAlign = TextAlign.Center,
             modifier = Modifier.width(fieldW.dp),
@@ -166,7 +166,7 @@ fun Stepper(
             Modifier.size(btn.dp).alpha(if (canInc) 1f else 0.4f)
                 .then(if (canInc) Modifier.clickable { set(value + step) } else Modifier),
             contentAlignment = Alignment.Center,
-        ) { Icon(Icons.Outlined.Add, contentDescription = "Increase", tint = colors.textSecondary, modifier = Modifier.size(glyph.dp)) }
+        ) { Icon(Icons.Outlined.Add, contentDescription = "增加", tint = colors.textSecondary, modifier = Modifier.size(glyph.dp)) }
     }
 }
 

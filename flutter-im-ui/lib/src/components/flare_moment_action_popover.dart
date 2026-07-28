@@ -12,6 +12,10 @@ class FlareMomentActionPopover extends StatelessWidget {
     this.onLike,
     this.onComment,
     this.onDelete,
+    this.likeLabel = '赞',
+    this.unlikeLabel = '取消',
+    this.commentLabel = '评论',
+    this.deleteLabel = '删除',
   });
 
   final bool liked;
@@ -19,6 +23,10 @@ class FlareMomentActionPopover extends StatelessWidget {
   final VoidCallback? onLike;
   final VoidCallback? onComment;
   final VoidCallback? onDelete;
+  final String likeLabel;
+  final String unlikeLabel;
+  final String commentLabel;
+  final String deleteLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -41,16 +49,16 @@ class FlareMomentActionPopover extends StatelessWidget {
         children: [
           _btn(
             liked ? Icons.heart_broken_outlined : Icons.favorite_border,
-            liked ? 'Unlike' : 'Like',
+            liked ? unlikeLabel : likeLabel,
             onLike,
           ),
           _divider(),
-          _btn(Icons.chat_bubble_outline, 'Comment', onComment),
+          _btn(Icons.chat_bubble_outline, commentLabel, onComment),
           if (canDelete) ...[
             _divider(),
             _btn(
               Icons.delete_outline,
-              'Delete',
+              deleteLabel,
               onDelete,
               danger: true,
             ),

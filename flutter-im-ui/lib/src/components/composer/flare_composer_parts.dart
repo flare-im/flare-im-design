@@ -69,7 +69,7 @@ class FlareComposerReplyStrip extends StatelessWidget {
     super.key,
     required this.senderName,
     required this.summary,
-    this.label = 'Reply',
+    this.label = '回复',
     this.onCancel,
   });
 
