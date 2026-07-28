@@ -9,7 +9,7 @@ plugins {
 
 // Maven coordinates — consumers reference `com.flare.im:im-ui-compose:0.1.0`.
 group = "com.flare.im"
-version = "0.1.0"
+version = "1.0.4"
 
 android {
     namespace = "com.flare.im.ui"
@@ -43,7 +43,7 @@ afterEvaluate {
                 from(components["release"])
                 groupId = "com.flare.im"
                 artifactId = "im-ui-compose"
-                version = "0.1.0"
+                version = "1.0.4"
             }
         }
         // `./gradlew publish` targets this; point it at your Maven repo:
