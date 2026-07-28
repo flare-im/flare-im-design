@@ -4,7 +4,7 @@ description: >-
   (flare-im-ui-spec), realised natively; design tokens generated from
   flare-im-design-tokens. Components are pure/presentational — behaviour and data
   come from the core observable views via the app.
-version: 0.1.0
+version: 1.0.4
 publish_to: none
 repository: https://github.com/flare-im/flare-im-design
 
