@@ -130,7 +130,7 @@ fun MomentActionPopover(
             Icon(if (liked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder, contentDescription = null,
                 tint = Color(0xFFF2F0F7), modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(5.dp))
-            Text(if (liked) "取消赞" else "赞", color = Color(0xFFF2F0F7), fontSize = 13.sp)
+            Text(if (liked) flareStrings().unlike else flareStrings().like, color = Color(0xFFF2F0F7), fontSize = 13.sp)
         }
         Box(Modifier.width(1.dp).height(18.dp).background(Color.White.copy(alpha = 0.16f)))
         Row(
@@ -140,7 +140,7 @@ fun MomentActionPopover(
             Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null,
                 tint = Color(0xFFF2F0F7), modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(5.dp))
-            Text("评论", color = Color(0xFFF2F0F7), fontSize = 13.sp)
+            Text(flareStrings().comment, color = Color(0xFFF2F0F7), fontSize = 13.sp)
         }
         if (canDelete) {
             Box(Modifier.width(1.dp).height(18.dp).background(Color.White.copy(alpha = 0.16f)))
@@ -151,7 +151,7 @@ fun MomentActionPopover(
                 Icon(Icons.Outlined.DeleteOutline, contentDescription = null,
                     tint = Color(0xFFFF8A80), modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(5.dp))
-                Text("删除", color = Color(0xFFFF8A80), fontSize = 13.sp)
+                Text(flareStrings().delete, color = Color(0xFFFF8A80), fontSize = 13.sp)
             }
         }
     }
@@ -203,7 +203,7 @@ fun MomentsCoverHeader(
                 Icon(Icons.Outlined.Image, contentDescription = null,
                     tint = Color.White.copy(alpha = 0.92f), modifier = Modifier.size(14.dp))
                 Spacer(Modifier.width(4.dp))
-                Text("换封面", color = Color.White.copy(alpha = 0.92f), fontSize = 12.sp)
+                Text(flareStrings().changeCover, color = Color.White.copy(alpha = 0.92f), fontSize = 12.sp)
             }
         }
         Row(
@@ -263,7 +263,7 @@ fun MomentComposer(
             Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("取消", color = colors.textSecondary, fontSize = 14.sp,
+            Text(flareStrings().cancel, color = colors.textSecondary, fontSize = 14.sp,
                 modifier = Modifier.clickable { onCancel?.invoke() })
             Spacer(Modifier.weight(1f))
             Box(
@@ -271,7 +271,7 @@ fun MomentComposer(
                     .then(if (canPost && !busy) Modifier.clickable { onSubmit?.invoke(text.trim()) } else Modifier)
                     .padding(horizontal = 18.dp, vertical = 6.dp),
             ) {
-                Text("发表", color = Color.White.copy(alpha = if (canPost && !busy) 1f else 0.45f),
+                Text(flareStrings().post, color = Color.White.copy(alpha = if (canPost && !busy) 1f else 0.45f),
                     fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
             }
         }
@@ -282,7 +282,7 @@ fun MomentComposer(
             cursorBrush = SolidColor(colors.primary),
             modifier = Modifier.fillMaxWidth().heightIn(min = 96.dp).padding(14.dp),
             decorationBox = { inner ->
-                if (text.isEmpty()) Text("这一刻的想法…", color = colors.textTertiary, fontSize = 15.sp)
+                if (text.isEmpty()) Text(flareStrings().momentTextHint, color = colors.textTertiary, fontSize = 15.sp)
                 inner()
             },
         )
@@ -312,7 +312,7 @@ fun MomentComposer(
                                     .border(1.dp, colors.borderHover, RoundedCornerShape(8.dp))
                                     .clickable { onAddImage?.invoke() },
                                 contentAlignment = Alignment.Center,
-                            ) { Icon(Icons.Outlined.Add, contentDescription = "添加图片", tint = colors.textTertiary, modifier = Modifier.size(26.dp)) }
+                            ) { Icon(Icons.Outlined.Add, contentDescription = flareStrings().addImage, tint = colors.textTertiary, modifier = Modifier.size(26.dp)) }
                         }
                     }
                     repeat(4 - row.size) { Spacer(Modifier.weight(1f)) }
@@ -320,9 +320,9 @@ fun MomentComposer(
             }
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderPrimary))
-        composerRow(colors, Icons.Outlined.LocationOn, location ?: "所在位置") { onPickLocation?.invoke() }
+        composerRow(colors, Icons.Outlined.LocationOn, location ?: flareStrings().pickLocation) { onPickLocation?.invoke() }
         Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderPrimary))
-        composerRow(colors, Icons.Outlined.Public, visibility ?: "谁可以看") { onPickVisibility?.invoke() }
+        composerRow(colors, Icons.Outlined.Public, visibility ?: flareStrings().pickVisibility) { onPickVisibility?.invoke() }
     }
 }
 
@@ -399,7 +399,7 @@ fun MomentCard(
                         .background(if (menuOpen) colors.bgSelected else colors.bgSecondary)
                         .clickable { menuOpen = !menuOpen },
                     contentAlignment = Alignment.Center,
-                ) { Icon(Icons.Outlined.MoreHoriz, contentDescription = "更多", tint = if (menuOpen) colors.primary else colors.textSecondary, modifier = Modifier.size(16.dp)) }
+                ) { Icon(Icons.Outlined.MoreHoriz, contentDescription = flareStrings().more, tint = if (menuOpen) colors.primary else colors.textSecondary, modifier = Modifier.size(16.dp)) }
             }
             if (moment.likes.isNotEmpty() || moment.comments.isNotEmpty()) {
                 Column(

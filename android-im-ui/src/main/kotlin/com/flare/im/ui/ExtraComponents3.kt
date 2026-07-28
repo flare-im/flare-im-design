@@ -98,11 +98,11 @@ fun ForwardPicker(
             Modifier.fillMaxWidth().padding(start = 16.dp, end = 12.dp, top = 14.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("转发给", color = colors.textPrimary, fontWeight = FontWeight.SemiBold,
+            Text(flareStrings().forwardTo, color = colors.textPrimary, fontWeight = FontWeight.SemiBold,
                 fontSize = FlareSizes.fontSizeLg.value.sp)
             Spacer(Modifier.weight(1f))
             if (dismissible) {
-                Icon(Icons.Outlined.Close, contentDescription = "关闭", tint = colors.textTertiary,
+                Icon(Icons.Outlined.Close, contentDescription = flareStrings().close, tint = colors.textTertiary,
                     modifier = Modifier.size(18.dp).clickable { onClose?.invoke() })
             }
         }
@@ -121,7 +121,7 @@ fun ForwardPicker(
                 cursorBrush = SolidColor(colors.primary),
                 modifier = Modifier.weight(1f),
                 decorationBox = { inner ->
-                    if (query.isEmpty()) Text("搜索会话", color = colors.textTertiary, fontSize = 14.sp)
+                    if (query.isEmpty()) Text(flareStrings().searchConversations, color = colors.textTertiary, fontSize = 14.sp)
                     inner()
                 },
             )
@@ -157,7 +157,7 @@ fun ForwardPicker(
                 }
             }
             if (filtered.isEmpty()) {
-                Text("没有匹配的会话", color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp,
+                Text(flareStrings().noMatchingConversations, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp,
                     modifier = Modifier.fillMaxWidth().padding(24.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             }
         }
@@ -166,7 +166,7 @@ fun ForwardPicker(
             Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("已选 ${selected.size}", color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd.value.sp)
+            Text(flareStrings().selectedCount(selected.size), color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd.value.sp)
             Spacer(Modifier.weight(1f))
             val enabled = selected.isNotEmpty()
             Box(
@@ -176,7 +176,7 @@ fun ForwardPicker(
                     .padding(horizontal = 20.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Text("发送", color = if (enabled) Color.White else colors.textTertiary,
+                Text(flareStrings().send, color = if (enabled) Color.White else colors.textTertiary,
                     fontWeight = FontWeight.Medium, fontSize = FlareSizes.fontSizeMd.value.sp)
             }
         }
@@ -268,7 +268,7 @@ fun CallDock(
                     Icon(if (mode == FlareCallMode.Video) Icons.Outlined.Videocam else Icons.Outlined.Call,
                         contentDescription = null, tint = Color.White.copy(alpha = 0.66f), modifier = Modifier.size(12.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text(durationLabel ?: "已接通", color = Color.White.copy(alpha = 0.66f), fontSize = 12.sp)
+                    Text(durationLabel ?: flareStrings().callConnected, color = Color.White.copy(alpha = 0.66f), fontSize = 12.sp)
                 }
             }
             Spacer(Modifier.width(2.dp))
@@ -281,7 +281,7 @@ fun CallDock(
                 .clickable { onToggleMute?.invoke() },
             contentAlignment = Alignment.Center,
         ) {
-            Icon(if (muted) Icons.Outlined.MicOff else Icons.Outlined.Mic, contentDescription = "麦克风",
+            Icon(if (muted) Icons.Outlined.MicOff else Icons.Outlined.Mic, contentDescription = flareStrings().microphone,
                 tint = if (muted) Color(0xFF17131F) else Color.White, modifier = Modifier.size(18.dp))
         }
         Spacer(Modifier.width(6.dp))
@@ -289,7 +289,7 @@ fun CallDock(
             Modifier.size(36.dp).clip(CircleShape).background(colors.error).clickable { onHangup?.invoke() },
             contentAlignment = Alignment.Center,
         ) {
-            Icon(Icons.Outlined.Call, contentDescription = "挂断", tint = Color.White,
+            Icon(Icons.Outlined.Call, contentDescription = flareStrings().hangUp, tint = Color.White,
                 modifier = Modifier.size(18.dp).rotate(135f))
         }
     }
@@ -323,7 +323,7 @@ fun AnnouncementBanner(
         Spacer(Modifier.width(10.dp))
         Column(Modifier.weight(1f)) {
             Row {
-                Text("群公告", color = colors.primary, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                Text(flareStrings().groupAnnouncement, color = colors.primary, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
                 author?.let {
                     Text(" · $it", color = colors.textTertiary, fontSize = 12.sp)
                 }
@@ -336,7 +336,7 @@ fun AnnouncementBanner(
                     Modifier.padding(top = 4.dp).clickable { expanded = !expanded },
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(if (expanded) "收起" else "展开", color = colors.primary, fontSize = 12.sp)
+                    Text(if (expanded) flareStrings().collapse else flareStrings().expand, color = colors.primary, fontSize = 12.sp)
                     Icon(Icons.Outlined.ExpandMore, contentDescription = null, tint = colors.primary,
                         modifier = Modifier.size(14.dp).rotate(if (expanded) 180f else 0f))
                 }
@@ -344,7 +344,7 @@ fun AnnouncementBanner(
         }
         if (dismissible) {
             Spacer(Modifier.width(6.dp))
-            Icon(Icons.Outlined.Close, contentDescription = "关闭", tint = colors.textTertiary,
+            Icon(Icons.Outlined.Close, contentDescription = flareStrings().close, tint = colors.textTertiary,
                 modifier = Modifier.size(16.dp).align(Alignment.Top).clickable { onClose?.invoke() })
         }
     }

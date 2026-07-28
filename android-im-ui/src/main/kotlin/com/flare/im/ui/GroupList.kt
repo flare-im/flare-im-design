@@ -44,7 +44,7 @@ fun GroupList(
                 Spacer(Modifier.width(FlareSizes.spacingMd))
                 Column {
                     Text(g.name, color = colors.textPrimary, fontWeight = FontWeight.Medium, fontSize = FlareSizes.fontSizeXl.value.sp)
-                    Text("${g.memberCount} 名成员", color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
+                    Text(flareStrings().memberCount(g.memberCount), color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
                 }
             }
         }

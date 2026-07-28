@@ -66,6 +66,8 @@ import kotlin.math.max
 import kotlin.math.round
 import java.time.LocalDate
 import java.time.YearMonth
+import java.util.Locale
+import java.time.DayOfWeek
 
 // MARK: - Textarea
 
@@ -157,7 +159,7 @@ fun Stepper(
             Modifier.size(btn.dp).alpha(if (canDec) 1f else 0.4f)
                 .then(if (canDec) Modifier.clickable { set(value - step) } else Modifier),
             contentAlignment = Alignment.Center,
-        ) { Icon(Icons.Outlined.Remove, contentDescription = "减少", tint = colors.textSecondary, modifier = Modifier.size(glyph.dp)) }
+        ) { Icon(Icons.Outlined.Remove, contentDescription = flareStrings().decrease, tint = colors.textSecondary, modifier = Modifier.size(glyph.dp)) }
         Text(
             "$value", color = colors.textPrimary, fontSize = font.sp, textAlign = TextAlign.Center,
             modifier = Modifier.width(fieldW.dp),
@@ -166,7 +168,7 @@ fun Stepper(
             Modifier.size(btn.dp).alpha(if (canInc) 1f else 0.4f)
                 .then(if (canInc) Modifier.clickable { set(value + step) } else Modifier),
             contentAlignment = Alignment.Center,
-        ) { Icon(Icons.Outlined.Add, contentDescription = "增加", tint = colors.textSecondary, modifier = Modifier.size(glyph.dp)) }
+        ) { Icon(Icons.Outlined.Add, contentDescription = flareStrings().increase, tint = colors.textSecondary, modifier = Modifier.size(glyph.dp)) }
     }
 }
 
@@ -479,13 +481,21 @@ fun DatePicker(
             Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
                 // month nav
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                    IconButton(Icons.Outlined.ChevronLeft, "上个月") { viewYm = viewYm.minusMonths(1) }
-                    Text("${viewYm.year}年${viewYm.monthValue}月", color = colors.textPrimary, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
-                    IconButton(Icons.Outlined.ChevronRight, "下个月") { viewYm = viewYm.plusMonths(1) }
+                    IconButton(Icons.Outlined.ChevronLeft, flareStrings().previousMonth) { viewYm = viewYm.minusMonths(1) }
+                    Text(flareStrings().yearMonth(viewYm.year, viewYm.monthValue), color = colors.textPrimary, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+                    IconButton(Icons.Outlined.ChevronRight, flareStrings().nextMonth) { viewYm = viewYm.plusMonths(1) }
                 }
                 // weekday row
+                // 星期名取自 JDK 的区域数据（周日起，与下方 `lead` 的 dayOfWeek % 7 排布一致），
+                // 随宿主 locale 自动切换，无需组件自备中文常量。
+                val weekdayNames = remember(Locale.getDefault()) {
+                    (0..6).map {
+                        DayOfWeek.of(if (it == 0) 7 else it)
+                            .getDisplayName(java.time.format.TextStyle.NARROW, Locale.getDefault())
+                    }
+                }
                 Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                    listOf("日", "一", "二", "三", "四", "五", "六").forEach {
+                    weekdayNames.forEach {
                         Text(it, color = colors.textTertiary, fontSize = 12.sp, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
                     }
                 }

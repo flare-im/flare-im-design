@@ -141,7 +141,7 @@ fun FlareStickerPackMessage(
     SubcomposeAsyncImage(
         model = model,
         imageLoader = loader,
-        contentDescription = "贴纸",
+        contentDescription = flareStrings().sticker,
         modifier = Modifier.size(w.dp, h.dp),
         error = {
             Box(

@@ -100,7 +100,7 @@ fun StartConversationDialog(
                 if (busy) {
                     CircularProgressIndicator(Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
                 } else {
-                    Text(if (selected.isEmpty()) "确定" else "确定 (${selected.size})")
+                    Text(if (selected.isEmpty()) flareStrings().confirm else flareStrings().confirmCount(selected.size))
                 }
             }
         }
