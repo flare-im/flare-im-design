@@ -97,7 +97,7 @@ fun VoicePlayer(
                     .clickable { onToggle?.invoke() },
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(if (playing) Icons.Filled.Pause else Icons.Filled.PlayArrow, contentDescription = "播放",
+                Icon(if (playing) Icons.Filled.Pause else Icons.Filled.PlayArrow, contentDescription = flareStrings().play,
                     tint = Color.White, modifier = Modifier.size(18.dp))
                 if (unplayed && !playing) {
                     Box(Modifier.align(Alignment.TopEnd).size(8.dp).clip(CircleShape).background(colors.error))
@@ -132,7 +132,7 @@ fun VoicePlayer(
             ) {
                 Icon(Icons.Outlined.Description, contentDescription = null, tint = colors.primary, modifier = Modifier.size(13.dp))
                 Spacer(Modifier.width(4.dp))
-                Text(if (transcriptOpen) "隐藏文字" else "转文字", color = colors.primary, fontSize = 12.sp)
+                Text(if (transcriptOpen) flareStrings().hideTranscript else flareStrings().showTranscript, color = colors.primary, fontSize = 12.sp)
             }
             if (transcriptOpen) {
                 Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderPrimary))
@@ -159,8 +159,9 @@ fun EmojiPicker(
     var query by remember { mutableStateOf("") }
     var tone by remember { mutableStateOf("") }
     val recentKey = "__recent"
+    val recentLabel = flareStrings().recent
     val tabs = buildList {
-        if (recents.isNotEmpty()) add(EmojiCategory(recentKey, "最近", "🕘", recents))
+        if (recents.isNotEmpty()) add(EmojiCategory(recentKey, recentLabel, "🕘", recents))
         addAll(categories)
     }
     var activeKey by remember { mutableStateOf(tabs.firstOrNull()?.key ?: "") }
@@ -187,7 +188,7 @@ fun EmojiPicker(
                 textStyle = TextStyle(color = colors.textPrimary, fontSize = 14.sp),
                 cursorBrush = SolidColor(colors.primary), modifier = Modifier.weight(1f),
                 decorationBox = { inner ->
-                    if (query.isEmpty()) Text("搜索表情", color = colors.textTertiary, fontSize = 14.sp)
+                    if (query.isEmpty()) Text(flareStrings().searchEmoji, color = colors.textTertiary, fontSize = 14.sp)
                     inner()
                 },
             )
@@ -216,7 +217,7 @@ fun EmojiPicker(
                 }
             }
             if (shown.isEmpty()) {
-                Text("没有匹配的表情", color = colors.textTertiary, fontSize = 13.sp,
+                Text(flareStrings().noMatchingEmoji, color = colors.textTertiary, fontSize = 13.sp,
                     modifier = Modifier.fillMaxWidth().padding(40.dp), textAlign = TextAlign.Center)
             }
         }
@@ -256,8 +257,9 @@ fun StickerPanel(
 ) {
     val colors = flareColors()
     val recentKey = "__recent"
+    val recentLabel = flareStrings().recent
     val railPacks = buildList {
-        if (recents.isNotEmpty()) add(StickerPack(recentKey, "最近", coverEmoji = "🕘", stickers = recents))
+        if (recents.isNotEmpty()) add(StickerPack(recentKey, recentLabel, coverEmoji = "🕘", stickers = recents))
         addAll(packs)
     }
     var activeKey by remember { mutableStateOf(railPacks.firstOrNull()?.key ?: "") }
@@ -293,7 +295,7 @@ fun StickerPanel(
                 }
             }
             if (activePack?.stickers.isNullOrEmpty()) {
-                Text("该表情包暂无贴纸", color = colors.textTertiary, fontSize = 13.sp,
+                Text(flareStrings().emptyStickerPack, color = colors.textTertiary, fontSize = 13.sp,
                     modifier = Modifier.fillMaxWidth().padding(44.dp), textAlign = TextAlign.Center)
             }
         }

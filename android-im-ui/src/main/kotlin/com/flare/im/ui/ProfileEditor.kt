@@ -57,7 +57,7 @@ fun ProfileEditor(
                     Modifier.size(28.dp).clip(CircleShape).background(colors.primary)
                         .clickable { onPickAvatar?.invoke() },
                     contentAlignment = Alignment.Center,
-                ) { Icon(Icons.Outlined.PhotoCamera, "更换头像", tint = Color.White, modifier = Modifier.size(16.dp)) }
+                ) { Icon(Icons.Outlined.PhotoCamera, flareStrings().changeAvatar, tint = Color.White, modifier = Modifier.size(16.dp)) }
             }
         }
         Spacer(Modifier.height(FlareSizes.spacingLg))

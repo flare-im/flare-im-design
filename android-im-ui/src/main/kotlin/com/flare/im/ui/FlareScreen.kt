@@ -65,7 +65,7 @@ fun FlareScreen(
             ) {
                 if (onBack != null) {
                     IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, "返回", tint = colors.textPrimary)
+                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, flareStrings().back, tint = colors.textPrimary)
                     }
                 }
                 if (title != null) {

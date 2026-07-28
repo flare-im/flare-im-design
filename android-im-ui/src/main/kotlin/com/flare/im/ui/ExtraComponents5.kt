@@ -168,7 +168,7 @@ fun VoiceRecordingBar(
                 .clickable { onCancel?.invoke() },
             contentAlignment = Alignment.Center,
         ) {
-            Icon(Icons.Outlined.DeleteOutline, contentDescription = "取消",
+            Icon(Icons.Outlined.DeleteOutline, contentDescription = flareStrings().cancel,
                 tint = if (cancelling) Color.White else colors.textSecondary, modifier = Modifier.size(18.dp))
         }
         Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -188,14 +188,14 @@ fun VoiceRecordingBar(
             }
         }
         if (cancelling) {
-            Text("松开取消", color = colors.error, fontWeight = FontWeight.Medium, fontSize = 12.sp,
+            Text(flareStrings().releaseToCancel, color = colors.error, fontWeight = FontWeight.Medium, fontSize = 12.sp,
                 modifier = Modifier.padding(end = 4.dp))
         } else {
             Box(
                 Modifier.size(36.dp).clip(CircleShape).background(colors.primary).clickable { onSend?.invoke() },
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(Icons.AutoMirrored.Outlined.Send, contentDescription = "发送", tint = Color.White, modifier = Modifier.size(18.dp))
+                Icon(Icons.AutoMirrored.Outlined.Send, contentDescription = flareStrings().send, tint = Color.White, modifier = Modifier.size(18.dp))
             }
         }
     }
@@ -223,9 +223,9 @@ fun PollComposer(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text("发起投票", color = colors.textPrimary, fontWeight = FontWeight.SemiBold, fontSize = FlareSizes.fontSizeLg.value.sp)
+            Text(flareStrings().createPoll, color = colors.textPrimary, fontWeight = FontWeight.SemiBold, fontSize = FlareSizes.fontSizeLg.value.sp)
             Spacer(Modifier.weight(1f))
-            Icon(Icons.Outlined.Close, contentDescription = "取消", tint = colors.textTertiary,
+            Icon(Icons.Outlined.Close, contentDescription = flareStrings().cancel, tint = colors.textTertiary,
                 modifier = Modifier.size(18.dp).clickable { onCancel?.invoke() })
         }
         Box(Modifier.fillMaxWidth().padding(bottom = 4.dp)) {
@@ -234,7 +234,7 @@ fun PollComposer(
                 textStyle = TextStyle(color = colors.textPrimary, fontSize = 15.sp, fontWeight = FontWeight.Medium),
                 cursorBrush = SolidColor(colors.primary), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
                 decorationBox = { inner ->
-                    if (question.isEmpty()) Text("请输入问题", color = colors.textTertiary, fontSize = 15.sp)
+                    if (question.isEmpty()) Text(flareStrings().pollQuestionHint, color = colors.textTertiary, fontSize = 15.sp)
                     inner()
                 },
             )
@@ -251,12 +251,12 @@ fun PollComposer(
                     textStyle = TextStyle(color = colors.textPrimary, fontSize = 14.sp),
                     cursorBrush = SolidColor(colors.primary), modifier = Modifier.weight(1f).padding(vertical = 9.dp),
                     decorationBox = { inner ->
-                        if (value.isEmpty()) Text("选项 ${i + 1}", color = colors.textTertiary, fontSize = 14.sp)
+                        if (value.isEmpty()) Text(flareStrings().pollOptionHint(i + 1), color = colors.textTertiary, fontSize = 14.sp)
                         inner()
                     },
                 )
                 if (options.size > 2) {
-                    Icon(Icons.Outlined.Close, contentDescription = "删除选项", tint = colors.textTertiary,
+                    Icon(Icons.Outlined.Close, contentDescription = flareStrings().removeOption, tint = colors.textTertiary,
                         modifier = Modifier.size(16.dp).padding(4.dp).clickable { options.removeAt(i) })
                 }
             }
@@ -268,7 +268,7 @@ fun PollComposer(
             ) {
                 Icon(Icons.Outlined.Add, contentDescription = null, tint = colors.primary, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(4.dp))
-                Text("添加选项", color = colors.primary, fontSize = 13.sp)
+                Text(flareStrings().addOption, color = colors.primary, fontSize = 13.sp)
             }
         }
         Row(
@@ -278,7 +278,7 @@ fun PollComposer(
             Icon(if (multiple) Icons.Outlined.CheckBox else Icons.Outlined.CheckBoxOutlineBlank,
                 contentDescription = null, tint = if (multiple) colors.primary else colors.textTertiary, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(6.dp))
-            Text("允许多选", color = colors.textSecondary, fontSize = 13.sp)
+            Text(flareStrings().allowMultiple, color = colors.textSecondary, fontSize = 13.sp)
         }
         Box(
             Modifier.fillMaxWidth().height(40.dp).clip(RoundedCornerShape(FlareSizes.radiusLg))
@@ -286,7 +286,7 @@ fun PollComposer(
                 .then(if (canSubmit) Modifier.clickable { onSubmit?.invoke(question.trim(), filled, multiple) } else Modifier),
             contentAlignment = Alignment.Center,
         ) {
-            Text("创建投票", color = if (canSubmit) Color.White else colors.textTertiary,
+            Text(flareStrings().submitPoll, color = if (canSubmit) Color.White else colors.textTertiary,
                 fontWeight = FontWeight.SemiBold, fontSize = FlareSizes.fontSizeMd.value.sp)
         }
     }
@@ -306,7 +306,7 @@ fun ChatWallpaperPicker(
         Modifier.width(300.dp).clip(RoundedCornerShape(FlareSizes.radiusXl)).background(colors.bgPrimary)
             .border(1.dp, colors.borderPrimary, RoundedCornerShape(FlareSizes.radiusXl)).padding(14.dp),
     ) {
-        Text("聊天背景", color = colors.textSecondary, fontWeight = FontWeight.SemiBold,
+        Text(flareStrings().chatBackground, color = colors.textSecondary, fontWeight = FontWeight.SemiBold,
             fontSize = 13.sp, modifier = Modifier.padding(bottom = 12.dp))
         options.chunked(4).forEach { row ->
             Row(

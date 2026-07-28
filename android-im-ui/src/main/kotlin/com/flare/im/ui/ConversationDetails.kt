@@ -76,7 +76,7 @@ fun ConversationDetails(
             Spacer(Modifier.size(FlareSizes.spacingSm))
             Text(conversation.title, color = colors.textPrimary, fontSize = FlareSizes.fontSize4xl.value.sp, fontWeight = FontWeight.SemiBold)
             if (conversation.kind == FlareConversationKind.Group && conversation.memberCount != null) {
-                Text("${conversation.memberCount} 名成员", color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
+                Text(flareStrings().memberCount(conversation.memberCount), color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
             }
             if (!connectionText.isNullOrEmpty()) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = FlareSizes.spacingSm)) {

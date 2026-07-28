@@ -319,7 +319,9 @@ class _DateSheetState extends State<_DateSheet> {
   }
 
   Widget _monthHeader(FlareColors colors) {
-    final label = '$_viewYear年${_viewMonth + 1}月';
+    // 年月标题取自框架的区域数据，随宿主 locale 自动切换。
+    final label = MaterialLocalizations.of(context)
+        .formatMonthYear(DateTime(_viewYear, _viewMonth + 1));
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [

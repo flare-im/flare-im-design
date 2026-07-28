@@ -14,6 +14,7 @@ class FlareGroupCallView extends StatelessWidget {
     required this.state,
     this.title,
     this.durationLabel,
+    this.joinedText,
     this.muted = false,
     this.cameraOn = true,
     this.speakerOn = false,
@@ -33,6 +34,8 @@ class FlareGroupCallView extends StatelessWidget {
   final String state;
   final String? title;
   final String? durationLabel;
+  /// 已加入人数与状态的文案，如 `(3, '已接通') => '3 joined · 已接通'`。
+  final String Function(int count, String status)? joinedText;
   final bool muted;
   final bool cameraOn;
   final bool speakerOn;
@@ -88,7 +91,8 @@ class FlareGroupCallView extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                               color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
-                      Text('${participants.length} 人已加入 · $_status',
+                      Text(joinedText?.call(participants.length, _status) ??
+                          '${participants.length} 人已加入 · $_status',
                           style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.62), fontSize: 12)),
                     ],

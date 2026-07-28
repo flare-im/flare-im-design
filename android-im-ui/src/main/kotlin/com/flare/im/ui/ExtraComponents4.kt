@@ -92,15 +92,15 @@ fun RedPacketCard(
                 Text(blessing, color = Color.White, fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 val status = when {
-                    opened && amount != null -> "已领取 · $amount"
-                    finished -> "已被领完"
-                    else -> "点击领取"
+                    opened && amount != null -> flareStrings().packetClaimed(amount)
+                    finished -> flareStrings().packetFinished
+                    else -> flareStrings().packetTapToClaim
                 }
                 Text(status, color = if (opened && amount != null) gold else Color(0xFFFFECD2).copy(alpha = 0.85f),
                     fontSize = 12.sp, modifier = Modifier.padding(top = 3.dp))
             }
         }
-        Text("闪包", color = Color(0xFFFFECD2).copy(alpha = 0.5f), fontSize = 10.sp,
+        Text(flareStrings().packetBrand, color = Color(0xFFFFECD2).copy(alpha = 0.5f), fontSize = 10.sp,
             modifier = Modifier.align(Alignment.BottomEnd))
     }
 }
@@ -132,7 +132,7 @@ fun SlashCommandMenu(
         ) {
             Icon(Icons.Outlined.Terminal, contentDescription = null, tint = colors.textTertiary, modifier = Modifier.size(13.dp))
             Spacer(Modifier.width(5.dp))
-            Text("命令", color = colors.textTertiary, fontWeight = FontWeight.SemiBold, fontSize = 11.sp)
+            Text(flareStrings().commands, color = colors.textTertiary, fontWeight = FontWeight.SemiBold, fontSize = 11.sp)
         }
         filtered.forEach { cmd ->
             Column(
@@ -153,7 +153,7 @@ fun SlashCommandMenu(
             }
         }
         if (filtered.isEmpty()) {
-            Text("没有匹配的命令", color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp,
+            Text(flareStrings().noMatchingCommands, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp,
                 modifier = Modifier.fillMaxWidth().padding(14.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
     }
@@ -185,7 +185,7 @@ fun TranslationView(
                     Icon(Icons.Outlined.Language, contentDescription = null, tint = colors.textTertiary,
                         modifier = Modifier.size(14.dp).rotate(angle))
                     Spacer(Modifier.width(6.dp))
-                    Text("翻译中…", color = colors.textTertiary, fontSize = 13.sp)
+                    Text(flareStrings().translating, color = colors.textTertiary, fontSize = 13.sp)
                 }
             } else {
                 Text(translated, color = colors.textPrimary, fontSize = 14.sp)
@@ -195,7 +195,7 @@ fun TranslationView(
                 ) {
                     Icon(Icons.Outlined.Translate, contentDescription = null, tint = colors.textTertiary, modifier = Modifier.size(12.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text(if (provider != null) "由 $provider 翻译" else "已翻译",
+                    Text(if (provider != null) flareStrings().translatedBy(provider) else flareStrings().translated,
                         color = colors.textTertiary, fontSize = 11.sp)
                     Spacer(Modifier.weight(1f))
                     if (original != null) {
@@ -203,7 +203,7 @@ fun TranslationView(
                             Modifier.clickable { showOriginal = !showOriginal },
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(if (showOriginal) "隐藏原文" else "显示原文", color = colors.primary, fontSize = 11.sp)
+                            Text(if (showOriginal) flareStrings().hideOriginal else flareStrings().showOriginal, color = colors.primary, fontSize = 11.sp)
                             Icon(Icons.Outlined.ExpandMore, contentDescription = null, tint = colors.primary,
                                 modifier = Modifier.size(13.dp).rotate(if (showOriginal) 180f else 0f))
                         }
@@ -259,7 +259,7 @@ fun QRCard(
                 QrMatrix(name = name, color = qrColor, modifier = Modifier.fillMaxSize())
             }
         }
-        Text("扫一扫加我", color = colors.textTertiary, fontSize = 12.sp,
+        Text(flareStrings().scanToAddMe, color = colors.textTertiary, fontSize = 12.sp,
             modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center)
     }

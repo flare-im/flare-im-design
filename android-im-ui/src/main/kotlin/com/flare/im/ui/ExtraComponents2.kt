@@ -116,7 +116,7 @@ fun ReactionSummary(
             ) {
                 Icon(
                     Icons.Outlined.AddReaction,
-                    contentDescription = "添加表情回复",
+                    contentDescription = flareStrings().addReaction,
                     tint = colors.textTertiary,
                     modifier = Modifier.size(15.dp),
                 )
@@ -151,7 +151,7 @@ fun ReadReceiptSheet(
             Icon(Icons.Outlined.DoneAll, contentDescription = null, tint = colors.primary, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
             Text(
-                "已读回执",
+                flareStrings().readReceipt,
                 color = colors.textPrimary,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = FlareSizes.fontSizeXl.value.sp,
@@ -160,7 +160,7 @@ fun ReadReceiptSheet(
             if (dismissible) {
                 Icon(
                     Icons.Outlined.Close,
-                    contentDescription = "关闭",
+                    contentDescription = flareStrings().close,
                     tint = colors.textTertiary,
                     modifier = Modifier.size(18.dp)
                         .then(if (onClose != null) Modifier.clickable { onClose() } else Modifier),
@@ -168,13 +168,13 @@ fun ReadReceiptSheet(
             }
         }
         Row(Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacingLg)) {
-            receiptTab(colors, "已读 (${readers.size})", tab == 0) { tab = 0 }
-            receiptTab(colors, "未读 (${unread.size})", tab == 1) { tab = 1 }
+            receiptTab(colors, flareStrings().readTab(readers.size), tab == 0) { tab = 0 }
+            receiptTab(colors, flareStrings().unreadTab(unread.size), tab == 1) { tab = 1 }
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderPrimary))
         if (list.isEmpty()) {
             Text(
-                if (tab == 0) "还没有人读过" else "所有人都已读",
+                if (tab == 0) flareStrings().noReadersYet else flareStrings().everyoneHasRead,
                 color = colors.textTertiary,
                 fontSize = FlareSizes.fontSizeSm.value.sp,
                 textAlign = TextAlign.Center,
@@ -246,14 +246,14 @@ fun MessageBatchToolbar(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("$count", color = colors.primary, fontWeight = FontWeight.Bold, fontSize = FlareSizes.fontSizeLg.value.sp)
-            Text(" / $total · 已选", color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm.value.sp)
+            Text(" / $total · ${flareStrings().selectedSuffix}", color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm.value.sp)
         }
         Spacer(Modifier.weight(1f))
         Row(horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm), verticalAlignment = Alignment.CenterVertically) {
-            batchBtn(colors, Icons.Outlined.DoneAll, "全选", total > 0 && !busy, onSelectAll)
-            batchBtn(colors, Icons.Outlined.Share, "逐条转发", count > 0 && !busy, onForwardEach)
-            batchBtn(colors, Icons.AutoMirrored.Outlined.LibraryBooks, "合并转发", count >= 2 && !busy, onForwardMerged)
-            batchBtn(colors, Icons.Outlined.DeleteOutline, "删除", count > 0 && !busy, onDelete, tint = colors.error)
+            batchBtn(colors, Icons.Outlined.DoneAll, flareStrings().selectAll, total > 0 && !busy, onSelectAll)
+            batchBtn(colors, Icons.Outlined.Share, flareStrings().forwardEach, count > 0 && !busy, onForwardEach)
+            batchBtn(colors, Icons.AutoMirrored.Outlined.LibraryBooks, flareStrings().forwardMerged, count >= 2 && !busy, onForwardMerged)
+            batchBtn(colors, Icons.Outlined.DeleteOutline, flareStrings().delete, count > 0 && !busy, onDelete, tint = colors.error)
             batchBtn(colors, Icons.Outlined.Close, null, !busy, onExit)
         }
     }
@@ -315,7 +315,7 @@ fun MentionPicker(
             Spacer(Modifier.width(8.dp))
             Box(Modifier.weight(1f)) {
                 if (query.isEmpty()) {
-                    Text("搜索成员", color = colors.textTertiary, fontSize = FlareSizes.fontSizeLg.value.sp)
+                    Text(flareStrings().searchMembers, color = colors.textTertiary, fontSize = FlareSizes.fontSizeLg.value.sp)
                 }
                 BasicTextField(
                     value = query,
@@ -328,6 +328,7 @@ fun MentionPicker(
             }
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderPrimary))
+        val everyoneName = flareStrings().everyone
         Column(Modifier.fillMaxWidth().heightIn(max = 264.dp).verticalScroll(rememberScrollState())) {
             if (showEveryone) {
                 Row(
@@ -335,7 +336,7 @@ fun MentionPicker(
                         .then(
                             if (onSelect != null) {
                                 Modifier.clickable {
-                                    onSelect(MentionCandidate(id = "__all__", name = "全体成员", isEveryone = true))
+                                    onSelect(MentionCandidate(id = "__all__", name = everyoneName, isEveryone = true))
                                 }
                             } else {
                                 Modifier
@@ -352,8 +353,8 @@ fun MentionPicker(
                     }
                     Spacer(Modifier.width(FlareSizes.spacingMd))
                     Column {
-                        Text("全体成员", color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp, fontWeight = FontWeight.Medium)
-                        Text("通知所有成员", color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
+                        Text(flareStrings().everyone, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp, fontWeight = FontWeight.Medium)
+                        Text(flareStrings().notifyEveryone, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
                     }
                 }
             }
@@ -378,7 +379,7 @@ fun MentionPicker(
             }
             if (!showEveryone && filtered.isEmpty()) {
                 Text(
-                    "没有匹配的成员",
+                    flareStrings().noMatchingMembers,
                     color = colors.textTertiary,
                     fontSize = FlareSizes.fontSizeSm.value.sp,
                     textAlign = TextAlign.Center,
@@ -414,7 +415,7 @@ fun QuickPhrases(
             Icon(Icons.Outlined.FlashOn, contentDescription = null, tint = colors.primary, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
             Text(
-                "快捷短语",
+                flareStrings().quickPhrases,
                 color = colors.textPrimary,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = FlareSizes.fontSizeXl.value.sp,
@@ -426,7 +427,7 @@ fun QuickPhrases(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    Text("管理", color = colors.primary, fontSize = FlareSizes.fontSizeMd.value.sp, fontWeight = FontWeight.Medium)
+                    Text(flareStrings().manage, color = colors.primary, fontSize = FlareSizes.fontSizeMd.value.sp, fontWeight = FontWeight.Medium)
                     Icon(Icons.Outlined.Edit, contentDescription = null, tint = colors.primary, modifier = Modifier.size(14.dp))
                 }
             }
@@ -485,7 +486,7 @@ fun SearchResults(
     val nonEmpty = groups.filter { it.items.isNotEmpty() }
     if (nonEmpty.isEmpty()) {
         Text(
-            "未找到结果",
+            flareStrings().noResults,
             color = colors.textTertiary,
             fontSize = FlareSizes.fontSizeSm.value.sp,
             textAlign = TextAlign.Center,
@@ -538,7 +539,7 @@ fun SearchResults(
             }
             if (g.total != null && g.total > g.items.size) {
                 Text(
-                    "查看全部 ${g.total}",
+                    flareStrings().viewAll(g.total),
                     color = colors.primary,
                     fontWeight = FontWeight.Medium,
                     fontSize = FlareSizes.fontSizeMd.value.sp,

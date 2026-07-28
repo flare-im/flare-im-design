@@ -60,11 +60,12 @@ fun TypingIndicator(
     variant: TypingVariant = TypingVariant.Bubble,
 ) {
     val colors = flareColors()
+    val strings = flareStrings()
     val clean = names.filter { it.isNotEmpty() }
     val label = when {
-        clean.isEmpty() -> "正在输入…"
-        clean.size == 1 -> "${clean[0]} 正在输入…"
-        else -> "${clean.size} 人正在输入…"
+        clean.isEmpty() -> strings.typing
+        clean.size == 1 -> strings.typingOne(clean[0])
+        else -> strings.typingMany(clean.size)
     }
     val isBubble = variant == TypingVariant.Bubble
     val dotColor = if (isBubble) colors.primary.copy(alpha = 0.65f) else colors.textTertiary
@@ -111,7 +112,7 @@ fun TypingIndicator(
 @Composable
 fun UnreadDivider(count: Int = 0) {
     val colors = flareColors()
-    val text = if (count > 0) "$count 条新消息" else "新消息"
+    val text = flareStrings().newMessages(count)
     Row(
         Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingSm),
         verticalAlignment = Alignment.CenterVertically,
@@ -193,7 +194,7 @@ fun ProfileCard(
         }
         Spacer(Modifier.height(FlareSizes.spacingLg))
         Row(horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
-            cardAction(colors, Icons.Outlined.ChatBubbleOutline, "发消息", onMessage, primary = true, modifier = Modifier.weight(1f))
+            cardAction(colors, Icons.Outlined.ChatBubbleOutline, flareStrings().sendMessage, onMessage, primary = true, modifier = Modifier.weight(1f))
             cardAction(colors, Icons.Outlined.Call, null, onCall)
             cardAction(colors, Icons.Outlined.Videocam, null, onVideo)
         }
@@ -326,10 +327,11 @@ fun GroupCallView(
         participants.size <= 9 -> 3
         else -> 4
     }
+    val strings = flareStrings()
     val status = when (state) {
-        "connected" -> durationLabel ?: "已接通"
-        "ringing" -> "正在响铃…"
-        else -> "正在呼叫…"
+        "connected" -> durationLabel ?: strings.callConnected
+        "ringing" -> strings.callRinging
+        else -> strings.callCalling
     }
     Column(
         Modifier.fillMaxWidth().background(
@@ -344,9 +346,9 @@ fun GroupCallView(
             }
             Spacer(Modifier.width(12.dp))
             Column {
-                Text(title ?: "群通话", color = Color.White, fontWeight = FontWeight.SemiBold,
+                Text(title ?: flareStrings().groupCall, color = Color.White, fontWeight = FontWeight.SemiBold,
                     fontSize = 16.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("${participants.size} 人已加入 · $status", color = Color.White.copy(alpha = 0.62f), fontSize = 12.sp)
+                Text(flareStrings().joinedCount(participants.size, status), color = Color.White.copy(alpha = 0.62f), fontSize = 12.sp)
             }
         }
         LazyVerticalGrid(
@@ -388,7 +390,7 @@ private fun callTile(p: CallParticipant, mode: FlareCallMode) {
                     Icon(Icons.Filled.VideocamOff, contentDescription = null, tint = Color.White, modifier = Modifier.size(12.dp))
                 }
             }
-            Text(if (p.isSelf) "${p.name}（我）" else p.name, color = Color.White, fontSize = 12.sp,
+            Text(if (p.isSelf) flareStrings().selfSuffix(p.name) else p.name, color = Color.White, fontSize = 12.sp,
                 maxLines = 1, overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(Color.Black.copy(alpha = 0.42f))
                     .padding(horizontal = 8.dp, vertical = 2.dp))
