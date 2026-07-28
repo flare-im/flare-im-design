@@ -66,7 +66,7 @@ fun CallView(
             Text(peerName, color = Color.White, fontSize = FlareSizes.fontSize4xl.value.sp, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(FlareSizes.spacingXs))
             Text(
-                statusLabel(state, mode, durationLabel),
+                statusLabel(state, mode, durationLabel, flareStrings()),
                 color = Color.White.copy(alpha = 0.7f),
                 fontSize = FlareSizes.fontSizeLg.value.sp,
             )
@@ -85,8 +85,14 @@ fun CallView(
     }
 }
 
-private fun statusLabel(state: FlareCallState, mode: FlareCallMode, duration: String?): String = when (state) {
-    FlareCallState.Calling -> if (mode == FlareCallMode.Video) "等待对方接听…" else "正在呼叫…"
-    FlareCallState.Ringing -> "正在响铃…"
-    FlareCallState.Connected -> duration ?: "已接通"
+private fun statusLabel(
+    state: FlareCallState,
+    mode: FlareCallMode,
+    duration: String?,
+    strings: FlareStrings,
+): String = when (state) {
+    FlareCallState.Calling ->
+        if (mode == FlareCallMode.Video) strings.callWaitingAnswer else strings.callCalling
+    FlareCallState.Ringing -> strings.callRinging
+    FlareCallState.Connected -> duration ?: strings.callConnected
 }

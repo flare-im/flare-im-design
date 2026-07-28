@@ -36,7 +36,7 @@ fun ContactList(
     if (items.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             if (loading) androidx.compose.material3.CircularProgressIndicator()
-            else EmptyState(title = "暂无联系人")
+            else EmptyState(title = flareStrings().noContacts)
         }
         return
     }

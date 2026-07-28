@@ -45,6 +45,7 @@ void main() {
     FlareFriendRequest? accepted;
     await tester.pumpWidget(_host(FlareNewFriendRequests(
       items: const [FlareFriendRequest(id: 'r1', name: 'Bob', message: 'hi')],
+      acceptLabel: 'Accept',
       onAccept: (r) => accepted = r,
     )));
     await tester.tap(find.text('Accept'));
@@ -52,8 +53,9 @@ void main() {
   });
 
   testWidgets('FlareGroupList renders member count', (tester) async {
-    await tester.pumpWidget(_host(const FlareGroupList(
-        items: [FlareGroupSummary(id: 'g1', name: 'Team', memberCount: 4)])));
+    await tester.pumpWidget(_host(FlareGroupList(
+        items: const [FlareGroupSummary(id: 'g1', name: 'Team', memberCount: 4)],
+        memberCountText: (n) => '$n members')));
     expect(find.text('Team'), findsOneWidget);
     expect(find.text('4 members'), findsOneWidget);
   });

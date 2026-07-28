@@ -37,6 +37,7 @@ void main() {
       var cancelled = false;
       await tester.pumpWidget(_host(FlareComposer(
         replyTo: const FlareReplyTarget(senderName: 'Bob', summary: 'hey'),
+        replyLabel: 'Reply',
         onCancelReply: () => cancelled = true,
       )));
       expect(find.text('Reply Bob'), findsOneWidget);
@@ -45,7 +46,9 @@ void main() {
     });
 
     testWidgets('voice toggle swaps the input for hold-to-talk', (tester) async {
-      await tester.pumpWidget(_host(const FlareComposer(enableVoice: true)));
+      await tester.pumpWidget(_host(
+        const FlareComposer(enableVoice: true, voiceLabel: 'Hold to talk'),
+      ));
       expect(find.byType(TextField), findsOneWidget);
       await tester.tap(find.byIcon(Icons.mic_none));
       await tester.pump();
@@ -149,6 +152,7 @@ void main() {
       await tester.pumpWidget(_host(FlareConversationDetails(
         conversation: const FlareConversationSummary(id: 'c1', title: 'Team'),
         connectionText: '已连接',
+        labels: const FlareConversationDetailsLabels(mute: 'Mute'),
         onMute: (v) => muted = v,
       )));
       expect(find.text('Team'), findsOneWidget);
@@ -161,6 +165,7 @@ void main() {
       var deleted = false;
       await tester.pumpWidget(_host(FlareConversationDetails(
         conversation: const FlareConversationSummary(id: 'c1', title: 'Team'),
+        labels: const FlareConversationDetailsLabels(delete: 'Delete conversation'),
         onDelete: () => deleted = true,
       )));
       await tester.tap(find.text('Delete conversation'));
@@ -176,6 +181,7 @@ void main() {
           FlareContactOption(id: 'u1', name: 'Ann'),
           FlareContactOption(id: 'u2', name: 'Bob'),
         ],
+        confirmLabel: 'OK',
         onConfirm: (v) => ids = v,
       )));
       await tester.tap(find.text('Ann'));

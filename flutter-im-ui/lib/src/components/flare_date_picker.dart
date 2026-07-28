@@ -182,7 +182,6 @@ class _DateSheet extends StatefulWidget {
 }
 
 class _DateSheetState extends State<_DateSheet> {
-  static const _weekdays = ['日', '一', '二', '三', '四', '五', '六'];
 
   late int _viewYear;
   late int _viewMonth; // 0-11
@@ -358,7 +357,9 @@ class _DateSheetState extends State<_DateSheet> {
   Widget _weekdayRow(FlareColors colors) {
     return Row(
       children: [
-        for (final w in _weekdays)
+        // 星期名取自框架的区域数据（周日起，与下方日期网格排布一致），
+        // 随宿主 locale 自动切换，无需组件自备中文常量。
+        for (final w in MaterialLocalizations.of(context).narrowWeekdays)
           Expanded(
             child: Center(
               child: Text(
