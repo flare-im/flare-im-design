@@ -1,6 +1,17 @@
 # flare-im-design 1.0.4 发版说明
 
-状态：**五端均已完成发版准备并通过各自的 dry-run 校验**。实际 publish 需要凭据，由人工执行。
+状态（2026-07-31）：
+
+| 端 | 渠道 | 状态 |
+|---|---|---|
+| Flutter | pub.dev | ✅ 已发布 `flare_im_ui` 1.0.4 |
+| iOS | GitHub tag `1.0.4` | ✅ 已推送，外部工程 SPM 拉取实测通过 |
+| Android | GitHub Release 附 AAR | ✅ `im-ui-compose-1.0.4.aar`（71.1 MB） |
+| tokens | npm | ⏳ 待发布（2FA 拦截） |
+| vue-im-ui | npm | ⏳ 待发布（依赖 tokens，须后发） |
+
+**Android/iOS 不走 Maven Central / CocoaPods**，改为 GitHub 分发，引入方式见
+[MANUAL-INSTALL-ANDROID-IOS.md](./MANUAL-INSTALL-ANDROID-IOS.md)。
 
 ## 各端引入方式
 
