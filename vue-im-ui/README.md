@@ -4,6 +4,15 @@ Shared Vue 3 + TypeScript + Naive UI presentation layer for Flare IM example app
 
 **Not an SDK runtime.** Components receive view-state props and emit intents; example apps map intents to `FlareImClient` / platform-specific raw clients.
 
+## Install
+
+```bash
+npm i flare-core-vue-im-ui
+```
+
+`flare-im-design-tokens` 会作为依赖自动装上。Vue 3 与 Naive UI 是 peer dependencies，
+需要宿主工程自行安装（见下方 [Peer dependencies](#peer-dependencies)）。
+
 ## Exports
 
 | Path | Contents |

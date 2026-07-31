@@ -4,7 +4,7 @@ import PackageDescription
 // 仓库根清单 —— 存在的唯一理由是让 SPM 能通过 git URL 消费本包。
 //
 // SPM 只在仓库根目录找 Package.swift，而本仓是多端 monorepo，iOS 包在
-// ios-im-ui/ 下。没有这个文件，`.package(url: "...flare-im-design.git", from: "1.0.4")`
+// ios-im-ui/ 下。没有这个文件，`.package(url: "...flare-im-design.git", from: "1.0.5")`
 // 会直接报 "does not contain a Package.swift"。
 //
 // ⚠️ 与 ios-im-ui/Package.swift 是同一份 target 的两个清单：前者供仓库外消费，

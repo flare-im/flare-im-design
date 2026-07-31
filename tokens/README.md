@@ -1,6 +1,6 @@
 # flare-im-design-tokens
 
-L3 design tokens for the [Flare IM UI Kit](https://github.com/) — one neutral source of visual truth
+L3 design tokens for the [Flare IM UI Kit](https://github.com/flare-im/flare-im-design) — one neutral source of visual truth
 (`tokens.json`), generated into per-platform outputs. Web ships here (CSS variables + a typed token object);
 Dart / Swift / Compose outputs are added alongside their component packages.
 

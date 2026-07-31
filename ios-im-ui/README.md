@@ -2,21 +2,30 @@
 
 Flare IM UI Kit — **iOS / SwiftUI** component package (L1).
 
-One framework-neutral contract ([`flare-im-ui-spec`](../spec)), realised natively.
-Design tokens are generated from [`flare-im-design-tokens`](../tokens) into
-`Sources/FlareIMUI/Tokens/FlareTokens.swift` (do not edit by hand — re-run the tokens
-generator). Components are **pure/presentational** — data in, callbacks out; IM behaviour
-and state live in the Rust core's observable views and are fed in by the host app.
+One framework-neutral contract
+([`flare-im-ui-spec`](https://github.com/flare-im/flare-im-design/tree/main/spec)),
+realised natively. Design tokens are generated from
+[`flare-im-design-tokens`](https://github.com/flare-im/flare-im-design/tree/main/tokens)
+into `Sources/FlareIMUI/Tokens/FlareTokens.swift` (do not edit by hand — re-run the
+tokens generator). Components are **pure/presentational** — data in, callbacks out; IM
+behaviour and state live in the Rust core's observable views and are fed in by the host
+app.
 
 ## Install (Swift Package Manager)
+
+不发布到 CocoaPods，直接从 GitHub 引入；版本由 git tag 决定。
 
 ```swift
 // Package.swift
 dependencies: [
-    .package(path: "../../flare-im-design/ios-im-ui"),
+    .package(url: "https://github.com/flare-im/flare-im-design.git", from: "1.0.5"),
 ],
-// target deps: .product(name: "FlareIMUI", package: "FlareIMUI")
+// target deps: .product(name: "FlareIMUI", package: "flare-im-design")
 ```
+
+SPM 消费的是**仓库根目录**的 `Package.swift`（本目录下的那份仅供在此目录内
+`swift build` / `swift test`）。其他引入方式（本地路径、submodule）见
+[手动引入指南](https://github.com/flare-im/flare-im-design/blob/main/docs/MANUAL-INSTALL-ANDROID-IOS.md)。
 
 ```swift
 import FlareIMUI
