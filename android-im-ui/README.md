@@ -2,24 +2,33 @@
 
 Flare IM UI Kit — **Android / Jetpack Compose** component library (L1).
 
-One framework-neutral contract ([`flare-im-ui-spec`](../spec)), realised natively.
-Design tokens are generated from [`flare-im-design-tokens`](../tokens) into
-`src/main/kotlin/com/flare/im/ui/FlareTokens.kt` (do not edit by hand — re-run the tokens
-generator). Composables are **pure/presentational** — data in, callbacks out; IM behaviour
-and state live in the Rust core's observable views and are fed in by the host app.
+One framework-neutral contract
+([`flare-im-ui-spec`](https://github.com/flare-im/flare-im-design/tree/main/spec)),
+realised natively. Design tokens are generated from
+[`flare-im-design-tokens`](https://github.com/flare-im/flare-im-design/tree/main/tokens)
+into `src/main/kotlin/com/flare/im/ui/FlareTokens.kt` (do not edit by hand — re-run the
+tokens generator). Composables are **pure/presentational** — data in, callbacks out; IM
+behaviour and state live in the Rust core's observable views and are fed in by the host
+app.
 
 - Package: `com.flare.im.ui` · namespace `com.flare.im.ui`
 - Min SDK 26 · compileSdk 35 · Kotlin 2.2.20 · Compose BOM 2024.12.01 · JDK 17
 
-## Install (composite/local build)
+## Install
 
-Include the module in your `settings.gradle.kts`:
+不发布到 Maven Central，产物放 GitHub。完整说明见
+[手动引入指南](https://github.com/flare-im/flare-im-design/blob/main/docs/MANUAL-INSTALL-ANDROID-IOS.md)。
+
+**源码依赖（推荐，依赖自动传递）** —— `settings.gradle.kts`：
 
 ```kotlin
-include(":flare-im-ui-compose")
-project(":flare-im-ui-compose").projectDir =
-    file("../../flare-im-design/android-im-ui")
+include(":im-ui-compose")
+project(":im-ui-compose").projectDir = file("vendor/flare-im-design/android-im-ui")
 ```
+
+**AAR** —— 从 [Releases](https://github.com/flare-im/flare-im-design/releases) 下载
+`im-ui-compose-1.0.5.aar`。⚠️ AAR 不带 POM，必须自己补 Compose BOM / material3 /
+material-icons-extended / coil 等 8 个依赖，否则运行时 `NoClassDefFoundError`。
 
 ```kotlin
 import com.flare.im.ui.*

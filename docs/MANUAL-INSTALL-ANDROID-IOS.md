@@ -1,9 +1,9 @@
-# Android / iOS 手动引入指南（1.0.4）
+# Android / iOS 手动引入指南（1.0.5）
 
 Android 与 iOS **不走公共仓库**（Maven Central / CocoaPods Trunk），产物直接放在
 GitHub。本文是这两端的引入方式。
 
-Web（npm）与 Flutter（pub.dev）走各自的公共仓库，见 [RELEASE-1.0.4.md](./RELEASE-1.0.4.md)。
+Web（npm）与 Flutter（pub.dev）走各自的公共仓库，见 [RELEASE-1.0.5.md](./RELEASE-1.0.5.md)。
 
 > 仓库 `flare-im/flare-im-design` 目前是 **private**。下面所有方式都要求使用方的
 > GitHub 账号有本仓读权限（SPM 走 SSH/凭据、AAR 下载走登录态）。若要对外开放，
@@ -17,13 +17,13 @@ Web（npm）与 Flutter（pub.dev）走各自的公共仓库，见 [RELEASE-1.0.
 
 ### 方式 A：Swift Package Manager（推荐）
 
-Xcode → File → Add Package Dependencies，填仓库地址，版本规则选 "Up to Next Major" 填 `1.0.4`。
+Xcode → File → Add Package Dependencies，填仓库地址，版本规则选 "Up to Next Major" 填 `1.0.5`。
 
 或在 `Package.swift` 里写：
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/flare-im/flare-im-design.git", from: "1.0.4"),
+    .package(url: "https://github.com/flare-im/flare-im-design.git", from: "1.0.5"),
 ],
 targets: [
     .target(name: "YourApp", dependencies: [
@@ -32,8 +32,8 @@ targets: [
 ]
 ```
 
-版本由 **git tag** 决定，仓库里没有版本号字段。`from: "1.0.4"` 能解析的前提是
-`1.0.4` 这个 tag 已推到远端。
+版本由 **git tag** 决定，仓库里没有版本号字段。`from: "1.0.5"` 能解析的前提是
+`1.0.5` 这个 tag 已推到远端。
 
 ### 方式 B：本地路径（不联网 / 要改源码时）
 
@@ -94,11 +94,11 @@ implementation(project(":im-ui-compose"))
 
 ### 方式 B：AAR 手动引入
 
-从 GitHub Releases 下载 `im-ui-compose-1.0.4.aar`（67.8 MB，体积来自内置的表情贴纸
+从 GitHub Releases 下载 `im-ui-compose-1.0.5.aar`（67.8 MB，体积来自内置的表情贴纸
 资源），放进 `app/libs/`：
 
 ```kotlin
-implementation(files("libs/im-ui-compose-1.0.4.aar"))
+implementation(files("libs/im-ui-compose-1.0.5.aar"))
 ```
 
 ⚠️ **AAR 不携带依赖信息**（没有 POM）。只写上面这一行，编译能过但**运行时必崩**
@@ -138,9 +138,9 @@ Android AAR 和 iOS 包体积都主要来自 `assets/emoji-sticker`（约 67 MB 
 
 ## 版本对应
 
-| 端 | 标识 | 1.0.4 从哪来 |
+| 端 | 标识 | 1.0.5 从哪来 |
 |---|---|---|
-| iOS | `FlareIMUI` | git tag `1.0.4` |
+| iOS | `FlareIMUI` | git tag `1.0.5` |
 | Android | `com.flare.im:im-ui-compose` | `android-im-ui/build.gradle.kts` 的 `version` |
 
 两端要一起升。改 Android 版本号时别忘了补 tag，否则 iOS 停在旧版而没人察觉。
