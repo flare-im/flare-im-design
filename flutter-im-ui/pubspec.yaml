@@ -5,7 +5,6 @@ description: >-
   flare-im-design-tokens. Components are pure/presentational — behaviour and data
   come from the core observable views via the app.
 version: 1.0.4
-publish_to: none
 repository: https://github.com/flare-im/flare-im-design
 
 environment:
