@@ -37,3 +37,10 @@ android-im-ui/local.properties
 # 已实测导致完整 clone 连续失败 → iOS SPM 反而因此装不上。
 # 发包前跑 ios-im-ui/sync-resources.sh 生成即可。
 ios-im-ui/Sources/FlareIMUI/Resources/emoji-sticker/
+
+# ── 表情/贴纸二进制(不入库,见 assets/emoji-sticker/fetch-assets.sh)────
+# 250 个动画 webp 共 67MB。曾提交在 git 里(iOS 镜像再存一份=134MB),
+# 实测导致完整 clone 连续失败 → iOS SPM 只能完整克隆,因此装不上。
+# 已用 git filter-repo 清出历史,仓库 80MB → 2.0MB。
+# manifest.json / emoji-locales.json 是文本契约,仍在版本控制内。
+assets/emoji-sticker/**/*.webp
