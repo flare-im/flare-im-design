@@ -30,3 +30,10 @@ android-im-ui/local.properties
 # macOS / editors / logs
 .DS_Store
 *.log
+
+# ── iOS 资源镜像(构建期由 sync-resources.sh 生成,勿入库)──────
+# SwiftPM 不跟随符号链接,所以 iOS 包需要一份真实副本。但把它提交进 git
+# 意味着同一份 67MB 资源在仓库里存两遍(assets/ 一份 + 这里一份 = 134MB),
+# 已实测导致完整 clone 连续失败 → iOS SPM 反而因此装不上。
+# 发包前跑 ios-im-ui/sync-resources.sh 生成即可。
+ios-im-ui/Sources/FlareIMUI/Resources/emoji-sticker/

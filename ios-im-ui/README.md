@@ -35,6 +35,26 @@ import FlareIMUI
 > smoke-tested on a Mac host (`swift build` / `swift test`) without a simulator; the
 > components use cross-platform SwiftUI only.
 
+## 从仓库克隆后首次构建
+
+表情/贴纸资源镜像（`Sources/FlareIMUI/Resources/emoji-sticker`）**不在版本控制里**
+——它是 `assets/emoji-sticker` 的副本，两份都入库会让仓库多扛 67MB，实测导致完整
+`git clone` 失败，而 SPM 只能完整克隆，结果是这份「为了让 iOS 能用」的镜像反而让
+iOS 装不上。
+
+所以克隆后要先生成一次：
+
+```bash
+./sync-resources.sh
+```
+
+没跑这步就 `swift build` 会失败，报错是 **`type 'Bundle' has no member 'module'`**
+——这个信息很隐晦，实际原因是资源目录不存在时 SwiftPM 不生成 `Bundle.module`。
+看到它就跑上面那条命令。
+
+发 iOS 包（打 tag）之前同样必须先跑，否则构建根本过不了——这一点由编译期硬失败
+保证，不会静默发出不含资源的包。
+
 ## Components (all 18 spec components)
 
 | Category | Symbols |
