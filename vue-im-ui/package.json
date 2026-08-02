@@ -2,7 +2,7 @@
   "name": "flare-core-vue-im-ui",
   "version": "1.0.5",
   "description": "Flare IM UI Kit — Vue 3 + Naive UI component library for chat (conversation list, message list/bubble, composer, media, business cards). L1 web implementation, driven by core observable views + flare-im-design-tokens.",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "homepage": "https://github.com/flare-im/flare-im-design",
   "repository": {
     "type": "git",
