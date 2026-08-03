@@ -1,5 +1,5 @@
 <script setup>
-import FlareReadReceiptSheet from "flare-core-vue-im-ui/components/messages/FlareReadReceiptSheet.vue";
+import FlareReadReceiptSheet from "@flare-im/vue-ui/components/messages/FlareReadReceiptSheet.vue";
 import DemoStage from "./DemoStage.vue";
 const readers = [
   { id: "ivy", name: "Ivy Chen", presence: "online" },

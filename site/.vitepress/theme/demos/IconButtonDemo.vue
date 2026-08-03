@@ -1,7 +1,7 @@
 <script setup>
 import { NIcon } from "naive-ui";
 import { SearchOutline, HeartOutline, EllipsisHorizontal } from "@vicons/ionicons5";
-import FlareIconButton from "flare-core-vue-im-ui/components/general/FlareIconButton.vue";
+import FlareIconButton from "@flare-im/vue-ui/components/general/FlareIconButton.vue";
 import DemoStage from "./DemoStage.vue";
 </script>
 <template>

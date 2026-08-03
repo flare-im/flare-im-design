@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import { NConfigProvider } from "naive-ui";
 // One-time i18n provider (the library ships zh/en; default English here).
-import { useFlareI18nProvider } from "flare-core-vue-im-ui/i18n";
+import { useFlareI18nProvider } from "@flare-im/vue-ui/i18n";
 // Real components from the package — props in, events out. No Flare core.
 import {
   FlareConversationList,
@@ -10,7 +10,7 @@ import {
   FlareTextMessage,
   FlareImageMessage,
   FlareComposerSendButton,
-} from "flare-core-vue-im-ui/components";
+} from "@flare-im/vue-ui/components";
 import { backend } from "./backend";
 
 useFlareI18nProvider("en-US");

@@ -12,7 +12,7 @@
 |---|---|---|---|---|
 | **A** | `@flare/shared-im-ui` | `examples/shared-im-ui` | 66 .vue | 聊天为主 + `sdk-host`/`events`/`session` 接线；社交向增强（pinned 面板/tabs） |
 | **A'** | `@flare/shared-im-ui`（副本） | `flare-social/.../examples/apps/shared-im-ui` | 66 .vue | **A 的拷贝**（迁移复制），同名同构 |
-| **B** | `flare-core-vue-im-ui` | `flare-im-core-client-sdk/packages/` | 69 .vue | **更成熟的"真实包"**：有 `design-system/`（tokens/theme/provider）、更全消息类型(Vote/Task/Schedule/MiniProgram/Announcement)、命名规范(Flare 前缀) |
+| **B** | `@flare-im/vue-ui` | `flare-im-core-client-sdk/packages/` | 69 .vue | **更成熟的"真实包"**：有 `design-system/`（tokens/theme/provider）、更全消息类型(Vote/Task/Schedule/MiniProgram/Announcement)、命名规范(Flare 前缀) |
 
 三者组件集 ~80% 重叠（MessageBubble/MessageList/ChatConversationHeader/EnhancedComposer/ConversationList/Avatar/MessageStatus/PinnedMessageBar/TimeStamp/ImagePreviewModal/VideoPlayerModal/MarkdownPreview…），是**同一 IM UI 的并行演化**。**三者都是 Vue = 只覆盖 web（及 electron/tauri/uni 同为 Vue 宿主）**。
 
@@ -36,13 +36,13 @@
 │      client.views → 各端 SDK 绑定 (TS/Kotlin/Dart/Swift)      │     乐观态、排序、收敛都在这
 ├─────────────────────────────────────────────────────────────┤
 │  L3  设计 tokens (平台中立, 单一真源)                          │  ← 色板/间距/字号/圆角/动效/阴影/暗色
-│      flare-im-design-tokens → 生成 CSS vars/Dart/Swift/Compose│     Style Dictionary 产物
+│      @flare-im/tokens → 生成 CSS vars/Dart/Swift/Compose│     Style Dictionary 产物
 ├─────────────────────────────────────────────────────────────┤
 │  L2  组件契约 spec (平台中立, "类 Ant 组件 API")              │  ← 组件目录 + props/slots/states/events
-│      flare-im-ui-spec (schema + 文档 + 视觉基准)              │     驱动各端实现 & 一致性校验
+│      @flare-im/ui-spec (schema + 文档 + 视觉基准)              │     驱动各端实现 & 一致性校验
 ├─────────────────────────────────────────────────────────────┤
 │  L1  各端组件包 (薄原生实现, 消费 L4+L3, 遵循 L2)              │
-│      Vue: flare-core-vue-im-ui   Flutter: flare_im_ui         │
+│      Vue: @flare-im/vue-ui   Flutter: flare_im_ui         │
 │      SwiftUI: FlareIMUI          Compose: flare-im-ui-compose │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -56,9 +56,9 @@
 | 资产 | 层 | 理由 |
 |---|---|---|
 | 会话列表/时间线/消息状态/未读/typing/presence **视图模型** | **core (Rust)** | 产品中立、每端一致 → 沉 core（已完成，可观察视图） |
-| 设计 tokens（色/距/字/角/动效/暗色） | **packages**（`flare-im-design-tokens`） | 跨所有端复用的中立数据；生成各端主题 |
+| 设计 tokens（色/距/字/角/动效/暗色） | **packages**（`@flare-im/tokens`） | 跨所有端复用的中立数据；生成各端主题 |
 | 组件契约 spec（目录 + props/states/events + 视觉基准） | **packages/sdk-spec 级** | 跨端一致性契约，像 sdk-spec 之于 API |
-| 各端组件包（Vue/Flutter/SwiftUI/Compose） | **packages** | "被 ≥1 example app 复用" → 沉 packages（`flare-core-vue-im-ui` 已在此层，正确） |
+| 各端组件包（Vue/Flutter/SwiftUI/Compose） | **packages** | "被 ≥1 example app 复用" → 沉 packages（`@flare-im/vue-ui` 已在此层，正确） |
 | 屏幕/路由/产品流/主题实例化 | **examples/social** | 只有产品组合留在 app |
 
 **no-compat 硬约束的直接后果**：A / A' / B 是**冗余并行路径**，spec 禁止并存 → **必须合并为一套 Vue 包并删除其余两份**（见 Track 1）。
@@ -68,15 +68,15 @@
 ## 3. 两条推进轨道
 
 ### Track 1 — 立即：三套 Vue → 一套 canonical Vue IM UI（web 实现）
-- **归并到 `flare-core-vue-im-ui`（packages/，层正确）**，删除 `@flare/shared-im-ui` 的两份拷贝（A/A'）。
+- **归并到 `@flare-im/vue-ui`（packages/，层正确）**，删除 `@flare/shared-im-ui` 的两份拷贝（A/A'）。
 - 并入策略：以 B 为骨架（design-system + 全消息类型 + 命名规范），吸收 A 的**接线层**（`sdk-host`/`events`/`session`/`hub` — 这些其实该进 `packages` 的**非 UI 复用基建**，不是组件）与社交向组件（pinned 面板/会话 tabs）。
 - 接线层（event hub / sdk-host / session 编排）**从 UI 包剥离**成独立 `packages/*`（复用基建），Vue 包只留组件 + composables。
-- 产出：web/electron/tauri/uni 四个 Vue 宿主统一消费一套 `flare-core-vue-im-ui`。
+- 产出：web/electron/tauri/uni 四个 Vue 宿主统一消费一套 `@flare-im/vue-ui`。
 - 顺带把本轮修的三个真 bug（send-ack 信封拆包、response 信封拆包、事件 hub）固化进 canonical 包，避免再分叉。
 
 ### Track 2 — 演进：把"IM Kit"形式化为设计系统 + 契约 + 各端包
-1. **`flare-im-design-tokens`**：平台中立 tokens（Style Dictionary JSON）→ 生成 `CSS vars` / `Dart ThemeExtension` / `Swift tokens` / `Compose Theme`。单一视觉真源；暗色/品牌换肤靠覆盖 token。
-2. **`flare-im-ui-spec`**：组件目录 + 每个组件的 props/slots/states/events（框架中立 schema + 文档站 + 视觉基准截图）。首批组件：
+1. **`@flare-im/tokens`**：平台中立 tokens（Style Dictionary JSON）→ 生成 `CSS vars` / `Dart ThemeExtension` / `Swift tokens` / `Compose Theme`。单一视觉真源；暗色/品牌换肤靠覆盖 token。
+2. **`@flare-im/ui-spec`**：组件目录 + 每个组件的 props/slots/states/events（框架中立 schema + 文档站 + 视觉基准截图）。首批组件：
    `ConversationList` · `ConversationRow` · `MessageList`(虚拟化) · `MessageBubble`(+ 按内容类型分发的 `*View`) · `Composer`(rich/plain/formatBar) · `Avatar` · `PresenceDot` · `TypingIndicator` · `ReadReceipt/MessageStatus` · `PinnedBar` · `MessageActions/ContextMenu` · `MediaPreview`(image/video) · 各业务卡片(Vote/Task/Schedule/Card…)。
 3. **各端组件包**（薄实现，消费 L4 视图 + L3 tokens，遵循 L2）：
    - Vue（Track 1 的 canonical 包）
@@ -117,9 +117,9 @@
 ---
 
 ## 8. 推荐落地顺序（供 PLAN 展开）
-1. **Track 1**：合并三套 Vue → `flare-core-vue-im-ui` 单包；剥离接线层为独立 packages；删除两份拷贝。（收敛现状、消除冗余）
-2. **L3 tokens**：抽 `flare-im-design-tokens`（从 B 的 design-system 提取）→ 生成 web 主题，反接 canonical Vue 包。
-3. **L2 spec**：写 `flare-im-ui-spec`（组件目录 + props/states/events + 视觉基准），以 canonical Vue 包为首个"参考实现"。
+1. **Track 1**：合并三套 Vue → `@flare-im/vue-ui` 单包；剥离接线层为独立 packages；删除两份拷贝。（收敛现状、消除冗余）
+2. **L3 tokens**：抽 `@flare-im/tokens`（从 B 的 design-system 提取）→ 生成 web 主题，反接 canonical Vue 包。
+3. **L2 spec**：写 `@flare-im/ui-spec`（组件目录 + props/states/events + 视觉基准），以 canonical Vue 包为首个"参考实现"。
 4. **Track 2 各端**：按 spec/tokens 从 flutter/ios/android app 抽取组件包（`flare_im_ui`/`FlareIMUI`/`flare-im-ui-compose`）。
 5. 文档站（组件 catalog）+ 各端 golden/视觉测试锁一致性。
 

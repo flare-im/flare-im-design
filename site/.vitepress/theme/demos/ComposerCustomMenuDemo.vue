@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import { ImageOutline, FolderOpenOutline, LocationOutline, GiftOutline } from "@vicons/ionicons5";
-import FlareComposer from "flare-core-vue-im-ui/components/composer/EnhancedComposer.vue";
+import FlareComposer from "@flare-im/vue-ui/components/composer/EnhancedComposer.vue";
 import DemoStage from "./DemoStage.vue";
 
 // A tenant supplies exactly the "+" actions it supports — its own order,

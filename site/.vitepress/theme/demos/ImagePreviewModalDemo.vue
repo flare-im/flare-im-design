@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import FlareImagePreview from "flare-core-vue-im-ui/components/message-preview/ImagePreviewModal.vue";
+import FlareImagePreview from "@flare-im/vue-ui/components/message-preview/ImagePreviewModal.vue";
 import DemoStage from "./DemoStage.vue";
 
 const open = ref(false);

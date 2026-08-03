@@ -1,4 +1,4 @@
-# flare-core-vue-im-ui
+# @flare-im/vue-ui
 
 Shared Vue 3 + TypeScript + Naive UI presentation layer for Flare IM example apps (Web, Electron, Tauri, uni-app H5).
 
@@ -7,10 +7,10 @@ Shared Vue 3 + TypeScript + Naive UI presentation layer for Flare IM example app
 ## Install
 
 ```bash
-npm i flare-core-vue-im-ui
+npm i @flare-im/vue-ui
 ```
 
-`flare-im-design-tokens` 会作为依赖自动装上。Vue 3 与 Naive UI 是 peer dependencies，
+`@flare-im/tokens` 会作为依赖自动装上。Vue 3 与 Naive UI 是 peer dependencies，
 需要宿主工程自行安装（见下方 [Peer dependencies](#peer-dependencies)）。
 
 ## Exports
@@ -43,8 +43,8 @@ npm i flare-core-vue-im-ui
 
 ```vue
 <script setup lang="ts">
-import { FlareUiProvider, FlareConversationList, FlareConversationRow } from "flare-core-vue-im-ui/components";
-import "flare-core-vue-im-ui/style.css";
+import { FlareUiProvider, FlareConversationList, FlareConversationRow } from "@flare-im/vue-ui/components";
+import "@flare-im/vue-ui/style.css";
 </script>
 
 <template>

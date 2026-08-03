@@ -5,7 +5,7 @@
 
 ## 现状诊断（已查清）
 三层 token，但品牌色被**硬编码复制了 3 份**、级联断裂：
-- L3 静态 `tokens/dist/tokens.css`（`flare-im-design-tokens/tokens.css`）：`--flare-color-primary: #7C3AED` 等，**仅浅色**（无 dark 变体）。
+- L3 静态 `tokens/dist/tokens.css`（`@flare-im/tokens/tokens.css`）：`--flare-color-primary: #7C3AED` 等，**仅浅色**（无 dark 变体）。
 - 基础语义（`im-theme.ts` JS 注入）：`--primary: <hex>` —— 直接拷贝 token JSON 的 hex，**不** `var(--flare-color-primary)`；dark 由 provider 重注入浅/深值，所以基础 `--primary` 家族是**能随深色翻转的正确覆盖点**。
 - 组件扩展（`apply-flare-theme.ts` JS 注入）：`--im-brand-primary: #7C3AED` / `--im-gradient-start: #7c3aed` 等**硬编码 hex**，不引用 `--primary`。
 - 组件里多为 `var(--im-brand-primary,#7c3aed)` / `var(--im-primary,#7c3aed)` / `var(--im-bubble-sent,#7c3aed)`（三种名字同色）。

@@ -1,5 +1,5 @@
 <script setup>
-import FlareDatePill from "flare-core-vue-im-ui/components/messages/FlareDatePill.vue";
+import FlareDatePill from "@flare-im/vue-ui/components/messages/FlareDatePill.vue";
 import DemoStage from "./DemoStage.vue";
 </script>
 <template>

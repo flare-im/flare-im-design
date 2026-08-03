@@ -1,5 +1,5 @@
 <script setup>
-import FlareNewFriendRequests from "flare-core-vue-im-ui/components/contacts/FlareNewFriendRequests.vue";
+import FlareNewFriendRequests from "@flare-im/vue-ui/components/contacts/FlareNewFriendRequests.vue";
 import DemoStage from "./DemoStage.vue";
 
 const items = [

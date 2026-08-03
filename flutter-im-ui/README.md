@@ -3,16 +3,16 @@
 Flare IM UI Kit — **Flutter** component package (L1).
 
 One framework-neutral contract
-([`flare-im-ui-spec`](https://github.com/flare-im/flare-im-design/tree/main/spec)),
+([`@flare-im/ui-spec`](https://github.com/flare-im/flare-im-design/tree/main/spec)),
 realised natively per platform. Design tokens are generated from
-[`flare-im-design-tokens`](https://github.com/flare-im/flare-im-design/tree/main/tokens)
+[`@flare-im/tokens`](https://github.com/flare-im/flare-im-design/tree/main/tokens)
 into `lib/src/tokens/flare_tokens.dart` (do not edit by hand — re-run the tokens
 generator).
 
 Components are **pure / presentational**: props in, callbacks out. IM behaviour and
 state live in the Rust core's observable views and are fed in by the host app — the
 same model as the Vue package
-[`flare-core-vue-im-ui`](https://github.com/flare-im/flare-im-design/tree/main/vue-im-ui).
+[`@flare-im/vue-ui`](https://github.com/flare-im/flare-im-design/tree/main/vue-im-ui).
 
 ## Install
 

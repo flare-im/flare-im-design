@@ -4,7 +4,7 @@ import { useData } from "vitepress";
 import { flarePresets, applyFlareTheme } from "../../../../tokens/theme.js";
 import DemoIcon from "./DemoIcon.vue";
 import { tint } from "./tint.js";
-import FlareMessageBubble from "flare-core-vue-im-ui/components/messages/MessageBubble.vue";
+import FlareMessageBubble from "@flare-im/vue-ui/components/messages/MessageBubble.vue";
 import DemoStage from "./DemoStage.vue";
 
 // The homepage signature: a whole IM surface, composed from the kit and

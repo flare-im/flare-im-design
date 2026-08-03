@@ -1,5 +1,5 @@
 <script setup>
-import FlareSkeleton from "flare-core-vue-im-ui/components/general/FlareSkeleton.vue";
+import FlareSkeleton from "@flare-im/vue-ui/components/general/FlareSkeleton.vue";
 import DemoStage from "./DemoStage.vue";
 </script>
 <template>

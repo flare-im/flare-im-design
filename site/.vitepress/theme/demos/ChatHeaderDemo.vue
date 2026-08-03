@@ -1,6 +1,6 @@
 <script setup>
-import FlareIcon from "flare-core-vue-im-ui/components/general/FlareIcon.vue";
-import FlareChatHeader from "flare-core-vue-im-ui/components/messages/ChatConversationHeader.vue";
+import FlareIcon from "@flare-im/vue-ui/components/general/FlareIcon.vue";
+import FlareChatHeader from "@flare-im/vue-ui/components/messages/ChatConversationHeader.vue";
 import DemoStage from "./DemoStage.vue";
 </script>
 

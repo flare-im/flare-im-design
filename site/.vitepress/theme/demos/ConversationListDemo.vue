@@ -1,5 +1,5 @@
 <script setup>
-import FlareConversationList from "flare-core-vue-im-ui/components/conversation/FlareConversationList.vue";
+import FlareConversationList from "@flare-im/vue-ui/components/conversation/FlareConversationList.vue";
 import DemoStage from "./DemoStage.vue";
 
 const now = Date.now();

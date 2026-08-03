@@ -1,5 +1,5 @@
 <script setup>
-import FlareVoiceHoldButton from "flare-core-vue-im-ui/components/composer/FlareVoiceHoldButton.vue";
+import FlareVoiceHoldButton from "@flare-im/vue-ui/components/composer/FlareVoiceHoldButton.vue";
 import DemoStage from "./DemoStage.vue";
 </script>
 

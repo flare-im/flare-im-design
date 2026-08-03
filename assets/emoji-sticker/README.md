@@ -2,7 +2,7 @@
 
 This directory is the **single, platform-neutral source** for flare-im-design's
 emoji packs (表情包) and sticker packs (贴纸). Every platform kit — Vue
-(`flare-core-vue-im-ui`), Flutter (`flare_im_ui`), Android (`im-ui-compose`), iOS
+(`@flare-im/vue-ui`), Flutter (`flare_im_ui`), Android (`im-ui-compose`), iOS
 (`FlareIMUI`) — and every example app reads from here instead of carrying its own
 copy.
 

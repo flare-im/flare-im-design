@@ -1,5 +1,5 @@
 <script setup>
-import FlareGroupMemberGrid from "flare-core-vue-im-ui/components/contacts/FlareGroupMemberGrid.vue";
+import FlareGroupMemberGrid from "@flare-im/vue-ui/components/contacts/FlareGroupMemberGrid.vue";
 import DemoStage from "./DemoStage.vue";
 const members = [
   { id: "ivy", name: "Ivy Chen" }, { id: "leo", name: "Leo Wang" },

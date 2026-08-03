@@ -1,4 +1,4 @@
-# flare-im-ui-spec — L2 组件契约
+# @flare-im/ui-spec — L2 组件契约
 
 框架中立的 IM 组件契约：**一个组件 = 一份契约（props / states / events + 数据源 core view），各端原生实现**。
 是「类 Ant Design 组件 API」中立化的部分——各端 L1 包按此实现，一致性靠本 spec 锁定。
@@ -6,13 +6,13 @@
 ## 安装
 
 ```bash
-npm install flare-im-ui-spec
+npm install @flare-im/ui-spec
 ```
 
 契约本身是一份 JSON，可直接读取：
 
 ```js
-import components from "flare-im-ui-spec/components.json" with { type: "json" };
+import components from "@flare-im/ui-spec/components.json" with { type: "json" };
 
 console.log(components.length); // 组件数量
 ```
@@ -31,7 +31,7 @@ console.log(components.length); // 组件数量
 | `events[]` | 回调/事件名 |
 | `platforms` | `vue / flutter / ios / compose` → `{ package, symbol }`（各端依赖与符号） |
 
-## 组件目录（18 个 / 5 类，源见 [`components.json`](./components.json)，props/events 从 `flare-core-vue-im-ui` 源码抽取校准）
+## 组件目录（18 个 / 5 类，源见 [`components.json`](./components.json)，props/events 从 `@flare-im/vue-ui` 源码抽取校准）
 - **General**：`Avatar` · `TimeStamp` · `MessageStatus`
 - **Conversation**：`ConversationList` · `ConversationRow` · `ConversationDetails` · `StartConversationDialog`
 - **Message**：`MessageBubble` · `MessageList` · `ChatHeader` · `PinnedMessageBar` · `MessageContentView`
@@ -46,9 +46,9 @@ console.log(components.length); // 组件数量
 node validate.mjs
 ```
 检查：① 每个组件契约字段完整；② 四端都有 package+symbol；③ **Vue 参考符号（如 `MessageBubble.vue`）确实存在于
-`flare-core-vue-im-ui`**——spec 与参考实现对不上就报错。各端 L1 包落地后，扩展校验为「该端符号存在且 props 覆盖」。
+`@flare-im/vue-ui`**——spec 与参考实现对不上就报错。各端 L1 包落地后，扩展校验为「该端符号存在且 props 覆盖」。
 
 ## 关系
 - **L4** 数据/行为：`flare-im-core-sdk` client.views（已有）——`dataSource` 指向它。
 - **L3** tokens：[`../tokens`](../tokens)——组件视觉走 `--flare-*`。
-- **L1** 各端包：Vue 已在 `flare-core-vue-im-ui`；Flutter/iOS/Compose 待从各端 app 抽取（Phase 4）。
+- **L1** 各端包：Vue 已在 `@flare-im/vue-ui`；Flutter/iOS/Compose 待从各端 app 抽取（Phase 4）。

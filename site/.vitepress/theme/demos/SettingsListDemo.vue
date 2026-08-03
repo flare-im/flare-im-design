@@ -1,5 +1,5 @@
 <script setup>
-import FlareSettingsList from "flare-core-vue-im-ui/components/profile/FlareSettingsList.vue";
+import FlareSettingsList from "@flare-im/vue-ui/components/profile/FlareSettingsList.vue";
 import DemoStage from "./DemoStage.vue";
 
 const sections = [

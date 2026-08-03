@@ -46,7 +46,7 @@ Hover any bubble below for the desktop three-button bar; on mobile it's a long-p
 ## Platform implementations
 
 <div class="flare-platform-grid">
-  <div class="flare-platform-card"><h4>Vue</h4><div><code>FlareMessageActionSheet</code></div><div style="color:var(--vp-c-text-3);font-size:12px;margin-top:4px">flare-core-vue-im-ui</div></div>
+  <div class="flare-platform-card"><h4>Vue</h4><div><code>FlareMessageActionSheet</code></div><div style="color:var(--vp-c-text-3);font-size:12px;margin-top:4px">@flare-im/vue-ui</div></div>
   <div class="flare-platform-card"><h4>Flutter</h4><div><code>FlareMessageActionSheet</code></div><div style="color:var(--vp-c-text-3);font-size:12px;margin-top:4px">flare_im_ui</div></div>
   <div class="flare-platform-card"><h4>iOS</h4><div><code>MessageActionSheetView</code></div><div style="color:var(--vp-c-text-3);font-size:12px;margin-top:4px">FlareIMUI</div></div>
   <div class="flare-platform-card"><h4>Android · Compose</h4><div><code>MessageActionSheet</code></div><div style="color:var(--vp-c-text-3);font-size:12px;margin-top:4px">com.flare.im:im-ui-compose</div></div>
@@ -59,7 +59,7 @@ Hover any bubble below for the desktop three-button bar; on mobile it's a long-p
 
 ```vue [Vue]
 <script setup>
-import { FlareMessageActionSheet } from "flare-core-vue-im-ui";
+import { FlareMessageActionSheet } from "@flare-im/vue-ui";
 </script>
 <template>
   <FlareMessageActionSheet

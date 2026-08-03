@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import FlareSearchBar from "flare-core-vue-im-ui/components/general/FlareSearchBar.vue";
+import FlareSearchBar from "@flare-im/vue-ui/components/general/FlareSearchBar.vue";
 import DemoStage from "./DemoStage.vue";
 
 const q = ref("");

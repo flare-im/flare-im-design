@@ -3,11 +3,11 @@
 // api. Shows how one root provider drives size + language + theme for every
 // descendant kit component at once.
 import { computed } from "vue";
-import { useFlareConfig } from "flare-core-vue-im-ui/shared/useFlareConfig";
-import { useFlareAdaptive } from "flare-core-vue-im-ui/composables/useAdaptiveMode";
-import FlareButton from "flare-core-vue-im-ui/components/general/FlareButton.vue";
-import FlareIconButton from "flare-core-vue-im-ui/components/general/FlareIconButton.vue";
-import FlareSelect from "flare-core-vue-im-ui/components/form/FlareSelect.vue";
+import { useFlareConfig } from "@flare-im/vue-ui/shared/useFlareConfig";
+import { useFlareAdaptive } from "@flare-im/vue-ui/composables/useAdaptiveMode";
+import FlareButton from "@flare-im/vue-ui/components/general/FlareButton.vue";
+import FlareIconButton from "@flare-im/vue-ui/components/general/FlareIconButton.vue";
+import FlareSelect from "@flare-im/vue-ui/components/form/FlareSelect.vue";
 import { SendOutline } from "@vicons/ionicons5";
 
 const cfg = useFlareConfig();

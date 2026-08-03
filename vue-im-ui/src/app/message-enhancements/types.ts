@@ -1,4 +1,4 @@
-import type { Conversation, Message } from "flare-core-typescript-sdk/web";
+import type { Conversation, Message } from "@flare-im/sdk/web";
 
 export type EnhancedMessageKind =
   | "file"

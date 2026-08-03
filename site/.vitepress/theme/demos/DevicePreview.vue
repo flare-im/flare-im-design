@@ -6,7 +6,7 @@
 // overflow:hidden, and it feeds itself as the overlay container so the h5 sheet
 // teleports INTO the frame instead of covering the whole page.
 import { ref } from "vue";
-import FlareConfigProvider from "flare-core-vue-im-ui/components/general/FlareConfigProvider.vue";
+import FlareConfigProvider from "@flare-im/vue-ui/components/general/FlareConfigProvider.vue";
 const screenEl = ref(null);
 </script>
 <template>

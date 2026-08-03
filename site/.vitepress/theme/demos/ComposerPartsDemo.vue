@@ -1,8 +1,8 @@
 <script setup>
 // Assembled from the real composer parts (each also shown on its own page).
-import FlareVoiceHoldButton from "flare-core-vue-im-ui/components/composer/FlareVoiceHoldButton.vue";
-import FlareComposerActionPanel from "flare-core-vue-im-ui/components/composer/FlareComposerActionPanel.vue";
-import FlareComposerSendButton from "flare-core-vue-im-ui/components/composer/FlareComposerSendButton.vue";
+import FlareVoiceHoldButton from "@flare-im/vue-ui/components/composer/FlareVoiceHoldButton.vue";
+import FlareComposerActionPanel from "@flare-im/vue-ui/components/composer/FlareComposerActionPanel.vue";
+import FlareComposerSendButton from "@flare-im/vue-ui/components/composer/FlareComposerSendButton.vue";
 import DemoStage from "./DemoStage.vue";
 
 const actions = [

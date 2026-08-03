@@ -1,5 +1,5 @@
 <script setup>
-import FlareComposerSendButton from "flare-core-vue-im-ui/components/composer/FlareComposerSendButton.vue";
+import FlareComposerSendButton from "@flare-im/vue-ui/components/composer/FlareComposerSendButton.vue";
 import DemoStage from "./DemoStage.vue";
 </script>
 

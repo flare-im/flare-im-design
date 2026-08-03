@@ -1,5 +1,5 @@
 <script setup>
-import FlareQuickPhrases from "flare-core-vue-im-ui/components/composer/FlareQuickPhrases.vue";
+import FlareQuickPhrases from "@flare-im/vue-ui/components/composer/FlareQuickPhrases.vue";
 import DemoStage from "./DemoStage.vue";
 const groups = [
   {

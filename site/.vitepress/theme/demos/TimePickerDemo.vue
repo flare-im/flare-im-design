@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import FlareTimePicker from "flare-core-vue-im-ui/components/form/FlareTimePicker.vue";
+import FlareTimePicker from "@flare-im/vue-ui/components/form/FlareTimePicker.vue";
 import DevicePreview from "./DevicePreview.vue";
 const t = ref("09:30");
 </script>

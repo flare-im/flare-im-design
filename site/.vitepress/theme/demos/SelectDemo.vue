@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import FlareSelect from "flare-core-vue-im-ui/components/form/FlareSelect.vue";
+import FlareSelect from "@flare-im/vue-ui/components/form/FlareSelect.vue";
 import DemoStage from "./DemoStage.vue";
 const v = ref("");
 const opts = [

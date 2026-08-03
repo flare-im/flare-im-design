@@ -1,5 +1,5 @@
 <script setup>
-import FlareMessageStatus from "flare-core-vue-im-ui/components/messages/MessageStatus.vue";
+import FlareMessageStatus from "@flare-im/vue-ui/components/messages/MessageStatus.vue";
 import DemoStage from "./DemoStage.vue";
 
 // status codes: 1 sending · 2 sent · 3 delivered · 4 read · 5 failed · 6 recalled

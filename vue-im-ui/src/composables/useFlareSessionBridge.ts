@@ -1,6 +1,6 @@
-import type { FlareImClient, FlareImEventListener } from "flare-core-typescript-sdk/web";
-import type { Message } from "flare-core-typescript-sdk/web";
-import type { ViewUpdate } from "flare-core-typescript-sdk/web";
+import type { FlareImClient, FlareImEventListener } from "@flare-im/sdk/web";
+import type { Message } from "@flare-im/sdk/web";
+import type { ViewUpdate } from "@flare-im/sdk/web";
 import type { Ref } from "vue";
 
 export type RuntimeEventLogItem = {

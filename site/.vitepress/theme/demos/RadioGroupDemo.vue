@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import FlareRadioGroup from "flare-core-vue-im-ui/components/form/FlareRadioGroup.vue";
+import FlareRadioGroup from "@flare-im/vue-ui/components/form/FlareRadioGroup.vue";
 import DemoStage from "./DemoStage.vue";
 const v = ref("all");
 const opts = [

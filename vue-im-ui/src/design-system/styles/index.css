@@ -1,6 +1,6 @@
-/* Import in consumer apps: import "flare-core-vue-im-ui/style.css" */
+/* Import in consumer apps: import "@flare-im/vue-ui/style.css" */
 /* L3 design tokens — single source of truth: flare-im-design/tokens */
-@import "flare-im-design-tokens/tokens.css";
+@import "@flare-im/tokens/tokens.css";
 @import "./layout-tokens.css";
 @import "./responsive.css";
 @import "./flutter-shell.css";

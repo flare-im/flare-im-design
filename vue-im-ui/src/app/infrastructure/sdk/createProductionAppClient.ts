@@ -1,11 +1,11 @@
-import { DefaultEventsApi } from "flare-core-typescript-sdk/adapter/module/DefaultEventsApi";
-import type { FlareImClient } from "flare-core-typescript-sdk/api";
+import { DefaultEventsApi } from "@flare-im/sdk/adapter/module/DefaultEventsApi";
+import type { FlareImClient } from "@flare-im/sdk/api";
 import {
   WebFlareImClient,
   WebProductionBridge,
   wrapWebHostBridge,
   type WasmStorageHostFactory,
-} from "flare-core-typescript-sdk/web";
+} from "@flare-im/sdk/web";
 import { loadFlareWasmRuntime } from "./wasmLoader";
 
 export type ProductionAppClientFactory = () => FlareImClient;

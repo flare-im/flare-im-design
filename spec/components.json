@@ -1,7 +1,7 @@
 {
   "$schema": "./spec.schema.md",
   "version": "0.3.0",
-  "note": "L2 — framework-neutral component catalogue for the Flare IM UI Kit. Each component is one contract (props/states/events + core-view data source), realised natively per platform. Grounded in the current flare-core-vue-im-ui reference implementation (props/events extracted from source).",
+  "note": "L2 — framework-neutral component catalogue for the Flare IM UI Kit. Each component is one contract (props/states/events + core-view data source), realised natively per platform. Grounded in the current @flare-im/vue-ui reference implementation (props/events extracted from source).",
   "categories": [
     "General",
     "Form",
@@ -866,7 +866,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareAvatar"
         },
         "flutter": {
@@ -909,7 +909,7 @@
       "events": [],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "TimeStamp"
         },
         "flutter": {
@@ -967,7 +967,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "MessageStatus"
         },
         "flutter": {
@@ -1040,7 +1040,7 @@
       },
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareConversationList"
         },
         "flutter": {
@@ -1107,7 +1107,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareConversationRow"
         },
         "flutter": {
@@ -1196,7 +1196,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "ConversationDetails"
         },
         "flutter": {
@@ -1243,7 +1243,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareStartConversationDialog"
         },
         "flutter": {
@@ -1378,7 +1378,7 @@
       },
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "MessageBubble"
         },
         "flutter": {
@@ -1527,7 +1527,7 @@
       },
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "MessageList"
         },
         "flutter": {
@@ -1593,7 +1593,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "ChatConversationHeader"
         },
         "flutter": {
@@ -1642,7 +1642,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "PinnedMessageBar"
         },
         "flutter": {
@@ -1744,7 +1744,7 @@
       },
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "MessageContentView"
         },
         "flutter": {
@@ -1805,7 +1805,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareTextMessage"
         },
         "flutter": {
@@ -1879,7 +1879,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareImageMessage"
         },
         "flutter": {
@@ -1944,7 +1944,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareVideoMessage"
         },
         "flutter": {
@@ -2001,7 +2001,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareVoiceMessage"
         },
         "flutter": {
@@ -2075,7 +2075,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareFileMessage"
         },
         "flutter": {
@@ -2140,7 +2140,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareLocationMessage"
         },
         "flutter": {
@@ -2205,7 +2205,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareContactMessage"
         },
         "flutter": {
@@ -2278,7 +2278,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareLinkCardMessage"
         },
         "flutter": {
@@ -2343,7 +2343,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareVoteMessage"
         },
         "flutter": {
@@ -2408,7 +2408,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareTaskMessage"
         },
         "flutter": {
@@ -2465,7 +2465,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareStickerMessage"
         },
         "flutter": {
@@ -2514,7 +2514,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareEmojiMessage"
         },
         "flutter": {
@@ -2561,7 +2561,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareSystemMessage"
         },
         "flutter": {
@@ -2641,7 +2641,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "EnhancedComposer"
         },
         "flutter": {
@@ -2707,7 +2707,7 @@
       },
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareVoiceHoldButton"
         },
         "flutter": {
@@ -2766,7 +2766,7 @@
       },
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareComposerActionPanel"
         },
         "flutter": {
@@ -2827,7 +2827,7 @@
       },
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareComposerSendButton"
         },
         "flutter": {
@@ -2896,7 +2896,7 @@
       },
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareComposerReplyStrip"
         },
         "flutter": {
@@ -2971,7 +2971,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "ComposerRichMarkdownInput"
         },
         "flutter": {
@@ -3053,7 +3053,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "MessageActionSheet"
         },
         "flutter": {
@@ -3161,7 +3161,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "ImagePreviewModal"
         },
         "flutter": {
@@ -3235,7 +3235,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "VideoPlayerModal"
         },
         "flutter": {
@@ -3288,7 +3288,7 @@
       "events": [],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "MarkdownPreview"
         },
         "flutter": {
@@ -3355,7 +3355,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareSearchBar"
         },
         "flutter": {
@@ -3449,7 +3449,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareInput"
         },
         "flutter": {
@@ -3512,7 +3512,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareEmptyState"
         },
         "flutter": {
@@ -3591,7 +3591,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareStatusBanner"
         }
       }
@@ -3636,7 +3636,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareFilterTabs"
         }
       }
@@ -3695,7 +3695,7 @@
       },
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareContactList"
         },
         "flutter": {
@@ -3751,7 +3751,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareContactItem"
         },
         "flutter": {
@@ -3805,7 +3805,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareContactDetail"
         },
         "flutter": {
@@ -3899,7 +3899,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareGroupDetail"
         },
         "flutter": {
@@ -3957,7 +3957,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareNewFriendRequests"
         },
         "flutter": {
@@ -4012,7 +4012,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareGroupList"
         },
         "flutter": {
@@ -4062,7 +4062,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareProfilePanel"
         },
         "flutter": {
@@ -4121,7 +4121,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareProfileEditor"
         },
         "flutter": {
@@ -4169,7 +4169,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareSettingsList"
         },
         "flutter": {
@@ -4260,7 +4260,7 @@
       },
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareCallView"
         },
         "flutter": {
@@ -4325,7 +4325,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareIncomingCall"
         },
         "flutter": {
@@ -4401,7 +4401,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareCallControls"
         },
         "flutter": {
@@ -4463,7 +4463,7 @@
       },
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareAppShell"
         },
         "flutter": {
@@ -4519,7 +4519,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareResponsiveLayout"
         },
         "flutter": {
@@ -4652,7 +4652,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareGroupCallView"
         },
         "flutter": {
@@ -4727,7 +4727,7 @@
       "events": [],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareTypingIndicator"
         },
         "flutter": {
@@ -4771,7 +4771,7 @@
       "events": [],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareUnreadDivider"
         },
         "flutter": {
@@ -4817,7 +4817,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareScrollToLatest"
         },
         "flutter": {
@@ -4864,7 +4864,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareProfileCard"
         },
         "flutter": {
@@ -4949,7 +4949,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareGroupMemberGrid"
         },
         "flutter": {
@@ -5004,7 +5004,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareReactionSummary"
         },
         "flutter": {
@@ -5071,7 +5071,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareReadReceiptSheet"
         },
         "flutter": {
@@ -5138,7 +5138,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareMessageBatchToolbar"
         },
         "flutter": {
@@ -5193,7 +5193,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareMentionPicker"
         },
         "flutter": {
@@ -5248,7 +5248,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareQuickPhrases"
         },
         "flutter": {
@@ -5303,7 +5303,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareSearchResults"
         },
         "flutter": {
@@ -5372,7 +5372,7 @@
       "events": [],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareSkeleton"
         },
         "flutter": {
@@ -5438,7 +5438,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareForwardPicker"
         },
         "flutter": {
@@ -5509,7 +5509,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareToast"
         },
         "flutter": {
@@ -5594,7 +5594,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareCallDock"
         },
         "flutter": {
@@ -5668,7 +5668,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareAnnouncementBanner"
         },
         "flutter": {
@@ -5720,7 +5720,7 @@
       "events": [],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareDatePill"
         },
         "flutter": {
@@ -5797,7 +5797,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareRedPacketCard"
         },
         "flutter": {
@@ -5853,7 +5853,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareSlashCommandMenu"
         },
         "flutter": {
@@ -5926,7 +5926,7 @@
       "events": [],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareTranslationView"
         },
         "flutter": {
@@ -5996,7 +5996,7 @@
       "events": [],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareQRCard"
         },
         "flutter": {
@@ -6051,7 +6051,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareImageGrid"
         },
         "flutter": {
@@ -6120,7 +6120,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareVoiceRecordingBar"
         },
         "flutter": {
@@ -6167,7 +6167,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlarePollComposer"
         },
         "flutter": {
@@ -6221,7 +6221,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareChatWallpaperPicker"
         },
         "flutter": {
@@ -6356,7 +6356,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareVoicePlayer"
         },
         "flutter": {
@@ -6422,7 +6422,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareEmojiPicker"
         },
         "flutter": {
@@ -6477,7 +6477,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareStickerPanel"
         },
         "flutter": {
@@ -6560,7 +6560,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlarePrimaryButton"
         },
         "flutter": {
@@ -6615,7 +6615,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareSegmentedControl"
         },
         "flutter": {
@@ -6658,7 +6658,7 @@
       "events": [],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareScreenHeader"
         },
         "flutter": {
@@ -6708,7 +6708,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareMomentCard"
         },
         "flutter": {
@@ -6796,7 +6796,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareMomentComposer"
         },
         "flutter": {
@@ -6842,7 +6842,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareMomentActionPopover"
         },
         "flutter": {
@@ -6924,7 +6924,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareMomentsCoverHeader"
         },
         "flutter": {
@@ -6970,7 +6970,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareCommentThread"
         },
         "flutter": {
@@ -7015,7 +7015,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareTopicChip"
         },
         "flutter": {
@@ -7125,7 +7125,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareButton"
         },
         "flutter": {
@@ -7229,7 +7229,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareIconButton"
         },
         "flutter": {
@@ -7299,7 +7299,7 @@
       "events": [],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareFormField"
         },
         "flutter": {
@@ -7355,7 +7355,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareSwitch"
         },
         "flutter": {
@@ -7430,7 +7430,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareCheckbox"
         },
         "flutter": {
@@ -7495,7 +7495,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareRadioGroup"
         },
         "flutter": {
@@ -7590,7 +7590,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareSelect"
         },
         "flutter": {
@@ -7695,7 +7695,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareTextarea"
         },
         "flutter": {
@@ -7801,7 +7801,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareStepper"
         },
         "flutter": {
@@ -7897,7 +7897,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareSlider"
         },
         "flutter": {
@@ -7993,7 +7993,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareRating"
         },
         "flutter": {
@@ -8089,7 +8089,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareTimePicker"
         },
         "flutter": {
@@ -8193,7 +8193,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareDatePicker"
         },
         "flutter": {
@@ -8246,7 +8246,7 @@
       "events": [],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareIcon"
         },
         "flutter": {
@@ -8322,7 +8322,7 @@
       ],
       "platforms": {
         "vue": {
-          "package": "flare-core-vue-im-ui",
+          "package": "@flare-im/vue-ui",
           "symbol": "FlareConfigProvider"
         }
       }

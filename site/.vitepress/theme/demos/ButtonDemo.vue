@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import { NIcon } from "naive-ui";
 import { SendOutline } from "@vicons/ionicons5";
-import FlareButton from "flare-core-vue-im-ui/components/general/FlareButton.vue";
+import FlareButton from "@flare-im/vue-ui/components/general/FlareButton.vue";
 import DemoStage from "./DemoStage.vue";
 const busy = ref(false);
 function go() { busy.value = true; setTimeout(() => (busy.value = false), 1300); }

@@ -29,7 +29,7 @@
   "states": ["pending", "sent", "read", "failed"],
   "events": ["react", "reply", "edit", "delete", "pin", "mark", "preview"],
   "platforms": {
-    "vue": { "package": "flare-core-vue-im-ui", "symbol": "MessageBubble" },
+    "vue": { "package": "@flare-im/vue-ui", "symbol": "MessageBubble" },
     "flutter": { "package": "flare_im_ui", "symbol": "FlareMessageBubble" },
     "ios": { "package": "FlareIMUI", "symbol": "MessageBubbleView" },
     "compose": { "package": "com.flare.im:im-ui-compose", "symbol": "MessageBubble" }

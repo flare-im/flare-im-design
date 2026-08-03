@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import FlareSlider from "flare-core-vue-im-ui/components/form/FlareSlider.vue";
+import FlareSlider from "@flare-im/vue-ui/components/form/FlareSlider.vue";
 import DemoStage from "./DemoStage.vue";
 const a = ref(40), b = ref(2);
 </script>

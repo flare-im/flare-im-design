@@ -1,5 +1,5 @@
 <script setup>
-import FlareRichMarkdownInput from "flare-core-vue-im-ui/components/composer/ComposerRichMarkdownInput.vue";
+import FlareRichMarkdownInput from "@flare-im/vue-ui/components/composer/ComposerRichMarkdownInput.vue";
 import DemoStage from "./DemoStage.vue";
 </script>
 

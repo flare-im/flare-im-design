@@ -20,13 +20,13 @@ npm run dev      # http://localhost:5181
 ## Using it in a real project
 
 ```bash
-npm i flare-core-vue-im-ui naive-ui vue
+npm i @flare-im/vue-ui naive-ui vue
 ```
 
 ```ts
-import "flare-core-vue-im-ui/style.css";
-import { FlareConversationList, FlareTextMessage } from "flare-core-vue-im-ui/components";
-import { useFlareI18nProvider } from "flare-core-vue-im-ui/i18n"; // call once at the root
+import "@flare-im/vue-ui/style.css";
+import { FlareConversationList, FlareTextMessage } from "@flare-im/vue-ui/components";
+import { useFlareI18nProvider } from "@flare-im/vue-ui/i18n"; // call once at the root
 ```
 
 (Here we alias the imports to the workspace source in `vite.config.ts` so the

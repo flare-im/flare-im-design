@@ -7,7 +7,7 @@ import {
   appTransportSelectorProfile,
   isAppTransportSelectorEnabled,
 } from "../infrastructure/transport/appTransportSelector";
-import { profileSupportsQuic } from "flare-core-typescript-sdk/transport";
+import { profileSupportsQuic } from "@flare-im/sdk/transport";
 import { useFlareSdk } from "../sdk/flareSdkContext";
 import { useFlareI18n } from "../shared/i18n";
 

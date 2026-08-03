@@ -1,5 +1,5 @@
 <script setup>
-import FlareContactDetail from "flare-core-vue-im-ui/components/contacts/FlareContactDetail.vue";
+import FlareContactDetail from "@flare-im/vue-ui/components/contacts/FlareContactDetail.vue";
 import DemoStage from "./DemoStage.vue";
 
 const contact = {

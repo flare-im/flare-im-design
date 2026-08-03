@@ -1,5 +1,5 @@
 <script setup>
-import FlareTopicChip from "flare-core-vue-im-ui/components/moments/FlareTopicChip.vue";
+import FlareTopicChip from "@flare-im/vue-ui/components/moments/FlareTopicChip.vue";
 import DemoStage from "./DemoStage.vue";
 </script>
 <template>

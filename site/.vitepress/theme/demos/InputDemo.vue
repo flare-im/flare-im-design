@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import FlareInput from "flare-core-vue-im-ui/components/general/FlareInput.vue";
+import FlareInput from "@flare-im/vue-ui/components/general/FlareInput.vue";
 import DemoStage from "./DemoStage.vue";
 
 const text = ref("Flare IM 组件库");

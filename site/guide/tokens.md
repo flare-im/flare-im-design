@@ -47,7 +47,7 @@
 ::: code-group
 
 ```css [Web]
-@import "flare-im-design-tokens/tokens.css";
+@import "@flare-im/tokens/tokens.css";
 .self { background: var(--flare-color-bubble-self); }
 ```
 

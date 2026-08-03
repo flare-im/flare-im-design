@@ -1,5 +1,5 @@
 <script setup>
-import FlareMomentsCoverHeader from "flare-core-vue-im-ui/components/moments/FlareMomentsCoverHeader.vue";
+import FlareMomentsCoverHeader from "@flare-im/vue-ui/components/moments/FlareMomentsCoverHeader.vue";
 import DemoStage from "./DemoStage.vue";
 </script>
 <template>

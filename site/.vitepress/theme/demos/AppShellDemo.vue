@@ -1,5 +1,5 @@
 <script setup>
-import FlareAppShell from "flare-core-vue-im-ui/components/layout/FlareAppShell.vue";
+import FlareAppShell from "@flare-im/vue-ui/components/layout/FlareAppShell.vue";
 import DemoStage from "./DemoStage.vue";
 
 const items = [

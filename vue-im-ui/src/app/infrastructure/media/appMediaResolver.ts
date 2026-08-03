@@ -1,8 +1,8 @@
 import type {
   FlareMediaResolveRequest,
   FlareMediaResolver,
-} from "flare-core-vue-im-ui/contracts";
-import { proxiedMediaUrl, sdkMediaProxyFields } from "flare-core-vue-im-ui/utils";
+} from "@flare-im/vue-ui/contracts";
+import { proxiedMediaUrl, sdkMediaProxyFields } from "@flare-im/vue-ui/utils";
 import type { FlareSdkContext } from "../../sdk/flareSdkContext";
 
 type LocalPathResolver = (path: string) => string;

@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import FlareStatusBanner from "flare-core-vue-im-ui/components/general/FlareStatusBanner.vue";
+import FlareStatusBanner from "@flare-im/vue-ui/components/general/FlareStatusBanner.vue";
 
 const log = ref("");
 </script>

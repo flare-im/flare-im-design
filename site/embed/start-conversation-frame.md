@@ -22,5 +22,5 @@ html, body, #app { height: 100%; margin: 0; }
 </style>
 
 <script setup>
-import FlareUiProvider from "flare-core-vue-im-ui/design-system/provider/FlareUiProvider.vue";
+import FlareUiProvider from "@flare-im/vue-ui/design-system/provider/FlareUiProvider.vue";
 </script>

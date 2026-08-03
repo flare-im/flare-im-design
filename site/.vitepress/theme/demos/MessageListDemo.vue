@@ -1,5 +1,5 @@
 <script setup>
-import FlareMessageList from "flare-core-vue-im-ui/components/messages/MessageList.vue";
+import FlareMessageList from "@flare-im/vue-ui/components/messages/MessageList.vue";
 import DemoStage from "./DemoStage.vue";
 
 const me = "me";

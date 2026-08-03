@@ -5,7 +5,7 @@ import { computed } from "vue";
  * Scopes a Flare theme to its subtree by applying design-token overrides as
  * inline CSS variables. Pass an override map (keys are the `--flare-color-`
  * suffix, e.g. `bubble-self`, or full `--flare-*` names). Compose it with
- * `deriveFlareTheme` / `flarePresets` from `flare-im-design-tokens/theme`.
+ * `deriveFlareTheme` / `flarePresets` from `@flare-im/tokens/theme`.
  */
 const props = defineProps<{ theme?: Record<string, string> }>();
 

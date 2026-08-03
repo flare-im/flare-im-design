@@ -1,5 +1,5 @@
 <script setup>
-import FlareForwardPicker from "flare-core-vue-im-ui/components/conversation/FlareForwardPicker.vue";
+import FlareForwardPicker from "@flare-im/vue-ui/components/conversation/FlareForwardPicker.vue";
 import DemoStage from "./DemoStage.vue";
 const targets = [
   { id: "ivy", name: "Ivy Chen", subtitle: "在线" },

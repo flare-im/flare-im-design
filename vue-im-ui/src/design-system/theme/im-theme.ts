@@ -1,5 +1,5 @@
 import type { GlobalThemeOverrides } from "naive-ui";
-import { flareDesignTokens } from "flare-im-design-tokens";
+import { flareDesignTokens } from "@flare-im/tokens";
 
 export const imTheme = flareDesignTokens;
 

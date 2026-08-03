@@ -1,6 +1,6 @@
 <script setup>
-import FlareIcon from "flare-core-vue-im-ui/components/general/FlareIcon.vue";
-import { flareIconNames } from "flare-core-vue-im-ui/shared/icons";
+import FlareIcon from "@flare-im/vue-ui/components/general/FlareIcon.vue";
+import { flareIconNames } from "@flare-im/vue-ui/shared/icons";
 import DemoStage from "./DemoStage.vue";
 </script>
 <template>

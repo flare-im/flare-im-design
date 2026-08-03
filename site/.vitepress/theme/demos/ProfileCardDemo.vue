@@ -1,5 +1,5 @@
 <script setup>
-import FlareProfileCard from "flare-core-vue-im-ui/components/profile/FlareProfileCard.vue";
+import FlareProfileCard from "@flare-im/vue-ui/components/profile/FlareProfileCard.vue";
 import DemoStage from "./DemoStage.vue";
 const user = {
   id: "flare_ivy", name: "Ivy Chen", presence: "online",

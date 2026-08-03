@@ -1,6 +1,6 @@
 <script setup>
 import { reactive } from "vue";
-import FlareReactionSummary from "flare-core-vue-im-ui/components/messages/FlareReactionSummary.vue";
+import FlareReactionSummary from "@flare-im/vue-ui/components/messages/FlareReactionSummary.vue";
 import DemoStage from "./DemoStage.vue";
 const state = reactive({
   reactions: [

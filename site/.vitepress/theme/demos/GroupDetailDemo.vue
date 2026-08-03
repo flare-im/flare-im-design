@@ -1,5 +1,5 @@
 <script setup>
-import FlareGroupDetail from "flare-core-vue-im-ui/components/contacts/FlareGroupDetail.vue";
+import FlareGroupDetail from "@flare-im/vue-ui/components/contacts/FlareGroupDetail.vue";
 import DemoStage from "./DemoStage.vue";
 
 const model = {

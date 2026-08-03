@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import FlareDatePicker from "flare-core-vue-im-ui/components/form/FlareDatePicker.vue";
+import FlareDatePicker from "@flare-im/vue-ui/components/form/FlareDatePicker.vue";
 import DevicePreview from "./DevicePreview.vue";
 const d = ref("2026-07-16");
 </script>

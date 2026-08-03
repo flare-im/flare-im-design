@@ -1,7 +1,7 @@
 <script setup>
 // Full-bleed ResponsiveLayout: wide → triple (list + chat + detail), tablet →
 // dual, phone → single pane with a back bar. Switches on viewport width.
-import FlareResponsiveLayout from "flare-core-vue-im-ui/components/layout/FlareResponsiveLayout.vue";
+import FlareResponsiveLayout from "@flare-im/vue-ui/components/layout/FlareResponsiveLayout.vue";
 </script>
 
 <template>

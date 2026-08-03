@@ -3,7 +3,7 @@
 // Framework-agnostic. Lets a product customise the palette at runtime and scope
 // it to any element subtree — "import and use", fully composable:
 //
-//   import { applyFlareTheme, deriveFlareTheme, flarePresets } from "flare-im-design-tokens/theme";
+//   import { applyFlareTheme, deriveFlareTheme, flarePresets } from "@flare-im/tokens/theme";
 //   applyFlareTheme(deriveFlareTheme({ primary: "#2563EB" }));   // whole page
 //   applyFlareTheme(flarePresets.forest, myElement);             // one subtree
 //

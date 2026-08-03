@@ -4,15 +4,15 @@
 
 ## Goal
 把 IM UI 演进为「一套契约 + 各端原生实现」的组件体系：**L4 core 视图（已有）→ L3 tokens → L2 组件契约 → L1 各端包**。
-「完成」的可检验定义：① `flare-im-design-tokens` 独立包，一份中立 JSON 源 → 生成 web CSS（+ 预留各端），Vue 包消费它、typecheck 过；
-② `flare-im-ui-spec` 组件契约（首批 4 组件）落文档 + 类型；③ 三套 Vue 收敛为一套 canonical 包（去冗余）；④ 从原生 app 抽 Flutter/iOS/Compose 组件包。
+「完成」的可检验定义：① `@flare-im/tokens` 独立包，一份中立 JSON 源 → 生成 web CSS（+ 预留各端），Vue 包消费它、typecheck 过；
+② `@flare-im/ui-spec` 组件契约（首批 4 组件）落文档 + 类型；③ 三套 Vue 收敛为一套 canonical 包（去冗余）；④ 从原生 app 抽 Flutter/iOS/Compose 组件包。
 
 ## Constraints & decisions
-- **no-compat（flare-im-spec 硬约束）**：不并存新旧路径。收敛 Vue = 合并进 `flare-core-vue-im-ui` 并**删除** `@flare/shared-im-ui` 两份拷贝。tokens 是 **move**（源移出 Vue 包），不是 copy。
+- **no-compat（flare-im-spec 硬约束）**：不并存新旧路径。收敛 Vue = 合并进 `@flare-im/vue-ui` 并**删除** `@flare/shared-im-ui` 两份拷贝。tokens 是 **move**（源移出 Vue 包），不是 copy。
 - **不做未指定的抽象**：L3 generator **只先做 web（CSS/TS）**——Vue 是唯一现有消费者；Dart/Swift/Compose 生成器等各自 UI 包落地时再加。
 - 层归属：tokens/spec/各端 UI 包 → `packages/**`；行为 → core（已有可观察视图）；屏幕/产品流 → examples/social。
 - 现状：token 管线**已存在但埋在 Vue 包**（`design-system/theme/generated/flare-design-tokens.{ts,css}`，紫色主色 `#7C3AED`）；消费者=`styles/index.css` + `theme/im-theme.ts`。无独立 JSON 源与生成器。
-- 三套 Vue：`@flare/shared-im-ui`（examples + flare-social 拷贝，同一份）+ `flare-core-vue-im-ui`（packages，更成熟）。~80% 重叠。
+- 三套 Vue：`@flare/shared-im-ui`（examples + flare-social 拷贝，同一份）+ `@flare-im/vue-ui`（packages，更成熟）。~80% 重叠。
 - 各端原生 UI 现**内联在各 example app**（flutter/ios/android），Track 2 = 抽成 packages。
 
 ## 家目录
@@ -22,25 +22,25 @@
 Current focus: **Phase 4 Flutter 端全部 18 组件完成**——`flutter-im-ui` analyze 0 + test 45/45，spec validate 双端符号齐（见 Phase 4）。**下一步：iOS `FlareIMUI`(SwiftUI)+Swift 生成器 / 或 Android Compose 包 / 或让 flutter app 换依赖 flare_im_ui 删本地重复 token。** Vue 包已迁入 `flare-im-design/vue-im-ui`（Phase 6）；3 个 npm 包发布 prep+dry-run 过，等你 `npm login`+`npm publish`（[PUBLISHING.md](./PUBLISHING.md)）。
 
 ### Phase 6 — Vue 组件库统一迁入 flare-im-design ✅ 完成 + 四端验证（2026-07-07）
-- [x] **move** `flare-im-core-client-sdk/packages/flare-core-vue-im-ui` → `flare-im-design/vue-im-ui`（no-compat：旧目录已删，无残留）
+- [x] **move** `flare-im-core-client-sdk/packages/@flare-im/vue-ui` → `flare-im-design/vue-im-ui`（no-compat：旧目录已删，无残留）
 - [x] 四端消费方重接线：node_modules 符号链接重指、tsconfig `paths`、共享 vite factory `flareCoreWebAppVite.js` 的 `vueImUiRoot`（改为 `path.resolve(repoRoot, "flare-im-design/vue-im-ui/src")`）
-- [x] **tauri 关键修**：其 `node_modules/flare-core-typescript-sdk` 原是**实拷贝**（非符号链接）故吃不到 factory 修复 → 换成符号链接（与 web/electron/uni 一致）
+- [x] **tauri 关键修**：其 `node_modules/@flare-im/sdk` 原是**实拷贝**（非符号链接）故吃不到 factory 修复 → 换成符号链接（与 web/electron/uni 一致）
 - [x] 两个断言源码路径的测试重指到 monorepo 根（tauri transport-selector 6/6、uni parity 5/5 全绿）
 - [x] **构建验证**：web `vite build ✓`、tauri `vite build ✓`、electron `vue-tsc 0 error`（vite 仅卡在无关的未装 `wa-sqlite` 依赖，与本次迁移无关）、uni 自定义 vite 走 tsconfig+符号链接
 
 ## Steps
 
 ### Phase 1 — L3 tokens 独立包 ✅ 完成 + 验证（2026-07-07）
-- [x] **建包 `flare-im-design/tokens/`**（name `flare-im-design-tokens`）：`tokens.json`（中立源 colors/composer/dark/shadows/sizes/transitions）、`build.mjs`（JSON→`dist/tokens.css` `:root`+`[data-flare-theme=dark]` + `dist/tokens.ts` `flareDesignTokens as const`）、`package.json`(exports+types)、README
+- [x] **建包 `flare-im-design/tokens/`**（name `@flare-im/tokens`）：`tokens.json`（中立源 colors/composer/dark/shadows/sizes/transitions）、`build.mjs`（JSON→`dist/tokens.css` `:root`+`[data-flare-theme=dark]` + `dist/tokens.ts` `flareDesignTokens as const`）、`package.json`(exports+types)、README
 - [x] 跑 `build.mjs`（65 light + 15 dark vars）；**value diff vs 旧 CSS = 完全一致**（防漂移）
-- [x] 接线：Vue `styles/index.css`→`@import "flare-im-design-tokens/tokens.css"`、`theme/im-theme.ts`→`import { flareDesignTokens } from "flare-im-design-tokens"`；file: 依赖 + node_modules 符号链接；**删除** Vue 内两份 generated（no-compat，无残留 ref）
-- [x] 验证：`flare-core-vue-im-ui` **vue-tsc = 0 error**
-- [x] **端到端构建验证**：`flare-core-web-app`（B 消费方）`vite build` **✓ built in 8.72s** —— 裸 `@import "flare-im-design-tokens/tokens.css"` 经 B 的 node_modules 符号链接**成功解析**、生产构建通过（vue-tsc 不查 CSS，这步才证明接线在真实构建里成立）
+- [x] 接线：Vue `styles/index.css`→`@import "@flare-im/tokens/tokens.css"`、`theme/im-theme.ts`→`import { flareDesignTokens } from "@flare-im/tokens"`；file: 依赖 + node_modules 符号链接；**删除** Vue 内两份 generated（no-compat，无残留 ref）
+- [x] 验证：`@flare-im/vue-ui` **vue-tsc = 0 error**
+- [x] **端到端构建验证**：`flare-core-web-app`（B 消费方）`vite build` **✓ built in 8.72s** —— 裸 `@import "@flare-im/tokens/tokens.css"` 经 B 的 node_modules 符号链接**成功解析**、生产构建通过（vue-tsc 不查 CSS，这步才证明接线在真实构建里成立）
 
 ### Phase 2 — L2 组件契约 spec ✅ 完成 + 验证 + **全量扩充**（2026-07-07）
-- [x] 建 `flare-im-design/spec/`（name `flare-im-ui-spec`）：`components.json` + `validate.mjs`（防漂移，仿 sdk-spec 双向覆盖）+ README
-- [x] **扩到全量目录 v0.2.0：18 组件 / 5 类**（General/Conversation/Message/Composer/Media）+ 内容类型注册表（17 种），props/events **从 flare-core-vue-im-ui 源码抽取校准**
-- [x] `node validate.mjs` **过**：18 组件契约完整 + 四端 package/symbol 齐 + **每个 Vue 参考符号确实存在**于 flare-core-vue-im-ui
+- [x] 建 `flare-im-design/spec/`（name `@flare-im/ui-spec`）：`components.json` + `validate.mjs`（防漂移，仿 sdk-spec 双向覆盖）+ README
+- [x] **扩到全量目录 v0.2.0：18 组件 / 5 类**（General/Conversation/Message/Composer/Media）+ 内容类型注册表（17 种），props/events **从 @flare-im/vue-ui 源码抽取校准**
+- [x] `node validate.mjs` **过**：18 组件契约完整 + 四端 package/symbol 齐 + **每个 Vue 参考符号确实存在**于 @flare-im/vue-ui
 
 ### Phase 3 — 三套 Vue 收敛为一（大、破坏性、逐 app 验证）
 - [x] **收敛 map 就绪** → [`VUE-CONVERGENCE.md`](./VUE-CONVERGENCE.md)
@@ -54,7 +54,7 @@ Current focus: **Phase 4 Flutter 端全部 18 组件完成**——`flutter-im-ui
 > ⚠️ 未在本轮执行破坏性 re-point/删除：会动到刚修好并 computer-use 验证过的 flare-social 消息收发，必须逐步重建+重测，不可一把梭。已做成 turnkey 清单，按步验证推进。
 
 ### Phase 5 — npm 发布 ✅ prep + dry-run 验证（2026-07-07；实发待用户 auth）
-- [x] **3 包 publish-ready**：`flare-im-design-tokens`(3.8kB) / `flare-im-ui-spec`(6.5kB) / `flare-core-vue-im-ui`(237kB) —— 补 license/files/exports/publishConfig；tokens 生成器加发 .js/.d.ts；Vue 包去 private、deps 提升(@vicons/markdown-it/tokens^0.1.0)、源码发布
+- [x] **3 包 publish-ready**：`@flare-im/tokens`(3.8kB) / `@flare-im/ui-spec`(6.5kB) / `@flare-im/vue-ui`(237kB) —— 补 license/files/exports/publishConfig；tokens 生成器加发 .js/.d.ts；Vue 包去 private、deps 提升(@vicons/markdown-it/tokens^0.1.0)、源码发布
 - [x] **裁包**：Vue 包原 70MB(贴纸/表情 webp 67MB)→ `files` 负模式 `!src/assets/**/*.webp` 排除、留 manifest → **237kB/171 文件**、0 webp
 - [x] **`npm pack --dry-run` 三包全验证**；`vue-tsc` 全程 0 error
 - [x] runbook [PUBLISHING.md](./PUBLISHING.md)：发布顺序(tokens→spec→vue)、scope 决策、消费用法

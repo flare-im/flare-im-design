@@ -1,5 +1,5 @@
 <script setup>
-import FlareTimeStamp from "flare-core-vue-im-ui/components/messages/TimeStamp.vue";
+import FlareTimeStamp from "@flare-im/vue-ui/components/messages/TimeStamp.vue";
 import DemoStage from "./DemoStage.vue";
 
 const labels = ["刚刚", "14:32", "昨天", "周三", "6/28"];

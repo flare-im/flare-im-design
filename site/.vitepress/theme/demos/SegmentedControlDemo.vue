@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import FlareSegmentedControl from "flare-core-vue-im-ui/components/general/FlareSegmentedControl.vue";
+import FlareSegmentedControl from "@flare-im/vue-ui/components/general/FlareSegmentedControl.vue";
 import DemoStage from "./DemoStage.vue";
 const tab = ref(0);
 const labels = ["联系人", "群组", "新的联系人"];

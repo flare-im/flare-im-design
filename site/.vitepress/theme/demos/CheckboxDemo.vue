@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import FlareCheckbox from "flare-core-vue-im-ui/components/form/FlareCheckbox.vue";
+import FlareCheckbox from "@flare-im/vue-ui/components/form/FlareCheckbox.vue";
 import DemoStage from "./DemoStage.vue";
 const a = ref(true), b = ref(false), c = ref(false);
 </script>

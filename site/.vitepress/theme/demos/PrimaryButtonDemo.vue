@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import FlarePrimaryButton from "flare-core-vue-im-ui/components/general/FlarePrimaryButton.vue";
+import FlarePrimaryButton from "@flare-im/vue-ui/components/general/FlarePrimaryButton.vue";
 import DemoStage from "./DemoStage.vue";
 const busy = ref(false);
 function go() { busy.value = true; setTimeout(() => (busy.value = false), 1400); }

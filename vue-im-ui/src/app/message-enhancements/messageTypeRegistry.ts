@@ -1,6 +1,6 @@
-import { MessageBuildOp, MessageContentType } from "flare-core-typescript-sdk/web";
+import { MessageBuildOp, MessageContentType } from "@flare-im/sdk/web";
 import { translateFlare } from "../../shared/i18n/messages";
-import type { Message } from "flare-core-typescript-sdk/web";
+import type { Message } from "@flare-im/sdk/web";
 import type {
   CapabilityContext,
   ComposerPayloadRequest,

@@ -4,7 +4,7 @@
 
 | 端 | 组件 | 包 | 字形源 |
 |---|---|---|---|
-| Vue(Web / Tauri) | `FlareIcon` | `flare-core-vue-im-ui` | **Lucide**(细线,经 shim) |
+| Vue(Web / Tauri) | `FlareIcon` | `@flare-im/vue-ui` | **Lucide**(细线,经 shim) |
 | Flutter | `FlareIcon` | `flare_im_ui` | Material **Outlined** |
 | iOS(SwiftUI) | `IconView` | `FlareIMUI` | **SF Symbols** |
 | Android(Compose) | `FlareIcon` | `com.flare.im:im-ui-compose` | Material **Outlined** |
@@ -37,7 +37,7 @@ block  tag  announcement  theme  language  devices  logout  pin  poll
 
 ```vue
 <script setup lang="ts">
-import { FlareIcon } from "flare-core-vue-im-ui";
+import { FlareIcon } from "@flare-im/vue-ui";
 </script>
 <template>
   <FlareIcon name="send" :size="22" />
@@ -47,7 +47,7 @@ import { FlareIcon } from "flare-core-vue-im-ui";
 
 - `name` 有 `FlareIconName` 类型约束,拼错会被 TS 拦下。
 - `size` 默认 20;颜色继承 `currentColor`(父级 `color` 或 token)。
-- 也可 `import { flareIconNames } from "flare-core-vue-im-ui/shared/icons"` 遍历全集(画廊/选择器)。
+- 也可 `import { flareIconNames } from "@flare-im/vue-ui/shared/icons"` 遍历全集(画廊/选择器)。
 
 **组件的 `icon?: string` 属性走 `FlareGlyph`**:凡是接受开放 `icon` 字符串的 kit 组件(`FlareEmptyState`、`FlareSettingsRow`/`FlareProfilePanel` 行、`FlareAppShell` 导航项…)内部用 `<FlareGlyph :icon="...">` 渲染 —— 传**语义名**出线性图标,传其它字符串(emoji/单字)则原样回退。业务只需把 `icon` 传成语义名(如 `icon="settings"`)即可,不必自己引图标。
 
@@ -110,7 +110,7 @@ search: SearchOutline,   // ← 实为 Lucide "Search"
 send:   SendOutline,     // ← Lucide "Send"
 ```
 
-**消费方也能直接用 shim**:kit 通过 `exports["./icon-glyphs"]` 对外暴露该 shim。若某个 app 有自己直接 `import ... from "@vicons/ionicons5"` 的代码(如 `flare-social-tauri-app` 的 im-shared),把导入源改成 `"flare-core-vue-im-ui/icon-glyphs"` 即可**整体切到 Lucide 细线**(同名导出、调用点零改)。若用到 shim 尚未覆盖的 ionicons 名,在 `gen-icon-shim.mjs` 的 MAP 补一条再 `npm run gen:icons`。
+**消费方也能直接用 shim**:kit 通过 `exports["./icon-glyphs"]` 对外暴露该 shim。若某个 app 有自己直接 `import ... from "@vicons/ionicons5"` 的代码(如 `flare-social-tauri-app` 的 im-shared),把导入源改成 `"@flare-im/vue-ui/icon-glyphs"` 即可**整体切到 Lucide 细线**(同名导出、调用点零改)。若用到 shim 尚未覆盖的 ionicons 名,在 `gen-icon-shim.mjs` 的 MAP 补一条再 `npm run gen:icons`。
 
 ---
 
@@ -134,7 +134,7 @@ send:   SendOutline,     // ← Lucide "Send"
 
 ## 五、坑 / 注意
 
-- **不能 `npm install`**:kit 依赖 `flare-im-design-tokens@^0.1.0` 未发布到 registry,任何 `npm install <pkg>` 都会 404。新增前端依赖(如 lucide)需 `npm pack` 下 tarball 解压进 `node_modules` + 手写 `package.json` 依赖行。`node_modules` 被 gitignore。
+- **不能 `npm install`**:kit 依赖 `@flare-im/tokens@^0.1.0` 未发布到 registry,任何 `npm install <pkg>` 都会 404。新增前端依赖(如 lucide)需 `npm pack` 下 tarball 解压进 `node_modules` + 手写 `package.json` 依赖行。`node_modules` 被 gitignore。
 - **Web app 走 symlink**:`flare-social-web-app` 以 `file:` 依赖消费 kit,故 `lucide-vue-next` 从 **kit 自己的 `node_modules`** 解析,web app 无需单独装。
 - **Lucide 改名频繁**:如 `PlusCircle→CirclePlus`、`AlertCircle→CircleAlert`、`MoreHorizontal→Ellipsis`、`AlertTriangle→TriangleAlert`。加映射时**对着实际导出集验名**(`node_modules/lucide-vue-next/dist/*.d.ts` 的 `declare const`),别凭记忆。当前锁定 `lucide-vue-next@0.577.0`(0.x,避 1.0 改名潮)。
 - **1em 尺寸**:shim 组件必须以 `size:"1em"` 渲染,`<n-icon>` 才能用 `font-size` 控制大小;若直接用 Lucide 组件会固定 24px。

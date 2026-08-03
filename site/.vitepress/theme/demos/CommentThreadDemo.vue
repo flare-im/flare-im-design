@@ -1,5 +1,5 @@
 <script setup>
-import FlareCommentThread from "flare-core-vue-im-ui/components/moments/FlareCommentThread.vue";
+import FlareCommentThread from "@flare-im/vue-ui/components/moments/FlareCommentThread.vue";
 import DemoStage from "./DemoStage.vue";
 const comments = [
   { id: "1", author: { id: "leo", name: "Leo Wang" }, text: "第三张构图绝了！" },

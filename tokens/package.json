@@ -1,5 +1,5 @@
 {
-  "name": "flare-im-design-tokens",
+  "name": "@flare-im/tokens",
   "version": "1.0.5",
   "description": "Flare IM design tokens — one neutral source of visual truth, generated per platform (L3 of the Flare IM UI Kit).",
   "license": "Apache-2.0",

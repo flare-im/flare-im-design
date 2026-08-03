@@ -1,5 +1,5 @@
 <script setup>
-import PinnedMessageBar from "flare-core-vue-im-ui/components/messages/PinnedMessageBar.vue";
+import PinnedMessageBar from "@flare-im/vue-ui/components/messages/PinnedMessageBar.vue";
 import DemoStage from "./DemoStage.vue";
 
 const items = [

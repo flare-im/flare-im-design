@@ -3,12 +3,12 @@ import { computed } from "vue";
 import { AddOutline, ChatbubbleEllipsesOutline, CloseOutline, EllipsisHorizontalOutline, SearchOutline } from "../../shared/icon-glyphs";
 import { NButton, NIcon, NInput } from "naive-ui";
 import { useRouter } from "vue-router";
-import type { FlareConversationAction } from "flare-core-vue-im-ui/contracts";
-import { useFlareWorkbenchUi } from "flare-core-vue-im-ui/composables";
+import type { FlareConversationAction } from "@flare-im/vue-ui/contracts";
+import { useFlareWorkbenchUi } from "@flare-im/vue-ui/composables";
 import { ConversationList, ConversationListItem } from "../ui/components";
 import { useConversationListModel } from "../state/useConversationListModel";
 import { useFlareI18n } from "../shared/i18n";
-import type { ConversationFilter } from "flare-core-vue-im-ui/composables";
+import type { ConversationFilter } from "@flare-im/vue-ui/composables";
 
 const router = useRouter();
 const workbenchUi = useFlareWorkbenchUi();

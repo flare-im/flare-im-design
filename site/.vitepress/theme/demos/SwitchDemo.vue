@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import FlareSwitch from "flare-core-vue-im-ui/components/form/FlareSwitch.vue";
+import FlareSwitch from "@flare-im/vue-ui/components/form/FlareSwitch.vue";
 import DemoStage from "./DemoStage.vue";
 const a = ref(true), b = ref(false);
 </script>

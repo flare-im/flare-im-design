@@ -1,5 +1,5 @@
 <script setup>
-import FlareEmojiPicker from "flare-core-vue-im-ui/components/composer/FlareEmojiPicker.vue";
+import FlareEmojiPicker from "@flare-im/vue-ui/components/composer/FlareEmojiPicker.vue";
 import DemoStage from "./DemoStage.vue";
 const categories = [
   { key: "smileys", label: "笑脸", symbol: "😀", emojis: "😀 😁 😂 🤣 😊 😇 🙂 😉 😍 😘 😜 🤪 😎 🤩 🥳 😏 😌 😔 😴 🤤 😪 😷 🤒 🤕 🤢 🤮 🥴 😵 🤯 🤠".split(" ") },

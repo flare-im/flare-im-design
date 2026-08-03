@@ -1,5 +1,5 @@
 <script setup>
-import FlareTranslationView from "flare-core-vue-im-ui/components/messages/FlareTranslationView.vue";
+import FlareTranslationView from "@flare-im/vue-ui/components/messages/FlareTranslationView.vue";
 import DemoStage from "./DemoStage.vue";
 </script>
 <template>

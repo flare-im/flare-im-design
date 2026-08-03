@@ -1,5 +1,5 @@
 <script setup>
-import C from "flare-core-vue-im-ui/components/messages/standalone/FlareStickerMessage.vue";
+import C from "@flare-im/vue-ui/components/messages/standalone/FlareStickerMessage.vue";
 </script>
 <template>
   <C emoji="🐱" />

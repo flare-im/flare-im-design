@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import FlareChatWallpaperPicker from "flare-core-vue-im-ui/components/conversation/FlareChatWallpaperPicker.vue";
+import FlareChatWallpaperPicker from "@flare-im/vue-ui/components/conversation/FlareChatWallpaperPicker.vue";
 import DemoStage from "./DemoStage.vue";
 const options = [
   { id: "default", color: "#f6f5fb", label: "默认" },

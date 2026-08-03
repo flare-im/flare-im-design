@@ -2,8 +2,8 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
-import { NativeCallMap } from "flare-core-typescript-sdk/contract";
-import { ConversationType, MessageContentType, type Message, type MessageContent, type MessageLocalState } from "flare-core-typescript-sdk/web";
+import { NativeCallMap } from "@flare-im/sdk/contract";
+import { ConversationType, MessageContentType, type Message, type MessageContent, type MessageLocalState } from "@flare-im/sdk/web";
 import {
   buildMessageMenuDropdownOptions,
   buildMessageMenuSheetItems,
@@ -27,15 +27,15 @@ import {
   renderMarkdown,
   restorePrependScrollTop,
   resolveMessageMenuAction,
-} from "flare-core-vue-im-ui/utils";
-import { flareMessages, listI18nKeys } from "flare-core-vue-im-ui/i18n";
-import { buildFlareThemeStylesheet } from "flare-core-vue-im-ui/theme";
+} from "@flare-im/vue-ui/utils";
+import { flareMessages, listI18nKeys } from "@flare-im/vue-ui/i18n";
+import { buildFlareThemeStylesheet } from "@flare-im/vue-ui/theme";
 import {
   bindFlareSessionEvents,
   flareSessionBridgeTesting,
   mapSdkError,
   reportSdkError,
-} from "flare-core-vue-im-ui/composables";
+} from "@flare-im/vue-ui/composables";
 import { resolveWasmBindingAssetUrl } from "../../infrastructure/sdk/wasmLoader";
 import {
   createMessageOperationAdapter,
@@ -52,7 +52,7 @@ import {
   mapWasmEventForTesting,
   encodeWasmRequestForTesting,
   WebProductionBridge,
-} from "flare-core-typescript-sdk/web";
+} from "@flare-im/sdk/web";
 import { createAppMediaResolver } from "../../infrastructure/media/appMediaResolver";
 import {
   buildLoginTransportConfig,
@@ -67,8 +67,8 @@ import {
   readLoginEnvText,
   shouldRefreshTimelineAfterDispatch,
   useFlareCoreClient,
-} from "flare-core-vue-im-ui/composables";
-import { withTimeout } from "flare-core-vue-im-ui/utils";
+} from "@flare-im/vue-ui/composables";
+import { withTimeout } from "@flare-im/vue-ui/utils";
 import { conversationTitle } from "../conversationTitle";
 
 function messageFixture(overrides: Partial<Message> = {}): Message {

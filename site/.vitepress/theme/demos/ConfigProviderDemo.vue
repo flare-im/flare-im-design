@@ -1,7 +1,7 @@
 <script setup>
-import FlareConfigProvider from "flare-core-vue-im-ui/components/general/FlareConfigProvider.vue";
-import FlareButton from "flare-core-vue-im-ui/components/general/FlareButton.vue";
-import FlareSelect from "flare-core-vue-im-ui/components/form/FlareSelect.vue";
+import FlareConfigProvider from "@flare-im/vue-ui/components/general/FlareConfigProvider.vue";
+import FlareButton from "@flare-im/vue-ui/components/general/FlareButton.vue";
+import FlareSelect from "@flare-im/vue-ui/components/form/FlareSelect.vue";
 import ConfigPlaygroundPanel from "./ConfigPlaygroundPanel.vue";
 import DemoStage from "./DemoStage.vue";
 const opts = [{ value: "a", label: "选项 A" }, { value: "b", label: "选项 B" }];

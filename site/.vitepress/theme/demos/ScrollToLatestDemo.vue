@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import FlareScrollToLatest from "flare-core-vue-im-ui/components/messages/FlareScrollToLatest.vue";
+import FlareScrollToLatest from "@flare-im/vue-ui/components/messages/FlareScrollToLatest.vue";
 import DemoStage from "./DemoStage.vue";
 const count = ref(3);
 </script>

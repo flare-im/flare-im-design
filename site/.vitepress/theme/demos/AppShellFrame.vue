@@ -2,7 +2,7 @@
 // Full-bleed AppShell for the responsive iframe preview: wide viewport → side
 // rail; narrow viewport → bottom tab bar (FlareAppShell switches on innerWidth).
 import { ref } from "vue";
-import FlareAppShell from "flare-core-vue-im-ui/components/layout/FlareAppShell.vue";
+import FlareAppShell from "@flare-im/vue-ui/components/layout/FlareAppShell.vue";
 
 const items = [
   { key: "chat", label: "消息", badge: 3 },

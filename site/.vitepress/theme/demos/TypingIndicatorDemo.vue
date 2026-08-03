@@ -1,5 +1,5 @@
 <script setup>
-import FlareTypingIndicator from "flare-core-vue-im-ui/components/messages/FlareTypingIndicator.vue";
+import FlareTypingIndicator from "@flare-im/vue-ui/components/messages/FlareTypingIndicator.vue";
 import DemoStage from "./DemoStage.vue";
 </script>
 <template>

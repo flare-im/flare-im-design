@@ -1,5 +1,5 @@
 <script setup>
-import FlareComposerActionPanel from "flare-core-vue-im-ui/components/composer/FlareComposerActionPanel.vue";
+import FlareComposerActionPanel from "@flare-im/vue-ui/components/composer/FlareComposerActionPanel.vue";
 import DemoStage from "./DemoStage.vue";
 
 const actions = [

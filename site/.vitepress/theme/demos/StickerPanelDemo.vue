@@ -1,5 +1,5 @@
 <script setup>
-import FlareStickerPanel from "flare-core-vue-im-ui/components/composer/FlareStickerPanel.vue";
+import FlareStickerPanel from "@flare-im/vue-ui/components/composer/FlareStickerPanel.vue";
 import DemoStage from "./DemoStage.vue";
 const mk = (emojis) => emojis.map((e, i) => ({ id: `${e}-${i}`, placeholder: e }));
 const packs = [

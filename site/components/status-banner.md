@@ -38,7 +38,7 @@ title: StatusBanner
 ## 各端实现
 
 <div class="flare-platform-grid">
-  <div class="flare-platform-card"><h4>Vue</h4><div><code>FlareStatusBanner</code></div><div style="color:var(--vp-c-text-3);font-size:12px;margin-top:4px">flare-core-vue-im-ui</div></div>
+  <div class="flare-platform-card"><h4>Vue</h4><div><code>FlareStatusBanner</code></div><div style="color:var(--vp-c-text-3);font-size:12px;margin-top:4px">@flare-im/vue-ui</div></div>
 </div>
 
 
@@ -48,7 +48,7 @@ title: StatusBanner
 
 ```vue [Vue]
 <script setup>
-import { FlareStatusBanner } from "flare-core-vue-im-ui";
+import { FlareStatusBanner } from "@flare-im/vue-ui";
 </script>
 <template>
   <FlareStatusBanner

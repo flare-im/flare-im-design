@@ -12,9 +12,9 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": ["vite/client", "node"],
     "paths": {
-      "flare-core-typescript-sdk/web": ["../../flare-im-core-client-sdk/packages/flare-core-typescript-sdk/src/adapters/web/index.ts"],
-      "flare-core-typescript-sdk/*": ["../../flare-im-core-client-sdk/packages/flare-core-typescript-sdk/src/*"],
-      "flare-core-typescript-sdk": ["../../flare-im-core-client-sdk/packages/flare-core-typescript-sdk/src/index.ts"]
+      "@flare-im/sdk/web": ["../../flare-im-core-client-sdk/packages/flare-core-typescript-sdk/src/adapters/web/index.ts"],
+      "@flare-im/sdk/*": ["../../flare-im-core-client-sdk/packages/flare-core-typescript-sdk/src/*"],
+      "@flare-im/sdk": ["../../flare-im-core-client-sdk/packages/flare-core-typescript-sdk/src/index.ts"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.vue"],

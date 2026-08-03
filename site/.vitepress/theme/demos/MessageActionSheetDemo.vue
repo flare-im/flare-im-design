@@ -2,9 +2,9 @@
 // Message actions are platform-split, so the demo shows BOTH:
 //  · Desktop — real FlareMessageBubble; hover reveals the [react · reply · more] bar.
 //  · Mobile  — the real MessageContextMenuSheet (what a long-press pops up), shown open.
-import FlareMessageBubble from "flare-core-vue-im-ui/components/messages/MessageBubble.vue";
-import MessageContextMenuSheet from "flare-core-vue-im-ui/components/messages/MessageContextMenuSheet.vue";
-import { buildMessageContextSheetModel } from "flare-core-vue-im-ui/utils/buildMessageMenuOptions";
+import FlareMessageBubble from "@flare-im/vue-ui/components/messages/MessageBubble.vue";
+import MessageContextMenuSheet from "@flare-im/vue-ui/components/messages/MessageContextMenuSheet.vue";
+import { buildMessageContextSheetModel } from "@flare-im/vue-ui/utils/buildMessageMenuOptions";
 import DemoStage from "./DemoStage.vue";
 
 const me = "me";

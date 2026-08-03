@@ -11,7 +11,7 @@
 
 | 平台 | 包 | 下载 |
 |---|---|---|
-| Vue | `flare-core-vue-im-ui` | [flare-core-vue-im-ui-0.1.0.tgz](/downloads/flare-core-vue-im-ui-0.1.0.tgz) |
+| Vue | `@flare-im/vue-ui` | [@flare-im/vue-ui-0.1.0.tgz](/downloads/@flare-im/vue-ui-0.1.0.tgz) |
 | Flutter | `flare_im_ui` | [flare_im_ui-flutter-0.1.0.tar.gz](/downloads/flare_im_ui-flutter-0.1.0.tar.gz) |
 | iOS | `FlareIMUI` | [FlareIMUI-ios-0.1.0.tar.gz](/downloads/FlareIMUI-ios-0.1.0.tar.gz) |
 | Android | `com.flare.im:im-ui-compose` | [flare-im-ui-compose-android-0.1.0.tar.gz](/downloads/flare-im-ui-compose-android-0.1.0.tar.gz) |
@@ -21,12 +21,12 @@
 ::: code-group
 
 ```bash [npm 仓库]
-npm i flare-core-vue-im-ui
+npm i @flare-im/vue-ui
 ```
 
 ```bash [下载的源码包]
 # 下载上面的 .tgz 后
-npm i ./flare-core-vue-im-ui-0.1.0.tgz
+npm i ./@flare-im/vue-ui-0.1.0.tgz
 ```
 
 ```bash [本地源码]
@@ -37,12 +37,12 @@ npm i /path/to/flare-im-design/vue-im-ui
 
 ```vue
 <script setup>
-import { MessageBubble, FlareConversationList } from "flare-core-vue-im-ui";
-import "flare-core-vue-im-ui/style.css";
+import { MessageBubble, FlareConversationList } from "@flare-im/vue-ui";
+import "@flare-im/vue-ui/style.css";
 </script>
 ```
 
-> 依赖 `flare-im-design-tokens`（设计 Tokens）与可选 peer `flare-core-typescript-sdk`（喂数据）；用仓库安装时需保证这两者可解析（已发布或本地 link）。
+> 依赖 `@flare-im/tokens`（设计 Tokens）与可选 peer `@flare-im/sdk`（喂数据）；用仓库安装时需保证这两者可解析（已发布或本地 link）。
 
 ## Flutter
 

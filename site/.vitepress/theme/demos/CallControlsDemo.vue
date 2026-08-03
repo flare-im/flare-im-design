@@ -1,5 +1,5 @@
 <script setup>
-import FlareCallControls from "flare-core-vue-im-ui/components/call/FlareCallControls.vue";
+import FlareCallControls from "@flare-im/vue-ui/components/call/FlareCallControls.vue";
 import DemoStage from "./DemoStage.vue";
 </script>
 

@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import FlareStartConversationDialog from "flare-core-vue-im-ui/components/shell/FlareStartConversationDialog.vue";
+import FlareStartConversationDialog from "@flare-im/vue-ui/components/shell/FlareStartConversationDialog.vue";
 import DemoStage from "./DemoStage.vue";
 
 const open = ref(false);

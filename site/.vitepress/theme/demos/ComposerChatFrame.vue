@@ -1,10 +1,10 @@
 <script setup>
-import FlareIcon from "flare-core-vue-im-ui/components/general/FlareIcon.vue";
+import FlareIcon from "@flare-im/vue-ui/components/general/FlareIcon.vue";
 import { computed, ref } from "vue";
-import FlareChatHeader from "flare-core-vue-im-ui/components/messages/ChatConversationHeader.vue";
-import FlareMessageList from "flare-core-vue-im-ui/components/messages/MessageList.vue";
-import FlareComposer from "flare-core-vue-im-ui/components/composer/EnhancedComposer.vue";
-import EmojiStickerPanel from "flare-core-vue-im-ui/components/composer/ComposerEmojiStickerPanel/index.vue";
+import FlareChatHeader from "@flare-im/vue-ui/components/messages/ChatConversationHeader.vue";
+import FlareMessageList from "@flare-im/vue-ui/components/messages/MessageList.vue";
+import FlareComposer from "@flare-im/vue-ui/components/composer/EnhancedComposer.vue";
+import EmojiStickerPanel from "@flare-im/vue-ui/components/composer/ComposerEmojiStickerPanel/index.vue";
 
 // A real, interactive chat surface: kit ChatHeader + MessageList + Composer, all
 // wired. Type & send → a real bubble; pick an emoji → inline in the next message;

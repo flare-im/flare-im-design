@@ -18,7 +18,7 @@ import type {
   VideoContentPayload,
   ViewUpdate,
   WebFlareImClient,
-} from "flare-core-typescript-sdk/web";
+} from "@flare-im/sdk/web";
 import {
   FlareSdkException,
   HeartbeatAppState,
@@ -27,7 +27,7 @@ import {
   NetworkInterfaceKind,
   conversationFromJson,
   messageFromJson,
-} from "flare-core-typescript-sdk/web";
+} from "@flare-im/sdk/web";
 import {
   bindFlareSessionEvents,
   reportSdkError,

@@ -3,9 +3,9 @@
 Flare IM UI Kit — **iOS / SwiftUI** component package (L1).
 
 One framework-neutral contract
-([`flare-im-ui-spec`](https://github.com/flare-im/flare-im-design/tree/main/spec)),
+([`@flare-im/ui-spec`](https://github.com/flare-im/flare-im-design/tree/main/spec)),
 realised natively. Design tokens are generated from
-[`flare-im-design-tokens`](https://github.com/flare-im/flare-im-design/tree/main/tokens)
+[`@flare-im/tokens`](https://github.com/flare-im/flare-im-design/tree/main/tokens)
 into `Sources/FlareIMUI/Tokens/FlareTokens.swift` (do not edit by hand — re-run the
 tokens generator). Components are **pure/presentational** — data in, callbacks out; IM
 behaviour and state live in the Rust core's observable views and are fed in by the host

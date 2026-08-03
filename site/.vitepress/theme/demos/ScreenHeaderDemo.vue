@@ -1,7 +1,7 @@
 <script setup>
 import { NIcon } from "naive-ui";
 import { SearchOutline, AddCircleOutline } from "@vicons/ionicons5";
-import FlareScreenHeader from "flare-core-vue-im-ui/components/layout/FlareScreenHeader.vue";
+import FlareScreenHeader from "@flare-im/vue-ui/components/layout/FlareScreenHeader.vue";
 import DemoStage from "./DemoStage.vue";
 </script>
 <template>

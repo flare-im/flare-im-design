@@ -1,5 +1,5 @@
 <script setup>
-import FlareVoiceRecordingBar from "flare-core-vue-im-ui/components/composer/FlareVoiceRecordingBar.vue";
+import FlareVoiceRecordingBar from "@flare-im/vue-ui/components/composer/FlareVoiceRecordingBar.vue";
 import DemoStage from "./DemoStage.vue";
 const amps = Array.from({ length: 28 }, (_, i) => 0.25 + 0.7 * Math.abs(Math.sin(i * 0.8 + 1)));
 </script>

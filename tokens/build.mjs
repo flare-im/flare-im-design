@@ -2,7 +2,7 @@
 // Flare IM design tokens — generator.
 // One neutral source (tokens.json) → per-platform outputs.
 // Web (CSS custom properties + the typed token object) is generated here because
-// flare-core-vue-im-ui is the current consumer. Dart / Swift / Compose emitters are
+// @flare-im/vue-ui is the current consumer. Dart / Swift / Compose emitters are
 // added when their component packages land (no generator without a consumer).
 
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
@@ -66,10 +66,10 @@ const block = (sel, vars) =>
   `${sel} {\n${vars.map(([k, v]) => `  ${k}: ${v};`).join("\n")}\n}`;
 
 const css =
-  `/* GENERATED. Do not edit by hand. Source: flare-im-design-tokens/tokens.json */\n` +
+  `/* GENERATED. Do not edit by hand. Source: @flare-im/tokens/tokens.json */\n` +
   `${block(":root", lightVars)}\n\n${block('[data-flare-theme="dark"]', darkVars)}\n`;
 
-const banner = `// GENERATED. Do not edit by hand. Source: flare-im-design-tokens/tokens.json\n`;
+const banner = `// GENERATED. Do not edit by hand. Source: @flare-im/tokens/tokens.json\n`;
 const obj = JSON.stringify(src, null, 2);
 const ts = `${banner}\nexport const flareDesignTokens = ${obj} as const;\n\nexport type FlareDesignTokens = typeof flareDesignTokens;\n`;
 // runtime ESM for npm consumers that don't compile .ts
@@ -139,7 +139,7 @@ for (const [group, entries] of Object.entries(src.sizes)) {
   }
 }
 
-const dartBanner = `// GENERATED. Do not edit by hand. Source: flare-im-design-tokens/tokens.json\n`;
+const dartBanner = `// GENERATED. Do not edit by hand. Source: @flare-im/tokens/tokens.json\n`;
 const dart =
   dartBanner +
   `\nimport 'dart:ui';\n\n` +
@@ -190,7 +190,7 @@ function swiftColor(value) {
 }
 
 const swift =
-  `// GENERATED. Do not edit by hand. Source: flare-im-design-tokens/tokens.json\n` +
+  `// GENERATED. Do not edit by hand. Source: @flare-im/tokens/tokens.json\n` +
   `import SwiftUI\n\n` +
   `/// Flare IM design colours, theme-aware. Use \`FlareColors.of(colorScheme)\`.\n` +
   `public struct FlareColors: Sendable {\n` +
@@ -216,7 +216,7 @@ writeFileSync(swiftTokens, swift);
 const composeColor = dartColor; // Kotlin androidx Color literal is also 0xAARRGGBB
 
 const kotlin =
-  `// GENERATED. Do not edit by hand. Source: flare-im-design-tokens/tokens.json\n` +
+  `// GENERATED. Do not edit by hand. Source: @flare-im/tokens/tokens.json\n` +
   `package com.flare.im.ui\n\n` +
   `import androidx.compose.runtime.Composable\n` +
   `import androidx.compose.foundation.isSystemInDarkTheme\n` +
@@ -246,6 +246,6 @@ mkdirSync(dirname(kotlinTokens), { recursive: true });
 writeFileSync(kotlinTokens, kotlin);
 
 console.log(
-  `flare-im-design-tokens: generated dist/tokens.{css,ts,js,d.ts} (${lightVars.length} light + ${darkVars.length} dark vars)` +
+  `@flare-im/tokens: generated dist/tokens.{css,ts,js,d.ts} (${lightVars.length} light + ${darkVars.length} dark vars)` +
     ` + Dart/Swift/Kotlin token files (${colorFields.length} colours × 2 themes, ${sizeConsts.length} sizes)`,
 );

@@ -36,12 +36,12 @@ export const backend = reactive({
 ```vue
 <script setup lang="ts">
 import { ref } from "vue";
-import { useFlareI18nProvider } from "flare-core-vue-im-ui/i18n";
+import { useFlareI18nProvider } from "@flare-im/vue-ui/i18n";
 import {
   FlareConversationList, FlareConversationRow,
   FlareTextMessage, FlareComposerSendButton,
-} from "flare-core-vue-im-ui/components";
-import "flare-core-vue-im-ui/style.css";
+} from "@flare-im/vue-ui/components";
+import "@flare-im/vue-ui/style.css";
 import { backend } from "./backend";
 
 useFlareI18nProvider("en-US"); // 一次性：语言（内置 zh / en）

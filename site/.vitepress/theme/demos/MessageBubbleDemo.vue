@@ -1,6 +1,6 @@
 <script setup>
 // Renders the REAL kit component so the docs cannot drift from the shipped bubble.
-import FlareMessageBubble from "flare-core-vue-im-ui/components/messages/MessageBubble.vue";
+import FlareMessageBubble from "@flare-im/vue-ui/components/messages/MessageBubble.vue";
 import DemoStage from "./DemoStage.vue";
 
 const me = "me";

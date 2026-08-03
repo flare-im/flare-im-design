@@ -3,8 +3,8 @@
 // desktop → FlareStartConversationDialog (centered modal); mobile → a bottom sheet
 // (FlareStartConversationSheet). The frame picks by viewport, mirroring the shell.
 import { ref, onMounted, onBeforeUnmount } from "vue";
-import FlareStartConversationDialog from "flare-core-vue-im-ui/components/shell/FlareStartConversationDialog.vue";
-import FlareStartConversationSheet from "flare-core-vue-im-ui/components/shell/FlareStartConversationSheet.vue";
+import FlareStartConversationDialog from "@flare-im/vue-ui/components/shell/FlareStartConversationDialog.vue";
+import FlareStartConversationSheet from "@flare-im/vue-ui/components/shell/FlareStartConversationSheet.vue";
 
 const isDesktop = ref(true);
 let mq = null;

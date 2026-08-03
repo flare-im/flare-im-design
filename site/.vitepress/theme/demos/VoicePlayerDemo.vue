@@ -1,6 +1,6 @@
 <script setup>
 import { reactive } from "vue";
-import FlareVoicePlayer from "flare-core-vue-im-ui/components/messages/FlareVoicePlayer.vue";
+import FlareVoicePlayer from "@flare-im/vue-ui/components/messages/FlareVoicePlayer.vue";
 import DemoStage from "./DemoStage.vue";
 const amps = Array.from({ length: 32 }, (_, i) => 0.3 + 0.6 * Math.abs(Math.sin(i * 0.55 + 0.6)));
 const speeds = [1, 1.5, 2];

@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import FlareRating from "flare-core-vue-im-ui/components/form/FlareRating.vue";
+import FlareRating from "@flare-im/vue-ui/components/form/FlareRating.vue";
 import DemoStage from "./DemoStage.vue";
 const a = ref(3), b = ref(4);
 </script>

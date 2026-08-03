@@ -9,8 +9,8 @@
     "preview": "vitepress preview"
   },
   "dependencies": {
-    "flare-core-vue-im-ui": "file:../vue-im-ui",
-    "flare-im-design-tokens": "file:../tokens",
+    "@flare-im/vue-ui": "file:../vue-im-ui",
+    "@flare-im/tokens": "file:../tokens",
     "naive-ui": "^2.44.1",
     "vue-router": "^4.6.0",
     "@vicons/ionicons5": "^0.12.0",

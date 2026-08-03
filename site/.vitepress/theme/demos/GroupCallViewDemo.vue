@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import FlareGroupCallView from "flare-core-vue-im-ui/components/call/FlareGroupCallView.vue";
+import FlareGroupCallView from "@flare-im/vue-ui/components/call/FlareGroupCallView.vue";
 import DemoStage from "./DemoStage.vue";
 
 const participants = ref([

@@ -1,4 +1,4 @@
-import { ConversationType } from "flare-core-typescript-sdk/web";
+import { ConversationType } from "@flare-im/sdk/web";
 import { translateFlare } from "../../shared/i18n/messages";
 
 export type ConversationTitleParticipant = {

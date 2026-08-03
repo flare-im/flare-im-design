@@ -14,7 +14,7 @@
 
 ```ts
 // 1) 应用入口导入一次基础样式
-import "flare-core-vue-im-ui/style.css";
+import "@flare-im/vue-ui/style.css";
 ```
 
 ```css
@@ -52,14 +52,14 @@ import "flare-core-vue-im-ui/style.css";
 
 ## 用法
 
-`flare-im-design-tokens/theme` 提供框架无关的运行时 API：
+`@flare-im/tokens/theme` 提供框架无关的运行时 API：
 
 ```ts
 import {
   applyFlareTheme,
   deriveFlareTheme,
   flarePresets,
-} from "flare-im-design-tokens/theme";
+} from "@flare-im/tokens/theme";
 
 // 1) 从一个主色派生整套主题，作用于整页
 applyFlareTheme(deriveFlareTheme({ primary: "#2563EB" }));
@@ -90,8 +90,8 @@ Vue 里用 `FlareThemeProvider` 把主题作用到一段子树（可嵌套、可
 
 ```vue
 <script setup>
-import { FlareThemeProvider } from "flare-core-vue-im-ui";
-import { deriveFlareTheme } from "flare-im-design-tokens/theme";
+import { FlareThemeProvider } from "@flare-im/vue-ui";
+import { deriveFlareTheme } from "@flare-im/tokens/theme";
 </script>
 
 <template>

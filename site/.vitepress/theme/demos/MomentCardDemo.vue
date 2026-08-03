@@ -1,6 +1,6 @@
 <script setup>
 import { reactive } from "vue";
-import FlareMomentCard from "flare-core-vue-im-ui/components/moments/FlareMomentCard.vue";
+import FlareMomentCard from "@flare-im/vue-ui/components/moments/FlareMomentCard.vue";
 import DemoStage from "./DemoStage.vue";
 const sw = (a, b) => "data:image/svg+xml;utf8," + encodeURIComponent(
   `<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='${a}'/><stop offset='1' stop-color='${b}'/></linearGradient></defs><rect width='120' height='120' fill='url(%23g)'/></svg>`.replace(/#/g, "%23"));

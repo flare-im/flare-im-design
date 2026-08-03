@@ -1,5 +1,5 @@
 <script setup>
-import FlareConversationRow from "flare-core-vue-im-ui/components/conversation/FlareConversationRow.vue";
+import FlareConversationRow from "@flare-im/vue-ui/components/conversation/FlareConversationRow.vue";
 import DemoStage from "./DemoStage.vue";
 
 const item = {

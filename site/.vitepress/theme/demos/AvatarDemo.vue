@@ -1,5 +1,5 @@
 <script setup>
-import FlareAvatar from "flare-core-vue-im-ui/components/conversation/FlareAvatar.vue";
+import FlareAvatar from "@flare-im/vue-ui/components/conversation/FlareAvatar.vue";
 import DemoStage from "./DemoStage.vue";
 
 const people = [

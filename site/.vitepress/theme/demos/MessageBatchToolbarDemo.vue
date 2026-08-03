@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import FlareMessageBatchToolbar from "flare-core-vue-im-ui/components/messages/FlareMessageBatchToolbar.vue";
+import FlareMessageBatchToolbar from "@flare-im/vue-ui/components/messages/FlareMessageBatchToolbar.vue";
 import DemoStage from "./DemoStage.vue";
 const count = ref(3);
 const total = 8;

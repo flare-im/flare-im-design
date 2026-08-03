@@ -12,7 +12,7 @@
 - **单一源**：tokens.json → 各端生成物 vendored 进各自包（web CSS/TS、Dart、Swift、Kotlin）。Swift/Compose 生成器加进 `tokens/build.mjs`（消费者落地才加，符合既定策略）。
 - **纯展示 + 中立模型**：原生组件 props-in/callbacks-out，富内容/i18n/媒体管线上浮 app。Flutter 版是各端的参考实现（同名 symbol、同 props 语义）。
 - **各端 idiom**：Swift enum、Kotlin enum/sealed、SwiftUI `@Binding`/闭包、Compose lambda。string-union → 各端 enum。
-- **官网技术选型 = VitePress**（Vue 原生，可直接 import `flare-core-vue-im-ui` 真组件做 live demo；ant.design 是 React/dumi，我们组件核心是 Vue 故用 VitePress 更真）。API 表数据取 `spec/components.json`，代码 tab 取各端 README/用法。
+- **官网技术选型 = VitePress**（Vue 原生，可直接 import `@flare-im/vue-ui` 真组件做 live demo；ant.design 是 React/dumi，我们组件核心是 Vue 故用 VitePress 更真）。API 表数据取 `spec/components.json`，代码 tab 取各端 README/用法。
 - 工具链已确认在本机：swift / xcodegen / dart / flutter / node22 / npm。
 - iOS 抽取源 = `flare-im-core-client-sdk/examples/flare-core-ios-app/Sources/FlareImApp`（有 Package.swift + project.yml）。Android 源 = `.../flare-core-android-app/app/src/main/kotlin`（build.gradle.kts，Compose）。
 - 符号映射见 spec：iOS 包 `FlareIMUI` symbol=`AvatarView/…`；Compose 包 `com.flare.im:im-ui-compose` symbol=`Avatar/…`。
@@ -45,7 +45,7 @@
 - [x] **13 个独立组件（清爽 props，自成一体，自由组合）✅**：`site/.vitepress/theme/demos/messages/` 建 `FlareTextMessage`(text/self, 自动 linkify) / `FlareImageMessage`(src/w/h) / `FlareVideoMessage`(poster/duration) / `FlareVoiceMessage`(seconds) / `FlareFileMessage`(name/size/ext) / `FlareLocationMessage`(title/address) / `FlareContactMessage`(name/flareId, pastel 头像) / `FlareLinkCardMessage`(title/domain/thumb) / `FlareVoteMessage`(title/options[{text,pct}]) / `FlareTaskMessage`(title/meta/done, 完成划线) / `FlareStickerMessage`(emoji/src) / `FlareEmojiMessage`(emoji) / `FlareSystemMessage`(text)——各自 SFC，props 简洁可直接用。
 - [x] **MessageContentView demo 改为组合这 13 个 ✅**：每项以其**组件标签**(`<FlareFileMessage>` 等)作标签，直观证明"每种消息=独立组件、可单独用"；示例区加策展例「每个类型都是独立组件」(四端：单独用任一 body 或交给 dispatcher 按 content.type 分派)。
 - **验证**：13 组件全渲染、示例区 2 例、移动 375px + 暗色无横向溢出、控制台净、vitepress build 绿。
-- [x] **Vue shipped 公开导出 13 个独立组件 ✅**（"继续"）：查证内部 views(FileView 等)**深度耦合 SDK/媒体管线**(useMediaResolver/download state/ContentElem)——不可 standalone 复用，包装它们脆弱。故建**解耦的展示层**：`vue-im-ui/src/components/messages/standalone/` 13 个清爽 props SFC（`--im-*` 变量 + token 值 fallback 保证无主题也渲染）+ `MsgIcon.vue`(内联 SVG，零 naive-ui 依赖)；barrel 导出 `FlareTextMessage/…/FlareSystemMessage`（与既有 SDK 驱动的 `Flare*MessageView` 不撞名）。**定位**：解耦展示层（产品喂简单 props 自由组合）vs `FlareMessageContentView` 分发器（SDK 驱动 batteries-included），两条路各司其职、非冗余。**验证**：`vue-tsc` 绿（含 barrel index.ts）；新增 `renderToString` 测试 10/10 过（各类型挂载+输出断言，媒体类型无需 SDK 即渲染）；全套 14 测试全过（2 个 SDK 缺失导致的 collection 失败是**预存环境问题**非本次引入，其导入 `flare-core-typescript-sdk`）。视觉等价于已验证的 site demo（同标记）。
+- [x] **Vue shipped 公开导出 13 个独立组件 ✅**（"继续"）：查证内部 views(FileView 等)**深度耦合 SDK/媒体管线**(useMediaResolver/download state/ContentElem)——不可 standalone 复用，包装它们脆弱。故建**解耦的展示层**：`vue-im-ui/src/components/messages/standalone/` 13 个清爽 props SFC（`--im-*` 变量 + token 值 fallback 保证无主题也渲染）+ `MsgIcon.vue`(内联 SVG，零 naive-ui 依赖)；barrel 导出 `FlareTextMessage/…/FlareSystemMessage`（与既有 SDK 驱动的 `Flare*MessageView` 不撞名）。**定位**：解耦展示层（产品喂简单 props 自由组合）vs `FlareMessageContentView` 分发器（SDK 驱动 batteries-included），两条路各司其职、非冗余。**验证**：`vue-tsc` 绿（含 barrel index.ts）；新增 `renderToString` 测试 10/10 过（各类型挂载+输出断言，媒体类型无需 SDK 即渲染）；全套 14 测试全过（2 个 SDK 缺失导致的 collection 失败是**预存环境问题**非本次引入，其导入 `@flare-im/sdk`）。视觉等价于已验证的 site demo（同标记）。
 - [x] **Flutter/iOS/Compose 四端齐平 ✅**（"需要"）：三端各落 13 个解耦独立组件（同解耦展示层定位，复用各端 pastel/initials helper 免重复）：
   - **Flutter** `flare_message_bodies.dart`（`FlareTextMessage`…`FlareSystemMessage` + `FlareVoteOption`，StatelessWidget，FlareColors.of/FlareSizes/Material outlined 图标）+ barrel 导出；**analyze 0 + test 65/65**（+8）。
   - **iOS** `MessageBodyViews.swift`（`TextMessageView`…`SystemMessageView` + `FlareVoteOption`，`…View` 命名随 iOS 惯例，复用 `AvatarView.seedTint/initials`，SF Symbols）；**swift build + test 14/14**。
@@ -62,7 +62,7 @@
 - [x] **I-1 MessageContentView 全类型展示 ✅**：demo 从 5 型扩到**13 型**（text 带链接 / image / video[播放叠层+时长角标] / audio[波形] / file[卡片] / location[地图区+地址] / card[pastel 头像名片] / linkCard[缩略图+标题+域名] / vote[进度条选项] / task[紫勾+截止] / sticker[裸大图] / emoji[裸大] / notification[居中 pill]），全部按 app 白卡/画布/pastel 语言；实测 13 项无横向溢出、控制台净。
 - [x] **I-2 包元数据可分发化 ✅**：Android `build.gradle.kts` 加 `maven-publish` + `group=com.flare.im`/`version=0.1.0` + `singleVariant("release")+withSourcesJar` + `afterEvaluate` publication（坐标 `com.flare.im:im-ui-compose:0.1.0`）——`compileDebugKotlin` 绿 + `publish` 任务已注册；Vue `package.json` 补 homepage/repository(directory)/bugs；Flutter/iOS 元数据已具备（pubspec repository / Package.swift SPM）。
 - [x] **I-3 官网下载 + 引用说明 ✅**：`site/scripts/pack-downloads.sh`（vue=`npm pack`；flutter/ios/android=tar 排除 build/.gradle/.dart_tool/.build）产 4 个源码包到 `site/public/downloads/`；新增双语 `guide/install.md` + `en/guide/install.md`（下载表 4 链接 + 每端三法：仓库/Git·SPM/下载包 code-group + 用法 + **维护者发布命令**明确标注需自备凭据）；nav+sidebar 两语加「安装」；`config.mts` 加 `ignoreDeadLinks:[/^\/downloads\//]`（静态资产非页面）。**vitepress build 绿**，dist/downloads 4 包就位，实测下载链接 200（vue tgz 245KB）、en 页 4 链接、控制台净。
-- **边界（须用户自备凭据/outward-facing，我未执行）**：npm publish / dart pub publish / git push+tag / `./gradlew publish` 到远端——install 页已给逐条命令；「flutter 上传仓库」因本目录非 git 仓库且推远端需鉴权，由用户执行（或授权具体步骤）。Vue 包 registry 安装还依赖 `flare-im-design-tokens`+peer sdk 也发布/link，已在 install 页注明。
+- **边界（须用户自备凭据/outward-facing，我未执行）**：npm publish / dart pub publish / git push+tag / `./gradlew publish` 到远端——install 页已给逐条命令；「flutter 上传仓库」因本目录非 git 仓库且推远端需鉴权，由用户执行（或授权具体步骤）。Vue 包 registry 安装还依赖 `@flare-im/tokens`+peer sdk 也发布/link，已在 install 页注明。
 
 ## Phase H — MessageActionSheet 对齐 flutter 长按菜单（已完成 ✅，2026-07-08）
 用户："MessageActionSheet 要参照 flutter 现在的样式"。参照源 = app `message_long_press_menu.dart`（Feishu 式分层 sheet）。
@@ -112,7 +112,7 @@ Track A/B（原始 18 组件四端 + 官网）✅ + **Phase C 全 ✅**：C-1 �
 - [x] `mv` 目录；改 `tokens/build.mjs`(Kotlin 输出路径)、`spec/validate.mjs`(composeRoot)、README/getting-started/PLAN 引用；regenerate tokens → **`gradle compileDebugKotlin` 绿 + spec validate 四端绿**。
 
 ### C-2 主题系统（可定制/自由组合/引入即用）✅
-- [x] **`flare-im-design-tokens/theme`**（新 `tokens/theme.js`+`theme.d.ts`，加进 package exports/files）：`deriveFlareTheme({primary,…})`（HSL 派生 hover/active/气泡/链接/选中）、`applyFlareTheme(overrides, el?)`（作用整页或**子树**，多主题共存）、`flareThemeVars`、6 内置预设 `flarePresets`(violet/ocean/forest/sunset/rose/graphite)。
+- [x] **`@flare-im/tokens/theme`**（新 `tokens/theme.js`+`theme.d.ts`，加进 package exports/files）：`deriveFlareTheme({primary,…})`（HSL 派生 hover/active/气泡/链接/选中）、`applyFlareTheme(overrides, el?)`（作用整页或**子树**，多主题共存）、`flareThemeVars`、6 内置预设 `flarePresets`(violet/ocean/forest/sunset/rose/graphite)。
 - [x] **site `guide/theming.md` + `ThemePlayground.vue`**：取色器+预设 chip **实时换肤**（Claude_Preview 实测点 Ocean→全组件秒变蓝，✓）。nav/sidebar 加"主题定制"。`vitepress build` 绿。
 - [x] **Vue `FlareThemeProvider` ✅**（`design-system/provider/FlareThemeProvider.vue`：`theme` prop→子树 CSS 变量，`display:contents` 布局透明，可嵌套）；导出 + vue-tsc 0 err。
 - [ ] Flutter/iOS/Android 主题下发文档已在 theming.md；各端 `copyWith`/CompositionLocal helper 待补。
@@ -183,6 +183,6 @@ Track A/B（原始 18 组件四端 + 官网）✅ + **Phase C 全 ✅**：C-1 �
 - Swift 颜色：`rgba` 有小数 alpha → SwiftUI `Color(.sRGB, red:g:b:opacity:)`（非 const 限制，Swift 无所谓）。Compose 颜色：`Color(0xAARRGGBB)`（同 Dart 转换，可复用 build.mjs 里的 hx 逻辑）。
 - iOS 测试若无 ViewInspector 依赖：退化为「模型/纯函数断言 + View 可构造」冒烟，避免引第三方。
 - Compose 单元测试要 Robolectric/compose-test，重；先保证 `compileReleaseKotlin` 通过（等价 Flutter 的 analyze 门禁），单测视情况加。
-- 官网 live demo：`flare-core-vue-im-ui` 需要 naive-ui/vue-router peer；VitePress 里装齐即可。个别组件依赖 SDK 运行时的（MessageList/Composer 真实收发）在文档里用假数据/桩，纯展示态即可。
+- 官网 live demo：`@flare-im/vue-ui` 需要 naive-ui/vue-router peer；VitePress 里装齐即可。个别组件依赖 SDK 运行时的（MessageList/Composer 真实收发）在文档里用假数据/桩，纯展示态即可。
 - 体量大、跨 4 语言 + 站点：**每步 build/test 门禁**，逐步提交，不一把梭。
 - 主 PLAN.md 的 Phase 4/官网条目在收口步回填。

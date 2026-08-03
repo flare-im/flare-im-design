@@ -1,5 +1,5 @@
 <script setup>
-import FlareMarkdownPreview from "flare-core-vue-im-ui/components/message-preview/MarkdownPreview.vue";
+import FlareMarkdownPreview from "@flare-im/vue-ui/components/message-preview/MarkdownPreview.vue";
 import DemoStage from "./DemoStage.vue";
 
 const content = `## 新版设计稿

@@ -8,7 +8,7 @@
 |---|---|---|---|
 | A | `@flare/shared-im-ui` | `examples/shared-im-ui` | 参考（reference-only） |
 | A′ | `@flare/shared-im-ui`（=A 拷贝） | `flare-social/.../examples/apps/shared-im-ui` | **flare-social-tauri-app 在用**（本轮修过 send-ack/信封/hub） |
-| **B** | `flare-core-vue-im-ui` | `flare-im-core-client-sdk/packages/` | **canonical 目标**（core 示例 web/electron/tauri/uni 已在用） |
+| **B** | `@flare-im/vue-ui` | `flare-im-core-client-sdk/packages/` | **canonical 目标**（core 示例 web/electron/tauri/uni 已在用） |
 
 ## 组件对应（A/A′ → B）
 **大量重叠、直接归 B**：MessageBubble · MessageList · EnhancedComposer · ConversationList(→FlareConversationList) ·
@@ -32,7 +32,7 @@ A 的 `sdk-host/` · `events/`(createImEventHub — 本轮修过 send-ack 信封
 ## turnkey 迁移步骤（逐步验证）
 1. 剥离接线层 → `flare-im-client-runtime` 包（含本轮修复）；`examples/shared-im-ui` 与 flare-social app 先改依赖此包，**重建两处验证**。
 2. 把 A 独有组件（pinned 套件 / tabs / composer·bubble 拆件 / BusinessSystemCard）搬进 B，命名对齐（Flare 前缀/spec 符号）。
-3. flare-social-tauri-app：import 从 `@flare/shared-im-ui` → `flare-core-vue-im-ui` + `flare-im-client-runtime`；**yarn tauri build + computer-use 重测注册/登录/加好友/收发消息**（复用本轮验证脚本）。
+3. flare-social-tauri-app：import 从 `@flare/shared-im-ui` → `@flare-im/vue-ui` + `flare-im-client-runtime`；**yarn tauri build + computer-use 重测注册/登录/加好友/收发消息**（复用本轮验证脚本）。
 4. core 示例（web/electron/tauri/uni）逐个 build 验证仍绿。
 5. **删除** `examples/shared-im-ui` 与 flare-social 的 A′ 拷贝（no-compat）。
 6. 组件对齐 L2 spec（扩 validate 覆盖新增组件）。

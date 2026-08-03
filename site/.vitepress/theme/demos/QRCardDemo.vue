@@ -1,5 +1,5 @@
 <script setup>
-import FlareQRCard from "flare-core-vue-im-ui/components/profile/FlareQRCard.vue";
+import FlareQRCard from "@flare-im/vue-ui/components/profile/FlareQRCard.vue";
 import DemoStage from "./DemoStage.vue";
 </script>
 <template>

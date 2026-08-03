@@ -20,7 +20,7 @@ Flare IM Design 是一套**独立可用的跨端 IM UI 组件库**：一份框�
 ::: code-group
 
 ```bash [Vue]
-npm i flare-core-vue-im-ui vue naive-ui vue-router
+npm i @flare-im/vue-ui vue naive-ui vue-router
 ```
 
 ```yaml [Flutter]
@@ -51,8 +51,8 @@ project(":flare-im-ui-compose").projectDir =
 
 ```vue [Vue]
 <script setup>
-import { MessageBubble } from "flare-core-vue-im-ui";
-import "flare-core-vue-im-ui/style.css";
+import { MessageBubble } from "@flare-im/vue-ui";
+import "@flare-im/vue-ui/style.css";
 </script>
 <template>
   <MessageBubble :message="msg" current-user-id="me" />

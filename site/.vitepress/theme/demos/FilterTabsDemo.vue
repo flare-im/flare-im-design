@@ -7,7 +7,7 @@ import {
   ImageOutline,
   VideocamOutline,
 } from "@vicons/ionicons5";
-import FlareFilterTabs from "flare-core-vue-im-ui/components/general/FlareFilterTabs.vue";
+import FlareFilterTabs from "@flare-im/vue-ui/components/general/FlareFilterTabs.vue";
 
 const active = ref("all");
 const options = [

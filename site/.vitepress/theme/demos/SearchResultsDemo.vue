@@ -1,5 +1,5 @@
 <script setup>
-import FlareSearchResults from "flare-core-vue-im-ui/components/general/FlareSearchResults.vue";
+import FlareSearchResults from "@flare-im/vue-ui/components/general/FlareSearchResults.vue";
 import DemoStage from "./DemoStage.vue";
 const query = "设计";
 const groups = [

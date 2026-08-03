@@ -3,7 +3,7 @@ import { computed } from "vue";
 import { NButton, NDivider, NTag } from "naive-ui";
 import Avatar from "../conversation/FlareAvatar.vue";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
-import type { Conversation } from "flare-core-typescript-sdk/web";
+import type { Conversation } from "@flare-im/sdk/web";
 
 const props = defineProps<{
   conversation?: Readonly<Conversation>;

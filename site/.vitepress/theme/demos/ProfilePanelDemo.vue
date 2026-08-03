@@ -1,5 +1,5 @@
 <script setup>
-import FlareProfilePanel from "flare-core-vue-im-ui/components/profile/FlareProfilePanel.vue";
+import FlareProfilePanel from "@flare-im/vue-ui/components/profile/FlareProfilePanel.vue";
 import DemoStage from "./DemoStage.vue";
 
 const user = {

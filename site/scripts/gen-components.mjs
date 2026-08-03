@@ -192,7 +192,7 @@ function usage(c, t) {
   const blocks = [
     `\`\`\`vue [Vue]
 <script setup>
-import { ${v} } from "flare-core-vue-im-ui";
+import { ${v} } from "@flare-im/vue-ui";
 </script>
 <template>
   <${v}

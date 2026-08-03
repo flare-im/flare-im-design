@@ -1,5 +1,5 @@
 <script setup>
-import FlareConversationDetails from "flare-core-vue-im-ui/components/shell/ConversationDetails.vue";
+import FlareConversationDetails from "@flare-im/vue-ui/components/shell/ConversationDetails.vue";
 import DemoStage from "./DemoStage.vue";
 
 const conversation = { conversationId: "c1", displayName: "设计评审组", conversationType: "GROUP" };

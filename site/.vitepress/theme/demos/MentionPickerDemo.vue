@@ -1,5 +1,5 @@
 <script setup>
-import FlareMentionPicker from "flare-core-vue-im-ui/components/composer/FlareMentionPicker.vue";
+import FlareMentionPicker from "@flare-im/vue-ui/components/composer/FlareMentionPicker.vue";
 import DemoStage from "./DemoStage.vue";
 const candidates = [
   { id: "ivy", name: "Ivy Chen", detail: "设计 · 组件组", presence: "online" },

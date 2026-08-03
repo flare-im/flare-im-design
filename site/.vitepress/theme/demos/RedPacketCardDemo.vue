@@ -1,6 +1,6 @@
 <script setup>
 import { reactive } from "vue";
-import FlareRedPacketCard from "flare-core-vue-im-ui/components/messages/FlareRedPacketCard.vue";
+import FlareRedPacketCard from "@flare-im/vue-ui/components/messages/FlareRedPacketCard.vue";
 import DemoStage from "./DemoStage.vue";
 const state = reactive({ opened: false });
 </script>

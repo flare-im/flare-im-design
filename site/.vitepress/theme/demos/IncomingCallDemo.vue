@@ -1,5 +1,5 @@
 <script setup>
-import FlareIncomingCall from "flare-core-vue-im-ui/components/call/FlareIncomingCall.vue";
+import FlareIncomingCall from "@flare-im/vue-ui/components/call/FlareIncomingCall.vue";
 import DemoStage from "./DemoStage.vue";
 </script>
 

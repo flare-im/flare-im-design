@@ -1,4 +1,4 @@
-import type { Message, MessageContent } from "flare-core-typescript-sdk/web";
+import type { Message, MessageContent } from "@flare-im/sdk/web";
 
 /** 与 SDK `Message` 对齐，兼容 workbench snapshot 的 readonly 字段 */
 export type MessageLike = {

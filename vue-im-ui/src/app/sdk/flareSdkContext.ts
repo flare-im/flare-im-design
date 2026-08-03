@@ -1,5 +1,5 @@
 import { inject, provide, type InjectionKey } from "vue";
-import { useFlareCoreClient } from "flare-core-vue-im-ui/composables";
+import { useFlareCoreClient } from "@flare-im/vue-ui/composables";
 import { createProductionAppClient } from "../infrastructure/sdk/createProductionAppClient";
 import { devMediaHttpBaseUrl } from "../runtime/mediaProxy";
 import {

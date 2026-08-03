@@ -1,5 +1,5 @@
 <script setup>
-import FlareResponsiveLayout from "flare-core-vue-im-ui/components/layout/FlareResponsiveLayout.vue";
+import FlareResponsiveLayout from "@flare-im/vue-ui/components/layout/FlareResponsiveLayout.vue";
 import DemoStage from "./DemoStage.vue";
 </script>
 

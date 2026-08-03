@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import FlareCallDock from "flare-core-vue-im-ui/components/call/FlareCallDock.vue";
+import FlareCallDock from "@flare-im/vue-ui/components/call/FlareCallDock.vue";
 import DemoStage from "./DemoStage.vue";
 const muted = ref(false);
 </script>

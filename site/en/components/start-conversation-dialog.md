@@ -34,7 +34,7 @@ title: StartConversationDialog
 ## Platform implementations
 
 <div class="flare-platform-grid">
-  <div class="flare-platform-card"><h4>Vue</h4><div><code>FlareStartConversationDialog</code></div><div style="color:var(--vp-c-text-3);font-size:12px;margin-top:4px">flare-core-vue-im-ui</div></div>
+  <div class="flare-platform-card"><h4>Vue</h4><div><code>FlareStartConversationDialog</code></div><div style="color:var(--vp-c-text-3);font-size:12px;margin-top:4px">@flare-im/vue-ui</div></div>
   <div class="flare-platform-card"><h4>Flutter</h4><div><code>FlareStartConversationSheet</code></div><div style="color:var(--vp-c-text-3);font-size:12px;margin-top:4px">flare_im_ui</div></div>
   <div class="flare-platform-card"><h4>iOS</h4><div><code>StartConversationView</code></div><div style="color:var(--vp-c-text-3);font-size:12px;margin-top:4px">FlareIMUI</div></div>
   <div class="flare-platform-card"><h4>Android · Compose</h4><div><code>StartConversationDialog</code></div><div style="color:var(--vp-c-text-3);font-size:12px;margin-top:4px">com.flare.im:im-ui-compose</div></div>
@@ -47,7 +47,7 @@ title: StartConversationDialog
 
 ```vue [Vue]
 <script setup>
-import { FlareStartConversationDialog } from "flare-core-vue-im-ui";
+import { FlareStartConversationDialog } from "@flare-im/vue-ui";
 </script>
 <template>
   <FlareStartConversationDialog

@@ -1,5 +1,5 @@
 <script setup>
-import FlareComposer from "flare-core-vue-im-ui/components/composer/EnhancedComposer.vue";
+import FlareComposer from "@flare-im/vue-ui/components/composer/EnhancedComposer.vue";
 import DemoStage from "./DemoStage.vue";
 </script>
 

@@ -1,4 +1,4 @@
-// Types for flare-im-design-tokens/theme
+// Types for @flare-im/tokens/theme
 export interface FlareThemeInput {
   primary: string;
   success?: string;

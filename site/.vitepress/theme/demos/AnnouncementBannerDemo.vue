@@ -1,5 +1,5 @@
 <script setup>
-import FlareAnnouncementBanner from "flare-core-vue-im-ui/components/messages/FlareAnnouncementBanner.vue";
+import FlareAnnouncementBanner from "@flare-im/vue-ui/components/messages/FlareAnnouncementBanner.vue";
 import DemoStage from "./DemoStage.vue";
 </script>
 <template>

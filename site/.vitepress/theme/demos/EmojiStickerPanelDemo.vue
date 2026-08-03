@@ -3,7 +3,7 @@ import { ref } from "vue";
 import DemoStage from "./DemoStage.vue";
 // The real composer panel: 157 animated emoji + sticker packs, resolved from the
 // centralized flare-im-design/assets/emoji-sticker source served at /flare-im-ui-assets/.
-import Panel from "flare-core-vue-im-ui/components/composer/ComposerEmojiStickerPanel/index.vue";
+import Panel from "@flare-im/vue-ui/components/composer/ComposerEmojiStickerPanel/index.vue";
 
 const activeTab = ref("emoji");
 const last = ref("点一个表情或贴纸试试 · pick an emoji or sticker");

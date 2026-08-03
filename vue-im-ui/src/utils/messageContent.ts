@@ -1,4 +1,4 @@
-import { MessageContentType } from "flare-core-typescript-sdk";
+import { MessageContentType } from "@flare-im/sdk";
 
 const contentTypeValues = new Set<string>(Object.values(MessageContentType));
 

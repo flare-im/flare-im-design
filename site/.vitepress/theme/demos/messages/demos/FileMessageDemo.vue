@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import C from "flare-core-vue-im-ui/components/messages/standalone/FlareFileMessage.vue";
+import C from "@flare-im/vue-ui/components/messages/standalone/FlareFileMessage.vue";
 import DemoIcon from "../../DemoIcon.vue";
 const log = ref("");
 </script>

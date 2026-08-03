@@ -15,8 +15,8 @@ import {
 } from "../../shared/icon-glyphs";
 import { NButton, NIcon, useMessage } from "naive-ui";
 import { onBeforeRouteLeave, useRouter } from "vue-router";
-import { MessageContentType, type Message, type MessageContent } from "flare-core-typescript-sdk/web";
-import { uploadMediaInput } from "flare-core-typescript-sdk/media";
+import { MessageContentType, type Message, type MessageContent } from "@flare-im/sdk/web";
+import { uploadMediaInput } from "@flare-im/sdk/media";
 import {
   ChatConversationHeader,
   ChatConversationHeaderIdentity,
@@ -33,11 +33,11 @@ import {
   proxiedMediaUrl,
   resolveLoneEmojiPackKey,
   type MessageMediaDownloadSource,
-} from "flare-core-vue-im-ui/utils";
-import type { MessageMenuConfig } from "flare-core-vue-im-ui/utils";
-import { useFlareWorkbenchUi } from "flare-core-vue-im-ui/composables";
+} from "@flare-im/vue-ui/utils";
+import type { MessageMenuConfig } from "@flare-im/vue-ui/utils";
+import { useFlareWorkbenchUi } from "@flare-im/vue-ui/composables";
 import { useFlareSdk } from "../sdk/flareSdkContext";
-import { getMessageText } from "flare-core-vue-im-ui/utils";
+import { getMessageText } from "@flare-im/vue-ui/utils";
 import { conversationTitle, resolveConversationPeer } from "../shared/conversationTitle";
 import { useFlareI18n } from "../shared/i18n";
 import ComposerPayloadModal from "../message-enhancements/components/ComposerPayloadModal.vue";
@@ -49,7 +49,7 @@ import { createMessageOperationAdapter } from "../message-enhancements/messageOp
 import { resolveComposerAction, resolveMessageMenuActions, type ComposerActionDefinition } from "../message-enhancements/messageTypeRegistry";
 import { useMessageInteractionState } from "../message-enhancements/useMessageInteractionState";
 import type { BatchOperationResult, ComposerPayloadRequest, EnhancedMessageKind, ForwardMode, MediaComposerPreviewItem, MessageOperationSdk, MessagePinScope } from "../message-enhancements/types";
-import { withTimeout } from "flare-core-vue-im-ui/utils";
+import { withTimeout } from "@flare-im/vue-ui/utils";
 import { hasAppMediaPathPicker, pickAppMediaSourcePaths } from "../infrastructure/media/appMediaPicker";
 import { resolveAppMediaLocalPath } from "../infrastructure/media/appMediaResolver";
 import {
@@ -152,7 +152,7 @@ const activeTypingText = computed(() =>
   sdk.activeConversationTypingUsers.value.length > 0 ? t("chat.typing") : "",
 );
 const messageInteractionSource = computed(() => sdk.messages.value as unknown as readonly Message[]);
-const forwardConversationSource = computed(() => sdk.conversations.value as unknown as readonly import("flare-core-typescript-sdk/web").Conversation[]);
+const forwardConversationSource = computed(() => sdk.conversations.value as unknown as readonly import("@flare-im/sdk/web").Conversation[]);
 const interactions = useMessageInteractionState(messageInteractionSource);
 const operations = createMessageOperationAdapter(sdk as unknown as MessageOperationSdk);
 const multiSelectMode = interactions.multiSelectMode;

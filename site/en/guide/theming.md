@@ -14,7 +14,7 @@ The most universal path: import the stylesheet once, then override a few variabl
 
 ```ts
 // 1) Import the base stylesheet once, at your app entry
-import "flare-core-vue-im-ui/style.css";
+import "@flare-im/vue-ui/style.css";
 ```
 
 ```css
@@ -53,14 +53,14 @@ Full list on the [Design Tokens](/en/guide/tokens) page.
 
 ## Usage
 
-`flare-im-design-tokens/theme` exposes a framework-agnostic runtime API:
+`@flare-im/tokens/theme` exposes a framework-agnostic runtime API:
 
 ```ts
 import {
   applyFlareTheme,
   deriveFlareTheme,
   flarePresets,
-} from "flare-im-design-tokens/theme";
+} from "@flare-im/tokens/theme";
 
 // 1) Derive a whole theme from one primary, applied to the whole page
 applyFlareTheme(deriveFlareTheme({ primary: "#2563EB" }));
@@ -91,8 +91,8 @@ In Vue, `FlareThemeProvider` scopes a theme to a subtree (nestable, local):
 
 ```vue
 <script setup>
-import { FlareThemeProvider } from "flare-core-vue-im-ui";
-import { deriveFlareTheme } from "flare-im-design-tokens/theme";
+import { FlareThemeProvider } from "@flare-im/vue-ui";
+import { deriveFlareTheme } from "@flare-im/tokens/theme";
 </script>
 
 <template>

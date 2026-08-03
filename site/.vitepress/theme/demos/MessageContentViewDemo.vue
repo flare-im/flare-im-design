@@ -2,25 +2,25 @@
 // Each message type is its own standalone component (clean props, freely
 // composable). MessageContentView just dispatches to the right one by type —
 // but you can drop any single one into your own layout.
-import FlareTextMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareTextMessage.vue";
-import FlareImageMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareImageMessage.vue";
-import FlareVideoMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareVideoMessage.vue";
-import FlareVoiceMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareVoiceMessage.vue";
-import FlareFileMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareFileMessage.vue";
-import FlareLocationMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareLocationMessage.vue";
-import FlareContactMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareContactMessage.vue";
-import FlareLinkCardMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareLinkCardMessage.vue";
-import FlareVoteMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareVoteMessage.vue";
-import FlareTaskMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareTaskMessage.vue";
-import FlareStickerMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareStickerMessage.vue";
-import FlareEmojiMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareEmojiMessage.vue";
-import FlareSystemMessage from "flare-core-vue-im-ui/components/messages/standalone/FlareSystemMessage.vue";
+import FlareTextMessage from "@flare-im/vue-ui/components/messages/standalone/FlareTextMessage.vue";
+import FlareImageMessage from "@flare-im/vue-ui/components/messages/standalone/FlareImageMessage.vue";
+import FlareVideoMessage from "@flare-im/vue-ui/components/messages/standalone/FlareVideoMessage.vue";
+import FlareVoiceMessage from "@flare-im/vue-ui/components/messages/standalone/FlareVoiceMessage.vue";
+import FlareFileMessage from "@flare-im/vue-ui/components/messages/standalone/FlareFileMessage.vue";
+import FlareLocationMessage from "@flare-im/vue-ui/components/messages/standalone/FlareLocationMessage.vue";
+import FlareContactMessage from "@flare-im/vue-ui/components/messages/standalone/FlareContactMessage.vue";
+import FlareLinkCardMessage from "@flare-im/vue-ui/components/messages/standalone/FlareLinkCardMessage.vue";
+import FlareVoteMessage from "@flare-im/vue-ui/components/messages/standalone/FlareVoteMessage.vue";
+import FlareTaskMessage from "@flare-im/vue-ui/components/messages/standalone/FlareTaskMessage.vue";
+import FlareStickerMessage from "@flare-im/vue-ui/components/messages/standalone/FlareStickerMessage.vue";
+import FlareEmojiMessage from "@flare-im/vue-ui/components/messages/standalone/FlareEmojiMessage.vue";
+import FlareSystemMessage from "@flare-im/vue-ui/components/messages/standalone/FlareSystemMessage.vue";
 // The merged-forward body renders its nested messages recursively through the
 // same content pipeline, so ContentView drives it directly from a content elem.
-import ContentView from "flare-core-vue-im-ui/components/messages/MessagesView/ContentView.vue";
+import ContentView from "@flare-im/vue-ui/components/messages/MessagesView/ContentView.vue";
 import DemoStage from "./DemoStage.vue";
 import { defineComponent, h } from "vue";
-import { useFlareNotificationProvider } from "flare-core-vue-im-ui/composables/useNotificationRenderer";
+import { useFlareNotificationProvider } from "@flare-im/vue-ui/composables/useNotificationRenderer";
 
 // Notifications are a host extension point: the kit renders a neutral line by
 // default, but a product can inject a richer notice (here a call-signal tile)

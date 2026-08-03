@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import FlareMomentActionPopover from "flare-core-vue-im-ui/components/moments/FlareMomentActionPopover.vue";
+import FlareMomentActionPopover from "@flare-im/vue-ui/components/moments/FlareMomentActionPopover.vue";
 import DemoStage from "./DemoStage.vue";
 const liked = ref(false);
 </script>

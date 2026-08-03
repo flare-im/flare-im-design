@@ -11,7 +11,7 @@ No registry needed — download the archive for your platform and reference it l
 
 | Platform | Package | Download |
 |---|---|---|
-| Vue | `flare-core-vue-im-ui` | [flare-core-vue-im-ui-0.1.0.tgz](/downloads/flare-core-vue-im-ui-0.1.0.tgz) |
+| Vue | `@flare-im/vue-ui` | [@flare-im/vue-ui-0.1.0.tgz](/downloads/@flare-im/vue-ui-0.1.0.tgz) |
 | Flutter | `flare_im_ui` | [flare_im_ui-flutter-0.1.0.tar.gz](/downloads/flare_im_ui-flutter-0.1.0.tar.gz) |
 | iOS | `FlareIMUI` | [FlareIMUI-ios-0.1.0.tar.gz](/downloads/FlareIMUI-ios-0.1.0.tar.gz) |
 | Android | `com.flare.im:im-ui-compose` | [flare-im-ui-compose-android-0.1.0.tar.gz](/downloads/flare-im-ui-compose-android-0.1.0.tar.gz) |
@@ -21,12 +21,12 @@ No registry needed — download the archive for your platform and reference it l
 ::: code-group
 
 ```bash [npm registry]
-npm i flare-core-vue-im-ui
+npm i @flare-im/vue-ui
 ```
 
 ```bash [downloaded archive]
 # after downloading the .tgz above
-npm i ./flare-core-vue-im-ui-0.1.0.tgz
+npm i ./@flare-im/vue-ui-0.1.0.tgz
 ```
 
 ```bash [local source]
@@ -37,12 +37,12 @@ npm i /path/to/flare-im-design/vue-im-ui
 
 ```vue
 <script setup>
-import { MessageBubble, FlareConversationList } from "flare-core-vue-im-ui";
-import "flare-core-vue-im-ui/style.css";
+import { MessageBubble, FlareConversationList } from "@flare-im/vue-ui";
+import "@flare-im/vue-ui/style.css";
 </script>
 ```
 
-> Depends on `flare-im-design-tokens` (design tokens) and an optional peer `flare-core-typescript-sdk` (data). When installing from a registry, make sure those two resolve (published or locally linked).
+> Depends on `@flare-im/tokens` (design tokens) and an optional peer `@flare-im/sdk` (data). When installing from a registry, make sure those two resolve (published or locally linked).
 
 ## Flutter
 

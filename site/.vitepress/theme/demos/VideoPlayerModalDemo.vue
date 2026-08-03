@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import FlareVideoPreview from "flare-core-vue-im-ui/components/message-preview/VideoPlayerModal.vue";
+import FlareVideoPreview from "@flare-im/vue-ui/components/message-preview/VideoPlayerModal.vue";
 import DemoStage from "./DemoStage.vue";
 
 const open = ref(false);

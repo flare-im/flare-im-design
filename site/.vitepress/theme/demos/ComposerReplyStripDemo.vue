@@ -1,5 +1,5 @@
 <script setup>
-import FlareComposerReplyStrip from "flare-core-vue-im-ui/components/composer/FlareComposerReplyStrip.vue";
+import FlareComposerReplyStrip from "@flare-im/vue-ui/components/composer/FlareComposerReplyStrip.vue";
 import DemoStage from "./DemoStage.vue";
 </script>
 

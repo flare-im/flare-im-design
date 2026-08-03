@@ -1,7 +1,7 @@
 import {
   transportProfileFor,
   type TransportProfile,
-} from "flare-core-typescript-sdk/transport";
+} from "@flare-im/sdk/transport";
 
 export interface AppTransportSelectorOptions {
   enabled: boolean;

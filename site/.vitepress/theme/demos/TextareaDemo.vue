@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import FlareTextarea from "flare-core-vue-im-ui/components/form/FlareTextarea.vue";
+import FlareTextarea from "@flare-im/vue-ui/components/form/FlareTextarea.vue";
 import DemoStage from "./DemoStage.vue";
 const a = ref("");
 const b = ref("这一刻的想法…");

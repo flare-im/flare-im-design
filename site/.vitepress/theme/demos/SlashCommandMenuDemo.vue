@@ -1,5 +1,5 @@
 <script setup>
-import FlareSlashCommandMenu from "flare-core-vue-im-ui/components/composer/FlareSlashCommandMenu.vue";
+import FlareSlashCommandMenu from "@flare-im/vue-ui/components/composer/FlareSlashCommandMenu.vue";
 import DemoStage from "./DemoStage.vue";
 const commands = [
   { command: "mute", description: "临时禁言某位成员", hint: "@user 10m" },

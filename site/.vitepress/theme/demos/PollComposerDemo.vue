@@ -1,5 +1,5 @@
 <script setup>
-import FlarePollComposer from "flare-core-vue-im-ui/components/composer/FlarePollComposer.vue";
+import FlarePollComposer from "@flare-im/vue-ui/components/composer/FlarePollComposer.vue";
 import DemoStage from "./DemoStage.vue";
 </script>
 <template>

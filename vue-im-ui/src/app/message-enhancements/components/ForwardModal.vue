@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { NButton, NModal, NSelect, NTag } from "naive-ui";
-import type { Conversation, Message } from "flare-core-typescript-sdk/web";
+import type { Conversation, Message } from "@flare-im/sdk/web";
 import type { ForwardMode } from "../types";
 import { messageStableId } from "../types";
 import { useFlareI18n } from "../../shared/i18n";

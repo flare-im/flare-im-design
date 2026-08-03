@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import FlareStepper from "flare-core-vue-im-ui/components/form/FlareStepper.vue";
+import FlareStepper from "@flare-im/vue-ui/components/form/FlareStepper.vue";
 import DemoStage from "./DemoStage.vue";
 const a = ref(1), b = ref(3), c = ref(10);
 </script>

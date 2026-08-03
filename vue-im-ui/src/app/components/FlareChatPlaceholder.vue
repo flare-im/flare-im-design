@@ -3,7 +3,7 @@ import { computed } from "vue";
 import { ChatbubbleEllipsesOutline, FlaskOutline, SearchOutline } from "../../shared/icon-glyphs";
 import { NButton, NIcon } from "naive-ui";
 import { useRouter } from "vue-router";
-import { loginTransportDisplayName, useFlareWorkbenchUi } from "flare-core-vue-im-ui/composables";
+import { loginTransportDisplayName, useFlareWorkbenchUi } from "@flare-im/vue-ui/composables";
 import { useFlareSdk } from "../sdk/flareSdkContext";
 import { useFlareI18n } from "../shared/i18n";
 

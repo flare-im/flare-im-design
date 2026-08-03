@@ -1,1 +1,1 @@
-export * from "flare-core-vue-im-ui/i18n";
+export * from "@flare-im/vue-ui/i18n";

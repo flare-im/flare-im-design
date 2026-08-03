@@ -1,4 +1,4 @@
-import { downloadUrlWithFileName } from "flare-core-vue-im-ui/utils";
+import { downloadUrlWithFileName } from "@flare-im/vue-ui/utils";
 
 export type NativeDownloadedMediaActions = {
   revealDownloadedFile?: (path: string) => boolean | Promise<boolean>;

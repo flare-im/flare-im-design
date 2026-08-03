@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import FlareImageGrid from "flare-core-vue-im-ui/components/messages/FlareImageGrid.vue";
+import FlareImageGrid from "@flare-im/vue-ui/components/messages/FlareImageGrid.vue";
 import DemoStage from "./DemoStage.vue";
 // deterministic gradient placeholders (no external images)
 const swatch = (a, b) => `data:image/svg+xml;utf8,` + encodeURIComponent(

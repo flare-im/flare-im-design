@@ -1,4 +1,4 @@
-import type { FlareWasmRuntime } from "flare-core-typescript-sdk/web";
+import type { FlareWasmRuntime } from "@flare-im/sdk/web";
 
 type CoreWasmModule = {
   default?: (options?: { module_or_path?: string | URL | Request }) => Promise<unknown> | unknown;

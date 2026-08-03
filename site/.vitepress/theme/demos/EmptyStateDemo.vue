@@ -1,5 +1,5 @@
 <script setup>
-import FlareEmptyState from "flare-core-vue-im-ui/components/general/FlareEmptyState.vue";
+import FlareEmptyState from "@flare-im/vue-ui/components/general/FlareEmptyState.vue";
 import DemoStage from "./DemoStage.vue";
 </script>
 

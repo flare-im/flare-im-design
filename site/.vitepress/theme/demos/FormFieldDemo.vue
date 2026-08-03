@@ -1,9 +1,9 @@
 <script setup>
 import { ref } from "vue";
-import FlareFormField from "flare-core-vue-im-ui/components/form/FlareFormField.vue";
-import FlareInput from "flare-core-vue-im-ui/components/general/FlareInput.vue";
-import FlareSelect from "flare-core-vue-im-ui/components/form/FlareSelect.vue";
-import FlareButton from "flare-core-vue-im-ui/components/general/FlareButton.vue";
+import FlareFormField from "@flare-im/vue-ui/components/form/FlareFormField.vue";
+import FlareInput from "@flare-im/vue-ui/components/general/FlareInput.vue";
+import FlareSelect from "@flare-im/vue-ui/components/form/FlareSelect.vue";
+import FlareButton from "@flare-im/vue-ui/components/general/FlareButton.vue";
 import DemoStage from "./DemoStage.vue";
 const name = ref("Ivy Chen");
 const email = ref("");

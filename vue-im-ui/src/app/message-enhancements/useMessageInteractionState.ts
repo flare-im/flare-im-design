@@ -1,5 +1,5 @@
 import { computed, ref, watch, type Ref } from "vue";
-import type { Message } from "flare-core-typescript-sdk/web";
+import type { Message } from "@flare-im/sdk/web";
 import type { EnhancedMessageKind, ForwardMode } from "./types";
 import { messageStableId } from "./types";
 

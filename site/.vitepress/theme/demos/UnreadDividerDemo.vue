@@ -1,5 +1,5 @@
 <script setup>
-import FlareUnreadDivider from "flare-core-vue-im-ui/components/messages/FlareUnreadDivider.vue";
+import FlareUnreadDivider from "@flare-im/vue-ui/components/messages/FlareUnreadDivider.vue";
 import DemoStage from "./DemoStage.vue";
 </script>
 <template>

@@ -1,5 +1,5 @@
 <script setup>
-import FlareToast from "flare-core-vue-im-ui/components/general/FlareToast.vue";
+import FlareToast from "@flare-im/vue-ui/components/general/FlareToast.vue";
 import DemoStage from "./DemoStage.vue";
 </script>
 <template>
