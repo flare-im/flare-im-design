@@ -1,4 +1,4 @@
-// GENERATED. Do not edit by hand. Source: flare-im-design-tokens/tokens.json
+// GENERATED. Do not edit by hand. Source: @flare-im/tokens/tokens.json
 package com.flare.im.ui
 
 import androidx.compose.runtime.Composable

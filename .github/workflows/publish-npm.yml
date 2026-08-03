@@ -1,0 +1,68 @@
+name: 发布 npm 包
+
+# npm Trusted Publishing（OIDC）—— 不使用任何 token。
+#
+# 为什么不用 token：npm 正在收紧「绕过 2FA 的 token」——账号变更已于 2026-08 生效，
+# 直接发布将于 2027-01 生效。OIDC 由 GitHub Actions 直接向 npm 证明身份，
+# 既不需要保管密钥，也顺带产出来源证明（provenance）：使用者能验证这个包
+# 确实由本仓库的这次提交构建出来。对要被企业采纳的项目，这是实打实的信任加分。
+#
+# ── 首次启用前必须做的事 ────────────────────────────────────────────────
+# Trusted publishing 要求包**已存在**才能配置发布来源，所以首版仍需手动发布一次。
+# 之后在 npmjs.com 上对每个包设置：
+#
+#   Package → Settings → Publishing access → Add trusted publisher
+#     Repository:  flare-im/flare-im-design
+#     Workflow:    publish-npm.yml
+#
+# 三个包（@flare-im/tokens、@flare-im/ui-spec、@flare-im/vue-ui）都要各配一次。
+# 配好之后，本 workflow 就能免 token 发布。
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # OIDC 身份令牌，trusted publishing 的关键
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      # trusted publishing 需要 npm >= 11.5.1
+      - name: 升级 npm
+        run: npm install -g npm@latest
+
+      - name: 记录 npm 版本
+        run: npm --version
+
+      # ── 按依赖顺序发布：tokens → ui-spec → vue-ui ──────────────────
+      # vue-ui 依赖 @flare-im/tokens，tokens 必须先在 registry 上可解析，
+      # 否则 vue-ui 的使用者装不上。
+
+      - name: 发布 @flare-im/tokens
+        run: ../.github/scripts/publish-if-new.sh
+        working-directory: tokens
+
+      - name: 发布 @flare-im/ui-spec
+        run: ../.github/scripts/publish-if-new.sh
+        working-directory: spec
+
+      - name: 发布 @flare-im/vue-ui
+        run: ../.github/scripts/publish-if-new.sh
+        working-directory: vue-im-ui
+
+      - name: 汇总
+        run: |
+          for p in @flare-im/tokens @flare-im/ui-spec @flare-im/vue-ui; do
+            echo "$p -> $(npm view "$p" version 2>/dev/null || echo '查询失败')"
+          done

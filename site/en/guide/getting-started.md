@@ -79,5 +79,5 @@ MessageBubble(message = msg, currentUserId = "me")
 ## Next steps
 
 - [Design tokens](/en/guide/tokens) — the single source for color, spacing and type, and its four platform outputs.
-- [Components](/en/components/) — the contract, examples and four-platform usage for all 51 components.
+- [Components](/en/components/) — the contract, examples and four-platform usage for all 107 components.
 - [Component spec](/en/guide/spec) — the L2 spec structure and its drift-prevention check.

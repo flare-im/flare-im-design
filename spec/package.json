@@ -1,6 +1,6 @@
 {
   "name": "@flare-im/ui-spec",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Flare IM UI Kit — L2 framework-neutral component contract (catalogue + props/states/events + core-view data source), realised natively per platform.",
   "license": "Apache-2.0",
   "type": "module",

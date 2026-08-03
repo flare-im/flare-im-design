@@ -31,12 +31,38 @@ console.log(components.length); // 组件数量
 | `events[]` | 回调/事件名 |
 | `platforms` | `vue / flutter / ios / compose` → `{ package, symbol }`（各端依赖与符号） |
 
-## 组件目录（18 个 / 5 类，源见 [`components.json`](./components.json)，props/events 从 `@flare-im/vue-ui` 源码抽取校准）
-- **General**：`Avatar` · `TimeStamp` · `MessageStatus`
-- **Conversation**：`ConversationList` · `ConversationRow` · `ConversationDetails` · `StartConversationDialog`
-- **Message**：`MessageBubble` · `MessageList` · `ChatHeader` · `PinnedMessageBar` · `MessageContentView`
-- **Composer**：`Composer` · `RichMarkdownInput` · `MessageActionSheet`
-- **Media**：`ImagePreviewModal` · `VideoPlayerModal` · `MarkdownPreview`
+<!-- CATALOG:START -->
+## 组件目录
+
+**107 个组件 / 11 个类目**（源见 [`components.json`](./components.json)；
+props/events 从 `@flare-im/vue-ui` 源码抽取校准）。
+
+> 本段由 `gen-readme-catalog.mjs` 从契约生成，不要手改 —— 手写目录会随契约增长而腐烂。
+
+- **Message（消息）** — 31 个
+  `AnnouncementBanner` · `ChatHeader` · `ContactMessage` · `DatePill` · `EmojiMessage` · `FileMessage` · `ImageGrid` · `ImageMessage` · `LinkCardMessage` · `LocationMessage` · `MessageActionSheet` · `MessageBatchToolbar` · `MessageBubble` · `MessageContentView` · `MessageList` · `PinnedMessageBar` · `ReactionSummary` · `ReadReceiptSheet` · `RedPacketCard` · `ScrollToLatest` · `StickerMessage` · `SystemMessage` · `TaskMessage` · `TextMessage` · `TranslationView` · `TypingIndicator` · `UnreadDivider` · `VideoMessage` · `VoiceMessage` · `VoicePlayer` · `VoteMessage`
+- **General（通用）** — 16 个
+  `Avatar` · `Button` · `EmptyState` · `FilterTabs` · `Icon` · `IconButton` · `Input` · `MessageStatus` · `PrimaryButton` · `SearchBar` · `SearchResults` · `SegmentedControl` · `Skeleton` · `StatusBanner` · `TimeStamp` · `Toast`
+- **Composer（输入）** — 13 个
+  `Composer` · `ComposerActionPanel` · `ComposerReplyStrip` · `ComposerSendButton` · `EmojiPicker` · `MentionPicker` · `PollComposer` · `QuickPhrases` · `RichMarkdownInput` · `SlashCommandMenu` · `StickerPanel` · `VoiceHoldButton` · `VoiceRecordingBar`
+- **Form（表单）** — 11 个
+  `Checkbox` · `DatePicker` · `FormField` · `RadioGroup` · `Rating` · `Select` · `Slider` · `Stepper` · `Switch` · `Textarea` · `TimePicker`
+- **Contacts（通讯录）** — 7 个
+  `ContactDetail` · `ContactItem` · `ContactList` · `GroupDetail` · `GroupList` · `GroupMemberGrid` · `NewFriendRequests`
+- **Conversation（会话）** — 6 个
+  `ChatWallpaperPicker` · `ConversationDetails` · `ConversationList` · `ConversationRow` · `ForwardPicker` · `StartConversationDialog`
+- **Moments（圈子）** — 6 个
+  `CommentThread` · `MomentActionPopover` · `MomentCard` · `MomentComposer` · `MomentsCoverHeader` · `TopicChip`
+- **Call（音视频通话）** — 5 个
+  `CallControls` · `CallDock` · `CallView` · `GroupCallView` · `IncomingCall`
+- **Profile（个人中心）** — 5 个
+  `ProfileCard` · `ProfileEditor` · `ProfilePanel` · `QRCard` · `SettingsList`
+- **Layout（布局）** — 4 个
+  `AppShell` · `ConfigProvider` · `ResponsiveLayout` · `ScreenHeader`
+- **Media（媒体）** — 3 个
+  `ImagePreviewModal` · `MarkdownPreview` · `VideoPlayerModal`
+
+<!-- CATALOG:END -->
 
 **内容类型注册表**（`contentTypes.registered`）：`MessageBubble`/`MessageContentView` 按 content-type 分发到各渲染器
 （text/image/video/audio/file/location/card/linkCard/sticker/emoji/vote/task/schedule/announcement/miniProgram/notification/placeholder），产品可注册新类型。

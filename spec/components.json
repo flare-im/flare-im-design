@@ -8259,7 +8259,7 @@
         },
         "compose": {
           "package": "com.flare.im:im-ui-compose",
-          "symbol": "Icon"
+          "symbol": "FlareIcon"
         }
       }
     },

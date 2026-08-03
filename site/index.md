@@ -16,7 +16,7 @@ hero:
       link: /guide/tokens
 features:
   - icon: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 7.5l9 4.5 9-4.5z"/><path d="M3 12l9 4.5 9-4.5"/><path d="M3 16.5 12 21l9-4.5"/></svg>'
-    title: 82 个组件 · 9 大类
+    title: 107 个组件 · 11 大类
     details: General / Conversation / Message / Composer / Media / Contacts / Profile / Call / Layout。每个组件一份框架中立契约，Vue、Flutter、iOS、Android 各自原生实现，同名同语义。
   - icon: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="9.8" r="4.6"/><circle cx="15" cy="9.8" r="4.6"/><circle cx="12" cy="15" r="4.6"/></svg>'
     title: 一份设计 Tokens

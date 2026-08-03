@@ -1,4 +1,4 @@
-// GENERATED. Do not edit by hand. Source: flare-im-design-tokens/tokens.json
+// GENERATED. Do not edit by hand. Source: @flare-im/tokens/tokens.json
 
 export const flareDesignTokens = {
   "colors": {

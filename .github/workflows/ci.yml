@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  spec:
+    name: 组件契约校验
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # 校验契约完整性 + 各端符号确实存在 + 文档计数未过期。
+      # 这一条能挡住「契约撒谎」——声明了某端符号但实际不存在，
+      # 照契约去接的人会直接踩空。
+      - name: 契约校验
+        run: node validate.mjs
+        working-directory: spec
+
+      # README 的组件目录是生成的，防止手改后与契约漂移。
+      # 这份目录曾经手写，写着 18 个组件而实际有 107 个，少说了 6 倍。
+      - name: README 目录是否最新
+        run: node gen-readme-catalog.mjs --check
+        working-directory: spec
+
+  tokens:
+    name: 设计令牌
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # tokens.json 是全库唯一视觉真源，dist 是它的生成产物。
+      # 若源改了却没重新 build，各端拿到的令牌就与真源不一致。
+      - name: 构建并检查产物是否与源同步
+        working-directory: tokens
+        run: |
+          npm run build
+          if ! git diff --quiet -- dist; then
+            echo "::error::dist 与 tokens.json 不同步，请在本地运行 npm run build 后提交"
+            git diff --stat -- dist
+            exit 1
+          fi
+          echo "✅ dist 与 tokens.json 同步"
+
+  vue:
+    name: Vue 组件库
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # @flare-im/sdk 与 @flare-im/tokens 都已发布，从 registry 装即可 ——
+      # 此前 sdk 是跨仓 file: 依赖，CI 里根本装不到，只能写成「允许失败」，
+      # 那等于一条永远不会把关的门禁。改成 registry 依赖后才真正有效。
+      - name: 安装依赖
+        working-directory: vue-im-ui
+        run: npm install --no-audit --no-fund
+
+      - name: 类型检查
+        working-directory: vue-im-ui
+        run: npm run typecheck
+
+      - name: 单元测试
+        working-directory: vue-im-ui
+        run: npm test --if-present
