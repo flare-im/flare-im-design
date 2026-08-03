@@ -42,5 +42,10 @@
   ],
   "publishConfig": {
     "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/flare-im/flare-im-design.git",
+    "directory": "tokens"
   }
 }

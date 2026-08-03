@@ -2,17 +2,33 @@
   "name": "flare-im-ui-spec",
   "version": "0.2.0",
   "description": "Flare IM UI Kit — L2 framework-neutral component contract (catalogue + props/states/events + core-view data source), realised natively per platform.",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "type": "module",
-  "files": ["components.json", "validate.mjs", "README.md"],
+  "files": [
+    "components.json",
+    "validate.mjs",
+    "README.md",
+    "LICENSE"
+  ],
   "exports": {
     "./components.json": "./components.json"
   },
   "scripts": {
     "validate": "node validate.mjs"
   },
-  "keywords": ["flare", "im", "ui", "component-spec", "design-system"],
+  "keywords": [
+    "flare",
+    "im",
+    "ui",
+    "component-spec",
+    "design-system"
+  ],
   "publishConfig": {
     "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/flare-im/flare-im-design.git",
+    "directory": "spec"
   }
 }

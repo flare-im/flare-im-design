@@ -3,6 +3,23 @@
 框架中立的 IM 组件契约：**一个组件 = 一份契约（props / states / events + 数据源 core view），各端原生实现**。
 是「类 Ant Design 组件 API」中立化的部分——各端 L1 包按此实现，一致性靠本 spec 锁定。
 
+## 安装
+
+```bash
+npm install flare-im-ui-spec
+```
+
+契约本身是一份 JSON，可直接读取：
+
+```js
+import components from "flare-im-ui-spec/components.json" with { type: "json" };
+
+console.log(components.length); // 组件数量
+```
+
+自己实现某一端的组件库时，用它作为唯一事实来源校验 props/events 是否齐全 ——
+四端实现不一致的问题，就是靠这份契约锁住的。
+
 ## 契约格式（每个组件）
 | 字段 | 含义 |
 |---|---|
