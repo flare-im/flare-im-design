@@ -8531,6 +8531,92 @@
           "symbol": "AnnouncementReadBar"
         }
       }
+    },
+    {
+      "name": "MomentAudienceSheet",
+      "category": "Moments",
+      "summary": {
+        "zh": "发动态时选「谁可以看」—— 公开/好友/私密三档，加上「部分可见」与「不给谁看」两份互斥名单。设错方向的后果不对称，所以两者文案与配色分开。",
+        "en": "Audience picker for a new moment — public/friends/private, plus the mutually exclusive include and exclude lists. The two directions are not symmetric in consequence, so copy and accent differ."
+      },
+      "dataSource": {
+        "zh": "由你传入（好友列表 + 当前选择）",
+        "en": "passed in by you (friend list + current selection)"
+      },
+      "props": [
+        {
+          "name": "visibility",
+          "type": "number",
+          "required": true,
+          "description": {
+            "zh": "0=好友 1=公开 2=私密。",
+            "en": "0=friends 1=public 2=private."
+          }
+        },
+        {
+          "name": "audienceMode",
+          "type": "number",
+          "required": true,
+          "description": {
+            "zh": "0=无名单 1=部分可见 2=不给谁看。与 visibility 正交。",
+            "en": "0=none 1=include 2=exclude; orthogonal to visibility."
+          }
+        },
+        {
+          "name": "audienceUserIds",
+          "type": "string[]",
+          "required": true,
+          "description": {
+            "zh": "当前名单。",
+            "en": "Current list."
+          }
+        },
+        {
+          "name": "contacts",
+          "type": "FlareContactBrief[]",
+          "required": true,
+          "description": {
+            "zh": "可选好友。",
+            "en": "Selectable friends."
+          }
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "zh": "是否展开选人。",
+            "en": "Whether the picker is open."
+          }
+        }
+      ],
+      "states": [
+        "collapsed",
+        "picking"
+      ],
+      "events": [
+        "update:visibility",
+        "update:audience",
+        "close"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareMomentAudienceSheet"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareMomentAudienceSheet"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "MomentAudienceSheetView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "MomentAudienceSheet"
+        }
+      }
     }
   ],
   "categoryLabels": {

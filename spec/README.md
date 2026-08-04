@@ -34,7 +34,7 @@ console.log(components.length); // 组件数量
 <!-- CATALOG:START -->
 ## 组件目录
 
-**110 个组件 / 11 个类目**（源见 [`components.json`](./components.json)；
+**111 个组件 / 11 个类目**（源见 [`components.json`](./components.json)；
 props/events 从 `@flare-im/vue-ui` 源码抽取校准）。
 
 > 本段由 `gen-readme-catalog.mjs` 从契约生成，不要手改 —— 手写目录会随契约增长而腐烂。
@@ -49,8 +49,8 @@ props/events 从 `@flare-im/vue-ui` 源码抽取校准）。
   `Checkbox` · `DatePicker` · `FormField` · `RadioGroup` · `Rating` · `Select` · `Slider` · `Stepper` · `Switch` · `Textarea` · `TimePicker`
 - **Contacts（通讯录）** — 8 个
   `ContactDetail` · `ContactItem` · `ContactList` · `ContactMatchList` · `GroupDetail` · `GroupList` · `GroupMemberGrid` · `NewFriendRequests`
-- **Moments（圈子）** — 7 个
-  `CommentThread` · `MomentActionPopover` · `MomentCard` · `MomentComposer` · `MomentsCoverHeader` · `MomentsVisibilityRuleList` · `TopicChip`
+- **Moments（圈子）** — 8 个
+  `CommentThread` · `MomentActionPopover` · `MomentAudienceSheet` · `MomentCard` · `MomentComposer` · `MomentsCoverHeader` · `MomentsVisibilityRuleList` · `TopicChip`
 - **Conversation（会话）** — 6 个
   `ChatWallpaperPicker` · `ConversationDetails` · `ConversationList` · `ConversationRow` · `ForwardPicker` · `StartConversationDialog`
 - **Call（音视频通话）** — 5 个

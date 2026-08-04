@@ -73,6 +73,7 @@ export 'src/components/flare_message_content_view.dart';
 export 'src/components/flare_message_list.dart';
 export 'src/components/flare_message_status.dart';
 export 'src/components/flare_moment_action_popover.dart';
+export 'src/components/flare_moment_audience_sheet.dart';
 export 'src/components/flare_moment_card.dart';
 export 'src/components/flare_moment_composer.dart';
 export 'src/components/flare_moments_cover_header.dart';

@@ -193,4 +193,5 @@ export { default as FlareComposerSendButton } from "./composer/FlareComposerSend
 export { default as FlareComposerReplyStrip } from "./composer/FlareComposerReplyStrip.vue";
 export { default as FlareAnnouncementReadBar } from "./general/FlareAnnouncementReadBar.vue";
 export { default as FlareContactMatchList } from "./contacts/FlareContactMatchList.vue";
+export { default as FlareMomentAudienceSheet } from "./moments/FlareMomentAudienceSheet.vue";
 export { default as FlareMomentsVisibilityRuleList } from "./moments/FlareMomentsVisibilityRuleList.vue";
