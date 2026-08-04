@@ -48,7 +48,8 @@ export type {
   FlareMomentLike,
   FlareMomentComment,
   FlareMoment,
-} from "./moments";
+
+  FlareMomentsVisibilityRuleKind,} from "./moments";
 export type {
   FlareButtonVariant,
   FlareControlSize,
@@ -68,4 +69,6 @@ export type {
   FlareMentionCandidate,
   FlareGroupDetailModel,
   FlareGroupJoinRequestView,
-} from "./directory";
+
+  FlareContactBrief,
+  FlareMatchedContact,} from "./directory";

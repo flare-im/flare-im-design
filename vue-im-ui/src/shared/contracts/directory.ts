@@ -109,3 +109,18 @@ export interface FlareGroupJoinRequestView {
   avatarUrl?: string;
   message?: string;
 }
+
+/** 联系人的最小画像 —— 名单类组件只需要这些字段。 */
+export interface FlareContactBrief {
+  userId: string;
+  displayName: string;
+  avatarUrl?: string;
+}
+
+/** 通讯录匹配命中的一条。 */
+export interface FlareMatchedContact extends FlareContactBrief {
+  /** 命中的手机号或邮箱，条目上回显便于用户确认是谁。 */
+  matchedBy: string;
+  /** 已是好友时显示「发消息」，否则显示「添加」。 */
+  alreadyFriend: boolean;
+}

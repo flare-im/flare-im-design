@@ -336,6 +336,19 @@ export const flareMessages: Record<FlareLocale, FlareMessageTree> = {
       toText: "转文字",
       hideText: "隐藏文字",
     },
+    momentsVisibility: {
+      hideFromTitle: "不让他看我的朋友圈",
+      hideFromHint: "名单内的人看不到你发的动态",
+      muteTitle: "不看他的朋友圈",
+      muteHint: "名单内的人发的动态不会出现在你的圈子里",
+      empty: "名单为空",
+      remove: "移出",
+    },
+    contactMatch: {
+      empty: "通讯录里暂无已注册的联系人",
+      add: "添加",
+      message: "发消息",
+    },
     moment: {
       like: "赞",
       unlike: "取消",
@@ -1309,6 +1322,19 @@ export const flareMessages: Record<FlareLocale, FlareMessageTree> = {
       speed: "Speed",
       toText: "To text",
       hideText: "Hide text",
+    },
+    momentsVisibility: {
+      hideFromTitle: "Hide my moments from",
+      hideFromHint: "People on this list cannot see what you post",
+      muteTitle: "Do not show their moments",
+      muteHint: "Posts from people on this list stay out of your feed",
+      empty: "No one on this list",
+      remove: "Remove",
+    },
+    contactMatch: {
+      empty: "No registered contacts found",
+      add: "Add",
+      message: "Message",
     },
     moment: {
       like: "Like",

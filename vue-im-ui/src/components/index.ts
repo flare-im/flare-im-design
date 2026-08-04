@@ -191,3 +191,6 @@ export { default as FlareVoiceHoldButton } from "./composer/FlareVoiceHoldButton
 export { default as FlareComposerActionPanel } from "./composer/FlareComposerActionPanel.vue";
 export { default as FlareComposerSendButton } from "./composer/FlareComposerSendButton.vue";
 export { default as FlareComposerReplyStrip } from "./composer/FlareComposerReplyStrip.vue";
+export { default as FlareAnnouncementReadBar } from "./general/FlareAnnouncementReadBar.vue";
+export { default as FlareContactMatchList } from "./contacts/FlareContactMatchList.vue";
+export { default as FlareMomentsVisibilityRuleList } from "./moments/FlareMomentsVisibilityRuleList.vue";

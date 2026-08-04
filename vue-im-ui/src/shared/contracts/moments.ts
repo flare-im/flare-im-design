@@ -34,3 +34,11 @@ export interface FlareMoment {
   comments?: FlareMomentComment[];
   likedBySelf?: boolean;
 }
+
+/**
+ * 朋友圈可见性规则类型。
+ *
+ * 两者方向相反，UI 上必须视觉可分 —— 设反了用户不会立刻察觉，
+ * 却会造成「本想屏蔽对方，结果自己的动态对他可见」这类隐私后果。
+ */
+export type FlareMomentsVisibilityRuleKind = "hideFrom" | "mute";

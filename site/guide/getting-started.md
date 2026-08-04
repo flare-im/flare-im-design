@@ -79,5 +79,5 @@ MessageBubble(message = msg, currentUserId = "me")
 ## 下一步
 
 - [设计 Tokens](/guide/tokens) — 颜色、间距、字号的单一源与四端生成物。
-- [组件](/components/) — 全部 107 个组件的契约、示例与四端用法。
+- [组件](/components/) — 全部 110 个组件的契约、示例与四端用法。
 - [组件契约](/guide/spec) — L2 spec 的结构与防漂移校验。

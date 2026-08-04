@@ -445,3 +445,49 @@ class FlareNavItem {
   final IconData icon;
   final int badge;
 }
+
+/// A minimal contact reference — enough to render a row (avatar + name).
+///
+/// Deliberately smaller than [FlareContact]: visibility lists and match results
+/// come from endpoints that return only identity, not the full profile.
+class FlareContactBrief {
+  const FlareContactBrief({
+    required this.userId,
+    required this.displayName,
+    this.avatarUrl,
+  });
+
+  final String userId;
+  final String displayName;
+  final String? avatarUrl;
+}
+
+/// One hit from a contact-book match.
+class FlareMatchedContact extends FlareContactBrief {
+  const FlareMatchedContact({
+    required super.userId,
+    required super.displayName,
+    super.avatarUrl,
+    required this.matchedBy,
+    this.alreadyFriend = false,
+  });
+
+  /// The phone/email that matched. Echoed on the row because the display name
+  /// may be a nickname the user does not recognise from their address book.
+  final String matchedBy;
+
+  /// Already a friend → offer 发消息 instead of 添加.
+  final bool alreadyFriend;
+}
+
+/// Which direction a Moments visibility rule points.
+///
+/// The two are opposites and setting the wrong one has privacy consequences,
+/// so components must never share wording between them.
+enum FlareMomentsVisibilityRuleKind {
+  /// Hide my moments from this person.
+  hideFrom,
+
+  /// Do not show me this person's moments.
+  mute,
+}

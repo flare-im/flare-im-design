@@ -139,3 +139,50 @@ public struct FlareNavItem: Identifiable, Sendable {
         self.key = key; self.label = label; self.systemImage = systemImage; self.badge = badge
     }
 }
+
+/// A minimal contact reference — enough to render a row (avatar + name).
+///
+/// Deliberately smaller than `Contact`: visibility lists and match results come
+/// from endpoints that return identity only, not the full profile.
+public struct ContactBrief: Identifiable, Sendable {
+    public let userId: String
+    public let displayName: String
+    public let avatarURL: String?
+
+    public var id: String { userId }
+
+    public init(userId: String, displayName: String, avatarURL: String? = nil) {
+        self.userId = userId; self.displayName = displayName; self.avatarURL = avatarURL
+    }
+}
+
+/// One hit from a contact-book match.
+public struct MatchedContact: Identifiable, Sendable {
+    public let userId: String
+    public let displayName: String
+    public let avatarURL: String?
+    /// The phone/email that matched. Echoed on the row because the display name
+    /// is a nickname the user may not recognise from their address book.
+    public let matchedBy: String
+    /// Already a friend → offer 发消息 instead of 添加.
+    public let alreadyFriend: Bool
+
+    public var id: String { userId }
+
+    public init(userId: String, displayName: String, avatarURL: String? = nil,
+                matchedBy: String, alreadyFriend: Bool = false) {
+        self.userId = userId; self.displayName = displayName; self.avatarURL = avatarURL
+        self.matchedBy = matchedBy; self.alreadyFriend = alreadyFriend
+    }
+}
+
+/// Which direction a Moments visibility rule points.
+///
+/// The two are opposites and setting the wrong one has privacy consequences,
+/// so views must never share wording between them.
+public enum MomentsVisibilityRuleKind: Sendable {
+    /// Hide my moments from this person.
+    case hideFrom
+    /// Do not show me this person's moments.
+    case mute
+}

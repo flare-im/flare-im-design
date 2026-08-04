@@ -8326,6 +8326,211 @@
           "symbol": "FlareConfigProvider"
         }
       }
+    },
+    {
+      "name": "MomentsVisibilityRuleList",
+      "category": "Moments",
+      "summary": {
+        "zh": "朋友圈可见性名单 —— 「不让他看我的」/「不看他的」两类规则的成员列表与增删。两类方向相反，同屏时必须视觉可分，否则用户会设反。",
+        "en": "Moments visibility list — members under hide-from / mute rules, with add and remove. The two directions are opposites; they must read as visually distinct or users will set the wrong one."
+      },
+      "dataSource": {
+        "zh": "由你传入（SDK list_visibility_rules）",
+        "en": "passed in by you (SDK list_visibility_rules)"
+      },
+      "props": [
+        {
+          "name": "kind",
+          "type": "'hideFrom' | 'mute'",
+          "required": true,
+          "description": {
+            "zh": "规则类型。决定标题与空态文案 —— 两类不可共用一套措辞。",
+            "en": "Rule kind. Drives the title and empty-state copy; the two must not share wording."
+          }
+        },
+        {
+          "name": "members",
+          "type": "FlareContactBrief[]",
+          "required": true,
+          "description": {
+            "zh": "该规则下的成员。",
+            "en": "Members under this rule."
+          }
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "zh": "加载中。",
+            "en": "Loading."
+          }
+        }
+      ],
+      "states": [
+        "loading",
+        "empty",
+        "ready"
+      ],
+      "events": [
+        "add",
+        "remove",
+        "selectMember"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareMomentsVisibilityRuleList"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareMomentsVisibilityRuleList"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "MomentsVisibilityRuleListView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "MomentsVisibilityRuleList"
+        }
+      }
+    },
+    {
+      "name": "ContactMatchList",
+      "category": "Contacts",
+      "summary": {
+        "zh": "通讯录匹配结果 —— 命中用户列表，按 alreadyFriend 分别显示「添加」或「发消息」。新用户上手的关键一屏。",
+        "en": "Contact match results — matched users, showing Add or Message per alreadyFriend. The key screen for new-user onboarding."
+      },
+      "dataSource": {
+        "zh": "由你传入（SDK match_contacts）",
+        "en": "passed in by you (SDK match_contacts)"
+      },
+      "props": [
+        {
+          "name": "matches",
+          "type": "FlareMatchedContact[]",
+          "required": true,
+          "description": {
+            "zh": "匹配结果。matchedBy 用于在条目上回显命中的号码，便于用户确认是谁。",
+            "en": "Match results. matchedBy echoes which number matched so the user can tell who it is."
+          }
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "zh": "匹配中。",
+            "en": "Matching."
+          }
+        }
+      ],
+      "states": [
+        "loading",
+        "empty",
+        "ready"
+      ],
+      "events": [
+        "addFriend",
+        "openConversation",
+        "selectContact"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareContactMatchList"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareContactMatchList"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ContactMatchListView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ContactMatchList"
+        }
+      }
+    },
+    {
+      "name": "AnnouncementReadBar",
+      "category": "General",
+      "summary": {
+        "zh": "群公告已读条 —— 未确认时显示确认按钮，已确认后转为「x/y 已读」。计数取自服务端权威值，不由未读名单长度反推（名单是截断的）。",
+        "en": "Announcement read bar — a confirm button while unread, switching to an x/y read count once confirmed. Counts come from the server; never derive them from the truncated unread list."
+      },
+      "dataSource": {
+        "zh": "由你传入（SDK announcement_read_status）",
+        "en": "passed in by you (SDK announcement_read_status)"
+      },
+      "props": [
+        {
+          "name": "readCount",
+          "type": "number",
+          "required": true,
+          "description": {
+            "zh": "已读人数（服务端权威计数）。",
+            "en": "Read count (authoritative, from server)."
+          }
+        },
+        {
+          "name": "memberCount",
+          "type": "number",
+          "required": true,
+          "description": {
+            "zh": "成员总数（服务端权威计数）。",
+            "en": "Member count (authoritative, from server)."
+          }
+        },
+        {
+          "name": "selfRead",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "zh": "当前用户是否已确认，决定显示确认按钮还是计数。",
+            "en": "Whether the viewer confirmed; decides button vs count."
+          }
+        },
+        {
+          "name": "canViewUnread",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "zh": "是否显示「查看未读」入口（一般仅管理员）。",
+            "en": "Show the view-unread entry (admins only, typically)."
+          }
+        }
+      ],
+      "states": [
+        "unread",
+        "read"
+      ],
+      "events": [
+        "confirm",
+        "viewUnread"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareAnnouncementReadBar"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareAnnouncementReadBar"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "AnnouncementReadBarView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "AnnouncementReadBar"
+        }
+      }
     }
   ],
   "categoryLabels": {
