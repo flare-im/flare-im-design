@@ -6,7 +6,16 @@ import { defineConfig } from "vitest/config";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "../..");
-const typeScriptSdkRoot = path.resolve(__dirname, "../flare-core-typescript-sdk/src");
+// 走**已声明的依赖**（devDep/peerDep `@flare-im/sdk`），不是手写兄弟仓路径。
+// 原来写的 `../flare-core-typescript-sdk/src` 是本包还在 client-sdk 仓里时的相对
+// 位置；抽成独立仓后那个路径根本不存在，独立 clone 一跑 vitest 就崩。
+// 用 resolve 的好处是本地（node_modules 里是 symlink）与 npm 安装（真实包）都成立。
+// 用 node_modules 解析而非 import.meta.resolve：包的 exports 不暴露
+// package.json，resolve 会直接抛 ERR_PACKAGE_PATH_NOT_EXPORTED。
+const typeScriptSdkRoot = path.join(
+  __dirname,
+  "node_modules/@flare-im/sdk/src",
+);
 const vueImUiRoot = path.resolve(__dirname, "src");
 
 export default defineConfig({
@@ -18,7 +27,7 @@ export default defineConfig({
         replacement: path.join(typeScriptSdkRoot, "adapters/web/index.ts"),
       },
       {
-        find: /^@flare-im/sdk\/(.+)$/,
+        find: /^@flare-im\/sdk\/(.+)$/,
         replacement: path.join(typeScriptSdkRoot, "$1"),
       },
       {
@@ -58,7 +67,7 @@ export default defineConfig({
         replacement: path.join(vueImUiRoot, "app/styles/index.css"),
       },
       {
-        find: /^@flare-im/vue-ui\/app\/components\/(.+)$/,
+        find: /^@flare-im\/vue-ui\/app\/components\/(.+)$/,
         replacement: path.join(vueImUiRoot, "app/components/$1"),
       },
       {
