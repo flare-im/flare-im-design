@@ -1,80 +1,82 @@
-# @flare-im/ui-spec — L2 组件契约
+# @flare-im/ui-spec — L2 Component Contracts
 
-框架中立的 IM 组件契约：**一个组件 = 一份契约（props / states / events + 数据源 core view），各端原生实现**。
-是「类 Ant Design 组件 API」中立化的部分——各端 L1 包按此实现，一致性靠本 spec 锁定。
+English · [中文](README.zh-CN.md)
 
-## 安装
+Framework-neutral IM component contracts: **one component = one contract (props / states / events + `dataSource` core view), each platform implemented natively**.
+This is the neutralized part of the "Ant Design-like component API" — each platform's L1 package implements against it, and consistency is locked down by this spec.
+
+## Install
 
 ```bash
 npm install @flare-im/ui-spec
 ```
 
-契约本身是一份 JSON，可直接读取：
+The contract itself is a JSON file and can be read directly:
 
 ```js
 import components from "@flare-im/ui-spec/components.json" with { type: "json" };
 
-console.log(components.length); // 组件数量
+console.log(components.length); // number of components
 ```
 
-自己实现某一端的组件库时，用它作为唯一事实来源校验 props/events 是否齐全 ——
-四端实现不一致的问题，就是靠这份契约锁住的。
+When implementing a component library for a given platform yourself, use it as the single source of truth to verify that props/events are complete —
+the inconsistency problem across the four platform implementations is exactly what this contract locks down.
 
-## 契约格式（每个组件）
-| 字段 | 含义 |
+## Contract format (per component)
+| Field | Meaning |
 |---|---|
-| `name` | 组件名（各端符号见 `platforms`） |
-| `summary` | 一句话职责 |
-| `dataSource` | 数据来自哪个 **core 可观察视图**（L4）——所有端消费同一个 |
+| `name` | Component name (per-platform symbols in `platforms`) |
+| `summary` | One-line responsibility |
+| `dataSource` | Which **core observable view** (L4) the data comes from — all platforms consume the same one |
 | `props[]` | `{ name, type, required?, default?, desc? }` |
-| `states[]` | 可能的状态（如 pending/sent/read/failed） |
-| `events[]` | 回调/事件名 |
-| `platforms` | `vue / flutter / ios / compose` → `{ package, symbol }`（各端依赖与符号） |
+| `states[]` | Possible states (e.g. pending/sent/read/failed) |
+| `events[]` | Callback/event names |
+| `platforms` | `vue / flutter / ios / compose` → `{ package, symbol }` (per-platform dependency and symbol) |
 
 <!-- CATALOG:START -->
-## 组件目录
+## Component catalog
 
-**111 个组件 / 11 个类目**（源见 [`components.json`](./components.json)；
-props/events 从 `@flare-im/vue-ui` 源码抽取校准）。
+**111 components / 11 categories** (source in [`components.json`](./components.json);
+props/events extracted and calibrated from the `@flare-im/vue-ui` source).
 
-> 本段由 `gen-readme-catalog.mjs` 从契约生成，不要手改 —— 手写目录会随契约增长而腐烂。
+> This section is generated from the contract by `gen-readme-catalog.mjs`; do not edit by hand — a hand-written catalog rots as the contract grows.
 
-- **Message（消息）** — 31 个
+- **Message** — 31
   `AnnouncementBanner` · `ChatHeader` · `ContactMessage` · `DatePill` · `EmojiMessage` · `FileMessage` · `ImageGrid` · `ImageMessage` · `LinkCardMessage` · `LocationMessage` · `MessageActionSheet` · `MessageBatchToolbar` · `MessageBubble` · `MessageContentView` · `MessageList` · `PinnedMessageBar` · `ReactionSummary` · `ReadReceiptSheet` · `RedPacketCard` · `ScrollToLatest` · `StickerMessage` · `SystemMessage` · `TaskMessage` · `TextMessage` · `TranslationView` · `TypingIndicator` · `UnreadDivider` · `VideoMessage` · `VoiceMessage` · `VoicePlayer` · `VoteMessage`
-- **General（通用）** — 17 个
+- **General** — 17
   `AnnouncementReadBar` · `Avatar` · `Button` · `EmptyState` · `FilterTabs` · `Icon` · `IconButton` · `Input` · `MessageStatus` · `PrimaryButton` · `SearchBar` · `SearchResults` · `SegmentedControl` · `Skeleton` · `StatusBanner` · `TimeStamp` · `Toast`
-- **Composer（输入）** — 13 个
+- **Composer** — 13
   `Composer` · `ComposerActionPanel` · `ComposerReplyStrip` · `ComposerSendButton` · `EmojiPicker` · `MentionPicker` · `PollComposer` · `QuickPhrases` · `RichMarkdownInput` · `SlashCommandMenu` · `StickerPanel` · `VoiceHoldButton` · `VoiceRecordingBar`
-- **Form（表单）** — 11 个
+- **Form** — 11
   `Checkbox` · `DatePicker` · `FormField` · `RadioGroup` · `Rating` · `Select` · `Slider` · `Stepper` · `Switch` · `Textarea` · `TimePicker`
-- **Contacts（通讯录）** — 8 个
+- **Contacts** — 8
   `ContactDetail` · `ContactItem` · `ContactList` · `ContactMatchList` · `GroupDetail` · `GroupList` · `GroupMemberGrid` · `NewFriendRequests`
-- **Moments（圈子）** — 8 个
+- **Moments** — 8
   `CommentThread` · `MomentActionPopover` · `MomentAudienceSheet` · `MomentCard` · `MomentComposer` · `MomentsCoverHeader` · `MomentsVisibilityRuleList` · `TopicChip`
-- **Conversation（会话）** — 6 个
+- **Conversation** — 6
   `ChatWallpaperPicker` · `ConversationDetails` · `ConversationList` · `ConversationRow` · `ForwardPicker` · `StartConversationDialog`
-- **Call（音视频通话）** — 5 个
+- **Call (audio/video)** — 5
   `CallControls` · `CallDock` · `CallView` · `GroupCallView` · `IncomingCall`
-- **Profile（个人中心）** — 5 个
+- **Profile** — 5
   `ProfileCard` · `ProfileEditor` · `ProfilePanel` · `QRCard` · `SettingsList`
-- **Layout（布局）** — 4 个
+- **Layout** — 4
   `AppShell` · `ConfigProvider` · `ResponsiveLayout` · `ScreenHeader`
-- **Media（媒体）** — 3 个
+- **Media** — 3
   `ImagePreviewModal` · `MarkdownPreview` · `VideoPlayerModal`
 
 <!-- CATALOG:END -->
 
-**内容类型注册表**（`contentTypes.registered`）：`MessageBubble`/`MessageContentView` 按 content-type 分发到各渲染器
-（text/image/video/audio/file/location/card/linkCard/sticker/emoji/vote/task/schedule/announcement/miniProgram/notification/placeholder），产品可注册新类型。
+**Content-type registry** (`contentTypes.registered`): `MessageBubble`/`MessageContentView` dispatch to individual renderers by content-type
+(text/image/video/audio/file/location/card/linkCard/sticker/emoji/vote/task/schedule/announcement/miniProgram/notification/placeholder), and products can register new types.
 
-## 校验（防漂移，仿 sdk-spec 双向覆盖）
+## Validation (drift prevention, mirroring the sdk-spec bidirectional coverage)
 ```bash
 node validate.mjs
 ```
-检查：① 每个组件契约字段完整；② 四端都有 package+symbol；③ **Vue 参考符号（如 `MessageBubble.vue`）确实存在于
-`@flare-im/vue-ui`**——spec 与参考实现对不上就报错。各端 L1 包落地后，扩展校验为「该端符号存在且 props 覆盖」。
+Checks: (1) every component contract has complete fields; (2) all four platforms have package+symbol; (3) the **Vue reference symbol (e.g. `MessageBubble.vue`) actually exists in
+`@flare-im/vue-ui`** — it errors if the spec and the reference implementation don't line up. Once each platform's L1 package lands, the validation is extended to "that platform's symbol exists and its props are covered".
 
-## 关系
-- **L4** 数据/行为：`flare-im-core-sdk` client.views（已有）——`dataSource` 指向它。
-- **L3** tokens：[`../tokens`](../tokens)——组件视觉走 `--flare-*`。
-- **L1** 各端包：Vue 已在 `@flare-im/vue-ui`；Flutter/iOS/Compose 待从各端 app 抽取（Phase 4）。
+## Relationships
+- **L4** data/behavior: `flare-im-core-sdk` client.views (already exists) — `dataSource` points to it.
+- **L3** tokens: [`../tokens`](../tokens) — component visuals go through `--flare-*`.
+- **L1** per-platform packages: Vue is already in `@flare-im/vue-ui`; Flutter/iOS/Compose to be extracted from each platform's app (Phase 4).
