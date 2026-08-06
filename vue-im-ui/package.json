@@ -44,7 +44,6 @@
     "./icon-glyphs": "./src/shared/icon-glyphs.ts"
   },
   "dependencies": {
-    "@vicons/ionicons5": "^0.12.0",
     "@flare-im/tokens": "^1.0.5",
     "markdown-it": "^14.2.0",
     "lucide-vue-next": "0.577.0"
@@ -83,7 +82,6 @@
   "devDependencies": {
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^26.0.0",
-    "@vicons/ionicons5": "^0.12.0",
     "@vitejs/plugin-vue": "^6.0.7",
     "esbuild": "^0.25.12",
     "@flare-im/sdk": "^1.0.6",
