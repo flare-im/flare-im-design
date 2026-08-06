@@ -1,84 +1,98 @@
-# Flare IM Design — 跨端 IM UI Kit
+# Flare IM Design — Cross-Platform IM UI Kit
 
-> ## ℹ️ 这是通信基础设施，不是开箱即用的 IM 产品
+English · [中文](README.zh-CN.md)
+
+> ## ℹ️ This is communication infrastructure, not a turnkey IM product
 >
-> 说在前面，免得你 clone 完才发现登不上去：**开源部分不含账号体系**
-> （没有注册登录、好友关系、群角色/审批/禁言、朋友圈）。
+> Up front, so you don't discover it only after cloning and finding you can't
+> log in: **the open-source part does not include an account system**
+> (no registration/login, friend relationships, group roles/approval/muting, or moments/feed).
 >
-> 但它自带完整且可插拔的鉴权契约，两条路都在开源侧：
+> But it ships with a complete, pluggable authentication contract, and both
+> paths live on the open-source side:
 >
-> - **`CoreJwtTokenValidator`** —— 本地验 JWT。手签一个 token 就能跑起来做
->   demo / POC，**不需要任何用户体系**。
-> - **`HttpHookTokenValidator`** —— 把 token POST 到你自己的接口，
->   **这是接入自有用户体系的入口**。
+> - **`CoreJwtTokenValidator`** — validate JWTs locally. Hand-sign a token and
+>   you can get it running for a demo / POC, **without any user system**.
+> - **`HttpHookTokenValidator`** — POST the token to your own endpoint;
+>   **this is the entry point for integrating your own user system**.
 >
-> 业务规则同理：`flare-im-core/crates/flare-im-hooks` 提供 9 个扩展点
-> （PreSend / PostSend / Delivery / Recall / MessageRead / MessageReaction /
-> ConversationLifecycle / ConversationMember / GetConversationParticipants）。
+> Business rules work the same way: `flare-im-core/crates/flare-im-hooks`
+> provides 9 extension points
+> (PreSend / PostSend / Delivery / Recall / MessageRead / MessageReaction /
+> ConversationLifecycle / ConversationMember / GetConversationParticipants).
 >
-> 要上生产，你需要自行实现用户体系并按上述契约接入 —— 与 Sendbird /
-> Twilio Conversations 的「自带身份」模型一致，区别是 Flare 可自托管、
-> 协议与核心可审计。
+> To go to production, you implement your own user system and plug it in via
+> the contracts above — the same "bring your own identity" model as Sendbird /
+> Twilio Conversations, the difference being that Flare can be self-hosted and
+> its protocol and core are auditable.
 >
-> 边界详情见 [GOVERNANCE.md](GOVERNANCE.md)。
+> See [GOVERNANCE.md](GOVERNANCE.md) for the boundary details.
 
 
-一套「类 Ant Design」的 IM UI 组件体系，覆盖 **web / Flutter / Android / iOS**。
-不是"一份渲染代码跑四端"（Vue/Flutter/SwiftUI/Compose 物理不可共享），而是 **Material Design 式**：
-**一套契约 + 一套设计系统 + core 行为，各端各自原生实现**。
+An "Ant Design–like" IM UI component system covering **web / Flutter / Android / iOS**.
+Not "one rendering codebase running on four platforms" (Vue/Flutter/SwiftUI/Compose
+cannot physically share it), but **Material Design–style**:
+**one contract + one design system + core behavior, each platform implemented natively.**
 
-## 分层
+## Layering
 
 ```
-L4  行为/数据 = core 可观察视图 (Rust, 已有)   ← flare-im-core-sdk client.views
-L3  设计 tokens (平台中立单一真源)             → tokens/  ✅ 本仓
-L2  组件契约 spec ("类 Ant 组件 API")          → spec/    (规划中)
-L1  各端组件包 (薄原生实现)                     → packages/(规划中，从各端 app 抽取)
+L4  Behavior/data = core observable views (Rust, existing)   ← flare-im-core-sdk client.views
+L3  Design tokens (platform-neutral single source of truth)  → tokens/  ✅ this repo
+L2  Component contract spec ("Ant-like component API")        → spec/    (planned)
+L1  Per-platform component packages (thin native impls)       → packages/(planned, extracted from each platform's app)
 ```
 
-## 目录
+## Directory
 
-| 路径 | 内容 | 状态 |
+| Path | Contents | Status |
 |---|---|---|
-| [`docs/DESIGN.md`](docs/DESIGN.md) | 完整架构设计（方向/层归属/硬路径/权衡/风险） | ✅ |
-| [`docs/PLAN.md`](docs/PLAN.md) | 可执行落地计划 + 进度真源 | ✅ |
-| [`tokens/`](tokens/) | **L3** `@flare-im/tokens` 包：中立 JSON 源 + 生成器（web CSS/TS，各端预留） | ✅ Phase 1 |
-| `spec/` | **L2** 组件契约（首批 4 组件 MessageBubble/ConversationList/Composer/Avatar） | 规划 |
-| `packages/` | **L1** 各端组件包（Vue 已在 flare-im-core-client-sdk；Flutter/iOS/Compose 待抽取） | 规划 |
+| [`docs/DESIGN.md`](docs/DESIGN.md) | Full architecture design (direction/layer ownership/hard paths/trade-offs/risks) | ✅ |
+| [`tokens/`](tokens/) | **L3** `@flare-im/tokens` package: neutral JSON source + generators (web CSS/TS, others reserved) | ✅ Phase 1 |
+| `spec/` | **L2** Component contracts (first 4 components: MessageBubble/ConversationList/Composer/Avatar) | Planned |
+| `packages/` | **L1** Per-platform component packages (Vue already in flare-im-core-client-sdk; Flutter/iOS/Compose to be extracted) | Planned |
 
-## L3 tokens — 一份值，各端主题
+## L3 tokens — one set of values, themed per platform
 
 ```bash
 cd tokens && node build.mjs   # tokens.json → dist/tokens.css + dist/tokens.ts
 ```
 
-`tokens/tokens.json` 是**唯一视觉真源**。生成 web 的 CSS 变量（`--flare-color-*` 等，含 `:root` 与
-`[data-flare-theme="dark"]`）与 typed token 对象。改一个值，消费方全更新。
-消费方 `@flare-im/vue-ui` 通过 `file:` 依赖 `@flare-im/tokens` 消费（`@import "@flare-im/tokens/tokens.css"`
-+ `import { flareDesignTokens }`）。Dart/Swift/Compose 生成器在对应 L1 组件包落地时再加（不做无消费者的抽象）。
+`tokens/tokens.json` is the **single visual source of truth**. It generates the web
+CSS variables (`--flare-color-*` etc., including `:root` and
+`[data-flare-theme="dark"]`) and the typed token object. Change one value, and all
+consumers update. The consumer `@flare-im/vue-ui` consumes `@flare-im/tokens` via a
+`file:` dependency (`@import "@flare-im/tokens/tokens.css"`
++ `import { flareDesignTokens }`). The Dart/Swift/Compose generators are added when the
+corresponding L1 component package lands (no abstractions without consumers).
 
-> 可视化组件目录（各端依赖 + 用法示例）见设计交付的 Artifact "Flare IM UI Kit"。
+> For the visual component catalog (per-platform dependencies + usage examples), see
+> the "Flare IM UI Kit" Artifact delivered with the design.
 
 ---
 
-## 下一步
+## Next steps
 
-| 想做什么 | 去哪里 |
+| What you want to do | Where to go |
 |---|---|
-| **五分钟跑起来** | [QUICKSTART](https://github.com/flare-im/flare-im-core-server/blob/main/QUICKSTART.md) —— 起服务、手签 token、调通接口，**不需要自建用户体系** |
-| 接入自己的用户系统 | 实现 `TokenValidator`（`CoreJwtTokenValidator` 本地验签 / `HttpHookTokenValidator` 调你的接口） |
-| 加自己的业务规则 | `flare-im-hooks` 的 9 个扩展点：PreSend / PostSend / Delivery / Recall / MessageRead / MessageReaction / ConversationLifecycle / ConversationMember / GetConversationParticipants |
-| 做界面 | [`@flare-im/vue-ui`](https://www.npmjs.com/package/@flare-im/vue-ui) —— 107 个组件，四端一致的契约 |
-| 报安全问题 | [SECURITY.md](SECURITY.md)，**请勿开公开 issue** |
+| **Get running in five minutes** | [QUICKSTART](https://github.com/flare-im/flare-im-core-server/blob/main/QUICKSTART.md) — start the services, hand-sign a token, get the APIs working, **no need to build your own user system** |
+| Integrate your own user system | Implement `TokenValidator` (`CoreJwtTokenValidator` for local validation / `HttpHookTokenValidator` to call your endpoint) |
+| Add your own business rules | The 9 extension points of `flare-im-hooks`: PreSend / PostSend / Delivery / Recall / MessageRead / MessageReaction / ConversationLifecycle / ConversationMember / GetConversationParticipants |
+| Build the UI | [`@flare-im/vue-ui`](https://www.npmjs.com/package/@flare-im/vue-ui) — 107 components, a contract consistent across four platforms |
+| Report a security issue | [SECURITY.md](SECURITY.md), **please do not open a public issue** |
 
-## 需要账号体系与社交能力时
+## When you need an account system and social capabilities
 
-开源部分是**通信基础设施**。如果你需要的是现成的账号、好友关系、群治理（角色 / 入群审批 / 禁言）、朋友圈，
-这些在商业模块里 —— 自研这一层通常要数月，且都是与通信无关的重复劳动。
+The open-source part is **communication infrastructure**. If what you need is a
+ready-made account system, friend relationships, group governance (roles / join
+approval / muting), or a moments/feed, these live in the commercial modules —
+building this layer yourself usually takes months, and it's all repetitive work
+unrelated to communication.
 
-企业场景另有 SSO / 组织架构 / 审计导出 / 数据驻留 / SLA 支持。
+For enterprise scenarios there are also SSO / org structure / audit export / data
+residency / SLA support.
 
-咨询：`flare1522@163.com`
+Inquiries: `flare1522@163.com`
 
-> 边界划分与不变承诺见 [GOVERNANCE](https://github.com/flare-im/flare-im-core-server/blob/main/GOVERNANCE.md)。
-> 简言之：**已开源的不会被收回，鉴权与 hooks 契约永远开源、不会为逼迫付费而阉割。**
+> For the boundary split and the invariant commitments, see [GOVERNANCE](https://github.com/flare-im/flare-im-core-server/blob/main/GOVERNANCE.md).
+> In short: **what has been open-sourced will not be taken back, and the authentication and hooks contracts will always be open source and will never be crippled to coerce payment.**
