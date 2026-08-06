@@ -310,4 +310,56 @@ struct FlareFormControls_Previews: PreviewProvider {
         FormControlsDemo().preferredColorScheme(.dark)
     }
 }
+
+private struct StatusBannerDemo: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("StatusBanner（tone / dot / pulse / action）").font(.system(size: 13, weight: .medium))
+                StatusBannerView(text: "已连接，实时同步中", tone: .success)
+                StatusBannerView(text: "正在重新连接…", tone: .warning, pulse: true)
+                StatusBannerView(text: "网络已断开", tone: .danger,
+                                 actionText: "重试", onAction: {})
+                StatusBannerView(text: "离线草稿，稍后发送", tone: .neutral, dot: false)
+                StatusBannerView(text: "有 3 条新公告", tone: .info,
+                                 actionText: "查看", onAction: {})
+            }
+            .padding()
+        }
+    }
+}
+
+struct FlareStatusBanner_Previews: PreviewProvider {
+    static var previews: some View {
+        StatusBannerDemo()
+        StatusBannerDemo().preferredColorScheme(.dark)
+    }
+}
+
+private struct FilterTabsDemo: View {
+    @State private var selection = "all"
+    private let options: [FlareFilterTabOption] = [
+        FlareFilterTabOption(value: "all", label: "全部"),
+        FlareFilterTabOption(value: "unread", label: "未读", badge: 8),
+        FlareFilterTabOption(value: "groups", label: "群聊", systemImage: "person.3"),
+        FlareFilterTabOption(value: "mentions", label: "@我", badge: 2),
+        FlareFilterTabOption(value: "bots", label: "机器人", systemImage: "cpu"),
+    ]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("FilterTabs（横向可滚动筛选）").font(.system(size: 13, weight: .medium))
+            FilterTabsView(options: options, selection: $selection)
+            Text("当前：\(selection)").font(.system(size: 12)).foregroundColor(.secondary)
+        }
+        .padding()
+    }
+}
+
+struct FlareFilterTabs_Previews: PreviewProvider {
+    static var previews: some View {
+        FilterTabsDemo()
+        FilterTabsDemo().preferredColorScheme(.dark)
+    }
+}
 #endif

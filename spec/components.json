@@ -3593,6 +3593,18 @@
         "vue": {
           "package": "@flare-im/vue-ui",
           "symbol": "FlareStatusBanner"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareStatusBanner"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "StatusBannerView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "StatusBanner"
         }
       }
     },
@@ -3638,6 +3650,18 @@
         "vue": {
           "package": "@flare-im/vue-ui",
           "symbol": "FlareFilterTabs"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareFilterTabs"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "FilterTabsView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FilterTabs"
         }
       }
     },
@@ -8325,6 +8349,10 @@
           "package": "@flare-im/vue-ui",
           "symbol": "FlareConfigProvider"
         }
+      },
+      "notes": {
+        "en": "Web-only by design: a provide/inject config wrapper (size/density/locale/theme). Native platforms achieve the same globally via SwiftUI @Environment / FlareColors.of(scheme) (iOS) and CompositionLocal / MaterialTheme (Compose), so no portable ConfigProvider component is shipped there.",
+        "zh": "按设计仅 web:provide/inject 的全局配置包裹件(size/density/locale/theme)。原生端通过 SwiftUI @Environment / FlareColors.of(scheme)(iOS)与 CompositionLocal / MaterialTheme(Compose)达成同等全局配置,故不提供可移植的 ConfigProvider 组件。"
       }
     },
     {

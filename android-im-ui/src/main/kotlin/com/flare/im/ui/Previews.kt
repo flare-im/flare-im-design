@@ -267,3 +267,28 @@ private fun FormControlsPreview() {
         DatePicker(value = date, placeholder = "选择日期", title = "选择日期", onChange = { date = it })
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+private fun StatusBannerPreview() = Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    StatusBanner(text = "已连接", tone = FlareStatusTone.Success)
+    StatusBanner(text = "正在同步…", tone = FlareStatusTone.Info, pulse = true)
+    StatusBanner(text = "连接已断开", tone = FlareStatusTone.Danger, actionText = "重试", onAction = {})
+    StatusBanner(text = "离线草稿", tone = FlareStatusTone.Neutral, dot = false)
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun FilterTabsPreview() {
+    var selected by remember { mutableStateOf("all") }
+    FilterTabs(
+        options = listOf(
+            FlareFilterTabOption("all", "全部"),
+            FlareFilterTabOption("unread", "未读", badge = 8),
+            FlareFilterTabOption("groups", "群聊"),
+            FlareFilterTabOption("at", "@我", badge = 2),
+        ),
+        selected = selected,
+        onSelect = { selected = it },
+    )
+}
