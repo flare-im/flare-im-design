@@ -20,7 +20,7 @@ title: TimeStamp
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `label` | `string` | ✔ | — | Preformatted time string; formatting lives in core so all platforms agree. |
+| `label` | `string` | ✓ | — | Preformatted time string; formatting lives in core so all platforms agree. |
 
 
 ## States

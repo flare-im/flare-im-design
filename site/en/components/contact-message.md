@@ -20,7 +20,7 @@ title: ContactMessage
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `name` | `string` | ✔ | — | Contact name (drives the pastel avatar). |
+| `name` | `string` | ✓ | — | Contact name (drives the pastel avatar). |
 | `avatarUrl` | `string` |  | — | Avatar image; falls back to a pastel initials chip. |
 | `subtitle` | `string` |  | — | Free secondary line (handle, id, department…). |
 

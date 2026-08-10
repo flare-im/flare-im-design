@@ -20,8 +20,8 @@ title: ComposerReplyStrip
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `senderName` | `string` | ✔ | — | 被回复者的名称。 |
-| `summary` | `string` | ✔ | — | 被引用消息的一行预览。 |
+| `senderName` | `string` | ✓ | — | 被回复者的名称。 |
+| `summary` | `string` | ✓ | — | 被引用消息的一行预览。 |
 | `label` | `string` |  | `Reply` | 发送者前的引导文案。 |
 
 

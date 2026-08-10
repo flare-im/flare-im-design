@@ -20,7 +20,7 @@ title: TextMessage
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `text` | `string` | ✔ | — | The text to render. |
+| `text` | `string` | ✓ | — | The text to render. |
 | `self` | `boolean` |  | — | Render the outgoing (brand-purple) side. |
 | `selectable` | `boolean` |  | — | Allow the text to be selected/copied. |
 

@@ -20,8 +20,8 @@ title: ComposerReplyStrip
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `senderName` | `string` | ✔ | — | Name of the person being replied to. |
-| `summary` | `string` | ✔ | — | One-line preview of the quoted message. |
+| `senderName` | `string` | ✓ | — | Name of the person being replied to. |
+| `summary` | `string` | ✓ | — | One-line preview of the quoted message. |
 | `label` | `string` |  | `Reply` | Leading text before the sender. |
 
 

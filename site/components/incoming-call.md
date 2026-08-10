@@ -20,8 +20,8 @@ title: IncomingCall
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `callerName` | `string` | ✔ | — | 来电人的名称。 |
-| `mode` | `'audio' \| 'video'` | ✔ | — | 音频或视频邀请。 |
+| `callerName` | `string` | ✓ | — | 来电人的名称。 |
+| `mode` | `'audio' \| 'video'` | ✓ | — | 音频或视频邀请。 |
 | `callerAvatarUrl` | `string` |  | — | 来电人的头像。 |
 
 

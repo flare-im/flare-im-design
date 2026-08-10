@@ -23,9 +23,9 @@ title: CallView
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `peerName` | `string` | ✔ | — | 通话对端的名称。 |
-| `mode` | `'audio' \| 'video'` | ✔ | — | 音频或视频 —— 改变版式。 |
-| `state` | `'calling' \| 'ringing' \| 'connected'` | ✔ | — | 呼叫中 / 响铃中 / 已接通。 |
+| `peerName` | `string` | ✓ | — | 通话对端的名称。 |
+| `mode` | `'audio' \| 'video'` | ✓ | — | 音频或视频 —— 改变版式。 |
+| `state` | `'calling' \| 'ringing' \| 'connected'` | ✓ | — | 呼叫中 / 响铃中 / 已接通。 |
 | `durationLabel` | `string` |  | — | 已格式化的通话时长（mm:ss）。 |
 | `peerAvatarUrl` | `string` |  | — | 对端头像，音频通话时显示。 |
 

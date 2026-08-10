@@ -20,7 +20,7 @@ title: TaskMessage
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `title` | `string` | ✔ | — | Task title. |
+| `title` | `string` | ✓ | — | Task title. |
 | `meta` | `string` |  | — | Secondary line (due / status). |
 | `done` | `boolean` |  | — | Completed — checks the box and strikes the title. |
 

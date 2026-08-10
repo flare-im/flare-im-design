@@ -20,7 +20,7 @@ title: EmojiMessage
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `emoji` | `string` |  | `"🎉"` | The emoji to render large. |
+| `emoji` | `string` |  | `""` | The emoji to render large. |
 
 
 ## States

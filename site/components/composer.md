@@ -39,7 +39,7 @@ title: Composer
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `conversationId` | `string` | ✔ | — | 发送与草稿归属的目标会话。 |
+| `conversationId` | `string` | ✓ | — | 发送与草稿归属的目标会话。 |
 | `replyTo` | `Message \| null` |  | — | 被回复的消息；显示回复条。 |
 | `rich` | `boolean` |  | — | 启用富文本（Markdown/RichDoc）编辑，否则纯文本。 |
 | `placeholder` | `string` |  | — | 空输入时的占位提示。 |

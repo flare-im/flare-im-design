@@ -18,8 +18,8 @@ title: Data Types
 
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
-| `id` | `string` | ✔ | Stable unique id. |
-| `name` | `string` | ✔ | Display name. |
+| `id` | `string` | ✓ | Stable unique id. |
+| `name` | `string` | ✓ | Display name. |
 | `avatarUrl` | `string` |  | Avatar image URL; falls back to initials when absent. |
 | `signature` | `string` |  | Personal bio / signature line. |
 | `presence` | `"online" \| "offline" \| "busy" \| "away"` |  | Presence state shown as a status dot. |
@@ -35,8 +35,8 @@ title: Data Types
 
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
-| `id` | `string` | ✔ | Request id. |
-| `name` | `string` | ✔ | Requester display name. |
+| `id` | `string` | ✓ | Request id. |
+| `name` | `string` | ✓ | Requester display name. |
 | `avatarUrl` | `string` |  | Requester avatar URL. |
 | `message` | `string` |  | Optional greeting attached to the request. |
 
@@ -50,8 +50,8 @@ title: Data Types
 
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
-| `id` | `string` | ✔ | Group id. |
-| `name` | `string` | ✔ | Group name. |
+| `id` | `string` | ✓ | Group id. |
+| `name` | `string` | ✓ | Group name. |
 | `avatarUrl` | `string` |  | Group avatar URL. |
 | `memberCount` | `number` |  | Member count shown as a subtitle. |
 
@@ -65,8 +65,8 @@ title: Data Types
 
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
-| `id` | `string` | ✔ | User id. |
-| `name` | `string` | ✔ | Display name. |
+| `id` | `string` | ✓ | User id. |
+| `name` | `string` | ✓ | Display name. |
 | `avatarUrl` | `string` |  | Avatar URL. |
 | `signature` | `string` |  | Bio / signature line. |
 | `flareId` | `string` |  | Optional external/business id shown on the profile. |
@@ -79,8 +79,8 @@ title: Data Types
 
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
-| `key` | `string` | ✔ | Stable row key emitted on interaction. |
-| `label` | `string` | ✔ | Row label. |
+| `key` | `string` | ✓ | Stable row key emitted on interaction. |
+| `label` | `string` | ✓ | Row label. |
 | `icon` | `string` |  | Leading icon name. |
 | `kind` | [`FlareSettingKind`](/en/reference/data-types#setting-kind) |  | Row kind — navigation, toggle or value. |
 | `value` | `boolean` |  | Toggle state (for `kind: "toggle"`). |
@@ -97,7 +97,7 @@ title: Data Types
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
 | `title` | `string` |  | Optional section header. |
-| `items` | [`FlareSettingsItem[]`](/en/reference/data-types#settings-item) | ✔ | Rows in this section. |
+| `items` | [`FlareSettingsItem[]`](/en/reference/data-types#settings-item) | ✓ | Rows in this section. |
 
 ### NavItem {#nav-item}
 
@@ -109,8 +109,8 @@ title: Data Types
 
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
-| `key` | `string` | ✔ | Route/tab key. |
-| `label` | `string` | ✔ | Nav label. |
+| `key` | `string` | ✓ | Route/tab key. |
+| `label` | `string` | ✓ | Nav label. |
 | `icon` | `string` |  | Icon name. |
 | `badge` | `number` |  | Unread/notification badge count. |
 
@@ -124,7 +124,7 @@ title: Data Types
 
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
-| `id` | `string` | ✔ | Conversation id. |
+| `id` | `string` | ✓ | Conversation id. |
 | `displayName` | `string` |  | Conversation title. |
 | `avatarUrl` | `string` |  | Conversation avatar URL. |
 | `updatedAt` | `number \| string` |  | Last-activity timestamp for ordering/time display. |
@@ -147,9 +147,9 @@ title: Data Types
 
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
-| `serverId` | `string` | ✔ | Server message id. |
-| `clientMsgId` | `string` | ✔ | Client message id. |
-| `senderDisplayName` | `string` | ✔ | Sender name shown on the pin. |
+| `serverId` | `string` | ✓ | Server message id. |
+| `clientMsgId` | `string` | ✓ | Client message id. |
+| `senderDisplayName` | `string` | ✓ | Sender name shown on the pin. |
 | `content` | `{ contentType?; data? }` |  | Message content used to render the preview. |
 
 ### VoteOption {#vote-option}
@@ -162,8 +162,8 @@ title: Data Types
 
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
-| `text` | `string` | ✔ | Option label. |
-| `pct` | `number` | ✔ | Result percentage (0–100) for the bar. |
+| `text` | `string` | ✓ | Option label. |
+| `pct` | `number` | ✓ | Result percentage (0–100) for the bar. |
 
 ### MediaResolveRequest {#media-resolve-request}
 
@@ -173,7 +173,7 @@ title: Data Types
 
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
-| `kind` | [`FlareMediaKind`](/en/reference/data-types#media-kind) | ✔ | Media kind being resolved. |
+| `kind` | [`FlareMediaKind`](/en/reference/data-types#media-kind) | ✓ | Media kind being resolved. |
 | `messageId` | `string` |  | Owning message id. |
 | `fileId` | `string` |  | Backend file id. |
 | `url` | `string` |  | Pre-known URL, if any. |

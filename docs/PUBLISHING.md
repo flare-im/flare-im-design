@@ -8,7 +8,7 @@
 | `@flare-im/ui-spec` | `flare-im-design/spec` | 6.5 kB | L2 组件契约（JSON + validator） |
 | `@flare-im/vue-ui` | `flare-im-design/vue-im-ui` | 237 kB | L1 Vue 组件库（源码发布，171 文件） |
 
-## ⚠️ 发布前必须你来做（我做不了的部分）
+## 注意：发布前必须你来做（我做不了的部分）
 - **npm 登录**：`npm login`（当前 `npm whoami` = 未登录 / ENEEDAUTH）。**输入凭证/token 只能你来**——我不碰认证。
 - **确认包名可用 / 是否加 scope**：三个名字都是**无 scope**，可能已被占用或你想用 `@your-org/`。
   先查：`npm view @flare-im/tokens version`（报 404 = 可用）。

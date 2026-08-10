@@ -20,7 +20,7 @@ title: GroupDetail
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `model` | `FlareGroupDetailModel` | ✔ | — | 群详情 / 管理数据模型（群信息、成员、角色、我在本群态、进群方式、权限位…）。 |
+| `model` | `FlareGroupDetailModel` | ✓ | — | 群详情 / 管理数据模型（群信息、成员、角色、我在本群态、进群方式、权限位…）。 |
 | `joinRequests` | `FlareGroupJoinRequestView[]` | — | `[]` | 待处理的入群申请。 |
 | `inviteCode` | `string` | — | — | 可分享的群邀请码。 |
 | `invitableContacts` | `Contact[]` | — | `[]` | 可邀请入群的好友。 |

@@ -20,7 +20,7 @@ title: ComposerSendButton
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `active` | `boolean` | ✔ | — | Enabled/purple when there is content to send. |
+| `active` | `boolean` | ✓ | — | Enabled/purple when there is content to send. |
 | `label` | `string` |  | `Send` | Accessible label. |
 
 

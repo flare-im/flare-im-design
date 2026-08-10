@@ -20,10 +20,10 @@ title: MessageList
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `conversationId` | `string` | ✔ | — | Which timeline to open. |
+| `conversationId` | `string` | ✓ | — | Which timeline to open. |
 | `conversationType` | `'single' \| 'group' \| 'ai'` |  | — | Single/group/AI — affects bubble layout. |
-| `messages` | `Message[]` | ✔ | — | Windowed message slice from the view. |
-| `currentUserId` | `string` | ✔ | — | Viewer's id, for self/other resolution. |
+| `messages` | `Message[]` | ✓ | — | Windowed message slice from the view. |
+| `currentUserId` | `string` | ✓ | — | Viewer's id, for self/other resolution. |
 | `multiSelectMode` | `boolean` |  | — | Turns on per-bubble selection. |
 | `selectedIds` | `string[]` |  | — | Ids currently checked in multi-select. |
 | `loadingOlder` | `boolean` |  | — | Shows the load-older spinner at the top. |

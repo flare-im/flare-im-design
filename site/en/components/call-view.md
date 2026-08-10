@@ -20,9 +20,9 @@ title: CallView
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `peerName` | `string` | ✔ | — | Name of the person on the call. |
-| `mode` | `'audio' \| 'video'` | ✔ | — | Audio or video — changes the layout. |
-| `state` | `'calling' \| 'ringing' \| 'connected'` | ✔ | — | Calling / ringing / connected. |
+| `peerName` | `string` | ✓ | — | Name of the person on the call. |
+| `mode` | `'audio' \| 'video'` | ✓ | — | Audio or video — changes the layout. |
+| `state` | `'calling' \| 'ringing' \| 'connected'` | ✓ | — | Calling / ringing / connected. |
 | `durationLabel` | `string` |  | — | Preformatted elapsed time (mm:ss). |
 | `peerAvatarUrl` | `string` |  | — | Peer avatar, shown for audio calls. |
 

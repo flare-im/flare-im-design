@@ -26,7 +26,7 @@ title: Composer
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `conversationId` | `string` | ✔ | — | Target conversation for sends and the draft. |
+| `conversationId` | `string` | ✓ | — | Target conversation for sends and the draft. |
 | `replyTo` | `Message \| null` |  | — | Message being replied to; shows the reply strip. |
 | `rich` | `boolean` |  | — | Enable rich (Markdown/RichDoc) editing vs. plain text. |
 | `placeholder` | `string` |  | — | Empty-field hint text. |

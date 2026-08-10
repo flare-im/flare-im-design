@@ -20,7 +20,7 @@ title: ContactList
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `items` | [`Contact[]`](/reference/data-types#contact) | ✔ | — | 要分组渲染的联系人。 |
+| `items` | [`Contact[]`](/reference/data-types#contact) | ✓ | — | 要分组渲染的联系人。 |
 | `indexed` | `boolean` |  | `true` | 显示 A–Z 侧边索引条。 |
 | `loading` | `boolean` |  | — | 首屏骨架 / 转圈。 |
 

@@ -29,7 +29,7 @@ title: MessageActionSheet
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `open` | `boolean` | ✔ | — | 面板是否展开。 |
+| `open` | `boolean` | ✓ | — | 面板是否展开。 |
 | `reactions` | `string[]` |  | — | 表情条里的表情（末尾按钮展开完整选择器）。 |
 | `menuConfig` | `MessageMenuConfig` |  | — | 该消息启用哪些操作；未启用的隐藏。 |
 | `canRecall` | `boolean` |  | — | 是否显示撤回（仅己方近期消息）。 |

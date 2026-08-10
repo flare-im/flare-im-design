@@ -20,7 +20,7 @@ title: NewFriendRequests
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `items` | [`FriendRequest[]`](/reference/data-types#friend-request) | ✔ | — | 待处理与已处理的申请列表。 |
+| `items` | [`FriendRequest[]`](/reference/data-types#friend-request) | ✓ | — | 待处理与已处理的申请列表。 |
 | `emptyText` | `string` |  | — | 无好友申请时的空态标题。默认 "No new friend requests"。 |
 
 

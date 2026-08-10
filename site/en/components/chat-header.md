@@ -20,7 +20,7 @@ title: ChatHeader
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `title` | `string` | ✔ | — | Conversation name shown in the header. |
+| `title` | `string` | ✓ | — | Conversation name shown in the header. |
 | `subtitle` | `string` |  | — | Secondary line (member count, typing, last-seen…). |
 | `presence` | `'online' \| 'offline' \| 'busy' \| 'away'` |  | — | Peer presence for a 1:1 chat; drives the status dot. |
 

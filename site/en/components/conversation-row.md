@@ -20,7 +20,7 @@ title: ConversationRow
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `item` | [`ConversationRowModel`](/en/reference/data-types#conversation-row-model) | ✔ | — | The row's data (title, preview, unread, time, flags). |
+| `item` | [`ConversationRowModel`](/en/reference/data-types#conversation-row-model) | ✓ | — | The row's data (title, preview, unread, time, flags). |
 | `active` | `boolean` |  | — | Renders the selected/open state. |
 | `draftPreview` | `string` |  | — | Unsent draft text; shown in place of the last message. |
 

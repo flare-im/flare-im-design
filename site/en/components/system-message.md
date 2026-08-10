@@ -20,7 +20,7 @@ title: SystemMessage
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `text` | `string` | ✔ | — | Notice text. |
+| `text` | `string` | ✓ | — | Notice text. |
 
 
 ## States

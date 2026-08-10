@@ -22,8 +22,8 @@ title: AppShell
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `items` | [`NavItem[]`](/reference/data-types#nav-item) | ✔ | — | 导航目的地，含图标 / 文案 / 角标。 |
-| `activeKey` | `string` | ✔ | — | 当前选中的导航 key。 |
+| `items` | [`NavItem[]`](/reference/data-types#nav-item) | ✓ | — | 导航目的地，含图标 / 文案 / 角标。 |
+| `activeKey` | `string` | ✓ | — | 当前选中的导航 key。 |
 
 
 ## States

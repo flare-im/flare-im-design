@@ -28,7 +28,7 @@ title: StickerMessage
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `emoji` | `string` |  | `"🐱"` | 无图片时的 emoji 兜底。 |
+| `emoji` | `string` |  | `""` | 无图片时的 emoji 兜底。 |
 | `src` | `string` |  | — | 贴纸图源。 |
 
 

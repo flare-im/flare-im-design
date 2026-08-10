@@ -20,8 +20,8 @@ title: Avatar
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `userId` | `string` | ✔ | — | Stable id, used to derive the fallback color when no image loads. |
-| `displayName` | `string` | ✔ | — | Name to render; its initials become the fallback. |
+| `userId` | `string` | ✓ | — | Stable id, used to derive the fallback color when no image loads. |
+| `displayName` | `string` | ✓ | — | Name to render; its initials become the fallback. |
 | `avatarUrl` | `string` |  | — | Image URL; on load failure it falls back to initials. |
 | `size` | `number` |  | `42` | Diameter in px. |
 | `presence` | `'online' \| 'offline' \| 'busy' \| 'away'` |  | — | Presence ring/dot; omit to hide. |

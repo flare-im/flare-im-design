@@ -20,8 +20,8 @@ title: Avatar
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `userId` | `string` | ✔ | — | 稳定 id，无图片时据此派生兜底底色。 |
-| `displayName` | `string` | ✔ | — | 展示名；其首字母作为兜底。 |
+| `userId` | `string` | ✓ | — | 稳定 id，无图片时据此派生兜底底色。 |
+| `displayName` | `string` | ✓ | — | 展示名；其首字母作为兜底。 |
 | `avatarUrl` | `string` |  | — | 头像图 URL；加载失败回退到首字母。 |
 | `size` | `number` |  | `42` | 直径（px）。 |
 | `presence` | `'online' \| 'offline' \| 'busy' \| 'away'` |  | — | 在线状态圈点；不传则隐藏。 |

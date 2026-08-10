@@ -20,7 +20,7 @@ title: TextMessage
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `text` | `string` | ✔ | — | 要渲染的文本。 |
+| `text` | `string` | ✓ | — | 要渲染的文本。 |
 | `self` | `boolean` |  | — | 渲染发送方（品牌紫）一侧。 |
 | `selectable` | `boolean` |  | — | 允许文本被选中 / 复制。 |
 

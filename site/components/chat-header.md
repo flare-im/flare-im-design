@@ -20,7 +20,7 @@ title: ChatHeader
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `title` | `string` | ✔ | — | 头部显示的会话名。 |
+| `title` | `string` | ✓ | — | 头部显示的会话名。 |
 | `subtitle` | `string` |  | — | 副标题行（成员数、正在输入、最后在线…）。 |
 | `presence` | `'online' \| 'offline' \| 'busy' \| 'away'` |  | — | 单聊对端在线态；驱动状态点。 |
 

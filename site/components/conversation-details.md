@@ -20,7 +20,7 @@ title: ConversationDetails
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `conversation` | `Conversation` | ✔ | — | 要展示的会话摘要。 |
+| `conversation` | `Conversation` | ✓ | — | 要展示的会话摘要。 |
 | `connectionText` | `string` |  | — | 可读的连接文案（如已连接 / 重连中）。 |
 | `connectionTone` | `'ok' \| 'warn' \| 'error'` |  | — | 连接文案的语义级别 —— 决定其颜色。 |
 | `messageCount` | `number` |  | — | 消息总数，显示在统计行。 |

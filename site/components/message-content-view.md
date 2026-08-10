@@ -20,7 +20,7 @@ title: MessageContentView
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `content` | `MessageContent` | ✔ | — | 要分发的带类型消息正文。 |
+| `content` | `MessageContent` | ✓ | — | 要分发的带类型消息正文。 |
 | `self` | `boolean` |  | — | 发送方 —— 部分正文据此换样式（如文字色）。 |
 | `previewMode` | `boolean` |  | — | 紧凑渲染，用于引用 / 回复条 / 搜索命中。 |
 | `messageId` | `string` |  | — | 消息 id，用于媒体操作与定位。 |

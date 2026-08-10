@@ -20,7 +20,7 @@ title: EmptyState
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `title` | `string` | ✔ | — | 说明空状态的主标题。 |
+| `title` | `string` | ✓ | — | 说明空状态的主标题。 |
 | `description` | `string` |  | — | 次级说明文字。 |
 | `actionText` | `string` |  | — | 可选行动按钮的文案。 |
 

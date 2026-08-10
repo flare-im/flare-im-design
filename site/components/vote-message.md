@@ -20,7 +20,7 @@ title: VoteMessage
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `title` | `string` | ✔ | — | 投票标题。 |
+| `title` | `string` | ✓ | — | 投票标题。 |
 | `options` | [`FlareVoteOption[]`](/reference/data-types#vote-option) |  | — | 选项 { text, pct } 列表。 |
 | `total` | `string` |  | — | 可选页脚，如「12 人已投」。 |
 

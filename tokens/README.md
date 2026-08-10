@@ -1,6 +1,6 @@
 # @flare-im/tokens
 
-> **⚠️ 包名已变更**：`flare-im-design-tokens` → `@flare-im/tokens`
+> **注意：包名已变更**：`flare-im-design-tokens` → `@flare-im/tokens`
 >
 > 旧包名最后发布到 **1.0.4**，之后不再更新。请改用：
 >

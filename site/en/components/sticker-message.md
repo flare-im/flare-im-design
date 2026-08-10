@@ -30,7 +30,7 @@ at `/flare-im-ui-assets/`). Tap an emoji to insert `[key]`, tap a sticker to sen
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `emoji` | `string` |  | `"🐱"` | Emoji fallback when no image. |
+| `emoji` | `string` |  | `""` | Emoji fallback when no image. |
 | `src` | `string` |  | — | Sticker image source. |
 
 

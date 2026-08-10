@@ -20,7 +20,7 @@ const state = reactive({
     },
     {
       id: "2", author: { id: "sam", name: "Sam Gao" }, time: "昨天",
-      text: "四端奇偶终于全绿，收工 🎉",
+      text: "周末爬了趟山，山顶信号居然满格。",
       likedBySelf: true,
       likes: [{ id: "ivy", name: "Ivy Chen" }],
       comments: [],

@@ -101,7 +101,7 @@ implementation(project(":im-ui-compose"))
 implementation(files("libs/im-ui-compose-1.0.5.aar"))
 ```
 
-⚠️ **AAR 不携带依赖信息**（没有 POM）。只写上面这一行，编译能过但**运行时必崩**
+注意：**AAR 不携带依赖信息**（没有 POM）。只写上面这一行，编译能过但**运行时必崩**
 `NoClassDefFoundError`。必须把下面 8 个依赖一并加到自己的 `build.gradle.kts`：
 
 ```kotlin

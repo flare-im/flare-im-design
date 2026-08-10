@@ -27,7 +27,7 @@ project(":im-ui-compose").projectDir = file("vendor/flare-im-design/android-im-u
 ```
 
 **AAR** —— 从 [Releases](https://github.com/flare-im/flare-im-design/releases) 下载
-`im-ui-compose-1.0.5.aar`。⚠️ AAR 不带 POM，必须自己补 Compose BOM / material3 /
+`im-ui-compose-1.0.5.aar`。注意：AAR 不带 POM，必须自己补 Compose BOM / material3 /
 material-icons-extended / coil 等 8 个依赖，否则运行时 `NoClassDefFoundError`。
 
 ```kotlin

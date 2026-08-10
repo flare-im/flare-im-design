@@ -18,8 +18,8 @@ title: 数据类型
 
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
-| `id` | `string` | ✔ | 稳定唯一 id。 |
-| `name` | `string` | ✔ | 显示名。 |
+| `id` | `string` | ✓ | 稳定唯一 id。 |
+| `name` | `string` | ✓ | 显示名。 |
 | `avatarUrl` | `string` |  | 头像图 URL；缺省时回退首字母。 |
 | `signature` | `string` |  | 个性签名。 |
 | `presence` | `"online" \| "offline" \| "busy" \| "away"` |  | 在线状态，显示为状态圆点。 |
@@ -35,8 +35,8 @@ title: 数据类型
 
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
-| `id` | `string` | ✔ | 申请 id。 |
-| `name` | `string` | ✔ | 申请人显示名。 |
+| `id` | `string` | ✓ | 申请 id。 |
+| `name` | `string` | ✓ | 申请人显示名。 |
 | `avatarUrl` | `string` |  | 申请人头像 URL。 |
 | `message` | `string` |  | 申请附言（可选）。 |
 
@@ -50,8 +50,8 @@ title: 数据类型
 
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
-| `id` | `string` | ✔ | 群 id。 |
-| `name` | `string` | ✔ | 群名。 |
+| `id` | `string` | ✓ | 群 id。 |
+| `name` | `string` | ✓ | 群名。 |
 | `avatarUrl` | `string` |  | 群头像 URL。 |
 | `memberCount` | `number` |  | 成员数，作为副标题显示。 |
 
@@ -65,8 +65,8 @@ title: 数据类型
 
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
-| `id` | `string` | ✔ | 用户 id。 |
-| `name` | `string` | ✔ | 显示名。 |
+| `id` | `string` | ✓ | 用户 id。 |
+| `name` | `string` | ✓ | 显示名。 |
 | `avatarUrl` | `string` |  | 头像 URL。 |
 | `signature` | `string` |  | 个性签名。 |
 | `flareId` | `string` |  | 可选的外部/业务号，展示在资料页。 |
@@ -79,8 +79,8 @@ title: 数据类型
 
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
-| `key` | `string` | ✔ | 稳定行键，交互时回传。 |
-| `label` | `string` | ✔ | 行标题。 |
+| `key` | `string` | ✓ | 稳定行键，交互时回传。 |
+| `label` | `string` | ✓ | 行标题。 |
 | `icon` | `string` |  | 前置图标名。 |
 | `kind` | [`FlareSettingKind`](/reference/data-types#setting-kind) |  | 行类型——导航 / 开关 / 取值。 |
 | `value` | `boolean` |  | 开关状态（`kind: "toggle"` 时）。 |
@@ -97,7 +97,7 @@ title: 数据类型
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
 | `title` | `string` |  | 分组标题（可选）。 |
-| `items` | [`FlareSettingsItem[]`](/reference/data-types#settings-item) | ✔ | 分组内的行。 |
+| `items` | [`FlareSettingsItem[]`](/reference/data-types#settings-item) | ✓ | 分组内的行。 |
 
 ### NavItem {#nav-item}
 
@@ -109,8 +109,8 @@ title: 数据类型
 
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
-| `key` | `string` | ✔ | 路由/标签键。 |
-| `label` | `string` | ✔ | 导航文案。 |
+| `key` | `string` | ✓ | 路由/标签键。 |
+| `label` | `string` | ✓ | 导航文案。 |
 | `icon` | `string` |  | 图标名。 |
 | `badge` | `number` |  | 未读/通知徽标数。 |
 
@@ -124,7 +124,7 @@ title: 数据类型
 
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
-| `id` | `string` | ✔ | 会话 id。 |
+| `id` | `string` | ✓ | 会话 id。 |
 | `displayName` | `string` |  | 会话标题。 |
 | `avatarUrl` | `string` |  | 会话头像 URL。 |
 | `updatedAt` | `number \| string` |  | 最后活跃时间，用于排序/时间显示。 |
@@ -147,9 +147,9 @@ title: 数据类型
 
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
-| `serverId` | `string` | ✔ | 服务端消息 id。 |
-| `clientMsgId` | `string` | ✔ | 客户端消息 id。 |
-| `senderDisplayName` | `string` | ✔ | 置顶上显示的发送者名。 |
+| `serverId` | `string` | ✓ | 服务端消息 id。 |
+| `clientMsgId` | `string` | ✓ | 客户端消息 id。 |
+| `senderDisplayName` | `string` | ✓ | 置顶上显示的发送者名。 |
 | `content` | `{ contentType?; data? }` |  | 用于渲染预览的消息内容。 |
 
 ### VoteOption {#vote-option}
@@ -162,8 +162,8 @@ title: 数据类型
 
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
-| `text` | `string` | ✔ | 选项文案。 |
-| `pct` | `number` | ✔ | 结果百分比（0–100），用于进度条。 |
+| `text` | `string` | ✓ | 选项文案。 |
+| `pct` | `number` | ✓ | 结果百分比（0–100），用于进度条。 |
 
 ### MediaResolveRequest {#media-resolve-request}
 
@@ -173,7 +173,7 @@ title: 数据类型
 
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
-| `kind` | [`FlareMediaKind`](/reference/data-types#media-kind) | ✔ | 要解析的媒体类型。 |
+| `kind` | [`FlareMediaKind`](/reference/data-types#media-kind) | ✓ | 要解析的媒体类型。 |
 | `messageId` | `string` |  | 所属消息 id。 |
 | `fileId` | `string` |  | 后端文件 id。 |
 | `url` | `string` |  | 已知 URL（若有）。 |

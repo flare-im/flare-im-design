@@ -20,7 +20,7 @@ title: EmptyState
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `title` | `string` | ✔ | — | Primary line explaining the emptiness. |
+| `title` | `string` | ✓ | — | Primary line explaining the emptiness. |
 | `description` | `string` |  | — | Secondary help text. |
 | `actionText` | `string` |  | — | Label for the optional call-to-action button. |
 

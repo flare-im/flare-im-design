@@ -29,7 +29,7 @@ Hover any bubble below for the desktop three-button bar; on mobile it's a long-p
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `open` | `boolean` | ✔ | — | Whether the sheet is shown. |
+| `open` | `boolean` | ✓ | — | Whether the sheet is shown. |
 | `reactions` | `string[]` |  | — | Emoji shown in the reaction strip (the trailing chip opens the full picker). |
 | `menuConfig` | `MessageMenuConfig` |  | — | Which actions are enabled for this message; disabled ones are hidden. |
 | `canRecall` | `boolean` |  | — | Show the recall action (own, recent messages only). |

@@ -20,8 +20,8 @@ title: VideoPlayerModal
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `show` | `boolean` | ✔ | — | Controls open/close of the player. |
-| `videoSrc` | `string` | ✔ | — | Resolved video source to play. |
+| `show` | `boolean` | ✓ | — | Controls open/close of the player. |
+| `videoSrc` | `string` | ✓ | — | Resolved video source to play. |
 | `poster` | `string` |  | — | Still shown before playback starts. |
 | `title` | `string` |  | — | Title shown in the player chrome. |
 

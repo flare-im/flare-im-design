@@ -20,7 +20,7 @@ title: LinkCardMessage
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `title` | `string` | ✔ | — | Link title. |
+| `title` | `string` | ✓ | — | Link title. |
 | `domain` | `string` |  | — | Domain shown with a link glyph. |
 | `thumb` | `string` |  | — | Thumbnail image; falls back to a placeholder. |
 | `description` | `string` |  | — | Optional description line under the title. |

@@ -20,7 +20,7 @@ title: FilterTabs
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `options` | `FlareFilterTabOption[]` | ✔ | — | 标签项：{ value, label, badge? }。 |
+| `options` | `FlareFilterTabOption[]` | ✓ | — | 标签项：{ value, label, badge? }。 |
 | `v-model` | `string` |  | — | 当前选中的标签值。 |
 
 

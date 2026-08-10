@@ -20,7 +20,7 @@ title: LocationMessage
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `title` | `string` | ✔ | — | 地点名。 |
+| `title` | `string` | ✓ | — | 地点名。 |
 | `address` | `string` |  | — | 详细地址。 |
 | `mapImage` | `string` |  | — | 静态地图图 URL；无则回退到定位占位。 |
 

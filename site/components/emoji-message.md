@@ -20,7 +20,7 @@ title: EmojiMessage
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `emoji` | `string` |  | `"🎉"` | 要放大渲染的 emoji。 |
+| `emoji` | `string` |  | `""` | 要放大渲染的 emoji。 |
 
 
 ## States

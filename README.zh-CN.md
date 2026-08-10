@@ -2,7 +2,7 @@
 
 [English](README.md) · 中文
 
-> ## ℹ️ 这是通信基础设施，不是开箱即用的 IM 产品
+> ## ℹ 这是通信基础设施，不是开箱即用的 IM 产品
 >
 > 说在前面，免得你 clone 完才发现登不上去：**开源部分不含账号体系**
 > （没有注册登录、好友关系、群角色/审批/禁言、朋友圈）。
@@ -33,7 +33,7 @@
 
 ```
 L4  行为/数据 = core 可观察视图 (Rust, 已有)   ← flare-im-core-sdk client.views
-L3  设计 tokens (平台中立单一真源)             → tokens/  ✅ 本仓
+L3  设计 tokens (平台中立单一真源)             → tokens/  ✓ 本仓
 L2  组件契约 spec ("类 Ant 组件 API")          → spec/    (规划中)
 L1  各端组件包 (薄原生实现)                     → packages/(规划中，从各端 app 抽取)
 ```
@@ -42,8 +42,8 @@ L1  各端组件包 (薄原生实现)                     → packages/(规划�
 
 | 路径 | 内容 | 状态 |
 |---|---|---|
-| [`docs/DESIGN.md`](docs/DESIGN.md) | 完整架构设计（方向/层归属/硬路径/权衡/风险） | ✅ |
-| [`tokens/`](tokens/) | **L3** `@flare-im/tokens` 包：中立 JSON 源 + 生成器（web CSS/TS，各端预留） | ✅ Phase 1 |
+| [`docs/DESIGN.md`](docs/DESIGN.md) | 完整架构设计（方向/层归属/硬路径/权衡/风险） | ✓ |
+| [`tokens/`](tokens/) | **L3** `@flare-im/tokens` 包：中立 JSON 源 + 生成器（web CSS/TS，各端预留） | ✓ Phase 1 |
 | `spec/` | **L2** 组件契约（首批 4 组件 MessageBubble/ConversationList/Composer/Avatar） | 规划 |
 | `packages/` | **L1** 各端组件包（Vue 已在 flare-im-core-client-sdk；Flutter/iOS/Compose 待抽取） | 规划 |
 

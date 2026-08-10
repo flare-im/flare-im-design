@@ -20,7 +20,7 @@ title: GroupDetail
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `model` | `FlareGroupDetailModel` | ✔ | — | Group detail/management model (info, members, roles, my-in-group state, join mode, permission flags…). |
+| `model` | `FlareGroupDetailModel` | ✓ | — | Group detail/management model (info, members, roles, my-in-group state, join mode, permission flags…). |
 | `joinRequests` | `FlareGroupJoinRequestView[]` | — | `[]` | Pending join requests to approve/reject. |
 | `inviteCode` | `string` | — | — | Group invite code to share. |
 | `invitableContacts` | `Contact[]` | — | `[]` | Friends that can be invited into the group. |

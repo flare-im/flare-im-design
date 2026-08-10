@@ -20,7 +20,7 @@ title: GroupList
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `items` | [`GroupSummary[]`](/reference/data-types#group-summary) | ✔ | — | 要列出的群摘要。 |
+| `items` | [`GroupSummary[]`](/reference/data-types#group-summary) | ✓ | — | 要列出的群摘要。 |
 | `emptyText` | `string` |  | — | 无群组时的空态标题。默认 "No groups yet"。 |
 
 

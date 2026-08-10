@@ -7,7 +7,7 @@ import PackageDescription
 // ios-im-ui/ 下。没有这个文件，`.package(url: "...flare-im-design.git", from: "1.0.5")`
 // 会直接报 "does not contain a Package.swift"。
 //
-// ⚠️ 与 ios-im-ui/Package.swift 是同一份 target 的两个清单：前者供仓库外消费，
+// 注意：与 ios-im-ui/Package.swift 是同一份 target 的两个清单：前者供仓库外消费，
 // 后者供在 ios-im-ui/ 目录内直接 `swift build` / `swift test`。改动 target 结构
 // （新增 target、改资源声明、调平台版本）时两个文件必须同步，否则「本地能编、
 // 外部引入编不过」。target 结构稳定，日常开发不会碰到。

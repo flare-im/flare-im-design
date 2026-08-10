@@ -20,7 +20,7 @@ title: ContactItem
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `item` | [`Contact`](/en/reference/data-types#contact) | ✔ | — | The contact's data. |
+| `item` | [`Contact`](/en/reference/data-types#contact) | ✓ | — | The contact's data. |
 | `showPresence` | `boolean` |  | — | Render the presence dot. |
 
 

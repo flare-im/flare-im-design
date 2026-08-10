@@ -20,7 +20,7 @@ title: StatusBanner
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `text` | `string` | ✔ | — | The status message. |
+| `text` | `string` | ✓ | — | The status message. |
 | `tone` | `"info" \| "success" \| "warning" \| "danger" \| "neutral"` |  | — | Semantic tone (default info). |
 | `dot` | `boolean` |  | — | Show the leading dot (default true). |
 | `pulse` | `boolean` |  | — | Pulse the dot; respects reduced-motion. |

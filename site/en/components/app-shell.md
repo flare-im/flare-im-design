@@ -20,8 +20,8 @@ title: AppShell
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `items` | [`NavItem[]`](/en/reference/data-types#nav-item) | ✔ | — | Navigation destinations, with icon/label/badge. |
-| `activeKey` | `string` | ✔ | — | Currently selected nav key. |
+| `items` | [`NavItem[]`](/en/reference/data-types#nav-item) | ✓ | — | Navigation destinations, with icon/label/badge. |
+| `activeKey` | `string` | ✓ | — | Currently selected nav key. |
 
 
 ## States

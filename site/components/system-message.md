@@ -20,7 +20,7 @@ title: SystemMessage
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `text` | `string` | ✔ | — | 通知文本。 |
+| `text` | `string` | ✓ | — | 通知文本。 |
 
 
 ## States

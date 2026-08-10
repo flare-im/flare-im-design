@@ -20,7 +20,7 @@ title: MarkdownPreview
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `content` | `string` | ✔ | — | 只读渲染的 Markdown/RichDoc 串。 |
+| `content` | `string` | ✓ | — | 只读渲染的 Markdown/RichDoc 串。 |
 | `showStats` | `boolean` |  | — | 在内容下方显示字 / 词数。 |
 
 

@@ -20,7 +20,7 @@ title: ContactDetail
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `contact` | [`Contact`](/en/reference/data-types#contact) | ✔ | — | The contact to profile. |
+| `contact` | [`Contact`](/en/reference/data-types#contact) | ✓ | — | The contact to profile. |
 
 
 ## States

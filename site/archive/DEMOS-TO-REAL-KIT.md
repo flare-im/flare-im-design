@@ -22,7 +22,7 @@ diverged (e.g. MessageBubble: mockup radius 16/4 flat-self vs real 14/10 gradien
 - The mockups use `--flare-color-*`; real components use `--im-*` — the tokens css must define both
   (tokens/dist already provides `--flare-color-*`; the kit's style.css provides `--im-*`).
 
-## Status: DONE ✅
+## Status: DONE ✓
 Every demo now renders the REAL `@flare-im/vue-ui` components (`vitepress build` clean; home hero
 DOM-verified: 3 real `.message-bubble`, 0 mockup `.bubble`). The mockup message-body copies under
 `demos/messages/` were deleted; message demos + `MessageContentViewDemo` repoint to the kit's

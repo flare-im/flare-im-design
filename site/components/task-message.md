@@ -20,7 +20,7 @@ title: TaskMessage
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `title` | `string` | ✔ | — | 任务标题。 |
+| `title` | `string` | ✓ | — | 任务标题。 |
 | `meta` | `string` |  | — | 次级行（截止 / 状态）。 |
 | `done` | `boolean` |  | — | 已完成 —— 勾选并划线标题。 |
 

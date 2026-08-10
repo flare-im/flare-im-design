@@ -20,8 +20,8 @@ title: MessageBubble
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `message` | `Message` | ✔ | — | 要渲染的消息。 |
-| `currentUserId` | `string` | ✔ | — | 当前用户 id；判定自己 / 对方。 |
+| `message` | `Message` | ✓ | — | 要渲染的消息。 |
+| `currentUserId` | `string` | ✓ | — | 当前用户 id；判定自己 / 对方。 |
 | `self` | `boolean` |  | `message.senderId === currentUserId` | 强制发送方；默认由 sender==当前用户 推导。 |
 | `conversationType` | `'single' \| 'group' \| 'ai'` |  | `single` | 单聊 / 群 / AI —— 影响发送者名与分组。 |
 | `groupStart` | `boolean` |  | — | 同发送者连发的首条（显示头像 / 名）。 |

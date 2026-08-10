@@ -20,7 +20,7 @@ title: FileMessage
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `name` | `string` | ✔ | — | File name. |
+| `name` | `string` | ✓ | — | File name. |
 | `size` | `string` |  | — | Human-readable size (e.g. 2.4 MB). |
 | `ext` | `string` |  | — | Extension / kind label. |
 | `icon` | `slot` |  | — | Custom leading icon (a slot / icon param), e.g. a per-file-type glyph. Defaults to a folder. |

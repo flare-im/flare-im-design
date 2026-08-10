@@ -20,7 +20,7 @@ title: NewFriendRequests
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `items` | [`FriendRequest[]`](/en/reference/data-types#friend-request) | ✔ | — | Pending and resolved requests to list. |
+| `items` | [`FriendRequest[]`](/en/reference/data-types#friend-request) | ✓ | — | Pending and resolved requests to list. |
 | `emptyText` | `string` |  | — | Empty-state title shown when there are no requests. Defaults to "No new friend requests". |
 
 

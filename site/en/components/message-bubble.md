@@ -20,8 +20,8 @@ title: MessageBubble
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `message` | `Message` | ✔ | — | The message to render. |
-| `currentUserId` | `string` | ✔ | — | Viewer's id; decides self vs. other side. |
+| `message` | `Message` | ✓ | — | The message to render. |
+| `currentUserId` | `string` | ✓ | — | Viewer's id; decides self vs. other side. |
 | `self` | `boolean` |  | `message.senderId === currentUserId` | Force the outgoing side; defaults from sender == current user. |
 | `conversationType` | `'single' \| 'group' \| 'ai'` |  | `single` | Single/group/AI — affects sender name & grouping. |
 | `groupStart` | `boolean` |  | — | First bubble of a same-sender run (shows avatar/name). |

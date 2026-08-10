@@ -20,8 +20,8 @@ title: ImagePreviewModal
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `show` | `boolean` | ✔ | — | 控制查看器开 / 关。 |
-| `imageSrc` | `string` | ✔ | — | 已解析、待展示的图源。 |
+| `show` | `boolean` | ✓ | — | 控制查看器开 / 关。 |
+| `imageSrc` | `string` | ✓ | — | 已解析、待展示的图源。 |
 | `loading` | `boolean` |  | — | 原图仍在解析中。 |
 | `alt` | `string` |  | — | 图片的无障碍描述。 |
 | `downloading` | `boolean` |  | — | 正在保存中。 |

@@ -20,7 +20,7 @@ title: Input
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `modelValue` | `string` | ✔ | — | 双向绑定的值。 |
+| `modelValue` | `string` | ✓ | — | 双向绑定的值。 |
 | `placeholder` | `string` |  | — | 空输入时的占位提示。 |
 | `multiline` | `boolean` |  | — | 变为多行文本域而非单行。 |
 | `maxLength` | `number` |  | — | 字数上限；显示计数。 |

@@ -20,7 +20,7 @@ title: ConversationDetails
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `conversation` | `Conversation` | ✔ | — | The conversation summary to describe. |
+| `conversation` | `Conversation` | ✓ | — | The conversation summary to describe. |
 | `connectionText` | `string` |  | — | Human-readable connection label (e.g. connected/reconnecting). |
 | `connectionTone` | `'ok' \| 'warn' \| 'error'` |  | — | Severity of the connection label — drives its color. |
 | `messageCount` | `number` |  | — | Total messages, shown in the stats row. |

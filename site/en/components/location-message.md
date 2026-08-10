@@ -20,7 +20,7 @@ title: LocationMessage
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `title` | `string` | ✔ | — | Place name. |
+| `title` | `string` | ✓ | — | Place name. |
 | `address` | `string` |  | — | Full address line. |
 | `mapImage` | `string` |  | — | Static map image URL; falls back to a pin placeholder. |
 

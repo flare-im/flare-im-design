@@ -20,7 +20,7 @@ title: MarkdownPreview
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `content` | `string` | ✔ | — | Markdown/RichDoc string to render read-only. |
+| `content` | `string` | ✓ | — | Markdown/RichDoc string to render read-only. |
 | `showStats` | `boolean` |  | — | Show word/char counts under the content. |
 
 

@@ -20,7 +20,7 @@ title: LinkCardMessage
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `title` | `string` | ✔ | — | 链接标题。 |
+| `title` | `string` | ✓ | — | 链接标题。 |
 | `domain` | `string` |  | — | 带链接图标显示的域名。 |
 | `thumb` | `string` |  | — | 缩略图；无则回退占位。 |
 | `description` | `string` |  | — | 标题下的可选描述行。 |

@@ -20,8 +20,8 @@ title: VideoPlayerModal
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `show` | `boolean` | ✔ | — | 控制播放器开 / 关。 |
-| `videoSrc` | `string` | ✔ | — | 已解析、待播放的视频源。 |
+| `show` | `boolean` | ✓ | — | 控制播放器开 / 关。 |
+| `videoSrc` | `string` | ✓ | — | 已解析、待播放的视频源。 |
 | `poster` | `string` |  | — | 开播前展示的封面图。 |
 | `title` | `string` |  | — | 播放器顶部显示的标题。 |
 

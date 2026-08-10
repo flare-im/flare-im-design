@@ -20,10 +20,10 @@ title: MessageList
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `conversationId` | `string` | ✔ | — | 打开哪条时间线。 |
+| `conversationId` | `string` | ✓ | — | 打开哪条时间线。 |
 | `conversationType` | `'single' \| 'group' \| 'ai'` |  | — | 单聊 / 群 / AI —— 影响气泡版式。 |
-| `messages` | `Message[]` | ✔ | — | 视图给出的窗口化消息片段。 |
-| `currentUserId` | `string` | ✔ | — | 当前用户 id，用于自 / 他判定。 |
+| `messages` | `Message[]` | ✓ | — | 视图给出的窗口化消息片段。 |
+| `currentUserId` | `string` | ✓ | — | 当前用户 id，用于自 / 他判定。 |
 | `multiSelectMode` | `boolean` |  | — | 开启逐条多选。 |
 | `selectedIds` | `string[]` |  | — | 多选态下已勾选的 id。 |
 | `loadingOlder` | `boolean` |  | — | 顶部显示加载更早的转圈。 |

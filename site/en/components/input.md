@@ -20,7 +20,7 @@ title: Input
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `modelValue` | `string` | ✔ | — | Two-way bound value. |
+| `modelValue` | `string` | ✓ | — | Two-way bound value. |
 | `placeholder` | `string` |  | — | Empty-field hint text. |
 | `multiline` | `boolean` |  | — | Grow into a textarea instead of a single line. |
 | `maxLength` | `number` |  | — | Character cap; shows a counter. |

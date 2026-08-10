@@ -20,7 +20,7 @@ title: MessageStatus
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `status` | `'pending' \| 'sent' \| 'read' \| 'failed'` | ✔ | — | 当前送达态；决定图标与颜色。 |
+| `status` | `'pending' \| 'sent' \| 'read' \| 'failed'` | ✓ | — | 当前送达态；决定图标与颜色。 |
 | `variant` | `'tick' \| 'compact'` |  | — | `tick` 显示勾；`compact` 显示极简圆点。 |
 
 

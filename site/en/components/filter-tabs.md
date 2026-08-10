@@ -20,7 +20,7 @@ title: FilterTabs
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `options` | `FlareFilterTabOption[]` | ✔ | — | Tab options: { value, label, badge? }. |
+| `options` | `FlareFilterTabOption[]` | ✓ | — | Tab options: { value, label, badge? }. |
 | `v-model` | `string` |  | — | The active tab value. |
 
 

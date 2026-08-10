@@ -20,7 +20,7 @@ title: ProfileEditor
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `user` | [`UserProfile`](/en/reference/data-types#user-profile) | ✔ | — | Initial profile the draft starts from. |
+| `user` | [`UserProfile`](/en/reference/data-types#user-profile) | ✓ | — | Initial profile the draft starts from. |
 | `busy` | `boolean` |  | — | Disables save and shows a spinner while submitting. |
 
 

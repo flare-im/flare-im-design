@@ -20,7 +20,7 @@ title: StatusBanner
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `text` | `string` | ✔ | — | 状态文案。 |
+| `text` | `string` | ✓ | — | 状态文案。 |
 | `tone` | `"info" \| "success" \| "warning" \| "danger" \| "neutral"` |  | — | 语义色（默认 info）。 |
 | `dot` | `boolean` |  | — | 显示前置圆点（默认 true）。 |
 | `pulse` | `boolean` |  | — | 圆点脉冲动画；尊重 reduced-motion。 |

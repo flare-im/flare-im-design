@@ -2,7 +2,7 @@
 
 English · [中文](README.zh-CN.md)
 
-> ## ℹ️ This is communication infrastructure, not a turnkey IM product
+> ## ℹ This is communication infrastructure, not a turnkey IM product
 >
 > Up front, so you don't discover it only after cloning and finding you can't
 > log in: **the open-source part does not include an account system**
@@ -38,7 +38,7 @@ cannot physically share it), but **Material Design–style**:
 
 ```
 L4  Behavior/data = core observable views (Rust, existing)   ← flare-im-core-sdk client.views
-L3  Design tokens (platform-neutral single source of truth)  → tokens/  ✅ this repo
+L3  Design tokens (platform-neutral single source of truth)  → tokens/  ✓ this repo
 L2  Component contract spec ("Ant-like component API")        → spec/    (planned)
 L1  Per-platform component packages (thin native impls)       → packages/(planned, extracted from each platform's app)
 ```
@@ -47,8 +47,8 @@ L1  Per-platform component packages (thin native impls)       → packages/(plan
 
 | Path | Contents | Status |
 |---|---|---|
-| [`docs/DESIGN.md`](docs/DESIGN.md) | Full architecture design (direction/layer ownership/hard paths/trade-offs/risks) | ✅ |
-| [`tokens/`](tokens/) | **L3** `@flare-im/tokens` package: neutral JSON source + generators (web CSS/TS, others reserved) | ✅ Phase 1 |
+| [`docs/DESIGN.md`](docs/DESIGN.md) | Full architecture design (direction/layer ownership/hard paths/trade-offs/risks) | ✓ |
+| [`tokens/`](tokens/) | **L3** `@flare-im/tokens` package: neutral JSON source + generators (web CSS/TS, others reserved) | ✓ Phase 1 |
 | `spec/` | **L2** Component contracts (first 4 components: MessageBubble/ConversationList/Composer/Avatar) | Planned |
 | `packages/` | **L1** Per-platform component packages (Vue already in flare-im-core-client-sdk; Flutter/iOS/Compose to be extracted) | Planned |
 

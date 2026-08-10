@@ -20,7 +20,7 @@ title: MessageStatus
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `status` | `'pending' \| 'sent' \| 'read' \| 'failed'` | ✔ | — | Current delivery state; drives icon and color. |
+| `status` | `'pending' \| 'sent' \| 'read' \| 'failed'` | ✓ | — | Current delivery state; drives icon and color. |
 | `variant` | `'tick' \| 'compact'` |  | — | `tick` shows ticks; `compact` shows a minimal dot. |
 
 

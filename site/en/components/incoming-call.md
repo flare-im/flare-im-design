@@ -20,8 +20,8 @@ title: IncomingCall
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `callerName` | `string` | ✔ | — | Name of the caller. |
-| `mode` | `'audio' \| 'video'` | ✔ | — | Audio or video invite. |
+| `callerName` | `string` | ✓ | — | Name of the caller. |
+| `mode` | `'audio' \| 'video'` | ✓ | — | Audio or video invite. |
 | `callerAvatarUrl` | `string` |  | — | Caller's avatar. |
 
 

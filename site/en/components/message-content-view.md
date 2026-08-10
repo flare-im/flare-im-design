@@ -20,7 +20,7 @@ title: MessageContentView
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `content` | `MessageContent` | ✔ | — | The typed message body to dispatch on. |
+| `content` | `MessageContent` | ✓ | — | The typed message body to dispatch on. |
 | `self` | `boolean` |  | — | Outgoing side — some bodies restyle (e.g. text color). |
 | `previewMode` | `boolean` |  | — | Compact render for quotes/reply strips/search hits. |
 | `messageId` | `string` |  | — | Id, for media actions and locate-message. |

@@ -20,7 +20,7 @@ title: ContactMessage
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `name` | `string` | ✔ | — | 联系人名（驱动 pastel 头像）。 |
+| `name` | `string` | ✓ | — | 联系人名（驱动 pastel 头像）。 |
 | `avatarUrl` | `string` |  | — | 头像图；无则回退到 pastel 首字母。 |
 | `subtitle` | `string` |  | — | 自由副标题（用户名 / ID / 部门…）。 |
 

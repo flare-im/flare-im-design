@@ -20,8 +20,8 @@ title: ImagePreviewModal
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `show` | `boolean` | ✔ | — | Controls open/close of the viewer. |
-| `imageSrc` | `string` | ✔ | — | Resolved image source to display. |
+| `show` | `boolean` | ✓ | — | Controls open/close of the viewer. |
+| `imageSrc` | `string` | ✓ | — | Resolved image source to display. |
 | `loading` | `boolean` |  | — | Full-res still resolving. |
 | `alt` | `string` |  | — | Accessible description of the image. |
 | `downloading` | `boolean` |  | — | A save is in progress. |

@@ -20,7 +20,7 @@ title: ComposerSendButton
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
 |---|---|:---:|---|---|
-| `active` | `boolean` | ✔ | — | 有内容可发时为可点 / 紫色。 |
+| `active` | `boolean` | ✓ | — | 有内容可发时为可点 / 紫色。 |
 | `label` | `string` |  | `Send` | 无障碍标签。 |
 
 

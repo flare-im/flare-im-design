@@ -20,7 +20,7 @@ title: ContactList
 
 | Name | Type | Req. | Default | Description |
 |---|---|:---:|---|---|
-| `items` | [`Contact[]`](/en/reference/data-types#contact) | ✔ | — | Contacts to group and render. |
+| `items` | [`Contact[]`](/en/reference/data-types#contact) | ✓ | — | Contacts to group and render. |
 | `indexed` | `boolean` |  | `true` | Show the A–Z side index bar. |
 | `loading` | `boolean` |  | — | First-load skeleton/spinner. |
 
