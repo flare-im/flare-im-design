@@ -38,20 +38,21 @@ const ordered = [...byCategory.entries()].sort(
 const total = spec.components.length;
 const lines = [
   START,
-  `## 组件目录`,
+  // README 是英文主 + 中文伴随（README.zh-CN.md），生成块跟着走英文；
+  // 此前生成器输出中文、README 里被手工译成英文，导致 --check 永远判定「已过期」。
+  `## Component catalog`,
   ``,
-  `**${total} 个组件 / ${ordered.length} 个类目**（源见 [\`components.json\`](./components.json)；`,
-  `props/events 从 \`@flare-im/vue-ui\` 源码抽取校准）。`,
+  `**${total} components / ${ordered.length} categories** (source in [\`components.json\`](./components.json);`,
+  `props/events extracted and calibrated from the \`@flare-im/vue-ui\` source).`,
   ``,
-  `> 本段由 \`gen-readme-catalog.mjs\` 从契约生成，不要手改 —— 手写目录会随契约增长而腐烂。`,
+  `> This section is generated from the contract by \`gen-readme-catalog.mjs\`; do not edit by hand — a hand-written catalog rots as the contract grows.`,
   ``,
 ];
 
 for (const [cat, names] of ordered) {
-  // categoryLabels 的值是 { en, zh } 对象，取中文；缺失时退回类目名本身
-  const zh = labels[cat]?.zh;
-  const label = zh && zh !== cat ? `${cat}（${zh}）` : cat;
-  lines.push(`- **${label}** — ${names.length} 个`);
+  // categoryLabels 的值是 { en, zh } 对象；README 走英文主，取 en，缺失时退回类目名。
+  const label = labels[cat]?.en || cat;
+  lines.push(`- **${label}** — ${names.length}`);
   lines.push(`  ${names.sort().map((n) => `\`${n}\``).join(" · ")}`);
 }
 

@@ -55,7 +55,7 @@ props/events extracted and calibrated from the `@flare-im/vue-ui` source).
   `CommentThread` · `MomentActionPopover` · `MomentAudienceSheet` · `MomentCard` · `MomentComposer` · `MomentsCoverHeader` · `MomentsVisibilityRuleList` · `TopicChip`
 - **Conversation** — 6
   `ChatWallpaperPicker` · `ConversationDetails` · `ConversationList` · `ConversationRow` · `ForwardPicker` · `StartConversationDialog`
-- **Call (audio/video)** — 5
+- **Call** — 5
   `CallControls` · `CallDock` · `CallView` · `GroupCallView` · `IncomingCall`
 - **Profile** — 5
   `ProfileCard` · `ProfileEditor` · `ProfilePanel` · `QRCard` · `SettingsList`
