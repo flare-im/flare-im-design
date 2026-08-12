@@ -11,7 +11,7 @@ No registry needed — download the archive for your platform and reference it l
 
 | Platform | Package | Download |
 |---|---|---|
-| Vue | `@flare-im/vue-ui` | [@flare-im/vue-ui-0.1.0.tgz](/downloads/@flare-im/vue-ui-0.1.0.tgz) |
+| Vue | `@flare-im/vue-ui` | [@flare-im/vue-ui-0.1.0.tgz](/downloads/flare-core-vue-im-ui-0.1.0.tgz) |
 | Flutter | `flare_im_ui` | [flare_im_ui-flutter-0.1.0.tar.gz](/downloads/flare_im_ui-flutter-0.1.0.tar.gz) |
 | iOS | `FlareIMUI` | [FlareIMUI-ios-0.1.0.tar.gz](/downloads/FlareIMUI-ios-0.1.0.tar.gz) |
 | Android | `com.flare.im:im-ui-compose` | [flare-im-ui-compose-android-0.1.0.tar.gz](/downloads/flare-im-ui-compose-android-0.1.0.tar.gz) |
