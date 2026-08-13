@@ -13,6 +13,14 @@ npm i @flare-im/vue-ui
 `@flare-im/tokens` 会作为依赖自动装上。Vue 3 与 Naive UI 是 peer dependencies，
 需要宿主工程自行安装（见下方 [Peer dependencies](#peer-dependencies)）。
 
+> **本包发布的是 `.ts` / `.vue` 源码，不是编译后的产物。**
+>
+> 入口指向源文件，所以**需要宿主工程的打包器来编译它**。Vite / Nuxt 默认就能处理；
+> Webpack 需要为 `@flare-im/vue-ui` 加一条 include 规则（`node_modules` 默认被
+> loader 排除），并确保配了 `vue-loader`。
+>
+> 发源码是有意的：组件要跟随宿主的 Vue 版本与主题变量编译，预编译反而会锁死这些。
+
 ## Exports
 
 | Path | Contents |
