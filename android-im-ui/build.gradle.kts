@@ -7,7 +7,7 @@ plugins {
     `maven-publish`
 }
 
-// Maven coordinates — consumers reference `com.flare.im:im-ui-compose:0.1.0`.
+// Maven coordinates — consumers reference `com.flare.im:im-ui-compose:<version>` below.
 group = "com.flare.im"
 version = "1.0.6"
 
@@ -43,7 +43,11 @@ afterEvaluate {
                 from(components["release"])
                 groupId = "com.flare.im"
                 artifactId = "im-ui-compose"
-                version = "1.0.5"
+                // 跟随上面的 project version，不要在这里再写死一遍。
+                // 两处硬编码曾经漂移成 1.0.6 / 1.0.5：发布出去的永远是旧号，
+                // 而消费方按新号解析，直接 "Could not find im-ui-compose:1.0.6"，
+                // 且这个错只有真去构建消费方 app 才会暴露。
+                version = project.version.toString()
             }
         }
         // `./gradlew publish` targets this; point it at your Maven repo:
