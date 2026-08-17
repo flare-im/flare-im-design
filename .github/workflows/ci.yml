@@ -75,6 +75,20 @@ jobs:
         working-directory: vue-im-ui
         run: npm test --if-present
 
+      # SFC 的编译期错误**躲得过 vue-tsc**（模板里的错在 SFC 编译阶段才暴露），
+      # 而 barrel 转出全部组件 —— 一个坏 SFC 会让每个消费方整片空白。
+      # 这个门禁早就写好了，但一直没接进 CI，等于没有。
+      - name: 全量 SFC 编译
+        working-directory: vue-im-ui
+        run: npm run check:sfc
+
+      # 表情/贴纸元数据是从仓库上层的真源拷进包内的（发布包不能引用 ../..）。
+      # 拷贝漂移过一次：发布出去的 1.0.6 缺这两个 json，装了 npm 包的消费方
+      # 直接构建失败，而本地 alias 指向真源所以完全无感。
+      - name: 包内元数据与真源一致
+        working-directory: vue-im-ui
+        run: npm run check:assets
+
   distribution:
     name: 分发一致性
     runs-on: ubuntu-latest
@@ -102,3 +116,26 @@ jobs:
       # 但它需要同级的消费方仓，而那些不是公开仓，CI 拉不到。
       - name: 打包产物的 exports 解析
         run: node scripts/check-package-exports.mjs
+
+  site:
+    name: 文档站构建
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # 文档站的 51 个 demo 用的是**真组件**（曾经是本地副本，会与真库漂移）。
+      # 所以这条构建同时是「全部组件在真实渲染路径下能跑通」的端到端门禁 ——
+      # 比单测覆盖面更宽，此前完全不在 CI 里。
+      #
+      # site 通过 file:../vue-im-ui 引本仓的包，是同仓相对路径，
+      # 不涉及 main/dev 的依赖模式问题。
+      - name: 安装依赖
+        working-directory: site
+        run: npm install --no-audit --no-fund
+
+      - name: 构建
+        working-directory: site
+        run: npm run build
