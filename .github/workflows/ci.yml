@@ -74,3 +74,31 @@ jobs:
       - name: 单元测试
         working-directory: vue-im-ui
         run: npm test --if-present
+
+  distribution:
+    name: 分发一致性
+    runs-on: ubuntu-latest
+    steps:
+      # fetch-depth: 0 是必须的：门禁要读 git tag，浅克隆拿不到 tag，
+      # 会变成「没有 tag 所以没有不一致」的假绿。
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # 三处版本号（npm / Android / git tag）与 SPM 双清单必须一致。
+      # iOS 的 SPM 版本**只**来自 git tag：tag 落后就是静默拿旧代码，
+      # 表现成「Android 和 iOS 的 UI 不一样」，本地完全测不出来。
+      - name: 版本锁步 + SPM 双清单
+        run: node scripts/check-kit-distribution.mjs
+
+      # 对着**打包产物**验 exports：消费方 import 的每个子路径都要解析到包里
+      # 真实存在的文件。工作区里 vite alias 与 tsconfig paths 会掩盖 exports 的
+      # 错漏，只有真装包才炸——这一条把「装包」这件事里能自包含的部分搬进 CI。
+      #
+      # 完整判据是工作区根的 verify-published-kit.mjs（真装真构建），
+      # 但它需要同级的消费方仓，而那些不是公开仓，CI 拉不到。
+      - name: 打包产物的 exports 解析
+        run: node scripts/check-package-exports.mjs
