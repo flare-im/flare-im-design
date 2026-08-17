@@ -1,0 +1,42 @@
+# JitPack 构建配置。
+#
+# 为什么用 JitPack 而不是别的：
+#
+# 本仓是**公开仓**，JitPack 能直接从 git tag 构建并**自动生成 POM**，
+# 消费方零认证即可引入：
+#
+#   repositories { maven { url = uri("https://jitpack.io") } }
+#   implementation("com.github.flare-im:flare-im-design:1.0.7")
+#
+# 对比被否掉的两条路：
+#
+# - **GitHub Release 附件裸 AAR**：没有 POM，传递依赖不会带过来。
+#   这坑吃过一次——手动引入必须抄 8 个依赖，漏一个就运行时崩，
+#   而编译期完全看不出来。
+# - **GitHub Packages**：有 POM，但消费方**必须配 GitHub token**
+#   （即使仓库是公开的，GH Packages 的 Maven 端点也要求认证）。
+#   对外部集成者是实打实的摩擦。
+#
+# GitHub Packages 的配置仍然保留在 android-im-ui/build.gradle.kts 里，
+# 作为私有分发的备选路径——两条不冲突。
+#
+# ## 为什么需要这个文件
+#
+# 这是 monorepo：Gradle 工程在 `android-im-ui/` 子目录，仓库根没有
+# settings.gradle.kts。JitPack 默认在仓库根跑 `./gradlew install`，
+# 找不到工程会直接失败。下面的 install 段显式切到子目录。
+#
+# ## 版本号从哪来
+#
+# JitPack 用 git tag 作版本号，而 `android-im-ui/build.gradle.kts` 里也写了一份
+# `version`。两者必须一致——由 `scripts/check-kit-distribution.mjs` 门禁强制
+# （它同时校验 Android / npm / git tag 三处）。
+
+jdk:
+  - openjdk17
+
+install:
+  # 切到实际的 Gradle 工程目录再发布到本地 maven —— JitPack 会从那里取产物。
+  # 用 publishToMavenLocal 而不是 install：后者是 Maven 的目标，
+  # 这个工程用的是 maven-publish 插件。
+  - cd android-im-ui && ./gradlew publishToMavenLocal -Pjitpack=true --no-daemon

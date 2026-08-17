@@ -48,9 +48,37 @@ web 侧已解决（见根目录 `scripts/switch-deps.mjs`）。本文处理 Andr
 - ❌ 记忆里记过这个坑：**手动引入必须抄 8 个依赖，否则运行时崩**
 - ❌ 版本管理靠人肉，Gradle 无法解析版本区间
 
+### 选项 D：JitPack —— **仓库是公开仓，这才是最优解**
+
+后来查实 `flare-im-design` 是 **PUBLIC** 仓，这改变了结论。JitPack 从 git tag
+按需构建，**自动生成 POM**，且公开仓**消费方零认证**：
+
+```kotlin
+repositories { maven { url = uri("https://jitpack.io") } }
+implementation("com.github.flare-im:flare-im-design:1.0.7")
+```
+
+| 方案 | 消费方要 token | 有 POM | 传递依赖 |
+|---|---|---|---|
+| Release 附件裸 AAR | 否 | **无** | **手抄 8 个，漏一个运行时崩** |
+| GitHub Packages | **要**（公开仓也要） | 有 | 自动 |
+| **JitPack** | **否** | **有** | 自动 |
+
+GitHub Packages 的关键劣势是**即使仓库公开，它的 Maven 端点仍要求认证**——
+对外部集成者是实打实的摩擦。
+
+**本地已验证 JitPack 路线可行**：模拟其构建流程（`cd android-im-ui &&
+./gradlew publishToMavenLocal`）产出 AAR + POM + sources，且 POM 里
+**9 个传递依赖全在**（compose-bom / material3 / coil 等）——正是裸 AAR 方案要手抄的那批。
+
+monorepo 需要 `jitpack.yml` 指定子目录构建（仓库根没有 Gradle 工程）。
+
 ### 结论
 
-**选 B（GitHub Packages），但保留 A 作为「对外正式发布」的升级路径。**
+**选 D（JitPack）为主，B（GitHub Packages）作为私有分发的备选，A（Central）留作正式发布的升级路径。**
+
+三条不冲突：JitPack 配置在 `jitpack.yml`，GitHub Packages 配置在
+`android-im-ui/build.gradle.kts` 的 repositories 块，各自独立。
 
 理由：当前阶段 kit 还在快速迭代，A 的审核与不可撤回是真实阻力；C 的无 POM 缺陷已经吃过一次亏（8 个依赖手抄）。B 的 token 摩擦只影响外部集成者，而现在没有外部集成者——等有了再上 A，那时版本也稳定了。
 
