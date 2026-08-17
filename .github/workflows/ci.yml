@@ -141,7 +141,7 @@ jobs:
       #
       # 注意这跟发布路径无关：装 registry 包的消费方能通过**传递依赖**拿到
       # lucide（已验证 social app 的 node_modules 里有），不需要自己声明。
-      - name: 安装 kit 依赖（file: 链接不会自动装）
+      - name: 安装 kit 依赖（file 链接不会自动装被链包的依赖）
         working-directory: vue-im-ui
         run: npm install --no-audit --no-fund
 
