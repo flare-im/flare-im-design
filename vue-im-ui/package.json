@@ -78,7 +78,10 @@
     "test:browser-download": "node scripts/browser-download-regression.mjs",
     "check:sfc": "node scripts/compile-all-sfc.mjs",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json",
-    "gen:icons": "node scripts/gen-icon-shim.mjs"
+    "gen:icons": "node scripts/gen-icon-shim.mjs",
+    "sync:assets": "node scripts/sync-pack-assets.mjs",
+    "check:assets": "node scripts/sync-pack-assets.mjs --check",
+    "prepack": "node scripts/sync-pack-assets.mjs"
   },
   "devDependencies": {
     "@types/markdown-it": "^14.1.2",
