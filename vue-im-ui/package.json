@@ -1,6 +1,6 @@
 {
   "name": "@flare-im/vue-ui",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Flare IM UI Kit — Vue 3 + Naive UI component library for chat (conversation list, message list/bubble, composer, media, business cards). L1 web implementation, driven by core observable views + @flare-im/tokens.",
   "license": "Apache-2.0",
   "homepage": "https://github.com/flare-im/flare-im-design",

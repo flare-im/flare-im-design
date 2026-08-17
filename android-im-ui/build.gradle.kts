@@ -9,7 +9,7 @@ plugins {
 
 // Maven coordinates — consumers reference `com.flare.im:im-ui-compose:<version>` below.
 group = "com.flare.im"
-version = "1.0.6"
+version = "1.0.7"
 
 android {
     namespace = "com.flare.im.ui"
@@ -50,8 +50,45 @@ afterEvaluate {
                 version = project.version.toString()
             }
         }
-        // `./gradlew publish` targets this; point it at your Maven repo:
-        // repositories { maven { url = uri("...") ; credentials { ... } } }
+        repositories {
+            // dev 分支：`./gradlew publishToMavenLocal`，产物进 ~/.m2，
+            // 消费方立刻命中（无需任何凭据）。mavenLocal 是 Gradle 内置目标，
+            // 不需要在这里声明。
+
+            // main 分支：`./gradlew publish`，产物进 GitHub Packages。
+            //
+            // 为什么是 GitHub Packages 而不是 Maven Central：
+            // Central 要 Sonatype 账号 + GPG 签名 + `com.flare.im` 的域名所有权证明，
+            // 且发布不可撤回。kit 现阶段一天可能动几次版本号，那套流程是纯阻力。
+            // 等有了外部集成者、版本稳定下来再上 Central——届时本块换个 url 即可。
+            //
+            // 为什么不是 GitHub Release 附件 AAR：**裸 AAR 没有 POM**，
+            // 传递依赖不会自动带过来。这个坑已经吃过一次——手动引入时必须抄
+            // 8 个依赖，漏一个就运行时崩，而编译期完全看不出来。
+            //
+            // 凭据来自环境变量，仓库里不留 token。缺失时**跳过**该仓库而不是报错：
+            // 本地开发只用 mavenLocal，不该被逼着配 GitHub token。
+            val githubUser = providers.gradleProperty("gpr.user")
+                .orElse(providers.environmentVariable("GITHUB_ACTOR"))
+            val githubToken = providers.gradleProperty("gpr.token")
+                .orElse(providers.environmentVariable("GITHUB_TOKEN"))
+
+            if (githubUser.isPresent && githubToken.isPresent) {
+                maven {
+                    name = "GitHubPackages"
+                    url = uri("https://maven.pkg.github.com/flare-im/flare-im-design")
+                    credentials {
+                        username = githubUser.get()
+                        password = githubToken.get()
+                    }
+                }
+            } else {
+                logger.lifecycle(
+                    "跳过 GitHubPackages 发布目标：未提供凭据。" +
+                        "只发本地用 publishToMavenLocal；要发远端请设 GITHUB_ACTOR / GITHUB_TOKEN。"
+                )
+            }
+        }
     }
 }
 
