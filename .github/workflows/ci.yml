@@ -132,6 +132,19 @@ jobs:
       #
       # site 通过 file:../vue-im-ui 引本仓的包，是同仓相对路径，
       # 不涉及 main/dev 的依赖模式问题。
+      # site 通过 file:../vue-im-ui 引本仓的包 —— 而 **file: 链接不会把被链包的
+      # 依赖装进消费方**：npm 只建符号链接。kit 源码里 import 的
+      # lucide-vue-next / naive-ui 等要靠 vue-im-ui/node_modules 才解析得到。
+      #
+      # 本地之所以一直没暴露：谁都在 vue-im-ui 里跑过 npm install。CI 的 job
+      # 之间不共享状态，所以这一步必须显式装。
+      #
+      # 注意这跟发布路径无关：装 registry 包的消费方能通过**传递依赖**拿到
+      # lucide（已验证 social app 的 node_modules 里有），不需要自己声明。
+      - name: 安装 kit 依赖（file: 链接不会自动装）
+        working-directory: vue-im-ui
+        run: npm install --no-audit --no-fund
+
       - name: 安装依赖
         working-directory: site
         run: npm install --no-audit --no-fund
