@@ -35,7 +35,7 @@ import {
   flareSessionBridgeTesting,
   mapSdkError,
   reportSdkError,
-} from "@flare-im/vue-ui/composables";
+} from "@flare-im/vue-ui/composables/sdk";
 import { resolveWasmBindingAssetUrl } from "../../infrastructure/sdk/wasmLoader";
 import {
   createMessageOperationAdapter,
@@ -67,7 +67,9 @@ import {
   readLoginEnvText,
   shouldRefreshTimelineAfterDispatch,
   useFlareCoreClient,
-} from "@flare-im/vue-ui/composables";
+  // SDK 绑定层走独立子路径 —— 它们不在 `./composables` 主 barrel 上，
+  // 否则会把 `@flare-im/sdk`（optional peer）拖进每个消费方的构建图。
+} from "@flare-im/vue-ui/composables/sdk";
 import { withTimeout } from "@flare-im/vue-ui/utils";
 import { conversationTitle } from "../conversationTitle";
 

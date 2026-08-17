@@ -1,6 +1,6 @@
 {
   "name": "@flare-im/vue-ui",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Flare IM UI Kit — Vue 3 + Naive UI component library for chat (conversation list, message list/bubble, composer, media, business cards). L1 web implementation, driven by core observable views + @flare-im/tokens.",
   "license": "Apache-2.0",
   "homepage": "https://github.com/flare-im/flare-im-design",
@@ -34,6 +34,7 @@
     "./i18n": "./src/shared/i18n/index.ts",
     "./contracts": "./src/shared/contracts/index.ts",
     "./composables": "./src/composables/index.ts",
+    "./composables/sdk": "./src/composables/sdk.ts",
     "./components": "./src/components/index.ts",
     "./utils": "./src/utils/index.ts",
     "./style.css": "./src/design-system/styles/index.css",

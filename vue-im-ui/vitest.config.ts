@@ -50,6 +50,13 @@ export default defineConfig({
         find: "@flare-im/vue-ui/utils",
         replacement: path.join(vueImUiRoot, "utils/index.ts"),
       },
+      // 更具体的子路径必须排在 `/composables` **前面**：字符串 find 是前缀匹配，
+      // 否则 `/composables/sdk` 会先命中 `/composables` 并被拼成
+      // `composables/index.ts/sdk`（表现为模块解析失败）。
+      {
+        find: "@flare-im/vue-ui/composables/sdk",
+        replacement: path.join(vueImUiRoot, "composables/sdk.ts"),
+      },
       {
         find: "@flare-im/vue-ui/composables",
         replacement: path.join(vueImUiRoot, "composables/index.ts"),
@@ -91,6 +98,11 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["src/app/shared/testing/**/*.test.ts"],
+    // 覆盖 src 全域，不要收窄回某个子目录。
+    //
+    // 曾经只 include `src/app/shared/testing/**`，于是放在被测代码旁边的测试
+    // **一个都不会跑**，且 `vitest run` 照样绿——没有任何信号说它被漏了。
+    // 组件层（src/utils、src/components…）的契约门禁必须在这个窗口内才有意义。
+    include: ["src/**/*.test.ts"],
   },
 });

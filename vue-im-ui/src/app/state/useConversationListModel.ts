@@ -1,7 +1,7 @@
 import { computed, onBeforeUnmount, ref, watch } from "vue";
 import type { ConversationListItemModel } from "../ui/components";
 import { useFlareSdk } from "../sdk/flareSdkContext";
-import type { ConversationFilter } from "@flare-im/vue-ui/composables";
+import type { ConversationFilter } from "@flare-im/vue-ui/composables/sdk";
 import { conversationTitle } from "../shared/conversationTitle";
 import { useFlareI18n } from "../shared/i18n";
 
