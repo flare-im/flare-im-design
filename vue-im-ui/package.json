@@ -1,6 +1,6 @@
 {
   "name": "@flare-im/vue-ui",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Flare IM UI Kit — Vue 3 + Naive UI component library for chat (conversation list, message list/bubble, composer, media, business cards). L1 web implementation, driven by core observable views + @flare-im/tokens.",
   "license": "Apache-2.0",
   "homepage": "https://github.com/flare-im/flare-im-design",
@@ -42,12 +42,18 @@
     "./app": "./src/app/index.ts",
     "./app/components/*": "./src/app/components/*",
     "./app/style.css": "./src/app/styles/index.css",
-    "./icon-glyphs": "./src/shared/icon-glyphs.ts"
+    "./icon-glyphs": "./src/shared/icon-glyphs.ts",
+    "./*": [
+      "./src/*",
+      "./src/*.ts",
+      "./src/*.vue"
+    ]
   },
   "dependencies": {
     "@flare-im/tokens": "^1.0.5",
-    "markdown-it": "^14.2.0",
-    "lucide-vue-next": "0.577.0"
+    "@types/markdown-it": "^14.1.2",
+    "lucide-vue-next": "0.577.0",
+    "markdown-it": "^14.2.0"
   },
   "peerDependencies": {
     "@flare-im/sdk": "*",
@@ -85,7 +91,6 @@
     "prepack": "node scripts/sync-pack-assets.mjs"
   },
   "devDependencies": {
-    "@types/markdown-it": "^14.1.2",
     "@types/node": "^26.0.0",
     "@vitejs/plugin-vue": "^6.0.7",
     "esbuild": "^0.25.12",
