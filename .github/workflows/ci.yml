@@ -152,3 +152,43 @@ jobs:
       - name: 构建
         working-directory: site
         run: npm run build
+
+  consumer:
+    name: 跨仓消费方（真装发布包）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # 消费方仓单独 checkout 到 consumer/ 下，**不是**放成同级目录。
+      #
+      # 这一点是本 job 成立的关键：消费方的 tsconfig 里 kit 的 paths 指向
+      # 同级的 flare-im-design，解析不到时才会回落 node_modules。放成同级
+      # 就会命中源码，于是「装了发布包」这件事完全没被验证到——看着绿，
+      # 实际什么都没测。
+      #
+      # flare-im-core-client-sdk 是公开仓，不需要任何 token。
+      - uses: actions/checkout@v4
+        with:
+          repository: flare-im/flare-im-core-client-sdk
+          path: consumer/flare-im-core-client-sdk
+
+      - name: 打包 kit
+        working-directory: vue-im-ui
+        run: npm pack --pack-destination "$RUNNER_TEMP"
+
+      # 选 uni-app 跑 typecheck，而不是别的 app 跑 build：
+      # web/tauri/electron 的 vite 构建会硬拷 flare-im-core-sdk 的 wasm 产物，
+      # 而那个产物是 gitignore 的（要现装 Rust + wasm-pack 现构建，太重）。
+      # typecheck 不走 vite 插件，却照样走 node_modules 解析 —— 而解析正是
+      # 这类缺陷的所在（缺类型、子路径解析不到、optional peer 的类型）。
+      - name: 装发布包并在 published 语义下类型检查
+        working-directory: consumer/flare-im-core-client-sdk/examples/flare-core-uni-app
+        env:
+          FLARE_USE_PUBLISHED_KIT: "true"
+        run: |
+          npm install --no-audit --no-fund
+          npm install --no-save "$RUNNER_TEMP"/flare-im-vue-ui-*.tgz
+          npm run typecheck
