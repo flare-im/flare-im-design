@@ -11,13 +11,15 @@
 | **main** | 单独 `git clone` 一个 app 仓就能构建 | 外部集成者、CI、以及「我只想看看这个 app」的人不该被要求克隆 14 个同级仓 |
 | **dev** | 改一处 kit 立刻在所有端生效 | 组件库的开发节奏是「改一行看一眼」，不该被发版流程打断 |
 
-web 侧已解决（见根目录 `scripts/switch-deps.mjs`）。本文处理 Android / iOS / Flutter。
+web 侧已解决（见工作区根的 `PLAN-branch-deps.md`：package.json 永远写 registry 版本，
+vite alias 按同级仓存在与否自动判定，tsconfig 的 paths 解析不到时回落 node_modules——
+**没有切换脚本**）。本文处理 Android / iOS / Flutter。
 
 ## 现状（实测，非推测）
 
 | 平台 | dev 怎么引 | main 能不能引 | 缺什么 |
 |---|---|---|---|
-| **web** | `file:` 相对路径 + vite alias | ✅ 能，`@flare-im/vue-ui@1.0.6` 在 npm 上 | 已完成 |
+| **web** | registry 声明 + vite alias/tsconfig paths 自动判定 | ✅ 能，`@flare-im/vue-ui@1.0.9` 在 npm 上 | 已完成 |
 | **Android** | `mavenLocal()` + `com.flare.im:im-ui-compose:1.0.6` | ❌ **不能** | 发布目标是注释掉的占位（build.gradle.kts:54），产物只进本机 `~/.m2` |
 | **iOS** | `.package(path: "../../../../../flare-im-design/ios-im-ui")` | ⚠️ **半能** | 双清单（根 + ios-im-ui）已就位、tag 到 1.0.5，但消费方写死 path |
 | **Flutter** | — | — | kit 是设计源，各 app 走接线而非依赖，不在本文范围 |
