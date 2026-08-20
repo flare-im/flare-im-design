@@ -214,6 +214,17 @@ jobs:
           channel: stable
           cache: true
 
+      # 表情/贴纸的 webp 二进制**刻意不入库**（250 个共 67MB，曾把 git clone 撑到
+      # 连续失败），由 release tag 按需拉取。pubspec 声明了 assets/emoji-sticker/emoji/
+      # 与 .../stickers/default/ 两个目录，不拉的话 flutter analyze 会报
+      # `asset_directory_does_not_exist` 并判红——这不是误报，真实消费方不拉一样缺资源。
+      # flutter-im-ui/assets/emoji-sticker 是指向仓根那份的符号链接（已入库）。
+      - name: 拉取表情/贴纸资源
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./assets/emoji-sticker/fetch-assets.sh
+
       - name: 取依赖
         run: flutter pub get
 
