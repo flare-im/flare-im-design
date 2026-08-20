@@ -192,3 +192,59 @@ jobs:
           npm install --no-audit --no-fund
           npm install --no-save "$RUNNER_TEMP"/flare-im-vue-ui-*.tgz
           npm run typecheck
+
+  # 四端实现里，此前只有 Vue 那套进过 CI。
+  # 这个 kit 是「一个组件契约、四套实现」，android / ios / flutter 三端合计 290 个
+  # 原生源文件**一行都没被编译过**——而本项目已经吃过一次亏：只审两端时漏掉了
+  # ProfilePanel 丢 kind/detail/signature、Input 无密码遮罩等问题，四端原样复现。
+  #
+  # Flutter 与 Android 都能在 ubuntu 上跑，先接这两端。
+  # iOS 需要 macOS runner（10 倍计费），单独评估，见 open-items。
+  flutter:
+    name: Flutter 组件库
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flutter-im-ui
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: 取依赖
+        run: flutter pub get
+
+      # analyze 与 test 分开两步：analyze 挂了要一眼看出是静态问题还是用例失败。
+      - name: 静态分析
+        run: flutter analyze
+
+      - name: 单元测试
+        run: flutter test
+
+  android:
+    name: Android 组件库
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android-im-ui
+    steps:
+      - uses: actions/checkout@v4
+
+      # AGP 要 JDK 17；runner 默认 JDK 版本会随镜像变，钉死免得哪天静默换版本。
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # local.properties 被 gitignore（里面是各人本机的 sdk.dir），
+      # CI 靠 runner 预置的 ANDROID_HOME 找 SDK。
+      - name: 编译
+        run: ./gradlew --no-daemon :compileDebugKotlin
+
+      - name: 单元测试
+        run: ./gradlew --no-daemon :testDebugUnitTest
