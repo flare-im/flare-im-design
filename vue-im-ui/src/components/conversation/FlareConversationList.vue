@@ -18,13 +18,16 @@ const { t } = useFlareI18n();
       <slot name="empty">{{ t("conversation.emptyTitle") }}</slot>
     </div>
     <template v-else>
-      <slot
-        v-for="item in items"
-        :key="item.id"
-        name="item"
-        :item="item"
-        :active="item.id === activeId"
-      />
+      <!-- key 必须挂在 <template> 上，不能挂在 <slot> 上。挂在 slot 出口上时
+           Vue 无法对它做带 key 的 diff：items 每换一次引用，整个列表的 DOM
+           就被销毁重建一遍。表现是列表闪、点击落空（元素在点击落地前已被换掉）。 -->
+      <template v-for="item in items" :key="item.id">
+        <slot
+          name="item"
+          :item="item"
+          :active="item.id === activeId"
+        />
+      </template>
     </template>
   </div>
 </template>
