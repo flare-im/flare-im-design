@@ -308,6 +308,19 @@ function focusInput(): void {
   });
 }
 
+/** 点输入行空白处时把焦点交给内部编辑器；点在编辑器自身上则不介入。 */
+function onInputRowMousedown(event: MouseEvent): void {
+  if (props.disabled) return;
+  const target = event.target as HTMLElement | null;
+  if (!target) return;
+  // 点在真正的编辑元素上：交给浏览器原生处理（保住选中与光标定位）
+  if (target.closest("textarea, input, [contenteditable='true']")) return;
+  // 点在工具栏按钮上：不抢它们的点击
+  if (target.closest("button, a, [role='button']")) return;
+  event.preventDefault();
+  focusInput();
+}
+
 function toggle(panel: Exclude<ComposerPanel, null>): void {
   if (props.disabled) return;
   const nextPanel = props.activePanel === panel ? null : panel;
@@ -861,6 +874,15 @@ onBeforeUnmount(() => {
       </div>
 
       <div class="composer-input-layer">
+        <!--
+          点输入行的任意空白处都要能开始打字——这是 IM 里最高频的一个动作。
+          编辑器（textarea / 富文本）只占这一行的一部分，点到它旁边的空白
+          （占位文字右侧、图标之间）时事件落在容器上，焦点进不去内部编辑器，
+          于是"看着像点中了输入框，却打不出字"。
+          用 mousedown 而不是 click：click 在 mouseup 才触发，那时浏览器
+          已经把焦点给了容器，再 focus 会闪一下。preventDefault 阻止容器抢焦点。
+          点在编辑器自身上时不介入，交给它原生处理（否则会打断选中/光标定位）。
+        -->
         <div
           class="composer-input-row"
           :class="{
@@ -868,6 +890,7 @@ onBeforeUnmount(() => {
             'composer-input-row--focused': inputFocused,
             'composer-input-row--rich-editable': useRichEditor,
           }"
+          @mousedown="onInputRowMousedown"
         >
           <ComposerRichMarkdownInput
             v-if="useRichEditor"
