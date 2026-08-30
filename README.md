@@ -26,7 +26,7 @@ English · [中文](README.zh-CN.md)
 > Twilio Conversations, the difference being that Flare can be self-hosted and
 > its protocol and core are auditable.
 >
-> See [GOVERNANCE.md](GOVERNANCE.md) for the boundary details.
+> See [GOVERNANCE.md](.github/GOVERNANCE.md) for the boundary details.
 
 
 An "Ant Design–like" IM UI component system covering **web / Flutter / Android / iOS**.
@@ -79,7 +79,7 @@ corresponding L1 component package lands (no abstractions without consumers).
 | Integrate your own user system | Implement `TokenValidator` (`CoreJwtTokenValidator` for local validation / `HttpHookTokenValidator` to call your endpoint) |
 | Add your own business rules | The 9 extension points of `flare-im-hooks`: PreSend / PostSend / Delivery / Recall / MessageRead / MessageReaction / ConversationLifecycle / ConversationMember / GetConversationParticipants |
 | Build the UI | [`@flare-im/vue-ui`](https://www.npmjs.com/package/@flare-im/vue-ui) — 107 components, a contract consistent across four platforms |
-| Report a security issue | [SECURITY.md](SECURITY.md), **please do not open a public issue** |
+| Report a security issue | [SECURITY.md](.github/SECURITY.md), **please do not open a public issue** |
 
 ## When you need an account system and social capabilities
 

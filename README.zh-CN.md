@@ -22,7 +22,7 @@
 > Twilio Conversations 的「自带身份」模型一致，区别是 Flare 可自托管、
 > 协议与核心可审计。
 >
-> 边界详情见 [GOVERNANCE.md](GOVERNANCE.md)。
+> 边界详情见 [GOVERNANCE.md](.github/GOVERNANCE.md)。
 
 
 一套「类 Ant Design」的 IM UI 组件体系，覆盖 **web / Flutter / Android / iOS**。
@@ -70,7 +70,7 @@ cd tokens && node build.mjs   # tokens.json → dist/tokens.css + dist/tokens.ts
 | 接入自己的用户系统 | 实现 `TokenValidator`（`CoreJwtTokenValidator` 本地验签 / `HttpHookTokenValidator` 调你的接口） |
 | 加自己的业务规则 | `flare-im-hooks` 的 9 个扩展点：PreSend / PostSend / Delivery / Recall / MessageRead / MessageReaction / ConversationLifecycle / ConversationMember / GetConversationParticipants |
 | 做界面 | [`@flare-im/vue-ui`](https://www.npmjs.com/package/@flare-im/vue-ui) —— 107 个组件，四端一致的契约 |
-| 报安全问题 | [SECURITY.md](SECURITY.md)，**请勿开公开 issue** |
+| 报安全问题 | [SECURITY.md](.github/SECURITY.md)，**请勿开公开 issue** |
 
 ## 需要账号体系与社交能力时
 
