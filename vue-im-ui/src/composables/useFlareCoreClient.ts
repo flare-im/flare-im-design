@@ -187,6 +187,19 @@ export interface UseFlareCoreClientOptions {
   runtimeStatus?: SdkRuntimeStatus;
 }
 
+/**
+ * 归档筛选的取舍：只保留已归档的会话。
+ *
+ * SDK 侧只有 `includeArchived`，语义是"额外带上归档会话"而不是"只要归档会话"。
+ * 拿它当归档筛选用，列表会原样返回全部——筛选看起来生效了（高亮切了），
+ * 内容却一条没少。没有 archivedOnly 查询可用，只能取回后自己收窄。
+ */
+export function keepArchivedConversations<T extends { isArchived?: boolean }>(
+  conversations: readonly T[],
+): T[] {
+  return conversations.filter((conversation) => Boolean(conversation.isArchived));
+}
+
 export function readLoginEnvText(value: string | undefined, fallback: string): string {
   const normalized = String(value ?? "").trim();
   return normalized || fallback;
@@ -2514,7 +2527,15 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
     try {
       const filter = conversationFilters.filter;
       let nextConversations: Conversation[];
-      if (filter === "archived" || conversationFilters.includeArchived) {
+      if (filter === "archived") {
+        // includeArchived 的语义是"额外带上归档会话"，不是"只要归档会话"。
+        // 直接拿它当归档筛选用，列表会原样返回全部会话——筛选看起来生效了
+        // （高亮切了），内容却一条没少。SDK 没有 archivedOnly 查询，所以在
+        // 取回后按 isArchived 收窄。
+        nextConversations = keepArchivedConversations(
+          await listConversations({ includeArchived: true }),
+        );
+      } else if (conversationFilters.includeArchived) {
         nextConversations = [...await listConversations({ includeArchived: true })];
       } else if (conversationFilters.conversationType) {
         const response = await client.conversations.listConversationsByQuery({
