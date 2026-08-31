@@ -555,12 +555,20 @@ export function shouldRefreshTimelineAfterDispatch(op: string): boolean {
   return timelineRefreshingDispatchOps.has(op);
 }
 
+/** proto `MarkType`：0=UNSPECIFIED, 1=IMPORTANT, 2=TODO, 3=DONE, 4=CUSTOM。 */
+export const MARK_TYPE_IMPORTANT = 1;
+
+/** 标记默认色。核心侧要求 color 非空字符串，调用方不关心颜色时用它兜底。 */
+export const DEFAULT_MARK_COLOR = "#F5A623";
+
 export function buildMessageDispatchParams(input: {
   conversationId: string;
   messageId: string;
   text?: string;
   keyword?: string;
   emoji?: string;
+  markType?: number;
+  color?: string;
   jsonParams?: Record<string, unknown>;
 }): Record<string, unknown> {
   return {
@@ -570,6 +578,12 @@ export function buildMessageDispatchParams(input: {
     text: input.text ?? "",
     keyword: input.keyword ?? "",
     emoji: input.emoji ?? "",
+    // 标记类操作的契约是 messageId + markType(i32) + color(string)，
+    // 见 bindings/shared 的 mark_by_message_id 分支。此前这里两个都不产出，
+    // 只能靠 SDK Lab 的自由 JSON 补，于是消息右键菜单里的"标记"必然失败，
+    // 报 INVALID_PARAMETER。markType 走 json_i32，写成字符串同样会被拒。
+    markType: input.markType ?? MARK_TYPE_IMPORTANT,
+    color: input.color ?? DEFAULT_MARK_COLOR,
     ...(input.jsonParams ?? {}),
   };
 }
@@ -3817,20 +3831,26 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
   }
 
   async function runDispatch(op = sdkLab.dispatchOp): Promise<void> {
-    const messageIdValue = sdkLab.messageId || activeLatestMessageId.value;
-    const params = buildMessageDispatchParams({
-      conversationId: activeConversationId.value,
-      messageId: messageIdValue,
-      text: sdkLab.messageText,
-      keyword: sdkLab.query,
-      emoji: sdkLab.reaction,
-      jsonParams: parseJsonParams(sdkLab.jsonParams),
+    // 走 runLab：此前这里既不捕获异常也不管 labBusy，dispatchMessage 一旦 reject，
+    // labResult 的赋值根本不会发生，异常直接冲出点击处理器变成 unhandled rejection。
+    // 界面上于是完全没有反馈——结果面板停在上一次的输出，既没有报错也没有 loading，
+    // 看起来就像"按钮没反应"。消息右键菜单里的标记等操作同样经由这里，一并失声。
+    await runLab("message.dispatch", async () => {
+      const messageIdValue = sdkLab.messageId || activeLatestMessageId.value;
+      const params = buildMessageDispatchParams({
+        conversationId: activeConversationId.value,
+        messageId: messageIdValue,
+        text: sdkLab.messageText,
+        keyword: sdkLab.query,
+        emoji: sdkLab.reaction,
+        jsonParams: parseJsonParams(sdkLab.jsonParams),
+      });
+      const result = await dispatchMessage(op, params);
+      if (shouldRefreshTimelineAfterDispatch(op)) {
+        await refreshActiveChat();
+      }
+      return result as Record<string, unknown>;
     });
-    labResult.value = await dispatchMessage(op, params);
-    if (shouldRefreshTimelineAfterDispatch(op)) {
-      await refreshActiveChat();
-    }
-    log("dispatch", op);
   }
 
   async function syncActiveConversation(): Promise<void> {
