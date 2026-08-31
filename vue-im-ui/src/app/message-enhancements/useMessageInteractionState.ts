@@ -1,7 +1,7 @@
 import { computed, ref, watch, type Ref } from "vue";
 import type { Message } from "@flare-im/sdk/web";
 import type { EnhancedMessageKind, ForwardMode } from "./types";
-import { messageStableId } from "./types";
+import { messageHasId, messageStableId } from "./types";
 
 export function useMessageInteractionState(messages: Readonly<Ref<readonly Message[]>>) {
   const multiSelectMode = ref(false);
@@ -13,8 +13,9 @@ export function useMessageInteractionState(messages: Readonly<Ref<readonly Messa
   const previewMessageId = ref("");
 
   const selectedMessages = computed(() => {
-    const selected = new Set(selectedMessageIds.value);
-    return messages.value.filter((message) => selected.has(messageStableId(message)));
+    const selected = selectedMessageIds.value;
+    // 按两个 id 都比：选中 id 的来路不一定和 messageStableId 同序，见 messageHasId。
+    return messages.value.filter((message) => selected.some((id) => messageHasId(message, id)));
   });
 
   const selectableMessageIds = computed(() =>

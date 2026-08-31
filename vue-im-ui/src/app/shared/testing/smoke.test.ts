@@ -57,6 +57,8 @@ import { createAppMediaResolver } from "../../infrastructure/media/appMediaResol
 import {
   buildLoginTransportConfig,
   buildMessageDispatchParams,
+  DEFAULT_MARK_COLOR,
+  MARK_TYPE_IMPORTANT,
   desktopNotificationBodyForMessage,
   isRecoverableLoginTransportError,
   loginTransportDisplayName,
@@ -1732,6 +1734,11 @@ describe("message dispatch timeline refresh policy", () => {
       reason: "test",
       keyword: "",
       emoji: "",
+      // 标记类 dispatchOp 的必填项：核心侧 mark_by_message_id 走
+      // json_i32("markType") + json_string("color")，缺任一个直接
+      // INVALID_PARAMETER，右键菜单的"标记"因此曾经必然失败。
+      markType: MARK_TYPE_IMPORTANT,
+      color: DEFAULT_MARK_COLOR,
     });
   });
 

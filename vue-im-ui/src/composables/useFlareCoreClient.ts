@@ -3617,9 +3617,21 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
     merge?: boolean;
     title?: string;
   }): Promise<Message> {
+    // 必须传完整消息而不是 id 存根：转发的载荷要把原文内容嵌进去，核心侧的
+    // forward_item_from_source 会读 content / senderId / conversationId。
+    // 早先按契约传 { sourceMessageId }，反序列化成 IMMessage 时缺必填字段直接
+    // INVALID_PARAMETER，转发每次都失败——契约本身写错了，已在 spec 侧改为
+    // MessageList。
+    const sources = request.messageIds.map((messageId) => {
+      const found = messages.value.find((row) => messageMatchesId(row, messageId));
+      if (!found) {
+        throw new Error(translateFlare("error.forwardSourceMissing", { id: messageId }));
+      }
+      return found;
+    });
     const draft = await client.messageBuilder.buildForward({
       conversationId: request.conversationId,
-      sourceMessages: request.messageIds.map((messageId) => ({ sourceMessageId: messageId })),
+      sourceMessages: sources,
       merge: request.merge ?? false,
       title: request.title ?? "",
     });

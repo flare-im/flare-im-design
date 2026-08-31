@@ -402,6 +402,7 @@ export const flareMessages: Record<FlareLocale, FlareMessageTree> = {
       operationFailed: "操作失败",
       selectConversationFirst: "请先选择会话",
       selectForwardTarget: "请选择转发目标",
+    forwardSourceMissing: "转发失败：本地找不到消息 {id}，请先同步该会话",
     },
     forward: {
       defaultTitle: "转发消息",
@@ -1412,6 +1413,7 @@ export const flareMessages: Record<FlareLocale, FlareMessageTree> = {
       operationFailed: "Operation failed",
       selectConversationFirst: "Select a conversation first",
       selectForwardTarget: "Select a forward target",
+    forwardSourceMissing: "Forward failed: message {id} is not in the local timeline; sync this conversation first",
     },
     forward: {
       defaultTitle: "Forwarded messages",

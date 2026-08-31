@@ -27,6 +27,8 @@ export {
   presenceStatusFromCoreDto,
   shouldRefreshTimelineAfterDispatch,
   buildMessageDispatchParams,
+  DEFAULT_MARK_COLOR,
+  MARK_TYPE_IMPORTANT,
   type UseFlareCoreClientOptions,
   type LoginFormState,
   type LoginIdentity,
