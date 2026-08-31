@@ -2,6 +2,7 @@ import { inject, provide, type InjectionKey } from "vue";
 import { useFlareCoreClient } from "@flare-im/vue-ui/composables/sdk";
 import { createProductionAppClient } from "../infrastructure/sdk/createProductionAppClient";
 import { devMediaHttpBaseUrl } from "../runtime/mediaProxy";
+import { withSameOriginEndpoints } from "../runtime/sameOriginEndpoints";
 import {
   appTransportSelectorTlsCaCertPath,
   appTransportSelectorRuntimeStatus,
@@ -22,7 +23,7 @@ export function provideFlareSdk(): FlareSdkContext {
   const nativeTransportSelectionEnabled = isAppTransportSelectorEnabled();
   const sdk = useFlareCoreClient({
     createClient: createProductionAppClient,
-    env: import.meta.env as Record<string, string | undefined>,
+    env: withSameOriginEndpoints(import.meta.env as Record<string, string | undefined>),
     defaultHttpUrl: devMediaHttpBaseUrl(),
     defaultTlsCaCertPath: appTransportSelectorTlsCaCertPath(),
     nativeTransportSelectionEnabled,
