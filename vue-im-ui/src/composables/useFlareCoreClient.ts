@@ -617,7 +617,21 @@ const STARTUP_HOME_SYNC_TIMEOUT_MS = 8_000;
 const SYNC_CONVERSATION_SUMMARIES_TIMEOUT_MS = 8_000;
 const CONVERSATION_LIST_VIEW_OPEN_TIMEOUT_MS = 8_000;
 const LOGIN_SESSION_RESET_TIMEOUT_MS = 3_000;
-const CORE_LOGIN_STEP_TIMEOUT_MS = 8_000;
+// 冷启动登录的绝大部分时间是取 WASM，而不是登录本身。
+//
+// bridge 的 ensureRuntime 是懒初始化：首个 invoke 触发下载 4.7MB（gzip 后
+// 1.55MB）的 wasm，这段时间全记在 login.init 名下。实测把它拆开看：
+//   链路 ~40KB/s 时，wasm 单独就要 34s，login.init 之外的部分不到 1s。
+// 也就是说这个死线量的是**用户网速**，不是服务端或客户端的处理耗时。
+//
+// 8s 的旧值只够 200KB/s 以上的链路。慢一点就随机失败，而失败时客户端一个
+// 网络包都没发出去（连接建立在 wasm 之后），表象是「服务端不可达」，
+// 真因是自己的死线先到期 —— 这个误导性极强，排查时绕了很久。
+//
+// 不要用「先热身再登录」绕开：init 前可用的操作有限，拿 diagnostics 去热
+// 会一直等到 client.init() 返回，而 init 排在热身之后，直接自锁
+// （实测总耗时从 9.1s 恶化到 33.5s）。
+const CORE_LOGIN_STEP_TIMEOUT_MS = 30_000;
 const CORE_LOGIN_TIMEOUT_MS = 120_000;
 const TIMELINE_OPEN_TIMEOUT_MS = 10_000;
 const MESSAGE_SYNC_TIMEOUT_MS = 12_000;
