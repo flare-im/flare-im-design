@@ -2122,6 +2122,29 @@ describe("shared message bubble skin", () => {
     expect(bubbleCss).not.toContain("radial-gradient(circle at 35% 28%");
   });
 
+  it("发送不得等待 ack 才放行输入区：否则后续点击被 sending 守卫静默丢弃", () => {
+    const workspace = readFileSync(
+      new URL("../../components/FlareChatWorkspace.vue", import.meta.url),
+      "utf8",
+    );
+
+    // 线上实测：ack 迟迟不回（一直到 30s 超时），而 `sending` 守卫覆盖同一段时间，
+    // 期间用户的每一次点击都被 `if (sending.value) return;` 静默丢弃——
+    // 没有气泡、没有提示、也没有进入核心，看起来就像发送键坏了。
+    //
+    // 发送本身已经是有状态的（核心入队前就以 sending 落库并发总线，
+    // 失败翻 failed 并由气泡呈现重发），所以提交后必须立刻放行输入区。
+    const awaited = workspace.match(/await withComposerSendDeadline\(/g) ?? [];
+    expect(
+      awaited.length,
+      "发送路径不应 await withComposerSendDeadline；改为 void ... .catch(...) 让输入区立刻可用",
+    ).toBe(0);
+
+    // 失败仍要有反馈，不能默默吞掉
+    expect(workspace).toContain("withComposerSendDeadline(");
+    expect(workspace).toContain("toast.sendFailed");
+  });
+
   it("媒体发送不得由应用自己上传：上传/进度/乐观物化归 SDK 核心", () => {
     const workspace = readFileSync(
       new URL("../../components/FlareChatWorkspace.vue", import.meta.url),

@@ -707,18 +707,33 @@ async function sendText(submittedText?: string): Promise<void> {
         task = sdk.sendText(text);
       }
     }
-    await withComposerSendDeadline(task);
+    // 不等 ack 再放行输入框。
+    //
+    // 原来这里 `await` 整个发送直到服务端 ack，而 `sending` 守卫覆盖同一段时间
+    // （`if (sending.value) return;`）。ack 迟到时——线上实测过 ack 根本没回来、
+    // 一直到 30s 超时——这期间用户的每一次点击都被**静默丢弃**：
+    // 没有气泡、没有提示、也没有进入核心，看起来就像“发送键坏了”。
+    //
+    // 发送本身已经是有状态的：核心在入队前就把消息以 sending 落库并发总线，
+    // 失败会翻成 failed 并由气泡呈现重发入口。所以这里只负责“交出去”，
+    // 后续状态一律由 ack / 回执事件驱动。
+    void withComposerSendDeadline(task).catch((error: unknown) => {
+      const detail = error instanceof Error ? error.message : String(error);
+      message.error(detail || t("toast.sendFailed"));
+      // 仅当用户此后没有再输入时，才把原文放回输入框，避免覆盖新内容
+      if (composerUserEditVersion === composerVersionAtSubmit && !composerText.value.trim()) {
+        setComposerTextSilently(text);
+        void flushComposerDraftNow(sdk.activeConversationId.value, text);
+      }
+    });
     sendAcknowledged = true;
-    if (composerUserEditVersion === composerVersionAtSubmit && !composerText.value.trim()) {
-      setComposerTextSilently("");
-      await clearComposerDraft(undefined, true);
-    }
     editingMessageId.value = "";
     replyMessageId.value = "";
     composerPanel.value = null;
     await nextTick();
     await messageListRef.value?.scrollToBottom();
   } catch (error) {
+    // 这里只剩**提交前**的同步失败（构建载荷、清草稿）
     const detail = error instanceof Error ? error.message : String(error);
     if (sendAcknowledged) {
       console.warn("[flare-web] post_send_cleanup_failed", detail);
@@ -1308,7 +1323,9 @@ async function sendVoiceRecording(recording: VoiceRecordingPayload): Promise<voi
     // 同上：交给核心上传，录完立刻出气泡并显示上传进度。
     const localLocator = await blobToCoreDataUrl(recording.blob, fileName, mimeType);
     const source = { sourcePath: localLocator, sourceUrl: "", fileName, mimeType, fileSize: size };
-    await withComposerSendDeadline(operations.sendComposerPayload(action.buildRequest({
+    // 同文本路径：不等 ack。语音还要先上传，等下去会把输入区锁住更久，
+    // 期间的点击会被 `sending` 守卫静默丢弃。
+    void withComposerSendDeadline(operations.sendComposerPayload(action.buildRequest({
       audioId: source.sourcePath,
       sourcePath: source.sourcePath,
       sourceUrl: source.sourceUrl ?? "",
@@ -1318,12 +1335,14 @@ async function sendVoiceRecording(recording: VoiceRecordingPayload): Promise<voi
       fileSize: source.fileSize || size,
       durationMs: recording.durationMs,
       description: t("toast.voiceMessageDesc"),
-    })));
+    }))).catch((error: unknown) => {
+      const detail = error instanceof Error ? error.message : String(error);
+      message.error(detail || t("toast.voiceSendFailed"));
+    });
     setComposerTextSilently("");
     clearComposerDraft(undefined, true);
     composerPanel.value = null;
     await messageListRef.value?.scrollToBottom();
-    message.success(t("toast.voiceSent"));
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
     message.error(detail || t("toast.voiceSendFailed"));
@@ -1368,7 +1387,12 @@ async function buildFromAction(op: string): Promise<void> {
   prepareComposerSend();
   sending.value = true;
   try {
-    await withComposerSendDeadline(sdk.buildFromComposerAction(op, composerText.value));
+    // 同其它发送路径：提交后立刻放行输入区，不等 ack。
+    void withComposerSendDeadline(sdk.buildFromComposerAction(op, composerText.value))
+      .catch((error: unknown) => {
+        const detail = error instanceof Error ? error.message : String(error);
+        message.error(detail || t("toast.sendFailed"));
+      });
     setComposerTextSilently("");
     clearComposerDraft(undefined, true);
     composerPanel.value = null;
@@ -1389,14 +1413,22 @@ async function sendComposerPayload(
   prepareComposerSend();
   sending.value = true;
   try {
-    await withComposerSendDeadline(operations.sendComposerPayload(payload));
+    // 同文本/语音路径：不等 ack 再放行。媒体还要先上传，等下去锁住输入区更久，
+    // 期间的点击会被 `sending` 守卫静默丢弃（没有气泡、没有提示）。
+    const task = withComposerSendDeadline(operations.sendComposerPayload(payload))
+      .catch((error: unknown) => {
+        const detail = error instanceof Error ? error.message : String(error);
+        message.error(detail || t("toast.sendFailed"));
+        if (options.rethrow) throw error;
+      });
     composerActionOpen.value = false;
     activeComposerOp.value = "";
     setComposerTextSilently("");
     clearComposerDraft(undefined, true);
     composerPanel.value = null;
     await messageListRef.value?.scrollToBottom();
-    message.success(t("toast.sentNamed", { name: payload.previewText }));
+    // rethrow 由调用方决定是否等待失败结果；默认不阻塞输入区
+    if (options.rethrow) await task;
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
     message.error(detail || t("toast.sendFailed"));
@@ -1425,11 +1457,14 @@ async function resendMessage(clientMsgId: string): Promise<void> {
   if (!clientMsgId || sending.value) return;
   sending.value = true;
   try {
-    await withComposerSendDeadline(sdk.resendFailedMessage(clientMsgId));
+    // 重发同样不等 ack：这条消息的状态本来就在气泡上（sending / failed），
+    // 阻塞输入区只会让用户在等待期间点什么都没反应。
+    void withComposerSendDeadline(sdk.resendFailedMessage(clientMsgId))
+      .catch((error: unknown) => {
+        const detail = error instanceof Error ? error.message : String(error);
+        message.error(detail || t("toast.resendFailed"));
+      });
     await messageListRef.value?.scrollToBottom();
-  } catch (error) {
-    const detail = error instanceof Error ? error.message : String(error);
-    message.error(detail || t("toast.resendFailed"));
   } finally {
     sending.value = false;
   }
@@ -1462,18 +1497,17 @@ async function sendStickerItem(sticker: ComposerStickerSendPick): Promise<void> 
     message.warning(t("error.selectConversationFirst"));
     return;
   }
-  try {
-    await withComposerSendDeadline(sdk.sendSticker({
-      stickerId: sticker.stickerId,
-      packageId: sticker.packageId,
-      url: sticker.url,
-      stickerFormat: "webp",
-    }));
-    await messageListRef.value?.scrollToBottom();
-  } catch (error) {
+  // 贴纸连点是常见操作，等 ack 会让第二次点击看起来没反应。
+  void withComposerSendDeadline(sdk.sendSticker({
+    stickerId: sticker.stickerId,
+    packageId: sticker.packageId,
+    url: sticker.url,
+    stickerFormat: "webp",
+  })).catch((error: unknown) => {
     const detail = error instanceof Error ? error.message : String(error);
     message.error(detail || t("toast.stickerSendFailed"));
-  }
+  });
+  await messageListRef.value?.scrollToBottom();
 }
 
 function dismissMediaPanel(): void {
