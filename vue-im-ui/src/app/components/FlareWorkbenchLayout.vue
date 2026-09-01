@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import { describeSdkError } from "../../shared/errors/describeSdkError";
 import {
   AddOutline,
   ArchiveOutline,
@@ -368,9 +369,9 @@ function selectedChatSearchKinds(): MessageSearchKind[] {
 }
 
 function operationErrorText(error: unknown, fallback: string): string {
-  if (error instanceof Error && error.message.trim()) return error.message;
-  if (typeof error === "string" && error.trim()) return error;
-  return fallback;
+  // 直接透 error.message 会把 wasm 桥的 JSON 信封和核心的 i18n key 甩给用户，
+  // 例如 {"code":"sdk.error","message":"… sdk.message.card.avatar.invalid_url"}。
+  return describeSdkError(error, fallback);
 }
 
 function searchErrorText(error: unknown): string {

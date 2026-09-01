@@ -36,3 +36,4 @@ export {
   DEFAULT_STICKER_PACKAGE_ID,
   resolveStickerUrlByPackageAndId,
 } from "../components/composer/ComposerEmojiStickerPopover/composerStickers";
+export { describeSdkError } from "../shared/errors/describeSdkError";

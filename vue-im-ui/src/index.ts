@@ -5,6 +5,7 @@
 export * from "./shared/contracts";
 export * from "./design-system/theme";
 export * from "./shared/i18n";
+export * from "./shared/errors/describeSdkError";
 export * from "./composables";
 export * from "./utils";
 export * from "./components";

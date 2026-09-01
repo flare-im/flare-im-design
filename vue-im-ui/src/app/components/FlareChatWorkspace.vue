@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { describeSdkError } from "../../shared/errors/describeSdkError";
 import {
   ArrowBackOutline,
   CallOutline,
@@ -517,7 +518,7 @@ async function ensureMessageLocated(messageId: string): Promise<boolean> {
     try {
       await sdk.loadOlderMessages();
     } catch (error) {
-      const detail = error instanceof Error ? error.message : String(error);
+      const detail = describeSdkError(error);
       message.error(detail || t("toast.loadHistoryFailed"));
       return false;
     }
@@ -718,7 +719,7 @@ async function sendText(submittedText?: string): Promise<void> {
     // 失败会翻成 failed 并由气泡呈现重发入口。所以这里只负责“交出去”，
     // 后续状态一律由 ack / 回执事件驱动。
     void withComposerSendDeadline(task).catch((error: unknown) => {
-      const detail = error instanceof Error ? error.message : String(error);
+      const detail = describeSdkError(error);
       message.error(detail || t("toast.sendFailed"));
       // 仅当用户此后没有再输入时，才把原文放回输入框，避免覆盖新内容
       if (composerUserEditVersion === composerVersionAtSubmit && !composerText.value.trim()) {
@@ -734,7 +735,7 @@ async function sendText(submittedText?: string): Promise<void> {
     await messageListRef.value?.scrollToBottom();
   } catch (error) {
     // 这里只剩**提交前**的同步失败（构建载荷、清草稿）
-    const detail = error instanceof Error ? error.message : String(error);
+    const detail = describeSdkError(error);
     if (sendAcknowledged) {
       console.warn("[flare-web] post_send_cleanup_failed", detail);
       return;
@@ -753,7 +754,7 @@ async function reactMessage(id: string, emoji: string): Promise<void> {
   try {
     await operations.toggleReaction(id, emoji);
   } catch (error) {
-    const detail = error instanceof Error ? error.message : String(error);
+    const detail = describeSdkError(error);
     message.error(detail || t("toast.reactFailed"));
   }
 }
@@ -768,7 +769,7 @@ async function recallMessage(id: string): Promise<void> {
     await sdk.recallMessageById(id);
     if (editingMessageId.value === id) cancelEditingMessage();
   } catch (error) {
-    const detail = error instanceof Error ? error.message : String(error);
+    const detail = describeSdkError(error);
     message.error(detail || t("toast.recallFailed"));
   }
 }
@@ -1013,7 +1014,7 @@ async function handleMediaAction(id: string, action: MediaDownloadAction): Promi
       await downloadMediaSource(source);
     }
   } catch (error) {
-    const detail = error instanceof Error ? error.message : String(error);
+    const detail = describeSdkError(error);
     message.error(detail || t("toast.downloadFailed"));
   }
 }
@@ -1336,7 +1337,7 @@ async function sendVoiceRecording(recording: VoiceRecordingPayload): Promise<voi
       durationMs: recording.durationMs,
       description: t("toast.voiceMessageDesc"),
     }))).catch((error: unknown) => {
-      const detail = error instanceof Error ? error.message : String(error);
+      const detail = describeSdkError(error);
       message.error(detail || t("toast.voiceSendFailed"));
     });
     setComposerTextSilently("");
@@ -1344,7 +1345,7 @@ async function sendVoiceRecording(recording: VoiceRecordingPayload): Promise<voi
     composerPanel.value = null;
     await messageListRef.value?.scrollToBottom();
   } catch (error) {
-    const detail = error instanceof Error ? error.message : String(error);
+    const detail = describeSdkError(error);
     message.error(detail || t("toast.voiceSendFailed"));
   } finally {
     sending.value = false;
@@ -1390,7 +1391,7 @@ async function buildFromAction(op: string): Promise<void> {
     // 同其它发送路径：提交后立刻放行输入区，不等 ack。
     void withComposerSendDeadline(sdk.buildFromComposerAction(op, composerText.value))
       .catch((error: unknown) => {
-        const detail = error instanceof Error ? error.message : String(error);
+        const detail = describeSdkError(error);
         message.error(detail || t("toast.sendFailed"));
       });
     setComposerTextSilently("");
@@ -1398,7 +1399,7 @@ async function buildFromAction(op: string): Promise<void> {
     composerPanel.value = null;
     await messageListRef.value?.scrollToBottom();
   } catch (error) {
-    const detail = error instanceof Error ? error.message : String(error);
+    const detail = describeSdkError(error);
     message.error(detail || t("toast.sendFailed"));
   } finally {
     sending.value = false;
@@ -1417,7 +1418,7 @@ async function sendComposerPayload(
     // 期间的点击会被 `sending` 守卫静默丢弃（没有气泡、没有提示）。
     const task = withComposerSendDeadline(operations.sendComposerPayload(payload))
       .catch((error: unknown) => {
-        const detail = error instanceof Error ? error.message : String(error);
+        const detail = describeSdkError(error);
         message.error(detail || t("toast.sendFailed"));
         if (options.rethrow) throw error;
       });
@@ -1430,7 +1431,7 @@ async function sendComposerPayload(
     // rethrow 由调用方决定是否等待失败结果；默认不阻塞输入区
     if (options.rethrow) await task;
   } catch (error) {
-    const detail = error instanceof Error ? error.message : String(error);
+    const detail = describeSdkError(error);
     message.error(detail || t("toast.sendFailed"));
     if (options.rethrow) throw error;
   } finally {
@@ -1461,7 +1462,7 @@ async function resendMessage(clientMsgId: string): Promise<void> {
     // 阻塞输入区只会让用户在等待期间点什么都没反应。
     void withComposerSendDeadline(sdk.resendFailedMessage(clientMsgId))
       .catch((error: unknown) => {
-        const detail = error instanceof Error ? error.message : String(error);
+        const detail = describeSdkError(error);
         message.error(detail || t("toast.resendFailed"));
       });
     await messageListRef.value?.scrollToBottom();
@@ -1504,7 +1505,7 @@ async function sendStickerItem(sticker: ComposerStickerSendPick): Promise<void> 
     url: sticker.url,
     stickerFormat: "webp",
   })).catch((error: unknown) => {
-    const detail = error instanceof Error ? error.message : String(error);
+    const detail = describeSdkError(error);
     message.error(detail || t("toast.stickerSendFailed"));
   });
   await messageListRef.value?.scrollToBottom();
@@ -1593,7 +1594,7 @@ async function syncEmptyChat(): Promise<void> {
     await sdk.syncActiveConversation();
     await messageListRef.value?.scrollToBottom();
   } catch (error) {
-    const detail = error instanceof Error ? error.message : String(error);
+    const detail = describeSdkError(error);
     message.error(detail || t("sync.failedTitle"));
   }
 }
@@ -1602,7 +1603,7 @@ async function loadOlderMessages(): Promise<void> {
   try {
     await sdk.loadOlderMessages();
   } catch (error) {
-    const detail = error instanceof Error ? error.message : String(error);
+    const detail = describeSdkError(error);
     message.error(detail || t("toast.loadHistoryFailed"));
   }
 }

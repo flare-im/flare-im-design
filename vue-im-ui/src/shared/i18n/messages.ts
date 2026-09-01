@@ -8,6 +8,31 @@ export const flareMessages: Record<FlareLocale, FlareMessageTree> = {
   "zh-CN": {
     // Client-side fallback for core social system events whose stored preview token lacks a `fb`
     // string (e.g. group.member_kicked). Keyed by the event key (`ek`), e.g. `systemEvent.group.member_kicked`.
+    // 核心用 FlareError::localized 抛出的是 i18n key（如
+    // sdk.message.card.avatar.invalid_url），由客户端翻译。缺这一族时
+    // resolveFlareMessage 会把裸 key 原样返回给用户。
+    // 按「字段 + 原因」两张表组合，新增字段只要补 field 一条即可。
+    sdkError: {
+      reason: {
+        invalid_url: "{field}不是有效的链接，请填写以 http(s) 开头的地址",
+        required: "请填写{field}",
+        empty: "请填写{field}",
+        too_long: "{field}超出长度限制",
+        invalid: "{field}格式不正确",
+      },
+      // 必须是嵌套的：lookupMessage 按 "." 逐层下钻，
+      // 写成 "card.avatar" 这样的单键永远查不到。
+      field: {
+        unknown: "该字段",
+        card: { avatar: "名片头像", id: "名片 ID" },
+        link_card: { url: "链接地址", thumbnail_url: "链接缩略图" },
+        app_card: { thumbnail_url: "缩略图", url: "卡片链接" },
+        mini_program: { thumbnail_url: "小程序缩略图" },
+        image: { url: "图片地址" },
+        video: { url: "视频地址" },
+        file: { url: "文件地址" },
+      },
+    },
     systemEvent: {
       group: {
         created: "群聊已创建",
@@ -1019,6 +1044,25 @@ export const flareMessages: Record<FlareLocale, FlareMessageTree> = {
     },
   },
   "en-US": {
+    sdkError: {
+      reason: {
+        invalid_url: "{field} is not a valid link. Use an http(s) address.",
+        required: "{field} is required",
+        empty: "{field} is required",
+        too_long: "{field} is too long",
+        invalid: "{field} has an invalid format",
+      },
+      field: {
+        unknown: "this field",
+        card: { avatar: "the contact card avatar", id: "the contact card ID" },
+        link_card: { url: "the link URL", thumbnail_url: "the link thumbnail" },
+        app_card: { thumbnail_url: "the thumbnail", url: "the card link" },
+        mini_program: { thumbnail_url: "the mini program thumbnail" },
+        image: { url: "the image URL" },
+        video: { url: "the video URL" },
+        file: { url: "the file URL" },
+      },
+    },
     systemEvent: {
       group: {
         created: "Group created",
