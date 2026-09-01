@@ -3438,7 +3438,16 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
       failed: false,
       isLocal: true,
       sending: true,
-      uploading: false,
+      // 不要在这里写死 uploading: false。
+      //
+      // 带本地媒体的消息由**核心**置为 uploading 并按字节回填 upload_progress
+      // （send_with_media 在上传前就落库并发总线）。这里一刀切成 false 会把核心的
+      // 上传态盖掉，气泡上的进度覆盖层就永远不显示——线上实测 8MB 图片上传约 1.2s，
+      // 核心存储里确实是 uploading:true，而 UI 全程 uploading:0。
+      //
+      // 保留消息自身的上传态：纯文本本来就没有，媒体则跟随核心。
+      uploading: message.localState?.uploading ?? false,
+      uploadProgress: message.localState?.uploadProgress ?? 0,
     });
   }
 
