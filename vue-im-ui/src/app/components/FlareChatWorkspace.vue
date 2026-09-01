@@ -16,7 +16,6 @@ import {
 import { NButton, NIcon, useMessage } from "naive-ui";
 import { onBeforeRouteLeave, useRouter } from "vue-router";
 import { MessageContentType, type Message, type MessageContent } from "@flare-im/sdk/web";
-import { uploadMediaInput } from "@flare-im/sdk/media";
 import {
   ChatConversationHeader,
   ChatConversationHeaderIdentity,
@@ -1135,6 +1134,34 @@ function handleMediaFileInputChange(event: Event): void {
   })));
 }
 
+/**
+ * 把浏览器里的 Blob/File 转成核心可识别的 `data:` 定位符。
+ *
+ * 核心的 `send_with_media` 会把 `data:` / `blob:` / iOS `ph://` / 小程序临时路径
+ * 一律当作**待上传的本地媒体**：先把消息以 `uploading` 状态落库并发总线（气泡立刻出现），
+ * 再上传并按字节回填进度，最后才真正发送。`https://` 则被视为已就绪的远端资源，
+ * 核心不再上传——那是「应用自己上传后用资源地址发送」的口子。
+ *
+ * 所以应用**不应该**自己调 media.upload_*：那样上传期间没有气泡也没有进度，
+ * 消息要等上传完成才出现。
+ */
+async function blobToCoreDataUrl(
+  blob: Blob,
+  fileName: string,
+  mimeType: string,
+): Promise<string> {
+  const raw = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result ?? ""));
+    reader.onerror = () => reject(reader.error ?? new Error("file read failed"));
+    reader.readAsDataURL(blob);
+  });
+  const comma = raw.indexOf(",");
+  const body = comma >= 0 ? raw.slice(comma + 1) : raw;
+  const type = mimeType || blob.type || "application/octet-stream";
+  return `data:${type};name=${encodeURIComponent(fileName)};size=${blob.size};base64,${body}`;
+}
+
 async function fileToCoreDataUrl(file: File): Promise<string> {
   const raw = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -1186,46 +1213,24 @@ function uploadNumberValue(source: Record<string, unknown>, ...keys: string[]): 
   return 0;
 }
 
-function mediaSourceFromUpload(uploaded: unknown, fallback: Omit<ComposerMediaSource, "sourcePath">): ComposerMediaSource {
-  const record = normalizedUploadRecord(uploaded);
-  const mediaId = uploadStringValue(record, "fileId", "file_id", "mediaId", "media_id", "id", "uuid", "objectId", "object_id", "key");
-  if (!mediaId) throw new Error(t("toast.mediaNoFileId"));
-  const sourceUrl = uploadStringValue(record, "cdnUrl", "cdn_url", "mediaUrl", "media_url", "downloadUrl", "download_url", "accessUrl", "access_url", "tempUrl", "temp_url", "sourceUrl", "source_url", "url");
-  const mimeType = uploadStringValue(record, "mimeType", "mime_type", "contentType", "content_type", "type") || fallback.mimeType;
-  const fileSize = uploadNumberValue(record, "size", "fileSize", "file_size", "bytes", "sizeBytes", "size_bytes") || fallback.fileSize;
-  return {
-    sourcePath: mediaId,
-    ...(sourceUrl ? { sourceUrl } : {}),
-    fileName: uploadStringValue(record, "fileName", "file_name", "name") || fallback.fileName,
-    mimeType,
-    fileSize,
-  };
-}
-
 async function uploadAudioMediaItem(item: MediaComposerPreviewItem): Promise<ComposerMediaSource> {
   const fileName = item.name || item.file?.name || mediaNameFromPath(item.sourcePath ?? "") || `audio-${Date.now()}.webm`;
   const mimeType = item.mimeType || item.file?.type || "audio/webm";
   const fileSize = item.size ?? item.file?.size ?? 0;
-  const fallback = { fileName, mimeType, fileSize };
+  // 与图片/视频/文件保持一致：交出本地定位符，由核心负责上传与进度。
+  // 这里原来先调 media.upload_* 自己传完再发，导致上传期间既没有气泡也没有进度，
+  // 消息要等整段上传结束才出现——这正是要消除的应用侧重复实现。
   if (item.file) {
-    const uploaded = await uploadMediaInput(sdk.client.media, {
-      source: "file",
-      file: item.file,
-      kind: "audio",
+    return {
+      sourcePath: await blobToCoreDataUrl(item.file, fileName, mimeType),
       fileName,
       mimeType,
-    });
-    return mediaSourceFromUpload(uploaded, fallback);
+      fileSize,
+    };
   }
   if (item.sourcePath) {
-    const uploaded = await uploadMediaInput(sdk.client.media, {
-      source: "path",
-      path: item.sourcePath,
-      kind: "audio",
-      fileName,
-      mimeType,
-    });
-    return mediaSourceFromUpload(uploaded, fallback);
+    // 已是本地路径（iOS ph:// / 小程序临时路径 / blob:），核心同样会识别并上传。
+    return { sourcePath: item.sourcePath, fileName, mimeType, fileSize };
   }
   throw new Error("missing selected audio file");
 }
@@ -1300,14 +1305,9 @@ async function sendVoiceRecording(recording: VoiceRecordingPayload): Promise<voi
     const mimeType = recording.mimeType || "audio/mp4";
     const fileName = recording.fileName || `voice-${Date.now()}.m4a`;
     const size = recording.blob.size;
-    const uploaded = await uploadMediaInput(sdk.client.media, {
-      source: "bytes",
-      bytes: await recording.blob.arrayBuffer(),
-      kind: "audio",
-      fileName,
-      mimeType,
-    });
-    const source = mediaSourceFromUpload(uploaded, { fileName, mimeType, fileSize: size });
+    // 同上：交给核心上传，录完立刻出气泡并显示上传进度。
+    const localLocator = await blobToCoreDataUrl(recording.blob, fileName, mimeType);
+    const source = { sourcePath: localLocator, sourceUrl: "", fileName, mimeType, fileSize: size };
     await withComposerSendDeadline(operations.sendComposerPayload(action.buildRequest({
       audioId: source.sourcePath,
       sourcePath: source.sourcePath,

@@ -2122,6 +2122,26 @@ describe("shared message bubble skin", () => {
     expect(bubbleCss).not.toContain("radial-gradient(circle at 35% 28%");
   });
 
+  it("媒体发送不得由应用自己上传：上传/进度/乐观物化归 SDK 核心", () => {
+    const workspace = readFileSync(
+      new URL("../../components/FlareChatWorkspace.vue", import.meta.url),
+      "utf8",
+    );
+
+    // 核心的 send_with_media 把 data: / blob: / ph:// / 小程序临时路径当作待上传的
+    // 本地媒体：先以 uploading 状态落库并发总线（气泡立刻出现），再上传并按字节回填
+    // 进度，最后发送。应用若自己先调 media.upload_*，上传期间既没有气泡也没有进度，
+    // 消息要等整段上传结束才出现——音频曾经就是这么做的。
+    expect(workspace).not.toContain("uploadMediaInput");
+    expect(workspace).not.toContain("client.media.upload");
+    // 交给核心的方式：把 Blob 转成 data: 定位符
+    expect(workspace).toContain("blobToCoreDataUrl");
+
+    // https:// 不被核心视为本地媒体，是「应用自己上传后用资源地址发送」的口子，
+    // 走 message.send_no_oss；这条边界不能反过来被当成默认路径。
+    expect(workspace).not.toContain("send_no_oss");
+  });
+
   it("renders media upload progress as an overlay on the media bubble", () => {
     const bubbleSource = readFileSync(
       new URL(
