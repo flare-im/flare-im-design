@@ -465,7 +465,11 @@ export const flareMessages: Record<FlareLocale, FlareMessageTree> = {
       miniProgram: { label: "小程序", description: "发送小程序名称、图标、标题、描述和入口路径" },
       vote: { label: "投票", description: "创建单选/多选投票，支持截止时间和匿名配置" },
       thread: { label: "话题", description: "从消息引用创建话题或线程入口" },
-      notification: { label: "通知", description: "发送会话内通知消息" },
+      // 服务端把 Notification/Custom 归类为临时消息（TemporaryMessageType）：
+      // needs_persistence=false、needs_seq=false、require_online=true —— 只推给
+      // 当前在线的人，不入历史。说明里必须写清楚，否则用户发完看不到任何痕迹，
+      // 会以为功能坏了。
+      notification: { label: "通知", description: "仅推送给当前在线的人，不进入聊天记录" },
       announcement: { label: "公告", description: "发送会话公告" },
       field: {
         locationName: "位置名称",
@@ -1495,7 +1499,7 @@ export const flareMessages: Record<FlareLocale, FlareMessageTree> = {
       miniProgram: { label: "Mini program", description: "Send a mini-program name, icon, title, description and entry path" },
       vote: { label: "Poll", description: "Create a single/multiple-choice poll with deadline and anonymous options" },
       thread: { label: "Thread", description: "Create a thread or thread entry from a message quote" },
-      notification: { label: "Notification", description: "Send an in-conversation notification" },
+      notification: { label: "Notification", description: "Delivered only to people online now; not kept in history" },
       announcement: { label: "Announcement", description: "Send a conversation announcement" },
       field: {
         locationName: "Location name",
