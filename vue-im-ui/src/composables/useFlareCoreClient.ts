@@ -1671,19 +1671,38 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
     ops: readonly ViewDeltaOperation[],
     keyOf: (item: T) => string,
     decodeItem: (op: ViewDeltaOperation) => T | undefined,
+    /**
+     * 行 key 在消息生命周期中会**变形**：核心的 `timeline_key()` 在
+     * server_id 为空时给 `client:<id>`，一旦有了 server_id 就变成 `server:<id>`
+     * （发送队列的乐观消息还会先把 server_id 置成 client_msg_id）。
+     *
+     * 于是同一条消息在不同阶段的 key 不同，按 key 找不到行时 update op 会被
+     * **整个丢弃**——线上表现就是媒体上传期间核心已置 uploading:true，
+     * 而界面上那一行始终停在旧状态、进度条永远不出现。
+     *
+     * 给一个稳定身份（消息用 clientMsgId）做兜底匹配。
+     */
+    identityOf?: (item: T) => string,
+    identityOfOp?: (op: ViewDeltaOperation) => string,
   ): T[] {
     const next = [...current];
-    const indexByKey = (key: string) => next.findIndex((item) => keyOf(item) === key);
+    const indexByKey = (key: string, op?: ViewDeltaOperation) => {
+      const byKey = next.findIndex((item) => keyOf(item) === key);
+      if (byKey >= 0 || !identityOf || !identityOfOp || !op) return byKey;
+      const identity = identityOfOp(op).trim();
+      if (!identity) return -1;
+      return next.findIndex((item) => identityOf(item).trim() === identity);
+    };
     for (const op of ops) {
       const key = op.key.trim();
       if (!key) continue;
       if (op.op === "remove") {
-        const existingIndex = indexByKey(key);
+        const existingIndex = indexByKey(key, op);
         if (existingIndex >= 0) next.splice(existingIndex, 1);
         continue;
       }
       if (op.op === "move") {
-        const existingIndex = indexByKey(key);
+        const existingIndex = indexByKey(key, op);
         if (existingIndex < 0) continue;
         const [item] = next.splice(existingIndex, 1);
         next.splice(boundedDeltaIndex(op.index, next.length), 0, item);
@@ -1691,7 +1710,7 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
       }
       const item = decodeItem(op);
       if (!item) continue;
-      const existingIndex = indexByKey(key);
+      const existingIndex = indexByKey(key, op);
       if (op.op === "insert") {
         if (existingIndex >= 0) next.splice(existingIndex, 1);
         next.splice(boundedDeltaIndex(op.index, next.length), 0, item);
@@ -1746,6 +1765,11 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
       delta.ops,
       (item) => item.timelineKey.trim(),
       (op) => decodeMessageDeltaItem(op, targetId),
+      (item) => item.clientMsgId,
+      (op) => {
+        const decoded = op.item ? messageFromJson(op.item) : undefined;
+        return decoded?.clientMsgId ?? "";
+      },
     );
     if (delta.hasMore !== undefined) {
       messageHasMore.value = Boolean(delta.hasMore);
