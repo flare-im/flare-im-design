@@ -3591,36 +3591,22 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
     return [...ids];
   }
 
-  function inferMentionUsers(text: string, explicitMentionUsers: readonly string[] = []): string[] {
-    const candidates = new Set(conversationMentionUserIds(activeConversation.value));
-    const mentioned = new Set<string>();
-    const addMention = (value: unknown): void => {
-      if (typeof value !== "string") return;
-      const id = value.trim();
-      if (!id || !candidates.has(id)) return;
-      mentioned.add(id);
-    };
-    for (const userId of explicitMentionUsers) addMention(userId);
-    const matcher = /@([A-Za-z0-9_.-]+)/g;
-    let match: RegExpExecArray | null;
-    while ((match = matcher.exec(text)) !== null) {
-      addMention(match[1]);
-    }
-    return [...mentioned];
-  }
-
+  
   async function sendText(text: string, mentionUsers: readonly string[] = []): Promise<void> {
     if (!activeConversationId.value) {
       throw new Error(translateFlare("error.openConversationBeforeSend"));
     }
     const conversationId = activeConversationId.value;
-    const resolvedMentionUsers = inferMentionUsers(text, mentionUsers);
     try {
+      // 提及由**核心**从正文解析（`@全员` / `@所有人` / `@all` / `@某人`，含中文显示名）。
+      // 这里只把用户显式选中的人透传过去，与核心的解析结果取并集。
+      // 曾经在这一层用 `/(^|\s)@all(\s|$)/i` 判定 @全员：中文打 `@全员` 不生效，
+      // 而其余四端根本不解析 —— 同样的文字在不同端产生不同的消息。
       const draft = await client.messageBuilder.buildText({
         conversationId,
         text,
-        mentionUsers: resolvedMentionUsers,
-        mentionAll: /(^|\s)@all(\s|$)/i.test(text),
+        mentionUsers: [...mentionUsers],
+        mentionAll: false,
       });
       await sendBuiltMessage(draft);
       void clearConversationDraft(conversationId).catch((error) => {

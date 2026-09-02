@@ -87,7 +87,6 @@ export { default as FlareGroupDetail } from "./contacts/FlareGroupDetail.vue";
 export { default as FlareReactionSummary } from "./messages/FlareReactionSummary.vue";
 export { default as FlareReadReceiptSheet } from "./messages/FlareReadReceiptSheet.vue";
 export { default as FlareMessageBatchToolbar } from "./messages/FlareMessageBatchToolbar.vue";
-export { default as FlareMentionPicker } from "./composer/FlareMentionPicker.vue";
 export { default as FlareQuickPhrases } from "./composer/FlareQuickPhrases.vue";
 export { default as FlareSearchResults } from "./general/FlareSearchResults.vue";
 export { default as FlareSkeleton } from "./general/FlareSkeleton.vue";

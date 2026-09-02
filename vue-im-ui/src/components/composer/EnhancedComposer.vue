@@ -360,7 +360,16 @@ function selectMention(candidate: FlareComposerMentionCandidate): void {
   const userId = candidate.userId.trim();
   if (!userId) return;
   mentionMenuOpen.value = false;
-  insertAtCursor(`@${userId} `);
+  // 正文里放**显示名**，不是内部 user id —— 用户不该在自己的消息里看到 `@webtest2`。
+  // 核心的提及解析按 user_id 与显示名（会话名册里的 nickname）双路匹配，
+  // 而这里的 label 正来自同一份名册，所以插显示名一样能解析到人。
+  insertAtCursor(`@${candidate.label?.trim() || userId} `);
+}
+
+/** @全员：插入核心提及解析认得的记号（all / everyone / 全员 / 所有人）。 */
+function selectMentionEveryone(): void {
+  mentionMenuOpen.value = false;
+  insertAtCursor(`@${t("mention.everyone")} `);
 }
 
 function insertAtCursor(text: string): void {
@@ -981,6 +990,17 @@ onBeforeUnmount(() => {
             <template #icon><n-icon :size="22" :component="AtOutline" /></template>
           </n-button>
           <div v-if="mentionMenuOpen && mentionCandidates.length" class="composer-mention-menu" role="listbox">
+            <button
+              type="button"
+              class="composer-mention-option composer-mention-option--everyone"
+              @click="selectMentionEveryone"
+            >
+              <span class="composer-mention-option__avatar">@</span>
+              <span class="composer-mention-option__body">
+                <span class="composer-mention-option__label">{{ t("mention.everyone") }}</span>
+                <span class="composer-mention-option__id">{{ t("mention.everyoneDetail") }}</span>
+              </span>
+            </button>
             <button
               v-for="candidate in mentionCandidates"
               :key="candidate.userId"
