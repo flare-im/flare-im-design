@@ -157,8 +157,21 @@ export interface ConversationFilterState {
 // 与 Vue 渲染(每条 MessageBubble ~4ms)成正比越少 → 打开更流畅(符合"首屏 <200ms"预算)。
 // 更早的历史按需经 load-older(已验证可用)增量补齐,不丢可回溯性。
 const MESSAGE_PAGE_SIZE = 40;
-const INITIAL_HISTORY_REPAIR_SYNC_LIMIT = 200;
-const INITIAL_HISTORY_REPAIR_MAX_PAGES = 8;
+// 单次回填读多少条。这个值决定了**最坏等待**：桥接层已把后台批量读降级到交互
+// 操作之后，但正在执行的那一次不会被打断，所以用户的发送最多要等一次回填读完。
+// 实测 200 条一次约 500ms（上屏 656ms），降到 100 条把这个上界砍半。
+// 总量由 MAX_PAGES 兜底，够撑起滚动即可，更早的历史交给 load-older 懒加载。
+const INITIAL_HISTORY_REPAIR_SYNC_LIMIT = 100;
+// 打开会话时最多同步补几页历史。
+//
+// 原值 8 —— 也就是一次打开最多拉 8 × 200 = 1600 条。WASM 的 invoke 是单槽 FIFO，
+// 这些批量读把链子占满，用户开完会话的**第一次发送**只能排队：实测 Enter→上屏
+// 1299ms，而同一会话第二次发送只要 61ms。乐观上屏本该是零等待的。
+//
+// 补历史要保住的是"时间线短到没法滚动"这一种情况，2 页(400 条)足够撑起滚动，
+// 再往前交给 load-older 懒加载。这不是治本 —— 治本是让发送在 invoke 链上优先于
+// 后台批量读 —— 但在那之前，先别把 1600 条压在用户的第一次发送前面。
+const INITIAL_HISTORY_REPAIR_MAX_PAGES = 2;
 const FULL_HISTORY_BACKFILL_SYNC_LIMIT = 500;
 const FULL_HISTORY_BACKFILL_MAX_PAGES_PER_CALL = 2;
 const FULL_HISTORY_BACKFILL_MAX_ROUNDS = 128;
@@ -1870,11 +1883,24 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
     return { count: activeMessages.length, minSeq };
   }
 
+  /**
+   * 只在打开后**确实不够用**时才回填，不能只看「没加载到第 1 条」。
+   *
+   * 原条件是 `minSeq > 1`，对任何有历史的会话都恒成立：2 万条消息的会话每次打开
+   * 都会同步拉最多 8 页 × 200 = 1600 条。这些批量读占满 WASM 的单槽 invoke 链，
+   * 用户开完会话的**第一次发送**只能排队 —— 实测 Enter→上屏 1299ms，
+   * 而同一会话里的第二次发送只要 61ms。乐观上屏本该是零等待的。
+   *
+   * 回填要保住的是另一件事：本地库太空时打开只拿到零星几条，时间线短到没法滚动，
+   * 服务端的历史回填能力就一次都不会被调用。所以判据改成「这一页都没装满」——
+   * 那才是真的不够用；装满了就交给用户滚动时的懒加载。
+   */
   function shouldRepairInitialTimelineHistory(conversationId: string): boolean {
     const targetId = conversationId.trim();
     if (!targetId || initialHistoryRepairTried.has(targetId)) return false;
     const stats = activeTimelineSeqStats(targetId);
     if (stats.count === 0) return false;
+    if (stats.count >= MESSAGE_PAGE_SIZE) return false;
     return Number.isFinite(stats.minSeq) && stats.minSeq > 1;
   }
 
