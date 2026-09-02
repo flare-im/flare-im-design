@@ -157,21 +157,23 @@ export interface ConversationFilterState {
 // 与 Vue 渲染(每条 MessageBubble ~4ms)成正比越少 → 打开更流畅(符合"首屏 <200ms"预算)。
 // 更早的历史按需经 load-older(已验证可用)增量补齐,不丢可回溯性。
 const MESSAGE_PAGE_SIZE = 40;
-// 单次回填读多少条。这个值决定了**最坏等待**：桥接层已把后台批量读降级到交互
-// 操作之后，但正在执行的那一次不会被打断，所以用户的发送最多要等一次回填读完。
-// 实测 200 条一次约 500ms（上屏 656ms），降到 100 条把这个上界砍半。
-// 总量由 MAX_PAGES 兜底，够撑起滚动即可，更早的历史交给 load-older 懒加载。
-const INITIAL_HISTORY_REPAIR_SYNC_LIMIT = 100;
-// 打开会话时最多同步补几页历史。
+// 单次回填读多少条。这个值决定了用户发送的**最坏等待**：桥接层已把后台读降级到
+// 交互操作之后，但正在执行的那一次不会被打断，所以发送最多要等一次回填读完。
 //
-// 原值 8 —— 也就是一次打开最多拉 8 × 200 = 1600 条。WASM 的 invoke 是单槽 FIFO，
-// 这些批量读把链子占满，用户开完会话的**第一次发送**只能排队：实测 Enter→上屏
-// 1299ms，而同一会话第二次发送只要 61ms。乐观上屏本该是零等待的。
+// 实测单次耗时与条数大致成正比（~96 条约 600ms，即 ~6ms/条：IndexedDB 读 +
+// protobuf 解码 + 视图装配）。所以把**单次**切小、页数相应加大，总量不变而
+// 最坏等待成比例下降 —— 200→100 时上屏 635→362ms（同期还降级了 mark_read）。
+const INITIAL_HISTORY_REPAIR_SYNC_LIMIT = 50;
+// 打开会话时最多同步补几页历史。总量 = 页数 × 单页，目标 200 条左右：
+// 够撑起滚动，再往前交给 load-older 懒加载。
 //
-// 补历史要保住的是"时间线短到没法滚动"这一种情况，2 页(400 条)足够撑起滚动，
-// 再往前交给 load-older 懒加载。这不是治本 —— 治本是让发送在 invoke 链上优先于
-// 后台批量读 —— 但在那之前，先别把 1600 条压在用户的第一次发送前面。
-const INITIAL_HISTORY_REPAIR_MAX_PAGES = 2;
+// 原值 8 页 × 200 = 最多 1600 条。WASM 的 invoke 是单槽 FIFO，这些批量读把链子
+// 占满，用户开完会话的第一次发送只能排队：实测 Enter→上屏 1299ms，
+// 而链子空闲时同样的发送只要 52ms。
+//
+// 现在拆成「页数多、单页小」：总量不变，但**单次**耗时短，而单次耗时正是
+// 用户发送的最坏等待（正在执行的调用不会被打断）。
+const INITIAL_HISTORY_REPAIR_MAX_PAGES = 4;
 const FULL_HISTORY_BACKFILL_SYNC_LIMIT = 500;
 const FULL_HISTORY_BACKFILL_MAX_PAGES_PER_CALL = 2;
 const FULL_HISTORY_BACKFILL_MAX_ROUNDS = 128;

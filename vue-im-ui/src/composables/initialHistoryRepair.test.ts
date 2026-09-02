@@ -45,10 +45,10 @@ describe("打开会话时的历史回填", () => {
     // 把 WASM 的单槽 invoke 链占满，用户开完会话的第一次发送要等 1.3 秒。
     const pages = num("INITIAL_HISTORY_REPAIR_MAX_PAGES");
     const limit = num("INITIAL_HISTORY_REPAIR_SYNC_LIMIT");
-    expect(pages).toBeLessThanOrEqual(2);
-    // 单页上限同时是用户发送的**最坏等待**：桥接层已把后台批量读降级，
-    // 但正在执行的那一次不会被打断。200 条约 500ms，100 条把上界砍半。
-    expect(limit).toBeLessThanOrEqual(100);
+    // 总量 200 条左右：够撑起滚动，更早的交给 load-older 懒加载。
     expect(pages * limit).toBeLessThanOrEqual(200);
+    // 单页上限是用户发送的**最坏等待**（正在执行的调用不会被打断）。
+    // 实测 ~6ms/条，50 条约 300ms —— 别再往上调。
+    expect(limit).toBeLessThanOrEqual(50);
   });
 });
