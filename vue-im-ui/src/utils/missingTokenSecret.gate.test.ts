@@ -40,4 +40,14 @@ describe("缺签名密钥时的登录体验", () => {
   it("包装页把 tokenSecretMissing 传给 advanced-open", () => {
     expect(read("../app/components/FlareLoginScreen.vue")).toContain(`:advanced-open="sdk.tokenSecretMissing.value"`);
   });
+
+  it("token 被网关拒绝时，登录错误换成面向用户的文案（不是 connect failed primary=…）", () => {
+    const ts = read("../composables/useFlareCoreClient.ts");
+    expect(ts).toContain("function isTokenRejectedError(error: unknown): boolean");
+    expect(ts).toContain("/AUTHENTICATION_FAILED|TOKEN_REJECTED/");
+    expect(ts).toContain('throw new Error(translateFlare("login.tokenRejected"), { cause: error });');
+    const m = read("../shared/i18n/messages.ts");
+    expect(m).toContain('tokenRejected: "接入 Token 被服务端拒绝');
+    expect(m).toContain('tokenRejected: "The server rejected the access token');
+  });
 });

@@ -2591,6 +2591,11 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
     return reportSdkError(error, operation);
   }
 
+  /** 传输层把「CONNECT_ACK 之前被服务端断开」升级成了 AUTHENTICATION_FAILED，这里识别它。 */
+  function isTokenRejectedError(error: unknown): boolean {
+    return /AUTHENTICATION_FAILED|TOKEN_REJECTED/.test(errorMessage(error));
+  }
+
   function isRuntimeUnavailableError(error: unknown): boolean {
     if (!error || typeof error !== "object") {
       return false;
@@ -2936,6 +2941,11 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
       const detail = errorMessage(error);
       errorPayload(error, "sdk.login");
       log("login_failed", detail);
+      if (isTokenRejectedError(error)) {
+        // 网关拒掉了本地签发的 token：密钥/签发者与服务端不一致或已过期。
+        // 原始错误是一长串 connect failed primary=... 的传输层描述，对用户没有意义。
+        throw new Error(translateFlare("login.tokenRejected"), { cause: error });
+      }
       throw error;
     } finally {
       busy.value = false;

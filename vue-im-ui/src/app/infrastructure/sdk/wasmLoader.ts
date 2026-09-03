@@ -16,11 +16,22 @@ export type WasmLoaderResult = {
 const WASM_BINDING_PUBLIC_BASE = "flare-core-wasm";
 const WASM_BINDING_SOURCE = "flare-im-core-sdk/bindings/wasm/pkg";
 
+/**
+ * WASM 产物的构建版本（由 @flare-im/sdk 的 vite 插件按 pkg 内容哈希注入）。
+ *
+ * 两个文件都不带内容哈希名，生产 nginx 又给 *.wasm 打了一年 immutable：
+ * 发新 WASM 后浏览器继续用旧 .wasm 配新胶水 JS，表现为
+ * "wasm.__wasm_bindgen_func_elem_NNNN is not a function"（生产实测）。
+ * 把版本挂进查询串，缓存键随内容变，旧缓存自然失效。
+ */
+const WASM_BUILD_ID: string = String(import.meta.env.VITE_FLARE_WASM_BUILD_ID ?? "").trim();
+
 export function resolveWasmBindingAssetUrl(fileName: string): string {
   const baseUrl = import.meta.env.BASE_URL.endsWith("/")
     ? import.meta.env.BASE_URL
     : `${import.meta.env.BASE_URL}/`;
-  return `${baseUrl}${WASM_BINDING_PUBLIC_BASE}/${fileName}`;
+  const url = `${baseUrl}${WASM_BINDING_PUBLIC_BASE}/${fileName}`;
+  return WASM_BUILD_ID ? `${url}?v=${encodeURIComponent(WASM_BUILD_ID)}` : url;
 }
 
 function createWasmLoadError(error: unknown, moduleUrl: string, wasmUrl: string): Error {

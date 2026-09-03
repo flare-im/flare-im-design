@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { ChatbubbleOutline, ChevronDownOutline, InformationCircleOutline, LogInOutline, PersonOutline } from "../../shared/icon-glyphs";
+import { ChatbubbleOutline, ChevronDownOutline, InformationCircleOutline, LockClosedOutline, LogInOutline, PersonOutline } from "../../shared/icon-glyphs";
 import { NButton, NCollapseTransition, NForm, NFormItem, NIcon, NInput, NSelect } from "naive-ui";
 import { useViewport } from "../../composables/useViewport";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
@@ -137,6 +137,25 @@ function updateTransportMode(value: string | number | boolean | null): void {
             <span>{{ t("login.userIdHint") }}</span>
           </div>
 
+          <!-- 签名密钥放主表单：只输 user id + 密钥就能登录，不再藏在高级区里。 -->
+          <n-form-item :label="t('login.tokenSecretLabel')">
+            <n-input
+              class="auth-user-input"
+              :value="tokenSecret"
+              :round="!isDesktop"
+              size="large"
+              type="password"
+              show-password-on="click"
+              autocomplete="off"
+              :placeholder="t('login.tokenSecretHint')"
+              @update:value="emit('update:tokenSecret', $event)"
+            >
+              <template #prefix>
+                <n-icon :component="LockClosedOutline" />
+              </template>
+            </n-input>
+          </n-form-item>
+
           <n-form-item v-if="showTransportSelector" class="auth-transport-field" :label="t('login.transport.label')">
             <div class="auth-transport-control">
               <n-select
@@ -191,16 +210,6 @@ function updateTransportMode(value: string | number | boolean | null): void {
                   show-password-on="click"
                   autocomplete="current-password"
                   @update:value="emit('update:token', $event)"
-                />
-              </n-form-item>
-              <n-form-item :label="t('login.tokenSecretLabel')">
-                <n-input
-                  :value="tokenSecret"
-                  type="password"
-                  show-password-on="click"
-                  autocomplete="off"
-                  :placeholder="t('login.tokenSecretHint')"
-                  @update:value="emit('update:tokenSecret', $event)"
                 />
               </n-form-item>
               <n-button secondary block @click="emit('generate-token')">{{ t("login.generateToken") }}</n-button>
