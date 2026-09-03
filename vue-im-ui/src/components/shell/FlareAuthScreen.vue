@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { ChatbubbleOutline, ChevronDownOutline, InformationCircleOutline, LogInOutline, PersonOutline } from "../../shared/icon-glyphs";
 import { NButton, NCollapseTransition, NForm, NFormItem, NIcon, NInput, NSelect } from "naive-ui";
 import { useViewport } from "../../composables/useViewport";
@@ -20,6 +20,9 @@ const props = withDefaults(defineProps<{
   dataUrl: string;
   tenantId: string;
   showTransportSelector?: boolean;
+  /** 为 true 时展开「服务器地址（可选）」区——登录因缺签名密钥失败时用，
+   *  把密钥 / token 输入框直接露给用户，而不是让他去猜。 */
+  advancedOpen?: boolean;
   loading?: boolean;
 }>(), {
   token: "",
@@ -28,6 +31,7 @@ const props = withDefaults(defineProps<{
   quicUrl: "",
   tlsCaCertPath: "",
   showTransportSelector: false,
+  advancedOpen: false,
 });
 
 const emit = defineEmits<{
@@ -46,6 +50,13 @@ const emit = defineEmits<{
 }>();
 
 const serverOpen = ref(false);
+watch(
+  () => props.advancedOpen,
+  (open) => {
+    if (open) serverOpen.value = true;
+  },
+  { immediate: true },
+);
 const transportSelectOpen = ref(false);
 const { isDesktop } = useViewport();
 const { t } = useFlareI18n();

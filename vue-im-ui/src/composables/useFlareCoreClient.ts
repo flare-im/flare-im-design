@@ -804,6 +804,14 @@ function contentTypeParam(source: Record<string, unknown>): MessageContentType {
   return raw as MessageContentType;
 }
 
+/** 缺签名密钥。单独成类是为了让登录页能识别它并自动展开高级区。 */
+export class MissingTokenSecretError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "MissingTokenSecretError";
+  }
+}
+
 function devCoreTokenRequest(
   env: Record<string, string | undefined>,
   userId: string,
@@ -812,9 +820,9 @@ function devCoreTokenRequest(
 ) {
   const secret = runtimeSecret.trim() || env.VITE_FLARE_TOKEN_SECRET?.trim();
   if (!secret) {
-    throw new Error(
-      "missing token secret: fill in the token secret on the login screen, or set VITE_FLARE_TOKEN_SECRET in .env.local",
-    );
+    // 面向用户的提示，不再提 .env.local：生产页面上的用户没有 Vite 项目可改，
+    // 他能做的是展开高级区填密钥、或粘贴一枚签好的 token。
+    throw new MissingTokenSecretError(translateFlare("login.missingTokenSecret"));
   }
   return {
     userId,
@@ -3284,12 +3292,21 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
       upsertUserProfiles;
   }
 
+  /** 上一次登录因缺签名密钥失败——登录页据此自动展开高级区，把输入框露出来。 */
+  const tokenSecretMissing = ref(false);
+
   async function generateToken(): Promise<void> {
     const identity = applyLoginIdentity();
     // 运行时填的密钥优先；留空才回退到构建期 env。
-    const response = await client.generateCoreToken(
-      devCoreTokenRequest(env, identity.userId, identity.tenantId, form.tokenSecret),
-    );
+    let request;
+    try {
+      request = devCoreTokenRequest(env, identity.userId, identity.tenantId, form.tokenSecret);
+    } catch (error) {
+      tokenSecretMissing.value = error instanceof MissingTokenSecretError;
+      throw error;
+    }
+    tokenSecretMissing.value = false;
+    const response = await client.generateCoreToken(request);
     const token = String(response?.token ?? "").trim();
     if (!token) {
       throw new Error("generateCoreToken returned an empty token");
@@ -4415,6 +4432,7 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
     hasSavedSession,
     syncHomeBeforeEnter,
     generateToken,
+    tokenSecretMissing,
     upsertUserProfiles,
     logout,
     selectConversation,
