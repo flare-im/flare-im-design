@@ -12,6 +12,7 @@ import type { MessageLike } from "../shared/contracts/messageRow";
 import { messageStateToNumber } from "./messageState";
 import { renderMessageMenuIcon } from "./messageMenuIcons";
 import { hasDownloadableMessageMedia } from "./messageMedia";
+import { messageActionAvailability } from "./messageActionAvailability";
 import { translateFlare } from "../shared/i18n/messages";
 
 export type MessageMenuSheetIcon =
@@ -91,12 +92,6 @@ function isPinned(message: MessageLike): boolean {
   return message.attributes?.pinned === "true";
 }
 
-function canEditMessage(message: MessageLike, isSelf: boolean): boolean {
-  if (!isSelf || message.isRecalled) return false;
-  if (EDITABLE_TYPES.has(message.messageType)) return true;
-  const ct = messageContentTypeForUi(message.content?.contentType ?? "text");
-  return ct === "text" || ct === "rich_text";
-}
 
 function iconForKey(key: string): MessageMenuSheetIcon | undefined {
   const map: Record<string, MessageMenuSheetIcon> = {
@@ -129,7 +124,9 @@ export function buildMessageMenuContext(
     currentUserId,
     isSelf,
     isRecalled: message.isRecalled,
-    canEdit: canEditMessage(message, isSelf),
+    // canEdit 保留在 context 里只为兼容宿主的 resolveVisible 回调签名，
+    // 判定本身已收敛到 messageActionAvailability。
+    canEdit: false,
     isPinned: isPinned(message),
     isFailed: messageStateToNumber(message) === 5,
     hasDownloadableMedia: hasDownloadableMessageMedia(message),
@@ -173,40 +170,36 @@ export function buildMessageContextSheetModel(
     });
   };
 
-  if (!ctx.isRecalled && enabled(merged, "reply", ctx)) {
-    pushQuick("reply");
-  }
-  if (!ctx.isRecalled && enabled(merged, "forward", ctx)) {
-    pushQuick("forward");
-  }
-  if (ctx.isSelf && !ctx.isRecalled && enabled(merged, "recall", ctx)) {
-    pushQuick("recall", true);
-  }
-  if (ctx.isSelf && ctx.isFailed && enabled(merged, "resend", ctx)) {
-    pushQuick("resend");
-  }
+  // 可用性统一由 messageActionAvailability 判定（真源是核心 domain::message_actions，
+  // 由 sdk-spec/message-action-vectors.json 逐位钉住）。
+  // menuConfig 仍可**关掉**某个动作（宿主定制），但不能打开规则不允许的动作。
+  const can = messageActionAvailability(message, {
+    currentUserId,
+    isConnected: true,
+    isPending: messageStateToNumber(message) === 1,
+    isPinned: ctx.isPinned,
+    isFailed: ctx.isFailed,
+    multiSelectMode: false,
+  });
 
-  if (!ctx.isRecalled) {
-    if (enabled(merged, "multiSelect", ctx)) pushList("multi-select");
-    if (enabled(merged, "mark", ctx)) pushList("mark");
-    if (!ctx.isPinned && enabled(merged, "pin", ctx)) pushList("pin");
-    if (!ctx.isPinned && enabled(merged, "pinSelf", ctx)) pushList("pinSelf");
-    if (ctx.isPinned && enabled(merged, "unpin", ctx)) pushList("unpin");
-    if (enabled(merged, "copy", ctx)) pushList("copy");
-    if (enabled(merged, "preview", ctx)) pushList("preview");
-    const mediaAction = ctx.hasDownloadableMedia
-      ? merged.resolveMediaAction?.(ctx)
-      : null;
-    if (mediaAction && enabled(merged, mediaAction, ctx)) {
-      pushList(mediaAction);
-    }
-  }
-  if (ctx.canEdit && enabled(merged, "edit", ctx)) {
-    pushList("edit");
-  }
-  if (!ctx.isRecalled && enabled(merged, "delete", ctx)) {
-    pushList("delete", true);
-  }
+  if (can.canReply && enabled(merged, "reply", ctx)) pushQuick("reply");
+  if (can.canForward && enabled(merged, "forward", ctx)) pushQuick("forward");
+  if (can.canRecall && enabled(merged, "recall", ctx)) pushQuick("recall", true);
+  if (can.canResend && enabled(merged, "resend", ctx)) pushQuick("resend");
+
+  if (can.canMultiSelect && enabled(merged, "multiSelect", ctx)) pushList("multi-select");
+  if (can.canDelete && enabled(merged, "mark", ctx)) pushList("mark");
+  if (can.canPin && enabled(merged, "pin", ctx)) pushList("pin");
+  if (can.canPin && enabled(merged, "pinSelf", ctx)) pushList("pinSelf");
+  if (can.canUnpin && enabled(merged, "unpin", ctx)) pushList("unpin");
+  if (can.canCopy && enabled(merged, "copy", ctx)) pushList("copy");
+  if (can.canMultiSelect && enabled(merged, "preview", ctx)) pushList("preview");
+  const mediaAction = can.canSave && ctx.hasDownloadableMedia
+    ? merged.resolveMediaAction?.(ctx)
+    : null;
+  if (mediaAction && enabled(merged, mediaAction, ctx)) pushList(mediaAction);
+  if (can.canEdit && enabled(merged, "edit", ctx)) pushList("edit");
+  if (can.canDelete && enabled(merged, "delete", ctx)) pushList("delete", true);
 
   if (quickActions.length === 0 && listActions.length === 0) {
     listActions.push({
