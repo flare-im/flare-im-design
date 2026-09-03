@@ -9,7 +9,7 @@ plugins {
 
 // Maven coordinates — consumers reference `com.flare.im:im-ui-compose:<version>` below.
 group = "com.flare.im"
-version = "1.0.9"
+version = "1.0.10"
 
 android {
     namespace = "com.flare.im.ui"

@@ -30,6 +30,7 @@ import androidx.compose.material.icons.outlined.VolumeUp
 import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -116,6 +117,11 @@ fun TextMessage(
     self: Boolean = false,
     selectable: Boolean = false,
     onLinkTap: ((String) -> Unit)? = null,
+    /** 气泡内尾部插槽，贴着正文末尾。
+     *
+     *  给送达状态（单勾/双勾）用：状态属于气泡内部。叠加到气泡上也能放对位置，
+     *  但正文一长就会压住末行文字；插槽会为它**留出空间**。 */
+    trailing: (@Composable () -> Unit)? = null,
 ) {
     val colors = flareColors()
     val dark = isSystemInDarkTheme()
@@ -130,31 +136,38 @@ fun TextMessage(
             lerp(colors.bubbleSelf, Color.Black, 0.16f),
         ),
     )
-    val content: @Composable () -> Unit = {
-        Text(
-            annotated,
-            color = if (self) Color.White else colors.textPrimary,
-            fontSize = FlareSizes.fontSizeXl.value.sp,
-            lineHeight = (FlareSizes.fontSizeXl.value * 1.45f).sp,
-            modifier = Modifier
-                .then(
-                    if (self) {
-                        Modifier
-                            .shadow(
-                                if (dark) 14.dp else 8.dp,
-                                RoundedCornerShape(16.dp),
-                                clip = false,
-                                ambientColor = colors.bubbleSelf,
-                                spotColor = colors.bubbleSelf,
-                            )
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(selfBrush)
-                    } else {
-                        Modifier.bubbleCard(colors)
-                    },
-                )
-                .padding(horizontal = 14.dp, vertical = 9.dp),
+    val bubble = Modifier
+        .then(
+            if (self) {
+                Modifier
+                    .shadow(
+                        if (dark) 14.dp else 8.dp,
+                        RoundedCornerShape(16.dp),
+                        clip = false,
+                        ambientColor = colors.bubbleSelf,
+                        spotColor = colors.bubbleSelf,
+                    )
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(selfBrush)
+            } else {
+                Modifier.bubbleCard(colors)
+            },
         )
+        .padding(horizontal = 14.dp, vertical = 9.dp)
+    val content: @Composable () -> Unit = {
+        Row(modifier = bubble, verticalAlignment = Alignment.Bottom) {
+            Text(
+                annotated,
+                color = if (self) Color.White else colors.textPrimary,
+                fontSize = FlareSizes.fontSizeXl.value.sp,
+                lineHeight = (FlareSizes.fontSizeXl.value * 1.45f).sp,
+                modifier = Modifier.weight(1f, fill = false),
+            )
+            if (trailing != null) {
+                Spacer(Modifier.width(6.dp))
+                trailing()
+            }
+        }
     }
     if (selectable) SelectionContainer { content() } else content()
 }
