@@ -46,6 +46,9 @@ import { withTimeout } from "../utils/asyncTimeout";
 export interface LoginFormState {
   userId: string;
   token: string;
+  /** 运行时填入的签名密钥。做成输入而不是只读构建期 env：打进产物等于让任何
+   *  拿到它的人伪造任意用户身份；填在这里只落在本机。留空回退到 VITE_FLARE_TOKEN_SECRET。 */
+  tokenSecret: string;
   transportMode: LoginTransportMode;
   wsUrl: string;
   quicUrl: string;
@@ -392,6 +395,7 @@ function makeFormDefaults(
   return {
     userId: readLoginEnvText(env.VITE_FLARE_USER_ID, ""),
     token: "",
+    tokenSecret: readLoginEnvText(env.VITE_FLARE_TOKEN_SECRET, ""),
     transportMode: nativeTransportSelectionEnabled
       ? normalizeLoginTransportMode(env.VITE_FLARE_TRANSPORT_MODE ?? env.VITE_FLARE_TRANSPORT_POLICY)
       : "websocket",
@@ -413,6 +417,8 @@ export interface SavedSessionProfile {
   userId: string;
   tenantId: string;
   token: string;
+  /** 运行时填入的签名密钥；不存的话每次刷新都得重填。 */
+  tokenSecret?: string;
   transportMode: LoginTransportMode;
   wsUrl: string;
   quicUrl: string;
@@ -802,10 +808,13 @@ function devCoreTokenRequest(
   env: Record<string, string | undefined>,
   userId: string,
   tenantId: string,
+  runtimeSecret = "",
 ) {
-  const secret = env.VITE_FLARE_TOKEN_SECRET?.trim();
+  const secret = runtimeSecret.trim() || env.VITE_FLARE_TOKEN_SECRET?.trim();
   if (!secret) {
-    throw new Error("missing token secret: set VITE_FLARE_TOKEN_SECRET in the current Vite app .env.local");
+    throw new Error(
+      "missing token secret: fill in the token secret on the login screen, or set VITE_FLARE_TOKEN_SECRET in .env.local",
+    );
   }
   return {
     userId,
@@ -2930,6 +2939,7 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
       userId: identity.userId,
       tenantId: identity.tenantId,
       token,
+      tokenSecret: form.tokenSecret,
       transportMode: normalizeLoginTransportMode(form.transportMode),
       wsUrl: form.wsUrl,
       quicUrl: form.quicUrl,
@@ -2944,6 +2954,7 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
     form.userId = profile.userId;
     form.tenantId = profile.tenantId;
     form.token = profile.token;
+    if (profile.tokenSecret) form.tokenSecret = profile.tokenSecret;
     form.transportMode = profile.transportMode;
     form.wsUrl = profile.wsUrl;
     if (profile.quicUrl) form.quicUrl = profile.quicUrl;
@@ -3275,8 +3286,9 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
 
   async function generateToken(): Promise<void> {
     const identity = applyLoginIdentity();
+    // 运行时填的密钥优先；留空才回退到构建期 env。
     const response = await client.generateCoreToken(
-      devCoreTokenRequest(env, identity.userId, identity.tenantId),
+      devCoreTokenRequest(env, identity.userId, identity.tenantId, form.tokenSecret),
     );
     const token = String(response?.token ?? "").trim();
     if (!token) {

@@ -10,6 +10,8 @@ type AuthTransportMode = "websocket" | "quic" | "race";
 const props = withDefaults(defineProps<{
   userId: string;
   token?: string;
+  /** 运行时填入的签名密钥；留空回退到构建配置。只落在本机，不进产物。 */
+  tokenSecret?: string;
   transportMode?: AuthTransportMode;
   wsUrl: string;
   quicUrl?: string;
@@ -21,6 +23,7 @@ const props = withDefaults(defineProps<{
   loading?: boolean;
 }>(), {
   token: "",
+  tokenSecret: "",
   transportMode: "websocket",
   quicUrl: "",
   tlsCaCertPath: "",
@@ -30,6 +33,7 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   (event: "update:userId", value: string): void;
   (event: "update:token", value: string): void;
+  (event: "update:tokenSecret", value: string): void;
   (event: "update:transportMode", value: AuthTransportMode): void;
   (event: "update:wsUrl", value: string): void;
   (event: "update:quicUrl", value: string): void;
@@ -176,6 +180,16 @@ function updateTransportMode(value: string | number | boolean | null): void {
                   show-password-on="click"
                   autocomplete="current-password"
                   @update:value="emit('update:token', $event)"
+                />
+              </n-form-item>
+              <n-form-item :label="t('login.tokenSecretLabel')">
+                <n-input
+                  :value="tokenSecret"
+                  type="password"
+                  show-password-on="click"
+                  autocomplete="off"
+                  :placeholder="t('login.tokenSecretHint')"
+                  @update:value="emit('update:tokenSecret', $event)"
                 />
               </n-form-item>
               <n-button secondary block @click="emit('generate-token')">{{ t("login.generateToken") }}</n-button>
