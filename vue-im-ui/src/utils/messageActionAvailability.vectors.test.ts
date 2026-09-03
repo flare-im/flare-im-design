@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   messageActionAvailability,
+  messageDeliveryState,
   type MessageActionAvailability,
 } from "./messageActionAvailability";
 import type { MessageLike } from "../shared/contracts/messageRow";
@@ -27,8 +28,10 @@ type Vector = {
     isConnected: boolean;
     multiSelectMode: boolean;
     isFailed: boolean;
+    isRead: boolean;
   };
   expected: MessageActionAvailability;
+  deliveryState: string;
 };
 
 const vectorsPath = fileURLToPath(
@@ -46,6 +49,7 @@ function messageFrom(input: Vector["input"]): MessageLike {
     clientMsgId: "c1",
     conversationId: "conv",
     senderId: input.isSelf ? "me" : "other",
+    isRead: input.isRead,
     messageType: input.messageType,
     status: input.status,
     content: input.hasText
@@ -70,6 +74,15 @@ describe("动作可用性与核心一致", () => {
         multiSelectMode: vector.input.multiSelectMode,
       });
       expect(actual).toEqual(vector.expected);
+
+      // 送达状态同样对齐核心
+      expect(
+        messageDeliveryState(messageFrom(vector.input), {
+          currentUserId: "me",
+          isPending: vector.input.isPending,
+          isFailed: vector.input.isFailed,
+        }),
+      ).toBe(vector.deliveryState);
     });
   }
 });

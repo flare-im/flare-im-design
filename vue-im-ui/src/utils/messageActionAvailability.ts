@@ -84,3 +84,27 @@ export function messageActionAvailability(
     canResend: isFailed && selfSent && ctx.isConnected,
   };
 }
+
+/** 送达状态。真源同样是核心 `domain::message_delivery_state`。 */
+export type MessageDeliveryState = "none" | "sending" | "failed" | "delivered" | "read";
+
+/**
+ * 自己发出的消息该显示什么送达状态。
+ *
+ * 视觉约定：单勾=已送达（SENT/PERSISTED 不区分）、双勾=已读；
+ * 撤回/删除由占位气泡接管；对方发来的消息不显示。
+ */
+export function messageDeliveryState(
+  message: MessageLike,
+  ctx: Pick<MessageActionContext, "currentUserId" | "isPending" | "isFailed">,
+): MessageDeliveryState {
+  const selfSent = ctx.currentUserId !== "" && message.senderId === ctx.currentUserId;
+  if (!selfSent) return "none";
+  const status = message.status ?? 0;
+  if (status === STATUS_RECALLED || status === STATUS_DELETED || message.isRecalled === true) {
+    return "none";
+  }
+  if (ctx.isFailed || status === STATUS_FAILED) return "failed";
+  if (ctx.isPending) return "sending";
+  return message.isRead === true ? "read" : "delivered";
+}
