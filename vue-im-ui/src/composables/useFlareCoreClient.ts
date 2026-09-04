@@ -2834,10 +2834,8 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
       const tokenStartedAt = nowMs();
       const identity = applyLoginIdentity();
       logDuration("login_token_ready", tokenStartedAt);
+      // 留空 = SDK 托管（核心向网关签发）；填了 = 应用托管（原样使用）。
       const token = String(form.token ?? "").trim();
-      if (!token) {
-        throw new Error("token is required for initAndLogin");
-      }
       const coreLoginStartedAt = nowMs();
       const selectedTransportMode = normalizeLoginTransportMode(form.transportMode);
       const loginRequest = (transportMode: LoginTransportMode) => ({

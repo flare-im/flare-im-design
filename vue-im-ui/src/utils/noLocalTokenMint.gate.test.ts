@@ -12,7 +12,7 @@ const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.met
 describe("kit 不本地签发 token", () => {
   it("组合式没有签名密钥、没有 generateCoreToken", () => {
     const ts = read("../composables/useFlareCoreClient.ts");
-    expect(ts).not.toMatch(/generateCoreToken|VITE_FLARE_TOKEN_SECRET|tokenSecret|MissingTokenSecretError/);
+    expect(ts).not.toMatch(/generateCoreToken|VITE_FLARE_TOKEN_SECRET|tokenSecret|MissingTokenSecretError|token is required for initAndLogin/);
   });
 
   it("没有 token 时把网关地址交给核心（SDK 托管），有 token 时原样传（应用托管）", () => {
