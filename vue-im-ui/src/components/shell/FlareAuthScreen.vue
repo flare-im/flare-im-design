@@ -11,7 +11,6 @@ const props = withDefaults(defineProps<{
   userId: string;
   token?: string;
   /** 运行时填入的签名密钥；留空回退到构建配置。只落在本机，不进产物。 */
-  tokenSecret?: string;
   transportMode?: AuthTransportMode;
   wsUrl: string;
   quicUrl?: string;
@@ -26,7 +25,6 @@ const props = withDefaults(defineProps<{
   loading?: boolean;
 }>(), {
   token: "",
-  tokenSecret: "",
   transportMode: "websocket",
   quicUrl: "",
   tlsCaCertPath: "",
@@ -37,7 +35,6 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   (event: "update:userId", value: string): void;
   (event: "update:token", value: string): void;
-  (event: "update:tokenSecret", value: string): void;
   (event: "update:transportMode", value: AuthTransportMode): void;
   (event: "update:wsUrl", value: string): void;
   (event: "update:quicUrl", value: string): void;
@@ -45,7 +42,6 @@ const emit = defineEmits<{
   (event: "update:httpUrl", value: string): void;
   (event: "update:dataUrl", value: string): void;
   (event: "update:tenantId", value: string): void;
-  (event: "generate-token"): void;
   (event: "login"): void;
 }>();
 
@@ -137,24 +133,6 @@ function updateTransportMode(value: string | number | boolean | null): void {
             <span>{{ t("login.userIdHint") }}</span>
           </div>
 
-          <!-- 签名密钥放主表单：只输 user id + 密钥就能登录，不再藏在高级区里。 -->
-          <n-form-item :label="t('login.tokenSecretLabel')">
-            <n-input
-              class="auth-user-input"
-              :value="tokenSecret"
-              :round="!isDesktop"
-              size="large"
-              type="password"
-              show-password-on="click"
-              autocomplete="off"
-              :placeholder="t('login.tokenSecretHint')"
-              @update:value="emit('update:tokenSecret', $event)"
-            >
-              <template #prefix>
-                <n-icon :component="LockClosedOutline" />
-              </template>
-            </n-input>
-          </n-form-item>
 
           <n-form-item v-if="showTransportSelector" class="auth-transport-field" :label="t('login.transport.label')">
             <div class="auth-transport-control">
@@ -212,7 +190,6 @@ function updateTransportMode(value: string | number | boolean | null): void {
                   @update:value="emit('update:token', $event)"
                 />
               </n-form-item>
-              <n-button secondary block @click="emit('generate-token')">{{ t("login.generateToken") }}</n-button>
             </div>
           </n-collapse-transition>
 

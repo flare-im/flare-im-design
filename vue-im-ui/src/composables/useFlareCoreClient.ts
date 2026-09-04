@@ -46,9 +46,6 @@ import { withTimeout } from "../utils/asyncTimeout";
 export interface LoginFormState {
   userId: string;
   token: string;
-  /** 运行时填入的签名密钥。做成输入而不是只读构建期 env：打进产物等于让任何
-   *  拿到它的人伪造任意用户身份；填在这里只落在本机。留空回退到 VITE_FLARE_TOKEN_SECRET。 */
-  tokenSecret: string;
   transportMode: LoginTransportMode;
   wsUrl: string;
   quicUrl: string;
@@ -395,7 +392,6 @@ function makeFormDefaults(
   return {
     userId: readLoginEnvText(env.VITE_FLARE_USER_ID, ""),
     token: "",
-    tokenSecret: readLoginEnvText(env.VITE_FLARE_TOKEN_SECRET, ""),
     transportMode: nativeTransportSelectionEnabled
       ? normalizeLoginTransportMode(env.VITE_FLARE_TRANSPORT_MODE ?? env.VITE_FLARE_TRANSPORT_POLICY)
       : "websocket",
@@ -417,8 +413,6 @@ export interface SavedSessionProfile {
   userId: string;
   tenantId: string;
   token: string;
-  /** 运行时填入的签名密钥；不存的话每次刷新都得重填。 */
-  tokenSecret?: string;
   transportMode: LoginTransportMode;
   wsUrl: string;
   quicUrl: string;
@@ -804,33 +798,9 @@ function contentTypeParam(source: Record<string, unknown>): MessageContentType {
   return raw as MessageContentType;
 }
 
-/** 缺签名密钥。单独成类是为了让登录页能识别它并自动展开高级区。 */
-export class MissingTokenSecretError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "MissingTokenSecretError";
-  }
-}
-
-function devCoreTokenRequest(
-  env: Record<string, string | undefined>,
-  userId: string,
-  tenantId: string,
-  runtimeSecret = "",
-) {
-  const secret = runtimeSecret.trim() || env.VITE_FLARE_TOKEN_SECRET?.trim();
-  if (!secret) {
-    // 面向用户的提示，不再提 .env.local：生产页面上的用户没有 Vite 项目可改，
-    // 他能做的是展开高级区填密钥、或粘贴一枚签好的 token。
-    throw new MissingTokenSecretError(translateFlare("login.missingTokenSecret"));
-  }
-  return {
-    userId,
-    tenantId,
-    secret,
-    issuer: env.VITE_FLARE_TOKEN_ISSUER ?? devTokenDefaults.issuer,
-    ttlSecs: Number(env.VITE_FLARE_TOKEN_TTL_SECS ?? devTokenDefaults.ttlSecs),
-  };
+/** SDK 托管 token：把网关基址交给核心，核心去 /api/v1/auth/tokens 签发、到期前刷新。 */
+export function sdkManagedAuth(httpUrl: string): { tokenEndpoint: string } {
+  return { tokenEndpoint: httpUrl.trim().replace(/\/+$/, "") };
 }
 
 export function desktopNotificationBodyForMessage(message: Message): string {
@@ -1051,22 +1021,8 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
 
   let eventId = 1;
   let messageOpeningTimer: ReturnType<typeof setTimeout> | undefined;
-  let generatedTokenOwner: { userId: string; tenantId: string; token: string } | undefined;
-  // Dev tokens are short-lived JWTs (VITE_FLARE_TOKEN_TTL_SECS, default 3600s). Refresh a bit
   // before expiry so the core always reconnects with a valid token instead of looping forever
-  // on AUTHENTICATION_FAILED with a stale one.
-  const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000;
   let tokenRefreshTimer: ReturnType<typeof setTimeout> | undefined;
-  function decodeJwtExpMs(token: string): number | undefined {
-    const parts = token.split(".");
-    if (parts.length < 2) return undefined;
-    try {
-      const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/"))) as { exp?: number };
-      return typeof payload.exp === "number" ? payload.exp * 1000 : undefined;
-    } catch {
-      return undefined;
-    }
-  }
   let pendingConversationSummarySync: Promise<void> | undefined;
   let conversationListViewId = "";
   let activeTimelineView: { conversationId: string; viewId: string } | null = null;
@@ -1602,10 +1558,10 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
     token: string;
     httpUrl: string;
   }): Promise<{ session: CoreSessionSnapshot; diagnostics: CoreDiagnosticsSnapshot; messageBuildCatalog: readonly MessageBuildCatalogEntry[] }> {
+    // 两条路：应用托管——用户在高级区粘贴了一枚 token 就原样用；SDK 托管——没有 token 时
+    // 把网关地址交给核心，核心自己去 /api/v1/auth/tokens 签发并在到期前刷新。
+    // 客户端不再本地签发（那等于把签名密钥放进浏览器）。
     const token = request.token.trim();
-    if (!token) {
-      throw new Error("token is required for initAndLogin");
-    }
     const mediaProxy = sdkMediaProxyFields();
     await resetCoreSessionForLogin();
     await withTimeout(
@@ -1616,6 +1572,7 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
         httpUrl: request.httpUrl,
         mediaStorageProxyPrefix: mediaProxy.storageProxyPrefix,
         mediaStorageProxyTargets: mediaProxy.storageProxyTargets,
+        ...(token ? {} : { auth: sdkManagedAuth(request.httpUrl) }),
       }),
       CORE_LOGIN_STEP_TIMEOUT_MS,
       () => sdkOperationTimeoutError("login.init", CORE_LOGIN_STEP_TIMEOUT_MS),
@@ -1626,7 +1583,7 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
       () => sdkOperationTimeoutError("login.subscribe_events", CORE_LOGIN_STEP_TIMEOUT_MS),
     );
     await withTimeout(
-      client.login({ userId: request.userId, token }),
+      client.login(token ? { userId: request.userId, token } : { userId: request.userId }),
       CORE_LOGIN_TIMEOUT_MS,
       () => sdkOperationTimeoutError("login.core", CORE_LOGIN_TIMEOUT_MS),
     );
@@ -2875,7 +2832,7 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
     });
     try {
       const tokenStartedAt = nowMs();
-      const identity = await ensureLoginToken();
+      const identity = applyLoginIdentity();
       logDuration("login_token_ready", tokenStartedAt);
       const token = String(form.token ?? "").trim();
       if (!token) {
@@ -2957,7 +2914,6 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
       userId: identity.userId,
       tenantId: identity.tenantId,
       token,
-      tokenSecret: form.tokenSecret,
       transportMode: normalizeLoginTransportMode(form.transportMode),
       wsUrl: form.wsUrl,
       quicUrl: form.quicUrl,
@@ -2972,18 +2928,12 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
     form.userId = profile.userId;
     form.tenantId = profile.tenantId;
     form.token = profile.token;
-    if (profile.tokenSecret) form.tokenSecret = profile.tokenSecret;
     form.transportMode = profile.transportMode;
     form.wsUrl = profile.wsUrl;
     if (profile.quicUrl) form.quicUrl = profile.quicUrl;
     if (profile.tlsCaCertPath) form.tlsCaCertPath = profile.tlsCaCertPath;
     if (profile.httpUrl) form.httpUrl = profile.httpUrl;
     if (profile.dataUrl) form.dataUrl = profile.dataUrl;
-    generatedTokenOwner = {
-      userId: profile.userId,
-      tenantId: profile.tenantId,
-      token: profile.token,
-    };
   }
 
   function hasSavedSession(): boolean {
@@ -3086,16 +3036,18 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
     const connectStartedAt = nowMs();
     try {
       try {
-        await client.connect({ userId: profile.userId, token: profile.token });
+        await client.connect(
+          profile.token ? { userId: profile.userId, token: profile.token } : { userId: profile.userId },
+        );
       } catch (error) {
-        // token 过期/失效：重新生成 dev token 后单次重试（需要 HTTP 网关可达）
+        // 保存的 token 过期/失效：不带 token 再连一次，核心会向网关重新签发（需要 HTTP 网关可达）。
         log("session_resume_connect_retry", errorMessage(error));
-        await generateToken();
-        await client.connect({ userId: profile.userId, token: form.token });
+        await client.connect({ userId: profile.userId });
+        form.token = "";
         persistSavedSessionProfile(
           savedSessionProfileFromForm(
             { userId: profile.userId, tenantId: profile.tenantId },
-            form.token,
+            "",
           ),
         );
       }
@@ -3303,62 +3255,6 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
   }
 
   /** 上一次登录因缺签名密钥失败——登录页据此自动展开高级区，把输入框露出来。 */
-  const tokenSecretMissing = ref(false);
-
-  async function generateToken(): Promise<void> {
-    const identity = applyLoginIdentity();
-    // 运行时填的密钥优先；留空才回退到构建期 env。
-    let request;
-    try {
-      request = devCoreTokenRequest(env, identity.userId, identity.tenantId, form.tokenSecret);
-    } catch (error) {
-      tokenSecretMissing.value = error instanceof MissingTokenSecretError;
-      throw error;
-    }
-    tokenSecretMissing.value = false;
-    const response = await client.generateCoreToken(request);
-    const token = String(response?.token ?? "").trim();
-    if (!token) {
-      throw new Error("generateCoreToken returned an empty token");
-    }
-    form.token = token;
-    generatedTokenOwner = {
-      userId: identity.userId,
-      tenantId: identity.tenantId,
-      token,
-    };
-    log("token", "generated");
-  }
-
-  function scheduleTokenRefresh(): void {
-    clearTokenRefresh();
-    const expMs = decodeJwtExpMs(form.token);
-    if (expMs === undefined) return;
-    const delay = Math.max(0, expMs - Date.now() - TOKEN_REFRESH_BUFFER_MS);
-    tokenRefreshTimer = setTimeout(() => {
-      void refreshAccessToken();
-    }, delay);
-  }
-
-  function clearTokenRefresh(): void {
-    if (tokenRefreshTimer !== undefined) {
-      clearTimeout(tokenRefreshTimer);
-      tokenRefreshTimer = undefined;
-    }
-  }
-
-  // Regenerate the token and push it into the core so its autonomous reconnects use a fresh one.
-  // generateCoreToken is a local dev generation, so this works even while offline/reconnecting.
-  async function refreshAccessToken(): Promise<void> {
-    try {
-      await generateToken();
-      await client.updateAccessToken({ accessToken: form.token, tenantId: form.tenantId });
-      log("token", "refreshed before expiry");
-    } catch (error) {
-      log("token_refresh_failed", errorMessage(error));
-    }
-    scheduleTokenRefresh();
-  }
 
   // Reactive recovery: if the connection drops into reconnecting/disconnected while the token has
   // already expired (e.g. the app was suspended past expiry, or the proactive push failed),
@@ -3366,32 +3262,9 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
   // AUTHENTICATION_FAILED. The freshly minted token is no longer near expiry, so this fires at
   // most once per expiry rather than every reconnect tick.
   watch(connectionState, (state) => {
-    if (state !== "reconnecting" && state !== "disconnected") return;
-    const expMs = decodeJwtExpMs(form.token);
-    if (expMs !== undefined && expMs - Date.now() <= TOKEN_REFRESH_BUFFER_MS) {
-      void refreshAccessToken();
-    }
   });
 
-  async function ensureLoginToken(): Promise<LoginIdentity> {
-    form.token = String(form.token ?? "");
-    const identity = applyLoginIdentity();
-    const usingGeneratedToken = generatedTokenOwner?.token === form.token;
-    const generatedForCurrentIdentity = generatedTokenOwner?.userId === identity.userId
-      && generatedTokenOwner?.tenantId === identity.tenantId;
-    const expMs = decodeJwtExpMs(form.token);
-    const staleGeneratedToken = usingGeneratedToken
-      && expMs !== undefined
-      && expMs - Date.now() <= TOKEN_REFRESH_BUFFER_MS;
-    if (!form.token || (usingGeneratedToken && !generatedForCurrentIdentity) || staleGeneratedToken) {
-      await generateToken();
-    }
-    scheduleTokenRefresh();
-    return applyLoginIdentity();
-  }
-
   async function logout(): Promise<void> {
-    clearTokenRefresh();
     clearSavedSessionProfile();
     stopPlatformSignalBridge();
     await disposeOpenViewsAndEvents("logout");
@@ -4273,14 +4146,13 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
         return { ...await client.heartbeatEffectiveInterval() };
       }
       if (kind === "update_access_token") {
-        const response = await client.generateCoreToken({
-          ...devCoreTokenRequest(env, form.userId, form.tenantId),
-          ttlSecs: sdkLab.tokenTtlSecs,
-        });
-        const accessToken = String(response.token ?? "").trim();
+        // 客户端不再签发：这里只把登录页高级区里粘贴的 token 应用到核心（应用托管形态的演示）。
+        const accessToken = String(form.token ?? "").trim();
+        if (!accessToken) {
+          throw new Error(translateFlare("login.tokenManagedByCore"));
+        }
         await client.updateAccessToken({ accessToken, tenantId: form.tenantId });
-        form.token = accessToken;
-        return { updated: true, tokenLength: accessToken.length, ttlSecs: sdkLab.tokenTtlSecs };
+        return { updated: true, tokenLength: accessToken.length };
       }
       if (kind === "current_user") {
         return await client.currentUserId();
@@ -4367,7 +4239,6 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
   startRealtimeSafetyPoll();
 
   onBeforeUnmount(() => {
-    clearTokenRefresh();
     if (incomingConversationRefreshTimer !== undefined) {
       clearTimeout(incomingConversationRefreshTimer);
       incomingConversationRefreshTimer = undefined;
@@ -4441,8 +4312,6 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
     resumeSavedSession,
     hasSavedSession,
     syncHomeBeforeEnter,
-    generateToken,
-    tokenSecretMissing,
     upsertUserProfiles,
     logout,
     selectConversation,
