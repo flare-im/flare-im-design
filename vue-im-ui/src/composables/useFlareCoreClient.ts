@@ -2231,7 +2231,15 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
       await client.sync.syncConversation({ conversationId });
       await syncMessagesFromKnownCursor(conversationId);
       await refreshConversations({ silent: true });
-      await refreshMessages(conversationId, { silent: true });
+      // 活动会话已有打开的时间线视图时，不做破坏性的全量 close+open 重开：
+      // syncMessagesFromKnownCursor 已把新消息灌入 core，core 观察视图会以 delta
+      // (applyTimelineViewDelta) 实时增量刷新已打开的视图。每 12s 无条件全量重开会
+      // 反复 close+open 时间线，占满 WASM 单槽 invoke 链，导致 message.send 排不进而 30s
+      // 超时、进来的推送也渲染不出（线上表现：双方在线互发都收不到）。仅当视图缺失/错位
+      // （无 activeTimelineView 或指向别的会话）时才作为安全网重开。
+      if (activeTimelineView?.conversationId !== conversationId) {
+        await refreshMessages(conversationId, { silent: true });
+      }
       realtimeSafetyPollFailureCount = 0;
       realtimeSafetyPollNextAt = 0;
     } catch (error) {
