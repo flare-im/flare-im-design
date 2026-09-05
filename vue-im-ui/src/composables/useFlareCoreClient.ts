@@ -1157,6 +1157,47 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
     return response.messages;
   }
 
+  /**
+   * 发送超时前对账真实投递态。
+   *
+   * `sendMessageWithTimeout` 靠订阅**最终 SendAck 事件**判成功；但 SendAck 是下行帧，
+   * 偶发丢失/迟到时事件永远不来，30s 定时器就把一条**其实已经投递**的消息误报为失败。
+   * 消息落库是可信的真相：拉取会话最新状态后按 clientMsgId 查这条，如果已回填了真实
+   * 服务端身份（serverId 非空且不等于 clientMsgId、且已分配 conversationSeq），说明它
+   * 已被服务端接受并落库，据此合成一条成功 ack，避免假失败。查不到或未落库才按超时失败。
+   */
+  async function reconcileSentDelivery(
+    conversationId: string,
+    clientMsgId: string,
+  ): Promise<SendMessageResponse | undefined> {
+    const convId = conversationId.trim();
+    const targetId = clientMsgId.trim();
+    if (!convId || !targetId) return undefined;
+    // best-effort 同步：把服务端已落库但下行帧丢了的消息拉回本地库。失败不阻断，退回本地读。
+    try {
+      await syncMessagesFromKnownCursor(convId);
+    } catch {
+      /* 同步失败则仅依据本地库判定 */
+    }
+    const messages = await listMessages({ conversationId: convId, limit: MESSAGE_PAGE_SIZE });
+    const found = messages.find((item) => item.clientMsgId.trim() === targetId);
+    if (!found) return undefined;
+    const serverId = found.serverId.trim();
+    const delivered = serverId !== "" && serverId !== targetId && found.conversationSeq > 0;
+    if (!delivered) return undefined;
+    return {
+      ackId: "",
+      serverId,
+      clientMsgId: targetId,
+      conversationId: convId,
+      seq: found.conversationSeq,
+      timestamp: Date.now(),
+      success: true,
+      errorCode: 0,
+      errorMessage: "",
+    };
+  }
+
   async function sendMessageWithTimeout(
     message: Message,
     callback?: MessageSendCallback,
@@ -1217,7 +1258,22 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
       }) as never);
 
       timeout = setTimeout(() => {
-        fail(sendTimeoutError(DEFAULT_SEND_TIMEOUT_MS));
+        // 方向1：超时前先对账真实投递态，已落库则判成功，避免把已投递消息误报失败。
+        void (async () => {
+          if (settled) return;
+          try {
+            const reconciled = await reconcileSentDelivery(message.conversationId, message.clientMsgId);
+            if (settled) return;
+            if (reconciled) {
+              succeed(reconciled);
+              return;
+            }
+          } catch {
+            /* 对账异常则退回按原超时失败 */
+          }
+          if (settled) return;
+          fail(sendTimeoutError(DEFAULT_SEND_TIMEOUT_MS));
+        })();
       }, DEFAULT_SEND_TIMEOUT_MS);
 
       void client.messages.sendMessage({ message })
