@@ -49,7 +49,6 @@ import { createMessageOperationAdapter } from "../message-enhancements/messageOp
 import { resolveComposerAction, resolveMessageMenuActions, type ComposerActionDefinition } from "../message-enhancements/messageTypeRegistry";
 import { useMessageInteractionState } from "../message-enhancements/useMessageInteractionState";
 import type { BatchOperationResult, ComposerPayloadRequest, EnhancedMessageKind, ForwardMode, MediaComposerPreviewItem, MessageOperationSdk, MessagePinScope } from "../message-enhancements/types";
-import { withTimeout } from "@flare-im/vue-ui/utils";
 import { hasAppMediaPathPicker, pickAppMediaSourcePaths } from "../infrastructure/media/appMediaPicker";
 import { resolveAppMediaLocalPath } from "../infrastructure/media/appMediaResolver";
 import {
@@ -80,7 +79,6 @@ type ComposerMentionCandidate = {
   label?: string;
   avatarUrl?: string;
 };
-const COMPOSER_SEND_TIMEOUT_MS = 35_000;
 const DRAFT_IDLE_DELAY_MS = 5_000;
 const DRAFT_CLEAR_DELAY_MS = 1_200;
 const PEER_PRESENCE_REFRESH_DELAY_MS = 5_000;
@@ -633,18 +631,12 @@ function prepareComposerSend(): void {
   if (conversationId) cancelPendingDraftClear(conversationId);
 }
 
-function composerSendTimeoutError(): Error {
-  const error = new Error(t("toast.sendTimeout"));
-  (error as Error & { code?: string; operation?: string; details?: Record<string, string> }).code = "timeout";
-  (error as Error & { code?: string; operation?: string; details?: Record<string, string> }).operation = "composer.send";
-  (error as Error & { code?: string; operation?: string; details?: Record<string, string> }).details = {
-    timeoutMs: String(COMPOSER_SEND_TIMEOUT_MS),
-  };
-  return error;
-}
-
 async function withComposerSendDeadline<T>(task: Promise<T>): Promise<T> {
-  return await withTimeout(task, COMPOSER_SEND_TIMEOUT_MS, composerSendTimeoutError);
+  // 不再对发送施加独立的超时死线：发送的权威终态归核心 reliable_queue（10s 单次 ack
+  // 超时 + 3 次幂等重试 + 落库对账，窗口 ~40s；成功 SendAck / 失败 SendFailed 由核心直接
+  // 更新消息 store，气泡经视图 delta 呈现、失败带重发入口）。这里曾有一条 35s 死线，比核心
+  // 窗口短，会把 SendAck 下行帧偶发丢/迟、其实已投递的消息提前误报失败。改为透传。
+  return await task;
 }
 
 function titleFromRichMarkdown(markdown: string): string {

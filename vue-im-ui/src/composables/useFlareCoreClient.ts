@@ -626,7 +626,9 @@ const devTokenDefaults = {
   ttlSecs: 3600,
 };
 
-const DEFAULT_SEND_TIMEOUT_MS = 30_000;
+// 发送交接的防御性安全网：远长于核心 reliable_queue 的 ~40s 终态窗口，仅用于兜底 settle-as-pending，
+// 不作为失败判据（失败只由核心 SendFailed 事件或 sendMessage 同步 reject 决定）。
+const SEND_PENDING_SAFETY_MS = 90_000;
 const HOME_CONVERSATION_LOAD_TIMEOUT_MS = 8_000;
 const STARTUP_HOME_SYNC_TIMEOUT_MS = 8_000;
 const SYNC_CONVERSATION_SUMMARIES_TIMEOUT_MS = 8_000;
@@ -655,12 +657,6 @@ function stringDetails(details: Record<string, unknown>): Record<string, string>
   return Object.fromEntries(
     Object.entries(details).map(([key, value]) => [key, String(value ?? "")]),
   );
-}
-
-function sendTimeoutError(timeoutMs: number): Error {
-  const error = new Error(`message.send timed out after ${timeoutMs}ms`);
-  (error as Error & { code?: string }).code = "timeout";
-  return error;
 }
 
 function sdkOperationTimeoutError(operation: string, timeoutMs: number): Error {
@@ -1158,46 +1154,19 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
   }
 
   /**
-   * 发送超时前对账真实投递态。
+   * 把一条消息交接给核心可靠发送管线，并反映核心的终态。
    *
-   * `sendMessageWithTimeout` 靠订阅**最终 SendAck 事件**判成功；但 SendAck 是下行帧，
-   * 偶发丢失/迟到时事件永远不来，30s 定时器就把一条**其实已经投递**的消息误报为失败。
-   * 消息落库是可信的真相：拉取会话最新状态后按 clientMsgId 查这条，如果已回填了真实
-   * 服务端身份（serverId 非空且不等于 clientMsgId、且已分配 conversationSeq），说明它
-   * 已被服务端接受并落库，据此合成一条成功 ack，避免假失败。查不到或未落库才按超时失败。
+   * 发送的权威生命周期归**核心** reliable_queue：乐观入队即返回、in-flight 跟踪、
+   * 10s 单次 ack 超时 + 3 次幂等重试 + 每秒落库对账 + 迟到 ack 恢复，最终必落一个
+   * 终态（`SendAck` 成功 / `SendFailed` 失败，生产窗口 ~40s）；且核心会把消息 store
+   * 直接更新为 sent/failed（气泡经视图 delta 呈现，是唯一真相）。
+   *
+   * 因此这里**不再自建更短的失败死线**（历史上 30s 定时器会把一条 SendAck 下行帧丢/迟、
+   * 但其实已投递的消息误报为失败）。promise 只在：核心**终态事件**（最终 SendAck→成功 /
+   * SendFailed→失败）、或**同步 reject**（未登录/校验错等 `sendMessage` 本身失败）时 settle。
+   * 另留一条远长于核心窗口的防御性安全网（`SEND_PENDING_SAFETY_MS`），仅在核心终态事件
+   * 也丢失时 settle-as-pending（不判失败、不改气泡），避免调用方 await 泄漏。
    */
-  async function reconcileSentDelivery(
-    conversationId: string,
-    clientMsgId: string,
-  ): Promise<SendMessageResponse | undefined> {
-    const convId = conversationId.trim();
-    const targetId = clientMsgId.trim();
-    if (!convId || !targetId) return undefined;
-    // best-effort 同步：把服务端已落库但下行帧丢了的消息拉回本地库。失败不阻断，退回本地读。
-    try {
-      await syncMessagesFromKnownCursor(convId);
-    } catch {
-      /* 同步失败则仅依据本地库判定 */
-    }
-    const messages = await listMessages({ conversationId: convId, limit: MESSAGE_PAGE_SIZE });
-    const found = messages.find((item) => item.clientMsgId.trim() === targetId);
-    if (!found) return undefined;
-    const serverId = found.serverId.trim();
-    const delivered = serverId !== "" && serverId !== targetId && found.conversationSeq > 0;
-    if (!delivered) return undefined;
-    return {
-      ackId: "",
-      serverId,
-      clientMsgId: targetId,
-      conversationId: convId,
-      seq: found.conversationSeq,
-      timestamp: Date.now(),
-      success: true,
-      errorCode: 0,
-      errorMessage: "",
-    };
-  }
-
   async function sendMessageWithTimeout(
     message: Message,
     callback?: MessageSendCallback,
@@ -1241,6 +1210,25 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
         resolve(ack);
       };
 
+      // 防御性安全网：仅在核心终态事件也丢失时兜底。不调 onSuccess/onFailure、不改气泡，
+      // 只 resolve 一个 pending 形态的 ack 解除调用方 await；气泡终态仍由核心 store→delta 呈现。
+      const resolvePending = () => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        resolve({
+          ackId: "",
+          serverId: "",
+          clientMsgId: message.clientMsgId,
+          conversationId: message.conversationId,
+          seq: 0,
+          timestamp: Date.now(),
+          success: false,
+          errorCode: 0,
+          errorMessage: "",
+        });
+      };
+
       subscription = client.events.addEventListener(((event: unknown) => {
         const ack = sendAckFromEvent(event);
         if (ack && sendAckMatches(ack, message)) {
@@ -1257,24 +1245,9 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
         }
       }) as never);
 
-      timeout = setTimeout(() => {
-        // 方向1：超时前先对账真实投递态，已落库则判成功，避免把已投递消息误报失败。
-        void (async () => {
-          if (settled) return;
-          try {
-            const reconciled = await reconcileSentDelivery(message.conversationId, message.clientMsgId);
-            if (settled) return;
-            if (reconciled) {
-              succeed(reconciled);
-              return;
-            }
-          } catch {
-            /* 对账异常则退回按原超时失败 */
-          }
-          if (settled) return;
-          fail(sendTimeoutError(DEFAULT_SEND_TIMEOUT_MS));
-        })();
-      }, DEFAULT_SEND_TIMEOUT_MS);
+      // 防御性安全网：远长于核心 ~40s 窗口，仅在核心终态事件也丢失时 settle-as-pending。
+      // 不再有独立的失败死线——失败只由核心 SendFailed 事件或同步 reject 决定。
+      timeout = setTimeout(resolvePending, SEND_PENDING_SAFETY_MS);
 
       void client.messages.sendMessage({ message })
         .then((ack) => {
