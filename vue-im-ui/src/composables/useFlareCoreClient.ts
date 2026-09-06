@@ -445,7 +445,12 @@ export function loadSavedSessionProfile(): SavedSessionProfile | undefined {
     const userId = String(parsed.userId ?? "").trim();
     const token = String(parsed.token ?? "").trim();
     const wsUrl = String(parsed.wsUrl ?? "").trim();
-    if (!userId || !token || !wsUrl) return undefined;
+    const httpUrl = String(parsed.httpUrl ?? "").trim();
+    // SDK 托管登录(只输 user id,token 由网关签发)存下的 token 恒为空,恢复路径靠
+    // httpUrl 走 SDK 托管重签(见 connectResumedSessionInBackground)。因此空 token 不该
+    // 一刀切拒热启动——只在既无 token 又无 SDK 托管端点(httpUrl)时才判无会话。
+    if (!userId || !wsUrl) return undefined;
+    if (!token && !httpUrl) return undefined;
     return {
       userId,
       tenantId: String(parsed.tenantId ?? "").trim() || "0",
@@ -454,7 +459,7 @@ export function loadSavedSessionProfile(): SavedSessionProfile | undefined {
       wsUrl,
       quicUrl: String(parsed.quicUrl ?? "").trim(),
       tlsCaCertPath: String(parsed.tlsCaCertPath ?? "").trim(),
-      httpUrl: String(parsed.httpUrl ?? "").trim(),
+      httpUrl,
       dataUrl: String(parsed.dataUrl ?? "").trim(),
       savedAtMs: Number(parsed.savedAtMs) || 0,
     };
@@ -3010,6 +3015,9 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
         httpUrl: form.httpUrl,
         mediaStorageProxyPrefix: mediaProxy.storageProxyPrefix,
         mediaStorageProxyTargets: mediaProxy.storageProxyTargets,
+        // SDK 托管会话(空 token)热恢复也要接线 auth.tokenEndpoint,否则重连拿不到 token
+        // → WS/sync 401 → NOT_CONNECTED 一直 disconnected(与登录路径 initAndLoginCore 对齐)。
+        ...(profile.token ? {} : { auth: sdkManagedAuth(form.httpUrl) }),
       });
       await client.events.subscribeEvents({ sources: [...sdkEventSources] });
       await withTimeout(
