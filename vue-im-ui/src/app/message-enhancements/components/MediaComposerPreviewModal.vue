@@ -77,32 +77,33 @@ function formatBytes(value: number): string {
     @update:show="handleModalUpdate"
   >
     <div class="media-composer-preview__body">
+      <!-- 图片/视频:大预览 -->
       <article
-        v-if="isSingle && primaryItem"
+        v-if="
+          isSingle &&
+          primaryItem &&
+          primaryItem.previewUrl &&
+          (primaryItem.kind === 'image' || primaryItem.kind === 'imageGroup' || primaryItem.kind === 'video')
+        "
         class="media-composer-preview__hero"
-        :class="{ 'media-composer-preview__hero--file': !primaryItem.previewUrl }"
       >
         <img
-          v-if="(primaryItem.kind === 'image' || primaryItem.kind === 'imageGroup') && primaryItem.previewUrl"
+          v-if="primaryItem.kind === 'image' || primaryItem.kind === 'imageGroup'"
           :src="primaryItem.previewUrl"
           :alt="primaryItem.name"
         />
-        <video
-          v-else-if="primaryItem.kind === 'video' && primaryItem.previewUrl"
-          :src="primaryItem.previewUrl"
-          controls
-          playsinline
-        />
-        <div v-else class="media-composer-preview__file">
-          <strong>{{ primaryItem.name }}</strong>
-          <span v-if="primaryItem.mimeType">{{ primaryItem.mimeType }}</span>
-          <span v-if="primaryItem.size">{{ formatBytes(primaryItem.size) }}</span>
-        </div>
+        <video v-else :src="primaryItem.previewUrl" controls playsinline />
         <div class="media-composer-preview__hero-caption">
           <span>{{ primaryItem.name }}</span>
           <small v-if="primaryItem.size">{{ formatBytes(primaryItem.size) }}</small>
         </div>
       </article>
+
+      <!-- 文件:不做大预览,只显示文件名(+大小) -->
+      <div v-else-if="isSingle && primaryItem" class="media-composer-preview__filerow">
+        <span class="media-composer-preview__filerow-name">{{ primaryItem.name }}</span>
+        <small v-if="primaryItem.size">{{ formatBytes(primaryItem.size) }}</small>
+      </div>
 
       <div v-else class="media-composer-preview__gallery">
         <article
@@ -296,6 +297,31 @@ function formatBytes(value: number): string {
 .media-composer-preview__name,
 .media-composer-preview__caption span,
 .media-composer-preview__caption small {
+  color: var(--flare-text-secondary, #8f97a7);
+}
+
+/* 文件:紧凑一行(仅文件名 + 大小),不占用大预览面板 */
+.media-composer-preview__filerow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  color: #e5e7eb;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(31, 41, 55, 0.78));
+}
+
+.media-composer-preview__filerow-name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.media-composer-preview__filerow small {
+  flex: 0 0 auto;
   color: var(--flare-text-secondary, #8f97a7);
 }
 
