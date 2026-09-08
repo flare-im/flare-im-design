@@ -16,12 +16,29 @@ const props = withDefaults(
     disabled?: boolean;
     /** Toggle-active look (e.g. a selected filter). */
     active?: boolean;
+    /** Foreground/icon color override (overrides variant/active colors, incl. hover). */
+    tint?: string;
+    /** Background color override (overrides variant/active background). */
+    background?: string;
+    /** Dimension override in px; glyph size = round(customSize * 0.46). */
+    customSize?: number;
   }>(),
   { variant: "plain", shape: "circle", disabled: false, active: false },
 );
 const emit = defineEmits<{ (e: "click"): void }>();
 const config = useFlareConfig();
 const rsize = computed(() => props.size ?? config.size.value);
+const overrideStyle = computed(() => {
+  const s: Record<string, string> = {};
+  if (props.tint) s.color = props.tint;
+  if (props.background) s.background = props.background;
+  if (props.customSize != null) {
+    s.width = `${props.customSize}px`;
+    s.height = `${props.customSize}px`;
+    s.fontSize = `${Math.round(props.customSize * 0.46)}px`;
+  }
+  return s;
+});
 </script>
 
 <template>
@@ -29,6 +46,7 @@ const rsize = computed(() => props.size ?? config.size.value);
     type="button"
     class="flare-icon-button"
     :class="[`flare-icon-button--${rsize}`, `flare-icon-button--${variant}`, `is-${shape}`, { 'is-active': active }]"
+    :style="overrideStyle"
     :aria-label="ariaLabel"
     :aria-pressed="active"
     :disabled="disabled"

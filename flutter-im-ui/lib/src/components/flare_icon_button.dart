@@ -20,6 +20,9 @@ class FlareIconButton extends StatefulWidget {
     this.disabled = false,
     this.active = false,
     this.onPressed,
+    this.tintColor,
+    this.backgroundColor,
+    this.customSize,
   });
 
   final IconData icon;
@@ -35,6 +38,19 @@ class FlareIconButton extends StatefulWidget {
   final bool active;
   final VoidCallback? onPressed;
 
+  /// Foreground/icon color override. Wins over the variant/active/hover-derived
+  /// foreground (including hover) when non-null.
+  final Color? tintColor;
+
+  /// Background color override. Wins over the variant/active/hover-derived
+  /// background when non-null.
+  final Color? backgroundColor;
+
+  /// Explicit side length (logical px). When set, the button side = customSize
+  /// and the glyph size = round(customSize * 0.46). When null, the sm/md/lg
+  /// bucket is used unchanged.
+  final double? customSize;
+
   @override
   State<FlareIconButton> createState() => _FlareIconButtonState();
 }
@@ -42,17 +58,21 @@ class FlareIconButton extends StatefulWidget {
 class _FlareIconButtonState extends State<FlareIconButton> {
   bool _hovering = false;
 
-  double get _side => switch (widget.size) {
+  double get _side =>
+      widget.customSize ??
+      switch (widget.size) {
         FlareControlSize.sm => 30,
         FlareControlSize.md => 38,
         FlareControlSize.lg => 46,
       };
 
-  double get _glyph => switch (widget.size) {
-        FlareControlSize.sm => 16,
-        FlareControlSize.md => 19,
-        FlareControlSize.lg => 22,
-      };
+  double get _glyph => widget.customSize != null
+      ? (widget.customSize! * 0.46).roundToDouble()
+      : switch (widget.size) {
+          FlareControlSize.sm => 16,
+          FlareControlSize.md => 19,
+          FlareControlSize.lg => 22,
+        };
 
   @override
   Widget build(BuildContext context) {
@@ -82,6 +102,10 @@ class _FlareIconButtonState extends State<FlareIconButton> {
       background = colors.bgSelected;
       foreground = colors.primary;
     }
+
+    // Explicit overrides win over any variant/active/hover-derived color.
+    if (widget.backgroundColor != null) background = widget.backgroundColor!;
+    if (widget.tintColor != null) foreground = widget.tintColor!;
 
     return Opacity(
       opacity: off ? 0.45 : 1,

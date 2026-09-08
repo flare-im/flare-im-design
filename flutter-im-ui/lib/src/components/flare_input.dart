@@ -15,6 +15,7 @@ class FlareInput extends StatefulWidget {
     this.disabled = false,
     this.clearable = false,
     this.autofocus = false,
+    this.prefix,
     this.onChanged,
     this.onSubmitted,
   });
@@ -22,6 +23,9 @@ class FlareInput extends StatefulWidget {
   final TextEditingController? controller;
   final String? placeholder;
   final bool multiline;
+
+  /// Optional leading widget rendered inside the field (e.g. a search icon).
+  final Widget? prefix;
 
   /// Mask the value (password entry). Mutually exclusive with [multiline].
   final bool secure;
@@ -91,6 +95,12 @@ class _FlareInputState extends State<FlareInput> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              if (widget.prefix != null)
+                Padding(
+                  padding:
+                      const EdgeInsets.only(right: FlareSizes.spacingSm),
+                  child: widget.prefix!,
+                ),
               Expanded(
                 child: TextField(
       obscureText: widget.secure && !widget.multiline,

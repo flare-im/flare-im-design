@@ -100,28 +100,33 @@ public struct IconButtonView: View {
     private let square: Bool
     private let disabled: Bool
     private let active: Bool
+    private let tint: Color?
+    private let background: Color?
+    private let customSize: CGFloat?
     private let action: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
 
     public init(systemImage: String, accessibilityLabel: String, size: FlareControlSize = .md,
                 variant: IconButtonVariant = .plain, square: Bool = false, disabled: Bool = false,
-                active: Bool = false, action: (() -> Void)? = nil) {
+                active: Bool = false, tint: Color? = nil, background: Color? = nil,
+                customSize: CGFloat? = nil, action: (() -> Void)? = nil) {
         self.systemImage = systemImage; self.accessibilityLabel = accessibilityLabel; self.size = size
         self.variant = variant; self.square = square; self.disabled = disabled; self.active = active
+        self.tint = tint; self.background = background; self.customSize = customSize
         self.action = action
     }
 
     public var body: some View {
         let colors = FlareColors.of(scheme)
-        let side = size.square
-        let bg: Color = active ? colors.bgSelected
+        let side = customSize ?? size.square
+        let bg: Color = background ?? (active ? colors.bgSelected
             : variant == .solid ? colors.primary
             : variant == .tinted ? colors.bgSecondary
-            : .clear
-        let fg: Color = variant == .solid ? .white
+            : .clear)
+        let fg: Color = tint ?? (variant == .solid ? .white
             : active ? colors.primary
-            : colors.textSecondary
-        let iconSize = size == .sm ? 15.0 : size == .md ? 17.0 : 19.0
+            : colors.textSecondary)
+        let iconSize = customSize.map { (($0 * 0.46).rounded()) } ?? (size == .sm ? 15.0 : size == .md ? 17.0 : 19.0)
         Button { action?() } label: {
             Image(systemName: systemImage)
                 .font(.system(size: iconSize, weight: .medium))

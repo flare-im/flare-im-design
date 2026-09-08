@@ -45,8 +45,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.roundToInt
 
 private data class SizeSpec(val height: Int, val hPad: Int, val font: Int)
 
@@ -116,23 +118,29 @@ fun IconButton(
     square: Boolean = false,
     disabled: Boolean = false,
     active: Boolean = false,
+    tint: Color? = null,
+    background: Color? = null,
+    customSize: Dp? = null,
     onClick: (() -> Unit)? = null,
 ) {
     val colors = flareColors()
-    val dim = when (size) { FlareControlSize.Sm -> 30; FlareControlSize.Md -> 38; FlareControlSize.Lg -> 46 }
-    val glyph = when (size) { FlareControlSize.Sm -> 16; FlareControlSize.Md -> 19; FlareControlSize.Lg -> 22 }
+    val dimDp: Dp = customSize ?: when (size) { FlareControlSize.Sm -> 30.dp; FlareControlSize.Md -> 38.dp; FlareControlSize.Lg -> 46.dp }
+    val glyphDp: Dp = if (customSize != null) (customSize.value * 0.46f).roundToInt().dp
+        else when (size) { FlareControlSize.Sm -> 16.dp; FlareControlSize.Md -> 19.dp; FlareControlSize.Lg -> 22.dp }
     val shape: Shape = if (square) RoundedCornerShape(FlareSizes.radiusMd) else CircleShape
-    val (bg, fg) = when {
+    val (bgDerived, fgDerived) = when {
         active -> colors.bgSelected to colors.primary
         variant == FlareIconButtonVariant.Solid -> colors.primary to Color.White
         variant == FlareIconButtonVariant.Tinted -> colors.bgSecondary to colors.textSecondary
         else -> Color.Transparent to colors.textSecondary
     }
+    val bg = background ?: bgDerived
+    val fg = tint ?: fgDerived
     Box(
-        Modifier.size(dim.dp).clip(shape).background(bg).alpha(if (disabled) 0.45f else 1f)
+        Modifier.size(dimDp).clip(shape).background(bg).alpha(if (disabled) 0.45f else 1f)
             .then(if (!disabled && onClick != null) Modifier.clickable { onClick() } else Modifier),
         contentAlignment = Alignment.Center,
-    ) { Icon(icon, contentDescription = contentDescription, tint = fg, modifier = Modifier.size(glyph.dp)) }
+    ) { Icon(icon, contentDescription = contentDescription, tint = fg, modifier = Modifier.size(glyphDp)) }
 }
 
 // MARK: - FormField

@@ -138,6 +138,69 @@ class FlareMessageList extends StatelessWidget {
   }
 }
 
+/// The message thread as a **sliver**, for chat screens that drive their own
+/// [CustomScrollView] (tail-following scroll controller, pull-to-refresh,
+/// near-top load-older) and build each row themselves — so a rich per-message
+/// row (multi-select, reply, edit, media) stays owned by the host while the kit
+/// standardises the padded list / empty / loading sliver treatment. Order is
+/// oldest→newest (top→bottom); [keys] are stable message keys.
+///
+/// Complements [FlareMessageList] (the self-contained `ListView` variant that
+/// renders [FlareMessageBubble]s from [FlareMessageData]): reach for this when
+/// the host owns the row visuals/affordances and the surrounding scroll view.
+class FlareMessageSliverList extends StatelessWidget {
+  const FlareMessageSliverList({
+    super.key,
+    required this.keys,
+    required this.rowBuilder,
+    this.loading = false,
+    this.emptyPlaceholder,
+    this.padding = const EdgeInsets.symmetric(
+      horizontal: FlareSizes.spacingLg,
+      vertical: FlareSizes.spacingSm,
+    ),
+  });
+
+  /// Stable message keys in display order (oldest→newest); the host owns
+  /// ordering / paging / grouping.
+  final List<String> keys;
+
+  /// Builds one row for [key]. Return a widget that subscribes to just that
+  /// message so a single message update rebuilds only its row.
+  final Widget Function(BuildContext context, String key) rowBuilder;
+
+  /// Initial-load spinner (shown only when [keys] is empty).
+  final bool loading;
+
+  /// Shown (filling the viewport) when [keys] is empty and not loading. The host
+  /// supplies its own layout/padding; falls back to a plain default.
+  final Widget? emptyPlaceholder;
+
+  /// Padding around the row list.
+  final EdgeInsetsGeometry padding;
+
+  @override
+  Widget build(BuildContext context) {
+    if (keys.isEmpty) {
+      return SliverFillRemaining(
+        hasScrollBody: false,
+        child: loading
+            ? const Center(child: CircularProgressIndicator())
+            : (emptyPlaceholder ?? const Center(child: _Empty('暂无消息'))),
+      );
+    }
+    return SliverPadding(
+      padding: padding,
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) => rowBuilder(context, keys[index]),
+          childCount: keys.length,
+        ),
+      ),
+    );
+  }
+}
+
 class _Empty extends StatelessWidget {
   const _Empty(this.text);
   final String text;

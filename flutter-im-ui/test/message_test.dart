@@ -172,4 +172,44 @@ void main() {
     await tester.tap(find.byIcon(Icons.search_rounded));
     expect(searched, isTrue);
   });
+
+  group('FlareMessageSliverList', () {
+    Widget sliverHost(Widget sliver) =>
+        _host(CustomScrollView(slivers: [sliver]));
+
+    testWidgets('builds one row per key via rowBuilder', (tester) async {
+      final built = <String>[];
+      await tester.pumpWidget(sliverHost(FlareMessageSliverList(
+        keys: const ['m1', 'm2'],
+        rowBuilder: (context, key) {
+          built.add(key);
+          return SizedBox(height: 40, child: Text('row-$key'));
+        },
+      )));
+      expect(built, ['m1', 'm2']);
+      expect(find.text('row-m1'), findsOneWidget);
+      expect(find.text('row-m2'), findsOneWidget);
+    });
+
+    testWidgets('empty keys show the host placeholder', (tester) async {
+      await tester.pumpWidget(sliverHost(FlareMessageSliverList(
+        keys: const [],
+        emptyPlaceholder: const Text('no messages here'),
+        rowBuilder: (context, key) => const SizedBox.shrink(),
+      )));
+      expect(find.text('no messages here'), findsOneWidget);
+    });
+
+    testWidgets('empty + loading shows a spinner, not the placeholder',
+        (tester) async {
+      await tester.pumpWidget(sliverHost(FlareMessageSliverList(
+        keys: const [],
+        loading: true,
+        emptyPlaceholder: const Text('no messages here'),
+        rowBuilder: (context, key) => const SizedBox.shrink(),
+      )));
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('no messages here'), findsNothing);
+    });
+  });
 }

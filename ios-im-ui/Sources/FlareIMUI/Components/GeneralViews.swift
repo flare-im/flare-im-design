@@ -199,34 +199,78 @@ public struct ScreenHeaderView<Actions: View>: View {
     }
 }
 
+/// Visual tone for `EmptyStateView`.
+/// - `normal`: the default look (tertiary icon/spinner, primary title).
+/// - `error`: surfaces a failure — the default icon (and loading spinner) and the title use the
+///   danger/error color. A caller-provided custom `systemImage` is still rendered but recolored to
+///   the error tint; the description stays tertiary but wraps long raw error strings.
+public enum EmptyStateTone { case normal, error }
+
 /// Empty-state placeholder. Spec: General/EmptyState (`EmptyStateView`).
+///
+/// Optional rich variants (all backward-compatible):
+/// - `loading`: render a brand spinner in place of the icon (title/description/action still show).
+/// - `onTap`: make the WHOLE placeholder tappable (distinct from the action button — the action
+///   button consumes its own taps so it doesn't double-fire).
+/// - `tone`: `.normal` (default) or `.error` (danger-colored icon/spinner + title, long-error wrap).
 public struct EmptyStateView: View {
     private let title: String
     private let description: String?
     private let actionText: String?
     private let systemImage: String
+    private let loading: Bool
+    private let tone: EmptyStateTone
     private let onAction: (() -> Void)?
+    private let onTap: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
 
     public init(title: String, description: String? = nil, actionText: String? = nil,
-                systemImage: String = "tray", onAction: (() -> Void)? = nil) {
+                systemImage: String = "tray", loading: Bool = false,
+                tone: EmptyStateTone = .normal,
+                onAction: (() -> Void)? = nil, onTap: (() -> Void)? = nil) {
         self.title = title; self.description = description; self.actionText = actionText
-        self.systemImage = systemImage; self.onAction = onAction
+        self.systemImage = systemImage; self.loading = loading; self.tone = tone
+        self.onAction = onAction; self.onTap = onTap
     }
 
     public var body: some View {
         let colors = FlareColors.of(scheme)
+        let isError = tone == .error
+        let accent = isError ? colors.error : colors.textTertiary
         VStack(spacing: FlareSizes.spacingSm) {
-            Image(systemName: systemImage).font(.system(size: 44)).foregroundColor(colors.textTertiary)
-            Text(title).font(.system(size: FlareSizes.fontSize2xl)).foregroundColor(colors.textPrimary)
+            if loading {
+                ProgressView().controlSize(.large)
+                    .tint(isError ? colors.error : colors.primary).frame(height: 44)
+            } else {
+                Image(systemName: systemImage).font(.system(size: 44)).foregroundColor(accent)
+            }
+            Text(title).font(.system(size: FlareSizes.fontSize2xl))
+                .foregroundColor(isError ? colors.error : colors.textPrimary)
             if let description {
                 Text(description).font(.system(size: FlareSizes.fontSizeMd))
-                    .foregroundColor(colors.textTertiary).multilineTextAlignment(.center)
+                    .foregroundColor(colors.textTertiary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             if let actionText {
                 Button(actionText) { onAction?() }.buttonStyle(.bordered).padding(.top, FlareSizes.spacingSm)
             }
         }
         .padding(FlareSizes.spacing2xl)
+        .contentShape(Rectangle())
+        .modifier(TapPlaceholderModifier(onTap: onTap))
+    }
+}
+
+/// Applies a whole-placeholder tap gesture only when `onTap` is provided, leaving the
+/// default (non-interactive) placeholder untouched otherwise.
+private struct TapPlaceholderModifier: ViewModifier {
+    let onTap: (() -> Void)?
+    func body(content: Content) -> some View {
+        if let onTap {
+            content.onTapGesture { onTap() }
+        } else {
+            content
+        }
     }
 }

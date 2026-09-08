@@ -125,4 +125,129 @@ void main() {
       );
     });
   });
+
+  group('FlareEmptyState', () {
+    testWidgets('loading renders a spinner in place of the icon',
+        (tester) async {
+      await tester.pumpWidget(_host(
+        const FlareEmptyState(
+          title: 'Loading',
+          icon: Icons.chat_bubble_outline,
+          loading: true,
+        ),
+      ));
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byIcon(Icons.chat_bubble_outline), findsNothing);
+      expect(find.text('Loading'), findsOneWidget);
+    });
+
+    testWidgets('renders the glyph when not loading', (tester) async {
+      await tester.pumpWidget(_host(
+        const FlareEmptyState(
+          title: 'Empty',
+          icon: Icons.chat_bubble_outline,
+        ),
+      ));
+      expect(find.byIcon(Icons.chat_bubble_outline), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+    });
+
+    testWidgets('onTap fires when the card is tapped', (tester) async {
+      var tapped = 0;
+      await tester.pumpWidget(_host(
+        FlareEmptyState(
+          title: 'Tap me',
+          onTap: () => tapped += 1,
+        ),
+      ));
+      await tester.tap(find.text('Tap me'));
+      expect(tapped, 1);
+    });
+
+    testWidgets('iconWidget replaces the default glyph', (tester) async {
+      await tester.pumpWidget(_host(
+        const FlareEmptyState(
+          title: 'Custom',
+          icon: Icons.chat_bubble_outline,
+          iconWidget: Icon(Icons.rocket_launch),
+        ),
+      ));
+      expect(find.byIcon(Icons.rocket_launch), findsOneWidget);
+      expect(find.byIcon(Icons.chat_bubble_outline), findsNothing);
+    });
+  });
+
+  group('FlareIconButton', () {
+    testWidgets('tintColor overrides the glyph color', (tester) async {
+      await tester.pumpWidget(_host(
+        FlareIconButton(
+          icon: Icons.search,
+          semanticLabel: 'search',
+          tintColor: const Color(0xFF123456),
+          onPressed: () {},
+        ),
+      ));
+      final icon = tester.widget<Icon>(find.byIcon(Icons.search));
+      expect(icon.color, const Color(0xFF123456));
+    });
+
+    testWidgets('backgroundColor overrides the container color',
+        (tester) async {
+      await tester.pumpWidget(_host(
+        FlareIconButton(
+          icon: Icons.add,
+          semanticLabel: 'add',
+          backgroundColor: const Color(0xFF00FF00),
+          onPressed: () {},
+        ),
+      ));
+      final container = tester.widget<AnimatedContainer>(
+        find.byType(AnimatedContainer),
+      );
+      final decoration = container.decoration! as BoxDecoration;
+      expect(decoration.color, const Color(0xFF00FF00));
+    });
+
+    testWidgets('customSize sets the side and derived glyph size',
+        (tester) async {
+      await tester.pumpWidget(_host(
+        FlareIconButton(
+          icon: Icons.close,
+          semanticLabel: 'close',
+          customSize: 48,
+          onPressed: () {},
+        ),
+      ));
+      final container = tester.widget<AnimatedContainer>(
+        find.byType(AnimatedContainer),
+      );
+      expect(container.constraints?.maxWidth, 48);
+      final icon = tester.widget<Icon>(find.byIcon(Icons.close));
+      // round(48 * 0.46) = round(22.08) = 22
+      expect(icon.size, 22);
+    });
+  });
+
+  group('FlareEmptyState', () {
+    testWidgets('tone:error tints the title with the error color and shows '
+        'a long description', (tester) async {
+      const longDescription =
+          'Failed to load: connection reset by peer while fetching '
+          'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa '
+          'the remote endpoint after several retries and a very long token '
+          'thatdoesnotcontainanyspacesandmustwrapgracefullyacrossmultiplelines.';
+      await tester.pumpWidget(_host(const FlareEmptyState(
+        title: 'Something went wrong',
+        description: longDescription,
+        tone: FlareEmptyStateTone.error,
+      )));
+
+      expect(find.text('Something went wrong'), findsOneWidget);
+      expect(find.text(longDescription), findsOneWidget);
+
+      final errorColor = FlareColors.of(Brightness.light).error;
+      final titleText = tester.widget<Text>(find.text('Something went wrong'));
+      expect(titleText.style?.color, errorColor);
+    });
+  });
 }
