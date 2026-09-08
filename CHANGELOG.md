@@ -1,5 +1,7 @@
 # Changelog
 
+English · [中文](CHANGELOG.zh-CN.md)
+
 All notable changes to the Flare IM UI Kit (`flare-im-design`) are documented here.
 
 The kit is one contract with four implementations — Flutter (`flare_im_ui`), iOS/SwiftUI (`FlareIMUI`), Android/Compose (`com.flare.im:im-ui-compose`) and Vue (`@flare-im/vue-ui`) — versioned together. The format is based on [Keep a Changelog](https://keepachangelog.com); the project follows [Semantic Versioning](https://semver.org).
