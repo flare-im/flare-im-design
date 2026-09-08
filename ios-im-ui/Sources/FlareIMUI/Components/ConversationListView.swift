@@ -48,3 +48,56 @@ public struct ConversationListView: View {
         }
     }
 }
+
+/// Host-rows variant of ``ConversationListView`` — for screens that build each
+/// row themselves (to keep per-row context menus, swipe actions, or a store
+/// subscription) while still getting the kit's standardised empty / loading
+/// treatment and lazy scroll wrapper. Bring your own `Item` collection and a
+/// `row` builder; supply an `empty` view for the no-items state.
+///
+/// Complements ``ConversationListView`` (the self-contained `List` variant):
+/// reach for this when the host owns the row visuals/affordances and only wants
+/// the kit to standardise the container.
+public struct ConversationListContainer<Item: Identifiable, Row: View, Empty: View>: View {
+    private let items: [Item]
+    private let loading: Bool
+    private let rowSpacing: CGFloat
+    private let contentInsets: EdgeInsets
+    private let empty: Empty
+    private let row: (Item) -> Row
+
+    public init(
+        items: [Item],
+        loading: Bool = false,
+        rowSpacing: CGFloat = 0,
+        contentInsets: EdgeInsets = EdgeInsets(),
+        @ViewBuilder empty: () -> Empty,
+        @ViewBuilder row: @escaping (Item) -> Row
+    ) {
+        self.items = items
+        self.loading = loading
+        self.rowSpacing = rowSpacing
+        self.contentInsets = contentInsets
+        self.empty = empty()
+        self.row = row
+    }
+
+    public var body: some View {
+        if items.isEmpty {
+            if loading {
+                ProgressView()
+            } else {
+                empty
+            }
+        } else {
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: rowSpacing) {
+                    ForEach(items) { item in
+                        row(item)
+                    }
+                }
+                .padding(contentInsets)
+            }
+        }
+    }
+}

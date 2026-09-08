@@ -154,14 +154,15 @@ public struct SegmentedControlView: View {
                 let active = i == selectedIndex
                 Button { onSelect?(i) } label: {
                     Text(label)
-                        .font(.system(size: 13, weight: .medium))
+                        .font(.system(size: 14, weight: active ? .semibold : .medium))
                         .foregroundColor(active ? colors.primary : colors.textSecondary)
-                        .frame(minWidth: 64).padding(.horizontal, 16).padding(.vertical, 6)
+                        .frame(maxWidth: .infinity).padding(.vertical, 8)
                         .background(
                             RoundedRectangle(cornerRadius: FlareSizes.radiusMd)
                                 .fill(active ? colors.bgPrimary : Color.clear)
-                                .shadow(color: active ? Color.black.opacity(0.1) : .clear, radius: 3, y: 1)
+                                .shadow(color: active ? Color.black.opacity(0.12) : .clear, radius: 4, y: 1)
                         )
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             }

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { ChatbubbleOutline, ChevronDownOutline, InformationCircleOutline, LockClosedOutline, LogInOutline, PersonOutline } from "../../shared/icon-glyphs";
+import { ChevronDownOutline, InformationCircleOutline, LockClosedOutline, LogInOutline, PersonOutline } from "../../shared/icon-glyphs";
 import { NButton, NCollapseTransition, NForm, NFormItem, NIcon, NInput, NSelect } from "naive-ui";
 import { useViewport } from "../../composables/useViewport";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
+import FlareBrandLogo from "../general/FlareBrandLogo.vue";
 
 type AuthTransportMode = "websocket" | "quic" | "race";
 
@@ -22,6 +23,9 @@ const props = withDefaults(defineProps<{
   /** 为 true 时展开「服务器地址（可选）」区——登录因缺签名密钥失败时用，
    *  把密钥 / token 输入框直接露给用户，而不是让他去猜。 */
   advancedOpen?: boolean;
+  /** 为 true 时隐藏接入 token 输入框（走 SDK 托管：核心向 Gateway 签发并自动刷新）。
+   *  默认 false 保持既有行为不变。 */
+  hideToken?: boolean;
   loading?: boolean;
 }>(), {
   token: "",
@@ -30,6 +34,7 @@ const props = withDefaults(defineProps<{
   tlsCaCertPath: "",
   showTransportSelector: false,
   advancedOpen: false,
+  hideToken: false,
 });
 
 const emit = defineEmits<{
@@ -88,9 +93,7 @@ function updateTransportMode(value: string | number | boolean | null): void {
     <section class="auth-brand" aria-hidden="false">
       <div class="auth-brand__ambient" aria-hidden="true" />
       <div class="brand-lockup">
-        <div class="brand-mark brand-mark--large" aria-hidden="true">
-          <n-icon :component="ChatbubbleOutline" />
-        </div>
+        <FlareBrandLogo :size="64" variant="plate" />
         <div class="brand-lockup__text">
           <h1>{{ t("login.brandTitle") }}</h1>
           <p>{{ t("login.brandSubtitle") }}</p>
@@ -181,7 +184,7 @@ function updateTransportMode(value: string | number | boolean | null): void {
               <n-form-item :label="t('login.dataUrlLabel')">
                 <n-input :value="dataUrl" @update:value="emit('update:dataUrl', $event)" />
               </n-form-item>
-              <n-form-item :label="t('login.tokenLabel')">
+              <n-form-item v-if="!hideToken" :label="t('login.tokenLabel')">
                 <n-input
                   :value="token"
                   type="password"

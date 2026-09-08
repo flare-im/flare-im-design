@@ -28,29 +28,30 @@ class FlareSegmentedControl extends StatelessWidget {
         border: Border.all(color: colors.borderPrimary),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: List.generate(options.length, (i) {
           final active = i == selectedIndex;
-          return GestureDetector(
-            onTap: () => onSelect?.call(i),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              constraints: const BoxConstraints(minWidth: 64),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              decoration: BoxDecoration(
-                color: active ? colors.bgPrimary : Colors.transparent,
-                borderRadius: BorderRadius.circular(FlareSizes.radiusMd),
-                boxShadow: active
-                    ? [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 3, offset: const Offset(0, 1))]
-                    : null,
-              ),
-              child: Text(
-                options[i],
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: active ? colors.primary : colors.textSecondary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => onSelect?.call(i),
+              behavior: HitTestBehavior.opaque,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color: active ? colors.bgPrimary : Colors.transparent,
+                  borderRadius: BorderRadius.circular(FlareSizes.radiusMd),
+                  boxShadow: active
+                      ? [BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 4, offset: const Offset(0, 1))]
+                      : null,
+                ),
+                child: Text(
+                  options[i],
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: active ? colors.primary : colors.textSecondary,
+                    fontSize: 14,
+                    fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+                  ),
                 ),
               ),
             ),

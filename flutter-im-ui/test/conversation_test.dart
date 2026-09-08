@@ -71,6 +71,37 @@ void main() {
       await tester.tap(find.text('Alpha'));
       expect(tapped, isTrue);
     });
+
+    testWidgets('previewSpansBuilder replaces the plain preview body', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(FlareConversationRow(
+          item: _row('c1', 'A', preview: 'plain text'),
+          previewSpansBuilder: (context, base) => [
+            const WidgetSpan(child: Icon(Icons.emoji_emotions, size: 12)),
+            const TextSpan(text: 'rich body'),
+          ],
+        )),
+      );
+      expect(find.byIcon(Icons.emoji_emotions), findsOneWidget);
+      expect(find.textContaining('rich body'), findsOneWidget);
+      expect(find.textContaining('plain text'), findsNothing);
+    });
+
+    testWidgets('previewSpansBuilder is ignored while a draft exists', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(FlareConversationRow(
+          item: _row('c1', 'A', draft: 'wip'),
+          previewSpansBuilder: (context, base) =>
+              const [TextSpan(text: 'should not show')],
+        )),
+      );
+      expect(find.textContaining('wip'), findsOneWidget);
+      expect(find.textContaining('should not show'), findsNothing);
+    });
   });
 
   group('FlareConversationList', () {
@@ -103,6 +134,47 @@ void main() {
       )));
       await tester.tap(find.text('Two'));
       expect(picked?.id, 'c2');
+    });
+  });
+
+  group('FlareConversationSliverList', () {
+    Widget sliverHost(Widget sliver) =>
+        _host(CustomScrollView(slivers: [sliver]));
+
+    testWidgets('builds one row per id via rowBuilder', (tester) async {
+      final built = <String>[];
+      await tester.pumpWidget(sliverHost(FlareConversationSliverList(
+        ids: const ['a', 'b'],
+        rowBuilder: (context, id) {
+          built.add(id);
+          return SizedBox(height: 40, child: Text('row-$id'));
+        },
+      )));
+      expect(built, ['a', 'b']);
+      expect(find.text('row-a'), findsOneWidget);
+      expect(find.text('row-b'), findsOneWidget);
+    });
+
+    testWidgets('empty ids show the host placeholder', (tester) async {
+      await tester.pumpWidget(sliverHost(FlareConversationSliverList(
+        ids: const [],
+        emptyPlaceholder: const Text('nothing here'),
+        rowBuilder: (context, id) => const SizedBox.shrink(),
+      )));
+      expect(find.text('nothing here'), findsOneWidget);
+    });
+
+    testWidgets('empty + loading shows a spinner, not the placeholder', (
+      tester,
+    ) async {
+      await tester.pumpWidget(sliverHost(FlareConversationSliverList(
+        ids: const [],
+        loading: true,
+        emptyPlaceholder: const Text('nothing here'),
+        rowBuilder: (context, id) => const SizedBox.shrink(),
+      )));
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('nothing here'), findsNothing);
     });
   });
 }

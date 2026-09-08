@@ -76,4 +76,53 @@ void main() {
     expect(FlareColors.of(Brightness.light).bgPrimary,
         isNot(FlareColors.of(Brightness.dark).bgPrimary));
   });
+
+  group('FlareFilterTabs', () {
+    const options = [
+      FlareFilterTabOption(value: 'all', label: 'All'),
+      FlareFilterTabOption(value: 'unread', label: 'Unread', badge: 3),
+      FlareFilterTabOption(value: 'mention', label: 'Mentions'),
+    ];
+
+    testWidgets('renders every option label and the badge', (tester) async {
+      await tester.pumpWidget(_host(
+        FlareFilterTabs(options: options, selected: 'all', onSelect: (_) {}),
+      ));
+      expect(find.text('All'), findsOneWidget);
+      expect(find.text('Unread'), findsOneWidget);
+      expect(find.text('Mentions'), findsOneWidget);
+      expect(find.text('3'), findsOneWidget);
+    });
+
+    testWidgets('tapping an option reports its value', (tester) async {
+      String? picked;
+      await tester.pumpWidget(_host(
+        FlareFilterTabs(
+          options: options,
+          selected: 'all',
+          onSelect: (value) => picked = value,
+        ),
+      ));
+      await tester.tap(find.text('Mentions'));
+      expect(picked, 'mention');
+    });
+
+    testWidgets('honours a custom content padding', (tester) async {
+      await tester.pumpWidget(_host(
+        FlareFilterTabs(
+          options: options,
+          selected: 'all',
+          onSelect: (_) {},
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 2),
+        ),
+      ));
+      final scroll = tester.widget<SingleChildScrollView>(
+        find.byType(SingleChildScrollView),
+      );
+      expect(
+        scroll.padding,
+        const EdgeInsets.symmetric(horizontal: 18, vertical: 2),
+      );
+    });
+  });
 }

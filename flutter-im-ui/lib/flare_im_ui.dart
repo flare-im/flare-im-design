@@ -63,6 +63,7 @@ export 'src/components/flare_icon_button.dart';
 export 'src/components/flare_image_grid.dart';
 export 'src/components/flare_image_preview.dart';
 export 'src/components/flare_incoming_call.dart';
+export 'src/components/flare_brand_logo.dart';
 export 'src/components/flare_input.dart';
 export 'src/components/flare_markdown_preview.dart';
 export 'src/components/flare_mention_picker.dart';

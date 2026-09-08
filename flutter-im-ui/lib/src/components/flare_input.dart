@@ -14,6 +14,7 @@ class FlareInput extends StatefulWidget {
     this.maxLength,
     this.disabled = false,
     this.clearable = false,
+    this.autofocus = false,
     this.onChanged,
     this.onSubmitted,
   });
@@ -27,6 +28,9 @@ class FlareInput extends StatefulWidget {
   final int? maxLength;
   final bool disabled;
   final bool clearable;
+
+  /// Request focus when first shown (e.g. the primary field in a dialog).
+  final bool autofocus;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
 
@@ -92,6 +96,7 @@ class _FlareInputState extends State<FlareInput> {
       obscureText: widget.secure && !widget.multiline,
                   controller: _controller,
                   focusNode: _focus,
+                  autofocus: widget.autofocus,
                   enabled: !widget.disabled,
                   minLines: 1,
                   maxLines: widget.multiline ? 6 : 1,

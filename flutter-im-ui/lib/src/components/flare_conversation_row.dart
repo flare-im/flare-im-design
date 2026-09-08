@@ -21,9 +21,19 @@ class FlareConversationRow extends StatelessWidget {
     this.mentionLabel = '[@me] ',
     this.onSelect,
     this.onAction,
+    this.previewSpansBuilder,
   });
 
   final ConversationRowData item;
+
+  /// Optional host-provided rich preview body. When non-null (and the row has no
+  /// draft), the kit renders these spans as the last-message preview instead of
+  /// the plain [ConversationRowData.preview] text — letting a host inline emoji /
+  /// sticker [WidgetSpan]s while the kit keeps owning the draft / mention prefix,
+  /// muted icon, styling and single-line ellipsis. Return spans styled from the
+  /// supplied [baseStyle] so they match the row. `null` ⇒ plain-text preview.
+  final List<InlineSpan> Function(BuildContext context, TextStyle baseStyle)?
+      previewSpansBuilder;
 
   /// Whether this row is the open conversation (selected background).
   final bool active;
@@ -111,7 +121,7 @@ class FlareConversationRow extends StatelessWidget {
                     const SizedBox(height: FlareSizes.spacingXs + 2),
                     Row(
                       children: [
-                        Expanded(child: _preview(colors)),
+                        Expanded(child: _preview(context, colors)),
                         if (item.hasUnread) ...[
                           const SizedBox(width: FlareSizes.spacingSm),
                           // Muted conversations don't shout — a quiet neutral dot
@@ -140,7 +150,7 @@ class FlareConversationRow extends StatelessWidget {
     );
   }
 
-  Widget _preview(FlareColors colors) {
+  Widget _preview(BuildContext context, FlareColors colors) {
     final base = TextStyle(
       fontSize: FlareSizes.fontSizeLg,
       color: colors.textSecondary,
@@ -167,7 +177,13 @@ class FlareConversationRow extends StatelessWidget {
           ),
         ));
       }
-      spans.add(TextSpan(text: item.preview));
+      // Host may inline emoji / sticker WidgetSpans; else plain preview text.
+      final richBody = previewSpansBuilder?.call(context, base);
+      if (richBody != null) {
+        spans.addAll(richBody);
+      } else {
+        spans.add(TextSpan(text: item.preview));
+      }
     }
 
     final text = Text.rich(

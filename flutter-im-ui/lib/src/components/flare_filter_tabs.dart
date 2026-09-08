@@ -24,17 +24,22 @@ class FlareFilterTabs extends StatelessWidget {
     required this.options,
     required this.selected,
     required this.onSelect,
+    this.padding = const EdgeInsets.all(2),
   });
 
   final List<FlareFilterTabOption> options;
   final String selected;
   final ValueChanged<String> onSelect;
 
+  /// Content padding for the scroll viewport (tabs scroll under it). Lets a host
+  /// give the row its own horizontal gutter without breaking the scroll edges.
+  final EdgeInsetsGeometry padding;
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.all(2),
+      padding: padding,
       child: Row(
         children: [
           for (var i = 0; i < options.length; i++) ...[
