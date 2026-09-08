@@ -103,7 +103,12 @@ class FlareSettingsRow extends StatelessWidget {
             Expanded(
                 child: Text(item.label,
                     style: TextStyle(
-                        color: colors.textPrimary, fontSize: FlareSizes.fontSizeLg))),
+                        color: colors.textPrimary,
+                        fontSize: FlareSizes.fontSizeLg,
+                        fontWeight:
+                            item.kind == FlareSettingKind.select && item.value
+                                ? FontWeight.w700
+                                : FontWeight.w400))),
             switch (item.kind) {
               FlareSettingKind.toggle => Switch(
                   value: item.value,
@@ -113,6 +118,10 @@ class FlareSettingsRow extends StatelessWidget {
               FlareSettingKind.value => Text(item.detail ?? '',
                   style: TextStyle(
                       color: colors.textTertiary, fontSize: FlareSizes.fontSizeMd)),
+              // Pick-one row: a trailing check when this item is the selected one.
+              FlareSettingKind.select => item.value
+                  ? Icon(Icons.check_circle, color: colors.primary)
+                  : const SizedBox.shrink(),
               FlareSettingKind.navigation => Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [

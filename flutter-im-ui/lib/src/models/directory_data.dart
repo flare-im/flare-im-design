@@ -186,7 +186,9 @@ class FlareSelectOption {
   });
 }
 
-enum FlareSettingKind { navigation, toggle, value }
+/// [navigation] detail + chevron, [toggle] a switch, [value] read-only detail,
+/// [select] a pick-one row showing a trailing check when [FlareSettingsItem.value].
+enum FlareSettingKind { navigation, toggle, value, select }
 
 class FlareSettingsItem {
   const FlareSettingsItem({

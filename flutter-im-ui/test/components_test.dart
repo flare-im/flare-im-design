@@ -250,4 +250,46 @@ void main() {
       expect(titleText.style?.color, errorColor);
     });
   });
+
+  group('FlareSettingsList select kind', () {
+    testWidgets('select rows show a check only on the selected item', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_host(FlareSettingsList(
+        sections: const [
+          FlareSettingsSection(items: [
+            FlareSettingsItem(
+                key: 'zh',
+                label: '简体中文',
+                kind: FlareSettingKind.select,
+                value: true),
+            FlareSettingsItem(
+                key: 'en',
+                label: 'English',
+                kind: FlareSettingKind.select,
+                value: false),
+          ]),
+        ],
+      )));
+      expect(find.byIcon(Icons.check_circle), findsOneWidget);
+    });
+
+    testWidgets('tapping a select row reports its item', (tester) async {
+      FlareSettingsItem? picked;
+      await tester.pumpWidget(_host(FlareSettingsList(
+        sections: const [
+          FlareSettingsSection(items: [
+            FlareSettingsItem(
+                key: 'en',
+                label: 'English',
+                kind: FlareSettingKind.select,
+                value: false),
+          ]),
+        ],
+        onSelect: (item) => picked = item,
+      )));
+      await tester.tap(find.text('English'));
+      expect(picked?.key, 'en');
+    });
+  });
 }
