@@ -16,6 +16,7 @@ title: MessageList
   <MessageListDemo />
 </div>
 
+
 ## Props
 
 | Name | Type | Req. | Default | Description |
@@ -31,18 +32,20 @@ title: MessageList
 | `bottomInset` | `number` |  | — | Extra bottom padding (e.g. above the composer). |
 | `menuConfig` | `MessageMenuConfig` |  | — | Enabled long-press actions across the list. |
 | `mediaDownloadStates` | `Record<string, MessageMediaDownloadUiState>` |  | — | Map of messageId → media download state. |
+| `olderError` | `string \| null` |  | — | Recoverable pagination error, retaining existing messages. |
+| `loadOlderText` | `string` |  | — | Localized load/retry label. |
 
 
 ## States
 
-<span class="flare-tag">loading</span> <span class="flare-tag">empty</span> <span class="flare-tag">loadingOlder</span> <span class="flare-tag">atBottom</span> <span class="flare-tag">multiSelect</span>
+<span class="flare-tag">loading</span> <span class="flare-tag">empty</span> <span class="flare-tag">loadingOlder</span> <span class="flare-tag">atBottom</span> <span class="flare-tag">multiSelect</span> <span class="flare-tag">olderError</span>
 
 ## Events
 
-<span class="flare-tag">atBottomChange</span> <span class="flare-tag">react</span> <span class="flare-tag">reply</span> <span class="flare-tag">edit</span> <span class="flare-tag">delete</span> <span class="flare-tag">recall</span> <span class="flare-tag">forward</span> <span class="flare-tag">pin</span> <span class="flare-tag">mark</span> <span class="flare-tag">preview</span> <span class="flare-tag">resend</span> <span class="flare-tag">mediaAction</span> <span class="flare-tag">multiSelect</span>
+<span class="flare-tag">atBottomChange</span> <span class="flare-tag">react</span> <span class="flare-tag">reply</span> <span class="flare-tag">edit</span> <span class="flare-tag">delete</span> <span class="flare-tag">recall</span> <span class="flare-tag">forward</span> <span class="flare-tag">pin</span> <span class="flare-tag">mark</span> <span class="flare-tag">preview</span> <span class="flare-tag">resend</span> <span class="flare-tag">mediaAction</span> <span class="flare-tag">multiSelect</span> <span class="flare-tag">load-older</span> <span class="flare-tag">toggle-select</span>
 
 > [!TIP]
-> 60fps virtualised; O(visible); scroll anchoring on append/prepend.
+> 60fps virtualised; O(visible); scroll anchoring on append/prepend. toggle-select exists only on Vue and Flutter (onToggleSelect); iOS and Compose do not offer it yet. locate-message is Vue-only (in-workbench jump-to-message); native hosts handle it themselves.
 
 ## Platform implementations
 

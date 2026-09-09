@@ -16,6 +16,7 @@ title: CallControls
   <CallControlsDemo />
 </div>
 
+
 ## Props
 
 | Name | Type | Req. | Default | Description |
@@ -33,6 +34,9 @@ title: CallControls
 ## Events
 
 <span class="flare-tag">toggleMute</span> <span class="flare-tag">toggleCamera</span> <span class="flare-tag">toggleSpeaker</span> <span class="flare-tag">switchCamera</span> <span class="flare-tag">hangup</span>
+
+> [!TIP]
+> addMember is Vue-only; the natives put invite-to-call on GroupCallView (onAddMember) rather than on the generic control bar.
 
 ## Platform implementations
 

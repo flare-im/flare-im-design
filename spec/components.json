@@ -1368,11 +1368,14 @@
         "delete",
         "pin",
         "mark",
-        "preview"
+        "preview",
+        "mediaAction",
+        "resend",
+        "toggle-select"
       ],
       "notes": {
-        "en": "Optimistic: status from the core view, never a network wait.",
-        "zh": "乐观：status 来自 core 视图，绝不等网络。"
+        "en": "Optimistic: status from the core view, never a network wait. toggle-select exists only on Vue and Flutter (onToggleSelect); iOS and Compose do not offer it yet. forward / multiSelect / recall / locate-message are Vue-only: the native bubble raises onLongPress and the host opens MessageActionSheet, whose onAction dispatches those, rather than exposing a callback per action on the bubble.",
+        "zh": "乐观：status 来自 core 视图，绝不等网络。 toggle-select 目前只有 Vue 与 Flutter(onToggleSelect),iOS/Compose 尚未提供。forward / multiSelect / recall / locate-message 是 Vue 专有:原生端气泡只抛 onLongPress,转发、多选、撤回由宿主打开 MessageActionSheet 后经其 onAction 分发,不在气泡上单独开回调。"
       },
       "platforms": {
         "vue": {
@@ -1535,11 +1538,12 @@
         "resend",
         "mediaAction",
         "multiSelect",
-        "load-older"
+        "load-older",
+        "toggle-select"
       ],
       "notes": {
-        "en": "60fps virtualised; O(visible); scroll anchoring on append/prepend.",
-        "zh": "60fps 虚拟化；O(visible)；追加 / 前插时锚定滚动位。"
+        "en": "60fps virtualised; O(visible); scroll anchoring on append/prepend. toggle-select exists only on Vue and Flutter (onToggleSelect); iOS and Compose do not offer it yet. locate-message is Vue-only (in-workbench jump-to-message); native hosts handle it themselves.",
+        "zh": "60fps 虚拟化；O(visible)；追加 / 前插时锚定滚动位。 toggle-select 目前只有 Vue 与 Flutter(onToggleSelect),iOS/Compose 尚未提供。locate-message 是 Vue 专有(工作台内跳转定位),原生端由宿主自行处理。"
       },
       "platforms": {
         "vue": {
@@ -3011,6 +3015,10 @@
           "package": "com.flare.im:im-ui-compose",
           "symbol": "RichMarkdownInput"
         }
+      },
+      "notes": {
+        "zh": "format-state-change 是 Vue 专有:它把工具栏的加粗/斜体等激活态回传给宿主渲染工具栏,原生端工具栏在组件内部,不需要外抛。",
+        "en": "format-state-change is Vue-only: it reports toolbar bold/italic active state back to a host-rendered toolbar. The native toolbars live inside the component, so nothing needs to be raised."
       }
     },
     {
@@ -3400,8 +3408,8 @@
         }
       },
       "notes": {
-        "en": "Text changes travel over v-model (update:modelValue), not an input event; the native equivalents are Flutter onChanged / Compose onValueChange / iOS Binding<String>. clear is Vue-only — native platforms clear the binding internally.",
-        "zh": "文本变化走 v-model(update:modelValue),不是 input 事件;原生端对应 Flutter onChanged / Compose onValueChange / iOS Binding<String>。clear 目前只有 Vue 有(原生端在内部清空绑定)。"
+        "en": "Text changes travel over v-model (update:modelValue), not an input event; the native equivalents are Flutter onChanged / Compose onValueChange / iOS `Binding<String>`. clear is Vue-only — native platforms clear the binding internally.",
+        "zh": "文本变化走 v-model(update:modelValue),不是 input 事件;原生端对应 Flutter onChanged / Compose onValueChange / iOS `Binding<String>`。clear 目前只有 Vue 有(原生端在内部清空绑定)。"
       }
     },
     {
@@ -3544,7 +3552,8 @@
         "default"
       ],
       "events": [
-        "action"
+        "action",
+        "tap"
       ],
       "platforms": {
         "vue": {
@@ -4338,8 +4347,8 @@
         "recover"
       ],
       "notes": {
-        "en": "Video track uses a host-injected render slot; the control bar is CallControls.",
-        "zh": "视频轨道用宿主注入的渲染 slot；控制条为 CallControls。"
+        "en": "Video track uses a host-injected render slot; the control bar is CallControls. minimize is Vue-only (desktop picture-in-picture); on the natives, minimising belongs to the host navigation layer, so the component raises nothing.",
+        "zh": "视频轨道用宿主注入的渲染 slot；控制条为 CallControls。 minimize 是 Vue 专有(桌面端收进小窗),原生端最小化由宿主的导航层负责,组件不外抛。"
       },
       "platforms": {
         "vue": {
@@ -4499,6 +4508,10 @@
           "package": "com.flare.im:im-ui-compose",
           "symbol": "CallControls"
         }
+      },
+      "notes": {
+        "zh": "addMember 是 Vue 专有;原生端把「加人」放在 GroupCallView 上(onAddMember),不在通用控件条里。",
+        "en": "addMember is Vue-only; the natives put invite-to-call on GroupCallView (onAddMember) rather than on the generic control bar."
       }
     },
     {
@@ -7277,7 +7290,8 @@
         "openImage",
         "selectAuthor",
         "selectLiker",
-        "selectComment"
+        "selectComment",
+        "delete"
       ],
       "platforms": {
         "vue": {
@@ -7411,7 +7425,8 @@
       "states": [],
       "events": [
         "like",
-        "comment"
+        "comment",
+        "delete"
       ],
       "platforms": {
         "vue": {

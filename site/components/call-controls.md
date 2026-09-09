@@ -16,6 +16,7 @@ title: CallControls
   <CallControlsDemo />
 </div>
 
+
 ## Props
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
@@ -33,6 +34,9 @@ title: CallControls
 ## Events
 
 <span class="flare-tag">toggleMute</span> <span class="flare-tag">toggleCamera</span> <span class="flare-tag">toggleSpeaker</span> <span class="flare-tag">switchCamera</span> <span class="flare-tag">hangup</span>
+
+> [!TIP]
+> addMember 是 Vue 专有;原生端把「加人」放在 GroupCallView 上(onAddMember),不在通用控件条里。
 
 ## 各端实现
 

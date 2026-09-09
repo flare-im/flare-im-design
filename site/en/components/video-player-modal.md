@@ -58,10 +58,9 @@ import { FlareVideoPreview } from "@flare-im/vue-ui";
 </script>
 <template>
   <FlareVideoPreview
-  :show="show"
+  v-model:show="show"
   :videoSrc="videoSrc"
   :poster="poster"
-  @update:show="onUpdate:show"
   />
 </template>
 ```
@@ -71,12 +70,11 @@ FlareVideoPlayer(
   show: show,
   videoSrc: videoSrc,
   poster: poster,
-  onUpdate:show: onUpdate:show,
 );
 ```
 
 ```swift [iOS]
-VideoPlayerView(show: show, videoSrc: videoSrc, poster: poster, onUpdate:show: onUpdate:show)
+VideoPlayerView(show: show, videoSrc: videoSrc, poster: poster)
 ```
 
 ```kotlin [Android]
@@ -84,7 +82,6 @@ VideoPlayer(
   show = show,
   videoSrc = videoSrc,
   poster = poster,
-  onUpdate:show = onUpdate:show,
 )
 ```
 

@@ -16,6 +16,7 @@ title: RichMarkdownInput
   <RichMarkdownInputDemo />
 </div>
 
+
 ## Props
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
@@ -34,10 +35,13 @@ title: RichMarkdownInput
 
 <span class="flare-tag">focus</span> <span class="flare-tag">blur</span> <span class="flare-tag">keydown</span>
 
+> [!TIP]
+> format-state-change 是 Vue 专有:它把工具栏的加粗/斜体等激活态回传给宿主渲染工具栏,原生端工具栏在组件内部,不需要外抛。
+
 ## 各端实现
 
 <div class="flare-platform-grid">
-  <div class="flare-platform-card"><h4>Vue</h4><div><code>ComposerRichMarkdownInput</code></div><div style="color:var(--vp-c-text-3);font-size:12px;margin-top:4px">@flare-im/vue-ui</div></div>
+  <div class="flare-platform-card"><h4>Vue</h4><div><code>FlareComposerRichInput</code></div><div style="color:var(--vp-c-text-3);font-size:12px;margin-top:4px">@flare-im/vue-ui</div></div>
   <div class="flare-platform-card"><h4>Flutter</h4><div><code>FlareRichMarkdownInput</code></div><div style="color:var(--vp-c-text-3);font-size:12px;margin-top:4px">flare_im_ui</div></div>
   <div class="flare-platform-card"><h4>iOS</h4><div><code>RichMarkdownInputView</code></div><div style="color:var(--vp-c-text-3);font-size:12px;margin-top:4px">FlareIMUI</div></div>
   <div class="flare-platform-card"><h4>Android · Compose</h4><div><code>RichMarkdownInput</code></div><div style="color:var(--vp-c-text-3);font-size:12px;margin-top:4px">com.flare.im:im-ui-compose</div></div>
@@ -50,10 +54,10 @@ title: RichMarkdownInput
 
 ```vue [Vue]
 <script setup>
-import { ComposerRichMarkdownInput } from "@flare-im/vue-ui";
+import { FlareComposerRichInput } from "@flare-im/vue-ui";
 </script>
 <template>
-  <ComposerRichMarkdownInput
+  <FlareComposerRichInput
   :disabled="disabled"
   :formattingPreview="formattingPreview"
   :maxLength="maxLength"

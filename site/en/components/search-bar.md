@@ -35,7 +35,7 @@ title: SearchBar
 <span class="flare-tag">update:modelValue</span> <span class="flare-tag">submit</span> <span class="flare-tag">clear</span>
 
 > [!TIP]
-> Text changes travel over v-model (update:modelValue), not an input event; the native equivalents are Flutter onChanged / Compose onValueChange / iOS Binding<String>. clear is Vue-only — native platforms clear the binding internally.
+> Text changes travel over v-model (update:modelValue), not an input event; the native equivalents are Flutter onChanged / Compose onValueChange / iOS `Binding<String>`. clear is Vue-only — native platforms clear the binding internally.
 
 ## Platform implementations
 
@@ -57,10 +57,9 @@ import { FlareSearchBar } from "@flare-im/vue-ui";
 </script>
 <template>
   <FlareSearchBar
-  :modelValue="modelValue"
+  v-model="modelValue"
   :placeholder="placeholder"
   :loading="loading"
-  @update:modelValue="onUpdate:modelValue"
   @submit="onSubmit"
   @clear="onClear"
   />
@@ -72,14 +71,13 @@ FlareSearchBar(
   modelValue: modelValue,
   placeholder: placeholder,
   loading: loading,
-  onUpdate:modelValue: onUpdate:modelValue,
   onSubmit: onSubmit,
   onClear: onClear,
 );
 ```
 
 ```swift [iOS]
-SearchBarView(modelValue: modelValue, placeholder: placeholder, loading: loading, onUpdate:modelValue: onUpdate:modelValue, onSubmit: onSubmit, onClear: onClear)
+SearchBarView(modelValue: modelValue, placeholder: placeholder, loading: loading, onSubmit: onSubmit, onClear: onClear)
 ```
 
 ```kotlin [Android]
@@ -87,7 +85,6 @@ SearchBar(
   modelValue = modelValue,
   placeholder = placeholder,
   loading = loading,
-  onUpdate:modelValue = onUpdate:modelValue,
   onSubmit = onSubmit,
   onClear = onClear,
 )

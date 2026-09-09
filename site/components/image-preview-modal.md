@@ -62,10 +62,9 @@ import { FlareImagePreview } from "@flare-im/vue-ui";
 </script>
 <template>
   <FlareImagePreview
-  :show="show"
+  v-model:show="show"
   :imageSrc="imageSrc"
   :loading="loading"
-  @update:show="onUpdate:show"
   @primary-action="onPrimaryAction"
   />
 </template>
@@ -76,13 +75,12 @@ FlareImagePreview(
   show: show,
   imageSrc: imageSrc,
   loading: loading,
-  onUpdate:show: onUpdate:show,
   onPrimaryAction: onPrimaryAction,
 );
 ```
 
 ```swift [iOS]
-ImagePreviewView(show: show, imageSrc: imageSrc, loading: loading, onUpdate:show: onUpdate:show, onPrimaryAction: onPrimaryAction)
+ImagePreviewView(show: show, imageSrc: imageSrc, loading: loading, onPrimaryAction: onPrimaryAction)
 ```
 
 ```kotlin [Android]
@@ -90,7 +88,6 @@ ImagePreview(
   show = show,
   imageSrc = imageSrc,
   loading = loading,
-  onUpdate:show = onUpdate:show,
   onPrimaryAction = onPrimaryAction,
 )
 ```

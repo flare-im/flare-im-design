@@ -35,7 +35,7 @@ title: SearchBar
 <span class="flare-tag">update:modelValue</span> <span class="flare-tag">submit</span> <span class="flare-tag">clear</span>
 
 > [!TIP]
-> 文本变化走 v-model(update:modelValue),不是 input 事件;原生端对应 Flutter onChanged / Compose onValueChange / iOS Binding<String>。clear 目前只有 Vue 有(原生端在内部清空绑定)。
+> 文本变化走 v-model(update:modelValue),不是 input 事件;原生端对应 Flutter onChanged / Compose onValueChange / iOS `Binding<String>`。clear 目前只有 Vue 有(原生端在内部清空绑定)。
 
 ## 各端实现
 
@@ -57,10 +57,9 @@ import { FlareSearchBar } from "@flare-im/vue-ui";
 </script>
 <template>
   <FlareSearchBar
-  :modelValue="modelValue"
+  v-model="modelValue"
   :placeholder="placeholder"
   :loading="loading"
-  @update:modelValue="onUpdate:modelValue"
   @submit="onSubmit"
   @clear="onClear"
   />
@@ -72,14 +71,13 @@ FlareSearchBar(
   modelValue: modelValue,
   placeholder: placeholder,
   loading: loading,
-  onUpdate:modelValue: onUpdate:modelValue,
   onSubmit: onSubmit,
   onClear: onClear,
 );
 ```
 
 ```swift [iOS]
-SearchBarView(modelValue: modelValue, placeholder: placeholder, loading: loading, onUpdate:modelValue: onUpdate:modelValue, onSubmit: onSubmit, onClear: onClear)
+SearchBarView(modelValue: modelValue, placeholder: placeholder, loading: loading, onSubmit: onSubmit, onClear: onClear)
 ```
 
 ```kotlin [Android]
@@ -87,7 +85,6 @@ SearchBar(
   modelValue = modelValue,
   placeholder = placeholder,
   loading = loading,
-  onUpdate:modelValue = onUpdate:modelValue,
   onSubmit = onSubmit,
   onClear = onClear,
 )

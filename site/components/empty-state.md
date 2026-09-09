@@ -16,6 +16,7 @@ title: EmptyState
   <EmptyStateDemo />
 </div>
 
+
 ## Props
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
@@ -31,7 +32,7 @@ title: EmptyState
 
 ## Events
 
-<span class="flare-tag">action</span>
+<span class="flare-tag">action</span> <span class="flare-tag">tap</span>
 
 ## 各端实现
 
@@ -57,6 +58,7 @@ import { FlareEmptyState } from "@flare-im/vue-ui";
   :description="description"
   :actionText="actionText"
   @action="onAction"
+  @tap="onTap"
   />
 </template>
 ```
@@ -67,11 +69,12 @@ FlareEmptyState(
   description: description,
   actionText: actionText,
   onAction: onAction,
+  onTap: onTap,
 );
 ```
 
 ```swift [iOS]
-EmptyStateView(title: title, description: description, actionText: actionText, onAction: onAction)
+EmptyStateView(title: title, description: description, actionText: actionText, onAction: onAction, onTap: onTap)
 ```
 
 ```kotlin [Android]
@@ -80,6 +83,7 @@ EmptyState(
   description = description,
   actionText = actionText,
   onAction = onAction,
+  onTap = onTap,
 )
 ```
 

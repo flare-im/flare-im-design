@@ -16,6 +16,7 @@ title: CallView
   <CallViewDemo />
 </div>
 
+
 ## Props
 
 | Name | Type | Req. | Default | Description |
@@ -25,18 +26,20 @@ title: CallView
 | `state` | `'calling' \| 'ringing' \| 'connected' \| 'reconnecting' \| 'failed'` | ✓ | — | Calling / ringing / connected. |
 | `durationLabel` | `string` |  | — | Preformatted elapsed time (mm:ss). |
 | `peerAvatarUrl` | `string` |  | — | Peer avatar, shown for audio calls. |
+| `statusDetail` | `string` |  | — | Host-provided network or permission detail. |
+| `recoveryText` | `string` |  | — | Recovery button label; only shown in failed state. Host owns retry. |
 
 
 ## States
 
-<span class="flare-tag">calling</span> <span class="flare-tag">ringing</span> <span class="flare-tag">connected</span>
+<span class="flare-tag">calling</span> <span class="flare-tag">ringing</span> <span class="flare-tag">connected</span> <span class="flare-tag">reconnecting</span> <span class="flare-tag">failed</span>
 
 ## Events
 
-<span class="flare-tag">hangup</span> <span class="flare-tag">toggleMute</span> <span class="flare-tag">toggleCamera</span> <span class="flare-tag">toggleSpeaker</span> <span class="flare-tag">switchCamera</span>
+<span class="flare-tag">hangup</span> <span class="flare-tag">toggleMute</span> <span class="flare-tag">toggleCamera</span> <span class="flare-tag">toggleSpeaker</span> <span class="flare-tag">switchCamera</span> <span class="flare-tag">recover</span>
 
 > [!TIP]
-> Video track uses a host-injected render slot; the control bar is CallControls.
+> Video track uses a host-injected render slot; the control bar is CallControls. minimize is Vue-only (desktop picture-in-picture); on the natives, minimising belongs to the host navigation layer, so the component raises nothing.
 
 ## Platform implementations
 
@@ -130,11 +133,3 @@ CallView(peerName = "Henry", mode = FlareCallMode.Video, state = FlareCallState.
 ```
 
 :::
-
-## Recovery contract
-
-`statusDetail` carries host-provided network/permission detail. `recoveryText` exposes an explicit action only in `failed`; handle `recover` (Vue) or `onRecover` (native) and immediately set `reconnecting` to prevent duplicate requests. Hangup remains independent. The component does not retry, enumerate devices, or request permissions itself.
-
-Vue `encrypted` now defaults to `false`; set it only when the RTC provider confirms end-to-end encryption. TLS/WSS or a connected signaling channel alone does not establish that property.
-
-Compose/Flutter/Swift callers with exhaustive switches must handle the new `reconnecting` and `failed` cases. A provider's weak-network warning can be supplied through `statusDetail` while preserving `connected`; don't replace actual media lifecycle with signaling readiness.

@@ -23,6 +23,14 @@ const spec = JSON.parse(
 
 const slug = (name) => name.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
 const esc = (s) => String(s).replace(/\|/g, "\\|");
+// Free prose goes into a .md that VitePress compiles as a Vue SFC, so a bare
+// generic like `Binding<String>` is parsed as an unclosed tag and fails the
+// build. Escape angle brackets outside code spans; leave `code` alone.
+const mdText = (s) =>
+  String(s)
+    .split(/(`[^`]*`)/)
+    .map((part) => (part.startsWith("`") ? part : part.replace(/</g, "&lt;").replace(/>/g, "&gt;")))
+    .join("");
 // bilingual field → localized string; plain string → itself (both locales)
 const pick = (f, loc) => (f && typeof f === "object" && "en" in f ? f[loc] : f) ?? "";
 const catLabel = (cat, loc) => spec.categoryLabels?.[cat]?.[loc] ?? cat;
@@ -164,6 +172,11 @@ function platformGrid(platforms) {
 
 const cap1 = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 const camel = (s) => s.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+// `update:x` is a v-model channel, not a callback. Naively prefixing it with "on"
+// produced `@update:modelValue="onUpdate:modelValue"` and `onUpdate:modelValue:` —
+// invalid in every language, and the colon broke the VitePress SFC parse outright.
+const isModelEvent = (ev) => String(ev).startsWith("update:");
+const modelProp = (ev) => String(ev).slice("update:".length);
 const onName = (ev) => "on" + cap1(camel(ev));
 
 function exampleProps(c) {
@@ -178,21 +191,31 @@ function usage(c, t) {
   const props = exampleProps(c);
   const events = (c.events ?? []).slice(0, 3);
 
+  // v-model channels render as v-model on Vue and are dropped from the native
+  // samples, where the value arrives through a binding rather than a callback.
+  const callbacks = events.filter((e) => !isModelEvent(e));
+  const models = events.filter(isModelEvent);
+  // a prop bound through v-model must not also be listed as a plain :prop
+  const modelNames = new Set(models.map(modelProp));
+  const plainProps = props.filter((p) => !modelNames.has(p.name));
   const vueAttrs = [
-    ...props.map((p) => `  :${p.name}="${p.name}"`),
-    ...events.map((e) => `  @${e}="${onName(e)}"`),
+    ...models.map((e) =>
+      modelProp(e) === "modelValue" ? `  v-model="${modelProp(e)}"` : `  v-model:${modelProp(e)}="${modelProp(e)}"`,
+    ),
+    ...plainProps.map((p) => `  :${p.name}="${p.name}"`),
+    ...callbacks.map((e) => `  @${e}="${onName(e)}"`),
   ].join("\n");
   const dartArgs = [
     ...props.map((p) => `  ${p.name}: ${p.name},`),
-    ...events.map((e) => `  ${onName(e)}: ${onName(e)},`),
+    ...callbacks.map((e) => `  ${onName(e)}: ${onName(e)},`),
   ].join("\n");
   const swiftArgs = [
     ...props.map((p) => `${p.name}: ${p.name}`),
-    ...events.map((e) => `${onName(e)}: ${onName(e)}`),
+    ...callbacks.map((e) => `${onName(e)}: ${onName(e)}`),
   ].join(", ");
   const kotlinArgs = [
     ...props.map((p) => `  ${p.name} = ${p.name},`),
-    ...events.map((e) => `  ${onName(e)} = ${onName(e)},`),
+    ...callbacks.map((e) => `  ${onName(e)} = ${onName(e)},`),
   ].join("\n");
 
   // Only emit code blocks for the platforms a component actually ships on
@@ -264,7 +287,7 @@ ${tagList(c.states, t)}
 ## ${t.events}
 
 ${tagList(c.events, t)}
-${c.notes ? `\n> [!TIP]\n> ${pick(c.notes, loc)}\n` : ""}
+${c.notes ? `\n> [!TIP]\n> ${mdText(pick(c.notes, loc))}\n` : ""}
 ## ${t.impl}
 
 ${platformGrid(c.platforms)}

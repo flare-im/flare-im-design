@@ -60,10 +60,9 @@ import { FlareInput } from "@flare-im/vue-ui";
 </script>
 <template>
   <FlareInput
-  :modelValue="modelValue"
+  v-model="modelValue"
   :placeholder="placeholder"
   :multiline="multiline"
-  @update:modelValue="onUpdate:modelValue"
   @submit="onSubmit"
   @focus="onFocus"
   />
@@ -75,14 +74,13 @@ FlareInput(
   modelValue: modelValue,
   placeholder: placeholder,
   multiline: multiline,
-  onUpdate:modelValue: onUpdate:modelValue,
   onSubmit: onSubmit,
   onFocus: onFocus,
 );
 ```
 
 ```swift [iOS]
-InputView(modelValue: modelValue, placeholder: placeholder, multiline: multiline, onUpdate:modelValue: onUpdate:modelValue, onSubmit: onSubmit, onFocus: onFocus)
+InputView(modelValue: modelValue, placeholder: placeholder, multiline: multiline, onSubmit: onSubmit, onFocus: onFocus)
 ```
 
 ```kotlin [Android]
@@ -90,7 +88,6 @@ Input(
   modelValue = modelValue,
   placeholder = placeholder,
   multiline = multiline,
-  onUpdate:modelValue = onUpdate:modelValue,
   onSubmit = onSubmit,
   onFocus = onFocus,
 )
