@@ -94,7 +94,9 @@ public struct MessageContentView: View {
             case let c as FlareGenericContent:
                 chip("[\(c.label)]", colors: colors)
             default:
-                chip("[\(content.type)]", colors: colors)
+                // Unknown extension type: a human placeholder plus the raw type as
+                // diagnostic — never the bare token as the body. Spec: Message/UnknownMessage.
+                UnknownMessageView(contentType: content.type, isSelf: ctx.isSelf)
             }
         }
     }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../emoji_sticker/emoji_sticker.dart';
 import '../models/message_content.dart';
 import '../tokens/flare_tokens.dart';
+import 'flare_unknown_message.dart';
 
 /// Context passed to every content renderer.
 class FlareContentContext {
@@ -129,7 +130,9 @@ class FlareMessageContentView extends StatelessWidget {
       case FlareGenericContent c:
         return _chip('[${c.label}]', colors);
       default:
-        return _chip('[${content.type}]', colors);
+        // Unknown extension type: a human placeholder plus the raw type as
+        // diagnostic — never the bare token as the body. Spec: Message/UnknownMessage.
+        return FlareUnknownMessage(contentType: content.type, isSelf: self);
     }
   }
 

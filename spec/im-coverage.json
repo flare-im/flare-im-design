@@ -213,7 +213,8 @@
         "TaskMessage",
         "RedPacketCard",
         "PollComposer",
-        "MarkdownPreview"
+        "MarkdownPreview",
+        "UnknownMessage"
       ],
       "requiredStates": "插件缺失、权限不足、未知消息类型、数据过期",
       "next": "基于能力暴露入口与回退显示；支付/任务/地图由宿主插件实现"

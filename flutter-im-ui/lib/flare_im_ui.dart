@@ -139,3 +139,5 @@ export 'src/components/flare_reauth_prompt.dart';
 export 'src/components/flare_permission_prompt.dart';
 export 'src/components/flare_conversation_action_sheet.dart';
 export 'src/components/flare_conversation_batch_toolbar.dart';
+
+export 'src/components/flare_unknown_message.dart';

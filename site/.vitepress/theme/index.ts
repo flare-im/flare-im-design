@@ -140,6 +140,7 @@ import ReauthPromptDemo from './demos/ReauthPromptDemo.vue';
 import PermissionPromptDemo from './demos/PermissionPromptDemo.vue';
 import ConversationActionSheetDemo from './demos/ConversationActionSheetDemo.vue';
 import ConversationBatchToolbarDemo from './demos/ConversationBatchToolbarDemo.vue';
+import UnknownMessageDemo from './demos/UnknownMessageDemo.vue';
 
 const demos = {
   EmojiStickerPanelDemo,
@@ -273,6 +274,7 @@ const demos = {
   PermissionPromptDemo,
   ConversationActionSheetDemo,
   ConversationBatchToolbarDemo,
+  UnknownMessageDemo,
 };
 
 export default {

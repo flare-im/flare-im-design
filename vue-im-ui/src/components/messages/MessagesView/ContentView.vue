@@ -8,6 +8,7 @@ import { getContentDecodedPreview } from "../../../utils/messagePreview";
 import { imageInfoIsMotion } from "../../../utils/motionImage";
 import { isGifPlayAnimatedFromExtra, isStickerPlayAnimatedFromExtra } from "../../../utils/gifPlayback";
 import TextView from "./views/TextView.vue";
+import FlareUnknownMessage from "../FlareUnknownMessage.vue";
 import ImageView from "./views/ImageView.vue";
 import VideoView from "./views/VideoView.vue";
 import AudioView from "./views/AudioView.vue";
@@ -113,7 +114,11 @@ const viewProps = computed((): ViewBaseProps | null => {
   return base;
 });
 
-const fallbackText = computed(() => getContentDecodedPreview(decoded.value) || "[Unknown message type]");
+// A content type no renderer claims. The decoded preview (when the sender attached
+// one) is the body; otherwise FlareUnknownMessage explains and keeps the raw type
+// as a diagnostic — the bare token as a body reads as a rendering bug.
+const fallbackSummary = computed(() => getContentDecodedPreview(decoded.value));
+const fallbackType = computed(() => String(decoded.value?.contentType ?? ""));
 </script>
 
 <template>
@@ -162,7 +167,13 @@ const fallbackText = computed(() => getContentDecodedPreview(decoded.value) || "
       :nested-key="viewType"
     />
     <PlaceholderView v-else-if="decoded && viewProps" v-bind="viewProps" />
-    <div v-else-if="decoded" class="im-content-fallback">{{ fallbackText }}</div>
+    <FlareUnknownMessage
+      v-else-if="decoded"
+      class="im-content-fallback"
+      :content-type="fallbackType"
+      :summary="fallbackSummary"
+      :self="isSelf"
+    />
   </div>
 </template>
 

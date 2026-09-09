@@ -222,3 +222,5 @@ export { default as FlareReauthPrompt } from "./general/FlareReauthPrompt.vue";
 export { default as FlarePermissionPrompt } from "./general/FlarePermissionPrompt.vue";
 export { default as FlareConversationActionSheet } from "./conversation/FlareConversationActionSheet.vue";
 export { default as FlareConversationBatchToolbar } from "./conversation/FlareConversationBatchToolbar.vue";
+
+export { default as FlareUnknownMessage } from "./messages/FlareUnknownMessage.vue";

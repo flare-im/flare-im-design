@@ -6821,6 +6821,110 @@
       }
     },
     {
+      "name": "UnknownMessage",
+      "category": "Message",
+      "summary": {
+        "en": "Body for a message this client cannot render: a human placeholder plus the raw content type kept as a diagnostic.",
+        "zh": "本端无法渲染的消息体：可理解的占位说明，原始 contentType 保留为诊断信息。"
+      },
+      "dataSource": {
+        "en": "The raw content type from the message, plus any host-known label, sender fallback text and upgrade action.",
+        "zh": "消息的原始 contentType，以及宿主已知的类型名、发送端附带的兜底文案与升级动作。"
+      },
+      "props": [
+        {
+          "name": "contentType",
+          "type": "string",
+          "description": {
+            "en": "Raw wire content type, e.g. \"flare.poll.v2\"; rendered as a diagnostic row, never as the body.",
+            "zh": "原始 contentType，如 \"flare.poll.v2\"；渲染为诊断行，绝不作为正文。"
+          }
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "description": {
+            "en": "Human name for the type when the host knows it, e.g. \"投票\"; becomes the title.",
+            "zh": "宿主已知的类型名称，如「投票」；作为标题。"
+          }
+        },
+        {
+          "name": "summary",
+          "type": "string",
+          "description": {
+            "en": "Plain-text fallback the sender's client attached; the most useful body when present.",
+            "zh": "发送端附带的纯文本兜底；存在时作为正文。"
+          }
+        },
+        {
+          "name": "self",
+          "type": "boolean",
+          "description": {
+            "en": "Rendered inside an outgoing bubble, so text inherits the bubble foreground.",
+            "zh": "在自己发出的气泡内渲染，文字继承气泡前景色。"
+          }
+        },
+        {
+          "name": "actionText",
+          "type": "string",
+          "description": {
+            "en": "Host action label, e.g. an upgrade path; without a handler no button is rendered.",
+            "zh": "宿主动作文案（如升级引导）；未传回调则不渲染按钮。"
+          }
+        },
+        {
+          "name": "hint",
+          "type": "string",
+          "description": {
+            "en": "Generic explanation used as the body when there is no sender summary.",
+            "zh": "没有兜底文案时作为正文的通用说明。"
+          }
+        },
+        {
+          "name": "unsupportedText",
+          "type": "string",
+          "description": {
+            "en": "Title used when the host has no human name for the type.",
+            "zh": "宿主不认识该类型时使用的标题。"
+          }
+        },
+        {
+          "name": "diagnosticLabel",
+          "type": "string",
+          "description": {
+            "en": "Caption in front of the raw type.",
+            "zh": "原始类型前的说明文字。"
+          }
+        }
+      ],
+      "states": [
+        "default",
+        "withSummary",
+        "self"
+      ],
+      "events": [
+        "action"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareUnknownMessage"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareUnknownMessage"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "UnknownMessageView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "UnknownMessage"
+        }
+      }
+    },
+    {
       "name": "EmojiPicker",
       "category": "Composer",
       "summary": {

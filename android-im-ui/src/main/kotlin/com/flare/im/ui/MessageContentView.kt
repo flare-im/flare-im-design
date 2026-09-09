@@ -139,7 +139,9 @@ fun MessageContentView(
         }
         is FlarePlaceholderContent -> chip(content.label, colors)
         is FlareGenericContent -> chip("[${content.label}]", colors)
-        else -> chip("[${content.type}]", colors)
+        // Unknown extension type: a human placeholder plus the raw type as
+        // diagnostic — never the bare token as the body. Spec: Message/UnknownMessage.
+        else -> UnknownMessage(contentType = content.type, isSelf = isSelf)
     }
 }
 

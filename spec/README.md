@@ -36,13 +36,13 @@ the inconsistency problem across the four platform implementations is exactly wh
 <!-- CATALOG:START -->
 ## Component catalog
 
-**126 components / 11 categories** (source in [`components.json`](./components.json);
+**127 components / 11 categories** (source in [`components.json`](./components.json);
 props/events extracted and calibrated from the `@flare-im/vue-ui` source).
 
 > This section is generated from the contract by `gen-readme-catalog.mjs`; do not edit by hand — a hand-written catalog rots as the contract grows.
 
-- **Message** — 31
-  `AnnouncementBanner` · `ChatHeader` · `ContactMessage` · `DatePill` · `EmojiMessage` · `FileMessage` · `ImageGrid` · `ImageMessage` · `LinkCardMessage` · `LocationMessage` · `MessageActionSheet` · `MessageBatchToolbar` · `MessageBubble` · `MessageContentView` · `MessageList` · `PinnedMessageBar` · `ReactionSummary` · `ReadReceiptSheet` · `RedPacketCard` · `ScrollToLatest` · `StickerMessage` · `SystemMessage` · `TaskMessage` · `TextMessage` · `TranslationView` · `TypingIndicator` · `UnreadDivider` · `VideoMessage` · `VoiceMessage` · `VoicePlayer` · `VoteMessage`
+- **Message** — 32
+  `AnnouncementBanner` · `ChatHeader` · `ContactMessage` · `DatePill` · `EmojiMessage` · `FileMessage` · `ImageGrid` · `ImageMessage` · `LinkCardMessage` · `LocationMessage` · `MessageActionSheet` · `MessageBatchToolbar` · `MessageBubble` · `MessageContentView` · `MessageList` · `PinnedMessageBar` · `ReactionSummary` · `ReadReceiptSheet` · `RedPacketCard` · `ScrollToLatest` · `StickerMessage` · `SystemMessage` · `TaskMessage` · `TextMessage` · `TranslationView` · `TypingIndicator` · `UnknownMessage` · `UnreadDivider` · `VideoMessage` · `VoiceMessage` · `VoicePlayer` · `VoteMessage`
 - **General** — 23
   `AnnouncementReadBar` · `Avatar` · `Button` · `CapabilityBoundary` · `ConnectionDetails` · `DangerConfirm` · `EmptyState` · `FilterTabs` · `Icon` · `IconButton` · `Input` · `MessageStatus` · `PermissionPrompt` · `PrimaryButton` · `ReauthPrompt` · `SearchBar` · `SearchPanel` · `SearchResults` · `SegmentedControl` · `Skeleton` · `StatusBanner` · `TimeStamp` · `Toast`
 - **Composer** — 13
