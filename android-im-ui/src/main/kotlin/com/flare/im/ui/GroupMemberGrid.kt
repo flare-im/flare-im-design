@@ -1,8 +1,6 @@
 package com.flare.im.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,7 +26,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -91,8 +92,17 @@ fun GroupMemberGrid(
                 item {
                     Column(horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = if (onAddMember != null) Modifier.clickable { onAddMember() } else Modifier) {
+                        // Dashed ring = "add" affordance (parity with iOS/Flutter).
+                        val dashColor = colors.borderHover
                         Box(Modifier.size(48.dp).clip(CircleShape)
-                            .border(BorderStroke(1.dp, colors.borderHover), CircleShape),
+                            .drawBehind {
+                                val stroke = 1.dp.toPx()
+                                drawCircle(
+                                    color = dashColor,
+                                    radius = size.minDimension / 2f - stroke / 2f,
+                                    style = Stroke(width = stroke, pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx()))),
+                                )
+                            },
                             contentAlignment = Alignment.Center) {
                             Icon(Icons.Outlined.Add, contentDescription = addLabel, tint = colors.textTertiary,
                                 modifier = Modifier.size(22.dp))

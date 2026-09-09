@@ -52,8 +52,8 @@ fun SettingsList(
                 Column(
                     Modifier.fillMaxWidth()
                         .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingXs)
-                        .shadow(2.dp, RoundedCornerShape(16.dp), clip = false)
-                        .clip(RoundedCornerShape(16.dp))
+                        .shadow(2.dp, RoundedCornerShape(FlareSizes.radiusXl), clip = false)
+                        .clip(RoundedCornerShape(FlareSizes.radiusXl))
                         .background(colors.bgElevated),
                 ) {
                     section.items.forEachIndexed { i, item ->
@@ -84,7 +84,7 @@ fun SettingsRow(
     Row(
         Modifier.fillMaxWidth()
             .then(if (item.kind != FlareSettingKind.Toggle) Modifier.clickable { onSelect?.invoke(item) } else Modifier)
-            .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingMd),
+            .padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingMd),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         item.icon?.let { ic -> Icon(ic, null, tint = colors.textSecondary); Spacer(Modifier.width(FlareSizes.spacingMd)) }

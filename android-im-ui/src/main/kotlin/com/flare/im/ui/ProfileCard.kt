@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -43,6 +44,7 @@ fun ProfileCard(
     }.joinToString(" · ")
     Column(
         Modifier.width(260.dp)
+            .shadow(16.dp, RoundedCornerShape(FlareSizes.radiusXl), clip = false)
             .clip(RoundedCornerShape(FlareSizes.radiusXl))
             .background(colors.bgPrimary)
             .border(1.dp, colors.borderPrimary, RoundedCornerShape(FlareSizes.radiusXl))

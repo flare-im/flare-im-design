@@ -37,6 +37,7 @@ public struct ProfilePanelView: View {
 
     public var body: some View {
         let colors = FlareColors.of(scheme)
+        let dark = scheme == .dark
         VStack(spacing: 0) {
             header
 
@@ -44,13 +45,15 @@ public struct ProfilePanelView: View {
                 // Shared row → `kind` (toggle/value/navigation) and `detail` are honoured here too.
                 VStack(spacing: 0) {
                     ForEach(Array(section.items.enumerated()), id: \.element.id) { j, e in
-                        if j > 0 { Divider() }
+                        if j > 0 {
+                            Divider().overlay(colors.borderSecondary)
+                                .padding(.leading, FlareSizes.spacingMd)
+                        }
                         FlareSettingsRow(item: e, onToggle: onToggle, onSelect: { onEntry?($0) })
                             .padding(FlareSizes.spacingMd)
                     }
                 }
-                .background(RoundedRectangle(cornerRadius: FlareSizes.radiusXl).fill(colors.bgElevated))
-                .clipShape(RoundedRectangle(cornerRadius: FlareSizes.radiusXl))
+                .flareGroupedCard(colors, dark: dark)
                 .padding(.horizontal, FlareSizes.spacingMd)
                 .padding(.top, i == 0 ? FlareSizes.spacingMd : FlareSizes.spacingSm)
             }
@@ -62,15 +65,18 @@ public struct ProfilePanelView: View {
         // The whole row is tap-to-edit; the QR badge is carved out as its own tap target.
         Button { onEdit?() } label: {
             HStack(spacing: FlareSizes.spacingMd) {
+                // White ring + drop shadow lifts the avatar off the aurora header (Flutter parity).
                 AvatarView(userId: user.id, displayName: user.name, avatarURL: user.avatarURL, size: 56)
+                    .overlay(Circle().stroke(Color.white.opacity(0.22), lineWidth: 3).padding(-1.5))
+                    .shadow(color: Color.black.opacity(0.28), radius: 8, y: 6)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(user.name).font(.system(size: FlareSizes.fontSize3xl, weight: .bold)).foregroundColor(.white)
                     if let s = user.signature, !s.isEmpty {
-                        Text(s).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(.white.opacity(0.82))
+                        Text(s).font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(.white.opacity(0.82))
                             .lineLimit(1)
                     } else if let placeholder = signaturePlaceholder, !placeholder.isEmpty {
                         // Placeholder when the user hasn't set a signature yet.
-                        Text(placeholder).font(.system(size: FlareSizes.fontSizeSm)).italic()
+                        Text(placeholder).font(.system(size: FlareSizes.fontSizeMd)).italic()
                             .foregroundColor(.white.opacity(0.62)).lineLimit(1)
                     }
                     if let f = user.flareId, !f.isEmpty {
@@ -156,7 +162,34 @@ public struct ProfileEditorView: View {
     }
 }
 
+/// Aurora grouped card — a section's rows float together on one elevated
+/// surface (bgElevated, radiusXl, soft lift; violet-tinted in dark). Shared by
+/// ``SettingsListView`` and ``ProfilePanelView``; matches Android / Flutter.
+struct FlareGroupedCard: ViewModifier {
+    let colors: FlareColors
+    let dark: Bool
+    func body(content: Content) -> some View {
+        content
+            .background(RoundedRectangle(cornerRadius: FlareSizes.radiusXl, style: .continuous).fill(colors.bgElevated))
+            .clipShape(RoundedRectangle(cornerRadius: FlareSizes.radiusXl, style: .continuous))
+            .shadow(color: dark ? Color.black.opacity(0.5) : Color(.sRGB, red: 0x15 / 255, green: 0x13 / 255, blue: 0x20 / 255, opacity: 0.08),
+                    radius: dark ? 12 : 11, y: 8)
+            .shadow(color: dark ? Color(.sRGB, red: 0x7C / 255, green: 0x3A / 255, blue: 0xED / 255, opacity: 0.14) : Color.clear,
+                    radius: dark ? 6 : 0, y: dark ? 2 : 0)
+    }
+}
+
+extension View {
+    func flareGroupedCard(_ colors: FlareColors, dark: Bool) -> some View {
+        modifier(FlareGroupedCard(colors: colors, dark: dark))
+    }
+}
+
 /// Settings list. Spec: Profile/SettingsList (`SettingsListView`).
+///
+/// Self-drawn grouped cards (not a native `List`) so the surface matches the
+/// Android / Flutter settings list: section title in tertiary 12pt, rows on an
+/// elevated radius-14 card with indented hairline dividers.
 public struct SettingsListView: View {
     private let sections: [FlareSettingsSection]
     private let onToggle: ((FlareSettingsItem, Bool) -> Void)?
@@ -169,16 +202,36 @@ public struct SettingsListView: View {
 
     public var body: some View {
         let colors = FlareColors.of(scheme)
-        List {
-            ForEach(sections) { section in
-                Section {
-                    ForEach(section.items) { item in
-                        FlareSettingsRow(item: item, onToggle: onToggle, onSelect: onSelect)
+        let dark = scheme == .dark
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(sections) { section in
+                    if let t = section.title, !t.isEmpty {
+                        Text(t)
+                            .font(.system(size: FlareSizes.fontSizeSm))
+                            .foregroundColor(colors.textTertiary)
+                            .padding(.horizontal, FlareSizes.spacingLg)
+                            .padding(.top, FlareSizes.spacingMd)
+                            .padding(.bottom, FlareSizes.spacingSm)
+                    } else {
+                        Spacer().frame(height: FlareSizes.spacingSm)
                     }
-                } header: {
-                    if let t = section.title { Text(t) }
+                    VStack(spacing: 0) {
+                        ForEach(Array(section.items.enumerated()), id: \.element.id) { i, item in
+                            if i > 0 {
+                                Divider().overlay(colors.borderSecondary)
+                                    .padding(.leading, FlareSizes.spacingMd)
+                            }
+                            FlareSettingsRow(item: item, onToggle: onToggle, onSelect: onSelect)
+                                .padding(FlareSizes.spacingMd)
+                        }
+                    }
+                    .flareGroupedCard(colors, dark: dark)
+                    .padding(.horizontal, FlareSizes.spacingMd)
+                    .padding(.bottom, FlareSizes.spacingSm)
                 }
             }
+            .padding(.vertical, FlareSizes.spacingSm)
         }
         .background(colors.bgSecondary)
     }
@@ -206,16 +259,16 @@ public struct FlareSettingsRow: View {
         let colors = FlareColors.of(scheme)
         HStack(spacing: FlareSizes.spacingMd) {
             if let ic = item.systemImage { Image(systemName: ic).foregroundColor(colors.textSecondary) }
-            Text(item.label).foregroundColor(colors.textPrimary)
+            Text(item.label).font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textPrimary)
             Spacer()
             switch item.kind {
             case .toggle:
                 Toggle("", isOn: Binding(get: { item.value }, set: { onToggle?(item, $0) }))
                     .labelsHidden().tint(colors.primary)
             case .value:
-                Text(item.detail ?? "").foregroundColor(colors.textTertiary)
+                Text(item.detail ?? "").font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textTertiary)
             case .navigation:
-                if let d = item.detail { Text(d).foregroundColor(colors.textTertiary) }
+                if let d = item.detail { Text(d).font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textTertiary) }
                 Image(systemName: "chevron.right").font(.system(size: 12)).foregroundColor(colors.textTertiary)
             }
         }

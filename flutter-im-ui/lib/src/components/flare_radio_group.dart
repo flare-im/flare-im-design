@@ -65,8 +65,8 @@ class FlareRadioGroup extends StatelessWidget {
                 ),
                 child: selected
                     ? Container(
-                        width: 8,
-                        height: 8,
+                        width: 9,
+                        height: 9,
                         decoration: BoxDecoration(
                           color: colors.primary,
                           shape: BoxShape.circle,

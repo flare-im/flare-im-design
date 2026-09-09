@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -22,7 +23,9 @@ fun DatePill(label: String, floating: Boolean = false) {
     Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.Center) {
         Text(
             label, color = colors.textSecondary, fontWeight = FontWeight.Medium, fontSize = 12.sp,
-            modifier = Modifier.clip(RoundedCornerShape(999.dp)).background(colors.bgPrimary.copy(alpha = 0.78f))
+            modifier = Modifier
+                .shadow(3.dp, RoundedCornerShape(999.dp), clip = false)
+                .clip(RoundedCornerShape(999.dp)).background(colors.bgPrimary.copy(alpha = 0.78f))
                 .border(1.dp, colors.borderPrimary, RoundedCornerShape(999.dp))
                 .padding(horizontal = 12.dp, vertical = 3.dp),
         )

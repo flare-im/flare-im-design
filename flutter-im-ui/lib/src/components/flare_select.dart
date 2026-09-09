@@ -128,7 +128,7 @@ class _FlareSelectState extends State<FlareSelect> {
                   turns: _open ? 0.5 : 0,
                   child: Icon(
                     Icons.keyboard_arrow_down,
-                    size: 18,
+                    size: 16,
                     color: colors.textTertiary,
                   ),
                 ),

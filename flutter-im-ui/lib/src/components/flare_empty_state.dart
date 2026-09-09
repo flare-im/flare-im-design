@@ -68,7 +68,7 @@ class FlareEmptyState extends StatelessWidget {
       leading = iconWidget!;
     } else {
       leading = Icon(icon,
-          size: 56, color: isError ? colors.error : colors.textTertiary);
+          size: 44, color: isError ? colors.error : colors.textTertiary);
     }
 
     final content = Padding(
@@ -77,14 +77,14 @@ class FlareEmptyState extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           leading,
-          const SizedBox(height: FlareSizes.spacingMd),
+          const SizedBox(height: FlareSizes.spacingSm),
           Text(title,
               textAlign: TextAlign.center,
               style: TextStyle(
                   color: isError ? colors.error : colors.textPrimary,
                   fontSize: FlareSizes.fontSize2xl)),
           if (description != null) ...[
-            const SizedBox(height: FlareSizes.spacingXs),
+            const SizedBox(height: FlareSizes.spacingSm),
             Text(description!,
                 textAlign: TextAlign.center,
                 softWrap: true,

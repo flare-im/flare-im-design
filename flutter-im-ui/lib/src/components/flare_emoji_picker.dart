@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import '../models/directory_data.dart';
 import '../tokens/flare_tokens.dart';
 
-/// Emoji picker — a searchable emoji grid with a recents tab, per-category
-/// tabs, an optional skin-tone selector, and a bottom category rail. Presents
-/// [categories] plus, when non-empty, a synthetic "recent" tab from [recents].
+/// Emoji picker — a searchable emoji grid with an optional skin-tone selector
+/// and a single bottom category rail (recents + categories). Presents
+/// [categories] plus, when non-empty, a synthetic "recent" entry from [recents].
 /// Spec: Composer/EmojiPicker (`FlareEmojiPicker`).
 class FlareEmojiPicker extends StatefulWidget {
   const FlareEmojiPicker({
@@ -102,7 +102,6 @@ class _FlareEmojiPickerState extends State<FlareEmojiPicker> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _searchRow(colors),
-          if (!searching) _tabs(colors),
           Container(
             height: 200,
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -176,52 +175,6 @@ class _FlareEmojiPickerState extends State<FlareEmojiPicker> {
           borderRadius: BorderRadius.circular(FlareSizes.radiusSm),
         ),
         child: Text('✋$tone', style: const TextStyle(fontSize: 13)),
-      ),
-    );
-  }
-
-  Widget _tabs(FlareColors colors) {
-    final tabs = <_Tab>[
-      if (widget.recents.isNotEmpty)
-        const _Tab(key: _recentKey, icon: Icons.schedule),
-      for (final c in widget.categories)
-        _Tab(key: c.key, label: c.label),
-    ];
-    return Container(
-      height: 34,
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: colors.borderPrimary)),
-      ),
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        children: [
-          for (final t in tabs) _tabButton(colors, t),
-        ],
-      ),
-    );
-  }
-
-  Widget _tabButton(FlareColors colors, _Tab tab) {
-    final active = _activeKey == tab.key;
-    return GestureDetector(
-      onTap: () => setState(() => _activeKey = tab.key),
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: tab.icon != null
-            ? Icon(tab.icon,
-                size: 16,
-                color: active ? colors.primary : colors.textTertiary)
-            : Text(
-                tab.label ?? '',
-                style: TextStyle(
-                  color: active ? colors.primary : colors.textSecondary,
-                  fontSize: FlareSizes.fontSizeSm,
-                  fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-                ),
-              ),
       ),
     );
   }

@@ -93,7 +93,7 @@ public struct ConversationRowView: View {
         HStack(spacing: 4) {
             if item.muted {
                 Image(systemName: "bell.slash")
-                    .font(.system(size: 12))
+                    .font(.system(size: 14))
                     .foregroundColor(colors.textTertiary)
             }
             if item.hasDraft {
@@ -140,8 +140,8 @@ public struct ConversationRowView: View {
         return Text(item.unreadCount > 99 ? "99+" : "\(item.unreadCount)")
             .font(.system(size: FlareSizes.fontSizeXs, weight: .semibold))
             .foregroundColor(.white)
-            .padding(.horizontal, 7)
-            .frame(minWidth: 22, minHeight: 22)
+            .padding(.horizontal, 6)
+            .frame(minWidth: 20, minHeight: 20)
             .background(
                 ZStack {
                     colors.primary

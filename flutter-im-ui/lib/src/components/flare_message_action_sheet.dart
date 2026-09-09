@@ -96,7 +96,7 @@ class FlareMessageActionSheet extends StatelessWidget {
               color: colors.bgSecondary,
               borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
             ),
-            child: Icon(action.icon, color: colors.textPrimary, size: 26),
+            child: Icon(action.icon, color: colors.textPrimary, size: 24),
           ),
           const SizedBox(height: FlareSizes.spacingXs),
           Text(action.label,

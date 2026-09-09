@@ -27,14 +27,14 @@ public struct QuickPhrasesView: View {
         VStack(alignment: .leading, spacing: FlareSizes.spacingMd) {
             HStack(spacing: FlareSizes.spacingSm) {
                 Image(systemName: "bolt").font(.system(size: 15)).foregroundColor(colors.primary)
-                Text("快捷短语").font(.system(size: FlareSizes.fontSizeXl, weight: .semibold)).foregroundColor(colors.textPrimary)
+                Text("快捷短语").font(.system(size: FlareSizes.fontSizeLg, weight: .semibold)).foregroundColor(colors.textPrimary)
                 Spacer()
                 if manageable {
                     Button { onManage?() } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "square.and.pencil").font(.system(size: 13))
-                            Text("管理").font(.system(size: FlareSizes.fontSizeMd, weight: .medium))
-                        }.foregroundColor(colors.textSecondary)
+                            Text("管理").font(.system(size: FlareSizes.fontSizeSm, weight: .medium))
+                        }.foregroundColor(colors.primary)
                     }.buttonStyle(.plain)
                 }
             }
@@ -61,7 +61,7 @@ public struct QuickPhrasesView: View {
     private func tabPill(_ colors: FlareColors, _ g: QuickPhraseGroup) -> some View {
         let active = g.key == activeKey
         return Button { activeKey = g.key } label: {
-            Text(g.title).font(.system(size: FlareSizes.fontSizeMd, weight: .medium))
+            Text(g.title).font(.system(size: FlareSizes.fontSizeSm, weight: .medium))
                 .foregroundColor(active ? colors.primary : colors.textSecondary)
                 .padding(.horizontal, 12).frame(height: 28)
                 .background(Capsule().fill(active ? colors.bgSelected : colors.bgSecondary))

@@ -36,6 +36,17 @@ class FlareVoiceHoldButton extends StatefulWidget {
 class _FlareVoiceHoldButtonState extends State<FlareVoiceHoldButton> {
   bool _pressing = false;
   bool _willCancel = false;
+  double _originDy = 0;
+
+  void _finish() {
+    if (!_pressing) return;
+    final cancel = _willCancel;
+    setState(() {
+      _pressing = false;
+      _willCancel = false;
+    });
+    cancel ? widget.onCancel?.call() : widget.onEnd?.call();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,26 +56,25 @@ class _FlareVoiceHoldButtonState extends State<FlareVoiceHoldButton> {
         : (_willCancel ? colors.error : colors.primary);
     final fg = !_pressing ? colors.textSecondary : Colors.white;
 
-    return GestureDetector(
-      onLongPressStart: (_) {
+    // Recording starts on the *immediate* press (no long-press delay), matching
+    // iOS/Android: pointer-down → onStart, move up past the threshold → cancel
+    // state, release → onEnd / onCancel.
+    return Listener(
+      onPointerDown: (e) {
+        _originDy = e.position.dy;
         setState(() {
           _pressing = true;
           _willCancel = false;
         });
         widget.onStart?.call();
       },
-      onLongPressMoveUpdate: (d) {
-        final cancel = d.offsetFromOrigin.dy < -widget.cancelThreshold;
+      onPointerMove: (e) {
+        if (!_pressing) return;
+        final cancel = (e.position.dy - _originDy) < -widget.cancelThreshold;
         if (cancel != _willCancel) setState(() => _willCancel = cancel);
       },
-      onLongPressEnd: (_) {
-        final cancel = _willCancel;
-        setState(() {
-          _pressing = false;
-          _willCancel = false;
-        });
-        cancel ? widget.onCancel?.call() : widget.onEnd?.call();
-      },
+      onPointerUp: (_) => _finish(),
+      onPointerCancel: (_) => _finish(),
       child: Container(
         height: 40,
         alignment: Alignment.center,

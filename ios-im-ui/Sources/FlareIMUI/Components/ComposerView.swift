@@ -195,9 +195,9 @@ public struct ComposerView: View {
 
     private func sendButton(_ colors: FlareColors) -> some View {
         Button(action: send) {
-            Image(systemName: "arrow.up").font(.system(size: 18, weight: .semibold))
+            Image(systemName: "arrow.up").font(.system(size: FlareComposerSendButton.glyph, weight: .semibold))
                 .foregroundColor(canSend ? .white : colors.textDisabled)
-                .frame(width: 36, height: 36)
+                .frame(width: FlareComposerSendButton.side, height: FlareComposerSendButton.side)
                 .background(Circle().fill(sendFill(colors)))
         }
         .buttonStyle(.plain).disabled(!canSend)

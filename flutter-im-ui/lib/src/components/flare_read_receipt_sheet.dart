@@ -92,7 +92,7 @@ class _FlareReadReceiptSheetState extends State<FlareReadReceiptSheet> {
             child: Text(widget.title,
                 style: TextStyle(
                     color: colors.textPrimary,
-                    fontSize: FlareSizes.fontSizeLg,
+                    fontSize: FlareSizes.fontSizeXl,
                     fontWeight: FontWeight.w600)),
           ),
           if (widget.dismissible)
@@ -172,7 +172,7 @@ class _FlareReadReceiptSheetState extends State<FlareReadReceiptSheet> {
 
   Widget _empty(FlareColors colors) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: FlareSizes.spacingLg),
+      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: FlareSizes.spacingLg),
       child: Center(
         child: Text(
           _showRead ? widget.readEmptyText : widget.unreadEmptyText,

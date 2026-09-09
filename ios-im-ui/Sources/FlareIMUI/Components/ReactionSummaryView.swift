@@ -18,8 +18,9 @@ public struct ReactionSummaryView: View {
 
     public var body: some View {
         let colors = FlareColors.of(scheme)
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 6) {
+        // Wrapping flow (6pt gaps both axes), not a horizontal scroller — Android / Flutter parity.
+        if !(reactions.isEmpty && hideAdd) {
+            MomentLikersFlow(spacing: 6, lineSpacing: 6) {
                 ForEach(reactions) { r in pill(colors, r) }
                 if !hideAdd { addPill(colors) }
             }

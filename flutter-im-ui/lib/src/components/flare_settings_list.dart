@@ -46,7 +46,7 @@ class FlareSettingsList extends StatelessWidget {
                 FlareSizes.spacingMd, FlareSizes.spacingLg),
             decoration: BoxDecoration(
               color: colors.bgElevated,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(FlareSizes.radiusXl),
               boxShadow: [
                 BoxShadow(
                   color: isDark ? const Color(0x80000000) : const Color(0x14151320),

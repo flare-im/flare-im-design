@@ -1,5 +1,17 @@
 import '../components/flare_avatar.dart';
 
+/// Tone for a small inline row tag (group / bot / official / mention markers).
+enum FlareTagTone { info, warning, neutral }
+
+/// A small inline label rendered next to a conversation title (e.g. "Group",
+/// "Bot", "Official", "@"). Product decides the text/tone; the kit renders it.
+class ConversationRowTag {
+  const ConversationRowTag(this.text, {this.tone = FlareTagTone.neutral});
+
+  final String text;
+  final FlareTagTone tone;
+}
+
 /// Neutral, presentational data for one inbox row — the spec's `ConversationRow`
 /// data type. The host maps a core conversation-list-view item into this; all
 /// product-specific formatting (emoji/sticker inlining, i18n, group sender
@@ -17,6 +29,7 @@ class ConversationRowData {
     this.mentioned = false,
     this.draftPreview,
     this.presence,
+    this.tags = const [],
   });
 
   /// Stable conversation id — also seeds the avatar fallback colour.
@@ -48,6 +61,9 @@ class ConversationRowData {
 
   /// Optional presence for the avatar dot.
   final FlarePresence? presence;
+
+  /// Small inline tags shown after the title (e.g. "Group", "Official").
+  final List<ConversationRowTag> tags;
 
   bool get hasUnread => unreadCount > 0;
   bool get hasDraft => draftPreview != null && draftPreview!.isNotEmpty;

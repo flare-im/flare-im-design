@@ -11,7 +11,7 @@ class FlareComposerIconButton extends StatelessWidget {
     this.onTap,
     this.disabled = false,
     this.active = false,
-    this.size = 26,
+    this.size = 24,
   });
 
   final IconData icon;
@@ -51,10 +51,11 @@ class FlareComposerSendButton extends StatelessWidget {
         child: InkWell(
           customBorder: const CircleBorder(),
           onTap: active ? onTap : null,
-          child: Padding(
-            padding: const EdgeInsets.all(8),
+          child: SizedBox(
+            width: 34,
+            height: 34,
             child: Icon(Icons.send_rounded,
-                size: 20,
+                size: 16,
                 color: active ? Colors.white : colors.textDisabled),
           ),
         ),

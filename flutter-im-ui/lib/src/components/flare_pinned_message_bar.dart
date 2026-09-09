@@ -54,7 +54,7 @@ class _FlarePinnedMessageBarState extends State<FlarePinnedMessageBar> {
           ),
           child: Row(
             children: [
-              Icon(Icons.push_pin_outlined, size: 16, color: colors.pinned),
+              Icon(Icons.push_pin, size: 16, color: colors.pinned),
               const SizedBox(width: FlareSizes.spacingSm),
               Expanded(
                 child: Column(

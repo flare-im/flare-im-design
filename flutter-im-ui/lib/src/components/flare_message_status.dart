@@ -40,12 +40,9 @@ class FlareMessageStatus extends StatelessWidget {
         return SizedBox(
           width: dim,
           height: dim,
-          child: Padding(
-            padding: const EdgeInsets.all(1),
-            child: CircularProgressIndicator(
-              strokeWidth: 1.5,
-              color: tint ?? colors.textTertiary,
-            ),
+          child: CircularProgressIndicator(
+            strokeWidth: 1.5,
+            color: tint ?? colors.textTertiary,
           ),
         );
       case FlareMessageDeliveryStatus.sent:

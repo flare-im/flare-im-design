@@ -49,7 +49,7 @@ public struct VoiceRecordingBarView: View {
         Button { onCancel?() } label: {
             ZStack {
                 Circle().fill(cancelling ? colors.error : colors.bgSecondary)
-                Image(systemName: "trash").font(.system(size: 14))
+                Image(systemName: "trash").font(.system(size: 18))
                     .foregroundColor(cancelling ? .white : colors.textSecondary)
             }
             .frame(width: 36, height: 36)
@@ -87,7 +87,7 @@ public struct VoiceRecordingBarView: View {
                     Circle().fill(
                         LinearGradient(colors: [colors.primary, colors.primary.opacity(0.82)],
                                        startPoint: .topLeading, endPoint: .bottomTrailing))
-                    Image(systemName: "paperplane.fill").font(.system(size: 14)).foregroundColor(.white)
+                    Image(systemName: "paperplane.fill").font(.system(size: 18)).foregroundColor(.white)
                 }
                 .frame(width: 36, height: 36)
             }.buttonStyle(.plain)

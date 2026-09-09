@@ -151,7 +151,7 @@ class _QrMatrixPainter extends CustomPainter {
     final stroke = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = cell * 0.28;
+      ..strokeWidth = cell * 0.6;
     final outer = Rect.fromLTWH(
       left + cell * 0.3,
       top + cell * 0.3,

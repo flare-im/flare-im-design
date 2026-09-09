@@ -114,11 +114,15 @@ class FlareConversationRow extends StatelessWidget {
                             ),
                           ),
                         ),
+                        if (item.tags.isNotEmpty) ...[
+                          const SizedBox(width: FlareSizes.spacingSm),
+                          _tagStrip(colors),
+                        ],
                         const SizedBox(width: FlareSizes.spacingSm),
                         FlareTimeStamp(label: item.timestampLabel),
                       ],
                     ),
-                    const SizedBox(height: FlareSizes.spacingXs + 2),
+                    const SizedBox(height: 4),
                     Row(
                       children: [
                         Expanded(child: _preview(context, colors)),
@@ -145,6 +149,44 @@ class FlareConversationRow extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  /// Small inline tags after the title (Group / Bot / Official …): tinted
+  /// capsule, 5×1 inset, xs semibold — identical across iOS/Android.
+  Widget _tagStrip(FlareColors colors) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var i = 0; i < item.tags.length; i++) ...[
+          if (i > 0) const SizedBox(width: 4),
+          _tagChip(item.tags[i], colors),
+        ],
+      ],
+    );
+  }
+
+  Widget _tagChip(ConversationRowTag tag, FlareColors colors) {
+    final tint = switch (tag.tone) {
+      FlareTagTone.info => colors.info,
+      FlareTagTone.warning => colors.warning,
+      FlareTagTone.neutral => colors.textTertiary,
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+      decoration: BoxDecoration(
+        color: tint.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(FlareSizes.radiusFull),
+      ),
+      child: Text(
+        tag.text,
+        maxLines: 1,
+        style: TextStyle(
+          color: tint,
+          fontSize: FlareSizes.fontSizeXs,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -216,7 +258,7 @@ class _PinDot extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.bgPrimary,
         shape: BoxShape.circle,
-        border: Border.all(color: colors.borderSecondary, width: 1.5),
+        border: Border.all(color: colors.borderSecondary, width: 1),
       ),
       alignment: Alignment.center,
       child: Icon(Icons.push_pin, size: 9, color: colors.pinned),

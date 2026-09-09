@@ -30,7 +30,7 @@ class FlareCallDock extends StatelessWidget {
   final VoidCallback? onToggleMute;
   final VoidCallback? onHangup;
 
-  static const Color _success = Color(0xFF34C759);
+  static const Color _success = Color(0xFF34D17F);
 
   @override
   Widget build(BuildContext context) {
@@ -129,7 +129,7 @@ class FlareCallDock extends StatelessWidget {
           _circleButton(
             icon: Icons.call,
             onTap: onHangup,
-            bg: const Color(0xFFFF453A),
+            bg: const Color(0xFFEF4444),
             iconColor: Colors.white,
             rotation: 135 * math.pi / 180,
           ),

@@ -136,18 +136,20 @@ fun TextMessage(
             lerp(colors.bubbleSelf, Color.Black, 0.16f),
         ),
     )
+    // radius 16 with a 4dp directional tail (self = bottom-end), matching iOS/Flutter.
+    val selfShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 4.dp)
     val bubble = Modifier
         .then(
             if (self) {
                 Modifier
                     .shadow(
                         if (dark) 14.dp else 8.dp,
-                        RoundedCornerShape(16.dp),
+                        selfShape,
                         clip = false,
                         ambientColor = colors.bubbleSelf,
                         spotColor = colors.bubbleSelf,
                     )
-                    .clip(RoundedCornerShape(16.dp))
+                    .clip(selfShape)
                     .background(selfBrush)
             } else {
                 Modifier.bubbleCard(colors)

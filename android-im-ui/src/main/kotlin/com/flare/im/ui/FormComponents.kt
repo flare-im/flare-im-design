@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -56,6 +57,13 @@ private fun sizeSpec(size: FlareControlSize) = when (size) {
     FlareControlSize.Sm -> SizeSpec(32, 12, 13)
     FlareControlSize.Md -> SizeSpec(40, 18, 14)
     FlareControlSize.Lg -> SizeSpec(48, 24, 15)
+}
+
+/** Select trigger uses input-style (tighter) horizontal padding, not button padding. */
+private fun selectHPad(size: FlareControlSize) = when (size) {
+    FlareControlSize.Sm -> 10
+    FlareControlSize.Md -> 12
+    FlareControlSize.Lg -> 14
 }
 
 // MARK: - Button
@@ -79,7 +87,7 @@ fun Button(
     val shape = RoundedCornerShape(FlareSizes.radiusLg)
 
     val (bgBrush, fg, borderColor) = when (variant) {
-        FlareButtonVariant.Primary -> Triple(Brush.linearGradient(listOf(colors.primary, colors.primaryActive)), Color.White, Color.Transparent)
+        FlareButtonVariant.Primary -> Triple(Brush.linearGradient(listOf(colors.primary, colors.primary)), Color.White, Color.Transparent)
         FlareButtonVariant.Secondary -> Triple(Brush.linearGradient(listOf(colors.bgSecondary, colors.bgSecondary)), colors.textPrimary, colors.borderPrimary)
         FlareButtonVariant.Ghost -> Triple(Brush.linearGradient(listOf(Color.Transparent, Color.Transparent)), colors.primary, colors.primary.copy(alpha = 0.4f))
         FlareButtonVariant.Danger -> Triple(Brush.linearGradient(listOf(colors.error, colors.error)), Color.White, Color.Transparent)
@@ -183,7 +191,12 @@ fun Switch(value: Boolean, disabled: Boolean = false, onChange: ((Boolean) -> Un
             .alpha(if (disabled) 0.5f else 1f)
             .then(if (!disabled && onChange != null) Modifier.clickable { onChange(!value) } else Modifier),
     ) {
-        Box(Modifier.offset(x = knobX, y = 3.dp).size(20.dp).clip(CircleShape).background(Color.White))
+        // Knob — white disc with a soft drop shadow (parity with iOS/Flutter rgba(21,18,32,.28) blur 3 / y 1).
+        Box(
+            Modifier.offset(x = knobX, y = 3.dp).size(20.dp)
+                .shadow(2.dp, CircleShape, clip = false, ambientColor = Color(0xFF151220), spotColor = Color(0xFF151220))
+                .clip(CircleShape).background(Color.White),
+        )
     }
 }
 
@@ -278,7 +291,7 @@ fun Select(
             .border(1.dp, if (open) colors.primary else colors.borderPrimary, shape)
             .alpha(if (disabled) 0.55f else 1f)
             .then(if (!disabled) Modifier.clickable { open = true } else Modifier)
-            .padding(horizontal = spec.hPad.dp),
+            .padding(horizontal = selectHPad(size).dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(

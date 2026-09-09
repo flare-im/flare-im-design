@@ -157,7 +157,7 @@ class FlareSearchResults extends StatelessWidget {
               style: TextStyle(
                   color: colors.primary,
                   fontSize: FlareSizes.fontSizeMd,
-                  fontWeight: FontWeight.w600)),
+                  fontWeight: FontWeight.w500)),
         ),
       ),
     );

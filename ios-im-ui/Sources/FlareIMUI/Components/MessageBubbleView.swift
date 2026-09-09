@@ -1,5 +1,25 @@
 import SwiftUI
 
+/// Where a bubble's 4pt directional tail sits (radius 16 elsewhere). Matches the
+/// Android / Flutter bubble grammar: self = bottom-trailing, incoming =
+/// bottom-leading, typing = top-leading.
+enum FlareBubbleTail: Sendable { case none, bottomTrailing, bottomLeading, topLeading }
+
+/// Radius-16 bubble shape with an optional 4pt tail corner.
+func flareBubbleShape(_ tail: FlareBubbleTail, radius: CGFloat = 16, tailRadius: CGFloat = 4) -> UnevenRoundedRectangle {
+    let r = radius, t = tailRadius
+    switch tail {
+    case .none:
+        return UnevenRoundedRectangle(topLeadingRadius: r, bottomLeadingRadius: r, bottomTrailingRadius: r, topTrailingRadius: r, style: .continuous)
+    case .bottomTrailing:
+        return UnevenRoundedRectangle(topLeadingRadius: r, bottomLeadingRadius: r, bottomTrailingRadius: t, topTrailingRadius: r, style: .continuous)
+    case .bottomLeading:
+        return UnevenRoundedRectangle(topLeadingRadius: r, bottomLeadingRadius: t, bottomTrailingRadius: r, topTrailingRadius: r, style: .continuous)
+    case .topLeading:
+        return UnevenRoundedRectangle(topLeadingRadius: t, bottomLeadingRadius: r, bottomTrailingRadius: r, topTrailingRadius: r, style: .continuous)
+    }
+}
+
 /// One message in a thread — content, sender, grouping, delivery status.
 /// Spec: Message/MessageBubble (`MessageBubbleView`). Status comes from the core
 /// view (optimistic), never a network wait.
@@ -123,7 +143,9 @@ public struct MessageBubbleView: View {
 
     // Flare thread grammar: received = white card + hairline border + whisper of
     // lift; self = an Aurora "light source" (dimensional violet gradient + soft
-    // glow, stronger in dark). Radius 16. Bare media carries its own frame.
+    // glow, stronger in dark). Radius 16 with a 4pt directional tail (self =
+    // bottom-trailing, incoming = bottom-leading), matching Android / Flutter.
+    // Bare media carries its own frame.
     @ViewBuilder
     private func bubble(_ colors: FlareColors) -> some View {
         if Self.isBareMedia(message.content) {
@@ -143,13 +165,13 @@ public struct MessageBubbleView: View {
                             startPoint: .topLeading, endPoint: .bottomTrailing)
                     }
                 )
-                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .clipShape(flareBubbleShape(.bottomTrailing))
                 .shadow(color: colors.bubbleSelf.opacity(dark ? 0.55 : 0.38), radius: dark ? 12 : 9, y: 5)
                 .shadow(color: colors.bubbleSelf.opacity(dark ? 0.32 : 0.20), radius: dark ? 6 : 4, y: 2)
         } else {
             bubbleInner(colors)
-                .background(RoundedRectangle(cornerRadius: 16).fill(colors.bgPrimary))
-                .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(colors.borderSecondary, lineWidth: 1))
+                .background(flareBubbleShape(.bottomLeading).fill(colors.bgPrimary))
+                .overlay(flareBubbleShape(.bottomLeading).strokeBorder(colors.borderSecondary, lineWidth: 1))
                 .shadow(color: Color.black.opacity(0.05), radius: 5, y: 2)
         }
     }

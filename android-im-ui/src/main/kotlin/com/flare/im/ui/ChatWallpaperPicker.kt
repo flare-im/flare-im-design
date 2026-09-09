@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -41,7 +42,9 @@ fun ChatWallpaperPicker(
 ) {
     val colors = flareColors()
     Column(
-        Modifier.width(300.dp).clip(RoundedCornerShape(FlareSizes.radiusXl)).background(colors.bgPrimary)
+        Modifier.width(300.dp)
+            .shadow(16.dp, RoundedCornerShape(FlareSizes.radiusXl), clip = false)
+            .clip(RoundedCornerShape(FlareSizes.radiusXl)).background(colors.bgPrimary)
             .border(1.dp, colors.borderPrimary, RoundedCornerShape(FlareSizes.radiusXl)).padding(14.dp),
     ) {
         Text(flareStrings().chatBackground, color = colors.textSecondary, fontWeight = FontWeight.SemiBold,

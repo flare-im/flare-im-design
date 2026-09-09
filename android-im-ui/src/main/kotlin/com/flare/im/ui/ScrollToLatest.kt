@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -30,7 +31,9 @@ fun ScrollToLatest(count: Int = 0, onTap: (() -> Unit)? = null) {
     val colors = flareColors()
     val hasCount = count > 0
     Row(
-        Modifier.clip(RoundedCornerShape(999.dp))
+        Modifier
+            .shadow(8.dp, RoundedCornerShape(999.dp), clip = false)
+            .clip(RoundedCornerShape(999.dp))
             .background(colors.bgPrimary)
             .border(1.dp, colors.borderPrimary, RoundedCornerShape(999.dp))
             .then(if (onTap != null) Modifier.clickable { onTap() } else Modifier)

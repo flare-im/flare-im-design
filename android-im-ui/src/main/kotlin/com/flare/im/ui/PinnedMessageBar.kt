@@ -4,12 +4,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.PushPin
 import androidx.compose.material3.Icon
@@ -21,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -45,12 +50,14 @@ fun PinnedMessageBar(
         Modifier.fillMaxWidth().background(colors.bgSecondary).clickable {
             onFocus?.invoke(item)
             if (items.size > 1) index = (safeIndex + 1) % items.size
-        }.padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingSm),
+        }.padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingSm)
+            .height(IntrinsicSize.Min),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.width(3.dp).height(28.dp).background(colors.pinned))
+        // Accent bar spans the full row height (parity with iOS/Flutter), not a fixed 28dp.
+        Box(Modifier.width(3.dp).fillMaxHeight().clip(RoundedCornerShape(999.dp)).background(colors.pinned))
         Spacer(Modifier.width(FlareSizes.spacingSm))
-        Icon(Icons.Rounded.PushPin, null, tint = colors.pinned)
+        Icon(Icons.Rounded.PushPin, null, Modifier.size(16.dp), tint = colors.pinned)
         Spacer(Modifier.width(FlareSizes.spacingSm))
         Column(Modifier.weight(1f)) {
             if (!item.senderName.isNullOrEmpty()) {

@@ -15,8 +15,9 @@ public struct SearchBarView: View {
     public var body: some View {
         let colors = FlareColors.of(scheme)
         HStack(spacing: FlareSizes.spacingSm) {
-            Image(systemName: "magnifyingglass").foregroundColor(colors.textTertiary)
-            TextField(placeholder, text: $text).textFieldStyle(.plain).onSubmit { onSubmit?() }
+            Image(systemName: "magnifyingglass").font(.system(size: 20)).foregroundColor(colors.textTertiary)
+            TextField(placeholder, text: $text).font(.system(size: FlareSizes.fontSizeLg))
+                .textFieldStyle(.plain).onSubmit { onSubmit?() }
             if loading {
                 ProgressView().controlSize(.mini)
             } else if !text.isEmpty {
@@ -57,12 +58,27 @@ public struct InputView: View {
         let colors = FlareColors.of(scheme)
         VStack(alignment: .trailing, spacing: 4) {
             HStack {
-                if secure {
-                    SecureField(placeholder, text: $text).focused($focused).onSubmit { onSubmit?() }
-                } else if multiline {
-                    TextField(placeholder, text: $text, axis: .vertical).lineLimit(2...6).focused($focused)
-                } else {
-                    TextField(placeholder, text: $text).focused($focused).onSubmit { onSubmit?() }
+                // Field font is pinned to fontSizeLg (14) and the placeholder is drawn in
+                // textTertiary (Android / Flutter parity); multiline starts at one line.
+                ZStack(alignment: .leading) {
+                    if text.isEmpty {
+                        Text(placeholder)
+                            .font(.system(size: FlareSizes.fontSizeLg))
+                            .foregroundColor(colors.textTertiary)
+                            .lineLimit(1)
+                            .allowsHitTesting(false)
+                    }
+                    Group {
+                        if secure {
+                            SecureField("", text: $text).focused($focused).onSubmit { onSubmit?() }
+                        } else if multiline {
+                            TextField("", text: $text, axis: .vertical).lineLimit(1...6).focused($focused)
+                        } else {
+                            TextField("", text: $text).focused($focused).onSubmit { onSubmit?() }
+                        }
+                    }
+                    .font(.system(size: FlareSizes.fontSizeLg))
+                    .foregroundColor(colors.textPrimary)
                 }
                 if clearable && !text.isEmpty && !disabled && !secure {
                     Button { text = "" } label: { Image(systemName: "xmark.circle").foregroundColor(colors.textTertiary) }
@@ -253,7 +269,17 @@ public struct EmptyStateView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             if let actionText {
-                Button(actionText) { onAction?() }.buttonStyle(.bordered).padding(.top, FlareSizes.spacingSm)
+                // Outlined primary action (Android / Flutter parity), not the platform bordered style.
+                Button { onAction?() } label: {
+                    Text(actionText)
+                        .font(.system(size: FlareSizes.fontSizeLg, weight: .medium))
+                        .foregroundColor(colors.primary)
+                        .padding(.horizontal, 18)
+                        .frame(height: 36)
+                        .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).stroke(colors.primary, lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+                .padding(.top, FlareSizes.spacingSm)
             }
         }
         .padding(FlareSizes.spacing2xl)

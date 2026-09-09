@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -41,8 +42,8 @@ fun FilterTabs(
     Row(
         modifier = Modifier
             .horizontalScroll(rememberScrollState())
-            .padding(FlareSizes.spacingXs),
-        horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs),
+            .padding(2.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         for (option in options) {
@@ -59,7 +60,7 @@ fun FilterTabs(
                         RoundedCornerShape(FlareSizes.radiusFull),
                     )
                     .clickable { onSelect(option.value) }
-                    .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingXs),
+                    .padding(horizontal = 14.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
@@ -73,10 +74,11 @@ fun FilterTabs(
                     Spacer(Modifier.width(FlareSizes.spacingXs))
                     Box(
                         modifier = Modifier
-                            .defaultMinSize(minWidth = FlareSizes.spacingLg)
+                            .defaultMinSize(minWidth = 16.dp)
+                            .height(16.dp)
                             .clip(RoundedCornerShape(FlareSizes.radiusFull))
                             .background(colors.primary)
-                            .padding(horizontal = FlareSizes.spacingXs, vertical = FlareSizes.spacingXs / 2),
+                            .padding(horizontal = 5.dp),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(

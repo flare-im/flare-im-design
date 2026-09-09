@@ -107,7 +107,7 @@ class FlareMomentsCoverHeader extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.right,
                             style: const TextStyle(
-                              fontSize: 18,
+                              fontSize: 17,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
                               shadows: [

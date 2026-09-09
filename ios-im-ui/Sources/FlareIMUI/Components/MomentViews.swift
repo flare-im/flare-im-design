@@ -15,9 +15,10 @@ public struct TopicChipView: View {
 
     public var body: some View {
         let colors = FlareColors.of(scheme)
+        // Inherits the surrounding text size (no hard-coded 14) — Android / Flutter parity.
         Button { onTap?() } label: {
             Text("#\(topic)")
-                .font(.system(size: FlareSizes.fontSizeLg, weight: .medium))
+                .fontWeight(.medium)
                 .foregroundColor(colors.primary)
         }
         .buttonStyle(.plain)
@@ -123,7 +124,7 @@ public struct MomentActionPopoverView: View {
 
     private func item(icon: String, label: String, tint: Color? = nil) -> some View {
         HStack(spacing: 5) {
-            Image(systemName: icon).font(.system(size: 14))
+            Image(systemName: icon).font(.system(size: 16))
             Text(label).font(.system(size: 13))
         }
         .foregroundColor(tint ?? Color(.sRGB, red: 0xF2 / 255, green: 0xF0 / 255, blue: 0xF7 / 255, opacity: 1))
@@ -218,7 +219,7 @@ public struct MomentsCoverHeaderView: View {
             Spacer(minLength: 0)
             VStack(alignment: .trailing, spacing: 5) {
                 Text(name)
-                    .font(.system(size: 17, weight: .bold))
+                    .font(.system(size: 18, weight: .bold))
                     .foregroundColor(.white)
                     .shadow(color: Color.black.opacity(0.45), radius: 6, y: 1)
                     .lineLimit(1)

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -31,10 +32,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 
 /** Group (multi-party) call — participant grid + controls. Spec: Call/GroupCallView. */
 @Composable
@@ -93,7 +96,7 @@ fun GroupCallView(
         ) {
             items(participants, key = { it.id }) { p -> callTile(p, mode) }
         }
-        Box(Modifier.fillMaxWidth().padding(vertical = 20.dp), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxWidth().padding(top = 20.dp, bottom = 36.dp), contentAlignment = Alignment.Center) {
             CallControls(muted = muted, cameraOn = cameraOn, speakerOn = speakerOn, mode = mode,
                 onToggleMute = onToggleMute, onToggleCamera = onToggleCamera, onToggleSpeaker = onToggleSpeaker,
                 onSwitchCamera = onSwitchCamera, onHangup = onHangup)
@@ -109,7 +112,12 @@ private fun callTile(p: CallParticipant, mode: FlareCallMode) {
             .border(2.dp, if (p.speaking) Color(0xFF34D17F) else Color.Transparent, RoundedCornerShape(16.dp)),
         contentAlignment = Alignment.Center,
     ) {
-        Avatar(userId = p.id, displayName = p.name, size = 56.dp)
+        Avatar(
+            userId = p.id, displayName = p.name, size = 56.dp,
+            image = p.avatarUrl?.let { url ->
+                { AsyncImage(model = url, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop) }
+            },
+        )
         Row(Modifier.align(Alignment.BottomStart).padding(8.dp), verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             if (p.muted) {

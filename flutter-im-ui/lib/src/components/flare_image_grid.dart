@@ -89,7 +89,8 @@ class FlareImageGrid extends StatelessWidget {
         children: [
           content,
           Container(
-            color: const Color(0x99000000),
+            // black @ 0.42 — same scrim as iOS/Android.
+            color: const Color(0x6B000000),
             alignment: Alignment.center,
             child: Text(
               '+$overflow',

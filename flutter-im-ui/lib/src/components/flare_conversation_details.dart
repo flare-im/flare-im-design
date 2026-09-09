@@ -27,7 +27,6 @@ class FlareConversationDetails extends StatelessWidget {
     this.onMarkRead,
     this.onMarkUnread,
     this.onSync,
-    this.onOpenDevtools,
   });
 
   final FlareConversationSummary conversation;
@@ -46,7 +45,6 @@ class FlareConversationDetails extends StatelessWidget {
   final VoidCallback? onMarkRead;
   final VoidCallback? onMarkUnread;
   final VoidCallback? onSync;
-  final VoidCallback? onOpenDevtools;
 
   @override
   Widget build(BuildContext context) {
@@ -101,8 +99,6 @@ class FlareConversationDetails extends StatelessWidget {
               colors),
         if (onSync != null)
           _actionRow(labels.sync, Icons.sync_rounded, onSync!, colors),
-        if (onOpenDevtools != null)
-          _actionRow(labels.devtools, Icons.bug_report_outlined, onOpenDevtools!, colors),
 
         _sectionGap(colors),
         if (onArchive != null)
@@ -200,7 +196,6 @@ class FlareConversationDetailsLabels {
     this.markRead = '标为已读',
     this.markUnread = '标为未读',
     this.sync = '同步会话',
-    this.devtools = '开发者工具',
     this.archive = '归档会话',
     this.unarchive = '取消归档',
     this.clearHistory = '清空聊天记录',
@@ -213,7 +208,6 @@ class FlareConversationDetailsLabels {
   final String markRead;
   final String markUnread;
   final String sync;
-  final String devtools;
   final String archive;
   final String unarchive;
   final String clearHistory;

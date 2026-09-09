@@ -67,7 +67,7 @@ class _FlareToastState extends State<FlareToast> with SingleTickerProviderStateM
       case FlareToastVariant.success:
         return Icons.check_circle;
       case FlareToastVariant.error:
-        return Icons.error;
+        return Icons.cancel;
       case FlareToastVariant.warning:
         return Icons.warning_amber_rounded;
       case FlareToastVariant.loading:

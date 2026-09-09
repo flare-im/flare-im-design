@@ -54,7 +54,7 @@ class FlareReactionSummary extends StatelessWidget {
                 style: TextStyle(
                     color: active ? colors.primary : colors.textSecondary,
                     fontSize: FlareSizes.fontSizeSm,
-                    fontWeight: FontWeight.w600)),
+                    fontWeight: FontWeight.w500)),
           ],
         ),
       ),

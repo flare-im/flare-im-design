@@ -20,7 +20,6 @@ class FlareTimeStamp extends StatelessWidget {
       style: TextStyle(
         color: colors.textTertiary,
         fontSize: FlareSizes.fontSizeXs,
-        height: FlareSizes.lineHeightNormal,
       ),
     );
   }

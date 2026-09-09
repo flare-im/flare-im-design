@@ -7,10 +7,14 @@ private extension FlareControlSize {
     var height: CGFloat { self == .sm ? 32 : self == .md ? 40 : 48 }
     /// Square (icon-button) side. 30 / 38 / 46.
     var square: CGFloat { self == .sm ? 30 : self == .md ? 38 : 46 }
-    /// Horizontal padding for text buttons / triggers.
-    var hPadding: CGFloat { self == .sm ? 12 : self == .md ? 16 : 20 }
+    /// Horizontal padding for text buttons. 12 / 18 / 24.
+    var hPadding: CGFloat { self == .sm ? 12 : self == .md ? 18 : 24 }
+    /// Horizontal padding for select triggers. 10 / 12 / 14.
+    var triggerPadding: CGFloat { self == .sm ? 10 : self == .md ? 12 : 14 }
     /// Label font size. 13 / 14 / 15.
     var font: CGFloat { self == .sm ? 13 : self == .md ? 14 : 15 }
+    /// Icon-button glyph size. 16 / 19 / 22.
+    var glyph: CGFloat { self == .sm ? 16 : self == .md ? 19 : 22 }
 }
 
 /// General-purpose button. Spec: Form/Button (`ButtonView`).
@@ -67,7 +71,7 @@ public struct ButtonView: View {
                 if loading {
                     ProgressView().controlSize(.small).tint(solid ? .white : colors.primary)
                 } else if let systemImage {
-                    Image(systemName: systemImage).font(.system(size: size.font, weight: .semibold))
+                    Image(systemName: systemImage).font(.system(size: size.font + 4, weight: .semibold))
                 }
                 if let label {
                     Text(label).font(.system(size: size.font, weight: .semibold))
@@ -126,7 +130,7 @@ public struct IconButtonView: View {
         let fg: Color = tint ?? (variant == .solid ? .white
             : active ? colors.primary
             : colors.textSecondary)
-        let iconSize = customSize.map { (($0 * 0.46).rounded()) } ?? (size == .sm ? 15.0 : size == .md ? 17.0 : 19.0)
+        let iconSize = customSize.map { (($0 * 0.46).rounded()) } ?? size.glyph
         Button { action?() } label: {
             Image(systemName: systemImage)
                 .font(.system(size: iconSize, weight: .medium))
@@ -136,7 +140,7 @@ public struct IconButtonView: View {
         }
         .buttonStyle(.plain)
         .disabled(disabled || action == nil)
-        .opacity(disabled ? 0.5 : 1)
+        .opacity(disabled ? 0.45 : 1)
         .accessibilityLabel(accessibilityLabel)
     }
 
@@ -200,7 +204,7 @@ public struct SwitchView: View {
                 Circle()
                     .fill(Color.white)
                     .frame(width: 20, height: 20)
-                    .shadow(color: Color.black.opacity(0.15), radius: 1, y: 1)
+                    .shadow(color: Color.black.opacity(0.28), radius: 3, y: 1)
                     .offset(x: isOn ? 9 : -9)
             )
             .animation(.easeOut(duration: 0.18), value: isOn)
@@ -227,7 +231,7 @@ public struct CheckboxView: View {
         let filled = isOn || indeterminate
         HStack(spacing: FlareSizes.spacingSm) {
             RoundedRectangle(cornerRadius: FlareSizes.radiusSm)
-                .fill(filled ? colors.primary : Color.clear)
+                .fill(filled ? colors.primary : colors.bgPrimary)
                 .frame(width: 20, height: 20)
                 .overlay(
                     RoundedRectangle(cornerRadius: FlareSizes.radiusSm)
@@ -238,7 +242,7 @@ public struct CheckboxView: View {
                         if indeterminate {
                             Image(systemName: "minus").font(.system(size: 12, weight: .bold)).foregroundColor(.white)
                         } else if isOn {
-                            Image(systemName: "checkmark").font(.system(size: 11, weight: .bold)).foregroundColor(.white)
+                            Image(systemName: "checkmark").font(.system(size: 13, weight: .bold)).foregroundColor(.white)
                         }
                     }
                 )
@@ -267,7 +271,7 @@ public struct RadioGroupView: View {
     public var body: some View {
         let colors = FlareColors.of(scheme)
         let layout = AnyLayout(vertical ? AnyLayout(VStackLayout(alignment: .leading, spacing: FlareSizes.spacingMd))
-                                        : AnyLayout(HStackLayout(spacing: FlareSizes.spacingLg)))
+                                        : AnyLayout(HStackLayout(spacing: 18)))
         layout {
             ForEach(options) { option in
                 let selected = option.value == selection
@@ -322,12 +326,12 @@ public struct SelectView: View {
                     .lineLimit(1)
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.down")
-                    .font(.system(size: size.font - 2, weight: .semibold))
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(colors.textTertiary)
                     .rotationEffect(.degrees(open ? 180 : 0))
             }
             .frame(height: size.height)
-            .padding(.horizontal, size.hPadding)
+            .padding(.horizontal, size.triggerPadding)
             .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.bgSecondary))
             .overlay(
                 RoundedRectangle(cornerRadius: FlareSizes.radiusLg)
@@ -357,9 +361,10 @@ private struct SelectSheet: View {
     var body: some View {
         let colors = FlareColors.of(scheme)
         VStack(spacing: 0) {
+            // Sheet heading is a quiet 13pt tertiary caption (Android / Flutter parity).
             Text(title)
-                .font(.system(size: FlareSizes.fontSize2xl, weight: .semibold))
-                .foregroundColor(colors.textPrimary)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(colors.textTertiary)
                 .frame(maxWidth: .infinity)
                 .padding(.top, FlareSizes.spacingXl)
                 .padding(.bottom, FlareSizes.spacingMd)
@@ -371,14 +376,14 @@ private struct SelectSheet: View {
                         let selected = option.value == selection
                         HStack(spacing: FlareSizes.spacingSm) {
                             Text(option.label)
-                                .font(.system(size: FlareSizes.fontSizeXl,
+                                .font(.system(size: 16,
                                                weight: selected ? .semibold : .regular))
                                 .foregroundColor(option.disabled ? colors.textTertiary
                                                  : selected ? colors.primary : colors.textPrimary)
                             Spacer(minLength: 0)
                             if selected {
                                 Image(systemName: "checkmark")
-                                    .font(.system(size: FlareSizes.fontSizeXl, weight: .semibold))
+                                    .font(.system(size: 19, weight: .semibold))
                                     .foregroundColor(colors.primary)
                             }
                         }

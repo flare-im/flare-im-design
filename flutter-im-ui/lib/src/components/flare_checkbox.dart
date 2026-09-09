@@ -50,7 +50,7 @@ class FlareCheckbox extends StatelessWidget {
                 child: on
                     ? Icon(
                         indeterminate ? Icons.remove : Icons.check,
-                        size: 14,
+                        size: 13,
                         color: Colors.white,
                       )
                     : null,

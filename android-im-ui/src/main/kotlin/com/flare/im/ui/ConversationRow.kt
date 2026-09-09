@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -107,6 +108,7 @@ fun ConversationRow(
                 Spacer(Modifier.width(FlareSizes.spacingSm))
                 TimeStamp(item.timestampLabel)
             }
+            Spacer(Modifier.height(4.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (item.muted) {
                     Icon(Icons.Outlined.NotificationsOff, null, Modifier.size(14.dp).padding(end = 2.dp), tint = colors.textTertiary)
@@ -130,7 +132,7 @@ fun ConversationRow(
                             listOf(lerp(base, Color.White, 0.18f), base, lerp(base, Color.Black, 0.12f)),
                         )
                         Box(
-                            Modifier.defaultMinSize(minWidth = 22.dp, minHeight = 22.dp)
+                            Modifier.defaultMinSize(minWidth = 20.dp, minHeight = 20.dp)
                                 .shadow(
                                     if (dark) 8.dp else 5.dp,
                                     RoundedCornerShape(999.dp),
@@ -139,7 +141,7 @@ fun ConversationRow(
                                     spotColor = base,
                                 )
                                 .clip(RoundedCornerShape(999.dp)).background(badgeBrush)
-                                .padding(horizontal = 7.dp),
+                                .padding(horizontal = 6.dp),
                             contentAlignment = Alignment.Center,
                         ) {
                             Text(if (item.unreadCount > 99) "99+" else "${item.unreadCount}",

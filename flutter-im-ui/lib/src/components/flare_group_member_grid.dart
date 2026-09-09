@@ -123,14 +123,14 @@ class FlareGroupMemberGrid extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: colors.borderHover, style: BorderStyle.solid),
+          // Dashed ring (1px, 4/4 dash) — same as iOS/Android.
+          CustomPaint(
+            painter: _DashedCirclePainter(colors.borderHover),
+            child: SizedBox(
+              width: 48,
+              height: 48,
+              child: Icon(Icons.add, color: colors.textTertiary, size: 22),
             ),
-            child: Icon(Icons.add, color: colors.textTertiary, size: 22),
           ),
           const SizedBox(height: 8),
           Text(addLabel, style: TextStyle(color: colors.textSecondary, fontSize: FlareSizes.fontSizeSm)),
@@ -138,4 +138,35 @@ class FlareGroupMemberGrid extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Paints a 1px dashed circle (4px dash / 4px gap) inside the child's bounds.
+class _DashedCirclePainter extends CustomPainter {
+  const _DashedCirclePainter(this.color);
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    final rect = Rect.fromLTWH(0.5, 0.5, size.width - 1, size.height - 1);
+    final circle = Path()..addOval(rect);
+    const dash = 4.0;
+    const gap = 4.0;
+    for (final metric in circle.computeMetrics()) {
+      double d = 0;
+      while (d < metric.length) {
+        final end = (d + dash).clamp(0.0, metric.length);
+        canvas.drawPath(metric.extractPath(d, end), paint);
+        d += dash + gap;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedCirclePainter oldDelegate) =>
+      oldDelegate.color != color;
 }

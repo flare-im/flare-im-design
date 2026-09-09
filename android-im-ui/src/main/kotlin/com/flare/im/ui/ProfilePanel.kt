@@ -77,11 +77,11 @@ fun ProfilePanel(
                 // The model carries a signature — render it (it was silently dropped before), else the
                 // placeholder hint when one is supplied.
                 if (!user.signature.isNullOrEmpty()) {
-                    Text(user.signature, color = Color.White.copy(alpha = 0.82f), fontSize = FlareSizes.fontSizeSm.value.sp)
+                    Text(user.signature, color = Color.White.copy(alpha = 0.82f), fontSize = FlareSizes.fontSizeMd.value.sp)
                 } else if (!signaturePlaceholder.isNullOrEmpty()) {
                     Text(
                         signaturePlaceholder, color = Color.White.copy(alpha = 0.62f),
-                        fontSize = FlareSizes.fontSizeSm.value.sp, fontStyle = FontStyle.Italic,
+                        fontSize = FlareSizes.fontSizeMd.value.sp, fontStyle = FontStyle.Italic,
                     )
                 }
                 if (!user.flareId.isNullOrEmpty()) {
@@ -113,8 +113,8 @@ fun ProfilePanel(
             Column(
                 Modifier.fillMaxWidth()
                     .padding(horizontal = FlareSizes.spacingMd)
-                    .shadow(2.dp, RoundedCornerShape(16.dp), clip = false)
-                    .clip(RoundedCornerShape(16.dp))
+                    .shadow(2.dp, RoundedCornerShape(FlareSizes.radiusXl), clip = false)
+                    .clip(RoundedCornerShape(FlareSizes.radiusXl))
                     .background(colors.bgElevated),
             ) {
                 group.items.forEachIndexed { i, e ->

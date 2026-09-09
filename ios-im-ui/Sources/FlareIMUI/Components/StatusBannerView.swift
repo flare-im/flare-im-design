@@ -62,7 +62,7 @@ public struct StatusBannerView: View {
                 .buttonStyle(.plain)
             }
         }
-        .padding(.horizontal, FlareSizes.spacingMd)
+        .padding(.horizontal, 14)
         .padding(.vertical, FlareSizes.spacingSm)
         .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(tint.opacity(0.10)))
         .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).stroke(tint.opacity(0.24), lineWidth: 1))

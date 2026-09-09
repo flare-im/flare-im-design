@@ -41,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -120,7 +121,9 @@ fun MomentActionPopover(
     onDelete: (() -> Unit)? = null,
 ) {
     Row(
-        Modifier.height(34.dp).clip(RoundedCornerShape(8.dp)).background(Color(0xFF2C2B33)),
+        Modifier.height(34.dp)
+            .shadow(10.dp, RoundedCornerShape(8.dp), clip = false, ambientColor = Color(0xFF2C2B33), spotColor = Color(0xFF2C2B33))
+            .clip(RoundedCornerShape(8.dp)).background(Color(0xFF2C2B33)),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
@@ -212,11 +215,11 @@ fun MomentsCoverHeader(
             verticalAlignment = Alignment.Bottom,
         ) {
             Column(horizontalAlignment = Alignment.End, modifier = Modifier.weight(1f).padding(bottom = 6.dp)) {
-                Text(name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 17.sp,
+                Text(name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp,
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                     style = TextStyle(shadow = titleShadow))
                 signature?.let {
-                    Text(it, color = Color.White.copy(alpha = 0.88f), fontSize = 12.sp, maxLines = 1,
+                    Text(it, color = Color.White.copy(alpha = 0.88f), fontSize = 12.5.sp, maxLines = 1,
                         overflow = TextOverflow.Ellipsis, style = TextStyle(shadow = sigShadow),
                         modifier = Modifier.padding(top = 4.dp))
                 }
@@ -228,7 +231,7 @@ fun MomentsCoverHeader(
                     .clip(RoundedCornerShape(15.dp))
                     .clickable { onAvatar?.invoke() },
             ) {
-                Avatar(userId = userId, displayName = name, size = 64.dp)
+                Avatar(userId = userId, displayName = name, size = 66.dp)
             }
         }
     }
@@ -256,7 +259,9 @@ fun MomentComposer(
     val canPost = text.trim().isNotEmpty() || images.isNotEmpty()
 
     Column(
-        Modifier.width(360.dp).clip(RoundedCornerShape(FlareSizes.radiusXl)).background(colors.bgPrimary)
+        Modifier.width(360.dp)
+            .shadow(16.dp, RoundedCornerShape(FlareSizes.radiusXl), clip = false)
+            .clip(RoundedCornerShape(FlareSizes.radiusXl)).background(colors.bgPrimary)
             .border(1.dp, colors.borderPrimary, RoundedCornerShape(FlareSizes.radiusXl)),
     ) {
         Row(
@@ -355,7 +360,17 @@ fun MomentCard(
 ) {
     val colors = flareColors()
     var menuOpen by remember { mutableStateOf(false) }
-    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(colors.bgElevated).padding(16.dp)) {
+    // Aurora — the card floats on a soft, top-lit shadow (violet-tinted in dark).
+    val cardDark = isSystemInDarkTheme()
+    Row(
+        Modifier.fillMaxWidth()
+            .shadow(
+                if (cardDark) 14.dp else 10.dp, RoundedCornerShape(18.dp), clip = false,
+                ambientColor = if (cardDark) colors.primary else Color(0xFF151320),
+                spotColor = if (cardDark) colors.primary else Color(0xFF151320),
+            )
+            .clip(RoundedCornerShape(18.dp)).background(colors.bgElevated).padding(16.dp),
+    ) {
         Box(Modifier.clickable { onSelectAuthor?.invoke(moment.author.id) }) {
             Avatar(
                 userId = moment.author.id, displayName = moment.author.name, size = 42.dp,

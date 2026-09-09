@@ -61,11 +61,13 @@ public struct VoicePlayerView: View {
         }
         .padding(12)
         .frame(width: 264)
+        // Radius 16 with a 4pt directional tail (outbound = bottom-trailing,
+        // incoming = bottom-leading), matching Android / Flutter.
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            flareBubbleShape(outbound ? .bottomTrailing : .bottomLeading)
                 .fill(outbound ? colors.bgSelected : colors.bgPrimary)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
+                    flareBubbleShape(outbound ? .bottomTrailing : .bottomLeading)
                         .stroke(outbound ? colors.primary.opacity(0.24) : colors.borderPrimary, lineWidth: 1)
                 )
         )

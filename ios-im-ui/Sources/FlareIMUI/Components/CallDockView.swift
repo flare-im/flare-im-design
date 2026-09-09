@@ -27,14 +27,18 @@ public struct CallDockView: View {
         HStack(spacing: FlareSizes.spacingMd) {
             Button { onExpand?() } label: {
                 HStack(spacing: FlareSizes.spacingMd) {
+                    // 40pt ring in the success token (Android / Flutter parity) with a pulsing echo.
                     ZStack {
                         AvatarView(userId: title, displayName: title, avatarURL: avatarURL, size: 34)
-                        Circle().stroke(Color(.sRGB, red: 0.204, green: 0.82, blue: 0.498, opacity: 1), lineWidth: 2)
-                            .frame(width: 34, height: 34)
+                        Circle().stroke(FlareColors.of(.dark).success, lineWidth: 2)
+                            .frame(width: 40, height: 40)
+                        Circle().stroke(FlareColors.of(.dark).success, lineWidth: 2)
+                            .frame(width: 40, height: 40)
                             .scaleEffect(pulsing ? 1.18 : 1)
                             .opacity(pulsing ? 0 : 0.9)
                             .animation(.easeOut(duration: 1.4).repeatForever(autoreverses: false), value: pulsing)
                     }
+                    .frame(width: 40, height: 40)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(title).font(.system(size: 14, weight: .semibold)).foregroundColor(.white)
                             .lineLimit(1).frame(maxWidth: 120, alignment: .leading)
@@ -43,20 +47,20 @@ public struct CallDockView: View {
                             Text(durationLabel ?? "通话中").font(.system(size: 12))
                         }.foregroundColor(.white.opacity(0.66))
                     }
-                    Image(systemName: "arrow.up.left.and.arrow.down.right").font(.system(size: 13)).foregroundColor(.white.opacity(0.5))
+                    Image(systemName: "arrow.up.left.and.arrow.down.right").font(.system(size: 16)).foregroundColor(.white.opacity(0.5))
                 }
             }
             .buttonStyle(.plain)
 
             Button { onToggleMute?() } label: {
-                Image(systemName: muted ? "mic.slash.fill" : "mic.fill").font(.system(size: 14))
+                Image(systemName: muted ? "mic.slash.fill" : "mic.fill").font(.system(size: 18))
                     .foregroundColor(muted ? Color(.sRGB, red: 0.098, green: 0.075, blue: 0.125, opacity: 1) : .white)
                     .frame(width: 36, height: 36)
                     .background(Circle().fill(muted ? Color.white : Color.white.opacity(0.14)))
             }.buttonStyle(.plain)
 
             Button { onHangup?() } label: {
-                Image(systemName: "phone.fill").font(.system(size: 14)).foregroundColor(.white)
+                Image(systemName: "phone.fill").font(.system(size: 18)).foregroundColor(.white)
                     .rotationEffect(.degrees(135))
                     .frame(width: 36, height: 36)
                     .background(Circle().fill(FlareColors.of(.dark).error))

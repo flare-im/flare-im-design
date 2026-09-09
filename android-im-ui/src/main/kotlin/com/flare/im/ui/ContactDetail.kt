@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -162,7 +163,14 @@ private fun action(label: String, icon: ImageVector, onClick: (() -> Unit)?, col
         else ButtonDefaults.buttonColors(containerColor = colors.bgSecondary, contentColor = colors.textPrimary),
         shape = RoundedCornerShape(FlareSizes.radiusLg),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp, vertical = 10.dp),
-        modifier = modifier,
+        // Parity with iOS/Flutter: action tiles float — brand-tinted glow on primary, soft neutral on the rest.
+        modifier = modifier.shadow(
+            if (primary) 10.dp else 6.dp,
+            RoundedCornerShape(FlareSizes.radiusLg),
+            clip = false,
+            ambientColor = if (primary) colors.primary else Color(0xFF151320),
+            spotColor = if (primary) colors.primary else Color(0xFF151320),
+        ),
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Icon(icon, null, tint = if (primary) Color.White else colors.textPrimary)

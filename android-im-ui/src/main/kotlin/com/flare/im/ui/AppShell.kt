@@ -1,11 +1,15 @@
 package com.flare.im.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
@@ -30,11 +34,13 @@ fun AppShell(
     onNavigate: ((String) -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
+    val colors = flareColors()
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val wide = maxWidth >= 600.dp
         if (wide) {
             Row(Modifier.fillMaxSize()) {
-                NavigationRail(Modifier.fillMaxHeight()) {
+                // Rail sits on bgSecondary with a hairline against the content (parity with iOS/Flutter).
+                NavigationRail(Modifier.fillMaxHeight(), containerColor = colors.bgSecondary) {
                     items.forEach { item ->
                         NavigationRailItem(
                             selected = item.key == activeKey,
@@ -44,12 +50,14 @@ fun AppShell(
                         )
                     }
                 }
+                Box(Modifier.fillMaxHeight().width(1.dp).background(colors.borderPrimary))
                 Box(Modifier.weight(1f).fillMaxSize()) { content() }
             }
         } else {
             Column(Modifier.fillMaxSize()) {
                 Box(Modifier.weight(1f)) { content() }
-                NavigationBar {
+                Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderPrimary))
+                NavigationBar(containerColor = colors.bgPrimary) {
                     items.forEach { item ->
                         NavigationBarItem(
                             selected = item.key == activeKey,

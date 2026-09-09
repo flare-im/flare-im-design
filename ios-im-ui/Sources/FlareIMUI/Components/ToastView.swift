@@ -42,10 +42,10 @@ public struct ToastView: View {
 
     public var body: some View {
         let colors = FlareColors.of(scheme)
-        HStack(spacing: FlareSizes.spacingMd) {
-            Image(systemName: icon).font(.system(size: 16)).foregroundColor(tint(colors))
+        HStack(spacing: 10) {
+            Image(systemName: icon).font(.system(size: 18)).foregroundColor(tint(colors))
                 .rotationEffect(.degrees(variant == .loading && animating ? 360 : 0))
-                .animation(variant == .loading ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: animating)
+                .animation(variant == .loading ? .linear(duration: 0.9).repeatForever(autoreverses: false) : .default, value: animating)
             Text(message).font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textPrimary)
             if let label = actionLabel {
                 Button { onAction?() } label: {

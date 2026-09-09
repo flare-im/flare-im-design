@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -50,7 +51,8 @@ fun AnnouncementBanner(
             .padding(horizontal = 12.dp, vertical = 11.dp),
     ) {
         Box(
-            Modifier.size(26.dp).clip(RoundedCornerShape(8.dp)).background(colors.primary),
+            Modifier.size(26.dp).clip(RoundedCornerShape(8.dp))
+                .background(Brush.linearGradient(listOf(colors.primary, colors.primaryActive))),
             contentAlignment = Alignment.Center,
         ) {
             Icon(Icons.Outlined.Campaign, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))

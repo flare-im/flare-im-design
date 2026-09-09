@@ -58,32 +58,44 @@ class _FlareContactListState extends State<FlareContactList> {
 
     return Stack(
       children: [
-        SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (final g in groups) ...[
-                Container(
-                  key: _keys.putIfAbsent(g.key, () => GlobalKey()),
-                  color: colors.bgSecondary,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: FlareSizes.spacingMd, vertical: 4),
-                  child: Text(g.key,
-                      style: TextStyle(
-                          color: colors.textTertiary,
-                          fontSize: FlareSizes.fontSizeSm,
-                          fontWeight: FontWeight.w600)),
-                ),
-                for (final c in g.value)
-                  FlareContactItem(
-                    item: c,
-                    onSelect: widget.onSelect == null
-                        ? null
-                        : () => widget.onSelect!(c),
+        // Letter headers stay pinned while their group scrolls under them —
+        // same as iOS (pinnedViews) / Android (stickyHeader).
+        CustomScrollView(
+          slivers: [
+            for (final g in groups)
+              SliverMainAxisGroup(
+                slivers: [
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: _LetterHeaderDelegate(
+                      child: Container(
+                        key: _keys.putIfAbsent(g.key, () => GlobalKey()),
+                        color: colors.bgSecondary,
+                        alignment: Alignment.centerLeft,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: FlareSizes.spacingMd, vertical: 4),
+                        child: Text(g.key,
+                            style: TextStyle(
+                                color: colors.textTertiary,
+                                fontSize: FlareSizes.fontSizeSm,
+                                fontWeight: FontWeight.w600)),
+                      ),
+                    ),
                   ),
-              ],
-            ],
-          ),
+                  SliverList.list(
+                    children: [
+                      for (final c in g.value)
+                        FlareContactItem(
+                          item: c,
+                          onSelect: widget.onSelect == null
+                              ? null
+                              : () => widget.onSelect!(c),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+          ],
         ),
         if (widget.indexed && groups.length > 1)
           Align(
@@ -112,4 +124,27 @@ class _FlareContactListState extends State<FlareContactList> {
       ],
     );
   }
+}
+
+/// Fixed-height pinned letter header (12px text + 4px vertical inset).
+class _LetterHeaderDelegate extends SliverPersistentHeaderDelegate {
+  const _LetterHeaderDelegate({required this.child});
+
+  final Widget child;
+
+  static const double _height = 24;
+
+  @override
+  double get minExtent => _height;
+
+  @override
+  double get maxExtent => _height;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) =>
+      SizedBox(height: _height, child: child);
+
+  @override
+  bool shouldRebuild(_LetterHeaderDelegate oldDelegate) =>
+      oldDelegate.child != child;
 }

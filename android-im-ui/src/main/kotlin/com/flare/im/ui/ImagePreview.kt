@@ -2,6 +2,8 @@ package com.flare.im.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,10 +19,18 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 
 /**
@@ -42,11 +52,39 @@ fun ImagePreview(
 ) {
     if (!show) return
     val colors = flareColors()
+    // Built-in zoom (parity with iOS/Flutter): pinch 1x–4x, drag to pan when zoomed, double-tap toggles.
+    var scale by remember(imageSrc) { mutableFloatStateOf(1f) }
+    var offset by remember(imageSrc) { mutableStateOf(Offset.Zero) }
     Box(Modifier.fillMaxSize().background(Color.Black)) {
-        Box(Modifier.fillMaxSize().clickable { onClose?.invoke() }, contentAlignment = Alignment.Center) {
+        Box(
+            Modifier.fillMaxSize()
+                .pointerInput(imageSrc) {
+                    detectTapGestures(
+                        onTap = { if (scale <= 1f) onClose?.invoke() },
+                        onDoubleTap = {
+                            if (scale > 1f) { scale = 1f; offset = Offset.Zero } else scale = 2.5f
+                        },
+                    )
+                }
+                .pointerInput(imageSrc) {
+                    detectTransformGestures { _, pan, zoom, _ ->
+                        val next = (scale * zoom).coerceIn(1f, 4f)
+                        scale = next
+                        offset = if (next <= 1f) Offset.Zero else offset + pan
+                    }
+                },
+            contentAlignment = Alignment.Center,
+        ) {
             when {
                 loading -> CircularProgressIndicator(color = Color.White)
-                image != null -> image()
+                image != null -> Box(
+                    Modifier.graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                        translationX = offset.x
+                        translationY = offset.y
+                    },
+                ) { image() }
                 else -> Icon(Icons.Outlined.BrokenImage, null, Modifier.size(64.dp), tint = Color.White.copy(alpha = 0.5f))
             }
         }

@@ -93,7 +93,14 @@ public struct FlareComposerActionPanel: View {
 
 /// Send button (发送) — a composable composer part. Brand-purple when active,
 /// disabled otherwise; fires onSend only when active.
+///
+/// Same footprint as the send key inside ``ComposerView`` (36pt circle, 18pt
+/// glyph) so a host composing its own bar gets an identical key.
 public struct FlareComposerSendButton: View {
+    /// Shared with `ComposerView` so the two send keys can't drift.
+    static let side: CGFloat = 36
+    static let glyph: CGFloat = 18
+
     private let active: Bool
     private let onSend: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
@@ -107,9 +114,9 @@ public struct FlareComposerSendButton: View {
         let colors = FlareColors.of(scheme)
         Button { if active { onSend?() } } label: {
             Image(systemName: "arrow.up")
-                .font(.system(size: 16, weight: .semibold))
+                .font(.system(size: Self.glyph, weight: .semibold))
                 .foregroundColor(active ? .white : colors.textDisabled)
-                .frame(width: 34, height: 34)
+                .frame(width: Self.side, height: Self.side)
                 .background(Circle().fill(active ? colors.primary : colors.bgDisabled))
         }
         .buttonStyle(.plain)
@@ -148,7 +155,7 @@ public struct FlareComposerReplyStrip: View {
             }
             Spacer(minLength: 0)
             Button { onCancel?() } label: {
-                Image(systemName: "xmark").font(.system(size: 14)).foregroundColor(colors.textTertiary)
+                Image(systemName: "xmark").font(.system(size: 18)).foregroundColor(colors.textTertiary)
             }.buttonStyle(.plain)
         }
         .padding(.horizontal, FlareSizes.spacingSm).padding(.vertical, FlareSizes.spacingXs)

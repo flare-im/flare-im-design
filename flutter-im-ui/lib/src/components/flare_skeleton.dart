@@ -176,9 +176,9 @@ class _FlareSkeletonState extends State<FlareSkeleton>
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           _block(colors, width: 72, height: 72, circle: true),
-          const SizedBox(height: FlareSizes.spacingLg),
+          const SizedBox(height: FlareSizes.spacingMd),
           FractionallySizedBox(widthFactor: 0.4, child: _block(colors, height: 15)),
-          const SizedBox(height: FlareSizes.spacingSm),
+          const SizedBox(height: FlareSizes.spacingMd),
           FractionallySizedBox(widthFactor: 0.6, child: _block(colors, height: 11)),
         ],
       ),

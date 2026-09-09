@@ -24,7 +24,7 @@ public struct AnnouncementBannerView: View {
     public var body: some View {
         let colors = FlareColors.of(scheme)
         HStack(alignment: .top, spacing: FlareSizes.spacingMd) {
-            Image(systemName: "megaphone.fill").font(.system(size: 13)).foregroundColor(.white)
+            Image(systemName: "megaphone.fill").font(.system(size: 16)).foregroundColor(.white)
                 .frame(width: 26, height: 26)
                 .background(RoundedRectangle(cornerRadius: 8).fill(
                     LinearGradient(colors: [colors.primary, colors.primary.opacity(0.82)],
@@ -43,7 +43,7 @@ public struct AnnouncementBannerView: View {
                     Button { expanded.toggle() } label: {
                         HStack(spacing: 3) {
                             Text(expanded ? "收起" : "展开").font(.system(size: FlareSizes.fontSizeMd, weight: .medium))
-                            Image(systemName: "chevron.down").font(.system(size: 10))
+                            Image(systemName: "chevron.down").font(.system(size: 14))
                                 .rotationEffect(.degrees(expanded ? 180 : 0))
                         }.foregroundColor(colors.primary)
                     }.buttonStyle(.plain)
@@ -52,7 +52,7 @@ public struct AnnouncementBannerView: View {
 
             if dismissible {
                 Button { onClose?() } label: {
-                    Image(systemName: "xmark").font(.system(size: 13)).foregroundColor(colors.textTertiary)
+                    Image(systemName: "xmark").font(.system(size: 16)).foregroundColor(colors.textTertiary)
                 }.buttonStyle(.plain)
             }
         }

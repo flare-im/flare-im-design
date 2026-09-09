@@ -19,8 +19,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,7 +47,7 @@ fun Toast(
 ) {
     val colors = flareColors()
     val (icon, tint) = when (variant) {
-        ToastVariant.Info -> Icons.Outlined.Info to colors.primary
+        ToastVariant.Info -> Icons.Filled.Info to colors.primary
         ToastVariant.Success -> Icons.Filled.CheckCircle to colors.success
         ToastVariant.Error -> Icons.Filled.Cancel to colors.error
         ToastVariant.Warning -> Icons.Filled.Warning to colors.warning
@@ -59,7 +60,9 @@ fun Toast(
         label = "spin",
     )
     Row(
-        Modifier.widthIn(max = 420.dp).clip(RoundedCornerShape(FlareSizes.radiusLg))
+        Modifier.widthIn(max = 420.dp)
+            .shadow(10.dp, RoundedCornerShape(FlareSizes.radiusLg), clip = false)
+            .clip(RoundedCornerShape(FlareSizes.radiusLg))
             .background(colors.bgPrimary)
             .border(1.dp, colors.borderPrimary, RoundedCornerShape(FlareSizes.radiusLg))
             .padding(horizontal = 14.dp, vertical = 11.dp),
@@ -69,11 +72,11 @@ fun Toast(
             modifier = Modifier.size(18.dp)
                 .then(if (variant == ToastVariant.Loading) Modifier.rotate(angle) else Modifier))
         Spacer(Modifier.width(10.dp))
-        Text(message, color = colors.textPrimary, fontSize = FlareSizes.fontSizeMd.value.sp, modifier = Modifier.weight(1f, fill = false))
+        Text(message, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp, modifier = Modifier.weight(1f, fill = false))
         if (actionLabel != null) {
             Spacer(Modifier.width(10.dp))
             Text(actionLabel, color = colors.primary, fontWeight = FontWeight.SemiBold,
-                fontSize = FlareSizes.fontSizeMd.value.sp,
+                fontSize = FlareSizes.fontSizeLg.value.sp,
                 modifier = Modifier.clickable { onAction?.invoke() })
         }
     }

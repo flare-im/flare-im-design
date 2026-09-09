@@ -62,7 +62,7 @@ fun QuickPhrases(
                 flareStrings().quickPhrases,
                 color = colors.textPrimary,
                 fontWeight = FontWeight.SemiBold,
-                fontSize = FlareSizes.fontSizeXl.value.sp,
+                fontSize = FlareSizes.fontSizeLg.value.sp,
                 modifier = Modifier.weight(1f),
             )
             if (manageable) {
@@ -87,7 +87,7 @@ fun QuickPhrases(
                         g.title,
                         color = if (sel) colors.primary else colors.textSecondary,
                         fontWeight = if (sel) FontWeight.Medium else FontWeight.Normal,
-                        fontSize = FlareSizes.fontSizeMd.value.sp,
+                        fontSize = FlareSizes.fontSizeSm.value.sp,
                         modifier = Modifier.clip(RoundedCornerShape(999.dp))
                             .background(if (sel) colors.bgSelected else colors.bgSecondary)
                             .clickable { activeKey = g.key }

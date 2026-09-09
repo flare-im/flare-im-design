@@ -90,7 +90,8 @@ public struct TextMessageView: View {
     }
     public var body: some View {
         let colors = FlareColors.of(scheme)
-        Text(linkified(text, linkColor: isSelf ? .white : colors.primary))
+        let dark = scheme == .dark
+        let label = Text(linkified(text, linkColor: isSelf ? .white : colors.primary))
             .font(.system(size: FlareSizes.fontSizeXl))
             .lineSpacing(4)
             .foregroundColor(isSelf ? .white : colors.textPrimary)
@@ -100,12 +101,28 @@ public struct TextMessageView: View {
                 return .handled
             })
             .padding(.horizontal, 14).padding(.vertical, 9)
-            .background(isSelf ? colors.bubbleSelf : colors.bgPrimary)
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(
-                isSelf ? nil : RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .strokeBorder(colors.borderSecondary, lineWidth: 1)
-            )
+        // Radius 16 + 4pt directional tail; self = Aurora light source (dimensional
+        // violet gradient + violet glow), incoming = white card + hairline. Same
+        // grammar as MessageBubbleView / Android / Flutter.
+        if isSelf {
+            label
+                .background(
+                    ZStack {
+                        colors.bubbleSelf
+                        LinearGradient(
+                            colors: [Color.white.opacity(0.22), Color.clear, Color.black.opacity(0.16)],
+                            startPoint: .topLeading, endPoint: .bottomTrailing)
+                    }
+                )
+                .clipShape(flareBubbleShape(.bottomTrailing))
+                .shadow(color: colors.bubbleSelf.opacity(dark ? 0.55 : 0.38), radius: dark ? 12 : 9, y: 5)
+                .shadow(color: colors.bubbleSelf.opacity(dark ? 0.32 : 0.20), radius: dark ? 6 : 4, y: 2)
+        } else {
+            label
+                .background(flareBubbleShape(.bottomLeading).fill(colors.bgPrimary))
+                .overlay(flareBubbleShape(.bottomLeading).strokeBorder(colors.borderSecondary, lineWidth: 1))
+                .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+        }
     }
 }
 
@@ -154,7 +171,7 @@ public struct VideoMessageView: View {
                     Image(systemName: "video").font(.system(size: 24)).foregroundColor(colors.textTertiary).opacity(0.5))
             }
             Color.black.opacity(0.28)
-            Image(systemName: "play.fill").font(.system(size: 30)).foregroundColor(.white)
+            Image(systemName: "play.fill").font(.system(size: 34)).foregroundColor(.white)
             VStack { Spacer(); HStack { Spacer()
                 Text(duration).font(.system(size: 10)).foregroundColor(.white)
                     .padding(.horizontal, 5).padding(.vertical, 1)

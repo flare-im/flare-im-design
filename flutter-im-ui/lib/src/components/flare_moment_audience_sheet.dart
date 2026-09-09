@@ -201,7 +201,7 @@ class FlareMomentAudienceSheet extends StatelessWidget {
           padding: const EdgeInsets.all(FlareSizes.spacingMd),
           child: Align(
             alignment: Alignment.centerRight,
-            child: FilledButton(onPressed: onClose, child: Text(labels.done)),
+            child: TextButton(onPressed: onClose, child: Text(labels.done)),
           ),
         ),
       ],

@@ -29,7 +29,7 @@ public struct SlashCommandMenuView: View {
         let colors = FlareColors.of(scheme)
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 6) {
-                Image(systemName: "terminal").font(.system(size: 11)).foregroundColor(colors.textTertiary)
+                Image(systemName: "terminal").font(.system(size: 13)).foregroundColor(colors.textTertiary)
                 Text("命令").font(.system(size: 11, weight: .semibold)).foregroundColor(colors.textTertiary)
                 Spacer(minLength: 0)
             }
@@ -62,7 +62,7 @@ public struct SlashCommandMenuView: View {
                     Text("/\(c.command)").font(.system(size: 13, weight: .semibold, design: .monospaced))
                         .foregroundColor(colors.primary)
                     if let hint = c.hint, !hint.isEmpty {
-                        Text(hint).font(.system(size: 13, design: .monospaced)).foregroundColor(colors.textTertiary)
+                        Text(hint).font(.system(size: 12, design: .monospaced)).foregroundColor(colors.textTertiary)
                     }
                     Spacer(minLength: 0)
                 }

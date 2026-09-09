@@ -127,7 +127,7 @@ class _FlareVoiceRecordingBarState extends State<FlareVoiceRecordingBar>
                 Text(
                   widget.durationLabel,
                   style: TextStyle(
-                    color: colors.textSecondary,
+                    color: colors.textPrimary,
                     fontSize: 13,
                     fontFeatures: const [FontFeature.tabularFigures()],
                   ),

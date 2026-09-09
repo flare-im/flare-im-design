@@ -104,8 +104,8 @@ class FlareChatWallpaperPicker extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(4),
                   child: Container(
-                    width: 18,
-                    height: 18,
+                    width: 22,
+                    height: 22,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,

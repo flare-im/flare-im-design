@@ -34,15 +34,16 @@ public struct SearchResultsView: View {
 
     private func section(_ colors: FlareColors, _ g: SearchResultGroup) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(g.label.uppercased()).font(.system(size: 12, weight: .semibold)).foregroundColor(colors.textTertiary)
-                .padding(.leading, 4).padding(.bottom, 2)
+            // Label as given (no uppercasing) — Android / Flutter parity.
+            Text(g.label).font(.system(size: 12, weight: .semibold)).foregroundColor(colors.textTertiary)
+                .padding(.bottom, 2)
             ForEach(g.items) { item in row(colors, item) }
             if let total = g.total, total > g.items.count {
                 Button { onViewAll?(g.kind) } label: {
-                    Text("查看全部 \(total)").font(.system(size: FlareSizes.fontSizeLg, weight: .medium))
+                    Text("查看全部 \(total)").font(.system(size: FlareSizes.fontSizeMd, weight: .medium))
                         .foregroundColor(colors.primary)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 4).padding(.vertical, FlareSizes.spacingSm)
+                        .padding(.vertical, FlareSizes.spacingSm)
                 }.buttonStyle(.plain)
             }
         }
@@ -65,7 +66,7 @@ public struct SearchResultsView: View {
                     Text(meta).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
                 }
             }
-            .padding(.horizontal, 4).padding(.vertical, FlareSizes.spacingSm)
+            .padding(.vertical, FlareSizes.spacingSm)
         }
         .buttonStyle(.plain)
     }

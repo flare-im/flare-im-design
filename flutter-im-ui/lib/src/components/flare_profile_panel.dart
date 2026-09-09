@@ -158,7 +158,7 @@ class FlareProfilePanel extends StatelessWidget {
                       color: Colors.white.withValues(alpha: 0.16),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.qr_code, color: Colors.white, size: 19),
+                    child: const Icon(Icons.qr_code, color: Colors.white, size: 20),
                   ),
                 ),
                 const SizedBox(width: 2),

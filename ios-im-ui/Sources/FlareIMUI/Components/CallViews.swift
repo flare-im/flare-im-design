@@ -41,7 +41,7 @@ public struct CallControlsView: View {
     private func ctrl(_ icon: String, _ label: String, _ on: Bool, _ action: (() -> Void)?) -> some View {
         VStack(spacing: 6) {
             Button { action?() } label: {
-                Image(systemName: icon).font(.system(size: 22))
+                Image(systemName: icon).font(.system(size: 24))
                     .foregroundColor(on ? .black : .white)
                     .frame(width: 56, height: 56)
                     .background(Circle().fill(on ? Color.white : Color.white.opacity(0.16)))
@@ -53,7 +53,7 @@ public struct CallControlsView: View {
 
     private var hangup: some View {
         Button { onHangup?() } label: {
-            Image(systemName: "phone.down").font(.system(size: 22)).foregroundColor(.white)
+            Image(systemName: "phone.down").font(.system(size: 24)).foregroundColor(.white)
                 .frame(width: 56, height: 56).background(Circle().fill(Color(.sRGB, red: 0.937, green: 0.267, blue: 0.267, opacity: 1)))
         }
         .buttonStyle(.plain)
@@ -99,6 +99,7 @@ public struct CallView: View {
         ZStack {
             Color(.sRGB, red: 0.066, green: 0.075, blue: 0.094, opacity: 1).ignoresSafeArea()
             if mode == .video, let video { video }
+            // Peer block anchors to the top (Android / Flutter parity), not the vertical centre.
             VStack(spacing: FlareSizes.spacingSm) {
                 if mode == .audio || video == nil {
                     AvatarView(userId: peerName, displayName: peerName, avatarURL: peerAvatarURL, size: 96)
@@ -106,7 +107,8 @@ public struct CallView: View {
                 Text(peerName).font(.system(size: FlareSizes.fontSize4xl, weight: .semibold)).foregroundColor(.white)
                 Text(statusText).font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(.white.opacity(0.7))
             }
-            .padding(.bottom, 160)
+            .padding(.top, 96)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             VStack {
                 Spacer()
                 CallControlsView(muted: muted, cameraOn: cameraOn, speakerOn: speakerOn, mode: mode,

@@ -128,7 +128,7 @@ class _FlareInputState extends State<FlareInput> {
               if (widget.clearable && _controller.text.isNotEmpty && !widget.disabled)
                 GestureDetector(
                   onTap: () => _controller.clear(),
-                  child: Icon(Icons.cancel, size: 18, color: colors.textTertiary),
+                  child: Icon(Icons.cancel_outlined, size: 18, color: colors.textTertiary),
                 ),
             ],
           ),

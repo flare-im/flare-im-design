@@ -87,9 +87,9 @@ fun MessageContentView(
             isSelf = ctx.isSelf,
         )
         is FlareImageContent -> Box {
-            mediaPlaceholder(200.dp, colors, Icons.Outlined.Image, onClick = { onMediaAction?.invoke(content) })
+            mediaPlaceholder(240.dp, colors, Icons.Outlined.Image, onClick = { onMediaAction?.invoke(content) })
             if (mediaState?.isDownloading == true) {
-                Box(Modifier.size(200.dp).background(Color.Black.copy(alpha = 0.35f)), contentAlignment = Alignment.Center) {
+                Box(Modifier.size(240.dp).background(Color.Black.copy(alpha = 0.35f)), contentAlignment = Alignment.Center) {
                     Text("${mediaState.progressPct}%", color = Color.White, fontWeight = FontWeight.SemiBold)
                 }
             }

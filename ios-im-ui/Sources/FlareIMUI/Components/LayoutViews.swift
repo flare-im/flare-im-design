@@ -19,11 +19,14 @@ public struct AppShellView<Content: View>: View {
 
     public var body: some View {
         GeometryReader { geo in
-            if geo.size.width > 600 {
+            // Rail at >= 600 (inclusive), separated from content by a hairline — Android / Flutter parity.
+            if geo.size.width >= 600 {
                 HStack(spacing: 0) {
                     VStack(spacing: 6) { ForEach(items) { navButton($0) } }
                         .padding(.vertical, FlareSizes.spacingMd).padding(.horizontal, 6)
+                        .frame(maxHeight: .infinity, alignment: .top)
                         .background(FlareColors.of(scheme).bgSecondary)
+                    Divider()
                     content
                 }
             } else {

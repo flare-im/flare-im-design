@@ -50,11 +50,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
@@ -90,9 +96,26 @@ fun Textarea(
     val pad = when (size) { FlareControlSize.Sm -> 8; FlareControlSize.Md -> 10; FlareControlSize.Lg -> 12 }
     val shape = RoundedCornerShape(FlareSizes.radiusLg)
     val minH = (font * 1.5 * rows + pad * 2).dp
+    val ringColor = colors.focusRing
+    val ringRadius = FlareSizes.radiusLg
 
     Box(
-        Modifier.fillMaxWidth().clip(shape)
+        Modifier.fillMaxWidth()
+            // 3px focus ring outside the border (parity with iOS/Flutter `focusRing` spread shadow).
+            .drawBehind {
+                if (focused) {
+                    val ring = 3.dp.toPx()
+                    val bounds = this.size
+                    drawRoundRect(
+                        color = ringColor,
+                        topLeft = Offset(-ring / 2f, -ring / 2f),
+                        size = Size(bounds.width + ring, bounds.height + ring),
+                        cornerRadius = CornerRadius(ringRadius.toPx() + ring / 2f),
+                        style = Stroke(width = ring),
+                    )
+                }
+            }
+            .clip(shape)
             .background(if (focused) colors.bgPrimary else colors.bgSecondary)
             .border(1.dp, if (focused) colors.primary else colors.borderPrimary, shape)
             .alpha(if (disabled) 0.55f else 1f)
@@ -228,8 +251,10 @@ fun Slider(
                 .height(6.dp).clip(RoundedCornerShape(999.dp))
                 .background(Brush.horizontalGradient(listOf(colors.primary, colors.primaryActive))),
         )
-        // thumb
-        Box(Modifier.offset(x = (trackW - thumb) * pct).size(thumb).scale(thumbScale).clip(CircleShape)
+        // thumb — white disc, brand ring, soft drop shadow (parity with iOS/Flutter).
+        Box(Modifier.offset(x = (trackW - thumb) * pct).size(thumb).scale(thumbScale)
+            .shadow(3.dp, CircleShape, clip = false, ambientColor = Color(0xFF151220), spotColor = Color(0xFF151220))
+            .clip(CircleShape)
             .background(Color.White).border(2.dp, colors.primary, CircleShape))
         if (showValue && dragging) {
             Box(Modifier.offset(x = (trackW - thumb) * pct - 8.dp, y = (-16).dp)) {

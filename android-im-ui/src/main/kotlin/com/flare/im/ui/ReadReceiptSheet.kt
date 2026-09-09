@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -52,6 +53,7 @@ fun ReadReceiptSheet(
     val shape = RoundedCornerShape(FlareSizes.radiusXl)
     Column(
         Modifier.width(320.dp)
+            .shadow(16.dp, shape, clip = false)
             .clip(shape)
             .background(colors.bgPrimary)
             .border(1.dp, colors.borderPrimary, shape),
@@ -130,6 +132,6 @@ private fun RowScope.receiptTab(colors: FlareColors, label: String, active: Bool
             fontSize = FlareSizes.fontSizeMd.value.sp,
         )
         Spacer(Modifier.height(6.dp))
-        Box(Modifier.width(24.dp).height(2.dp).background(if (active) colors.primary else Color.Transparent))
+        Box(Modifier.fillMaxWidth().height(2.dp).background(if (active) colors.primary else Color.Transparent))
     }
 }

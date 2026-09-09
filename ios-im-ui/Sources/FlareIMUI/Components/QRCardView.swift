@@ -57,6 +57,8 @@ public struct QRCardView: View {
         .padding(14)
         .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.bgSecondary)
             .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).stroke(colors.borderPrimary, lineWidth: 1)))
+        // Frame sits 16 below the identity row (Android / Flutter parity; the VStack adds 12).
+        .padding(.top, 4)
     }
 
     private func matrix(_ colors: FlareColors) -> some View {
@@ -83,7 +85,7 @@ public struct QRCardView: View {
                 let outer = CGRect(x: CGFloat(fx) * cell + inset, y: CGFloat(fy) * cell + inset,
                                    width: cell * 3 - inset * 2, height: cell * 3 - inset * 2)
                 ctx.stroke(Path(roundedRect: outer, cornerRadius: cell * 0.5),
-                           with: .color(color), lineWidth: cell * 0.34)
+                           with: .color(color), lineWidth: cell * 0.6)
                 let dot = outer.insetBy(dx: cell * 0.75, dy: cell * 0.75)
                 ctx.fill(Path(roundedRect: dot, cornerRadius: cell * 0.3), with: .color(color))
             }

@@ -26,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -93,7 +94,9 @@ fun VoiceRecordingBar(
                 modifier = Modifier.padding(end = 4.dp))
         } else {
             Box(
-                Modifier.size(36.dp).clip(CircleShape).background(colors.primary).clickable { onSend?.invoke() },
+                Modifier.size(36.dp).clip(CircleShape)
+                    .background(Brush.linearGradient(listOf(colors.primary, colors.primaryActive)))
+                    .clickable { onSend?.invoke() },
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(Icons.AutoMirrored.Outlined.Send, contentDescription = flareStrings().send, tint = Color.White, modifier = Modifier.size(18.dp))

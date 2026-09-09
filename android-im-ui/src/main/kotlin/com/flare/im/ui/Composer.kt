@@ -163,7 +163,7 @@ fun Composer(
                                     maxLines = 5,
                                     textStyle = TextStyle(
                                         color = colors.textPrimary,
-                                        fontSize = FlareSizes.fontSizeXl.value.sp,
+                                        fontSize = FlareSizes.fontSizeLg.value.sp,
                                     ),
                                     cursorBrush = SolidColor(colors.primary),
                                     modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
@@ -171,7 +171,7 @@ fun Composer(
                                         Box(contentAlignment = Alignment.CenterStart) {
                                             if (text.isEmpty()) {
                                                 Text(placeholder, color = colors.textTertiary,
-                                                    fontSize = FlareSizes.fontSizeXl.value.sp)
+                                                    fontSize = FlareSizes.fontSizeLg.value.sp)
                                             }
                                             inner()
                                         }

@@ -41,7 +41,7 @@ public struct MentionPickerView: View {
                     .textFieldStyle(.plain)
                     .font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textPrimary)
             }
-            .padding(.horizontal, FlareSizes.spacingLg).padding(.vertical, FlareSizes.spacingMd)
+            .padding(.horizontal, FlareSizes.spacingMd).padding(.vertical, FlareSizes.spacingSm)
 
             Divider().overlay(colors.borderPrimary)
 
@@ -78,7 +78,7 @@ public struct MentionPickerView: View {
                 }
                 Spacer(minLength: 0)
             }
-            .padding(.horizontal, FlareSizes.spacingLg).padding(.vertical, FlareSizes.spacingSm)
+            .padding(.horizontal, FlareSizes.spacingMd).padding(.vertical, FlareSizes.spacingSm)
         }
         .buttonStyle(.plain)
     }
@@ -95,7 +95,7 @@ public struct MentionPickerView: View {
                 }
                 Spacer(minLength: 0)
             }
-            .padding(.horizontal, FlareSizes.spacingLg).padding(.vertical, FlareSizes.spacingSm)
+            .padding(.horizontal, FlareSizes.spacingMd).padding(.vertical, FlareSizes.spacingSm)
         }
         .buttonStyle(.plain)
     }

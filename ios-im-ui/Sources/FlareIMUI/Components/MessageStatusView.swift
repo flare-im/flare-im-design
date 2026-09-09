@@ -39,17 +39,29 @@ public struct MessageStatusView: View {
                 .controlSize(.mini)
                 .frame(width: dim, height: dim)
                 .tint(tint ?? colors.textTertiary)
+        // Glyphs fill the full `dim` box; read = double tick (Android DoneAll /
+        // Flutter done_all parity), not a filled circle.
         case .sent:
             Image(systemName: "checkmark")
-                .font(.system(size: dim - 2))
+                .font(.system(size: dim, weight: .medium))
+                .frame(width: dim, height: dim)
                 .foregroundColor(tint ?? colors.textTertiary)
         case .read:
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: dim - 1))
-                .foregroundColor(tint ?? colors.primary)
+            // No double-tick SF Symbol: two checkmarks offset like Lucide `check-check`.
+            ZStack {
+                Image(systemName: "checkmark")
+                    .font(.system(size: dim * 0.8, weight: .medium))
+                    .offset(x: -dim * 0.22)
+                Image(systemName: "checkmark")
+                    .font(.system(size: dim * 0.8, weight: .medium))
+                    .offset(x: dim * 0.22)
+            }
+            .frame(width: dim, height: dim)
+            .foregroundColor(tint ?? colors.primary)
         case .failed:
             Image(systemName: "exclamationmark.circle")
-                .font(.system(size: dim - 1))
+                .font(.system(size: dim))
+                .frame(width: dim, height: dim)
                 .foregroundColor(colors.error)
         }
     }

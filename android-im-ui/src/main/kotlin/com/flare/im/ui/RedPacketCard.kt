@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -36,8 +37,11 @@ fun RedPacketCard(
     onOpen: (() -> Unit)? = null,
 ) {
     val gold = Color(0xFFFFE9B8)
+    val deepRed = Color(0xFFC8291F)
     Box(
-        Modifier.width(248.dp).clip(RoundedCornerShape(14.dp))
+        Modifier.width(248.dp)
+            .shadow(10.dp, RoundedCornerShape(14.dp), clip = false, ambientColor = deepRed, spotColor = deepRed)
+            .clip(RoundedCornerShape(14.dp))
             .background(Brush.linearGradient(listOf(Color(0xFFF0503C), Color(0xFFE23B2E), Color(0xFFC8291F))))
             .then(if (!finished && onOpen != null) Modifier.clickable { onOpen() } else Modifier)
             .padding(14.dp),

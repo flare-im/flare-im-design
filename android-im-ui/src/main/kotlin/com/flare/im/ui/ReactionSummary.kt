@@ -51,7 +51,7 @@ fun ReactionSummary(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                Text(r.emoji, fontSize = FlareSizes.fontSizeMd.value.sp)
+                Text(r.emoji, fontSize = FlareSizes.fontSizeLg.value.sp)
                 Text(
                     "${r.count}",
                     color = if (active) colors.primary else colors.textSecondary,

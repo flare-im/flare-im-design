@@ -54,14 +54,14 @@ fun EmptyState(
         verticalArrangement = Arrangement.Center,
     ) {
         when {
-            loading -> CircularProgressIndicator(Modifier.size(56.dp), color = accentColor)
+            loading -> CircularProgressIndicator(Modifier.size(44.dp), color = accentColor)
             iconContent != null -> iconContent()
-            else -> Icon(icon, null, Modifier.size(56.dp), tint = defaultIconTint)
+            else -> Icon(icon, null, Modifier.size(44.dp), tint = defaultIconTint)
         }
-        Spacer(Modifier.height(FlareSizes.spacingMd))
+        Spacer(Modifier.height(FlareSizes.spacingSm))
         Text(title, color = if (isError) colors.error else colors.textPrimary, fontSize = FlareSizes.fontSize2xl.value.sp, textAlign = TextAlign.Center)
         if (description != null) {
-            Spacer(Modifier.height(FlareSizes.spacingXs))
+            Spacer(Modifier.height(FlareSizes.spacingSm))
             Text(description, color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd.value.sp, textAlign = TextAlign.Center)
         }
         if (actionText != null) {

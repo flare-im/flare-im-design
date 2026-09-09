@@ -3,9 +3,11 @@ package com.flare.im.ui
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -19,10 +21,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 
 /**
  * The active conversation's header — title, subtitle/presence, and actions.
@@ -34,6 +38,7 @@ fun ChatHeader(
     subtitle: String? = null,
     presence: FlarePresence? = null,
     avatarUserId: String? = null,
+    avatarUrl: String? = null,
     onBack: (() -> Unit)? = null,
     onSearch: (() -> Unit)? = null,
     onCall: (() -> Unit)? = null,
@@ -47,9 +52,18 @@ fun ChatHeader(
             .padding(horizontal = FlareSizes.spacingMd),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (onBack != null) IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, null, tint = colors.textPrimary) }
+        if (onBack != null) {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, null, Modifier.size(22.dp), tint = colors.textPrimary)
+            }
+        }
         if (avatarUserId != null) {
-            Avatar(userId = avatarUserId, displayName = title, presence = presence, size = 36.dp)
+            Avatar(
+                userId = avatarUserId, displayName = title, presence = presence, size = 36.dp,
+                image = avatarUrl?.let { url ->
+                    { AsyncImage(model = url, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop) }
+                },
+            )
             Spacer(Modifier.width(FlareSizes.spacingSm))
         }
         Column(Modifier.weight(1f)) {
@@ -68,5 +82,6 @@ fun ChatHeader(
 
 @Composable
 private fun action(icon: ImageVector, onClick: () -> Unit, colors: FlareColors) {
-    IconButton(onClick = onClick) { Icon(icon, null, tint = colors.textSecondary) }
+    // Icons pinned to one size so the header reads evenly across platforms.
+    IconButton(onClick = onClick) { Icon(icon, null, Modifier.size(20.dp), tint = colors.textSecondary) }
 }

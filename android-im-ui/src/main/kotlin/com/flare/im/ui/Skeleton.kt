@@ -76,7 +76,7 @@ fun Skeleton(
         }
 
         SkeletonVariant.Message -> Column(
-            Modifier.fillMaxWidth().padding(FlareSizes.spacingMd),
+            Modifier.fillMaxWidth().padding(FlareSizes.spacingLg),
             verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd),
         ) {
             val fractions = listOf(0.6f, 0.45f, 0.7f, 0.5f, 0.65f)
@@ -115,7 +115,7 @@ fun Skeleton(
         }
 
         SkeletonVariant.Text -> Column(
-            Modifier.fillMaxWidth().padding(FlareSizes.spacingMd),
+            Modifier.fillMaxWidth().padding(FlareSizes.spacingLg),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             val fractions = listOf(0.9f, 0.75f, 0.85f, 0.6f, 0.8f)

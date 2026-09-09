@@ -17,9 +17,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 
 /** Call state — spec union `'calling' | 'ringing' | 'connected'`. */
 enum class FlareCallState { Calling, Ringing, Connected }
@@ -60,7 +62,14 @@ fun CallView(
                 Box(
                     Modifier.size(96.dp).clip(CircleShape).background(peerTint.first),
                     contentAlignment = Alignment.Center,
-                ) { Text(initials(peerName), color = peerTint.second, fontSize = 36.sp, fontWeight = FontWeight.SemiBold) }
+                ) {
+                    if (peerAvatarUrl != null) {
+                        AsyncImage(model = peerAvatarUrl, contentDescription = null,
+                            modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                    } else {
+                        Text(initials(peerName), color = peerTint.second, fontSize = 36.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                }
                 Spacer(Modifier.height(FlareSizes.spacingMd))
             }
             Text(peerName, color = Color.White, fontSize = FlareSizes.fontSize4xl.value.sp, fontWeight = FontWeight.SemiBold)

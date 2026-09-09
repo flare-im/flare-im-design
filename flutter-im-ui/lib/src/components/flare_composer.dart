@@ -167,13 +167,9 @@ class _FlareComposerState extends State<FlareComposer> {
                       disabled: widget.disabled,
                       onTap: _onPlus,
                     ),
+                    // Emoji lives *inside* the pill (see `_inputField`) so the
+                    // input gets the full width — same grammar as iOS/Android.
                     Expanded(child: _voiceMode ? _voiceBar() : _inputField(colors)),
-                    if (!_voiceMode)
-                      FlareComposerIconButton(
-                        icon: Icons.emoji_emotions_outlined,
-                        disabled: widget.disabled,
-                        onTap: widget.onEmoji,
-                      ),
                     if (!_voiceMode)
                       FlareComposerSendButton(
                           active: _canSend && !widget.disabled, onTap: _send),
@@ -211,49 +207,63 @@ class _FlareComposerState extends State<FlareComposer> {
     );
   }
 
+  /// The input pill — text plus the emoji control tucked inside its trailing
+  /// edge, with a 1px hairline so it reads as a field on both themes.
   Widget _inputField(FlareColors colors) {
+    final input = widget.rich
+        ? FlareRichMarkdownInput(
+            controller: _controller,
+            disabled: widget.disabled,
+            maxLength: widget.maxLength,
+            placeholder: widget.placeholder,
+            onSubmit: (_) => _send(),
+          )
+        : Align(
+            alignment: Alignment.centerLeft,
+            child: TextField(
+              controller: _controller,
+              enabled: !widget.disabled,
+              minLines: 1,
+              maxLines: 5,
+              maxLength: widget.maxLength,
+              textInputAction: TextInputAction.send,
+              onSubmitted: (_) => _send(),
+              buildCounter: (_,
+                      {required currentLength,
+                      maxLength,
+                      required isFocused}) =>
+                  null,
+              style: TextStyle(
+                  color: colors.textPrimary, fontSize: FlareSizes.fontSizeLg),
+              decoration: InputDecoration(
+                isCollapsed: true,
+                border: InputBorder.none,
+                hintText: widget.placeholder,
+                hintStyle: TextStyle(color: colors.textTertiary),
+              ),
+            ),
+          );
     return Container(
       constraints: const BoxConstraints(minHeight: 40),
-      padding: const EdgeInsets.symmetric(
-          horizontal: FlareSizes.spacingMd, vertical: 2),
+      padding: const EdgeInsets.only(left: 14, right: 6, top: 2, bottom: 2),
       decoration: BoxDecoration(
         color: colors.bgSecondary,
         borderRadius: BorderRadius.circular(FlareSizes.radiusXl),
+        border: Border.all(color: colors.borderPrimary),
       ),
-      child: widget.rich
-          ? FlareRichMarkdownInput(
-              controller: _controller,
-              disabled: widget.disabled,
-              maxLength: widget.maxLength,
-              placeholder: widget.placeholder,
-              onSubmit: (_) => _send(),
-            )
-          : Align(
-              alignment: Alignment.centerLeft,
-              child: TextField(
-                controller: _controller,
-                enabled: !widget.disabled,
-                minLines: 1,
-                maxLines: 5,
-                maxLength: widget.maxLength,
-                textInputAction: TextInputAction.send,
-                onSubmitted: (_) => _send(),
-                buildCounter: (_,
-                        {required currentLength,
-                        maxLength,
-                        required isFocused}) =>
-                    null,
-                style: TextStyle(
-                    color: colors.textPrimary,
-                    fontSize: FlareSizes.fontSizeLg),
-                decoration: InputDecoration(
-                  isCollapsed: true,
-                  border: InputBorder.none,
-                  hintText: widget.placeholder,
-                  hintStyle: TextStyle(color: colors.textTertiary),
-                ),
-              ),
-            ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Expanded(child: input),
+          const SizedBox(width: 6),
+          FlareComposerIconButton(
+            icon: Icons.emoji_emotions_outlined,
+            size: 22,
+            disabled: widget.disabled,
+            onTap: widget.onEmoji,
+          ),
+        ],
+      ),
     );
   }
 }

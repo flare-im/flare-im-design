@@ -115,7 +115,7 @@ class _FlarePollComposerState extends State<FlarePollComposer> {
                 child: Text(widget.title,
                     style: TextStyle(
                         color: colors.textPrimary,
-                        fontSize: FlareSizes.fontSize2xl,
+                        fontSize: FlareSizes.fontSizeXl,
                         fontWeight: FontWeight.w600)),
               ),
               GestureDetector(
@@ -167,7 +167,7 @@ class _FlarePollComposerState extends State<FlarePollComposer> {
                   Text(widget.addOptionLabel,
                       style: TextStyle(
                           color: colors.primary,
-                          fontSize: FlareSizes.fontSizeLg,
+                          fontSize: FlareSizes.fontSizeMd,
                           fontWeight: FontWeight.w500)),
                 ],
               ),
@@ -188,7 +188,7 @@ class _FlarePollComposerState extends State<FlarePollComposer> {
                 Text(widget.multipleLabel,
                     style: TextStyle(
                         color: colors.textSecondary,
-                        fontSize: FlareSizes.fontSizeLg)),
+                        fontSize: FlareSizes.fontSizeMd)),
               ],
             ),
           ),

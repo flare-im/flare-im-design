@@ -108,7 +108,7 @@ fun MentionPicker(
                     }
                     Spacer(Modifier.width(FlareSizes.spacingMd))
                     Column {
-                        Text(flareStrings().everyone, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp, fontWeight = FontWeight.Medium)
+                        Text(flareStrings().everyone, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp)
                         Text(flareStrings().notifyEveryone, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
                     }
                 }

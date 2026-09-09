@@ -44,14 +44,14 @@ public struct ForwardPickerView: View {
                 Spacer()
                 if dismissible {
                     Button { onClose?() } label: {
-                        Image(systemName: "xmark").font(.system(size: 14)).foregroundColor(colors.textTertiary)
+                        Image(systemName: "xmark").font(.system(size: 18)).foregroundColor(colors.textTertiary)
                     }.buttonStyle(.plain)
                 }
             }
             .padding(.horizontal, FlareSizes.spacingLg).padding(.top, FlareSizes.spacingLg).padding(.bottom, FlareSizes.spacingMd)
 
             HStack(spacing: FlareSizes.spacingSm) {
-                Image(systemName: "magnifyingglass").font(.system(size: 14)).foregroundColor(colors.textTertiary)
+                Image(systemName: "magnifyingglass").font(.system(size: 16)).foregroundColor(colors.textTertiary)
                 TextField("搜索会话", text: $query)
                     .textFieldStyle(.plain)
                     .font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textPrimary)
@@ -70,11 +70,11 @@ public struct ForwardPickerView: View {
             Divider().overlay(colors.borderPrimary)
 
             HStack(spacing: FlareSizes.spacingMd) {
-                Text("已选 \(selected.count)").font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textSecondary)
+                Text("已选 \(selected.count)").font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textSecondary)
                 Spacer()
                 Button { onConfirm?(Array(selected)) } label: {
                     Text("发送").font(.system(size: FlareSizes.fontSizeLg, weight: .semibold)).foregroundColor(.white)
-                        .padding(.horizontal, FlareSizes.spacingLg).frame(height: 34)
+                        .padding(.horizontal, FlareSizes.spacingLg).frame(height: 36)
                         .background(
                             RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(
                                 LinearGradient(colors: [colors.primary, colors.primary.opacity(0.82)],
@@ -98,10 +98,10 @@ public struct ForwardPickerView: View {
         return Button { toggle(t.id) } label: {
             HStack(spacing: FlareSizes.spacingMd) {
                 ZStack {
-                    Circle().stroke(colors.borderHover, lineWidth: 1).frame(width: 20, height: 20)
+                    Circle().stroke(isSel ? colors.primary : colors.borderHover, lineWidth: 1.5).frame(width: 20, height: 20)
                     if isSel {
                         Circle().fill(colors.primary).frame(width: 20, height: 20)
-                        Image(systemName: "checkmark").font(.system(size: 11, weight: .bold)).foregroundColor(.white)
+                        Image(systemName: "checkmark").font(.system(size: 13, weight: .bold)).foregroundColor(.white)
                     }
                 }
                 AvatarView(userId: t.id, displayName: t.name, avatarURL: t.avatarURL, size: 38)

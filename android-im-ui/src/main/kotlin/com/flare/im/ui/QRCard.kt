@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -42,7 +43,9 @@ fun QRCard(
     val colors = flareColors()
     val qrColor = colors.textPrimary
     Column(
-        Modifier.width(240.dp).clip(RoundedCornerShape(16.dp)).background(colors.bgPrimary)
+        Modifier.width(240.dp)
+            .shadow(14.dp, RoundedCornerShape(16.dp), clip = false)
+            .clip(RoundedCornerShape(16.dp)).background(colors.bgPrimary)
             .border(1.dp, colors.borderPrimary, RoundedCornerShape(16.dp)).padding(18.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {

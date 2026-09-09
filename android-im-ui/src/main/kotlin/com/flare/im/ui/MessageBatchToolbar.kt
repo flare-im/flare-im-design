@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -46,6 +47,7 @@ fun MessageBatchToolbar(
     val shape = RoundedCornerShape(FlareSizes.radiusLg)
     Row(
         Modifier.fillMaxWidth()
+            .shadow(8.dp, shape, clip = false)
             .clip(shape)
             .background(colors.bgPrimary)
             .border(1.dp, colors.borderPrimary, shape)

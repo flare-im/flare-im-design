@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -23,8 +24,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 
 /** Typing indicator — bouncing dots. Spec: Message/TypingIndicator. */
 enum class TypingVariant { Bubble, Inline }
@@ -33,6 +36,7 @@ enum class TypingVariant { Bubble, Inline }
 fun TypingIndicator(
     names: List<String> = emptyList(),
     userId: String? = null,
+    avatarUrl: String? = null,
     variant: TypingVariant = TypingVariant.Bubble,
 ) {
     val colors = flareColors()
@@ -71,8 +75,13 @@ fun TypingIndicator(
         body()
     } else {
         Row(verticalAlignment = Alignment.Bottom) {
-            Avatar(userId = names.firstOrNull() ?: (userId ?: "typing"),
-                displayName = names.firstOrNull() ?: (userId ?: "typing"), size = 32.dp)
+            Avatar(
+                userId = names.firstOrNull() ?: (userId ?: "typing"),
+                displayName = names.firstOrNull() ?: (userId ?: "typing"), size = 32.dp,
+                image = avatarUrl?.let { url ->
+                    { AsyncImage(model = url, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop) }
+                },
+            )
             Spacer(Modifier.width(FlareSizes.spacingSm))
             Box(
                 Modifier.clip(RoundedCornerShape(4.dp, 16.dp, 16.dp, 16.dp))

@@ -37,7 +37,7 @@ public struct MomentsVisibilityRuleListView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .top, spacing: FlareSizes.spacingSm) {
                 Image(systemName: isHideFrom ? "eye.slash" : "speaker.slash")
-                    .font(.system(size: 14))
+                    .font(.system(size: 16))
                     // Distinct accents so both rules on one screen stay tellable apart.
                     .foregroundColor(isHideFrom ? colors.warning : colors.textTertiary)
                     .padding(.top, 2)
@@ -250,7 +250,7 @@ public struct AnnouncementReadBarView: View {
 
         HStack(spacing: FlareSizes.spacingSm) {
             Image(systemName: selfRead ? "checkmark.circle.fill" : "megaphone")
-                .font(.system(size: 14))
+                .font(.system(size: 16))
                 .foregroundColor(selfRead ? colors.textTertiary : colors.textSecondary)
             if showCount {
                 Text(labels.readCount(readCount, memberCount))

@@ -1,5 +1,6 @@
 package com.flare.im.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
@@ -19,7 +22,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,7 +31,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -55,13 +60,26 @@ fun StartConversationDialog(
     }
 
     Column(Modifier.fillMaxWidth()) {
-        OutlinedTextField(
-            value = query, onValueChange = { query = it },
-            leadingIcon = { Icon(Icons.Rounded.Search, null) },
-            placeholder = { Text(searchPlaceholder) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth().padding(FlareSizes.spacingMd),
-        )
+        // Filled search field (bgSecondary, radiusLg) — parity with iOS/Flutter, not a Material outline.
+        Row(
+            Modifier.padding(FlareSizes.spacingMd).fillMaxWidth()
+                .clip(RoundedCornerShape(FlareSizes.radiusLg)).background(colors.bgSecondary)
+                .padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(Icons.Rounded.Search, contentDescription = null, tint = colors.textTertiary, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(8.dp))
+            BasicTextField(
+                value = query, onValueChange = { query = it }, singleLine = true,
+                textStyle = TextStyle(color = colors.textPrimary, fontSize = 14.sp),
+                cursorBrush = SolidColor(colors.primary),
+                modifier = Modifier.weight(1f),
+                decorationBox = { inner ->
+                    if (query.isEmpty()) Text(searchPlaceholder, color = colors.textTertiary, fontSize = 14.sp)
+                    inner()
+                },
+            )
+        }
         LazyColumn(Modifier.weight(1f, fill = false)) {
             items(filtered, key = { it.id }) { c ->
                 val checked = selected.contains(c.id)

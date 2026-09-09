@@ -135,7 +135,7 @@ public struct MomentAudienceSheetView: View {
                      action: @escaping () -> Void) -> some View {
         let tone = active ? (accent ?? colors.textPrimary) : colors.textSecondary
         HStack(spacing: FlareSizes.spacingSm) {
-            Image(systemName: systemImage).font(.system(size: 14)).foregroundColor(tone)
+            Image(systemName: systemImage).font(.system(size: 16)).foregroundColor(tone)
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(tone)
                 Text(hint).font(.system(size: FlareSizes.fontSizeSm))

@@ -74,7 +74,7 @@ public struct FlareContactDetail: View {
     private func hero(_ colors: FlareColors) -> some View {
         VStack(spacing: FlareSizes.spacingSm) {
             AvatarView(userId: contact.id, displayName: contact.name, avatarURL: contact.avatarURL,
-                       size: 84, presence: contact.presence)
+                       size: 76, presence: contact.presence)
             Text(contact.name)
                 .font(.system(size: FlareSizes.fontSize4xl, weight: .bold)).foregroundColor(colors.textPrimary)
             if let s = contact.signature, !s.isEmpty {

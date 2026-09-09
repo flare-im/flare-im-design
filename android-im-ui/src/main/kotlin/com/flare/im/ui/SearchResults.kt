@@ -81,7 +81,7 @@ fun SearchResults(
                     }
                     if (!item.meta.isNullOrEmpty()) {
                         Spacer(Modifier.width(8.dp))
-                        Text(item.meta, color = colors.textTertiary, fontSize = FlareSizes.fontSizeXs.value.sp)
+                        Text(item.meta, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
                     }
                 }
             }

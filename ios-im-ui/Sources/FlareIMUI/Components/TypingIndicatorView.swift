@@ -48,10 +48,11 @@ public struct TypingIndicatorView: View {
             dots(colors)
         }
         .padding(variant == .bubble ? EdgeInsets(top: 10, leading: 14, bottom: 10, trailing: 14) : EdgeInsets())
+        // Radius 16 with a 4pt top-leading tail (Android / Flutter parity).
         .background(
             variant == .bubble
-                ? AnyView(RoundedRectangle(cornerRadius: 16).fill(colors.bgPrimary)
-                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.borderPrimary, lineWidth: 1)))
+                ? AnyView(flareBubbleShape(.topLeading).fill(colors.bgPrimary)
+                    .overlay(flareBubbleShape(.topLeading).stroke(colors.borderPrimary, lineWidth: 1)))
                 : AnyView(Color.clear)
         )
 

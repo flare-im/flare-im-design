@@ -151,42 +151,17 @@ class _FlareTranslationViewState extends State<FlareTranslationView>
         ),
         if (widget.original != null && widget.original!.isNotEmpty && _showOriginal) ...[
           const SizedBox(height: 8),
-          CustomPaint(
-            painter: _DashedTopBorderPainter(colors.borderPrimary),
-            child: Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(widget.original!,
-                  style: TextStyle(
-                      color: colors.textSecondary, fontSize: FlareSizes.fontSizeMd)),
+          Container(
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: colors.borderPrimary)),
             ),
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(widget.original!,
+                style: TextStyle(
+                    color: colors.textSecondary, fontSize: FlareSizes.fontSizeMd)),
           ),
         ],
       ],
     );
   }
-}
-
-/// Paints a single dashed line along the top edge of its child.
-class _DashedTopBorderPainter extends CustomPainter {
-  const _DashedTopBorderPainter(this.color);
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 1;
-    const dash = 4.0;
-    const gap = 3.0;
-    double x = 0;
-    while (x < size.width) {
-      canvas.drawLine(Offset(x, 0), Offset((x + dash).clamp(0, size.width), 0), paint);
-      x += dash + gap;
-    }
-  }
-
-  @override
-  bool shouldRepaint(_DashedTopBorderPainter oldDelegate) =>
-      oldDelegate.color != color;
 }

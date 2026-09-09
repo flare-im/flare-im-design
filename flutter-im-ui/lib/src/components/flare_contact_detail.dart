@@ -94,7 +94,7 @@ class FlareContactDetail extends StatelessWidget {
                   userId: contact.id,
                   displayName: contact.name,
                   avatarUrl: contact.avatarUrl,
-                  size: 84,
+                  size: 76,
                   presence: contact.presence),
               const SizedBox(height: FlareSizes.spacingMd),
               Text(contact.name,
@@ -107,7 +107,7 @@ class FlareContactDetail extends StatelessWidget {
                 Text(contact.signature!,
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        color: colors.textSecondary, fontSize: FlareSizes.fontSizeLg)),
+                        color: colors.textSecondary, fontSize: FlareSizes.fontSizeMd)),
               ],
               if (starred) ...[
                 const SizedBox(height: FlareSizes.spacingSm),
@@ -181,7 +181,7 @@ class FlareContactDetail extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: FlareSizes.spacingMd, horizontal: 4),
           decoration: BoxDecoration(
             color: primary ? colors.primary : colors.bgElevated,
-            borderRadius: BorderRadius.circular(FlareSizes.radiusXl),
+            borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
             boxShadow: [
               BoxShadow(
                 color: primary

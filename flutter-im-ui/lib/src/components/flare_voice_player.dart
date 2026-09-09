@@ -77,14 +77,14 @@ class FlareVoicePlayer extends StatelessWidget {
         ? const BorderRadius.only(
             topLeft: Radius.circular(16),
             topRight: Radius.circular(16),
-            bottomLeft: Radius.circular(4),
-            bottomRight: Radius.circular(16),
+            bottomLeft: Radius.circular(16),
+            bottomRight: Radius.circular(4),
           )
         : const BorderRadius.only(
             topLeft: Radius.circular(16),
             topRight: Radius.circular(16),
-            bottomLeft: Radius.circular(16),
-            bottomRight: Radius.circular(4),
+            bottomLeft: Radius.circular(4),
+            bottomRight: Radius.circular(16),
           );
 
     final timeLabel =
@@ -192,7 +192,7 @@ class FlareVoicePlayer extends StatelessWidget {
               ),
               child: Icon(
                 playing ? Icons.pause : Icons.play_arrow,
-                size: 20,
+                size: 18,
                 color: Colors.white,
               ),
             ),
@@ -232,7 +232,7 @@ class FlareVoicePlayer extends StatelessWidget {
                   onSeek!(ratio);
                 },
           child: SizedBox(
-            height: 22,
+            height: 26,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -259,6 +259,7 @@ class FlareVoicePlayer extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
+          color: colors.bgSecondary,
           borderRadius: BorderRadius.circular(FlareSizes.radiusFull),
           border: Border.all(color: colors.borderPrimary),
         ),

@@ -33,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
@@ -74,7 +75,7 @@ fun ForwardPicker(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(flareStrings().forwardTo, color = colors.textPrimary, fontWeight = FontWeight.SemiBold,
-                fontSize = FlareSizes.fontSizeLg.value.sp)
+                fontSize = FlareSizes.fontSizeXl.value.sp)
             Spacer(Modifier.weight(1f))
             if (dismissible) {
                 Icon(Icons.Outlined.Close, contentDescription = flareStrings().close, tint = colors.textTertiary,
@@ -122,7 +123,7 @@ fun ForwardPicker(
                     Avatar(userId = tgt.id, displayName = tgt.name, size = 38.dp)
                     Spacer(Modifier.width(10.dp))
                     Column(Modifier.weight(1f)) {
-                        Text(tgt.name, color = colors.textPrimary, fontSize = FlareSizes.fontSizeMd.value.sp,
+                        Text(tgt.name, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp,
                             maxLines = 1, overflow = TextOverflow.Ellipsis)
                         tgt.subtitle?.let {
                             Text(it, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp,
@@ -146,7 +147,10 @@ fun ForwardPicker(
             val enabled = selected.isNotEmpty()
             Box(
                 Modifier.height(36.dp).clip(RoundedCornerShape(FlareSizes.radiusLg))
-                    .background(if (enabled) colors.primary else colors.bgSecondary)
+                    .background(
+                        if (enabled) Brush.linearGradient(listOf(colors.primary, colors.primaryActive))
+                        else Brush.linearGradient(listOf(colors.bgSecondary, colors.bgSecondary)),
+                    )
                     .then(if (enabled) Modifier.clickable { onConfirm?.invoke(selected.toList()) } else Modifier)
                     .padding(horizontal = 20.dp),
                 contentAlignment = Alignment.Center,

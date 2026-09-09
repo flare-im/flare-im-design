@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.CallEnd
+import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,9 +24,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 
 /**
  * Incoming call / invite — caller avatar/name, audio/video kind, accept &
@@ -48,7 +51,14 @@ fun IncomingCall(
             Box(
                 Modifier.size(104.dp).clip(CircleShape).background(callerTint.first),
                 contentAlignment = Alignment.Center,
-            ) { Text(initials(callerName), color = callerTint.second, fontSize = 40.sp, fontWeight = FontWeight.SemiBold) }
+            ) {
+                if (callerAvatarUrl != null) {
+                    AsyncImage(model = callerAvatarUrl, contentDescription = null,
+                        modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                } else {
+                    Text(initials(callerName), color = callerTint.second, fontSize = 40.sp, fontWeight = FontWeight.SemiBold)
+                }
+            }
             Spacer(Modifier.height(FlareSizes.spacingLg))
             Text(callerName, color = Color.White, fontSize = FlareSizes.fontSize4xl.value.sp, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(FlareSizes.spacingXs))
@@ -63,7 +73,11 @@ fun IncomingCall(
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             action(Icons.Outlined.CallEnd, flareStrings().reject, Color(0xFFEF4444), onReject)
-            action(Icons.Outlined.Call, flareStrings().accept, Color(0xFF22C55E), onAccept)
+            // Accept glyph follows the call kind — video calls show a camera, not a handset.
+            action(
+                if (mode == FlareCallMode.Video) Icons.Outlined.Videocam else Icons.Outlined.Call,
+                flareStrings().accept, Color(0xFF22C55E), onAccept,
+            )
         }
     }
 }

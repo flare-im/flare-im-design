@@ -43,7 +43,7 @@ class FlareChatHeader extends StatelessWidget implements PreferredSizeWidget {
     // canvas (no white top area). Back sits to the left of the avatar.
     return Container(
       height: FlareSizes.headerHeight,
-      padding: const EdgeInsets.symmetric(horizontal: FlareSizes.spacingSm),
+      padding: const EdgeInsets.symmetric(horizontal: FlareSizes.spacingMd),
       child: Row(
         children: [
           if (onBack != null)

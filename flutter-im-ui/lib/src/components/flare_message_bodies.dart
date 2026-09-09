@@ -104,20 +104,48 @@ class _FlareTextMessageState extends State<FlareTextMessage> {
     final span = TextSpan(style: base, children: _spans(linkColor));
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-      decoration: widget.self
-          ? BoxDecoration(
-              color: c.bubbleSelf,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(_corner),
-                topRight: Radius.circular(_corner),
-                bottomLeft: Radius.circular(_corner),
-                bottomRight: _tail,
-              ),
-            )
-          : _cardDecoration(c),
+      decoration: widget.self ? _selfDecoration(context, c) : _cardDecoration(c),
       child: widget.selectable
           ? SelectableText.rich(span)
           : Text.rich(span),
+    );
+  }
+
+  /// The outgoing text bubble as an Aurora light source: a lit top-left → brand
+  /// → deeper bottom-right gradient with a soft violet glow (stronger in dark),
+  /// matching `FlareMessageBubble`.
+  BoxDecoration _selfDecoration(BuildContext context, FlareColors c) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = c.bubbleSelf;
+    final lit = Color.alphaBlend(Colors.white.withValues(alpha: 0.24), baseColor);
+    final deep = Color.alphaBlend(Colors.black.withValues(alpha: 0.16), baseColor);
+    return BoxDecoration(
+      borderRadius: const BorderRadius.only(
+        topLeft: Radius.circular(_corner),
+        topRight: Radius.circular(_corner),
+        bottomLeft: Radius.circular(_corner),
+        bottomRight: _tail,
+      ),
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [lit, baseColor, deep],
+        stops: const [0.0, 0.52, 1.0],
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: baseColor.withValues(alpha: dark ? 0.55 : 0.38),
+          blurRadius: dark ? 22 : 16,
+          spreadRadius: dark ? -4 : -6,
+          offset: const Offset(0, 5),
+        ),
+        BoxShadow(
+          color: baseColor.withValues(alpha: dark ? 0.40 : 0.26),
+          blurRadius: dark ? 12 : 8,
+          spreadRadius: -2,
+          offset: const Offset(0, 2),
+        ),
+      ],
     );
   }
 }

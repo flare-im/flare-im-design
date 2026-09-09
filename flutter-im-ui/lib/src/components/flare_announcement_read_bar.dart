@@ -59,16 +59,37 @@ class FlareAnnouncementReadBar extends StatelessWidget {
                         fontSize: FlareSizes.fontSizeMd))
                 : const SizedBox.shrink(),
           ),
+          // Plain text actions (no Material button chrome) — token-sized like
+          // iOS/Android: confirm = primary/medium, view-unread = secondary.
           if (!selfRead)
-            FilledButton.tonal(
-              onPressed: onConfirm,
-              child: Text(labels.confirmRead),
+            GestureDetector(
+              onTap: onConfirm,
+              behavior: HitTestBehavior.opaque,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: FlareSizes.spacingXs, vertical: FlareSizes.spacingXs),
+                child: Text(labels.confirmRead,
+                    style: TextStyle(
+                        color: colors.primary,
+                        fontSize: FlareSizes.fontSizeMd,
+                        fontWeight: FontWeight.w500)),
+              ),
             ),
-          if (canViewUnread && !allRead)
-            TextButton(
-              onPressed: onViewUnread,
-              child: Text(labels.viewUnread),
+          if (canViewUnread && !allRead) ...[
+            const SizedBox(width: FlareSizes.spacingSm),
+            GestureDetector(
+              onTap: onViewUnread,
+              behavior: HitTestBehavior.opaque,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: FlareSizes.spacingXs, vertical: FlareSizes.spacingXs),
+                child: Text(labels.viewUnread,
+                    style: TextStyle(
+                        color: colors.textSecondary,
+                        fontSize: FlareSizes.fontSizeMd)),
+              ),
             ),
+          ],
         ],
       ),
     );
