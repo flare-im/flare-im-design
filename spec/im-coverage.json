@@ -9,7 +9,9 @@
       "components": [
         "StatusBanner",
         "EmptyState",
-        "Skeleton"
+        "Skeleton",
+        "ConnectionDetails",
+        "ReauthPrompt"
       ],
       "requiredStates": "断网、重连、会话过期、被踢、SDK 未就绪",
       "next": "连接详情与重新认证入口；统一宿主 session 映射"
@@ -23,7 +25,9 @@
         "ConversationRow",
         "FilterTabs",
         "StartConversationDialog",
-        "ConversationDetails"
+        "ConversationDetails",
+        "ConversationActionSheet",
+        "ConversationBatchToolbar"
       ],
       "requiredStates": "空列表、加载失败、草稿、@提醒、免打扰、归档",
       "next": "长列表滚动锚点；跨端菜单与批量管理验收"
@@ -57,7 +61,8 @@
         "EmojiPicker",
         "StickerPanel",
         "VoiceRecordingBar",
-        "RichMarkdownInput"
+        "RichMarkdownInput",
+        "PermissionPrompt"
       ],
       "requiredStates": "多行、回复、离线、禁言、权限拒绝、功能不可用",
       "next": "键盘/录音权限/切换会话草稿；定时发送需 SDK 能力契约"
@@ -156,7 +161,8 @@
         "IncomingCall",
         "CallControls",
         "GroupCallView",
-        "CallDock"
+        "CallDock",
+        "PermissionPrompt"
       ],
       "requiredStates": "呼入、拨号、接通、网络弱、麦克风拒绝、插件不可用",
       "next": "四端设备选择与重连/失败展示已实现；真实设备、屏幕共享和 RTC 插件联调待验收"
@@ -173,7 +179,8 @@
         "RadioGroup",
         "Select",
         "FormField",
-        "Input"
+        "Input",
+        "PermissionPrompt"
       ],
       "requiredStates": "主题/语言切换、通知拒绝、缓存清理失败",
       "next": "设备与通知组合已实现；真实远程设备撤销和系统权限由宿主接口验收"

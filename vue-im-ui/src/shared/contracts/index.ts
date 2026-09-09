@@ -82,3 +82,9 @@ export { retryableTransferIds, type TransferQueueItem } from './transfer';
 export * from './scenes';
 
 export * from "./call-devices";
+
+export { availableConnectionActions, connectionInProgress, connectionStates, connectionTone, type ConnectionAction, type ConnectionCapabilities, type ConnectionState, type ConnectionTone } from './connection-details';
+export { reauthActions, reauthTone, reauthIcon, reauthReasons, type ReauthReason, type ReauthTone, type ReauthActions, type ReauthActionState, type ReauthActionInput } from './reauth-prompt';
+export * from "./permission-prompt";
+export { conversationActions, type ConversationActionId, type ConversationActionSnapshot, type ConversationActionCapabilities, type ConversationActionEntry, type ConversationActionPayload } from "./conversation-actions";
+export { batchActionsAvailable, batchSelectionExceeded, conversationBatchActions, summarizeBatchResult, type ConversationBatchAction, type ConversationBatchCapabilities, type ConversationBatchFailure, type ConversationBatchResult, type ConversationBatchSummary } from "./conversation-batch";

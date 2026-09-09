@@ -2,7 +2,7 @@
 
 ## 已交付范围
 
-当前目录为 **121 个组件 / 11 类**，能力矩阵覆盖 14 个 IM 场景。ConfigProvider 是 Vue 专属入口；组件数量不等于四端端到端覆盖率。
+当前目录为 **126 个组件 / 11 类**，能力矩阵覆盖 14 个 IM 场景。ConfigProvider 是 Vue 专属入口；组件数量不等于四端端到端覆盖率。
 
 - 四端场景组件：MemberPanel、DeviceSessions、MediaCenter、NotificationPreferences、DangerConfirm、CapabilityBoundary、CallDevicePicker。
 - 四端传输队列、搜索组合、历史分页/阅读锚点、通话失败/恢复和窄屏控件；语义与逻辑尺寸统一，系统字体和 emoji 允许平台差异。

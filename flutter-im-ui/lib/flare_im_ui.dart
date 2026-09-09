@@ -133,3 +133,9 @@ export 'src/components/flare_transfer_queue.dart';
 export 'src/components/flare_scene_panels.dart';
 
 export 'src/components/flare_call_device_picker.dart';
+
+export 'src/components/flare_connection_details.dart';
+export 'src/components/flare_reauth_prompt.dart';
+export 'src/components/flare_permission_prompt.dart';
+export 'src/components/flare_conversation_action_sheet.dart';
+export 'src/components/flare_conversation_batch_toolbar.dart';

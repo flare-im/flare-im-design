@@ -6334,6 +6334,358 @@
       }
     },
     {
+      "name": "ConversationActionSheet",
+      "category": "Conversation",
+      "summary": {
+        "en": "Per-conversation action menu (long-press / right-click / more) with a shared action set, danger group and busy lock across platforms.",
+        "zh": "单个会话的操作菜单（长按/右键/更多），跨端同一套动作集合、危险分组与 busy 锁定。"
+      },
+      "dataSource": {
+        "en": "Host-owned conversation snapshot and capabilities; the component computes displayable actions via conversationActions().",
+        "zh": "宿主提供会话快照与能力；组件用 conversationActions() 计算可显示动作。"
+      },
+      "props": [
+        {
+          "name": "conversation",
+          "type": "{ id, title, pinned?, muted?, unreadCount?, archived? }",
+          "required": true,
+          "description": {
+            "en": "Snapshot of the target conversation; id must be stable and is echoed in the action payload.",
+            "zh": "目标会话快照；id 必须稳定，并原样带回 action 事件。"
+          }
+        },
+        {
+          "name": "capabilities",
+          "type": "{ pin?, mute?, markRead?, archive?, delete?, hide? }",
+          "description": {
+            "en": "Boolean switches the host can honour; absent or false hides the action.",
+            "zh": "宿主可承接的能力开关；缺省或 false 不显示该动作。"
+          }
+        },
+        {
+          "name": "busy",
+          "type": "boolean",
+          "description": {
+            "en": "Set synchronously by the host before dispatching; disables every row.",
+            "zh": "宿主发命令前同步置位；禁用全部行。"
+          }
+        },
+        {
+          "name": "pinText",
+          "type": "string",
+          "description": {
+            "en": "Pin label.",
+            "zh": "置顶文案。"
+          }
+        },
+        {
+          "name": "unpinText",
+          "type": "string",
+          "description": {
+            "en": "Unpin label.",
+            "zh": "取消置顶文案。"
+          }
+        },
+        {
+          "name": "muteText",
+          "type": "string",
+          "description": {
+            "en": "Mute label.",
+            "zh": "免打扰文案。"
+          }
+        },
+        {
+          "name": "unmuteText",
+          "type": "string",
+          "description": {
+            "en": "Unmute label.",
+            "zh": "取消免打扰文案。"
+          }
+        },
+        {
+          "name": "markReadText",
+          "type": "string",
+          "description": {
+            "en": "Mark-as-read label.",
+            "zh": "标为已读文案。"
+          }
+        },
+        {
+          "name": "archiveText",
+          "type": "string",
+          "description": {
+            "en": "Archive label.",
+            "zh": "归档文案。"
+          }
+        },
+        {
+          "name": "unarchiveText",
+          "type": "string",
+          "description": {
+            "en": "Unarchive label.",
+            "zh": "取消归档文案。"
+          }
+        },
+        {
+          "name": "hideText",
+          "type": "string",
+          "description": {
+            "en": "Hide label.",
+            "zh": "隐藏文案。"
+          }
+        },
+        {
+          "name": "deleteText",
+          "type": "string",
+          "description": {
+            "en": "Delete label (danger group).",
+            "zh": "删除文案（危险分组）。"
+          }
+        },
+        {
+          "name": "emptyText",
+          "type": "string",
+          "description": {
+            "en": "Shown when no capability is granted so the menu never opens blank.",
+            "zh": "无任何能力时显示，避免菜单空白。"
+          }
+        }
+      ],
+      "states": [
+        "default",
+        "empty",
+        "busy"
+      ],
+      "events": [
+        "action",
+        "close"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareConversationActionSheet"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareConversationActionSheet"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ConversationActionSheetView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ConversationActionSheet"
+        }
+      }
+    },
+    {
+      "name": "ConversationBatchToolbar",
+      "category": "Conversation",
+      "summary": {
+        "en": "Multi-select batch bar for the conversation list, with a partial-failure summary and per-item recovery.",
+        "zh": "会话列表多选模式的批量操作条，含部分失败摘要与逐项恢复。"
+      },
+      "dataSource": {
+        "en": "Host-owned selection, capabilities and the previous batch result.",
+        "zh": "宿主提供选中集合、能力开关与上一次批量结果。"
+      },
+      "props": [
+        {
+          "name": "selectedIds",
+          "type": "string[]",
+          "required": true,
+          "description": {
+            "en": "Stable conversation ids currently selected; echoed back in the action payload.",
+            "zh": "当前选中的稳定会话 ID，原样带回 action 载荷。"
+          }
+        },
+        {
+          "name": "capabilities",
+          "type": "{ markRead?, mute?, archive?, delete? }",
+          "required": true,
+          "description": {
+            "en": "Boolean switches the host can honour; absent or false hides the action.",
+            "zh": "宿主可承接的能力开关；缺省或 false 不显示该动作。"
+          }
+        },
+        {
+          "name": "busy",
+          "type": "boolean",
+          "description": {
+            "en": "Set synchronously by the host before dispatching; disables every action and shows progress on the pending one.",
+            "zh": "宿主发命令前同步置位；禁用全部动作并在被触发的动作上显示进度。"
+          }
+        },
+        {
+          "name": "result",
+          "type": "{ succeeded: string[], failed: { id, title, reason }[] } | null",
+          "description": {
+            "en": "Outcome of the previous batch; a non-empty failed list shows the summary strip with per-item reasons and retry.",
+            "zh": "上一次批量的结果；failed 非空时显示摘要条，可展开逐项原因并重试。"
+          }
+        },
+        {
+          "name": "maxSelection",
+          "type": "number",
+          "description": {
+            "en": "Host limit; exceeding it disables the actions and shows maxSelectionText.",
+            "zh": "宿主上限；超过后禁用动作并显示 maxSelectionText。"
+          }
+        },
+        {
+          "name": "selectedText",
+          "type": "string",
+          "description": {
+            "en": "Selection count caption.",
+            "zh": "已选计数文案。"
+          }
+        },
+        {
+          "name": "emptyText",
+          "type": "string",
+          "description": {
+            "en": "Shown when nothing is selected.",
+            "zh": "未选中任何会话时的文案。"
+          }
+        },
+        {
+          "name": "markReadText",
+          "type": "string",
+          "description": {
+            "en": "Mark-as-read label.",
+            "zh": "标为已读文案。"
+          }
+        },
+        {
+          "name": "muteText",
+          "type": "string",
+          "description": {
+            "en": "Mute label.",
+            "zh": "免打扰文案。"
+          }
+        },
+        {
+          "name": "archiveText",
+          "type": "string",
+          "description": {
+            "en": "Archive label.",
+            "zh": "归档文案。"
+          }
+        },
+        {
+          "name": "deleteText",
+          "type": "string",
+          "description": {
+            "en": "Delete label (danger).",
+            "zh": "删除文案（危险样式）。"
+          }
+        },
+        {
+          "name": "cancelText",
+          "type": "string",
+          "description": {
+            "en": "Clear-selection label.",
+            "zh": "取消选择文案。"
+          }
+        },
+        {
+          "name": "busyText",
+          "type": "string",
+          "description": {
+            "en": "Accessible label while a batch is running.",
+            "zh": "批量处理中的可访问文案。"
+          }
+        },
+        {
+          "name": "succeededSummaryText",
+          "type": "string",
+          "description": {
+            "en": "Succeeded-count template; {n} is replaced by the count.",
+            "zh": "成功计数模板，{n} 替换为数量。"
+          }
+        },
+        {
+          "name": "failedSummaryText",
+          "type": "string",
+          "description": {
+            "en": "Failed-count template; {n} is replaced by the count.",
+            "zh": "失败计数模板，{n} 替换为数量。"
+          }
+        },
+        {
+          "name": "retryFailedText",
+          "type": "string",
+          "description": {
+            "en": "Retry-failed label.",
+            "zh": "重试失败项文案。"
+          }
+        },
+        {
+          "name": "dismissText",
+          "type": "string",
+          "description": {
+            "en": "Dismiss-result label.",
+            "zh": "关闭结果文案。"
+          }
+        },
+        {
+          "name": "expandText",
+          "type": "string",
+          "description": {
+            "en": "Expand failure details label.",
+            "zh": "展开失败详情文案。"
+          }
+        },
+        {
+          "name": "collapseText",
+          "type": "string",
+          "description": {
+            "en": "Collapse failure details label.",
+            "zh": "收起失败详情文案。"
+          }
+        },
+        {
+          "name": "maxSelectionText",
+          "type": "string",
+          "description": {
+            "en": "Over-limit template; {n} is replaced by maxSelection.",
+            "zh": "超出上限模板，{n} 替换为 maxSelection。"
+          }
+        }
+      ],
+      "states": [
+        "empty",
+        "busy",
+        "partialFailure",
+        "overLimit"
+      ],
+      "events": [
+        "action",
+        "retryFailed",
+        "clearSelection",
+        "dismissResult"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareConversationBatchToolbar"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareConversationBatchToolbar"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ConversationBatchToolbarView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ConversationBatchToolbar"
+        }
+      }
+    },
+    {
       "name": "VoicePlayer",
       "category": "Message",
       "summary": {
@@ -9183,6 +9535,545 @@
         "compose": {
           "package": "com.flare.im:im-ui-compose",
           "symbol": "DangerConfirm"
+        }
+      }
+    },
+    {
+      "name": "ConnectionDetails",
+      "category": "General",
+      "summary": {
+        "en": "Connection / session details panel with per-state icon, text and tone, optional transport / endpoint / last-sync facts, collapsible diagnostics and host-dispatched reconnect / reauth / copyDiagnostics actions.",
+        "zh": "连接与会话状态详情面板：每个状态同时有图标、文字和语气色，可选传输协议 / 服务地址 / 上次同步，折叠的诊断信息，以及由宿主执行的重连 / 重新登录 / 复制诊断动作。"
+      },
+      "dataSource": {
+        "en": "Host-owned connection state, formatted facts and capabilities; the view never opens or closes a connection.",
+        "zh": "宿主提供连接状态、已格式化的事实与能力；组件不建立也不关闭连接。"
+      },
+      "props": [
+        {
+          "name": "state",
+          "type": "\"connected\" | \"connecting\" | \"reconnecting\" | \"offline\" | \"sessionExpired\" | \"kicked\" | \"sdkUnready\"",
+          "required": true,
+          "description": {
+            "en": "Current connection / session state.",
+            "zh": "当前连接 / 会话状态。"
+          }
+        },
+        {
+          "name": "transport",
+          "type": "string",
+          "description": {
+            "en": "Transport name, e.g. \"WebSocket\" / \"QUIC\".",
+            "zh": "传输协议名，如 \"WebSocket\" / \"QUIC\"。"
+          }
+        },
+        {
+          "name": "endpoint",
+          "type": "string",
+          "description": {
+            "en": "Endpoint address; long values are visually truncated but fully readable by screen readers.",
+            "zh": "服务地址；长地址视觉省略，读屏可完整读出。"
+          }
+        },
+        {
+          "name": "lastSyncAt",
+          "type": "string",
+          "description": {
+            "en": "Host-formatted last sync time.",
+            "zh": "宿主已格式化的上次同步时间。"
+          }
+        },
+        {
+          "name": "reason",
+          "type": "string",
+          "description": {
+            "en": "User-facing reason for the current state.",
+            "zh": "面向用户的当前状态原因文案。"
+          }
+        },
+        {
+          "name": "diagnostics",
+          "type": "string",
+          "description": {
+            "en": "Multi-line diagnostics text, collapsed by default under the diagnostics section.",
+            "zh": "多行诊断文本，折叠在“诊断信息”区，默认收起。"
+          }
+        },
+        {
+          "name": "busy",
+          "type": "boolean",
+          "description": {
+            "en": "Host is executing a command; all actions are disabled.",
+            "zh": "宿主正在执行命令；所有动作禁用。"
+          }
+        },
+        {
+          "name": "hasReconnect",
+          "type": "boolean",
+          "description": {
+            "en": "Vue only: host binds @reconnect (default false hides the button). Native derives this from onReconnect != null.",
+            "zh": "仅 Vue：宿主已绑定 @reconnect（默认 false 隐藏按钮）。原生端由 onReconnect 是否为空推导。"
+          }
+        },
+        {
+          "name": "hasReauth",
+          "type": "boolean",
+          "description": {
+            "en": "Vue only: host binds @reauth (default false hides the button). Native derives this from onReauth != null.",
+            "zh": "仅 Vue：宿主已绑定 @reauth（默认 false 隐藏按钮）。原生端由 onReauth 是否为空推导。"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": {
+            "en": "Panel heading.",
+            "zh": "面板标题。"
+          }
+        },
+        {
+          "name": "connectedText",
+          "type": "string",
+          "description": {
+            "en": "Label for connected.",
+            "zh": "已连接文案。"
+          }
+        },
+        {
+          "name": "connectingText",
+          "type": "string",
+          "description": {
+            "en": "Label for connecting.",
+            "zh": "正在连接文案。"
+          }
+        },
+        {
+          "name": "reconnectingText",
+          "type": "string",
+          "description": {
+            "en": "Label for reconnecting.",
+            "zh": "正在重新连接文案。"
+          }
+        },
+        {
+          "name": "offlineText",
+          "type": "string",
+          "description": {
+            "en": "Label for offline.",
+            "zh": "离线文案。"
+          }
+        },
+        {
+          "name": "sessionExpiredText",
+          "type": "string",
+          "description": {
+            "en": "Label for sessionExpired.",
+            "zh": "登录已过期文案。"
+          }
+        },
+        {
+          "name": "kickedText",
+          "type": "string",
+          "description": {
+            "en": "Label for kicked (signed in elsewhere).",
+            "zh": "已在其他设备登录文案。"
+          }
+        },
+        {
+          "name": "sdkUnreadyText",
+          "type": "string",
+          "description": {
+            "en": "Label for sdkUnready (client not ready yet).",
+            "zh": "客户端尚未就绪文案。"
+          }
+        },
+        {
+          "name": "transportLabel",
+          "type": "string",
+          "description": {
+            "en": "Transport row label.",
+            "zh": "传输协议行标签。"
+          }
+        },
+        {
+          "name": "endpointLabel",
+          "type": "string",
+          "description": {
+            "en": "Endpoint row label.",
+            "zh": "服务地址行标签。"
+          }
+        },
+        {
+          "name": "lastSyncLabel",
+          "type": "string",
+          "description": {
+            "en": "Last sync row label.",
+            "zh": "上次同步行标签。"
+          }
+        },
+        {
+          "name": "diagnosticsLabel",
+          "type": "string",
+          "description": {
+            "en": "Diagnostics disclosure label.",
+            "zh": "诊断信息折叠区标签。"
+          }
+        },
+        {
+          "name": "reconnectText",
+          "type": "string",
+          "description": {
+            "en": "Reconnect action label.",
+            "zh": "重新连接动作文案。"
+          }
+        },
+        {
+          "name": "reauthText",
+          "type": "string",
+          "description": {
+            "en": "Re-authenticate action label.",
+            "zh": "重新登录动作文案。"
+          }
+        },
+        {
+          "name": "copyDiagnosticsText",
+          "type": "string",
+          "description": {
+            "en": "Copy diagnostics action label.",
+            "zh": "复制诊断信息动作文案。"
+          }
+        }
+      ],
+      "states": [
+        "connected",
+        "connecting",
+        "reconnecting",
+        "offline",
+        "sessionExpired",
+        "kicked",
+        "sdkUnready",
+        "busy"
+      ],
+      "events": [
+        "reconnect",
+        "reauth",
+        "copyDiagnostics"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareConnectionDetails"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareConnectionDetails"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ConnectionDetailsView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ConnectionDetails"
+        }
+      }
+    },
+    {
+      "name": "ReauthPrompt",
+      "category": "General",
+      "summary": {
+        "en": "Re-authentication prompt for a broken session (expired / kicked / credential invalid / account disabled) with locked resubmission and retained failure reason.",
+        "zh": "会话失效时的重新认证提示（过期 / 被踢 / 凭证失效 / 账号停用），锁定重复提交并保留失败原因。"
+      },
+      "dataSource": {
+        "en": "Host-owned session state; the host implements login and the container.",
+        "zh": "宿主提供会话状态；登录业务与容器由宿主实现。"
+      },
+      "props": [
+        {
+          "name": "reason",
+          "type": "\"sessionExpired\" | \"kicked\" | \"credentialInvalid\" | \"accountDisabled\"",
+          "required": true,
+          "description": {
+            "en": "Why the session is unusable.",
+            "zh": "会话失效原因。"
+          }
+        },
+        {
+          "name": "detail",
+          "type": "string",
+          "description": {
+            "en": "Host-supplied detail, e.g. the kicking device and time.",
+            "zh": "宿主补充说明，例如被踢设备名与时间。"
+          }
+        },
+        {
+          "name": "busy",
+          "type": "boolean",
+          "description": {
+            "en": "Re-authentication in progress; locks every button.",
+            "zh": "处理中，锁定所有按钮。"
+          }
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "description": {
+            "en": "User-facing reason the last attempt failed; kept in the panel.",
+            "zh": "上一次重新认证失败的面向用户原因，保留在面板中。"
+          }
+        },
+        {
+          "name": "accountLabel",
+          "type": "string",
+          "description": {
+            "en": "Current account shown for confirmation.",
+            "zh": "显示当前账号，便于用户确认。"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": {
+            "en": "Panel heading.",
+            "zh": "面板标题。"
+          }
+        },
+        {
+          "name": "sessionExpiredText",
+          "type": "string",
+          "description": {
+            "en": "Reason text for sessionExpired.",
+            "zh": "会话过期文案。"
+          }
+        },
+        {
+          "name": "kickedText",
+          "type": "string",
+          "description": {
+            "en": "Reason text for kicked.",
+            "zh": "被踢下线文案。"
+          }
+        },
+        {
+          "name": "credentialInvalidText",
+          "type": "string",
+          "description": {
+            "en": "Reason text for credentialInvalid.",
+            "zh": "凭证失效文案。"
+          }
+        },
+        {
+          "name": "accountDisabledText",
+          "type": "string",
+          "description": {
+            "en": "Reason text for accountDisabled.",
+            "zh": "账号停用文案。"
+          }
+        },
+        {
+          "name": "reauthenticateText",
+          "type": "string",
+          "description": {
+            "en": "Primary button label.",
+            "zh": "主按钮文案。"
+          }
+        },
+        {
+          "name": "busyText",
+          "type": "string",
+          "description": {
+            "en": "Accessible progress text in the primary button while busy.",
+            "zh": "busy 时主按钮的进度可访问文本。"
+          }
+        },
+        {
+          "name": "logoutText",
+          "type": "string",
+          "description": {
+            "en": "Secondary button label (sign out / switch account).",
+            "zh": "次按钮文案（退出登录 / 切换账号）。"
+          }
+        },
+        {
+          "name": "accountCaption",
+          "type": "string",
+          "description": {
+            "en": "Caption before accountLabel.",
+            "zh": "账号标签前缀。"
+          }
+        }
+      ],
+      "states": [
+        "sessionExpired",
+        "kicked",
+        "credentialInvalid",
+        "accountDisabled",
+        "busy",
+        "failure"
+      ],
+      "events": [
+        "reauthenticate",
+        "logout"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareReauthPrompt"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareReauthPrompt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ReauthPromptView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ReauthPrompt"
+        }
+      }
+    },
+    {
+      "name": "PermissionPrompt",
+      "category": "General",
+      "summary": {
+        "en": "Unified explanation panel for a missing / denied system permission; request and openSettings are delegated to the host.",
+        "zh": "系统权限缺失 / 被拒时的统一说明面板；申请权限与打开设置交给宿主。"
+      },
+      "dataSource": {
+        "en": "Host-reported permission kind + state; no platform queries, no side effects.",
+        "zh": "宿主传入权限种类与状态；不查询平台、无副作用。"
+      },
+      "props": [
+        {
+          "name": "kind",
+          "type": "\"microphone\" | \"camera\" | \"notifications\" | \"storage\" | \"photos\" | \"contacts\" | \"location\"",
+          "required": true,
+          "description": {
+            "en": "Which permission is being explained; selects the icon and default copy.",
+            "zh": "说明哪种权限；决定图标与默认文案。"
+          }
+        },
+        {
+          "name": "state",
+          "type": "\"undetermined\" | \"denied\" | \"restricted\" | \"unavailable\"",
+          "required": true,
+          "description": {
+            "en": "Host-reported state. request only while undetermined; openSettings only while denied; restricted / unavailable show explanation only.",
+            "zh": "宿主上报的状态。undetermined 才显示 request；denied 才显示 openSettings；restricted / unavailable 只有说明。"
+          }
+        },
+        {
+          "name": "featureLabel",
+          "type": "string",
+          "description": {
+            "en": "The feature the permission unlocks (e.g. \"发送语音消息\"); embedded in the default description.",
+            "zh": "该权限用于的功能（如“发送语音消息”），嵌入默认说明句。"
+          }
+        },
+        {
+          "name": "detail",
+          "type": "string",
+          "description": {
+            "en": "Extra host explanation shown under the description.",
+            "zh": "宿主补充说明，显示在说明下方。"
+          }
+        },
+        {
+          "name": "busy",
+          "type": "boolean",
+          "description": {
+            "en": "Host is requesting / navigating; every action is disabled.",
+            "zh": "宿主申请 / 跳转中；禁用全部动作。"
+          }
+        },
+        {
+          "name": "compact",
+          "type": "boolean",
+          "description": {
+            "en": "Inline single-row mode for the strip above a composer (default card / panel mode).",
+            "zh": "行内紧凑模式，放在输入区上方（默认卡片 / 面板模式）。"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": {
+            "en": "Heading; defaults per kind.",
+            "zh": "标题；按 kind 有默认值。"
+          }
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "description": {
+            "en": "Explanation; defaults per kind + state with featureLabel embedded.",
+            "zh": "说明；按 kind + state 有默认值并嵌入 featureLabel。"
+          }
+        },
+        {
+          "name": "stateText",
+          "type": "string",
+          "description": {
+            "en": "State chip label; defaults per state.",
+            "zh": "状态标签文案；按 state 有默认值。"
+          }
+        },
+        {
+          "name": "requestText",
+          "type": "string",
+          "description": {
+            "en": "Request action label (default \"允许\").",
+            "zh": "申请按钮文案（默认“允许”）。"
+          }
+        },
+        {
+          "name": "openSettingsText",
+          "type": "string",
+          "description": {
+            "en": "Open settings action label (default \"前往设置\").",
+            "zh": "打开设置按钮文案（默认“前往设置”）。"
+          }
+        },
+        {
+          "name": "dismissText",
+          "type": "string",
+          "description": {
+            "en": "Dismiss action label (default \"知道了\").",
+            "zh": "关闭按钮文案（默认“知道了”）。"
+          }
+        }
+      ],
+      "states": [
+        "undetermined",
+        "denied",
+        "restricted",
+        "unavailable",
+        "busy"
+      ],
+      "events": [
+        "request",
+        "openSettings",
+        "dismiss"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlarePermissionPrompt"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlarePermissionPrompt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "PermissionPromptView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "PermissionPrompt"
         }
       }
     },

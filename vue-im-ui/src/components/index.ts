@@ -216,3 +216,9 @@ export { default as FlareNotificationPreferences } from './scenes/FlareNotificat
 export { default as FlareDangerConfirm } from './scenes/FlareDangerConfirm.vue';
 
 export { default as FlareCallDevicePicker } from "./call/FlareCallDevicePicker.vue";
+
+export { default as FlareConnectionDetails } from './general/FlareConnectionDetails.vue';
+export { default as FlareReauthPrompt } from "./general/FlareReauthPrompt.vue";
+export { default as FlarePermissionPrompt } from "./general/FlarePermissionPrompt.vue";
+export { default as FlareConversationActionSheet } from "./conversation/FlareConversationActionSheet.vue";
+export { default as FlareConversationBatchToolbar } from "./conversation/FlareConversationBatchToolbar.vue";

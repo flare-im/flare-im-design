@@ -135,6 +135,11 @@ import SystemMessageDemo from "./demos/messages/demos/SystemMessageDemo.vue";
 import EmojiStickerPanelDemo from "./demos/EmojiStickerPanelDemo.vue";
 import StatusBannerDemo from "./demos/StatusBannerDemo.vue";
 import FilterTabsDemo from "./demos/FilterTabsDemo.vue";
+import ConnectionDetailsDemo from './demos/ConnectionDetailsDemo.vue';
+import ReauthPromptDemo from './demos/ReauthPromptDemo.vue';
+import PermissionPromptDemo from './demos/PermissionPromptDemo.vue';
+import ConversationActionSheetDemo from './demos/ConversationActionSheetDemo.vue';
+import ConversationBatchToolbarDemo from './demos/ConversationBatchToolbarDemo.vue';
 
 const demos = {
   EmojiStickerPanelDemo,
@@ -263,6 +268,11 @@ const demos = {
   TransferProgressDemo,
   TimelineRecoveryDemo,
   ComposerPartsDemo,
+  ConnectionDetailsDemo,
+  ReauthPromptDemo,
+  PermissionPromptDemo,
+  ConversationActionSheetDemo,
+  ConversationBatchToolbarDemo,
 };
 
 export default {
