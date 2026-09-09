@@ -132,6 +132,28 @@ for (const c of spec.components) {
   }
 }
 
+// The iOS package cannot follow the symlink the other platforms use, so it carries
+// a mirror of assets/emoji-sticker. Only the text contracts of that mirror are
+// tracked (webp stays out of git) — and they must be tracked: without them a clean
+// checkout has no Resources/emoji-sticker, SwiftPM emits no Bundle.module and the
+// whole package fails to compile. Hold the mirror byte-identical to the source so
+// a manifest edit cannot land on one side only.
+{
+  const src = join(here, "../assets/emoji-sticker");
+  const mirror = join(here, "../ios-im-ui/Sources/FlareIMUI/Resources/emoji-sticker");
+  for (const rel of ["manifest.json", "emoji-locales.json", "stickers/classic/manifest.json"]) {
+    const a = join(src, rel);
+    const b = join(mirror, rel);
+    if (!existsSync(b)) {
+      errors.push(`ios-im-ui resource mirror missing ${rel} — run ios-im-ui/sync-resources.sh and commit it`);
+      continue;
+    }
+    if (readFileSync(a, "utf8") !== readFileSync(b, "utf8")) {
+      errors.push(`ios-im-ui resource mirror ${rel} differs from assets/emoji-sticker — run ios-im-ui/sync-resources.sh`);
+    }
+  }
+}
+
 if (errors.length) {
   console.error(`✗ spec invalid (${errors.length}):`);
   for (const e of errors) console.error("  - " + e);

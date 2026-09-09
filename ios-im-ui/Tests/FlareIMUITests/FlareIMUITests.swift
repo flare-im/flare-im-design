@@ -154,9 +154,14 @@ final class FlareIMUITests: XCTestCase {
         XCTAssertEqual(FlareEmojiStickerCatalog.stickerSubdir(forPackageId: nil), "default")
     }
 
-    func testBundledWebpDecodesToFrames() {
-        let url = FlareEmojiStickerCatalog.shared.emojiImageURL("red_heart")
-        XCTAssertNotNil(url)
+    // The webp binaries are fetched on demand (assets/emoji-sticker/fetch-assets.sh +
+    // sync-resources.sh) and never tracked, so a clean checkout has the manifest but
+    // no images. Skip rather than fail: the catalog test above already proves the
+    // tracked contract loads; this one only makes sense once the images are present.
+    func testBundledWebpDecodesToFrames() throws {
+        guard let url = FlareEmojiStickerCatalog.shared.emojiImageURL("red_heart") else {
+            throw XCTSkip("emoji webp not synced into Resources/emoji-sticker (run fetch-assets.sh + sync-resources.sh)")
+        }
         let decoded = flareDecodeAnimatedWebp(url: url)
         XCTAssertNotNil(decoded)
         XCTAssertGreaterThanOrEqual(decoded?.frames.count ?? 0, 1)

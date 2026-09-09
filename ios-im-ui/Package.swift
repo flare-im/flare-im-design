@@ -21,9 +21,11 @@ let package = Package(
     targets: [
         .target(
             name: "FlareIMUI",
-            // Emoji-pack + sticker resources. Resources/emoji-sticker is a symlink
-            // to the cross-platform source at flare-im-design/assets/emoji-sticker,
-            // so this package ships the same webp + manifest every platform uses.
+            // Emoji-pack + sticker resources. Resources/emoji-sticker is a mirror of
+            // the cross-platform source at flare-im-design/assets/emoji-sticker
+            // (SwiftPM does not follow symlinks). The text contracts of the mirror
+            // are tracked so the directory always exists and Bundle.module is always
+            // generated; the webp binaries are synced in by sync-resources.sh.
             resources: [.copy("Resources/emoji-sticker")]
         ),
         .testTarget(name: "FlareIMUITests", dependencies: ["FlareIMUI"]),

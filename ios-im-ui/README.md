@@ -37,23 +37,28 @@ import FlareIMUI
 
 ## 从仓库克隆后首次构建
 
-表情/贴纸资源镜像（`Sources/FlareIMUI/Resources/emoji-sticker`）**不在版本控制里**
-——它是 `assets/emoji-sticker` 的副本，两份都入库会让仓库多扛 67MB，实测导致完整
-`git clone` 失败，而 SPM 只能完整克隆，结果是这份「为了让 iOS 能用」的镜像反而让
-iOS 装不上。
+表情/贴纸资源镜像（`Sources/FlareIMUI/Resources/emoji-sticker`）是 `assets/emoji-sticker`
+的副本（SwiftPM 不跟随符号链接）。它分两层：
 
-所以克隆后要先生成一次：
+- **文本契约**（`manifest.json`、`emoji-locales.json`、`stickers/*/manifest.json`）
+  **在版本控制里**。有它们目录就存在，SwiftPM 才生成 `Bundle.module`，干净检出
+  `swift build` / `swift test` 直接能过。
+- **webp 二进制**（250 个，67MB）**不在版本控制里**。两份都入库曾让仓库多扛 134MB，
+  实测导致完整 `git clone` 失败，而 SPM 只能完整克隆。
+
+所以克隆后编译不需要任何前置步骤；要在界面上看到表情/贴纸图片则要拉一次二进制：
 
 ```bash
-./sync-resources.sh
+../assets/emoji-sticker/fetch-assets.sh   # 从 GitHub Release assets-v1 拉 webp
+./sync-resources.sh                       # 镜像进本包
 ```
 
-没跑这步就 `swift build` 会失败，报错是 **`type 'Bundle' has no member 'module'`**
-——这个信息很隐晦，实际原因是资源目录不存在时 SwiftPM 不生成 `Bundle.module`。
-看到它就跑上面那条命令。
+不拉的表现是 `FlareEmojiStickerCatalog` 能列出全部 key/pack，但 `emojiImageURL` /
+`stickerImageURL` 返回 nil、图片位置空白；`testBundledWebpDecodesToFrames` 会以
+skip 报告而不是失败。
 
-发 iOS 包（打 tag）之前同样必须先跑，否则构建根本过不了——这一点由编译期硬失败
-保证，不会静默发出不含资源的包。
+改了 `assets/emoji-sticker` 里的契约文件后要重跑 `./sync-resources.sh` 并把镜像一起
+提交，`spec/validate.mjs` 校验两边字节一致。
 
 ## Components (all 18 spec components)
 

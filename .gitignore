@@ -31,12 +31,15 @@ android-im-ui/local.properties
 .DS_Store
 *.log
 
-# ── iOS 资源镜像(构建期由 sync-resources.sh 生成,勿入库)──────
-# SwiftPM 不跟随符号链接,所以 iOS 包需要一份真实副本。但把它提交进 git
-# 意味着同一份 67MB 资源在仓库里存两遍(assets/ 一份 + 这里一份 = 134MB),
-# 已实测导致完整 clone 连续失败 → iOS SPM 反而因此装不上。
-# 发包前跑 ios-im-ui/sync-resources.sh 生成即可。
-ios-im-ui/Sources/FlareIMUI/Resources/emoji-sticker/
+# ── iOS 资源镜像(由 ios-im-ui/sync-resources.sh 从 assets/ 生成)──────
+# SwiftPM 不跟随符号链接,所以 iOS 包需要一份真实副本。webp 二进制不入库:
+# 同一份 67MB 存两遍(assets/ + 这里 = 134MB)已实测导致完整 clone 连续失败,
+# 而 SPM 只能完整克隆 → iOS 反而装不上。
+# 但镜像里的文本契约(manifest.json / emoji-locales.json)**必须入库**:
+# 整个目录都不在 git 里时,干净检出(SPM 从 tag 拉取)缺 Resources/emoji-sticker,
+# SwiftPM 不生成 Bundle.module → EmojiStickerCatalog.swift 编译失败,包整体不可用。
+# 文本入库保证包永远可编,webp 由消费方按需拉取(fetch-assets.sh + sync-resources.sh)。
+ios-im-ui/Sources/FlareIMUI/Resources/emoji-sticker/**/*.webp
 
 # ── 表情/贴纸二进制(不入库,见 assets/emoji-sticker/fetch-assets.sh)────
 # 250 个动画 webp 共 67MB。曾提交在 git 里(iOS 镜像再存一份=134MB),

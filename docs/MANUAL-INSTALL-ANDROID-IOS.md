@@ -58,8 +58,20 @@ git submodule add https://github.com/flare-im/flare-im-design.git Vendor/flare-i
 import FlareIMUI
 ```
 
-表情/贴纸资源（`Resources/emoji-sticker`）已打进包内，通过 SPM 的 resource bundle
-自动加载，不需要额外拷贝。
+表情/贴纸的**契约**（`Resources/emoji-sticker` 下的 manifest / 本地化名）已打进包内，
+通过 SPM 的 resource bundle 自动加载。**webp 图片不在 git 里**（250 个共 67MB，入库
+曾让完整 clone 失败），所以：
+
+- 方式 A（git URL）拿到的包**只有契约没有图片**：catalog 能列出全部表情/贴纸，
+  但 `emojiImageURL` / `stickerImageURL` 为 nil，位置空白。适合只用非表情组件的场景。
+- 要图片走方式 B / C（本地路径 / submodule），在检出目录里拉一次二进制并镜像进包：
+
+  ```bash
+  ./assets/emoji-sticker/fetch-assets.sh   # 从 GitHub Release assets-v1 下载（需 gh 登录且对仓库有读权限）
+  ./ios-im-ui/sync-resources.sh
+  ```
+
+  之后正常引入，不需要再拷贝。
 
 ---
 

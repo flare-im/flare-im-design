@@ -49,6 +49,7 @@ cat <<'NOTE'
 下一步：
   - iOS 还需要把资源镜像进 SwiftPM 包（它不跟随符号链接）：
       ../../ios-im-ui/sync-resources.sh
-    不跑这步 swift build 会失败，报错是 "type 'Bundle' has no member 'module'"。
+    不跑这步 swift build 仍能过（文本契约已入库），但 catalog 解析出的
+    emoji/sticker URL 全为 nil，界面上表情/贴纸不显示。
   - Vue / Flutter / Android 走符号链接指向本目录，无需额外操作。
 NOTE
