@@ -96,7 +96,8 @@
         "SearchBar",
         "SearchResults",
         "FilterTabs",
-        "MessageBatchToolbar"
+        "MessageBatchToolbar",
+        "SearchDateRangeFilter"
       ],
       "requiredStates": "空关键词、无结果、类型过滤、时间范围、请求竞态",
       "next": "四端面板与工作台竞态保护已实现；线上文本/文件互斥筛选及 Web 点击定位通过；时间范围与原生定位验收待完成"
@@ -131,7 +132,9 @@
         "ProfilePanel",
         "ProfileEditor",
         "ProfileCard",
-        "QRCard"
+        "QRCard",
+        "UnknownUserPlaceholder",
+        "RelationActionBar"
       ],
       "requiredStates": "未知用户、已删除账号、请求处理中、不可联系",
       "next": "通讯录搜索、关系变更与匿名占位跨端验收；业务关系由宿主提供"
@@ -146,7 +149,9 @@
         "GroupDetail",
         "GroupMemberGrid",
         "AnnouncementBanner",
-        "AnnouncementReadBar"
+        "AnnouncementReadBar",
+        "GroupPermissionMatrix",
+        "MemberRoleSheet"
       ],
       "requiredStates": "成员权限、禁言、退群、解散、公告未读",
       "next": "权限矩阵、管理员操作与成员变动；审批业务不内置到 UI"

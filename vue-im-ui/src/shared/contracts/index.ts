@@ -90,3 +90,8 @@ export { conversationActions, type ConversationActionId, type ConversationAction
 export { batchActionsAvailable, batchSelectionExceeded, conversationBatchActions, summarizeBatchResult, type ConversationBatchAction, type ConversationBatchCapabilities, type ConversationBatchFailure, type ConversationBatchResult, type ConversationBatchSummary } from "./conversation-batch";
 
 export { unknownMessagePresentation, type UnknownMessageInput, type UnknownMessagePresentation } from "./unknown-message";
+
+export { datesFromRange, dayEndMs, dayStartMs, matchedOptionId, rangeFromDates, shouldOpenCustomRange, unrestrictedRange, type FlareSearchDateDraft } from './search-date-range';
+export { unknownUserPresentation, shortenUserId, UNKNOWN_USER_ID_MAX_LENGTH, relationActions, relationShowsPending, type UnknownUserKind, type UnknownUserDensity, type UnknownUserIcon, type UnknownUserTone, type UnknownUserPresentation, type RelationState, type RelationAction, type RelationCapabilities, type RelationActionEntry, type RelationActionPayload } from "./relation";
+export { groupPermissionRows, isGroupJoinPolicy, groupPermissionKeys, GROUP_JOIN_INVITE, GROUP_JOIN_APPROVAL, GROUP_JOIN_OPEN, type GroupPermissionKey, type GroupPermissionRowKind, type GroupPermissionRow, type GroupPermissionSettings, type GroupPermissionChangePayload } from "./group-permissions";
+export { memberRoleActions, memberRoleActionOrder, type GroupMemberRole, type MemberRoleActionId, type GroupMemberSnapshot, type MemberRoleCapabilities, type MemberMuteDuration, type MemberRoleActionEntry, type MemberRoleActionPayload } from "./group-permissions";

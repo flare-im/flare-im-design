@@ -224,3 +224,9 @@ export { default as FlareConversationActionSheet } from "./conversation/FlareCon
 export { default as FlareConversationBatchToolbar } from "./conversation/FlareConversationBatchToolbar.vue";
 
 export { default as FlareUnknownMessage } from "./messages/FlareUnknownMessage.vue";
+
+export { default as FlareSearchDateRangeFilter } from './general/FlareSearchDateRangeFilter.vue';
+export { default as FlareUnknownUserPlaceholder } from "./contacts/FlareUnknownUserPlaceholder.vue";
+export { default as FlareRelationActionBar } from "./contacts/FlareRelationActionBar.vue";
+export { default as FlareGroupPermissionMatrix } from "./contacts/FlareGroupPermissionMatrix.vue";
+export { default as FlareMemberRoleSheet } from "./contacts/FlareMemberRoleSheet.vue";

@@ -10182,6 +10182,179 @@
       }
     },
     {
+      "name": "SearchDateRangeFilter",
+      "category": "General",
+      "summary": {
+        "en": "Search time-range filter: host-supplied preset chips plus a custom start/end pair built from the shared DatePicker, emitting one inclusive epoch-millisecond FlareSearchTimeRange.",
+        "zh": "检索时间范围筛选器：宿主提供的预设区间 chips，加上复用各端 DatePicker 的自定义起止日期，统一输出含端的 epoch 毫秒 FlareSearchTimeRange。"
+      },
+      "dataSource": {
+        "en": "Host-owned range value and preset options; the component holds no clock and never computes \"today\" itself.",
+        "zh": "宿主持有当前范围与预设区间；组件不持有时钟，从不自己计算“今天”。"
+      },
+      "props": [
+        {
+          "name": "value",
+          "type": "FlareSearchTimeRange",
+          "required": true,
+          "description": {
+            "en": "Current range (inclusive UTC epoch milliseconds); controlled by the host.",
+            "zh": "当前时间范围（含端的 UTC epoch 毫秒），由宿主受控持有。"
+          }
+        },
+        {
+          "name": "options",
+          "type": "FlareSearchRangeOption[]",
+          "description": {
+            "en": "Preset chips with stable ids; the host computes their bounds so the time zone stays its business.",
+            "zh": "带稳定 id 的预设 chips；边界由宿主计算，时区归宿主负责。"
+          }
+        },
+        {
+          "name": "allowCustom",
+          "type": "boolean",
+          "description": {
+            "en": "Offer the custom start/end area (default true); false leaves presets only.",
+            "zh": "是否开放自定义起止区（默认 true）；false 时只保留预设。"
+          }
+        },
+        {
+          "name": "customActive",
+          "type": "boolean",
+          "description": {
+            "en": "Force the custom area open, e.g. when restoring a saved filter.",
+            "zh": "强制展开自定义区，例如恢复已保存的筛选条件。"
+          }
+        },
+        {
+          "name": "minDate",
+          "type": "string",
+          "description": {
+            "en": "Earliest selectable day \"YYYY-MM-DD\", passed straight to the DatePicker.",
+            "zh": "最早可选日期 \"YYYY-MM-DD\"，直接传给 DatePicker。"
+          }
+        },
+        {
+          "name": "maxDate",
+          "type": "string",
+          "description": {
+            "en": "Latest selectable day \"YYYY-MM-DD\", passed straight to the DatePicker.",
+            "zh": "最晚可选日期 \"YYYY-MM-DD\"，直接传给 DatePicker。"
+          }
+        },
+        {
+          "name": "tzOffsetMinutes",
+          "type": "number",
+          "description": {
+            "en": "Minutes east of UTC (UTC+8 → 480) used for the date/timestamp conversion; omitted, the viewer's own zone.",
+            "zh": "日期与时间戳换算所用的时区，UTC 以东的分钟数（UTC+8 → 480）；不传则用查看者所在时区。"
+          }
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "description": {
+            "en": "Disables every chip, date picker and button.",
+            "zh": "禁用全部 chips、日期选择与按钮。"
+          }
+        },
+        {
+          "name": "hasClear",
+          "type": "boolean",
+          "description": {
+            "en": "Host can clear the range (Vue, default true); natives derive it from onClear != null.",
+            "zh": "宿主能否清除时间范围（Vue，默认 true）；原生端由 onClear 是否传入决定。"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": {
+            "en": "Filter heading and accessible name.",
+            "zh": "筛选器标题与读屏名称。"
+          }
+        },
+        {
+          "name": "customText",
+          "type": "string",
+          "description": {
+            "en": "Custom-range entry label.",
+            "zh": "自定义入口文案。"
+          }
+        },
+        {
+          "name": "fromLabel",
+          "type": "string",
+          "description": {
+            "en": "Start date field label.",
+            "zh": "起始日期字段文案。"
+          }
+        },
+        {
+          "name": "toLabel",
+          "type": "string",
+          "description": {
+            "en": "End date field label.",
+            "zh": "结束日期字段文案。"
+          }
+        },
+        {
+          "name": "clearText",
+          "type": "string",
+          "description": {
+            "en": "Clear label, also used for the per-field reset accessible name.",
+            "zh": "清除文案，同时用于单端清除按钮的读屏名称。"
+          }
+        },
+        {
+          "name": "unlimitedText",
+          "type": "string",
+          "description": {
+            "en": "Summary text when neither bound is set.",
+            "zh": "两端都未设置时的摘要文案。"
+          }
+        },
+        {
+          "name": "invalidText",
+          "type": "string",
+          "description": {
+            "en": "Hint shown when the start date is after the end date.",
+            "zh": "起始日期晚于结束日期时的提示文案。"
+          }
+        }
+      ],
+      "states": [
+        "unlimited",
+        "presetSelected",
+        "custom",
+        "openEnded",
+        "invalid",
+        "disabled"
+      ],
+      "events": [
+        "change",
+        "clear"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareSearchDateRangeFilter"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareSearchDateRangeFilter"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "SearchDateRangeFilterView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "SearchDateRangeFilter"
+        }
+      }
+    },
+    {
       "name": "MemberPanel",
       "category": "Contacts",
       "summary": {
@@ -10253,6 +10426,718 @@
         "compose": {
           "package": "com.flare.im:im-ui-compose",
           "symbol": "MemberPanel"
+        }
+      }
+    },
+    {
+      "name": "UnknownUserPlaceholder",
+      "category": "Contacts",
+      "summary": {
+        "en": "Placeholder for an account the host cannot describe — unknown, deactivated, blocked or unreachable — so a row never renders blank or shows a bare user id as its title.",
+        "zh": "未知 / 已注销 / 已屏蔽 / 不可联系账号的占位展示，避免列表空白或把裸 user id 当标题。"
+      },
+      "dataSource": {
+        "en": "Host-owned user id and kind; the component computes icon and tone via unknownUserPresentation() and the diagnostic id line via shortenUserId().",
+        "zh": "宿主提供 user id 与 kind；组件用 unknownUserPresentation() 计算图标与语气、shortenUserId() 计算诊断位 ID。"
+      },
+      "props": [
+        {
+          "name": "userId",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "The id the host failed to resolve. Rendered only in the diagnostic slot, middle-elided and forced LTR — never the title.",
+            "zh": "宿主未能解析的 ID。只在诊断位显示，中间省略并强制 LTR，绝不作为主标题。"
+          }
+        },
+        {
+          "name": "kind",
+          "type": "\"unknown\" | \"deactivated\" | \"blocked\" | \"unreachable\"",
+          "required": true,
+          "description": {
+            "en": "Why the profile is missing; drives the default title, its own icon and the tone.",
+            "zh": "缺失原因；决定默认主标题、专属图标与语气色。"
+          }
+        },
+        {
+          "name": "density",
+          "type": "\"row\" | \"card\"",
+          "description": {
+            "en": "row (default) for list rows, card for a detail surface.",
+            "zh": "row（默认）用于列表行，card 用于详情页。"
+          }
+        },
+        {
+          "name": "detail",
+          "type": "string",
+          "description": {
+            "en": "Host supplement, e.g. where the id came from.",
+            "zh": "宿主补充说明，例如该 ID 的来源。"
+          }
+        },
+        {
+          "name": "unknownText",
+          "type": "string",
+          "description": {
+            "en": "Title for kind unknown.",
+            "zh": "unknown 状态主标题。"
+          }
+        },
+        {
+          "name": "deactivatedText",
+          "type": "string",
+          "description": {
+            "en": "Title for kind deactivated.",
+            "zh": "deactivated 状态主标题。"
+          }
+        },
+        {
+          "name": "blockedText",
+          "type": "string",
+          "description": {
+            "en": "Title for kind blocked.",
+            "zh": "blocked 状态主标题。"
+          }
+        },
+        {
+          "name": "unreachableText",
+          "type": "string",
+          "description": {
+            "en": "Title for kind unreachable.",
+            "zh": "unreachable 状态主标题。"
+          }
+        },
+        {
+          "name": "idLabel",
+          "type": "string",
+          "description": {
+            "en": "Prefix of the diagnostic id line.",
+            "zh": "诊断位 ID 前缀文案。"
+          }
+        },
+        {
+          "name": "idMaxLength",
+          "type": "number",
+          "description": {
+            "en": "Longest id rendered before middle-eliding; floored at 8.",
+            "zh": "ID 中间省略前的最大长度，下限 8。"
+          }
+        }
+      ],
+      "states": [
+        "default"
+      ],
+      "events": [],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareUnknownUserPlaceholder"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareUnknownUserPlaceholder"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "UnknownUserPlaceholderView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "UnknownUserPlaceholder"
+        }
+      }
+    },
+    {
+      "name": "RelationActionBar",
+      "category": "Contacts",
+      "summary": {
+        "en": "Relation action bar for the contact detail page: the host supplies the relation, the component computes which actions exist, in one order, with the danger group trailing.",
+        "zh": "联系人详情页底部的关系操作条：宿主给关系状态，组件计算可用动作，四端同一顺序、危险动作独立分组置尾。"
+      },
+      "dataSource": {
+        "en": "Host-owned relation state and capabilities; the component computes displayable actions via relationActions() and the waiting notice via relationShowsPending().",
+        "zh": "宿主提供关系状态与能力；组件用 relationActions() 计算可显示动作、relationShowsPending() 判定等待态。"
+      },
+      "props": [
+        {
+          "name": "relation",
+          "type": "\"none\" | \"pendingOut\" | \"pendingIn\" | \"friends\" | \"blocked\"",
+          "required": true,
+          "description": {
+            "en": "Relation between the viewer and the contact, decided by the host; the component never mutates it.",
+            "zh": "宿主判定的双方关系状态；组件绝不自行改写。"
+          }
+        },
+        {
+          "name": "capabilities",
+          "type": "{ add?, accept?, reject?, remove?, block?, unblock?, message? }",
+          "description": {
+            "en": "Boolean switches the host can honour; absent or false hides the action instead of disabling it.",
+            "zh": "宿主可承接的能力开关；缺省或 false 直接不显示，而不是显示禁用按钮。"
+          }
+        },
+        {
+          "name": "busy",
+          "type": "boolean",
+          "description": {
+            "en": "Set synchronously by the host before dispatching; disables every button and shows progress on the triggered one.",
+            "zh": "宿主发命令前同步置位；禁用全部按钮，并只在被触发项上显示进度。"
+          }
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "description": {
+            "en": "Reason the previous command failed; kept on screen until dismissed, never auto-cleared.",
+            "zh": "上一次操作失败原因；保留展示直到关闭，不自动清空。"
+          }
+        },
+        {
+          "name": "addText",
+          "type": "string",
+          "description": {
+            "en": "Add-friend label.",
+            "zh": "添加好友文案。"
+          }
+        },
+        {
+          "name": "acceptText",
+          "type": "string",
+          "description": {
+            "en": "Accept-request label.",
+            "zh": "接受申请文案。"
+          }
+        },
+        {
+          "name": "rejectText",
+          "type": "string",
+          "description": {
+            "en": "Reject-request label.",
+            "zh": "拒绝申请文案。"
+          }
+        },
+        {
+          "name": "removeText",
+          "type": "string",
+          "description": {
+            "en": "Remove-friend label (danger group).",
+            "zh": "删除好友文案（危险分组）。"
+          }
+        },
+        {
+          "name": "blockText",
+          "type": "string",
+          "description": {
+            "en": "Block label.",
+            "zh": "加入黑名单文案。"
+          }
+        },
+        {
+          "name": "unblockText",
+          "type": "string",
+          "description": {
+            "en": "Unblock label.",
+            "zh": "移出黑名单文案。"
+          }
+        },
+        {
+          "name": "messageText",
+          "type": "string",
+          "description": {
+            "en": "Send-message label.",
+            "zh": "发消息文案。"
+          }
+        },
+        {
+          "name": "pendingText",
+          "type": "string",
+          "description": {
+            "en": "Disabled notice shown for pendingOut in place of an add button.",
+            "zh": "pendingOut 时替代添加按钮的禁用态提示文案。"
+          }
+        },
+        {
+          "name": "busyText",
+          "type": "string",
+          "description": {
+            "en": "Appended to the triggered action's accessible name while busy.",
+            "zh": "busy 时追加到被触发项读屏名称的文案。"
+          }
+        },
+        {
+          "name": "dismissErrorText",
+          "type": "string",
+          "description": {
+            "en": "Accessible name of the error dismiss button.",
+            "zh": "错误关闭按钮的读屏名称。"
+          }
+        },
+        {
+          "name": "emptyText",
+          "type": "string",
+          "description": {
+            "en": "Shown when no capability is granted so the bar never renders blank.",
+            "zh": "无任何能力时显示，避免操作条空白。"
+          }
+        }
+      ],
+      "states": [
+        "default",
+        "empty",
+        "busy",
+        "failure"
+      ],
+      "events": [
+        "action",
+        "dismissError"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareRelationActionBar"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareRelationActionBar"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "RelationActionBarView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "RelationActionBar"
+        }
+      }
+    },
+    {
+      "name": "GroupPermissionMatrix",
+      "category": "Contacts",
+      "summary": {
+        "en": "Group settings panel over the real group permission fields, with per-row busy, per-row failure and read-only rendering when the viewer cannot manage.",
+        "zh": "群权限设置面板，覆盖群模型真实权限字段；逐项 busy、逐项失败，无管理权限时渲染只读值行。"
+      },
+      "dataSource": {
+        "en": "Host-owned group settings, canManage flag, in-flight keys and per-key failure reasons; the component computes rows via groupPermissionRows().",
+        "zh": "宿主提供群设置、canManage、进行中的键与逐键失败原因；组件用 groupPermissionRows() 计算行。"
+      },
+      "props": [
+        {
+          "name": "settings",
+          "type": "{ joinPolicy, muteAll, onlyAdminCanAtAll, onlyAdminCanPin, shareCardPermission }",
+          "required": true,
+          "description": {
+            "en": "The real group permission fields; joinPolicy is 1 = invite only, 2 = approval, 3 = open.",
+            "zh": "群模型真实权限字段；joinPolicy 1=仅邀请 2=需审批 3=公开。"
+          }
+        },
+        {
+          "name": "canManage",
+          "type": "boolean",
+          "description": {
+            "en": "Viewer may edit; false renders read-only value rows instead of disabled switches.",
+            "zh": "可修改；false 渲染只读值行，而不是禁用开关。"
+          }
+        },
+        {
+          "name": "busyKeys",
+          "type": "string[]",
+          "description": {
+            "en": "Keys whose command is in flight; only those rows lock.",
+            "zh": "正在提交的键；仅这些行锁定。"
+          }
+        },
+        {
+          "name": "errors",
+          "type": "Record<string, string>",
+          "description": {
+            "en": "Per-key failure reason, kept on the row with retry until the host dismisses it.",
+            "zh": "逐键失败原因，保留在行上并可重试，直到宿主清除。"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": {
+            "en": "Panel heading.",
+            "zh": "面板标题。"
+          }
+        },
+        {
+          "name": "readOnlyHintText",
+          "type": "string",
+          "description": {
+            "en": "Explains why the panel is read-only.",
+            "zh": "说明为什么不可修改。"
+          }
+        },
+        {
+          "name": "joinPolicyLabel",
+          "type": "string",
+          "description": {
+            "en": "Join policy row label.",
+            "zh": "加群方式标题。"
+          }
+        },
+        {
+          "name": "joinPolicyDescription",
+          "type": "string",
+          "description": {
+            "en": "Join policy row description.",
+            "zh": "加群方式说明。"
+          }
+        },
+        {
+          "name": "joinInviteText",
+          "type": "string",
+          "description": {
+            "en": "Invite-only option label.",
+            "zh": "仅邀请文案。"
+          }
+        },
+        {
+          "name": "joinApprovalText",
+          "type": "string",
+          "description": {
+            "en": "Approval-required option label.",
+            "zh": "需审批文案。"
+          }
+        },
+        {
+          "name": "joinOpenText",
+          "type": "string",
+          "description": {
+            "en": "Open option label.",
+            "zh": "公开加入文案。"
+          }
+        },
+        {
+          "name": "unknownJoinPolicyText",
+          "type": "string",
+          "description": {
+            "en": "Shown when joinPolicy is outside 1/2/3 — the value is passed through, never guessed.",
+            "zh": "joinPolicy 不在 1/2/3 时显示；数值原样保留，不猜测。"
+          }
+        },
+        {
+          "name": "muteAllLabel",
+          "type": "string",
+          "description": {
+            "en": "Mute-all row label.",
+            "zh": "全员禁言标题。"
+          }
+        },
+        {
+          "name": "muteAllDescription",
+          "type": "string",
+          "description": {
+            "en": "Mute-all row description.",
+            "zh": "全员禁言说明。"
+          }
+        },
+        {
+          "name": "onlyAdminCanAtAllLabel",
+          "type": "string",
+          "description": {
+            "en": "Only-admins-@everyone row label.",
+            "zh": "仅管理员可 @所有人 标题。"
+          }
+        },
+        {
+          "name": "onlyAdminCanAtAllDescription",
+          "type": "string",
+          "description": {
+            "en": "Only-admins-@everyone row description.",
+            "zh": "仅管理员可 @所有人 说明。"
+          }
+        },
+        {
+          "name": "onlyAdminCanPinLabel",
+          "type": "string",
+          "description": {
+            "en": "Only-admins-pin row label.",
+            "zh": "仅管理员可置顶标题。"
+          }
+        },
+        {
+          "name": "onlyAdminCanPinDescription",
+          "type": "string",
+          "description": {
+            "en": "Only-admins-pin row description.",
+            "zh": "仅管理员可置顶说明。"
+          }
+        },
+        {
+          "name": "shareCardPermissionLabel",
+          "type": "string",
+          "description": {
+            "en": "Share-group-card row label.",
+            "zh": "允许分享群名片标题。"
+          }
+        },
+        {
+          "name": "shareCardPermissionDescription",
+          "type": "string",
+          "description": {
+            "en": "Share-group-card row description.",
+            "zh": "允许分享群名片说明。"
+          }
+        },
+        {
+          "name": "onText",
+          "type": "string",
+          "description": {
+            "en": "Read-only value for an enabled flag.",
+            "zh": "只读态开启文案。"
+          }
+        },
+        {
+          "name": "offText",
+          "type": "string",
+          "description": {
+            "en": "Read-only value for a disabled flag.",
+            "zh": "只读态关闭文案。"
+          }
+        },
+        {
+          "name": "busyText",
+          "type": "string",
+          "description": {
+            "en": "Per-row in-flight label.",
+            "zh": "逐行提交中文案。"
+          }
+        },
+        {
+          "name": "retryText",
+          "type": "string",
+          "description": {
+            "en": "Retry the failed row's last intent.",
+            "zh": "重试该行上一次意图。"
+          }
+        },
+        {
+          "name": "dismissErrorText",
+          "type": "string",
+          "description": {
+            "en": "Dismiss one row's failure reason.",
+            "zh": "忽略该行失败原因。"
+          }
+        }
+      ],
+      "states": [
+        "default",
+        "readOnly",
+        "busy",
+        "failure",
+        "partialFailure"
+      ],
+      "events": [
+        "change",
+        "dismissError"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareGroupPermissionMatrix"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareGroupPermissionMatrix"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "GroupPermissionMatrixView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "GroupPermissionMatrix"
+        }
+      }
+    },
+    {
+      "name": "MemberRoleSheet",
+      "category": "Contacts",
+      "summary": {
+        "en": "Per-member management menu (role, mute, remove, transfer ownership) with rank rules before capabilities and a trailing danger group.",
+        "zh": "单个群成员的管理菜单（角色、禁言、移出、转让群主），身份等级先于能力开关，危险动作单独分组置底。"
+      },
+      "dataSource": {
+        "en": "Host-owned member snapshot, viewer role, capabilities and mute durations; the component computes displayable actions via memberRoleActions().",
+        "zh": "宿主提供成员快照、自己的角色、能力与禁言时长；组件用 memberRoleActions() 计算可显示动作。"
+      },
+      "props": [
+        {
+          "name": "member",
+          "type": "{ id, name, avatarUrl?, role: 'owner'|'admin'|'member', muted }",
+          "required": true,
+          "description": {
+            "en": "Target member; id must be stable and is echoed in the action payload.",
+            "zh": "目标成员；id 必须稳定，并原样带回 action 事件。"
+          }
+        },
+        {
+          "name": "viewerRole",
+          "type": "'owner' | 'admin' | 'member'",
+          "required": true,
+          "description": {
+            "en": "The viewer's own role — rank rules apply before capabilities and cannot be overridden by them.",
+            "zh": "查看者自己的角色；身份等级规则先于能力开关，且不可被能力开关绕过。"
+          }
+        },
+        {
+          "name": "capabilities",
+          "type": "{ promote?, demote?, mute?, unmute?, remove?, transferOwner? }",
+          "description": {
+            "en": "Boolean switches the host can honour; absent or false hides the action.",
+            "zh": "宿主可承接的能力开关；缺省或 false 不显示该动作。"
+          }
+        },
+        {
+          "name": "muteDurations",
+          "type": "{ id, label }[]",
+          "description": {
+            "en": "Host-supplied mute durations; empty hides mute entirely — the kit ships none.",
+            "zh": "宿主提供的禁言时长；为空则完全不显示 mute，组件不内置时长。"
+          }
+        },
+        {
+          "name": "busy",
+          "type": "boolean",
+          "description": {
+            "en": "Set synchronously by the host before dispatching; disables every row and duration.",
+            "zh": "宿主发命令前同步置位；禁用全部行与时长按钮。"
+          }
+        },
+        {
+          "name": "ownerRoleText",
+          "type": "string",
+          "description": {
+            "en": "Owner badge label.",
+            "zh": "群主标签文案。"
+          }
+        },
+        {
+          "name": "adminRoleText",
+          "type": "string",
+          "description": {
+            "en": "Admin badge label.",
+            "zh": "管理员标签文案。"
+          }
+        },
+        {
+          "name": "memberRoleText",
+          "type": "string",
+          "description": {
+            "en": "Member badge label.",
+            "zh": "成员标签文案。"
+          }
+        },
+        {
+          "name": "mutedText",
+          "type": "string",
+          "description": {
+            "en": "Muted state label in the header.",
+            "zh": "头部已禁言状态文案。"
+          }
+        },
+        {
+          "name": "promoteText",
+          "type": "string",
+          "description": {
+            "en": "Promote-to-admin label.",
+            "zh": "设为管理员文案。"
+          }
+        },
+        {
+          "name": "demoteText",
+          "type": "string",
+          "description": {
+            "en": "Demote-from-admin label.",
+            "zh": "取消管理员文案。"
+          }
+        },
+        {
+          "name": "muteText",
+          "type": "string",
+          "description": {
+            "en": "Mute label; expands the host's durations.",
+            "zh": "禁言文案；展开宿主时长列表。"
+          }
+        },
+        {
+          "name": "unmuteText",
+          "type": "string",
+          "description": {
+            "en": "Unmute label; dispatches directly.",
+            "zh": "解除禁言文案；直接派发。"
+          }
+        },
+        {
+          "name": "removeText",
+          "type": "string",
+          "description": {
+            "en": "Remove-from-group label (danger group).",
+            "zh": "移出群聊文案（危险分组）。"
+          }
+        },
+        {
+          "name": "transferOwnerText",
+          "type": "string",
+          "description": {
+            "en": "Transfer-ownership label (danger group).",
+            "zh": "转让群主文案（危险分组）。"
+          }
+        },
+        {
+          "name": "dangerGroupText",
+          "type": "string",
+          "description": {
+            "en": "Heading of the trailing danger group.",
+            "zh": "危险分组标题。"
+          }
+        },
+        {
+          "name": "emptyText",
+          "type": "string",
+          "description": {
+            "en": "Shown when the viewer has no management rights, so the menu never opens blank.",
+            "zh": "无管理权限时显示，避免菜单空白。"
+          }
+        },
+        {
+          "name": "ownerProtectedText",
+          "type": "string",
+          "description": {
+            "en": "Shown when the target is the owner — protected by rank, not by a missing capability.",
+            "zh": "目标是群主时显示；这是身份等级保护，不是能力缺失。"
+          }
+        }
+      ],
+      "states": [
+        "default",
+        "empty",
+        "busy"
+      ],
+      "events": [
+        "action",
+        "close"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareMemberRoleSheet"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareMemberRoleSheet"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "MemberRoleSheetView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "MemberRoleSheet"
         }
       }
     },

@@ -141,3 +141,9 @@ export 'src/components/flare_conversation_action_sheet.dart';
 export 'src/components/flare_conversation_batch_toolbar.dart';
 
 export 'src/components/flare_unknown_message.dart';
+
+export 'src/components/flare_search_date_range_filter.dart';
+export 'src/components/flare_unknown_user_placeholder.dart';
+export 'src/components/flare_relation_action_bar.dart';
+export 'src/components/flare_group_permission_matrix.dart';
+export 'src/components/flare_member_role_sheet.dart';

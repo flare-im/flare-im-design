@@ -141,6 +141,11 @@ import PermissionPromptDemo from './demos/PermissionPromptDemo.vue';
 import ConversationActionSheetDemo from './demos/ConversationActionSheetDemo.vue';
 import ConversationBatchToolbarDemo from './demos/ConversationBatchToolbarDemo.vue';
 import UnknownMessageDemo from './demos/UnknownMessageDemo.vue';
+import SearchDateRangeFilterDemo from './demos/SearchDateRangeFilterDemo.vue';
+import UnknownUserPlaceholderDemo from './demos/UnknownUserPlaceholderDemo.vue';
+import RelationActionBarDemo from './demos/RelationActionBarDemo.vue';
+import GroupPermissionMatrixDemo from './demos/GroupPermissionMatrixDemo.vue';
+import MemberRoleSheetDemo from './demos/MemberRoleSheetDemo.vue';
 
 const demos = {
   EmojiStickerPanelDemo,
@@ -275,6 +280,11 @@ const demos = {
   ConversationActionSheetDemo,
   ConversationBatchToolbarDemo,
   UnknownMessageDemo,
+  SearchDateRangeFilterDemo,
+  UnknownUserPlaceholderDemo,
+  RelationActionBarDemo,
+  GroupPermissionMatrixDemo,
+  MemberRoleSheetDemo,
 };
 
 export default {
