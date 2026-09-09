@@ -6,16 +6,24 @@ title: MessageActionSheet
 
 <p><span class="flare-tag">消息</span></p>
 
-> 消息长按操作面板 —— 表情条、快捷操作（回复 / 转发 / 撤回）、分组操作（多选 / 标记 / 置顶 / 复制 / 编辑 / 删除）。删除为红色。
+> 消息操作 —— 表情反应、快捷操作（回复 / 转发 / 撤回）、分组操作（多选 / 标记 / 置顶 / 复制 / 编辑 / 删除）。删除为红色。
 
-**数据源**：由消息的 menuConfig 驱动（启用哪些操作）；操作经时间线视图 / client 分发
+交互**按端分流**（同一套操作，两种呈现）：
+
+- **桌面**：鼠标悬停气泡即出 <strong>表情反应 · 回复 · 更多</strong> 三个快捷键；其余操作点「更多」展开为下拉菜单。右键也可唤起。
+- **移动端**：长按气泡弹出底部 **sheet**（表情条 + 快捷宫格 + 全部操作列表）。
+
+呈现由视口 / 指针能力自动决定（见 `MessageBubble`），你只需喂 `menuConfig` 决定启用哪些操作。表情反应集在两端共用同一份（`MESSAGE_QUICK_REACTIONS`）。
+
+**数据源**：由消息的 menuConfig 驱动（启用哪些操作）；操作经时间线视图 / client 分发。
 
 ## 预览
+
+悬停下面任意气泡看桌面三键条；移动端为长按 sheet。
 
 <div class="flare-demo flare-demo--stack">
   <MessageActionSheetDemo />
 </div>
-
 
 ## Props
 
@@ -34,9 +42,6 @@ title: MessageActionSheet
 ## Events
 
 <span class="flare-tag">build</span>
-
-> [!TIP]
-> 四端都收敛成单个 action 分发,不存在 per-op 事件:Vue emit build(op),Flutter/iOS/Compose 是 onAction(FlareComposerAction)。
 
 ## 各端实现
 
@@ -61,7 +66,9 @@ import { FlareMessageActionSheet } from "@flare-im/vue-ui";
   :open="open"
   :reactions="reactions"
   :menuConfig="menuConfig"
-  @build="onBuild"
+  @react="onReact"
+  @reply="onReply"
+  @forward="onForward"
   />
 </template>
 ```
@@ -71,12 +78,14 @@ FlareMessageActionSheet(
   open: open,
   reactions: reactions,
   menuConfig: menuConfig,
-  onBuild: onBuild,
+  onReact: onReact,
+  onReply: onReply,
+  onForward: onForward,
 );
 ```
 
 ```swift [iOS]
-MessageActionSheetView(open: open, reactions: reactions, menuConfig: menuConfig, onBuild: onBuild)
+MessageActionSheetView(open: open, reactions: reactions, menuConfig: menuConfig, onReact: onReact, onReply: onReply, onForward: onForward)
 ```
 
 ```kotlin [Android]
@@ -84,7 +93,9 @@ MessageActionSheet(
   open = open,
   reactions = reactions,
   menuConfig = menuConfig,
-  onBuild = onBuild,
+  onReact = onReact,
+  onReply = onReply,
+  onForward = onForward,
 )
 ```
 

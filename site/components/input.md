@@ -16,7 +16,6 @@ title: Input
   <InputDemo />
 </div>
 
-
 ## Props
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
@@ -36,9 +35,6 @@ title: Input
 ## Events
 
 <span class="flare-tag">update:modelValue</span> <span class="flare-tag">submit</span> <span class="flare-tag">focus</span> <span class="flare-tag">blur</span> <span class="flare-tag">clear</span>
-
-> [!TIP]
-> 文本变化走 v-model(update:modelValue),不是 input 事件。原生端只有 onSubmit;clear / focus / blur 目前只有 Vue 有。
 
 ## 各端实现
 
@@ -60,9 +56,10 @@ import { FlareInput } from "@flare-im/vue-ui";
 </script>
 <template>
   <FlareInput
-  v-model="modelValue"
+  :modelValue="modelValue"
   :placeholder="placeholder"
   :multiline="multiline"
+  @input="onInput"
   @submit="onSubmit"
   @focus="onFocus"
   />
@@ -74,13 +71,14 @@ FlareInput(
   modelValue: modelValue,
   placeholder: placeholder,
   multiline: multiline,
+  onInput: onInput,
   onSubmit: onSubmit,
   onFocus: onFocus,
 );
 ```
 
 ```swift [iOS]
-InputView(modelValue: modelValue, placeholder: placeholder, multiline: multiline, onSubmit: onSubmit, onFocus: onFocus)
+InputView(modelValue: modelValue, placeholder: placeholder, multiline: multiline, onInput: onInput, onSubmit: onSubmit, onFocus: onFocus)
 ```
 
 ```kotlin [Android]
@@ -88,6 +86,7 @@ Input(
   modelValue = modelValue,
   placeholder = placeholder,
   multiline = multiline,
+  onInput = onInput,
   onSubmit = onSubmit,
   onFocus = onFocus,
 )

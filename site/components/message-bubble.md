@@ -16,7 +16,6 @@ title: MessageBubble
   <MessageBubbleDemo />
 </div>
 
-
 ## Props
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
@@ -42,7 +41,7 @@ title: MessageBubble
 <span class="flare-tag">react</span> <span class="flare-tag">reply</span> <span class="flare-tag">edit</span> <span class="flare-tag">delete</span> <span class="flare-tag">pin</span> <span class="flare-tag">mark</span> <span class="flare-tag">preview</span> <span class="flare-tag">mediaAction</span> <span class="flare-tag">resend</span> <span class="flare-tag">toggle-select</span>
 
 > [!TIP]
-> 乐观：status 来自 core 视图，绝不等网络。 toggle-select 目前只有 Vue 与 Flutter(onToggleSelect),iOS/Compose 尚未提供。forward / multiSelect / recall / locate-message 是 Vue 专有:原生端气泡只抛 onLongPress,转发、多选、撤回由宿主打开 MessageActionSheet 后经其 onAction 分发,不在气泡上单独开回调。
+> 乐观：status 来自 core 视图，绝不等网络。
 
 ## 各端实现
 

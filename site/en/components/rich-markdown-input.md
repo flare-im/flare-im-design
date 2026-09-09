@@ -16,7 +16,6 @@ title: RichMarkdownInput
   <RichMarkdownInputDemo />
 </div>
 
-
 ## Props
 
 | Name | Type | Req. | Default | Description |
@@ -35,13 +34,10 @@ title: RichMarkdownInput
 
 <span class="flare-tag">focus</span> <span class="flare-tag">blur</span> <span class="flare-tag">keydown</span>
 
-> [!TIP]
-> format-state-change is Vue-only: it reports toolbar bold/italic active state back to a host-rendered toolbar. The native toolbars live inside the component, so nothing needs to be raised.
-
 ## Platform implementations
 
 <div class="flare-platform-grid">
-  <div class="flare-platform-card"><h4>Vue</h4><div><code>FlareComposerRichInput</code></div><div style="color:var(--vp-c-text-3);font-size:12px;margin-top:4px">@flare-im/vue-ui</div></div>
+  <div class="flare-platform-card"><h4>Vue</h4><div><code>ComposerRichMarkdownInput</code></div><div style="color:var(--vp-c-text-3);font-size:12px;margin-top:4px">@flare-im/vue-ui</div></div>
   <div class="flare-platform-card"><h4>Flutter</h4><div><code>FlareRichMarkdownInput</code></div><div style="color:var(--vp-c-text-3);font-size:12px;margin-top:4px">flare_im_ui</div></div>
   <div class="flare-platform-card"><h4>iOS</h4><div><code>RichMarkdownInputView</code></div><div style="color:var(--vp-c-text-3);font-size:12px;margin-top:4px">FlareIMUI</div></div>
   <div class="flare-platform-card"><h4>Android · Compose</h4><div><code>RichMarkdownInput</code></div><div style="color:var(--vp-c-text-3);font-size:12px;margin-top:4px">com.flare.im:im-ui-compose</div></div>
@@ -54,10 +50,10 @@ title: RichMarkdownInput
 
 ```vue [Vue]
 <script setup>
-import { FlareComposerRichInput } from "@flare-im/vue-ui";
+import { ComposerRichMarkdownInput } from "@flare-im/vue-ui";
 </script>
 <template>
-  <FlareComposerRichInput
+  <ComposerRichMarkdownInput
   :disabled="disabled"
   :formattingPreview="formattingPreview"
   :maxLength="maxLength"

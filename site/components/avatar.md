@@ -16,7 +16,6 @@ title: Avatar
   <AvatarDemo />
 </div>
 
-
 ## Props
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
@@ -35,9 +34,6 @@ title: Avatar
 ## Events
 
 _无_
-
-> [!TIP]
-> 四端都不带点击事件(Vue 无 emits;Flutter/iOS/Compose 无 onTap),交互由宿主包裹。
 
 ## 各端实现
 
@@ -62,6 +58,7 @@ import { FlareAvatar } from "@flare-im/vue-ui";
   :userId="userId"
   :displayName="displayName"
   :avatarUrl="avatarUrl"
+  @click="onClick"
   />
 </template>
 ```
@@ -71,11 +68,12 @@ FlareAvatar(
   userId: userId,
   displayName: displayName,
   avatarUrl: avatarUrl,
+  onClick: onClick,
 );
 ```
 
 ```swift [iOS]
-AvatarView(userId: userId, displayName: displayName, avatarUrl: avatarUrl)
+AvatarView(userId: userId, displayName: displayName, avatarUrl: avatarUrl, onClick: onClick)
 ```
 
 ```kotlin [Android]
@@ -83,6 +81,7 @@ Avatar(
   userId = userId,
   displayName = displayName,
   avatarUrl = avatarUrl,
+  onClick = onClick,
 )
 ```
 

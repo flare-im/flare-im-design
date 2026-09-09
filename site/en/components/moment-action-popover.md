@@ -8,24 +8,13 @@ title: MomentActionPopover
 
 > Like/comment popover — a dark capsule that slides from the ··· button.
 
-**Data source**: passed in by you
+## Preview
 
+<div class="flare-demo flare-demo--stack">
+  <MomentActionPopoverDemo />
+</div>
 
-
-## Props
-
-| Name | Type | Req. | Default | Description |
-|---|---|:---:|---|---|
-| `liked` | `boolean` |  | — | Whether liked (toggles the label). |
-
-
-## States
-
-_None_
-
-## Events
-
-<span class="flare-tag">like</span> <span class="flare-tag">comment</span> <span class="flare-tag">delete</span>
+<ComponentApi name="MomentActionPopover" />
 
 ## Platform implementations
 
@@ -35,47 +24,3 @@ _None_
   <div class="flare-platform-card"><h4>iOS</h4><div><code>MomentActionPopoverView</code></div><div style="color:var(--vp-c-text-3);font-size:12px;margin-top:4px">FlareIMUI</div></div>
   <div class="flare-platform-card"><h4>Android · Compose</h4><div><code>MomentActionPopover</code></div><div style="color:var(--vp-c-text-3);font-size:12px;margin-top:4px">com.flare.im:im-ui-compose</div></div>
 </div>
-
-
-## Usage
-
-::: code-group
-
-```vue [Vue]
-<script setup>
-import { FlareMomentActionPopover } from "@flare-im/vue-ui";
-</script>
-<template>
-  <FlareMomentActionPopover
-  :liked="liked"
-  @like="onLike"
-  @comment="onComment"
-  @delete="onDelete"
-  />
-</template>
-```
-
-```dart [Flutter]
-FlareMomentActionPopover(
-  liked: liked,
-  onLike: onLike,
-  onComment: onComment,
-  onDelete: onDelete,
-);
-```
-
-```swift [iOS]
-MomentActionPopoverView(liked: liked, onLike: onLike, onComment: onComment, onDelete: onDelete)
-```
-
-```kotlin [Android]
-MomentActionPopover(
-  liked = liked,
-  onLike = onLike,
-  onComment = onComment,
-  onDelete = onDelete,
-)
-```
-
-:::
-

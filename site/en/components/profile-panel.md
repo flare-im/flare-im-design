@@ -16,7 +16,6 @@ title: ProfilePanel
   <ProfilePanelDemo />
 </div>
 
-
 ## Props
 
 | Name | Type | Req. | Default | Description |
@@ -31,9 +30,6 @@ title: ProfilePanel
 ## Events
 
 <span class="flare-tag">edit</span> <span class="flare-tag">qr</span> <span class="flare-tag">action</span> <span class="flare-tag">toggle</span> <span class="flare-tag">logout</span>
-
-> [!TIP]
-> action is named onEntry on Flutter/iOS/Compose (naming still to be unified); logout is Vue-only; openSettings never existed.
 
 ## Platform implementations
 
@@ -57,7 +53,7 @@ import { FlareProfilePanel } from "@flare-im/vue-ui";
   <FlareProfilePanel
   :user="user"
   @edit="onEdit"
-  @qr="onQr"
+  @openSettings="onOpenSettings"
   @action="onAction"
   />
 </template>
@@ -67,20 +63,20 @@ import { FlareProfilePanel } from "@flare-im/vue-ui";
 FlareProfilePanel(
   user: user,
   onEdit: onEdit,
-  onQr: onQr,
+  onOpenSettings: onOpenSettings,
   onAction: onAction,
 );
 ```
 
 ```swift [iOS]
-ProfilePanelView(user: user, onEdit: onEdit, onQr: onQr, onAction: onAction)
+ProfilePanelView(user: user, onEdit: onEdit, onOpenSettings: onOpenSettings, onAction: onAction)
 ```
 
 ```kotlin [Android]
 ProfilePanel(
   user = user,
   onEdit = onEdit,
-  onQr = onQr,
+  onOpenSettings = onOpenSettings,
   onAction = onAction,
 )
 ```

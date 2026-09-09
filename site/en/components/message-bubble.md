@@ -16,7 +16,6 @@ title: MessageBubble
   <MessageBubbleDemo />
 </div>
 
-
 ## Props
 
 | Name | Type | Req. | Default | Description |
@@ -42,7 +41,7 @@ title: MessageBubble
 <span class="flare-tag">react</span> <span class="flare-tag">reply</span> <span class="flare-tag">edit</span> <span class="flare-tag">delete</span> <span class="flare-tag">pin</span> <span class="flare-tag">mark</span> <span class="flare-tag">preview</span> <span class="flare-tag">mediaAction</span> <span class="flare-tag">resend</span> <span class="flare-tag">toggle-select</span>
 
 > [!TIP]
-> Optimistic: status from the core view, never a network wait. toggle-select exists only on Vue and Flutter (onToggleSelect); iOS and Compose do not offer it yet. forward / multiSelect / recall / locate-message are Vue-only: the native bubble raises onLongPress and the host opens MessageActionSheet, whose onAction dispatches those, rather than exposing a callback per action on the bubble.
+> Optimistic: status from the core view, never a network wait.
 
 ## Platform implementations
 

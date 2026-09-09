@@ -16,7 +16,6 @@ title: VideoPlayerModal
   <VideoPlayerModalDemo />
 </div>
 
-
 ## Props
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
@@ -34,9 +33,6 @@ title: VideoPlayerModal
 ## Events
 
 <span class="flare-tag">update:show</span>
-
-> [!TIP]
-> Vue 端通过 v-model:show 关闭,没有独立 close 事件;Flutter/iOS/Compose 是 onPlay / onClose。
 
 ## 各端实现
 
@@ -58,9 +54,10 @@ import { FlareVideoPreview } from "@flare-im/vue-ui";
 </script>
 <template>
   <FlareVideoPreview
-  v-model:show="show"
+  :show="show"
   :videoSrc="videoSrc"
   :poster="poster"
+  @close="onClose"
   />
 </template>
 ```
@@ -70,11 +67,12 @@ FlareVideoPlayer(
   show: show,
   videoSrc: videoSrc,
   poster: poster,
+  onClose: onClose,
 );
 ```
 
 ```swift [iOS]
-VideoPlayerView(show: show, videoSrc: videoSrc, poster: poster)
+VideoPlayerView(show: show, videoSrc: videoSrc, poster: poster, onClose: onClose)
 ```
 
 ```kotlin [Android]
@@ -82,6 +80,7 @@ VideoPlayer(
   show = show,
   videoSrc = videoSrc,
   poster = poster,
+  onClose = onClose,
 )
 ```
 

@@ -16,7 +16,6 @@ title: ChatHeader
   <ChatHeaderDemo />
 </div>
 
-
 ## Props
 
 | Name | Type | Req. | Default | Description |
@@ -33,9 +32,6 @@ title: ChatHeader
 ## Events
 
 <span class="flare-tag">back</span>
-
-> [!TIP]
-> Only back is shared. Search/call/details are host-rendered through the actions slot on Vue, while Flutter/iOS/Compose expose onSearch / onCall / onDetails callbacks.
 
 ## Platform implementations
 
@@ -60,7 +56,9 @@ import { FlareChatHeader } from "@flare-im/vue-ui";
   :title="title"
   :subtitle="subtitle"
   :presence="presence"
-  @back="onBack"
+  @search="onSearch"
+  @call="onCall"
+  @details="onDetails"
   />
 </template>
 ```
@@ -70,12 +68,14 @@ FlareChatHeader(
   title: title,
   subtitle: subtitle,
   presence: presence,
-  onBack: onBack,
+  onSearch: onSearch,
+  onCall: onCall,
+  onDetails: onDetails,
 );
 ```
 
 ```swift [iOS]
-ChatHeaderView(title: title, subtitle: subtitle, presence: presence, onBack: onBack)
+ChatHeaderView(title: title, subtitle: subtitle, presence: presence, onSearch: onSearch, onCall: onCall, onDetails: onDetails)
 ```
 
 ```kotlin [Android]
@@ -83,7 +83,9 @@ ChatHeader(
   title = title,
   subtitle = subtitle,
   presence = presence,
-  onBack = onBack,
+  onSearch = onSearch,
+  onCall = onCall,
+  onDetails = onDetails,
 )
 ```
 

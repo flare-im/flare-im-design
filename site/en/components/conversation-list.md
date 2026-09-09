@@ -16,7 +16,6 @@ title: ConversationList
   <ConversationListDemo />
 </div>
 
-
 ## Props
 
 | Name | Type | Req. | Default | Description |
@@ -35,7 +34,7 @@ title: ConversationList
 _None_
 
 > [!TIP]
-> Must virtualise (native list per platform); O(visible), no full re-layout on update. The Vue reference is a pure slot container (no emits) — rows are host-rendered, so the contract declares none; Flutter/iOS/Compose expose onSelect / onLongPress at list level, and Flutter additionally onLoadMore.
+> Must virtualise (native list per platform); O(visible), no full re-layout on update.
 
 ## Platform implementations
 
@@ -60,6 +59,9 @@ import { FlareConversationList } from "@flare-im/vue-ui";
   :items="items"
   :activeId="activeId"
   :loading="loading"
+  @select="onSelect"
+  @longPress="onLongPress"
+  @loadMore="onLoadMore"
   />
 </template>
 ```
@@ -69,11 +71,14 @@ FlareConversationList(
   items: items,
   activeId: activeId,
   loading: loading,
+  onSelect: onSelect,
+  onLongPress: onLongPress,
+  onLoadMore: onLoadMore,
 );
 ```
 
 ```swift [iOS]
-ConversationListView(items: items, activeId: activeId, loading: loading)
+ConversationListView(items: items, activeId: activeId, loading: loading, onSelect: onSelect, onLongPress: onLongPress, onLoadMore: onLoadMore)
 ```
 
 ```kotlin [Android]
@@ -81,6 +86,9 @@ ConversationList(
   items = items,
   activeId = activeId,
   loading = loading,
+  onSelect = onSelect,
+  onLongPress = onLongPress,
+  onLoadMore = onLoadMore,
 )
 ```
 

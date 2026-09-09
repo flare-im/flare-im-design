@@ -16,7 +16,6 @@ title: ImagePreviewModal
   <ImagePreviewModalDemo />
 </div>
 
-
 ## Props
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
@@ -39,9 +38,6 @@ title: ImagePreviewModal
 
 <span class="flare-tag">update:show</span> <span class="flare-tag">primary-action</span>
 
-> [!TIP]
-> Vue 端通过 v-model:show 关闭,主操作是 primary-action;Flutter/iOS/Compose 是 onClose / onDownload。
-
 ## 各端实现
 
 <div class="flare-platform-grid">
@@ -62,10 +58,11 @@ import { FlareImagePreview } from "@flare-im/vue-ui";
 </script>
 <template>
   <FlareImagePreview
-  v-model:show="show"
+  :show="show"
   :imageSrc="imageSrc"
   :loading="loading"
-  @primary-action="onPrimaryAction"
+  @close="onClose"
+  @download="onDownload"
   />
 </template>
 ```
@@ -75,12 +72,13 @@ FlareImagePreview(
   show: show,
   imageSrc: imageSrc,
   loading: loading,
-  onPrimaryAction: onPrimaryAction,
+  onClose: onClose,
+  onDownload: onDownload,
 );
 ```
 
 ```swift [iOS]
-ImagePreviewView(show: show, imageSrc: imageSrc, loading: loading, onPrimaryAction: onPrimaryAction)
+ImagePreviewView(show: show, imageSrc: imageSrc, loading: loading, onClose: onClose, onDownload: onDownload)
 ```
 
 ```kotlin [Android]
@@ -88,7 +86,8 @@ ImagePreview(
   show = show,
   imageSrc = imageSrc,
   loading = loading,
-  onPrimaryAction = onPrimaryAction,
+  onClose = onClose,
+  onDownload = onDownload,
 )
 ```
 

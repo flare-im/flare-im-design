@@ -16,7 +16,6 @@ title: ContactList
   <ContactListDemo />
 </div>
 
-
 ## Props
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
@@ -35,7 +34,7 @@ title: ContactList
 <span class="flare-tag">select</span>
 
 > [!TIP]
-> 虚拟化 + 分组吸顶 header；侧边 A–Z 索引跳转。 longPress 四端均未实现,已从契约移除。
+> 虚拟化 + 分组吸顶 header；侧边 A–Z 索引跳转。
 
 ## 各端实现
 
@@ -61,6 +60,7 @@ import { FlareContactList } from "@flare-im/vue-ui";
   :indexed="indexed"
   :loading="loading"
   @select="onSelect"
+  @longPress="onLongPress"
   />
 </template>
 ```
@@ -71,11 +71,12 @@ FlareContactList(
   indexed: indexed,
   loading: loading,
   onSelect: onSelect,
+  onLongPress: onLongPress,
 );
 ```
 
 ```swift [iOS]
-ContactListView(items: items, indexed: indexed, loading: loading, onSelect: onSelect)
+ContactListView(items: items, indexed: indexed, loading: loading, onSelect: onSelect, onLongPress: onLongPress)
 ```
 
 ```kotlin [Android]
@@ -84,6 +85,7 @@ ContactList(
   indexed = indexed,
   loading = loading,
   onSelect = onSelect,
+  onLongPress = onLongPress,
 )
 ```
 

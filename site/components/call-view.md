@@ -6,16 +6,18 @@ title: CallView
 
 <p><span class="flare-tag">音视频通话</span></p>
 
-> 音视频通话中界面 —— 对端画面 / 头像、状态、时长，叠加控制条。视频渲染由宿主注入。
+> 音视频通话中界面 —— 对端画面 / 头像、状态、时长，叠加控制条。视频渲染由宿主注入。支持**单聊**（1 对 1）与**群聊多人通话**（参与者网格）。
 
 **数据源**：RTC 会话状态（你的数据 / 媒体层）；画面轨道由宿主渲染
 
-## 预览
+## 预览（单聊 · 1 对 1）
 
 <div class="flare-demo flare-demo--stack">
   <CallViewDemo />
 </div>
 
+> [!TIP]
+> 需要**群聊多人通话**（参与者网格、说话高亮、加人）？见独立组件 [GroupCallView](/components/group-call-view)。
 
 ## Props
 
@@ -26,20 +28,18 @@ title: CallView
 | `state` | `'calling' \| 'ringing' \| 'connected' \| 'reconnecting' \| 'failed'` | ✓ | — | 呼叫中 / 响铃中 / 已接通。 |
 | `durationLabel` | `string` |  | — | 已格式化的通话时长（mm:ss）。 |
 | `peerAvatarUrl` | `string` |  | — | 对端头像，音频通话时显示。 |
-| `statusDetail` | `string` |  | — | 宿主提供的弱网、权限或失败说明。 |
-| `recoveryText` | `string` |  | — | 仅失败状态显示恢复操作文案，重试由宿主执行。 |
 
 
 ## States
 
-<span class="flare-tag">calling</span> <span class="flare-tag">ringing</span> <span class="flare-tag">connected</span> <span class="flare-tag">reconnecting</span> <span class="flare-tag">failed</span>
+<span class="flare-tag">calling</span> <span class="flare-tag">ringing</span> <span class="flare-tag">connected</span>
 
 ## Events
 
 <span class="flare-tag">hangup</span> <span class="flare-tag">toggleMute</span> <span class="flare-tag">toggleCamera</span> <span class="flare-tag">toggleSpeaker</span> <span class="flare-tag">switchCamera</span> <span class="flare-tag">recover</span>
 
 > [!TIP]
-> 视频轨道用宿主注入的渲染 slot；控制条为 CallControls。 minimize 是 Vue 专有(桌面端收进小窗),原生端最小化由宿主的导航层负责,组件不外抛。
+> 视频轨道用宿主注入的渲染 slot；控制条为 CallControls。
 
 ## 各端实现
 
@@ -133,3 +133,11 @@ CallView(peerName = "Henry", mode = FlareCallMode.Video, state = FlareCallState.
 ```
 
 :::
+
+## 恢复契约
+
+`statusDetail` 展示宿主提供的弱网、权限或失败原因。`recoveryText` 仅在 failed 时显示操作；处理 Vue 的 recover 或原生 onRecover 后，立即切换 reconnecting，避免重复恢复。挂断独立可用。组件不枚举设备、不申请权限，也不自行重试。
+
+Web 的 encrypted 默认 false；只有 RTC 提供方明确确认端到端加密时才开启。TLS/WSS 或信令连接成功不能替代该确认。
+
+原生调用方的穷举 switch 需增加 reconnecting 和 failed。媒体仍连接的弱网状态保持 connected，用 statusDetail 说明，不用信令 ready 替代媒体连接状态。

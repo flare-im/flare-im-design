@@ -16,7 +16,6 @@ title: VideoPlayerModal
   <VideoPlayerModalDemo />
 </div>
 
-
 ## Props
 
 | Name | Type | Req. | Default | Description |
@@ -34,9 +33,6 @@ title: VideoPlayerModal
 ## Events
 
 <span class="flare-tag">update:show</span>
-
-> [!TIP]
-> Vue closes through v-model:show with no standalone close event; Flutter/iOS/Compose take onPlay / onClose.
 
 ## Platform implementations
 
@@ -58,9 +54,10 @@ import { FlareVideoPreview } from "@flare-im/vue-ui";
 </script>
 <template>
   <FlareVideoPreview
-  v-model:show="show"
+  :show="show"
   :videoSrc="videoSrc"
   :poster="poster"
+  @close="onClose"
   />
 </template>
 ```
@@ -70,11 +67,12 @@ FlareVideoPlayer(
   show: show,
   videoSrc: videoSrc,
   poster: poster,
+  onClose: onClose,
 );
 ```
 
 ```swift [iOS]
-VideoPlayerView(show: show, videoSrc: videoSrc, poster: poster)
+VideoPlayerView(show: show, videoSrc: videoSrc, poster: poster, onClose: onClose)
 ```
 
 ```kotlin [Android]
@@ -82,6 +80,7 @@ VideoPlayer(
   show = show,
   videoSrc = videoSrc,
   poster = poster,
+  onClose = onClose,
 )
 ```
 

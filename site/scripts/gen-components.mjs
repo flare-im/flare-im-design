@@ -356,8 +356,14 @@ for (const { code, dir, base } of LOCALES) {
   for (const c of spec.components) {
     const file = join(dir, `${slug(c.name)}.md`);
     if (only && !only.has(c.name)) { (byCat[c.category] ??= []).push(c); continue; }
-    // Never silently overwrite hand-extended prose; --force and --only are the opt-ins.
-    if (!force && !only && existsSync(file)) kept.push(slug(c.name));
+    // --only narrows *which* pages are considered; it does not license clobbering a
+    // hand-extended one. That distinction was learned the hard way: --only on
+    // MessageList silently dropped a hand-placed <TimelineRecoveryDemo /> and broke
+    // the browser check. A page carrying a demo embed or <ComponentApi> is
+    // hand-authored, and only --force may overwrite it.
+    const handAuthored =
+      existsSync(file) && /<\w+Demo\b|<ComponentApi\b/.test(readFileSync(file, "utf8"));
+    if (!force && (handAuthored || (!only && existsSync(file)))) kept.push(slug(c.name));
     else {
       writeFileSync(file, componentPage(c, code));
       written += 1;

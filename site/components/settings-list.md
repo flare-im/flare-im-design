@@ -25,7 +25,11 @@ title: SettingsList
 
 ## States
 
-<span class="flare-tag">default</span>
+<span class="flare-tag">default</span> <span class="flare-tag">disabled</span> <span class="flare-tag">danger</span>
+
+每个设置项支持 `disabled` 和 `danger`（默认均为 `false`）。禁用项不触发切换或选择事件；危险项使用统一错误色，但是否二次确认由业务决定。
+
+开关整行可点击，回调返回新的布尔值，由应用更新受控数据。Web 支持 Tab 聚焦、Enter / Space 激活；原生端使用对应的开关与按钮无障碍语义。单独的设置行也可直接使用共享 `FlareSettingsRow`（Android 为 `SettingsRow`），无需在应用重新绘制菜单行。
 
 ## Events
 

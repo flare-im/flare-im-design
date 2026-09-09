@@ -16,7 +16,6 @@ title: Avatar
   <AvatarDemo />
 </div>
 
-
 ## Props
 
 | Name | Type | Req. | Default | Description |
@@ -35,9 +34,6 @@ title: Avatar
 ## Events
 
 _None_
-
-> [!TIP]
-> No click callback on any platform (no Vue emits; no onTap in Flutter/iOS/Compose) — hosts wrap it for interaction.
 
 ## Platform implementations
 
@@ -62,6 +58,7 @@ import { FlareAvatar } from "@flare-im/vue-ui";
   :userId="userId"
   :displayName="displayName"
   :avatarUrl="avatarUrl"
+  @click="onClick"
   />
 </template>
 ```
@@ -71,11 +68,12 @@ FlareAvatar(
   userId: userId,
   displayName: displayName,
   avatarUrl: avatarUrl,
+  onClick: onClick,
 );
 ```
 
 ```swift [iOS]
-AvatarView(userId: userId, displayName: displayName, avatarUrl: avatarUrl)
+AvatarView(userId: userId, displayName: displayName, avatarUrl: avatarUrl, onClick: onClick)
 ```
 
 ```kotlin [Android]
@@ -83,6 +81,7 @@ Avatar(
   userId = userId,
   displayName = displayName,
   avatarUrl = avatarUrl,
+  onClick = onClick,
 )
 ```
 
