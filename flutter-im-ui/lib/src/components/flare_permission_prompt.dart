@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_icon.dart';
 import 'flare_primary_button.dart';
@@ -67,26 +68,47 @@ class FlarePermissionCopy {
   final String title, description, primaryLabel;
 }
 
-const Map<FlarePermissionKind, String> _kindNoun = {
-  FlarePermissionKind.microphone: '麦克风',
-  FlarePermissionKind.camera: '摄像头',
-  FlarePermissionKind.notifications: '通知',
-  FlarePermissionKind.storage: '存储空间',
-  FlarePermissionKind.photos: '相册',
-  FlarePermissionKind.contacts: '通讯录',
-  FlarePermissionKind.location: '位置信息',
-  FlarePermissionKind.screen: '屏幕录制',
-};
-const Map<FlarePermissionKind, String> _kindVerb = {
-  FlarePermissionKind.microphone: '使用麦克风',
-  FlarePermissionKind.camera: '使用摄像头',
-  FlarePermissionKind.notifications: '发送通知',
-  FlarePermissionKind.storage: '访问存储空间',
-  FlarePermissionKind.photos: '访问相册',
-  FlarePermissionKind.contacts: '访问通讯录',
-  FlarePermissionKind.location: '获取位置信息',
-  FlarePermissionKind.screen: '录制屏幕内容',
-};
+String _kindNoun(FlarePermissionKind kind, FlareStrings s) {
+  switch (kind) {
+    case FlarePermissionKind.microphone:
+      return s.microphone;
+    case FlarePermissionKind.camera:
+      return s.camera;
+    case FlarePermissionKind.notifications:
+      return s.permissionNotifications;
+    case FlarePermissionKind.storage:
+      return s.permissionStorage;
+    case FlarePermissionKind.photos:
+      return s.permissionPhotos;
+    case FlarePermissionKind.contacts:
+      return s.permissionContacts;
+    case FlarePermissionKind.location:
+      return s.permissionLocation;
+    case FlarePermissionKind.screen:
+      return s.permissionScreen;
+  }
+}
+
+String _kindVerb(FlarePermissionKind kind, FlareStrings s) {
+  switch (kind) {
+    case FlarePermissionKind.microphone:
+      return s.permissionVerbMicrophone;
+    case FlarePermissionKind.camera:
+      return s.permissionVerbCamera;
+    case FlarePermissionKind.notifications:
+      return s.permissionVerbNotifications;
+    case FlarePermissionKind.storage:
+      return s.permissionVerbStorage;
+    case FlarePermissionKind.photos:
+      return s.permissionVerbPhotos;
+    case FlarePermissionKind.contacts:
+      return s.permissionVerbContacts;
+    case FlarePermissionKind.location:
+      return s.permissionVerbLocation;
+    case FlarePermissionKind.screen:
+      return s.permissionVerbScreen;
+  }
+}
 
 /// Kit icon name per kind (same semantic names on every platform).
 String permissionIconName(FlarePermissionKind kind) {
@@ -125,54 +147,62 @@ String permissionStateIconName(FlarePermissionState state) {
 }
 
 /// `featureLabel` (e.g. "发送语音消息") is embedded in the description.
+///
+/// `strings` defaults to the kit's own copy; the widget passes the ambient
+/// [FlareStrings] so a host that overrides them at the root gets translated
+/// defaults here too.
 FlarePermissionCopy defaultPermissionCopy(
   FlarePermissionKind kind,
   FlarePermissionState state, {
   String? featureLabel,
+  FlareStrings strings = const FlareStrings(),
 }) {
   final feature = (featureLabel?.trim().isNotEmpty ?? false)
       ? featureLabel!.trim()
-      : '此功能';
-  final verb = _kindVerb[kind]!;
-  final title = '需要${_kindNoun[kind]}权限';
+      : strings.permissionThisFeature;
+  final verb = _kindVerb(kind, strings);
+  final title = strings.permissionTitle(_kindNoun(kind, strings));
   switch (state) {
     case FlarePermissionState.undetermined:
       return FlarePermissionCopy(
         title: title,
-        description: '$feature需要$verb，请允许后继续。',
-        primaryLabel: '允许',
+        description: strings.permissionUndeterminedDescription(feature, verb),
+        primaryLabel: strings.permissionAllow,
       );
     case FlarePermissionState.denied:
       return FlarePermissionCopy(
         title: title,
-        description: '$verb的权限已被拒绝，$feature无法使用。请前往系统设置开启。',
-        primaryLabel: '前往设置',
+        description: strings.permissionDeniedDescription(feature, verb),
+        primaryLabel: strings.permissionOpenSettings,
       );
     case FlarePermissionState.restricted:
       return FlarePermissionCopy(
         title: title,
-        description: '$verb的权限受设备或组织策略限制，$feature暂不可用。',
+        description: strings.permissionRestrictedDescription(feature, verb),
         primaryLabel: '',
       );
     case FlarePermissionState.unavailable:
       return FlarePermissionCopy(
         title: title,
-        description: '当前设备或运行环境不支持$verb，$feature暂不可用。',
+        description: strings.permissionUnavailableDescription(feature, verb),
         primaryLabel: '',
       );
   }
 }
 
-String defaultPermissionStateLabel(FlarePermissionState state) {
+String defaultPermissionStateLabel(
+  FlarePermissionState state, {
+  FlareStrings strings = const FlareStrings(),
+}) {
   switch (state) {
     case FlarePermissionState.undetermined:
-      return '未授权';
+      return strings.permissionStateUndetermined;
     case FlarePermissionState.denied:
-      return '已拒绝';
+      return strings.permissionStateDenied;
     case FlarePermissionState.restricted:
-      return '受限制';
+      return strings.permissionStateRestricted;
     case FlarePermissionState.unavailable:
-      return '不可用';
+      return strings.permissionStateUnavailable;
   }
 }
 
@@ -232,7 +262,9 @@ class FlarePermissionPrompt extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(Theme.of(context).brightness);
-    final copy = defaultPermissionCopy(kind, state, featureLabel: featureLabel);
+    final strings = FlareStrings.of(context);
+    final copy = defaultPermissionCopy(kind, state,
+        featureLabel: featureLabel, strings: strings);
     final actions = permissionActions(
       state,
       hasRequest: onRequest != null,
@@ -286,7 +318,8 @@ class FlarePermissionPrompt extends StatelessWidget {
                 FlareIcon(permissionStateIconName(state), size: 14, color: tone),
                 const SizedBox(width: FlareSizes.spacingXs),
                 Text(
-                  stateText ?? defaultPermissionStateLabel(state),
+                  stateText ??
+                      defaultPermissionStateLabel(state, strings: strings),
                   style: TextStyle(
                     color: tone,
                     fontSize: FlareSizes.fontSizeXs,

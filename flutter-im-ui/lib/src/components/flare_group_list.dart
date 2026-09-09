@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/directory_data.dart';
+import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_avatar.dart';
 import 'flare_empty_state.dart';
@@ -26,6 +27,7 @@ class FlareGroupList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(Theme.of(context).brightness);
+    final strings = FlareStrings.of(context);
     if (items.isEmpty) return FlareEmptyState(title: emptyText);
     return ListView.builder(
       itemCount: items.length,
@@ -49,7 +51,9 @@ class FlareGroupList extends StatelessWidget {
                             color: colors.textPrimary,
                             fontSize: FlareSizes.fontSizeXl,
                             fontWeight: FontWeight.w500)),
-                    Text(memberCountText?.call(g.memberCount) ?? '${g.memberCount} 名成员',
+                    Text(
+                        memberCountText?.call(g.memberCount) ??
+                            strings.memberCount(g.memberCount),
                         style: TextStyle(
                             color: colors.textTertiary,
                             fontSize: FlareSizes.fontSizeSm)),

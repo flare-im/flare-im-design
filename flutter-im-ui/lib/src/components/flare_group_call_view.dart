@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/directory_data.dart';
+import '../tokens/flare_strings.dart';
 import 'flare_avatar.dart';
 import 'flare_call_controls.dart';
 
@@ -57,16 +58,18 @@ class FlareGroupCallView extends StatelessWidget {
     return 4;
   }
 
-  String get _status {
-    if (state == 'reconnecting') return 'Reconnecting call…';
-    if (state == 'failed') return 'Call connection failed';
-    if (state == 'connected') return durationLabel ?? 'Connected';
-    if (state == 'ringing') return 'Ringing…';
-    return 'Calling…';
+  String _statusOf(FlareStrings strings) {
+    if (state == 'reconnecting') return strings.callReconnecting;
+    if (state == 'failed') return strings.callFailed;
+    if (state == 'connected') return durationLabel ?? strings.callConnected;
+    if (state == 'ringing') return strings.callRinging;
+    return strings.callCalling;
   }
 
   @override
   Widget build(BuildContext context) {
+    final strings = FlareStrings.of(context);
+    final status = _statusOf(strings);
     return DecoratedBox(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -88,13 +91,13 @@ class FlareGroupCallView extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(title ?? '群通话',
+                      Text(title ?? strings.groupCall,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                               color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
-                      Text(joinedText?.call(participants.length, _status) ??
-                          '${participants.length} 人已加入 · $_status',
+                      Text(joinedText?.call(participants.length, status) ??
+                          strings.joinedCount(participants.length, status),
                           style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.62), fontSize: 12)),
                     ],
@@ -110,7 +113,7 @@ class FlareGroupCallView extends StatelessWidget {
               mainAxisSpacing: 8,
               crossAxisSpacing: 8,
               childAspectRatio: 0.86,
-              children: participants.map(_tile).toList(),
+              children: participants.map((p) => _tile(p, strings)).toList(),
             ),
           ),
           Padding(
@@ -132,7 +135,7 @@ class FlareGroupCallView extends StatelessWidget {
     );
   }
 
-  Widget _tile(FlareCallParticipant p) {
+  Widget _tile(FlareCallParticipant p, FlareStrings strings) {
     final content = tileBuilder != null
         ? tileBuilder!(p)
         : Center(
@@ -171,7 +174,7 @@ class FlareGroupCallView extends StatelessWidget {
                     decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.42),
                         borderRadius: BorderRadius.circular(6)),
-                    child: Text(p.isSelf ? '${p.name} (me)' : p.name,
+                    child: Text(p.isSelf ? strings.selfSuffix(p.name) : p.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(color: Colors.white, fontSize: 12)),

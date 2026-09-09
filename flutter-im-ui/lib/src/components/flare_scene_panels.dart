@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../tokens/flare_strings.dart';
 import 'flare_status_banner.dart';
 import 'flare_transfer_queue.dart';
 import 'flare_transfer_progress.dart';
@@ -106,11 +108,14 @@ class _SceneList extends StatelessWidget {
         FlareStatusBanner(
           text: error!,
           tone: FlareStatusTone.danger,
-          actionText: '重试',
+          actionText: FlareStrings.of(context).retry,
           onAction: loading ? null : onReload,
         ),
       if (items.isEmpty && !loading && error == null)
-        const Padding(padding: EdgeInsets.all(16), child: Text('暂无内容')),
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(FlareStrings.of(context).noContent),
+        ),
       for (final item in items)
         Padding(
           key: ValueKey(item.id),

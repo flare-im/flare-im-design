@@ -7,6 +7,7 @@
 library;
 
 export 'src/tokens/flare_tokens.dart';
+export 'src/tokens/flare_strings.dart';
 
 // primitives (shared building blocks)
 export 'src/primitives/flare_surface.dart';

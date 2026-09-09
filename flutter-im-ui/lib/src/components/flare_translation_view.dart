@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 
 /// Inline translation block — shows a translated message with a provider
@@ -103,7 +104,8 @@ class _FlareTranslationViewState extends State<FlareTranslationView>
 
   Widget _content(FlareColors colors) {
     final label = widget.provider != null && widget.provider!.isNotEmpty
-        ? (widget.translatedByText?.call(widget.provider!) ?? '由 ${widget.provider} 翻译')
+        ? (widget.translatedByText?.call(widget.provider!) ??
+            FlareStrings.of(context).translatedBy(widget.provider!))
         : widget.translatedLabel;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

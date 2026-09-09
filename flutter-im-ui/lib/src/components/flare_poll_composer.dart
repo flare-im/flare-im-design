@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 
 /// Poll composer — a card for authoring a poll: a question, 2–[maxOptions]
@@ -242,7 +243,8 @@ class _FlarePollComposerState extends State<FlarePollComposer> {
                 isCollapsed: true,
                 contentPadding: const EdgeInsets.symmetric(vertical: 11),
                 border: InputBorder.none,
-                hintText: widget.optionPlaceholder?.call(index + 1) ?? '选项 ${index + 1}',
+                hintText: widget.optionPlaceholder?.call(index + 1) ??
+                    FlareStrings.of(context).pollOptionHint(index + 1),
                 hintStyle: TextStyle(
                     color: colors.textTertiary, fontSize: FlareSizes.fontSizeLg),
               ),

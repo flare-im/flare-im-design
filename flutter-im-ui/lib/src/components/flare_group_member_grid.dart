@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/directory_data.dart';
+import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_avatar.dart';
 
@@ -60,7 +61,9 @@ class FlareGroupMemberGrid extends StatelessWidget {
                       color: colors.textPrimary,
                       fontSize: FlareSizes.fontSizeLg,
                       fontWeight: FontWeight.w600)),
-              Text(memberCountText?.call(members.length) ?? '${members.length} 名成员',
+              Text(
+                  memberCountText?.call(members.length) ??
+                      FlareStrings.of(context).memberCount(members.length),
                   style: TextStyle(color: colors.textTertiary, fontSize: FlareSizes.fontSizeSm)),
             ],
           ),

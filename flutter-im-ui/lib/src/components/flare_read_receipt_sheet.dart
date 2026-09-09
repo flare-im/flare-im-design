@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/directory_data.dart';
+import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_avatar.dart';
 
@@ -106,12 +107,21 @@ class _FlareReadReceiptSheetState extends State<FlareReadReceiptSheet> {
   }
 
   Widget _tabs(FlareColors colors) {
+    final strings = FlareStrings.of(context);
     return Row(
       children: [
-        _tab(colors, widget.readTabText?.call(widget.readers.length) ?? '已读 (${widget.readers.length})', _showRead, () {
+        _tab(
+            colors,
+            widget.readTabText?.call(widget.readers.length) ??
+                strings.readTab(widget.readers.length),
+            _showRead, () {
           setState(() => _showRead = true);
         }),
-        _tab(colors, widget.unreadTabText?.call(widget.unread.length) ?? '未读 (${widget.unread.length})', !_showRead, () {
+        _tab(
+            colors,
+            widget.unreadTabText?.call(widget.unread.length) ??
+                strings.unreadTab(widget.unread.length),
+            !_showRead, () {
           setState(() => _showRead = false);
         }),
       ],

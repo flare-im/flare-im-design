@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/directory_data.dart';
+import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_avatar.dart';
 
@@ -86,11 +87,12 @@ class FlareSearchResults extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
-      children: [for (final g in nonEmpty) ..._section(colors, g)],
+      children: [for (final g in nonEmpty) ..._section(context, colors, g)],
     );
   }
 
-  List<Widget> _section(FlareColors colors, FlareSearchResultGroup g) {
+  List<Widget> _section(
+      BuildContext context, FlareColors colors, FlareSearchResultGroup g) {
     return [
       Padding(
         padding: const EdgeInsets.fromLTRB(
@@ -109,7 +111,8 @@ class FlareSearchResults extends StatelessWidget {
         ),
       ),
       for (final item in g.items) _row(colors, item),
-      if (g.total != null && g.total! > g.items.length) _viewAll(colors, g),
+      if (g.total != null && g.total! > g.items.length)
+        _viewAll(context, colors, g),
     ];
   }
 
@@ -182,7 +185,8 @@ class FlareSearchResults extends StatelessWidget {
     );
   }
 
-  Widget _viewAll(FlareColors colors, FlareSearchResultGroup g) {
+  Widget _viewAll(
+      BuildContext context, FlareColors colors, FlareSearchResultGroup g) {
     return GestureDetector(
       onTap: () => onViewAll?.call(g.kind),
       behavior: HitTestBehavior.opaque,
@@ -194,7 +198,8 @@ class FlareSearchResults extends StatelessWidget {
         child: Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            viewAllText?.call(g.total!) ?? '查看全部 ${g.total}',
+            viewAllText?.call(g.total!) ??
+                FlareStrings.of(context).viewAll(g.total!),
             style: TextStyle(
               color: colors.primary,
               fontSize: FlareSizes.fontSizeMd,

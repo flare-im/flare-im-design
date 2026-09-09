@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/message_content.dart';
 import '../models/message_data.dart';
+import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_message_bubble.dart';
 
@@ -343,7 +344,8 @@ class FlareMessageSliverList extends StatelessWidget {
         hasScrollBody: false,
         child: loading
             ? const Center(child: CircularProgressIndicator())
-            : (emptyPlaceholder ?? const Center(child: _Empty('暂无消息'))),
+            : (emptyPlaceholder ??
+                Center(child: _Empty(FlareStrings.of(context).noMessages))),
       );
     }
     return SliverPadding(

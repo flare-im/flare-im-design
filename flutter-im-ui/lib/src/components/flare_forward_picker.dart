@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/directory_data.dart';
+import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_avatar.dart';
 
@@ -237,7 +238,9 @@ class _FlareForwardPickerState extends State<FlareForwardPicker> {
       child: Row(
         children: [
           Expanded(
-            child: Text(widget.selectedText?.call(count) ?? '已选 $count',
+            child: Text(
+                widget.selectedText?.call(count) ??
+                    FlareStrings.of(context).selectedCount(count),
                 style: TextStyle(
                     color: colors.textSecondary, fontSize: FlareSizes.fontSizeSm)),
           ),
