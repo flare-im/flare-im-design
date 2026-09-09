@@ -14,7 +14,7 @@
         "ReauthPrompt"
       ],
       "requiredStates": "断网、重连、会话过期、被踢、SDK 未就绪",
-      "next": "连接详情与重新认证入口；统一宿主 session 映射"
+      "next": "连接详情与重新认证入口四端已实现；宿主 session 映射与真实过期/被踢链路验收待做"
     },
     {
       "id": "inbox",
@@ -30,7 +30,7 @@
         "ConversationBatchToolbar"
       ],
       "requiredStates": "空列表、加载失败、草稿、@提醒、免打扰、归档",
-      "next": "长列表滚动锚点；跨端菜单与批量管理验收"
+      "next": "会话菜单与批量操作条四端已实现（含部分失败逐项恢复）；长列表滚动锚点与真机批量管理验收待做"
     },
     {
       "id": "timeline",
@@ -100,7 +100,7 @@
         "SearchDateRangeFilter"
       ],
       "requiredStates": "空关键词、无结果、类型过滤、时间范围、请求竞态",
-      "next": "四端面板与工作台竞态保护已实现；线上文本/文件互斥筛选及 Web 点击定位通过；时间范围与原生定位验收待完成"
+      "next": "四端面板、竞态保护与自定义时间范围已实现；线上文本/文件互斥筛选及 Web 点击定位通过；原生结果定位与跨时区真实检索验收待做"
     },
     {
       "id": "actions",
@@ -137,7 +137,7 @@
         "RelationActionBar"
       ],
       "requiredStates": "未知用户、已删除账号、请求处理中、不可联系",
-      "next": "通讯录搜索、关系变更与匿名占位跨端验收；业务关系由宿主提供"
+      "next": "关系操作条与未知/注销账号占位四端已实现；通讯录搜索、真实关系变更链路与匿名占位跨端验收待做；业务关系由宿主提供"
     },
     {
       "id": "groups",
@@ -154,7 +154,7 @@
         "MemberRoleSheet"
       ],
       "requiredStates": "成员权限、禁言、退群、解散、公告未读",
-      "next": "权限矩阵、管理员操作与成员变动；审批业务不内置到 UI"
+      "next": "群权限矩阵与成员角色面板四端已实现（等级规则先于能力开关）；真实管理员操作、成员变动与权限回流验收待做；审批业务不内置到 UI"
     },
     {
       "id": "calls",
@@ -167,10 +167,11 @@
         "CallControls",
         "GroupCallView",
         "CallDock",
-        "PermissionPrompt"
+        "PermissionPrompt",
+        "ScreenShare"
       ],
       "requiredStates": "呼入、拨号、接通、网络弱、麦克风拒绝、插件不可用",
-      "next": "四端设备选择与重连/失败展示已实现；真实设备、屏幕共享和 RTC 插件联调待验收"
+      "next": "设备选择、重连/失败展示与屏幕共享状态面板四端已实现；真实设备、RTC 插件采集与弱网联调待验收"
     },
     {
       "id": "settings",
@@ -185,10 +186,11 @@
         "Select",
         "FormField",
         "Input",
-        "PermissionPrompt"
+        "PermissionPrompt",
+        "StorageUsage"
       ],
       "requiredStates": "主题/语言切换、通知拒绝、缓存清理失败",
-      "next": "设备与通知组合已实现；真实远程设备撤销和系统权限由宿主接口验收"
+      "next": "设备、通知与存储占用三组合已实现；真实远程设备撤销、系统权限与清理落盘验收由宿主接口完成"
     },
     {
       "id": "accessibility",
@@ -222,7 +224,7 @@
         "UnknownMessage"
       ],
       "requiredStates": "插件缺失、权限不足、未知消息类型、数据过期",
-      "next": "基于能力暴露入口与回退显示；支付/任务/地图由宿主插件实现"
+      "next": "未知类型消息四端统一为「可读占位 + 原始类型诊断」；按能力暴露入口与回退显示已就位；支付/任务/地图仍由宿主插件实现"
     },
     {
       "id": "social",

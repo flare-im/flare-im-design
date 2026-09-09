@@ -147,3 +147,6 @@ export 'src/components/flare_unknown_user_placeholder.dart';
 export 'src/components/flare_relation_action_bar.dart';
 export 'src/components/flare_group_permission_matrix.dart';
 export 'src/components/flare_member_role_sheet.dart';
+
+export 'src/components/flare_screen_share.dart';
+export 'src/components/flare_storage_usage.dart';

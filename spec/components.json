@@ -11306,6 +11306,204 @@
       }
     },
     {
+      "name": "StorageUsage",
+      "category": "Profile",
+      "summary": {
+        "en": "Storage management panel over a host-measured usage snapshot, with per-category busy, per-category clear failure, and unknown sizes reported as unknown instead of 0 B.",
+        "zh": "存储空间管理面板，展示宿主测量的占用快照；逐分类 busy、逐分类清理失败，大小未知显示「未知」而不是 0 B。"
+      },
+      "dataSource": {
+        "en": "Host-measured per-category usage, optional host total and device free space, plus in-flight and failure state per category; the component computes totals, shares and clearability via storageTotals()/storageShare()/canClearStorage() and formats sizes via formatBytes().",
+        "zh": "宿主提供分类占用、可选总占用与设备可用空间，以及逐分类的进行中与失败状态；组件用 storageTotals()/storageShare()/canClearStorage() 计算总计、占比与可清理性，用 formatBytes() 格式化大小。"
+      },
+      "props": [
+        {
+          "name": "categories",
+          "type": "StorageCategory[]",
+          "required": true,
+          "description": {
+            "en": "Per-category snapshot { id, label, bytes?, fileCount?, clearable?, busy?, error? }; ids must be stable and are echoed in every event.",
+            "zh": "分类快照 { id, label, bytes?, fileCount?, clearable?, busy?, error? }；id 必须稳定，所有事件都用它回指。"
+          }
+        },
+        {
+          "name": "totalBytes",
+          "type": "number | null",
+          "description": {
+            "en": "Host-measured overall footprint; omitted, the component sums the known categories and marks the sum as a floor.",
+            "zh": "宿主给的总占用；缺省时组件对已知分类求和，并标注这是下限。"
+          }
+        },
+        {
+          "name": "deviceFreeBytes",
+          "type": "number | null",
+          "description": {
+            "en": "Free space left on the device; shown only when the host knows it.",
+            "zh": "设备可用空间；宿主知道时才展示。"
+          }
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "description": {
+            "en": "First measurement in flight — skeleton plus a spoken status, never a fake empty list; already-known categories stay visible.",
+            "zh": "首次统计中——骨架 + 可访问文案，不伪装成空列表；已有分类保持可见。"
+          }
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "description": {
+            "en": "Whole-snapshot measurement failure; the known categories stay on screen and the banner offers re-measure.",
+            "zh": "整体统计失败；已统计出的分类继续可见，错误区提供重新统计。"
+          }
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "description": {
+            "en": "BCP-47 tag threaded through to formatBytes; digits and unit suffixes are the same in every locale by design.",
+            "zh": "透传给 formatBytes 的语言标签；数字与单位后缀在所有语言下一致。"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": {
+            "en": "Panel heading.",
+            "zh": "面板标题。"
+          }
+        },
+        {
+          "name": "unknownText",
+          "type": "string",
+          "description": {
+            "en": "Shown for a size the host has not measured — never rendered as 0 B.",
+            "zh": "宿主尚未统计出的大小显示此文案，绝不写成 0 B。"
+          }
+        },
+        {
+          "name": "atLeastText",
+          "type": "string",
+          "description": {
+            "en": "Prefix for a total the component summed itself while some category is still unknown.",
+            "zh": "组件自行求和且存在未知分类时，总计前面的「至少」。"
+          }
+        },
+        {
+          "name": "clearText",
+          "type": "string",
+          "description": {
+            "en": "Clear one category (danger action).",
+            "zh": "清理某分类（危险动作）。"
+          }
+        },
+        {
+          "name": "clearingText",
+          "type": "string",
+          "description": {
+            "en": "Per-category in-flight label.",
+            "zh": "逐分类清理中文案。"
+          }
+        },
+        {
+          "name": "totalText",
+          "type": "string",
+          "description": {
+            "en": "Label in front of the total.",
+            "zh": "总计前缀文案。"
+          }
+        },
+        {
+          "name": "deviceFreeText",
+          "type": "string",
+          "description": {
+            "en": "Label in front of the device free space.",
+            "zh": "设备可用空间前缀文案。"
+          }
+        },
+        {
+          "name": "reloadText",
+          "type": "string",
+          "description": {
+            "en": "Re-measure the snapshot.",
+            "zh": "重新统计。"
+          }
+        },
+        {
+          "name": "retryText",
+          "type": "string",
+          "description": {
+            "en": "Retry one category's failed clear.",
+            "zh": "重试该分类失败的清理。"
+          }
+        },
+        {
+          "name": "dismissErrorText",
+          "type": "string",
+          "description": {
+            "en": "Dismiss one category's failure, or the whole-snapshot one.",
+            "zh": "忽略某分类的失败原因，或整体统计错误。"
+          }
+        },
+        {
+          "name": "loadingText",
+          "type": "string",
+          "description": {
+            "en": "Accessible label for the first measurement.",
+            "zh": "首次统计中的可访问文案。"
+          }
+        },
+        {
+          "name": "emptyText",
+          "type": "string",
+          "description": {
+            "en": "Explains why there is nothing to show when the host has no categories.",
+            "zh": "宿主没有任何分类时说明原因。"
+          }
+        },
+        {
+          "name": "fileCountText",
+          "type": "string",
+          "description": {
+            "en": "File-count template; `{count}` is replaced with the category's file count.",
+            "zh": "文件数模板；`{count}` 会被该分类的文件数替换。"
+          }
+        }
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "failure",
+        "partialFailure",
+        "busy"
+      ],
+      "events": [
+        "clear",
+        "reload",
+        "dismissError"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareStorageUsage"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareStorageUsage"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "StorageUsageView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "StorageUsage"
+        }
+      }
+    },
+    {
       "name": "MediaCenter",
       "category": "Media",
       "summary": {
@@ -11478,6 +11676,204 @@
         "compose": {
           "package": "com.flare.im:im-ui-compose",
           "symbol": "CallDevicePicker"
+        }
+      }
+    },
+    {
+      "name": "ScreenShare",
+      "category": "Call",
+      "summary": {
+        "en": "In-call screen-share control and status panel with per-state icon, text and tone, indeterminate progress while requesting, and host-dispatched start / stop / cancel intents.",
+        "zh": "通话中的屏幕共享控制与状态面板：每个状态同时有图标、文字和语气色，请求中显示不确定进度，开始 / 停止 / 取消由宿主执行。"
+      },
+      "dataSource": {
+        "en": "Host- / RTC-plugin-owned share state and labels; the view never captures a screen, enumerates sources or encodes video.",
+        "zh": "宿主 / RTC 插件提供共享状态与文案；组件不采集屏幕、不枚举共享源、不编码。"
+      },
+      "props": [
+        {
+          "name": "state",
+          "type": "\"idle\" | \"requesting\" | \"sharing\" | \"viewing\" | \"unavailable\"",
+          "required": true,
+          "description": {
+            "en": "idle = may start; requesting = waiting for the system / plugin; sharing = the local user is sharing; viewing = watching someone else; unavailable = the runtime or plugin has no screen-share capability.",
+            "zh": "idle=可以发起；requesting=已请求、等待系统 / 插件回应；sharing=自己正在共享；viewing=正在观看别人共享；unavailable=运行环境或插件不支持。"
+          }
+        },
+        {
+          "name": "sourceLabel",
+          "type": "string",
+          "description": {
+            "en": "What is being shared, e.g. \"整个屏幕\" / \"Chrome 窗口\"; shown only while sharing.",
+            "zh": "正在共享的内容，如“整个屏幕”“Chrome 窗口”；仅 sharing 时显示。"
+          }
+        },
+        {
+          "name": "presenterName",
+          "type": "string",
+          "description": {
+            "en": "Who is sharing; shown only while viewing.",
+            "zh": "谁在共享；仅 viewing 时显示。"
+          }
+        },
+        {
+          "name": "detail",
+          "type": "string",
+          "description": {
+            "en": "Extra host explanation, e.g. a bitrate-limited notice or why sharing is unavailable.",
+            "zh": "宿主补充说明，如码率受限提示或不支持的原因。"
+          }
+        },
+        {
+          "name": "busy",
+          "type": "boolean",
+          "description": {
+            "en": "Host is executing a command; every action is disabled but keeps its place.",
+            "zh": "宿主正在执行命令；全部动作禁用但保留按钮位置。"
+          }
+        },
+        {
+          "name": "hasStart",
+          "type": "boolean",
+          "description": {
+            "en": "Vue only: host binds @start (default false hides the button). Native derives this from onStart != null.",
+            "zh": "仅 Vue：宿主已绑定 @start（默认 false 隐藏按钮）。原生端由 onStart 是否为空推导。"
+          }
+        },
+        {
+          "name": "hasStop",
+          "type": "boolean",
+          "description": {
+            "en": "Vue only: host binds @stop (default false hides the button). Native derives this from onStop != null.",
+            "zh": "仅 Vue：宿主已绑定 @stop（默认 false 隐藏按钮）。原生端由 onStop 是否为空推导。"
+          }
+        },
+        {
+          "name": "hasCancel",
+          "type": "boolean",
+          "description": {
+            "en": "Vue only: host binds @cancel (default false hides the button). Native derives this from onCancel != null.",
+            "zh": "仅 Vue：宿主已绑定 @cancel（默认 false 隐藏按钮）。原生端由 onCancel 是否为空推导。"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": {
+            "en": "Panel heading (default \"屏幕共享\").",
+            "zh": "面板标题（默认“屏幕共享”）。"
+          }
+        },
+        {
+          "name": "idleText",
+          "type": "string",
+          "description": {
+            "en": "Label for idle (default \"未在共享\").",
+            "zh": "idle 状态文案（默认“未在共享”）。"
+          }
+        },
+        {
+          "name": "requestingText",
+          "type": "string",
+          "description": {
+            "en": "Label for requesting; also the accessible name of the progress indicator.",
+            "zh": "requesting 状态文案，同时作为进度条的可访问名称。"
+          }
+        },
+        {
+          "name": "sharingText",
+          "type": "string",
+          "description": {
+            "en": "Label for sharing (default \"正在共享屏幕\").",
+            "zh": "sharing 状态文案（默认“正在共享屏幕”）。"
+          }
+        },
+        {
+          "name": "viewingText",
+          "type": "string",
+          "description": {
+            "en": "Label for viewing (default \"正在观看共享\").",
+            "zh": "viewing 状态文案（默认“正在观看共享”）。"
+          }
+        },
+        {
+          "name": "unavailableText",
+          "type": "string",
+          "description": {
+            "en": "Label for unavailable (default \"当前环境不支持屏幕共享\").",
+            "zh": "unavailable 状态文案（默认“当前环境不支持屏幕共享”）。"
+          }
+        },
+        {
+          "name": "sourceRowLabel",
+          "type": "string",
+          "description": {
+            "en": "Row label for sourceLabel (default \"共享内容\").",
+            "zh": "共享内容行标签（默认“共享内容”）。"
+          }
+        },
+        {
+          "name": "presenterRowLabel",
+          "type": "string",
+          "description": {
+            "en": "Row label for presenterName (default \"共享者\").",
+            "zh": "共享者行标签（默认“共享者”）。"
+          }
+        },
+        {
+          "name": "startText",
+          "type": "string",
+          "description": {
+            "en": "Start action label (default \"共享屏幕\").",
+            "zh": "开始共享动作文案（默认“共享屏幕”）。"
+          }
+        },
+        {
+          "name": "stopText",
+          "type": "string",
+          "description": {
+            "en": "Stop action label (default \"停止共享\").",
+            "zh": "停止共享动作文案（默认“停止共享”）。"
+          }
+        },
+        {
+          "name": "cancelText",
+          "type": "string",
+          "description": {
+            "en": "Cancel-request action label (default \"取消请求\").",
+            "zh": "取消请求动作文案（默认“取消请求”）。"
+          }
+        }
+      ],
+      "states": [
+        "idle",
+        "requesting",
+        "sharing",
+        "viewing",
+        "unavailable",
+        "busy"
+      ],
+      "events": [
+        "start",
+        "stop",
+        "cancel"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareScreenShare"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareScreenShare"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ScreenShareView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ScreenShare"
         }
       }
     }

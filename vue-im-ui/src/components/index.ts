@@ -230,3 +230,6 @@ export { default as FlareUnknownUserPlaceholder } from "./contacts/FlareUnknownU
 export { default as FlareRelationActionBar } from "./contacts/FlareRelationActionBar.vue";
 export { default as FlareGroupPermissionMatrix } from "./contacts/FlareGroupPermissionMatrix.vue";
 export { default as FlareMemberRoleSheet } from "./contacts/FlareMemberRoleSheet.vue";
+
+export { default as FlareScreenShare } from './call/FlareScreenShare.vue';
+export { default as FlareStorageUsage } from "./profile/FlareStorageUsage.vue";

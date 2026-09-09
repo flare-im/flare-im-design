@@ -36,7 +36,7 @@ the inconsistency problem across the four platform implementations is exactly wh
 <!-- CATALOG:START -->
 ## Component catalog
 
-**132 components / 11 categories** (source in [`components.json`](./components.json);
+**134 components / 11 categories** (source in [`components.json`](./components.json);
 props/events extracted and calibrated from the `@flare-im/vue-ui` source).
 
 > This section is generated from the contract by `gen-readme-catalog.mjs`; do not edit by hand — a hand-written catalog rots as the contract grows.
@@ -55,10 +55,10 @@ props/events extracted and calibrated from the `@flare-im/vue-ui` source).
   `ChatWallpaperPicker` · `ConversationActionSheet` · `ConversationBatchToolbar` · `ConversationDetails` · `ConversationList` · `ConversationRow` · `ForwardPicker` · `StartConversationDialog`
 - **Moments** — 8
   `CommentThread` · `MomentActionPopover` · `MomentAudienceSheet` · `MomentCard` · `MomentComposer` · `MomentsCoverHeader` · `MomentsVisibilityRuleList` · `TopicChip`
-- **Profile** — 7
-  `DeviceSessions` · `NotificationPreferences` · `ProfileCard` · `ProfileEditor` · `ProfilePanel` · `QRCard` · `SettingsList`
-- **Call** — 6
-  `CallControls` · `CallDevicePicker` · `CallDock` · `CallView` · `GroupCallView` · `IncomingCall`
+- **Profile** — 8
+  `DeviceSessions` · `NotificationPreferences` · `ProfileCard` · `ProfileEditor` · `ProfilePanel` · `QRCard` · `SettingsList` · `StorageUsage`
+- **Call** — 7
+  `CallControls` · `CallDevicePicker` · `CallDock` · `CallView` · `GroupCallView` · `IncomingCall` · `ScreenShare`
 - **Media** — 6
   `ImagePreviewModal` · `MarkdownPreview` · `MediaCenter` · `TransferProgress` · `TransferQueue` · `VideoPlayerModal`
 - **Layout** — 4
