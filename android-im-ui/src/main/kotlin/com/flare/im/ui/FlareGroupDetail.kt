@@ -196,7 +196,12 @@ fun FlareGroupDetail(
     invitableContacts: List<Contact> = emptyList(),
     labels: FlareGroupDetailLabels = FlareGroupDetailLabels(),
     onBack: () -> Unit = {},
-    onOpenChat: () -> Unit = {},
+    /**
+     * Opens a chat with the group's members. Carries the member ids and the group name so
+     * the host does not have to re-derive them; Vue emits `openChat({ userIds, name })` and
+     * Flutter passes `(List<String>, String)` — this matches them.
+     */
+    onOpenChat: (List<String>, String) -> Unit = { _, _ -> },
     onUpdateName: (String) -> Unit = {},
     onUpdateAnnouncement: (String) -> Unit = {},
     onUpdateMyNickname: (String) -> Unit = {},
@@ -278,75 +283,99 @@ fun FlareGroupDetail(
                 onAddMember = { onLoadContacts(); inviteMembersOpen = true },
             )
 
+            // Settings sections — each is one elevated grouped card (Feishu-style), the same
+            // [FlareGroupedCard] the kit's SettingsList draws, so the two surfaces can't drift.
+
             // 群信息
             SectionTitle(labels.infoSection)
-            SettingsRow(
-                item = SettingsItem("name", labels.name, kind = FlareSettingKind.Value, detail = m.name.ifEmpty { "-" }),
-                onSelect = { if (m.canManage) editKind = "name" },
-            )
-            SettingsRow(
-                item = SettingsItem("announcement", labels.announcement, kind = FlareSettingKind.Value, detail = m.announcement?.ifEmpty { null } ?: labels.notSet),
-                onSelect = { if (m.canManage) editKind = "announcement" },
-            )
-            SettingsRow(
-                item = SettingsItem("members", labels.members, kind = FlareSettingKind.Value, detail = "${m.memberCount}"),
-            )
+            FlareGroupedCard {
+                SettingsRow(
+                    item = SettingsItem("name", labels.name, kind = FlareSettingKind.Value, detail = m.name.ifEmpty { "-" }),
+                    onSelect = { if (m.canManage) editKind = "name" },
+                )
+                FlareGroupedCardDivider()
+                SettingsRow(
+                    item = SettingsItem("announcement", labels.announcement, kind = FlareSettingKind.Value, detail = m.announcement?.ifEmpty { null } ?: labels.notSet),
+                    onSelect = { if (m.canManage) editKind = "announcement" },
+                )
+                FlareGroupedCardDivider()
+                SettingsRow(
+                    item = SettingsItem("members", labels.members, kind = FlareSettingKind.Value, detail = "${m.memberCount}"),
+                )
+            }
 
             // 我在本群
             SectionTitle(labels.myInGroupSection)
-            SettingsRow(
-                item = SettingsItem("myNickname", labels.myNickname, kind = FlareSettingKind.Value, detail = m.myNickname?.ifEmpty { null } ?: labels.notSet),
-                onSelect = { editKind = "nickname" },
-            )
-            SettingsRow(
-                item = SettingsItem("myMuted", labels.muteNotif, kind = FlareSettingKind.Toggle, value = m.myMuted),
-                onToggle = { _, v -> onToggleMyMuted(v) },
-            )
-            SettingsRow(
-                item = SettingsItem("myPinned", labels.pinGroup, kind = FlareSettingKind.Toggle, value = m.myPinned),
-                onToggle = { _, v -> onToggleMyPinned(v) },
-            )
+            FlareGroupedCard {
+                SettingsRow(
+                    item = SettingsItem("myNickname", labels.myNickname, kind = FlareSettingKind.Value, detail = m.myNickname?.ifEmpty { null } ?: labels.notSet),
+                    onSelect = { editKind = "nickname" },
+                )
+                FlareGroupedCardDivider()
+                SettingsRow(
+                    item = SettingsItem("myMuted", labels.muteNotif, kind = FlareSettingKind.Toggle, value = m.myMuted),
+                    onToggle = { _, v -> onToggleMyMuted(v) },
+                )
+                FlareGroupedCardDivider()
+                SettingsRow(
+                    item = SettingsItem("myPinned", labels.pinGroup, kind = FlareSettingKind.Toggle, value = m.myPinned),
+                    onToggle = { _, v -> onToggleMyPinned(v) },
+                )
+            }
 
             // 群管理 (owner/admin only)
             if (m.canManage) {
                 SectionTitle(labels.manageSection)
-                SettingsRow(
-                    item = SettingsItem("joinPolicy", labels.joinMode, kind = FlareSettingKind.Value, detail = joinPolicyLabel(m.joinPolicy, labels)),
-                    onSelect = { joinModeOpen = true },
-                )
-                SettingsRow(
-                    item = SettingsItem("joinRequests", labels.joinRequests, kind = FlareSettingKind.Navigation, detail = joinRequests.size.takeIf { it > 0 }?.toString()),
-                    onSelect = { onLoadJoinRequests(); joinRequestsOpen = true },
-                )
-                SettingsRow(
-                    item = SettingsItem("muteAll", labels.muteAll, kind = FlareSettingKind.Toggle, value = m.muteAll),
-                    onToggle = { _, v -> onToggleMuteAll(v) },
-                )
-                SettingsRow(
-                    item = SettingsItem("inviteLink", labels.inviteLink, kind = FlareSettingKind.Navigation),
-                    onSelect = { onEnsureInviteLink(); inviteLinkOpen = true },
-                )
+                FlareGroupedCard {
+                    SettingsRow(
+                        item = SettingsItem("joinPolicy", labels.joinMode, kind = FlareSettingKind.Value, detail = joinPolicyLabel(m.joinPolicy, labels)),
+                        onSelect = { joinModeOpen = true },
+                    )
+                    FlareGroupedCardDivider()
+                    SettingsRow(
+                        item = SettingsItem("joinRequests", labels.joinRequests, kind = FlareSettingKind.Navigation, detail = joinRequests.size.takeIf { it > 0 }?.toString()),
+                        onSelect = { onLoadJoinRequests(); joinRequestsOpen = true },
+                    )
+                    FlareGroupedCardDivider()
+                    SettingsRow(
+                        item = SettingsItem("muteAll", labels.muteAll, kind = FlareSettingKind.Toggle, value = m.muteAll),
+                        onToggle = { _, v -> onToggleMuteAll(v) },
+                    )
+                    FlareGroupedCardDivider()
+                    SettingsRow(
+                        item = SettingsItem("inviteLink", labels.inviteLink, kind = FlareSettingKind.Navigation),
+                        onSelect = { onEnsureInviteLink(); inviteLinkOpen = true },
+                    )
+                }
 
                 // 群权限 (owner/admin only)
                 SectionTitle(labels.permsSection)
-                SettingsRow(
-                    item = SettingsItem("onlyAdminAtAll", labels.onlyAdminAtAll, kind = FlareSettingKind.Toggle, value = m.onlyAdminCanAtAll),
-                    onToggle = { _, v -> onSetFlag("onlyAdminCanAtAll", v) },
-                )
-                SettingsRow(
-                    item = SettingsItem("onlyAdminPin", labels.onlyAdminPin, kind = FlareSettingKind.Toggle, value = m.onlyAdminCanPin),
-                    onToggle = { _, v -> onSetFlag("onlyAdminCanPin", v) },
-                )
-                SettingsRow(
-                    item = SettingsItem("shareCard", labels.shareCard, kind = FlareSettingKind.Toggle, value = m.shareCardPermission),
-                    onToggle = { _, v -> onSetFlag("shareCardPermission", v) },
-                )
+                FlareGroupedCard {
+                    SettingsRow(
+                        item = SettingsItem("onlyAdminAtAll", labels.onlyAdminAtAll, kind = FlareSettingKind.Toggle, value = m.onlyAdminCanAtAll),
+                        onToggle = { _, v -> onSetFlag("onlyAdminCanAtAll", v) },
+                    )
+                    FlareGroupedCardDivider()
+                    SettingsRow(
+                        item = SettingsItem("onlyAdminPin", labels.onlyAdminPin, kind = FlareSettingKind.Toggle, value = m.onlyAdminCanPin),
+                        onToggle = { _, v -> onSetFlag("onlyAdminCanPin", v) },
+                    )
+                    FlareGroupedCardDivider()
+                    SettingsRow(
+                        item = SettingsItem("shareCard", labels.shareCard, kind = FlareSettingKind.Toggle, value = m.shareCardPermission),
+                        onToggle = { _, v -> onSetFlag("shareCardPermission", v) },
+                    )
+                }
             }
 
             // Footer — 发消息 + 退出/解散
             Spacer(Modifier.height(FlareSizes.spacingLg))
             Column(Modifier.padding(FlareSizes.spacingLg), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                PrimaryButton(text = labels.message, onClick = onOpenChat, modifier = Modifier.fillMaxWidth())
+                PrimaryButton(
+                    text = labels.message,
+                    onClick = { onOpenChat(m.members.map { it.id }, m.name) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
                 DangerBlockButton(text = if (m.isOwner) labels.dissolve else labels.leave, onClick = { confirmLeave = true })
             }
         }

@@ -25,6 +25,36 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
+ * The Feishu-style grouped settings card: a section's rows float together on one
+ * [FlareColors.bgElevated] surface with [FlareSizes.radiusXl] corners and a soft shadow.
+ *
+ * Extracted from [SettingsList] so every settings-shaped surface in the kit (settings list,
+ * profile panel, group detail) draws the *same* card instead of each re-deriving one — this
+ * mirrors the iOS `flareGroupedCard()` modifier.
+ */
+@Composable
+fun FlareGroupedCard(
+    modifier: Modifier = Modifier,
+    content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit,
+) {
+    val colors = flareColors()
+    Column(
+        modifier.fillMaxWidth()
+            .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingXs)
+            .shadow(2.dp, RoundedCornerShape(FlareSizes.radiusXl), clip = false)
+            .clip(RoundedCornerShape(FlareSizes.radiusXl))
+            .background(colors.bgElevated),
+        content = content,
+    )
+}
+
+/** The indented hairline between two rows of a [FlareGroupedCard]. */
+@Composable
+fun FlareGroupedCardDivider() {
+    Divider(color = flareColors().borderSecondary, modifier = Modifier.padding(start = FlareSizes.spacingMd))
+}
+
+/**
  * Settings list — grouped toggle / navigation / value rows. A generic settings
  * container. Spec: Profile/SettingsList (`SettingsList`).
  */
@@ -49,15 +79,9 @@ fun SettingsList(
             // Aurora — a section's rows float together on one elevated grouped card
             // (iOS-style), matching the Vue/Flutter settings surface.
             item(key = "card-${section.title ?: section.items.firstOrNull()?.key ?: sIndex}") {
-                Column(
-                    Modifier.fillMaxWidth()
-                        .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingXs)
-                        .shadow(2.dp, RoundedCornerShape(FlareSizes.radiusXl), clip = false)
-                        .clip(RoundedCornerShape(FlareSizes.radiusXl))
-                        .background(colors.bgElevated),
-                ) {
+                FlareGroupedCard {
                     section.items.forEachIndexed { i, item ->
-                        if (i > 0) Divider(color = colors.borderSecondary, modifier = Modifier.padding(start = FlareSizes.spacingMd))
+                        if (i > 0) FlareGroupedCardDivider()
                         SettingsRow(item = item, onToggle = onToggle, onSelect = onSelect)
                     }
                 }
