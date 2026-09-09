@@ -36,8 +36,18 @@ describe('permissionActions', () => {
   });
 });
 
+describe('screen capture', () => {
+  it('is a first-class kind so screen sharing has a permission home', () => {
+    expect(permissionKinds).toContain('screen');
+    expect(permissionIcon.screen.length).toBeGreaterThan(0);
+    const copy = defaultPermissionCopy('screen', 'denied', '屏幕共享');
+    expect(copy.title).toContain('屏幕录制');
+    expect(copy.description).toContain('屏幕共享');
+  });
+});
+
 describe('defaultPermissionCopy', () => {
-  it('has a title and description for all 7 kinds x 4 states, primary label only where an action exists', () => {
+  it('has a title and description for all 8 kinds x 4 states, primary label only where an action exists', () => {
     for (const kind of permissionKinds) {
       for (const state of permissionStates) {
         const c = defaultPermissionCopy(kind, state);

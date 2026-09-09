@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flare_im_ui/src/components/flare_permission_prompt.dart';
 
 void main() {
-  test('action visibility for 7 kinds x 4 states', () {
+  test('action visibility for 8 kinds x 4 states', () {
     for (final kind in FlarePermissionKind.values) {
       for (final state in FlarePermissionState.values) {
         final a = permissionActions(state, hasRequest: true, hasOpenSettings: true, hasDismiss: true);

@@ -13,6 +13,7 @@ enum FlarePermissionKind {
   photos,
   contacts,
   location,
+  screen,
 }
 
 /// Host-reported permission state; the widget never queries the platform.
@@ -74,6 +75,7 @@ const Map<FlarePermissionKind, String> _kindNoun = {
   FlarePermissionKind.photos: '相册',
   FlarePermissionKind.contacts: '通讯录',
   FlarePermissionKind.location: '位置信息',
+  FlarePermissionKind.screen: '屏幕录制',
 };
 const Map<FlarePermissionKind, String> _kindVerb = {
   FlarePermissionKind.microphone: '使用麦克风',
@@ -83,6 +85,7 @@ const Map<FlarePermissionKind, String> _kindVerb = {
   FlarePermissionKind.photos: '访问相册',
   FlarePermissionKind.contacts: '访问通讯录',
   FlarePermissionKind.location: '获取位置信息',
+  FlarePermissionKind.screen: '录制屏幕内容',
 };
 
 /// Kit icon name per kind (same semantic names on every platform).
@@ -102,6 +105,8 @@ String permissionIconName(FlarePermissionKind kind) {
       return 'people';
     case FlarePermissionKind.location:
       return 'location';
+    case FlarePermissionKind.screen:
+      return 'devices';
   }
 }
 

@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /** Which system permission the prompt explains. Spec: General/PermissionPrompt. */
-enum class FlarePermissionKind { Microphone, Camera, Notifications, Storage, Photos, Contacts, Location }
+enum class FlarePermissionKind { Microphone, Camera, Notifications, Storage, Photos, Contacts, Location, Screen }
 
 /** Host-reported permission state; the composable never queries the platform. */
 enum class FlarePermissionState { Undetermined, Denied, Restricted, Unavailable }
@@ -72,6 +72,7 @@ private fun kindNoun(kind: FlarePermissionKind): String = when (kind) {
     FlarePermissionKind.Photos -> "相册"
     FlarePermissionKind.Contacts -> "通讯录"
     FlarePermissionKind.Location -> "位置信息"
+    FlarePermissionKind.Screen -> "屏幕录制"
 }
 
 private fun kindVerb(kind: FlarePermissionKind): String = when (kind) {
@@ -82,6 +83,7 @@ private fun kindVerb(kind: FlarePermissionKind): String = when (kind) {
     FlarePermissionKind.Photos -> "访问相册"
     FlarePermissionKind.Contacts -> "访问通讯录"
     FlarePermissionKind.Location -> "获取位置信息"
+    FlarePermissionKind.Screen -> "录制屏幕内容"
 }
 
 /** Kit icon name per kind (resolved through [FlareIcon]; same names on every platform). */
@@ -93,6 +95,7 @@ fun permissionIconName(kind: FlarePermissionKind): String = when (kind) {
     FlarePermissionKind.Photos -> "image"
     FlarePermissionKind.Contacts -> "people"
     FlarePermissionKind.Location -> "location"
+    FlarePermissionKind.Screen -> "devices"
 }
 
 /** State glyph so status never relies on colour alone. */

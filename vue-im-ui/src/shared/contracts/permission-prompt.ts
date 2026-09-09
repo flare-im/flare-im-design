@@ -5,16 +5,16 @@
  */
 import type { FlareIconName } from '../icons';
 
-export type PermissionKind = 'microphone' | 'camera' | 'notifications' | 'storage' | 'photos' | 'contacts' | 'location';
+export type PermissionKind = 'microphone' | 'camera' | 'notifications' | 'storage' | 'photos' | 'contacts' | 'location' | 'screen';
 export type PermissionState = 'undetermined' | 'denied' | 'restricted' | 'unavailable';
 
-export const permissionKinds: readonly PermissionKind[] = ['microphone', 'camera', 'notifications', 'storage', 'photos', 'contacts', 'location'];
+export const permissionKinds: readonly PermissionKind[] = ['microphone', 'camera', 'notifications', 'storage', 'photos', 'contacts', 'location', 'screen'];
 export const permissionStates: readonly PermissionState[] = ['undetermined', 'denied', 'restricted', 'unavailable'];
 
 /** Kit icon per kind; the same semantic names resolve on iOS / Flutter / Compose. */
 export const permissionIcon: Record<PermissionKind, FlareIconName> = {
   microphone: 'mic', camera: 'camera', notifications: 'notification', storage: 'folder',
-  photos: 'image', contacts: 'people', location: 'location',
+  photos: 'image', contacts: 'people', location: 'location', screen: 'devices',
 };
 /** State glyph so status never relies on colour alone. */
 export const permissionStateIcon: Record<PermissionState, FlareIconName> = {
@@ -45,10 +45,10 @@ export function permissionActions(state: PermissionState, opts: PermissionAction
 export interface PermissionCopy { title: string; description: string; primaryLabel: string }
 
 const kindNoun: Record<PermissionKind, string> = {
-  microphone: '麦克风', camera: '摄像头', notifications: '通知', storage: '存储空间', photos: '相册', contacts: '通讯录', location: '位置信息',
+  microphone: '麦克风', camera: '摄像头', notifications: '通知', storage: '存储空间', photos: '相册', contacts: '通讯录', location: '位置信息', screen: '屏幕录制',
 };
 const kindVerb: Record<PermissionKind, string> = {
-  microphone: '使用麦克风', camera: '使用摄像头', notifications: '发送通知', storage: '访问存储空间', photos: '访问相册', contacts: '访问通讯录', location: '获取位置信息',
+  microphone: '使用麦克风', camera: '使用摄像头', notifications: '发送通知', storage: '访问存储空间', photos: '访问相册', contacts: '访问通讯录', location: '获取位置信息', screen: '录制屏幕内容',
 };
 
 /** Default copy; `featureLabel` (e.g. "发送语音消息") is embedded in the description. */

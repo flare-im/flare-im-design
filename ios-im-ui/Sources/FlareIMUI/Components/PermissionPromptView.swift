@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Which system permission the prompt explains. Spec: General/PermissionPrompt.
 public enum FlarePermissionKind: String, CaseIterable, Sendable {
-    case microphone, camera, notifications, storage, photos, contacts, location
+    case microphone, camera, notifications, storage, photos, contacts, location, screen
 }
 
 /// Host-reported permission state; the view never queries the platform.
@@ -54,6 +54,7 @@ private func kindNoun(_ kind: FlarePermissionKind) -> String {
     case .photos: return "相册"
     case .contacts: return "通讯录"
     case .location: return "位置信息"
+    case .screen: return "屏幕录制"
     }
 }
 
@@ -66,6 +67,7 @@ private func kindVerb(_ kind: FlarePermissionKind) -> String {
     case .photos: return "访问相册"
     case .contacts: return "访问通讯录"
     case .location: return "获取位置信息"
+    case .screen: return "录制屏幕内容"
     }
 }
 
@@ -79,6 +81,7 @@ public func permissionIconName(_ kind: FlarePermissionKind) -> String {
     case .photos: return "image"
     case .contacts: return "people"
     case .location: return "location"
+    case .screen: return "devices"
     }
 }
 
