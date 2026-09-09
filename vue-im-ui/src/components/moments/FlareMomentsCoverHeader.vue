@@ -53,9 +53,14 @@ const { t } = useFlareI18n();
   /* Aurora: a violet light source rather than a flat gradient. Only shows when
      the user has no cover photo (an inline background-image overrides it). */
   background-image:
-    radial-gradient(120% 100% at 12% -10%, rgba(196, 181, 253, 0.6), transparent 55%),
-    radial-gradient(90% 90% at 105% 15%, rgba(124, 58, 237, 0.65), transparent 55%),
-    linear-gradient(160deg, #3b1f7a 0%, #7c3aed 55%, #a78bfa 100%);
+    radial-gradient(120% 100% at 12% -10%,
+      color-mix(in srgb, var(--flare-color-aurora-mist, #CCBBF7) 60%, transparent), transparent 55%),
+    radial-gradient(90% 90% at 105% 15%,
+      color-mix(in srgb, var(--flare-color-aurora-base, #7047D6) 65%, transparent), transparent 55%),
+    linear-gradient(160deg,
+      var(--flare-color-aurora-deep, #391F7A) 0%,
+      var(--flare-color-aurora-base, #7047D6) 55%,
+      var(--flare-color-aurora-soft, #9C7EE7) 100%);
   background-size: cover;
   background-position: center;
   position: relative;

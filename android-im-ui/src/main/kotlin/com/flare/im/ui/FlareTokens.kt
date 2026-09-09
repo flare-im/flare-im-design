@@ -11,6 +11,10 @@ import androidx.compose.ui.unit.dp
 
 /** Flare IM design colours, theme-aware. Prefer [flareColors]. */
 data class FlareColors(
+    val auroraDeep: Color,
+    val auroraBase: Color,
+    val auroraSoft: Color,
+    val auroraMist: Color,
     val bgDisabled: Color,
     val bgElevated: Color,
     val bgHover: Color,
@@ -46,6 +50,10 @@ data class FlareColors(
 ) {
     companion object {
         val Light = FlareColors(
+            auroraDeep = Color(0xFF391F7A),
+            auroraBase = Color(0xFF7047D6),
+            auroraSoft = Color(0xFF9C7EE7),
+            auroraMist = Color(0xFFCCBBF7),
             bgDisabled = Color(0xFFF1F2F5),
             bgElevated = Color(0xFFFFFFFF),
             bgHover = Color(0xFFF1F2F5),
@@ -80,6 +88,10 @@ data class FlareColors(
             warning = Color(0xFFF59E0B),
         )
         val Dark = FlareColors(
+            auroraDeep = Color(0xFF391F7A),
+            auroraBase = Color(0xFF7047D6),
+            auroraSoft = Color(0xFF9C7EE7),
+            auroraMist = Color(0xFFCCBBF7),
             bgDisabled = Color(0xFF292D37),
             bgElevated = Color(0xFF292D37),
             bgHover = Color(0x0FFFFFFF),

@@ -6,6 +6,10 @@ import 'dart:ui';
 /// [Brightness] (e.g. `Theme.of(context).brightness`).
 class FlareColors {
   const FlareColors({
+    required this.auroraDeep,
+    required this.auroraBase,
+    required this.auroraSoft,
+    required this.auroraMist,
     required this.bgDisabled,
     required this.bgElevated,
     required this.bgHover,
@@ -40,6 +44,10 @@ class FlareColors {
     required this.warning,
   });
 
+  final Color auroraDeep;
+  final Color auroraBase;
+  final Color auroraSoft;
+  final Color auroraMist;
   final Color bgDisabled;
   final Color bgElevated;
   final Color bgHover;
@@ -74,6 +82,10 @@ class FlareColors {
   final Color warning;
 
   static const FlareColors light = FlareColors(
+    auroraDeep: Color(0xFF391F7A),
+    auroraBase: Color(0xFF7047D6),
+    auroraSoft: Color(0xFF9C7EE7),
+    auroraMist: Color(0xFFCCBBF7),
     bgDisabled: Color(0xFFF1F2F5),
     bgElevated: Color(0xFFFFFFFF),
     bgHover: Color(0xFFF1F2F5),
@@ -109,6 +121,10 @@ class FlareColors {
   );
 
   static const FlareColors dark = FlareColors(
+    auroraDeep: Color(0xFF391F7A),
+    auroraBase: Color(0xFF7047D6),
+    auroraSoft: Color(0xFF9C7EE7),
+    auroraMist: Color(0xFFCCBBF7),
     bgDisabled: Color(0xFF292D37),
     bgElevated: Color(0xFF292D37),
     bgHover: Color(0x0FFFFFFF),
@@ -186,6 +202,14 @@ abstract final class FlareSizes {
 
 /// Const palette for const widget and ThemeData declarations.
 abstract final class FlarePalette {
+  static const Color lightAuroraDeep = Color(0xFF391F7A);
+  static const Color darkAuroraDeep = Color(0xFF391F7A);
+  static const Color lightAuroraBase = Color(0xFF7047D6);
+  static const Color darkAuroraBase = Color(0xFF7047D6);
+  static const Color lightAuroraSoft = Color(0xFF9C7EE7);
+  static const Color darkAuroraSoft = Color(0xFF9C7EE7);
+  static const Color lightAuroraMist = Color(0xFFCCBBF7);
+  static const Color darkAuroraMist = Color(0xFFCCBBF7);
   static const Color lightBgDisabled = Color(0xFFF1F2F5);
   static const Color darkBgDisabled = Color(0xFF292D37);
   static const Color lightBgElevated = Color(0xFFFFFFFF);

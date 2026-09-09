@@ -77,11 +77,19 @@ const groups = computed<FlareSettingsSection[]>(() =>
   display: flex; align-items: center; gap: 14px;
   padding: 26px 16px 24px; cursor: pointer;
   position: relative; overflow: hidden;
-  /* Aurora glow header — a violet light source, white text over it. */
+  /* Aurora glow header — a violet light source, white text over it. The stops
+     come from the aurora ramp, which is the brand hue: the surface used to be
+     painted in Tailwind's violet, a neighbouring purple that clashed with the
+     primary sitting next to it. */
   background:
-    radial-gradient(120% 150% at 6% -30%, rgba(196, 181, 253, 0.5), transparent 52%),
-    radial-gradient(95% 130% at 102% -10%, rgba(124, 58, 237, 0.6), transparent 55%),
-    linear-gradient(150deg, #3b1f7a 0%, #7c3aed 62%, #8b5cf6 100%);
+    radial-gradient(120% 150% at 6% -30%,
+      color-mix(in srgb, var(--flare-color-aurora-mist, #CCBBF7) 50%, transparent), transparent 52%),
+    radial-gradient(95% 130% at 102% -10%,
+      color-mix(in srgb, var(--flare-color-aurora-base, #7047D6) 60%, transparent), transparent 55%),
+    linear-gradient(150deg,
+      var(--flare-color-aurora-deep, #391F7A) 0%,
+      var(--flare-color-aurora-base, #7047D6) 62%,
+      var(--flare-color-aurora-soft, #9C7EE7) 100%);
 }
 .flare-profile__hdr :deep(.im-avatar),
 .flare-profile__hdr :deep(.flare-avatar) {

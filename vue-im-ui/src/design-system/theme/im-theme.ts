@@ -201,7 +201,7 @@ export function generateCSSVariables(theme: typeof imTheme, isDark = false) {
       --im-rail-icon: rgba(255, 255, 255, 0.72);
       --im-rail-icon-hover: #FFFFFF;
       --im-rail-active-bg: rgba(124, 58, 237, ${isDark ? "0.30" : "0.14"});
-      --im-rail-active: ${isDark ? "#C4B5FD" : "#7C3AED"};
+      --im-rail-active: ${isDark ? "var(--flare-color-aurora-mist, #CCBBF7)" : "var(--flare-color-primary, #7047D6)"};
       --wechat-background: var(--im-chat-window-bg);
       --wechat-divider: var(--im-divider);
       --wechat-text-primary: var(--im-text-primary);

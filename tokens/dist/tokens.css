@@ -1,5 +1,9 @@
 /* GENERATED. Do not edit by hand. Source: @flare-im/tokens/tokens.json */
 :root {
+  --flare-color-aurora-deep: #391F7A;
+  --flare-color-aurora-base: #7047D6;
+  --flare-color-aurora-soft: #9C7EE7;
+  --flare-color-aurora-mist: #CCBBF7;
   --flare-color-bg-disabled: #F1F2F5;
   --flare-color-bg-elevated: #FFFFFF;
   --flare-color-bg-hover: #F1F2F5;

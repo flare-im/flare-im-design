@@ -49,7 +49,8 @@
 .start-dialog-actions .n-button--primary-type {
   min-width: 68px;
   border-radius: 10px;
-  background: #8b5cf6;
+  /* a primary action is the brand colour, not a neighbouring violet */
+  background: var(--flare-color-primary, #7047D6);
 }
 
 .mobile-sheet .n-drawer-body-content-wrapper {

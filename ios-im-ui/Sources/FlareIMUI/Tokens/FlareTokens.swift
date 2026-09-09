@@ -3,6 +3,10 @@ import SwiftUI
 
 /// Flare IM design colours, theme-aware. Use `FlareColors.of(colorScheme)`.
 public struct FlareColors: Sendable {
+    public let auroraDeep: Color
+    public let auroraBase: Color
+    public let auroraSoft: Color
+    public let auroraMist: Color
     public let bgDisabled: Color
     public let bgElevated: Color
     public let bgHover: Color
@@ -37,6 +41,10 @@ public struct FlareColors: Sendable {
     public let warning: Color
 
     public static let light = FlareColors(
+        auroraDeep: Color(.sRGB, red: 0.2235, green: 0.1216, blue: 0.4784, opacity: 1.0),
+        auroraBase: Color(.sRGB, red: 0.4392, green: 0.2784, blue: 0.8392, opacity: 1.0),
+        auroraSoft: Color(.sRGB, red: 0.6118, green: 0.4941, blue: 0.9059, opacity: 1.0),
+        auroraMist: Color(.sRGB, red: 0.8000, green: 0.7333, blue: 0.9686, opacity: 1.0),
         bgDisabled: Color(.sRGB, red: 0.9451, green: 0.9490, blue: 0.9608, opacity: 1.0),
         bgElevated: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
         bgHover: Color(.sRGB, red: 0.9451, green: 0.9490, blue: 0.9608, opacity: 1.0),
@@ -72,6 +80,10 @@ public struct FlareColors: Sendable {
     )
 
     public static let dark = FlareColors(
+        auroraDeep: Color(.sRGB, red: 0.2235, green: 0.1216, blue: 0.4784, opacity: 1.0),
+        auroraBase: Color(.sRGB, red: 0.4392, green: 0.2784, blue: 0.8392, opacity: 1.0),
+        auroraSoft: Color(.sRGB, red: 0.6118, green: 0.4941, blue: 0.9059, opacity: 1.0),
+        auroraMist: Color(.sRGB, red: 0.8000, green: 0.7333, blue: 0.9686, opacity: 1.0),
         bgDisabled: Color(.sRGB, red: 0.1608, green: 0.1765, blue: 0.2157, opacity: 1.0),
         bgElevated: Color(.sRGB, red: 0.1608, green: 0.1765, blue: 0.2157, opacity: 1.0),
         bgHover: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.0600),

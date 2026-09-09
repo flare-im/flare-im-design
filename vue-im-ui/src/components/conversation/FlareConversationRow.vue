@@ -318,7 +318,7 @@ function openContextMenu(event: MouseEvent): void {
 .im-conv-item--pinned:not(.im-conv-item--active) {
   padding-right: 30px;
   /* Pinned rows read as a group — a whisper of violet tint (hover still wins). */
-  background: color-mix(in srgb, var(--im-primary, var(--primary, #7c3aed)) 5%, transparent);
+  background: color-mix(in srgb, var(--im-primary, var(--primary, #7047D6)) 5%, transparent);
 }
 
 .im-conv-item--pinned .im-conv-item__top {
