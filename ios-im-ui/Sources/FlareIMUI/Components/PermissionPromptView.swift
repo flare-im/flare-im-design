@@ -45,32 +45,6 @@ public struct FlarePermissionCopy: Equatable, Sendable {
     }
 }
 
-private func kindNoun(_ kind: FlarePermissionKind) -> String {
-    switch kind {
-    case .microphone: return "麦克风"
-    case .camera: return "摄像头"
-    case .notifications: return "通知"
-    case .storage: return "存储空间"
-    case .photos: return "相册"
-    case .contacts: return "通讯录"
-    case .location: return "位置信息"
-    case .screen: return "屏幕录制"
-    }
-}
-
-private func kindVerb(_ kind: FlarePermissionKind) -> String {
-    switch kind {
-    case .microphone: return "使用麦克风"
-    case .camera: return "使用摄像头"
-    case .notifications: return "发送通知"
-    case .storage: return "访问存储空间"
-    case .photos: return "访问相册"
-    case .contacts: return "访问通讯录"
-    case .location: return "获取位置信息"
-    case .screen: return "录制屏幕内容"
-    }
-}
-
 /// Kit icon name per kind (resolved through `IconView`, same names on every platform).
 public func permissionIconName(_ kind: FlarePermissionKind) -> String {
     switch kind {
@@ -97,30 +71,29 @@ public func permissionStateIconName(_ state: FlarePermissionState) -> String {
 
 /// `featureLabel` (e.g. "发送语音消息") is embedded in the description.
 public func defaultPermissionCopy(_ kind: FlarePermissionKind, _ state: FlarePermissionState,
-                                  featureLabel: String? = nil) -> FlarePermissionCopy {
+                                  featureLabel: String? = nil,
+                                  strings: FlareStrings = FlareStrings()) -> FlarePermissionCopy {
     let trimmed = featureLabel?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-    let feature = trimmed.isEmpty ? "此功能" : trimmed
-    let verb = kindVerb(kind)
-    let title = "需要\(kindNoun(kind))权限"
+    let feature = trimmed.isEmpty ? strings.permissionFeatureFallback : trimmed
+    let verb = strings.permissionVerb(kind)
+    let title = strings.permissionTitle(strings.permissionNoun(kind))
     switch state {
     case .undetermined:
-        return FlarePermissionCopy(title: title, description: "\(feature)需要\(verb)，请允许后继续。", primaryLabel: "允许")
+        return FlarePermissionCopy(title: title, description: strings.permissionUndeterminedBody(feature, verb),
+                                   primaryLabel: strings.permissionAllow)
     case .denied:
-        return FlarePermissionCopy(title: title, description: "\(verb)的权限已被拒绝，\(feature)无法使用。请前往系统设置开启。", primaryLabel: "前往设置")
+        return FlarePermissionCopy(title: title, description: strings.permissionDeniedBody(feature, verb),
+                                   primaryLabel: strings.permissionOpenSettings)
     case .restricted:
-        return FlarePermissionCopy(title: title, description: "\(verb)的权限受设备或组织策略限制，\(feature)暂不可用。", primaryLabel: "")
+        return FlarePermissionCopy(title: title, description: strings.permissionRestrictedBody(feature, verb), primaryLabel: "")
     case .unavailable:
-        return FlarePermissionCopy(title: title, description: "当前设备或运行环境不支持\(verb)，\(feature)暂不可用。", primaryLabel: "")
+        return FlarePermissionCopy(title: title, description: strings.permissionUnavailableBody(feature, verb), primaryLabel: "")
     }
 }
 
-public func defaultPermissionStateLabel(_ state: FlarePermissionState) -> String {
-    switch state {
-    case .undetermined: return "未授权"
-    case .denied: return "已拒绝"
-    case .restricted: return "受限制"
-    case .unavailable: return "不可用"
-    }
+public func defaultPermissionStateLabel(_ state: FlarePermissionState,
+                                        strings: FlareStrings = FlareStrings()) -> String {
+    strings.permissionStateLabel(state)
 }
 
 /// Unified "permission missing / denied" panel. The host owns the real permission
@@ -138,18 +111,19 @@ public struct PermissionPromptView: View {
     private let stateText: String?
     private let requestText: String?
     private let openSettingsText: String?
-    private let dismissText: String
+    private let dismissText: String?
     private let onRequest: (() -> Void)?
     private let onOpenSettings: (() -> Void)?
     private let onDismiss: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
     @ScaledMetric private var titleSize: CGFloat = FlareSizes.fontSizeXl
     @ScaledMetric private var bodySize: CGFloat = FlareSizes.fontSizeMd
 
     public init(kind: FlarePermissionKind, state: FlarePermissionState, featureLabel: String? = nil,
                 detail: String? = nil, busy: Bool = false, compact: Bool = false,
                 title: String? = nil, description: String? = nil, stateText: String? = nil,
-                requestText: String? = nil, openSettingsText: String? = nil, dismissText: String = "知道了",
+                requestText: String? = nil, openSettingsText: String? = nil, dismissText: String? = nil,
                 onRequest: (() -> Void)? = nil, onOpenSettings: (() -> Void)? = nil, onDismiss: (() -> Void)? = nil) {
         self.kind = kind; self.state = state; self.featureLabel = featureLabel; self.detail = detail
         self.busy = busy; self.compact = compact; self.title = title; self.description = description
@@ -168,7 +142,7 @@ public struct PermissionPromptView: View {
 
     public var body: some View {
         let colors = FlareColors.of(scheme)
-        let copy = defaultPermissionCopy(kind, state, featureLabel: featureLabel)
+        let copy = defaultPermissionCopy(kind, state, featureLabel: featureLabel, strings: strings)
         let actions = permissionActions(state, hasRequest: onRequest != nil, hasOpenSettings: onOpenSettings != nil,
                                         hasDismiss: onDismiss != nil, busy: busy)
         let resolvedTitle = title ?? copy.title
@@ -231,7 +205,7 @@ public struct PermissionPromptView: View {
                     .fixedSize(horizontal: false, vertical: true)
                 HStack(spacing: FlareSizes.spacingXs) {
                     IconView(permissionStateIconName(state), size: 12, color: tint)
-                    Text(stateText ?? defaultPermissionStateLabel(state))
+                    Text(stateText ?? defaultPermissionStateLabel(state, strings: strings))
                         .font(.system(size: FlareSizes.fontSizeXs, weight: .semibold))
                         .foregroundColor(tint)
                 }
@@ -267,7 +241,7 @@ public struct PermissionPromptView: View {
             }
             if actions.dismiss, let onDismiss {
                 Button(action: onDismiss) {
-                    Text(dismissText)
+                    Text(dismissText ?? strings.permissionDismiss)
                         .font(.system(size: FlareSizes.fontSizeXl, weight: .semibold))
                         .foregroundColor(colors.textPrimary)
                         .padding(.horizontal, FlareSizes.spacingLg)

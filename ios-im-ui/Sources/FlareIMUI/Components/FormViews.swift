@@ -306,6 +306,7 @@ public struct SelectView: View {
     private let disabled: Bool
     @State private var open = false
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
 
     public init(options: [FlareSelectOption], selection: Binding<String>, placeholder: String? = nil,
                 title: String? = nil, size: FlareControlSize = .md, disabled: Bool = false) {
@@ -343,7 +344,7 @@ public struct SelectView: View {
         .opacity(disabled ? 0.5 : 1)
         .animation(.easeOut(duration: 0.15), value: open)
         .sheet(isPresented: $open) {
-            SelectSheet(options: options, selection: $selection, title: title ?? placeholder ?? "选择")
+            SelectSheet(options: options, selection: $selection, title: title ?? placeholder ?? strings.select)
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }

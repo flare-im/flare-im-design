@@ -63,6 +63,7 @@ public struct ConversationDetailsView: View {
     private let onSync: (() -> Void)?
 
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
     @State private var muted: Bool
     @State private var pinned: Bool
 
@@ -109,7 +110,7 @@ public struct ConversationDetailsView: View {
                         .font(.system(size: FlareSizes.fontSize4xl, weight: .semibold))
                         .foregroundColor(colors.textPrimary)
                     if conversation.kind == .group, let n = conversation.memberCount {
-                        Text("\(n) 名成员")
+                        Text(strings.memberCount(n))
                             .font(.system(size: FlareSizes.fontSizeSm))
                             .foregroundColor(colors.textTertiary)
                     }

@@ -10,6 +10,7 @@ public struct SlashCommandMenuView: View {
     private let onSelect: ((SlashCommand) -> Void)?
     private let onClose: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
 
     public init(commands: [SlashCommand], query: String = "",
                 onSelect: ((SlashCommand) -> Void)? = nil, onClose: (() -> Void)? = nil) {
@@ -30,13 +31,13 @@ public struct SlashCommandMenuView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 6) {
                 Image(systemName: "terminal").font(.system(size: 13)).foregroundColor(colors.textTertiary)
-                Text("命令").font(.system(size: 11, weight: .semibold)).foregroundColor(colors.textTertiary)
+                Text(strings.commands).font(.system(size: 11, weight: .semibold)).foregroundColor(colors.textTertiary)
                 Spacer(minLength: 0)
             }
             .padding(.horizontal, 8).padding(.vertical, 6)
 
             if filtered.isEmpty {
-                Text("没有匹配的命令")
+                Text(strings.noMatchingCommands)
                     .font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textTertiary)
                     .frame(maxWidth: .infinity).padding(.vertical, 22)
             } else {

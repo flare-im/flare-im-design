@@ -25,12 +25,13 @@ public struct FlareNotificationPreference:Identifiable {
 }
 private struct SceneList:View {
  let title:String;let items:[FlareSceneEntry];let loading:Bool;let error:String?;let onAction:((String,String)->Void)?;let onReload:(()->Void)?
+ @Environment(\.flareStrings) private var strings
  var body:some View {
   VStack(alignment:.leading,spacing:8) {
    Text(title).font(.headline)
    if loading {ProgressView().accessibilityLabel(title)}
-   if let error {StatusBannerView(text:error,tone:.danger,actionText:"重试",onAction:loading ? nil : onReload)}
-   if items.isEmpty && !loading && error == nil {Text("暂无内容").padding(16)}
+   if let error {StatusBannerView(text:error,tone:.danger,actionText:strings.retry,onAction:loading ? nil : onReload)}
+   if items.isEmpty && !loading && error == nil {Text(strings.noContent).padding(16)}
    ForEach(items) { item in
     VStack(alignment:.leading,spacing:8){Text(item.title).font(.headline);if let badge=item.badge {Text(badge).font(.caption)};Text(item.detail)
      if let error=item.error {StatusBannerView(text:error,tone:.danger)}
@@ -44,19 +45,24 @@ private struct SceneList:View {
  }
 }
 public struct MemberPanelView:View {
- let items:[FlareSceneEntry];let title:String;let loading:Bool;let error:String?;let onAction:((String,String)->Void)?;let onReload:(()->Void)?
- public init(items:[FlareSceneEntry],title:String="群成员",loading:Bool=false,error:String?=nil,onAction:((String,String)->Void)?=nil,onReload:(()->Void)?=nil){self.items=items;self.title=title;self.loading=loading;self.error=error;self.onAction=onAction;self.onReload=onReload}
- public var body:some View {SceneList(title:title,items:items,loading:loading,error:error,onAction:onAction,onReload:onReload)}
+ let items:[FlareSceneEntry];let title:String?;let loading:Bool;let error:String?;let onAction:((String,String)->Void)?;let onReload:(()->Void)?
+ @Environment(\.flareStrings) private var strings
+ public init(items:[FlareSceneEntry],title:String?=nil,loading:Bool=false,error:String?=nil,onAction:((String,String)->Void)?=nil,onReload:(()->Void)?=nil){self.items=items;self.title=title;self.loading=loading;self.error=error;self.onAction=onAction;self.onReload=onReload}
+ public var body:some View {SceneList(title:title ?? strings.groupMembers,items:items,loading:loading,error:error,onAction:onAction,onReload:onReload)}
 }
 public struct DeviceSessionsView:View {
- let items:[FlareDeviceSessionEntry];let title:String;let currentText:String;let loading:Bool;let error:String?;let onAction:((String,String)->Void)?;let onReload:(()->Void)?
- public init(items:[FlareDeviceSessionEntry],title:String="登录设备",currentText:String="当前设备",loading:Bool=false,error:String?=nil,onAction:((String,String)->Void)?=nil,onReload:(()->Void)?=nil){self.items=items;self.title=title;self.currentText=currentText;self.loading=loading;self.error=error;self.onAction=onAction;self.onReload=onReload}
- public var body:some View {SceneList(title:title,items:items.map{i in FlareSceneEntry(id:i.entry.id,title:i.entry.title,detail:i.entry.detail,badge:i.current ? currentText : i.entry.badge,busy:i.entry.busy,actions:i.current ? [] : i.entry.actions,error:i.entry.error)},loading:loading,error:error,onAction:onAction,onReload:onReload)}
+ let items:[FlareDeviceSessionEntry];let title:String?;let currentText:String?;
+ @Environment(\.flareStrings) private var strings
+let loading:Bool;let error:String?;let onAction:((String,String)->Void)?;let onReload:(()->Void)?
+ public init(items:[FlareDeviceSessionEntry],title:String?=nil,currentText:String?=nil,loading:Bool=false,error:String?=nil,onAction:((String,String)->Void)?=nil,onReload:(()->Void)?=nil){self.items=items;self.title=title;self.currentText=currentText;self.loading=loading;self.error=error;self.onAction=onAction;self.onReload=onReload}
+ public var body:some View {SceneList(title:title ?? strings.loginDevices,items:items.map{i in FlareSceneEntry(id:i.entry.id,title:i.entry.title,detail:i.entry.detail,badge:i.current ? (currentText ?? strings.currentDevice) : i.entry.badge,busy:i.entry.busy,actions:i.current ? [] : i.entry.actions,error:i.entry.error)},loading:loading,error:error,onAction:onAction,onReload:onReload)}
 }
 public struct MediaCenterView:View {
- let items:[FlareMediaEntry];let transfers:[FlareTransferQueueItem]?;let title:String;let loading:Bool;let error:String?;let onAction:((String,String)->Void)?;let onReload:(()->Void)?;let onTransferAction:((String,FlareTransferAction)->Void)?;let onRetryFailed:(([String])->Void)?
- public init(items:[FlareMediaEntry],transfers:[FlareTransferQueueItem]?=nil,title:String="文件与媒体",loading:Bool=false,error:String?=nil,onAction:((String,String)->Void)?=nil,onReload:(()->Void)?=nil,onTransferAction:((String,FlareTransferAction)->Void)?=nil,onRetryFailed:(([String])->Void)?=nil){self.items=items;self.transfers=transfers;self.title=title;self.loading=loading;self.error=error;self.onAction=onAction;self.onReload=onReload;self.onTransferAction=onTransferAction;self.onRetryFailed=onRetryFailed}
- public var body:some View {VStack {SceneList(title:title,items:items.map{i in FlareSceneEntry(id:i.entry.id,title:i.entry.title,detail:i.entry.detail,badge:i.entry.badge,busy:i.entry.busy,actions:i.entry.actions.filter{i.availability == .available || $0.id != "open"},error:i.entry.error)},loading:loading,error:error,onAction:onAction,onReload:onReload)
+ let items:[FlareMediaEntry];let transfers:[FlareTransferQueueItem]?;let title:String?;
+ @Environment(\.flareStrings) private var strings
+let loading:Bool;let error:String?;let onAction:((String,String)->Void)?;let onReload:(()->Void)?;let onTransferAction:((String,FlareTransferAction)->Void)?;let onRetryFailed:(([String])->Void)?
+ public init(items:[FlareMediaEntry],transfers:[FlareTransferQueueItem]?=nil,title:String?=nil,loading:Bool=false,error:String?=nil,onAction:((String,String)->Void)?=nil,onReload:(()->Void)?=nil,onTransferAction:((String,FlareTransferAction)->Void)?=nil,onRetryFailed:(([String])->Void)?=nil){self.items=items;self.transfers=transfers;self.title=title;self.loading=loading;self.error=error;self.onAction=onAction;self.onReload=onReload;self.onTransferAction=onTransferAction;self.onRetryFailed=onRetryFailed}
+ public var body:some View {VStack {SceneList(title:title ?? strings.filesAndMedia,items:items.map{i in FlareSceneEntry(id:i.entry.id,title:i.entry.title,detail:i.entry.detail,badge:i.entry.badge,busy:i.entry.busy,actions:i.entry.actions.filter{i.availability == .available || $0.id != "open"},error:i.entry.error)},loading:loading,error:error,onAction:onAction,onReload:onReload)
  if let transfers {TransferQueueView(items:transfers,onAction:onTransferAction,onRetryFailed:onRetryFailed).frame(height:400)}
  }}
 }
@@ -66,15 +72,17 @@ public struct CapabilityBoundaryView<Content:View>:View {
  public var body:some View {if state == .available {content()} else {VStack {if state == .loading {ProgressView().accessibilityLabel(text)};StatusBannerView(text:text,tone:state == .failed ? .danger : .neutral,actionText:actionText,onAction:state == .loading ? nil : onAction)}}}
 }
 public struct NotificationPreferencesView:View {
- let items:[FlareNotificationPreference];let permission:FlareCapabilityState;let permissionText:String;let permissionActionText:String?;let title:String;let onChange:((String,Bool)->Void)?;let onPermissionAction:(()->Void)?
- public init(items:[FlareNotificationPreference],permission:FlareCapabilityState,permissionText:String,permissionActionText:String?=nil,title:String="通知设置",onChange:((String,Bool)->Void)?=nil,onPermissionAction:(()->Void)?=nil){self.items=items;self.permission=permission;self.permissionText=permissionText;self.permissionActionText=permissionActionText;self.title=title;self.onChange=onChange;self.onPermissionAction=onPermissionAction}
- public var body:some View {VStack(alignment:.leading,spacing:12){Text(title).font(.headline);CapabilityBoundaryView(state:permission,text:permissionText,actionText:permissionActionText,onAction:onPermissionAction){Text(permissionText)}
+ let items:[FlareNotificationPreference];let permission:FlareCapabilityState;let permissionText:String;let permissionActionText:String?;let title:String?;let onChange:((String,Bool)->Void)?;let onPermissionAction:(()->Void)?
+ @Environment(\.flareStrings) private var strings
+ public init(items:[FlareNotificationPreference],permission:FlareCapabilityState,permissionText:String,permissionActionText:String?=nil,title:String?=nil,onChange:((String,Bool)->Void)?=nil,onPermissionAction:(()->Void)?=nil){self.items=items;self.permission=permission;self.permissionText=permissionText;self.permissionActionText=permissionActionText;self.title=title;self.onChange=onChange;self.onPermissionAction=onPermissionAction}
+ public var body:some View {VStack(alignment:.leading,spacing:12){Text(title ?? strings.notificationSettings).font(.headline);CapabilityBoundaryView(state:permission,text:permissionText,actionText:permissionActionText,onAction:onPermissionAction){Text(permissionText)}
  ForEach(items){i in Toggle(isOn:Binding(get:{i.value},set:{onChange?(i.id,$0)})){VStack(alignment:.leading){Text(i.title);Text(i.detail).font(.caption)}}.frame(minHeight:48).disabled(permission != .available || !i.enabled || i.busy || onChange == nil)}
  }}
 }
 /// Present inside a sheet; host keeps it open after failures. Interactive dismissal is blocked while busy.
 public struct DangerConfirmView:View {
- let title:String;let description:String;let target:String;let busy:Bool;let error:String?;let confirmText:String;let cancelText:String;let onConfirm:()->Void;let onCancel:()->Void
- public init(title:String,description:String,target:String,busy:Bool=false,error:String?=nil,confirmText:String="确认",cancelText:String="取消",onConfirm:@escaping ()->Void,onCancel:@escaping ()->Void){self.title=title;self.description=description;self.target=target;self.busy=busy;self.error=error;self.confirmText=confirmText;self.cancelText=cancelText;self.onConfirm=onConfirm;self.onCancel=onCancel}
- public var body:some View {ScrollView{VStack(alignment:.leading,spacing:12){Text(title).font(.headline);Text(description);Text(target).bold();if let error {Text(error)};Button(action:onCancel){Text(cancelText).frame(minWidth:48,minHeight:48)}.disabled(busy);Button(role:.destructive,action:onConfirm){Text(confirmText).frame(minWidth:48,minHeight:48)}.disabled(busy)}.padding(20)}.interactiveDismissDisabled(busy)}
+ let title:String;let description:String;let target:String;let busy:Bool;let error:String?;let confirmText:String?;let cancelText:String?;let onConfirm:()->Void;let onCancel:()->Void
+ @Environment(\.flareStrings) private var strings
+ public init(title:String,description:String,target:String,busy:Bool=false,error:String?=nil,confirmText:String?=nil,cancelText:String?=nil,onConfirm:@escaping ()->Void,onCancel:@escaping ()->Void){self.title=title;self.description=description;self.target=target;self.busy=busy;self.error=error;self.confirmText=confirmText;self.cancelText=cancelText;self.onConfirm=onConfirm;self.onCancel=onCancel}
+ public var body:some View {ScrollView{VStack(alignment:.leading,spacing:12){Text(title).font(.headline);Text(description);Text(target).bold();if let error {Text(error)};Button(action:onCancel){Text(cancelText ?? strings.cancel).frame(minWidth:48,minHeight:48)}.disabled(busy);Button(role:.destructive,action:onConfirm){Text(confirmText ?? strings.confirmAction).frame(minWidth:48,minHeight:48)}.disabled(busy)}.padding(20)}.interactiveDismissDisabled(busy)}
 }

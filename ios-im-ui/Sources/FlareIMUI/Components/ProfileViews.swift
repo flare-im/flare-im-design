@@ -7,30 +7,39 @@ import SwiftUI
 /// cards (iOS style): pass `sections` for grouping, or `entries` for a single flat card.
 public struct ProfilePanelView: View {
     private let user: UserProfile
-    private let sections: [FlareSettingsSection]
+    private let entries: [FlareSettingsItem]?
+    private let sections: [FlareSettingsSection]?
     private let signaturePlaceholder: String?
     private let onEdit: (() -> Void)?
     private let onQr: (() -> Void)?
     private let onEntry: ((FlareSettingsItem) -> Void)?
     private let onToggle: ((FlareSettingsItem, Bool) -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
 
-    public static let defaultEntries: [FlareSettingsItem] = [
-        FlareSettingsItem(key: "favorites", label: "收藏", systemImage: "star"),
-        FlareSettingsItem(key: "moments", label: "朋友圈", systemImage: "photo.on.rectangle"),
-        FlareSettingsItem(key: "settings", label: "设置", systemImage: "gearshape"),
-    ]
+    /// Panel entries built from host-overridable copy.
+    public static func entries(for strings: FlareStrings) -> [FlareSettingsItem] {
+        [
+            FlareSettingsItem(key: "favorites", label: strings.favorites, systemImage: "star"),
+            FlareSettingsItem(key: "moments", label: strings.moments, systemImage: "photo.on.rectangle"),
+            FlareSettingsItem(key: "settings", label: strings.settings, systemImage: "gearshape"),
+        ]
+    }
+
+    /// Entries with the kit's built-in copy. Prefer leaving `entries` unset so the view
+    /// resolves them from the environment instead.
+    public static let defaultEntries: [FlareSettingsItem] = entries(for: FlareStrings())
 
     public init(user: UserProfile,
-                entries: [FlareSettingsItem] = ProfilePanelView.defaultEntries,
+                entries: [FlareSettingsItem]? = nil,
                 sections: [FlareSettingsSection]? = nil,
                 signaturePlaceholder: String? = nil,
                 onEdit: (() -> Void)? = nil, onQr: (() -> Void)? = nil,
                 onEntry: ((FlareSettingsItem) -> Void)? = nil,
                 onToggle: ((FlareSettingsItem, Bool) -> Void)? = nil) {
         self.user = user
-        // Normalize to grouped sections so the body has one render path (mirrors the Vue panel).
-        self.sections = sections ?? [FlareSettingsSection(items: entries)]
+        self.entries = entries
+        self.sections = sections
         self.signaturePlaceholder = signaturePlaceholder
         self.onEdit = onEdit; self.onQr = onQr; self.onEntry = onEntry; self.onToggle = onToggle
     }
@@ -38,6 +47,8 @@ public struct ProfilePanelView: View {
     public var body: some View {
         let colors = FlareColors.of(scheme)
         let dark = scheme == .dark
+        // Normalize to grouped sections so the body has one render path (mirrors the Vue panel).
+        let sections = self.sections ?? [FlareSettingsSection(items: entries ?? Self.entries(for: strings))]
         VStack(spacing: 0) {
             header
 

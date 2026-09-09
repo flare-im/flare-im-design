@@ -11,6 +11,7 @@ public struct VoiceRecordingBarView: View {
     private let onCancel: (() -> Void)?
     private let onSend: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
     @State private var blink = false
 
     public init(durationLabel: String, amplitudes: [Double] = [], cancelling: Bool = false,
@@ -78,7 +79,7 @@ public struct VoiceRecordingBarView: View {
     @ViewBuilder
     private func right(_ colors: FlareColors) -> some View {
         if cancelling {
-            Text("松开取消").font(.system(size: 12, weight: .medium))
+            Text(strings.releaseToCancel).font(.system(size: 12, weight: .medium))
                 .foregroundColor(colors.error)
                 .padding(.trailing, 6)
         } else {

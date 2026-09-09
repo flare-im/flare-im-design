@@ -344,14 +344,15 @@ public struct TimePickerView: View {
     private let minuteStep: Int
     private let title: String?
     private let disabled: Bool
-    private let cancelLabel: String
-    private let confirmLabel: String
+    private let cancelLabel: String?
+    private let confirmLabel: String?
     @State private var open = false
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
 
     public init(value: Binding<String>, placeholder: String? = nil, size: FlareControlSize = .md,
                 minuteStep: Int = 5, title: String? = nil, disabled: Bool = false,
-                cancelLabel: String = "取消", confirmLabel: String = "确定") {
+                cancelLabel: String? = nil, confirmLabel: String? = nil) {
         self._value = value; self.placeholder = placeholder; self.size = size
         self.minuteStep = minuteStep; self.title = title; self.disabled = disabled
         self.cancelLabel = cancelLabel; self.confirmLabel = confirmLabel
@@ -388,8 +389,8 @@ public struct TimePickerView: View {
         .animation(.easeOut(duration: 0.15), value: open)
         .sheet(isPresented: $open) {
             TimePickerSheet(value: $value, minuteStep: minuteStep,
-                            title: title ?? placeholder ?? "选择时间",
-                            cancelLabel: cancelLabel, confirmLabel: confirmLabel)
+                            title: title ?? placeholder ?? strings.selectTime,
+                            cancelLabel: cancelLabel ?? strings.cancel, confirmLabel: confirmLabel ?? strings.confirm)
                 .presentationDetents([.medium])
                 .presentationDragIndicator(.visible)
         }
@@ -538,14 +539,15 @@ public struct DatePickerView: View {
     private let max: String?
     private let title: String?
     private let disabled: Bool
-    private let cancelLabel: String
-    private let todayLabel: String
+    private let cancelLabel: String?
+    private let todayLabel: String?
     @State private var open = false
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
 
     public init(value: Binding<String>, placeholder: String? = nil, size: FlareControlSize = .md,
                 min: String? = nil, max: String? = nil, title: String? = nil, disabled: Bool = false,
-                cancelLabel: String = "取消", todayLabel: String = "今天") {
+                cancelLabel: String? = nil, todayLabel: String? = nil) {
         self._value = value; self.placeholder = placeholder; self.size = size
         self.min = min; self.max = max; self.title = title; self.disabled = disabled
         self.cancelLabel = cancelLabel; self.todayLabel = todayLabel
@@ -582,8 +584,8 @@ public struct DatePickerView: View {
         .animation(.easeOut(duration: 0.15), value: open)
         .sheet(isPresented: $open) {
             DatePickerSheet(value: $value, min: min, max: max,
-                            title: title ?? placeholder ?? "选择日期",
-                            cancelLabel: cancelLabel, todayLabel: todayLabel)
+                            title: title ?? placeholder ?? strings.selectDate,
+                            cancelLabel: cancelLabel ?? strings.cancel, todayLabel: todayLabel ?? strings.today)
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }

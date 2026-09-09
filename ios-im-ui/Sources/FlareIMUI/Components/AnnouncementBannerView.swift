@@ -11,6 +11,7 @@ public struct AnnouncementBannerView: View {
     private let dismissible: Bool
     private let onClose: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
     @State private var expanded = false
 
     public init(text: String, author: String? = nil, collapsible: Bool = true,
@@ -32,7 +33,7 @@ public struct AnnouncementBannerView: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 0) {
-                    Text("群公告").font(.system(size: 12, weight: .semibold)).foregroundColor(colors.primary)
+                    Text(strings.groupAnnouncement).font(.system(size: 12, weight: .semibold)).foregroundColor(colors.primary)
                     if let a = author, !a.isEmpty {
                         Text(" · \(a)").font(.system(size: 12)).foregroundColor(colors.textTertiary)
                     }
@@ -42,7 +43,7 @@ public struct AnnouncementBannerView: View {
                 if canToggle {
                     Button { expanded.toggle() } label: {
                         HStack(spacing: 3) {
-                            Text(expanded ? "收起" : "展开").font(.system(size: FlareSizes.fontSizeMd, weight: .medium))
+                            Text(expanded ? strings.collapse : strings.expand).font(.system(size: FlareSizes.fontSizeMd, weight: .medium))
                             Image(systemName: "chevron.down").font(.system(size: 14))
                                 .rotationEffect(.degrees(expanded ? 180 : 0))
                         }.foregroundColor(colors.primary)

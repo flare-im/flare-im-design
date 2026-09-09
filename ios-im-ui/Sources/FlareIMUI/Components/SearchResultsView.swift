@@ -10,6 +10,7 @@ public struct SearchResultsView: View {
     private let onOpen: ((SearchResultItem) -> Void)?
     private let onViewAll: ((SearchResultKind) -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
 
     public init(groups: [SearchResultGroup], query: String,
                 onOpen: ((SearchResultItem) -> Void)? = nil, onViewAll: ((SearchResultKind) -> Void)? = nil) {
@@ -21,7 +22,7 @@ public struct SearchResultsView: View {
     public var body: some View {
         let colors = FlareColors.of(scheme)
         if nonEmpty.isEmpty {
-            Text("没有找到结果")
+            Text(strings.noResults)
                 .font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textTertiary)
                 .frame(maxWidth: .infinity).padding(.vertical, 32)
         } else {
@@ -40,7 +41,7 @@ public struct SearchResultsView: View {
             ForEach(g.items) { item in row(colors, item) }
             if let total = g.total, total > g.items.count {
                 Button { onViewAll?(g.kind) } label: {
-                    Text("查看全部 \(total)").font(.system(size: FlareSizes.fontSizeMd, weight: .medium))
+                    Text(strings.viewAll(total)).font(.system(size: FlareSizes.fontSizeMd, weight: .medium))
                         .foregroundColor(colors.primary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.vertical, FlareSizes.spacingSm)

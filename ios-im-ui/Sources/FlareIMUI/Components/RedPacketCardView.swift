@@ -10,6 +10,7 @@ public struct RedPacketCardView: View {
     private let opened: Bool
     private let finished: Bool
     private let onOpen: (() -> Void)?
+    @Environment(\.flareStrings) private var strings
 
     public init(blessing: String, amount: String? = nil, opened: Bool = false,
                 finished: Bool = false, onOpen: (() -> Void)? = nil) {
@@ -52,7 +53,7 @@ public struct RedPacketCardView: View {
                                startPoint: .topLeading, endPoint: .bottomTrailing))
         )
         .overlay(
-            Text("Flare 红包").font(.system(size: 10)).foregroundColor(.white.opacity(0.5))
+            Text(strings.packetBrand).font(.system(size: 10)).foregroundColor(.white.opacity(0.5))
                 .padding(10),
             alignment: .bottomTrailing
         )
@@ -65,13 +66,13 @@ public struct RedPacketCardView: View {
     private var status: some View {
         if opened, let amount {
             HStack(spacing: 4) {
-                Text("已领取 · ").font(.system(size: 12)).foregroundColor(.white.opacity(0.85))
+                Text(strings.packetClaimed).font(.system(size: 12)).foregroundColor(.white.opacity(0.85))
                     + Text(amount).font(.system(size: 12, weight: .semibold)).foregroundColor(gold)
             }
         } else if finished {
-            Text("已被抢光").font(.system(size: 12)).foregroundColor(.white.opacity(0.85))
+            Text(strings.packetFinished).font(.system(size: 12)).foregroundColor(.white.opacity(0.85))
         } else {
-            Text("点击拆开").font(.system(size: 12)).foregroundColor(.white.opacity(0.85))
+            Text(strings.packetTapToClaim).font(.system(size: 12)).foregroundColor(.white.opacity(0.85))
         }
     }
 }

@@ -11,6 +11,7 @@ public struct EmojiPickerView: View {
     private let onSelect: ((String) -> Void)?
     private let onToneChange: ((String) -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
     @State private var query = ""
     @State private var activeKey = ""
     @State private var tone = ""
@@ -66,7 +67,7 @@ public struct EmojiPickerView: View {
         HStack(spacing: 8) {
             HStack(spacing: 6) {
                 Image(systemName: "magnifyingglass").font(.system(size: 12)).foregroundColor(colors.textTertiary)
-                TextField("搜索表情", text: $query)
+                TextField(strings.searchEmoji, text: $query)
                     .font(.system(size: 13)).foregroundColor(colors.textPrimary)
                     .textFieldStyle(.plain)
             }

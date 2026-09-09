@@ -20,18 +20,23 @@ public struct TransferQueueView: View {
     let items:[FlareTransferQueueItem]
     let loading:Bool
     let error:String?
-    let title:String
-    let emptyText:String
-    let retryFailedText:String
-    let reloadText:String
+    let title:String?
+    let emptyText:String?
+    let retryFailedText:String?
+    let reloadText:String?
     let onAction:((String,FlareTransferAction)->Void)?
     let onRetryFailed:(([String])->Void)?
     let onReload:(()->Void)?
-    public init(items:[FlareTransferQueueItem],loading:Bool=false,error:String?=nil,title:String="传输队列",emptyText:String="暂无传输任务",retryFailedText:String="重试失败任务",reloadText:String="重新加载",onAction:((String,FlareTransferAction)->Void)?=nil,onRetryFailed:(([String])->Void)?=nil,onReload:(()->Void)?=nil) {
+    @Environment(\.flareStrings) private var strings
+    public init(items:[FlareTransferQueueItem],loading:Bool=false,error:String?=nil,title:String?=nil,emptyText:String?=nil,retryFailedText:String?=nil,reloadText:String?=nil,onAction:((String,FlareTransferAction)->Void)?=nil,onRetryFailed:(([String])->Void)?=nil,onReload:(()->Void)?=nil) {
         self.items=items;self.loading=loading;self.error=error;self.title=title;self.emptyText=emptyText;self.retryFailedText=retryFailedText;self.reloadText=reloadText;self.onAction=onAction;self.onRetryFailed=onRetryFailed;self.onReload=onReload
     }
     public var body: some View {
         let ids=retryableTransferIds(items)
+        let title=self.title ?? strings.transferQueue
+        let emptyText=self.emptyText ?? strings.noTransfers
+        let retryFailedText=self.retryFailedText ?? strings.retryFailedTransfers
+        let reloadText=self.reloadText ?? strings.reload
         VStack(alignment:.leading,spacing:8) {
             Text("\(title) · \(items.count)").font(.headline)
             if !ids.isEmpty, let onRetryFailed {

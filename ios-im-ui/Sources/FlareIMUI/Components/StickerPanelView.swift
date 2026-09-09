@@ -9,6 +9,7 @@ public struct StickerPanelView: View {
     private let recents: [StickerItem]
     private let onSelect: ((StickerItem) -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
     @State private var activeKey = ""
 
     public init(packs: [StickerPack], recents: [StickerItem] = [], onSelect: ((StickerItem) -> Void)? = nil) {
@@ -20,7 +21,7 @@ public struct StickerPanelView: View {
     private var railPacks: [StickerPack] {
         var out = [StickerPack]()
         if !recents.isEmpty {
-            out.append(StickerPack(key: Self.recentKey, label: "最近", coverEmoji: "🕘", stickers: recents))
+            out.append(StickerPack(key: Self.recentKey, label: strings.recent, coverEmoji: "🕘", stickers: recents))
         }
         out.append(contentsOf: packs)
         return out

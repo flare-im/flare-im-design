@@ -12,6 +12,7 @@ public struct TypingIndicatorView: View {
     private let avatarURL: String?
     private let variant: TypingVariant
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
     @State private var animating = false
 
     public init(names: [String] = [], userId: String? = nil, avatarURL: String? = nil,
@@ -21,9 +22,9 @@ public struct TypingIndicatorView: View {
 
     private var label: String {
         let n = names.filter { !$0.isEmpty }
-        if n.isEmpty { return "正在输入…" }
-        if n.count == 1 { return "\(n[0]) 正在输入…" }
-        return "\(n.count) 人正在输入…"
+        if n.isEmpty { return strings.typing }
+        if n.count == 1 { return strings.typingOne(n[0]) }
+        return strings.typingMany(n.count)
     }
 
     private func dots(_ colors: FlareColors) -> some View {

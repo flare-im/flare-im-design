@@ -3,13 +3,14 @@ import SwiftUI
 /// Unified search field. Spec: General/SearchBar (`SearchBarView`).
 public struct SearchBarView: View {
     @Binding private var text: String
-    private let placeholder: String
+    private let placeholder: String?
     private let loading: Bool
     private let onSubmit: (() -> Void)?
     @ScaledMetric private var fieldSize: CGFloat = FlareSizes.fontSizeLg
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
 
-    public init(text: Binding<String>, placeholder: String = "搜索", loading: Bool = false, onSubmit: (() -> Void)? = nil) {
+    public init(text: Binding<String>, placeholder: String? = nil, loading: Bool = false, onSubmit: (() -> Void)? = nil) {
         self._text = text; self.placeholder = placeholder; self.loading = loading; self.onSubmit = onSubmit
     }
 
@@ -17,14 +18,14 @@ public struct SearchBarView: View {
         let colors = FlareColors.of(scheme)
         HStack(spacing: FlareSizes.spacingSm) {
             Image(systemName: "magnifyingglass").font(.system(size: 20)).foregroundColor(colors.textTertiary)
-            TextField(placeholder, text: $text).font(.system(size: fieldSize))
+            TextField(placeholder ?? strings.search, text: $text).font(.system(size: fieldSize))
                 .frame(minHeight: 48)
                 .textFieldStyle(.plain).onSubmit { onSubmit?() }
             if loading {
                 ProgressView().controlSize(.mini)
             } else if !text.isEmpty {
                 Button { text = "" } label: { Image(systemName: "xmark.circle").foregroundColor(colors.textTertiary).frame(width: 48, height: 48) }
-                    .buttonStyle(.plain).accessibilityLabel("清除搜索")
+                    .buttonStyle(.plain).accessibilityLabel(strings.clearSearch)
             }
         }
         .padding(.horizontal, FlareSizes.spacingMd)

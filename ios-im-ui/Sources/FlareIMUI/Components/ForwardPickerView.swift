@@ -11,6 +11,7 @@ public struct ForwardPickerView: View {
     private let onConfirm: (([String]) -> Void)?
     private let onClose: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
     @State private var query: String = ""
     @State private var selected: Set<String> = []
 
@@ -40,7 +41,7 @@ public struct ForwardPickerView: View {
         let colors = FlareColors.of(scheme)
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: FlareSizes.spacingSm) {
-                Text("转发给").font(.system(size: FlareSizes.fontSizeXl, weight: .semibold)).foregroundColor(colors.textPrimary)
+                Text(strings.forwardTo).font(.system(size: FlareSizes.fontSizeXl, weight: .semibold)).foregroundColor(colors.textPrimary)
                 Spacer()
                 if dismissible {
                     Button { onClose?() } label: {
@@ -52,7 +53,7 @@ public struct ForwardPickerView: View {
 
             HStack(spacing: FlareSizes.spacingSm) {
                 Image(systemName: "magnifyingglass").font(.system(size: 16)).foregroundColor(colors.textTertiary)
-                TextField("搜索会话", text: $query)
+                TextField(strings.searchConversations, text: $query)
                     .textFieldStyle(.plain)
                     .font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textPrimary)
             }
@@ -70,10 +71,10 @@ public struct ForwardPickerView: View {
             Divider().overlay(colors.borderPrimary)
 
             HStack(spacing: FlareSizes.spacingMd) {
-                Text("已选 \(selected.count)").font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textSecondary)
+                Text(strings.selectedCount(selected.count)).font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textSecondary)
                 Spacer()
                 Button { onConfirm?(Array(selected)) } label: {
-                    Text("发送").font(.system(size: FlareSizes.fontSizeLg, weight: .semibold)).foregroundColor(.white)
+                    Text(strings.send).font(.system(size: FlareSizes.fontSizeLg, weight: .semibold)).foregroundColor(.white)
                         .padding(.horizontal, FlareSizes.spacingLg).frame(height: 36)
                         .background(
                             RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(

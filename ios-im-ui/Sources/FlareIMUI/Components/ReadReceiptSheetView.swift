@@ -11,6 +11,7 @@ public struct ReadReceiptSheetView: View {
     private let onSelect: ((String) -> Void)?
     private let onClose: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
     @State private var activeTab: Int = 0
 
     public init(readers: [Contact], unread: [Contact], dismissible: Bool = false,
@@ -26,7 +27,7 @@ public struct ReadReceiptSheetView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: FlareSizes.spacingSm) {
                 Image(systemName: "checkmark.circle").font(.system(size: 16)).foregroundColor(colors.primary)
-                Text("已读回执").font(.system(size: FlareSizes.fontSizeXl, weight: .semibold)).foregroundColor(colors.textPrimary)
+                Text(strings.readReceipt).font(.system(size: FlareSizes.fontSizeXl, weight: .semibold)).foregroundColor(colors.textPrimary)
                 Spacer()
                 if dismissible {
                     Button { onClose?() } label: {
@@ -37,15 +38,15 @@ public struct ReadReceiptSheetView: View {
             .padding(.horizontal, FlareSizes.spacingLg).padding(.top, FlareSizes.spacingLg).padding(.bottom, FlareSizes.spacingMd)
 
             HStack(spacing: 0) {
-                tab(colors, 0, "已读 (\(readers.count))")
-                tab(colors, 1, "未读 (\(unread.count))")
+                tab(colors, 0, strings.readTab(readers.count))
+                tab(colors, 1, strings.unreadTab(unread.count))
             }
             .padding(.horizontal, FlareSizes.spacingLg)
 
             Divider().overlay(colors.borderPrimary)
 
             if activeList.isEmpty {
-                Text(activeTab == 0 ? "还没有人已读" : "所有人都已读")
+                Text(activeTab == 0 ? strings.noReadersYet : strings.everyoneHasRead)
                     .font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textTertiary)
                     .frame(maxWidth: .infinity).padding(.vertical, 28)
             } else {

@@ -10,6 +10,7 @@ public struct MentionPickerView: View {
     private let onSelect: ((MentionCandidate) -> Void)?
     private let onClose: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
     @State private var query: String = ""
 
     public init(candidates: [MentionCandidate], allowEveryone: Bool = false,
@@ -37,7 +38,7 @@ public struct MentionPickerView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: FlareSizes.spacingSm) {
                 Image(systemName: "magnifyingglass").font(.system(size: 14)).foregroundColor(colors.textTertiary)
-                TextField("搜索成员", text: $query)
+                TextField(strings.searchMembers, text: $query)
                     .textFieldStyle(.plain)
                     .font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textPrimary)
             }
@@ -46,7 +47,7 @@ public struct MentionPickerView: View {
             Divider().overlay(colors.borderPrimary)
 
             if !showEveryone && filtered.isEmpty {
-                Text("没有匹配的成员")
+                Text(strings.noMatchingMembers)
                     .font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textTertiary)
                     .frame(maxWidth: .infinity).padding(.vertical, 24)
             } else {
@@ -67,14 +68,14 @@ public struct MentionPickerView: View {
 
     private func everyoneRow(_ colors: FlareColors) -> some View {
         Button {
-            onSelect?(MentionCandidate(id: "__all__", name: "所有人", isEveryone: true))
+            onSelect?(MentionCandidate(id: "__all__", name: strings.everyone, isEveryone: true))
         } label: {
             HStack(spacing: FlareSizes.spacingMd) {
                 Image(systemName: "person.2").font(.system(size: 15)).foregroundColor(.white)
                     .frame(width: 32, height: 32).background(Circle().fill(colors.primary))
                 VStack(alignment: .leading, spacing: 1) {
-                    Text("所有人").font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textPrimary)
-                    Text("通知全体成员").font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
+                    Text(strings.everyone).font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textPrimary)
+                    Text(strings.notifyEveryone).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
                 }
                 Spacer(minLength: 0)
             }

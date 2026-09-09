@@ -10,6 +10,7 @@ public struct QRCardView: View {
     private let avatarURL: String?
     private let qrImageURL: String?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
 
     public init(name: String, subtitle: String? = nil, avatarURL: String? = nil, qrImageURL: String? = nil) {
         self.name = name; self.subtitle = subtitle; self.avatarURL = avatarURL; self.qrImageURL = qrImageURL
@@ -31,7 +32,7 @@ public struct QRCardView: View {
 
             qrPanel(colors)
 
-            Text("扫一扫加我").font(.system(size: 12)).foregroundColor(colors.textTertiary)
+            Text(strings.scanToAddMe).font(.system(size: 12)).foregroundColor(colors.textTertiary)
                 .frame(maxWidth: .infinity)
         }
         .padding(18)

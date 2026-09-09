@@ -10,6 +10,7 @@ public struct ProfileCardView: View {
     private let onCall: (() -> Void)?
     private let onVideo: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
 
     public init(user: Contact, onMessage: (() -> Void)? = nil, onCall: (() -> Void)? = nil, onVideo: (() -> Void)? = nil) {
         self.user = user; self.onMessage = onMessage; self.onCall = onCall; self.onVideo = onVideo
@@ -44,7 +45,7 @@ public struct ProfileCardView: View {
                 }.padding(.top, 10)
             }
             HStack(spacing: FlareSizes.spacingSm) {
-                action(colors, "message", "发消息", onMessage, primary: true)
+                action(colors, "message", strings.sendMessage, onMessage, primary: true)
                 action(colors, "phone", nil, onCall)
                 action(colors, "video", nil, onVideo)
             }.padding(.top, FlareSizes.spacingLg)

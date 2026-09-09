@@ -255,7 +255,7 @@ public struct FlareGroupDetail: View {
     private let labels: FlareGroupDetailLabels
 
     private let onBack: (() -> Void)?
-    private let onOpenChat: (() -> Void)?
+    private let onOpenChat: (([String], String) -> Void)?
     private let onUpdateName: ((String) -> Void)?
     private let onUpdateAnnouncement: ((String) -> Void)?
     private let onUpdateMyNickname: ((String) -> Void)?
@@ -301,7 +301,7 @@ public struct FlareGroupDetail: View {
                 joinRequests: [FlareGroupJoinRequestView] = [], loadingJoinRequests: Bool = false,
                 inviteCode: String? = nil, loadingInviteLink: Bool = false,
                 invitableContacts: [Contact] = [], labels: FlareGroupDetailLabels = FlareGroupDetailLabels(),
-                onBack: (() -> Void)? = nil, onOpenChat: (() -> Void)? = nil,
+                onBack: (() -> Void)? = nil, onOpenChat: (([String], String) -> Void)? = nil,
                 onUpdateName: ((String) -> Void)? = nil, onUpdateAnnouncement: ((String) -> Void)? = nil,
                 onUpdateMyNickname: ((String) -> Void)? = nil, onSetJoinPolicy: ((Int) -> Void)? = nil,
                 onToggleMuteAll: ((Bool) -> Void)? = nil, onSetFlag: ((FlareGroupFlag, Bool) -> Void)? = nil,
@@ -547,7 +547,10 @@ public struct FlareGroupDetail: View {
 
     private func footer(_ colors: FlareColors, _ m: FlareGroupDetailModel) -> some View {
         VStack(spacing: FlareSizes.spacingSm) {
-            ButtonView(label: labels.message, variant: .primary, block: true) { onOpenChat?() }
+            ButtonView(label: labels.message, variant: .primary, block: true) {
+                // Contract parity with Vue `openChat({ userIds, name })` / Flutter `(userIds, name)`.
+                onOpenChat?(m.members.map(\.id), m.name.isEmpty ? labels.title : m.name)
+            }
             ButtonView(label: m.isOwner ? labels.dissolve : labels.leave, variant: .danger, block: true) {
                 confirmLeave = true
             }

@@ -14,24 +14,33 @@ public struct FlareComposerAction: Identifiable {
 /// Spec: Composer/MessageActionSheet (`MessageActionSheetView`). Emits the
 /// chosen action; the host builds the content message.
 public struct MessageActionSheetView: View {
-    private let actions: [FlareComposerAction]
+    private let actions: [FlareComposerAction]?
     private let onAction: ((FlareComposerAction) -> Void)?
 
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
 
-    public static let defaultActions: [FlareComposerAction] = [
-        .init(id: "image", label: "图片", systemImage: "photo"),
-        .init(id: "camera", label: "拍摄", systemImage: "camera"),
-        .init(id: "file", label: "文件", systemImage: "folder"),
-        .init(id: "location", label: "位置", systemImage: "mappin.and.ellipse"),
-        .init(id: "card", label: "名片", systemImage: "person.crop.rectangle"),
-        .init(id: "vote", label: "投票", systemImage: "checkmark.square"),
-        .init(id: "task", label: "任务", systemImage: "checklist"),
-        .init(id: "schedule", label: "日程", systemImage: "calendar"),
-    ]
+    /// Attachment tiles built from host-overridable copy. Pass a different
+    /// ``FlareStrings`` (or the environment value) to relabel them.
+    public static func actions(for strings: FlareStrings) -> [FlareComposerAction] {
+        [
+            .init(id: "image", label: strings.actionImage, systemImage: "photo"),
+            .init(id: "camera", label: strings.actionCamera, systemImage: "camera"),
+            .init(id: "file", label: strings.actionFile, systemImage: "folder"),
+            .init(id: "location", label: strings.actionLocation, systemImage: "mappin.and.ellipse"),
+            .init(id: "card", label: strings.actionCard, systemImage: "person.crop.rectangle"),
+            .init(id: "vote", label: strings.actionVote, systemImage: "checkmark.square"),
+            .init(id: "task", label: strings.actionTask, systemImage: "checklist"),
+            .init(id: "schedule", label: strings.actionSchedule, systemImage: "calendar"),
+        ]
+    }
+
+    /// Default tiles with the kit's built-in copy. Prefer leaving `actions` unset so the
+    /// view resolves them from the environment instead.
+    public static let defaultActions: [FlareComposerAction] = actions(for: FlareStrings())
 
     public init(
-        actions: [FlareComposerAction] = MessageActionSheetView.defaultActions,
+        actions: [FlareComposerAction]? = nil,
         onAction: ((FlareComposerAction) -> Void)? = nil
     ) {
         self.actions = actions
@@ -42,6 +51,7 @@ public struct MessageActionSheetView: View {
 
     public var body: some View {
         let colors = FlareColors.of(scheme)
+        let actions = self.actions ?? Self.actions(for: strings)
         LazyVGrid(columns: columns, spacing: FlareSizes.spacingLg) {
             ForEach(actions) { action in
                 Button { onAction?(action) } label: {

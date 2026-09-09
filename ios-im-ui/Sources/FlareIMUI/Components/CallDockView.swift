@@ -14,6 +14,7 @@ public struct CallDockView: View {
     private let onToggleMute: (() -> Void)?
     private let onHangup: (() -> Void)?
     @State private var pulsing = false
+    @Environment(\.flareStrings) private var strings
 
     public init(title: String, avatarURL: String? = nil, durationLabel: String? = nil,
                 mode: FlareCallMode = .audio, muted: Bool = false,
@@ -44,7 +45,7 @@ public struct CallDockView: View {
                             .lineLimit(1).frame(maxWidth: 120, alignment: .leading)
                         HStack(spacing: 4) {
                             Image(systemName: mode == .video ? "video" : "phone").font(.system(size: 12))
-                            Text(durationLabel ?? "通话中").font(.system(size: 12))
+                            Text(durationLabel ?? strings.callInProgress).font(.system(size: 12))
                         }.foregroundColor(.white.opacity(0.66))
                     }
                     Image(systemName: "arrow.up.left.and.arrow.down.right").font(.system(size: 16)).foregroundColor(.white.opacity(0.5))

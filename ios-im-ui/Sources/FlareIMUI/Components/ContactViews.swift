@@ -38,6 +38,7 @@ public struct ContactListView: View {
     private let loading: Bool
     private let onSelect: ((Contact) -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
 
     public init(items: [Contact], indexed: Bool = true, loading: Bool = false, onSelect: ((Contact) -> Void)? = nil) {
         self.items = items; self.indexed = indexed; self.loading = loading; self.onSelect = onSelect
@@ -58,7 +59,7 @@ public struct ContactListView: View {
     public var body: some View {
         let colors = FlareColors.of(scheme)
         if items.isEmpty {
-            if loading { ProgressView() } else { EmptyStateView(title: "还没有联系人", systemImage: "person.2") }
+            if loading { ProgressView() } else { EmptyStateView(title: strings.noContacts, systemImage: "person.2") }
         } else {
             ScrollViewReader { proxy in
                 ZStack(alignment: .trailing) {
@@ -107,6 +108,7 @@ public struct ContactDetailView: View {
     private let onCall: (() -> Void)?
     private let onVideo: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
 
     public init(contact: Contact, onMessage: (() -> Void)? = nil, onCall: (() -> Void)? = nil, onVideo: (() -> Void)? = nil) {
         self.contact = contact; self.onMessage = onMessage; self.onCall = onCall; self.onVideo = onVideo
@@ -121,9 +123,9 @@ public struct ContactDetailView: View {
                 Text(s).font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textTertiary)
             }
             HStack(spacing: FlareSizes.spacingMd) {
-                actionButton("发消息", "message", onMessage, colors, primary: true)
-                actionButton("语音", "phone", onCall, colors)
-                actionButton("视频", "video", onVideo, colors)
+                actionButton(strings.sendMessage, "message", onMessage, colors, primary: true)
+                actionButton(strings.voiceCall, "phone", onCall, colors)
+                actionButton(strings.videoCall, "video", onVideo, colors)
             }
             .padding(.top, FlareSizes.spacingLg)
         }
@@ -191,17 +193,18 @@ public struct NewFriendRequestsView: View {
 public struct GroupListView: View {
     private let items: [GroupSummary]
     private let onSelect: ((GroupSummary) -> Void)?
-    private let emptyText: String
+    private let emptyText: String?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
 
-    public init(items: [GroupSummary], emptyText: String = "还没有群组", onSelect: ((GroupSummary) -> Void)? = nil) {
+    public init(items: [GroupSummary], emptyText: String? = nil, onSelect: ((GroupSummary) -> Void)? = nil) {
         self.items = items; self.emptyText = emptyText; self.onSelect = onSelect
     }
 
     public var body: some View {
         let colors = FlareColors.of(scheme)
         if items.isEmpty {
-            EmptyStateView(title: emptyText, systemImage: "person.3")
+            EmptyStateView(title: emptyText ?? strings.noGroups, systemImage: "person.3")
         } else {
             ScrollView {
                 LazyVStack(spacing: 0) {
@@ -211,7 +214,7 @@ public struct GroupListView: View {
                                 AvatarView(userId: g.id, displayName: g.name, avatarURL: g.avatarURL, size: 44)
                                 VStack(alignment: .leading) {
                                     Text(g.name).font(.system(size: FlareSizes.fontSizeXl, weight: .medium)).foregroundColor(colors.textPrimary)
-                                    Text("\(g.memberCount) 名成员").font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
+                                    Text(strings.memberCount(g.memberCount)).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
                                 }
                                 Spacer()
                             }

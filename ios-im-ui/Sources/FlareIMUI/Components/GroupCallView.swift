@@ -19,6 +19,7 @@ public struct GroupCallView: View {
     private let onToggleSpeaker: (() -> Void)?
     private let onSwitchCamera: (() -> Void)?
     private let onMinimize: (() -> Void)?
+    @Environment(\.flareStrings) private var strings
 
     public init(participants: [CallParticipant], mode: FlareCallMode, state: FlareCallState,
                 title: String? = nil, durationLabel: String? = nil, muted: Bool = false, cameraOn: Bool = true,
@@ -36,11 +37,11 @@ public struct GroupCallView: View {
         if n <= 1 { return 1 }; if n <= 4 { return 2 }; if n <= 9 { return 3 }; return 4
     }
     private var statusText: String {
-        if state == .reconnecting { return "正在恢复通话…" }
-        if state == .failed { return "通话连接失败" }
-        if state == .connected { return durationLabel ?? "已接通" }
-        if state == .ringing { return "响铃中…" }
-        return "呼叫中…"
+        if state == .reconnecting { return strings.callReconnecting }
+        if state == .failed { return strings.callFailed }
+        if state == .connected { return durationLabel ?? strings.callConnected }
+        if state == .ringing { return strings.callRinging }
+        return strings.callCalling
     }
 
     public var body: some View {
@@ -51,8 +52,8 @@ public struct GroupCallView: View {
                         .frame(width: 36, height: 36).background(Circle().fill(Color.white.opacity(0.12)))
                 }.buttonStyle(.plain)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(title ?? "群通话").font(.system(size: 16, weight: .semibold)).foregroundColor(.white).lineLimit(1)
-                    Text("\(participants.count) 人已加入 · \(statusText)").font(.system(size: 12)).foregroundColor(.white.opacity(0.62))
+                    Text(title ?? strings.groupCall).font(.system(size: 16, weight: .semibold)).foregroundColor(.white).lineLimit(1)
+                    Text(strings.joinedCount(participants.count, statusText)).font(.system(size: 12)).foregroundColor(.white.opacity(0.62))
                 }
                 Spacer()
             }.padding(.horizontal, 16).padding(.top, 14).padding(.bottom, 4)
@@ -94,7 +95,7 @@ public struct GroupCallView: View {
                     Image(systemName: "video.slash.fill").font(.system(size: 10)).foregroundColor(.white)
                         .frame(width: 20, height: 20).background(RoundedRectangle(cornerRadius: 6).fill(Color.black.opacity(0.42)))
                 }
-                Text(p.isSelf ? "\(p.name)（我）" : p.name).font(.system(size: 12)).foregroundColor(.white).lineLimit(1)
+                Text(p.isSelf ? strings.selfSuffix(p.name) : p.name).font(.system(size: 12)).foregroundColor(.white).lineLimit(1)
                     .padding(.horizontal, 8).padding(.vertical, 2)
                     .background(RoundedRectangle(cornerRadius: 6).fill(Color.black.opacity(0.42)))
             }.padding(8)

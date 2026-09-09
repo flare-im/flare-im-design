@@ -55,18 +55,20 @@ public struct FlareVoiceHoldButton: View {
 /// actions. Composable part; reveal it under the input. Shares
 /// ``FlareComposerAction`` with the action sheet.
 public struct FlareComposerActionPanel: View {
-    private let actions: [FlareComposerAction]
+    private let actions: [FlareComposerAction]?
     private let columns: Int
     private let onAction: ((FlareComposerAction) -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
 
-    public init(actions: [FlareComposerAction] = MessageActionSheetView.defaultActions,
+    public init(actions: [FlareComposerAction]? = nil,
                 columns: Int = 4, onAction: ((FlareComposerAction) -> Void)? = nil) {
         self.actions = actions; self.columns = columns; self.onAction = onAction
     }
 
     public var body: some View {
         let colors = FlareColors.of(scheme)
+        let actions = self.actions ?? MessageActionSheetView.actions(for: strings)
         LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: columns),
                   spacing: FlareSizes.spacingLg) {
             ForEach(actions) { action in

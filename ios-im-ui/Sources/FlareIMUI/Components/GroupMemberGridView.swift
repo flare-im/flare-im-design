@@ -12,22 +12,29 @@ public struct GroupMemberGridView: View {
     private let columns: Int
     private let onSelect: ((String) -> Void)?
     private let onAddMember: (() -> Void)?
-    private let title: String
-    private let ownerLabel: String
-    private let adminLabel: String
-    private let addLabel: String
-    private let memberCountText: (Int) -> String
+    private let titleValue: String?
+    private let ownerLabelValue: String?
+    private let adminLabelValue: String?
+    private let addLabelValue: String?
+    private let memberCountTextValue: ((Int) -> String)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
 
     public init(members: [Contact], ownerId: String? = nil, adminIds: [String] = [], showAdd: Bool = true,
                 columns: Int = 5, onSelect: ((String) -> Void)? = nil, onAddMember: (() -> Void)? = nil,
-                title: String = "群成员", ownerLabel: String = "群主", adminLabel: String = "管理员",
-                addLabel: String = "加成员", memberCountText: @escaping (Int) -> String = { "\($0) 名成员" }) {
+                title: String? = nil, ownerLabel: String? = nil, adminLabel: String? = nil,
+                addLabel: String? = nil, memberCountText: ((Int) -> String)? = nil) {
         self.members = members; self.ownerId = ownerId; self.adminIds = adminIds; self.showAdd = showAdd
         self.columns = columns; self.onSelect = onSelect; self.onAddMember = onAddMember
-        self.title = title; self.ownerLabel = ownerLabel; self.adminLabel = adminLabel
-        self.addLabel = addLabel; self.memberCountText = memberCountText
+        self.titleValue = title; self.ownerLabelValue = ownerLabel; self.adminLabelValue = adminLabel
+        self.addLabelValue = addLabel; self.memberCountTextValue = memberCountText
     }
+
+    private var title: String { titleValue ?? strings.groupMembers }
+    private var ownerLabel: String { ownerLabelValue ?? strings.groupOwner }
+    private var adminLabel: String { adminLabelValue ?? strings.groupAdmin }
+    private var addLabel: String { addLabelValue ?? strings.addMember }
+    private var memberCountText: (Int) -> String { memberCountTextValue ?? strings.memberCount }
 
     private func role(_ m: Contact) -> String? {
         if m.id == ownerId { return ownerLabel }

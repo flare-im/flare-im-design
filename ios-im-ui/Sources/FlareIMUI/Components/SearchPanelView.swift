@@ -40,32 +40,37 @@ public struct SearchPanelView: View {
     private let onSearch: (FlareSearchCriteria) -> Void
     private let onOpen: ((SearchResultItem) -> Void)?
     private let onViewAll: ((SearchResultKind) -> Void)?
-    private let searchText: String
-    private let idleText: String
+    private let searchTextValue: String?
+    private let idleTextValue: String?
     private let timeRanges: [FlareSearchRangeOption]
-    private let timeRangeText: String
+    private let timeRangeTextValue: String?
     @State private var fromTime: Int64?
     @State private var toTime: Int64?
     @State private var query: String
     @State private var filter: String
     @State private var submitted: FlareSearchCriteria
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
 
     public init(snapshot: FlareSearchSnapshot, filters: [String: String],
                 onSearch: @escaping (FlareSearchCriteria) -> Void,
                 onOpen: ((SearchResultItem) -> Void)? = nil,
                 onViewAll: ((SearchResultKind) -> Void)? = nil,
-                searchText: String = "搜索", idleText: String = "输入关键词或选择类型",
-                timeRanges: [FlareSearchRangeOption] = [], timeRangeText: String = "时间范围") {
-        self.timeRanges = timeRanges; self.timeRangeText = timeRangeText
+                searchText: String? = nil, idleText: String? = nil,
+                timeRanges: [FlareSearchRangeOption] = [], timeRangeText: String? = nil) {
+        self.timeRanges = timeRanges; self.timeRangeTextValue = timeRangeText
         _fromTime = State(initialValue: snapshot.criteria.fromTime); _toTime = State(initialValue: snapshot.criteria.toTime)
         self.snapshot = snapshot; self.filters = filters; self.onSearch = onSearch
         self.onOpen = onOpen; self.onViewAll = onViewAll
-        self.searchText = searchText; self.idleText = idleText
+        self.searchTextValue = searchText; self.idleTextValue = idleText
         _query = State(initialValue: snapshot.criteria.query)
         _filter = State(initialValue: snapshot.criteria.filterId)
         _submitted = State(initialValue: snapshot.criteria)
     }
+    private var searchText: String { searchTextValue ?? strings.search }
+    private var idleText: String { idleTextValue ?? strings.searchIdleHint }
+    private var timeRangeText: String { timeRangeTextValue ?? strings.timeRange }
+
     private func submit() {
         submitted = FlareSearchCriteria(query: query.trimmingCharacters(in: .whitespacesAndNewlines), filterId: filter, fromTime: fromTime, toTime: toTime)
         onSearch(submitted)

@@ -14,6 +14,7 @@ public struct MessageBatchToolbarView: View {
     private let onDelete: (() -> Void)?
     private let onExit: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
 
     public init(count: Int, total: Int, busy: Bool = false,
                 onSelectAll: (() -> Void)? = nil, onForwardEach: (() -> Void)? = nil,
@@ -29,13 +30,13 @@ public struct MessageBatchToolbarView: View {
         HStack(spacing: FlareSizes.spacingSm) {
             HStack(spacing: 4) {
                 Text("\(count)").font(.system(size: FlareSizes.fontSizeLg, weight: .bold)).foregroundColor(colors.primary)
-                Text("/ \(total) · 已选").font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textSecondary)
+                Text("/ \(total) · \(strings.selectedSuffix)").font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textSecondary)
             }
             Spacer(minLength: FlareSizes.spacingMd)
-            button(colors, "checkmark.circle", "全选", onSelectAll, disabled: total == 0 || busy)
-            button(colors, "arrowshape.turn.up.right", "逐条转发", onForwardEach, disabled: count == 0 || busy)
-            button(colors, "square.stack", "合并转发", onForwardMerged, disabled: count < 2 || busy)
-            button(colors, "trash", "删除", onDelete, disabled: count == 0 || busy, tint: colors.error)
+            button(colors, "checkmark.circle", strings.selectAll, onSelectAll, disabled: total == 0 || busy)
+            button(colors, "arrowshape.turn.up.right", strings.forwardEach, onForwardEach, disabled: count == 0 || busy)
+            button(colors, "square.stack", strings.forwardMerged, onForwardMerged, disabled: count < 2 || busy)
+            button(colors, "trash", strings.delete, onDelete, disabled: count == 0 || busy, tint: colors.error)
             iconButton(colors, "xmark", onExit)
         }
         .padding(.horizontal, FlareSizes.spacingLg).padding(.vertical, FlareSizes.spacingMd)

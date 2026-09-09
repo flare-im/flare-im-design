@@ -34,6 +34,7 @@ public struct CommentThreadView: View {
     private let onSelect: ((MomentComment) -> Void)?
     private let onSelectAuthor: ((String) -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
 
     public init(comments: [MomentComment],
                 onSelect: ((MomentComment) -> Void)? = nil,
@@ -60,7 +61,7 @@ public struct CommentThreadView: View {
             .foregroundColor(colors.primary)
         if let replyTo = comment.replyToName {
             text = text
-                + Text(" 回复 ").font(.system(size: 13)).foregroundColor(colors.textTertiary)
+                + Text(strings.replyInfix).font(.system(size: 13)).foregroundColor(colors.textTertiary)
                 + Text(replyTo).font(.system(size: 13, weight: .medium)).foregroundColor(colors.primary)
         }
         text = text
@@ -81,6 +82,7 @@ public struct MomentActionPopoverView: View {
     private let onLike: (() -> Void)?
     private let onComment: (() -> Void)?
     private let onDelete: (() -> Void)?
+    @Environment(\.flareStrings) private var strings
 
     public init(liked: Bool = false, canDelete: Bool = false,
                 onLike: (() -> Void)? = nil, onComment: (() -> Void)? = nil,
@@ -94,19 +96,19 @@ public struct MomentActionPopoverView: View {
     public var body: some View {
         HStack(spacing: 0) {
             Button { onLike?() } label: {
-                item(icon: liked ? "heart.slash" : "heart", label: liked ? "取消赞" : "赞")
+                item(icon: liked ? "heart.slash" : "heart", label: liked ? strings.unlike : strings.like)
             }.buttonStyle(.plain)
 
             divider
 
             Button { onComment?() } label: {
-                item(icon: "bubble.left", label: "评论")
+                item(icon: "bubble.left", label: strings.comment)
             }.buttonStyle(.plain)
 
             if canDelete {
                 divider
                 Button { onDelete?() } label: {
-                    item(icon: "trash", label: "删除", tint: Self.danger)
+                    item(icon: "trash", label: strings.delete, tint: Self.danger)
                 }.buttonStyle(.plain)
             }
         }
@@ -146,6 +148,7 @@ public struct MomentsCoverHeaderView: View {
     private let onEditCover: (() -> Void)?
     private let onAvatar: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
 
     public init(userId: String, name: String, coverURL: String? = nil, avatarURL: String? = nil,
                 signature: String? = nil, onEditCover: (() -> Void)? = nil, onAvatar: (() -> Void)? = nil) {
@@ -179,7 +182,7 @@ public struct MomentsCoverHeaderView: View {
             Button { onEditCover?() } label: {
                 HStack(spacing: 4) {
                     Image(systemName: "camera").font(.system(size: 11))
-                    Text("更换封面").font(.system(size: 12))
+                    Text(strings.changeCover).font(.system(size: 12))
                 }
                 .foregroundColor(Color.white.opacity(0.92))
                 .padding(.horizontal, 11).padding(.vertical, 5)
@@ -262,6 +265,7 @@ public struct MomentComposerView: View {
     private let onPickLocation: (() -> Void)?
     private let onPickVisibility: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
     @State private var text = ""
 
     public init(images: [String] = [], maxImages: Int = 9, location: String? = nil,
@@ -286,7 +290,7 @@ public struct MomentComposerView: View {
             header(colors)
             Rectangle().fill(colors.borderPrimary).frame(height: 1)
 
-            TextField("这一刻的想法…", text: $text, axis: .vertical)
+            TextField(strings.momentTextHint, text: $text, axis: .vertical)
                 .lineLimit(4...)
                 .font(.system(size: 15))
                 .foregroundColor(colors.textPrimary)
@@ -296,9 +300,9 @@ public struct MomentComposerView: View {
             grid(colors)
 
             Rectangle().fill(colors.borderPrimary).frame(height: 1)
-            row(colors, icon: "location", label: location ?? "所在位置", onTap: onPickLocation)
+            row(colors, icon: "location", label: location ?? strings.pickLocation, onTap: onPickLocation)
             Rectangle().fill(colors.borderPrimary).frame(height: 1)
-            row(colors, icon: "globe", label: visibility ?? "谁可以看", onTap: onPickVisibility)
+            row(colors, icon: "globe", label: visibility ?? strings.pickVisibility, onTap: onPickVisibility)
         }
         .frame(width: 360)
         .background(RoundedRectangle(cornerRadius: FlareSizes.radiusXl).fill(colors.bgPrimary)
@@ -310,11 +314,11 @@ public struct MomentComposerView: View {
     private func header(_ colors: FlareColors) -> some View {
         HStack {
             Button { onCancel?() } label: {
-                Text("取消").font(.system(size: 14)).foregroundColor(colors.textSecondary)
+                Text(strings.cancel).font(.system(size: 14)).foregroundColor(colors.textSecondary)
             }.buttonStyle(.plain)
             Spacer(minLength: 0)
             Button { onSubmit?(text.trimmingCharacters(in: .whitespacesAndNewlines)) } label: {
-                Text("发表").font(.system(size: 14, weight: .semibold)).foregroundColor(.white)
+                Text(strings.post).font(.system(size: 14, weight: .semibold)).foregroundColor(.white)
                     .padding(.horizontal, 18).padding(.vertical, 6)
                     .background(
                         Capsule().fill(

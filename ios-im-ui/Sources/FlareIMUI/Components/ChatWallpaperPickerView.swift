@@ -40,6 +40,7 @@ public struct ChatWallpaperPickerView: View {
     private let selectedId: String?
     private let onSelect: ((String) -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
 
     public init(options: [WallpaperOption], selectedId: String? = nil, onSelect: ((String) -> Void)? = nil) {
         self.options = options; self.selectedId = selectedId; self.onSelect = onSelect
@@ -48,7 +49,7 @@ public struct ChatWallpaperPickerView: View {
     public var body: some View {
         let colors = FlareColors.of(scheme)
         VStack(alignment: .leading, spacing: 10) {
-            Text("聊天背景").font(.system(size: 13, weight: .semibold)).foregroundColor(colors.textSecondary)
+            Text(strings.chatBackground).font(.system(size: 13, weight: .semibold)).foregroundColor(colors.textSecondary)
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {
                 ForEach(options) { option in
                     swatch(colors, option)

@@ -20,6 +20,7 @@ public struct VoicePlayerView: View {
     private let onCycleSpeed: (() -> Void)?
     private let onToggleTranscript: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
 
     public init(durationLabel: String, elapsedLabel: String? = nil, progress: Double = 0,
                 playing: Bool = false, amplitudes: [Double] = [], speed: Double = 1,
@@ -145,7 +146,7 @@ public struct VoicePlayerView: View {
         Button { onToggleTranscript?() } label: {
             HStack(spacing: 5) {
                 Image(systemName: "doc.text").font(.system(size: 11))
-                Text(transcriptOpen ? "收起文字" : "转文字")
+                Text(transcriptOpen ? strings.hideTranscript : strings.showTranscript)
                     .font(.system(size: 12, weight: .medium))
             }.foregroundColor(colors.primary)
         }.buttonStyle(.plain)

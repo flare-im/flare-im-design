@@ -16,6 +16,7 @@ public struct CallControlsView: View {
     private let onToggleSpeaker: (() -> Void)?
     private let onSwitchCamera: (() -> Void)?
     private let onHangup: (() -> Void)?
+    @Environment(\.flareStrings) private var strings
 
     public init(muted: Bool = false, cameraOn: Bool = true, speakerOn: Bool = false, mode: FlareCallMode = .video,
                 onToggleMute: (() -> Void)? = nil, onToggleCamera: (() -> Void)? = nil, onToggleSpeaker: (() -> Void)? = nil,
@@ -27,12 +28,12 @@ public struct CallControlsView: View {
 
     public var body: some View {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 72, maximum: 112), spacing: FlareSizes.spacingLg)], spacing: FlareSizes.spacingLg) {
-            ctrl(muted ? "mic.slash" : "mic", "麦克风", muted, onToggleMute, state: muted ? "已静音" : "未静音")
+            ctrl(muted ? "mic.slash" : "mic", strings.microphone, muted, onToggleMute, state: muted ? strings.muted : strings.unmuted)
             if mode == .video {
-                ctrl(cameraOn ? "video" : "video.slash", "摄像头", !cameraOn, onToggleCamera, state: cameraOn ? "开启" : "关闭")
-                ctrl("arrow.triangle.2.circlepath.camera", "翻转", false, onSwitchCamera)
+                ctrl(cameraOn ? "video" : "video.slash", strings.camera, !cameraOn, onToggleCamera, state: cameraOn ? strings.on : strings.off)
+                ctrl("arrow.triangle.2.circlepath.camera", strings.flipCamera, false, onSwitchCamera)
             } else {
-                ctrl("speaker.wave.2", "扬声器", speakerOn, onToggleSpeaker, state: speakerOn ? "开启" : "关闭")
+                ctrl("speaker.wave.2", strings.speaker, speakerOn, onToggleSpeaker, state: speakerOn ? strings.on : strings.off)
             }
             hangup
         }
@@ -62,7 +63,7 @@ public struct CallControlsView: View {
         }
         .buttonStyle(.plain)
         .disabled(onHangup == nil)
-        .accessibilityLabel("挂断")
+        .accessibilityLabel(strings.hangUp)
     }
 }
 
@@ -85,6 +86,7 @@ public struct CallView: View {
     private let onToggleCamera: (() -> Void)?
     private let onToggleSpeaker: (() -> Void)?
     private let onSwitchCamera: (() -> Void)?
+    @Environment(\.flareStrings) private var strings
 
     public init(peerName: String, mode: FlareCallMode, state: FlareCallState, durationLabel: String? = nil,
                 peerAvatarURL: String? = nil, muted: Bool = false, cameraOn: Bool = true, speakerOn: Bool = false,
@@ -100,11 +102,11 @@ public struct CallView: View {
 
     private var statusText: String {
         switch state {
-        case .reconnecting: return "正在恢复通话…"
-        case .failed: return "通话连接失败"
-        case .connected: return durationLabel ?? "已接通"
-        case .ringing: return "响铃中…"
-        case .calling: return mode == .video ? "等待接听…" : "呼叫中…"
+        case .reconnecting: return strings.callReconnecting
+        case .failed: return strings.callFailed
+        case .connected: return durationLabel ?? strings.callConnected
+        case .ringing: return strings.callRinging
+        case .calling: return mode == .video ? strings.callWaitingAnswer : strings.callCalling
         }
     }
 
@@ -140,6 +142,7 @@ public struct IncomingCallView: View {
     private let callerAvatarURL: String?
     private let onAccept: (() -> Void)?
     private let onReject: (() -> Void)?
+    @Environment(\.flareStrings) private var strings
 
     public init(callerName: String, mode: FlareCallMode, callerAvatarURL: String? = nil,
                 onAccept: (() -> Void)? = nil, onReject: (() -> Void)? = nil) {
@@ -153,14 +156,14 @@ public struct IncomingCallView: View {
             VStack(spacing: FlareSizes.spacingMd) {
                 AvatarView(userId: callerName, displayName: callerName, avatarURL: callerAvatarURL, size: 104)
                 Text(callerName).font(.system(size: FlareSizes.fontSize4xl, weight: .semibold)).foregroundColor(.white)
-                Text(mode == .video ? "邀请你进行视频通话" : "邀请你进行语音通话").font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(.white.opacity(0.7))
+                Text(mode == .video ? strings.incomingVideoCall : strings.incomingVoiceCall).font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(.white.opacity(0.7))
             }.padding(.bottom, 120)
             VStack {
                 Spacer()
                 HStack {
-                    action("phone.down", "拒绝", Color(.sRGB, red: 0.937, green: 0.267, blue: 0.267, opacity: 1), onReject)
+                    action("phone.down", strings.reject, Color(.sRGB, red: 0.937, green: 0.267, blue: 0.267, opacity: 1), onReject)
                     Spacer()
-                    action(mode == .video ? "video" : "phone", "接听", Color(.sRGB, red: 0.133, green: 0.773, blue: 0.369, opacity: 1), onAccept)
+                    action(mode == .video ? "video" : "phone", strings.accept, Color(.sRGB, red: 0.133, green: 0.773, blue: 0.369, opacity: 1), onAccept)
                 }
                 .padding(.horizontal, 56).padding(.bottom, 56)
             }

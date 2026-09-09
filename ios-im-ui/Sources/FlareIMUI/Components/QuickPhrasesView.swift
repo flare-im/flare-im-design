@@ -10,6 +10,7 @@ public struct QuickPhrasesView: View {
     private let onSelect: ((String) -> Void)?
     private let onManage: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
     @State private var activeKey: String
 
     public init(groups: [QuickPhraseGroup], manageable: Bool = false,
@@ -27,13 +28,13 @@ public struct QuickPhrasesView: View {
         VStack(alignment: .leading, spacing: FlareSizes.spacingMd) {
             HStack(spacing: FlareSizes.spacingSm) {
                 Image(systemName: "bolt").font(.system(size: 15)).foregroundColor(colors.primary)
-                Text("快捷短语").font(.system(size: FlareSizes.fontSizeLg, weight: .semibold)).foregroundColor(colors.textPrimary)
+                Text(strings.quickPhrases).font(.system(size: FlareSizes.fontSizeLg, weight: .semibold)).foregroundColor(colors.textPrimary)
                 Spacer()
                 if manageable {
                     Button { onManage?() } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "square.and.pencil").font(.system(size: 13))
-                            Text("管理").font(.system(size: FlareSizes.fontSizeSm, weight: .medium))
+                            Text(strings.manage).font(.system(size: FlareSizes.fontSizeSm, weight: .medium))
                         }.foregroundColor(colors.primary)
                     }.buttonStyle(.plain)
                 }

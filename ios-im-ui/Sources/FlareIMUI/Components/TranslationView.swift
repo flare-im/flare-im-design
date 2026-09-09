@@ -10,6 +10,7 @@ public struct TranslationView: View {
     private let provider: String?
     private let pending: Bool
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
     @State private var showOriginal = false
     @State private var spinning = false
 
@@ -33,7 +34,7 @@ public struct TranslationView: View {
                 Image(systemName: "globe").font(.system(size: 14)).foregroundColor(colors.textTertiary)
                     .rotationEffect(.degrees(spinning ? 360 : 0))
                     .animation(.linear(duration: 1.2).repeatForever(autoreverses: false), value: spinning)
-                Text("翻译中…").font(.system(size: 14)).foregroundColor(colors.textTertiary)
+                Text(strings.translating).font(.system(size: 14)).foregroundColor(colors.textTertiary)
             }
             .onAppear { spinning = true }
         } else {
@@ -41,13 +42,13 @@ public struct TranslationView: View {
                 Text(translated).font(.system(size: 14)).foregroundColor(colors.textPrimary)
                 HStack(spacing: 6) {
                     Image(systemName: "globe").font(.system(size: 11)).foregroundColor(colors.textTertiary)
-                    Text(provider != nil ? "由 \(provider!) 翻译" : "已翻译")
+                    Text(provider.map { strings.translatedBy($0) } ?? strings.translated)
                         .font(.system(size: 11)).foregroundColor(colors.textTertiary)
                     Spacer(minLength: FlareSizes.spacingMd)
                     if original != nil {
                         Button { showOriginal.toggle() } label: {
                             HStack(spacing: 3) {
-                                Text(showOriginal ? "隐藏原文" : "显示原文")
+                                Text(showOriginal ? strings.hideOriginal : strings.showOriginal)
                                     .font(.system(size: 11, weight: .medium))
                                 Image(systemName: "chevron.down").font(.system(size: 9))
                                     .rotationEffect(.degrees(showOriginal ? 180 : 0))

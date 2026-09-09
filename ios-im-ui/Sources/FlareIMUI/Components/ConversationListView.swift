@@ -7,22 +7,26 @@ public struct ConversationListView: View {
     private let items: [ConversationRowData]
     private let activeId: String?
     private let loading: Bool
-    private let emptyText: String
+    private let emptyText: String?
     private let onSelect: ((ConversationRowData) -> Void)?
+    private let onLongPress: ((ConversationRowData) -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
 
     public init(
         items: [ConversationRowData],
         activeId: String? = nil,
         loading: Bool = false,
-        emptyText: String = "暂无会话",
-        onSelect: ((ConversationRowData) -> Void)? = nil
+        emptyText: String? = nil,
+        onSelect: ((ConversationRowData) -> Void)? = nil,
+        onLongPress: ((ConversationRowData) -> Void)? = nil
     ) {
         self.items = items
         self.activeId = activeId
         self.loading = loading
         self.emptyText = emptyText
         self.onSelect = onSelect
+        self.onLongPress = onLongPress
     }
 
     public var body: some View {
@@ -31,7 +35,7 @@ public struct ConversationListView: View {
             if loading {
                 ProgressView()
             } else {
-                Text(emptyText)
+                Text(emptyText ?? strings.noConversations)
                     .font(.system(size: FlareSizes.fontSizeLg))
                     .foregroundColor(colors.textTertiary)
             }
@@ -41,6 +45,9 @@ public struct ConversationListView: View {
                     ConversationRowView(item: item, active: item.id == activeId)
                 }
                 .buttonStyle(.plain)
+                // Spec event `longPress` — same trigger (long press on the whole row) as
+                // Flutter/Compose `onLongPress`.
+                .onLongPressGesture { onLongPress?(item) }
                 .listRowInsets(EdgeInsets())
                 .listRowSeparator(.hidden)
             }

@@ -11,6 +11,7 @@ public struct StartConversationView: View {
     private let onConfirm: (([String]) -> Void)?
 
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
     @State private var selected: Set<String> = []
     @State private var query: String = ""
 
@@ -79,7 +80,7 @@ public struct StartConversationView: View {
                         if busy {
                             ProgressView().tint(.white)
                         } else {
-                            Text(selected.isEmpty ? "确定" : "确定 (\(selected.count))")
+                            Text(selected.isEmpty ? strings.confirm : strings.confirmCount(selected.count))
                                 .fontWeight(.semibold)
                         }
                     }
