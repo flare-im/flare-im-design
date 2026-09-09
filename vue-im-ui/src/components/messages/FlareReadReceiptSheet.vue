@@ -76,8 +76,8 @@ const list = computed(() => (active.value === "read" ? props.readers : props.unr
   display: flex;
   flex-direction: column;
   border-radius: var(--flare-size-radius-xl, 14px);
-  background: var(--flare-color-bg-primary, #fff);
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  background: var(--flare-color-bg-primary, #FFFFFF);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
   box-shadow: var(--flare-shadow-lg, 0 12px 28px rgba(21, 18, 32, 0.16));
   overflow: hidden;
 }
@@ -93,12 +93,12 @@ const list = computed(() => (active.value === "read" ? props.readers : props.unr
   gap: 7px;
   font-size: 15px;
   font-weight: 600;
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
 }
 .flare-read-receipt__close {
   border: none;
   background: transparent;
-  color: var(--flare-color-text-tertiary, #a7a2b4);
+  color: var(--flare-color-text-tertiary, #687182);
   cursor: pointer;
   display: inline-flex;
 }
@@ -116,12 +116,12 @@ const list = computed(() => (active.value === "read" ? props.readers : props.unr
   border: none;
   border-radius: var(--flare-size-radius-lg, 10px);
   background: transparent;
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
   font-size: 14px;
   cursor: pointer;
-  transition: background var(--flare-transition-fast, 150ms ease);
+  transition: background var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
-.flare-read-receipt__row:hover { background: var(--flare-color-bg-secondary, #f6f5fb); }
+.flare-read-receipt__row:hover { background: var(--flare-color-bg-secondary, #F7F8FA); }
 .flare-read-receipt__name {
   overflow: hidden;
   text-overflow: ellipsis;

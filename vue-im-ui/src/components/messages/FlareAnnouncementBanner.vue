@@ -59,9 +59,9 @@ const showToggle = computed(() => props.collapsible && props.text.length > 40);
   display: flex;
   gap: 10px;
   padding: 11px 12px;
-  border-radius: var(--flare-size-radius-lg, 12px);
-  background: var(--flare-color-bg-selected, #f1eaff);
-  border: 1px solid color-mix(in srgb, var(--flare-color-primary, #7c3aed) 22%, transparent);
+  border-radius: var(--flare-size-radius-lg, 10px);
+  background: var(--flare-color-bg-selected, #F0ECFC);
+  border: 1px solid color-mix(in srgb, var(--flare-color-primary, #7047D6) 22%, transparent);
 }
 .flare-announcement__icon {
   flex: 0 0 auto;
@@ -72,23 +72,23 @@ const showToggle = computed(() => props.collapsible && props.text.length > 40);
   align-items: center;
   justify-content: center;
   color: #fff;
-  background: var(--im-brand-gradient, var(--flare-color-primary, #7c3aed));
+  background: var(--im-brand-gradient, var(--flare-color-primary, #7047D6));
 }
 .flare-announcement__body { flex: 1; min-width: 0; }
 .flare-announcement__label {
   font-size: 12px;
   font-weight: 600;
-  color: var(--flare-color-primary, #7c3aed);
+  color: var(--flare-color-primary, #7047D6);
 }
 .flare-announcement__author {
   font-weight: 400;
-  color: var(--flare-color-text-tertiary, #a7a2b4);
+  color: var(--flare-color-text-tertiary, #687182);
 }
 .flare-announcement__text {
   margin: 3px 0 0;
   font-size: 13px;
   line-height: 1.5;
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -106,7 +106,7 @@ const showToggle = computed(() => props.collapsible && props.text.length > 40);
   margin-top: 4px;
   border: none;
   background: transparent;
-  color: var(--flare-color-primary, #7c3aed);
+  color: var(--flare-color-primary, #7047D6);
   font-size: 12px;
   cursor: pointer;
   padding: 0;
@@ -117,7 +117,7 @@ const showToggle = computed(() => props.collapsible && props.text.length > 40);
   align-self: flex-start;
   border: none;
   background: transparent;
-  color: var(--flare-color-text-tertiary, #a7a2b4);
+  color: var(--flare-color-text-tertiary, #687182);
   cursor: pointer;
   display: inline-flex;
 }

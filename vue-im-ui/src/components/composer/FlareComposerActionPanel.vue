@@ -59,7 +59,7 @@ const emit = defineEmits<{ (e: "action", action: FlareComposerActionItem): void 
 .flare-action-panel__ico {
   width: 52px;
   height: 52px;
-  border-radius: var(--flare-size-radius-lg, 8px);
+  border-radius: var(--flare-size-radius-lg, 10px);
   background: var(--flare-color-bg-secondary);
   display: flex;
   align-items: center;

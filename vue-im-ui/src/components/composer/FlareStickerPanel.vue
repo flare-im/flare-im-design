@@ -70,8 +70,8 @@ const activePack = computed(() => railPacks.value.find((p) => p.key === activeKe
   display: flex;
   flex-direction: column;
   border-radius: var(--flare-size-radius-xl, 14px);
-  background: var(--flare-color-bg-primary, #fff);
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  background: var(--flare-color-bg-primary, #FFFFFF);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
   box-shadow: var(--flare-shadow-lg, 0 12px 28px rgba(21, 18, 32, 0.16));
   overflow: hidden;
 }
@@ -79,7 +79,7 @@ const activePack = computed(() => railPacks.value.find((p) => p.key === activeKe
   padding: 10px 14px 4px;
   font-size: 12px;
   font-weight: 600;
-  color: var(--flare-color-text-tertiary, #a7a2b4);
+  color: var(--flare-color-text-tertiary, #687182);
 }
 .flare-sticker-panel__grid {
   display: grid;
@@ -93,14 +93,14 @@ const activePack = computed(() => railPacks.value.find((p) => p.key === activeKe
 .flare-sticker-panel__cell {
   aspect-ratio: 1;
   border: none;
-  border-radius: var(--flare-size-radius-lg, 12px);
-  background: var(--flare-color-bg-secondary, #f6f5fb);
+  border-radius: var(--flare-size-radius-lg, 10px);
+  background: var(--flare-color-bg-secondary, #F7F8FA);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   overflow: hidden;
-  transition: transform var(--flare-transition-fast, 150ms ease);
+  transition: transform var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-sticker-panel__cell:hover { transform: scale(1.05); }
 .flare-sticker-panel__cell img { width: 100%; height: 100%; object-fit: contain; }
@@ -110,13 +110,13 @@ const activePack = computed(() => railPacks.value.find((p) => p.key === activeKe
   text-align: center;
   padding: 44px 0;
   font-size: 13px;
-  color: var(--flare-color-text-tertiary, #a7a2b4);
+  color: var(--flare-color-text-tertiary, #687182);
 }
 .flare-sticker-panel__rail {
   display: flex;
   gap: 4px;
   padding: 6px 8px;
-  border-top: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  border-top: 1px solid var(--flare-color-border-primary, #E3E5EB);
   overflow-x: auto;
 }
 .flare-sticker-panel__pack {
@@ -132,8 +132,8 @@ const activePack = computed(() => railPacks.value.find((p) => p.key === activeKe
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--flare-color-text-secondary, #6b6780);
+  color: var(--flare-color-text-secondary, #626978);
 }
-.flare-sticker-panel__pack.is-active { background: var(--flare-color-bg-selected, #f1eaff); }
+.flare-sticker-panel__pack.is-active { background: var(--flare-color-bg-selected, #F0ECFC); }
 .flare-sticker-panel__pack img { width: 26px; height: 26px; object-fit: contain; border-radius: 6px; }
 </style>

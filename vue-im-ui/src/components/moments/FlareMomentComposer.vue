@@ -85,9 +85,9 @@ const canPost = computed(() => text.value.trim().length > 0 || props.images.leng
 .flare-moment-composer {
   width: 360px;
   max-width: 100%;
-  background: var(--flare-color-bg-primary, #fff);
+  background: var(--flare-color-bg-primary, #FFFFFF);
   border-radius: var(--flare-size-radius-xl, 14px);
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
   box-shadow: var(--flare-shadow-lg, 0 12px 28px rgba(21, 18, 32, 0.16));
   overflow: hidden;
 }
@@ -96,12 +96,12 @@ const canPost = computed(() => text.value.trim().length > 0 || props.images.leng
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px;
-  border-bottom: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  border-bottom: 1px solid var(--flare-color-border-primary, #E3E5EB);
 }
 .flare-moment-composer__cancel {
   border: none;
   background: none;
-  color: var(--flare-color-text-secondary, #6b6780);
+  color: var(--flare-color-text-secondary, #626978);
   font-size: 14px;
   cursor: pointer;
 }
@@ -109,7 +109,7 @@ const canPost = computed(() => text.value.trim().length > 0 || props.images.leng
   border: none;
   border-radius: 999px;
   padding: 6px 18px;
-  background: var(--im-brand-gradient, var(--flare-color-primary, #7c3aed));
+  background: var(--im-brand-gradient, var(--flare-color-primary, #7047D6));
   color: #fff;
   font-size: 14px;
   font-weight: 600;
@@ -126,7 +126,7 @@ const canPost = computed(() => text.value.trim().length > 0 || props.images.leng
   padding: 14px;
   font-size: 15px;
   line-height: 1.55;
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
   background: transparent;
   font-family: inherit;
 }
@@ -141,7 +141,7 @@ const canPost = computed(() => text.value.trim().length > 0 || props.images.leng
   aspect-ratio: 1;
   border-radius: 8px;
   overflow: hidden;
-  background: var(--flare-color-bg-secondary, #f6f5fb);
+  background: var(--flare-color-bg-secondary, #F7F8FA);
 }
 .flare-moment-composer__thumb img { width: 100%; height: 100%; object-fit: cover; }
 .flare-moment-composer__remove {
@@ -161,18 +161,18 @@ const canPost = computed(() => text.value.trim().length > 0 || props.images.leng
 }
 .flare-moment-composer__add {
   aspect-ratio: 1;
-  border: 1px dashed var(--flare-color-border-hover, #d5d1e0);
+  border: 1px dashed var(--flare-color-border-hover, #C9CDD7);
   border-radius: 8px;
-  background: var(--flare-color-bg-secondary, #f6f5fb);
-  color: var(--flare-color-text-tertiary, #a7a2b4);
+  background: var(--flare-color-bg-secondary, #F7F8FA);
+  color: var(--flare-color-text-tertiary, #687182);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   transition: border-color 0.15s ease, color 0.15s ease;
 }
-.flare-moment-composer__add:hover { border-color: var(--flare-color-primary, #7c3aed); color: var(--flare-color-primary, #7c3aed); }
-.flare-moment-composer__rows { border-top: 1px solid var(--flare-color-border-primary, #e9e6f1); }
+.flare-moment-composer__add:hover { border-color: var(--flare-color-primary, #7047D6); color: var(--flare-color-primary, #7047D6); }
+.flare-moment-composer__rows { border-top: 1px solid var(--flare-color-border-primary, #E3E5EB); }
 .flare-moment-composer__row {
   display: flex;
   align-items: center;
@@ -180,13 +180,13 @@ const canPost = computed(() => text.value.trim().length > 0 || props.images.leng
   width: 100%;
   padding: 13px 14px;
   border: none;
-  border-bottom: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  border-bottom: 1px solid var(--flare-color-border-primary, #E3E5EB);
   background: none;
-  color: var(--flare-color-text-secondary, #6b6780);
+  color: var(--flare-color-text-secondary, #626978);
   font-size: 14px;
   cursor: pointer;
   text-align: left;
 }
 .flare-moment-composer__row:last-child { border-bottom: none; }
-.flare-moment-composer__row:hover { background: var(--flare-color-bg-secondary, #f6f5fb); }
+.flare-moment-composer__row:hover { background: var(--flare-color-bg-secondary, #F7F8FA); }
 </style>

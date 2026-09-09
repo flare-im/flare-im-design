@@ -52,21 +52,21 @@ function toggle(): void {
   height: 20px;
   flex: 0 0 auto;
   border-radius: var(--flare-size-radius-sm, 6px);
-  border: 1.5px solid var(--flare-color-border-hover, #d5d1e0);
-  background: var(--flare-color-bg-primary, #fff);
+  border: 1.5px solid var(--flare-color-border-hover, #C9CDD7);
+  background: var(--flare-color-bg-primary, #FFFFFF);
   color: #fff;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background var(--flare-transition-fast, 150ms ease), border-color var(--flare-transition-fast, 150ms ease);
+  transition: background var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), border-color var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-checkbox__box.is-on {
-  background: var(--flare-color-primary, #7c3aed);
-  border-color: var(--flare-color-primary, #7c3aed);
+  background: var(--flare-color-primary, #7047D6);
+  border-color: var(--flare-color-primary, #7047D6);
 }
 .flare-checkbox__label {
   font-size: 14px;
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
 }
 </style>

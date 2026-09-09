@@ -40,7 +40,7 @@ function clear() {
   gap: 8px;
   width: 100%;
   padding: 9px 14px;
-  border-radius: var(--flare-size-radius-lg, 8px);
+  border-radius: var(--flare-size-radius-lg, 10px);
   background: var(--flare-color-bg-secondary);
 }
 .flare-search__ico { color: var(--flare-color-text-tertiary); }

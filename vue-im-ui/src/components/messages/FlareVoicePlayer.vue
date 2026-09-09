@@ -104,14 +104,14 @@ function seekAt(e: MouseEvent): void {
   gap: 6px;
   padding: 10px 12px;
   border-radius: 16px 16px 16px 4px;
-  background: var(--flare-color-bg-primary, #fff);
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  background: var(--flare-color-bg-primary, #FFFFFF);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
   box-shadow: var(--flare-shadow-sm, 0 2px 6px rgba(21, 18, 32, 0.08));
   max-width: 100%;
 }
 .flare-voice-player.is-outbound {
-  background: var(--flare-color-bg-selected, #f1eaff);
-  border-color: color-mix(in srgb, var(--flare-color-primary, #7c3aed) 24%, transparent);
+  background: var(--flare-color-bg-selected, #F0ECFC);
+  border-color: color-mix(in srgb, var(--flare-color-primary, #7047D6) 24%, transparent);
   border-radius: 16px 16px 4px 16px;
 }
 .flare-voice-player__bar { display: flex; align-items: center; gap: 10px; }
@@ -126,9 +126,9 @@ function seekAt(e: MouseEvent): void {
   align-items: center;
   justify-content: center;
   color: #fff;
-  background: var(--im-brand-gradient, var(--flare-color-primary, #7c3aed));
+  background: var(--im-brand-gradient, var(--flare-color-primary, #7047D6));
   cursor: pointer;
-  transition: transform var(--flare-transition-fast, 150ms ease);
+  transition: transform var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-voice-player__play:active { transform: scale(0.94); }
 .flare-voice-player__dot {
@@ -139,7 +139,7 @@ function seekAt(e: MouseEvent): void {
   height: 8px;
   border-radius: 50%;
   background: var(--flare-color-error, #ef4444);
-  border: 1.5px solid var(--flare-color-bg-primary, #fff);
+  border: 1.5px solid var(--flare-color-bg-primary, #FFFFFF);
 }
 .flare-voice-player__wave {
   flex: 1;
@@ -157,23 +157,23 @@ function seekAt(e: MouseEvent): void {
   flex: 1;
   min-width: 2px;
   border-radius: 2px;
-  background: var(--flare-color-border-hover, #d5d1e0);
-  transition: background var(--flare-transition-fast, 150ms ease);
+  background: var(--flare-color-border-hover, #C9CDD7);
+  transition: background var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
-.flare-voice-player__wave i.is-filled { background: var(--flare-color-primary, #7c3aed); }
+.flare-voice-player__wave i.is-filled { background: var(--flare-color-primary, #7047D6); }
 .flare-voice-player__time {
   flex: 0 0 auto;
   font-size: 12px;
   font-variant-numeric: tabular-nums;
-  color: var(--flare-color-text-tertiary, #a7a2b4);
+  color: var(--flare-color-text-tertiary, #687182);
   min-width: 30px;
   text-align: right;
 }
 .flare-voice-player__speed {
   flex: 0 0 auto;
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
-  background: var(--flare-color-bg-secondary, #f6f5fb);
-  color: var(--flare-color-text-secondary, #6b6780);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
+  background: var(--flare-color-bg-secondary, #F7F8FA);
+  color: var(--flare-color-text-secondary, #626978);
   font-size: 11px;
   font-weight: 600;
   border-radius: 999px;
@@ -188,7 +188,7 @@ function seekAt(e: MouseEvent): void {
   gap: 4px;
   border: none;
   background: transparent;
-  color: var(--flare-color-primary, #7c3aed);
+  color: var(--flare-color-primary, #7047D6);
   font-size: 12px;
   cursor: pointer;
   padding: 0;
@@ -196,10 +196,10 @@ function seekAt(e: MouseEvent): void {
 .flare-voice-player__tr {
   margin: 0;
   padding-top: 6px;
-  border-top: 1px dashed var(--flare-color-border-primary, #e9e6f1);
+  border-top: 1px dashed var(--flare-color-border-primary, #E3E5EB);
   font-size: 13px;
   line-height: 1.5;
-  color: var(--flare-color-text-secondary, #6b6780);
+  color: var(--flare-color-text-secondary, #626978);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }

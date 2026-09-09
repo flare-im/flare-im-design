@@ -97,7 +97,7 @@ const { t } = useFlareI18n();
   position: absolute;
   inset: -3px;
   border-radius: 50%;
-  border: 2px solid var(--flare-color-success, #34d17f);
+  border: 2px solid var(--flare-color-success, #22C55E);
   animation: flare-dock-pulse 1.8s ease-out infinite;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -137,7 +137,7 @@ const { t } = useFlareI18n();
   background: rgba(255, 255, 255, 0.14);
   color: #fff;
   cursor: pointer;
-  transition: background var(--flare-transition-fast, 150ms ease), transform var(--flare-transition-fast, 150ms ease);
+  transition: background var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), transform var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-call-dock__btn:hover { background: rgba(255, 255, 255, 0.22); }
 .flare-call-dock__btn:active { transform: scale(0.94); }

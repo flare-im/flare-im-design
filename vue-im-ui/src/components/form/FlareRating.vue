@@ -86,11 +86,11 @@ function onKey(e: KeyboardEvent): void {
   border: none;
   background: transparent;
   line-height: 1;
-  color: var(--flare-color-border-hover, #d5d1e0);
+  color: var(--flare-color-border-hover, #C9CDD7);
   cursor: pointer;
-  transition: color var(--flare-transition-fast, 150ms ease), transform var(--flare-transition-fast, 150ms ease);
+  transition: color var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), transform var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
-.flare-rating__star.is-on { color: var(--flare-color-warning, #f5a623); }
+.flare-rating__star.is-on { color: var(--flare-color-warning, #F59E0B); }
 .flare-rating:not(.is-readonly):not(.is-disabled) .flare-rating__star:hover { transform: scale(1.16); }
 .flare-rating.is-readonly .flare-rating__star, .flare-rating.is-disabled .flare-rating__star { cursor: default; }
 </style>

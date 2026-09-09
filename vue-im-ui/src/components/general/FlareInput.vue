@@ -77,8 +77,8 @@ function onInput(e: Event) {
   background: var(--flare-color-bg-secondary);
   border: 1px solid var(--flare-color-border-primary);
   transition:
-    border-color var(--flare-transition-fast, 150ms ease),
-    box-shadow var(--flare-transition-fast, 150ms ease);
+    border-color var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)),
+    box-shadow var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-input__field:focus-within {
   border-color: var(--flare-color-primary);

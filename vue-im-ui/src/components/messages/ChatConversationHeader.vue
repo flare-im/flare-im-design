@@ -59,14 +59,14 @@ const { t } = useFlareI18n();
   padding: 0;
   border: 0;
   border-radius: 10px;
-  color: var(--im-chat-hdr-title, var(--flare-color-text-primary, #111318));
+  color: var(--im-chat-hdr-title, var(--flare-color-text-primary, #20232D));
   background: transparent;
   cursor: pointer;
   transition: background var(--im-motion-fast, 140ms ease), color var(--im-motion-fast, 140ms ease);
 }
 
 .im-chat-header__back:hover {
-  color: var(--im-brand-primary, var(--flare-color-primary, #7c3aed));
+  color: var(--im-brand-primary, var(--flare-color-primary, #7047D6));
   background: color-mix(in srgb, var(--im-brand-primary) 10%, transparent);
 }
 

@@ -61,10 +61,10 @@ function onChange(): void {
   left: 0; right: 0;
   height: 6px;
   border-radius: 999px;
-  background: var(--flare-color-border-hover, #d5d1e0);
+  background: var(--flare-color-border-hover, #C9CDD7);
   overflow: hidden;
 }
-.flare-slider__fill { height: 100%; border-radius: 999px; background: var(--im-brand-gradient, var(--flare-color-primary, #7c3aed)); }
+.flare-slider__fill { height: 100%; border-radius: 999px; background: var(--im-brand-gradient, var(--flare-color-primary, #7047D6)); }
 .flare-slider__input {
   position: relative;
   width: 100%;
@@ -81,16 +81,16 @@ function onChange(): void {
   width: 18px; height: 18px;
   border-radius: 50%;
   background: #fff;
-  border: 2px solid var(--flare-color-primary, #7c3aed);
+  border: 2px solid var(--flare-color-primary, #7047D6);
   box-shadow: 0 1px 4px rgba(21, 18, 32, 0.24);
-  transition: transform var(--flare-transition-fast, 150ms ease);
+  transition: transform var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-slider.is-dragging .flare-slider__input::-webkit-slider-thumb { transform: scale(1.14); }
 .flare-slider__input::-moz-range-thumb {
   width: 18px; height: 18px;
   border-radius: 50%;
   background: #fff;
-  border: 2px solid var(--flare-color-primary, #7c3aed);
+  border: 2px solid var(--flare-color-primary, #7047D6);
   box-shadow: 0 1px 4px rgba(21, 18, 32, 0.24);
 }
 .flare-slider__bubble {
@@ -102,7 +102,7 @@ function onChange(): void {
   font-size: 12px;
   font-variant-numeric: tabular-nums;
   color: #fff;
-  background: var(--flare-color-primary, #7c3aed);
+  background: var(--flare-color-primary, #7047D6);
   white-space: nowrap;
   pointer-events: none;
 }

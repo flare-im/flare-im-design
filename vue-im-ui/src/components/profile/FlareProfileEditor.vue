@@ -52,7 +52,7 @@ const signature = ref(props.user.signature ?? "");
 .flare-profile-editor__label { font-size: 13px; color: var(--flare-color-text-secondary); margin-top: 8px; }
 .flare-profile-editor__actions { display: flex; gap: 12px; margin-top: 16px; }
 .flare-profile-editor__actions button {
-  flex: 1; padding: 10px; border-radius: var(--flare-size-radius-md, 6px);
+  flex: 1; padding: 10px; border-radius: var(--flare-size-radius-md, 8px);
   border: 1px solid var(--flare-color-border-primary); background: none;
   color: var(--flare-color-text-primary); font-size: 14px; cursor: pointer;
 }

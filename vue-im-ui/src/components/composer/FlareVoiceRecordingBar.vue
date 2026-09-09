@@ -65,13 +65,13 @@ const bars = computed(() => {
   gap: 10px;
   padding: 8px 10px;
   border-radius: 999px;
-  background: var(--flare-color-bg-primary, #fff);
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  background: var(--flare-color-bg-primary, #FFFFFF);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
   box-shadow: var(--flare-shadow-md, 0 6px 18px rgba(21, 18, 32, 0.1));
-  transition: background var(--flare-transition-fast, 150ms ease), border-color var(--flare-transition-fast, 150ms ease);
+  transition: background var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), border-color var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-voice-rec.is-cancelling {
-  background: color-mix(in srgb, var(--flare-color-error, #ef4444) 10%, var(--flare-color-bg-primary, #fff));
+  background: color-mix(in srgb, var(--flare-color-error, #ef4444) 10%, var(--flare-color-bg-primary, #FFFFFF));
   border-color: color-mix(in srgb, var(--flare-color-error, #ef4444) 40%, transparent);
 }
 .flare-voice-rec__cancel,
@@ -85,18 +85,18 @@ const bars = computed(() => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform var(--flare-transition-fast, 150ms ease), filter var(--flare-transition-fast, 150ms ease);
+  transition: transform var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), filter var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-voice-rec__cancel {
-  background: var(--flare-color-bg-secondary, #f6f5fb);
-  color: var(--flare-color-text-secondary, #6b6780);
+  background: var(--flare-color-bg-secondary, #F7F8FA);
+  color: var(--flare-color-text-secondary, #626978);
 }
 .flare-voice-rec.is-cancelling .flare-voice-rec__cancel {
   background: var(--flare-color-error, #ef4444);
   color: #fff;
 }
 .flare-voice-rec__send {
-  background: var(--im-brand-gradient, var(--flare-color-primary, #7c3aed));
+  background: var(--im-brand-gradient, var(--flare-color-primary, #7047D6));
   color: #fff;
 }
 .flare-voice-rec__cancel:active,
@@ -126,7 +126,7 @@ const bars = computed(() => {
   flex: 0 0 auto;
   font-size: 13px;
   font-variant-numeric: tabular-nums;
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
 }
 .flare-voice-rec__wave {
   flex: 1;
@@ -141,7 +141,7 @@ const bars = computed(() => {
   flex: 1;
   min-width: 2px;
   border-radius: 2px;
-  background: var(--flare-color-primary, #7c3aed);
+  background: var(--flare-color-primary, #7047D6);
   opacity: 0.7;
 }
 .flare-voice-rec.is-cancelling .flare-voice-rec__wave i { background: var(--flare-color-error, #ef4444); }

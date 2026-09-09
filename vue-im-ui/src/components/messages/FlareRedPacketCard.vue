@@ -61,7 +61,7 @@ const { t } = useFlareI18n();
   box-shadow: 0 10px 24px rgba(200, 41, 31, 0.32);
   position: relative;
   overflow: hidden;
-  transition: transform var(--flare-transition-fast, 150ms ease), filter var(--flare-transition-fast, 150ms ease);
+  transition: transform var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), filter var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-red-packet::after {
   content: "";

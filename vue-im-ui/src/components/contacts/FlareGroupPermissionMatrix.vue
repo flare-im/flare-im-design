@@ -382,7 +382,7 @@ function retry(row: GroupPermissionRow): void {
   border-radius: var(--flare-size-radius-full, 999px);
   background: var(--flare-color-border-hover);
   cursor: pointer;
-  transition: background var(--flare-transition-fast, 150ms ease);
+  transition: background var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-gpm__switch.is-on { background: var(--flare-color-primary); }
 .flare-gpm__switch:disabled { opacity: 0.5; cursor: progress; }
@@ -394,7 +394,7 @@ function retry(row: GroupPermissionRow): void {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--flare-color-bg-primary, #fff);
+  background: var(--flare-color-bg-primary, #FFFFFF);
   box-shadow: var(--flare-shadow-sm, 0 1px 3px rgba(21, 18, 32, 0.28));
   transition: transform var(--flare-transition-normal, 200ms cubic-bezier(0.22, 1, 0.36, 1));
 }

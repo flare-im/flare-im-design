@@ -251,11 +251,11 @@ function dismiss() {
   display: grid;
   gap: 0;
   min-width: 0;
-  border-radius: var(--flare-size-radius-lg, 12px);
-  background: var(--flare-color-bg-primary, #fff);
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  border-radius: var(--flare-size-radius-lg, 10px);
+  background: var(--flare-color-bg-primary, #FFFFFF);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
   box-shadow: var(--flare-shadow-md, 0 6px 18px rgba(21, 18, 32, 0.1));
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
   overflow: hidden;
 }
 .flare-conv-batch__bar {
@@ -270,12 +270,12 @@ function dismiss() {
   align-items: baseline;
   gap: 5px;
   font-size: var(--flare-size-font-size-md, 13px);
-  color: var(--flare-color-text-secondary, #6b6780);
+  color: var(--flare-color-text-secondary, #626978);
   white-space: nowrap;
 }
 .flare-conv-batch__meta strong {
   font-size: var(--flare-size-font-size-2xl, 16px);
-  color: var(--flare-color-primary, #7c3aed);
+  color: var(--flare-color-primary, #7047D6);
   font-variant-numeric: tabular-nums;
 }
 .flare-conv-batch__hint {
@@ -284,7 +284,7 @@ function dismiss() {
   gap: 6px;
   margin: 0;
   font-size: var(--flare-size-font-size-sm, 12px);
-  color: var(--flare-color-text-tertiary, #8f8ba3);
+  color: var(--flare-color-text-tertiary, #687182);
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -306,13 +306,13 @@ function dismiss() {
   padding: 0 10px;
   border: none;
   border-radius: var(--flare-size-radius-md, 8px);
-  background: var(--flare-color-bg-secondary, #f6f5fb);
-  color: var(--flare-color-text-primary, #15131c);
+  background: var(--flare-color-bg-secondary, #F7F8FA);
+  color: var(--flare-color-text-primary, #20232D);
   font: inherit;
   font-size: var(--flare-size-font-size-md, 13px);
   cursor: pointer;
   white-space: nowrap;
-  transition: filter var(--flare-transition-fast, 150ms ease), transform var(--flare-transition-fast, 150ms ease);
+  transition: filter var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), transform var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 @media (pointer: coarse) {
   .flare-conv-batch__btn { min-height: var(--flare-size-layout-touch-target, 48px); min-width: var(--flare-size-layout-touch-target, 48px); }
@@ -321,11 +321,11 @@ function dismiss() {
 .flare-conv-batch__btn:active:not(:disabled) { transform: scale(0.97); }
 .flare-conv-batch__btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .flare-conv-batch__btn:disabled.flare-conv-batch__btn--pending { opacity: 0.85; cursor: progress; }
-.flare-conv-batch__btn:focus-visible { outline: 2px solid var(--flare-color-primary, #7c3aed); outline-offset: 2px; }
+.flare-conv-batch__btn:focus-visible { outline: 2px solid var(--flare-color-primary, #7047D6); outline-offset: 2px; }
 .flare-conv-batch__btn--danger { color: var(--flare-color-error, #ef4444); }
 .flare-conv-batch__btn--icon { padding: 0 8px; }
-.flare-conv-batch__btn--ghost { background: transparent; color: var(--flare-color-text-secondary, #6b6780); }
-.flare-conv-batch__btn--primary { background: var(--flare-color-primary, #7c3aed); color: #fff; }
+.flare-conv-batch__btn--ghost { background: transparent; color: var(--flare-color-text-secondary, #626978); }
+.flare-conv-batch__btn--primary { background: var(--flare-color-primary, #7047D6); color: #fff; }
 .flare-conv-batch__spinner {
   width: 14px;
   height: 14px;
@@ -340,8 +340,8 @@ function dismiss() {
   .flare-conv-batch__spinner { animation-duration: 2s; }
 }
 .flare-conv-batch__result {
-  border-top: 1px solid var(--flare-color-border-secondary, #efedf5);
-  background: var(--flare-color-bg-secondary, #f6f5fb);
+  border-top: 1px solid var(--flare-color-border-secondary, #ECEEF2);
+  background: var(--flare-color-bg-secondary, #F7F8FA);
   padding: 8px 14px;
   display: grid;
   gap: 8px;
@@ -384,7 +384,7 @@ function dismiss() {
   flex-wrap: wrap;
   padding: 6px 8px;
   border-radius: var(--flare-size-radius-sm, 6px);
-  background: var(--flare-color-bg-primary, #fff);
+  background: var(--flare-color-bg-primary, #FFFFFF);
   font-size: var(--flare-size-font-size-sm, 12px);
 }
 .flare-conv-batch__failure-title {
@@ -395,7 +395,7 @@ function dismiss() {
   white-space: nowrap;
 }
 .flare-conv-batch__failure-reason {
-  color: var(--flare-color-text-secondary, #6b6780);
+  color: var(--flare-color-text-secondary, #626978);
   overflow-wrap: anywhere;
   min-width: 0;
 }

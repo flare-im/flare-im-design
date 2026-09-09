@@ -145,11 +145,11 @@ const resendLabel = computed(() => t("message.resendAria"));
 
 .status-sending .status-icon {
   opacity: 0.72;
-  color: var(--im-text-tertiary, var(--flare-color-text-tertiary, #a3a7ae));
+  color: var(--im-text-tertiary, var(--flare-color-text-tertiary, #687182));
 }
 
 .status-sent .status-icon {
-  color: var(--im-text-tertiary, var(--flare-color-text-tertiary, #a3a7ae));
+  color: var(--im-text-tertiary, var(--flare-color-text-tertiary, #687182));
   opacity: 0.92;
 }
 

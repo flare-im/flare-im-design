@@ -124,25 +124,25 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
   border-radius: var(--flare-size-radius-lg, 10px);
-  background: var(--flare-color-bg-secondary, #f6f5fb);
-  color: var(--flare-color-text-primary, #15131c);
+  background: var(--flare-color-bg-secondary, #F7F8FA);
+  color: var(--flare-color-text-primary, #20232D);
   cursor: pointer;
-  transition: border-color var(--flare-transition-fast, 150ms ease), box-shadow var(--flare-transition-fast, 150ms ease);
+  transition: border-color var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), box-shadow var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-select--sm .flare-select__trigger { height: 32px; padding: 0 10px; font-size: 13px; }
 .flare-select--md .flare-select__trigger { height: 40px; padding: 0 12px; font-size: 14px; }
 .flare-select--lg .flare-select__trigger { height: 48px; padding: 0 14px; font-size: 15px; }
 .flare-select.is-open .flare-select__trigger {
-  border-color: var(--flare-color-primary, #7c3aed);
+  border-color: var(--flare-color-primary, #7047D6);
   box-shadow: 0 0 0 3px var(--flare-color-focus-ring, rgba(124, 58, 237, 0.28));
 }
 .flare-select.is-disabled { opacity: 0.55; }
 .flare-select.is-disabled .flare-select__trigger { cursor: not-allowed; }
 .flare-select__value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.flare-select__value.is-placeholder { color: var(--flare-color-text-tertiary, #a7a2b4); }
-.flare-select__chevron { color: var(--flare-color-text-tertiary, #a7a2b4); flex: 0 0 auto; transition: transform var(--flare-transition-fast, 150ms ease); }
+.flare-select__value.is-placeholder { color: var(--flare-color-text-tertiary, #687182); }
+.flare-select__chevron { color: var(--flare-color-text-tertiary, #687182); flex: 0 0 auto; transition: transform var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)); }
 .flare-select.is-open .flare-select__chevron { transform: rotate(180deg); }
 
 /* Dropdown menu (desktop) */
@@ -156,8 +156,8 @@ onBeforeUnmount(() => {
   max-height: 240px;
   overflow-y: auto;
   border-radius: var(--flare-size-radius-lg, 10px);
-  background: var(--flare-color-bg-primary, #fff);
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  background: var(--flare-color-bg-primary, #FFFFFF);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
   box-shadow: var(--flare-shadow-lg, 0 12px 28px rgba(21, 18, 32, 0.16));
 }
 /* Sheet option list */
@@ -176,22 +176,22 @@ onBeforeUnmount(() => {
   padding: 8px 10px;
   border-radius: var(--flare-size-radius-md, 8px);
   font-size: 14px;
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
   cursor: pointer;
 }
 .flare-select__option:hover:not(.is-disabled),
-.flare-select__option:focus-visible:not(.is-disabled) { background: var(--flare-color-bg-secondary, #f6f5fb); outline: none; }
-.flare-select__option.is-selected { color: var(--flare-color-primary, #7c3aed); font-weight: 500; }
+.flare-select__option:focus-visible:not(.is-disabled) { background: var(--flare-color-bg-secondary, #F7F8FA); outline: none; }
+.flare-select__option.is-selected { color: var(--flare-color-primary, #7047D6); font-weight: 500; }
 .flare-select__option.is-disabled { opacity: 0.45; cursor: not-allowed; }
 
 .flare-select__option.is-sheet {
   gap: 10px;
   min-height: 52px;
   padding: 0 16px;
-  border-radius: var(--flare-size-radius-lg, 12px);
+  border-radius: var(--flare-size-radius-lg, 10px);
   font-size: 16px;
 }
-.flare-select__option.is-sheet:active:not(.is-disabled) { background: var(--flare-color-bg-secondary, #f6f5fb); }
+.flare-select__option.is-sheet:active:not(.is-disabled) { background: var(--flare-color-bg-secondary, #F7F8FA); }
 .flare-select__option.is-sheet.is-selected { font-weight: 600; }
 
 .flare-select-pop-enter-active, .flare-select-pop-leave-active { transition: opacity 0.14s ease, transform 0.14s ease; }

@@ -103,7 +103,7 @@ function onDelete(): void {
   gap: 12px;
   padding: 16px;
   border-radius: var(--flare-size-radius-2xl, 18px);
-  background: var(--flare-color-bg-elevated, #fff);
+  background: var(--flare-color-bg-elevated, #FFFFFF);
   box-shadow: var(--flare-shadow-card);
 }
 .flare-moment__avatar { border: none; background: none; padding: 0; cursor: pointer; flex: 0 0 auto; line-height: 0; }
@@ -111,7 +111,7 @@ function onDelete(): void {
 .flare-moment__name {
   font-size: 15px;
   font-weight: 600;
-  color: var(--flare-color-primary, #7c3aed);
+  color: var(--flare-color-primary, #7047D6);
   cursor: pointer;
   width: fit-content;
 }
@@ -119,7 +119,7 @@ function onDelete(): void {
   margin: 4px 0 0;
   font-size: 15px;
   line-height: 1.55;
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -130,7 +130,7 @@ function onDelete(): void {
   gap: 3px;
   margin-top: 8px;
   font-size: 12px;
-  color: var(--flare-color-primary, #7c3aed);
+  color: var(--flare-color-primary, #7047D6);
   opacity: 0.8;
 }
 .flare-moment__meta {
@@ -139,15 +139,15 @@ function onDelete(): void {
   justify-content: space-between;
   margin-top: 10px;
 }
-.flare-moment__time { font-size: 12px; color: var(--flare-color-text-tertiary, #a7a2b4); }
+.flare-moment__time { font-size: 12px; color: var(--flare-color-text-tertiary, #687182); }
 .flare-moment__actions { position: relative; display: flex; align-items: center; }
 .flare-moment__more {
   width: 30px;
   height: 24px;
   border: none;
   border-radius: 6px;
-  background: var(--flare-color-bg-secondary, #f6f5fb);
-  color: var(--flare-color-text-secondary, #6b6780);
+  background: var(--flare-color-bg-secondary, #F7F8FA);
+  color: var(--flare-color-text-secondary, #626978);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -155,7 +155,7 @@ function onDelete(): void {
   transition: background 0.15s ease, color 0.15s ease;
 }
 .flare-moment__more.is-open,
-.flare-moment__more:hover { background: var(--flare-color-bg-selected, #f1eaff); color: var(--flare-color-primary, #7c3aed); }
+.flare-moment__more:hover { background: var(--flare-color-bg-selected, #F0ECFC); color: var(--flare-color-primary, #7047D6); }
 .flare-moment__pop {
   position: absolute;
   right: 36px;
@@ -171,7 +171,7 @@ function onDelete(): void {
   margin-top: 10px;
   padding: 8px 12px;
   border-radius: var(--flare-size-radius-lg, 10px);
-  background: var(--flare-color-bg-secondary, #f6f5fb);
+  background: var(--flare-color-bg-secondary, #F7F8FA);
 }
 .flare-moment__likes {
   display: flex;
@@ -181,12 +181,12 @@ function onDelete(): void {
   line-height: 1.5;
 }
 .flare-moment__likes-ico { color: var(--flare-color-error, #ef4444); position: relative; top: 2px; flex: 0 0 auto; }
-.flare-moment__likers { color: var(--flare-color-primary, #7c3aed); }
+.flare-moment__likers { color: var(--flare-color-primary, #7047D6); }
 .flare-moment__liker { cursor: pointer; }
 .flare-moment__liker:hover { text-decoration: underline; }
 .flare-moment__hairline {
   height: 1px;
   margin: 7px 0;
-  background: color-mix(in srgb, var(--flare-color-text-tertiary, #a7a2b4) 22%, transparent);
+  background: color-mix(in srgb, var(--flare-color-text-tertiary, #687182) 22%, transparent);
 }
 </style>

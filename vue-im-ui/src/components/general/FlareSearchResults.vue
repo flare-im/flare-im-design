@@ -84,7 +84,7 @@ function segments(text: string): { text: string; hit: boolean }[] {
   padding: 6px 12px;
   font-size: 12px;
   font-weight: 600;
-  color: var(--flare-color-text-tertiary, #a7a2b4);
+  color: var(--flare-color-text-tertiary, #687182);
 }
 .flare-search-row {
   width: 100%;
@@ -96,9 +96,9 @@ function segments(text: string): { text: string; hit: boolean }[] {
   background: transparent;
   cursor: pointer;
   text-align: left;
-  transition: background var(--flare-transition-fast, 150ms ease);
+  transition: background var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
-.flare-search-row:hover { background: var(--flare-color-bg-secondary, #f6f5fb); }
+.flare-search-row:hover { background: var(--flare-color-bg-secondary, #F7F8FA); }
 .flare-search-row__body {
   flex: 1;
   min-width: 0;
@@ -108,26 +108,26 @@ function segments(text: string): { text: string; hit: boolean }[] {
 }
 .flare-search-row__title {
   font-size: 14px;
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .flare-search-row__sub {
   font-size: 12px;
-  color: var(--flare-color-text-tertiary, #a7a2b4);
+  color: var(--flare-color-text-tertiary, #687182);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .flare-search-row__title .hit,
 .flare-search-row__sub .hit {
-  color: var(--flare-color-primary, #7c3aed);
+  color: var(--flare-color-primary, #7047D6);
   font-weight: 600;
 }
 .flare-search-row__meta {
   font-size: 12px;
-  color: var(--flare-color-text-tertiary, #a7a2b4);
+  color: var(--flare-color-text-tertiary, #687182);
   flex: 0 0 auto;
 }
 .flare-search-more {
@@ -135,7 +135,7 @@ function segments(text: string): { text: string; hit: boolean }[] {
   padding: 8px 12px;
   border: none;
   background: transparent;
-  color: var(--flare-color-primary, #7c3aed);
+  color: var(--flare-color-primary, #7047D6);
   font-size: 13px;
   text-align: left;
   cursor: pointer;

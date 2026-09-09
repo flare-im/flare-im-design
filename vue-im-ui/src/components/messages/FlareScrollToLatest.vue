@@ -30,15 +30,15 @@ const badge = computed(() => (props.count > 99 ? "99+" : String(props.count)));
   align-items: center;
   gap: 6px;
   padding: 6px 6px 6px 12px;
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
   border-radius: 999px;
-  background: var(--flare-color-bg-primary, #fff);
+  background: var(--flare-color-bg-primary, #FFFFFF);
   box-shadow: var(--flare-shadow-md, 0 6px 18px rgba(21, 18, 32, 0.1));
-  color: var(--flare-color-text-secondary, #6b6780);
+  color: var(--flare-color-text-secondary, #626978);
   cursor: pointer;
   transition:
-    transform var(--flare-transition-fast, 150ms ease),
-    box-shadow var(--flare-transition-fast, 150ms ease);
+    transform var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)),
+    box-shadow var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-scroll-latest:not(.has-count) {
   padding: 8px;
@@ -53,7 +53,7 @@ const badge = computed(() => (props.count > 99 ? "99+" : String(props.count)));
 .flare-scroll-latest__count {
   font-size: 13px;
   font-weight: 600;
-  color: var(--flare-color-primary, #7c3aed);
+  color: var(--flare-color-primary, #7047D6);
 }
 .flare-scroll-latest__icon {
   display: grid;
@@ -62,6 +62,6 @@ const badge = computed(() => (props.count > 99 ? "99+" : String(props.count)));
   height: 30px;
   border-radius: 50%;
   color: #fff;
-  background: var(--im-brand-gradient, var(--flare-color-primary, #7c3aed));
+  background: var(--im-brand-gradient, var(--flare-color-primary, #7047D6));
 }
 </style>

@@ -59,7 +59,7 @@ const list = computed(() => Array.from({ length: Math.max(1, props.rows) }, (_, 
 .sk {
   display: block;
   border-radius: var(--flare-size-radius-md, 8px);
-  background: var(--flare-color-bg-secondary, #f0eef6);
+  background: var(--flare-color-bg-secondary, #F7F8FA);
   position: relative;
   overflow: hidden;
 }
@@ -94,7 +94,7 @@ const list = computed(() => Array.from({ length: Math.max(1, props.rows) }, (_, 
 .flare-skeleton--message { gap: 18px; }
 .sk-msg { display: flex; align-items: flex-end; gap: 8px; }
 .sk-msg.is-me { flex-direction: row-reverse; }
-.sk-bubble { height: 40px; border-radius: var(--flare-size-radius-lg, 14px); }
+.sk-bubble { height: 40px; border-radius: var(--flare-size-radius-lg, 10px); }
 
 .sk-profile { align-items: center; display: flex; flex-direction: column; gap: 12px; padding: 8px 0; }
 </style>

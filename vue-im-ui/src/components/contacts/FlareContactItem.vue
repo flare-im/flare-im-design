@@ -41,7 +41,7 @@ const avatarStatus = computed<"online" | "offline" | "busy">(() => {
   padding: 8px 14px;
   cursor: pointer;
   border-radius: var(--flare-size-radius-lg, 10px);
-  transition: background var(--flare-transition-fast, 150ms ease);
+  transition: background var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-contact-item:hover {
   background: var(--flare-color-bg-hover);

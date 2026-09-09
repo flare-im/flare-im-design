@@ -49,9 +49,9 @@ const rsize = computed(() => props.size ?? config.size.value);
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: filter var(--flare-transition-fast, 150ms ease), background var(--flare-transition-fast, 150ms ease),
-    border-color var(--flare-transition-fast, 150ms ease), transform var(--flare-transition-fast, 150ms ease),
-    opacity var(--flare-transition-fast, 150ms ease);
+  transition: filter var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), background var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)),
+    border-color var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), transform var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)),
+    opacity var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-button.is-block { width: 100%; }
 .flare-button:active:not(:disabled) { transform: scale(0.98); }
@@ -65,22 +65,22 @@ const rsize = computed(() => props.size ?? config.size.value);
 
 /* variants */
 .flare-button--primary {
-  background: var(--im-brand-gradient, var(--flare-color-primary, #7c3aed));
+  background: var(--im-brand-gradient, var(--flare-color-primary, #7047D6));
   color: #fff;
 }
 .flare-button--primary:hover:not(:disabled) { filter: brightness(0.97); }
 .flare-button--secondary {
-  background: var(--flare-color-bg-secondary, #f6f5fb);
-  color: var(--flare-color-text-primary, #15131c);
-  border-color: var(--flare-color-border-primary, #e9e6f1);
+  background: var(--flare-color-bg-secondary, #F7F8FA);
+  color: var(--flare-color-text-primary, #20232D);
+  border-color: var(--flare-color-border-primary, #E3E5EB);
 }
-.flare-button--secondary:hover:not(:disabled) { background: var(--flare-color-bg-selected, #f1eaff); border-color: var(--flare-color-primary, #7c3aed); }
+.flare-button--secondary:hover:not(:disabled) { background: var(--flare-color-bg-selected, #F0ECFC); border-color: var(--flare-color-primary, #7047D6); }
 .flare-button--ghost {
   background: transparent;
-  color: var(--flare-color-primary, #7c3aed);
-  border-color: color-mix(in srgb, var(--flare-color-primary, #7c3aed) 40%, transparent);
+  color: var(--flare-color-primary, #7047D6);
+  border-color: color-mix(in srgb, var(--flare-color-primary, #7047D6) 40%, transparent);
 }
-.flare-button--ghost:hover:not(:disabled) { background: var(--flare-color-bg-selected, #f1eaff); }
+.flare-button--ghost:hover:not(:disabled) { background: var(--flare-color-bg-selected, #F0ECFC); }
 .flare-button--danger {
   background: var(--flare-color-error, #ef4444);
   color: #fff;
@@ -88,11 +88,11 @@ const rsize = computed(() => props.size ?? config.size.value);
 .flare-button--danger:hover:not(:disabled) { filter: brightness(0.95); }
 .flare-button--text {
   background: transparent;
-  color: var(--flare-color-primary, #7c3aed);
+  color: var(--flare-color-primary, #7047D6);
   padding-left: 8px;
   padding-right: 8px;
 }
-.flare-button--text:hover:not(:disabled) { background: var(--flare-color-bg-secondary, #f6f5fb); }
+.flare-button--text:hover:not(:disabled) { background: var(--flare-color-bg-secondary, #F7F8FA); }
 
 .flare-button__spinner {
   width: 15px;

@@ -106,7 +106,7 @@
 
 .runtime-status-banner--default {
   border-color: color-mix(in srgb, var(--im-text-tertiary) 24%, transparent);
-  background: color-mix(in srgb, var(--im-bg-surface-alt, var(--flare-color-bg-tertiary, #f2f3f5)) 88%, var(--im-bg-surface));
+  background: color-mix(in srgb, var(--im-bg-surface-alt, var(--flare-color-bg-tertiary, #F1F2F5)) 88%, var(--im-bg-surface));
 }
 
 .runtime-status-banner--default strong,

@@ -11,16 +11,16 @@ export function generateWebAppThemeExtensions(isDark = false): string {
   color-scheme: ${isDark ? "dark" : "light"};
   --im-font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
     "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", "Inter", "Segoe UI", Arial, sans-serif;
-  --im-brand-primary: var(--flare-color-primary, #7C3AED);
-  --im-brand-primary-soft: ${isDark ? "rgba(124, 58, 237, 0.24)" : "var(--flare-color-bg-selected, #F1EAFF)"};
-  --im-gradient-start: var(--flare-color-primary, #7c3aed);
-  --im-gradient-end: var(--flare-color-info, #6366f1);
+  --im-brand-primary: var(--flare-color-primary, #7047D6);
+  --im-brand-primary-soft: ${isDark ? "rgba(124, 58, 237, 0.24)" : "var(--flare-color-bg-selected, #F0ECFC)"};
+  --im-gradient-start: var(--flare-color-primary, #7047D6);
+  --im-gradient-end: var(--flare-color-info, #6D5DF6);
   /* "Considered violet" signature — a subtle brand gradient for primary action
      surfaces (send, CTAs), giving them depth without a flat fill. */
-  --im-brand-gradient: linear-gradient(135deg, var(--flare-color-primary, #7C3AED), ${isDark ? "#7C3AED" : "var(--flare-color-primary-active, #5B21B6)"});
+  --im-brand-gradient: linear-gradient(135deg, var(--flare-color-primary, #7047D6), ${isDark ? "#7C3AED" : "var(--flare-color-primary-active, #512CAC)"});
   --im-focus-ring: var(--flare-color-focus-ring, rgba(124, 58, 237, 0.35));
   --im-primary-soft: var(--im-brand-primary-soft);
-  --im-message-outgoing: ${isDark ? colors.bubble.self : `var(--flare-color-bubble-self, ${colors.bubble.self})`};
+  --im-message-outgoing: ${isDark ? colors.bubble.self : `var(--flare-color-bubble-self, #7047D6)`};
   --im-message-outgoing-text: #ffffff;
   /* Incoming messages follow the theme surface on every platform. */
   --im-message-incoming: ${colors.bg.primary};
@@ -28,7 +28,7 @@ export function generateWebAppThemeExtensions(isDark = false): string {
   --im-message-pinned-bg: ${isDark ? "rgba(245, 158, 11, 0.14)" : "#FFF7DE"};
   --im-message-pinned-border: ${isDark ? "rgba(245, 158, 11, 0.34)" : "#F2C94C"};
   --im-message-pinned-text: ${isDark ? "#FFE8A3" : "#8A5A00"};
-  --im-presence-online: var(--flare-color-success, ${colors.success});
+  --im-presence-online: var(--flare-color-success, #22C55E);
   --im-composer-bar-bg: ${isDark ? "#1a1d23" : "#eef1f6"};
   --im-composer-desktop-height: 46px;
   --im-composer-mobile-min-height: 96px;

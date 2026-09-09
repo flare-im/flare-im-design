@@ -75,9 +75,9 @@ function onInput(e: Event): void {
 .flare-stepper {
   display: inline-flex;
   align-items: center;
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
   border-radius: var(--flare-size-radius-lg, 10px);
-  background: var(--flare-color-bg-secondary, #f6f5fb);
+  background: var(--flare-color-bg-secondary, #F7F8FA);
   overflow: hidden;
 }
 .flare-stepper.is-disabled { opacity: 0.55; }
@@ -87,11 +87,11 @@ function onInput(e: Event): void {
   justify-content: center;
   border: none;
   background: transparent;
-  color: var(--flare-color-text-secondary, #6b6780);
+  color: var(--flare-color-text-secondary, #626978);
   cursor: pointer;
-  transition: background var(--flare-transition-fast, 150ms ease), color var(--flare-transition-fast, 150ms ease);
+  transition: background var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), color var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
-.flare-stepper__btn:hover:not(:disabled) { background: var(--flare-color-bg-selected, #f1eaff); color: var(--flare-color-primary, #7c3aed); }
+.flare-stepper__btn:hover:not(:disabled) { background: var(--flare-color-bg-selected, #F0ECFC); color: var(--flare-color-primary, #7047D6); }
 .flare-stepper__btn:active:not(:disabled) { transform: scale(0.9); }
 .flare-stepper__btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .flare-stepper__field {
@@ -100,7 +100,7 @@ function onInput(e: Event): void {
   outline: none;
   text-align: center;
   background: transparent;
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
   font: inherit;
   font-variant-numeric: tabular-nums;
   -moz-appearance: textfield;

@@ -50,7 +50,7 @@ function select(o: FlareSelectOption): void {
   padding: 0;
   cursor: pointer;
   font-size: 14px;
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
 }
 .flare-radio.is-disabled { opacity: 0.5; cursor: not-allowed; }
 .flare-radio__dot {
@@ -58,17 +58,17 @@ function select(o: FlareSelectOption): void {
   height: 18px;
   flex: 0 0 auto;
   border-radius: 50%;
-  border: 1.5px solid var(--flare-color-border-hover, #d5d1e0);
-  background: var(--flare-color-bg-primary, #fff);
+  border: 1.5px solid var(--flare-color-border-hover, #C9CDD7);
+  background: var(--flare-color-bg-primary, #FFFFFF);
   position: relative;
-  transition: border-color var(--flare-transition-fast, 150ms ease);
+  transition: border-color var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
-.flare-radio.is-on .flare-radio__dot { border-color: var(--flare-color-primary, #7c3aed); }
+.flare-radio.is-on .flare-radio__dot { border-color: var(--flare-color-primary, #7047D6); }
 .flare-radio.is-on .flare-radio__dot::after {
   content: "";
   position: absolute;
   inset: 3.5px;
   border-radius: 50%;
-  background: var(--flare-color-primary, #7c3aed);
+  background: var(--flare-color-primary, #7047D6);
 }
 </style>

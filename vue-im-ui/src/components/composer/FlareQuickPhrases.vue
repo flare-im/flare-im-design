@@ -72,8 +72,8 @@ const activeGroup = computed(
   display: flex;
   flex-direction: column;
   border-radius: var(--flare-size-radius-xl, 14px);
-  background: var(--flare-color-bg-primary, #fff);
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  background: var(--flare-color-bg-primary, #FFFFFF);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
   box-shadow: var(--flare-shadow-lg, 0 12px 28px rgba(21, 18, 32, 0.16));
   overflow: hidden;
 }
@@ -89,7 +89,7 @@ const activeGroup = computed(
   gap: 6px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
 }
 .flare-quick-phrases__manage {
   display: inline-flex;
@@ -97,7 +97,7 @@ const activeGroup = computed(
   gap: 4px;
   border: none;
   background: transparent;
-  color: var(--flare-color-primary, #7c3aed);
+  color: var(--flare-color-primary, #7047D6);
   font-size: 12px;
   cursor: pointer;
 }
@@ -112,15 +112,15 @@ const activeGroup = computed(
   padding: 5px 12px;
   border: none;
   border-radius: 999px;
-  background: var(--flare-color-bg-secondary, #f6f5fb);
-  color: var(--flare-color-text-secondary, #6b6780);
+  background: var(--flare-color-bg-secondary, #F7F8FA);
+  color: var(--flare-color-text-secondary, #626978);
   font-size: 12px;
   cursor: pointer;
-  transition: background var(--flare-transition-fast, 150ms ease), color var(--flare-transition-fast, 150ms ease);
+  transition: background var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), color var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-quick-phrases__tab.is-active {
-  background: var(--flare-color-bg-selected, #f1eaff);
-  color: var(--flare-color-primary, #7c3aed);
+  background: var(--flare-color-bg-selected, #F0ECFC);
+  color: var(--flare-color-primary, #7047D6);
   font-weight: 500;
 }
 .flare-quick-phrases__list {
@@ -137,11 +137,11 @@ const activeGroup = computed(
   border: none;
   border-radius: var(--flare-size-radius-lg, 10px);
   background: transparent;
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
   font-size: 14px;
   line-height: 1.45;
   cursor: pointer;
-  transition: background var(--flare-transition-fast, 150ms ease);
+  transition: background var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
-.flare-quick-phrases__item:hover { background: var(--flare-color-bg-secondary, #f6f5fb); }
+.flare-quick-phrases__item:hover { background: var(--flare-color-bg-secondary, #F7F8FA); }
 </style>

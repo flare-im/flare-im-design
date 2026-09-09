@@ -50,7 +50,7 @@ const showOriginal = ref(false);
 
 <style scoped>
 .flare-translation {
-  border-left: 2px solid color-mix(in srgb, var(--flare-color-primary, #7c3aed) 40%, transparent);
+  border-left: 2px solid color-mix(in srgb, var(--flare-color-primary, #7047D6) 40%, transparent);
   padding: 6px 0 2px 10px;
   margin-top: 4px;
 }
@@ -58,7 +58,7 @@ const showOriginal = ref(false);
   margin: 0;
   font-size: 14px;
   line-height: 1.5;
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -74,7 +74,7 @@ const showOriginal = ref(false);
   align-items: center;
   gap: 4px;
   font-size: 11px;
-  color: var(--flare-color-text-tertiary, #a7a2b4);
+  color: var(--flare-color-text-tertiary, #687182);
 }
 .flare-translation__toggle {
   display: inline-flex;
@@ -82,7 +82,7 @@ const showOriginal = ref(false);
   gap: 2px;
   border: none;
   background: transparent;
-  color: var(--flare-color-primary, #7c3aed);
+  color: var(--flare-color-primary, #7047D6);
   font-size: 11px;
   cursor: pointer;
   padding: 0;
@@ -91,10 +91,10 @@ const showOriginal = ref(false);
 .flare-translation__original {
   margin: 6px 0 0;
   padding-top: 6px;
-  border-top: 1px dashed var(--flare-color-border-primary, #e9e6f1);
+  border-top: 1px dashed var(--flare-color-border-primary, #E3E5EB);
   font-size: 13px;
   line-height: 1.5;
-  color: var(--flare-color-text-secondary, #6b6780);
+  color: var(--flare-color-text-secondary, #626978);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -104,7 +104,7 @@ const showOriginal = ref(false);
   gap: 6px;
   margin: 0;
   font-size: 13px;
-  color: var(--flare-color-text-tertiary, #a7a2b4);
+  color: var(--flare-color-text-tertiary, #687182);
 }
 .is-spin { animation: flare-translation-spin 0.9s linear infinite; }
 @media (prefers-reduced-motion: reduce) {

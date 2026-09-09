@@ -132,10 +132,10 @@ function onToggle(item: FlareSettingsItem, value: boolean) {
 .flare-contact-detail__actions { display: flex; gap: 10px; padding: 6px 16px 4px; }
 .flare-contact-detail__actions button {
   flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;
-  padding: 12px 4px; border: none; border-radius: var(--flare-size-radius-lg, 14px);
-  background: var(--flare-color-bg-primary, #fff); box-shadow: var(--flare-shadow-soft, 0 1px 2px rgba(20, 19, 28, 0.06));
+  padding: 12px 4px; border: none; border-radius: var(--flare-size-radius-lg, 10px);
+  background: var(--flare-color-bg-primary, #FFFFFF); box-shadow: var(--flare-shadow-soft, 0 1px 2px rgba(20, 19, 28, 0.06));
   color: var(--flare-color-text-secondary); font-size: 13px; font-weight: 500; cursor: pointer;
-  transition: transform var(--flare-transition-fast, 150ms ease), filter var(--flare-transition-fast, 150ms ease);
+  transition: transform var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), filter var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-contact-detail__actions button:active { transform: scale(0.97); }
 .flare-contact-detail__actions button.is-primary {
@@ -147,10 +147,10 @@ function onToggle(item: FlareSettingsItem, value: boolean) {
 
 .flare-contact-detail__foot { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
 .flare-contact-detail__foot button {
-  width: 100%; padding: 12px; border-radius: var(--flare-size-radius-lg, 12px);
-  border: 1px solid var(--flare-color-border-primary); background: var(--flare-color-bg-primary, #fff);
+  width: 100%; padding: 12px; border-radius: var(--flare-size-radius-lg, 10px);
+  border: 1px solid var(--flare-color-border-primary); background: var(--flare-color-bg-primary, #FFFFFF);
   color: var(--flare-color-text-primary); font-size: 15px; font-weight: 500; cursor: pointer;
-  transition: filter var(--flare-transition-fast, 150ms ease);
+  transition: filter var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-contact-detail__foot button:active { filter: brightness(0.97); }
 .flare-contact-detail__foot button.is-danger {

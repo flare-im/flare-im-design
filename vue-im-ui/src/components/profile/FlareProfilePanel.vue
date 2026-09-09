@@ -106,7 +106,7 @@ const groups = computed<FlareSettingsSection[]>(() =>
 .flare-profile__list {
   margin: 14px 12px 0;
   border-radius: var(--flare-size-radius-xl, 14px);
-  background: var(--flare-color-bg-elevated, #fff);
+  background: var(--flare-color-bg-elevated, #FFFFFF);
   box-shadow: var(--flare-shadow-card);
   overflow: hidden;
 }

@@ -43,7 +43,7 @@ const { t } = useFlareI18n();
 }
 .flare-new-friends__row button {
   padding: 5px 14px;
-  border-radius: var(--flare-size-radius-md, 6px);
+  border-radius: var(--flare-size-radius-md, 8px);
   border: 1px solid var(--flare-color-border-primary);
   background: none;
   color: var(--flare-color-text-secondary);

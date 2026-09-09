@@ -43,7 +43,7 @@ const { t } = useFlareI18n();
 
 .im-conv-list__state {
   padding: 42px 16px;
-  color: var(--im-text-secondary, var(--flare-color-text-secondary, #6b7280));
+  color: var(--im-text-secondary, var(--flare-color-text-secondary, #626978));
   font-size: 13px;
   text-align: center;
 }

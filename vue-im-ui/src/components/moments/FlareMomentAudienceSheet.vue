@@ -154,25 +154,25 @@ function toggle(c: FlareContactBrief) {
 
 <style scoped>
 .flare-moment-audience__title {
-  padding: var(--flare-space-3, 12px);
-  font-size: var(--flare-font-size-md, 14px);
-  color: var(--flare-color-text-primary, #222);
+  padding: var(--flare-size-spacing-md, 12px);
+  font-size: var(--flare-size-font-size-lg, 14px);
+  color: var(--flare-color-text-primary, #20232D);
 }
 
 .flare-moment-audience__options {
   margin: 0;
   padding: 0;
   list-style: none;
-  border-top: 1px solid var(--flare-color-border-primary, #e7e9ee);
+  border-top: 1px solid var(--flare-color-border-primary, #E3E5EB);
 }
 
 .flare-moment-audience__row {
   display: flex;
   align-items: center;
-  gap: var(--flare-space-2, 8px);
-  padding: var(--flare-space-2, 8px) var(--flare-space-3, 12px);
+  gap: var(--flare-size-spacing-sm, 8px);
+  padding: var(--flare-size-spacing-sm, 8px) var(--flare-size-spacing-md, 12px);
   cursor: pointer;
-  color: var(--flare-color-text-secondary, #666);
+  color: var(--flare-color-text-secondary, #626978);
 }
 
 .flare-moment-audience__row:hover {
@@ -180,16 +180,16 @@ function toggle(c: FlareContactBrief) {
 }
 
 .flare-moment-audience__row.is-active {
-  color: var(--flare-color-text-primary, #222);
+  color: var(--flare-color-text-primary, #20232D);
 }
 
 /* 两个方向分开着色：设反的后果不对称，得一眼看出选的是哪个。 */
 .flare-moment-audience__row.is-include.is-active {
-  color: var(--flare-color-primary, #6b5bd2);
+  color: var(--flare-color-primary, #7047D6);
 }
 
 .flare-moment-audience__row.is-exclude.is-active {
-  color: var(--flare-color-warning, #d97706);
+  color: var(--flare-color-warning, #F59E0B);
 }
 
 .flare-moment-audience__labels {
@@ -200,32 +200,32 @@ function toggle(c: FlareContactBrief) {
 }
 
 .flare-moment-audience__labels small {
-  font-size: var(--flare-font-size-sm, 12px);
-  color: var(--flare-color-text-tertiary, #999);
+  font-size: var(--flare-size-font-size-sm, 12px);
+  color: var(--flare-color-text-tertiary, #687182);
 }
 
 .flare-moment-audience__count {
-  font-size: var(--flare-font-size-sm, 12px);
-  color: var(--flare-color-text-tertiary, #999);
+  font-size: var(--flare-size-font-size-sm, 12px);
+  color: var(--flare-color-text-tertiary, #687182);
 }
 
 .flare-moment-audience__picker {
   max-height: 240px;
   overflow-y: auto;
-  border-top: 1px solid var(--flare-color-border-primary, #e7e9ee);
+  border-top: 1px solid var(--flare-color-border-primary, #E3E5EB);
 }
 
 .flare-moment-audience__picker-head {
-  padding: var(--flare-space-2, 8px) var(--flare-space-3, 12px);
-  font-size: var(--flare-font-size-sm, 12px);
-  color: var(--flare-color-text-tertiary, #999);
+  padding: var(--flare-size-spacing-sm, 8px) var(--flare-size-spacing-md, 12px);
+  font-size: var(--flare-size-font-size-sm, 12px);
+  color: var(--flare-color-text-tertiary, #687182);
 }
 
 .flare-moment-audience__contact {
   display: flex;
   align-items: center;
-  gap: var(--flare-space-2, 8px);
-  padding: var(--flare-space-1, 6px) var(--flare-space-3, 12px);
+  gap: var(--flare-size-spacing-sm, 8px);
+  padding: 6px var(--flare-size-spacing-md, 12px);
   cursor: pointer;
 }
 
@@ -236,20 +236,20 @@ function toggle(c: FlareContactBrief) {
 .flare-moment-audience__contact-name {
   flex: 1;
   min-width: 0;
-  font-size: var(--flare-font-size-md, 14px);
+  font-size: var(--flare-size-font-size-lg, 14px);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .flare-moment-audience__check {
-  color: var(--flare-color-primary, #6b5bd2);
+  color: var(--flare-color-primary, #7047D6);
 }
 
 .flare-moment-audience__foot {
   display: flex;
   justify-content: flex-end;
-  padding: var(--flare-space-3, 12px);
-  border-top: 1px solid var(--flare-color-border-primary, #e7e9ee);
+  padding: var(--flare-size-spacing-md, 12px);
+  border-top: 1px solid var(--flare-color-border-primary, #E3E5EB);
 }
 </style>

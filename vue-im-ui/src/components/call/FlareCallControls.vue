@@ -113,9 +113,9 @@ const speakerIcon = computed(() => (props.speakerOn ? VolumeHighOutline : Volume
   border: 1px solid rgba(255, 255, 255, 0.14);
   backdrop-filter: blur(8px);
   transition:
-    transform var(--flare-transition-fast, 150ms ease),
-    background var(--flare-transition-fast, 150ms ease),
-    color var(--flare-transition-fast, 150ms ease);
+    transform var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)),
+    background var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)),
+    color var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-call-controls__btn:hover .ico {
   background: rgba(255, 255, 255, 0.22);

@@ -85,15 +85,15 @@ onMounted(() => {
   position: relative;
   display: block;
   width: 100%;
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
   border-radius: var(--flare-size-radius-lg, 10px);
-  background: var(--flare-color-bg-secondary, #f6f5fb);
-  transition: border-color var(--flare-transition-fast, 150ms ease), box-shadow var(--flare-transition-fast, 150ms ease);
+  background: var(--flare-color-bg-secondary, #F7F8FA);
+  transition: border-color var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), box-shadow var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-textarea:focus-within {
-  border-color: var(--flare-color-primary, #7c3aed);
+  border-color: var(--flare-color-primary, #7047D6);
   box-shadow: 0 0 0 3px var(--flare-color-focus-ring, rgba(124, 58, 237, 0.28));
-  background: var(--flare-color-bg-primary, #fff);
+  background: var(--flare-color-bg-primary, #FFFFFF);
 }
 .flare-textarea.is-disabled { opacity: 0.55; }
 .flare-textarea__field {
@@ -103,12 +103,12 @@ onMounted(() => {
   outline: none;
   resize: none;
   background: transparent;
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
   font: inherit;
   line-height: 1.5;
   display: block;
 }
-.flare-textarea__field::placeholder { color: var(--flare-color-text-tertiary, #a7a2b4); }
+.flare-textarea__field::placeholder { color: var(--flare-color-text-tertiary, #687182); }
 .flare-textarea--sm .flare-textarea__field { padding: 8px 10px; font-size: 13px; }
 .flare-textarea--md .flare-textarea__field { padding: 10px 12px; font-size: 14px; }
 .flare-textarea--lg .flare-textarea__field { padding: 12px 14px; font-size: 15px; }
@@ -117,10 +117,10 @@ onMounted(() => {
   right: 10px;
   bottom: 6px;
   font-size: 12px;
-  color: var(--flare-color-text-tertiary, #a7a2b4);
+  color: var(--flare-color-text-tertiary, #687182);
   pointer-events: none;
-  background: linear-gradient(transparent, var(--flare-color-bg-secondary, #f6f5fb) 40%);
+  background: linear-gradient(transparent, var(--flare-color-bg-secondary, #F7F8FA) 40%);
   padding-left: 6px;
 }
-.flare-textarea:focus-within .flare-textarea__count { background: linear-gradient(transparent, var(--flare-color-bg-primary, #fff) 40%); }
+.flare-textarea:focus-within .flare-textarea__count { background: linear-gradient(transparent, var(--flare-color-bg-primary, #FFFFFF) 40%); }
 </style>

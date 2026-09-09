@@ -19,7 +19,7 @@ defineProps<{ title: string }>();
   align-items: center;
   gap: 12px;
   padding: 14px 16px;
-  background: var(--flare-color-bg-primary, #fff);
+  background: var(--flare-color-bg-primary, #FFFFFF);
 }
 .flare-screen-header__title {
   flex: 1;
@@ -28,7 +28,7 @@ defineProps<{ title: string }>();
   font-size: 24px;
   font-weight: 700;
   line-height: 1.2;
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

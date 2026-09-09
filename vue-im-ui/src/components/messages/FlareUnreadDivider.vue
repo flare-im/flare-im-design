@@ -28,13 +28,13 @@ const label = computed(() =>
 .flare-unread-divider__line {
   flex: 1;
   height: 1px;
-  background: color-mix(in srgb, var(--flare-color-primary, #7c3aed) 24%, transparent);
+  background: color-mix(in srgb, var(--flare-color-primary, #7047D6) 24%, transparent);
 }
 .flare-unread-divider__label {
   flex: 0 0 auto;
   font-size: 12px;
   font-weight: 500;
-  color: var(--flare-color-primary, #7c3aed);
+  color: var(--flare-color-primary, #7047D6);
   letter-spacing: 0.02em;
 }
 </style>

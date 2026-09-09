@@ -49,7 +49,7 @@ const { t } = useFlareI18n();
   border: none;
   padding: 0;
   cursor: pointer;
-  background-color: var(--flare-color-bg-tertiary, #ece9f3);
+  background-color: var(--flare-color-bg-tertiary, #F1F2F5);
   /* Aurora: a violet light source rather than a flat gradient. Only shows when
      the user has no cover photo (an inline background-image overrides it). */
   background-image:

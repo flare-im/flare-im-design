@@ -61,19 +61,19 @@ const icon = computed(
   gap: 10px;
   max-width: 420px;
   padding: 11px 14px;
-  border-radius: var(--flare-size-radius-lg, 12px);
-  background: var(--flare-color-bg-primary, #fff);
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  border-radius: var(--flare-size-radius-lg, 10px);
+  background: var(--flare-color-bg-primary, #FFFFFF);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
   box-shadow: var(--flare-shadow-lg, 0 12px 28px rgba(21, 18, 32, 0.16));
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
   font-size: 14px;
 }
 .flare-toast__icon { flex: 0 0 auto; }
-.flare-toast--info .flare-toast__icon { color: var(--flare-color-primary, #7c3aed); }
+.flare-toast--info .flare-toast__icon { color: var(--flare-color-primary, #7047D6); }
 .flare-toast--success .flare-toast__icon { color: var(--flare-color-success, #22c55e); }
 .flare-toast--error .flare-toast__icon { color: var(--flare-color-error, #ef4444); }
 .flare-toast--warning .flare-toast__icon { color: var(--flare-color-warning, #f59e0b); }
-.flare-toast--loading .flare-toast__icon { color: var(--flare-color-text-secondary, #6b6780); }
+.flare-toast--loading .flare-toast__icon { color: var(--flare-color-text-secondary, #626978); }
 .flare-toast__message {
   flex: 1;
   min-width: 0;
@@ -83,7 +83,7 @@ const icon = computed(
   flex: 0 0 auto;
   border: none;
   background: transparent;
-  color: var(--flare-color-primary, #7c3aed);
+  color: var(--flare-color-primary, #7047D6);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;

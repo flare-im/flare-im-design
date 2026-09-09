@@ -32,11 +32,11 @@ function toggle(): void {
   border-radius: 999px;
   padding: 0;
   cursor: pointer;
-  background: var(--flare-color-border-hover, #d5d1e0);
+  background: var(--flare-color-border-hover, #C9CDD7);
   position: relative;
-  transition: background var(--flare-transition-fast, 150ms ease);
+  transition: background var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
-.flare-switch.is-on { background: var(--flare-color-primary, #7c3aed); }
+.flare-switch.is-on { background: var(--flare-color-primary, #7047D6); }
 .flare-switch.is-disabled { opacity: 0.5; cursor: not-allowed; }
 .flare-switch__knob {
   position: absolute;

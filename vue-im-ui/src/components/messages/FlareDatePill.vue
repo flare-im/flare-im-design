@@ -30,10 +30,10 @@ defineProps<{
   border-radius: 999px;
   font-size: 12px;
   font-weight: 500;
-  color: var(--flare-color-text-secondary, #6b6780);
-  background: color-mix(in srgb, var(--flare-color-bg-primary, #fff) 78%, transparent);
+  color: var(--flare-color-text-secondary, #626978);
+  background: color-mix(in srgb, var(--flare-color-bg-primary, #FFFFFF) 78%, transparent);
   backdrop-filter: blur(6px);
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
   box-shadow: var(--flare-shadow-sm, 0 2px 6px rgba(21, 18, 32, 0.08));
 }
 </style>

@@ -103,7 +103,7 @@ function isDisabled(d: number): boolean {
 <style scoped>
 .flare-cal { display: flex; flex-direction: column; gap: 8px; padding: 10px; min-width: 262px; }
 .flare-cal__head { display: flex; align-items: center; justify-content: space-between; padding: 2px 4px 4px; }
-.flare-cal__label { font-size: 14px; font-weight: 600; color: var(--flare-color-text-primary, #15131c); font-variant-numeric: tabular-nums; }
+.flare-cal__label { font-size: 14px; font-weight: 600; color: var(--flare-color-text-primary, #20232D); font-variant-numeric: tabular-nums; }
 .flare-cal__nav {
   display: inline-flex;
   align-items: center;
@@ -113,15 +113,15 @@ function isDisabled(d: number): boolean {
   border: none;
   border-radius: var(--flare-size-radius-md, 8px);
   background: transparent;
-  color: var(--flare-color-text-secondary, #6b6780);
+  color: var(--flare-color-text-secondary, #626978);
   cursor: pointer;
-  transition: background var(--flare-transition-fast, 150ms ease), color var(--flare-transition-fast, 150ms ease);
+  transition: background var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), color var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
-.flare-cal__nav:hover { background: var(--flare-color-bg-secondary, #f6f5fb); color: var(--flare-color-primary, #7c3aed); }
+.flare-cal__nav:hover { background: var(--flare-color-bg-secondary, #F7F8FA); color: var(--flare-color-primary, #7047D6); }
 
 .flare-cal__grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
 .flare-cal__weekdays { margin-bottom: 2px; }
-.flare-cal__wd { text-align: center; font-size: 12px; font-weight: 500; color: var(--flare-color-text-tertiary, #a7a2b4); padding: 4px 0; }
+.flare-cal__wd { text-align: center; font-size: 12px; font-weight: 500; color: var(--flare-color-text-tertiary, #687182); padding: 4px 0; }
 .flare-cal__blank { aspect-ratio: 1; }
 .flare-cal__day {
   aspect-ratio: 1;
@@ -135,14 +135,14 @@ function isDisabled(d: number): boolean {
   font: inherit;
   font-size: 14px;
   font-variant-numeric: tabular-nums;
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
   cursor: pointer;
-  transition: background var(--flare-transition-fast, 150ms ease), color var(--flare-transition-fast, 150ms ease);
+  transition: background var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), color var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-cal__day:hover:not(.is-disabled):not(.is-selected),
-.flare-cal__day:focus-visible:not(.is-disabled):not(.is-selected) { background: var(--flare-color-bg-secondary, #f6f5fb); outline: none; }
-.flare-cal__day.is-today:not(.is-selected) { border-color: var(--flare-color-primary, #7c3aed); color: var(--flare-color-primary, #7c3aed); }
-.flare-cal__day.is-selected { background: var(--im-brand-gradient, var(--flare-color-primary, #7c3aed)); color: #fff; font-weight: 600; }
+.flare-cal__day:focus-visible:not(.is-disabled):not(.is-selected) { background: var(--flare-color-bg-secondary, #F7F8FA); outline: none; }
+.flare-cal__day.is-today:not(.is-selected) { border-color: var(--flare-color-primary, #7047D6); color: var(--flare-color-primary, #7047D6); }
+.flare-cal__day.is-selected { background: var(--im-brand-gradient, var(--flare-color-primary, #7047D6)); color: #fff; font-weight: 600; }
 .flare-cal__day.is-disabled { opacity: 0.32; cursor: not-allowed; }
 
 .flare-cal__footer { display: flex; gap: 8px; padding-top: 6px; }
@@ -154,9 +154,9 @@ function isDisabled(d: number): boolean {
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: filter var(--flare-transition-fast, 150ms ease), background var(--flare-transition-fast, 150ms ease);
+  transition: filter var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), background var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
-.flare-cal__btn.is-ghost { background: var(--flare-color-bg-secondary, #f6f5fb); color: var(--flare-color-text-secondary, #6b6780); }
-.flare-cal__btn.is-primary { background: var(--im-brand-gradient, var(--flare-color-primary, #7c3aed)); color: #fff; }
+.flare-cal__btn.is-ghost { background: var(--flare-color-bg-secondary, #F7F8FA); color: var(--flare-color-text-secondary, #626978); }
+.flare-cal__btn.is-primary { background: var(--im-brand-gradient, var(--flare-color-primary, #7047D6)); color: #fff; }
 .flare-cal__btn.is-primary:hover { filter: brightness(0.97); }
 </style>

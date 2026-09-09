@@ -71,7 +71,7 @@ const view = computed(() => unknownMessagePresentation({
   display: flex;
   align-items: center;
   gap: 6px;
-  color: var(--flare-color-text-secondary, #6b6577);
+  color: var(--flare-color-text-secondary, #626978);
 }
 .flare-unknown-message--self .flare-unknown-message__head,
 .flare-unknown-message--self .flare-unknown-message__body,
@@ -85,7 +85,7 @@ const view = computed(() => unknownMessagePresentation({
   margin: 0;
   font-size: 14px;
   overflow-wrap: anywhere;
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
 }
 .flare-unknown-message--self .flare-unknown-message__body { color: inherit; }
 .flare-unknown-message__diagnostic {
@@ -95,7 +95,7 @@ const view = computed(() => unknownMessagePresentation({
   gap: 6px;
   margin: 0;
   font-size: 12px;
-  color: var(--flare-color-text-tertiary, #a7a2b4);
+  color: var(--flare-color-text-tertiary, #687182);
 }
 .flare-unknown-message__diagnostic code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -107,7 +107,7 @@ const view = computed(() => unknownMessagePresentation({
   min-height: 48px;
   padding: 0 12px;
   margin-top: 2px;
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
   border-radius: var(--flare-size-radius-md, 8px);
   background: transparent;
   color: inherit;
@@ -115,7 +115,7 @@ const view = computed(() => unknownMessagePresentation({
   cursor: pointer;
 }
 .flare-unknown-message__action:focus-visible {
-  outline: 2px solid var(--flare-color-primary, #7c3aed);
+  outline: 2px solid var(--flare-color-primary, #7047D6);
   outline-offset: 2px;
 }
 </style>

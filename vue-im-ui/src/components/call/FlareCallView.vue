@@ -121,7 +121,7 @@ const pulsing = computed(() => props.state === "calling" || props.state === "rin
   background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(6px);
   cursor: pointer;
-  transition: background var(--flare-transition-fast, 150ms ease);
+  transition: background var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-call-view__minimize:hover {
   background: rgba(255, 255, 255, 0.2);

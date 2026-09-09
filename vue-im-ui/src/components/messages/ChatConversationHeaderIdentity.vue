@@ -60,7 +60,7 @@ withDefaults(
 .im-chat-identity h2 {
   margin: 0;
   overflow: hidden;
-  color: var(--im-chat-hdr-title, var(--flare-color-text-primary, #111318));
+  color: var(--im-chat-hdr-title, var(--flare-color-text-primary, #20232D));
   font-size: 15px;
   font-weight: 800;
   letter-spacing: 0;
@@ -72,7 +72,7 @@ withDefaults(
 .im-chat-identity p {
   margin: 2px 0 0;
   overflow: hidden;
-  color: var(--im-chat-hdr-meta, var(--flare-color-text-secondary, #6b7280));
+  color: var(--im-chat-hdr-meta, var(--flare-color-text-secondary, #626978));
   font-size: 12px;
   line-height: 1.25;
   text-overflow: ellipsis;

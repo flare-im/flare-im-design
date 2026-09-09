@@ -64,7 +64,7 @@ function onRootActivate() {
 }
 .flare-empty.is-tappable { cursor: pointer; }
 .flare-empty.is-tappable:focus-visible {
-  outline: 2px solid var(--flare-color-primary, #7c3aed);
+  outline: 2px solid var(--flare-color-primary, #7047D6);
   outline-offset: 4px;
   border-radius: var(--flare-size-radius-md, 8px);
 }
@@ -78,7 +78,7 @@ function onRootActivate() {
 .flare-empty__act {
   margin-top: 8px;
   padding: 7px 18px;
-  border-radius: var(--flare-size-radius-md, 6px);
+  border-radius: var(--flare-size-radius-md, 8px);
   border: 1px solid var(--flare-color-primary);
   background: none;
   color: var(--flare-color-primary);
@@ -90,7 +90,7 @@ function onRootActivate() {
   height: 44px;
   border-radius: 50%;
   border: 3px solid var(--flare-color-bg-selected, rgba(124, 58, 237, 0.18));
-  border-top-color: var(--flare-color-primary, #7c3aed);
+  border-top-color: var(--flare-color-primary, #7047D6);
   animation: flare-empty-spin 0.75s linear infinite;
 }
 .flare-empty.is-error .flare-empty__spinner {

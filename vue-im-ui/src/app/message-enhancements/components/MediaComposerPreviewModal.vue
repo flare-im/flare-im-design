@@ -297,7 +297,7 @@ function formatBytes(value: number): string {
 .media-composer-preview__name,
 .media-composer-preview__caption span,
 .media-composer-preview__caption small {
-  color: var(--flare-text-secondary, #8f97a7);
+  color: var(--flare-color-text-secondary, #626978);
 }
 
 /* 文件:紧凑一行(仅文件名 + 大小),不占用大预览面板 */
@@ -322,7 +322,7 @@ function formatBytes(value: number): string {
 
 .media-composer-preview__filerow small {
   flex: 0 0 auto;
-  color: var(--flare-text-secondary, #8f97a7);
+  color: var(--flare-color-text-secondary, #626978);
 }
 
 .media-composer-preview__index {

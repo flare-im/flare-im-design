@@ -161,7 +161,7 @@ watch(url, () => {
   font-size: 11px;
   background:
     linear-gradient(135deg, rgb(255 255 255 / 18%), transparent),
-    color-mix(in srgb, var(--im-bg-surface-alt, var(--flare-color-bg-tertiary, #f2f3f5)) 88%, var(--im-bg-surface, var(--flare-color-bg-primary, #ffffff)));
+    color-mix(in srgb, var(--im-bg-surface-alt, var(--flare-color-bg-tertiary, #F1F2F5)) 88%, var(--im-bg-surface, var(--flare-color-bg-primary, #ffffff)));
 }
 
 .im-image-group-cell__actions {
@@ -200,7 +200,7 @@ watch(url, () => {
 
 .im-image-group-cell__action:hover,
 .im-image-group-cell__action:focus-visible {
-  background: color-mix(in srgb, var(--im-brand-primary, var(--flare-color-primary, #7c3aed)) 76%, #111827);
+  background: color-mix(in srgb, var(--im-brand-primary, var(--flare-color-primary, #7047D6)) 76%, #111827);
 }
 
 .im-image-group-cell__action .n-icon {

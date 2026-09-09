@@ -416,5 +416,5 @@ function submitInvite() {
 .flare-group-detail__req-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .flare-group-detail__req-msg { font-size: 12px; color: var(--flare-color-text-tertiary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .flare-group-detail__req-actions { display: flex; gap: 8px; flex-shrink: 0; }
-.flare-group-detail__code { padding: 14px 16px; border-radius: var(--flare-size-radius-lg, 12px); background: var(--flare-color-bg-secondary); text-align: center; font-size: 18px; font-weight: 700; letter-spacing: 0.08em; color: var(--flare-color-text-primary); word-break: break-all; }
+.flare-group-detail__code { padding: 14px 16px; border-radius: var(--flare-size-radius-lg, 10px); background: var(--flare-color-bg-secondary); text-align: center; font-size: 18px; font-weight: 700; letter-spacing: 0.08em; color: var(--flare-color-text-primary); word-break: break-all; }
 </style>

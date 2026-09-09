@@ -104,8 +104,8 @@ function setTone(tn: string): void {
   display: flex;
   flex-direction: column;
   border-radius: var(--flare-size-radius-xl, 14px);
-  background: var(--flare-color-bg-primary, #fff);
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  background: var(--flare-color-bg-primary, #FFFFFF);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
   box-shadow: var(--flare-shadow-lg, 0 12px 28px rgba(21, 18, 32, 0.16));
   overflow: hidden;
 }
@@ -114,9 +114,9 @@ function setTone(tn: string): void {
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
-  border-bottom: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  border-bottom: 1px solid var(--flare-color-border-primary, #E3E5EB);
 }
-.flare-emoji-picker__search-ico { color: var(--flare-color-text-tertiary, #a7a2b4); }
+.flare-emoji-picker__search-ico { color: var(--flare-color-text-tertiary, #687182); }
 .flare-emoji-picker__input {
   flex: 1;
   min-width: 0;
@@ -124,7 +124,7 @@ function setTone(tn: string): void {
   outline: none;
   background: transparent;
   font-size: 14px;
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
 }
 .flare-emoji-picker__tones { display: inline-flex; gap: 1px; flex: 0 0 auto; }
 .flare-emoji-picker__tone {
@@ -139,7 +139,7 @@ function setTone(tn: string): void {
   opacity: 0.55;
   filter: grayscale(0.2);
 }
-.flare-emoji-picker__tone.is-active { opacity: 1; background: var(--flare-color-bg-selected, #f1eaff); }
+.flare-emoji-picker__tone.is-active { opacity: 1; background: var(--flare-color-bg-selected, #F0ECFC); }
 .flare-emoji-picker__grid {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
@@ -157,21 +157,21 @@ function setTone(tn: string): void {
   line-height: 1;
   border-radius: 8px;
   cursor: pointer;
-  transition: background var(--flare-transition-fast, 150ms ease), transform var(--flare-transition-fast, 150ms ease);
+  transition: background var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), transform var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
-.flare-emoji-picker__emoji:hover { background: var(--flare-color-bg-secondary, #f6f5fb); transform: scale(1.12); }
+.flare-emoji-picker__emoji:hover { background: var(--flare-color-bg-secondary, #F7F8FA); transform: scale(1.12); }
 .flare-emoji-picker__empty {
   grid-column: 1 / -1;
   text-align: center;
   padding: 40px 0;
   font-size: 13px;
-  color: var(--flare-color-text-tertiary, #a7a2b4);
+  color: var(--flare-color-text-tertiary, #687182);
 }
 .flare-emoji-picker__rail {
   display: flex;
   gap: 2px;
   padding: 6px 8px;
-  border-top: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  border-top: 1px solid var(--flare-color-border-primary, #E3E5EB);
   overflow-x: auto;
 }
 .flare-emoji-picker__tab {
@@ -187,7 +187,7 @@ function setTone(tn: string): void {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--flare-color-text-secondary, #6b6780);
+  color: var(--flare-color-text-secondary, #626978);
 }
-.flare-emoji-picker__tab.is-active { background: var(--flare-color-bg-selected, #f1eaff); }
+.flare-emoji-picker__tab.is-active { background: var(--flare-color-bg-selected, #F0ECFC); }
 </style>

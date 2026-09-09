@@ -93,23 +93,23 @@ const hint = computed(() =>
 .flare-moments-visibility__head {
   display: flex;
   align-items: flex-start;
-  gap: var(--flare-space-2, 8px);
-  padding: var(--flare-space-3, 12px);
+  gap: var(--flare-size-spacing-sm, 8px);
+  padding: var(--flare-size-spacing-md, 12px);
 }
 
 .flare-moments-visibility__icon {
   margin-top: 2px;
   flex: none;
-  color: var(--flare-color-text-secondary, #666);
+  color: var(--flare-color-text-secondary, #626978);
 }
 
 /* 两类用不同强调色，让同屏时一眼可分。 */
 .is-hideFrom .flare-moments-visibility__icon {
-  color: var(--flare-color-warning, #d97706);
+  color: var(--flare-color-warning, #F59E0B);
 }
 
 .is-mute .flare-moments-visibility__icon {
-  color: var(--flare-color-text-tertiary, #999);
+  color: var(--flare-color-text-tertiary, #687182);
 }
 
 .flare-moments-visibility__titles {
@@ -118,18 +118,18 @@ const hint = computed(() =>
 }
 
 .flare-moments-visibility__title {
-  font-size: var(--flare-font-size-md, 14px);
-  color: var(--flare-color-text-primary, #222);
+  font-size: var(--flare-size-font-size-lg, 14px);
+  color: var(--flare-color-text-primary, #20232D);
 }
 
 .flare-moments-visibility__hint {
-  font-size: var(--flare-font-size-sm, 12px);
-  color: var(--flare-color-text-tertiary, #999);
+  font-size: var(--flare-size-font-size-sm, 12px);
+  color: var(--flare-color-text-tertiary, #687182);
   margin-top: 2px;
 }
 
 .flare-moments-visibility__body {
-  padding: 0 var(--flare-space-3, 12px) var(--flare-space-2, 8px);
+  padding: 0 var(--flare-size-spacing-md, 12px) var(--flare-size-spacing-sm, 8px);
   margin: 0;
   list-style: none;
 }
@@ -137,21 +137,21 @@ const hint = computed(() =>
 .flare-moments-visibility__row {
   display: flex;
   align-items: center;
-  gap: var(--flare-space-2, 8px);
-  padding: var(--flare-space-1, 6px) 0;
+  gap: var(--flare-size-spacing-sm, 8px);
+  padding: 6px 0;
   cursor: pointer;
 }
 
 .flare-moments-visibility__name {
   flex: 1;
   min-width: 0;
-  font-size: var(--flare-font-size-md, 14px);
+  font-size: var(--flare-size-font-size-lg, 14px);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .flare-moments-visibility__empty {
-  padding: var(--flare-space-4, 16px) 0;
+  padding: var(--flare-size-spacing-lg, 16px) 0;
 }
 </style>

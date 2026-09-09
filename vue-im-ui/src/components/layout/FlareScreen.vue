@@ -79,10 +79,10 @@ const hasHeader = computed(() => Boolean(props.title) || props.back || Boolean(s
   height: 100%;
   min-height: 0;
   position: relative;
-  background: var(--flare-color-bg-secondary, #f6f5fb);
-  color: var(--flare-color-text-primary, #15131c);
+  background: var(--flare-color-bg-secondary, #F7F8FA);
+  color: var(--flare-color-text-primary, #20232D);
 }
-.flare-screen--surface { background: var(--flare-color-bg-primary, #fff); }
+.flare-screen--surface { background: var(--flare-color-bg-primary, #FFFFFF); }
 /* Aurora — a soft violet light wash at the top of the canvas. */
 .flare-screen--aurora::before {
   content: "";
@@ -92,7 +92,7 @@ const hasHeader = computed(() => Boolean(props.title) || props.back || Boolean(s
   pointer-events: none;
   background:
     radial-gradient(120% 100% at 12% -40%,
-      color-mix(in srgb, var(--flare-color-primary, #7c3aed) 22%, transparent), transparent 60%);
+      color-mix(in srgb, var(--flare-color-primary, #7047D6) 22%, transparent), transparent 60%);
 }
 
 .flare-screen__header {
@@ -116,9 +116,9 @@ const hasHeader = computed(() => Boolean(props.title) || props.back || Boolean(s
   border: none;
   border-radius: 8px;
   background: none;
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
   cursor: pointer;
-  transition: background var(--flare-transition-fast, 140ms ease);
+  transition: background var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-screen__back:hover { background: var(--flare-color-bg-hover, rgba(0, 0, 0, 0.05)); }
 .flare-screen__title {
@@ -128,7 +128,7 @@ const hasHeader = computed(() => Boolean(props.title) || props.back || Boolean(s
   font-size: 24px;
   font-weight: 700;
   line-height: 1.2;
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -156,7 +156,7 @@ const hasHeader = computed(() => Boolean(props.title) || props.back || Boolean(s
 .flare-screen__footer {
   flex: none;
   padding-bottom: env(safe-area-inset-bottom);
-  background: var(--flare-color-bg-primary, #fff);
-  border-top: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  background: var(--flare-color-bg-primary, #FFFFFF);
+  border-top: 1px solid var(--flare-color-border-primary, #E3E5EB);
 }
 </style>

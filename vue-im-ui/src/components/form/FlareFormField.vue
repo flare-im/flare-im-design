@@ -25,10 +25,10 @@ defineProps<{
 .flare-form-field__label {
   font-size: 13px;
   font-weight: 500;
-  color: var(--flare-color-text-secondary, #6b6780);
+  color: var(--flare-color-text-secondary, #626978);
 }
 .flare-form-field__req { color: var(--flare-color-error, #ef4444); margin-left: 2px; }
 .flare-form-field__control { display: flex; flex-direction: column; }
-.flare-form-field__hint { margin: 0; font-size: 12px; color: var(--flare-color-text-tertiary, #a7a2b4); }
+.flare-form-field__hint { margin: 0; font-size: 12px; color: var(--flare-color-text-tertiary, #687182); }
 .flare-form-field__error { margin: 0; font-size: 12px; color: var(--flare-color-error, #ef4444); }
 </style>

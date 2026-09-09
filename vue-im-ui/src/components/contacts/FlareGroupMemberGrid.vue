@@ -72,11 +72,11 @@ const gridStyle = computed(() => ({ gridTemplateColumns: `repeat(${props.columns
 .flare-member-grid__title {
   font-size: 14px;
   font-weight: 600;
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
 }
 .flare-member-grid__count {
   font-size: 12px;
-  color: var(--flare-color-text-tertiary, #a7a2b4);
+  color: var(--flare-color-text-tertiary, #687182);
 }
 .flare-member-grid__grid {
   display: grid;
@@ -101,7 +101,7 @@ const gridStyle = computed(() => ({ gridTemplateColumns: `repeat(${props.columns
   font-size: 10px;
   line-height: 1.4;
   color: #fff;
-  background: var(--flare-color-text-tertiary, #a7a2b4);
+  background: var(--flare-color-text-tertiary, #687182);
 }
 .flare-member-grid__role.is-owner {
   background: var(--flare-color-warning, #f59e0b);
@@ -112,7 +112,7 @@ const gridStyle = computed(() => ({ gridTemplateColumns: `repeat(${props.columns
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 12px;
-  color: var(--flare-color-text-secondary, #6b6780);
+  color: var(--flare-color-text-secondary, #626978);
 }
 .flare-member-grid__add-icon {
   display: grid;
@@ -120,12 +120,12 @@ const gridStyle = computed(() => ({ gridTemplateColumns: `repeat(${props.columns
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  color: var(--flare-color-text-tertiary, #a7a2b4);
-  border: 1px dashed var(--flare-color-border-hover, #dad5e7);
-  transition: color var(--flare-transition-fast, 150ms ease), border-color var(--flare-transition-fast, 150ms ease);
+  color: var(--flare-color-text-tertiary, #687182);
+  border: 1px dashed var(--flare-color-border-hover, #C9CDD7);
+  transition: color var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), border-color var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-member-grid__add:hover .flare-member-grid__add-icon {
-  color: var(--flare-color-primary, #7c3aed);
-  border-color: var(--flare-color-primary, #7c3aed);
+  color: var(--flare-color-primary, #7047D6);
+  border-color: var(--flare-color-primary, #7047D6);
 }
 </style>

@@ -46,7 +46,7 @@ function cancel() {
   width: 100%;
   height: 40px;
   border: none;
-  border-radius: var(--flare-size-radius-xl, 12px);
+  border-radius: var(--flare-size-radius-xl, 14px);
   background: var(--flare-color-bg-secondary);
   color: var(--flare-color-text-secondary);
   font-size: 14px;

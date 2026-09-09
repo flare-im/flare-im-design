@@ -42,14 +42,14 @@ const { t } = useFlareI18n();
   max-width: 100%;
   padding: 14px;
   border-radius: var(--flare-size-radius-xl, 14px);
-  background: var(--flare-color-bg-primary, #fff);
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  background: var(--flare-color-bg-primary, #FFFFFF);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
   box-shadow: var(--flare-shadow-lg, 0 12px 28px rgba(21, 18, 32, 0.16));
 }
 .flare-wallpaper__title {
   font-size: 13px;
   font-weight: 600;
-  color: var(--flare-color-text-secondary, #6b6780);
+  color: var(--flare-color-text-secondary, #626978);
   margin-bottom: 12px;
 }
 .flare-wallpaper__grid {
@@ -67,10 +67,10 @@ const { t } = useFlareI18n();
   background-size: cover;
   background-position: center;
   box-shadow: inset 0 0 0 1px rgba(17, 19, 24, 0.06);
-  transition: transform var(--flare-transition-fast, 150ms ease), border-color var(--flare-transition-fast, 150ms ease);
+  transition: transform var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), border-color var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-wallpaper__swatch:hover { transform: translateY(-2px); }
-.flare-wallpaper__swatch.is-selected { border-color: var(--flare-color-primary, #7c3aed); }
+.flare-wallpaper__swatch.is-selected { border-color: var(--flare-color-primary, #7047D6); }
 .flare-wallpaper__check {
   position: absolute;
   right: 4px;
@@ -82,7 +82,7 @@ const { t } = useFlareI18n();
   align-items: center;
   justify-content: center;
   color: #fff;
-  background: var(--flare-color-primary, #7c3aed);
+  background: var(--flare-color-primary, #7047D6);
   box-shadow: 0 2px 6px rgba(21, 18, 32, 0.28);
 }
 </style>

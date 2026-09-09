@@ -115,7 +115,7 @@ const hint = computed(() => (props.mode === "video" ? t("call.invitingVideo") : 
   height: 64px;
   border-radius: 50%;
   color: #fff;
-  transition: transform var(--flare-transition-fast, 150ms ease), filter var(--flare-transition-fast, 150ms ease);
+  transition: transform var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), filter var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-incoming__col:active .flare-incoming__ico {
   transform: scale(0.92);

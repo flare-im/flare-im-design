@@ -63,9 +63,9 @@ const overrideStyle = computed(() => {
   justify-content: center;
   border: none;
   cursor: pointer;
-  color: var(--flare-color-text-secondary, #6b6780);
+  color: var(--flare-color-text-secondary, #626978);
   background: transparent;
-  transition: background var(--flare-transition-fast, 150ms ease), color var(--flare-transition-fast, 150ms ease), transform var(--flare-transition-fast, 150ms ease);
+  transition: background var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), color var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), transform var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-icon-button:active:not(:disabled) { transform: scale(0.92); }
 .flare-icon-button:disabled { opacity: 0.45; cursor: not-allowed; }
@@ -76,10 +76,10 @@ const overrideStyle = computed(() => {
 .flare-icon-button--md { width: 38px; height: 38px; font-size: 19px; }
 .flare-icon-button--lg { width: 46px; height: 46px; font-size: 22px; }
 
-.flare-icon-button--plain:hover:not(:disabled) { background: var(--flare-color-bg-secondary, #f6f5fb); color: var(--flare-color-text-primary, #15131c); }
-.flare-icon-button--tinted { background: var(--flare-color-bg-secondary, #f6f5fb); }
-.flare-icon-button--tinted:hover:not(:disabled) { background: var(--flare-color-bg-selected, #f1eaff); color: var(--flare-color-primary, #7c3aed); }
-.flare-icon-button--solid { background: var(--im-brand-gradient, var(--flare-color-primary, #7c3aed)); color: #fff; }
+.flare-icon-button--plain:hover:not(:disabled) { background: var(--flare-color-bg-secondary, #F7F8FA); color: var(--flare-color-text-primary, #20232D); }
+.flare-icon-button--tinted { background: var(--flare-color-bg-secondary, #F7F8FA); }
+.flare-icon-button--tinted:hover:not(:disabled) { background: var(--flare-color-bg-selected, #F0ECFC); color: var(--flare-color-primary, #7047D6); }
+.flare-icon-button--solid { background: var(--im-brand-gradient, var(--flare-color-primary, #7047D6)); color: #fff; }
 .flare-icon-button--solid:hover:not(:disabled) { filter: brightness(0.97); }
-.flare-icon-button.is-active { background: var(--flare-color-bg-selected, #f1eaff); color: var(--flare-color-primary, #7c3aed); }
+.flare-icon-button.is-active { background: var(--flare-color-bg-selected, #F0ECFC); color: var(--flare-color-primary, #7047D6); }
 </style>

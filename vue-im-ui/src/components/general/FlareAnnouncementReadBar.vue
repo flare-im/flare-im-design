@@ -72,16 +72,16 @@ const allRead = computed(
 .flare-announcement-read-bar {
   display: flex;
   align-items: center;
-  gap: var(--flare-space-2, 8px);
-  padding: var(--flare-space-2, 8px) var(--flare-space-3, 12px);
-  border-radius: var(--flare-radius-md, 8px);
+  gap: var(--flare-size-spacing-sm, 8px);
+  padding: var(--flare-size-spacing-sm, 8px) var(--flare-size-spacing-md, 12px);
+  border-radius: var(--flare-size-radius-md, 8px);
   background: var(--flare-color-surface-subtle, rgba(127, 127, 127, 0.08));
-  font-size: var(--flare-font-size-sm, 13px);
-  color: var(--flare-color-text-secondary, #666);
+  font-size: var(--flare-size-font-size-md, 13px);
+  color: var(--flare-color-text-secondary, #626978);
 }
 
 .flare-announcement-read-bar.is-read {
-  color: var(--flare-color-text-tertiary, #999);
+  color: var(--flare-color-text-tertiary, #687182);
 }
 
 .flare-announcement-read-bar__icon {
@@ -95,7 +95,7 @@ const allRead = computed(
 
 .flare-announcement-read-bar__actions {
   display: flex;
-  gap: var(--flare-space-1, 4px);
+  gap: var(--flare-size-spacing-xs, 4px);
   flex: none;
 }
 </style>

@@ -58,13 +58,13 @@ const bubbleUser = computed(() => props.names[0] || props.userId || "typing");
 .flare-typing--bubble .flare-typing__body {
   padding: 10px 14px;
   border-radius: 4px 16px 16px 16px;
-  background: var(--flare-color-bg-primary, #fff);
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  background: var(--flare-color-bg-primary, #FFFFFF);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
   box-shadow: var(--flare-shadow-sm, 0 1px 2px rgba(21, 18, 32, 0.05));
 }
 .flare-typing__label {
   font-size: 13px;
-  color: var(--flare-color-text-tertiary, #a7a2b4);
+  color: var(--flare-color-text-tertiary, #687182);
 }
 .flare-typing__dots {
   display: inline-flex;
@@ -75,13 +75,13 @@ const bubbleUser = computed(() => props.names[0] || props.userId || "typing");
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--flare-color-text-tertiary, #a7a2b4);
+  background: var(--flare-color-text-tertiary, #687182);
   animation: flare-typing-bounce 1.3s ease-in-out infinite;
 }
 .flare-typing__dots i:nth-child(2) { animation-delay: 0.18s; }
 .flare-typing__dots i:nth-child(3) { animation-delay: 0.36s; }
 .flare-typing--bubble .flare-typing__dots i {
-  background: var(--flare-color-primary, #7c3aed);
+  background: var(--flare-color-primary, #7047D6);
   opacity: 0.65;
 }
 @keyframes flare-typing-bounce {

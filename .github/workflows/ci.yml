@@ -116,6 +116,12 @@ jobs:
       - name: 不安装 IM SDK 的独立消费构建
         run: node scripts/check-optional-sdk-consumer.mjs
 
+      # 独立消费不加载 tokens.css，此时 var() 的兜底值就是真正渲染出来的颜色。
+      # 调色板改过一轮而 690 处内联兜底没跟上，kit 曾经「带主题一套色、不带主题
+      # 另一套色」而无人报错，所以把兜底与 token 的一致性也做成门禁。
+      - name: token 兜底值与 token 一致
+        run: node scripts/check-token-fallbacks.mjs
+
   site:
     name: 文档站构建
     runs-on: ubuntu-latest

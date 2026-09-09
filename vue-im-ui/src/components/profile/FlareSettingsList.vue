@@ -36,7 +36,7 @@ const emit = defineEmits<{
 /* iOS-style grouped card — rows float together on one elevated surface. */
 .flare-settings__group {
   border-radius: var(--flare-size-radius-xl, 14px);
-  background: var(--flare-color-bg-elevated, #fff);
+  background: var(--flare-color-bg-elevated, #FFFFFF);
   box-shadow: var(--flare-shadow-card);
   overflow: hidden;
 }

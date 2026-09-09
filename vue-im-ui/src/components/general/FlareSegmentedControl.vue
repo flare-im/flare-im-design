@@ -32,8 +32,8 @@ function select(i: number): void {
   display: inline-flex;
   padding: 3px;
   border-radius: var(--flare-size-radius-lg, 10px);
-  background: var(--flare-color-bg-secondary, #f6f5fb);
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  background: var(--flare-color-bg-secondary, #F7F8FA);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
 }
 .flare-segmented__seg {
   flex: 1;
@@ -42,16 +42,16 @@ function select(i: number): void {
   border: none;
   border-radius: var(--flare-size-radius-md, 8px);
   background: transparent;
-  color: var(--flare-color-text-secondary, #6b6780);
+  color: var(--flare-color-text-secondary, #626978);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
-  transition: background var(--flare-transition-fast, 150ms ease), color var(--flare-transition-fast, 150ms ease);
+  transition: background var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), color var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-segmented__seg.is-active {
-  background: var(--flare-color-bg-primary, #fff);
-  color: var(--flare-color-primary, #7c3aed);
+  background: var(--flare-color-bg-primary, #FFFFFF);
+  color: var(--flare-color-primary, #7047D6);
   box-shadow: var(--flare-shadow-sm, 0 1px 3px rgba(21, 18, 32, 0.12));
 }
 </style>

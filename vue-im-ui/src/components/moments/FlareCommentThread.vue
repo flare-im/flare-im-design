@@ -35,16 +35,16 @@ const { t } = useFlareI18n();
   padding: 3px 0;
   font-size: 13px;
   line-height: 1.5;
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
   cursor: pointer;
   word-break: break-word;
 }
-.flare-comment:hover { background: color-mix(in srgb, var(--flare-color-primary, #7c3aed) 5%, transparent); }
+.flare-comment:hover { background: color-mix(in srgb, var(--flare-color-primary, #7047D6) 5%, transparent); }
 .flare-comment__name {
-  color: var(--flare-color-primary, #7c3aed);
+  color: var(--flare-color-primary, #7047D6);
   font-weight: 500;
 }
-.flare-comment__reply { color: var(--flare-color-text-tertiary, #a7a2b4); }
-.flare-comment__sep { color: var(--flare-color-text-tertiary, #a7a2b4); }
-.flare-comment__text { color: var(--flare-color-text-primary, #15131c); }
+.flare-comment__reply { color: var(--flare-color-text-tertiary, #687182); }
+.flare-comment__sep { color: var(--flare-color-text-tertiary, #687182); }
+.flare-comment__text { color: var(--flare-color-text-primary, #20232D); }
 </style>

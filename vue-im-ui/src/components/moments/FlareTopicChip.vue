@@ -14,7 +14,7 @@ const emit = defineEmits<{ (e: "click"): void }>();
   border: none;
   background: transparent;
   padding: 0;
-  color: var(--flare-color-primary, #7c3aed);
+  color: var(--flare-color-primary, #7047D6);
   font-size: inherit;
   font-weight: 500;
   cursor: pointer;

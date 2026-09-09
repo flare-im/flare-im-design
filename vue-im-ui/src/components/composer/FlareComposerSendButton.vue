@@ -25,13 +25,13 @@ function click() {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--flare-color-bg-disabled, #e8eaef);
-  color: var(--flare-color-text-disabled, #b0b5bf);
+  background: var(--flare-color-bg-disabled, #F1F2F5);
+  color: var(--flare-color-text-disabled, #B7BDC8);
   cursor: not-allowed;
   transition: background 0.15s, color 0.15s;
 }
 .flare-send.active {
-  background: var(--flare-color-primary, var(--flare-color-primary, #7c3aed));
+  background: var(--flare-color-primary, var(--flare-color-primary, #7047D6));
   color: #fff;
   cursor: pointer;
 }

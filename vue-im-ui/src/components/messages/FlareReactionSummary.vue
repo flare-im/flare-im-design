@@ -62,15 +62,15 @@ function tooltip(group: FlareReactionGroup): string {
   height: 26px;
   padding: 0 9px;
   border-radius: 999px;
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
-  background: var(--flare-color-bg-secondary, #f6f5fb);
-  color: var(--flare-color-text-secondary, #6b6780);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
+  background: var(--flare-color-bg-secondary, #F7F8FA);
+  color: var(--flare-color-text-secondary, #626978);
   font-size: 13px;
   line-height: 1;
   cursor: pointer;
-  transition: transform var(--flare-transition-fast, 150ms ease),
-    background var(--flare-transition-fast, 150ms ease),
-    border-color var(--flare-transition-fast, 150ms ease);
+  transition: transform var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)),
+    background var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)),
+    border-color var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-reaction-pill:hover { transform: translateY(-1px); }
 .flare-reaction-pill:active { transform: scale(0.96); }
@@ -80,16 +80,16 @@ function tooltip(group: FlareReactionGroup): string {
   font-weight: 500;
 }
 .flare-reaction-pill.is-self {
-  border-color: var(--flare-color-primary, #7c3aed);
-  background: var(--flare-color-bg-selected, #f1eaff);
-  color: var(--flare-color-primary, #7c3aed);
+  border-color: var(--flare-color-primary, #7047D6);
+  background: var(--flare-color-bg-selected, #F0ECFC);
+  color: var(--flare-color-primary, #7047D6);
 }
 .flare-reaction-pill--add {
   padding: 0 8px;
-  color: var(--flare-color-text-tertiary, #a7a2b4);
+  color: var(--flare-color-text-tertiary, #687182);
 }
 .flare-reaction-pill--add:hover {
-  color: var(--flare-color-primary, #7c3aed);
-  border-color: var(--flare-color-primary, #7c3aed);
+  color: var(--flare-color-primary, #7047D6);
+  border-color: var(--flare-color-primary, #7047D6);
 }
 </style>

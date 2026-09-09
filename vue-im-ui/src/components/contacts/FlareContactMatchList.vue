@@ -78,9 +78,9 @@ const { t } = useFlareI18n();
 .flare-contact-match-list__row {
   display: flex;
   align-items: center;
-  gap: var(--flare-space-3, 12px);
-  padding: var(--flare-space-2, 8px) var(--flare-space-3, 12px);
-  border-radius: var(--flare-radius-md, 8px);
+  gap: var(--flare-size-spacing-md, 12px);
+  padding: var(--flare-size-spacing-sm, 8px) var(--flare-size-spacing-md, 12px);
+  border-radius: var(--flare-size-radius-md, 8px);
   cursor: pointer;
 }
 
@@ -94,8 +94,8 @@ const { t } = useFlareI18n();
 }
 
 .flare-contact-match-list__name {
-  font-size: var(--flare-font-size-md, 14px);
-  color: var(--flare-color-text-primary, #222);
+  font-size: var(--flare-size-font-size-lg, 14px);
+  color: var(--flare-color-text-primary, #20232D);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -103,14 +103,14 @@ const { t } = useFlareI18n();
 
 /* 命中的号码用弱化色：它是辅助识别信息，不该抢主名的视觉权重。 */
 .flare-contact-match-list__matched {
-  font-size: var(--flare-font-size-sm, 12px);
-  color: var(--flare-color-text-tertiary, #999);
+  font-size: var(--flare-size-font-size-sm, 12px);
+  color: var(--flare-color-text-tertiary, #687182);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .flare-contact-match-list__empty {
-  padding: var(--flare-space-6, 24px) 0;
+  padding: var(--flare-size-spacing-2xl, 24px) 0;
 }
 </style>

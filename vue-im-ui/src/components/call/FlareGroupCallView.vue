@@ -146,7 +146,7 @@ const statusText = computed(() => {
   color: #fff;
   background: rgba(255, 255, 255, 0.12);
   cursor: pointer;
-  transition: background var(--flare-transition-fast, 150ms ease);
+  transition: background var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-group-call__minimize:hover { background: rgba(255, 255, 255, 0.2); }
 .flare-group-call__title { flex: 1 1 auto; min-width: 0; }
@@ -190,7 +190,7 @@ const statusText = computed(() => {
   background: rgba(255, 255, 255, 0.06);
   cursor: pointer;
   overflow: hidden;
-  transition: border-color var(--flare-transition-fast, 150ms ease), transform var(--flare-transition-fast, 150ms ease);
+  transition: border-color var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), transform var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-group-call__tile:active { transform: scale(0.99); }
 .flare-group-call__tile.is-speaking {

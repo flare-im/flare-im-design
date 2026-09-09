@@ -123,34 +123,34 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
   border-radius: var(--flare-size-radius-lg, 10px);
-  background: var(--flare-color-bg-secondary, #f6f5fb);
-  color: var(--flare-color-text-primary, #15131c);
+  background: var(--flare-color-bg-secondary, #F7F8FA);
+  color: var(--flare-color-text-primary, #20232D);
   cursor: pointer;
-  transition: border-color var(--flare-transition-fast, 150ms ease), box-shadow var(--flare-transition-fast, 150ms ease);
+  transition: border-color var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), box-shadow var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-dp--sm .flare-dp__trigger { height: 32px; padding: 0 10px; font-size: 13px; }
 .flare-dp--md .flare-dp__trigger { height: 40px; padding: 0 12px; font-size: 14px; }
 .flare-dp--lg .flare-dp__trigger { height: 48px; padding: 0 14px; font-size: 15px; }
 .flare-dp.is-open .flare-dp__trigger {
-  border-color: var(--flare-color-primary, #7c3aed);
+  border-color: var(--flare-color-primary, #7047D6);
   box-shadow: 0 0 0 3px var(--flare-color-focus-ring, rgba(124, 58, 237, 0.28));
 }
 .flare-dp.is-disabled { opacity: 0.55; }
 .flare-dp.is-disabled .flare-dp__trigger { cursor: not-allowed; }
-.flare-dp__icon { color: var(--flare-color-text-tertiary, #a7a2b4); flex: 0 0 auto; }
+.flare-dp__icon { color: var(--flare-color-text-tertiary, #687182); flex: 0 0 auto; }
 .flare-dp__value { font-variant-numeric: tabular-nums; }
-.flare-dp__value.is-placeholder { color: var(--flare-color-text-tertiary, #a7a2b4); }
+.flare-dp__value.is-placeholder { color: var(--flare-color-text-tertiary, #687182); }
 
 .flare-dp__pop {
   position: absolute;
   z-index: 20;
   top: calc(100% + 6px);
   left: 0;
-  border-radius: var(--flare-size-radius-lg, 12px);
-  background: var(--flare-color-bg-primary, #fff);
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  border-radius: var(--flare-size-radius-lg, 10px);
+  background: var(--flare-color-bg-primary, #FFFFFF);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
   box-shadow: var(--flare-shadow-lg, 0 12px 28px rgba(21, 18, 32, 0.16));
 }
 .flare-dp__sheet { padding: 2px 6px 6px; }

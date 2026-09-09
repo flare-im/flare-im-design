@@ -73,8 +73,8 @@ const presenceLabel = computed(() =>
   max-width: 100%;
   padding: 16px;
   border-radius: var(--flare-size-radius-xl, 14px);
-  background: var(--flare-color-bg-primary, #fff);
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  background: var(--flare-color-bg-primary, #FFFFFF);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
   box-shadow: var(--flare-shadow-lg, 0 12px 28px rgba(21, 18, 32, 0.16));
 }
 .flare-profile-card__hero {
@@ -86,7 +86,7 @@ const presenceLabel = computed(() =>
 .flare-profile-card__name {
   font-size: 16px;
   font-weight: 600;
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -97,13 +97,13 @@ const presenceLabel = computed(() =>
   gap: 5px;
   margin-top: 2px;
   font-size: 12px;
-  color: var(--flare-color-text-secondary, #6b6780);
+  color: var(--flare-color-text-secondary, #626978);
 }
 .flare-profile-card__presence .dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--flare-color-text-tertiary, #a7a2b4);
+  background: var(--flare-color-text-tertiary, #687182);
 }
 .flare-profile-card__presence.is-online .dot { background: var(--flare-color-success, #22c55e); }
 .flare-profile-card__presence.is-busy .dot { background: var(--flare-color-error, #ef4444); }
@@ -111,13 +111,13 @@ const presenceLabel = computed(() =>
 .flare-profile-card__sig {
   margin-top: 12px;
   font-size: 13px;
-  color: var(--flare-color-text-secondary, #6b6780);
+  color: var(--flare-color-text-secondary, #626978);
   line-height: 1.5;
 }
 .flare-profile-card__meta {
   margin-top: 8px;
   font-size: 12px;
-  color: var(--flare-color-text-tertiary, #a7a2b4);
+  color: var(--flare-color-text-tertiary, #687182);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -132,8 +132,8 @@ const presenceLabel = computed(() =>
   padding: 2px 9px;
   border-radius: 999px;
   font-size: 11px;
-  color: var(--flare-color-primary, #7c3aed);
-  background: var(--flare-color-bg-selected, #f1eaff);
+  color: var(--flare-color-primary, #7047D6);
+  background: var(--flare-color-bg-selected, #F0ECFC);
 }
 .flare-profile-card__actions {
   display: flex;
@@ -148,12 +148,12 @@ const presenceLabel = computed(() =>
   height: 38px;
   border: none;
   border-radius: var(--flare-size-radius-lg, 10px);
-  background: var(--flare-color-bg-secondary, #f6f5fb);
-  color: var(--flare-color-text-primary, #15131c);
+  background: var(--flare-color-bg-secondary, #F7F8FA);
+  color: var(--flare-color-text-primary, #20232D);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: transform var(--flare-transition-fast, 150ms ease), filter var(--flare-transition-fast, 150ms ease);
+  transition: transform var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), filter var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-profile-card__actions button:not(.is-primary) {
   width: 44px;
@@ -161,7 +161,7 @@ const presenceLabel = computed(() =>
 }
 .flare-profile-card__actions button.is-primary {
   flex: 1;
-  background: var(--im-brand-gradient, var(--flare-color-primary, #7c3aed));
+  background: var(--im-brand-gradient, var(--flare-color-primary, #7047D6));
   color: #fff;
 }
 .flare-profile-card__actions button:hover { filter: brightness(0.97); }

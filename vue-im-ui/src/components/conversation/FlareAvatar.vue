@@ -128,6 +128,6 @@ watch(displaySrc, () => {
 }
 
 .im-avatar__status--offline {
-  background: var(--im-text-tertiary, var(--flare-color-text-tertiary, #a3a7ae));
+  background: var(--im-text-tertiary, var(--flare-color-text-tertiary, #687182));
 }
 </style>

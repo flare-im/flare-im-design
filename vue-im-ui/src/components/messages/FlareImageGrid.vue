@@ -65,10 +65,10 @@ const single = computed(() => visible.value.length === 1);
   cursor: pointer;
   overflow: hidden;
   border-radius: 8px;
-  background: var(--flare-color-bg-secondary, #f0eef6);
+  background: var(--flare-color-bg-secondary, #F7F8FA);
   width: 84px;
   height: 84px;
-  transition: filter var(--flare-transition-fast, 150ms ease);
+  transition: filter var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-image-grid.is-single .flare-image-grid__cell {
   width: auto;

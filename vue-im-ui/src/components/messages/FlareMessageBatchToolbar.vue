@@ -85,9 +85,9 @@ const disabled = computed(() => props.busy || props.count === 0);
   gap: 14px;
   flex-wrap: wrap;
   padding: 10px 14px;
-  border-radius: var(--flare-size-radius-lg, 12px);
-  background: var(--flare-color-bg-primary, #fff);
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  border-radius: var(--flare-size-radius-lg, 10px);
+  background: var(--flare-color-bg-primary, #FFFFFF);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
   box-shadow: var(--flare-shadow-md, 0 6px 18px rgba(21, 18, 32, 0.1));
 }
 .flare-batch-toolbar__meta {
@@ -95,11 +95,11 @@ const disabled = computed(() => props.busy || props.count === 0);
   align-items: baseline;
   gap: 5px;
   font-size: 13px;
-  color: var(--flare-color-text-secondary, #6b6780);
+  color: var(--flare-color-text-secondary, #626978);
 }
 .flare-batch-toolbar__meta strong {
   font-size: 16px;
-  color: var(--flare-color-primary, #7c3aed);
+  color: var(--flare-color-primary, #7047D6);
   font-variant-numeric: tabular-nums;
 }
 .flare-batch-toolbar__actions {
@@ -117,11 +117,11 @@ const disabled = computed(() => props.busy || props.count === 0);
   padding: 0 10px;
   border: none;
   border-radius: var(--flare-size-radius-md, 8px);
-  background: var(--flare-color-bg-secondary, #f6f5fb);
-  color: var(--flare-color-text-primary, #15131c);
+  background: var(--flare-color-bg-secondary, #F7F8FA);
+  color: var(--flare-color-text-primary, #20232D);
   font-size: 13px;
   cursor: pointer;
-  transition: filter var(--flare-transition-fast, 150ms ease), transform var(--flare-transition-fast, 150ms ease);
+  transition: filter var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), transform var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-batch-btn:hover:not(:disabled) { filter: brightness(0.97); }
 .flare-batch-btn:active:not(:disabled) { transform: scale(0.97); }

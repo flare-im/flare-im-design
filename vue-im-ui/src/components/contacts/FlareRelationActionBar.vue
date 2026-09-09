@@ -262,7 +262,7 @@ function dismiss(): void {
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
-  transition: filter var(--flare-transition-fast, 150ms ease);
+  transition: filter var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-relation-bar__btn:hover:not(:disabled) {
   filter: brightness(0.97);

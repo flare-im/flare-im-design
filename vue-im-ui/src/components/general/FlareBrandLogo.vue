@@ -24,8 +24,8 @@ const plate = computed(() => props.variant === "plate");
     <svg viewBox="0 0 100 100" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient :id="gradId" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stop-color="var(--flare-color-primary-active, #5B21B6)" />
-          <stop offset="0.55" stop-color="var(--flare-color-primary, #7C3AED)" />
+          <stop offset="0" stop-color="var(--flare-color-primary-active, #512CAC)" />
+          <stop offset="0.55" stop-color="var(--flare-color-primary, #7047D6)" />
           <stop offset="1" stop-color="var(--flare-color-info, #6D5DF6)" />
         </linearGradient>
       </defs>

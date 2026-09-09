@@ -483,7 +483,7 @@ function openContextMenu(event: MouseEvent): void {
 }
 
 .im-conv-item__unread-pill {
-  --im-unread: var(--im-conv-unread-bg, var(--primary, var(--flare-color-primary, #7c3aed)));
+  --im-unread: var(--im-conv-unread-bg, var(--primary, var(--flare-color-primary, #7047D6)));
 
   flex: 0 0 auto;
   min-width: 20px;
@@ -521,7 +521,7 @@ function openContextMenu(event: MouseEvent): void {
   place-items: center;
   width: 16px;
   height: 16px;
-  color: var(--im-primary, var(--flare-color-primary, #7c3aed));
+  color: var(--im-primary, var(--flare-color-primary, #7047D6));
   background: transparent;
   font-size: 13px;
   opacity: 0.6;
@@ -564,7 +564,7 @@ function openContextMenu(event: MouseEvent): void {
 }
 
 :global(.im-conv-dropdown .n-dropdown-option-body--pending) {
-  background: color-mix(in srgb, var(--im-primary, var(--flare-color-primary, #7c3aed)) 9%, transparent) !important;
+  background: color-mix(in srgb, var(--im-primary, var(--flare-color-primary, #7047D6)) 9%, transparent) !important;
 }
 
 :global(.im-conv-dropdown .n-dropdown-option-body__prefix) {
@@ -586,7 +586,7 @@ function openContextMenu(event: MouseEvent): void {
   min-width: 0;
   flex: 1;
   align-self: stretch;
-  color: var(--im-text-primary, var(--flare-color-text-primary, #111318));
+  color: var(--im-text-primary, var(--flare-color-text-primary, #20232D));
   font-size: 14px;
   font-weight: 500;
   line-height: 1.25;

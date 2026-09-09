@@ -149,13 +149,13 @@ let priorOverflow = "";
   display: flex;
   flex-direction: column;
   padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
-  background: var(--flare-color-bg-primary, #fff);
+  background: var(--flare-color-bg-primary, #FFFFFF);
   border-radius: 20px 20px 0 0;
   box-shadow: var(--flare-shadow-lg, 0 -8px 32px rgba(21, 18, 32, 0.22));
   outline: none;
 }
-.flare-sheet__grip { width: 36px; height: 4px; border-radius: 999px; background: var(--flare-color-border-primary, #e9e6f1); margin: 6px auto 8px; flex: 0 0 auto; }
-.flare-sheet__title { padding: 4px 12px 8px; font-size: 13px; font-weight: 500; color: var(--flare-color-text-tertiary, #a7a2b4); text-align: center; }
+.flare-sheet__grip { width: 36px; height: 4px; border-radius: 999px; background: var(--flare-color-border-primary, #E3E5EB); margin: 6px auto 8px; flex: 0 0 auto; }
+.flare-sheet__title { padding: 4px 12px 8px; font-size: 13px; font-weight: 500; color: var(--flare-color-text-tertiary, #687182); text-align: center; }
 
 .flare-sheet-fade-enter-active, .flare-sheet-fade-leave-active { transition: opacity 0.22s ease; }
 .flare-sheet-fade-enter-from, .flare-sheet-fade-leave-to { opacity: 0; }

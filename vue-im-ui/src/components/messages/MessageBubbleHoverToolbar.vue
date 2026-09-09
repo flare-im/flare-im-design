@@ -167,7 +167,7 @@ function openMoreMenu(): void {
 
 .im-bar-btn:hover {
   color: var(--im-primary) !important;
-  background: var(--im-bg-card, var(--flare-color-bg-hover, #eef1f6));
+  background: var(--im-bg-card, var(--flare-color-bg-hover, #F1F2F5));
 }
 
 /* Reaction popover — quick row that expands to the full picker. */
@@ -177,8 +177,8 @@ function openMoreMenu(): void {
   gap: 2px;
   padding: 6px;
   border-radius: 12px;
-  background: var(--im-bg-surface, var(--flare-color-bg-primary, #fff));
-  border: 1px solid var(--im-border-subtle, var(--flare-color-border-primary, #e9e6f1));
+  background: var(--im-bg-surface, var(--flare-color-bg-primary, #FFFFFF));
+  border: 1px solid var(--im-border-subtle, var(--flare-color-border-primary, #E3E5EB));
   box-shadow: var(--im-shadow-floating, 0 8px 24px rgba(21, 18, 32, 0.12));
 }
 
@@ -198,11 +198,11 @@ function openMoreMenu(): void {
 }
 
 .im-react-quick__cell:hover {
-  background: var(--im-bg-card, var(--flare-color-bg-hover, #f1eef8));
+  background: var(--im-bg-card, var(--flare-color-bg-hover, #F1F2F5));
   transform: translateY(-1px) scale(1.06);
 }
 
 .im-react-quick__more {
-  color: var(--im-text-secondary, var(--flare-color-text-secondary, #6b6780));
+  color: var(--im-text-secondary, var(--flare-color-text-secondary, #626978));
 }
 </style>

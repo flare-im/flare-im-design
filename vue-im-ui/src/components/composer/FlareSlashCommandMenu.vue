@@ -55,8 +55,8 @@ const filtered = computed(() => {
   max-width: 100%;
   padding: 6px;
   border-radius: var(--flare-size-radius-xl, 14px);
-  background: var(--flare-color-bg-primary, #fff);
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  background: var(--flare-color-bg-primary, #FFFFFF);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
   box-shadow: var(--flare-shadow-lg, 0 12px 28px rgba(21, 18, 32, 0.16));
   max-height: 280px;
   overflow-y: auto;
@@ -70,7 +70,7 @@ const filtered = computed(() => {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--flare-color-text-tertiary, #a7a2b4);
+  color: var(--flare-color-text-tertiary, #687182);
 }
 .flare-slash-menu__row {
   width: 100%;
@@ -84,30 +84,30 @@ const filtered = computed(() => {
   background: transparent;
   cursor: pointer;
   text-align: left;
-  transition: background var(--flare-transition-fast, 150ms ease);
+  transition: background var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
-.flare-slash-menu__row:hover { background: var(--flare-color-bg-secondary, #f6f5fb); }
+.flare-slash-menu__row:hover { background: var(--flare-color-bg-secondary, #F7F8FA); }
 .flare-slash-menu__cmd {
-  font-family: var(--flare-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 13px;
   font-weight: 600;
-  color: var(--flare-color-primary, #7c3aed);
+  color: var(--flare-color-primary, #7047D6);
 }
 .flare-slash-menu__hint {
   font-size: 12px;
-  color: var(--flare-color-text-tertiary, #a7a2b4);
-  font-family: var(--flare-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  color: var(--flare-color-text-tertiary, #687182);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 .flare-slash-menu__desc {
   grid-column: 1 / -1;
   font-size: 12px;
-  color: var(--flare-color-text-secondary, #6b6780);
+  color: var(--flare-color-text-secondary, #626978);
   line-height: 1.4;
 }
 .flare-slash-menu__empty {
   padding: 14px;
   text-align: center;
   font-size: 13px;
-  color: var(--flare-color-text-tertiary, #a7a2b4);
+  color: var(--flare-color-text-tertiary, #687182);
 }
 </style>

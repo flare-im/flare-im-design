@@ -83,9 +83,9 @@ const dots = computed(() => {
   width: 240px;
   max-width: 100%;
   padding: 18px;
-  border-radius: var(--flare-size-radius-xl, 16px);
-  background: var(--flare-color-bg-primary, #fff);
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  border-radius: var(--flare-size-radius-xl, 14px);
+  background: var(--flare-color-bg-primary, #FFFFFF);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
   box-shadow: var(--flare-shadow-lg, 0 12px 28px rgba(21, 18, 32, 0.16));
 }
 .flare-qr-card__head { display: flex; align-items: center; gap: 12px; }
@@ -93,7 +93,7 @@ const dots = computed(() => {
 .flare-qr-card__name {
   font-size: 16px;
   font-weight: 600;
-  color: var(--flare-color-text-primary, #15131c);
+  color: var(--flare-color-text-primary, #20232D);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -101,7 +101,7 @@ const dots = computed(() => {
 .flare-qr-card__sub {
   margin-top: 2px;
   font-size: 12px;
-  color: var(--flare-color-text-tertiary, #a7a2b4);
+  color: var(--flare-color-text-tertiary, #687182);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -112,16 +112,16 @@ const dots = computed(() => {
   display: grid;
   place-items: center;
   padding: 14px;
-  border-radius: var(--flare-size-radius-lg, 12px);
-  background: var(--flare-color-bg-secondary, #f6f5fb);
-  border: 1px solid var(--flare-color-border-primary, #e9e6f1);
+  border-radius: var(--flare-size-radius-lg, 10px);
+  background: var(--flare-color-bg-secondary, #F7F8FA);
+  border: 1px solid var(--flare-color-border-primary, #E3E5EB);
 }
 .flare-qr-card__img { width: 100%; height: 100%; object-fit: contain; }
-.flare-qr-card__svg { width: 100%; height: 100%; color: var(--flare-color-text-primary, #15131c); }
+.flare-qr-card__svg { width: 100%; height: 100%; color: var(--flare-color-text-primary, #20232D); }
 .flare-qr-card__hint {
   margin-top: 12px;
   text-align: center;
   font-size: 12px;
-  color: var(--flare-color-text-tertiary, #a7a2b4);
+  color: var(--flare-color-text-tertiary, #687182);
 }
 </style>

@@ -40,13 +40,13 @@ const emit = defineEmits<{ (e: "click"): void }>();
   gap: 8px;
   padding: 0 20px;
   border: none;
-  border-radius: var(--flare-size-radius-lg, 12px);
-  background: var(--im-brand-gradient, var(--flare-color-primary, #7c3aed));
+  border-radius: var(--flare-size-radius-lg, 10px);
+  background: var(--im-brand-gradient, var(--flare-color-primary, #7047D6));
   color: #fff;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: filter var(--flare-transition-fast, 150ms ease), transform var(--flare-transition-fast, 150ms ease), opacity var(--flare-transition-fast, 150ms ease);
+  transition: filter var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), transform var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), opacity var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 .flare-primary-button:hover:not(:disabled) { filter: brightness(0.97); }
 .flare-primary-button:active:not(:disabled) { transform: scale(0.99); }
