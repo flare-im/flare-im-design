@@ -6,24 +6,16 @@ title: MessageActionSheet
 
 <p><span class="flare-tag">Message</span></p>
 
-> Message actions — reaction, quick actions (reply/forward/recall), and grouped actions (multi-select/mark/pin/copy/edit/delete). Delete in red.
+> The message long-press action sheet — a reaction strip, quick actions (reply/forward/recall), and grouped actions (multi-select/mark/pin/copy/edit/delete). Delete in red.
 
-The interaction is **platform-split** (same actions, two presentations):
-
-- **Desktop**: hovering a bubble reveals <strong>react · reply · more</strong>; the rest open from "more" as a dropdown. Right-click works too.
-- **Mobile**: long-press a bubble opens a bottom **sheet** (reaction strip + quick grid + full action list).
-
-Which one shows is decided automatically by viewport / pointer capability (see `MessageBubble`); you only supply `menuConfig` to enable actions. Both platforms share one reaction set (`MESSAGE_QUICK_REACTIONS`).
-
-**Data source**: driven by the message's menuConfig (which actions are enabled); actions dispatch through the timeline view / client.
+**Data source**: driven by the message's menuConfig (which actions are enabled); actions dispatch through the timeline view / client
 
 ## Preview
-
-Hover any bubble below for the desktop three-button bar; on mobile it's a long-press sheet.
 
 <div class="flare-demo flare-demo--stack">
   <MessageActionSheetDemo />
 </div>
+
 
 ## Props
 
@@ -41,7 +33,10 @@ Hover any bubble below for the desktop three-button bar; on mobile it's a long-p
 
 ## Events
 
-<span class="flare-tag">react</span> <span class="flare-tag">reply</span> <span class="flare-tag">forward</span> <span class="flare-tag">recall</span> <span class="flare-tag">multiSelect</span> <span class="flare-tag">mark</span> <span class="flare-tag">pin</span> <span class="flare-tag">copy</span> <span class="flare-tag">edit</span> <span class="flare-tag">delete</span>
+<span class="flare-tag">build</span>
+
+> [!TIP]
+> All four platforms deliberately converge on a single action dispatch rather than per-op events: Vue emits build(op); Flutter/iOS/Compose take onAction(FlareComposerAction).
 
 ## Platform implementations
 
@@ -66,9 +61,7 @@ import { FlareMessageActionSheet } from "@flare-im/vue-ui";
   :open="open"
   :reactions="reactions"
   :menuConfig="menuConfig"
-  @react="onReact"
-  @reply="onReply"
-  @forward="onForward"
+  @build="onBuild"
   />
 </template>
 ```
@@ -78,14 +71,12 @@ FlareMessageActionSheet(
   open: open,
   reactions: reactions,
   menuConfig: menuConfig,
-  onReact: onReact,
-  onReply: onReply,
-  onForward: onForward,
+  onBuild: onBuild,
 );
 ```
 
 ```swift [iOS]
-MessageActionSheetView(open: open, reactions: reactions, menuConfig: menuConfig, onReact: onReact, onReply: onReply, onForward: onForward)
+MessageActionSheetView(open: open, reactions: reactions, menuConfig: menuConfig, onBuild: onBuild)
 ```
 
 ```kotlin [Android]
@@ -93,9 +84,7 @@ MessageActionSheet(
   open = open,
   reactions = reactions,
   menuConfig = menuConfig,
-  onReact = onReact,
-  onReply = onReply,
-  onForward = onForward,
+  onBuild = onBuild,
 )
 ```
 

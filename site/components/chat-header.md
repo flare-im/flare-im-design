@@ -16,6 +16,7 @@ title: ChatHeader
   <ChatHeaderDemo />
 </div>
 
+
 ## Props
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
@@ -31,7 +32,10 @@ title: ChatHeader
 
 ## Events
 
-<span class="flare-tag">search</span> <span class="flare-tag">call</span> <span class="flare-tag">details</span>
+<span class="flare-tag">back</span>
+
+> [!TIP]
+> 只有 back 是共同事件。搜索/通话/详情在 Vue 走 actions 插槽由宿主渲染,在 Flutter/iOS/Compose 是 onSearch / onCall / onDetails 回调。
 
 ## 各端实现
 
@@ -56,9 +60,7 @@ import { FlareChatHeader } from "@flare-im/vue-ui";
   :title="title"
   :subtitle="subtitle"
   :presence="presence"
-  @search="onSearch"
-  @call="onCall"
-  @details="onDetails"
+  @back="onBack"
   />
 </template>
 ```
@@ -68,14 +70,12 @@ FlareChatHeader(
   title: title,
   subtitle: subtitle,
   presence: presence,
-  onSearch: onSearch,
-  onCall: onCall,
-  onDetails: onDetails,
+  onBack: onBack,
 );
 ```
 
 ```swift [iOS]
-ChatHeaderView(title: title, subtitle: subtitle, presence: presence, onSearch: onSearch, onCall: onCall, onDetails: onDetails)
+ChatHeaderView(title: title, subtitle: subtitle, presence: presence, onBack: onBack)
 ```
 
 ```kotlin [Android]
@@ -83,9 +83,7 @@ ChatHeader(
   title = title,
   subtitle = subtitle,
   presence = presence,
-  onSearch = onSearch,
-  onCall = onCall,
-  onDetails = onDetails,
+  onBack = onBack,
 )
 ```
 

@@ -861,9 +861,7 @@
         "fallback",
         "presence"
       ],
-      "events": [
-        "click"
-      ],
+      "events": [],
       "platforms": {
         "vue": {
           "package": "@flare-im/vue-ui",
@@ -881,6 +879,10 @@
           "package": "com.flare.im:im-ui-compose",
           "symbol": "Avatar"
         }
+      },
+      "notes": {
+        "en": "No click callback on any platform (no Vue emits; no onTap in Flutter/iOS/Compose) — hosts wrap it for interaction.",
+        "zh": "四端都不带点击事件(Vue 无 emits;Flutter/iOS/Compose 无 onTap),交互由宿主包裹。"
       }
     },
     {
@@ -1029,14 +1031,10 @@
         "muted",
         "pinned"
       ],
-      "events": [
-        "select",
-        "longPress",
-        "loadMore"
-      ],
+      "events": [],
       "notes": {
-        "en": "Must virtualise (native list per platform); O(visible), no full re-layout on update.",
-        "zh": "必须虚拟化（各端用原生列表）；O(visible)，更新不整表重排。"
+        "en": "Must virtualise (native list per platform); O(visible), no full re-layout on update. The Vue reference is a pure slot container (no emits) — rows are host-rendered, so the contract declares none; Flutter/iOS/Compose expose onSelect / onLongPress at list level, and Flutter additionally onLoadMore.",
+        "zh": "必须虚拟化（各端用原生列表）；O(visible)，更新不整表重排。 Vue 端是纯插槽容器(无 emits),行由宿主渲染,所以契约不声明事件;Flutter/iOS/Compose 在列表层提供 onSelect / onLongPress,Flutter 另有 onLoadMore。"
       },
       "platforms": {
         "vue": {
@@ -1605,9 +1603,7 @@
         "offline"
       ],
       "events": [
-        "search",
-        "call",
-        "details"
+        "back"
       ],
       "platforms": {
         "vue": {
@@ -1626,6 +1622,10 @@
           "package": "com.flare.im:im-ui-compose",
           "symbol": "ChatHeader"
         }
+      },
+      "notes": {
+        "en": "Only back is shared. Search/call/details are host-rendered through the actions slot on Vue, while Flutter/iOS/Compose expose onSearch / onCall / onDetails callbacks.",
+        "zh": "只有 back 是共同事件。搜索/通话/详情在 Vue 走 actions 插槽由宿主渲染,在 Flutter/iOS/Compose 是 onSearch / onCall / onDetails 回调。"
       }
     },
     {
@@ -2653,9 +2653,16 @@
         "disabled"
       ],
       "events": [
+        "update:modelValue",
         "send",
-        "attach",
-        "typing"
+        "user-input",
+        "send-voice",
+        "voice-cancel",
+        "clear-reply",
+        "clear-edit",
+        "build",
+        "toggle-panel",
+        "toggle-rich-mode"
       ],
       "platforms": {
         "vue": {
@@ -2676,8 +2683,8 @@
         }
       },
       "notes": {
-        "en": "Composed from reusable parts you can also use standalone: [VoiceHoldButton](/en/components/voice-hold-button) · [ComposerActionPanel](/en/components/composer-action-panel) · [ComposerSendButton](/en/components/composer-send-button) · [ComposerReplyStrip](/en/components/composer-reply-strip).",
-        "zh": "由可复用的部件组成，这些部件也能单独使用：[VoiceHoldButton](/components/voice-hold-button) · [ComposerActionPanel](/components/composer-action-panel) · [ComposerSendButton](/components/composer-send-button) · [ComposerReplyStrip](/components/composer-reply-strip)。"
+        "en": "Composed from reusable parts you can also use standalone: [VoiceHoldButton](/en/components/voice-hold-button) · [ComposerActionPanel](/en/components/composer-action-panel) · [ComposerSendButton](/en/components/composer-send-button) · [ComposerReplyStrip](/en/components/composer-reply-strip). The attachment entry goes through toggle-panel / build on Vue, while only the native platforms expose a standalone onAttach; text changes are user-input on Vue and onTyping on Flutter, with no equivalent on iOS/Compose yet.",
+        "zh": "由可复用的部件组成，这些部件也能单独使用：[VoiceHoldButton](/components/voice-hold-button) · [ComposerActionPanel](/components/composer-action-panel) · [ComposerSendButton](/components/composer-send-button) · [ComposerReplyStrip](/components/composer-reply-strip)。附件入口在 Vue 走 toggle-panel / build,原生端才是独立的 onAttach;输入变化 Vue 叫 user-input,Flutter 叫 onTyping,iOS/Compose 暂无。"
       }
     },
     {
@@ -3058,16 +3065,7 @@
         "emojiExpanded"
       ],
       "events": [
-        "react",
-        "reply",
-        "forward",
-        "recall",
-        "multiSelect",
-        "mark",
-        "pin",
-        "copy",
-        "edit",
-        "delete"
+        "build"
       ],
       "platforms": {
         "vue": {
@@ -3086,6 +3084,10 @@
           "package": "com.flare.im:im-ui-compose",
           "symbol": "MessageActionSheet"
         }
+      },
+      "notes": {
+        "en": "All four platforms deliberately converge on a single action dispatch rather than per-op events: Vue emits build(op); Flutter/iOS/Compose take onAction(FlareComposerAction).",
+        "zh": "四端都收敛成单个 action 分发,不存在 per-op 事件:Vue emit build(op),Flutter/iOS/Compose 是 onAction(FlareComposerAction)。"
       }
     },
     {
@@ -3174,8 +3176,8 @@
         "downloading"
       ],
       "events": [
-        "close",
-        "download"
+        "update:show",
+        "primary-action"
       ],
       "platforms": {
         "vue": {
@@ -3194,6 +3196,10 @@
           "package": "com.flare.im:im-ui-compose",
           "symbol": "ImagePreview"
         }
+      },
+      "notes": {
+        "en": "Vue closes through v-model:show and surfaces the primary action as primary-action; Flutter/iOS/Compose take onClose / onDownload.",
+        "zh": "Vue 端通过 v-model:show 关闭,主操作是 primary-action;Flutter/iOS/Compose 是 onClose / onDownload。"
       }
     },
     {
@@ -3249,7 +3255,7 @@
         "paused"
       ],
       "events": [
-        "close"
+        "update:show"
       ],
       "platforms": {
         "vue": {
@@ -3268,6 +3274,10 @@
           "package": "com.flare.im:im-ui-compose",
           "symbol": "VideoPlayer"
         }
+      },
+      "notes": {
+        "en": "Vue closes through v-model:show with no standalone close event; Flutter/iOS/Compose take onPlay / onClose.",
+        "zh": "Vue 端通过 v-model:show 关闭,没有独立 close 事件;Flutter/iOS/Compose 是 onPlay / onClose。"
       }
     },
     {
@@ -3367,7 +3377,7 @@
         "loading"
       ],
       "events": [
-        "input",
+        "update:modelValue",
         "submit",
         "clear"
       ],
@@ -3388,6 +3398,10 @@
           "package": "com.flare.im:im-ui-compose",
           "symbol": "SearchBar"
         }
+      },
+      "notes": {
+        "en": "Text changes travel over v-model (update:modelValue), not an input event; the native equivalents are Flutter onChanged / Compose onValueChange / iOS Binding<String>. clear is Vue-only — native platforms clear the binding internally.",
+        "zh": "文本变化走 v-model(update:modelValue),不是 input 事件;原生端对应 Flutter onChanged / Compose onValueChange / iOS Binding<String>。clear 目前只有 Vue 有(原生端在内部清空绑定)。"
       }
     },
     {
@@ -3459,7 +3473,7 @@
         "disabled"
       ],
       "events": [
-        "input",
+        "update:modelValue",
         "submit",
         "focus",
         "blur",
@@ -3482,6 +3496,10 @@
           "package": "com.flare.im:im-ui-compose",
           "symbol": "Input"
         }
+      },
+      "notes": {
+        "en": "Text changes travel over v-model (update:modelValue), not an input event. The native platforms only expose onSubmit; clear / focus / blur are Vue-only.",
+        "zh": "文本变化走 v-model(update:modelValue),不是 input 事件。原生端只有 onSubmit;clear / focus / blur 目前只有 Vue 有。"
       }
     },
     {
@@ -3728,12 +3746,11 @@
         "indexed"
       ],
       "events": [
-        "select",
-        "longPress"
+        "select"
       ],
       "notes": {
-        "en": "Virtualised + sticky group headers; A–Z side index jumps.",
-        "zh": "虚拟化 + 分组吸顶 header；侧边 A–Z 索引跳转。"
+        "en": "Virtualised + sticky group headers; A–Z side index jumps. longPress is implemented on no platform and has been removed from the contract.",
+        "zh": "虚拟化 + 分组吸顶 header；侧边 A–Z 索引跳转。 longPress 四端均未实现,已从契约移除。"
       },
       "platforms": {
         "vue": {
@@ -4098,8 +4115,9 @@
       ],
       "events": [
         "edit",
-        "openSettings",
+        "qr",
         "action",
+        "toggle",
         "logout"
       ],
       "platforms": {
@@ -4119,6 +4137,10 @@
           "package": "com.flare.im:im-ui-compose",
           "symbol": "ProfilePanel"
         }
+      },
+      "notes": {
+        "en": "action is named onEntry on Flutter/iOS/Compose (naming still to be unified); logout is Vue-only; openSettings never existed.",
+        "zh": "action 在 Flutter/iOS/Compose 叫 onEntry(命名待统一);logout 目前只有 Vue 有;从来没有 openSettings。"
       }
     },
     {
@@ -8818,8 +8840,8 @@
       "name": "ConfigProvider",
       "category": "Layout",
       "summary": {
-        "zh": "全局配置 —— 在根部统一默认控件尺寸/密度,并驱动多语言(locale)与主题(浅色/深色)切换;后代用 useFlareConfig() 读取与切换。",
-        "en": "Global config — unify default control size/density at the root and drive language (locale) + theme (light/dark) switching; descendants read and switch via useFlareConfig()."
+        "zh": "全局配置 —— 在根部统一默认控件尺寸/密度,并驱动多语言(locale)与主题(浅色/深色)切换;后代用 useFlareConfig() 读取与切换,它返回 { size, setSize, locale, setLocale, themeMode, isDark, setThemeMode, toggleTheme }。该组件不对外发事件。",
+        "en": "Global config — unify default control size/density at the root and drive language (locale) + theme (light/dark) switching; descendants read and switch via useFlareConfig(), which returns { size, setSize, locale, setLocale, themeMode, isDark, setThemeMode, toggleTheme }. The component emits no events."
       },
       "dataSource": {
         "zh": "由你传入",
@@ -8868,9 +8890,7 @@
         }
       ],
       "states": [],
-      "events": [
-        "useFlareConfig() → { size,setSize, locale,setLocale, themeMode,isDark,setThemeMode,toggleTheme }"
-      ],
+      "events": [],
       "platforms": {
         "vue": {
           "package": "@flare-im/vue-ui",

@@ -7,9 +7,10 @@
 // It SCAFFOLDS, it does not own: most pages have since been hand-extended with
 // state tables, host-integration guides and four-platform code groups that the
 // spec cannot express. So an existing page is left alone by default — a plain
-// run once rewrote every page and would have thrown that prose away. Pass
-// --force to regenerate existing pages anyway (and read the diff before
-// committing it).
+// run once rewrote every page and would have thrown that prose away.
+//   (no flag)          scaffold pages the spec has but the site lacks
+//   --only=A,B         regenerate just those components (after a spec edit)
+//   --force            regenerate everything (read the diff before committing)
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -101,7 +102,7 @@ const demoOf = {
   Avatar: "AvatarDemo", TimeStamp: "TimeStampDemo", MessageStatus: "MessageStatusDemo",
   ConversationRow: "ConversationRowDemo", ConversationList: "ConversationListDemo",
   MessageBubble: "MessageBubbleDemo", ChatHeader: "ChatHeaderDemo", PinnedMessageBar: "PinnedBarDemo",
-  Composer: "ComposerDemo", MarkdownPreview: "MarkdownPreviewDemo",
+  Composer: "ComposerResponsivePreview", MarkdownPreview: "MarkdownPreviewDemo",
   SearchBar: "SearchBarDemo", Input: "InputDemo", EmptyState: "EmptyStateDemo",
   StatusBanner: "StatusBannerDemo", FilterTabs: "FilterTabsDemo",
   ContactList: "ContactListDemo", ProfilePanel: "ProfilePanelDemo",
@@ -251,6 +252,7 @@ ${c.status === "planned" ? `\n> [!NOTE]\n> ${t.plannedNote}\n` : ""}
 ${demo ? `## ${t.preview}\n\n<div class="flare-demo${stackDemos.has(c.name) ? " flare-demo--stack" : ""}">\n  <${demo} />\n</div>\n` : ""}${
     parts ? `\n### ${t.freeCompose}\n\n<div class="flare-demo flare-demo--stack">\n  <${parts} />\n</div>\n` : ""
   }
+${c.name === "Composer" ? `<!--@include: ${loc === "en" ? "../../" : "../"}snippets/composer-web.${loc}.md-->\n` : ""}
 ## ${t.props}
 
 ${propsTable(c.props, t, loc)}
@@ -316,6 +318,11 @@ function dataTypesPage(loc) {
 for (const c of spec.components) c.examples = curatedExamples[c.name] ?? c.examples;
 
 const force = process.argv.includes("--force");
+// --only=Avatar,ChatHeader regenerates just those pages. Needed because --force is
+// all-or-nothing: after a spec edit only a handful of pages are stale, and rewriting
+// every page to refresh them would take the hand-extended prose down with it.
+const onlyArg = process.argv.find((a) => a.startsWith("--only="));
+const only = onlyArg ? new Set(onlyArg.slice("--only=".length).split(",").filter(Boolean)) : null;
 
 for (const { code, dir, base } of LOCALES) {
   const t = UI[code];
@@ -325,8 +332,9 @@ for (const { code, dir, base } of LOCALES) {
   const kept = [];
   for (const c of spec.components) {
     const file = join(dir, `${slug(c.name)}.md`);
-    // Never silently overwrite hand-extended prose; --force is the explicit opt-in.
-    if (!force && existsSync(file)) kept.push(slug(c.name));
+    if (only && !only.has(c.name)) { (byCat[c.category] ??= []).push(c); continue; }
+    // Never silently overwrite hand-extended prose; --force and --only are the opt-ins.
+    if (!force && !only && existsSync(file)) kept.push(slug(c.name));
     else {
       writeFileSync(file, componentPage(c, code));
       written += 1;

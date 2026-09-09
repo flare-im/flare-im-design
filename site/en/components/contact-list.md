@@ -16,6 +16,7 @@ title: ContactList
   <ContactListDemo />
 </div>
 
+
 ## Props
 
 | Name | Type | Req. | Default | Description |
@@ -31,10 +32,10 @@ title: ContactList
 
 ## Events
 
-<span class="flare-tag">select</span> <span class="flare-tag">longPress</span>
+<span class="flare-tag">select</span>
 
 > [!TIP]
-> Virtualised + sticky group headers; A–Z side index jumps.
+> Virtualised + sticky group headers; A–Z side index jumps. longPress is implemented on no platform and has been removed from the contract.
 
 ## Platform implementations
 
@@ -60,7 +61,6 @@ import { FlareContactList } from "@flare-im/vue-ui";
   :indexed="indexed"
   :loading="loading"
   @select="onSelect"
-  @longPress="onLongPress"
   />
 </template>
 ```
@@ -71,12 +71,11 @@ FlareContactList(
   indexed: indexed,
   loading: loading,
   onSelect: onSelect,
-  onLongPress: onLongPress,
 );
 ```
 
 ```swift [iOS]
-ContactListView(items: items, indexed: indexed, loading: loading, onSelect: onSelect, onLongPress: onLongPress)
+ContactListView(items: items, indexed: indexed, loading: loading, onSelect: onSelect)
 ```
 
 ```kotlin [Android]
@@ -85,7 +84,6 @@ ContactList(
   indexed = indexed,
   loading = loading,
   onSelect = onSelect,
-  onLongPress = onLongPress,
 )
 ```
 

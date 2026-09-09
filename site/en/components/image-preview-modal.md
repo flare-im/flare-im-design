@@ -16,6 +16,7 @@ title: ImagePreviewModal
   <ImagePreviewModalDemo />
 </div>
 
+
 ## Props
 
 | Name | Type | Req. | Default | Description |
@@ -36,7 +37,10 @@ title: ImagePreviewModal
 
 ## Events
 
-<span class="flare-tag">close</span> <span class="flare-tag">download</span>
+<span class="flare-tag">update:show</span> <span class="flare-tag">primary-action</span>
+
+> [!TIP]
+> Vue closes through v-model:show and surfaces the primary action as primary-action; Flutter/iOS/Compose take onClose / onDownload.
 
 ## Platform implementations
 
@@ -61,8 +65,8 @@ import { FlareImagePreview } from "@flare-im/vue-ui";
   :show="show"
   :imageSrc="imageSrc"
   :loading="loading"
-  @close="onClose"
-  @download="onDownload"
+  @update:show="onUpdate:show"
+  @primary-action="onPrimaryAction"
   />
 </template>
 ```
@@ -72,13 +76,13 @@ FlareImagePreview(
   show: show,
   imageSrc: imageSrc,
   loading: loading,
-  onClose: onClose,
-  onDownload: onDownload,
+  onUpdate:show: onUpdate:show,
+  onPrimaryAction: onPrimaryAction,
 );
 ```
 
 ```swift [iOS]
-ImagePreviewView(show: show, imageSrc: imageSrc, loading: loading, onClose: onClose, onDownload: onDownload)
+ImagePreviewView(show: show, imageSrc: imageSrc, loading: loading, onUpdate:show: onUpdate:show, onPrimaryAction: onPrimaryAction)
 ```
 
 ```kotlin [Android]
@@ -86,8 +90,8 @@ ImagePreview(
   show = show,
   imageSrc = imageSrc,
   loading = loading,
-  onClose = onClose,
-  onDownload = onDownload,
+  onUpdate:show = onUpdate:show,
+  onPrimaryAction = onPrimaryAction,
 )
 ```
 

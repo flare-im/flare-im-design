@@ -16,6 +16,7 @@ title: ConversationList
   <ConversationListDemo />
 </div>
 
+
 ## Props
 
 | Name | Type | Req. | Default | Description |
@@ -31,10 +32,10 @@ title: ConversationList
 
 ## Events
 
-<span class="flare-tag">select</span> <span class="flare-tag">longPress</span> <span class="flare-tag">loadMore</span>
+_None_
 
 > [!TIP]
-> Must virtualise (native list per platform); O(visible), no full re-layout on update.
+> Must virtualise (native list per platform); O(visible), no full re-layout on update. The Vue reference is a pure slot container (no emits) — rows are host-rendered, so the contract declares none; Flutter/iOS/Compose expose onSelect / onLongPress at list level, and Flutter additionally onLoadMore.
 
 ## Platform implementations
 
@@ -59,9 +60,6 @@ import { FlareConversationList } from "@flare-im/vue-ui";
   :items="items"
   :activeId="activeId"
   :loading="loading"
-  @select="onSelect"
-  @longPress="onLongPress"
-  @loadMore="onLoadMore"
   />
 </template>
 ```
@@ -71,14 +69,11 @@ FlareConversationList(
   items: items,
   activeId: activeId,
   loading: loading,
-  onSelect: onSelect,
-  onLongPress: onLongPress,
-  onLoadMore: onLoadMore,
 );
 ```
 
 ```swift [iOS]
-ConversationListView(items: items, activeId: activeId, loading: loading, onSelect: onSelect, onLongPress: onLongPress, onLoadMore: onLoadMore)
+ConversationListView(items: items, activeId: activeId, loading: loading)
 ```
 
 ```kotlin [Android]
@@ -86,9 +81,6 @@ ConversationList(
   items = items,
   activeId = activeId,
   loading = loading,
-  onSelect = onSelect,
-  onLongPress = onLongPress,
-  onLoadMore = onLoadMore,
 )
 ```
 

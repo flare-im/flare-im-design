@@ -16,6 +16,7 @@ title: ConversationList
   <ConversationListDemo />
 </div>
 
+
 ## Props
 
 | 名称 | 类型 | 必填 | 默认 | 说明 |
@@ -31,10 +32,10 @@ title: ConversationList
 
 ## Events
 
-<span class="flare-tag">select</span> <span class="flare-tag">longPress</span> <span class="flare-tag">loadMore</span>
+_无_
 
 > [!TIP]
-> 必须虚拟化（各端用原生列表）；O(visible)，更新不整表重排。
+> 必须虚拟化（各端用原生列表）；O(visible)，更新不整表重排。 Vue 端是纯插槽容器(无 emits),行由宿主渲染,所以契约不声明事件;Flutter/iOS/Compose 在列表层提供 onSelect / onLongPress,Flutter 另有 onLoadMore。
 
 ## 各端实现
 
@@ -59,9 +60,6 @@ import { FlareConversationList } from "@flare-im/vue-ui";
   :items="items"
   :activeId="activeId"
   :loading="loading"
-  @select="onSelect"
-  @longPress="onLongPress"
-  @loadMore="onLoadMore"
   />
 </template>
 ```
@@ -71,14 +69,11 @@ FlareConversationList(
   items: items,
   activeId: activeId,
   loading: loading,
-  onSelect: onSelect,
-  onLongPress: onLongPress,
-  onLoadMore: onLoadMore,
 );
 ```
 
 ```swift [iOS]
-ConversationListView(items: items, activeId: activeId, loading: loading, onSelect: onSelect, onLongPress: onLongPress, onLoadMore: onLoadMore)
+ConversationListView(items: items, activeId: activeId, loading: loading)
 ```
 
 ```kotlin [Android]
@@ -86,9 +81,6 @@ ConversationList(
   items = items,
   activeId = activeId,
   loading = loading,
-  onSelect = onSelect,
-  onLongPress = onLongPress,
-  onLoadMore = onLoadMore,
 )
 ```
 
