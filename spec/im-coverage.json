@@ -27,7 +27,8 @@
         "StartConversationDialog",
         "ConversationDetails",
         "ConversationActionSheet",
-        "ConversationBatchToolbar"
+        "ConversationBatchToolbar",
+        "ConversationWorkspace"
       ],
       "requiredStates": "空列表、加载失败、草稿、@提醒、免打扰、归档",
       "next": "会话菜单与批量操作条四端已实现（含部分失败逐项恢复）；长列表滚动锚点与真机批量管理验收待做"
@@ -43,7 +44,8 @@
         "UnreadDivider",
         "DatePill",
         "ScrollToLatest",
-        "TypingIndicator"
+        "TypingIndicator",
+        "ConversationWorkspace"
       ],
       "requiredStates": "发送中/失败/已送达/已读、撤回、编辑、重复 ACK、历史加载",
       "next": "历史前插与加载失败恢复已补齐；原生锚点真机验收、ACK 与长历史窗口回归继续推进"
@@ -202,7 +204,8 @@
         "ScreenHeader",
         "Button",
         "IconButton",
-        "Toast"
+        "Toast",
+        "ConversationWorkspace"
       ],
       "requiredStates": "小屏、平板分屏、桌面、多语言、RTL、大字号、减少动画",
       "next": "持续检查焦点/读屏/触控区域；真实设备验收与截图基线"

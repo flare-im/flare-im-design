@@ -150,3 +150,5 @@ export 'src/components/flare_member_role_sheet.dart';
 
 export 'src/components/flare_screen_share.dart';
 export 'src/components/flare_storage_usage.dart';
+
+export 'src/components/flare_conversation_workspace.dart';

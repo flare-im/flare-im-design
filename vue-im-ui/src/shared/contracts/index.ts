@@ -98,3 +98,5 @@ export { memberRoleActions, memberRoleActionOrder, type GroupMemberRole, type Me
 
 export { screenShareActions, screenShareIconName, screenShareStates, screenShareTone, type ScreenShareAction, type ScreenShareActionOptions, type ScreenShareActions, type ScreenShareState, type ScreenShareTone } from './screen-share';
 export { formatBytes, storageTotals, storageShare, canClearStorage, type StorageCategory, type StorageTotals } from "./storage-usage";
+
+export * from "./conversation-workspace";

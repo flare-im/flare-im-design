@@ -148,6 +148,7 @@ import GroupPermissionMatrixDemo from './demos/GroupPermissionMatrixDemo.vue';
 import MemberRoleSheetDemo from './demos/MemberRoleSheetDemo.vue';
 import ScreenShareDemo from './demos/ScreenShareDemo.vue';
 import StorageUsageDemo from './demos/StorageUsageDemo.vue';
+import ConversationWorkspaceDemo from './demos/ConversationWorkspaceDemo.vue';
 
 const demos = {
   EmojiStickerPanelDemo,
@@ -289,6 +290,7 @@ const demos = {
   MemberRoleSheetDemo,
   ScreenShareDemo,
   StorageUsageDemo,
+  ConversationWorkspaceDemo,
 };
 
 export default {

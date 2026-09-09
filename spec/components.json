@@ -8883,6 +8883,203 @@
       }
     },
     {
+      "name": "ConversationWorkspace",
+      "category": "Layout",
+      "summary": {
+        "en": "Conversation workspace — composes ResponsiveLayout and resolves loading / empty / failure for the list, chat and detail panes in one place, plus a cross-pane banner.",
+        "zh": "会话工作区 —— 组合 ResponsiveLayout，在一处统一列表 / 聊天 / 详情三栏的加载、空、失败状态，并提供跨栏全局提示。"
+      },
+      "dataSource": {
+        "en": "Host-owned pane content and per-pane status; no data ownership, no network, no timers.",
+        "zh": "三栏内容与每栏状态均由宿主传入；组件不拥有数据、不发请求、无定时器。"
+      },
+      "props": [
+        {
+          "name": "activePane",
+          "type": "'list' | 'chat' | 'detail'",
+          "description": {
+            "en": "Foreground pane in single mode; forwarded verbatim to ResponsiveLayout (default 'list').",
+            "zh": "单栏时的前置栏；原样透传给 ResponsiveLayout（默认 list）。"
+          }
+        },
+        {
+          "name": "hasDetail",
+          "type": "boolean",
+          "description": {
+            "en": "Whether a detail pane exists (enables 3-column). Native platforms derive it from the detail slot, matching ResponsiveLayout.",
+            "zh": "是否存在详情栏（启用三栏）。原生端与 ResponsiveLayout 一致，由 detail 槽是否传入推导。"
+          }
+        },
+        {
+          "name": "listWidth",
+          "type": "number",
+          "description": {
+            "en": "List column width; forwarded verbatim (default 320 logical units).",
+            "zh": "列表栏宽，原样透传（默认 320 逻辑单位）。"
+          }
+        },
+        {
+          "name": "detailWidth",
+          "type": "number",
+          "description": {
+            "en": "Detail column width; forwarded verbatim (default 300 logical units).",
+            "zh": "详情栏宽，原样透传（默认 300 逻辑单位）。"
+          }
+        },
+        {
+          "name": "hideMobileBar",
+          "type": "boolean",
+          "description": {
+            "en": "Hide the built-in narrow-screen back bar when the host supplies its own; forwarded verbatim.",
+            "zh": "宿主已有返回栏时隐藏内置窄屏返回栏；原样透传。"
+          }
+        },
+        {
+          "name": "backLabel",
+          "type": "string",
+          "description": {
+            "en": "Localized back label; forwarded verbatim. Back order (detail → chat → list) stays in ResponsiveLayout.",
+            "zh": "本地化返回文案；原样透传。窄屏返回顺序（详情→聊天→列表）仍由 ResponsiveLayout 负责。"
+          }
+        },
+        {
+          "name": "listState",
+          "type": "WorkspacePaneState",
+          "description": {
+            "en": "Inbox pane state { status: 'ready'|'loading'|'empty'|'failure', message?, actionLabel? }. Independent of the other panes.",
+            "zh": "列表栏状态 { status: ready|loading|empty|failure, message?, actionLabel? }，与其它两栏互不影响。"
+          }
+        },
+        {
+          "name": "chatState",
+          "type": "WorkspacePaneState",
+          "description": {
+            "en": "Timeline pane state; a chat failure never turns an already loaded list into a failure.",
+            "zh": "聊天栏状态；聊天栏失败不会把已加载好的列表栏也变成失败。"
+          }
+        },
+        {
+          "name": "detailState",
+          "type": "WorkspacePaneState",
+          "description": {
+            "en": "Detail pane state; same shape and rules as the other two.",
+            "zh": "详情栏状态；结构与规则同前两栏。"
+          }
+        },
+        {
+          "name": "banner",
+          "type": "{ tone?: 'info'|'warning'|'error'|'success'; message: string; actionLabel?: string }",
+          "description": {
+            "en": "Cross-pane notice (offline / reconnecting / session expired) rendered above all three panes. Blank or whitespace-only messages render nothing; it can coexist with any pane state.",
+            "zh": "跨栏全局提示（断网 / 重连 / 会话过期），渲染在三栏之上。message 为空或纯空白则不渲染；可与任意栏内状态并存。"
+          }
+        },
+        {
+          "name": "listEmptyText",
+          "type": "string",
+          "description": {
+            "en": "Default empty title for the list pane (default \"暂无会话\"); state.message wins when present.",
+            "zh": "列表栏默认空文案（默认“暂无会话”）；state.message 存在时优先。"
+          }
+        },
+        {
+          "name": "chatEmptyText",
+          "type": "string",
+          "description": {
+            "en": "Default empty title for the chat pane (default \"选择一个会话开始聊天\").",
+            "zh": "聊天栏默认空文案（默认“选择一个会话开始聊天”）。"
+          }
+        },
+        {
+          "name": "detailEmptyText",
+          "type": "string",
+          "description": {
+            "en": "Default empty title for the detail pane (default \"暂无详情\").",
+            "zh": "详情栏默认空文案（默认“暂无详情”）。"
+          }
+        },
+        {
+          "name": "listFailureText",
+          "type": "string",
+          "description": {
+            "en": "Default failure reason for the list pane (default \"会话列表加载失败\").",
+            "zh": "列表栏默认失败原因（默认“会话列表加载失败”）。"
+          }
+        },
+        {
+          "name": "chatFailureText",
+          "type": "string",
+          "description": {
+            "en": "Default failure reason for the chat pane (default \"消息加载失败\").",
+            "zh": "聊天栏默认失败原因（默认“消息加载失败”）。"
+          }
+        },
+        {
+          "name": "detailFailureText",
+          "type": "string",
+          "description": {
+            "en": "Default failure reason for the detail pane (default \"详情加载失败\").",
+            "zh": "详情栏默认失败原因（默认“详情加载失败”）。"
+          }
+        },
+        {
+          "name": "listLoadingText",
+          "type": "string",
+          "description": {
+            "en": "Screen-reader text announced while the list skeleton shows (default \"正在加载会话列表\").",
+            "zh": "列表栏骨架的读屏文案（默认“正在加载会话列表”）。"
+          }
+        },
+        {
+          "name": "chatLoadingText",
+          "type": "string",
+          "description": {
+            "en": "Screen-reader text announced while the chat skeleton shows (default \"正在加载消息\").",
+            "zh": "聊天栏骨架的读屏文案（默认“正在加载消息”）。"
+          }
+        },
+        {
+          "name": "detailLoadingText",
+          "type": "string",
+          "description": {
+            "en": "Screen-reader text announced while the detail skeleton shows (default \"正在加载详情\").",
+            "zh": "详情栏骨架的读屏文案（默认“正在加载详情”）。"
+          }
+        }
+      ],
+      "states": [
+        "ready",
+        "loading",
+        "empty",
+        "failure",
+        "partialFailure",
+        "banner"
+      ],
+      "events": [
+        "paneChange",
+        "retry",
+        "bannerAction"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareConversationWorkspace"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareConversationWorkspace"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ConversationWorkspaceView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ConversationWorkspace"
+        }
+      }
+    },
+    {
       "name": "MomentsVisibilityRuleList",
       "category": "Moments",
       "summary": {

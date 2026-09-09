@@ -233,3 +233,5 @@ export { default as FlareMemberRoleSheet } from "./contacts/FlareMemberRoleSheet
 
 export { default as FlareScreenShare } from './call/FlareScreenShare.vue';
 export { default as FlareStorageUsage } from "./profile/FlareStorageUsage.vue";
+
+export { default as FlareConversationWorkspace } from "./layout/FlareConversationWorkspace.vue";

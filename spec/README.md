@@ -36,7 +36,7 @@ the inconsistency problem across the four platform implementations is exactly wh
 <!-- CATALOG:START -->
 ## Component catalog
 
-**134 components / 11 categories** (source in [`components.json`](./components.json);
+**135 components / 11 categories** (source in [`components.json`](./components.json);
 props/events extracted and calibrated from the `@flare-im/vue-ui` source).
 
 > This section is generated from the contract by `gen-readme-catalog.mjs`; do not edit by hand — a hand-written catalog rots as the contract grows.
@@ -61,8 +61,8 @@ props/events extracted and calibrated from the `@flare-im/vue-ui` source).
   `CallControls` · `CallDevicePicker` · `CallDock` · `CallView` · `GroupCallView` · `IncomingCall` · `ScreenShare`
 - **Media** — 6
   `ImagePreviewModal` · `MarkdownPreview` · `MediaCenter` · `TransferProgress` · `TransferQueue` · `VideoPlayerModal`
-- **Layout** — 4
-  `AppShell` · `ConfigProvider` · `ResponsiveLayout` · `ScreenHeader`
+- **Layout** — 5
+  `AppShell` · `ConfigProvider` · `ConversationWorkspace` · `ResponsiveLayout` · `ScreenHeader`
 
 <!-- CATALOG:END -->
 
