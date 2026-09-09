@@ -51,38 +51,67 @@ jobs:
     name: Vue 组件库
     runs-on: ubuntu-latest
     steps:
+      # 依赖来源按分支分工：dev 用同级仓源码，main 用已发布包。
+      #
+      # 这不是给 CI 开的后门，而是把两种真实场景各测一次。vue-im-ui/tsconfig.json
+      # 的 paths 已经把 @flare-im/sdk 指向 ../../flare-im-core-client-sdk/...，
+      # 所以「同级仓在不在」就是开关：在 → 走源码，不在 → 解析回落 node_modules
+      # 里装的已发布包。因此 kit 必须检出到子目录，让 ../../ 有地方可指。
+      #
+      # dev 回答的是「kit 自己的代码对不对」，改完立刻能验；
+      # main 回答的是「按发布包装进去的消费方能不能用」，那是发版的判据。
+      # 两者会分歧——契约改了但包还没发时就会——那正是要被看见的事实，
+      # 不该用一个来掩盖另一个。
       - uses: actions/checkout@v4
+        with:
+          path: flare-im-design
+
+      # flare-im-core-client-sdk 是公开仓，不需要 token。
+      - uses: actions/checkout@v4
+        if: github.ref_name != 'main'
+        with:
+          repository: flare-im/flare-im-core-client-sdk
+          path: flare-im-core-client-sdk
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+
+      - name: 依赖来源
+        run: |
+          if [ -d flare-im-core-client-sdk ]; then
+            echo "dev：@flare-im/sdk 走同级仓源码"
+          else
+            echo "main：@flare-im/sdk 走 npm 已发布包"
+          fi
 
       # @flare-im/sdk 与 @flare-im/tokens 都已发布，从 registry 装即可 ——
       # 此前 sdk 是跨仓 file: 依赖，CI 里根本装不到，只能写成「允许失败」，
       # 那等于一条永远不会把关的门禁。改成 registry 依赖后才真正有效。
       - name: 安装依赖
-        working-directory: vue-im-ui
+        working-directory: flare-im-design/vue-im-ui
         run: npm install --no-audit --no-fund
 
       - name: 类型检查
-        working-directory: vue-im-ui
+        working-directory: flare-im-design/vue-im-ui
         run: npm run typecheck
 
       - name: 单元测试
-        working-directory: vue-im-ui
+        working-directory: flare-im-design/vue-im-ui
         run: npm test --if-present
 
       # SFC 的编译期错误**躲得过 vue-tsc**（模板里的错在 SFC 编译阶段才暴露），
       # 而 barrel 转出全部组件 —— 一个坏 SFC 会让每个消费方整片空白。
       # 这个门禁早就写好了，但一直没接进 CI，等于没有。
       - name: 全量 SFC 编译
-        working-directory: vue-im-ui
+        working-directory: flare-im-design/vue-im-ui
         run: npm run check:sfc
 
       # 表情/贴纸元数据是从仓库上层的真源拷进包内的（发布包不能引用 ../..）。
       # 拷贝漂移过一次：发布出去的 1.0.6 缺这两个 json，装了 npm 包的消费方
       # 直接构建失败，而本地 alias 指向真源所以完全无感。
       - name: 包内元数据与真源一致
-        working-directory: vue-im-ui
+        working-directory: flare-im-design/vue-im-ui
         run: npm run check:assets
 
   distribution:
