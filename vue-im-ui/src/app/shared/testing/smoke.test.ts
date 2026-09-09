@@ -2371,9 +2371,9 @@ describe("responsive web app theme contract", () => {
     expect(css).toContain("--im-brand-primary: var(--flare-color-primary");
     expect(css).toContain("--im-message-pinned-bg: #FFF7DE");
     expect(css).toContain(
-      "--im-workbench-conversation-width: clamp(300px, 24vw, 360px)",
+      "--im-workbench-conversation-width: clamp(288px, 23vw, 336px)",
     );
-    expect(css).toContain("--im-workbench-details-width: 320px");
+    expect(css).toContain("--im-workbench-details-width: 300px");
     expect(css).toContain("--im-composer-desktop-height: 46px");
   });
 });
@@ -2454,7 +2454,7 @@ describe("chat message search drawer", () => {
     expect(layoutSource).toContain(":global(.workbench-search-sheet.mobile-sheet .n-drawer-body-content-wrapper)");
     expect(layoutSource).not.toContain("class=\"sheet-list chat-search-results\"");
     expect(layoutSource).not.toContain("message.textPreview?.trim() || chatSearchResultKindLabel");
-    expect(sdkSource).toContain("client.messages.searchMessagesInConversation(query)");
+    expect(sdkSource).toContain("client.messages.searchMessagesByQuery(query)");
     expect(sdkSource).toContain("client.messages.searchMessagesByQuery(query)");
   });
 

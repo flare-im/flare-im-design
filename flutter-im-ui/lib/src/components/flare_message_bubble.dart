@@ -236,9 +236,7 @@ class FlareMessageBubble extends StatelessWidget {
 
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: maxWidth),
-      // Received = white surface + hairline border + whisper of lift; self =
-      // an Aurora "light source" — a dimensional violet gradient + soft glow.
-      // Both stay theme-driven for dark mode.
+      // Both message surfaces follow the shared theme.
       child: self
           ? _selfBubble(context, colors, shape, padding, content)
           : FlareSurface(
@@ -250,38 +248,11 @@ class FlareMessageBubble extends StatelessWidget {
     );
   }
 
-  /// The outgoing bubble as an Aurora light source: a lit top-left → brand →
-  /// deeper bottom-right gradient with a soft violet glow (stronger in dark).
+  /// Flat brand fill keeps the message text in focus.
   Widget _selfBubble(BuildContext context, FlareColors colors, BorderRadius shape,
       EdgeInsets padding, Widget content) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    final base = colors.bubbleSelf;
-    final lit = Color.alphaBlend(Colors.white.withValues(alpha: 0.24), base);
-    final deep = Color.alphaBlend(Colors.black.withValues(alpha: 0.16), base);
     return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: shape,
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [lit, base, deep],
-          stops: const [0.0, 0.52, 1.0],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: base.withValues(alpha: dark ? 0.55 : 0.38),
-            blurRadius: dark ? 22 : 16,
-            spreadRadius: dark ? -4 : -6,
-            offset: const Offset(0, 5),
-          ),
-          BoxShadow(
-            color: base.withValues(alpha: dark ? 0.40 : 0.26),
-            blurRadius: dark ? 12 : 8,
-            spreadRadius: -2,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      decoration: BoxDecoration(borderRadius: shape, color: colors.bubbleSelf),
       child: Padding(padding: padding, child: content),
     );
   }

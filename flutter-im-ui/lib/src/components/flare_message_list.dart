@@ -8,10 +8,10 @@ import 'flare_message_bubble.dart';
 /// The virtualised message thread — grouping, load-older, multi-select, media
 /// state. Spec: Message/MessageList (`FlareMessageList`).
 ///
-/// Pure/presentational and windowed via [ListView.builder] (O(visible)). Order
+/// Pure/presentational and windowed via lazy slivers (O(visible)). Order
 /// is oldest→newest (top→bottom); the host feeds [messages] from the timeline
 /// view and drives pagination through [onLoadOlder].
-class FlareMessageList extends StatelessWidget {
+class FlareMessageList extends StatefulWidget {
   const FlareMessageList({
     super.key,
     required this.messages,
@@ -20,6 +20,10 @@ class FlareMessageList extends StatelessWidget {
     this.multiSelectMode = false,
     this.selectedIds = const {},
     this.loadingOlder = false,
+    this.hasOlder = false,
+    this.olderError,
+    this.loadOlderText = "加载更早消息",
+    this.conversationId,
     this.loading = false,
     this.emptyText = '暂无消息',
     this.mediaDownloadStates = const {},
@@ -39,7 +43,12 @@ class FlareMessageList extends StatelessWidget {
   final bool multiSelectMode;
   final Set<String> selectedIds;
   final bool loadingOlder;
+  final bool hasOlder;
+  final String? olderError;
+  final String loadOlderText;
+  final String? conversationId;
   final bool loading;
+
   /// 空态文案。整块替换用 [emptyPlaceholder]，仅换文字用本参数。
   final String emptyText;
 
@@ -51,88 +60,236 @@ class FlareMessageList extends StatelessWidget {
   final void Function(FlareMessageData message)? onMessageLongPress;
   final void Function(FlareMessageData message)? onAvatarTap;
   final void Function(FlareMessageData message, FlareMessageContent content)?
-      onMediaAction;
+  onMediaAction;
   final void Function(FlareMessageData message)? onResend;
   final void Function(FlareMessageData message)? onToggleSelect;
   final Widget? emptyPlaceholder;
 
   @override
-  Widget build(BuildContext context) {
-    // Faint chat canvas so the white received bubbles read as cards.
-    final canvas = FlareColors.of(Theme.of(context).brightness).bgSecondary;
-    if (messages.isEmpty) {
-      return ColoredBox(
-        color: canvas,
-        child: Center(
-          child: loading
-              ? const CircularProgressIndicator()
-              : (emptyPlaceholder ?? _Empty(emptyText)),
-        ),
-      );
+  State<FlareMessageList> createState() => _FlareMessageListState();
+}
+
+class _FlareMessageListState extends State<FlareMessageList> {
+  final _ownedController = ScrollController();
+  final _centerKey = UniqueKey();
+  final _viewportKey = GlobalKey();
+  final _rowKeys = <String, GlobalKey>{};
+  int _restoreGeneration = 0;
+
+  ({String id, double offset})? _visibleAnchor(Set<String> surviving) {
+    final viewport = _viewportKey.currentContext?.findRenderObject();
+    if (viewport is! RenderBox || !viewport.hasSize) return null;
+    final top = viewport.localToGlobal(Offset.zero).dy;
+    final rows = <({String id, double offset})>[];
+    for (final entry in _rowKeys.entries) {
+      if (!surviving.contains(entry.key)) continue;
+      final box = entry.value.currentContext?.findRenderObject();
+      if (box is! RenderBox || !box.attached || !box.hasSize) continue;
+      final y = box.localToGlobal(Offset.zero).dy - top;
+      if (y < viewport.size.height && y + box.size.height > 0)
+        rows.add((id: entry.key, offset: y));
     }
+    rows.sort((a, b) => a.offset.compareTo(b.offset));
+    return rows.firstOrNull;
+  }
 
-    // header (load-older) occupies index 0
-    final itemCount = messages.length + 1;
+  String? _pivotId;
+  bool _requested = false;
+  ScrollController get _controller => widget.controller ?? _ownedController;
 
-    return ColoredBox(
-      color: canvas,
-      child: NotificationListener<ScrollNotification>(
-      onNotification: (n) {
-        if (onLoadOlder != null &&
-            n.metrics.pixels <= n.metrics.minScrollExtent + 160) {
-          onLoadOlder!();
-        }
-        return false;
-      },
-      child: ListView.builder(
-        controller: controller,
-        itemCount: itemCount,
-        itemBuilder: (context, index) {
-          if (index == 0) return _header();
-          final i = index - 1;
-          final msg = messages[i];
-          final prev = i > 0 ? messages[i - 1] : null;
-          final next = i < messages.length - 1 ? messages[i + 1] : null;
-          final groupStart = prev == null ||
+  @override
+  void initState() {
+    super.initState();
+    _pivotId = widget.messages.firstOrNull?.id;
+  }
+
+  @override
+  void didUpdateWidget(FlareMessageList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final surviving = widget.messages.map((m) => m.id).toSet();
+    final anchor = oldWidget.conversationId == widget.conversationId
+        ? _visibleAnchor(surviving)
+        : null;
+    if (anchor != null && oldWidget.messages != widget.messages) {
+      _pivotId = anchor.id;
+      final generation = ++_restoreGeneration;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted &&
+            generation == _restoreGeneration &&
+            _controller.hasClients)
+          _controller.jumpTo(-anchor.offset);
+      });
+    }
+    _rowKeys.removeWhere((id, _) => !surviving.contains(id));
+    if (oldWidget.conversationId != widget.conversationId) {
+      _restoreGeneration++;
+      _pivotId = widget.messages.firstOrNull?.id;
+      _requested = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _controller.hasClients) _controller.jumpTo(0);
+      });
+    }
+    if (oldWidget.loadingOlder && !widget.loadingOlder ||
+        oldWidget.messages.firstOrNull?.id != widget.messages.firstOrNull?.id ||
+        oldWidget.olderError != widget.olderError)
+      _requested = false;
+    // When a bounded host window evicts the pivot, start a new window. Hosts
+    // requiring eviction anchoring should own the scroll view via the sliver API.
+    if (!widget.messages.any((m) => m.id == _pivotId))
+      _pivotId = widget.messages.firstOrNull?.id;
+  }
+
+  @override
+  void dispose() {
+    _ownedController.dispose();
+    super.dispose();
+  }
+
+  void _requestOlder({bool retry = false}) {
+    if (_requested ||
+        widget.loadingOlder ||
+        !widget.hasOlder ||
+        widget.onLoadOlder == null ||
+        (!retry && widget.olderError != null))
+      return;
+    setState(() => _requested = true);
+    widget.onLoadOlder!();
+  }
+
+  Widget _message(int i) {
+    final msg = widget.messages[i];
+    final prev = i > 0 ? widget.messages[i - 1] : null;
+    final next = i + 1 < widget.messages.length ? widget.messages[i + 1] : null;
+    return KeyedSubtree(
+      key: ValueKey(msg.id),
+      child: SizedBox(
+        key: _rowKeys.putIfAbsent(msg.id, GlobalKey.new),
+        child: FlareMessageBubble(
+          message: msg,
+          currentUserId: widget.currentUserId,
+          conversationKind: widget.conversationKind,
+          groupStart:
+              prev == null ||
               prev.senderId != msg.senderId ||
               prev.isSystem ||
-              msg.isSystem;
-          final groupEnd = next == null ||
+              msg.isSystem,
+          groupEnd:
+              next == null ||
               next.senderId != msg.senderId ||
               next.isSystem ||
-              msg.isSystem;
-
-          return FlareMessageBubble(
-            message: msg,
-            currentUserId: currentUserId,
-            conversationKind: conversationKind,
-            groupStart: groupStart,
-            groupEnd: groupEnd,
-            multiSelectMode: multiSelectMode,
-            selected: selectedIds.contains(msg.id),
-            mediaState: mediaDownloadStates[msg.id],
-            onLongPress: onMessageLongPress,
-            onAvatarTap: onAvatarTap,
-            onMediaAction: onMediaAction,
-            onResend: onResend,
-            onToggleSelect: onToggleSelect,
-          );
-        },
-      ),
+              msg.isSystem,
+          multiSelectMode: widget.multiSelectMode,
+          selected: widget.selectedIds.contains(msg.id),
+          mediaState: widget.mediaDownloadStates[msg.id],
+          onLongPress: widget.onMessageLongPress,
+          onAvatarTap: widget.onAvatarTap,
+          onMediaAction: widget.onMediaAction,
+          onResend: widget.onResend,
+          onToggleSelect: widget.onToggleSelect,
+        ),
       ),
     );
   }
 
-  Widget _header() {
-    if (!loadingOlder) return const SizedBox(height: FlareSizes.spacingSm);
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: FlareSizes.spacingMd),
-      child: Center(
-        child: SizedBox(
-          width: 18,
-          height: 18,
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
+  @override
+  Widget build(BuildContext context) {
+    final colors = FlareColors.of(Theme.of(context).brightness);
+    final pivot = widget.messages.indexWhere((m) => m.id == _pivotId);
+    final split = pivot < 0 ? 0 : pivot;
+    final before = [for (var i = split - 1; i >= 0; i--) widget.messages[i].id];
+    final after = widget.messages.skip(split).map((m) => m.id).toList();
+    return ColoredBox(
+      color: colors.bgSecondary,
+      child: Column(
+        children: [
+          if (widget.hasOlder ||
+              widget.loadingOlder ||
+              widget.olderError != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Column(
+                children: [
+                  if (widget.olderError != null)
+                    Text(
+                      widget.olderError!,
+                      style: TextStyle(color: colors.textPrimary),
+                    ),
+                  if (widget.loadingOlder)
+                    const SizedBox(
+                      height: 48,
+                      child: Center(
+                        child: SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    )
+                  else if (widget.hasOlder && widget.onLoadOlder != null)
+                    TextButton(
+                      onPressed: _requested
+                          ? null
+                          : () => _requestOlder(retry: true),
+                      style: TextButton.styleFrom(
+                        minimumSize: const Size(48, 48),
+                      ),
+                      child: Text(widget.loadOlderText),
+                    ),
+                ],
+              ),
+            ),
+          Expanded(
+            child: widget.messages.isEmpty
+                ? Center(
+                    child: widget.loading
+                        ? const CircularProgressIndicator()
+                        : (widget.emptyPlaceholder ?? _Empty(widget.emptyText)),
+                  )
+                : NotificationListener<ScrollUpdateNotification>(
+                    onNotification: (n) {
+                      if (n.depth == 0 &&
+                          n.dragDetails != null &&
+                          n.metrics.pixels <= n.metrics.minScrollExtent + 160)
+                        _requestOlder();
+                      return false;
+                    },
+                    child: CustomScrollView(
+                      key: _viewportKey,
+                      controller: _controller,
+                      center: _centerKey,
+                      slivers: [
+                        // Older messages grow upwards from a stable center. Their actual
+                        // measured heights never shift the already-visible message segment.
+                        SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, i) => _message(split - 1 - i),
+                            childCount: before.length,
+                            findChildIndexCallback: (key) {
+                              final i = before.indexOf(
+                                (key as ValueKey<String>).value,
+                              );
+                              return i < 0 ? null : i;
+                            },
+                          ),
+                        ),
+                        SliverList(
+                          key: _centerKey,
+                          delegate: SliverChildBuilderDelegate(
+                            (context, i) => _message(split + i),
+                            childCount: after.length,
+                            findChildIndexCallback: (key) {
+                              final i = after.indexOf(
+                                (key as ValueKey<String>).value,
+                              );
+                              return i < 0 ? null : i;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+          ),
+        ],
       ),
     );
   }
@@ -193,7 +350,14 @@ class FlareMessageSliverList extends StatelessWidget {
       padding: padding,
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
-          (context, index) => rowBuilder(context, keys[index]),
+          (context, index) => KeyedSubtree(
+            key: ValueKey(keys[index]),
+            child: rowBuilder(context, keys[index]),
+          ),
+          findChildIndexCallback: (key) {
+            final index = keys.indexOf((key as ValueKey<String>).value);
+            return index < 0 ? null : index;
+          },
           childCount: keys.length,
         ),
       ),
@@ -207,8 +371,12 @@ class _Empty extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(Theme.of(context).brightness);
-    return Text(text,
-        style:
-            TextStyle(color: colors.textTertiary, fontSize: FlareSizes.fontSizeLg));
+    return Text(
+      text,
+      style: TextStyle(
+        color: colors.textTertiary,
+        fontSize: FlareSizes.fontSizeLg,
+      ),
+    );
   }
 }

@@ -1,6 +1,7 @@
 import { inject, provide, type InjectionKey, type Ref } from "vue";
 
 export type FlareWorkbenchUiContext = {
+  messageLocation?: Ref<{ conversationId: string; messageId: string } | null>;
   openMore: () => void;
   openStartChat: () => void;
   openSdkBuild: () => void;

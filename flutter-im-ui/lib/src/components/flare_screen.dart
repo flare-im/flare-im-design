@@ -51,11 +51,17 @@ class FlareScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(Theme.of(context).brightness);
-    final base = surface == FlareScreenSurface.surface ? colors.bgPrimary : colors.bgSecondary;
-    final hasHeader = title != null || onBack != null || (actions?.isNotEmpty ?? false);
+    final base = surface == FlareScreenSurface.surface
+        ? colors.bgPrimary
+        : colors.bgSecondary;
+    final hasHeader =
+        title != null || onBack != null || (actions?.isNotEmpty ?? false);
 
     Widget body = padded
-        ? Padding(padding: const EdgeInsets.all(FlareSizes.spacingLg), child: child)
+        ? Padding(
+            padding: const EdgeInsets.all(FlareSizes.spacingLg),
+            child: child,
+          )
         : child;
     if (scroll) body = SingleChildScrollView(child: body);
 
@@ -68,7 +74,10 @@ class FlareScreen extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.center,
                 colors: [
-                  Color.alphaBlend(colors.primary.withValues(alpha: 0.18), base),
+                  Color.alphaBlend(
+                    colors.primary.withValues(alpha: 0.18),
+                    base,
+                  ),
                   base,
                 ],
               )
@@ -80,24 +89,39 @@ class FlareScreen extends StatelessWidget {
           children: [
             if (hasHeader)
               Padding(
-                padding: const EdgeInsets.fromLTRB(FlareSizes.spacingMd,
-                    FlareSizes.spacingSm, FlareSizes.spacingMd, FlareSizes.spacingSm),
+                padding: const EdgeInsets.fromLTRB(
+                  FlareSizes.spacingMd,
+                  FlareSizes.spacingSm,
+                  FlareSizes.spacingMd,
+                  FlareSizes.spacingSm,
+                ),
                 child: Row(
                   children: [
                     if (onBack != null)
                       IconButton(
                         icon: Icon(Icons.arrow_back, color: colors.textPrimary),
                         onPressed: onBack,
+                        tooltip: MaterialLocalizations.of(
+                          context,
+                        ).backButtonTooltip,
                         padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                        constraints: const BoxConstraints(
+                          minWidth: FlareSizes.touchTarget,
+                          minHeight: FlareSizes.touchTarget,
+                        ),
                       ),
                     if (title != null)
                       Expanded(
-                        child: Text(title!,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                                color: colors.textPrimary, fontSize: 24, fontWeight: FontWeight.bold)),
+                        child: Text(
+                          title!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: colors.textPrimary,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       )
                     else
                       const Spacer(),

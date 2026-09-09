@@ -46,7 +46,7 @@ class FlareUiTest {
 
     @Test fun tokensThemeDiffers() {
         assertTrue(FlareColors.Light.bgPrimary != FlareColors.Dark.bgPrimary)
-        assertEquals(42f, FlareSizes.avatarSize.value)
+        assertEquals(44f, FlareSizes.avatarSize.value)
     }
 
     @Test fun voteOptionHoldsValues() {

@@ -26,7 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 
 /**
@@ -43,7 +44,7 @@ fun SearchBar(
 ) {
     val colors = flareColors()
     Row(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(FlareSizes.radiusLg)).background(colors.bgSecondary)
+        Modifier.fillMaxWidth().heightIn(min = 48.dp).clip(RoundedCornerShape(FlareSizes.radiusLg)).background(colors.bgSecondary)
             .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingSm),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -67,10 +68,9 @@ fun SearchBar(
         if (loading) {
             CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp, color = colors.textTertiary)
         } else if (value.isNotEmpty()) {
-            Icon(
-                Icons.Outlined.Cancel, "Clear", Modifier.size(18.dp).clickable { onValueChange("") },
-                tint = colors.textTertiary,
-            )
+            IconButton(onClick = { onValueChange("") }, modifier = Modifier.size(48.dp)) {
+                Icon(Icons.Outlined.Cancel, "Clear", Modifier.size(18.dp), tint = colors.textTertiary)
+            }
         }
     }
 }

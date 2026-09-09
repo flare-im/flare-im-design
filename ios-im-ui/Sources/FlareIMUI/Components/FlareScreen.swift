@@ -11,6 +11,8 @@ public enum FlareScreenSurface { case canvas, surface, aurora }
 /// writes `FlareScreen(title: "设置", onBack: pop) { … }` and gets a consistent,
 /// fully themeable page — no page-level colours are hard-coded.
 public struct FlareScreen<Content: View>: View {
+    @ScaledMetric(relativeTo: .title2) private var titleSize: CGFloat = 24
+    private let backLabel: String
     private let title: String?
     private let onBack: (() -> Void)?
     private let surface: FlareScreenSurface
@@ -28,8 +30,10 @@ public struct FlareScreen<Content: View>: View {
         padded: Bool = false,
         scroll: Bool = true,
         actions: AnyView? = nil,
+        backLabel: String = "Back",
         @ViewBuilder content: () -> Content
     ) {
+        self.backLabel = backLabel
         self.title = title
         self.onBack = onBack
         self.surface = surface
@@ -52,11 +56,14 @@ public struct FlareScreen<Content: View>: View {
                             Image(systemName: "chevron.left")
                                 .font(.system(size: 20, weight: .semibold))
                                 .foregroundColor(colors.textPrimary)
+                                .frame(minWidth: FlareSizes.touchTarget, minHeight: FlareSizes.touchTarget)
                         }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(backLabel)
                     }
                     if let title {
                         Text(title)
-                            .font(.system(size: 24, weight: .bold))
+                            .font(.system(size: titleSize, weight: .bold))
                             .foregroundColor(colors.textPrimary)
                             .lineLimit(1)
                     }

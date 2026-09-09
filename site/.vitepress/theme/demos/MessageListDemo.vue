@@ -24,7 +24,7 @@ const messages = [
 <template>
   <DemoStage>
     <div class="stage">
-      <FlareMessageList :messages="messages" current-user-id="me" conversation-type="group" />
+      <FlareMessageList :messages="messages" :has-older="false" current-user-id="me" conversation-type="group" />
     </div>
   </DemoStage>
 </template>

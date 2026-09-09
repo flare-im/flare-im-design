@@ -1,6 +1,8 @@
 package com.flare.im.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +13,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.TextButton
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,8 +27,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 
-/** Call state — spec union `'calling' | 'ringing' | 'connected'`. */
-enum class FlareCallState { Calling, Ringing, Connected }
+/** Call state — spec union `'calling' | 'ringing' | 'connected' | 'reconnecting' | 'failed'`. */
+enum class FlareCallState { Calling, Ringing, Connected, Reconnecting, Failed }
 
 /**
  * In-call screen — peer video/avatar, state, duration, with an overlaid
@@ -47,6 +51,9 @@ fun CallView(
     onToggleSpeaker: (() -> Unit)? = null,
     onSwitchCamera: (() -> Unit)? = null,
     onHangup: (() -> Unit)? = null,
+    statusDetail: String? = null,
+    recoveryText: String? = null,
+    onRecover: (() -> Unit)? = null,
 ) {
     Box(Modifier.fillMaxSize().background(Color(0xFF111318))) {
         if (mode == FlareCallMode.Video && videoContent != null) {
@@ -54,7 +61,7 @@ fun CallView(
         }
 
         Column(
-            Modifier.fillMaxWidth().padding(top = 72.dp),
+            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 16.dp, end = 16.dp, top = 72.dp, bottom = 48.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             if (mode == FlareCallMode.Audio || videoContent == null) {
@@ -72,6 +79,10 @@ fun CallView(
                 }
                 Spacer(Modifier.height(FlareSizes.spacingMd))
             }
+            if (statusDetail != null) Text(statusDetail, color = Color.White)
+            if (state == FlareCallState.Failed && recoveryText != null) {
+                TextButton(onClick = { onRecover?.invoke() }, enabled = onRecover != null, modifier = Modifier.heightIn(min = 48.dp)) { Text(recoveryText, color = Color.White) }
+            }
             Text(peerName, color = Color.White, fontSize = FlareSizes.fontSize4xl.value.sp, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(FlareSizes.spacingXs))
             Text(
@@ -79,12 +90,7 @@ fun CallView(
                 color = Color.White.copy(alpha = 0.7f),
                 fontSize = FlareSizes.fontSizeLg.value.sp,
             )
-        }
-
-        Column(
-            Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(bottom = 48.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
+            Spacer(Modifier.height(32.dp))
             CallControls(
                 muted = muted, cameraOn = cameraOn, speakerOn = speakerOn, mode = mode,
                 onToggleMute = onToggleMute, onToggleCamera = onToggleCamera,
@@ -103,5 +109,7 @@ private fun statusLabel(
     FlareCallState.Calling ->
         if (mode == FlareCallMode.Video) strings.callWaitingAnswer else strings.callCalling
     FlareCallState.Ringing -> strings.callRinging
+    FlareCallState.Reconnecting -> strings.callReconnecting
+    FlareCallState.Failed -> strings.callFailed
     FlareCallState.Connected -> duration ?: strings.callConnected
 }

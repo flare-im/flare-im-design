@@ -123,3 +123,13 @@ export 'src/components/flare_unread_divider.dart';
 export 'src/components/flare_video_player.dart';
 export 'src/components/flare_voice_player.dart';
 export 'src/components/flare_voice_recording_bar.dart';
+
+export 'src/components/flare_transfer_progress.dart';
+
+export 'src/components/flare_search_panel.dart';
+
+export 'src/components/flare_transfer_queue.dart';
+
+export 'src/components/flare_scene_panels.dart';
+
+export 'src/components/flare_call_device_picker.dart';

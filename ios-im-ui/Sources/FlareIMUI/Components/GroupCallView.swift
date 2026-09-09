@@ -36,6 +36,8 @@ public struct GroupCallView: View {
         if n <= 1 { return 1 }; if n <= 4 { return 2 }; if n <= 9 { return 3 }; return 4
     }
     private var statusText: String {
+        if state == .reconnecting { return "正在恢复通话…" }
+        if state == .failed { return "通话连接失败" }
         if state == .connected { return durationLabel ?? "已接通" }
         if state == .ringing { return "响铃中…" }
         return "呼叫中…"

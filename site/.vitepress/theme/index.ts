@@ -1,3 +1,6 @@
+import ScenePanelsDemo from './demos/ScenePanelsDemo.vue';
+import TransferQueueDemo from './demos/TransferQueueDemo.vue';
+import SearchPanelDemo from './demos/SearchPanelDemo.vue';
 import DefaultTheme from "vitepress/theme";
 import "./custom.css";
 import "../../../tokens/dist/tokens.css";
@@ -28,6 +31,7 @@ import InputDemo from "./demos/InputDemo.vue";
 import EmptyStateDemo from "./demos/EmptyStateDemo.vue";
 import ContactListDemo from "./demos/ContactListDemo.vue";
 import ProfilePanelDemo from "./demos/ProfilePanelDemo.vue";
+import CallDevicePickerDemo from "./demos/CallDevicePickerDemo.vue";
 import CallViewDemo from "./demos/CallViewDemo.vue";
 import GroupCallViewDemo from "./demos/GroupCallViewDemo.vue";
 import TypingIndicatorDemo from "./demos/TypingIndicatorDemo.vue";
@@ -104,6 +108,8 @@ import GroupListDemo from "./demos/GroupListDemo.vue";
 import ProfileEditorDemo from "./demos/ProfileEditorDemo.vue";
 import SettingsListDemo from "./demos/SettingsListDemo.vue";
 import AppShellDemo from "./demos/AppShellDemo.vue";
+import TimelineRecoveryDemo from "./demos/TimelineRecoveryDemo.vue";
+import TransferProgressDemo from "./demos/TransferProgressDemo.vue";
 import ResponsiveLayoutDemo from "./demos/ResponsiveLayoutDemo.vue";
 import ComposerPartsDemo from "./demos/ComposerPartsDemo.vue";
 import VoiceHoldButtonDemo from "./demos/VoiceHoldButtonDemo.vue";
@@ -175,6 +181,7 @@ const demos = {
   EmptyStateDemo,
   ContactListDemo,
   ProfilePanelDemo,
+  CallDevicePickerDemo,
   CallViewDemo,
   GroupCallViewDemo,
   TypingIndicatorDemo,
@@ -250,6 +257,11 @@ const demos = {
   SettingsListDemo,
   AppShellDemo,
   ResponsiveLayoutDemo,
+  SearchPanelDemo,
+  ScenePanelsDemo,
+  TransferQueueDemo,
+  TransferProgressDemo,
+  TimelineRecoveryDemo,
   ComposerPartsDemo,
 };
 

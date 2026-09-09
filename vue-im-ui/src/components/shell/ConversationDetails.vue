@@ -46,8 +46,7 @@ const subtitle = computed(() => {
           :display-name="title"
           :avatar-url="conversation.avatarUrl"
           :size="56"
-          show-status
-          status="online"
+
         />
         <h2>{{ title }}</h2>
         <p>{{ subtitle }}</p>
@@ -80,12 +79,17 @@ const subtitle = computed(() => {
       <section class="details-section">
         <div class="pane-title">{{ t("conversationDetails.status") }}</div>
         <dl>
-          <div><dt>{{ t("conversationDetails.conversationId") }}</dt><dd>{{ conversation.conversationId }}</dd></div>
           <div><dt>{{ t("conversationDetails.channel") }}</dt><dd>{{ conversation.channelId }}</dd></div>
           <div><dt>{{ t("conversationDetails.unread") }}</dt><dd>{{ conversation.unreadCount }}</dd></div>
           <div><dt>{{ t("conversationDetails.messages") }}</dt><dd>{{ messageCount }}</dd></div>
-          <div><dt>{{ t("conversationDetails.latestMessage") }}</dt><dd>{{ latestMessageId || "-" }}</dd></div>
         </dl>
+        <details class="details-diagnostics">
+          <summary>{{ t("conversationDetails.diagnostics") }}</summary>
+          <dl>
+            <div><dt>{{ t("conversationDetails.conversationId") }}</dt><dd>{{ conversation.conversationId }}</dd></div>
+            <div><dt>{{ t("conversationDetails.latestMessage") }}</dt><dd>{{ latestMessageId || "-" }}</dd></div>
+          </dl>
+        </details>
       </section>
 
       <n-divider />

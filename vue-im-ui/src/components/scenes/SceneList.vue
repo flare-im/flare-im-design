@@ -1,0 +1,11 @@
+<script setup lang="ts">
+import FlareStatusBanner from '../general/FlareStatusBanner.vue';
+import type { SceneEntry } from '../../shared/contracts/scenes';
+withDefaults(defineProps<{ title:string; items:SceneEntry[]; loading?:boolean; error?:string; emptyText?:string }>(),{emptyText:'暂无内容'});
+const emit=defineEmits<{action:[value:{id:string;action:string}];reload:[]}>();
+</script>
+<template><section class="scene-list" :aria-label="title"><h3>{{ title }}</h3><progress v-if="loading" :aria-label="title" /><FlareStatusBanner v-if="error" :text="error" tone="danger" :action-text="loading?undefined:'重试'" @action="emit('reload')" /><p v-if="!items.length && !loading && !error" role="status">{{ emptyText }}</p><div class="scene-list__items"><article v-for="item in items" :key="item.id"><div><strong>{{ item.title }}</strong><small v-if="item.badge">{{ item.badge }}</small></div><p>{{ item.detail }}</p><p v-if="item.error" class="scene-list__error" role="alert">{{ item.error }}</p><progress v-if="item.busy" :aria-label="item.title" /><div class="scene-list__actions"><button v-for="a in item.actions.filter(a=>a.label.trim())" :key="a.id" :disabled="item.busy || a.disabled" :class="{'danger':a.destructive}" type="button" @click="emit('action',{id:item.id,action:a.id})">{{ a.label }}</button></div></article></div></section></template>
+<style scoped>
+.scene-list__error { color: var(--flare-color-error); }
+.scene-list {min-width:0;color:var(--flare-color-text-primary);} h3 {font-size:16px;margin:0 0 12px;} .scene-list__items {max-height:60vh;overflow:auto;overscroll-behavior:contain;} article {padding:12px 0;border-bottom:1px solid var(--flare-color-border-primary);} strong,p,small {overflow-wrap:anywhere;} p {font-size:14px;color:var(--flare-color-text-secondary);margin:8px 0;} small {display:inline-block;margin-inline-start:8px;font-size:12px;color:var(--flare-color-text-secondary);} .scene-list__actions {display:flex;flex-wrap:wrap;gap:8px;} button {min-height:48px;padding:8px 12px;font:inherit;color:inherit;background:var(--flare-color-bg-primary);border:1px solid var(--flare-color-border-primary);border-radius:8px;cursor:pointer;} button.danger {color:var(--flare-color-error);} button:disabled {opacity:.5;cursor:default;} button:focus-visible {outline:2px solid var(--flare-color-primary);outline-offset:2px;}
+</style>

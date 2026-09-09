@@ -159,6 +159,11 @@ function openMenuAt(x: number, y: number): void {
   });
 }
 
+function openKeyboardMenu(event: KeyboardEvent): void {
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+  openMenuAt(rect.left + 16, rect.top + 40);
+}
+
 function openContextMenu(event: MouseEvent): void {
   event.preventDefault();
   event.stopPropagation();
@@ -178,6 +183,8 @@ function openContextMenu(event: MouseEvent): void {
     }"
     :aria-current="active ? 'true' : undefined"
     @contextmenu="openContextMenu"
+    @keydown.shift.f10.prevent="openKeyboardMenu"
+    @keydown.esc="menuOpen = false"
   >
     <button
       type="button"
@@ -185,7 +192,7 @@ function openContextMenu(event: MouseEvent): void {
       @click="selectConversation"
     >
       <span class="im-conv-item__avatar">
-        <FlareAvatar :user-id="item.id" :display-name="displayName" :avatar-url="item.avatarUrl" :size="42" />
+        <FlareAvatar :user-id="item.id" :display-name="displayName" :avatar-url="item.avatarUrl" :size="44" />
       </span>
       <span class="im-conv-item__body">
         <span class="im-conv-item__top">
@@ -293,11 +300,22 @@ function openContextMenu(event: MouseEvent): void {
 
 .im-conv-item--active {
   background: var(--im-conv-item-active, var(--bg-selected));
-  border-color: color-mix(in srgb, var(--im-conv-item-active-border, var(--primary)) 28%, transparent);
-  box-shadow: inset 3px 0 0 var(--im-conv-item-active-border, var(--primary));
+  border-color: transparent;
+  box-shadow: none;
 }
 
-.im-conv-item--pinned {
+.im-conv-item--active::before {
+  content: "";
+  position: absolute;
+  inset-block: 14px;
+  inset-inline-start: 0;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--im-primary);
+  pointer-events: none;
+}
+
+.im-conv-item--pinned:not(.im-conv-item--active) {
   padding-right: 30px;
   /* Pinned rows read as a group — a whisper of violet tint (hover still wins). */
   background: color-mix(in srgb, var(--im-primary, var(--primary, #7c3aed)) 5%, transparent);
@@ -345,6 +363,7 @@ function openContextMenu(event: MouseEvent): void {
 
 .im-conv-item__time {
   flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
   font-size: 11px;
   color: var(--im-conv-meta, var(--text-tertiary));
 }
@@ -471,23 +490,13 @@ function openContextMenu(event: MouseEvent): void {
   height: 20px;
   padding: 0 6px;
   border-radius: 999px;
-  /* A mini Aurora light source — echoes the glowing message bubble: a violet
-     gradient, a luminous top edge, and a soft glow (over the surface ring). */
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--im-unread) 82%, #ffffff 18%),
-    var(--im-unread) 55%,
-    color-mix(in srgb, var(--im-unread) 88%, #000000 12%)
-  );
+  background: var(--im-unread);
   color: #fff;
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 600;
   line-height: 20px;
   text-align: center;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    0 0 0 2px var(--im-bg-surface, #fff),
-    0 2px 8px -1px color-mix(in srgb, var(--im-unread) 46%, transparent);
+  box-shadow: 0 0 0 2px var(--im-bg-surface, #fff);
 }
 
 /* Muted conversations don't shout: an unread there is a quiet neutral dot, not
@@ -545,8 +554,7 @@ function openContextMenu(event: MouseEvent): void {
 }
 
 :global(.im-conv-dropdown .n-dropdown-option-body) {
-  display: grid !important;
-  grid-template-columns: 28px minmax(0, 1fr);
+  display: flex !important;
   align-items: center !important;
   gap: 8px;
   height: 40px;
@@ -562,25 +570,31 @@ function openContextMenu(event: MouseEvent): void {
 :global(.im-conv-dropdown .n-dropdown-option-body__prefix) {
   display: grid !important;
   place-items: center;
-  width: 28px !important;
+  width: 20px !important;
+  flex: 0 0 20px;
   margin: 0 !important;
   color: var(--im-text-tertiary, #98a2b3);
 }
 
 :global(.im-conv-dropdown .im-conv-menu-icon) {
-  font-size: 20px;
+  font-size: 18px;
 }
 
 :global(.im-conv-dropdown .n-dropdown-option-body__label) {
   display: flex !important;
   align-items: center;
   min-width: 0;
-  height: 100%;
+  flex: 1;
+  align-self: stretch;
   color: var(--im-text-primary, var(--flare-color-text-primary, #111318));
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 500;
   line-height: 1.25;
   white-space: nowrap;
+}
+
+:global(.im-conv-dropdown .n-dropdown-option-body__suffix:empty) {
+  display: none;
 }
 
 :global(.im-conv-dropdown .n-dropdown-divider) {
@@ -591,6 +605,19 @@ function openContextMenu(event: MouseEvent): void {
 :global(.im-conv-dropdown .im-conv-menu-option--danger .n-dropdown-option-body__prefix),
 :global(.im-conv-dropdown .im-conv-menu-option--danger .n-dropdown-option-body__label) {
   color: var(--im-danger, var(--flare-color-error, #ef4444)) !important;
+}
+
+.im-conv-item__select:focus-visible {
+  outline: 2px solid var(--im-primary);
+  outline-offset: -2px;
+  border-radius: 8px;
+}
+
+@media (pointer: coarse) {
+  :global(.im-conv-dropdown .n-dropdown-option-body) {
+    min-height: 44px;
+    height: 44px;
+  }
 }
 
 @media (hover: none) {

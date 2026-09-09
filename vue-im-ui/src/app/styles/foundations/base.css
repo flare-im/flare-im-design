@@ -43,3 +43,21 @@ body {
 .more-action-list button {
   border-radius: 8px;
 }
+
+/* Keyboard focus must remain visible even when hover and selected share a fill. */
+:where(button, a, [tabindex]):focus-visible {
+  outline: 2px solid var(--im-primary);
+  outline-offset: 2px;
+}
+.workbench-rail__item:focus-visible,
+.conversation-filter:focus-visible {
+  outline: 2px solid var(--im-primary);
+  outline-offset: -2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

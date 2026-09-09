@@ -96,3 +96,9 @@ Inquiries: `flare1522@163.com`
 
 > For the boundary split and the invariant commitments, see [GOVERNANCE](https://github.com/flare-im/flare-im-core-server/blob/main/GOVERNANCE.md).
 > In short: **what has been open-sourced will not be taken back, and the authentication and hooks contracts will always be open source and will never be crippled to coerce payment.**
+
+## 跨设备 UI 契约
+
+[布局、字体缩放、安全区、主题接入与设备验收](docs/CROSS-DEVICE-UI.md)。修改设计令牌后运行 `node tokens/build.mjs`，提交前运行 `node tokens/build.mjs --check`。
+
+[完整 IM 组件系统规划](docs/IM-COMPONENT-SYSTEM.md) · [14 个场景覆盖矩阵](docs/IM-COVERAGE.md)

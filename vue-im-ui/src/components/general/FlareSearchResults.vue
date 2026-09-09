@@ -23,19 +23,15 @@ function segments(text: string): { text: string; hit: boolean }[] {
   const q = props.query.trim();
   if (!q) return [{ text, hit: false }];
   const out: { text: string; hit: boolean }[] = [];
-  const lower = text.toLowerCase();
-  const ql = q.toLowerCase();
+  const literal = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   let i = 0;
-  while (i < text.length) {
-    const at = lower.indexOf(ql, i);
-    if (at === -1) {
-      out.push({ text: text.slice(i), hit: false });
-      break;
-    }
+  for (const match of text.matchAll(new RegExp(literal, 'giu'))) {
+    const at = match.index!;
     if (at > i) out.push({ text: text.slice(i, at), hit: false });
-    out.push({ text: text.slice(at, at + q.length), hit: true });
-    i = at + q.length;
+    out.push({ text: match[0], hit: true });
+    i = at + match[0].length;
   }
+  if (i < text.length) out.push({ text: text.slice(i), hit: false });
   return out;
 }
 </script>

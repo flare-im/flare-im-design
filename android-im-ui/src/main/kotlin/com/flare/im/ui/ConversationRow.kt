@@ -54,7 +54,7 @@ fun ConversationRow(
     draftLabel: String = "[Draft] ",
     mentionLabel: String = "[@me] ",
     active: Boolean = false,
-    avatarSize: Dp = 48.dp,
+    avatarSize: Dp = FlareSizes.avatarSize,
     onSelect: (() -> Unit)? = null,
     onLongPress: (() -> Unit)? = null,
 ) {
@@ -96,7 +96,7 @@ fun ConversationRow(
                     Text(
                         item.title, maxLines = 1, overflow = TextOverflow.Ellipsis,
                         color = colors.textPrimary,
-                        fontSize = FlareSizes.fontSize3xl.value.sp,
+                        fontSize = FlareSizes.fontSizeXl.value.sp,
                         fontWeight = if (item.hasUnread) FontWeight.Bold else FontWeight.SemiBold,
                         modifier = Modifier.weight(1f, fill = false),
                     )
@@ -124,23 +124,9 @@ fun ConversationRow(
                         // Muted conversations don't shout — a quiet neutral dot.
                         Box(Modifier.size(9.dp).clip(CircleShape).background(colors.textTertiary))
                     } else {
-                        // A mini Aurora light source — violet gradient + violet glow,
-                        // echoing the glowing message bubble.
-                        val dark = isSystemInDarkTheme()
-                        val base = colors.primary
-                        val badgeBrush = Brush.linearGradient(
-                            listOf(lerp(base, Color.White, 0.18f), base, lerp(base, Color.Black, 0.12f)),
-                        )
                         Box(
                             Modifier.defaultMinSize(minWidth = 20.dp, minHeight = 20.dp)
-                                .shadow(
-                                    if (dark) 8.dp else 5.dp,
-                                    RoundedCornerShape(999.dp),
-                                    clip = false,
-                                    ambientColor = base,
-                                    spotColor = base,
-                                )
-                                .clip(RoundedCornerShape(999.dp)).background(badgeBrush)
+                                .clip(RoundedCornerShape(999.dp)).background(colors.primary)
                                 .padding(horizontal = 6.dp),
                             contentAlignment = Alignment.Center,
                         ) {

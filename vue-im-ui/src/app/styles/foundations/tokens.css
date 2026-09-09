@@ -1,12 +1,12 @@
 :root {
-  --flare-app-bg: #eef2f7;
-  --flare-app-bg-soft: #f7f9fc;
-  --flare-surface: #ffffff;
-  --flare-surface-raised: #fbfcff;
+  --flare-app-bg: var(--im-bg-app);
+  --flare-app-bg-soft: var(--im-bg-surface-alt);
+  --flare-surface: var(--im-bg-surface);
+  --flare-surface-raised: var(--im-bg-surface);
   --flare-border: rgba(21, 31, 48, 0.1);
   --flare-border-strong: rgba(21, 31, 48, 0.16);
   --flare-text-muted: #667085;
-  --flare-accent: #7c3aed;
+  --flare-accent: var(--im-primary);
   --flare-accent-soft: #f1eaff;
   --flare-success-soft: #e9f9ef;
   --flare-warning-soft: #fff7e8;
@@ -16,14 +16,14 @@
 }
 
 html[data-theme="dark"] {
-  --flare-app-bg: #0f141d;
-  --flare-app-bg-soft: #121923;
-  --flare-surface: #171d27;
-  --flare-surface-raised: #1b2330;
+  --flare-app-bg: var(--im-bg-app);
+  --flare-app-bg-soft: var(--im-bg-surface-alt);
+  --flare-surface: var(--im-bg-surface);
+  --flare-surface-raised: var(--im-bg-surface);
   --flare-border: rgba(222, 231, 245, 0.1);
   --flare-border-strong: rgba(222, 231, 245, 0.18);
   --flare-text-muted: #a9b4c4;
-  --flare-accent: #a78bfa;
+  --flare-accent: var(--im-primary);
   --flare-accent-soft: rgba(167, 139, 250, 0.18);
   --flare-success-soft: rgba(34, 197, 94, 0.12);
   --flare-warning-soft: rgba(245, 158, 11, 0.14);

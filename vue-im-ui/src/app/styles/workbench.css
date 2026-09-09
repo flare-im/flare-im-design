@@ -1,7 +1,5 @@
 .workbench-shell {
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--im-bg-surface) 58%, transparent), transparent 42%),
-    var(--flare-app-bg);
+  background: var(--im-bg-app);
 }
 
 .workbench-rail {
@@ -12,7 +10,7 @@
 .workbench-rail__brand {
   border-radius: 8px;
   background: linear-gradient(135deg, #7c3aed, #6366f1);
-  box-shadow: 0 10px 22px color-mix(in srgb, var(--flare-accent) 20%, transparent);
+  box-shadow: none;
 }
 
 .workbench-rail__item {

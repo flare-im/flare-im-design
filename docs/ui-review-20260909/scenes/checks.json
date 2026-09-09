@@ -1,0 +1,146 @@
+[
+  {
+    "slug": "member-panel",
+    "width": 320,
+    "theme": "light",
+    "passed": true
+  },
+  {
+    "slug": "device-sessions",
+    "width": 320,
+    "theme": "light",
+    "passed": true
+  },
+  {
+    "slug": "media-center",
+    "width": 320,
+    "theme": "light",
+    "passed": true
+  },
+  {
+    "slug": "notification-preferences",
+    "width": 320,
+    "theme": "light",
+    "passed": true
+  },
+  {
+    "slug": "capability-boundary",
+    "width": 320,
+    "theme": "light",
+    "passed": true
+  },
+  {
+    "slug": "danger-confirm",
+    "width": 320,
+    "theme": "light",
+    "passed": true
+  },
+  {
+    "slug": "member-panel",
+    "width": 320,
+    "theme": "dark",
+    "passed": true
+  },
+  {
+    "slug": "device-sessions",
+    "width": 320,
+    "theme": "dark",
+    "passed": true
+  },
+  {
+    "slug": "media-center",
+    "width": 320,
+    "theme": "dark",
+    "passed": true
+  },
+  {
+    "slug": "notification-preferences",
+    "width": 320,
+    "theme": "dark",
+    "passed": true
+  },
+  {
+    "slug": "capability-boundary",
+    "width": 320,
+    "theme": "dark",
+    "passed": true
+  },
+  {
+    "slug": "danger-confirm",
+    "width": 320,
+    "theme": "dark",
+    "passed": true
+  },
+  {
+    "slug": "member-panel",
+    "width": 1280,
+    "theme": "light",
+    "passed": true
+  },
+  {
+    "slug": "device-sessions",
+    "width": 1280,
+    "theme": "light",
+    "passed": true
+  },
+  {
+    "slug": "media-center",
+    "width": 1280,
+    "theme": "light",
+    "passed": true
+  },
+  {
+    "slug": "notification-preferences",
+    "width": 1280,
+    "theme": "light",
+    "passed": true
+  },
+  {
+    "slug": "capability-boundary",
+    "width": 1280,
+    "theme": "light",
+    "passed": true
+  },
+  {
+    "slug": "danger-confirm",
+    "width": 1280,
+    "theme": "light",
+    "passed": true
+  },
+  {
+    "slug": "member-panel",
+    "width": 1280,
+    "theme": "dark",
+    "passed": true
+  },
+  {
+    "slug": "device-sessions",
+    "width": 1280,
+    "theme": "dark",
+    "passed": true
+  },
+  {
+    "slug": "media-center",
+    "width": 1280,
+    "theme": "dark",
+    "passed": true
+  },
+  {
+    "slug": "notification-preferences",
+    "width": 1280,
+    "theme": "dark",
+    "passed": true
+  },
+  {
+    "slug": "capability-boundary",
+    "width": 1280,
+    "theme": "dark",
+    "passed": true
+  },
+  {
+    "slug": "danger-confirm",
+    "width": 1280,
+    "theme": "dark",
+    "passed": true
+  }
+]

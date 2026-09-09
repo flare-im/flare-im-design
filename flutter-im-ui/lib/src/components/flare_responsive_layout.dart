@@ -16,10 +16,12 @@ class FlareResponsiveLayout extends StatelessWidget {
     this.detail,
     this.activePane = FlarePane.list,
     this.onPaneChange,
-    this.listWidth = 300,
-    this.detailWidth = 320,
+    this.listWidth = FlareSizes.leftPanel,
+    this.detailWidth = FlareSizes.rightPanel,
+    this.hideMobileBar = false,
     this.backLabel = '返回',
-  });
+  }) : assert(listWidth >= 0),
+       assert(detailWidth >= 0);
 
   final Widget list;
   final Widget chat;
@@ -29,13 +31,21 @@ class FlareResponsiveLayout extends StatelessWidget {
   final double listWidth;
   final double detailWidth;
   final String backLabel;
+  final bool hideMobileBar;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, c) {
         final w = c.maxWidth;
-        if (w >= 1100 && detail != null) {
+        final panes = FlareLayoutPolicy.paneCount(
+          w,
+          hasDetail: detail != null,
+          textScale: MediaQuery.textScalerOf(context).scale(16) / 16,
+          listWidth: listWidth,
+          detailWidth: detailWidth,
+        );
+        if (panes == 3) {
           return Row(
             children: [
               SizedBox(width: listWidth, child: list),
@@ -46,12 +56,14 @@ class FlareResponsiveLayout extends StatelessWidget {
             ],
           );
         }
-        if (w >= 680) {
+        if (panes == 2) {
           return Row(
             children: [
               SizedBox(width: listWidth, child: list),
               const VerticalDivider(width: 1),
-              Expanded(child: chat),
+              Expanded(
+                child: activePane == FlarePane.detail ? (detail ?? chat) : chat,
+              ),
             ],
           );
         }
@@ -59,17 +71,31 @@ class FlareResponsiveLayout extends StatelessWidget {
         final colors = FlareColors.of(Theme.of(context).brightness);
         return Column(
           children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton.icon(
-                onPressed: () => onPaneChange?.call(FlarePane.list),
-                icon: const Icon(Icons.chevron_left),
-                label: Text(backLabel),
-                style: TextButton.styleFrom(foregroundColor: colors.primary),
+            if (!hideMobileBar && onPaneChange != null)
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: TextButton.icon(
+                  onPressed: () => onPaneChange?.call(
+                    activePane == FlarePane.detail
+                        ? FlarePane.chat
+                        : FlarePane.list,
+                  ),
+                  icon: const Icon(Icons.arrow_back),
+                  label: Text(backLabel),
+                  style: TextButton.styleFrom(
+                    foregroundColor: colors.primary,
+                    minimumSize: const Size(
+                      FlareSizes.touchTarget,
+                      FlareSizes.touchTarget,
+                    ),
+                  ),
+                ),
               ),
+            if (!hideMobileBar && onPaneChange != null)
+              const Divider(height: 1),
+            Expanded(
+              child: activePane == FlarePane.detail ? (detail ?? chat) : chat,
             ),
-            const Divider(height: 1),
-            Expanded(child: activePane == FlarePane.detail ? (detail ?? chat) : chat),
           ],
         );
       },

@@ -5,9 +5,17 @@
 // @flare-im/vue-ui is the current consumer. Dart / Swift / Compose emitters are
 // added when their component packages land (no generator without a consumer).
 
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync as writeOutput, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+
+// CI checks generated output without overwriting drift.
+function writeFileSync(path, content) {
+  if (!process.argv.includes("--check")) return writeOutput(path, content);
+  let current;
+  try { current = readFileSync(path, "utf8"); } catch { current = undefined; }
+  if (current !== content) { console.error(`Generated output out of date: ${path}`); process.exitCode = 1; }
+}
 
 const here = dirname(fileURLToPath(import.meta.url));
 const src = JSON.parse(readFileSync(join(here, "tokens.json"), "utf8"));
@@ -163,7 +171,24 @@ const dart =
 
 const flutterTokens = join(here, "../flutter-im-ui/lib/src/tokens/flare_tokens.dart");
 mkdirSync(dirname(flutterTokens), { recursive: true });
-writeFileSync(flutterTokens, dart);
+const dartPalette = `\n/// Const palette for const widget and ThemeData declarations.\nabstract final class FlarePalette {\n` +
+  colorFields.map((f) => `  static const Color light${cap(f)} = ${dartColor(lightColors[f])};\n  static const Color dark${cap(f)} = ${dartColor(darkColors[f])};`).join("\n") +
+  `\n}\n`;
+const dartLayout = `
+/// Decisions use the available container width, never the physical device model.
+abstract final class FlareLayoutPolicy {
+  static int paneCount(double width, {bool hasDetail = false, double textScale = 1,
+      double listWidth = FlareSizes.leftPanel, double detailWidth = FlareSizes.rightPanel}) {
+    final chat = FlareSizes.chatMinWidth * textScale.clamp(1.0, 2.0);
+    final list = listWidth.clamp(0.0, double.infinity);
+    final detail = detailWidth.clamp(0.0, double.infinity);
+    if (hasDetail && width >= FlareSizes.triplePaneMinWidth && width >= list + detail + chat + 2) return 3;
+    if (width >= FlareSizes.dualPaneMinWidth && width >= list + chat + 1) return 2;
+    return 1;
+  }
+}
+`;
+writeFileSync(flutterTokens, dart + dartPalette + dartLayout);
 
 // ---------------------------------------------------------------------------
 // Swift target — vendored into the FlareIMUI SwiftPM package.
@@ -208,7 +233,21 @@ const swift =
 
 const swiftTokens = join(here, "../ios-im-ui/Sources/FlareIMUI/Tokens/FlareTokens.swift");
 mkdirSync(dirname(swiftTokens), { recursive: true });
-writeFileSync(swiftTokens, swift);
+const swiftLayout = `
+/// Shared logical-point layout policy. Large text reserves more reading width.
+public enum FlareLayoutPolicy {
+    public static func paneCount(width: CGFloat, hasDetail: Bool = false, textScale: CGFloat = 1,
+                                listWidth: CGFloat = FlareSizes.leftPanel, detailWidth: CGFloat = FlareSizes.rightPanel) -> Int {
+        let chat = FlareSizes.chatMinWidth * min(2, max(1, textScale))
+        let list = max(0, listWidth)
+        let detail = max(0, detailWidth)
+        if hasDetail && width >= FlareSizes.triplePaneMinWidth && width >= list + detail + chat + 2 { return 3 }
+        if width >= FlareSizes.dualPaneMinWidth && width >= list + chat + 1 { return 2 }
+        return 1
+    }
+}
+`;
+writeFileSync(swiftTokens, swift + swiftLayout);
 
 // ---------------------------------------------------------------------------
 // Compose (Kotlin) target — vendored into the flare-im-ui-compose module.
@@ -218,7 +257,7 @@ const composeColor = dartColor; // Kotlin androidx Color literal is also 0xAARRG
 const kotlin =
   `// GENERATED. Do not edit by hand. Source: @flare-im/tokens/tokens.json\n` +
   `package com.flare.im.ui\n\n` +
-  `import androidx.compose.runtime.Composable\n` +
+  `import androidx.compose.runtime.Composable\nimport androidx.compose.runtime.CompositionLocalProvider\nimport androidx.compose.runtime.staticCompositionLocalOf\n` +
   `import androidx.compose.foundation.isSystemInDarkTheme\n` +
   `import androidx.compose.ui.graphics.Color\n` +
   `import androidx.compose.ui.unit.Dp\n` +
@@ -232,7 +271,11 @@ const kotlin =
   colorFields.map((f) => `            ${f} = ${composeColor(darkColors[f])}`).join(",\n") +
   `,\n        )\n    }\n}\n\n` +
   `@Composable\nfun flareColors(): FlareColors =\n` +
-  `    if (isSystemInDarkTheme()) FlareColors.Dark else FlareColors.Light\n\n` +
+  `    LocalFlareColors.current ?: if (isSystemInDarkTheme()) FlareColors.Dark else FlareColors.Light\n\n` +
+  `private val LocalFlareColors = staticCompositionLocalOf<FlareColors?> { null }\n\n` +
+  `/** Wrap the app with the same resolved dark flag as its MaterialTheme. */\n` +
+  `@Composable\nfun FlareThemeProvider(dark: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {\n` +
+  `    CompositionLocalProvider(LocalFlareColors provides if (dark) FlareColors.Dark else FlareColors.Light, content = content)\n}\n\n` +
   `/** Flare IM spacing / radius / font-size / line-height / layout tokens. */\n` +
   `object FlareSizes {\n` +
   sizeConsts.map(([n, v]) => `    val ${n}: Dp = ${v.replace(".0", "")}.dp`).join("\n") +
@@ -243,9 +286,36 @@ const kotlinTokens = join(
   "../android-im-ui/src/main/kotlin/com/flare/im/ui/FlareTokens.kt",
 );
 mkdirSync(dirname(kotlinTokens), { recursive: true });
-writeFileSync(kotlinTokens, kotlin);
+const kotlinLayout = `
+/** Shared logical-dp layout policy. Use the available container, excluding rail and insets. */
+object FlareLayoutPolicy {
+    fun paneCount(width: Float, hasDetail: Boolean = false, textScale: Float = 1f,
+                  listWidth: Float = FlareSizes.leftPanel.value, detailWidth: Float = FlareSizes.rightPanel.value): Int {
+        val chat = FlareSizes.chatMinWidth.value * textScale.coerceIn(1f, 2f)
+        val list = listWidth.coerceAtLeast(0f)
+        val detail = detailWidth.coerceAtLeast(0f)
+        if (hasDetail && width >= FlareSizes.triplePaneMinWidth.value && width >= list + detail + chat + 2) return 3
+        if (width >= FlareSizes.dualPaneMinWidth.value && width >= list + chat + 1) return 2
+        return 1
+    }
+}
+`;
+writeFileSync(kotlinTokens, kotlin + kotlinLayout);
 
 console.log(
   `@flare-im/tokens: generated dist/tokens.{css,ts,js,d.ts} (${lightVars.length} light + ${darkVars.length} dark vars)` +
     ` + Dart/Swift/Kotlin token files (${colorFields.length} colours × 2 themes, ${sizeConsts.length} sizes)`,
 );
+
+const layout = Object.fromEntries(Object.entries(src.sizes.layout).map(([k, v]) => [k, parseFloat(v)]));
+writeFileSync(join(here, "../vue-im-ui/src/design-system/theme/layout-policy.ts"), `// GENERATED by tokens/build.mjs. Logical CSS pixels, measured inside the container.
+export const flareLayout = ${JSON.stringify(layout, null, 2)} as const;
+export function paneCount(width: number, hasDetail = false, textScale = 1,
+  listWidth: number = flareLayout.leftPanel, detailWidth: number = flareLayout.rightPanel): number {
+  const chat = flareLayout.chatMinWidth * Math.min(2, Math.max(1, textScale));
+  const list = Math.max(0, listWidth), detail = Math.max(0, detailWidth);
+  if (hasDetail && width >= flareLayout.triplePaneMinWidth && width >= list + detail + chat + 2) return 3;
+  if (width >= flareLayout.dualPaneMinWidth && width >= list + chat + 1) return 2;
+  return 1;
+}
+`);

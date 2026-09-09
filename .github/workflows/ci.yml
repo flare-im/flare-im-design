@@ -29,6 +29,9 @@ jobs:
         run: node gen-readme-catalog.mjs --check
         working-directory: spec
 
+      - name: IM 场景覆盖矩阵一致性
+        run: node spec/build-im-coverage.mjs --check
+
   tokens:
     name: 设计令牌
     runs-on: ubuntu-latest
@@ -42,14 +45,7 @@ jobs:
       # 若源改了却没重新 build，各端拿到的令牌就与真源不一致。
       - name: 构建并检查产物是否与源同步
         working-directory: tokens
-        run: |
-          npm run build
-          if ! git diff --quiet -- dist; then
-            echo "::error::dist 与 tokens.json 不同步，请在本地运行 npm run build 后提交"
-            git diff --stat -- dist
-            exit 1
-          fi
-          echo "✅ dist 与 tokens.json 同步"
+        run: node build.mjs --check
 
   vue:
     name: Vue 组件库
@@ -117,6 +113,9 @@ jobs:
       - name: 打包产物的 exports 解析
         run: node scripts/check-package-exports.mjs
 
+      - name: 不安装 IM SDK 的独立消费构建
+        run: node scripts/check-optional-sdk-consumer.mjs
+
   site:
     name: 文档站构建
     runs-on: ubuntu-latest
@@ -152,6 +151,31 @@ jobs:
       - name: 构建
         working-directory: site
         run: npm run build
+
+      - name: 安装浏览器回归工具
+        working-directory: site
+        run: |
+          npm install --no-save --package-lock=false @playwright/test@1.60.0
+          npx playwright install --with-deps chromium
+
+      - name: 场景交互与跨尺寸回归
+        run: |
+          npm --prefix site run preview -- --host 127.0.0.1 --port 5189 > "$RUNNER_TEMP/flare-site.log" 2>&1 &
+          preview_pid=$!
+          trap 'kill "$preview_pid"' EXIT
+          node scripts/check-im-browser.mjs http://127.0.0.1:5189 "$PWD/site/package.json"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: scene-ui-evidence
+          path: |
+            docs/ui-review-20260909/scenes/
+            docs/ui-review-20260909/calls/
+            docs/ui-review-20260909/queue/
+            docs/ui-review-20260909/search/
+            docs/ui-review-20260909/transfers/
+            docs/ui-review-20260909/browser-check.json
 
   consumer:
     name: 跨仓消费方（真装发布包）
@@ -199,7 +223,7 @@ jobs:
   # ProfilePanel 丢 kind/detail/signature、Input 无密码遮罩等问题，四端原样复现。
   #
   # Flutter 与 Android 都能在 ubuntu 上跑，先接这两端。
-  # iOS 需要 macOS runner（10 倍计费），单独评估，见 open-items。
+  # SwiftUI 使用 macOS runner 编译、单测及 iOS Simulator 目标构建。
   flutter:
     name: Flutter 组件库
     runs-on: ubuntu-latest
@@ -259,3 +283,37 @@ jobs:
 
       - name: 单元测试
         run: ./gradlew --no-daemon :testDebugUnitTest
+
+      - name: 启用模拟器硬件加速
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: 原生场景交互回归
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          disable-animations: true
+          working-directory: android-im-ui
+          script: ./gradlew --no-daemon connectedDebugAndroidTest
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-scene-tests
+          path: android-im-ui/build/reports/androidTests/
+
+  swift:
+    name: SwiftUI 组件库
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: ios-im-ui
+    steps:
+      - uses: actions/checkout@v4
+      - name: SwiftUI 编译与单元测试
+        run: swift test
+      - name: iOS Simulator 目标编译
+        run: xcodebuild -scheme FlareIMUI -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/flare-ui-ios" build CODE_SIGNING_ALLOWED=NO

@@ -72,7 +72,9 @@ function cacheKey(request: FlareMediaResolveRequest, fileId: string): string {
 }
 
 export function createAppMediaResolver(sdk: FlareSdkContext): FlareMediaResolver {
+  // Coalesce concurrent requests only. The SDK owns signed URL lifetime and caching.
   const cache = new Map<string, Promise<string>>();
+  const scope = () => `${sdk.currentUserId?.value ?? ''}|${sdk.loggedIn?.value ?? ''}`;
 
   return async (request) => {
     const directUrl = request.url?.trim();
@@ -84,7 +86,8 @@ export function createAppMediaResolver(sdk: FlareSdkContext): FlareMediaResolver
     const fileId = request.fileId?.trim() || coreMediaFileIdFromUrl(directUrl);
     if (!fileId) return directUrl ? proxiedMediaUrl(directUrl) : "";
 
-    const key = cacheKey(request, fileId);
+    const owner = scope();
+    const key = `${owner}|${cacheKey(request, fileId)}`;
     const cached = cache.get(key);
     if (cached) return cached;
 
@@ -94,6 +97,7 @@ export function createAppMediaResolver(sdk: FlareSdkContext): FlareMediaResolver
         mediaUrl: directUrl ?? "",
       })
       .then((resolved) => {
+        if (owner !== scope()) throw new Error('媒体会话已切换，请重新打开');
         const remoteUrl = pickRemoteUrl(resolved);
         if (remoteUrl) return proxiedMediaUrl(remoteUrl);
         const resolvedLocalPath = pickLocalPath(resolved);
@@ -102,9 +106,8 @@ export function createAppMediaResolver(sdk: FlareSdkContext): FlareMediaResolver
         }
         return "";
       })
-      .catch((error) => {
-        cache.delete(key);
-        throw error;
+      .finally(() => {
+        if (cache.get(key) === task) cache.delete(key);
       });
     cache.set(key, task);
     return task;

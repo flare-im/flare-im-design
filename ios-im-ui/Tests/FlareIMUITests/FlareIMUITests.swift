@@ -19,7 +19,7 @@ final class FlareIMUITests: XCTestCase {
     }
 
     func testSizeTokens() {
-        XCTAssertEqual(FlareSizes.avatarSize, 42)
+        XCTAssertEqual(FlareSizes.avatarSize, 44)
         XCTAssertEqual(FlareSizes.spacingMd, 12)
     }
 

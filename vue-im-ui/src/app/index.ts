@@ -24,6 +24,7 @@ export {
   conversationTitle,
   resolveConversationPeer,
 } from "./shared/conversationTitle";
+export { locateTimelineMessage } from "./shared/locateTimelineMessage";
 export { DraftIdleScheduler } from "./shared/draftIdleScheduler";
 export {
   createMessageOperationAdapter,
@@ -99,3 +100,5 @@ export {
   type AppTransportSelectorOptions,
 } from "./infrastructure/transport/appTransportSelector";
 export { sdkMediaProxyFields, devMediaHttpBaseUrl } from "./runtime/mediaProxy";
+
+export { messageSearchRange, messageSearchRangeLabels, type MessageSearchRangePreset } from "./shared/messageSearchRanges";

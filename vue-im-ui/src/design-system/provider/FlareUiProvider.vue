@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NConfigProvider, NDialogProvider, NMessageProvider } from "naive-ui";
+import { darkTheme, NConfigProvider, NDialogProvider, NMessageProvider } from "naive-ui";
 import type { FlareLayoutMode } from "../../shared/contracts/layout";
 import { useFlareThemeProvider, type FlareThemeMode } from "../theme/use-flare-theme";
 import { useFlareI18nProvider, type FlareLocale } from "../../shared/i18n/useFlareI18n";
@@ -23,7 +23,7 @@ const props = withDefaults(
   },
 );
 
-const { naiveThemeOverrides } = useFlareThemeProvider(props.themeMode);
+const { isDark, naiveThemeOverrides } = useFlareThemeProvider(props.themeMode);
 const { naiveLocale, naiveDateLocale } = useFlareI18nProvider(props.locale);
 useFlareAdaptiveProvider(props.layoutMode);
 useViewportProvider();
@@ -31,7 +31,7 @@ useFlareMediaProvider(props.mediaResolver);
 </script>
 
 <template>
-  <n-config-provider :locale="naiveLocale" :date-locale="naiveDateLocale" :theme-overrides="naiveThemeOverrides">
+  <n-config-provider :theme="isDark ? darkTheme : null" :locale="naiveLocale" :date-locale="naiveDateLocale" :theme-overrides="naiveThemeOverrides">
     <n-message-provider>
       <n-dialog-provider>
         <slot />

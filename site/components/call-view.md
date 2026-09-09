@@ -25,7 +25,7 @@ title: CallView
 |---|---|:---:|---|---|
 | `peerName` | `string` | ✓ | — | 通话对端的名称。 |
 | `mode` | `'audio' \| 'video'` | ✓ | — | 音频或视频 —— 改变版式。 |
-| `state` | `'calling' \| 'ringing' \| 'connected'` | ✓ | — | 呼叫中 / 响铃中 / 已接通。 |
+| `state` | `'calling' \| 'ringing' \| 'connected' \| 'reconnecting' \| 'failed'` | ✓ | — | 呼叫中 / 响铃中 / 已接通。 |
 | `durationLabel` | `string` |  | — | 已格式化的通话时长（mm:ss）。 |
 | `peerAvatarUrl` | `string` |  | — | 对端头像，音频通话时显示。 |
 
@@ -133,3 +133,11 @@ CallView(peerName = "Henry", mode = FlareCallMode.Video, state = FlareCallState.
 ```
 
 :::
+
+## 恢复契约
+
+`statusDetail` 展示宿主提供的弱网、权限或失败原因。`recoveryText` 仅在 failed 时显示操作；处理 Vue 的 recover 或原生 onRecover 后，立即切换 reconnecting，避免重复恢复。挂断独立可用。组件不枚举设备、不申请权限，也不自行重试。
+
+Web 的 encrypted 默认 false；只有 RTC 提供方明确确认端到端加密时才开启。TLS/WSS 或信令连接成功不能替代该确认。
+
+原生调用方的穷举 switch 需增加 reconnecting 和 failed。媒体仍连接的弱网状态保持 connected，用 statusDetail 说明，不用信令 ready 替代媒体连接状态。

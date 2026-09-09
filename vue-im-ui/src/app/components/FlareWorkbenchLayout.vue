@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { messageSearchRange, messageSearchRangeLabels, type MessageSearchRangePreset } from "../shared/messageSearchRanges";
+import { computed, ref, watch, onBeforeUnmount } from "vue";
 import { describeSdkError } from "../../shared/errors/describeSdkError";
 import {
   AddOutline,
@@ -33,7 +34,7 @@ import {
   useMessage,
 } from "naive-ui";
 import { useRoute, useRouter } from "vue-router";
-import { FlareStartConversationDialog, FlareWorkbenchShell } from "@flare-im/vue-ui/components";
+import { FlareDangerConfirm, FlareStartConversationDialog, FlareWorkbenchShell } from "@flare-im/vue-ui/components";
 import type { FlareWorkbenchShellMode } from "@flare-im/vue-ui/contracts";
 import { provideFlareWorkbenchUi } from "@flare-im/vue-ui/composables";
 import { useFlareTheme, type FlareThemeMode, type FlareThemeVariant } from "@flare-im/vue-ui/theme";
@@ -83,9 +84,22 @@ const startChatOpen = ref(false);
 const moreOpen = ref(false);
 const sdkBuildOpen = ref(false);
 const chatSearchOpen = ref(false);
+const messageLocation = ref<{ conversationId: string; messageId: string } | null>(null);
 const chatSearchQuery = ref("");
 const chatSearchKind = ref<ChatSearchKindValue>("all");
+const chatSearchRange = ref<MessageSearchRangePreset>("any");
+const chatSearchRangeLabels = computed(() => messageSearchRangeLabels(locale.value));
 const chatSearchLoading = ref(false);
+let searchGeneration = 0;
+function invalidateSearchPresentation() {
+  messageLocation.value = null;
+  searchGeneration += 1;
+  chatSearchLoading.value = false;
+  chatSearchError.value = '';
+  chatSearchSearched.value = false;
+}
+watch([sdk.activeConversationId, sdk.currentUserId], invalidateSearchPresentation, { flush: 'sync' });
+onBeforeUnmount(invalidateSearchPresentation);
 const chatSearchSearched = ref(false);
 const chatSearchError = ref("");
 const chatSearchLastQuery = ref("");
@@ -102,6 +116,7 @@ watch(startChatOpen, (open) => {
 });
 
 provideFlareWorkbenchUi({
+  messageLocation,
   openMore: () => {
     moreOpen.value = true;
   },
@@ -270,8 +285,11 @@ function chatSearchResultSeq(message: ChatSearchResultMessage): string {
 }
 
 function openSearchResult(message: ChatSearchResultMessage): void {
-  previewMessageId.value = messageId(message);
-  previewOpen.value = true;
+  const id = messageId(message);
+  if (!id || !sdk.activeConversationId.value) return;
+  messageLocation.value = { conversationId: sdk.activeConversationId.value, messageId: id };
+  chatSearchOpen.value = false;
+  void router.push({ name: 'chat' });
 }
 
 function selectChatSearchKind(value: ChatSearchKindValue): void {
@@ -297,9 +315,35 @@ async function conversationOpenChat(): Promise<void> {
   await router.push({ name: "chat" });
 }
 
+const dangerOperation = ref<{ kind: 'delete' | 'clear_history'; conversationId: string; userId: string; target: string }>();
+const dangerBusy = ref(false);
+const dangerError = ref('');
+function requestConversationDanger(kind: 'delete' | 'clear_history'): void {
+  const conversationId = sdk.activeConversationId.value;
+  if (!conversationId) return;
+  dangerError.value = '';
+  dangerOperation.value = { kind, conversationId, userId: sdk.currentUserId.value,
+    target: sdk.activeConversation.value ? conversationTitle(sdk.activeConversation.value) : conversationId };
+}
+async function confirmConversationDanger(): Promise<void> {
+  const request = dangerOperation.value;
+  if (!request || dangerBusy.value) return;
+  if (request.conversationId !== sdk.activeConversationId.value || request.userId !== sdk.currentUserId.value) {
+    dangerError.value = '当前会话已切换，请关闭并重新确认';
+    return;
+  }
+  dangerBusy.value = true;
+  dangerError.value = '';
+  try {
+    await sdk.runConversationOperation(request.kind);
+    dangerOperation.value = undefined;
+    if (request.kind === 'delete') await router.replace({ name: 'conversations' });
+  } catch (error) {
+    dangerError.value = operationErrorText(error, '操作未完成，请重试');
+  } finally { dangerBusy.value = false; }
+}
 async function conversationDelete(): Promise<void> {
-  await sdk.runConversationOperation("delete");
-  await router.replace({ name: "conversations" });
+  requestConversationDanger('delete');
 }
 
 async function conversationPullFromServer(): Promise<void> {
@@ -319,6 +363,8 @@ async function runActiveConversationAction(kind: string): Promise<void> {
   if (!sdk.activeConversationId.value) return;
   if (kind === "delete") {
     await conversationDelete();
+  } else if (kind === 'clear_history') {
+    requestConversationDanger('clear_history');
   } else {
     await sdk.runConversationOperation(kind);
   }
@@ -326,7 +372,9 @@ async function runActiveConversationAction(kind: string): Promise<void> {
 }
 
 async function searchMessages(): Promise<void> {
+  const own = ++searchGeneration;
   const query = chatSearchQuery.value.trim();
+  chatSearchLoading.value = false;
   chatSearchError.value = "";
   chatSearchSearched.value = Boolean(query);
   if (!query) {
@@ -341,11 +389,11 @@ async function searchMessages(): Promise<void> {
   chatSearchLastQuery.value = query;
   chatSearchLastKind.value = chatSearchKind.value;
   try {
-    await sdk.searchActiveMessages(query, selectedChatSearchKinds());
+    await sdk.searchActiveMessages(query, selectedChatSearchKinds(), messageSearchRange(chatSearchRange.value));
   } catch (error) {
-    chatSearchError.value = searchErrorText(error);
+    if (own === searchGeneration) chatSearchError.value = searchErrorText(error);
   } finally {
-    chatSearchLoading.value = false;
+    if (own === searchGeneration) chatSearchLoading.value = false;
   }
 }
 
@@ -389,6 +437,12 @@ async function buildFromAction(op: string): Promise<void> {
 </script>
 
 <template>
+  <FlareDangerConfirm :open="Boolean(dangerOperation)"
+    :title="dangerOperation?.kind === 'delete' ? '删除会话' : '清空聊天记录'"
+    description="请确认操作对象。此操作会更改会话或聊天记录。"
+    :target="dangerOperation?.target || ''" :busy="dangerBusy" :error="dangerError"
+    :confirm-text="dangerOperation?.kind === 'delete' ? '删除会话' : '清空记录'"
+    @confirm="confirmConversationDanger" @cancel="dangerOperation = undefined" />
   <FlareWorkbenchShell
     v-model:more-open="moreOpen"
     v-model:chat-search-open="chatSearchOpen"
@@ -423,7 +477,7 @@ async function buildFromAction(op: string): Promise<void> {
         @pin="(pinned) => sdk.runConversationOperation(pinned ? 'pin' : 'unpin')"
         @mute="(muted) => sdk.runConversationOperation(muted ? 'mute' : 'unmute')"
         @archive="(archived) => sdk.runConversationOperation(archived ? 'archive' : 'unarchive')"
-        @clear-history="sdk.runConversationOperation('clear_history')"
+        @clear-history="requestConversationDanger('clear_history')"
         @delete="conversationDelete"
         @open-devtools="navigate('sdk-lab')"
       />
@@ -534,6 +588,12 @@ async function buildFromAction(op: string): Promise<void> {
           </button>
         </div>
 
+        <label class="chat-search-time-range">
+          <span>{{ locale.startsWith('en') ? 'Time range' : '时间范围' }}</span>
+          <select v-model="chatSearchRange" @change="searchMessages">
+            <option v-for="(label, value) in chatSearchRangeLabels" :key="value" :value="value">{{ label }}</option>
+          </select>
+        </label>
         <div v-if="chatSearchSearched && !chatSearchError" class="chat-search-panel__meta">
           <span>{{ chatSearchLastKindLabel }}</span>
           <strong>{{ chatSearchLastQuery }}</strong>
@@ -564,13 +624,12 @@ async function buildFromAction(op: string): Promise<void> {
           <strong>{{ t('workbench.noRelatedMsg') }}</strong>
           <span>{{ t('workbench.tryOtherKeyword') }}</span>
         </div>
-        <div v-else class="chat-search-results" role="list">
+        <div v-else class="chat-search-results">
           <button
             v-for="message in chatSearchResults"
             :key="messageId(message)"
             type="button"
             class="chat-search-result-card"
-            role="listitem"
             @click="openSearchResult(message)"
           >
             <span class="chat-search-result-card__icon">
@@ -669,6 +728,10 @@ async function buildFromAction(op: string): Promise<void> {
 </template>
 
 <style scoped>
+.chat-search-time-range { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.chat-search-time-range select { min-height: 48px; max-width: 100%; padding: 8px 12px; font: inherit; color: inherit; background: var(--im-bg-surface); border: 1px solid var(--im-border); border-radius: 8px; }
+.chat-search-time-range select:focus-visible { outline: 2px solid var(--im-primary); outline-offset: 2px; }
+
 .settings-form {
   display: grid;
   gap: 14px;

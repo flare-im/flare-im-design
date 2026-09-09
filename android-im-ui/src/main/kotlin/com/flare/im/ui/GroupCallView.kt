@@ -65,6 +65,8 @@ fun GroupCallView(
     }
     val strings = flareStrings()
     val status = when (state) {
+        "reconnecting" -> strings.callReconnecting
+        "failed" -> strings.callFailed
         "connected" -> durationLabel ?: strings.callConnected
         "ringing" -> strings.callRinging
         else -> strings.callCalling

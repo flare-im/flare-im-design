@@ -153,3 +153,6 @@
 .flare-platform-card code {
   font-size: 13px;
 }
+
+/* Provider is a flex child in demo frames; allow it to shrink on phones. */
+.flare-demo > .n-config-provider { min-width: 0; width: 100%; max-width: 100%; }

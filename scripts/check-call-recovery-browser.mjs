@@ -1,0 +1,50 @@
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import {resolve} from 'node:path';
+import {mkdir,writeFile} from 'node:fs/promises';
+const [site='http://127.0.0.1:5189',pkg]=process.argv.slice(2);
+const {chromium,expect}=createRequire(resolve(pkg))('@playwright/test');
+const browser=await chromium.launch();
+const out=resolve('docs/ui-review-20260909/calls'); await mkdir(out,{recursive:true});
+const checks=[];
+try {
+  for(const width of [320,1280]) for(const scale of [1,2]) {
+    const page=await browser.newPage({viewport:{width,height:1000}});
+    const errors=[];page.on('pageerror',e=>errors.push(e.message));
+    await page.goto(`${site}/components/call-view`);
+    const demo=page.locator('.call-recovery-demo');await expect(demo).toBeVisible();
+    await page.addStyleTag({content:`.flare-call-view__name,.flare-call-view__status,.flare-call-controls .lbl {font-size:${scale}em !important;}`});
+    await demo.getByLabel('通话状态').selectOption('failed');
+    await expect(demo.getByRole('status')).toHaveText('通话连接失败');
+    await expect(demo.getByText('End-to-end encrypted')).toHaveCount(0);
+    await demo.getByRole('button',{name:'重新连接',exact:true}).click();
+    await expect(demo.getByRole('status')).toHaveText('正在恢复通话…');
+    await expect(demo.getByRole('button',{name:'重新连接',exact:true})).toHaveCount(0);
+    const hangup=demo.getByRole('button',{name:'挂断',exact:true});
+    await hangup.focus();await page.keyboard.press('Enter');
+    await expect(demo.getByText('本地状态演示，不建立 RTC 通话。挂断 1 次')).toBeVisible();
+    const peer=await demo.locator('.flare-call-view__peer').boundingBox();
+    const controls=await demo.locator('.flare-call-view__controls').boundingBox();
+    assert(peer.y+peer.height<=controls.y,'Peer and controls overlap');
+    assert(await demo.evaluate(el=>el.scrollWidth<=el.clientWidth+1),'horizontal overflow');
+    assert.deepEqual(errors,[]);
+    await demo.screenshot({path:resolve(out,`${width}-${scale}x.png`)});
+    await page.goto(`${site}/components/call-device-picker`);
+    const devices=page.locator('.device-picker-demo');await expect(devices).toBeVisible();
+    const microphone=devices.getByLabel('麦克风',{exact:true});
+    await devices.getByRole('button',{name:'模拟设备拔出'}).click();
+    await expect(microphone).toHaveValue('');
+    await expect(devices.getByText(/尚未切换/)).toBeVisible();
+    await microphone.selectOption('usb');await expect(devices.getByText(/microphone\/usb/)).toBeVisible();
+    await devices.getByLabel('正在切换').check();await expect(microphone).toBeDisabled();
+    await devices.getByLabel('正在切换').uncheck();
+    await devices.getByLabel('权限状态').selectOption('denied');await expect(microphone).toBeDisabled();
+    await devices.getByRole('button',{name:'申请权限'}).click();await expect(microphone).toBeEnabled();
+    assert(await devices.evaluate(el=>el.scrollWidth<=el.clientWidth+1),'device picker overflow');
+    await devices.screenshot({path:resolve(out,`devices-${width}-${scale}x.png`)});
+    assert.deepEqual(errors,[]);
+    checks.push({width,scale,passed:true,devices:true});await page.close();
+  }
+  await writeFile(resolve(out,'checks.json'),JSON.stringify(checks,null,2));
+  console.log('PASS: call failure/recovery, keyboard hangup, 320/1280 layout at 1x/2x text');
+}finally{await browser.close();}

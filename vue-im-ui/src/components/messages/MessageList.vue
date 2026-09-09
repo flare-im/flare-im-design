@@ -41,6 +41,8 @@ const props = defineProps<{
   multiSelectMode?: boolean;
   selectedIds?: readonly string[];
   loadingOlder?: boolean;
+  olderError?: string;
+  loadOlderText?: string;
   hasOlder: boolean;
   bottomInset?: number;
   menuConfig?: MessageMenuConfig;
@@ -81,7 +83,9 @@ const anchorTailId = ref<string | null>(null);
 const pendingTimers = new Set<number>();
 let loadOlderRequested = false;
 let listResizeObserver: ResizeObserver | null = null;
-let pendingPrependAnchor: ScrollAnchorSnapshot | null = null;
+type ReadingAnchor = ScrollAnchorSnapshot & { messageId?: string; offset?: number; generation: number };
+let anchorGeneration = 0;
+let pendingPrependAnchor: ReadingAnchor | null = null;
 let preservingPrependAnchor = false;
 let bottomScrollGeneration = 0;
 
@@ -455,14 +459,20 @@ function onScroll(event: Event): void {
     historyStartHintVisible.value = true;
     return;
   }
-  if (!loadOlderRequested) {
-    loadOlderRequested = true;
-    capturePrependAnchor(root);
-    emit("load-older");
-    scheduleTimer(() => {
-      loadOlderRequested = false;
-    }, 600);
-  }
+  requestOlder(false);
+}
+
+function requestOlder(retry = false): void {
+  if (loadOlderRequested || props.loadingOlder || !props.hasOlder || (!retry && props.olderError)) return;
+  loadOlderRequested = true;
+  capturePrependAnchor();
+  emit("load-older");
+}
+
+function cancelAnchorRestore(): void {
+  anchorGeneration += 1;
+  pendingPrependAnchor = null;
+  preservingPrependAnchor = false;
 }
 
 function scheduleTimer(fn: () => void, ms: number): void {
@@ -486,16 +496,26 @@ function capturePrependAnchor(root?: HTMLElement | null): void {
   const el = root ?? getScrollContainer();
   if (!el) return;
   enterBrowseMode();
+  const bounds = el.getBoundingClientRect();
+  const row = Array.from(el.querySelectorAll<HTMLElement>('[data-message-id]'))
+    .find(row => row.getBoundingClientRect().bottom > bounds.top && row.getBoundingClientRect().top < bounds.bottom);
   pendingPrependAnchor = {
+    messageId: row?.dataset.messageId,
+    offset: row ? row.getBoundingClientRect().top - bounds.top : undefined,
+    generation: ++anchorGeneration,
     scrollTop: el.scrollTop,
     scrollHeight: el.scrollHeight,
   };
 }
 
-function restorePrependAnchorPosition(snapshot: ScrollAnchorSnapshot): void {
+function restorePrependAnchorPosition(snapshot: ReadingAnchor): void {
+  if (snapshot.generation !== anchorGeneration) return;
   const root = getScrollContainer();
   if (!root) return;
-  root.scrollTop = restorePrependScrollTop(snapshot, root.scrollHeight);
+  const row = snapshot.messageId ? root.querySelector<HTMLElement>(`[data-message-id="${escapeSelectorValue(snapshot.messageId)}"]`) : null;
+  root.scrollTop = row && snapshot.offset !== undefined
+    ? root.scrollTop + row.getBoundingClientRect().top - root.getBoundingClientRect().top - snapshot.offset
+    : restorePrependScrollTop(snapshot, root.scrollHeight);
   syncAtBottomState(root);
 }
 
@@ -672,7 +692,10 @@ async function handleMessagesGrowth(
 watch(
   () => props.conversationId,
   async (conversationId, previousConversationId) => {
-    if (!conversationId || conversationId === previousConversationId) return;
+    if (conversationId === previousConversationId) return;
+    cancelAnchorRestore();
+    loadOlderRequested = false;
+    cancelPendingBottomScroll();
     enableTailFollow();
     historyStartHintVisible.value = false;
     isAtBottom.value = true;
@@ -682,10 +705,17 @@ watch(
   { flush: "post" },
 );
 
+function timelineKeyOrEmpty(message: MessageLike | undefined): string { return message?.timelineKey ?? ""; }
+watch([() => props.loadingOlder, () => props.olderError], ([loading, error], [wasLoading, oldError]) => {
+  if ((wasLoading && !loading) || error !== oldError) loadOlderRequested = false;
+});
+
 watch(
   () => displayMessages.value,
   async (next, prev) => {
     const previous = prev ?? [];
+    if (countPrependedMessages(previous, next) > 0 && !pendingPrependAnchor) capturePrependAnchor();
+    if (timelineKeyOrEmpty(previous[0]) !== timelineKeyOrEmpty(next[0])) loadOlderRequested = false;
     await nextTick();
     updateShortTimelineSpacer();
     if (previous.length === 0 && next.length > 0) {
@@ -765,6 +795,8 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  cancelAnchorRestore();
+  cancelPendingBottomScroll();
   listResizeObserver?.disconnect();
   listResizeObserver = null;
   pendingTimers.forEach((timer) => window.clearTimeout(timer));
@@ -785,6 +817,10 @@ defineExpose({
       <span class="runtime-status-dot runtime-status-dot--busy" />
       {{ t("chat.loadOlder") }}
     </div>
+    <div v-else-if="hasOlder || olderError" class="message-list-pagination">
+      <span v-if="olderError" role="status">{{ olderError }}</span>
+      <button v-if="hasOlder" type="button" @click="requestOlder(true)">{{ loadOlderText || t("chat.loadOlder") }}</button>
+    </div>
     <div
       v-else-if="showHistoryStartHint"
       class="message-list-history-end"
@@ -796,6 +832,9 @@ defineExpose({
       ref="scrollContainerRef"
       class="message-list message-list-virtual"
       @scroll="onScroll"
+      @wheel.passive="cancelAnchorRestore"
+      @touchstart.passive="cancelAnchorRestore"
+      @pointerdown="cancelAnchorRestore"
     >
       <div
         ref="scrollContentRef"
@@ -866,3 +905,9 @@ defineExpose({
     </Transition>
   </div>
 </template>
+
+<style scoped>
+.message-list-pagination { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px; color: var(--flare-color-text-primary); }
+.message-list-pagination button { min-height: 48px; min-width: 48px; padding: 8px 12px; color: inherit; background: transparent; border: 1px solid var(--flare-color-border-primary); border-radius: 8px; cursor: pointer; }
+.message-list-pagination button:focus-visible { outline: 2px solid var(--flare-color-primary); }
+</style>

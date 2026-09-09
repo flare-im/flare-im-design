@@ -2,8 +2,8 @@ import SwiftUI
 
 /// Audio vs video call — spec union `'audio' | 'video'`.
 public enum FlareCallMode: Sendable { case audio, video }
-/// Call state — spec union `'calling' | 'ringing' | 'connected'`.
-public enum FlareCallState: Sendable { case calling, ringing, connected }
+/// Call state — spec union `'calling' | 'ringing' | 'connected' | 'reconnecting' | 'failed'`.
+public enum FlareCallState: Sendable { case calling, ringing, connected, reconnecting, failed }
 
 /// Call control bar. Spec: Call/CallControls (`CallControlsView`).
 public struct CallControlsView: View {
@@ -26,19 +26,19 @@ public struct CallControlsView: View {
     }
 
     public var body: some View {
-        HStack(spacing: FlareSizes.spacingLg) {
-            ctrl(muted ? "mic.slash" : "mic", "麦克风", muted, onToggleMute)
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 72, maximum: 112), spacing: FlareSizes.spacingLg)], spacing: FlareSizes.spacingLg) {
+            ctrl(muted ? "mic.slash" : "mic", "麦克风", muted, onToggleMute, state: muted ? "已静音" : "未静音")
             if mode == .video {
-                ctrl(cameraOn ? "video" : "video.slash", "摄像头", !cameraOn, onToggleCamera)
+                ctrl(cameraOn ? "video" : "video.slash", "摄像头", !cameraOn, onToggleCamera, state: cameraOn ? "开启" : "关闭")
                 ctrl("arrow.triangle.2.circlepath.camera", "翻转", false, onSwitchCamera)
             } else {
-                ctrl("speaker.wave.2", "扬声器", speakerOn, onToggleSpeaker)
+                ctrl("speaker.wave.2", "扬声器", speakerOn, onToggleSpeaker, state: speakerOn ? "开启" : "关闭")
             }
             hangup
         }
     }
 
-    private func ctrl(_ icon: String, _ label: String, _ on: Bool, _ action: (() -> Void)?) -> some View {
+    private func ctrl(_ icon: String, _ label: String, _ on: Bool, _ action: (() -> Void)?, state: String = "") -> some View {
         VStack(spacing: 6) {
             Button { action?() } label: {
                 Image(systemName: icon).font(.system(size: 24))
@@ -47,7 +47,11 @@ public struct CallControlsView: View {
                     .background(Circle().fill(on ? Color.white : Color.white.opacity(0.16)))
             }
             .buttonStyle(.plain)
-            Text(label).font(.system(size: 11)).foregroundColor(.white.opacity(0.75))
+            .disabled(action == nil)
+            .accessibilityLabel(label)
+            .accessibilityValue(state)
+            Text(label).font(.caption).foregroundColor(.white.opacity(0.75))
+                .multilineTextAlignment(.center).accessibilityHidden(true)
         }
     }
 
@@ -57,6 +61,8 @@ public struct CallControlsView: View {
                 .frame(width: 56, height: 56).background(Circle().fill(Color(.sRGB, red: 0.937, green: 0.267, blue: 0.267, opacity: 1)))
         }
         .buttonStyle(.plain)
+        .disabled(onHangup == nil)
+        .accessibilityLabel("挂断")
     }
 }
 
@@ -65,6 +71,9 @@ public struct CallView: View {
     private let peerName: String
     private let mode: FlareCallMode
     private let state: FlareCallState
+    private let statusDetail: String?
+    private let recoveryText: String?
+    private let onRecover: (() -> Void)?
     private let durationLabel: String?
     private let peerAvatarURL: String?
     private let muted: Bool
@@ -80,7 +89,9 @@ public struct CallView: View {
     public init(peerName: String, mode: FlareCallMode, state: FlareCallState, durationLabel: String? = nil,
                 peerAvatarURL: String? = nil, muted: Bool = false, cameraOn: Bool = true, speakerOn: Bool = false,
                 video: AnyView? = nil, onHangup: (() -> Void)? = nil, onToggleMute: (() -> Void)? = nil,
-                onToggleCamera: (() -> Void)? = nil, onToggleSpeaker: (() -> Void)? = nil, onSwitchCamera: (() -> Void)? = nil) {
+                onToggleCamera: (() -> Void)? = nil, onToggleSpeaker: (() -> Void)? = nil, onSwitchCamera: (() -> Void)? = nil,
+                statusDetail: String? = nil, recoveryText: String? = nil, onRecover: (() -> Void)? = nil) {
+        self.statusDetail = statusDetail; self.recoveryText = recoveryText; self.onRecover = onRecover
         self.peerName = peerName; self.mode = mode; self.state = state; self.durationLabel = durationLabel
         self.peerAvatarURL = peerAvatarURL; self.muted = muted; self.cameraOn = cameraOn; self.speakerOn = speakerOn
         self.video = video; self.onHangup = onHangup; self.onToggleMute = onToggleMute
@@ -89,6 +100,8 @@ public struct CallView: View {
 
     private var statusText: String {
         switch state {
+        case .reconnecting: return "正在恢复通话…"
+        case .failed: return "通话连接失败"
         case .connected: return durationLabel ?? "已接通"
         case .ringing: return "响铃中…"
         case .calling: return mode == .video ? "等待接听…" : "呼叫中…"
@@ -99,22 +112,22 @@ public struct CallView: View {
         ZStack {
             Color(.sRGB, red: 0.066, green: 0.075, blue: 0.094, opacity: 1).ignoresSafeArea()
             if mode == .video, let video { video }
-            // Peer block anchors to the top (Android / Flutter parity), not the vertical centre.
-            VStack(spacing: FlareSizes.spacingSm) {
-                if mode == .audio || video == nil {
-                    AvatarView(userId: peerName, displayName: peerName, avatarURL: peerAvatarURL, size: 96)
-                }
-                Text(peerName).font(.system(size: FlareSizes.fontSize4xl, weight: .semibold)).foregroundColor(.white)
-                Text(statusText).font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(.white.opacity(0.7))
-            }
-            .padding(.top, 96)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            VStack {
-                Spacer()
-                CallControlsView(muted: muted, cameraOn: cameraOn, speakerOn: speakerOn, mode: mode,
-                                 onToggleMute: onToggleMute, onToggleCamera: onToggleCamera, onToggleSpeaker: onToggleSpeaker,
-                                 onSwitchCamera: onSwitchCamera, onHangup: onHangup)
-                    .padding(.bottom, 48)
+            ScrollView {
+                VStack(spacing: FlareSizes.spacingSm) {
+                    if mode == .audio || video == nil {
+                        AvatarView(userId: peerName, displayName: peerName, avatarURL: peerAvatarURL, size: 96)
+                    }
+                    Text(peerName).font(.title).foregroundColor(.white).multilineTextAlignment(.center)
+                    Text(statusText).font(.body).foregroundColor(.white.opacity(0.7))
+                    if let statusDetail { Text(statusDetail).foregroundColor(.white).multilineTextAlignment(.center) }
+                    if state == .failed, let recoveryText {
+                        Button(recoveryText) { onRecover?() }.frame(minHeight: 48).disabled(onRecover == nil).tint(.white)
+                    }
+                    CallControlsView(muted: muted, cameraOn: cameraOn, speakerOn: speakerOn, mode: mode,
+                                     onToggleMute: onToggleMute, onToggleCamera: onToggleCamera, onToggleSpeaker: onToggleSpeaker,
+                                     onSwitchCamera: onSwitchCamera, onHangup: onHangup)
+                        .padding(.top, 32)
+                }.padding(.horizontal, 16).padding(.top, 72).padding(.bottom, 48)
             }
         }
     }

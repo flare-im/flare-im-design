@@ -118,6 +118,8 @@ export default defineConfig({
           { text: "安装", link: "/guide/install" },
           { text: "设计 Tokens", link: "/guide/tokens" },
           { text: "主题定制", link: "/guide/theming" },
+                { text: "跨设备一致性", link: "/guide/cross-device" },
+                { text: "完整 IM 组件规划", link: "/guide/im-component-system" },
           { text: "组件", link: `/components/${first}` },
           { text: "数据类型", link: "/reference/data-types" },
           {
@@ -138,6 +140,8 @@ export default defineConfig({
                 { text: "安装与引用", link: "/guide/install" },
                 { text: "设计 Tokens", link: "/guide/tokens" },
                 { text: "主题定制", link: "/guide/theming" },
+                { text: "跨设备一致性", link: "/guide/cross-device" },
+                { text: "完整 IM 组件规划", link: "/guide/im-component-system" },
                 { text: "组件契约", link: "/guide/spec" },
               ],
             },

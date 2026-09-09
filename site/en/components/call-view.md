@@ -22,7 +22,7 @@ title: CallView
 |---|---|:---:|---|---|
 | `peerName` | `string` | ✓ | — | Name of the person on the call. |
 | `mode` | `'audio' \| 'video'` | ✓ | — | Audio or video — changes the layout. |
-| `state` | `'calling' \| 'ringing' \| 'connected'` | ✓ | — | Calling / ringing / connected. |
+| `state` | `'calling' \| 'ringing' \| 'connected' \| 'reconnecting' \| 'failed'` | ✓ | — | Calling / ringing / connected. |
 | `durationLabel` | `string` |  | — | Preformatted elapsed time (mm:ss). |
 | `peerAvatarUrl` | `string` |  | — | Peer avatar, shown for audio calls. |
 
@@ -130,3 +130,11 @@ CallView(peerName = "Henry", mode = FlareCallMode.Video, state = FlareCallState.
 ```
 
 :::
+
+## Recovery contract
+
+`statusDetail` carries host-provided network/permission detail. `recoveryText` exposes an explicit action only in `failed`; handle `recover` (Vue) or `onRecover` (native) and immediately set `reconnecting` to prevent duplicate requests. Hangup remains independent. The component does not retry, enumerate devices, or request permissions itself.
+
+Vue `encrypted` now defaults to `false`; set it only when the RTC provider confirms end-to-end encryption. TLS/WSS or a connected signaling channel alone does not establish that property.
+
+Compose/Flutter/Swift callers with exhaustive switches must handle the new `reconnecting` and `failed` cases. A provider's weak-network warning can be supplied through `statusDetail` while preserving `connected`; don't replace actual media lifecycle with signaling readiness.

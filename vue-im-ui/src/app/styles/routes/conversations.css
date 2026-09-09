@@ -1,7 +1,5 @@
 .conversation-route {
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--flare-surface-raised) 74%, transparent), transparent 180px),
-    var(--flare-surface);
+  background: var(--im-bg-surface);
 }
 
 .flutter-list-header {
@@ -55,7 +53,7 @@
   cursor: pointer;
   font: inherit;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
 }
 
@@ -94,10 +92,10 @@
   min-height: 72px;
   margin-bottom: 0;
   padding: 3px 5px 3px 0;
-  border: 1px solid color-mix(in srgb, var(--flare-border) 56%, transparent);
+  border: 1px solid transparent;
   border-radius: 8px;
-  background: color-mix(in srgb, var(--flare-surface-raised) 88%, var(--flare-surface));
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--im-bg-surface) 70%, transparent);
+  background: transparent;
+  box-shadow: none;
   transition:
     background-color 140ms ease,
     border-color 140ms ease,
@@ -106,17 +104,15 @@
 }
 
 .flutter-list-scroll .im-conv-item:hover {
-  border-color: color-mix(in srgb, var(--flare-accent) 22%, var(--flare-border));
+  border-color: transparent;
   background: color-mix(in srgb, var(--flare-accent) 5%, var(--flare-surface-raised));
   box-shadow: var(--flare-shadow-subtle);
 }
 
 .flutter-list-scroll .im-conv-item--active {
-  border-color: color-mix(in srgb, var(--flare-accent) 34%, var(--flare-border));
-  background: color-mix(in srgb, var(--flare-accent) 12%, var(--flare-surface));
-  box-shadow:
-    inset 3px 0 0 var(--flare-accent),
-    var(--flare-shadow-subtle);
+  border-color: transparent;
+  background: var(--im-bg-selected);
+  box-shadow: none;
 }
 
 .flutter-list-scroll .im-conv-item__select {
@@ -136,7 +132,7 @@
 }
 
 .flutter-list-scroll .im-conv-item__unread-pill {
-  background: #ef4444;
+  background: var(--im-primary);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--flare-surface-raised) 88%, var(--flare-surface));
 }
 
@@ -144,4 +140,8 @@
   padding: 10px 4px 7px;
   letter-spacing: 0;
   text-transform: uppercase;
+}
+
+@media (pointer: coarse) {
+  .conversation-filter { min-height: 44px; }
 }

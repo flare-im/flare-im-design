@@ -15,6 +15,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.TextButton
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -82,20 +85,15 @@ fun StatusBanner(
         }
         Text(
             text,
-            color = toneColor,
+            color = colors.textPrimary,
             fontSize = FlareSizes.fontSizeMd.value.sp,
             modifier = Modifier.weight(1f),
         )
-        if (actionText != null) {
+        if (!actionText.isNullOrBlank() && onAction != null) {
             Spacer(Modifier.width(FlareSizes.spacingSm))
-            Text(
-                actionText,
-                color = toneColor,
-                fontSize = FlareSizes.fontSizeMd.value.sp,
-                fontWeight = FontWeight.SemiBold,
-                textDecoration = TextDecoration.Underline,
-                modifier = Modifier.clickable { onAction?.invoke() },
-            )
+            TextButton(onClick = onAction, modifier = Modifier.widthIn(max = 160.dp).defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)) {
+                Text(actionText, color = colors.textPrimary, fontSize = FlareSizes.fontSizeMd.value.sp)
+            }
         }
     }
 }

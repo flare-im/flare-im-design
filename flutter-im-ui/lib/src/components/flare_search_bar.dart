@@ -57,7 +57,9 @@ class _FlareSearchBarState extends State<FlareSearchBar> {
         borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
       ),
       padding: const EdgeInsets.symmetric(
-          horizontal: FlareSizes.spacingMd, vertical: FlareSizes.spacingSm),
+        horizontal: FlareSizes.spacingMd,
+        vertical: FlareSizes.spacingSm,
+      ),
       child: Row(
         children: [
           Icon(Icons.search_rounded, size: 20, color: colors.textTertiary),
@@ -67,7 +69,9 @@ class _FlareSearchBarState extends State<FlareSearchBar> {
               controller: _controller,
               onSubmitted: widget.onSubmitted,
               style: TextStyle(
-                  color: colors.textPrimary, fontSize: FlareSizes.fontSizeLg),
+                color: colors.textPrimary,
+                fontSize: FlareSizes.fontSizeLg,
+              ),
               decoration: InputDecoration(
                 isCollapsed: true,
                 border: InputBorder.none,
@@ -78,11 +82,23 @@ class _FlareSearchBarState extends State<FlareSearchBar> {
           ),
           if (widget.loading)
             const SizedBox(
-                width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
           else if (_controller.text.isNotEmpty)
-            GestureDetector(
-              onTap: () => _controller.clear(),
-              child: Icon(Icons.cancel_outlined, size: 18, color: colors.textTertiary),
+            IconButton(
+              onPressed: () => _controller.clear(),
+              tooltip: MaterialLocalizations.of(context).deleteButtonTooltip,
+              constraints: const BoxConstraints(
+                minWidth: FlareSizes.touchTarget,
+                minHeight: FlareSizes.touchTarget,
+              ),
+              icon: Icon(
+                Icons.cancel_outlined,
+                size: 18,
+                color: colors.textTertiary,
+              ),
             ),
         ],
       ),

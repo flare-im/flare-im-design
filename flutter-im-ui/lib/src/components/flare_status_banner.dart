@@ -42,6 +42,11 @@ class _FlareStatusBannerState extends State<FlareStatusBanner>
       vsync: this,
       duration: const Duration(milliseconds: 1400),
     );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     _syncAnimation();
   }
 
@@ -54,7 +59,9 @@ class _FlareStatusBannerState extends State<FlareStatusBanner>
   }
 
   void _syncAnimation() {
-    if (widget.dot && widget.pulse) {
+    if (widget.dot &&
+        widget.pulse &&
+        !MediaQuery.disableAnimationsOf(context)) {
       _controller.repeat(reverse: true);
     } else {
       _controller.stop();
@@ -97,34 +104,35 @@ class _FlareStatusBannerState extends State<FlareStatusBanner>
       child: Row(
         children: [
           if (widget.dot) ...[
-            _StatusDot(color: tone, controller: _controller, pulse: widget.pulse),
+            _StatusDot(
+              color: tone,
+              controller: _controller,
+              pulse: widget.pulse && !MediaQuery.disableAnimationsOf(context),
+            ),
             const SizedBox(width: FlareSizes.spacingSm),
           ],
           Expanded(
             child: Text(
               widget.text,
               style: TextStyle(
-                color: tone,
+                color: colors.textPrimary,
                 fontSize: FlareSizes.fontSizeMd,
                 height: 1.4,
               ),
             ),
           ),
-          if (widget.actionText != null && widget.actionText!.isNotEmpty) ...[
+          if (widget.actionText != null &&
+              widget.actionText!.isNotEmpty &&
+              widget.onAction != null) ...[
             const SizedBox(width: FlareSizes.spacingSm),
-            GestureDetector(
-              onTap: widget.onAction,
-              behavior: HitTestBehavior.opaque,
-              child: Text(
-                widget.actionText!,
-                style: TextStyle(
-                  color: tone,
-                  fontSize: FlareSizes.fontSizeMd,
-                  fontWeight: FontWeight.w600,
-                  height: 1.4,
-                  decoration: TextDecoration.underline,
-                  decorationColor: tone,
+            Flexible(
+              child: TextButton(
+                onPressed: widget.onAction,
+                style: TextButton.styleFrom(
+                  minimumSize: const Size(48, 48),
+                  foregroundColor: colors.textPrimary,
                 ),
+                child: Text(widget.actionText!),
               ),
             ),
           ],
@@ -154,9 +162,10 @@ class _StatusDot extends StatelessWidget {
     );
     if (!pulse) return dot;
     return FadeTransition(
-      opacity: Tween<double>(begin: 1.0, end: 0.35).animate(
-        CurvedAnimation(parent: controller, curve: Curves.easeInOut),
-      ),
+      opacity: Tween<double>(
+        begin: 1.0,
+        end: 0.35,
+      ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut)),
       child: dot,
     );
   }

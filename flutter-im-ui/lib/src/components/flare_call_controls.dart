@@ -33,54 +33,85 @@ class FlareCallControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+    return Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.start,
+      spacing: FlareSizes.spacingLg,
+      runSpacing: FlareSizes.spacingLg,
       children: [
-        _ctrl(muted ? Icons.mic_off : Icons.mic_none, 'Microphone', muted, onToggleMute),
-        const SizedBox(width: FlareSizes.spacingLg),
+        _ctrl(
+          muted ? Icons.mic_off : Icons.mic_none,
+          'Microphone',
+          muted,
+          onToggleMute,
+        ),
         if (mode == FlareCallMode.video) ...[
-          _ctrl(cameraOn ? Icons.videocam_outlined : Icons.videocam_off_outlined, 'Camera', !cameraOn, onToggleCamera),
-          const SizedBox(width: FlareSizes.spacingLg),
+          _ctrl(
+            cameraOn ? Icons.videocam_outlined : Icons.videocam_off_outlined,
+            'Camera',
+            !cameraOn,
+            onToggleCamera,
+          ),
           _ctrl(Icons.cameraswitch, 'Flip', false, onSwitchCamera),
         ] else
-          _ctrl(Icons.volume_up_outlined, 'Speaker', speakerOn, onToggleSpeaker),
-        const SizedBox(width: FlareSizes.spacingLg),
+          _ctrl(
+            Icons.volume_up_outlined,
+            'Speaker',
+            speakerOn,
+            onToggleSpeaker,
+          ),
         _hangup(),
       ],
     );
   }
 
   Widget _ctrl(IconData icon, String label, bool on, VoidCallback? onTap) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: on ? Colors.white : Colors.white.withValues(alpha: 0.16),
-              shape: BoxShape.circle,
+    return SizedBox(
+      width: 104,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Semantics(
+            toggled: on,
+            child: IconButton(
+              onPressed: onTap,
+              tooltip: label,
+              style: IconButton.styleFrom(
+                minimumSize: const Size(56, 56),
+                backgroundColor: on
+                    ? Colors.white
+                    : Colors.white.withValues(alpha: 0.16),
+                foregroundColor: on ? Colors.black : Colors.white,
+              ),
+              icon: Icon(icon),
             ),
-            child: Icon(icon, color: on ? Colors.black : Colors.white),
           ),
-        ),
-        const SizedBox(height: 6),
-        Text(label, style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 11)),
-      ],
+          const SizedBox(height: 6),
+          ExcludeSemantics(
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.75),
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _hangup() {
-    return GestureDetector(
-      onTap: onHangup,
-      child: Container(
-        width: 56,
-        height: 56,
-        decoration: const BoxDecoration(color: Color(0xFFEF4444), shape: BoxShape.circle),
-        child: const Icon(Icons.call_end, color: Colors.white),
+    return IconButton(
+      onPressed: onHangup,
+      tooltip: 'Hang up',
+      style: IconButton.styleFrom(
+        minimumSize: const Size(56, 56),
+        backgroundColor: const Color(0xFFEF4444),
+        foregroundColor: Colors.white,
       ),
+      icon: const Icon(Icons.call_end),
     );
   }
 }

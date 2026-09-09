@@ -45,21 +45,16 @@ function readStoredVariant(): FlareThemeVariant {
   return "default";
 }
 
-function resolveDark(mode: FlareThemeMode): boolean {
-  if (mode === "dark") return true;
-  if (mode === "light") return false;
-  return isSystemDarkPreferred();
-}
-
 export function useFlareThemeProvider(
   initialMode: FlareThemeMode = readStoredMode(),
   initialVariant: FlareThemeVariant = readStoredVariant(),
 ): FlareThemeContext {
   const mode = ref<FlareThemeMode>(initialMode);
   const variant = ref<FlareThemeVariant>(initialVariant);
+  const systemDark = ref(isSystemDarkPreferred());
   const isDark = computed(() => {
     if (variant.value === "callDark") return true;
-    return resolveDark(mode.value);
+    return mode.value === "system" ? systemDark.value : mode.value === "dark";
   });
   const naiveThemeOverrides = computed(() => createNaiveThemeOverrides(isDark.value));
 
@@ -85,12 +80,13 @@ export function useFlareThemeProvider(
 
   watch([isDark, variant], syncTheme, { immediate: true });
 
+  let stopMq: (() => void) | undefined;
   onMounted(() => {
-    const stopMq = watchPreferredColorScheme(() => {
-      if (mode.value === "system") syncTheme();
+    stopMq = watchPreferredColorScheme((dark) => {
+      systemDark.value = dark;
     });
-    onUnmounted(stopMq);
   });
+  onUnmounted(() => stopMq?.());
 
   const ctx: FlareThemeContext = {
     mode: readonly(mode),

@@ -35,26 +35,30 @@ class FlareSearchResults extends StatelessWidget {
     required Color matchColor,
   }) {
     final baseStyle = TextStyle(color: baseColor);
-    if (query.isEmpty) return [TextSpan(text: text, style: baseStyle)];
-    final lower = text.toLowerCase();
-    final q = query.toLowerCase();
+    final q = query.trim();
+    if (q.isEmpty) return [TextSpan(text: text, style: baseStyle)];
     final spans = <TextSpan>[];
     var start = 0;
-    while (true) {
-      final idx = lower.indexOf(q, start);
-      if (idx < 0) {
-        spans.add(TextSpan(text: text.substring(start), style: baseStyle));
-        break;
+    for (final match in RegExp(
+      RegExp.escape(q),
+      caseSensitive: false,
+      unicode: true,
+    ).allMatches(text)) {
+      if (match.start > start) {
+        spans.add(
+          TextSpan(text: text.substring(start, match.start), style: baseStyle),
+        );
       }
-      if (idx > start) {
-        spans.add(TextSpan(text: text.substring(start, idx), style: baseStyle));
-      }
-      spans.add(TextSpan(
-        text: text.substring(idx, idx + q.length),
-        style: TextStyle(color: matchColor, fontWeight: FontWeight.w600),
-      ));
-      start = idx + q.length;
+      spans.add(
+        TextSpan(
+          text: text.substring(match.start, match.end),
+          style: TextStyle(color: matchColor, fontWeight: FontWeight.w600),
+        ),
+      );
+      start = match.end;
     }
+    if (start < text.length)
+      spans.add(TextSpan(text: text.substring(start), style: baseStyle));
     return spans;
   }
 
@@ -64,32 +68,45 @@ class FlareSearchResults extends StatelessWidget {
     final nonEmpty = groups.where((g) => g.items.isNotEmpty).toList();
     if (nonEmpty.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 40, horizontal: FlareSizes.spacingLg),
+        padding: const EdgeInsets.symmetric(
+          vertical: 40,
+          horizontal: FlareSizes.spacingLg,
+        ),
         child: Center(
-          child: Text(emptyText,
-              style: TextStyle(color: colors.textTertiary, fontSize: FlareSizes.fontSizeMd)),
+          child: Text(
+            emptyText,
+            style: TextStyle(
+              color: colors.textTertiary,
+              fontSize: FlareSizes.fontSizeMd,
+            ),
+          ),
         ),
       );
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
-      children: [
-        for (final g in nonEmpty) ..._section(colors, g),
-      ],
+      children: [for (final g in nonEmpty) ..._section(colors, g)],
     );
   }
 
   List<Widget> _section(FlareColors colors, FlareSearchResultGroup g) {
     return [
       Padding(
-        padding: const EdgeInsets.fromLTRB(FlareSizes.spacingLg, FlareSizes.spacingMd,
-            FlareSizes.spacingLg, FlareSizes.spacingXs),
-        child: Text(g.label,
-            style: TextStyle(
-                color: colors.textTertiary,
-                fontSize: FlareSizes.fontSizeSm,
-                fontWeight: FontWeight.w600)),
+        padding: const EdgeInsets.fromLTRB(
+          FlareSizes.spacingLg,
+          FlareSizes.spacingMd,
+          FlareSizes.spacingLg,
+          FlareSizes.spacingXs,
+        ),
+        child: Text(
+          g.label,
+          style: TextStyle(
+            color: colors.textTertiary,
+            fontSize: FlareSizes.fontSizeSm,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
       for (final item in g.items) _row(colors, item),
       if (g.total != null && g.total! > g.items.length) _viewAll(colors, g),
@@ -102,11 +119,17 @@ class FlareSearchResults extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Padding(
         padding: const EdgeInsets.symmetric(
-            horizontal: FlareSizes.spacingLg, vertical: FlareSizes.spacingSm),
+          horizontal: FlareSizes.spacingLg,
+          vertical: FlareSizes.spacingSm,
+        ),
         child: Row(
           children: [
             FlareAvatar(
-                userId: item.id, displayName: item.title, avatarUrl: item.avatarUrl, size: 38),
+              userId: item.id,
+              displayName: item.title,
+              avatarUrl: item.avatarUrl,
+              size: 38,
+            ),
             const SizedBox(width: FlareSizes.spacingMd),
             Expanded(
               child: Column(
@@ -115,8 +138,13 @@ class FlareSearchResults extends StatelessWidget {
                 children: [
                   Text.rich(
                     TextSpan(
-                        children: highlightSpans(item.title, query,
-                            baseColor: colors.textPrimary, matchColor: colors.primary)),
+                      children: highlightSpans(
+                        item.title,
+                        query,
+                        baseColor: colors.textPrimary,
+                        matchColor: colors.primary,
+                      ),
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: FlareSizes.fontSizeLg),
@@ -124,8 +152,13 @@ class FlareSearchResults extends StatelessWidget {
                   if (item.subtitle != null && item.subtitle!.isNotEmpty)
                     Text.rich(
                       TextSpan(
-                          children: highlightSpans(item.subtitle!, query,
-                              baseColor: colors.textTertiary, matchColor: colors.primary)),
+                        children: highlightSpans(
+                          item.subtitle!,
+                          query,
+                          baseColor: colors.textTertiary,
+                          matchColor: colors.primary,
+                        ),
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontSize: FlareSizes.fontSizeSm),
@@ -135,8 +168,13 @@ class FlareSearchResults extends StatelessWidget {
             ),
             if (item.meta != null && item.meta!.isNotEmpty) ...[
               const SizedBox(width: FlareSizes.spacingSm),
-              Text(item.meta!,
-                  style: TextStyle(color: colors.textTertiary, fontSize: FlareSizes.fontSizeSm)),
+              Text(
+                item.meta!,
+                style: TextStyle(
+                  color: colors.textTertiary,
+                  fontSize: FlareSizes.fontSizeSm,
+                ),
+              ),
             ],
           ],
         ),
@@ -150,14 +188,19 @@ class FlareSearchResults extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Padding(
         padding: const EdgeInsets.symmetric(
-            horizontal: FlareSizes.spacingLg, vertical: FlareSizes.spacingSm),
+          horizontal: FlareSizes.spacingLg,
+          vertical: FlareSizes.spacingSm,
+        ),
         child: Align(
           alignment: Alignment.centerLeft,
-          child: Text(viewAllText?.call(g.total!) ?? '查看全部 ${g.total}',
-              style: TextStyle(
-                  color: colors.primary,
-                  fontSize: FlareSizes.fontSizeMd,
-                  fontWeight: FontWeight.w500)),
+          child: Text(
+            viewAllText?.call(g.total!) ?? '查看全部 ${g.total}',
+            style: TextStyle(
+              color: colors.primary,
+              fontSize: FlareSizes.fontSizeMd,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ),
       ),
     );

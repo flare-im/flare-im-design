@@ -1,3 +1,4 @@
+import { validSearchTimeRange, type FlareSearchTimeRange } from "../shared/contracts/search-panel";
 import { computed, onBeforeUnmount, reactive, readonly, ref, watch } from "vue";
 import { translateFlare } from "../shared/i18n/messages";
 import type {
@@ -966,6 +967,12 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
   const conversations = ref<Conversation[]>([]);
   const messages = ref<Message[]>([]);
   const messageSearchResults = ref<Message[]>([]);
+  let activeSearchGeneration = 0;
+  function invalidateActiveSearch(): void {
+    activeSearchGeneration += 1;
+    messageSearchResults.value = [];
+  }
+  watch([activeConversationId, currentUserId], invalidateActiveSearch, { flush: 'sync' });
   const diagnostics = ref<Record<string, unknown>>({});
   const events = ref<RuntimeEventLogItem[]>([]);
   const conversationSyncing = ref(false);
@@ -1492,17 +1499,19 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
     kinds?: readonly MessageSearchKind[];
     limit?: number;
     includeRecalled?: boolean;
+    fromTime?: number;
+    toTime?: number;
   }): Promise<readonly Message[]> {
     const query = {
       conversationId: request.conversationId,
       keyword: request.keyword,
+      fromTime: request.fromTime,
+      toTime: request.toTime,
       kinds: request.kinds ? [...request.kinds] : [],
       limit: request.limit ?? 50,
       includeRecalled: request.includeRecalled ?? false,
     };
-    const response = request.conversationId
-      ? await client.messages.searchMessagesInConversation(query)
-      : await client.messages.searchMessagesByQuery(query);
+    const response = await client.messages.searchMessagesByQuery(query);
     return response.messages;
   }
 
@@ -3308,6 +3317,7 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
   });
 
   async function logout(): Promise<void> {
+    invalidateActiveSearch();
     clearSavedSessionProfile();
     stopPlatformSignalBridge();
     await disposeOpenViewsAndEvents("logout");
@@ -3779,19 +3789,30 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
   async function searchActiveMessages(
     keyword: string,
     kinds: readonly MessageSearchKind[],
+    timeRange: FlareSearchTimeRange = {},
   ): Promise<void> {
+    const own = ++activeSearchGeneration;
+    const conversationId = activeConversationId.value;
     const query = keyword.trim();
-    if (!query) {
-      messageSearchResults.value = [];
-      return;
+    messageSearchResults.value = [];
+    if (!query) return;
+    if (!validSearchTimeRange(timeRange)) throw new Error("搜索时间范围无效");
+    try {
+      const results = await searchMessages({
+        conversationId,
+        keyword: query,
+        fromTime: timeRange.fromTime,
+        toTime: timeRange.toTime,
+        kinds: [...kinds],
+        limit: 50,
+        includeRecalled: false,
+      });
+      if (own === activeSearchGeneration && conversationId === activeConversationId.value) {
+        messageSearchResults.value = [...results];
+      }
+    } catch (error) {
+      if (own === activeSearchGeneration) throw error;
     }
-    messageSearchResults.value = [...await searchMessages({
-      conversationId: activeConversationId.value,
-      keyword: query,
-      kinds: [...kinds],
-      limit: 50,
-      includeRecalled: false,
-    })];
   }
 
   async function editMessageText(messageId: string, text: string): Promise<void> {
@@ -4282,6 +4303,7 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
   startRealtimeSafetyPoll();
 
   onBeforeUnmount(() => {
+    invalidateActiveSearch();
     if (incomingConversationRefreshTimer !== undefined) {
       clearTimeout(incomingConversationRefreshTimer);
       incomingConversationRefreshTimer = undefined;

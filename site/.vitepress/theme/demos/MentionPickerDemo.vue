@@ -1,4 +1,7 @@
 <script setup>
+import { ref } from "vue";
+const selected = ref("");
+const closed = ref(false);
 import FlareMentionPicker from "@flare-im/vue-ui/components/composer/FlareMentionPicker.vue";
 import DemoStage from "./DemoStage.vue";
 const candidates = [
@@ -12,8 +15,9 @@ const candidates = [
 <template>
   <DemoStage>
     <div class="stage">
-      <FlareMentionPicker :candidates="candidates" allow-everyone @select="() => {}" @close="() => {}" />
+      <FlareMentionPicker :candidates="candidates" allow-everyone @select="candidate => selected = candidate.id" @close="closed = true" />
     </div>
+    <p role="status">{{ closed ? "选择器已关闭" : selected ? `已选择：${selected}` : "使用方向键选择成员，Enter 确认，Esc 关闭" }}</p>
   </DemoStage>
 </template>
 <style scoped>

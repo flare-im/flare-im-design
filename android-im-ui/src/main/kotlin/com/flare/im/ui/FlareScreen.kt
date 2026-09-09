@@ -1,6 +1,9 @@
 package com.flare.im.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -44,6 +47,7 @@ fun FlareScreen(
     padded: Boolean = false,
     scroll: Boolean = true,
     actions: (@Composable () -> Unit)? = null,
+    windowInsets: WindowInsets = WindowInsets.safeDrawing,
     content: @Composable () -> Unit,
 ) {
     val colors = flareColors()
@@ -57,14 +61,14 @@ fun FlareScreen(
         Modifier.background(base)
     }
 
-    Column(Modifier.fillMaxSize().then(bg)) {
+    Column(Modifier.fillMaxSize().then(bg).windowInsetsPadding(windowInsets)) {
         if (hasHeader) {
             Row(
                 Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingSm),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 if (onBack != null) {
-                    IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
+                    IconButton(onClick = onBack, modifier = Modifier.size(FlareSizes.touchTarget)) {
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, flareStrings().back, tint = colors.textPrimary)
                     }
                 }

@@ -12,7 +12,11 @@ void main() {
     expect(find.text('搜一搜'), findsOneWidget);
     await tester.enterText(find.byType(TextField), 'hi');
     await tester.pump();
-    expect(find.byIcon(Icons.cancel), findsOneWidget);
+    final clear = find.byType(IconButton);
+    expect(tester.getSize(clear).height, greaterThanOrEqualTo(48));
+    await tester.tap(clear);
+    await tester.pump();
+    expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, isEmpty);
   });
 
   testWidgets('FlareInput enforces maxLength + counter', (tester) async {

@@ -1,0 +1,73 @@
+{
+  "menu": [
+    {
+      "label": "打开会话",
+      "height": 40,
+      "iconOffset": 0,
+      "textOffset": 0
+    },
+    {
+      "label": "标为未读",
+      "height": 40,
+      "iconOffset": 0,
+      "textOffset": 0
+    },
+    {
+      "label": "置顶",
+      "height": 40,
+      "iconOffset": 0,
+      "textOffset": 0
+    },
+    {
+      "label": "免打扰",
+      "height": 40,
+      "iconOffset": 0,
+      "textOffset": 0
+    },
+    {
+      "label": "归档",
+      "height": 40,
+      "iconOffset": 0,
+      "textOffset": 0
+    },
+    {
+      "label": "清空本地记录",
+      "height": 40,
+      "iconOffset": 0,
+      "textOffset": 0
+    },
+    {
+      "label": "删除会话",
+      "height": 40,
+      "iconOffset": 0,
+      "textOffset": 0
+    }
+  ],
+  "keyboard": "Shift+F10/Escape pass",
+  "layouts": [
+    {
+      "name": "desktop",
+      "viewport": 1600,
+      "scroll": 1600,
+      "theme": "light"
+    },
+    {
+      "name": "tablet",
+      "viewport": 1024,
+      "scroll": 1024,
+      "theme": "light"
+    },
+    {
+      "name": "mobile",
+      "viewport": 390,
+      "scroll": 390,
+      "theme": "light"
+    },
+    {
+      "name": "mobile-dark",
+      "viewport": 390,
+      "scroll": 390,
+      "theme": "dark"
+    }
+  ]
+}

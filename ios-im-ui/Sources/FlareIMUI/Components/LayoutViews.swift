@@ -73,20 +73,25 @@ public struct ResponsiveLayoutView: View {
     private let onPaneChange: ((FlarePane) -> Void)?
     private let listWidth: CGFloat
     private let detailWidth: CGFloat
+    private let hideMobileBar: Bool
+    private let backLabel: String
+    @ScaledMetric(relativeTo: .body) private var readingUnit: CGFloat = 16
     @Environment(\.colorScheme) private var scheme
 
     public init(activePane: FlarePane = .list, onPaneChange: ((FlarePane) -> Void)? = nil,
-                listWidth: CGFloat = 300, detailWidth: CGFloat = 320,
+                listWidth: CGFloat = FlareSizes.leftPanel, detailWidth: CGFloat = FlareSizes.rightPanel,
+                hideMobileBar: Bool = false, backLabel: String = "Back",
                 list: AnyView, chat: AnyView, detail: AnyView? = nil) {
         self.activePane = activePane; self.onPaneChange = onPaneChange
-        self.listWidth = listWidth; self.detailWidth = detailWidth
+        self.listWidth = max(0, listWidth); self.detailWidth = max(0, detailWidth)
         self.list = list; self.chat = chat; self.detail = detail
+        self.hideMobileBar = hideMobileBar; self.backLabel = backLabel
     }
 
     public var body: some View {
         GeometryReader { geo in
-            let w = geo.size.width
-            if w >= 1100, let detail {
+            let panes = FlareLayoutPolicy.paneCount(width: geo.size.width, hasDetail: detail != nil, textScale: readingUnit / 16, listWidth: listWidth, detailWidth: detailWidth)
+            if panes == 3, let detail {
                 HStack(spacing: 0) {
                     list.frame(width: listWidth)
                     Divider()
@@ -94,11 +99,12 @@ public struct ResponsiveLayoutView: View {
                     Divider()
                     detail.frame(width: detailWidth)
                 }
-            } else if w >= 680 {
+            } else if panes == 2 {
                 HStack(spacing: 0) {
                     list.frame(width: listWidth)
                     Divider()
-                    chat.frame(maxWidth: .infinity)
+                    if activePane == .detail, let detail { detail.frame(maxWidth: .infinity) }
+                    else { chat.frame(maxWidth: .infinity) }
                 }
             } else {
                 singlePane
@@ -112,15 +118,16 @@ public struct ResponsiveLayoutView: View {
             list
         } else {
             VStack(spacing: 0) {
-                HStack {
-                    Button { onPaneChange?(.list) } label: {
-                        Label("返回", systemImage: "chevron.left").foregroundColor(FlareColors.of(scheme).primary)
+                if !hideMobileBar && onPaneChange != nil { HStack {
+                    Button { onPaneChange?(activePane == .detail ? .chat : .list) } label: {
+                        Label(backLabel, systemImage: "chevron.left").foregroundColor(FlareColors.of(scheme).primary)
                     }
                     .buttonStyle(.plain)
+                    .frame(minWidth: FlareSizes.touchTarget, minHeight: FlareSizes.touchTarget)
                     Spacer()
                 }
                 .padding(FlareSizes.spacingSm)
-                .overlay(Divider(), alignment: .bottom)
+                .overlay(Divider(), alignment: .bottom) }
                 if activePane == .detail, let detail { detail } else { chat }
             }
         }

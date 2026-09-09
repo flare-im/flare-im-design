@@ -45,6 +45,7 @@ import ForwardModal from "../message-enhancements/components/ForwardModal.vue";
 import MediaComposerPreviewModal from "../message-enhancements/components/MediaComposerPreviewModal.vue";
 import MessageBatchToolbar from "../message-enhancements/components/MessageBatchToolbar.vue";
 import { DraftIdleScheduler } from "../shared/draftIdleScheduler";
+import { locateTimelineMessage } from "../shared/locateTimelineMessage";
 import { createMessageOperationAdapter } from "../message-enhancements/messageOperations";
 import { resolveComposerAction, resolveMessageMenuActions, type ComposerActionDefinition } from "../message-enhancements/messageTypeRegistry";
 import { useMessageInteractionState } from "../message-enhancements/useMessageInteractionState";
@@ -499,42 +500,42 @@ function findMessage(id: string) {
   return sdk.messages.value.find((m) => m.serverId === id || m.clientMsgId === id) ?? null;
 }
 
-async function scrollLoadedMessageIntoView(messageId: string, smooth = true): Promise<boolean> {
-  await nextTick();
-  return (await messageListRef.value?.scrollToMessage(messageId, smooth)) ?? false;
-}
-
-async function ensureMessageLocated(messageId: string): Promise<boolean> {
-  const targetId = messageId.trim();
-  if (!targetId || !sdk.activeConversationId.value) return false;
-  chatContentTab.value = "messages";
-  await nextTick();
-  if (await scrollLoadedMessageIntoView(targetId, true)) return true;
-
-  for (let attempt = 0; attempt < MESSAGE_LOCATE_MAX_OLDER_LOADS; attempt += 1) {
-    if (!sdk.messageHasMore.value) break;
-    try {
-      await sdk.loadOlderMessages();
-    } catch (error) {
-      const detail = describeSdkError(error);
-      message.error(detail || t("toast.loadHistoryFailed"));
-      return false;
-    }
-    await nextTick();
-    if (findMessage(targetId) && await scrollLoadedMessageIntoView(targetId, true)) {
-      return true;
-    }
-  }
-
-  return scrollLoadedMessageIntoView(targetId, true);
-}
+let locationGeneration = 0;
+function cancelMessageLocation() { locationGeneration += 1; }
+watch([sdk.activeConversationId, sdk.currentUserId], cancelMessageLocation, { flush: 'sync' });
+onBeforeUnmount(cancelMessageLocation);
+onBeforeRouteLeave(cancelMessageLocation);
 
 async function locateMessage(messageId: string): Promise<void> {
-  const found = await ensureMessageLocated(messageId);
-  if (!found) {
-    message.warning(t("chat.messageLocateFailed"));
+  const targetId = messageId.trim();
+  const conversationId = sdk.activeConversationId.value;
+  if (!targetId || !conversationId) return;
+  const own = ++locationGeneration;
+  const isCurrent = () => own === locationGeneration && conversationId === sdk.activeConversationId.value;
+  chatContentTab.value = "messages";
+  try {
+    const result = await locateTimelineMessage({
+      isCurrent,
+      scroll: async () => {
+        await nextTick();
+        if (!isCurrent()) return false;
+        return (await messageListRef.value?.scrollToMessage(targetId, true)) ?? false;
+      },
+      hasOlder: () => sdk.messageHasMore.value,
+      loadOlder: () => sdk.loadOlderMessages(),
+      maxLoads: MESSAGE_LOCATE_MAX_OLDER_LOADS,
+    });
+    if (result === 'missing' && isCurrent()) message.warning(t("chat.messageLocateFailed"));
+  } catch (error) {
+    if (isCurrent()) message.error(describeSdkError(error) || t("toast.loadHistoryFailed"));
   }
 }
+
+watch(() => workbenchUi.messageLocation?.value, (target) => {
+  if (!target || target.conversationId !== sdk.activeConversationId.value) return;
+  if (workbenchUi.messageLocation) workbenchUi.messageLocation.value = null;
+  void locateMessage(target.messageId);
+}, { immediate: true, flush: 'post' });
 
 function messageId(message: MessageIdentity): string {
   return message.serverId || message.clientMsgId;

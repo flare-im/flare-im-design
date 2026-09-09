@@ -5,7 +5,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -26,6 +28,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 
 /** Audio vs video call — spec union `'audio' | 'video'`. */
 enum class FlareCallMode { Audio, Video }
@@ -35,6 +40,7 @@ enum class FlareCallMode { Audio, Video }
  * audio/video). Spec: Call/CallControls (`CallControls`).
  */
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 fun CallControls(
     muted: Boolean = false,
     cameraOn: Boolean = true,
@@ -47,9 +53,9 @@ fun CallControls(
     onHangup: (() -> Unit)? = null,
 ) {
     val strings = flareStrings()
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingLg),
-        verticalAlignment = Alignment.CenterVertically,
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingLg, Alignment.CenterHorizontally),
+        verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingLg),
     ) {
         ctrl(if (muted) Icons.Outlined.MicOff else Icons.Outlined.Mic, strings.microphone, muted, onToggleMute)
         if (mode == FlareCallMode.Video) {
@@ -64,11 +70,12 @@ fun CallControls(
 
 @Composable
 private fun ctrl(icon: ImageVector, label: String, on: Boolean, onClick: (() -> Unit)?) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(Modifier.widthIn(max = 112.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             Modifier.size(56.dp).clip(CircleShape)
                 .background(if (on) Color.White else Color.White.copy(alpha = 0.16f))
-                .clickable(enabled = onClick != null) { onClick?.invoke() },
+                .semantics { selected = on }
+                .clickable(enabled = onClick != null, role = Role.Button) { onClick?.invoke() },
             contentAlignment = Alignment.Center,
         ) { Icon(icon, label, tint = if (on) Color.Black else Color.White) }
         Text(label, color = Color.White.copy(alpha = 0.75f), fontSize = 11.sp)
@@ -79,7 +86,7 @@ private fun ctrl(icon: ImageVector, label: String, on: Boolean, onClick: (() -> 
 private fun hangup(onClick: (() -> Unit)?) {
     Box(
         Modifier.size(56.dp).clip(CircleShape).background(Color(0xFFEF4444))
-            .clickable(enabled = onClick != null) { onClick?.invoke() },
+            .clickable(enabled = onClick != null, role = Role.Button) { onClick?.invoke() },
         contentAlignment = Alignment.Center,
     ) { Icon(Icons.Outlined.CallEnd, flareStrings().hangUp, tint = Color.White) }
 }

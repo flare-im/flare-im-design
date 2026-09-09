@@ -1,0 +1,51 @@
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+import { resolve } from 'node:path';
+import { mkdir, writeFile } from 'node:fs/promises';
+const [site='http://127.0.0.1:5189', consumerPackage] = process.argv.slice(2);
+const { chromium, expect } = createRequire(resolve(consumerPackage))('@playwright/test');
+const browser = await chromium.launch();
+const output=resolve('docs/ui-review-20260909/search');
+await mkdir(output,{recursive:true});
+const checks=[];
+try {
+  for (const width of [320,390,1280]) for (const theme of ['light','dark']) {
+    const page=await browser.newPage({viewport:{width,height:1000},colorScheme:theme});
+    const errors=[]; page.on('pageerror',e=>errors.push(e.message));
+    await page.goto(`${site}/components/search-panel`);
+    await page.evaluate(dark=>document.documentElement.classList.toggle('dark',dark),theme==='dark');
+    const demo=page.locator('.search-demo'), panel=demo.locator('.flare-search-panel');
+    await expect(panel).toBeVisible();
+    await panel.getByRole('button',{name:'文件',exact:true}).click();
+    await expect(panel.getByText('旧文本结果11')).toHaveCount(0);
+    await expect(panel.getByRole('progressbar')).toBeVisible();
+    await demo.getByRole('button',{name:'模拟失败'}).click();
+    await expect(panel.getByText('连接中断，请重试')).toBeVisible();
+    await panel.getByRole('button',{name:'搜索',exact:true}).last().click();
+    await expect(demo.getByText(/已提交 2 次/)).toBeVisible();
+    await demo.getByRole('button',{name:'返回当前结果'}).click();
+    await expect(panel.getByText('报告11.pdf')).toBeVisible();
+    await panel.getByRole('searchbox').fill('x');
+    await panel.getByRole('button',{name:'搜索',exact:true}).click();
+    await expect(panel.getByText('报告11.pdf')).toHaveCount(0);
+    await demo.getByRole('button',{name:'返回当前结果'}).click();
+    await expect(panel.locator('.hit').filter({hasText:'X'})).toBeVisible();
+    await expect(panel.getByText('İX · Unicode 高亮验证')).toBeVisible();
+    await panel.getByRole('button',{name:'9 月 1 日前',exact:true}).click();
+    await expect(panel.getByText('报告11.pdf')).toHaveCount(0);
+    await expect(panel.getByRole('button',{name:'无效范围',exact:true})).toBeDisabled();
+    await expect(demo.getByText(/1788191999999/)).toBeVisible();
+    await demo.getByRole('button',{name:'返回当前结果'}).click();
+    await expect(panel.getByText('报告11.pdf')).toBeVisible();
+    await panel.evaluate(el=>{el.style.fontSize='28px';});
+    const geometry=await panel.evaluate(el=>({width:el.clientWidth,scroll:el.scrollWidth,buttons:[...el.querySelectorAll('button')].map(b=>b.getBoundingClientRect().height)}));
+    assert(geometry.scroll<=geometry.width+1,`overflow at ${width} ${theme}`);
+    assert(geometry.buttons.every(h=>h>=48),`touch target at ${width} ${theme}`);
+    assert.deepEqual(errors,[]);
+    await demo.screenshot({path:resolve(output,`${width}-${theme}.png`)});
+    checks.push({width,theme,geometry,passed:true});
+    await page.close();
+  }
+  await writeFile(resolve(output,'checks.json'),JSON.stringify(checks,null,2));
+  console.log('PASS: 6 viewport/theme combinations, stale results hidden, retry, Unicode highlight, wrapping and touch targets');
+} finally {await browser.close();}

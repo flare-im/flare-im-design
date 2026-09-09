@@ -194,3 +194,25 @@ export { default as FlareAnnouncementReadBar } from "./general/FlareAnnouncement
 export { default as FlareContactMatchList } from "./contacts/FlareContactMatchList.vue";
 export { default as FlareMomentAudienceSheet } from "./moments/FlareMomentAudienceSheet.vue";
 export { default as FlareMomentsVisibilityRuleList } from "./moments/FlareMomentsVisibilityRuleList.vue";
+
+export { default as FlareMentionPicker } from "./composer/FlareMentionPicker.vue";
+
+export { default as FlareTransferProgress } from "./media/FlareTransferProgress.vue";
+
+export { default as FlareSearchPanel } from './general/FlareSearchPanel.vue';
+
+export { default as FlareTransferQueue } from './media/FlareTransferQueue.vue';
+
+export { default as FlareMemberPanel } from './scenes/FlareMemberPanel.vue';
+
+export { default as FlareDeviceSessions } from './scenes/FlareDeviceSessions.vue';
+
+export { default as FlareMediaCenter } from './scenes/FlareMediaCenter.vue';
+
+export { default as FlareCapabilityBoundary } from './scenes/FlareCapabilityBoundary.vue';
+
+export { default as FlareNotificationPreferences } from './scenes/FlareNotificationPreferences.vue';
+
+export { default as FlareDangerConfirm } from './scenes/FlareDangerConfirm.vue';
+
+export { default as FlareCallDevicePicker } from "./call/FlareCallDevicePicker.vue";

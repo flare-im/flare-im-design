@@ -1,0 +1,26 @@
+[
+  {
+    "width": 320,
+    "scale": 1,
+    "passed": true,
+    "devices": true
+  },
+  {
+    "width": 320,
+    "scale": 2,
+    "passed": true,
+    "devices": true
+  },
+  {
+    "width": 1280,
+    "scale": 1,
+    "passed": true,
+    "devices": true
+  },
+  {
+    "width": 1280,
+    "scale": 2,
+    "passed": true,
+    "devices": true
+  }
+]

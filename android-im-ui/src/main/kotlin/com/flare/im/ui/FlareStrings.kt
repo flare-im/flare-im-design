@@ -30,6 +30,8 @@ data class FlareStrings(
     val callCalling: String = "正在呼叫…",
     val callRinging: String = "正在响铃…",
     val callConnected: String = "已接通",
+    val callReconnecting: String = "正在恢复通话…",
+    val callFailed: String = "通话连接失败",
     // 输入区
     val send: String = "发送",
     val cancelReply: String = "取消回复",

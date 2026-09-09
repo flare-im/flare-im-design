@@ -30,7 +30,7 @@ class FlareGroupCallView extends StatelessWidget {
   final List<FlareCallParticipant> participants;
   final FlareCallMode mode;
 
-  /// 'calling' | 'ringing' | 'connected'
+  /// 'calling' | 'ringing' | 'connected' | 'reconnecting' | 'failed'
   final String state;
   final String? title;
   final String? durationLabel;
@@ -58,6 +58,8 @@ class FlareGroupCallView extends StatelessWidget {
   }
 
   String get _status {
+    if (state == 'reconnecting') return 'Reconnecting call…';
+    if (state == 'failed') return 'Call connection failed';
     if (state == 'connected') return durationLabel ?? 'Connected';
     if (state == 'ringing') return 'Ringing…';
     return 'Calling…';

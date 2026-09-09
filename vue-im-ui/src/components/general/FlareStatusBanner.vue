@@ -16,9 +16,10 @@ const emit = defineEmits<{ (e: "action"): void }>();
 </script>
 
 <template>
-  <div class="flare-status-banner" :class="`flare-status-banner--${tone}`" role="status">
+  <div class="flare-status-banner" :class="`flare-status-banner--${tone}`" role="status" aria-live="polite">
     <span
       v-if="dot"
+      aria-hidden="true"
       class="flare-status-banner__dot"
       :class="{ 'flare-status-banner__dot--pulse': pulse }"
     />
@@ -79,6 +80,8 @@ const emit = defineEmits<{ (e: "action"): void }>();
 .flare-status-banner__text {
   flex: 1;
   min-width: 0;
+  color: var(--flare-color-text-primary);
+  overflow-wrap: anywhere;
 }
 
 .flare-status-banner__action {
@@ -86,13 +89,19 @@ const emit = defineEmits<{ (e: "action"): void }>();
   font: inherit;
   font-weight: 600;
   cursor: pointer;
-  color: currentColor;
+  color: var(--flare-color-text-primary);
   background: none;
   border: none;
-  padding: 0;
+  min-width: 48px;
+  min-height: 48px;
+  max-width: 50%;
+  overflow-wrap: anywhere;
+  padding: 8px;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
+.flare-status-banner__action:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 
 @keyframes flare-status-pulse {
   0%,

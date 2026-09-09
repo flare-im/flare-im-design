@@ -1,0 +1,80 @@
+[
+  {
+    "width": 320,
+    "colorScheme": "light",
+    "states": [
+      "queued",
+      "transferring",
+      "paused",
+      "failed",
+      "completed",
+      "cancelled"
+    ],
+    "result": "passed"
+  },
+  {
+    "width": 320,
+    "colorScheme": "dark",
+    "states": [
+      "queued",
+      "transferring",
+      "paused",
+      "failed",
+      "completed",
+      "cancelled"
+    ],
+    "result": "passed"
+  },
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "states": [
+      "queued",
+      "transferring",
+      "paused",
+      "failed",
+      "completed",
+      "cancelled"
+    ],
+    "result": "passed"
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "states": [
+      "queued",
+      "transferring",
+      "paused",
+      "failed",
+      "completed",
+      "cancelled"
+    ],
+    "result": "passed"
+  },
+  {
+    "width": 1280,
+    "colorScheme": "light",
+    "states": [
+      "queued",
+      "transferring",
+      "paused",
+      "failed",
+      "completed",
+      "cancelled"
+    ],
+    "result": "passed"
+  },
+  {
+    "width": 1280,
+    "colorScheme": "dark",
+    "states": [
+      "queued",
+      "transferring",
+      "paused",
+      "failed",
+      "completed",
+      "cancelled"
+    ],
+    "result": "passed"
+  }
+]

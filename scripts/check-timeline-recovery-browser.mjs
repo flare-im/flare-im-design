@@ -1,0 +1,30 @@
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+import { resolve } from 'node:path';
+const [site='http://127.0.0.1:5189', consumerPackage] = process.argv.slice(2);
+const {chromium, expect} = createRequire(resolve(consumerPackage))('@playwright/test');
+const browser = await chromium.launch();
+try {
+  const page=await browser.newPage({viewport:{width:1280,height:1000}});
+  page.setDefaultTimeout(12000);
+  await page.goto(`${site}/components/message-list`);
+  const demo=page.locator('.recovery-demo'), list=demo.locator('.message-list');
+  await expect(list).toBeVisible();
+  await list.evaluate(el=>{el.scrollTop=300;el.dispatchEvent(new Event('scroll'));});
+  const anchor=await list.evaluate(el=>{const r=el.getBoundingClientRect();const row=[...el.querySelectorAll('[data-message-id]')].find(x=>x.getBoundingClientRect().bottom>r.top);return {id:row.dataset.messageId,y:row.getBoundingClientRect().top-r.top};});
+  await demo.getByRole('button',{name:'前插历史并追加新消息'}).click();
+  await expect.poll(async()=>await list.evaluate((el,id)=>{const row=el.querySelector(`[data-message-id="${id}"]`);return row ? row.getBoundingClientRect().top-el.getBoundingClientRect().top: -999;},anchor.id)).toBeCloseTo(anchor.y,0);
+  await list.evaluate(el=>{el.scrollTop=0;el.dispatchEvent(new Event('scroll'));});
+  await expect(demo.getByText('请求次数：1')).toBeVisible();
+  await list.evaluate(el=>{for(let i=0;i<10;i++)el.dispatchEvent(new Event('scroll'));});
+  await expect(demo.getByText('请求次数：1')).toBeVisible();
+  await demo.getByRole('button',{name:'返回失败'}).click();
+  await expect(demo.getByText('历史加载失败，请重试')).toBeVisible();
+  await demo.getByRole('button',{name:'加载历史',exact:true}).click();
+  await expect(demo.getByText('请求次数：2')).toBeVisible();
+  await demo.getByRole('button',{name:'前插历史并追加新消息'}).click();
+  await demo.getByRole('button',{name:'切换会话'}).click();
+  await expect(list.locator('[data-message-id="219"]')).toBeVisible();
+  await expect.poll(async()=>list.evaluate(el=>Math.abs(el.scrollHeight-el.scrollTop-el.clientHeight))).toBeLessThan(3);
+  console.log('PASS: prepend+append reading anchor, single-flight paging, explicit retry, conversation reset');
+} finally {await browser.close();}

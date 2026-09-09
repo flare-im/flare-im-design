@@ -18,13 +18,15 @@ title: ResponsiveLayout
   <ResponsivePreview embed="/embed/responsive-layout-frame" pc-hint="桌面 · 三栏" app-hint="移动 · 单栏" :pc-height="420" :app-height="560" />
 </ClientOnly>
 
-## Props
+## 实际容器与大字号
 
-| 名称 | 类型 | 必填 | 默认 | 说明 |
-|---|---|:---:|---|---|
-| `hasDetail` | `boolean` |  | — | 是否存在详情栏（启用三栏）。 |
-| `activePane` | `'list' \| 'chat' \| 'detail'` |  | — | 手机端前置显示哪个栏。 |
+下面演示使用真实组件，文档栏本身较窄时即使电脑屏幕很宽也保持单栏。点击详情可验证返回顺序；200% 字号会增加聊天宽度预算。
 
+<div class="flare-demo flare-demo--stack"><ResponsiveLayoutDemo /></div>
+
+<ComponentApi name="ResponsiveLayout" />
+
+完整布局规则及安全区接入见[跨设备一致性](/guide/cross-device)。
 
 ## States
 
@@ -42,46 +44,6 @@ title: ResponsiveLayout
   <div class="flare-platform-card"><h4>iOS</h4><div><code>ResponsiveLayoutView</code></div><div style="color:var(--vp-c-text-3);font-size:12px;margin-top:4px">FlareIMUI</div></div>
   <div class="flare-platform-card"><h4>Android · Compose</h4><div><code>ResponsiveLayout</code></div><div style="color:var(--vp-c-text-3);font-size:12px;margin-top:4px">com.flare.im:im-ui-compose</div></div>
 </div>
-
-
-## 用法
-
-::: code-group
-
-```vue [Vue]
-<script setup>
-import { FlareResponsiveLayout } from "@flare-im/vue-ui";
-</script>
-<template>
-  <FlareResponsiveLayout
-  :hasDetail="hasDetail"
-  :activePane="activePane"
-  @paneChange="onPaneChange"
-  />
-</template>
-```
-
-```dart [Flutter]
-FlareResponsiveLayout(
-  hasDetail: hasDetail,
-  activePane: activePane,
-  onPaneChange: onPaneChange,
-);
-```
-
-```swift [iOS]
-ResponsiveLayoutView(hasDetail: hasDetail, activePane: activePane, onPaneChange: onPaneChange)
-```
-
-```kotlin [Android]
-ResponsiveLayout(
-  hasDetail = hasDetail,
-  activePane = activePane,
-  onPaneChange = onPaneChange,
-)
-```
-
-:::
 
 
 ## 示例

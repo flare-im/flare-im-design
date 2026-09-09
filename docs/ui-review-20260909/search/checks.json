@@ -1,0 +1,140 @@
+[
+  {
+    "width": 320,
+    "theme": "light",
+    "geometry": {
+      "width": 222,
+      "scroll": 222,
+      "buttons": [
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        66
+      ]
+    },
+    "passed": true
+  },
+  {
+    "width": 320,
+    "theme": "dark",
+    "geometry": {
+      "width": 222,
+      "scroll": 222,
+      "buttons": [
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        66
+      ]
+    },
+    "passed": true
+  },
+  {
+    "width": 390,
+    "theme": "light",
+    "geometry": {
+      "width": 292,
+      "scroll": 292,
+      "buttons": [
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        66
+      ]
+    },
+    "passed": true
+  },
+  {
+    "width": 390,
+    "theme": "dark",
+    "geometry": {
+      "width": 292,
+      "scroll": 292,
+      "buttons": [
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        66
+      ]
+    },
+    "passed": true
+  },
+  {
+    "width": 1280,
+    "theme": "light",
+    "geometry": {
+      "width": 574,
+      "scroll": 574,
+      "buttons": [
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        66
+      ]
+    },
+    "passed": true
+  },
+  {
+    "width": 1280,
+    "theme": "dark",
+    "geometry": {
+      "width": 574,
+      "scroll": 574,
+      "buttons": [
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        48,
+        66
+      ]
+    },
+    "passed": true
+  }
+]

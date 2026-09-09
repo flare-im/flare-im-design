@@ -83,3 +83,9 @@ cd tokens && node build.mjs   # tokens.json → dist/tokens.css + dist/tokens.ts
 
 > 边界划分与不变承诺见 [GOVERNANCE](https://github.com/flare-im/flare-im-core-server/blob/main/GOVERNANCE.md)。
 > 简言之：**已开源的不会被收回，鉴权与 hooks 契约永远开源、不会为逼迫付费而阉割。**
+
+## 跨设备 UI 契约
+
+[布局、字体缩放、安全区、主题接入与设备验收](docs/CROSS-DEVICE-UI.md)。修改设计令牌后运行 `node tokens/build.mjs`，提交前运行 `node tokens/build.mjs --check`。
+
+[完整 IM 组件系统规划](docs/IM-COMPONENT-SYSTEM.md) · [14 个场景覆盖矩阵](docs/IM-COVERAGE.md)

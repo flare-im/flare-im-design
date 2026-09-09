@@ -177,7 +177,7 @@ export function generateCSSVariables(theme: typeof imTheme, isDark = false) {
       --im-primary: ${colors.primary};
       --im-primary-hover: ${colors.primaryHover};
       --im-primary-pressed: ${colors.primaryActive};
-      --im-primary-soft: ${isDark ? "rgba(124, 58, 237, 0.24)" : "#F1EAFF"};
+      --im-primary-soft: ${colors.bg.selected};
       --im-danger: ${colors.error};
       --im-warning: ${colors.warning};
       --im-success: ${colors.success};
@@ -194,7 +194,7 @@ export function generateCSSVariables(theme: typeof imTheme, isDark = false) {
       --im-chat-hdr-title: ${colors.text.primary};
       --im-chat-hdr-meta: ${colors.text.secondary};
       --im-chat-hdr-typing: ${colors.info};
-      --im-chat-window-bg: ${isDark ? "#101822" : "#F7F8FA"};
+      --im-chat-window-bg: ${colors.bg.secondary};
       --im-chat-window-empty-bg: ${colors.bg.primary};
       --im-rail-bg: ${isDark ? "#111318" : "#171A21"};
       --im-rail-border: rgba(255, 255, 255, 0.08);

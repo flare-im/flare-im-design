@@ -4,7 +4,7 @@ import '../models/directory_data.dart';
 
 /// Adaptive application shell — bottom navigation on phones, a side rail on
 /// tablet/desktop, wrapping the content [child]. Spec: Layout/AppShell
-/// (`FlareAppShell`). Responsive via [LayoutBuilder] (rail at > 600 width).
+/// (`FlareAppShell`). Responsive via [LayoutBuilder] (rail at >= 600 width).
 class FlareAppShell extends StatelessWidget {
   const FlareAppShell({
     super.key,
@@ -32,7 +32,7 @@ class FlareAppShell extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, c) {
-        if (c.maxWidth > 600) {
+        if (c.maxWidth >= 600) {
           return Row(
             children: [
               NavigationRail(

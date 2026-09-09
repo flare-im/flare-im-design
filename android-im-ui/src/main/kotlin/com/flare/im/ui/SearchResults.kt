@@ -100,25 +100,18 @@ fun SearchResults(
     }
 }
 
-private fun highlightQuery(text: String, query: String, colors: FlareColors): AnnotatedString {
+internal fun highlightQuery(text: String, query: String, colors: FlareColors): AnnotatedString {
     val q = query.trim()
     if (q.isEmpty()) return AnnotatedString(text)
-    val lower = text.lowercase()
-    val lq = q.lowercase()
-    if (!lower.contains(lq)) return AnnotatedString(text)
     return buildAnnotatedString {
         var start = 0
-        while (true) {
-            val idx = lower.indexOf(lq, start)
-            if (idx < 0) {
-                append(text.substring(start))
-                break
-            }
-            append(text.substring(start, idx))
+        Regex(Regex.escape(q), RegexOption.IGNORE_CASE).findAll(text).forEach { match ->
+            append(text.substring(start, match.range.first))
             withStyle(SpanStyle(color = colors.primary, fontWeight = FontWeight.SemiBold)) {
-                append(text.substring(idx, idx + q.length))
+                append(match.value)
             }
-            start = idx + q.length
+            start = match.range.last + 1
         }
+        append(text.substring(start))
     }
 }

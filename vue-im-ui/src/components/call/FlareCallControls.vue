@@ -78,7 +78,11 @@ const speakerIcon = computed(() => (props.speakerOn ? VolumeHighOutline : Volume
 <style scoped>
 .flare-call-controls {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
   gap: 20px;
+  max-width: 100%;
 }
 .flare-call-controls__btn {
   display: flex;
@@ -88,6 +92,14 @@ const speakerIcon = computed(() => (props.speakerOn ? VolumeHighOutline : Volume
   border: none;
   background: none;
   cursor: pointer;
+  min-width: 56px;
+  max-width: 112px;
+  padding: 0;
+}
+.flare-call-controls__btn:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 4px;
+  border-radius: 8px;
 }
 .ico {
   display: flex;
@@ -131,7 +143,8 @@ const speakerIcon = computed(() => (props.speakerOn ? VolumeHighOutline : Volume
   transform: rotate(135deg) scale(0.92);
 }
 .lbl {
-  font-size: 11px;
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
   color: rgba(255, 255, 255, 0.72);
   letter-spacing: 0.01em;
 }

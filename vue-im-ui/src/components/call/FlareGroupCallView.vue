@@ -19,7 +19,7 @@ const props = withDefaults(
     speakerOn?: boolean;
     encrypted?: boolean;
   }>(),
-  { title: "", muted: false, cameraOn: true, speakerOn: false, encrypted: true },
+  { title: "", muted: false, cameraOn: true, speakerOn: false, encrypted: false },
 );
 const emit = defineEmits<{
   (e: "hangup"): void;
@@ -43,6 +43,8 @@ const cols = computed(() => {
   return 4;
 });
 const statusText = computed(() => {
+  if (props.state === "reconnecting") return t("call.reconnecting");
+  if (props.state === "failed") return t("call.failed");
   if (props.state === "connected") return props.durationLabel ?? t("call.connected");
   if (props.state === "ringing") return t("call.ringing");
   return t("call.calling");

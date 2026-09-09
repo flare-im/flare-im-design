@@ -141,11 +141,7 @@ public struct MessageBubbleView: View {
         }
     }
 
-    // Flare thread grammar: received = white card + hairline border + whisper of
-    // lift; self = an Aurora "light source" (dimensional violet gradient + soft
-    // glow, stronger in dark). Radius 16 with a 4pt directional tail (self =
-    // bottom-trailing, incoming = bottom-leading), matching Android / Flutter.
-    // Bare media carries its own frame.
+    // Quiet, directional message surfaces; bare media retains its own frame.
     @ViewBuilder
     private func bubble(_ colors: FlareColors) -> some View {
         if Self.isBareMedia(message.content) {
@@ -154,20 +150,9 @@ public struct MessageBubbleView: View {
                 mediaState: mediaState,
                 onMediaAction: onMediaAction == nil ? nil : { onMediaAction?(message, $0) })
         } else if isSelf {
-            let dark = scheme == .dark
             bubbleInner(colors)
-                .background(
-                    ZStack {
-                        colors.bubbleSelf
-                        // Lit top-left → deeper bottom-right, for dimensional light.
-                        LinearGradient(
-                            colors: [Color.white.opacity(0.22), Color.clear, Color.black.opacity(0.16)],
-                            startPoint: .topLeading, endPoint: .bottomTrailing)
-                    }
-                )
+                .background(colors.bubbleSelf)
                 .clipShape(flareBubbleShape(.bottomTrailing))
-                .shadow(color: colors.bubbleSelf.opacity(dark ? 0.55 : 0.38), radius: dark ? 12 : 9, y: 5)
-                .shadow(color: colors.bubbleSelf.opacity(dark ? 0.32 : 0.20), radius: dark ? 6 : 4, y: 2)
         } else {
             bubbleInner(colors)
                 .background(flareBubbleShape(.bottomLeading).fill(colors.bgPrimary))

@@ -1,7 +1,7 @@
 // Audio / video call data contracts.
 
 export type FlareCallMode = "audio" | "video";
-export type FlareCallState = "calling" | "ringing" | "connected";
+export type FlareCallState = "calling" | "ringing" | "connected" | "reconnecting" | "failed";
 
 /** One participant in a group (multi-party) call. */
 export interface FlareCallParticipant {

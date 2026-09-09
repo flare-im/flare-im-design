@@ -22,9 +22,7 @@ export function generateWebAppThemeExtensions(isDark = false): string {
   --im-primary-soft: var(--im-brand-primary-soft);
   --im-message-outgoing: ${isDark ? colors.bubble.self : `var(--flare-color-bubble-self, ${colors.bubble.self})`};
   --im-message-outgoing-text: #ffffff;
-  // Received bubble = white card (Flare thread grammar), aligned with the
-  // native packages + reference app. The bubble CSS already supplies the
-  // hairline border + soft shadow; the fill follows the surface for dark mode.
+  /* Incoming messages follow the theme surface on every platform. */
   --im-message-incoming: ${colors.bg.primary};
   --im-message-incoming-text: ${colors.text.primary};
   --im-message-pinned-bg: ${isDark ? "rgba(245, 158, 11, 0.14)" : "#FFF7DE"};
@@ -37,10 +35,11 @@ export function generateWebAppThemeExtensions(isDark = false): string {
   --im-conv-unread-ring: ${isDark ? "#1a1d23" : "#ffffff"};
   --im-bubble-radius: 13px;
   --im-bubble-radius-tail: 6px;
-  --im-bubble-max-width: 68%;
+  --im-bubble-max-width: min(68%, 640px);
+  --im-font-display: "SF Pro Display", "Segoe UI Variable Display", "PingFang SC", sans-serif;
   --im-workbench-rail-width: 56px;
-  --im-workbench-conversation-width: clamp(300px, 24vw, 360px);
-  --im-workbench-details-width: 320px;
+  --im-workbench-conversation-width: clamp(288px, 23vw, 336px);
+  --im-workbench-details-width: 300px;
   --im-workbench-tablet-conversation-width: clamp(286px, 42vw, 340px);
   --im-radius-md: var(--radius-md);
   --im-radius-lg: var(--radius-lg);

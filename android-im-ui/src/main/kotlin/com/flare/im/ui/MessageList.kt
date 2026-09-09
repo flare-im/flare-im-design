@@ -8,7 +8,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.*
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
@@ -35,34 +41,37 @@ fun MessageList(
     onMessageLongPress: ((FlareMessageData) -> Unit)? = null,
     onMediaAction: ((FlareMessageData, FlareMessageContent) -> Unit)? = null,
     onResend: ((FlareMessageData) -> Unit)? = null,
+    hasOlder: Boolean = false,
+    olderError: String? = null,
+    loadOlderText: String = "加载更早消息",
+    onLoadOlder: (() -> Unit)? = null,
+    conversationId: String? = null,
+    listState: LazyListState = rememberLazyListState(),
 ) {
     val colors = flareColors()
-    if (messages.isEmpty()) {
-        Box(Modifier.fillMaxSize().background(colors.bgSecondary), contentAlignment = Alignment.Center) {
-            if (loading) CircularProgressIndicator()
-            else EmptyState(title = emptyText)
+    var requested by remember(conversationId) { mutableStateOf(false) }
+    LaunchedEffect(loadingOlder, messages.firstOrNull()?.id, olderError) { if (!loadingOlder) requested = false }
+    LaunchedEffect(conversationId) { listState.scrollToItem(0) }
+    Column(Modifier.fillMaxSize().background(colors.bgSecondary)) {
+        if (hasOlder || loadingOlder || olderError != null) {
+            if (olderError != null) Text(olderError, color = colors.textPrimary, modifier = Modifier.padding(horizontal = 12.dp))
+            if (loadingOlder) Box(Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            else if (hasOlder && onLoadOlder != null) TextButton(
+                onClick = { if (!requested && !loadingOlder) { requested = true; onLoadOlder() } }, enabled = !requested,
+                modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
+            ) { Text(loadOlderText) }
         }
-        return
-    }
-
-    // faint chat canvas so white received bubbles read as cards
-    LazyColumn(Modifier.fillMaxSize().background(colors.bgSecondary), state = rememberLazyListState()) {
-        if (loadingOlder) {
-            item { Box(Modifier.fillMaxWidth().padding(FlareSizes.spacingMd), contentAlignment = Alignment.Center) { CircularProgressIndicator() } }
-        }
-        items(messages, key = { it.id }) { msg ->
-            val index = messages.indexOf(msg)
-            Box(Modifier.combinedClickable(onClick = {}, onLongClick = { onMessageLongPress?.invoke(msg) })) {
-                MessageBubble(
-                    message = msg,
-                    currentUserId = currentUserId,
-                    conversationKind = conversationKind,
-                    groupStart = isGroupStart(messages, index),
-                    groupEnd = isGroupEnd(messages, index),
-                    mediaState = mediaDownloadStates[msg.id],
-                    onMediaAction = onMediaAction,
-                    onResend = onResend,
-                )
+        if (messages.isEmpty()) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                if (loading) CircularProgressIndicator() else EmptyState(title = emptyText)
+            }
+        } else LazyColumn(Modifier.weight(1f).fillMaxWidth(), state = listState) {
+            itemsIndexed(messages, key = { _, msg -> msg.id }) { index, msg ->
+                Box(if (onMessageLongPress != null) Modifier.combinedClickable(onClick = {}, onLongClick = { onMessageLongPress(msg) }) else Modifier) {
+                    MessageBubble(message = msg, currentUserId = currentUserId, conversationKind = conversationKind,
+                        groupStart = isGroupStart(messages, index), groupEnd = isGroupEnd(messages, index),
+                        mediaState = mediaDownloadStates[msg.id], onMediaAction = onMediaAction, onResend = onResend)
+                }
             }
         }
     }

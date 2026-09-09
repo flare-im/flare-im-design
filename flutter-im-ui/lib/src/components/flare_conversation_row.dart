@@ -16,7 +16,7 @@ class FlareConversationRow extends StatelessWidget {
     super.key,
     required this.item,
     this.active = false,
-    this.avatarSize = 48,
+    this.avatarSize = FlareSizes.avatarSize,
     this.draftLabel = '[Draft] ',
     this.mentionLabel = '[@me] ',
     this.onSelect,
@@ -105,7 +105,7 @@ class FlareConversationRow extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontSize: FlareSizes.fontSize3xl,
+                              fontSize: FlareSizes.fontSizeXl,
                               fontWeight: item.hasUnread
                                   ? FontWeight.w700
                                   : FontWeight.w600,

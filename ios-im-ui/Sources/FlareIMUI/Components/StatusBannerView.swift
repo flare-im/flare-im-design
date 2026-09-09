@@ -14,6 +14,7 @@ public struct StatusBannerView: View {
     private let pulse: Bool
     private let actionText: String?
     private let onAction: (() -> Void)?
+    @ScaledMetric private var textSize: CGFloat = FlareSizes.fontSizeMd
     @Environment(\.colorScheme) private var scheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var pulsing = false
@@ -49,15 +50,16 @@ public struct StatusBannerView: View {
                     .onAppear { if pulse && !reduceMotion { pulsing = true } }
             }
             Text(text)
-                .font(.system(size: FlareSizes.fontSizeMd))
-                .foregroundColor(tint)
+                .font(.system(size: textSize))
+                .foregroundColor(colors.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            if let actionText {
+            if let actionText, !actionText.isEmpty, onAction != nil {
                 Button { onAction?() } label: {
                     Text(actionText)
-                        .font(.system(size: FlareSizes.fontSizeMd, weight: .semibold))
+                        .font(.system(size: textSize, weight: .semibold))
                         .underline()
-                        .foregroundColor(tint)
+                        .foregroundColor(colors.textPrimary)
+                        .frame(minWidth: 48, minHeight: 48)
                 }
                 .buttonStyle(.plain)
             }

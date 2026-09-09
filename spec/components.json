@@ -1497,6 +1497,22 @@
             "en": "Map of messageId → media download state.",
             "zh": "messageId → 媒体下载状态 的映射。"
           }
+        },
+        {
+          "name": "olderError",
+          "type": "string | null",
+          "description": {
+            "en": "Recoverable pagination error, retaining existing messages.",
+            "zh": "历史加载错误，保留现有消息并允许显式重试。"
+          }
+        },
+        {
+          "name": "loadOlderText",
+          "type": "string",
+          "description": {
+            "en": "Localized load/retry label.",
+            "zh": "本地化加载/重试文案。"
+          }
         }
       ],
       "states": [
@@ -1504,7 +1520,8 @@
         "empty",
         "loadingOlder",
         "atBottom",
-        "multiSelect"
+        "multiSelect",
+        "olderError"
       ],
       "events": [
         "atBottomChange",
@@ -1519,7 +1536,8 @@
         "preview",
         "resend",
         "mediaAction",
-        "multiSelect"
+        "multiSelect",
+        "load-older"
       ],
       "notes": {
         "en": "60fps virtualised; O(visible); scroll anchoring on append/prepend.",
@@ -4242,7 +4260,7 @@
         },
         {
           "name": "state",
-          "type": "'calling' | 'ringing' | 'connected'",
+          "type": "'calling' | 'ringing' | 'connected' | 'reconnecting' | 'failed'",
           "required": true,
           "description": {
             "en": "Calling / ringing / connected.",
@@ -4264,19 +4282,38 @@
             "en": "Peer avatar, shown for audio calls.",
             "zh": "对端头像，音频通话时显示。"
           }
+        },
+        {
+          "name": "statusDetail",
+          "type": "string",
+          "description": {
+            "en": "Host-provided network or permission detail.",
+            "zh": "宿主提供的弱网、权限或失败说明。"
+          }
+        },
+        {
+          "name": "recoveryText",
+          "type": "string",
+          "description": {
+            "en": "Recovery button label; only shown in failed state. Host owns retry.",
+            "zh": "仅失败状态显示恢复操作文案，重试由宿主执行。"
+          }
         }
       ],
       "states": [
         "calling",
         "ringing",
-        "connected"
+        "connected",
+        "reconnecting",
+        "failed"
       ],
       "events": [
         "hangup",
         "toggleMute",
         "toggleCamera",
         "toggleSpeaker",
-        "switchCamera"
+        "switchCamera",
+        "recover"
       ],
       "notes": {
         "en": "Video track uses a host-injected render slot; the control bar is CallControls.",
@@ -4508,8 +4545,8 @@
       "name": "ResponsiveLayout",
       "category": "Layout",
       "summary": {
-        "en": "Responsive conversation layout — mobile single column (list↔chat), tablet two columns (list+chat), desktop three columns (list+chat+detail).",
-        "zh": "自适应会话布局 —— 手机单栏（列表↔聊天切换）、平板双栏（列表+聊天）、PC 三栏（列表+聊天+详情）。"
+        "en": "Available-container layout: single below 720 logical units, dual from 720, triple from 1100 when content fits. Large text may reduce pane count. Dual pane foregrounds detail when requested.",
+        "zh": "按容器可用宽度分栏：720 逻辑单位以下单栏，720 起双栏，1100 起且内容能容纳时三栏。大字号可减少栏数；双栏下详情替换聊天。"
       },
       "dataSource": {
         "en": "layout only; the three slots (list/chat/detail) are filled by the product",
@@ -4528,8 +4565,40 @@
           "name": "activePane",
           "type": "'list' | 'chat' | 'detail'",
           "description": {
-            "en": "Which pane is foregrounded on mobile.",
-            "zh": "手机端前置显示哪个栏。"
+            "en": "Foreground pane in single mode; detail replaces chat in dual mode.",
+            "zh": "单栏前置栏；双栏时 detail 替换 chat。"
+          }
+        },
+        {
+          "name": "listWidth",
+          "type": "number",
+          "description": {
+            "en": "List column width; default 320 logical units.",
+            "zh": "列表栏宽，默认 320 逻辑单位。"
+          }
+        },
+        {
+          "name": "detailWidth",
+          "type": "number",
+          "description": {
+            "en": "Detail column width; default 300 logical units.",
+            "zh": "详情栏宽，默认 300 逻辑单位。"
+          }
+        },
+        {
+          "name": "hideMobileBar",
+          "type": "boolean",
+          "description": {
+            "en": "Hide built-in back control when the host supplies its own.",
+            "zh": "宿主已有返回栏时隐藏内置返回栏。"
+          }
+        },
+        {
+          "name": "backLabel",
+          "type": "string",
+          "description": {
+            "en": "Localized back label. Detail returns to chat; chat returns to list.",
+            "zh": "本地化返回文本；详情返回聊天，聊天返回列表。"
           }
         }
       ],
@@ -4592,7 +4661,7 @@
         },
         {
           "name": "state",
-          "type": "FlareCallState",
+          "type": "'calling' | 'ringing' | 'connected' | 'reconnecting' | 'failed'",
           "required": true,
           "description": {
             "zh": "通话状态，驱动状态文案",
@@ -4662,7 +4731,9 @@
       "states": [
         "calling",
         "ringing",
-        "connected"
+        "connected",
+        "reconnecting",
+        "failed"
       ],
       "events": [
         "hangup",
@@ -8643,6 +8714,890 @@
         "compose": {
           "package": "com.flare.im:im-ui-compose",
           "symbol": "MomentAudienceSheet"
+        }
+      }
+    },
+    {
+      "name": "TransferProgress",
+      "category": "Media",
+      "summary": {
+        "zh": "附件上传/下载状态：真实进度、暂停、失败恢复与完成打开。",
+        "en": "Attachment transfer status with measured progress and capability-gated recovery actions."
+      },
+      "dataSource": {
+        "zh": "宿主 SDK 传输状态与能力；组件不发网络请求。",
+        "en": "Host SDK transfer state and capabilities; no network operations in the UI."
+      },
+      "props": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Attachment name.",
+            "zh": "附件名称。"
+          }
+        },
+        {
+          "name": "state",
+          "type": "TransferState",
+          "required": true,
+          "description": {
+            "en": "Canonical transfer state.",
+            "zh": "传输状态。"
+          }
+        },
+        {
+          "name": "statusText",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Localized status, including failure reason.",
+            "zh": "本地化状态文本，可含失败原因。"
+          }
+        },
+        {
+          "name": "progress",
+          "type": "number | null",
+          "required": false,
+          "description": {
+            "en": "Measured ratio 0..1; unknown is null. Non-finite values are unknown.",
+            "zh": "实测比例 0..1；未知用 null，非有限值按未知处理。"
+          }
+        },
+        {
+          "name": "actionLabels",
+          "type": "Partial<Record<TransferAction, string>>",
+          "required": false,
+          "description": {
+            "en": "Only supported actions with localized labels; filtered by state.",
+            "zh": "只传 SDK 支持的操作及本地化标签，组件按状态过滤。"
+          }
+        },
+        {
+          "name": "busy",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "An action is pending; disable repeated activation.",
+            "zh": "操作处理中，禁用重复触发。"
+          }
+        }
+      ],
+      "states": [
+        "queued",
+        "transferring",
+        "paused",
+        "failed",
+        "completed",
+        "cancelled"
+      ],
+      "events": [
+        "action"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareTransferProgress"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareTransferProgress"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "TransferProgressView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "TransferProgress"
+        }
+      }
+    },
+    {
+      "name": "SearchPanel",
+      "category": "General",
+      "summary": {
+        "en": "Search field, filters, result snapshot and recovery in one panel.",
+        "zh": "组合搜索输入、筛选、结果快照与失败恢复。"
+      },
+      "dataSource": {
+        "en": "Host-owned search snapshot; UI emits criteria and does not query the network.",
+        "zh": "宿主搜索快照；UI 只提交条件，不执行网络请求。"
+      },
+      "props": [
+        {
+          "name": "snapshot",
+          "type": "SearchSnapshot",
+          "description": {
+            "en": "Results with the criteria they belong to.",
+            "zh": "携带归属条件的结果快照。"
+          }
+        },
+        {
+          "name": "filters",
+          "type": "Record<string,string>",
+          "description": {
+            "en": "Stable filter IDs and localized labels.",
+            "zh": "稳定筛选 ID 与本地化标签。"
+          }
+        },
+        {
+          "name": "searchText",
+          "type": "string",
+          "description": {
+            "en": "Search action label.",
+            "zh": "搜索按钮文案。"
+          }
+        },
+        {
+          "name": "idleText",
+          "type": "string",
+          "description": {
+            "en": "Instruction before the first query.",
+            "zh": "首次查询之前的提示。"
+          }
+        },
+        {
+          "name": "timeRanges",
+          "type": "SearchRangeOption[]",
+          "description": {
+            "en": "Optional inclusive epoch-millisecond presets; invalid ranges are disabled. Host owns timezone boundaries.",
+            "zh": "可选毫秒闭区间预设；无效范围禁用。时区边界由宿主提供。"
+          }
+        },
+        {
+          "name": "timeRangeText",
+          "type": "string",
+          "description": {
+            "en": "Accessible range group label.",
+            "zh": "时间筛选组的可访问名称。"
+          }
+        }
+      ],
+      "states": [
+        "idle",
+        "loading",
+        "success",
+        "failure",
+        "staleSnapshot"
+      ],
+      "events": [
+        "search",
+        "open",
+        "viewAll"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareSearchPanel"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareSearchPanel"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "SearchPanelView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "SearchPanel"
+        }
+      }
+    },
+    {
+      "name": "TransferQueue",
+      "category": "Media",
+      "summary": {
+        "en": "Bounded transfer queue with per-task recovery and retry-failed batch action.",
+        "zh": "有界传输队列，支持逐项恢复与批量重试失败任务。"
+      },
+      "dataSource": {
+        "en": "Host-owned transfer snapshots and capabilities.",
+        "zh": "宿主提供任务快照、权限及能力。"
+      },
+      "props": [
+        {
+          "name": "items",
+          "type": "TransferQueueItem[]",
+          "description": {
+            "en": "Unique stable IDs and transfer presentation data.",
+            "zh": "唯一稳定任务 ID 及传输展示数据。"
+          }
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "description": {
+            "en": "Refresh indicator; retains cached tasks.",
+            "zh": "刷新状态，保留已有任务。"
+          }
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "description": {
+            "en": "User-facing queue loading error.",
+            "zh": "面向用户的队列加载错误。"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": {
+            "en": "Queue heading.",
+            "zh": "队列标题。"
+          }
+        },
+        {
+          "name": "emptyText",
+          "type": "string",
+          "description": {
+            "en": "Empty queue label.",
+            "zh": "空队列文案。"
+          }
+        },
+        {
+          "name": "retryFailedText",
+          "type": "string",
+          "description": {
+            "en": "Retry failed tasks label.",
+            "zh": "批量重试失败任务文案。"
+          }
+        },
+        {
+          "name": "reloadText",
+          "type": "string",
+          "description": {
+            "en": "Reload label.",
+            "zh": "重新加载文案。"
+          }
+        }
+      ],
+      "states": [
+        "empty",
+        "loading",
+        "failure",
+        "partialFailure",
+        "busy"
+      ],
+      "events": [
+        "action",
+        "retryFailed",
+        "reload"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareTransferQueue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareTransferQueue"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "TransferQueueView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "TransferQueue"
+        }
+      }
+    },
+    {
+      "name": "CapabilityBoundary",
+      "category": "General",
+      "summary": {
+        "en": "CapabilityBoundary scene composition with explicit host-owned state.",
+        "zh": "可选能力状态与内容隔离，失败时保留基础聊天。"
+      },
+      "dataSource": {
+        "en": "Host-owned transfer snapshots and capabilities.",
+        "zh": "宿主提供任务快照、权限及能力。"
+      },
+      "props": [
+        {
+          "name": "state",
+          "type": "CapabilityState",
+          "description": {
+            "en": "loading/available/unavailable/denied/failed",
+            "zh": "loading/available/unavailable/denied/failed"
+          }
+        },
+        {
+          "name": "text",
+          "type": "string",
+          "description": {
+            "en": "状态说明",
+            "zh": "状态说明"
+          }
+        },
+        {
+          "name": "actionText",
+          "type": "string",
+          "description": {
+            "en": "宿主恢复操作文案",
+            "zh": "宿主恢复操作文案"
+          }
+        },
+        {
+          "name": "resetKey",
+          "type": "string | number",
+          "description": {
+            "en": "Web 子组件错误后显式重新挂载标识",
+            "zh": "Web 子组件错误后显式重新挂载标识"
+          }
+        }
+      ],
+      "states": [
+        "loading",
+        "available",
+        "unavailable",
+        "denied",
+        "failed"
+      ],
+      "events": [
+        "action",
+        "error"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareCapabilityBoundary"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareCapabilityBoundary"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "CapabilityBoundaryView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "CapabilityBoundary"
+        }
+      }
+    },
+    {
+      "name": "DangerConfirm",
+      "category": "General",
+      "summary": {
+        "en": "DangerConfirm scene composition with explicit host-owned state.",
+        "zh": "危险操作目标、后果、确认与失败恢复。"
+      },
+      "dataSource": {
+        "en": "Host-owned transfer snapshots and capabilities.",
+        "zh": "宿主提供任务快照、权限及能力。"
+      },
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "description": {
+            "en": "Web 模态展示；原生由宿主承载",
+            "zh": "Web 模态展示；原生由宿主承载"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": {
+            "en": "操作名称",
+            "zh": "操作名称"
+          }
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "description": {
+            "en": "后果说明",
+            "zh": "后果说明"
+          }
+        },
+        {
+          "name": "target",
+          "type": "string",
+          "description": {
+            "en": "明确操作目标",
+            "zh": "明确操作目标"
+          }
+        },
+        {
+          "name": "busy",
+          "type": "boolean",
+          "description": {
+            "en": "操作处理中禁止再次确认",
+            "zh": "操作处理中禁止再次确认"
+          }
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "description": {
+            "en": "失败说明，保留确认界面",
+            "zh": "失败说明，保留确认界面"
+          }
+        },
+        {
+          "name": "confirmText",
+          "type": "string",
+          "description": {
+            "en": "确认按钮文案",
+            "zh": "确认按钮文案"
+          }
+        },
+        {
+          "name": "cancelText",
+          "type": "string",
+          "description": {
+            "en": "取消按钮文案",
+            "zh": "取消按钮文案"
+          }
+        }
+      ],
+      "states": [
+        "open",
+        "busy",
+        "failure"
+      ],
+      "events": [
+        "confirm",
+        "cancel"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareDangerConfirm"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareDangerConfirm"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "DangerConfirmView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "DangerConfirm"
+        }
+      }
+    },
+    {
+      "name": "MemberPanel",
+      "category": "Contacts",
+      "summary": {
+        "en": "MemberPanel scene composition with explicit host-owned state.",
+        "zh": "成员角色展示及可用管理操作。"
+      },
+      "dataSource": {
+        "en": "Host-owned transfer snapshots and capabilities.",
+        "zh": "宿主提供任务快照、权限及能力。"
+      },
+      "props": [
+        {
+          "name": "items",
+          "type": "SceneEntry[]",
+          "description": {
+            "en": "成员姓名、角色文案与宿主许可操作",
+            "zh": "成员姓名、角色文案与宿主许可操作"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": {
+            "en": "标题",
+            "zh": "标题"
+          }
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "description": {
+            "en": "加载中保留缓存",
+            "zh": "加载中保留缓存"
+          }
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "description": {
+            "en": "用户错误文案",
+            "zh": "用户错误文案"
+          }
+        }
+      ],
+      "states": [
+        "loading",
+        "empty",
+        "failure",
+        "ready",
+        "busy"
+      ],
+      "events": [
+        "action",
+        "reload"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareMemberPanel"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareMemberPanel"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "MemberPanelView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "MemberPanel"
+        }
+      }
+    },
+    {
+      "name": "DeviceSessions",
+      "category": "Profile",
+      "summary": {
+        "en": "DeviceSessions scene composition with explicit host-owned state.",
+        "zh": "登录设备与逐项撤销会话。"
+      },
+      "dataSource": {
+        "en": "Host-owned transfer snapshots and capabilities.",
+        "zh": "宿主提供任务快照、权限及能力。"
+      },
+      "props": [
+        {
+          "name": "items",
+          "type": "DeviceSessionEntry[]",
+          "description": {
+            "en": "设备与 current 标识",
+            "zh": "设备与 current 标识"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": {
+            "en": "标题",
+            "zh": "标题"
+          }
+        },
+        {
+          "name": "currentText",
+          "type": "string",
+          "description": {
+            "en": "当前设备标签",
+            "zh": "当前设备标签"
+          }
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "description": {
+            "en": "加载状态",
+            "zh": "加载状态"
+          }
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "description": {
+            "en": "错误文案",
+            "zh": "错误文案"
+          }
+        }
+      ],
+      "states": [
+        "loading",
+        "empty",
+        "failure",
+        "ready",
+        "busy"
+      ],
+      "events": [
+        "action",
+        "reload"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareDeviceSessions"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareDeviceSessions"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "DeviceSessionsView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "DeviceSessions"
+        }
+      }
+    },
+    {
+      "name": "NotificationPreferences",
+      "category": "Profile",
+      "summary": {
+        "en": "NotificationPreferences scene composition with explicit host-owned state.",
+        "zh": "通知权限与受控偏好设置。"
+      },
+      "dataSource": {
+        "en": "Host-owned transfer snapshots and capabilities.",
+        "zh": "宿主提供任务快照、权限及能力。"
+      },
+      "props": [
+        {
+          "name": "items",
+          "type": "NotificationPreference[]",
+          "description": {
+            "en": "受控值、可用状态与 busy",
+            "zh": "受控值、可用状态与 busy"
+          }
+        },
+        {
+          "name": "permission",
+          "type": "CapabilityState",
+          "description": {
+            "en": "系统通知权限状态",
+            "zh": "系统通知权限状态"
+          }
+        },
+        {
+          "name": "permissionText",
+          "type": "string",
+          "description": {
+            "en": "权限状态说明",
+            "zh": "权限状态说明"
+          }
+        },
+        {
+          "name": "permissionActionText",
+          "type": "string",
+          "description": {
+            "en": "宿主权限恢复入口文案",
+            "zh": "宿主权限恢复入口文案"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": {
+            "en": "标题",
+            "zh": "标题"
+          }
+        }
+      ],
+      "states": [
+        "available",
+        "denied",
+        "busy"
+      ],
+      "events": [
+        "change",
+        "permissionAction"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareNotificationPreferences"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareNotificationPreferences"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "NotificationPreferencesView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "NotificationPreferences"
+        }
+      }
+    },
+    {
+      "name": "MediaCenter",
+      "category": "Media",
+      "summary": {
+        "en": "MediaCenter scene composition with explicit host-owned state.",
+        "zh": "媒体目录、可用预览与附件任务组合。"
+      },
+      "dataSource": {
+        "en": "Host-owned transfer snapshots and capabilities.",
+        "zh": "宿主提供任务快照、权限及能力。"
+      },
+      "props": [
+        {
+          "name": "items",
+          "type": "MediaEntry[]",
+          "description": {
+            "en": "媒体类型、可用状态与操作",
+            "zh": "媒体类型、可用状态与操作"
+          }
+        },
+        {
+          "name": "transfers",
+          "type": "TransferQueueItem[]",
+          "description": {
+            "en": "可选传输任务窗口",
+            "zh": "可选传输任务窗口"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": {
+            "en": "标题",
+            "zh": "标题"
+          }
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "description": {
+            "en": "加载状态",
+            "zh": "加载状态"
+          }
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "description": {
+            "en": "错误文案",
+            "zh": "错误文案"
+          }
+        }
+      ],
+      "states": [
+        "loading",
+        "empty",
+        "failure",
+        "ready",
+        "busy"
+      ],
+      "events": [
+        "action",
+        "reload",
+        "transferAction",
+        "retryFailed"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareMediaCenter"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareMediaCenter"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "MediaCenterView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "MediaCenter"
+        }
+      }
+    },
+    {
+      "name": "CallDevicePicker",
+      "category": "Call",
+      "summary": {
+        "en": "Controlled RTC device selection with permission and busy states.",
+        "zh": "受控 RTC 设备选择，包含权限与处理中状态。"
+      },
+      "dataSource": {
+        "en": "Host RTC device inventory and confirmed selection.",
+        "zh": "宿主 RTC 枚举结果和已确认的设备选择。"
+      },
+      "props": [
+        {
+          "name": "groups",
+          "type": "CallDeviceGroup[]",
+          "required": true,
+          "description": {
+            "en": "Microphone, speaker and camera groups with stable device IDs.",
+            "zh": "麦克风、扬声器和摄像头分组，设备 ID 稳定。"
+          }
+        },
+        {
+          "name": "permission",
+          "type": "CapabilityState",
+          "required": true,
+          "description": {
+            "en": "Whether device selection is available.",
+            "zh": "设备选择能力是否可用。"
+          }
+        },
+        {
+          "name": "permissionText",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Permission or capability explanation.",
+            "zh": "权限或能力说明。"
+          }
+        },
+        {
+          "name": "actionText",
+          "type": "string",
+          "description": {
+            "en": "Permission recovery action.",
+            "zh": "权限恢复操作文案。"
+          }
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "description": {
+            "en": "No selected device label.",
+            "zh": "未选择设备时的文案。"
+          }
+        }
+      ],
+      "states": [
+        "loading",
+        "available",
+        "unavailable",
+        "denied",
+        "failed",
+        "busy"
+      ],
+      "events": [
+        "select",
+        "permissionAction"
+      ],
+      "notes": {
+        "en": "No automatic selection or permission request. Host owns RTC, race handling and screen sharing.",
+        "zh": "不自动选择或申请权限；RTC、异步竞态和屏幕共享由宿主负责。"
+      },
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareCallDevicePicker"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareCallDevicePicker"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "CallDevicePickerView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "CallDevicePicker"
         }
       }
     }

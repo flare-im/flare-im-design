@@ -5,6 +5,7 @@ import SwiftUI
 public struct ConversationRowView: View {
     private let item: ConversationRowData
     private let active: Bool
+    @ScaledMetric(relativeTo: .headline) private var titleSize: CGFloat = FlareSizes.fontSizeXl
     private let avatarSize: CGFloat
     /// Inline preview prefixes — overridable so hosts can localize them.
     private let draftLabel: String
@@ -15,7 +16,7 @@ public struct ConversationRowView: View {
     private let onLongPress: ((ConversationRowData) -> Void)?
     @Environment(\.colorScheme) private var scheme
 
-    public init(item: ConversationRowData, active: Bool = false, avatarSize: CGFloat = 48,
+    public init(item: ConversationRowData, active: Bool = false, avatarSize: CGFloat = FlareSizes.avatarSize,
                 draftLabel: String = "[草稿] ", mentionLabel: String = "[@我] ",
                 onSelect: ((ConversationRowData) -> Void)? = nil,
                 onLongPress: ((ConversationRowData) -> Void)? = nil) {
@@ -58,7 +59,7 @@ public struct ConversationRowView: View {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: FlareSizes.spacingSm) {
                     Text(item.title)
-                        .font(.system(size: FlareSizes.fontSize3xl,
+                        .font(.system(size: titleSize,
                                       weight: item.hasUnread ? .bold : .semibold))
                         .foregroundColor(colors.textPrimary)
                         .lineLimit(1)
@@ -133,25 +134,15 @@ public struct ConversationRowView: View {
         }
     }
 
-    // A mini Aurora light source — echoes the glowing message bubble: a violet
-    // fill with a lit top-left → deeper diagonal + a soft violet glow (stronger dark).
     private func unreadBadge(_ colors: FlareColors) -> some View {
-        let dark = scheme == .dark
-        return Text(item.unreadCount > 99 ? "99+" : "\(item.unreadCount)")
-            .font(.system(size: FlareSizes.fontSizeXs, weight: .semibold))
+        Text(item.unreadCount > 99 ? "99+" : "\(item.unreadCount)")
+            .font(.caption2.weight(.semibold))
             .foregroundColor(.white)
             .padding(.horizontal, 6)
             .frame(minWidth: 20, minHeight: 20)
-            .background(
-                ZStack {
-                    colors.primary
-                    LinearGradient(colors: [Color.white.opacity(0.20), Color.clear, Color.black.opacity(0.12)],
-                                   startPoint: .topLeading, endPoint: .bottomTrailing)
-                }
-                .clipShape(Capsule())
-            )
-            .shadow(color: colors.primary.opacity(dark ? 0.50 : 0.40), radius: dark ? 5 : 4, y: 2)
+            .background(Capsule().fill(colors.primary))
     }
+
 }
 
 /// Attaches tap / long-press only when the host supplied a handler (so a row inside a `List` keeps

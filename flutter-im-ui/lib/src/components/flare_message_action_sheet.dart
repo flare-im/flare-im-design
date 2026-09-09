@@ -67,17 +67,21 @@ class FlareMessageActionSheet extends StatelessWidget {
               const BorderRadius.vertical(top: Radius.circular(16)),
         ),
         padding: const EdgeInsets.all(FlareSizes.spacingLg),
-        child: GridView.count(
-          crossAxisCount: 4,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: FlareSizes.spacingLg,
-          crossAxisSpacing: FlareSizes.spacingLg,
-          children: [
-            for (final a in actions)
-              _tile(a, colors),
-          ],
-        ),
+        child: LayoutBuilder(builder: (context, constraints) {
+          final columns = constraints.maxWidth < 340 ? 3 : 4;
+          final labelHeight = MediaQuery.textScalerOf(context).scale(12) * 2.4;
+          return GridView.builder(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: columns,
+              mainAxisExtent: 64 + labelHeight,
+              mainAxisSpacing: FlareSizes.spacingMd,
+              crossAxisSpacing: FlareSizes.spacingMd,
+            ),
+            shrinkWrap: true,
+            itemCount: actions.length,
+            itemBuilder: (context, index) => _tile(actions[index], colors),
+          );
+        }),
       ),
     );
   }
@@ -100,6 +104,9 @@ class FlareMessageActionSheet extends StatelessWidget {
           ),
           const SizedBox(height: FlareSizes.spacingXs),
           Text(action.label,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                   color: colors.textSecondary, fontSize: FlareSizes.fontSizeXs)),
         ],
