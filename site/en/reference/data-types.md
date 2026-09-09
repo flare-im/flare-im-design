@@ -14,7 +14,7 @@ title: Data Types
 
 > A directory contact.
 
-**Used by: **[ContactList](/en/components/contact-list) · [ContactItem](/en/components/contact-item) · [ContactDetail](/en/components/contact-detail)
+**Used by: **[ContactList](/en/components/contact-list) · [ContactItem](/en/components/contact-item) · [ContactDetail](/en/components/contact-detail) · [GroupDetail](/en/components/group-detail) · [ProfileCard](/en/components/profile-card) · [GroupMemberGrid](/en/components/group-member-grid) · [ReadReceiptSheet](/en/components/read-receipt-sheet)
 
 | Name | Type | Req. | Description |
 |---|---|:---:|---|

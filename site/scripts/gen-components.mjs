@@ -2,8 +2,15 @@
 // Generates the component doc pages from the L2 spec (single source:
 // flare-im-design/spec/components.json). Bilingual: writes a zh set (root,
 // site/components/) and an en set (site/en/components/). Re-run after editing
-// the spec.
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+// the spec to scaffold pages for newly added components.
+//
+// It SCAFFOLDS, it does not own: most pages have since been hand-extended with
+// state tables, host-integration guides and four-platform code groups that the
+// spec cannot express. So an existing page is left alone by default — a plain
+// run once rewrote every page and would have thrown that prose away. Pass
+// --force to regenerate existing pages anyway (and read the diff before
+// committing it).
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { curatedExamples } from "./examples.mjs";
@@ -134,7 +141,7 @@ function propsTable(props, t, loc) {
   if (!props?.length) return t.none + "\n";
   let out = `| ${t.name} | ${t.type} | ${t.required} | ${t.default} | ${t.desc} |\n|---|---|:---:|---|---|\n`;
   for (const p of props) {
-    out += `| \`${esc(p.name)}\` | ${typeCell(p.type, loc)} | ${p.required ? "✔" : ""} | ${p.default ? `\`${esc(p.default)}\`` : "—"} | ${esc(pick(p.description, loc)) || "—"} |\n`;
+    out += `| \`${esc(p.name)}\` | ${typeCell(p.type, loc)} | ${p.required ? "✓" : ""} | ${p.default ? `\`${esc(p.default)}\`` : "—"} | ${esc(pick(p.description, loc)) || "—"} |\n`;
   }
   return out;
 }
@@ -292,7 +299,7 @@ function dataTypesPage(loc) {
       out += `\n### ${dt.name} {#${slug(dt.name)}}\n\n\`${dt.symbol}\`\n\n> ${pick(dt.summary, loc)}\n${usedBy(dt)}\n`;
       out += `| ${t.name} | ${t.type} | ${t.required} | ${t.desc} |\n|---|---|:---:|---|\n`;
       for (const fld of dt.fields ?? [])
-        out += `| \`${esc(fld.name)}\` | ${typeCell(fld.type, loc)} | ${fld.required ? "✔" : ""} | ${esc(pick(fld.description, loc)) || "—"} |\n`;
+        out += `| \`${esc(fld.name)}\` | ${typeCell(fld.type, loc)} | ${fld.required ? "✓" : ""} | ${esc(pick(fld.description, loc)) || "—"} |\n`;
     }
   }
   if (enums.length) {
@@ -308,23 +315,43 @@ function dataTypesPage(loc) {
 // merge curated examples once
 for (const c of spec.components) c.examples = curatedExamples[c.name] ?? c.examples;
 
+const force = process.argv.includes("--force");
+
 for (const { code, dir, base } of LOCALES) {
   const t = UI[code];
   mkdirSync(dir, { recursive: true });
   const byCat = {};
+  let written = 0;
+  const kept = [];
   for (const c of spec.components) {
-    writeFileSync(join(dir, `${slug(c.name)}.md`), componentPage(c, code));
+    const file = join(dir, `${slug(c.name)}.md`);
+    // Never silently overwrite hand-extended prose; --force is the explicit opt-in.
+    if (!force && existsSync(file)) kept.push(slug(c.name));
+    else {
+      writeFileSync(file, componentPage(c, code));
+      written += 1;
+    }
     (byCat[c.category] ??= []).push(c);
   }
-  let idx = `# ${t.overview}\n\n${t.overviewLead(spec.components.length, spec.categories.length)}\n\n`;
-  for (const cat of spec.categories) {
-    idx += `## ${catLabel(cat, code)}\n\n`;
-    for (const c of byCat[cat] ?? [])
-      idx += `- [**${c.name}**](${base}/${slug(c.name)}) — ${pick(c.summary, code)}\n`;
-    idx += "\n";
+  if (kept.length) {
+    console.log(
+      `kept ${kept.length} existing ${code} page(s) as-is — rerun with --force to regenerate them`,
+    );
   }
-  writeFileSync(join(dir, "index.md"), idx);
-  console.log(`generated ${spec.components.length} ${code} component pages + index into ${base}/`);
+  // The index was hand-replaced by a live <ComponentGallery />; a static list
+  // regenerated over it is a downgrade, so it gets the same guard as the pages.
+  const indexFile = join(dir, "index.md");
+  if (force || !existsSync(indexFile)) {
+    let idx = `# ${t.overview}\n\n${t.overviewLead(spec.components.length, spec.categories.length)}\n\n`;
+    for (const cat of spec.categories) {
+      idx += `## ${catLabel(cat, code)}\n\n`;
+      for (const c of byCat[cat] ?? [])
+        idx += `- [**${c.name}**](${base}/${slug(c.name)}) — ${pick(c.summary, code)}\n`;
+      idx += "\n";
+    }
+    writeFileSync(indexFile, idx);
+  }
+  console.log(`wrote ${written} ${code} component page(s) + index into ${base}/`);
 }
 
 // data-types reference page (both locales)

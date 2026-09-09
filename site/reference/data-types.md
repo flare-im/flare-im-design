@@ -14,7 +14,7 @@ title: 数据类型
 
 > 通讯录联系人。
 
-**被使用于：**[ContactList](/components/contact-list) · [ContactItem](/components/contact-item) · [ContactDetail](/components/contact-detail)
+**被使用于：**[ContactList](/components/contact-list) · [ContactItem](/components/contact-item) · [ContactDetail](/components/contact-detail) · [GroupDetail](/components/group-detail) · [ProfileCard](/components/profile-card) · [GroupMemberGrid](/components/group-member-grid) · [ReadReceiptSheet](/components/read-receipt-sheet)
 
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
