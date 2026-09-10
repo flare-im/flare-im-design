@@ -4,6 +4,7 @@ export type {
   FlareConversationRowModel,
   FlareConversationFilter,
   FlareForwardTarget,
+  FlareConversationDetailsModel,
 } from "./conversation";
 export type {
   FlareContentElem,
@@ -27,6 +28,8 @@ export {
   FLARE_BREAKPOINT_DESKTOP_MIN,
 } from "./layout";
 export type {
+  FlareComposerAction,
+  FlareComposerActionId,
   FlareComposerState,
   FlareQuickPhrase,
   FlareQuickPhraseGroup,
@@ -35,6 +38,9 @@ export type {
   FlareStickerItem,
   FlareStickerPack,
 } from "./composer";
+export { FLARE_COMPOSER_ACTION_IDS, FLARE_COMPOSER_CORE_ACTION_IDS, composerActionLegacyOp } from "./composer";
+export type { FlareTone, FlareLegacyConnectionTone } from "./tone";
+export { FLARE_TONES, isFlareTone, toneFromLegacyConnectionTone, toneFromToastVariant, toastVariantFromTone } from "./tone";
 export type { MessageLike } from "./messageRow";
 export type {
   FlareMediaKind,

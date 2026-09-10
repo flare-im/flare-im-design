@@ -6,6 +6,21 @@ All notable changes to the Flare IM UI Kit (`flare-im-design`) are documented he
 
 The kit is one contract with four implementations — Flutter (`flare_im_ui`), iOS/SwiftUI (`FlareIMUI`), Android/Compose (`com.flare.im:im-ui-compose`) and Vue (`@flare-im/vue-ui`) — versioned together. The format is based on [Keep a Changelog](https://keepachangelog.com); the project follows [Semantic Versioning](https://semver.org).
 
+## [Unreleased]
+
+### Changed
+- **Contract truthfulness** — the spec now records what the four implementations actually expose: Vue symbols are the `components/index.ts` export names, events are camelCase with per-platform derivation, form controls carry a `model` field, and `lexicon` / `eventAliases` / `eventPlatforms` / `platformAliases` make platform idioms and platform-only surfaces explicit. `spec/validate.mjs` compares every declared prop and event against the Vue, Flutter, SwiftUI and Compose signatures (both directions); the remaining differences live in `spec/signature-baseline.json` and can only shrink.
+- **Composer / ChatHeader / MessageActionSheet** contracts rewritten from the implementations. `MessageActionSheet` uses one action-id table on every platform (`image`, `camera`, `file`, `location`, `card`, `vote`, `task`, `schedule`, …); the Vue `build(op)` event, the Flutter `key` field and the `create_*` ops stay as deprecated aliases.
+- **ConversationDetails** takes `tone: FlareTone` (`connectionTone` deprecated) and no longer imports `@flare-im/sdk` types; **Toast** accepts `tone` alongside `variant`.
+- **GroupDetail** `openChat` emits `(userIds, name)` positionally on every platform.
+
+### Added
+- Vue **ChatHeader** `title` / `subtitle` / `presence` / `avatarUserId` / `avatarUrl` / `showBack` and `search` / `call` / `details` events; **Avatar** `presence` (with `away`) and `id` / `name` aliases.
+- iOS and Compose **MessageBubble / MessageList** multi-select (`multiSelectMode`, `selected` / `selectedIds`, `onToggleSelect`), **NewFriendRequests** `onView`, **Toast** `onClose`, **MessageStatus** `onResend`; Compose **Avatar** `avatarUrl`; Flutter **ConversationRow** `onLongPress` (`onAction` deprecated).
+
+### Deprecated
+- Vue `Avatar.status` / `showStatus`, `ChatHeader.back`, `MessageActionSheet.build`, `ConversationDetails.connectionTone`; Flutter `FlareConversationRow.onAction`, `FlareComposerAction.key`; iOS `ContactDetailView` (use `FlareContactDetail`).
+
 ## [1.0.14] - 2026-09-08
 
 Additive, backward-compatible release: every new parameter defaults to the previous behaviour, so existing call sites are unaffected.

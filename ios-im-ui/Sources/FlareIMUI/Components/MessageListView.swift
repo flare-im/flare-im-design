@@ -24,9 +24,17 @@ public struct MessageListView: View {
     private let onMessageLongPress: ((FlareMessageData) -> Void)?
     private let onMediaAction: ((FlareMessageData, FlareMessageContent) -> Void)?
     private let onResend: ((FlareMessageData) -> Void)?
+    private let multiSelectMode: Bool
+    private let selectedIds: Set<String>
+    private let onToggleSelect: ((String) -> Void)?
 
     @Environment(\.colorScheme) private var scheme
 
+    /// - Parameters:
+    ///   - multiSelectMode: Batch-selection mode (same name as Flutter/Compose).
+    ///     Rows show a check control, row taps toggle, long-press is suspended.
+    ///   - selectedIds: The host-owned selection; rows whose id is contained render selected.
+    ///   - onToggleSelect: Called with the tapped message id in multi-select mode.
     public init(
         messages: [FlareMessageData],
         currentUserId: String,
@@ -39,7 +47,10 @@ public struct MessageListView: View {
         onMediaAction: ((FlareMessageData, FlareMessageContent) -> Void)? = nil,
         onResend: ((FlareMessageData) -> Void)? = nil,
         hasOlder: Bool = false, olderError: String? = nil, loadOlderText: String = "加载更早消息",
-        onLoadOlder: (() -> Void)? = nil, conversationId: String? = nil
+        onLoadOlder: (() -> Void)? = nil, conversationId: String? = nil,
+        multiSelectMode: Bool = false,
+        selectedIds: Set<String> = [],
+        onToggleSelect: ((String) -> Void)? = nil
     ) {
         self.hasOlder = hasOlder; self.olderError = olderError; self.loadOlderText = loadOlderText
         self.onLoadOlder = onLoadOlder; self.conversationId = conversationId
@@ -53,6 +64,20 @@ public struct MessageListView: View {
         self.onMessageLongPress = onMessageLongPress
         self.onMediaAction = onMediaAction
         self.onResend = onResend
+        self.multiSelectMode = multiSelectMode
+        self.selectedIds = selectedIds
+        self.onToggleSelect = onToggleSelect
+    }
+
+    /// Long-press opens the message action sheet only outside multi-select mode
+    /// (Flutter parity: `onLongPress: multiSelectMode ? null : ...`).
+    static func longPressEnabled(multiSelectMode: Bool, onMessageLongPress: ((FlareMessageData) -> Void)?) -> Bool {
+        !multiSelectMode && onMessageLongPress != nil
+    }
+
+    /// Per-row selected flag derived from the host's id set.
+    static func isSelected(_ id: String, multiSelectMode: Bool, selectedIds: Set<String>) -> Bool {
+        multiSelectMode && selectedIds.contains(id)
     }
 
     public var body: some View {
@@ -116,13 +141,18 @@ public struct MessageListView: View {
             ForEach(Array(messages.enumerated()), id: \.element.id) { index, msg in
                 MessageBubbleView(message: msg, currentUserId: currentUserId, conversationKind: conversationKind,
                     groupStart: isGroupStart(index), groupEnd: isGroupEnd(index), mediaState: mediaDownloadStates[msg.id],
-                    onMediaAction: onMediaAction, onResend: onResend)
+                    onMediaAction: onMediaAction, onResend: onResend,
+                    multiSelectMode: multiSelectMode,
+                    selected: Self.isSelected(msg.id, multiSelectMode: multiSelectMode, selectedIds: selectedIds),
+                    onToggleSelect: onToggleSelect)
                     .id(msg.id)
                     .background(GeometryReader { proxy in
                         Color.clear.preference(key: TimelineRowFrames.self, value: [msg.id: proxy.frame(in: .named(coordinateSpace))])
                     })
                     .contentShape(Rectangle())
-                    .onLongPressGesture { onMessageLongPress?(msg) }
+                    .modifier(RowLongPress(enabled: Self.longPressEnabled(multiSelectMode: multiSelectMode, onMessageLongPress: onMessageLongPress)) {
+                        onMessageLongPress?(msg)
+                    })
             }
         }
     }
@@ -137,6 +167,16 @@ public struct MessageListView: View {
         guard i < messages.count - 1 else { return true }
         let next = messages[i + 1], cur = messages[i]
         return next.senderId != cur.senderId || next.isSystem || cur.isSystem
+    }
+}
+
+/// Long-press only when the row can act on it; in multi-select mode the tap
+/// gesture owns the row and a long-press must not open the action sheet.
+private struct RowLongPress: ViewModifier {
+    let enabled: Bool
+    let action: () -> Void
+    func body(content: Content) -> some View {
+        if enabled { content.onLongPressGesture(perform: action) } else { content }
     }
 }
 

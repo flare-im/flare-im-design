@@ -23,6 +23,7 @@ import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,17 +34,42 @@ import androidx.compose.ui.unit.sp
 /** One attachment/action tile in [MessageActionSheet]. */
 data class FlareComposerAction(val id: String, val label: String, val icon: ImageVector)
 
-/** Default attachment actions. */
-val defaultComposerActions: List<FlareComposerAction> = listOf(
-    FlareComposerAction("image", "图片", Icons.Outlined.Image),
-    FlareComposerAction("camera", "拍摄", Icons.Outlined.CameraAlt),
-    FlareComposerAction("file", "文件", Icons.Outlined.Folder),
-    FlareComposerAction("location", "位置", Icons.Outlined.LocationOn),
-    FlareComposerAction("card", "名片", Icons.Outlined.ContactPage),
-    FlareComposerAction("vote", "投票", Icons.Outlined.HowToVote),
-    FlareComposerAction("task", "任务", Icons.Outlined.Checklist),
-    FlareComposerAction("schedule", "日程", Icons.Outlined.CalendarMonth),
+/** Ids of the core default action set — one table across the four platforms. */
+val defaultComposerActionIds: List<String> =
+    listOf("image", "camera", "file", "location", "card", "vote", "task", "schedule")
+
+/**
+ * Default attachment actions with labels taken from [strings] (the same
+ * `actionImage`/`actionCamera`/… keys as iOS `FlareStrings`). Pure — usable from
+ * tests and non-composable code; composables should call [defaultComposerActions].
+ */
+fun defaultComposerActions(strings: FlareStrings): List<FlareComposerAction> = listOf(
+    FlareComposerAction("image", strings.actionImage, Icons.Outlined.Image),
+    FlareComposerAction("camera", strings.actionCamera, Icons.Outlined.CameraAlt),
+    FlareComposerAction("file", strings.actionFile, Icons.Outlined.Folder),
+    FlareComposerAction("location", strings.actionLocation, Icons.Outlined.LocationOn),
+    FlareComposerAction("card", strings.actionCard, Icons.Outlined.ContactPage),
+    FlareComposerAction("vote", strings.actionVote, Icons.Outlined.HowToVote),
+    FlareComposerAction("task", strings.actionTask, Icons.Outlined.Checklist),
+    FlareComposerAction("schedule", strings.actionSchedule, Icons.Outlined.CalendarMonth),
 )
+
+/** Default attachment actions labelled from the current [LocalFlareStrings]. */
+@Composable
+@ReadOnlyComposable
+fun defaultComposerActions(): List<FlareComposerAction> = defaultComposerActions(flareStrings())
+
+/**
+ * Default attachment actions with the built-in (zh) labels, ignoring the
+ * host's strings provider. Kept for source compatibility only.
+ */
+@Deprecated(
+    "Labels bypass LocalFlareStrings; call defaultComposerActions() inside a composable " +
+        "or defaultComposerActions(strings) elsewhere.",
+    ReplaceWith("defaultComposerActions()"),
+)
+val defaultComposerActions: List<FlareComposerAction>
+    get() = defaultComposerActions(FlareStrings())
 
 /**
  * The attachment "+" action grid — image, file, card, vote, location, etc. Spec:
@@ -52,7 +78,7 @@ val defaultComposerActions: List<FlareComposerAction> = listOf(
  */
 @Composable
 fun MessageActionSheet(
-    actions: List<FlareComposerAction> = defaultComposerActions,
+    actions: List<FlareComposerAction> = defaultComposerActions(),
     onAction: ((FlareComposerAction) -> Unit)? = null,
 ) {
     val colors = flareColors()

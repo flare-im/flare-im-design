@@ -215,17 +215,15 @@ class FlareMessageBubble extends StatelessWidget {
                   ),
                 if (self) ...[
                   const SizedBox(width: 4),
-                  GestureDetector(
-                    onTap: message.status == FlareMessageDeliveryStatus.failed
-                        ? () => onResend?.call(message)
-                        : null,
-                    child: FlareMessageStatus(
-                      status: message.status,
-                      variant: FlareMessageStatusVariant.compact,
-                      tint: message.status == FlareMessageDeliveryStatus.failed
-                          ? null
-                          : Colors.white.withValues(alpha: 0.85),
-                    ),
+                  FlareMessageStatus(
+                    status: message.status,
+                    variant: FlareMessageStatusVariant.compact,
+                    tint: message.status == FlareMessageDeliveryStatus.failed
+                        ? null
+                        : Colors.white.withValues(alpha: 0.85),
+                    onResend: onResend == null
+                        ? null
+                        : () => onResend!(message),
                   ),
                 ],
               ],

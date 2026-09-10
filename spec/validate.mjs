@@ -7,6 +7,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { execSync } from "node:child_process";
+import { PLATFORMS, vueExportMap, loadSurface, compareComponent } from "./signatures.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const spec = JSON.parse(readFileSync(join(here, "components.json"), "utf8"));
@@ -18,6 +19,8 @@ const composeRoot = join(here, "../android-im-ui/src/main");
 const errors = [];
 const coverage = {}; // platform -> 未实现的组件名列表
 const platforms = ["vue", "flutter", "ios", "compose"];
+const vueExports = vueExportMap(vueRoot);
+const signatureRoots = { vueExports, flutter: flutterRoot, ios: iosRoot, compose: composeRoot };
 
 // ── Vue 事件面提取 ────────────────────────────────────────────────────────
 // 契约里的 events 曾经声明过实现里根本不存在的事件（MessageActionSheet 声明
@@ -103,31 +106,28 @@ for (const c of spec.components) {
     if (!pr.name || !pr.type) errors.push(`${where}: prop missing name/type: ${JSON.stringify(pr)}`);
     else if (!pr.description?.en || !pr.description?.zh)
       errors.push(`${where}: prop "${pr.name}" missing bilingual description { en, zh }`);
+    if (pr.name && !/^[a-z][A-Za-z0-9]*$/.test(pr.name))
+      errors.push(`${where}: prop "${pr.name}" must be camelCase (v-model belongs in the "model" field)`);
+    if (pr.platforms && pr.platforms.some((p) => !platforms.includes(p)))
+      errors.push(`${where}: prop "${pr.name}" has unknown platforms ${JSON.stringify(pr.platforms)}`);
   }
+  // 事件名：契约层统一 camelCase（Vue 模板按 kebab 派生、原生按 on+Pascal 派生）
+  for (const e of c.events ?? []) {
+    if (!/^(update:)?[a-z][A-Za-z0-9]*$/.test(String(e)))
+      errors.push(`${where}: event "${e}" must be camelCase in the contract (implementations derive kebab / onXxx)`);
+  }
+  if (c.model && (!c.model.prop || !c.model.event))
+    errors.push(`${where}: model must be { prop, event }`);
 
   // anti-drift: the Vue reference symbol must exist as a component file
+  // 契约的 vue symbol 必须是 components/index.ts 的导出名——宿主照文档 import 的就是它，
+  // 写成文件名（MessageBubble）而不是导出名（FlareMessageBubble）会直接编译失败。
   const sym = c.platforms?.vue?.symbol;
   if (sym && !planned) {
-    let files = [];
-    try {
-      const out = execSync(`find "${vueRoot}" -name "${sym}.vue"`, { encoding: "utf8" });
-      files = out.trim().split("\n").filter(Boolean);
-    } catch { /* find failed */ }
-    if (!files.length) errors.push(`${where}: Vue reference symbol ${sym}.vue not found in vue-im-ui`);
+    const files = vueExports[sym] && existsSync(vueExports[sym]) ? [vueExports[sym]] : [];
+    if (!files.length) errors.push(`${where}: Vue symbol ${sym} is not exported from vue-im-ui/src/components/index.ts`);
     else {
-      // anti-drift: every declared event must actually be emitted by the Vue
-      // reference. A missing emit is silent at runtime — the host wires the
-      // listener and simply never hears back.
-      const emitted = new Set();
-      for (const f of files) for (const e of vueEmitSurface(readFileSync(f, "utf8"))) emitted.add(normEvent(e));
-      const declared = (c.events ?? []).map((e) => [e, normEvent(e)]);
-      const missing = declared.filter(([, n]) => !emitted.has(n)).map(([raw]) => raw);
-      if (missing.length) {
-        errors.push(
-          `${where}: declares event(s) ${missing.map((m) => `"${m}"`).join(", ")} that ${sym}.vue does not emit` +
-            ` — ${sym}.vue emits ${emitted.size ? [...emitted].map((e) => `"${e}"`).join(", ") : "nothing (slot-only container)"}`,
-        );
-      }
+      // 事件与 props 的实现一致性由下方「四端签名」段统一校验（含平台范围与别名）。
     }
   }
 
@@ -171,6 +171,44 @@ for (const c of spec.components) {
       found = out.trim().length > 0;
     } catch { /* none */ }
     if (!found) errors.push(`${where}: Compose symbol fun ${csym} not found in compose-im-ui`);
+  }
+}
+
+// ── 四端签名 vs 契约（棘轮）──────────────────────────────────────────────
+// 每个组件每个端：契约声明的 props/事件必须能在实现签名里找到（允许 lexicon /
+// eventAliases / platformAliases 登记的平台惯用名），实现里的 onXxx 回调也必须在
+// 契约里。历史差异记在 signature-baseline.json；这里只允许差异集合缩小：
+//   · 出现基线里没有的差异 → 错（契约或实现漂移了）
+//   · 基线里的差异已经消失 → 也错，提示重生成基线（否则基线自己会腐烂）
+{
+  const baselinePath = join(here, "signature-baseline.json");
+  const baseline = existsSync(baselinePath) ? JSON.parse(readFileSync(baselinePath, "utf8")) : {};
+  const current = {};
+  for (const c of spec.components) {
+    if (c.status === "planned") continue;
+    for (const p of PLATFORMS) {
+      if (!c.platforms?.[p]) continue;
+      const surface = loadSurface(signatureRoots, c, p);
+      if (!surface) continue; // 符号缺失已在上面报错
+      const d = compareComponent(spec, c, p, surface);
+      const items = [
+        ...d.missingProps.map((x) => `prop "${x}" declared but not implemented`),
+        ...d.missingEvents.map((x) => `event "${x}" declared but not implemented`),
+        ...d.extraEvents.map((x) => `callback "${x}" implemented but not in the contract`),
+      ];
+      if (items.length) (current[c.name] ??= {})[p] = { missingProps: d.missingProps, missingEvents: d.missingEvents, extraEvents: d.extraEvents };
+      const base = baseline[c.name]?.[p] ?? { missingProps: [], missingEvents: [], extraEvents: [] };
+      for (const x of d.missingProps) if (!base.missingProps?.includes(x)) errors.push(`component "${c.name}" [${p}]: prop "${x}" is declared in the contract but the ${c.platforms[p].symbol} signature has no such parameter (add it, scope the prop with "platforms", or register an alias)`);
+      for (const x of d.missingEvents) if (!base.missingEvents?.includes(x)) errors.push(`component "${c.name}" [${p}]: event "${x}" is declared in the contract but ${c.platforms[p].symbol} has no matching callback`);
+      for (const x of d.extraEvents) if (!base.extraEvents?.includes(x)) errors.push(`component "${c.name}" [${p}]: ${c.platforms[p].symbol} exposes callback "${x}" that the contract does not declare`);
+      // 基线腐烂检测
+      for (const k of ["missingProps", "missingEvents", "extraEvents"])
+        for (const x of base[k] ?? []) if (!d[k].includes(x)) errors.push(`signature-baseline.json is stale: "${c.name}" [${p}] ${k} "${x}" no longer differs — run \`node spec/signature-report.mjs --baseline\` to shrink the baseline`);
+    }
+  }
+  for (const name of Object.keys(baseline)) {
+    if (name.startsWith("_")) continue;
+    if (!spec.components.some((c) => c.name === name)) errors.push(`signature-baseline.json lists unknown component "${name}"`);
   }
 }
 

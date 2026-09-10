@@ -1,5 +1,6 @@
 export { default as FlareUiProvider } from "../design-system/provider/FlareUiProvider.vue";
 export { default as FlareAvatar } from "./conversation/FlareAvatar.vue";
+export type { FlarePresence } from "./conversation/FlareAvatar.vue";
 export { default as FlareConversationList } from "./conversation/FlareConversationList.vue";
 export { default as FlareConversationRow } from "./conversation/FlareConversationRow.vue";
 export { default as FlareConversationDetails } from "./shell/ConversationDetails.vue";

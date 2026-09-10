@@ -1,5 +1,6 @@
 <script lang="ts">
-export type FlareToastVariant = "info" | "success" | "error" | "warning" | "loading";
+import type { FlareToastVariant as ToastVariant } from "../../shared/contracts/tone";
+export type FlareToastVariant = ToastVariant;
 </script>
 
 <script setup lang="ts">
@@ -12,20 +13,29 @@ import {
   WarningOutline,
   SyncOutline,
 } from "../../shared/icon-glyphs";
+import { toastVariantFromTone, toneFromToastVariant, type FlareTone } from "../../shared/contracts/tone";
 
 const props = withDefaults(
   defineProps<{
     message: string;
+    /** Form of the toast; kept because `loading` also carries the spinner. Mapped to `tone`. */
     variant?: FlareToastVariant;
+    /** Semantic tone (shared enum). Overrides the tone derived from `variant` when set. */
+    tone?: FlareTone;
     /** Optional trailing action (e.g. "Undo"). */
     actionLabel?: string;
   }>(),
-  { variant: "info" },
+  { variant: "info", tone: undefined },
 );
 const emit = defineEmits<{
   (e: "action"): void;
   (e: "close"): void;
 }>();
+
+/** Effective tone: explicit `tone` wins, else derived from `variant` (error → danger). */
+const resolvedTone = computed<FlareTone>(() => props.tone ?? toneFromToastVariant(props.variant));
+/** Effective variant: an explicit `tone` re-derives the form (danger → error); `loading` only via `variant`. */
+const resolvedVariant = computed<FlareToastVariant>(() => (props.tone ? toastVariantFromTone(props.tone) : props.variant));
 
 const icon = computed(
   () =>
@@ -35,17 +45,17 @@ const icon = computed(
       error: CloseCircle,
       warning: WarningOutline,
       loading: SyncOutline,
-    })[props.variant],
+    })[resolvedVariant.value],
 );
 </script>
 
 <template>
-  <div class="flare-toast" :class="`flare-toast--${variant}`" role="status">
+  <div class="flare-toast" :class="`flare-toast--${resolvedVariant}`" :data-tone="resolvedTone" role="status">
     <n-icon
       :size="18"
       :component="icon"
       class="flare-toast__icon"
-      :class="{ 'is-spin': variant === 'loading' }"
+      :class="{ 'is-spin': resolvedVariant === 'loading' }"
     />
     <span class="flare-toast__message">{{ message }}</span>
     <button v-if="actionLabel" type="button" class="flare-toast__action" @click="emit('action')">

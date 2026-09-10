@@ -32,9 +32,19 @@ public struct MessageBubbleView: View {
     private let mediaState: FlareMediaDownloadState?
     private let onMediaAction: ((FlareMessageData, FlareMessageContent) -> Void)?
     private let onResend: ((FlareMessageData) -> Void)?
+    private let multiSelectMode: Bool
+    private let selected: Bool
+    private let onToggleSelect: ((String) -> Void)?
 
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
 
+    /// - Parameters:
+    ///   - multiSelectMode: Batch-selection mode (same name as Flutter/Compose).
+    ///     A check control leads the row and tapping the whole row toggles it.
+    ///   - selected: Whether this message is in the host's selection.
+    ///   - onToggleSelect: Called with the message id when the row is tapped in
+    ///     multi-select mode. Stable ID first; the host owns the selection set.
     public init(
         message: FlareMessageData,
         currentUserId: String,
@@ -43,7 +53,10 @@ public struct MessageBubbleView: View {
         groupEnd: Bool = true,
         mediaState: FlareMediaDownloadState? = nil,
         onMediaAction: ((FlareMessageData, FlareMessageContent) -> Void)? = nil,
-        onResend: ((FlareMessageData) -> Void)? = nil
+        onResend: ((FlareMessageData) -> Void)? = nil,
+        multiSelectMode: Bool = false,
+        selected: Bool = false,
+        onToggleSelect: ((String) -> Void)? = nil
     ) {
         self.message = message
         self.currentUserId = currentUserId
@@ -53,6 +66,23 @@ public struct MessageBubbleView: View {
         self.mediaState = mediaState
         self.onMediaAction = onMediaAction
         self.onResend = onResend
+        self.multiSelectMode = multiSelectMode
+        self.selected = selected
+        self.onToggleSelect = onToggleSelect
+    }
+
+    /// Check-control glyph: filled when selected, hollow ring otherwise, so the
+    /// state is legible without colour (Flutter check_circle / radio_button_unchecked).
+    static func selectionSymbol(selected: Bool) -> String {
+        selected ? "checkmark.circle.fill" : "circle"
+    }
+
+    /// Row tap in multi-select mode toggles selection; outside it the row has no
+    /// tap of its own (media/resend keep their inner gestures).
+    static func rowTap(multiSelectMode: Bool, id: String,
+                       onToggleSelect: ((String) -> Void)?) -> (() -> Void)? {
+        guard multiSelectMode, let onToggleSelect else { return nil }
+        return { onToggleSelect(id) }
     }
 
     private var isSelf: Bool { message.senderId == currentUserId }
@@ -71,6 +101,7 @@ public struct MessageBubbleView: View {
                 .padding(.vertical, FlareSizes.spacingSm)
         } else {
             HStack(alignment: .top, spacing: FlareSizes.spacingSm) {
+                if multiSelectMode { selectionControl(colors) }
                 if !isSelf { leadingAvatar }
                 if isSelf { Spacer(minLength: 40) }
                 bubbleColumn(colors)
@@ -79,6 +110,27 @@ public struct MessageBubbleView: View {
             .padding(.horizontal, FlareSizes.spacingMd)
             .padding(.top, groupStart ? FlareSizes.spacingSm : 2)
             .padding(.bottom, groupEnd ? FlareSizes.spacingSm : 2)
+            .background(selected ? colors.bgSelected : Color.clear)
+            .modifier(RowTap(action: Self.rowTap(multiSelectMode: multiSelectMode, id: message.id,
+                                                onToggleSelect: onToggleSelect)))
+        }
+    }
+
+    private func selectionControl(_ colors: FlareColors) -> some View {
+        Image(systemName: Self.selectionSymbol(selected: selected))
+            .font(.system(size: 22))
+            .foregroundColor(selected ? colors.primary : colors.textTertiary)
+            .frame(width: 24, height: 24)
+            .padding(.top, showAvatar ? 5 : 0)
+            .accessibilityLabel(strings.select)
+            .accessibilityAddTraits(selected ? [.isSelected] : [])
+    }
+
+    /// Conditionally attach the whole-row tap (multi-select mode only).
+    private struct RowTap: ViewModifier {
+        let action: (() -> Void)?
+        func body(content: Content) -> some View {
+            if let action { content.contentShape(Rectangle()).onTapGesture(perform: action) } else { content }
         }
     }
 
@@ -122,23 +174,14 @@ public struct MessageBubbleView: View {
                     }
                     if isSelf {
                         MessageStatusView(status: message.status, variant: .compact,
-                                          tint: message.status == .failed ? nil : Color.white.opacity(0.85))
-                            .modifier(TapToResend(enabled: message.status == .failed) { onResend?(message) })
+                                          tint: message.status == .failed ? nil : Color.white.opacity(0.85),
+                                          onResend: onResend == nil ? nil : { onResend?(message) })
                     }
                 }
             }
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 9)
-    }
-
-    /// Conditionally attach a resend tap gesture (failed messages only).
-    private struct TapToResend: ViewModifier {
-        let enabled: Bool
-        let action: () -> Void
-        func body(content: Content) -> some View {
-            if enabled { content.onTapGesture(perform: action) } else { content }
-        }
     }
 
     // Quiet, directional message surfaces; bare media retains its own frame.

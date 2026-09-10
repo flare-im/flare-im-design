@@ -33,7 +33,7 @@ import {
 } from "naive-ui";
 import { useRoute, useRouter } from "vue-router";
 import { FlareDangerConfirm, FlareStartConversationDialog, FlareWorkbenchShell } from "@flare-im/vue-ui/components";
-import type { FlareWorkbenchShellMode } from "@flare-im/vue-ui/contracts";
+import { toneFromLegacyConnectionTone, type FlareTone, type FlareWorkbenchShellMode } from "@flare-im/vue-ui/contracts";
 import { provideFlareWorkbenchUi } from "@flare-im/vue-ui/composables";
 import { useFlareTheme, type FlareThemeMode, type FlareThemeVariant } from "@flare-im/vue-ui/theme";
 import {
@@ -187,6 +187,8 @@ const connectionTone = computed(() => {
   if (sdk.connectionState.value === "connecting" || sdk.connectionState.value === "reconnecting") return "warning";
   return "default";
 });
+
+const detailsTone = computed<FlareTone>(() => toneFromLegacyConnectionTone(connectionTone.value));
 
 const connectionText = computed(() => {
   const state = sdk.connectionState.value;
@@ -464,7 +466,7 @@ async function buildFromAction(op: string): Promise<void> {
       <ConversationDetails
         :conversation="sdk.activeConversation.value"
         :connection-text="connectionText"
-        :connection-tone="connectionTone"
+        :tone="detailsTone"
         :message-count="sdk.messages.value.length"
         :latest-message-id="sdk.activeLatestMessageId.value"
         @sync="chatEnterLoadAndMarkRead"

@@ -30,8 +30,21 @@ the inconsistency problem across the four platform implementations is exactly wh
 | `dataSource` | Which **core observable view** (L4) the data comes from — all platforms consume the same one |
 | `props[]` | `{ name, type, required?, default?, desc? }` |
 | `states[]` | Possible states (e.g. pending/sent/read/failed) |
-| `events[]` | Callback/event names |
-| `platforms` | `vue / flutter / ios / compose` → `{ package, symbol }` (per-platform dependency and symbol) |
+| `events[]` | Callback/event names — camelCase in the contract; Vue derives kebab-case (`@toggle-select`), native platforms derive `on` + PascalCase (`onToggleSelect`) |
+| `model` | `{ prop, event }` — the v-model pair for form controls (`modelValue` / `update:modelValue`); native platforms express it as a controlled value / binding |
+| `props[].platforms` | Optional; restricts a prop to some platforms (e.g. Vue-only slot-detection flags) |
+| `eventPlatforms` | Optional `{ event: [platforms] }`; restricts an event to some platforms (e.g. per-action message events are Vue-only, native platforms expose `messageLongPress` and let the host build the menu) |
+| `platformAliases` | Optional `{ platform: { props: {…}, events: {…} } }` — component-level idiomatic names that satisfy the contract (e.g. `edit` → `onEditRemark`) |
+| `deprecatedCallbacks` | Optional `{ platform: [names] }` — old callback names kept for one version; not counted as undeclared |
+| `platforms` | `vue / flutter / ios / compose` → `{ package, symbol }` (per-platform dependency and symbol). The Vue symbol is the export name from `components/index.ts` |
+
+Top-level tables shared by every component:
+
+| Field | Meaning |
+|---|---|
+| `lexicon` | Contract term → per-platform accepted names (`conversationType` → `conversationKind`, `ariaLabel` → `semanticLabel` / `accessibilityLabel` / `contentDescription`, …) |
+| `eventAliases` | Contract event → per-platform idiomatic callbacks beyond the default derivation (`click` → `onPressed` / `action` / `onClick`, `change` → `onChanged`, `submit` → `onSubmitted`) |
+| `composerActions` | The single attachment-action id table (`image`, `camera`, `file`, `location`, `card`, `vote`, `task`, `schedule`, …) every platform's MessageActionSheet uses |
 
 <!-- CATALOG:START -->
 ## Component catalog
@@ -73,8 +86,13 @@ props/events extracted and calibrated from the `@flare-im/vue-ui` source).
 ```bash
 node validate.mjs
 ```
-Checks: (1) every component contract has complete fields; (2) all four platforms have package+symbol; (3) the **Vue reference symbol (e.g. `MessageBubble.vue`) actually exists in
-`@flare-im/vue-ui`** — it errors if the spec and the reference implementation don't line up. Once each platform's L1 package lands, the validation is extended to "that platform's symbol exists and its props are covered".
+Checks: (1) every component contract has complete, bilingual fields and camelCase prop/event names; (2) every declared platform has package+symbol and the symbol exists (Vue: exported from `components/index.ts`; Flutter class; SwiftUI struct; Compose function); (3) **signatures**: every declared prop and event must be found in each platform's public signature (honouring `lexicon`, `eventAliases`, `platformAliases`, `props[].platforms`, `eventPlatforms`), and every native `onXxx` callback must be declared. Remaining historical differences live in `signature-baseline.json` and can only shrink — a new difference fails, and a resolved difference fails until the baseline is regenerated:
+
+```bash
+node signature-report.mjs              # per-platform totals
+node signature-report.mjs --component MessageList   # one component, verbose
+node signature-report.mjs --baseline   # rewrite signature-baseline.json (only after the diff got smaller)
+```
 
 ## Relationships
 - **L4** data/behavior: `flare-im-core-sdk` client.views (already exists) — `dataSource` points to it.

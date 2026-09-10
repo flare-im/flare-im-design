@@ -72,6 +72,32 @@ void main() {
       expect(tapped, isTrue);
     });
 
+    testWidgets('long press raises onLongPress', (tester) async {
+      var pressed = false;
+      await tester.pumpWidget(
+        _host(FlareConversationRow(
+          item: _row('c1', 'Alpha'),
+          onLongPress: () => pressed = true,
+        )),
+      );
+      await tester.longPress(find.text('Alpha'));
+      expect(pressed, isTrue);
+    });
+
+    testWidgets('deprecated onAction is forwarded to onLongPress',
+        (tester) async {
+      var pressed = false;
+      await tester.pumpWidget(
+        _host(FlareConversationRow(
+          item: _row('c1', 'Alpha'),
+          // ignore: deprecated_member_use
+          onAction: () => pressed = true,
+        )),
+      );
+      await tester.longPress(find.text('Alpha'));
+      expect(pressed, isTrue);
+    });
+
     testWidgets('previewSpansBuilder replaces the plain preview body', (
       tester,
     ) async {

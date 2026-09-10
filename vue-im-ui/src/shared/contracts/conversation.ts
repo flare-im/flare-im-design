@@ -61,3 +61,23 @@ export type FlareConversationFilter =
   | "muted"
   | "archived"
   | "draft";
+
+/**
+ * Structural view of a conversation for ConversationDetails — the subset of the
+ * SDK's `Conversation` the pane reads. Hosts pass the SDK object directly (it is
+ * assignable) or any object with these fields; the kit takes no SDK type dependency.
+ */
+export interface FlareConversationDetailsModel {
+  conversationId: string;
+  /** Routing id: peer user id for direct chats, business channel id for groups. */
+  channelId?: string;
+  displayName?: string;
+  /** "direct" | "group" | "ai" | ... — compared case-insensitively. */
+  conversationType?: string;
+  avatarUrl?: string;
+  membersCount?: number;
+  unreadCount?: number;
+  isPinned?: boolean;
+  isMuted?: boolean;
+  isArchived?: boolean;
+}

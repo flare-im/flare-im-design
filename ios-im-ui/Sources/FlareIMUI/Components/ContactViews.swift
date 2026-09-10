@@ -102,6 +102,10 @@ public struct ContactListView: View {
 }
 
 /// Contact name card. Spec: Contacts/ContactDetail (`ContactDetailView`).
+///
+/// Superseded by ``FlareContactDetail`` (hero + info card + danger zone). Kept
+/// for source compatibility; not removed.
+@available(*, deprecated, message: "Use FlareContactDetail")
 public struct ContactDetailView: View {
     private let contact: Contact
     private let onMessage: (() -> Void)?
@@ -148,17 +152,39 @@ public struct NewFriendRequestsView: View {
     private let items: [FriendRequest]
     private let onAccept: ((FriendRequest) -> Void)?
     private let onReject: ((FriendRequest) -> Void)?
+    private let onView: ((String) -> Void)?
     private let emptyText: String
     private let acceptLabel: String
     private let declineLabel: String
     @Environment(\.colorScheme) private var scheme
 
+    /// - Parameter onView: Tapping the row (outside the accept/decline buttons)
+    ///   opens the request's detail; called with the request id. Without a
+    ///   handler the row is inert (Flutter/Compose `onView` parity).
     public init(items: [FriendRequest], emptyText: String = "没有新的好友请求",
                 acceptLabel: String = "接受", declineLabel: String = "拒绝",
-                onAccept: ((FriendRequest) -> Void)? = nil, onReject: ((FriendRequest) -> Void)? = nil) {
+                onAccept: ((FriendRequest) -> Void)? = nil, onReject: ((FriendRequest) -> Void)? = nil,
+                onView: ((String) -> Void)? = nil) {
         self.items = items; self.emptyText = emptyText
         self.acceptLabel = acceptLabel; self.declineLabel = declineLabel
-        self.onAccept = onAccept; self.onReject = onReject
+        self.onAccept = onAccept; self.onReject = onReject; self.onView = onView
+    }
+
+    /// The row's tap action, or nil when the host did not opt in.
+    static func rowTap(id: String, onView: ((String) -> Void)?) -> (() -> Void)? {
+        guard let onView else { return nil }
+        return { onView(id) }
+    }
+
+    /// Conditionally make the row tappable (only with an `onView` handler).
+    private struct RowTap: ViewModifier {
+        let action: (() -> Void)?
+        func body(content: Content) -> some View {
+            if let action {
+                content.contentShape(Rectangle()).onTapGesture(perform: action)
+                    .accessibilityAddTraits(.isButton)
+            } else { content }
+        }
     }
 
     public var body: some View {
@@ -182,6 +208,7 @@ public struct NewFriendRequestsView: View {
                             Button(acceptLabel) { onAccept?(req) }.buttonStyle(.borderedProminent).controlSize(.small).tint(colors.primary)
                         }
                         .padding(.horizontal, FlareSizes.spacingMd).padding(.vertical, FlareSizes.spacingSm)
+                        .modifier(RowTap(action: Self.rowTap(id: req.id, onView: onView)))
                     }
                 }
             }

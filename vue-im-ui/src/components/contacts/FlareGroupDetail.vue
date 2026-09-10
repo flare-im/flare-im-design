@@ -44,7 +44,8 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{
   (e: "back"): void;
-  (e: "openChat", payload: { userIds: string[]; name: string }): void;
+  /** Positional `(userIds, name)` — same order as the Flutter / iOS / Compose `onOpenChat`. */
+  (e: "openChat", userIds: string[], name: string): void;
   (e: "updateName", value: string): void;
   (e: "updateAnnouncement", value: string): void;
   (e: "updateMyNickname", value: string): void;
@@ -302,7 +303,7 @@ function submitInvite() {
       <FlareSettingsList :sections="settingsSections" @select="onSettingSelect" @toggle="onSettingToggle" />
 
       <div class="flare-group-detail__foot">
-        <FlareButton block @click="emit('openChat', { userIds: model.members.map((m) => m.id), name: groupName })">
+        <FlareButton block @click="emit('openChat', model.members.map((m) => m.id), groupName)">
           {{ t("group.message") }}
         </FlareButton>
         <FlareButton variant="danger" block @click="emit('leave')">

@@ -59,3 +59,61 @@ export interface FlareStickerPack {
   coverEmoji?: string;
   stickers: FlareStickerItem[];
 }
+
+/**
+ * Unified attachment / feature action ids shared by all four platforms (no
+ * `create_` prefix). Hosts may use any string id; these are the ones the kit
+ * knows how to label and icon by default.
+ */
+export type FlareComposerActionId =
+  | "image"
+  | "camera"
+  | "video"
+  | "file"
+  | "location"
+  | "card"
+  | "vote"
+  | "task"
+  | "schedule"
+  | "link"
+  | "announcement"
+  | "notification"
+  | "miniProgram"
+  | "translate";
+
+export const FLARE_COMPOSER_ACTION_IDS: readonly FlareComposerActionId[] = [
+  "image", "camera", "video", "file", "location", "card", "vote", "task",
+  "schedule", "link", "announcement", "notification", "miniProgram", "translate",
+];
+
+/** Core default set the native kits show without configuration. */
+export const FLARE_COMPOSER_CORE_ACTION_IDS: readonly FlareComposerActionId[] = [
+  "image", "camera", "file", "location", "card", "vote", "task", "schedule",
+];
+
+/** One action tile in MessageActionSheet / composer action panels. */
+export interface FlareComposerAction {
+  /** Stable id (first callback argument); see {@link FlareComposerActionId} for the shared table. */
+  id: string;
+  label: string;
+  /** Optional secondary line under the label. */
+  hint?: string;
+  /** Canonical Flare semantic icon name (preferred) or any raw string / emoji. */
+  icon?: string;
+}
+
+const LEGACY_COMPOSER_OPS: Record<string, string> = {
+  link: "create_link_card",
+  miniProgram: "create_mini_program",
+  translate: "create_text",
+};
+
+/**
+ * Legacy `build(op)` operation name for a unified action id — what the sheet
+ * emitted before `action(action)` existed (`file` → `create_file`,
+ * `link` → `create_link_card`, ...). Unknown / host-defined ids pass through unchanged.
+ */
+export function composerActionLegacyOp(id: string): string {
+  if (LEGACY_COMPOSER_OPS[id]) return LEGACY_COMPOSER_OPS[id];
+  return (FLARE_COMPOSER_ACTION_IDS as readonly string[]).includes(id) ? `create_${id}` : id;
+}

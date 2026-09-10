@@ -96,7 +96,7 @@ fun FlareVoiceHoldButton(
  */
 @Composable
 fun FlareComposerActionPanel(
-    actions: List<FlareComposerAction> = defaultComposerActions,
+    actions: List<FlareComposerAction> = defaultComposerActions(),
     columns: Int = 4,
     onAction: ((FlareComposerAction) -> Unit)? = null,
 ) {

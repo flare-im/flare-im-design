@@ -67,7 +67,7 @@ class FlareConversationList extends StatelessWidget {
             item: item,
             active: item.id == activeId,
             onSelect: onSelect == null ? null : () => onSelect!(item),
-            onAction: onLongPress == null ? null : () => onLongPress!(item),
+            onLongPress: onLongPress == null ? null : () => onLongPress!(item),
           );
         },
       ),

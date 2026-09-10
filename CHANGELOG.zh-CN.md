@@ -6,6 +6,21 @@
 
 本 kit 是「一套契约、四端实现」—— Flutter(`flare_im_ui`)、iOS/SwiftUI(`FlareIMUI`)、Android/Compose(`com.flare.im:im-ui-compose`)、Vue(`@flare-im/vue-ui`)—— 统一版本。格式基于 [Keep a Changelog](https://keepachangelog.com),遵循[语义化版本](https://semver.org)。
 
+## [未发布]
+
+### 变更
+- **契约真实性**——契约改为记录四端实现真实暴露的东西:Vue 符号即 `components/index.ts` 导出名,事件统一 camelCase 并按端派生,表单控件带 `model` 字段,`lexicon` / `eventAliases` / `eventPlatforms` / `platformAliases` 把平台惯用名与平台专属面写成显式事实。`spec/validate.mjs` 逐项比对每个 prop 与事件在 Vue、Flutter、SwiftUI、Compose 的签名(双向);剩余差异记在 `spec/signature-baseline.json`,只允许缩小。
+- **Composer / ChatHeader / MessageActionSheet** 契约按实现重写。`MessageActionSheet` 四端共用一张动作 id 表(`image`、`camera`、`file`、`location`、`card`、`vote`、`task`、`schedule`…);Vue 的 `build(op)`、Flutter 的 `key` 与 `create_*` 保留为 deprecated 别名。
+- **ConversationDetails** 改用 `tone: FlareTone`(`connectionTone` 弃用),不再引入 `@flare-im/sdk` 类型;**Toast** 在 `variant` 之外接受 `tone`。
+- **GroupDetail** `openChat` 四端均为位置参数 `(userIds, name)`。
+
+### 新增
+- Vue **ChatHeader** `title` / `subtitle` / `presence` / `avatarUserId` / `avatarUrl` / `showBack` 与 `search` / `call` / `details` 事件;**Avatar** `presence`(含 `away`)与 `id` / `name` 别名。
+- iOS 与 Compose 的 **MessageBubble / MessageList** 多选(`multiSelectMode`、`selected` / `selectedIds`、`onToggleSelect`)、**NewFriendRequests** `onView`、**Toast** `onClose`、**MessageStatus** `onResend`;Compose **Avatar** `avatarUrl`;Flutter **ConversationRow** `onLongPress`(`onAction` 弃用)。
+
+### 弃用
+- Vue `Avatar.status` / `showStatus`、`ChatHeader.back`、`MessageActionSheet.build`、`ConversationDetails.connectionTone`;Flutter `FlareConversationRow.onAction`、`FlareComposerAction.key`;iOS `ContactDetailView`(改用 `FlareContactDetail`)。
+
 ## [1.0.14] - 2026-09-08
 
 纯增量、向后兼容的发布:每个新增参数都默认沿用旧行为,现有调用点不受影响。

@@ -70,6 +70,78 @@ void main() {
       );
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
+
+    testWidgets('failed + onResend is a tappable retry control',
+        (tester) async {
+      var resent = 0;
+      await tester.pumpWidget(
+        _host(FlareMessageStatus(
+          status: FlareMessageDeliveryStatus.failed,
+          onResend: () => resent++,
+        )),
+      );
+      expect(find.byIcon(Icons.error_outline), findsOneWidget);
+      expect(
+        find.bySemanticsLabel(const FlareStrings().retry),
+        findsOneWidget,
+      );
+      await tester.tap(find.byIcon(Icons.error_outline));
+      expect(resent, 1);
+    });
+
+    testWidgets('without onResend the failed glyph is inert', (tester) async {
+      await tester.pumpWidget(
+        _host(const FlareMessageStatus(
+          status: FlareMessageDeliveryStatus.failed,
+        )),
+      );
+      expect(find.byType(GestureDetector), findsNothing);
+      expect(
+        find.bySemanticsLabel(const FlareStrings().retry),
+        findsNothing,
+      );
+    });
+
+    testWidgets('onResend is ignored for non-failed states', (tester) async {
+      var resent = 0;
+      await tester.pumpWidget(
+        _host(FlareMessageStatus(
+          status: FlareMessageDeliveryStatus.sent,
+          onResend: () => resent++,
+        )),
+      );
+      await tester.tap(find.byIcon(Icons.check));
+      expect(resent, 0);
+      expect(find.byType(GestureDetector), findsNothing);
+    });
+  });
+
+  group('FlareToast', () {
+    testWidgets('shows a close button only when onClose is given',
+        (tester) async {
+      await tester.pumpWidget(_host(const FlareToast(message: 'saved')));
+      expect(find.text('saved'), findsOneWidget);
+      expect(find.byIcon(Icons.close), findsNothing);
+    });
+
+    testWidgets('close button fires onClose', (tester) async {
+      var closed = 0;
+      await tester.pumpWidget(_host(FlareToast(
+        message: 'saved',
+        actionLabel: 'Undo',
+        onAction: () {},
+        onClose: () => closed++,
+      )));
+      expect(find.byIcon(Icons.close), findsOneWidget);
+      expect(
+        find.bySemanticsLabel(const FlareStrings().close),
+        findsOneWidget,
+      );
+      await tester.tap(find.byIcon(Icons.close));
+      expect(closed, 1);
+      // the inline action is still there next to the close button
+      expect(find.text('Undo'), findsOneWidget);
+    });
   });
 
   testWidgets('FlareColors.of switches on brightness', (tester) async {

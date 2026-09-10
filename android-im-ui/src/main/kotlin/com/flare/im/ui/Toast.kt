@@ -19,10 +19,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,13 +39,19 @@ import androidx.compose.ui.unit.sp
 
 enum class ToastVariant { Info, Success, Error, Warning, Loading }
 
-/** Lightweight feedback toast. Spec: General/Toast. */
+/**
+ * Lightweight feedback toast. Spec: General/Toast.
+ *
+ * [onClose] adds a trailing close button (label = strings.close); without it no
+ * close control is rendered — the host decides whether a toast is dismissable.
+ */
 @Composable
 fun Toast(
     message: String,
     variant: ToastVariant = ToastVariant.Info,
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
+    onClose: (() -> Unit)? = null,
 ) {
     val colors = flareColors()
     val (icon, tint) = when (variant) {
@@ -79,5 +87,15 @@ fun Toast(
                 fontSize = FlareSizes.fontSizeLg.value.sp,
                 modifier = Modifier.clickable { onAction?.invoke() })
         }
+        if (toastCloseVisible(onClose != null)) {
+            Spacer(Modifier.width(4.dp))
+            IconButton(onClick = { onClose?.invoke() }, modifier = Modifier.size(28.dp)) {
+                Icon(Icons.Filled.Close, contentDescription = flareStrings().close, tint = colors.textTertiary,
+                    modifier = Modifier.size(16.dp))
+            }
+        }
     }
 }
+
+/** The close control exists only when the host supplied [Toast]' `onClose`. */
+internal fun toastCloseVisible(hasOnClose: Boolean): Boolean = hasOnClose

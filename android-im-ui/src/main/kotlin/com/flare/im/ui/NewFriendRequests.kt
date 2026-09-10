@@ -1,5 +1,6 @@
 package com.flare.im.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,6 +24,9 @@ import androidx.compose.ui.unit.sp
 /**
  * New friends — incoming friend requests with accept / reject and a note.
  * Spec: Contacts/NewFriendRequests (`NewFriendRequests`).
+ *
+ * [onView] receives the request id when the row itself is tapped (open the
+ * applicant's detail). Without it the row is inert — no dead affordance.
  */
 @Composable
 fun NewFriendRequests(
@@ -32,6 +36,7 @@ fun NewFriendRequests(
     declineLabel: String = "拒绝",
     onAccept: ((FriendRequest) -> Unit)? = null,
     onReject: ((FriendRequest) -> Unit)? = null,
+    onView: ((String) -> Unit)? = null,
 ) {
     val colors = flareColors()
     if (items.isEmpty()) {
@@ -41,7 +46,9 @@ fun NewFriendRequests(
     LazyColumn(Modifier.fillMaxWidth()) {
         items(items, key = { it.id }) { req ->
             Row(
-                Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingSm),
+                Modifier.fillMaxWidth()
+                    .then(if (newFriendRequestRowTappable(onView != null)) Modifier.clickable { onView?.invoke(req.id) } else Modifier)
+                    .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingSm),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Avatar(userId = req.id, displayName = req.name, size = 44.dp)
@@ -66,3 +73,6 @@ fun NewFriendRequests(
         }
     }
 }
+
+/** Row-level tap is only wired when the host supplied [NewFriendRequests]' `onView`. */
+internal fun newFriendRequestRowTappable(hasOnView: Boolean): Boolean = hasOnView

@@ -68,9 +68,10 @@ void main() {
       )));
       await tester.tap(find.byIcon(Icons.add));
       await tester.pumpAndSettle();
-      expect(find.text('Image'), findsWidgets);
-      await tester.tap(find.text('File').first);
-      expect(picked?.key, 'file');
+      const strings = FlareStrings();
+      expect(find.text(strings.actionImage), findsWidgets);
+      await tester.tap(find.text(strings.actionFile).first);
+      expect(picked?.id, 'file');
     });
   });
 
@@ -112,10 +113,75 @@ void main() {
       await tester.pumpWidget(_host(FlareMessageActionSheet(
         onAction: (a) => picked = a,
       )));
-      expect(find.text('Image'), findsOneWidget);
-      expect(find.text('File'), findsOneWidget);
-      await tester.tap(find.text('File'));
-      expect(picked?.key, 'file');
+      const strings = FlareStrings();
+      expect(find.text(strings.actionImage), findsOneWidget);
+      expect(find.text(strings.actionFile), findsOneWidget);
+      await tester.tap(find.text(strings.actionFile));
+      expect(picked?.id, 'file');
+    });
+
+    test('default set uses the unified ids (vote, not poll)', () {
+      final ids =
+          FlareMessageActionSheet.defaultActions.map((a) => a.id).toList();
+      expect(ids, [
+        'image',
+        'camera',
+        'file',
+        'location',
+        'card',
+        'vote',
+        'task',
+        'schedule',
+      ]);
+      expect(ids, isNot(contains('poll')));
+      // Default tiles carry no baked-in label; it is resolved from strings.
+      for (final a in FlareMessageActionSheet.defaultActions) {
+        expect(a.label, isNull);
+      }
+    });
+
+    testWidgets('default labels follow the FlareStringsScope', (tester) async {
+      await tester.pumpWidget(MaterialApp(
+        home: FlareStringsScope(
+          strings: const FlareStrings().copyWith(
+            actionVote: 'Vote',
+            actionSchedule: 'Schedule',
+          ),
+          child: const Scaffold(body: FlareMessageActionSheet()),
+        ),
+      ));
+      expect(find.text('Vote'), findsOneWidget);
+      expect(find.text('Schedule'), findsOneWidget);
+      // fields the host did not override keep the kit default
+      expect(find.text(const FlareStrings().actionImage), findsOneWidget);
+    });
+
+    testWidgets('an explicit label overrides the strings default',
+        (tester) async {
+      await tester.pumpWidget(_host(const FlareMessageActionSheet(
+        actions: [
+          FlareComposerAction(
+              id: 'image', label: 'Photo', icon: Icons.image_outlined),
+          FlareComposerAction(id: 'translate', icon: Icons.translate),
+          FlareComposerAction(id: 'custom', icon: Icons.extension),
+        ],
+      )));
+      expect(find.text('Photo'), findsOneWidget);
+      expect(find.text(const FlareStrings().actionImage), findsNothing);
+      expect(find.text(const FlareStrings().actionTranslate), findsOneWidget);
+      // unknown ids fall back to the id itself rather than rendering blank
+      expect(find.text('custom'), findsOneWidget);
+    });
+
+    test('deprecated key still constructs and reads back as id', () {
+      // ignore: deprecated_member_use
+      const legacy = FlareComposerAction(key: 'file', icon: Icons.folder);
+      expect(legacy.id, 'file');
+      // ignore: deprecated_member_use
+      expect(legacy.key, 'file');
+      const modern = FlareComposerAction(id: 'card', icon: Icons.badge);
+      // ignore: deprecated_member_use
+      expect(modern.key, 'card');
     });
   });
 

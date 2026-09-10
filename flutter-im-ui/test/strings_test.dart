@@ -63,6 +63,33 @@ void main() {
       expect(patched.cancel, base.cancel);
       expect(patched.readTab(1), base.readTab(1));
     });
+
+    test('composer action labels cover the unified action table', () {
+      const s = FlareStrings();
+      final labels = <String>[
+        s.actionImage,
+        s.actionCamera,
+        s.actionVideo,
+        s.actionFile,
+        s.actionLocation,
+        s.actionCard,
+        s.actionVote,
+        s.actionTask,
+        s.actionSchedule,
+        s.actionLink,
+        s.actionAnnouncement,
+        s.actionNotification,
+        s.actionMiniProgram,
+        s.actionTranslate,
+      ];
+      for (final v in labels) {
+        expect(v.trim(), isNotEmpty);
+      }
+      expect(labels.toSet().length, labels.length, reason: 'labels are distinct');
+      final patched = s.copyWith(actionMiniProgram: 'Mini app');
+      expect(patched.actionMiniProgram, 'Mini app');
+      expect(patched.actionTranslate, s.actionTranslate);
+    });
   });
 
   group('FlareStringsScope', () {

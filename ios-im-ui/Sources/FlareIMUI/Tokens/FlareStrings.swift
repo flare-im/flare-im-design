@@ -202,6 +202,8 @@ public struct FlareStrings: Sendable {
     public var today: String
     public var timeRange: String
     public var searchIdleHint: String
+    // Message status
+    public var resend: String
 
     public init(
         microphone: String = "麦克风",
@@ -395,7 +397,8 @@ public struct FlareStrings: Sendable {
         selectDate: String = "选择日期",
         today: String = "今天",
         timeRange: String = "时间范围",
-        searchIdleHint: String = "输入关键词或选择类型"
+        searchIdleHint: String = "输入关键词或选择类型",
+        resend: String = "重新发送"
     ) {
         self.microphone = microphone
         self.camera = camera
@@ -560,6 +563,7 @@ public struct FlareStrings: Sendable {
         self.today = today
         self.timeRange = timeRange
         self.searchIdleHint = searchIdleHint
+        self.resend = resend
     }
 }
 

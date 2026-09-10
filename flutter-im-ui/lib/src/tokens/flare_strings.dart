@@ -140,6 +140,12 @@ class FlareStrings {
     this.actionVote = '投票',
     this.actionTask = '任务',
     this.actionSchedule = '日程',
+    this.actionVideo = '视频',
+    this.actionLink = '链接',
+    this.actionAnnouncement = '公告',
+    this.actionNotification = '通知',
+    this.actionMiniProgram = '小程序',
+    this.actionTranslate = '翻译',
     // 来电
     this.incomingVideoCall = '邀请你进行视频通话',
     this.incomingVoiceCall = '邀请你进行语音通话',
@@ -306,6 +312,12 @@ class FlareStrings {
   final String actionVote;
   final String actionTask;
   final String actionSchedule;
+  final String actionVideo;
+  final String actionLink;
+  final String actionAnnouncement;
+  final String actionNotification;
+  final String actionMiniProgram;
+  final String actionTranslate;
   // 来电
   final String incomingVideoCall;
   final String incomingVoiceCall;
@@ -455,6 +467,12 @@ class FlareStrings {
     String? actionVote,
     String? actionTask,
     String? actionSchedule,
+    String? actionVideo,
+    String? actionLink,
+    String? actionAnnouncement,
+    String? actionNotification,
+    String? actionMiniProgram,
+    String? actionTranslate,
     String? incomingVideoCall,
     String? incomingVoiceCall,
     String? reject,
@@ -600,6 +618,12 @@ class FlareStrings {
       actionVote: actionVote ?? this.actionVote,
       actionTask: actionTask ?? this.actionTask,
       actionSchedule: actionSchedule ?? this.actionSchedule,
+      actionVideo: actionVideo ?? this.actionVideo,
+      actionLink: actionLink ?? this.actionLink,
+      actionAnnouncement: actionAnnouncement ?? this.actionAnnouncement,
+      actionNotification: actionNotification ?? this.actionNotification,
+      actionMiniProgram: actionMiniProgram ?? this.actionMiniProgram,
+      actionTranslate: actionTranslate ?? this.actionTranslate,
       incomingVideoCall: incomingVideoCall ?? this.incomingVideoCall,
       incomingVoiceCall: incomingVoiceCall ?? this.incomingVoiceCall,
       reject: reject ?? this.reject,

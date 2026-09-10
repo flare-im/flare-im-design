@@ -46,3 +46,16 @@ it("keeps failed group edits, blocks empty names, and awaits a successful retry"
   await flushPromises();
   expect(form.props("open")).toBe(false);
 });
+it("emits openChat with positional (userIds, name) like the native onOpenChat", async () => {
+  host = mount(defineComponent({ setup() {
+    useFlareI18nProvider("zh-CN");
+    return () => h(FlareGroupDetail as Component, {
+      model: { groupId: "g", name: "Team", members: [{ id: "a", name: "A" }, { id: "b", name: "B" }], memberCount: 2,
+        ownerId: "a", adminIds: [], mutedIds: [], canManage: false, isOwner: false },
+    });
+  } }), { attachTo: document.body });
+  await flushPromises();
+  await host.find(".flare-group-detail__foot button").trigger("click");
+  const detail = host.findComponent(FlareGroupDetail);
+  expect(detail.emitted("openChat")?.[0]).toEqual([["a", "b"], "Team"]);
+});

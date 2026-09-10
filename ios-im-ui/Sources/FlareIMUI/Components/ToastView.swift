@@ -11,14 +11,23 @@ public struct ToastView: View {
     private let variant: ToastVariant
     private let actionLabel: String?
     private let onAction: (() -> Void)?
+    private let onClose: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
     @State private var animating = false
 
+    /// - Parameter onClose: Dismiss handler. The close button is only rendered
+    ///   when a handler is supplied (no dead controls); the host removes the toast.
     public init(message: String, variant: ToastVariant = .info,
-                actionLabel: String? = nil, onAction: (() -> Void)? = nil) {
+                actionLabel: String? = nil, onAction: (() -> Void)? = nil,
+                onClose: (() -> Void)? = nil) {
         self.message = message; self.variant = variant
         self.actionLabel = actionLabel; self.onAction = onAction
+        self.onClose = onClose
     }
+
+    /// Whether the close affordance is shown — mirrors Flutter/Compose `onClose`.
+    static func showsClose(_ onClose: (() -> Void)?) -> Bool { onClose != nil }
 
     private var icon: String {
         switch variant {
@@ -51,6 +60,17 @@ public struct ToastView: View {
                 Button { onAction?() } label: {
                     Text(label).font(.system(size: FlareSizes.fontSizeLg, weight: .semibold)).foregroundColor(colors.primary)
                 }.buttonStyle(.plain)
+            }
+            if let onClose, Self.showsClose(onClose) {
+                Button(action: onClose) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: FlareSizes.fontSizeSm, weight: .semibold))
+                        .foregroundColor(colors.textTertiary)
+                        .frame(width: 24, height: 24)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(strings.close)
             }
         }
         .padding(.vertical, 11).padding(.horizontal, 14)

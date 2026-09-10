@@ -106,7 +106,7 @@ struct FlareContactList_Previews: PreviewProvider {
 }
 
 struct FlareContactDetail_Previews: PreviewProvider {
-    static var previews: some View { ContactDetailView(contact: Contact(id: "u2", name: "Ivy Chen", signature: "设计即沟通", presence: .online)).padding() }
+    static var previews: some View { FlareContactDetail(contact: Contact(id: "u2", name: "Ivy Chen", signature: "设计即沟通", presence: .online)).padding() }
 }
 
 struct FlareGroupList_Previews: PreviewProvider {

@@ -1,0 +1,60 @@
+{
+  "ConversationDetails": {
+    "flutter": {
+      "missingProps": [
+        "tone"
+      ],
+      "missingEvents": [],
+      "extraEvents": []
+    },
+    "ios": {
+      "missingProps": [
+        "tone"
+      ],
+      "missingEvents": [],
+      "extraEvents": []
+    },
+    "compose": {
+      "missingProps": [
+        "tone"
+      ],
+      "missingEvents": [],
+      "extraEvents": []
+    }
+  },
+  "Toast": {
+    "flutter": {
+      "missingProps": [
+        "tone"
+      ],
+      "missingEvents": [],
+      "extraEvents": []
+    },
+    "ios": {
+      "missingProps": [
+        "tone"
+      ],
+      "missingEvents": [],
+      "extraEvents": []
+    },
+    "compose": {
+      "missingProps": [
+        "tone"
+      ],
+      "missingEvents": [],
+      "extraEvents": []
+    }
+  },
+  "PrimaryButton": {
+    "compose": {
+      "missingProps": [
+        "label",
+        "loadingLabel",
+        "disabled",
+        "icon"
+      ],
+      "missingEvents": [],
+      "extraEvents": []
+    }
+  }
+}

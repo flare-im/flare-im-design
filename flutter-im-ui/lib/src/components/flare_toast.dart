@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 
 /// Visual style of a [FlareToast].
 enum FlareToastVariant { info, success, error, warning, loading }
 
-/// Transient toast pill — an icon + message, optional inline action. The
-/// loading variant spins its icon. Spec: General/Toast (`FlareToast`).
+/// Transient toast pill — an icon + message, optional inline action and an
+/// optional close button. The loading variant spins its icon.
+/// Spec: General/Toast (`FlareToast`).
 class FlareToast extends StatefulWidget {
   const FlareToast({
     super.key,
@@ -14,12 +16,17 @@ class FlareToast extends StatefulWidget {
     this.variant = FlareToastVariant.info,
     this.actionLabel,
     this.onAction,
+    this.onClose,
   });
 
   final String message;
   final FlareToastVariant variant;
   final String? actionLabel;
   final VoidCallback? onAction;
+
+  /// Contract event `close`. When non-null a close button is shown after the
+  /// message / action; when null no button renders (the host owns dismissal).
+  final VoidCallback? onClose;
 
   @override
   State<FlareToast> createState() => _FlareToastState();
@@ -93,6 +100,7 @@ class _FlareToastState extends State<FlareToast> with SingleTickerProviderStateM
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(Theme.of(context).brightness);
+    final strings = FlareStrings.of(context);
     Widget icon = Icon(_icon, size: 18, color: _iconColor(colors));
     if (widget.variant == FlareToastVariant.loading && _spin != null) {
       icon = RotationTransition(turns: _spin!, child: icon);
@@ -127,6 +135,21 @@ class _FlareToastState extends State<FlareToast> with SingleTickerProviderStateM
                       color: colors.primary,
                       fontSize: FlareSizes.fontSizeLg,
                       fontWeight: FontWeight.w600)),
+            ),
+          ],
+          if (widget.onClose != null) ...[
+            const SizedBox(width: 8),
+            Semantics(
+              button: true,
+              label: strings.close,
+              child: InkWell(
+                onTap: widget.onClose,
+                borderRadius: BorderRadius.circular(FlareSizes.radiusFull),
+                child: Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: Icon(Icons.close, size: 16, color: colors.textTertiary),
+                ),
+              ),
             ),
           ],
         ],

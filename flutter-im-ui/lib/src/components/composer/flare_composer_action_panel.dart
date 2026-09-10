@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../tokens/flare_strings.dart';
 import '../../tokens/flare_tokens.dart';
 import '../flare_message_action_sheet.dart'
     show FlareComposerAction, FlareMessageActionSheet;
@@ -28,6 +29,7 @@ class FlareComposerActionPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(Theme.of(context).brightness);
+    final strings = FlareStrings.of(context);
     final rows = <List<FlareComposerAction>>[];
     for (var i = 0; i < actions.length; i += crossAxisCount) {
       rows.add(actions.sublist(
@@ -45,7 +47,7 @@ class FlareComposerActionPanel extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: FlareSizes.spacingLg),
               child: Row(
                 children: [
-                  for (final a in row) Expanded(child: _tile(a, colors)),
+                  for (final a in row) Expanded(child: _tile(a, colors, strings)),
                   for (var k = row.length; k < crossAxisCount; k++)
                     const Expanded(child: SizedBox.shrink()),
                 ],
@@ -56,7 +58,8 @@ class FlareComposerActionPanel extends StatelessWidget {
     )));
   }
 
-  Widget _tile(FlareComposerAction action, FlareColors colors) {
+  Widget _tile(
+      FlareComposerAction action, FlareColors colors, FlareStrings strings) {
     return InkWell(
       onTap: () => onAction?.call(action),
       borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
@@ -73,7 +76,7 @@ class FlareComposerActionPanel extends StatelessWidget {
             child: Icon(action.icon, color: colors.textPrimary, size: 20),
           ),
           const SizedBox(height: FlareSizes.spacingXs),
-          Text(action.label,
+          Text(action.resolveLabel(strings),
               style: TextStyle(
                   color: colors.textSecondary, fontSize: FlareSizes.fontSizeXs)),
         ],

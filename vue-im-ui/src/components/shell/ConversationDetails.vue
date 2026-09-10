@@ -3,15 +3,32 @@ import { computed } from "vue";
 import { NButton, NDivider, NTag } from "naive-ui";
 import Avatar from "../conversation/FlareAvatar.vue";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
-import type { Conversation } from "@flare-im/sdk/web";
+import type { FlareConversationDetailsModel } from "../../shared/contracts/conversation";
+import { toneFromLegacyConnectionTone, type FlareLegacyConnectionTone, type FlareTone } from "../../shared/contracts/tone";
 
-const props = defineProps<{
-  conversation?: Readonly<Conversation>;
-  connectionText: string;
-  connectionTone: "success" | "warning" | "default";
-  messageCount: number;
-  latestMessageId: string;
-}>();
+const props = withDefaults(
+  defineProps<{
+    /** Structural view of the SDK conversation (the SDK object is assignable). */
+    conversation?: Readonly<FlareConversationDetailsModel>;
+    connectionText: string;
+    /** Semantic tone of the connection tag (shared FlareTone enum). */
+    tone?: FlareTone;
+    /** @deprecated Use `tone`; `default` maps to `neutral`. Still honoured when `tone` is unset. */
+    connectionTone?: FlareLegacyConnectionTone;
+    messageCount: number;
+    latestMessageId: string;
+  }>(),
+  { conversation: undefined, tone: undefined, connectionTone: undefined },
+);
+
+/** naive-ui tag type for a FlareTone — the only place the naive enum is spelled. */
+const TAG_TYPE: Record<FlareTone, "info" | "success" | "warning" | "error" | "default"> = {
+  info: "info",
+  success: "success",
+  warning: "warning",
+  danger: "error",
+  neutral: "default",
+};
 
 const emit = defineEmits<{
   (event: "sync"): void;
@@ -27,13 +44,17 @@ const emit = defineEmits<{
 
 const { t } = useFlareI18n();
 
+const resolvedTone = computed<FlareTone>(() => props.tone ?? toneFromLegacyConnectionTone(props.connectionTone));
+const tagType = computed(() => TAG_TYPE[resolvedTone.value]);
+
 const title = computed(() => props.conversation?.displayName || t("conversationDetails.title"));
 const subtitle = computed(() => {
   const item = props.conversation;
   if (!item) return t("conversationDetails.selectHint");
-  if (item.conversationType === "group") return t("conversationDetails.members", { count: item.membersCount });
-  if (item.conversationType === "ai") return t("conversationDetails.assistant");
-  return item.channelId;
+  const kind = String(item.conversationType ?? "").toLowerCase();
+  if (kind === "group") return t("conversationDetails.members", { count: item.membersCount ?? 0 });
+  if (kind === "ai") return t("conversationDetails.assistant");
+  return item.channelId ?? "";
 });
 </script>
 
@@ -42,7 +63,7 @@ const subtitle = computed(() => {
     <template v-if="conversation">
       <section class="details-hero">
         <Avatar
-          :user-id="conversation.channelId"
+          :user-id="conversation.channelId || conversation.conversationId"
           :display-name="title"
           :avatar-url="conversation.avatarUrl"
           :size="56"
@@ -51,7 +72,7 @@ const subtitle = computed(() => {
         <h2>{{ title }}</h2>
         <p>{{ subtitle }}</p>
         <div class="details-tags">
-          <n-tag round size="small" :type="connectionTone">{{ connectionText }}</n-tag>
+          <n-tag round size="small" :type="tagType" :data-tone="resolvedTone">{{ connectionText }}</n-tag>
           <n-tag v-if="conversation.isPinned" round size="small" type="info">{{ t("conversationDetails.pinned") }}</n-tag>
           <n-tag v-if="conversation.isMuted" round size="small">{{ t("conversationDetails.muted") }}</n-tag>
         </div>
@@ -79,8 +100,8 @@ const subtitle = computed(() => {
       <section class="details-section">
         <div class="pane-title">{{ t("conversationDetails.status") }}</div>
         <dl>
-          <div><dt>{{ t("conversationDetails.channel") }}</dt><dd>{{ conversation.channelId }}</dd></div>
-          <div><dt>{{ t("conversationDetails.unread") }}</dt><dd>{{ conversation.unreadCount }}</dd></div>
+          <div><dt>{{ t("conversationDetails.channel") }}</dt><dd>{{ conversation.channelId || "-" }}</dd></div>
+          <div><dt>{{ t("conversationDetails.unread") }}</dt><dd>{{ conversation.unreadCount ?? 0 }}</dd></div>
           <div><dt>{{ t("conversationDetails.messages") }}</dt><dd>{{ messageCount }}</dd></div>
         </dl>
         <details class="details-diagnostics">

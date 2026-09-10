@@ -24,9 +24,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
 
 /**
+ * Long-press opens the message menu only outside multi-select mode (in
+ * multi-select the whole row is tap-to-toggle instead) — same as Flutter.
+ */
+internal fun messageListLongPressEnabled(multiSelectMode: Boolean, hasLongPress: Boolean): Boolean =
+    hasLongPress && !multiSelectMode
+
+/**
  * The message thread — grouping, media state. Spec: Message/MessageList
  * (`MessageList`). `LazyColumn` is virtualised (O(visible)); order is
  * oldest→newest. The host feeds [messages] from the timeline view.
+ *
+ * Multi-select (names shared with Flutter/iOS): [multiSelectMode] + [selectedIds]
+ * are host state; [onToggleSelect] receives the message id. While in
+ * multi-select mode [onMessageLongPress] is not wired.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -47,6 +58,9 @@ fun MessageList(
     onLoadOlder: (() -> Unit)? = null,
     conversationId: String? = null,
     listState: LazyListState = rememberLazyListState(),
+    multiSelectMode: Boolean = false,
+    selectedIds: Set<String> = emptySet(),
+    onToggleSelect: ((String) -> Unit)? = null,
 ) {
     val colors = flareColors()
     var requested by remember(conversationId) { mutableStateOf(false) }
@@ -66,11 +80,13 @@ fun MessageList(
                 if (loading) CircularProgressIndicator() else EmptyState(title = emptyText)
             }
         } else LazyColumn(Modifier.weight(1f).fillMaxWidth(), state = listState) {
+            val longPress = messageListLongPressEnabled(multiSelectMode, onMessageLongPress != null)
             itemsIndexed(messages, key = { _, msg -> msg.id }) { index, msg ->
-                Box(if (onMessageLongPress != null) Modifier.combinedClickable(onClick = {}, onLongClick = { onMessageLongPress(msg) }) else Modifier) {
+                Box(if (longPress) Modifier.combinedClickable(onClick = {}, onLongClick = { onMessageLongPress?.invoke(msg) }) else Modifier) {
                     MessageBubble(message = msg, currentUserId = currentUserId, conversationKind = conversationKind,
                         groupStart = isGroupStart(messages, index), groupEnd = isGroupEnd(messages, index),
-                        mediaState = mediaDownloadStates[msg.id], onMediaAction = onMediaAction, onResend = onResend)
+                        mediaState = mediaDownloadStates[msg.id], onMediaAction = onMediaAction, onResend = onResend,
+                        multiSelectMode = multiSelectMode, selected = msg.id in selectedIds, onToggleSelect = onToggleSelect)
                 }
             }
         }

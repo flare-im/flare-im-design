@@ -9,7 +9,7 @@ import 'flare_time_stamp.dart';
 /// A single inbox row — avatar, title, preview/draft, unread badge, time, and
 /// mute/pin markers. Spec: Conversation/ConversationRow (`FlareConversationRow`).
 ///
-/// Pure/presentational: it renders [item] and raises [onSelect] / [onAction];
+/// Pure/presentational: it renders [item] and raises [onSelect] / [onLongPress];
 /// pinning, deletion, navigation etc. are the host's to wire.
 class FlareConversationRow extends StatelessWidget {
   const FlareConversationRow({
@@ -20,9 +20,13 @@ class FlareConversationRow extends StatelessWidget {
     this.draftLabel = '[Draft] ',
     this.mentionLabel = '[@me] ',
     this.onSelect,
-    this.onAction,
+    VoidCallback? onLongPress,
+    @Deprecated('Use onLongPress; onAction is forwarded to it and will be removed.')
+    VoidCallback? onAction,
     this.previewSpansBuilder,
-  });
+  })  : onLongPress = onLongPress ?? onAction,
+        // ignore: deprecated_member_use_from_same_package
+        onAction = onAction;
 
   final ConversationRowData item;
 
@@ -50,7 +54,13 @@ class FlareConversationRow extends StatelessWidget {
   /// Tap.
   final VoidCallback? onSelect;
 
-  /// Long-press / secondary action (host shows its own menu).
+  /// Long-press / secondary action (host shows its own menu). Contract event
+  /// `longPress` — same name as iOS / Compose.
+  final VoidCallback? onLongPress;
+
+  /// Legacy name of [onLongPress]. Still honoured: when [onLongPress] is not
+  /// given the value passed here is forwarded to it.
+  @Deprecated('Use onLongPress; onAction is forwarded to it and will be removed.')
   final VoidCallback? onAction;
 
   @override
@@ -64,7 +74,7 @@ class FlareConversationRow extends StatelessWidget {
       color: rowColor,
       child: InkWell(
         onTap: onSelect,
-        onLongPress: onAction,
+        onLongPress: onLongPress,
         child: Padding(
           padding: const EdgeInsets.symmetric(
             vertical: FlareSizes.spacingMd,

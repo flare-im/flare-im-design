@@ -2,10 +2,12 @@
 // A compact status strip (connection / sync / runtime state) with an optional
 // pulsing dot and an optional inline action. Replaces the per-app bespoke
 // runtime/connection/sync banners.
+import type { FlareTone } from "../../shared/contracts/tone";
+
 withDefaults(
   defineProps<{
     text: string;
-    tone?: "info" | "success" | "warning" | "danger" | "neutral";
+    tone?: FlareTone;
     dot?: boolean;
     pulse?: boolean;
     actionText?: string;

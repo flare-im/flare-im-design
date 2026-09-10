@@ -1,25 +1,55 @@
+<script lang="ts">
+/** Presence shown as the avatar's status dot (shared lexicon with the native kits). */
+export type FlarePresence = "online" | "offline" | "busy" | "away";
+</script>
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { useResolvedMediaUrl } from "../../composables/useMediaResolver";
 import { avatarTint } from "../../shared/avatar-tint";
+import { translateFlare } from "../../shared/i18n/messages";
 
+/**
+ * Identity avatar. Accepts the shared `FlareIdentity` shape (`id` / `name` /
+ * `avatarUrl`) as well as the original `userId` / `displayName` names — either
+ * pair works, `userId` / `displayName` win when both are given.
+ */
 const props = withDefaults(
   defineProps<{
-    userId: string;
+    userId?: string;
+    /** Alias of `userId` (FlareIdentity.id). */
+    id?: string;
     displayName?: string;
+    /** Alias of `displayName` (FlareIdentity.name). */
+    name?: string;
     avatarUrl?: string;
     size?: number;
+    /** Presence dot; omit (or `undefined`) to hide the dot. */
+    presence?: FlarePresence;
+    /** @deprecated Use `presence`; still honoured (`showStatus && status` maps to `presence`). */
     showStatus?: boolean;
-    status?: "online" | "offline" | "busy";
+    /** @deprecated Use `presence`; still honoured together with `showStatus`. */
+    status?: FlarePresence;
   }>(),
   {
+    userId: "",
+    id: "",
     displayName: "",
+    name: "",
     avatarUrl: "",
     size: 40,
+    presence: undefined,
     showStatus: false,
     status: "offline",
   },
 );
+
+const identityId = computed(() => props.userId || props.id || "");
+const identityName = computed(() => props.displayName || props.name || "");
+/** Effective presence: the new prop wins; the deprecated pair only applies when `showStatus` is set. */
+const resolvedPresence = computed<FlarePresence | null>(
+  () => props.presence ?? (props.showStatus ? props.status : null),
+);
+const presenceLabel = computed(() => (resolvedPresence.value ? translateFlare(`chat.${resolvedPresence.value}`) : ""));
 
 const imageFailed = ref(false);
 
@@ -39,7 +69,7 @@ const displaySrc = computed(() =>
 );
 
 const initials = computed(() => {
-  const source = props.displayName || props.userId || "U";
+  const source = identityName.value || identityId.value || "U";
   return source.trim().slice(0, 1).toUpperCase();
 });
 
@@ -47,7 +77,7 @@ const initials = computed(() => {
 // than a saturated solid and stays legible in both themes. Seeded by the stable
 // display name (via the shared util) so the same person is the same colour on
 // every surface — list, chat header, message bubbles.
-const tint = computed(() => avatarTint(props.displayName || props.userId));
+const tint = computed(() => avatarTint(identityName.value || identityId.value));
 
 const style = computed(() => ({
   width: `${props.size}px`,
@@ -66,7 +96,7 @@ watch(displaySrc, () => {
       v-if="displaySrc && !imageFailed"
       class="im-avatar__image"
       :src="displaySrc"
-      :alt="displayName || userId"
+      :alt="identityName || identityId"
       @error="imageFailed = true"
     />
     <span
@@ -76,7 +106,15 @@ watch(displaySrc, () => {
     >
       {{ initials }}
     </span>
-    <i v-if="showStatus" class="im-avatar__status" :class="`im-avatar__status--${status}`" />
+    <i
+      v-if="resolvedPresence"
+      class="im-avatar__status"
+      :class="`im-avatar__status--${resolvedPresence}`"
+      role="img"
+      :aria-label="presenceLabel"
+      :title="presenceLabel"
+      :data-presence="resolvedPresence"
+    />
   </span>
 </template>
 
@@ -125,6 +163,10 @@ watch(displaySrc, () => {
 
 .im-avatar__status--busy {
   background: var(--im-danger, var(--flare-color-error, #ef4444));
+}
+
+.im-avatar__status--away {
+  background: var(--im-warning, var(--flare-color-warning, #f59e0b));
 }
 
 .im-avatar__status--offline {

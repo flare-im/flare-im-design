@@ -2,18 +2,22 @@ package com.flare.im.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.RadioButtonUnchecked
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -24,10 +28,46 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/** What the multi-select layer of [MessageBubble] renders for one row. */
+internal data class MessageSelectionUi(
+    /** Leading check control is shown. */
+    val showCheck: Boolean,
+    /** Tapping the whole row toggles selection. */
+    val toggles: Boolean,
+    /** Row background uses `bgSelected`. */
+    val highlighted: Boolean,
+)
+
+/**
+ * Multi-select rules, same as Flutter `FlareMessageBubble`: the check control
+ * appears in multi-select mode only; the row toggles only when the host also
+ * supplied `onToggleSelect`; the highlight follows `selected` regardless of
+ * mode (so a host can keep the tint while the toolbar animates away). System
+ * notices are never selectable.
+ */
+internal fun messageSelectionUi(
+    multiSelectMode: Boolean,
+    selected: Boolean,
+    hasToggle: Boolean,
+    isSystem: Boolean = false,
+): MessageSelectionUi {
+    if (isSystem) return MessageSelectionUi(showCheck = false, toggles = false, highlighted = false)
+    return MessageSelectionUi(
+        showCheck = multiSelectMode,
+        toggles = multiSelectMode && hasToggle,
+        highlighted = selected,
+    )
+}
+
 /**
  * One message in a thread — content, sender, grouping, delivery status. Spec:
  * Message/MessageBubble (`MessageBubble`). Status comes from the core view
  * (optimistic), never a network wait.
+ *
+ * Multi-select (names shared with Flutter/iOS): [multiSelectMode] shows a leading
+ * check control and makes the whole row tap-to-toggle via [onToggleSelect]
+ * (receives the message id); [selected] tints the row. Default appearance is
+ * unchanged when [multiSelectMode] is false.
  */
 @Composable
 fun MessageBubble(
@@ -39,6 +79,9 @@ fun MessageBubble(
     mediaState: FlareMediaDownloadState? = null,
     onMediaAction: ((FlareMessageData, FlareMessageContent) -> Unit)? = null,
     onResend: ((FlareMessageData) -> Unit)? = null,
+    multiSelectMode: Boolean = false,
+    selected: Boolean = false,
+    onToggleSelect: ((String) -> Unit)? = null,
 ) {
     val colors = flareColors()
     val self = message.senderId == currentUserId
@@ -55,18 +98,36 @@ fun MessageBubble(
     }
 
     val showAvatar = !self && conversationKind != FlareConversationKind.Single && groupStart
+    val selection = messageSelectionUi(multiSelectMode, selected, onToggleSelect != null)
+    val selectLabel = flareStrings().select
     Row(
         // Group-aware rhythm (matches Flutter/iOS/web): a clear breath before a
         // new sender's run, tight within a run.
-        Modifier.fillMaxWidth().padding(
-            start = FlareSizes.spacingMd,
-            end = FlareSizes.spacingMd,
-            top = if (groupStart) FlareSizes.spacingSm else 2.dp,
-            bottom = if (groupEnd) FlareSizes.spacingSm else 2.dp,
-        ),
+        Modifier.fillMaxWidth()
+            .then(if (selection.highlighted) Modifier.background(colors.bgSelected) else Modifier)
+            .then(
+                if (selection.toggles) Modifier.selectable(selected = selected, onClick = { onToggleSelect?.invoke(message.id) })
+                else Modifier,
+            )
+            .padding(
+                start = FlareSizes.spacingMd,
+                end = FlareSizes.spacingMd,
+                top = if (groupStart) FlareSizes.spacingSm else 2.dp,
+                bottom = if (groupEnd) FlareSizes.spacingSm else 2.dp,
+            ),
         horizontalArrangement = if (self) Arrangement.End else Arrangement.Start,
         verticalAlignment = Alignment.Top,
     ) {
+        if (selection.showCheck) {
+            Icon(
+                if (selected) Icons.Rounded.CheckCircle else Icons.Rounded.RadioButtonUnchecked,
+                contentDescription = selectLabel,
+                tint = if (selected) colors.primary else colors.textTertiary,
+                modifier = Modifier.size(22.dp).align(Alignment.CenterVertically),
+            )
+            Spacer(Modifier.width(FlareSizes.spacingSm))
+            if (self) Spacer(Modifier.weight(1f))
+        }
         if (!self) {
             if (showAvatar) Avatar(userId = message.senderId, displayName = message.senderName, size = 34.dp)
             else Spacer(Modifier.width(34.dp))
@@ -125,17 +186,13 @@ private fun bubble(
                         )
                     }
                     if (self) {
-                        Box(
-                            if (message.status == FlareMessageDeliveryStatus.Failed && onResend != null)
-                                Modifier.clickable { onResend(message) } else Modifier,
-                        ) {
-                            MessageStatus(
-                                message.status,
-                                variant = FlareMessageStatusVariant.Compact,
-                                tint = if (message.status == FlareMessageDeliveryStatus.Failed) null
-                                else Color.White.copy(alpha = 0.85f),
-                            )
-                        }
+                        MessageStatus(
+                            message.status,
+                            variant = FlareMessageStatusVariant.Compact,
+                            tint = if (message.status == FlareMessageDeliveryStatus.Failed) null
+                            else Color.White.copy(alpha = 0.85f),
+                            onResend = onResend?.let { cb -> { cb(message) } },
+                        )
                     }
                 }
             }

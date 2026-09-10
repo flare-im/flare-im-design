@@ -1,14 +1,16 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import Avatar from "../conversation/FlareAvatar.vue";
+import type { FlarePresence } from "../conversation/FlareAvatar.vue";
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     title: string;
     subtitle?: string;
     avatarUserId?: string;
     avatarUrl?: string;
     presenceOnAvatar?: boolean;
-    presenceStatus?: "online" | "offline" | "busy";
+    presenceStatus?: FlarePresence;
     typingText?: string;
   }>(),
   {
@@ -20,6 +22,7 @@ withDefaults(
     typingText: "",
   },
 );
+const presence = computed<FlarePresence | undefined>(() => (props.presenceOnAvatar ? props.presenceStatus : undefined));
 </script>
 
 <template>
@@ -29,8 +32,7 @@ withDefaults(
       :display-name="title"
       :avatar-url="avatarUrl"
       :size="44"
-      :show-status="presenceOnAvatar"
-      :status="presenceStatus"
+      :presence="presence"
     />
     <div class="im-chat-identity__body">
       <h2>{{ title }}</h2>

@@ -30,8 +30,21 @@ console.log(components.length); // 组件数量
 | `dataSource` | 数据来自哪个 **core 可观察视图**（L4）——所有端消费同一个 |
 | `props[]` | `{ name, type, required?, default?, desc? }` |
 | `states[]` | 可能的状态（如 pending/sent/read/failed） |
-| `events[]` | 回调/事件名 |
-| `platforms` | `vue / flutter / ios / compose` → `{ package, symbol }`（各端依赖与符号） |
+| `events[]` | 回调/事件名——契约层统一 camelCase；Vue 派生 kebab（`@toggle-select`），原生派生 `on` + Pascal（`onToggleSelect`） |
+| `model` | `{ prop, event }`——表单控件的 v-model 对（`modelValue` / `update:modelValue`）；原生端以受控 value / Binding 表达 |
+| `props[].platforms` | 可选；限定某 prop 只存在于部分端（如 Vue 专属的插槽探测开关） |
+| `eventPlatforms` | 可选 `{ 事件: [端] }`；限定某事件只存在于部分端（如逐动作的消息事件是 Vue 专属，原生端只给 `messageLongPress` 由宿主建菜单） |
+| `platformAliases` | 可选 `{ 端: { props: {…}, events: {…} } }`——组件级的平台惯用名（如 `edit` → `onEditRemark`） |
+| `deprecatedCallbacks` | 可选 `{ 端: [名] }`——保留一个版本的旧回调名，不算未声明 |
+| `platforms` | `vue / flutter / ios / compose` → `{ package, symbol }`（各端依赖与符号）。Vue 符号必须是 `components/index.ts` 的导出名 |
+
+所有组件共用的顶层表：
+
+| 字段 | 含义 |
+|---|---|
+| `lexicon` | 契约术语 → 各端合法别名（`conversationType` → `conversationKind`、`ariaLabel` → `semanticLabel` / `accessibilityLabel` / `contentDescription` 等） |
+| `eventAliases` | 契约事件 → 各端惯用回调（默认派生之外）：`click` → `onPressed` / `action` / `onClick`，`change` → `onChanged`，`submit` → `onSubmitted` |
+| `composerActions` | 四端 MessageActionSheet 共用的附件动作 id 表（`image`、`camera`、`file`、`location`、`card`、`vote`、`task`、`schedule`…） |
 
 <!-- CATALOG:START -->
 ## 组件目录
@@ -73,8 +86,13 @@ props/events 从 `@flare-im/vue-ui` 源码抽取校准）。
 ```bash
 node validate.mjs
 ```
-检查：① 每个组件契约字段完整；② 四端都有 package+symbol；③ **Vue 参考符号（如 `MessageBubble.vue`）确实存在于
-`@flare-im/vue-ui`**——spec 与参考实现对不上就报错。各端 L1 包落地后，扩展校验为「该端符号存在且 props 覆盖」。
+检查：① 每个组件契约字段完整、双语，prop/事件名 camelCase；② 声明的端都有 package+symbol 且符号真实存在（Vue 取 `components/index.ts` 导出；Flutter 类；SwiftUI struct；Compose 函数）；③ **签名**：契约声明的每个 prop 与事件都要能在各端公共签名里找到（按 `lexicon`、`eventAliases`、`platformAliases`、`props[].platforms`、`eventPlatforms` 解释），原生端每个 `onXxx` 回调都要在契约里。历史差异记在 `signature-baseline.json`，只允许缩小：出现新差异就红，差异消失但基线没更新也红。
+
+```bash
+node signature-report.mjs                       # 各端差异总数
+node signature-report.mjs --component MessageList   # 单组件详情
+node signature-report.mjs --baseline            # 差异缩小后重写基线
+```
 
 ## 关系
 - **L4** 数据/行为：`flare-im-core-sdk` client.views（已有）——`dataSource` 指向它。

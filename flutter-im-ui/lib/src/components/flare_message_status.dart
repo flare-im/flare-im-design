@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 
 /// Delivery state of an outgoing message. Neutral spec string union
@@ -17,6 +18,7 @@ class FlareMessageStatus extends StatelessWidget {
     required this.status,
     this.variant = FlareMessageStatusVariant.tick,
     this.tint,
+    this.onResend,
   });
 
   /// Current delivery state.
@@ -29,11 +31,28 @@ class FlareMessageStatus extends StatelessWidget {
   /// failed always keeps the error color for visibility.
   final Color? tint;
 
+  /// Contract event `resend`. Only the [FlareMessageDeliveryStatus.failed]
+  /// glyph is tappable, and only when this is non-null; other states stay
+  /// inert and no affordance is added.
+  final VoidCallback? onResend;
+
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(Theme.of(context).brightness);
     final double dim =
         variant == FlareMessageStatusVariant.compact ? 12 : 14;
+
+    if (status == FlareMessageDeliveryStatus.failed && onResend != null) {
+      return Semantics(
+        button: true,
+        label: FlareStrings.of(context).retry,
+        child: GestureDetector(
+          onTap: onResend,
+          behavior: HitTestBehavior.opaque,
+          child: Icon(Icons.error_outline, size: dim, color: colors.error),
+        ),
+      );
+    }
 
     switch (status) {
       case FlareMessageDeliveryStatus.pending:

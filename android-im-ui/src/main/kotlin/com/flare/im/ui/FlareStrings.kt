@@ -150,6 +150,8 @@ data class FlareStrings(
     val confirmCount: (Int) -> String = { "确定 ($it)" },
     val memberCount: (Int) -> String = { "$it 名成员" },
     val clear: String = "清除",
+    val retry: String = "重试",
+    val select: String = "选择",
     val wordCharCount: (Int, Int) -> String = { w, c -> "$w 个词 · $c 字符" },
     val changeAvatar: String = "更换头像",
     val qrCode: String = "二维码",

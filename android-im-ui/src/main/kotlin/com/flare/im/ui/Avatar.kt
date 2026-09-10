@@ -3,6 +3,7 @@ package com.flare.im.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
@@ -11,20 +12,37 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.SubcomposeAsyncImage
 
 /** Presence state shown as a corner dot on [Avatar]. */
 enum class FlarePresence { Online, Offline, Busy, Away }
+
+/** Which layer [Avatar] paints inside the circle. */
+internal enum class AvatarSource { Slot, Url, Initials }
+
+/**
+ * Resolution order shared with the other three platforms: an explicit [image]
+ * slot wins, then a non-blank [avatarUrl] (loaded with Coil, initials shown
+ * while loading / on error), else deterministic initials.
+ */
+internal fun avatarSource(hasImageSlot: Boolean, avatarUrl: String?): AvatarSource = when {
+    hasImageSlot -> AvatarSource.Slot
+    !avatarUrl.isNullOrBlank() -> AvatarSource.Url
+    else -> AvatarSource.Initials
+}
 
 /**
  * Round user avatar — deterministic initials fallback plus an optional presence
  * dot. Spec: General/Avatar (`Avatar`).
  *
- * The package bundles no image-loading library; pass [image] to render a loaded
- * avatar (e.g. a Coil `AsyncImage`) — otherwise initials are shown.
+ * [avatarUrl] is loaded with the bundled Coil (same prop name as Vue/Flutter;
+ * iOS spells it `avatarURL`). An explicit [image] slot takes precedence over the
+ * url; with neither, initials are shown.
  */
 @Composable
 fun Avatar(
@@ -33,6 +51,7 @@ fun Avatar(
     size: Dp = FlareSizes.avatarSize,
     presence: FlarePresence? = null,
     image: (@Composable () -> Unit)? = null,
+    avatarUrl: String? = null,
 ) {
     val colors = flareColors()
     // Seed by the stable display name (not the id, which varies by surface — peer
@@ -44,15 +63,25 @@ fun Avatar(
             modifier = Modifier.size(size).clip(CircleShape).background(tint.first),
             contentAlignment = Alignment.Center,
         ) {
-            if (image != null) {
-                image()
-            } else {
+            val initialsText: @Composable () -> Unit = {
                 Text(
                     initials(displayName),
                     color = tint.second,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = (size.value * 0.4f).sp,
                 )
+            }
+            when (avatarSource(image != null, avatarUrl)) {
+                AvatarSource.Slot -> image?.invoke()
+                AvatarSource.Url -> SubcomposeAsyncImage(
+                    model = avatarUrl,
+                    contentDescription = displayName.ifEmpty { userId },
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize(),
+                    loading = { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { initialsText() } },
+                    error = { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { initialsText() } },
+                )
+                AvatarSource.Initials -> initialsText()
             }
         }
         if (presence != null) {

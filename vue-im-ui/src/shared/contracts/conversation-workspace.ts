@@ -1,3 +1,4 @@
+import type { FlareTone } from "./tone";
 /**
  * ConversationWorkspace — the one place where the inbox / timeline / detail panes
  * decide between host content, a skeleton, an empty explanation and a failure with
@@ -87,7 +88,7 @@ export function workspaceBannerActionVisible(banner: WorkspaceBanner | null | un
 }
 
 /** StatusBanner tone for a workspace tone; "error" is StatusBanner's "danger". */
-export function workspaceBannerTone(tone?: WorkspaceBannerTone): "info" | "success" | "warning" | "danger" {
+export function workspaceBannerTone(tone?: WorkspaceBannerTone): FlareTone {
   switch (tone) {
     case "warning":
       return "warning";
