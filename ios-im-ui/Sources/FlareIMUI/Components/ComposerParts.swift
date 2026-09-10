@@ -75,9 +75,8 @@ public struct FlareComposerActionPanel: View {
                 Button { onAction?(action) } label: {
                     VStack(spacing: FlareSizes.spacingXs) {
                         ZStack {
-                            RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.bgSecondary)
-                                .frame(width: 52, height: 52)
-                            Image(systemName: action.systemImage).font(.system(size: 24))
+                            Color.clear.frame(width: 44, height: 44)
+                            Image(systemName: action.systemImage).font(.system(size: 20))
                                 .foregroundColor(colors.textPrimary)
                         }
                         Text(action.label).font(.system(size: FlareSizes.fontSizeXs))
@@ -98,14 +97,24 @@ public struct FlareComposerActionPanel: View {
 ///
 /// Same footprint as the send key inside ``ComposerView`` (36pt circle, 18pt
 /// glyph) so a host composing its own bar gets an identical key.
+/// Send — a paper plane, and nothing else.
+///
+/// It used to be a filled brand disc with a white arrow inside. Sending is the
+/// same kind of act as every other key in the tool row — one tap, one outcome —
+/// so it is drawn the same way, and only colour says which one sends: the brand
+/// at rest against the row, faded while there is nothing to send. That is also
+/// what `ComposerView`'s own send key does, and the two must not drift.
 public struct FlareComposerSendButton: View {
     /// Shared with `ComposerView` so the two send keys can't drift.
-    static let side: CGFloat = 36
-    static let glyph: CGFloat = 18
+    static let side: CGFloat = 44
+    static let glyph: CGFloat = 20
+    /// The plane at rest: present, but plainly not ready to be pressed.
+    static let idleOpacity: Double = 0.38
 
     private let active: Bool
     private let onSend: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
 
     public init(active: Bool, onSend: (() -> Void)? = nil) {
         self.active = active
@@ -115,14 +124,15 @@ public struct FlareComposerSendButton: View {
     public var body: some View {
         let colors = FlareColors.of(scheme)
         Button { if active { onSend?() } } label: {
-            Image(systemName: "arrow.up")
-                .font(.system(size: Self.glyph, weight: .semibold))
-                .foregroundColor(active ? .white : colors.textDisabled)
+            Image(systemName: "paperplane")
+                .font(.system(size: Self.glyph))
                 .frame(width: Self.side, height: Self.side)
-                .background(Circle().fill(active ? colors.primary : colors.bgDisabled))
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .foregroundColor(colors.primary.opacity(active ? 1 : Self.idleOpacity))
         .disabled(!active)
+        .accessibilityLabel(Text(strings.send))
     }
 }
 

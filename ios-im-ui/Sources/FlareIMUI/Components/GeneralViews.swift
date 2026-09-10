@@ -45,6 +45,7 @@ public struct InputView: View {
     private let secure: Bool
     private let onSubmit: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
     @FocusState private var focused: Bool
 
     public init(text: Binding<String>, placeholder: String = "", multiline: Bool = false,
@@ -86,12 +87,14 @@ public struct InputView: View {
                 if clearable && !text.isEmpty && !disabled && !secure {
                     Button { text = "" } label: { Image(systemName: "xmark.circle").foregroundColor(colors.textTertiary) }
                         .buttonStyle(.plain)
+                        .accessibilityLabel(strings.clear)
                 }
             }
             .textFieldStyle(.plain)
             .disabled(disabled)
             .padding(.horizontal, FlareSizes.spacingMd)
             .padding(.vertical, FlareSizes.spacingSm)
+            .frame(minHeight: 44)
             .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.bgSecondary))
             .overlay(
                 RoundedRectangle(cornerRadius: FlareSizes.radiusLg)

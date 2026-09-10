@@ -216,13 +216,16 @@ public struct FlareEmojiStickerPicker: View {
     private let onInsertEmoji: ((String) -> Void)?
     private let onSendSticker: ((_ packageId: String, _ stickerId: String) -> Void)?
     private let emojiLabel: String
+    private let height: CGFloat?
+    @Environment(\.locale) private var locale
     @State private var tab = 0
     @Environment(\.colorScheme) private var scheme
 
-    public init(emojiLabel: String = "Emoji",
+    public init(emojiLabel: String = "Emoji", height: CGFloat? = 300,
                 onInsertEmoji: ((String) -> Void)? = nil,
                 onSendSticker: ((_ packageId: String, _ stickerId: String) -> Void)? = nil) {
         self.emojiLabel = emojiLabel
+        self.height = height
         self.onInsertEmoji = onInsertEmoji
         self.onSendSticker = onSendSticker
     }
@@ -239,16 +242,27 @@ public struct FlareEmojiStickerPicker: View {
                 LazyVGrid(columns: columns, spacing: 8) {
                     if current == 0 {
                         ForEach(catalog.loadedEmojiKeys(), id: \.self) { key in
-                            FlareBundleImage(url: catalog.emojiImageURL(key)) { Color.clear }
-                                .frame(width: 40, height: 40)
-                                .onTapGesture { onInsertEmoji?(key) }
+                            Button { onInsertEmoji?(key) } label: {
+                                FlareBundleImage(url: catalog.emojiImageURL(key)) { Text(catalog.emojiBracketLabel(key, locale: locale.identifier)) }
+                                    .frame(width: 32, height: 32)
+                                    .frame(width: 44, height: 44)
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(onInsertEmoji == nil)
+                            .accessibilityLabel(catalog.emojiBracketLabel(key, locale: locale.identifier))
                         }
                     } else {
                         let pack = packs[current - 1]
                         ForEach(pack.stickerIds, id: \.self) { id in
-                            FlareBundleImage(url: catalog.stickerImageURL(stickerId: id, packageId: pack.id)) { Color.clear }
-                                .frame(width: 72, height: 72)
-                                .onTapGesture { onSendSticker?(pack.id, id) }
+                            Button { onSendSticker?(pack.id, id) } label: {
+                                FlareBundleImage(url: catalog.stickerImageURL(stickerId: id, packageId: pack.id)) { Text(id) }
+                                    .frame(width: 72, height: 72)
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(onSendSticker == nil)
+                            .accessibilityLabel("\(pack.title) \(id)")
                         }
                     }
                 }
@@ -260,18 +274,22 @@ public struct FlareEmojiStickerPicker: View {
                     let labels = [emojiLabel] + packs.map { $0.title }
                     ForEach(Array(labels.enumerated()), id: \.offset) { idx, label in
                         let selected = idx == current
+                        Button { tab = idx } label: {
                         Text(label)
                             .font(.system(size: FlareSizes.fontSizeSm, weight: selected ? .semibold : .regular))
                             .foregroundColor(selected ? colors.textPrimary : colors.textSecondary)
                             .padding(.horizontal, 12).padding(.vertical, 6)
                             .background(RoundedRectangle(cornerRadius: FlareSizes.radiusMd)
                                 .fill(selected ? colors.bgHover : Color.clear))
-                            .onTapGesture { tab = idx }
+                            .frame(minHeight: 44)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityAddTraits(selected ? .isSelected : [])
                     }
                 }
                 .padding(.horizontal, 8).padding(.vertical, 6)
             }
         }
-        .frame(height: 300)
+        .frame(height: height)
     }
 }

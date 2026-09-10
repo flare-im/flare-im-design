@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -59,7 +60,7 @@ fun Input(
     val shape = RoundedCornerShape(FlareSizes.radiusLg)
     Column(Modifier.fillMaxWidth()) {
         Row(
-            Modifier.fillMaxWidth()
+            Modifier.fillMaxWidth().heightIn(min = 44.dp)
                 .clip(shape)
                 .background(colors.bgSecondary)
                 .border(1.dp, if (focused) colors.primary else colors.borderPrimary, shape)

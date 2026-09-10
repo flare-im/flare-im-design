@@ -14,18 +14,21 @@ import { useFlareOverlayContainer } from "../../shared/useOverlayContainer";
 const props = withDefaults(
   defineProps<{
     open: boolean;
+    /** Prevent closing while an operation owns the draft. */
+    dismissible?: boolean;
     /** Optional centered header. */
     title?: string;
     /** Cap the sheet height (e.g. "72vh"). */
     maxHeight?: string;
   }>(),
-  { maxHeight: "72vh" },
+  { maxHeight: "72vh", dismissible: true },
 );
 const emit = defineEmits<{ (e: "close"): void }>();
 const overlayContainer = useFlareOverlayContainer();
 const sheetEl = ref<HTMLElement | null>(null);
 let opener: HTMLElement | null = null;
 let holdsLock = false;
+const sheetId = Symbol("sheet");
 
 // --- ref-counted, restoring body scroll-lock (module-scoped across instances) ---
 function lockScroll(): void {
@@ -34,12 +37,15 @@ function lockScroll(): void {
     priorOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
   }
+  openSheets.push(sheetId);
   lockCount += 1;
   holdsLock = true;
 }
 function unlockScroll(): void {
   if (typeof document === "undefined" || !holdsLock) return;
   holdsLock = false;
+  const index = openSheets.indexOf(sheetId);
+  if (index !== -1) openSheets.splice(index, 1);
   lockCount = Math.max(0, lockCount - 1);
   if (lockCount === 0) document.body.style.overflow = priorOverflow;
 }
@@ -54,8 +60,10 @@ function focusables(): HTMLElement[] {
 }
 
 function onKeydown(e: KeyboardEvent): void {
+  if (openSheets.at(-1) !== sheetId) return;
   if (e.key === "Escape") {
-    emit("close");
+    e.preventDefault();
+    if (props.dismissible) emit("close");
     return;
   }
   if (e.key === "Tab" && sheetEl.value) {
@@ -94,6 +102,7 @@ watch(
       opener = null;
     }
   },
+  { immediate: true },
 );
 
 onBeforeUnmount(() => {
@@ -105,6 +114,7 @@ onBeforeUnmount(() => {
 
 <script lang="ts">
 // Shared across all sheet instances so nested/stacked sheets restore correctly.
+const openSheets: symbol[] = [];
 let lockCount = 0;
 let priorOverflow = "";
 </script>
@@ -112,13 +122,14 @@ let priorOverflow = "";
 <template>
   <Teleport :to="overlayContainer">
     <transition name="flare-sheet-fade">
-      <div v-if="open" class="flare-sheet-scrim" @click="emit('close')">
+      <div v-if="open" class="flare-sheet-scrim" @click="dismissible && emit('close')">
         <transition name="flare-sheet-rise" appear>
           <div
             ref="sheetEl"
             class="flare-sheet"
             :style="{ maxHeight }"
             role="dialog"
+            :aria-label="title"
             aria-modal="true"
             tabindex="-1"
             @click.stop

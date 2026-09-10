@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../models/directory_data.dart';
 import '../tokens/flare_tokens.dart';
@@ -18,6 +19,7 @@ class FlareButton extends StatefulWidget {
     this.icon,
     this.onPressed,
     this.child,
+    this.contentPadding,
   });
 
   final String? label;
@@ -29,6 +31,8 @@ class FlareButton extends StatefulWidget {
   final IconData? icon;
   final VoidCallback? onPressed;
   final Widget? child;
+  /// Override inner spacing for composed controls such as compact action tiles.
+  final EdgeInsetsGeometry? contentPadding;
 
   @override
   State<FlareButton> createState() => _FlareButtonState();
@@ -36,29 +40,30 @@ class FlareButton extends StatefulWidget {
 
 class _FlareButtonState extends State<FlareButton> {
   bool _hovering = false;
+  bool _focused = false;
 
   double get _height => switch (widget.size) {
-        FlareControlSize.sm => 32,
-        FlareControlSize.md => 40,
-        FlareControlSize.lg => 48,
-      };
+    FlareControlSize.sm => 32,
+    FlareControlSize.md => 40,
+    FlareControlSize.lg => 48,
+  };
 
   double get _hPad => switch (widget.size) {
-        FlareControlSize.sm => 12,
-        FlareControlSize.md => widget.variant == FlareButtonVariant.text ? 8 : 18,
-        FlareControlSize.lg => 24,
-      };
+    FlareControlSize.sm => 12,
+    FlareControlSize.md => widget.variant == FlareButtonVariant.text ? 8 : 18,
+    FlareControlSize.lg => 24,
+  };
 
   double get _fontSize => switch (widget.size) {
-        FlareControlSize.sm => 13,
-        FlareControlSize.md => 14,
-        FlareControlSize.lg => 15,
-      };
+    FlareControlSize.sm => 13,
+    FlareControlSize.md => 14,
+    FlareControlSize.lg => 15,
+  };
 
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(Theme.of(context).brightness);
-    final off = widget.disabled || widget.loading;
+    final off = widget.disabled || widget.loading || widget.onPressed == null;
 
     late Color background;
     late Color foreground;
@@ -79,22 +84,33 @@ class _FlareButtonState extends State<FlareButton> {
       case FlareButtonVariant.danger:
         background = colors.error;
         foreground = Colors.white;
-        if (_hovering && !off) background = colors.error.withValues(alpha: 0.92);
+        if (_hovering && !off)
+          background = colors.error.withValues(alpha: 0.92);
       case FlareButtonVariant.text:
-        background = _hovering && !off ? colors.bgSecondary : Colors.transparent;
+        background = _hovering && !off
+            ? colors.bgSecondary
+            : Colors.transparent;
         foreground = colors.primary;
     }
 
     Widget label;
     if (widget.child != null) {
       label = DefaultTextStyle.merge(
-        style: TextStyle(color: foreground, fontSize: _fontSize, fontWeight: FontWeight.w600),
-        child: widget.child!,
+        style: TextStyle(
+          color: foreground,
+          fontSize: _fontSize,
+          fontWeight: FontWeight.w600,
+        ),
+        child: IconTheme.merge(data: IconThemeData(color: foreground), child: widget.child!),
       );
     } else {
       label = Text(
         widget.label ?? '',
-        style: TextStyle(color: foreground, fontSize: _fontSize, fontWeight: FontWeight.w600),
+        style: TextStyle(
+          color: foreground,
+          fontSize: _fontSize,
+          fontWeight: FontWeight.w600,
+        ),
       );
     }
 
@@ -117,26 +133,48 @@ class _FlareButtonState extends State<FlareButton> {
       ],
     );
 
-    return Opacity(
-      opacity: widget.disabled ? 0.5 : 1,
-      child: MouseRegion(
-        cursor: off ? SystemMouseCursors.basic : SystemMouseCursors.click,
-        onEnter: (_) => setState(() => _hovering = true),
-        onExit: (_) => setState(() => _hovering = false),
-        child: GestureDetector(
-          onTap: off ? null : widget.onPressed,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            height: _height,
-            width: widget.block ? double.infinity : null,
-            alignment: Alignment.center,
-            padding: EdgeInsets.symmetric(horizontal: _hPad),
-            decoration: BoxDecoration(
-              color: background,
-              borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
-              border: Border.all(color: borderColor),
+    return Semantics(
+      button: true,
+      enabled: !off,
+      child: FocusableActionDetector(
+        enabled: !off,
+        onShowFocusHighlight: (value) => setState(() => _focused = value),
+        shortcuts: const {
+          SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
+          SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
+        },
+        actions: {
+          ActivateIntent: CallbackAction<ActivateIntent>(
+            onInvoke: (_) {
+              if (!off) widget.onPressed?.call();
+              return null;
+            },
+          ),
+        },
+        child: Opacity(
+          opacity: widget.disabled || widget.onPressed == null ? 0.5 : 1,
+          child: MouseRegion(
+            cursor: off ? SystemMouseCursors.basic : SystemMouseCursors.click,
+            onEnter: (_) => setState(() => _hovering = true),
+            onExit: (_) => setState(() => _hovering = false),
+            child: GestureDetector(
+              onTap: off ? null : widget.onPressed,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                height: _height,
+                width: widget.block ? double.infinity : null,
+                padding: widget.contentPadding ?? EdgeInsets.symmetric(horizontal: _hPad),
+                decoration: BoxDecoration(
+                  color: background,
+                  borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
+                  border: Border.all(
+                    color: _focused && !off ? colors.primary : borderColor,
+                    width: _focused && !off ? 2 : 1,
+                  ),
+                ),
+                child: row,
+              ),
             ),
-            child: row,
           ),
         ),
       ),

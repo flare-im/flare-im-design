@@ -2816,8 +2816,8 @@
       "name": "ComposerSendButton",
       "category": "Composer",
       "summary": {
-        "en": "Send button (发送) — brand-purple when active, disabled otherwise. A composable Composer part.",
-        "zh": "发送按钮 —— active 时品牌紫、否则禁用。可自由组合的 Composer 部件。"
+        "en": "Send (发送) — a paper plane, not a filled disc; the brand colour carries the state and fades while there is nothing to send. A composable Composer part.",
+        "zh": "发送 —— 一枚纸飞机，不是填充圆钮；状态由品牌色表达，没有内容可发时褪色。可自由组合的 Composer 部件。"
       },
       "dataSource": {
         "en": "presentational — an `active` flag in, a `send` callback out (only when active)",

@@ -173,13 +173,15 @@ fun MomentsCoverHeader(
     onEditCover: (() -> Unit)? = null,
     onAvatar: (() -> Unit)? = null,
 ) {
+    // Aurora stops come from the token ramp so the cover tracks the brand hue.
+    val colors = flareColors()
     // White text over the cover — legible on any photo. A soft shadow lifts each glyph off the image.
     val titleShadow = Shadow(color = Color(0x73000000), offset = Offset(0f, 1f), blurRadius = 6f)
     val sigShadow = Shadow(color = Color(0x66000000), offset = Offset(0f, 1f), blurRadius = 4f)
     Column(Modifier.fillMaxWidth().padding(bottom = 20.dp)) {
         Box(
             Modifier.fillMaxWidth().height(240.dp)
-                .background(Brush.linearGradient(listOf(Color(0xFF3B1F7A), Color(0xFF7C3AED), Color(0xFFA78BFA))))
+                .background(Brush.linearGradient(listOf(colors.auroraDeep, colors.auroraBase, colors.auroraSoft)))
                 .clickable { onEditCover?.invoke() },
         ) {
             if (coverUrl != null) {

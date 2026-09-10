@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { messageSearchRange, messageSearchRangeLabels, type MessageSearchRangePreset } from "../shared/messageSearchRanges";
 import { computed, ref, watch, onBeforeUnmount } from "vue";
 import { describeSdkError } from "../../shared/errors/describeSdkError";
 import {
@@ -20,7 +19,6 @@ import {
   SearchOutline,
   SettingsOutline,
   SyncOutline,
-  TimeOutline,
   TrashOutline,
   VideocamOutline,
 } from "../../shared/icon-glyphs";
@@ -87,8 +85,6 @@ const chatSearchOpen = ref(false);
 const messageLocation = ref<{ conversationId: string; messageId: string } | null>(null);
 const chatSearchQuery = ref("");
 const chatSearchKind = ref<ChatSearchKindValue>("all");
-const chatSearchRange = ref<MessageSearchRangePreset>("any");
-const chatSearchRangeLabels = computed(() => messageSearchRangeLabels(locale.value));
 const chatSearchLoading = ref(false);
 let searchGeneration = 0;
 function invalidateSearchPresentation() {
@@ -172,17 +168,6 @@ const chatSearchResults = computed(() => sdk.messageSearchResults.value);
 const chatSearchCanSubmit = computed(() =>
   Boolean(sdk.activeConversationId.value && chatSearchQuery.value.trim() && !chatSearchLoading.value),
 );
-const chatSearchSummaryText = computed(() => {
-  if (chatSearchLoading.value) return t("workbench.searchingCurrentConv");
-  if (chatSearchError.value) return t("workbench.searchFailed");
-  if (!chatSearchSearched.value) return t("workbench.searchStartHint");
-  return t("workbench.resultsCount", { count: chatSearchResults.value.length });
-});
-const chatSearchActiveConversationText = computed(() => {
-  const target = activeConversation.value;
-  if (!target) return t("workbench.noConvSelected");
-  return conversationTitle(target, sdk.currentUserId.value || sdk.form.userId) || target.conversationId;
-});
 const chatSearchLastKindLabel = computed(() =>
   chatSearchKindOptions.find((option) => option.value === chatSearchLastKind.value)?.label ?? t("workbench.kind.all"),
 );
@@ -279,9 +264,20 @@ function chatSearchResultTime(message: ChatSearchResultMessage): string {
   return t("workbench.monthDayTime", { month: date.getMonth() + 1, day: date.getDate(), time });
 }
 
-function chatSearchResultSeq(message: ChatSearchResultMessage): string {
-  const seq = Number(message.conversationSeq);
-  return Number.isFinite(seq) && seq > 0 ? `seq ${seq}` : t("workbench.localMessage");
+function searchHighlight(text: string): Array<{ text: string; match: boolean }> {
+  const query = chatSearchLastQuery.value.trim();
+  if (!query) return [{ text, match: false }];
+  const parts: Array<{ text: string; match: boolean }> = [];
+  let cursor = 0;
+  let at = text.toLowerCase().indexOf(query.toLowerCase());
+  while (at !== -1) {
+    if (at > cursor) parts.push({ text: text.slice(cursor, at), match: false });
+    parts.push({ text: text.slice(at, at + query.length), match: true });
+    cursor = at + query.length;
+    at = text.toLowerCase().indexOf(query.toLowerCase(), cursor);
+  }
+  if (cursor < text.length) parts.push({ text: text.slice(cursor), match: false });
+  return parts;
 }
 
 function openSearchResult(message: ChatSearchResultMessage): void {
@@ -389,7 +385,7 @@ async function searchMessages(): Promise<void> {
   chatSearchLastQuery.value = query;
   chatSearchLastKind.value = chatSearchKind.value;
   try {
-    await sdk.searchActiveMessages(query, selectedChatSearchKinds(), messageSearchRange(chatSearchRange.value));
+    await sdk.searchActiveMessages(query, selectedChatSearchKinds());
   } catch (error) {
     if (own === searchGeneration) chatSearchError.value = searchErrorText(error);
   } finally {
@@ -541,45 +537,36 @@ async function buildFromAction(op: string): Promise<void> {
     </template>
 
     <template #chat-search>
-      <form class="chat-search-panel" @submit.prevent="searchMessages">
-        <header class="chat-search-panel__header">
-          <div class="chat-search-panel__scope">
-            <span>{{ t('workbench.currentConv') }}</span>
-            <strong>{{ chatSearchActiveConversationText }}</strong>
-          </div>
-          <div class="chat-search-panel__summary">
-            <n-icon :component="chatSearchLoading ? TimeOutline : SearchOutline" />
-            <span>{{ chatSearchSummaryText }}</span>
-          </div>
-        </header>
-
+      <form class="chat-search-panel" @submit.prevent="searchMessages" @keydown.enter="($event.isComposing || $event.keyCode === 229) && $event.preventDefault()">
         <div class="chat-search-panel__field">
           <n-input
             v-model:value="chatSearchQuery"
-            round
             clearable
+            :input-props="{ 'aria-label': locale.startsWith('en') ? 'Search messages' : '搜索聊天记录' }"
             :disabled="!sdk.activeConversationId.value"
             :placeholder="t('workbench.searchChatHistory')"
           >
             <template #prefix><n-icon :component="SearchOutline" /></template>
           </n-input>
           <n-button
+            class="chat-search-submit"
+            :title="locale.startsWith('en') ? 'Search' : '搜索'"
+            :aria-label="locale.startsWith('en') ? 'Search' : '搜索'"
             type="primary"
             attr-type="submit"
             :loading="chatSearchLoading"
             :disabled="!chatSearchCanSubmit"
           >
-            {{ t('workbench.searchBtn') }}
+            <n-icon :size="18" :component="SearchOutline" />
           </n-button>
         </div>
 
-        <div class="chat-search-panel__filters" role="tablist" :aria-label="t('workbench.searchTypeAria')">
+        <div class="chat-search-panel__filters" role="group" :aria-label="t('workbench.searchTypeAria')">
           <button
             v-for="option in chatSearchKindOptions"
             :key="option.value"
             type="button"
-            role="tab"
-            :aria-selected="chatSearchKind === option.value"
+            :aria-pressed="chatSearchKind === option.value"
             :class="{ 'is-active': chatSearchKind === option.value }"
             @click="selectChatSearchKind(option.value)"
           >
@@ -588,15 +575,9 @@ async function buildFromAction(op: string): Promise<void> {
           </button>
         </div>
 
-        <label class="chat-search-time-range">
-          <span>{{ locale.startsWith('en') ? 'Time range' : '时间范围' }}</span>
-          <select v-model="chatSearchRange" @change="searchMessages">
-            <option v-for="(label, value) in chatSearchRangeLabels" :key="value" :value="value">{{ label }}</option>
-          </select>
-        </label>
-        <div v-if="chatSearchSearched && !chatSearchError" class="chat-search-panel__meta">
+        <div v-if="chatSearchSearched && !chatSearchError && !chatSearchLoading" class="chat-search-panel__meta" role="status">
           <span>{{ chatSearchLastKindLabel }}</span>
-          <strong>{{ chatSearchLastQuery }}</strong>
+          <strong>{{ chatSearchLastQuery }}</strong><span class="chat-search-count">{{ chatSearchResults.length }} {{ locale.startsWith('en') ? 'results' : '条结果' }}</span>
         </div>
 
         <div v-if="!sdk.activeConversationId.value" class="chat-search-panel__state">
@@ -607,7 +588,7 @@ async function buildFromAction(op: string): Promise<void> {
         <div v-else-if="chatSearchError" class="chat-search-panel__state chat-search-panel__state--error">
           <n-icon :component="AlertCircleOutline" />
           <strong>{{ t('workbench.searchFailed') }}</strong>
-          <span>{{ chatSearchError }}</span>
+          <span>{{ chatSearchError }}</span><button type="button" class="chat-search-retry" @click="searchMessages">{{ locale.startsWith('en') ? 'Retry' : '重新搜索' }}</button>
         </div>
         <div v-else-if="chatSearchLoading" class="chat-search-panel__state">
           <span class="chat-search-panel__spinner" />
@@ -640,10 +621,9 @@ async function buildFromAction(op: string): Promise<void> {
                 <strong>{{ chatSearchResultSender(message) }}</strong>
                 <span>{{ chatSearchResultTime(message) }}</span>
               </div>
-              <p>{{ chatSearchResultText(message) }}</p>
+              <p><template v-for="(part, index) in searchHighlight(chatSearchResultText(message))" :key="index"><mark v-if="part.match">{{ part.text }}</mark><template v-else>{{ part.text }}</template></template></p>
               <div class="chat-search-result-card__meta">
                 <span>{{ chatSearchResultKindLabel(message) }}</span>
-                <span>{{ chatSearchResultSeq(message) }}</span>
               </div>
             </div>
           </button>
@@ -728,9 +708,6 @@ async function buildFromAction(op: string): Promise<void> {
 </template>
 
 <style scoped>
-.chat-search-time-range { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.chat-search-time-range select { min-height: 48px; max-width: 100%; padding: 8px 12px; font: inherit; color: inherit; background: var(--im-bg-surface); border: 1px solid var(--im-border); border-radius: 8px; }
-.chat-search-time-range select:focus-visible { outline: 2px solid var(--im-primary); outline-offset: 2px; }
 
 .settings-form {
   display: grid;
@@ -768,361 +745,6 @@ async function buildFromAction(op: string): Promise<void> {
 :global(.workbench-search-sheet.n-drawer--bottom .n-drawer-content::before) {
   background: color-mix(in srgb, var(--im-text-tertiary) 56%, transparent);
 }
-
-.chat-search-panel {
-  display: grid;
-  align-content: start;
-  grid-template-rows: auto;
-  gap: 12px;
-  min-height: 100%;
-  color: var(--im-text-primary);
-}
-
-.chat-search-panel__header {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border: 1px solid color-mix(in srgb, var(--im-border) 82%, transparent);
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--im-bg-surface) 92%, transparent);
-  box-shadow: 0 10px 24px color-mix(in srgb, #000000 5%, transparent);
-}
-
-.chat-search-panel__scope {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-}
-
-.chat-search-panel__scope span,
-.chat-search-panel__summary,
-.chat-search-panel__meta {
-  color: var(--im-text-tertiary);
-  font-size: 12px;
-}
-
-.chat-search-panel__scope strong {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--im-text-primary);
-  font-size: 15px;
-  font-weight: 800;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.chat-search-panel__summary {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  max-width: 132px;
-  min-height: 28px;
-  padding: 0 10px;
-  border: 1px solid color-mix(in srgb, var(--im-border) 74%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--im-bg-surface-alt, var(--im-bg-surface)) 72%, transparent);
-}
-
-.chat-search-panel__summary span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.chat-search-panel__summary .n-icon {
-  flex: 0 0 auto;
-  color: var(--im-primary);
-  font-size: 15px;
-}
-
-.chat-search-panel__field {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-}
-
-.chat-search-panel__field :deep(.n-input) {
-  --n-border: 1px solid color-mix(in srgb, var(--im-border) 86%, transparent) !important;
-  --n-border-hover: 1px solid color-mix(in srgb, var(--im-primary) 44%, var(--im-border)) !important;
-  --n-border-focus: 1px solid var(--im-primary) !important;
-  --n-box-shadow-focus: 0 0 0 2px color-mix(in srgb, var(--im-primary) 18%, transparent) !important;
-  height: 44px;
-  min-height: 44px;
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--im-bg-surface) 96%, transparent);
-}
-
-.chat-search-panel__field :deep(.n-input-wrapper) {
-  min-height: 44px;
-  align-items: center;
-}
-
-.chat-search-panel__field :deep(.n-button) {
-  height: 44px;
-  min-width: 72px;
-  border-radius: 12px;
-  font-weight: 800;
-}
-
-.chat-search-panel__filters {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.chat-search-panel__filters button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-width: 0;
-  min-height: 42px;
-  padding: 0 10px;
-  border: 1px solid color-mix(in srgb, var(--im-border) 82%, transparent);
-  border-radius: 12px;
-  color: var(--im-text-secondary);
-  background: color-mix(in srgb, var(--im-bg-surface) 90%, transparent);
-  cursor: pointer;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.chat-search-panel__filters button:hover {
-  border-color: color-mix(in srgb, var(--im-primary) 30%, var(--im-border));
-  color: var(--im-text-primary);
-  background: color-mix(in srgb, var(--im-primary) 7%, var(--im-bg-surface));
-}
-
-.chat-search-panel__filters button.is-active {
-  border-color: color-mix(in srgb, var(--im-primary) 46%, transparent);
-  color: var(--im-primary);
-  background: color-mix(in srgb, var(--im-primary) 13%, var(--im-bg-surface));
-  box-shadow: 0 8px 22px color-mix(in srgb, var(--im-primary) 10%, transparent);
-}
-
-.chat-search-panel__filters .n-icon {
-  flex: 0 0 auto;
-  font-size: 15px;
-}
-
-.chat-search-panel__meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  padding: 0 2px;
-}
-
-.chat-search-panel__meta span {
-  flex: 0 0 auto;
-  padding: 3px 8px;
-  border-radius: 999px;
-  color: var(--im-primary);
-  background: color-mix(in srgb, var(--im-primary) 11%, transparent);
-}
-
-.chat-search-panel__meta strong {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--im-text-secondary);
-  font-size: 12px;
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.chat-search-panel__state {
-  display: grid;
-  justify-items: center;
-  gap: 7px;
-  min-height: 172px;
-  align-content: center;
-  padding: 22px 16px;
-  border: 1px dashed color-mix(in srgb, var(--im-border) 78%, transparent);
-  border-radius: 16px;
-  color: var(--im-text-tertiary);
-  text-align: center;
-  background: color-mix(in srgb, var(--im-bg-surface) 70%, transparent);
-}
-
-.chat-search-panel__state--idle {
-  min-height: 150px;
-  border-style: solid;
-  background:
-    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--im-primary) 10%, transparent), transparent 54%),
-    color-mix(in srgb, var(--im-bg-surface) 82%, transparent);
-}
-
-.chat-search-panel__state .n-icon {
-  font-size: 32px;
-  color: color-mix(in srgb, var(--im-primary) 72%, var(--im-text-tertiary));
-}
-
-.chat-search-panel__state strong {
-  color: var(--im-text-primary);
-  font-size: 15px;
-}
-
-.chat-search-panel__state span {
-  max-width: 260px;
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.chat-search-panel__state--error {
-  border-color: color-mix(in srgb, var(--im-danger, #ef4444) 38%, transparent);
-  color: color-mix(in srgb, var(--im-danger, #ef4444) 78%, var(--im-text-secondary));
-  background: color-mix(in srgb, var(--im-danger, #ef4444) 8%, var(--im-bg-surface));
-}
-
-.chat-search-panel__state--error .n-icon {
-  color: var(--im-danger, #ef4444);
-}
-
-.chat-search-panel__spinner {
-  width: 30px;
-  height: 30px;
-  border: 2px solid color-mix(in srgb, var(--im-primary) 16%, transparent);
-  border-top-color: var(--im-primary);
-  border-radius: 999px;
-  animation: chat-search-spin 0.8s linear infinite;
-}
-
-.chat-search-results {
-  display: grid;
-  gap: 9px;
-  padding-bottom: 4px;
-}
-
-.chat-search-result-card {
-  display: grid;
-  grid-template-columns: 36px minmax(0, 1fr);
-  gap: 10px;
-  width: 100%;
-  min-width: 0;
-  padding: 11px;
-  border: 1px solid color-mix(in srgb, var(--im-border) 78%, transparent);
-  border-radius: 13px;
-  color: inherit;
-  background: color-mix(in srgb, var(--im-bg-surface) 94%, transparent);
-  box-shadow: 0 10px 24px color-mix(in srgb, #000000 5%, transparent);
-  cursor: pointer;
-  font: inherit;
-  text-align: left;
-}
-
-.chat-search-result-card:hover {
-  border-color: color-mix(in srgb, var(--im-primary) 34%, var(--im-border));
-  background: color-mix(in srgb, var(--im-primary) 5%, var(--im-bg-surface));
-}
-
-.chat-search-result-card__icon {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  color: var(--im-primary);
-  background: color-mix(in srgb, var(--im-primary) 13%, var(--im-bg-surface));
-}
-
-.chat-search-result-card__icon .n-icon {
-  font-size: 19px;
-}
-
-.chat-search-result-card__content {
-  display: grid;
-  gap: 6px;
-  min-width: 0;
-}
-
-.chat-search-result-card__topline,
-.chat-search-result-card__meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.chat-search-result-card__topline strong {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--im-text-primary);
-  font-size: 13px;
-  font-weight: 800;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.chat-search-result-card__topline span {
-  flex: 0 0 auto;
-  color: var(--im-text-tertiary);
-  font-size: 11px;
-}
-
-.chat-search-result-card p {
-  display: -webkit-box;
-  min-width: 0;
-  margin: 0;
-  overflow: hidden;
-  color: var(--im-text-primary);
-  font-size: 13px;
-  line-height: 1.55;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.chat-search-result-card__meta span {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--im-text-tertiary);
-  font-size: 11px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.chat-search-result-card__meta span:first-child {
-  flex: 0 0 auto;
-  padding: 2px 7px;
-  border-radius: 999px;
-  color: var(--im-primary);
-  background: color-mix(in srgb, var(--im-primary) 10%, transparent);
-}
-
-@keyframes chat-search-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (max-width: 560px) {
-  .chat-search-panel__header {
-    grid-template-columns: 1fr;
-  }
-
-  .chat-search-panel__summary {
-    justify-self: start;
-    max-width: 100%;
-  }
-
-  .chat-search-panel__filters {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .chat-search-result-card {
-    grid-template-columns: 34px minmax(0, 1fr);
-    padding: 10px;
-  }
-
-  .chat-search-result-card__icon {
-    width: 34px;
-    height: 34px;
-    border-radius: 10px;
-  }
-}
 </style>
+
+<style scoped src="../styles/chat-search.css"></style>

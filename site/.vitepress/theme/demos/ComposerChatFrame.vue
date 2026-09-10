@@ -37,11 +37,16 @@ function stickerMsg({ packageId, stickerId, url }) {
 const messages = ref([
   textMsg({ name: "Ivy Chen", text: "新版输入框设计稿上传啦，帮忙看下～", ts: base }),
   textMsg({ name: "Ivy Chen", text: "另外配色也换成新的品牌紫了", ts: base + 20000 }),
-  textMsg({ self: true, text: "收到，我过一遍就给你反馈 👍", ts: base + 60000, status: 4 }),
+  textMsg({ self: true, text: "收到，我过一遍就给你反馈 👍", ts: base + 60000, status: 2 }),
   textMsg({ name: "Ivy Chen", text: "重点看下展开和加号菜单那块", ts: base + 120000 }),
 ]);
 
 const draft = ref("");
+const richMode = ref(false);
+const composerRef = ref(null);
+const fileInput = ref(null);
+const mode = ref("normal");
+const showSearch = ref(false);
 const activePanel = ref(null);
 const emojiTab = computed(() => (activePanel.value === "sticker" ? "sticker" : "emoji"));
 
@@ -60,7 +65,7 @@ function onSend(text) {
   activePanel.value = null;
 }
 function onInsertEmoji(key) {
-  draft.value += `[${key}]`;
+  composerRef.value?.insertAtCursor(`[${key}]`);
 }
 function onSendSticker(payload) {
   const pick = payload?.picks?.[0];
@@ -68,6 +73,7 @@ function onSendSticker(payload) {
   activePanel.value = null;
 }
 function onBuild(op) {
+  if (op === "create_image") { fileInput.value?.click(); return; }
   messages.value.push(textMsg({ self: true, text: `（发送了${opLabels[op] ?? op}）` }));
   activePanel.value = null;
 }
@@ -92,28 +98,40 @@ function onBuild(op) {
       </template>
     </FlareChatHeader>
 
-    <div class="chat-frame__body">
-      <FlareMessageList :messages="messages" current-user-id="me" conversation-type="single" />
+    <div class="chat-frame__controls">
+      <label>输入状态 <select v-model="mode"><option value="normal">正常</option><option value="offline">离线</option><option value="muted">禁言</option></select></label>
+      <label><input v-model="showSearch" type="checkbox" />更多搜索 / 关闭</label>
+      <span>本地组件演示</span>
     </div>
-
-    <div v-if="activePanel === 'emoji' || activePanel === 'sticker'" class="chat-frame__panel">
-      <EmojiStickerPanel
-        :active-tab="emojiTab"
-        @update:active-tab="(t) => (activePanel = t)"
-        @insert-emoji="onInsertEmoji"
-        @send-sticker="onSendSticker"
-      />
+    <div class="chat-frame__body">
+      <FlareMessageList :has-older="false" :messages="messages" current-user-id="me" conversation-type="single" />
     </div>
 
     <div class="chat-frame__composer">
       <FlareComposer
+        ref="composerRef"
+        :rich-mode="richMode"
+        :media-panel-open="activePanel === 'emoji' || activePanel === 'sticker'"
+        :read-only="mode === 'muted'"
+        :send-blocked="mode === 'offline'"
+        :status-hint="mode === 'muted' ? '你已被禁言，草稿已保留' : mode === 'offline' ? '连接已断开，暂不可发送' : ''"
+        :more-search-visible="showSearch"
+        :more-close-visible="showSearch"
+        :mention-candidates="[{ userId: 'ivy', label: 'Ivy Chen' }, { userId: 'lin', label: '林小满' }]"
+        @toggle-rich-mode="richMode = $event"
         v-model="draft"
         target-name="Ivy Chen"
         :active-panel="activePanel"
         @toggle-panel="(p) => (activePanel = p)"
         @send="onSend"
         @build="onBuild"
-      />
+      >
+        <template #media-panel>
+          <EmojiStickerPanel :active-tab="emojiTab" :show-send-button="false" :disabled="mode !== 'normal'"
+            @update:active-tab="activePanel = $event" @insert-emoji="onInsertEmoji" @send-sticker="onSendSticker" />
+        </template>
+      </FlareComposer>
+      <input ref="fileInput" type="file" accept="image/*" multiple hidden />
     </div>
   </div>
 </template>
@@ -134,26 +152,8 @@ function onBuild(op) {
   background: var(--flare-color-bg-secondary, #f5f6f8);
   order: 0;
 }
-/* Emoji / sticker panel placement follows the platform convention:
-   desktop → above the input (a popover-style tray); mobile → below the input
-   (the keyboard-area tray). Driven by flex order + the viewport width. */
-.chat-frame__panel {
-  flex: 0 0 auto;
-  border-top: 1px solid var(--flare-color-border-secondary, #e7e9ee);
-  background: var(--flare-color-bg-primary, #fff);
-  order: 1;
-}
-.chat-frame__composer {
-  flex: 0 0 auto;
-  order: 2;
-}
-@media (max-width: 899px) {
-  .chat-frame__panel {
-    order: 3;
-    border-top: none;
-    border-bottom: 1px solid var(--flare-color-border-secondary, #e7e9ee);
-  }
-}
+.chat-frame__composer { flex: 0 0 auto; }
+.chat-frame__controls { display: flex; flex-wrap: wrap; gap: 12px; padding: 8px 12px; font-size: 12px; color: var(--flare-color-text-secondary); }
 .idy { display: flex; align-items: center; gap: 10px; }
 .idy__avatar { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--flare-color-primary, #7c3aed); color: #fff; font-weight: 700; font-size: 15px; }
 .idy__text { display: flex; flex-direction: column; min-width: 0; }

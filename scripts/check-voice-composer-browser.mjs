@@ -1,0 +1,38 @@
+import { createRequire } from 'node:module';
+import assert from 'node:assert/strict';
+const { chromium } = createRequire(process.argv[2])('@playwright/test');
+const browser = await chromium.launch({ args: ['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream'] });
+try {
+ const context = await browser.newContext({ permissions:['microphone'], viewport:{width:1024,height:768} });
+ const page = await context.newPage();
+ await page.goto('http://127.0.0.1:5173/embed/composer-frame');
+ await page.getByRole('button',{name:'语音',exact:true}).click();
+ const row=page.locator('.composer-voice-inline');
+ await row.waitFor();
+ assert.equal(await page.locator('.composer-field').isVisible(),false);
+ const metrics=await row.locator('button').evaluateAll(nodes=>nodes.map(n=>({bg:getComputedStyle(n).backgroundColor,border:getComputedStyle(n).borderWidth,icon:n.querySelector('svg').getBoundingClientRect().width})));
+ assert(metrics.every(x=>x.bg==='rgba(0, 0, 0, 0)' && x.border==='0px' && x.icon===20));
+ await page.getByRole('button',{name:'开始录音',exact:true}).click();
+ await page.getByRole('button',{name:'暂停录音',exact:true}).waitFor();
+ await page.waitForTimeout(1300);
+ await page.getByRole('button',{name:'暂停录音',exact:true}).click();
+ await page.locator('audio').waitFor({state:'attached'});
+ await page.getByRole('button',{name:'试听 / 暂停试听',exact:true}).click();
+ await page.waitForTimeout(300);
+ assert(await page.locator('audio').evaluate(n=>n.currentTime>0),'real encoded audio preview must play');
+ await page.getByRole('button',{name:'继续录音',exact:true}).click();
+ await page.waitForTimeout(1100);
+ await page.getByRole('button',{name:'暂停录音',exact:true}).click();
+ await page.locator('audio').waitFor({state:'attached'});
+ await page.getByRole('button',{name:'试听 / 暂停试听',exact:true}).click();
+ await page.waitForTimeout(300);
+ assert(await page.locator('audio').evaluate(n=>n.currentTime>0),'resumed audio preview must play');
+ await page.setViewportSize({width:390,height:844});
+ assert(await row.evaluate(n=>n.scrollWidth<=n.clientWidth),'mobile voice row must fit');
+ await page.getByRole('button',{name:'返回键盘并删除录音',exact:true}).click();
+ assert.equal(await row.count(),0);
+ await page.getByRole('button',{name:'语音',exact:true}).click();
+ assert.equal(await page.locator('audio').count(),0);
+ assert.equal(await row.locator('time').textContent(),'00:00');
+ console.log('PASS: bare 20px icons, real Chromium capture/pause/preview/resume, mobile fit, keyboard clears recording');
+} finally { await browser.close(); }

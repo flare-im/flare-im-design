@@ -1,0 +1,36 @@
+const $=s=>document.querySelector(s);
+const icons={mic:'<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0014 0v-2M12 19v3M8 22h8"/>',send:'<path d="m22 2-7 20-4-9-9-4Z M22 2 11 13"/>',trash:'<path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/>',chevron:'<path d="m6 9 6 6 6-6"/>',play:'<path d="m8 4 12 8-12 8Z"/>',pause:'<path d="M8 5v14M16 5v14"/>',stop:'<rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" stroke="none"/>',smile:'<circle cx="12" cy="12" r="9"/><path d="M8 14s1 3 4 3 4-3 4-3M8 8h.01M16 8h.01"/>',at:'<circle cx="12" cy="12" r="4"/><path d="M16 8v7c0 3 5 3 5-3a9 9 0 10-4 7"/>',image:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="1"/><path d="m3 17 5-5 4 4 4-7 5 8"/>',plus:'<path d="M12 4v16M4 12h16"/>',search:'<circle cx="10" cy="10" r="7"/><path d="m15 15 6 6"/>',phone:'<path d="M5 3h4l2 5-3 2c2 3 3 4 6 6l2-3 5 2v4c-1 5-10 1-14-3S0 4 5 3Z"/>',redo:'<path d="M20 7v5h-5M20 12a8 8 0 10-2 6"/>'};
+function icon(name){return '<svg viewBox="0 0 24 24" aria-hidden="true">'+icons[name]+'</svg>'}document.querySelectorAll('[data-icon]').forEach(el=>el.innerHTML=icon(el.dataset.icon));
+let rerecord=false;
+let state='idle',duration=0,position=0,playing=false,collapsed=false,elapsedStart=0,clock=null,playClock=null,audio=null,tone=null,failedOnce=false;
+const heights=Array.from({length:52},(_,i)=>6+Math.round((Math.sin(i*1.87)+1)*8+Math.abs(Math.cos(i*.64))*9));
+$('#wave').innerHTML=heights.map((h,i)=>'<i style="--height:'+h+'px;--delay:-'+(i%7)*.12+'s"></i>').join('');
+function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(Math.floor(s%60)).padStart(2,'0')}
+function scenario(){return $('#scenario').value}function notice(s){$('#notice').textContent=s}
+function stopAudio(){if(tone){try{tone.stop()}catch{}tone=null}if(audio){audio.close().catch(()=>{});audio=null}}
+function stopPlaying(){playing=false;clearInterval(playClock);stopAudio()}
+function render(){
+ $('#voice').hidden=collapsed;$('#resume').hidden=!collapsed||!['recording','ready','failed'].includes(state);$('#resumeTime').textContent=fmt(duration);$('#voiceToggle').classList.toggle('selected',!collapsed);
+ const ready=['ready','failed'].includes(state);$('#scenario').disabled=state==='sending';$('#rerecord').hidden=!ready;$('#primary').innerHTML=icon(state==='recording'?'stop':ready?(playing?'pause':'play'):'mic');$('#primary').setAttribute('aria-label',state==='recording'?'停止录音':ready?(playing?'暂停试听':'试听录音'):'开始录音');$('#primary').title=$('#primary').getAttribute('aria-label');$('#primary').classList.toggle('recording',state==='recording');$('#primary').disabled=state==='sending';$('#close').disabled=state==='sending';
+ $('#stateDot').classList.toggle('recording',state==='recording');$('#stateText').textContent=({idle:'语音消息',recording:'正在录音',ready:playing?'正在试听':'录音已就绪',sending:'正在发送',failed:'发送失败'})[state];$('#stateTip').textContent=state==='recording'?'停止后可试听':ready?'确认后发送':'点击开始录音';$('#timer').textContent=fmt(playing?position:duration);$('#limit').textContent=ready?'/ '+fmt(duration):'/ 02:00';
+ $('#discard').disabled=!ready;$('#send').disabled=!ready||scenario()==='offline';$('#send').setAttribute('aria-label',state==='failed'?'重试发送':'发送语音');$('#send').title=$('#send').getAttribute('aria-label');
+ $('#wave').className='wave '+(state==='recording'?'recording':ready?'ready':'');$('#wave').querySelectorAll('i').forEach((bar,i)=>bar.classList.toggle('played',ready&&position/duration>i/52));
+ $('#caption').textContent=state==='recording'?'点击停止，先试听再发送':ready?(playing?'模拟试听 · 合成提示音':'点击左侧播放试听'):'准备好就开始，不会自动发送';
+ if(scenario()==='offline')notice('当前离线，录音可保留，恢复连接后再发送。');
+}
+function start(){if(scenario()==='denied'){notice('麦克风未授权。请允许麦克风访问后重试。原型可切回“正常流程”继续。');return}notice('');stopPlaying();position=0;duration=0;state='recording';elapsedStart=performance.now();clock=setInterval(()=>{duration=Math.min(120,(performance.now()-elapsedStart)/1000);if(duration>=120)stop();render()},150);render()}
+function stop(){clearInterval(clock);if(duration<1){state='idle';duration=0;notice('录音太短，请说满 1 秒后再停止。')}else{state='ready';duration=Math.round(duration);notice('')}render()}
+function preview(){if(playing){stopPlaying();render();return}if(position>=duration)position=0;playing=true;
+ try{audio=new(window.AudioContext||window.webkitAudioContext)();tone=audio.createOscillator();const gain=audio.createGain();gain.gain.value=.022;tone.type='sine';tone.frequency.value=262;tone.connect(gain);gain.connect(audio.destination);tone.start()}catch{}
+ const started=performance.now()-position*1000;playClock=setInterval(()=>{position=Math.min(duration,(performance.now()-started)/1000);if(tone)tone.frequency.setTargetAtTime([262,330,392,330][Math.floor(position)%4],audio.currentTime,.1);if(position>=duration)stopPlaying();render()},100);render()}
+$('#primary').onclick=()=>state==='recording'?stop():['ready','failed'].includes(state)?preview():start();
+$('#rerecord').onclick=()=>{rerecord=true;$('#confirm span').textContent='重新录制将替换这段录音';$('#confirm').hidden=false;stopPlaying();render()};
+$('#discard').onclick=()=>{rerecord=false;$('#confirm span').textContent='删除这段录音？';$('#confirm').hidden=false;stopPlaying();render()};$('#keep').onclick=()=>$('#confirm').hidden=true;$('#delete').onclick=()=>{reset();if(rerecord)start();else notice('录音已删除，可以重新录制。')};
+function reset(){clearInterval(clock);stopPlaying();state='idle';duration=0;position=0;$('#confirm').hidden=true;notice('');render()}
+$('#send').onclick=()=>{if(!['ready','failed'].includes(state)||scenario()==='offline')return;stopPlaying();state='sending';notice('');render();setTimeout(()=>{if(scenario()==='failed'&&!failedOnce){failedOnce=true;state='failed';notice('发送未成功，录音已保留。点击纸飞机重试。');render();return}const el=document.createElement('div');el.className='message mine';el.textContent='◖  语音消息 · '+fmt(duration)+'  ✓';$('#messages').append(el);$('#messages').scrollTop=$('#messages').scrollHeight;reset();notice('已添加到本地聊天演示。');},700)};
+$('#close').onclick=()=>{if(state==='recording'){stop();notice('录音已停止并保留。')}stopPlaying();collapsed=true;render()};$('#resumeBtn').onclick=()=>{collapsed=false;render()};$('#voiceToggle').onclick=()=>{if(!collapsed){$('#close').click()}else{collapsed=false;render()}};
+$('#scenario').onchange=()=>{failedOnce=false;notice('');if(scenario()==='denied'){reset();notice('麦克风未授权。点击录音可查看提示。')}render()};
+$('#theme').onclick=()=>{document.body.classList.toggle('light');$('#theme').textContent=document.body.classList.contains('light')?'深色模式':'浅色模式'};
+document.querySelectorAll('[data-view]').forEach(btn=>btn.onclick=()=>{document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x===btn));$('#stage').classList.toggle('mobile',btn.dataset.view==='mobile')});
+$('#textSend').onclick=()=>{const value=$('#draft').value.trim();if(!value)return;const el=document.createElement('div');el.className='message mine';el.textContent=value;$('#messages').append(el);$('#draft').value='';$('#messages').scrollTop=$('#messages').scrollHeight};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!collapsed&&state!=='sending')$('#close').click()});window.addEventListener('pagehide',()=>{clearInterval(clock);stopPlaying()});render();

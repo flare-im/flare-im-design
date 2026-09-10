@@ -1,3 +1,4 @@
+import 'flare_button.dart';
 import 'package:flutter/material.dart';
 
 import '../models/directory_data.dart';
@@ -174,61 +175,26 @@ class FlareContactDetail extends StatelessWidget {
 
   Widget _action(String label, IconData icon, VoidCallback? onTap, FlareColors colors,
       {bool primary = false}) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: FlareSizes.spacingMd, horizontal: 4),
-          decoration: BoxDecoration(
-            color: primary ? colors.primary : colors.bgElevated,
-            borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
-            boxShadow: [
-              BoxShadow(
-                color: primary
-                    ? colors.primary.withValues(alpha: 0.35)
-                    : const Color(0x14151320),
-                blurRadius: primary ? 18 : 10,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              Icon(icon, color: primary ? Colors.white : colors.textSecondary, size: 22),
-              const SizedBox(height: 6),
-              Text(label,
-                  style: TextStyle(
-                      color: primary ? Colors.white : colors.textPrimary,
-                      fontSize: FlareSizes.fontSizeSm,
-                      fontWeight: FontWeight.w500)),
-            ],
-          ),
-        ),
-      ),
-    );
+    return Expanded(child: FlareButton(
+      variant: primary ? FlareButtonVariant.primary : FlareButtonVariant.secondary,
+      size: FlareControlSize.lg,
+      onPressed: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: FlareSizes.spacingSm),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Icon(icon, size: 20),
+        const SizedBox(height: 4),
+        Text(label, style: const TextStyle(fontSize: FlareSizes.fontSizeSm)),
+      ]),
+    ));
   }
 
   Widget _footButton(String label, VoidCallback? onTap, FlareColors colors,
       {required bool danger}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: danger ? colors.error : colors.bgElevated,
-          borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
-          border: danger ? null : Border.all(color: colors.borderPrimary),
-        ),
-        child: Text(label,
-            style: TextStyle(
-                color: danger ? Colors.white : colors.textPrimary,
-                fontSize: FlareSizes.fontSizeXl,
-                fontWeight: FontWeight.w500)),
-      ),
-    );
+    return FlareButton(label: label, onPressed: onTap, block: true,
+      size: FlareControlSize.lg,
+      variant: danger ? FlareButtonVariant.danger : FlareButtonVariant.secondary);
   }
+
 }
 
 /// Localizable copy for [FlareContactDetail] (Chinese defaults).

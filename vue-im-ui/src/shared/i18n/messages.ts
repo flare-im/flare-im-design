@@ -6,6 +6,7 @@ export type FlareMessageTree = {
 
 export const flareMessages: Record<FlareLocale, FlareMessageTree> = {
   "zh-CN": {
+    input: { clear: "清空输入" },
     // Client-side fallback for core social system events whose stored preview token lacks a `fb`
     // string (e.g. group.member_kicked). Keyed by the event key (`ek`), e.g. `systemEvent.group.member_kicked`.
     // 核心用 FlareError::localized 抛出的是 i18n key（如
@@ -721,7 +722,7 @@ export const flareMessages: Record<FlareLocale, FlareMessageTree> = {
       dataUrlLabel: "Data URL",
       tokenLabel: "Token",
       tokenManagedByCore: "接入 Token 由 SDK 向网关签发并自动刷新；只有在高级区粘贴了 Token 时才能手动应用。",
-      tokenRejected: "接入 Token 被服务端拒绝：签名密钥或签发者与服务端不一致，或 Token 已过期。请核对「签名密钥」后重试。",
+      tokenRejected: "登录授权失败。请在服务器地址设置中核对服务地址，并使用业务系统提供的有效 Token；如由 SDK 获取 Token，请联系管理员检查网关鉴权配置。",
       loginButton: "立即登录",
       sessionActive: "会话活跃",
       sessionInactive: "未登录",
@@ -903,6 +904,27 @@ export const flareMessages: Record<FlareLocale, FlareMessageTree> = {
       newChat: "新建会话",
     },
     composer: {
+      recordingUnavailable: "当前环境不支持录音",
+      microphoneUnavailable: "无法访问麦克风，请检查麦克风权限",
+      sendToTarget: "发送给 {name}",
+      messagePlaceholder: "发送消息",
+      paragraph: "正文",
+      resumeDraft: "继续编辑草稿",
+      closePanel: "关闭面板",
+      searchMembers: "搜索成员",
+      searchActions: "搜索功能",
+      noResults: "暂无可用内容",
+      page: "第 {page} 页",
+      seekRecording: "试听进度",
+      returnKeyboard: "返回键盘并删除录音",
+      pauseRecording: "暂停录音",
+      resumeRecording: "继续录音",
+      previewRecording: "试听 / 暂停试听",
+      voicePreviewFailed: "暂时无法试听，可以继续录音或发送",
+      startRecording: "开始录音",
+      stopRecording: "停止录音",
+      discardRecording: "删除录音",
+
       emoji: "表情",
       sticker: "贴纸",
       mention: "@",
@@ -1107,6 +1129,7 @@ export const flareMessages: Record<FlareLocale, FlareMessageTree> = {
     },
   },
   "en-US": {
+    input: { clear: "Clear input" },
     sdkError: {
       reason: {
         invalid_url: "{field} is not a valid link. Use an http(s) address.",
@@ -1810,7 +1833,7 @@ export const flareMessages: Record<FlareLocale, FlareMessageTree> = {
       dataUrlLabel: "Data URL",
       tokenLabel: "Token",
       tokenManagedByCore: "The access token is issued and refreshed by the SDK via the gateway; a token can only be applied manually after pasting one in the advanced section.",
-      tokenRejected: "The server rejected the access token: the signing secret or issuer does not match the server, or the token has expired. Check the signing secret and try again.",
+      tokenRejected: "Sign-in authorization failed. Check the server address and use a valid token from your application. If the SDK obtains tokens, ask your administrator to check gateway authentication.",
       loginButton: "Sign in",
       sessionActive: "Session active",
       sessionInactive: "Signed out",
@@ -1992,6 +2015,27 @@ export const flareMessages: Record<FlareLocale, FlareMessageTree> = {
       newChat: "New chat",
     },
     composer: {
+      recordingUnavailable: "Recording is unavailable in this environment",
+      microphoneUnavailable: "Cannot access the microphone. Check microphone permission.",
+      sendToTarget: "Message {name}",
+      messagePlaceholder: "Message",
+      paragraph: "Paragraph",
+      resumeDraft: "Resume draft",
+      closePanel: "Close panel",
+      searchMembers: "Search members",
+      searchActions: "Search actions",
+      noResults: "No available results",
+      page: "Page {page}",
+      seekRecording: "Preview position",
+      returnKeyboard: "Return to keyboard and discard recording",
+      pauseRecording: "Pause recording",
+      resumeRecording: "Resume recording",
+      previewRecording: "Play / pause preview",
+      voicePreviewFailed: "Preview unavailable. You can resume recording or send.",
+      startRecording: "Start recording",
+      stopRecording: "Stop recording",
+      discardRecording: "Discard recording",
+
       emoji: "Emoji",
       sticker: "Sticker",
       mention: "@",

@@ -198,6 +198,8 @@ class FlareSettingsItem {
     this.kind = FlareSettingKind.navigation,
     this.value = false,
     this.detail,
+    this.disabled = false,
+    this.danger = false,
   });
   final String key;
   final String label;
@@ -205,6 +207,8 @@ class FlareSettingsItem {
   final FlareSettingKind kind;
   final bool value;
   final String? detail;
+  final bool disabled;
+  final bool danger;
 }
 
 class FlareSettingsSection {

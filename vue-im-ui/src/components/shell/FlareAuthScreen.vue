@@ -11,7 +11,6 @@ type AuthTransportMode = "websocket" | "quic" | "race";
 const props = withDefaults(defineProps<{
   userId: string;
   token?: string;
-  /** 运行时填入的签名密钥；留空回退到构建配置。只落在本机，不进产物。 */
   transportMode?: AuthTransportMode;
   wsUrl: string;
   quicUrl?: string;
@@ -20,8 +19,7 @@ const props = withDefaults(defineProps<{
   dataUrl: string;
   tenantId: string;
   showTransportSelector?: boolean;
-  /** 为 true 时展开「服务器地址（可选）」区——登录因缺签名密钥失败时用，
-   *  把密钥 / token 输入框直接露给用户，而不是让他去猜。 */
+  /** 展开服务器地址与应用提供的 Token 配置。 */
   advancedOpen?: boolean;
   /** 为 true 时隐藏接入 token 输入框（走 SDK 托管：核心向 Gateway 签发并自动刷新）。
    *  默认 false 保持既有行为不变。 */

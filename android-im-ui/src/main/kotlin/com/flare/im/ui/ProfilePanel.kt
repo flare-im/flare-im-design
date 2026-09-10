@@ -65,7 +65,7 @@ fun ProfilePanel(
         Row(
             Modifier.fillMaxWidth()
                 // Aurora glow header — a violet light source, white text over it.
-                .background(Brush.linearGradient(listOf(Color(0xFF3B1F7A), Color(0xFF7C3AED), Color(0xFF8B5CF6))))
+                .background(Brush.linearGradient(listOf(colors.auroraDeep, colors.auroraBase, colors.auroraSoft)))
                 .clickable(enabled = onEdit != null) { onEdit?.invoke() }
                 .padding(FlareSizes.spacingLg),
             verticalAlignment = Alignment.CenterVertically,

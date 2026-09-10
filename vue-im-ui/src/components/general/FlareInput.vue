@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { useFlareConfig } from "../../shared/useFlareConfig";
+import { resolveFlareMessage } from "../../shared/i18n/messages";
+import { ref, onMounted } from "vue";
 import FlareIcon from "./FlareIcon.vue";
 const props = withDefaults(
   defineProps<{
@@ -10,8 +13,9 @@ const props = withDefaults(
     clearable?: boolean;
     /** Mask the value (password entry). Ignored when `multiline`. */
     secure?: boolean;
+    autofocus?: boolean;
   }>(),
-  { placeholder: "", multiline: false, disabled: false, clearable: false, secure: false },
+  { placeholder: "", multiline: false, disabled: false, clearable: false, secure: false, autofocus: false },
 );
 const emit = defineEmits<{
   (e: "update:modelValue", v: string): void;
@@ -20,6 +24,13 @@ const emit = defineEmits<{
   (e: "focus"): void;
   (e: "blur"): void;
 }>();
+const config = useFlareConfig();
+const t = (key: string) => resolveFlareMessage(config.locale.value, key);
+const input = ref<HTMLInputElement | HTMLTextAreaElement | null>(null);
+onMounted(() => { if (props.autofocus && !props.disabled) input.value?.focus(); });
+function submit(event: KeyboardEvent) {
+  if (!props.disabled && !event.isComposing && event.keyCode !== 229) emit("submit");
+}
 function onInput(e: Event) {
   const el = e.target as HTMLInputElement | HTMLTextAreaElement;
   let v = el.value;
@@ -33,32 +44,38 @@ function onInput(e: Event) {
     <div class="flare-input__field" :class="{ 'is-disabled': disabled }">
       <textarea
         v-if="multiline"
+        ref="input"
         class="flare-input__el"
         rows="3"
         :value="modelValue"
         :placeholder="placeholder"
         :disabled="disabled"
+        :maxlength="maxLength"
         @input="onInput"
         @focus="emit('focus')"
         @blur="emit('blur')"
       />
       <input
         v-else
+        ref="input"
         class="flare-input__el"
         :type="secure ? 'password' : 'text'"
         :value="modelValue"
         :placeholder="placeholder"
         :disabled="disabled"
+        :maxlength="maxLength"
         @input="onInput"
-        @keyup.enter="emit('submit')"
+        @keydown.enter="submit"
         @focus="emit('focus')"
         @blur="emit('blur')"
       />
-      <span
+      <button
+        type="button"
+        :aria-label="t('input.clear')"
         v-if="clearable && modelValue && !disabled"
         class="flare-input__clear"
         @click="emit('update:modelValue', ''); emit('clear')"
-      ><FlareIcon name="close" :size="14" /></span>
+      ><FlareIcon name="close" :size="14" /></button>
     </div>
     <div v-if="maxLength != null" class="flare-input__count">
       {{ modelValue.length }}/{{ maxLength }}
@@ -95,7 +112,7 @@ function onInput(e: Event) {
   resize: vertical;
   font-family: inherit;
 }
-.flare-input__clear { color: var(--flare-color-text-tertiary); cursor: pointer; font-size: 13px; }
+.flare-input__clear { border: 0; background: none; padding: 4px; display: inline-flex; color: var(--flare-color-text-tertiary); cursor: pointer; font-size: 13px; }
 .flare-input__count {
   text-align: right;
   font-size: 12px;

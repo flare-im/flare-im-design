@@ -83,7 +83,7 @@ fun Button(
 ) {
     val colors = flareColors()
     val spec = sizeSpec(size)
-    val off = disabled || loading
+    val off = disabled || loading || onClick == null
     val shape = RoundedCornerShape(FlareSizes.radiusLg)
 
     val (bgBrush, fg, borderColor) = when (variant) {
@@ -98,8 +98,8 @@ fun Button(
         .then(if (block) Modifier.fillMaxWidth() else Modifier)
         .height(spec.height.dp).clip(shape).background(bgBrush)
         .border(1.dp, borderColor, shape)
-        .alpha(if (disabled) 0.5f else 1f)
-    if (!off && onClick != null) m = m.clickable { onClick() }
+        .alpha(if (disabled || onClick == null) 0.5f else 1f)
+    m = m.clickable(enabled = !off, role = androidx.compose.ui.semantics.Role.Button) { onClick?.invoke() }
     m = m.padding(horizontal = spec.hPad.dp)
 
     Row(m, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {

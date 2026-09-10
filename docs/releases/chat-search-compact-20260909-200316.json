@@ -1,0 +1,92 @@
+[
+  {
+    "path": "assets/content-runtime-LAihEv7w.js",
+    "sha256": "1a5639c58f67798cb4ecb285c1eb461a37821867f64a4b8b1c9f79677fb3f121",
+    "status": 200
+  },
+  {
+    "path": "assets/flare-im-app-FQ6pqk_l.js",
+    "sha256": "f415baafc9eb557395740f9ef8dc6bdc2649a124f84e273a34d18d9a6cb93fa4",
+    "status": 200
+  },
+  {
+    "path": "assets/flare-im-app-mQBhugv_.css",
+    "sha256": "8b0cf59a06ff607374bf7c61331adccf8206a0e1cb2db85a1f898358c7fb6738",
+    "status": 200
+  },
+  {
+    "path": "assets/flare-sdk-CmCpeahh.js",
+    "sha256": "0c22a59ecc8fc03f93457d4231e4f052faf9f4c60bf909eee315096410787f7f",
+    "status": 200
+  },
+  {
+    "path": "assets/icon-runtime-CNnV-uOi.js",
+    "sha256": "f6b47127d710609709f9a41a674c745351e7b04e3d27932d2ced208302c0f5f6",
+    "status": 200
+  },
+  {
+    "path": "assets/index-BQLsc5xK.js",
+    "sha256": "6554e2e9a4a2d1198a4f4d542e5b92cd1df662afece122d378d22c2d711fd797",
+    "status": 200
+  },
+  {
+    "path": "assets/index-DuT9X4Eo.css",
+    "sha256": "ef81b72752bd5dbeb4d0feaefad3d830cc47381c7cfa55a5e193787b7351fc7e",
+    "status": 200
+  },
+  {
+    "path": "assets/naive-dark-theme-BjSYtMt8.js",
+    "sha256": "5723aab2a909ea754364a6e444d8f01b3ae0cb5856607b3c83a27b33bd818cfa",
+    "status": 200
+  },
+  {
+    "path": "assets/naive-ui-Cx6ZJDlF.js",
+    "sha256": "d4d7ab4dbfbf98b04ce84dd4e015cb6d0a1a2a588daad1c726fd885fd8f0ae5e",
+    "status": 200
+  },
+  {
+    "path": "assets/vendor--emotion-hash-tEqntrkE.js",
+    "sha256": "c401897f3168ffbb92ee09e666666006af30030496f1fe8a0ed75949decae6f7",
+    "status": 200
+  },
+  {
+    "path": "assets/vendor--juggle-resize-observer-LE7F9ocm.js",
+    "sha256": "99e5c02f5536bd33907c6bfc36967ed4d39f5456bd565f3335c489bae996f1cc",
+    "status": 200
+  },
+  {
+    "path": "assets/vendor-linkify-it-CNjXlitb.js",
+    "sha256": "3790106ff0701f47015912decf88dae2e76b1e0303991959edc581973f9c4a80",
+    "status": 200
+  },
+  {
+    "path": "assets/vendor-mdurl-k9Sl0PQj.js",
+    "sha256": "2199d7ec648314a33cb46a70d2d777c3e2e01916dd4b2fdb626b44add8e39155",
+    "status": 200
+  },
+  {
+    "path": "assets/vendor-punycode.js-DaOgEp9O.js",
+    "sha256": "c2f25d78c6afc540fb4d5e0c77e0fec3438bc95fec2203022f568f5a0a81ce95",
+    "status": 200
+  },
+  {
+    "path": "assets/vendor-uc.micro-kMc2yuuw.js",
+    "sha256": "02d50b6481f47f306774f12bad6e1fe4d6616fa3191324d94197c10c29c9b667",
+    "status": 200
+  },
+  {
+    "path": "assets/vue-runtime-B1L41etU.js",
+    "sha256": "ba6309fadab2a7efc4a275b94166f9d221a2c256961ac089a04b2a8efd87c3f9",
+    "status": 200
+  },
+  {
+    "path": "flare-core-wasm/flare_im_core_sdk_bg.wasm",
+    "sha256": "2f010e769fc834168f949314d967a3b299c91b65b1e924461c18cb51a4d7d8c9",
+    "status": 200
+  },
+  {
+    "path": "index.html",
+    "sha256": "ea1e8cc5367b886f2cbe4d8c09783453e4997ff4d99ce97c9e7bff2baf6c0a36",
+    "status": 200
+  }
+]

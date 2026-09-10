@@ -23,23 +23,49 @@ public struct FlareNotificationPreference:Identifiable {
  public let id:String;public let title:String;public let detail:String;public let value:Bool;public let enabled:Bool;public let busy:Bool
  public init(id:String,title:String,detail:String,value:Bool,enabled:Bool,busy:Bool=false){self.id=id;self.title=title;self.detail=detail;self.value=value;self.enabled=enabled;self.busy=busy}
 }
-private struct SceneList:View {
- let title:String;let items:[FlareSceneEntry];let loading:Bool;let error:String?;let onAction:((String,String)->Void)?;let onReload:(()->Void)?
+private struct SceneList: View {
+ let title: String
+ let items: [FlareSceneEntry]
+ let loading: Bool
+ let error: String?
+ let onAction: ((String, String) -> Void)?
+ let onReload: (() -> Void)?
  @Environment(\.flareStrings) private var strings
- var body:some View {
-  VStack(alignment:.leading,spacing:8) {
-   Text(title).font(.headline)
-   if loading {ProgressView().accessibilityLabel(title)}
-   if let error {StatusBannerView(text:error,tone:.danger,actionText:strings.retry,onAction:loading ? nil : onReload)}
-   if items.isEmpty && !loading && error == nil {Text(strings.noContent).padding(16)}
+ @Environment(\.colorScheme) private var scheme
+ var body: some View {
+  let colors = FlareColors.of(scheme)
+  VStack(alignment: .leading, spacing: FlareSizes.spacingMd) {
+   Text(title).font(.headline).foregroundColor(colors.textPrimary).accessibilityAddTraits(.isHeader)
+   if loading { ProgressView().accessibilityLabel(title) }
+   if let error { StatusBannerView(text: error, tone: .danger, actionText: strings.retry, onAction: loading ? nil : onReload) }
+   if items.isEmpty && !loading && error == nil { EmptyStateView(title: strings.noContent) }
    ForEach(items) { item in
-    VStack(alignment:.leading,spacing:8){Text(item.title).font(.headline);if let badge=item.badge {Text(badge).font(.caption)};Text(item.detail)
-     if let error=item.error {StatusBannerView(text:error,tone:.danger)}
-     if item.busy {ProgressView().accessibilityLabel(item.title)}
-     ForEach(item.actions.filter{!$0.label.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty}) { a in
-      Button(role:a.destructive ? .destructive : nil){onAction?(item.id,a.id)} label:{Text(a.label).frame(minWidth:48,minHeight:48)}.disabled(item.busy || a.disabled || onAction == nil)
+    VStack(alignment: .leading, spacing: FlareSizes.spacingSm) {
+     ViewThatFits(in: .horizontal) {
+      HStack(spacing: FlareSizes.spacingMd) { identity(item, colors); Spacer(minLength: FlareSizes.spacingSm); actions(item) }
+      VStack(alignment: .leading, spacing: FlareSizes.spacingSm) { identity(item, colors); actions(item) }
      }
-    }.frame(maxWidth:.infinity,alignment:.leading).padding(.vertical,12)
+     if let error = item.error { StatusBannerView(text: error, tone: .danger) }
+    }
+    .padding(FlareSizes.spacingMd)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(colors.bgSecondary, in: RoundedRectangle(cornerRadius: FlareSizes.radiusMd))
+   }
+  }
+ }
+ private func identity(_ item: FlareSceneEntry, _ colors: FlareColors) -> some View {
+  VStack(alignment: .leading, spacing: FlareSizes.spacingXs) {
+   Text(item.title).font(.body.weight(.medium)).foregroundColor(colors.textPrimary)
+   if let badge = item.badge { Text(badge).font(.caption).foregroundColor(colors.primary) }
+   Text(item.detail).font(.footnote).foregroundColor(colors.textSecondary).fixedSize(horizontal: false, vertical: true)
+  }
+ }
+ private func actions(_ item: FlareSceneEntry) -> some View {
+  HStack(spacing: FlareSizes.spacingSm) {
+   if item.busy { ProgressView().accessibilityLabel(item.title) }
+   ForEach(item.actions.filter { !$0.label.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) { action in
+    ButtonView(label: action.label, variant: action.destructive ? .danger : .secondary, size: .sm,
+      disabled: item.busy || action.disabled || onAction == nil) { onAction?(item.id, action.id) }
    }
   }
  }

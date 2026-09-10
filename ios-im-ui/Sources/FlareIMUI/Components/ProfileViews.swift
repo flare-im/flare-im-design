@@ -61,7 +61,7 @@ public struct ProfilePanelView: View {
                                 .padding(.leading, FlareSizes.spacingMd)
                         }
                         FlareSettingsRow(item: e, onToggle: onToggle, onSelect: { onEntry?($0) })
-                            .padding(FlareSizes.spacingMd)
+                            .padding(.horizontal, FlareSizes.spacingMd)
                     }
                 }
                 .flareGroupedCard(colors, dark: dark)
@@ -73,8 +73,9 @@ public struct ProfilePanelView: View {
     }
 
     private var header: some View {
+        let colors = FlareColors.of(scheme)
         // The whole row is tap-to-edit; the QR badge is carved out as its own tap target.
-        Button { onEdit?() } label: {
+        return Button { onEdit?() } label: {
             HStack(spacing: FlareSizes.spacingMd) {
                 // White ring + drop shadow lifts the avatar off the aurora header (Flutter parity).
                 AvatarView(userId: user.id, displayName: user.name, avatarURL: user.avatarURL, size: 56)
@@ -111,9 +112,7 @@ public struct ProfilePanelView: View {
             .background(
                 LinearGradient(
                     colors: [
-                        Color(.sRGB, red: 0x3B / 255, green: 0x1F / 255, blue: 0x7A / 255, opacity: 1),
-                        Color(.sRGB, red: 0x7C / 255, green: 0x3A / 255, blue: 0xED / 255, opacity: 1),
-                        Color(.sRGB, red: 0x8B / 255, green: 0x5C / 255, blue: 0xF6 / 255, opacity: 1),
+                        colors.auroraDeep, colors.auroraBase, colors.auroraSoft,
                     ],
                     startPoint: .topLeading, endPoint: .bottomTrailing))
             .contentShape(Rectangle())
@@ -147,25 +146,25 @@ public struct ProfileEditorView: View {
             Button { onPickAvatar?() } label: {
                 AvatarView(userId: user.id, displayName: name.isEmpty ? user.name : name, avatarURL: user.avatarURL, size: 80)
                     .overlay(alignment: .bottomTrailing) {
-                        Image(systemName: "camera").font(.system(size: 12)).foregroundColor(.white)
-                            .padding(6).background(Circle().fill(colors.primary))
+                        if onPickAvatar != nil { Image(systemName: "camera").font(.system(size: 12)).foregroundColor(.white)
+                            .padding(6).background(Circle().fill(colors.primary)) }
                     }
             }
             .buttonStyle(.plain)
+            .disabled(busy || onPickAvatar == nil)
             .frame(maxWidth: .infinity)
 
             Text(labels.nickname).font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textSecondary)
-            InputView(text: $name, placeholder: labels.nicknamePlaceholder, maxLength: 24, clearable: true)
+            InputView(text: $name, placeholder: labels.nicknamePlaceholder, maxLength: 24, disabled: busy, clearable: true)
             Text(labels.bio).font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textSecondary)
-            InputView(text: $signature, placeholder: labels.bioPlaceholder, multiline: true, maxLength: 60)
+            InputView(text: $signature, placeholder: labels.bioPlaceholder, multiline: true, maxLength: 60, disabled: busy)
 
             HStack(spacing: FlareSizes.spacingMd) {
-                Button(labels.cancel) { onCancel?() }.buttonStyle(.bordered).frame(maxWidth: .infinity)
-                Button { onSave?(name, signature) } label: {
-                    if busy { ProgressView().controlSize(.small) } else { Text(labels.save).frame(maxWidth: .infinity) }
-                }
-                .buttonStyle(.borderedProminent).tint(colors.primary).frame(maxWidth: .infinity)
-                .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || busy)
+                ButtonView(label: labels.cancel, variant: .secondary, size: .lg,
+                           disabled: busy || onCancel == nil, block: true, action: onCancel)
+                ButtonView(label: labels.save, size: .lg, loading: busy,
+                           disabled: name.trimmingCharacters(in: .whitespaces).isEmpty || onSave == nil,
+                           block: true) { onSave?(name, signature) }
             }
             .padding(.top, FlareSizes.spacingMd)
         }
@@ -234,7 +233,7 @@ public struct SettingsListView: View {
                                     .padding(.leading, FlareSizes.spacingMd)
                             }
                             FlareSettingsRow(item: item, onToggle: onToggle, onSelect: onSelect)
-                                .padding(FlareSizes.spacingMd)
+                                .padding(.horizontal, FlareSizes.spacingMd)
                         }
                     }
                     .flareGroupedCard(colors, dark: dark)
@@ -268,23 +267,46 @@ public struct FlareSettingsRow: View {
 
     public var body: some View {
         let colors = FlareColors.of(scheme)
-        HStack(spacing: FlareSizes.spacingMd) {
-            if let ic = item.systemImage { Image(systemName: ic).foregroundColor(colors.textSecondary) }
-            Text(item.label).font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textPrimary)
-            Spacer()
-            switch item.kind {
-            case .toggle:
-                Toggle("", isOn: Binding(get: { item.value }, set: { onToggle?(item, $0) }))
-                    .labelsHidden().tint(colors.primary)
-            case .value:
-                Text(item.detail ?? "").font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textTertiary)
-            case .navigation:
-                if let d = item.detail { Text(d).font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textTertiary) }
-                Image(systemName: "chevron.right").font(.system(size: 12)).foregroundColor(colors.textTertiary)
+        Group {
+            if item.kind == .toggle {
+                Toggle(isOn: Binding(get: { item.value }, set: { onToggle?(item, $0) })) {
+                    rowLabel(colors)
+                }
+                .tint(colors.primary)
+                .disabled(item.disabled || onToggle == nil)
+            } else {
+                SwiftUI.Button { onSelect?(item) } label: {
+                    HStack(spacing: FlareSizes.spacingMd) {
+                        rowLabel(colors)
+                        Spacer()
+                        if let detail = item.detail {
+                            Text(detail).font(.system(size: FlareSizes.fontSizeMd))
+                                .foregroundColor(colors.textTertiary)
+                        }
+                        if item.kind == .navigation {
+                            Image(systemName: "chevron.right").font(.system(size: 12))
+                                .foregroundColor(colors.textTertiary)
+                        }
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(item.disabled || onSelect == nil)
             }
         }
-        .contentShape(Rectangle())
-        .onTapGesture { if item.kind != .toggle { onSelect?(item) } }
+        .frame(minHeight: 48)
+        .opacity(item.disabled ? 0.45 : 1)
+    }
+
+    private func rowLabel(_ colors: FlareColors) -> some View {
+        HStack(spacing: FlareSizes.spacingMd) {
+            if let icon = item.systemImage {
+                Image(systemName: icon).foregroundColor(colors.textSecondary)
+                    .accessibilityHidden(true)
+            }
+            Text(item.label).font(.system(size: FlareSizes.fontSizeLg))
+                .foregroundColor(item.danger ? colors.error : colors.textPrimary)
+        }
     }
 }
 

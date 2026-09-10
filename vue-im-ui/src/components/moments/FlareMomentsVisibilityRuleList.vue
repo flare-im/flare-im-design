@@ -54,7 +54,7 @@ const hint = computed(() =>
         <div class="flare-moments-visibility__title">{{ title }}</div>
         <div class="flare-moments-visibility__hint">{{ hint }}</div>
       </div>
-      <NButton size="tiny" quaternary @click="emit('add')">
+      <NButton size="small" quaternary :disabled="loading" :aria-label="`${t('contactMatch.add')} · ${title}`" @click="emit('add')">
         <template #icon>
           <NIcon><PersonAddOutline /></NIcon>
         </template>
@@ -77,11 +77,12 @@ const hint = computed(() =>
         v-for="m in members"
         :key="m.userId"
         class="flare-moments-visibility__row"
-        @click="emit('selectMember', m)"
       >
+        <button class="flare-moments-visibility__member" type="button" :disabled="loading" @click="emit('selectMember', m)">
         <FlareAvatar :user-id="m.userId" :display-name="m.displayName" :avatar-url="m.avatarUrl" :size="32" />
         <span class="flare-moments-visibility__name">{{ m.displayName }}</span>
-        <NButton size="tiny" quaternary @click.stop="emit('remove', m)">
+        </button>
+        <NButton size="small" quaternary :disabled="loading" :aria-label="`${t('momentsVisibility.remove')} ${m.displayName}`" @click="emit('remove', m)">
           {{ t("momentsVisibility.remove") }}
         </NButton>
       </li>
@@ -142,6 +143,8 @@ const hint = computed(() =>
   cursor: pointer;
 }
 
+.flare-moments-visibility__member { flex: 1; min-width: 0; min-height: 44px; display: flex; align-items: center; gap: 8px; text-align: start; color: inherit; background: none; border: 0; cursor: pointer; }
+.flare-moments-visibility__member:focus-visible { outline: 2px solid var(--flare-color-primary); outline-offset: 2px; }
 .flare-moments-visibility__name {
   flex: 1;
   min-width: 0;

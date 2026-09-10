@@ -6,7 +6,7 @@ title: ComposerSendButton
 
 <p><span class="flare-tag">Composer</span></p>
 
-> Send button (发送) — brand-purple when active, disabled otherwise. A composable Composer part.
+> Send (发送) — a paper plane, not a filled disc; the brand colour carries the state and fades while there is nothing to send. A composable Composer part.
 
 **Data source**: presentational — an `active` flag in, a `send` callback out (only when active)
 

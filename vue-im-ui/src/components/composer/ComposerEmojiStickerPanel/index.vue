@@ -29,6 +29,8 @@ const props = withDefaults(
     stickerOnly?: boolean;
     canSend?: boolean;
     sending?: boolean;
+    disabled?: boolean;
+    showSendButton?: boolean;
   }>(),
   {
     activeTab: "emoji",
@@ -36,6 +38,8 @@ const props = withDefaults(
     stickerOnly: false,
     canSend: false,
     sending: false,
+    disabled: false,
+    showSendButton: true,
   },
 );
 
@@ -161,6 +165,7 @@ function onPickEmoji(item: ComposerEmojiAssetItem): void {
 }
 
 async function onPickSticker(item: ComposerStickerItem): Promise<void> {
+  if (props.disabled || props.sending) return;
   const url = await resolveStickerUrlByPackageAndId(item.packageId, item.stickerId);
   recentStickerIds.value = pushRecentOne(RECENT_STICKER_KEY, recentStickerIds.value, stickerRecentId(item));
   emit("send-sticker", {
@@ -194,7 +199,7 @@ function onPanelSendClick(): void {
   >
     <div class="panel-scroll">
       <template v-if="!stickerOnly && activeTab === 'emoji'">
-        <section v-if="recentEmojiItems.length > 0" class="panel-section">
+        <section v-if="recentEmojiItems.length > 0" class="panel-section panel-section--recent-emoji">
           <h3 class="section-heading">Frequently used</h3>
           <div class="asset-grid asset-grid--emoji">
             <button
@@ -234,6 +239,7 @@ function onPanelSendClick(): void {
               :key="'rs-' + item.id"
               type="button"
               class="asset-cell asset-cell--sticker"
+              :disabled="disabled || sending"
               :title="item.alt"
               @click="onPickSticker(item)"
             >
@@ -254,6 +260,7 @@ function onPanelSendClick(): void {
               :key="'p-' + item.id"
               type="button"
               class="asset-cell asset-cell--sticker"
+              :disabled="disabled || sending"
               :title="item.alt"
               @click="onPickSticker(item)"
             >
@@ -336,6 +343,7 @@ function onPanelSendClick(): void {
         <div class="tabbar-spacer" />
         <button
           type="button"
+          v-if="showSendButton"
           class="panel-send-btn"
           :disabled="!canSend || sending"
           @click.stop="onPanelSendClick"

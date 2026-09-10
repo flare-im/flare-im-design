@@ -92,6 +92,7 @@ public struct MomentAudienceSheetView: View {
                             .padding(.horizontal, FlareSizes.spacingMd)
                             .padding(.vertical, FlareSizes.spacingSm)
                         ForEach(contacts) { c in
+                            Button { toggle(c) } label: {
                             HStack(spacing: FlareSizes.spacingSm) {
                                 AvatarView(userId: c.userId, displayName: c.displayName,
                                            avatarURL: c.avatarURL, size: 32)
@@ -107,7 +108,11 @@ public struct MomentAudienceSheetView: View {
                             .padding(.vertical, FlareSizes.spacingXs)
                             .background(picked.contains(c.userId) ? colors.bgHover : Color.clear)
                             .contentShape(Rectangle())
-                            .onTapGesture { toggle(c) }
+                            .frame(minHeight: 44)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityElement(children: .combine)
+                            .accessibilityAddTraits(picked.contains(c.userId) ? .isSelected : [])
                         }
                     }
                 }
@@ -134,6 +139,7 @@ public struct MomentAudienceSheetView: View {
                      trailing: String? = nil,
                      action: @escaping () -> Void) -> some View {
         let tone = active ? (accent ?? colors.textPrimary) : colors.textSecondary
+        Button(action: action) {
         HStack(spacing: FlareSizes.spacingSm) {
             Image(systemName: systemImage).font(.system(size: 16)).foregroundColor(tone)
             VStack(alignment: .leading, spacing: 2) {
@@ -152,7 +158,11 @@ public struct MomentAudienceSheetView: View {
         .padding(.horizontal, FlareSizes.spacingMd)
         .padding(.vertical, FlareSizes.spacingSm)
         .contentShape(Rectangle())
-        .onTapGesture(perform: action)
+        .frame(minHeight: 44)
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(active ? .isSelected : [])
     }
 }
 

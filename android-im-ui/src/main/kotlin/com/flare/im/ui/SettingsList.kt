@@ -2,6 +2,10 @@ package com.flare.im.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.draw.alpha
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -63,29 +67,38 @@ fun SettingsList(
     sections: List<SettingsSection>,
     onToggle: ((SettingsItem, Boolean) -> Unit)? = null,
     onSelect: ((SettingsItem) -> Unit)? = null,
+    /** Set false when the host already owns vertical scrolling. */
+    scrollable: Boolean = true,
+) {
+    if (scrollable) {
+        LazyColumn(Modifier.fillMaxWidth()) {
+            sections.forEachIndexed { index, section ->
+                item(key = "section-$index") { SettingsSectionContent(section, onToggle, onSelect) }
+            }
+        }
+    } else {
+        Column(Modifier.fillMaxWidth()) {
+            sections.forEach { section -> SettingsSectionContent(section, onToggle, onSelect) }
+        }
+    }
+}
+
+@Composable
+private fun SettingsSectionContent(
+    section: SettingsSection,
+    onToggle: ((SettingsItem, Boolean) -> Unit)?,
+    onSelect: ((SettingsItem) -> Unit)?,
 ) {
     val colors = flareColors()
-    LazyColumn(Modifier.fillMaxWidth()) {
-        sections.forEachIndexed { sIndex, section ->
-            if (!section.title.isNullOrEmpty()) {
-                item(key = "t-${section.title}") {
-                    Text(section.title, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp,
-                        modifier = Modifier.padding(
-                            start = FlareSizes.spacingLg, end = FlareSizes.spacingLg,
-                            top = FlareSizes.spacingMd, bottom = FlareSizes.spacingSm,
-                        ))
-                }
-            }
-            // Aurora — a section's rows float together on one elevated grouped card
-            // (iOS-style), matching the Vue/Flutter settings surface.
-            item(key = "card-${section.title ?: section.items.firstOrNull()?.key ?: sIndex}") {
-                FlareGroupedCard {
-                    section.items.forEachIndexed { i, item ->
-                        if (i > 0) FlareGroupedCardDivider()
-                        SettingsRow(item = item, onToggle = onToggle, onSelect = onSelect)
-                    }
-                }
-            }
+    if (!section.title.isNullOrEmpty()) {
+        Text(section.title, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp,
+            modifier = Modifier.padding(start = FlareSizes.spacingLg, end = FlareSizes.spacingLg,
+                top = FlareSizes.spacingMd, bottom = FlareSizes.spacingSm))
+    }
+    FlareGroupedCard {
+        section.items.forEachIndexed { index, item ->
+            if (index > 0) FlareGroupedCardDivider()
+            SettingsRow(item = item, onToggle = onToggle, onSelect = onSelect)
         }
     }
 }
@@ -107,14 +120,19 @@ fun SettingsRow(
     val colors = flareColors()
     Row(
         Modifier.fillMaxWidth()
-            .then(if (item.kind != FlareSettingKind.Toggle) Modifier.clickable { onSelect?.invoke(item) } else Modifier)
+            .heightIn(min = 48.dp)
+            .alpha(if (item.disabled) 0.45f else 1f)
+            .then(if (item.kind == FlareSettingKind.Toggle) Modifier.toggleable(
+                value = item.value, enabled = !item.disabled && onToggle != null, role = Role.Switch,
+                onValueChange = { onToggle?.invoke(item, it) },
+            ) else Modifier.clickable(enabled = !item.disabled && onSelect != null, role = Role.Button) { onSelect?.invoke(item) })
             .padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingMd),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         item.icon?.let { ic -> Icon(ic, null, tint = colors.textSecondary); Spacer(Modifier.width(FlareSizes.spacingMd)) }
-        Text(item.label, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp, modifier = Modifier.weight(1f))
+        Text(item.label, color = if (item.danger) colors.error else colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp, modifier = Modifier.weight(1f))
         when (item.kind) {
-            FlareSettingKind.Toggle -> Switch(checked = item.value, onCheckedChange = { v -> onToggle?.invoke(item, v) })
+            FlareSettingKind.Toggle -> Switch(checked = item.value, enabled = !item.disabled && onToggle != null, onCheckedChange = null)
             FlareSettingKind.Value -> Text(item.detail ?: "", color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd.value.sp)
             FlareSettingKind.Navigation -> {
                 item.detail?.let { d ->

@@ -65,12 +65,14 @@ class FlareProfilePanel extends StatelessWidget {
         InkWell(
           onTap: onEdit,
           child: Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
+              // Aurora stops come from the token ramp (brand hue), not a
+              // hand-picked violet that drifts away from the primary.
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF3B1F7A), Color(0xFF7C3AED), Color(0xFF8B5CF6)],
-                stops: [0.0, 0.62, 1.0],
+                colors: [colors.auroraDeep, colors.auroraBase, colors.auroraSoft],
+                stops: const [0.0, 0.62, 1.0],
               ),
             ),
             padding: const EdgeInsets.fromLTRB(

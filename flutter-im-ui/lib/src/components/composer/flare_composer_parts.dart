@@ -32,8 +32,13 @@ class FlareComposerIconButton extends StatelessWidget {
   }
 }
 
-/// The send button — a brand-purple circle that lights up when there is
-/// something to send. Composer part.
+/// Send — a paper plane, and nothing else.
+///
+/// It used to be a filled brand disc with a white glyph inside. Sending is the
+/// same kind of act as every other key in the tool row — one tap, one outcome —
+/// so it is drawn the same way, and only colour says which one sends: the brand
+/// at rest against the row, faded while there is nothing to send. That is also
+/// what [FlareComposer]'s own send key does, and the two must not drift.
 class FlareComposerSendButton extends StatelessWidget {
   const FlareComposerSendButton({super.key, required this.active, this.onTap});
 
@@ -43,22 +48,23 @@ class FlareComposerSendButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(Theme.of(context).brightness);
-    return Padding(
-      padding: const EdgeInsets.only(left: 2),
-      child: Material(
-        color: active ? colors.primary : colors.bgDisabled,
-        shape: const CircleBorder(),
-        child: InkWell(
-          customBorder: const CircleBorder(),
-          onTap: active ? onTap : null,
-          child: SizedBox(
-            width: 34,
-            height: 34,
-            child: Icon(Icons.send_rounded,
-                size: 16,
-                color: active ? Colors.white : colors.textDisabled),
-          ),
-        ),
+    // An IconButton like every other key in the tool row: same target, same
+    // ink, same hit-testing. Only the colour differs, and only by state.
+    return IconButton(
+      onPressed: active ? onTap : null,
+      iconSize: 20,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints.tightFor(width: 44, height: 44),
+      // shrinkWrap, or Material pads the target out to 48 and the tool row
+      // overflows a 320-wide screen by exactly the difference.
+      style: IconButton.styleFrom(
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        minimumSize: const Size(44, 44),
+        maximumSize: const Size(44, 44),
+      ),
+      icon: Icon(
+        Icons.send_outlined,
+        color: colors.primary.withValues(alpha: active ? 1 : 0.38),
       ),
     );
   }
@@ -72,6 +78,7 @@ class FlareComposerReplyStrip extends StatelessWidget {
     required this.summary,
     this.label = '回复',
     this.onCancel,
+    this.flush = false,
   });
 
   final String senderName;
@@ -81,17 +88,30 @@ class FlareComposerReplyStrip extends StatelessWidget {
   final String label;
   final VoidCallback? onCancel;
 
+  /// Part of the writing band rather than a card on top of it: full width, no
+  /// rounding, closed by a hairline. What a phone composer passes.
+  final bool flush;
+
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(Theme.of(context).brightness);
     return Container(
-      margin: const EdgeInsets.only(bottom: FlareSizes.spacingSm),
-      padding: const EdgeInsets.symmetric(
-          horizontal: FlareSizes.spacingSm, vertical: FlareSizes.spacingXs),
+      margin: flush
+          ? EdgeInsets.zero
+          : const EdgeInsets.only(bottom: FlareSizes.spacingSm),
+      padding: EdgeInsets.symmetric(
+        horizontal: flush ? 16 : FlareSizes.spacingSm,
+        vertical: FlareSizes.spacingXs,
+      ),
       decoration: BoxDecoration(
-        color: colors.bgSecondary,
-        borderRadius: BorderRadius.circular(FlareSizes.radiusMd),
-        border: Border(left: BorderSide(color: colors.primary, width: 3)),
+        color: flush ? colors.bgPrimary : colors.bgSecondary,
+        borderRadius: flush ? null : BorderRadius.circular(FlareSizes.radiusMd),
+        border: Border(
+          left: BorderSide(color: colors.primary, width: 3),
+          bottom: flush
+              ? BorderSide(color: colors.borderPrimary)
+              : BorderSide.none,
+        ),
       ),
       child: Row(
         children: [
@@ -100,23 +120,33 @@ class FlareComposerReplyStrip extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('$label $senderName',
-                    style: TextStyle(
-                        color: colors.primary,
-                        fontSize: FlareSizes.fontSizeXs,
-                        fontWeight: FontWeight.w600)),
-                Text(summary,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        color: colors.textSecondary,
-                        fontSize: FlareSizes.fontSizeSm)),
+                Text(
+                  '$label $senderName',
+                  style: TextStyle(
+                    color: colors.primary,
+                    fontSize: FlareSizes.fontSizeXs,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  summary,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: colors.textSecondary,
+                    fontSize: FlareSizes.fontSizeSm,
+                  ),
+                ),
               ],
             ),
           ),
           GestureDetector(
             onTap: onCancel,
-            child: Icon(Icons.close_rounded, size: 18, color: colors.textTertiary),
+            child: Icon(
+              Icons.close_rounded,
+              size: 18,
+              color: colors.textTertiary,
+            ),
           ),
         ],
       ),

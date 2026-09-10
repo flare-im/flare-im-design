@@ -34,28 +34,45 @@ class FlareSettingsList extends StatelessWidget {
         for (final section in sections) ...[
           if (section.title != null)
             Padding(
-              padding: const EdgeInsets.fromLTRB(FlareSizes.spacingLg,
-                  FlareSizes.spacingXs, FlareSizes.spacingLg, FlareSizes.spacingXs),
-              child: Text(section.title!,
-                  style: TextStyle(
-                      color: colors.textTertiary, fontSize: FlareSizes.fontSizeSm)),
+              padding: const EdgeInsets.fromLTRB(
+                FlareSizes.spacingLg,
+                FlareSizes.spacingXs,
+                FlareSizes.spacingLg,
+                FlareSizes.spacingXs,
+              ),
+              child: Text(
+                section.title!,
+                style: TextStyle(
+                  color: colors.textTertiary,
+                  fontSize: FlareSizes.fontSizeSm,
+                ),
+              ),
             ),
           // Aurora — rows float together on one elevated grouped card (iOS-style).
           Container(
-            margin: const EdgeInsets.fromLTRB(FlareSizes.spacingMd, 0,
-                FlareSizes.spacingMd, FlareSizes.spacingLg),
+            margin: const EdgeInsets.fromLTRB(
+              FlareSizes.spacingMd,
+              0,
+              FlareSizes.spacingMd,
+              FlareSizes.spacingLg,
+            ),
             decoration: BoxDecoration(
               color: colors.bgElevated,
               borderRadius: BorderRadius.circular(FlareSizes.radiusXl),
               boxShadow: [
                 BoxShadow(
-                  color: isDark ? const Color(0x80000000) : const Color(0x14151320),
+                  color: isDark
+                      ? const Color(0x80000000)
+                      : const Color(0x14151320),
                   blurRadius: isDark ? 24 : 22,
                   offset: const Offset(0, 8),
                 ),
                 if (isDark)
                   const BoxShadow(
-                      color: Color(0x247C3AED), blurRadius: 12, offset: Offset(0, 2)),
+                    color: Color(0x247C3AED),
+                    blurRadius: 12,
+                    offset: Offset(0, 2),
+                  ),
               ],
             ),
             clipBehavior: Clip.antiAlias,
@@ -63,8 +80,16 @@ class FlareSettingsList extends StatelessWidget {
               children: [
                 for (var i = 0; i < section.items.length; i++) ...[
                   if (i > 0)
-                    Divider(height: 1, indent: FlareSizes.spacingMd, color: colors.borderSecondary),
-                  FlareSettingsRow(item: section.items[i], onToggle: onToggle, onSelect: onSelect),
+                    Divider(
+                      height: 1,
+                      indent: FlareSizes.spacingMd,
+                      color: colors.borderSecondary,
+                    ),
+                  FlareSettingsRow(
+                    item: section.items[i],
+                    onToggle: onToggle,
+                    onSelect: onSelect,
+                  ),
                 ],
               ],
             ),
@@ -73,14 +98,18 @@ class FlareSettingsList extends StatelessWidget {
       ],
     );
   }
-
 }
 
 /// One settings row — the single source of truth for how a [FlareSettingsItem]
 /// renders (toggle / value / navigation). Shared by [FlareSettingsList] and
 /// [FlareProfilePanel] so the two can't drift apart.
 class FlareSettingsRow extends StatelessWidget {
-  const FlareSettingsRow({super.key, required this.item, this.onToggle, this.onSelect});
+  const FlareSettingsRow({
+    super.key,
+    required this.item,
+    this.onToggle,
+    this.onSelect,
+  });
 
   final FlareSettingsItem item;
   final void Function(FlareSettingsItem item, bool value)? onToggle;
@@ -89,52 +118,90 @@ class FlareSettingsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(Theme.of(context).brightness);
-    return InkWell(
-      onTap: item.kind == FlareSettingKind.toggle ? null : () => onSelect?.call(item),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-            horizontal: FlareSizes.spacingMd, vertical: FlareSizes.spacingMd),
-        child: Row(
-          children: [
-            if (item.icon != null) ...[
-              Icon(item.icon, color: colors.textSecondary),
-              const SizedBox(width: FlareSizes.spacingMd),
-            ],
-            Expanded(
-                child: Text(item.label,
+    final isToggle = item.kind == FlareSettingKind.toggle;
+    final enabled =
+        !item.disabled && (isToggle ? onToggle != null : onSelect != null);
+    return Semantics(
+      enabled: enabled,
+      toggled: isToggle ? item.value : null,
+      child: Opacity(
+        opacity: item.disabled ? 0.45 : 1,
+        child: InkWell(
+          onTap: !enabled
+              ? null
+              : () {
+                  if (isToggle) {
+                    onToggle?.call(item, !item.value);
+                  } else {
+                    onSelect?.call(item);
+                  }
+                },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: FlareSizes.spacingMd,
+              vertical: FlareSizes.spacingMd,
+            ),
+            child: Row(
+              children: [
+                if (item.icon != null) ...[
+                  Icon(item.icon, color: colors.textSecondary),
+                  const SizedBox(width: FlareSizes.spacingMd),
+                ],
+                Expanded(
+                  child: Text(
+                    item.label,
                     style: TextStyle(
-                        color: colors.textPrimary,
-                        fontSize: FlareSizes.fontSizeLg,
-                        fontWeight:
-                            item.kind == FlareSettingKind.select && item.value
-                                ? FontWeight.w700
-                                : FontWeight.w400))),
-            switch (item.kind) {
-              FlareSettingKind.toggle => Switch(
-                  value: item.value,
-                  activeTrackColor: colors.primary,
-                  onChanged: (v) => onToggle?.call(item, v),
+                      color: item.danger ? colors.error : colors.textPrimary,
+                      fontSize: FlareSizes.fontSizeLg,
+                      fontWeight:
+                          item.kind == FlareSettingKind.select && item.value
+                          ? FontWeight.w700
+                          : FontWeight.w400,
+                    ),
+                  ),
                 ),
-              FlareSettingKind.value => Text(item.detail ?? '',
-                  style: TextStyle(
-                      color: colors.textTertiary, fontSize: FlareSizes.fontSizeMd)),
-              // Pick-one row: a trailing check when this item is the selected one.
-              FlareSettingKind.select => item.value
-                  ? Icon(Icons.check_circle, color: colors.primary)
-                  : const SizedBox.shrink(),
-              FlareSettingKind.navigation => Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (item.detail != null)
-                      Text(item.detail!,
+                switch (item.kind) {
+                  FlareSettingKind.toggle => ExcludeSemantics(
+                    child: IgnorePointer(
+                      child: ExcludeFocus(
+                        child: Switch(
+                          value: item.value,
+                          activeTrackColor: colors.primary,
+                          onChanged: enabled ? (_) {} : null,
+                        ),
+                      ),
+                    ),
+                  ),
+                  FlareSettingKind.value => Text(
+                    item.detail ?? '',
+                    style: TextStyle(
+                      color: colors.textTertiary,
+                      fontSize: FlareSizes.fontSizeMd,
+                    ),
+                  ),
+                  // Pick-one row: a trailing check when this item is the selected one.
+                  FlareSettingKind.select =>
+                    item.value
+                        ? Icon(Icons.check_circle, color: colors.primary)
+                        : const SizedBox.shrink(),
+                  FlareSettingKind.navigation => Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (item.detail != null)
+                        Text(
+                          item.detail!,
                           style: TextStyle(
-                              color: colors.textTertiary,
-                              fontSize: FlareSizes.fontSizeMd)),
-                    Icon(Icons.chevron_right, color: colors.textTertiary),
-                  ],
-                ),
-            },
-          ],
+                            color: colors.textTertiary,
+                            fontSize: FlareSizes.fontSizeMd,
+                          ),
+                        ),
+                      Icon(Icons.chevron_right, color: colors.textTertiary),
+                    ],
+                  ),
+                },
+              ],
+            ),
+          ),
         ),
       ),
     );

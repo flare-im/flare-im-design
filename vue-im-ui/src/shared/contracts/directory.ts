@@ -40,6 +40,8 @@ export interface FlareUserProfile {
 export type FlareSettingKind = "navigation" | "toggle" | "value";
 
 export interface FlareSettingsItem {
+  disabled?: boolean;
+  danger?: boolean;
   key: string;
   label: string;
   icon?: string;

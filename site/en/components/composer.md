@@ -13,7 +13,7 @@ title: Composer
 ## Preview
 
 <div class="flare-demo flare-demo--stack">
-  <ComposerDemo />
+  <ComposerResponsivePreview />
 </div>
 
 ### Free composition (assemble from parts)
@@ -21,6 +21,8 @@ title: Composer
 <div class="flare-demo flare-demo--stack">
   <ComposerPartsDemo />
 </div>
+
+<!--@include: ../../snippets/composer-web.en.md-->
 
 ## Props
 
@@ -38,10 +40,10 @@ title: Composer
 
 ## Events
 
-<span class="flare-tag">send</span> <span class="flare-tag">attach</span> <span class="flare-tag">typing</span>
+<span class="flare-tag">update:modelValue</span> <span class="flare-tag">send</span> <span class="flare-tag">user-input</span> <span class="flare-tag">send-voice</span> <span class="flare-tag">voice-cancel</span> <span class="flare-tag">clear-reply</span> <span class="flare-tag">clear-edit</span> <span class="flare-tag">build</span> <span class="flare-tag">toggle-panel</span> <span class="flare-tag">toggle-rich-mode</span>
 
 > [!TIP]
-> Composed from reusable parts you can also use standalone: [VoiceHoldButton](/en/components/voice-hold-button) · [ComposerActionPanel](/en/components/composer-action-panel) · [ComposerSendButton](/en/components/composer-send-button) · [ComposerReplyStrip](/en/components/composer-reply-strip).
+> Composed from reusable parts you can also use standalone: [VoiceHoldButton](/en/components/voice-hold-button) · [ComposerActionPanel](/en/components/composer-action-panel) · [ComposerSendButton](/en/components/composer-send-button) · [ComposerReplyStrip](/en/components/composer-reply-strip). The attachment entry goes through toggle-panel / build on Vue, while only the native platforms expose a standalone onAttach; text changes are user-input on Vue and onTyping on Flutter, with no equivalent on iOS/Compose yet.
 
 ## Platform implementations
 
@@ -63,12 +65,12 @@ import { FlareComposer } from "@flare-im/vue-ui";
 </script>
 <template>
   <FlareComposer
+  v-model="modelValue"
   :conversationId="conversationId"
   :replyTo="replyTo"
   :rich="rich"
   @send="onSend"
-  @attach="onAttach"
-  @typing="onTyping"
+  @user-input="onUserInput"
   />
 </template>
 ```
@@ -79,13 +81,12 @@ FlareComposer(
   replyTo: replyTo,
   rich: rich,
   onSend: onSend,
-  onAttach: onAttach,
-  onTyping: onTyping,
+  onUserInput: onUserInput,
 );
 ```
 
 ```swift [iOS]
-ComposerView(conversationId: conversationId, replyTo: replyTo, rich: rich, onSend: onSend, onAttach: onAttach, onTyping: onTyping)
+ComposerView(conversationId: conversationId, replyTo: replyTo, rich: rich, onSend: onSend, onUserInput: onUserInput)
 ```
 
 ```kotlin [Android]
@@ -94,8 +95,7 @@ Composer(
   replyTo = replyTo,
   rich = rich,
   onSend = onSend,
-  onAttach = onAttach,
-  onTyping = onTyping,
+  onUserInput = onUserInput,
 )
 ```
 

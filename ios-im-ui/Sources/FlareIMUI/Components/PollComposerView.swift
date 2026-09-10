@@ -9,6 +9,7 @@ public struct PollComposerView: View {
     private let onSubmit: ((String, [String], Bool) -> Void)?
     private let onCancel: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareStrings) private var strings
     @State private var question = ""
     @State private var options: [String] = ["", ""]
     @State private var multiple = false
@@ -30,7 +31,7 @@ public struct PollComposerView: View {
         let colors = FlareColors.of(scheme)
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("发起投票").font(.system(size: 15, weight: .semibold)).foregroundColor(colors.textPrimary)
+                Text(strings.createPoll).font(.system(size: 15, weight: .semibold)).foregroundColor(colors.textPrimary)
                 Spacer(minLength: 0)
                 Button { onCancel?() } label: {
                     Image(systemName: "xmark").font(.system(size: 13, weight: .semibold))
@@ -39,7 +40,7 @@ public struct PollComposerView: View {
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                TextField("输入问题", text: $question)
+                TextField(strings.pollQuestionHint, text: $question)
                     .font(.system(size: 15, weight: .medium)).foregroundColor(colors.textPrimary)
                     .textFieldStyle(.plain)
                 Rectangle().fill(colors.borderPrimary).frame(height: 1)
@@ -53,7 +54,7 @@ public struct PollComposerView: View {
                 Button { options.append("") } label: {
                     HStack(spacing: 5) {
                         Image(systemName: "plus").font(.system(size: 12, weight: .semibold))
-                        Text("添加选项").font(.system(size: 13, weight: .medium))
+                        Text(strings.addOption).font(.system(size: 13, weight: .medium))
                     }.foregroundColor(colors.primary)
                 }.buttonStyle(.plain)
             }
@@ -62,7 +63,7 @@ public struct PollComposerView: View {
                 HStack(spacing: 8) {
                     Image(systemName: multiple ? "checkmark.square" : "square")
                         .font(.system(size: 15)).foregroundColor(multiple ? colors.primary : colors.textTertiary)
-                    Text("允许多选").font(.system(size: 13)).foregroundColor(colors.textSecondary)
+                    Text(strings.allowMultiple).font(.system(size: 13)).foregroundColor(colors.textSecondary)
                     Spacer(minLength: 0)
                 }.contentShape(Rectangle())
             }.buttonStyle(.plain)
@@ -70,7 +71,7 @@ public struct PollComposerView: View {
             Button {
                 onSubmit?(question.trimmingCharacters(in: .whitespaces), filledOptions, multiple)
             } label: {
-                Text("创建投票").font(.system(size: 14, weight: .semibold)).foregroundColor(.white)
+                Text(strings.submitPoll).font(.system(size: 14, weight: .semibold)).foregroundColor(.white)
                     .frame(maxWidth: .infinity).padding(.vertical, 9)
                     .background(
                         RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(
@@ -91,7 +92,7 @@ public struct PollComposerView: View {
 
     private func optionRow(_ colors: FlareColors, _ i: Int) -> some View {
         HStack(spacing: 8) {
-            TextField("选项 \(i + 1)", text: $options[i])
+            TextField(strings.pollOptionHint(i + 1), text: $options[i])
                 .font(.system(size: 14)).foregroundColor(colors.textPrimary)
                 .textFieldStyle(.plain)
             if options.count > 2 {

@@ -3306,7 +3306,7 @@ export function useFlareCoreClient(options: UseFlareCoreClientOptions) {
       upsertUserProfiles;
   }
 
-  /** 上一次登录因缺签名密钥失败——登录页据此自动展开高级区，把输入框露出来。 */
+  /** 登录配置提示状态，供登录页展开高级设置。 */
 
   // Reactive recovery: if the connection drops into reconnecting/disconnected while the token has
   // already expired (e.g. the app was suspended past expiry, or the proactive push failed),

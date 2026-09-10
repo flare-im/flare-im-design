@@ -24,6 +24,8 @@ import type {
 
 const props = defineProps<{
   contact: FlareContact;
+  disabledActions?: ("message" | "call" | "video")[];
+  busy?: boolean;
   /** Whether the viewer has starred (favorited) this contact. */
   starred?: boolean;
   /** Free-text description the viewer set for this contact. */
@@ -58,18 +60,20 @@ const sections = computed<FlareSettingsSection[]>(() => [
     title: t("contact.info"),
     items: [
       { key: "flareId", label: t("contact.flareId"), icon: "info", kind: "value", detail: props.contact.id },
-      { key: "remark", label: t("contact.remark"), icon: "edit", kind: "value", detail: props.contact.remark || t("contact.notSet") },
-      { key: "description", label: t("contact.description"), icon: "comment", kind: "value", detail: props.description || t("contact.notSet") },
-      { key: "star", label: t("contact.star"), icon: "star", kind: "toggle", value: props.starred ?? false },
+      { key: "remark", label: t("contact.remark"), icon: "edit", kind: "value", disabled: props.busy, detail: props.contact.remark || t("contact.notSet") },
+      { key: "description", label: t("contact.description"), icon: "comment", kind: "value", disabled: props.busy, detail: props.description || t("contact.notSet") },
+      { key: "star", label: t("contact.star"), icon: "star", kind: "toggle", disabled: props.busy, value: props.starred ?? false },
     ],
   },
 ]);
 
 function onSelect(item: FlareSettingsItem) {
+  if (props.busy) return;
   if (item.key === "remark") emit("edit");
   else if (item.key === "description") emit("editDescription");
 }
 function onToggle(item: FlareSettingsItem, value: boolean) {
+  if (props.busy) return;
   if (item.key === "star") emit("toggleStar", value);
 }
 </script>
@@ -94,13 +98,13 @@ function onToggle(item: FlareSettingsItem, value: boolean) {
     </div>
 
     <div class="flare-contact-detail__actions">
-      <button type="button" class="is-primary" @click="emit('message')">
+      <button type="button" class="is-primary" :disabled="busy || disabledActions?.includes('message')" @click="emit('message')">
         <n-icon :size="20" :component="ChatbubbleEllipsesOutline" /><span>{{ t("contact.message") }}</span>
       </button>
-      <button type="button" @click="emit('call')">
+      <button type="button" :disabled="busy || disabledActions?.includes('call')" @click="emit('call')">
         <n-icon :size="20" :component="CallOutline" /><span>{{ t("contact.voice") }}</span>
       </button>
-      <button type="button" @click="emit('video')">
+      <button type="button" :disabled="busy || disabledActions?.includes('video')" @click="emit('video')">
         <n-icon :size="20" :component="VideocamOutline" /><span>{{ t("contact.video") }}</span>
       </button>
     </div>
@@ -108,8 +112,8 @@ function onToggle(item: FlareSettingsItem, value: boolean) {
     <FlareSettingsList class="flare-contact-detail__card" :sections="sections" @select="onSelect" @toggle="onToggle" />
 
     <div class="flare-contact-detail__foot">
-      <button type="button" @click="emit('block')">{{ t("contact.block") }}</button>
-      <button type="button" class="is-danger" @click="emit('remove')">{{ t("contact.remove") }}</button>
+      <button type="button" :disabled="busy" @click="emit('block')">{{ t("contact.block") }}</button>
+      <button type="button" class="is-danger" :disabled="busy" @click="emit('remove')">{{ t("contact.remove") }}</button>
     </div>
   </div>
 </template>
@@ -137,6 +141,7 @@ function onToggle(item: FlareSettingsItem, value: boolean) {
   color: var(--flare-color-text-secondary); font-size: 13px; font-weight: 500; cursor: pointer;
   transition: transform var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1)), filter var(--flare-transition-fast, 150ms cubic-bezier(0.22, 1, 0.36, 1));
 }
+.flare-contact-detail__actions button:disabled { opacity: 0.45; cursor: default; }
 .flare-contact-detail__actions button:active { transform: scale(0.97); }
 .flare-contact-detail__actions button.is-primary {
   color: #fff; background: var(--im-brand-gradient, var(--flare-color-primary));

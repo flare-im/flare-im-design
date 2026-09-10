@@ -235,3 +235,5 @@ export { default as FlareScreenShare } from './call/FlareScreenShare.vue';
 export { default as FlareStorageUsage } from "./profile/FlareStorageUsage.vue";
 
 export { default as FlareConversationWorkspace } from "./layout/FlareConversationWorkspace.vue";
+
+export { default as FlareFormSheet } from "./general/FlareFormSheet.vue";

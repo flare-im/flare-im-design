@@ -350,10 +350,12 @@ public struct FlareGroupDetail: View {
         }
         .background(colors.bgSecondary.ignoresSafeArea())
         // ── Edit name / announcement / nickname ──
-        .alert(editAlertTitle, isPresented: Binding(get: { editKind != nil }, set: { if !$0 { editKind = nil } })) {
-            TextField("", text: $editDraft)
-            Button(labels.save) { saveEdit() }
-            Button(labels.cancel, role: .cancel) { editKind = nil }
+        .sheet(item: $editKind) { kind in
+            FormSheetView(title: editAlertTitle, confirmLabel: labels.save, cancelLabel: labels.cancel,
+                          confirmEnabled: kind != .name || !editDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                          onConfirm: saveEdit, onCancel: { editKind = nil }) {
+                InputView(text: $editDraft, multiline: kind == .announcement)
+            }
         }
         // ── Join policy ──
         .confirmationDialog(labels.joinMode, isPresented: $pickJoinPolicy, titleVisibility: .visible) {

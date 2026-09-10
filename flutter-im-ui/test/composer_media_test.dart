@@ -1,3 +1,4 @@
+import 'package:extended_text_field/extended_text_field.dart';
 import 'package:flare_im_ui/flare_im_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,12 +13,14 @@ void main() {
       await tester.pumpWidget(_host(FlareComposer(onSend: (t) => sent = t)));
 
       // empty → tapping send does nothing
-      await tester.tap(find.byIcon(Icons.send_rounded));
+      await tester.tap(find.byIcon(Icons.send_outlined));
       expect(sent, isNull);
 
-      await tester.enterText(find.byType(TextField), 'hello world');
+      await tester.tap(find.byType(ExtendedTextField));
       await tester.pump();
-      await tester.tap(find.byIcon(Icons.send_rounded));
+      tester.testTextInput.enterText('hello world');
+      await tester.pump();
+      await tester.tap(find.byIcon(Icons.send_outlined));
       expect(sent, 'hello world');
 
       // cleared after send
@@ -29,7 +32,7 @@ void main() {
       await tester.pumpWidget(
         _host(FlareComposer(onAttach: () => attached = true)),
       );
-      await tester.tap(find.byIcon(Icons.add_circle_outline_rounded));
+      await tester.tap(find.byIcon(Icons.add));
       expect(attached, isTrue);
     });
 
@@ -45,15 +48,15 @@ void main() {
       expect(cancelled, isTrue);
     });
 
-    testWidgets('voice toggle swaps the input for hold-to-talk', (tester) async {
+    testWidgets('voice toggle swaps the input for inline capture', (tester) async {
       await tester.pumpWidget(_host(
-        const FlareComposer(enableVoice: true, voiceLabel: 'Hold to talk'),
+        FlareComposer(enableVoice: true, onVoiceSend: (_, _) async => true),
       ));
-      expect(find.byType(TextField), findsOneWidget);
+      expect(find.byType(ExtendedTextField), findsOneWidget);
       await tester.tap(find.byIcon(Icons.mic_none));
       await tester.pump();
-      expect(find.text('Hold to talk'), findsOneWidget);
-      expect(find.byType(TextField), findsNothing);
+      expect(find.byType(FlareInlineVoice), findsOneWidget);
+      expect(find.byType(ExtendedTextField), findsNothing);
     });
 
     testWidgets('+ opens the inline action panel and reports selection',
@@ -63,7 +66,7 @@ void main() {
         actions: FlareMessageActionSheet.defaultActions,
         onAction: (a) => picked = a,
       )));
-      await tester.tap(find.byIcon(Icons.add_circle_outline_rounded));
+      await tester.tap(find.byIcon(Icons.add));
       await tester.pumpAndSettle();
       expect(find.text('Image'), findsWidgets);
       await tester.tap(find.text('File').first);

@@ -114,6 +114,7 @@ fun ContactDetail(
         // 资料 settings card
         Spacer(Modifier.height(FlareSizes.spacingSm))
         SettingsList(
+            scrollable = false,
             sections = listOf(
                 SettingsSection(
                     title = labels.infoSection,
@@ -159,6 +160,7 @@ fun ContactDetail(
 private fun action(label: String, icon: ImageVector, onClick: (() -> Unit)?, colors: FlareColors, modifier: Modifier, primary: Boolean = false) {
     Button(
         onClick = { onClick?.invoke() },
+        enabled = onClick != null,
         colors = if (primary) ButtonDefaults.buttonColors(containerColor = colors.primary)
         else ButtonDefaults.buttonColors(containerColor = colors.bgSecondary, contentColor = colors.textPrimary),
         shape = RoundedCornerShape(FlareSizes.radiusLg),

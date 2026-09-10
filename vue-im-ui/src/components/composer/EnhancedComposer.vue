@@ -1,39 +1,45 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch, type Component } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, type Component } from "vue";
 import {
   AddCircleOutline,
   AddOutline,
-  AppsOutline,
   AtOutline,
-  CalendarOutline,
-  ChatbubblesOutline,
   CheckboxOutline,
-  ChevronDownOutline,
   ChevronUpOutline,
   CloseOutline,
   CodeSlashOutline,
   CodeWorkingOutline,
-  ContractOutline,
-  DocumentTextOutline,
-  ExpandOutline,
-  FolderOpenOutline,
   HappyOutline,
   ImageOutline,
   LinkOutline,
   ListOutline,
-  LocationOutline,
-  MegaphoneOutline,
   MicOutline,
-  NotificationsOutline,
+  PauseOutline,
+  PlayOutline,
   ReaderOutline,
   RemoveOutline,
   ReorderThreeOutline,
   SendOutline,
   TextOutline,
-  VideocamOutline,
 } from "../../shared/icon-glyphs";
+// Preserve the classic action-grid icons without changing the input toolbar.
+import {
+  FolderOpenOutline as MoreFolderOpenOutline,
+  VideocamOutline as MoreVideocamOutline,
+  LocationOutline as MoreLocationOutline,
+  DocumentTextOutline as MoreDocumentTextOutline,
+  CheckboxOutline as MoreCheckboxOutline,
+  CalendarOutline as MoreCalendarOutline,
+  LinkOutline as MoreLinkOutline,
+  AppsOutline as MoreAppsOutline,
+  ChatbubblesOutline as MoreChatbubblesOutline,
+  NotificationsOutline as MoreNotificationsOutline,
+  MegaphoneOutline as MoreMegaphoneOutline,
+} from "@vicons/ionicons5";
+import { Keyboard, Trash2 } from "lucide-vue-next";
 import { NButton, NIcon, NInput } from "naive-ui";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
+import ComposerResizeIcon from "./ComposerResizeIcon.vue";
 import ComposerRichMarkdownInput, {
   type RichHeadingLevel,
   type RichMarkdownFormatState,
@@ -60,6 +66,8 @@ export type FlareComposerAttachAction = {
   label: string;
   icon?: Component;
   tone?: FlareComposerActionTone;
+  disabled?: boolean;
+  disabledReason?: string;
 };
 type VoiceRecordingPayload = {
   blob: Blob;
@@ -102,8 +110,17 @@ const composerInputProps = {
 
 const props = withDefaults(defineProps<{
   sending?: boolean;
+  /** Temporary transport or slow-mode restriction: draft remains editable. */
+  sendBlocked?: boolean;
+  /** Muted, removed or read-only conversation; explain through statusHint. */
+  readOnly?: boolean;
+  moreSearchVisible?: boolean;
+  moreCloseVisible?: boolean;
+  moreTitleVisible?: boolean;
   disabled?: boolean;
   targetName?: string;
+  /** Reset transient panels and recordings when the host changes conversation. */
+  conversationKey?: string;
   activePanel?: ComposerPanel;
   richMode?: boolean;
   mediaPanelOpen?: boolean;
@@ -125,6 +142,8 @@ const props = withDefaults(defineProps<{
   sendVoiceHandler?: (payload: VoiceRecordingPayload) => void | Promise<void>;
 }>(), {
   sending: false,
+  sendBlocked: false, readOnly: false,
+  moreSearchVisible: false, moreCloseVisible: false, moreTitleVisible: false,
   disabled: false,
   targetName: "",
   activePanel: null,
@@ -150,7 +169,7 @@ const emit = defineEmits<{
   (event: "clear-reply"): void;
   (event: "clear-edit"): void;
   (event: "send-voice", payload: VoiceRecordingPayload): void;
-  /** The user aborted the recording (slid up to cancel, or it failed) — nothing was sent. */
+  /** Recording was cancelled; no voice message was submitted. */
   (event: "voice-cancel"): void;
   (event: "send", text: string): void;
   (event: "user-input", text: string): void;
@@ -161,7 +180,8 @@ const root = ref<HTMLElement | null>(null);
 // Notify hosts of typing (e.g. to drive typing indicators). Fires on the text model.
 watch(value, (next) => emit("user-input", next ?? ""));
 const { t } = useFlareI18n();
-const canSend = computed(() => !props.disabled && !props.sending && value.value.trim().length > 0);
+const editingBlocked = computed(() => props.disabled || props.readOnly);
+const canSend = computed(() => !editingBlocked.value && !props.sendBlocked && !props.sending && value.value.trim().length > 0);
 const hasInlineEmoji = computed(() => /\[[a-z][a-z0-9_]*\]/.test(value.value));
 const useRichEditor = computed(() => props.richMode || sendAsRichDoc.value || hasInlineEmoji.value);
 const showReply = computed(() => Boolean(props.replySender?.trim() || props.replyPreview?.trim()));
@@ -170,7 +190,7 @@ const replyPreviewWarn = computed(() => /fail|error|invalid|expired|warn/i.test(
 const inputExpanded = ref(false);
 const mentionMenuOpen = ref(false);
 const inputPlaceholder = computed(
-  () => props.placeholder || (props.editing ? t("composer.editingPlaceholder") : `To ${props.targetName || "Conversation"}`),
+  () => props.placeholder || (props.editing ? t("composer.editingPlaceholder") : props.targetName ? t("composer.sendToTarget", { name: props.targetName }) : t("composer.messagePlaceholder")),
 );
 const mentionCandidates = computed(() => {
   const seen = new Set<string>();
@@ -190,24 +210,81 @@ const mentionCandidates = computed(() => {
 
 // The built-in rich set — used only when the host does not pass `attachActions`.
 const defaultAttachActions = computed<FlareComposerAttachAction[]>(() => [
-  { op: "create_file", label: t("composer.file"), icon: FolderOpenOutline, tone: "amber" },
-  { op: "create_video", label: t("composer.video"), icon: VideocamOutline, tone: "cyan" },
-  { op: "create_location", label: t("composer.location"), icon: LocationOutline, tone: "green" },
-  { op: "create_card", label: t("composer.card"), icon: DocumentTextOutline, tone: "indigo" },
-  { op: "create_task", label: t("composer.task"), icon: CheckboxOutline, tone: "violet" },
-  { op: "create_schedule", label: t("composer.schedule"), icon: CalendarOutline, tone: "rose" },
-  { op: "create_vote", label: t("composer.vote"), icon: CheckboxOutline, tone: "lime" },
-  { op: "create_link_card", label: t("composer.link"), icon: LinkOutline, tone: "sky" },
-  { op: "create_mini_program", label: t("business.miniProgram"), icon: AppsOutline, tone: "emerald" },
-  { op: "create_thread_reply", label: t("composer.thread"), icon: ChatbubblesOutline, tone: "fuchsia" },
-  { op: "create_notification", label: t("composer.notification"), icon: NotificationsOutline, tone: "yellow" },
-  { op: "create_announcement", label: t("business.announcement"), icon: MegaphoneOutline, tone: "red" },
+  { op: "create_file", label: t("composer.file"), icon: MoreFolderOpenOutline, tone: "amber" },
+  { op: "create_video", label: t("composer.video"), icon: MoreVideocamOutline, tone: "cyan" },
+  { op: "create_location", label: t("composer.location"), icon: MoreLocationOutline, tone: "green" },
+  { op: "create_card", label: t("composer.card"), icon: MoreDocumentTextOutline, tone: "indigo" },
+  { op: "create_task", label: t("composer.task"), icon: MoreCheckboxOutline, tone: "violet" },
+  { op: "create_schedule", label: t("composer.schedule"), icon: MoreCalendarOutline, tone: "rose" },
+  { op: "create_vote", label: t("composer.vote"), icon: MoreCheckboxOutline, tone: "lime" },
+  { op: "create_link_card", label: t("composer.link"), icon: MoreLinkOutline, tone: "sky" },
+  { op: "create_mini_program", label: t("business.miniProgram"), icon: MoreAppsOutline, tone: "emerald" },
+  { op: "create_thread_reply", label: t("composer.thread"), icon: MoreChatbubblesOutline, tone: "fuchsia" },
+  { op: "create_notification", label: t("composer.notification"), icon: MoreNotificationsOutline, tone: "yellow" },
+  { op: "create_announcement", label: t("business.announcement"), icon: MoreMegaphoneOutline, tone: "red" },
 ]);
 // Host-provided actions win; otherwise the default set. This is the single seam
 // that makes the "+" menu tenant-configurable.
 const moreActions = computed<FlareComposerAttachAction[]>(() =>
-  props.attachActions && props.attachActions.length > 0 ? props.attachActions : defaultAttachActions.value,
+  (props.attachActions ?? defaultAttachActions.value).map(action => ({
+    ...defaultAttachActions.value.find(item => item.op === action.op), ...action,
+  })),
 );
+
+const moreQuery = ref("");
+const morePage = ref(0);
+const filteredActions = computed(() => moreActions.value.filter(action =>
+  action.label.toLocaleLowerCase().includes(moreQuery.value.toLocaleLowerCase())));
+const morePages = computed(() => Math.ceil(filteredActions.value.length / 8));
+const pageActions = computed(() => filteredActions.value.slice(morePage.value * 8, morePage.value * 8 + 8));
+watch([moreQuery, moreActions], () => { morePage.value = 0; });
+watch(() => props.moreSearchVisible, visible => { if (!visible) moreQuery.value = ""; });
+const mentionQuery = ref("");
+const filteredMentions = computed(() => mentionCandidates.value.filter(candidate =>
+  `${candidate.label} ${candidate.userId}`.toLocaleLowerCase().includes(mentionQuery.value.toLocaleLowerCase())));
+const voicePanelOpen = ref(false);
+const voicePreview = ref<VoiceRecordingPayload | null>(null);
+const voicePreviewUrl = ref("");
+const voiceSubmitting = ref(false);
+const voiceRequestPending = ref(false);
+let recordingRequest = 0;
+function clearVoicePreview(): void {
+  pauseVoicePlayback();
+  voicePlaybackMs.value = 0;
+  if (voicePreviewUrl.value) URL.revokeObjectURL(voicePreviewUrl.value);
+  voicePreviewUrl.value = "";
+  voicePreview.value = null;
+}
+function closePanels(): void {
+  mentionMenuOpen.value = false;
+  voicePanelOpen.value = false;
+  cancelVoiceRecording();
+  if (props.activePanel) emit("toggle-panel", null);
+}
+function openVoicePanel(): void {
+  if (editingBlocked.value) return;
+  const next = !voicePanelOpen.value;
+  closePanels();
+  voicePanelOpen.value = next;
+}
+function onOutsidePointer(event: PointerEvent): void {
+  if (!voicePanelOpen.value && !root.value?.contains(event.target as Node)) closePanels();
+}
+function onPanelEscape(event: KeyboardEvent): void {
+  if (event.key !== "Escape") return;
+  if (props.activePanel || mentionMenuOpen.value || voicePanelOpen.value) {
+    event.preventDefault(); event.stopPropagation(); closePanels(); focusInput();
+  } else if (inputExpanded.value) {
+    event.preventDefault(); event.stopPropagation(); inputExpanded.value = false; focusInput();
+  }
+}
+watch(() => props.activePanel, panel => {
+  if (panel) { mentionMenuOpen.value = false; voicePanelOpen.value = false; cancelVoiceRecording(); }
+});
+watch(() => props.conversationKey, () => { closePanels(); clearVoicePreview(); inputExpanded.value = false; });
+watch(editingBlocked, blocked => { if (blocked) closePanels(); });
+watch(() => props.sendBlocked, blocked => { if (blocked && voicePanelOpen.value) cancelVoiceRecording(); });
+onMounted(() => document.addEventListener("pointerdown", onOutsidePointer));
 
 const replyTitle = computed(() =>
   t("composer.replyTo", { name: props.replySender?.trim() || t("composer.replyFallback") }),
@@ -256,25 +333,73 @@ const richFormatState = ref<RichMarkdownFormatState>({
 const inputFocused = ref(false);
 const richInputRef = ref<InstanceType<typeof ComposerRichMarkdownInput> | null>(null);
 const plainInputResetKey = ref(0);
-const inputExpandTitle = computed(() => (inputExpanded.value ? "Collapse" : t("composer.expandInput")));
+const inputExpandTitle = computed(() => (inputExpanded.value ? t("composer.collapseInput") : t("composer.expandInput")));
 const formatPointerActive = ref(false);
 const voiceRecording = ref(false);
-const voiceCancelling = ref(false);
+const voicePaused = ref(false);
+const voicePlaying = ref(false);
+const voiceAudio = ref<HTMLAudioElement | null>(null);
+const voicePlaybackMs = ref(0);
+let voiceAccumulatedMs = 0;
+let voiceFinalize: (() => void) | undefined;
+function pauseVoicePlayback(): void { voiceAudio.value?.pause(); voicePlaying.value = false; }
+async function playVoicePreview(): Promise<void> {
+  if (voicePlaying.value) { pauseVoicePlayback(); return; }
+  try { await voiceAudio.value?.play(); voicePlaying.value = true; }
+  catch { showVoiceError(t("composer.voicePreviewFailed")); }
+}
+function pauseVoiceRecording(): void {
+  if (!voiceRecorder || voiceRecorder.state !== "recording") return;
+  voiceAccumulatedMs += Date.now() - voiceStartedAt;
+  voiceElapsedMs.value = Math.min(VOICE_MAX_MS, voiceAccumulatedMs);
+  voiceRecorder.pause();
+  voiceRecording.value = false;
+  voicePaused.value = true;
+  clearVoiceTimer();
+  voiceRecorder.requestData();
+}
+function resumeVoiceRecording(): void {
+  if (!voiceRecorder || voiceRecorder.state !== "paused" || voiceElapsedMs.value >= VOICE_MAX_MS) return;
+  pauseVoicePlayback();
+  clearVoicePreview();
+  voiceRecorder.resume();
+  voiceStartedAt = Date.now();
+  voicePaused.value = false;
+  voiceRecording.value = true;
+  startVoiceTimer();
+}
+function startVoiceTimer(): void {
+  clearVoiceTimer();
+  voiceTimer = window.setInterval(() => {
+    voiceElapsedMs.value = Math.min(VOICE_MAX_MS, voiceAccumulatedMs + Date.now() - voiceStartedAt);
+    if (voiceElapsedMs.value >= VOICE_MAX_MS) pauseVoiceRecording();
+  }, 150);
+}
+function updateVoicePreview(mimeType: string): void {
+  const blob = new Blob(voiceChunks, { type: mimeType || "audio/webm" });
+  if (!blob.size) return;
+  clearVoicePreview();
+  voicePreview.value = { blob, durationMs: voiceElapsedMs.value, mimeType: blob.type, fileName: `voice-${Date.now()}.${voiceFileExtension(blob.type)}` };
+  voicePreviewUrl.value = URL.createObjectURL(blob);
+}
+function seekVoicePreview(event: Event): void {
+  const audio = voiceAudio.value;
+  if (!audio) return;
+  const seconds = Number((event.target as HTMLInputElement).value) / 1000;
+  try { audio.currentTime = seconds; voicePlaybackMs.value = seconds * 1000; } catch { /* Not yet seekable. */ }
+}
+function returnVoiceKeyboard(): void { closePanels(); focusInput(); }
+
 const voiceElapsedMs = ref(0);
 const voiceError = ref("");
 const VOICE_MAX_MS = 65_000;
-const VOICE_CANCEL_DISTANCE = 56;
-let voicePointerStartY = 0;
-let voicePointerElement: HTMLElement | null = null;
-let voicePointerId: number | null = null;
 let voiceRecorder: MediaRecorder | null = null;
 let voiceStream: MediaStream | null = null;
 let voiceChunks: BlobPart[] = [];
 let voiceStartedAt = 0;
 let voiceTimer: number | undefined;
 let voiceErrorTimer: number | undefined;
-let voiceStopCancelled = false;
-let voicePendingFinish = false;
+
 const isMultiline = computed(
   () =>
     inputExpanded.value
@@ -284,9 +409,8 @@ const isMultiline = computed(
 );
 const inputRows = computed(() => ({
   minRows: inputExpanded.value ? 6 : 1,
-  maxRows: inputExpanded.value ? 6 : 6,
+  maxRows: inputExpanded.value ? 14 : 6,
 }));
-const voiceElapsedLabel = computed(() => formatVoiceDuration(voiceElapsedMs.value));
 function textarea(): HTMLTextAreaElement | null {
   return root.value?.querySelector(".composer-input textarea") ?? null;
 }
@@ -310,7 +434,7 @@ function focusInput(): void {
 
 /** 点输入行空白处时把焦点交给内部编辑器；点在编辑器自身上则不介入。 */
 function onInputRowMousedown(event: MouseEvent): void {
-  if (props.disabled) return;
+  if (editingBlocked.value) return;
   const target = event.target as HTMLElement | null;
   if (!target) return;
   // 点在真正的编辑元素上：交给浏览器原生处理（保住选中与光标定位）
@@ -322,15 +446,18 @@ function onInputRowMousedown(event: MouseEvent): void {
 }
 
 function toggle(panel: Exclude<ComposerPanel, null>): void {
-  if (props.disabled) return;
+  if (editingBlocked.value) return;
   const nextPanel = props.activePanel === panel ? null : panel;
-  inputExpanded.value = false;
+  mentionMenuOpen.value = false;
+  voicePanelOpen.value = false;
+  cancelVoiceRecording();
   emit("toggle-panel", nextPanel);
   focusInput();
 }
 
 function toggleInputExpanded(): void {
-  if (props.disabled) return;
+  if (editingBlocked.value) return;
+  closePanels();
   const nextExpanded = !inputExpanded.value;
   inputExpanded.value = nextExpanded;
   emit("toggle-panel", null);
@@ -338,20 +465,19 @@ function toggleInputExpanded(): void {
 }
 
 function toggleRichMode(): void {
-  if (props.disabled) return;
-  mentionMenuOpen.value = false;
+  if (editingBlocked.value) return;
+  closePanels();
   emit("toggle-rich-mode", !props.richMode);
   emit("toggle-panel", null);
   focusInput();
 }
 
 function openMentionPicker(): void {
-  if (props.disabled) return;
+  if (editingBlocked.value) return;
   emit("toggle-panel", null);
-  if (!mentionCandidates.value.length) {
-    insertAtCursor("@");
-    return;
-  }
+  voicePanelOpen.value = false;
+  cancelVoiceRecording();
+  mentionQuery.value = "";
   mentionMenuOpen.value = !mentionMenuOpen.value;
   focusInput();
 }
@@ -373,7 +499,7 @@ function selectMentionEveryone(): void {
 }
 
 function insertAtCursor(text: string): void {
-  if (props.disabled) return;
+  if (editingBlocked.value) return;
   if (useRichEditor.value) {
     richInputRef.value?.insertAtCursor(text);
     return;
@@ -416,19 +542,17 @@ function resetInput(nextValue = ""): void {
 }
 
 function build(op: string): void {
-  if (props.disabled) return;
-  inputExpanded.value = false;
-  emit("toggle-panel", null);
+  if (editingBlocked.value || moreActions.value.find(action => action.op === op)?.disabled) return;
+  closePanels();
   emit("build", op);
   focusInput();
 }
 
 function preferredVoiceMimeType(): string {
   const candidates = [
-    "audio/mp4",
-    "audio/mpeg",
     "audio/webm;codecs=opus",
     "audio/webm",
+    "audio/mp4",
   ];
   if (typeof MediaRecorder === "undefined" || typeof MediaRecorder.isTypeSupported !== "function") {
     return "";
@@ -447,7 +571,7 @@ function formatVoiceDuration(ms: number): string {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = `${totalSeconds % 60}`.padStart(2, "0");
-  return `${minutes}:${seconds}`;
+  return `${String(minutes).padStart(2, "0")}:${seconds}`;
 }
 
 function showVoiceError(text: string): void {
@@ -466,14 +590,6 @@ function clearVoiceTimer(): void {
   }
 }
 
-function releaseVoicePointer(): void {
-  if (voicePointerElement && voicePointerId != null && voicePointerElement.hasPointerCapture?.(voicePointerId)) {
-    voicePointerElement.releasePointerCapture(voicePointerId);
-  }
-  voicePointerElement = null;
-  voicePointerId = null;
-}
-
 function stopVoiceStream(): void {
   voiceStream?.getTracks().forEach((track) => track.stop());
   voiceStream = null;
@@ -481,144 +597,114 @@ function stopVoiceStream(): void {
 
 function resetVoiceRecordingState(): void {
   voiceRecording.value = false;
-  voiceCancelling.value = false;
   voiceElapsedMs.value = 0;
   voiceChunks = [];
   voiceStartedAt = 0;
-  voiceStopCancelled = false;
-  voicePendingFinish = false;
   voiceRecorder = null;
-  releaseVoicePointer();
   clearVoiceTimer();
 }
 
 function handleVoiceStop(mimeType: string): void {
-  const durationMs = Math.min(VOICE_MAX_MS, Math.max(0, Date.now() - voiceStartedAt));
-  const cancelled = voiceStopCancelled;
-  const chunks = [...voiceChunks];
   stopVoiceStream();
-  resetVoiceRecordingState();
-  if (cancelled) {
-    emit("voice-cancel");
-    return;
-  }
-  const blob = new Blob(chunks, { type: mimeType || "audio/webm" });
-  if (!blob.size || durationMs < 250) {
-    showVoiceError(t("composer.voiceTooShort"));
-    emit("voice-cancel");
-    return;
-  }
-  const finalMimeType = blob.type || mimeType || "audio/webm";
-  const payload = {
-    blob,
-    durationMs,
-    mimeType: finalMimeType,
-    fileName: `voice-${Date.now()}.${voiceFileExtension(finalMimeType)}`,
-  };
-  if (typeof props.sendVoiceHandler === "function") {
-    void props.sendVoiceHandler(payload);
-  } else {
-    emit("send-voice", payload);
-    root.value?.dispatchEvent(new CustomEvent<VoiceRecordingPayload>("flare-send-voice", {
-      detail: payload,
-      bubbles: true,
-      composed: true,
-    }));
-    window.dispatchEvent(new CustomEvent<VoiceRecordingPayload>("flare-send-voice", {
-      detail: payload,
-    }));
-  }
+  clearVoiceTimer();
+  voiceRecording.value = false;
+  voiceRecorder = null;
+  updateVoicePreview(mimeType);
+  voiceFinalize?.();
+  voiceFinalize = undefined;
 }
 
-async function startVoiceRecording(event: PointerEvent): Promise<void> {
-  if (props.disabled || props.sending || voiceRecording.value || voiceRecorder) return;
-  event.preventDefault();
-  voicePointerStartY = event.clientY;
-  voicePointerElement = event.currentTarget as HTMLElement;
-  voicePointerId = event.pointerId;
-  voicePendingFinish = false;
-  voicePointerElement?.setPointerCapture?.(event.pointerId);
+async function sendVoicePreview(): Promise<void> {
+  if (!voicePreview.value || editingBlocked.value || props.sendBlocked || props.sending || voiceSubmitting.value) return;
+  if (voiceElapsedMs.value < 250) { showVoiceError(t("composer.voiceTooShort")); return; }
+  const request = recordingRequest;
+  voiceSubmitting.value = true;
+  pauseVoicePlayback();
+  try {
+    if (voiceRecorder && voiceRecorder.state !== "inactive") {
+      await new Promise<void>(resolve => { voiceFinalize = resolve; voiceRecorder!.stop(); });
+    }
+    if (request !== recordingRequest || !voicePreview.value || editingBlocked.value || props.sendBlocked) return;
+    if (props.sendVoiceHandler) await props.sendVoiceHandler(voicePreview.value);
+    else emit("send-voice", voicePreview.value);
+    if (request === recordingRequest) { clearVoicePreview(); cancelVoiceRecording(); voicePanelOpen.value = false; }
+  } catch {
+    if (request === recordingRequest) showVoiceError(t("composer.voiceFailed"));
+  } finally { voiceSubmitting.value = false; }
+}
+
+async function startVoiceRecording(): Promise<void> {
+  if (editingBlocked.value || props.sendBlocked || props.sending || voiceRecording.value || voiceRecorder || voiceRequestPending.value) return;
+  const request = ++recordingRequest;
+  voiceRequestPending.value = true;
+  clearVoicePreview();
   emit("toggle-panel", null);
   inputExpanded.value = false;
   if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
-    releaseVoicePointer();
-    showVoiceError("Recording not supported here");
+    voiceRequestPending.value = false;
+    showVoiceError(t("composer.recordingUnavailable"));
     return;
   }
 
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    if (request !== recordingRequest || editingBlocked.value || props.sendBlocked) { stream.getTracks().forEach(track => track.stop()); return; }
+    voiceStream = stream;
+    stream.getTracks().forEach(track => track.addEventListener?.("ended", () => {
+      if (request !== recordingRequest) return;
+      cancelVoiceRecording();
+      showVoiceError(t("composer.microphoneUnavailable"));
+    }, { once: true }));
     const mimeType = preferredVoiceMimeType();
     const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
-    voiceStream = stream;
     voiceRecorder = recorder;
     voiceChunks = [];
-    voiceStopCancelled = false;
-    voiceStartedAt = Date.now();
+    voiceAccumulatedMs = 0;
+    voicePaused.value = false;
+    voiceError.value = "";
+      voiceStartedAt = Date.now();
     voiceElapsedMs.value = 0;
     recorder.ondataavailable = (chunkEvent) => {
+      if (request !== recordingRequest) return;
       if (chunkEvent.data.size > 0) voiceChunks.push(chunkEvent.data);
+      if (voicePaused.value) updateVoicePreview(recorder.mimeType || mimeType);
     };
-    recorder.onstop = () => handleVoiceStop(recorder.mimeType || mimeType);
+    recorder.onstop = () => { if (request === recordingRequest) handleVoiceStop(recorder.mimeType || mimeType); };
     recorder.onerror = () => {
-      voiceStopCancelled = true;
+      if (request !== recordingRequest) return;
       showVoiceError(t("composer.voiceFailed"));
-      emit("voice-cancel");
+      cancelVoiceRecording();
     };
     recorder.start(250);
     voiceRecording.value = true;
-    voiceTimer = window.setInterval(() => {
-      voiceElapsedMs.value = Math.min(VOICE_MAX_MS, Date.now() - voiceStartedAt);
-      if (voiceElapsedMs.value >= VOICE_MAX_MS) stopVoiceRecording(false);
-    }, 150);
-    if (voicePendingFinish) stopVoiceRecording(voiceCancelling.value);
+    startVoiceTimer();
   } catch (error) {
+    if (request !== recordingRequest) return;
     stopVoiceStream();
     resetVoiceRecordingState();
-    showVoiceError(error instanceof Error ? error.message : "Cannot access microphone");
+    if (request === recordingRequest) showVoiceError(t("composer.microphoneUnavailable"));
+  } finally {
+    if (request === recordingRequest) voiceRequestPending.value = false;
   }
 }
 
-function updateVoiceRecording(event: PointerEvent): void {
-  if (!voiceRecording.value) return;
-  event.preventDefault();
-  voiceCancelling.value = event.clientY <= voicePointerStartY - VOICE_CANCEL_DISTANCE;
-}
-
-function stopVoiceRecording(cancelled: boolean): void {
-  if (!voiceRecorder) return;
-  voiceStopCancelled = cancelled;
-  clearVoiceTimer();
-  if (voiceRecorder.state === "inactive") {
-    handleVoiceStop(voiceRecorder.mimeType);
-    return;
-  }
-  try {
-    voiceRecorder.requestData();
-  } catch {
-    // Some browsers throw if data is already being flushed; stop() will still emit final data.
-  }
-  voiceRecorder.stop();
-}
-
-function finishVoiceRecording(event: PointerEvent): void {
-  event.preventDefault();
-  releaseVoicePointer();
-  if (!voiceRecorder) {
-    voicePendingFinish = true;
-    return;
-  }
-  stopVoiceRecording(voiceCancelling.value);
-}
-
-function cancelVoiceRecording(event?: PointerEvent): void {
-  event?.preventDefault();
-  releaseVoicePointer();
-  stopVoiceRecording(voiceCancelling.value);
+function cancelVoiceRecording(): void {
+  const hadRecording = Boolean(voiceRecorder || voicePreview.value || voiceRequestPending.value);
+  recordingRequest += 1;
+  voiceRequestPending.value = false;
+  if (voiceRecorder && voiceRecorder.state !== "inactive") voiceRecorder.stop();
+  stopVoiceStream();
+  resetVoiceRecordingState();
+  clearVoicePreview();
+  voicePaused.value = false;
+  voiceAccumulatedMs = 0;
+  voiceFinalize?.();
+  voiceFinalize = undefined;
+  if (hadRecording) emit("voice-cancel");
 }
 
 function replaceSelection(before: string, after = before, fallback = ""): void {
-  if (props.disabled) return;
+  if (editingBlocked.value) return;
   const node = textarea();
   const source = value.value;
   const start = node?.selectionStart ?? source.length;
@@ -636,7 +722,7 @@ function replaceSelection(before: string, after = before, fallback = ""): void {
 }
 
 function prefixSelection(prefix: string): void {
-  if (props.disabled) return;
+  if (editingBlocked.value) return;
   const node = textarea();
   const source = value.value;
   const start = node?.selectionStart ?? source.length;
@@ -654,6 +740,7 @@ function prefixSelection(prefix: string): void {
 }
 
 function applyFormat(key: FormatActionKey): void {
+  if (editingBlocked.value) return;
   if (props.richMode) {
     richInputRef.value?.applyFormat(key);
     return;
@@ -680,6 +767,7 @@ function isFormatActionActive(key: FormatActionKey): boolean {
 }
 
 function applyHeadingLevel(raw: string): void {
+  if (editingBlocked.value) return;
   const value = Number(raw);
   const level = value >= 1 && value <= 6 ? (value as RichHeadingLevel) : null;
   if (props.richMode) {
@@ -690,7 +778,7 @@ function applyHeadingLevel(raw: string): void {
 }
 
 function applyFormatFromPointer(key: FormatActionKey): void {
-  if (props.disabled) return;
+  if (editingBlocked.value) return;
   formatPointerActive.value = true;
   applyFormat(key);
 }
@@ -771,7 +859,9 @@ watch(useRichEditor, (enabled) => {
 });
 
 onBeforeUnmount(() => {
+  document.removeEventListener("pointerdown", onOutsidePointer);
   cancelVoiceRecording();
+  clearVoicePreview();
   if (voiceErrorTimer) window.clearTimeout(voiceErrorTimer);
 });
 </script>
@@ -779,13 +869,16 @@ onBeforeUnmount(() => {
 <template>
   <footer
     ref="root"
-    class="composer"
+    class="composer composer-studio"
+    @keydown.capture="onPanelEscape"
     :class="{
       'composer--expanded': Boolean(activePanel),
       'composer--format': richMode,
       'composer--input-expanded': inputExpanded,
       'composer--voice-recording': voiceRecording,
-      'composer--disabled': disabled,
+      'composer--voice-open': voicePanelOpen,
+      'composer--disabled': editingBlocked,
+      'composer--more-open': activePanel === 'more',
     }"
   >
     <section v-if="statusHint" class="composer-status-hint" role="status">
@@ -796,7 +889,7 @@ onBeforeUnmount(() => {
       <span>{{ statusHint }}</span>
     </section>
 
-    <section v-if="showEdit" class="composer-reply-strip composer-reply-strip--edit">
+    <section v-show="activePanel !== 'more'" v-if="showEdit" class="composer-reply-strip composer-reply-strip--edit">
       <button type="button" class="composer-reply-strip__close" :title="t('composer.cancelEdit')" @click="emit('clear-edit')">
         <n-icon :component="CloseOutline" />
       </button>
@@ -805,7 +898,7 @@ onBeforeUnmount(() => {
       <span>{{ editPreview || value || t("composer.replyFallback") }}</span>
     </section>
 
-    <section v-else-if="showReply" class="composer-reply-strip" :class="{ 'composer-reply-strip--warn': replyPreviewWarn }">
+    <section v-show="activePanel !== 'more'" v-else-if="showReply" class="composer-reply-strip" :class="{ 'composer-reply-strip--warn': replyPreviewWarn }">
       <button type="button" class="composer-reply-strip__close" :title="t('composer.cancelReply')" @click="emit('clear-reply')">
         <n-icon :component="CloseOutline" />
       </button>
@@ -822,28 +915,13 @@ onBeforeUnmount(() => {
       }"
       @click.self="focusInput"
     >
-      <div v-if="richMode" class="composer-format-strip" aria-label="Rich text" @mousedown.stop>
+      <div v-show="activePanel !== 'more'" v-if="richMode" class="composer-format-strip" aria-label="Rich text" @mousedown.stop>
         <div class="composer-format-group composer-format-group--heading" role="group" aria-label="Heading level">
-          <span class="composer-format-heading-icon" aria-hidden="true">
-            <n-icon :size="16" :component="TextOutline" />
-          </span>
-          <select
-            class="composer-heading-select"
-            :value="richFormatState.headingLevel ?? ''"
-            :disabled="disabled"
-            title="Heading level"
-            aria-label="Heading level"
-            @mousedown.stop
-            @change="applyHeadingLevel(($event.target as HTMLSelectElement).value)"
-          >
-            <option
-              v-for="option in headingOptions"
-              :key="option.level ?? 'paragraph'"
-              :value="option.level ?? ''"
-            >
-              {{ option.label }}
-            </option>
-          </select>
+          <button v-for="option in headingOptions" :key="option.label" type="button"
+            class="composer-format-button" :class="{ 'is-active': richFormatState.headingLevel === option.level }"
+            :aria-label="option.level ? `Heading ${option.level}` : t('composer.paragraph')"
+            :aria-pressed="richFormatState.headingLevel === option.level" :disabled="editingBlocked"
+            @mousedown.prevent @click="applyHeadingLevel(String(option.level ?? ''))">{{ option.label }}</button>
         </div>
         <div
           v-for="(group, groupIndex) in formatActionGroups"
@@ -863,13 +941,13 @@ onBeforeUnmount(() => {
             :title="action.title"
             :aria-label="action.title"
             :aria-pressed="isFormatActionActive(action.key)"
-            :disabled="disabled"
+            :disabled="editingBlocked"
             @pointerdown.prevent.stop="applyFormatFromPointer(action.key)"
             @click.prevent.stop="applyFormatFromClick(action.key)"
             @keydown.enter.prevent.stop="applyFormat(action.key)"
             @keydown.space.prevent.stop="applyFormat(action.key)"
           >
-            <n-icon v-if="action.icon" :size="17" :component="action.icon" />
+            <n-icon v-if="action.icon" :size="14" :component="action.icon" />
             <span
               v-else
               class="composer-format-glyph"
@@ -882,7 +960,8 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <div class="composer-input-layer">
+      <button v-if="activePanel === 'more' && value.trim()" type="button" class="composer-draft-peek" :aria-label="t('composer.resumeDraft')" @click="closePanels(); focusInput()"><n-icon :component="TextOutline" /><span>{{ value }}</span><n-icon :component="ChevronUpOutline" /></button>
+      <div v-show="activePanel !== 'more'" class="composer-input-layer">
         <!--
           点输入行的任意空白处都要能开始打字——这是 IM 里最高频的一个动作。
           编辑器（textarea / 富文本）只占这一行的一部分，点到它旁边的空白
@@ -906,10 +985,10 @@ onBeforeUnmount(() => {
             ref="richInputRef"
             v-model="value"
             class="composer-input composer-rich-input"
-            :disabled="disabled"
+            :disabled="editingBlocked"
             :formatting-preview="richMode"
             :max-length="maxLength"
-            :placeholder="disabled ? statusHint || inputPlaceholder : inputPlaceholder"
+            :placeholder="editingBlocked ? statusHint || inputPlaceholder : inputPlaceholder"
             @focus="inputFocused = true"
             @blur="inputFocused = false"
             @format-state-change="updateRichFormatState"
@@ -921,124 +1000,78 @@ onBeforeUnmount(() => {
             v-model:value="value"
             class="composer-input"
             type="textarea"
-            :disabled="disabled"
+            :disabled="editingBlocked"
             :maxlength="maxLength"
             :autosize="inputRows"
             :input-props="composerInputProps"
-            :placeholder="disabled ? statusHint || inputPlaceholder : inputPlaceholder"
+            :placeholder="editingBlocked ? statusHint || inputPlaceholder : inputPlaceholder"
             @focus="inputFocused = true"
             @blur="inputFocused = false"
             @keydown="handleKeydown"
           />
-          <!-- The expand/collapse toggle lives on the input field's top-right corner.
-               No titled header — a single direction-aware chevron: up expands, down
-               collapses. On desktop the toolbar carries expand when compact; once
-               expanded this corner button is the collapse control. -->
+          <!-- Same diagonal glyph in both layouts; desktop places it in the tool row. -->
           <button
             type="button"
             class="composer-field-expand"
+            :class="{ 'is-selected': inputExpanded }"
+            :aria-expanded="inputExpanded"
             :title="inputExpandTitle"
             :aria-label="inputExpandTitle"
-            :disabled="disabled"
+            :disabled="editingBlocked"
             @click.stop="toggleInputExpanded"
           >
-            <n-icon :size="20" :component="inputExpanded ? ChevronDownOutline : ChevronUpOutline" />
+            <ComposerResizeIcon :expanded="inputExpanded" />
           </button>
         </div>
 
-        <div
-          v-if="voiceRecording"
-          class="composer-voice-overlay"
-          :class="{ 'composer-voice-overlay--cancel': voiceCancelling }"
-          role="status"
-          aria-live="polite"
-        >
-          <span class="composer-voice-overlay__icon">
-            <n-icon :component="voiceCancelling ? CloseOutline : MicOutline" />
-          </span>
-          <span class="composer-voice-overlay__copy">
-            <strong>{{ voiceCancelling ? t("composer.voiceReleaseCancel") : t("composer.voiceReleaseSend") }}</strong>
-            <span>{{ voiceCancelling ? t("composer.voiceSlideDownResume") : t("composer.voiceSlideUpCancel") }}</span>
-          </span>
-          <span class="composer-voice-overlay__timer">{{ voiceElapsedLabel }} / 1:05</span>
-          <span class="composer-voice-overlay__meter" aria-hidden="true">
-            <span :style="{ width: `${Math.min(100, Math.max(0, voiceElapsedMs / 650))}%` }" />
-          </span>
-        </div>
+
       </div>
 
-      <div v-if="!mediaPanelOpen" class="composer-toolbar">
+      <div class="composer-toolbar">
         <n-button
           circle
           quaternary
           class="composer-toolbar__action composer-expand"
+          :aria-expanded="inputExpanded"
           :class="{ 'is-selected': inputExpanded }"
           :title="inputExpandTitle"
           :aria-label="inputExpandTitle"
-          :disabled="disabled"
+          :disabled="editingBlocked"
           @click.stop="toggleInputExpanded"
         >
           <template #icon>
-            <n-icon :size="22" :component="inputExpanded ? ContractOutline : ExpandOutline" />
+            <ComposerResizeIcon :expanded="inputExpanded" />
           </template>
         </n-button>
-        <n-button circle quaternary :title="t('composer.emoji')" :aria-label="t('composer.emoji')" :class="{ 'is-selected': activePanel === 'emoji' }" :disabled="disabled" @click="toggle('emoji')">
-          <template #icon><n-icon :size="22" :component="HappyOutline" /></template>
+        <n-button circle quaternary :title="t('composer.emoji')" :aria-label="t('composer.emoji')" :class="{ 'is-selected': activePanel === 'emoji' }" :disabled="editingBlocked" @click="toggle('emoji')">
+          <template #icon><n-icon :size="20" :component="HappyOutline" /></template>
         </n-button>
         <div class="composer-mention-anchor">
-          <n-button circle quaternary :title="t('composer.mention')" :aria-label="t('composer.mention')" :disabled="disabled" @click="openMentionPicker">
-            <template #icon><n-icon :size="22" :component="AtOutline" /></template>
+          <n-button circle quaternary :title="t('composer.mention')" :aria-label="t('composer.mention')" :class="{ 'is-selected': mentionMenuOpen }" :aria-expanded="mentionMenuOpen" :disabled="editingBlocked" @click="openMentionPicker">
+            <template #icon><n-icon :size="20" :component="AtOutline" /></template>
           </n-button>
-          <div v-if="mentionMenuOpen && mentionCandidates.length" class="composer-mention-menu" role="listbox">
-            <button
-              type="button"
-              class="composer-mention-option composer-mention-option--everyone"
-              @click="selectMentionEveryone"
-            >
-              <span class="composer-mention-option__avatar">@</span>
-              <span class="composer-mention-option__body">
-                <span class="composer-mention-option__label">{{ t("mention.everyone") }}</span>
-                <span class="composer-mention-option__id">{{ t("mention.everyoneDetail") }}</span>
-              </span>
-            </button>
-            <button
-              v-for="candidate in mentionCandidates"
-              :key="candidate.userId"
-              type="button"
-              class="composer-mention-option"
-              @click="selectMention(candidate)"
-            >
-              <span class="composer-mention-option__avatar">{{ candidate.label.slice(0, 1).toUpperCase() }}</span>
-              <span class="composer-mention-option__body">
-                <span class="composer-mention-option__label">{{ candidate.label }}</span>
-                <span class="composer-mention-option__id">@{{ candidate.userId }}</span>
-              </span>
-            </button>
-          </div>
+
         </div>
         <n-button
           circle
           quaternary
           :title="t('composer.voice')"
           :aria-label="t('composer.voice')"
-          :class="{ 'is-selected': voiceRecording, 'is-cancel': voiceCancelling }"
-          :disabled="disabled || sending"
-          @pointerdown.prevent.stop="startVoiceRecording"
-          @pointermove.prevent.stop="updateVoiceRecording"
-          @pointerup.prevent.stop="finishVoiceRecording"
-          @pointercancel.prevent.stop="cancelVoiceRecording"
+          :class="{ 'is-selected': voicePanelOpen }"
+          :disabled="editingBlocked || sendBlocked || sending"
+          @click="openVoicePanel"
         >
-          <template #icon><n-icon :size="22" :component="MicOutline" /></template>
+          <template #icon><n-icon :size="20" :component="MicOutline" /></template>
         </n-button>
-        <n-button circle quaternary :title="t('composer.image')" :aria-label="t('composer.image')" :disabled="disabled" @click="build('create_image')">
-          <template #icon><n-icon :size="22" :component="ImageOutline" /></template>
+        <n-button circle quaternary :title="t('composer.image')" :aria-label="t('composer.image')" :disabled="editingBlocked" @click="build('create_image')">
+          <template #icon><n-icon :size="20" :component="ImageOutline" /></template>
         </n-button>
-        <n-button circle quaternary :title="t('composer.richText')" :aria-label="t('composer.richText')" :class="{ 'is-selected': richMode }" :disabled="disabled" @click="toggleRichMode">
-          <template #icon><n-icon :size="22" :component="TextOutline" /></template>
+        <n-button circle quaternary :title="t('composer.richText')" :aria-label="t('composer.richText')" :class="{ 'is-selected': richMode }" :disabled="editingBlocked" @click="toggleRichMode">
+          <template #icon><n-icon :size="20" :component="TextOutline" /></template>
         </n-button>
-        <n-button circle quaternary :title="t('composer.more')" :aria-label="t('composer.more')" :disabled="disabled" @click="toggle('more')">
+        <n-button circle quaternary :title="t('composer.more')" :aria-label="t('composer.more')" :class="{ 'is-selected': activePanel === 'more' }" :aria-expanded="activePanel === 'more'" :disabled="editingBlocked" @click="toggle('more')">
           <template #icon>
-            <n-icon :size="22" :component="activePanel === 'more' ? CloseOutline : AddOutline" />
+            <n-icon :size="20" :component="activePanel === 'more' ? CloseOutline : AddOutline" />
           </template>
         </n-button>
         <button
@@ -1054,29 +1087,76 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <p v-if="!mediaPanelOpen" class="composer-input-hint">
-      {{ t("composer.shiftEnterHint") }}
-    </p>
 
-    <section v-if="activePanel === 'more'" class="composer-more-grid" :aria-label="t('composer.more')">
-      <button
-        v-for="action in moreActions"
-        :key="action.op"
-        type="button"
-        class="composer-more-tile"
-        :class="action.tone ? `composer-more-tile--${action.tone}` : ''"
-        :disabled="disabled"
-        @click="build(action.op)"
-      >
-        <span class="composer-more-tile__icon">
-          <n-icon :component="action.icon ?? AddCircleOutline" />
-        </span>
-        <span>{{ action.label }}</span>
-      </button>
+    <section v-if="mediaPanelOpen && !editingBlocked && $slots['media-panel']" class="composer-surface composer-media-surface" :aria-label="t('composer.emoji')">
+      <button type="button" class="composer-surface-close" :aria-label="t('composer.closePanel')" @click="closePanels"><n-icon :component="CloseOutline" /></button>
+      <slot name="media-panel" />
+    </section>
+    <section v-if="mentionMenuOpen" class="composer-surface" :aria-label="t('composer.mention')">
+      <button type="button" class="composer-surface-close" :aria-label="t('composer.closePanel')" @click="closePanels"><n-icon :component="CloseOutline" /></button>
+          <div v-if="mentionMenuOpen" class="composer-mention-menu">
+            <input v-model="mentionQuery" class="composer-panel-search" :placeholder="t('composer.searchMembers')" :aria-label="t('composer.searchMembers')" />
+            <p v-if="!filteredMentions.length" role="status">{{ t("composer.noResults") }}</p>
+            <button
+              type="button"
+              class="composer-mention-option composer-mention-option--everyone"
+              @click="selectMentionEveryone"
+            >
+              <span class="composer-mention-option__avatar">@</span>
+              <span class="composer-mention-option__body">
+                <span class="composer-mention-option__label">{{ t("mention.everyone") }}</span>
+                <span class="composer-mention-option__id">{{ t("mention.everyoneDetail") }}</span>
+              </span>
+            </button>
+            <button
+              v-for="candidate in filteredMentions"
+              :key="candidate.userId"
+              type="button"
+              class="composer-mention-option"
+              @click="selectMention(candidate)"
+            >
+              <span class="composer-mention-option__avatar">{{ candidate.label.slice(0, 1).toUpperCase() }}</span>
+              <span class="composer-mention-option__body">
+                <span class="composer-mention-option__label">{{ candidate.label }}</span>
+                <span class="composer-mention-option__id">@{{ candidate.userId }}</span>
+              </span>
+            </button>
+          </div>
+    </section>
+    <section v-if="voicePanelOpen" class="composer-voice-inline" :aria-label="t('composer.voice')">
+      <button type="button" :disabled="voiceSubmitting" :title="t('composer.returnKeyboard')" :aria-label="t('composer.returnKeyboard')" @click="returnVoiceKeyboard"><Keyboard /></button>
+      <button v-if="!voicePaused" type="button" class="voice-primary" :class="{ 'is-recording': voiceRecording }" :disabled="sendBlocked || sending || voiceSubmitting || voiceRequestPending" :aria-busy="voiceRequestPending" :title="voiceRecording ? t('composer.pauseRecording') : t('composer.startRecording')" :aria-label="voiceRecording ? t('composer.pauseRecording') : t('composer.startRecording')" @click="voiceRecording ? pauseVoiceRecording() : startVoiceRecording()"><n-icon :component="voiceRecording ? PauseOutline : MicOutline" /></button>
+      <button v-else type="button" :disabled="!voicePreview || voiceSubmitting" :title="t('composer.previewRecording')" :aria-label="t('composer.previewRecording')" :aria-pressed="voicePlaying" @click="playVoicePreview"><n-icon :component="voicePlaying ? PauseOutline : PlayOutline" /></button>
+      <div class="voice-track" :class="{ 'is-recording': voiceRecording, 'is-paused': voicePaused }" ><i aria-hidden="true" v-for="n in 64" :key="n" :style="{ height: `${6 + (n * 17 % 20)}px`, animationDelay: `${n % 7 * -.13}s` }" /><input v-if="voicePaused && voicePreview" type="range" min="0" :max="voiceElapsedMs" :value="voicePlaybackMs" :disabled="voiceSubmitting" :aria-label="t('composer.seekRecording')" @input="seekVoicePreview" /></div>
+      <time>{{ formatVoiceDuration(voicePlaying ? voicePlaybackMs : voiceElapsedMs) }}</time>
+      <button v-if="voicePaused && voiceRecorder" type="button" class="voice-primary" :disabled="voiceSubmitting || voiceElapsedMs >= VOICE_MAX_MS" :title="t('composer.resumeRecording')" :aria-label="t('composer.resumeRecording')" @click="resumeVoiceRecording"><n-icon :component="MicOutline" /></button>
+      <button v-if="voicePaused" type="button" :disabled="voiceSubmitting" :title="t('composer.discardRecording')" :aria-label="t('composer.discardRecording')" @click="cancelVoiceRecording"><Trash2 /></button>
+      <button v-if="voicePaused" type="button" class="voice-primary" :disabled="!voicePreview || sendBlocked || sending || voiceSubmitting" :aria-busy="voiceSubmitting" :title="sendTitle" :aria-label="sendTitle" @click="sendVoicePreview"><n-icon :component="SendOutline" /></button>
+      <audio v-if="voicePreviewUrl" ref="voiceAudio" :src="voicePreviewUrl" @timeupdate="voicePlaybackMs = (voiceAudio?.currentTime ?? 0) * 1000" @ended="voicePlaying = false" @pause="voicePlaying = false" />
+    </section>
+    <section v-if="activePanel === 'more' && !editingBlocked" class="composer-surface composer-more-surface" :aria-label="t('composer.more')">
+      <header v-if="moreSearchVisible || moreTitleVisible || moreCloseVisible" class="composer-more-header">
+        <input v-if="moreSearchVisible" v-model="moreQuery" class="composer-panel-search" :placeholder="t('composer.searchActions')" :aria-label="t('composer.searchActions')" />
+        <span v-else-if="moreTitleVisible">{{ t('composer.more') }}</span>
+        <button v-if="moreCloseVisible" type="button" :aria-label="t('composer.closePanel')" @click="closePanels"><n-icon :component="CloseOutline" /></button>
+      </header>
+      <div class="composer-more-grid">
+        <button v-for="action in pageActions" :key="action.op" type="button" class="composer-more-tile"
+          :disabled="editingBlocked || action.disabled" :title="action.disabledReason || action.label" @click="build(action.op)">
+          <span class="composer-more-tile__icon"><n-icon :component="action.icon ?? AddCircleOutline" /></span>
+          <span>{{ action.label }}</span>
+        </button>
+      </div>
+      <p v-if="!pageActions.length" role="status">{{ t('composer.noResults') }}</p>
+      <nav v-if="morePages > 1" class="composer-pages">
+        <button v-for="page in morePages" :key="page" type="button" :aria-label="t('composer.page', { page })" :aria-current="morePage === page - 1 ? 'page' : undefined" @click="morePage = page - 1"><span /></button>
+      </nav>
     </section>
     <p v-if="voiceError" class="composer-voice-error" role="status">{{ voiceError }}</p>
   </footer>
 </template>
+
+<style scoped src="./composer-studio.css"></style>
 
 <style scoped>
 .composer-mention-anchor {

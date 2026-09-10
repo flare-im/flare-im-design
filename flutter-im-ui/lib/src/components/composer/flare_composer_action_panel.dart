@@ -14,10 +14,12 @@ class FlareComposerActionPanel extends StatelessWidget {
     this.actions = defaultActions,
     this.crossAxisCount = 4,
     this.onAction,
-  });
+    this.maxHeight = 240,
+  }) : assert(crossAxisCount > 0), assert(maxHeight > 0);
 
   final List<FlareComposerAction> actions;
   final int crossAxisCount;
+  final double maxHeight;
   final void Function(FlareComposerAction action)? onAction;
 
   static const List<FlareComposerAction> defaultActions =
@@ -31,7 +33,7 @@ class FlareComposerActionPanel extends StatelessWidget {
       rows.add(actions.sublist(
           i, (i + crossAxisCount).clamp(0, actions.length)));
     }
-    return Container(
+    return ConstrainedBox(constraints: BoxConstraints(maxHeight: maxHeight), child: SingleChildScrollView(child: Container(
       width: double.infinity,
       color: colors.bgPrimary,
       padding: const EdgeInsets.all(FlareSizes.spacingLg),
@@ -51,7 +53,7 @@ class FlareComposerActionPanel extends StatelessWidget {
             ),
         ],
       ),
-    );
+    )));
   }
 
   Widget _tile(FlareComposerAction action, FlareColors colors) {
@@ -62,13 +64,13 @@ class FlareComposerActionPanel extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 52,
-            height: 52,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
-              color: colors.bgSecondary,
+              color: Colors.transparent,
               borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
             ),
-            child: Icon(action.icon, color: colors.textPrimary, size: 24),
+            child: Icon(action.icon, color: colors.textPrimary, size: 20),
           ),
           const SizedBox(height: FlareSizes.spacingXs),
           Text(action.label,

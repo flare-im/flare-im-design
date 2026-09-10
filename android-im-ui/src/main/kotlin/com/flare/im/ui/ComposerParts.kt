@@ -113,10 +113,10 @@ fun FlareComposerActionPanel(
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Box(
-                            Modifier.size(52.dp).clip(RoundedCornerShape(FlareSizes.radiusLg))
-                                .background(colors.bgSecondary),
+                            Modifier.size(44.dp).clip(RoundedCornerShape(FlareSizes.radiusLg))
+                                .background(Color.Transparent),
                             contentAlignment = Alignment.Center,
-                        ) { androidx.compose.material3.Icon(action.icon, null, Modifier.size(24.dp), tint = colors.textPrimary) }
+                        ) { androidx.compose.material3.Icon(action.icon, action.label, Modifier.size(20.dp), tint = colors.textPrimary) }
                         Spacer(Modifier.size(FlareSizes.spacingXs))
                         Text(action.label, color = colors.textSecondary, fontSize = FlareSizes.fontSizeXs.value.sp)
                     }
@@ -131,18 +131,25 @@ fun FlareComposerActionPanel(
  * Send button (发送) — a composable composer part. Brand-purple when active,
  * disabled otherwise; fires onSend only when active.
  */
+/**
+ * Send — a paper plane, and nothing else.
+ *
+ * It used to be a filled brand disc with a white glyph inside. Sending is the
+ * same kind of act as every other key in the tool row — one tap, one outcome —
+ * so it is drawn the same way, and only colour says which one sends: the brand
+ * at rest against the row, faded while there is nothing to send. That is also
+ * what [Composer]'s own send key does, and the two must not drift.
+ */
 @Composable
 fun FlareComposerSendButton(active: Boolean, onSend: (() -> Unit)? = null) {
     val colors = flareColors()
     Box(
-        Modifier.size(34.dp).clip(RoundedCornerShape(999.dp))
-            .background(if (active) colors.primary else colors.bgDisabled)
-            .clickable(enabled = active) { onSend?.invoke() },
+        Modifier.size(44.dp).clickable(enabled = active) { onSend?.invoke() },
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            Icons.AutoMirrored.Filled.Send, flareStrings().send, Modifier.size(16.dp),
-            tint = if (active) Color.White else colors.textDisabled,
+            Icons.AutoMirrored.Filled.Send, flareStrings().send, Modifier.size(20.dp),
+            tint = colors.primary.copy(alpha = if (active) 1f else 0.38f),
         )
     }
 }

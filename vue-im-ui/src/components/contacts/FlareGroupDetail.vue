@@ -6,11 +6,12 @@
  * it renders the `model` and emits intents; the host performs social.group.*
  * writes and refreshes the model.
  */
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import FlareAvatar from "../conversation/FlareAvatar.vue";
 import FlareGroupMemberGrid from "./FlareGroupMemberGrid.vue";
 import FlareSettingsList from "../profile/FlareSettingsList.vue";
 import FlareBottomSheet from "../general/FlareBottomSheet.vue";
+import FlareFormSheet from "../general/FlareFormSheet.vue";
 import FlareButton from "../general/FlareButton.vue";
 import FlareInput from "../general/FlareInput.vue";
 import FlareEmptyState from "../general/FlareEmptyState.vue";
@@ -32,6 +33,8 @@ const JOIN_INVITE = 1;
 const props = defineProps<{
   model: FlareGroupDetailModel | null;
   loading?: boolean;
+  /** Await host persistence before closing; rejection keeps the editor draft. */
+  submitEdit?: (kind: "name" | "announcement" | "nickname", value: string) => Promise<void>;
   joinRequests?: FlareGroupJoinRequestView[];
   loadingJoinRequests?: boolean;
   inviteCode?: string;
@@ -121,6 +124,9 @@ const settingsSections = computed<FlareSettingsSection[]>(() => {
 // ── Edit name / announcement / nickname ─────────────────────────────────────
 const editKind = ref<"name" | "announcement" | "nickname" | null>(null);
 const editDraft = ref("");
+const editBusy = ref(false);
+const editError = ref("");
+watch(editKind, () => { editError.value = ""; });
 const editMeta = computed(() => {
   switch (editKind.value) {
     case "announcement": return { title: t("group.editAnnouncement"), placeholder: t("group.announcement"), max: 200, multiline: true };
@@ -128,12 +134,23 @@ const editMeta = computed(() => {
     default: return { title: t("group.editName"), placeholder: t("group.name"), max: 30, multiline: false };
   }
 });
-function saveEdit() {
+async function saveEdit() {
+  const kind = editKind.value;
   const v = editDraft.value.trim();
-  if (editKind.value === "name") emit("updateName", v);
-  else if (editKind.value === "announcement") emit("updateAnnouncement", v);
-  else if (editKind.value === "nickname") emit("updateMyNickname", v);
-  editKind.value = null;
+  if (!kind || editBusy.value || (kind === "name" && !v)) return;
+  editBusy.value = true;
+  editError.value = "";
+  try {
+    if (props.submitEdit) await props.submitEdit(kind, v);
+    else if (kind === "name") emit("updateName", v);
+    else if (kind === "announcement") emit("updateAnnouncement", v);
+    else emit("updateMyNickname", v);
+    editKind.value = null;
+  } catch (error) {
+    editError.value = error instanceof Error ? error.message : t("error.operationFailed");
+  } finally {
+    editBusy.value = false;
+  }
 }
 
 function onSettingSelect(item: FlareSettingsItem) {
@@ -295,15 +312,12 @@ function submitInvite() {
     </template>
 
     <!-- Edit name / announcement / nickname -->
-    <FlareBottomSheet :open="editKind !== null" :title="editMeta.title" @close="editKind = null">
-      <div class="flare-group-detail__sheet">
-        <FlareInput v-model="editDraft" :multiline="editMeta.multiline" :placeholder="editMeta.placeholder" :max-length="editMeta.max" />
-        <div class="flare-group-detail__sheet-actions">
-          <FlareButton variant="secondary" @click="editKind = null">{{ t("group.cancel") }}</FlareButton>
-          <FlareButton @click="saveEdit">{{ t("group.save") }}</FlareButton>
-        </div>
-      </div>
-    </FlareBottomSheet>
+    <FlareFormSheet :open="editKind !== null" :title="editMeta.title" :busy="editBusy"
+      :error="editError" :confirm-disabled="editKind === 'name' && !editDraft.trim()"
+      :confirm-label="t('group.save')" :cancel-label="t('group.cancel')"
+      @close="editKind = null" @confirm="saveEdit">
+      <FlareInput v-model="editDraft" :multiline="editMeta.multiline" :placeholder="editMeta.placeholder" :max-length="editMeta.max" />
+    </FlareFormSheet>
 
     <!-- Member management -->
     <FlareBottomSheet :open="memberSheet !== null" :title="t('group.memberManage')" @close="memberSheet = null">

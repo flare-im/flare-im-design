@@ -35,6 +35,7 @@ class FlareMomentsCoverHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = FlareColors.of(Theme.of(context).brightness);
     final hasCover = coverUrl != null && coverUrl!.isNotEmpty;
 
     return Padding(
@@ -60,10 +61,10 @@ class FlareMomentsCoverHeader extends StatelessWidget {
                       Image.network(
                         coverUrl!,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _gradient(),
+                        errorBuilder: (_, __, ___) => _gradient(colors),
                       )
                     else
-                      _gradient(),
+                      _gradient(colors),
                     // Bottom scrim so name + signature stay legible over any cover.
                     const DecoratedBox(
                       decoration: BoxDecoration(
@@ -179,15 +180,17 @@ class FlareMomentsCoverHeader extends StatelessWidget {
     );
   }
 
-  Widget _gradient() {
-    // Aurora — a deep violet light source rather than a flat two-stop gradient.
-    return const DecoratedBox(
+  /// Aurora — a deep violet light source rather than a flat two-stop gradient.
+  /// The stops come from the token ramp, so the surface tracks the brand hue
+  /// instead of a hand-picked violet that drifts away from the primary.
+  Widget _gradient(FlareColors colors) {
+    return DecoratedBox(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF3B1F7A), Color(0xFF7C3AED), Color(0xFFA78BFA)],
-          stops: [0.0, 0.55, 1.0],
+          colors: [colors.auroraDeep, colors.auroraBase, colors.auroraSoft],
+          stops: const [0.0, 0.55, 1.0],
         ),
       ),
     );

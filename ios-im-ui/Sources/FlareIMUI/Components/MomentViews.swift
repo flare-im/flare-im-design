@@ -208,12 +208,10 @@ public struct MomentsCoverHeaderView: View {
 
     private var gradient: some View {
         // Aurora — a deep violet light source rather than a flat two-stop gradient.
-        LinearGradient(
-            colors: [
-                Color(.sRGB, red: 0x3B / 255, green: 0x1F / 255, blue: 0x7A / 255, opacity: 1),
-                Color(.sRGB, red: 0x7C / 255, green: 0x3A / 255, blue: 0xED / 255, opacity: 1),
-                Color(.sRGB, red: 0xA7 / 255, green: 0x8B / 255, blue: 0xFA / 255, opacity: 1),
-            ],
+        // Stops come from the token ramp so the surface tracks the brand hue.
+        let colors = FlareColors.of(scheme)
+        return LinearGradient(
+            colors: [colors.auroraDeep, colors.auroraBase, colors.auroraSoft],
             startPoint: .topLeading, endPoint: .bottomTrailing)
     }
 
@@ -236,6 +234,7 @@ public struct MomentsCoverHeaderView: View {
                 }
             }
             .padding(.bottom, 20)
+            .offset(y: -24)
 
             // No white frame around the cover avatar — just a rounded-square with a soft shadow.
             Button { onAvatar?() } label: {

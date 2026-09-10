@@ -33,6 +33,7 @@ export 'src/components/flare_announcement_read_bar.dart';
 export 'src/components/flare_app_shell.dart';
 export 'src/components/flare_avatar.dart';
 export 'src/components/flare_button.dart';
+export 'src/components/flare_dialog.dart';
 export 'src/components/flare_call_controls.dart';
 export 'src/components/flare_call_dock.dart';
 export 'src/components/flare_call_view.dart';
@@ -153,3 +154,5 @@ export 'src/components/flare_screen_share.dart';
 export 'src/components/flare_storage_usage.dart';
 
 export 'src/components/flare_conversation_workspace.dart';
+
+export 'src/components/flare_inline_voice.dart';

@@ -6,7 +6,7 @@ title: ComposerSendButton
 
 <p><span class="flare-tag">输入</span></p>
 
-> 发送按钮 —— active 时品牌紫、否则禁用。可自由组合的 Composer 部件。
+> 发送 —— 一枚纸飞机，不是填充圆钮；状态由品牌色表达，没有内容可发时褪色。可自由组合的 Composer 部件。
 
 **数据源**：纯展示 —— 传入 `active`，仅 active 时经 `send` 回调发出
 

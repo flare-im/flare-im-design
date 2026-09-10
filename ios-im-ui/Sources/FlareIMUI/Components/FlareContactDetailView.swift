@@ -113,6 +113,8 @@ public struct FlareContactDetail: View {
                 .fill(primary ? colors.primary : colors.bgElevated))
         }
         .buttonStyle(.plain)
+        .disabled(action == nil)
+        .opacity(action == nil ? 0.45 : 1)
     }
 
     private func infoCard(_ colors: FlareColors) -> some View {

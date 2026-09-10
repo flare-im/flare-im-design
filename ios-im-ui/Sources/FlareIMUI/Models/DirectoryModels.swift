@@ -81,10 +81,14 @@ public struct FlareSettingsItem: Identifiable, Sendable {
     public let kind: FlareSettingKind
     public var value: Bool
     public let detail: String?
+    public let disabled: Bool
+    public let danger: Bool
     public init(key: String, label: String, systemImage: String? = nil,
-                kind: FlareSettingKind = .navigation, value: Bool = false, detail: String? = nil) {
+                kind: FlareSettingKind = .navigation, value: Bool = false, detail: String? = nil,
+                disabled: Bool = false, danger: Bool = false) {
         self.key = key; self.label = label; self.systemImage = systemImage
         self.kind = kind; self.value = value; self.detail = detail
+        self.disabled = disabled; self.danger = danger
     }
 }
 

@@ -2434,6 +2434,7 @@ describe("chat message search drawer", () => {
       "utf8",
     );
     const layoutSource = readFileSync(new URL("../../components/FlareWorkbenchLayout.vue", import.meta.url), "utf8");
+    const layoutStyles = readFileSync(new URL("../../styles/chat-search.css", import.meta.url), "utf8");
     const sdkSource = readFileSync(new URL("../../../composables/useFlareCoreClient.ts", import.meta.url), "utf8");
 
     expect(shellSource).toContain("chatSearchDrawerClass");
@@ -2445,12 +2446,13 @@ describe("chat message search drawer", () => {
     expect(layoutSource).toContain("sdk.searchActiveMessages(query");
     expect(layoutSource).toContain("chatSearchResults.value.find");
     expect(layoutSource).toContain("class=\"chat-search-result-card\"");
-    expect(layoutSource).toContain(".chat-search-panel__state");
+    expect(layoutSource).toContain('<style scoped src="../styles/chat-search.css">');
+    expect(layoutStyles).toContain(".chat-search-panel__state");
     expect(layoutSource).toContain("chat-search-panel__state--idle");
     expect(layoutSource).toContain("selectChatSearchKind(option.value)");
     expect(layoutSource).toContain("displayTextFromStoredPreview");
     expect(layoutSource).toContain("previewTextFromMessageContent");
-    expect(layoutSource).toContain("height: 44px");
+    expect(layoutStyles).toContain("height: 44px");
     expect(layoutSource).toContain(":global(.workbench-search-sheet.mobile-sheet .n-drawer-body-content-wrapper)");
     expect(layoutSource).not.toContain("class=\"sheet-list chat-search-results\"");
     expect(layoutSource).not.toContain("message.textPreview?.trim() || chatSearchResultKindLabel");

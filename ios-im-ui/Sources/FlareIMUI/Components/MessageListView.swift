@@ -66,12 +66,16 @@ public struct MessageListView: View {
                 }.disabled(requested)
             }
             if messages.isEmpty {
-                if loading { ProgressView() }
-                else { Text(emptyText).font(.body).foregroundColor(colors.textTertiary) }
+                Group {
+                    if loading { ProgressView() }
+                    else { Text(emptyText).font(.body).foregroundColor(colors.textTertiary) }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 timeline.id(conversationId)
             }
-        }.background(colors.bgSecondary)
+        }.frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(colors.bgSecondary)
             .onChange(of: loadingOlder) { if !$0 { requested = false } }
             .onChange(of: messages.first?.id) { _ in requested = false }
             .onChange(of: olderError) { _ in requested = false }

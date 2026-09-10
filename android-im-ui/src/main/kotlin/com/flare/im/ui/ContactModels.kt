@@ -63,6 +63,8 @@ data class SettingsItem(
     val kind: FlareSettingKind = FlareSettingKind.Navigation,
     val value: Boolean = false,
     val detail: String? = null,
+    val disabled: Boolean = false,
+    val danger: Boolean = false,
 )
 
 data class SettingsSection(
