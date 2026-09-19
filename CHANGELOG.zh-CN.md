@@ -1,48 +1,44 @@
 # 更新日志
 
-[English](CHANGELOG.md) · 中文
+## 2.0.0（未发布，发布阻塞）
 
-记录 Flare IM UI Kit(`flare-im-design`)的所有重要变更。
+这是目标 Stable 版本，不是已发布版本。包元数据继续保留 2.0.0-rc.1，全部发布门禁和必要审核完成前禁止提升版本。
 
-本 kit 是「一套契约、四端实现」—— Flutter(`flare_im_ui`)、iOS/SwiftUI(`FlareIMUI`)、Android/Compose(`com.flare.im:im-ui-compose`)、Vue(`@flare-im/vue-ui`)—— 统一版本。格式基于 [Keep a Changelog](https://keepachangelog.com),遵循[语义化版本](https://semver.org)。
+### 设计系统与跨端组件
 
-## [未发布]
+- Vue、Flutter、Compose、SwiftUI 通过契约和生成链路共享语义 Token、六套品牌主题及明暗模式。
+- 可选 AppKit、Workspace 和响应式布局消费公开组件，不绑定具体 SDK。
+- 原生消息分发器统一调用公开消息体；文本、语音、文件内容不再创建第二层气泡。
+- Vue 运行时文本与投票复用公开消息体。文本链接使用禁用原始 HTML 的统一 Markdown 渲染器，修复属性拼接注入风险。
+- 原生投票、任务、日程、小程序、公告、链接保留类型化字段；未知投票结果不再伪造为 0%。
+- Swift 远程贴纸支持 GIF/WebP 解码，并尊重减少动态效果设置。
+- Flutter Core 示例移除仅浅色有效的主题别名，读取当前语义主题；删除无调用的旧回复条与任务状态配色。
 
-### 变更
-- **契约真实性**——契约改为记录四端实现真实暴露的东西:Vue 符号即 `components/index.ts` 导出名,事件统一 camelCase 并按端派生,表单控件带 `model` 字段,`lexicon` / `eventAliases` / `eventPlatforms` / `platformAliases` 把平台惯用名与平台专属面写成显式事实。`spec/validate.mjs` 逐项比对每个 prop 与事件在 Vue、Flutter、SwiftUI、Compose 的签名(双向);剩余差异记在 `spec/signature-baseline.json`,只允许缩小。
-- **Composer / ChatHeader / MessageActionSheet** 契约按实现重写。`MessageActionSheet` 四端共用一张动作 id 表(`image`、`camera`、`file`、`location`、`card`、`vote`、`task`、`schedule`…);Vue 的 `build(op)`、Flutter 的 `key` 与 `create_*` 保留为 deprecated 别名。
-- **ConversationDetails** 改用 `tone: FlareTone`(`connectionTone` 弃用),不再引入 `@flare-im/sdk` 类型;**Toast** 在 `variant` 之外接受 `tone`。
-- **GroupDetail** `openChat` 四端均为位置参数 `(userIds, name)`。
+### 无障碍与响应式
 
-### 新增
-- Vue **ChatHeader** `title` / `subtitle` / `presence` / `avatarUserId` / `avatarUrl` / `showBack` 与 `search` / `call` / `details` 事件;**Avatar** `presence`(含 `away`)与 `id` / `name` 别名。
-- iOS 与 Compose 的 **MessageBubble / MessageList** 多选(`multiSelectMode`、`selected` / `selectedIds`、`onToggleSelect`)、**NewFriendRequests** `onView`、**Toast** `onClose`、**MessageStatus** `onResend`;Compose **Avatar** `avatarUrl`;Flutter **ConversationRow** `onLongPress`(`onAction` 弃用)。
+- Swift 消息正文支持动态字体；名片、投票、任务、位置消息不再强制过大的最小宽度。
+- 文件打开与下载按钮不再互相嵌套；只读投票不显示可选择的伪操作。
+- 保留媒体元信息、输入框表面、H5 图片预览、键盘、主题及多尺寸回归。
 
-### 弃用
-- Vue `Avatar.status` / `showStatus`、`ChatHeader.back`、`MessageActionSheet.build`、`ConversationDetails.connectionTone`;Flutter `FlareConversationRow.onAction`、`FlareComposerAction.key`;iOS `ContactDetailView`(改用 `FlareContactDetail`)。
+### 发布流程
 
-## [1.0.14] - 2026-09-08
+- 新增 release:check，串行执行检查并保留单项日志、部分结果、包内容检查及消费者验证。
+- 诊断筛选运行不能认证发布；缺少自动化证据与真正的硬件审核分开记录。
+- 补充公开 API 审查表、五端功能矩阵、迁移指南和 Stable 就绪报告。
 
-纯增量、向后兼容的发布:每个新增参数都默认沿用旧行为,现有调用点不受影响。
+### 破坏性变更与迁移
 
-### 新增
-- **BrandLogo**(`FlareBrandLogo`)四端组件 —— 共享的 Flare 标识,含 `plate` / 纯图两种变体,接入认证/登录屏。
-- **会话列表 host-rows 容器** —— Flutter `FlareConversationSliverList`(返回 sliver:宿主自持滚动视图、下拉刷新与按-id 的逐行订阅)和 iOS/Android `ConversationListContainer`(自带行构建器,kit 统一空态 / 加载 / 懒加载外壳)。与自足的 `FlareConversationList` 互补。
-- **消息列表 host-rows sliver** —— Flutter `FlareMessageSliverList`,与自足的 `FlareMessageList` 互补,供自持滚动控制器与逐条消息行的聊天屏使用。
-- **`FlareConversationRow.previewSpansBuilder`**(Flutter)—— 会话行内的富预览片段(媒体胶囊、@提及)。
-- **EmptyState 富变体**(四端)—— `loading`(以 spinner 替代图标)、`onTap`(整块占位可点,区别于操作按钮)、自定义图标槽(Flutter `iconWidget`、Android `iconContent`、Vue `#icon`;iOS 仍用 `systemImage`),以及 `tone`(`normal` / `error`:error 用 danger 色渲染标题与图标,并让长错误文本自由换行)。
-- **IconButton 覆盖项**(四端)—— `tintColor`(前景)、`backgroundColor`、`customSize`,用于任意着色的圆形 / 头部按钮;`customSize` 下字形按 `size * 0.46` 推导。
-- **Input**(Flutter)—— 字段内可选前置 `prefix` 组件(如搜索图标)及 `autofocus`。
-- **FilterTabs `padding`**(Flutter)—— 由宿主控制 tab 行留白。
-- **SettingsList `select` 行类型**(Flutter `FlareSettingKind.select`)—— 单选行,在选中项尾部显示勾选并加粗其标签。
-- **`notifications` i18n 命名空间**(Vue `messages.ts`,zh-CN / en-US)。
+- 消息内容组件不再负责气泡表面，应通过 MessageBubble 与 MessageMeta 组合。
+- VoteOption.pct 改为可选或空值，未知结果不能用零替代。
+- 只使用公开包入口和语义主题 Provider。详见 docs/migration-to-2.0.md。
 
-### 变更
-- **SegmentedControl**(Flutter、iOS)分段改为全宽布局,不再使用固定最小宽度。
+### 已知限制
 
-### 分发
-- 各通道版本统一为 `1.0.14`:npm `@flare-im/vue-ui@1.0.14`、GitHub tag `1.0.14`(iOS SPM 与 Android JitPack `com.flare.im:im-ui-compose:1.0.14`)、Flutter `flare_im_ui: 1.0.14`。
+- 原生残留展示所有权、内置消息完整映射、媒体动作接入、运行时与无障碍证据，以及真机审核仍阻塞 Stable。
+- 组件目录与签名覆盖不等于运行时完全一致，禁止据此宣称 Stable。
 
-## [1.0.9] 及更早
+## 2.0.0-rc.1
 
-更新日志建立之前的版本,详见 git 历史与 tag(`1.0.4`–`1.0.9`)。
+- 建立四端生命周期、MessageStatus、MessageMeta、能力、消息内容、动作和表单键盘契约。
+- 增加共享场景、视觉门禁、无障碍设备矩阵、性能计划、兼容性矩阵及语义状态 Token。
+- 使用分层导出与依赖边界约束 General UI、IM UI 和宿主产品职责。

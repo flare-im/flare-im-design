@@ -10,36 +10,39 @@
 
 ## 单一真源与布局
 
-修改 `tokens/tokens.json`，运行 `node tokens/build.mjs`。禁止直接修改生成的 CSS、Dart、Swift、Kotlin 和 Web layout-policy 文件。CI 使用 `node tokens/build.mjs --check` 检查所有平台生成产物，而非只检查 Web CSS。
+修改 `tokens/tokens.json`，运行 `node tokens/build.mjs`。禁止直接修改生成的 CSS、Dart、Swift、Kotlin 和 Web `layout-tokens` 文件。分栏规则不是生成产物：它在四个 kit 的应用契约里各有一份实现，共同受 `spec/application-layout-vectors.json` 约束。CI 使用 `node tokens/build.mjs --check` 检查所有平台生成产物，而非只检查 Web CSS。
 
 | 项目 | 逻辑尺寸 | 使用方式 |
 |---|---:|---|
 | 会话头像 | 44 | 可由业务显式覆盖；默认跨端统一 |
 | 列表栏 | 320 | `listWidth` |
 | 详情栏 | 300 | `detailWidth` |
-| 聊天区最小宽度 | 360 | 大字号时增加预留宽度 |
-| 双栏起点 | 720 | 同时必须容纳列表、聊天及分隔线 |
-| 三栏起点 | 1100 | 同时必须容纳三栏及分隔线 |
+| 聊天区最小宽度 | 360 | 大字号时只有它随字号增加 |
 | 返回按钮最小触控区域 | 48 × 48 | 图标可以更小，点击区域不能跟着缩小 |
 
 Web 使用 CSS px、Flutter 使用 logical pixel、Android 使用 dp、iOS 使用 pt。不要再乘设备像素比。可用宽度应扣除导航轨、安全区及父容器占用，平板分屏、桌面缩窗与嵌入面板遵循同一规则。
 
-聊天宽度预算为 `360 × clamp(textScale, 1, 2)`。这里的上限仅用于分栏预算，不限制实际字体缩放。系统字号更大时组件仍尊重系统设置。SwiftUI 通过 ScaledMetric、Compose 通过 fontScale、Flutter 通过 TextScaler 取得缩放；Web 浏览器缩放会改变可用 CSS 宽度，另有应用字号功能时传入 `textScale`。
+几栏放得下只有一条规则（FR-110），`ResponsiveLayout`、`ConversationWorkspace` 与 `AppLayout`、`WorkspaceFrame` 都问它（`IMAppKit` 自 Round 9 起不排窗格，窗格由目的地里的这些框架排）：双栏需要「导航 + 列表 + 360 × max(1, textScale)」，三栏再加详情栏。没有设备下限——原来的 720 / 1100 两个起点背后没有内容依据（列表加可用聊天只要 680）。只有聊天的阅读宽度随字号放大，且不封顶：导航、列表、详情在四端都按固定宽度绘制，按放大后的宽度为它们预留空间等于为没人画的东西占位；封顶则会让最需要空间的读者拿到低于最小值的聊天栏。分隔线不计入。SwiftUI 通过 ScaledMetric、Compose 通过 fontScale、Flutter 通过 TextScaler 取得缩放；Web 浏览器缩放会改变可用 CSS 宽度，另有应用字号功能时传入 `textScale`。
 
-| 可用宽度 | 字号倍率 | 有详情时栏数 |
-|---:|---:|---:|
-| 390 | 1 | 1 |
-| 720 | 1 | 2 |
-| 1100 | 1 | 3 |
-| 720 | 2 | 1 |
-| 1100 | 2 | 2 |
-| 1342 | 2 | 3 |
+| 可用宽度 | 导航 | 字号倍率 | 有详情时 |
+|---:|---:|---:|---|
+| 679 | 0 | 1 | 单栏 |
+| 680 | 0 | 1 | 双栏 |
+| 980 | 0 | 1 | 三栏 |
+| 1040 | 0 | 2 | 双栏 |
+| 1440 | 0 | 3 | 双栏（聊天需 1080） |
+| 752 | 72 | 1 | 双栏 |
+| 960 | 280 | 1 | 双栏 |
+
+两个布局都用同一套词汇报告结果：`layoutChange` / `onLayoutChange` 给出 `singlePane | dualPane | triplePane` 与详情呈现 `hidden | inline | overlay | route`。
+
+壳层（`IMAppKit`）量自己的盒子得出手机 / 平板 / 桌面并放进上下文，按导航 id 渲染目的地并常驻访问过的目的地；窗格框架在壳层里用壳层的模式，壳层外自己量。手机底栏由活动目的地上报的深度决定：`FlareScreen` 带返回、窗格框架单栏且显示的不是根窗格时自动上报，宿主自绘的二级页用 `useFlareDestinationDepth` / `FlareDestinationDepth` / `.flareDestinationDepth(_:)` 上报（FR-095）。
 
 单栏显示 `activePane`；双栏的右侧显示聊天或请求打开的详情；三栏同时显示三者。单栏返回顺序为详情 → 聊天 → 列表。业务头部已有返回按钮时传 `hideMobileBar`，并自行实现同样的导航顺序。原生库没有回调时不显示无效返回按钮。双栏详情由宿主提供关闭操作。
 
 ## 安全区、键盘与主题接入
 
-**Android**：`FlareThemeProvider(dark = resolvedDark)` 与应用 `MaterialTheme` 使用同一个解析后的主题值。默认才跟随系统；示例应用已经接入。`FlareScreen` 默认消费 `WindowInsets.safeDrawing`。父 Scaffold 已应用并消费 inset 时不会重复；如果宿主自行用普通 padding 处理，应传 `windowInsets = WindowInsets(0, 0, 0, 0)`。输入页只在一个层级处理 IME，不能在根、聊天区、输入框各加一遍键盘高度。
+**Android**：`FlareThemeProvider(dark = resolvedDark)` 统一提供 Flare 语义色与 MaterialTheme 颜色、字体映射；页面直接使用 `MaterialTheme.typography`，不在 app 内另建字体阶梯。默认才跟随系统，自定义色板同时传对应的 `dark`。`FlareScreen` 默认消费 `WindowInsets.safeDrawing`。父 Scaffold 已应用并消费 inset 时不会重复；如果宿主自行用普通 padding 处理，应传 `windowInsets = WindowInsets(0, 0, 0, 0)`。输入页只在一个层级处理 IME，不能在根、聊天区、输入框各加一遍键盘高度。
 
 **Flutter**：由 `MaterialApp.theme/darkTheme/themeMode` 驱动组件。`FlareScreen` 内含 SafeArea，页面外用 `Scaffold(resizeToAvoidBottomInset: true)` 处理键盘。聊天列表用 Expanded，输入区留在可见高度内；不要再叠加 `viewInsets.bottom`。不要固定整个页面高度，也不要替换 TextScaler 来禁用辅助字号。
 
@@ -58,14 +61,14 @@ Web 使用 CSS px、Flutter 使用 logical pixel、Android 使用 dp、iOS 使�
 
 ## 可执行验证与真机验收
 
-共同边界数据位于 `spec/device-layout-vectors.json`。Vue、Flutter、Swift 测试直接读取；Kotlin 测试覆盖同样边界。改断点必须同步验证四端，不允许仅修改某个示例的常量。
+共同边界数据位于 `spec/application-layout-vectors.json`（`panes` 是分栏规则，`cases` 是工作区呈现）。四端测试都直接读取这份文件。改规则必须同步验证四端，不允许仅修改某个示例的常量；`spec/validate.mjs` 拒绝任何以断点或尺寸令牌表达分栏数的做法。
 
 ```sh
 node tokens/build.mjs --check
-(cd vue-im-ui && npm test -- src/design-system/theme/layout-policy.test.ts && npm run check:sfc)
-(cd flutter-im-ui && flutter test)
-(cd ios-im-ui && swift test)
-(cd android-im-ui && ./gradlew testDebugUnitTest)
+(cd packages/vue-im-ui && npm test -- src/shared/contracts/application.test.ts src/components/layout && npm run check:sfc)
+(cd packages/flutter-im-ui && flutter test)
+(cd packages/ios-im-ui && swift test)
+(cd packages/android-im-ui && ./gradlew testDebugUnitTest)
 ```
 
 本轮自动测试覆盖：320/390/720/1100 可用宽度，1×/2× 字号、深浅主题、3× DPR、顶部 59/底部 34 安全区、嵌套窄容器、详情可见性、返回顺序、返回点击高度、长会话标题及 99+ 未读。测试中的安全区数值是模拟条件，不等于已经在对应手机运行。
@@ -96,4 +99,4 @@ node tokens/build.mjs --check
 - 文档演示的主题容器增加可收缩约束，修复 390 宽度溢出。
 - Chromium 真实浏览器回归通过：390px/3× DPR 提及选择器、48px 触控区域、搜索/方向键/Enter/Escape，以及单/双/三栏容器切换和 200% 字号退回单栏。171 个 Vue SFC 编译通过。
 
-浏览器回归脚本：`scripts/check-device-ui-browser.mjs`。先在 site 启动 `npm run dev -- --host 127.0.0.1 --port 5189`，再运行 `node scripts/check-device-ui-browser.mjs http://127.0.0.1:5189 <已安装@playwright/test的消费项目package.json绝对路径>`。它验证真实组件的搜索、选择、关闭、触控尺寸、容器缩放和大字号分栏。
+浏览器回归脚本：`tooling/check-device-ui-browser.mjs`。先在 site 启动 `npm run dev -- --host 127.0.0.1 --port 5189`，再运行 `node tooling/check-device-ui-browser.mjs http://127.0.0.1:5189 <已安装@playwright/test的消费项目package.json绝对路径>`。它验证真实组件的搜索、选择、关闭、触控尺寸、容器缩放和大字号分栏。

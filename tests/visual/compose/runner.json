@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "test": "packages/android-im-ui/src/androidTest/kotlin/com/flare/im/ui/RcScreenshotHarnessTest.kt",
+  "captureCommand": "./gradlew connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.flare.im.ui.RcScreenshotHarnessTest -Pandroid.testInstrumentationRunnerArguments.compareBaselines=false",
+  "compareCommand": "./gradlew connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.flare.im.ui.RcScreenshotHarnessTest -Pandroid.testInstrumentationRunnerArguments.compareBaselines=true",
+  "baselineDirectory": "packages/android-im-ui/src/androidTest/assets/goldens",
+  "baselines": [
+    "rc-components-light.png",
+    "rc-components-dark.png",
+    "rc-components-large-text.png"
+  ],
+  "requiredEnvironment": {
+    "api": 35,
+    "density": "420dpi",
+    "fontScale": 1,
+    "locale": "en-US",
+    "animations": "disabled"
+  },
+  "status": "ACTIVE_ON_PINNED_AVD"
+}

@@ -1,0 +1,20 @@
+{
+  "note": "Exceptions for tooling/check-public-api.mjs. `companionExports`: non-component symbols the `./components` entry deliberately carries alongside the component they belong to. `pendingMerge`: Vue component exports that are public today but not catalog symbols, each tracked by a duplication id and the step that must clear it; the gate fails in --strict mode while this list is non-empty. `nativeCompanions`: public native symbols that are not catalog components but are deliberate host-facing API next to one (sliver forms, providers); tooling/check-dead-components.mjs treats them as live.",
+  "companionExports": {
+    "flareIcons": "Semantic icon-name → glyph table of FlareIcon (the same names natives resolve to SF Symbols / Material Icons).",
+    "flareIconNames": "The ordered icon-name list of FlareIcon, for pickers and docs.",
+    "FlareIconName": "Type of the icon names above."
+  },
+  "pendingMerge": [],
+  "nativeCompanions": {
+    "flutter": {
+      "FlareConversationSliverList": "Sliver form of ConversationList for CustomScrollView hosts (flare-core-flutter-app conversation_list_screen.dart).",
+      "FlareMessageSliverList": "Sliver form of MessageList for CustomScrollView hosts (flare-core-flutter-app chat_screen.dart).",
+      "FlareDialog": "Base dialog primitive DangerConfirm and hosts build on (flare-core-flutter-app, flare-social-flutter-app).",
+      "ComposerInlineTextField": "Composer text-field part hosts embed in their own bars (flare-core-flutter-app message_composer.dart / composer_sheets.dart); the Vue counterpart is the composer's internal input row."
+    },
+    "compose": {
+      "FlarePlatformProvider": "Layer 5 platform provider (spec/platform-contract.json); hosts install their adapter through it."
+    }
+  }
+}

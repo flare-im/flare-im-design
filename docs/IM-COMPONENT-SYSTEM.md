@@ -1,175 +1,45 @@
-# Flare IM 完整组件系统规划
+# Flare IM Component System
 
-## 目标与当前判断
+## Purpose
 
-把现有原生组件库完善为可组合、可验证的 IM 产品基础：开发者能够构建完整聊天流程，每个能力都有清楚的输入、状态、事件、失败恢复和跨设备规则。
+Flare IM Design is a cross-platform component library, not an application or messaging runtime. Vue, Flutter, Compose, and SwiftUI implement one framework-neutral component contract while preserving native interaction conventions.
 
-目前已有消息、输入、联系人、群组、通话与社交组件。本轮将附件传输纳入统一契约。源文件存在只说明有实现入口；不能把组件数量或四端符号检查当作业务可用率。具体组件映射见同页覆盖矩阵。
+## Layers
 
-设计保持中性背景、清晰文字与紫色强调。会话列表负责快速扫描，时间线负责连续阅读，输入区负责准确表达，详情面板承载低频操作。减少卡片边框与重复状态徽章，把重试、恢复、权限说明放在问题发生的位置。
-
-## 产品信息架构
-
-1. **连接与身份**：登录/恢复会话、设备异常、重新认证。登录业务由宿主实现，库提供页面外壳和状态展示。
-2. **消息工作区**：会话列表 → 聊天时间线 → 搜索/详情/成员/媒体；手机逐页进入，平板双栏，宽屏三栏。
-3. **联系人与群组**：搜索、联系人详情、群成员和公告；关系与角色策略来自宿主，不复制到组件内部。
-4. **通话空间**：呼入/拨出 → 通话 → 小窗；RTC 设备和会话生命周期由插件负责。
-5. **个人与设置**：主题、语言、通知、隐私、设备、存储管理。
-6. **可选扩展**：任务、投票、位置、支付、社交内容；按能力启用，缺失时保留可理解的回退展示。
-
-## 组件分层与所有权
-
-| 层级 | 内容 | 规则 |
+| Layer | Owns | Must not own |
 |---|---|---|
-| 设计基础 | 色彩、间距、字号、布局、安全区策略 | tokens 单源生成；禁止各示例复制常量 |
-| 原子控件 | Avatar、Button、Input、Icon、Badge | 主题、焦点、语义、触控区域 |
-| IM 语义组件 | MessageBubble、Composer、TransferProgress、ReadReceiptSheet | 类型化数据输入和操作事件；无网络副作用 |
-| 场景组合 | ConversationWorkspace、SearchPanel、MediaCenter、MemberPanel | 复用已有组件，统一加载/空/失败/权限状态；这些组合项逐阶段建设 |
-| SDK 适配 | 消息身份、连接状态、媒体传输、能力检查 | SDK/core-client 包拥有；不能写进视觉组件 |
-| 示例应用 | 路由、账号选择、业务权限、插件配置 | 展示真实组合；避免成为唯一业务基础设施 |
+| Foundation | generated color, type, spacing, elevation, motion, and layout tokens | component behavior |
+| General UI | buttons, inputs, feedback, overlays, navigation and layout primitives | IM policy or transport state |
+| IM UI | conversations, messages, composer, media, contacts, calls and profile presentation | networking, persistence or authorization |
+| Patterns | workspace composition, pane state, focus order and responsive collapse | application routing or sessions |
+| Host integration | authoritative data, permissions, commands, media transport and business rules | duplicated component visuals |
 
-不再为“离线”“无权限”“缺插件”各做一套相似空白卡片。复用 StatusBanner、EmptyState 与 Composer 的既有状态契约，在场景组合中明确显示规则。新组件必须有独立的职责和可复用场景。
+General UI and IM UI are logical layers inside each platform's cohesive package. They can be physically split only when both become independently versioned, independently consumed products.
 
-## 全局状态规范
+## State Model
 
-| 状态 | 展示与可操作性 |
-|---|---|
-| 首次加载 | 骨架/进度及可访问文本，不伪装为空列表 |
-| 后台刷新 | 保留已有内容；局部展示同步状态 |
-| 空内容 | 说明原因，只有宿主有能力时提供创建入口 |
-| 请求失败 | 展示面向用户的原因和可执行恢复操作 |
-| 离线/重连 | 已缓存内容可读；发送能力由 SDK 提供，不根据 WebSocket 101 推断 ready |
-| 发送失败 | 保留原消息，按稳定消息身份重试；不新建一个重复气泡 |
-| 权限拒绝 | 说明需要的权限，打开设置/申请权限交给宿主 |
-| 功能不可用 | 说明运行环境或插件缺失，不显示无效按钮 |
-| 操作处理中 | 及时禁用重复操作；状态由宿主更新，SDK 保证幂等 |
-| 部分失败 | 保留成功项，显示失败项及逐项恢复，不用一个全局成功提示覆盖 |
+All asynchronous surfaces distinguish initial loading, background refresh, empty, failure, offline, permission denied, unavailable, busy, and partial failure. Existing content remains visible during refresh. Recovery controls appear only when the host supplies a valid callback.
 
-消息发送与附件上传是两套状态：文件上传完成不能显示消息“已送达”。百分比未知不能写成 0%，SDK 未报告完成不能只凭字节比例显示成功。
+Message transfer, send, delivery, read, mutation, and ephemeral state remain orthogonal. Components emit intent; the host updates authoritative state.
 
-## 本轮已落地
+## Responsive Contract
 
-- 四端 TransferProgress：queued、transferring、paused、failed、completed、cancelled。
-- 传输操作取“当前状态允许操作”与“SDK 提供操作标签”的交集；支持 pause/resume/cancel/retry/open，按宿主能力显示。
-- 空值及非有限进度按未知处理，0 保留为真实零进度，越界值做显示保护。
-- StatusBanner 恢复操作改为标准按钮，48 逻辑单位触控区域；长状态文案保持可读，Flutter 尊重减少动画设置。
-- 覆盖矩阵源文件与生成检查，防止后续增加组件时规划与契约分离。
-- 文档加入可交互的状态实验室；所有数据明确为本地演示，回调不会触发真实上传。
+Layouts use available container width, text scale, safe areas, and host-provided pane sizes. Conversation layouts resolve to one, two, or three panes from the generated conversation breakpoints. Hidden and overlaid panes are removed from accessibility traversal rather than rendered as semantic duplicates.
 
-## 实施进度：可靠时间线与搜索组合
+## Theme Contract
 
-- MessageList 四端增加 `hasOlder / loadingOlder / olderError / loadOlderText` 和明确的加载回调；请求期间锁定重复加载，失败需要用户重试。Flutter/Android 的默认 `hasOlder` 为 false，接入分页时必须显式提供。
-- Vue 按可见消息 ID 与相对偏移保持历史前插位置，用户滚动和切换会话取消待恢复锚点；Flutter 用稳定键与双向 sliver 保留位置；Compose 使用带稳定消息键的 LazyListState；SwiftUI 按系统版本使用滚动位置绑定或可见行恢复。
-- 新增四端 SearchPanel：将关键词与类型作为不可分割的提交条件，旧条件快照不显示在新筛选下，统一等待/成功/空/失败和重试。
-- 修复 Vue/Flutter/Compose 在 Unicode 大小写转换改变长度时的搜索高亮偏移问题。
-- 文档提供时间线恢复和搜索竞态实验室。SDK 请求顺序、真正的消息类型过滤、结果定位仍属于适配层；实际 Web/Tauri 已接入搜索响应隔离与点击定位；时间范围和远端多页完整验收仍待推进。
+Theme resolution flows from palette to semantic tokens to component semantics. Components consume only semantic or component tokens. Violet, Ocean, Forest, Sunset, Rose, and Graphite each provide light/dark message, status, focus, selection, reaction, and composer mappings. Custom themes override the same semantic color object.
 
-以下记录按实际验证推进；组件构建通过不等于 SDK 联调或真机验收通过。
+## Accessibility Contract
 
-## 实施进度：传输队列
+Interactive targets are at least 48 logical pixels, named controls expose state and value, keyboard traversal follows visual order, contextual layers restore focus, status is never conveyed by color alone, large text reflows, and reduced-motion settings remove non-essential animation.
 
-- 新增四端 TransferQueue，组合已有 TransferProgress，不复制传输状态机。
-- 任务刷新失败保留已缓存任务；批量重试只包含有能力、非 busy 的失败任务，已取消项只允许逐项重试。
-- 回调携带稳定任务 ID，宿主负责同步设置 busy、逐项结果、SDK 并发限制、幂等与账号隔离。
-- 文档加入部分失败与空队列实验室；原生有界懒列表，Web 有界滚动区域。媒体中心文件检索、历史分页、真实 SDK 队列接入仍待建设。
+## Source Of Truth
 
-## 实施进度：场景组合与真实消费
+- `spec/components.json`: public component contracts and platform symbols.
+- `spec/ui-interaction-contracts.json`: framework-neutral behavior.
+- `spec/scenarios/`: shared interaction and theme scenarios.
+- `tokens/tokens.json` and `tokens/themes.json`: token sources.
+- `docs/IM-COVERAGE.md`: generated scenario coverage.
 
-- 四端已新增 MemberPanel、DeviceSessions、MediaCenter、NotificationPreferences、DangerConfirm、CapabilityBoundary。当前设备不能通过设备列表误退出；失效媒体只显示刷新入口；通知权限不足时开关禁用；危险操作处理中锁定取消与重复提交。
-- Vue 能力边界捕获子组件渲染异常并提供明确恢复；原生边界按宿主报告的状态显示。它们不捕获原生进程崩溃，也不代替插件生命周期管理。
-- Web/Tauri 共用工作台的删除会话、清理历史已接入目标明确的确认；搜索采用请求序号和会话身份保护，过期响应不能覆盖新结果；媒体适配层只合并进行中的请求，签名 URL 有效期交回 SDK 管理。
-- 24 组场景浏览器检查覆盖 320/1280、深浅色，包含权限、失效媒体、当前设备保护、插件异常隔离和忙碌确认。Flutter 增加同类行为测试。
-- Web/Tauri 已通过真实打包安装构建：检查期间去除指向工作区的 TypeScript paths，并用 published 模式构建，完成后恢复原配置。
-
-## 实施进度：通话恢复与可访问操作
-
-- CallDevicePicker 四端提供麦克风/扬声器/摄像头的受控设备选择、权限与 busy 保护；设备拔出不自动选择，空 ID/重复 ID 被过滤。
-- CallView 四端增加 reconnecting / failed、statusDetail、recoveryText 与 recover/onRecover。SDK/RTC 插件负责设备枚举、权限、弱网判断、重连和屏幕共享；UI 不自行创建另一套重试循环。
-- 弱网但媒体仍连接时保持 connected，通过 statusDetail 说明。失败恢复由宿主立即切换 reconnecting 防重入，挂断入口独立保留。
-- 通话控制区支持窄屏换行；Flutter 使用标准可聚焦按钮，Swift/Compose 补充读屏语义，原生页面支持滚动以容纳大字号。Web 默认不显示未经宿主确认的端到端加密提示。
-- 通话浏览器脚本验证失败恢复、键盘挂断和 320/1280 下 1x/2x 文本布局；已接入 CI，与场景截图一同归档。这是交互与几何检查，尚不是逐像素截图差异门禁。
-
-## 实施进度：连接自愈、权限说明与会话批量
-
-- 新增四端 ConnectionDetails 与 ReauthPrompt，补上覆盖矩阵里「连接详情与重新认证入口」这一缺口。连接状态用图标、文字与语气色三者同时表达；`sdkUnready` 不提供任何动作，避免给出点了无效的按钮。可用动作由纯函数按状态计算，busy 只决定禁用而不改变按钮存在与否，处理中按钮不会跳动消失。
-- 会话失效不可忽略：ReauthPrompt 的 Escape 与系统返回不关闭面板，失败原因保留在面板内而不是被下一次尝试清空，账号被停用时不提供重新认证入口。
-- 新增四端 PermissionPrompt，把录音、通话、通知、存储、相册、通讯录的权限说明收敛成一个组件。组件不申请权限、不判断平台：`undetermined` 才给申请入口，`denied` 才给打开设置入口，`restricted` 与 `unavailable` 只做说明。
-- 新增四端 ConversationActionSheet 与 ConversationBatchToolbar。单个会话的菜单与批量条共用同一套动作枚举与顺序，删除永远单独分组置底，并且都只派发意图——二次确认由宿主用 DangerConfirm 承接，不在组件内再造一套。
-- 批量条兑现「保留成功项、失败项逐项恢复」：结果同时显示成功与失败计数，可展开逐项原因，重试只提交去重后的失败 ID；宿主在命令前同步置位 busy，结束后把成功项移出选中集合、失败项留在选中集合里。
-- 验证：Vue 类型检查通过、266 项测试、188 个 SFC 编译；Flutter 静态分析无问题、168 项测试；SwiftUI 构建通过、49 项测试；Compose 编译与单测通过。契约、覆盖矩阵、README 目录、token 产物、分发与导出检查全部通过。这些是组件层门禁，不代表已完成 SDK 联调或真机验收。
-
-## 实施进度：检索时间范围、关系与群权限
-
-- 新增四端 SearchDateRangeFilter，补上覆盖矩阵里检索场景欠的「时间范围」。时区换算是显式的：`tzOffsetMinutes` 统一定义为 UTC 以东分钟数，`from` 取当日 00:00:00.000、`to` 取当日 23:59:59.999，单日跨度恒为 86 399 999 毫秒；非法日期（2026-02-30、2026-13-01、早于 epoch）一律拒绝。草稿与受控值分离：起止倒置时提示保留在界面上但不派发，避免把半截条件送进检索。四端复用已有 DatePicker，没有再写一个日历。
-- 新增四端 UnknownUserPlaceholder：未知、已注销、被拉黑、不可联系四种账号占位。用户 ID 只出现在次要诊断位并强制 LTR，主标题永远是人能读懂的原因，列表里不会再出现裸 ID。
-- 新增四端 RelationActionBar。等级规则写在纯函数里：pendingOut 只给「等待对方验证」的禁用主态，blocked 只给解除拉黑而不给发消息或加好友——被拉黑状态下暴露这些入口等于骗用户点击。
-- 新增四端 GroupPermissionMatrix 与 MemberRoleSheet。权限键只覆盖 FlareGroupDetailModel 里真实存在的字段，不发明后端没有的开关；未知 joinPolicy 原样透传并提示，不猜测。每项独立 busy 与独立失败，失败保留原因与重试，不用一次全局失败抹掉已成功的项。`canManage=false` 渲染为只读值行而不是禁用开关——禁用开关会让人以为自己有权限只是暂时点不动。
-- 成员管理的等级规则先于能力开关：群主不可被任何人操作，admin 不能动平级 admin 也永远没有转让群主，member 视角返回空并区分「群主不可被管理」与「你没有管理权限」两种文案。移出与转让群主置底、危险语气；二次确认仍由宿主的 DangerConfirm 承接。
-- 新增四端 UnknownMessage：本端无法渲染的消息此前四端都把原始 contentType 当正文印出来（原生 `[type]`、Vue `[Unknown message type]`），读者读不出信息且像渲染故障。现在拆成人能读的标题、人能读的正文、以及保留给排查的原始类型诊断行，并接进四端 MessageContentView 的兜底分支。
-- PermissionPrompt 补 screen（屏幕录制）种类，屏幕共享的权限说明有了归属，宿主不必自建一套拒绝面板。
-- 验证：Vue 类型检查通过、327 项测试、194 个 SFC 编译；Flutter 静态分析无问题、244 项测试；SwiftUI 构建通过、109 项测试；Compose 编译与单测通过。契约、覆盖矩阵、README 目录、token 产物、分发与导出检查全部通过。
-
-## 实施进度：屏幕共享与存储占用
-
-- 新增四端 ScreenShare，补上规划 P2 点名却一直没有 UI 的屏幕共享。五个状态 idle / requesting / sharing / viewing / unavailable 各有图标、文字与语气色；`viewing` 不提供停止——观看方本就停不了别人的共享，给了按钮就是骗点击；`unavailable` 只说明运行环境或插件没有采集能力，不给任何动作。
-- 屏幕录制权限被拒**不由 ScreenShare 处理**：PermissionPrompt 新增 screen 种类承接，四端源码注释与中英文档都写死这条唯一路径。同一个意图留两套拒绝面板，正是这一层要消除的重复。
-- 新增四端 StorageUsage，兑现覆盖矩阵 settings 场景里的「缓存清理失败」。大小未知一律显示「未知」而不是 0 B，占比条在未知时不画——宽度为零会被读成「这个分类是空的」。每个分类独立 busy 与独立失败，清理失败保留原因并逐项重试，不用一次整体失败抹掉已清理成功的分类。
-- `formatBytes` 四端同一套规则并各有单测（0、1023、1024、1536、1 MiB、1 GiB、TB 封顶、null/NaN/±Infinity/负数），与既有的消息附件大小显示同风格。`locale` 参数四端签名一致但刻意不改变输出：同一份存储快照不能在用户两台设备上读出两种写法。
-- 清理是不可逆操作，按钮用危险语气色加图标，但二次确认仍由宿主的 DangerConfirm 承接，组件只派发意图。
-- 覆盖矩阵的后续项同步做了一次去伪：已经落地的组件从待办里移出，留下的是真正需要真实链路或真机才能给出的证据。
-
-## 实施进度：会话工作区
-
-- 新增四端 ConversationWorkspace，P1「常用场景组合」的收口件。它组合已有的 ResponsiveLayout，不重造分栏：断点（720 双栏 / 1100 三栏、按字号缩放）与窄屏返回顺序仍归 ResponsiveLayout，`activePane`/`listWidth`/`detailWidth`/`hideMobileBar`/`backLabel` 原样透传。
-- 它真正提供的是**一处统一的每栏加载 / 空 / 失败**：三栏各自独立，聊天栏失败不会把已经加载好的列表栏也变成失败；加载态渲染带读屏文案的骨架而不是空列表；失败态给原因，只有宿主传了恢复回调才显示按钮。跨栏的全局提示（离线、重连、会话过期）另有一层 banner，可与栏内状态并存——离线时列表仍可读缓存。
-- 修掉一个交付时发现的洞：原生三端此前按「detail 槽是否为空」决定详情栏是否存在，于是宿主还没拿到详情、状态是 loading/failure 时，本该出现的面板反而不渲染——而这正是这个组件存在的意义。改为「detail 槽非空 **或** detailState 非 ready」才建栏，三端一致，并补了回归用例。
-- 非法 status 一律降级为渲染内容，不抛异常也不留白；banner 文案为空或纯空白不渲染。
-- 验证：Vue 类型检查 + 契约测试 + SFC 全量编译；Flutter 静态分析 + 全量测试；SwiftUI 构建 + 全量测试；Compose 编译与单测。
-
-## 分阶段建设顺序
-
-### P0：可靠聊天基础
-
-本轮完成传输展示与状态提示基础。下一批以**同一会话完整往返流程**为验收单元：登录/恢复 → 查看列表 → 发文字/附件 → 断网 → 恢复 → 搜索定位。
-
-重点检查 MessageList 的历史前插、ACK 合并、消息编辑/撤回、加载失败和滚动位置保持；检查 Composer 的多行、回复、草稿切换、录音权限与发送失败。原生已使用懒加载列表，但“使用懒列表”不足以证明滚动锚点正确，需要行为测试。
-
-完成标准：四端契约一致；正常与错误路径均有测试；320 宽度/200% 字号无不可操作区域；真实 SDK 集成时不重复发消息、不丢失阅读位置。
-
-### P1：常用场景组合
-
-按顺序建设 SearchPanel、MediaCenter/TransferQueue、MemberPanel、DeviceSessions、NotificationPreferences 和统一危险操作确认。优先组合现有 SearchBar/SearchResults、TransferProgress、GroupMemberGrid、SettingsList。
-
-补齐多选/批量部分失败、搜索竞态、消息定位、转发限制、成员角色和通知权限。线程、收藏、定时发送先明确 SDK 能力，再提供 UI；当前不标成已实现。
-
-完成标准：同一数据夹具驱动四端，所有入口能进入、取消/返回、成功完成或恢复失败；不出现文档可点击但实际缺失的组件。
-
-### P2：高级与插件能力
-
-围绕 RTC 设备选择、弱网、重连、屏幕共享，媒体地址过期、文件预览降级，以及任务/投票/位置等扩展消息完善适配。未知扩展消息保留可理解的占位和诊断信息。支付、合规留存和企业审批不是 UI 库内置业务。
-
-完成标准：有插件、无插件、插件失败三种路径均可用；核心聊天不因插件异常不可用。
-
-### P3：分发与可选扩展治理
-
-按依赖图评估拆分 core/chat、contacts、calls、social 等入口，避免先制造多个版本不同步的包。完善同版本发布矩阵、真实安装构建、迁移说明与视觉回归基线。社交内容作为可选能力，不扩大最小聊天依赖。
-
-## 每个组件的交付标准
-
-1. 契约：职责、输入类型、状态、事件、能力前置条件、错误与取消语义。
-2. 视觉：默认/加载/空/失败/禁用/大字号/深浅色；关键状态同时有图标或文字，避免仅凭颜色。
-3. 输入：键盘 Tab/Enter/Escape、焦点恢复、触屏点击/长按、读屏名称与顺序。
-4. 数据：长中英文、RTL、emoji、超长文件名、99+ 未读、空头像和失效媒体。
-5. 性能：列表有界渲染，媒体加载可取消，组件不拥有定时网络重试；卸载清理 UI 订阅。
-6. 文档：真实组件示例、四端可编译用法、宿主职责、能力缺失时的表现。
-7. 验证：模型/状态测试、交互测试、跨端构建；真机覆盖单独记录，不能用构建结果代替。
-
-## 跨设备与测试资产
-
-遵循《跨设备 UI 契约》中的逻辑尺寸、安全区和字体缩放规则。除了已建立的布局边界数据，还应逐场景扩展消息夹具、错误夹具与截图基线。
-
-Web/Tauri 共用 Vue 组件但需要各自宿主集成验证；Flutter 在 Android/iOS 上仍需测试键盘、权限与生命周期。Swift/Compose 的系统字体和 emoji 不要求逐像素一致，信息层级、关键几何、可读性和操作结果必须一致。
-
-## 本轮边界
-
-这一规划覆盖完整 IM 产品所需的检查面；并不表示所有场景组合、后台能力和真机验收已完成。本轮实现不发布 npm/Maven/SPM 版本，也没有替换服务器上的应用。后续迭代以阶段验收结果推进，不按“再增加多少组件”判断完成度。
+Implementation counts prove surface coverage, not product behavior. A component is stable only when its contract, platform implementation, accessibility states, examples, and tests agree.

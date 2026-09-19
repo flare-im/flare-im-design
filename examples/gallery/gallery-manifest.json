@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 3,
+  "scenarioSources": [
+    "spec/scenarios/rc.json#scenarios",
+    "spec/scenarios/theme-switching.json",
+    "spec/scenarios/application.json#scenarios"
+  ],
+  "platformSources": {
+    "vue": "website/.vitepress/theme/demos/HomeShowcase.vue",
+    "flutter": "examples/flutter/lib/main.dart",
+    "compose": "examples/compose/app/src/main/kotlin/com/flare/im/example/MainActivity.kt",
+    "ios": "examples/swiftui/Sources/GalleryApp/GalleryApp.swift"
+  },
+  "featuredScenarioSources": {
+    "vue": "website/.vitepress/theme/demos/CommandPaletteDemo.vue",
+    "flutter": "examples/flutter/lib/main.dart",
+    "compose": "examples/compose/app/src/main/kotlin/com/flare/im/example/MainActivity.kt",
+    "ios": "examples/swiftui/Sources/GalleryApp/GalleryApp.swift"
+  },
+  "requiredStates": [
+    "default",
+    "hoverOrPressed",
+    "focus",
+    "disabled",
+    "loading",
+    "longContent",
+    "dark",
+    "largeText",
+    "reducedMotion",
+    "rtl",
+    "error",
+    "touch"
+  ],
+  "general": {
+    "Button": "Button",
+    "Input": "Input",
+    "Select": "Select",
+    "Tabs": "FilterTabs",
+    "Dialog": "DangerConfirm",
+    "Drawer": "AppLayout",
+    "Toast": "Toast",
+    "Skeleton": "Skeleton",
+    "Progress": "TransferProgress",
+    "List": "ConversationList",
+    "CommandPalette": "CommandPalette"
+  },
+  "im": {
+    "ConversationItem": "ConversationRow",
+    "MessageBubble": "MessageBubble",
+    "MessageMeta": "MessageMeta",
+    "MessageStatus": "MessageStatus",
+    "Composer": "Composer",
+    "Reaction": "ReactionSummary",
+    "Thread": "CommentThread",
+    "UploadFile": "TransferProgress",
+    "SearchResult": "SearchResults",
+    "Offline": "StatusBanner",
+    "Error": "StatusBanner",
+    "Empty": "EmptyState",
+    "Loading": "Skeleton",
+    "Edited": "MessageBubble",
+    "Recalled": "MessageBubble",
+    "Ephemeral": "MessageBubble",
+    "System": "SystemMessage"
+  },
+  "viewports": {
+    "largeDesktop": [1440, 900],
+    "desktop": [1180, 760],
+    "tablet": [820, 1180],
+    "mobile": [390, 844]
+  },
+  "scenarioSchema": {
+    "required": ["id", "component", "variant", "state", "theme", "content", "interaction", "accessibilityExpectation"],
+    "platforms": ["vue", "flutter", "compose", "ios"]
+  },
+  "themeScenario": "spec/scenarios/theme-switching.json"
+}

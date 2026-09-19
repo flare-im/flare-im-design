@@ -1,0 +1,3050 @@
+{
+  "schemaVersion": 1,
+  "policy": "Reuse a stable component or documented composition before adding a new primitive.",
+  "statusValues": [
+    "existing",
+    "composition",
+    "partial",
+    "missing"
+  ],
+  "general": [
+    {
+      "capability": "CommandPalette",
+      "status": "existing",
+      "target": "CommandPalette",
+      "priority": "P1",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "Combobox",
+      "status": "partial",
+      "target": "Select + SearchBar",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "Autocomplete",
+      "status": "composition",
+      "target": "SearchBar + SearchResults",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "SegmentedControl",
+      "status": "existing",
+      "target": "SegmentedControl",
+      "priority": "P1",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "SplitButton",
+      "status": "missing",
+      "target": null,
+      "priority": "P2",
+      "platformGap": [
+        "vue",
+        "flutter",
+        "compose",
+        "ios"
+      ],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "Toolbar",
+      "status": "composition",
+      "target": "MessageBatchToolbar / ConversationBatchToolbar",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "Breadcrumb",
+      "status": "missing",
+      "target": null,
+      "priority": "P3",
+      "platformGap": [
+        "vue",
+        "flutter",
+        "compose",
+        "ios"
+      ],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "Stepper",
+      "status": "existing",
+      "target": "Stepper",
+      "priority": "P1",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "Accordion",
+      "status": "missing",
+      "target": null,
+      "priority": "P2",
+      "platformGap": [
+        "vue",
+        "flutter",
+        "compose",
+        "ios"
+      ],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "Collapsible",
+      "status": "missing",
+      "target": null,
+      "priority": "P2",
+      "platformGap": [
+        "vue",
+        "flutter",
+        "compose",
+        "ios"
+      ],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "Tree",
+      "status": "missing",
+      "target": null,
+      "priority": "P2",
+      "platformGap": [
+        "vue",
+        "flutter",
+        "compose",
+        "ios"
+      ],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "TreeSelect",
+      "status": "missing",
+      "target": null,
+      "priority": "P3",
+      "platformGap": [
+        "vue",
+        "flutter",
+        "compose",
+        "ios"
+      ],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "VirtualList",
+      "status": "composition",
+      "target": "ConversationList / MessageList",
+      "priority": "P1",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "InfiniteList",
+      "status": "composition",
+      "target": "MessageList loadOlder contract",
+      "priority": "P1",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "ResizablePane",
+      "status": "composition",
+      "target": "DesktopWorkbench",
+      "priority": "P1",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "SplitView",
+      "status": "composition",
+      "target": "ThreePaneLayout",
+      "priority": "P1",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "AdaptivePane",
+      "status": "composition",
+      "target": "AppLayout",
+      "priority": "P1",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "Dock",
+      "status": "composition",
+      "target": "CallDock",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "FloatingPanel",
+      "status": "composition",
+      "target": "DesktopWorkbench.overlayHost",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "ContextMenu",
+      "status": "composition",
+      "target": "MessageActionSheet / ConversationActionSheet",
+      "priority": "P1",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "MenuBar",
+      "status": "missing",
+      "target": null,
+      "priority": "P2",
+      "platformGap": [
+        "vue",
+        "flutter",
+        "compose",
+        "ios"
+      ],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "ShortcutHint",
+      "status": "composition",
+      "target": "CommandPalette command.shortcut",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "KeyboardKey",
+      "status": "composition",
+      "target": "ShortcutHint",
+      "priority": "P3",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "FocusRing",
+      "status": "composition",
+      "target": "platform focus primitives + focus token",
+      "priority": "P1",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "FocusScope",
+      "status": "composition",
+      "target": "DesktopWorkbench.focusPolicy",
+      "priority": "P1",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "SearchDialog",
+      "status": "composition",
+      "target": "CommandPalette",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "FilterBar",
+      "status": "composition",
+      "target": "SearchPanel",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "ActionBar",
+      "status": "composition",
+      "target": "Button + Toolbar",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "BulkActionBar",
+      "status": "composition",
+      "target": "ConversationBatchToolbar / MessageBatchToolbar",
+      "priority": "P1",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "InlineEdit",
+      "status": "partial",
+      "target": "Input + host commit/cancel",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "EditableText",
+      "status": "composition",
+      "target": "Input",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "CopyButton",
+      "status": "composition",
+      "target": "IconButton + host clipboard",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "PasswordInput",
+      "status": "partial",
+      "target": "Input with secure host integration",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "OTPInput",
+      "status": "partial",
+      "target": "Input composition",
+      "priority": "P3",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "NumberInput",
+      "status": "composition",
+      "target": "Input + Stepper",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "DatePicker",
+      "status": "existing",
+      "target": "DatePicker",
+      "priority": "P1",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "TimePicker",
+      "status": "existing",
+      "target": "TimePicker",
+      "priority": "P1",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "DateTimePicker",
+      "status": "composition",
+      "target": "DatePicker + TimePicker",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "ColorPicker",
+      "status": "missing",
+      "target": null,
+      "priority": "P3",
+      "platformGap": [
+        "vue",
+        "flutter",
+        "compose",
+        "ios"
+      ],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "FilePicker",
+      "status": "composition",
+      "target": "Composer attach intent",
+      "priority": "P1",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "UploadZone",
+      "status": "partial",
+      "target": "TransferQueue + host file adapter",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "DropZone",
+      "status": "partial",
+      "target": "DesktopWorkbench filesDropped intent",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "AvatarGroup",
+      "status": "composition",
+      "target": "GroupMemberGrid",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "PresenceAvatar",
+      "status": "composition",
+      "target": "Avatar presence state",
+      "priority": "P1",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "UserPicker",
+      "status": "composition",
+      "target": "ContactMatchList / ForwardPicker",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "MemberPicker",
+      "status": "composition",
+      "target": "MemberPanel",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "SkeletonGroup",
+      "status": "composition",
+      "target": "Skeleton",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "ProgressCircle",
+      "status": "composition",
+      "target": "TransferProgress",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "ProgressBar",
+      "status": "composition",
+      "target": "TransferProgress",
+      "priority": "P1",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "StatusIndicator",
+      "status": "composition",
+      "target": "MessageStatus / Avatar",
+      "priority": "P1",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "Banner",
+      "status": "composition",
+      "target": "StatusBanner",
+      "priority": "P1",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "InlineAlert",
+      "status": "composition",
+      "target": "StatusBanner",
+      "priority": "P1",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "Callout",
+      "status": "composition",
+      "target": "StatusBanner",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "EmptyState",
+      "status": "existing",
+      "target": "EmptyState",
+      "priority": "P1",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "ErrorState",
+      "status": "composition",
+      "target": "EmptyState + retry intent",
+      "priority": "P1",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "OfflineState",
+      "status": "composition",
+      "target": "StatusBanner",
+      "priority": "P1",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "PermissionState",
+      "status": "composition",
+      "target": "PermissionPrompt",
+      "priority": "P1",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "ResultState",
+      "status": "composition",
+      "target": "EmptyState / StatusBanner",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "Timeline",
+      "status": "composition",
+      "target": "MessageList",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "ActivityFeed",
+      "status": "composition",
+      "target": "MomentCard / MessageList",
+      "priority": "P3",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "MediaGrid",
+      "status": "composition",
+      "target": "ImageGrid",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "ImageGrid",
+      "status": "existing",
+      "target": "ImageGrid",
+      "priority": "P1",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "Viewer",
+      "status": "composition",
+      "target": "ImagePreviewModal",
+      "priority": "P1",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    },
+    {
+      "capability": "Lightbox",
+      "status": "composition",
+      "target": "ImagePreviewModal",
+      "priority": "P2",
+      "platformGap": [],
+      "suggestedContract": {
+        "ownership": "hostControlled",
+        "props": [
+          "valueOrState",
+          "disabled",
+          "label"
+        ],
+        "events": [
+          "intent",
+          "change",
+          "close"
+        ],
+        "states": [
+          "default",
+          "focus",
+          "disabled",
+          "loading",
+          "empty",
+          "error"
+        ]
+      }
+    }
+  ],
+  "im": [
+    {
+      "group": "conversation",
+      "capability": "section",
+      "status": "partial",
+      "contract": "ConversationList",
+      "priority": "P2",
+      "platforms": {
+        "vue": "composition",
+        "flutter": "composition",
+        "compose": "composition",
+        "ios": "composition"
+      },
+      "missing": false
+    },
+    {
+      "group": "conversation",
+      "capability": "pinned",
+      "status": "existing",
+      "contract": "ConversationRow",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "conversation",
+      "capability": "archived",
+      "status": "existing",
+      "contract": "ConversationRow",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "conversation",
+      "capability": "muted",
+      "status": "existing",
+      "contract": "ConversationRow",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "conversation",
+      "capability": "draft",
+      "status": "existing",
+      "contract": "ConversationRow",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "conversation",
+      "capability": "mention",
+      "status": "existing",
+      "contract": "ConversationRow",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "conversation",
+      "capability": "unreadCounter",
+      "status": "existing",
+      "contract": "ConversationRow",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "conversation",
+      "capability": "typingPreview",
+      "status": "partial",
+      "contract": "TypingIndicator",
+      "priority": "P2",
+      "platforms": {
+        "vue": "composition",
+        "flutter": "composition",
+        "compose": "composition",
+        "ios": "composition"
+      },
+      "missing": false
+    },
+    {
+      "group": "conversation",
+      "capability": "lastMessageFailure",
+      "status": "existing",
+      "contract": "MessageStatus",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "conversation",
+      "capability": "presence",
+      "status": "existing",
+      "contract": "Avatar",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "conversation",
+      "capability": "channel",
+      "status": "existing",
+      "contract": "ConversationRow",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "conversation",
+      "capability": "group",
+      "status": "existing",
+      "contract": "ConversationRow",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "conversation",
+      "capability": "direct",
+      "status": "existing",
+      "contract": "ConversationRow",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "messageContent",
+      "capability": "text",
+      "status": "existing",
+      "contract": "TextMessage",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "messageContent",
+      "capability": "image",
+      "status": "existing",
+      "contract": "ImageMessage",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "messageContent",
+      "capability": "multiImage",
+      "status": "partial",
+      "contract": "ImageGrid",
+      "priority": "P2",
+      "platforms": {
+        "vue": "composition",
+        "flutter": "composition",
+        "compose": "composition",
+        "ios": "composition"
+      },
+      "missing": false
+    },
+    {
+      "group": "messageContent",
+      "capability": "video",
+      "status": "existing",
+      "contract": "VideoMessage",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "messageContent",
+      "capability": "audio",
+      "status": "existing",
+      "contract": "VoiceMessage",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "messageContent",
+      "capability": "file",
+      "status": "existing",
+      "contract": "FileMessage",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "messageContent",
+      "capability": "location",
+      "status": "partial",
+      "contract": "LocationMessage",
+      "priority": "P2",
+      "platforms": {
+        "vue": "composition",
+        "flutter": "composition",
+        "compose": "composition",
+        "ios": "composition"
+      },
+      "missing": false
+    },
+    {
+      "group": "messageContent",
+      "capability": "contactCard",
+      "status": "existing",
+      "contract": "ContactMessage",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "messageContent",
+      "capability": "linkPreview",
+      "status": "existing",
+      "contract": "LinkCardMessage",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "messageContent",
+      "capability": "richText",
+      "status": "existing",
+      "contract": "RichMarkdownInput",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "messageContent",
+      "capability": "codeBlock",
+      "status": "partial",
+      "contract": "MarkdownPreview",
+      "priority": "P2",
+      "platforms": {
+        "vue": "composition",
+        "flutter": "composition",
+        "compose": "composition",
+        "ios": "composition"
+      },
+      "missing": false
+    },
+    {
+      "group": "messageContent",
+      "capability": "poll",
+      "status": "existing",
+      "contract": "VoteMessage",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "messageContent",
+      "capability": "task",
+      "status": "partial",
+      "contract": "TaskMessage",
+      "priority": "P2",
+      "platforms": {
+        "vue": "composition",
+        "flutter": "composition",
+        "compose": "composition",
+        "ios": "composition"
+      },
+      "missing": false
+    },
+    {
+      "group": "messageContent",
+      "capability": "calendarEvent",
+      "status": "missing",
+      "contract": "ComposerAction",
+      "priority": "P2",
+      "platforms": {
+        "vue": "planned",
+        "flutter": "planned",
+        "compose": "planned",
+        "ios": "planned"
+      },
+      "missing": true
+    },
+    {
+      "group": "messageContent",
+      "capability": "miniApp",
+      "status": "missing",
+      "contract": "ComposerAction",
+      "priority": "P2",
+      "platforms": {
+        "vue": "planned",
+        "flutter": "planned",
+        "compose": "planned",
+        "ios": "planned"
+      },
+      "missing": true
+    },
+    {
+      "group": "messageContent",
+      "capability": "topic",
+      "status": "missing",
+      "contract": "ComposerAction",
+      "priority": "P2",
+      "platforms": {
+        "vue": "planned",
+        "flutter": "planned",
+        "compose": "planned",
+        "ios": "planned"
+      },
+      "missing": true
+    },
+    {
+      "group": "messageContent",
+      "capability": "system",
+      "status": "existing",
+      "contract": "SystemMessage",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "messageContent",
+      "capability": "notice",
+      "status": "existing",
+      "contract": "AnnouncementBanner",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "messageContent",
+      "capability": "threadRoot",
+      "status": "existing",
+      "contract": "CommentThread",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "messageContent",
+      "capability": "forwarded",
+      "status": "existing",
+      "contract": "ForwardPicker",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "messageContent",
+      "capability": "mergedForward",
+      "status": "missing",
+      "contract": "ComposerAction",
+      "priority": "P2",
+      "platforms": {
+        "vue": "planned",
+        "flutter": "planned",
+        "compose": "planned",
+        "ios": "planned"
+      },
+      "missing": true
+    },
+    {
+      "group": "messageContent",
+      "capability": "quoteReply",
+      "status": "existing",
+      "contract": "ComposerReplyStrip",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "messageContent",
+      "capability": "edited",
+      "status": "existing",
+      "contract": "MessageLifecycle",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "messageContent",
+      "capability": "recalled",
+      "status": "existing",
+      "contract": "MessageLifecycle",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "messageContent",
+      "capability": "deleted",
+      "status": "existing",
+      "contract": "MessageLifecycle",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "messageContent",
+      "capability": "readOnce",
+      "status": "existing",
+      "contract": "MessageLifecycle",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "messageContent",
+      "capability": "burnAfterRead",
+      "status": "existing",
+      "contract": "MessageLifecycle",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "interaction",
+      "capability": "reaction",
+      "status": "existing",
+      "contract": "ReactionSummary",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "interaction",
+      "capability": "quickReaction",
+      "status": "partial",
+      "contract": "EmojiPicker",
+      "priority": "P2",
+      "platforms": {
+        "vue": "composition",
+        "flutter": "composition",
+        "compose": "composition",
+        "ios": "composition"
+      },
+      "missing": false
+    },
+    {
+      "group": "interaction",
+      "capability": "reply",
+      "status": "existing",
+      "contract": "ComposerReplyStrip",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "interaction",
+      "capability": "thread",
+      "status": "existing",
+      "contract": "CommentThread",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "interaction",
+      "capability": "forward",
+      "status": "existing",
+      "contract": "ForwardPicker",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "interaction",
+      "capability": "mergeForward",
+      "status": "partial",
+      "contract": "ForwardPicker",
+      "priority": "P2",
+      "platforms": {
+        "vue": "composition",
+        "flutter": "composition",
+        "compose": "composition",
+        "ios": "composition"
+      },
+      "missing": false
+    },
+    {
+      "group": "interaction",
+      "capability": "multiSelect",
+      "status": "existing",
+      "contract": "MessageList",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "interaction",
+      "capability": "bulkDelete",
+      "status": "existing",
+      "contract": "MessageBatchToolbar",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "interaction",
+      "capability": "bulkPin",
+      "status": "existing",
+      "contract": "MessageBatchToolbar",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "interaction",
+      "capability": "copy",
+      "status": "existing",
+      "contract": "MessageActionSheet",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "interaction",
+      "capability": "save",
+      "status": "partial",
+      "contract": "MessageActionSheet",
+      "priority": "P2",
+      "platforms": {
+        "vue": "composition",
+        "flutter": "composition",
+        "compose": "composition",
+        "ios": "composition"
+      },
+      "missing": false
+    },
+    {
+      "group": "interaction",
+      "capability": "translate",
+      "status": "existing",
+      "contract": "TranslationView",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "interaction",
+      "capability": "search",
+      "status": "existing",
+      "contract": "SearchPanel",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "interaction",
+      "capability": "report",
+      "status": "partial",
+      "contract": "MessageActionSheet",
+      "priority": "P2",
+      "platforms": {
+        "vue": "composition",
+        "flutter": "composition",
+        "compose": "composition",
+        "ios": "composition"
+      },
+      "missing": false
+    },
+    {
+      "group": "interaction",
+      "capability": "resend",
+      "status": "existing",
+      "contract": "MessageList",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "interaction",
+      "capability": "retry",
+      "status": "existing",
+      "contract": "MessageStatus",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "interaction",
+      "capability": "jumpToQuote",
+      "status": "existing",
+      "contract": "MessageList",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "interaction",
+      "capability": "scrollToUnread",
+      "status": "existing",
+      "contract": "UnreadDivider",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "interaction",
+      "capability": "scrollToLatest",
+      "status": "existing",
+      "contract": "ScrollToLatest",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "interaction",
+      "capability": "newMessageIndicator",
+      "status": "existing",
+      "contract": "ScrollToLatest",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "composer",
+      "capability": "text",
+      "status": "existing",
+      "contract": "TextMessage",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "composer",
+      "capability": "richText",
+      "status": "existing",
+      "contract": "RichMarkdownInput",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "composer",
+      "capability": "mention",
+      "status": "existing",
+      "contract": "ConversationRow",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "composer",
+      "capability": "emoji",
+      "status": "existing",
+      "contract": "ComposerAction",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "composer",
+      "capability": "reply",
+      "status": "existing",
+      "contract": "ComposerReplyStrip",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "composer",
+      "capability": "quote",
+      "status": "partial",
+      "contract": "ComposerReplyStrip",
+      "priority": "P2",
+      "platforms": {
+        "vue": "composition",
+        "flutter": "composition",
+        "compose": "composition",
+        "ios": "composition"
+      },
+      "missing": false
+    },
+    {
+      "group": "composer",
+      "capability": "file",
+      "status": "existing",
+      "contract": "FileMessage",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "composer",
+      "capability": "image",
+      "status": "existing",
+      "contract": "ImageMessage",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "composer",
+      "capability": "video",
+      "status": "existing",
+      "contract": "VideoMessage",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "composer",
+      "capability": "voice",
+      "status": "existing",
+      "contract": "ComposerAction",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "composer",
+      "capability": "location",
+      "status": "partial",
+      "contract": "LocationMessage",
+      "priority": "P2",
+      "platforms": {
+        "vue": "composition",
+        "flutter": "composition",
+        "compose": "composition",
+        "ios": "composition"
+      },
+      "missing": false
+    },
+    {
+      "group": "composer",
+      "capability": "contact",
+      "status": "partial",
+      "contract": "ComposerAction",
+      "priority": "P2",
+      "platforms": {
+        "vue": "composition",
+        "flutter": "composition",
+        "compose": "composition",
+        "ios": "composition"
+      },
+      "missing": false
+    },
+    {
+      "group": "composer",
+      "capability": "task",
+      "status": "partial",
+      "contract": "TaskMessage",
+      "priority": "P2",
+      "platforms": {
+        "vue": "composition",
+        "flutter": "composition",
+        "compose": "composition",
+        "ios": "composition"
+      },
+      "missing": false
+    },
+    {
+      "group": "composer",
+      "capability": "event",
+      "status": "partial",
+      "contract": "ComposerAction",
+      "priority": "P2",
+      "platforms": {
+        "vue": "composition",
+        "flutter": "composition",
+        "compose": "composition",
+        "ios": "composition"
+      },
+      "missing": false
+    },
+    {
+      "group": "composer",
+      "capability": "poll",
+      "status": "existing",
+      "contract": "VoteMessage",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "composer",
+      "capability": "link",
+      "status": "partial",
+      "contract": "ComposerAction",
+      "priority": "P2",
+      "platforms": {
+        "vue": "composition",
+        "flutter": "composition",
+        "compose": "composition",
+        "ios": "composition"
+      },
+      "missing": false
+    },
+    {
+      "group": "composer",
+      "capability": "multiImage",
+      "status": "partial",
+      "contract": "ImageGrid",
+      "priority": "P2",
+      "platforms": {
+        "vue": "composition",
+        "flutter": "composition",
+        "compose": "composition",
+        "ios": "composition"
+      },
+      "missing": false
+    },
+    {
+      "group": "composer",
+      "capability": "command",
+      "status": "existing",
+      "contract": "CommandPalette",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "composer",
+      "capability": "slashCommand",
+      "status": "existing",
+      "contract": "SlashCommandMenu",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "composer",
+      "capability": "draftPersistence",
+      "status": "partial",
+      "contract": "Composer",
+      "priority": "P2",
+      "platforms": {
+        "vue": "composition",
+        "flutter": "composition",
+        "compose": "composition",
+        "ios": "composition"
+      },
+      "missing": false
+    },
+    {
+      "group": "composer",
+      "capability": "editMessage",
+      "status": "existing",
+      "contract": "Composer",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "composer",
+      "capability": "sendDisabled",
+      "status": "existing",
+      "contract": "Composer",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "composer",
+      "capability": "slowMode",
+      "status": "partial",
+      "contract": "Composer",
+      "priority": "P2",
+      "platforms": {
+        "vue": "composition",
+        "flutter": "composition",
+        "compose": "composition",
+        "ios": "composition"
+      },
+      "missing": false
+    },
+    {
+      "group": "composer",
+      "capability": "permissionDenied",
+      "status": "existing",
+      "contract": "PermissionPrompt",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "composer",
+      "capability": "networkDisconnected",
+      "status": "existing",
+      "contract": "StatusBanner",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    },
+    {
+      "group": "composer",
+      "capability": "uploadQueue",
+      "status": "existing",
+      "contract": "TransferQueue",
+      "priority": "P1",
+      "platforms": {
+        "vue": "supported",
+        "flutter": "supported",
+        "compose": "supported",
+        "ios": "supported"
+      },
+      "missing": false
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "mission": "Compose a production-quality mainstream IM client through public, SDK-agnostic UI contracts.",
+  "layers": ["Foundation", "General UI", "IM UI", "Patterns", "Workspaces", "AppKit", "Host Application"],
+  "dependencyDirection": "Foundation -> General UI -> IM UI -> Patterns -> Workspaces -> AppKit -> Host Application",
+  "responsiveModes": ["mobile", "tablet", "desktop", "wideDesktop"],
+  "regions": ["navigation", "primary", "content", "detail", "overlay", "floating", "command"],
+  "navigation": {
+    "models": ["NavigationItem", "NavigationGroup", "NavigationBadge"],
+    "badgeKinds": ["dot", "count", "mention"],
+    "presentations": {
+      "mobile": "bottom",
+      "tablet": "rail",
+      "desktop": "sidebar",
+      "wideDesktop": "expandedSidebar"
+    }
+  },
+  "minimumCompleteApp": {
+    "destinations": ["conversation", "contacts", "search", "settings"],
+    "conversationFlow": ["conversationList", "chat", "detail"],
+    "contactSections": ["friends", "groups", "newFriends"],
+    "chatRegions": ["header", "messageTimeline", "composer", "messageActions", "mediaPreview"]
+  },
+  "workspaces": [
+    "ConversationWorkspace", "WorkspaceFrame"
+  ],
+  "hostContracts": [
+    "IMHostAdapter", "ConversationDataSource", "MessageDataSource", "ContactDataSource",
+    "GroupDataSource", "NavigationIntent", "FeatureSet", "CapabilitySet"
+  ],
+  "extensionPoints": ["messageRenderer", "messageAction", "navigationItem", "conversationRow", "composerAction", "emptyState"],
+  "capabilities": [
+    {"capability":"Adaptive app shell","layer":"General UI","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"ApplicationResponsiveMode","priority":"P0"},
+    {"capability":"Host-defined navigation","layer":"General UI","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"NavigationItem/Group/Badge","priority":"P0"},
+    {"capability":"Conversation list","layer":"IM UI","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"ConversationRowModel","priority":"P0"},
+    {"capability":"Conversation workspace","layer":"Workspaces","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"WorkspaceState","priority":"P0"},
+    {"capability":"Message timeline","layer":"Patterns","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"MessageLifecycle","priority":"P0"},
+    {"capability":"Composer","layer":"IM UI","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"ComposerInteractionMode","priority":"P0"},
+    {"capability":"Message content registry","layer":"IM UI","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"MessageContentRenderer","priority":"P0"},
+    {"capability":"Image preview","layer":"IM UI","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"ImagePreviewState","priority":"P0"},
+    {"capability":"Contacts workspace","layer":"Workspaces","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"WorkspaceState","priority":"P0"},
+    {"capability":"Search workspace","layer":"Workspaces","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"SearchSnapshot","priority":"P0"},
+    {"capability":"Loading empty error offline","layer":"Workspaces","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"ViewState","priority":"P0"},
+    {"capability":"SDK-independent AppKit","layer":"AppKit","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"IMAppConfiguration","priority":"P0"},
+    {"capability":"Group workspace","layer":"Workspaces","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"GroupCapabilities","priority":"P1"},
+    {"capability":"Member management","layer":"IM UI","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"GroupCapabilities","priority":"P1"},
+    {"capability":"Friend requests","layer":"IM UI","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"RelationState","priority":"P1"},
+    {"capability":"Reply and quote jump","layer":"IM UI","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"MessageCapability","priority":"P1"},
+    {"capability":"Reactions","layer":"IM UI","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"MessageCapability","priority":"P1"},
+    {"capability":"Threads","layer":"Patterns","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"MessageContentKind.threadRoot","priority":"P1"},
+    {"capability":"Forward and merged forward","layer":"IM UI","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"MessageContentKind.mergedForward","priority":"P1"},
+    {"capability":"Message actions","layer":"Patterns","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"MessageActionExtension","priority":"P1"},
+    {"capability":"Multi-select","layer":"Patterns","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"SelectionState","priority":"P1"},
+    {"capability":"Pinned messages","layer":"IM UI","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"PinnedMessage","priority":"P1"},
+    {"capability":"Saved messages","layer":"Workspaces","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"WorkspaceState","priority":"P1"},
+    {"capability":"Media workspace","layer":"Workspaces","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"TransferState","priority":"P1"},
+    {"capability":"Upload queue","layer":"IM UI","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"TransferState","priority":"P1"},
+    {"capability":"Call workspace","layer":"Workspaces","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"CallCapabilities","priority":"P1"},
+    {"capability":"Connection recovery","layer":"Patterns","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"WorkspaceBanner","priority":"P1"},
+    {"capability":"Settings workspace","layer":"Workspaces","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"WorkspaceState","priority":"P1"},
+    {"capability":"Desktop keyboard commands","layer":"Patterns","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":false,"contract":"DesktopShortcutAction","priority":"P1"},
+    {"capability":"Mobile gesture intents","layer":"Patterns","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":false,"mobile":true,"contract":"SwipeIntent","priority":"P1"},
+    {"capability":"Presence and typing","layer":"IM UI","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"Presence/Typing","priority":"P1"},
+    {"capability":"Read receipts","layer":"IM UI","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"MessageLifecycle.read","priority":"P1"},
+    {"capability":"In-app notifications","layer":"Patterns","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"NavigationBadge/Toast","priority":"P1"},
+    {"capability":"Custom navigation","layer":"AppKit","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"NavigationGroup","priority":"P1"},
+    {"capability":"Custom message actions","layer":"AppKit","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"MessageActionExtension","priority":"P1"},
+    {"capability":"Poll task and event messages","layer":"IM UI","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"MessageContentKind","priority":"P2"},
+    {"capability":"Ephemeral and read-once","layer":"IM UI","existing":"complete","vue":"complete","flutter":"complete","compose":"complete","swiftUI":"complete","desktop":true,"mobile":true,"contract":"MessageLifecycle.ephemeral","priority":"P2"},
+    {"capability":"RTL readiness","layer":"Foundation","existing":"partial","vue":"ready","flutter":"ready","compose":"ready","swiftUI":"ready","desktop":true,"mobile":true,"contract":"leading/trailing","priority":"P2"},
+    {"capability":"Drag and drop attachments","layer":"Patterns","existing":"partial","vue":"complete","flutter":"complete","compose":"platform","swiftUI":"platform","desktop":true,"mobile":false,"contract":"host file intent","priority":"P2"},
+    {"capability":"Push notifications","layer":"Host Application","existing":"host","vue":"host","flutter":"host","compose":"host","swiftUI":"host","desktop":true,"mobile":true,"contract":"not owned by UI","priority":"P3"},
+    {"capability":"RTC transport","layer":"Host Application","existing":"host","vue":"host","flutter":"host","compose":"host","swiftUI":"host","desktop":true,"mobile":true,"contract":"not owned by UI","priority":"P3"}
+  ]
+}
+

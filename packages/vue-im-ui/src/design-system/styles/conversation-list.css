@@ -1,0 +1,41 @@
+.flutter-list-header {
+  padding-top: calc(16px + env(safe-area-inset-top));
+  padding-bottom: 14px;
+}
+
+.flutter-title-row h1 {
+  font-size: 29px;
+  color: var(--flare-color-text-primary);
+}
+
+.flutter-header-actions .n-button {
+  width: 46px;
+  height: 46px;
+  --n-border-radius: 999px !important;
+}
+
+.flutter-header-actions .n-button--primary-type {
+  width: 48px;
+  height: 48px;
+  background: var(--flare-component-brand-primary);
+}
+
+.flutter-section-label {
+  color: var(--flare-color-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.flutter-list-scroll {
+  padding-top: 0;
+}
+
+.flutter-chat-appbar {
+  height: calc(62px + env(safe-area-inset-top));
+  background: var(--flare-color-bg-primary);
+}
+
+.flutter-chat-appbar .n-button {
+  color: var(--flare-color-text-secondary);
+}
+

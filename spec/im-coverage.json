@@ -9,12 +9,10 @@
       "components": [
         "StatusBanner",
         "EmptyState",
-        "Skeleton",
-        "ConnectionDetails",
-        "ReauthPrompt"
+        "Skeleton"
       ],
-      "requiredStates": "断网、重连、会话过期、被踢、SDK 未就绪",
-      "next": "连接详情与重新认证入口四端已实现；宿主 session 映射与真实过期/被踢链路验收待做"
+      "requiredStates": "离线、恢复中、不可用、宿主需要操作",
+      "next": "组件库提供通用状态反馈；认证、连接诊断与恢复流程由宿主组合"
     },
     {
       "id": "inbox",
@@ -67,7 +65,7 @@
         "PermissionPrompt"
       ],
       "requiredStates": "多行、回复、离线、禁言、权限拒绝、功能不可用",
-      "next": "键盘/录音权限/切换会话草稿；定时发送需 SDK 能力契约"
+      "next": "键盘、录音权限与切换会话草稿；定时发送需宿主能力契约"
     },
     {
       "id": "media",
@@ -87,7 +85,7 @@
         "ImageGrid"
       ],
       "requiredStates": "排队、未知进度、暂停、失败、取消、完成、地址过期",
-      "next": "四端媒体中心与传输队列已实现；线上文件类型筛选已验收；SDK 媒体 URL 失效恢复有单测"
+      "next": "四端媒体中心与传输队列已实现；线上文件类型筛选已验收；宿主媒体 URL 失效恢复有单测"
     },
     {
       "id": "search",
@@ -119,7 +117,7 @@
         "TranslationView"
       ],
       "requiredStates": "可撤回/不可撤回、部分批量失败、转发受限、重复点击",
-      "next": "统一危险确认已接入工作台；线程、收藏与定时发送需对应 SDK 能力，不以空壳代替"
+      "next": "统一危险确认已接入工作台；线程、收藏与定时发送需对应宿主能力，不以空壳代替"
     },
     {
       "id": "people",
@@ -199,7 +197,8 @@
       "name": "导航与辅助能力",
       "phase": "P0",
       "components": [
-        "AppShell",
+        "MobileAppShell",
+        "DesktopAppShell",
         "ResponsiveLayout",
         "ScreenHeader",
         "Button",
@@ -244,7 +243,7 @@
         "MomentAudienceSheet"
       ],
       "requiredStates": "空内容、提交失败、访问范围、内容不可见",
-      "next": "保留同版本组件子路径；独立无 IM SDK 消费构建通过，宿主负责社交权限"
+      "next": "保留同版本组件子路径；独立无运行时客户端消费构建通过，宿主负责社交权限"
     }
   ]
 }

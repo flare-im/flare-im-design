@@ -1,0 +1,287 @@
+import 'package:flutter/material.dart';
+
+import '../models/directory_data.dart';
+import '../tokens/flare_strings.dart';
+import '../tokens/flare_tokens.dart';
+import 'flare_icon.dart';
+import 'icon_control.dart';
+
+/// Emoji picker — a searchable emoji grid with an optional skin-tone selector
+/// and a single bottom category rail (recents + categories). Presents
+/// [categories] plus, when non-empty, a synthetic "recent" entry from [recents].
+/// Spec: Composer/EmojiPicker (`FlareEmojiPicker`).
+class FlareEmojiPicker extends StatefulWidget {
+  const FlareEmojiPicker({
+    super.key,
+    required this.categories,
+    this.recents = const [],
+    this.skinTones = false,
+    this.onSelect,
+    this.onToneChange,
+    this.searchPlaceholder = '搜索表情',
+    this.emptyText = '暂无表情',
+  });
+
+  final List<FlareEmojiCategory> categories;
+  final List<String> recents;
+  final bool skinTones;
+  final void Function(String emoji)? onSelect;
+  final void Function(String tone)? onToneChange;
+  final String searchPlaceholder;
+  final String emptyText;
+
+  @override
+  State<FlareEmojiPicker> createState() => _FlareEmojiPickerState();
+}
+
+class _FlareEmojiPickerState extends State<FlareEmojiPicker> {
+  static const String _recentKey = '__recent';
+  static const List<String> _tones = [
+    '',
+    '\u{1F3FB}',
+    '\u{1F3FC}',
+    '\u{1F3FD}',
+    '\u{1F3FE}',
+    '\u{1F3FF}',
+  ];
+
+  final TextEditingController _query = TextEditingController();
+  String _tone = '';
+  late String _activeKey;
+
+  @override
+  void initState() {
+    super.initState();
+    _activeKey = widget.recents.isNotEmpty
+        ? _recentKey
+        : (widget.categories.isNotEmpty ? widget.categories.first.key : '');
+    _query.addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _query.dispose();
+    super.dispose();
+  }
+
+  List<String> _activeEmojis() {
+    if (_activeKey == _recentKey) return widget.recents;
+    for (final c in widget.categories) {
+      if (c.key == _activeKey) return c.emojis;
+    }
+    return const [];
+  }
+
+  List<String> _searchResults(String q) {
+    final seen = <String>{};
+    final out = <String>[];
+    for (final c in widget.categories) {
+      for (final e in c.emojis) {
+        if (e.contains(q) && seen.add(e)) out.add(e);
+      }
+    }
+    return out;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = FlareColors.of(context);
+    final query = _query.text.trim();
+    final searching = query.isNotEmpty;
+    final emojis = searching ? _searchResults(query) : _activeEmojis();
+
+    return Container(
+      width: 320,
+      decoration: BoxDecoration(
+        color: colors.bgPrimary,
+        borderRadius: BorderRadius.circular(FlareSizes.radiusXl),
+        border: Border.all(color: colors.borderPrimary),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x2915131C),
+            blurRadius: 28,
+            offset: Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _searchRow(colors),
+          Container(
+            height: 200,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            child: emojis.isEmpty
+                ? Center(
+                    child: Text(
+                      widget.emptyText,
+                      style: TextStyle(
+                        color: colors.textTertiary,
+                        fontSize: FlareSizes.fontSizeSm,
+                      ),
+                    ),
+                  )
+                : GridView.count(
+                    crossAxisCount: 8,
+                    padding: EdgeInsets.zero,
+                    children: [for (final e in emojis) _emojiCell(e)],
+                  ),
+          ),
+          if (!searching) _rail(colors),
+        ],
+      ),
+    );
+  }
+
+  Widget _searchRow(FlareColors colors) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+      child: Row(
+        children: [
+          Icon(Icons.search, size: 16, color: colors.textTertiary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              controller: _query,
+              style: TextStyle(
+                color: colors.textPrimary,
+                fontSize: FlareSizes.fontSizeMd,
+              ),
+              cursorColor: colors.primary,
+              decoration: InputDecoration(
+                isDense: true,
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+                hintText: widget.searchPlaceholder,
+                hintStyle: TextStyle(
+                  color: colors.textTertiary,
+                  fontSize: FlareSizes.fontSizeMd,
+                ),
+              ),
+            ),
+          ),
+          if (widget.skinTones) ...[
+            const SizedBox(width: 8),
+            for (final t in _tones) _toneSwatch(colors, t),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _toneSwatch(FlareColors colors, String tone) {
+    final active = _tone == tone;
+    return GestureDetector(
+      onTap: () {
+        setState(() => _tone = tone);
+        widget.onToneChange?.call(tone);
+      },
+      child: Container(
+        width: 22,
+        height: 22,
+        alignment: Alignment.center,
+        margin: const EdgeInsets.only(left: 2),
+        decoration: BoxDecoration(
+          color: active ? colors.bgSelected : Colors.transparent,
+          borderRadius: BorderRadius.circular(FlareSizes.radiusSm),
+        ),
+        child: Text('✋$tone', style: const TextStyle(fontSize: 13)),
+      ),
+    );
+  }
+
+  Widget _emojiCell(String e) {
+    return GestureDetector(
+      onTap: () => widget.onSelect?.call(_tone.isEmpty ? e : e + _tone),
+      behavior: HitTestBehavior.opaque,
+      child: Center(child: Text(e, style: const TextStyle(fontSize: 22))),
+    );
+  }
+
+  Widget _rail(FlareColors colors) {
+    final tabs = <_Tab>[
+      if (widget.recents.isNotEmpty)
+        _Tab(
+          key: _recentKey,
+          name: FlareStrings.of(context).recent,
+          icon: 'clock',
+        ),
+      for (final c in widget.categories)
+        _Tab(
+          key: c.key,
+          name: c.label,
+          label: c.symbol ?? (c.emojis.isNotEmpty ? c.emojis.first : c.label),
+        ),
+    ];
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: colors.borderPrimary)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: FlareSizes.spacingXs),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Tabs share the rail while each still gets a full touch target;
+          // past that the rail scrolls instead of shrinking them.
+          if (constraints.maxWidth >= tabs.length * FlareSizes.touchTarget) {
+            return Row(
+              children: [
+                for (final t in tabs) Expanded(child: _railButton(colors, t)),
+              ],
+            );
+          }
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (final t in tabs)
+                  SizedBox(
+                    width: FlareSizes.touchTarget,
+                    child: _railButton(colors, t),
+                  ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _railButton(FlareColors colors, _Tab tab) {
+    final active = _activeKey == tab.key;
+    final icon = tab.icon;
+    return FlareIconControl(
+      label: tab.name,
+      selected: active,
+      onTap: () => setState(() => _activeKey = tab.key),
+      child: Container(
+        height: 32,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: active ? colors.bgSelected : Colors.transparent,
+          borderRadius: BorderRadius.circular(FlareSizes.radiusSm),
+        ),
+        child: icon != null
+            ? FlareIcon(
+                icon,
+                size: FlareSizes.iconSizeSm,
+                color: active ? colors.primary : colors.textTertiary,
+              )
+            : Text(
+                tab.label ?? '',
+                style: const TextStyle(fontSize: FlareSizes.fontSize2xl),
+              ),
+      ),
+    );
+  }
+}
+
+class _Tab {
+  final String key;
+
+  /// The tab's accessible name: the category label, or "recent".
+  final String name;
+  final String? label;
+  final String? icon;
+  const _Tab({required this.key, required this.name, this.label, this.icon});
+}

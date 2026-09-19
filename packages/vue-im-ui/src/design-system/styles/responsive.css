@@ -1,0 +1,221 @@
+/**
+ * Shared responsive component rules (compact, tablet, and desktop containers).
+ * 断点与 useViewport.ts 中 BREAKPOINT_* 保持一致
+ */
+
+:root {
+  --bp-desktop: 900px;
+  --bp-tablet: 600px;
+  --flare-component-page-padding-inline: 12px;
+  /* 消息区左右留白：贴近聊天边缘，头像和气泡自己承担视觉呼吸感。 */
+  --flare-component-message-gutter-inline: 8px;
+  --flare-component-composer-toolbar-icon: 26px;
+  --flare-component-sheet-width: 100%;
+  --flare-component-sheet-height: min(70dvh, 560px);
+}
+
+/* A page's own padding and a sheet's size are window-scale: a drawer covers the window, and the page
+   padding is the app's outer gutter. These stay window queries on purpose (FR-157). */
+@media (min-width: 600px) and (max-width: 899px) {
+  :root {
+    --flare-component-page-padding-inline: 14px;
+    --flare-component-sheet-height: min(72dvh, 620px);
+  }
+}
+
+@media (min-width: 900px) {
+  :root {
+    --flare-component-page-padding-inline: 16px;
+    --flare-component-sheet-width: min(440px, 36vw);
+    --flare-component-sheet-height: 100%;
+  }
+}
+
+@media (max-width: 599px) {
+  :root {
+    --flare-component-page-padding-inline: 10px;
+  }
+}
+
+/* How wide a bubble may be, how much room the timeline keeps at its edges, and how big the composer's
+   toolbar glyphs are, belong to the timeline and the composer — not to the window. Setting them on
+   `:root` by window width is how a chat in a 380px pane of a wide desktop kept the desktop bubble
+   proportions after Round 12 had converted the rules that read them (FR-157). */
+@container flare-timeline (min-width: 900px) {
+  .message-list {
+    --flare-component-message-gutter-inline: 16px;
+    --flare-component-bubble-max-width: min(62%, var(--flare-size-layout-bubble-max-width));
+  }
+}
+
+@container flare-timeline (min-width: 600px) and (max-width: 899px) {
+  .message-list {
+    --flare-component-message-gutter-inline: 10px;
+  }
+}
+
+@container flare-timeline (max-width: 899px) {
+  .message-list {
+    --flare-component-bubble-max-width: 82%;
+  }
+}
+
+@container flare-timeline (max-width: 599px) {
+  .message-list {
+    --flare-component-message-gutter-inline: 8px;
+  }
+}
+
+/* The toolbar reads this, and the toolbar is inside the composer, so a container query can set it —
+   the composer's own box, three bands, the same three numbers as before. */
+@container flare-composer (min-width: 900px) {
+  .composer-toolbar {
+    --flare-component-composer-toolbar-icon: 24px;
+  }
+}
+
+@container flare-composer (max-width: 599px) {
+  .composer-toolbar {
+    --flare-component-composer-toolbar-icon: 24px;
+  }
+}
+
+/* —— 消息区 —— */
+/* A bubble never exceeds the row it is in, and long words wrap inside it. These were grouped with
+   the phone rules and so inherited a width condition they never needed: a bubble used on its own,
+   outside a timeline, then had no guard at all and could push the page sideways (FR-157). */
+.message-row,
+.message-list-content,
+.message-bubble-host,
+.message-menu-anchor,
+.message-bubble,
+.message-bubble-body,
+.im-content-view {
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.message-bubble:not(.message-bubble--chromeless-media) {
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+/* The timeline asks its own box (`container: flare-timeline`, message-workspace.css): the same chat
+   in a 380px pane of a wide desktop reads like a chat on a phone, which is the whole point. */
+@container flare-timeline (max-width: 899px) {
+  .message-list.message-list-virtual {
+    --flare-component-bubble-max-width: 88%;
+    --flare-component-message-tail-space: 10px;
+    overflow-x: hidden !important;
+  }
+
+  .message-row .message-meta {
+    max-width: min(var(--flare-component-bubble-max-width), 100%);
+  }
+
+  .message-bubble--image:not(.message-bubble--chromeless-media),
+  .message-bubble--video:not(.message-bubble--chromeless-media),
+  .message-bubble--location:not(.message-bubble--chromeless-card),
+  .message-bubble--file,
+  .message-bubble--card:not(.message-bubble--chromeless-card),
+  .message-bubble--link_card:not(.message-bubble--chromeless-card),
+  .message-bubble--linkCard:not(.message-bubble--chromeless-card),
+  .message-bubble--rich_text:not(.message-bubble--chromeless-card),
+  .message-bubble--richText:not(.message-bubble--chromeless-card),
+  .message-bubble--image_group:not(.message-bubble--chromeless-media),
+  .message-bubble--imageGroup:not(.message-bubble--chromeless-media),
+  .message-bubble--forward:not(.message-bubble--chromeless-card),
+  .message-bubble--task:not(.message-bubble--chromeless-card),
+  .message-bubble--schedule:not(.message-bubble--chromeless-card),
+  .message-bubble--mini_program:not(.message-bubble--chromeless-card),
+  .message-bubble--miniProgram:not(.message-bubble--chromeless-card),
+  .message-bubble--vote:not(.message-bubble--chromeless-card),
+  .message-bubble--announcement:not(.message-bubble--chromeless-card),
+  .message-bubble--thread:not(.message-bubble--chromeless-card),
+  .message-bubble--notification:not(.message-bubble--chromeless-card) {
+    min-width: min(var(--flare-component-bubble-rich-min-width), 100%) !important;
+  }
+
+  .message-content-view .message-media-card,
+  .message-content-view .message-location-card,
+  .message-content-view .message-image-group,
+  .message-content-view .message-info-card,
+  .message-content-view .message-link-card,
+  .message-content-view .message-rich-text,
+  .message-content-view .message-file-card,
+  .message-content-view .message-quote-card,
+  .message-content-view .message-placeholder-card,
+  .im-rich-message-card,
+  .business-message-view {
+    width: min(100%, var(--flare-component-rich-card-width));
+    min-width: 0;
+  }
+
+  .message-actions {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@container flare-timeline (min-width: 900px) {
+  .message-list.message-list-virtual {
+    padding-block: 16px calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* These used to carry a `[data-viewport="desktop"]` prefix as well, which is the window asking the
+     same question twice. The timeline's own width is the one that matters here. */
+  .message-row--self {
+    padding-inline-end: 4px;
+  }
+
+  .message-row:not(.message-row--self) {
+    padding-inline-start: 4px;
+  }
+}
+
+/* —— 输入区 —— */
+@container flare-composer (max-width: 480px) {
+  .composer-toolbar {
+    padding-inline: 2px;
+  }
+}
+
+.composer-toolbar .n-button .n-icon {
+  font-size: var(--flare-component-composer-toolbar-icon);
+}
+
+.composer-emoji-sticker-panel .panel-scroll {
+  max-height: min(42dvh, 360px);
+}
+
+@media (max-width: 599px) {
+  .composer-emoji-sticker-panel .panel-scroll {
+    max-height: min(38dvh, 300px);
+  }
+
+  .composer-emoji-sticker-panel .asset-grid--emoji {
+    grid-template-columns: repeat(auto-fill, minmax(50px, 50px));
+  }
+}
+
+@media (min-width: 900px) {
+  .composer-emoji-sticker-panel .panel-scroll {
+    max-height: min(36dvh, 320px);
+  }
+}
+
+/* —— 抽屉 / 弹层 —— */
+@media (max-width: 899px) {
+  .mobile-sheet .n-drawer-body-content-wrapper {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+
+}
+
+@media (min-width: 900px) {
+  .composer-more-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+

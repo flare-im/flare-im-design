@@ -1,0 +1,11 @@
+name: flare_flutter_consumer_smoke
+publish_to: none
+environment:
+  sdk: ^3.10.1
+dependencies:
+  flutter:
+    sdk: flutter
+  flare_im_ui:
+    path: ../../../packages/flutter-im-ui
+flutter:
+  uses-material-design: true

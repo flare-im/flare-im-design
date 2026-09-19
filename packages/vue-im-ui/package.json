@@ -1,0 +1,98 @@
+{
+  "name": "@flare-im/vue-ui",
+  "version": "2.0.0-rc.1",
+  "description": "Cross-platform Flare IM component library for Vue 3, driven by host state and @flare-im/tokens.",
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/flare-im/flare-im-design",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/flare-im/flare-im-design.git",
+    "directory": "packages/vue-im-ui"
+  },
+  "bugs": "https://github.com/flare-im/flare-im-design/issues",
+  "type": "module",
+  "browserslist": [
+    "Chrome >= 111",
+    "Edge >= 111",
+    "Firefox >= 113",
+    "Safari >= 16.2"
+  ],
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "sideEffects": [
+    "*.css",
+    "*.vue"
+  ],
+  "files": [
+    "src",
+    "README.md",
+    "!src/assets/emoji-sticker/**/*.webp",
+    "!src/assets/emoji-sticker/**/*.png",
+    "!src/assets/emoji-sticker/**/*.jpg",
+    "!src/assets/emoji-sticker/**/*.gif",
+    "!src/**/*.test.ts",
+    "!src/**/*.spec.ts",
+    "!src/**/__tests__/**"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./theme": "./src/design-system/theme/index.ts",
+    "./i18n": "./src/shared/i18n/index.ts",
+    "./contracts": "./src/shared/contracts/index.ts",
+    "./composables": "./src/composables/index.ts",
+    "./components": "./src/components/index.ts",
+    "./utils": "./src/utils/index.ts",
+    "./style.css": "./src/design-system/styles/index.css",
+    "./icon-glyphs": "./src/shared/icon-glyphs.ts"
+  },
+  "dependencies": {
+    "@flare-im/tokens": "2.0.0-rc.1",
+    "@types/markdown-it": "^14.1.2",
+    "@lucide/vue": "1.44.0",
+    "markdown-it": "^14.2.0"
+  },
+  "peerDependencies": {
+    "naive-ui": "^2.44.0",
+    "vue": "^3.5.42"
+  },
+  "keywords": [
+    "flare",
+    "im",
+    "chat",
+    "vue",
+    "vue3",
+    "naive-ui",
+    "component-library",
+    "instant-messaging",
+    "ui"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "build": "npm run typecheck && npm run check:sfc",
+    "pack": "npm pack --dry-run",
+    "test:browser-download": "node scripts/browser-download-regression.mjs",
+    "check:sfc": "node scripts/compile-all-sfc.mjs",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.json",
+    "gen:icons": "node scripts/gen-icon-shim.mjs",
+    "sync:assets": "node scripts/sync-pack-assets.mjs",
+    "check:assets": "node scripts/sync-pack-assets.mjs --check",
+    "prepack": "node scripts/sync-pack-assets.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.0",
+    "@vitejs/plugin-vue": "^6.0.7",
+    "@vue/test-utils": "^2.5.0",
+    "esbuild": "^0.25.12",
+    "happy-dom": "^20.14.0",
+    "markdown-it": "^14.2.0",
+    "naive-ui": "^2.44.1",
+    "typescript": "~5.6.2",
+    "vite": "^6.4.3",
+    "vitest": "^3.2.6",
+    "vue": "^3.5.42",
+    "vue-tsc": "^2.1.10"
+  }
+}

@@ -1,0 +1,6 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Media tests load unresolvable addresses (example.invalid): with the permission they fail to load, as in any host
+         app; without it the lookup throws SecurityException on the loader's thread and kills the test process. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <application android:theme="@android:style/Theme.Material.Light.NoActionBar" />
+</manifest>

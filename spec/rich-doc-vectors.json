@@ -1,0 +1,1255 @@
+{
+  "note": "Shared truth for drawing a rich-text message: the RichDoc v2 document the core stores (`docJson`, flare-proto `RichTextContent.doc_json`, schema flare-proto/schemas/rich_doc_v2.schema.json) read into the blocks and runs a body draws. The core validates every document it accepts and every one it receives, and degrades an invalid one to a text message; a kit still reads defensively, because a body never trusts a document more than the core does. `doc` is the document: a JSON object, or a string holding one (the wire form). `generate` stands in for a document too large to write out: `{\"paragraphTextNodes\": n}` is one paragraph holding n text nodes each reading `a`; `{\"nestedQuotes\": n}` is n quotes each holding the next, the innermost holding one paragraph with one text node reading `a`. `blocks` is what is drawn, or null when the document is not drawable and the body shows the message's `plainText` instead; a generated case states only `drawable`. Drawable: the root is an object whose `type` is `doc`, whose `version` is 2 and whose `children` is an array; no node sits deeper than 64 (the root is depth 0, its blocks 1, their inlines 2…); there are at most 10000 nodes counting the root, blocks and inlines (marks are not nodes). These are the core's own limits (`validate.rs`). Anything else, including a string that is not JSON, is not drawable. Blocks: `paragraph` and `heading` draw their inline children as runs and are dropped when they have none; a heading's `level` is clamped to 1…6 (a missing or non-numeric level reads as 1). `quote` draws its block children and is dropped when none remain. `code_block` draws the text of its children (a `text` node's text, `\\n` for a `hard_break`) with its `language` when that is a non-empty string, and is dropped when the text is empty. `bullet_list` and `ordered_list` draw each `list_item` child as an item of blocks; other children are skipped, an item with no blocks is dropped, and a list with no items is dropped. `divider` draws a rule. `custom_block` draws its block children in its place (a Markdown table arrives as one with none, and draws nothing). A block of any other type, a `list_item` outside a list included, is skipped. Runs, in document order and never merged: `text` is a run with its text and its marks — the known ones (`bold`, `italic`, `underline`, `strike`, `spoiler`) once each in that order, unknown ones ignored — and is dropped when its text is empty. `inline_code` is a run marked `code`, dropped when its text is empty. `hard_break` is a run reading `\\n`. `mention` reads its `text`, or `@` and its `user_id` when it has no text, and carries `mention` (the user id, possibly empty); one with neither is dropped. `emoji` reads its `text`, or `:key:` when it has no text, and carries `emoji` (the key, possibly empty); one with neither is dropped. `link` draws its children's runs, each carrying `link` = the link's `href` exactly as written when `safeExternalUrl` accepts it; a link it refuses draws the same runs without a `link` of its own, so a run inside nested links carries the innermost link that was accepted. `custom_inline` draws nothing; an inline of any other type draws its `text` as a plain run when it has one. An outline omits what a run or block does not have: no `marks` when there are none, no `language` without one. `spoilerCovers`: what a covered spoiler run draws in place of its words, so the words are in neither the rendered text nor a copy until the reader reveals them: every Unicode code point that is not whitespace becomes U+3000 IDEOGRAPHIC SPACE (one em wide, a line may break after it), and whitespace stays. The run's ground is drawn in the text colour, and assistive technology hears the kit's spoiler name instead. The four kits read this file in their tests.",
+  "cases": [
+    {
+      "id": "paragraph",
+      "doc": {
+        "type": "doc",
+        "version": 2,
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "text",
+                "text": "周报已发出"
+              }
+            ]
+          }
+        ]
+      },
+      "blocks": [
+        {
+          "kind": "paragraph",
+          "runs": [
+            {
+              "text": "周报已发出"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "marks-in-canonical-order-once",
+      "doc": {
+        "type": "doc",
+        "version": 2,
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "text",
+                "text": "周报",
+                "marks": [
+                  {
+                    "type": "spoiler"
+                  },
+                  {
+                    "type": "italic"
+                  },
+                  {
+                    "type": "bold"
+                  },
+                  {
+                    "type": "bold"
+                  },
+                  {
+                    "type": "glow"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "text": "已发出"
+              }
+            ]
+          }
+        ]
+      },
+      "blocks": [
+        {
+          "kind": "paragraph",
+          "runs": [
+            {
+              "text": "周报",
+              "marks": [
+                "bold",
+                "italic",
+                "spoiler"
+              ]
+            },
+            {
+              "text": "已发出"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "every-mark",
+      "doc": {
+        "type": "doc",
+        "version": 2,
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "text",
+                "text": "x",
+                "marks": [
+                  {
+                    "type": "strike"
+                  },
+                  {
+                    "type": "underline"
+                  },
+                  {
+                    "type": "italic"
+                  },
+                  {
+                    "type": "bold"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "blocks": [
+        {
+          "kind": "paragraph",
+          "runs": [
+            {
+              "text": "x",
+              "marks": [
+                "bold",
+                "italic",
+                "underline",
+                "strike"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "empty-text-and-empty-paragraph-are-dropped",
+      "doc": {
+        "type": "doc",
+        "version": 2,
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "text",
+                "text": ""
+              },
+              {
+                "type": "text",
+                "text": "",
+                "marks": [
+                  {
+                    "type": "bold"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "text",
+                "text": "留下"
+              },
+              {
+                "type": "text",
+                "text": ""
+              }
+            ]
+          }
+        ]
+      },
+      "blocks": [
+        {
+          "kind": "paragraph",
+          "runs": [
+            {
+              "text": "留下"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hard-break-and-inline-code",
+      "doc": {
+        "type": "doc",
+        "version": 2,
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "text",
+                "text": "第一行"
+              },
+              {
+                "type": "hard_break"
+              },
+              {
+                "type": "text",
+                "text": "运行 "
+              },
+              {
+                "type": "inline_code",
+                "text": "npm test"
+              }
+            ]
+          }
+        ]
+      },
+      "blocks": [
+        {
+          "kind": "paragraph",
+          "runs": [
+            {
+              "text": "第一行"
+            },
+            {
+              "text": "\n"
+            },
+            {
+              "text": "运行 "
+            },
+            {
+              "text": "npm test",
+              "code": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "headings-clamp-their-level",
+      "doc": {
+        "type": "doc",
+        "version": 2,
+        "children": [
+          {
+            "type": "heading",
+            "level": 2,
+            "children": [
+              {
+                "type": "text",
+                "text": "议程"
+              }
+            ]
+          },
+          {
+            "type": "heading",
+            "level": 9,
+            "children": [
+              {
+                "type": "text",
+                "text": "太深"
+              }
+            ]
+          },
+          {
+            "type": "heading",
+            "level": 0,
+            "children": [
+              {
+                "type": "text",
+                "text": "太浅"
+              }
+            ]
+          },
+          {
+            "type": "heading",
+            "children": [
+              {
+                "type": "text",
+                "text": "没有级别"
+              }
+            ]
+          },
+          {
+            "type": "heading",
+            "level": 3,
+            "children": []
+          }
+        ]
+      },
+      "blocks": [
+        {
+          "kind": "heading",
+          "level": 2,
+          "runs": [
+            {
+              "text": "议程"
+            }
+          ]
+        },
+        {
+          "kind": "heading",
+          "level": 6,
+          "runs": [
+            {
+              "text": "太深"
+            }
+          ]
+        },
+        {
+          "kind": "heading",
+          "level": 1,
+          "runs": [
+            {
+              "text": "太浅"
+            }
+          ]
+        },
+        {
+          "kind": "heading",
+          "level": 1,
+          "runs": [
+            {
+              "text": "没有级别"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "safe-link-keeps-marks-and-href",
+      "doc": {
+        "type": "doc",
+        "version": 2,
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "text",
+                "text": "详见 "
+              },
+              {
+                "type": "link",
+                "href": "https://flare.im/docs?a=1",
+                "title": "文档",
+                "children": [
+                  {
+                    "type": "text",
+                    "text": "文档",
+                    "marks": [
+                      {
+                        "type": "bold"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "text": "首页"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "blocks": [
+        {
+          "kind": "paragraph",
+          "runs": [
+            {
+              "text": "详见 "
+            },
+            {
+              "text": "文档",
+              "marks": [
+                "bold"
+              ],
+              "link": "https://flare.im/docs?a=1"
+            },
+            {
+              "text": "首页",
+              "link": "https://flare.im/docs?a=1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bare-domain-link-is-a-web-address",
+      "doc": {
+        "type": "doc",
+        "version": 2,
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "link",
+                "href": "flare.im",
+                "children": [
+                  {
+                    "type": "text",
+                    "text": "flare.im"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "blocks": [
+        {
+          "kind": "paragraph",
+          "runs": [
+            {
+              "text": "flare.im",
+              "link": "flare.im"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "refused-link-keeps-its-words",
+      "doc": {
+        "type": "doc",
+        "version": 2,
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "link",
+                "href": "javascript:alert(1)",
+                "children": [
+                  {
+                    "type": "text",
+                    "text": "点我",
+                    "marks": [
+                      {
+                        "type": "bold"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "link",
+                "href": "data:text/html,<b>x</b>",
+                "children": [
+                  {
+                    "type": "text",
+                    "text": "数据"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "link",
+                "href": "java\tscript:alert(1)",
+                "children": [
+                  {
+                    "type": "text",
+                    "text": "制表符"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "blocks": [
+        {
+          "kind": "paragraph",
+          "runs": [
+            {
+              "text": "点我",
+              "marks": [
+                "bold"
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "runs": [
+            {
+              "text": "数据"
+            }
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "runs": [
+            {
+              "text": "制表符"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "innermost-link-wins",
+      "doc": {
+        "type": "doc",
+        "version": 2,
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "link",
+                "href": "https://a.example",
+                "children": [
+                  {
+                    "type": "text",
+                    "text": "外"
+                  },
+                  {
+                    "type": "link",
+                    "href": "https://b.example",
+                    "children": [
+                      {
+                        "type": "text",
+                        "text": "内"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "blocks": [
+        {
+          "kind": "paragraph",
+          "runs": [
+            {
+              "text": "外",
+              "link": "https://a.example"
+            },
+            {
+              "text": "内",
+              "link": "https://b.example"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "refused-inner-link-keeps-the-outer-one",
+      "doc": {
+        "type": "doc",
+        "version": 2,
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "link",
+                "href": "https://a.example",
+                "children": [
+                  {
+                    "type": "link",
+                    "href": "javascript:void(0)",
+                    "children": [
+                      {
+                        "type": "text",
+                        "text": "内"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "blocks": [
+        {
+          "kind": "paragraph",
+          "runs": [
+            {
+              "text": "内",
+              "link": "https://a.example"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mentions",
+      "doc": {
+        "type": "doc",
+        "version": 2,
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "mention",
+                "user_id": "u_ada",
+                "text": "@Ada"
+              },
+              {
+                "type": "text",
+                "text": " 和 "
+              },
+              {
+                "type": "mention",
+                "user_id": "u_bob"
+              },
+              {
+                "type": "text",
+                "text": " "
+              },
+              {
+                "type": "mention",
+                "text": "@所有人"
+              }
+            ]
+          }
+        ]
+      },
+      "blocks": [
+        {
+          "kind": "paragraph",
+          "runs": [
+            {
+              "text": "@Ada",
+              "mention": "u_ada"
+            },
+            {
+              "text": " 和 "
+            },
+            {
+              "text": "@u_bob",
+              "mention": "u_bob"
+            },
+            {
+              "text": " "
+            },
+            {
+              "text": "@所有人",
+              "mention": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "emoji",
+      "doc": {
+        "type": "doc",
+        "version": 2,
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "emoji",
+                "key": "hundred_points",
+                "text": "💯"
+              },
+              {
+                "type": "emoji",
+                "key": "smile"
+              },
+              {
+                "type": "emoji",
+                "text": "🎉"
+              }
+            ]
+          }
+        ]
+      },
+      "blocks": [
+        {
+          "kind": "paragraph",
+          "runs": [
+            {
+              "text": "💯",
+              "emoji": "hundred_points"
+            },
+            {
+              "text": ":smile:",
+              "emoji": "smile"
+            },
+            {
+              "text": "🎉",
+              "emoji": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "empty-mention-emoji-and-code-are-dropped",
+      "doc": {
+        "type": "doc",
+        "version": 2,
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "text",
+                "text": "a"
+              },
+              {
+                "type": "mention"
+              },
+              {
+                "type": "emoji",
+                "key": ""
+              },
+              {
+                "type": "inline_code",
+                "text": ""
+              },
+              {
+                "type": "text",
+                "text": "b"
+              }
+            ]
+          }
+        ]
+      },
+      "blocks": [
+        {
+          "kind": "paragraph",
+          "runs": [
+            {
+              "text": "a"
+            },
+            {
+              "text": "b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "quote-holds-blocks",
+      "doc": {
+        "type": "doc",
+        "version": 2,
+        "children": [
+          {
+            "type": "quote",
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "text": "引用的话"
+                  }
+                ]
+              },
+              {
+                "type": "bullet_list",
+                "children": [
+                  {
+                    "type": "list_item",
+                    "children": [
+                      {
+                        "type": "paragraph",
+                        "children": [
+                          {
+                            "type": "text",
+                            "text": "一条"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "quote",
+            "children": []
+          }
+        ]
+      },
+      "blocks": [
+        {
+          "kind": "quote",
+          "blocks": [
+            {
+              "kind": "paragraph",
+              "runs": [
+                {
+                  "text": "引用的话"
+                }
+              ]
+            },
+            {
+              "kind": "list",
+              "ordered": false,
+              "items": [
+                [
+                  {
+                    "kind": "paragraph",
+                    "runs": [
+                      {
+                        "text": "一条"
+                      }
+                    ]
+                  }
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code-block",
+      "doc": {
+        "type": "doc",
+        "version": 2,
+        "children": [
+          {
+            "type": "code_block",
+            "language": "ts",
+            "children": [
+              {
+                "type": "text",
+                "text": "const a = 1;"
+              },
+              {
+                "type": "hard_break"
+              },
+              {
+                "type": "text",
+                "text": "a++"
+              }
+            ]
+          },
+          {
+            "type": "code_block",
+            "language": "",
+            "children": [
+              {
+                "type": "text",
+                "text": "plain"
+              }
+            ]
+          },
+          {
+            "type": "code_block",
+            "children": [
+              {
+                "type": "text",
+                "text": ""
+              }
+            ]
+          }
+        ]
+      },
+      "blocks": [
+        {
+          "kind": "code",
+          "language": "ts",
+          "text": "const a = 1;\na++"
+        },
+        {
+          "kind": "code",
+          "text": "plain"
+        }
+      ]
+    },
+    {
+      "id": "lists",
+      "doc": {
+        "type": "doc",
+        "version": 2,
+        "children": [
+          {
+            "type": "ordered_list",
+            "children": [
+              {
+                "type": "list_item",
+                "children": [
+                  {
+                    "type": "paragraph",
+                    "children": [
+                      {
+                        "type": "text",
+                        "text": "准备"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "text": "不是列表项"
+                  }
+                ]
+              },
+              {
+                "type": "list_item",
+                "children": []
+              },
+              {
+                "type": "list_item",
+                "children": [
+                  {
+                    "type": "paragraph",
+                    "children": [
+                      {
+                        "type": "text",
+                        "text": "评审"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "bullet_list",
+                    "children": [
+                      {
+                        "type": "list_item",
+                        "children": [
+                          {
+                            "type": "paragraph",
+                            "children": [
+                              {
+                                "type": "text",
+                                "text": "前端"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "bullet_list",
+            "children": []
+          }
+        ]
+      },
+      "blocks": [
+        {
+          "kind": "list",
+          "ordered": true,
+          "items": [
+            [
+              {
+                "kind": "paragraph",
+                "runs": [
+                  {
+                    "text": "准备"
+                  }
+                ]
+              }
+            ],
+            [
+              {
+                "kind": "paragraph",
+                "runs": [
+                  {
+                    "text": "评审"
+                  }
+                ]
+              },
+              {
+                "kind": "list",
+                "ordered": false,
+                "items": [
+                  [
+                    {
+                      "kind": "paragraph",
+                      "runs": [
+                        {
+                          "text": "前端"
+                        }
+                      ]
+                    }
+                  ]
+                ]
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "divider-and-custom-blocks",
+      "doc": {
+        "type": "doc",
+        "version": 2,
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "text",
+                "text": "上"
+              }
+            ]
+          },
+          {
+            "type": "divider"
+          },
+          {
+            "type": "custom_block",
+            "custom_type": "markdown_table",
+            "children": []
+          },
+          {
+            "type": "custom_block",
+            "custom_type": "card",
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "text": "卡片正文"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "video_embed",
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "text": "未知块"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "blocks": [
+        {
+          "kind": "paragraph",
+          "runs": [
+            {
+              "text": "上"
+            }
+          ]
+        },
+        {
+          "kind": "divider"
+        },
+        {
+          "kind": "paragraph",
+          "runs": [
+            {
+              "text": "卡片正文"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "unknown-and-custom-inlines",
+      "doc": {
+        "type": "doc",
+        "version": 2,
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "text",
+                "text": "a"
+              },
+              {
+                "type": "custom_inline",
+                "attrs": {
+                  "k": "v"
+                }
+              },
+              {
+                "type": "sparkle",
+                "text": "新"
+              },
+              {
+                "type": "sparkle"
+              }
+            ]
+          }
+        ]
+      },
+      "blocks": [
+        {
+          "kind": "paragraph",
+          "runs": [
+            {
+              "text": "a"
+            },
+            {
+              "text": "新"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "empty-document",
+      "doc": {
+        "type": "doc",
+        "version": 2,
+        "children": []
+      },
+      "blocks": []
+    },
+    {
+      "id": "wire-form-string",
+      "doc": "{\"type\":\"doc\",\"version\":2,\"children\":[{\"type\":\"paragraph\",\"children\":[{\"type\":\"text\",\"text\":\"字符串\",\"marks\":[{\"type\":\"italic\"}]}]}]}",
+      "blocks": [
+        {
+          "kind": "paragraph",
+          "runs": [
+            {
+              "text": "字符串",
+              "marks": [
+                "italic"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "string-that-is-not-json",
+      "doc": "{\"type\":\"doc\",",
+      "blocks": null
+    },
+    {
+      "id": "root-not-doc",
+      "doc": {
+        "type": "paragraph",
+        "version": 2,
+        "children": []
+      },
+      "blocks": null
+    },
+    {
+      "id": "root-version-1",
+      "doc": {
+        "type": "doc",
+        "version": 1,
+        "children": []
+      },
+      "blocks": null
+    },
+    {
+      "id": "root-without-children",
+      "doc": {
+        "type": "doc",
+        "version": 2
+      },
+      "blocks": null
+    },
+    {
+      "id": "root-is-array",
+      "doc": [
+        {
+          "type": "doc",
+          "version": 2,
+          "children": [
+            {
+              "type": "paragraph",
+              "children": [
+                {
+                  "type": "text",
+                  "text": "x"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "blocks": null
+    },
+    {
+      "id": "depth-at-limit",
+      "generate": {
+        "nestedQuotes": 62
+      },
+      "drawable": true
+    },
+    {
+      "id": "depth-over-limit",
+      "generate": {
+        "nestedQuotes": 63
+      },
+      "drawable": false
+    },
+    {
+      "id": "nodes-at-limit",
+      "generate": {
+        "paragraphTextNodes": 9998
+      },
+      "drawable": true
+    },
+    {
+      "id": "nodes-over-limit",
+      "generate": {
+        "paragraphTextNodes": 9999
+      },
+      "drawable": false
+    }
+  ],
+  "spoilerCovers": [
+    {
+      "text": "42",
+      "cover": "　　"
+    },
+    {
+      "text": "下周团建",
+      "cover": "　　　　"
+    },
+    {
+      "text": "a b\tc\nd",
+      "cover": "　 　\t　\n　"
+    },
+    {
+      "text": "🎉 ok",
+      "cover": "　 　　"
+    },
+    {
+      "text": "",
+      "cover": ""
+    }
+  ]
+}

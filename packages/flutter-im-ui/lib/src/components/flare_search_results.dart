@@ -1,0 +1,219 @@
+import 'package:flutter/material.dart';
+
+import '../models/directory_data.dart';
+import '../tokens/flare_strings.dart';
+import '../tokens/flare_tokens.dart';
+import 'flare_avatar.dart';
+
+/// Global search results — kind-grouped rows with query highlighting and
+/// per-group "View all". Spec: Search/SearchResults (`FlareSearchResults`).
+class FlareSearchResults extends StatelessWidget {
+  const FlareSearchResults({
+    super.key,
+    required this.groups,
+    required this.query,
+    this.onOpen,
+    this.onViewAll,
+    this.emptyText = '未找到结果',
+    this.viewAllText,
+  });
+
+  final List<FlareSearchResultGroup> groups;
+  final String query;
+  final void Function(FlareSearchResultItem)? onOpen;
+  final void Function(FlareSearchResultKind)? onViewAll;
+  final String emptyText;
+
+  /// Formats the per-group "view all" row (defaults to "查看全部 N").
+  final String Function(int total)? viewAllText;
+
+  /// Split [text] into highlighted / plain spans around case-insensitive
+  /// occurrences of [query].
+  static List<TextSpan> highlightSpans(
+    String text,
+    String query, {
+    required Color baseColor,
+    required Color matchColor,
+  }) {
+    final baseStyle = TextStyle(color: baseColor);
+    final q = query.trim();
+    if (q.isEmpty) return [TextSpan(text: text, style: baseStyle)];
+    final spans = <TextSpan>[];
+    var start = 0;
+    for (final match in RegExp(
+      RegExp.escape(q),
+      caseSensitive: false,
+      unicode: true,
+    ).allMatches(text)) {
+      if (match.start > start) {
+        spans.add(
+          TextSpan(text: text.substring(start, match.start), style: baseStyle),
+        );
+      }
+      spans.add(
+        TextSpan(
+          text: text.substring(match.start, match.end),
+          style: TextStyle(color: matchColor, fontWeight: FontWeight.w600),
+        ),
+      );
+      start = match.end;
+    }
+    if (start < text.length)
+      spans.add(TextSpan(text: text.substring(start), style: baseStyle));
+    return spans;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = FlareColors.of(context);
+    final nonEmpty = groups.where((g) => g.items.isNotEmpty).toList();
+    if (nonEmpty.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(
+          vertical: 40,
+          horizontal: FlareSizes.spacingLg,
+        ),
+        child: Center(
+          child: Text(
+            emptyText,
+            style: TextStyle(
+              color: colors.textTertiary,
+              fontSize: FlareSizes.fontSizeMd,
+            ),
+          ),
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [for (final g in nonEmpty) ..._section(context, colors, g)],
+    );
+  }
+
+  List<Widget> _section(
+    BuildContext context,
+    FlareColors colors,
+    FlareSearchResultGroup g,
+  ) {
+    return [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(
+          FlareSizes.spacingLg,
+          FlareSizes.spacingMd,
+          FlareSizes.spacingLg,
+          FlareSizes.spacingXs,
+        ),
+        child: Text(
+          g.label,
+          style: TextStyle(
+            color: colors.textTertiary,
+            fontSize: FlareSizes.fontSizeSm,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      for (final item in g.items) _row(colors, item),
+      if (g.total != null && g.total! > g.items.length)
+        _viewAll(context, colors, g),
+    ];
+  }
+
+  Widget _row(FlareColors colors, FlareSearchResultItem item) {
+    return GestureDetector(
+      onTap: () => onOpen?.call(item),
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: FlareSizes.spacingLg,
+          vertical: FlareSizes.spacingSm,
+        ),
+        child: Row(
+          children: [
+            FlareAvatar(
+              userId: item.id,
+              displayName: item.title,
+              avatarUrl: item.avatarUrl,
+              size: 38,
+            ),
+            const SizedBox(width: FlareSizes.spacingMd),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text.rich(
+                    TextSpan(
+                      children: highlightSpans(
+                        item.title,
+                        query,
+                        baseColor: colors.textPrimary,
+                        matchColor: colors.primary,
+                      ),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: FlareSizes.fontSizeLg),
+                  ),
+                  if (item.subtitle != null && item.subtitle!.isNotEmpty)
+                    Text.rich(
+                      TextSpan(
+                        children: highlightSpans(
+                          item.subtitle!,
+                          query,
+                          baseColor: colors.textTertiary,
+                          matchColor: colors.primary,
+                        ),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: FlareSizes.fontSizeSm),
+                    ),
+                ],
+              ),
+            ),
+            if (item.meta != null && item.meta!.isNotEmpty) ...[
+              const SizedBox(width: FlareSizes.spacingSm),
+              Text(
+                item.meta!,
+                style: TextStyle(
+                  color: colors.textTertiary,
+                  fontSize: FlareSizes.fontSizeSm,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _viewAll(
+    BuildContext context,
+    FlareColors colors,
+    FlareSearchResultGroup g,
+  ) {
+    return GestureDetector(
+      onTap: () => onViewAll?.call(g.kind),
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: FlareSizes.spacingLg,
+          vertical: FlareSizes.spacingSm,
+        ),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            viewAllText?.call(g.total!) ??
+                FlareStrings.of(context).viewAll(g.total!),
+            style: TextStyle(
+              color: colors.primaryText,
+              fontSize: FlareSizes.fontSizeMd,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

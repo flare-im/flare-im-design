@@ -1,0 +1,84 @@
+{
+  "note": "Shared truth for laying out an image-group (album) message body: how many columns its square tiles take, how many tiles are drawn, and what the last drawn tile says about the images that are not. The four kits compute it with one function and read this file in their tests. Columns: 1 image in one column, 2 in two, 3 in three, 4 in two (a two-by-two square), 5 or more in three; an album with no images draws nothing. At most `maxVisible` tiles are drawn, in the album's order. When there are more images than that, the last drawn tile is covered and reads `+more`, where `more` counts that tile's own image and every image after it (count - maxVisible + 1), so the tiles account for every image. A tile opens the image it shows; the covered last tile opens its own image too. What an open does (one image, or the conversation's gallery) is the body's host's choice, not the layout's.",
+  "maxVisible": 9,
+  "cases": [
+    {
+      "count": 0,
+      "columns": 0,
+      "visible": 0,
+      "more": 0
+    },
+    {
+      "count": 1,
+      "columns": 1,
+      "visible": 1,
+      "more": 0
+    },
+    {
+      "count": 2,
+      "columns": 2,
+      "visible": 2,
+      "more": 0
+    },
+    {
+      "count": 3,
+      "columns": 3,
+      "visible": 3,
+      "more": 0
+    },
+    {
+      "count": 4,
+      "columns": 2,
+      "visible": 4,
+      "more": 0
+    },
+    {
+      "count": 5,
+      "columns": 3,
+      "visible": 5,
+      "more": 0
+    },
+    {
+      "count": 6,
+      "columns": 3,
+      "visible": 6,
+      "more": 0
+    },
+    {
+      "count": 7,
+      "columns": 3,
+      "visible": 7,
+      "more": 0
+    },
+    {
+      "count": 8,
+      "columns": 3,
+      "visible": 8,
+      "more": 0
+    },
+    {
+      "count": 9,
+      "columns": 3,
+      "visible": 9,
+      "more": 0
+    },
+    {
+      "count": 10,
+      "columns": 3,
+      "visible": 9,
+      "more": 2
+    },
+    {
+      "count": 12,
+      "columns": 3,
+      "visible": 9,
+      "more": 4
+    },
+    {
+      "count": 50,
+      "columns": 3,
+      "visible": 9,
+      "more": 42
+    }
+  ]
+}

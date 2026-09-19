@@ -1,0 +1,76 @@
+{
+  "cases": [
+    {
+      "label": "self text",
+      "input": { "isSelf": true, "messageType": 1, "status": "sent", "hasText": true, "isPending": false, "isPinned": false, "isConnected": true, "multiSelectMode": false, "isFailed": false, "isRead": false },
+      "expected": { "canReply": true, "canForward": true, "canCopy": true, "canEdit": true, "canDelete": true, "canRecall": true, "canPin": true, "canUnpin": false, "canReact": true, "canMultiSelect": true, "canSave": false, "canResend": false },
+      "deliveryState": "delivered"
+    },
+    {
+      "label": "incoming text",
+      "input": { "isSelf": false, "messageType": 1, "status": "sent", "hasText": true, "isPending": false, "isPinned": false, "isConnected": true, "multiSelectMode": false, "isFailed": false, "isRead": false },
+      "expected": { "canReply": true, "canForward": true, "canCopy": true, "canEdit": false, "canDelete": true, "canRecall": false, "canPin": true, "canUnpin": false, "canReact": true, "canMultiSelect": true, "canSave": false, "canResend": false },
+      "deliveryState": "none"
+    },
+    {
+      "label": "self image without text",
+      "input": { "isSelf": true, "messageType": 2, "status": "sent", "hasText": false, "isPending": false, "isPinned": false, "isConnected": true, "multiSelectMode": false, "isFailed": false, "isRead": false },
+      "expected": { "canReply": true, "canForward": true, "canCopy": false, "canEdit": false, "canDelete": true, "canRecall": true, "canPin": true, "canUnpin": false, "canReact": true, "canMultiSelect": true, "canSave": true, "canResend": false },
+      "deliveryState": "delivered"
+    },
+    {
+      "label": "self rich text",
+      "input": { "isSelf": true, "messageType": 15, "status": "sent", "hasText": true, "isPending": false, "isPinned": false, "isConnected": true, "multiSelectMode": false, "isFailed": false, "isRead": false },
+      "expected": { "canReply": true, "canForward": true, "canCopy": true, "canEdit": true, "canDelete": true, "canRecall": true, "canPin": true, "canUnpin": false, "canReact": true, "canMultiSelect": true, "canSave": false, "canResend": false },
+      "deliveryState": "delivered"
+    },
+    {
+      "label": "recalled",
+      "input": { "isSelf": true, "messageType": 1, "status": "sent", "mutation": "recalled", "hasText": true, "isPending": false, "isPinned": false, "isConnected": true, "multiSelectMode": false, "isFailed": false, "isRead": false },
+      "expected": { "canReply": false, "canForward": false, "canCopy": false, "canEdit": false, "canDelete": false, "canRecall": false, "canPin": false, "canUnpin": false, "canReact": false, "canMultiSelect": false, "canSave": false, "canResend": false },
+      "deliveryState": "none"
+    },
+    {
+      "label": "deleted",
+      "input": { "isSelf": true, "messageType": 1, "status": "sent", "mutation": "deleted", "hasText": true, "isPending": false, "isPinned": false, "isConnected": true, "multiSelectMode": false, "isFailed": false, "isRead": false },
+      "expected": { "canReply": false, "canForward": false, "canCopy": false, "canEdit": false, "canDelete": false, "canRecall": false, "canPin": false, "canUnpin": false, "canReact": false, "canMultiSelect": false, "canSave": false, "canResend": false },
+      "deliveryState": "none"
+    },
+    {
+      "label": "failed while connected",
+      "input": { "isSelf": true, "messageType": 1, "status": "failed", "hasText": true, "isPending": false, "isPinned": false, "isConnected": true, "multiSelectMode": false, "isFailed": true, "isRead": false },
+      "expected": { "canReply": true, "canForward": true, "canCopy": true, "canEdit": false, "canDelete": true, "canRecall": false, "canPin": true, "canUnpin": false, "canReact": true, "canMultiSelect": true, "canSave": false, "canResend": true },
+      "deliveryState": "failed"
+    },
+    {
+      "label": "failed while offline",
+      "input": { "isSelf": true, "messageType": 1, "status": "failed", "hasText": true, "isPending": false, "isPinned": false, "isConnected": false, "multiSelectMode": false, "isFailed": true, "isRead": false },
+      "expected": { "canReply": true, "canForward": true, "canCopy": true, "canEdit": false, "canDelete": true, "canRecall": false, "canPin": true, "canUnpin": false, "canReact": true, "canMultiSelect": true, "canSave": false, "canResend": false },
+      "deliveryState": "failed"
+    },
+    {
+      "label": "pending",
+      "input": { "isSelf": true, "messageType": 1, "status": "sending", "hasText": true, "isPending": true, "isPinned": false, "isConnected": true, "multiSelectMode": false, "isFailed": false, "isRead": false },
+      "expected": { "canReply": true, "canForward": false, "canCopy": true, "canEdit": false, "canDelete": true, "canRecall": true, "canPin": false, "canUnpin": false, "canReact": false, "canMultiSelect": true, "canSave": false, "canResend": false },
+      "deliveryState": "sending"
+    },
+    {
+      "label": "pinned",
+      "input": { "isSelf": true, "messageType": 1, "status": "sent", "hasText": true, "isPending": false, "isPinned": true, "isConnected": true, "multiSelectMode": false, "isFailed": false, "isRead": false },
+      "expected": { "canReply": true, "canForward": true, "canCopy": true, "canEdit": true, "canDelete": true, "canRecall": true, "canPin": false, "canUnpin": true, "canReact": true, "canMultiSelect": true, "canSave": false, "canResend": false },
+      "deliveryState": "delivered"
+    },
+    {
+      "label": "read",
+      "input": { "isSelf": true, "messageType": 1, "status": "read", "hasText": true, "isPending": false, "isPinned": false, "isConnected": true, "multiSelectMode": false, "isFailed": false, "isRead": true },
+      "expected": { "canReply": true, "canForward": true, "canCopy": true, "canEdit": true, "canDelete": true, "canRecall": true, "canPin": true, "canUnpin": false, "canReact": true, "canMultiSelect": true, "canSave": false, "canResend": false },
+      "deliveryState": "read"
+    },
+    {
+      "label": "multi-select mode",
+      "input": { "isSelf": true, "messageType": 1, "status": "sent", "hasText": true, "isPending": false, "isPinned": false, "isConnected": true, "multiSelectMode": true, "isFailed": false, "isRead": false },
+      "expected": { "canReply": false, "canForward": true, "canCopy": true, "canEdit": false, "canDelete": true, "canRecall": false, "canPin": true, "canUnpin": false, "canReact": true, "canMultiSelect": true, "canSave": false, "canResend": false },
+      "deliveryState": "delivered"
+    }
+  ]
+}

@@ -207,7 +207,7 @@ export function flutterSurface(root, symbol) {
   for (const m of body.text.matchAll(new RegExp(`(?:const\\s+)?${symbol}(?:\\.[A-Za-z_]\\w*)?\\s*\\(`, "g"))) {
     const p = balanced(body.text, m.index + m[0].length - 1, "(", ")");
     if (!p) continue;
-    for (const pm of p.text.matchAll(/this\.([A-Za-z_]\w*)/g)) props.add(pm[1]);
+    for (const pm of p.text.matchAll(/(?:this|super)\.([A-Za-z_]\w*)/g)) props.add(pm[1]);
     // 非 this. 的普通参数（少数：如 label 转发）
     for (const pm of p.text.matchAll(/(?:^|[,{(\n])\s*(?:required\s+)?(?:final\s+)?[A-Z][\w<>?, ]*\s+([a-z]\w*)\s*[,=})]/g)) props.add(pm[1]);
   }
@@ -324,15 +324,18 @@ export function compareComponent(spec, comp, platform, surface) {
     const have = platform === "vue" ? new Set([...surface.events].map(camel)) : surface.events;
     if (![...cands].some((n) => have.has(n) || have.has(camel(n)))) missingEvents.push(e);
   }
-  // 反向：实现里的事件契约没记（只对 vue 精确；原生 onXxx 也报）
+  // 反向：实现里的事件契约没记（只对 vue 精确；原生 onXxx 也报）。只认本平台范围内的事件：
+  // 一个平台实现了 eventPlatforms 没给它的事件，说明范围过时了——文档与目录照范围告诉读者
+  // 「这个端没有」，所以同样要报。v-model 的变更回调（原生 onValueChange 之类）归 model 事件。
   const declaredNorm = new Set();
-  for (const e of comp.events ?? []) for (const n of eventCandidates(spec, comp, e, platform)) declaredNorm.add(n);
-  if (modelProp) declaredNorm.add(`update:${modelProp}`);
+  for (const e of declaredEvents) for (const n of eventCandidates(spec, comp, e, platform)) declaredNorm.add(n);
+  if (modelProp) {
+    declaredNorm.add(`update:${modelProp}`);
+    for (const n of eventCandidates(spec, comp, comp.model.event ?? `update:${modelProp}`, platform)) declaredNorm.add(n);
+  }
   const declaredPropNames = new Set(declaredProps.map((p) => p.name));
-  const deprecated = new Set(comp.deprecatedCallbacks?.[platform] ?? []);
   for (const e of surface.events) {
     if (declaredPropNames.has(e)) continue; // 契约把它当 prop（如文案解析器 onText）
-    if (deprecated.has(e)) continue; // 已标 deprecated 的旧回调名，等下个主版本删
     if (platform === "vue" && e.startsWith("update:")) {
       // v-model 事件由 model 字段覆盖；其它 update: 事件按普通事件处理
       if (modelProp && e === `update:${modelProp}`) continue;

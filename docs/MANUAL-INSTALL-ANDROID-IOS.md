@@ -1,124 +1,67 @@
-# Android / iOS 手动引入指南（1.0.5）
+# Android / iOS source installation
 
-Android 与 iOS **不走公共仓库**（Maven Central / CocoaPods Trunk），产物直接放在
-GitHub。本文是这两端的引入方式。
+The native packages are self-contained under `packages/`. They can be consumed from a checkout or packaged as release artifacts without a platform manifest at repository root.
 
-Web（npm）与 Flutter（pub.dev）走各自的公共仓库，见 [RELEASE-1.0.5.md](./RELEASE-1.0.5.md)。
+## iOS: FlareIMUI
 
-> 仓库 `flare-im/flare-im-design` 目前是 **private**。下面所有方式都要求使用方的
-> GitHub 账号有本仓读权限（SPM 走 SSH/凭据、AAR 下载走登录态）。若要对外开放，
-> 需先把仓库转为 public 或改用带 token 的分发。
+Requirements: iOS 16 or macOS 13, Swift 5.9 or later. The package has no third-party dependency.
 
----
-
-## iOS —— FlareIMUI
-
-要求 iOS 16+ / Swift 5.9+。**无任何第三方依赖**，引入后不需要再加别的包。
-
-### 方式 A：Swift Package Manager（推荐）
-
-Xcode → File → Add Package Dependencies，填仓库地址，版本规则选 "Up to Next Major" 填 `1.0.5`。
-
-或在 `Package.swift` 里写：
+Add the package directory in Xcode with **File > Add Package Dependencies > Add Local**, selecting `packages/ios-im-ui`, or declare a local path:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/flare-im/flare-im-design.git", from: "1.0.5"),
+    .package(path: "../flare-im-design/packages/ios-im-ui"),
 ],
 targets: [
     .target(name: "YourApp", dependencies: [
-        .product(name: "FlareIMUI", package: "flare-im-design"),
-    ])
+        .product(name: "FlareIMUI", package: "ios-im-ui"),
+    ]),
 ]
 ```
 
-版本由 **git tag** 决定，仓库里没有版本号字段。`from: "1.0.5"` 能解析的前提是
-`1.0.5` 这个 tag 已推到远端。
-
-### 方式 B：本地路径（不联网 / 要改源码时）
-
-```bash
-git clone https://github.com/flare-im/flare-im-design.git
-```
-
-Xcode → File → Add Package Dependencies → Add Local...，选克隆下来的**仓库根目录**
-（不是 `ios-im-ui/`，根目录的 `Package.swift` 才是对外清单）。
-
-### 方式 C：git submodule（要跟随上游更新时）
-
-```bash
-git submodule add https://github.com/flare-im/flare-im-design.git Vendor/flare-im-design
-```
-
-然后在自己的 `Package.swift` 用 `.package(path: "Vendor/flare-im-design")`。
-
-### 使用
+Then import the library:
 
 ```swift
 import FlareIMUI
 ```
 
-表情/贴纸的**契约**（`Resources/emoji-sticker` 下的 manifest / 本地化名）已打进包内，
-通过 SPM 的 resource bundle 自动加载。**webp 图片不在 git 里**（250 个共 67MB，入库
-曾让完整 clone 失败），所以：
+The monorepo root intentionally has no `Package.swift`; a Git URL targeting the monorepo root is not a supported SwiftPM entry. A remote release must publish `packages/ios-im-ui` as a standalone source artifact or repository.
 
-- 方式 A（git URL）拿到的包**只有契约没有图片**：catalog 能列出全部表情/贴纸，
-  但 `emojiImageURL` / `stickerImageURL` 为 nil，位置空白。适合只用非表情组件的场景。
-- 要图片走方式 B / C（本地路径 / submodule），在检出目录里拉一次二进制并镜像进包：
-
-  ```bash
-  ./assets/emoji-sticker/fetch-assets.sh   # 从 GitHub Release assets-v1 下载（需 gh 登录且对仓库有读权限）
-  ./ios-im-ui/sync-resources.sh
-  ```
-
-  之后正常引入，不需要再拷贝。
-
----
-
-## Android —— im-ui-compose
-
-要求 **minSdk 26**、**compileSdk 35**、**JDK 17**、Kotlin **2.2.20**、Compose BOM
-**2024.12.01**。命名空间 `com.flare.im.ui`。
-
-Kotlin 版本必须与 Compose compiler 插件匹配——使用方的 Kotlin 若低于 2.2.20，
-Compose 编译产物会不兼容。
-
-### 方式 A：源码依赖（推荐）
-
-比 AAR 好在**依赖会自动传递**，不用手抄下面那一串。
+Emoji and sticker manifests ship in the package. To include the optional binary images in a source checkout, run:
 
 ```bash
-git submodule add https://github.com/flare-im/flare-im-design.git vendor/flare-im-design
+./assets/emoji-sticker/fetch-assets.sh
+./packages/ios-im-ui/sync-resources.sh
 ```
 
-`settings.gradle.kts`：
+## Android: im-ui-compose
+
+Requirements: minSdk 26, compileSdk 35, JDK 17, Kotlin 2.2.20, and Compose BOM 2024.12.01.
+
+For a source dependency, include the package directly:
 
 ```kotlin
+// settings.gradle.kts
 include(":im-ui-compose")
-project(":im-ui-compose").projectDir = file("vendor/flare-im-design/android-im-ui")
+project(":im-ui-compose").projectDir =
+    file("vendor/flare-im-design/packages/android-im-ui")
 ```
 
-`app/build.gradle.kts`：
-
 ```kotlin
+// app/build.gradle.kts
 implementation(project(":im-ui-compose"))
 ```
 
-### 方式 B：AAR 手动引入
+The package publishes Maven coordinates `com.flare.im:im-ui-compose:<version>`. Root `jitpack.yml` is retained because JitPack discovers its build configuration at repository root and then delegates to `packages/android-im-ui`.
 
-从 GitHub Releases 下载 `im-ui-compose-1.0.5.aar`（67.8 MB，体积来自内置的表情贴纸
-资源），放进 `app/libs/`：
-
-```kotlin
-implementation(files("libs/im-ui-compose-1.0.5.aar"))
-```
-
-注意：**AAR 不携带依赖信息**（没有 POM）。只写上面这一行，编译能过但**运行时必崩**
-`NoClassDefFoundError`。必须把下面 8 个依赖一并加到自己的 `build.gradle.kts`：
+For a manual AAR, add the AAR and its runtime dependencies because a bare AAR has no POM metadata:
 
 ```kotlin
+implementation(files("libs/im-ui-compose-2.0.0-rc.1.aar"))
+
 val composeBom = platform("androidx.compose:compose-bom:2024.12.01")
 implementation(composeBom)
+implementation("androidx.activity:activity-compose:1.9.3")
 implementation("androidx.compose.ui:ui")
 implementation("androidx.compose.ui:ui-tooling-preview")
 implementation("androidx.compose.foundation:foundation")
@@ -128,31 +71,12 @@ implementation("io.coil-kt:coil-compose:2.7.0")
 implementation("io.coil-kt:coil-gif:2.7.0")
 ```
 
-版本必须与上面一致——库就是按这套编的，换版本可能出 Compose runtime 不匹配。
-
-### 使用
+Import the package with:
 
 ```kotlin
 import com.flare.im.ui.*
 ```
 
----
+## Release alignment
 
-## 关于 67.8 MB
-
-Android AAR 和 iOS 包体积都主要来自 `assets/emoji-sticker`（约 67 MB 的 webp 表情
-贴纸）。这是五端共用同一份资源的既定设计，不是打包缺陷。
-
-真机安装包不会是这个体积——Android 的 R8/资源压缩、iOS 的 App Thinning 都会按实际
-引用裁剪。若确实需要瘦身，方向是把表情包改成按需下载，那是独立的方案，不在本次范围。
-
----
-
-## 版本对应
-
-| 端 | 标识 | 1.0.5 从哪来 |
-|---|---|---|
-| iOS | `FlareIMUI` | git tag `1.0.5` |
-| Android | `com.flare.im:im-ui-compose` | `android-im-ui/build.gradle.kts` 的 `version` |
-
-两端要一起升。改 Android 版本号时别忘了补 tag，否则 iOS 停在旧版而没人察觉。
+The workspace, Vue, tokens, spec, and Android manifests use the same release version. Swift source artifacts must be produced from that same commit. `node tooling/check-kit-distribution.mjs` validates the local ownership and version contract without relying on a registry or Git tags.

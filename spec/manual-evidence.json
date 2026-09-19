@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "release": "2.0.0",
+  "required": [
+    {
+      "id": "A11Y-IOS-VOICEOVER",
+      "status": "MANUAL_RELEASE_GATE",
+      "evidence": null
+    },
+    {
+      "id": "A11Y-ANDROID-TALKBACK",
+      "status": "MANUAL_RELEASE_GATE",
+      "evidence": null
+    },
+    {
+      "id": "PERF-IOS",
+      "status": "MANUAL_RELEASE_GATE",
+      "evidence": null
+    },
+    {
+      "id": "PERF-ANDROID",
+      "status": "MANUAL_RELEASE_GATE",
+      "evidence": null
+    }
+  ],
+  "automated": [
+    {
+      "id": "A11Y-IOS-LARGE-TEXT",
+      "status": "AUTOMATION_REQUIRED",
+      "evidence": null,
+      "automationGap": "Missing: SwiftUI. ViewInspector reads a view tree, not a laid-out one, so a Dynamic Type pass needs a hosted window or an XCUITest target the kit does not have. Vue has website/tests/visual-regression.spec.ts (rc-large-text baseline); Flutter and Compose can set textScaler / fontScale in a widget test and do not yet."
+    },
+    {
+      "id": "A11Y-ANDROID-LARGE-TEXT",
+      "status": "AUTOMATION_REQUIRED",
+      "evidence": null,
+      "automationGap": "Missing: Compose. An instrumented test can set fontScale through the compose rule; nothing does. Vue has the rc-large-text baseline."
+    },
+    {
+      "id": "A11Y-HIGH-CONTRAST",
+      "status": "AUTOMATION_REQUIRED",
+      "evidence": null,
+      "automationGap": "Missing: iOS and Android. The web half is asserted by website/tests/accessibility-hardening.spec.ts (forced colours keep the status and the focus outline); the native halves need the platform high-contrast flags, which nothing reads yet."
+    },
+    {
+      "id": "A11Y-HARDWARE-KEYBOARD",
+      "status": "AUTOMATION_REQUIRED",
+      "evidence": null,
+      "automationGap": "Missing: Flutter and the two tablets. The web half is partly covered (accessibility-hardening.spec.ts tabs to a visible focus ring); Compose instrumented can send key events and does not."
+    },
+    {
+      "id": "A11Y-REDUCED-MOTION",
+      "status": "AUTOMATION_REQUIRED",
+      "evidence": "Four kits, each asserting the branch and not only the setting: Vue website/tests/accessibility-hardening.spec.ts (a continuous status animation runs once under prefers-reduced-motion); Flutter packages/flutter-im-ui/test/locate_highlight_test.dart (the locate mark stays put instead of pulsing) over the shared spec/locate-highlight-vectors.json; SwiftUI packages/ios-im-ui/Tests/FlareIMUITests/LocateHighlightVectorsTests.swift and Compose packages/android-im-ui/src/test/kotlin/com/flare/im/ui/LocateHighlightVectorsTest.kt over the same table; Compose packages/android-im-ui/src/androidTest/kotlin/com/flare/im/ui/ReducedMotionInteractionTest.kt (the kit reads the system animator duration scale — reverse-validated: stubbing flareReducedMotion turns it red).",
+      "automated": "DONE 2026-09-18 (Round 14). The requirement itself asks for physical phones, so this does not make it PASS — it removes the part a person on a device would otherwise have to check by hand. Four kits, each asserting the branch and not merely the setting: Vue website/tests/accessibility-hardening.spec.ts (a continuous status animation runs once under prefers-reduced-motion); Flutter test/locate_highlight_test.dart (the locate mark stays put instead of pulsing); SwiftUI Tests/FlareIMUITests/LocateHighlightVectorsTests.swift and Compose src/test/.../LocateHighlightVectorsTest.kt over the shared spec/locate-highlight-vectors.json; Compose src/androidTest/.../ReducedMotionInteractionTest.kt (the kit reads the system animator duration scale) — reverse-validated, stubbing flareReducedMotion turns it red."
+    },
+    {
+      "id": "GESTURE-IOS",
+      "status": "AUTOMATION_REQUIRED",
+      "evidence": null,
+      "automationGap": "Missing: all of it. ViewInspector cannot perform a gesture, and the kit has no XCUITest target — a swipe-to-reply on SwiftUI cannot be asserted here at all. This is the one item on the list that genuinely needs a device or a new test target, not just work."
+    },
+    {
+      "id": "GESTURE-ANDROID",
+      "status": "AUTOMATION_REQUIRED",
+      "evidence": null,
+      "automationGap": "Missing: the gestures themselves. Compose instrumented can perform swipes on the emulator, which is the cheapest of the nine to close next."
+    },
+    {
+      "id": "RESOURCE-IOS",
+      "status": "AUTOMATION_REQUIRED",
+      "evidence": null,
+      "automationGap": "Missing: all of it. Memory and lifecycle release is not observable from a unit test; it needs Instruments on a device."
+    },
+    {
+      "id": "RESOURCE-ANDROID",
+      "status": "AUTOMATION_REQUIRED",
+      "evidence": null,
+      "automationGap": "Missing: all of it. Same reason — it needs a profiler against a running app, not an assertion."
+    }
+  ]
+}

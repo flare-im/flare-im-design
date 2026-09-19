@@ -1,0 +1,488 @@
+{
+  "version": 1,
+  "note": "What a client owes the server when the connection comes back. A gap is not just a pause: beliefs formed before it may be stale (a peer who stopped typing while the socket was down never sent the stop), server-side watches die with the stream that carried them (presence), and changes that happened during the gap were never delivered. Until R8 none of the five apps did any of the three: they subscribed and read when the conversation list loaded and when a chat opened, and a reconnect is neither. The one case that must NOT refresh is a session that ended — being kicked or having the token expire is terminal, the core does not reconnect by design, and re-subscribing on the way out is work for a session that no longer exists.",
+  "work": {
+    "dropStaleBeliefs": "Forget what could have gone stale unobserved — the typing roster above all. A belief's own ttl would clear it eventually; the gap is the moment we know it is unreliable.",
+    "resubscribe": "Ask the server again for what it was watching for us. A presence subscription is a stream, and a stream dies with its connection; the client core already forgets its own bookkeeping when the stream ends, so nothing but the app is stopping a fresh subscribe.",
+    "reread": "Read the current value of what is on screen. A subscription tells you about changes from now on; it says nothing about the change you missed while you were away."
+  },
+  "driver": "Feed the phases in order; each one answers the work it creates. An unchanged phase creates none. Phases are the kit's `FlareConnectionPhase` values.",
+  "cases": [
+    {
+      "name": "a first connection does no extra work",
+      "phases": [
+        "connecting",
+        "connected"
+      ],
+      "expect": [
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        }
+      ],
+      "note": "The app's own open path subscribes and reads; doing it again here would double every cold start."
+    },
+    {
+      "name": "a connection that was never up does not count as interrupted",
+      "phases": [
+        "connecting",
+        "connecting",
+        "offline"
+      ],
+      "expect": [
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        }
+      ]
+    },
+    {
+      "name": "a drop forgets what could have gone stale",
+      "phases": [
+        "connecting",
+        "connected",
+        "disconnected"
+      ],
+      "expect": [
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": true,
+          "resubscribe": false,
+          "reread": false
+        }
+      ]
+    },
+    {
+      "name": "and the return re-subscribes and re-reads",
+      "phases": [
+        "connecting",
+        "connected",
+        "disconnected",
+        "connected"
+      ],
+      "expect": [
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": true,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": true,
+          "reread": true
+        }
+      ]
+    },
+    {
+      "name": "reconnecting is a drop too",
+      "phases": [
+        "connected",
+        "reconnecting",
+        "connected"
+      ],
+      "expect": [
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": true,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": true,
+          "reread": true
+        }
+      ]
+    },
+    {
+      "name": "going offline is a drop too",
+      "phases": [
+        "connected",
+        "offline",
+        "connected"
+      ],
+      "expect": [
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": true,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": true,
+          "reread": true
+        }
+      ]
+    },
+    {
+      "name": "a drop is only counted once",
+      "phases": [
+        "connected",
+        "disconnected",
+        "reconnecting",
+        "offline",
+        "connected"
+      ],
+      "expect": [
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": true,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": true,
+          "reread": true
+        }
+      ]
+    },
+    {
+      "name": "the same phase twice creates no work",
+      "phases": [
+        "connected",
+        "connected",
+        "disconnected",
+        "disconnected"
+      ],
+      "expect": [
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": true,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        }
+      ]
+    },
+    {
+      "name": "a flap refreshes once per return",
+      "phases": [
+        "connected",
+        "disconnected",
+        "connected",
+        "disconnected",
+        "connected"
+      ],
+      "expect": [
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": true,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": true,
+          "reread": true
+        },
+        {
+          "dropStaleBeliefs": true,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": true,
+          "reread": true
+        }
+      ]
+    },
+    {
+      "name": "being kicked forgets everything and asks for nothing",
+      "phases": [
+        "connected",
+        "kicked"
+      ],
+      "expect": [
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": true,
+          "resubscribe": false,
+          "reread": false
+        }
+      ]
+    },
+    {
+      "name": "a session that ended does not re-subscribe when a new one connects",
+      "phases": [
+        "connected",
+        "kicked",
+        "connected"
+      ],
+      "expect": [
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": true,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        }
+      ],
+      "note": "Signing in again is a fresh start: the app's own open path does the work, as on a cold start."
+    },
+    {
+      "name": "an expired token is terminal the same way",
+      "phases": [
+        "connected",
+        "expired",
+        "connected"
+      ],
+      "expect": [
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": true,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        }
+      ]
+    },
+    {
+      "name": "a drop that turns out to be a kick does not refresh when the next session connects",
+      "phases": [
+        "connected",
+        "disconnected",
+        "kicked",
+        "connected"
+      ],
+      "expect": [
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": true,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": true,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        }
+      ],
+      "note": "The real shape of being kicked: the socket goes first and the reason arrives after. Without forgetting that this client was ever connected, the interruption recorded by the drop is still standing when the new session connects, and it refreshes a session that has nothing to do with the one that was interrupted."
+    },
+    {
+      "name": "and the fresh session still refreshes on its own gaps",
+      "phases": [
+        "connected",
+        "reconnecting",
+        "expired",
+        "connected",
+        "disconnected",
+        "connected"
+      ],
+      "expect": [
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": true,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": true,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": true,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": true,
+          "reread": true
+        }
+      ]
+    },
+    {
+      "name": "after a fresh session, a later gap refreshes again",
+      "phases": [
+        "connected",
+        "kicked",
+        "connected",
+        "disconnected",
+        "connected"
+      ],
+      "expect": [
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": true,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": true,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": true,
+          "reread": true
+        }
+      ]
+    },
+    {
+      "name": "connected without a preceding connecting is still a first connection",
+      "phases": [
+        "connected"
+      ],
+      "expect": [
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        }
+      ]
+    },
+    {
+      "name": "a drop before ever connecting stays quiet",
+      "phases": [
+        "disconnected",
+        "connecting",
+        "connected"
+      ],
+      "expect": [
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        },
+        {
+          "dropStaleBeliefs": false,
+          "resubscribe": false,
+          "reread": false
+        }
+      ]
+    }
+  ]
+}

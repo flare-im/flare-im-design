@@ -1,0 +1,1398 @@
+{
+  "version": 1,
+  "note": "One rule for \"someone is typing\", on both sides of the wire. `signal` is what this client reports about itself; `roster` (Round 7 B2) is what it believes about its peers. They share `rules` on purpose: the two halves are only correct in relation to each other, and splitting them into two tables is how `refreshMs > peerTtlMs` gets shipped. Times are milliseconds; every expected report carries the instant it must be made, so a rule that fires late fails as loudly as one that never fires.",
+  "rules": {
+    "idleStopMs": 4000,
+    "refreshMs": 2500,
+    "peerTtlMs": 6000,
+    "invariant": "refreshMs < peerTtlMs — a client that keeps typing must re-report before the peer's belief expires, or the indicator dies mid-sentence. Assert this, do not assume it: two of the five apps deduplicated the report and never refreshed it, so a message longer than one TTL stopped showing as typing while it was still being typed.",
+    "idleStopNote": "idleStopMs is the pause that ends typing, measured from the last edit, not from the last report."
+  },
+  "signal": {
+    "note": "The composer's edits in, `report(conversationId, typing)` calls out. One conversation is typing at a time: the composer is one control, and an edit elsewhere ends the previous conversation before it starts the new one. `true` is reported at most once per refreshMs; `false` is reported the moment it is known (cleared, sent, left) and otherwise idleStopMs after the last edit. Text that trims to nothing is not typing.",
+    "driver": "For each step, advance time to `at` first — firing the idle stop if its deadline falls in that span, timestamped at the deadline, not at `at` — then apply the step. After the last step, advance to `endAt`. Ops: edit{conversationId,text}, send{conversationId}, close{}, tick{}.",
+    "cases": [
+      {
+        "name": "one keystroke reports typing once",
+        "steps": [
+          {
+            "at": 0,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "h"
+          }
+        ],
+        "endAt": 0,
+        "expect": [
+          {
+            "at": 0,
+            "conversationId": "c1",
+            "typing": true
+          }
+        ]
+      },
+      {
+        "name": "a burst of keystrokes still reports once",
+        "steps": [
+          {
+            "at": 0,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "h"
+          },
+          {
+            "at": 100,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "he"
+          },
+          {
+            "at": 200,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "hel"
+          },
+          {
+            "at": 300,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "hell"
+          }
+        ],
+        "endAt": 300,
+        "expect": [
+          {
+            "at": 0,
+            "conversationId": "c1",
+            "typing": true
+          }
+        ]
+      },
+      {
+        "name": "typing past the refresh window reports again",
+        "steps": [
+          {
+            "at": 0,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "h"
+          },
+          {
+            "at": 1000,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "he"
+          },
+          {
+            "at": 2600,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "hel"
+          }
+        ],
+        "endAt": 2600,
+        "expect": [
+          {
+            "at": 0,
+            "conversationId": "c1",
+            "typing": true
+          },
+          {
+            "at": 2600,
+            "conversationId": "c1",
+            "typing": true
+          }
+        ]
+      },
+      {
+        "name": "a long message keeps the peer informed the whole way",
+        "steps": [
+          {
+            "at": 0,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "a"
+          },
+          {
+            "at": 500,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "aa"
+          },
+          {
+            "at": 1000,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "aaa"
+          },
+          {
+            "at": 1500,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "aaaa"
+          },
+          {
+            "at": 2000,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "aaaaa"
+          },
+          {
+            "at": 2500,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "aaaaaa"
+          },
+          {
+            "at": 3000,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "aaaaaaa"
+          },
+          {
+            "at": 3500,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "aaaaaaaa"
+          },
+          {
+            "at": 4000,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "aaaaaaaaa"
+          },
+          {
+            "at": 4500,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "aaaaaaaaaa"
+          },
+          {
+            "at": 5000,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "aaaaaaaaaaa"
+          },
+          {
+            "at": 5500,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "aaaaaaaaaaaa"
+          },
+          {
+            "at": 6000,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "aaaaaaaaaaaaa"
+          },
+          {
+            "at": 6500,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "aaaaaaaaaaaaaa"
+          },
+          {
+            "at": 7000,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "aaaaaaaaaaaaaaa"
+          },
+          {
+            "at": 7500,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "aaaaaaaaaaaaaaaa"
+          },
+          {
+            "at": 8000,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "aaaaaaaaaaaaaaaaa"
+          }
+        ],
+        "endAt": 8000,
+        "expect": [
+          {
+            "at": 0,
+            "conversationId": "c1",
+            "typing": true
+          },
+          {
+            "at": 2500,
+            "conversationId": "c1",
+            "typing": true
+          },
+          {
+            "at": 5000,
+            "conversationId": "c1",
+            "typing": true
+          },
+          {
+            "at": 7500,
+            "conversationId": "c1",
+            "typing": true
+          }
+        ]
+      },
+      {
+        "name": "a pause ends typing",
+        "steps": [
+          {
+            "at": 0,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "h"
+          }
+        ],
+        "endAt": 5000,
+        "expect": [
+          {
+            "at": 0,
+            "conversationId": "c1",
+            "typing": true
+          },
+          {
+            "at": 4000,
+            "conversationId": "c1",
+            "typing": false
+          }
+        ]
+      },
+      {
+        "name": "a pause shorter than the idle window keeps typing",
+        "steps": [
+          {
+            "at": 0,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "h"
+          },
+          {
+            "at": 3999,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "he"
+          }
+        ],
+        "endAt": 3999,
+        "expect": [
+          {
+            "at": 0,
+            "conversationId": "c1",
+            "typing": true
+          },
+          {
+            "at": 3999,
+            "conversationId": "c1",
+            "typing": true
+          }
+        ]
+      },
+      {
+        "name": "clearing the composer stops at once",
+        "steps": [
+          {
+            "at": 0,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "h"
+          },
+          {
+            "at": 500,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": ""
+          }
+        ],
+        "endAt": 5000,
+        "expect": [
+          {
+            "at": 0,
+            "conversationId": "c1",
+            "typing": true
+          },
+          {
+            "at": 500,
+            "conversationId": "c1",
+            "typing": false
+          }
+        ]
+      },
+      {
+        "name": "whitespace alone is not typing",
+        "steps": [
+          {
+            "at": 0,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "   "
+          },
+          {
+            "at": 100,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "\n\t "
+          }
+        ],
+        "endAt": 5000,
+        "expect": []
+      },
+      {
+        "name": "whitespace then real text starts at the real text",
+        "steps": [
+          {
+            "at": 0,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "  "
+          },
+          {
+            "at": 100,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "  hi"
+          }
+        ],
+        "endAt": 100,
+        "expect": [
+          {
+            "at": 100,
+            "conversationId": "c1",
+            "typing": true
+          }
+        ]
+      },
+      {
+        "name": "sending ends typing",
+        "steps": [
+          {
+            "at": 0,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "h"
+          },
+          {
+            "at": 800,
+            "op": "send",
+            "conversationId": "c1"
+          }
+        ],
+        "endAt": 5000,
+        "expect": [
+          {
+            "at": 0,
+            "conversationId": "c1",
+            "typing": true
+          },
+          {
+            "at": 800,
+            "conversationId": "c1",
+            "typing": false
+          }
+        ]
+      },
+      {
+        "name": "sending when not typing reports nothing",
+        "steps": [
+          {
+            "at": 0,
+            "op": "send",
+            "conversationId": "c1"
+          }
+        ],
+        "endAt": 5000,
+        "expect": []
+      },
+      {
+        "name": "switching conversations stops the first one first",
+        "steps": [
+          {
+            "at": 0,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "h"
+          },
+          {
+            "at": 500,
+            "op": "edit",
+            "conversationId": "c2",
+            "text": "y"
+          }
+        ],
+        "endAt": 500,
+        "expect": [
+          {
+            "at": 0,
+            "conversationId": "c1",
+            "typing": true
+          },
+          {
+            "at": 500,
+            "conversationId": "c1",
+            "typing": false
+          },
+          {
+            "at": 500,
+            "conversationId": "c2",
+            "typing": true
+          }
+        ]
+      },
+      {
+        "name": "the switched-to conversation has its own idle window",
+        "steps": [
+          {
+            "at": 0,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "h"
+          },
+          {
+            "at": 500,
+            "op": "edit",
+            "conversationId": "c2",
+            "text": "y"
+          }
+        ],
+        "endAt": 6000,
+        "expect": [
+          {
+            "at": 0,
+            "conversationId": "c1",
+            "typing": true
+          },
+          {
+            "at": 500,
+            "conversationId": "c1",
+            "typing": false
+          },
+          {
+            "at": 500,
+            "conversationId": "c2",
+            "typing": true
+          },
+          {
+            "at": 4500,
+            "conversationId": "c2",
+            "typing": false
+          }
+        ]
+      },
+      {
+        "name": "leaving the chat stops typing",
+        "steps": [
+          {
+            "at": 0,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "h"
+          },
+          {
+            "at": 700,
+            "op": "close"
+          }
+        ],
+        "endAt": 5000,
+        "expect": [
+          {
+            "at": 0,
+            "conversationId": "c1",
+            "typing": true
+          },
+          {
+            "at": 700,
+            "conversationId": "c1",
+            "typing": false
+          }
+        ]
+      },
+      {
+        "name": "leaving when not typing reports nothing",
+        "steps": [
+          {
+            "at": 0,
+            "op": "close"
+          }
+        ],
+        "endAt": 5000,
+        "expect": []
+      },
+      {
+        "name": "the idle stop fires once, not on every tick",
+        "steps": [
+          {
+            "at": 0,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "h"
+          },
+          {
+            "at": 4000,
+            "op": "tick"
+          },
+          {
+            "at": 8000,
+            "op": "tick"
+          },
+          {
+            "at": 12000,
+            "op": "tick"
+          }
+        ],
+        "endAt": 20000,
+        "expect": [
+          {
+            "at": 0,
+            "conversationId": "c1",
+            "typing": true
+          },
+          {
+            "at": 4000,
+            "conversationId": "c1",
+            "typing": false
+          }
+        ]
+      },
+      {
+        "name": "typing again after an idle stop starts a new report",
+        "steps": [
+          {
+            "at": 0,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "h"
+          },
+          {
+            "at": 5000,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "he"
+          }
+        ],
+        "endAt": 5000,
+        "expect": [
+          {
+            "at": 0,
+            "conversationId": "c1",
+            "typing": true
+          },
+          {
+            "at": 4000,
+            "conversationId": "c1",
+            "typing": false
+          },
+          {
+            "at": 5000,
+            "conversationId": "c1",
+            "typing": true
+          }
+        ]
+      },
+      {
+        "name": "an edit pushes the idle deadline without refreshing the report",
+        "steps": [
+          {
+            "at": 0,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "hi"
+          },
+          {
+            "at": 1000,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "hi "
+          }
+        ],
+        "endAt": 6000,
+        "expect": [
+          {
+            "at": 0,
+            "conversationId": "c1",
+            "typing": true
+          },
+          {
+            "at": 5000,
+            "conversationId": "c1",
+            "typing": false
+          }
+        ]
+      },
+      {
+        "name": "clearing another conversation still stops the active one",
+        "steps": [
+          {
+            "at": 0,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "h"
+          },
+          {
+            "at": 500,
+            "op": "edit",
+            "conversationId": "c2",
+            "text": ""
+          }
+        ],
+        "endAt": 5000,
+        "expect": [
+          {
+            "at": 0,
+            "conversationId": "c1",
+            "typing": true
+          },
+          {
+            "at": 500,
+            "conversationId": "c1",
+            "typing": false
+          }
+        ]
+      },
+      {
+        "name": "sending in another conversation stops the active one",
+        "steps": [
+          {
+            "at": 0,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "h"
+          },
+          {
+            "at": 500,
+            "op": "send",
+            "conversationId": "c2"
+          }
+        ],
+        "endAt": 5000,
+        "expect": [
+          {
+            "at": 0,
+            "conversationId": "c1",
+            "typing": true
+          },
+          {
+            "at": 500,
+            "conversationId": "c1",
+            "typing": false
+          }
+        ]
+      },
+      {
+        "name": "repeated clears report one stop",
+        "steps": [
+          {
+            "at": 0,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "h"
+          },
+          {
+            "at": 100,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": ""
+          },
+          {
+            "at": 200,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": ""
+          },
+          {
+            "at": 300,
+            "op": "close"
+          }
+        ],
+        "endAt": 5000,
+        "expect": [
+          {
+            "at": 0,
+            "conversationId": "c1",
+            "typing": true
+          },
+          {
+            "at": 100,
+            "conversationId": "c1",
+            "typing": false
+          }
+        ]
+      },
+      {
+        "name": "an empty conversation id is never reported",
+        "steps": [
+          {
+            "at": 0,
+            "op": "edit",
+            "conversationId": "",
+            "text": "h"
+          },
+          {
+            "at": 500,
+            "op": "edit",
+            "conversationId": "c1",
+            "text": "h"
+          }
+        ],
+        "endAt": 500,
+        "expect": [
+          {
+            "at": 500,
+            "conversationId": "c1",
+            "typing": true
+          }
+        ]
+      }
+    ]
+  },
+  "roster": {
+    "note": "What this client believes about its peers. Facts in — someone started, someone stopped, the server listed everyone typing, a message arrived from a typer — and the people typing in a conversation out, in the order they started. Nothing here knows a wire shape: the app parses its own events and calls these, which is the boundary FR-093 drew. A belief expires `peerTtlMs` after the signal that made it, so a client that dies mid-sentence does not leave a peer typing forever.",
+    "driver": "For each step, advance time to `at` first (pruning anything that expired in that span, at its own deadline), then apply the step. After the last step, advance to `endAt`. Record the watched conversation's typers whenever they change; `expect` is that whole sequence. Ops: started{conversationId,userId}, stopped{conversationId,userId}, replaced{conversationId,userIds}, sent{conversationId,senderId}, prune{}.",
+    "selfId": "me",
+    "cases": [
+      {
+        "name": "one peer types, and is forgotten a ttl after the signal",
+        "watch": "c1",
+        "steps": [
+          {
+            "at": 0,
+            "op": "started",
+            "conversationId": "c1",
+            "userId": "u1"
+          }
+        ],
+        "endAt": 7000,
+        "expect": [
+          {
+            "at": 0,
+            "typers": [
+              "u1"
+            ]
+          },
+          {
+            "at": 6000,
+            "typers": []
+          }
+        ]
+      },
+      {
+        "name": "a fresh signal extends the belief",
+        "watch": "c1",
+        "steps": [
+          {
+            "at": 0,
+            "op": "started",
+            "conversationId": "c1",
+            "userId": "u1"
+          },
+          {
+            "at": 3000,
+            "op": "started",
+            "conversationId": "c1",
+            "userId": "u1"
+          }
+        ],
+        "endAt": 10000,
+        "expect": [
+          {
+            "at": 0,
+            "typers": [
+              "u1"
+            ]
+          },
+          {
+            "at": 9000,
+            "typers": []
+          }
+        ]
+      },
+      {
+        "name": "a peer re-announcing keeps its place in the order",
+        "watch": "c1",
+        "steps": [
+          {
+            "at": 0,
+            "op": "started",
+            "conversationId": "c1",
+            "userId": "u1"
+          },
+          {
+            "at": 100,
+            "op": "started",
+            "conversationId": "c1",
+            "userId": "u2"
+          },
+          {
+            "at": 200,
+            "op": "started",
+            "conversationId": "c1",
+            "userId": "u1"
+          }
+        ],
+        "endAt": 200,
+        "expect": [
+          {
+            "at": 0,
+            "typers": [
+              "u1"
+            ]
+          },
+          {
+            "at": 100,
+            "typers": [
+              "u1",
+              "u2"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "an explicit stop is immediate",
+        "watch": "c1",
+        "steps": [
+          {
+            "at": 0,
+            "op": "started",
+            "conversationId": "c1",
+            "userId": "u1"
+          },
+          {
+            "at": 500,
+            "op": "stopped",
+            "conversationId": "c1",
+            "userId": "u1"
+          }
+        ],
+        "endAt": 7000,
+        "expect": [
+          {
+            "at": 0,
+            "typers": [
+              "u1"
+            ]
+          },
+          {
+            "at": 500,
+            "typers": []
+          }
+        ]
+      },
+      {
+        "name": "two peers keep the order they started in",
+        "watch": "c1",
+        "steps": [
+          {
+            "at": 0,
+            "op": "started",
+            "conversationId": "c1",
+            "userId": "u1"
+          },
+          {
+            "at": 100,
+            "op": "started",
+            "conversationId": "c1",
+            "userId": "u2"
+          }
+        ],
+        "endAt": 100,
+        "expect": [
+          {
+            "at": 0,
+            "typers": [
+              "u1"
+            ]
+          },
+          {
+            "at": 100,
+            "typers": [
+              "u1",
+              "u2"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "one peer stopping leaves the others",
+        "watch": "c1",
+        "steps": [
+          {
+            "at": 0,
+            "op": "started",
+            "conversationId": "c1",
+            "userId": "u1"
+          },
+          {
+            "at": 100,
+            "op": "started",
+            "conversationId": "c1",
+            "userId": "u2"
+          },
+          {
+            "at": 200,
+            "op": "stopped",
+            "conversationId": "c1",
+            "userId": "u1"
+          }
+        ],
+        "endAt": 200,
+        "expect": [
+          {
+            "at": 0,
+            "typers": [
+              "u1"
+            ]
+          },
+          {
+            "at": 100,
+            "typers": [
+              "u1",
+              "u2"
+            ]
+          },
+          {
+            "at": 200,
+            "typers": [
+              "u2"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "each peer expires on its own signal, not together",
+        "watch": "c1",
+        "steps": [
+          {
+            "at": 0,
+            "op": "started",
+            "conversationId": "c1",
+            "userId": "u1"
+          },
+          {
+            "at": 2000,
+            "op": "started",
+            "conversationId": "c1",
+            "userId": "u2"
+          }
+        ],
+        "endAt": 9000,
+        "expect": [
+          {
+            "at": 0,
+            "typers": [
+              "u1"
+            ]
+          },
+          {
+            "at": 2000,
+            "typers": [
+              "u1",
+              "u2"
+            ]
+          },
+          {
+            "at": 6000,
+            "typers": [
+              "u2"
+            ]
+          },
+          {
+            "at": 8000,
+            "typers": []
+          }
+        ]
+      },
+      {
+        "name": "a listing replaces the whole conversation",
+        "watch": "c1",
+        "steps": [
+          {
+            "at": 0,
+            "op": "started",
+            "conversationId": "c1",
+            "userId": "u1"
+          },
+          {
+            "at": 100,
+            "op": "replaced",
+            "conversationId": "c1",
+            "userIds": [
+              "u2",
+              "u3"
+            ]
+          }
+        ],
+        "endAt": 100,
+        "expect": [
+          {
+            "at": 0,
+            "typers": [
+              "u1"
+            ]
+          },
+          {
+            "at": 100,
+            "typers": [
+              "u2",
+              "u3"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "an empty listing clears the conversation",
+        "watch": "c1",
+        "steps": [
+          {
+            "at": 0,
+            "op": "started",
+            "conversationId": "c1",
+            "userId": "u1"
+          },
+          {
+            "at": 100,
+            "op": "replaced",
+            "conversationId": "c1",
+            "userIds": []
+          }
+        ],
+        "endAt": 100,
+        "expect": [
+          {
+            "at": 0,
+            "typers": [
+              "u1"
+            ]
+          },
+          {
+            "at": 100,
+            "typers": []
+          }
+        ]
+      },
+      {
+        "name": "an empty listing on a quiet conversation says nothing new",
+        "watch": "c1",
+        "steps": [
+          {
+            "at": 0,
+            "op": "replaced",
+            "conversationId": "c1",
+            "userIds": []
+          }
+        ],
+        "endAt": 100,
+        "expect": []
+      },
+      {
+        "name": "a listing restarts the window for everyone in it",
+        "watch": "c1",
+        "steps": [
+          {
+            "at": 0,
+            "op": "started",
+            "conversationId": "c1",
+            "userId": "u1"
+          },
+          {
+            "at": 4000,
+            "op": "replaced",
+            "conversationId": "c1",
+            "userIds": [
+              "u1"
+            ]
+          }
+        ],
+        "endAt": 11000,
+        "expect": [
+          {
+            "at": 0,
+            "typers": [
+              "u1"
+            ]
+          },
+          {
+            "at": 10000,
+            "typers": []
+          }
+        ]
+      },
+      {
+        "name": "a message from a typer ends their typing",
+        "watch": "c1",
+        "steps": [
+          {
+            "at": 0,
+            "op": "started",
+            "conversationId": "c1",
+            "userId": "u1"
+          },
+          {
+            "at": 100,
+            "op": "sent",
+            "conversationId": "c1",
+            "senderId": "u1"
+          }
+        ],
+        "endAt": 7000,
+        "expect": [
+          {
+            "at": 0,
+            "typers": [
+              "u1"
+            ]
+          },
+          {
+            "at": 100,
+            "typers": []
+          }
+        ]
+      },
+      {
+        "name": "a message from someone else leaves the typer alone",
+        "watch": "c1",
+        "steps": [
+          {
+            "at": 0,
+            "op": "started",
+            "conversationId": "c1",
+            "userId": "u1"
+          },
+          {
+            "at": 100,
+            "op": "sent",
+            "conversationId": "c1",
+            "senderId": "u2"
+          }
+        ],
+        "endAt": 100,
+        "expect": [
+          {
+            "at": 0,
+            "typers": [
+              "u1"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "my own typing never shows here",
+        "watch": "c1",
+        "steps": [
+          {
+            "at": 0,
+            "op": "started",
+            "conversationId": "c1",
+            "userId": "me"
+          }
+        ],
+        "endAt": 100,
+        "expect": []
+      },
+      {
+        "name": "my own id is dropped from a listing",
+        "watch": "c1",
+        "steps": [
+          {
+            "at": 0,
+            "op": "replaced",
+            "conversationId": "c1",
+            "userIds": [
+              "me",
+              "u1"
+            ]
+          }
+        ],
+        "endAt": 100,
+        "expect": [
+          {
+            "at": 0,
+            "typers": [
+              "u1"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "conversations are independent",
+        "watch": "c1",
+        "steps": [
+          {
+            "at": 0,
+            "op": "started",
+            "conversationId": "c1",
+            "userId": "u1"
+          },
+          {
+            "at": 100,
+            "op": "started",
+            "conversationId": "c2",
+            "userId": "u2"
+          }
+        ],
+        "endAt": 100,
+        "expect": [
+          {
+            "at": 0,
+            "typers": [
+              "u1"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "a stop for someone who was not typing says nothing",
+        "watch": "c1",
+        "steps": [
+          {
+            "at": 0,
+            "op": "stopped",
+            "conversationId": "c1",
+            "userId": "u1"
+          }
+        ],
+        "endAt": 100,
+        "expect": []
+      },
+      {
+        "name": "typing again after the belief expired starts a new one",
+        "watch": "c1",
+        "steps": [
+          {
+            "at": 0,
+            "op": "started",
+            "conversationId": "c1",
+            "userId": "u1"
+          },
+          {
+            "at": 7000,
+            "op": "started",
+            "conversationId": "c1",
+            "userId": "u1"
+          }
+        ],
+        "endAt": 7000,
+        "expect": [
+          {
+            "at": 0,
+            "typers": [
+              "u1"
+            ]
+          },
+          {
+            "at": 6000,
+            "typers": []
+          },
+          {
+            "at": 7000,
+            "typers": [
+              "u1"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "an empty user id is not a peer",
+        "watch": "c1",
+        "steps": [
+          {
+            "at": 0,
+            "op": "started",
+            "conversationId": "c1",
+            "userId": ""
+          },
+          {
+            "at": 100,
+            "op": "replaced",
+            "conversationId": "c1",
+            "userIds": [
+              "",
+              "u1"
+            ]
+          }
+        ],
+        "endAt": 100,
+        "expect": [
+          {
+            "at": 100,
+            "typers": [
+              "u1"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "an empty conversation id is not a conversation",
+        "watch": "c1",
+        "steps": [
+          {
+            "at": 0,
+            "op": "started",
+            "conversationId": "",
+            "userId": "u1"
+          }
+        ],
+        "endAt": 100,
+        "expect": []
+      },
+      {
+        "name": "the next expiry is the soonest belief",
+        "watch": "c1",
+        "steps": [
+          {
+            "at": 0,
+            "op": "started",
+            "conversationId": "c1",
+            "userId": "u1"
+          },
+          {
+            "at": 1000,
+            "op": "started",
+            "conversationId": "c2",
+            "userId": "u2"
+          }
+        ],
+        "endAt": 1000,
+        "expect": [
+          {
+            "at": 0,
+            "typers": [
+              "u1"
+            ]
+          }
+        ],
+        "nextExpiryAtEnd": 6000
+      },
+      {
+        "name": "nothing typing has no next expiry",
+        "watch": "c1",
+        "steps": [
+          {
+            "at": 0,
+            "op": "started",
+            "conversationId": "c1",
+            "userId": "u1"
+          },
+          {
+            "at": 100,
+            "op": "stopped",
+            "conversationId": "c1",
+            "userId": "u1"
+          }
+        ],
+        "endAt": 100,
+        "expect": [
+          {
+            "at": 0,
+            "typers": [
+              "u1"
+            ]
+          },
+          {
+            "at": 100,
+            "typers": []
+          }
+        ],
+        "nextExpiryAtEnd": null
+      }
+    ]
+  }
+}

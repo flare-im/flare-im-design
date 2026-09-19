@@ -1,0 +1,10 @@
+{
+  "note": "One conversation-kind vocabulary for every kit and every component (FR-056): the header and the timeline stopped naming the same concept differently.",
+  "kinds": [
+    "single",
+    "group",
+    "channel",
+    "ai",
+    "system"
+  ]
+}

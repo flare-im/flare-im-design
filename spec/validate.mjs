@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Validates the L2 component contract: completeness + that the reference
 // symbols actually exist in the realised packages (anti-drift, like sdk-spec's
-// two-way coverage). Vue = flare-im-design/vue-im-ui; Flutter = flutter-im-ui.
+// two-way coverage). Vue = flare-im-design/packages/vue-im-ui; Flutter = packages/flutter-im-ui.
 // Run: node validate.mjs
 import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -11,10 +11,10 @@ import { PLATFORMS, vueExportMap, loadSurface, compareComponent } from "./signat
 
 const here = dirname(fileURLToPath(import.meta.url));
 const spec = JSON.parse(readFileSync(join(here, "components.json"), "utf8"));
-const vueRoot = join(here, "../vue-im-ui/src");
-const flutterRoot = join(here, "../flutter-im-ui/lib");
-const iosRoot = join(here, "../ios-im-ui/Sources");
-const composeRoot = join(here, "../android-im-ui/src/main");
+const vueRoot = join(here, "../packages/vue-im-ui/src");
+const flutterRoot = join(here, "../packages/flutter-im-ui/lib");
+const iosRoot = join(here, "../packages/ios-im-ui/Sources");
+const composeRoot = join(here, "../packages/android-im-ui/src/main");
 
 const errors = [];
 const coverage = {}; // platform -> 未实现的组件名列表
@@ -125,13 +125,13 @@ for (const c of spec.components) {
   const sym = c.platforms?.vue?.symbol;
   if (sym && !planned) {
     const files = vueExports[sym] && existsSync(vueExports[sym]) ? [vueExports[sym]] : [];
-    if (!files.length) errors.push(`${where}: Vue symbol ${sym} is not exported from vue-im-ui/src/components/index.ts`);
+    if (!files.length) errors.push(`${where}: Vue symbol ${sym} is not exported from packages/vue-im-ui/src/components/index.ts`);
     else {
       // 事件与 props 的实现一致性由下方「四端签名」段统一校验（含平台范围与别名）。
     }
   }
 
-  // anti-drift: the Flutter symbol must exist as a Dart class in flutter-im-ui
+  // anti-drift: the Flutter symbol must exist as a Dart class in packages/flutter-im-ui
   const fsym = c.platforms?.flutter?.symbol;
   if (fsym && !planned) {
     let found = false;
@@ -142,10 +142,10 @@ for (const c of spec.components) {
       );
       found = out.trim().length > 0;
     } catch { /* grep found nothing → non-zero exit */ }
-    if (!found) errors.push(`${where}: Flutter symbol class ${fsym} not found in flutter-im-ui`);
+    if (!found) errors.push(`${where}: Flutter symbol class ${fsym} not found in packages/flutter-im-ui`);
   }
 
-  // anti-drift: the iOS symbol must exist as a SwiftUI struct in ios-im-ui
+  // anti-drift: the iOS symbol must exist as a SwiftUI struct in packages/ios-im-ui
   const isym = c.platforms?.ios?.symbol;
   if (isym && !planned) {
     let found = false;
@@ -156,7 +156,7 @@ for (const c of spec.components) {
       );
       found = out.trim().length > 0;
     } catch { /* none */ }
-    if (!found) errors.push(`${where}: iOS symbol ${isym} not found in ios-im-ui`);
+    if (!found) errors.push(`${where}: iOS symbol ${isym} not found in packages/ios-im-ui`);
   }
 
   // anti-drift: the Compose symbol must exist as a @Composable fun in compose-im-ui
@@ -174,15 +174,105 @@ for (const c of spec.components) {
   }
 }
 
+// Message lifecycle is a cross-platform semantic contract, not another visual
+// status enum. Exact dimensions are pinned so future edits cannot silently
+// collapse transfer, send, delivery, read, mutation, or ephemeral state.
+{
+  const expected = {
+    transfer: ["idle", "queued", "transferring", "paused", "completed", "failed", "cancelled"],
+    send: ["draft", "sending", "sent", "failed"],
+    delivery: ["serverAccepted", "delivered", "partiallyDelivered"],
+    read: ["unread", "partiallyRead", "read"],
+    mutation: ["normal", "edited", "recalled", "deleted"],
+    ephemeral: ["none", "readOnce", "burnAfterRead", "expired"],
+  };
+  const actual = spec.messageLifecycle?.dimensions;
+  if (!actual) errors.push("messageLifecycle.dimensions is required");
+  for (const [dimension, values] of Object.entries(expected)) {
+    if (JSON.stringify(actual?.[dimension]) !== JSON.stringify(values))
+      errors.push(`messageLifecycle.${dimension} must be ${JSON.stringify(values)}`);
+  }
+  const lifecycleSources = [
+    "packages/vue-im-ui/src/shared/contracts/message-lifecycle.ts",
+    "packages/flutter-im-ui/lib/src/models/message_lifecycle.dart",
+    "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/MessageLifecycle.kt",
+    "packages/ios-im-ui/Sources/FlareIMUI/Models/MessageLifecycle.swift",
+  ];
+  for (const rel of lifecycleSources)
+    if (!existsSync(join(here, "..", rel))) errors.push(`message lifecycle implementation missing: ${rel}`);
+}
+
+// Host-level layout is distinct from conversation responsiveness. Pin the
+// region and breakpoint namespaces so generic md/lg aliases cannot become the
+// long-term contract again.
+{
+  const expectedRegions = ["navigation", "primaryPane", "contentPane", "detailPane", "overlayHost", "commandHost"];
+  if (JSON.stringify(spec.desktopShell?.regions) !== JSON.stringify(expectedRegions))
+    errors.push(`desktopShell.regions must be ${JSON.stringify(expectedRegions)}`);
+  const requiredLayouts = ["AppLayout", "MobileAppShell", "DesktopAppShell"];
+  for (const name of requiredLayouts)
+    if (!spec.components.some((component) => component.name === name)) errors.push(`desktop shell component missing: ${name}`);
+  const tokenSource = JSON.parse(readFileSync(join(here, "../tokens/tokens.json"), "utf8"));
+  const expectedBreakpoints = {
+    appShellCompact: "900px",
+    appShellExpanded: "1500px",
+  };
+  for (const [name, value] of Object.entries(expectedBreakpoints))
+    if (tokenSource.breakpoints?.[name] !== value) errors.push(`breakpoint token ${name} must be ${value}`);
+  // How many panes fit is one content rule (spec/application-layout-vectors.json `panes`, FR-110), not a
+  // width: a breakpoint or a size for it is a second answer to the same question, which is how 720 and 752
+  // came to disagree. The pane columns have one name each (primaryPane*, detailPane*).
+  const paneThresholds = [
+    ...Object.keys(tokenSource.breakpoints ?? {}).filter((name) => /pane/i.test(name)),
+    ...Object.keys(tokenSource.sizes?.layout ?? {}).filter((name) => /(dual|triple)Pane/i.test(name)),
+  ];
+  for (const name of paneThresholds) errors.push(`token ${name}: pane counts come from the pane rule, not a threshold token`);
+  for (const name of Object.keys(tokenSource.sizes?.layout ?? {}).filter((name) => /Panel$/.test(name)))
+    errors.push(`layout token ${name}: a pane column is primaryPane* or detailPane*, one name per column`);
+  if (JSON.stringify(Object.keys(spec.desktopShell?.breakpoints ?? {})) !== JSON.stringify(["appShell"]))
+    errors.push("desktopShell.breakpoints must name only the appShell namespace: pane counts come from the pane rule");
+}
+
 // ── 四端签名 vs 契约（棘轮）──────────────────────────────────────────────
+// Accessibility contract completeness is ratcheted independently from public
+// API signatures. Components with events are interactive by definition.
+{
+  const required = spec.accessibilityContract?.requiredFields ?? [];
+  const missing = [];
+  for (const c of spec.components) {
+    if (!(c.events ?? []).length) continue;
+    for (const field of required) {
+      const value = c.accessibility?.[field];
+      if (value === undefined || value === null || value === "" || (Array.isArray(value) && value.length === 0))
+        missing.push(`${c.name}.${field}`);
+    }
+    const target = c.accessibility?.touchTarget;
+    if ((target?.minWidth ?? 0) < 48 || (target?.minHeight ?? 0) < 48)
+      missing.push(`${c.name}.touchTarget<48`);
+  }
+  const baselinePath = join(here, "accessibility-baseline.json");
+  const baseline = existsSync(baselinePath)
+    ? JSON.parse(readFileSync(baselinePath, "utf8")).missing ?? []
+    : [];
+  for (const item of missing)
+    if (!baseline.includes(item)) errors.push(`accessibility contract missing: ${item}`);
+  for (const item of baseline)
+    if (!missing.includes(item)) errors.push(`accessibility-baseline.json is stale: ${item}`);
+}
+
 // 每个组件每个端：契约声明的 props/事件必须能在实现签名里找到（允许 lexicon /
 // eventAliases / platformAliases 登记的平台惯用名），实现里的 onXxx 回调也必须在
 // 契约里。历史差异记在 signature-baseline.json；这里只允许差异集合缩小：
 //   · 出现基线里没有的差异 → 错（契约或实现漂移了）
 //   · 基线里的差异已经消失 → 也错，提示重生成基线（否则基线自己会腐烂）
+//   · 基线里的差异没有在组件 signatureDifferences 里登记 → 错（不能把差异偷偷塞进 baseline）
 {
   const baselinePath = join(here, "signature-baseline.json");
   const baseline = existsSync(baselinePath) ? JSON.parse(readFileSync(baselinePath, "utf8")) : {};
+  const registeredBaseline = (componentName, platform, kind, value) => {
+    const comp = spec.components.find((c) => c.name === componentName);
+    return !!comp?.signatureDifferences?.[platform]?.[kind]?.includes(value);
+  };
   const current = {};
   for (const c of spec.components) {
     if (c.status === "planned") continue;
@@ -198,6 +288,8 @@ for (const c of spec.components) {
       ];
       if (items.length) (current[c.name] ??= {})[p] = { missingProps: d.missingProps, missingEvents: d.missingEvents, extraEvents: d.extraEvents };
       const base = baseline[c.name]?.[p] ?? { missingProps: [], missingEvents: [], extraEvents: [] };
+      for (const k of ["missingProps", "missingEvents", "extraEvents"])
+        for (const x of base[k] ?? []) if (!registeredBaseline(c.name, p, k, x)) errors.push(`signature-baseline.json has unregistered diff: "${c.name}" [${p}] ${k} "${x}" must be recorded in components.json signatureDifferences before it can be tolerated`);
       for (const x of d.missingProps) if (!base.missingProps?.includes(x)) errors.push(`component "${c.name}" [${p}]: prop "${x}" is declared in the contract but the ${c.platforms[p].symbol} signature has no such parameter (add it, scope the prop with "platforms", or register an alias)`);
       for (const x of d.missingEvents) if (!base.missingEvents?.includes(x)) errors.push(`component "${c.name}" [${p}]: event "${x}" is declared in the contract but ${c.platforms[p].symbol} has no matching callback`);
       for (const x of d.extraEvents) if (!base.extraEvents?.includes(x)) errors.push(`component "${c.name}" [${p}]: ${c.platforms[p].symbol} exposes callback "${x}" that the contract does not declare`);
@@ -212,26 +304,23 @@ for (const c of spec.components) {
   }
 }
 
-// Hand-written component/category counts in the docs drift the moment the spec
-// grows. The site claims the spec is the single source of truth — hold it to that.
+// Public counts must come from the generated catalog, never hand-written page
+// strings that drift when the contract grows.
 {
   const total = spec.components.length;
   const cats = new Set(spec.components.map((c) => c.category)).size;
-  const docs = [
-    ["site/index.md", `${total} 个组件 · ${cats} 大类`],
-    ["site/guide/getting-started.md", `全部 ${total} 个组件`],
-    ["site/en/index.md", `${total} components · ${cats} categories`],
-    ["site/en/guide/getting-started.md", `all ${total} components`],
-  ];
-  for (const [rel, expected] of docs) {
+  for (const rel of ["website/index.md", "website/en/index.md"]) {
     const p = join(here, "..", rel);
     if (!existsSync(p)) continue;
     const text = readFileSync(p, "utf8");
-    if (!text.includes(expected)) {
-      errors.push(
-        `${rel}: stale count — expected to find "${expected}" (spec has ${total} components / ${cats} categories)`,
-      );
-    }
+    if (!text.includes("<CatalogSummary />")) errors.push(`${rel}: catalog summary must be generated from spec/component-catalog.json`);
+  }
+  const catalogPath = join(here, "component-catalog.json");
+  if (existsSync(catalogPath)) {
+    const catalog = JSON.parse(readFileSync(catalogPath, "utf8"));
+    if (catalog.counts?.total !== total) errors.push(`component-catalog.json total is stale: ${catalog.counts?.total} != ${total}`);
+    const catalogCats = new Set(catalog.components?.map((c) => c.category)).size;
+    if (catalogCats !== cats) errors.push(`component-catalog.json categories are stale: ${catalogCats} != ${cats}`);
   }
 }
 
@@ -243,16 +332,16 @@ for (const c of spec.components) {
 // a manifest edit cannot land on one side only.
 {
   const src = join(here, "../assets/emoji-sticker");
-  const mirror = join(here, "../ios-im-ui/Sources/FlareIMUI/Resources/emoji-sticker");
+  const mirror = join(here, "../packages/ios-im-ui/Sources/FlareIMUI/Resources/emoji-sticker");
   for (const rel of ["manifest.json", "emoji-locales.json", "stickers/classic/manifest.json"]) {
     const a = join(src, rel);
     const b = join(mirror, rel);
     if (!existsSync(b)) {
-      errors.push(`ios-im-ui resource mirror missing ${rel} — run ios-im-ui/sync-resources.sh and commit it`);
+      errors.push(`packages/ios-im-ui resource mirror missing ${rel} — run packages/ios-im-ui/sync-resources.sh and commit it`);
       continue;
     }
     if (readFileSync(a, "utf8") !== readFileSync(b, "utf8")) {
-      errors.push(`ios-im-ui resource mirror ${rel} differs from assets/emoji-sticker — run ios-im-ui/sync-resources.sh`);
+      errors.push(`packages/ios-im-ui resource mirror ${rel} differs from assets/emoji-sticker — run packages/ios-im-ui/sync-resources.sh`);
     }
   }
 }

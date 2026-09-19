@@ -1,0 +1,41 @@
+{
+  "note": "Shared truth for the theme a kit draws. The host owns one value — the person's choice — and the kit resolves it: `light` and `dark` are the person overriding the system, `system` follows the platform's own setting (`prefers-color-scheme` on the web, the enclosing Material theme on Flutter, which `MaterialApp` resolves from the platform for `ThemeMode.system`, `isSystemInDarkTheme()` on Compose, the environment's `colorScheme` on SwiftUI). Each kit implements one pure function over this table — Vue `flareThemeIsDark(mode, systemDark)`, Flutter `flareThemeIsDark(mode, systemDark:)`, SwiftUI `flareThemeIsDark(_:systemDark:)`, Compose `flareThemeIsDark(mode, systemDark)` — and its theme provider passes the platform's own answer as `systemDark`. Storing the choice is the host's: the Vue provider keeps its web storage, and the three native providers take the mode the host holds. The labels a host draws for the three values are in every kit's strings table (`themeSystem` / `themeLight` / `themeDark`, Vue `theme.system` / `theme.light` / `theme.dark`), so five apps stop writing the same three words.",
+  "cases": [
+    {
+      "id": "light-while-the-system-is-light",
+      "mode": "light",
+      "systemDark": false,
+      "dark": false
+    },
+    {
+      "id": "light-while-the-system-is-dark",
+      "mode": "light",
+      "systemDark": true,
+      "dark": false
+    },
+    {
+      "id": "dark-while-the-system-is-light",
+      "mode": "dark",
+      "systemDark": false,
+      "dark": true
+    },
+    {
+      "id": "dark-while-the-system-is-dark",
+      "mode": "dark",
+      "systemDark": true,
+      "dark": true
+    },
+    {
+      "id": "system-while-the-system-is-light",
+      "mode": "system",
+      "systemDark": false,
+      "dark": false
+    },
+    {
+      "id": "system-while-the-system-is-dark",
+      "mode": "system",
+      "systemDark": true,
+      "dark": true
+    }
+  ]
+}

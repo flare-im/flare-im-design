@@ -1,6 +1,6 @@
 {
   "name": "@flare-im/tokens",
-  "version": "1.0.5",
+  "version": "2.0.0-rc.1",
   "description": "Flare IM design tokens \u2014 one neutral source of visual truth, generated per platform (L3 of the Flare IM UI Kit).",
   "license": "Apache-2.0",
   "type": "module",
@@ -12,6 +12,7 @@
   "files": [
     "dist",
     "tokens.json",
+    "themes.json",
     "build.mjs",
     "theme.js",
     "theme.d.ts",
@@ -24,6 +25,7 @@
     },
     "./tokens.css": "./dist/tokens.css",
     "./tokens.json": "./tokens.json",
+    "./themes.json": "./themes.json",
     "./theme": {
       "types": "./theme.d.ts",
       "default": "./theme.js"

@@ -1,0 +1,38 @@
+{
+  "note": "Moments privacy in words, not SDK codes (FR-100). A host maps its own numbers to these once; the kits only ever see the names.",
+  "visibility": [
+    "friends",
+    "public",
+    "private"
+  ],
+  "audienceMode": [
+    "everyone",
+    "include",
+    "exclude"
+  ],
+  "historyRange": [
+    "all",
+    "threeDays",
+    "oneMonth",
+    "sixMonths"
+  ],
+  "legacyCodes": {
+    "note": "What the five reference apps mapped from, recorded so a host migrating its own mapping can check it.",
+    "visibility": {
+      "0": "friends",
+      "1": "public",
+      "2": "private"
+    },
+    "audienceMode": {
+      "0": "everyone",
+      "1": "include",
+      "2": "exclude"
+    },
+    "historyRange": {
+      "0": "all",
+      "1": "threeDays",
+      "2": "oneMonth",
+      "3": "sixMonths"
+    }
+  }
+}

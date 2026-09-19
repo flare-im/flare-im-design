@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "theme-switching",
+  "description": "One chat workspace rendered through the shared semantic theme contract.",
+  "themes": ["violet", "ocean", "forest", "sunset", "rose", "graphite"],
+  "modes": ["light", "dark"],
+  "platforms": ["vue", "flutter", "compose", "ios"],
+  "components": [
+    { "name": "ConversationList", "state": "default" },
+    { "name": "ConversationRow", "state": "selected" },
+    { "name": "MessageBubble", "state": "incoming" },
+    { "name": "MessageBubble", "state": "outgoing" },
+    { "name": "MessageBubble", "state": "failed" },
+    { "name": "MessageStatus", "state": "read" },
+    { "name": "ReactionSummary", "state": "selected" },
+    { "name": "Composer", "state": "focus" },
+    { "name": "Button", "state": "primary" }
+  ],
+  "assertions": [
+    "incoming messages remain neutral and readable",
+    "outgoing messages use the active brand message mapping",
+    "read status uses the active brand message mapping",
+    "failed messages use danger semantics",
+    "selected reactions use the active brand message mapping",
+    "selected conversations use the active brand selection mapping",
+    "composer focus and send action use the active brand mapping",
+    "all text and status combinations meet the token contrast gate"
+  ]
+}

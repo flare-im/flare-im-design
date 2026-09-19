@@ -1,0 +1,205 @@
+{
+  "note": "Shared truth for a conversation's image gallery: which images a full-screen preview opened from a timeline pages through, in what order, and where it starts. The four kits build it from the messages their timeline holds and read this file in their tests. `messages` are in timeline order (oldest first), each with an `id`, a `kind`, `recalled` when it was recalled, and for an `image` or an `imageGroup` its `images`: one entry per picture, the string being what the kit can load it from (an address; on Vue also a stored media id the host's resolver turns into one) and `\"\"` when there is nothing to load. Items: every picture of every image and album message, in timeline order and album order, skipping recalled messages, pictures with nothing to load, and every other kind (a sticker, an emoji or a video is not a picture here). An item is written `messageId#index`, the index being the picture's place in its own message, so an album keeps its indices when a picture is skipped. `opens`: a tap on the picture at `index` of `message` starts the gallery at `start`, that item's position; `start` is null when the picture is not an item (recalled, nothing to load, or no such message), and the kit then opens that one picture as it would outside a timeline, if it can.",
+  "cases": [
+    {
+      "id": "images-and-albums-in-timeline-order",
+      "messages": [
+        {
+          "id": "m1",
+          "kind": "image",
+          "images": [
+            "https://cdn.example/1.jpg"
+          ]
+        },
+        {
+          "id": "m2",
+          "kind": "text"
+        },
+        {
+          "id": "m3",
+          "kind": "imageGroup",
+          "images": [
+            "https://cdn.example/2.jpg",
+            "",
+            "https://cdn.example/4.jpg"
+          ]
+        },
+        {
+          "id": "m4",
+          "kind": "image",
+          "images": [
+            "https://cdn.example/5.jpg"
+          ],
+          "recalled": true
+        },
+        {
+          "id": "m5",
+          "kind": "sticker"
+        },
+        {
+          "id": "m6",
+          "kind": "video"
+        },
+        {
+          "id": "m7",
+          "kind": "image",
+          "images": [
+            "https://cdn.example/7.jpg"
+          ]
+        }
+      ],
+      "items": [
+        "m1#0",
+        "m3#0",
+        "m3#2",
+        "m7#0"
+      ],
+      "opens": [
+        {
+          "message": "m1",
+          "index": 0,
+          "start": 0
+        },
+        {
+          "message": "m3",
+          "index": 2,
+          "start": 2
+        },
+        {
+          "message": "m7",
+          "index": 0,
+          "start": 3
+        },
+        {
+          "message": "m3",
+          "index": 1,
+          "start": null
+        },
+        {
+          "message": "m4",
+          "index": 0,
+          "start": null
+        },
+        {
+          "message": "m9",
+          "index": 0,
+          "start": null
+        }
+      ]
+    },
+    {
+      "id": "an-album-past-its-drawn-tiles",
+      "messages": [
+        {
+          "id": "a",
+          "kind": "imageGroup",
+          "images": [
+            "img-0",
+            "img-1",
+            "img-2",
+            "img-3",
+            "img-4",
+            "img-5",
+            "img-6",
+            "img-7",
+            "img-8",
+            "img-9",
+            "img-10",
+            "img-11"
+          ]
+        }
+      ],
+      "items": [
+        "a#0",
+        "a#1",
+        "a#2",
+        "a#3",
+        "a#4",
+        "a#5",
+        "a#6",
+        "a#7",
+        "a#8",
+        "a#9",
+        "a#10",
+        "a#11"
+      ],
+      "opens": [
+        {
+          "message": "a",
+          "index": 8,
+          "start": 8
+        },
+        {
+          "message": "a",
+          "index": 11,
+          "start": 11
+        },
+        {
+          "message": "a",
+          "index": 12,
+          "start": null
+        }
+      ]
+    },
+    {
+      "id": "a-recalled-album-is-not-in-the-gallery",
+      "messages": [
+        {
+          "id": "x",
+          "kind": "imageGroup",
+          "images": [
+            "https://cdn.example/x0.jpg",
+            "https://cdn.example/x1.jpg"
+          ],
+          "recalled": true
+        },
+        {
+          "id": "y",
+          "kind": "image",
+          "images": [
+            ""
+          ]
+        },
+        {
+          "id": "z",
+          "kind": "image",
+          "images": [
+            "https://cdn.example/z.jpg"
+          ]
+        }
+      ],
+      "items": [
+        "z#0"
+      ],
+      "opens": [
+        {
+          "message": "x",
+          "index": 1,
+          "start": null
+        },
+        {
+          "message": "y",
+          "index": 0,
+          "start": null
+        },
+        {
+          "message": "z",
+          "index": 0,
+          "start": 0
+        }
+      ]
+    },
+    {
+      "id": "an-empty-timeline",
+      "messages": [],
+      "items": [],
+      "opens": [
+        {
+          "message": "m1",
+          "index": 0,
+          "start": null
+        }
+      ]
+    }
+  ]
+}

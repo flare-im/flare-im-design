@@ -1,0 +1,513 @@
+{
+  "version": 1,
+  "note": "When what someone typed and did not send is written down, and what it is written as. Five apps had five answers, and none of them was the same lifetime: the web app saved to the core after 1200 ms (so it roamed to another device), the Tauri app to localStorage after 450 ms (so it survived a restart on that machine only), the Android app to a map in memory (so it survived switching conversations and nothing else), and the Flutter and iOS apps did not save at all — leave the chat and what you typed was gone. 'Draft' meant four different things. Times are milliseconds.",
+  "rules": {
+    "saveDelayMs": 1200,
+    "blankIsCleared": "A draft that trims to nothing is stored as the empty string, which is what clears it. A row with an empty draft is an ordinary row, not a row with an empty draft on it.",
+    "editingIsNotADraft": "Editing a sent message is not composing: the text in the box belongs to that message. The host simply does not report those edits here, and the draft it had before the edit started is waiting when the edit ends.",
+    "failedSendIsImmediate": "A send that reached nothing puts its text back at once, never on the timer: a draft lost to a pending save is the one case where losing it is unforgivable."
+  },
+  "driver": "For each step, advance time to `at` first — firing the pending save if its deadline falls in that span, timestamped at the deadline — then apply the step. After the last step, advance to `endAt`. Ops: seed{conversationId,text}, edit{conversationId,text}, send{conversationId}, restore{conversationId,text}, leave{}, tick{}.",
+  "cases": [
+    {
+      "name": "one edit is written down after the pause",
+      "steps": [
+        {
+          "at": 0,
+          "op": "edit",
+          "conversationId": "c1",
+          "text": "hi"
+        }
+      ],
+      "endAt": 2000,
+      "expect": [
+        {
+          "at": 1200,
+          "conversationId": "c1",
+          "text": "hi"
+        }
+      ]
+    },
+    {
+      "name": "edits inside the window are written once, as the last of them",
+      "steps": [
+        {
+          "at": 0,
+          "op": "edit",
+          "conversationId": "c1",
+          "text": "h"
+        },
+        {
+          "at": 400,
+          "op": "edit",
+          "conversationId": "c1",
+          "text": "hi"
+        },
+        {
+          "at": 900,
+          "op": "edit",
+          "conversationId": "c1",
+          "text": "hi t"
+        }
+      ],
+      "endAt": 3000,
+      "expect": [
+        {
+          "at": 2100,
+          "conversationId": "c1",
+          "text": "hi t"
+        }
+      ]
+    },
+    {
+      "name": "leaving writes it down at once, not on the timer",
+      "steps": [
+        {
+          "at": 0,
+          "op": "edit",
+          "conversationId": "c1",
+          "text": "hi"
+        },
+        {
+          "at": 300,
+          "op": "leave"
+        }
+      ],
+      "endAt": 3000,
+      "expect": [
+        {
+          "at": 300,
+          "conversationId": "c1",
+          "text": "hi"
+        }
+      ]
+    },
+    {
+      "name": "leaving with nothing pending writes nothing",
+      "steps": [
+        {
+          "at": 0,
+          "op": "leave"
+        }
+      ],
+      "endAt": 3000,
+      "expect": []
+    },
+    {
+      "name": "leaving twice writes once",
+      "steps": [
+        {
+          "at": 0,
+          "op": "edit",
+          "conversationId": "c1",
+          "text": "hi"
+        },
+        {
+          "at": 300,
+          "op": "leave"
+        },
+        {
+          "at": 400,
+          "op": "leave"
+        }
+      ],
+      "endAt": 3000,
+      "expect": [
+        {
+          "at": 300,
+          "conversationId": "c1",
+          "text": "hi"
+        }
+      ]
+    },
+    {
+      "name": "sending clears what was stored",
+      "steps": [
+        {
+          "at": 0,
+          "op": "seed",
+          "conversationId": "c1",
+          "text": "hi"
+        },
+        {
+          "at": 100,
+          "op": "send",
+          "conversationId": "c1"
+        }
+      ],
+      "endAt": 3000,
+      "expect": [
+        {
+          "at": 100,
+          "conversationId": "c1",
+          "text": ""
+        }
+      ]
+    },
+    {
+      "name": "sending with nothing stored writes nothing",
+      "steps": [
+        {
+          "at": 0,
+          "op": "send",
+          "conversationId": "c1"
+        }
+      ],
+      "endAt": 3000,
+      "expect": []
+    },
+    {
+      "name": "sending cancels the pending save instead of writing it twice",
+      "steps": [
+        {
+          "at": 0,
+          "op": "edit",
+          "conversationId": "c1",
+          "text": "hi"
+        },
+        {
+          "at": 300,
+          "op": "send",
+          "conversationId": "c1"
+        }
+      ],
+      "endAt": 3000,
+      "expect": []
+    },
+    {
+      "name": "sending after a save clears it",
+      "steps": [
+        {
+          "at": 0,
+          "op": "edit",
+          "conversationId": "c1",
+          "text": "hi"
+        },
+        {
+          "at": 2000,
+          "op": "send",
+          "conversationId": "c1"
+        }
+      ],
+      "endAt": 3000,
+      "expect": [
+        {
+          "at": 1200,
+          "conversationId": "c1",
+          "text": "hi"
+        },
+        {
+          "at": 2000,
+          "conversationId": "c1",
+          "text": ""
+        }
+      ]
+    },
+    {
+      "name": "moving to another conversation writes the first one down first",
+      "steps": [
+        {
+          "at": 0,
+          "op": "edit",
+          "conversationId": "c1",
+          "text": "hi"
+        },
+        {
+          "at": 300,
+          "op": "edit",
+          "conversationId": "c2",
+          "text": "yo"
+        }
+      ],
+      "endAt": 3000,
+      "expect": [
+        {
+          "at": 300,
+          "conversationId": "c1",
+          "text": "hi"
+        },
+        {
+          "at": 1500,
+          "conversationId": "c2",
+          "text": "yo"
+        }
+      ]
+    },
+    {
+      "name": "an edit back to what is stored writes nothing",
+      "steps": [
+        {
+          "at": 0,
+          "op": "seed",
+          "conversationId": "c1",
+          "text": "hi"
+        },
+        {
+          "at": 100,
+          "op": "edit",
+          "conversationId": "c1",
+          "text": "hi there"
+        },
+        {
+          "at": 400,
+          "op": "edit",
+          "conversationId": "c1",
+          "text": "hi"
+        }
+      ],
+      "endAt": 3000,
+      "expect": []
+    },
+    {
+      "name": "a seeded draft is never written back unchanged",
+      "steps": [
+        {
+          "at": 0,
+          "op": "seed",
+          "conversationId": "c1",
+          "text": "hi"
+        },
+        {
+          "at": 100,
+          "op": "edit",
+          "conversationId": "c1",
+          "text": "hi"
+        }
+      ],
+      "endAt": 3000,
+      "expect": []
+    },
+    {
+      "name": "clearing the box clears the draft",
+      "steps": [
+        {
+          "at": 0,
+          "op": "seed",
+          "conversationId": "c1",
+          "text": "hi"
+        },
+        {
+          "at": 100,
+          "op": "edit",
+          "conversationId": "c1",
+          "text": ""
+        }
+      ],
+      "endAt": 3000,
+      "expect": [
+        {
+          "at": 1300,
+          "conversationId": "c1",
+          "text": ""
+        }
+      ]
+    },
+    {
+      "name": "whitespace alone is a cleared draft, not a draft of spaces",
+      "steps": [
+        {
+          "at": 0,
+          "op": "seed",
+          "conversationId": "c1",
+          "text": "hi"
+        },
+        {
+          "at": 100,
+          "op": "edit",
+          "conversationId": "c1",
+          "text": "   \n "
+        }
+      ],
+      "endAt": 3000,
+      "expect": [
+        {
+          "at": 1300,
+          "conversationId": "c1",
+          "text": ""
+        }
+      ]
+    },
+    {
+      "name": "clearing a box that was already empty writes nothing",
+      "steps": [
+        {
+          "at": 0,
+          "op": "edit",
+          "conversationId": "c1",
+          "text": "  "
+        }
+      ],
+      "endAt": 3000,
+      "expect": []
+    },
+    {
+      "name": "a tick before the deadline writes nothing",
+      "steps": [
+        {
+          "at": 0,
+          "op": "edit",
+          "conversationId": "c1",
+          "text": "hi"
+        },
+        {
+          "at": 1199,
+          "op": "tick"
+        }
+      ],
+      "endAt": 1199,
+      "expect": []
+    },
+    {
+      "name": "ticks after the deadline write once",
+      "steps": [
+        {
+          "at": 0,
+          "op": "edit",
+          "conversationId": "c1",
+          "text": "hi"
+        },
+        {
+          "at": 1200,
+          "op": "tick"
+        },
+        {
+          "at": 5000,
+          "op": "tick"
+        }
+      ],
+      "endAt": 9000,
+      "expect": [
+        {
+          "at": 1200,
+          "conversationId": "c1",
+          "text": "hi"
+        }
+      ]
+    },
+    {
+      "name": "a new edit after a save schedules the next one",
+      "steps": [
+        {
+          "at": 0,
+          "op": "edit",
+          "conversationId": "c1",
+          "text": "hi"
+        },
+        {
+          "at": 2000,
+          "op": "edit",
+          "conversationId": "c1",
+          "text": "hi there"
+        }
+      ],
+      "endAt": 4000,
+      "expect": [
+        {
+          "at": 1200,
+          "conversationId": "c1",
+          "text": "hi"
+        },
+        {
+          "at": 3200,
+          "conversationId": "c1",
+          "text": "hi there"
+        }
+      ]
+    },
+    {
+      "name": "a send that reached nothing puts its text back at once",
+      "steps": [
+        {
+          "at": 0,
+          "op": "restore",
+          "conversationId": "c1",
+          "text": "the message"
+        }
+      ],
+      "endAt": 3000,
+      "expect": [
+        {
+          "at": 0,
+          "conversationId": "c1",
+          "text": "the message"
+        }
+      ]
+    },
+    {
+      "name": "a failed send goes above what was typed meanwhile",
+      "steps": [
+        {
+          "at": 0,
+          "op": "seed",
+          "conversationId": "c1",
+          "text": "something else"
+        },
+        {
+          "at": 100,
+          "op": "restore",
+          "conversationId": "c1",
+          "text": "the message"
+        }
+      ],
+      "endAt": 3000,
+      "expect": [
+        {
+          "at": 100,
+          "conversationId": "c1",
+          "text": "the message\nsomething else"
+        }
+      ]
+    },
+    {
+      "name": "a failed send already in the box is not put back twice",
+      "steps": [
+        {
+          "at": 0,
+          "op": "seed",
+          "conversationId": "c1",
+          "text": "the message and more"
+        },
+        {
+          "at": 100,
+          "op": "restore",
+          "conversationId": "c1",
+          "text": "the message"
+        }
+      ],
+      "endAt": 3000,
+      "expect": []
+    },
+    {
+      "name": "a failed send of nothing puts nothing back",
+      "steps": [
+        {
+          "at": 0,
+          "op": "seed",
+          "conversationId": "c1",
+          "text": "kept"
+        },
+        {
+          "at": 100,
+          "op": "restore",
+          "conversationId": "c1",
+          "text": "  "
+        }
+      ],
+      "endAt": 3000,
+      "expect": []
+    },
+    {
+      "name": "an empty conversation id is never written",
+      "steps": [
+        {
+          "at": 0,
+          "op": "edit",
+          "conversationId": "",
+          "text": "hi"
+        }
+      ],
+      "endAt": 3000,
+      "expect": []
+    }
+  ]
+}

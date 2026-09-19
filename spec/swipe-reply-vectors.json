@@ -1,0 +1,28 @@
+{
+  "note": "Shared truth for swipe-to-reply on a message row. `dx` / `dy` are the gesture's travel from where the finger went down, in the platform's logical units (logical pixels on Flutter, points on SwiftUI, dp on Compose), signed: a positive `dx` moves towards the trailing edge of a left-to-right layout. Each kit implements one pure function over this table and the list draws the row `travel` away from its resting place while the finger is down, raising the swipe-reply intent on release only when `armed`. The rules these cases encode: only the leading direction counts, mirrored under RTL; the list's own vertical scrolling wins any drag whose horizontal travel is not at least 1.25 times its vertical travel; the row follows the finger as far as 56, then resists at 0.35 and never travels past 72; and 56 is where the gesture arms, so the reply affordance must be fully drawn at exactly that distance and not before. Compare `travel` with a tolerance of 0.001, because the resistance is floating point. Vue has no swipe — `MessageList.swipeReply` is registered for flutter, ios and compose only — because the web timeline is pointer-first and a horizontal touch drag there fights the list's own scrolling.",
+  "armDistance": 56,
+  "maxTravel": 72,
+  "resistance": 0.35,
+  "dominance": 1.25,
+  "cases": [
+    { "id": "resting", "dx": 0, "dy": 0, "rtl": false, "expected": { "travel": 0, "armed": false } },
+    { "id": "short-leading-drag", "dx": 20, "dy": 0, "rtl": false, "expected": { "travel": 20, "armed": false } },
+    { "id": "just-below-arm", "dx": 55, "dy": 0, "rtl": false, "expected": { "travel": 55, "armed": false } },
+    { "id": "at-arm", "dx": 56, "dy": 0, "rtl": false, "expected": { "travel": 56, "armed": true } },
+    { "id": "past-arm-resists", "dx": 96, "dy": 0, "rtl": false, "expected": { "travel": 70, "armed": true } },
+    { "id": "just-below-cap", "dx": 100, "dy": 0, "rtl": false, "expected": { "travel": 71.4, "armed": true } },
+    { "id": "at-cap", "dx": 102, "dy": 0, "rtl": false, "expected": { "travel": 72, "armed": true } },
+    { "id": "far-drag-is-capped", "dx": 200, "dy": 0, "rtl": false, "expected": { "travel": 72, "armed": true } },
+    { "id": "trailing-drag-ignored", "dx": -80, "dy": 0, "rtl": false, "expected": { "travel": 0, "armed": false } },
+    { "id": "vertical-drag-ignored", "dx": 30, "dy": 40, "rtl": false, "expected": { "travel": 0, "armed": false } },
+    { "id": "diagonal-below-dominance-ignored", "dx": 60, "dy": 50, "rtl": false, "expected": { "travel": 0, "armed": false } },
+    { "id": "diagonal-above-dominance-counts", "dx": 70, "dy": 50, "rtl": false, "expected": { "travel": 60.9, "armed": true } },
+    { "id": "upward-diagonal-counts-the-same", "dx": 70, "dy": -50, "rtl": false, "expected": { "travel": 60.9, "armed": true } },
+    { "id": "exactly-at-dominance", "dx": 50, "dy": 40, "rtl": false, "expected": { "travel": 50, "armed": false } },
+    { "id": "pure-vertical-ignored", "dx": 0, "dy": 60, "rtl": false, "expected": { "travel": 0, "armed": false } },
+    { "id": "jitter-follows-but-does-not-arm", "dx": 3, "dy": 1, "rtl": false, "expected": { "travel": 3, "armed": false } },
+    { "id": "rtl-leading-is-negative", "dx": -56, "dy": 0, "rtl": true, "expected": { "travel": 56, "armed": true } },
+    { "id": "rtl-trailing-ignored", "dx": 56, "dy": 0, "rtl": true, "expected": { "travel": 0, "armed": false } },
+    { "id": "rtl-past-arm-resists", "dx": -96, "dy": 0, "rtl": true, "expected": { "travel": 70, "armed": true } }
+  ]
+}

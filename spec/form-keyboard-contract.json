@@ -1,0 +1,63 @@
+{
+  "note": "Desktop keyboard behaviour of every form control, as one table. `resolveFormKeyboardIntent` is the only place that decides; the four implementations below must agree vector by vector, and tooling/check-form-keyboard.mjs fails when a platform's test stops exercising one. The IME rule is the reason this contract exists: while a composition is open the IME owns the keyboard, so a composing key never submits, never closes a popup and never moves focus.",
+  "intents": [
+    "none",
+    "tabForward",
+    "tabBackward",
+    "submit",
+    "closePopup",
+    "nextOption",
+    "previousOption",
+    "firstOption",
+    "lastOption",
+    "pageForward",
+    "pageBackward"
+  ],
+  "vectors": [
+    { "id": "enter.submits", "key": "Enter", "submitOnEnter": true, "intent": "submit" },
+    { "id": "enter.withoutSubmitMode", "key": "Enter", "intent": "none" },
+    { "id": "enter.composing", "key": "Enter", "composing": true, "submitOnEnter": true, "intent": "none", "why": "Enter commits the IME candidate; sending here is the classic half-typed-message bug." },
+    { "id": "tab.forward", "key": "Tab", "intent": "tabForward" },
+    { "id": "tab.backward", "key": "Tab", "shift": true, "intent": "tabBackward" },
+    { "id": "tab.composing", "key": "Tab", "composing": true, "intent": "none", "why": "Tab walks the candidate window; moving focus would abandon the half-typed word." },
+    { "id": "escape.closesPopup", "key": "Escape", "popupOpen": true, "intent": "closePopup" },
+    { "id": "escape.withoutPopup", "key": "Escape", "intent": "none" },
+    { "id": "escape.composing", "key": "Escape", "composing": true, "popupOpen": true, "intent": "none", "why": "Escape cancels the composition, not the popup." },
+    { "id": "arrowDown.nextOption", "key": "ArrowDown", "popupOpen": true, "intent": "nextOption" },
+    { "id": "arrowUp.previousOption", "key": "ArrowUp", "popupOpen": true, "intent": "previousOption" },
+    { "id": "arrowDown.composing", "key": "ArrowDown", "composing": true, "popupOpen": true, "intent": "none", "why": "The arrows move between IME candidates." },
+    { "id": "arrowDown.withoutPopup", "key": "ArrowDown", "intent": "none" },
+    { "id": "home.firstOption", "key": "Home", "popupOpen": true, "intent": "firstOption" },
+    { "id": "end.lastOption", "key": "End", "popupOpen": true, "intent": "lastOption" },
+    { "id": "pageDown.pageForward", "key": "PageDown", "popupOpen": true, "intent": "pageForward" },
+    { "id": "pageUp.pageBackward", "key": "PageUp", "popupOpen": true, "intent": "pageBackward" },
+    { "id": "unknownKey", "key": "F13", "popupOpen": true, "intent": "none" }
+  ],
+  "platforms": {
+    "vue": {
+      "module": "packages/vue-im-ui/src/shared/contracts/form-behavior.ts",
+      "symbol": "resolveFormKeyboardIntent",
+      "test": "packages/vue-im-ui/src/shared/contracts/form-behavior.test.ts"
+    },
+    "flutter": {
+      "module": "packages/flutter-im-ui/lib/src/models/form_behavior.dart",
+      "symbol": "resolveFormKeyboardIntent",
+      "test": "packages/flutter-im-ui/test/form_behavior_test.dart"
+    },
+    "compose": {
+      "module": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/FormBehavior.kt",
+      "symbol": "resolveFormKeyboardIntent",
+      "test": "packages/android-im-ui/src/test/kotlin/com/flare/im/ui/FormBehaviorTest.kt"
+    },
+    "ios": {
+      "module": "packages/ios-im-ui/Sources/FlareImUI/Models/FormBehavior.swift",
+      "symbol": "resolveFormKeyboardIntent",
+      "test": "packages/ios-im-ui/Tests/FlareIMUITests/FormBehaviorTests.swift"
+    }
+  },
+  "composers": {
+    "note": "The send path must ask the contract rather than re-deciding. A composer that reads the composition flag itself is how the rule drifts per platform.",
+    "vue": { "file": "packages/vue-im-ui/src/components/composer/EnhancedComposer.vue", "test": "packages/vue-im-ui/src/components/composer/EnhancedComposer.test.ts" },
+    "flutter": { "file": "packages/flutter-im-ui/lib/src/components/flare_composer.dart", "test": "packages/flutter-im-ui/test/composer_ime_test.dart" }
+  }
+}

@@ -1,0 +1,843 @@
+/* 消息行 / 气泡展示（Flare IM token 驱动） */
+
+.message-row {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 3px 0;
+  /* Tight default so consecutive same-sender messages read as one group. */
+  margin-bottom: 0;
+}
+
+/* The mark a located row wears, so the reader can see which row the jump landed
+   on. The numbers are `spec/locate-highlight-vectors.json` — the same window and
+   the same three stops the three native kits draw — and the interpolation is
+   linear because a CSS easing curve is not reproducible in three other animation
+   systems. 43.75% is the middle stop's 700ms of 1600ms. */
+.message-row--locating .message-bubble {
+  animation: im-message-locate-pulse 1600ms linear;
+}
+
+@keyframes im-message-locate-pulse {
+  0% {
+    box-shadow:
+      0 0 0 0px color-mix(in srgb, var(--flare-color-primary) 36%, transparent),
+      var(--flare-component-message-shadow);
+  }
+  43.75% {
+    box-shadow:
+      0 0 0 10px color-mix(in srgb, var(--flare-color-primary) 18%, transparent),
+      var(--flare-component-message-shadow);
+  }
+  100% {
+    box-shadow:
+      0 0 0 18px color-mix(in srgb, var(--flare-color-primary) 0%, transparent),
+      var(--flare-component-message-shadow);
+  }
+}
+
+/* Reduce Motion does not mean no answer. The global rule in accessibility.css
+   collapses every animation to 0.01ms, which used to leave a reader who asked
+   for less motion with no sign at all of where the jump landed; the mark holds
+   the middle stop still instead, for the same window. */
+@media (prefers-reduced-motion: reduce) {
+  .message-row--locating .message-bubble {
+    animation: none;
+    box-shadow:
+      0 0 0 10px color-mix(in srgb, var(--flare-color-primary) 18%, transparent),
+      var(--flare-component-message-shadow);
+  }
+}
+
+.message-row--group-end {
+  margin-bottom: var(--flare-size-spacing-sm);
+}
+
+/* One-shot entrance for a just-arrived message (sent/received now). Gated by
+   MessageList so virtualized re-mounts on scroll never replay it. */
+@keyframes im-bubble-enter {
+  from {
+    opacity: 0;
+    transform: translateY(9px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.message-row--fresh .message-bubble:not(.message-bubble--chromeless-media),
+.message-row--fresh .message-bubble.message-bubble--chromeless-media {
+  animation: im-bubble-enter 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .message-row--fresh .message-bubble {
+    animation: none;
+  }
+}
+
+/* A clear breath before a new sender's run (any sender); continuations above
+   stay tight — so runs group visually and different senders separate. */
+.message-row--group-start:not(.message-row--system) {
+  padding-top: 9px;
+}
+
+.message-row--self {
+  align-items: flex-end;
+}
+
+.message-row:not(.message-row--self) {
+  align-items: flex-start;
+}
+
+.message-row--avatar-gutter:not(.message-row--avatar-trailing):not(.message-row--system) {
+  padding-left: 44px;
+}
+
+.message-row--avatar-gutter.message-row--avatar-trailing:not(.message-row--system) {
+  padding-right: 44px;
+}
+
+.message-row--selectable {
+  min-height: 44px;
+  padding-inline: 36px;
+}
+
+.message-row--selectable:not(.message-row--self):not(.message-row--system):not(.message-row--recalled) {
+  padding-left: 64px;
+}
+
+.message-select {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--flare-size-icon-size-md);
+  height: var(--flare-size-icon-size-md);
+  padding: 0;
+  border: 1px solid var(--flare-color-message-selected-border);
+  border-radius: var(--flare-size-radius-full);
+  color: #ffffff;
+  background: var(--flare-color-message-selected-background);
+  box-shadow: none;
+  cursor: pointer;
+  line-height: 0;
+  transform: translateY(-50%);
+  transition:
+    border-color var(--flare-component-motion-fast),
+    background var(--flare-component-motion-fast),
+    color var(--flare-component-motion-fast),
+    transform var(--flare-component-motion-fast);
+}
+
+.message-select:hover,
+.message-select:focus-visible {
+  border-color: color-mix(in srgb, var(--flare-color-primary) 46%, var(--flare-color-border-primary));
+  transform: translateY(-50%);
+  outline: none;
+}
+
+.message-select--on {
+  color: #ffffff;
+  border-color: var(--flare-color-message-selected-border);
+  background: var(--flare-color-message-selected-border);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 20%);
+}
+
+.message-select__check {
+  display: block;
+  width: 8px;
+  height: 5px;
+  border-bottom: 2px solid currentColor;
+  border-left: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transform-origin: center;
+}
+
+.message-avatar {
+  position: absolute;
+  top: var(--flare-size-spacing-lg);
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  overflow: hidden;
+  border-radius: var(--flare-size-radius-full);
+  /* Per-user pastel tint (bg + initials colour) is set inline from the shared
+     avatarTint util, matching FlareAvatar in the list + chat header. */
+  background: var(--flare-color-bg-tertiary);
+  color: var(--flare-color-text-secondary);
+  box-shadow: 0 1px 4px color-mix(in srgb, #111827 10%, transparent);
+  font-size: var(--flare-size-font-size-md);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.message-avatar--trailing {
+  right: 0;
+  left: auto;
+}
+
+.message-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.message-avatar span {
+  transform: translateY(-0.5px);
+}
+
+.message-row--with-meta .message-avatar {
+  top: var(--flare-size-spacing-2xl);
+}
+
+.message-meta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--flare-size-spacing-sm);
+  max-width: min(var(--flare-component-bubble-max-width), 100%);
+  padding-inline: var(--flare-size-spacing-xs);
+  color: var(--flare-color-text-tertiary);
+  font-size: var(--flare-size-font-size-xs);
+  line-height: 1.3;
+}
+
+.message-meta__name {
+  color: var(--flare-color-text-secondary);
+  font-weight: 600;
+}
+
+.message-row--self .message-meta {
+  justify-content: flex-end;
+}
+
+.message-bubble {
+  position: relative;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  color: var(--flare-color-message-incoming-foreground);
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  transition: box-shadow var(--flare-component-motion-fast);
+}
+
+.message-bubble:not(.message-bubble--chromeless-media) {
+  --flare-component-bubble-tail-fill: var(--flare-color-message-incoming-background);
+
+  padding: var(--flare-size-spacing-sm) 11px;
+  border: 1px solid var(--flare-color-message-incoming-border);
+  border-radius: var(--flare-size-radius-xl) var(--flare-size-radius-xl) var(--flare-size-radius-xl) var(--flare-size-radius-lg);
+  background: var(--flare-component-bubble-tail-fill);
+  box-shadow: var(--flare-shadow-sm);
+  outline: none;
+}
+
+/* Keyboard focus draws an outline, not a shadow: the desktop hover and focus-within shadows would
+   paint over a shadow ring, and the offset keeps the ring legible next to an outgoing bubble. */
+.message-bubble.message-bubble--focusable:focus-visible {
+  outline: 2px solid var(--flare-color-border-selected);
+  outline-offset: 2px;
+}
+
+.message-bubble.message-bubble-self:not(.message-bubble--chromeless-media) {
+  --flare-component-bubble-tail-fill: var(--flare-color-message-outgoing-background);
+  border-color: var(--flare-color-message-outgoing-border);
+  border-radius: var(--flare-size-radius-xl) var(--flare-size-radius-xl) var(--flare-size-radius-lg) var(--flare-size-radius-xl);
+  color: var(--flare-color-message-outgoing-foreground);
+  background: var(--flare-color-message-outgoing-background);
+  box-shadow: none;
+}
+
+.message-bubble--file:not(.message-bubble--chromeless-media) {
+  padding: 10px var(--flare-size-spacing-md);
+}
+
+.message-bubble--rich_text:not(.message-bubble--chromeless-card):not(.message-bubble--chromeless-media),
+.message-bubble--richText:not(.message-bubble--chromeless-card):not(.message-bubble--chromeless-media) {
+  min-width: min(220px, 100%);
+  max-width: min(520px, 100%);
+  padding: 10px var(--flare-size-spacing-md);
+}
+
+.message-bubble--rich_text:not(.message-bubble--chromeless-card) .im-content-view,
+.message-bubble--richText:not(.message-bubble--chromeless-card) .im-content-view {
+  width: 100%;
+}
+
+.message-row--group-end:not(.message-row--self) .message-bubble:not(.message-bubble--chromeless-media) {
+  border-bottom-left-radius: 7px;
+}
+
+.message-row--self.message-row--group-end .message-bubble.message-bubble-self:not(.message-bubble--chromeless-media) {
+  border-bottom-right-radius: 7px;
+}
+
+.message-row--avatar-gutter.message-row--group-end:not(.message-row--self) .message-bubble:not(.message-bubble--chromeless-media)::after {
+  content: "";
+  position: absolute;
+  left: -9px;
+  bottom: -1px;
+  z-index: 0;
+  width: 18px;
+  height: 15px;
+  background: var(--flare-component-bubble-tail-fill);
+  clip-path: path("M18 1 C14 7 9 10 0 12 C5 15 13 15 18 9 Z");
+  pointer-events: none;
+}
+
+.message-row--self.message-row--group-end .message-bubble.message-bubble-self:not(.message-bubble--chromeless-media)::after {
+  content: "";
+  position: absolute;
+  right: -9px;
+  bottom: -1px;
+  z-index: 0;
+  width: 18px;
+  height: 15px;
+  background: var(--flare-component-bubble-tail-fill);
+  clip-path: path("M0 1 C4 7 9 10 18 12 C13 15 5 15 0 9 Z");
+  pointer-events: none;
+}
+
+.message-row--failed .message-bubble:not(.message-bubble--chromeless-media) {
+  --flare-component-bubble-tail-fill: var(--flare-color-message-failed-background);
+  color: var(--flare-color-message-failed-foreground);
+  border-color: var(--flare-color-message-failed-border);
+  background: var(--flare-color-message-failed-background);
+  box-shadow: none;
+}
+
+.message-bubble--pinned:not(.message-bubble--chromeless-media) {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--flare-component-message-pinned-border) 55%, transparent);
+}
+
+.message-pin-marker {
+  position: absolute;
+  top: -9px;
+  right: var(--flare-size-spacing-sm);
+  z-index: 2;
+  display: inline-grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  border: 1px solid color-mix(in srgb, var(--flare-component-message-pinned-border) 68%, transparent);
+  border-radius: var(--flare-size-radius-full);
+  color: var(--flare-component-message-pinned-text);
+  background: color-mix(in srgb, var(--flare-component-message-pinned-bg) 94%, var(--flare-color-bg-primary));
+  box-shadow: 0 3px 8px color-mix(in srgb, #111827 10%, transparent);
+  font-size: var(--flare-size-font-size-xs);
+  line-height: 1;
+  pointer-events: none;
+}
+
+.message-row:not(.message-row--self) .message-pin-marker {
+  right: auto;
+  left: var(--flare-size-spacing-sm);
+}
+
+.message-bubble-body {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.message-bubble-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--flare-size-spacing-xs);
+}
+
+.message-edited-tag {
+  color: color-mix(in srgb, currentColor 58%, transparent);
+  font-size: var(--flare-size-font-size-xs);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.message-upload-progress {
+  display: grid;
+  grid-template-columns: minmax(54px, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  min-width: 92px;
+  margin-top: 7px;
+  color: color-mix(in srgb, currentColor 72%, transparent);
+  font-size: var(--flare-size-font-size-xs);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.message-upload-progress__bar {
+  position: relative;
+  height: 4px;
+  overflow: hidden;
+  border-radius: var(--flare-component-radius-pill);
+  background: color-mix(in srgb, currentColor 16%, transparent);
+}
+
+.message-upload-progress__value {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: currentColor;
+  transition: width var(--flare-component-motion-fast);
+}
+
+.message-upload-progress__text {
+  min-width: 30px;
+  text-align: right;
+}
+
+.message-upload-progress--media {
+  position: absolute;
+  z-index: 4;
+  right: 10px;
+  bottom: 10px;
+  left: 10px;
+  min-width: 0;
+  margin-top: 0;
+  padding: 7px 9px;
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: var(--flare-component-radius-pill);
+  color: #fff;
+  background: rgb(15 23 42 / 62%);
+  box-shadow: 0 8px 20px rgb(15 23 42 / 18%);
+  pointer-events: none;
+  backdrop-filter: blur(10px);
+}
+
+.message-upload-progress--media .message-upload-progress__bar {
+  background: rgb(255 255 255 / 22%);
+}
+
+.message-upload-progress--media .message-upload-progress__value {
+  background: #fff;
+}
+
+.message-bubble--chromeless-media .message-upload-progress {
+  padding: var(--flare-size-spacing-2xs) var(--flare-size-spacing-sm) 0;
+  color: var(--flare-color-text-secondary);
+}
+
+.message-bubble--chromeless-media .message-upload-progress--media {
+  right: var(--flare-size-spacing-sm);
+  bottom: var(--flare-size-spacing-sm);
+  left: var(--flare-size-spacing-sm);
+  padding: 7px 9px;
+  color: #fff;
+}
+
+.message-media-hover-action {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 7;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 12px;
+  color: #ffffff;
+  background:
+    linear-gradient(135deg, rgb(15 23 42 / 74%), rgb(15 23 42 / 56%));
+  box-shadow:
+    0 8px 22px rgb(15 23 42 / 20%),
+    inset 0 1px 0 rgb(255 255 255 / 12%);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--flare-size-font-size-sm);
+  font-weight: 700;
+  line-height: 1;
+  opacity: 0;
+  outline: none;
+  transform: translateY(-4px) scale(0.98);
+  transition:
+    opacity var(--flare-component-motion-fast),
+    transform var(--flare-component-motion-fast),
+    background var(--flare-component-motion-fast);
+  backdrop-filter: blur(12px);
+}
+
+.message-media-hover-action .n-icon {
+  flex: 0 0 auto;
+  font-size: 23px;
+}
+
+.message-media-hover-action:disabled {
+  cursor: default;
+}
+
+.message-media-hover-action--downloading {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.message-media-hover-action--downloading .n-icon {
+  animation: im-media-download-spin 900ms linear infinite;
+}
+
+.message-media-hover-action--downloaded {
+  color: #dcfce7;
+  background:
+    linear-gradient(135deg, rgb(22 101 52 / 78%), rgb(15 23 42 / 58%));
+}
+
+.message-media-hover-action:hover,
+.message-media-hover-action:focus-visible {
+  background:
+    linear-gradient(135deg, rgb(15 23 42 / 86%), rgb(15 23 42 / 68%));
+  transform: translateY(0) scale(1);
+}
+
+.message-bubble:hover .message-media-hover-action,
+.message-bubble:focus-within .message-media-hover-action,
+.message-media-hover-action:focus-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.message-media-hover-action--folder {
+  color: #ecfeff;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--flare-color-primary) 38%, rgb(15 23 42 / 78%)),
+      rgb(15 23 42 / 62%)
+    );
+}
+
+.message-bubble:focus-within .message-media-hover-action--folder:not(:focus-visible) {
+  opacity: 0;
+  transform: translateY(-4px) scale(0.98);
+}
+
+.message-bubble:hover .message-media-hover-action--folder,
+.message-media-hover-action--folder:focus-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+@keyframes im-media-download-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.message-reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--flare-size-spacing-2xs);
+  min-width: 0;
+  max-width: min(var(--flare-component-bubble-max-width), 100%);
+  margin-top: 1px;
+  padding-inline: 2px;
+}
+
+.message-reactions > span,
+.message-reactions > button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--flare-size-spacing-xs);
+  padding: 3px var(--flare-size-spacing-sm);
+  border: 1px solid var(--flare-color-message-incoming-border);
+  border-radius: var(--flare-component-radius-pill);
+  color: var(--flare-color-text-secondary);
+  background: var(--flare-color-message-reaction-background);
+  font-size: var(--flare-size-font-size-sm);
+  line-height: 1.2;
+}
+
+.message-reactions > .is-selected {
+  border-color: var(--flare-color-message-selected-border);
+  background: var(--flare-color-message-reaction-selected);
+  color: var(--flare-color-primary-text);
+}
+
+.message-reactions > button {
+  margin: 0;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.message-reactions > button:hover {
+  border-color: var(--flare-color-border-hover);
+}
+
+.message-reactions > button:focus-visible {
+  outline: 2px solid var(--flare-color-border-selected);
+  outline-offset: 1px;
+}
+
+.message-row--self .message-reactions {
+  justify-content: flex-end;
+}
+
+.message-row--system,
+.message-row--recalled {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  align-items: center;
+  width: 100%;
+}
+
+.message-row--system .message-bubble-host,
+.message-row--system .message-reactions,
+.message-row--recalled .message-reactions {
+  align-items: center;
+  align-self: center;
+  justify-content: center;
+  margin-inline: auto;
+}
+
+.message-bubble-body--trailing-status {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: var(--flare-size-spacing-2xs);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.message-bubble-body--trailing-status :deep(.im-content-view) {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.bubble-inline-status {
+  flex-shrink: 0;
+  align-self: flex-end;
+  margin-bottom: -1px;
+  opacity: 0.72;
+  transform: scale(0.86);
+  transform-origin: right bottom;
+}
+
+.message-bubble.message-bubble--chromeless-media {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* Explicit end lines keep absolute upload controls inside the media track. */
+.message-bubble--chromeless-media > .message-bubble-body,
+.message-bubble--chromeless-media > .message-upload-progress--media {
+  grid-area: 1 / 1 / 2 / 2;
+}
+
+/* Media owns the image; receipts follow it without covering pixels or controls. */
+.message-bubble.message-bubble--chromeless-media > .message-meta-row {
+  grid-area: 2 / 1 / 3 / 2;
+  margin-block-start: var(--flare-size-spacing-xs);
+  color: var(--flare-color-message-meta-foreground);
+  flex-wrap: wrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.message-row:not(.message-row--self) .message-bubble--chromeless-media > .message-meta-row {
+  margin-inline-start: 0;
+  margin-inline-end: auto;
+  justify-content: flex-start;
+}
+
+.message-bubble.message-bubble--chromeless-card:not(.message-bubble--chromeless-media) {
+  width: fit-content;
+  min-width: 0 !important;
+  max-width: min(var(--flare-component-rich-card-width), 100%);
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: var(--flare-color-text-primary);
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.message-bubble.message-bubble--chromeless-card .message-bubble-body,
+.message-bubble.message-bubble--chromeless-card .message-content-view,
+.message-bubble.message-bubble--chromeless-card .im-content-view {
+  width: fit-content;
+  max-width: min(var(--flare-component-rich-card-width), 100%);
+}
+
+.message-bubble.message-bubble--chromeless-card .message-bubble-body:not(.message-bubble-body--trailing-status) {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.message-bubble.message-bubble--chromeless-card .im-content-view {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.message-bubble.message-bubble--chromeless-card::after {
+  display: none !important;
+}
+
+.message-bubble.message-bubble-self.message-bubble--chromeless-card:not(.message-bubble--chromeless-media) {
+  color: var(--flare-color-text-primary);
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.message-row--self .message-bubble.message-bubble--chromeless-media {
+  border-top-left-radius: var(--flare-component-bubble-radius);
+  border-top-right-radius: var(--flare-component-bubble-radius-tail);
+}
+
+.message-row:not(.message-row--self) .message-bubble.message-bubble--chromeless-media {
+  border-top-left-radius: var(--flare-component-bubble-radius-tail);
+  border-top-right-radius: var(--flare-component-bubble-radius);
+}
+
+.message-bubble-self .message-status-bubble-overlay {
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--flare-component-motion-fast);
+}
+
+.message-row--self .message-bubble:hover .message-status-bubble-overlay,
+.message-row--self .message-bubble .message-status-bubble-overlay--persistent {
+  opacity: 1;
+}
+
+.message-bubble-self .bubble-inline-status .status-sent .status-icon,
+.message-bubble-self .bubble-inline-status .status-sending .status-icon {
+  color: var(--flare-component-bubble-on-sent-muted);
+}
+
+.message-bubble-self .bubble-inline-status .status-delivered .status-icon,
+.message-bubble-self .bubble-inline-status .status-read .status-icon {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.message-bubble-self .bubble-inline-status .status-read-path {
+  stroke: rgba(255, 255, 255, 0.72) !important;
+}
+
+/* System and recall notices are a quiet chip, the same as the native kits' notice line: no border,
+   shadow or bold weight, so a notice never outranks the messages around it. */
+.message-recalled-hint {
+  width: max-content;
+  max-width: min(78%, 520px);
+  margin: var(--flare-size-spacing-sm) auto 10px;
+  padding: 3px var(--flare-size-spacing-md);
+  border-radius: var(--flare-component-radius-pill);
+  color: var(--flare-color-text-tertiary);
+  background: var(--flare-color-bg-tertiary);
+  font-size: var(--flare-size-font-size-sm);
+  line-height: 1.45;
+  text-align: center;
+}
+
+@container flare-timeline (max-width: 899px) {
+  .message-bubble-host {
+    width: fit-content;
+    max-width: min(var(--flare-component-bubble-max-width), calc(100% - var(--flare-component-message-tail-space)));
+  }
+
+  /* Reserve the avatar gutter for every received row so a run's messages align
+     (the avatar renders only on the first). */
+  .message-row--avatar-gutter:not(.message-row--avatar-trailing):not(.message-row--system) {
+    padding-left: 40px;
+  }
+
+  .message-row--avatar-gutter.message-row--avatar-trailing:not(.message-row--system) {
+    padding-right: 40px;
+  }
+
+  .message-row--self:not(.message-row--system) {
+    padding-right: var(--flare-component-message-tail-space);
+  }
+
+  .message-row--selectable:not(.message-row--self):not(.message-row--system):not(.message-row--recalled) {
+    padding-left: 36px;
+  }
+
+  .message-row--selectable.message-row--with-avatar:not(.message-row--self):not(.message-row--system):not(.message-row--recalled) {
+    padding-left: 58px;
+  }
+
+  .message-row .message-bubble,
+  .message-menu-anchor .message-bubble {
+    max-width: 100%;
+    width: auto;
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
+
+  .message-bubble-body--trailing-status {
+    width: fit-content;
+    max-width: 100%;
+  }
+}
+
+@container flare-timeline (min-width: 900px) {
+  .message-row--avatar-gutter:not(.message-row--avatar-trailing):not(.message-row--system) {
+    padding-left: 48px;
+  }
+
+  .message-row--avatar-gutter.message-row--avatar-trailing:not(.message-row--system) {
+    padding-right: 48px;
+  }
+
+  .message-row--selectable {
+    padding-inline: 40px;
+  }
+
+  .message-row--selectable:not(.message-row--self):not(.message-row--system):not(.message-row--recalled) {
+    padding-left: 68px;
+  }
+
+  .message-row--selectable .message-select {
+    left: var(--flare-size-spacing-lg);
+  }
+
+  .message-avatar {
+    top: 17px;
+    width: 36px;
+    height: 36px;
+    font-size: var(--flare-size-font-size-lg);
+  }
+
+  .message-row--with-meta .message-avatar {
+    top: 25px;
+  }
+
+  .message-bubble-host--toolbar-beside:hover .message-bubble:not(.message-bubble--chromeless-media):not(.message-bubble--chromeless-card):not(.message-bubble-self),
+  .message-bubble-host--toolbar-beside:focus-within .message-bubble:not(.message-bubble--chromeless-media):not(.message-bubble--chromeless-card):not(.message-bubble-self) {
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, #ffffff 7%, transparent),
+      0 2px 8px rgba(17, 19, 24, 0.06),
+      0 0 0 1px color-mix(in srgb, var(--flare-color-primary) 10%, transparent);
+  }
+
+  /* Hover feedback must not move the bubble beneath the pointer. */
+  .message-bubble-host--toolbar-beside:hover .message-bubble.message-bubble-self:not(.message-bubble--chromeless-media):not(.message-bubble--chromeless-card),
+  .message-bubble-host--toolbar-beside:focus-within .message-bubble.message-bubble-self:not(.message-bubble--chromeless-media):not(.message-bubble--chromeless-card) {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.3),
+      var(--flare-component-bubble-glow);
+  }
+}

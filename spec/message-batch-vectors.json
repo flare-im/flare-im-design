@@ -1,0 +1,120 @@
+{
+  "note": "Which batch actions a message multi-select toolbar may offer right now. The same table runs on four kits (FR-034): the toolbar mirrors ConversationBatchToolbar — the host declares capabilities and the toolbar reports one action with the selected ids.",
+  "order": [
+    "forwardEach",
+    "forwardMerged",
+    "pin",
+    "pinSelf",
+    "delete"
+  ],
+  "minimumSelection": {
+    "forwardMerged": 2
+  },
+  "cases": [
+    {
+      "id": "nothing.selected",
+      "selected": 0,
+      "capabilities": [
+        "forwardEach",
+        "forwardMerged",
+        "pin",
+        "pinSelf",
+        "delete"
+      ],
+      "busy": false,
+      "available": []
+    },
+    {
+      "id": "busy.hides.everything",
+      "selected": 3,
+      "capabilities": [
+        "forwardEach",
+        "forwardMerged",
+        "pin",
+        "pinSelf",
+        "delete"
+      ],
+      "busy": true,
+      "available": []
+    },
+    {
+      "id": "one.selected.cannot.merge",
+      "selected": 1,
+      "capabilities": [
+        "forwardEach",
+        "forwardMerged",
+        "delete"
+      ],
+      "busy": false,
+      "available": [
+        "forwardEach",
+        "delete"
+      ]
+    },
+    {
+      "id": "two.selected.can.merge",
+      "selected": 2,
+      "capabilities": [
+        "forwardEach",
+        "forwardMerged",
+        "delete"
+      ],
+      "busy": false,
+      "available": [
+        "forwardEach",
+        "forwardMerged",
+        "delete"
+      ]
+    },
+    {
+      "id": "capabilities.are.the.only.source",
+      "selected": 2,
+      "capabilities": [
+        "delete"
+      ],
+      "busy": false,
+      "available": [
+        "delete"
+      ]
+    },
+    {
+      "id": "pinning.is.opt.in",
+      "selected": 2,
+      "capabilities": [
+        "pin",
+        "pinSelf"
+      ],
+      "busy": false,
+      "available": [
+        "pin",
+        "pinSelf"
+      ]
+    },
+    {
+      "id": "order.is.the.declared.one",
+      "selected": 2,
+      "capabilities": [
+        "delete",
+        "pinSelf",
+        "forwardEach",
+        "pin",
+        "forwardMerged"
+      ],
+      "busy": false,
+      "available": [
+        "forwardEach",
+        "forwardMerged",
+        "pin",
+        "pinSelf",
+        "delete"
+      ]
+    },
+    {
+      "id": "no.capabilities.no.actions",
+      "selected": 2,
+      "capabilities": [],
+      "busy": false,
+      "available": []
+    }
+  ]
+}

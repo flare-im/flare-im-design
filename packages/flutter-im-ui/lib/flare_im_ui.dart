@@ -1,0 +1,182 @@
+/// Flare IM UI Kit — Flutter component package (L1).
+///
+/// A framework-neutral contract (`flare-im-ui-spec`) realised natively in
+/// Flutter. Components here are **pure / presentational**: they take data as
+/// props and raise callbacks; product behaviour and IM state live in the Rust
+/// host's observable views and are fed in by the application adapter.
+library;
+
+export 'src/tokens/flare_tokens.dart';
+export 'src/tokens/flare_strings.dart';
+
+// primitives (shared building blocks)
+export 'src/primitives/flare_unread_badge.dart';
+export 'src/primitives/flare_presence_dot.dart';
+
+export 'src/models/conversation_row_data.dart';
+export 'src/models/workspace_layout.dart';
+export 'src/models/message_content.dart';
+export 'src/models/rich_doc.dart';
+export 'src/models/image_group_layout.dart';
+export 'src/models/image_gallery.dart';
+export 'src/models/markdown_preview.dart';
+export 'src/models/message_preview.dart';
+export 'src/models/locate_message.dart';
+export 'src/models/haptics.dart';
+export 'src/models/typing_signal.dart';
+export 'src/models/draft_autosave.dart';
+export 'src/models/connection_refresh.dart';
+export 'src/models/url_safety.dart';
+export 'src/models/connection_notice.dart';
+export 'src/models/time_format.dart';
+export 'src/models/message_content_contract.dart';
+export 'src/emoji_sticker/emoji_sticker.dart';
+export 'src/models/message_data.dart';
+export 'src/models/message_lifecycle.dart';
+export 'src/models/interaction_state.dart';
+export 'src/platform/flare_platform.dart';
+export 'src/models/form_behavior.dart';
+export 'src/models/pinned_message_data.dart';
+export 'src/models/conversation_summary.dart';
+export 'src/models/contact_option.dart';
+export 'src/models/directory_data.dart';
+export 'src/application/application_composition.dart';
+
+// Moments (社交圈子 / social feed)
+// Phase C — general / contacts
+export 'src/components/flare_action_menu.dart';
+export 'src/components/flare_announcement_banner.dart';
+export 'src/components/flare_announcement_read_bar.dart';
+export 'src/components/flare_avatar.dart';
+export 'src/components/flare_bottom_sheet.dart';
+export 'src/components/flare_button.dart';
+export 'src/components/flare_dialog.dart';
+export 'src/components/flare_call_controls.dart';
+export 'src/components/flare_call_dock.dart';
+export 'src/components/flare_call_view.dart';
+export 'src/components/flare_conversation_header.dart';
+export 'src/components/flare_chat_workspace.dart';
+export 'src/models/message_grouping.dart';
+export 'src/components/flare_chat_wallpaper_picker.dart';
+export 'src/components/flare_checkbox.dart';
+export 'src/components/flare_comment_thread.dart';
+export 'src/components/flare_composer.dart';
+export 'src/components/composer/composer_inline_text_field.dart';
+export 'src/components/composer/rich_text_composer_formatter.dart';
+export 'src/components/flare_contact_detail.dart';
+export 'src/components/flare_contact_item.dart';
+export 'src/components/flare_contact_list.dart';
+export 'src/components/flare_contact_match_list.dart';
+export 'src/components/flare_conversation_details.dart';
+export 'src/components/flare_conversation_list.dart';
+export 'src/components/flare_conversation_row.dart';
+export 'src/components/flare_date_picker.dart';
+export 'src/components/flare_date_pill.dart';
+export 'src/components/flare_emoji_picker.dart';
+export 'src/components/flare_empty_state.dart';
+export 'src/components/flare_filter_tabs.dart';
+export 'src/components/flare_form_field.dart';
+export 'src/components/flare_forward_picker.dart';
+export 'src/components/flare_group_call_view.dart';
+export 'src/components/flare_group_detail.dart';
+export 'src/components/flare_group_list.dart';
+export 'src/components/flare_group_member_grid.dart';
+export 'src/components/flare_icon.dart';
+export 'src/components/flare_icon_button.dart';
+export 'src/components/flare_image_grid.dart';
+export 'src/components/flare_image_preview.dart';
+export 'src/components/flare_incoming_call.dart';
+export 'src/components/flare_brand_logo.dart';
+export 'src/components/flare_input.dart';
+export 'src/components/flare_markdown_preview.dart';
+export 'src/components/flare_mention_picker.dart';
+export 'src/components/flare_message_action_sheet.dart';
+export 'src/components/flare_message_batch_toolbar.dart';
+export 'src/components/flare_message_bodies.dart';
+export 'src/components/flare_rich_text_message.dart';
+export 'src/components/flare_image_group_message.dart';
+export 'src/components/flare_message_bubble.dart';
+export 'src/components/flare_message_content_view.dart';
+export 'src/components/flare_media_controller.dart' show FlareMediaController;
+export 'src/components/flare_message_list.dart';
+export 'src/components/flare_message_status.dart';
+export 'src/components/flare_message_meta.dart';
+export 'src/components/flare_moment_action_popover.dart';
+export 'src/components/flare_moment_audience_sheet.dart';
+export 'src/components/flare_moment_card.dart';
+export 'src/components/flare_moment_composer.dart';
+export 'src/components/flare_moments_cover_header.dart';
+export 'src/components/flare_moments_visibility_rule_list.dart';
+export 'src/components/flare_new_friend_requests.dart';
+export 'src/components/flare_pinned_message_bar.dart';
+export 'src/components/flare_poll_composer.dart';
+export 'src/components/flare_profile_card.dart';
+export 'src/components/flare_profile_editor.dart';
+export 'src/components/flare_profile_panel.dart';
+export 'src/components/flare_qr_card.dart';
+export 'src/components/flare_quick_phrases.dart';
+export 'src/components/flare_radio_group.dart';
+export 'src/components/flare_rating.dart';
+export 'src/components/flare_reaction_summary.dart';
+export 'src/components/flare_read_receipt_sheet.dart';
+export 'src/components/flare_red_packet_card.dart';
+export 'src/components/flare_responsive_layout.dart';
+export 'src/components/flare_shell_scope.dart'
+    show FlareShellScope, FlareDestinationDepth;
+export 'src/components/flare_rich_markdown_input.dart';
+export 'src/components/flare_screen.dart';
+export 'src/components/flare_screen_header.dart';
+export 'src/components/flare_scroll_to_latest.dart';
+export 'src/components/flare_search_bar.dart';
+export 'src/components/flare_search_results.dart';
+export 'src/components/flare_segmented_control.dart';
+export 'src/components/flare_select.dart';
+export 'src/components/flare_settings_list.dart';
+export 'src/components/flare_skeleton.dart';
+export 'src/components/flare_slash_command_menu.dart';
+export 'src/components/flare_slider.dart';
+export 'src/components/flare_start_conversation_sheet.dart';
+export 'src/components/flare_status_banner.dart';
+export 'src/components/flare_stepper.dart';
+export 'src/components/flare_sticker_panel.dart';
+export 'src/components/flare_switch.dart';
+export 'src/components/flare_textarea.dart';
+export 'src/components/flare_time_picker.dart';
+export 'src/components/flare_toast.dart';
+export 'src/components/flare_topic_chip.dart';
+export 'src/components/flare_translation_view.dart';
+export 'src/components/flare_typing_indicator.dart';
+export 'src/components/flare_unread_divider.dart';
+export 'src/components/flare_video_player.dart';
+export 'src/components/flare_voice_player.dart';
+export 'src/components/flare_voice_recording_bar.dart';
+
+export 'src/components/flare_transfer_progress.dart';
+
+export 'src/components/flare_search_panel.dart';
+export 'src/components/flare_command_palette.dart';
+
+export 'src/components/flare_transfer_queue.dart';
+
+export 'src/components/flare_scene_panels.dart';
+
+export 'src/components/flare_call_device_picker.dart';
+
+export 'src/components/flare_permission_prompt.dart';
+export 'src/components/flare_conversation_action_sheet.dart';
+export 'src/components/flare_conversation_batch_toolbar.dart';
+
+export 'src/components/flare_unknown_message.dart';
+
+export 'src/components/flare_search_date_range_filter.dart';
+export 'src/components/flare_unknown_user_placeholder.dart';
+export 'src/components/flare_relation_action_bar.dart';
+export 'src/components/flare_group_permission_matrix.dart';
+export 'src/components/flare_member_role_sheet.dart';
+
+export 'src/components/flare_screen_share.dart';
+export 'src/components/flare_storage_usage.dart';
+
+export 'src/components/flare_conversation_workspace.dart';
+
+export 'src/components/flare_inline_voice.dart';

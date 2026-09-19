@@ -1,0 +1,102 @@
+:root {
+  --flare-component-media-card-min-width: min(64vw, 260px);
+  --flare-component-media-image-max-width: min(68vw, 280px);
+  --flare-component-media-video-width: min(68vw, 280px);
+  --flare-component-bubble-rich-min-width: min(74vw, 280px);
+  --flare-component-bubble-system-max-width: min(78vw, 520px);
+}
+
+/* Media sizes follow the timeline's own box (`container: flare-timeline`), so a picture in a narrow
+   pane is sized for that pane and not for the window it happens to sit in. The percentages are of
+   the container, which is what `cqw` means; `vw` would still be the window. */
+@container flare-timeline (max-width: 599px) {
+  .message-list {
+    --flare-component-media-card-min-width: min(88cqw, 300px);
+    --flare-component-media-image-max-width: min(76cqw, 240px);
+    --flare-component-media-video-width: min(76cqw, 240px);
+    --flare-component-bubble-rich-min-width: min(88cqw, 300px);
+    --flare-component-bubble-system-max-width: min(92cqw, 420px);
+  }
+}
+
+@container flare-timeline (min-width: 900px) {
+  .message-list {
+    --flare-component-media-card-min-width: min(320px, 34cqw);
+    --flare-component-media-image-max-width: min(360px, 38cqw);
+    --flare-component-media-video-width: min(360px, 38cqw);
+    --flare-component-bubble-rich-min-width: min(320px, 38cqw);
+    --flare-component-bubble-system-max-width: min(520px, 72%);
+  }
+}
+
+.im-content-view .message-text,
+.im-content-view .im-text {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.message-bubble .im-content-view--system,
+.message-bubble .im-content-view--notification,
+.message-row--system .message-bubble {
+  background: transparent;
+  box-shadow: none;
+}
+
+.im-media-caption {
+  width: 100%;
+  margin: 0;
+  color: var(--flare-color-text-primary);
+  font-size: var(--flare-size-font-size-sm);
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.message-bubble-self:not(.message-bubble--chromeless-media) .im-media-caption,
+.message-bubble-self:not(.message-bubble--chromeless-media) .im-image-group__title,
+.message-bubble-self:not(.message-bubble--chromeless-media) .im-image-group__desc {
+  color: var(--flare-color-message-outgoing-foreground);
+}
+
+.message-bubble-self:not(.message-bubble--chromeless-media) .im-info-card {
+  --flare-color-text-primary: var(--flare-color-message-outgoing-foreground);
+  --flare-color-text-secondary: rgba(255, 255, 255, 0.78);
+}
+
+.message-bubble-self:not(.message-bubble--chromeless-media):not(.message-bubble--chromeless-card) .im-info-card strong,
+.message-bubble-self:not(.message-bubble--chromeless-media):not(.message-bubble--chromeless-card) .business-message-view__title {
+  color: var(--flare-color-message-outgoing-foreground);
+}
+
+.message-bubble-self:not(.message-bubble--chromeless-media):not(.message-bubble--chromeless-card) .im-info-card span,
+.message-bubble-self:not(.message-bubble--chromeless-media):not(.message-bubble--chromeless-card) .business-message-view__body {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.message-bubble-self:not(.message-bubble--chromeless-media):not(.message-bubble--chromeless-card) .business-message-view__body {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.message-bubble-self:not(.message-bubble--chromeless-media):not(.message-bubble--chromeless-card) .business-detail-block {
+  --flare-color-text-primary: #172033;
+  --flare-color-text-secondary: #4b5563;
+  --flare-color-text-tertiary: #667085;
+  --flare-color-border-primary: #d7dce5;
+  --flare-color-bg-primary: #ffffff;
+  --flare-color-bg-tertiary: #f4f6fb;
+
+  color: #172033;
+}
+
+.message-bubble:not(.message-bubble--chromeless-media) .im-image-group__grid {
+  box-shadow: none;
+}
+
+.preview-modal__body .im-content-view {
+  width: 100%;
+}
+
+.preview-modal__body .fm-img,
+.preview-modal__body .fm-video {
+  max-width: min(100%, 420px);
+}

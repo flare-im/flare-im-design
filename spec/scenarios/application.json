@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "scenarios": [
+    {"id":"mobile-direct-chat","label":"Mobile Direct Chat App","mode":"mobile","conversation":"direct","destinations":["conversation","contacts","search","settings"],"states":["ready","offline","retry"]},
+    {"id":"mobile-group-chat","label":"Mobile Group Chat App","mode":"mobile","conversation":"group","destinations":["conversation","contacts","search","settings"],"states":["ready","mention","memberManagement"]},
+    {"id":"desktop-direct-chat","label":"Desktop Direct Chat App","mode":"desktop","conversation":"direct","destinations":["conversation","contacts","search","settings"],"states":["ready","detail","commandPalette"]},
+    {"id":"desktop-group-chat","label":"Desktop Group Chat App","mode":"wideDesktop","conversation":"group","destinations":["conversation","contacts","search","settings"],"states":["ready","detail","memberManagement"]},
+    {"id":"contacts-chat","label":"Contacts + Chat App","mode":"tablet","conversation":"direct","destinations":["contacts","conversation"],"states":["ready","empty","error"]},
+    {"id":"search-chat","label":"Search + Chat App","mode":"desktop","conversation":"direct","destinations":["search","conversation"],"states":["loading","ready","jumpToOriginal"]}
+  ],
+  "interactionFlow": [
+    "openConversation", "sendMessage", "retryFailed", "reply", "react", "search",
+    "jumpToSearchResult", "openContact", "openGroup", "openMedia", "previewImage",
+    "closePreview", "openSettings"
+  ]
+}
+

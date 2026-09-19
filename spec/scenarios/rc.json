@@ -1,0 +1,255 @@
+{
+  "schemaVersion": 1,
+  "scenarios": [
+    {
+      "id": "button-default-light",
+      "component": "Button",
+      "variant": "primary",
+      "state": "default",
+      "theme": "light",
+      "content": "short",
+      "interaction": "none",
+      "accessibilityExpectation": "named button"
+    },
+    {
+      "id": "input-invalid-large-dark",
+      "component": "Input",
+      "variant": "default",
+      "state": "invalid",
+      "theme": "dark",
+      "content": "long",
+      "interaction": "keyboard",
+      "accessibilityExpectation": "textbox linked to error at 200% text"
+    },
+    {
+      "id": "conversation-selected-unread",
+      "component": "ConversationRow",
+      "variant": "direct",
+      "state": "selected",
+      "theme": "light",
+      "content": "long",
+      "interaction": "keyboard",
+      "accessibilityExpectation": "selected row with unread value"
+    },
+    {
+      "id": "message-status-all",
+      "component": "MessageStatus",
+      "variant": "compact",
+      "state": "all",
+      "theme": "light",
+      "content": "short",
+      "interaction": "retry",
+      "accessibilityExpectation": "localized status and retry action"
+    },
+    {
+      "id": "message-bubble-long-dark",
+      "component": "MessageBubble",
+      "variant": "outgoing",
+      "state": "read",
+      "theme": "dark",
+      "content": "long",
+      "interaction": "contextMenu",
+      "accessibilityExpectation": "group with content and metadata"
+    },
+    {
+      "id": "message-rich-code",
+      "component": "MessageContentView",
+      "variant": "code",
+      "state": "ready",
+      "theme": "dark",
+      "content": "longLine",
+      "interaction": "horizontalScroll",
+      "accessibilityExpectation": "selectable code with copy action"
+    },
+    {
+      "id": "composer-offline-upload",
+      "component": "Composer",
+      "variant": "desktop",
+      "state": "offline",
+      "theme": "dark",
+      "content": "multiFile",
+      "interaction": "keyboard",
+      "accessibilityExpectation": "blocked reason and queued recovery"
+    },
+    {
+      "id": "thread-error-retry",
+      "component": "CommentThread",
+      "variant": "desktopPanel",
+      "state": "error",
+      "theme": "light",
+      "content": "long",
+      "interaction": "retry",
+      "accessibilityExpectation": "named retry action and focus restoration"
+    },
+    {
+      "id": "desktop-shell-triple-1920",
+      "component": "DesktopAppShell",
+      "variant": "triple",
+      "state": "ready",
+      "theme": "light",
+      "content": "long",
+      "interaction": "resize",
+      "accessibilityExpectation": "named regions and deterministic focus order"
+    },
+    {
+      "id": "upload-failed-retry",
+      "component": "TransferProgress",
+      "variant": "file",
+      "state": "failed",
+      "theme": "light",
+      "content": "longFilename",
+      "interaction": "retry",
+      "accessibilityExpectation": "progress state and retry action"
+    },
+    {
+      "id": "offline-recovery",
+      "component": "StatusBanner",
+      "variant": "offline",
+      "state": "error",
+      "theme": "dark",
+      "content": "short",
+      "interaction": "retry",
+      "accessibilityExpectation": "status announcement without focus theft"
+    },
+    {
+      "id": "command-keyboard",
+      "component": "CommandPalette",
+      "variant": "grouped",
+      "state": "focus",
+      "theme": "light",
+      "content": "long",
+      "interaction": "keyboard",
+      "accessibilityExpectation": "named dialog, active option, and restored focus"
+    },
+    {
+      "id": "reaction-touch",
+      "component": "ReactionSummary",
+      "variant": "compact",
+      "state": "pressed",
+      "theme": "dark",
+      "content": "long",
+      "interaction": "touch",
+      "accessibilityExpectation": "named toggle and selected state"
+    },
+    {
+      "id": "message-meta-outgoing",
+      "component": "MessageMeta",
+      "variant": "compact",
+      "state": "edited",
+      "theme": "light",
+      "content": "long",
+      "interaction": "none",
+      "accessibilityExpectation": "timestamp, edit state, and delivery semantics"
+    },
+    {
+      "id": "failure-network-offline",
+      "component": "StatusBanner",
+      "variant": "offline",
+      "state": "error",
+      "theme": "light",
+      "content": "draftPreserved",
+      "interaction": "reconnect",
+      "accessibilityExpectation": "offline status is announced without focus theft and draft remains available"
+    },
+    {
+      "id": "failure-message-send",
+      "component": "MessageStatus",
+      "variant": "compact",
+      "state": "failed",
+      "theme": "dark",
+      "content": "localEcho",
+      "interaction": "retry",
+      "accessibilityExpectation": "failed state, retained content, and one named retry action"
+    },
+    {
+      "id": "failure-upload",
+      "component": "TransferQueue",
+      "variant": "composer",
+      "state": "failed",
+      "theme": "light",
+      "content": "multiFile",
+      "interaction": "retry",
+      "accessibilityExpectation": "failed item is isolated and retry or remove remains reachable"
+    },
+    {
+      "id": "failure-download",
+      "component": "TransferProgress",
+      "variant": "download",
+      "state": "failed",
+      "theme": "dark",
+      "content": "longFilename",
+      "interaction": "retry",
+      "accessibilityExpectation": "download failure does not hide message content and exposes recovery"
+    },
+    {
+      "id": "failure-permission-denied",
+      "component": "PermissionPrompt",
+      "variant": "media",
+      "state": "denied",
+      "theme": "light",
+      "content": "microphone",
+      "interaction": "openSettings",
+      "accessibilityExpectation": "denial reason and settings path are named"
+    },
+    {
+      "id": "failure-media-unavailable",
+      "component": "UnknownMessage",
+      "variant": "media",
+      "state": "unavailable",
+      "theme": "dark",
+      "content": "metadata",
+      "interaction": "download",
+      "accessibilityExpectation": "fallback remains readable without broken controls"
+    },
+    {
+      "id": "failure-capability-unavailable",
+      "component": "CapabilityBoundary",
+      "variant": "capability",
+      "state": "unavailable",
+      "theme": "light",
+      "content": "diagnostic",
+      "interaction": "retry",
+      "accessibilityExpectation": "typed unavailable reason is shown with no permanent loading"
+    },
+    {
+      "id": "failure-conversation-unavailable",
+      "component": "ConversationWorkspace",
+      "variant": "chat",
+      "state": "error",
+      "theme": "light",
+      "content": "siblingPane",
+      "interaction": "retry",
+      "accessibilityExpectation": "failed pane has recovery while sibling content stays readable"
+    },
+    {
+      "id": "failure-message-recalled",
+      "component": "MessageContentView",
+      "variant": "lifecycle",
+      "state": "recalled",
+      "theme": "dark",
+      "content": "placeholder",
+      "interaction": "none",
+      "accessibilityExpectation": "recalled treatment replaces content without a false delivery state"
+    },
+    {
+      "id": "failure-reply-target-missing",
+      "component": "ComposerReplyStrip",
+      "variant": "reply",
+      "state": "unavailable",
+      "theme": "light",
+      "content": "missingTarget",
+      "interaction": "dismiss",
+      "accessibilityExpectation": "missing target is named and draft can still be sent or reply dismissed"
+    },
+    {
+      "id": "failure-link-preview",
+      "component": "LinkCardMessage",
+      "variant": "fallback",
+      "state": "error",
+      "theme": "dark",
+      "content": "urlOnly",
+      "interaction": "open",
+      "accessibilityExpectation": "safe URL fallback remains operable without indefinite loading"
+    }
+  ]
+}

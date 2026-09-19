@@ -1,0 +1,92 @@
+:root {
+  --flare-component-font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", Inter, "Segoe UI", sans-serif;
+  /* Code / technical text (raw payloads, slash commands, elapsed time). Was
+     spelled three different ways across six declarations. */
+  --flare-component-font-family-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --flare-component-brand-primary: var(--flare-color-primary);
+  /* Host seams. A host that wants a different form-label rank or a flat brand
+     logo sets these on its own container instead of reaching into
+     `.flare-form-field__label` / `.flare-brand-logo`. */
+  --flare-component-brand-logo-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  --flare-component-form-label-color: var(--flare-color-text-secondary);
+  --flare-component-form-label-size: 13px;
+  --flare-component-form-label-weight: 500;
+  --flare-component-bubble-max-width: min(68%, var(--flare-size-layout-bubble-max-width));
+  --flare-component-bubble-radius: 13px;
+  --flare-component-bubble-radius-tail: 6px;
+  --flare-component-bubble-rich-min-width: 220px;
+  --flare-component-bubble-system-max-width: 560px;
+  --flare-component-bubble-shadow: var(--flare-shadow-sm);
+  --flare-component-bubble-glow: 0 0 0 1px color-mix(in srgb, var(--flare-color-primary) 18%, transparent);
+  --flare-component-bubble-on-sent-muted: var(--flare-color-message-status-on-outgoing);
+  --flare-component-chat-hdr-title: var(--flare-color-text-primary);
+  --flare-component-chat-hdr-meta: var(--flare-color-message-meta-foreground);
+  --flare-component-chat-hdr-typing: var(--flare-color-primary-text);
+  --flare-component-chat-window-bg: var(--flare-color-bg-secondary);
+  --flare-component-composer-bar-bg: var(--flare-color-bg-secondary);
+  --flare-component-composer-border: var(--flare-color-border-primary);
+  --flare-component-composer-desktop-height: 46px;
+  --flare-component-composer-toolbar-icon: 34px;
+  --flare-component-composer-toolbar-width: 44px;
+  --flare-component-composer-action-height: 40px;
+  --flare-component-composer-action-width: 44px;
+  --flare-component-conversation-row-height: var(--flare-size-layout-session-item-height);
+  --flare-component-media-card-min-width: 220px;
+  --flare-component-media-image-max-width: 320px;
+  /* Content column of a readable FlareScreen (profile, settings and feed pages on wide panes). */
+  --flare-component-screen-reading-width: 720px;
+  /* Width of a sheet presented as a dialog on pointer devices; a host widens it for a search palette. */
+  --flare-component-sheet-dialog-width: 480px;
+  --flare-component-media-video-width: 320px;
+  --flare-component-message-gutter-inline: 16px;
+  --flare-component-message-shadow: var(--flare-shadow-sm);
+  --flare-component-message-tail-space: 10px;
+  --flare-component-message-pinned-bg: color-mix(in srgb, var(--flare-color-warning) 12%, var(--flare-color-bg-primary));
+  --flare-component-message-pinned-border: color-mix(in srgb, var(--flare-color-warning) 46%, var(--flare-color-border-primary));
+  --flare-component-message-pinned-text: var(--flare-color-warning-text);
+  --flare-component-motion-fast: var(--flare-transition-fast);
+  --flare-component-motion-normal: var(--flare-transition-normal);
+  --flare-component-page-padding-inline: 20px;
+  --flare-component-radius-md: var(--flare-size-radius-md);
+  --flare-component-radius-pill: var(--flare-size-radius-full);
+  --flare-component-rich-card-compact-width: 240px;
+  --flare-component-rich-card-media-height: 148px;
+  --flare-component-rich-card-width: 320px;
+  --flare-component-shadow-float: var(--flare-shadow-lg);
+  --flare-component-shadow-floating: var(--flare-shadow-md);
+  --flare-component-shadow-panel: var(--flare-shadow-sm);
+  --flare-component-sheet-width: 420px;
+  --flare-component-unread: var(--flare-color-primary);
+  /* Initial avatars: six identity tints (surface and initials), light values. */
+  --flare-component-avatar-tint-1-bg: #DBEAFE;
+  --flare-component-avatar-tint-1-fg: #1D4ED8;
+  --flare-component-avatar-tint-2-bg: #E9D5FF;
+  --flare-component-avatar-tint-2-fg: #6D28D9;
+  --flare-component-avatar-tint-3-bg: #FBCFE8;
+  --flare-component-avatar-tint-3-fg: #9D174D;
+  --flare-component-avatar-tint-4-bg: #D1FAE5;
+  --flare-component-avatar-tint-4-fg: #047857;
+  --flare-component-avatar-tint-5-bg: #FEF3C7;
+  --flare-component-avatar-tint-5-fg: #B45309;
+  --flare-component-avatar-tint-6-bg: #E5E7EB;
+  --flare-component-avatar-tint-6-fg: #374151;
+}
+
+[data-flare-theme="dark"] {
+  --flare-component-message-pinned-bg: color-mix(in srgb, var(--flare-color-warning) 16%, var(--flare-color-bg-primary));
+  --flare-component-message-pinned-border: color-mix(in srgb, var(--flare-color-warning) 42%, var(--flare-color-border-primary));
+  /* Dark avatars: the hue sinks into the dark surface and the initials turn light, so an
+     avatar no longer glares as a pastel disc in dark lists and headers. */
+  --flare-component-avatar-tint-1-bg: color-mix(in srgb, #1D4ED8 34%, var(--flare-color-bg-primary));
+  --flare-component-avatar-tint-1-fg: #BFDBFE;
+  --flare-component-avatar-tint-2-bg: color-mix(in srgb, #6D28D9 34%, var(--flare-color-bg-primary));
+  --flare-component-avatar-tint-2-fg: #DDD6FE;
+  --flare-component-avatar-tint-3-bg: color-mix(in srgb, #9D174D 38%, var(--flare-color-bg-primary));
+  --flare-component-avatar-tint-3-fg: #FBCFE8;
+  --flare-component-avatar-tint-4-bg: color-mix(in srgb, #047857 38%, var(--flare-color-bg-primary));
+  --flare-component-avatar-tint-4-fg: #A7F3D0;
+  --flare-component-avatar-tint-5-bg: color-mix(in srgb, #B45309 38%, var(--flare-color-bg-primary));
+  --flare-component-avatar-tint-5-fg: #FDE68A;
+  --flare-component-avatar-tint-6-bg: color-mix(in srgb, #6B7280 34%, var(--flare-color-bg-primary));
+  --flare-component-avatar-tint-6-fg: #E5E7EB;
+}

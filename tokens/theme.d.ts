@@ -1,21 +1,37 @@
-// Types for @flare-im/tokens/theme
-export interface FlareThemeInput {
-  primary: string;
-  success?: string;
-  warning?: string;
-  error?: string;
-  info?: string;
-}
-export type FlareThemeOverrides = Record<string, string>;
+export type FlareThemeName = "violet" | "ocean" | "forest" | "sunset" | "rose" | "graphite";
+export type FlareThemeMode = "light" | "dark";
 
-export function deriveFlareTheme(opts: FlareThemeInput): FlareThemeOverrides;
-export function flareThemeVars(overrides: FlareThemeOverrides): Record<string, string>;
-export function applyFlareTheme(overrides: FlareThemeOverrides, el?: HTMLElement): void;
-export const flarePresets: Record<
-  "violet" | "ocean" | "forest" | "sunset" | "rose" | "graphite",
-  FlareThemeOverrides
->;
-export const flareColorMath: {
-  shade(hex: string, delta: number): string;
-  mix(hex: string, weight: number, target?: string): string;
-};
+export interface FlareThemeColorMap {
+  readonly [key: string]: string | FlareThemeColorMap;
+}
+
+export interface FlareThemeModeDefinition {
+  readonly colors: FlareThemeColorMap;
+}
+
+export interface FlareCustomTheme {
+  readonly name: string;
+  readonly light: FlareThemeModeDefinition;
+  readonly dark: FlareThemeModeDefinition;
+}
+
+export const flareThemeNames: readonly FlareThemeName[];
+export const flareBuiltInThemes: Readonly<Record<FlareThemeName, {
+  readonly label: string;
+  readonly light: FlareThemeModeDefinition;
+  readonly dark: FlareThemeModeDefinition;
+}>>;
+export function createFlareCustomTheme(input: FlareCustomTheme): FlareCustomTheme;
+export function resolveFlareTheme(
+  theme?: FlareThemeName | FlareCustomTheme,
+  mode?: FlareThemeMode,
+): FlareThemeModeDefinition;
+export function flareThemeVars(
+  theme?: FlareThemeName | FlareCustomTheme,
+  mode?: FlareThemeMode,
+): Record<string, string>;
+export function applyFlareTheme(
+  theme?: FlareThemeName | FlareCustomTheme,
+  mode?: FlareThemeMode,
+  element?: HTMLElement,
+): void;

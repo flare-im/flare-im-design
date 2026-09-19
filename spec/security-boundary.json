@@ -1,0 +1,155 @@
+{
+  "note": "DoD 32 — where sanitization lives. Message content is written by other people, so every string in it is attacker-chosen. The rule the kit holds to: components render untrusted text as text, never navigate to a URL they did not check, and produce HTML in exactly one place. tooling/check-security-boundary.mjs enforces the structural half; the vector tables below are run by the four platform tests.",
+  "ownership": {
+    "kit": "Escapes message text, gates every URL it resolves through safeExternalUrl, and exposes that function so the host applies the same rule. A component either reports the URL to the host or opens it itself through the gate — never a URL it did not check. Produces HTML only through utils/markdown (markdown-it with html:false).",
+    "host": "Decides what a link does. The kit reports a URL through an event (openLink, linkClick, the media actions); a host that listens owns the navigation and should use safeExternalUrl for its own decision. Where a host listens to nothing, the gated platform default in the kit applies, so an unwired app is never a hole.",
+    "renderer": "The SDK/content layer validates inbound payload shape and depth before it reaches a component. The kit assumes a well-formed payload but never assumes a safe one."
+  },
+  "safeUrlSchemes": [
+    "http",
+    "https"
+  ],
+  "urlVectors": [
+    {
+      "id": "javascript.plain",
+      "input": "javascript:alert(1)",
+      "safe": false
+    },
+    {
+      "id": "javascript.uppercase",
+      "input": "JaVaScRiPt:alert(1)",
+      "safe": false
+    },
+    {
+      "id": "javascript.leadingSpace",
+      "input": "   javascript:alert(1)",
+      "safe": false
+    },
+    {
+      "id": "javascript.embeddedTab",
+      "input": "java\tscript:alert(1)",
+      "safe": false,
+      "why": "URL parsers strip tabs, so a string comparison alone is walked past."
+    },
+    {
+      "id": "javascript.embeddedNewline",
+      "input": "java\nscript:alert(1)",
+      "safe": false
+    },
+    {
+      "id": "data.html",
+      "input": "data:text/html,<script>alert(1)</script>",
+      "safe": false
+    },
+    {
+      "id": "data.base64",
+      "input": "data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==",
+      "safe": false
+    },
+    {
+      "id": "vbscript",
+      "input": "vbscript:msgbox(1)",
+      "safe": false
+    },
+    {
+      "id": "file",
+      "input": "file:///etc/passwd",
+      "safe": false
+    },
+    {
+      "id": "blob",
+      "input": "blob:https://evil.example/9b2d",
+      "safe": false
+    },
+    {
+      "id": "about",
+      "input": "about:blank",
+      "safe": false
+    },
+    {
+      "id": "empty",
+      "input": "",
+      "safe": false
+    },
+    {
+      "id": "whitespace",
+      "input": "   ",
+      "safe": false
+    },
+    {
+      "id": "notAUrl",
+      "input": "just some text",
+      "safe": false,
+      "why": "Dart's Uri percent-encodes the spaces into a valid host; the four platforms refuse a literal space by rule instead of relying on the strictest parser."
+    },
+    {
+      "id": "http",
+      "input": "http://example.com/path?q=1",
+      "safe": true
+    },
+    {
+      "id": "https",
+      "input": "https://example.com/path#anchor",
+      "safe": true
+    },
+    {
+      "id": "schemeless",
+      "input": "example.com/path",
+      "safe": true,
+      "why": "What a user typing a bare domain means."
+    },
+    {
+      "id": "schemelessWithPort",
+      "input": "example.com:8443/path",
+      "safe": true,
+      "why": "A host and a port look like a scheme to RFC 3986; a colon followed by digits is read as a port."
+    }
+  ],
+  "platforms": {
+    "vue": {
+      "module": "packages/vue-im-ui/src/shared/contracts/url-safety.ts",
+      "symbol": "safeExternalUrl",
+      "test": "packages/vue-im-ui/src/shared/contracts/url-safety.test.ts"
+    },
+    "flutter": {
+      "module": "packages/flutter-im-ui/lib/src/models/url_safety.dart",
+      "symbol": "safeExternalUrl",
+      "test": "packages/flutter-im-ui/test/url_safety_test.dart"
+    },
+    "compose": {
+      "module": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/UrlSafety.kt",
+      "symbol": "safeExternalUrl",
+      "test": "packages/android-im-ui/src/test/kotlin/com/flare/im/ui/UrlSafetyTest.kt"
+    },
+    "ios": {
+      "module": "packages/ios-im-ui/Sources/FlareImUI/Models/UrlSafety.swift",
+      "symbol": "safeExternalURL",
+      "test": "packages/ios-im-ui/Tests/FlareIMUITests/UrlSafetyTests.swift"
+    }
+  },
+  "html": {
+    "note": "Raw HTML may be produced in exactly one module, and only through markdown-it with html:false. Every other v-html is an allow-listed static table.",
+    "renderer": "packages/vue-im-ui/src/utils/markdown.ts",
+    "test": "packages/vue-im-ui/src/utils/markdown.security.test.ts",
+    "allowedRawHtml": [
+      "packages/vue-im-ui/src/components/messages/standalone/FlareTextMessage.vue",
+      "packages/vue-im-ui/src/components/message-preview/MarkdownPreview.vue",
+      "packages/vue-im-ui/src/components/messages/standalone/MsgIcon.vue"
+    ],
+    "allowedRawHtmlWhy": {
+      "FlareTextMessage.vue": "Message text through renderMarkdown.",
+      "MarkdownPreview.vue": "Host-authored markdown through renderMarkdown.",
+      "MsgIcon.vue": "A static local table of inline SVG; no input reaches it."
+    }
+  },
+  "anchors": {
+    "note": "Components that navigate on their own rather than reporting the URL to the host. Each must resolve its href through safeExternalUrl or build it from parts it controls. The list is the Vue package, which the gate reads; the SwiftUI and Compose kits also open http/https themselves when the host handles no openLink, through the same vector table (docs/release/security-boundary.md section 4c).",
+    "packages/vue-im-ui/src/components/messages/MessagesView/views/LinkCardView.vue": "safeExternalUrl",
+    "packages/vue-im-ui/src/components/messages/MessagesView/views/LocationView.vue": "built from latitude and longitude",
+    "packages/vue-im-ui/src/components/messages/standalone/FlareRichDocRuns.vue": "safeExternalUrl"
+  },
+  "scriptedNavigation": {
+    "note": "Kit modules that create an anchor, assign an href or open a window from script. The value names the function that gates the URL; the module must call it.",
+    "packages/vue-im-ui/src/utils/browserDownload.ts": "downloadableHref (http/https, page-relative paths, same-origin blobs)"
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "principles": [
+    "List construction must be proportional to the visible window, not the backing collection — where the component windows at all. Where it does not, say so and budget the host instead.",
+    "A scroll container bounds its own height. One that does not cannot scroll, and a virtual window measured from clientHeight then covers the whole list.",
+    "Stable item identity is required for scroll restoration and focused-row continuity.",
+    "Media decoding, upload progress, and message updates must be scoped to the affected item."
+  ],
+  "scenarios": {
+    "conversation1k": {
+      "target": "ConversationList",
+      "required": "lazyOrWindowed",
+      "budget": "O(visible) rendered rows"
+    },
+    "conversation10k": {
+      "target": "ConversationList",
+      "required": "stableKeysAndWindowing",
+      "budget": "No 10k-node eager UI tree"
+    },
+    "message10k": {
+      "target": "MessageList",
+      "required": "pagedWindow",
+      "budget": "Host keeps a bounded projection; the component renders it in full (see measuredBudgets.messageList)"
+    },
+    "message100kEstimated": {
+      "target": "MessageList",
+      "required": "pagedWindow",
+      "budget": "Host retains a bounded projection and stable reading anchor"
+    },
+    "manyImages": {
+      "target": "ImageGrid",
+      "required": "lazyDecode",
+      "budget": "Decode near viewport; thumbnail before original"
+    },
+    "uploadQueue": {
+      "target": "TransferQueue",
+      "required": "itemScopedUpdates",
+      "budget": "Progress update rebuilds only the changed transfer row"
+    }
+  },
+  "platformProof": {
+    "vueConversation": {
+      "path": "packages/vue-im-ui/src/components/conversation/FlareConversationList.vue",
+      "terms": [
+        "visibleEntries",
+        "entries.value.slice(startIndex.value, endIndex.value)",
+        "virtualizeAbove",
+        "overscan"
+      ]
+    },
+    "vueMessages": {
+      "path": "packages/vue-im-ui/src/components/messages/MessageList.vue",
+      "terms": [
+        "updateVirtualViewport",
+        "virtualItems"
+      ]
+    },
+    "flutterConversation": {
+      "path": "packages/flutter-im-ui/lib/src/components/flare_conversation_list.dart",
+      "terms": [
+        "ListView.builder"
+      ]
+    },
+    "flutterMessages": {
+      "path": "packages/flutter-im-ui/lib/src/components/flare_message_list.dart",
+      "terms": [
+        "SliverChildBuilderDelegate"
+      ]
+    },
+    "composeConversation": {
+      "path": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/ConversationList.kt",
+      "terms": [
+        "LazyColumn",
+        "items(items"
+      ]
+    },
+    "composeMessages": {
+      "path": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/MessageList.kt",
+      "terms": [
+        "LazyColumn",
+        "items(rows, key = { row -> row.key }"
+      ]
+    },
+    "iosConversation": {
+      "path": "packages/ios-im-ui/Sources/FlareIMUI/Components/ConversationListView.swift",
+      "terms": [
+        "List(items)"
+      ]
+    },
+    "iosMessages": {
+      "path": "packages/ios-im-ui/Sources/FlareIMUI/Components/MessageListView.swift",
+      "terms": [
+        "LazyVStack"
+      ]
+    }
+  },
+  "measuredBudgets": {
+    "note": "Measured by website/tests/performance-budget.spec.ts against /resources/performance-regression at 1440x900. Ceilings sit above the observed numbers with room for machine noise; they exist to catch a regression in kind (windowing switched off, a row's node count doubling), not to police milliseconds. Observed values are from a 2026-09-15 run on the dev server (mount was 1153 ms on 2026-09-13 and 7.2 s before the Round 5 fix, when every message built its own menu popover); re-record them when the numbers move.",
+    "conversationList": {
+      "items": 1000,
+      "windows": true,
+      "maxRenderedRows": 60,
+      "why": "FlareConversationList windows above 200 items. 1000 items render a screenful plus overscan.",
+      "observedRenderedRows": 21,
+      "observedNodesPerRow": 15
+    },
+    "messageList": {
+      "items": 5000,
+      "windows": false,
+      "maxNodesPerRow": 40,
+      "hostMaxLoadedMessages": 400,
+      "why": "FlareMessageList keeps loaded timelines on native layout on purpose: its row heights vary with rich text, media and quotes, and a fixed-estimate window makes the scrollbar jump under paging. The DOM is therefore O(loaded), and the bound belongs to the host's paging window — not to a claim the component does not keep.",
+      "observedNodesPerRow": 23
+    },
+    "mount": {
+      "maxMs": 6000,
+      "why": "Both lists mounted with the full load on a dev server. A ceiling this loose still catches an order-of-magnitude regression.",
+      "observedMs": 704
+    }
+  }
+}

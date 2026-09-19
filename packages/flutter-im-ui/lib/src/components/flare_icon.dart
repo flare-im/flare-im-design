@@ -1,0 +1,271 @@
+import 'package:flutter/material.dart';
+
+import '../tokens/flare_tokens.dart';
+import 'action_icon.dart';
+
+/// The 105 semantic icon names exposed by [FlareIcon], in canonical order.
+///
+/// Kept in lock-step with the cross-platform icon-library contract so every
+/// platform ships the same fixed vocabulary of glyphs.
+const List<String> flareIconNames = <String>[
+  'search',
+  'send',
+  'more',
+  'back',
+  'close',
+  'check',
+  'add',
+  'remove',
+  'edit',
+  'delete',
+  'heart',
+  'comment',
+  'chats',
+  'moments',
+  'share',
+  'camera',
+  'image',
+  'location',
+  'mic',
+  'phone',
+  'video',
+  'settings',
+  'person',
+  'people',
+  'person-add',
+  'star',
+  'download',
+  'link',
+  'emoji',
+  'file',
+  'folder',
+  'notification',
+  'mute',
+  'copy',
+  'forward',
+  'reply',
+  'refresh',
+  'chevron-down',
+  'chevron-right',
+  'arrow-down',
+  'warning',
+  'info',
+  'success',
+  'error',
+  'calendar',
+  'clock',
+  'eye',
+  'eye-off',
+  'lock',
+  'qr',
+  'block',
+  'tag',
+  'announcement',
+  'theme',
+  'language',
+  'devices',
+  'logout',
+  'pin',
+  'poll',
+  'recall',
+  'unpin',
+  'merge-forward',
+  'multi-select',
+  'quote',
+  'reaction',
+  'translate',
+  'mention',
+  'read',
+  'mark',
+  'rich-text',
+  'attachment',
+  'mark-unread',
+  'archive',
+  'unarchive',
+  'clear-history',
+  'mic-off',
+  'camera-off',
+  'speaker',
+  'speaker-off',
+  'end-call',
+  'switch-camera',
+  'screen-share',
+  'play',
+  'pause',
+  'expand',
+  'collapse',
+  'zoom-in',
+  'zoom-out',
+  'rotate',
+  'group',
+  'admin',
+  'remove-member',
+  'transfer-owner',
+  'silence',
+  'report',
+  'chevron-up',
+  'chevron-left',
+  'keyboard',
+  'mini-app',
+  'pin-self',
+  'diagnostics',
+  'card',
+  'id',
+  'join-request',
+  'storage',
+];
+
+/// Maps each semantic name in [flareIconNames] to the closest Material glyph.
+///
+/// Outlined variants are preferred where a good one exists, matching the
+/// kit's light, considered visual language; otherwise a filled glyph is used.
+/// `unpin` is the one deliberate filled glyph: Material has no slashed pin, so
+/// the filled pin stands apart from the outlined `pin`.
+const Map<String, IconData> flareIconMap = <String, IconData>{
+  'search': Icons.search,
+  'send': Icons.send_outlined,
+  'more': Icons.more_horiz,
+  'back': Icons.arrow_back,
+  'close': Icons.close,
+  'check': Icons.check,
+  'add': Icons.add,
+  'remove': Icons.remove,
+  'edit': Icons.edit_outlined,
+  'delete': Icons.delete_outline,
+  'heart': Icons.favorite_border,
+  'comment': Icons.chat_bubble_outline,
+  'chats': Icons.forum_outlined,
+  'moments': Icons.explore_outlined,
+  'share': Icons.share_outlined,
+  'camera': Icons.photo_camera_outlined,
+  'image': Icons.image_outlined,
+  'location': Icons.location_on_outlined,
+  'mic': Icons.mic_none_outlined,
+  'phone': Icons.phone_outlined,
+  'video': Icons.videocam_outlined,
+  'settings': Icons.settings_outlined,
+  'person': Icons.person_outline,
+  'people': Icons.people_outline,
+  'person-add': Icons.person_add_alt_1_outlined,
+  'star': Icons.star_border,
+  'download': Icons.download_outlined,
+  'link': Icons.link,
+  'emoji': Icons.emoji_emotions_outlined,
+  'file': Icons.insert_drive_file_outlined,
+  'folder': Icons.folder_outlined,
+  'notification': Icons.notifications_outlined,
+  'mute': Icons.notifications_off_outlined,
+  'copy': Icons.copy_outlined,
+  'forward': Icons.forward,
+  'reply': Icons.reply,
+  'refresh': Icons.refresh,
+  'chevron-down': Icons.keyboard_arrow_down,
+  'chevron-right': Icons.chevron_right,
+  'arrow-down': Icons.arrow_downward,
+  'warning': Icons.warning_amber_outlined,
+  'info': Icons.info_outline,
+  'success': Icons.check_circle_outline,
+  'error': Icons.error_outline,
+  'calendar': Icons.calendar_today_outlined,
+  'clock': Icons.access_time,
+  'eye': Icons.visibility_outlined,
+  'eye-off': Icons.visibility_off_outlined,
+  'lock': Icons.lock_outline,
+  'qr': Icons.qr_code,
+  'block': Icons.block,
+  'tag': Icons.label_outline,
+  'announcement': Icons.campaign_outlined,
+  'theme': Icons.dark_mode_outlined,
+  'language': Icons.language,
+  'devices': Icons.devices_outlined,
+  'logout': Icons.logout,
+  'pin': Icons.push_pin_outlined,
+  'poll': Icons.poll_outlined,
+  'recall': Icons.undo_outlined,
+  'unpin': Icons.push_pin,
+  'merge-forward': Icons.merge_outlined,
+  'multi-select': Icons.checklist_outlined,
+  'quote': Icons.format_quote_outlined,
+  'reaction': Icons.add_reaction_outlined,
+  'translate': Icons.translate_outlined,
+  'mention': Icons.alternate_email_outlined,
+  'read': Icons.done_all_outlined,
+  'mark': Icons.flag_outlined,
+  'rich-text': Icons.text_format_outlined,
+  'attachment': Icons.attach_file_outlined,
+  'mark-unread': Icons.mark_chat_unread_outlined,
+  'archive': Icons.archive_outlined,
+  'unarchive': Icons.unarchive_outlined,
+  'clear-history': Icons.delete_sweep_outlined,
+  'mic-off': Icons.mic_off_outlined,
+  'camera-off': Icons.videocam_off_outlined,
+  'speaker': Icons.volume_up_outlined,
+  'speaker-off': Icons.volume_off_outlined,
+  'end-call': Icons.call_end_outlined,
+  'switch-camera': Icons.cameraswitch_outlined,
+  'screen-share': Icons.screen_share_outlined,
+  'play': Icons.play_arrow_outlined,
+  'pause': Icons.pause_outlined,
+  'expand': Icons.open_in_full_outlined,
+  'collapse': Icons.close_fullscreen_outlined,
+  'zoom-in': Icons.zoom_in_outlined,
+  'zoom-out': Icons.zoom_out_outlined,
+  'rotate': Icons.rotate_right_outlined,
+  'group': Icons.groups_outlined,
+  'admin': Icons.admin_panel_settings_outlined,
+  'remove-member': Icons.person_remove_outlined,
+  'transfer-owner': Icons.key_outlined,
+  'silence': Icons.comments_disabled_outlined,
+  'report': Icons.report_outlined,
+  'chevron-up': Icons.expand_less_outlined,
+  'chevron-left': Icons.chevron_left_outlined,
+  'keyboard': Icons.keyboard_outlined,
+  'mini-app': Icons.apps_outlined,
+  // Round 9: concepts every kit drew under a name that meant something else.
+  'pin-self': Icons.bookmark_border,
+  'diagnostics': Icons.bug_report_outlined,
+  'card': Icons.contact_page_outlined,
+  'id': Icons.tag,
+  'join-request': Icons.move_to_inbox_outlined,
+  'storage': Icons.storage_outlined,
+};
+
+/// A cross-platform icon rendered from a fixed semantic [name].
+///
+/// Unknown names fall back to [Icons.help_outline] so a missing mapping is
+/// visible rather than silently blank, and say so on the debug console (never
+/// a crash and never the name as text). When [color] is omitted the icon uses
+/// the kit's secondary text colour for the current brightness.
+class FlareIcon extends StatelessWidget {
+  const FlareIcon(
+    this.name, {
+    super.key,
+    this.size = 20,
+    this.color,
+    this.semanticLabel,
+  });
+
+  /// One of the semantic names in [flareIconNames].
+  final String name;
+
+  /// Rendered glyph size in logical pixels.
+  final double size;
+
+  /// Optional override colour; defaults to the token secondary text colour.
+  final Color? color;
+
+  /// The icon's own accessible name. Leave it null for a decorative icon inside
+  /// an already-labelled control: it stays out of the semantics tree instead of
+  /// being announced on top of that label.
+  final String? semanticLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(
+      flareIconGlyph(name),
+      size: size,
+      color: color ?? FlareColors.of(context).textSecondary,
+      semanticLabel: semanticLabel,
+    );
+  }
+}

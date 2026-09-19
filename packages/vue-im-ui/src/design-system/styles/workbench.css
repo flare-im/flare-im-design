@@ -1,0 +1,191 @@
+/* Conversation details / runtime status rules shared by kit components (the reference workbench shell's own rules moved with it to examples/shared/vue-reference). */
+.runtime-status-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: var(--flare-size-radius-full);
+  background: var(--flare-color-primary);
+}
+
+.runtime-status-dot--busy {
+  animation: flare-status-pulse 1s ease-in-out infinite;
+}
+
+.runtime-status-banner--error strong,
+.runtime-status-banner--error .runtime-status-dot {
+  color: var(--flare-color-error-text);
+  background: var(--flare-color-error);
+}
+
+.runtime-status-banner--warning strong,
+.runtime-status-banner--warning .runtime-status-dot {
+  color: var(--flare-color-warning-text);
+  background: var(--flare-color-warning);
+}
+
+.details-pane {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  flex-direction: column;
+  overflow: auto;
+  background: var(--flare-color-bg-primary);
+}
+
+.details-hero {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 24px 20px 18px;
+  text-align: center;
+}
+
+.details-hero h2 {
+  margin: 8px 0 0;
+  color: var(--flare-color-text-primary);
+  font-size: 18px;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+.details-hero p {
+  margin: 0;
+  color: var(--flare-color-text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.details-tags {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.details-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  padding: 0 16px 18px;
+}
+
+.details-actions .n-button {
+  min-width: 0;
+  border-radius: var(--flare-size-radius-md) !important;
+}
+
+.details-pane .n-divider {
+  margin: 0;
+}
+
+.details-section {
+  padding: 20px 18px;
+}
+
+.details-section dl {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+}
+
+.details-section dl > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  align-items: start;
+  gap: 10px;
+  min-width: 0;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--flare-color-border-secondary);
+}
+
+.details-section dt,
+.details-section dd {
+  min-width: 0;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.details-section dt {
+  color: var(--flare-color-text-tertiary);
+  font-weight: 650;
+}
+
+.details-section dd {
+  color: var(--flare-color-text-primary);
+  text-align: right;
+}
+
+.extension-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.extension-list button {
+  padding: 0 10px;
+  border: 1px solid var(--flare-color-border-primary);
+  border-radius: var(--flare-size-radius-sm);
+  color: var(--flare-color-text-secondary);
+  background: var(--flare-color-bg-primary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+
+/* 30px 是桌面密度；触屏上让 accessibility.css 的 44px 地板生效。 */
+@media (pointer: fine) {
+  .extension-list button { min-height: 30px; }
+}
+
+.extension-list button:hover,
+.extension-list button:focus-visible {
+  border-color: var(--flare-color-border-selected);
+  color: var(--flare-color-primary-text);
+  background: var(--flare-color-bg-selected);
+  outline: 0;
+}
+
+.details-empty {
+  display: grid;
+  height: 100%;
+  place-content: center;
+  gap: 8px;
+  padding: 24px;
+  text-align: center;
+}
+
+.details-empty h2,
+.details-empty p {
+  margin: 0;
+}
+
+.details-empty h2 {
+  color: var(--flare-color-text-primary);
+  font-size: 18px;
+}
+
+.details-empty p {
+  color: var(--flare-color-text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.details-diagnostics {
+  margin-top: 12px;
+}
+
+.details-diagnostics summary {
+  padding: 10px 0;
+  color: var(--flare-color-text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.details-diagnostics dd {
+  font-variant-numeric: tabular-nums;
+}

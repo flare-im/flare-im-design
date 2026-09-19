@@ -1,17 +1,23 @@
 {
   "name": "@flare-im/ui-spec",
-  "version": "0.3.0",
-  "description": "Flare IM UI Kit — L2 framework-neutral component contract (catalogue + props/states/events + core-view data source), realised natively per platform.",
+  "version": "2.0.0-rc.1",
+  "description": "Flare IM UI Kit framework-neutral component contracts, host-owned data models, states, events, and native platform mappings.",
   "license": "Apache-2.0",
   "type": "module",
   "files": [
     "components.json",
+    "ui-interaction-contracts.json",
+    "interaction-contracts.json",
+    "scenarios",
     "validate.mjs",
     "README.md",
     "LICENSE"
   ],
   "exports": {
-    "./components.json": "./components.json"
+    "./components.json": "./components.json",
+    "./interaction-contracts.json": "./interaction-contracts.json",
+    "./ui-interaction-contracts.json": "./ui-interaction-contracts.json",
+    "./scenarios/rc.json": "./scenarios/rc.json"
   },
   "scripts": {
     "validate": "node validate.mjs"

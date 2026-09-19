@@ -1,0 +1,343 @@
+{
+  "schemaVersion": 2,
+  "defaultStatus": "stable",
+  "defaultSince": "2.0.0-rc.1",
+  "statusValues": [
+    "stable",
+    "experimental",
+    "internal"
+  ],
+  "coreComponents": [
+    "Button",
+    "IconButton",
+    "Input",
+    "Textarea",
+    "SearchBar",
+    "Select",
+    "Checkbox",
+    "RadioGroup",
+    "Switch",
+    "FilterTabs",
+    "Avatar",
+    "Toast",
+    "Skeleton",
+    "ConversationRow",
+    "ConversationList",
+    "MessageStatus",
+    "MessageMeta",
+    "MessageBubble",
+    "MessageList",
+    "ConversationHeader",
+    "ChatWorkspace",
+    "Composer",
+    "ComposerReplyStrip",
+    "ReactionSummary",
+    "TransferProgress",
+    "ReadReceiptSheet",
+    "AppLayout",
+    "DesktopAppShell"
+  ],
+  "aliases": {
+    "ConversationRow": [
+      "ConversationItem",
+      "conversation item",
+      "会话项"
+    ],
+    "MessageStatus": [
+      "read receipt",
+      "delivery status",
+      "double check",
+      "已读回执",
+      "双勾"
+    ],
+    "MessageMeta": [
+      "message metadata",
+      "timestamp",
+      "delivery metadata",
+      "read receipt",
+      "消息元数据",
+      "已读回执"
+    ],
+    "AppLayout": [
+      "adaptive pane",
+      "master content detail",
+      "responsive workspace",
+      "three pane",
+      "三栏",
+      "三栏布局",
+      "自适应工作台"
+    ],
+    "Composer": [
+      "message input",
+      "send message",
+      "输入框",
+      "消息编辑器"
+    ],
+    "ReadReceiptSheet": [
+      "read receipt",
+      "read by",
+      "已读回执"
+    ],
+    "TransferProgress": [
+      "upload progress",
+      "download progress",
+      "attachment upload",
+      "传输进度"
+    ],
+    "SearchPanel": [
+      "message search",
+      "search workspace",
+      "聊天搜索"
+    ],
+    "CommandPalette": [
+      "commands",
+      "keyboard navigation",
+      "命令面板"
+    ],
+    "DesktopAppShell": [
+      "PC workspace",
+      "desktop im",
+      "desktop workbench",
+      "three pane",
+      "三栏",
+      "桌面工作台"
+    ]
+  },
+  "overrides": {
+    "ConfigProvider": {
+      "scope": "platform-specific"
+    }
+  },
+  "preview": {
+    "default": {
+      "mode": "single",
+      "viewports": [
+        "desktop"
+      ],
+      "presentation": "isolated"
+    },
+    "responsive": [
+      "Select",
+      "DatePicker",
+      "TimePicker",
+      "AdaptiveNavigation",
+      "ScreenHeader",
+      "CommandPalette",
+      "ConversationList",
+      "ConversationRow",
+      "ConversationDetails",
+      "StartConversationDialog",
+      "ForwardPicker",
+      "ConversationActionSheet",
+      "MemberRoleSheet",
+      "MessageList",
+      "ConversationHeader",
+      "ChatWorkspace",
+      "MessageActionSheet",
+      "ReadReceiptSheet",
+      "Composer",
+      "ComposerActionPanel",
+      "ImagePreviewModal",
+      "VideoPlayerModal",
+      "MediaCenter",
+      "SearchPanel",
+      "DangerConfirm",
+      "CallView",
+      "IncomingCall",
+      "GroupCallView",
+      "EmojiStickerPicker",
+      "ComposerMediaPreview",
+      "BottomSheet",
+      "FormSheet",
+      "ActionMenu"
+    ],
+    "workspace": [
+      "AppLayout",
+      "DesktopAppShell",
+      "ResponsiveLayout",
+      "ConversationWorkspace",
+      "ChatWorkspace",
+      "ConversationListContainer",
+      "FriendListContainer",
+      "WorkspaceFrame",
+      "IMAppKit"
+    ],
+    "viewports": {
+      "MobileAppShell": [
+        "mobile"
+      ],
+      "DesktopAppShell": [
+        "desktop"
+      ]
+    },
+    "presentations": {
+      "chat": [
+        "MessageStatus",
+        "MessageMeta",
+        "MessageBubble",
+        "MessageList",
+        "ConversationHeader",
+        "PinnedMessageBar",
+        "MessageContentView",
+        "TextMessage",
+        "ImageMessage",
+        "VideoMessage",
+        "VoiceMessage",
+        "FileMessage",
+        "LocationMessage",
+        "ContactMessage",
+        "LinkCardMessage",
+        "VoteMessage",
+        "TaskMessage",
+        "StickerMessage",
+        "EmojiMessage",
+        "SystemMessage",
+        "TypingIndicator",
+        "UnreadDivider",
+        "ScrollToLatest",
+        "ReactionSummary",
+        "AnnouncementBanner",
+        "DatePill",
+        "RedPacketCard",
+        "TranslationView",
+        "ImageGrid",
+        "VoicePlayer",
+        "UnknownMessage"
+      ],
+      "chat-footer": [
+        "Composer",
+        "VoiceHoldButton",
+        "ComposerActionPanel",
+        "ComposerSendButton",
+        "ComposerReplyStrip",
+        "RichMarkdownInput",
+        "MentionPicker",
+        "QuickPhrases",
+        "SlashCommandMenu",
+        "VoiceRecordingBar",
+        "PollComposer",
+        "EmojiPicker",
+        "StickerPanel"
+      ],
+      "list": [
+        "ConversationList",
+        "ConversationRow",
+        "ContactList",
+        "ContactItem",
+        "GroupList",
+        "NewFriendRequests",
+        "SearchResults",
+        "SettingsList"
+      ],
+      "overlay": [
+        "StartConversationDialog",
+        "ForwardPicker",
+        "ConversationActionSheet",
+        "MessageActionSheet",
+        "ReadReceiptSheet",
+        "ImagePreviewModal",
+        "VideoPlayerModal",
+        "SearchPanel",
+        "DangerConfirm",
+        "MemberRoleSheet",
+        "MomentAudienceSheet"
+      ],
+      "workspace": [
+        "AppLayout",
+        "MobileAppShell",
+        "DesktopAppShell",
+        "ResponsiveLayout",
+        "ConversationWorkspace",
+        "ConversationListContainer",
+        "FriendListContainer",
+        "WorkspaceFrame",
+        "IMAppKit"
+      ]
+    },
+    "openers": {
+      "BottomSheet": "打开底部面板",
+      "FormSheet": "重命名群聊",
+      "CommandPalette": "打开命令面板",
+      "ImagePreviewModal": "打开图片预览",
+      "VideoPlayerModal": "打开视频播放",
+      "StartConversationDialog": "发起会话"
+    },
+    "openersNote": "Demos whose surface only exists after a click, and the accessible name of the control that opens it. The accessibility sweep scans the preview as it renders and then again with this control activated, because a dialog, a sheet or a menu is a surface of its own — until Round 6 it was scanning these components' trigger buttons and reporting that as coverage (FR-124). A component listed here must actually open something: the sweep fails when the click produces no overlay."
+  },
+  "documentation": {
+    "overrides": {
+      "Button": {
+        "variantExamples": [
+          {
+            "name": "variant",
+            "values": [
+              "primary",
+              "secondary",
+              "ghost",
+              "text",
+              "danger"
+            ]
+          },
+          {
+            "name": "size",
+            "values": [
+              "sm",
+              "md",
+              "lg"
+            ]
+          }
+        ],
+        "stateExamples": [
+          "default",
+          "disabled",
+          "loading",
+          "danger"
+        ]
+      }
+    }
+  },
+  "specializedMessageGroups": {
+    "Text": [
+      "TextMessage",
+      "MarkdownPreview"
+    ],
+    "Media": [
+      "ImageMessage",
+      "VideoMessage",
+      "VoiceMessage",
+      "StickerMessage",
+      "EmojiMessage"
+    ],
+    "File": [
+      "FileMessage"
+    ],
+    "Location": [
+      "LocationMessage"
+    ],
+    "Contact": [
+      "ContactMessage"
+    ],
+    "Link": [
+      "LinkCardMessage"
+    ],
+    "Poll": [
+      "VoteMessage"
+    ],
+    "Task": [
+      "TaskMessage"
+    ],
+    "System": [
+      "SystemMessage",
+      "UnknownMessage"
+    ],
+    "Forward": [
+      "ForwardPicker"
+    ],
+    "Reply": [
+      "ComposerReplyStrip"
+    ],
+    "Thread": [
+      "CommentThread"
+    ]
+  }
+}

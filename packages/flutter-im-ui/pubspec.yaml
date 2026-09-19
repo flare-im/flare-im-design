@@ -1,0 +1,37 @@
+name: flare_im_ui
+description: >-
+  Flare IM UI Kit — Flutter component package (L1). One neutral design contract
+  (flare-im-ui-spec), realised natively; design tokens generated from
+  flare-im-design-tokens. Components are pure/presentational; behavior and data
+  come from host-owned presentation state.
+version: 2.0.0-rc.1
+repository: https://github.com/flare-im/flare-im-design
+
+environment:
+  sdk: ^3.10.1
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter_slidable: ^4.0.3
+  extended_text_field: ^17.0.0
+  record: ^6.1.2
+  video_player: ^2.10.1
+  path_provider: ^2.1.5
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  record_platform_interface: ^1.6.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  # Emoji-pack + sticker resources. `assets/emoji-sticker` is a symlink to the
+  # cross-platform source of truth at flare-im-design/assets/emoji-sticker, so
+  # this package ships the same webp + manifest every platform uses.
+  assets:
+    - assets/emoji-sticker/manifest.json
+    - assets/emoji-sticker/emoji-locales.json
+    - assets/emoji-sticker/emoji/
+    - assets/emoji-sticker/stickers/classic/
+    - assets/emoji-sticker/stickers/default/

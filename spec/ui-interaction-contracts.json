@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "ownership": "Framework-neutral UI projection. The host supplies content and authoritative lifecycle state, and owns authorization and command execution.",
+  "formBehavior": {
+    "components": [
+      "Input", "SearchInput", "Textarea", "Select", "Combobox", "Autocomplete",
+      "DatePicker", "TimePicker", "DateTimePicker", "NumberInput", "PasswordInput",
+      "OTPInput", "Checkbox", "Radio", "Switch", "SegmentedControl", "Slider",
+      "FilePicker", "DropZone", "FormField", "ValidationMessage"
+    ],
+    "states": [
+      "default", "hover", "focus", "pressed", "filled", "invalid", "disabled",
+      "readOnly", "loading"
+    ],
+    "optionalCapabilities": ["clearable", "prefix", "suffix"],
+    "keyboard": {
+      "all": ["tab", "shiftTab"],
+      "text": ["copy", "paste", "imeComposition", "enterByHostPolicy"],
+      "popup": ["enterConfirm", "escapeClose", "arrowNavigation", "home", "end"],
+      "pagedPopup": ["pageUp", "pageDown"]
+    },
+    "rules": [
+      "IME composition never submits or commits a transient value.",
+      "Escape closes only the nearest contextual layer and restores its trigger focus.",
+      "Disabled controls suppress intent; read-only controls remain selectable when meaningful.",
+      "Validation is associated with the field and exposes a recovery message.",
+      "Large text reflows without clipping and long forms retain a scrollable focused control."
+    ]
+  },
+  "messageContent": {
+    "kinds": {
+      "text": { "wireType": "text", "family": "text", "capabilities": ["select", "copy"] },
+      "richText": { "wireType": "rich_text", "family": "richText", "capabilities": ["select", "copy", "openLink"] },
+      "markdown": { "wireType": "rich_text", "family": "richText", "capabilities": ["select", "copy", "openLink"] },
+      "code": { "wireType": "rich_text", "family": "code", "capabilities": ["select", "copy", "horizontalScroll"] },
+      "image": { "wireType": "image", "family": "image", "capabilities": ["open", "save", "retry", "zoom"] },
+      "multiImage": { "wireType": "image_group", "family": "image", "capabilities": ["open", "save", "retry", "zoom", "swipe"] },
+      "video": { "wireType": "video", "family": "video", "capabilities": ["play", "pause", "fullscreen", "save", "retry"] },
+      "audio": { "wireType": "audio", "family": "audio", "capabilities": ["play", "pause", "seek", "retry"] },
+      "file": { "wireType": "file", "family": "file", "capabilities": ["open", "save", "reveal", "retry"] },
+      "location": { "wireType": "location", "family": "location", "capabilities": ["open"] },
+      "contactCard": { "wireType": "card", "family": "card", "capabilities": ["open"] },
+      "linkPreview": { "wireType": "link_card", "family": "link", "capabilities": ["open", "copy"] },
+      "poll": { "wireType": "vote", "family": "poll", "capabilities": ["vote"] },
+      "task": { "wireType": "task", "family": "task", "capabilities": ["toggleTask", "open"] },
+      "calendarEvent": { "wireType": "schedule", "family": "calendar", "capabilities": ["open"] },
+      "miniApp": { "wireType": "mini_program", "family": "miniApp", "capabilities": ["open"] },
+      "topic": { "wireType": "custom", "family": "topic", "capabilities": ["open"] },
+      "system": { "wireType": "system", "family": "system", "capabilities": [] },
+      "notice": { "wireType": "notification", "family": "system", "capabilities": ["open"] },
+      "forward": { "wireType": "forward", "family": "forward", "capabilities": ["open"] },
+      "mergedForward": { "wireType": "forward", "family": "forward", "capabilities": ["open"] },
+      "reply": { "wireType": "quote", "family": "reply", "capabilities": ["jumpToOriginal"] },
+      "threadRoot": { "wireType": "thread", "family": "thread", "capabilities": ["openThread"] },
+      "ephemeral": { "wireType": null, "family": "treatment", "capabilities": [] },
+      "readOnce": { "wireType": null, "family": "treatment", "capabilities": ["openOnce"] },
+      "burnAfterRead": { "wireType": null, "family": "treatment", "capabilities": ["openOnce"] }
+    },
+    "renderer": {
+      "states": ["loading", "ready", "failed", "blocked", "unsupported"],
+      "requiredInputs": ["kind", "payload", "lifecycle", "density"],
+      "outputs": ["intent", "accessibilityDescription"],
+      "rules": [
+        "MessageBubble composes MessageContentHost, optional contexts, ReactionBar, and MessageMeta.",
+        "TransferState remains independent from Message SendState.",
+        "Unknown or product content resolves through a registered renderer and a safe fallback.",
+        "Native media viewers may differ while capability and state semantics remain aligned.",
+        "Merged forwards enforce a host-defined finite nesting limit."
+      ]
+    }
+  },
+  "messageActions": {
+    "actions": [
+      "reply", "reaction", "copy", "forward", "mergeForward", "multiSelect", "edit",
+      "delete", "recall", "pin", "unpin", "save", "translate", "report", "retry",
+      "openThread", "jumpToQuote"
+    ],
+    "groups": {
+      "primary": ["reply", "reaction", "copy", "forward", "openThread"],
+      "organize": ["pin", "unpin", "save", "translate", "multiSelect", "mergeForward"],
+      "message": ["edit", "retry", "jumpToQuote"],
+      "destructive": ["recall", "delete", "report"]
+    },
+    "presentations": {
+      "desktop": ["contextMenu", "hoverToolbar", "commandPalette"],
+      "mobile": ["actionSheet", "bottomSheet", "longPress"]
+    },
+    "rules": [
+      "Availability is resolved once from lifecycle, ownership, content capabilities, and host policy.",
+      "Presentation never introduces an action absent from the resolver output.",
+      "Destructive actions require explicit confirmation when irreversible.",
+      "Products execute commands and enforce authorization."
+    ]
+  },
+  "commands": {
+    "commands": [
+      "search", "commandPalette", "newConversation", "focusComposer", "send", "newline",
+      "closeOverlay", "nextConversation", "previousConversation", "toggleDetails", "reply",
+      "edit", "copy", "delete", "forward", "openThread"
+    ],
+    "focusScopes": ["global", "composer", "conversation", "overlay"],
+    "defaults": {
+      "commandPalette": "Primary+K", "search": "Primary+F", "newConversation": "Primary+N",
+      "send": "Primary+Enter", "closeOverlay": "Escape",
+      "previousConversation": "Alt+ArrowUp", "nextConversation": "Alt+ArrowDown",
+      "toggleDetails": "Primary+Shift+D"
+    },
+    "rules": [
+      "Primary means Command on Apple platforms and Control elsewhere.",
+      "Text editing and IME composition take precedence over global commands.",
+      "Availability is host-controlled and focus-scope aware.",
+      "Invocation emits intent; components do not execute product behavior."
+    ]
+  },
+  "conversationPriority": [
+    "selected", "sendFailure", "mention", "unread", "draft", "typing", "presence", "mute", "pin"
+  ],
+  "composer": {
+    "existingStateModel": "spec/interaction-contracts.json#stateMachines/Composer",
+    "persistence": ["draftPersist", "draftRestore", "offlineQueue", "retryAfterReconnect"],
+    "attachments": ["uploadQueue", "pasteImage", "dragFile", "multiFile", "sendWhileUploadingPolicy"],
+    "context": ["replyCancel", "editCancel", "mentionKeyboard", "emojiKeyboard", "slashCommandsWhenSupported"],
+    "sendPolicy": "Host setting selects Enter, Primary+Enter, or explicit button; IME composition never sends."
+  }
+}

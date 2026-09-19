@@ -1,0 +1,144 @@
+{
+  "note": "Shared truth for the trip a tapped quote takes when the message it names is not loaded yet: ask the list, read a page of older history, ask again, and stop with one of three answers. Every kit implements the same loop over five callbacks — `showInList` (the list's own `scrollToMessage`, which answers whether it had the message), `hasOlder`, `readOlder` (reads one page and answers whether it brought anything in — a page that failed answers false and ends the search), `settle` (lets the list draw one pass) and `isCurrent` (false once the reader has left this conversation). The loop: ask first, so a message already on screen never reads history; while it is not shown, there is history left, the last page brought something in and fewer than `maxPages` pages have been read, read one page, settle and ask again; once the history or the budget is spent, settle and ask up to `settleAttempts` more times, because the rows of the last page may not be drawn yet; check `isCurrent` before every ask and before every settle, and answer `cancelled` — silently — when it goes false. `notInHistory` is the only answer the host says out loud, and it chooses the words (a page that failed and a message that is genuinely gone read differently, and only the host knows which happened). Each case scripts one run: `historyPages` older pages exist; the message becomes findable once `foundAfterPages` pages have been read (null: never) and never before the `visibleFromShow`-th ask (default 1, which models rows the list has not drawn yet); `failAtPage` is the one page whose read brings nothing in; `isCurrent` turns false after `cancelAfterShows` asks. `expected` counts the whole trip, so a kit that asks or pages a different number of times fails even when it ends on the same answer.",
+  "maxPages": 24,
+  "settleAttempts": 6,
+  "cases": [
+    {
+      "id": "already-loaded",
+      "historyPages": 5,
+      "foundAfterPages": 0,
+      "expected": {
+        "outcome": "shown",
+        "pagesRead": 0,
+        "showCalls": 1
+      }
+    },
+    {
+      "id": "one-page-back",
+      "historyPages": 5,
+      "foundAfterPages": 1,
+      "expected": {
+        "outcome": "shown",
+        "pagesRead": 1,
+        "showCalls": 2
+      }
+    },
+    {
+      "id": "three-pages-back",
+      "historyPages": 5,
+      "foundAfterPages": 3,
+      "expected": {
+        "outcome": "shown",
+        "pagesRead": 3,
+        "showCalls": 4
+      }
+    },
+    {
+      "id": "not-in-a-short-history",
+      "historyPages": 2,
+      "foundAfterPages": null,
+      "expected": {
+        "outcome": "notInHistory",
+        "pagesRead": 2,
+        "showCalls": 9
+      }
+    },
+    {
+      "id": "the-last-page-is-drawn-late",
+      "historyPages": 2,
+      "foundAfterPages": 2,
+      "visibleFromShow": 5,
+      "expected": {
+        "outcome": "shown",
+        "pagesRead": 2,
+        "showCalls": 5
+      }
+    },
+    {
+      "id": "the-page-budget-stops-the-search",
+      "historyPages": 100,
+      "foundAfterPages": 30,
+      "expected": {
+        "outcome": "notInHistory",
+        "pagesRead": 24,
+        "showCalls": 31
+      }
+    },
+    {
+      "id": "a-page-that-brings-nothing-stops-the-search",
+      "historyPages": 10,
+      "foundAfterPages": 3,
+      "failAtPage": 1,
+      "expected": {
+        "outcome": "notInHistory",
+        "pagesRead": 1,
+        "showCalls": 8
+      }
+    },
+    {
+      "id": "gone-before-the-first-ask",
+      "historyPages": 5,
+      "foundAfterPages": 0,
+      "cancelAfterShows": 0,
+      "expected": {
+        "outcome": "cancelled",
+        "pagesRead": 0,
+        "showCalls": 0
+      }
+    },
+    {
+      "id": "gone-while-paging",
+      "historyPages": 5,
+      "foundAfterPages": null,
+      "cancelAfterShows": 2,
+      "expected": {
+        "outcome": "cancelled",
+        "pagesRead": 2,
+        "showCalls": 2
+      }
+    },
+    {
+      "id": "gone-while-waiting-for-the-last-page",
+      "historyPages": 1,
+      "foundAfterPages": null,
+      "cancelAfterShows": 2,
+      "expected": {
+        "outcome": "cancelled",
+        "pagesRead": 1,
+        "showCalls": 2
+      }
+    },
+    {
+      "id": "no-history-to-read",
+      "historyPages": 0,
+      "foundAfterPages": null,
+      "expected": {
+        "outcome": "notInHistory",
+        "pagesRead": 0,
+        "showCalls": 7
+      }
+    },
+    {
+      "id": "found-on-the-last-allowed-ask",
+      "historyPages": 0,
+      "foundAfterPages": 0,
+      "visibleFromShow": 7,
+      "expected": {
+        "outcome": "shown",
+        "pagesRead": 0,
+        "showCalls": 7
+      }
+    },
+    {
+      "id": "one-ask-past-the-last-allowed-one",
+      "historyPages": 0,
+      "foundAfterPages": 0,
+      "visibleFromShow": 8,
+      "expected": {
+        "outcome": "notInHistory",
+        "pagesRead": 0,
+        "showCalls": 7
+      }
+    }
+  ]
+}

@@ -3,11 +3,14 @@
 
 # site build output — NOTE: tokens/dist is a committed generated artifact the
 # site + packages consume, so it is intentionally NOT ignored here.
-site/.vitepress/dist/
-site/.vitepress/cache/
+website/.vitepress/dist/
+website/.vitepress/cache/
+website/.vitepress/.temp/
 
-# generated download archives (regenerate via site/scripts/pack-downloads.sh)
-site/public/downloads/
+# generated download archives (regenerate via website/scripts/pack-downloads.sh)
+website/public/downloads/
+website/test-results/
+website/playwright-report/
 
 # Flutter
 **/.dart_tool/
@@ -24,14 +27,14 @@ site/public/downloads/
 # build outputs (Flutter build/, Android build/)
 **/build/
 **/.gradle/
-android-im-ui/local.properties
+packages/android-im-ui/local.properties
 **/*.hprof
 
 # macOS / editors / logs
 .DS_Store
 *.log
 
-# ── iOS 资源镜像(由 ios-im-ui/sync-resources.sh 从 assets/ 生成)──────
+# ── iOS 资源镜像(由 packages/ios-im-ui/sync-resources.sh 从 assets/ 生成)──────
 # SwiftPM 不跟随符号链接,所以 iOS 包需要一份真实副本。webp 二进制不入库:
 # 同一份 67MB 存两遍(assets/ + 这里 = 134MB)已实测导致完整 clone 连续失败,
 # 而 SPM 只能完整克隆 → iOS 反而装不上。
@@ -39,7 +42,7 @@ android-im-ui/local.properties
 # 整个目录都不在 git 里时,干净检出(SPM 从 tag 拉取)缺 Resources/emoji-sticker,
 # SwiftPM 不生成 Bundle.module → EmojiStickerCatalog.swift 编译失败,包整体不可用。
 # 文本入库保证包永远可编,webp 由消费方按需拉取(fetch-assets.sh + sync-resources.sh)。
-ios-im-ui/Sources/FlareIMUI/Resources/emoji-sticker/**/*.webp
+packages/ios-im-ui/Sources/FlareIMUI/Resources/emoji-sticker/**/*.webp
 
 # ── 表情/贴纸二进制(不入库,见 assets/emoji-sticker/fetch-assets.sh)────
 # 250 个动画 webp 共 67MB。曾提交在 git 里(iOS 镜像再存一份=134MB),
@@ -47,3 +50,16 @@ ios-im-ui/Sources/FlareIMUI/Resources/emoji-sticker/**/*.webp
 # 已用 git filter-repo 清出历史,仓库 80MB → 2.0MB。
 # manifest.json / emoji-locales.json 是文本契约,仍在版本控制内。
 assets/emoji-sticker/**/*.webp
+
+# Release evidence output (release:check results, live/native/package evidence,
+# candidate.json, signoff). It is evidence ABOUT the candidate, so it must not
+# be part of the candidate fingerprint — tooling/release-candidate.mjs hashes
+# `git ls-files --others --exclude-standard`, which honours this rule.
+artifacts/
+
+# 示例应用的构建产物（tokens/dist 是有意入库的生成物，这里不是）
+examples/*/dist/
+
+# SwiftPM / Xcode 在示例里留下的构建缓存（含嵌套 checkout，661M）
+examples/*/.build-xcode/
+examples/*/.build/

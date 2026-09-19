@@ -1,6 +1,6 @@
 # 聊天输入组件 · Web 实现契约
 
-实现：`vue-im-ui/src/components/composer/EnhancedComposer.vue`（公共导出 `FlareComposer`）。
+实现：`packages/vue-im-ui/src/components/composer/EnhancedComposer.vue`（公共导出 `FlareComposer`）。
 样式随组件加载：`composer-studio.css`。Web 示例 ChatView 已接入；Android/iOS/Flutter 原生组件未在本次修改。
 
 ## 视觉与布局
@@ -19,11 +19,10 @@
   :conversation-key="conversationId"
   :active-panel="panel"
   :rich-mode="rich"
-  :media-panel-open="panel === 'emoji' || panel === 'sticker'"
   :read-only="cannotEdit"
   :send-blocked="cannotSendTemporarily"
   :status-hint="localizedReason"
-  :attach-actions="configuredActions"
+  :actions="configuredActions"
   :send-voice-handler="sendVoice"
   @toggle-panel="panel = $event"
   @toggle-rich-mode="rich = $event"
@@ -31,7 +30,7 @@
   @build="openAction"
 >
   <template #media-panel>
-    <FlareComposerEmojiStickerPanel
+    <FlareEmojiStickerPicker
       :active-tab="panel === 'sticker' ? 'sticker' : 'emoji'"
       :show-send-button="false"
       :disabled="cannotSendTemporarily || cannotEdit"
@@ -43,11 +42,11 @@
 </FlareComposer>
 ```
 
-组件沿用受控草稿、现有 markdown 编辑器及 `send/build` 事件；宿主仍负责 SDK、持久化草稿、附件上传和发送失败恢复。图片入口发出 `build('create_image')`，Web 宿主直接打开原生文件选择器，再进入现有附件预览/上传链路。
+组件沿用受控草稿、现有 markdown 编辑器及 `send/build` 事件；宿主仍负责 SDK、持久化草稿、附件上传和发送失败恢复。图片入口发出 `build('image')`，Web 宿主直接打开原生文件选择器，再进入现有附件预览/上传链路。
 
 ## 可扩展配置
 
-- `attachActions: undefined` 使用内置项；`[]` 明确表示空列表。宿主数组决定排序和可见性，每页 8 项。`op/label/icon/disabled/disabledReason` 支持自定义功能、能力限制及本地化提示。同名内置 op 可继承图标。
+- `actions: undefined` 使用图片、文件、语音、位置、联系人默认项；`[]` 明确表示空列表。宿主数组决定排序和可见性，每页 8 项。`id/label/icon/enabled/disabledReason/intent` 支持自定义功能、能力限制及本地化提示。
 - `moreSearchVisible / moreTitleVisible / moreCloseVisible` 默认 false，各自独立控制。关闭搜索配置时同时清理过滤词。
 - 面板互斥；点外部或 Escape 关闭面板，下一次 Escape 收起展开编辑器。文字内容保持。
 - `conversationKey` 改变时取消待授权/进行中的录音、清理录音预览并关闭临时面板，防止跨会话误发。

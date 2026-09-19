@@ -1,0 +1,1616 @@
+{
+  "schemaVersion": 1,
+  "release": "2.0.0",
+  "description": "Requirement graph for the 2.0.0 certification. tooling/check-release-evidence.mjs evaluates every requirement against evidence under artifacts/release-2.0 bound to the current candidate id and writes artifacts/release-2.0/evidence-manifest.json. docs/release/2.0-final-closure-plan.md is the human-readable view and must name every id.",
+  "statuses": [
+    "PASS",
+    "FAIL",
+    "NOT_RUN",
+    "BLOCKED_EXTERNAL_ENV",
+    "STALE"
+  ],
+  "evidenceChecks": {
+    "candidate-file": "JSON whose candidateId and sourceFingerprint equal the current candidate.",
+    "release-run": "A release:check report.json: scope FULL, candidateId equals current and did not change during the run; listed gates (or every gate when none are listed) PASS.",
+    "json-pass": "JSON whose candidateId equals current, whose verdict (result, or the field named by resultPath) is PASS, and every assert [path, expected] holds.",
+    "json-pass-candidate": "JSON whose candidateId equals current (a manifest with no pass/fail of its own).",
+    "file-exists": "A file that describes the environment rather than the candidate (server fingerprint); presence only.",
+    "manual-evidence": "spec/manual-evidence.json entry with status PASS and an evidence path; that evidence file is JSON with candidateId equal to current and result PASS.",
+    "readiness": "docs/2.0-readiness-matrix.md has no release-blocking row outside PASS / N/A."
+  },
+  "requirements": [
+    {
+      "id": "REL-CANDIDATE",
+      "title": "Candidate identity recorded and unchanged",
+      "category": "Candidate integrity",
+      "platform": "All",
+      "priority": "P0",
+      "environment": "Release host",
+      "validation": "node tooling/release-candidate-id.mjs --write after freeze; every later evidence file carries the same candidateId.",
+      "passCondition": "artifacts/release-2.0/candidate.json candidateId and sourceFingerprint equal the current tree.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/candidate.json",
+          "check": "candidate-file"
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "Release",
+      "dependsOn": []
+    },
+    {
+      "id": "REL-VALIDATION-A",
+      "title": "Final Validation A: full release:check, every gate PASS",
+      "category": "Automation",
+      "platform": "All",
+      "priority": "P0",
+      "environment": "Release host with local Flare core stack, web app on 127.0.0.1:1430, live accounts ui2-release-desktop / ui2-release-mobile",
+      "validation": "FLARE_RELEASE_RUN_LABEL=final-A FLARE_ALLOW_LIVE_SEND=1 FLARE_LIVE_BASE_URL=http://127.0.0.1:1430 FLARE_LIVE_USER=ui2-release-desktop FLARE_LIVE_PEER=ui2-release-mobile npm run release:check",
+      "passCondition": "runs/final-A/report.json: scope FULL, every gate PASS including candidate-integrity, candidateId unchanged.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-A/report.json",
+          "check": "release-run"
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "Release",
+      "dependsOn": [
+        "REL-CANDIDATE"
+      ]
+    },
+    {
+      "id": "REL-VALIDATION-B",
+      "title": "Final Validation B: second consecutive full release:check on the same candidate",
+      "category": "Automation",
+      "platform": "All",
+      "priority": "P0",
+      "environment": "Same as REL-VALIDATION-A, started after A finished, no repository write in between",
+      "validation": "Same command with FLARE_RELEASE_RUN_LABEL=final-B.",
+      "passCondition": "runs/final-B/report.json: scope FULL, every gate PASS, same candidateId as A.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-B/report.json",
+          "check": "release-run"
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "Release",
+      "dependsOn": [
+        "REL-VALIDATION-A"
+      ]
+    },
+    {
+      "id": "REL-FLAKY-ZERO",
+      "title": "No flaky gate across A and B",
+      "category": "Automation",
+      "platform": "All",
+      "priority": "P0",
+      "environment": "Release host",
+      "validation": "Compare A and B: no gate may fail in either run; no gate is retried or skipped to obtain a pass.",
+      "passCondition": "A and B both all-PASS with the identical gate list.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-A/report.json",
+          "check": "release-run"
+        },
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-B/report.json",
+          "check": "release-run"
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "Release",
+      "dependsOn": [
+        "REL-VALIDATION-A",
+        "REL-VALIDATION-B"
+      ]
+    },
+    {
+      "id": "LIVE-WEB-SDK",
+      "title": "Web live: real browser, web app, client SDK and server",
+      "category": "Web live",
+      "platform": "Web",
+      "priority": "P0",
+      "environment": "Local Flare core profile (AUTH_DEV_ISSUE local mode), web app dev server 127.0.0.1:1430, Chromium",
+      "validation": "web-live-sdk gate inside A and B: two logins, open conversation, A->B and B->A with ACK, cross-user read, ordered burst x3, pin/unpin, unread/read, reload exactly-once with stable ids, no overflow, no runtime error.",
+      "passCondition": "live-sdk/report.json result PASS for the candidate with LIVE_BACKEND=true, LIVE_SEND=true, SDK_MOCK=false, NETWORK_INTERCEPT=false; web-live-sdk PASS in A and B; server environment recorded.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/live-sdk/report.json",
+          "check": "json-pass",
+          "assert": [
+            [
+              "flags.LIVE_BACKEND",
+              true
+            ],
+            [
+              "flags.LIVE_SEND",
+              true
+            ],
+            [
+              "flags.SDK_MOCK",
+              false
+            ],
+            [
+              "flags.NETWORK_INTERCEPT",
+              false
+            ]
+          ]
+        },
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-A/report.json",
+          "check": "release-run",
+          "gates": [
+            "web-live-sdk"
+          ]
+        },
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-B/report.json",
+          "check": "release-run",
+          "gates": [
+            "web-live-sdk"
+          ]
+        },
+        {
+          "path": "artifacts/release-2.0/live-sdk/environment.json",
+          "check": "file-exists"
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "Release + Server",
+      "dependsOn": [
+        "REL-CANDIDATE"
+      ]
+    },
+    {
+      "id": "PKG-TARBALL",
+      "title": "Reproducible packs with audited contents",
+      "category": "Package",
+      "platform": "Vue + tokens",
+      "priority": "P0",
+      "environment": "Release host",
+      "validation": "package-certification gate: pack twice with --ignore-scripts, compare sha256, check forbidden paths and export targets.",
+      "passCondition": "package-manifest.json and tarball-hash.txt for the candidate; no forbidden file; every export target shipped; packs identical.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/package/consumer-smoke.json",
+          "check": "json-pass",
+          "assert": [
+            [
+              "reproduciblePack",
+              true
+            ]
+          ]
+        },
+        {
+          "path": "artifacts/release-2.0/package/package-manifest.json",
+          "check": "json-pass-candidate"
+        },
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-B/report.json",
+          "check": "release-run",
+          "gates": [
+            "package-certification",
+            "package-contents"
+          ]
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "Release",
+      "dependsOn": [
+        "REL-CANDIDATE"
+      ]
+    },
+    {
+      "id": "PKG-CLEAN-CONSUMER",
+      "title": "Clean consumer from tarballs: typecheck, build, runtime",
+      "category": "Clean consumer",
+      "platform": "Vue + tokens",
+      "priority": "P0",
+      "environment": "Temp directory outside the repository, npm registry for vue / naive-ui / vite",
+      "validation": "tests/consumers/vue-clean installed from the packed tarballs; imports primitives, an IM component, hooks, the platform adapter and its type, contracts, theme, i18n, root entry and tokens; vue-tsc, vite build, Chromium smoke.",
+      "passCondition": "consumers.latest: install, typecheck, build and runtime.pass all true.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/package/consumer-smoke.json",
+          "check": "json-pass",
+          "assert": [
+            [
+              "consumers.latest.install",
+              true
+            ],
+            [
+              "consumers.latest.typecheck",
+              true
+            ],
+            [
+              "consumers.latest.build",
+              true
+            ],
+            [
+              "consumers.latest.runtime.pass",
+              true
+            ]
+          ]
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "Release",
+      "dependsOn": [
+        "PKG-TARBALL"
+      ]
+    },
+    {
+      "id": "PKG-PEER-DEPS",
+      "title": "Clean consumer at the declared peer-dependency floor",
+      "category": "Package",
+      "platform": "Vue",
+      "priority": "P0",
+      "environment": "Same as PKG-CLEAN-CONSUMER with vue and naive-ui pinned to the peer range floor",
+      "validation": "Same consumer with peers pinned to the lowest version the range admits.",
+      "passCondition": "consumers.peer-floor: install, typecheck, build and runtime.pass all true.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/package/consumer-smoke.json",
+          "check": "json-pass",
+          "assert": [
+            [
+              "consumers.peer-floor.install",
+              true
+            ],
+            [
+              "consumers.peer-floor.typecheck",
+              true
+            ],
+            [
+              "consumers.peer-floor.build",
+              true
+            ],
+            [
+              "consumers.peer-floor.runtime.pass",
+              true
+            ]
+          ]
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "Release",
+      "dependsOn": [
+        "PKG-TARBALL"
+      ]
+    },
+    {
+      "id": "PKG-TREE-SHAKING",
+      "title": "One primitive does not ship the IM layer",
+      "category": "Package",
+      "platform": "Vue",
+      "priority": "P0",
+      "environment": "Same as PKG-CLEAN-CONSUMER",
+      "validation": "Build four entries (primitive via ./components, primitive via root, all components, vue+naive baseline) with a rollup module ledger.",
+      "passCondition": "Primitive entries ship zero IM-layer modules and no markdown-it; the all-components control ships IM modules.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/package/consumer-smoke.json",
+          "check": "json-pass",
+          "assert": [
+            [
+              "consumers.treeShaking.ledgers.a-primitive-components-entry.imModuleCount",
+              0
+            ],
+            [
+              "consumers.treeShaking.ledgers.b-primitive-root-entry.imModuleCount",
+              0
+            ],
+            [
+              "consumers.treeShaking.ledgers.a-primitive-components-entry.markdownItModules",
+              0
+            ]
+          ]
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "Release",
+      "dependsOn": [
+        "PKG-TARBALL"
+      ]
+    },
+    {
+      "id": "PKG-MIGRATION-SMOKE",
+      "title": "Migration guide replacements resolve from the published entries",
+      "category": "Package",
+      "platform": "Vue",
+      "priority": "P0",
+      "environment": "Same as PKG-CLEAN-CONSUMER",
+      "validation": "tests/consumers/vue-clean/src/migration-smoke.ts inside the consumer typecheck: replacements import from the named entries, removed symbols fail to import (@ts-expect-error), documented props exist.",
+      "passCondition": "consumers.latest.migrationSmoke and consumers.peer-floor.migrationSmoke true.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/package/consumer-smoke.json",
+          "check": "json-pass",
+          "assert": [
+            [
+              "consumers.latest.migrationSmoke",
+              true
+            ],
+            [
+              "consumers.peer-floor.migrationSmoke",
+              true
+            ]
+          ]
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "Release",
+      "dependsOn": [
+        "PKG-TARBALL"
+      ]
+    },
+    {
+      "id": "API-FREEZE",
+      "title": "Public API frozen and registered",
+      "category": "Public API",
+      "platform": "All",
+      "priority": "P0",
+      "environment": "Release host",
+      "validation": "api-check --strict (./components = catalog, registry symbols on ./contracts ./composables ./utils exported), public component exports, packed export map, doc imports; publicApi fingerprint bound in candidate.json.",
+      "passCondition": "api-check, design-system and package-contents PASS in A and B.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-A/report.json",
+          "check": "release-run",
+          "gates": [
+            "api-check",
+            "design-system",
+            "package-contents"
+          ]
+        },
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-B/report.json",
+          "check": "release-run",
+          "gates": [
+            "api-check",
+            "design-system",
+            "package-contents"
+          ]
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "UI",
+      "dependsOn": [
+        "REL-CANDIDATE"
+      ]
+    },
+    {
+      "id": "TOKEN-FREEZE",
+      "title": "Tokens frozen: generated surfaces current, no raw regressions",
+      "category": "Public API",
+      "platform": "All",
+      "priority": "P0",
+      "environment": "Release host",
+      "validation": "design-system gates generated tokens, theme contract, token fallbacks, token raw values, legacy tokens; tokens fingerprint bound in candidate.json.",
+      "passCondition": "design-system PASS in A and B.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-A/report.json",
+          "check": "release-run",
+          "gates": [
+            "design-system"
+          ]
+        },
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-B/report.json",
+          "check": "release-run",
+          "gates": [
+            "design-system"
+          ]
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "UI",
+      "dependsOn": [
+        "REL-CANDIDATE"
+      ]
+    },
+    {
+      "id": "DOCS-ACCURACY",
+      "title": "Documentation teaches only what ships",
+      "category": "Documentation",
+      "platform": "All",
+      "priority": "P0",
+      "environment": "Release host",
+      "validation": "check-doc-code (no removed symbol in guidance, documented imports resolve to published entries), doc links, component guides and coverage, release-report gate.",
+      "passCondition": "design-system and release-report PASS in A and B.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-A/report.json",
+          "check": "release-run",
+          "gates": [
+            "design-system",
+            "release-report"
+          ]
+        },
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-B/report.json",
+          "check": "release-run",
+          "gates": [
+            "design-system",
+            "release-report"
+          ]
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "Docs",
+      "dependsOn": [
+        "REL-CANDIDATE"
+      ]
+    },
+    {
+      "id": "SEC-BOUNDARY",
+      "title": "Rendering security boundary",
+      "category": "Security",
+      "platform": "All",
+      "priority": "P0",
+      "environment": "Release host",
+      "validation": "security-boundary gate: 4 URL gates x 18 vectors, v-html allowlist, self-navigating anchors, markdown html:false.",
+      "passCondition": "security-boundary PASS in A and B.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-A/report.json",
+          "check": "release-run",
+          "gates": [
+            "security-boundary"
+          ]
+        },
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-B/report.json",
+          "check": "release-run",
+          "gates": [
+            "security-boundary"
+          ]
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "UI",
+      "dependsOn": [
+        "REL-CANDIDATE"
+      ]
+    },
+    {
+      "id": "SEC-AUDIT",
+      "title": "No dynamic code, only declared host-directed network calls, no telemetry",
+      "category": "Security",
+      "platform": "All",
+      "priority": "P0",
+      "environment": "Release host",
+      "validation": "security-audit gate over four kits' sources and dependency manifests.",
+      "passCondition": "security/report.json result PASS for the candidate.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/security/report.json",
+          "check": "json-pass"
+        },
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-B/report.json",
+          "check": "release-run",
+          "gates": [
+            "security-audit"
+          ]
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "UI",
+      "dependsOn": [
+        "REL-CANDIDATE"
+      ]
+    },
+    {
+      "id": "SEC-DEPENDENCIES",
+      "title": "Runtime dependency tree has no critical or high vulnerability",
+      "category": "Security",
+      "platform": "Vue + tokens",
+      "priority": "P0",
+      "environment": "Clean consumer, npm audit registry endpoint",
+      "validation": "npm audit --omit=dev on the clean consumer (kit, tokens, dependencies, peers).",
+      "passCondition": "consumers.latest.audit.vulnerabilities.critical = 0 and high = 0.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/package/consumer-smoke.json",
+          "check": "json-pass",
+          "assert": [
+            [
+              "consumers.latest.audit.vulnerabilities.critical",
+              0
+            ],
+            [
+              "consumers.latest.audit.vulnerabilities.high",
+              0
+            ]
+          ]
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "Release",
+      "dependsOn": [
+        "PKG-TARBALL"
+      ]
+    },
+    {
+      "id": "A11Y-WEB-AUTOMATED",
+      "title": "Web accessibility automation",
+      "category": "Accessibility",
+      "platform": "Web",
+      "priority": "P0",
+      "environment": "Release host, Chromium",
+      "validation": "accessibility-axe (every component preview + reference app, 44px coarse-pointer hit areas), website-interaction-visual (names, no positive tabindex, visible keyboard focus, reduced motion, forced colors), form keyboard contract.",
+      "passCondition": "accessibility-axe, website-interaction-visual and form-keyboard-contract PASS in A and B (Critical 0, Serious 0).",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-A/report.json",
+          "check": "release-run",
+          "gates": [
+            "accessibility-axe",
+            "website-interaction-visual",
+            "form-keyboard-contract"
+          ]
+        },
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-B/report.json",
+          "check": "release-run",
+          "gates": [
+            "accessibility-axe",
+            "website-interaction-visual",
+            "form-keyboard-contract"
+          ]
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "UI + QA",
+      "dependsOn": [
+        "REL-CANDIDATE"
+      ]
+    },
+    {
+      "id": "PERF-WEB-BUDGET",
+      "title": "Web list budgets measured on a real mount",
+      "category": "Performance",
+      "platform": "Web",
+      "priority": "P0",
+      "environment": "Release host, Chromium",
+      "validation": "performance-budget gate: 1000 conversations / 5000 messages mounted, rendered rows and nodes per row counted.",
+      "passCondition": "performance-budget PASS in A and B.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-A/report.json",
+          "check": "release-run",
+          "gates": [
+            "performance-budget"
+          ]
+        },
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-B/report.json",
+          "check": "release-run",
+          "gates": [
+            "performance-budget"
+          ]
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "UI",
+      "dependsOn": [
+        "REL-CANDIDATE"
+      ]
+    },
+    {
+      "id": "VISUAL-BASELINES-DARWIN",
+      "title": "Visual regression against checked-in darwin baselines",
+      "category": "Visual",
+      "platform": "Web (macOS renderer)",
+      "priority": "P0",
+      "environment": "macOS release host, Chromium",
+      "validation": "website-interaction-visual and conversation-state-visual-check; baseline manifest two-way check in design-system; per-file baseline hashes in artifacts/release-2.0/visual/baseline-hashes.json.",
+      "passCondition": "Both gates PASS in A and B; baseline hash manifest generated for the candidate.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-A/report.json",
+          "check": "release-run",
+          "gates": [
+            "website-interaction-visual",
+            "conversation-state-visual-check",
+            "design-system"
+          ]
+        },
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-B/report.json",
+          "check": "release-run",
+          "gates": [
+            "website-interaction-visual",
+            "conversation-state-visual-check",
+            "design-system"
+          ]
+        },
+        {
+          "path": "artifacts/release-2.0/visual/baseline-hashes.json",
+          "check": "json-pass-candidate"
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "QA",
+      "dependsOn": [
+        "REL-CANDIDATE"
+      ]
+    },
+    {
+      "id": "VISUAL-LINUX-CI",
+      "title": "Linux CI visual regression with committed linux baselines",
+      "category": "Visual",
+      "platform": "Web (Linux renderer)",
+      "priority": "P0",
+      "environment": "GitHub Actions ubuntu job pinned per artifacts/release-2.0/ci/environment.json; the candidate must be pushed",
+      "validation": "docs/release/2.0-external-validation.md §3: generate linux baselines in the pinned CI environment, review each image EXPECTED/REGRESSION, commit, rerun test:visual green in CI.",
+      "passCondition": "ci/linux-visual.json from the CI run: result PASS, candidateId equal to current, zero unreviewed baselines.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/ci/linux-visual.json",
+          "check": "json-pass"
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "externalEnvironment": "Linux CI runner; this host is macOS arm64 and the working tree is not pushed",
+      "owner": "Release + CI",
+      "dependsOn": [
+        "REL-CANDIDATE"
+      ]
+    },
+    {
+      "id": "WEB-REFERENCE-APP",
+      "title": "Web reference app tests, build and browser suite",
+      "category": "Examples",
+      "platform": "Web",
+      "priority": "P0",
+      "environment": "Release host",
+      "validation": "web-tests, web-build, web-browser, reference-ownership, reference-gate-tests, design-source.",
+      "passCondition": "All six gates PASS in A and B.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-A/report.json",
+          "check": "release-run",
+          "gates": [
+            "web-tests",
+            "web-build",
+            "web-browser",
+            "reference-ownership",
+            "reference-gate-tests",
+            "design-source"
+          ]
+        },
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-B/report.json",
+          "check": "release-run",
+          "gates": [
+            "web-tests",
+            "web-build",
+            "web-browser",
+            "reference-ownership",
+            "reference-gate-tests",
+            "design-source"
+          ]
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "Consumers",
+      "dependsOn": [
+        "REL-CANDIDATE"
+      ]
+    },
+    {
+      "id": "NATIVE-IOS-AUTOMATED",
+      "title": "iOS: kit tests, example tests, project generation, simulator build",
+      "category": "Native",
+      "platform": "iOS",
+      "priority": "P0",
+      "environment": "macOS release host, Xcode, generic iOS Simulator destination",
+      "validation": "swift, ios-app-tests, ios-app-project, ios-app-build gates.",
+      "passCondition": "All four PASS in A and B.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-A/report.json",
+          "check": "release-run",
+          "gates": [
+            "swift",
+            "ios-app-tests",
+            "ios-app-project",
+            "ios-app-build"
+          ]
+        },
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-B/report.json",
+          "check": "release-run",
+          "gates": [
+            "swift",
+            "ios-app-tests",
+            "ios-app-project",
+            "ios-app-build"
+          ]
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "SwiftUI",
+      "dependsOn": [
+        "REL-CANDIDATE"
+      ]
+    },
+    {
+      "id": "NATIVE-ANDROID-AUTOMATED",
+      "title": "Android: kit unit/lint/release assemble, example unit/lint/assemble",
+      "category": "Native",
+      "platform": "Android",
+      "priority": "P0",
+      "environment": "Release host, Android SDK, JDK",
+      "validation": "compose and android-app gates.",
+      "passCondition": "Both PASS in A and B.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-A/report.json",
+          "check": "release-run",
+          "gates": [
+            "compose",
+            "android-app"
+          ]
+        },
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-B/report.json",
+          "check": "release-run",
+          "gates": [
+            "compose",
+            "android-app"
+          ]
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "Compose",
+      "dependsOn": [
+        "REL-CANDIDATE"
+      ]
+    },
+    {
+      "id": "NATIVE-FLUTTER-AUTOMATED",
+      "title": "Flutter: kit analyze/tests, example analyze/tests/macOS build",
+      "category": "Native",
+      "platform": "Flutter",
+      "priority": "P0",
+      "environment": "Release host, Flutter stable",
+      "validation": "flutter-analyze, flutter-tests, flutter-app-analyze, flutter-app-tests, flutter-app-build gates.",
+      "passCondition": "All five PASS in A and B.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-A/report.json",
+          "check": "release-run",
+          "gates": [
+            "flutter-analyze",
+            "flutter-tests",
+            "flutter-app-analyze",
+            "flutter-app-tests",
+            "flutter-app-build"
+          ]
+        },
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-B/report.json",
+          "check": "release-run",
+          "gates": [
+            "flutter-analyze",
+            "flutter-tests",
+            "flutter-app-analyze",
+            "flutter-app-tests",
+            "flutter-app-build"
+          ]
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "Flutter",
+      "dependsOn": [
+        "REL-CANDIDATE"
+      ]
+    },
+    {
+      "id": "NATIVE-TAURI-AUTOMATED",
+      "title": "Tauri: tests, frontend build, native cargo check",
+      "category": "Native",
+      "platform": "Tauri",
+      "priority": "P0",
+      "environment": "Release host, Rust toolchain",
+      "validation": "tauri-tests, tauri-build, tauri-native gates.",
+      "passCondition": "All three PASS in A and B.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-A/report.json",
+          "check": "release-run",
+          "gates": [
+            "tauri-tests",
+            "tauri-build",
+            "tauri-native"
+          ]
+        },
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-B/report.json",
+          "check": "release-run",
+          "gates": [
+            "tauri-tests",
+            "tauri-build",
+            "tauri-native"
+          ]
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "Consumers",
+      "dependsOn": [
+        "REL-CANDIDATE"
+      ]
+    },
+    {
+      "candidateSensitive": true,
+      "automationPossible": false,
+      "id": "NATIVE-IOS-RUNTIME",
+      "title": "iOS example runtime against the real backend",
+      "category": "Native",
+      "platform": "iOS",
+      "priority": "P0",
+      "environment": "iOS Simulator (available on this host) running flare-core-ios-app from the candidate against the local Flare core stack; level L6 PRODUCTION_LIKE on simulator",
+      "validation": "docs/release/2.0-external-validation.md#native-ios-runtime: build, launch, login, conversation list, open conversation, send, receive, read, pin, message action, composer, keyboard, back.",
+      "passCondition": "Every step observed with the expected result and no crash; sent text appears once on the peer with a stable id.",
+      "owner": "SwiftUI + QA",
+      "dependsOn": [
+        "NATIVE-IOS-AUTOMATED",
+        "LIVE-WEB-SDK"
+      ],
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/native/NATIVE-IOS-RUNTIME.json",
+          "check": "json-pass"
+        }
+      ]
+    },
+    {
+      "candidateSensitive": true,
+      "automationPossible": false,
+      "id": "NATIVE-ANDROID-RUNTIME",
+      "title": "Android example runtime against the real backend",
+      "category": "Native",
+      "platform": "Android",
+      "priority": "P0",
+      "environment": "Android emulator Pixel_9_API_35 (available on this host) running flare-core-android-app from the candidate against the local stack (10.0.2.2)",
+      "validation": "docs/release/2.0-external-validation.md#native-android-runtime: same task list as NATIVE-IOS-RUNTIME plus system back and gesture navigation.",
+      "passCondition": "Same as NATIVE-IOS-RUNTIME.",
+      "owner": "Compose + QA",
+      "dependsOn": [
+        "NATIVE-ANDROID-AUTOMATED",
+        "LIVE-WEB-SDK"
+      ],
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/native/NATIVE-ANDROID-RUNTIME.json",
+          "check": "json-pass"
+        }
+      ]
+    },
+    {
+      "candidateSensitive": true,
+      "automationPossible": false,
+      "id": "NATIVE-FLUTTER-RUNTIME",
+      "title": "Flutter example runtime and semantics boundary",
+      "category": "Native",
+      "platform": "Flutter",
+      "priority": "P0",
+      "environment": "flare-core-flutter-app macOS desktop build from the candidate against the local stack; the app renders flare_im_ui widgets, not a WebView",
+      "validation": "docs/release/2.0-external-validation.md#native-flutter-runtime: launch, login, list, open, send, receive, read; Semantics tree inspected for conversation row, message, composer.",
+      "passCondition": "Every step observed; semantics nodes carry labels for row, message and send.",
+      "owner": "Flutter + QA",
+      "dependsOn": [
+        "NATIVE-FLUTTER-AUTOMATED",
+        "LIVE-WEB-SDK"
+      ],
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/native/NATIVE-FLUTTER-RUNTIME.json",
+          "check": "json-pass"
+        }
+      ]
+    },
+    {
+      "candidateSensitive": true,
+      "automationPossible": false,
+      "id": "NATIVE-TAURI-RUNTIME",
+      "title": "Tauri desktop runtime",
+      "category": "Native",
+      "platform": "Tauri (macOS)",
+      "priority": "P0",
+      "environment": "flare-core-tauri-app desktop build from the candidate against the local stack",
+      "validation": "docs/release/2.0-external-validation.md#native-tauri-runtime: launch, login, conversation, send, receive, read, file picker, image picker, clipboard, external URL (safeExternalUrl), window resize, keyboard navigation, overlay, close/reopen. Deep link and notification are not in the 2.0 Tauri contract (platform-fallback-policy.md) and are recorded N/A.",
+      "passCondition": "Every applicable step observed with the expected result; javascript: links never open.",
+      "owner": "Consumers + QA",
+      "dependsOn": [
+        "NATIVE-TAURI-AUTOMATED",
+        "LIVE-WEB-SDK"
+      ],
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/native/NATIVE-TAURI-RUNTIME.json",
+          "check": "json-pass"
+        }
+      ]
+    },
+    {
+      "candidateSensitive": true,
+      "automationPossible": false,
+      "id": "NATIVE-PERMISSIONS-IOS",
+      "title": "iOS pickers and permission UX",
+      "category": "Permissions",
+      "platform": "iOS",
+      "priority": "P0",
+      "environment": "iOS Simulator for Photos, Files, Microphone, Location, Notifications; physical iPhone for Camera",
+      "validation": "docs/release/2.0-external-validation.md#native-permissions-ios: for each capability the host exposes — first request, allow, deny, cancel, request again, permanent denial — plus picker round trips (PHPicker, document picker).",
+      "passCondition": "Selections reach the composer; cancel yields nothing and no error; denial gives feedback, a fallback or a disabled state — never an endless spinner, a dead button, a fake success or a re-prompt loop.",
+      "externalEnvironment": "Camera requires a physical iPhone",
+      "owner": "SwiftUI + QA",
+      "dependsOn": [
+        "NATIVE-IOS-AUTOMATED"
+      ],
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/native/NATIVE-PERMISSIONS-IOS.json",
+          "check": "json-pass"
+        }
+      ]
+    },
+    {
+      "candidateSensitive": true,
+      "automationPossible": false,
+      "id": "NATIVE-PERMISSIONS-ANDROID",
+      "title": "Android pickers and permission UX",
+      "category": "Permissions",
+      "platform": "Android",
+      "priority": "P0",
+      "environment": "Android emulator for Photos, Files, Microphone, Location, Notifications (API 33+ runtime permission); physical phone for Camera",
+      "validation": "docs/release/2.0-external-validation.md#native-permissions-android: same matrix as iOS; plus focus recovery after returning from the permission dialog with TalkBack on (physical).",
+      "passCondition": "Same as NATIVE-PERMISSIONS-IOS.",
+      "externalEnvironment": "Camera and TalkBack focus recovery require a physical phone",
+      "owner": "Compose + QA",
+      "dependsOn": [
+        "NATIVE-ANDROID-AUTOMATED"
+      ],
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/native/NATIVE-PERMISSIONS-ANDROID.json",
+          "check": "json-pass"
+        }
+      ]
+    },
+    {
+      "candidateSensitive": true,
+      "automationPossible": false,
+      "id": "NATIVE-LIFECYCLE-FOREGROUND",
+      "title": "Background / foreground on mobile",
+      "category": "Lifecycle",
+      "platform": "iOS + Android",
+      "priority": "P0",
+      "environment": "Simulator / emulator against the local stack (connection, sync, state); physical devices repeat under RESOURCE-*",
+      "validation": "docs/release/2.0-external-validation.md#native-lifecycle-foreground: foreground -> background (30 s and 5 min) -> foreground; a message sent to the device while backgrounded.",
+      "passCondition": "Connection resumes, conversation and message sync converge without duplicates, composer draft and open overlay survive, no stuck presence.",
+      "owner": "Native + QA",
+      "dependsOn": [
+        "NATIVE-IOS-RUNTIME",
+        "NATIVE-ANDROID-RUNTIME"
+      ],
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/native/NATIVE-LIFECYCLE-FOREGROUND.json",
+          "check": "json-pass"
+        }
+      ]
+    },
+    {
+      "id": "NATIVE-SAFE-AREA",
+      "title": "Safe area on notched and gesture-navigation devices",
+      "category": "Native",
+      "platform": "iOS + Android",
+      "priority": "P0",
+      "environment": "Physical iPhone with Dynamic Island / home indicator and Android phone with gesture navigation; portrait and landscape",
+      "validation": "docs/release/2.0-external-validation.md NATIVE-SAFE-AREA: conversation list, chat with keyboard open, sheet, image viewer.",
+      "passCondition": "No control or text under the status bar, notch, home indicator or navigation bar; composer stays above the keyboard.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/native/NATIVE-SAFE-AREA.json",
+          "check": "json-pass"
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": false,
+      "externalEnvironment": "No physical iOS or Android device attached to this host",
+      "owner": "Native + QA",
+      "dependsOn": [
+        "NATIVE-IOS-AUTOMATED",
+        "NATIVE-ANDROID-AUTOMATED"
+      ]
+    },
+    {
+      "candidateSensitive": true,
+      "automationPossible": false,
+      "id": "NATIVE-IME-DEVICE",
+      "title": "Keyboard and IME on devices",
+      "category": "Keyboard / IME",
+      "platform": "iOS + Android",
+      "priority": "P0",
+      "environment": "Physical iPhone and Android phone (automation already covers the 18 form-keyboard vectors on four platforms)",
+      "validation": "docs/release/2.0-external-validation.md#native-ime-device: Chinese pinyin with candidates, emoji keyboard, keyboard switch, Enter during composition, multi-line, close/open keyboard.",
+      "passCondition": "No accidental send during composition, no composer jump, no input loss.",
+      "externalEnvironment": "Physical iPhone and Android phone",
+      "owner": "Native + QA",
+      "dependsOn": [
+        "NATIVE-IOS-AUTOMATED",
+        "NATIVE-ANDROID-AUTOMATED"
+      ],
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/native/NATIVE-IME-DEVICE.json",
+          "check": "json-pass"
+        }
+      ]
+    },
+    {
+      "id": "A11Y-IOS-VOICEOVER",
+      "title": "VoiceOver task walk-through",
+      "category": "Accessibility",
+      "platform": "iOS",
+      "priority": "P0",
+      "environment": "Physical iPhone, iOS 16+, VoiceOver",
+      "validation": "docs/device-accessibility-test-matrix.md#a11y-ios-voiceover",
+      "passCondition": "As defined in the matrix; recorded via spec/manual-evidence.json.",
+      "evidence": [
+        {
+          "id": "A11Y-IOS-VOICEOVER",
+          "check": "manual-evidence"
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": false,
+      "externalEnvironment": "Physical iPhone with VoiceOver; none attached (xctrace lists only this Mac)",
+      "owner": "Device QA",
+      "dependsOn": [
+        "NATIVE-IOS-AUTOMATED"
+      ]
+    },
+    {
+      "id": "A11Y-ANDROID-TALKBACK",
+      "title": "TalkBack task walk-through",
+      "category": "Accessibility",
+      "platform": "Android",
+      "priority": "P0",
+      "environment": "Physical Android phone, API 26+, TalkBack",
+      "validation": "docs/device-accessibility-test-matrix.md#a11y-android-talkback",
+      "passCondition": "As defined in the matrix.",
+      "evidence": [
+        {
+          "id": "A11Y-ANDROID-TALKBACK",
+          "check": "manual-evidence"
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": false,
+      "externalEnvironment": "Physical Android phone with TalkBack; adb devices is empty",
+      "owner": "Device QA",
+      "dependsOn": [
+        "NATIVE-ANDROID-AUTOMATED"
+      ]
+    },
+    {
+      "id": "A11Y-IOS-LARGE-TEXT",
+      "title": "iOS large text at 200% and maximum",
+      "category": "Accessibility",
+      "platform": "iOS",
+      "priority": "P0",
+      "environment": "Physical iPhone and iPad",
+      "validation": "docs/device-accessibility-test-matrix.md#a11y-ios-large-text",
+      "passCondition": "As defined in the matrix.",
+      "evidence": [
+        {
+          "id": "A11Y-IOS-LARGE-TEXT",
+          "check": "manual-evidence"
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": false,
+      "externalEnvironment": "Physical iPhone and iPad; the matrix does not accept simulator results",
+      "owner": "Device QA",
+      "dependsOn": [
+        "NATIVE-IOS-AUTOMATED"
+      ]
+    },
+    {
+      "id": "A11Y-ANDROID-LARGE-TEXT",
+      "title": "Android large text at 200% and maximum",
+      "category": "Accessibility",
+      "platform": "Android",
+      "priority": "P0",
+      "environment": "Physical phone and tablet",
+      "validation": "docs/device-accessibility-test-matrix.md#a11y-android-large-text",
+      "passCondition": "As defined in the matrix.",
+      "evidence": [
+        {
+          "id": "A11Y-ANDROID-LARGE-TEXT",
+          "check": "manual-evidence"
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": false,
+      "externalEnvironment": "Physical Android phone and tablet",
+      "owner": "Device QA",
+      "dependsOn": [
+        "NATIVE-ANDROID-AUTOMATED"
+      ]
+    },
+    {
+      "id": "A11Y-HIGH-CONTRAST",
+      "title": "High contrast on iOS, Android and desktop forced colors",
+      "category": "Accessibility",
+      "platform": "iOS + Android + Web",
+      "priority": "P0",
+      "environment": "Physical iOS device, physical Android device, desktop browser",
+      "validation": "docs/device-accessibility-test-matrix.md#a11y-high-contrast (desktop forced-colors half is automated in website-interaction-visual; it does not close the device halves)",
+      "passCondition": "As defined in the matrix, all three environments.",
+      "evidence": [
+        {
+          "id": "A11Y-HIGH-CONTRAST",
+          "check": "manual-evidence"
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": false,
+      "externalEnvironment": "Physical iOS and Android devices",
+      "owner": "Device QA",
+      "dependsOn": [
+        "A11Y-WEB-AUTOMATED"
+      ]
+    },
+    {
+      "id": "A11Y-HARDWARE-KEYBOARD",
+      "title": "Hardware keyboard on iPadOS, Android tablet, Vue PC, Flutter PC",
+      "category": "Accessibility",
+      "platform": "iPadOS + Android + Web + Flutter",
+      "priority": "P0",
+      "environment": "Physical tablets with keyboards plus desktop",
+      "validation": "docs/device-accessibility-test-matrix.md#a11y-hardware-keyboard (desktop focus visibility and form keyboard vectors are automated; tablets are not)",
+      "passCondition": "As defined in the matrix.",
+      "evidence": [
+        {
+          "id": "A11Y-HARDWARE-KEYBOARD",
+          "check": "manual-evidence"
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": false,
+      "externalEnvironment": "Physical iPad and Android tablet with keyboards",
+      "owner": "Device QA",
+      "dependsOn": [
+        "A11Y-WEB-AUTOMATED"
+      ]
+    },
+    {
+      "id": "A11Y-REDUCED-MOTION",
+      "title": "Reduced motion on iOS, Android, Vue and Flutter desktop",
+      "category": "Accessibility",
+      "platform": "iOS + Android + Web + Flutter",
+      "priority": "P0",
+      "environment": "Physical phones plus desktop",
+      "validation": "docs/device-accessibility-test-matrix.md#a11y-reduced-motion (Vue reduced-motion half is automated)",
+      "passCondition": "As defined in the matrix.",
+      "evidence": [
+        {
+          "id": "A11Y-REDUCED-MOTION",
+          "check": "manual-evidence"
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": false,
+      "externalEnvironment": "Physical iOS and Android phones",
+      "owner": "Device QA",
+      "dependsOn": [
+        "A11Y-WEB-AUTOMATED"
+      ]
+    },
+    {
+      "id": "PERF-IOS",
+      "title": "iOS frame and scroll performance on hardware",
+      "category": "Performance",
+      "platform": "iOS",
+      "priority": "P0",
+      "environment": "Physical iPhone (60 Hz and ProMotion), release build, Instruments",
+      "validation": "docs/release/2.0-manual-evidence-checklist.md#perf-ios (budgets from docs/performance-baseline.md)",
+      "passCondition": "Steady scroll p95 frame under 16.7 ms, no frame over 100 ms; 120 Hz device reports both 8.3 and 16.7 ms thresholds.",
+      "evidence": [
+        {
+          "id": "PERF-IOS",
+          "check": "manual-evidence"
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": false,
+      "externalEnvironment": "Physical iPhone; host build durations are not frame evidence",
+      "owner": "Device QA",
+      "dependsOn": [
+        "NATIVE-IOS-AUTOMATED"
+      ]
+    },
+    {
+      "id": "PERF-ANDROID",
+      "title": "Android frame and scroll performance on hardware",
+      "category": "Performance",
+      "platform": "Android",
+      "priority": "P0",
+      "environment": "Physical Android phone (60 Hz and 120 Hz), release build, Macrobenchmark / Profiler",
+      "validation": "docs/release/2.0-manual-evidence-checklist.md#perf-android",
+      "passCondition": "Same budgets as PERF-IOS.",
+      "evidence": [
+        {
+          "id": "PERF-ANDROID",
+          "check": "manual-evidence"
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": false,
+      "externalEnvironment": "Physical Android phone",
+      "owner": "Device QA",
+      "dependsOn": [
+        "NATIVE-ANDROID-AUTOMATED"
+      ]
+    },
+    {
+      "id": "GESTURE-IOS",
+      "title": "iOS gesture manual cases",
+      "category": "Gestures",
+      "platform": "iOS",
+      "priority": "P0",
+      "environment": "Physical iPhone",
+      "validation": "docs/release/native-gesture-matrix.md (GEST-MESSAGE-REPLY, GEST-CONVERSATION-ACTIONS, GEST-VIEWER-ZOOM-BACK, GEST-COMPOSER-KEYBOARD, GEST-VOICE-CANCEL from docs/gesture-contract.md)",
+      "passCondition": "All five cases PASS with physical-device video.",
+      "evidence": [
+        {
+          "id": "GESTURE-IOS",
+          "check": "manual-evidence"
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": false,
+      "externalEnvironment": "Physical iPhone; gesture-contract.md treats simulator execution as diagnostic only",
+      "owner": "Device QA",
+      "dependsOn": [
+        "NATIVE-IOS-AUTOMATED"
+      ]
+    },
+    {
+      "id": "GESTURE-ANDROID",
+      "title": "Android gesture manual cases",
+      "category": "Gestures",
+      "platform": "Android",
+      "priority": "P0",
+      "environment": "Physical Android phone",
+      "validation": "docs/release/native-gesture-matrix.md",
+      "passCondition": "All five cases PASS with physical-device video.",
+      "evidence": [
+        {
+          "id": "GESTURE-ANDROID",
+          "check": "manual-evidence"
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": false,
+      "externalEnvironment": "Physical Android phone",
+      "owner": "Device QA",
+      "dependsOn": [
+        "NATIVE-ANDROID-AUTOMATED"
+      ]
+    },
+    {
+      "id": "RESOURCE-IOS",
+      "title": "iOS memory, media and lifecycle resource release",
+      "category": "Lifecycle",
+      "platform": "iOS",
+      "priority": "P0",
+      "environment": "Physical iPhone, release build, Instruments Allocations / Leaks",
+      "validation": "docs/release/2.0-manual-evidence-checklist.md#resource-ios (budgets from docs/performance-baseline.md and GEST-VOICE-CANCEL)",
+      "passCondition": "20 thread open/close cycles return within 10% of settled memory; only the active media item plays; background during recording releases the recorder and sends nothing.",
+      "evidence": [
+        {
+          "id": "RESOURCE-IOS",
+          "check": "manual-evidence"
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": false,
+      "externalEnvironment": "Physical iPhone",
+      "owner": "Device QA",
+      "dependsOn": [
+        "NATIVE-IOS-AUTOMATED"
+      ]
+    },
+    {
+      "id": "RESOURCE-ANDROID",
+      "title": "Android memory, media and lifecycle resource release",
+      "category": "Lifecycle",
+      "platform": "Android",
+      "priority": "P0",
+      "environment": "Physical Android phone, release build, Android Studio Profiler",
+      "validation": "docs/release/2.0-manual-evidence-checklist.md#resource-android",
+      "passCondition": "Same as RESOURCE-IOS, plus process death during recording restores without a stuck recorder.",
+      "evidence": [
+        {
+          "id": "RESOURCE-ANDROID",
+          "check": "manual-evidence"
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": false,
+      "externalEnvironment": "Physical Android phone",
+      "owner": "Device QA",
+      "dependsOn": [
+        "NATIVE-ANDROID-AUTOMATED"
+      ]
+    },
+    {
+      "id": "REL-CRITERIA-COMPONENT-TESTS",
+      "title": "Every STABLE public component has a component-level test",
+      "category": "Release criteria",
+      "platform": "All",
+      "priority": "P0",
+      "environment": "Release host",
+      "validation": "tooling/release-criteria-coverage.mjs: for each of the STABLE catalog components, look for its symbol (Vue: its SFC import) in the Vue, Flutter, Compose and SwiftUI test suites. Website preview scans are reported apart and do not count.",
+      "passCondition": "criteria/report.json items.componentTests.result PASS: zero STABLE components without a test (2.0-release-criteria.md §1 component, §2).",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/criteria/report.json",
+          "check": "json-pass",
+          "resultPath": "items.componentTests.result"
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "UI",
+      "dependsOn": []
+    },
+    {
+      "id": "REL-CRITERIA-RESPONSIVE",
+      "title": "Ten-width responsive matrix with zero horizontal overflow",
+      "category": "Release criteria",
+      "platform": "Web",
+      "priority": "P0",
+      "environment": "Release host, Chromium",
+      "validation": "A website spec that iterates 320/360/375/390/430/768/834/1024/1280/1440 over the core components and asserts no horizontal overflow (2.0-release-criteria.md §1 responsive).",
+      "passCondition": "criteria/report.json items.responsive.result PASS (such a spec exists) and it passes inside website-interaction-visual in A and B.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/criteria/report.json",
+          "check": "json-pass",
+          "resultPath": "items.responsive.result"
+        },
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-A/report.json",
+          "check": "release-run",
+          "gates": [
+            "website-interaction-visual"
+          ]
+        },
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-B/report.json",
+          "check": "release-run",
+          "gates": [
+            "website-interaction-visual"
+          ]
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "UI + QA",
+      "dependsOn": []
+    },
+    {
+      "id": "EXAMPLE-PARITY",
+      "title": "Example parity matrix with evidence vocabulary",
+      "category": "Release criteria",
+      "platform": "Web + Tauri + Flutter + Android + iOS",
+      "priority": "P0",
+      "environment": "Release host plus the native runtime packets",
+      "validation": "docs/release/example-parity.md: every feature x example cell is PASS_RUNTIME / PASS_TEST / PASS_BUILD / SIMULATED / UNSUPPORTED / FAIL with its evidence; UNSUPPORTED maps to platform-fallback-policy.md (2.0-release-criteria.md §3).",
+      "passCondition": "criteria/report.json items.exampleParity.result PASS: the document exists, every cell uses the vocabulary, no FAIL cell.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/criteria/report.json",
+          "check": "json-pass",
+          "resultPath": "items.exampleParity.result"
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": false,
+      "owner": "Consumers + QA",
+      "dependsOn": []
+    },
+    {
+      "id": "REL-CRITERIA-STUBS",
+      "title": "No production stub, marker or fake result",
+      "category": "Release criteria",
+      "platform": "All",
+      "priority": "P0",
+      "environment": "Release host",
+      "validation": "stub-check gate (tooling/check-production-stubs.mjs).",
+      "passCondition": "stub-check PASS in A and B.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-A/report.json",
+          "check": "release-run",
+          "gates": [
+            "stub-check"
+          ]
+        },
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-B/report.json",
+          "check": "release-run",
+          "gates": [
+            "stub-check"
+          ]
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "UI",
+      "dependsOn": [
+        "REL-CANDIDATE"
+      ]
+    },
+    {
+      "id": "REL-CRITERIA-LINT",
+      "title": "Four-platform lint with zero errors",
+      "category": "Release criteria",
+      "platform": "All",
+      "priority": "P0",
+      "environment": "Release host",
+      "validation": "flutter-analyze, flutter-app-analyze, compose (lintDebug), android-app (lintDebug), vue-build (vue-tsc + SFC compile). ESLint, ktlint/detekt and SwiftLint are not configured in this repository; the criteria row says \"若配置\".",
+      "passCondition": "Listed gates PASS in A and B.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-A/report.json",
+          "check": "release-run",
+          "gates": [
+            "flutter-analyze",
+            "flutter-app-analyze",
+            "compose",
+            "android-app",
+            "vue-build"
+          ]
+        },
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-B/report.json",
+          "check": "release-run",
+          "gates": [
+            "flutter-analyze",
+            "flutter-app-analyze",
+            "compose",
+            "android-app",
+            "vue-build"
+          ]
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "UI",
+      "dependsOn": [
+        "REL-CANDIDATE"
+      ]
+    },
+    {
+      "id": "REL-CRITERIA-DEPENDENCY",
+      "title": "Single icon library and recorded bundle size",
+      "category": "Release criteria",
+      "platform": "Vue",
+      "priority": "P0",
+      "environment": "Release host + clean consumer",
+      "validation": "design-system package-boundaries (no @vicons, one icon library through the shim); package-certification tree-shaking ledger records primitive and all-components bundle bytes.",
+      "passCondition": "design-system PASS in A and B; consumer-smoke.json records jsBytes for the primitive and all-components entries.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-A/report.json",
+          "check": "release-run",
+          "gates": [
+            "design-system"
+          ]
+        },
+        {
+          "path": "artifacts/release-2.0/automation/runs/final-B/report.json",
+          "check": "release-run",
+          "gates": [
+            "design-system"
+          ]
+        },
+        {
+          "path": "artifacts/release-2.0/package/consumer-smoke.json",
+          "check": "json-pass",
+          "assert": []
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": true,
+      "owner": "Release",
+      "dependsOn": [
+        "PKG-TARBALL"
+      ]
+    },
+    {
+      "id": "REL-READINESS-MATRIX",
+      "title": "Readiness matrix has no release-blocking open row",
+      "category": "Release ledger",
+      "platform": "All",
+      "priority": "P0",
+      "environment": "Release host",
+      "validation": "tooling/release-policy.mjs readinessBlockers over docs/2.0-readiness-matrix.md; each row re-audited against current evidence, never flipped wholesale.",
+      "passCondition": "Zero rows with Release Blocking? = Yes outside PASS / N/A.",
+      "evidence": [
+        {
+          "path": "docs/2.0-readiness-matrix.md",
+          "check": "readiness"
+        }
+      ],
+      "candidateSensitive": false,
+      "automationPossible": true,
+      "owner": "Release",
+      "dependsOn": []
+    },
+    {
+      "id": "REL-UNSUPPORTED-SCOPE",
+      "title": "Unsupported capabilities accepted for 2.0.0 by the release owner",
+      "category": "Release ledger",
+      "platform": "All",
+      "priority": "P0",
+      "environment": "Release owner decision",
+      "validation": "share (Tauri/Flutter/iOS/Android) and nativeBack (all hosts) are UNSUPPORTED with the UI behaviour in docs/release/platform-fallback-policy.md; the previous final report made stable conditional on implementing them or the owner accepting the omission.",
+      "passCondition": "artifacts/release-2.0/signoff.json records acceptance for this candidate (result PASS) by a named owner.",
+      "evidence": [
+        {
+          "path": "artifacts/release-2.0/signoff.json",
+          "check": "json-pass",
+          "assert": [
+            [
+              "unsupportedCapabilitiesAccepted",
+              true
+            ]
+          ]
+        }
+      ],
+      "candidateSensitive": true,
+      "automationPossible": false,
+      "owner": "Release owner",
+      "dependsOn": []
+    }
+  ]
+}

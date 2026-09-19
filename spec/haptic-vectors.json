@@ -1,0 +1,97 @@
+{
+  "note": "Shared truth for the tick a gesture gives when it crosses the line where letting go starts to mean something else — a swipe-to-reply reaching its arming distance, a held voice button sliding up into \"release to cancel\". Each case is the sequence of states the gesture reported, frame by frame, and `ticks` is how many times the kit asks the platform for a selection tick over that sequence. The rule is one tick per change of state, in both directions and never per frame: a finger resting past the line is not a drum, and a finger trembling on it is counted by crossings. Strength is the platform's selection tick — the light one, not the long-press one — and whether it is felt at all is the reader's own system setting, which every platform primitive already honours, so the kit adds no switch of its own. Vue implements none of this: neither of the two gestures exists in that kit, and the browser offers only `navigator.vibrate`, which iOS Safari does not have and a desktop cannot use.",
+  "cases": [
+    {
+      "id": "armed-once",
+      "states": [
+        false,
+        true
+      ],
+      "expected": {
+        "ticks": 1
+      },
+      "why": "the finger crosses the line: one tick"
+    },
+    {
+      "id": "armed-then-released-back",
+      "states": [
+        false,
+        true,
+        false
+      ],
+      "expected": {
+        "ticks": 2
+      },
+      "why": "crossing back out changes the meaning of letting go too"
+    },
+    {
+      "id": "held-past-the-line",
+      "states": [
+        false,
+        true,
+        true,
+        true
+      ],
+      "expected": {
+        "ticks": 1
+      },
+      "why": "a finger resting past the line is not a drum"
+    },
+    {
+      "id": "never-crossed",
+      "states": [
+        false,
+        false,
+        false
+      ],
+      "expected": {
+        "ticks": 0
+      },
+      "why": "a drag that stays short says nothing"
+    },
+    {
+      "id": "jitter-on-the-line",
+      "states": [
+        false,
+        true,
+        false,
+        true,
+        false,
+        true
+      ],
+      "expected": {
+        "ticks": 5
+      },
+      "why": "state changes are counted, frames are not"
+    },
+    {
+      "id": "starts-armed",
+      "states": [
+        true,
+        true
+      ],
+      "expected": {
+        "ticks": 0
+      },
+      "why": "no crossing was observed, so nothing is announced"
+    },
+    {
+      "id": "single-frame",
+      "states": [
+        false
+      ],
+      "expected": {
+        "ticks": 0
+      },
+      "why": "nothing to compare yet"
+    },
+    {
+      "id": "empty",
+      "states": [],
+      "expected": {
+        "ticks": 0
+      },
+      "why": "a gesture that never reported anything"
+    }
+  ]
+}

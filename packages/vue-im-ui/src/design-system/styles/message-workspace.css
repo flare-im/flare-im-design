@@ -1,0 +1,234 @@
+.runtime-status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--flare-size-radius-full);
+  background: var(--flare-color-primary);
+}
+
+.runtime-status-dot--busy,
+.composer-status-hint__dot--pulse {
+  animation: flare-pulse 1s ease-in-out infinite;
+}
+
+@keyframes flare-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.9);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+/* Pinned messages sit above the timeline as a compact bar: the conversation keeps the space and the
+   pins stay one tap away. Several pins scroll inside the bar. */
+.pinned-panel {
+  flex: none;
+  max-height: 132px;
+  min-height: 0;
+  overflow: auto;
+  padding: 6px var(--flare-size-spacing-md);
+  border-bottom: 1px solid var(--flare-color-border-secondary);
+  color: var(--flare-color-text-primary);
+  background: var(--flare-color-bg-primary);
+}
+.pinned-panel__header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 2px;
+  color: var(--flare-color-text-secondary);
+}
+.pinned-panel__icon {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  color: var(--flare-color-pinned);
+  font-size: 14px;
+}
+.pinned-panel__header strong {
+  font-size: var(--flare-size-font-size-sm);
+  font-weight: 600;
+}
+.pinned-panel__header small {
+  color: var(--flare-color-text-tertiary);
+  font-size: var(--flare-size-font-size-sm);
+}
+.pinned-panel__list {
+  display: grid;
+  gap: 2px;
+}
+.pinned-panel__item {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 40px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: var(--flare-size-radius-md);
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+.pinned-panel__item:hover { background: var(--flare-color-bg-hover); }
+.pinned-panel__item:focus-visible {
+  outline: 2px solid var(--flare-color-border-selected);
+  outline-offset: -2px;
+}
+.pinned-panel__avatar {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--flare-size-radius-full);
+  color: var(--flare-color-text-secondary);
+  background: var(--flare-color-bg-tertiary);
+  font-size: var(--flare-size-font-size-xs);
+  font-weight: 600;
+}
+.pinned-panel__body {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  gap: 6px;
+}
+.pinned-panel__body b,
+.pinned-panel__body span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pinned-panel__body b {
+  flex: none;
+  max-width: 40%;
+  color: var(--flare-color-text-primary);
+  font-size: var(--flare-size-font-size-md);
+  font-weight: 600;
+}
+.pinned-panel__body span {
+  color: var(--flare-color-text-secondary);
+  font-size: var(--flare-size-font-size-md);
+}
+.pinned-panel__chevron {
+  color: var(--flare-color-text-tertiary);
+  font-size: 16px;
+}
+
+.message-list-root {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  /* The timeline is the box its own rows are laid out in: a bubble's width, the avatar gutter and
+     the media sizes follow this, not the window, so a chat in a 380px pane of a 1600px desktop
+     reads like a chat on a phone (FR-139's note; the window still decides the page's own chrome). */
+  container: flare-timeline / inline-size;
+}
+
+.message-list {
+  min-height: 0;
+  height: 100%;
+  padding-inline: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.message-list-content {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 100%;
+  /* The timeline owns one gutter; only individual bubbles have a reading width. */
+  padding-inline: var(--flare-component-message-gutter-inline);
+}
+
+.message-list-load-older,
+.message-list-history-end {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--flare-color-border-primary);
+  border-radius: var(--flare-size-radius-full);
+  color: var(--flare-color-text-secondary);
+  background: var(--flare-color-bg-elevated);
+  box-shadow: var(--flare-shadow-sm);
+  font-size: 12px;
+  font-weight: 600;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.message-list-history-end {
+  color: var(--flare-color-text-tertiary);
+}
+
+.message-list-scroll-latest {
+  position: absolute;
+  right: 16px;
+  bottom: 12px;
+  z-index: 2;
+}
+
+.message-list-scroll-latest-fade-enter-active,
+.message-list-scroll-latest-fade-leave-active {
+  transition: opacity var(--flare-transition-normal), transform var(--flare-transition-normal);
+}
+
+.message-list-scroll-latest-fade-enter-from,
+.message-list-scroll-latest-fade-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.composer-status-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--flare-color-warning);
+  border-radius: var(--flare-size-radius-md);
+  color: var(--flare-color-warning-text);
+  background: color-mix(in srgb, var(--flare-color-warning) 10%, var(--flare-color-bg-primary));
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.composer-status-hint__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--flare-size-radius-full);
+  background: var(--flare-color-warning);
+  flex-shrink: 0;
+}
+
+.message-row--selected .message-bubble {
+  box-shadow: 0 0 0 2px var(--flare-color-message-selected-border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .runtime-status-dot--busy,
+  .composer-status-hint__dot--pulse {
+    animation: none;
+  }
+
+  .message-list-scroll-latest-fade-enter-active,
+  .message-list-scroll-latest-fade-leave-active {
+    transition: none;
+  }
+}

@@ -7,10 +7,10 @@ import { PLATFORMS, vueExportMap, loadSurface, compareComponent } from "./signat
 const here = dirname(fileURLToPath(import.meta.url));
 const spec = JSON.parse(readFileSync(join(here, "components.json"), "utf8"));
 const roots = {
-  vueExports: vueExportMap(join(here, "../vue-im-ui/src")),
-  flutter: join(here, "../flutter-im-ui/lib"),
-  ios: join(here, "../ios-im-ui/Sources"),
-  compose: join(here, "../android-im-ui/src/main"),
+  vueExports: vueExportMap(join(here, "../packages/vue-im-ui/src")),
+  flutter: join(here, "../packages/flutter-im-ui/lib"),
+  ios: join(here, "../packages/ios-im-ui/Sources"),
+  compose: join(here, "../packages/android-im-ui/src/main"),
 };
 const args = process.argv.slice(2);
 const only = args.includes("--component") ? args[args.indexOf("--component") + 1] : null;

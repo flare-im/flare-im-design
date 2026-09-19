@@ -1,0 +1,34 @@
+{
+  "name": "flare-im-design-workspace",
+  "version": "2.0.0-rc.1",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "tokens",
+    "packages/vue-im-ui",
+    "website",
+    "examples/vue"
+  ],
+  "scripts": {
+    "generate": "node packages/vue-im-ui/scripts/gen-icon-shim.mjs && node spec/build-maturity-model.mjs && node spec/gen-readme-catalog.mjs && node spec/build-im-coverage.mjs && node spec/build-component-layers.mjs && node website/scripts/gen-components.mjs && node tooling/normalize-component-docs.mjs && node website/scripts/build-library-guides.mjs && node tooling/build-component-catalog.mjs && node tooling/build-component-style-audit.mjs && node tooling/build-pinyin-initials.mjs && node tooling/build-repository-inventory.mjs && node tokens/build.mjs",
+    "check": "node tooling/check-design-system.mjs",
+    "release:check": "node tooling/release-check.mjs",
+    "release:packages": "node tooling/check-release-packages.mjs",
+    "check:generated": "node tooling/check-generated-files.mjs",
+    "check:duplicate-components": "node tooling/check-duplicate-components.mjs",
+    "check:dead-components": "node tooling/check-dead-components.mjs",
+    "check:design-source": "node tooling/check-design-source.mjs",
+    "check:themes": "node tooling/check-theme-contract.mjs",
+    "check:app-platform": "node tooling/check-im-application-platform.mjs && node tooling/check-complete-app-assembly.mjs",
+    "check:website-productization": "node tooling/check-website-productization.mjs",
+    "check:docs-preview-simplicity": "node tooling/docs-preview-simplicity-check.mjs",
+    "test:consumers": "node tooling/check-consumer-fixtures.mjs",
+    "check:website": "node tooling/check-website-build.mjs",
+    "test:website": "npm --prefix website run test:visual",
+    "check:form-keyboard": "node tooling/check-form-keyboard.mjs",
+    "check:security-boundary": "node tooling/check-security-boundary.mjs",
+    "check:release-report": "node tooling/check-release-report.mjs",
+    "check:ssr-safety": "node tooling/check-ssr-safety.mjs",
+    "release:evidence-check": "node tooling/check-release-evidence.mjs"
+  }
+}

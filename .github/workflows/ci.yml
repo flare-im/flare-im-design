@@ -7,348 +7,125 @@ on:
   workflow_dispatch:
 
 jobs:
-  spec:
-    name: 组件契约校验
+  quality:
+    name: Design system contracts
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-
-      # 校验契约完整性 + 各端符号确实存在 + 文档计数未过期。
-      # 这一条能挡住「契约撒谎」——声明了某端符号但实际不存在，
-      # 照契约去接的人会直接踩空。
-      - name: 契约校验
-        run: node validate.mjs
-        working-directory: spec
-
-      # README 的组件目录是生成的，防止手改后与契约漂移。
-      # 这份目录曾经手写，写着 18 个组件而实际有 107 个，少说了 6 倍。
-      - name: README 目录是否最新
-        run: node gen-readme-catalog.mjs --check
-        working-directory: spec
-
-      - name: IM 场景覆盖矩阵一致性
-        run: node spec/build-im-coverage.mjs --check
-
-  tokens:
-    name: 设计令牌
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      # tokens.json 是全库唯一视觉真源，dist 是它的生成产物。
-      # 若源改了却没重新 build，各端拿到的令牌就与真源不一致。
-      - name: 构建并检查产物是否与源同步
-        working-directory: tokens
-        run: node build.mjs --check
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm run check
 
   vue:
-    name: Vue 组件库
+    name: Vue package
     runs-on: ubuntu-latest
     steps:
-      # 依赖来源按分支分工：dev 用同级仓源码，main 用已发布包。
-      #
-      # 这不是给 CI 开的后门，而是把两种真实场景各测一次。vue-im-ui/tsconfig.json
-      # 的 paths 已经把 @flare-im/sdk 指向 ../../flare-im-core-client-sdk/...，
-      # 所以「同级仓在不在」就是开关：在 → 走源码，不在 → 解析回落 node_modules
-      # 里装的已发布包。因此 kit 必须检出到子目录，让 ../../ 有地方可指。
-      #
-      # dev 回答的是「kit 自己的代码对不对」，改完立刻能验；
-      # main 回答的是「按发布包装进去的消费方能不能用」，那是发版的判据。
-      # 两者会分歧——契约改了但包还没发时就会——那正是要被看见的事实，
-      # 不该用一个来掩盖另一个。
       - uses: actions/checkout@v4
-        with:
-          path: flare-im-design
-
-      # flare-im-core-client-sdk 是公开仓，不需要 token。
-      - uses: actions/checkout@v4
-        if: github.ref_name != 'main'
-        with:
-          repository: flare-im/flare-im-core-client-sdk
-          path: flare-im-core-client-sdk
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm --prefix packages/vue-im-ui test
+      - run: npm --prefix packages/vue-im-ui run typecheck
+      - run: npm --prefix packages/vue-im-ui run build
+      - run: npm --prefix packages/vue-im-ui run pack
+      - run: node tooling/check-package-exports.mjs
 
-      - name: 依赖来源
-        run: |
-          if [ -d flare-im-core-client-sdk ]; then
-            echo "dev：@flare-im/sdk 走同级仓源码"
-          else
-            echo "main：@flare-im/sdk 走 npm 已发布包"
-          fi
-
-      # @flare-im/sdk 与 @flare-im/tokens 都已发布，从 registry 装即可 ——
-      # 此前 sdk 是跨仓 file: 依赖，CI 里根本装不到，只能写成「允许失败」，
-      # 那等于一条永远不会把关的门禁。改成 registry 依赖后才真正有效。
-      - name: 安装依赖
-        working-directory: flare-im-design/vue-im-ui
-        run: npm install --no-audit --no-fund
-
-      - name: 类型检查
-        working-directory: flare-im-design/vue-im-ui
-        run: npm run typecheck
-
-      - name: 单元测试
-        working-directory: flare-im-design/vue-im-ui
-        run: npm test --if-present
-
-      # SFC 的编译期错误**躲得过 vue-tsc**（模板里的错在 SFC 编译阶段才暴露），
-      # 而 barrel 转出全部组件 —— 一个坏 SFC 会让每个消费方整片空白。
-      # 这个门禁早就写好了，但一直没接进 CI，等于没有。
-      - name: 全量 SFC 编译
-        working-directory: flare-im-design/vue-im-ui
-        run: npm run check:sfc
-
-      # 表情/贴纸元数据是从仓库上层的真源拷进包内的（发布包不能引用 ../..）。
-      # 拷贝漂移过一次：发布出去的 1.0.6 缺这两个 json，装了 npm 包的消费方
-      # 直接构建失败，而本地 alias 指向真源所以完全无感。
-      - name: 包内元数据与真源一致
-        working-directory: flare-im-design/vue-im-ui
-        run: npm run check:assets
-
-  distribution:
-    name: 分发一致性
+  website:
+    name: Website and visual regression
     runs-on: ubuntu-latest
     steps:
-      # fetch-depth: 0 是必须的：门禁要读 git tag，浅克隆拿不到 tag，
-      # 会变成「没有 tag 所以没有不一致」的假绿。
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm --prefix website run build
+      - run: npx --prefix website playwright install --with-deps chromium
+      - run: npm --prefix website run test:visual
+
+  flutter:
+    name: Flutter package
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/flutter-im-ui
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+      - run: dart pub publish --dry-run
+      - run: flutter pub get
+        working-directory: examples/flutter
+      - run: flutter build web
+        working-directory: examples/flutter
+
+  android:
+    name: Android Compose package
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/android-im-ui
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+      - run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug
+      - name: Emulator interaction regression
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          disable-animations: true
+          working-directory: packages/android-im-ui
+          script: ./gradlew --no-daemon connectedDebugAndroidTest
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-reports
+          path: |
+            packages/android-im-ui/build/reports/
+            packages/android-im-ui/build/outputs/aar/
+
+  swift:
+    name: SwiftUI package
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: packages/ios-im-ui
+    steps:
+      - uses: actions/checkout@v4
+      - run: swift package resolve
+      - run: swift test
+      - run: swift build
+      - run: xcodebuild -scheme FlareIMUI -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/flare-ui-ios" build CODE_SIGNING_ALLOWED=NO
+
+  distribution:
+    name: Distribution contracts
+    runs-on: ubuntu-latest
+    steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-
-      # 三处版本号（npm / Android / git tag）与 SPM 双清单必须一致。
-      # iOS 的 SPM 版本**只**来自 git tag：tag 落后就是静默拿旧代码，
-      # 表现成「Android 和 iOS 的 UI 不一样」，本地完全测不出来。
-      - name: 版本锁步 + SPM 双清单
-        run: node scripts/check-kit-distribution.mjs
-
-      # 对着**打包产物**验 exports：消费方 import 的每个子路径都要解析到包里
-      # 真实存在的文件。工作区里 vite alias 与 tsconfig paths 会掩盖 exports 的
-      # 错漏，只有真装包才炸——这一条把「装包」这件事里能自包含的部分搬进 CI。
-      #
-      # 完整判据是工作区根的 verify-published-kit.mjs（真装真构建），
-      # 但它需要同级的消费方仓，而那些不是公开仓，CI 拉不到。
-      - name: 打包产物的 exports 解析
-        run: node scripts/check-package-exports.mjs
-
-      - name: 不安装 IM SDK 的独立消费构建
-        run: node scripts/check-optional-sdk-consumer.mjs
-
-      # 独立消费不加载 tokens.css，此时 var() 的兜底值就是真正渲染出来的颜色。
-      # 调色板改过一轮而 690 处内联兜底没跟上，kit 曾经「带主题一套色、不带主题
-      # 另一套色」而无人报错，所以把兜底与 token 的一致性也做成门禁。
-      - name: token 兜底值与 token 一致
-        run: node scripts/check-token-fallbacks.mjs
-
-  site:
-    name: 文档站构建
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      # 文档站的 51 个 demo 用的是**真组件**（曾经是本地副本，会与真库漂移）。
-      # 所以这条构建同时是「全部组件在真实渲染路径下能跑通」的端到端门禁 ——
-      # 比单测覆盖面更宽，此前完全不在 CI 里。
-      #
-      # site 通过 file:../vue-im-ui 引本仓的包，是同仓相对路径，
-      # 不涉及 main/dev 的依赖模式问题。
-      # site 通过 file:../vue-im-ui 引本仓的包 —— 而 **file: 链接不会把被链包的
-      # 依赖装进消费方**：npm 只建符号链接。kit 源码里 import 的
-      # lucide-vue-next / naive-ui 等要靠 vue-im-ui/node_modules 才解析得到。
-      #
-      # 本地之所以一直没暴露：谁都在 vue-im-ui 里跑过 npm install。CI 的 job
-      # 之间不共享状态，所以这一步必须显式装。
-      #
-      # 注意这跟发布路径无关：装 registry 包的消费方能通过**传递依赖**拿到
-      # lucide（已验证 social app 的 node_modules 里有），不需要自己声明。
-      - name: 安装 kit 依赖（file 链接不会自动装被链包的依赖）
-        working-directory: vue-im-ui
-        run: npm install --no-audit --no-fund
-
-      - name: 安装依赖
-        working-directory: site
-        run: npm install --no-audit --no-fund
-
-      - name: 构建
-        working-directory: site
-        run: npm run build
-
-      - name: 安装浏览器回归工具
-        working-directory: site
-        run: |
-          npm install --no-save --package-lock=false @playwright/test@1.60.0
-          npx playwright install --with-deps chromium
-
-      - name: 场景交互与跨尺寸回归
-        run: |
-          npm --prefix site run preview -- --host 127.0.0.1 --port 5189 > "$RUNNER_TEMP/flare-site.log" 2>&1 &
-          preview_pid=$!
-          trap 'kill "$preview_pid"' EXIT
-          node scripts/check-im-browser.mjs http://127.0.0.1:5189 "$PWD/site/package.json"
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: scene-ui-evidence
-          path: |
-            docs/ui-review-20260909/scenes/
-            docs/ui-review-20260909/calls/
-            docs/ui-review-20260909/queue/
-            docs/ui-review-20260909/search/
-            docs/ui-review-20260909/transfers/
-            docs/ui-review-20260909/browser-check.json
-
-  consumer:
-    name: 跨仓消费方（真装发布包）
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      # 消费方仓单独 checkout 到 consumer/ 下，**不是**放成同级目录。
-      #
-      # 这一点是本 job 成立的关键：消费方的 tsconfig 里 kit 的 paths 指向
-      # 同级的 flare-im-design，解析不到时才会回落 node_modules。放成同级
-      # 就会命中源码，于是「装了发布包」这件事完全没被验证到——看着绿，
-      # 实际什么都没测。
-      #
-      # flare-im-core-client-sdk 是公开仓，不需要任何 token。
-      - uses: actions/checkout@v4
-        with:
-          repository: flare-im/flare-im-core-client-sdk
-          path: consumer/flare-im-core-client-sdk
-
-      - name: 打包 kit
-        working-directory: vue-im-ui
-        run: npm pack --pack-destination "$RUNNER_TEMP"
-
-      # 选 uni-app 跑 typecheck，而不是别的 app 跑 build：
-      # web/tauri/electron 的 vite 构建会硬拷 flare-im-core-sdk 的 wasm 产物，
-      # 而那个产物是 gitignore 的（要现装 Rust + wasm-pack 现构建，太重）。
-      # typecheck 不走 vite 插件，却照样走 node_modules 解析 —— 而解析正是
-      # 这类缺陷的所在（缺类型、子路径解析不到、optional peer 的类型）。
-      - name: 装发布包并在 published 语义下类型检查
-        working-directory: consumer/flare-im-core-client-sdk/examples/flare-core-uni-app
-        env:
-          FLARE_USE_PUBLISHED_KIT: "true"
-        run: |
-          npm install --no-audit --no-fund
-          npm install --no-save "$RUNNER_TEMP"/flare-im-vue-ui-*.tgz
-          npm run typecheck
-
-  # 四端实现里，此前只有 Vue 那套进过 CI。
-  # 这个 kit 是「一个组件契约、四套实现」，android / ios / flutter 三端合计 290 个
-  # 原生源文件**一行都没被编译过**——而本项目已经吃过一次亏：只审两端时漏掉了
-  # ProfilePanel 丢 kind/detail/signature、Input 无密码遮罩等问题，四端原样复现。
-  #
-  # Flutter 与 Android 都能在 ubuntu 上跑，先接这两端。
-  # SwiftUI 使用 macOS runner 编译、单测及 iOS Simulator 目标构建。
-  flutter:
-    name: Flutter 组件库
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: flutter-im-ui
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-
-      # 表情/贴纸的 webp 二进制**刻意不入库**（250 个共 67MB，曾把 git clone 撑到
-      # 连续失败），由 release tag 按需拉取。pubspec 声明了 assets/emoji-sticker/emoji/
-      # 与 .../stickers/default/ 两个目录，不拉的话 flutter analyze 会报
-      # `asset_directory_does_not_exist` 并判红——这不是误报，真实消费方不拉一样缺资源。
-      # flutter-im-ui/assets/emoji-sticker 是指向仓根那份的符号链接（已入库）。
-      - name: 拉取表情/贴纸资源
-        working-directory: .
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: ./assets/emoji-sticker/fetch-assets.sh
-
-      - name: 取依赖
-        run: flutter pub get
-
-      # analyze 与 test 分开两步：analyze 挂了要一眼看出是静态问题还是用例失败。
-      - name: 静态分析
-        run: flutter analyze
-
-      - name: 单元测试
-        run: flutter test
-
-  android:
-    name: Android 组件库
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: android-im-ui
-    steps:
-      - uses: actions/checkout@v4
-
-      # AGP 要 JDK 17；runner 默认 JDK 版本会随镜像变，钉死免得哪天静默换版本。
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
-
-      - uses: gradle/actions/setup-gradle@v4
-
-      # local.properties 被 gitignore（里面是各人本机的 sdk.dir），
-      # CI 靠 runner 预置的 ANDROID_HOME 找 SDK。
-      - name: 编译
-        run: ./gradlew --no-daemon :compileDebugKotlin
-
-      - name: 单元测试
-        run: ./gradlew --no-daemon :testDebugUnitTest
-
-      - name: 启用模拟器硬件加速
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-
-      - name: 原生场景交互回归
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 35
-          arch: x86_64
-          disable-animations: true
-          working-directory: android-im-ui
-          script: ./gradlew --no-daemon connectedDebugAndroidTest
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: android-scene-tests
-          path: android-im-ui/build/reports/androidTests/
-
-  swift:
-    name: SwiftUI 组件库
-    runs-on: macos-latest
-    defaults:
-      run:
-        working-directory: ios-im-ui
-    steps:
-      - uses: actions/checkout@v4
-      - name: SwiftUI 编译与单元测试
-        run: swift test
-      - name: iOS Simulator 目标编译
-        run: xcodebuild -scheme FlareIMUI -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/flare-ui-ios" build CODE_SIGNING_ALLOWED=NO
+      - run: node tooling/check-kit-distribution.mjs
+      - run: node tooling/check-package-exports.mjs
+      - run: node tooling/check-token-fallbacks.mjs

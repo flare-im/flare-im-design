@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "scenarioSources": [
+    "spec/scenarios/rc.json#scenarios",
+    "spec/scenarios/theme-switching.json",
+    "spec/scenarios/application.json"
+  ],
+  "targets": [
+    "Button",
+    "Input",
+    "Dialog",
+    "ConversationRow",
+    "MessageBubble",
+    "MessageMeta",
+    "MessageStatus",
+    "Composer",
+    "DesktopAppShell",
+    "CommentThread",
+    "ReactionSummary",
+    "CommandPalette"
+  ],
+  "platforms": {
+    "vue": {
+      "status": "active",
+      "test": "website/tests/visual-regression.spec.ts",
+      "baseline": "tests/visual/vue/baselines/darwin",
+      "command": "npm --prefix website run test:visual",
+      "themeBaselines": [
+        "theme-violet-light.png",
+        "theme-ocean-light.png",
+        "theme-forest-light.png",
+        "theme-sunset-light.png",
+        "theme-rose-light.png",
+        "theme-graphite-light.png",
+        "theme-violet-dark.png",
+        "theme-ocean-dark.png",
+        "theme-graphite-dark.png"
+      ],
+      "applicationBaselines": [
+        "reference-im-desktop.png",
+        "reference-im-mobile.png"
+      ],
+      "composerSurfaceBaselines": [
+        "composer-default-desktop-light.png",
+        "composer-focused-desktop-light.png",
+        "composer-multiline-desktop-light.png",
+        "composer-reply-desktop-light.png",
+        "composer-upload-desktop-light.png",
+        "composer-disabled-desktop-light.png",
+        "composer-readonly-desktop-light.png",
+        "composer-default-desktop-dark.png",
+        "composer-default-h5-light.png",
+        "composer-default-h5-dark.png",
+        "composer-expanded-1280-light.png",
+        "composer-expanded-1280-dark.png",
+        "composer-expanded-390-light.png",
+        "composer-expanded-390-dark.png",
+        "composer-native-zoom-90-light.png",
+        "composer-native-zoom-100-light.png",
+        "composer-native-zoom-110-light.png",
+        "composer-native-zoom-125-light.png",
+        "composer-native-zoom-90-dark.png",
+        "composer-native-zoom-100-dark.png",
+        "composer-native-zoom-110-dark.png",
+        "composer-native-zoom-125-dark.png"
+      ],
+      "coreSurfaceBaselines": [
+        "core-surfaces-1280-light.png",
+        "core-surfaces-1280-dark.png",
+        "core-surfaces-390-light.png",
+        "core-surfaces-390-dark.png",
+        "attachment-surface-1280-light.png",
+        "attachment-surface-1280-dark.png",
+        "attachment-surface-390-light.png",
+        "attachment-surface-390-dark.png",
+        "sheet-surface-1280-light.png",
+        "sheet-surface-1280-dark.png",
+        "sheet-surface-390-light.png",
+        "sheet-surface-390-dark.png"
+      ],
+      "baselineNote": "A screenshot is a rendering: macOS and Linux do not rasterise text the same way, so baselines live under tests/visual/vue/baselines/<platform>/ and website/playwright.config.ts carries {platform} in its snapshotPathTemplate. Only darwin exists today — the CI visual job runs on ubuntu and has no baselines yet, which is a gap rather than a pass. See docs/release/visual-baselines.md.",
+      "platforms": {
+        "darwin": [
+          "attachment-surface-1280-dark.png",
+          "attachment-surface-1280-light.png",
+          "attachment-surface-390-dark.png",
+          "attachment-surface-390-light.png",
+          "composer-default-desktop-dark.png",
+          "composer-default-desktop-light.png",
+          "composer-default-h5-dark.png",
+          "composer-default-h5-light.png",
+          "composer-disabled-desktop-light.png",
+          "composer-expanded-1280-dark.png",
+          "composer-expanded-1280-light.png",
+          "composer-expanded-390-dark.png",
+          "composer-expanded-390-light.png",
+          "composer-focused-desktop-light.png",
+          "composer-multiline-desktop-light.png",
+          "composer-native-zoom-100-dark.png",
+          "composer-native-zoom-100-light.png",
+          "composer-native-zoom-110-dark.png",
+          "composer-native-zoom-110-light.png",
+          "composer-native-zoom-125-dark.png",
+          "composer-native-zoom-125-light.png",
+          "composer-native-zoom-90-dark.png",
+          "composer-native-zoom-90-light.png",
+          "composer-readonly-desktop-light.png",
+          "composer-reply-desktop-light.png",
+          "composer-upload-desktop-light.png",
+          "conversation-list-graphite-dark.png",
+          "conversation-list-graphite-light.png",
+          "conversation-list-violet-dark.png",
+          "conversation-list-violet-light.png",
+          "core-surfaces-1280-dark.png",
+          "core-surfaces-1280-light.png",
+          "core-surfaces-390-dark.png",
+          "core-surfaces-390-light.png",
+          "rc-dark.png",
+          "rc-graphite-dark.png",
+          "rc-graphite-light.png",
+          "rc-large-text.png",
+          "rc-light.png",
+          "reference-im-desktop.png",
+          "reference-im-mobile.png",
+          "sheet-surface-1280-dark.png",
+          "sheet-surface-1280-light.png",
+          "sheet-surface-390-dark.png",
+          "sheet-surface-390-light.png",
+          "theme-forest-light.png",
+          "theme-graphite-dark.png",
+          "theme-graphite-light.png",
+          "theme-ocean-dark.png",
+          "theme-ocean-light.png",
+          "theme-rose-light.png",
+          "theme-sunset-light.png",
+          "theme-violet-dark.png",
+          "theme-violet-light.png"
+        ]
+      }
+    },
+    "flutter": {
+      "status": "active",
+      "test": "packages/flutter-im-ui/test/goldens/core_components_golden_test.dart",
+      "baseline": "packages/flutter-im-ui/test/goldens/baselines/core_components.png",
+      "additionalBaselines": [
+        "packages/flutter-im-ui/test/goldens/baselines/message_status.png"
+      ],
+      "baselineFiles": [
+        "core_components.png",
+        "message_status.png"
+      ]
+    },
+    "compose": {
+      "status": "active",
+      "test": "packages/android-im-ui/src/androidTest/kotlin/com/flare/im/ui/RcScreenshotHarnessTest.kt",
+      "baseline": "packages/android-im-ui/src/androidTest/assets/goldens",
+      "command": "cd packages/android-im-ui && ./gradlew connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.flare.im.ui.RcScreenshotHarnessTest -Pandroid.testInstrumentationRunnerArguments.compareBaselines=true",
+      "scope": "Pinned Pixel_9_API_35 AVD, API 35, 420 dpi; light, dark, and 200% text",
+      "baselineFiles": [
+        "rc-components-dark.png",
+        "rc-components-large-text.png",
+        "rc-components-light.png"
+      ],
+      "coverageNote": "Instrumented: needs the pinned AVD, so it does not run in the offline unit-test sweeps or in CI today. The baselines exist and are reviewed on that runner; the gap is that nothing re-compares them automatically."
+    },
+    "ios": {
+      "status": "active",
+      "test": "packages/ios-im-ui/Tests/FlareIMUITests/VisualSnapshotTests.swift",
+      "baseline": "tests/visual/ios/baselines",
+      "additionalBaselines": [
+        "tests/visual/ios/baselines/swiftui-large-text.png"
+      ],
+      "command": "cd packages/ios-im-ui && swift test --filter VisualSnapshotTests",
+      "scope": "SwiftUI macOS host; pinned iOS device execution remains manual",
+      "baselineFiles": [
+        "swiftui-large-text.png",
+        "swiftui-message-meta.png"
+      ]
+    }
+  },
+  "baselinePolicy": "Review visual diffs; never update baselines merely to make CI green.",
+  "process": "docs/release/visual-baselines.md",
+  "note": "DoD 23 — every pixel baseline in the repo, declared. A baseline that appears without an entry here was never reviewed by a person; an entry without a file means a case lost its baseline and the next run silently writes a fresh one. tooling/check-visual-regression.mjs fails on either."
+}

@@ -2,7 +2,7 @@
 
 [English](README.md) · 中文
 
-框架中立的 IM 组件契约：**一个组件 = 一份契约（props / states / events + 数据源 core view），各端原生实现**。
+框架中立的 IM 组件契约：**一个组件 = 一份契约（props / states / events + 宿主持有的数据源），各端原生实现**。
 是「类 Ant Design 组件 API」中立化的部分——各端 L1 包按此实现，一致性靠本 spec 锁定。
 
 ## 安装
@@ -27,7 +27,7 @@ console.log(components.length); // 组件数量
 |---|---|
 | `name` | 组件名（各端符号见 `platforms`） |
 | `summary` | 一句话职责 |
-| `dataSource` | 数据来自哪个 **core 可观察视图**（L4）——所有端消费同一个 |
+| `dataSource` | 四端组件消费的宿主展示数据 |
 | `props[]` | `{ name, type, required?, default?, desc? }` |
 | `states[]` | 可能的状态（如 pending/sent/read/failed） |
 | `events[]` | 回调/事件名——契约层统一 camelCase；Vue 派生 kebab（`@toggle-select`），原生派生 `on` + Pascal（`onToggleSelect`） |
@@ -35,7 +35,6 @@ console.log(components.length); // 组件数量
 | `props[].platforms` | 可选；限定某 prop 只存在于部分端（如 Vue 专属的插槽探测开关） |
 | `eventPlatforms` | 可选 `{ 事件: [端] }`；限定某事件只存在于部分端（如逐动作的消息事件是 Vue 专属，原生端只给 `messageLongPress` 由宿主建菜单） |
 | `platformAliases` | 可选 `{ 端: { props: {…}, events: {…} } }`——组件级的平台惯用名（如 `edit` → `onEditRemark`） |
-| `deprecatedCallbacks` | 可选 `{ 端: [名] }`——保留一个版本的旧回调名，不算未声明 |
 | `platforms` | `vue / flutter / ios / compose` → `{ package, symbol }`（各端依赖与符号）。Vue 符号必须是 `components/index.ts` 的导出名 |
 
 所有组件共用的顶层表：
@@ -82,11 +81,11 @@ props/events 从 `@flare-im/vue-ui` 源码抽取校准）。
 **内容类型注册表**（`contentTypes.registered`）：`MessageBubble`/`MessageContentView` 按 content-type 分发到各渲染器
 （text/image/video/audio/file/location/card/linkCard/sticker/emoji/vote/task/schedule/announcement/miniProgram/notification/placeholder），产品可注册新类型。
 
-## 校验（防漂移，仿 sdk-spec 双向覆盖）
+## 校验与防漂移
 ```bash
 node validate.mjs
 ```
-检查：① 每个组件契约字段完整、双语，prop/事件名 camelCase；② 声明的端都有 package+symbol 且符号真实存在（Vue 取 `components/index.ts` 导出；Flutter 类；SwiftUI struct；Compose 函数）；③ **签名**：契约声明的每个 prop 与事件都要能在各端公共签名里找到（按 `lexicon`、`eventAliases`、`platformAliases`、`props[].platforms`、`eventPlatforms` 解释），原生端每个 `onXxx` 回调都要在契约里。历史差异记在 `signature-baseline.json`，只允许缩小：出现新差异就红，差异消失但基线没更新也红。
+检查：① 每个组件契约字段完整、双语，prop/事件名 camelCase；② 声明的端都有 package+symbol 且符号真实存在（Vue 取 `components/index.ts` 导出；Flutter 类；SwiftUI struct；Compose 函数）；③ **签名**：契约声明的每个 prop 与事件都要能在各端公共签名里找到（按 `lexicon`、`eventAliases`、`platformAliases`、`props[].platforms`、`eventPlatforms` 解释），原生端每个 `onXxx` 回调都要在契约里。历史差异记在 `signature-baseline.json`，且必须同时在组件的 `signatureDifferences` 显式登记，只允许缩小：出现新差异就红，未登记基线就红，差异消失但基线没更新也红。
 
 ```bash
 node signature-report.mjs                       # 各端差异总数
@@ -95,6 +94,6 @@ node signature-report.mjs --baseline            # 差异缩小后重写基线
 ```
 
 ## 关系
-- **L4** 数据/行为：`flare-im-core-sdk` client.views（已有）——`dataSource` 指向它。
+- **L4** 宿主数据/行为：适配、状态、网络和持久化均留在组件库之外。
 - **L3** tokens：[`../tokens`](../tokens)——组件视觉走 `--flare-*`。
 - **L1** 各端包：Vue 已在 `@flare-im/vue-ui`；Flutter/iOS/Compose 待从各端 app 抽取（Phase 4）。

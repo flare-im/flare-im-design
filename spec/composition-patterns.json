@@ -1,0 +1,487 @@
+{
+  "schemaVersion": 1,
+  "patterns": {
+    "DesktopWorkbench": {
+      "requiredRegions": [
+        "navigation",
+        "primaryPane",
+        "contentPane"
+      ],
+      "optionalRegions": [
+        "status",
+        "empty",
+        "error",
+        "overlay",
+        "commandHost"
+      ],
+      "responsiveRules": [
+        "Preserve the primary task",
+        "Collapse supporting regions into a drawer, sheet, or route",
+        "Never render hidden duplicate semantics"
+      ],
+      "stateModel": [
+        "loading",
+        "ready",
+        "empty",
+        "error",
+        "offline",
+        "permissionDenied"
+      ],
+      "accessibility": [
+        "Named regions",
+        "Deterministic focus order",
+        "Focus restoration",
+        "Reduced motion"
+      ],
+      "keyboard": [
+        "Escape closes contextual layers",
+        "Tab follows visual order",
+        "Host may bind documented desktop actions"
+      ],
+      "platformAdaptations": {
+        "vue": "desktop-first workbench",
+        "flutter": "adaptive desktop/mobile shell",
+        "compose": "native navigation and sheets",
+        "ios": "NavigationSplitView/navigation stack and native sheets"
+      }
+    },
+    "ConversationWorkspace": {
+      "requiredRegions": [
+        "conversationList",
+        "conversationContent"
+      ],
+      "optionalRegions": [
+        "status",
+        "empty",
+        "error",
+        "overlay",
+        "commandHost"
+      ],
+      "responsiveRules": [
+        "Preserve the primary task",
+        "Collapse supporting regions into a drawer, sheet, or route",
+        "Never render hidden duplicate semantics"
+      ],
+      "stateModel": [
+        "loading",
+        "ready",
+        "empty",
+        "error",
+        "offline",
+        "permissionDenied"
+      ],
+      "accessibility": [
+        "Named regions",
+        "Deterministic focus order",
+        "Focus restoration",
+        "Reduced motion"
+      ],
+      "keyboard": [
+        "Escape closes contextual layers",
+        "Tab follows visual order",
+        "Host may bind documented desktop actions"
+      ],
+      "platformAdaptations": {
+        "vue": "desktop-first workbench",
+        "flutter": "adaptive desktop/mobile shell",
+        "compose": "native navigation and sheets",
+        "ios": "NavigationSplitView/navigation stack and native sheets"
+      }
+    },
+    "ChatWorkspace": {
+      "requiredRegions": [
+        "header",
+        "messageList",
+        "composer"
+      ],
+      "optionalRegions": [
+        "status",
+        "empty",
+        "error",
+        "overlay",
+        "commandHost"
+      ],
+      "responsiveRules": [
+        "Preserve the primary task",
+        "Collapse supporting regions into a drawer, sheet, or route",
+        "Never render hidden duplicate semantics"
+      ],
+      "stateModel": [
+        "loading",
+        "ready",
+        "empty",
+        "error",
+        "offline",
+        "permissionDenied"
+      ],
+      "accessibility": [
+        "Named regions",
+        "Deterministic focus order",
+        "Focus restoration",
+        "Reduced motion"
+      ],
+      "keyboard": [
+        "Escape closes contextual layers",
+        "Tab follows visual order",
+        "Host may bind documented desktop actions"
+      ],
+      "platformAdaptations": {
+        "vue": "desktop-first workbench",
+        "flutter": "adaptive desktop/mobile shell",
+        "compose": "native navigation and sheets",
+        "ios": "NavigationSplitView/navigation stack and native sheets"
+      }
+    },
+    "ThreadWorkspace": {
+      "requiredRegions": [
+        "threadHeader",
+        "rootMessage",
+        "replyList",
+        "composer"
+      ],
+      "optionalRegions": [
+        "status",
+        "empty",
+        "error",
+        "overlay",
+        "commandHost"
+      ],
+      "responsiveRules": [
+        "Preserve the primary task",
+        "Collapse supporting regions into a drawer, sheet, or route",
+        "Never render hidden duplicate semantics"
+      ],
+      "stateModel": [
+        "loading",
+        "ready",
+        "empty",
+        "error",
+        "offline",
+        "permissionDenied"
+      ],
+      "accessibility": [
+        "Named regions",
+        "Deterministic focus order",
+        "Focus restoration",
+        "Reduced motion"
+      ],
+      "keyboard": [
+        "Escape closes contextual layers",
+        "Tab follows visual order",
+        "Host may bind documented desktop actions"
+      ],
+      "platformAdaptations": {
+        "vue": "desktop-first workbench",
+        "flutter": "adaptive desktop/mobile shell",
+        "compose": "native navigation and sheets",
+        "ios": "NavigationSplitView/navigation stack and native sheets"
+      }
+    },
+    "SearchWorkspace": {
+      "requiredRegions": [
+        "query",
+        "filters",
+        "results"
+      ],
+      "optionalRegions": [
+        "status",
+        "empty",
+        "error",
+        "overlay",
+        "commandHost"
+      ],
+      "responsiveRules": [
+        "Preserve the primary task",
+        "Collapse supporting regions into a drawer, sheet, or route",
+        "Never render hidden duplicate semantics"
+      ],
+      "stateModel": [
+        "loading",
+        "ready",
+        "empty",
+        "error",
+        "offline",
+        "permissionDenied"
+      ],
+      "accessibility": [
+        "Named regions",
+        "Deterministic focus order",
+        "Focus restoration",
+        "Reduced motion"
+      ],
+      "keyboard": [
+        "Escape closes contextual layers",
+        "Tab follows visual order",
+        "Host may bind documented desktop actions"
+      ],
+      "platformAdaptations": {
+        "vue": "desktop-first workbench",
+        "flutter": "adaptive desktop/mobile shell",
+        "compose": "native navigation and sheets",
+        "ios": "NavigationSplitView/navigation stack and native sheets"
+      }
+    },
+    "MediaWorkspace": {
+      "requiredRegions": [
+        "filters",
+        "mediaGrid",
+        "preview"
+      ],
+      "optionalRegions": [
+        "status",
+        "empty",
+        "error",
+        "overlay",
+        "commandHost"
+      ],
+      "responsiveRules": [
+        "Preserve the primary task",
+        "Collapse supporting regions into a drawer, sheet, or route",
+        "Never render hidden duplicate semantics"
+      ],
+      "stateModel": [
+        "loading",
+        "ready",
+        "empty",
+        "error",
+        "offline",
+        "permissionDenied"
+      ],
+      "accessibility": [
+        "Named regions",
+        "Deterministic focus order",
+        "Focus restoration",
+        "Reduced motion"
+      ],
+      "keyboard": [
+        "Escape closes contextual layers",
+        "Tab follows visual order",
+        "Host may bind documented desktop actions"
+      ],
+      "platformAdaptations": {
+        "vue": "desktop-first workbench",
+        "flutter": "adaptive desktop/mobile shell",
+        "compose": "native navigation and sheets",
+        "ios": "NavigationSplitView/navigation stack and native sheets"
+      }
+    },
+    "ContactWorkspace": {
+      "requiredRegions": [
+        "directory",
+        "detail"
+      ],
+      "optionalRegions": [
+        "status",
+        "empty",
+        "error",
+        "overlay",
+        "commandHost"
+      ],
+      "responsiveRules": [
+        "Preserve the primary task",
+        "Collapse supporting regions into a drawer, sheet, or route",
+        "Never render hidden duplicate semantics"
+      ],
+      "stateModel": [
+        "loading",
+        "ready",
+        "empty",
+        "error",
+        "offline",
+        "permissionDenied"
+      ],
+      "accessibility": [
+        "Named regions",
+        "Deterministic focus order",
+        "Focus restoration",
+        "Reduced motion"
+      ],
+      "keyboard": [
+        "Escape closes contextual layers",
+        "Tab follows visual order",
+        "Host may bind documented desktop actions"
+      ],
+      "platformAdaptations": {
+        "vue": "desktop-first workbench",
+        "flutter": "adaptive desktop/mobile shell",
+        "compose": "native navigation and sheets",
+        "ios": "NavigationSplitView/navigation stack and native sheets"
+      }
+    },
+    "GroupWorkspace": {
+      "requiredRegions": [
+        "groupSummary",
+        "members",
+        "permissions"
+      ],
+      "optionalRegions": [
+        "status",
+        "empty",
+        "error",
+        "overlay",
+        "commandHost"
+      ],
+      "responsiveRules": [
+        "Preserve the primary task",
+        "Collapse supporting regions into a drawer, sheet, or route",
+        "Never render hidden duplicate semantics"
+      ],
+      "stateModel": [
+        "loading",
+        "ready",
+        "empty",
+        "error",
+        "offline",
+        "permissionDenied"
+      ],
+      "accessibility": [
+        "Named regions",
+        "Deterministic focus order",
+        "Focus restoration",
+        "Reduced motion"
+      ],
+      "keyboard": [
+        "Escape closes contextual layers",
+        "Tab follows visual order",
+        "Host may bind documented desktop actions"
+      ],
+      "platformAdaptations": {
+        "vue": "desktop-first workbench",
+        "flutter": "adaptive desktop/mobile shell",
+        "compose": "native navigation and sheets",
+        "ios": "NavigationSplitView/navigation stack and native sheets"
+      }
+    },
+    "CallWorkspace": {
+      "requiredRegions": [
+        "stage",
+        "participants",
+        "controls"
+      ],
+      "optionalRegions": [
+        "status",
+        "empty",
+        "error",
+        "overlay",
+        "commandHost"
+      ],
+      "responsiveRules": [
+        "Preserve the primary task",
+        "Collapse supporting regions into a drawer, sheet, or route",
+        "Never render hidden duplicate semantics"
+      ],
+      "stateModel": [
+        "loading",
+        "ready",
+        "empty",
+        "error",
+        "offline",
+        "permissionDenied"
+      ],
+      "accessibility": [
+        "Named regions",
+        "Deterministic focus order",
+        "Focus restoration",
+        "Reduced motion"
+      ],
+      "keyboard": [
+        "Escape closes contextual layers",
+        "Tab follows visual order",
+        "Host may bind documented desktop actions"
+      ],
+      "platformAdaptations": {
+        "vue": "desktop-first workbench",
+        "flutter": "adaptive desktop/mobile shell",
+        "compose": "native navigation and sheets",
+        "ios": "NavigationSplitView/navigation stack and native sheets"
+      }
+    },
+    "SettingsWorkspace": {
+      "requiredRegions": [
+        "navigation",
+        "settingsContent"
+      ],
+      "optionalRegions": [
+        "status",
+        "empty",
+        "error",
+        "overlay",
+        "commandHost"
+      ],
+      "responsiveRules": [
+        "Preserve the primary task",
+        "Collapse supporting regions into a drawer, sheet, or route",
+        "Never render hidden duplicate semantics"
+      ],
+      "stateModel": [
+        "loading",
+        "ready",
+        "empty",
+        "error",
+        "offline",
+        "permissionDenied"
+      ],
+      "accessibility": [
+        "Named regions",
+        "Deterministic focus order",
+        "Focus restoration",
+        "Reduced motion"
+      ],
+      "keyboard": [
+        "Escape closes contextual layers",
+        "Tab follows visual order",
+        "Host may bind documented desktop actions"
+      ],
+      "platformAdaptations": {
+        "vue": "desktop-first workbench",
+        "flutter": "adaptive desktop/mobile shell",
+        "compose": "native navigation and sheets",
+        "ios": "NavigationSplitView/navigation stack and native sheets"
+      }
+    },
+    "NotificationWorkspace": {
+      "requiredRegions": [
+        "filters",
+        "notificationList",
+        "detail"
+      ],
+      "optionalRegions": [
+        "status",
+        "empty",
+        "error",
+        "overlay",
+        "commandHost"
+      ],
+      "responsiveRules": [
+        "Preserve the primary task",
+        "Collapse supporting regions into a drawer, sheet, or route",
+        "Never render hidden duplicate semantics"
+      ],
+      "stateModel": [
+        "loading",
+        "ready",
+        "empty",
+        "error",
+        "offline",
+        "permissionDenied"
+      ],
+      "accessibility": [
+        "Named regions",
+        "Deterministic focus order",
+        "Focus restoration",
+        "Reduced motion"
+      ],
+      "keyboard": [
+        "Escape closes contextual layers",
+        "Tab follows visual order",
+        "Host may bind documented desktop actions"
+      ],
+      "platformAdaptations": {
+        "vue": "desktop-first workbench",
+        "flutter": "adaptive desktop/mobile shell",
+        "compose": "native navigation and sheets",
+        "ios": "NavigationSplitView/navigation stack and native sheets"
+      }
+    }
+  }
+}

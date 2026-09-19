@@ -1,0 +1,346 @@
+{
+  "schemaVersion": 1,
+  "ownership": "UI state only; the host supplies authoritative lifecycle data and owns commands, persistence, capability, and permission decisions.",
+  "platformModels": {
+    "vue": {
+      "path": "packages/vue-im-ui/src/shared/contracts/interaction-state.ts",
+      "symbols": [
+        "resolveComposerMode",
+        "resolveMessageMode",
+        "reduceSelection",
+        "resolveDesktopShortcut",
+        "resolveSwipeIntent"
+      ]
+    },
+    "flutter": {
+      "path": "packages/flutter-im-ui/lib/src/models/interaction_state.dart",
+      "symbols": [
+        "resolveComposerMode",
+        "resolveMessageMode",
+        "reduceSelection",
+        "resolveDesktopShortcut",
+        "resolveSwipeIntent"
+      ]
+    },
+    "compose": {
+      "path": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/InteractionState.kt",
+      "symbols": [
+        "resolveComposerMode",
+        "resolveMessageMode",
+        "reduceSelection",
+        "resolveDesktopShortcut",
+        "resolveSwipeIntent"
+      ]
+    },
+    "ios": {
+      "path": "packages/ios-im-ui/Sources/FlareIMUI/Models/InteractionState.swift",
+      "symbols": [
+        "resolveComposerMode",
+        "resolveMessageMode",
+        "reduceSelection",
+        "resolveDesktopShortcut",
+        "resolveSwipeIntent"
+      ]
+    }
+  },
+  "stateMachines": {
+    "Composer": {
+      "states": [
+        "idle",
+        "typing",
+        "mentioning",
+        "replying",
+        "editing",
+        "uploading",
+        "recording",
+        "sending",
+        "sendBlocked",
+        "offline",
+        "readOnly",
+        "slowMode",
+        "permissionDenied"
+      ],
+      "precedence": [
+        "readOnly",
+        "permissionDenied",
+        "offline",
+        "slowMode",
+        "sendBlocked",
+        "sending",
+        "recording",
+        "uploading",
+        "editing",
+        "mentioning",
+        "replying",
+        "typing",
+        "idle"
+      ],
+      "events": [
+        "textChanged",
+        "mentionOpened",
+        "replySelected",
+        "editStarted",
+        "uploadStarted",
+        "recordingStarted",
+        "sendRequested",
+        "networkChanged",
+        "permissionChanged",
+        "cancelled"
+      ]
+    },
+    "MessageBubble": {
+      "states": [
+        "normal",
+        "hover",
+        "selected",
+        "multiSelected",
+        "sending",
+        "sent",
+        "delivered",
+        "read",
+        "failed",
+        "retrying",
+        "edited",
+        "recalled",
+        "deleted",
+        "ephemeral",
+        "expired"
+      ],
+      "events": [
+        "hovered",
+        "selected",
+        "lifecycleChanged",
+        "retryRequested"
+      ]
+    },
+    "ConversationItem": {
+      "states": [
+        "idle",
+        "hover",
+        "focused",
+        "selected",
+        "multiSelected",
+        "swiping",
+        "actionOpen",
+        "disabled"
+      ],
+      "events": [
+        "focus",
+        "select",
+        "extendSelection",
+        "swipe",
+        "openActions",
+        "closeActions"
+      ]
+    },
+    "MessageList": {
+      "states": [
+        "loading",
+        "ready",
+        "empty",
+        "loadingOlder",
+        "olderError",
+        "awayFromLatest",
+        "multiSelect"
+      ],
+      "events": [
+        "loadOlder",
+        "prepend",
+        "scroll",
+        "jumpLatest",
+        "enterMultiSelect",
+        "exitMultiSelect"
+      ]
+    },
+    "Search": {
+      "states": [
+        "idle",
+        "typing",
+        "loading",
+        "success",
+        "empty",
+        "error",
+        "stale"
+      ],
+      "events": [
+        "queryChanged",
+        "submitted",
+        "completed",
+        "failed",
+        "cancelled"
+      ]
+    },
+    "Thread": {
+      "states": [
+        "collapsed",
+        "loading",
+        "ready",
+        "replying",
+        "sending",
+        "error",
+        "closed"
+      ],
+      "events": [
+        "open",
+        "reply",
+        "send",
+        "retry",
+        "close"
+      ]
+    },
+    "Reaction": {
+      "states": [
+        "idle",
+        "pickerOpen",
+        "optimistic",
+        "confirmed",
+        "failed"
+      ],
+      "events": [
+        "open",
+        "toggle",
+        "ack",
+        "reject",
+        "close"
+      ]
+    },
+    "Upload": {
+      "states": [
+        "queued",
+        "transferring",
+        "paused",
+        "completed",
+        "failed",
+        "cancelled"
+      ],
+      "events": [
+        "start",
+        "progress",
+        "pause",
+        "resume",
+        "complete",
+        "fail",
+        "cancel",
+        "retry"
+      ]
+    },
+    "CallDock": {
+      "states": [
+        "hidden",
+        "incoming",
+        "connecting",
+        "active",
+        "reconnecting",
+        "ended",
+        "failed"
+      ],
+      "events": [
+        "show",
+        "accept",
+        "connect",
+        "disconnect",
+        "reconnect",
+        "end",
+        "fail"
+      ]
+    },
+    "ContextMenu": {
+      "states": [
+        "closed",
+        "opening",
+        "open",
+        "busy",
+        "error"
+      ],
+      "events": [
+        "open",
+        "move",
+        "invoke",
+        "complete",
+        "fail",
+        "close"
+      ]
+    },
+    "MultiSelect": {
+      "states": [
+        "inactive",
+        "single",
+        "range",
+        "all",
+        "busy"
+      ],
+      "events": [
+        "replace",
+        "toggle",
+        "extend",
+        "selectAll",
+        "clear",
+        "commit"
+      ]
+    }
+  },
+  "desktopShortcuts": {
+    "actions": [
+      "search",
+      "commandPalette",
+      "newConversation",
+      "focusComposer",
+      "send",
+      "newline",
+      "closeOverlay",
+      "previousConversation",
+      "nextConversation",
+      "toggleDetails",
+      "reply",
+      "edit",
+      "delete",
+      "copy"
+    ],
+    "reserved": {
+      "commandPalette": "Primary+K",
+      "search": "Primary+F",
+      "newConversation": "Primary+N",
+      "send": "Primary+Enter",
+      "closeOverlay": "Escape",
+      "previousConversation": "Alt+ArrowUp",
+      "nextConversation": "Alt+ArrowDown",
+      "toggleDetails": "Primary+Shift+D"
+    },
+    "platformMapping": {
+      "vue": "KeyboardEvent.metaKey || ctrlKey",
+      "flutter": "SingleActivator.meta/control",
+      "compose": "KeyEvent isMetaPressed || isCtrlPressed",
+      "ios": "Commands and keyboardShortcut at host scene"
+    }
+  },
+  "mobileGestures": {
+    "swipeReply": {
+      "threshold": 56,
+      "horizontalDominance": 1.25,
+      "disabledWhen": [
+        "multiSelect",
+        "systemMessage",
+        "gestureClaimedByMedia"
+      ],
+      "rtlAware": true
+    },
+    "longPressMessage": {
+      "result": "open MessageActionSheet",
+      "disabledWhen": [
+        "multiSelect",
+        "busy"
+      ]
+    },
+    "swipeConversation": {
+      "leading": "primary host action",
+      "trailing": "secondary host actions",
+      "destructiveRequiresConfirmation": true
+    },
+    "platformMapping": {
+      "flutter": "GestureDetector/Dismissible adapter",
+      "compose": "pointerInput/swipeable adapter",
+      "ios": "DragGesture/swipeActions",
+      "vue": "Pointer gesture only on touch-capable compact layouts"
+    }
+  }
+}

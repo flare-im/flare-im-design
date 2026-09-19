@@ -1,0 +1,24 @@
+{
+  "note": "Shared truth for the mark a located row wears. After a list jumps to a message — a tapped quote, or a host calling `scrollToMessage` — that row is marked for a fixed window so the reader can see which row the jump landed on. `elapsedMs` counts from the moment the list starts moving towards the row, so the mark and the scroll overlap and the eye follows the target. `alpha` and `spread` describe one ring of the primary colour drawn behind the bubble: `alpha` is its opacity, `spread` how far it reaches beyond the bubble's edge in the platform's logical units. Between the stops the values interpolate linearly, which is why Vue's keyframes are `linear` — a CSS easing curve is not reproducible in three other animation systems. Reduce Motion does not remove the mark: it holds the middle stop still for the whole window, because a reader who asked for less motion still needs to be told where the jump landed. Only one row is marked at a time; a second locate clears the first at once. Compare `alpha` with a tolerance of 0.001. The mark is visual only — it moves no focus, changes no semantics, and is not announced.",
+  "durationMs": 1600,
+  "reducedMotionStop": { "alpha": 0.18, "spread": 10 },
+  "stops": [
+    { "atMs": 0, "alpha": 0.36, "spread": 0 },
+    { "atMs": 700, "alpha": 0.18, "spread": 10 },
+    { "atMs": 1600, "alpha": 0, "spread": 18 }
+  ],
+  "cases": [
+    { "id": "arrival", "elapsedMs": 0, "reducedMotion": false, "expected": { "marked": true, "alpha": 0.36, "spread": 0 } },
+    { "id": "before-the-clock-starts", "elapsedMs": -50, "reducedMotion": false, "expected": { "marked": true, "alpha": 0.36, "spread": 0 } },
+    { "id": "between-the-first-two-stops", "elapsedMs": 350, "reducedMotion": false, "expected": { "marked": true, "alpha": 0.27, "spread": 5 } },
+    { "id": "at-the-middle-stop", "elapsedMs": 700, "reducedMotion": false, "expected": { "marked": true, "alpha": 0.18, "spread": 10 } },
+    { "id": "between-the-last-two-stops", "elapsedMs": 1150, "reducedMotion": false, "expected": { "marked": true, "alpha": 0.09, "spread": 14 } },
+    { "id": "one-frame-before-the-end", "elapsedMs": 1584, "reducedMotion": false, "expected": { "marked": true, "alpha": 0.0032, "spread": 17.858 } },
+    { "id": "at-the-end", "elapsedMs": 1600, "reducedMotion": false, "expected": { "marked": false, "alpha": 0, "spread": 0 } },
+    { "id": "after-the-end", "elapsedMs": 2400, "reducedMotion": false, "expected": { "marked": false, "alpha": 0, "spread": 0 } },
+    { "id": "reduced-motion-arrival", "elapsedMs": 0, "reducedMotion": true, "expected": { "marked": true, "alpha": 0.18, "spread": 10 } },
+    { "id": "reduced-motion-does-not-move", "elapsedMs": 700, "reducedMotion": true, "expected": { "marked": true, "alpha": 0.18, "spread": 10 } },
+    { "id": "reduced-motion-holds-to-the-end", "elapsedMs": 1599, "reducedMotion": true, "expected": { "marked": true, "alpha": 0.18, "spread": 10 } },
+    { "id": "reduced-motion-ends-with-the-window", "elapsedMs": 1600, "reducedMotion": true, "expected": { "marked": false, "alpha": 0, "spread": 0 } }
+  ]
+}

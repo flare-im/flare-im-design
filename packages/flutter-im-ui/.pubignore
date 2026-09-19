@@ -1,0 +1,11 @@
+.dart_tool/
+.flutter-plugins*
+build/
+coverage/
+test/
+test-results/
+screenshots/
+*.log
+*.hprof
+*.tmp
+pubspec.lock

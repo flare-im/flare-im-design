@@ -1,0 +1,165 @@
+{
+  "note": "Shared truth for reading a markdown message as one plain line. A conversation row, a reply strip and a quote are text, not a renderer: `**周报**已发出` reads as 周报已发出, a link keeps its words and loses its target, and an image becomes the `preview.image` term with its alt text when it has one. Vue has applied this to every preview since before the native kits existed (`markdownToPlainText`), which is why the same string used to arrive on a phone with its asterisks (FR-120). The expectations differ by language only where a term is substituted — the image cases. Marks are stripped, never interpreted: the rule runs over every text preview, so `user_id_value` must survive it, which is what the word-boundary forms of `_` and `__` are for. Vue also merges adjacent identical marks before rendering (`normalizeMarkdownText`); that step is for the renderer and changes no plain-text result, so the native kits do not carry it. Each kit applies this before the emoji-pack pass, so a line may be both stripped and localised.",
+  "cases": [
+    {
+      "id": "plain-text-is-untouched",
+      "markdown": "明天见",
+      "expected": {
+        "zh-CN": "明天见",
+        "en-US": "明天见"
+      }
+    },
+    {
+      "id": "bold",
+      "markdown": "**周报**已发出",
+      "expected": {
+        "zh-CN": "周报已发出",
+        "en-US": "周报已发出"
+      }
+    },
+    {
+      "id": "italic",
+      "markdown": "*周报*已发出",
+      "expected": {
+        "zh-CN": "周报已发出",
+        "en-US": "周报已发出"
+      }
+    },
+    {
+      "id": "bold-italic",
+      "markdown": "***周报***已发出",
+      "expected": {
+        "zh-CN": "周报已发出",
+        "en-US": "周报已发出"
+      }
+    },
+    {
+      "id": "underscore-bold",
+      "markdown": "__周报__已发出",
+      "expected": {
+        "zh-CN": "周报已发出",
+        "en-US": "周报已发出"
+      }
+    },
+    {
+      "id": "underscore-italic",
+      "markdown": "_周报_已发出",
+      "expected": {
+        "zh-CN": "周报已发出",
+        "en-US": "周报已发出"
+      }
+    },
+    {
+      "id": "strikethrough",
+      "markdown": "~~周报~~已作废",
+      "expected": {
+        "zh-CN": "周报已作废",
+        "en-US": "周报已作废"
+      }
+    },
+    {
+      "id": "inline-code",
+      "markdown": "运行 `npm test` 看结果",
+      "expected": {
+        "zh-CN": "运行 npm test 看结果",
+        "en-US": "运行 npm test 看结果"
+      }
+    },
+    {
+      "id": "underline-tag",
+      "markdown": "<u>重点</u>在这里",
+      "expected": {
+        "zh-CN": "重点在这里",
+        "en-US": "重点在这里"
+      }
+    },
+    {
+      "id": "heading",
+      "markdown": "## 本周小结",
+      "expected": {
+        "zh-CN": "本周小结",
+        "en-US": "本周小结"
+      }
+    },
+    {
+      "id": "blockquote",
+      "markdown": "> 引用的一行",
+      "expected": {
+        "zh-CN": "引用的一行",
+        "en-US": "引用的一行"
+      }
+    },
+    {
+      "id": "bullet-item",
+      "markdown": "- 第一项",
+      "expected": {
+        "zh-CN": "第一项",
+        "en-US": "第一项"
+      }
+    },
+    {
+      "id": "ordered-item",
+      "markdown": "1. 第一项",
+      "expected": {
+        "zh-CN": "第一项",
+        "en-US": "第一项"
+      }
+    },
+    {
+      "id": "link-keeps-its-words",
+      "markdown": "见 [发布说明](https://example.com/notes)",
+      "expected": {
+        "zh-CN": "见 发布说明",
+        "en-US": "见 发布说明"
+      }
+    },
+    {
+      "id": "image-with-alt",
+      "markdown": "![发布会封面](https://example.com/a.png)",
+      "expected": {
+        "zh-CN": "[图片] 发布会封面",
+        "en-US": "[Image] 发布会封面"
+      }
+    },
+    {
+      "id": "image-without-alt",
+      "markdown": "![](https://example.com/a.png)",
+      "expected": {
+        "zh-CN": "[图片]",
+        "en-US": "[Image]"
+      }
+    },
+    {
+      "id": "fenced-code-keeps-the-code",
+      "markdown": "```sh\nnpm test\n```",
+      "expected": {
+        "zh-CN": "npm test",
+        "en-US": "npm test"
+      }
+    },
+    {
+      "id": "snake_case-is-not-italic",
+      "markdown": "字段 user_id_value 已更新",
+      "expected": {
+        "zh-CN": "字段 user_id_value 已更新",
+        "en-US": "字段 user_id_value 已更新"
+      }
+    },
+    {
+      "id": "blank-lines-collapse",
+      "markdown": "第一段\n\n\n\n第二段",
+      "expected": {
+        "zh-CN": "第一段\n\n第二段",
+        "en-US": "第一段\n\n第二段"
+      }
+    },
+    {
+      "id": "trailing-spaces-go",
+      "markdown": "结尾有空格   \n下一行",
+      "expected": {
+        "zh-CN": "结尾有空格\n下一行",
+        "en-US": "结尾有空格\n下一行"
+      }
+    }
+  ]
+}

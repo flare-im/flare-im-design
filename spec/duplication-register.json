@@ -1,0 +1,555 @@
+{
+  "note": "Register of component duplication findings from the 2026-09-12 audit (docs/release/component-duplication.md). `decision` is one of KEEP / REFACTOR / MERGE / SPLIT / INTERNALIZE / DEPRECATE / REMOVE; `state` is DONE / PLANNED / DEFERRED. `removed` lists public symbols that must no longer exist per platform once the entry is DONE; `requires` lists file/substring evidence the gate verifies. tooling/check-duplicate-components.mjs enforces this file; --strict (release-check) fails while any entry is not DONE. `pending` lists native symbols / site demos whose fate the entry decides; the dead-components gate warns about them until the entry is DONE.",
+  "entries": [
+    {
+      "id": "D1",
+      "title": "Timeline views vs standalone message bodies vs business views",
+      "components": [
+        "FileMessage",
+        "ImageMessage",
+        "VideoMessage",
+        "TaskMessage",
+        "MessageContentView"
+      ],
+      "decision": "MERGE",
+      "into": "one body per content type: Flare*Message is the implementation, MessagesView/views/*View.vue are thin adapters",
+      "state": "DONE",
+      "resolvedBy": "P0-1a",
+      "requires": [
+        {
+          "file": "packages/vue-im-ui/src/components/messages/MessagesView/views/FileView.vue",
+          "contains": "FlareFileMessage"
+        },
+        {
+          "file": "packages/vue-im-ui/src/components/messages/MessagesView/views/ImageView.vue",
+          "contains": "FlareImageMessage"
+        },
+        {
+          "file": "packages/vue-im-ui/src/components/messages/MessagesView/views/VideoView.vue",
+          "contains": "FlareVideoMessage"
+        }
+      ]
+    },
+    {
+      "id": "D2",
+      "title": "VoiceMessage vs VoicePlayer",
+      "components": [
+        "VoiceMessage",
+        "VoicePlayer"
+      ],
+      "decision": "KEEP",
+      "into": "VoiceMessage stays the in-timeline body; VoicePlayer stays the full transport used by media viewers (flare-core-flutter-app video_player_modal.dart audioOnly path)",
+      "state": "DONE",
+      "resolvedBy": "P0-4",
+      "rationale": "Different jobs, not two skins: the body renders a message with reply/reaction chrome; the player is a scrubbable transport with speed control. Shared waveform tokens are covered by the style audit."
+    },
+    {
+      "id": "D3",
+      "title": "TimeStamp vs DatePill",
+      "components": [
+        "DatePill"
+      ],
+      "decision": "REMOVE",
+      "into": "DatePill",
+      "state": "DONE",
+      "resolvedBy": "P0-4",
+      "removed": {
+        "vue": [
+          "FlareTimeStamp"
+        ],
+        "flutter": [
+          "FlareTimeStamp"
+        ],
+        "ios": [
+          "TimeStampView"
+        ],
+        "compose": [
+          "TimeStamp"
+        ]
+      },
+      "requires": [
+        {
+          "file": "packages/vue-im-ui/src/components/messages/MessageList.vue",
+          "contains": "FlareDatePill"
+        }
+      ]
+    },
+    {
+      "id": "D4",
+      "title": "MessageList inline scroll-to-bottom button vs ScrollToLatest",
+      "components": [
+        "MessageList",
+        "ScrollToLatest"
+      ],
+      "decision": "REFACTOR",
+      "into": "MessageList composes ScrollToLatest",
+      "state": "DONE",
+      "resolvedBy": "P0-4",
+      "requires": [
+        {
+          "file": "packages/vue-im-ui/src/components/messages/MessageList.vue",
+          "contains": "FlareScrollToLatest"
+        },
+        {
+          "file": "packages/vue-im-ui/src/design-system/styles/message-workspace.css",
+          "lacks": ".message-list-scroll-bottom {"
+        }
+      ]
+    },
+    {
+      "id": "D5",
+      "title": "PrimaryButton vs Button(variant=primary, size=lg, block)",
+      "components": [
+        "Button"
+      ],
+      "decision": "MERGE",
+      "into": "Button",
+      "state": "DONE",
+      "resolvedBy": "P0-4",
+      "removed": {
+        "vue": [
+          "FlarePrimaryButton"
+        ],
+        "flutter": [
+          "FlarePrimaryButton"
+        ],
+        "ios": [
+          "PrimaryButtonView"
+        ],
+        "compose": [
+          "PrimaryButton"
+        ]
+      }
+    },
+    {
+      "id": "D6",
+      "title": "FlareChatHeader (+Identity) vs ConversationHeader",
+      "components": [
+        "ConversationHeader"
+      ],
+      "decision": "MERGE",
+      "into": "ConversationHeader",
+      "state": "DONE",
+      "removed": {
+        "vue": [
+          "FlareChatHeader",
+          "FlareChatHeaderIdentity"
+        ],
+        "flutter": [
+          "FlareChatHeader"
+        ],
+        "ios": [
+          "ChatHeaderView"
+        ],
+        "compose": [
+          "ChatHeader"
+        ]
+      },
+      "resolvedBy": "P0-4"
+    },
+    {
+      "id": "D7",
+      "title": "FlareStartConversationSheet vs StartConversationDialog",
+      "components": [
+        "StartConversationDialog"
+      ],
+      "decision": "MERGE",
+      "into": "StartConversationDialog (renders as FlareBottomSheet where the platform capability bottomSheet is true, otherwise a centered modal)",
+      "state": "DONE",
+      "removed": {
+        "vue": [
+          "FlareStartConversationSheet"
+        ]
+      },
+      "resolvedBy": "P0-4",
+      "requires": [
+        {
+          "file": "packages/vue-im-ui/src/components/shell/FlareStartConversationDialog.vue",
+          "contains": "capabilities.value.bottomSheet"
+        }
+      ]
+    },
+    {
+      "id": "D8",
+      "title": "composer/MessageActionSheet.vue (attachment grid) vs ComposerActionPanel; MessageContextMenuSheet unregistered",
+      "components": [
+        "ComposerActionPanel",
+        "MessageActionSheet"
+      ],
+      "decision": "MERGE",
+      "into": "ComposerActionPanel owns the grid; MessageActionSheet is the long-press panel on four platforms",
+      "state": "DONE",
+      "resolvedBy": "P0-1b",
+      "removed": {
+        "vue": [
+          "FlareMessageContextMenuSheet"
+        ]
+      }
+    },
+    {
+      "id": "D9",
+      "title": "ConversationListContainer vs FlareConversationListPanel",
+      "components": [
+        "ConversationListContainer"
+      ],
+      "decision": "MERGE",
+      "into": "ConversationListContainer (the panel composition moved to the reference workbench as product code)",
+      "state": "DONE",
+      "removed": {
+        "vue": [
+          "FlareConversationListPanel"
+        ],
+        "ios": [
+          "ConversationListContainer"
+        ]
+      },
+      "resolvedBy": "P0-4"
+    },
+    {
+      "id": "D10",
+      "title": "Seven workspace aliases vs WorkspaceFrame",
+      "components": [
+        "WorkspaceFrame"
+      ],
+      "decision": "MERGE",
+      "into": "WorkspaceFrame",
+      "state": "DONE",
+      "resolvedBy": "P0-4",
+      "removed": {
+        "vue": [
+          "FlareContactsWorkspace",
+          "FlareGroupWorkspace",
+          "FlareSearchWorkspace",
+          "FlareMediaWorkspace",
+          "FlareCallWorkspace",
+          "FlareSettingsWorkspace",
+          "FlareSavedMessagesWorkspace"
+        ],
+        "flutter": [
+          "FlareContactsWorkspace",
+          "FlareGroupWorkspace",
+          "FlareSearchWorkspace",
+          "FlareMediaWorkspace",
+          "FlareCallWorkspace",
+          "FlareSettingsWorkspace",
+          "FlareSavedMessagesWorkspace"
+        ],
+        "ios": [
+          "ContactsWorkspaceView",
+          "GroupWorkspaceView",
+          "SearchWorkspaceView",
+          "MediaWorkspaceView",
+          "CallWorkspaceView",
+          "SettingsWorkspaceView",
+          "SavedMessagesWorkspaceView"
+        ],
+        "compose": [
+          "ContactsWorkspace",
+          "GroupWorkspace",
+          "SearchWorkspace",
+          "MediaWorkspace",
+          "CallWorkspace",
+          "SettingsWorkspace",
+          "SavedMessagesWorkspace"
+        ]
+      }
+    },
+    {
+      "id": "D11",
+      "title": "MasterDetailLayout / ThreePaneLayout vs AdaptiveWorkbench",
+      "components": [
+        "AppLayout"
+      ],
+      "decision": "INTERNALIZE",
+      "into": "AdaptiveWorkbench (the pane grids are private helpers of the workbench on the platforms that compose them); the workbench itself was retired into AppLayout in D18",
+      "state": "DONE",
+      "resolvedBy": "P0-4",
+      "removed": {
+        "vue": [
+          "FlareMasterDetailLayout",
+          "FlareThreePaneLayout"
+        ],
+        "flutter": [
+          "FlareMasterDetailLayout",
+          "FlareThreePaneLayout"
+        ],
+        "ios": [
+          "MasterDetailLayoutView",
+          "ThreePaneLayoutView"
+        ],
+        "compose": [
+          "MasterDetailLayout",
+          "ThreePaneLayout"
+        ]
+      }
+    },
+    {
+      "id": "D12",
+      "title": "AppShell vs MobileAppShell + DesktopAppShell",
+      "components": [
+        "MobileAppShell",
+        "DesktopAppShell"
+      ],
+      "decision": "REMOVE",
+      "into": "MobileAppShell / DesktopAppShell",
+      "state": "DONE",
+      "resolvedBy": "P0-4",
+      "removed": {
+        "vue": [
+          "FlareAppShell",
+          "FlareNavItem"
+        ],
+        "flutter": [
+          "FlareAppShell",
+          "FlareNavItem"
+        ],
+        "ios": [
+          "AppShellView",
+          "FlareNavItem"
+        ],
+        "compose": [
+          "AppShell",
+          "NavItem"
+        ]
+      }
+    },
+    {
+      "id": "D13",
+      "title": "MessagePreviewModal / MediaComposerPreviewModal / ImagePreviewModal / VideoPlayerModal",
+      "components": [
+        "ImagePreviewModal",
+        "VideoPlayerModal"
+      ],
+      "decision": "SPLIT",
+      "into": "ImagePreviewModal / VideoPlayerModal stay the media viewers; MessagePreviewModal moved to the reference workbench (product); the composer pre-send preview is registered as ComposerMediaPreview",
+      "state": "DONE",
+      "removed": {
+        "vue": [
+          "FlareMessagePreviewModal",
+          "FlareMediaComposerPreviewModal"
+        ]
+      },
+      "resolvedBy": "P0-4"
+    },
+    {
+      "id": "D14",
+      "title": "EmojiPicker + StickerPanel vs FlareComposerEmojiStickerPanel",
+      "components": [
+        "EmojiPicker",
+        "StickerPanel"
+      ],
+      "decision": "REFACTOR",
+      "into": "the combined picker is registered as EmojiStickerPicker on four platforms (Vue symbol FlareEmojiStickerPicker); EmojiPicker / StickerPanel stay as the data-driven pickers (flare-social android uses EmojiPicker for reactions)",
+      "state": "DONE",
+      "removed": {
+        "vue": [
+          "FlareComposerEmojiStickerPanel"
+        ]
+      },
+      "resolvedBy": "P0-4"
+    },
+    {
+      "id": "D15",
+      "title": "ConversationWorkspace (ResponsiveLayout family) vs AppLayout family breakpoints and pane state",
+      "components": [
+        "ConversationWorkspace",
+        "WorkspaceFrame",
+        "AppLayout"
+      ],
+      "decision": "REFACTOR",
+      "into": "shared WorkspacePane primitive on four platforms; one breakpoint source in shared/contracts/layout.ts",
+      "state": "DONE",
+      "resolvedBy": "P0-8",
+      "requires": [
+        {
+          "file": "packages/vue-im-ui/src/components/layout/FlareWorkspaceFrame.vue",
+          "contains": "WorkspacePane"
+        },
+        {
+          "file": "packages/vue-im-ui/src/components/layout/FlareConversationWorkspace.vue",
+          "contains": "WorkspacePane"
+        },
+        {
+          "file": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/ApplicationComposition.kt",
+          "contains": "WorkspacePane("
+        },
+        {
+          "file": "packages/ios-im-ui/Sources/FlareImUI/Application/ApplicationComposition.swift",
+          "contains": "WorkspacePaneView("
+        },
+        {
+          "file": "packages/flutter-im-ui/lib/src/application/application_composition.dart",
+          "contains": "FlareWorkspacePaneView("
+        }
+      ]
+    },
+    {
+      "id": "D16",
+      "title": "Composer inline send / reply / voice vs ComposerSendButton / ComposerReplyStrip / VoiceHoldButton",
+      "components": [
+        "Composer",
+        "ComposerSendButton",
+        "ComposerReplyStrip",
+        "VoiceHoldButton"
+      ],
+      "decision": "SPLIT",
+      "into": "FlareComposer composes ComposerReplyStrip (reply + edit contexts), ComposerSendButton, MentionPicker and ComposerActionPanel; the upload strip, format strip and voice panel became private parts; VoiceHoldButton / VoiceRecordingBar stay the hold-to-talk parts used by the native composers (the Vue desktop panel needs pause / resume / preview)",
+      "state": "DONE",
+      "resolvedBy": "P0-5",
+      "requires": [
+        {
+          "file": "packages/vue-im-ui/src/components/composer/EnhancedComposer.vue",
+          "contains": "<FlareComposerReplyStrip"
+        },
+        {
+          "file": "packages/vue-im-ui/src/components/composer/EnhancedComposer.vue",
+          "contains": "<FlareComposerSendButton"
+        },
+        {
+          "file": "packages/vue-im-ui/src/components/composer/EnhancedComposer.vue",
+          "contains": "<FlareMentionPicker"
+        },
+        {
+          "file": "packages/vue-im-ui/src/components/composer/EnhancedComposer.vue",
+          "lacks": "MediaRecorder"
+        },
+        {
+          "file": "packages/vue-im-ui/src/components/composer/ComposerMoreSurface.vue",
+          "contains": "<FlareComposerActionPanel"
+        }
+      ]
+    },
+    {
+      "id": "D17",
+      "title": "SceneList rows vs ContactItem / SettingsRow",
+      "components": [
+        "MemberPanel",
+        "DeviceSessions",
+        "MediaCenter",
+        "StorageUsage",
+        "NotificationPreferences",
+        "ContactItem",
+        "SettingsRow"
+      ],
+      "decision": "REFACTOR",
+      "into": "SceneList renders kit parts (FlareButton, the settings group card) and resolves its states through WorkspacePane",
+      "state": "DONE",
+      "resolvedBy": "P0-8",
+      "requires": [
+        {
+          "file": "packages/vue-im-ui/src/components/scenes/SceneList.vue",
+          "contains": "WorkspacePane"
+        },
+        {
+          "file": "packages/vue-im-ui/src/components/scenes/SceneList.vue",
+          "contains": "FlareButton"
+        },
+        {
+          "file": "packages/vue-im-ui/src/components/scenes/SceneList.vue",
+          "lacks": "<progress v-if"
+        }
+      ]
+    },
+    {
+      "id": "D18",
+      "title": "AdaptiveWorkbench vs AppLayout",
+      "components": [
+        "AppLayout"
+      ],
+      "decision": "REMOVE",
+      "into": "AppLayout (the one pane composition: it measures its box, follows the shared pane rule and reports its presentation; the workbench did none of these and had no consumer)",
+      "state": "DONE",
+      "resolvedBy": "Round 10 B4 (FR-140)",
+      "removed": {
+        "vue": [
+          "FlareAdaptiveWorkbench"
+        ],
+        "flutter": [
+          "FlareAdaptiveWorkbench"
+        ],
+        "ios": [
+          "AdaptiveWorkbenchView"
+        ],
+        "compose": [
+          "AdaptiveWorkbench"
+        ]
+      },
+      "requires": [
+        {
+          "file": "examples/flutter/lib/main.dart",
+          "contains": "FlareAppLayout("
+        },
+        {
+          "file": "packages/vue-im-ui/src/components/index.ts",
+          "lacks": "AdaptiveWorkbench"
+        }
+      ]
+    },
+    {
+      "id": "N1",
+      "title": "DesktopWorkbench vs DesktopAppShell (naming-pattern hit)",
+      "components": [
+        "DesktopAppShell"
+      ],
+      "decision": "MERGE",
+      "into": "DesktopAppShell (paneMode / detailMode / widths and the seven keyboard commands moved over; resizablePanes, filesDropped and contextMenu retired — Flutter-only, zero consumers)",
+      "state": "DONE",
+      "resolvedBy": "P0-4",
+      "removed": {
+        "vue": [
+          "FlareDesktopWorkbench"
+        ],
+        "flutter": [
+          "FlareDesktopWorkbench"
+        ]
+      },
+      "requires": [
+        {
+          "file": "packages/vue-im-ui/src/components/layout/FlareDesktopAppShell.vue",
+          "contains": "openSettings"
+        },
+        {
+          "file": "packages/flutter-im-ui/lib/src/application/application_composition.dart",
+          "contains": "FlareDesktopShellCommand"
+        }
+      ]
+    },
+    {
+      "id": "N2",
+      "title": "useViewport (600/900) vs useFlareAdaptive (599/1023) breakpoints",
+      "components": [],
+      "decision": "MERGE",
+      "into": "one threshold pair in shared/contracts/layout.ts; useViewport derives from it",
+      "state": "DONE",
+      "resolvedBy": "P0-8",
+      "requires": [
+        {
+          "file": "packages/vue-im-ui/src/composables/useViewport.ts",
+          "contains": "FLARE_BREAKPOINT_DESKTOP_MIN"
+        },
+        {
+          "file": "packages/vue-im-ui/src/composables/useViewport.ts",
+          "lacks": "= 900"
+        },
+        {
+          "file": "packages/vue-im-ui/src/shared/contracts/layout.ts",
+          "contains": "FLARE_BREAKPOINT_TABLET_MIN = 600"
+        }
+      ]
+    },
+    {
+      "id": "K1",
+      "title": "QRCard / RedPacketCard / FriendListContainer flagged as low-usage",
+      "components": [
+        "QRCard",
+        "RedPacketCard",
+        "FriendListContainer"
+      ],
+      "decision": "KEEP",
+      "into": "unchanged",
+      "state": "DONE",
+      "resolvedBy": "P0-4",
+      "rationale": "Real consumers outside the kit: flare-social web/tauri/flutter/ios/android apps use QRCard and FriendListContainer; RedPacketCard is a business message body reachable through MessageContentView."
+    }
+  ]
+}

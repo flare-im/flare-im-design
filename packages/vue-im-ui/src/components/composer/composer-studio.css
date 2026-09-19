@@ -1,0 +1,656 @@
+/*
+ * Surface contract
+ * ----------------
+ * `.composer-field` is the only owner of the editor background, outer border,
+ * radius, and focus border. Context, input, format, and action regions remain
+ * transparent and use inset dividers so they never repaint a rounded corner.
+ */
+.composer.composer-studio {
+  --studio-accent: var(--flare-component-brand-primary);
+  --studio-surface: var(--flare-color-bg-primary);
+  --studio-surface-subtle: var(--flare-color-bg-secondary);
+  --studio-surface-elevated: var(--flare-color-bg-elevated, var(--flare-color-bg-primary));
+  --studio-border: var(--flare-color-border-primary);
+  --studio-border-strong: var(--flare-color-border-hover, var(--flare-color-border-primary));
+  --studio-divider: var(--flare-color-border-secondary, var(--flare-color-border-primary));
+  /* Solid: a focus outline has to clear 3:1 on its own. --flare-color-focus-ring
+     is a 35%-alpha glow and only ever reaches ~1.5-2.9:1 (see docs/accessibility-contract.md). */
+  --studio-focus: var(--flare-color-border-selected);
+  --studio-radius: var(--flare-size-radius-lg, 10px);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  width: 100%;
+  padding: var(--flare-size-spacing-2xs) var(--flare-size-spacing-2xs) calc(var(--flare-size-spacing-sm) + env(safe-area-inset-bottom));
+  gap: var(--flare-size-spacing-2xs);
+  box-sizing: border-box;
+  overflow: visible;
+  background: var(--flare-component-composer-bar-bg);
+  /* The composer's own box, named so a rule can say which box it asks about. This is the only
+     place it is declared; `@container flare-composer` in messages.css asks this one. A composer is
+     as wide as the column it was given, which is not the window — a chat in a 380px pane of a wide
+     desktop gets a phone-shaped composer, and asking `@media` would dress it as a desktop one. */
+  container: flare-composer / inline-size;
+}
+
+.composer-studio,
+.composer-studio *,
+.composer-studio *::before,
+.composer-studio *::after {
+  box-sizing: border-box;
+}
+
+.composer-studio.composer .composer-field {
+  position: relative;
+  isolation: isolate;
+  display: block;
+  min-width: 0;
+  width: 100%;
+  min-height: var(--flare-size-layout-control-height-lg);
+  height: auto;
+  max-height: none;
+  padding: 0;
+  border: 1px solid var(--studio-border);
+  border-radius: var(--studio-radius);
+  background: var(--studio-surface);
+  box-shadow: none;
+  overflow: visible;
+  transition:
+    border-color var(--flare-component-motion-fast),
+    box-shadow var(--flare-component-motion-fast),
+    background-color var(--flare-component-motion-fast);
+}
+
+.composer-studio.composer .composer-field--focused,
+.composer-studio.composer .composer-field:focus-within {
+  border-color: var(--studio-accent);
+  box-shadow: none;
+}
+
+.composer-studio.composer .composer-field--drag-over {
+  border-color: var(--studio-accent);
+}
+
+.composer-drop-hint {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  padding: var(--flare-size-spacing-md);
+  border-radius: calc(var(--studio-radius) - 1px);
+  color: var(--flare-color-text-primary);
+  background: var(--flare-color-bg-selected);
+  pointer-events: none;
+}
+
+.composer-studio.composer .composer-editor-area {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  min-width: 0;
+  width: 100%;
+  background: transparent;
+}
+
+.composer-studio.composer .composer-input-layer {
+  position: relative;
+  display: flex;
+  grid-column: 1;
+  min-width: 0;
+  width: 100%;
+  background: transparent;
+}
+
+.composer-studio.composer .composer-input-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  width: 100%;
+  min-height: 44px;
+  height: auto;
+  max-height: none;
+  padding: 10px 48px 10px 14px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.composer-studio.composer .composer-input-row::before {
+  content: none;
+}
+
+.composer-studio.composer .composer-editor-area > .composer-format-strip,
+.composer-studio.composer .composer-editor-area > .composer-input-layer,
+.composer-studio.composer .composer-editor-area > .composer-toolbar {
+  grid-row: auto;
+}
+
+.composer-studio.composer .composer-field .composer-editor-area > .composer-toolbar {
+  position: relative;
+  inset: auto;
+  margin: 0;
+  transform: none;
+}
+
+.composer-studio.composer .composer-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  min-height: var(--flare-size-icon-size-lg);
+  padding: 0;
+  background: transparent;
+}
+
+.composer-studio :deep(.n-input),
+.composer-studio :deep(.n-input-wrapper),
+.composer-studio :deep(.n-input__textarea) {
+  min-width: 0;
+  min-height: var(--flare-size-icon-size-lg) !important;
+  height: auto !important;
+  padding: 0 !important;
+  border: 0;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.composer-studio :deep(.n-input__border),
+.composer-studio :deep(.n-input__state-border),
+.composer-studio :deep(.n-scrollbar-rail) {
+  display: none;
+}
+
+.composer-studio :deep(.n-input__textarea-el),
+.composer-studio :deep(.n-input__placeholder),
+.composer-studio :deep(.n-input__textarea-mirror),
+.composer-studio :deep(.composer-rich-markdown-input__editable) {
+  min-height: var(--flare-size-icon-size-lg) !important;
+  max-height: 144px;
+  margin: 0;
+  padding: 0 !important;
+  overflow: auto;
+  color: var(--flare-color-text-primary);
+  background: transparent;
+  caret-color: var(--studio-accent);
+  font-family: var(--flare-component-font-family);
+  font-size: var(--flare-size-font-size-xl);
+  line-height: 24px !important;
+  overflow-wrap: anywhere;
+  scrollbar-width: thin;
+}
+
+.composer-studio :deep(.n-input__placeholder),
+.composer-studio :deep(.composer-rich-markdown-input__editable:empty::before) {
+  color: var(--flare-color-text-tertiary);
+}
+
+/* Neutralize the legacy desktop rail geometry with component-level specificity.
+   These nodes remain transparent participants inside the owning surface. */
+.composer-studio.composer .composer-field .composer-input :deep(.n-input-wrapper),
+.composer-studio.composer .composer-field .composer-input :deep(.n-input__textarea) {
+  min-height: var(--flare-size-icon-size-lg) !important;
+  height: auto !important;
+}
+
+.composer-studio.composer .composer-field .composer-input :deep(.n-input__textarea-el),
+.composer-studio.composer .composer-field .composer-input :deep(.n-input__placeholder),
+.composer-studio.composer .composer-field .composer-input :deep(.n-input__textarea-mirror) {
+  min-height: var(--flare-size-icon-size-lg) !important;
+  padding: 0 !important;
+  line-height: 24px !important;
+}
+
+.composer-studio.composer .composer-field-expand {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: calc(var(--studio-radius) - 2px);
+  color: var(--flare-color-text-secondary);
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.composer-studio.composer .composer-field-expand:hover,
+.composer-studio.composer .composer-field-expand.is-selected {
+  color: var(--studio-accent);
+  background: var(--flare-color-bg-hover);
+}
+
+.composer-studio.composer .composer-field-expand:disabled {
+  opacity: var(--flare-opacity-disabled, 0.5);
+  cursor: not-allowed;
+}
+
+.composer-studio.composer .composer-toolbar {
+  position: relative;
+  display: flex;
+  grid-column: 1;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  width: 100%;
+  min-height: 44px;
+  gap: 0;
+  padding: 1px var(--flare-size-spacing-sm) 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.composer-studio.composer .composer-toolbar::before,
+.composer-studio.composer .composer-format-strip::after,
+.composer-studio.composer .composer-status-hint::after,
+.composer-studio.composer .composer-reply-strip::after,
+.composer-studio.composer .composer-upload-strip::after {
+  position: absolute;
+  right: var(--flare-size-spacing-md);
+  left: var(--flare-size-spacing-md);
+  height: 1px;
+  background: var(--studio-divider);
+  content: "";
+  pointer-events: none;
+}
+
+.composer-studio.composer .composer-toolbar::before {
+  top: 0;
+}
+
+.composer-studio.composer .composer-status-hint {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--flare-size-spacing-sm);
+  min-height: 36px;
+  margin: 0;
+  padding: 7px var(--flare-size-spacing-md) var(--flare-size-spacing-sm);
+  border: 0;
+  border-radius: 0;
+  color: var(--flare-color-warning-text);
+  background: transparent;
+  font-size: var(--flare-size-font-size-sm);
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.composer-studio.composer .composer-status-hint::after {
+  bottom: 0;
+}
+
+.composer-studio.composer .composer-toolbar > .n-button,
+.composer-studio.composer .composer-toolbar .composer-mention-anchor > .n-button,
+.composer-studio.composer .composer-toolbar > .composer-toolbar__send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 44px;
+  width: 44px !important;
+  min-width: 44px !important;
+  max-width: 44px;
+  height: 44px !important;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--flare-size-radius-sm, 6px) !important;
+  color: var(--flare-color-text-secondary);
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none;
+}
+
+.composer-studio.composer .composer-toolbar > .composer-expand {
+  display: none;
+}
+
+.composer-studio.composer .composer-toolbar .is-selected,
+.composer-studio.composer .composer-toolbar .composer-mention-anchor > .n-button.is-selected,
+.composer-studio.composer .composer-toolbar > .composer-toolbar__send {
+  color: var(--studio-accent);
+}
+
+.composer-studio.composer .composer-toolbar button:not(:disabled):hover {
+  color: var(--studio-accent);
+  background: var(--flare-color-bg-hover) !important;
+}
+
+.composer-studio.composer .composer-toolbar button:active:not(:disabled) {
+  color: var(--flare-color-primary-active);
+  background: var(--flare-color-bg-selected) !important;
+}
+
+.composer-studio.composer .composer-toolbar button:disabled {
+  opacity: var(--flare-opacity-disabled, 0.5);
+  cursor: not-allowed;
+}
+
+.composer-studio .composer-toolbar :deep(svg:not(.composer-resize-icon)) {
+  width: var(--flare-size-icon-size-md);
+  height: var(--flare-size-icon-size-md);
+  stroke-width: 1.7;
+}
+
+.composer-studio .composer-toolbar__send :deep(svg) {
+  transform: translate(1px, -1px);
+}
+
+.composer-studio .composer-toolbar__voice :deep(svg),
+.composer-studio .composer-toolbar__image :deep(svg) {
+  transform: translateY(0.5px);
+}
+
+.composer-studio.composer .composer-reply-strip {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: var(--flare-size-spacing-xs) var(--flare-size-spacing-md) 5px;
+}
+
+.composer-studio.composer .composer-reply-strip::after,
+.composer-studio.composer .composer-upload-strip::after {
+  bottom: 0;
+}
+
+.composer-studio.composer .composer-upload-strip {
+  position: relative;
+}
+
+.composer-studio.composer .composer-format-strip {
+  position: relative;
+  grid-column: 1 / -1;
+}
+
+.composer-studio.composer .composer-format-strip::after {
+  bottom: 0;
+}
+
+.composer-studio.composer .composer-mention-anchor {
+  position: relative;
+  display: inline-flex;
+}
+
+.composer-studio.composer .composer-surface {
+  position: relative;
+  min-width: 0;
+  max-height: min(300px, 40dvh);
+  padding: var(--flare-size-spacing-md);
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--studio-border);
+  border-radius: var(--studio-radius);
+  background: var(--studio-surface-elevated);
+  box-shadow: var(--flare-component-shadow-floating);
+  scrollbar-width: thin;
+}
+
+.composer-studio.composer .composer-surface-close {
+  position: absolute;
+  top: var(--flare-size-spacing-sm);
+  right: var(--flare-size-spacing-sm);
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+}
+
+.composer-studio.composer .composer-surface > .composer-surface-close {
+  border: 0;
+  color: var(--flare-color-text-secondary);
+  background: transparent;
+  cursor: pointer;
+}
+
+.composer-studio.composer .composer-mention-menu {
+  position: static;
+  width: 100%;
+  max-height: none;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.composer-studio.composer .composer-draft-peek {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: var(--flare-size-spacing-sm);
+  width: 100%;
+  height: var(--flare-size-layout-control-height-sm);
+  padding: 0 10px;
+  border: 0;
+  color: var(--flare-color-text-secondary);
+  background: transparent;
+}
+
+.composer-draft-peek span {
+  flex: 1;
+  overflow: hidden;
+  font-size: var(--flare-size-font-size-sm);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.composer-studio.composer--disabled .composer-field {
+  color: var(--flare-color-text-disabled);
+  background: color-mix(in srgb, var(--studio-surface-subtle) 72%, var(--studio-surface));
+}
+
+.composer-studio.composer--disabled .composer-field--focused,
+.composer-studio.composer--disabled .composer-field:focus-within {
+  border-color: var(--studio-border);
+  box-shadow: none;
+}
+
+.composer-studio.composer--send-blocked .composer-toolbar__send {
+  color: var(--flare-color-text-disabled);
+}
+
+.composer-studio button:focus-visible,
+.composer-studio select:focus-visible,
+.composer-studio input:focus-visible {
+  outline: 2px solid var(--studio-focus);
+  outline-offset: -2px;
+}
+
+.composer-studio :deep(.n-button__state-border),
+.composer-studio :deep(.n-button__border) {
+  display: none;
+}
+
+.composer-studio :deep(.composer-emoji-sticker-panel) {
+  max-height: 260px;
+  padding-top: 28px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.composer-studio :deep(.panel-scroll) {
+  min-height: 0;
+  max-height: 200px;
+}
+
+.composer-studio.composer--voice-open .composer-field {
+  display: none;
+}
+
+.composer.composer-studio.composer--input-expanded .composer-editor-area {
+  min-height: min(42dvh, 340px);
+}
+
+.composer.composer-studio.composer--input-expanded .composer-input-row {
+  align-items: flex-start;
+  min-height: min(34dvh, 280px);
+}
+
+.composer.composer-studio.composer--input-expanded .composer-field .composer-toolbar::before {
+  content: none;
+  display: none;
+}
+
+.composer.composer-studio.composer--input-expanded :deep(.n-input__textarea-el),
+.composer.composer-studio.composer--input-expanded :deep(.composer-rich-markdown-input__editable) {
+  max-height: min(34dvh, 280px);
+}
+
+/* Desktop-sized chat. `composer--wide` rather than a container query, because the two measure
+   different boxes: a container query reads the content box, so a 909px composer with 6px of
+   padding either side answers 897 and would drop to the phone layout three pixels early. The
+   class reads the composer's border box, which is the width a person sees, and is the one
+   definition of "wide" the composer has. The smaller thresholds below are about the composer's
+   own contents and do ask the container. */
+.composer-studio.composer--wide {
+  padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-md);
+}
+
+.composer-studio.composer--wide .composer-editor-area {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.composer-studio.composer--wide .composer-input-row {
+  min-height: 46px;
+  padding: 11px var(--flare-size-spacing-md);
+}
+
+.composer-studio.composer--wide .composer-toolbar {
+  grid-column: 2;
+  width: auto;
+  min-height: 46px;
+  padding: 0 var(--flare-size-spacing-2xs);
+}
+
+.composer-studio.composer--wide .composer-toolbar::before {
+  display: none;
+}
+
+.composer-studio.composer--wide .composer-toolbar > .n-button,
+.composer-studio.composer--wide .composer-toolbar .composer-mention-anchor > .n-button,
+.composer-studio.composer--wide .composer-toolbar > .composer-toolbar__send {
+  flex-basis: 34px;
+  width: 34px !important;
+  min-width: 34px !important;
+  max-width: 34px;
+  height: 36px !important;
+}
+
+.composer-studio.composer--wide .composer-toolbar > .composer-expand {
+  display: inline-flex;
+}
+
+.composer-studio.composer--wide .composer-field-expand {
+  display: none;
+}
+
+.composer-studio.composer--wide .composer-field--multiline .composer-editor-area,
+.composer-studio.composer--wide .composer-field--context .composer-editor-area {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.composer-studio.composer--wide .composer-field--multiline .composer-input-row {
+  min-height: var(--flare-size-layout-control-height-lg);
+  padding: 9px 14px;
+}
+
+.composer-studio.composer--wide .composer-field--multiline .composer-toolbar,
+.composer-studio.composer--wide .composer-field--context .composer-toolbar {
+  grid-column: 1;
+  justify-self: stretch;
+  justify-content: flex-end;
+  width: 100%;
+  min-height: var(--flare-size-layout-control-height-md);
+  padding: 0 var(--flare-size-spacing-sm);
+}
+
+.composer-studio.composer--wide .composer-field--multiline .composer-toolbar::before,
+.composer-studio.composer--wide .composer-field--context .composer-toolbar::before {
+  display: block;
+}
+
+.composer-studio.composer--wide .composer-surface {
+  position: absolute;
+  inset: auto 12px calc(100% + 2px);
+  z-index: 30;
+  max-height: min(320px, 40dvh);
+}
+
+.composer-studio.composer--wide .composer-media-surface {
+  padding: 0;
+  overflow: hidden;
+}
+
+.composer-studio.composer--wide .composer-media-surface > .composer-surface-close {
+  top: auto;
+  right: var(--flare-size-spacing-2xs);
+  bottom: var(--flare-size-spacing-xs);
+}
+
+.composer-studio.composer--wide .composer-media-surface :deep(.composer-emoji-sticker-panel) {
+  max-height: min(288px, 40dvh - 2px);
+  padding-top: 0;
+}
+
+.composer-studio.composer--wide .composer-media-surface :deep(.panel-scroll) {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 242px;
+  max-height: none;
+  padding: var(--flare-size-spacing-sm) 10px;
+  overflow: auto;
+}
+
+.composer-studio.composer--wide .composer-media-surface :deep(.panel-tabbar) {
+  flex: 0 0 auto;
+  padding: 2px 48px 2px 10px;
+}
+
+.composer.composer-studio.composer--wide.composer--input-expanded .composer-editor-area {
+  min-height: min(32dvh, 240px);
+}
+
+.composer.composer-studio.composer--wide.composer--input-expanded .composer-input-row {
+  min-height: min(24dvh, 180px);
+}
+
+.composer.composer-studio.composer--wide.composer--input-expanded :deep(.n-input__textarea-el),
+.composer.composer-studio.composer--wide.composer--input-expanded :deep(.composer-rich-markdown-input__editable) {
+  max-height: min(24dvh, 180px);
+}
+
+
+@container flare-composer (max-width: 460px) {
+  .composer.composer-studio .composer-editor-area {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .composer.composer-studio .composer-toolbar {
+    grid-column: 1;
+    width: 100%;
+  }
+
+  .composer.composer-studio .composer-toolbar::before {
+    display: block;
+  }
+}
+
+@container flare-composer (max-width: 340px) {
+  .composer.composer-studio .composer-toolbar > .composer-toolbar__image,
+  .composer.composer-studio .composer-toolbar > .composer-toolbar__rich {
+    display: none;
+  }
+}

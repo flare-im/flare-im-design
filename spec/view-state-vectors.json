@@ -1,0 +1,70 @@
+{
+  "note": "What a list container draws for a view state (FR-057): a failed refresh keeps content the host marked stale, and only replaces it when there is nothing to keep. The same table runs on four kits.",
+  "presentations": [
+    "content",
+    "contentWithNotice",
+    "state"
+  ],
+  "cases": [
+    {
+      "id": "ready",
+      "status": "ready",
+      "stale": false,
+      "presentation": "content"
+    },
+    {
+      "id": "ready.stale.is.still.content",
+      "status": "ready",
+      "stale": true,
+      "presentation": "content"
+    },
+    {
+      "id": "loading",
+      "status": "loading",
+      "stale": false,
+      "presentation": "state"
+    },
+    {
+      "id": "empty",
+      "status": "empty",
+      "stale": false,
+      "presentation": "state"
+    },
+    {
+      "id": "error.with.nothing.to.keep",
+      "status": "error",
+      "stale": false,
+      "presentation": "state"
+    },
+    {
+      "id": "error.over.content",
+      "status": "error",
+      "stale": true,
+      "presentation": "contentWithNotice"
+    },
+    {
+      "id": "offline.with.nothing.to.keep",
+      "status": "offline",
+      "stale": false,
+      "presentation": "state"
+    },
+    {
+      "id": "offline.over.content",
+      "status": "offline",
+      "stale": true,
+      "presentation": "contentWithNotice"
+    },
+    {
+      "id": "loading.stale.still.loads",
+      "status": "loading",
+      "stale": true,
+      "presentation": "state"
+    },
+    {
+      "id": "empty.stale.is.still.empty",
+      "status": "empty",
+      "stale": true,
+      "presentation": "state"
+    }
+  ]
+}

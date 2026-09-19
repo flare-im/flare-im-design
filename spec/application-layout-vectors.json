@@ -1,0 +1,570 @@
+{
+  "note": "Shared truth for every pane layout in the four kits: the AppLayout family (AppLayout, DesktopAppShell, IMAppKit, WorkspaceFrame) and the conversation family (ResponsiveLayout, ConversationWorkspace). All four platforms consume this file. `panes` is the one rule for how many panes fit side by side (FR-110). With chat = chatMinWidth (360) x max(1, textScale): two panes need navigationWidth + primaryWidth + chat; three need that plus detailWidth. Defaults: navigationWidth 0, primaryWidth 320 (primaryPaneDefaultWidth), detailWidth 300 (detailPaneDefaultWidth). Only the chat grows with the text: navigation, list and detail are drawn at fixed widths on every kit, so asking for them at a scaled width reserves room nobody draws, and the chat is not capped, because a cap hands the readers who need the room most a chat below its own minimum. Hairline separators are not counted: at exactly a threshold a separator takes one pixel from the chat. There is no device floor: the 720 and 1100 floors this rule replaced had no content behind them (a list and a usable chat need 680). `cases` is the workspace presentation on top of it. mode = resolveApplicationResponsiveMode(width, textScale): <600 mobile, <900 tablet, <1500 desktop, else wideDesktop, on width/textScale — that is which navigation to draw, a different question from how many panes fit. navigationWidth by mode: tablet rail 72, desktop sidebar 280 (primaryPaneMinWidth), wideDesktop expanded sidebar 320 (primaryPaneDefaultWidth), 0 when the shell has no navigation (`navigation: false`). mobile is one pane and a detail is a route. tablet takes the panes rule without a third pane (its layout has no detail column): one pane makes the detail a route, two make it an overlay. desktop and wideDesktop take the panes rule as it is: three panes put the detail inline, two make it an overlay, one makes it a route. A width the caller does not know keeps the width-blind answer: two panes on a tablet, and on a desktop three with a detail or two without.",
+  "panes": [
+    {
+      "id": "phone-320",
+      "width": 320,
+      "scale": 1,
+      "hasDetail": true,
+      "navigationWidth": 0,
+      "expected": "singlePane",
+      "why": "A phone-width container holds one pane."
+    },
+    {
+      "id": "list-and-chat-679",
+      "width": 679,
+      "scale": 1,
+      "hasDetail": true,
+      "navigationWidth": 0,
+      "expected": "singlePane",
+      "why": "320 + 360 = 680: one short."
+    },
+    {
+      "id": "list-and-chat-680",
+      "width": 680,
+      "scale": 1,
+      "hasDetail": true,
+      "navigationWidth": 0,
+      "expected": "dualPane",
+      "why": "Exactly a list and a usable chat."
+    },
+    {
+      "id": "former-floor-719",
+      "width": 719,
+      "scale": 1,
+      "hasDetail": true,
+      "navigationWidth": 0,
+      "expected": "dualPane",
+      "why": "The 720 floor used to make this one pane; the chat here is 399 wide."
+    },
+    {
+      "id": "detail-979",
+      "width": 979,
+      "scale": 1,
+      "hasDetail": true,
+      "navigationWidth": 0,
+      "expected": "dualPane",
+      "why": "320 + 360 + 300 = 980: the detail does not fit yet."
+    },
+    {
+      "id": "detail-980",
+      "width": 980,
+      "scale": 1,
+      "hasDetail": true,
+      "navigationWidth": 0,
+      "expected": "triplePane",
+      "why": "The detail fits beside a usable chat."
+    },
+    {
+      "id": "former-floor-1099",
+      "width": 1099,
+      "scale": 1,
+      "hasDetail": true,
+      "navigationWidth": 0,
+      "expected": "triplePane",
+      "why": "The 1100 floor used to hold the detail back here."
+    },
+    {
+      "id": "no-detail-1100",
+      "width": 1100,
+      "scale": 1,
+      "hasDetail": false,
+      "navigationWidth": 0,
+      "expected": "dualPane",
+      "why": "Without a detail there is no third pane at any width."
+    },
+    {
+      "id": "scaled-2-1039",
+      "width": 1039,
+      "scale": 2,
+      "hasDetail": true,
+      "navigationWidth": 0,
+      "expected": "singlePane",
+      "why": "At twice the text the chat needs 720: 320 + 720 = 1040."
+    },
+    {
+      "id": "scaled-2-1040",
+      "width": 1040,
+      "scale": 2,
+      "hasDetail": true,
+      "navigationWidth": 0,
+      "expected": "dualPane",
+      "why": "The list stays 320 wide at any text size, so only the chat grows."
+    },
+    {
+      "id": "scaled-2-1339",
+      "width": 1339,
+      "scale": 2,
+      "hasDetail": true,
+      "navigationWidth": 0,
+      "expected": "dualPane",
+      "why": "320 + 720 + 300 = 1340."
+    },
+    {
+      "id": "scaled-2-1340",
+      "width": 1340,
+      "scale": 2,
+      "hasDetail": true,
+      "navigationWidth": 0,
+      "expected": "triplePane",
+      "why": "The detail fits beside a chat of 720."
+    },
+    {
+      "id": "scaled-3-1399",
+      "width": 1399,
+      "scale": 3,
+      "hasDetail": true,
+      "navigationWidth": 0,
+      "expected": "singlePane",
+      "why": "No cap on the text scale: at three times the chat needs 1080, so 1400 for two panes."
+    },
+    {
+      "id": "scaled-3-1440",
+      "width": 1440,
+      "scale": 3,
+      "hasDetail": true,
+      "navigationWidth": 0,
+      "expected": "dualPane",
+      "why": "The former cap at 2 claimed three panes here, with a chat of 420 at three times the text."
+    },
+    {
+      "id": "scale-below-one",
+      "width": 680,
+      "scale": 0.5,
+      "hasDetail": false,
+      "navigationWidth": 0,
+      "expected": "dualPane",
+      "why": "A text scale below 1 does not shrink the chat minimum."
+    },
+    {
+      "id": "scale-below-one-679",
+      "width": 679,
+      "scale": 0.5,
+      "hasDetail": false,
+      "navigationWidth": 0,
+      "expected": "singlePane",
+      "why": "Still one short of 680."
+    },
+    {
+      "id": "custom-columns",
+      "width": 1100,
+      "scale": 1,
+      "hasDetail": true,
+      "navigationWidth": 0,
+      "primaryWidth": 600,
+      "detailWidth": 400,
+      "expected": "dualPane",
+      "why": "A 600 list and a 400 detail: 600 + 360 = 960 fits two, 1360 does not fit three."
+    },
+    {
+      "id": "rail-751",
+      "width": 751,
+      "scale": 1,
+      "hasDetail": false,
+      "navigationWidth": 72,
+      "expected": "singlePane",
+      "why": "A 72 rail + 320 + 360 = 752."
+    },
+    {
+      "id": "rail-752",
+      "width": 752,
+      "scale": 1,
+      "hasDetail": false,
+      "navigationWidth": 72,
+      "expected": "dualPane",
+      "why": "A rail, a list and a usable chat."
+    },
+    {
+      "id": "rail-scaled-931",
+      "width": 931,
+      "scale": 1.5,
+      "hasDetail": false,
+      "navigationWidth": 72,
+      "expected": "singlePane",
+      "why": "72 + 320 + 540 = 932."
+    },
+    {
+      "id": "rail-scaled-1000",
+      "width": 1000,
+      "scale": 1.5,
+      "hasDetail": false,
+      "navigationWidth": 72,
+      "expected": "dualPane",
+      "why": "The rail and list keep their widths; the chat gets 608 at one and a half times the text."
+    },
+    {
+      "id": "sidebar-959",
+      "width": 959,
+      "scale": 1,
+      "hasDetail": false,
+      "navigationWidth": 280,
+      "expected": "singlePane",
+      "why": "A 280 sidebar + 320 + 360 = 960: the chat would be 359."
+    },
+    {
+      "id": "sidebar-960",
+      "width": 960,
+      "scale": 1,
+      "hasDetail": false,
+      "navigationWidth": 280,
+      "expected": "dualPane",
+      "why": "A sidebar, a list and a usable chat."
+    },
+    {
+      "id": "sidebar-detail-1259",
+      "width": 1259,
+      "scale": 1,
+      "hasDetail": true,
+      "navigationWidth": 280,
+      "expected": "dualPane",
+      "why": "280 + 320 + 360 + 300 = 1260."
+    },
+    {
+      "id": "sidebar-detail-1260",
+      "width": 1260,
+      "scale": 1,
+      "hasDetail": true,
+      "navigationWidth": 280,
+      "expected": "triplePane",
+      "why": "Everything fits."
+    }
+  ],
+  "cases": [
+    {
+      "id": "mobile-detail",
+      "width": 390,
+      "scale": 1,
+      "hasDetail": true,
+      "navigation": true,
+      "expected": {
+        "mode": "mobile",
+        "paneMode": "singlePane",
+        "detail": "route"
+      }
+    },
+    {
+      "id": "tablet-detail",
+      "width": 800,
+      "scale": 1,
+      "hasDetail": true,
+      "navigation": true,
+      "expected": {
+        "mode": "tablet",
+        "paneMode": "dualPane",
+        "detail": "overlay"
+      }
+    },
+    {
+      "id": "desktop-900-detail",
+      "width": 900,
+      "scale": 1,
+      "hasDetail": true,
+      "navigation": true,
+      "expected": {
+        "mode": "desktop",
+        "paneMode": "singlePane",
+        "detail": "route"
+      }
+    },
+    {
+      "id": "desktop-959-no-detail",
+      "width": 959,
+      "scale": 1,
+      "hasDetail": false,
+      "navigation": true,
+      "expected": {
+        "mode": "desktop",
+        "paneMode": "singlePane",
+        "detail": "hidden"
+      }
+    },
+    {
+      "id": "desktop-960-no-detail",
+      "width": 960,
+      "scale": 1,
+      "hasDetail": false,
+      "navigation": true,
+      "expected": {
+        "mode": "desktop",
+        "paneMode": "dualPane",
+        "detail": "hidden"
+      }
+    },
+    {
+      "id": "desktop-1024-detail",
+      "width": 1024,
+      "scale": 1,
+      "hasDetail": true,
+      "navigation": true,
+      "expected": {
+        "mode": "desktop",
+        "paneMode": "dualPane",
+        "detail": "overlay"
+      }
+    },
+    {
+      "id": "desktop-1259-detail",
+      "width": 1259,
+      "scale": 1,
+      "hasDetail": true,
+      "navigation": true,
+      "expected": {
+        "mode": "desktop",
+        "paneMode": "dualPane",
+        "detail": "overlay"
+      }
+    },
+    {
+      "id": "desktop-1260-detail",
+      "width": 1260,
+      "scale": 1,
+      "hasDetail": true,
+      "navigation": true,
+      "expected": {
+        "mode": "desktop",
+        "paneMode": "triplePane",
+        "detail": "inline"
+      }
+    },
+    {
+      "id": "desktop-1499-detail",
+      "width": 1499,
+      "scale": 1,
+      "hasDetail": true,
+      "navigation": true,
+      "expected": {
+        "mode": "desktop",
+        "paneMode": "triplePane",
+        "detail": "inline"
+      }
+    },
+    {
+      "id": "wide-1500-detail",
+      "width": 1500,
+      "scale": 1,
+      "hasDetail": true,
+      "navigation": true,
+      "expected": {
+        "mode": "wideDesktop",
+        "paneMode": "triplePane",
+        "detail": "inline"
+      }
+    },
+    {
+      "id": "desktop-1024-no-detail",
+      "width": 1024,
+      "scale": 1,
+      "hasDetail": false,
+      "navigation": true,
+      "expected": {
+        "mode": "desktop",
+        "paneMode": "dualPane",
+        "detail": "hidden"
+      }
+    },
+    {
+      "id": "desktop-1000-no-navigation",
+      "width": 1000,
+      "scale": 1,
+      "hasDetail": true,
+      "navigation": false,
+      "expected": {
+        "mode": "desktop",
+        "paneMode": "triplePane",
+        "detail": "inline"
+      }
+    },
+    {
+      "id": "desktop-979-no-navigation",
+      "width": 979,
+      "scale": 1,
+      "hasDetail": true,
+      "navigation": false,
+      "expected": {
+        "mode": "desktop",
+        "paneMode": "dualPane",
+        "detail": "overlay"
+      }
+    },
+    {
+      "id": "scaled-2400-at-2",
+      "width": 2400,
+      "scale": 2,
+      "hasDetail": true,
+      "navigation": true,
+      "expected": {
+        "mode": "desktop",
+        "paneMode": "triplePane",
+        "detail": "inline"
+      }
+    },
+    {
+      "id": "scaled-1439-at-1.5-detail",
+      "width": 1439,
+      "scale": 1.5,
+      "hasDetail": true,
+      "navigation": true,
+      "expected": {
+        "mode": "desktop",
+        "paneMode": "dualPane",
+        "detail": "overlay"
+      }
+    },
+    {
+      "id": "scaled-1440-at-1.5-detail",
+      "width": 1440,
+      "scale": 1.5,
+      "hasDetail": true,
+      "navigation": true,
+      "expected": {
+        "mode": "desktop",
+        "paneMode": "triplePane",
+        "detail": "inline"
+      }
+    },
+    {
+      "id": "scaled-1000-at-2",
+      "width": 1000,
+      "scale": 2,
+      "hasDetail": true,
+      "navigation": true,
+      "expected": {
+        "mode": "mobile",
+        "paneMode": "singlePane",
+        "detail": "route"
+      }
+    },
+    {
+      "id": "tablet-600-detail",
+      "width": 600,
+      "scale": 1,
+      "hasDetail": true,
+      "navigation": true,
+      "expected": {
+        "mode": "tablet",
+        "paneMode": "singlePane",
+        "detail": "route"
+      }
+    },
+    {
+      "id": "tablet-600-no-detail",
+      "width": 600,
+      "scale": 1,
+      "hasDetail": false,
+      "navigation": true,
+      "expected": {
+        "mode": "tablet",
+        "paneMode": "singlePane",
+        "detail": "hidden"
+      }
+    },
+    {
+      "id": "tablet-700-detail",
+      "width": 700,
+      "scale": 1,
+      "hasDetail": true,
+      "navigation": true,
+      "expected": {
+        "mode": "tablet",
+        "paneMode": "singlePane",
+        "detail": "route"
+      }
+    },
+    {
+      "id": "tablet-700-no-detail",
+      "width": 700,
+      "scale": 1,
+      "hasDetail": false,
+      "navigation": true,
+      "expected": {
+        "mode": "tablet",
+        "paneMode": "singlePane",
+        "detail": "hidden"
+      }
+    },
+    {
+      "id": "tablet-751-detail",
+      "width": 751,
+      "scale": 1,
+      "hasDetail": true,
+      "navigation": true,
+      "expected": {
+        "mode": "tablet",
+        "paneMode": "singlePane",
+        "detail": "route"
+      }
+    },
+    {
+      "id": "tablet-751-no-detail",
+      "width": 751,
+      "scale": 1,
+      "hasDetail": false,
+      "navigation": true,
+      "expected": {
+        "mode": "tablet",
+        "paneMode": "singlePane",
+        "detail": "hidden"
+      }
+    },
+    {
+      "id": "tablet-752-detail",
+      "width": 752,
+      "scale": 1,
+      "hasDetail": true,
+      "navigation": true,
+      "expected": {
+        "mode": "tablet",
+        "paneMode": "dualPane",
+        "detail": "overlay"
+      }
+    },
+    {
+      "id": "tablet-752-no-detail",
+      "width": 752,
+      "scale": 1,
+      "hasDetail": false,
+      "navigation": true,
+      "expected": {
+        "mode": "tablet",
+        "paneMode": "dualPane",
+        "detail": "hidden"
+      }
+    },
+    {
+      "id": "tablet-931-at-1.5",
+      "width": 931,
+      "scale": 1.5,
+      "hasDetail": false,
+      "navigation": true,
+      "expected": {
+        "mode": "tablet",
+        "paneMode": "singlePane",
+        "detail": "hidden"
+      }
+    },
+    {
+      "id": "tablet-1000-at-1.5",
+      "width": 1000,
+      "scale": 1.5,
+      "hasDetail": true,
+      "navigation": true,
+      "expected": {
+        "mode": "tablet",
+        "paneMode": "dualPane",
+        "detail": "overlay"
+      }
+    },
+    {
+      "id": "tablet-1700-at-2-detail",
+      "width": 1700,
+      "scale": 2,
+      "hasDetail": true,
+      "navigation": true,
+      "expected": {
+        "mode": "tablet",
+        "paneMode": "dualPane",
+        "detail": "overlay"
+      }
+    }
+  ]
+}

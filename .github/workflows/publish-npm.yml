@@ -59,7 +59,7 @@ jobs:
 
       - name: 发布 @flare-im/vue-ui
         run: ../.github/scripts/publish-if-new.sh
-        working-directory: vue-im-ui
+        working-directory: packages/vue-im-ui
 
       - name: 汇总
         run: |

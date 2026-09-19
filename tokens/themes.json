@@ -1,0 +1,346 @@
+{
+  "schemaVersion": 1,
+  "requiredSemanticPaths": [
+    "colors.primary",
+    "colors.focusRing",
+    "colors.bg.selected",
+    "colors.border.selected",
+    "colors.message.incoming.background",
+    "colors.message.incoming.foreground",
+    "colors.message.incoming.border",
+    "colors.message.outgoing.background",
+    "colors.message.outgoing.foreground",
+    "colors.message.outgoing.border",
+    "colors.message.selected.background",
+    "colors.message.selected.border",
+    "colors.message.failed.background",
+    "colors.message.failed.foreground",
+    "colors.message.failed.border",
+    "colors.message.meta.foreground",
+    "colors.message.status.pending",
+    "colors.message.status.sent",
+    "colors.message.status.delivered",
+    "colors.message.status.read",
+    "colors.message.status.failed",
+    "colors.message.status.onOutgoing",
+    "colors.message.status.readOnOutgoing",
+    "colors.message.reply.background",
+    "colors.message.reply.border",
+    "colors.message.reaction.background",
+    "colors.message.reaction.selected"
+  ],
+  "semanticDefaults": {
+    "light": {
+      "colors": {
+        "message": {
+          "incoming": {
+            "background": "#FFFFFF",
+            "foreground": "#20232D",
+            "border": "#E3E5EB"
+          },
+          "failed": {
+            "background": "#FEF2F2",
+            "foreground": "#B91C1C",
+            "border": "#FCA5A5"
+          },
+          "meta": { "foreground": "#5C6371" },
+          "status": {
+            "pending": "#5F6776",
+            "sent": "#5F6776",
+            "delivered": "#5C6371",
+            "failed": "#DC2626",
+            "onOutgoing": "rgba(255, 255, 255, 0.8)"
+          },
+          "reply": { "background": "#F7F8FA" },
+          "reaction": { "background": "#F1F2F5" }
+        }
+      }
+    },
+    "dark": {
+      "colors": {
+        "message": {
+          "incoming": {
+            "background": "#20232B",
+            "foreground": "rgba(255, 255, 255, 0.94)",
+            "border": "rgba(255, 255, 255, 0.10)"
+          },
+          "failed": {
+            "background": "#3F1D24",
+            "foreground": "#FCA5A5",
+            "border": "#991B1B"
+          },
+          "meta": { "foreground": "#9AA3B3" },
+          "status": {
+            "pending": "#9AA3B3",
+            "sent": "#9AA3B3",
+            "delivered": "rgba(255, 255, 255, 0.62)",
+            "failed": "#F87171",
+            "onOutgoing": "rgba(255, 255, 255, 0.8)"
+          },
+          "reply": { "background": "rgba(255, 255, 255, 0.07)" },
+          "reaction": { "background": "rgba(255, 255, 255, 0.08)" }
+        }
+      }
+    }
+  },
+  "themes": {
+    "violet": {
+      "label": "Violet",
+      "light": {
+        "colors": {
+          "primary": "#6D28D9",
+          "primaryHover": "#5B21B6",
+          "primaryActive": "#4C1D95",
+          "primaryText": "#6D28D9",
+          "focusRing": "rgba(109, 40, 217, 0.34)",
+          "pinned": "#6D28D9",
+          "bg": { "selected": "#F0ECFC" },
+          "border": { "selected": "#7C3AED" },
+          "text": { "link": "#6D28D9", "linkHover": "#5B21B6" },
+          "message": {
+            "outgoing": { "background": "#6D28D9", "foreground": "#FFFFFF", "border": "#5B21B6" },
+            "selected": { "background": "#F0ECFC", "border": "#7C3AED" },
+            "status": { "read": "#6D28D9", "readOnOutgoing": "#EDE9FE" },
+            "reply": { "border": "#8B5CF6" },
+            "reaction": { "selected": "#EDE9FE" }
+          }
+        }
+      },
+      "dark": {
+        "colors": {
+          "primary": "#6D28D9",
+          "primaryHover": "#7C3AED",
+          "primaryActive": "#5B21B6",
+          "primaryText": "#C4B5FD",
+          "focusRing": "rgba(196, 181, 253, 0.42)",
+          "pinned": "#C4B5FD",
+          "bg": { "selected": "#2D2340" },
+          "border": { "selected": "#A78BFA" },
+          "text": { "link": "#C4B5FD", "linkHover": "#DDD6FE" },
+          "message": {
+            "outgoing": { "background": "#5B21B6", "foreground": "#FFFFFF", "border": "#8B5CF6" },
+            "selected": { "background": "#2D2340", "border": "#A78BFA" },
+            "status": { "read": "#C4B5FD", "readOnOutgoing": "#EDE9FE" },
+            "reply": { "border": "#A78BFA" },
+            "reaction": { "selected": "rgba(139, 92, 246, 0.30)" }
+          }
+        }
+      }
+    },
+    "ocean": {
+      "label": "Ocean",
+      "light": {
+        "colors": {
+          "primary": "#1D4ED8",
+          "primaryHover": "#1E40AF",
+          "primaryActive": "#1E3A8A",
+          "primaryText": "#1D4ED8",
+          "focusRing": "rgba(37, 99, 235, 0.34)",
+          "pinned": "#1D4ED8",
+          "bg": { "selected": "#EFF6FF" },
+          "border": { "selected": "#2563EB" },
+          "text": { "link": "#1D4ED8", "linkHover": "#1E40AF" },
+          "message": {
+            "outgoing": { "background": "#1D4ED8", "foreground": "#FFFFFF", "border": "#1E40AF" },
+            "selected": { "background": "#EFF6FF", "border": "#2563EB" },
+            "status": { "read": "#1D4ED8", "readOnOutgoing": "#DBEAFE" },
+            "reply": { "border": "#3B82F6" },
+            "reaction": { "selected": "#DBEAFE" }
+          }
+        }
+      },
+      "dark": {
+        "colors": {
+          "primary": "#1E40AF",
+          "primaryHover": "#1D4ED8",
+          "primaryActive": "#1E3A8A",
+          "primaryText": "#93C5FD",
+          "focusRing": "rgba(147, 197, 253, 0.42)",
+          "pinned": "#93C5FD",
+          "bg": { "selected": "#172A46" },
+          "border": { "selected": "#60A5FA" },
+          "text": { "link": "#93C5FD", "linkHover": "#BFDBFE" },
+          "message": {
+            "outgoing": { "background": "#1E40AF", "foreground": "#FFFFFF", "border": "#3B82F6" },
+            "selected": { "background": "#172A46", "border": "#60A5FA" },
+            "status": { "read": "#93C5FD", "readOnOutgoing": "#DBEAFE" },
+            "reply": { "border": "#60A5FA" },
+            "reaction": { "selected": "rgba(59, 130, 246, 0.30)" }
+          }
+        }
+      }
+    },
+    "forest": {
+      "label": "Forest",
+      "light": {
+        "colors": {
+          "primary": "#15803D",
+          "primaryHover": "#166534",
+          "primaryActive": "#14532D",
+          "primaryText": "#15803D",
+          "focusRing": "rgba(22, 163, 74, 0.34)",
+          "pinned": "#15803D",
+          "bg": { "selected": "#F0FDF4" },
+          "border": { "selected": "#16A34A" },
+          "text": { "link": "#15803D", "linkHover": "#166534" },
+          "message": {
+            "outgoing": { "background": "#15803D", "foreground": "#FFFFFF", "border": "#166534" },
+            "selected": { "background": "#F0FDF4", "border": "#16A34A" },
+            "status": { "read": "#15803D", "readOnOutgoing": "#DCFCE7" },
+            "reply": { "border": "#22C55E" },
+            "reaction": { "selected": "#DCFCE7" }
+          }
+        }
+      },
+      "dark": {
+        "colors": {
+          "primary": "#166534",
+          "primaryHover": "#15803D",
+          "primaryActive": "#14532D",
+          "primaryText": "#86EFAC",
+          "focusRing": "rgba(134, 239, 172, 0.40)",
+          "pinned": "#86EFAC",
+          "bg": { "selected": "#183528" },
+          "border": { "selected": "#4ADE80" },
+          "text": { "link": "#86EFAC", "linkHover": "#BBF7D0" },
+          "message": {
+            "outgoing": { "background": "#166534", "foreground": "#FFFFFF", "border": "#22C55E" },
+            "selected": { "background": "#183528", "border": "#4ADE80" },
+            "status": { "read": "#86EFAC", "readOnOutgoing": "#DCFCE7" },
+            "reply": { "border": "#4ADE80" },
+            "reaction": { "selected": "rgba(34, 197, 94, 0.28)" }
+          }
+        }
+      }
+    },
+    "sunset": {
+      "label": "Sunset",
+      "light": {
+        "colors": {
+          "primary": "#C2410C",
+          "primaryHover": "#9A3412",
+          "primaryActive": "#7C2D12",
+          "primaryText": "#C2410C",
+          "focusRing": "rgba(234, 88, 12, 0.34)",
+          "pinned": "#C2410C",
+          "bg": { "selected": "#FFF7ED" },
+          "border": { "selected": "#EA580C" },
+          "text": { "link": "#C2410C", "linkHover": "#9A3412" },
+          "message": {
+            "outgoing": { "background": "#C2410C", "foreground": "#FFFFFF", "border": "#9A3412" },
+            "selected": { "background": "#FFF7ED", "border": "#EA580C" },
+            "status": { "read": "#C2410C", "readOnOutgoing": "#FFEDD5" },
+            "reply": { "border": "#F97316" },
+            "reaction": { "selected": "#FFEDD5" }
+          }
+        }
+      },
+      "dark": {
+        "colors": {
+          "primary": "#9A3412",
+          "primaryHover": "#C2410C",
+          "primaryActive": "#7C2D12",
+          "primaryText": "#FDBA74",
+          "focusRing": "rgba(253, 186, 116, 0.40)",
+          "pinned": "#FDBA74",
+          "bg": { "selected": "#3B2619" },
+          "border": { "selected": "#FB923C" },
+          "text": { "link": "#FDBA74", "linkHover": "#FED7AA" },
+          "message": {
+            "outgoing": { "background": "#9A3412", "foreground": "#FFFFFF", "border": "#EA580C" },
+            "selected": { "background": "#3B2619", "border": "#FB923C" },
+            "status": { "read": "#FDBA74", "readOnOutgoing": "#FFEDD5" },
+            "reply": { "border": "#FB923C" },
+            "reaction": { "selected": "rgba(249, 115, 22, 0.28)" }
+          }
+        }
+      }
+    },
+    "rose": {
+      "label": "Rose",
+      "light": {
+        "colors": {
+          "primary": "#BE123C",
+          "primaryHover": "#9F1239",
+          "primaryActive": "#881337",
+          "primaryText": "#BE123C",
+          "focusRing": "rgba(225, 29, 72, 0.32)",
+          "pinned": "#BE123C",
+          "bg": { "selected": "#FFF1F2" },
+          "border": { "selected": "#E11D48" },
+          "text": { "link": "#BE123C", "linkHover": "#9F1239" },
+          "message": {
+            "outgoing": { "background": "#BE123C", "foreground": "#FFFFFF", "border": "#9F1239" },
+            "selected": { "background": "#FFF1F2", "border": "#E11D48" },
+            "status": { "read": "#BE123C", "readOnOutgoing": "#FFE4E6" },
+            "reply": { "border": "#F43F5E" },
+            "reaction": { "selected": "#FFE4E6" }
+          }
+        }
+      },
+      "dark": {
+        "colors": {
+          "primary": "#9F1239",
+          "primaryHover": "#BE123C",
+          "primaryActive": "#881337",
+          "primaryText": "#FDA4AF",
+          "focusRing": "rgba(253, 164, 175, 0.40)",
+          "pinned": "#FDA4AF",
+          "bg": { "selected": "#3B2028" },
+          "border": { "selected": "#FB7185" },
+          "text": { "link": "#FDA4AF", "linkHover": "#FECDD3" },
+          "message": {
+            "outgoing": { "background": "#9F1239", "foreground": "#FFFFFF", "border": "#E11D48" },
+            "selected": { "background": "#3B2028", "border": "#FB7185" },
+            "status": { "read": "#FDA4AF", "readOnOutgoing": "#FFE4E6" },
+            "reply": { "border": "#FB7185" },
+            "reaction": { "selected": "rgba(244, 63, 94, 0.28)" }
+          }
+        }
+      }
+    },
+    "graphite": {
+      "label": "Graphite",
+      "light": {
+        "colors": {
+          "primary": "#475569",
+          "primaryHover": "#334155",
+          "primaryActive": "#1E293B",
+          "primaryText": "#475569",
+          "focusRing": "rgba(71, 85, 105, 0.34)",
+          "pinned": "#475569",
+          "bg": { "selected": "#F1F5F9" },
+          "border": { "selected": "#64748B" },
+          "text": { "link": "#475569", "linkHover": "#334155" },
+          "message": {
+            "outgoing": { "background": "#475569", "foreground": "#FFFFFF", "border": "#334155" },
+            "selected": { "background": "#F1F5F9", "border": "#64748B" },
+            "status": { "read": "#475569", "readOnOutgoing": "#E2E8F0" },
+            "reply": { "border": "#64748B" },
+            "reaction": { "selected": "#E2E8F0" }
+          }
+        }
+      },
+      "dark": {
+        "colors": {
+          "primary": "#475569",
+          "primaryHover": "#64748B",
+          "primaryActive": "#334155",
+          "primaryText": "#CBD5E1",
+          "focusRing": "rgba(203, 213, 225, 0.38)",
+          "pinned": "#CBD5E1",
+          "bg": { "selected": "#2B3440" },
+          "border": { "selected": "#94A3B8" },
+          "text": { "link": "#CBD5E1", "linkHover": "#E2E8F0" },
+          "message": {
+            "outgoing": { "background": "#475569", "foreground": "#FFFFFF", "border": "#64748B" },
+            "selected": { "background": "#2B3440", "border": "#94A3B8" },
+            "status": { "read": "#CBD5E1", "readOnOutgoing": "#E2E8F0" },
+            "reply": { "border": "#94A3B8" },
+            "reaction": { "selected": "rgba(148, 163, 184, 0.28)" }
+          }
+        }
+      }
+    }
+  }
+}

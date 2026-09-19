@@ -1,0 +1,334 @@
+{
+  "note": "Layer 5 — Platform Contract. One capability record, one adapter interface and one error model on every platform; the host declares what it can do and performs the native work, components never branch on platform identity. Vue: shared/platform (useFlarePlatformProvider / useFlarePlatform / createWebPlatformAdapter). Flutter: FlarePlatformScope / FlarePlatform.of. Compose: FlarePlatformProvider / LocalFlarePlatform. iOS: .flarePlatform(_:) / @Environment(\\.flarePlatform). tooling/check-platform-contract.mjs verifies the four implementations, that every vector id below is exercised by each platform's contract test, and that no component outside the platform module sniffs the platform.",
+  "supportLevels": [
+    "supported",
+    "fallback",
+    "unsupported"
+  ],
+  "errorCodes": [
+    "UNSUPPORTED",
+    "CANCELLED",
+    "PERMISSION_DENIED",
+    "TIMEOUT",
+    "FAILED"
+  ],
+  "capabilities": {
+    "pointer": {
+      "type": "'fine' | 'coarse' | 'mixed' | 'unknown'",
+      "en": "Primary pointing device; mixed when both a mouse and touch are present.",
+      "zh": "主要指点设备；鼠标与触摸并存为 mixed。"
+    },
+    "hover": {
+      "type": "boolean",
+      "en": "Hover affordances (hover toolbars, tooltips) are reachable.",
+      "zh": "悬停类交互（悬停工具条、tooltip）可达。"
+    },
+    "contextMenu": {
+      "type": "boolean",
+      "en": "A secondary-click / right-click context menu is reachable.",
+      "zh": "右键 / 次要点击的上下文菜单可达。"
+    },
+    "keyboardShortcut": {
+      "type": "boolean",
+      "en": "A hardware keyboard is expected; shortcuts are advertised.",
+      "zh": "预期有物理键盘；展示快捷键。"
+    },
+    "bottomSheet": {
+      "type": "boolean",
+      "en": "Contextual layers present as bottom sheets (phone form factor) instead of dropdowns / popovers.",
+      "zh": "上下文层以底部面板呈现（手机形态）而非下拉 / 弹出层。"
+    },
+    "nativeBack": {
+      "type": "boolean",
+      "en": "The OS provides a back gesture / button the host must honour.",
+      "zh": "系统提供返回手势 / 按键，宿主须承接。"
+    },
+    "safeArea": {
+      "type": "boolean",
+      "en": "The host reports safe-area insets that edge-anchored surfaces must respect.",
+      "zh": "宿主提供安全区内边距，贴边表面须避让。"
+    },
+    "filePicker": {
+      "type": "support",
+      "en": "pickFiles availability.",
+      "zh": "pickFiles 可用性。"
+    },
+    "imagePicker": {
+      "type": "support",
+      "en": "pickImages availability.",
+      "zh": "pickImages 可用性。"
+    },
+    "share": {
+      "type": "support",
+      "en": "share availability; fallback = the host offers copy-link instead.",
+      "zh": "share 可用性；fallback = 宿主改为复制链接。"
+    }
+  },
+  "adapter": {
+    "pickFiles": {
+      "input": "{ multiple?: boolean, accept?: string[] }",
+      "output": "PickedFile[]",
+      "en": "Open the platform file picker. Empty selection is CANCELLED, never an empty success.",
+      "zh": "打开平台文件选择器。空选择记为 CANCELLED，绝不返回空成功。"
+    },
+    "pickImages": {
+      "input": "{ multiple?: boolean, video?: boolean }",
+      "output": "PickedFile[]",
+      "en": "Open the platform photo / video picker.",
+      "zh": "打开平台相册 / 视频选择器。"
+    },
+    "share": {
+      "input": "{ title?, text?, url?, files? }",
+      "output": "void",
+      "en": "Hand content to the platform share surface.",
+      "zh": "把内容交给平台分享面板。"
+    },
+    "onNativeBack": {
+      "input": "handler: () => boolean",
+      "output": "unsubscribe",
+      "en": "Intercept the OS back action while a contextual layer is open; the handler returns true when it consumed the event.",
+      "zh": "上下文层打开时拦截系统返回；handler 消费事件时返回 true。"
+    },
+    "safeAreaInsets": {
+      "input": "-",
+      "output": "{ top, right, bottom, left }",
+      "en": "Current safe-area insets in logical pixels.",
+      "zh": "当前安全区内边距（逻辑像素）。"
+    }
+  },
+  "pickedFile": {
+    "name": "string",
+    "size": "number?",
+    "mimeType": "string?",
+    "path": "string? (native / Tauri path)",
+    "uri": "string? (Android content uri / web object URL)"
+  },
+  "result": "{ ok: true, value } | { ok: false, error: { code, message?, cause? } }",
+  "defaults": {
+    "web": {
+      "pointer": "detected",
+      "hover": "detected",
+      "contextMenu": "detected",
+      "keyboardShortcut": "detected",
+      "bottomSheet": "viewport",
+      "nativeBack": "adapter",
+      "safeArea": true,
+      "filePicker": "supported",
+      "imagePicker": "supported",
+      "share": "fallback"
+    },
+    "tauri": {
+      "pointer": "fine",
+      "hover": true,
+      "contextMenu": true,
+      "keyboardShortcut": true,
+      "bottomSheet": false,
+      "nativeBack": false,
+      "safeArea": false,
+      "filePicker": "supported",
+      "imagePicker": "supported",
+      "share": "unsupported"
+    },
+    "flutter": {
+      "pointer": "target",
+      "hover": "target",
+      "contextMenu": "target",
+      "keyboardShortcut": "target",
+      "bottomSheet": "viewport",
+      "nativeBack": "android",
+      "safeArea": true,
+      "filePicker": "host",
+      "imagePicker": "host",
+      "share": "host"
+    },
+    "ios": {
+      "pointer": "coarse",
+      "hover": false,
+      "contextMenu": false,
+      "keyboardShortcut": false,
+      "bottomSheet": "viewport",
+      "nativeBack": false,
+      "safeArea": true,
+      "filePicker": "host",
+      "imagePicker": "host",
+      "share": "host"
+    },
+    "android": {
+      "pointer": "coarse",
+      "hover": false,
+      "contextMenu": false,
+      "keyboardShortcut": false,
+      "bottomSheet": "viewport",
+      "nativeBack": true,
+      "safeArea": true,
+      "filePicker": "host",
+      "imagePicker": "host",
+      "share": "host"
+    }
+  },
+  "vectors": [
+    {
+      "id": "pickFiles.success",
+      "operation": "pickFiles",
+      "outcome": "success"
+    },
+    {
+      "id": "pickFiles.cancelled",
+      "operation": "pickFiles",
+      "outcome": "cancelled"
+    },
+    {
+      "id": "pickFiles.unsupported",
+      "operation": "pickFiles",
+      "outcome": "unsupported"
+    },
+    {
+      "id": "pickFiles.denied",
+      "operation": "pickFiles",
+      "outcome": "denied"
+    },
+    {
+      "id": "pickFiles.timeout",
+      "operation": "pickFiles",
+      "outcome": "timeout"
+    },
+    {
+      "id": "pickFiles.failed",
+      "operation": "pickFiles",
+      "outcome": "failed"
+    },
+    {
+      "id": "pickImages.success",
+      "operation": "pickImages",
+      "outcome": "success"
+    },
+    {
+      "id": "pickImages.cancelled",
+      "operation": "pickImages",
+      "outcome": "cancelled"
+    },
+    {
+      "id": "pickImages.unsupported",
+      "operation": "pickImages",
+      "outcome": "unsupported"
+    },
+    {
+      "id": "pickImages.denied",
+      "operation": "pickImages",
+      "outcome": "denied"
+    },
+    {
+      "id": "pickImages.timeout",
+      "operation": "pickImages",
+      "outcome": "timeout"
+    },
+    {
+      "id": "pickImages.failed",
+      "operation": "pickImages",
+      "outcome": "failed"
+    },
+    {
+      "id": "share.success",
+      "operation": "share",
+      "outcome": "success"
+    },
+    {
+      "id": "share.cancelled",
+      "operation": "share",
+      "outcome": "cancelled"
+    },
+    {
+      "id": "share.unsupported",
+      "operation": "share",
+      "outcome": "unsupported"
+    },
+    {
+      "id": "share.denied",
+      "operation": "share",
+      "outcome": "denied"
+    },
+    {
+      "id": "share.timeout",
+      "operation": "share",
+      "outcome": "timeout"
+    },
+    {
+      "id": "share.failed",
+      "operation": "share",
+      "outcome": "failed"
+    }
+  ],
+  "platforms": {
+    "vue": {
+      "module": "packages/vue-im-ui/src/shared/platform",
+      "symbols": [
+        "useFlarePlatformProvider",
+        "useFlarePlatform",
+        "useFlarePlatformSafe",
+        "createWebPlatformAdapter",
+        "normalizePlatformError",
+        "withPlatformTimeout"
+      ],
+      "test": "packages/vue-im-ui/src/shared/platform/contract.test.ts"
+    },
+    "flutter": {
+      "module": "packages/flutter-im-ui/lib/src/platform/flare_platform.dart",
+      "symbols": [
+        "FlarePlatformCapabilities",
+        "FlarePlatformAdapter",
+        "FlarePlatformScope",
+        "FlarePlatformResult",
+        "normalizeFlarePlatformError",
+        "withFlarePlatformTimeout"
+      ],
+      "test": "packages/flutter-im-ui/test/platform_contract_test.dart"
+    },
+    "compose": {
+      "module": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/FlarePlatform.kt",
+      "symbols": [
+        "FlarePlatformCapabilities",
+        "FlarePlatformAdapter",
+        "FlarePlatformProvider",
+        "FlarePlatformResult",
+        "normalizeFlarePlatformError",
+        "withFlarePlatformTimeout"
+      ],
+      "test": "packages/android-im-ui/src/test/kotlin/com/flare/im/ui/FlarePlatformTest.kt"
+    },
+    "ios": {
+      "module": "packages/ios-im-ui/Sources/FlareIMUI/Platform/FlarePlatform.swift",
+      "symbols": [
+        "FlarePlatformCapabilities",
+        "FlarePlatformAdapter",
+        "FlarePlatformResult",
+        "normalizeFlarePlatformError",
+        "withFlarePlatformTimeout"
+      ],
+      "test": "packages/ios-im-ui/Tests/FlareIMUITests/PlatformContractTests.swift"
+    }
+  },
+  "sniffLint": {
+    "note": "Components must not branch on platform identity; only the platform module and the adaptive/viewport composables may read these.",
+    "patterns": [
+      "navigator.userAgent",
+      "navigator.platform",
+      "__TAURI__",
+      "matchMedia(\"(pointer",
+      "matchMedia(\"(hover",
+      "defaultTargetPlatform",
+      "Platform.isIOS",
+      "Platform.isAndroid",
+      "Build.VERSION.SDK_INT",
+      "UIDevice.current"
+    ],
+    "allow": [
+      "packages/vue-im-ui/src/shared/platform/",
+      "packages/vue-im-ui/src/composables/useAdaptiveMode.ts",
+      "packages/vue-im-ui/src/composables/useViewport.ts",
+      "packages/flutter-im-ui/lib/src/platform/",
+      "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/FlarePlatform.kt",
+      "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/EmojiStickerCatalog.kt",
+      "packages/ios-im-ui/Sources/FlareIMUI/Platform/"
+    ]
+  }
+}
