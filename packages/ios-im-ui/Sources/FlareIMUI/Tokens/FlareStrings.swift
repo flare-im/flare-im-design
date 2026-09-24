@@ -270,6 +270,36 @@ public struct FlareStrings: Sendable {
     public var conversationBatchToolbarExpand: String
     public var conversationBatchToolbarMaxSelection: String
     // StorageUsageView
+    // Invite (InviteCodeField / MyInvitePanel)
+    public var inviteCodeLabel: String
+    public var inviteCodePlaceholder: String
+    public var inviteCodeOptional: String
+    public var inviteCodeChecking: String
+    public var inviteCodeValid: String
+    public var inviteCodeInviter: String
+    public var inviteCodeInvalid: String
+    public var myInviteTitle: String
+    public var myInviteCodeLabel: String
+    public var myInviteCodeUnavailable: String
+    public var myInviteCopy: String
+    public var myInviteShare: String
+    public var myInviteRegenerate: String
+    public var myInviteRegenerating: String
+    public var myInviteCooldown: String
+    public var myInviteUnitMinutes: String
+    public var myInviteUnitHours: String
+    public var myInviteUnitDays: String
+    public var myInviteStatsTitle: String
+    public var myInviteDirect: String
+    public var myInviteLevel2: String
+    public var myInviteLevel3: String
+    public var myInviteTotal: String
+    public var myInviteInviteesTitle: String
+    public var myInviteEmpty: String
+    public var myInviteLoadMore: String
+    public var myInviteLoading: String
+    public var myInviteJoined: String
+    public var myInviteCountOnly: String
     public var storageUsageTitle: String
     public var storageUsageUnknownSize: String
     public var storageUsageAtLeast: String
@@ -1009,6 +1039,35 @@ public struct FlareStrings: Sendable {
         conversationBatchToolbarDismiss: String = "关闭结果",
         conversationBatchToolbarExpand: String = "查看详情",
         conversationBatchToolbarMaxSelection: String = "最多可选 {n} 项",
+        inviteCodeLabel: String = "邀请码",
+        inviteCodePlaceholder: String = "请输入邀请码",
+        inviteCodeOptional: String = "选填",
+        inviteCodeChecking: String = "正在校验邀请码…",
+        inviteCodeValid: String = "邀请码可用",
+        inviteCodeInviter: String = "邀请人：{name}",
+        inviteCodeInvalid: String = "邀请码无效",
+        myInviteTitle: String = "我的邀请",
+        myInviteCodeLabel: String = "我的邀请码",
+        myInviteCodeUnavailable: String = "邀请码暂不可用",
+        myInviteCopy: String = "复制",
+        myInviteShare: String = "分享",
+        myInviteRegenerate: String = "重新生成",
+        myInviteRegenerating: String = "生成中…",
+        myInviteCooldown: String = "{time} 后可重新生成",
+        myInviteUnitMinutes: String = "{n} 分钟",
+        myInviteUnitHours: String = "{n} 小时",
+        myInviteUnitDays: String = "{n} 天",
+        myInviteStatsTitle: String = "我的团队",
+        myInviteDirect: String = "直接邀请",
+        myInviteLevel2: String = "二级",
+        myInviteLevel3: String = "三级",
+        myInviteTotal: String = "团队总数",
+        myInviteInviteesTitle: String = "直接邀请的人",
+        myInviteEmpty: String = "还没有人通过你的邀请码加入",
+        myInviteLoadMore: String = "加载更多",
+        myInviteLoading: String = "正在加载邀请信息",
+        myInviteJoined: String = "{date} 加入",
+        myInviteCountOnly: String = "{count} 人",
         storageUsageTitle: String = "存储空间",
         storageUsageUnknownSize: String = "未知",
         storageUsageAtLeast: String = "至少",
@@ -1557,6 +1616,35 @@ public struct FlareStrings: Sendable {
         self.conversationBatchToolbarDismiss = conversationBatchToolbarDismiss
         self.conversationBatchToolbarExpand = conversationBatchToolbarExpand
         self.conversationBatchToolbarMaxSelection = conversationBatchToolbarMaxSelection
+        self.inviteCodeLabel = inviteCodeLabel
+        self.inviteCodePlaceholder = inviteCodePlaceholder
+        self.inviteCodeOptional = inviteCodeOptional
+        self.inviteCodeChecking = inviteCodeChecking
+        self.inviteCodeValid = inviteCodeValid
+        self.inviteCodeInviter = inviteCodeInviter
+        self.inviteCodeInvalid = inviteCodeInvalid
+        self.myInviteTitle = myInviteTitle
+        self.myInviteCodeLabel = myInviteCodeLabel
+        self.myInviteCodeUnavailable = myInviteCodeUnavailable
+        self.myInviteCopy = myInviteCopy
+        self.myInviteShare = myInviteShare
+        self.myInviteRegenerate = myInviteRegenerate
+        self.myInviteRegenerating = myInviteRegenerating
+        self.myInviteCooldown = myInviteCooldown
+        self.myInviteUnitMinutes = myInviteUnitMinutes
+        self.myInviteUnitHours = myInviteUnitHours
+        self.myInviteUnitDays = myInviteUnitDays
+        self.myInviteStatsTitle = myInviteStatsTitle
+        self.myInviteDirect = myInviteDirect
+        self.myInviteLevel2 = myInviteLevel2
+        self.myInviteLevel3 = myInviteLevel3
+        self.myInviteTotal = myInviteTotal
+        self.myInviteInviteesTitle = myInviteInviteesTitle
+        self.myInviteEmpty = myInviteEmpty
+        self.myInviteLoadMore = myInviteLoadMore
+        self.myInviteLoading = myInviteLoading
+        self.myInviteJoined = myInviteJoined
+        self.myInviteCountOnly = myInviteCountOnly
         self.storageUsageTitle = storageUsageTitle
         self.storageUsageUnknownSize = storageUsageUnknownSize
         self.storageUsageAtLeast = storageUsageAtLeast

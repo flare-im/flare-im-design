@@ -42,10 +42,10 @@
     "supportsDensity": "The component takes a density of its own (its prop says what the values mean); the kit has no global density scale."
   },
   "counts": {
-    "total": 151,
-    "stable": 151,
-    "general": 42,
-    "im": 104
+    "total": 153,
+    "stable": 153,
+    "general": 43,
+    "im": 105
   },
   "specializedMessageGroups": {
     "Text": [
@@ -5677,6 +5677,138 @@
       "searchText": "input form general-ui stable form empty focused atlimit disabled update:modelvalue submit focus blur clear supportsconfiguration general text input — single/multi-line, char limit, clearable, disabled/read-only; the backbone of forms and search. 通用文本输入框 —— 单 / 多行、字数限制、可清除、禁用 / 只读，撑起表单与搜索。"
     },
     {
+      "name": "InviteCodeField",
+      "slug": "invite-code-field",
+      "category": "Form",
+      "layer": "general-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": true,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [
+          {
+            "name": "mode",
+            "values": [
+              "off",
+              "optional",
+              "required"
+            ]
+          },
+          {
+            "name": "checkResult",
+            "values": [
+              "InviteCodeCheckResult",
+              "null"
+            ]
+          }
+        ],
+        "states": [
+          "off",
+          "idle",
+          "typing",
+          "checking",
+          "valid",
+          "invalid",
+          "disabled"
+        ]
+      },
+      "summary": {
+        "en": "Registration-form invite-code field — hidden, optional or required by tenant mode; normalizes what is typed, asks the host to pre-check a complete code, and shows the inviter it resolved to.",
+        "zh": "注册表单的邀请码字段 —— 按租户模式隐藏 / 选填 / 必填；归一化输入，码输完后请宿主预检，并展示解析出的邀请人。"
+      },
+      "aliases": [
+        "Form",
+        "off",
+        "idle",
+        "typing",
+        "checking",
+        "valid",
+        "invalid",
+        "disabled",
+        "update:modelValue",
+        "check"
+      ],
+      "states": [
+        "off",
+        "idle",
+        "typing",
+        "checking",
+        "valid",
+        "invalid",
+        "disabled"
+      ],
+      "interactions": [
+        "update:modelValue",
+        "check"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareInviteCodeField"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareInviteCodeField"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "InviteCodeField"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "InviteCodeFieldView"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/form/FlareInviteCodeField.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_invite_code_field.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/InviteCodeField.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/InviteViews.swift"
+      },
+      "docs": {
+        "zh": "website/components/invite-code-field.md",
+        "en": "website/en/components/invite-code-field.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#InviteCodeField",
+      "searchText": "invitecodefield form general-ui stable form off idle typing checking valid invalid disabled update:modelvalue check supportsconfiguration registration-form invite-code field — hidden, optional or required by tenant mode; normalizes what is typed, asks the host to pre-check a complete code, and shows the inviter it resolved to. 注册表单的邀请码字段 —— 按租户模式隐藏 / 选填 / 必填；归一化输入，码输完后请宿主预检，并展示解析出的邀请人。"
+    },
+    {
       "name": "EmptyState",
       "slug": "empty-state",
       "category": "Feedback",
@@ -9585,6 +9717,140 @@
       },
       "sourceOfTruth": "spec/components.json#QRCard",
       "searchText": "qrcard profile im-ui stable profile supportsconfiguration qr name card — avatar + name + qr frame. 二维码名片 —— 头像 + 名字 + 二维码框。"
+    },
+    {
+      "name": "MyInvitePanel",
+      "slug": "my-invite-panel",
+      "category": "Profile",
+      "layer": "im-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": true,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [
+          {
+            "name": "stats",
+            "values": [
+              "ReferralStats",
+              "null"
+            ]
+          },
+          {
+            "name": "regenerateAvailableAt",
+            "values": [
+              "number",
+              "null"
+            ]
+          }
+        ],
+        "states": [
+          "loading",
+          "empty",
+          "default",
+          "countOnly",
+          "cooldown",
+          "regenerating"
+        ]
+      },
+      "summary": {
+        "en": "\"My invite\" card — the person's invite code with copy / share / regenerate, referral counts per depth, and the list of people they invited directly.",
+        "zh": "「我的邀请」卡片 —— 本人邀请码及复制 / 分享 / 重新生成、各深度的推荐人数、直接邀请的人列表。"
+      },
+      "aliases": [
+        "Profile",
+        "loading",
+        "empty",
+        "default",
+        "countOnly",
+        "cooldown",
+        "regenerating",
+        "copy",
+        "share",
+        "regenerate",
+        "loadMore",
+        "select"
+      ],
+      "states": [
+        "loading",
+        "empty",
+        "default",
+        "countOnly",
+        "cooldown",
+        "regenerating"
+      ],
+      "interactions": [
+        "copy",
+        "share",
+        "regenerate",
+        "loadMore",
+        "select"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareMyInvitePanel"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareMyInvitePanel"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "MyInvitePanel"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "MyInvitePanelView"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/profile/FlareMyInvitePanel.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_my_invite_panel.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/MyInvitePanel.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/InviteViews.swift"
+      },
+      "docs": {
+        "zh": "website/components/my-invite-panel.md",
+        "en": "website/en/components/my-invite-panel.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#MyInvitePanel",
+      "searchText": "myinvitepanel profile im-ui stable profile loading empty default countonly cooldown regenerating copy share regenerate loadmore select supportsconfiguration \"my invite\" card — the person's invite code with copy / share / regenerate, referral counts per depth, and the list of people they invited directly. 「我的邀请」卡片 —— 本人邀请码及复制 / 分享 / 重新生成、各深度的推荐人数、直接邀请的人列表。"
     },
     {
       "name": "ImageGrid",

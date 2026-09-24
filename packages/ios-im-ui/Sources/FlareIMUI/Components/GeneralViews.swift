@@ -99,6 +99,8 @@ public struct InputView: View {
     private let clearable: Bool
     private let secure: Bool
     private let revealable: Bool
+    /// Draw the value in the platform's monospaced face (codes, identifiers); the field's geometry does not change.
+    private let monospace: Bool
     private let onSubmit: (() -> Void)?
     @ScaledMetric(relativeTo: .body) private var fieldSize: CGFloat = FlareSizes.fontSizeLg
     @Environment(\.colorScheme) private var scheme
@@ -114,10 +116,11 @@ public struct InputView: View {
                 secure: Bool = false,
                 /// A secure field the person can unmask: the field draws the reveal key itself, named by the kit.
                 revealable: Bool = false,
+                monospace: Bool = false,
                 onSubmit: (() -> Void)? = nil) {
         self._text = text; self.placeholder = placeholder; self.multiline = multiline
         self.maxLength = maxLength; self.disabled = disabled; self.clearable = clearable
-        self.secure = secure; self.revealable = revealable; self.onSubmit = onSubmit
+        self.secure = secure; self.revealable = revealable; self.monospace = monospace; self.onSubmit = onSubmit
     }
 
     public var body: some View {
@@ -143,7 +146,7 @@ public struct InputView: View {
                             TextField("", text: $text).focused($focused).onSubmit { onSubmit?() }
                         }
                     }
-                    .font(.system(size: fieldSize))
+                    .font(.system(size: fieldSize, design: monospace ? .monospaced : .default))
                     .foregroundColor(colors.textPrimary)
                 }
                 // Both field keys are icon-only controls, so each reserves a full touch target (FR-077);

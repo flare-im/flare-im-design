@@ -20,6 +20,7 @@ class FlareInput extends StatefulWidget {
     this.clearable = false,
     this.autofocus = false,
     this.prefix,
+    this.monospace = false,
     this.onChanged,
     this.onSubmitted,
   });
@@ -42,6 +43,10 @@ class FlareInput extends StatefulWidget {
 
   /// Request focus when first shown (e.g. the primary field in a dialog).
   final bool autofocus;
+
+  /// Draw the value in the platform's monospaced face (codes, identifiers);
+  /// the field's geometry does not change.
+  final bool monospace;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
 
@@ -150,6 +155,11 @@ class _FlareInputState extends State<FlareInput> {
                     style: TextStyle(
                       color: colors.textPrimary,
                       fontSize: FlareSizes.fontSizeLg,
+                      fontFamily: widget.monospace ? 'monospace' : null,
+                      fontFamilyFallback: widget.monospace
+                          ? const ['Menlo', 'Roboto Mono', 'Courier New']
+                          : null,
+                      letterSpacing: widget.monospace ? 1.2 : null,
                     ),
                     decoration: InputDecoration(
                       isCollapsed: true,

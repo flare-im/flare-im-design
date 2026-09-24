@@ -30,11 +30,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 
 /**
@@ -55,6 +58,8 @@ fun Input(
     secure: Boolean = false,
     /** A secure field the person can unmask: the field draws the reveal key itself, named by the kit. */
     revealable: Boolean = false,
+    /** Draw the value in the platform's monospaced face (codes, identifiers); the field's geometry does not change. */
+    monospace: Boolean = false,
     onSubmit: (() -> Unit)? = null,
 ) {
     val colors = flareColors()
@@ -81,7 +86,12 @@ fun Input(
                     singleLine = !multiline || secure,
                     maxLines = if (multiline && !secure) 6 else 1,
                     interactionSource = interaction,
-                    textStyle = TextStyle(color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp),
+                    textStyle = TextStyle(
+                        color = colors.textPrimary,
+                        fontSize = FlareSizes.fontSizeLg.value.sp,
+                        fontFamily = if (monospace) FontFamily.Monospace else null,
+                        letterSpacing = if (monospace) 0.08.em else TextUnit.Unspecified,
+                    ),
                     cursorBrush = SolidColor(colors.primary),
                     visualTransformation = if (masked) PasswordVisualTransformation() else VisualTransformation.None,
                     keyboardOptions = KeyboardOptions(

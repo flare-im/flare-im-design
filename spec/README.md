@@ -48,7 +48,7 @@ Top-level tables shared by every component:
 <!-- CATALOG:START -->
 ## Component catalog
 
-**151 components / 17 categories** (source in [`components.json`](./components.json);
+**153 components / 17 categories** (source in [`components.json`](./components.json);
 props/events extracted and calibrated from the `@flare-im/vue-ui` source).
 
 > This section is generated from the contract by `gen-readme-catalog.mjs`; do not edit by hand — a hand-written catalog rots as the contract grows.
@@ -57,12 +57,12 @@ props/events extracted and calibrated from the `@flare-im/vue-ui` source).
   `AnnouncementBanner` · `ContactMessage` · `ConversationHeader` · `DatePill` · `EmojiMessage` · `FileMessage` · `ImageGrid` · `ImageGroupMessage` · `ImageMessage` · `LinkCardMessage` · `LocationMessage` · `MessageActionSheet` · `MessageBatchToolbar` · `MessageBubble` · `MessageContentView` · `MessageList` · `MessageMeta` · `MessageStatus` · `PinnedMessageBar` · `ReactionSummary` · `ReadReceiptSheet` · `RedPacketCard` · `RichTextMessage` · `ScrollToLatest` · `StickerMessage` · `SystemMessage` · `TaskMessage` · `TextMessage` · `TranslationView` · `TypingIndicator` · `UnknownMessage` · `UnreadDivider` · `VideoMessage` · `VoiceMessage` · `VoicePlayer` · `VoteMessage`
 - **Composer** — 15
   `Composer` · `ComposerActionPanel` · `ComposerMediaPreview` · `ComposerReplyStrip` · `ComposerSendButton` · `EmojiPicker` · `EmojiStickerPicker` · `MentionPicker` · `PollComposer` · `QuickPhrases` · `RichMarkdownInput` · `SlashCommandMenu` · `StickerPanel` · `VoiceHoldButton` · `VoiceRecordingBar`
+- **Form** — 14
+  `Checkbox` · `DatePicker` · `FormField` · `Input` · `InviteCodeField` · `RadioGroup` · `Rating` · `SearchDateRangeFilter` · `Select` · `Slider` · `Stepper` · `Switch` · `Textarea` · `TimePicker`
 - **Contacts** — 13
   `ContactDetail` · `ContactItem` · `ContactList` · `ContactMatchList` · `GroupDetail` · `GroupList` · `GroupMemberGrid` · `GroupPermissionMatrix` · `MemberPanel` · `MemberRoleSheet` · `NewFriendRequests` · `RelationActionBar` · `UnknownUserPlaceholder`
-- **Form** — 13
-  `Checkbox` · `DatePicker` · `FormField` · `Input` · `RadioGroup` · `Rating` · `SearchDateRangeFilter` · `Select` · `Slider` · `Stepper` · `Switch` · `Textarea` · `TimePicker`
-- **Profile** — 9
-  `DeviceSessions` · `NotificationPreferences` · `ProfileCard` · `ProfileEditor` · `ProfilePanel` · `QRCard` · `SettingsList` · `SettingsRow` · `StorageUsage`
+- **Profile** — 10
+  `DeviceSessions` · `MyInvitePanel` · `NotificationPreferences` · `ProfileCard` · `ProfileEditor` · `ProfilePanel` · `QRCard` · `SettingsList` · `SettingsRow` · `StorageUsage`
 - **Conversation** — 8
   `ChatWallpaperPicker` · `ConversationActionSheet` · `ConversationBatchToolbar` · `ConversationDetails` · `ConversationList` · `ConversationRow` · `ForwardPicker` · `StartConversationDialog`
 - **Feedback** — 8

@@ -173,3 +173,24 @@ export {
 // (docs/release/security-boundary.md, public-api-2.0.md). Flutter, Compose and SwiftUI
 // already export it; the Vue entry had omitted it.
 export { FLARE_SAFE_URL_PROTOCOLS, isSafeExternalUrl, safeExternalUrl } from "./url-safety";
+export type {
+  FlareInviteCodeMode,
+  FlareInviteCodeCheckResult,
+  FlareInviteCodeFieldState,
+  FlareReferralStats,
+  FlareInvitee,
+  FlareReferralDepth,
+  FlareInviteCooldown,
+  FlareRegenerateAvailability,
+} from "./invite";
+export {
+  FLARE_INVITE_CODE_DEFAULT_LENGTH,
+  FLARE_INVITE_CHECK_DEBOUNCE_MS,
+  normalizeInviteCode,
+  inviteCodeFieldState,
+  inviteCodeToCheck,
+  referralDepthRows,
+  regenerateAvailability,
+  formatInviteJoinedDate,
+  inviteJoinedDateLabel,
+} from "./invite";

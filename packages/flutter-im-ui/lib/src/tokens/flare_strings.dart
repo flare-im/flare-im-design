@@ -535,6 +535,35 @@ class FlareStrings {
     this.searchDateRangeFilterTo = '结束日期',
     this.searchDateRangeFilterUnlimited = '不限时间',
     this.searchDateRangeFilterInvalid = '起始日期不能晚于结束日期',
+    this.inviteCodeLabel = '邀请码',
+    this.inviteCodePlaceholder = '请输入邀请码',
+    this.inviteCodeOptional = '选填',
+    this.inviteCodeChecking = '正在校验邀请码…',
+    this.inviteCodeValid = '邀请码可用',
+    this.inviteCodeInviter = '邀请人：{name}',
+    this.inviteCodeInvalid = '邀请码无效',
+    this.myInviteTitle = '我的邀请',
+    this.myInviteCodeLabel = '我的邀请码',
+    this.myInviteCodeUnavailable = '邀请码暂不可用',
+    this.myInviteCopy = '复制',
+    this.myInviteShare = '分享',
+    this.myInviteRegenerate = '重新生成',
+    this.myInviteRegenerating = '生成中…',
+    this.myInviteCooldown = '{time} 后可重新生成',
+    this.myInviteUnitMinutes = '{n} 分钟',
+    this.myInviteUnitHours = '{n} 小时',
+    this.myInviteUnitDays = '{n} 天',
+    this.myInviteStatsTitle = '我的团队',
+    this.myInviteDirect = '直接邀请',
+    this.myInviteLevel2 = '二级',
+    this.myInviteLevel3 = '三级',
+    this.myInviteTotal = '团队总数',
+    this.myInviteInviteesTitle = '直接邀请的人',
+    this.myInviteEmpty = '还没有人通过你的邀请码加入',
+    this.myInviteLoadMore = '加载更多',
+    this.myInviteLoading = '正在加载邀请信息',
+    this.myInviteJoined = '{date} 加入',
+    this.myInviteCountOnly = '{count} 人',
     this.storageUsageTitle = '存储空间',
     this.storageUsageUnknownSize = '未知',
     this.storageUsageAtLeast = '至少',
@@ -1196,6 +1225,35 @@ class FlareStrings {
   final String searchDateRangeFilterTo;
   final String searchDateRangeFilterUnlimited;
   final String searchDateRangeFilterInvalid;
+  final String inviteCodeLabel;
+  final String inviteCodePlaceholder;
+  final String inviteCodeOptional;
+  final String inviteCodeChecking;
+  final String inviteCodeValid;
+  final String inviteCodeInviter;
+  final String inviteCodeInvalid;
+  final String myInviteTitle;
+  final String myInviteCodeLabel;
+  final String myInviteCodeUnavailable;
+  final String myInviteCopy;
+  final String myInviteShare;
+  final String myInviteRegenerate;
+  final String myInviteRegenerating;
+  final String myInviteCooldown;
+  final String myInviteUnitMinutes;
+  final String myInviteUnitHours;
+  final String myInviteUnitDays;
+  final String myInviteStatsTitle;
+  final String myInviteDirect;
+  final String myInviteLevel2;
+  final String myInviteLevel3;
+  final String myInviteTotal;
+  final String myInviteInviteesTitle;
+  final String myInviteEmpty;
+  final String myInviteLoadMore;
+  final String myInviteLoading;
+  final String myInviteJoined;
+  final String myInviteCountOnly;
   final String storageUsageTitle;
   final String storageUsageUnknownSize;
   final String storageUsageAtLeast;
@@ -1788,6 +1846,35 @@ class FlareStrings {
     String? searchDateRangeFilterTo,
     String? searchDateRangeFilterUnlimited,
     String? searchDateRangeFilterInvalid,
+    String? inviteCodeLabel,
+    String? inviteCodePlaceholder,
+    String? inviteCodeOptional,
+    String? inviteCodeChecking,
+    String? inviteCodeValid,
+    String? inviteCodeInviter,
+    String? inviteCodeInvalid,
+    String? myInviteTitle,
+    String? myInviteCodeLabel,
+    String? myInviteCodeUnavailable,
+    String? myInviteCopy,
+    String? myInviteShare,
+    String? myInviteRegenerate,
+    String? myInviteRegenerating,
+    String? myInviteCooldown,
+    String? myInviteUnitMinutes,
+    String? myInviteUnitHours,
+    String? myInviteUnitDays,
+    String? myInviteStatsTitle,
+    String? myInviteDirect,
+    String? myInviteLevel2,
+    String? myInviteLevel3,
+    String? myInviteTotal,
+    String? myInviteInviteesTitle,
+    String? myInviteEmpty,
+    String? myInviteLoadMore,
+    String? myInviteLoading,
+    String? myInviteJoined,
+    String? myInviteCountOnly,
     String? storageUsageTitle,
     String? storageUsageUnknownSize,
     String? storageUsageAtLeast,
@@ -2553,6 +2640,35 @@ class FlareStrings {
           searchDateRangeFilterUnlimited ?? this.searchDateRangeFilterUnlimited,
       searchDateRangeFilterInvalid:
           searchDateRangeFilterInvalid ?? this.searchDateRangeFilterInvalid,
+      inviteCodeLabel: inviteCodeLabel ?? this.inviteCodeLabel,
+      inviteCodePlaceholder: inviteCodePlaceholder ?? this.inviteCodePlaceholder,
+      inviteCodeOptional: inviteCodeOptional ?? this.inviteCodeOptional,
+      inviteCodeChecking: inviteCodeChecking ?? this.inviteCodeChecking,
+      inviteCodeValid: inviteCodeValid ?? this.inviteCodeValid,
+      inviteCodeInviter: inviteCodeInviter ?? this.inviteCodeInviter,
+      inviteCodeInvalid: inviteCodeInvalid ?? this.inviteCodeInvalid,
+      myInviteTitle: myInviteTitle ?? this.myInviteTitle,
+      myInviteCodeLabel: myInviteCodeLabel ?? this.myInviteCodeLabel,
+      myInviteCodeUnavailable: myInviteCodeUnavailable ?? this.myInviteCodeUnavailable,
+      myInviteCopy: myInviteCopy ?? this.myInviteCopy,
+      myInviteShare: myInviteShare ?? this.myInviteShare,
+      myInviteRegenerate: myInviteRegenerate ?? this.myInviteRegenerate,
+      myInviteRegenerating: myInviteRegenerating ?? this.myInviteRegenerating,
+      myInviteCooldown: myInviteCooldown ?? this.myInviteCooldown,
+      myInviteUnitMinutes: myInviteUnitMinutes ?? this.myInviteUnitMinutes,
+      myInviteUnitHours: myInviteUnitHours ?? this.myInviteUnitHours,
+      myInviteUnitDays: myInviteUnitDays ?? this.myInviteUnitDays,
+      myInviteStatsTitle: myInviteStatsTitle ?? this.myInviteStatsTitle,
+      myInviteDirect: myInviteDirect ?? this.myInviteDirect,
+      myInviteLevel2: myInviteLevel2 ?? this.myInviteLevel2,
+      myInviteLevel3: myInviteLevel3 ?? this.myInviteLevel3,
+      myInviteTotal: myInviteTotal ?? this.myInviteTotal,
+      myInviteInviteesTitle: myInviteInviteesTitle ?? this.myInviteInviteesTitle,
+      myInviteEmpty: myInviteEmpty ?? this.myInviteEmpty,
+      myInviteLoadMore: myInviteLoadMore ?? this.myInviteLoadMore,
+      myInviteLoading: myInviteLoading ?? this.myInviteLoading,
+      myInviteJoined: myInviteJoined ?? this.myInviteJoined,
+      myInviteCountOnly: myInviteCountOnly ?? this.myInviteCountOnly,
       storageUsageTitle: storageUsageTitle ?? this.storageUsageTitle,
       storageUsageUnknownSize:
           storageUsageUnknownSize ?? this.storageUsageUnknownSize,

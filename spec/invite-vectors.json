@@ -1,0 +1,62 @@
+{
+  "$comment": "Shared table for InviteCodeField / MyInvitePanel logic on four platforms. normalize: raw → normalized code (length 6 unless given). fieldState: the state vector of InviteCodeField. depthRows: which referral depths MyInvitePanel lists. regenerate: cooldown resolution (times in ms). Each platform's test runs every vector by id; tooling does not enumerate them, the tests do.",
+  "normalize": [
+    { "id": "n.empty", "raw": "", "expected": "" },
+    { "id": "n.trim", "raw": "  ab12cd  ", "expected": "AB12CD" },
+    { "id": "n.uppercase", "raw": "abcdef", "expected": "ABCDEF" },
+    { "id": "n.oToZero", "raw": "o0Oo0O", "expected": "000000" },
+    { "id": "n.iAndLToOne", "raw": "iLlI1l", "expected": "111111" },
+    { "id": "n.separators", "raw": "AB-12 CD", "expected": "AB12CD" },
+    { "id": "n.truncate", "raw": "ABCDEFGH", "expected": "ABCDEF" },
+    { "id": "n.customLength", "raw": "abcdefgh12", "length": 8, "expected": "ABCDEFGH" },
+    { "id": "n.partial", "raw": "ab", "expected": "AB" },
+    { "id": "n.pasteWithNoise", "raw": "Code: o1-l2 i3", "expected": "C0DE01" }
+  ],
+  "fieldState": [
+    { "id": "s.off", "mode": "off", "value": "AB12CD", "expected": "off" },
+    { "id": "s.disabled", "mode": "optional", "value": "AB12CD", "disabled": true, "expected": "disabled" },
+    { "id": "s.idle", "mode": "optional", "value": "", "expected": "idle" },
+    { "id": "s.typingPartial", "mode": "required", "value": "AB1", "expected": "typing" },
+    { "id": "s.typingCompleteNoResult", "mode": "required", "value": "AB12CD", "expected": "typing" },
+    { "id": "s.checking", "mode": "optional", "value": "AB12CD", "checking": true, "expected": "checking" },
+    { "id": "s.checkingWinsOverStaleResult", "mode": "optional", "value": "AB12CD", "checking": true, "checkResult": { "valid": true, "inviterDisplayName": "Ann" }, "expected": "checking" },
+    { "id": "s.valid", "mode": "optional", "value": "AB12CD", "checkResult": { "valid": true, "inviterDisplayName": "Ann" }, "expected": "valid" },
+    { "id": "s.invalidResult", "mode": "optional", "value": "AB12CD", "checkResult": { "valid": false }, "expected": "invalid" },
+    { "id": "s.hostError", "mode": "required", "value": "", "error": "INVITE_CODE_REQUIRED", "expected": "invalid" },
+    { "id": "s.hostErrorWinsOverValid", "mode": "required", "value": "AB12CD", "error": "boom", "checkResult": { "valid": true }, "expected": "invalid" },
+    { "id": "s.disabledWinsOverError", "mode": "required", "value": "AB12CD", "disabled": true, "error": "boom", "expected": "disabled" },
+    { "id": "s.offWinsOverEverything", "mode": "off", "value": "", "disabled": true, "error": "boom", "expected": "off" }
+  ],
+  "checkRequest": [
+    { "id": "c.partialNever", "value": "AB1", "expected": null },
+    { "id": "c.complete", "value": "AB12CD", "expected": "AB12CD" },
+    { "id": "c.customLength", "value": "ABCDEFGH", "length": 8, "expected": "ABCDEFGH" },
+    { "id": "c.disabled", "value": "AB12CD", "disabled": true, "expected": null },
+    { "id": "c.off", "value": "AB12CD", "mode": "off", "expected": null },
+    { "id": "c.empty", "value": "", "expected": null }
+  ],
+  "depthRows": [
+    { "id": "d.none", "stats": null, "maxDepthShown": 3, "expected": [] },
+    { "id": "d.all", "stats": { "direct": 5, "l2": 12, "l3": 40, "total": 57 }, "maxDepthShown": 3, "expected": ["direct", "l2", "l3", "total"] },
+    { "id": "d.two", "stats": { "direct": 5, "l2": 12, "l3": 40, "total": 57 }, "maxDepthShown": 2, "expected": ["direct", "l2", "total"] },
+    { "id": "d.one", "stats": { "direct": 5, "l2": 12, "l3": 40, "total": 57 }, "maxDepthShown": 1, "expected": ["direct", "total"] },
+    { "id": "d.clampLow", "stats": { "direct": 0, "l2": 0, "l3": 0, "total": 0 }, "maxDepthShown": 0, "expected": ["direct", "total"] },
+    { "id": "d.clampHigh", "stats": { "direct": 1, "l2": 0, "l3": 0, "total": 1 }, "maxDepthShown": 9, "expected": ["direct", "l2", "l3", "total"] }
+  ],
+  "regenerate": [
+    { "id": "r.notAllowed", "canRegenerate": false, "availableAt": null, "now": 1767000000000, "expected": { "shown": false, "enabled": false, "remaining": null } },
+    { "id": "r.allowedNoCooldown", "canRegenerate": true, "availableAt": null, "now": 1767000000000, "expected": { "shown": true, "enabled": true, "remaining": null } },
+    { "id": "r.allowedPastCooldown", "canRegenerate": true, "availableAt": 1766999999000, "now": 1767000000000, "expected": { "shown": true, "enabled": true, "remaining": null } },
+    { "id": "r.exactlyNow", "canRegenerate": true, "availableAt": 1767000000000, "now": 1767000000000, "expected": { "shown": true, "enabled": true, "remaining": null } },
+    { "id": "r.coolingMinutes", "canRegenerate": true, "availableAt": 1767000900000, "now": 1767000000000, "expected": { "shown": true, "enabled": false, "remaining": { "unit": "minute", "count": 15 } } },
+    { "id": "r.coolingUnderOneMinute", "canRegenerate": true, "availableAt": 1767000010000, "now": 1767000000000, "expected": { "shown": true, "enabled": false, "remaining": { "unit": "minute", "count": 1 } } },
+    { "id": "r.coolingHours", "canRegenerate": true, "availableAt": 1767009000000, "now": 1767000000000, "expected": { "shown": true, "enabled": false, "remaining": { "unit": "hour", "count": 3 } } },
+    { "id": "r.coolingHoursRoundsUp", "canRegenerate": true, "availableAt": 1767003601000, "now": 1767000000000, "expected": { "shown": true, "enabled": false, "remaining": { "unit": "hour", "count": 2 } } },
+    { "id": "r.coolingDays", "canRegenerate": true, "availableAt": 1767259200000, "now": 1767000000000, "expected": { "shown": true, "enabled": false, "remaining": { "unit": "day", "count": 3 } } },
+    { "id": "r.notAllowedWhileCooling", "canRegenerate": false, "availableAt": 1767259200000, "now": 1767000000000, "expected": { "shown": false, "enabled": false, "remaining": null } }
+  ],
+  "joinedDate": [
+    { "id": "j.date", "year": 2026, "month": 9, "day": 24, "expected": "2026-09-24" },
+    { "id": "j.padding", "year": 2026, "month": 1, "day": 5, "expected": "2026-01-05" }
+  ]
+}

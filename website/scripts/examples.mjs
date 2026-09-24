@@ -5,6 +5,123 @@
 // Avoid `${` inside the code strings (would interpolate); use plain values.
 
 export const curatedExamples = {
+
+  InviteCodeField: [
+    {
+      title: { en: "Registration form, host-run pre-check", zh: "注册表单，宿主执行预检" },
+      description: { en: "The tenant's invite mode decides whether the field exists. The field normalizes input and emits `check` once for a complete code; the host runs the request and feeds `checking` / `checkResult` back. A stale result is cleared by the host when the code changes.", zh: "租户邀请模式决定字段是否存在。字段归一化输入，码完整后只触发一次 `check`；宿主发请求并把 `checking` / `checkResult` 回填。码变化时宿主清掉旧结果。" },
+      vue: `<FlareInviteCodeField
+  v-model="inviteCode"
+  :mode="features.inviteMode"
+  :prefill="route.query.code"
+  :checking="checking"
+  :check-result="checkResult"
+  :error="errors.inviteCode"
+  @update:model-value="checkResult = null"
+  @check="preCheck"
+/>`,
+      flutter: `FlareInviteCodeField(
+  controller: inviteCode,
+  mode: features.inviteMode,
+  prefill: deepLinkCode,
+  checking: checking,
+  checkResult: checkResult,
+  error: errors.inviteCode,
+  onChanged: (_) => setState(() => checkResult = null),
+  onCheck: preCheck,
+)`,
+      compose: `InviteCodeField(
+  value = inviteCode,
+  onValueChange = { inviteCode = it; checkResult = null },
+  mode = features.inviteMode,
+  prefill = deepLinkCode,
+  checking = checking,
+  checkResult = checkResult,
+  error = errors.inviteCode,
+  onCheck = ::preCheck,
+)`,
+      ios: `InviteCodeFieldView(
+  text: $inviteCode,
+  mode: features.inviteMode,
+  prefill: deepLinkCode,
+  checking: checking,
+  checkResult: checkResult,
+  error: errors.inviteCode,
+  onCheck: preCheck
+)`,
+    },
+  ],
+
+  MyInvitePanel: [
+    {
+      title: { en: "My invite page", zh: "「我的邀请」页" },
+      description: { en: "The host fetched the code, the share link, the referral stats and a keyset page of invitees; copy / share / regenerate / loadMore are intents it performs. `maxDepthShown` and `showProfiles` come from the tenant's referral visibility.", zh: "宿主取回码、分享链接、推荐统计与一页下级；copy / share / regenerate / loadMore 都是宿主执行的意图。`maxDepthShown` 与 `showProfiles` 来自租户的推荐可见性配置。" },
+      vue: `<FlareMyInvitePanel
+  :code="invite.code"
+  :share-url="invite.shareUrl"
+  :stats="stats"
+  :max-depth-shown="visibility.depth"
+  :invitees="invitees"
+  :show-profiles="visibility.showProfiles"
+  :has-more="hasMore"
+  :can-regenerate="invite.canRegenerate"
+  :regenerate-available-at="invite.regenerateAvailableAt"
+  @copy="copyToClipboard"
+  @share="openShareSheet"
+  @regenerate="regenerate"
+  @load-more="loadMore"
+  @select="openProfile"
+/>`,
+      flutter: `FlareMyInvitePanel(
+  code: invite.code,
+  shareUrl: invite.shareUrl,
+  stats: stats,
+  maxDepthShown: visibility.depth,
+  invitees: invitees,
+  showProfiles: visibility.showProfiles,
+  hasMore: hasMore,
+  canRegenerate: invite.canRegenerate,
+  regenerateAvailableAt: invite.regenerateAvailableAt,
+  onCopy: copyToClipboard,
+  onShare: openShareSheet,
+  onRegenerate: regenerate,
+  onLoadMore: loadMore,
+  onSelect: openProfile,
+)`,
+      compose: `MyInvitePanel(
+  code = invite.code,
+  shareUrl = invite.shareUrl,
+  stats = stats,
+  maxDepthShown = visibility.depth,
+  invitees = invitees,
+  showProfiles = visibility.showProfiles,
+  hasMore = hasMore,
+  canRegenerate = invite.canRegenerate,
+  regenerateAvailableAt = invite.regenerateAvailableAt,
+  onCopy = ::copyToClipboard,
+  onShare = ::openShareSheet,
+  onRegenerate = ::regenerate,
+  onLoadMore = ::loadMore,
+  onSelect = ::openProfile,
+)`,
+      ios: `MyInvitePanelView(
+  code: invite.code,
+  shareURL: invite.shareURL,
+  stats: stats,
+  maxDepthShown: visibility.depth,
+  invitees: invitees,
+  showProfiles: visibility.showProfiles,
+  hasMore: hasMore,
+  canRegenerate: invite.canRegenerate,
+  regenerateAvailableAt: invite.regenerateAvailableAt,
+  onCopy: copyToClipboard,
+  onShare: openShareSheet,
+  onRegenerate: regenerate,
+  onLoadMore: loadMore,
+  onSelect: openProfile
+)`,
+    },
+  ],
   Avatar: [
     {
       title: { en: "Size & presence", zh: "尺寸与在线状态" },

@@ -1289,6 +1289,32 @@
       }
     },
     {
+      "name": "InviteCodeField",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareInviteCodeField",
+          "sourcePath": "packages/vue-im-ui/src/components/form/FlareInviteCodeField.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareInviteCodeField",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_invite_code_field.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "InviteCodeField",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/InviteCodeField.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "InviteCodeFieldView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/InviteViews.swift"
+        }
+      }
+    },
+    {
       "name": "EmptyState",
       "status": "stable",
       "platforms": {
@@ -2273,6 +2299,32 @@
           "package": "FlareIMUI",
           "symbol": "QRCardView",
           "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/QRCardView.swift"
+        }
+      }
+    },
+    {
+      "name": "MyInvitePanel",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareMyInvitePanel",
+          "sourcePath": "packages/vue-im-ui/src/components/profile/FlareMyInvitePanel.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareMyInvitePanel",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_my_invite_panel.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "MyInvitePanel",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/MyInvitePanel.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "MyInvitePanelView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/InviteViews.swift"
         }
       }
     },

@@ -652,6 +652,65 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["memberRoleSheetOwnerProtected"] as? (String)) ?: "群主不可被管理"
 
     // 存储空间（StorageUsage；{count} 由组件替换）
+    // 邀请（InviteCodeField / MyInvitePanel）
+    val inviteCodeLabel: String
+        get() = (overrides["inviteCodeLabel"] as? (String)) ?: "邀请码"
+    val inviteCodePlaceholder: String
+        get() = (overrides["inviteCodePlaceholder"] as? (String)) ?: "请输入邀请码"
+    val inviteCodeOptional: String
+        get() = (overrides["inviteCodeOptional"] as? (String)) ?: "选填"
+    val inviteCodeChecking: String
+        get() = (overrides["inviteCodeChecking"] as? (String)) ?: "正在校验邀请码…"
+    val inviteCodeValid: String
+        get() = (overrides["inviteCodeValid"] as? (String)) ?: "邀请码可用"
+    val inviteCodeInviter: String
+        get() = (overrides["inviteCodeInviter"] as? (String)) ?: "邀请人：{name}"
+    val inviteCodeInvalid: String
+        get() = (overrides["inviteCodeInvalid"] as? (String)) ?: "邀请码无效"
+    val myInviteTitle: String
+        get() = (overrides["myInviteTitle"] as? (String)) ?: "我的邀请"
+    val myInviteCodeLabel: String
+        get() = (overrides["myInviteCodeLabel"] as? (String)) ?: "我的邀请码"
+    val myInviteCodeUnavailable: String
+        get() = (overrides["myInviteCodeUnavailable"] as? (String)) ?: "邀请码暂不可用"
+    val myInviteCopy: String
+        get() = (overrides["myInviteCopy"] as? (String)) ?: "复制"
+    val myInviteShare: String
+        get() = (overrides["myInviteShare"] as? (String)) ?: "分享"
+    val myInviteRegenerate: String
+        get() = (overrides["myInviteRegenerate"] as? (String)) ?: "重新生成"
+    val myInviteRegenerating: String
+        get() = (overrides["myInviteRegenerating"] as? (String)) ?: "生成中…"
+    val myInviteCooldown: String
+        get() = (overrides["myInviteCooldown"] as? (String)) ?: "{time} 后可重新生成"
+    val myInviteUnitMinutes: String
+        get() = (overrides["myInviteUnitMinutes"] as? (String)) ?: "{n} 分钟"
+    val myInviteUnitHours: String
+        get() = (overrides["myInviteUnitHours"] as? (String)) ?: "{n} 小时"
+    val myInviteUnitDays: String
+        get() = (overrides["myInviteUnitDays"] as? (String)) ?: "{n} 天"
+    val myInviteStatsTitle: String
+        get() = (overrides["myInviteStatsTitle"] as? (String)) ?: "我的团队"
+    val myInviteDirect: String
+        get() = (overrides["myInviteDirect"] as? (String)) ?: "直接邀请"
+    val myInviteLevel2: String
+        get() = (overrides["myInviteLevel2"] as? (String)) ?: "二级"
+    val myInviteLevel3: String
+        get() = (overrides["myInviteLevel3"] as? (String)) ?: "三级"
+    val myInviteTotal: String
+        get() = (overrides["myInviteTotal"] as? (String)) ?: "团队总数"
+    val myInviteInviteesTitle: String
+        get() = (overrides["myInviteInviteesTitle"] as? (String)) ?: "直接邀请的人"
+    val myInviteEmpty: String
+        get() = (overrides["myInviteEmpty"] as? (String)) ?: "还没有人通过你的邀请码加入"
+    val myInviteLoadMore: String
+        get() = (overrides["myInviteLoadMore"] as? (String)) ?: "加载更多"
+    val myInviteLoading: String
+        get() = (overrides["myInviteLoading"] as? (String)) ?: "正在加载邀请信息"
+    val myInviteJoined: String
+        get() = (overrides["myInviteJoined"] as? (String)) ?: "{date} 加入"
+    val myInviteCountOnly: String
+        get() = (overrides["myInviteCountOnly"] as? (String)) ?: "{count} 人"
     val storageUsageTitle: String
         get() = (overrides["storageUsageTitle"] as? (String)) ?: "存储空间"
     val storageUsageUnknown: String
@@ -2356,6 +2415,122 @@ class FlareStringsBuilder internal constructor() {
     var memberRoleSheetOwnerProtected: String
         get() = (values["memberRoleSheetOwnerProtected"] as? (String)) ?: "群主不可被管理"
         set(value) { values["memberRoleSheetOwnerProtected"] = value }
+
+    var inviteCodeLabel: String
+        get() = (values["inviteCodeLabel"] as? (String)) ?: "邀请码"
+        set(value) { values["inviteCodeLabel"] = value }
+
+    var inviteCodePlaceholder: String
+        get() = (values["inviteCodePlaceholder"] as? (String)) ?: "请输入邀请码"
+        set(value) { values["inviteCodePlaceholder"] = value }
+
+    var inviteCodeOptional: String
+        get() = (values["inviteCodeOptional"] as? (String)) ?: "选填"
+        set(value) { values["inviteCodeOptional"] = value }
+
+    var inviteCodeChecking: String
+        get() = (values["inviteCodeChecking"] as? (String)) ?: "正在校验邀请码…"
+        set(value) { values["inviteCodeChecking"] = value }
+
+    var inviteCodeValid: String
+        get() = (values["inviteCodeValid"] as? (String)) ?: "邀请码可用"
+        set(value) { values["inviteCodeValid"] = value }
+
+    var inviteCodeInviter: String
+        get() = (values["inviteCodeInviter"] as? (String)) ?: "邀请人：{name}"
+        set(value) { values["inviteCodeInviter"] = value }
+
+    var inviteCodeInvalid: String
+        get() = (values["inviteCodeInvalid"] as? (String)) ?: "邀请码无效"
+        set(value) { values["inviteCodeInvalid"] = value }
+
+    var myInviteTitle: String
+        get() = (values["myInviteTitle"] as? (String)) ?: "我的邀请"
+        set(value) { values["myInviteTitle"] = value }
+
+    var myInviteCodeLabel: String
+        get() = (values["myInviteCodeLabel"] as? (String)) ?: "我的邀请码"
+        set(value) { values["myInviteCodeLabel"] = value }
+
+    var myInviteCodeUnavailable: String
+        get() = (values["myInviteCodeUnavailable"] as? (String)) ?: "邀请码暂不可用"
+        set(value) { values["myInviteCodeUnavailable"] = value }
+
+    var myInviteCopy: String
+        get() = (values["myInviteCopy"] as? (String)) ?: "复制"
+        set(value) { values["myInviteCopy"] = value }
+
+    var myInviteShare: String
+        get() = (values["myInviteShare"] as? (String)) ?: "分享"
+        set(value) { values["myInviteShare"] = value }
+
+    var myInviteRegenerate: String
+        get() = (values["myInviteRegenerate"] as? (String)) ?: "重新生成"
+        set(value) { values["myInviteRegenerate"] = value }
+
+    var myInviteRegenerating: String
+        get() = (values["myInviteRegenerating"] as? (String)) ?: "生成中…"
+        set(value) { values["myInviteRegenerating"] = value }
+
+    var myInviteCooldown: String
+        get() = (values["myInviteCooldown"] as? (String)) ?: "{time} 后可重新生成"
+        set(value) { values["myInviteCooldown"] = value }
+
+    var myInviteUnitMinutes: String
+        get() = (values["myInviteUnitMinutes"] as? (String)) ?: "{n} 分钟"
+        set(value) { values["myInviteUnitMinutes"] = value }
+
+    var myInviteUnitHours: String
+        get() = (values["myInviteUnitHours"] as? (String)) ?: "{n} 小时"
+        set(value) { values["myInviteUnitHours"] = value }
+
+    var myInviteUnitDays: String
+        get() = (values["myInviteUnitDays"] as? (String)) ?: "{n} 天"
+        set(value) { values["myInviteUnitDays"] = value }
+
+    var myInviteStatsTitle: String
+        get() = (values["myInviteStatsTitle"] as? (String)) ?: "我的团队"
+        set(value) { values["myInviteStatsTitle"] = value }
+
+    var myInviteDirect: String
+        get() = (values["myInviteDirect"] as? (String)) ?: "直接邀请"
+        set(value) { values["myInviteDirect"] = value }
+
+    var myInviteLevel2: String
+        get() = (values["myInviteLevel2"] as? (String)) ?: "二级"
+        set(value) { values["myInviteLevel2"] = value }
+
+    var myInviteLevel3: String
+        get() = (values["myInviteLevel3"] as? (String)) ?: "三级"
+        set(value) { values["myInviteLevel3"] = value }
+
+    var myInviteTotal: String
+        get() = (values["myInviteTotal"] as? (String)) ?: "团队总数"
+        set(value) { values["myInviteTotal"] = value }
+
+    var myInviteInviteesTitle: String
+        get() = (values["myInviteInviteesTitle"] as? (String)) ?: "直接邀请的人"
+        set(value) { values["myInviteInviteesTitle"] = value }
+
+    var myInviteEmpty: String
+        get() = (values["myInviteEmpty"] as? (String)) ?: "还没有人通过你的邀请码加入"
+        set(value) { values["myInviteEmpty"] = value }
+
+    var myInviteLoadMore: String
+        get() = (values["myInviteLoadMore"] as? (String)) ?: "加载更多"
+        set(value) { values["myInviteLoadMore"] = value }
+
+    var myInviteLoading: String
+        get() = (values["myInviteLoading"] as? (String)) ?: "正在加载邀请信息"
+        set(value) { values["myInviteLoading"] = value }
+
+    var myInviteJoined: String
+        get() = (values["myInviteJoined"] as? (String)) ?: "{date} 加入"
+        set(value) { values["myInviteJoined"] = value }
+
+    var myInviteCountOnly: String
+        get() = (values["myInviteCountOnly"] as? (String)) ?: "{count} 人"
+        set(value) { values["myInviteCountOnly"] = value }
 
     var storageUsageTitle: String
         get() = (values["storageUsageTitle"] as? (String)) ?: "存储空间"

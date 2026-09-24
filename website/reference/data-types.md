@@ -297,6 +297,45 @@ title: 数据类型
 | `mimeType` | `string` |  | MIME 类型提示。 |
 | `fileName` | `string` |  | 原始文件名。 |
 
+### InviteCodeCheckResult {#invite-code-check-result}
+
+`FlareInviteCodeCheckResult`
+
+> 宿主邀请码预检的结果。
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `valid` | `boolean` | ✓ | 该码可用于注册。 |
+| `inviterDisplayName` | `string` |  | 该码对应邀请人的脱敏显示名。 |
+
+### ReferralStats {#referral-stats}
+
+`FlareReferralStats`
+
+> 当前用户各深度的推荐人数。
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `direct` | `number` | ✓ | 用本人邀请码注册的人数。 |
+| `l2` | `number` | ✓ | 二级推荐人数。 |
+| `l3` | `number` | ✓ | 三级推荐人数。 |
+| `total` | `number` | ✓ | 服务端统计的团队总人数。 |
+
+### Invitee {#invitee}
+
+`FlareInvitee`
+
+> 当前用户直接邀请的一个人。
+
+**被使用于：**[MyInvitePanel](/components/my-invite-panel)
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `userId` | `string` | ✓ | 稳定标识；`select` 回传它，也用作头像种子。 |
+| `displayName` | `string` | ✓ | 显示名。 |
+| `avatarUrl` | `string` |  | 宿主有头像时的地址。 |
+| `joinedAt` | `number` | ✓ | 注册时间，毫秒时间戳。 |
+
 ## 枚举 / 联合类型
 
 ### MessageGroupPosition {#message-group-position}
@@ -374,11 +413,3 @@ title: 数据类型
 **被使用于：**[ConfigProvider](/components/config-provider)
 
 `auto` · `pc` · `ipad` · `h5`
-
-### DensityMode {#density-mode}
-
-`FlareDensityMode`
-
-> 界面密度。
-
-`comfortable` · `compact`

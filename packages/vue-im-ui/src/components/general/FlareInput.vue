@@ -38,8 +38,10 @@ const props = withDefaults(
     spellcheck?: boolean;
     /** Marks the control invalid for assistive technology; inside FlareFormField also set by its error. */
     invalid?: boolean;
+    /** Draw the value in the platform's monospaced face (codes, identifiers); the field's geometry does not change. */
+    monospace?: boolean;
   }>(),
-  { modelValue: "", placeholder: "", multiline: false, disabled: false, clearable: false, secure: false, revealable: false, autofocus: false, spellcheck: false },
+  { modelValue: "", placeholder: "", multiline: false, disabled: false, clearable: false, secure: false, revealable: false, autofocus: false, spellcheck: false, monospace: false },
 );
 const emit = defineEmits<{
   (e: "update:modelValue", v: string): void;
@@ -73,7 +75,7 @@ function onInput(e: Event) {
 
 <template>
   <div class="flare-input" :class="`flare-input--${rsize}`">
-    <div class="flare-input__field" :class="{ 'is-disabled': disabled, 'has-prefix': Boolean($slots.prefix) }">
+    <div class="flare-input__field" :class="{ 'is-disabled': disabled, 'has-prefix': Boolean($slots.prefix), 'is-monospace': monospace }">
       <span v-if="$slots.prefix" class="flare-input__prefix" aria-hidden="true"><slot name="prefix" /></span>
       <textarea
         v-if="multiline"
@@ -187,6 +189,8 @@ function onInput(e: Event) {
   resize: vertical;
   font-family: inherit;
 }
+/* Codes and identifiers: a fixed-pitch face so every character has the same width; nothing else moves. */
+.flare-input__field.is-monospace .flare-input__el { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.08em; }
 .flare-input__clear { border: 0; background: none; padding: var(--flare-size-spacing-xs); display: inline-flex; color: var(--flare-color-text-tertiary); cursor: pointer; }
 /* The reveal key sits beside the clear key and shares its geometry; the pointer target is the field row. */
 .flare-input__reveal { border: 0; background: none; padding: var(--flare-size-spacing-xs); display: inline-flex; color: var(--flare-color-text-tertiary); cursor: pointer; }

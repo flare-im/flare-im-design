@@ -1347,6 +1347,129 @@
         "ipad",
         "h5"
       ]
+    },
+    {
+      "name": "InviteCodeCheckResult",
+      "symbol": "FlareInviteCodeCheckResult",
+      "kind": "interface",
+      "summary": {
+        "en": "Result of the host's invite-code pre-check.",
+        "zh": "宿主邀请码预检的结果。"
+      },
+      "fields": [
+        {
+          "name": "valid",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "The code can be used to register.",
+            "zh": "该码可用于注册。"
+          }
+        },
+        {
+          "name": "inviterDisplayName",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Masked display name of the inviter the code resolves to.",
+            "zh": "该码对应邀请人的脱敏显示名。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ReferralStats",
+      "symbol": "FlareReferralStats",
+      "kind": "interface",
+      "summary": {
+        "en": "Referral counts per depth for the current person.",
+        "zh": "当前用户各深度的推荐人数。"
+      },
+      "fields": [
+        {
+          "name": "direct",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "People who registered with this person's code.",
+            "zh": "用本人邀请码注册的人数。"
+          }
+        },
+        {
+          "name": "l2",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "Second-level referrals.",
+            "zh": "二级推荐人数。"
+          }
+        },
+        {
+          "name": "l3",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "Third-level referrals.",
+            "zh": "三级推荐人数。"
+          }
+        },
+        {
+          "name": "total",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "Whole team size as the server counts it.",
+            "zh": "服务端统计的团队总人数。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Invitee",
+      "symbol": "FlareInvitee",
+      "kind": "interface",
+      "summary": {
+        "en": "One person invited directly by the current person.",
+        "zh": "当前用户直接邀请的一个人。"
+      },
+      "fields": [
+        {
+          "name": "userId",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Stable identity; echoed by `select` and used as avatar seed.",
+            "zh": "稳定标识；`select` 回传它，也用作头像种子。"
+          }
+        },
+        {
+          "name": "displayName",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Display name.",
+            "zh": "显示名。"
+          }
+        },
+        {
+          "name": "avatarUrl",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Avatar URL when the host has one.",
+            "zh": "宿主有头像时的地址。"
+          }
+        },
+        {
+          "name": "joinedAt",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "Registration time, epoch milliseconds.",
+            "zh": "注册时间，毫秒时间戳。"
+          }
+        }
+      ]
     }
   ],
   "components": [
@@ -8008,6 +8131,15 @@
             "en": "Marks the control invalid for assistive technology.",
             "zh": "向辅助技术标记控件无效。"
           }
+        },
+        {
+          "name": "monospace",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "Draw the value in the platform's monospaced face for codes and identifiers; the field's geometry does not change.",
+            "zh": "用平台等宽字体显示值（邀请码、标识符）；输入框几何不变。"
+          }
         }
       ],
       "states": [
@@ -8077,6 +8209,160 @@
         },
         "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
         "screenReaderSemantics": "Expose localized name, role, value/state, availability, and progress. Decorative imagery is hidden."
+      }
+    },
+    {
+      "name": "InviteCodeField",
+      "category": "Form",
+      "summary": {
+        "en": "Registration-form invite-code field — hidden, optional or required by tenant mode; normalizes what is typed, asks the host to pre-check a complete code, and shows the inviter it resolved to.",
+        "zh": "注册表单的邀请码字段 —— 按租户模式隐藏 / 选填 / 必填；归一化输入，码输完后请宿主预检，并展示解析出的邀请人。"
+      },
+      "dataSource": {
+        "en": "The tenant's invite mode plus the host's debounced pre-check state (checking / result / error); the component normalizes input via normalizeInviteCode() and derives its state via inviteCodeFieldState(). It performs no network call and no clipboard access.",
+        "zh": "租户的邀请模式，加上宿主的预检状态（checking / result / error）；组件用 normalizeInviteCode() 归一化输入、用 inviteCodeFieldState() 推导状态。不发网络请求、不碰剪贴板。"
+      },
+      "props": [
+        {
+          "name": "modelValue",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Two-way bound code. What the host receives is already normalized: trimmed, uppercased, O→0, I/L→1, separators dropped, cut to `length`.",
+            "zh": "双向绑定的码。宿主拿到的已是归一化结果：去空白、大写、O→0、I/L→1、去分隔符、截到 `length`。"
+          }
+        },
+        {
+          "name": "mode",
+          "type": "\"off\" | \"optional\" | \"required\"",
+          "default": "\"optional\"",
+          "description": {
+            "en": "Tenant invite mode. `off` renders nothing at all; `optional` labels the field as optional; `required` marks it required.",
+            "zh": "租户邀请模式。`off` 什么都不渲染；`optional` 标为选填；`required` 标为必填。"
+          }
+        },
+        {
+          "name": "prefill",
+          "type": "string",
+          "description": {
+            "en": "Deep-link value applied once, the first time the field is empty; the person can still edit or clear it afterwards.",
+            "zh": "深链预填值，只在字段为空时应用一次；之后仍可编辑或清空。"
+          }
+        },
+        {
+          "name": "checking",
+          "type": "boolean",
+          "description": {
+            "en": "The host's pre-check request is in flight; the field says so and does not report a result yet.",
+            "zh": "宿主的预检请求进行中；字段显示校验中，不展示结果。"
+          }
+        },
+        {
+          "name": "checkResult",
+          "type": "InviteCodeCheckResult | null",
+          "description": {
+            "en": "Result of the host's pre-check for the current code: `{ valid, inviterDisplayName? }`. A stale result for a different code is ignored — the host clears it when the code changes.",
+            "zh": "宿主对当前码的预检结果：`{ valid, inviterDisplayName? }`。宿主在码变化时清掉旧结果。"
+          }
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "description": {
+            "en": "Host-localized error to show instead of the hint (INVITE_CODE_REQUIRED / INVITE_CODE_INVALID …); wins over `checkResult`.",
+            "zh": "宿主已本地化的错误文案（INVITE_CODE_REQUIRED / INVITE_CODE_INVALID …），替代提示行；优先于 `checkResult`。"
+          }
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "description": {
+            "en": "Non-editable, dimmed; no check is requested.",
+            "zh": "不可编辑、置灰；不发起预检。"
+          }
+        },
+        {
+          "name": "length",
+          "type": "number",
+          "default": "6",
+          "description": {
+            "en": "Code length the tenant configured; the field caps input here and only asks for a check once the code is complete.",
+            "zh": "租户配置的码长；字段按此截断，码输完整后才请求预检。"
+          }
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "description": {
+            "en": "Field label; defaults to the strings table.",
+            "zh": "字段标签；默认取文案表。"
+          }
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "description": {
+            "en": "Empty-field hint; defaults to the strings table.",
+            "zh": "空输入占位；默认取文案表。"
+          }
+        }
+      ],
+      "states": [
+        "off",
+        "idle",
+        "typing",
+        "checking",
+        "valid",
+        "invalid",
+        "disabled"
+      ],
+      "events": [
+        "update:modelValue",
+        "check"
+      ],
+      "model": {
+        "prop": "modelValue",
+        "event": "update:modelValue"
+      },
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareInviteCodeField"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareInviteCodeField"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "InviteCodeFieldView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "InviteCodeField"
+        }
+      },
+      "accessibility": {
+        "role": "textbox",
+        "labelRequired": true,
+        "focusable": "self",
+        "keyboardBehavior": [
+          "Tab focuses input",
+          "Paste normalizes the pasted text like typing",
+          "Escape closes contextual UI"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
+        "screenReaderSemantics": "Expose localized name, role, value/state and required-ness; the checking / inviter / error line is a live status region. Decorative imagery is hidden."
+      },
+      "notes": {
+        "en": "`check` fires once, about 400 ms after typing stops, and only for a complete code (normalized length equals `length`); a partial code never reaches the network. The host performs the request and feeds `checking` and `checkResult` back. The native platforms express the model as a controlled value / binding and expose `onCheck`.",
+        "zh": "`check` 在停止输入约 400 ms 后触发一次，且只对完整的码（归一化后长度等于 `length`）触发；不完整的码不会打到网络。宿主发请求并把 `checking` 与 `checkResult` 回填。原生端用受控值 / Binding 表达 model，回调为 `onCheck`。"
       }
     },
     {
@@ -11594,6 +11880,182 @@
       "notes": {
         "en": "Encoders: Vue naive-ui NQrCode, iOS CoreImage CIQRCodeGenerator, Flutter and Compose an internal encoder verified bit for bit against a reference implementation. The code is an image named \"QR code\" plus the name; the scan hint shows only when there is a code.",
         "zh": "编码：Vue 用 naive-ui NQrCode，iOS 用 CoreImage CIQRCodeGenerator，Flutter 与 Compose 用内部编码器（与参考实现逐位比对过）。二维码是以“二维码 + 名称”命名的图像；只有有码时才显示扫码提示。"
+      }
+    },
+    {
+      "name": "MyInvitePanel",
+      "category": "Profile",
+      "summary": {
+        "en": "\"My invite\" card — the person's invite code with copy / share / regenerate, referral counts per depth, and the list of people they invited directly.",
+        "zh": "「我的邀请」卡片 —— 本人邀请码及复制 / 分享 / 重新生成、各深度的推荐人数、直接邀请的人列表。"
+      },
+      "dataSource": {
+        "en": "Host-fetched invite code, share URL, referral stats and a keyset page of direct invitees; the component derives depth rows via referralDepthRows() and the regenerate cooldown via regenerateAvailability(). Copy, share and regenerate are intents the host performs.",
+        "zh": "宿主取回的邀请码、分享链接、推荐统计与直接下级的 keyset 分页；组件用 referralDepthRows() 推导深度行、用 regenerateAvailability() 推导冷却。复制、分享、重新生成都是宿主执行的意图。"
+      },
+      "props": [
+        {
+          "name": "code",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "The person's invite code; empty while the host has none yet.",
+            "zh": "本人邀请码；宿主尚未取到时为空。"
+          }
+        },
+        {
+          "name": "shareUrl",
+          "type": "string",
+          "description": {
+            "en": "Host-built share link (the `/r/{tenant}/{code}` template filled in); shown under the code and carried by `share`.",
+            "zh": "宿主拼好的分享链接（`/r/{tenant}/{code}` 模板填好）；显示在码下方并随 `share` 事件携带。"
+          }
+        },
+        {
+          "name": "stats",
+          "type": "ReferralStats | null",
+          "description": {
+            "en": "Referral counts `{ direct, l2, l3, total }`; omitted while unknown.",
+            "zh": "推荐统计 `{ direct, l2, l3, total }`；未知时不传。"
+          }
+        },
+        {
+          "name": "maxDepthShown",
+          "type": "number",
+          "default": "3",
+          "description": {
+            "en": "How many depth rows to show (1–3), per the tenant's `referral.visibility`; `total` is shown whenever stats exist.",
+            "zh": "展示几层深度行（1–3），来自租户的 `referral.visibility`；只要有统计就显示 `total`。"
+          }
+        },
+        {
+          "name": "invitees",
+          "type": "Invitee[]",
+          "required": true,
+          "description": {
+            "en": "Direct invitees loaded so far `{ userId, displayName, avatarUrl?, joinedAt }`; `joinedAt` is epoch milliseconds.",
+            "zh": "已加载的直接下级 `{ userId, displayName, avatarUrl?, joinedAt }`；`joinedAt` 为毫秒时间戳。"
+          }
+        },
+        {
+          "name": "showProfiles",
+          "type": "boolean",
+          "default": "true",
+          "description": {
+            "en": "`false` switches to count-only mode: the depth counts stay, the invitee list is replaced by its count.",
+            "zh": "为 `false` 时切到只显示人数：深度统计保留，下级列表换成人数。"
+          }
+        },
+        {
+          "name": "hasMore",
+          "type": "boolean",
+          "description": {
+            "en": "Another page of invitees exists; shows the load-more control.",
+            "zh": "还有下一页下级；显示加载更多。"
+          }
+        },
+        {
+          "name": "loadingMore",
+          "type": "boolean",
+          "description": {
+            "en": "The next page is in flight; the load-more control is busy.",
+            "zh": "下一页加载中；加载更多按钮为 busy。"
+          }
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "description": {
+            "en": "First load in flight — skeleton for the code and counts, never a fake empty list.",
+            "zh": "首次加载中——码与统计显示骨架，不伪装成空列表。"
+          }
+        },
+        {
+          "name": "canRegenerate",
+          "type": "boolean",
+          "description": {
+            "en": "The tenant allows regenerating; without it the control is not drawn.",
+            "zh": "租户允许重新生成；否则不画该按钮。"
+          }
+        },
+        {
+          "name": "regenerateAvailableAt",
+          "type": "number | null",
+          "description": {
+            "en": "Epoch milliseconds from which regenerating is allowed again; while in the future the control is disabled and says how long remains.",
+            "zh": "允许再次生成的毫秒时间戳；在未来时按钮禁用并说明剩余时长。"
+          }
+        },
+        {
+          "name": "regenerating",
+          "type": "boolean",
+          "description": {
+            "en": "Regenerate request in flight.",
+            "zh": "重新生成请求进行中。"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": {
+            "en": "Card heading; defaults to the strings table.",
+            "zh": "卡片标题；默认取文案表。"
+          }
+        }
+      ],
+      "states": [
+        "loading",
+        "empty",
+        "default",
+        "countOnly",
+        "cooldown",
+        "regenerating"
+      ],
+      "events": [
+        "copy",
+        "share",
+        "regenerate",
+        "loadMore",
+        "select"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareMyInvitePanel"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareMyInvitePanel"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "MyInvitePanelView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "MyInvitePanel"
+        }
+      },
+      "accessibility": {
+        "role": "group",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab visits interactive descendants in visual order",
+          "Escape closes the active contextual layer"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
+        "screenReaderSemantics": "Expose a named group; the code is read as text, the counts as labelled values, each invitee row as a named item. Decorative imagery is hidden."
+      },
+      "notes": {
+        "en": "`copy` carries the code, `share` the share URL (or the code when none), `select` the invitee's userId. The kit touches neither clipboard nor share sheet. Joined dates read as YYYY-MM-DD in the device's calendar on every platform.",
+        "zh": "`copy` 携带码，`share` 携带分享链接（没有则是码），`select` 携带下级的 userId。组件不碰剪贴板和分享面板。加入日期在各端都按设备日历显示为 YYYY-MM-DD。"
       }
     },
     {

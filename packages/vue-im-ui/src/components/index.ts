@@ -104,6 +104,7 @@ export { default as FlareRedPacketCard } from "./messages/FlareRedPacketCard.vue
 export { default as FlareTranslationView } from "./messages/FlareTranslationView.vue";
 export { default as FlareSlashCommandMenu } from "./composer/FlareSlashCommandMenu.vue";
 export { default as FlareQRCard } from "./profile/FlareQRCard.vue";
+export { default as FlareMyInvitePanel } from "./profile/FlareMyInvitePanel.vue";
 export type { FlareSlashCommand } from "../shared/contracts";
 
 // Batch 4 — adaptive image grid, voice-recording bar, poll composer, wallpaper picker
@@ -137,6 +138,7 @@ export { default as FlareActionMenu } from "./general/FlareActionMenu.vue";
 export type { FlareSheetPresentation } from "./general/FlareBottomSheet.vue";
 export { flareIcons, flareIconNames, type FlareIconName } from "../shared/icons";
 export { default as FlareFormField } from "./form/FlareFormField.vue";
+export { default as FlareInviteCodeField } from "./form/FlareInviteCodeField.vue";
 export { default as FlareSwitch } from "./form/FlareSwitch.vue";
 export { default as FlareCheckbox } from "./form/FlareCheckbox.vue";
 export { default as FlareRadioGroup } from "./form/FlareRadioGroup.vue";

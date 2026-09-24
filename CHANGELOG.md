@@ -6,6 +6,7 @@ This is the target Stable release, not a published version. Package metadata rem
 
 ### Design System And Packages
 
+- InviteCodeField (Form) and MyInvitePanel (Profile), one contract on four platforms (`spec/components.json`, vectors in `spec/invite-vectors.json`): tenant-mode invite-code entry with server-style normalization (O→0, I/L→1), debounced host pre-check and deep-link prefill; the "my invite" card with copy / share / regenerate cooldown, referral depth counts, count-only mode and a keyset invitee list. `Input` gains `monospace` on every platform. Strings: `inviteCode*` / `myInvite*` in the four strings providers.
 - Reference-app program (2026-09-14): `npm run check` resolves every flare-social reference app's kit references (`check-reference-app-consumers.mjs`) and `release:check` compiles them; all five apps were migrated off removed symbols.
 - One message identity rule: `resolveMessageId` / `findMessage` on `./contracts`; MessageList, MessageBubble, PinnedMessageBar and the menu use it.
 - `useFlareConfirm` and `useFlareToast` (`./composables`): FlareUiProvider presents confirmations (busy, error, retry) and a bounded, auto-dismissing toast stack.

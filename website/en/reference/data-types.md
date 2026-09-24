@@ -297,6 +297,45 @@ title: Data Types
 | `mimeType` | `string` |  | MIME type hint. |
 | `fileName` | `string` |  | Original file name. |
 
+### InviteCodeCheckResult {#invite-code-check-result}
+
+`FlareInviteCodeCheckResult`
+
+> Result of the host's invite-code pre-check.
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `valid` | `boolean` | ✓ | The code can be used to register. |
+| `inviterDisplayName` | `string` |  | Masked display name of the inviter the code resolves to. |
+
+### ReferralStats {#referral-stats}
+
+`FlareReferralStats`
+
+> Referral counts per depth for the current person.
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `direct` | `number` | ✓ | People who registered with this person's code. |
+| `l2` | `number` | ✓ | Second-level referrals. |
+| `l3` | `number` | ✓ | Third-level referrals. |
+| `total` | `number` | ✓ | Whole team size as the server counts it. |
+
+### Invitee {#invitee}
+
+`FlareInvitee`
+
+> One person invited directly by the current person.
+
+**Used by: **[MyInvitePanel](/en/components/my-invite-panel)
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `userId` | `string` | ✓ | Stable identity; echoed by `select` and used as avatar seed. |
+| `displayName` | `string` | ✓ | Display name. |
+| `avatarUrl` | `string` |  | Avatar URL when the host has one. |
+| `joinedAt` | `number` | ✓ | Registration time, epoch milliseconds. |
+
 ## Enums / unions
 
 ### MessageGroupPosition {#message-group-position}
@@ -374,11 +413,3 @@ title: Data Types
 **Used by: **[ConfigProvider](/en/components/config-provider)
 
 `auto` · `pc` · `ipad` · `h5`
-
-### DensityMode {#density-mode}
-
-`FlareDensityMode`
-
-> UI density.
-
-`comfortable` · `compact`
