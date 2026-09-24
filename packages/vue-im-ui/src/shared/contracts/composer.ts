@@ -96,7 +96,7 @@ export const FLARE_COMPOSER_ACTION_IDS: readonly FlareComposerActionId[] = [
 
 /** Default attachment set shown when the host does not supply one. */
 export const FLARE_DEFAULT_COMPOSER_ACTION_IDS: readonly FlareComposerActionId[] = [
-  "image", "file", "voice", "location", "contact",
+  "image", "video", "file", "voice", "location", "contact",
 ];
 
 /** One action tile in MessageActionSheet / composer action panels. */
@@ -108,6 +108,15 @@ export interface FlareComposerAction<TIcon = string> extends FlareActionItem<TIc
 /** Business availability supplied by the host; omitted means all actions are available. */
 export interface FlareComposerCapabilities {
   availableActionIds?: readonly string[];
+  /**
+   * 这个会话**支持不支持** @ 某个人。缺省 = 支持;单聊传 false。
+   *
+   * 与「名册到了没有」是两件事:群聊的名册在加载中同样是空的,拿 `mentionCandidates.length`
+   * 当开关会让按钮闪进闪出,而在单聊里点开只会得到一个「所有人」—— 两个人的会话 @所有人
+   * 没有意义。所以要一个独立的能力位,不能塞进 `availableActionIds`:宿主一旦给了那份白名单
+   * (这个示例 app 就给了),@ 会跟着被静默摘掉。
+   */
+  mentions?: boolean;
 }
 
 export interface ResolveComposerActionsOptions<TIcon = string> {

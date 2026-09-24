@@ -26,7 +26,7 @@ class FlareScreenHeader extends StatelessWidget {
     return Container(
       width: double.infinity,
       color: colors.bgPrimary,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: FlareSizes.spacing2md),
       child: Row(
         children: [
           if (leading != null) ...[
@@ -40,7 +40,7 @@ class FlareScreenHeader extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: colors.textPrimary,
-                fontSize: 24,
+                fontSize: FlareSizes.fontSize5xl,
                 fontWeight: FontWeight.bold,
                 height: 1.2,
               ),

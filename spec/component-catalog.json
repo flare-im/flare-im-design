@@ -42,9 +42,9 @@
     "supportsDensity": "The component takes a density of its own (its prop says what the values mean); the kit has no global density scale."
   },
   "counts": {
-    "total": 153,
-    "stable": 153,
-    "general": 43,
+    "total": 154,
+    "stable": 154,
+    "general": 44,
     "im": 105
   },
   "specializedMessageGroups": {
@@ -1066,6 +1066,7 @@
         "featureDisabled",
         "capabilityUnavailable",
         "navigate",
+        "navigateWithMode",
         "intent"
       ],
       "states": [
@@ -1078,6 +1079,7 @@
       ],
       "interactions": [
         "navigate",
+        "navigateWithMode",
         "intent"
       ],
       "accessibility": "accessibility-contract",
@@ -1120,7 +1122,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#IMAppKit",
-      "searchText": "imappkit appkit appkit stable appkit mobile tablet desktop widedesktop featuredisabled capabilityunavailable navigate intent supportsconfiguration supportscustomactions supportscustomcontent supportsslots supportscapabilities supportsresponsive top-level host-neutral im application assembler. 顶层、宿主中立的 im 应用装配器。"
+      "searchText": "imappkit appkit appkit stable appkit mobile tablet desktop widedesktop featuredisabled capabilityunavailable navigate navigatewithmode intent supportsconfiguration supportscustomactions supportscustomcontent supportsslots supportscapabilities supportsresponsive top-level host-neutral im application assembler. 顶层、宿主中立的 im 应用装配器。"
     },
     {
       "name": "MessageStatus",
@@ -5455,7 +5457,7 @@
       "previewOpener": null,
       "docsSections": {
         "configuration": true,
-        "variants": false,
+        "variants": true,
         "states": true,
         "interaction": true,
         "responsive": false,
@@ -5465,7 +5467,15 @@
         "customization": false
       },
       "docExamples": {
-        "variants": [],
+        "variants": [
+          {
+            "name": "appearance",
+            "values": [
+              "filled",
+              "quiet"
+            ]
+          }
+        ],
         "states": [
           "idle",
           "typing",
@@ -6037,7 +6047,7 @@
       "previewOpener": null,
       "docsSections": {
         "configuration": true,
-        "variants": false,
+        "variants": true,
         "states": true,
         "interaction": true,
         "responsive": false,
@@ -6047,7 +6057,22 @@
         "customization": false
       },
       "docExamples": {
-        "variants": [],
+        "variants": [
+          {
+            "name": "size",
+            "values": [
+              "md",
+              "sm"
+            ]
+          },
+          {
+            "name": "appearance",
+            "values": [
+              "filled",
+              "quiet"
+            ]
+          }
+        ],
         "states": [
           "default",
           "active"
@@ -6494,6 +6519,7 @@
         "updateAnnouncement",
         "updateMyNickname",
         "setJoinPolicy",
+        "toggleDiscoverable",
         "toggleMuteAll",
         "setFlag",
         "toggleMyMuted",
@@ -6522,6 +6548,7 @@
         "updateAnnouncement",
         "updateMyNickname",
         "setJoinPolicy",
+        "toggleDiscoverable",
         "toggleMuteAll",
         "setFlag",
         "toggleMyMuted",
@@ -6579,7 +6606,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#GroupDetail",
-      "searchText": "groupdetail contacts im-ui stable contacts default canmanage back openchat updatename updateannouncement updatemynickname setjoinpolicy togglemuteall setflag togglemymuted togglemypinned loadjoinrequests respondrequest ensureinvitelink promotemember mutemember transferowner removemember loadcontacts invitemembers leave searchmembers extraaction supportsconfiguration supportscapabilities supportsresponsive group detail/management — info / my settings / management / permissions, member grid, member actions, join approval, invite link. 群详情 / 管理 —— 群信息 / 我在本群 / 群管理 / 群权限 + 成员网格 + 成员操作 + 入群审批 + 邀请链接。"
+      "searchText": "groupdetail contacts im-ui stable contacts default canmanage back openchat updatename updateannouncement updatemynickname setjoinpolicy togglediscoverable togglemuteall setflag togglemymuted togglemypinned loadjoinrequests respondrequest ensureinvitelink promotemember mutemember transferowner removemember loadcontacts invitemembers leave searchmembers extraaction supportsconfiguration supportscapabilities supportsresponsive group detail/management — info / my settings / management / permissions, member grid, member actions, join approval, invite link. 群详情 / 管理 —— 群信息 / 我在本群 / 群管理 / 群权限 + 成员网格 + 成员操作 + 入群审批 + 邀请链接。"
     },
     {
       "name": "NewFriendRequests",
@@ -8123,12 +8150,14 @@
       "aliases": [
         "Contacts",
         "select",
-        "addMember"
+        "addMember",
+        "viewAll"
       ],
       "states": [],
       "interactions": [
         "select",
-        "addMember"
+        "addMember",
+        "viewAll"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -8170,7 +8199,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#GroupMemberGrid",
-      "searchText": "groupmembergrid contacts im-ui stable contacts select addmember supportsconfiguration supportscapabilities supportsresponsive group member grid — avatars + owner/admin badges + add. 群成员网格 —— 头像网格 + 群主/管理员角标 + 加成员。"
+      "searchText": "groupmembergrid contacts im-ui stable contacts select addmember viewall supportsconfiguration supportscapabilities supportsresponsive group member grid — avatars + owner/admin badges + add. 群成员网格 —— 头像网格 + 群主/管理员角标 + 加成员。"
     },
     {
       "name": "ReactionSummary",
@@ -11072,7 +11101,8 @@
         "selectAuthor",
         "selectLiker",
         "selectComment",
-        "delete"
+        "delete",
+        "report"
       ],
       "states": [],
       "interactions": [
@@ -11082,7 +11112,8 @@
         "selectAuthor",
         "selectLiker",
         "selectComment",
-        "delete"
+        "delete",
+        "report"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -11124,7 +11155,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#MomentCard",
-      "searchText": "momentcard moments im-ui stable moments like comment openimage selectauthor selectliker selectcomment delete supportsconfiguration moment card — author/text/photo grid/location/time + a ··· like-comment popover + likers row + comments. the feed's hero. 动态卡片 —— 头像/正文/九宫格/位置/时间 + 「···」赞评弹条 + 点赞行 + 评论。圈子的签名件。"
+      "searchText": "momentcard moments im-ui stable moments like comment openimage selectauthor selectliker selectcomment delete report supportsconfiguration moment card — author/text/photo grid/location/time + a ··· like-comment popover + likers row + comments. the feed's hero. 动态卡片 —— 头像/正文/九宫格/位置/时间 + 「···」赞评弹条 + 点赞行 + 评论。圈子的签名件。"
     },
     {
       "name": "MomentComposer",
@@ -11272,13 +11303,15 @@
         "Moments",
         "like",
         "comment",
-        "delete"
+        "delete",
+        "report"
       ],
       "states": [],
       "interactions": [
         "like",
         "comment",
-        "delete"
+        "delete",
+        "report"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -11320,7 +11353,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#MomentActionPopover",
-      "searchText": "momentactionpopover moments im-ui stable moments like comment delete supportsconfiguration supportscustomactions like/comment popover — a dark capsule that slides from the ··· button. 赞/评论弹条 —— 从「···」滑出的深色胶囊(仿微信黑气泡)。"
+      "searchText": "momentactionpopover moments im-ui stable moments like comment delete report supportsconfiguration supportscustomactions like/comment popover — a dark capsule that slides from the ··· button. 赞/评论弹条 —— 从「···」滑出的深色胶囊(仿微信黑气泡)。"
     },
     {
       "name": "MomentsCoverHeader",
@@ -11671,6 +11704,7 @@
         "ghost",
         "danger",
         "text",
+        "quiet",
         "click"
       ],
       "states": [
@@ -11678,7 +11712,8 @@
         "secondary",
         "ghost",
         "danger",
-        "text"
+        "text",
+        "quiet"
       ],
       "interactions": [
         "click"
@@ -11723,7 +11758,7 @@
         "gallery": true
       },
       "sourceOfTruth": "spec/components.json#Button",
-      "searchText": "button general general-ui stable general primary secondary ghost danger text click supportsconfiguration button — primary/secondary/ghost/danger/text variants × sm/md/lg sizes, with loading/disabled/icon/block. 按钮 —— primary/secondary/ghost/danger/text 五变体 × sm/md/lg 三尺寸,内置加载/禁用/图标/整宽。"
+      "searchText": "button general general-ui stable general primary secondary ghost danger text quiet click supportsconfiguration button — primary/secondary/ghost/danger/text variants × sm/md/lg sizes, with loading/disabled/icon/block. 按钮 —— primary/secondary/ghost/danger/text 五变体 × sm/md/lg 三尺寸,内置加载/禁用/图标/整宽。"
     },
     {
       "name": "IconButton",
@@ -13785,7 +13820,7 @@
       "previewOpener": null,
       "docsSections": {
         "configuration": true,
-        "variants": false,
+        "variants": true,
         "states": true,
         "interaction": true,
         "responsive": true,
@@ -13795,7 +13830,15 @@
         "customization": false
       },
       "docExamples": {
-        "variants": [],
+        "variants": [
+          {
+            "name": "layout",
+            "values": [
+              "inline",
+              "page"
+            ]
+          }
+        ],
         "states": [
           "idle",
           "loading",
@@ -13820,7 +13863,8 @@
         "staleSnapshot",
         "search",
         "open",
-        "viewAll"
+        "viewAll",
+        "cancel"
       ],
       "states": [
         "idle",
@@ -13832,7 +13876,8 @@
       "interactions": [
         "search",
         "open",
-        "viewAll"
+        "viewAll",
+        "cancel"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -13874,7 +13919,100 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#SearchPanel",
-      "searchText": "searchpanel overlay im-ui stable message search search workspace 聊天搜索 overlay idle loading success failure stalesnapshot search open viewall supportsconfiguration supportsslots supportsresponsive search field, filters, result snapshot and recovery in one panel. 组合搜索输入、筛选、结果快照与失败恢复。"
+      "searchText": "searchpanel overlay im-ui stable message search search workspace 聊天搜索 overlay idle loading success failure stalesnapshot search open viewall cancel supportsconfiguration supportsslots supportsresponsive search field, filters, result snapshot and recovery in one panel. 组合搜索输入、筛选、结果快照与失败恢复。"
+    },
+    {
+      "name": "RecentSearches",
+      "slug": "recent-searches",
+      "category": "Navigation",
+      "layer": "general-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "responsive",
+      "previewViewports": [
+        "desktop",
+        "mobile"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": false,
+        "states": true,
+        "interaction": true,
+        "responsive": true,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [],
+        "states": [
+          "default",
+          "empty"
+        ]
+      },
+      "summary": {
+        "en": "Recent searches — the terms used last, one tap from searching again, with one way to forget them all.",
+        "zh": "最近搜索 —— 最近用过的搜索词，点一下再搜一次；一处清除全部。"
+      },
+      "aliases": [
+        "Navigation",
+        "default",
+        "empty",
+        "pick",
+        "clear"
+      ],
+      "states": [
+        "default",
+        "empty"
+      ],
+      "interactions": [
+        "pick",
+        "clear"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareRecentSearches"
+        },
+        "flutter": {
+          "support": "not-applicable"
+        },
+        "compose": {
+          "support": "not-applicable"
+        },
+        "ios": {
+          "support": "not-applicable"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/general/FlareRecentSearches.vue"
+      },
+      "docs": {
+        "zh": "website/components/recent-searches.md",
+        "en": "website/en/components/recent-searches.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#RecentSearches",
+      "searchText": "recentsearches navigation general-ui stable navigation default empty pick clear supportsconfiguration recent searches — the terms used last, one tap from searching again, with one way to forget them all. 最近搜索 —— 最近用过的搜索词，点一下再搜一次；一处清除全部。"
     },
     {
       "name": "TransferQueue",

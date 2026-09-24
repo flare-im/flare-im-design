@@ -285,7 +285,7 @@ const ariaCardLabel = computed(() =>
 .im-fwd-card__body {
   flex: 1;
   min-width: 0;
-  padding: 10px 12px 10px 10px;
+  padding: var(--flare-size-spacing-2sm) 12px var(--flare-size-spacing-2sm) var(--flare-size-spacing-2sm);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -359,7 +359,7 @@ const ariaCardLabel = computed(() =>
 }
 
 .im-fwd-item {
-  padding: 10px 0;
+  padding: var(--flare-size-spacing-2sm) 0;
   border-bottom: 1px solid var(--flare-color-border-primary);
 }
 
@@ -370,7 +370,7 @@ const ariaCardLabel = computed(() =>
 
 .im-fwd-item__top {
   display: flex;
-  gap: 10px;
+  gap: var(--flare-size-spacing-2sm);
   align-items: center;
 }
 
@@ -429,7 +429,7 @@ const ariaCardLabel = computed(() =>
 
 .im-fwd-item__embed {
   margin: 8px 0 0 46px;
-  padding-left: 10px;
+  padding-left: var(--flare-size-spacing-2sm);
   border-left: 2px solid var(--flare-color-border-primary);
   min-width: 0;
 }

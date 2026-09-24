@@ -128,7 +128,8 @@ class FlareComposerActionPanel extends StatelessWidget {
   /// [FlareStrings]; the host passes its own `actions` to add or reorder).
   static const List<FlareComposerAction> defaultActions = [
     FlareComposerAction(id: 'image', icon: 'image'),
-    FlareComposerAction(id: 'file', icon: 'folder'),
+    FlareComposerAction(id: 'video', icon: 'video'),
+    FlareComposerAction(id: 'file', icon: 'file'),
     FlareComposerAction(id: 'voice', icon: 'mic'),
     FlareComposerAction(id: 'location', icon: 'location'),
     FlareComposerAction(id: 'contact', icon: 'card'),
@@ -197,16 +198,16 @@ class FlareComposerActionPanel extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 44,
-              height: 44,
+              width: 52,
+              height: 52,
               decoration: BoxDecoration(
-                color: Colors.transparent,
+                color: colors.bgSecondary,
                 borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
               ),
               child: Icon(
                 flareIconGlyph(action.icon),
                 color: colors.textPrimary,
-                size: 20,
+                size: 24,
               ),
             ),
             const SizedBox(height: FlareSizes.spacingXs),

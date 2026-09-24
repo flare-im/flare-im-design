@@ -40,11 +40,11 @@ fun RedPacketCard(
     val deepRed = Color(0xFFC8291F)
     Box(
         Modifier.width(248.dp)
-            .shadow(10.dp, RoundedCornerShape(14.dp), clip = false, ambientColor = deepRed, spotColor = deepRed)
-            .clip(RoundedCornerShape(14.dp))
+            .shadow(10.dp, RoundedCornerShape(FlareSizes.radiusXl), clip = false, ambientColor = deepRed, spotColor = deepRed)
+            .clip(RoundedCornerShape(FlareSizes.radiusXl))
             .background(Brush.linearGradient(listOf(Color(0xFFF0503C), Color(0xFFE23B2E), Color(0xFFC8291F))))
             .then(if (!finished && onOpen != null) Modifier.clickable { onOpen() } else Modifier)
-            .padding(14.dp),
+            .padding(FlareSizes.spacing2md),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
@@ -67,7 +67,7 @@ fun RedPacketCard(
                     fontSize = 12.sp, modifier = Modifier.padding(top = 3.dp))
             }
         }
-        Text(flareStrings().packetBrand, color = Color(0xFFFFECD2).copy(alpha = 0.5f), fontSize = 10.sp,
+        Text(flareStrings().packetBrand, color = Color(0xFFFFECD2).copy(alpha = 0.5f), fontSize = FlareSizes.fontSize2xs,
             modifier = Modifier.align(Alignment.BottomEnd))
     }
 }

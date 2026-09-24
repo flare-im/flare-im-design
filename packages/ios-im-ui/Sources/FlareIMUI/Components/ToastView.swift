@@ -102,7 +102,7 @@ public struct ToastView: View {
                 .accessibilityLabel(strings.close)
             }
         }
-        .padding(.vertical, 11).padding(.horizontal, 14)
+        .padding(.vertical, 11).padding(.horizontal, FlareSizes.spacing2md)
         .frame(maxWidth: 420)
         .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.bgPrimary)
             .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).stroke(colors.borderPrimary, lineWidth: 1)))

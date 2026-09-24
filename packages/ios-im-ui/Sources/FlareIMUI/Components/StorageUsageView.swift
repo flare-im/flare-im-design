@@ -414,7 +414,7 @@ public struct StorageUsageView: View {
                 Text(copy.clearText).font(.system(size: FlareSizes.fontSizeMd))
             }
             .foregroundColor(colors.errorText)
-            .padding(.horizontal, 10)
+            .padding(.horizontal, FlareSizes.spacing2sm)
             .frame(minHeight: FlareSizes.touchTarget)
             .background(
                 RoundedRectangle(cornerRadius: FlareSizes.radiusMd)

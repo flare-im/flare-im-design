@@ -413,7 +413,7 @@ public struct GroupPermissionMatrixView: View {
                                   weight: selected ? .semibold : .regular))
             }
             .foregroundColor(selected ? colors.primaryText : colors.textPrimary)
-            .padding(.horizontal, 10)
+            .padding(.horizontal, FlareSizes.spacing2sm)
             .frame(minHeight: FlareSizes.touchTarget)
             .background(
                 RoundedRectangle(cornerRadius: FlareSizes.radiusMd)

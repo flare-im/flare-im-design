@@ -40,9 +40,9 @@ public struct SearchResultsView: View {
             Text(g.label).font(.system(size: 12, weight: .semibold)).foregroundColor(colors.textTertiary)
                 .padding(.bottom, 2)
             ForEach(g.items) { item in row(colors, item) }
-            if let total = g.total, total > g.items.count {
+            if let more = g.moreText(strings) {
                 Button { onViewAll?(g.kind) } label: {
-                    Text(strings.viewAll(total)).font(.system(size: FlareSizes.fontSizeMd, weight: .medium))
+                    Text(more).font(.system(size: FlareSizes.fontSizeMd, weight: .medium))
                         .foregroundColor(colors.primaryText)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.vertical, FlareSizes.spacingSm)

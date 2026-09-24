@@ -45,14 +45,14 @@ fun ScreenHeader(
         modifier
             .fillMaxWidth()
             .background(colors.bgPrimary)
-            .padding(horizontal = FlareSizes.spacingLg, vertical = 14.dp),
+            .padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacing2md),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd),
     ) {
         leading()
         Text(
             title,
-            fontSize = 24.sp,
+            fontSize = FlareSizes.fontSize5xl,
             fontWeight = FontWeight.Bold,
             color = colors.textPrimary,
             modifier = Modifier.weight(1f),

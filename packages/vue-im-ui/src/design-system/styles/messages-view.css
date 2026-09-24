@@ -29,12 +29,6 @@
   }
 }
 
-.im-content-view .message-text,
-.im-content-view .im-text {
-  font-size: 14px;
-  line-height: 1.5;
-}
-
 .message-bubble .im-content-view--system,
 .message-bubble .im-content-view--notification,
 .message-row--system .message-bubble {

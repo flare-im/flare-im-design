@@ -157,7 +157,7 @@ class FlareMessageContentView extends StatelessWidget {
         textPrimary: foreground,
         textSecondary: foreground,
         textTertiary: foreground.withValues(alpha: 0.8),
-        primary: self ? foreground : colors.primary,
+        primary: self ? foreground : colors.primaryText,
       ),
       child: IconTheme(
         data: IconThemeData(color: foreground, size: FlareSizes.iconSizeMd),
@@ -183,12 +183,19 @@ class FlareMessageContentView extends StatelessWidget {
         onMediaAction == null ? null : () => onMediaAction!(value);
     final media = FlareMediaScope.maybeOf(context);
     final body = switch (content) {
+      FlareTextContent c
+          when c.mentions.isEmpty && flareIsStandaloneEmojiMessage(c.text) =>
+        FlareEmojiMessage(emoji: c.text.trim()),
       FlareTextContent c => FlareTextMessage(
         text: c.text,
         self: self,
         mentions: c.mentions,
         onLinkTap: _openLink,
       ),
+      FlareRichTextContent c
+          when c.title.trim().isEmpty &&
+              flareIsStandaloneEmojiMessage(c.plainText) =>
+        FlareEmojiMessage(emoji: c.plainText.trim()),
       FlareRichTextContent c => FlareRichTextMessage(
         docJson: c.docJson,
         plainText: c.plainText,

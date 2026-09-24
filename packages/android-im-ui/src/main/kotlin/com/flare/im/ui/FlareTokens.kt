@@ -75,6 +75,18 @@ data class FlareColors(
     val textTertiary: Color,
     val warning: Color,
     val warningText: Color,
+    val avatarTintBlueBg: Color,
+    val avatarTintBlueFg: Color,
+    val avatarTintPurpleBg: Color,
+    val avatarTintPurpleFg: Color,
+    val avatarTintPinkBg: Color,
+    val avatarTintPinkFg: Color,
+    val avatarTintGreenBg: Color,
+    val avatarTintGreenFg: Color,
+    val avatarTintAmberBg: Color,
+    val avatarTintAmberFg: Color,
+    val avatarTintSlateBg: Color,
+    val avatarTintSlateFg: Color,
 ) {
     companion object {
         val VioletLight = FlareColors(
@@ -89,7 +101,7 @@ data class FlareColors(
             borderPrimary = Color(0xFFE3E5EB),
             borderSecondary = Color(0xFFECEEF2),
             borderSelected = Color(0xFF7C3AED),
-            messageIncomingBackground = Color(0xFFFFFFFF),
+            messageIncomingBackground = Color(0xFFF1F2F5),
             messageIncomingForeground = Color(0xFF20232D),
             messageIncomingBorder = Color(0xFFE3E5EB),
             messageOutgoingBackground = Color(0xFF6D28D9),
@@ -134,6 +146,18 @@ data class FlareColors(
             textTertiary = Color(0xFF5F6776),
             warning = Color(0xFFB45309),
             warningText = Color(0xFFB45309),
+            avatarTintBlueBg = Color(0xFFDBEAFE),
+            avatarTintBlueFg = Color(0xFF1D4ED8),
+            avatarTintPurpleBg = Color(0xFFE9D5FF),
+            avatarTintPurpleFg = Color(0xFF6D28D9),
+            avatarTintPinkBg = Color(0xFFFBCFE8),
+            avatarTintPinkFg = Color(0xFF9D174D),
+            avatarTintGreenBg = Color(0xFFD1FAE5),
+            avatarTintGreenFg = Color(0xFF047857),
+            avatarTintAmberBg = Color(0xFFFEF3C7),
+            avatarTintAmberFg = Color(0xFFB45309),
+            avatarTintSlateBg = Color(0xFFE5E7EB),
+            avatarTintSlateFg = Color(0xFF374151),
         )
 
         val VioletDark = FlareColors(
@@ -148,7 +172,7 @@ data class FlareColors(
             borderPrimary = Color(0x1AFFFFFF),
             borderSecondary = Color(0x14FFFFFF),
             borderSelected = Color(0xFFA78BFA),
-            messageIncomingBackground = Color(0xFF20232B),
+            messageIncomingBackground = Color(0xFF292D37),
             messageIncomingForeground = Color(0xF0FFFFFF),
             messageIncomingBorder = Color(0x1AFFFFFF),
             messageOutgoingBackground = Color(0xFF5B21B6),
@@ -193,6 +217,18 @@ data class FlareColors(
             textTertiary = Color(0xFF9AA3B3),
             warning = Color(0xFFA16207),
             warningText = Color(0xFFFBBF24),
+            avatarTintBlueBg = Color(0xFF1F3266),
+            avatarTintBlueFg = Color(0xFFBFDBFE),
+            avatarTintPurpleBg = Color(0xFF3A2566),
+            avatarTintPurpleFg = Color(0xFFDDD6FE),
+            avatarTintPinkBg = Color(0xFF5C1F3E),
+            avatarTintPinkFg = Color(0xFFFBCFE8),
+            avatarTintGreenBg = Color(0xFF15433C),
+            avatarTintGreenFg = Color(0xFFA7F3D0),
+            avatarTintAmberBg = Color(0xFF58351E),
+            avatarTintAmberFg = Color(0xFFFDE68A),
+            avatarTintSlateBg = Color(0xFF282D38),
+            avatarTintSlateFg = Color(0xFFE5E7EB),
         )
 
         val OceanLight = FlareColors(
@@ -207,7 +243,7 @@ data class FlareColors(
             borderPrimary = Color(0xFFE3E5EB),
             borderSecondary = Color(0xFFECEEF2),
             borderSelected = Color(0xFF2563EB),
-            messageIncomingBackground = Color(0xFFFFFFFF),
+            messageIncomingBackground = Color(0xFFF1F2F5),
             messageIncomingForeground = Color(0xFF20232D),
             messageIncomingBorder = Color(0xFFE3E5EB),
             messageOutgoingBackground = Color(0xFF1D4ED8),
@@ -252,6 +288,18 @@ data class FlareColors(
             textTertiary = Color(0xFF5F6776),
             warning = Color(0xFFB45309),
             warningText = Color(0xFFB45309),
+            avatarTintBlueBg = Color(0xFFDBEAFE),
+            avatarTintBlueFg = Color(0xFF1D4ED8),
+            avatarTintPurpleBg = Color(0xFFE9D5FF),
+            avatarTintPurpleFg = Color(0xFF6D28D9),
+            avatarTintPinkBg = Color(0xFFFBCFE8),
+            avatarTintPinkFg = Color(0xFF9D174D),
+            avatarTintGreenBg = Color(0xFFD1FAE5),
+            avatarTintGreenFg = Color(0xFF047857),
+            avatarTintAmberBg = Color(0xFFFEF3C7),
+            avatarTintAmberFg = Color(0xFFB45309),
+            avatarTintSlateBg = Color(0xFFE5E7EB),
+            avatarTintSlateFg = Color(0xFF374151),
         )
 
         val OceanDark = FlareColors(
@@ -266,7 +314,7 @@ data class FlareColors(
             borderPrimary = Color(0x1AFFFFFF),
             borderSecondary = Color(0x14FFFFFF),
             borderSelected = Color(0xFF60A5FA),
-            messageIncomingBackground = Color(0xFF20232B),
+            messageIncomingBackground = Color(0xFF292D37),
             messageIncomingForeground = Color(0xF0FFFFFF),
             messageIncomingBorder = Color(0x1AFFFFFF),
             messageOutgoingBackground = Color(0xFF1E40AF),
@@ -311,6 +359,18 @@ data class FlareColors(
             textTertiary = Color(0xFF9AA3B3),
             warning = Color(0xFFA16207),
             warningText = Color(0xFFFBBF24),
+            avatarTintBlueBg = Color(0xFF1F3266),
+            avatarTintBlueFg = Color(0xFFBFDBFE),
+            avatarTintPurpleBg = Color(0xFF3A2566),
+            avatarTintPurpleFg = Color(0xFFDDD6FE),
+            avatarTintPinkBg = Color(0xFF5C1F3E),
+            avatarTintPinkFg = Color(0xFFFBCFE8),
+            avatarTintGreenBg = Color(0xFF15433C),
+            avatarTintGreenFg = Color(0xFFA7F3D0),
+            avatarTintAmberBg = Color(0xFF58351E),
+            avatarTintAmberFg = Color(0xFFFDE68A),
+            avatarTintSlateBg = Color(0xFF282D38),
+            avatarTintSlateFg = Color(0xFFE5E7EB),
         )
 
         val ForestLight = FlareColors(
@@ -325,7 +385,7 @@ data class FlareColors(
             borderPrimary = Color(0xFFE3E5EB),
             borderSecondary = Color(0xFFECEEF2),
             borderSelected = Color(0xFF16A34A),
-            messageIncomingBackground = Color(0xFFFFFFFF),
+            messageIncomingBackground = Color(0xFFF1F2F5),
             messageIncomingForeground = Color(0xFF20232D),
             messageIncomingBorder = Color(0xFFE3E5EB),
             messageOutgoingBackground = Color(0xFF15803D),
@@ -370,6 +430,18 @@ data class FlareColors(
             textTertiary = Color(0xFF5F6776),
             warning = Color(0xFFB45309),
             warningText = Color(0xFFB45309),
+            avatarTintBlueBg = Color(0xFFDBEAFE),
+            avatarTintBlueFg = Color(0xFF1D4ED8),
+            avatarTintPurpleBg = Color(0xFFE9D5FF),
+            avatarTintPurpleFg = Color(0xFF6D28D9),
+            avatarTintPinkBg = Color(0xFFFBCFE8),
+            avatarTintPinkFg = Color(0xFF9D174D),
+            avatarTintGreenBg = Color(0xFFD1FAE5),
+            avatarTintGreenFg = Color(0xFF047857),
+            avatarTintAmberBg = Color(0xFFFEF3C7),
+            avatarTintAmberFg = Color(0xFFB45309),
+            avatarTintSlateBg = Color(0xFFE5E7EB),
+            avatarTintSlateFg = Color(0xFF374151),
         )
 
         val ForestDark = FlareColors(
@@ -384,7 +456,7 @@ data class FlareColors(
             borderPrimary = Color(0x1AFFFFFF),
             borderSecondary = Color(0x14FFFFFF),
             borderSelected = Color(0xFF4ADE80),
-            messageIncomingBackground = Color(0xFF20232B),
+            messageIncomingBackground = Color(0xFF292D37),
             messageIncomingForeground = Color(0xF0FFFFFF),
             messageIncomingBorder = Color(0x1AFFFFFF),
             messageOutgoingBackground = Color(0xFF166534),
@@ -429,6 +501,18 @@ data class FlareColors(
             textTertiary = Color(0xFF9AA3B3),
             warning = Color(0xFFA16207),
             warningText = Color(0xFFFBBF24),
+            avatarTintBlueBg = Color(0xFF1F3266),
+            avatarTintBlueFg = Color(0xFFBFDBFE),
+            avatarTintPurpleBg = Color(0xFF3A2566),
+            avatarTintPurpleFg = Color(0xFFDDD6FE),
+            avatarTintPinkBg = Color(0xFF5C1F3E),
+            avatarTintPinkFg = Color(0xFFFBCFE8),
+            avatarTintGreenBg = Color(0xFF15433C),
+            avatarTintGreenFg = Color(0xFFA7F3D0),
+            avatarTintAmberBg = Color(0xFF58351E),
+            avatarTintAmberFg = Color(0xFFFDE68A),
+            avatarTintSlateBg = Color(0xFF282D38),
+            avatarTintSlateFg = Color(0xFFE5E7EB),
         )
 
         val SunsetLight = FlareColors(
@@ -443,7 +527,7 @@ data class FlareColors(
             borderPrimary = Color(0xFFE3E5EB),
             borderSecondary = Color(0xFFECEEF2),
             borderSelected = Color(0xFFEA580C),
-            messageIncomingBackground = Color(0xFFFFFFFF),
+            messageIncomingBackground = Color(0xFFF1F2F5),
             messageIncomingForeground = Color(0xFF20232D),
             messageIncomingBorder = Color(0xFFE3E5EB),
             messageOutgoingBackground = Color(0xFFC2410C),
@@ -488,6 +572,18 @@ data class FlareColors(
             textTertiary = Color(0xFF5F6776),
             warning = Color(0xFFB45309),
             warningText = Color(0xFFB45309),
+            avatarTintBlueBg = Color(0xFFDBEAFE),
+            avatarTintBlueFg = Color(0xFF1D4ED8),
+            avatarTintPurpleBg = Color(0xFFE9D5FF),
+            avatarTintPurpleFg = Color(0xFF6D28D9),
+            avatarTintPinkBg = Color(0xFFFBCFE8),
+            avatarTintPinkFg = Color(0xFF9D174D),
+            avatarTintGreenBg = Color(0xFFD1FAE5),
+            avatarTintGreenFg = Color(0xFF047857),
+            avatarTintAmberBg = Color(0xFFFEF3C7),
+            avatarTintAmberFg = Color(0xFFB45309),
+            avatarTintSlateBg = Color(0xFFE5E7EB),
+            avatarTintSlateFg = Color(0xFF374151),
         )
 
         val SunsetDark = FlareColors(
@@ -502,7 +598,7 @@ data class FlareColors(
             borderPrimary = Color(0x1AFFFFFF),
             borderSecondary = Color(0x14FFFFFF),
             borderSelected = Color(0xFFFB923C),
-            messageIncomingBackground = Color(0xFF20232B),
+            messageIncomingBackground = Color(0xFF292D37),
             messageIncomingForeground = Color(0xF0FFFFFF),
             messageIncomingBorder = Color(0x1AFFFFFF),
             messageOutgoingBackground = Color(0xFF9A3412),
@@ -547,6 +643,18 @@ data class FlareColors(
             textTertiary = Color(0xFF9AA3B3),
             warning = Color(0xFFA16207),
             warningText = Color(0xFFFBBF24),
+            avatarTintBlueBg = Color(0xFF1F3266),
+            avatarTintBlueFg = Color(0xFFBFDBFE),
+            avatarTintPurpleBg = Color(0xFF3A2566),
+            avatarTintPurpleFg = Color(0xFFDDD6FE),
+            avatarTintPinkBg = Color(0xFF5C1F3E),
+            avatarTintPinkFg = Color(0xFFFBCFE8),
+            avatarTintGreenBg = Color(0xFF15433C),
+            avatarTintGreenFg = Color(0xFFA7F3D0),
+            avatarTintAmberBg = Color(0xFF58351E),
+            avatarTintAmberFg = Color(0xFFFDE68A),
+            avatarTintSlateBg = Color(0xFF282D38),
+            avatarTintSlateFg = Color(0xFFE5E7EB),
         )
 
         val RoseLight = FlareColors(
@@ -561,7 +669,7 @@ data class FlareColors(
             borderPrimary = Color(0xFFE3E5EB),
             borderSecondary = Color(0xFFECEEF2),
             borderSelected = Color(0xFFE11D48),
-            messageIncomingBackground = Color(0xFFFFFFFF),
+            messageIncomingBackground = Color(0xFFF1F2F5),
             messageIncomingForeground = Color(0xFF20232D),
             messageIncomingBorder = Color(0xFFE3E5EB),
             messageOutgoingBackground = Color(0xFFBE123C),
@@ -606,6 +714,18 @@ data class FlareColors(
             textTertiary = Color(0xFF5F6776),
             warning = Color(0xFFB45309),
             warningText = Color(0xFFB45309),
+            avatarTintBlueBg = Color(0xFFDBEAFE),
+            avatarTintBlueFg = Color(0xFF1D4ED8),
+            avatarTintPurpleBg = Color(0xFFE9D5FF),
+            avatarTintPurpleFg = Color(0xFF6D28D9),
+            avatarTintPinkBg = Color(0xFFFBCFE8),
+            avatarTintPinkFg = Color(0xFF9D174D),
+            avatarTintGreenBg = Color(0xFFD1FAE5),
+            avatarTintGreenFg = Color(0xFF047857),
+            avatarTintAmberBg = Color(0xFFFEF3C7),
+            avatarTintAmberFg = Color(0xFFB45309),
+            avatarTintSlateBg = Color(0xFFE5E7EB),
+            avatarTintSlateFg = Color(0xFF374151),
         )
 
         val RoseDark = FlareColors(
@@ -620,7 +740,7 @@ data class FlareColors(
             borderPrimary = Color(0x1AFFFFFF),
             borderSecondary = Color(0x14FFFFFF),
             borderSelected = Color(0xFFFB7185),
-            messageIncomingBackground = Color(0xFF20232B),
+            messageIncomingBackground = Color(0xFF292D37),
             messageIncomingForeground = Color(0xF0FFFFFF),
             messageIncomingBorder = Color(0x1AFFFFFF),
             messageOutgoingBackground = Color(0xFF9F1239),
@@ -665,6 +785,18 @@ data class FlareColors(
             textTertiary = Color(0xFF9AA3B3),
             warning = Color(0xFFA16207),
             warningText = Color(0xFFFBBF24),
+            avatarTintBlueBg = Color(0xFF1F3266),
+            avatarTintBlueFg = Color(0xFFBFDBFE),
+            avatarTintPurpleBg = Color(0xFF3A2566),
+            avatarTintPurpleFg = Color(0xFFDDD6FE),
+            avatarTintPinkBg = Color(0xFF5C1F3E),
+            avatarTintPinkFg = Color(0xFFFBCFE8),
+            avatarTintGreenBg = Color(0xFF15433C),
+            avatarTintGreenFg = Color(0xFFA7F3D0),
+            avatarTintAmberBg = Color(0xFF58351E),
+            avatarTintAmberFg = Color(0xFFFDE68A),
+            avatarTintSlateBg = Color(0xFF282D38),
+            avatarTintSlateFg = Color(0xFFE5E7EB),
         )
 
         val GraphiteLight = FlareColors(
@@ -679,7 +811,7 @@ data class FlareColors(
             borderPrimary = Color(0xFFE3E5EB),
             borderSecondary = Color(0xFFECEEF2),
             borderSelected = Color(0xFF64748B),
-            messageIncomingBackground = Color(0xFFFFFFFF),
+            messageIncomingBackground = Color(0xFFF1F2F5),
             messageIncomingForeground = Color(0xFF20232D),
             messageIncomingBorder = Color(0xFFE3E5EB),
             messageOutgoingBackground = Color(0xFF475569),
@@ -724,6 +856,18 @@ data class FlareColors(
             textTertiary = Color(0xFF5F6776),
             warning = Color(0xFFB45309),
             warningText = Color(0xFFB45309),
+            avatarTintBlueBg = Color(0xFFDBEAFE),
+            avatarTintBlueFg = Color(0xFF1D4ED8),
+            avatarTintPurpleBg = Color(0xFFE9D5FF),
+            avatarTintPurpleFg = Color(0xFF6D28D9),
+            avatarTintPinkBg = Color(0xFFFBCFE8),
+            avatarTintPinkFg = Color(0xFF9D174D),
+            avatarTintGreenBg = Color(0xFFD1FAE5),
+            avatarTintGreenFg = Color(0xFF047857),
+            avatarTintAmberBg = Color(0xFFFEF3C7),
+            avatarTintAmberFg = Color(0xFFB45309),
+            avatarTintSlateBg = Color(0xFFE5E7EB),
+            avatarTintSlateFg = Color(0xFF374151),
         )
 
         val GraphiteDark = FlareColors(
@@ -738,7 +882,7 @@ data class FlareColors(
             borderPrimary = Color(0x1AFFFFFF),
             borderSecondary = Color(0x14FFFFFF),
             borderSelected = Color(0xFF94A3B8),
-            messageIncomingBackground = Color(0xFF20232B),
+            messageIncomingBackground = Color(0xFF292D37),
             messageIncomingForeground = Color(0xF0FFFFFF),
             messageIncomingBorder = Color(0x1AFFFFFF),
             messageOutgoingBackground = Color(0xFF475569),
@@ -783,6 +927,18 @@ data class FlareColors(
             textTertiary = Color(0xFF9AA3B3),
             warning = Color(0xFFA16207),
             warningText = Color(0xFFFBBF24),
+            avatarTintBlueBg = Color(0xFF1F3266),
+            avatarTintBlueFg = Color(0xFFBFDBFE),
+            avatarTintPurpleBg = Color(0xFF3A2566),
+            avatarTintPurpleFg = Color(0xFFDDD6FE),
+            avatarTintPinkBg = Color(0xFF5C1F3E),
+            avatarTintPinkFg = Color(0xFFFBCFE8),
+            avatarTintGreenBg = Color(0xFF15433C),
+            avatarTintGreenFg = Color(0xFFA7F3D0),
+            avatarTintAmberBg = Color(0xFF58351E),
+            avatarTintAmberFg = Color(0xFFFDE68A),
+            avatarTintSlateBg = Color(0xFF282D38),
+            avatarTintSlateFg = Color(0xFFE5E7EB),
         )
 
         val Light = VioletLight
@@ -848,18 +1004,21 @@ object FlareTextRoles {
     val Section = FlareTextRole(13.sp, 1.2f, 600)
     val Body = FlareTextRole(14.sp, 1.5f, 400)
     val Caption = FlareTextRole(12.sp, 1.5f, 400)
+    val Message = FlareTextRole(15.sp, 1.45f, 400)
 }
 
 /** Flare IM spacing / radius / font-size / line-height / layout tokens. */
 object FlareSizes {
+    val fontSize2xs: TextUnit = 10.sp
+    val fontSizeXs: TextUnit = 11.sp
+    val fontSizeSm: TextUnit = 12.sp
+    val fontSizeMd: TextUnit = 13.sp
+    val fontSizeLg: TextUnit = 14.sp
+    val fontSizeXl: TextUnit = 15.sp
     val fontSize2xl: TextUnit = 16.sp
     val fontSize3xl: TextUnit = 18.sp
     val fontSize4xl: TextUnit = 20.sp
-    val fontSizeLg: TextUnit = 14.sp
-    val fontSizeMd: TextUnit = 13.sp
-    val fontSizeSm: TextUnit = 12.sp
-    val fontSizeXl: TextUnit = 15.sp
-    val fontSizeXs: TextUnit = 11.sp
+    val fontSize5xl: TextUnit = 24.sp
     val iconSizeLg: Dp = 24.dp
     val iconSizeMd: Dp = 20.dp
     val iconSizeSm: Dp = 16.dp
@@ -888,25 +1047,54 @@ object FlareSizes {
     val sessionItemHeight: Dp = 72.dp
     val touchTarget: Dp = 48.dp
     val touchTargetMin: Dp = 44.dp
+    const val lineHeightNone: Float = 1.0f
+    const val lineHeightTight: Float = 1.2f
+    const val lineHeightSnug: Float = 1.4f
     const val lineHeightNormal: Float = 1.5f
     const val lineHeightRelaxed: Float = 1.6f
-    const val lineHeightTight: Float = 1.2f
-    val radius2xl: Dp = 18.dp
-    val radiusBubble: Dp = 16.dp
-    val radiusBubbleTail: Dp = 4.dp
-    val radiusFull: Dp = 999.dp
-    val radiusLg: Dp = 10.dp
-    val radiusMd: Dp = 8.dp
-    val radiusSm: Dp = 6.dp
-    val radiusXl: Dp = 14.dp
     val radiusXs: Dp = 3.dp
-    val spacing2xl: Dp = 24.dp
-    val spacing2xs: Dp = 6.dp
-    val spacingLg: Dp = 16.dp
-    val spacingMd: Dp = 12.dp
-    val spacingSm: Dp = 8.dp
-    val spacingXl: Dp = 20.dp
+    val radiusBubbleTail: Dp = 4.dp
+    val radiusSm: Dp = 6.dp
+    val radiusMd: Dp = 8.dp
+    val radiusLg: Dp = 10.dp
+    val radiusCard: Dp = 12.dp
+    val radiusXl: Dp = 14.dp
+    val radiusBubble: Dp = 16.dp
+    val radius2xl: Dp = 18.dp
+    val radiusFull: Dp = 999.dp
+    val spacing3xs: Dp = 2.dp
     val spacingXs: Dp = 4.dp
+    val spacing2xs: Dp = 6.dp
+    val spacingSm: Dp = 8.dp
+    val spacing2sm: Dp = 10.dp
+    val spacingMd: Dp = 12.dp
+    val spacing2md: Dp = 14.dp
+    val spacingLg: Dp = 16.dp
+    val spacingXl: Dp = 20.dp
+    val spacing2xl: Dp = 24.dp
+    val componentBubblePaddingX: Dp = 14.dp
+    val componentBubblePaddingY: Dp = 9.dp
+    val componentMessageAvatarSize: Dp = 40.dp
+    val componentComposerActionHeight: Dp = 40.dp
+    val componentComposerActionWidth: Dp = 44.dp
+    val componentComposerToolbarIcon: Dp = 34.dp
+    val componentComposerToolbarWidth: Dp = 44.dp
+    val componentComposerDesktopHeight: Dp = 46.dp
+    val componentBubbleRichMinWidth: Dp = 220.dp
+    val componentBubbleSystemMaxWidth: Dp = 560.dp
+    val componentMessageGutterInline: Dp = 16.dp
+    val componentMessageTailSpace: Dp = 10.dp
+    val componentMediaCardMinWidth: Dp = 220.dp
+    val componentMediaImageMaxWidth: Dp = 320.dp
+    val componentMediaVideoWidth: Dp = 320.dp
+    val componentRichCardWidth: Dp = 320.dp
+    val componentRichCardCompactWidth: Dp = 240.dp
+    val componentRichCardMediaHeight: Dp = 148.dp
+    val componentSheetWidth: Dp = 420.dp
+    val componentSheetDialogWidth: Dp = 480.dp
+    val componentConversationRowMetaWidth: Dp = 60.dp
+    const val componentBubbleMaxWidthRatioCompact: Float = 0.88f
+    const val componentBubbleMaxWidthRatioRegular: Float = 0.62f
 }
 
 /** Opacity tokens (disabled / muted / tint overlays). */

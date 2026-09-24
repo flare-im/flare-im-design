@@ -108,14 +108,26 @@ internal fun initials(name: String): String {
  * tinted surface + dark initials reads more premium than a saturated solid and
  * stays legible in both themes. Returns (background, foreground).
  */
-internal fun seedTint(seed: String): Pair<Color, Color> {
+@Composable
+internal fun seedTint(seed: String): Pair<Color, Color> = seedTint(seed, flareColors())
+
+/**
+ * The palette comes from the token source (`colors.avatarTint.*`): the same six pairs on four
+ * platforms, **with a dark set**. This used to be six light hex literals, so in dark mode an avatar
+ * sat on the dark surface like a pastel macaron — only the web had a dark variant. The order is part
+ * of the contract (the seed's hash picks a slot), and follows the token file's insertion order.
+ *
+ * Kept free of composition so the choice can be unit-tested: the composable overload above only
+ * supplies the current theme's colours.
+ */
+internal fun seedTint(seed: String, colors: FlareColors): Pair<Color, Color> {
     val pairs = listOf(
-        Color(0xFFDBEAFE) to Color(0xFF1D4ED8), // blue
-        Color(0xFFE9D5FF) to Color(0xFF6D28D9), // purple
-        Color(0xFFFBCFE8) to Color(0xFFBE185D), // pink
-        Color(0xFFD1FAE5) to Color(0xFF047857), // green
-        Color(0xFFFEF3C7) to Color(0xFFB45309), // amber
-        Color(0xFFE5E7EB) to Color(0xFF374151), // slate
+        colors.avatarTintBlueBg to colors.avatarTintBlueFg,
+        colors.avatarTintPurpleBg to colors.avatarTintPurpleFg,
+        colors.avatarTintPinkBg to colors.avatarTintPinkFg,
+        colors.avatarTintGreenBg to colors.avatarTintGreenFg,
+        colors.avatarTintAmberBg to colors.avatarTintAmberFg,
+        colors.avatarTintSlateBg to colors.avatarTintSlateFg,
     )
     var hash = 0
     for (c in seed) hash = (hash * 31 + c.code) and 0x7fffffff

@@ -220,10 +220,17 @@ for (const [group, entries] of Object.entries(src.sizes)) {
   // textRole is a set of named roles (size + line height + weight), not a scalar scale: the platform
   // emitters below turn it into one value per role instead of three loose numbers.
   if (group === "textRole") continue;
+  // fontWeight 只发 web。原生三端的权重已经在 FlareTextRole 里带着类型走了
+  // (Swift 映射 Font.Weight、Kotlin 映射 FontWeight、Dart 拿 int),再生成一组
+  // 裸 CGFloat / Float / double 的权重常量,是把一个已经对的 API 换成一个更差的。
+  // web 这边没有别的出口:CSS 的 font-weight 只能收一个数,所以那边照发。
+  if (group === "fontWeight") continue;
   for (const [key, v] of Object.entries(entries)) {
     // layout keys are already descriptive; others carry their group as prefix
     const name = group === "layout" ? key : group + cap(key);
-    sizeConsts.push([name, dartNum(v)]);
+    // 带上原始值:Kotlin 侧要靠它区分「尺寸(Dp)」和「无单位比例(Float)」。
+    // 只看键名前缀不够 —— sizes.component 里既有 14px 也有 0.88 这种比例。
+    sizeConsts.push([name, dartNum(v), String(v)]);
   }
 }
 
@@ -580,10 +587,12 @@ const kotlin =
   `\n}\n\n` +
   `/** Flare IM spacing / radius / font-size / line-height / layout tokens. */\n` +
   `object FlareSizes {\n` +
-  sizeConsts.map(([n, v]) => {
+  sizeConsts.map(([n, v, raw]) => {
     const plain = v.replace(".0", "");
     if (n.startsWith("fontSize")) return `    val ${n}: TextUnit = ${plain}.sp`;
-    if (n.startsWith("lineHeight")) return `    const val ${n}: Float = ${v}f`;
+    // 无单位的源值(1.5、0.88…)是比例,不是尺寸:出 Float。以前只特判 lineHeight 前缀,
+    // 于是 sizes.component 里的比例被生成成 `0.88.dp`,编译过得去但语义是错的。
+    if (!/px$/.test(raw)) return `    const val ${n}: Float = ${v}f`;
     return `    val ${n}: Dp = ${plain}.dp`;
   }).join("\n") +
   `\n}\n`;

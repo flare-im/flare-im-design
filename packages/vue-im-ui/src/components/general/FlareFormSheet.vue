@@ -7,6 +7,8 @@ const props = withDefaults(defineProps<{
   confirmLabel?: string; cancelLabel?: string; error?: string;
   /** Bottom sheet on phones and a dialog on pointer devices by default; `drawer` for long forms. */
   presentation?: FlareSheetPresentation;
+  /** 弹窗形态下这张面有多宽;`class` 与外部的自定义属性都到不了那里,见 FlareBottomSheet。 */
+  dialogWidth?: string;
 }>(), { busy: false, confirmDisabled: false, presentation: "auto" });
 const emit = defineEmits<{ confirm: []; close: [] }>();
 const { t } = useFlareI18n();
@@ -14,7 +16,7 @@ function close() { if (!props.busy) emit("close"); }
 function confirm() { if (!props.busy && !props.confirmDisabled) emit("confirm"); }
 </script>
 <template>
-  <FlareBottomSheet :open="open" :title="title" :dismissible="!busy" :presentation="presentation" @close="close">
+  <FlareBottomSheet :open="open" :title="title" :dismissible="!busy" :presentation="presentation" :dialog-width="dialogWidth" @close="close">
     <form class="flare-form-sheet" :aria-busy="busy" @submit.prevent="confirm">
       <fieldset class="flare-form-sheet__fields" :disabled="busy"><slot /></fieldset>
       <p v-if="error" class="flare-form-sheet__error" role="alert">{{ error }}</p>

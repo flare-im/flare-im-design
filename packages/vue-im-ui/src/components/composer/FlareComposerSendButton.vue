@@ -30,9 +30,11 @@ function click() {
 </template>
 
 <style scoped>
+/* 与工具条里其它键同一种画法:透明底、品牌色的纸飞机,没内容可发时只是淡下去。
+   曾试过把启用态改成实心主按钮,被产品否掉了 —— 这一行里发送不该比别的键"重"。 */
 .flare-send {
-  width: 44px;
-  height: 44px;
+  width: var(--flare-size-layout-touch-target-min);
+  height: var(--flare-size-layout-touch-target-min);
   border: none;
   border-radius: 0;
   display: grid;
@@ -47,6 +49,7 @@ function click() {
   opacity: 1;
   cursor: pointer;
 }
+.flare-send:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
   .flare-send { transition: none; }
 }

@@ -3,6 +3,7 @@
 library;
 
 export 'flare_emoji_sticker_catalog.dart';
+export 'flare_composer_emoji_span_builder.dart';
 export 'flare_static_asset_image.dart';
 export 'flare_emoji_sticker_message_views.dart';
 export 'flare_emoji_sticker_picker.dart';

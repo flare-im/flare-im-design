@@ -43,7 +43,7 @@ fun FilterTabs(
         modifier = Modifier
             .horizontalScroll(rememberScrollState())
             .padding(2.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         for (option in options) {
@@ -60,7 +60,7 @@ fun FilterTabs(
                         RoundedCornerShape(FlareSizes.radiusFull),
                     )
                     .clickable { onSelect(option.value) }
-                    .padding(horizontal = 14.dp, vertical = 6.dp),
+                    .padding(horizontal = FlareSizes.spacing2md, vertical = FlareSizes.spacing2xs),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(

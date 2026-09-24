@@ -179,21 +179,29 @@ for (const mode of ["light", "dark"] as const) {
       const fixture = await readyComposerSurface(page, mode);
       const target = fixture.locator('[data-composer-state="default"]');
       await target.getByRole("button", { name: /^(富文本|Rich text)$/ }).click();
+      // 文本样式是 kit 的菜单(手机底部面板 / 桌面锚定菜单),不再是浏览器画的 <select>。
       const heading = target.locator(".composer-heading-select");
       const editor = target.locator('[contenteditable="true"]');
-      await expect(heading.locator("option")).toHaveText(["P", "H1", "H2", "H3", "H4", "H5", "H6"]);
+      const pick = async (name: string) => {
+        await heading.click();
+        await page.getByRole("menuitemcheckbox", { name }).click();
+      };
+      await heading.click();
+      await expect(page.getByRole("menuitemcheckbox")).toHaveText(["正文", "标题 1", "标题 2", "标题 3", "标题 4", "标题 5", "标题 6"]);
+      await page.keyboard.press("Escape");
       const initial = (await heading.boundingBox())!;
       await editor.fill("Heading selection");
       for (const level of [1, 2, 3, 4, 5, 6]) {
         await editor.press("ControlOrMeta+A");
-        await heading.selectOption(String(level));
+        await pick(`标题 ${level}`);
         await expect(editor.locator(`[data-heading-level="${level}"]`)).toHaveText("Heading selection");
         await expect(heading).toHaveAttribute("title", `标题 ${level}`);
+        await expect(heading.locator(".composer-heading-select__value")).toHaveText(`H${level}`);
         expect((await heading.boundingBox())!.width).toBe(initial.width);
       }
       await target.screenshot({ path: testInfo.outputPath(`heading-${width}-${mode}.png`), animations: "disabled" });
       await editor.press("ControlOrMeta+A");
-      await heading.selectOption("");
+      await pick("正文");
       await expect(editor.locator("[data-heading-level]")).toHaveCount(0);
       await expect(editor).toHaveText("Heading selection");
       await expect(heading).toHaveAttribute("title", "正文");

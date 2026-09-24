@@ -2,15 +2,14 @@
 import { computed, ref, watch } from "vue";
 import { HappyOutline } from "../../../shared/icon-glyphs";
 import { NIcon } from "naive-ui";
-import { COMPOSER_EMOJI_ITEMS, type ComposerEmojiAssetItem } from "../ComposerEmojiStickerPopover/composerEmojiAssets";
+import { COMPOSER_EMOJI_ITEMS, emojiAssetRuntimeLabel, type ComposerEmojiAssetItem } from "../ComposerEmojiStickerPopover/composerEmojiAssets";
 import { emojiPackLabel } from "../../../utils/emojiPackI18n";
 import { currentFlareRuntimeLocale } from "../../../shared/i18n/messages";
 import { useFlareI18nOptional } from "../../../shared/i18n/useFlareI18n";
 import {
-  COMPOSER_CLASSIC_STICKER_ITEMS,
-  COMPOSER_DEFAULT_STICKER_ITEMS,
-  COMPOSER_STICKER_PACK_TAB_ICON_URL,
+  COMPOSER_STICKER_PACKS,
   resolveStickerUrlByPackageAndId,
+  type ComposerStickerPack,
   type ComposerStickerItem,
 } from "../ComposerEmojiStickerPopover/composerStickers";
 import FrozenStickerThumb from "../FrozenStickerThumb/index.vue";
@@ -58,9 +57,7 @@ const RECENT_EMOJI_KEY = "flare-im-ui-composer-recent-emoji-keys";
 const RECENT_STICKER_KEY = "flare-im-ui-composer-recent-sticker-ids";
 const MAX_RECENT = 20;
 
-type StickerPackTab = "default" | "classic";
-
-const stickerPackTab = ref<StickerPackTab>("classic");
+const stickerPackTab = ref("classic");
 
 const recentEmojiKeys = ref<string[]>([]);
 const recentStickerIds = ref<string[]>([]);
@@ -118,7 +115,7 @@ function stickerRecentId(item: ComposerStickerItem): string {
 
 const stickerById = computed(() => {
   const map = new Map<string, ComposerStickerItem>();
-  for (const item of [...COMPOSER_CLASSIC_STICKER_ITEMS, ...COMPOSER_DEFAULT_STICKER_ITEMS]) {
+  for (const item of COMPOSER_STICKER_PACKS.flatMap((pack) => pack.items)) {
     map.set(stickerRecentId(item), item);
   }
   return map;
@@ -135,7 +132,11 @@ const recentStickerItems = computed(() => {
 });
 
 const currentStickerPackItems = computed((): ComposerStickerItem[] =>
-  stickerPackTab.value === "classic" ? COMPOSER_CLASSIC_STICKER_ITEMS : COMPOSER_DEFAULT_STICKER_ITEMS,
+  currentStickerPack.value?.items ?? [],
+);
+
+const currentStickerPack = computed((): ComposerStickerPack | undefined =>
+  COMPOSER_STICKER_PACKS.find((pack) => pack.packageId === stickerPackTab.value) ?? COMPOSER_STICKER_PACKS[0],
 );
 
 const recentStickerItemsInPack = computed(() => {
@@ -144,32 +145,20 @@ const recentStickerItemsInPack = computed(() => {
 });
 
 const stickerPackSectionTitle = computed(() =>
-  stickerPackTab.value === "classic" ? t("sticker.classicPack") : t("sticker.defaultPack"),
+  currentStickerPack.value?.packageId === "classic"
+    ? t("sticker.classicPack")
+    : currentStickerPack.value?.packageId === "gifs"
+      ? t("sticker.defaultPack")
+      : currentStickerPack.value?.title ?? t("sticker.packs"),
 );
 
 function emojiLabel(key: string): string {
-  return emojiPackLabel(key, currentFlareRuntimeLocale());
+  return emojiAssetRuntimeLabel(key, currentFlareRuntimeLocale()) ?? emojiPackLabel(key, currentFlareRuntimeLocale());
 }
 
 function stickerLabel(item: ComposerStickerItem): string {
   return t("sticker.item", { id: item.stickerId });
 }
-
-const defaultPackTabIconSrc = computed(() => COMPOSER_STICKER_PACK_TAB_ICON_URL.default?.trim() ?? "");
-
-const classicPackTabIconSrc = computed(() => COMPOSER_STICKER_PACK_TAB_ICON_URL.classic?.trim() ?? "");
-
-const defaultPackTabIconLoadSrc = computed(() => {
-  const custom = COMPOSER_STICKER_PACK_TAB_ICON_URL.default?.trim();
-  if (custom) return undefined;
-  return COMPOSER_DEFAULT_STICKER_ITEMS[0]?.loadUrl;
-});
-
-const classicPackTabIconLoadSrc = computed(() => {
-  const custom = COMPOSER_STICKER_PACK_TAB_ICON_URL.classic?.trim();
-  if (custom) return undefined;
-  return COMPOSER_CLASSIC_STICKER_ITEMS[0]?.loadUrl;
-});
 
 function onPickEmoji(item: ComposerEmojiAssetItem): void {
   recentEmojiKeys.value = pushRecentOne(RECENT_EMOJI_KEY, recentEmojiKeys.value, item.key);
@@ -189,8 +178,8 @@ function setTab(tab: "emoji" | "sticker"): void {
   emit("update:activeTab", tab);
 }
 
-function setStickerPack(tab: StickerPackTab): void {
-  stickerPackTab.value = tab;
+function setStickerPack(packageId: string): void {
+  stickerPackTab.value = packageId;
   emit("update:activeTab", "sticker");
 }
 
@@ -223,7 +212,7 @@ function onPanelSendClick(): void {
               :aria-label="emojiLabel(item.key)"
               @click="onPickEmoji(item)"
             >
-              <FrozenStickerThumb :load-src="item.loadUrl" alt="" />
+              <FrozenStickerThumb :load-src="item.loadPreviewUrl" alt="" />
             </button>
           </div>
         </section>
@@ -239,7 +228,7 @@ function onPanelSendClick(): void {
               :aria-label="emojiLabel(item.key)"
               @click="onPickEmoji(item)"
             >
-              <FrozenStickerThumb :load-src="item.loadUrl" alt="" />
+              <FrozenStickerThumb :load-src="item.loadPreviewUrl" alt="" />
             </button>
           </div>
         </section>
@@ -259,9 +248,8 @@ function onPanelSendClick(): void {
               @click="onPickSticker(item)"
             >
               <FrozenStickerThumb
-                :load-src="item.loadUrl"
+                :load-src="item.loadPreviewUrl"
                 alt=""
-                play-animated-on-hover
                 object-fit="cover"
               />
             </button>
@@ -281,9 +269,8 @@ function onPanelSendClick(): void {
               @click="onPickSticker(item)"
             >
               <FrozenStickerThumb
-                :load-src="item.loadUrl"
+                :load-src="item.loadPreviewUrl"
                 alt=""
-                play-animated-on-hover
                 object-fit="cover"
               />
             </button>
@@ -312,45 +299,26 @@ function onPanelSendClick(): void {
           </n-icon>
         </button>
         <div
-          v-if="defaultPackTabIconSrc || classicPackTabIconSrc || defaultPackTabIconLoadSrc || classicPackTabIconLoadSrc"
+          v-if="COMPOSER_STICKER_PACKS.length"
           class="sticker-pack-tabs"
           role="group"
           :aria-label="t('sticker.packs')"
         >
           <button
-            v-if="classicPackTabIconSrc || classicPackTabIconLoadSrc"
+            v-for="pack in COMPOSER_STICKER_PACKS"
+            :key="pack.packageId"
             type="button"
             class="pack-tab pack-tab--thumb"
-            :class="{ 'pack-tab--active': activeTab === 'sticker' && stickerPackTab === 'classic' }"
-            :aria-label="t('sticker.classicPack')"
-            :title="t('sticker.classicPack')"
-            :aria-pressed="activeTab === 'sticker' && stickerPackTab === 'classic'"
-            @click="setStickerPack('classic')"
+            :class="{ 'pack-tab--active': activeTab === 'sticker' && stickerPackTab === pack.packageId }"
+            :aria-label="pack.packageId === 'classic' ? t('sticker.classicPack') : pack.packageId === 'gifs' ? t('sticker.defaultPack') : pack.title"
+            :title="pack.packageId === 'classic' ? t('sticker.classicPack') : pack.packageId === 'gifs' ? t('sticker.defaultPack') : pack.title"
+            :aria-pressed="activeTab === 'sticker' && stickerPackTab === pack.packageId"
+            @click="setStickerPack(pack.packageId)"
           >
             <span class="pack-tab-thumb-shell">
               <FrozenStickerThumb
                 class="pack-tab-frozen-thumb"
-                :src="classicPackTabIconSrc"
-                :load-src="classicPackTabIconLoadSrc"
-                alt=""
-              />
-            </span>
-          </button>
-          <button
-            v-if="defaultPackTabIconSrc || defaultPackTabIconLoadSrc"
-            type="button"
-            class="pack-tab pack-tab--thumb"
-            :class="{ 'pack-tab--active': activeTab === 'sticker' && stickerPackTab === 'default' }"
-            :aria-label="t('sticker.defaultPack')"
-            :title="t('sticker.defaultPack')"
-            :aria-pressed="activeTab === 'sticker' && stickerPackTab === 'default'"
-            @click="setStickerPack('default')"
-          >
-            <span class="pack-tab-thumb-shell">
-              <FrozenStickerThumb
-                class="pack-tab-frozen-thumb"
-                :src="defaultPackTabIconSrc"
-                :load-src="defaultPackTabIconLoadSrc"
+                :load-src="pack.loadIconUrl"
                 alt=""
               />
             </span>
@@ -383,12 +351,12 @@ function onPanelSendClick(): void {
   max-height: min(36dvh, 320px);
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 10px 12px 6px;
+  padding: var(--flare-size-spacing-2sm) 12px 6px;
 }
 
 .composer-emoji-sticker-panel--emoji-only .panel-scroll {
   max-height: min(32dvh, 280px);
-  padding-bottom: 10px;
+  padding-bottom: var(--flare-size-spacing-2sm);
 }
 
 .panel-section + .panel-section {
@@ -415,7 +383,7 @@ function onPanelSendClick(): void {
   display: grid;
   align-items: start;
   justify-content: start;
-  gap: 8px 10px;
+  gap: 8px var(--flare-size-spacing-2sm);
 }
 
 .asset-grid--emoji {
@@ -454,7 +422,7 @@ function onPanelSendClick(): void {
 .asset-cell--sticker {
   width: 72px;
   height: 72px;
-  border-radius: 12px;
+  border-radius: var(--flare-size-radius-card);
   background: var(--flare-color-bg-primary);
   padding: 6px;
 }
@@ -466,8 +434,10 @@ function onPanelSendClick(): void {
   overflow: hidden;
 }
 
+/* 标签栏原来 6/8 的上下内距把这一条撑到 59px —— 面板本来就嫌高,这一条又几乎等于一排表情。
+   缩到 4/6 后是 51px,仍然是 40px 的触达区加一圈呼吸。 */
 .panel-tabbar {
-  padding: 6px 10px calc(8px + env(safe-area-inset-bottom, 0px));
+  padding: 4px var(--flare-size-spacing-2sm) calc(6px + env(safe-area-inset-bottom, 0px));
   background: var(--composer-emoji-tabbar-bg, var(--flare-color-bg-primary));
   border-top: 1px solid var(--composer-emoji-tabbar-border, var(--flare-color-border-primary));
 }

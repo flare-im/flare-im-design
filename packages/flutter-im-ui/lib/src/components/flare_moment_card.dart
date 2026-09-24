@@ -25,9 +25,11 @@ class FlareMomentCard extends StatefulWidget {
     super.key,
     required this.moment,
     this.canDelete = false,
+    this.canReport = false,
     this.onLike,
     this.onComment,
     this.onDelete,
+    this.onReport,
     this.onOpenImage,
     this.onSelectAuthor,
     this.onSelectLiker,
@@ -38,9 +40,14 @@ class FlareMomentCard extends StatefulWidget {
 
   /// When true the ··· popover shows a destructive Delete action → [onDelete].
   final bool canDelete;
+
+  /// When true the ··· popover shows a Report action → [onReport]; mutually
+  /// exclusive with [canDelete] (you do not report your own moment).
+  final bool canReport;
   final VoidCallback? onLike;
   final VoidCallback? onComment;
   final VoidCallback? onDelete;
+  final VoidCallback? onReport;
   final void Function(int index)? onOpenImage;
   final void Function(String id)? onSelectAuthor;
   final void Function(String id)? onSelectLiker;
@@ -61,6 +68,11 @@ class _FlareMomentCardState extends State<FlareMomentCard> {
   void _onComment() {
     setState(() => _menuOpen = false);
     widget.onComment?.call();
+  }
+
+  void _onReport() {
+    setState(() => _menuOpen = false);
+    widget.onReport?.call();
   }
 
   void _onDelete() {
@@ -157,7 +169,7 @@ class _FlareMomentCardState extends State<FlareMomentCard> {
                   ),
                 if (moment.images.isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.only(top: 10),
+                    padding: const EdgeInsets.only(top: FlareSizes.spacing2sm),
                     child: FlareImageGrid(
                       images: moment.images,
                       onOpen: (i) => widget.onOpenImage?.call(i),
@@ -191,12 +203,12 @@ class _FlareMomentCardState extends State<FlareMomentCard> {
                     ),
                   ),
                 Padding(
-                  padding: const EdgeInsets.only(top: 10),
+                  padding: const EdgeInsets.only(top: FlareSizes.spacing2sm),
                   child: _metaRow(colors, moment),
                 ),
                 if (hasSocial)
                   Padding(
-                    padding: const EdgeInsets.only(top: 10),
+                    padding: const EdgeInsets.only(top: FlareSizes.spacing2sm),
                     child: _social(colors, likes, comments),
                   ),
               ],
@@ -222,9 +234,11 @@ class _FlareMomentCardState extends State<FlareMomentCard> {
               FlareMomentActionPopover(
                 liked: moment.likedBySelf,
                 canDelete: widget.canDelete,
+              canReport: widget.canReport,
                 onLike: _onLike,
                 onComment: _onComment,
                 onDelete: _onDelete,
+              onReport: _onReport,
               ),
             ],
             FlareIconControl(

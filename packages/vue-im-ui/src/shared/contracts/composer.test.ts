@@ -18,7 +18,8 @@ describe("composer action table", () => {
   });
 
   it("keeps the default set useful and restrained", () => {
-    expect(FLARE_DEFAULT_COMPOSER_ACTION_IDS).toEqual(["image", "file", "voice", "location", "contact"]);
+    // 视频在里面：composer 自己就能拾取它（PICKER_INTENTS.video），不给就等于这个能力不存在。
+    expect(FLARE_DEFAULT_COMPOSER_ACTION_IDS).toEqual(["image", "video", "file", "voice", "location", "contact"]);
     for (const id of FLARE_DEFAULT_COMPOSER_ACTION_IDS) expect(FLARE_COMPOSER_ACTION_IDS).toContain(id);
   });
 

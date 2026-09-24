@@ -30,4 +30,10 @@ export interface FlareSearchResultGroup {
   items: FlareSearchResultItem[];
   /** Total matches when the list is truncated — renders a "查看全部 N" row. */
   total?: number;
+  /**
+   * The list is truncated and the host does not know by how much (a search API that takes a limit and
+   * returns no count: ask for one more than is shown). Renders a "查看更多" row that reports `viewAll`.
+   * `total` wins when both are given; a count is never made up to get the row.
+   */
+  hasMore?: boolean;
 }

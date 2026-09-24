@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../tokens/flare_tokens.dart';
 import 'flare_emoji_sticker_catalog.dart';
+import 'flare_static_asset_image.dart';
 
 const double _kStickerLikeMaxSide = 120;
 
@@ -38,10 +39,21 @@ class _FlareEmojiPackMessageState extends State<FlareEmojiPackMessage> {
   @override
   void initState() {
     super.initState();
+    FlareEmojiStickerCatalog.instance.addListener(_catalogChanged);
     // Load labels/locales in the background; a raw key shows until then.
     FlareEmojiStickerCatalog.instance.ensureLoaded().then((_) {
       if (mounted) setState(() {});
     });
+  }
+
+  void _catalogChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    FlareEmojiStickerCatalog.instance.removeListener(_catalogChanged);
+    super.dispose();
   }
 
   @override
@@ -58,9 +70,8 @@ class _FlareEmojiPackMessageState extends State<FlareEmojiPackMessage> {
       return SizedBox(
         width: _kStickerLikeMaxSide,
         height: _kStickerLikeMaxSide,
-        child: Image.asset(
-          FlareEmojiStickerCatalog.emojiAssetPath(packKey),
-          package: FlareEmojiStickerCatalog.package,
+        child: Image(
+          image: FlareEmojiStickerCatalog.instance.emojiImageProvider(packKey),
           fit: BoxFit.contain,
           gaplessPlayback: true,
           errorBuilder: (context, error, stackTrace) => Center(
@@ -104,6 +115,13 @@ class FlareStickerPackMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: FlareEmojiStickerCatalog.instance,
+      builder: (context, _) => _build(context),
+    );
+  }
+
+  Widget _build(BuildContext context) {
     final colors = FlareColors.of(context);
     double w = (width ?? 0) > 0 ? width! : 68;
     double h = (height ?? 0) > 0 ? height! : 68;
@@ -117,34 +135,32 @@ class FlareStickerPackMessage extends StatelessWidget {
     final hasNet = net.startsWith('http://') || net.startsWith('https://');
 
     if (stickerId.trim().isNotEmpty) {
-      return Image.asset(
-        FlareEmojiStickerCatalog.stickerAssetPath(
+      return FlareStaticImage(
+        image: FlareEmojiStickerCatalog.instance.stickerImageProvider(
           stickerId: stickerId,
           packageId: packageId,
+          staticPreview: true,
         ),
-        package: FlareEmojiStickerCatalog.package,
         width: w,
         height: h,
         fit: BoxFit.contain,
-        gaplessPlayback: true,
-        errorBuilder: (context, error, stackTrace) => hasNet
-            ? Image.network(
-                net,
+        error: hasNet
+            ? FlareStaticImage(
+                image: NetworkImage(net),
                 width: w,
                 height: h,
-                fit: BoxFit.contain,
-                errorBuilder: (c, e, s) => _placeholder(colors, w, h),
+                error: _placeholder(colors, w, h),
               )
             : _placeholder(colors, w, h),
       );
     }
     if (hasNet) {
-      return Image.network(
-        net,
+      return FlareStaticImage(
+        image: NetworkImage(net),
         width: w,
         height: h,
         fit: BoxFit.contain,
-        errorBuilder: (c, e, s) => _placeholder(colors, w, h),
+        error: _placeholder(colors, w, h),
       );
     }
     return _placeholder(colors, w, h);
@@ -230,4 +246,3 @@ String? resolveLoneEmojiPackInText(String text) {
   final key = m.group(1)!;
   return FlareEmojiStickerCatalog.instance.hasEmojiKey(key) ? key : null;
 }
-

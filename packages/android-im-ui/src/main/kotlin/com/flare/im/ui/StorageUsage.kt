@@ -274,7 +274,7 @@ fun StorageUsage(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 CircularProgressIndicator(
-                    Modifier.size(14.dp),
+                    Modifier.size(FlareSizes.spacing2md),
                     color = colors.textTertiary,
                     strokeWidth = 2.dp,
                 )
@@ -291,10 +291,10 @@ fun StorageUsage(
                     .padding(bottom = FlareSizes.spacingSm)
                     .clip(RoundedCornerShape(FlareSizes.radiusSm))
                     .background(colors.error.copy(alpha = 0.08f))
-                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                    .padding(horizontal = FlareSizes.spacingSm, vertical = FlareSizes.spacing2xs),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(Icons.Outlined.ErrorOutline, null, Modifier.size(14.dp), tint = colors.errorText)
+                Icon(Icons.Outlined.ErrorOutline, null, Modifier.size(FlareSizes.spacing2md), tint = colors.errorText)
                 Spacer(Modifier.width(6.dp))
                 Text(
                     error,
@@ -312,7 +312,7 @@ fun StorageUsage(
                         onClick = { onDismissError(null) },
                         shape = RoundedCornerShape(FlareSizes.radiusSm),
                     ) {
-                        Icon(flareIconVector("close"), null, Modifier.size(14.dp), tint = colors.textSecondary)
+                        Icon(flareIconVector("close"), null, Modifier.size(FlareSizes.spacing2md), tint = colors.textSecondary)
                     }
                 }
             }
@@ -328,7 +328,7 @@ fun StorageUsage(
                             .padding(vertical = FlareSizes.spacingSm),
                     ) {
                         Box(
-                            Modifier.width(120.dp).height(14.dp)
+                            Modifier.width(120.dp).height(FlareSizes.spacing2md)
                                 .clip(RoundedCornerShape(FlareSizes.radiusSm))
                                 .background(colors.bgSecondary),
                         )
@@ -419,7 +419,7 @@ private fun StorageRow(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     CircularProgressIndicator(
-                        Modifier.size(14.dp),
+                        Modifier.size(FlareSizes.spacing2md),
                         color = colors.textTertiary,
                         strokeWidth = 2.dp,
                     )
@@ -445,10 +445,10 @@ private fun StorageRow(
                         .clickable(role = Role.Button, onClickLabel = "$clearText ${category.label}") {
                             onClear?.invoke(category.id)
                         }
-                        .padding(horizontal = 10.dp),
+                        .padding(horizontal = FlareSizes.spacing2sm),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(Icons.Outlined.Delete, null, Modifier.size(14.dp), tint = colors.errorText)
+                    Icon(Icons.Outlined.Delete, null, Modifier.size(FlareSizes.spacing2md), tint = colors.errorText)
                     Spacer(Modifier.width(4.dp))
                     Text(clearText, color = colors.errorText, fontSize = FlareSizes.fontSizeMd.value.sp)
                 }
@@ -474,10 +474,10 @@ private fun StorageRow(
                     .padding(start = 44.dp, top = FlareSizes.spacingXs)
                     .clip(RoundedCornerShape(FlareSizes.radiusSm))
                     .background(colors.error.copy(alpha = 0.08f))
-                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                    .padding(horizontal = FlareSizes.spacingSm, vertical = FlareSizes.spacing2xs),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(Icons.Outlined.ErrorOutline, null, Modifier.size(14.dp), tint = colors.errorText)
+                Icon(Icons.Outlined.ErrorOutline, null, Modifier.size(FlareSizes.spacing2md), tint = colors.errorText)
                 Spacer(Modifier.width(6.dp))
                 Text(
                     rowError,
@@ -497,7 +497,7 @@ private fun StorageRow(
                         onClick = { onDismissError(category.id) },
                         shape = RoundedCornerShape(FlareSizes.radiusSm),
                     ) {
-                        Icon(flareIconVector("close"), null, Modifier.size(14.dp), tint = colors.textSecondary)
+                        Icon(flareIconVector("close"), null, Modifier.size(FlareSizes.spacing2md), tint = colors.textSecondary)
                     }
                 }
             }
@@ -517,10 +517,10 @@ private fun TextAction(
         Modifier.clip(RoundedCornerShape(FlareSizes.radiusSm))
             .alpha(if (enabled) 1f else 0.5f)
             .clickable(enabled = enabled, role = Role.Button, onClickLabel = label) { onClick() }
-            .padding(horizontal = 8.dp, vertical = 6.dp),
+            .padding(horizontal = FlareSizes.spacingSm, vertical = FlareSizes.spacing2xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(icon, null, Modifier.size(14.dp), tint = colors.textPrimary)
+        Icon(icon, null, Modifier.size(FlareSizes.spacing2md), tint = colors.textPrimary)
         Spacer(Modifier.width(4.dp))
         Text(label, color = colors.textPrimary, fontSize = FlareSizes.fontSizeSm.value.sp)
     }

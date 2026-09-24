@@ -569,7 +569,7 @@ class FlareStorageUsage extends StatelessWidget {
         borderRadius: BorderRadius.circular(FlareSizes.radiusMd),
         child: Container(
           constraints: const BoxConstraints(minHeight: FlareSizes.touchTarget),
-          padding: const EdgeInsets.symmetric(horizontal: 10),
+          padding: const EdgeInsets.symmetric(horizontal: FlareSizes.spacing2sm),
           decoration: BoxDecoration(
             color: colors.error.withValues(alpha: 0.08),
             border: Border.all(color: colors.error.withValues(alpha: 0.40)),

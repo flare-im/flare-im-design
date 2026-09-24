@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, useId, watch } from "vue";
+// 一张模态面:滚动锁、焦点陷阱、Escape、平台返回键和传送目标都来自共用的
+// `useFlareModalSurface`。以前这里写死 `Teleport to="body"`、没有滚动锁、也不
+// 关心自己是不是最上面那层 —— 面板叠在别的浮层上时一次 Escape 会连着关两层。
+import { computed, ref, useId } from "vue";
+import { useFlareModalSurface } from "../../shared/useModalSurface";
 import type { FlareCommandPaletteCommand, FlareCommandPaletteGroup } from "../../shared/contracts/command-palette";
 
 const props = withDefaults(defineProps<{
@@ -20,9 +24,8 @@ const emit = defineEmits<{
   selectedIdChange: [id: string];
 }>();
 
-const inputRef = ref<HTMLInputElement | null>(null);
+const paletteEl = ref<HTMLElement | null>(null);
 const listboxId = `flare-command-palette-${useId()}`;
-let returnFocus: HTMLElement | null = null;
 const normalizedQuery = computed(() => props.query.trim().toLocaleLowerCase());
 const visibleGroups = computed(() => props.groups.map((group) => ({
   ...group,
@@ -39,15 +42,10 @@ const activeId = computed(() => {
   return enabledCommands.value[0]?.id;
 });
 
-watch(() => props.open, async (open, wasOpen) => {
-  if (open) {
-    returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    await nextTick();
-    inputRef.value?.focus();
-  } else if (wasOpen) {
-    returnFocus?.focus();
-    returnFocus = null;
-  }
+const { overlayContainer } = useFlareModalSurface({
+  open: () => props.open,
+  surface: paletteEl,
+  onRequestClose: () => emit("close"),
 });
 
 function move(delta: number): void {
@@ -74,17 +72,16 @@ function onKeydown(event: KeyboardEvent): void {
   } else if (event.key === "Enter") {
     event.preventDefault();
     invoke(enabledCommands.value.find((command) => command.id === activeId.value));
-  } else if (event.key === "Escape") {
-    event.preventDefault();
-    emit("close");
   }
+  // Escape 由共用的模态栈处理:只有最上面那张面收得到。
 }
 </script>
 
 <template>
-  <Teleport to="body">
+  <Teleport :to="overlayContainer">
     <div v-if="open" class="flare-command-palette-backdrop" @mousedown.self="emit('close')">
       <section
+        ref="paletteEl"
         class="flare-command-palette"
         role="dialog"
         aria-modal="true"
@@ -93,7 +90,6 @@ function onKeydown(event: KeyboardEvent): void {
         @keydown="onKeydown"
       >
         <input
-          ref="inputRef"
           class="flare-command-palette__input"
           type="search"
           :value="query"
@@ -140,7 +136,7 @@ function onKeydown(event: KeyboardEvent): void {
 .flare-command-palette-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: var(--flare-z-index-modal);
   display: flex;
   justify-content: center;
   align-items: flex-start;

@@ -73,6 +73,9 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["close"] as? (String)) ?: "关闭"
     val delete: String
         get() = (overrides["delete"] as? (String)) ?: "删除"
+    /** 举报这一条（他人的动态/消息/资料）。与 [delete] 同层：都是「对这一条动作」，二者互斥。 */
+    val report: String
+        get() = (overrides["report"] as? (String)) ?: "举报"
     val manage: String
         get() = (overrides["manage"] as? (String)) ?: "管理"
     val selectAll: String
@@ -1052,6 +1055,8 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["groupDetailMuteNotif"] as? (String)) ?: "消息免打扰"
     val groupDetailPinGroup: String
         get() = (overrides["groupDetailPinGroup"] as? (String)) ?: "置顶该群"
+    val groupDetailDiscoverable: String
+        get() = (overrides["groupDetailDiscoverable"] as? (String)) ?: "允许搜索到本群"
     val groupDetailJoinMode: String
         get() = (overrides["groupDetailJoinMode"] as? (String)) ?: "进群方式"
     val groupDetailJoinRequests: String
@@ -1425,6 +1430,9 @@ class FlareStringsBuilder internal constructor() {
     var delete: String
         get() = (values["delete"] as? (String)) ?: "删除"
         set(value) { values["delete"] = value }
+    var report: String
+        get() = (values["report"] as? (String)) ?: "举报"
+        set(value) { values["report"] = value }
 
     var manage: String
         get() = (values["manage"] as? (String)) ?: "管理"
@@ -3118,6 +3126,10 @@ class FlareStringsBuilder internal constructor() {
     var groupDetailPinGroup: String
         get() = (values["groupDetailPinGroup"] as? (String)) ?: "置顶该群"
         set(value) { values["groupDetailPinGroup"] = value }
+
+    var groupDetailDiscoverable: String
+        get() = (values["groupDetailDiscoverable"] as? (String)) ?: "允许搜索到本群"
+        set(value) { values["groupDetailDiscoverable"] = value }
 
     var groupDetailJoinMode: String
         get() = (values["groupDetailJoinMode"] as? (String)) ?: "进群方式"

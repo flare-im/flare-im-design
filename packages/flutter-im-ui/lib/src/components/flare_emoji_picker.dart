@@ -136,7 +136,7 @@ class _FlareEmojiPickerState extends State<FlareEmojiPicker> {
 
   Widget _searchRow(FlareColors colors) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+      padding: const EdgeInsets.fromLTRB(12, FlareSizes.spacing2sm, 12, 8),
       child: Row(
         children: [
           Icon(Icons.search, size: 16, color: colors.textTertiary),

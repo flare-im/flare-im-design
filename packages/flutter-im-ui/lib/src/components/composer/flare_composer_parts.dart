@@ -6,6 +6,82 @@ import '../action_icon.dart';
 import '../flare_icon.dart';
 import '../icon_control.dart';
 
+/// The diagonal input resize glyph used by the Web composer.
+///
+/// Material's `open_in_full` and `close_fullscreen` use different corner
+/// geometry, which made the same composer action look unrelated on desktop.
+/// This painter follows the shared Web path exactly and inherits IconTheme.
+class FlareComposerResizeIcon extends StatelessWidget {
+  const FlareComposerResizeIcon({
+    super.key,
+    this.expanded = false,
+    this.size = 18,
+  });
+
+  final bool expanded;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => CustomPaint(
+    key: const ValueKey('composer-resize-glyph'),
+    size: Size.square(size),
+    painter: _ComposerResizePainter(
+      expanded: expanded,
+      color:
+          IconTheme.of(context).color ?? FlareColors.of(context).textSecondary,
+    ),
+  );
+}
+
+class _ComposerResizePainter extends CustomPainter {
+  const _ComposerResizePainter({required this.expanded, required this.color});
+
+  final bool expanded;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final scale = size.width / 24;
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.7 * scale
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final path = Path();
+    if (expanded) {
+      path
+        ..moveTo(20 * scale, 9 * scale)
+        ..lineTo(15 * scale, 9 * scale)
+        ..lineTo(15 * scale, 4 * scale)
+        ..moveTo(15 * scale, 9 * scale)
+        ..lineTo(21 * scale, 3 * scale)
+        ..moveTo(4 * scale, 15 * scale)
+        ..lineTo(9 * scale, 15 * scale)
+        ..lineTo(9 * scale, 20 * scale)
+        ..moveTo(9 * scale, 15 * scale)
+        ..lineTo(3 * scale, 21 * scale);
+    } else {
+      path
+        ..moveTo(14 * scale, 4 * scale)
+        ..lineTo(20 * scale, 4 * scale)
+        ..lineTo(20 * scale, 10 * scale)
+        ..moveTo(20 * scale, 4 * scale)
+        ..lineTo(13 * scale, 11 * scale)
+        ..moveTo(4 * scale, 14 * scale)
+        ..lineTo(4 * scale, 20 * scale)
+        ..lineTo(10 * scale, 20 * scale)
+        ..moveTo(4 * scale, 20 * scale)
+        ..lineTo(11 * scale, 13 * scale);
+    }
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(_ComposerResizePainter oldDelegate) =>
+      oldDelegate.expanded != expanded || oldDelegate.color != color;
+}
+
 /// A round icon button used across the composer toolbar (attach, emoji, voice,
 /// keyboard). A composable part so hosts can assemble their own toolbar.
 ///
@@ -62,6 +138,7 @@ class FlareComposerSendButton extends StatelessWidget {
     required this.active,
     this.busy = false,
     this.onTap,
+    this.compact = false,
   });
 
   final bool active;
@@ -69,6 +146,7 @@ class FlareComposerSendButton extends StatelessWidget {
   /// A send is in flight: the key shows progress, says so, and takes no taps.
   final bool busy;
   final VoidCallback? onTap;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -77,18 +155,21 @@ class FlareComposerSendButton extends StatelessWidget {
     final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     // An IconButton like every other key in the tool row: same target, same
     // ink, same hit-testing. Only the colour differs, and only by state.
+    // Web uses a 34px desktop column inside a 36px-high control. Keeping the
+    // non-square footprint matters when seven actions sit at the right edge.
+    final size = compact ? const Size(34, 36) : const Size(44, 44);
     return IconButton(
       tooltip: busy ? strings.messageSending : strings.send,
       onPressed: active && !busy ? onTap : null,
-      iconSize: 20,
+      iconSize: FlareSizes.iconSizeMd,
       padding: EdgeInsets.zero,
-      constraints: const BoxConstraints.tightFor(width: 44, height: 44),
+      constraints: BoxConstraints.tight(size),
       // shrinkWrap, or Material pads the target out to 48 and the tool row
       // overflows a 320-wide screen by exactly the difference.
       style: IconButton.styleFrom(
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        minimumSize: const Size(44, 44),
-        maximumSize: const Size(44, 44),
+        minimumSize: size,
+        maximumSize: size,
       ),
       icon: !busy
           ? Icon(

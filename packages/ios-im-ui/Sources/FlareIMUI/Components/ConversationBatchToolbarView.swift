@@ -202,7 +202,7 @@ public struct ConversationBatchToolbarView: View {
                     }
                 }
             }
-            .padding(.horizontal, FlareSizes.spacingLg).padding(.vertical, 10)
+            .padding(.horizontal, FlareSizes.spacingLg).padding(.vertical, FlareSizes.spacing2sm)
 
             if hasResult { resultStrip(colors, summary) }
         }

@@ -130,7 +130,7 @@ const presenceLabel = computed(() =>
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: 10px;
+  margin-top: var(--flare-size-spacing-2sm);
 }
 .flare-profile-card__tag {
   padding: 2px 9px;

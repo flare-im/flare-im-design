@@ -55,6 +55,8 @@ function toggle(): void {
   position: relative;
   width: var(--flare-size-icon-size-md);
   height: var(--flare-size-icon-size-md);
+  min-width: var(--flare-size-icon-size-md);
+  min-height: var(--flare-size-icon-size-md);
   flex: 0 0 auto;
   border-radius: var(--flare-size-radius-sm);
   border: 1.5px solid var(--flare-color-border-hover);

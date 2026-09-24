@@ -82,10 +82,10 @@ fun UnknownMessage(
     val secondary = if (isSelf) Color.Unspecified else colors.textSecondary
     val tertiary = if (isSelf) Color.Unspecified else colors.textTertiary
 
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs),
         ) {
             FlareIcon("info", size = 16.dp, tint = secondary.takeIf { it != Color.Unspecified })
             Text(
@@ -101,7 +101,7 @@ fun UnknownMessage(
             fontSize = FlareSizes.fontSizeLg.value.sp,
         )
         if (p.diagnostic.isNotEmpty()) {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs)) {
                 Text(diagnosticLabel, color = tertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
                 Text(
                     p.diagnostic,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../tokens/flare_tokens.dart';
 
 /// Red-packet (lucky-money) message card — a tappable envelope with a gold
 /// wax seal, blessing text and a claim status line.
@@ -51,7 +52,7 @@ class FlareRedPacketCard extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: FlareSizes.spacing2md, vertical: FlareSizes.spacing2md),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,7 +93,7 @@ class FlareRedPacketCard extends StatelessWidget {
                 brandLabel,
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.5),
-                  fontSize: 10,
+                  fontSize: FlareSizes.fontSize2xs,
                   fontWeight: FontWeight.w500,
                 ),
               ),

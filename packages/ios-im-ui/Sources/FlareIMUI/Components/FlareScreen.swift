@@ -99,3 +99,13 @@ public struct FlareScreen<Content: View>: View {
         )
     }
 }
+
+public extension FlareSizes {
+    /// The height a page header occupies: the kit's two header rows (`FlareScreen`'s own and
+    /// `ScreenHeaderView`) are both a touch-target-tall row with `spacingSm` above and below.
+    ///
+    /// Exposed because anything that floats *over* a page — a connection banner, a sync notice —
+    /// has to clear the header without reserving layout space, and guessing that height in the
+    /// host is how it ends up sitting on top of the title.
+    static var screenHeaderHeight: CGFloat { touchTarget + spacingSm * 2 }
+}

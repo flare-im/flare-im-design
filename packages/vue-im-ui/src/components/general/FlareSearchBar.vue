@@ -16,8 +16,17 @@ const props = withDefaults(
      * cancels whatever is pending, so a search never runs for words nobody is looking at any more.
      */
     debounce?: number;
+    /**
+     * `filled`(默认)是自带浅色圆角底的那颗药丸 —— 浮在内容之上的搜索用它。
+     * `quiet` 不画底、不画圆角:一条常驻在列表顶上的搜索,用药丸时会和它下面的筛选、
+     * 再下面的列表叠成三层各自为政的面;安静版让整屏读起来是一块。
+     * 放弃的只有那块底色,放大镜、占位文字、44px 触达区和按下反馈都还在。
+     * 与 FlareFilterTabs 的 `appearance` 同一套词(filled / quiet):两边问的是同一个问题 ——
+     * 这个控件自己画不画一块面。
+     */
+    appearance?: "filled" | "quiet";
   }>(),
-  { modelValue: "", loading: false, autofocus: false, readOnly: false, debounce: 300 },
+  { modelValue: "", loading: false, autofocus: false, readOnly: false, debounce: 300, appearance: "filled" },
 );
 const { t } = useFlareI18n();
 const strings = computed(() => ({
@@ -48,6 +57,9 @@ const input = ref<HTMLInputElement | null>(null);
 onMounted(() => {
   if (props.autofocus && !props.readOnly) input.value?.focus({ preventScroll: true });
 });
+/** Put the caret back in the field (a host that just acted on something outside it). Nothing to focus in entry mode. */
+function focus(): void { input.value?.focus({ preventScroll: true }); }
+defineExpose({ focus });
 // One timer, owned here: the bar is the only thing that knows when the typing settled.
 let pending: ReturnType<typeof setTimeout> | null = null;
 function cancelPending(): void {
@@ -63,10 +75,23 @@ function scheduleSearch(query: string): void {
 }
 onBeforeUnmount(cancelPending);
 
+// An IME's half-typed text is not a query: pinyin that has not become characters yet would be searched
+// for after the pause. The model still follows every keystroke; the search waits for the composition.
+// Engines disagree on the order: Chrome sends the last `input` (still composing) and then
+// `compositionend`; Safari and Firefox send `compositionend` and then one more `input` with the same
+// text. That trailing input is the same commit, not a second one.
+let committed: string | null = null;
 function onInput(e: Event) {
   const value = (e.target as HTMLInputElement).value;
   emit("update:modelValue", value);
+  if ((e as InputEvent).isComposing) { cancelPending(); return; }
+  if (committed === value) { committed = null; return; }
+  committed = null;
   scheduleSearch(value);
+}
+function onCompositionEnd(e: CompositionEvent) {
+  committed = (e.target as HTMLInputElement).value;
+  scheduleSearch(committed);
 }
 function clear() {
   cancelPending();
@@ -93,7 +118,7 @@ function cancel() {
     v-if="readOnly"
     :type="canActivate ? 'button' : undefined"
     class="flare-search is-entry"
-    :class="{ 'is-interactive': canActivate }"
+    :class="{ 'is-interactive': canActivate, 'is-quiet': appearance === 'quiet' }"
     :aria-label="canActivate ? strings.entry : undefined"
     @click="canActivate && emit('activate')"
   >
@@ -101,7 +126,7 @@ function cancel() {
     <span class="flare-search__text" :class="{ 'is-placeholder': !modelValue }">{{ modelValue || strings.entry }}</span>
   </component>
   <div v-else class="flare-search-row" :class="{ 'has-cancel': canCancel }">
-  <div class="flare-search">
+  <div class="flare-search" :class="{ 'is-quiet': appearance === 'quiet' }">
     <span class="flare-search__ico" aria-hidden="true"><FlareIcon name="search" :size="16" /></span>
     <input
       ref="input"
@@ -112,6 +137,7 @@ function cancel() {
       :aria-label="strings.placeholder"
       :autofocus="autofocus"
       @input="onInput"
+      @compositionend="onCompositionEnd"
       @keydown.enter.prevent="submit"
     />
     <span v-if="loading" class="flare-search__spin" role="status" :aria-label="t('common.loading')" />
@@ -150,9 +176,12 @@ function cancel() {
   border-radius: var(--flare-size-radius-lg);
   background: var(--flare-color-bg-secondary);
 }
+/* 聚焦时把这块面本身的边描出来,不再在它外面再套一圈 2px 的光环 —— 一条整宽的搜索框
+   被「1px 实色描边 + 2px 外发光」框住时,屏幕上最重的东西变成了那个框而不是里面的字。
+   与 FlareMentionPicker 的处理同一套:文本域的焦点由它自己的边表达,光标本身也是指示。 */
 .flare-search:not(.is-entry):focus-within {
   border-color: var(--flare-color-border-selected);
-  box-shadow: 0 0 0 2px var(--flare-color-focus-ring);
+  box-shadow: none;
 }
 /* Entry button: a button focus ring, not the look of a focused text field. */
 .flare-search.is-interactive {
@@ -162,6 +191,14 @@ function cancel() {
   transition: background var(--flare-transition-fast);
 }
 .flare-search.is-interactive:hover { background: var(--flare-color-bg-hover); }
+/* quiet:去掉那块浅色底和圆角,其余一律不动 —— 放大镜、占位文字、44px 触达区、按下反馈都在,
+   所以它仍然一眼看得出是个可以点的搜索。 */
+.flare-search.is-quiet {
+  padding-inline: var(--flare-size-spacing-sm);
+  border-color: transparent;
+  border-radius: 0;
+  background: transparent;
+}
 .flare-search.is-interactive:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: 2px; }
 .flare-search__ico { color: var(--flare-color-text-tertiary); }
 .flare-search__input {

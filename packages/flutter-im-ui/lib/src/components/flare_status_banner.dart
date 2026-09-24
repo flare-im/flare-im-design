@@ -9,6 +9,13 @@ enum FlareStatusTone { info, success, warning, danger, neutral }
 /// pulsing dot and an optional inline action. Replaces per-app bespoke
 /// runtime/connection/sync banners. Spec: General/StatusBanner
 /// (`FlareStatusBanner`).
+///
+/// [floating] is for a banner a host lifts out of the page flow and hangs over
+/// the content (a global connection notice, say). The inline fill is the tone at
+/// 10%: right on the page's own surface, but as an overlay the content underneath
+/// shows straight through it and the two sets of words collide. The floating form
+/// puts the tint on an opaque surface and adds the elevation that says it is above
+/// the page.
 class FlareStatusBanner extends StatefulWidget {
   const FlareStatusBanner({
     super.key,
@@ -18,6 +25,7 @@ class FlareStatusBanner extends StatefulWidget {
     this.pulse = false,
     this.actionText,
     this.onAction,
+    this.floating = false,
   });
 
   final String text;
@@ -26,6 +34,7 @@ class FlareStatusBanner extends StatefulWidget {
   final bool pulse;
   final String? actionText;
   final VoidCallback? onAction;
+  final bool floating;
 
   @override
   State<FlareStatusBanner> createState() => _FlareStatusBannerState();
@@ -95,7 +104,7 @@ class _FlareStatusBannerState extends State<FlareStatusBanner>
     final colors = FlareColors.of(context);
     final tone = _toneColor(colors);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: FlareSizes.spacing2md, vertical: 8),
       decoration: BoxDecoration(
         color: tone.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(FlareSizes.radiusLg),

@@ -6,10 +6,12 @@ import { fileURLToPath } from "node:url";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const allowedDirectories = new Set([
   ".git", ".github", "assets", "docs", "examples",
-  "node_modules", "packages", "spec", "tests", "tokens", "tooling", "website",
+  "node_modules", "packages", "spec", "strings", "tests", "tokens", "tooling", "website",
   // Gitignored release evidence output (see docs/repository-scope.md); like
   // node_modules it may exist on disk but is never part of the candidate.
   "artifacts",
+  // Gitignored editor/agent configuration; never part of the candidate.
+  ".claude",
 ]);
 const allowedFiles = new Set([
   ".gitignore", "CHANGELOG.md", "CHANGELOG.zh-CN.md", "COMPATIBILITY.md", "CONTRIBUTING.md",

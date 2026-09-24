@@ -40,13 +40,13 @@ fun FormDialog(
         properties = DialogProperties(dismissOnBackPress = !busy, dismissOnClickOutside = !busy, usePlatformDefaultWidth = false),
     ) {
         Surface(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp).widthIn(max = 480.dp).fillMaxWidth(),
+            modifier = Modifier.padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacing2xl).widthIn(max = 480.dp).fillMaxWidth(),
             shape = RoundedCornerShape(FlareSizes.radiusXl), color = colors.bgPrimary, contentColor = colors.textPrimary,
         ) {
             Column(Modifier.padding(FlareSizes.spacingLg), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
                 Text(title, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp, fontWeight = FontWeight.SemiBold)
                 Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())) { content() }
-                FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, androidx.compose.ui.Alignment.End), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm, androidx.compose.ui.Alignment.End), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
                     Button(label = cancelLabel, variant = FlareButtonVariant.Secondary, disabled = busy, onClick = onClose)
                     Button(label = confirmLabel, variant = if (danger) FlareButtonVariant.Danger else FlareButtonVariant.Primary,
                         disabled = !confirmEnabled, loading = busy, onClick = onConfirm)

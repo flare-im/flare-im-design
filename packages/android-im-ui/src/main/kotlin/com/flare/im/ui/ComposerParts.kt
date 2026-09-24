@@ -61,7 +61,7 @@ fun FlareVoiceHoldButton(
     val haptics = LocalHapticFeedback.current
     val bg = if (!pressing) colors.bgSecondary else if (willCancel) colors.error else colors.primary
     Box(
-        Modifier.fillMaxWidth().height(40.dp)
+        Modifier.fillMaxWidth().height(FlareSizes.componentComposerActionHeight)
             .clip(RoundedCornerShape(FlareSizes.radiusXl))
             .background(bg)
             .pointerInput(cancelThreshold) {
@@ -126,7 +126,7 @@ fun FlareComposerActionPanel(
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Box(
-                            Modifier.size(44.dp).clip(RoundedCornerShape(FlareSizes.radiusLg))
+                            Modifier.size(FlareSizes.componentComposerActionWidth).clip(RoundedCornerShape(FlareSizes.radiusLg))
                                 .background(Color.Transparent),
                             contentAlignment = Alignment.Center,
                         ) { FlareIcon(name = action.icon, size = 20.dp, tint = colors.textPrimary, contentDescription = action.accessibilityLabel ?: action.label) }
@@ -157,7 +157,7 @@ fun FlareComposerActionPanel(
 fun FlareComposerSendButton(active: Boolean, onSend: (() -> Unit)? = null) {
     val colors = flareColors()
     Box(
-        Modifier.size(44.dp).clickable(enabled = active) { onSend?.invoke() },
+        Modifier.size(FlareSizes.componentComposerActionWidth).clickable(enabled = active) { onSend?.invoke() },
         contentAlignment = Alignment.Center,
     ) {
         Icon(

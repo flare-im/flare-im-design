@@ -2,6 +2,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../emoji_sticker/flare_emoji_sticker_catalog.dart';
+import '../emoji_sticker/flare_emoji_sticker_message_views.dart';
+import '../emoji_sticker/flare_static_asset_image.dart';
 import '../models/rich_doc.dart';
 import '../models/url_safety.dart';
 import '../tokens/flare_strings.dart';
@@ -78,10 +80,18 @@ class _FlareRichTextMessageState extends State<FlareRichTextMessage> {
     }
   }
 
+  static final RegExp _emojiToken = RegExp(r'\[[a-z][a-z0-9_]*\]');
+
+  /// Whether the document can draw an emoji at all — an emoji run, or a
+  /// `[key]` token inside a text run (code never tokenises; a covered spoiler
+  /// does once revealed). Only then is the catalog worth loading.
   static bool _holdsEmoji(List<FlareRichBlock> blocks) => blocks.any(
     (block) => switch (block) {
       FlareRichParagraph(:final runs) ||
-      FlareRichHeading(:final runs) => runs.any((run) => run.emoji != null),
+      FlareRichHeading(:final runs) => runs.any(
+        (run) =>
+            run.emoji != null || (!run.code && _emojiToken.hasMatch(run.text)),
+      ),
       FlareRichQuote(:final blocks) => _holdsEmoji(blocks),
       FlareRichList(:final items) => items.any(_holdsEmoji),
       _ => false,
@@ -112,7 +122,7 @@ class _FlareRichTextMessageState extends State<FlareRichTextMessage> {
       colors: colors,
       strings: strings,
       foreground: foreground,
-      link: widget.self ? foreground : colors.primary,
+      link: widget.self ? foreground : colors.primaryText,
     );
     final blocks = _blocks;
     final title = widget.title.trim();
@@ -270,21 +280,7 @@ class _FlareRichTextMessageState extends State<FlareRichTextMessage> {
     if (key != null &&
         key.isNotEmpty &&
         FlareEmojiStickerCatalog.instance.hasEmojiKey(key)) {
-      final side = fontSize * 1.25;
-      return WidgetSpan(
-        alignment: PlaceholderAlignment.middle,
-        child: Image.asset(
-          FlareEmojiStickerCatalog.emojiAssetPath(key),
-          package: FlareEmojiStickerCatalog.package,
-          width: side,
-          height: side,
-          fit: BoxFit.contain,
-          gaplessPlayback: true,
-          semanticLabel: run.text,
-          errorBuilder: (context, error, stackTrace) =>
-              Text(run.text, textScaler: TextScaler.noScaling),
-        ),
-      );
+      return _emoji(key, run.text, fontSize);
     }
     final decorations = [
       if (run.has(FlareRichMark.underline) || run.link != null)
@@ -323,7 +319,57 @@ class _FlareRichTextMessageState extends State<FlareRichTextMessage> {
         _recognizers.add(open);
       }
     }
+    // A text run's `[key]` emoji-pack tokens draw inline, as a plain text body's
+    // do: the core's Markdown normaliser stores the composer's token as literal
+    // text, not as an emoji run. Unknown keys and code stay the words they are.
+    final parts = run.code || !run.text.contains('[')
+        ? const <FlarePlainTextEmojiSegment>[]
+        : splitPlainTextForEmojiDisplay(run.text);
+    if (parts.any((part) => part is FlarePlainEmojiPack)) {
+      return TextSpan(
+        style: style,
+        children: [
+          for (final part in parts)
+            switch (part) {
+              FlarePlainEmojiPack(:final key) => _emoji(
+                key,
+                '[$key]',
+                fontSize,
+              ),
+              FlarePlainEmojiUnknown(:final key) => TextSpan(
+                text: '[$key]',
+                recognizer: open,
+              ),
+              FlarePlainTextRun(:final text) => TextSpan(
+                text: text,
+                recognizer: open,
+              ),
+            },
+        ],
+      );
+    }
     return TextSpan(text: run.text, style: style, recognizer: open);
+  }
+
+  /// [key]'s pack image at text size, read as [label].
+  InlineSpan _emoji(String key, String label, double fontSize) {
+    final side = fontSize * 1.25;
+    return WidgetSpan(
+      alignment: PlaceholderAlignment.middle,
+      child: Semantics(
+        image: true,
+        label: label,
+        child: FlareStaticImage(
+          image: FlareEmojiStickerCatalog.instance.emojiImageProvider(
+            key,
+            staticPreview: true,
+          ),
+          width: side,
+          height: side,
+          error: Text(label, textScaler: TextScaler.noScaling),
+        ),
+      ),
+    );
   }
 }
 

@@ -10,6 +10,8 @@ const checks = [
   ["spec validation", "node", ["spec/validate.mjs"]],
   ["platform signature drift", "node", ["spec/signature-report.mjs", "--json"]],
   ["generated tokens", "node", ["tokens/build.mjs", "--check"]],
+  ["cross-platform visual contract", "node", ["tooling/check-cross-platform-visual.mjs"]],
+  ["generated English strings", "node", ["strings/build.mjs", "--check"]],
   ["theme contract", "node", ["tooling/check-theme-contract.mjs"]],
   ["component layer map", "node", ["spec/build-component-layers.mjs", "--check"]],
   ["package boundaries", "node", ["tooling/check-package-boundaries.mjs"]],

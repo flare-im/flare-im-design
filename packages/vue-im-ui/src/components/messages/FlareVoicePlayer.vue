@@ -102,7 +102,7 @@ function seekAt(e: MouseEvent): void {
   display: inline-flex;
   flex-direction: column;
   gap: 6px;
-  padding: 10px 12px;
+  padding: var(--flare-size-spacing-2sm) 12px;
   border-radius: 16px 16px 16px 4px;
   background: var(--flare-color-bg-primary);
   border: 1px solid var(--flare-color-border-primary);
@@ -114,7 +114,7 @@ function seekAt(e: MouseEvent): void {
   border-color: color-mix(in srgb, var(--flare-color-primary) 24%, transparent);
   border-radius: 16px 16px 4px 16px;
 }
-.flare-voice-player__bar { display: flex; align-items: center; gap: 10px; }
+.flare-voice-player__bar { display: flex; align-items: center; gap: var(--flare-size-spacing-2sm); }
 .flare-voice-player__play {
   position: relative;
   flex: 0 0 auto;

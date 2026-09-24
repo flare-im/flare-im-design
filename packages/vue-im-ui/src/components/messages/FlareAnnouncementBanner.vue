@@ -57,7 +57,7 @@ const showToggle = computed(() => props.collapsible && props.text.length > 40);
 <style scoped>
 .flare-announcement {
   display: flex;
-  gap: 10px;
+  gap: var(--flare-size-spacing-2sm);
   padding: 11px 12px;
   border-radius: var(--flare-size-radius-lg);
   background: var(--flare-color-bg-selected);

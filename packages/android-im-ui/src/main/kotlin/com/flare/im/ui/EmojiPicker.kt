@@ -77,7 +77,7 @@ fun EmojiPicker(
             .border(1.dp, colors.borderPrimary, RoundedCornerShape(FlareSizes.radiusXl)),
     ) {
         Row(
-            Modifier.fillMaxWidth().padding(12.dp),
+            Modifier.fillMaxWidth().padding(FlareSizes.spacingMd),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(Icons.Outlined.Search, contentDescription = null, tint = colors.textTertiary, modifier = Modifier.size(15.dp))
@@ -95,7 +95,7 @@ fun EmojiPicker(
                 Row {
                     SKIN_TONES.forEach { tn ->
                         Text(if (tn.isEmpty()) "✋" else "✋$tn", fontSize = 14.sp,
-                            modifier = Modifier.size(22.dp).clip(RoundedCornerShape(6.dp))
+                            modifier = Modifier.size(22.dp).clip(RoundedCornerShape(FlareSizes.radiusSm))
                                 .background(if (tone == tn) colors.bgSelected else Color.Transparent)
                                 .clickable { tone = tn; onToneChange?.invoke(tn) },
                             textAlign = TextAlign.Center)
@@ -104,13 +104,13 @@ fun EmojiPicker(
             }
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderPrimary))
-        Column(Modifier.height(200.dp).verticalScroll(rememberScrollState()).padding(8.dp)) {
+        Column(Modifier.height(200.dp).verticalScroll(rememberScrollState()).padding(FlareSizes.spacingSm)) {
             shown.chunked(8).forEach { row ->
                 Row(Modifier.fillMaxWidth()) {
                     row.forEach { e ->
                         Text(e, fontSize = 22.sp, textAlign = TextAlign.Center,
-                            modifier = Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(8.dp))
-                                .clickable { onSelect?.invoke(if (tone.isEmpty()) e else e + tone) }.padding(4.dp))
+                            modifier = Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(FlareSizes.radiusMd))
+                                .clickable { onSelect?.invoke(if (tone.isEmpty()) e else e + tone) }.padding(FlareSizes.spacingXs))
                     }
                     repeat(8 - row.size) { Spacer(Modifier.weight(1f)) }
                 }

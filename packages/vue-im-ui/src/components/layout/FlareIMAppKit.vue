@@ -90,6 +90,8 @@ const emitIntent = (intent: FlareNavigationIntent) => emit("intent", intent);
         :responsive-mode="responsiveMode"
         presentation="rail"
         :label="label"
+        :identity="configuration.identity"
+        :actions="configuration.navigationActions"
         @navigate="emit('navigate', $event)"
       />
     </div>

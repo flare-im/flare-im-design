@@ -129,7 +129,15 @@ public struct QuickPhrase: Identifiable, Sendable { public let id: String; publi
 public struct QuickPhraseGroup: Identifiable, Sendable { public var id: String { key }; public let key: String; public let title: String; public let phrases: [QuickPhrase]; public init(key: String, title: String, phrases: [QuickPhrase] = []) { self.key = key; self.title = title; self.phrases = phrases } }
 public enum SearchResultKind: String, Sendable { case contact, group, message }
 public struct SearchResultItem: Identifiable, Sendable { public let id: String; public let kind: SearchResultKind; public let title: String; public let subtitle: String?; public let avatarURL: String?; public let meta: String?; public init(id: String, kind: SearchResultKind, title: String, subtitle: String? = nil, avatarURL: String? = nil, meta: String? = nil) { self.id = id; self.kind = kind; self.title = title; self.subtitle = subtitle; self.avatarURL = avatarURL; self.meta = meta } }
-public struct SearchResultGroup: Identifiable, Sendable { public var id: String { kind.rawValue }; public let kind: SearchResultKind; public let label: String; public let items: [SearchResultItem]; public let total: Int?; public init(kind: SearchResultKind, label: String, items: [SearchResultItem] = [], total: Int? = nil) { self.kind = kind; self.label = label; self.items = items; self.total = total } }
+/// `total` is the match count when the list is truncated and the host knows it; `hasMore` says the list is
+/// truncated when it does not (a search that takes a limit and returns no count). `total` wins.
+public struct SearchResultGroup: Identifiable, Sendable { public var id: String { kind.rawValue }; public let kind: SearchResultKind; public let label: String; public let items: [SearchResultItem]; public let total: Int?; public let hasMore: Bool; public init(kind: SearchResultKind, label: String, items: [SearchResultItem] = [], total: Int? = nil, hasMore: Bool = false) { self.kind = kind; self.label = label; self.items = items; self.total = total; self.hasMore = hasMore }
+    /// The truncated group's last row, or nil when the list is whole: the counted "查看全部 N" when the total is known, the plain "更多" otherwise.
+    func moreText(_ strings: FlareStrings) -> String? {
+        if let total, total > items.count { return strings.viewAll(total) }
+        return hasMore ? strings.more : nil
+    }
+}
 
 public struct ForwardTarget: Identifiable, Sendable { public let id: String; public let name: String; public let avatarURL: String?; public let subtitle: String?; public init(id: String, name: String, avatarURL: String? = nil, subtitle: String? = nil) { self.id = id; self.name = name; self.avatarURL = avatarURL; self.subtitle = subtitle } }
 
@@ -151,7 +159,8 @@ public struct Moment: Identifiable, Sendable { public let id: String; public let
 
 // MARK: - Form / control models
 
-public enum FlareButtonVariant: Sendable { case primary, secondary, ghost, danger, text }
+/// 中性的低强度动作:配在主按钮旁边的那个「出口」。和 text 的唯一区别是不用品牌色 —— 两个都用紫色就分不出主次;和 ghost 的区别是没有那圈 40% 品牌色描边。内距走尺寸类而不是像 text 那样压成固定值,这样它和配对的主按钮同字数时同宽。
+public enum FlareButtonVariant: Sendable { case primary, secondary, ghost, danger, text, quiet }
 public enum FlareControlSize: Sendable { case sm, md, lg }
 public struct FlareSelectOption: Identifiable, Sendable { public var id: String { value }; public let value: String; public let label: String; public let disabled: Bool; public init(value: String, label: String, disabled: Bool = false) { self.value = value; self.label = label; self.disabled = disabled } }
 

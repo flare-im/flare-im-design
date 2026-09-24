@@ -32,7 +32,7 @@ const { t } = useFlareI18nOptional();
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 10px 14px;
+  padding: var(--flare-size-spacing-2sm) var(--flare-size-spacing-2md);
   border: 0;
   background: transparent;
   text-align: left;

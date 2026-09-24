@@ -100,10 +100,10 @@ class FlareVoicePlayer extends StatelessWidget {
       // the padding above them, and below the last one, gives the difference
       // back. An open transcript ends the bubble with plain text.
       padding: EdgeInsets.fromLTRB(
-        10,
-        10 - _targetInset,
-        10,
-        transcript != null && transcriptOpen ? 10 : 10 - _targetInset,
+        FlareSizes.spacing2sm,
+        FlareSizes.spacing2sm - _targetInset,
+        FlareSizes.spacing2sm,
+        transcript != null && transcriptOpen ? FlareSizes.spacing2sm : FlareSizes.spacing2sm - _targetInset,
       ),
       decoration: BoxDecoration(
         color: bg,

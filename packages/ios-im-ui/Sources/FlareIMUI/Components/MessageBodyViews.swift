@@ -100,6 +100,7 @@ public struct TextMessageView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareMessageBodyForeground) private var bodyForeground
+    @ObservedObject private var emojiCatalog = FlareEmojiStickerCatalog.shared
     public init(text: String, isSelf: Bool = false, selectable: Bool = false,
                 mentions: [FlareTextMentionSpan] = [], onLinkTap: ((String) -> Void)? = nil) {
         self.text = text
@@ -108,26 +109,32 @@ public struct TextMessageView: View {
         self.mentions = mentions
         self.onLinkTap = onLinkTap
     }
-    public var body: some View {
-        let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        let segments = mentions.isEmpty ? [] : Self.segments(text, mentions: mentions)
-        textContent(segments, colors: colors, fontSize: FlareSizes.fontSizeXl * textScale)
-            .font(.system(size: FlareSizes.fontSizeXl * textScale))
-            .lineSpacing(4)
-            .foregroundColor(isSelf ? colors.messageOutgoingForeground : colors.messageIncomingForeground)
-            .textSelectableIf(selectable)
-            .environment(\.openURL, OpenURLAction { url in
-                switch Self.linkTap(url.absoluteString, hostHandles: onLinkTap != nil) {
-                case .host(let raw):
-                    onLinkTap?(raw)
-                    return .handled
-                case .system(let safe):
-                    return .systemAction(safe)
-                case .ignored:
-                    return .handled
-                }
-            })
-
+    @ViewBuilder public var body: some View {
+        if let loneEmoji = flareLoneEmojiPackKey(text) {
+            FlareEmojiPackMessage(emoji: loneEmoji, isSelf: isSelf)
+        } else {
+            let colors = FlareColors.of(scheme, brand: flareBrandTheme)
+            let segments = mentions.isEmpty ? [] : Self.segments(text, mentions: mentions)
+            // 消息正文取 message 角色 —— 四端同一个出处(15/1.45)。
+            // lineSpacing 是额外行距而不是倍数,4pt 在 15pt 上正是 1.45 的那一档。
+            let messageSize = FlareTextRoles.message.fontSize * textScale
+            textContent(segments, colors: colors, fontSize: messageSize)
+                .font(.system(size: messageSize))
+                .lineSpacing(4)
+                .foregroundColor(isSelf ? colors.messageOutgoingForeground : colors.messageIncomingForeground)
+                .textSelectableIf(selectable)
+                .environment(\.openURL, OpenURLAction { url in
+                    switch Self.linkTap(url.absoluteString, hostHandles: onLinkTap != nil) {
+                    case .host(let raw):
+                        onLinkTap?(raw)
+                        return .handled
+                    case .system(let safe):
+                        return .systemAction(safe)
+                    case .ignored:
+                        return .handled
+                    }
+                })
+        }
     }
 
     /// What a tap on a link inside the body does.
@@ -333,7 +340,7 @@ public struct ImageMessageView: View {
         }
         .frame(width: width, height: height)
         .clipped()
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: FlareSizes.radiusCard, style: .continuous))
         .accessibilityElement(children: .ignore)
         .onTapIf(onTap)
         .accessibilityLabel(alt?.isEmpty == false ? alt! : strings.messageImage)
@@ -361,19 +368,19 @@ public struct VideoMessageView: View {
         ZStack {
             NetImage(url: poster) {
                 colors.bgTertiary.overlay(
-                    Image(systemName: "video").font(.system(size: 24 * textScale)).foregroundColor(bodyForeground ?? colors.textTertiary).opacity(0.5))
+                    Image(systemName: "video").font(.system(size: FlareSizes.fontSize5xl * textScale)).foregroundColor(bodyForeground ?? colors.textTertiary).opacity(0.5))
             }
             Color.black.opacity(0.28)
             Image(systemName: "play.fill").font(.system(size: 34 * textScale)).foregroundColor(.white)
                 .accessibilityHidden(true)
             VStack { Spacer(); HStack { Spacer()
-                Text(duration).font(.system(size: 10 * textScale)).foregroundColor(.white)
+                Text(duration).font(.system(size: FlareSizes.fontSize2xs * textScale)).foregroundColor(.white)
                     .padding(.horizontal, 5).padding(.vertical, 1)
                     .background(Color.black.opacity(0.45)).clipShape(RoundedRectangle(cornerRadius: 5))
             } }.padding(6)
         }
         .frame(width: 148, height: 92)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: FlareSizes.radiusCard, style: .continuous))
         .accessibilityElement(children: .ignore)
         .onTapIf(onPlay)
         .accessibilityLabel(alt?.isEmpty == false ? alt! : strings.messageVideo)
@@ -474,7 +481,7 @@ public struct FileMessageView: View {
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         let sub = (ext?.isEmpty == false) ? "\(size) · \(ext!)" : size
-        HStack(spacing: 10) {
+        HStack(spacing: FlareSizes.spacing2sm) {
             HStack(spacing: FlareSizes.spacingSm) {
                 icon ?? AnyView(Image(systemName: "doc").font(.system(size: 20 * textScale)).foregroundColor(bodyForeground ?? colors.primaryText))
                 VStack(alignment: .leading, spacing: 1) {
@@ -543,7 +550,7 @@ public struct ContactMessageView: View {
     }
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        let tint = AvatarView.seedTint(name)
+        let tint = AvatarView.seedTint(name, colors)
         HStack(spacing: 12) {
             NetImage(url: avatarUrl) {
                 Text(AvatarView.initials(name)).font(.system(size: 14 * textScale, weight: .semibold))
@@ -586,7 +593,7 @@ public struct LinkCardMessageView: View {
     }
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        HStack(spacing: 10) {
+        HStack(spacing: FlareSizes.spacing2sm) {
             if let icon { icon } else { NetImage(url: thumb) {
                 colors.bgTertiary.overlay(
                     Image(systemName: "photo").font(.system(size: 22 * textScale)).foregroundColor(bodyForeground ?? colors.textTertiary))
@@ -604,7 +611,7 @@ public struct LinkCardMessageView: View {
                 } }
             }
         }
-        .padding(.horizontal, 10).padding(.vertical, 8)
+        .padding(.horizontal, FlareSizes.spacing2sm).padding(.vertical, 8)
         .frame(maxWidth: 300, alignment: .leading)
         .onTapIf(onOpen)
     }
@@ -652,7 +659,7 @@ public struct VoteMessageView: View {
                         Text(o.text).font(.system(size: 13 * textScale)).foregroundColor(bodyForeground ?? colors.textPrimary)
                         Spacer()
                         if let pct = o.pct { Text("\(pct)%").font(.system(size: 12 * textScale)).foregroundColor(bodyForeground ?? colors.textSecondary) }
-                    }.padding(.horizontal, 10)
+                    }.padding(.horizontal, FlareSizes.spacing2sm)
                 }
                 .frame(minHeight: FlareSizes.touchTarget)
                 .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
@@ -662,7 +669,7 @@ public struct VoteMessageView: View {
                 Text(t).font(.system(size: 11 * textScale)).foregroundColor(bodyForeground ?? colors.textTertiary)
             }
         }
-        .padding(.horizontal, 12).padding(.vertical, 10)
+        .padding(.horizontal, 12).padding(.vertical, FlareSizes.spacing2sm)
         .frame(maxWidth: 300, alignment: .leading)
     }
 }
@@ -682,7 +689,7 @@ public struct TaskMessageView: View {
     }
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        HStack(spacing: 10) {
+        HStack(spacing: FlareSizes.spacing2sm) {
             ZStack {
                 RoundedRectangle(cornerRadius: 6, style: .continuous).fill(done ? colors.primary : Color.clear)
                 RoundedRectangle(cornerRadius: 6, style: .continuous)

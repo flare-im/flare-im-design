@@ -22,6 +22,7 @@ import FlareIcon from "../general/FlareIcon.vue";
 import FlareActionMenu from "../general/FlareActionMenu.vue";
 import type { FlareActionItem } from "../../shared/contracts/action-menu";
 import { useFlareNativeBack } from "../../shared/platform/useFlareNativeBack";
+import { dismissTopFlareContextualLayer } from "../../shared/useContextualLayer";
 
 type HeaderAction = FlareConversationHeaderAction;
 
@@ -41,9 +42,17 @@ const emit = defineEmits<{
 
 const { t } = useFlareI18n();
 const instance = getCurrentInstance();
-// The platform back (Android, or a phone browser when the host opts in) does what the back control does.
-useFlareNativeBack(() => Boolean(props.showBack && instance?.vnode.props?.onBack), () => emit("back"));
 const rootRef = ref<HTMLElement | null>(null);
+// 返回先退这一页里最上面的上下文层(多选),第二下才离开会话 —— 主流 IM 选择态下头部的前导
+// 控件就是「取消选择」。范围限定在页头所在的那个宿主里(页头与时间线是兄弟),详情栏里另一页的
+// 返回不会来关这里的多选。busy 的层也算消费:批量进行中不能把人带出会话。
+function back(): void {
+  if (dismissTopFlareContextualLayer(rootRef.value?.parentElement ?? null)) return;
+  emit("back");
+}
+// The platform back (Android, or a phone browser when the host opts in) does what the back control does.
+// 它也先问上下文层:这样认领顺序(跨断点 resize 后页头重新认领、压到工具条上面)就不再要紧。
+useFlareNativeBack(() => Boolean(props.showBack && instance?.vnode.props?.onBack), back);
 const compact = ref(false);
 let observer: ResizeObserver | null = null;
 
@@ -197,7 +206,7 @@ onBeforeUnmount(() => observer?.disconnect());
       class="flare-conversation-header__icon-button"
       :title="t('common.back')"
       :aria-label="t('common.back')"
-      @click="emit('back')"
+      @click="back"
     >
       <FlareIcon name="back" :size="20" />
     </button>
@@ -343,17 +352,19 @@ onBeforeUnmount(() => observer?.disconnect());
   gap: var(--flare-size-spacing-sm);
   box-sizing: border-box;
   min-width: 0;
-  min-height: var(--flare-size-layout-header-height);
-  padding: 8px var(--flare-size-spacing-lg);
+  /* 三端(iOS/Android/Flutter)都是固定 headerHeight + bgPrimary + 实色 borderPrimary;
+     这里原来是 min-height + bgSecondary + 72% 稀释的分隔线,是四端唯一不同的那一份。 */
+  height: var(--flare-size-layout-header-height);
+  padding-inline: var(--flare-size-spacing-lg);
   color: var(--flare-color-text-primary);
-  background: var(--flare-color-bg-secondary);
-  border-bottom: 1px solid color-mix(in srgb, var(--flare-color-border-primary) 72%, transparent);
+  background: var(--flare-color-bg-primary);
+  border-bottom: 1px solid var(--flare-color-border-primary);
 }
 
 .flare-conversation-header__identity {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--flare-size-spacing-2sm);
   flex: 1;
   min-width: 0;
 }
@@ -368,7 +379,7 @@ onBeforeUnmount(() => observer?.disconnect());
 .flare-conversation-header__identity-action {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--flare-size-spacing-2sm);
   flex: 1;
   min-width: 0;
   min-height: 48px;
@@ -414,7 +425,7 @@ onBeforeUnmount(() => observer?.disconnect());
 .flare-conversation-header__title {
   color: var(--flare-component-chat-hdr-title);
   font-size: var(--flare-size-font-size-2xl);
-  font-weight: 650;
+  font-weight: var(--flare-size-font-weight-semibold);
   line-height: 1.3;
   letter-spacing: 0;
 }

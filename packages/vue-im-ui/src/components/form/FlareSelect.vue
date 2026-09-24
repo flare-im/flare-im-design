@@ -61,8 +61,12 @@ function onDocPointer(e: MouseEvent): void {
   if (asSheet.value || !open.value) return;
   if (root.value && !root.value.contains(e.target as Node)) close();
 }
+// 用掉 Escape 就要 preventDefault:下面可能还有一层上下文层(多选工具条)在听同一下键。
 function onDocKey(e: KeyboardEvent): void {
-  if (e.key === "Escape" && !asSheet.value && open.value) close();
+  if (e.key === "Escape" && !asSheet.value && open.value) {
+    e.preventDefault();
+    close();
+  }
 }
 if (typeof document !== "undefined") {
   document.addEventListener("click", onDocPointer, true);
@@ -154,9 +158,9 @@ onBeforeUnmount(() => {
   cursor: pointer;
   transition: border-color var(--flare-transition-fast), box-shadow var(--flare-transition-fast);
 }
-.flare-select--sm .flare-select__trigger { height: 32px; padding: 0 10px; font-size: 13px; }
+.flare-select--sm .flare-select__trigger { height: 32px; padding: 0 var(--flare-size-spacing-2sm); font-size: 13px; }
 .flare-select--md .flare-select__trigger { height: 40px; padding: 0 12px; font-size: 14px; }
-.flare-select--lg .flare-select__trigger { height: 48px; padding: 0 14px; font-size: 15px; }
+.flare-select--lg .flare-select__trigger { height: 48px; padding: 0 var(--flare-size-spacing-2md); font-size: 15px; }
 .flare-select.is-open .flare-select__trigger {
   border-color: var(--flare-color-primary);
   box-shadow: 0 0 0 3px var(--flare-color-focus-ring);
@@ -198,7 +202,7 @@ onBeforeUnmount(() => {
   background: transparent;
   text-align: left;
   font: inherit;
-  padding: 8px 10px;
+  padding: 8px var(--flare-size-spacing-2sm);
   border-radius: var(--flare-size-radius-md);
   font-size: 14px;
   color: var(--flare-color-text-primary);
@@ -212,7 +216,7 @@ onBeforeUnmount(() => {
 .flare-select__option.is-disabled { opacity: 0.45; cursor: not-allowed; }
 
 .flare-select__option.is-sheet {
-  gap: 10px;
+  gap: var(--flare-size-spacing-2sm);
   min-height: 52px;
   padding: 0 16px;
   border-radius: var(--flare-size-radius-lg);

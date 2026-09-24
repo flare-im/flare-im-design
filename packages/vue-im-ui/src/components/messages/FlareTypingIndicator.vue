@@ -56,7 +56,7 @@ const bubbleUser = computed(() => props.names[0] || props.userId || "typing");
   gap: 8px;
 }
 .flare-typing--bubble .flare-typing__body {
-  padding: 10px 14px;
+  padding: var(--flare-size-spacing-2sm) var(--flare-size-spacing-2md);
   border-radius: 16px 16px 16px 4px;
   background: var(--flare-color-bg-primary);
   border: 1px solid var(--flare-color-border-primary);

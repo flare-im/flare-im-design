@@ -56,7 +56,7 @@ const hint = computed(() => (props.mode === "video" ? t("call.invitingVideo") : 
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: var(--flare-size-spacing-2md);
 }
 .flare-incoming__avatar {
   position: relative;
@@ -83,9 +83,11 @@ const hint = computed(() => (props.mode === "video" ? t("call.invitingVideo") : 
   .flare-incoming__avatar::before,
   .flare-incoming__avatar::after { animation: none; }
 }
+/* 通话对象的名字取 4xl(20)—— iOS CallViews / Flutter flare_call_view 都是这个台阶,
+   web 这边原本写死 24px,是通话屏上最大的那个元素在四端里唯一不一致的地方。 */
 .flare-incoming__name {
-  font-size: 24px;
-  font-weight: 600;
+  font-size: var(--flare-size-font-size-4xl);
+  font-weight: var(--flare-size-font-weight-semibold);
 }
 .flare-incoming__hint {
   color: rgba(255, 255, 255, 0.72);
@@ -103,7 +105,7 @@ const hint = computed(() => (props.mode === "video" ? t("call.invitingVideo") : 
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: var(--flare-size-spacing-2sm);
   border: 0;
   background: none;
   cursor: pointer;

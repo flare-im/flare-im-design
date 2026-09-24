@@ -10,7 +10,7 @@ const members = [
   { id: "u2", title: "林夏", detail: "成员", actions: [{ id: "remove", label: "移出群聊" }] },
 ];
 
-function render(props: Record<string, unknown>) {
+function render(props: InstanceType<typeof FlareMemberPanel>["$props"]) {
   return mount(defineComponent({
     setup() {
       useFlareI18nProvider("zh-CN");

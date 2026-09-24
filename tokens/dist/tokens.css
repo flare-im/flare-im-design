@@ -11,7 +11,7 @@
   --flare-color-border-primary: #E3E5EB;
   --flare-color-border-secondary: #ECEEF2;
   --flare-color-border-selected: #7C3AED;
-  --flare-color-message-incoming-background: #FFFFFF;
+  --flare-color-message-incoming-background: #F1F2F5;
   --flare-color-message-incoming-foreground: #20232D;
   --flare-color-message-incoming-border: #E3E5EB;
   --flare-color-message-outgoing-background: #6D28D9;
@@ -56,14 +56,28 @@
   --flare-color-text-tertiary: #5F6776;
   --flare-color-warning: #B45309;
   --flare-color-warning-text: #B45309;
+  --flare-color-avatar-tint-blue-bg: #DBEAFE;
+  --flare-color-avatar-tint-blue-fg: #1D4ED8;
+  --flare-color-avatar-tint-purple-bg: #E9D5FF;
+  --flare-color-avatar-tint-purple-fg: #6D28D9;
+  --flare-color-avatar-tint-pink-bg: #FBCFE8;
+  --flare-color-avatar-tint-pink-fg: #9D174D;
+  --flare-color-avatar-tint-green-bg: #D1FAE5;
+  --flare-color-avatar-tint-green-fg: #047857;
+  --flare-color-avatar-tint-amber-bg: #FEF3C7;
+  --flare-color-avatar-tint-amber-fg: #B45309;
+  --flare-color-avatar-tint-slate-bg: #E5E7EB;
+  --flare-color-avatar-tint-slate-fg: #374151;
+  --flare-size-font-size-2xs: 10px;
+  --flare-size-font-size-xs: 11px;
+  --flare-size-font-size-sm: 12px;
+  --flare-size-font-size-md: 13px;
+  --flare-size-font-size-lg: 14px;
+  --flare-size-font-size-xl: 15px;
   --flare-size-font-size-2xl: 16px;
   --flare-size-font-size-3xl: 18px;
   --flare-size-font-size-4xl: 20px;
-  --flare-size-font-size-lg: 14px;
-  --flare-size-font-size-md: 13px;
-  --flare-size-font-size-sm: 12px;
-  --flare-size-font-size-xl: 15px;
-  --flare-size-font-size-xs: 11px;
+  --flare-size-font-size-5xl: 24px;
   --flare-size-icon-size-lg: 24px;
   --flare-size-icon-size-md: 20px;
   --flare-size-icon-size-sm: 16px;
@@ -92,25 +106,54 @@
   --flare-size-layout-session-item-height: 72px;
   --flare-size-layout-touch-target: 48px;
   --flare-size-layout-touch-target-min: 44px;
+  --flare-size-line-height-none: 1;
+  --flare-size-line-height-tight: 1.2;
+  --flare-size-line-height-snug: 1.4;
   --flare-size-line-height-normal: 1.5;
   --flare-size-line-height-relaxed: 1.6;
-  --flare-size-line-height-tight: 1.2;
-  --flare-size-radius-2xl: 18px;
-  --flare-size-radius-bubble: 16px;
-  --flare-size-radius-bubble-tail: 4px;
-  --flare-size-radius-full: 999px;
-  --flare-size-radius-lg: 10px;
-  --flare-size-radius-md: 8px;
-  --flare-size-radius-sm: 6px;
-  --flare-size-radius-xl: 14px;
   --flare-size-radius-xs: 3px;
-  --flare-size-spacing-2xl: 24px;
-  --flare-size-spacing-2xs: 6px;
-  --flare-size-spacing-lg: 16px;
-  --flare-size-spacing-md: 12px;
-  --flare-size-spacing-sm: 8px;
-  --flare-size-spacing-xl: 20px;
+  --flare-size-radius-bubble-tail: 4px;
+  --flare-size-radius-sm: 6px;
+  --flare-size-radius-md: 8px;
+  --flare-size-radius-lg: 10px;
+  --flare-size-radius-card: 12px;
+  --flare-size-radius-xl: 14px;
+  --flare-size-radius-bubble: 16px;
+  --flare-size-radius-2xl: 18px;
+  --flare-size-radius-full: 999px;
+  --flare-size-spacing-3xs: 2px;
   --flare-size-spacing-xs: 4px;
+  --flare-size-spacing-2xs: 6px;
+  --flare-size-spacing-sm: 8px;
+  --flare-size-spacing-2sm: 10px;
+  --flare-size-spacing-md: 12px;
+  --flare-size-spacing-2md: 14px;
+  --flare-size-spacing-lg: 16px;
+  --flare-size-spacing-xl: 20px;
+  --flare-size-spacing-2xl: 24px;
+  --flare-size-component-bubble-padding-x: 14px;
+  --flare-size-component-bubble-padding-y: 9px;
+  --flare-size-component-message-avatar-size: 40px;
+  --flare-size-component-composer-action-height: 40px;
+  --flare-size-component-composer-action-width: 44px;
+  --flare-size-component-composer-toolbar-icon: 34px;
+  --flare-size-component-composer-toolbar-width: 44px;
+  --flare-size-component-composer-desktop-height: 46px;
+  --flare-size-component-bubble-rich-min-width: 220px;
+  --flare-size-component-bubble-system-max-width: 560px;
+  --flare-size-component-message-gutter-inline: 16px;
+  --flare-size-component-message-tail-space: 10px;
+  --flare-size-component-media-card-min-width: 220px;
+  --flare-size-component-media-image-max-width: 320px;
+  --flare-size-component-media-video-width: 320px;
+  --flare-size-component-rich-card-width: 320px;
+  --flare-size-component-rich-card-compact-width: 240px;
+  --flare-size-component-rich-card-media-height: 148px;
+  --flare-size-component-sheet-width: 420px;
+  --flare-size-component-sheet-dialog-width: 480px;
+  --flare-size-component-conversation-row-meta-width: 60px;
+  --flare-size-component-bubble-max-width-ratio-compact: 0.88;
+  --flare-size-component-bubble-max-width-ratio-regular: 0.62;
   --flare-text-title-font-size: 20px;
   --flare-text-title-line-height: 1.2;
   --flare-text-title-weight: 700;
@@ -123,6 +166,13 @@
   --flare-text-caption-font-size: 12px;
   --flare-text-caption-line-height: 1.5;
   --flare-text-caption-weight: 400;
+  --flare-text-message-font-size: 15px;
+  --flare-text-message-line-height: 1.45;
+  --flare-text-message-weight: 400;
+  --flare-size-font-weight-regular: 400;
+  --flare-size-font-weight-medium: 500;
+  --flare-size-font-weight-semibold: 600;
+  --flare-size-font-weight-bold: 700;
   --flare-shadow-card: 0 2px 8px rgba(20, 25, 38, 0.06);
   --flare-shadow-lg: 0 12px 32px rgba(20, 25, 38, 0.12);
   --flare-shadow-md: 0 4px 16px rgba(20, 25, 38, 0.10);
@@ -138,11 +188,12 @@
   --flare-opacity-tint-weak: 0.10;
   --flare-opacity-tint-strong: 0.24;
   --flare-z-index-base: 0;
-  --flare-z-index-dropdown: 1000;
   --flare-z-index-sticky: 1100;
   --flare-z-index-overlay: 1200;
   --flare-z-index-modal: 1300;
-  --flare-z-index-toast: 1400;
+  --flare-z-index-media: 1350;
+  --flare-z-index-dropdown: 2000;
+  --flare-z-index-toast: 8000;
   --flare-breakpoint-sm: 600px;
   --flare-breakpoint-md: 900px;
   --flare-breakpoint-lg: 1100px;
@@ -163,7 +214,7 @@
   --flare-color-border-primary: rgba(255, 255, 255, 0.10);
   --flare-color-border-secondary: rgba(255, 255, 255, 0.08);
   --flare-color-border-selected: #A78BFA;
-  --flare-color-message-incoming-background: #20232B;
+  --flare-color-message-incoming-background: #292D37;
   --flare-color-message-incoming-foreground: rgba(255, 255, 255, 0.94);
   --flare-color-message-incoming-border: rgba(255, 255, 255, 0.10);
   --flare-color-message-outgoing-background: #6D28D9;
@@ -196,7 +247,7 @@
   --flare-color-primary: #7047D6;
   --flare-color-primary-active: #6641C9;
   --flare-color-primary-hover: #7D58DD;
-  --flare-color-primary-text: #A78BFA;
+  --flare-color-primary-text: #C4B5FD;
   --flare-color-robot: #94A3B8;
   --flare-color-success: #16A34A;
   --flare-color-success-text: #4ADE80;
@@ -208,6 +259,18 @@
   --flare-color-text-tertiary: #9AA3B3;
   --flare-color-warning: #A16207;
   --flare-color-warning-text: #FBBF24;
+  --flare-color-avatar-tint-blue-bg: #1F3266;
+  --flare-color-avatar-tint-blue-fg: #BFDBFE;
+  --flare-color-avatar-tint-purple-bg: #3A2566;
+  --flare-color-avatar-tint-purple-fg: #DDD6FE;
+  --flare-color-avatar-tint-pink-bg: #5C1F3E;
+  --flare-color-avatar-tint-pink-fg: #FBCFE8;
+  --flare-color-avatar-tint-green-bg: #15433C;
+  --flare-color-avatar-tint-green-fg: #A7F3D0;
+  --flare-color-avatar-tint-amber-bg: #58351E;
+  --flare-color-avatar-tint-amber-fg: #FDE68A;
+  --flare-color-avatar-tint-slate-bg: #282D38;
+  --flare-color-avatar-tint-slate-fg: #E5E7EB;
   --flare-shadow-card: 0 8px 28px rgba(0, 0, 0, 0.32);
   --flare-shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.32);
   --flare-shadow-md: 0 8px 28px rgba(0, 0, 0, 0.32);
@@ -228,7 +291,7 @@
   --flare-color-border-primary: #E3E5EB;
   --flare-color-border-secondary: #ECEEF2;
   --flare-color-border-selected: #7C3AED;
-  --flare-color-message-incoming-background: #FFFFFF;
+  --flare-color-message-incoming-background: #F1F2F5;
   --flare-color-message-incoming-foreground: #20232D;
   --flare-color-message-incoming-border: #E3E5EB;
   --flare-color-message-outgoing-background: #6D28D9;
@@ -273,6 +336,18 @@
   --flare-color-text-tertiary: #5F6776;
   --flare-color-warning: #B45309;
   --flare-color-warning-text: #B45309;
+  --flare-color-avatar-tint-blue-bg: #DBEAFE;
+  --flare-color-avatar-tint-blue-fg: #1D4ED8;
+  --flare-color-avatar-tint-purple-bg: #E9D5FF;
+  --flare-color-avatar-tint-purple-fg: #6D28D9;
+  --flare-color-avatar-tint-pink-bg: #FBCFE8;
+  --flare-color-avatar-tint-pink-fg: #9D174D;
+  --flare-color-avatar-tint-green-bg: #D1FAE5;
+  --flare-color-avatar-tint-green-fg: #047857;
+  --flare-color-avatar-tint-amber-bg: #FEF3C7;
+  --flare-color-avatar-tint-amber-fg: #B45309;
+  --flare-color-avatar-tint-slate-bg: #E5E7EB;
+  --flare-color-avatar-tint-slate-fg: #374151;
 }
 
 [data-flare-brand="ocean"] {
@@ -287,7 +362,7 @@
   --flare-color-border-primary: #E3E5EB;
   --flare-color-border-secondary: #ECEEF2;
   --flare-color-border-selected: #2563EB;
-  --flare-color-message-incoming-background: #FFFFFF;
+  --flare-color-message-incoming-background: #F1F2F5;
   --flare-color-message-incoming-foreground: #20232D;
   --flare-color-message-incoming-border: #E3E5EB;
   --flare-color-message-outgoing-background: #1D4ED8;
@@ -332,6 +407,18 @@
   --flare-color-text-tertiary: #5F6776;
   --flare-color-warning: #B45309;
   --flare-color-warning-text: #B45309;
+  --flare-color-avatar-tint-blue-bg: #DBEAFE;
+  --flare-color-avatar-tint-blue-fg: #1D4ED8;
+  --flare-color-avatar-tint-purple-bg: #E9D5FF;
+  --flare-color-avatar-tint-purple-fg: #6D28D9;
+  --flare-color-avatar-tint-pink-bg: #FBCFE8;
+  --flare-color-avatar-tint-pink-fg: #9D174D;
+  --flare-color-avatar-tint-green-bg: #D1FAE5;
+  --flare-color-avatar-tint-green-fg: #047857;
+  --flare-color-avatar-tint-amber-bg: #FEF3C7;
+  --flare-color-avatar-tint-amber-fg: #B45309;
+  --flare-color-avatar-tint-slate-bg: #E5E7EB;
+  --flare-color-avatar-tint-slate-fg: #374151;
 }
 
 [data-flare-brand="forest"] {
@@ -346,7 +433,7 @@
   --flare-color-border-primary: #E3E5EB;
   --flare-color-border-secondary: #ECEEF2;
   --flare-color-border-selected: #16A34A;
-  --flare-color-message-incoming-background: #FFFFFF;
+  --flare-color-message-incoming-background: #F1F2F5;
   --flare-color-message-incoming-foreground: #20232D;
   --flare-color-message-incoming-border: #E3E5EB;
   --flare-color-message-outgoing-background: #15803D;
@@ -391,6 +478,18 @@
   --flare-color-text-tertiary: #5F6776;
   --flare-color-warning: #B45309;
   --flare-color-warning-text: #B45309;
+  --flare-color-avatar-tint-blue-bg: #DBEAFE;
+  --flare-color-avatar-tint-blue-fg: #1D4ED8;
+  --flare-color-avatar-tint-purple-bg: #E9D5FF;
+  --flare-color-avatar-tint-purple-fg: #6D28D9;
+  --flare-color-avatar-tint-pink-bg: #FBCFE8;
+  --flare-color-avatar-tint-pink-fg: #9D174D;
+  --flare-color-avatar-tint-green-bg: #D1FAE5;
+  --flare-color-avatar-tint-green-fg: #047857;
+  --flare-color-avatar-tint-amber-bg: #FEF3C7;
+  --flare-color-avatar-tint-amber-fg: #B45309;
+  --flare-color-avatar-tint-slate-bg: #E5E7EB;
+  --flare-color-avatar-tint-slate-fg: #374151;
 }
 
 [data-flare-brand="sunset"] {
@@ -405,7 +504,7 @@
   --flare-color-border-primary: #E3E5EB;
   --flare-color-border-secondary: #ECEEF2;
   --flare-color-border-selected: #EA580C;
-  --flare-color-message-incoming-background: #FFFFFF;
+  --flare-color-message-incoming-background: #F1F2F5;
   --flare-color-message-incoming-foreground: #20232D;
   --flare-color-message-incoming-border: #E3E5EB;
   --flare-color-message-outgoing-background: #C2410C;
@@ -450,6 +549,18 @@
   --flare-color-text-tertiary: #5F6776;
   --flare-color-warning: #B45309;
   --flare-color-warning-text: #B45309;
+  --flare-color-avatar-tint-blue-bg: #DBEAFE;
+  --flare-color-avatar-tint-blue-fg: #1D4ED8;
+  --flare-color-avatar-tint-purple-bg: #E9D5FF;
+  --flare-color-avatar-tint-purple-fg: #6D28D9;
+  --flare-color-avatar-tint-pink-bg: #FBCFE8;
+  --flare-color-avatar-tint-pink-fg: #9D174D;
+  --flare-color-avatar-tint-green-bg: #D1FAE5;
+  --flare-color-avatar-tint-green-fg: #047857;
+  --flare-color-avatar-tint-amber-bg: #FEF3C7;
+  --flare-color-avatar-tint-amber-fg: #B45309;
+  --flare-color-avatar-tint-slate-bg: #E5E7EB;
+  --flare-color-avatar-tint-slate-fg: #374151;
 }
 
 [data-flare-brand="rose"] {
@@ -464,7 +575,7 @@
   --flare-color-border-primary: #E3E5EB;
   --flare-color-border-secondary: #ECEEF2;
   --flare-color-border-selected: #E11D48;
-  --flare-color-message-incoming-background: #FFFFFF;
+  --flare-color-message-incoming-background: #F1F2F5;
   --flare-color-message-incoming-foreground: #20232D;
   --flare-color-message-incoming-border: #E3E5EB;
   --flare-color-message-outgoing-background: #BE123C;
@@ -509,6 +620,18 @@
   --flare-color-text-tertiary: #5F6776;
   --flare-color-warning: #B45309;
   --flare-color-warning-text: #B45309;
+  --flare-color-avatar-tint-blue-bg: #DBEAFE;
+  --flare-color-avatar-tint-blue-fg: #1D4ED8;
+  --flare-color-avatar-tint-purple-bg: #E9D5FF;
+  --flare-color-avatar-tint-purple-fg: #6D28D9;
+  --flare-color-avatar-tint-pink-bg: #FBCFE8;
+  --flare-color-avatar-tint-pink-fg: #9D174D;
+  --flare-color-avatar-tint-green-bg: #D1FAE5;
+  --flare-color-avatar-tint-green-fg: #047857;
+  --flare-color-avatar-tint-amber-bg: #FEF3C7;
+  --flare-color-avatar-tint-amber-fg: #B45309;
+  --flare-color-avatar-tint-slate-bg: #E5E7EB;
+  --flare-color-avatar-tint-slate-fg: #374151;
 }
 
 [data-flare-brand="graphite"] {
@@ -523,7 +646,7 @@
   --flare-color-border-primary: #E3E5EB;
   --flare-color-border-secondary: #ECEEF2;
   --flare-color-border-selected: #64748B;
-  --flare-color-message-incoming-background: #FFFFFF;
+  --flare-color-message-incoming-background: #F1F2F5;
   --flare-color-message-incoming-foreground: #20232D;
   --flare-color-message-incoming-border: #E3E5EB;
   --flare-color-message-outgoing-background: #475569;
@@ -568,6 +691,18 @@
   --flare-color-text-tertiary: #5F6776;
   --flare-color-warning: #B45309;
   --flare-color-warning-text: #B45309;
+  --flare-color-avatar-tint-blue-bg: #DBEAFE;
+  --flare-color-avatar-tint-blue-fg: #1D4ED8;
+  --flare-color-avatar-tint-purple-bg: #E9D5FF;
+  --flare-color-avatar-tint-purple-fg: #6D28D9;
+  --flare-color-avatar-tint-pink-bg: #FBCFE8;
+  --flare-color-avatar-tint-pink-fg: #9D174D;
+  --flare-color-avatar-tint-green-bg: #D1FAE5;
+  --flare-color-avatar-tint-green-fg: #047857;
+  --flare-color-avatar-tint-amber-bg: #FEF3C7;
+  --flare-color-avatar-tint-amber-fg: #B45309;
+  --flare-color-avatar-tint-slate-bg: #E5E7EB;
+  --flare-color-avatar-tint-slate-fg: #374151;
 }
 
 [data-flare-brand="violet"][data-flare-theme="dark"] {
@@ -582,7 +717,7 @@
   --flare-color-border-primary: rgba(255, 255, 255, 0.10);
   --flare-color-border-secondary: rgba(255, 255, 255, 0.08);
   --flare-color-border-selected: #A78BFA;
-  --flare-color-message-incoming-background: #20232B;
+  --flare-color-message-incoming-background: #292D37;
   --flare-color-message-incoming-foreground: rgba(255, 255, 255, 0.94);
   --flare-color-message-incoming-border: rgba(255, 255, 255, 0.10);
   --flare-color-message-outgoing-background: #5B21B6;
@@ -627,6 +762,18 @@
   --flare-color-text-tertiary: #9AA3B3;
   --flare-color-warning: #A16207;
   --flare-color-warning-text: #FBBF24;
+  --flare-color-avatar-tint-blue-bg: #1F3266;
+  --flare-color-avatar-tint-blue-fg: #BFDBFE;
+  --flare-color-avatar-tint-purple-bg: #3A2566;
+  --flare-color-avatar-tint-purple-fg: #DDD6FE;
+  --flare-color-avatar-tint-pink-bg: #5C1F3E;
+  --flare-color-avatar-tint-pink-fg: #FBCFE8;
+  --flare-color-avatar-tint-green-bg: #15433C;
+  --flare-color-avatar-tint-green-fg: #A7F3D0;
+  --flare-color-avatar-tint-amber-bg: #58351E;
+  --flare-color-avatar-tint-amber-fg: #FDE68A;
+  --flare-color-avatar-tint-slate-bg: #282D38;
+  --flare-color-avatar-tint-slate-fg: #E5E7EB;
 }
 
 [data-flare-brand="ocean"][data-flare-theme="dark"] {
@@ -641,7 +788,7 @@
   --flare-color-border-primary: rgba(255, 255, 255, 0.10);
   --flare-color-border-secondary: rgba(255, 255, 255, 0.08);
   --flare-color-border-selected: #60A5FA;
-  --flare-color-message-incoming-background: #20232B;
+  --flare-color-message-incoming-background: #292D37;
   --flare-color-message-incoming-foreground: rgba(255, 255, 255, 0.94);
   --flare-color-message-incoming-border: rgba(255, 255, 255, 0.10);
   --flare-color-message-outgoing-background: #1E40AF;
@@ -686,6 +833,18 @@
   --flare-color-text-tertiary: #9AA3B3;
   --flare-color-warning: #A16207;
   --flare-color-warning-text: #FBBF24;
+  --flare-color-avatar-tint-blue-bg: #1F3266;
+  --flare-color-avatar-tint-blue-fg: #BFDBFE;
+  --flare-color-avatar-tint-purple-bg: #3A2566;
+  --flare-color-avatar-tint-purple-fg: #DDD6FE;
+  --flare-color-avatar-tint-pink-bg: #5C1F3E;
+  --flare-color-avatar-tint-pink-fg: #FBCFE8;
+  --flare-color-avatar-tint-green-bg: #15433C;
+  --flare-color-avatar-tint-green-fg: #A7F3D0;
+  --flare-color-avatar-tint-amber-bg: #58351E;
+  --flare-color-avatar-tint-amber-fg: #FDE68A;
+  --flare-color-avatar-tint-slate-bg: #282D38;
+  --flare-color-avatar-tint-slate-fg: #E5E7EB;
 }
 
 [data-flare-brand="forest"][data-flare-theme="dark"] {
@@ -700,7 +859,7 @@
   --flare-color-border-primary: rgba(255, 255, 255, 0.10);
   --flare-color-border-secondary: rgba(255, 255, 255, 0.08);
   --flare-color-border-selected: #4ADE80;
-  --flare-color-message-incoming-background: #20232B;
+  --flare-color-message-incoming-background: #292D37;
   --flare-color-message-incoming-foreground: rgba(255, 255, 255, 0.94);
   --flare-color-message-incoming-border: rgba(255, 255, 255, 0.10);
   --flare-color-message-outgoing-background: #166534;
@@ -745,6 +904,18 @@
   --flare-color-text-tertiary: #9AA3B3;
   --flare-color-warning: #A16207;
   --flare-color-warning-text: #FBBF24;
+  --flare-color-avatar-tint-blue-bg: #1F3266;
+  --flare-color-avatar-tint-blue-fg: #BFDBFE;
+  --flare-color-avatar-tint-purple-bg: #3A2566;
+  --flare-color-avatar-tint-purple-fg: #DDD6FE;
+  --flare-color-avatar-tint-pink-bg: #5C1F3E;
+  --flare-color-avatar-tint-pink-fg: #FBCFE8;
+  --flare-color-avatar-tint-green-bg: #15433C;
+  --flare-color-avatar-tint-green-fg: #A7F3D0;
+  --flare-color-avatar-tint-amber-bg: #58351E;
+  --flare-color-avatar-tint-amber-fg: #FDE68A;
+  --flare-color-avatar-tint-slate-bg: #282D38;
+  --flare-color-avatar-tint-slate-fg: #E5E7EB;
 }
 
 [data-flare-brand="sunset"][data-flare-theme="dark"] {
@@ -759,7 +930,7 @@
   --flare-color-border-primary: rgba(255, 255, 255, 0.10);
   --flare-color-border-secondary: rgba(255, 255, 255, 0.08);
   --flare-color-border-selected: #FB923C;
-  --flare-color-message-incoming-background: #20232B;
+  --flare-color-message-incoming-background: #292D37;
   --flare-color-message-incoming-foreground: rgba(255, 255, 255, 0.94);
   --flare-color-message-incoming-border: rgba(255, 255, 255, 0.10);
   --flare-color-message-outgoing-background: #9A3412;
@@ -804,6 +975,18 @@
   --flare-color-text-tertiary: #9AA3B3;
   --flare-color-warning: #A16207;
   --flare-color-warning-text: #FBBF24;
+  --flare-color-avatar-tint-blue-bg: #1F3266;
+  --flare-color-avatar-tint-blue-fg: #BFDBFE;
+  --flare-color-avatar-tint-purple-bg: #3A2566;
+  --flare-color-avatar-tint-purple-fg: #DDD6FE;
+  --flare-color-avatar-tint-pink-bg: #5C1F3E;
+  --flare-color-avatar-tint-pink-fg: #FBCFE8;
+  --flare-color-avatar-tint-green-bg: #15433C;
+  --flare-color-avatar-tint-green-fg: #A7F3D0;
+  --flare-color-avatar-tint-amber-bg: #58351E;
+  --flare-color-avatar-tint-amber-fg: #FDE68A;
+  --flare-color-avatar-tint-slate-bg: #282D38;
+  --flare-color-avatar-tint-slate-fg: #E5E7EB;
 }
 
 [data-flare-brand="rose"][data-flare-theme="dark"] {
@@ -818,7 +1001,7 @@
   --flare-color-border-primary: rgba(255, 255, 255, 0.10);
   --flare-color-border-secondary: rgba(255, 255, 255, 0.08);
   --flare-color-border-selected: #FB7185;
-  --flare-color-message-incoming-background: #20232B;
+  --flare-color-message-incoming-background: #292D37;
   --flare-color-message-incoming-foreground: rgba(255, 255, 255, 0.94);
   --flare-color-message-incoming-border: rgba(255, 255, 255, 0.10);
   --flare-color-message-outgoing-background: #9F1239;
@@ -863,6 +1046,18 @@
   --flare-color-text-tertiary: #9AA3B3;
   --flare-color-warning: #A16207;
   --flare-color-warning-text: #FBBF24;
+  --flare-color-avatar-tint-blue-bg: #1F3266;
+  --flare-color-avatar-tint-blue-fg: #BFDBFE;
+  --flare-color-avatar-tint-purple-bg: #3A2566;
+  --flare-color-avatar-tint-purple-fg: #DDD6FE;
+  --flare-color-avatar-tint-pink-bg: #5C1F3E;
+  --flare-color-avatar-tint-pink-fg: #FBCFE8;
+  --flare-color-avatar-tint-green-bg: #15433C;
+  --flare-color-avatar-tint-green-fg: #A7F3D0;
+  --flare-color-avatar-tint-amber-bg: #58351E;
+  --flare-color-avatar-tint-amber-fg: #FDE68A;
+  --flare-color-avatar-tint-slate-bg: #282D38;
+  --flare-color-avatar-tint-slate-fg: #E5E7EB;
 }
 
 [data-flare-brand="graphite"][data-flare-theme="dark"] {
@@ -877,7 +1072,7 @@
   --flare-color-border-primary: rgba(255, 255, 255, 0.10);
   --flare-color-border-secondary: rgba(255, 255, 255, 0.08);
   --flare-color-border-selected: #94A3B8;
-  --flare-color-message-incoming-background: #20232B;
+  --flare-color-message-incoming-background: #292D37;
   --flare-color-message-incoming-foreground: rgba(255, 255, 255, 0.94);
   --flare-color-message-incoming-border: rgba(255, 255, 255, 0.10);
   --flare-color-message-outgoing-background: #475569;
@@ -922,4 +1117,16 @@
   --flare-color-text-tertiary: #9AA3B3;
   --flare-color-warning: #A16207;
   --flare-color-warning-text: #FBBF24;
+  --flare-color-avatar-tint-blue-bg: #1F3266;
+  --flare-color-avatar-tint-blue-fg: #BFDBFE;
+  --flare-color-avatar-tint-purple-bg: #3A2566;
+  --flare-color-avatar-tint-purple-fg: #DDD6FE;
+  --flare-color-avatar-tint-pink-bg: #5C1F3E;
+  --flare-color-avatar-tint-pink-fg: #FBCFE8;
+  --flare-color-avatar-tint-green-bg: #15433C;
+  --flare-color-avatar-tint-green-fg: #A7F3D0;
+  --flare-color-avatar-tint-amber-bg: #58351E;
+  --flare-color-avatar-tint-amber-fg: #FDE68A;
+  --flare-color-avatar-tint-slate-bg: #282D38;
+  --flare-color-avatar-tint-slate-fg: #E5E7EB;
 }

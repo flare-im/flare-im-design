@@ -13,8 +13,14 @@ const props = withDefaults(
     selectable?: boolean;
     /** Checked state of a selectable row. */
     selected?: boolean;
+    /**
+     * 这一行就是右边那一栏正在显示的人。与 `selected`(勾选)不是一回事:
+     * 勾选是「我挑了它」,当前行是「屏幕上另一半在讲它」—— 两栏布局里少了这个,
+     * 用户看不出左边哪一行对应右边那一屏。会话行早就有这个态(activeId)。
+     */
+    current?: boolean;
   }>(),
-  { showPresence: false, selectable: false, selected: false },
+  { showPresence: false, selectable: false, selected: false, current: false },
 );
 const emit = defineEmits<{ (e: "select"): void; (e: "toggleSelect"): void }>();
 // A row is drawn inside lists a host may mount without the provider, so the words are optional.
@@ -31,7 +37,7 @@ const interactive = computed(() => Boolean(instance?.vnode.props?.onSelect));
 </script>
 
 <template>
-  <div class="flare-contact-item" :class="{ 'is-selectable': selectable }">
+  <div class="flare-contact-item" :class="{ 'is-selectable': selectable, 'is-current': current }" :aria-current="current ? 'true' : undefined">
     <!-- The checkbox is the row's one focus stop, named by the contact; the whole row is its label. -->
     <FlareCheckbox
       v-if="selectable"
@@ -67,6 +73,8 @@ const interactive = computed(() => Boolean(instance?.vnode.props?.onSelect));
 </template>
 
 <style scoped>
+.flare-contact-item.is-current { background: var(--flare-color-bg-selected); }
+.flare-contact-item.is-current .flare-contact-item__name { color: var(--flare-color-primary-text); font-weight: 600; }
 .flare-contact-item {
   display: flex;
   align-items: center;
@@ -80,7 +88,7 @@ const interactive = computed(() => Boolean(instance?.vnode.props?.onSelect));
   display: flex;
   align-items: center;
   gap: var(--flare-size-spacing-md);
-  padding: var(--flare-size-spacing-sm) 14px;
+  padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-2md);
   border: 0;
   background: transparent;
   color: inherit;

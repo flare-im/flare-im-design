@@ -6,6 +6,8 @@ import 'package:extended_text_field/extended_text_field.dart';
 import 'flare_bottom_sheet.dart';
 import 'flare_inline_voice.dart';
 import 'flare_mention_picker.dart';
+import '../emoji_sticker/flare_composer_emoji_span_builder.dart';
+import '../emoji_sticker/flare_emoji_sticker_catalog.dart';
 import '../emoji_sticker/flare_emoji_sticker_picker.dart';
 import 'composer/rich_text_composer_formatter.dart';
 
@@ -17,6 +19,7 @@ import 'composer/flare_composer_parts.dart';
 import '../models/directory_data.dart' show FlareMentionCandidate;
 import '../models/form_behavior.dart';
 import '../models/message_data.dart' show FlareReplyTarget;
+import '../platform/flare_platform.dart';
 
 export 'composer/flare_composer_action_panel.dart';
 export 'composer/flare_composer_parts.dart';
@@ -38,29 +41,30 @@ enum FlareComposerSubmitMode { enter, modifierEnter }
 /// build() reads as one composer with values in it rather than two layouts
 /// interleaved.
 ///
-/// [band] is a phone: the field runs the full width of the screen with the
-/// rounding taken off, and the tools rest on the app ground below it. Anything
-/// wider keeps the bordered card the desktop layout is built around.
+/// [wide] follows the same container breakpoint as the Web composer. A wide
+/// chat puts the field and compact tools on one flat footer row; a narrower
+/// chat keeps full touch targets on a second row.
 class _Metrics {
   const _Metrics({
-    required this.band,
+    required this.wide,
     required this.text,
     required this.stripHeight,
     required this.stripInset,
     required this.toolInset,
   });
 
-  final bool band;
+  final bool wide;
   final EdgeInsets text;
   final double stripHeight;
   final double stripInset;
   final double toolInset;
 
   factory _Metrics.of(double width, int keys) {
-    if (width >= 600) {
+    // The Web kit's FLARE_BREAKPOINT_TABLET_MIN is the same 600px boundary.
+    if (width >= FlareSizes.navigationRailMinWidth) {
       return const _Metrics(
-        band: false,
-        text: EdgeInsets.fromLTRB(12, 12, 0, 8),
+        wide: true,
+        text: EdgeInsets.symmetric(horizontal: 16, vertical: 11),
         stripHeight: 32,
         stripInset: 0,
         toolInset: 0,
@@ -71,9 +75,9 @@ class _Metrics {
     // whatever the keys do not need, up to 10 — seven 44px targets already fill
     // a 320px screen, and the targets are the part that must not shrink.
     return _Metrics(
-      band: true,
+      wide: false,
       text: const EdgeInsets.fromLTRB(16, 11, 0, 11),
-      stripHeight: 44,
+      stripHeight: FlareSizes.componentComposerActionWidth,
       stripInset: 6,
       toolInset: ((width - keys * 44.0) / 2).clamp(0.0, 10.0),
     );
@@ -114,6 +118,7 @@ class FlareComposer extends StatefulWidget {
     this.onVoiceCancel,
     this.desktopSubmitMode = FlareComposerSubmitMode.enter,
     this.mentionCandidates = const [],
+    this.enableMentions = true,
   });
 
   final String conversationKey;
@@ -165,6 +170,11 @@ class FlareComposer extends StatefulWidget {
   /// Empty, both only put in "@".
   final List<FlareMentionCandidate> mentionCandidates;
 
+  /// Whether this conversation supports mentions. Pass false for 1:1 chats so
+  /// the desktop tool row matches Web instead of showing an inert `@` action.
+  /// A group may keep this true while its roster is still loading.
+  final bool enableMentions;
+
   @override
   State<FlareComposer> createState() => FlareComposerState();
 }
@@ -183,9 +193,12 @@ class FlareComposerState extends State<FlareComposer> {
       widget.replyLabel ?? FlareStrings.of(context).composerReply;
   late TextEditingController _controller;
   late bool _ownsController;
+  late FocusNode _focusNode;
+  late bool _ownsFocusNode;
   bool _emojiOpen = false;
   bool _expanded = false;
   bool _richMode = false;
+  bool _formatLevelsOpen = false;
   RichComposerFormatting _formatting = const RichComposerFormatting();
   void dismissPanel() {
     if (_panelOpen) setState(() => _panelOpen = false);
@@ -204,9 +217,19 @@ class FlareComposerState extends State<FlareComposer> {
     super.initState();
     _ownsController = widget.controller == null;
     _controller = widget.controller ?? TextEditingController();
+    _ownsFocusNode = widget.focusNode == null;
+    _focusNode = widget.focusNode ?? FocusNode();
     _canSend = _controller.text.trim().isNotEmpty;
     _lastValue = _controller.value;
     _controller.addListener(_changed);
+    FlareEmojiStickerCatalog.instance.addListener(_emojiCatalogChanged);
+    FlareEmojiStickerCatalog.instance.ensureLoaded().then((_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  void _emojiCatalogChanged() {
+    if (mounted) setState(() {});
   }
 
   /// The composer's own clear — after a send, or when the conversation changes — is not an edit by the
@@ -222,6 +245,7 @@ class FlareComposerState extends State<FlareComposer> {
   }
 
   void _changed() {
+    final wasMultiline = _textNeedsMultipleLines(_lastValue.text);
     final value = _controller.value;
     final typedAt = _typedMentionAt(_lastValue, value);
     // A controller notifies for the caret and the selection too. Tapping into a composer that already
@@ -229,13 +253,39 @@ class FlareComposerState extends State<FlareComposer> {
     final textChanged = _lastValue.text != value.text;
     _lastValue = value;
     final can = value.text.trim().isNotEmpty;
-    if (can != _canSend) setState(() => _canSend = can);
+    final isMultiline = _textNeedsMultipleLines(value.text);
+    if (can != _canSend || wasMultiline != isMultiline) {
+      setState(() => _canSend = can);
+    }
     if (textChanged && !_suppressTyping) widget.onTyping?.call(value.text);
     if (typedAt != null && widget.mentionCandidates.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _pickMention(typedAt: typedAt);
       });
     }
+  }
+
+  static bool _textNeedsMultipleLines(String text) =>
+      text.contains('\n') || text.length > 56;
+
+  void _focusInput() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focusNode.requestFocus();
+    });
+  }
+
+  void _closeTransientPanels() {
+    _panelOpen = false;
+    _emojiOpen = false;
+    _formatLevelsOpen = false;
+  }
+
+  void _toggleExpanded() {
+    setState(() {
+      _closeTransientPanels();
+      _expanded = !_expanded;
+    });
+    _focusInput();
   }
 
   /// Where "@" was just typed at the start of a word as a pure insertion
@@ -287,6 +337,7 @@ class FlareComposerState extends State<FlareComposer> {
     } else {
       _insert(mention);
     }
+    _focusInput();
   }
 
   @override
@@ -301,12 +352,18 @@ class FlareComposerState extends State<FlareComposer> {
       _canSend = _controller.text.trim().isNotEmpty;
       _lastValue = _controller.value;
     }
+    if (widget.focusNode != oldWidget.focusNode) {
+      if (_ownsFocusNode) _focusNode.dispose();
+      _ownsFocusNode = widget.focusNode == null;
+      _focusNode = widget.focusNode ?? FocusNode();
+    }
     if (widget.conversationKey != oldWidget.conversationKey) {
       if (_ownsController) _clearWithoutTyping();
       _voiceMode = false;
       _panelOpen = false;
       _emojiOpen = false;
       _expanded = false;
+      _formatLevelsOpen = false;
       _formatting = const RichComposerFormatting();
       _richMode = false;
     }
@@ -314,8 +371,10 @@ class FlareComposerState extends State<FlareComposer> {
 
   @override
   void dispose() {
+    FlareEmojiStickerCatalog.instance.removeListener(_emojiCatalogChanged);
     _controller.removeListener(_changed);
     if (_ownsController) _controller.dispose();
+    if (_ownsFocusNode) _focusNode.dispose();
     super.dispose();
   }
 
@@ -331,6 +390,11 @@ class FlareComposerState extends State<FlareComposer> {
         RichComposerMarkdownSerializer.serialize(text, _formatting),
       );
       _clearWithoutTyping();
+      setState(() {
+        _expanded = false;
+        _closeTransientPanels();
+      });
+      _focusInput();
       return;
     }
     final onSend = widget.onSend;
@@ -353,6 +417,11 @@ class FlareComposerState extends State<FlareComposer> {
     // Clear what was sent; anything typed while it was on its way stays.
     if (_controller.text.trim() == text) _clearWithoutTyping();
     if (widget.replyTo != null) widget.onCancelReply?.call();
+    setState(() {
+      _expanded = false;
+      _closeTransientPanels();
+    });
+    _focusInput();
   }
 
   bool _shouldSubmit(KeyDownEvent event) {
@@ -376,14 +445,70 @@ class FlareComposerState extends State<FlareComposer> {
 
   void _onPlus() {
     if (_hasActionPanel) {
-      widget.focusNode?.unfocus();
       setState(() {
         _panelOpen = !_panelOpen;
         _emojiOpen = false;
       });
+      _focusInput();
     } else {
       widget.onAttach?.call();
+      _focusInput();
     }
+  }
+
+  void _activatePanelAction(FlareComposerAction action) {
+    // Voice is already a first-class composer mode. The Web composer exposes
+    // it both in the toolbar and in the "+" surface; selecting either entry
+    // must reach the same recorder instead of asking every host to recreate
+    // the composer's private state transition.
+    if (action.id == 'voice' &&
+        widget.enableVoice &&
+        widget.onVoiceSend != null) {
+      setState(() {
+        _voiceMode = true;
+        _expanded = false;
+        _closeTransientPanels();
+      });
+      return;
+    }
+    widget.onAction?.call(action);
+    setState(() => _panelOpen = false);
+    _focusInput();
+  }
+
+  void _toggleEmoji() {
+    setState(() {
+      _emojiOpen = !_emojiOpen;
+      _panelOpen = false;
+      _formatLevelsOpen = false;
+    });
+    _focusInput();
+  }
+
+  void _onEmoji() {
+    final handler = widget.onEmoji;
+    if (handler == null) {
+      _toggleEmoji();
+      return;
+    }
+    setState(_closeTransientPanels);
+    handler();
+    _focusInput();
+  }
+
+  void _openImage() {
+    setState(_closeTransientPanels);
+    (widget.onImage ?? widget.onAttach)?.call();
+    _focusInput();
+  }
+
+  void _toggleRichMode() {
+    setState(() {
+      _richMode = !_richMode;
+      _closeTransientPanels();
+      if (!_richMode) _formatting = const RichComposerFormatting();
+    });
+    _focusInput();
   }
 
   Widget _tool(
@@ -398,17 +523,23 @@ class FlareComposerState extends State<FlareComposer> {
     return IconButton(
       tooltip: label,
       onPressed: widget.disabled || !enabled ? null : action,
-      iconSize: compact ? 14 : 20,
+      // Desktop uses a denser footprint, not a smaller glyph. Web keeps the
+      // toolbar artwork at 20px inside its compact 34–36px controls; shrinking
+      // the glyph to 14px made the Flutter desktop footer look visibly weak.
+      iconSize: FlareSizes.iconSizeMd,
       padding: EdgeInsets.zero,
       constraints: BoxConstraints.tightFor(
-        width: compact ? 36 : 44,
-        height: compact ? 32 : 44,
+        width: compact ? 34 : FlareSizes.componentComposerActionWidth,
+        height: compact ? 36 : FlareSizes.componentComposerActionWidth,
       ),
       style: IconButton.styleFrom(
         backgroundColor: Colors.transparent,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        minimumSize: Size(compact ? 36 : 44, compact ? 32 : 44),
-        maximumSize: Size(compact ? 36 : 44, compact ? 32 : 44),
+        minimumSize: Size(
+          compact ? 34 : FlareSizes.componentComposerActionWidth,
+          compact ? 36 : FlareSizes.componentComposerActionWidth,
+        ),
+        maximumSize: Size(compact ? 34 : 44, compact ? 36 : 44),
       ),
       icon: Icon(
         icon,
@@ -435,119 +566,345 @@ class FlareComposerState extends State<FlareComposer> {
     );
   }
 
+  Widget _formatControl({
+    required String id,
+    required String label,
+    required Widget glyph,
+    required FlareColors colors,
+    required bool coarse,
+    VoidCallback? onTap,
+    bool active = false,
+    double? visualWidth,
+    double? layoutWidth,
+  }) {
+    final visualExtent = coarse ? 36.0 : FlareSizes.controlHeightSm;
+    final hitExtent = coarse
+        ? FlareSizes.touchTargetMin
+        : FlareSizes.controlHeightSm;
+    final foreground = widget.disabled
+        ? colors.textDisabled
+        : active
+        ? colors.primaryText
+        : colors.textSecondary;
+    return Tooltip(
+      message: label,
+      child: Semantics(
+        button: true,
+        selected: active,
+        label: label,
+        child: SizedBox(
+          key: ValueKey('composer-format-$id'),
+          width: layoutWidth ?? hitExtent,
+          height: hitExtent,
+          child: Center(
+            child: Material(
+              color: active ? colors.bgSelected : Colors.transparent,
+              borderRadius: BorderRadius.circular(FlareSizes.radiusSm),
+              child: InkWell(
+                onTap: widget.disabled ? null : onTap,
+                borderRadius: BorderRadius.circular(FlareSizes.radiusSm),
+                child: SizedBox(
+                  width: visualWidth ?? visualExtent,
+                  height: visualExtent,
+                  child: IconTheme(
+                    data: IconThemeData(color: foreground, size: 16),
+                    child: DefaultTextStyle.merge(
+                      style: TextStyle(color: foreground),
+                      child: Center(child: glyph),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _formatBar(_Metrics m, FlareColors colors) {
     final s = FlareStrings.of(context);
+    final coarse =
+        FlarePlatform.of(context).capabilities.pointer ==
+        FlarePointerKind.coarse;
+    final heading = _formatting.blockStyle == RichComposerBlockStyle.heading
+        ? _formatting.headingLevel
+        : 0;
+    final headingLabel = heading == 0
+        ? s.composerParagraph
+        : '${s.composerHeading} $heading';
+
+    Text textGlyph(
+      String value, {
+      FontStyle? style,
+      TextDecoration? decoration,
+      double size = 14,
+    }) => Text(
+      value,
+      style: TextStyle(
+        fontSize: size,
+        height: 1,
+        fontWeight: FontWeight.w700,
+        fontStyle: style,
+        decoration: decoration,
+        decorationThickness: 2,
+      ),
+    );
+
+    Widget inlineAction(
+      String id,
+      String label,
+      Widget glyph,
+      RichComposerInlineStyle style,
+    ) => _formatControl(
+      id: id,
+      label: label,
+      glyph: glyph,
+      colors: colors,
+      coarse: coarse,
+      active: _formatting.isInlineActive(style),
+      onTap: () =>
+          setState(() => _formatting = _formatting.toggleInline(style)),
+    );
+
+    Widget blockAction(
+      String id,
+      String label,
+      Widget glyph,
+      RichComposerBlockStyle style,
+    ) => _formatControl(
+      id: id,
+      label: label,
+      glyph: glyph,
+      colors: colors,
+      coarse: coarse,
+      active: _formatting.isBlockActive(style),
+      onTap: () => setState(() => _formatting = _formatting.toggleBlock(style)),
+    );
+
+    Widget groupDivider(String id) => Container(
+      key: ValueKey('composer-format-divider-$id'),
+      width: 1,
+      height: 20,
+      margin: const EdgeInsets.symmetric(horizontal: FlareSizes.spacingXs),
+      color: colors.borderSecondary,
+    );
+
+    Widget headingFace({VoidCallback? onTap}) => _formatControl(
+      id: 'heading',
+      label: headingLabel,
+      glyph: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            heading == 0 ? 'P' : 'H$heading',
+            style: const TextStyle(
+              fontSize: FlareSizes.fontSizeLg,
+              height: 1,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(width: FlareSizes.spacing3xs),
+          Icon(
+            _formatLevelsOpen
+                ? Icons.keyboard_arrow_up
+                : Icons.keyboard_arrow_down,
+            size: 14,
+          ),
+        ],
+      ),
+      colors: colors,
+      coarse: coarse,
+      active: heading > 0,
+      onTap: onTap,
+      visualWidth: 48,
+      layoutWidth: coarse ? 52 : 48,
+    );
+
+    final headingControl = coarse
+        ? headingFace(
+            onTap: () => setState(() => _formatLevelsOpen = !_formatLevelsOpen),
+          )
+        : PopupMenuButton<int>(
+            enabled: !widget.disabled,
+            tooltip: headingLabel,
+            position: PopupMenuPosition.over,
+            initialValue: heading,
+            onSelected: (level) => setState(
+              () => _formatting = _formatting.withHeadingLevel(
+                level == 0 ? null : level,
+              ),
+            ),
+            itemBuilder: (_) => [
+              const PopupMenuItem(
+                value: 0,
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text('P'),
+                ),
+              ),
+              for (var level = 1; level <= 6; level++)
+                PopupMenuItem(
+                  value: level,
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text('H$level'),
+                  ),
+                ),
+            ],
+            child: headingFace(),
+          );
+
+    final controls = coarse && _formatLevelsOpen
+        ? <Widget>[
+            for (var level = 0; level <= 6; level++)
+              _formatControl(
+                id: level == 0 ? 'paragraph' : 'heading-$level',
+                label: level == 0
+                    ? s.composerParagraph
+                    : '${s.composerHeading} $level',
+                glyph: textGlyph(level == 0 ? 'P' : 'H$level', size: 12),
+                colors: colors,
+                coarse: coarse,
+                active: heading == level,
+                onTap: () => setState(() {
+                  _formatting = _formatting.withHeadingLevel(
+                    level == 0 ? null : level,
+                  );
+                  _formatLevelsOpen = false;
+                }),
+              ),
+          ]
+        : <Widget>[
+            headingControl,
+            inlineAction(
+              'bold',
+              s.composerBold,
+              textGlyph('B'),
+              RichComposerInlineStyle.bold,
+            ),
+            inlineAction(
+              'strike',
+              s.composerStrike,
+              textGlyph('S', decoration: TextDecoration.lineThrough),
+              RichComposerInlineStyle.strike,
+            ),
+            inlineAction(
+              'italic',
+              s.composerItalic,
+              textGlyph('I', style: FontStyle.italic),
+              RichComposerInlineStyle.italic,
+            ),
+            inlineAction(
+              'underline',
+              s.composerUnderline,
+              textGlyph('U', decoration: TextDecoration.underline),
+              RichComposerInlineStyle.underline,
+            ),
+            groupDivider('inline-block'),
+            blockAction(
+              'ordered',
+              s.composerOrderedList,
+              const Icon(Icons.format_list_numbered),
+              RichComposerBlockStyle.orderedList,
+            ),
+            blockAction(
+              'bullet',
+              s.composerList,
+              const Icon(Icons.format_list_bulleted),
+              RichComposerBlockStyle.bulletList,
+            ),
+            blockAction(
+              'quote',
+              s.composerQuote,
+              const Icon(Icons.format_quote_outlined),
+              RichComposerBlockStyle.quote,
+            ),
+            groupDivider('block-insert'),
+            inlineAction(
+              'link',
+              s.composerLink,
+              const Icon(Icons.link_outlined),
+              RichComposerInlineStyle.link,
+            ),
+            _formatControl(
+              id: 'image',
+              label: s.actionImage,
+              glyph: const Icon(Icons.image_outlined),
+              colors: colors,
+              coarse: coarse,
+              onTap: widget.onImage ?? () => _insert('![]()'),
+            ),
+            inlineAction(
+              'code',
+              s.composerCode,
+              textGlyph('<>', size: 12),
+              RichComposerInlineStyle.inlineCode,
+            ),
+            blockAction(
+              'code-block',
+              s.composerCodeBlock,
+              textGlyph('</>', size: 11),
+              RichComposerBlockStyle.codeBlock,
+            ),
+            _formatControl(
+              id: 'horizontal-rule',
+              label: s.composerDivider,
+              glyph: const Icon(Icons.horizontal_rule),
+              colors: colors,
+              coarse: coarse,
+              onTap: () => _insert('\n---\n'),
+            ),
+          ];
+
     return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(
           height: m.stripHeight,
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: EdgeInsets.symmetric(horizontal: m.stripInset),
-            child: Row(
-              children: [
-                for (final entry in [
-                  (
-                    Icons.format_bold,
-                    s.composerBold,
-                    RichComposerInlineStyle.bold,
-                  ),
-                  (
-                    Icons.format_italic,
-                    s.composerItalic,
-                    RichComposerInlineStyle.italic,
-                  ),
-                  (
-                    Icons.strikethrough_s,
-                    s.composerStrike,
-                    RichComposerInlineStyle.strike,
-                  ),
-                  (
-                    Icons.code,
-                    s.composerCode,
-                    RichComposerInlineStyle.inlineCode,
-                  ),
-                  (Icons.link, s.composerLink, RichComposerInlineStyle.link),
-                ])
-                  SizedBox(
-                    width: 36,
-                    child: _tool(
-                      entry.$1,
-                      entry.$2,
-                      () => setState(
-                        () => _formatting = _formatting.toggleInline(entry.$3),
-                      ),
-                      compact: true,
-                      active: _formatting.isInlineActive(entry.$3),
-                    ),
-                  ),
-                for (final entry in [
-                  (
-                    Icons.title,
-                    s.composerHeading,
-                    RichComposerBlockStyle.heading,
-                  ),
-                  (
-                    Icons.format_quote,
-                    s.composerQuote,
-                    RichComposerBlockStyle.quote,
-                  ),
-                  (
-                    Icons.format_list_bulleted,
-                    s.composerList,
-                    RichComposerBlockStyle.bulletList,
-                  ),
-                  (
-                    Icons.format_list_numbered,
-                    s.composerOrderedList,
-                    RichComposerBlockStyle.orderedList,
-                  ),
-                ])
-                  SizedBox(
-                    width: 36,
-                    child: _tool(
-                      entry.$1,
-                      entry.$2,
-                      () => setState(
-                        () => _formatting = _formatting.toggleBlock(entry.$3),
-                      ),
-                      compact: true,
-                      active: _formatting.isBlockActive(entry.$3),
-                    ),
-                  ),
-              ],
-            ),
+            child: Row(children: controls),
           ),
         ),
-        // The row is the top of the same band; a hairline is all that separates
-        // it from the text it formats.
-        Container(height: 1, color: colors.borderPrimary),
+        // The format row owns this lower hairline. The wide rich composer drops
+        // its generic top inset below so both sides of the row have the same
+        // visual gap, matching the Web/Tauri reference.
+        Container(
+          key: const ValueKey('composer-format-divider-line'),
+          height: 1,
+          color: colors.borderPrimary,
+        ),
       ],
     );
   }
 
-  // One row, two homes: inside the card on a tablet, on the app ground below
-  // the band on a phone. Writing it twice is how the two drift apart.
+  // The same ordered tools live beside the field on a wide chat and on their
+  // own touch-friendly row below it everywhere else.
   Widget _tools(_Metrics m) {
     final s = FlareStrings.of(context);
     final keys = <Widget>[
+      if (m.wide) _resizeTool(m),
       _tool(
         flareIconGlyph('emoji'),
         s.composerEmoji,
-        widget.onEmoji ??
-            () => setState(() {
-              _emojiOpen = !_emojiOpen;
-              _panelOpen = false;
-            }),
+        _onEmoji,
+        compact: m.wide,
       ),
-      _tool(
-        flareIconGlyph('mention'),
-        s.composerMention,
-        widget.mentionCandidates.isEmpty
-            ? () => _insert('@')
-            : () => _pickMention(),
-      ),
+      if (widget.enableMentions)
+        _tool(
+          flareIconGlyph('mention'),
+          s.composerMention,
+          widget.mentionCandidates.isEmpty
+              ? () {
+                  _insert('@');
+                  _focusInput();
+                }
+              : () => _pickMention(),
+          compact: m.wide,
+        ),
       if (widget.enableVoice)
         _tool(
           flareIconGlyph('mic'),
@@ -555,28 +912,26 @@ class FlareComposerState extends State<FlareComposer> {
           widget.onVoiceSend == null
               ? null
               : () {
-                  widget.focusNode?.unfocus();
                   setState(() {
                     _voiceMode = true;
-                    _panelOpen = false;
-                    _emojiOpen = false;
+                    _expanded = false;
+                    _closeTransientPanels();
                   });
                 },
+          compact: m.wide,
         ),
       _tool(
         flareIconGlyph('image'),
         s.actionImage,
-        widget.onImage ?? widget.onAttach,
+        _openImage,
+        compact: m.wide,
       ),
       _tool(
         flareIconGlyph('rich-text'),
         s.composerRichText,
-        () => setState(() {
-          _richMode = !_richMode;
-          if (!_richMode) _formatting = const RichComposerFormatting();
-          _panelOpen = false;
-        }),
+        _toggleRichMode,
         active: _richMode || widget.rich,
+        compact: m.wide,
       ),
       _tool(
         flareIconGlyph(_panelOpen ? 'close' : 'add'),
@@ -584,6 +939,7 @@ class FlareComposerState extends State<FlareComposer> {
         _onPlus,
         active: _panelOpen,
         enabled: _hasActionPanel || widget.onAttach != null,
+        compact: m.wide,
       ),
       FlareComposerSendButton(
         active:
@@ -592,26 +948,130 @@ class FlareComposerState extends State<FlareComposer> {
             (widget.onSend != null || widget.onSendRich != null),
         busy: _sending,
         onTap: _send,
+        compact: m.wide,
       ),
     ];
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: m.toolInset),
       child: Row(
-        mainAxisAlignment: m.band
-            ? MainAxisAlignment.spaceBetween
-            : MainAxisAlignment.end,
+        mainAxisAlignment: m.wide
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.spaceBetween,
         children: keys,
       ),
     );
   }
 
+  Widget _resizeTool(_Metrics m) {
+    final colors = FlareColors.of(context);
+    final label = _expanded
+        ? FlareStrings.of(context).collapse
+        : FlareStrings.of(context).expand;
+    return IconButton(
+      key: const ValueKey('composer-resize-action'),
+      tooltip: label,
+      onPressed: widget.disabled ? null : _toggleExpanded,
+      padding: EdgeInsets.zero,
+      constraints: BoxConstraints.tightFor(
+        width: m.wide ? 34 : FlareSizes.componentComposerActionWidth,
+        height: m.wide ? 36 : FlareSizes.componentComposerActionWidth,
+      ),
+      style: IconButton.styleFrom(
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        minimumSize: Size(
+          m.wide ? 34 : FlareSizes.componentComposerActionWidth,
+          m.wide ? 36 : FlareSizes.componentComposerActionWidth,
+        ),
+        maximumSize: Size(m.wide ? 34 : 44, m.wide ? 36 : 44),
+      ),
+      color: _expanded ? colors.primary : colors.textSecondary,
+      disabledColor: colors.textDisabled,
+      icon: FlareComposerResizeIcon(expanded: _expanded),
+    );
+  }
+
   /// Emoji, mention, [voice], image, rich text, more, send.
-  int get _keyCount => widget.enableVoice ? 7 : 6;
+  int get _keyCount =>
+      5 + (widget.enableVoice ? 1 : 0) + (widget.enableMentions ? 1 : 0);
+
+  Widget _inputField(_Metrics m, FlareColors colors) {
+    final inline = _formatting.inlineStyles;
+    return Padding(
+      padding: m.text,
+      child: Focus(
+        onKeyEvent: (_, event) {
+          if ((m.wide ||
+                  FlarePlatform.of(context).capabilities.keyboardShortcut) &&
+              event is KeyDownEvent &&
+              _shouldSubmit(event)) {
+            _send();
+            return KeyEventResult.handled;
+          }
+          return KeyEventResult.ignored;
+        },
+        child: ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+          child: ExtendedTextField(
+            // Keep the editable state and its platform text-input connection
+            // alive while the async catalog arrives. Re-keying this field used
+            // to discard the first keystroke on a cold composer. The rebuilt
+            // span builder below is enough to repaint restored `[key]` drafts.
+            key: const ValueKey('composer-input'),
+            specialTextSpanBuilder: FlareComposerEmojiSpanBuilder(
+              delegate: widget.specialTextSpanBuilder,
+              locale: Localizations.localeOf(context).toLanguageTag(),
+            ),
+            controller: _controller,
+            focusNode: _focusNode,
+            enabled: !widget.disabled,
+            minLines: _expanded ? 6 : 1,
+            maxLines: _expanded ? 14 : 6,
+            maxLength: widget.maxLength,
+            textInputAction: TextInputAction.newline,
+            onSubmitted: (_) => _send(),
+            buildCounter:
+                (_, {required currentLength, maxLength, required isFocused}) =>
+                    null,
+            style: TextStyle(
+              color: inline.contains(RichComposerInlineStyle.link)
+                  ? colors.primary
+                  : colors.textPrimary,
+              fontSize: 15,
+              height: 1.45,
+              fontWeight: inline.contains(RichComposerInlineStyle.bold)
+                  ? FontWeight.bold
+                  : FontWeight.normal,
+              fontStyle: inline.contains(RichComposerInlineStyle.italic)
+                  ? FontStyle.italic
+                  : FontStyle.normal,
+              decoration:
+                  inline.contains(RichComposerInlineStyle.strike) ||
+                      inline.contains(RichComposerInlineStyle.underline) ||
+                      inline.contains(RichComposerInlineStyle.link)
+                  ? TextDecoration.combine([
+                      if (inline.contains(RichComposerInlineStyle.strike))
+                        TextDecoration.lineThrough,
+                      if (inline.contains(RichComposerInlineStyle.underline) ||
+                          inline.contains(RichComposerInlineStyle.link))
+                        TextDecoration.underline,
+                    ])
+                  : null,
+            ),
+            decoration: InputDecoration(
+              isCollapsed: true,
+              border: InputBorder.none,
+              hintText: _placeholder,
+              hintStyle: TextStyle(color: colors.textTertiary),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
-    final inline = _formatting.inlineStyles;
     // Measured once, here: the composer can be narrower than the window when it
     // sits in a pane, and every value below comes from the width it really got.
     return SafeArea(
@@ -619,11 +1079,27 @@ class FlareComposerState extends State<FlareComposer> {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final m = _Metrics.of(constraints.maxWidth, _keyCount);
+          final rich = _richMode || widget.rich;
+          final multiline =
+              _expanded ||
+              rich ||
+              widget.replyTo != null ||
+              _textNeedsMultipleLines(_controller.text);
           return Container(
-            color: m.band ? colors.bgSecondary : colors.bgPrimary,
-            padding: m.band
-                ? const EdgeInsets.only(bottom: 4)
-                : const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+            decoration: BoxDecoration(
+              color: m.wide ? colors.bgPrimary : colors.bgSecondary,
+              border: m.wide
+                  ? Border(top: BorderSide(color: colors.borderPrimary))
+                  : null,
+            ),
+            padding: m.wide
+                ? EdgeInsets.fromLTRB(
+                    FlareSizes.spacingMd,
+                    rich ? 0 : FlareSizes.spacingSm,
+                    FlareSizes.spacingMd,
+                    FlareSizes.spacingSm,
+                  )
+                : const EdgeInsets.only(bottom: 4),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -633,7 +1109,7 @@ class FlareComposerState extends State<FlareComposer> {
                     senderName: widget.replyTo!.senderName,
                     summary: widget.replyTo!.summary,
                     onCancel: widget.onCancelReply,
-                    flush: m.band,
+                    flush: !m.wide,
                   ),
                 if (_voiceMode && widget.onVoiceSend != null)
                   FlareInlineVoice(
@@ -641,141 +1117,57 @@ class FlareComposerState extends State<FlareComposer> {
                     onKeyboard: () {
                       setState(() => _voiceMode = false);
                       WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (mounted) widget.focusNode?.requestFocus();
+                        if (mounted) _focusNode.requestFocus();
                       });
                     },
                     onSend: widget.onVoiceSend!,
                   )
                 else ...[
                   Container(
-                    decoration: BoxDecoration(
-                      color: colors.bgPrimary,
-                      border: m.band
-                          ? null
-                          : Border.all(color: colors.borderPrimary),
-                      borderRadius: m.band ? null : BorderRadius.circular(12),
-                    ),
+                    color: colors.bgPrimary,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (!_panelOpen) ...[
-                          if (_richMode || widget.rich) _formatBar(m, colors),
+                        if (rich) _formatBar(m, colors),
+                        if (m.wide && !multiline)
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(child: _inputField(m, colors)),
+                              _tools(m),
+                            ],
+                          )
+                        else ...[
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(
-                                child: Padding(
-                                  padding: m.text,
-                                  child: Focus(
-                                    onKeyEvent: (_, event) {
-                                      if (!m.band &&
-                                          event is KeyDownEvent &&
-                                          _shouldSubmit(event)) {
-                                        _send();
-                                        return KeyEventResult.handled;
-                                      }
-                                      return KeyEventResult.ignored;
-                                    },
-                                    child: ScrollConfiguration(
-                                      behavior: ScrollConfiguration.of(
-                                        context,
-                                      ).copyWith(scrollbars: false),
-                                      child: ExtendedTextField(
-                                        specialTextSpanBuilder:
-                                            widget.specialTextSpanBuilder,
-                                        controller: _controller,
-                                        focusNode: widget.focusNode,
-                                        enabled: !widget.disabled,
-                                        minLines: _expanded ? 9 : 1,
-                                        maxLines: _expanded ? 14 : 5,
-                                        maxLength: widget.maxLength,
-                                        textInputAction:
-                                            TextInputAction.newline,
-                                        onSubmitted: (_) => _send(),
-                                        buildCounter:
-                                            (
-                                              _, {
-                                              required currentLength,
-                                              maxLength,
-                                              required isFocused,
-                                            }) => null,
-                                        style: TextStyle(
-                                          color:
-                                              inline.contains(
-                                                RichComposerInlineStyle.link,
-                                              )
-                                              ? colors.primary
-                                              : colors.textPrimary,
-                                          fontSize: 15,
-                                          height: 1.45,
-                                          fontWeight:
-                                              inline.contains(
-                                                RichComposerInlineStyle.bold,
-                                              )
-                                              ? FontWeight.bold
-                                              : FontWeight.normal,
-                                          fontStyle:
-                                              inline.contains(
-                                                RichComposerInlineStyle.italic,
-                                              )
-                                              ? FontStyle.italic
-                                              : FontStyle.normal,
-                                          decoration:
-                                              inline.contains(
-                                                RichComposerInlineStyle.strike,
-                                              )
-                                              ? TextDecoration.lineThrough
-                                              : inline.contains(
-                                                  RichComposerInlineStyle.link,
-                                                )
-                                              ? TextDecoration.underline
-                                              : null,
-                                        ),
-                                        decoration: InputDecoration(
-                                          isCollapsed: true,
-                                          border: InputBorder.none,
-                                          hintText: _placeholder,
-                                          hintStyle: TextStyle(
-                                            color: colors.textTertiary,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              _tool(
-                                flareIconGlyph(
-                                  _expanded ? 'collapse' : 'expand',
-                                ),
-                                _expanded
-                                    ? FlareStrings.of(context).collapse
-                                    : FlareStrings.of(context).expand,
-                                () => setState(() => _expanded = !_expanded),
-                              ),
+                              Expanded(child: _inputField(m, colors)),
+                              if (!m.wide) _resizeTool(m),
                             ],
                           ),
+                          if (m.wide)
+                            Align(
+                              alignment: AlignmentDirectional.centerEnd,
+                              child: _tools(m),
+                            ),
                         ],
-                        if (!m.band) _tools(m),
                       ],
                     ),
                   ),
-                  // The tools leave the band and rest on the ground, taking back
-                  // the inset the band gave up.
-                  if (m.band) _tools(m),
+                  if (!m.wide) _tools(m),
                   if (_emojiOpen)
                     FlareEmojiStickerPicker(
                       height: 240,
-                      onInsertEmoji: (key) => _insert('[$key]'),
+                      onInsertEmoji: (key) {
+                        _insert('[$key]');
+                        _focusInput();
+                      },
                       onSendSticker: widget.onSendSticker,
                     ),
                   if (_panelOpen && _hasActionPanel)
                     FlareComposerActionPanel(
                       actions: _resolvedActions,
-                      onAction: (a) {
-                        widget.onAction?.call(a);
-                        setState(() => _panelOpen = false);
-                      },
+                      onAction: _activatePanelAction,
                     ),
                 ],
               ],

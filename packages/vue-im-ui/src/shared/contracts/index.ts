@@ -4,8 +4,14 @@ export type {
   FlareConversationRowModel,
   FlareConversationListSection,
   FlareConversationFilter,
+  FlareConversationFilterId,
   FlareForwardTarget,
   FlareConversationDetailsModel,
+} from "./conversation";
+export {
+  FLARE_CONVERSATION_FILTER_IDS,
+  flareConversationMatchesFilter,
+  flareFilterConversations,
 } from "./conversation";
 export type {
   FlareContentElem,

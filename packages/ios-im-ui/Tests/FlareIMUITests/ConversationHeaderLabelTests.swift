@@ -80,7 +80,11 @@ final class ConversationHeaderLabelTests: XCTestCase {
         var dispatched: [String] = []
         let details = ConversationHeaderAction(id: "details", label: "Conversation details", placement: .overflow)
         let view = try header(overflow: [details], dispatched: { dispatched.append($0) }).inspect()
-        XCTAssertThrowsError(try view.find(ViewType.Menu.self), "no menu for one action")
+        // 一个动作就不该是菜单。菜单触发器现在是 kit 自绘的按钮(系统 Menu 有 ~250pt 最小宽),
+        // 所以判据从「没有 Menu」(自绘之后恒真,等于空过)改成「没有那个叫『更多会话操作』的触发器」。
+        XCTAssertThrowsError(
+            try view.find(ViewType.Button.self, where: { try $0.accessibilityLabel().string() == self.s.conversationHeaderMoreActions }),
+            "one action dispatches directly; it is not behind a menu trigger")
         let more = try view.find(ViewType.Button.self, where: { try $0.accessibilityLabel().string() == self.s.conversationHeaderDetails })
         XCTAssertEqual(try more.labelView().find(ViewType.Image.self).actualImage().name(), flareIconMap["more"],
                        "the glyph stays more")
@@ -89,7 +93,7 @@ final class ConversationHeaderLabelTests: XCTestCase {
 
         let report = ConversationHeaderAction(id: "report", label: "举报", placement: .overflow)
         let two = try header(overflow: [details, report], dispatched: { _ in }).inspect()
-        XCTAssertNoThrow(try two.find(ViewType.Menu.self, where: { try $0.accessibilityLabel().string() == self.s.conversationHeaderMoreActions }))
+        XCTAssertNoThrow(try two.find(ViewType.Button.self, where: { try $0.accessibilityLabel().string() == self.s.conversationHeaderMoreActions }))
     }
 
     @MainActor

@@ -153,7 +153,7 @@ class _QrCodeSectionState extends State<_QrCodeSection> {
       return AspectRatio(
         aspectRatio: 1,
         child: Container(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(FlareSizes.spacing2md),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: colors.bgSecondary,

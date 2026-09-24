@@ -49,15 +49,17 @@ describe("FlareComposer interaction boundaries", () => {
   it("opens the default more actions in uncontrolled simple mode", async () => {
     const wrapper = setup({ sendVoiceHandler: vi.fn() });
     await wrapper.get('[aria-label="更多"]').trigger("click");
-    expect(wrapper.findAll(".flare-action-panel__tile")).toHaveLength(5);
+    expect(wrapper.findAll(".flare-action-panel__tile")).toHaveLength(6);
     expect(wrapper.text()).toContain("图片");
     expect(wrapper.text()).toContain("文件");
+    // composer 自己就能拾取视频,所以「+」里给得出这一格。
+    expect(wrapper.text()).toContain("视频");
   });
   it("offers voice only when a recording has somewhere to go", async () => {
     const silent = setup();
     expect(silent.find('.composer-toolbar [aria-label="语音"]').exists()).toBe(false);
     await silent.get('[aria-label="更多"]').trigger("click");
-    expect(silent.findAll(".flare-action-panel__tile").map((tile) => tile.attributes("data-action-id"))).toEqual(["image", "file", "location", "contact"]);
+    expect(silent.findAll(".flare-action-panel__tile").map((tile) => tile.attributes("data-action-id"))).toEqual(["image", "video", "file", "location", "contact"]);
     const listening = setup({ onSendVoice: vi.fn() });
     expect(listening.find('.composer-toolbar [aria-label="语音"]').exists()).toBe(true);
   });
@@ -67,38 +69,58 @@ describe("FlareComposer interaction boundaries", () => {
     expect(tiles.map((tile) => tile.attributes("data-action-id"))).toEqual(["file", "video"]);
     expect(wrapper.findAllComponents(FlareGlyph).map((glyph) => glyph.props("icon"))).toEqual(["file", "video"]);
   });
-  it("keeps the default toolbar minimal while preserving advanced shortcuts as an explicit preset", () => {
+  it("gives both toolbar presentations the same base actions, and only expanded the inline enlarge button", () => {
+    // 基础动作在窄屏和宽屏是同一排：换个屏幕宽度不该少掉 @ / 图片 / 富文本三个入口。
+    const base = ["表情", "@", "图片", "富文本", "更多", "发送"];
     const minimal = setup();
-    expect(minimal.findAll(".composer-toolbar button").map((button) => button.attributes("aria-label"))).toEqual([
-      "表情",
-      "更多",
-      "发送",
-    ]);
+    expect(minimal.findAll(".composer-toolbar button").map((button) => button.attributes("aria-label"))).toEqual(base);
     const withVoice = setup({ sendVoiceHandler: vi.fn() });
-    expect(withVoice.findAll(".composer-toolbar button").map((button) => button.attributes("aria-label"))).toEqual([
-      "表情",
-      "语音",
-      "更多",
-      "发送",
-    ]);
+    expect(withVoice.findAll(".composer-toolbar button").map((button) => button.attributes("aria-label")))
+      .toEqual(["表情", "@", "语音", "图片", "富文本", "更多", "发送"]);
+    // expanded 只多那个「放大输入框」——窄屏上它在输入框自己的角上，不进工具条。
     const expanded = setup({ toolbarPresentation: "expanded", sendVoiceHandler: vi.fn() });
-    expect(expanded.find('[aria-label="@"]').exists()).toBe(true);
-    expect(expanded.find('[aria-label="语音"]').exists()).toBe(true);
-    expect(expanded.find('[aria-label="图片"]').exists()).toBe(true);
-    expect(expanded.find('[aria-label="富文本"]').exists()).toBe(true);
+    const expandedLabels = expanded.findAll(".composer-toolbar button").map((button) => button.attributes("aria-label"));
+    expect(expandedLabels).toHaveLength(8);
+    expect(expandedLabels.slice(1)).toEqual(["表情", "@", "语音", "图片", "富文本", "更多", "发送"]);
+    expect(minimal.find(".composer-expand").exists()).toBe(false);
+    expect(expanded.find(".composer-expand").exists()).toBe(true);
   });
-  it("presents paragraph and heading levels as one compact text-style control", () => {
+  // 文本样式是 kit 自己的菜单(手机上底部面板、桌面锚定菜单),不再是浏览器画的 <select>:
+  // 触发器上是短记号(P / H2),菜单里每一项是一句完整的名字,当前那一项打勾。
+  it("presents paragraph and heading levels as one compact text-style control", async () => {
     const wrapper = setup({ richMode: true, toolbarPresentation: "expanded" });
-    const select = wrapper.get<HTMLSelectElement>('.composer-heading-select');
-    expect(select.attributes('aria-label')).toBe('文本样式');
-    expect(select.attributes('title')).toBe('正文');
-    expect(select.findAll('option').map(option => option.text())).toEqual([
-      'P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
-    ]);
-    expect(select.findAll('option').map(option => option.attributes('aria-label'))).toEqual([
+    const trigger = wrapper.get('.composer-heading-select');
+    expect(trigger.element.tagName).toBe('BUTTON');
+    expect(trigger.attributes('aria-label')).toBe('文本样式');
+    expect(trigger.attributes('aria-haspopup')).toBe('menu');
+    expect(trigger.attributes('title')).toBe('正文');
+    expect(trigger.get('.composer-heading-select__value').text()).toBe('P');
+    expect(wrapper.find('select').exists()).toBe(false);
+    await trigger.trigger('click');
+    await flushPromises();
+    const items = Array.from(document.body.querySelectorAll<HTMLElement>('[data-action-menu-item]'));
+    expect(items.map((item) => item.textContent?.trim())).toEqual([
       '正文', '标题 1', '标题 2', '标题 3', '标题 4', '标题 5', '标题 6',
     ]);
-    expect(wrapper.findAll('.composer-format-group--heading button')).toHaveLength(0);
+    expect(items.map((item) => item.getAttribute('role'))).toEqual(Array(7).fill('menuitemcheckbox'));
+    expect(items[0]?.getAttribute('aria-checked')).toBe('true');
+  });
+  // 文本样式菜单锚定后传送到 body,在 composer 根之外:点它的一项不能被当成「点到了别处」,
+  // 否则正开着的表情面板会被关掉、宿主收到一次 toggle-panel(null)。
+  it("picking a text style from the menu does not close an open panel", async () => {
+    const wrapper = setup({ richMode: true, toolbarPresentation: "expanded", activePanel: "emoji" });
+    await wrapper.get(".composer-heading-select").trigger("click");
+    await flushPromises();
+    const item = document.body.querySelector<HTMLElement>('[data-action-menu-item="heading-2"]') ?? document.body.querySelectorAll<HTMLElement>("[data-action-menu-item]")[2];
+    expect(item).toBeTruthy();
+    item!.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+    item!.click();
+    await flushPromises();
+    expect(wrapper.emitted("toggle-panel")).toBeUndefined();
+    // 对照:真点到别处,面板照关。
+    document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+    await flushPromises();
+    expect(wrapper.emitted("toggle-panel")).toEqual([[null]]);
   });
   it("keeps context, input, and actions inside one explicit composer surface", () => {
     const wrapper = setup({

@@ -1,4 +1,4 @@
-# SDK change proposals: S25, S26, S27
+# SDK change proposals: S25, S26, S27, S28
 
 Round 10, 2026-09-18. Three SDK gaps from `product-refinement-audit.md` §7 that this program cannot close, because the kit and the apps do not change `flare-im-core-sdk`. Each proposal says what is wrong with evidence, what to change, how to test it, and what the kits and apps do once it lands. S25 and S27 come with a patch that was built and tested against copies of the SDK files; S26 needs protocol and server work and is a design.
 
@@ -7,6 +7,7 @@ Round 10, 2026-09-18. Three SDK gaps from `product-refinement-audit.md` §7 that
 | S27 | A tight Markdown list makes rich-text normalisation fail | P1: a rich send that contains a list fails on every client | Patch + 7 tests |
 | S25 | Markdown normalisation loses tables, underline, images and three kinds of link; an unsafe link fails the whole document | P2: content silently lost | Same patch |
 | S26 | Nothing can act on a poll or a task | P2: poll and task intents have nowhere to go | Design |
+| S28 | Markdown normalisation keeps `[key]` emoji-pack tokens as literal text | P3: the kits now draw the token in a text run, so nothing is visibly wrong; the stored document still does not say "emoji" | Design |
 
 ## 1. S27 and S25: `rich_doc_v2::from_markdown`
 
@@ -100,3 +101,33 @@ Model a vote and a task update the way reactions already work: an operation even
 ### Acceptance
 
 A poll cast on one device shows the new count on another member's device without a reload; a second cast replaces the first; a non-participant sees the poll read-only; a task ticked by a participant shows done for everyone; all of it survives a reconnect. These need two signed-in accounts and belong with the External Validation steps of the final report.
+
+## 3. S28: `[key]` emoji-pack tokens in `rich_doc_v2::from_markdown`
+
+Added 2026-09-21.
+
+### Evidence
+
+The composers on all four kits insert an emoji as the text token `[key]` (`[angry_face]`), the same wire form a plain text message carries. Sent as rich text, the reference web app stored:
+
+```json
+{"type":"doc","version":2,"children":[{"type":"paragraph","children":[{"type":"text","text":"[angry_face][alien]"}]}]}
+```
+
+`from_markdown.rs` has no emoji handling: `InlineBuilder::push_text` appends every `Event::Text` to a `text` node. RichDoc v2 has an `emoji` inline (`validate.rs` accepts `key` and/or `text`), and all four kits draw one as the pack image, but nothing ever produces it from Markdown. Until 2026-09-21 every client therefore drew `[angry_face][alien]` as those words in a rich-text bubble while the same text in a plain bubble drew two images.
+
+### What the kits did
+
+A text run's tokens are now drawn inline by the four bodies (CHANGELOG, 2026-09-21), so documents already stored read correctly and the symptom is gone without an SDK change. That is a rendering rule; the document still calls an emoji "text", so search, summaries and any future consumer of `emoji` nodes do not see one.
+
+### Proposal
+
+In `InlineBuilder::flush_text`, split the pending text at `\[([a-z][a-z0-9_]*)\]` and emit `{"type":"emoji","key":"<key>","text":"[<key>]"}` for each match, with the surrounding text as `text` nodes carrying the current marks. Keep `text` as the bracket form so `plainText`, copy and any renderer without the pack read exactly what was typed. The core does not know the pack, so a bracketed lowercase word that is not an emoji (`[todo]`) also becomes an `emoji` node; every kit draws an `emoji` node whose key it does not know as its `text`, so it still reads `[todo]`. Code spans and code blocks are separate events and are not touched.
+
+### Tests
+
+`"[angry_face] 高峰"` gives an `emoji` node then a `text` node; `"**[alien]**"` keeps the bold mark on the node around it; `` "`[alien]`" `` stays `inline_code`; `"[not a key]"` and `"[x](https://flare.im)"` are untouched (the second is a link event before any text is seen); `plainText` of each equals the input text.
+
+### After it lands
+
+Nothing to change in the kits: an `emoji` node is already drawn, and the text-run rule stays for documents stored before the change.

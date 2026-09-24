@@ -1,3 +1,4 @@
+import 'flare_avatar.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
@@ -95,7 +96,12 @@ class _FlareTextMessageState extends State<FlareTextMessage> {
   @override
   void initState() {
     super.initState();
+    FlareEmojiStickerCatalog.instance.addListener(_emojiCatalogChanged);
     _ensureEmojiCatalog();
+  }
+
+  void _emojiCatalogChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
@@ -116,6 +122,7 @@ class _FlareTextMessageState extends State<FlareTextMessage> {
 
   @override
   void dispose() {
+    FlareEmojiStickerCatalog.instance.removeListener(_emojiCatalogChanged);
     for (final r in _recognizers) {
       r.dispose();
     }
@@ -175,16 +182,14 @@ class _FlareTextMessageState extends State<FlareTextMessage> {
     final side = fontSize * 1.25;
     return WidgetSpan(
       alignment: PlaceholderAlignment.middle,
-      child: Image.asset(
-        FlareEmojiStickerCatalog.emojiAssetPath(key),
-        package: FlareEmojiStickerCatalog.package,
+      child: FlareStaticImage(
+        image: FlareEmojiStickerCatalog.instance.emojiImageProvider(
+          key,
+          staticPreview: true,
+        ),
         width: side,
         height: side,
-        fit: BoxFit.contain,
-        gaplessPlayback: true,
-        // A missing asset falls back to the text the sender typed.
-        errorBuilder: (context, error, stackTrace) =>
-            Text('[$key]', textScaler: TextScaler.noScaling),
+        error: Text('[$key]', textScaler: TextScaler.noScaling),
       ),
     );
   }
@@ -292,18 +297,23 @@ class _FlareTextMessageState extends State<FlareTextMessage> {
 
   @override
   Widget build(BuildContext context) {
+    final loneEmoji = resolveLoneEmojiPackInText(widget.text);
+    if (loneEmoji != null) {
+      return FlareEmojiPackMessage(emoji: loneEmoji, isSelf: widget.self);
+    }
     final c = FlareColors.of(context);
     final base = TextStyle(
       color: widget.self
           ? c.messageOutgoingForeground
           : c.messageIncomingForeground,
-      fontSize: FlareSizes.fontSizeXl,
-      height: 1.45,
+      // 消息正文取 message 角色 —— 四端同一个出处(15/1.45)。
+      fontSize: FlareTextRoles.message.fontSize,
+      height: FlareTextRoles.message.lineHeight,
     );
     final linkColor = widget.self ? c.messageOutgoingForeground : c.primary;
     final span = TextSpan(
       style: base,
-      children: _spans(base, linkColor, c, FlareSizes.fontSizeXl),
+      children: _spans(base, linkColor, c, FlareTextRoles.message.fontSize),
     );
     return widget.selectable ? SelectableText.rich(span) : Text.rich(span);
   }
@@ -334,7 +344,7 @@ class FlareImageMessage extends StatelessWidget {
       Semantics(
         label: alt,
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(FlareSizes.radiusCard),
           child: SizedBox(
             width: width,
             height: height,
@@ -379,7 +389,7 @@ class FlareVideoMessage extends StatelessWidget {
       Semantics(
         label: alt,
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(FlareSizes.radiusCard),
           child: SizedBox(
             width: 148,
             height: 92,
@@ -415,7 +425,10 @@ class FlareVideoMessage extends StatelessWidget {
                     ),
                     child: Text(
                       duration,
-                      style: const TextStyle(color: Colors.white, fontSize: 10),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: FlareSizes.fontSize2xs,
+                      ),
                     ),
                   ),
                 ),
@@ -713,7 +726,7 @@ class FlareContactMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = FlareColors.of(context);
-    final tint = _pastel(name);
+    final tint = FlareAvatar.seedTint(name, c);
     final avatar = ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: SizedBox(
@@ -806,7 +819,10 @@ class FlareLinkCardMessage extends StatelessWidget {
       onOpen,
       Container(
         constraints: const BoxConstraints(maxWidth: 300),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        padding: const EdgeInsets.symmetric(
+          horizontal: FlareSizes.spacing2sm,
+          vertical: 8,
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -912,7 +928,10 @@ class FlareVoteMessage extends StatelessWidget {
     final c = FlareColors.of(context);
     return Container(
       constraints: const BoxConstraints(minWidth: 220),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: FlareSizes.spacing2sm,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -980,7 +999,10 @@ class _VoteRow extends StatelessWidget {
               ),
             ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            padding: const EdgeInsets.symmetric(
+              horizontal: FlareSizes.spacing2sm,
+              vertical: 7,
+            ),
             child: Row(
               children: [
                 Expanded(
@@ -1155,22 +1177,7 @@ class FlareSystemMessage extends StatelessWidget {
   }
 }
 
-// pastel identity (matches FlareAvatar).
-(Color, Color) _pastel(String seed) {
-  const pairs = <(Color, Color)>[
-    (Color(0xFFDBEAFE), Color(0xFF1D4ED8)),
-    (Color(0xFFE9D5FF), Color(0xFF6D28D9)),
-    (Color(0xFFFBCFE8), Color(0xFFBE185D)),
-    (Color(0xFFD1FAE5), Color(0xFF047857)),
-    (Color(0xFFFEF3C7), Color(0xFFB45309)),
-    (Color(0xFFE5E7EB), Color(0xFF374151)),
-  ];
-  var h = 0;
-  for (final code in seed.codeUnits) {
-    h = (h * 31 + code) & 0x7fffffff;
-  }
-  return pairs[h % pairs.length];
-}
+// 身份色板不再在这里复制一份 —— 与 FlareAvatar 同一个实现、同一组 token。
 
 String _initials(String name) {
   final parts = name

@@ -391,7 +391,7 @@ function clear(id: string, busy: boolean, canClear: boolean): void {
   gap: 4px;
   flex: none;
   min-height: 40px;
-  padding: 0 10px;
+  padding: 0 var(--flare-size-spacing-2sm);
   border: 1px solid color-mix(in srgb, var(--flare-color-error) 40%, transparent);
   border-radius: var(--flare-size-radius-md);
   background: color-mix(in srgb, var(--flare-color-error) 8%, var(--flare-color-bg-primary));

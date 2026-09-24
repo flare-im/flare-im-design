@@ -87,12 +87,19 @@ function onKeydown(event: KeyboardEvent) {
   </section>
 </template>
 <style scoped>
-.flare-mention { width: 320px; max-width: 100%; min-width: 0; overflow: hidden; border: 1px solid var(--flare-color-border-primary); border-radius: 12px; background: var(--flare-color-bg-primary); color: var(--flare-color-text-primary); }
+.flare-mention { width: 320px; max-width: 100%; min-width: 0; overflow: hidden; border: 1px solid var(--flare-color-border-primary); border-radius: var(--flare-size-radius-card); background: var(--flare-color-bg-primary); color: var(--flare-color-text-primary); }
 .flare-mention__search { box-sizing: border-box; width: 100%; min-height: 48px; padding: 12px; border: 0; border-bottom: 1px solid var(--flare-color-border-primary); background: transparent; color: inherit; font: inherit; }
 .flare-mention__list { max-height: 280px; overflow-y: auto; padding: 4px; }
 .flare-mention__person { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; padding: 8px; border: 0; border-radius: 8px; background: transparent; color: inherit; text-align: start; font: inherit; cursor: pointer; }
 .flare-mention__person.is-active { background: var(--flare-color-bg-selected); }
-.flare-mention__search:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: -2px; }
+/* 焦点用它本来就有的那条下划线加重表示,不画框。原来是 2px 实色 outline 配 offset -2px,
+   等于沿着整条输入框的四边画一个实心紫色矩形 —— 而面板一开就自动聚焦,这个框是常驻的。
+   行和按钮继续用那圈 outline:它们是小目标,框得住;一条整宽的文本域框不住。 */
+.flare-mention__search:focus-visible {
+  outline: none;
+  border-block-end-color: var(--flare-color-border-selected);
+  box-shadow: inset 0 -1px 0 var(--flare-color-border-selected);
+}
 .flare-mention__copy { display: grid; gap: 2px; min-width: 0; }
 .flare-mention__copy strong { font-size: 14px; font-weight: 500; }
 .flare-mention__copy small { font-size: 12px; color: var(--flare-color-text-secondary); }

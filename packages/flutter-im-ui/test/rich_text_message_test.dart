@@ -231,6 +231,44 @@ void main() {
       },
     );
 
+    // The core's Markdown normaliser stores the composer's `[key]` as literal
+    // text, not as an emoji run; a rich body reads the token as a plain text
+    // body does. Unknown keys and code stay the words they are.
+    testWidgets('draws known [key] tokens inside a text run inline', (
+      tester,
+    ) async {
+      await FlareEmojiStickerCatalog.instance.ensureLoaded();
+      await pump(
+        tester,
+        FlareRichTextMessage(
+          docJson: jsonEncode({
+            'type': 'doc',
+            'version': 2,
+            'children': [
+              {
+                'type': 'paragraph',
+                'children': [
+                  {'type': 'text', 'text': '[alien] 高峰 [not_a_key]'},
+                  {'type': 'inline_code', 'text': '[alien]'},
+                ],
+              },
+            ],
+          }),
+        ),
+      );
+      expect(find.byType(FlareStaticImage), findsOneWidget);
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is Semantics && widget.properties.label == '[alien]',
+        ),
+        findsOneWidget,
+      );
+      final words = spansOf(tester, '高峰').map((span) => span.text).toList();
+      // The unknown key stays the words it is; the code run keeps `[alien]`.
+      expect(words, [' 高峰 ', '[not_a_key]', '[alien]']);
+    });
+
     testWidgets('covers a spoiler, names it, and reveals it on tap', (
       tester,
     ) async {

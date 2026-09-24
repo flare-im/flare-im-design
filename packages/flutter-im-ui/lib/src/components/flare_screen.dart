@@ -125,7 +125,7 @@ class FlareScreen extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               color: colors.textPrimary,
-                              fontSize: 24,
+                              fontSize: FlareSizes.fontSize5xl,
                               fontWeight: FontWeight.bold,
                             ),
                           ),

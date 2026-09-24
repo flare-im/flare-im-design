@@ -60,12 +60,12 @@ function segments(text: string): { text: string; hit: boolean }[] {
           <span v-if="item.meta" class="flare-search-row__meta">{{ item.meta }}</span>
         </button>
         <button
-          v-if="group.total && group.total > group.items.length"
+          v-if="(group.total && group.total > group.items.length) || group.hasMore"
           type="button"
           class="flare-search-more"
           @click="emit('viewAll', group.kind)"
         >
-          {{ t("search.viewAll", { count: group.total }) }}
+          {{ group.total && group.total > group.items.length ? t("search.viewAll", { count: group.total }) : t("search.viewMore") }}
         </button>
       </section>
     </template>
@@ -80,8 +80,10 @@ function segments(text: string): { text: string; hit: boolean }[] {
   gap: 4px;
 }
 .flare-search-group { padding: 4px 0; }
+/* `--flare-search-gutter`: a panel that is the page sets it, so labels, rows and the more row share the
+   page's edge; anywhere else they keep their own. */
 .flare-search-group__label {
-  padding: 6px 12px;
+  padding: 6px var(--flare-search-gutter, 12px);
   font-size: 12px;
   font-weight: 600;
   color: var(--flare-color-text-tertiary);
@@ -91,7 +93,7 @@ function segments(text: string): { text: string; hit: boolean }[] {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 12px;
+  padding: 8px var(--flare-search-gutter, 12px);
   border: none;
   background: transparent;
   cursor: pointer;
@@ -132,7 +134,7 @@ function segments(text: string): { text: string; hit: boolean }[] {
 }
 .flare-search-more {
   width: 100%;
-  padding: 8px 12px;
+  padding: 8px var(--flare-search-gutter, 12px);
   border: none;
   background: transparent;
   color: var(--flare-color-primary-text);

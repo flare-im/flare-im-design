@@ -227,7 +227,7 @@ class _FlareConversationBatchToolbarState
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: FlareSizes.spacing2md, vertical: FlareSizes.spacing2sm),
             child: Wrap(
               alignment: WrapAlignment.spaceBetween,
               crossAxisAlignment: WrapCrossAlignment.center,
@@ -338,7 +338,7 @@ class _FlareConversationBatchToolbarState
     final failed = summary.failedCount > 0;
     return Container(
       color: colors.bgSecondary,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: FlareSizes.spacing2md, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
@@ -547,7 +547,7 @@ class _FlareConversationBatchToolbarState
               minHeight: FlareSizes.touchTarget,
               minWidth: FlareSizes.touchTarget,
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 10),
+            padding: const EdgeInsets.symmetric(horizontal: FlareSizes.spacing2sm),
             decoration: BoxDecoration(
               color: bg,
               borderRadius: BorderRadius.circular(FlareSizes.radiusMd),

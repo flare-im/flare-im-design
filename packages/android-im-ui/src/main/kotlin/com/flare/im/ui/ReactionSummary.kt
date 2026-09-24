@@ -34,8 +34,8 @@ fun ReactionSummary(
     if (reactions.isEmpty() && hideAdd) return
     val pillShape = RoundedCornerShape(999.dp)
     FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs),
+        verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs),
     ) {
         reactions.forEach { r ->
             val active = r.reactedBySelf
@@ -47,7 +47,7 @@ fun ReactionSummary(
                     .then(if (onToggle != null) Modifier.clickable { onToggle(r.emoji) } else Modifier)
                     .padding(horizontal = 9.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs),
             ) {
                 Text(r.emoji, fontSize = FlareSizes.fontSizeLg.value.sp)
                 Text(

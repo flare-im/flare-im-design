@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
 import FlareRedPacketCard from "./FlareRedPacketCard.vue";
 
-function render(props: Record<string, unknown>) {
+function render(props: InstanceType<typeof FlareRedPacketCard>["$props"]) {
   return mount(defineComponent({
     setup() {
       useFlareI18nProvider("zh-CN");

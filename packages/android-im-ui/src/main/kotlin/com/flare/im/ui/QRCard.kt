@@ -55,9 +55,9 @@ fun QRCard(
     val symbol = remember(qrPayload) { qrPayload?.takeIf { it.isNotEmpty() }?.let(QrEncoder::encodeText) }
     Column(
         Modifier.width(240.dp)
-            .shadow(14.dp, RoundedCornerShape(16.dp), clip = false)
-            .clip(RoundedCornerShape(16.dp)).background(colors.bgPrimary)
-            .border(1.dp, colors.borderPrimary, RoundedCornerShape(16.dp)).padding(18.dp),
+            .shadow(14.dp, RoundedCornerShape(FlareSizes.radiusBubble), clip = false)
+            .clip(RoundedCornerShape(FlareSizes.radiusBubble)).background(colors.bgPrimary)
+            .border(1.dp, colors.borderPrimary, RoundedCornerShape(FlareSizes.radiusBubble)).padding(18.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Avatar(userId = name, displayName = name, size = 44.dp, avatarUrl = avatarUrl)
@@ -72,10 +72,10 @@ fun QRCard(
             }
         }
         val frameShape = RoundedCornerShape(FlareSizes.radiusLg)
-        val frame = Modifier.padding(top = 16.dp).fillMaxWidth().aspectRatio(1f).clip(frameShape)
+        val frame = Modifier.padding(top = FlareSizes.spacingLg).fillMaxWidth().aspectRatio(1f).clip(frameShape)
         if (symbol == null) {
             Box(
-                frame.background(colors.bgSecondary).border(1.dp, colors.borderPrimary, frameShape).padding(14.dp),
+                frame.background(colors.bgSecondary).border(1.dp, colors.borderPrimary, frameShape).padding(FlareSizes.spacing2md),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(strings.qrCardUnavailable, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm,

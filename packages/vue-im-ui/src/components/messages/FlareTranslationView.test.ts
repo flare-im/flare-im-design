@@ -6,7 +6,7 @@ import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
 import FlareTranslationView from "./FlareTranslationView.vue";
 
 /** The kit's strings come from a provider, the way a host mounts the kit. */
-function render(props: Record<string, unknown>) {
+function render(props: InstanceType<typeof FlareTranslationView>["$props"]) {
   return mount(defineComponent({
     setup() {
       useFlareI18nProvider("zh-CN");

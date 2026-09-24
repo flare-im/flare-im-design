@@ -9,38 +9,48 @@
      `.flare-form-field__label` / `.flare-brand-logo`. */
   --flare-component-brand-logo-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
   --flare-component-form-label-color: var(--flare-color-text-secondary);
-  --flare-component-form-label-size: 13px;
+  --flare-component-form-label-size: var(--flare-size-font-size-md);
   --flare-component-form-label-weight: 500;
   --flare-component-bubble-max-width: min(68%, var(--flare-size-layout-bubble-max-width));
-  --flare-component-bubble-radius: 13px;
-  --flare-component-bubble-radius-tail: 6px;
-  --flare-component-bubble-rich-min-width: 220px;
-  --flare-component-bubble-system-max-width: 560px;
+  --flare-component-bubble-rich-min-width: var(--flare-size-component-bubble-rich-min-width);
+  --flare-component-bubble-system-max-width: var(--flare-size-component-bubble-system-max-width);
   --flare-component-bubble-shadow: var(--flare-shadow-sm);
   --flare-component-bubble-glow: 0 0 0 1px color-mix(in srgb, var(--flare-color-primary) 18%, transparent);
   --flare-component-bubble-on-sent-muted: var(--flare-color-message-status-on-outgoing);
   --flare-component-chat-hdr-title: var(--flare-color-text-primary);
   --flare-component-chat-hdr-meta: var(--flare-color-message-meta-foreground);
   --flare-component-chat-hdr-typing: var(--flare-color-primary-text);
-  --flare-component-chat-window-bg: var(--flare-color-bg-secondary);
-  --flare-component-composer-bar-bg: var(--flare-color-bg-secondary);
+  /* 时间线自己的画布。气泡靠**面的色差**立住(见 chat/message-bubble.css),所以画布是
+     什么色不能听凭宿主:这个 token 之前声明了却没有任何消费者,时间线是透明的,底色由
+     外面碰巧铺了什么决定 —— 同一套气泡在 app 里画在 primary 面上、在文档 demo 里画在
+     secondary 面上,后者只有 1.05:1。现在时间线读它,默认与 `FlareAppLayout` 铺的同一种面。
+     要放聊天壁纸的宿主把它设成 transparent 或自己的壁纸,不必去改 `.message-list-root`。 */
+  --flare-component-chat-window-bg: var(--flare-color-bg-primary);
+  /* 输入区与它自己的面板是同一块面，不是浮在灰底上的一张白卡片：卡片让输入框四周
+     多出一圈包裹，面板一开又多一圈，一屏上叠了三层边。整块用主面色，只靠顶上一条
+     发丝线和消息区分开。 */
+  --flare-component-composer-bar-bg: var(--flare-color-bg-primary);
   --flare-component-composer-border: var(--flare-color-border-primary);
-  --flare-component-composer-desktop-height: 46px;
-  --flare-component-composer-toolbar-icon: 34px;
-  --flare-component-composer-toolbar-width: 44px;
-  --flare-component-composer-action-height: 40px;
-  --flare-component-composer-action-width: 44px;
+  --flare-component-composer-desktop-height: var(--flare-size-component-composer-desktop-height);
+  --flare-component-composer-toolbar-icon: var(--flare-size-component-composer-toolbar-icon);
+  --flare-component-composer-toolbar-width: var(--flare-size-component-composer-toolbar-width);
+  --flare-component-composer-action-height: var(--flare-size-component-composer-action-height);
+  --flare-component-composer-action-width: var(--flare-size-component-composer-action-width);
   --flare-component-conversation-row-height: var(--flare-size-layout-session-item-height);
-  --flare-component-media-card-min-width: 220px;
-  --flare-component-media-image-max-width: 320px;
+  --flare-component-media-card-min-width: var(--flare-size-component-media-card-min-width);
+  --flare-component-media-image-max-width: var(--flare-size-component-media-image-max-width);
   /* Content column of a readable FlareScreen (profile, settings and feed pages on wide panes). */
   --flare-component-screen-reading-width: 720px;
   /* Width of a sheet presented as a dialog on pointer devices; a host widens it for a search palette. */
-  --flare-component-sheet-dialog-width: 480px;
-  --flare-component-media-video-width: 320px;
-  --flare-component-message-gutter-inline: 16px;
+  /* 开关轨道的尺寸。44 恰好和 layout.avatarSize 同值,写成字面量会被裸值门禁当成
+     「本该引用 avatarSize」——可它是轨道宽,不是头像。给它自己的名字。 */
+  --flare-component-switch-width: 44px;
+  --flare-component-switch-height: 26px;
+  --flare-component-sheet-dialog-width: var(--flare-size-component-sheet-dialog-width);
+  --flare-component-media-video-width: var(--flare-size-component-media-video-width);
+  --flare-component-message-gutter-inline: var(--flare-size-component-message-gutter-inline);
   --flare-component-message-shadow: var(--flare-shadow-sm);
-  --flare-component-message-tail-space: 10px;
+  --flare-component-message-tail-space: var(--flare-size-component-message-tail-space);
   --flare-component-message-pinned-bg: color-mix(in srgb, var(--flare-color-warning) 12%, var(--flare-color-bg-primary));
   --flare-component-message-pinned-border: color-mix(in srgb, var(--flare-color-warning) 46%, var(--flare-color-border-primary));
   --flare-component-message-pinned-text: var(--flare-color-warning-text);
@@ -49,27 +59,27 @@
   --flare-component-page-padding-inline: 20px;
   --flare-component-radius-md: var(--flare-size-radius-md);
   --flare-component-radius-pill: var(--flare-size-radius-full);
-  --flare-component-rich-card-compact-width: 240px;
-  --flare-component-rich-card-media-height: 148px;
-  --flare-component-rich-card-width: 320px;
+  --flare-component-rich-card-compact-width: var(--flare-size-component-rich-card-compact-width);
+  --flare-component-rich-card-media-height: var(--flare-size-component-rich-card-media-height);
+  --flare-component-rich-card-width: var(--flare-size-component-rich-card-width);
   --flare-component-shadow-float: var(--flare-shadow-lg);
   --flare-component-shadow-floating: var(--flare-shadow-md);
   --flare-component-shadow-panel: var(--flare-shadow-sm);
-  --flare-component-sheet-width: 420px;
+  --flare-component-sheet-width: var(--flare-size-component-sheet-width);
   --flare-component-unread: var(--flare-color-primary);
   /* Initial avatars: six identity tints (surface and initials), light values. */
-  --flare-component-avatar-tint-1-bg: #DBEAFE;
-  --flare-component-avatar-tint-1-fg: #1D4ED8;
-  --flare-component-avatar-tint-2-bg: #E9D5FF;
-  --flare-component-avatar-tint-2-fg: #6D28D9;
-  --flare-component-avatar-tint-3-bg: #FBCFE8;
-  --flare-component-avatar-tint-3-fg: #9D174D;
-  --flare-component-avatar-tint-4-bg: #D1FAE5;
-  --flare-component-avatar-tint-4-fg: #047857;
-  --flare-component-avatar-tint-5-bg: #FEF3C7;
-  --flare-component-avatar-tint-5-fg: #B45309;
-  --flare-component-avatar-tint-6-bg: #E5E7EB;
-  --flare-component-avatar-tint-6-fg: #374151;
+  --flare-component-avatar-tint-1-bg: var(--flare-color-avatar-tint-blue-bg);
+  --flare-component-avatar-tint-1-fg: var(--flare-color-avatar-tint-blue-fg);
+  --flare-component-avatar-tint-2-bg: var(--flare-color-avatar-tint-purple-bg);
+  --flare-component-avatar-tint-2-fg: var(--flare-color-avatar-tint-purple-fg);
+  --flare-component-avatar-tint-3-bg: var(--flare-color-avatar-tint-pink-bg);
+  --flare-component-avatar-tint-3-fg: var(--flare-color-avatar-tint-pink-fg);
+  --flare-component-avatar-tint-4-bg: var(--flare-color-avatar-tint-green-bg);
+  --flare-component-avatar-tint-4-fg: var(--flare-color-avatar-tint-green-fg);
+  --flare-component-avatar-tint-5-bg: var(--flare-color-avatar-tint-amber-bg);
+  --flare-component-avatar-tint-5-fg: var(--flare-color-avatar-tint-amber-fg);
+  --flare-component-avatar-tint-6-bg: var(--flare-color-avatar-tint-slate-bg);
+  --flare-component-avatar-tint-6-fg: var(--flare-color-avatar-tint-slate-fg);
 }
 
 [data-flare-theme="dark"] {
@@ -77,16 +87,4 @@
   --flare-component-message-pinned-border: color-mix(in srgb, var(--flare-color-warning) 42%, var(--flare-color-border-primary));
   /* Dark avatars: the hue sinks into the dark surface and the initials turn light, so an
      avatar no longer glares as a pastel disc in dark lists and headers. */
-  --flare-component-avatar-tint-1-bg: color-mix(in srgb, #1D4ED8 34%, var(--flare-color-bg-primary));
-  --flare-component-avatar-tint-1-fg: #BFDBFE;
-  --flare-component-avatar-tint-2-bg: color-mix(in srgb, #6D28D9 34%, var(--flare-color-bg-primary));
-  --flare-component-avatar-tint-2-fg: #DDD6FE;
-  --flare-component-avatar-tint-3-bg: color-mix(in srgb, #9D174D 38%, var(--flare-color-bg-primary));
-  --flare-component-avatar-tint-3-fg: #FBCFE8;
-  --flare-component-avatar-tint-4-bg: color-mix(in srgb, #047857 38%, var(--flare-color-bg-primary));
-  --flare-component-avatar-tint-4-fg: #A7F3D0;
-  --flare-component-avatar-tint-5-bg: color-mix(in srgb, #B45309 38%, var(--flare-color-bg-primary));
-  --flare-component-avatar-tint-5-fg: #FDE68A;
-  --flare-component-avatar-tint-6-bg: color-mix(in srgb, #6B7280 34%, var(--flare-color-bg-primary));
-  --flare-component-avatar-tint-6-fg: #E5E7EB;
 }

@@ -4,8 +4,11 @@ import { normalizeEmojiPackKey } from "../../../../utils/messageContent";
 import type { ContentElem } from "../../../../utils/contentElem";
 import { pickNestedPayload } from "../../../../utils/contentElem";
 import { readString } from "../../../../utils/contentData";
-import { resolveEmojiPackAssetUrlByKey } from "../../../composer/ComposerEmojiStickerPopover/composerEmojiAssets";
-import { formatEmojiPackBracket, isKnownEmojiPackKey } from "../../../../utils/emojiPackI18n";
+import {
+  hasEmojiPackAssetKey,
+  resolveEmojiPackAssetUrlByKey,
+} from "../../../composer/ComposerEmojiStickerPopover/composerEmojiAssets";
+import { formatEmojiPackBracket } from "../../../../utils/emojiPackI18n";
 import FlareEmojiMessage from "../../standalone/FlareEmojiMessage.vue";
 
 // Timeline adapter: emoji-pack key → asset loader, rendered by the contract body.
@@ -18,7 +21,7 @@ const key = computed(() => {
 
 const loadSrc = computed(() => {
   const k = key.value;
-  if (!k || !isKnownEmojiPackKey(k)) return undefined;
+  if (!k || !hasEmojiPackAssetKey(k)) return undefined;
   return () => resolveEmojiPackAssetUrlByKey(k);
 });
 

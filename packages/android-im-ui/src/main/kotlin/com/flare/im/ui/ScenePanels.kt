@@ -21,18 +21,18 @@ data class FlareNotificationPreference(val id:String,val title:String,val detail
 @Composable
 private fun SceneList(title:String,items:List<FlareSceneEntry>,loading:Boolean=false,error:String?=null,onAction:((String,String)->Unit)?=null,onReload:(()->Unit)?=null) {
  val strings = flareStrings()
- Column(Modifier.fillMaxWidth(),verticalArrangement=Arrangement.spacedBy(8.dp)) {
+ Column(Modifier.fillMaxWidth(),verticalArrangement=Arrangement.spacedBy(FlareSizes.spacingSm)) {
   Text(title,style=MaterialTheme.typography.titleMedium)
   if(loading) LinearProgressIndicator(Modifier.fillMaxWidth())
   if(error!=null) StatusBanner(error,tone=FlareStatusTone.Danger,actionText=strings.retry,onAction=if(loading)null else onReload)
-  if(items.isEmpty()&&!loading&&error==null) Text(strings.noContent,Modifier.padding(16.dp))
+  if(items.isEmpty()&&!loading&&error==null) Text(strings.noContent,Modifier.padding(FlareSizes.spacingLg))
   items.forEach { item ->
-   Column(Modifier.fillMaxWidth().padding(vertical=12.dp)) {
+   Column(Modifier.fillMaxWidth().padding(vertical=FlareSizes.spacingMd)) {
     Text(item.title,style=MaterialTheme.typography.titleSmall)
     item.badge?.let { Text(it) };Text(item.detail)
     item.error?.let { StatusBanner(it,tone=FlareStatusTone.Danger) }
     if(item.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
-    FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)) { item.actions.filter { it.label.isNotBlank() }.forEach { a ->
+    FlowRow(horizontalArrangement=Arrangement.spacedBy(FlareSizes.spacingSm)) { item.actions.filter { it.label.isNotBlank() }.forEach { a ->
      TextButton(onClick={onAction?.invoke(item.id,a.id)},enabled=!item.busy&&!a.disabled&&onAction!=null,modifier=Modifier.defaultMinSize(minWidth=48.dp,minHeight=48.dp)) { Text(a.label,color=if(a.destructive)MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary) }
     } }
    }
@@ -77,7 +77,7 @@ fun NotificationPreferences(items:List<FlareNotificationPreference>,permission:F
  Column {
   Text(title,style=MaterialTheme.typography.titleMedium)
   CapabilityBoundary(permission,permissionText,permissionActionText,onPermissionAction){Text(permissionText)}
-  items.forEach { i -> Row(Modifier.fillMaxWidth().padding(vertical=12.dp)) {
+  items.forEach { i -> Row(Modifier.fillMaxWidth().padding(vertical=FlareSizes.spacingMd)) {
    Column(Modifier.weight(1f)) {Text(i.title);Text(i.detail)}
    Switch(checked=i.value,onCheckedChange={onChange?.invoke(i.id,it)},enabled=permission==FlareCapabilityState.Available&&i.enabled&&!i.busy&&onChange!=null)
   } }

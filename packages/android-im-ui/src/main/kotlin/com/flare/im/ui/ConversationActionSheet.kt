@@ -224,7 +224,7 @@ private fun ActionRow(
     val enabled = !busy && onClick != null
     var focused by remember { mutableStateOf(false) }
     val accent = if (entry.danger) colors.error else colors.primary
-    val fg = if (!enabled) colors.textDisabled else if (entry.danger) colors.error else colors.textPrimary
+    val fg = if (!enabled) colors.textDisabled else if (entry.danger) colors.errorText else colors.textPrimary
     val iconFg = if (enabled) accent else colors.textDisabled
     val iconBg = if (enabled) accent.copy(alpha = if (entry.danger) 0.12f else 0.10f) else colors.bgDisabled
     Row(

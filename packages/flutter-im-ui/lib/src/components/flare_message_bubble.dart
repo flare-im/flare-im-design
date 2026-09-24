@@ -180,7 +180,10 @@ class FlareMessageBubble extends StatelessWidget {
   }
 
   Widget _leadingAvatar(bool show) {
-    if (!show) return const SizedBox(width: 34 + FlareSizes.spacingSm);
+    if (!show)
+      return const SizedBox(
+        width: FlareSizes.componentMessageAvatarSize + FlareSizes.spacingSm,
+      );
     return Padding(
       padding: const EdgeInsets.only(right: FlareSizes.spacingSm),
       child: GestureDetector(
@@ -189,21 +192,24 @@ class FlareMessageBubble extends StatelessWidget {
           userId: message.senderId,
           displayName: message.senderName,
           avatarUrl: message.senderAvatarUrl,
-          size: 34,
+          size: FlareSizes.componentMessageAvatarSize,
         ),
       ),
     );
   }
 
   Widget _trailingAvatar(bool show) {
-    if (!show) return const SizedBox(width: 34 + FlareSizes.spacingSm);
+    if (!show)
+      return const SizedBox(
+        width: FlareSizes.componentMessageAvatarSize + FlareSizes.spacingSm,
+      );
     return Padding(
       padding: const EdgeInsets.only(left: FlareSizes.spacingSm),
       child: FlareAvatar(
         userId: message.senderId,
         displayName: message.senderName,
         avatarUrl: message.senderAvatarUrl,
-        size: 34,
+        size: FlareSizes.componentMessageAvatarSize,
       ),
     );
   }
@@ -249,7 +255,14 @@ class FlareMessageBubble extends StatelessWidget {
   }
 
   Widget _bubble(BuildContext context, FlareColors colors, bool self) {
-    final maxWidth = MediaQuery.of(context).size.width * 0.72;
+    // 气泡最大宽 = 可用宽 × 比例,再被 layout.bubbleMaxWidth 封顶。四端同一条规则:
+    // 以前 iOS 完全不设上限、Android 固定 320dp、这里取屏宽(不是窗格宽)的 72%、
+    // web 是 min(62%, 640) —— 同一条长消息在四端是四种宽度。
+    final available = MediaQuery.of(context).size.width;
+    final ratio = available < FlareSizes.navigationRailMinWidth
+        ? FlareSizes.componentBubbleMaxWidthRatioCompact
+        : FlareSizes.componentBubbleMaxWidthRatioRegular;
+    final maxWidth = (available * ratio).clamp(0.0, FlareSizes.bubbleMaxWidth);
     final quote = message.replyTo;
     // A quote keeps the bubble frame even around media: it needs an edge to
     // sit in.
@@ -331,7 +344,10 @@ class FlareMessageBubble extends StatelessWidget {
       bottomLeft: self || !groupEnd ? radius : tail,
       bottomRight: !self || !groupEnd ? radius : tail,
     );
-    const padding = EdgeInsets.symmetric(horizontal: 14, vertical: 9);
+    const padding = EdgeInsets.symmetric(
+      horizontal: FlareSizes.componentBubblePaddingX,
+      vertical: FlareSizes.componentBubblePaddingY,
+    );
 
     final rows = <Widget>[
       body,
@@ -382,9 +398,10 @@ class FlareMessageBubble extends StatelessWidget {
         self
             ? _selfBubble(context, colors, shape, padding, content)
             : DecoratedBox(
+                // Fill only: the incoming surface is a tertiary tone the chat canvas never uses,
+                // so the bubble has an edge without an outline drawn around it.
                 decoration: BoxDecoration(
                   color: colors.messageIncomingBackground,
-                  border: Border.all(color: colors.messageIncomingBorder),
                   borderRadius: shape,
                 ),
                 child: Padding(padding: padding, child: content),
@@ -541,7 +558,13 @@ class FlareMessageBubble extends StatelessWidget {
     return content is FlareImageContent ||
         content is FlareVideoContent ||
         content is FlareStickerContent ||
-        content is FlareEmojiContent;
+        content is FlareEmojiContent ||
+        (content is FlareTextContent &&
+            content.mentions.isEmpty &&
+            flareIsStandaloneEmojiMessage(content.text)) ||
+        (content is FlareRichTextContent &&
+            content.title.trim().isEmpty &&
+            flareIsStandaloneEmojiMessage(content.plainText));
   }
 }
 

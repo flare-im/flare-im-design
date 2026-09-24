@@ -97,7 +97,10 @@ describe("FlareActionMenu", () => {
     await host.get(".trigger").trigger("click");
     await flushPromises();
     const sheet = document.body.querySelector('[role="dialog"]');
-    expect(sheet?.textContent).toContain("New");
+    // 面板叫什么仍然报给读屏,但不画成一行可见标题:底下每一条都是一句完整的动作,
+    // 上面再写一遍「新建」只是把刚点的那颗按钮重复一次。
+    expect(sheet?.getAttribute("aria-label")).toBe("New");
+    expect(sheet?.querySelector(".flare-sheet__title")).toBeNull();
     expect(sheet?.querySelector('[role="menu"]')).not.toBeNull();
     host.unmount();
   });

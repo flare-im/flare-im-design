@@ -239,7 +239,7 @@ fun MemberRoleSheet(
                         modifier = Modifier
                             .clip(RoundedCornerShape(FlareSizes.radiusSm))
                             .background(if (isPlain) colors.bgSecondary else colors.primary.copy(alpha = 0.12f))
-                            .padding(horizontal = 6.dp, vertical = 1.dp),
+                            .padding(horizontal = FlareSizes.spacing2xs, vertical = 1.dp),
                     )
                     if (member.muted) {
                         Spacer(Modifier.width(6.dp))
@@ -284,7 +284,7 @@ fun MemberRoleSheet(
                                 top = FlareSizes.spacingXs,
                                 bottom = FlareSizes.spacingSm,
                             ),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs),
                         ) {
                             muteDurations.forEach { duration ->
                                 val enabled = !busy && onAction != null
@@ -307,7 +307,7 @@ fun MemberRoleSheet(
                                             role = Role.Button,
                                             onClickLabel = duration.label,
                                         ) { onAction?.invoke(member.id, FlareMemberRoleAction.Mute, duration.id) }
-                                        .padding(horizontal = 12.dp, vertical = 14.dp),
+                                        .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacing2md),
                                 )
                             }
                         }
@@ -366,7 +366,7 @@ private fun MemberActionRow(
     val enabled = !busy && onClick != null
     var focused by remember { mutableStateOf(false) }
     val accent = if (entry.danger) colors.error else colors.primary
-    val fg = if (!enabled) colors.textDisabled else if (entry.danger) colors.error else colors.textPrimary
+    val fg = if (!enabled) colors.textDisabled else if (entry.danger) colors.errorText else colors.textPrimary
     val iconFg = if (enabled) accent else colors.textDisabled
     val iconBg = if (enabled) accent.copy(alpha = if (entry.danger) 0.12f else 0.10f) else colors.bgDisabled
     Row(

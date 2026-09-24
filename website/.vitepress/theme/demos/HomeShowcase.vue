@@ -211,7 +211,7 @@ const bubbleThread = computed(() =>
 
 /* Pinned to the bottom like a real thread: when the viewport is too short the
    oldest message is clipped, never the newest. */
-.canvas { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; padding: 16px; background: var(--flare-color-bg-secondary); overflow: hidden; }
+.canvas { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; padding: 16px; background: var(--flare-component-chat-window-bg); overflow: hidden; }
 .date { align-self: center; font-size: 11px; color: var(--flare-color-text-tertiary); background: var(--flare-color-bg-tertiary); padding: 3px 11px; border-radius: 999px; }
 .line { display: flex; gap: 8px; align-items: flex-end; }
 .line.self { justify-content: flex-end; }

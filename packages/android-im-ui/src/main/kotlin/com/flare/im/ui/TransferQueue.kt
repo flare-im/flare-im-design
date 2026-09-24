@@ -27,15 +27,15 @@ fun TransferQueue(items:List<FlareTransferQueueItem>, loading:Boolean=false, err
     val retryFailedText = retryFailedText ?: strings.retryFailedTransfers
     val reloadText = reloadText ?: strings.reload
     val ids=retryableTransferIds(items)
-    Column(Modifier.fillMaxSize(), verticalArrangement=Arrangement.spacedBy(8.dp)) {
-        FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+    Column(Modifier.fillMaxSize(), verticalArrangement=Arrangement.spacedBy(FlareSizes.spacingSm)) {
+        FlowRow(horizontalArrangement=Arrangement.spacedBy(FlareSizes.spacingSm)) {
             Text("$title · ${items.size}",style=MaterialTheme.typography.titleMedium)
             if(ids.isNotEmpty() && onRetryFailed!=null) TextButton(onClick={onRetryFailed(ids.toList())},modifier=Modifier.defaultMinSize(minHeight=48.dp,minWidth=48.dp)) { Text("$retryFailedText (${ids.size})") }
         }
         if(loading) LinearProgressIndicator(Modifier.fillMaxWidth())
         if(error!=null) StatusBanner(error,tone=FlareStatusTone.Danger,actionText=reloadText,onAction=if(loading) null else onReload)
-        if(items.isEmpty() && !loading && error==null) Text(emptyText,Modifier.padding(16.dp))
-        LazyColumn(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(8.dp)) {
+        if(items.isEmpty() && !loading && error==null) Text(emptyText,Modifier.padding(FlareSizes.spacingLg))
+        LazyColumn(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(FlareSizes.spacingSm)) {
             items(items,key={it.id}) { item ->
                 TransferProgress(item.name,item.state,item.statusText,item.progress,item.actionLabels,item.busy,
                     onAction=if(onAction==null) null else { a -> onAction(item.id,a) })

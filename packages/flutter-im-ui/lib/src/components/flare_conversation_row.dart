@@ -5,8 +5,10 @@ import '../models/conversation_row_data.dart';
 import '../primitives/flare_unread_badge.dart';
 import '../tokens/flare_tokens.dart';
 import '../tokens/flare_strings.dart';
+import '../models/workspace_layout.dart';
 import 'flare_avatar.dart';
 import 'flare_conversation_action_sheet.dart';
+import 'flare_shell_scope.dart';
 
 /// Host-approved swipe intent with its localized label. The kit owns its presentation.
 class FlareConversationSwipeAction {
@@ -69,7 +71,12 @@ class _FlareConversationRowState extends State<FlareConversationRow> {
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
     final strings = FlareStrings.of(context);
-    final dense = widget.compact ?? MediaQuery.sizeOf(context).width >= 1024;
+    final shellMode = FlareShellScope.responsiveModeOf(context);
+    final dense =
+        widget.compact ??
+        (shellMode == null
+            ? MediaQuery.sizeOf(context).width >= 1024
+            : shellMode != FlareApplicationResponsiveMode.mobile);
     final kind = widget.item.previewKind;
     final prefix = switch (kind) {
       'failed' => '[${strings.messageFailed}] ',
@@ -129,7 +136,9 @@ class _FlareConversationRowState extends State<FlareConversationRow> {
               child: Padding(
                 padding: EdgeInsets.symmetric(
                   horizontal: FlareSizes.spacingSm,
-                  vertical: dense ? 10 : 14,
+                  vertical: dense
+                      ? FlareSizes.spacing2sm
+                      : FlareSizes.spacing2md,
                 ),
                 child: Row(
                   children: [
@@ -194,7 +203,7 @@ class _FlareConversationRowState extends State<FlareConversationRow> {
                     ),
                     const SizedBox(width: 8),
                     SizedBox(
-                      width: 60,
+                      width: FlareSizes.componentConversationRowMetaWidth,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.end,

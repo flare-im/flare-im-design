@@ -28,6 +28,14 @@ describe("FlareScreen", () => {
     expect(backs).toBe(1);
   });
 
+  // 一级页(通讯录/圈子/我)不传 back 就不能有返回键。曾因 <script setup> 里的 back() 函数在模板里
+  // 遮住同名 prop,`v-if="back"` 永远为真,四个 tab 根页全长出返回箭头。
+  it("draws no back button unless asked", () => {
+    const screen = mountScreen({ title: "通讯录" });
+    expect(screen.find(".flare-screen__back").exists()).toBe(false);
+    expect(screen.get(".flare-screen__title").text()).toBe("通讯录");
+  });
+
   it("puts a readable page in the reading column only when asked", () => {
     expect(mountScreen({ title: "我" }).classes()).not.toContain("flare-screen--readable");
     host?.unmount();

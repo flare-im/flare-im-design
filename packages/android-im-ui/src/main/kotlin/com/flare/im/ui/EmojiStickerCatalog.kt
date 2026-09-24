@@ -6,6 +6,9 @@ import coil.ImageLoader
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
@@ -19,6 +22,27 @@ data class FlareStickerPack(
     val stickerIds: List<String>,
 )
 
+/** User-installed emoji resource. [animatedUri] is used only by a standalone
+ * sent emoji; every editing/picker/inline surface decodes [staticPreviewBytes]. */
+data class FlareEmojiAssetRegistration(
+    val key: String,
+    val animatedUri: String,
+    val staticPreviewBytes: ByteArray,
+    val labels: Map<String, String> = emptyMap(),
+)
+
+data class FlareStickerAssetRegistration(
+    val stickerId: String,
+    val uri: String,
+    val staticPreviewBytes: ByteArray,
+)
+
+data class FlareStickerPackRegistration(
+    val id: String,
+    val title: String,
+    val stickers: List<FlareStickerAssetRegistration>,
+)
+
 /**
  * Cross-platform emoji-pack + sticker catalog, backed by the flare-im-design
  * manifest bundled with this library (a symlink mirror of the single source
@@ -29,6 +53,8 @@ data class FlareStickerPack(
  * [ensureLoaded] to read the manifest + locales from `assets`.
  */
 private val PACK_KEY_TOKEN = Regex("\\[([a-z][a-z0-9_]*)]")
+private val EMOJI_KEY = Regex("^[a-z][a-z0-9_]*$")
+private const val STATIC_PREVIEW_BYTE_BUDGET = 8 * 1024 * 1024
 
 object FlareEmojiStickerCatalog {
     const val ASSET_ROOT = "emoji-sticker"
@@ -40,12 +66,22 @@ object FlareEmojiStickerCatalog {
     private var loaded = false
     val isLoaded: Boolean get() = loaded
 
-    var emojiKeys: List<String> = emptyList()
-        private set
+    private var bundledEmojiKeys: List<String> = emptyList()
+    val emojiKeys: List<String>
+        get() = bundledEmojiKeys.filterNot(runtimeEmoji::containsKey) + runtimeEmoji.keys
     private var emojiKeySet: Set<String> = emptySet()
 
-    var stickerPacks: List<FlareStickerPack> = emptyList()
-        private set
+    private var bundledStickerPacks: List<FlareStickerPack> = emptyList()
+    val stickerPacks: List<FlareStickerPack>
+        get() = bundledStickerPacks.filterNot { runtimeStickerPacks.containsKey(it.id) } +
+            runtimeStickerPacks.values.map { pack ->
+                FlareStickerPack(pack.id, "", pack.title, pack.stickers.map { it.stickerId })
+            }
+
+    private val runtimeEmoji = linkedMapOf<String, FlareEmojiAssetRegistration>()
+    private val runtimeStickerPacks = linkedMapOf<String, FlareStickerPackRegistration>()
+    private val _revision = MutableStateFlow(0)
+    val revision: StateFlow<Int> = _revision.asStateFlow()
 
     // locale column -> (key -> label)
     private var locales: Map<String, Map<String, String>> = emptyMap()
@@ -61,11 +97,11 @@ object FlareEmojiStickerCatalog {
         val keys = buildList {
             if (keysJson != null) for (i in 0 until keysJson.length()) add(keysJson.getString(i))
         }
-        emojiKeys = keys
+        bundledEmojiKeys = keys
         emojiKeySet = keys.toSet()
 
         val packsJson = manifest.optJSONArray("stickerPacks")
-        stickerPacks = buildList {
+        bundledStickerPacks = buildList {
             if (packsJson != null) for (i in 0 until packsJson.length()) {
                 val p = packsJson.getJSONObject(i)
                 val itemsJson = p.optJSONArray("items")
@@ -100,7 +136,75 @@ object FlareEmojiStickerCatalog {
         loaded = true
     }
 
-    fun hasEmojiKey(key: String): Boolean = emojiKeySet.contains(key.trim())
+    fun hasEmojiKey(key: String): Boolean {
+        val normalized = key.trim()
+        return runtimeEmoji.containsKey(normalized) || emojiKeySet.contains(normalized)
+    }
+
+    private fun safeComponent(value: String): Boolean = value.matches(Regex("^[A-Za-z0-9_-]+$"))
+
+    /** Adds or replaces per-user emoji assets without changing `[key]` protocol values. */
+    @Synchronized
+    fun registerEmojiAssets(assets: Iterable<FlareEmojiAssetRegistration>) {
+        assets.forEach { asset ->
+            val key = asset.key.trim()
+            if (!EMOJI_KEY.matches(key) || asset.animatedUri.isBlank() ||
+                asset.staticPreviewBytes.isEmpty() || asset.staticPreviewBytes.size > STATIC_PREVIEW_BYTE_BUDGET
+            ) return@forEach
+            runtimeEmoji[key] = asset.copy(
+                key = key,
+                animatedUri = asset.animatedUri.trim(),
+                staticPreviewBytes = asset.staticPreviewBytes.copyOf(),
+                labels = asset.labels.toMap(),
+            )
+        }
+        _revision.value += 1
+    }
+
+    @Synchronized
+    fun unregisterEmojiAsset(key: String) {
+        if (runtimeEmoji.remove(key.trim()) != null) _revision.value += 1
+    }
+
+    @Synchronized
+    fun clearRegisteredEmojiAssets() {
+        if (runtimeEmoji.isEmpty()) return
+        runtimeEmoji.clear()
+        _revision.value += 1
+    }
+
+    @Synchronized
+    fun registerStickerPacks(packs: Iterable<FlareStickerPackRegistration>) {
+        packs.forEach { pack ->
+            val id = pack.id.trim()
+            if (!safeComponent(id) || pack.title.isBlank()) return@forEach
+            val stickers = pack.stickers.filter { sticker ->
+                safeComponent(sticker.stickerId.trim()) && sticker.uri.isNotBlank() &&
+                    sticker.staticPreviewBytes.isNotEmpty() &&
+                    sticker.staticPreviewBytes.size <= STATIC_PREVIEW_BYTE_BUDGET
+            }.map { sticker ->
+                sticker.copy(
+                    stickerId = sticker.stickerId.trim(),
+                    uri = sticker.uri.trim(),
+                    staticPreviewBytes = sticker.staticPreviewBytes.copyOf(),
+                )
+            }
+            runtimeStickerPacks[id] = FlareStickerPackRegistration(id, pack.title.trim(), stickers)
+        }
+        _revision.value += 1
+    }
+
+    @Synchronized
+    fun unregisterStickerPack(packageId: String) {
+        if (runtimeStickerPacks.remove(packageId.trim()) != null) _revision.value += 1
+    }
+
+    @Synchronized
+    fun clearRegisteredStickerPacks() {
+        if (runtimeStickerPacks.isEmpty()) return
+        runtimeStickerPacks.clear()
+        _revision.value += 1
+    }
 
     /** On-disk sticker subdir for a protocol packageId (`gifs` → `default`). */
     fun stickerSubdirForPackageId(packageId: String?): String {
@@ -110,10 +214,20 @@ object FlareEmojiStickerCatalog {
 
     /** Coil model for a bundled emoji asset. */
     fun emojiAssetUri(key: String): String =
-        "file:///android_asset/$ASSET_ROOT/emoji/${key.trim()}.webp"
+        runtimeEmoji[key.trim()]?.animatedUri
+            ?: "file:///android_asset/$ASSET_ROOT/emoji/${key.trim()}.webp"
 
     fun stickerAssetUri(stickerId: String, packageId: String?): String =
-        "file:///android_asset/$ASSET_ROOT/stickers/${stickerSubdirForPackageId(packageId)}/${stickerId.trim()}.webp"
+        runtimeStickerPacks[packageId?.trim().takeUnless { it.isNullOrEmpty() } ?: STICKER_PACKAGE_GIFS]
+            ?.stickers?.firstOrNull { it.stickerId == stickerId.trim() }?.uri
+            ?: "file:///android_asset/$ASSET_ROOT/stickers/${stickerSubdirForPackageId(packageId)}/${stickerId.trim()}.webp"
+
+    fun emojiStaticPreviewBytes(key: String): ByteArray? =
+        runtimeEmoji[key.trim()]?.staticPreviewBytes?.copyOf()
+
+    fun stickerStaticPreviewBytes(stickerId: String, packageId: String?): ByteArray? =
+        runtimeStickerPacks[packageId?.trim().takeUnless { it.isNullOrEmpty() } ?: STICKER_PACKAGE_GIFS]
+            ?.stickers?.firstOrNull { it.stickerId == stickerId.trim() }?.staticPreviewBytes?.copyOf()
 
     /**
      * Takes the parsed locale table. [ensureLoaded] calls this with what it read from the assets; a JVM
@@ -127,8 +241,11 @@ object FlareEmojiStickerCatalog {
     /** Localized emoji-pack label; falls back to the raw key. */
     fun emojiLabel(key: String, locale: String? = null): String {
         val k = key.trim()
-        if (k.isEmpty() || locales.isEmpty()) return k
+        if (k.isEmpty()) return k
         val column = if ((locale ?: "en").lowercase().startsWith("zh")) "zh-Hans" else "en"
+        runtimeEmoji[k]?.labels?.get(column)?.takeIf { it.isNotBlank() }?.let { return it.trim() }
+        runtimeEmoji[k]?.labels?.get("en")?.takeIf { it.isNotBlank() }?.let { return it.trim() }
+        if (locales.isEmpty()) return k
         locales[column]?.get(k)?.takeIf { it.isNotBlank() }?.let { return it.trim() }
         locales["en"]?.get(k)?.takeIf { it.isNotBlank() }?.let { return it.trim() }
         return k

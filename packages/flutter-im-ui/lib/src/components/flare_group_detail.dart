@@ -61,6 +61,7 @@ class FlareGroupDetail extends StatefulWidget {
     this.onUpdateName,
     this.onUpdateAnnouncement,
     this.onUpdateMyNickname,
+    this.onToggleDiscoverable,
     this.onSetJoinPolicy,
     this.onToggleMuteAll,
     this.onSetFlag,
@@ -109,6 +110,9 @@ class FlareGroupDetail extends StatefulWidget {
   final ValueChanged<String>? onUpdateName;
   final ValueChanged<String>? onUpdateAnnouncement;
   final ValueChanged<String>? onUpdateMyNickname;
+
+  /// Controls whether this group is returned by public group search.
+  final ValueChanged<bool>? onToggleDiscoverable;
 
   /// The join policy the viewer picked and saved.
   final ValueChanged<FlareGroupJoinPolicy>? onSetJoinPolicy;
@@ -296,6 +300,16 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
           title: _l.manage,
           items: [
             FlareSettingsItem(
+              key: 'discoverable',
+              label:
+                  _l.discoverable == FlareStrings.groupDetailDiscoverableDefault
+                  ? FlareStrings.of(context).groupDetailDiscoverable
+                  : _l.discoverable,
+              icon: 'search',
+              kind: FlareSettingKind.toggle,
+              value: m.discoverable,
+            ),
+            FlareSettingsItem(
               key: 'joinPolicy',
               label: _l.joinMode,
               icon: 'lock',
@@ -388,6 +402,8 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
 
   void _onToggle(FlareSettingsItem item, bool value) {
     switch (item.key) {
+      case 'discoverable':
+        if (_canManage) widget.onToggleDiscoverable?.call(value);
       case 'notif':
         widget.onToggleMyMuted?.call(value);
       case 'pin':
@@ -1257,6 +1273,9 @@ class FlareGroupDetailLabels {
     this.muteNotif = '消息免打扰',
     this.pinGroup = '置顶该群',
     this.manage = '群管理',
+    // The component recognizes this legacy const default and resolves the
+    // environment string, so a FlareStringsScope still localizes the row.
+    this.discoverable = FlareStrings.groupDetailDiscoverableDefault,
     this.joinMode = '进群方式',
     this.joinOpen = '允许任何人加入',
     this.joinApproval = '需管理员审批',
@@ -1311,6 +1330,7 @@ class FlareGroupDetailLabels {
   final String muteNotif;
   final String pinGroup;
   final String manage;
+  final String discoverable;
   final String joinMode;
   final String joinOpen;
   final String joinApproval;

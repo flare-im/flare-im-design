@@ -36,6 +36,7 @@ const ACTION_ID_ICONS: Readonly<Record<FlareComposerActionId, string>> = {
 /** Default tile order + label key for the unified action table. */
 const DEFAULT_ACTIONS: ReadonlyArray<{ id: FlareComposerActionId; labelKey: string }> = [
   { id: "image", labelKey: "composer.image" },
+  { id: "video", labelKey: "composer.video" },
   { id: "file", labelKey: "composer.file" },
   { id: "voice", labelKey: "composer.voice" },
   { id: "location", labelKey: "composer.location" },
@@ -114,7 +115,7 @@ function select(action: FlareComposerActionItem): void {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: var(--flare-size-font-size-5xl);
 }
 .flare-action-panel__label {
   font-size: 12px;

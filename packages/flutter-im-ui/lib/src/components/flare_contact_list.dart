@@ -186,7 +186,7 @@ class _FlareContactListState extends State<FlareContactList> {
                           g.key,
                           style: TextStyle(
                             color: colors.primaryText,
-                            fontSize: 10,
+                            fontSize: FlareSizes.fontSize2xs,
                             fontWeight: FontWeight.w600,
                           ),
                         ),

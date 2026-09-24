@@ -54,8 +54,8 @@ fun PollComposer(
 
     Column(
         Modifier.width(320.dp).clip(RoundedCornerShape(FlareSizes.radiusXl)).background(colors.bgPrimary)
-            .border(1.dp, colors.borderPrimary, RoundedCornerShape(FlareSizes.radiusXl)).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+            .border(1.dp, colors.borderPrimary, RoundedCornerShape(FlareSizes.radiusXl)).padding(FlareSizes.spacingLg),
+        verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2sm),
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(flareStrings().createPoll, color = colors.textPrimary, fontWeight = FontWeight.SemiBold, fontSize = FlareSizes.fontSizeLg.value.sp)
@@ -63,11 +63,11 @@ fun PollComposer(
             Icon(Icons.Outlined.Close, contentDescription = flareStrings().cancel, tint = colors.textTertiary,
                 modifier = Modifier.size(18.dp).clickable { onCancel?.invoke() })
         }
-        Box(Modifier.fillMaxWidth().padding(bottom = 4.dp)) {
+        Box(Modifier.fillMaxWidth().padding(bottom = FlareSizes.spacingXs)) {
             BasicTextField(
                 value = question, onValueChange = { question = it }, singleLine = true,
                 textStyle = TextStyle(color = colors.textPrimary, fontSize = 15.sp, fontWeight = FontWeight.Medium),
-                cursorBrush = SolidColor(colors.primary), modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                cursorBrush = SolidColor(colors.primary), modifier = Modifier.fillMaxWidth().padding(vertical = FlareSizes.spacing2xs),
                 decorationBox = { inner ->
                     if (question.isEmpty()) Text(flareStrings().pollQuestionHint, color = colors.textTertiary, fontSize = 15.sp)
                     inner()
@@ -78,7 +78,7 @@ fun PollComposer(
         options.forEachIndexed { i, value ->
             Row(
                 Modifier.fillMaxWidth().clip(RoundedCornerShape(FlareSizes.radiusLg)).background(colors.bgSecondary)
-                    .padding(start = 12.dp, end = 4.dp),
+                    .padding(start = FlareSizes.spacingMd, end = FlareSizes.spacingXs),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 BasicTextField(
@@ -92,7 +92,7 @@ fun PollComposer(
                 )
                 if (options.size > 2) {
                     Icon(Icons.Outlined.Close, contentDescription = flareStrings().removeOption, tint = colors.textTertiary,
-                        modifier = Modifier.size(16.dp).padding(4.dp).clickable { options.removeAt(i) })
+                        modifier = Modifier.size(16.dp).padding(FlareSizes.spacingXs).clickable { options.removeAt(i) })
                 }
             }
         }

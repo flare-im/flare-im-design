@@ -16,8 +16,15 @@ final class FlareIMUITests: XCTestCase {
     }
 
     func testSeedTintIsDeterministic() {
-        XCTAssertEqual(AvatarView.seedTint("u1").bg, AvatarView.seedTint("u1").bg)
-        XCTAssertEqual(AvatarView.seedTint("u1").fg, AvatarView.seedTint("u1").fg)
+        let light = FlareColors.of(.light)
+        XCTAssertEqual(AvatarView.seedTint("u1", light).bg, AvatarView.seedTint("u1", light).bg)
+        XCTAssertEqual(AvatarView.seedTint("u1", light).fg, AvatarView.seedTint("u1", light).fg)
+        // 同一个人在亮/暗下是**不同**的一对色:暗色以前根本没有变体,头像在深色表面上
+        // 当作一块浅色马卡龙。色板现在来自 token 真源,按模式解析。
+        let dark = FlareColors.of(.dark)
+        XCTAssertNotEqual(AvatarView.seedTint("u1", light).bg, AvatarView.seedTint("u1", dark).bg)
+        // 但选中的是同一格:取模只看种子,不看模式。
+        XCTAssertEqual(AvatarView.seedTint("u1", dark).bg, AvatarView.seedTint("u1", dark).bg)
     }
 
     func testTokensThemeDiffers() {

@@ -8,7 +8,8 @@ import { useFlareAdaptiveSafe } from "../../composables/useAdaptiveMode";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 
 const props = withDefaults(defineProps<{
-  items?: FlareConversationRowModel[];
+  /** 只读：列表从不改动宿主给的数组（筛选后的切片就是只读的）。 */
+  items?: readonly FlareConversationRowModel[];
   sections?: FlareConversationListSection[];
   activeId?: string;
   loading?: boolean;

@@ -38,7 +38,7 @@ fun ImageGrid(
     if (visible.size == 1) {
         Box(
             Modifier.widthIn(max = 220.dp).heightIn(max = 260.dp)
-                .clip(RoundedCornerShape(12.dp)).background(colors.bgSecondary)
+                .clip(RoundedCornerShape(FlareSizes.radiusCard)).background(colors.bgSecondary)
                 .clickable { onOpen?.invoke(0) },
         ) { imageOrPlaceholder(visible[0].url, ContentScale.Fit) }
         return
@@ -50,13 +50,13 @@ fun ImageGrid(
         else -> 3
     }
     val rows = visible.chunked(cols)
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
         rows.forEachIndexed { rowIdx, row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
                 row.forEachIndexed { colIdx, img ->
                     val index = rowIdx * cols + colIdx
                     Box(
-                        Modifier.size(84.dp).clip(RoundedCornerShape(8.dp))
+                        Modifier.size(84.dp).clip(RoundedCornerShape(FlareSizes.radiusMd))
                             .background(colors.bgSecondary).clickable { onOpen?.invoke(index) },
                     ) {
                         imageOrPlaceholder(img.url, ContentScale.Crop)

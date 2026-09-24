@@ -1,0 +1,5465 @@
+{
+  "accept": {
+    "en": "Answer",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "接听"
+  },
+  "actionAnnouncement": {
+    "en": "Announcement",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "公告"
+  },
+  "actionCamera": {
+    "en": "Camera",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "拍摄"
+  },
+  "actionCard": {
+    "en": "Contact card",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "名片"
+  },
+  "actionFile": {
+    "en": "File",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "文件"
+  },
+  "actionImage": {
+    "en": "Photo",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "图片"
+  },
+  "actionLink": {
+    "en": "Link",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "链接"
+  },
+  "actionLocation": {
+    "en": "Location",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "位置"
+  },
+  "actionMenuLabel": {
+    "en": "Actions",
+    "kits": [
+      "android"
+    ],
+    "zh": "操作菜单"
+  },
+  "actionMiniProgram": {
+    "en": "Mini program",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "小程序"
+  },
+  "actionNotification": {
+    "en": "Notification",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "通知"
+  },
+  "actionSchedule": {
+    "en": "Event",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "日程"
+  },
+  "actionTask": {
+    "en": "Task",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "任务"
+  },
+  "actionTranslate": {
+    "en": "Translate",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "翻译"
+  },
+  "actionVideo": {
+    "en": "Video",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "视频"
+  },
+  "actionVote": {
+    "en": "Poll",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "投票"
+  },
+  "addImage": {
+    "en": "Add photo",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "添加图片"
+  },
+  "addMember": {
+    "en": "Add member",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "加成员"
+  },
+  "addOption": {
+    "en": "Add option",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "添加选项"
+  },
+  "addReaction": {
+    "en": "Add reaction",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "添加表情回复"
+  },
+  "allowMultiple": {
+    "en": "Allow multiple answers",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "允许多选"
+  },
+  "announcementBannerDismiss": {
+    "en": "Dismiss announcement",
+    "kits": [
+      "ios"
+    ],
+    "zh": "关闭公告"
+  },
+  "announcementReadBarConfirmRead": {
+    "en": "Got it",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已读"
+  },
+  "announcementReadBarViewUnread": {
+    "en": "See who hasn't read",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "查看未读"
+  },
+  "back": {
+    "en": "Back",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "返回"
+  },
+  "bottomSheetLabel": {
+    "en": "Sheet",
+    "kits": [
+      "android"
+    ],
+    "zh": "底部面板"
+  },
+  "callCalling": {
+    "en": "Calling…",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "呼叫中…"
+  },
+  "callConnected": {
+    "en": "Connected",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已接通"
+  },
+  "callDeviceOff": {
+    "en": "Off",
+    "kits": [
+      "ios"
+    ],
+    "zh": "已关闭"
+  },
+  "callDeviceOn": {
+    "en": "On",
+    "kits": [
+      "ios"
+    ],
+    "zh": "已开启"
+  },
+  "callDevicePickerPlaceholder": {
+    "en": "Choose a device",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "选择设备"
+  },
+  "callFailed": {
+    "en": "Call failed",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "通话连接失败"
+  },
+  "callInProgress": {
+    "en": "In a call",
+    "kits": [
+      "ios"
+    ],
+    "zh": "通话中"
+  },
+  "callMinimize": {
+    "en": "Minimize call",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "收起通话"
+  },
+  "callReconnecting": {
+    "en": "Reconnecting…",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在恢复通话…"
+  },
+  "callReturn": {
+    "en": "Back to call",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "返回通话"
+  },
+  "callRinging": {
+    "en": "Ringing…",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "响铃中…"
+  },
+  "callWaitingAnswer": {
+    "en": "Waiting for an answer…",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "等待接听…"
+  },
+  "camera": {
+    "en": "Camera",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "摄像头"
+  },
+  "cancel": {
+    "en": "Cancel",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "取消"
+  },
+  "cancelRecording": {
+    "en": "Cancel recording",
+    "kits": [
+      "ios"
+    ],
+    "zh": "取消录音"
+  },
+  "cancelReply": {
+    "en": "Cancel reply",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "取消回复"
+  },
+  "changeAvatar": {
+    "en": "Change avatar",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "更换头像"
+  },
+  "changeCover": {
+    "en": "Change cover",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "更换封面"
+  },
+  "chatBackground": {
+    "en": "Chat background",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "聊天背景"
+  },
+  "clear": {
+    "en": "Clear",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "清除"
+  },
+  "clearSearch": {
+    "en": "Clear search",
+    "kits": [
+      "ios"
+    ],
+    "zh": "清除搜索"
+  },
+  "close": {
+    "en": "Close",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "关闭"
+  },
+  "closePreview": {
+    "en": "Close preview",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "关闭预览"
+  },
+  "collapse": {
+    "en": "Collapse",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "收起"
+  },
+  "commands": {
+    "en": "Commands",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "命令"
+  },
+  "comment": {
+    "en": "Comment",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "评论"
+  },
+  "composerBold": {
+    "en": "Bold",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "粗体"
+  },
+  "composerCode": {
+    "en": "Code",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "代码"
+  },
+  "composerCollapseInput": {
+    "en": "Collapse input",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "缩小输入框"
+  },
+  "composerEmoji": {
+    "en": "Emoji",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "表情"
+  },
+  "composerExpandInput": {
+    "en": "Expand input",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "放大输入框"
+  },
+  "composerFormatBold": {
+    "en": "Bold",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "加粗"
+  },
+  "composerFormatBullet": {
+    "en": "Bulleted list",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "无序列表"
+  },
+  "composerFormatCode": {
+    "en": "Code",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "代码"
+  },
+  "composerFormatHeading": {
+    "en": "Heading",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "标题"
+  },
+  "composerFormatItalic": {
+    "en": "Italic",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "斜体"
+  },
+  "composerFormatLink": {
+    "en": "Link",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "链接"
+  },
+  "composerFormatOrdered": {
+    "en": "Numbered list",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "有序列表"
+  },
+  "composerFormatQuote": {
+    "en": "Quote",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "引用"
+  },
+  "composerFormatStrike": {
+    "en": "Strikethrough",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "删除线"
+  },
+  "composerHeading": {
+    "en": "Heading",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "标题"
+  },
+  "composerImage": {
+    "en": "Image",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "图片"
+  },
+  "composerItalic": {
+    "en": "Italic",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "斜体"
+  },
+  "composerLink": {
+    "en": "Link",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "链接"
+  },
+  "composerList": {
+    "en": "Bulleted list",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "列表"
+  },
+  "composerMention": {
+    "en": "Mention",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "提及"
+  },
+  "composerMore": {
+    "en": "More actions",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "更多功能"
+  },
+  "composerOrderedList": {
+    "en": "Numbered list",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "有序列表"
+  },
+  "composerPlaceholder": {
+    "en": "Type a message",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "输入消息"
+  },
+  "composerQuote": {
+    "en": "Quote",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "引用"
+  },
+  "composerReply": {
+    "en": "Reply",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "回复"
+  },
+  "composerReplyStripLabel": {
+    "en": "Reply",
+    "kits": [
+      "android"
+    ],
+    "zh": "回复"
+  },
+  "composerRichText": {
+    "en": "Rich text",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "富文本"
+  },
+  "composerStrike": {
+    "en": "Strikethrough",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "删除线"
+  },
+  "composerVoice": {
+    "en": "Voice",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "语音"
+  },
+  "composerVoiceCancel": {
+    "en": "Release to cancel",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "松开手指，取消发送"
+  },
+  "composerVoiceInput": {
+    "en": "Voice",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "语音"
+  },
+  "composerVoiceRecording": {
+    "en": "Release to send · slide up to cancel",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "松开发送 · 上滑取消"
+  },
+  "confirm": {
+    "en": "Confirm",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "确定"
+  },
+  "confirmAction": {
+    "en": "Confirm",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "确认"
+  },
+  "connectionConnecting": {
+    "en": "Connecting…",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在连接…"
+  },
+  "connectionDisconnected": {
+    "en": "Disconnected",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "连接已断开"
+  },
+  "connectionExpired": {
+    "en": "Your sign-in has expired",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "登录已过期"
+  },
+  "connectionKicked": {
+    "en": "Your account signed in on another device",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "账号已在其他设备登录"
+  },
+  "connectionOffline": {
+    "en": "No network. Messages will sync when it is back.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "网络不可用，恢复后会自动重连"
+  },
+  "connectionReconnect": {
+    "en": "Reconnect",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "重新连接"
+  },
+  "connectionReconnecting": {
+    "en": "Connection lost. Reconnecting…",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "连接已断开，正在重连…"
+  },
+  "connectionSignIn": {
+    "en": "Sign in again",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "重新登录"
+  },
+  "contactDetailBlock": {
+    "en": "Block",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "加入黑名单"
+  },
+  "contactDetailDescription": {
+    "en": "About",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "描述"
+  },
+  "contactDetailFlareId": {
+    "en": "Flare ID",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "Flare ID"
+  },
+  "contactDetailInfo": {
+    "en": "Info",
+    "kits": [
+      "flutter",
+      "ios"
+    ],
+    "zh": "资料"
+  },
+  "contactDetailInfoSection": {
+    "en": "Info",
+    "kits": [
+      "android"
+    ],
+    "zh": "资料"
+  },
+  "contactDetailNotSet": {
+    "en": "Not set",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "未设置"
+  },
+  "contactDetailRemark": {
+    "en": "Nickname",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "备注"
+  },
+  "contactDetailRemove": {
+    "en": "Remove friend",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "删除好友"
+  },
+  "contactDetailStar": {
+    "en": "Starred friend",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "星标好友"
+  },
+  "contactDetailVideo": {
+    "en": "Video call",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "视频通话"
+  },
+  "contactDetailVoice": {
+    "en": "Voice call",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "语音通话"
+  },
+  "contactMatchListAdd": {
+    "en": "Add",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "添加"
+  },
+  "contactMatchListEmpty": {
+    "en": "None of your contacts have signed up yet",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "通讯录里还没有已注册的联系人"
+  },
+  "conversationActionSheetArchive": {
+    "en": "Archive",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "归档"
+  },
+  "conversationActionSheetClearHistory": {
+    "en": "Clear local history",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "清空本地记录"
+  },
+  "conversationActionSheetEmpty": {
+    "en": "No actions available",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "暂无可用操作"
+  },
+  "conversationActionSheetHide": {
+    "en": "Hide",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "隐藏"
+  },
+  "conversationActionSheetMarkRead": {
+    "en": "Mark as read",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "标为已读"
+  },
+  "conversationActionSheetMarkUnread": {
+    "en": "Mark as unread",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "标为未读"
+  },
+  "conversationActionSheetMute": {
+    "en": "Mute",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "免打扰"
+  },
+  "conversationActionSheetPin": {
+    "en": "Pin",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "置顶"
+  },
+  "conversationActionSheetUnarchive": {
+    "en": "Unarchive",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "取消归档"
+  },
+  "conversationActionSheetUnmute": {
+    "en": "Unmute",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "取消免打扰"
+  },
+  "conversationActionSheetUnpin": {
+    "en": "Unpin",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "取消置顶"
+  },
+  "conversationBatchToolbarArchive": {
+    "en": "Archive",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "归档"
+  },
+  "conversationBatchToolbarBusy": {
+    "en": "Working",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "处理中"
+  },
+  "conversationBatchToolbarCancel": {
+    "en": "Cancel selection",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "取消选择"
+  },
+  "conversationBatchToolbarDismiss": {
+    "en": "Dismiss results",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "关闭结果"
+  },
+  "conversationBatchToolbarEmpty": {
+    "en": "Select a conversation",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "请选择会话"
+  },
+  "conversationBatchToolbarExpand": {
+    "en": "See details",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "查看详情"
+  },
+  "conversationBatchToolbarFailedSummary": {
+    "en": "{n} failed",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "{n} 项失败"
+  },
+  "conversationBatchToolbarMarkRead": {
+    "en": "Mark as read",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "标为已读"
+  },
+  "conversationBatchToolbarMaxSelection": {
+    "en": "Select up to {n}",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "最多可选 {n} 项"
+  },
+  "conversationBatchToolbarMute": {
+    "en": "Mute",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "免打扰"
+  },
+  "conversationBatchToolbarRetryFailed": {
+    "en": "Retry failed",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "重试失败项"
+  },
+  "conversationBatchToolbarSelected": {
+    "en": "Selected",
+    "kits": [
+      "flutter",
+      "ios"
+    ],
+    "zh": "已选"
+  },
+  "conversationBatchToolbarSucceededSummary": {
+    "en": "{n} done",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "成功 {n} 项"
+  },
+  "conversationDetailsArchive": {
+    "en": "Archive conversation",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "归档会话"
+  },
+  "conversationDetailsClearHistory": {
+    "en": "Clear chat history",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "清空聊天记录"
+  },
+  "conversationDetailsDelete": {
+    "en": "Delete conversation",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "删除会话"
+  },
+  "conversationDetailsMarkRead": {
+    "en": "Mark as read",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "标为已读"
+  },
+  "conversationDetailsMarkUnread": {
+    "en": "Mark as unread",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "标为未读"
+  },
+  "conversationDetailsMessages": {
+    "en": "Messages",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "消息"
+  },
+  "conversationDetailsMute": {
+    "en": "Mute",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "免打扰"
+  },
+  "conversationDetailsPin": {
+    "en": "Pin conversation",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "置顶会话"
+  },
+  "conversationDetailsSync": {
+    "en": "Sync conversation",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "同步会话"
+  },
+  "conversationDetailsUnarchive": {
+    "en": "Unarchive",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "取消归档"
+  },
+  "conversationHeaderAddActions": {
+    "en": "Add conversation action",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "添加会话操作"
+  },
+  "conversationHeaderAddMember": {
+    "en": "Add members",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "添加成员"
+  },
+  "conversationHeaderAudioCall": {
+    "en": "Start a voice call",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "发起语音通话"
+  },
+  "conversationHeaderDetails": {
+    "en": "Conversation details",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "会话详情"
+  },
+  "conversationHeaderMoreActions": {
+    "en": "More conversation actions",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "更多会话操作"
+  },
+  "conversationHeaderSearch": {
+    "en": "Search messages",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "搜索消息"
+  },
+  "conversationHeaderShare": {
+    "en": "Share conversation",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "分享会话"
+  },
+  "conversationHeaderVideoCall": {
+    "en": "Start a video call",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "发起视频通话"
+  },
+  "conversationRowDraft": {
+    "en": "[Draft] ",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[草稿] "
+  },
+  "conversationRowMention": {
+    "en": "[Mentioned you] ",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[@我] "
+  },
+  "conversationWorkspaceChatEmpty": {
+    "en": "Pick a conversation to start chatting",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "选择一个会话开始聊天"
+  },
+  "conversationWorkspaceChatFailure": {
+    "en": "Messages didn't load",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "消息加载失败"
+  },
+  "conversationWorkspaceChatLoading": {
+    "en": "Loading messages",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在加载消息"
+  },
+  "conversationWorkspaceDetailEmpty": {
+    "en": "No details",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "暂无详情"
+  },
+  "conversationWorkspaceDetailFailure": {
+    "en": "Details didn't load",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "详情加载失败"
+  },
+  "conversationWorkspaceDetailLoading": {
+    "en": "Loading details",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在加载详情"
+  },
+  "conversationWorkspaceListEmpty": {
+    "en": "No conversations",
+    "kits": [
+      "android"
+    ],
+    "zh": "暂无会话"
+  },
+  "conversationWorkspaceListFailure": {
+    "en": "Conversations didn't load",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "会话列表加载失败"
+  },
+  "conversationWorkspaceListLoading": {
+    "en": "Loading conversations",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在加载会话列表"
+  },
+  "createPoll": {
+    "en": "Create poll",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "发起投票"
+  },
+  "currentDevice": {
+    "en": "This device",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "当前设备"
+  },
+  "decrease": {
+    "en": "Decrease",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "减少"
+  },
+  "delete": {
+    "en": "Delete",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "删除"
+  },
+  "download": {
+    "en": "Download",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "下载"
+  },
+  "emojiPickerEmoji": {
+    "en": "Emoji",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "表情"
+  },
+  "emojiPickerEmpty": {
+    "en": "No emoji",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "暂无表情"
+  },
+  "emojiStickerPickerEmoji": {
+    "en": "Emoji",
+    "kits": [
+      "android"
+    ],
+    "zh": "表情"
+  },
+  "emojiStickerPickerLoading": {
+    "en": "Loading emoji",
+    "kits": [
+      "android"
+    ],
+    "zh": "正在加载表情"
+  },
+  "emptyStickerPack": {
+    "en": "This pack has no stickers",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "该表情包暂无贴纸"
+  },
+  "everyone": {
+    "en": "Everyone",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "所有人"
+  },
+  "everyoneHasRead": {
+    "en": "Everyone has read this",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "所有人都已读"
+  },
+  "exitMultiSelect": {
+    "en": "Exit multi-select",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "退出多选"
+  },
+  "expand": {
+    "en": "Expand",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "展开"
+  },
+  "favorites": {
+    "en": "Favorites",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "收藏"
+  },
+  "filesAndMedia": {
+    "en": "Files & media",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "文件与媒体"
+  },
+  "flipCamera": {
+    "en": "Flip",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "翻转"
+  },
+  "forwardEach": {
+    "en": "Forward each",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "逐条转发"
+  },
+  "forwardMerged": {
+    "en": "Forward merged",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "合并转发"
+  },
+  "forwardTo": {
+    "en": "Forward to",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "转发给"
+  },
+  "groupAdmin": {
+    "en": "Admin",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "管理员"
+  },
+  "groupAnnouncement": {
+    "en": "Announcement",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "群公告"
+  },
+  "groupCall": {
+    "en": "Group call",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "群通话"
+  },
+  "groupDetailAnnouncement": {
+    "en": "Announcement",
+    "kits": [
+      "android"
+    ],
+    "zh": "群公告"
+  },
+  "groupDetailAnnouncementEmpty": {
+    "en": "No announcement yet",
+    "kits": [
+      "ios"
+    ],
+    "zh": "暂无群公告"
+  },
+  "groupDetailApprove": {
+    "en": "Approve",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "通过"
+  },
+  "groupDetailCannotGenerate": {
+    "en": "Couldn't create an invite link",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "无法生成邀请链接"
+  },
+  "groupDetailConfirmTransfer": {
+    "en": "Transfer",
+    "kits": [
+      "android",
+      "flutter"
+    ],
+    "zh": "确认转让"
+  },
+  "groupDetailCopied": {
+    "en": "Copied",
+    "kits": [
+      "ios"
+    ],
+    "zh": "已复制"
+  },
+  "groupDetailCopyCode": {
+    "en": "Copy invite code",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "复制邀请码"
+  },
+  "groupDetailDiscoverable": {
+    "en": "Allow this group to appear in search",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "允许搜索到本群"
+  },
+  "groupDetailDissolve": {
+    "en": "Delete group",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "解散群聊"
+  },
+  "groupDetailDissolveConfirm": {
+    "en": "The group will be deleted permanently and cannot be restored.",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "解散后群聊将被永久删除，无法恢复。"
+  },
+  "groupDetailDissolveConfirmText": {
+    "en": "Everyone will be removed, and this cannot be undone.",
+    "kits": [
+      "android"
+    ],
+    "zh": "解散后所有成员将被移出，且不可恢复。"
+  },
+  "groupDetailDone": {
+    "en": "Done",
+    "kits": [
+      "ios"
+    ],
+    "zh": "完成"
+  },
+  "groupDetailEditAnnouncement": {
+    "en": "Edit announcement",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "编辑群公告"
+  },
+  "groupDetailEditName": {
+    "en": "Edit group name",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "修改群名称"
+  },
+  "groupDetailFallbackTitle": {
+    "en": "Group",
+    "kits": [
+      "android"
+    ],
+    "zh": "群聊"
+  },
+  "groupDetailGenerating": {
+    "en": "Creating…",
+    "kits": [
+      "android"
+    ],
+    "zh": "生成中…"
+  },
+  "groupDetailGroupFallback": {
+    "en": "Group",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "群聊"
+  },
+  "groupDetailGroupName": {
+    "en": "Group name",
+    "kits": [
+      "ios"
+    ],
+    "zh": "群名称"
+  },
+  "groupDetailInfo": {
+    "en": "Group info",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "群信息"
+  },
+  "groupDetailInfoSection": {
+    "en": "Group info",
+    "kits": [
+      "android"
+    ],
+    "zh": "群信息"
+  },
+  "groupDetailInvite": {
+    "en": "Invite members",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "邀请成员"
+  },
+  "groupDetailInviteCodeLabel": {
+    "en": "Invite code",
+    "kits": [
+      "android"
+    ],
+    "zh": "邀请码"
+  },
+  "groupDetailInviteCodeTitle": {
+    "en": "Invite code",
+    "kits": [
+      "ios"
+    ],
+    "zh": "邀请码"
+  },
+  "groupDetailInviteEmpty": {
+    "en": "No contacts left to invite",
+    "kits": [
+      "flutter",
+      "ios"
+    ],
+    "zh": "暂无可邀请的联系人"
+  },
+  "groupDetailInviteLink": {
+    "en": "Group invite link",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "群邀请链接"
+  },
+  "groupDetailInviteLinkHint": {
+    "en": "Share the invite code and your friends can join this group.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "将邀请码分享给好友，即可加入本群。"
+  },
+  "groupDetailInviteSearchPlaceholder": {
+    "en": "Pick contacts to invite",
+    "kits": [
+      "android"
+    ],
+    "zh": "选择要邀请的联系人"
+  },
+  "groupDetailJoinApproval": {
+    "en": "Admin approval required",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "需管理员审批"
+  },
+  "groupDetailJoinInvite": {
+    "en": "By invite only",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "仅邀请加入"
+  },
+  "groupDetailJoinMode": {
+    "en": "How people join",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "进群方式"
+  },
+  "groupDetailJoinOpen": {
+    "en": "Anyone can join",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "允许任何人加入"
+  },
+  "groupDetailJoinRequests": {
+    "en": "Join requests",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "入群申请"
+  },
+  "groupDetailLeave": {
+    "en": "Leave group",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "退出群聊"
+  },
+  "groupDetailLeaveConfirm": {
+    "en": "You'll stop receiving messages from this group.",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "退出后将不再接收该群消息。"
+  },
+  "groupDetailLeaveConfirmText": {
+    "en": "You'll stop receiving messages from this group.",
+    "kits": [
+      "android"
+    ],
+    "zh": "退出后将不再接收该群消息。"
+  },
+  "groupDetailLoading": {
+    "en": "Loading…",
+    "kits": [
+      "android",
+      "flutter"
+    ],
+    "zh": "加载中…"
+  },
+  "groupDetailManage": {
+    "en": "Group management",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "群管理"
+  },
+  "groupDetailManageSection": {
+    "en": "Group management",
+    "kits": [
+      "android"
+    ],
+    "zh": "群管理"
+  },
+  "groupDetailMemberCountSuffix": {
+    "en": " members",
+    "kits": [
+      "ios"
+    ],
+    "zh": "位成员"
+  },
+  "groupDetailMemberManage": {
+    "en": "Manage members",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "成员管理"
+  },
+  "groupDetailMembers": {
+    "en": "Members",
+    "kits": [
+      "android"
+    ],
+    "zh": "群成员"
+  },
+  "groupDetailMute": {
+    "en": "Mute member",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "禁言"
+  },
+  "groupDetailMuteAll": {
+    "en": "Mute everyone",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "全员禁言"
+  },
+  "groupDetailMuteNotif": {
+    "en": "Mute notifications",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "消息免打扰"
+  },
+  "groupDetailMyInGroup": {
+    "en": "My settings",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "我在本群"
+  },
+  "groupDetailMyInGroupSection": {
+    "en": "My settings",
+    "kits": [
+      "android"
+    ],
+    "zh": "我在本群"
+  },
+  "groupDetailMyNickname": {
+    "en": "My nickname in this group",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "我的群昵称"
+  },
+  "groupDetailName": {
+    "en": "Group name",
+    "kits": [
+      "android",
+      "flutter"
+    ],
+    "zh": "群聊名称"
+  },
+  "groupDetailNicknamePlaceholder": {
+    "en": "Name shown in this group",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "群内显示名"
+  },
+  "groupDetailNoMatchingMembers": {
+    "en": "No matching members",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "没有匹配的群成员"
+  },
+  "groupDetailNoRequests": {
+    "en": "No join requests",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "暂无入群申请"
+  },
+  "groupDetailNotSet": {
+    "en": "Not set",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "未设置"
+  },
+  "groupDetailOnlyAdminAtAll": {
+    "en": "Only admins can @everyone",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "仅管理员可@全体成员"
+  },
+  "groupDetailOnlyAdminPin": {
+    "en": "Only admins can pin messages",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "仅管理员可置顶消息"
+  },
+  "groupDetailPerms": {
+    "en": "Group permissions",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "群权限"
+  },
+  "groupDetailPermsSection": {
+    "en": "Group permissions",
+    "kits": [
+      "android"
+    ],
+    "zh": "群权限"
+  },
+  "groupDetailPinGroup": {
+    "en": "Pin this group",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "置顶该群"
+  },
+  "groupDetailRemoveMember": {
+    "en": "Remove from group",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "移出群聊"
+  },
+  "groupDetailRequestDefaultMessage": {
+    "en": "I'd like to join this group",
+    "kits": [
+      "ios"
+    ],
+    "zh": "申请加入群聊"
+  },
+  "groupDetailSave": {
+    "en": "Save",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "保存"
+  },
+  "groupDetailSearchMembers": {
+    "en": "Search members",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "搜索群成员"
+  },
+  "groupDetailSectionInfo": {
+    "en": "Group info",
+    "kits": [
+      "ios"
+    ],
+    "zh": "群信息"
+  },
+  "groupDetailSectionManage": {
+    "en": "Group management",
+    "kits": [
+      "ios"
+    ],
+    "zh": "群管理"
+  },
+  "groupDetailSectionMyInGroup": {
+    "en": "My settings",
+    "kits": [
+      "ios"
+    ],
+    "zh": "我在本群"
+  },
+  "groupDetailSectionPerms": {
+    "en": "Group permissions",
+    "kits": [
+      "ios"
+    ],
+    "zh": "群权限"
+  },
+  "groupDetailSetAdmin": {
+    "en": "Make admin",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "设为管理员"
+  },
+  "groupDetailSettingUnavailable": {
+    "en": "Can't read this right now",
+    "kits": [
+      "android",
+      "flutter"
+    ],
+    "zh": "暂时无法读取"
+  },
+  "groupDetailShareCard": {
+    "en": "Allow sharing the group card",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "允许分享群名片"
+  },
+  "groupDetailTitle": {
+    "en": "Group profile",
+    "kits": [
+      "ios"
+    ],
+    "zh": "群资料"
+  },
+  "groupDetailTransferConfirm": {
+    "en": "Transfer ownership to \"%@\"? You'll become a regular member, and this cannot be undone.",
+    "kits": [
+      "ios"
+    ],
+    "zh": "确定把群主转让给「%@」吗？转让后你将变为普通成员，此操作不可撤销。"
+  },
+  "groupDetailTransferConfirmPrefix": {
+    "en": "Transfer ownership to \"",
+    "kits": [
+      "android"
+    ],
+    "zh": "确定把群主转让给「"
+  },
+  "groupDetailTransferConfirmSuffix": {
+    "en": "\"? You'll become a regular member, and this cannot be undone.",
+    "kits": [
+      "android"
+    ],
+    "zh": "」吗？转让后你将变为普通成员，此操作不可撤销。"
+  },
+  "groupDetailTransferOwner": {
+    "en": "Transfer ownership",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "转让群主"
+  },
+  "groupDetailUnavailable": {
+    "en": "Couldn't load the group profile",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "无法加载群资料"
+  },
+  "groupDetailUnavailableHint": {
+    "en": "Check your connection and try again.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "请检查网络连接后重试。"
+  },
+  "groupDetailUnmute": {
+    "en": "Unmute member",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "取消禁言"
+  },
+  "groupDetailUnsetAdmin": {
+    "en": "Remove admin",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "取消管理员"
+  },
+  "groupMembers": {
+    "en": "Members",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "群成员"
+  },
+  "groupOwner": {
+    "en": "Owner",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "群主"
+  },
+  "groupPermissionMatrixBusy": {
+    "en": "Saving",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "提交中"
+  },
+  "groupPermissionMatrixDismissError": {
+    "en": "Dismiss this error",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "忽略此错误"
+  },
+  "groupPermissionMatrixJoinApproval": {
+    "en": "Admin approval required",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "需管理员审批"
+  },
+  "groupPermissionMatrixJoinInvite": {
+    "en": "By invite only",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "仅邀请"
+  },
+  "groupPermissionMatrixJoinOpen": {
+    "en": "Anyone can join",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "允许直接加入"
+  },
+  "groupPermissionMatrixJoinPolicy": {
+    "en": "How people join",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "加群方式"
+  },
+  "groupPermissionMatrixJoinPolicyDescription": {
+    "en": "Decides how others can join this group",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "决定他人如何加入本群"
+  },
+  "groupPermissionMatrixMuteAll": {
+    "en": "Mute everyone",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "全员禁言"
+  },
+  "groupPermissionMatrixMuteAllDescription": {
+    "en": "Only the owner and admins can post",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "开启后仅群主和管理员可发言"
+  },
+  "groupPermissionMatrixOff": {
+    "en": "Off",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已关闭"
+  },
+  "groupPermissionMatrixOn": {
+    "en": "On",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已开启"
+  },
+  "groupPermissionMatrixOnlyAdminCanAtAll": {
+    "en": "Only admins can @everyone",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "仅管理员可 @所有人"
+  },
+  "groupPermissionMatrixOnlyAdminCanAtAllDescription": {
+    "en": "Limits who can use @everyone",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "限制 @所有人 的使用范围"
+  },
+  "groupPermissionMatrixOnlyAdminCanPin": {
+    "en": "Only admins can pin messages",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "仅管理员可置顶消息"
+  },
+  "groupPermissionMatrixOnlyAdminCanPinDescription": {
+    "en": "Limits who can pin messages in this group",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "限制群内置顶消息的权限"
+  },
+  "groupPermissionMatrixReadOnlyHint": {
+    "en": "Only the owner and admins can change this",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "仅群主和管理员可修改"
+  },
+  "groupPermissionMatrixShareCardPermission": {
+    "en": "Allow sharing the group card",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "允许分享群名片"
+  },
+  "groupPermissionMatrixShareCardPermissionDescription": {
+    "en": "When off, members can't share this group with others",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "关闭后成员不能把本群分享给他人"
+  },
+  "groupPermissionMatrixTitle": {
+    "en": "Group settings",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "群设置"
+  },
+  "groupPermissionMatrixUnknownJoinPolicy": {
+    "en": "The current join setting is unknown — pick one again",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "当前加群方式未知，请重新选择"
+  },
+  "hangUp": {
+    "en": "Hang up",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "挂断"
+  },
+  "hideOriginal": {
+    "en": "Hide original",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "隐藏原文"
+  },
+  "hideTranscript": {
+    "en": "Hide transcript",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "收起文字"
+  },
+  "imageLoadFailed": {
+    "en": "Image didn't load",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "图片加载失败"
+  },
+  "imagePreviewClose": {
+    "en": "Close preview",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "关闭预览"
+  },
+  "imagePreviewNext": {
+    "en": "Next",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "下一张"
+  },
+  "imagePreviewOpen": {
+    "en": "View photo",
+    "kits": [
+      "android"
+    ],
+    "zh": "查看图片"
+  },
+  "imagePreviewPrevious": {
+    "en": "Previous",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "上一张"
+  },
+  "incomingVideoCall": {
+    "en": "is video calling you",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "邀请你进行视频通话"
+  },
+  "incomingVoiceCall": {
+    "en": "is calling you",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "邀请你进行语音通话"
+  },
+  "increase": {
+    "en": "Increase",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "增加"
+  },
+  "inlineVoiceComposerAllowMicrophone": {
+    "en": "Allow microphone access",
+    "kits": [
+      "android"
+    ],
+    "zh": "请允许麦克风权限"
+  },
+  "inlineVoiceComposerDiscard": {
+    "en": "Discard recording",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "删除录音"
+  },
+  "inlineVoiceComposerKeyboard": {
+    "en": "Keyboard: discard recording",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "返回键盘并删除录音"
+  },
+  "inlineVoiceComposerMicDenied": {
+    "en": "Allow microphone access before recording",
+    "kits": [
+      "ios"
+    ],
+    "zh": "请允许使用麦克风后再录音"
+  },
+  "inlineVoiceComposerPause": {
+    "en": "Pause recording",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "暂停录音"
+  },
+  "inlineVoiceComposerPreview": {
+    "en": "Play / pause preview",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "试听 / 暂停"
+  },
+  "inlineVoiceComposerResume": {
+    "en": "Resume recording",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "继续录音"
+  },
+  "inlineVoiceComposerSendFailed": {
+    "en": "Couldn't send. Try again.",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "发送失败，请重试"
+  },
+  "inlineVoiceComposerStart": {
+    "en": "Start recording",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "开始录音"
+  },
+  "inlineVoiceDiscard": {
+    "en": "Delete recording",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "删除录音"
+  },
+  "inlineVoiceKeyboard": {
+    "en": "Back to keyboard and delete recording",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "返回键盘并删除录音"
+  },
+  "inlineVoiceMicrophoneUnavailable": {
+    "en": "Microphone unavailable — check permissions",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "无法使用麦克风，请检查权限"
+  },
+  "inlineVoicePause": {
+    "en": "Pause recording",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "暂停录音"
+  },
+  "inlineVoicePreview": {
+    "en": "Play / pause",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "试听 / 暂停"
+  },
+  "inlineVoiceResume": {
+    "en": "Resume recording",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "继续录音"
+  },
+  "inlineVoiceSendFailed": {
+    "en": "Couldn't send — try again",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "发送失败，可重试"
+  },
+  "inlineVoiceStart": {
+    "en": "Start recording",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "开始录音"
+  },
+  "inputHide": {
+    "en": "Hide password",
+    "kits": [
+      "android",
+      "flutter"
+    ],
+    "zh": "隐藏密码"
+  },
+  "inputReveal": {
+    "en": "Show password",
+    "kits": [
+      "android",
+      "flutter"
+    ],
+    "zh": "显示密码"
+  },
+  "inviteCodeChecking": {
+    "en": "Checking invite code…",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在校验邀请码…"
+  },
+  "inviteCodeInvalid": {
+    "en": "Invalid invite code",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "邀请码无效"
+  },
+  "inviteCodeInviter": {
+    "en": "Inviter: {name}",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "邀请人：{name}"
+  },
+  "inviteCodeLabel": {
+    "en": "Invite code",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "邀请码"
+  },
+  "inviteCodeOptional": {
+    "en": "Optional",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "选填"
+  },
+  "inviteCodePlaceholder": {
+    "en": "Enter an invite code",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "请输入邀请码"
+  },
+  "inviteCodeValid": {
+    "en": "Invite code accepted",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "邀请码可用"
+  },
+  "like": {
+    "en": "Like",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "赞"
+  },
+  "loading": {
+    "en": "Loading…",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "加载中"
+  },
+  "loginDevices": {
+    "en": "Signed-in devices",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "登录设备"
+  },
+  "manage": {
+    "en": "Manage",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "管理"
+  },
+  "memberRoleSheetDangerGroup": {
+    "en": "Careful",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "危险操作"
+  },
+  "memberRoleSheetDemote": {
+    "en": "Remove admin",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "取消管理员"
+  },
+  "memberRoleSheetEmpty": {
+    "en": "You don't manage this group",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "你没有管理权限"
+  },
+  "memberRoleSheetMemberRole": {
+    "en": "Member",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "成员"
+  },
+  "memberRoleSheetMute": {
+    "en": "Mute",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "禁言"
+  },
+  "memberRoleSheetMuted": {
+    "en": "Muted",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已禁言"
+  },
+  "memberRoleSheetOwnerProtected": {
+    "en": "The owner can't be managed",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "群主不可被管理"
+  },
+  "memberRoleSheetPromote": {
+    "en": "Make admin",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "设为管理员"
+  },
+  "memberRoleSheetRemove": {
+    "en": "Remove from group",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "移出群聊"
+  },
+  "memberRoleSheetTransferOwner": {
+    "en": "Transfer ownership",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "转让群主"
+  },
+  "memberRoleSheetUnmute": {
+    "en": "Unmute",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "解除禁言"
+  },
+  "messageActionCopy": {
+    "en": "Copy",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "复制"
+  },
+  "messageActionDelete": {
+    "en": "Delete",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "删除"
+  },
+  "messageActionEdit": {
+    "en": "Edit",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "编辑"
+  },
+  "messageActionForward": {
+    "en": "Forward",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "转发"
+  },
+  "messageActionMark": {
+    "en": "Mark",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "标记"
+  },
+  "messageActionMultiSelect": {
+    "en": "Select",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "多选"
+  },
+  "messageActionPin": {
+    "en": "Pin message",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "置顶消息"
+  },
+  "messageActionPinSelf": {
+    "en": "Pin for me only",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "仅自己置顶"
+  },
+  "messageActionPreview": {
+    "en": "Preview",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "预览"
+  },
+  "messageActionRecall": {
+    "en": "Unsend",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "撤回"
+  },
+  "messageActionReply": {
+    "en": "Reply",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "回复"
+  },
+  "messageActionResend": {
+    "en": "Send again",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "重新发送"
+  },
+  "messageActionSave": {
+    "en": "Save",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "保存"
+  },
+  "messageActionSheetEmpty": {
+    "en": "No actions available",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "暂无可用操作"
+  },
+  "messageActionSheetLabel": {
+    "en": "Message actions",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "消息操作"
+  },
+  "messageActionUnpin": {
+    "en": "Unpin",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "取消置顶"
+  },
+  "messageBatchClear": {
+    "en": "Clear selection",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "清除选择"
+  },
+  "messageBatchExit": {
+    "en": "Done",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "退出多选"
+  },
+  "messageBatchPin": {
+    "en": "Pin",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "置顶"
+  },
+  "messageBatchPinSelf": {
+    "en": "Pin for me only",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "仅自己置顶"
+  },
+  "messageBurnAfterRead": {
+    "en": "Disappears after reading",
+    "kits": [
+      "flutter",
+      "ios"
+    ],
+    "zh": "阅后即焚"
+  },
+  "messageDelivered": {
+    "en": "Delivered",
+    "kits": [
+      "flutter",
+      "ios"
+    ],
+    "zh": "已送达"
+  },
+  "messageEdited": {
+    "en": "Edited",
+    "kits": [
+      "flutter",
+      "ios"
+    ],
+    "zh": "已编辑"
+  },
+  "messageExpired": {
+    "en": "Expired",
+    "kits": [
+      "flutter",
+      "ios"
+    ],
+    "zh": "已过期"
+  },
+  "messageFailed": {
+    "en": "Not sent",
+    "kits": [
+      "flutter",
+      "ios"
+    ],
+    "zh": "发送失败"
+  },
+  "messageImage": {
+    "en": "Photo",
+    "kits": [
+      "ios"
+    ],
+    "zh": "图片"
+  },
+  "messageListEmpty": {
+    "en": "No messages yet",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "还没有消息"
+  },
+  "messageListLoadOlder": {
+    "en": "Load earlier messages",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "加载更早消息"
+  },
+  "messagePending": {
+    "en": "Waiting to send",
+    "kits": [
+      "flutter",
+      "ios"
+    ],
+    "zh": "等待发送"
+  },
+  "messageRead": {
+    "en": "Read",
+    "kits": [
+      "flutter",
+      "ios"
+    ],
+    "zh": "已读"
+  },
+  "messageReadOnce": {
+    "en": "Can be opened once",
+    "kits": [
+      "flutter",
+      "ios"
+    ],
+    "zh": "仅可查看一次"
+  },
+  "messageRecalledPeer": {
+    "en": "unsent a message",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "对方撤回了一条消息"
+  },
+  "messageRecalledSelf": {
+    "en": "You unsent a message",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "你撤回了一条消息"
+  },
+  "messageRetrying": {
+    "en": "Retrying",
+    "kits": [
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在重试"
+  },
+  "messageSending": {
+    "en": "Sending",
+    "kits": [
+      "flutter",
+      "ios"
+    ],
+    "zh": "发送中"
+  },
+  "messageSent": {
+    "en": "Sent",
+    "kits": [
+      "flutter",
+      "ios"
+    ],
+    "zh": "已发送"
+  },
+  "messageSpoilerReveal": {
+    "en": "Spoiler — tap to show",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "剧透内容，点按显示"
+  },
+  "messageVideo": {
+    "en": "Video",
+    "kits": [
+      "ios"
+    ],
+    "zh": "视频"
+  },
+  "messageVoice": {
+    "en": "Voice message",
+    "kits": [
+      "ios"
+    ],
+    "zh": "语音消息"
+  },
+  "microphone": {
+    "en": "Microphone",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "麦克风"
+  },
+  "momentActions": {
+    "en": "Moment actions",
+    "kits": [
+      "flutter",
+      "ios"
+    ],
+    "zh": "动态操作"
+  },
+  "momentAudienceSheetDone": {
+    "en": "Done",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "完成"
+  },
+  "momentAudienceSheetExclude": {
+    "en": "Hide from",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "不给谁看"
+  },
+  "momentAudienceSheetExcludeHint": {
+    "en": "The friends you pick won't see it",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "选中的朋友看不到"
+  },
+  "momentAudienceSheetFriends": {
+    "en": "Friends",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "朋友可见"
+  },
+  "momentAudienceSheetFriendsHint": {
+    "en": "Visible to your friends",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "你的好友可见"
+  },
+  "momentAudienceSheetInclude": {
+    "en": "Share with",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "部分可见"
+  },
+  "momentAudienceSheetIncludeHint": {
+    "en": "Only the friends you pick can see it",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "仅选中的朋友可见"
+  },
+  "momentAudienceSheetPick": {
+    "en": "Pick friends",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "选择朋友"
+  },
+  "momentAudienceSheetPrivate": {
+    "en": "Only me",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "私密"
+  },
+  "momentAudienceSheetPrivateHint": {
+    "en": "Only you can see it",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "仅自己可见"
+  },
+  "momentAudienceSheetPublic": {
+    "en": "Public",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "公开"
+  },
+  "momentAudienceSheetPublicHint": {
+    "en": "Anyone can see it",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "所有人可见"
+  },
+  "momentReplyTo": {
+    "en": "Reply",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "回复"
+  },
+  "momentTextHint": {
+    "en": "What's on your mind…",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "这一刻的想法…"
+  },
+  "moments": {
+    "en": "Moments",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "圈子"
+  },
+  "momentsVisibilityAdd": {
+    "en": "Add to list",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "添加到名单"
+  },
+  "momentsVisibilityEmpty": {
+    "en": "The list is empty",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "名单为空"
+  },
+  "momentsVisibilityHideFromHint": {
+    "en": "People on this list can't see what you post",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "名单中的人看不到你发的内容"
+  },
+  "momentsVisibilityHideFromTitle": {
+    "en": "Hide my moments from",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "不让他看我的朋友圈"
+  },
+  "momentsVisibilityMuteHint": {
+    "en": "You won't see what people on this list post",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "你不会看到名单中的人发的内容"
+  },
+  "momentsVisibilityMuteTitle": {
+    "en": "Hide their moments",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "不看他的朋友圈"
+  },
+  "momentsVisibilityRemove": {
+    "en": "Remove",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "移出"
+  },
+  "momentsVisibilityRuleListAdd": {
+    "en": "Add to list",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "添加到名单"
+  },
+  "momentsVisibilityRuleListEmpty": {
+    "en": "The list is empty",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "名单为空"
+  },
+  "momentsVisibilityRuleListHideFromHint": {
+    "en": "People on this list can't see what you post",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "名单中的人看不到你发的内容"
+  },
+  "momentsVisibilityRuleListHideFromTitle": {
+    "en": "Hide my moments from",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "不让他看我的朋友圈"
+  },
+  "momentsVisibilityRuleListMuteHint": {
+    "en": "You won't see what people on this list post",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "你不会看到名单中的人发的内容"
+  },
+  "momentsVisibilityRuleListMuteTitle": {
+    "en": "Hide their moments",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "不看他的朋友圈"
+  },
+  "momentsVisibilityRuleListRemove": {
+    "en": "Remove",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "移出"
+  },
+  "more": {
+    "en": "More",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "更多"
+  },
+  "muted": {
+    "en": "Muted",
+    "kits": [
+      "ios"
+    ],
+    "zh": "已静音"
+  },
+  "myInviteCodeLabel": {
+    "en": "My invite code",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "我的邀请码"
+  },
+  "myInviteCodeUnavailable": {
+    "en": "Invite code unavailable",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "邀请码暂不可用"
+  },
+  "myInviteCooldown": {
+    "en": "You can regenerate in {time}",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "{time} 后可重新生成"
+  },
+  "myInviteCopy": {
+    "en": "Copy",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "复制"
+  },
+  "myInviteCountOnly": {
+    "en": "{count} people",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "{count} 人"
+  },
+  "myInviteDirect": {
+    "en": "Direct",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "直接邀请"
+  },
+  "myInviteEmpty": {
+    "en": "No one has joined with your code yet",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "还没有人通过你的邀请码加入"
+  },
+  "myInviteInviteesTitle": {
+    "en": "People you invited",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "直接邀请的人"
+  },
+  "myInviteJoined": {
+    "en": "Joined {date}",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "{date} 加入"
+  },
+  "myInviteLevel2": {
+    "en": "Level 2",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "二级"
+  },
+  "myInviteLevel3": {
+    "en": "Level 3",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "三级"
+  },
+  "myInviteLoadMore": {
+    "en": "Load more",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "加载更多"
+  },
+  "myInviteLoading": {
+    "en": "Loading invite details",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在加载邀请信息"
+  },
+  "myInviteRegenerate": {
+    "en": "Regenerate",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "重新生成"
+  },
+  "myInviteRegenerating": {
+    "en": "Regenerating…",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "生成中…"
+  },
+  "myInviteShare": {
+    "en": "Share",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "分享"
+  },
+  "myInviteStatsTitle": {
+    "en": "My team",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "我的团队"
+  },
+  "myInviteTitle": {
+    "en": "My invite",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "我的邀请"
+  },
+  "myInviteTotal": {
+    "en": "Team total",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "团队总数"
+  },
+  "myInviteUnitDays": {
+    "en": "{n} d",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "{n} 天"
+  },
+  "myInviteUnitHours": {
+    "en": "{n} h",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "{n} 小时"
+  },
+  "myInviteUnitMinutes": {
+    "en": "{n} min",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "{n} 分钟"
+  },
+  "myQrCode": {
+    "en": "My QR code",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "我的二维码"
+  },
+  "navigationChats": {
+    "en": "Chats",
+    "kits": [
+      "android",
+      "flutter"
+    ],
+    "zh": "消息"
+  },
+  "navigationContacts": {
+    "en": "Contacts",
+    "kits": [
+      "android",
+      "flutter"
+    ],
+    "zh": "通讯录"
+  },
+  "navigationFriends": {
+    "en": "Friends",
+    "kits": [
+      "android",
+      "flutter"
+    ],
+    "zh": "好友"
+  },
+  "navigationGroups": {
+    "en": "Groups",
+    "kits": [
+      "android",
+      "flutter"
+    ],
+    "zh": "群聊"
+  },
+  "navigationNewFriends": {
+    "en": "New friends",
+    "kits": [
+      "android",
+      "flutter"
+    ],
+    "zh": "新的朋友"
+  },
+  "navigationProfile": {
+    "en": "Me",
+    "kits": [
+      "android",
+      "flutter"
+    ],
+    "zh": "我"
+  },
+  "newFriendRequestsAccept": {
+    "en": "Accept",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "接受"
+  },
+  "newFriendRequestsDecline": {
+    "en": "Decline",
+    "kits": [
+      "android"
+    ],
+    "zh": "拒绝"
+  },
+  "newFriendRequestsEmpty": {
+    "en": "No new friend requests",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "没有新的好友请求"
+  },
+  "newFriendRequestsPending": {
+    "en": "Waiting for a reply",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "等待验证"
+  },
+  "newFriendRequestsReject": {
+    "en": "Decline",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "拒绝"
+  },
+  "newFriendRequestsWithdraw": {
+    "en": "Withdraw",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "撤回"
+  },
+  "nextMonth": {
+    "en": "Next month",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "下个月"
+  },
+  "noContacts": {
+    "en": "No contacts yet",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "还没有联系人"
+  },
+  "noContent": {
+    "en": "Nothing here",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "暂无内容"
+  },
+  "noConversations": {
+    "en": "No conversations",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "暂无会话"
+  },
+  "noGroups": {
+    "en": "No groups yet",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "还没有群组"
+  },
+  "noMatchingCommands": {
+    "en": "No matching commands",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "没有匹配的命令"
+  },
+  "noMatchingConversations": {
+    "en": "No matching conversations",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "没有匹配的会话"
+  },
+  "noMatchingEmoji": {
+    "en": "No matching emoji",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "没有匹配的表情"
+  },
+  "noMatchingMembers": {
+    "en": "No matching members",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "没有匹配的成员"
+  },
+  "noMessages": {
+    "en": "No messages",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "暂无消息"
+  },
+  "noReadersYet": {
+    "en": "No one has read this yet",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "还没有人已读"
+  },
+  "noResults": {
+    "en": "No results",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "没有找到结果"
+  },
+  "noTransfers": {
+    "en": "No transfers",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "暂无传输任务"
+  },
+  "notificationSettings": {
+    "en": "Notifications",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "通知设置"
+  },
+  "notifyEveryone": {
+    "en": "Notify everyone",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "通知全体成员"
+  },
+  "off": {
+    "en": "Off",
+    "kits": [
+      "ios"
+    ],
+    "zh": "关闭"
+  },
+  "on": {
+    "en": "On",
+    "kits": [
+      "ios"
+    ],
+    "zh": "开启"
+  },
+  "packetBrand": {
+    "en": "Flare red packet",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "Flare 红包"
+  },
+  "packetClaimed": {
+    "en": "Opened · ",
+    "kits": [
+      "ios"
+    ],
+    "zh": "已领取 · "
+  },
+  "packetFinished": {
+    "en": "All claimed",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已被抢光"
+  },
+  "packetTapToClaim": {
+    "en": "Tap to open",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "点击拆开"
+  },
+  "pause": {
+    "en": "Pause",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "暂停"
+  },
+  "permissionAllow": {
+    "en": "Allow",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "允许"
+  },
+  "permissionContacts": {
+    "en": "Contacts",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "通讯录"
+  },
+  "permissionDismiss": {
+    "en": "Got it",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "知道了"
+  },
+  "permissionFeatureFallback": {
+    "en": "this feature",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "此功能"
+  },
+  "permissionLocation": {
+    "en": "Location",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "位置信息"
+  },
+  "permissionNotifications": {
+    "en": "Notifications",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "通知"
+  },
+  "permissionOpenSettings": {
+    "en": "Open Settings",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "前往设置"
+  },
+  "permissionPhotos": {
+    "en": "Photos",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "相册"
+  },
+  "permissionScreen": {
+    "en": "Screen recording",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "屏幕录制"
+  },
+  "permissionStateDenied": {
+    "en": "Denied",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "已拒绝"
+  },
+  "permissionStateRestricted": {
+    "en": "Restricted",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "受限制"
+  },
+  "permissionStateUnavailable": {
+    "en": "Unavailable",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "不可用"
+  },
+  "permissionStateUndetermined": {
+    "en": "Not asked yet",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "未授权"
+  },
+  "permissionStorage": {
+    "en": "Storage",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "存储空间"
+  },
+  "permissionThisFeature": {
+    "en": "this feature",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "此功能"
+  },
+  "permissionVerbCamera": {
+    "en": "use the camera",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "使用摄像头"
+  },
+  "permissionVerbContacts": {
+    "en": "read your contacts",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "访问通讯录"
+  },
+  "permissionVerbLocation": {
+    "en": "use your location",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "获取位置信息"
+  },
+  "permissionVerbMicrophone": {
+    "en": "use the microphone",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "使用麦克风"
+  },
+  "permissionVerbNotifications": {
+    "en": "send notifications",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "发送通知"
+  },
+  "permissionVerbPhotos": {
+    "en": "open your photos",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "访问相册"
+  },
+  "permissionVerbScreen": {
+    "en": "record your screen",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "录制屏幕内容"
+  },
+  "permissionVerbStorage": {
+    "en": "use storage",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "访问存储空间"
+  },
+  "pickLocation": {
+    "en": "Location",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "所在位置"
+  },
+  "pickVisibility": {
+    "en": "Who can see this",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "谁可以看"
+  },
+  "play": {
+    "en": "Play",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "播放"
+  },
+  "pollQuestionHint": {
+    "en": "Ask a question",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "输入问题"
+  },
+  "post": {
+    "en": "Post",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "发表"
+  },
+  "presenceAway": {
+    "en": "Away",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "离开"
+  },
+  "presenceBusy": {
+    "en": "Busy",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "忙碌"
+  },
+  "presenceOffline": {
+    "en": "Offline",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "离线"
+  },
+  "presenceOnline": {
+    "en": "Online",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "在线"
+  },
+  "previewAnnouncement": {
+    "en": "[Announcement]",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[公告]"
+  },
+  "previewAudio": {
+    "en": "[Voice]",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[语音]"
+  },
+  "previewCard": {
+    "en": "[Contact]",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[名片]"
+  },
+  "previewCustom": {
+    "en": "[Custom]",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[自定义]"
+  },
+  "previewEmoji": {
+    "en": "[Emoji]",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[表情]"
+  },
+  "previewFile": {
+    "en": "[File]",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[文件]"
+  },
+  "previewForward": {
+    "en": "[Forward]",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[转发]"
+  },
+  "previewGif": {
+    "en": "[GIF]",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[动图]"
+  },
+  "previewImage": {
+    "en": "[Image]",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[图片]"
+  },
+  "previewImageGroup": {
+    "en": "[Album]",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[多图]"
+  },
+  "previewLink": {
+    "en": "[Link]",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[链接]"
+  },
+  "previewLocation": {
+    "en": "[Location]",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[位置]"
+  },
+  "previewMessage": {
+    "en": "[Message]",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[消息]"
+  },
+  "previewMiniProgram": {
+    "en": "[Mini Program]",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[小程序]"
+  },
+  "previewNotification": {
+    "en": "[Notification]",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[通知]"
+  },
+  "previewPlaceholder": {
+    "en": "[Placeholder]",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[占位]"
+  },
+  "previewQuote": {
+    "en": "[Quote]",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[引用]"
+  },
+  "previewRichText": {
+    "en": "[Rich text]",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[富文本]"
+  },
+  "previewSchedule": {
+    "en": "[Schedule]",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[日程]"
+  },
+  "previewSticker": {
+    "en": "[Sticker]",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[贴纸]"
+  },
+  "previewSystem": {
+    "en": "[System]",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[系统消息]"
+  },
+  "previewTask": {
+    "en": "[Task]",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[任务]"
+  },
+  "previewThread": {
+    "en": "[Thread]",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "[话题]"
+  },
+  "previewUnknown": {
+    "en": "[Unknown]",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[未知]"
+  },
+  "previewVideo": {
+    "en": "[Video]",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[视频]"
+  },
+  "previewVote": {
+    "en": "[Poll]",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "[投票]"
+  },
+  "previousMonth": {
+    "en": "Previous month",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "上个月"
+  },
+  "profileEditorBio": {
+    "en": "Bio",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "个性签名"
+  },
+  "profileEditorBioPlaceholder": {
+    "en": "Say a little about yourself",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "介绍一下自己吧"
+  },
+  "profileEditorCancel": {
+    "en": "Cancel",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "取消"
+  },
+  "profileEditorNickname": {
+    "en": "Name",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "昵称"
+  },
+  "profileEditorNicknamePlaceholder": {
+    "en": "Name",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "昵称"
+  },
+  "profileEditorSave": {
+    "en": "Save",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "保存"
+  },
+  "qrCardHint": {
+    "en": "Scan this to add me",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "扫一扫，加我为好友"
+  },
+  "qrCardUnavailable": {
+    "en": "QR code unavailable",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "二维码暂不可用"
+  },
+  "qrCode": {
+    "en": "QR code",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "二维码"
+  },
+  "quickPhrases": {
+    "en": "Quick phrases",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "快捷短语"
+  },
+  "quickPhrasesTitle": {
+    "en": "Quick phrases",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "常用语"
+  },
+  "rating": {
+    "en": "Rating",
+    "kits": [
+      "ios"
+    ],
+    "zh": "评分"
+  },
+  "readReceipt": {
+    "en": "Read receipts",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已读回执"
+  },
+  "readReceiptSheetReadEmpty": {
+    "en": "No one has opened this yet",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "还没有人查看"
+  },
+  "readReceiptSheetUnreadEmpty": {
+    "en": "Everyone has opened this",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "所有人都已查看"
+  },
+  "recent": {
+    "en": "Recent",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "最近"
+  },
+  "reject": {
+    "en": "Reject",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "拒绝"
+  },
+  "relationActionBarAccept": {
+    "en": "Accept",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "接受"
+  },
+  "relationActionBarAdd": {
+    "en": "Add friend",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "添加好友"
+  },
+  "relationActionBarBlock": {
+    "en": "Block",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "加入黑名单"
+  },
+  "relationActionBarBusy": {
+    "en": "Working",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "处理中"
+  },
+  "relationActionBarDismissError": {
+    "en": "Dismiss this error",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "关闭错误提示"
+  },
+  "relationActionBarEmpty": {
+    "en": "No actions available",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "暂无可用操作"
+  },
+  "relationActionBarPending": {
+    "en": "Waiting for a reply",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "等待对方验证"
+  },
+  "relationActionBarRemove": {
+    "en": "Remove friend",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "删除好友"
+  },
+  "relationActionBarUnblock": {
+    "en": "Unblock",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "移出黑名单"
+  },
+  "releaseToCancel": {
+    "en": "Release to cancel",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "松开取消"
+  },
+  "reload": {
+    "en": "Reload",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "重新加载"
+  },
+  "removeImage": {
+    "en": "Remove image",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "移除图片"
+  },
+  "removeOption": {
+    "en": "Remove option",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "删除选项"
+  },
+  "report": {
+    "en": "Report",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "举报"
+  },
+  "resend": {
+    "en": "Send again",
+    "kits": [
+      "ios"
+    ],
+    "zh": "重新发送"
+  },
+  "retry": {
+    "en": "Retry",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "重试"
+  },
+  "retryFailedTransfers": {
+    "en": "Retry failed transfers",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "重试失败任务"
+  },
+  "scanToAddMe": {
+    "en": "Scan to add me",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "扫一扫加我"
+  },
+  "screenShareCancel": {
+    "en": "Cancel request",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "取消请求"
+  },
+  "screenShareIdle": {
+    "en": "Not sharing",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "未在共享"
+  },
+  "screenSharePresenterRow": {
+    "en": "Presenter",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "共享者"
+  },
+  "screenShareRequesting": {
+    "en": "Requesting to share",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在请求共享"
+  },
+  "screenShareSharing": {
+    "en": "Sharing your screen",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在共享屏幕"
+  },
+  "screenShareSourceRow": {
+    "en": "Sharing",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "共享内容"
+  },
+  "screenShareStart": {
+    "en": "Share screen",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "共享屏幕"
+  },
+  "screenShareStop": {
+    "en": "Stop sharing",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "停止共享"
+  },
+  "screenShareTitle": {
+    "en": "Screen sharing",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "屏幕共享"
+  },
+  "screenShareUnavailable": {
+    "en": "Screen sharing isn't supported here",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "当前环境不支持屏幕共享"
+  },
+  "screenShareViewing": {
+    "en": "Watching a shared screen",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在观看共享"
+  },
+  "scrollToLatest": {
+    "en": "Jump to latest messages",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "回到最新消息"
+  },
+  "search": {
+    "en": "Search",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "搜索"
+  },
+  "searchConversations": {
+    "en": "Search conversations",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "搜索会话"
+  },
+  "searchDateRangeFilterCustom": {
+    "en": "Custom",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "自定义"
+  },
+  "searchDateRangeFilterFrom": {
+    "en": "From",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "起始日期"
+  },
+  "searchDateRangeFilterInvalid": {
+    "en": "The start date can't be after the end date",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "起始日期不能晚于结束日期"
+  },
+  "searchDateRangeFilterTo": {
+    "en": "To",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "结束日期"
+  },
+  "searchDateRangeFilterUnlimited": {
+    "en": "Any time",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "不限时间"
+  },
+  "searchEmoji": {
+    "en": "Search emoji",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "搜索表情"
+  },
+  "searchIdleHint": {
+    "en": "Type a keyword or pick a type",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "输入关键词或选择类型"
+  },
+  "searchMembers": {
+    "en": "Search members",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "搜索成员"
+  },
+  "select": {
+    "en": "Select",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "选择"
+  },
+  "selectAll": {
+    "en": "Select all",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "全选"
+  },
+  "selectDate": {
+    "en": "Pick a date",
+    "kits": [
+      "ios"
+    ],
+    "zh": "选择日期"
+  },
+  "selectDevice": {
+    "en": "Choose a device",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "选择设备"
+  },
+  "selectTime": {
+    "en": "Pick a time",
+    "kits": [
+      "ios"
+    ],
+    "zh": "选择时间"
+  },
+  "selectedSuffix": {
+    "en": "selected",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已选"
+  },
+  "send": {
+    "en": "Send",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "发送"
+  },
+  "sendMessage": {
+    "en": "Send message",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "发消息"
+  },
+  "sendVoice": {
+    "en": "Send voice message",
+    "kits": [
+      "ios"
+    ],
+    "zh": "发送语音"
+  },
+  "settings": {
+    "en": "Settings",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "设置"
+  },
+  "showOriginal": {
+    "en": "Show original",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "显示原文"
+  },
+  "showTranscript": {
+    "en": "Show transcript",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "转文字"
+  },
+  "speaker": {
+    "en": "Speaker",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "扬声器"
+  },
+  "startConversationDialogSearchPlaceholder": {
+    "en": "Search contacts",
+    "kits": [
+      "android"
+    ],
+    "zh": "搜索联系人"
+  },
+  "startConversationSearchPlaceholder": {
+    "en": "Search contacts",
+    "kits": [
+      "ios"
+    ],
+    "zh": "搜索联系人"
+  },
+  "startConversationSheetEmpty": {
+    "en": "No contacts found",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "未找到联系人"
+  },
+  "startConversationSheetSearchPlaceholder": {
+    "en": "Search contacts",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "搜索联系人"
+  },
+  "sticker": {
+    "en": "Sticker",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "贴纸"
+  },
+  "stickerPanelEmpty": {
+    "en": "No stickers",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "暂无贴纸"
+  },
+  "storageUsageAtLeast": {
+    "en": "at least",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "至少"
+  },
+  "storageUsageClear": {
+    "en": "Clear",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "清理"
+  },
+  "storageUsageClearing": {
+    "en": "Clearing",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "清理中"
+  },
+  "storageUsageDeviceFree": {
+    "en": "Free space",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "可用空间"
+  },
+  "storageUsageDismissError": {
+    "en": "Dismiss this error",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "忽略此错误"
+  },
+  "storageUsageEmpty": {
+    "en": "Nothing to measure",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "没有可统计的存储分类"
+  },
+  "storageUsageFileCount": {
+    "en": "{count} files",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "{count} 个文件"
+  },
+  "storageUsageLoading": {
+    "en": "Measuring storage",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在统计存储占用"
+  },
+  "storageUsageReload": {
+    "en": "Measure again",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "重新统计"
+  },
+  "storageUsageRetry": {
+    "en": "Try again",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "失败重试"
+  },
+  "storageUsageTitle": {
+    "en": "Storage",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "存储空间"
+  },
+  "storageUsageTotal": {
+    "en": "Total",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "总计"
+  },
+  "storageUsageUnknown": {
+    "en": "Unknown",
+    "kits": [
+      "android"
+    ],
+    "zh": "未知"
+  },
+  "storageUsageUnknownSize": {
+    "en": "Unknown",
+    "kits": [
+      "flutter",
+      "ios"
+    ],
+    "zh": "未知"
+  },
+  "submitPoll": {
+    "en": "Create poll",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "创建投票"
+  },
+  "themeDark": {
+    "en": "Dark",
+    "kits": [
+      "android",
+      "flutter"
+    ],
+    "zh": "深色"
+  },
+  "themeLight": {
+    "en": "Light",
+    "kits": [
+      "android",
+      "flutter"
+    ],
+    "zh": "浅色"
+  },
+  "themeSystem": {
+    "en": "Match system",
+    "kits": [
+      "android",
+      "flutter"
+    ],
+    "zh": "跟随系统"
+  },
+  "timeRange": {
+    "en": "Time range",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "时间范围"
+  },
+  "today": {
+    "en": "Today",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "今天"
+  },
+  "transferQueue": {
+    "en": "Transfers",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "传输队列"
+  },
+  "translated": {
+    "en": "Translated",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已翻译"
+  },
+  "translating": {
+    "en": "Translating…",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "翻译中…"
+  },
+  "typing": {
+    "en": "Typing…",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在输入…"
+  },
+  "unknownMessageDiagnostic": {
+    "en": "Message type",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "消息类型"
+  },
+  "unknownMessageHint": {
+    "en": "This version can't show this message",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "当前版本无法显示这条消息"
+  },
+  "unknownMessageUnsupported": {
+    "en": "Unsupported message type",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "不支持的消息类型"
+  },
+  "unknownUserPlaceholderBlocked": {
+    "en": "This account is blocked",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "该账号已被屏蔽"
+  },
+  "unknownUserPlaceholderDeactivated": {
+    "en": "This account was deleted",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "该账号已注销"
+  },
+  "unknownUserPlaceholderId": {
+    "en": "ID",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "ID"
+  },
+  "unknownUserPlaceholderUnknown": {
+    "en": "Unknown user",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "未知用户"
+  },
+  "unknownUserPlaceholderUnreachable": {
+    "en": "This account can't be reached right now",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "暂时无法联系该账号"
+  },
+  "unlike": {
+    "en": "Unlike",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "取消赞"
+  },
+  "videoCall": {
+    "en": "Video",
+    "kits": [
+      "ios"
+    ],
+    "zh": "视频"
+  },
+  "videoLoadFailed": {
+    "en": "Video didn't load",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "视频加载失败"
+  },
+  "voiceCall": {
+    "en": "Voice",
+    "kits": [
+      "ios"
+    ],
+    "zh": "语音"
+  },
+  "voiceHoldButtonCancel": {
+    "en": "Release to cancel",
+    "kits": [
+      "android"
+    ],
+    "zh": "松开取消"
+  },
+  "voiceHoldButtonLabel": {
+    "en": "Hold to talk",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "按住 说话"
+  },
+  "voiceHoldButtonRecording": {
+    "en": "Release to send · slide up to cancel",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "松开发送 · 上滑取消"
+  },
+  "voiceMessage": {
+    "en": "Voice",
+    "kits": [
+      "android"
+    ],
+    "zh": "语音"
+  },
+  "voicePlaybackFailed": {
+    "en": "Couldn't play",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "播放失败"
+  },
+  "voiceRecordingCancel": {
+    "en": "Cancel recording",
+    "kits": [
+      "android",
+      "flutter"
+    ],
+    "zh": "取消录音"
+  },
+  "voiceRecordingSend": {
+    "en": "Send voice message",
+    "kits": [
+      "android",
+      "flutter"
+    ],
+    "zh": "发送语音"
+  },
+  "workspaceFrameEmpty": {
+    "en": "Nothing here",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "暂无内容"
+  },
+  "workspaceFrameFailure": {
+    "en": "Didn't load",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "加载失败"
+  },
+  "workspaceFrameLoading": {
+    "en": "Loading",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在加载"
+  },
+  "workspaceFrameRetry": {
+    "en": "Try again",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "重试"
+  },
+  "yesterday": {
+    "en": "Yesterday",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "昨天"
+  }
+}

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
@@ -19,6 +20,9 @@ class FlareInput extends StatefulWidget {
     this.disabled = false,
     this.clearable = false,
     this.autofocus = false,
+    this.keyboardType,
+    this.autofillHints,
+    this.inputFormatters,
     this.prefix,
     this.monospace = false,
     this.onChanged,
@@ -43,6 +47,15 @@ class FlareInput extends StatefulWidget {
 
   /// Request focus when first shown (e.g. the primary field in a dialog).
   final bool autofocus;
+
+  /// The platform keyboard best suited to this input's content.
+  final TextInputType? keyboardType;
+
+  /// Semantic autofill roles such as username, password, or one-time code.
+  final Iterable<String>? autofillHints;
+
+  /// Optional platform input constraints such as digits-only entry.
+  final List<TextInputFormatter>? inputFormatters;
 
   /// Draw the value in the platform's monospaced face (codes, identifiers);
   /// the field's geometry does not change.
@@ -140,6 +153,9 @@ class _FlareInputState extends State<FlareInput> {
                     controller: _controller,
                     focusNode: _focus,
                     autofocus: widget.autofocus,
+                    keyboardType: widget.keyboardType,
+                    autofillHints: widget.autofillHints,
+                    inputFormatters: widget.inputFormatters,
                     enabled: !widget.disabled,
                     minLines: 1,
                     maxLines: widget.multiline ? 6 : 1,

@@ -19,7 +19,7 @@ export const flareDesignTokens = {
     },
     "message": {
       "incoming": {
-        "background": "#FFFFFF",
+        "background": "#F1F2F5",
         "foreground": "#20232D",
         "border": "#E3E5EB"
       },
@@ -81,7 +81,33 @@ export const flareDesignTokens = {
       "tertiary": "#5F6776"
     },
     "warning": "#B45309",
-    "warningText": "#B45309"
+    "warningText": "#B45309",
+    "avatarTint": {
+      "blue": {
+        "bg": "#DBEAFE",
+        "fg": "#1D4ED8"
+      },
+      "purple": {
+        "bg": "#E9D5FF",
+        "fg": "#6D28D9"
+      },
+      "pink": {
+        "bg": "#FBCFE8",
+        "fg": "#9D174D"
+      },
+      "green": {
+        "bg": "#D1FAE5",
+        "fg": "#047857"
+      },
+      "amber": {
+        "bg": "#FEF3C7",
+        "fg": "#B45309"
+      },
+      "slate": {
+        "bg": "#E5E7EB",
+        "fg": "#374151"
+      }
+    }
   },
   "dark": {
     "colors": {
@@ -102,7 +128,7 @@ export const flareDesignTokens = {
       },
       "message": {
         "incoming": {
-          "background": "#20232B",
+          "background": "#292D37",
           "foreground": "rgba(255, 255, 255, 0.94)",
           "border": "rgba(255, 255, 255, 0.10)"
         },
@@ -151,7 +177,7 @@ export const flareDesignTokens = {
       "primary": "#7047D6",
       "primaryActive": "#6641C9",
       "primaryHover": "#7D58DD",
-      "primaryText": "#A78BFA",
+      "primaryText": "#C4B5FD",
       "robot": "#94A3B8",
       "success": "#16A34A",
       "successText": "#4ADE80",
@@ -164,7 +190,33 @@ export const flareDesignTokens = {
         "tertiary": "#9AA3B3"
       },
       "warning": "#A16207",
-      "warningText": "#FBBF24"
+      "warningText": "#FBBF24",
+      "avatarTint": {
+        "blue": {
+          "bg": "#1F3266",
+          "fg": "#BFDBFE"
+        },
+        "purple": {
+          "bg": "#3A2566",
+          "fg": "#DDD6FE"
+        },
+        "pink": {
+          "bg": "#5C1F3E",
+          "fg": "#FBCFE8"
+        },
+        "green": {
+          "bg": "#15433C",
+          "fg": "#A7F3D0"
+        },
+        "amber": {
+          "bg": "#58351E",
+          "fg": "#FDE68A"
+        },
+        "slate": {
+          "bg": "#282D38",
+          "fg": "#E5E7EB"
+        }
+      }
     },
     "shadows": {
       "card": "0 8px 28px rgba(0, 0, 0, 0.32)",
@@ -185,14 +237,16 @@ export const flareDesignTokens = {
   },
   "sizes": {
     "fontSize": {
+      "2xs": "10px",
+      "xs": "11px",
+      "sm": "12px",
+      "md": "13px",
+      "lg": "14px",
+      "xl": "15px",
       "2xl": "16px",
       "3xl": "18px",
       "4xl": "20px",
-      "lg": "14px",
-      "md": "13px",
-      "sm": "12px",
-      "xl": "15px",
-      "xs": "11px"
+      "5xl": "24px"
     },
     "iconSize": {
       "lg": "24px",
@@ -227,29 +281,60 @@ export const flareDesignTokens = {
       "touchTargetMin": "44px"
     },
     "lineHeight": {
+      "none": "1",
+      "tight": "1.2",
+      "snug": "1.4",
       "normal": "1.5",
-      "relaxed": "1.6",
-      "tight": "1.2"
+      "relaxed": "1.6"
     },
     "radius": {
-      "2xl": "18px",
-      "bubble": "16px",
+      "xs": "3px",
       "bubbleTail": "4px",
-      "full": "999px",
-      "lg": "10px",
-      "md": "8px",
       "sm": "6px",
+      "md": "8px",
+      "lg": "10px",
+      "card": "12px",
       "xl": "14px",
-      "xs": "3px"
+      "bubble": "16px",
+      "2xl": "18px",
+      "full": "999px"
     },
     "spacing": {
-      "2xl": "24px",
+      "3xs": "2px",
+      "xs": "4px",
       "2xs": "6px",
-      "lg": "16px",
-      "md": "12px",
       "sm": "8px",
+      "2sm": "10px",
+      "md": "12px",
+      "2md": "14px",
+      "lg": "16px",
       "xl": "20px",
-      "xs": "4px"
+      "2xl": "24px"
+    },
+    "component": {
+      "bubblePaddingX": "14px",
+      "bubblePaddingY": "9px",
+      "messageAvatarSize": "40px",
+      "composerActionHeight": "40px",
+      "composerActionWidth": "44px",
+      "composerToolbarIcon": "34px",
+      "composerToolbarWidth": "44px",
+      "composerDesktopHeight": "46px",
+      "bubbleRichMinWidth": "220px",
+      "bubbleSystemMaxWidth": "560px",
+      "messageGutterInline": "16px",
+      "messageTailSpace": "10px",
+      "mediaCardMinWidth": "220px",
+      "mediaImageMaxWidth": "320px",
+      "mediaVideoWidth": "320px",
+      "richCardWidth": "320px",
+      "richCardCompactWidth": "240px",
+      "richCardMediaHeight": "148px",
+      "sheetWidth": "420px",
+      "sheetDialogWidth": "480px",
+      "conversationRowMetaWidth": "60px",
+      "bubbleMaxWidthRatioCompact": "0.88",
+      "bubbleMaxWidthRatioRegular": "0.62"
     },
     "textRole": {
       "title": {
@@ -271,7 +356,18 @@ export const flareDesignTokens = {
         "fontSize": "12px",
         "lineHeight": "1.5",
         "weight": "400"
+      },
+      "message": {
+        "fontSize": "15px",
+        "lineHeight": "1.45",
+        "weight": "400"
       }
+    },
+    "fontWeight": {
+      "regular": "400",
+      "medium": "500",
+      "semibold": "600",
+      "bold": "700"
     }
   },
   "opacity": {
@@ -282,11 +378,12 @@ export const flareDesignTokens = {
   },
   "zIndex": {
     "base": "0",
-    "dropdown": "1000",
     "sticky": "1100",
     "overlay": "1200",
     "modal": "1300",
-    "toast": "1400"
+    "media": "1350",
+    "dropdown": "2000",
+    "toast": "8000"
   },
   "breakpoints": {
     "sm": "600px",
@@ -332,7 +429,7 @@ export const flareDesignTokens = {
           },
           "message": {
             "incoming": {
-              "background": "#FFFFFF",
+              "background": "#F1F2F5",
               "foreground": "#20232D",
               "border": "#E3E5EB"
             },
@@ -394,7 +491,33 @@ export const flareDesignTokens = {
             "tertiary": "#5F6776"
           },
           "warning": "#B45309",
-          "warningText": "#B45309"
+          "warningText": "#B45309",
+          "avatarTint": {
+            "blue": {
+              "bg": "#DBEAFE",
+              "fg": "#1D4ED8"
+            },
+            "purple": {
+              "bg": "#E9D5FF",
+              "fg": "#6D28D9"
+            },
+            "pink": {
+              "bg": "#FBCFE8",
+              "fg": "#9D174D"
+            },
+            "green": {
+              "bg": "#D1FAE5",
+              "fg": "#047857"
+            },
+            "amber": {
+              "bg": "#FEF3C7",
+              "fg": "#B45309"
+            },
+            "slate": {
+              "bg": "#E5E7EB",
+              "fg": "#374151"
+            }
+          }
         }
       },
       "dark": {
@@ -416,7 +539,7 @@ export const flareDesignTokens = {
           },
           "message": {
             "incoming": {
-              "background": "#20232B",
+              "background": "#292D37",
               "foreground": "rgba(255, 255, 255, 0.94)",
               "border": "rgba(255, 255, 255, 0.10)"
             },
@@ -478,7 +601,33 @@ export const flareDesignTokens = {
             "tertiary": "#9AA3B3"
           },
           "warning": "#A16207",
-          "warningText": "#FBBF24"
+          "warningText": "#FBBF24",
+          "avatarTint": {
+            "blue": {
+              "bg": "#1F3266",
+              "fg": "#BFDBFE"
+            },
+            "purple": {
+              "bg": "#3A2566",
+              "fg": "#DDD6FE"
+            },
+            "pink": {
+              "bg": "#5C1F3E",
+              "fg": "#FBCFE8"
+            },
+            "green": {
+              "bg": "#15433C",
+              "fg": "#A7F3D0"
+            },
+            "amber": {
+              "bg": "#58351E",
+              "fg": "#FDE68A"
+            },
+            "slate": {
+              "bg": "#282D38",
+              "fg": "#E5E7EB"
+            }
+          }
         }
       }
     },
@@ -503,7 +652,7 @@ export const flareDesignTokens = {
           },
           "message": {
             "incoming": {
-              "background": "#FFFFFF",
+              "background": "#F1F2F5",
               "foreground": "#20232D",
               "border": "#E3E5EB"
             },
@@ -565,7 +714,33 @@ export const flareDesignTokens = {
             "tertiary": "#5F6776"
           },
           "warning": "#B45309",
-          "warningText": "#B45309"
+          "warningText": "#B45309",
+          "avatarTint": {
+            "blue": {
+              "bg": "#DBEAFE",
+              "fg": "#1D4ED8"
+            },
+            "purple": {
+              "bg": "#E9D5FF",
+              "fg": "#6D28D9"
+            },
+            "pink": {
+              "bg": "#FBCFE8",
+              "fg": "#9D174D"
+            },
+            "green": {
+              "bg": "#D1FAE5",
+              "fg": "#047857"
+            },
+            "amber": {
+              "bg": "#FEF3C7",
+              "fg": "#B45309"
+            },
+            "slate": {
+              "bg": "#E5E7EB",
+              "fg": "#374151"
+            }
+          }
         }
       },
       "dark": {
@@ -587,7 +762,7 @@ export const flareDesignTokens = {
           },
           "message": {
             "incoming": {
-              "background": "#20232B",
+              "background": "#292D37",
               "foreground": "rgba(255, 255, 255, 0.94)",
               "border": "rgba(255, 255, 255, 0.10)"
             },
@@ -649,7 +824,33 @@ export const flareDesignTokens = {
             "tertiary": "#9AA3B3"
           },
           "warning": "#A16207",
-          "warningText": "#FBBF24"
+          "warningText": "#FBBF24",
+          "avatarTint": {
+            "blue": {
+              "bg": "#1F3266",
+              "fg": "#BFDBFE"
+            },
+            "purple": {
+              "bg": "#3A2566",
+              "fg": "#DDD6FE"
+            },
+            "pink": {
+              "bg": "#5C1F3E",
+              "fg": "#FBCFE8"
+            },
+            "green": {
+              "bg": "#15433C",
+              "fg": "#A7F3D0"
+            },
+            "amber": {
+              "bg": "#58351E",
+              "fg": "#FDE68A"
+            },
+            "slate": {
+              "bg": "#282D38",
+              "fg": "#E5E7EB"
+            }
+          }
         }
       }
     },
@@ -674,7 +875,7 @@ export const flareDesignTokens = {
           },
           "message": {
             "incoming": {
-              "background": "#FFFFFF",
+              "background": "#F1F2F5",
               "foreground": "#20232D",
               "border": "#E3E5EB"
             },
@@ -736,7 +937,33 @@ export const flareDesignTokens = {
             "tertiary": "#5F6776"
           },
           "warning": "#B45309",
-          "warningText": "#B45309"
+          "warningText": "#B45309",
+          "avatarTint": {
+            "blue": {
+              "bg": "#DBEAFE",
+              "fg": "#1D4ED8"
+            },
+            "purple": {
+              "bg": "#E9D5FF",
+              "fg": "#6D28D9"
+            },
+            "pink": {
+              "bg": "#FBCFE8",
+              "fg": "#9D174D"
+            },
+            "green": {
+              "bg": "#D1FAE5",
+              "fg": "#047857"
+            },
+            "amber": {
+              "bg": "#FEF3C7",
+              "fg": "#B45309"
+            },
+            "slate": {
+              "bg": "#E5E7EB",
+              "fg": "#374151"
+            }
+          }
         }
       },
       "dark": {
@@ -758,7 +985,7 @@ export const flareDesignTokens = {
           },
           "message": {
             "incoming": {
-              "background": "#20232B",
+              "background": "#292D37",
               "foreground": "rgba(255, 255, 255, 0.94)",
               "border": "rgba(255, 255, 255, 0.10)"
             },
@@ -820,7 +1047,33 @@ export const flareDesignTokens = {
             "tertiary": "#9AA3B3"
           },
           "warning": "#A16207",
-          "warningText": "#FBBF24"
+          "warningText": "#FBBF24",
+          "avatarTint": {
+            "blue": {
+              "bg": "#1F3266",
+              "fg": "#BFDBFE"
+            },
+            "purple": {
+              "bg": "#3A2566",
+              "fg": "#DDD6FE"
+            },
+            "pink": {
+              "bg": "#5C1F3E",
+              "fg": "#FBCFE8"
+            },
+            "green": {
+              "bg": "#15433C",
+              "fg": "#A7F3D0"
+            },
+            "amber": {
+              "bg": "#58351E",
+              "fg": "#FDE68A"
+            },
+            "slate": {
+              "bg": "#282D38",
+              "fg": "#E5E7EB"
+            }
+          }
         }
       }
     },
@@ -845,7 +1098,7 @@ export const flareDesignTokens = {
           },
           "message": {
             "incoming": {
-              "background": "#FFFFFF",
+              "background": "#F1F2F5",
               "foreground": "#20232D",
               "border": "#E3E5EB"
             },
@@ -907,7 +1160,33 @@ export const flareDesignTokens = {
             "tertiary": "#5F6776"
           },
           "warning": "#B45309",
-          "warningText": "#B45309"
+          "warningText": "#B45309",
+          "avatarTint": {
+            "blue": {
+              "bg": "#DBEAFE",
+              "fg": "#1D4ED8"
+            },
+            "purple": {
+              "bg": "#E9D5FF",
+              "fg": "#6D28D9"
+            },
+            "pink": {
+              "bg": "#FBCFE8",
+              "fg": "#9D174D"
+            },
+            "green": {
+              "bg": "#D1FAE5",
+              "fg": "#047857"
+            },
+            "amber": {
+              "bg": "#FEF3C7",
+              "fg": "#B45309"
+            },
+            "slate": {
+              "bg": "#E5E7EB",
+              "fg": "#374151"
+            }
+          }
         }
       },
       "dark": {
@@ -929,7 +1208,7 @@ export const flareDesignTokens = {
           },
           "message": {
             "incoming": {
-              "background": "#20232B",
+              "background": "#292D37",
               "foreground": "rgba(255, 255, 255, 0.94)",
               "border": "rgba(255, 255, 255, 0.10)"
             },
@@ -991,7 +1270,33 @@ export const flareDesignTokens = {
             "tertiary": "#9AA3B3"
           },
           "warning": "#A16207",
-          "warningText": "#FBBF24"
+          "warningText": "#FBBF24",
+          "avatarTint": {
+            "blue": {
+              "bg": "#1F3266",
+              "fg": "#BFDBFE"
+            },
+            "purple": {
+              "bg": "#3A2566",
+              "fg": "#DDD6FE"
+            },
+            "pink": {
+              "bg": "#5C1F3E",
+              "fg": "#FBCFE8"
+            },
+            "green": {
+              "bg": "#15433C",
+              "fg": "#A7F3D0"
+            },
+            "amber": {
+              "bg": "#58351E",
+              "fg": "#FDE68A"
+            },
+            "slate": {
+              "bg": "#282D38",
+              "fg": "#E5E7EB"
+            }
+          }
         }
       }
     },
@@ -1016,7 +1321,7 @@ export const flareDesignTokens = {
           },
           "message": {
             "incoming": {
-              "background": "#FFFFFF",
+              "background": "#F1F2F5",
               "foreground": "#20232D",
               "border": "#E3E5EB"
             },
@@ -1078,7 +1383,33 @@ export const flareDesignTokens = {
             "tertiary": "#5F6776"
           },
           "warning": "#B45309",
-          "warningText": "#B45309"
+          "warningText": "#B45309",
+          "avatarTint": {
+            "blue": {
+              "bg": "#DBEAFE",
+              "fg": "#1D4ED8"
+            },
+            "purple": {
+              "bg": "#E9D5FF",
+              "fg": "#6D28D9"
+            },
+            "pink": {
+              "bg": "#FBCFE8",
+              "fg": "#9D174D"
+            },
+            "green": {
+              "bg": "#D1FAE5",
+              "fg": "#047857"
+            },
+            "amber": {
+              "bg": "#FEF3C7",
+              "fg": "#B45309"
+            },
+            "slate": {
+              "bg": "#E5E7EB",
+              "fg": "#374151"
+            }
+          }
         }
       },
       "dark": {
@@ -1100,7 +1431,7 @@ export const flareDesignTokens = {
           },
           "message": {
             "incoming": {
-              "background": "#20232B",
+              "background": "#292D37",
               "foreground": "rgba(255, 255, 255, 0.94)",
               "border": "rgba(255, 255, 255, 0.10)"
             },
@@ -1162,7 +1493,33 @@ export const flareDesignTokens = {
             "tertiary": "#9AA3B3"
           },
           "warning": "#A16207",
-          "warningText": "#FBBF24"
+          "warningText": "#FBBF24",
+          "avatarTint": {
+            "blue": {
+              "bg": "#1F3266",
+              "fg": "#BFDBFE"
+            },
+            "purple": {
+              "bg": "#3A2566",
+              "fg": "#DDD6FE"
+            },
+            "pink": {
+              "bg": "#5C1F3E",
+              "fg": "#FBCFE8"
+            },
+            "green": {
+              "bg": "#15433C",
+              "fg": "#A7F3D0"
+            },
+            "amber": {
+              "bg": "#58351E",
+              "fg": "#FDE68A"
+            },
+            "slate": {
+              "bg": "#282D38",
+              "fg": "#E5E7EB"
+            }
+          }
         }
       }
     },
@@ -1187,7 +1544,7 @@ export const flareDesignTokens = {
           },
           "message": {
             "incoming": {
-              "background": "#FFFFFF",
+              "background": "#F1F2F5",
               "foreground": "#20232D",
               "border": "#E3E5EB"
             },
@@ -1249,7 +1606,33 @@ export const flareDesignTokens = {
             "tertiary": "#5F6776"
           },
           "warning": "#B45309",
-          "warningText": "#B45309"
+          "warningText": "#B45309",
+          "avatarTint": {
+            "blue": {
+              "bg": "#DBEAFE",
+              "fg": "#1D4ED8"
+            },
+            "purple": {
+              "bg": "#E9D5FF",
+              "fg": "#6D28D9"
+            },
+            "pink": {
+              "bg": "#FBCFE8",
+              "fg": "#9D174D"
+            },
+            "green": {
+              "bg": "#D1FAE5",
+              "fg": "#047857"
+            },
+            "amber": {
+              "bg": "#FEF3C7",
+              "fg": "#B45309"
+            },
+            "slate": {
+              "bg": "#E5E7EB",
+              "fg": "#374151"
+            }
+          }
         }
       },
       "dark": {
@@ -1271,7 +1654,7 @@ export const flareDesignTokens = {
           },
           "message": {
             "incoming": {
-              "background": "#20232B",
+              "background": "#292D37",
               "foreground": "rgba(255, 255, 255, 0.94)",
               "border": "rgba(255, 255, 255, 0.10)"
             },
@@ -1333,7 +1716,33 @@ export const flareDesignTokens = {
             "tertiary": "#9AA3B3"
           },
           "warning": "#A16207",
-          "warningText": "#FBBF24"
+          "warningText": "#FBBF24",
+          "avatarTint": {
+            "blue": {
+              "bg": "#1F3266",
+              "fg": "#BFDBFE"
+            },
+            "purple": {
+              "bg": "#3A2566",
+              "fg": "#DDD6FE"
+            },
+            "pink": {
+              "bg": "#5C1F3E",
+              "fg": "#FBCFE8"
+            },
+            "green": {
+              "bg": "#15433C",
+              "fg": "#A7F3D0"
+            },
+            "amber": {
+              "bg": "#58351E",
+              "fg": "#FDE68A"
+            },
+            "slate": {
+              "bg": "#282D38",
+              "fg": "#E5E7EB"
+            }
+          }
         }
       }
     }

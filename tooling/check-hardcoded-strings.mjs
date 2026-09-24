@@ -19,6 +19,14 @@ const TARGETS = {
   flutter: { dir: "packages/flutter-im-ui/lib/src", ext: [".dart"], skip: [/flare_strings\.dart$/] },
   ios: { dir: "packages/ios-im-ui/Sources/FlareIMUI", ext: [".swift"], skip: [/FlareStrings\.swift$/, /Previews\.swift$/] },
   compose: { dir: "packages/android-im-ui/src/main/kotlin", ext: [".kt"], skip: [/FlareStrings\.kt$/, /Previews?\.kt$/] },
+  // 示例 app 也进棘轮。它一度攒到 543 处裸中文,于是「切换语言」按下去满屏还是中文 ——
+  // 开关一直是好的,缺的是第二种语言。参考实现的文案同样要走 provider,否则这笔债会再长回来。
+  // 目录是同级 checkout;没有它(单独 clone 本仓)时 walk() 返回空,这一项自动跳过。
+  webApp: {
+    dir: "../flare-social/flare-social-sdk/examples/apps/flare-social-web-app/src",
+    ext: [".vue", ".ts"],
+    skip: [/\.test\.ts$/, /\/i18n\//],
+  },
 };
 const CJK = /[一-鿿]/;
 

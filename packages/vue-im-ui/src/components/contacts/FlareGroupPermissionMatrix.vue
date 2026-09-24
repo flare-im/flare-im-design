@@ -403,7 +403,7 @@ function retry(row: GroupPermissionRow): void {
   align-items: center;
   gap: 5px;
   min-height: 40px;
-  padding: 0 10px;
+  padding: 0 var(--flare-size-spacing-2sm);
   border: 1px solid var(--flare-color-border-primary);
   border-radius: var(--flare-size-radius-md);
   background: var(--flare-color-bg-secondary);

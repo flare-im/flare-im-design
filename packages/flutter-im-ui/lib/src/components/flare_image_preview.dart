@@ -337,7 +337,7 @@ class _FlareImagePreviewState extends State<FlareImagePreview> {
           ),
           Text(
             '$pct',
-            style: const TextStyle(color: Colors.white, fontSize: 10),
+            style: const TextStyle(color: Colors.white, fontSize: FlareSizes.fontSize2xs),
           ),
         ],
       ),

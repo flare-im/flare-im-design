@@ -63,7 +63,7 @@ public struct GroupCallView: View {
                     Text(strings.joinedCount(participants.count, statusText)).font(.system(size: 12)).foregroundColor(.white.opacity(0.62))
                 }
                 Spacer()
-            }.padding(.horizontal, 16).padding(.top, 14).padding(.bottom, 4)
+            }.padding(.horizontal, 16).padding(.top, FlareSizes.spacing2md).padding(.bottom, 4)
 
             let grid = Array(repeating: GridItem(.flexible(), spacing: 8), count: cols)
             ScrollView {
@@ -98,10 +98,10 @@ public struct GroupCallView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             HStack(spacing: 5) {
                 if p.muted {
-                    Image(systemName: flareIconSymbol("mic-off")).font(.system(size: 10)).foregroundColor(.white)
+                    Image(systemName: flareIconSymbol("mic-off")).font(.system(size: FlareSizes.fontSize2xs)).foregroundColor(.white)
                         .frame(width: 20, height: 20).background(RoundedRectangle(cornerRadius: 6).fill(Color.black.opacity(0.42)))
                 } else if p.cameraOff && mode == .video {
-                    Image(systemName: flareIconSymbol("camera-off")).font(.system(size: 10)).foregroundColor(.white)
+                    Image(systemName: flareIconSymbol("camera-off")).font(.system(size: FlareSizes.fontSize2xs)).foregroundColor(.white)
                         .frame(width: 20, height: 20).background(RoundedRectangle(cornerRadius: 6).fill(Color.black.opacity(0.42)))
                 }
                 Text(p.isSelf ? strings.selfSuffix(p.name) : p.name).font(.system(size: 12)).foregroundColor(.white).lineLimit(1)

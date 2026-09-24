@@ -16,8 +16,11 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Text
@@ -339,6 +342,16 @@ fun AdaptiveNavigation(
                     onClick = { onNavigate(item.id) },
                     icon = { ApplicationNavigationIcon(item) },
                     label = { Text(item.label) },
+                    // 活跃态只由图标和文字的颜色表达。Material 默认会在活跃项外面画一块
+                    // 胶囊指示器(indicatorColor) —— 那是 Material 的语言不是 Flare 的,
+                    // 一行四项里只有一项带色块,比它要标示的图标还显眼。iOS 一直是只用颜色。
+                    colors = NavigationBarItemDefaults.colors(
+                        indicatorColor = Color.Transparent,
+                        selectedIconColor = colors.primaryText,
+                        selectedTextColor = colors.primaryText,
+                        unselectedIconColor = colors.textSecondary,
+                        unselectedTextColor = colors.textSecondary,
+                    ),
                 )
             }
         }

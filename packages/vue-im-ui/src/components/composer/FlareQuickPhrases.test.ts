@@ -10,7 +10,7 @@ const groups = [
   { key: "close", title: "收尾", phrases: [{ id: "c1", text: "感谢反馈" }] },
 ];
 
-function render(props: Record<string, unknown>) {
+function render(props: InstanceType<typeof FlareQuickPhrases>["$props"]) {
   return mount(defineComponent({
     setup() {
       useFlareI18nProvider("zh-CN");

@@ -43,7 +43,7 @@ public struct RedPacketCardView: View {
             }
             Spacer(minLength: 0)
         }
-        .padding(14)
+        .padding(FlareSizes.spacing2md)
         .frame(width: 248)
         .background(
             RoundedRectangle(cornerRadius: 14).fill(
@@ -53,8 +53,8 @@ public struct RedPacketCardView: View {
                                startPoint: .topLeading, endPoint: .bottomTrailing))
         )
         .overlay(
-            Text(strings.packetBrand).font(.system(size: 10)).foregroundColor(.white.opacity(0.5))
-                .padding(10),
+            Text(strings.packetBrand).font(.system(size: FlareSizes.fontSize2xs)).foregroundColor(.white.opacity(0.5))
+                .padding(FlareSizes.spacing2sm),
             alignment: .bottomTrailing
         )
         .saturation(finished ? 0.55 : 1)

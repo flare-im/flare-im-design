@@ -37,7 +37,8 @@ function activate() {
     :is="readOnly ? 'div' : 'button'"
     :type="readOnly ? undefined : 'button'"
     class="flare-settings__row"
-    :class="{ 'is-danger': item.danger, 'is-stacked': stacked, 'is-static': readOnly }"
+    :class="{ 'is-danger': item.danger, 'is-stacked': stacked, 'is-static': readOnly, 'is-current': item.current }"
+    :aria-current="item.current ? 'true' : undefined"
     :disabled="readOnly ? undefined : item.disabled"
     :role="item.kind === 'toggle' ? 'switch' : undefined"
     :aria-checked="item.kind === 'toggle' ? !!item.value : undefined"
@@ -72,6 +73,9 @@ function activate() {
 .flare-settings__row:disabled { opacity: .45; cursor: not-allowed; }
 .flare-settings__row:hover:not(:disabled):not(.is-static) { background: var(--flare-color-bg-hover); }
 .flare-settings__row.is-static { cursor: default; }
+/* 当前行:与会话行、联系人行同一套语法(底色 + 主色 + 字重),不只靠颜色。 */
+.flare-settings__row.is-current { background: var(--flare-color-bg-selected); }
+.flare-settings__row.is-current .flare-settings__label { color: var(--flare-color-primary-text); font-weight: 600; }
 .flare-settings__row:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: -2px; }
 .flare-settings__row.is-danger .flare-settings__label { color: var(--flare-color-error-text); }
 .flare-settings__label { flex: 1; min-width: 0; overflow-wrap: anywhere; color: var(--flare-color-text-primary); font-size: var(--flare-size-font-size-lg); }

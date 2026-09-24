@@ -45,13 +45,17 @@ public struct SearchBarView: View {
         case .field:
             bar(colors) {
                 TextField(placeholder ?? strings.search, text: $text).font(.system(size: fieldSize))
-                    .frame(minHeight: 48)
                     .textFieldStyle(.plain).onSubmit { onSubmit?() }
                 if loading {
                     ProgressView().controlSize(.mini)
                 } else if !text.isEmpty {
-                    Button { text = "" } label: { Image(systemName: "xmark.circle").foregroundColor(colors.textTertiary).frame(width: 48, height: 48) }
-                        .buttonStyle(.plain).accessibilityLabel(strings.clearSearch)
+                    Button { text = "" } label: {
+                        Image(systemName: "xmark.circle").foregroundColor(colors.textTertiary)
+                            .flareTouchTarget()
+                    }
+                    .buttonStyle(.plain)
+                    .flareCompactLayout(height: fieldSize)
+                    .accessibilityLabel(strings.clearSearch)
                 }
             }
         case .entry:
@@ -73,18 +77,26 @@ public struct SearchBarView: View {
                 .font(.system(size: fieldSize))
                 .foregroundColor(text.isEmpty ? colors.textTertiary : colors.textPrimary)
                 .lineLimit(1)
-                .frame(maxWidth: .infinity, minHeight: FlareSizes.touchTarget, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
             if loading { ProgressView().controlSize(.mini) }
         }
     }
 
+    /// 搜索栏的一行：**行拥有高度**，内容不得自己加 minHeight。
+    ///
+    /// 总高 = `FlareSizes.touchTarget`，垂直内边距 0 —— 这是另外三端早已遵守的契约
+    /// （Vue `min-height: touch-target` + `padding: 0 …`；Flutter 明确写成
+    /// `touchTarget - padding.vertical`；Android `heightIn(min = touchTarget)`）。
+    /// iOS 这边原来是内层 `minHeight: 48`（只读态 44）**再加** 8+8 垂直内边距，
+    /// 于是列表页那条搜索栏实测 60pt、可编辑态 64pt，在会话列表上方明显臃肿。
+    /// 同一类错误也出现在 `InputView` 的图标键上：内部元素撑高行，而不是填满行。
     private func bar<Field: View>(_ colors: FlareColors, @ViewBuilder field: () -> Field) -> some View {
         HStack(spacing: FlareSizes.spacingSm) {
             Image(systemName: "magnifyingglass").font(.system(size: 20)).foregroundColor(colors.textTertiary)
             field()
         }
         .padding(.horizontal, FlareSizes.spacingMd)
-        .padding(.vertical, FlareSizes.spacingSm)
+        .frame(minHeight: FlareSizes.touchTarget)
         .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.bgSecondary))
     }
 }
@@ -151,12 +163,19 @@ public struct InputView: View {
                 }
                 // Both field keys are icon-only controls, so each reserves a full touch target (FR-077);
                 // only one is ever drawn, since a masked field is not clearable.
+                //
+                // `flareCompactLayout` is what keeps the key from making the row taller. Without it the
+                // 44pt target is laid out **inside** the row's vertical padding, so a revealable password
+                // field stood 2 x spacingSm taller than the plain field right above it — visible as soon
+                // as the two sit in one form. With it the layout box is the text's own height, the label
+                // keeps its 44pt frame, and the part of the target outside the box still takes taps.
                 if clearable && !text.isEmpty && !disabled && !secure {
                     Button { text = "" } label: {
                         Image(systemName: "xmark.circle").foregroundColor(colors.textTertiary)
                             .flareTouchTarget()
                     }
                     .buttonStyle(.plain)
+                    .flareCompactLayout(height: fieldSize)
                     .accessibilityLabel(strings.clear)
                 }
                 if secure && revealable && !multiline && !disabled {
@@ -165,6 +184,7 @@ public struct InputView: View {
                             .flareTouchTarget()
                     }
                     .buttonStyle(.plain)
+                    .flareCompactLayout(height: fieldSize)
                     .accessibilityLabel(revealed ? strings.inputHide : strings.inputReveal)
                     .accessibilityAddTraits(revealed ? .isSelected : [])
                 }
@@ -258,13 +278,16 @@ public struct ScreenHeaderView<Leading: View, Actions: View>: View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         HStack(spacing: 12) {
             leading
-            Text(title).font(.system(size: 24, weight: .bold)).foregroundColor(colors.textPrimary)
+            Text(title).font(.system(size: FlareSizes.fontSize5xl, weight: .bold)).foregroundColor(colors.textPrimary)
                 .lineLimit(1)
             Spacer(minLength: 0)
             actions
         }
-        .padding(.horizontal, 16).padding(.vertical, 14)
-        .frame(maxWidth: .infinity)
+        .padding(.horizontal, FlareSizes.spacingMd)
+        .padding(.vertical, FlareSizes.spacingSm)
+        // Same height as `FlareScreen`'s own header row — `FlareSizes.screenHeaderHeight`
+        // is what anything floating over a page uses to clear it.
+        .frame(maxWidth: .infinity, minHeight: FlareSizes.screenHeaderHeight)
         .background(colors.bgPrimary)
     }
 }

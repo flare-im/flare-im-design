@@ -25,6 +25,100 @@ class FlareTextContent extends FlareMessageContent {
   String get type => 'text';
 }
 
+/// Whether [value] is exactly one user-perceived Unicode emoji.
+///
+/// The Core may carry a tapped system emoji as ordinary `text` rather than as
+/// the pack-specific `emoji` content type. A one-emoji text message still uses
+/// the large, chromeless emoji presentation on every Flutter target. Emoji
+/// sequences (skin tones, ZWJ families, flags and keycaps) count as one;
+/// adjacent emoji and emoji mixed with text do not.
+bool flareIsStandaloneUnicodeEmoji(String value) {
+  final text = value.trim();
+  if (text.isEmpty) return false;
+  final runes = text.runes.toList(growable: false);
+  var hasEmojiBase = false;
+  var emojiBaseCount = 0;
+  var regionalIndicators = 0;
+  var keycapBase = false;
+  var hasKeycap = false;
+  var joiners = 0;
+
+  for (final rune in runes) {
+    if (rune == 0xFE0E || rune == 0xFE0F || _isEmojiSkinTone(rune)) continue;
+    if (rune == 0x200D) {
+      joiners += 1;
+      continue;
+    }
+    if (rune == 0x20E3) {
+      hasKeycap = true;
+      continue;
+    }
+    if (rune >= 0xE0020 && rune <= 0xE007F) continue;
+    if (rune >= 0x1F1E6 && rune <= 0x1F1FF) {
+      hasEmojiBase = true;
+      regionalIndicators += 1;
+      continue;
+    }
+    if (rune == 0x23 || rune == 0x2A || (rune >= 0x30 && rune <= 0x39)) {
+      keycapBase = true;
+      continue;
+    }
+    if (_isEmojiBase(rune)) {
+      hasEmojiBase = true;
+      emojiBaseCount += 1;
+      continue;
+    }
+    return false;
+  }
+
+  if (hasKeycap) {
+    return keycapBase &&
+        !hasEmojiBase &&
+        regionalIndicators == 0 &&
+        joiners == 0;
+  }
+  if (keycapBase) return false;
+  if (regionalIndicators > 0) {
+    return regionalIndicators == 2 && runes.length == 2;
+  }
+  if (!hasEmojiBase) return false;
+
+  // More than one emoji base is one glyph only when the sequence explicitly
+  // joins its members (family/profession/couple sequences). Without a joiner,
+  // `🙂🙂` is two messages' worth of artwork and remains ordinary text.
+  return emojiBaseCount == 1 || (joiners > 0 && emojiBaseCount == joiners + 1);
+}
+
+final RegExp _standaloneEmojiPackToken = RegExp(r'^\[[a-z][a-z0-9_]*\]$');
+
+/// Whether [value] is one complete emoji message rather than inline text.
+///
+/// Emoji picked from the shared pack travels through some older Core records
+/// as a text token such as `[alien]`. That token is protocol syntax, not the
+/// literal bracket text the user typed, so it receives the same large,
+/// chromeless presentation as a Unicode emoji or `FlareEmojiContent`.
+bool flareIsStandaloneEmojiMessage(String value) {
+  final text = value.trim();
+  return flareIsStandaloneUnicodeEmoji(text) ||
+      _standaloneEmojiPackToken.hasMatch(text);
+}
+
+bool _isEmojiSkinTone(int rune) => rune >= 0x1F3FB && rune <= 0x1F3FF;
+
+bool _isEmojiBase(int rune) =>
+    (rune >= 0x1F000 && rune <= 0x1FAFF) ||
+    (rune >= 0x2600 && rune <= 0x27BF) ||
+    rune == 0x00A9 ||
+    rune == 0x00AE ||
+    rune == 0x203C ||
+    rune == 0x2049 ||
+    rune == 0x2122 ||
+    rune == 0x2139 ||
+    rune == 0x3030 ||
+    rune == 0x303D ||
+    rune == 0x3297 ||
+    rune == 0x3299;
+
 /// A rich-text message: the RichDoc v2 document the core stores ([docJson]),
 /// the core's flat [plainText] of it, and the message's own [title]. Drawn by
 /// `FlareRichTextMessage`; the sender's Markdown source is not part of it.

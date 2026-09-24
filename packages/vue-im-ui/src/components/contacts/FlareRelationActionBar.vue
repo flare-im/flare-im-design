@@ -213,23 +213,26 @@ function dismiss(): void {
   color: var(--flare-color-error-text);
   overflow-wrap: anywhere;
 }
+/* 与它上面那一列(联系人详情的 发消息 / 举报此人 / 加入黑名单)同一条左右留白 16,
+   免得两块各自为政地缩进。 */
 .flare-relation-bar__row {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: var(--flare-size-spacing-sm);
-  padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-lg);
+  padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-md);
   min-width: 0;
 }
+/* 原来这一组被 `margin-inline-start:auto` 推到最右、还用一条竖线隔开,于是一排里出现
+   「撑满的 + 随字宽的 + 靠右的」三种宽度。它们是同一层级的三个选择,等分就好。 */
 .flare-relation-bar__danger-group {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex: 1 1 0;
   gap: var(--flare-size-spacing-sm);
-  margin-inline-start: auto;
-  padding-inline-start: var(--flare-size-spacing-sm);
-  border-inline-start: 1px solid var(--flare-color-border-secondary);
+  min-width: 0;
 }
+.flare-relation-bar__danger-group > * { flex: 1 1 0; min-width: 0; }
 .flare-relation-bar__pending,
 .flare-relation-bar__empty {
   display: inline-flex;
@@ -250,16 +253,18 @@ function dismiss(): void {
   color: var(--flare-color-text-tertiary);
   font-weight: 600;
 }
+/* 几何对齐它上面那一列的按钮:同样的 radius-lg 和高度。原来是 radius-md(8) + 48 高 + 灰底,
+   和上面 radius-lg(10) + 47 高 + 白底描边并排,读起来像两个组件各说各的。 */
 .flare-relation-bar__btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-height: var(--flare-size-layout-touch-target);
+  min-height: 47px;
   min-width: var(--flare-size-layout-touch-target);
   padding: 0 var(--flare-size-spacing-md);
   border: none;
-  border-radius: var(--flare-size-radius-md);
+  border-radius: var(--flare-size-radius-lg);
   background: var(--flare-color-bg-secondary);
   color: var(--flare-color-text-primary);
   font: inherit;
@@ -285,7 +290,7 @@ function dismiss(): void {
   cursor: progress;
 }
 .flare-relation-bar__btn--primary {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   background: var(--flare-color-primary);
   color: #fff;
 }

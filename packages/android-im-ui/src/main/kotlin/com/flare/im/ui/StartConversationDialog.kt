@@ -67,7 +67,7 @@ fun StartConversationDialog(
         Row(
             Modifier.padding(FlareSizes.spacingMd).fillMaxWidth()
                 .clip(RoundedCornerShape(FlareSizes.radiusLg)).background(colors.bgSecondary)
-                .padding(horizontal = 10.dp, vertical = 8.dp),
+                .padding(horizontal = FlareSizes.spacing2sm, vertical = FlareSizes.spacingSm),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(Icons.Rounded.Search, contentDescription = null, tint = colors.textTertiary, modifier = Modifier.size(16.dp))

@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.LocationOn
@@ -139,26 +140,33 @@ fun CommentThread(
  * Dark like/comment capsule from the ··· button. Spec: Moments/MomentActionPopover.
  *
  * [canDelete] adds a trailing destructive **Delete** action — shown only for the current user's own
- * moments (parity with `FlareMomentActionPopover.vue`'s `canDelete` gate).
+ * moments; [canReport] adds **Report** in the same slot for everyone else's (parity with
+ * `FlareMomentActionPopover.vue`'s `canDelete` / `canReport` gates).
+ *
+ * 二者同形是故意的：删除和举报都是「对这一条动作」、都低频、且互斥（自己的东西删，别人的
+ * 东西报）。宿主原先没地方放举报，就在卡片**下面**另挂一条文字按钮 —— 属于这条动态的动作
+ * 画在了这条动态外面，而且只有别人的动态才有，信息流的行距一条一个样。
  */
 @Composable
 fun MomentActionPopover(
     liked: Boolean,
     canDelete: Boolean = false,
+    canReport: Boolean = false,
     onLike: (() -> Unit)? = null,
     onComment: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null,
+    onReport: (() -> Unit)? = null,
 ) {
     val colors = flareColors()
     Row(
         Modifier.height(34.dp)
-            .shadow(4.dp, RoundedCornerShape(8.dp), clip = false)
-            .clip(RoundedCornerShape(8.dp)).background(colors.bgPrimary)
-            .border(1.dp, colors.borderSecondary, RoundedCornerShape(8.dp)),
+            .shadow(4.dp, RoundedCornerShape(FlareSizes.radiusMd), clip = false)
+            .clip(RoundedCornerShape(FlareSizes.radiusMd)).background(colors.bgPrimary)
+            .border(1.dp, colors.borderSecondary, RoundedCornerShape(FlareSizes.radiusMd)),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
-            Modifier.fillMaxSize().weight(1f, fill = false).clickable { onLike?.invoke() }.padding(horizontal = 14.dp),
+            Modifier.fillMaxSize().weight(1f, fill = false).clickable { onLike?.invoke() }.padding(horizontal = FlareSizes.spacing2md),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(if (liked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder, contentDescription = null,
@@ -168,7 +176,7 @@ fun MomentActionPopover(
         }
         Box(Modifier.width(1.dp).height(18.dp).background(colors.borderSecondary))
         Row(
-            Modifier.fillMaxSize().weight(1f, fill = false).clickable { onComment?.invoke() }.padding(horizontal = 14.dp),
+            Modifier.fillMaxSize().weight(1f, fill = false).clickable { onComment?.invoke() }.padding(horizontal = FlareSizes.spacing2md),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null,
@@ -179,13 +187,25 @@ fun MomentActionPopover(
         if (canDelete) {
             Box(Modifier.width(1.dp).height(18.dp).background(colors.borderSecondary))
             Row(
-                Modifier.fillMaxSize().weight(1f, fill = false).clickable { onDelete?.invoke() }.padding(horizontal = 14.dp),
+                Modifier.fillMaxSize().weight(1f, fill = false).clickable { onDelete?.invoke() }.padding(horizontal = FlareSizes.spacing2md),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(Icons.Outlined.DeleteOutline, contentDescription = null,
                     tint = colors.errorText, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(5.dp))
                 Text(flareStrings().delete, color = colors.errorText, fontSize = 13.sp)
+            }
+        } else if (canReport) {
+            // 举报不销毁我自己的东西，所以用常规色：危险色留给「这会删掉你的东西」。
+            Box(Modifier.width(1.dp).height(18.dp).background(colors.borderSecondary))
+            Row(
+                Modifier.fillMaxSize().weight(1f, fill = false).clickable { onReport?.invoke() }.padding(horizontal = FlareSizes.spacing2md),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(flareIconVector("report"), contentDescription = null,
+                    tint = colors.textPrimary, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(5.dp))
+                Text(flareStrings().report, color = colors.textPrimary, fontSize = 13.sp)
             }
         }
     }
@@ -195,8 +215,13 @@ fun MomentActionPopover(
 
 /**
  * How the moments cover looks: with a cover image, the tall photo under a brand placeholder and a bottom scrim, with
- * the name and signature in white with soft shadows; without one, a short neutral band (tertiary surface, no brand
- * gradient, no scrim) with the name and signature in the primary and secondary text colours and no shadows.
+ * the name and signature in white with soft shadows.
+ *
+ * Without one there is **no band to reserve** ([height] = 0): the header is a compact identity row read left to
+ * right — avatar, then name and signature — on the tertiary surface, in the normal text colours and no shadows.
+ * It used to keep the photo geometry (a 140dp band with the name right-aligned and pulled up onto where the scrim
+ * would be), but right alignment, the overlap and the overhang only mean something with a photo under them; with
+ * no photo they left ~110dp of empty band above a name glued to its bottom-right corner.
  */
 internal data class MomentsCoverLook(val height: Dp, val photo: Boolean) {
     val brandPlaceholder: Boolean get() = photo
@@ -205,7 +230,7 @@ internal data class MomentsCoverLook(val height: Dp, val photo: Boolean) {
 }
 
 internal fun momentsCoverLook(coverUrl: String?): MomentsCoverLook =
-    if (coverUrl.isNullOrBlank()) MomentsCoverLook(height = 140.dp, photo = false) else MomentsCoverLook(height = 240.dp, photo = true)
+    if (coverUrl.isNullOrBlank()) MomentsCoverLook(height = 0.dp, photo = false) else MomentsCoverLook(height = 240.dp, photo = true)
 
 /**
  * Profile cover header with overlapping avatar. Spec: Moments/MomentsCoverHeader.
@@ -229,7 +254,7 @@ fun MomentsCoverHeader(
     val titleShadow = Shadow(color = Color(0x73000000), offset = Offset(0f, 1f), blurRadius = 6f)
     val sigShadow = Shadow(color = Color(0x66000000), offset = Offset(0f, 1f), blurRadius = 4f)
     Column(Modifier.fillMaxWidth().padding(bottom = FlareSizes.spacingXl)) {
-        Box(
+        if (look.photo) Box(
             Modifier.fillMaxWidth().height(look.height)
                 .then(
                     // Theme-aware placeholder behind a photo that is still loading; a quiet band without one.
@@ -255,30 +280,40 @@ fun MomentsCoverHeader(
             }
             // 换封面 — top-right, clear of the avatar. Its own tap target over the whole-cover click.
             if (onEditCover != null) {
-                val hint = if (look.photo) Color.White.copy(alpha = 0.92f) else colors.textSecondary
+                val hint = Color.White.copy(alpha = 0.92f)
                 Row(
-                    Modifier.align(Alignment.TopEnd).padding(14.dp)
+                    Modifier.align(Alignment.TopEnd).padding(FlareSizes.spacing2md)
                         .clip(RoundedCornerShape(FlareSizes.radiusFull))
-                        .then(
-                            if (look.photo) Modifier.background(Color(0x520F0C19))
-                            else Modifier.background(colors.bgElevated).border(1.dp, colors.borderSecondary, RoundedCornerShape(FlareSizes.radiusFull)),
-                        )
+                        .background(Color(0x520F0C19))
                         .clickable(onClick = onEditCover)
                         .padding(horizontal = 11.dp, vertical = 5.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(Icons.Outlined.Image, contentDescription = null, tint = hint, modifier = Modifier.size(14.dp))
+                    Icon(flareIconVector("image"), contentDescription = null, tint = hint, modifier = Modifier.size(FlareSizes.spacing2md))
                     Spacer(Modifier.width(FlareSizes.spacingXs))
                     Text(flareStrings().changeCover, color = hint, fontSize = FlareSizes.fontSizeSm)
                 }
             }
         }
         Row(
-            Modifier.fillMaxWidth().offset(y = (-30).dp).padding(horizontal = FlareSizes.spacingLg),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.Bottom,
+            if (look.photo) {
+                Modifier.fillMaxWidth().offset(y = (-30).dp).padding(horizontal = FlareSizes.spacingLg)
+            } else {
+                // Nothing here is positioned relative to a picture that does not exist: no overhang, no
+                // right alignment, and the row carries the tertiary surface itself.
+                Modifier.fillMaxWidth().background(colors.bgTertiary).padding(FlareSizes.spacingMd)
+            },
+            horizontalArrangement = if (look.photo) Arrangement.End else Arrangement.Start,
+            verticalAlignment = if (look.photo) Alignment.Bottom else Alignment.CenterVertically,
         ) {
-            Column(horizontalAlignment = Alignment.End, modifier = Modifier.weight(1f).padding(bottom = FlareSizes.spacing2xs)) {
+            if (!look.photo) {
+                CoverAvatar(userId, name, avatarUrl, onAvatar)
+                Spacer(Modifier.width(FlareSizes.spacingMd))
+            }
+            Column(
+                horizontalAlignment = if (look.photo) Alignment.End else Alignment.Start,
+                modifier = Modifier.weight(1f).then(if (look.photo) Modifier.padding(bottom = FlareSizes.spacing2xs) else Modifier),
+            ) {
                 Text(name, color = if (look.photo) Color.White else colors.textPrimary, fontWeight = FontWeight.Bold, fontSize = FlareSizes.fontSize3xl,
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                     style = if (look.textShadows) TextStyle(shadow = titleShadow) else TextStyle.Default)
@@ -288,16 +323,39 @@ fun MomentsCoverHeader(
                         modifier = Modifier.padding(top = FlareSizes.spacingXs))
                 }
             }
-            Spacer(Modifier.width(FlareSizes.spacingMd))
-            // Borderless avatar — a soft shadow + rounded-square lifts it off the cover (no white frame).
-            Box(
-                Modifier.shadow(10.dp, RoundedCornerShape(15.dp), clip = false)
-                    .clip(RoundedCornerShape(15.dp))
-                    .then(if (onAvatar != null) Modifier.clickable(onClick = onAvatar) else Modifier),
-            ) {
-                Avatar(userId = userId, displayName = name, avatarUrl = avatarUrl, size = 66.dp)
+            if (look.photo) {
+                Spacer(Modifier.width(FlareSizes.spacingMd))
+                CoverAvatar(userId, name, avatarUrl, onAvatar)
+            } else if (onEditCover != null) {
+                // Without a photo the affordance has no photo to sit on top of: it ends the identity row
+                // instead of floating over a blank band.
+                Spacer(Modifier.width(FlareSizes.spacingSm))
+                Row(
+                    Modifier.clip(RoundedCornerShape(FlareSizes.radiusFull))
+                        .background(colors.bgElevated)
+                        .border(1.dp, colors.borderSecondary, RoundedCornerShape(FlareSizes.radiusFull))
+                        .clickable(onClick = onEditCover)
+                        .padding(horizontal = 11.dp, vertical = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(flareIconVector("image"), contentDescription = null, tint = colors.textSecondary, modifier = Modifier.size(FlareSizes.spacing2md))
+                    Spacer(Modifier.width(FlareSizes.spacingXs))
+                    Text(flareStrings().changeCover, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm)
+                }
             }
         }
+    }
+}
+
+/** Borderless cover avatar — a soft shadow + rounded square lifts it off the cover (no white frame). */
+@Composable
+private fun CoverAvatar(userId: String, name: String, avatarUrl: String?, onAvatar: (() -> Unit)?) {
+    Box(
+        Modifier.shadow(10.dp, RoundedCornerShape(15.dp), clip = false)
+            .clip(RoundedCornerShape(15.dp))
+            .then(if (onAvatar != null) Modifier.clickable(onClick = onAvatar) else Modifier),
+    ) {
+        Avatar(userId = userId, displayName = name, avatarUrl = avatarUrl, size = 66.dp)
     }
 }
 
@@ -329,7 +387,7 @@ fun MomentComposer(
             .border(1.dp, colors.borderPrimary, RoundedCornerShape(FlareSizes.radiusXl)),
     ) {
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+            Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacing2md, vertical = FlareSizes.spacingMd),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(flareStrings().cancel, color = colors.textSecondary, fontSize = 14.sp,
@@ -338,7 +396,7 @@ fun MomentComposer(
             Box(
                 Modifier.clip(RoundedCornerShape(999.dp)).background(colors.primary)
                     .then(if (canPost && !busy) Modifier.clickable { onSubmit?.invoke(text.trim()) } else Modifier)
-                    .padding(horizontal = 18.dp, vertical = 6.dp),
+                    .padding(horizontal = 18.dp, vertical = FlareSizes.spacing2xs),
             ) {
                 Text(flareStrings().post, color = Color.White.copy(alpha = if (canPost && !busy) 1f else 0.45f),
                     fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
@@ -349,7 +407,7 @@ fun MomentComposer(
             value = text, onValueChange = { text = it },
             textStyle = TextStyle(color = colors.textPrimary, fontSize = 15.sp),
             cursorBrush = SolidColor(colors.primary),
-            modifier = Modifier.fillMaxWidth().heightIn(min = 96.dp).padding(14.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 96.dp).padding(FlareSizes.spacing2md),
             decorationBox = { inner ->
                 if (text.isEmpty()) Text(flareStrings().momentTextHint, color = colors.textTertiary, fontSize = 15.sp)
                 inner()
@@ -358,14 +416,14 @@ fun MomentComposer(
         // image grid (4-col rows)
         val cells = images.take(maxImages)
         val showAdd = images.size < maxImages
-        Column(Modifier.padding(horizontal = 14.dp).padding(bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(Modifier.padding(horizontal = FlareSizes.spacing2md).padding(bottom = FlareSizes.spacingMd), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs)) {
             val items = cells.indices.toList()
             val rows = (items + if (showAdd) listOf(-1) else emptyList()).chunked(4)
             rows.forEach { row ->
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs)) {
                     row.forEach { idx ->
                         if (idx >= 0) {
-                            Box(Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(8.dp)).background(colors.bgSecondary)) {
+                            Box(Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(FlareSizes.radiusMd)).background(colors.bgSecondary)) {
                                 AsyncImage(model = images[idx], contentDescription = null,
                                     modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                                 // The 18 dp disc stays in the corner; its 48 dp target is a square anchored to the
@@ -385,9 +443,9 @@ fun MomentComposer(
                             }
                         } else {
                             Box(
-                                Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(8.dp))
+                                Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(FlareSizes.radiusMd))
                                     .background(colors.bgSecondary)
-                                    .border(1.dp, colors.borderHover, RoundedCornerShape(8.dp))
+                                    .border(1.dp, colors.borderHover, RoundedCornerShape(FlareSizes.radiusMd))
                                     .clickable { onAddImage?.invoke() },
                                 contentAlignment = Alignment.Center,
                             ) { Icon(Icons.Outlined.Add, contentDescription = flareStrings().addImage, tint = colors.textTertiary, modifier = Modifier.size(26.dp)) }
@@ -407,11 +465,11 @@ fun MomentComposer(
 @Composable
 private fun composerRow(colors: FlareColors, icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit) {
     Row(
-        Modifier.fillMaxWidth().clickable { onClick() }.padding(horizontal = 14.dp, vertical = 13.dp),
+        Modifier.fillMaxWidth().clickable { onClick() }.padding(horizontal = FlareSizes.spacing2md, vertical = 13.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(icon, contentDescription = null, tint = colors.textSecondary, modifier = Modifier.size(18.dp))
-        Spacer(Modifier.width(10.dp))
+        Spacer(Modifier.width(FlareSizes.spacing2sm))
         Text(label, color = colors.textSecondary, fontSize = 14.sp)
     }
 }
@@ -431,9 +489,11 @@ private fun composerRow(colors: FlareColors, icon: androidx.compose.ui.graphics.
 fun MomentCard(
     moment: Moment,
     canDelete: Boolean = false,
+    canReport: Boolean = false,
     onLike: (() -> Unit)? = null,
     onComment: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null,
+    onReport: (() -> Unit)? = null,
     onOpenImage: ((Int) -> Unit)? = null,
     onSelectAuthor: ((String) -> Unit)? = null,
     onSelectLiker: ((String) -> Unit)? = null,
@@ -446,11 +506,11 @@ fun MomentCard(
     Row(
         Modifier.fillMaxWidth()
             .shadow(
-                if (cardDark) 14.dp else 10.dp, RoundedCornerShape(18.dp), clip = false,
+                if (cardDark) 14.dp else 10.dp, RoundedCornerShape(FlareSizes.radius2xl), clip = false,
                 ambientColor = if (cardDark) colors.primary else Color(0xFF151320),
                 spotColor = if (cardDark) colors.primary else Color(0xFF151320),
             )
-            .clip(RoundedCornerShape(18.dp)).background(colors.bgElevated).padding(16.dp),
+            .clip(RoundedCornerShape(FlareSizes.radius2xl)).background(colors.bgElevated).padding(FlareSizes.spacingLg),
     ) {
         // The avatar repeats the name: with a name control it is a pointer shortcut hidden from accessibility.
         Box(if (onSelectAuthor != null) Modifier.clearAndSetSemantics {}.clickable { onSelectAuthor(moment.author.id) } else Modifier) {
@@ -466,33 +526,35 @@ fun MomentCard(
             Text(moment.author.name, color = colors.primaryText, fontWeight = FontWeight.SemiBold, fontSize = FlareSizes.fontSizeXl,
                 modifier = if (onSelectAuthor != null) Modifier.clickable(role = Role.Button) { onSelectAuthor(moment.author.id) } else Modifier)
             moment.text?.let {
-                Text(it, color = colors.textPrimary, fontSize = 15.sp, modifier = Modifier.padding(top = 4.dp))
+                Text(it, color = colors.textPrimary, fontSize = 15.sp, modifier = Modifier.padding(top = FlareSizes.spacingXs))
             }
             if (moment.images.isNotEmpty()) {
-                Box(Modifier.padding(top = 10.dp)) { ImageGrid(images = moment.images, onOpen = onOpenImage) }
+                Box(Modifier.padding(top = FlareSizes.spacing2sm)) { ImageGrid(images = moment.images, onOpen = onOpenImage) }
             }
             moment.location?.let {
-                Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.padding(top = FlareSizes.spacingSm), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Outlined.LocationOn, contentDescription = null, tint = colors.primaryText.copy(alpha = 0.8f), modifier = Modifier.size(13.dp))
                     Spacer(Modifier.width(3.dp))
                     Text(it, color = colors.primaryText.copy(alpha = 0.8f), fontSize = 12.sp)
                 }
             }
-            Row(Modifier.fillMaxWidth().padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().padding(top = FlareSizes.spacing2sm), verticalAlignment = Alignment.CenterVertically) {
                 Text(moment.time ?: "", color = colors.textTertiary, fontSize = 12.sp)
                 Spacer(Modifier.weight(1f))
                 if (menuOpen) {
                     MomentActionPopover(
                         liked = moment.likedBySelf,
                         canDelete = canDelete,
+                        canReport = canReport,
                         onLike = { menuOpen = false; onLike?.invoke() },
                         onComment = { menuOpen = false; onComment?.invoke() },
                         onDelete = { menuOpen = false; onDelete?.invoke() },
+                        onReport = { menuOpen = false; onReport?.invoke() },
                     )
                     Spacer(Modifier.width(6.dp))
                 }
                 Box(
-                    Modifier.size(width = 30.dp, height = 24.dp).clip(RoundedCornerShape(6.dp))
+                    Modifier.size(width = 30.dp, height = 24.dp).clip(RoundedCornerShape(FlareSizes.radiusSm))
                         .background(if (menuOpen) colors.bgSelected else colors.bgSecondary)
                         .clickable { menuOpen = !menuOpen },
                     contentAlignment = Alignment.Center,
@@ -500,12 +562,12 @@ fun MomentCard(
             }
             if (moment.likes.isNotEmpty() || moment.comments.isNotEmpty()) {
                 Column(
-                    Modifier.fillMaxWidth().padding(top = 10.dp).clip(RoundedCornerShape(FlareSizes.radiusLg))
-                        .background(colors.bgSecondary).padding(horizontal = 12.dp, vertical = 8.dp),
+                    Modifier.fillMaxWidth().padding(top = FlareSizes.spacing2sm).clip(RoundedCornerShape(FlareSizes.radiusLg))
+                        .background(colors.bgSecondary).padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingSm),
                 ) {
                     if (moment.likes.isNotEmpty()) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Outlined.FavoriteBorder, contentDescription = null, tint = colors.errorText, modifier = Modifier.size(14.dp))
+                            Icon(Icons.Outlined.FavoriteBorder, contentDescription = null, tint = colors.errorText, modifier = Modifier.size(FlareSizes.spacing2md))
                             Spacer(Modifier.width(FlareSizes.spacing2xs))
                             // Each liker is its own control when the host opens people; otherwise the names are text.
                             FlowRow {

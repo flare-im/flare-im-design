@@ -85,7 +85,7 @@ const list = computed(() => (active.value === "read" ? props.readers : props.unr
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px 10px;
+  padding: var(--flare-size-spacing-2md) 16px var(--flare-size-spacing-2sm);
 }
 .flare-read-receipt__title {
   display: inline-flex;
@@ -105,7 +105,7 @@ const list = computed(() => (active.value === "read" ? props.readers : props.unr
 .flare-read-receipt__list {
   max-height: 320px;
   overflow-y: auto;
-  padding: 6px 8px 10px;
+  padding: 6px 8px var(--flare-size-spacing-2sm);
 }
 .flare-read-receipt__row {
   width: 100%;

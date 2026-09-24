@@ -76,7 +76,7 @@ public struct VoicePlayerView: View {
     }
 
     private func bar(_ colors: FlareColors) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: FlareSizes.spacing2sm) {
             playButton(colors)
             waveform(colors)
             Text(playing && elapsedLabel != nil ? elapsedLabel! : durationLabel)

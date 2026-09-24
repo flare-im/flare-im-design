@@ -73,7 +73,7 @@ fun GroupCallView(
     ) {
         // The minimize disc is drawn at 36 dp inside a 48 dp touch target; the start and top padding
         // and the gap give back the 6 dp a side the target adds, so the header keeps its layout.
-        Row(Modifier.fillMaxWidth().padding(start = 10.dp, end = 16.dp, top = 8.dp, bottom = 0.dp),
+        Row(Modifier.fillMaxWidth().padding(start = FlareSizes.spacing2sm, end = FlareSizes.spacingLg, top = FlareSizes.spacingSm, bottom = 0.dp),
             verticalAlignment = Alignment.CenterVertically) {
             FlareIconControl(label = strings.callMinimize, onClick = onMinimize) {
                 Box(Modifier.size(36.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.12f)))
@@ -88,14 +88,14 @@ fun GroupCallView(
         }
         LazyVerticalGrid(
             columns = GridCells.Fixed(cols),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
+            verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
+            contentPadding = PaddingValues(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingXs),
             modifier = Modifier.weight(1f),
         ) {
             items(participants, key = { it.id }) { p -> callTile(p, mode) }
         }
-        Box(Modifier.fillMaxWidth().padding(top = 20.dp, bottom = 36.dp), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxWidth().padding(top = FlareSizes.spacingXl, bottom = 36.dp), contentAlignment = Alignment.Center) {
             CallControls(muted = muted, cameraOn = cameraOn, speakerOn = speakerOn, mode = mode,
                 onToggleMute = onToggleMute, onToggleCamera = onToggleCamera, onToggleSpeaker = onToggleSpeaker,
                 onSwitchCamera = onSwitchCamera, onHangup = onHangup, onAddMember = onAddMember)
@@ -107,9 +107,9 @@ fun GroupCallView(
 private fun callTile(p: CallParticipant, mode: FlareCallMode) {
     val colors = flareColors()
     Box(
-        Modifier.aspectRatio(0.86f).clip(RoundedCornerShape(16.dp))
+        Modifier.aspectRatio(0.86f).clip(RoundedCornerShape(FlareSizes.radiusBubble))
             .background(if (p.isSelf) colors.primary.copy(alpha = 0.16f) else Color.White.copy(alpha = 0.06f))
-            .border(2.dp, if (p.speaking) Color(0xFF34D17F) else Color.Transparent, RoundedCornerShape(16.dp)),
+            .border(2.dp, if (p.speaking) Color(0xFF34D17F) else Color.Transparent, RoundedCornerShape(FlareSizes.radiusBubble)),
         contentAlignment = Alignment.Center,
     ) {
         Avatar(
@@ -118,23 +118,23 @@ private fun callTile(p: CallParticipant, mode: FlareCallMode) {
                 { AsyncImage(model = url, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop) }
             },
         )
-        Row(Modifier.align(Alignment.BottomStart).padding(8.dp), verticalAlignment = Alignment.CenterVertically,
+        Row(Modifier.align(Alignment.BottomStart).padding(FlareSizes.spacingSm), verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             if (p.muted) {
-                Box(Modifier.size(20.dp).clip(RoundedCornerShape(6.dp)).background(Color.Black.copy(alpha = 0.42f)),
+                Box(Modifier.size(20.dp).clip(RoundedCornerShape(FlareSizes.radiusSm)).background(Color.Black.copy(alpha = 0.42f)),
                     contentAlignment = Alignment.Center) {
                     Icon(flareIconVector("mic-off"), contentDescription = null, tint = Color.White, modifier = Modifier.size(12.dp))
                 }
             } else if (p.cameraOff && mode == FlareCallMode.Video) {
-                Box(Modifier.size(20.dp).clip(RoundedCornerShape(6.dp)).background(Color.Black.copy(alpha = 0.42f)),
+                Box(Modifier.size(20.dp).clip(RoundedCornerShape(FlareSizes.radiusSm)).background(Color.Black.copy(alpha = 0.42f)),
                     contentAlignment = Alignment.Center) {
                     Icon(flareIconVector("camera-off"), contentDescription = null, tint = Color.White, modifier = Modifier.size(12.dp))
                 }
             }
             Text(if (p.isSelf) flareStrings().selfSuffix(p.name) else p.name, color = Color.White, fontSize = 12.sp,
                 maxLines = 1, overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(Color.Black.copy(alpha = 0.42f))
-                    .padding(horizontal = 8.dp, vertical = 2.dp))
+                modifier = Modifier.clip(RoundedCornerShape(FlareSizes.radiusSm)).background(Color.Black.copy(alpha = 0.42f))
+                    .padding(horizontal = FlareSizes.spacingSm, vertical = 2.dp))
         }
     }
 }

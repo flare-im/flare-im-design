@@ -179,12 +179,24 @@ private fun RichRuns(
     )
 }
 
-/** The pack keys a document's emoji runs name, in the order they appear. */
+/**
+ * The pack keys a document names, in the order they appear: its emoji runs' keys and the `[key]` tokens its
+ * text runs carry (code excepted). Whether the catalog can draw a key is the caller's question.
+ */
 internal fun flareRichEmojiKeys(blocks: List<FlareRichBlock>): Set<String> = buildSet {
+    fun collect(runs: List<FlareRichRun>) {
+        for (run in runs) {
+            val key = run.emoji
+            when {
+                key != null -> if (key.isNotEmpty()) add(key)
+                !run.code && flareMayHoldEmojiTokens(run.text) -> flareInlineEmojiRuns(run.text) { true }.mapTo(this) { it.key }
+            }
+        }
+    }
     fun visit(list: List<FlareRichBlock>) {
         for (block in list) when (block) {
-            is FlareRichBlock.Paragraph -> block.runs.mapNotNullTo(this) { it.emoji?.takeIf(String::isNotEmpty) }
-            is FlareRichBlock.Heading -> block.runs.mapNotNullTo(this) { it.emoji?.takeIf(String::isNotEmpty) }
+            is FlareRichBlock.Paragraph -> collect(block.runs)
+            is FlareRichBlock.Heading -> collect(block.runs)
             is FlareRichBlock.Quote -> visit(block.blocks)
             is FlareRichBlock.ListBlock -> block.items.forEach(::visit)
             else -> Unit
@@ -243,16 +255,31 @@ internal fun flareRichRunsText(
                 background = paint.foreground.copy(alpha = 0.10f)))
         }
         if (run.mention != null && !paint.self) style = style.merge(SpanStyle(color = paint.mention))
+        // A text run's `[key]` emoji-pack tokens draw inline, as a plain text body's do: the core's Markdown
+        // normaliser stores the composer's token as literal text, not as an emoji run.
+        val tokens = if (run.code || paint.drawableEmoji.isEmpty() || !flareMayHoldEmojiTokens(run.text)) emptyList()
+        else flareInlineEmojiRuns(run.text) { it in paint.drawableEmoji }
         val url = run.link?.let(::safeExternalUrl)
         if (url == null) {
-            withStyle(style) { append(run.text) }
+            withStyle(style) { appendRunText(run.text, tokens) }
             continue
         }
         val linkStyle = style.merge(SpanStyle(color = paint.link, textDecoration = TextDecoration.Underline))
         if (onLinkTap != null) {
-            withLink(LinkAnnotation.Url(url, TextLinkStyles(linkStyle)) { onLinkTap(url) }) { append(run.text) }
+            withLink(LinkAnnotation.Url(url, TextLinkStyles(linkStyle)) { onLinkTap(url) }) { appendRunText(run.text, tokens) }
         } else {
-            withStyle(linkStyle) { append(run.text) }
+            withStyle(linkStyle) { appendRunText(run.text, tokens) }
         }
     }
+}
+
+/** [text] with each of its [tokens] drawn as inline emoji content; the token stays the alternate text. */
+private fun AnnotatedString.Builder.appendRunText(text: String, tokens: List<FlareInlineEmojiRun>) {
+    var cursor = 0
+    for (token in tokens) {
+        if (token.start > cursor) append(text.substring(cursor, token.start))
+        appendInlineContent(flareInlineEmojiId(token.key), text.substring(token.start, token.end))
+        cursor = token.end
+    }
+    if (cursor < text.length) append(text.substring(cursor))
 }

@@ -66,7 +66,7 @@ fun ScrollToLatest(count: Int = 0, onTap: (() -> Unit)? = null) {
                 .background(colors.bgPrimary)
                 .border(1.dp, colors.borderPrimary, RoundedCornerShape(999.dp))
                 .indication(interaction, LocalIndication.current)
-                .padding(start = if (hasCount) 12.dp else 8.dp, end = 6.dp, top = 6.dp, bottom = 6.dp),
+                .padding(start = if (hasCount) FlareSizes.spacingMd else FlareSizes.spacingSm, end = FlareSizes.spacing2xs, top = FlareSizes.spacing2xs, bottom = FlareSizes.spacing2xs),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (hasCount) {

@@ -10,12 +10,14 @@ export interface FlareComposerMediaPreviewItem {
 </script>
 
 <script setup lang="ts">
+// 发送前的附件确认 —— 走组件库自己的模态面(`presentation="auto"`):手机上是底部
+// 面板,指针设备上是居中弹窗。以前这里是一张写死的 naive 模态卡片,于是手机上也弹出
+// 一张桌面卡片;而且它不在共用的模态栈里,滚动锁和 Escape 的层序都各算各的。
 import { computed, ref, watch } from "vue";
-import { NModal } from "naive-ui";
+import FlareBottomSheet from "../general/FlareBottomSheet.vue";
 import FlareButton from "../general/FlareButton.vue";
 import FlareTextarea from "../form/FlareTextarea.vue";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
-import { useFlareNativeBack } from "../../shared/platform/useFlareNativeBack";
 const { t } = useFlareI18n();
 
 const props = defineProps<{
@@ -50,19 +52,11 @@ watch(
   },
 );
 
+// 发送中不放行:scrim、Escape、平台返回键都从 FlareBottomSheet 的 dismissible 走同一条路。
 function close(): void {
   if (props.loading) return;
   emit("update:show", false);
   emit("cancel");
-}
-useFlareNativeBack(() => props.show, close);
-
-function handleModalUpdate(open: boolean): void {
-  if (open) {
-    emit("update:show", true);
-    return;
-  }
-  close();
 }
 
 function submit(): void {
@@ -84,16 +78,13 @@ function formatBytes(value: number): string {
 </script>
 
 <template>
-  <n-modal
-    :show="show"
-    preset="card"
-    class="media-composer-preview"
-    :bordered="true"
-    :mask-closable="!loading"
-    :close-on-esc="!loading"
+  <FlareBottomSheet
+    :open="show"
     :title="t('composer.attachmentPreview')"
-    :closable="false"
-    @update:show="handleModalUpdate"
+    :dismissible="!loading"
+    max-height="calc(100dvh - 32px)"
+    dialog-width="min(720px, calc(100vw - 32px))"
+    @close="close"
   >
     <div class="media-composer-preview__body">
       <!-- 图片/视频:大预览 -->
@@ -166,29 +157,24 @@ function formatBytes(value: number): string {
       </label>
     </div>
 
-    <template #footer>
-      <div class="media-composer-preview__footer">
-        <FlareButton variant="secondary" :disabled="loading" @click="close">{{ t("common.cancel") }}</FlareButton>
-        <FlareButton :loading="loading" :disabled="!items.length" @click="submit">
-          {{ t("composer.send") }}
-        </FlareButton>
-      </div>
-    </template>
-  </n-modal>
+    <div class="media-composer-preview__footer">
+      <FlareButton variant="secondary" :disabled="loading" @click="close">{{ t("common.cancel") }}</FlareButton>
+      <FlareButton :loading="loading" :disabled="!items.length" @click="submit">
+        {{ t("composer.send") }}
+      </FlareButton>
+    </div>
+  </FlareBottomSheet>
 </template>
 
 <style scoped>
-.media-composer-preview {
-  width: min(720px, calc(100vw - 32px));
-  max-height: calc(100dvh - 32px);
-  border-radius: var(--flare-size-radius-lg);
-}
+/* 高度由面自己封顶(FlareBottomSheet 的 maxHeight),这里只负责在剩下的空间里滚。 */
 .media-composer-preview__body {
   display: grid;
   gap: var(--flare-size-spacing-md);
+  flex: 1 1 auto;
   min-width: 0;
-  max-height: calc(100dvh - 208px);
-  padding: 3px;
+  min-height: 0;
+  padding: 3px var(--flare-size-spacing-md);
   overflow: auto;
   overscroll-behavior: contain;
 }
@@ -297,8 +283,18 @@ function formatBytes(value: number): string {
 }
 .media-composer-preview__footer {
   display: flex;
-  justify-content: flex-end;
+  flex: none;
   gap: var(--flare-size-spacing-sm);
+  padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-md)
+    calc(var(--flare-size-spacing-sm) + env(safe-area-inset-bottom, 0px));
+}
+/* 手机上这排键是这张面的底,拇指够得着才行:平分整行。桌面收在末端。 */
+[data-flare-presentation="sheet"] .media-composer-preview__footer > * {
+  flex: 1;
+}
+[data-flare-presentation="dialog"] .media-composer-preview__footer,
+[data-flare-presentation="drawer"] .media-composer-preview__footer {
+  justify-content: flex-end;
 }
 /* The host decides where this mounts, so there is no container it is guaranteed to sit inside,
    and a named container query that matches nothing applies nothing. It is sized against the

@@ -18,7 +18,12 @@ describe("FlareFriendListContainer", () => {
         });
       },
     }));
-    const button = host.get(".flare-status-banner button");
+    // 一条都没有、而且是失败：这一屏上没有别的东西，所以失败本身就是这一屏的内容，
+    // 画的是完整空态而不是一条细横幅（改前更严重的状态反而只有一条带子）。
+    // 断言的行为没变：失败要给出一个真的能点、点了会重试的入口。
+    expect(host.find(".flare-empty").exists()).toBe(true);
+    expect(host.get(".flare-empty__title").text()).toBe("好友列表未能加载");
+    const button = host.get(".flare-empty__act");
     expect(button.text()).toBe("重试");
     await button.trigger("click");
     expect(retries).toBe(1);

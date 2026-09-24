@@ -10,7 +10,6 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Arrangement
@@ -47,8 +46,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -290,7 +287,7 @@ fun Composer(
         val m = ComposerMetrics.of(maxWidth, keys = 6 + if (enableVoice && onVoiceSend != null) 1 else 0)
         Column(
             Modifier.fillMaxWidth().background(if (m.band) colors.bgSecondary else colors.bgPrimary)
-                .then(if (m.band) Modifier.padding(bottom = 4.dp) else Modifier.padding(horizontal = 4.dp, vertical = 8.dp))
+                .then(if (m.band) Modifier.padding(bottom = FlareSizes.spacingXs) else Modifier.padding(horizontal = FlareSizes.spacingXs, vertical = FlareSizes.spacingSm))
         ) {
             replyTo?.let { ReplyStrip(it, replyLabel, strings.cancelReply, colors, onCancelReply, m.band) }
             if (voiceMode && onVoiceSend != null) {
@@ -298,12 +295,12 @@ fun Composer(
             } else {
                 Column(
                     Modifier.fillMaxWidth().background(colors.bgPrimary)
-                        .then(if (m.band) Modifier else Modifier.border(1.dp, colors.borderPrimary, RoundedCornerShape(12.dp)))
+                        .then(if (m.band) Modifier else Modifier.border(1.dp, colors.borderPrimary, RoundedCornerShape(FlareSizes.radiusCard)))
                 ) {
                     if (!panelOpen) {
                         if (richMode) Row(Modifier.fillMaxWidth().height(m.stripKeyHeight).horizontalScroll(rememberScrollState()).padding(horizontal = m.stripInset)) {
                             val styles = listOf("bold" to Icons.Outlined.FormatBold, "italic" to Icons.Outlined.FormatItalic, "strike" to Icons.Outlined.FormatStrikethrough, "code" to Icons.Outlined.Code, "link" to Icons.Outlined.Link, "heading" to Icons.Outlined.Title, "quote" to Icons.Outlined.FormatQuote, "bullet" to Icons.AutoMirrored.Outlined.FormatListBulleted, "ordered" to Icons.Outlined.FormatListNumbered)
-                            styles.forEach { (id, icon) -> val name = composerFormatName(id, strings); IconButton(onClick = { val blocks = setOf("heading", "quote", "bullet", "ordered"); formats = if (id in formats) formats - id else (if (id in blocks) formats - blocks else formats) + id }, enabled = !disabled, modifier = Modifier.size(m.stripKeyWidth, m.stripKeyHeight)) { Icon(icon, name, Modifier.size(14.dp), tint = if (id in formats) colors.primaryText else colors.textSecondary) } }
+                            styles.forEach { (id, icon) -> val name = composerFormatName(id, strings); IconButton(onClick = { val blocks = setOf("heading", "quote", "bullet", "ordered"); formats = if (id in formats) formats - id else (if (id in blocks) formats - blocks else formats) + id }, enabled = !disabled, modifier = Modifier.size(m.stripKeyWidth, m.stripKeyHeight)) { Icon(icon, name, Modifier.size(FlareSizes.spacing2md), tint = if (id in formats) colors.primaryText else colors.textSecondary) } }
                         }
                         // The row is the top of the same band; a hairline is all
                         // that separates it from the text it formats.
@@ -313,15 +310,20 @@ fun Composer(
                             // text sits in the middle of it without the field
                             // growing into a panel of its own.
                             Box(Modifier.weight(1f).padding(start = m.textStart, top = m.textTop, bottom = m.textBottom)) {
-                                BasicTextField(value = text, onValueChange = {
+                                FlareComposerEmojiEditText(value = text, onValueChange = {
                                     val next = composerTextWithinLimit(it, maxLength)
                                     val typedAt = if (mentionCandidates.isEmpty() || richMode) null else composerTypedMentionAt(text, next)
                                     updateText(next)
                                     if (typedAt != null) mentionTrigger = ComposerMentionTrigger(typedAt)
                                 }, enabled = !disabled,
-                                    minLines = if (expanded) 9 else 1, maxLines = if (expanded) 14 else 5,
-                                    textStyle = TextStyle(color = if ("link" in formats) colors.primaryText else colors.textPrimary, fontSize = 15.sp, fontWeight = if ("bold" in formats) FontWeight.Bold else FontWeight.Normal, fontStyle = if ("italic" in formats) FontStyle.Italic else FontStyle.Normal, textDecoration = if ("strike" in formats) TextDecoration.LineThrough else if ("link" in formats) TextDecoration.Underline else TextDecoration.None), cursorBrush = SolidColor(colors.primaryText),
-                                    modifier = Modifier.fillMaxWidth(), decorationBox = { inner -> Box { if (text.isEmpty()) Text(placeholder, color = colors.textTertiary, fontSize = 15.sp); inner() } })
+                                    placeholder = placeholder,
+                                    expanded = expanded,
+                                    textColor = if ("link" in formats) colors.primaryText else colors.textPrimary,
+                                    hintColor = colors.textTertiary,
+                                    fontWeight = if ("bold" in formats) FontWeight.Bold else FontWeight.Normal,
+                                    fontStyle = if ("italic" in formats) FontStyle.Italic else FontStyle.Normal,
+                                    textDecoration = if ("strike" in formats) TextDecoration.LineThrough else if ("link" in formats) TextDecoration.Underline else TextDecoration.None,
+                                    modifier = Modifier.fillMaxWidth())
                             }
                             tool(composerExpandKey(strings, disabled, expanded)) { expanded = !expanded }
                         }

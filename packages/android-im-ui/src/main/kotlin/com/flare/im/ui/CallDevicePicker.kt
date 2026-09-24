@@ -18,7 +18,7 @@ data class FlareCallDeviceGroup(val kind:FlareCallDeviceKind,val label:String,va
 fun CallDevicePicker(groups:List<FlareCallDeviceGroup>,permission:FlareCapabilityState,permissionText:String,actionText:String?=null,placeholder:String?=null,onSelect:((FlareCallDeviceKind,String)->Unit)?=null,onPermissionAction:(()->Unit)?=null) {
     val strings = flareStrings()
     val placeholder = placeholder ?: strings.selectDevice
-    Column(verticalArrangement=Arrangement.spacedBy(12.dp)) {
+    Column(verticalArrangement=Arrangement.spacedBy(FlareSizes.spacingMd)) {
         CapabilityBoundary(state=permission,text=permissionText,actionText=actionText,onAction=onPermissionAction){Text(permissionText)}
         groups.forEach { group -> key(group.kind) {
             val devices=group.uniqueDevices

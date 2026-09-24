@@ -52,7 +52,7 @@ class FlareAvatar extends StatelessWidget {
     // Seed by the stable display name (not the id, which varies by surface — peer
     // id vs conversation id vs sender id) so a person is one colour everywhere:
     // list, chat header, message bubbles.
-    final tint = _seedTint(displayName.isNotEmpty ? displayName : userId);
+    final tint = seedTint(displayName.isNotEmpty ? displayName : userId, FlareColors.of(context));
     final avatar = Container(
       width: size,
       height: size,
@@ -142,14 +142,17 @@ class FlareAvatar extends StatelessWidget {
   /// Soft pastel identity — matches the reference app (avatarPastelForKey): a
   /// tinted surface + dark initials reads more premium than a saturated solid
   /// and stays legible in both themes. Returns (background, foreground).
-  static (Color, Color) _seedTint(String seed) {
-    const pairs = <(Color, Color)>[
-      (Color(0xFFDBEAFE), Color(0xFF1D4ED8)), // blue
-      (Color(0xFFE9D5FF), Color(0xFF6D28D9)), // purple
-      (Color(0xFFFBCFE8), Color(0xFFBE185D)), // pink
-      (Color(0xFFD1FAE5), Color(0xFF047857)), // green
-      (Color(0xFFFEF3C7), Color(0xFFB45309)), // amber
-      (Color(0xFFE5E7EB), Color(0xFF374151)), // slate
+  /// 身份色板来自 token 真源(`colors.avatarTint.*`),四端同值**并且有暗色**。
+  /// 原来是六组写死的浅色:暗色下头像会当作一块浅色马卡龙糊在深色表面上。
+  /// 顺序是契约的一部分(按种子哈希取模选色),按真源里的插入序。
+  static (Color, Color) seedTint(String seed, FlareColors colors) {
+    final pairs = <(Color, Color)>[
+      (colors.avatarTintBlueBg, colors.avatarTintBlueFg),
+      (colors.avatarTintPurpleBg, colors.avatarTintPurpleFg),
+      (colors.avatarTintPinkBg, colors.avatarTintPinkFg),
+      (colors.avatarTintGreenBg, colors.avatarTintGreenFg),
+      (colors.avatarTintAmberBg, colors.avatarTintAmberFg),
+      (colors.avatarTintSlateBg, colors.avatarTintSlateFg),
     ];
     var hash = 0;
     for (final code in seed.codeUnits) {

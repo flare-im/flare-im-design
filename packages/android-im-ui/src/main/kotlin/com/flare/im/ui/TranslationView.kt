@@ -48,13 +48,13 @@ fun TranslationView(
         animationSpec = infiniteRepeatable(tween(900, easing = LinearEasing), RepeatMode.Restart),
         label = "spin",
     )
-    Row(Modifier.padding(top = 4.dp).height(IntrinsicSize.Min)) {
+    Row(Modifier.padding(top = FlareSizes.spacingXs).height(IntrinsicSize.Min)) {
         Box(Modifier.width(2.dp).fillMaxHeight().background(colors.primary.copy(alpha = 0.4f)))
-        Column(Modifier.padding(start = 10.dp)) {
+        Column(Modifier.padding(start = FlareSizes.spacing2sm)) {
             if (pending) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(flareIconVector("translate"), contentDescription = null, tint = colors.textTertiary,
-                        modifier = Modifier.size(14.dp).rotate(angle))
+                        modifier = Modifier.size(FlareSizes.spacing2md).rotate(angle))
                     Spacer(Modifier.width(6.dp))
                     Text(flareStrings().translating, color = colors.textTertiary, fontSize = 13.sp)
                 }
@@ -81,8 +81,8 @@ fun TranslationView(
                     }
                 }
                 if (original != null && showOriginal) {
-                    Box(Modifier.fillMaxWidth().padding(top = 6.dp).height(1.dp).background(colors.borderPrimary))
-                    Text(original, color = colors.textSecondary, fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp))
+                    Box(Modifier.fillMaxWidth().padding(top = FlareSizes.spacing2xs).height(1.dp).background(colors.borderPrimary))
+                    Text(original, color = colors.textSecondary, fontSize = 13.sp, modifier = Modifier.padding(top = FlareSizes.spacing2xs))
                 }
             }
         }

@@ -199,7 +199,7 @@ function openMoreMenu(): void {
   align-items: center;
   gap: 2px;
   padding: 6px;
-  border-radius: 12px;
+  border-radius: var(--flare-size-radius-card);
   background: var(--flare-color-bg-primary);
   border: 1px solid var(--flare-color-border-secondary);
   box-shadow: var(--flare-component-shadow-floating);

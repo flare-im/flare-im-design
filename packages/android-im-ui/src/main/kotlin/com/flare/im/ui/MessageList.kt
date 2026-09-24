@@ -685,7 +685,7 @@ fun MessageList(
                                 Box(swipe.then(if (longPress && actionable) Modifier.combinedClickable(onClick = {}, onLongClick = { onMessageLongPress?.invoke(msg) }) else Modifier)) {
                                     if (swipeable) Box(
                                         Modifier.align(Alignment.CenterStart)
-                                            .padding(horizontal = 12.dp)
+                                            .padding(horizontal = FlareSizes.spacingMd)
                                             // Full strength exactly at the arming distance: the reader sees
                                             // that one more millimetre replies before letting go.
                                             .alpha((travel / SWIPE_REPLY_ARM_DISTANCE).coerceIn(0f, 1f)),

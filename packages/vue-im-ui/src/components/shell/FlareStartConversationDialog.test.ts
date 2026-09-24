@@ -1,6 +1,5 @@
 // @vitest-environment happy-dom
 import { mount } from "@vue/test-utils";
-import { NModal } from "naive-ui";
 import { defineComponent, h, type Component } from "vue";
 import { afterEach, describe, expect, it } from "vitest";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
@@ -25,18 +24,21 @@ function mountDialog(props: Record<string, unknown>, bottomSheet?: boolean) {
 }
 
 describe("FlareStartConversationDialog", () => {
-  it("renders a centered modal where the platform has no bottom sheet", () => {
-    const dialog = mountDialog({ open: true, peerUserId: "u2" }, false);
-    expect(dialog.findComponent(NModal).exists()).toBe(true);
-    expect(document.body.querySelector(".flare-sheet")).toBeNull();
+  // 一张面两种出场:桌面这边也走组件库自己的弹窗,不再是 naive 的 NModal —— 于是
+  // 滚动锁、Escape 的层序、传送目标两边同一套。
+  it("renders the kit's centered dialog where the platform has no bottom sheet", () => {
+    mountDialog({ open: true, peerUserId: "u2" }, false);
+    const surface = document.body.querySelector(".flare-sheet");
+    expect(surface).not.toBeNull();
+    expect((surface as HTMLElement).dataset.flarePresentation).toBe("dialog");
   });
 
   it("renders the same form as a bottom sheet where the platform says so", async () => {
     const dialog = mountDialog({ open: true, peerUserId: "u2" }, true);
-    expect(dialog.findComponent(NModal).exists()).toBe(false);
     const sheet = document.body.querySelector(".flare-sheet");
     expect(sheet).not.toBeNull();
-    expect(sheet!.querySelector("[data-flare-sheet='true']")).not.toBeNull();
+    expect((sheet as HTMLElement).dataset.flarePresentation).toBe("sheet");
+    expect(sheet!.querySelector(".start-dialog-form")).not.toBeNull();
     const confirm = [...sheet!.querySelectorAll("button")].at(-1)!;
     confirm.click();
     expect(dialog.emitted("confirm")).toHaveLength(1);

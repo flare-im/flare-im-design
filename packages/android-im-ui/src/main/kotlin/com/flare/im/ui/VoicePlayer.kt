@@ -60,17 +60,17 @@ fun VoicePlayer(
     val samples = if (amplitudes.isNotEmpty()) amplitudes else List(n) { 0.25 + 0.6 * abs(sin(it * 0.6)) }
     val bars = List(n) { samples[it % samples.size] }
     val filled = (progress.coerceIn(0.0, 1.0) * n).roundToInt()
-    val shape = if (outbound) RoundedCornerShape(16.dp, 16.dp, 4.dp, 16.dp) else RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp)
+    val shape = if (outbound) RoundedCornerShape(FlareSizes.radiusBubble, FlareSizes.radiusBubble, 4.dp, FlareSizes.radiusBubble) else RoundedCornerShape(FlareSizes.radiusBubble, FlareSizes.radiusBubble, FlareSizes.radiusBubble, 4.dp)
     val speedText = if (speed % 1.0 == 0.0) "${speed.toInt()}×" else "${(speed * 10).roundToInt() / 10.0}×"
 
     Column(
         Modifier.clip(shape)
             .background(if (outbound) colors.bgSelected else colors.bgPrimary)
             .border(1.dp, if (outbound) colors.primary.copy(alpha = 0.24f) else colors.borderPrimary, shape)
-            .padding(horizontal = 12.dp, vertical = 10.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+            .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacing2sm),
+        verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2sm)) {
             // Named for what a tap does next: pause while playing, play otherwise. The 36 dp disc keeps its
             // place in the row; its 48 dp target reaches into the bubble's padding and the gap beside it.
             val toggleLabel = if (playing) flareStrings().pause else flareStrings().play
@@ -113,7 +113,7 @@ fun VoicePlayer(
             Text(speedText, color = colors.textSecondary, fontWeight = FontWeight.SemiBold, fontSize = 11.sp,
                 modifier = Modifier.clip(RoundedCornerShape(999.dp)).background(colors.bgSecondary)
                     .border(1.dp, colors.borderPrimary, RoundedCornerShape(999.dp))
-                    .clickable { onCycleSpeed?.invoke() }.padding(horizontal = 8.dp, vertical = 2.dp))
+                    .clickable { onCycleSpeed?.invoke() }.padding(horizontal = FlareSizes.spacingSm, vertical = 2.dp))
         }
         if (transcript != null) {
             Row(

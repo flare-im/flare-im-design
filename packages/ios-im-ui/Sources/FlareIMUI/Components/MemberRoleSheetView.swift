@@ -318,7 +318,7 @@ public struct MemberRoleSheetView: View {
     private func row(_ entry: FlareMemberRoleActionEntry, colors: FlareColors) -> some View {
         let enabled = !busy && onAction != nil
         let accent = entry.danger ? colors.error : colors.primary
-        let fg = enabled ? (entry.danger ? colors.error : colors.textPrimary) : colors.textDisabled
+        let fg = enabled ? (entry.danger ? colors.errorText : colors.textPrimary) : colors.textDisabled
         let iconFg = enabled ? accent : colors.textDisabled
         let iconBg = enabled ? accent.opacity(entry.danger ? 0.12 : 0.10) : colors.bgDisabled
         let expandable = entry.action == .mute

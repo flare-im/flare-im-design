@@ -4,7 +4,7 @@
  * that same meaning takes as text (`primaryText`, `errorText`, …). The pair exists because a fill that reads
  * well as a block of colour does not read well as 12px type — and in dark mode the two diverge completely:
  * the brand fill is #7047D6 in both themes, which is 2.66:1 on the dark page, while `primaryText` lightens
- * to #A78BFA and reads at 5.77:1.
+ * to #C4B5FD and reads at 8.5:1.
  *
  * Using the wrong one of the pair is invisible on this repository's usual paths: it type-checks, it renders,
  * and until Round 6 the accessibility sweep only ever scanned light mode. So this gate reads the two
@@ -70,14 +70,40 @@ function scan(files, rules) {
  * expression — `color = if (draft) colors.primaryText else colors.error` — walks past it, which is exactly
  * how one was found while this gate was being reverse-validated. So every line that paints a foreground is
  * read as well: if it names a fill anywhere, it is reported.
+ *
+ * 「涂色的那一行」还不够。前景色常常先落进一个**变量**,过二十行才画出去 —— ghost / text 按钮
+ * 在 iOS / Compose / Flutter 上同时用了 `colors.primary` 当文字色(暗色下 2.66:1,AA 正文要 4.5),
+ * 三处都从这里溜过去了:Swift 写在 `private func fg(...) -> Color` 的 `return` 里、Kotlin 装进
+ * 一个 `Triple` 再解构成 `fg`、Dart 赋给局部 `foreground`。所以「名字就说明自己是前景色」的
+ * 变量,赋值与 return 也当作涂色点。
  */
+/** 名字就说明自己是前景色的变量:赋给它、或从这样命名的函数里 return,都算一次涂色。 */
+const FOREGROUND_SLOTS = ["fg", "foreground", "textColor", "labelColor", "contentColor", "tintColor"];
+const FOREGROUND_ASSIGN = FOREGROUND_SLOTS.map((n) => new RegExp(`\\b${n}\\b\\s*[=:]`));
+const FOREGROUND_DECL = new RegExp(`\\b(?:func|let|var|val)\\s+(?:${FOREGROUND_SLOTS.join("|")})\\b`, "i");
+/**
+ * `return colors.X` 只有在外层声明「自己就是前景色」时才算涂色 —— 否则一个
+ * `let badge: Color = { ... return colors.error }` 也会被当成文字色报出来,而它画的是底。
+ * 判据向上找最近的声明行,窗口 12 行足够盖住一个 switch 或 when。
+ */
+function returnsForeground(lines, index) {
+  if (!/\breturn\s+colors\./.test(lines[index])) return false;
+  for (let i = index; i >= Math.max(0, index - 12); i -= 1) if (FOREGROUND_DECL.test(lines[i])) return true;
+  return false;
+}
+
 function scanLines(files, markers, message) {
   const fill = new RegExp(`colors\\.(${group})(?!Text)\\b`);
   for (const file of files) {
     const text = readFileSync(file, "utf8");
     let offset = 0;
-    for (const line of text.split("\n")) {
-      if (markers.some((marker) => line.includes(marker))) {
+    const lines = text.split("\n");
+    for (let lineNo = 0; lineNo < lines.length; lineNo += 1) {
+      const line = lines[lineNo];
+      const paints = markers.some((marker) => line.includes(marker))
+        || FOREGROUND_ASSIGN.some((re) => re.test(line))
+        || returnsForeground(lines, lineNo);
+      if (paints) {
         const found = line.match(fill);
         if (found) report(file, offset + found.index, text, message(found));
       }

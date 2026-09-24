@@ -116,6 +116,21 @@ final class RichTextMessageViewTests: XCTestCase {
         XCTAssertEqual(RichTextMessageView.linkTap(URL(string: "file:///etc/passwd")!, hostHandles: false), .link(.ignored))
     }
 
+    // The core's Markdown normaliser stores the composer's `[key]` as literal text, not as an emoji run; a rich
+    // body reads the token as a plain text body does. Unknown keys, code and covered spoilers stay words.
+    func testEmojiPackTokensInATextRunDrawInline() {
+        let known: (String) -> Bool = { $0 == "angry_face" || $0 == "alien" }
+        XCTAssertEqual(RichTextMessageView.inlineEmojiParts(FlareRichRun("[angry_face][alien] 高峰 [not_a_key]", marks: [.bold]),
+                                                            revealed: false, isKnown: known),
+                       [.emoji(key: "angry_face"), .emoji(key: "alien"), .text(" 高峰 [not_a_key]")])
+        XCTAssertNil(RichTextMessageView.inlineEmojiParts(FlareRichRun("[not_a_key]"), revealed: false, isKnown: known))
+        XCTAssertNil(RichTextMessageView.inlineEmojiParts(FlareRichRun("[alien]", code: true), revealed: false, isKnown: known))
+        XCTAssertNil(RichTextMessageView.inlineEmojiParts(FlareRichRun("[alien]", emoji: "alien"), revealed: false, isKnown: known))
+        let spoiler = FlareRichRun("[alien]", marks: [.spoiler])
+        XCTAssertNil(RichTextMessageView.inlineEmojiParts(spoiler, revealed: false, isKnown: known))
+        XCTAssertEqual(RichTextMessageView.inlineEmojiParts(spoiler, revealed: true, isKnown: known), [.emoji(key: "alien")])
+    }
+
     func testMarksAndMentionsTakeTheirLook() {
         let bold = RichTextMessageView.attributed(FlareRichRun("结论", marks: [.bold, .strike]), paint: paint, size: 15, weight: .regular)
         XCTAssertEqual(bold.runs.first?.strikethroughStyle, .single)

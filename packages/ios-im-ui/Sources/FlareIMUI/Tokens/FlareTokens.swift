@@ -131,6 +131,18 @@ public struct FlareColors: Sendable {
     public let textTertiary: Color
     public let warning: Color
     public let warningText: Color
+    public let avatarTintBlueBg: Color
+    public let avatarTintBlueFg: Color
+    public let avatarTintPurpleBg: Color
+    public let avatarTintPurpleFg: Color
+    public let avatarTintPinkBg: Color
+    public let avatarTintPinkFg: Color
+    public let avatarTintGreenBg: Color
+    public let avatarTintGreenFg: Color
+    public let avatarTintAmberBg: Color
+    public let avatarTintAmberFg: Color
+    public let avatarTintSlateBg: Color
+    public let avatarTintSlateFg: Color
 
     public init(
         bgDisabled: Color,
@@ -188,7 +200,19 @@ public struct FlareColors: Sendable {
         textSecondary: Color,
         textTertiary: Color,
         warning: Color,
-        warningText: Color
+        warningText: Color,
+        avatarTintBlueBg: Color,
+        avatarTintBlueFg: Color,
+        avatarTintPurpleBg: Color,
+        avatarTintPurpleFg: Color,
+        avatarTintPinkBg: Color,
+        avatarTintPinkFg: Color,
+        avatarTintGreenBg: Color,
+        avatarTintGreenFg: Color,
+        avatarTintAmberBg: Color,
+        avatarTintAmberFg: Color,
+        avatarTintSlateBg: Color,
+        avatarTintSlateFg: Color
     ) {
         self.bgDisabled = bgDisabled
         self.bgElevated = bgElevated
@@ -246,6 +270,18 @@ public struct FlareColors: Sendable {
         self.textTertiary = textTertiary
         self.warning = warning
         self.warningText = warningText
+        self.avatarTintBlueBg = avatarTintBlueBg
+        self.avatarTintBlueFg = avatarTintBlueFg
+        self.avatarTintPurpleBg = avatarTintPurpleBg
+        self.avatarTintPurpleFg = avatarTintPurpleFg
+        self.avatarTintPinkBg = avatarTintPinkBg
+        self.avatarTintPinkFg = avatarTintPinkFg
+        self.avatarTintGreenBg = avatarTintGreenBg
+        self.avatarTintGreenFg = avatarTintGreenFg
+        self.avatarTintAmberBg = avatarTintAmberBg
+        self.avatarTintAmberFg = avatarTintAmberFg
+        self.avatarTintSlateBg = avatarTintSlateBg
+        self.avatarTintSlateFg = avatarTintSlateFg
     }
 
     public func copy(
@@ -304,7 +340,19 @@ public struct FlareColors: Sendable {
         textSecondary: Color? = nil,
         textTertiary: Color? = nil,
         warning: Color? = nil,
-        warningText: Color? = nil
+        warningText: Color? = nil,
+        avatarTintBlueBg: Color? = nil,
+        avatarTintBlueFg: Color? = nil,
+        avatarTintPurpleBg: Color? = nil,
+        avatarTintPurpleFg: Color? = nil,
+        avatarTintPinkBg: Color? = nil,
+        avatarTintPinkFg: Color? = nil,
+        avatarTintGreenBg: Color? = nil,
+        avatarTintGreenFg: Color? = nil,
+        avatarTintAmberBg: Color? = nil,
+        avatarTintAmberFg: Color? = nil,
+        avatarTintSlateBg: Color? = nil,
+        avatarTintSlateFg: Color? = nil
     ) -> FlareColors {
         FlareColors(
             bgDisabled: bgDisabled ?? self.bgDisabled,
@@ -362,7 +410,19 @@ public struct FlareColors: Sendable {
             textSecondary: textSecondary ?? self.textSecondary,
             textTertiary: textTertiary ?? self.textTertiary,
             warning: warning ?? self.warning,
-            warningText: warningText ?? self.warningText
+            warningText: warningText ?? self.warningText,
+            avatarTintBlueBg: avatarTintBlueBg ?? self.avatarTintBlueBg,
+            avatarTintBlueFg: avatarTintBlueFg ?? self.avatarTintBlueFg,
+            avatarTintPurpleBg: avatarTintPurpleBg ?? self.avatarTintPurpleBg,
+            avatarTintPurpleFg: avatarTintPurpleFg ?? self.avatarTintPurpleFg,
+            avatarTintPinkBg: avatarTintPinkBg ?? self.avatarTintPinkBg,
+            avatarTintPinkFg: avatarTintPinkFg ?? self.avatarTintPinkFg,
+            avatarTintGreenBg: avatarTintGreenBg ?? self.avatarTintGreenBg,
+            avatarTintGreenFg: avatarTintGreenFg ?? self.avatarTintGreenFg,
+            avatarTintAmberBg: avatarTintAmberBg ?? self.avatarTintAmberBg,
+            avatarTintAmberFg: avatarTintAmberFg ?? self.avatarTintAmberFg,
+            avatarTintSlateBg: avatarTintSlateBg ?? self.avatarTintSlateBg,
+            avatarTintSlateFg: avatarTintSlateFg ?? self.avatarTintSlateFg
         )
     }
 
@@ -378,7 +438,7 @@ public struct FlareColors: Sendable {
         borderPrimary: Color(.sRGB, red: 0.8902, green: 0.8980, blue: 0.9216, opacity: 1.0),
         borderSecondary: Color(.sRGB, red: 0.9255, green: 0.9333, blue: 0.9490, opacity: 1.0),
         borderSelected: Color(.sRGB, red: 0.4863, green: 0.2275, blue: 0.9294, opacity: 1.0),
-        messageIncomingBackground: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        messageIncomingBackground: Color(.sRGB, red: 0.9451, green: 0.9490, blue: 0.9608, opacity: 1.0),
         messageIncomingForeground: Color(.sRGB, red: 0.1255, green: 0.1373, blue: 0.1765, opacity: 1.0),
         messageIncomingBorder: Color(.sRGB, red: 0.8902, green: 0.8980, blue: 0.9216, opacity: 1.0),
         messageOutgoingBackground: Color(.sRGB, red: 0.4275, green: 0.1569, blue: 0.8510, opacity: 1.0),
@@ -422,7 +482,19 @@ public struct FlareColors: Sendable {
         textSecondary: Color(.sRGB, red: 0.3608, green: 0.3882, blue: 0.4431, opacity: 1.0),
         textTertiary: Color(.sRGB, red: 0.3725, green: 0.4039, blue: 0.4627, opacity: 1.0),
         warning: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
-        warningText: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0)
+        warningText: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
+        avatarTintBlueBg: Color(.sRGB, red: 0.8588, green: 0.9176, blue: 0.9961, opacity: 1.0),
+        avatarTintBlueFg: Color(.sRGB, red: 0.1137, green: 0.3059, blue: 0.8471, opacity: 1.0),
+        avatarTintPurpleBg: Color(.sRGB, red: 0.9137, green: 0.8353, blue: 1.0000, opacity: 1.0),
+        avatarTintPurpleFg: Color(.sRGB, red: 0.4275, green: 0.1569, blue: 0.8510, opacity: 1.0),
+        avatarTintPinkBg: Color(.sRGB, red: 0.9843, green: 0.8118, blue: 0.9098, opacity: 1.0),
+        avatarTintPinkFg: Color(.sRGB, red: 0.6157, green: 0.0902, blue: 0.3020, opacity: 1.0),
+        avatarTintGreenBg: Color(.sRGB, red: 0.8196, green: 0.9804, blue: 0.8980, opacity: 1.0),
+        avatarTintGreenFg: Color(.sRGB, red: 0.0157, green: 0.4706, blue: 0.3412, opacity: 1.0),
+        avatarTintAmberBg: Color(.sRGB, red: 0.9961, green: 0.9529, blue: 0.7804, opacity: 1.0),
+        avatarTintAmberFg: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
+        avatarTintSlateBg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0),
+        avatarTintSlateFg: Color(.sRGB, red: 0.2157, green: 0.2549, blue: 0.3176, opacity: 1.0)
     )
 
     public static let violetDark = FlareColors(
@@ -437,7 +509,7 @@ public struct FlareColors: Sendable {
         borderPrimary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.1000),
         borderSecondary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.0800),
         borderSelected: Color(.sRGB, red: 0.6549, green: 0.5451, blue: 0.9804, opacity: 1.0),
-        messageIncomingBackground: Color(.sRGB, red: 0.1255, green: 0.1373, blue: 0.1686, opacity: 1.0),
+        messageIncomingBackground: Color(.sRGB, red: 0.1608, green: 0.1765, blue: 0.2157, opacity: 1.0),
         messageIncomingForeground: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9400),
         messageIncomingBorder: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.1000),
         messageOutgoingBackground: Color(.sRGB, red: 0.3569, green: 0.1294, blue: 0.7137, opacity: 1.0),
@@ -481,7 +553,19 @@ public struct FlareColors: Sendable {
         textSecondary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.6200),
         textTertiary: Color(.sRGB, red: 0.6039, green: 0.6392, blue: 0.7020, opacity: 1.0),
         warning: Color(.sRGB, red: 0.6314, green: 0.3843, blue: 0.0275, opacity: 1.0),
-        warningText: Color(.sRGB, red: 0.9843, green: 0.7490, blue: 0.1412, opacity: 1.0)
+        warningText: Color(.sRGB, red: 0.9843, green: 0.7490, blue: 0.1412, opacity: 1.0),
+        avatarTintBlueBg: Color(.sRGB, red: 0.1216, green: 0.1961, blue: 0.4000, opacity: 1.0),
+        avatarTintBlueFg: Color(.sRGB, red: 0.7490, green: 0.8588, blue: 0.9961, opacity: 1.0),
+        avatarTintPurpleBg: Color(.sRGB, red: 0.2275, green: 0.1451, blue: 0.4000, opacity: 1.0),
+        avatarTintPurpleFg: Color(.sRGB, red: 0.8667, green: 0.8392, blue: 0.9961, opacity: 1.0),
+        avatarTintPinkBg: Color(.sRGB, red: 0.3608, green: 0.1216, blue: 0.2431, opacity: 1.0),
+        avatarTintPinkFg: Color(.sRGB, red: 0.9843, green: 0.8118, blue: 0.9098, opacity: 1.0),
+        avatarTintGreenBg: Color(.sRGB, red: 0.0824, green: 0.2627, blue: 0.2353, opacity: 1.0),
+        avatarTintGreenFg: Color(.sRGB, red: 0.6549, green: 0.9529, blue: 0.8157, opacity: 1.0),
+        avatarTintAmberBg: Color(.sRGB, red: 0.3451, green: 0.2078, blue: 0.1176, opacity: 1.0),
+        avatarTintAmberFg: Color(.sRGB, red: 0.9922, green: 0.9020, blue: 0.5412, opacity: 1.0),
+        avatarTintSlateBg: Color(.sRGB, red: 0.1569, green: 0.1765, blue: 0.2196, opacity: 1.0),
+        avatarTintSlateFg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0)
     )
 
     public static let oceanLight = FlareColors(
@@ -496,7 +580,7 @@ public struct FlareColors: Sendable {
         borderPrimary: Color(.sRGB, red: 0.8902, green: 0.8980, blue: 0.9216, opacity: 1.0),
         borderSecondary: Color(.sRGB, red: 0.9255, green: 0.9333, blue: 0.9490, opacity: 1.0),
         borderSelected: Color(.sRGB, red: 0.1451, green: 0.3882, blue: 0.9216, opacity: 1.0),
-        messageIncomingBackground: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        messageIncomingBackground: Color(.sRGB, red: 0.9451, green: 0.9490, blue: 0.9608, opacity: 1.0),
         messageIncomingForeground: Color(.sRGB, red: 0.1255, green: 0.1373, blue: 0.1765, opacity: 1.0),
         messageIncomingBorder: Color(.sRGB, red: 0.8902, green: 0.8980, blue: 0.9216, opacity: 1.0),
         messageOutgoingBackground: Color(.sRGB, red: 0.1137, green: 0.3059, blue: 0.8471, opacity: 1.0),
@@ -540,7 +624,19 @@ public struct FlareColors: Sendable {
         textSecondary: Color(.sRGB, red: 0.3608, green: 0.3882, blue: 0.4431, opacity: 1.0),
         textTertiary: Color(.sRGB, red: 0.3725, green: 0.4039, blue: 0.4627, opacity: 1.0),
         warning: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
-        warningText: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0)
+        warningText: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
+        avatarTintBlueBg: Color(.sRGB, red: 0.8588, green: 0.9176, blue: 0.9961, opacity: 1.0),
+        avatarTintBlueFg: Color(.sRGB, red: 0.1137, green: 0.3059, blue: 0.8471, opacity: 1.0),
+        avatarTintPurpleBg: Color(.sRGB, red: 0.9137, green: 0.8353, blue: 1.0000, opacity: 1.0),
+        avatarTintPurpleFg: Color(.sRGB, red: 0.4275, green: 0.1569, blue: 0.8510, opacity: 1.0),
+        avatarTintPinkBg: Color(.sRGB, red: 0.9843, green: 0.8118, blue: 0.9098, opacity: 1.0),
+        avatarTintPinkFg: Color(.sRGB, red: 0.6157, green: 0.0902, blue: 0.3020, opacity: 1.0),
+        avatarTintGreenBg: Color(.sRGB, red: 0.8196, green: 0.9804, blue: 0.8980, opacity: 1.0),
+        avatarTintGreenFg: Color(.sRGB, red: 0.0157, green: 0.4706, blue: 0.3412, opacity: 1.0),
+        avatarTintAmberBg: Color(.sRGB, red: 0.9961, green: 0.9529, blue: 0.7804, opacity: 1.0),
+        avatarTintAmberFg: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
+        avatarTintSlateBg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0),
+        avatarTintSlateFg: Color(.sRGB, red: 0.2157, green: 0.2549, blue: 0.3176, opacity: 1.0)
     )
 
     public static let oceanDark = FlareColors(
@@ -555,7 +651,7 @@ public struct FlareColors: Sendable {
         borderPrimary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.1000),
         borderSecondary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.0800),
         borderSelected: Color(.sRGB, red: 0.3765, green: 0.6471, blue: 0.9804, opacity: 1.0),
-        messageIncomingBackground: Color(.sRGB, red: 0.1255, green: 0.1373, blue: 0.1686, opacity: 1.0),
+        messageIncomingBackground: Color(.sRGB, red: 0.1608, green: 0.1765, blue: 0.2157, opacity: 1.0),
         messageIncomingForeground: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9400),
         messageIncomingBorder: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.1000),
         messageOutgoingBackground: Color(.sRGB, red: 0.1176, green: 0.2510, blue: 0.6863, opacity: 1.0),
@@ -599,7 +695,19 @@ public struct FlareColors: Sendable {
         textSecondary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.6200),
         textTertiary: Color(.sRGB, red: 0.6039, green: 0.6392, blue: 0.7020, opacity: 1.0),
         warning: Color(.sRGB, red: 0.6314, green: 0.3843, blue: 0.0275, opacity: 1.0),
-        warningText: Color(.sRGB, red: 0.9843, green: 0.7490, blue: 0.1412, opacity: 1.0)
+        warningText: Color(.sRGB, red: 0.9843, green: 0.7490, blue: 0.1412, opacity: 1.0),
+        avatarTintBlueBg: Color(.sRGB, red: 0.1216, green: 0.1961, blue: 0.4000, opacity: 1.0),
+        avatarTintBlueFg: Color(.sRGB, red: 0.7490, green: 0.8588, blue: 0.9961, opacity: 1.0),
+        avatarTintPurpleBg: Color(.sRGB, red: 0.2275, green: 0.1451, blue: 0.4000, opacity: 1.0),
+        avatarTintPurpleFg: Color(.sRGB, red: 0.8667, green: 0.8392, blue: 0.9961, opacity: 1.0),
+        avatarTintPinkBg: Color(.sRGB, red: 0.3608, green: 0.1216, blue: 0.2431, opacity: 1.0),
+        avatarTintPinkFg: Color(.sRGB, red: 0.9843, green: 0.8118, blue: 0.9098, opacity: 1.0),
+        avatarTintGreenBg: Color(.sRGB, red: 0.0824, green: 0.2627, blue: 0.2353, opacity: 1.0),
+        avatarTintGreenFg: Color(.sRGB, red: 0.6549, green: 0.9529, blue: 0.8157, opacity: 1.0),
+        avatarTintAmberBg: Color(.sRGB, red: 0.3451, green: 0.2078, blue: 0.1176, opacity: 1.0),
+        avatarTintAmberFg: Color(.sRGB, red: 0.9922, green: 0.9020, blue: 0.5412, opacity: 1.0),
+        avatarTintSlateBg: Color(.sRGB, red: 0.1569, green: 0.1765, blue: 0.2196, opacity: 1.0),
+        avatarTintSlateFg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0)
     )
 
     public static let forestLight = FlareColors(
@@ -614,7 +722,7 @@ public struct FlareColors: Sendable {
         borderPrimary: Color(.sRGB, red: 0.8902, green: 0.8980, blue: 0.9216, opacity: 1.0),
         borderSecondary: Color(.sRGB, red: 0.9255, green: 0.9333, blue: 0.9490, opacity: 1.0),
         borderSelected: Color(.sRGB, red: 0.0863, green: 0.6392, blue: 0.2902, opacity: 1.0),
-        messageIncomingBackground: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        messageIncomingBackground: Color(.sRGB, red: 0.9451, green: 0.9490, blue: 0.9608, opacity: 1.0),
         messageIncomingForeground: Color(.sRGB, red: 0.1255, green: 0.1373, blue: 0.1765, opacity: 1.0),
         messageIncomingBorder: Color(.sRGB, red: 0.8902, green: 0.8980, blue: 0.9216, opacity: 1.0),
         messageOutgoingBackground: Color(.sRGB, red: 0.0824, green: 0.5020, blue: 0.2392, opacity: 1.0),
@@ -658,7 +766,19 @@ public struct FlareColors: Sendable {
         textSecondary: Color(.sRGB, red: 0.3608, green: 0.3882, blue: 0.4431, opacity: 1.0),
         textTertiary: Color(.sRGB, red: 0.3725, green: 0.4039, blue: 0.4627, opacity: 1.0),
         warning: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
-        warningText: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0)
+        warningText: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
+        avatarTintBlueBg: Color(.sRGB, red: 0.8588, green: 0.9176, blue: 0.9961, opacity: 1.0),
+        avatarTintBlueFg: Color(.sRGB, red: 0.1137, green: 0.3059, blue: 0.8471, opacity: 1.0),
+        avatarTintPurpleBg: Color(.sRGB, red: 0.9137, green: 0.8353, blue: 1.0000, opacity: 1.0),
+        avatarTintPurpleFg: Color(.sRGB, red: 0.4275, green: 0.1569, blue: 0.8510, opacity: 1.0),
+        avatarTintPinkBg: Color(.sRGB, red: 0.9843, green: 0.8118, blue: 0.9098, opacity: 1.0),
+        avatarTintPinkFg: Color(.sRGB, red: 0.6157, green: 0.0902, blue: 0.3020, opacity: 1.0),
+        avatarTintGreenBg: Color(.sRGB, red: 0.8196, green: 0.9804, blue: 0.8980, opacity: 1.0),
+        avatarTintGreenFg: Color(.sRGB, red: 0.0157, green: 0.4706, blue: 0.3412, opacity: 1.0),
+        avatarTintAmberBg: Color(.sRGB, red: 0.9961, green: 0.9529, blue: 0.7804, opacity: 1.0),
+        avatarTintAmberFg: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
+        avatarTintSlateBg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0),
+        avatarTintSlateFg: Color(.sRGB, red: 0.2157, green: 0.2549, blue: 0.3176, opacity: 1.0)
     )
 
     public static let forestDark = FlareColors(
@@ -673,7 +793,7 @@ public struct FlareColors: Sendable {
         borderPrimary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.1000),
         borderSecondary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.0800),
         borderSelected: Color(.sRGB, red: 0.2902, green: 0.8706, blue: 0.5020, opacity: 1.0),
-        messageIncomingBackground: Color(.sRGB, red: 0.1255, green: 0.1373, blue: 0.1686, opacity: 1.0),
+        messageIncomingBackground: Color(.sRGB, red: 0.1608, green: 0.1765, blue: 0.2157, opacity: 1.0),
         messageIncomingForeground: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9400),
         messageIncomingBorder: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.1000),
         messageOutgoingBackground: Color(.sRGB, red: 0.0863, green: 0.3961, blue: 0.2039, opacity: 1.0),
@@ -717,7 +837,19 @@ public struct FlareColors: Sendable {
         textSecondary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.6200),
         textTertiary: Color(.sRGB, red: 0.6039, green: 0.6392, blue: 0.7020, opacity: 1.0),
         warning: Color(.sRGB, red: 0.6314, green: 0.3843, blue: 0.0275, opacity: 1.0),
-        warningText: Color(.sRGB, red: 0.9843, green: 0.7490, blue: 0.1412, opacity: 1.0)
+        warningText: Color(.sRGB, red: 0.9843, green: 0.7490, blue: 0.1412, opacity: 1.0),
+        avatarTintBlueBg: Color(.sRGB, red: 0.1216, green: 0.1961, blue: 0.4000, opacity: 1.0),
+        avatarTintBlueFg: Color(.sRGB, red: 0.7490, green: 0.8588, blue: 0.9961, opacity: 1.0),
+        avatarTintPurpleBg: Color(.sRGB, red: 0.2275, green: 0.1451, blue: 0.4000, opacity: 1.0),
+        avatarTintPurpleFg: Color(.sRGB, red: 0.8667, green: 0.8392, blue: 0.9961, opacity: 1.0),
+        avatarTintPinkBg: Color(.sRGB, red: 0.3608, green: 0.1216, blue: 0.2431, opacity: 1.0),
+        avatarTintPinkFg: Color(.sRGB, red: 0.9843, green: 0.8118, blue: 0.9098, opacity: 1.0),
+        avatarTintGreenBg: Color(.sRGB, red: 0.0824, green: 0.2627, blue: 0.2353, opacity: 1.0),
+        avatarTintGreenFg: Color(.sRGB, red: 0.6549, green: 0.9529, blue: 0.8157, opacity: 1.0),
+        avatarTintAmberBg: Color(.sRGB, red: 0.3451, green: 0.2078, blue: 0.1176, opacity: 1.0),
+        avatarTintAmberFg: Color(.sRGB, red: 0.9922, green: 0.9020, blue: 0.5412, opacity: 1.0),
+        avatarTintSlateBg: Color(.sRGB, red: 0.1569, green: 0.1765, blue: 0.2196, opacity: 1.0),
+        avatarTintSlateFg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0)
     )
 
     public static let sunsetLight = FlareColors(
@@ -732,7 +864,7 @@ public struct FlareColors: Sendable {
         borderPrimary: Color(.sRGB, red: 0.8902, green: 0.8980, blue: 0.9216, opacity: 1.0),
         borderSecondary: Color(.sRGB, red: 0.9255, green: 0.9333, blue: 0.9490, opacity: 1.0),
         borderSelected: Color(.sRGB, red: 0.9176, green: 0.3451, blue: 0.0471, opacity: 1.0),
-        messageIncomingBackground: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        messageIncomingBackground: Color(.sRGB, red: 0.9451, green: 0.9490, blue: 0.9608, opacity: 1.0),
         messageIncomingForeground: Color(.sRGB, red: 0.1255, green: 0.1373, blue: 0.1765, opacity: 1.0),
         messageIncomingBorder: Color(.sRGB, red: 0.8902, green: 0.8980, blue: 0.9216, opacity: 1.0),
         messageOutgoingBackground: Color(.sRGB, red: 0.7608, green: 0.2549, blue: 0.0471, opacity: 1.0),
@@ -776,7 +908,19 @@ public struct FlareColors: Sendable {
         textSecondary: Color(.sRGB, red: 0.3608, green: 0.3882, blue: 0.4431, opacity: 1.0),
         textTertiary: Color(.sRGB, red: 0.3725, green: 0.4039, blue: 0.4627, opacity: 1.0),
         warning: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
-        warningText: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0)
+        warningText: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
+        avatarTintBlueBg: Color(.sRGB, red: 0.8588, green: 0.9176, blue: 0.9961, opacity: 1.0),
+        avatarTintBlueFg: Color(.sRGB, red: 0.1137, green: 0.3059, blue: 0.8471, opacity: 1.0),
+        avatarTintPurpleBg: Color(.sRGB, red: 0.9137, green: 0.8353, blue: 1.0000, opacity: 1.0),
+        avatarTintPurpleFg: Color(.sRGB, red: 0.4275, green: 0.1569, blue: 0.8510, opacity: 1.0),
+        avatarTintPinkBg: Color(.sRGB, red: 0.9843, green: 0.8118, blue: 0.9098, opacity: 1.0),
+        avatarTintPinkFg: Color(.sRGB, red: 0.6157, green: 0.0902, blue: 0.3020, opacity: 1.0),
+        avatarTintGreenBg: Color(.sRGB, red: 0.8196, green: 0.9804, blue: 0.8980, opacity: 1.0),
+        avatarTintGreenFg: Color(.sRGB, red: 0.0157, green: 0.4706, blue: 0.3412, opacity: 1.0),
+        avatarTintAmberBg: Color(.sRGB, red: 0.9961, green: 0.9529, blue: 0.7804, opacity: 1.0),
+        avatarTintAmberFg: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
+        avatarTintSlateBg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0),
+        avatarTintSlateFg: Color(.sRGB, red: 0.2157, green: 0.2549, blue: 0.3176, opacity: 1.0)
     )
 
     public static let sunsetDark = FlareColors(
@@ -791,7 +935,7 @@ public struct FlareColors: Sendable {
         borderPrimary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.1000),
         borderSecondary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.0800),
         borderSelected: Color(.sRGB, red: 0.9843, green: 0.5725, blue: 0.2353, opacity: 1.0),
-        messageIncomingBackground: Color(.sRGB, red: 0.1255, green: 0.1373, blue: 0.1686, opacity: 1.0),
+        messageIncomingBackground: Color(.sRGB, red: 0.1608, green: 0.1765, blue: 0.2157, opacity: 1.0),
         messageIncomingForeground: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9400),
         messageIncomingBorder: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.1000),
         messageOutgoingBackground: Color(.sRGB, red: 0.6039, green: 0.2039, blue: 0.0706, opacity: 1.0),
@@ -835,7 +979,19 @@ public struct FlareColors: Sendable {
         textSecondary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.6200),
         textTertiary: Color(.sRGB, red: 0.6039, green: 0.6392, blue: 0.7020, opacity: 1.0),
         warning: Color(.sRGB, red: 0.6314, green: 0.3843, blue: 0.0275, opacity: 1.0),
-        warningText: Color(.sRGB, red: 0.9843, green: 0.7490, blue: 0.1412, opacity: 1.0)
+        warningText: Color(.sRGB, red: 0.9843, green: 0.7490, blue: 0.1412, opacity: 1.0),
+        avatarTintBlueBg: Color(.sRGB, red: 0.1216, green: 0.1961, blue: 0.4000, opacity: 1.0),
+        avatarTintBlueFg: Color(.sRGB, red: 0.7490, green: 0.8588, blue: 0.9961, opacity: 1.0),
+        avatarTintPurpleBg: Color(.sRGB, red: 0.2275, green: 0.1451, blue: 0.4000, opacity: 1.0),
+        avatarTintPurpleFg: Color(.sRGB, red: 0.8667, green: 0.8392, blue: 0.9961, opacity: 1.0),
+        avatarTintPinkBg: Color(.sRGB, red: 0.3608, green: 0.1216, blue: 0.2431, opacity: 1.0),
+        avatarTintPinkFg: Color(.sRGB, red: 0.9843, green: 0.8118, blue: 0.9098, opacity: 1.0),
+        avatarTintGreenBg: Color(.sRGB, red: 0.0824, green: 0.2627, blue: 0.2353, opacity: 1.0),
+        avatarTintGreenFg: Color(.sRGB, red: 0.6549, green: 0.9529, blue: 0.8157, opacity: 1.0),
+        avatarTintAmberBg: Color(.sRGB, red: 0.3451, green: 0.2078, blue: 0.1176, opacity: 1.0),
+        avatarTintAmberFg: Color(.sRGB, red: 0.9922, green: 0.9020, blue: 0.5412, opacity: 1.0),
+        avatarTintSlateBg: Color(.sRGB, red: 0.1569, green: 0.1765, blue: 0.2196, opacity: 1.0),
+        avatarTintSlateFg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0)
     )
 
     public static let roseLight = FlareColors(
@@ -850,7 +1006,7 @@ public struct FlareColors: Sendable {
         borderPrimary: Color(.sRGB, red: 0.8902, green: 0.8980, blue: 0.9216, opacity: 1.0),
         borderSecondary: Color(.sRGB, red: 0.9255, green: 0.9333, blue: 0.9490, opacity: 1.0),
         borderSelected: Color(.sRGB, red: 0.8824, green: 0.1137, blue: 0.2824, opacity: 1.0),
-        messageIncomingBackground: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        messageIncomingBackground: Color(.sRGB, red: 0.9451, green: 0.9490, blue: 0.9608, opacity: 1.0),
         messageIncomingForeground: Color(.sRGB, red: 0.1255, green: 0.1373, blue: 0.1765, opacity: 1.0),
         messageIncomingBorder: Color(.sRGB, red: 0.8902, green: 0.8980, blue: 0.9216, opacity: 1.0),
         messageOutgoingBackground: Color(.sRGB, red: 0.7451, green: 0.0706, blue: 0.2353, opacity: 1.0),
@@ -894,7 +1050,19 @@ public struct FlareColors: Sendable {
         textSecondary: Color(.sRGB, red: 0.3608, green: 0.3882, blue: 0.4431, opacity: 1.0),
         textTertiary: Color(.sRGB, red: 0.3725, green: 0.4039, blue: 0.4627, opacity: 1.0),
         warning: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
-        warningText: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0)
+        warningText: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
+        avatarTintBlueBg: Color(.sRGB, red: 0.8588, green: 0.9176, blue: 0.9961, opacity: 1.0),
+        avatarTintBlueFg: Color(.sRGB, red: 0.1137, green: 0.3059, blue: 0.8471, opacity: 1.0),
+        avatarTintPurpleBg: Color(.sRGB, red: 0.9137, green: 0.8353, blue: 1.0000, opacity: 1.0),
+        avatarTintPurpleFg: Color(.sRGB, red: 0.4275, green: 0.1569, blue: 0.8510, opacity: 1.0),
+        avatarTintPinkBg: Color(.sRGB, red: 0.9843, green: 0.8118, blue: 0.9098, opacity: 1.0),
+        avatarTintPinkFg: Color(.sRGB, red: 0.6157, green: 0.0902, blue: 0.3020, opacity: 1.0),
+        avatarTintGreenBg: Color(.sRGB, red: 0.8196, green: 0.9804, blue: 0.8980, opacity: 1.0),
+        avatarTintGreenFg: Color(.sRGB, red: 0.0157, green: 0.4706, blue: 0.3412, opacity: 1.0),
+        avatarTintAmberBg: Color(.sRGB, red: 0.9961, green: 0.9529, blue: 0.7804, opacity: 1.0),
+        avatarTintAmberFg: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
+        avatarTintSlateBg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0),
+        avatarTintSlateFg: Color(.sRGB, red: 0.2157, green: 0.2549, blue: 0.3176, opacity: 1.0)
     )
 
     public static let roseDark = FlareColors(
@@ -909,7 +1077,7 @@ public struct FlareColors: Sendable {
         borderPrimary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.1000),
         borderSecondary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.0800),
         borderSelected: Color(.sRGB, red: 0.9843, green: 0.4431, blue: 0.5216, opacity: 1.0),
-        messageIncomingBackground: Color(.sRGB, red: 0.1255, green: 0.1373, blue: 0.1686, opacity: 1.0),
+        messageIncomingBackground: Color(.sRGB, red: 0.1608, green: 0.1765, blue: 0.2157, opacity: 1.0),
         messageIncomingForeground: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9400),
         messageIncomingBorder: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.1000),
         messageOutgoingBackground: Color(.sRGB, red: 0.6235, green: 0.0706, blue: 0.2235, opacity: 1.0),
@@ -953,7 +1121,19 @@ public struct FlareColors: Sendable {
         textSecondary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.6200),
         textTertiary: Color(.sRGB, red: 0.6039, green: 0.6392, blue: 0.7020, opacity: 1.0),
         warning: Color(.sRGB, red: 0.6314, green: 0.3843, blue: 0.0275, opacity: 1.0),
-        warningText: Color(.sRGB, red: 0.9843, green: 0.7490, blue: 0.1412, opacity: 1.0)
+        warningText: Color(.sRGB, red: 0.9843, green: 0.7490, blue: 0.1412, opacity: 1.0),
+        avatarTintBlueBg: Color(.sRGB, red: 0.1216, green: 0.1961, blue: 0.4000, opacity: 1.0),
+        avatarTintBlueFg: Color(.sRGB, red: 0.7490, green: 0.8588, blue: 0.9961, opacity: 1.0),
+        avatarTintPurpleBg: Color(.sRGB, red: 0.2275, green: 0.1451, blue: 0.4000, opacity: 1.0),
+        avatarTintPurpleFg: Color(.sRGB, red: 0.8667, green: 0.8392, blue: 0.9961, opacity: 1.0),
+        avatarTintPinkBg: Color(.sRGB, red: 0.3608, green: 0.1216, blue: 0.2431, opacity: 1.0),
+        avatarTintPinkFg: Color(.sRGB, red: 0.9843, green: 0.8118, blue: 0.9098, opacity: 1.0),
+        avatarTintGreenBg: Color(.sRGB, red: 0.0824, green: 0.2627, blue: 0.2353, opacity: 1.0),
+        avatarTintGreenFg: Color(.sRGB, red: 0.6549, green: 0.9529, blue: 0.8157, opacity: 1.0),
+        avatarTintAmberBg: Color(.sRGB, red: 0.3451, green: 0.2078, blue: 0.1176, opacity: 1.0),
+        avatarTintAmberFg: Color(.sRGB, red: 0.9922, green: 0.9020, blue: 0.5412, opacity: 1.0),
+        avatarTintSlateBg: Color(.sRGB, red: 0.1569, green: 0.1765, blue: 0.2196, opacity: 1.0),
+        avatarTintSlateFg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0)
     )
 
     public static let graphiteLight = FlareColors(
@@ -968,7 +1148,7 @@ public struct FlareColors: Sendable {
         borderPrimary: Color(.sRGB, red: 0.8902, green: 0.8980, blue: 0.9216, opacity: 1.0),
         borderSecondary: Color(.sRGB, red: 0.9255, green: 0.9333, blue: 0.9490, opacity: 1.0),
         borderSelected: Color(.sRGB, red: 0.3922, green: 0.4549, blue: 0.5451, opacity: 1.0),
-        messageIncomingBackground: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        messageIncomingBackground: Color(.sRGB, red: 0.9451, green: 0.9490, blue: 0.9608, opacity: 1.0),
         messageIncomingForeground: Color(.sRGB, red: 0.1255, green: 0.1373, blue: 0.1765, opacity: 1.0),
         messageIncomingBorder: Color(.sRGB, red: 0.8902, green: 0.8980, blue: 0.9216, opacity: 1.0),
         messageOutgoingBackground: Color(.sRGB, red: 0.2784, green: 0.3333, blue: 0.4118, opacity: 1.0),
@@ -1012,7 +1192,19 @@ public struct FlareColors: Sendable {
         textSecondary: Color(.sRGB, red: 0.3608, green: 0.3882, blue: 0.4431, opacity: 1.0),
         textTertiary: Color(.sRGB, red: 0.3725, green: 0.4039, blue: 0.4627, opacity: 1.0),
         warning: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
-        warningText: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0)
+        warningText: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
+        avatarTintBlueBg: Color(.sRGB, red: 0.8588, green: 0.9176, blue: 0.9961, opacity: 1.0),
+        avatarTintBlueFg: Color(.sRGB, red: 0.1137, green: 0.3059, blue: 0.8471, opacity: 1.0),
+        avatarTintPurpleBg: Color(.sRGB, red: 0.9137, green: 0.8353, blue: 1.0000, opacity: 1.0),
+        avatarTintPurpleFg: Color(.sRGB, red: 0.4275, green: 0.1569, blue: 0.8510, opacity: 1.0),
+        avatarTintPinkBg: Color(.sRGB, red: 0.9843, green: 0.8118, blue: 0.9098, opacity: 1.0),
+        avatarTintPinkFg: Color(.sRGB, red: 0.6157, green: 0.0902, blue: 0.3020, opacity: 1.0),
+        avatarTintGreenBg: Color(.sRGB, red: 0.8196, green: 0.9804, blue: 0.8980, opacity: 1.0),
+        avatarTintGreenFg: Color(.sRGB, red: 0.0157, green: 0.4706, blue: 0.3412, opacity: 1.0),
+        avatarTintAmberBg: Color(.sRGB, red: 0.9961, green: 0.9529, blue: 0.7804, opacity: 1.0),
+        avatarTintAmberFg: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
+        avatarTintSlateBg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0),
+        avatarTintSlateFg: Color(.sRGB, red: 0.2157, green: 0.2549, blue: 0.3176, opacity: 1.0)
     )
 
     public static let graphiteDark = FlareColors(
@@ -1027,7 +1219,7 @@ public struct FlareColors: Sendable {
         borderPrimary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.1000),
         borderSecondary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.0800),
         borderSelected: Color(.sRGB, red: 0.5804, green: 0.6392, blue: 0.7216, opacity: 1.0),
-        messageIncomingBackground: Color(.sRGB, red: 0.1255, green: 0.1373, blue: 0.1686, opacity: 1.0),
+        messageIncomingBackground: Color(.sRGB, red: 0.1608, green: 0.1765, blue: 0.2157, opacity: 1.0),
         messageIncomingForeground: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9400),
         messageIncomingBorder: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.1000),
         messageOutgoingBackground: Color(.sRGB, red: 0.2784, green: 0.3333, blue: 0.4118, opacity: 1.0),
@@ -1071,7 +1263,19 @@ public struct FlareColors: Sendable {
         textSecondary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.6200),
         textTertiary: Color(.sRGB, red: 0.6039, green: 0.6392, blue: 0.7020, opacity: 1.0),
         warning: Color(.sRGB, red: 0.6314, green: 0.3843, blue: 0.0275, opacity: 1.0),
-        warningText: Color(.sRGB, red: 0.9843, green: 0.7490, blue: 0.1412, opacity: 1.0)
+        warningText: Color(.sRGB, red: 0.9843, green: 0.7490, blue: 0.1412, opacity: 1.0),
+        avatarTintBlueBg: Color(.sRGB, red: 0.1216, green: 0.1961, blue: 0.4000, opacity: 1.0),
+        avatarTintBlueFg: Color(.sRGB, red: 0.7490, green: 0.8588, blue: 0.9961, opacity: 1.0),
+        avatarTintPurpleBg: Color(.sRGB, red: 0.2275, green: 0.1451, blue: 0.4000, opacity: 1.0),
+        avatarTintPurpleFg: Color(.sRGB, red: 0.8667, green: 0.8392, blue: 0.9961, opacity: 1.0),
+        avatarTintPinkBg: Color(.sRGB, red: 0.3608, green: 0.1216, blue: 0.2431, opacity: 1.0),
+        avatarTintPinkFg: Color(.sRGB, red: 0.9843, green: 0.8118, blue: 0.9098, opacity: 1.0),
+        avatarTintGreenBg: Color(.sRGB, red: 0.0824, green: 0.2627, blue: 0.2353, opacity: 1.0),
+        avatarTintGreenFg: Color(.sRGB, red: 0.6549, green: 0.9529, blue: 0.8157, opacity: 1.0),
+        avatarTintAmberBg: Color(.sRGB, red: 0.3451, green: 0.2078, blue: 0.1176, opacity: 1.0),
+        avatarTintAmberFg: Color(.sRGB, red: 0.9922, green: 0.9020, blue: 0.5412, opacity: 1.0),
+        avatarTintSlateBg: Color(.sRGB, red: 0.1569, green: 0.1765, blue: 0.2196, opacity: 1.0),
+        avatarTintSlateFg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0)
     )
 
     public static let light = violetLight
@@ -1097,18 +1301,21 @@ public enum FlareTextRoles {
     public static let section = FlareTextRole(fontSize: 13, lineHeight: 1.2, weight: 600)
     public static let body = FlareTextRole(fontSize: 14, lineHeight: 1.5, weight: 400)
     public static let caption = FlareTextRole(fontSize: 12, lineHeight: 1.5, weight: 400)
+    public static let message = FlareTextRole(fontSize: 15, lineHeight: 1.45, weight: 400)
 }
 
 /// Flare IM spacing / radius / font-size / line-height / layout tokens (logical px).
 public enum FlareSizes {
+    public static let fontSize2xs: CGFloat = 10.0
+    public static let fontSizeXs: CGFloat = 11.0
+    public static let fontSizeSm: CGFloat = 12.0
+    public static let fontSizeMd: CGFloat = 13.0
+    public static let fontSizeLg: CGFloat = 14.0
+    public static let fontSizeXl: CGFloat = 15.0
     public static let fontSize2xl: CGFloat = 16.0
     public static let fontSize3xl: CGFloat = 18.0
     public static let fontSize4xl: CGFloat = 20.0
-    public static let fontSizeLg: CGFloat = 14.0
-    public static let fontSizeMd: CGFloat = 13.0
-    public static let fontSizeSm: CGFloat = 12.0
-    public static let fontSizeXl: CGFloat = 15.0
-    public static let fontSizeXs: CGFloat = 11.0
+    public static let fontSize5xl: CGFloat = 24.0
     public static let iconSizeLg: CGFloat = 24.0
     public static let iconSizeMd: CGFloat = 20.0
     public static let iconSizeSm: CGFloat = 16.0
@@ -1137,25 +1344,54 @@ public enum FlareSizes {
     public static let sessionItemHeight: CGFloat = 72.0
     public static let touchTarget: CGFloat = 48.0
     public static let touchTargetMin: CGFloat = 44.0
+    public static let lineHeightNone: CGFloat = 1.0
+    public static let lineHeightTight: CGFloat = 1.2
+    public static let lineHeightSnug: CGFloat = 1.4
     public static let lineHeightNormal: CGFloat = 1.5
     public static let lineHeightRelaxed: CGFloat = 1.6
-    public static let lineHeightTight: CGFloat = 1.2
-    public static let radius2xl: CGFloat = 18.0
-    public static let radiusBubble: CGFloat = 16.0
-    public static let radiusBubbleTail: CGFloat = 4.0
-    public static let radiusFull: CGFloat = 999.0
-    public static let radiusLg: CGFloat = 10.0
-    public static let radiusMd: CGFloat = 8.0
-    public static let radiusSm: CGFloat = 6.0
-    public static let radiusXl: CGFloat = 14.0
     public static let radiusXs: CGFloat = 3.0
-    public static let spacing2xl: CGFloat = 24.0
-    public static let spacing2xs: CGFloat = 6.0
-    public static let spacingLg: CGFloat = 16.0
-    public static let spacingMd: CGFloat = 12.0
-    public static let spacingSm: CGFloat = 8.0
-    public static let spacingXl: CGFloat = 20.0
+    public static let radiusBubbleTail: CGFloat = 4.0
+    public static let radiusSm: CGFloat = 6.0
+    public static let radiusMd: CGFloat = 8.0
+    public static let radiusLg: CGFloat = 10.0
+    public static let radiusCard: CGFloat = 12.0
+    public static let radiusXl: CGFloat = 14.0
+    public static let radiusBubble: CGFloat = 16.0
+    public static let radius2xl: CGFloat = 18.0
+    public static let radiusFull: CGFloat = 999.0
+    public static let spacing3xs: CGFloat = 2.0
     public static let spacingXs: CGFloat = 4.0
+    public static let spacing2xs: CGFloat = 6.0
+    public static let spacingSm: CGFloat = 8.0
+    public static let spacing2sm: CGFloat = 10.0
+    public static let spacingMd: CGFloat = 12.0
+    public static let spacing2md: CGFloat = 14.0
+    public static let spacingLg: CGFloat = 16.0
+    public static let spacingXl: CGFloat = 20.0
+    public static let spacing2xl: CGFloat = 24.0
+    public static let componentBubblePaddingX: CGFloat = 14.0
+    public static let componentBubblePaddingY: CGFloat = 9.0
+    public static let componentMessageAvatarSize: CGFloat = 40.0
+    public static let componentComposerActionHeight: CGFloat = 40.0
+    public static let componentComposerActionWidth: CGFloat = 44.0
+    public static let componentComposerToolbarIcon: CGFloat = 34.0
+    public static let componentComposerToolbarWidth: CGFloat = 44.0
+    public static let componentComposerDesktopHeight: CGFloat = 46.0
+    public static let componentBubbleRichMinWidth: CGFloat = 220.0
+    public static let componentBubbleSystemMaxWidth: CGFloat = 560.0
+    public static let componentMessageGutterInline: CGFloat = 16.0
+    public static let componentMessageTailSpace: CGFloat = 10.0
+    public static let componentMediaCardMinWidth: CGFloat = 220.0
+    public static let componentMediaImageMaxWidth: CGFloat = 320.0
+    public static let componentMediaVideoWidth: CGFloat = 320.0
+    public static let componentRichCardWidth: CGFloat = 320.0
+    public static let componentRichCardCompactWidth: CGFloat = 240.0
+    public static let componentRichCardMediaHeight: CGFloat = 148.0
+    public static let componentSheetWidth: CGFloat = 420.0
+    public static let componentSheetDialogWidth: CGFloat = 480.0
+    public static let componentConversationRowMetaWidth: CGFloat = 60.0
+    public static let componentBubbleMaxWidthRatioCompact: CGFloat = 0.88
+    public static let componentBubbleMaxWidthRatioRegular: CGFloat = 0.62
 }
 
 /// Opacity tokens (disabled / muted / tint overlays).

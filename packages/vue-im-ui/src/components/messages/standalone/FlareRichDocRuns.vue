@@ -1,20 +1,47 @@
 <script setup lang="ts">
-import { inject } from "vue";
+import { computed, inject } from "vue";
 import { flareRichSpoilerCover, type FlareRichRun } from "../../../utils/richDoc";
 import { safeExternalUrl } from "../../../shared/contracts/url-safety";
-import { hasEmojiPackAssetKey, resolveEmojiPackAssetUrlByKey } from "../../composer/ComposerEmojiStickerPopover/composerEmojiAssets";
+import {
+  hasEmojiPackAssetKey,
+  resolveEmojiPackAssetUrlByKey,
+  splitPlainTextForEmojiDisplay,
+} from "../../composer/ComposerEmojiStickerPopover/composerEmojiAssets";
 import { formatEmojiPackBracket } from "../../../utils/emojiPackI18n";
 import FrozenStickerThumb from "../../composer/FrozenStickerThumb/index.vue";
 import { FLARE_RICH_DOC_SPOILERS } from "./richDocContext";
 
 /** The runs of one paragraph or heading: marks, code, links, mentions, emoji and covered spoilers. */
-defineProps<{ runs: readonly FlareRichRun[]; self: boolean }>();
+const props = defineProps<{ runs: readonly FlareRichRun[]; self: boolean }>();
 const spoilers = inject(FLARE_RICH_DOC_SPOILERS, null);
 
 const has = (run: FlareRichRun, mark: string) => run.marks?.includes(mark as never) === true;
 const covered = (run: FlareRichRun) => has(run, "spoiler") && spoilers?.revealed.value !== true;
 const href = (run: FlareRichRun) => (run.link ? safeExternalUrl(run.link) : null);
 const packEmoji = (run: FlareRichRun) => (run.emoji && hasEmojiPackAssetKey(run.emoji) ? run.emoji : null);
+/**
+ * A text run that carries `[key]` emoji-pack tokens draws each known one as its inline image, as a plain
+ * text body does (`PlainTextEmojiRich`). The core's Markdown normaliser stores the composer's `[key]` as
+ * literal text rather than an `emoji` run, so without this the same emoji a plain message draws would read
+ * as `[angry_face]` once the message is rich text. Unknown keys stay the words they are.
+ */
+const TOKEN_RE = /\[[a-z][a-z0-9_]*\]/;
+type SplitPart = ReturnType<typeof splitPlainTextForEmojiDisplay>[number];
+type RunSegment = { kind: "text"; text: string } | Extract<SplitPart, { kind: "emoji" }>;
+const segments = (run: FlareRichRun): RunSegment[] | null => {
+  if (run.code || packEmoji(run) || !TOKEN_RE.test(run.text)) return null;
+  const out: RunSegment[] = [];
+  for (const part of splitPlainTextForEmojiDisplay(run.text)) {
+    if (part.kind === "emoji") { out.push(part); continue; }
+    const text = part.kind === "text" ? part.text : `[${part.key}]`;
+    const last = out[out.length - 1];
+    if (last?.kind === "text") last.text += text;
+    else out.push({ kind: "text", text });
+  }
+  return out.some((part) => part.kind === "emoji") ? out : null;
+};
+/** Each run with its split, worked out once per change of the runs rather than once per use in the template. */
+const drawn = computed(() => props.runs.map((run) => ({ run, parts: segments(run) })));
 const markClasses = (run: FlareRichRun) => ({
   "is-bold": has(run, "bold"),
   "is-italic": has(run, "italic"),
@@ -24,7 +51,7 @@ const markClasses = (run: FlareRichRun) => ({
 </script>
 
 <template>
-  <template v-for="(run, index) in runs" :key="index">
+  <template v-for="({ run, parts }, index) in drawn" :key="index">
     <span
       v-if="covered(run)"
       class="fm-rich__spoiler"
@@ -51,6 +78,19 @@ const markClasses = (run: FlareRichRun) => ({
         :em-size="1.3"
         object-fit="contain"
       />
+      <template v-else-if="parts">
+        <template v-for="(segment, at) in parts" :key="at">
+          <FrozenStickerThumb
+            v-if="segment.kind === 'emoji'"
+            class="fm-rich__emoji"
+            :load-src="segment.loadUrl"
+            :alt="formatEmojiPackBracket(segment.key)"
+            :em-size="1.3"
+            object-fit="contain"
+          />
+          <template v-else>{{ segment.text }}</template>
+        </template>
+      </template>
       <template v-else>{{ run.text }}</template>
     </component>
   </template>

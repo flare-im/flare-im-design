@@ -17,6 +17,11 @@ import 'package:flutter/widgets.dart';
 /// labels，未传时回落到这里。
 @immutable
 class FlareStrings {
+  /// The legacy labels object uses this value as its const default. Components
+  /// treat that default as "use the environment string", while an explicit
+  /// different label still wins.
+  static const groupDetailDiscoverableDefault = '允许搜索到本群';
+
   const FlareStrings({
     // 通话
     this.microphone = '麦克风',
@@ -47,6 +52,7 @@ class FlareStrings {
     this.imagePreviewNext = '下一张', // en: Next image
     this.imagePreviewPosition = _imagePreviewPosition, // en: {index} of {count}
     this.delete = '删除',
+    this.report = '举报',
     this.manage = '管理',
     this.selectAll = '全选',
     this.retry = '重试',
@@ -254,8 +260,12 @@ class FlareStrings {
     this.composerBold = '粗体',
     this.composerItalic = '斜体',
     this.composerStrike = '删除线',
+    this.composerUnderline = '下划线',
     this.composerCode = '代码',
+    this.composerCodeBlock = '代码块',
     this.composerLink = '链接',
+    this.composerParagraph = '正文',
+    this.composerDivider = '分隔线',
     this.composerHeading = '标题',
     this.composerQuote = '引用',
     this.composerList = '列表',
@@ -412,6 +422,7 @@ class FlareStrings {
     this.groupDetailMuteNotif = '消息免打扰',
     this.groupDetailPinGroup = '置顶该群',
     this.groupDetailManage = '群管理',
+    this.groupDetailDiscoverable = groupDetailDiscoverableDefault,
     this.groupDetailJoinMode = '进群方式',
     this.groupDetailJoinOpen = '允许任何人加入',
     this.groupDetailJoinApproval = '需管理员审批',
@@ -709,6 +720,9 @@ class FlareStrings {
   final String imagePreviewNext;
   final String Function(int index, int count) imagePreviewPosition;
   final String delete;
+
+  /// 举报这一条（他人的动态/消息/资料）。与 [delete] 同层：都是「对这一条动作」，二者互斥。
+  final String report;
   final String manage;
   final String selectAll;
   final String retry;
@@ -940,8 +954,12 @@ class FlareStrings {
   final String composerBold;
   final String composerItalic;
   final String composerStrike;
+  final String composerUnderline;
   final String composerCode;
+  final String composerCodeBlock;
   final String composerLink;
+  final String composerParagraph;
+  final String composerDivider;
   final String composerHeading;
   final String composerQuote;
   final String composerList;
@@ -1103,6 +1121,7 @@ class FlareStrings {
   final String groupDetailMuteNotif;
   final String groupDetailPinGroup;
   final String groupDetailManage;
+  final String groupDetailDiscoverable;
   final String groupDetailJoinMode;
   final String groupDetailJoinOpen;
   final String groupDetailJoinApproval;
@@ -1592,8 +1611,12 @@ class FlareStrings {
     String? composerBold,
     String? composerItalic,
     String? composerStrike,
+    String? composerUnderline,
     String? composerCode,
+    String? composerCodeBlock,
     String? composerLink,
+    String? composerParagraph,
+    String? composerDivider,
     String? composerHeading,
     String? composerQuote,
     String? composerList,
@@ -1734,6 +1757,7 @@ class FlareStrings {
     String? groupDetailMuteNotif,
     String? groupDetailPinGroup,
     String? groupDetailManage,
+    String? groupDetailDiscoverable,
     String? groupDetailJoinMode,
     String? groupDetailJoinOpen,
     String? groupDetailJoinApproval,
@@ -2204,8 +2228,12 @@ class FlareStrings {
       composerBold: composerBold ?? this.composerBold,
       composerItalic: composerItalic ?? this.composerItalic,
       composerStrike: composerStrike ?? this.composerStrike,
+      composerUnderline: composerUnderline ?? this.composerUnderline,
       composerCode: composerCode ?? this.composerCode,
+      composerCodeBlock: composerCodeBlock ?? this.composerCodeBlock,
       composerLink: composerLink ?? this.composerLink,
+      composerParagraph: composerParagraph ?? this.composerParagraph,
+      composerDivider: composerDivider ?? this.composerDivider,
       composerHeading: composerHeading ?? this.composerHeading,
       composerQuote: composerQuote ?? this.composerQuote,
       composerList: composerList ?? this.composerList,
@@ -2428,6 +2456,8 @@ class FlareStrings {
       groupDetailMuteNotif: groupDetailMuteNotif ?? this.groupDetailMuteNotif,
       groupDetailPinGroup: groupDetailPinGroup ?? this.groupDetailPinGroup,
       groupDetailManage: groupDetailManage ?? this.groupDetailManage,
+      groupDetailDiscoverable:
+          groupDetailDiscoverable ?? this.groupDetailDiscoverable,
       groupDetailJoinMode: groupDetailJoinMode ?? this.groupDetailJoinMode,
       groupDetailJoinOpen: groupDetailJoinOpen ?? this.groupDetailJoinOpen,
       groupDetailJoinApproval:
@@ -2641,7 +2671,8 @@ class FlareStrings {
       searchDateRangeFilterInvalid:
           searchDateRangeFilterInvalid ?? this.searchDateRangeFilterInvalid,
       inviteCodeLabel: inviteCodeLabel ?? this.inviteCodeLabel,
-      inviteCodePlaceholder: inviteCodePlaceholder ?? this.inviteCodePlaceholder,
+      inviteCodePlaceholder:
+          inviteCodePlaceholder ?? this.inviteCodePlaceholder,
       inviteCodeOptional: inviteCodeOptional ?? this.inviteCodeOptional,
       inviteCodeChecking: inviteCodeChecking ?? this.inviteCodeChecking,
       inviteCodeValid: inviteCodeValid ?? this.inviteCodeValid,
@@ -2649,7 +2680,8 @@ class FlareStrings {
       inviteCodeInvalid: inviteCodeInvalid ?? this.inviteCodeInvalid,
       myInviteTitle: myInviteTitle ?? this.myInviteTitle,
       myInviteCodeLabel: myInviteCodeLabel ?? this.myInviteCodeLabel,
-      myInviteCodeUnavailable: myInviteCodeUnavailable ?? this.myInviteCodeUnavailable,
+      myInviteCodeUnavailable:
+          myInviteCodeUnavailable ?? this.myInviteCodeUnavailable,
       myInviteCopy: myInviteCopy ?? this.myInviteCopy,
       myInviteShare: myInviteShare ?? this.myInviteShare,
       myInviteRegenerate: myInviteRegenerate ?? this.myInviteRegenerate,
@@ -2663,7 +2695,8 @@ class FlareStrings {
       myInviteLevel2: myInviteLevel2 ?? this.myInviteLevel2,
       myInviteLevel3: myInviteLevel3 ?? this.myInviteLevel3,
       myInviteTotal: myInviteTotal ?? this.myInviteTotal,
-      myInviteInviteesTitle: myInviteInviteesTitle ?? this.myInviteInviteesTitle,
+      myInviteInviteesTitle:
+          myInviteInviteesTitle ?? this.myInviteInviteesTitle,
       myInviteEmpty: myInviteEmpty ?? this.myInviteEmpty,
       myInviteLoadMore: myInviteLoadMore ?? this.myInviteLoadMore,
       myInviteLoading: myInviteLoading ?? this.myInviteLoading,

@@ -62,8 +62,8 @@ const bars = computed(() => {
 .flare-voice-rec {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
+  gap: var(--flare-size-spacing-2sm);
+  padding: 8px var(--flare-size-spacing-2sm);
   border-radius: 999px;
   background: var(--flare-color-bg-primary);
   border: 1px solid var(--flare-color-border-primary);

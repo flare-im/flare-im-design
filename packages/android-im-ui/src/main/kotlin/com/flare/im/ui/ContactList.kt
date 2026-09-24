@@ -86,7 +86,7 @@ fun ContactList(
                             fontSize = FlareSizes.fontSizeSm.value.sp,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier.fillMaxWidth().background(colors.bgSecondary)
-                                .padding(horizontal = FlareSizes.spacingMd, vertical = 4.dp),
+                                .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingXs),
                         )
                     }
                 } else {
@@ -114,7 +114,7 @@ fun ContactList(
                     Text(
                         l,
                         color = colors.primaryText,
-                        fontSize = 10.sp,
+                        fontSize = FlareSizes.fontSize2xs,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.padding(vertical = 1.dp).clickable {
                             headerIndexOf[l]?.let { idx -> scope.launch { listState.scrollToItem(idx) } }

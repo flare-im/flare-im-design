@@ -24,7 +24,7 @@ defineProps<{ title: string; eyebrow?: string; meta?: string }>();
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 16px;
+  padding: var(--flare-size-spacing-2md) 16px;
   background: var(--flare-color-bg-primary);
 }
 .flare-screen-header__leading {
@@ -47,7 +47,7 @@ defineProps<{ title: string; eyebrow?: string; meta?: string }>();
 }
 .flare-screen-header__title {
   margin: 0;
-  font-size: 24px;
+  font-size: var(--flare-size-font-size-5xl);
   font-weight: 700;
   line-height: 1.2;
   color: var(--flare-color-text-primary);

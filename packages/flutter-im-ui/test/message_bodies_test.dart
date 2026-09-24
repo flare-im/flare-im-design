@@ -7,6 +7,74 @@ Widget _host(Widget child) => MaterialApp(
 );
 
 void main() {
+  group('standalone unicode emoji', () {
+    test('recognises one glyph sequence but not adjacent emoji or text', () {
+      for (final value in ['😖', '👽', '👍🏽', '👨‍👩‍👧‍👦', '🇨🇳', '1️⃣']) {
+        expect(flareIsStandaloneUnicodeEmoji(value), isTrue, reason: value);
+      }
+      for (final value in ['hello', '😖 hello', '😖👽', '1', '[alien]']) {
+        expect(flareIsStandaloneUnicodeEmoji(value), isFalse, reason: value);
+      }
+    });
+
+    test('recognises a lone protocol emoji token as a complete emoji', () {
+      expect(flareIsStandaloneEmojiMessage('[alien]'), isTrue);
+      expect(flareIsStandaloneEmojiMessage(' [confounded_face] '), isTrue);
+      expect(flareIsStandaloneEmojiMessage('[alien] hello'), isFalse);
+      expect(flareIsStandaloneEmojiMessage('[not-an-emoji]'), isFalse);
+    });
+
+    testWidgets('text content with one emoji uses the large emoji body', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(const FlareMessageContentView(content: FlareTextContent(' 👽 '))),
+      );
+      expect(find.byType(FlareEmojiMessage), findsOneWidget);
+      final emoji = tester.widget<Text>(find.text('👽'));
+      expect(emoji.style?.fontSize, 48);
+
+      await tester.pumpWidget(
+        _host(const FlareMessageContentView(content: FlareTextContent('👽👽'))),
+      );
+      expect(find.byType(FlareEmojiMessage), findsNothing);
+      expect(find.byType(FlareTextMessage), findsOneWidget);
+    });
+
+    testWidgets('a lone pack token uses the large emoji body', (tester) async {
+      await tester.pumpWidget(
+        _host(
+          const FlareMessageContentView(content: FlareTextContent('[alien]')),
+        ),
+      );
+
+      expect(find.byType(FlareEmojiMessage), findsOneWidget);
+      final box = tester.getSize(find.byType(FlareEmojiPackMessage));
+      expect(box, const Size(120, 120));
+    });
+
+    testWidgets('rich text containing only an emoji uses the same large body', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(
+          const FlareMessageContentView(
+            content: FlareRichTextContent(
+              docJson: '{}',
+              plainText: '[confounded_face]',
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(FlareEmojiMessage), findsOneWidget);
+      expect(
+        tester.getSize(find.byType(FlareEmojiPackMessage)),
+        const Size(120, 120),
+      );
+    });
+  });
+
   group('standalone message bodies', () {
     testWidgets('text renders its body', (tester) async {
       await tester.pumpWidget(

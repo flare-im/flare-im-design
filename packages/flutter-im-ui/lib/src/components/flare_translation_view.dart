@@ -86,7 +86,7 @@ class _FlareTranslationViewState extends State<FlareTranslationView>
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
     return Container(
-      padding: const EdgeInsets.only(left: 10),
+      padding: const EdgeInsets.only(left: FlareSizes.spacing2sm),
       decoration: BoxDecoration(
         border: Border(
           left: BorderSide(

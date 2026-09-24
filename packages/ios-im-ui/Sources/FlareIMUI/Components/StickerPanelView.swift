@@ -40,7 +40,7 @@ public struct StickerPanelView: View {
             grid(colors)
             rail(colors)
         }
-        .padding(10)
+        .padding(FlareSizes.spacing2sm)
         .frame(width: 320)
         .background(RoundedRectangle(cornerRadius: FlareSizes.radiusXl).fill(colors.bgPrimary)
             .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusXl).stroke(colors.borderPrimary, lineWidth: 1)))

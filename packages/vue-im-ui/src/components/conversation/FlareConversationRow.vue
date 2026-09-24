@@ -114,6 +114,12 @@ const unreadText = computed(() => conversationUnreadLabel(props.item.unreadCount
 const strongTitle = computed(() => conversationTitleEmphasis(props.item) === "strong");
 // The menu is a dropdown at the pointer on wide layouts and the action sheet on phones.
 const menuMode = ref<"dropdown" | "sheet" | null>(null);
+// 只有真关掉了菜单才算用掉 Escape;没菜单时让它继续冒泡(可能还有一层上下文层在听)。
+function onEscape(event: KeyboardEvent): void {
+  if (!menuMode.value) return;
+  event.preventDefault();
+  menuMode.value = null;
+}
 const menuX = ref(0);
 const menuY = ref(0);
 const rowRoot = ref<HTMLElement | null>(null);
@@ -226,7 +232,7 @@ function openContextMenu(event: MouseEvent): void {
     @contextmenu="openContextMenu"
     @keydown.shift.f10="openKeyboardMenu"
     @keydown="($event.key === 'ContextMenu') && openKeyboardMenu($event)"
-    @keydown.esc="menuMode = null"
+    @keydown.esc="onEscape"
   >
     <button
       type="button"
@@ -313,13 +319,16 @@ function openContextMenu(event: MouseEvent): void {
 
 <style scoped>
 .im-conv-item { position: relative; flex: 0 0 auto; width: 100%; min-width: 0; box-sizing: border-box; border-radius: var(--flare-size-radius-md); background: transparent; color: var(--flare-color-text-primary); container-type: inline-size; }
-.im-conv-item__select { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(7ch, max-content); align-items: center; gap: 10px; width: 100%; height: 72px; padding: 10px; box-sizing: border-box; border: 0; border-radius: inherit; background: transparent; color: inherit; cursor: pointer; font: inherit; text-align: start; }
-.im-conv-item--mobile .im-conv-item__select { height: 80px; padding-block: 14px; }
+.im-conv-item__select { display: grid; grid-template-columns: auto minmax(0, 1fr) var(--flare-size-component-conversation-row-meta-width); align-items: center; gap: var(--flare-size-spacing-2sm); width: 100%; min-height: var(--flare-size-layout-session-item-height); padding: var(--flare-size-spacing-2sm) var(--flare-size-spacing-sm); box-sizing: border-box; border: 0; border-radius: inherit; background: transparent; color: inherit; cursor: pointer; font: inherit; text-align: start; }
+.im-conv-item--mobile .im-conv-item__select { min-height: 80px; padding-block: var(--flare-size-spacing-2md); }
+/* 手机上选中/按下是整条通栏,不是列表中间浮起来的一张 8px 圆角卡片 —— 一屏里只该有一种面。
+   桌面的列表栏保留圆角选中行:那里它是一份并排的名单,圆角正好把「哪一行对应右边」框出来。 */
+.im-conv-item--mobile { border-radius: 0; }
 @media (hover: hover) { .im-conv-item:hover { background: var(--flare-color-bg-hover); } }
 .im-conv-item--active, .im-conv-item--active:hover { background: var(--flare-color-bg-selected); }
 .im-conv-item--active .im-conv-item__time { color: var(--flare-color-text-secondary); }
 .im-conv-item__select:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: -2px; }
-.im-conv-item--selectable .im-conv-item__select { grid-template-columns: auto auto minmax(0, 1fr) minmax(7ch, max-content); }
+.im-conv-item--selectable .im-conv-item__select { grid-template-columns: auto auto minmax(0, 1fr) var(--flare-size-component-conversation-row-meta-width); }
 .im-conv-item--selected, .im-conv-item--selected:hover { background: var(--flare-color-bg-selected); }
 .im-conv-item__check { display: grid; place-items: center; width: var(--flare-size-icon-size-md); height: var(--flare-size-icon-size-md); box-sizing: border-box; border: 1.5px solid var(--flare-color-border-hover); border-radius: var(--flare-size-radius-sm); background: var(--flare-color-bg-primary); color: var(--flare-color-message-outgoing-foreground); }
 .im-conv-item__check.is-on { border-color: var(--flare-color-primary); background: var(--flare-color-primary); }
@@ -331,9 +340,9 @@ function openContextMenu(event: MouseEvent): void {
 .im-conv-item__marks { display: inline-flex; flex-shrink: 0; gap: 4px; color: var(--flare-color-text-tertiary); font-size: 12px; }
 .im-conv-item__meta { display: grid; grid-template-rows: 20px 20px; justify-items: end; align-items: center; gap: 4px; min-width: 0; font-size: var(--flare-size-font-size-sm); }
 .im-conv-item__time { white-space: nowrap; text-align: end; font-variant-numeric: tabular-nums; font-size: var(--flare-size-font-size-xs); color: var(--flare-color-text-tertiary); }
-.im-conv-item__prefix { flex: 0 1 auto; min-width: 0; max-width: 65%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--flare-size-font-size-sm); color: var(--flare-color-primary-text); }
+.im-conv-item__prefix { flex: 0 1 auto; min-width: 0; max-width: 65%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--flare-size-font-size-md); color: var(--flare-color-primary-text); }
 .im-conv-item__prefix.is-failed, .im-conv-item__prefix.is-mention { color: var(--flare-color-error-text); }
-.im-conv-item__preview { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--flare-size-font-size-sm); color: var(--flare-color-text-secondary); }
+.im-conv-item__preview { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--flare-size-font-size-md); color: var(--flare-color-text-secondary); }
 .im-conv-item__preview :deep(.pte-rich), .im-conv-item__preview :deep(.pte-fallback), .im-conv-item__preview :deep(.pte-plain) { display: block; max-width: 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .im-conv-item__preview :deep(.pte-run) { display: inline; white-space: inherit; }
 .im-conv-item__preview--media { display: inline-flex; align-items: center; gap: 5px; }
@@ -343,7 +352,7 @@ function openContextMenu(event: MouseEvent): void {
 .im-conv-item__unread-pill { min-width: 18px; max-width: 100%; height: 18px; box-sizing: border-box; padding-inline: 5px; border-radius: var(--flare-size-radius-full); background: var(--flare-color-primary); color: var(--flare-color-message-outgoing-foreground); font-size: var(--flare-size-font-size-xs); font-weight: 600; line-height: 18px; text-align: center; font-variant-numeric: tabular-nums; }
 .im-conv-item--muted:not(.im-conv-item--mentioned) .im-conv-item__unread-pill { background: var(--flare-color-bg-tertiary); color: var(--flare-color-text-secondary); }
 @container (max-width: 300px) {
-  .im-conv-item__select { gap: 8px; grid-template-columns: auto minmax(0, 1fr) minmax(6ch, max-content); }
-  .im-conv-item--selectable .im-conv-item__select { grid-template-columns: auto auto minmax(0, 1fr) minmax(6ch, max-content); }
+  .im-conv-item__select { gap: 8px; grid-template-columns: auto minmax(0, 1fr) var(--flare-size-component-conversation-row-meta-width); }
+  .im-conv-item--selectable .im-conv-item__select { grid-template-columns: auto auto minmax(0, 1fr) var(--flare-size-component-conversation-row-meta-width); }
 }
 </style>

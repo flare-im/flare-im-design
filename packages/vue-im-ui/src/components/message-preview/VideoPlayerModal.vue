@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from "vue";
+// 全屏播放器是一张模态面 —— 栈、滚动锁、焦点陷阱、Escape 和平台返回键都来自共用的
+// `useFlareModalSurface`。以前它自己写 `document.body.style.overflow = ''`,不计数
+// 也不还原:开在一张面板之上再关掉,面板还开着,背后的页面却又能滚了。
+import { computed, ref, watch } from "vue";
 import { CloseOutline } from "../../shared/icon-glyphs";
 import { NIcon } from "naive-ui";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
-import { useFlareNativeBack } from "../../shared/platform/useFlareNativeBack";
+import { useFlareModalSurface } from "../../shared/useModalSurface";
 
 const props = withDefaults(
   defineProps<{
@@ -22,47 +25,27 @@ const strings = computed(() => ({
 const emit = defineEmits<{ "update:show": [value: boolean] }>();
 
 const videoRef = ref<HTMLVideoElement | null>(null);
+const surfaceEl = ref<HTMLElement | null>(null);
 
 const displayTitle = computed(() => strings.value.title.trim() || t("videoPlayerModal.title"));
 
 function requestClose(): void {
   emit("update:show", false);
 }
-useFlareNativeBack(() => props.show, requestClose);
 
-function onGlobalKeydown(event: KeyboardEvent): void {
-  if (!props.show) return;
-  if (event.key === "Escape") {
-    event.preventDefault();
-    requestClose();
-  }
-}
-
-watch(
-  () => props.show,
-  (open) => {
-    if (typeof document === "undefined") return;
-    if (open) {
-      document.addEventListener("keydown", onGlobalKeydown);
-      document.body.style.overflow = "hidden";
-    } else {
-      document.removeEventListener("keydown", onGlobalKeydown);
-      document.body.style.overflow = "";
-      videoRef.value?.pause();
-    }
-  },
-);
-
-onBeforeUnmount(() => {
-  if (typeof document === "undefined") return;
-  document.removeEventListener("keydown", onGlobalKeydown);
-  document.body.style.overflow = "";
+const { overlayContainer } = useFlareModalSurface({
+  open: () => props.show,
+  surface: surfaceEl,
+  onRequestClose: requestClose,
 });
+
+// 关掉就停下来:留着继续播,声音会从一个看不见的元素里出来。
+watch(() => props.show, (open) => { if (!open) videoRef.value?.pause(); });
 </script>
 
 <template>
-  <Teleport to="body">
-    <div v-if="show" class="video-player-modal" role="dialog" aria-modal="true" @click.self="requestClose">
+  <Teleport :to="overlayContainer">
+    <div v-if="show" ref="surfaceEl" class="video-player-modal" role="dialog" aria-modal="true" tabindex="-1" @click.self="requestClose">
       <header class="video-player-modal__header">
         <strong class="video-player-modal__title">{{ displayTitle }}</strong>
         <button type="button" class="video-player-modal__close" :aria-label="t('common.close')" @click="requestClose">
@@ -90,7 +73,7 @@ onBeforeUnmount(() => {
 .video-player-modal {
   position: fixed;
   inset: 0;
-  z-index: 10000;
+  z-index: var(--flare-z-index-media);
   display: flex;
   flex-direction: column;
   background: rgba(0, 0, 0, 0.88);

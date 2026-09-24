@@ -46,8 +46,14 @@ public struct FlareActionItem: Identifiable, Hashable, Sendable {
     }
 }
 
-/// A menu of host actions opened from `label`, on the system pull-down `Menu` (the native idiom
-/// on iPhone and iPad). Spec: ActionMenu (`ActionMenuView`).
+/// A menu of host actions opened from `label`. Spec: ActionMenu (`ActionMenuView`).
+///
+/// Drawn by the kit rather than on the system pull-down `Menu`: UIKit gives its menu a ~250pt
+/// minimum width, so three two-character actions filled well over half a phone screen, and no
+/// amount of styling on this side could narrow it. The other three kits draw their own and size
+/// it to the content, so this one was the odd one out on every screen that has a "+".
+/// Width is the content's, clamped to [``ActionMenuRules/minWidth``, ``ActionMenuRules/maxWidth``]
+/// — the same numbers the Android/Flutter/Vue menus use.
 ///
 /// The rules every platform shares:
 /// - Host order is kept, also when the menu opens upward.
@@ -73,34 +79,80 @@ public struct ActionMenuView<Label: View>: View {
         self.onSelect = onSelect; self.label = label()
     }
 
+    @State private var open = false
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareBrandTheme) private var flareBrandTheme
+
     public var body: some View {
         let sections = ActionMenuRules.sections(items)
         if sections.isEmpty {
             label.accessibilityLabel(accessibilityLabel)
         } else {
-            Menu {
-                ForEach(Array(sections.enumerated()), id: \.offset) { _, section in
-                    Section {
-                        ForEach(section) { item in row(item) }
-                    }
-                }
-            } label: {
-                label
-            }
-            // The system reverses a menu that opens upward; the host's order is the order.
-            .menuOrder(.fixed)
-            .help(accessibilityLabel)
-            .accessibilityLabel(accessibilityLabel)
+            Button { open = true } label: { label }
+                .buttonStyle(.plain)
+                .accessibilityLabel(accessibilityLabel)
+                .accessibilityAddTraits(.isButton)
+                .flareActionMenuPopover(isPresented: $open) { sheet(sections) }
         }
     }
 
+    /// The drawn menu surface. Internal so the tests can inspect the rows without presenting it.
+    func sheet(_ sections: [[FlareActionItem]]) -> some View {
+        let colors = FlareColors.of(scheme, brand: flareBrandTheme)
+        return VStack(alignment: .leading, spacing: 0) {
+            ForEach(Array(sections.enumerated()), id: \.offset) { index, section in
+                if index > 0 {
+                    Rectangle().fill(colors.borderSecondary).frame(height: 1)
+                }
+                ForEach(section) { item in row(item, colors) }
+            }
+        }
+        // Content width, clamped — the host's labels decide, within the kit's bounds.
+        .frame(minWidth: ActionMenuRules.minWidth, maxWidth: ActionMenuRules.maxWidth, alignment: .leading)
+        .fixedSize(horizontal: true, vertical: false)
+        .background(
+            RoundedRectangle(cornerRadius: FlareSizes.radiusLg)
+                .fill(colors.bgElevated)
+                .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).stroke(colors.borderSecondary, lineWidth: 1))
+        )
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(accessibilityLabel)
+    }
+
     @ViewBuilder
-    private func row(_ item: FlareActionItem) -> some View {
-        let button = Button(role: item.danger ? .destructive : nil) {
+    func row(_ item: FlareActionItem, _ colors: FlareColors) -> some View {
+        let tint = item.danger ? colors.error : (item.enabled ? colors.textPrimary : colors.textDisabled)
+        let button = Button {
+            // Close first, then report: a host that pushes a screen on select should not race the
+            // dismissal, and a disabled item never reports at all.
+            open = false
             onSelect(item.id)
         } label: {
-            rowLabel(item)
+            HStack(spacing: FlareSizes.spacingSm) {
+                if let symbol = ActionMenuRules.symbol(item) {
+                    // 装饰性:紧挨着的就是同义文字,读屏再念一遍图标名是噪音。
+                    Image(systemName: symbol).font(.system(size: FlareSizes.fontSize4xl)).foregroundColor(tint)
+                        .accessibilityHidden(true)
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(ActionMenuRules.title(item))
+                        .font(.system(size: FlareSizes.fontSize2xl))
+                        .foregroundColor(tint)
+                        .lineLimit(1)
+                    if let secondLine = ActionMenuRules.secondLine(item) {
+                        Text(secondLine)
+                            .font(.system(size: FlareSizes.fontSizeSm))
+                            .foregroundColor(colors.textTertiary)
+                            .lineLimit(2)
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, FlareSizes.spacingMd)
+            .frame(minHeight: FlareSizes.touchTarget)
+            .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
         .disabled(!item.enabled)
         .accessibilityAddTraits(ActionMenuRules.traits(item))
         if let name = item.accessibilityLabel {
@@ -109,20 +161,26 @@ public struct ActionMenuView<Label: View>: View {
             button
         }
     }
+}
 
-    /// The title (with the badge) and symbol, then the second line — the parts a system menu row
-    /// shows. The second line must follow the title as a sibling `Text`: inside the `Label`'s title
-    /// the system menu drops it.
+private extension View {
+    /// The menu anchored to its trigger. `.popover` gives the anchoring, the outside-tap dismissal
+    /// and the focus handling; the kit draws the surface inside it, so the card matches the other
+    /// three platforms instead of being the system's. Below iOS 16.4 the popover adapts to a sheet
+    /// — still the right actions, just presented the way that OS presents them.
     @ViewBuilder
-    private func rowLabel(_ item: FlareActionItem) -> some View {
-        let title = ActionMenuRules.title(item)
-        if let symbol = ActionMenuRules.symbol(item) {
-            SwiftUI.Label(title, systemImage: symbol)
+    func flareActionMenuPopover<C: View>(isPresented: Binding<Bool>,
+                                        @ViewBuilder content: @escaping () -> C) -> some View {
+        if #available(iOS 16.4, macOS 13.3, *) {
+            popover(isPresented: isPresented, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {
+                content()
+                    .presentationCompactAdaptation(.popover)
+                    .presentationBackground(.clear)
+            }
         } else {
-            Text(title)
-        }
-        if let secondLine = ActionMenuRules.secondLine(item) {
-            Text(secondLine)
+            popover(isPresented: isPresented, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {
+                content()
+            }
         }
     }
 }
@@ -168,4 +226,9 @@ enum ActionMenuRules {
     static func traits(_ item: FlareActionItem) -> AccessibilityTraits {
         item.pressed == true ? .isSelected : []
     }
+
+    /// The menu's width bounds. The same numbers on all four kits: the content decides the width,
+    /// these only stop it being a sliver or a page.
+    static let minWidth: CGFloat = 112
+    static let maxWidth: CGFloat = 280
 }

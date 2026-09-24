@@ -16,7 +16,17 @@ class FlareUiTest {
     }
 
     @Test fun seedTintDeterministic() {
-        assertEquals(seedTint("u1"), seedTint("u1"))
+        assertEquals(seedTint("u1", FlareColors.Light), seedTint("u1", FlareColors.Light))
+    }
+
+    // The slot is the seed's; the colours are the theme's. One person keeps one identity slot when
+    // the theme flips, but reads it from the dark palette — this is what the token palette bought.
+    @Test fun seedTintFollowsTheme() {
+        val light = seedTint("u1", FlareColors.Light)
+        val dark = seedTint("u1", FlareColors.Dark)
+        assertTrue(light != dark)
+        assertEquals(FlareColors.Light.avatarTintBlueBg to FlareColors.Light.avatarTintBlueFg, seedTint("", FlareColors.Light))
+        assertEquals(FlareColors.Dark.avatarTintBlueBg to FlareColors.Dark.avatarTintBlueFg, seedTint("", FlareColors.Dark))
     }
 
     @Test fun byteAndDurationFormat() {

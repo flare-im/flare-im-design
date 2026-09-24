@@ -104,9 +104,9 @@ class FlareGroupCallView extends StatelessWidget {
                 // 36-point disc; the padding gives the difference back so the
                 // disc stays put.
                 padding: const EdgeInsets.fromLTRB(
-                  14 - _targetInset,
-                  14 - _targetInset,
-                  14,
+                  FlareSizes.spacing2md - _targetInset,
+                  FlareSizes.spacing2md - _targetInset,
+                  FlareSizes.spacing2md,
                   FlareSizes.spacingXs,
                 ),
                 child: Row(

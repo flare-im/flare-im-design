@@ -30,7 +30,7 @@ public struct PollComposerView: View {
 
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: FlareSizes.spacing2sm) {
             HStack {
                 Text(strings.createPoll).font(.system(size: 15, weight: .semibold)).foregroundColor(colors.textPrimary)
                 Spacer(minLength: 0)
@@ -113,7 +113,7 @@ public struct PollComposerView: View {
                 .accessibilityLabel(strings.removeOption)
             }
         }
-        .padding(.horizontal, 10).padding(.vertical, 9)
+        .padding(.horizontal, FlareSizes.spacing2sm).padding(.vertical, 9)
         .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.bgSecondary))
     }
 }

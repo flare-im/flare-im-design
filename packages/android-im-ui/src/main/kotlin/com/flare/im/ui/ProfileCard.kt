@@ -101,8 +101,8 @@ fun ProfileCard(
                 maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         if (user.tags.isNotEmpty()) {
-            Spacer(Modifier.height(10.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Spacer(Modifier.height(FlareSizes.spacing2sm))
+            Row(horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs)) {
                 user.tags.forEach { t ->
                     Text(t, color = colors.primaryText, fontSize = FlareSizes.fontSizeXs.value.sp,
                         modifier = Modifier.clip(RoundedCornerShape(999.dp)).background(colors.bgSelected)
@@ -144,7 +144,7 @@ private fun messageTile(colors: FlareColors, label: String, onClick: () -> Unit,
             Modifier.fillMaxWidth().height(TileHeight)
                 .clip(RoundedCornerShape(FlareSizes.radiusLg))
                 .background(colors.primary)
-                .padding(horizontal = 10.dp),
+                .padding(horizontal = FlareSizes.spacing2sm),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {

@@ -22,8 +22,10 @@
   flex-direction: column;
   min-width: 0;
   width: 100%;
-  padding: var(--flare-size-spacing-2xs) var(--flare-size-spacing-2xs) calc(var(--flare-size-spacing-sm) + env(safe-area-inset-bottom));
-  gap: var(--flare-size-spacing-2xs);
+  padding: 0 var(--flare-size-spacing-2xs) calc(var(--flare-size-spacing-2xs) + env(safe-area-inset-bottom));
+  gap: 0;
+  /* 和消息区之间只有这一条线。输入框自己不再画框,所以这条是整个输入区唯一的边。 */
+  border-block-start: 1px solid var(--flare-component-composer-border);
   box-sizing: border-box;
   overflow: visible;
   background: var(--flare-component-composer-bar-bg);
@@ -51,25 +53,22 @@
   height: auto;
   max-height: none;
   padding: 0;
-  border: 1px solid var(--studio-border);
-  border-radius: var(--studio-radius);
-  background: var(--studio-surface);
+  /* 「四周不要有外面包裹」:输入框不画边框、不圆角、不自带底色 —— 它就是这块面的一部分。
+     整个输入区的边只剩最上面那一条。 */
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   box-shadow: none;
   overflow: visible;
-  transition:
-    border-color var(--flare-component-motion-fast),
-    box-shadow var(--flare-component-motion-fast),
-    background-color var(--flare-component-motion-fast);
+  transition: background-color var(--flare-component-motion-fast);
 }
 
-.composer-studio.composer .composer-field--focused,
-.composer-studio.composer .composer-field:focus-within {
-  border-color: var(--studio-accent);
-  box-shadow: none;
-}
-
+/* 进入输入框什么也不变:框已经没有了,而光标本身就是文本域的焦点指示(WCAG 认的就是它)。
+   焦点环仍然留给工具条上的按钮。 */
+/* 拖文件进来是少数几个必须画出落点的时刻:这时才临时显形一圈。 */
 .composer-studio.composer .composer-field--drag-over {
-  border-color: var(--studio-accent);
+  border-radius: var(--studio-radius);
+  box-shadow: inset 0 0 0 2px var(--studio-accent);
 }
 
 .composer-drop-hint {
@@ -112,7 +111,7 @@
   min-height: 44px;
   height: auto;
   max-height: none;
-  padding: 10px 48px 10px 14px;
+  padding: var(--flare-size-spacing-2sm) 48px var(--flare-size-spacing-2sm) var(--flare-size-spacing-2md);
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -243,16 +242,15 @@
   justify-content: space-between;
   min-width: 0;
   width: 100%;
-  min-height: 44px;
+  min-height: var(--flare-size-component-composer-action-height);
   gap: 0;
-  padding: 1px var(--flare-size-spacing-sm) 0;
+  padding: 0 var(--flare-size-spacing-sm);
   border: 0;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
 }
 
-.composer-studio.composer .composer-toolbar::before,
 .composer-studio.composer .composer-format-strip::after,
 .composer-studio.composer .composer-status-hint::after,
 .composer-studio.composer .composer-reply-strip::after,
@@ -266,8 +264,12 @@
   pointer-events: none;
 }
 
+/* 工具条上面那条分隔线也去掉:输入区现在是一块平面,只有最顶上一条边。
+   一行图标本来就自成一段,不需要再画线把它和上面的文字隔开 —— 那条线加上面板那条、
+   输入框那圈,一屏里就叠了三层边。回复条 / 上传条 / 状态提示的分隔线保留:
+   它们是临时插进来的内容,没有线就会和正文糊在一起。 */
 .composer-studio.composer .composer-toolbar::before {
-  top: 0;
+  content: none;
 }
 
 .composer-studio.composer .composer-status-hint {
@@ -297,11 +299,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 44px;
-  width: 44px !important;
-  min-width: 44px !important;
-  max-width: 44px;
-  height: 44px !important;
+  position: relative;
+  flex: 0 0 var(--flare-size-component-composer-action-width);
+  width: var(--flare-size-component-composer-action-width) !important;
+  min-width: var(--flare-size-component-composer-action-width) !important;
+  max-width: var(--flare-size-component-composer-action-width);
+  /* 高度读 token(40),不再各写一个 44:四端动作键同一个尺寸。min-height 要跟着写,
+     否则 accessibility.css 粗指针下的 44 地板会盖过 height 把整行撑回去。 */
+  height: var(--flare-size-component-composer-action-height) !important;
+  min-height: var(--flare-size-component-composer-action-height) !important;
   margin: 0;
   padding: 0;
   border: 0;
@@ -310,6 +316,15 @@
   background: transparent !important;
   box-shadow: none !important;
   transform: none;
+}
+
+/* 键画 40 高,手指要的 44 由这层不可见的伪元素补齐(上下各 2px)。 */
+.composer-studio.composer .composer-toolbar > .n-button::after,
+.composer-studio.composer .composer-toolbar .composer-mention-anchor > .n-button::after,
+.composer-studio.composer .composer-toolbar > .composer-toolbar__send::after {
+  content: "";
+  position: absolute;
+  inset: calc((var(--flare-size-component-composer-action-height) - var(--flare-size-layout-touch-target-min)) / 2) 0;
 }
 
 .composer-studio.composer .composer-toolbar > .composer-expand {
@@ -322,14 +337,16 @@
   color: var(--studio-accent);
 }
 
-.composer-studio.composer .composer-toolbar button:not(:disabled):hover {
-  color: var(--studio-accent);
-  background: var(--flare-color-bg-hover) !important;
+/* 工具行的键只用颜色说话:不垫底色。触屏上 :hover 会在点过之后留在键上,像一块洗不掉
+   的方底;按下那一瞬也只换颜色,与一行里其它键保持同一个"重量"。 */
+@media (hover: hover) {
+  .composer-studio.composer .composer-toolbar button:not(:disabled):hover {
+    color: var(--studio-accent);
+  }
 }
 
 .composer-studio.composer .composer-toolbar button:active:not(:disabled) {
   color: var(--flare-color-primary-active);
-  background: var(--flare-color-bg-selected) !important;
 }
 
 .composer-studio.composer .composer-toolbar button:disabled {
@@ -374,8 +391,12 @@
   grid-column: 1 / -1;
 }
 
+/* 格式行与输入框是同一块面的上下两行:同一底色、不另起边框,只在两行之间画一条发丝线,让键和正文
+   各占一行而不糊在一起。这条线通到两边(不像回复条那样两侧内缩):它分的是两行,不是一块插进来的内容。 */
 .composer-studio.composer .composer-format-strip::after {
+  right: 0;
   bottom: 0;
+  left: 0;
 }
 
 .composer-studio.composer .composer-mention-anchor {
@@ -383,34 +404,24 @@
   display: inline-flex;
 }
 
+/* 面板在流里时就是这块面往下的延续：不画边、不圆角、不自带底色，也不再补一圈内距 ——
+   输入框、工具条、面板三样中间原来各有一条线加一圈留白，一屏上叠了三层边。 */
 .composer-studio.composer .composer-surface {
   position: relative;
   min-width: 0;
   max-height: min(300px, 40dvh);
-  padding: var(--flare-size-spacing-md);
+  padding: 0;
   overflow: auto;
   overscroll-behavior: contain;
-  border: 1px solid var(--studio-border);
-  border-radius: var(--studio-radius);
-  background: var(--studio-surface-elevated);
-  box-shadow: var(--flare-component-shadow-floating);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   scrollbar-width: thin;
 }
-
-.composer-studio.composer .composer-surface-close {
-  position: absolute;
-  top: var(--flare-size-spacing-sm);
-  right: var(--flare-size-spacing-sm);
-  z-index: 2;
-  width: 36px;
-  height: 36px;
-}
-
-.composer-studio.composer .composer-surface > .composer-surface-close {
-  border: 0;
-  color: var(--flare-color-text-secondary);
-  background: transparent;
-  cursor: pointer;
+/* 只有自带留白需求的面板（@ 成员、+ 功能格）才补内距；表情面板自己铺满。 */
+.composer-studio.composer .composer-surface:not(.composer-media-surface) {
+  padding: var(--flare-size-spacing-xs) var(--flare-size-spacing-sm) var(--flare-size-spacing-sm);
 }
 
 .composer-studio.composer .composer-mention-menu {
@@ -422,28 +433,6 @@
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-}
-
-.composer-studio.composer .composer-draft-peek {
-  display: flex;
-  grid-column: 1 / -1;
-  align-items: center;
-  gap: var(--flare-size-spacing-sm);
-  width: 100%;
-  height: var(--flare-size-layout-control-height-sm);
-  padding: 0 10px;
-  border: 0;
-  color: var(--flare-color-text-secondary);
-  background: transparent;
-}
-
-.composer-draft-peek span {
-  flex: 1;
-  overflow: hidden;
-  font-size: var(--flare-size-font-size-sm);
-  text-align: left;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .composer-studio.composer--disabled .composer-field {
@@ -475,15 +464,19 @@
 
 .composer-studio :deep(.composer-emoji-sticker-panel) {
   max-height: 260px;
-  padding-top: 28px;
+  /* 原来这里有 28px，是给面板右上角那个关闭「x」让的位；x 去掉之后它就只是一条空白。 */
+  padding-top: 0;
   border: 0;
   background: transparent;
   box-shadow: none;
 }
 
+/* 表情面板的高度上限。手机上输入区加面板一共吃掉 812 的 44%,消息只剩半屏 ——
+   收到 168 之后仍然是两整排表情加第三排的一线(那一线就是「还能往下滚」的提示)。
+   别低于 160,第二排会开始被切。 */
 .composer-studio :deep(.panel-scroll) {
   min-height: 0;
-  max-height: 200px;
+  max-height: 168px;
 }
 
 .composer-studio.composer--voice-open .composer-field {
@@ -497,11 +490,6 @@
 .composer.composer-studio.composer--input-expanded .composer-input-row {
   align-items: flex-start;
   min-height: min(34dvh, 280px);
-}
-
-.composer.composer-studio.composer--input-expanded .composer-field .composer-toolbar::before {
-  content: none;
-  display: none;
 }
 
 .composer.composer-studio.composer--input-expanded :deep(.n-input__textarea-el),
@@ -519,6 +507,15 @@
   padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-md);
 }
 
+/* The format strip already owns a compact row above its lower hairline. In
+   rich mode the generic desktop top inset sat between that row and the
+   composer's top hairline, making the upper gap one spacing step larger than
+   the lower one. Let the strip meet the top edge just as it meets its own
+   lower divider; the normal composer keeps the balanced 8px outer inset. */
+.composer-studio.composer--wide.composer--format {
+  padding-top: 0;
+}
+
 .composer-studio.composer--wide .composer-editor-area {
   grid-template-columns: minmax(0, 1fr) auto;
 }
@@ -533,10 +530,6 @@
   width: auto;
   min-height: 46px;
   padding: 0 var(--flare-size-spacing-2xs);
-}
-
-.composer-studio.composer--wide .composer-toolbar::before {
-  display: none;
 }
 
 .composer-studio.composer--wide .composer-toolbar > .n-button,
@@ -564,7 +557,7 @@
 
 .composer-studio.composer--wide .composer-field--multiline .composer-input-row {
   min-height: var(--flare-size-layout-control-height-lg);
-  padding: 9px 14px;
+  padding: 9px var(--flare-size-spacing-2md);
 }
 
 .composer-studio.composer--wide .composer-field--multiline .composer-toolbar,
@@ -577,16 +570,24 @@
   padding: 0 var(--flare-size-spacing-sm);
 }
 
-.composer-studio.composer--wide .composer-field--multiline .composer-toolbar::before,
-.composer-studio.composer--wide .composer-field--context .composer-toolbar::before {
-  display: block;
-}
-
+/* 宽屏时面板浮在输入区**上方**、盖住一截消息 —— 这是它和窄屏唯一的实质差别:
+   盖住东西的面必须自己不透明、自己有边,否则底下的消息会透上来。下沿不画边:
+   那里就是输入区顶上那条线。 */
 .composer-studio.composer--wide .composer-surface {
   position: absolute;
-  inset: auto 12px calc(100% + 2px);
+  /* 贴着输入区的上沿长出来:压 1px 让它和那条线叠在一起。 */
+  inset: auto var(--flare-size-spacing-2xs) calc(100% - 1px);
   z-index: 30;
   max-height: min(320px, 40dvh);
+  padding: 0;
+  border: 1px solid var(--flare-component-composer-border);
+  border-block-end: 0;
+  border-start-start-radius: var(--studio-radius);
+  border-start-end-radius: var(--studio-radius);
+  background: var(--flare-component-composer-bar-bg);
+}
+.composer-studio.composer--wide .composer-surface:not(.composer-media-surface) {
+  padding: var(--flare-size-spacing-xs) var(--flare-size-spacing-sm) var(--flare-size-spacing-sm);
 }
 
 .composer-studio.composer--wide .composer-media-surface {
@@ -594,29 +595,25 @@
   overflow: hidden;
 }
 
-.composer-studio.composer--wide .composer-media-surface > .composer-surface-close {
-  top: auto;
-  right: var(--flare-size-spacing-2xs);
-  bottom: var(--flare-size-spacing-xs);
-}
-
 .composer-studio.composer--wide .composer-media-surface :deep(.composer-emoji-sticker-panel) {
-  max-height: min(288px, 40dvh - 2px);
+  /* 与下面 .panel-scroll 的 height 是一对:改一个必须改另一个,否则外壳兜不住内容。 */
+  max-height: min(258px, 40dvh - 2px);
   padding-top: 0;
 }
 
 .composer-studio.composer--wide .composer-media-surface :deep(.panel-scroll) {
   flex: 1 1 auto;
   min-height: 0;
-  height: 242px;
+  /* 212 = 3*52 + 2*8 + 上下各 8 的内距:桌面正好三整排,不留半排。 */
+  height: 212px;
   max-height: none;
-  padding: var(--flare-size-spacing-sm) 10px;
+  padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-2sm);
   overflow: auto;
 }
 
 .composer-studio.composer--wide .composer-media-surface :deep(.panel-tabbar) {
   flex: 0 0 auto;
-  padding: 2px 48px 2px 10px;
+  padding: 2px var(--flare-size-spacing-2sm);
 }
 
 .composer.composer-studio.composer--wide.composer--input-expanded .composer-editor-area {
@@ -641,10 +638,6 @@
   .composer.composer-studio .composer-toolbar {
     grid-column: 1;
     width: 100%;
-  }
-
-  .composer.composer-studio .composer-toolbar::before {
-    display: block;
   }
 }
 

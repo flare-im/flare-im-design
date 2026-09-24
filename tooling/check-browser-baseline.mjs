@@ -37,6 +37,14 @@ const FEATURES = [
   // Always written beside `::-webkit-scrollbar { display: none }`; without either the bar is visible, nothing else.
   { id: "scrollbar-width", test: /scrollbar-width\s*:/, floors: { Chrome: 121, Edge: 121, Firefox: 64, Safari: 18.2 }, progressive: true },
   { id: "text-wrap: balance", test: /text-wrap\s*:\s*balance/, floors: { Chrome: 114, Edge: 114, Firefox: 121, Safari: 17.5 } },
+  // 这两条补的是「用户要求更强对比」时的轮廓。引擎不认得它们，也就没有那个模式可补 ——
+  // 页面落回默认画法，没有任何东西塌掉，所以是 progressive。
+  // The batch toolbar's pinned exit key: without sticky it scrolls away with the strip, so it is load-bearing.
+  { id: "position: sticky", test: /position\s*:\s*sticky/, floors: { Chrome: 56, Edge: 16, Firefox: 59, Safari: 13 } },
+  { id: "scroll-padding-inline / -block", test: /scroll-padding-(?:inline|block)/, floors: { Chrome: 69, Edge: 79, Firefox: 68, Safari: 15 } },
+  { id: "padding-inline / margin-inline", test: /(?:padding|margin)-(?:inline|block)(?:-start|-end)?\s*:/, floors: { Chrome: 87, Edge: 87, Firefox: 66, Safari: 14.1 } },
+  { id: "forced-colors", test: /@media[^{]*forced-colors\s*:/, floors: { Chrome: 89, Edge: 89, Firefox: 89, Safari: 14.1 }, progressive: true },
+  { id: "prefers-contrast", test: /@media[^{]*prefers-contrast\s*:/, floors: { Chrome: 96, Edge: 96, Firefox: 101, Safari: 14.1 }, progressive: true },
 ];
 
 /** Where the styles live: the Vue package's own sources and the generated token stylesheet. */

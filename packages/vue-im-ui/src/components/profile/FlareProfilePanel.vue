@@ -101,7 +101,7 @@ const groups = computed<FlareSettingsSection[]>(() =>
   overflow: hidden;
 }
 .flare-profile__identity {
-  display: flex; align-items: center; gap: 14px;
+  display: flex; align-items: center; gap: var(--flare-size-spacing-2md);
   width: 100%; min-height: 88px;
   padding: 16px;
   border: 0; background: transparent; color: inherit; font: inherit; text-align: start;
@@ -120,7 +120,7 @@ const groups = computed<FlareSettingsSection[]>(() =>
 .flare-profile__sig.is-placeholder { color: var(--flare-color-text-tertiary); }
 .flare-profile__id { margin-top: 3px; font-size: var(--flare-size-font-size-sm); color: var(--flare-color-text-tertiary); }
 .flare-profile__chev {
-  position: absolute; top: 50%; right: 14px; transform: translateY(-50%);
+  position: absolute; top: 50%; right: var(--flare-size-spacing-2md); transform: translateY(-50%);
   display: inline-flex; color: var(--flare-color-text-tertiary); pointer-events: none;
 }
 .flare-profile__qr {
@@ -133,7 +133,7 @@ const groups = computed<FlareSettingsSection[]>(() =>
 .flare-profile__qr:hover { color: var(--flare-color-text-primary); background: var(--flare-color-bg-hover); }
 .flare-profile__qr:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: 2px; }
 .flare-profile__list {
-  margin: 14px 12px 0;
+  margin: var(--flare-size-spacing-2md) 12px 0;
   border-radius: var(--flare-size-radius-xl);
   background: var(--flare-color-bg-elevated);
   box-shadow: var(--flare-shadow-card);

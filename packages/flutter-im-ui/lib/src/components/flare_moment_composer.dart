@@ -139,7 +139,7 @@ class _FlareMomentComposerState extends State<FlareMomentComposer> {
 
   Widget _header(FlareColors colors, bool canPost) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: FlareSizes.spacing2md, vertical: 12),
       decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: colors.borderPrimary)),
       ),
@@ -192,7 +192,7 @@ class _FlareMomentComposerState extends State<FlareMomentComposer> {
       if (widget.images.length < widget.maxImages) _addTile(colors),
     ];
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+      padding: const EdgeInsets.fromLTRB(FlareSizes.spacing2md, 0, FlareSizes.spacing2md, 12),
       child: GridView.count(
         crossAxisCount: 4,
         mainAxisSpacing: 6,
@@ -275,7 +275,7 @@ class _FlareMomentComposerState extends State<FlareMomentComposer> {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+        padding: const EdgeInsets.symmetric(horizontal: FlareSizes.spacing2md, vertical: 13),
         child: Row(
           children: [
             Icon(icon, size: 18, color: colors.textSecondary),

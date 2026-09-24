@@ -130,7 +130,7 @@ fun InlineVoiceComposer(
         }
     }
     Column {
-        Row(Modifier.fillMaxWidth().border(1.dp, colors.borderPrimary, RoundedCornerShape(12.dp)).background(colors.bgPrimary, RoundedCornerShape(12.dp)).padding(horizontal = 3.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth().border(1.dp, colors.borderPrimary, RoundedCornerShape(FlareSizes.radiusCard)).background(colors.bgPrimary, RoundedCornerShape(FlareSizes.radiusCard)).padding(horizontal = 3.dp, vertical = FlareSizes.spacing2xs), verticalAlignment = Alignment.CenterVertically) {
             @Composable fun control(icon: androidx.compose.ui.graphics.vector.ImageVector, name: String, enabled: Boolean = !sending, accent: Boolean = false, click: () -> Unit) {
                 IconButton(onClick = click, enabled = enabled, modifier = Modifier.size(44.dp)) { Icon(icon, name, Modifier.size(20.dp), tint = if (accent) colors.primaryText else colors.textSecondary) }
             }

@@ -99,7 +99,9 @@ final class MomentsControlTests: XCTestCase {
 
     @MainActor
     func testACoverWithoutAnImageIsAQuietBand() throws {
-        XCTAssertEqual(MomentsCoverHeaderView.coverHeight(hasImage: false), 140)
+        // No photo, no band to reserve: the header is the identity row and takes the height that row needs.
+        // It used to reserve 140pt, which with the name pulled to the band's bottom-right left ~110pt empty.
+        XCTAssertEqual(MomentsCoverHeaderView.coverHeight(hasImage: false), 0)
         XCTAssertEqual(MomentsCoverHeaderView.coverHeight(hasImage: true), 240)
         let quiet = MomentsCoverHeaderView(userId: "u_lin", name: "林夏", signature: "产品设计")
         let view = try quiet.inspect()

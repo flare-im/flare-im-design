@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -95,12 +96,16 @@ fun Button(
     val off = disabled || loading || onClick == null
     val shape = RoundedCornerShape(FlareSizes.radiusLg)
 
+    // ghost / text 的**文字**取 primaryText 而不是 primary:两者是一对的两半,浅色下同为
+    // #7047D6 所以看不出来,暗色下 primary 不变(在 #20232B 上 2.66:1,AA 正文要 4.5)而
+    // primaryText 提亮成 #A78BFA(5.77:1)。ghost 的描边仍用 primary —— 描边是填充不是文字。
     val (bgBrush, fg, borderColor) = when (variant) {
         FlareButtonVariant.Primary -> Triple(Brush.linearGradient(listOf(colors.primary, colors.primary)), Color.White, Color.Transparent)
         FlareButtonVariant.Secondary -> Triple(Brush.linearGradient(listOf(colors.bgSecondary, colors.bgSecondary)), colors.textPrimary, colors.borderPrimary)
-        FlareButtonVariant.Ghost -> Triple(Brush.linearGradient(listOf(Color.Transparent, Color.Transparent)), colors.primary, colors.primary.copy(alpha = 0.4f))
+        FlareButtonVariant.Ghost -> Triple(Brush.linearGradient(listOf(Color.Transparent, Color.Transparent)), colors.primaryText, colors.primary.copy(alpha = 0.4f))
         FlareButtonVariant.Danger -> Triple(Brush.linearGradient(listOf(colors.error, colors.error)), Color.White, Color.Transparent)
-        FlareButtonVariant.Text -> Triple(Brush.linearGradient(listOf(Color.Transparent, Color.Transparent)), colors.primary, Color.Transparent)
+        FlareButtonVariant.Text -> Triple(Brush.linearGradient(listOf(Color.Transparent, Color.Transparent)), colors.primaryText, Color.Transparent)
+        FlareButtonVariant.Quiet -> Triple(Brush.linearGradient(listOf(Color.Transparent, Color.Transparent)), colors.textSecondary, Color.Transparent)
     }
 
     var m = Modifier
@@ -111,7 +116,7 @@ fun Button(
     m = m.clickable(enabled = !off, role = androidx.compose.ui.semantics.Role.Button) { onClick?.invoke() }
     m = m.padding(horizontal = spec.hPad.dp, vertical = FlareSizes.spacingSm)
 
-    Row(m, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+    Row(m, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs)) {
         if (loading) {
             CircularProgressIndicator(Modifier.size(15.dp), color = fg, strokeWidth = 2.dp)
         } else if (icon != null) {
@@ -162,11 +167,23 @@ fun IconButton(
     }
     val bg = background ?: bgDerived
     val fg = tint ?: fgDerived
+    // 外层拿触达区与语义,内层只画那个圆盘。两件事从前挤在一个节点上,后果有两个:
+    //  · 整个节点就是 30/38/46 的圆盘,低于 48dp —— 只剩 Compose 那点隐式命中扩张兜着,
+    //    而隐式扩张的优先级低于任何自身边界包住该点的兄弟节点,恰恰在密集行里先失效;
+    //  · disabled 时整个 clickable 被换成 Modifier,连 Role.Button 和 disabled 状态一起丢了,
+    //    TalkBack 把一颗停用的按钮念成一张带描述的图片。
+    // 存在性守卫要留着:onClick == null 的那些是装饰,不该被安上一个停用的按钮语义。
     Box(
-        Modifier.size(dimDp).clip(shape).background(bg).alpha(if (disabled) 0.45f else 1f)
-            .then(if (!disabled && onClick != null) Modifier.clickable(role = Role.Button) { onClick() } else Modifier),
+        Modifier
+            .sizeIn(minWidth = FlareSizes.touchTarget, minHeight = FlareSizes.touchTarget)
+            .then(if (onClick != null) Modifier.clickable(enabled = !disabled, role = Role.Button) { onClick() } else Modifier),
         contentAlignment = Alignment.Center,
-    ) { FlareIcon(name = icon, size = glyphDp, tint = fg, contentDescription = contentDescription) }
+    ) {
+        Box(
+            Modifier.size(dimDp).clip(shape).background(bg).alpha(if (disabled) 0.45f else 1f),
+            contentAlignment = Alignment.Center,
+        ) { FlareIcon(name = icon, size = glyphDp, tint = fg, contentDescription = contentDescription) }
+    }
 }
 
 // MARK: - FormField
@@ -181,7 +198,7 @@ fun FormField(
     content: @Composable () -> Unit,
 ) {
     val colors = flareColors()
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs)) {
         if (label != null) {
             Row {
                 Text(label, color = colors.textSecondary, fontWeight = FontWeight.Medium, fontSize = 13.sp)
@@ -238,7 +255,7 @@ fun Checkbox(
                 enabled = !disabled && onChange != null,
                 role = Role.Checkbox,
             ) { onChange?.invoke(!value) },
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
     ) {
         Box(
             Modifier.size(20.dp).clip(RoundedCornerShape(FlareSizes.radiusSm))
@@ -269,7 +286,7 @@ fun RadioGroup(
         Row(
             Modifier.alpha(if (o.disabled) 0.5f else 1f)
                 .selectable(selected = on, enabled = !o.disabled && onSelect != null, role = Role.RadioButton) { onSelect?.invoke(o.value) },
-            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
         ) {
             Box(
                 Modifier.size(18.dp).clip(CircleShape).background(colors.bgPrimary)
@@ -279,7 +296,7 @@ fun RadioGroup(
             Text(o.label, color = colors.textPrimary, fontSize = 14.sp)
         }
     }
-    if (vertical) Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(12.dp)) { options.forEach { row(it) } }
+    if (vertical) Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) { options.forEach { row(it) } }
     else Row(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(18.dp)) { options.forEach { row(it) } }
 }
 
@@ -312,7 +329,9 @@ fun Select(
         Modifier.height(spec.height.dp).defaultMinSize(minWidth = 160.dp).clip(shape).background(colors.bgSecondary)
             .border(1.dp, if (open) colors.primary else colors.borderPrimary, shape)
             .alpha(if (disabled) 0.55f else 1f)
-            .then(if (!disabled) Modifier.clickable { open = true } else Modifier)
+            // 停用要写进 clickable 里,而不是把整条 clickable 换掉 —— 换掉就连
+            // Role.Button 和 disabled 状态一起丢了,读屏会把它念成普通一行文字。
+            .clickable(enabled = !disabled, role = Role.Button) { open = true }
             .padding(horizontal = selectHPad(size).dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -338,17 +357,17 @@ fun Select(
                 Text(
                     heading,
                     color = colors.textTertiary, fontSize = 13.sp, fontWeight = FontWeight.Medium,
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp), textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = FlareSizes.spacing2sm), textAlign = TextAlign.Center,
                 )
             }
-            Column(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp)) {
+            Column(Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacingSm, vertical = FlareSizes.spacingXs)) {
                 options.forEach { o ->
                     val selected = o.value == value
                     Row(
                         Modifier.fillMaxWidth().height(52.dp).clip(RoundedCornerShape(FlareSizes.radiusLg))
                             .alpha(if (o.disabled) 0.4f else 1f)
-                            .then(if (!o.disabled) Modifier.clickable { onChange?.invoke(o.value); open = false } else Modifier)
-                            .padding(horizontal = 16.dp),
+                            .clickable(enabled = !o.disabled, role = Role.Button) { onChange?.invoke(o.value); open = false }
+                            .padding(horizontal = FlareSizes.spacingLg),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(o.label, color = if (selected) colors.primaryText else colors.textPrimary,

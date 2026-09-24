@@ -123,4 +123,31 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+  // A search that takes a limit and returns no count can say a group is
+  // truncated (hasMore) but not by how much: the row is the plain "更多", and
+  // the counted row is kept for a known total, which wins when both are given.
+  testWidgets('a truncated group offers a countless more row, a counted one when the total is known', (tester) async {
+    final viewed = <FlareSearchResultKind>[];
+    const item = FlareSearchResultItem(id: 'u1', kind: FlareSearchResultKind.contact, title: '周屿');
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: FlareSearchResults(
+            query: '周',
+            onViewAll: viewed.add,
+            groups: const [
+              FlareSearchResultGroup(kind: FlareSearchResultKind.contact, label: '联系人', items: [item], hasMore: true),
+              FlareSearchResultGroup(kind: FlareSearchResultKind.group, label: '群聊', items: [item], total: 9, hasMore: true),
+              FlareSearchResultGroup(kind: FlareSearchResultKind.message, label: '聊天记录', items: [item]),
+            ],
+          ),
+        ),
+      ),
+    );
+    const strings = FlareStrings();
+    expect(find.text(strings.more), findsOneWidget);
+    expect(find.text(strings.viewAll(9)), findsOneWidget);
+    await tester.tap(find.text(strings.more));
+    expect(viewed, [FlareSearchResultKind.contact]);
+  });
 }

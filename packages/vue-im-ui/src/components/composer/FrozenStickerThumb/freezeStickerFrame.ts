@@ -1,5 +1,7 @@
 const MAX_CACHE_ITEMS = 96;
 const MAX_FROZEN_SIDE = 96;
+const MAX_SOURCE_SIDE = 4096;
+const MAX_ENCODED_BYTES = 8 * 1024 * 1024;
 const MAX_ACTIVE_FREEZES = 2;
 
 const cache = new Map<string, string>();
@@ -57,7 +59,12 @@ export async function freezeStickerToStaticDataUrl(url: string): Promise<string>
     const res = await fetch(url);
     if (!res.ok) throw new Error(String(res.status));
     const blob = await res.blob();
+    if (blob.size === 0 || blob.size > MAX_ENCODED_BYTES) throw new Error("static preview exceeds byte budget");
     const bmp = await createImageBitmap(blob);
+    if (bmp.width < 1 || bmp.height < 1 || bmp.width > MAX_SOURCE_SIDE || bmp.height > MAX_SOURCE_SIDE) {
+      bmp.close();
+      throw new Error("static preview exceeds dimension budget");
+    }
     const scale = Math.min(1, MAX_FROZEN_SIDE / Math.max(bmp.width, bmp.height));
     const width = Math.max(1, Math.round(bmp.width * scale));
     const height = Math.max(1, Math.round(bmp.height * scale));
@@ -67,12 +74,14 @@ export async function freezeStickerToStaticDataUrl(url: string): Promise<string>
     const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) {
       bmp.close();
-      return url;
+      return "";
     }
     ctx.drawImage(bmp, 0, 0, width, height);
     bmp.close();
     return remember(url, canvas.toDataURL("image/png"));
-  }).catch(() => url);
+  // Never fall back to the animated source in a static surface. A broken
+  // thumbnail is safer than silently starting animation inside the composer.
+  }).catch(() => "");
 
   inflight.set(url, promise);
   try {

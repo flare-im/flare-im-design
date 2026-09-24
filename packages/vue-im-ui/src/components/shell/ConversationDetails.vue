@@ -96,7 +96,7 @@ const subtitle = computed(() => {
       <n-divider />
 
       <section class="details-section">
-        <div class="pane-title">{{ t("conversationDetails.status") }}</div>
+        <h3 class="details-section__title">{{ t("conversationDetails.status") }}</h3>
         <dl>
           <div><dt>{{ t("conversationDetails.channel") }}</dt><dd>{{ conversation.channelId || "-" }}</dd></div>
           <div><dt>{{ t("conversationDetails.unread") }}</dt><dd>{{ conversation.unreadCount ?? 0 }}</dd></div>
@@ -114,7 +114,7 @@ const subtitle = computed(() => {
       <n-divider />
 
       <section class="details-section">
-        <div class="pane-title">{{ t("conversationDetails.extensions") }}</div>
+        <h3 class="details-section__title">{{ t("conversationDetails.extensions") }}</h3>
         <div class="extension-list">
           <button type="button">{{ t("conversationDetails.membersAndPermissions") }}</button>
           <button type="button">{{ t("conversationDetails.filesAndMedia") }}</button>

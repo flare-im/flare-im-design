@@ -189,7 +189,7 @@ public struct MessageActionSheetView: View {
                     ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
                         if index > 0 { Divider().overlay(colors.borderSecondary) }
                         let destructive = entry.group == .destructive
-                        let foreground = !entry.enabled ? colors.textTertiary : (destructive ? colors.error : colors.textPrimary)
+                        let foreground = !entry.enabled ? colors.textTertiary : (destructive ? colors.errorText : colors.textPrimary)
                         Button { onAction?(entry.id) } label: {
                             HStack(spacing: FlareSizes.spacingMd) {
                                 Image(systemName: flareIconSymbol(entry.icon)).font(.system(size: FlareSizes.iconSizeMd * textScale))

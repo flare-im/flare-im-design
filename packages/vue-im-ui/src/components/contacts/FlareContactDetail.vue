@@ -136,7 +136,7 @@ function onToggle(item: FlareSettingsItem, value: boolean) {
       <span v-if="starred" class="flare-contact-detail__star"><n-icon aria-hidden="true" :size="12" :component="flareIcons.star" />{{ t("contact.star") }}</span>
     </div>
 
-    <div v-if="actions().length" class="flare-contact-detail__actions">
+    <div v-if="actions().length" class="flare-contact-detail__actions" :class="{ 'is-single': actions().length === 1 }">
       <button
         v-for="action in actions()"
         :key="action.id"
@@ -171,7 +171,7 @@ function onToggle(item: FlareSettingsItem, value: boolean) {
 
 <style scoped>
 .flare-contact-detail { display: flex; flex-direction: column; }
-.flare-contact-detail__hero { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 24px 16px 10px; }
+.flare-contact-detail__hero { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 24px 16px var(--flare-size-spacing-2sm); }
 .flare-contact-detail__name { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; color: var(--flare-color-text-primary); }
 .flare-contact-detail__presence { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--flare-color-text-secondary); }
 .flare-contact-detail__presence .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--flare-color-text-tertiary); }
@@ -181,11 +181,11 @@ function onToggle(item: FlareSettingsItem, value: boolean) {
 .flare-contact-detail__sig { font-size: 13px; color: var(--flare-color-text-secondary); text-align: center; }
 .flare-contact-detail__star {
   display: inline-flex; align-items: center; gap: 4px;
-  padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  padding: 2px var(--flare-size-spacing-2sm); border-radius: 999px; font-size: 12px; font-weight: 600;
   color: var(--flare-color-primary-text); background: var(--flare-color-bg-selected);
 }
 
-.flare-contact-detail__actions { display: flex; gap: 10px; padding: 6px 16px 4px; }
+.flare-contact-detail__actions { display: flex; gap: var(--flare-size-spacing-2sm); padding: 6px 16px 4px; }
 .flare-contact-detail__actions button {
   flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;
   padding: 12px 4px; border: none; border-radius: var(--flare-size-radius-lg);
@@ -193,17 +193,35 @@ function onToggle(item: FlareSettingsItem, value: boolean) {
   color: var(--flare-color-text-secondary); font-size: 13px; font-weight: 500; cursor: pointer;
   transition: transform var(--flare-transition-fast), filter var(--flare-transition-fast);
 }
+/* 判据用组件自己算出来的 is-single,不用 :has() —— 那个选择器要 Firefox 121,
+   而这个包承诺 113,在 113 上整条规则被静默丢掉,按钮就又变回两种高度。
+   只有一个动作时它不是「一排格子里的一格」,而是这一页的主按钮:摆成一行(图标在字左边),
+   高度与下面 举报此人 / 加入黑名单 / 删除好友 一致。原来它是 343x69 的一块带光晕的紫色板,
+   底下每一块都是 47 —— 一页里同一种「整宽按钮」出现两种高度。 */
+.flare-contact-detail__actions.is-single button {
+  flex-direction: row;
+  gap: var(--flare-size-spacing-sm);
+  min-height: 47px;
+  padding: 0 var(--flare-size-spacing-md);
+  box-shadow: none;
+  font-size: var(--flare-size-font-size-lg);
+}
 .flare-contact-detail__actions button:disabled { opacity: 0.45; cursor: default; }
 .flare-contact-detail__actions button:active { transform: scale(0.97); }
 .flare-contact-detail__actions button.is-primary {
   color: #fff; background: var(--flare-component-brand-primary);
   box-shadow: 0 8px 20px -8px color-mix(in srgb, var(--flare-color-primary) 60%, transparent);
 }
+.flare-contact-detail__actions.is-single button.is-primary { box-shadow: none; }
 
 .flare-contact-detail__card { margin-top: 8px; }
 
 /* Host actions sit above the kit's own destructive pair, in the same column shape. */
-.flare-contact-detail__extra { display: flex; flex-direction: column; gap: 10px; padding: 16px 16px 0; }
+.flare-contact-detail__extra { display: flex; flex-direction: column; gap: var(--flare-size-spacing-2sm); padding: 16px 16px 0; }
+/* 下内距原本交给紧跟其后的 __foot(它自己 padding:16px)。但 __foot 只在能拉黑/删好友时才有 ——
+   陌生人或待处理的申请就没有,这时 __extra 是最后一块,0 的下内距让宿主接在后面的那一排
+   (接受 / 拒绝 / 加入黑名单)直接贴上来,两块之间一条缝都没有。 */
+.flare-contact-detail__extra:last-child { padding-block-end: var(--flare-size-spacing-md); }
 .flare-contact-detail__extra button {
   width: 100%; padding: 12px; border-radius: var(--flare-size-radius-lg);
   border: 1px solid var(--flare-color-border-primary); background: var(--flare-color-bg-primary);
@@ -212,7 +230,7 @@ function onToggle(item: FlareSettingsItem, value: boolean) {
 }
 .flare-contact-detail__extra button:active { filter: brightness(0.97); }
 .flare-contact-detail__extra button.is-danger { color: var(--flare-color-error-text); }
-.flare-contact-detail__foot { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+.flare-contact-detail__foot { display: flex; flex-direction: column; gap: var(--flare-size-spacing-2sm); padding: 16px; }
 .flare-contact-detail__foot button {
   width: 100%; padding: 12px; border-radius: var(--flare-size-radius-lg);
   border: 1px solid var(--flare-color-border-primary); background: var(--flare-color-bg-primary);

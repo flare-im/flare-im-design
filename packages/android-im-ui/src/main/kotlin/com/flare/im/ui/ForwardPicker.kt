@@ -71,7 +71,7 @@ fun ForwardPicker(
             .border(1.dp, colors.borderPrimary, RoundedCornerShape(FlareSizes.radiusXl)),
     ) {
         Row(
-            Modifier.fillMaxWidth().padding(start = 16.dp, end = 12.dp, top = 14.dp, bottom = 8.dp),
+            Modifier.fillMaxWidth().padding(start = FlareSizes.spacingLg, end = FlareSizes.spacingMd, top = FlareSizes.spacing2md, bottom = FlareSizes.spacingSm),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(flareStrings().forwardTo, color = colors.textPrimary, fontWeight = FontWeight.SemiBold,
@@ -84,9 +84,9 @@ fun ForwardPicker(
         }
         // search
         Row(
-            Modifier.padding(horizontal = 12.dp).fillMaxWidth()
+            Modifier.padding(horizontal = FlareSizes.spacingMd).fillMaxWidth()
                 .clip(RoundedCornerShape(FlareSizes.radiusLg)).background(colors.bgSecondary)
-                .padding(horizontal = 10.dp, vertical = 8.dp),
+                .padding(horizontal = FlareSizes.spacing2sm, vertical = FlareSizes.spacingSm),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(Icons.Outlined.Search, contentDescription = null, tint = colors.textTertiary, modifier = Modifier.size(16.dp))
@@ -102,13 +102,13 @@ fun ForwardPicker(
                 },
             )
         }
-        Column(Modifier.heightIn(max = 300.dp).verticalScroll(rememberScrollState()).padding(horizontal = 8.dp, vertical = 4.dp)) {
+        Column(Modifier.heightIn(max = 300.dp).verticalScroll(rememberScrollState()).padding(horizontal = FlareSizes.spacingSm, vertical = FlareSizes.spacingXs)) {
             filtered.forEach { tgt ->
                 val on = selected.contains(tgt.id)
                 Row(
                     Modifier.fillMaxWidth().clip(RoundedCornerShape(FlareSizes.radiusLg))
                         .background(if (on) colors.bgSelected else Color.Transparent)
-                        .clickable { toggle(tgt.id) }.padding(horizontal = 8.dp, vertical = 7.dp),
+                        .clickable { toggle(tgt.id) }.padding(horizontal = FlareSizes.spacingSm, vertical = 7.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Box(
@@ -119,9 +119,9 @@ fun ForwardPicker(
                     ) {
                         if (on) Icon(Icons.Outlined.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(13.dp))
                     }
-                    Spacer(Modifier.width(10.dp))
+                    Spacer(Modifier.width(FlareSizes.spacing2sm))
                     Avatar(userId = tgt.id, displayName = tgt.name, size = 38.dp)
-                    Spacer(Modifier.width(10.dp))
+                    Spacer(Modifier.width(FlareSizes.spacing2sm))
                     Column(Modifier.weight(1f)) {
                         Text(tgt.name, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp,
                             maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -134,12 +134,12 @@ fun ForwardPicker(
             }
             if (filtered.isEmpty()) {
                 Text(flareStrings().noMatchingConversations, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp,
-                    modifier = Modifier.fillMaxWidth().padding(24.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    modifier = Modifier.fillMaxWidth().padding(FlareSizes.spacing2xl), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             }
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderPrimary))
         Row(
-            Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 14.dp),
+            Modifier.fillMaxWidth().padding(start = FlareSizes.spacingLg, end = FlareSizes.spacingLg, top = FlareSizes.spacing2sm, bottom = FlareSizes.spacing2md),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(flareStrings().selectedCount(selected.size), color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd.value.sp)
@@ -152,7 +152,7 @@ fun ForwardPicker(
                         else Brush.linearGradient(listOf(colors.bgSecondary, colors.bgSecondary)),
                     )
                     .then(if (enabled) Modifier.clickable { onConfirm?.invoke(selected.toList()) } else Modifier)
-                    .padding(horizontal = 20.dp),
+                    .padding(horizontal = FlareSizes.spacingXl),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(flareStrings().send, color = if (enabled) Color.White else colors.textTertiary,

@@ -85,7 +85,9 @@ class _FlareButtonState extends State<FlareButton> {
         borderColor = _hovering && !off ? colors.primary : colors.borderPrimary;
       case FlareButtonVariant.ghost:
         background = _hovering && !off ? colors.bgSelected : Colors.transparent;
-        foreground = colors.primary;
+        // 文字取 primaryText:暗色下 primary 是 #7047D6(2.66:1,AA 正文要 4.5),
+        // primaryText 才提亮成 #A78BFA(5.77:1)。描边保持 primary —— 描边是填充。
+        foreground = colors.primaryText;
         borderColor = colors.primary.withValues(alpha: 0.4);
       case FlareButtonVariant.danger:
         background = colors.error;
@@ -96,7 +98,12 @@ class _FlareButtonState extends State<FlareButton> {
         background = _hovering && !off
             ? colors.bgSecondary
             : Colors.transparent;
-        foreground = colors.primary;
+        foreground = colors.primaryText;
+      case FlareButtonVariant.quiet:
+        background = _hovering && !off
+            ? colors.bgSecondary
+            : Colors.transparent;
+        foreground = _hovering && !off ? colors.textPrimary : colors.textSecondary;
     }
 
     Widget label;

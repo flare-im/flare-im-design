@@ -2,7 +2,8 @@
 /**
  * A small menu of actions — the "new", "more" and context menus of an IM app. On
  * pointer devices it is anchored to its trigger (or to a point, for a context menu);
- * on phones it is a bottom sheet titled with `label`. One item model and one grouping
+ * on phones it is a bottom sheet whose accessible name is `label` (not drawn as a heading:
+ * the items say it already). One item model and one grouping
  * rule on four platforms (spec ActionMenu), drawing the shared `FlareActionItem`.
  * Selecting an action closes the menu, returns focus to the trigger, then reports its id.
  *
@@ -159,7 +160,9 @@ function triggerVNode(): VNode | null {
   </NPopover>
   <template v-else>
     <component :is="triggerVNode()" v-if="$slots.default" />
-    <FlareBottomSheet :open="isOpen" presentation="sheet" :title="label" @close="close(true)">
+    <!-- title-hidden: `label` 仍是这张面板的可及名称,但不画成一行可见标题 ——
+         底下每一条都是一句完整的动作,上面再写一遍「新建」只是把刚点的那颗按钮重复一次。 -->
+    <FlareBottomSheet :open="isOpen" presentation="sheet" :title="label" title-hidden @close="close(true)">
       <FlareActionMenuList
         v-if="isOpen"
         :menu-id="menuId"

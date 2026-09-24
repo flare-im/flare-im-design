@@ -1,7 +1,6 @@
 package com.flare.im.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,6 +21,8 @@ import androidx.compose.material.icons.rounded.RadioButtonUnchecked
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -184,8 +185,8 @@ fun MessageBubble(
             if (self) Spacer(Modifier.weight(1f))
         }
         if (!self && rowPresentation.reserveAvatarSpace) {
-            if (showAvatar) Avatar(userId = message.senderId, displayName = message.senderName, size = 34.dp)
-            else Spacer(Modifier.width(34.dp))
+            if (showAvatar) Avatar(userId = message.senderId, displayName = message.senderName, size = FlareSizes.componentMessageAvatarSize)
+            else Spacer(Modifier.width(FlareSizes.componentMessageAvatarSize))
             Spacer(Modifier.width(FlareSizes.spacingSm))
         }
         Column(horizontalAlignment = if (self) Alignment.End else Alignment.Start) {
@@ -209,8 +210,8 @@ fun MessageBubble(
         }
         if (self && rowPresentation.reserveAvatarSpace) {
             Spacer(Modifier.width(FlareSizes.spacingSm))
-            if (showAvatar) Avatar(userId = message.senderId, displayName = message.senderName, size = 34.dp)
-            else Spacer(Modifier.width(34.dp))
+            if (showAvatar) Avatar(userId = message.senderId, displayName = message.senderName, size = FlareSizes.componentMessageAvatarSize)
+            else Spacer(Modifier.width(FlareSizes.componentMessageAvatarSize))
         }
     }
 }
@@ -262,7 +263,7 @@ private fun bubble(
     }
     if (bare) {
         Column(
-            modifier = Modifier.widthIn(max = 320.dp),
+            modifier = Modifier.widthIn(max = flareBubbleMaxWidth()),
             horizontalAlignment = if (self) Alignment.End else Alignment.Start,
         ) {
             body()
@@ -282,12 +283,12 @@ private fun bubble(
         return
     }
 
-    // Flare thread grammar: radius 16 with a 4dp tail; received = white card +
-    // Hairline border plus a restrained lift; outgoing uses message semantics.
+    // Flare thread grammar: radius 16 with a 4dp tail; received = a tertiary surface with a
+    // restrained lift, no outline; outgoing uses message semantics.
     val shape = RoundedCornerShape(
-        topStart = 16.dp, topEnd = 16.dp,
-        bottomStart = if (self || !groupEnd) 16.dp else 4.dp,
-        bottomEnd = if (!self || !groupEnd) 16.dp else 4.dp,
+        topStart = FlareSizes.radiusBubble, topEnd = FlareSizes.radiusBubble,
+        bottomStart = if (self || !groupEnd) FlareSizes.radiusBubble else FlareSizes.radiusBubbleTail,
+        bottomEnd = if (!self || !groupEnd) FlareSizes.radiusBubble else FlareSizes.radiusBubbleTail,
     )
     val inner: @Composable () -> Unit = {
         val content: @Composable () -> Unit = {
@@ -317,20 +318,21 @@ private fun bubble(
     val locateMark = Modifier.locateMark(message.id, shape, colors.primary)
     if (self) {
         Box(
-            Modifier.widthIn(max = 320.dp)
+            Modifier.widthIn(max = flareBubbleMaxWidth())
                 .then(locateMark)
                 .clip(shape).background(colors.messageOutgoingBackground)
-                .padding(horizontal = 14.dp, vertical = 9.dp),
+                .padding(horizontal = FlareSizes.componentBubblePaddingX, vertical = FlareSizes.componentBubblePaddingY),
         ) { inner() }
     } else {
         Box(
-            Modifier.widthIn(max = 320.dp)
+            Modifier.widthIn(max = flareBubbleMaxWidth())
                 .then(locateMark)
                 .shadow(2.dp, shape, clip = false)
                 .clip(shape)
+                // Fill only: the incoming surface is a tertiary tone the chat canvas never uses, so
+                // the bubble reads as its own surface without a hairline around it.
                 .background(colors.messageIncomingBackground)
-                .border(1.dp, colors.messageIncomingBorder, shape)
-                .padding(horizontal = 14.dp, vertical = 9.dp),
+                .padding(horizontal = FlareSizes.componentBubblePaddingX, vertical = FlareSizes.componentBubblePaddingY),
         ) { inner() }
     }
 }
@@ -424,3 +426,23 @@ internal fun messageBubbleChromeless(message: FlareMessageData): Boolean =
 internal fun isBareMedia(content: FlareMessageContent): Boolean =
     content is FlareImageContent || content is FlareVideoContent ||
         content is FlareStickerContent || content is FlareEmojiContent
+
+/**
+ * 气泡最大宽 = 可用宽 × 比例，再被 `layout.bubbleMaxWidth` 封顶 —— 四端同一条规则。
+ *
+ * 改前这条规则四端各写各的：iOS 完全不设上限（iPad 上气泡贴满整栏）、这里固定 320dp
+ * （平板上气泡永远只有巴掌大，不跟着窗格长）、Flutter 取**屏宽**而不是窗格宽的 72%、
+ * web 是 `min(62%, 640)` 且窄栏给到 88%。同一条长消息在四端是四种宽度。
+ *
+ * 窄/宽用不同比例是 web 侧实测确立的设计（窄栏给得更满，否则右边一大条空白）。
+ */
+@Composable
+internal fun flareBubbleMaxWidth(): Dp {
+    val available = LocalConfiguration.current.screenWidthDp.dp
+    val ratio = if (available < FlareSizes.navigationRailMinWidth) {
+        FlareSizes.componentBubbleMaxWidthRatioCompact
+    } else {
+        FlareSizes.componentBubbleMaxWidthRatioRegular
+    }
+    return minOf(available * ratio, FlareSizes.bubbleMaxWidth)
+}

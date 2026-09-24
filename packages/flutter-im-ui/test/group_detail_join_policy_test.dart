@@ -52,6 +52,36 @@ Finder _choice(String label) => find.descendant(
 );
 
 void main() {
+  testWidgets('the discoverability row reports the requested state', (
+    tester,
+  ) async {
+    final saved = <bool>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: FlareGroupDetail(
+            model: _model(null),
+            onToggleDiscoverable: saved.add,
+          ),
+        ),
+      ),
+    );
+    await tester.scrollUntilVisible(
+      find.text(_labels.discoverable),
+      400,
+      scrollable: find.byType(Scrollable).first,
+    );
+    final row = find.ancestor(
+      of: find.text(_labels.discoverable),
+      matching: find.byType(FlareSettingsRow),
+    );
+    await tester.ensureVisible(row);
+    await tester.pumpAndSettle();
+    await tester.tap(row);
+    await tester.pumpAndSettle();
+    expect(saved, [true]);
+  });
+
   testWidgets('the join-mode row names the policy, or says not set', (
     tester,
   ) async {

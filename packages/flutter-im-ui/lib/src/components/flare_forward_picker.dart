@@ -145,7 +145,7 @@ class _FlareForwardPickerState extends State<FlareForwardPicker> {
             ),
             child: Container(
               height: 38,
-              padding: const EdgeInsets.symmetric(horizontal: 10),
+              padding: const EdgeInsets.symmetric(horizontal: FlareSizes.spacing2sm),
               decoration: BoxDecoration(
                 color: colors.bgSecondary,
                 borderRadius: BorderRadius.circular(FlareSizes.radiusLg),

@@ -49,14 +49,14 @@ public struct GroupMemberGridView: View {
 
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        let cols = Array(repeating: GridItem(.flexible(), spacing: 10), count: columns)
-        VStack(alignment: .leading, spacing: 14) {
+        let cols = Array(repeating: GridItem(.flexible(), spacing: FlareSizes.spacing2sm), count: columns)
+        VStack(alignment: .leading, spacing: FlareSizes.spacing2md) {
             HStack {
                 Text(title).font(.system(size: FlareSizes.fontSizeLg, weight: .semibold)).foregroundColor(colors.textPrimary)
                 Spacer()
                 Text(memberCountText(total ?? members.count)).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
             }
-            LazyVGrid(columns: cols, spacing: 14) {
+            LazyVGrid(columns: cols, spacing: FlareSizes.spacing2md) {
                 ForEach(members) { m in cell(colors, m) }
                 if showAdd { addCell(colors) }
             }
@@ -70,7 +70,7 @@ public struct GroupMemberGridView: View {
                 ZStack(alignment: .bottom) {
                     AvatarView(userId: m.id, displayName: m.name, avatarURL: m.avatarURL, size: 48)
                     if let r = role(m) {
-                        Text(r).font(.system(size: 10)).foregroundColor(.white)
+                        Text(r).font(.system(size: FlareSizes.fontSize2xs)).foregroundColor(.white)
                             .padding(.horizontal, 6).padding(.vertical, 1)
                             .background(Capsule().fill(m.id == ownerId ? colors.warning : colors.textTertiary))
                             .offset(y: 6)

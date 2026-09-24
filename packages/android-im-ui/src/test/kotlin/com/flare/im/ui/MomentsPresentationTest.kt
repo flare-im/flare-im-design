@@ -8,10 +8,12 @@ import kotlin.test.assertTrue
 
 /** The quiet moments cover without an image, and the words the moment controls are named with. */
 class MomentsPresentationTest {
-    @Test fun aCoverWithoutAnImageIsAShortNeutralBand() {
+    // No photo, no band: the header collapses to a compact identity row (see MomentsCoverLook). The
+    // 140dp band this once asserted only made sense as photo geometry with nothing under it.
+    @Test fun aCoverWithoutAnImageReservesNoBand() {
         for (missing in listOf(null, "", "  ")) {
             val quiet = momentsCoverLook(missing)
-            assertEquals(140.dp, quiet.height)
+            assertEquals(0.dp, quiet.height)
             assertFalse(quiet.photo)
             assertFalse(quiet.brandPlaceholder, "no brand gradient")
             assertFalse(quiet.scrim, "no dark scrim")

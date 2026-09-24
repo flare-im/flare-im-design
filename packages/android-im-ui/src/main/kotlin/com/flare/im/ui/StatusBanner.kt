@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -47,12 +48,18 @@ fun StatusBanner(
     pulse: Boolean = false,
     actionText: String? = null,
     onAction: (() -> Unit)? = null,
+    floating: Boolean = false,
 ) {
     val colors = flareColors()
     val toneColor = statusToneColor(colors, tone)
+    val shape = RoundedCornerShape(FlareSizes.radiusLg)
     Row(
         modifier = Modifier
-            .clip(RoundedCornerShape(FlareSizes.radiusLg))
+            // 浮层形态：色调 10% 单独用在内容之上是透的，底下的字会透上来 ——
+            // 所以把色调压在一层不透明面上，再加一点高度表明它在页面之上。
+            .then(if (floating) Modifier.shadow(6.dp, shape, clip = false) else Modifier)
+            .clip(shape)
+            .then(if (floating) Modifier.background(colors.bgElevated) else Modifier)
             .background(toneColor.copy(alpha = 0.10f))
             .border(1.dp, toneColor.copy(alpha = 0.24f), RoundedCornerShape(FlareSizes.radiusLg))
             .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingSm),

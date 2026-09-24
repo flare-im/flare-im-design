@@ -15,10 +15,11 @@
  * (FlareUiProvider `theme-mode` / useFlareConfig().setThemeMode) and every screen
  * follows. No page-level colours are hard-coded; everything reads from tokens.
  */
-import { computed, getCurrentInstance, useSlots } from "vue";
+import { computed, getCurrentInstance, ref, useSlots } from "vue";
 import { NIcon } from "naive-ui";
 import { ArrowBackOutline } from "../../shared/icon-glyphs";
 import { useFlareNativeBack } from "../../shared/platform/useFlareNativeBack";
+import { dismissTopFlareContextualLayer } from "../../shared/useContextualLayer";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 import { useFlareDestinationDepth } from "../../composables/useFlareShell";
 
@@ -50,8 +51,17 @@ const props = withDefaults(
 const emit = defineEmits<{ (e: "back"): void }>();
 const { t } = useFlareI18nOptional();
 const instance = getCurrentInstance();
+const root = ref<HTMLElement | null>(null);
+// 返回先退这一页之内最上面的上下文层(多选),再才是离开这一页;范围就是这张 screen 自己,
+// 别的栏里的页不受影响。
+// 名字不能叫 back:<script setup> 的绑定在模板里压过同名 prop,`v-if="back"` 就永远为真,
+// 每一页(含四个 tab 根页)都会长出返回键。
+function goBack(): void {
+  if (dismissTopFlareContextualLayer(root.value)) return;
+  emit("back");
+}
 // The platform back does what the back button does.
-useFlareNativeBack(() => Boolean(props.back && instance?.vnode.props?.onBack), () => emit("back"));
+useFlareNativeBack(() => Boolean(props.back && instance?.vnode.props?.onBack), goBack);
 // A page with a way back is not its destination's root: a shell hides its phone navigation under it.
 useFlareDestinationDepth(() => props.back);
 
@@ -60,7 +70,7 @@ const hasHeader = computed(() => Boolean(props.title) || props.back || Boolean(s
 </script>
 
 <template>
-  <section class="flare-screen" :class="[`flare-screen--${surface}`, { 'flare-screen--readable': readable }]">
+  <section ref="root" class="flare-screen" :class="[`flare-screen--${surface}`, { 'flare-screen--readable': readable }]">
     <header v-if="hasHeader" class="flare-screen__header">
       <slot name="header">
         <button
@@ -68,7 +78,7 @@ const hasHeader = computed(() => Boolean(props.title) || props.back || Boolean(s
           type="button"
           class="flare-screen__back"
           :aria-label="t('common.back')"
-          @click="emit('back')"
+          @click="goBack"
         >
           <n-icon aria-hidden="true" :size="22" :component="ArrowBackOutline" />
         </button>
@@ -114,8 +124,8 @@ const hasHeader = computed(() => Boolean(props.title) || props.back || Boolean(s
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 14px 16px;
-  padding-top: max(14px, env(safe-area-inset-top));
+  padding: var(--flare-size-spacing-2md) 16px;
+  padding-top: max(var(--flare-size-spacing-2md), env(safe-area-inset-top));
   position: relative;
   z-index: 1;
 }
@@ -126,7 +136,8 @@ const hasHeader = computed(() => Boolean(props.title) || props.back || Boolean(s
   justify-content: center;
   width: 40px;
   height: 40px;
-  margin-left: -10px;
+  /* `-var(…)` is not a negated var(): it reads as an unknown function and the whole declaration is dropped. */
+  margin-left: calc(-1 * var(--flare-size-spacing-2sm));
   border: none;
   border-radius: 8px;
   background: none;
@@ -139,7 +150,7 @@ const hasHeader = computed(() => Boolean(props.title) || props.back || Boolean(s
   flex: 1;
   min-width: 0;
   margin: 0;
-  font-size: 24px;
+  font-size: var(--flare-size-font-size-5xl);
   font-weight: 700;
   line-height: 1.2;
   color: var(--flare-color-text-primary);

@@ -8,15 +8,17 @@ import { compareContactIndexLetters, compareContactNames, contactIndexLetter } f
 
 const props = withDefaults(
   defineProps<{
-    items: FlareContact[];
+    items: readonly FlareContact[];
     indexed?: boolean;
     loading?: boolean;
     /** Picker mode: every row carries a checkbox and a tap emits `toggleSelect` instead of `select`. */
     selectable?: boolean;
     /** Ids of the checked rows in picker mode. */
     selectedIds?: readonly string[];
+    /** 右边那一栏正在显示的那个人。两栏布局下左列要看得出对应关系（同会话列表的 activeId）。 */
+    activeId?: string;
   }>(),
-  { indexed: true, loading: false, selectable: false, selectedIds: () => [] },
+  { indexed: true, loading: false, selectable: false, selectedIds: () => [], activeId: "" },
 );
 const emit = defineEmits<{
   (e: "select", c: FlareContact): void;
@@ -64,6 +66,7 @@ function jump(l: string) {
           :item="p"
           :selectable="selectable"
           :selected="selectable && checked.has(p.id)"
+          :current="!selectable && Boolean(activeId) && p.id === activeId"
           :onSelect="canSelect ? () => emit('select', p) : undefined"
           @toggle-select="emit('toggleSelect', p.id)"
         >
@@ -83,7 +86,7 @@ function jump(l: string) {
 .flare-contact-list__head {
   position: sticky;
   top: 0;
-  padding: 4px 14px;
+  padding: 4px var(--flare-size-spacing-2md);
   font-size: 12px;
   font-weight: 600;
   color: var(--flare-color-text-tertiary);
@@ -97,7 +100,7 @@ function jump(l: string) {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 10px;
+  font-size: var(--flare-size-font-size-2xs);
   font-weight: 600;
   color: var(--flare-color-primary-text);
 }

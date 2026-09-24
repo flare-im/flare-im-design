@@ -130,6 +130,7 @@ class FlareGroupDetailModel {
     this.myNickname,
     this.myMuted,
     this.myPinned,
+    this.discoverable = false,
     this.joinPolicy,
     this.muteAll = false,
     this.onlyAdminCanAtAll = false,
@@ -162,6 +163,9 @@ class FlareGroupDetailModel {
   final bool? myMuted;
   final bool? myPinned;
 
+  /// Whether this group may appear in public group search.
+  final bool discoverable;
+
   /// Who may join; null when the host does not know. The kit never guesses:
   /// the join-mode row then shows the not-set copy and its picker opens with
   /// nothing selected.
@@ -189,7 +193,8 @@ class FlareGroupJoinRequestView {
 }
 
 /// Visual weight of a [FlareButton].
-enum FlareButtonVariant { primary, secondary, ghost, danger, text }
+/// 中性的低强度动作:配在主按钮旁边的那个「出口」。和 text 的唯一区别是不用品牌色 —— 两个都用紫色就分不出主次;和 ghost 的区别是没有那圈 40% 品牌色描边。内距走尺寸类而不是像 text 那样压成固定值,这样它和配对的主按钮同字数时同宽。
+enum FlareButtonVariant { primary, secondary, ghost, danger, text, quiet }
 
 /// Height/size step shared by form + button controls (sm 32 / md 40 / lg 48).
 enum FlareControlSize { sm, md, lg }
@@ -337,18 +342,26 @@ class FlareSearchResultItem {
   });
 }
 
-/// A kind-grouped section of search results.
+/// A kind-grouped section of search results. [total] is the match count when
+/// the list is truncated and the host knows it; [hasMore] says the list is
+/// truncated when it does not (a search that takes a limit and returns no
+/// count: ask for one more than is shown). [total] wins; a count is never made up.
 class FlareSearchResultGroup {
   final FlareSearchResultKind kind;
   final String label;
   final List<FlareSearchResultItem> items;
   final int? total;
+  final bool hasMore;
   const FlareSearchResultGroup({
     required this.kind,
     required this.label,
     this.items = const [],
     this.total,
+    this.hasMore = false,
   });
+
+  /// Whether [total] says more than is shown.
+  bool get counted => total != null && total! > items.length;
 }
 
 /// A single image tile in an image grid / gallery.

@@ -1,6 +1,7 @@
 {
   "vue": 2,
-  "flutter": 217,
+  "flutter": 213,
   "ios": 5,
-  "compose": 112
+  "compose": 112,
+  "webApp": 1
 }

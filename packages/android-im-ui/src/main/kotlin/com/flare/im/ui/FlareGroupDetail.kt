@@ -79,6 +79,8 @@ data class FlareGroupDetailModel(
      */
     val myMuted: Boolean? = false,
     val myPinned: Boolean? = false,
+    /** Whether the group may appear in public group search. */
+    val discoverable: Boolean = false,
     /** How people join; null when the host does not know — the row shows "not set" and nothing is preselected. */
     val joinPolicy: FlareGroupJoinPolicy? = null,
     val muteAll: Boolean = false,
@@ -122,6 +124,7 @@ data class FlareGroupDetailLabels(
     val muteNotif: String = "消息免打扰",
     val pinGroup: String = "置顶该群",
     // 群管理
+    val discoverable: String = FlareStrings().groupDetailDiscoverable,
     val joinMode: String = "进群方式",
     val joinRequests: String = "入群申请",
     val muteAll: String = "全员禁言",
@@ -195,6 +198,7 @@ fun flareGroupDetailLabels(strings: FlareStrings): FlareGroupDetailLabels = Flar
     myNickname = strings.groupDetailMyNickname,
     muteNotif = strings.groupDetailMuteNotif,
     pinGroup = strings.groupDetailPinGroup,
+    discoverable = strings.groupDetailDiscoverable,
     joinMode = strings.groupDetailJoinMode,
     joinRequests = strings.groupDetailJoinRequests,
     muteAll = strings.groupDetailMuteAll,
@@ -384,6 +388,8 @@ fun FlareGroupDetail(
     onUpdateName: (String) -> Unit = {},
     onUpdateAnnouncement: (String) -> Unit = {},
     onUpdateMyNickname: (String) -> Unit = {},
+    /** Controls whether this group is returned by public group search. */
+    onToggleDiscoverable: (Boolean) -> Unit = {},
     /** Sets how people join; the join policy row opens its picker only when this is set. */
     onSetJoinPolicy: ((FlareGroupJoinPolicy) -> Unit)? = null,
     onToggleMuteAll: (Boolean) -> Unit = {},
@@ -443,7 +449,7 @@ fun FlareGroupDetail(
 
     Column(modifier.fillMaxSize().background(colors.bgSecondary)) {
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp),
+            Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacingXs, vertical = FlareSizes.spacingXs),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (onBack != null) {
@@ -480,7 +486,7 @@ fun FlareGroupDetail(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Avatar(userId = m.groupId, displayName = groupName, size = 72.dp)
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(FlareSizes.spacing2sm))
                 Text(groupName, color = colors.textPrimary, fontWeight = FontWeight.SemiBold, fontSize = FlareSizes.fontSize3xl.value.sp)
             }
 
@@ -549,6 +555,11 @@ fun FlareGroupDetail(
                 SectionTitle(labels.manageSection)
                 FlareGroupedCard {
                     SettingsRow(
+                        item = SettingsItem("discoverable", labels.discoverable, icon = "search", kind = FlareSettingKind.Toggle, value = m.discoverable),
+                        onToggle = { _, v -> onToggleDiscoverable(v) },
+                    )
+                    FlareGroupedCardDivider()
+                    SettingsRow(
                         item = SettingsItem("joinPolicy", labels.joinMode, icon = "lock", kind = if (onSetJoinPolicy != null) FlareSettingKind.Navigation else FlareSettingKind.Value, detail = groupJoinPolicyLabel(m.joinPolicy, labels)),
                         onSelect = if (onSetJoinPolicy != null) ({ joinModeOpen = true }) else null,
                     )
@@ -591,7 +602,7 @@ fun FlareGroupDetail(
 
             // Footer — 发消息 (only when the host opens chats) + 退出/解散, then the host footer slot
             Spacer(Modifier.height(FlareSizes.spacingLg))
-            Column(Modifier.fillMaxWidth().padding(FlareSizes.spacingLg), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(Modifier.fillMaxWidth().padding(FlareSizes.spacingLg), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2sm)) {
                 onOpenChat?.let { openChat ->
                     Button(
                         label = labels.message,

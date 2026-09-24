@@ -113,7 +113,7 @@ function setTone(tn: string): void {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 12px;
+  padding: var(--flare-size-spacing-2sm) 12px;
   border-bottom: 1px solid var(--flare-color-border-primary);
 }
 .flare-emoji-picker__search-ico { color: var(--flare-color-text-tertiary); }

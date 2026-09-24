@@ -34,6 +34,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -208,7 +209,15 @@ fun TextMessage(
     // Inline emoji: only text that holds a token at all waits for the catalog.
     val mayHoldEmoji = remember(text) { flareMayHoldEmojiTokens(text) }
     val catalogLoaded = if (mayHoldEmoji) rememberCatalogLoaded() else false
-    val emojiRuns = remember(text, mayHoldEmoji, catalogLoaded) {
+    val catalogRevision = if (mayHoldEmoji) FlareEmojiStickerCatalog.revision.collectAsState().value else 0
+    if (catalogLoaded) {
+        val loneEmoji = flareLoneEmojiPackKey(text)
+        if (loneEmoji != null) {
+            FlareEmojiPackMessage(loneEmoji, isSelf = self)
+            return
+        }
+    }
+    val emojiRuns = remember(text, mayHoldEmoji, catalogLoaded, catalogRevision) {
         if (mayHoldEmoji && catalogLoaded) flareInlineEmojiRuns(text, FlareEmojiStickerCatalog::hasEmojiKey) else emptyList()
     }
     // Plain text builds no image loader at all: only a body that really holds a bundled key asks for one.
@@ -221,14 +230,15 @@ fun TextMessage(
     val grounded = remember(spans, self) { mentionGrounds(spans, self) }
     var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
     val ground = colors.bgSelected
-    val fontSize = FlareSizes.fontSizeXl
+    // 消息正文取 message 角色 —— 四端同一个出处(15/1.45)。
+    val fontSize = FlareTextRoles.Message.fontSize
     val content: @Composable () -> Unit = {
         Row( verticalAlignment = Alignment.Bottom) {
             Text(
                 annotated,
                 color = if (self) colors.messageOutgoingForeground else colors.messageIncomingForeground,
                 fontSize = fontSize.value.sp,
-                lineHeight = (FlareSizes.fontSizeXl.value * 1.45f).sp,
+                lineHeight = (FlareTextRoles.Message.fontSize.value * FlareTextRoles.Message.lineHeight).sp,
                 inlineContent = inlineEmoji,
                 modifier = Modifier.weight(1f, fill = false).then(
                     if (grounded.isEmpty()) Modifier
@@ -268,7 +278,7 @@ fun ImageMessage(
     val sizeMod = if (flexible)
         Modifier.sizeIn(maxWidth = (maxWidth ?: 10_000).dp, maxHeight = (maxHeight ?: 10_000).dp)
     else Modifier.size(width.dp, height.dp)
-    val mod = sizeMod.clip(RoundedCornerShape(12.dp)).background(colors.bgTertiary).onClickIf(onTap, flareStrings().imagePreviewOpen)
+    val mod = sizeMod.clip(RoundedCornerShape(FlareSizes.radiusCard)).background(colors.bgTertiary).onClickIf(onTap, flareStrings().imagePreviewOpen)
     if (!src.isNullOrEmpty()) {
         AsyncImage(
             model = src,
@@ -297,7 +307,7 @@ fun VideoMessage(
     // defines the size; otherwise the fixed 148×92 thumbnail from the poster URL.
     val outer = if (posterContent != null) Modifier else Modifier.size(148.dp, 92.dp)
     Box(
-        outer.clip(RoundedCornerShape(12.dp)).background(colors.bgTertiary).onClickIf(onPlay, flareStrings().play),
+        outer.clip(RoundedCornerShape(FlareSizes.radiusCard)).background(colors.bgTertiary).onClickIf(onPlay, flareStrings().play),
         contentAlignment = Alignment.Center,
     ) {
         if (posterContent != null) {
@@ -309,9 +319,9 @@ fun VideoMessage(
         }
         Box(Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.28f)))
         Icon(flareIconVector("play"), null, Modifier.size(34.dp), tint = Color.White)
-        Box(Modifier.matchParentSize().padding(6.dp), contentAlignment = Alignment.BottomEnd) {
+        Box(Modifier.matchParentSize().padding(FlareSizes.spacing2xs), contentAlignment = Alignment.BottomEnd) {
             Text(
-                duration, color = Color.White, fontSize = 10.sp,
+                duration, color = Color.White, fontSize = FlareSizes.fontSize2xs,
                 modifier = Modifier.clip(RoundedCornerShape(5.dp)).background(Color.Black.copy(alpha = 0.45f))
                     .padding(horizontal = 5.dp, vertical = 1.dp),
             )
@@ -413,7 +423,7 @@ fun FileMessage(
     Row(
         Modifier.widthIn(max = 300.dp).onClickIf(onOpen),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2sm),
     ) {
         if (icon != null) icon() else Icon(Icons.Outlined.Description, null, Modifier.size(20.dp), tint = colors.primaryText)
         Column(Modifier.weight(1f, fill = false)) {
@@ -441,7 +451,7 @@ fun LocationMessage(title: String, address: String = "", mapImage: String? = nul
                 contentAlignment = Alignment.Center,
             ) { Icon(Icons.Outlined.LocationOn, null, Modifier.size(22.dp), tint = colors.primaryText) }
         }
-        Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+        Column(Modifier.padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingSm)) {
             Text(title, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp, fontWeight = FontWeight.Medium)
             Text(address, color = colors.textTertiary, fontSize = 11.sp)
         }
@@ -456,9 +466,9 @@ fun ContactMessage(name: String, subtitle: String? = null, avatarUrl: String? = 
     Row(
         Modifier.widthIn(min = 240.dp).onClickIf(onOpen),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd),
     ) {
-        NetImage(avatarUrl, Modifier.size(44.dp).clip(RoundedCornerShape(10.dp)).background(tint.first)) {
+        NetImage(avatarUrl, Modifier.size(44.dp).clip(RoundedCornerShape(FlareSizes.radiusLg)).background(tint.first)) {
             Text(initials(name), color = tint.second, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
         }
         Column(Modifier.weight(1f, fill = false)) {
@@ -477,11 +487,11 @@ fun LinkCardMessage(title: String, domain: String = "", thumb: String? = null, d
     icon: (@Composable () -> Unit)? = null, descriptionMaxLines: Int = 2) {
     val colors = flareColors()
     Row(
-        Modifier.widthIn(max = 300.dp).onClickIf(onOpen).padding(horizontal = 10.dp, vertical = 8.dp),
+        Modifier.widthIn(max = 300.dp).onClickIf(onOpen).padding(horizontal = FlareSizes.spacing2sm, vertical = FlareSizes.spacingSm),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2sm),
     ) {
-        if (icon != null) icon() else NetImage(thumb, Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)).background(colors.bgTertiary)) {
+        if (icon != null) icon() else NetImage(thumb, Modifier.size(48.dp).clip(RoundedCornerShape(FlareSizes.radiusMd)).background(colors.bgTertiary)) {
             Icon(Icons.Outlined.Image, null, Modifier.size(22.dp), tint = colors.textTertiary)
         }
         Column(Modifier.weight(1f, fill = false), verticalArrangement = Arrangement.spacedBy(3.dp)) {
@@ -511,10 +521,10 @@ fun VoteMessage(
 ) {
     val colors = flareColors()
     Column(
-        Modifier.widthIn(min = 220.dp).padding(horizontal = 12.dp, vertical = 10.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        Modifier.widthIn(min = 220.dp).padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacing2sm),
+        verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs)) {
             Icon(Icons.Outlined.BarChart, null, Modifier.size(16.dp), tint = colors.textPrimary)
             Text(title, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp, fontWeight = FontWeight.SemiBold)
         }
@@ -525,7 +535,7 @@ fun VoteMessage(
             ) {
                 if (o.pct != null) Box(Modifier.fillMaxWidth((o.pct.coerceIn(0, 100)) / 100f).height(FlareSizes.touchTarget)
                     .background(colors.primary.copy(alpha = 0.16f)))
-                Row(Modifier.fillMaxWidth().heightIn(min = FlareSizes.touchTarget).padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.fillMaxWidth().heightIn(min = FlareSizes.touchTarget).padding(horizontal = FlareSizes.spacing2sm), verticalAlignment = Alignment.CenterVertically) {
                     Text(o.text, color = colors.textPrimary, fontSize = 13.sp, modifier = Modifier.weight(1f))
                     if (o.pct != null) Text("${o.pct}%", color = colors.textSecondary, fontSize = 12.sp)
                 }
@@ -546,7 +556,7 @@ fun TaskMessage(title: String, meta: String? = null, done: Boolean = false, onTo
     Row(
         Modifier.widthIn(min = 220.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(if (toggles) (10 - 14).dp else 10.dp),
+        horizontalArrangement = Arrangement.spacedBy(if (toggles) (10 - 14).dp else FlareSizes.spacing2sm),
     ) {
         FlareIconControl(
             label = title,
@@ -604,7 +614,7 @@ fun SystemMessage(text: String) {
     Text(
         text, color = colors.textTertiary, fontSize = 12.sp,
         modifier = Modifier.clip(RoundedCornerShape(999.dp)).background(colors.bgTertiary)
-            .padding(horizontal = 12.dp, vertical = 4.dp),
+            .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingXs),
     )
 }
 

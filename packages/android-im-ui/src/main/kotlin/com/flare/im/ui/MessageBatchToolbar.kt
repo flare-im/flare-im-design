@@ -131,6 +131,10 @@ fun MessageBatchToolbar(
     val colors = flareColors()
     val strings = flareStrings()
     val shape = RoundedCornerShape(FlareSizes.radiusLg)
+    // The toolbar being on screen is the selection being on: the system back (and a hardware
+    // keyboard's Escape, which Android maps to it) leaves the selection before it leaves the chat.
+    // While busy the press is consumed and nothing exits — the same rule as the disabled exit key.
+    FlareNativeBackEffect(enabled = onExit != null) { if (!busy) onExit?.invoke() }
     Row(
         Modifier.fillMaxWidth()
             .shadow(8.dp, shape, clip = false)
@@ -139,7 +143,7 @@ fun MessageBatchToolbar(
             .border(1.dp, colors.borderPrimary, shape)
             // The exit button's 48 dp touch target is 16 dp taller than the 32 dp pills; the vertical
             // padding gives those 8 dp a side back, so the bar keeps its height and the pills their place.
-            .padding(horizontal = 14.dp, vertical = 2.dp),
+            .padding(horizontal = FlareSizes.spacing2md, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -183,9 +187,9 @@ private fun MessageBatchButton(
             .background(colors.bgSecondary)
             .then(if (control.enabled && onTap != null) Modifier.clickable(role = Role.Button) { onTap() } else Modifier)
             .alpha(if (control.enabled) 1f else 0.45f)
-            .padding(horizontal = 10.dp),
+            .padding(horizontal = FlareSizes.spacing2sm),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs),
     ) {
         Icon(flareIconVector(control.icon), contentDescription = null, tint = tint ?: colors.textPrimary, modifier = Modifier.size(FlareSizes.iconSizeSm))
         Text(control.label, color = tint ?: colors.textPrimary, fontWeight = FontWeight.Medium, fontSize = FlareSizes.fontSizeSm.value.sp)

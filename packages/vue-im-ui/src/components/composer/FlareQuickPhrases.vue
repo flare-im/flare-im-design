@@ -81,7 +81,7 @@ const activeGroup = computed(
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 14px 8px;
+  padding: 12px var(--flare-size-spacing-2md) 8px;
 }
 .flare-quick-phrases__title {
   display: inline-flex;
@@ -126,14 +126,14 @@ const activeGroup = computed(
 .flare-quick-phrases__list {
   list-style: none;
   margin: 0;
-  padding: 0 8px 10px;
+  padding: 0 8px var(--flare-size-spacing-2sm);
   max-height: 260px;
   overflow-y: auto;
 }
 .flare-quick-phrases__item {
   width: 100%;
   text-align: left;
-  padding: 10px 12px;
+  padding: var(--flare-size-spacing-2sm) 12px;
   border: none;
   border-radius: var(--flare-size-radius-lg);
   background: transparent;

@@ -29,6 +29,8 @@ public struct FlareGroupDetailModel: Sendable {
     /// claims no state instead of drawing a switch that says "off" (Vue `myMuted: boolean | null`).
     public var myMuted: Bool?
     public var myPinned: Bool?
+    /// Whether this group may appear in public group search.
+    public var discoverable: Bool
     /// How people join the group; nil when the host does not know (the row reads "not set").
     public var joinPolicy: FlareGroupJoinPolicy?
     public var muteAll: Bool
@@ -40,14 +42,16 @@ public struct FlareGroupDetailModel: Sendable {
                 announcement: String = "", members: [Contact] = [], ownerId: String = "",
                 adminIds: [String] = [], mutedIds: [String] = [], canManage: Bool = false,
                 isOwner: Bool = false, myNickname: String = "", myMuted: Bool? = nil,
-                myPinned: Bool? = nil, joinPolicy: FlareGroupJoinPolicy? = nil, muteAll: Bool = false,
+                myPinned: Bool? = nil, discoverable: Bool = false,
+                joinPolicy: FlareGroupJoinPolicy? = nil, muteAll: Bool = false,
                 onlyAdminCanAtAll: Bool = false, onlyAdminCanPin: Bool = false,
                 shareCardPermission: Bool = false) {
         self.groupId = groupId; self.name = name; self.avatarURL = avatarURL
         self.memberCount = memberCount; self.announcement = announcement; self.members = members
         self.ownerId = ownerId; self.adminIds = adminIds; self.mutedIds = mutedIds
         self.canManage = canManage; self.isOwner = isOwner; self.myNickname = myNickname
-        self.myMuted = myMuted; self.myPinned = myPinned; self.joinPolicy = joinPolicy
+        self.myMuted = myMuted; self.myPinned = myPinned; self.discoverable = discoverable
+        self.joinPolicy = joinPolicy
         self.muteAll = muteAll; self.onlyAdminCanAtAll = onlyAdminCanAtAll
         self.onlyAdminCanPin = onlyAdminCanPin; self.shareCardPermission = shareCardPermission
     }
@@ -107,6 +111,7 @@ public struct FlareGroupDetailLabels: Sendable {
     public var muteNotif: String?
     public var pinGroup: String?
     // 群管理
+    public var discoverable: String?
     public var joinMode: String?
     public var joinRequests: String?
     public var muteAll: String?
@@ -171,6 +176,7 @@ public struct FlareGroupDetailLabels: Sendable {
         myNickname: String? = nil,
         muteNotif: String? = nil,
         pinGroup: String? = nil,
+        discoverable: String? = nil,
         joinMode: String? = nil,
         joinRequests: String? = nil,
         muteAll: String? = nil,
@@ -217,6 +223,7 @@ public struct FlareGroupDetailLabels: Sendable {
         self.groupName = groupName; self.announcement = announcement
         self.announcementEmpty = announcementEmpty; self.members = members
         self.myNickname = myNickname; self.muteNotif = muteNotif; self.pinGroup = pinGroup
+        self.discoverable = discoverable
         self.joinMode = joinMode; self.joinRequests = joinRequests; self.muteAll = muteAll
         self.inviteLink = inviteLink; self.onlyAdminAtAll = onlyAdminAtAll
         self.onlyAdminPin = onlyAdminPin; self.shareCard = shareCard
@@ -256,6 +263,7 @@ public extension FlareGroupDetailLabels {
         public let myNickname: String
         public let muteNotif: String
         public let pinGroup: String
+        public let discoverable: String
         public let joinMode: String
         public let joinRequests: String
         public let muteAll: String
@@ -314,6 +322,7 @@ public extension FlareGroupDetailLabels {
             myNickname: myNickname ?? strings.groupDetailMyNickname,
             muteNotif: muteNotif ?? strings.groupDetailMuteNotif,
             pinGroup: pinGroup ?? strings.groupDetailPinGroup,
+            discoverable: discoverable ?? strings.groupDetailDiscoverable,
             joinMode: joinMode ?? strings.groupDetailJoinMode,
             joinRequests: joinRequests ?? strings.groupDetailJoinRequests,
             muteAll: muteAll ?? strings.groupDetailMuteAll,
@@ -391,6 +400,7 @@ public struct FlareGroupDetail: View {
     private let onUpdateName: ((String) -> Void)?
     private let onUpdateAnnouncement: ((String) -> Void)?
     private let onUpdateMyNickname: ((String) -> Void)?
+    private let onToggleDiscoverable: ((Bool) -> Void)?
     private let onSetJoinPolicy: ((FlareGroupJoinPolicy) -> Void)?
     private let onToggleMuteAll: ((Bool) -> Void)?
     private let onSetFlag: ((FlareGroupFlag, Bool) -> Void)?
@@ -448,7 +458,9 @@ public struct FlareGroupDetail: View {
                 afterInfo: AnyView? = nil, footer: AnyView? = nil,
                 onBack: (() -> Void)? = nil, onOpenChat: (([String], String) -> Void)? = nil,
                 onUpdateName: ((String) -> Void)? = nil, onUpdateAnnouncement: ((String) -> Void)? = nil,
-                onUpdateMyNickname: ((String) -> Void)? = nil, onSetJoinPolicy: ((FlareGroupJoinPolicy) -> Void)? = nil,
+                onUpdateMyNickname: ((String) -> Void)? = nil,
+                onToggleDiscoverable: ((Bool) -> Void)? = nil,
+                onSetJoinPolicy: ((FlareGroupJoinPolicy) -> Void)? = nil,
                 onToggleMuteAll: ((Bool) -> Void)? = nil, onSetFlag: ((FlareGroupFlag, Bool) -> Void)? = nil,
                 onToggleMyMuted: ((Bool) -> Void)? = nil, onToggleMyPinned: ((Bool) -> Void)? = nil,
                 onLoadJoinRequests: (() -> Void)? = nil, onRespondRequest: ((String, Bool) -> Void)? = nil,
@@ -467,6 +479,7 @@ public struct FlareGroupDetail: View {
         self.labels = labels; self.afterInfo = afterInfo; self.footer = footer
         self.onBack = onBack; self.onOpenChat = onOpenChat; self.onUpdateName = onUpdateName
         self.onUpdateAnnouncement = onUpdateAnnouncement; self.onUpdateMyNickname = onUpdateMyNickname
+        self.onToggleDiscoverable = onToggleDiscoverable
         self.onSetJoinPolicy = onSetJoinPolicy; self.onToggleMuteAll = onToggleMuteAll
         self.onSetFlag = onSetFlag; self.onToggleMyMuted = onToggleMyMuted
         self.onToggleMyPinned = onToggleMyPinned; self.onLoadJoinRequests = onLoadJoinRequests
@@ -687,6 +700,8 @@ public struct FlareGroupDetail: View {
 
     private func manageCard(_ colors: FlareColors, _ m: FlareGroupDetailModel) -> some View {
         card(copy.sectionManage, [
+            FlareSettingsItem(key: "discoverable", label: copy.discoverable, icon: "search",
+                              kind: .toggle, value: m.discoverable),
             FlareSettingsItem(key: "joinPolicy", label: copy.joinMode, icon: "lock",
                               kind: .navigation, detail: Self.joinPolicyLabel(m.joinPolicy, copy: copy)),
             FlareSettingsItem(key: "joinRequests", label: copy.joinRequests, icon: "join-request",
@@ -731,6 +746,7 @@ public struct FlareGroupDetail: View {
 
     private func onRowToggle(_ item: FlareSettingsItem, _ on: Bool) {
         switch item.key {
+        case "discoverable" where canManage: onToggleDiscoverable?(on)
         case "myMuted": onToggleMyMuted?(on)
         case "myPinned": onToggleMyPinned?(on)
         case "muteAll" where canManage: onToggleMuteAll?(on)

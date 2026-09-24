@@ -34,7 +34,7 @@ const canToggle = () => Boolean(instance?.vnode.props?.onToggle);
   </div>
 </template>
 <style scoped>
-.fm-task { display: inline-flex; align-items: center; gap: 10px; min-width: 220px; padding: 9px 14px; border-radius: 16px 16px 16px 4px; background: var(--flare-color-bg-primary); border: 1px solid var(--flare-color-border-secondary); box-shadow: var(--flare-component-bubble-shadow); }
+.fm-task { display: inline-flex; align-items: center; gap: var(--flare-size-spacing-2sm); min-width: 220px; padding: 9px var(--flare-size-spacing-2md); border-radius: 16px 16px 16px 4px; background: var(--flare-color-bg-primary); border: 1px solid var(--flare-color-border-secondary); box-shadow: var(--flare-component-bubble-shadow); }
 .box { padding: 0; width: 20px; height: 20px; border-radius: var(--flare-size-radius-sm); flex: none; display: grid; place-items: center; border: 1.5px solid var(--flare-color-border-primary); background: none; color: #fff; }
 button.box { position: relative; cursor: pointer; }
 /* The 20px box keeps its size in the layout; its target reaches the touch-target size around it. */

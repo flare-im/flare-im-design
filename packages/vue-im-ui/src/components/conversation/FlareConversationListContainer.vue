@@ -33,7 +33,18 @@ const presentation = computed(() => flareViewPresentation(props.state.status, pr
       <template v-if="presentation === 'state'">
         <FlareSkeleton v-if="state.status === 'loading'" variant="conversation" :rows="8" role="status" />
         <FlareEmptyState v-else-if="state.status === 'empty'" :title="state.emptyTitle || emptyTitle" />
-        <FlareStatusBanner v-else :tone="state.status === 'error' ? 'danger' : 'neutral'" :text="state.error || ''" :action-text="canRetry ? retryLabel : undefined" @action="emit('retry')" />
+        <!-- 一条都没有、而且是失败：这一屏上没有别的东西了，所以失败本身就是这一屏的内容。
+             改前这里只画一条横幅，下面留一整片空白 —— 空列表有完整空态，彻底加载不出来
+             反而只有一条细带，更严重的状态给了更弱的表达，而且恢复入口是带子右端的一个小链接。 -->
+        <FlareEmptyState
+          v-else-if="state.status === 'error'"
+          tone="error"
+          icon="warning"
+          :title="state.error || ''"
+          :action-text="canRetry ? retryLabel : undefined"
+          @action="emit('retry')"
+        />
+        <FlareStatusBanner v-else :tone="'neutral'" :text="state.error || ''" :action-text="canRetry ? retryLabel : undefined" @action="emit('retry')" />
       </template>
       <template v-else>
         <!-- A failed refresh over rows worth keeping: the failure is a banner, the rows stay readable. -->

@@ -160,9 +160,38 @@ public struct RichTextMessageView: View {
         if let key = run.emoji, !key.isEmpty, FlareEmojiStickerCatalog.shared.hasEmojiKey(key),
            !(run.has(.spoiler) && !paint.revealed),
            let image = flareInlineEmojiImage(key: key, side: size * 1.2) {
-            return Text(Image(flarePlatformImage: image))
+            // An image has no name of its own: VoiceOver reads the run's text, as the other kits do.
+            return Text(Image(flarePlatformImage: image)).accessibilityLabel(Text(verbatim: run.text))
+        }
+        if let parts = inlineEmojiParts(run, revealed: paint.revealed) {
+            return parts.reduce(Text(verbatim: "")) { result, part in
+                let words: String
+                switch part {
+                case .text(let text): words = text
+                case .emoji(let key):
+                    if let image = flareInlineEmojiImage(key: key, side: size * 1.2) {
+                        return result + Text(Image(flarePlatformImage: image)).accessibilityLabel(Text(verbatim: "[\(key)]"))
+                    }
+                    words = "[\(key)]"
+                }
+                let piece = FlareRichRun(words, marks: run.marks, code: run.code, link: run.link, mention: run.mention)
+                return result + Text(attributed(piece, paint: paint, size: size, weight: weight))
+            }
         }
         return Text(attributed(run, paint: paint, size: size, weight: weight))
+    }
+
+    /// The parts a text run's `[key]` emoji-pack tokens split it into, or nil when the run draws as the words
+    /// it is: an emoji run, code, a covered spoiler, and text without a token the catalog knows. The core's
+    /// Markdown normaliser stores the composer's token as literal text rather than as an emoji run, so a rich
+    /// body reads it as a plain text body does.
+    static func inlineEmojiParts(_ run: FlareRichRun, revealed: Bool,
+                                 isKnown: (String) -> Bool = { FlareEmojiStickerCatalog.shared.hasEmojiKey($0) })
+        -> [FlareInlineEmojiRun]? {
+        guard run.emoji == nil, !run.code, !(run.has(.spoiler) && !revealed) else { return nil }
+        let parts = flareInlineEmojiRuns(run.text, isKnown: isKnown)
+        let drawsEmoji = parts.contains { if case .emoji = $0 { return true } else { return false } }
+        return drawsEmoji ? parts : nil
     }
 
     static func attributed(_ run: FlareRichRun, paint: Paint, size: CGFloat, weight: Font.Weight) -> AttributedString {

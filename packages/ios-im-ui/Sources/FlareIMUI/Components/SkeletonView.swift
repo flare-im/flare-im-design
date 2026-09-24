@@ -70,7 +70,7 @@ public struct SkeletonView: View {
     }
 
     private func conversation(_ colors: FlareColors) -> some View {
-        VStack(spacing: 14) {
+        VStack(spacing: FlareSizes.spacing2md) {
             ForEach(0..<rows, id: \.self) { _ in
                 HStack(spacing: FlareSizes.spacingMd) {
                     circle(colors, 44)
@@ -125,7 +125,7 @@ public struct SkeletonView: View {
 
     private func text(_ colors: FlareColors) -> some View {
         let fractions: [CGFloat] = [0.9, 0.75, 0.85, 0.6, 0.8]
-        return VStack(alignment: .leading, spacing: 10) {
+        return VStack(alignment: .leading, spacing: FlareSizes.spacing2sm) {
             ForEach(0..<rows, id: \.self) { i in
                 line(colors, fraction: fractions[i % fractions.count], height: 11)
             }

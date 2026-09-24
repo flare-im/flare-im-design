@@ -12,15 +12,26 @@ import 'flare_input.dart';
 class FlareDialog extends StatelessWidget {
   const FlareDialog({
     super.key,
-    required this.title,
+    this.title,
     required this.content,
     this.actions = const [],
     this.busy = false,
+    this.maxWidth = 480,
+    this.contentScrollable = true,
   });
-  final Widget title;
+  final Widget? title;
   final Widget content;
   final List<Widget> actions;
   final bool busy;
+
+  /// Wider content surfaces such as global search can keep the same modal
+  /// frame instead of rebuilding a one-off desktop dialog in the host.
+  final double maxWidth;
+
+  /// Form dialogs scroll their content by default. A self-contained pane with
+  /// its own list (global search, pickers) opts out so the inner viewport gets
+  /// a bounded height.
+  final bool contentScrollable;
 
   /// Shows what [builder] returns — a [FlareDialog], or another self-contained
   /// kit card, which gets the Material ancestor its fields need — as a modal
@@ -102,34 +113,36 @@ class FlareDialog extends StatelessWidget {
           side: BorderSide(color: colors.borderPrimary),
         ),
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 480),
+          constraints: BoxConstraints(maxWidth: maxWidth),
           child: Padding(
             padding: const EdgeInsets.all(FlareSizes.spacingXl),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Semantics(
-                  header: true,
-                  child: DefaultTextStyle.merge(
-                    style: TextStyle(
-                      fontSize: FlareSizes.fontSizeXl,
-                      fontWeight: FontWeight.w600,
-                      color: colors.textPrimary,
-                    ),
-                    child: title,
-                  ),
-                ),
-                const SizedBox(height: FlareSizes.spacingLg),
-                Flexible(
-                  child: SingleChildScrollView(
+                if (title != null) ...[
+                  Semantics(
+                    header: true,
                     child: DefaultTextStyle.merge(
                       style: TextStyle(
-                        fontSize: FlareSizes.fontSizeLg,
-                        color: colors.textSecondary,
+                        fontSize: FlareSizes.fontSizeXl,
+                        fontWeight: FontWeight.w600,
+                        color: colors.textPrimary,
                       ),
-                      child: content,
+                      child: title!,
                     ),
+                  ),
+                  const SizedBox(height: FlareSizes.spacingLg),
+                ],
+                Flexible(
+                  child: DefaultTextStyle.merge(
+                    style: TextStyle(
+                      fontSize: FlareSizes.fontSizeLg,
+                      color: colors.textSecondary,
+                    ),
+                    child: contentScrollable
+                        ? SingleChildScrollView(child: content)
+                        : content,
                   ),
                 ),
                 if (actions.isNotEmpty) ...[

@@ -149,7 +149,7 @@ fun ContactDetail(
     ) {
         // Hero
         Column(
-            Modifier.fillMaxWidth().padding(top = FlareSizes.spacing2xl, bottom = 10.dp),
+            Modifier.fillMaxWidth().padding(top = FlareSizes.spacing2xl, bottom = FlareSizes.spacing2sm),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Avatar(userId = contact.id, displayName = contact.name, size = 76.dp, presence = contact.presence)
@@ -163,7 +163,7 @@ fun ContactDetail(
                 Spacer(Modifier.height(FlareSizes.spacingSm))
                 // The registry star and the label; the glyph is decoration, the label names the badge.
                 Row(
-                    Modifier.clip(RoundedCornerShape(999.dp)).background(colors.bgSelected).padding(horizontal = 10.dp, vertical = 2.dp),
+                    Modifier.clip(RoundedCornerShape(999.dp)).background(colors.bgSelected).padding(horizontal = FlareSizes.spacing2sm, vertical = 2.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs),
                 ) {
@@ -211,7 +211,7 @@ fun ContactDetail(
         // Danger zone: only the handled intents, and none at all without them.
         if (onBlock != null || onRemove != null || extraActions.isNotEmpty()) Column(
             Modifier.fillMaxWidth().padding(FlareSizes.spacingLg),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2sm),
         ) {
             for (action in extraActions) OutlinedButton(
                 onClick = { onExtraAction?.invoke(action.id) },
@@ -244,7 +244,7 @@ private fun action(label: String, icon: ImageVector, onClick: () -> Unit, colors
         colors = if (primary) ButtonDefaults.buttonColors(containerColor = colors.primary)
         else ButtonDefaults.buttonColors(containerColor = colors.bgSecondary, contentColor = colors.textPrimary),
         shape = RoundedCornerShape(FlareSizes.radiusLg),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp, vertical = 10.dp),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = FlareSizes.spacingXs, vertical = FlareSizes.spacing2sm),
         // Parity with iOS/Flutter: action tiles float — brand-tinted glow on primary, soft neutral on the rest.
         modifier = modifier.shadow(
             if (primary) 10.dp else 6.dp,
@@ -254,7 +254,7 @@ private fun action(label: String, icon: ImageVector, onClick: () -> Unit, colors
             spotColor = if (primary) colors.primary else Color(0xFF151320),
         ),
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
             Icon(icon, null, tint = if (primary) Color.White else colors.textPrimary)
             Text(label, fontSize = FlareSizes.fontSizeSm.value.sp, color = if (primary) Color.White else colors.textPrimary)
         }

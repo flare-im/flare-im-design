@@ -52,7 +52,7 @@ public struct ProfileCardView: View {
                             .padding(.horizontal, 9).padding(.vertical, 2)
                             .background(Capsule().fill(colors.bgSelected))
                     }
-                }.padding(.top, 10)
+                }.padding(.top, FlareSizes.spacing2sm)
             }
             if onMessage != nil || onCall != nil || onVideo != nil {
                 HStack(spacing: FlareSizes.spacingSm) {

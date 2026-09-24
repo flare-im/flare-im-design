@@ -52,7 +52,7 @@ public struct EmojiPickerView: View {
             grid(colors)
             if !searching { rail(colors) }
         }
-        .padding(10)
+        .padding(FlareSizes.spacing2sm)
         .frame(width: 320)
         .background(RoundedRectangle(cornerRadius: FlareSizes.radiusXl).fill(colors.bgPrimary)
             .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusXl).stroke(colors.borderPrimary, lineWidth: 1)))
@@ -72,7 +72,7 @@ public struct EmojiPickerView: View {
                     .font(.system(size: 13)).foregroundColor(colors.textPrimary)
                     .textFieldStyle(.plain)
             }
-            .padding(.horizontal, 10).padding(.vertical, 7)
+            .padding(.horizontal, FlareSizes.spacing2sm).padding(.vertical, 7)
             .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.bgSecondary))
 
             if skinTones {

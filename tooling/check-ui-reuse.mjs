@@ -19,9 +19,18 @@ function check(path, required, forbidden) {
   console.log(`${ok ? 'PASS' : 'FAIL'} ${path}`);
   if (!ok) failures++;
 }
-for (const page of ['profile_center_screen', 'moments_screen', 'social_action_screens', 'base_shell']) {
+for (const page of ['profile_center_screen', 'moments_screen', 'base_shell']) {
   check(`${social}/flare-social-flutter-app/lib/screens/${page}.dart`, [/FlareButton\(/, /package:flare_im_ui/], /\b(?:FilledButton|OutlinedButton|TextButton|TextField|AlertDialog)\s*[.(]/);
 }
+// The social action host now delegates whole contact/group/request/search surfaces to the kit, so
+// it legitimately has no standalone button. Guard the high-level components instead of requiring a
+// token FlareButton call that would reward adding redundant app-side chrome.
+check(`${social}/flare-social-flutter-app/lib/screens/social_action_screens.dart`, [
+  /FlareContactDetail\(/,
+  /FlareGroupDetail\(/,
+  /FlareNewFriendRequests\(/,
+  /package:flare_im_ui/,
+], /\b(?:FilledButton|OutlinedButton|TextButton|TextField|AlertDialog)\s*[.(]/);
 for (const page of ['chat/ContactChatSettingsPanel', 'chat/GroupChatSettingsPanel', 'settings/AppSettingsDrawer']) {
   // Settings rows come from the kit, either one row at a time or as a whole settings list.
   check(`${social}/flare-social-tauri-app/src/components/${page}.vue`, [/FlareSettingsRow|FlareSettingsList/, /@flare-im\/vue-ui/], /SettingsToggleRow|SettingsMenuItem|settings-toggle-row|settings-menu-item/);

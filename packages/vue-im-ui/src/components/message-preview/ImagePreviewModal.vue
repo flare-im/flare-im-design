@@ -1,7 +1,8 @@
 <template>
-  <Teleport to="body">
+  <Teleport :to="overlayContainer">
     <div
       v-if="show"
+      ref="surfaceEl"
       class="image-preview-modal"
       role="dialog"
       aria-modal="true"
@@ -166,8 +167,12 @@
 </template>
 
 <script setup lang="ts">
+// 全屏图片查看器是一张模态面 —— 栈、滚动锁、焦点陷阱、Escape 和平台返回键都来自
+// 共用的 `useFlareModalSurface`。以前它自己写 `document.body.style.overflow = ''`,
+// 不计数也不还原:从一张面板里点开图片再关掉,面板还开着,背后的页面却又能滚了;
+// 而且 Escape 两边各听各的 document,一次按键会连着关两层。
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
-import { useFlareNativeBack } from "../../shared/platform/useFlareNativeBack";
+import { useFlareModalSurface } from "../../shared/useModalSurface";
 import { NIcon } from 'naive-ui';
 import type { Component } from 'vue';
 import { flareIcons } from "../../shared/icons";
@@ -231,9 +236,9 @@ const SWIPE_PAGE_PX = 60;
 const scale = ref(1);
 const rotateDeg = ref(0);
 const viewportRef = ref<HTMLElement | null>(null);
+const surfaceEl = ref<HTMLElement | null>(null);
 const imageRef = ref<HTMLImageElement | null>(null);
 const imageState = ref<'loading' | 'ready' | 'error'>('loading');
-let restoreFocusTo: HTMLElement | null = null;
 
 const canTransform = computed(
   () => props.show && !props.loading && imageState.value === 'ready' && Boolean(props.imageSrc.trim()),
@@ -312,7 +317,16 @@ function onWheel(e: WheelEvent) {
 function requestClose() {
   emit('update:show', false);
 }
-useFlareNativeBack(() => props.show, requestClose);
+
+// autoFocus 关掉:焦点要落在可滚的图片视口上,放大之后方向键才推得动它。
+// 共用实现默认送到第一个可聚焦元素(工具栏第一颗按钮),那样方向键就不滚图了。
+const { overlayContainer } = useFlareModalSurface({
+  open: () => props.show,
+  surface: surfaceEl,
+  autoFocus: false,
+  onRequestClose: requestClose,
+  onKeydown: (event) => onPreviewKeydown(event),
+});
 
 function onImageLoad() {
   imageState.value = imageRef.value?.naturalWidth ? 'ready' : 'error';
@@ -336,13 +350,8 @@ function emitPrimary() {
   emit('primary-action');
 }
 
-function onGlobalKeydown(e: KeyboardEvent) {
-  if (!props.show) return;
-  if (e.key === 'Escape') {
-    e.preventDefault();
-    requestClose();
-    return;
-  }
+// 只在这张面处于栈顶时被调用;Escape 与 Tab 已经由共用实现收掉。
+function onPreviewKeydown(e: KeyboardEvent) {
   // The arrow keys page while the image is not zoomed in; zoomed in, they move around it.
   if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && pages.value && scale.value <= 1) {
     const forward = e.key === 'ArrowRight';
@@ -393,18 +402,11 @@ watch(
   (open) => {
     if (typeof document === 'undefined') return;
     if (open) {
-      restoreFocusTo = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       imageState.value = 'loading';
-      document.addEventListener('keydown', onGlobalKeydown);
-      document.body.style.overflow = 'hidden';
       listenVisualViewport();
       void nextTick(() => viewportRef.value?.focus());
     } else {
-      document.removeEventListener('keydown', onGlobalKeydown);
-      document.body.style.overflow = '';
       unlistenVisualViewport();
-      restoreFocusTo?.focus();
-      restoreFocusTo = null;
     }
   },
 );
@@ -421,8 +423,6 @@ watch(
 
 onBeforeUnmount(() => {
   if (typeof document === 'undefined') return;
-  document.removeEventListener('keydown', onGlobalKeydown);
-  document.body.style.overflow = '';
   unlistenVisualViewport();
   document.documentElement.style.removeProperty('--flare-image-preview-viewport-height');
 });
@@ -438,7 +438,7 @@ onBeforeUnmount(() => {
   inset: 0;
   height: var(--flare-image-preview-viewport-height);
   max-height: var(--flare-image-preview-viewport-height);
-  z-index: 10000;
+  z-index: var(--flare-z-index-media);
   display: flex;
   flex-direction: column;
   background: rgba(0, 0, 0, 0.85);
@@ -448,7 +448,7 @@ onBeforeUnmount(() => {
 
 .image-preview-modal__toolbar {
   position: absolute;
-  top: max(10px, env(safe-area-inset-top, 0px));
+  top: max(var(--flare-size-spacing-2sm), env(safe-area-inset-top, 0px));
   left: max(var(--flare-size-spacing-md), env(safe-area-inset-left, 0px));
   right: max(var(--flare-size-spacing-md), env(safe-area-inset-right, 0px));
   z-index: 3;
@@ -628,7 +628,7 @@ onBeforeUnmount(() => {
   right: 8px;
   z-index: 2;
   width: min(200px, calc(100% - 24px));
-  padding: 8px 10px;
+  padding: 8px var(--flare-size-spacing-2sm);
   border-radius: 10px;
   background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(6px);

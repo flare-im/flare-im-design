@@ -1,4 +1,11 @@
-enum RichComposerInlineStyle { bold, italic, strike, inlineCode, link }
+enum RichComposerInlineStyle {
+  bold,
+  strike,
+  italic,
+  underline,
+  inlineCode,
+  link,
+}
 
 enum RichComposerBlockStyle {
   body,
@@ -13,10 +20,12 @@ final class RichComposerFormatting {
   const RichComposerFormatting({
     this.inlineStyles = const {},
     this.blockStyle = RichComposerBlockStyle.body,
+    this.headingLevel = 2,
   });
 
   final Set<RichComposerInlineStyle> inlineStyles;
   final RichComposerBlockStyle blockStyle;
+  final int headingLevel;
 
   bool isInlineActive(RichComposerInlineStyle style) =>
       inlineStyles.contains(style);
@@ -33,6 +42,7 @@ final class RichComposerFormatting {
     return RichComposerFormatting(
       inlineStyles: Set.unmodifiable(next),
       blockStyle: blockStyle,
+      headingLevel: headingLevel,
     );
   }
 
@@ -40,6 +50,17 @@ final class RichComposerFormatting {
     return RichComposerFormatting(
       inlineStyles: inlineStyles,
       blockStyle: blockStyle == style ? RichComposerBlockStyle.body : style,
+      headingLevel: headingLevel,
+    );
+  }
+
+  RichComposerFormatting withHeadingLevel(int? level) {
+    return RichComposerFormatting(
+      inlineStyles: inlineStyles,
+      blockStyle: level == null
+          ? RichComposerBlockStyle.body
+          : RichComposerBlockStyle.heading,
+      headingLevel: (level ?? headingLevel).clamp(1, 6),
     );
   }
 }
@@ -73,7 +94,8 @@ abstract final class RichComposerMarkdownSerializer {
         case RichComposerBlockStyle.body:
           output.add(inline);
         case RichComposerBlockStyle.heading:
-          output.add('## $inline');
+          final marker = List.filled(formatting.headingLevel, '#').join();
+          output.add('$marker $inline');
         case RichComposerBlockStyle.quote:
           output.add('> $inline');
         case RichComposerBlockStyle.bulletList:
@@ -109,6 +131,9 @@ abstract final class RichComposerMarkdownSerializer {
     }
     if (styles.contains(RichComposerInlineStyle.strike)) {
       output = '~~$output~~';
+    }
+    if (styles.contains(RichComposerInlineStyle.underline)) {
+      output = '<u>$output</u>';
     }
 
     return output;

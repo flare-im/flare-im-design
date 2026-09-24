@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
@@ -101,89 +102,95 @@ class FlareMessageBatchToolbar extends StatelessWidget {
     final visible = FlareMessageBatchAction.values
         .where(capabilities.allows)
         .toList(growable: false);
-    return Container(
-      // Every key sits in a touch-target-tall run, and the exit key's target
-      // reaches past the key to the toolbar's end edge, so the toolbar gives
-      // that difference back to keep its height and inset.
-      padding: const EdgeInsetsDirectional.fromSTEB(
-        14,
-        10 - _targetInset,
-        0,
-        10 - _targetInset,
-      ),
-      decoration: BoxDecoration(
-        color: colors.bgPrimary,
-        borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
-        border: Border.all(color: colors.borderPrimary),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x1415131C),
-            blurRadius: 16,
-            offset: Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // At large text sizes the count wraps instead of starving the keys.
-          Flexible(
-            child: Text.rich(
-              TextSpan(
-                children: [
-                  TextSpan(
-                    text: '$count',
-                    style: TextStyle(
-                      color: colors.primaryText,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  TextSpan(
-                    text: ' / $total · ${strings.selectedSuffix}',
-                    style: TextStyle(color: colors.textSecondary),
-                  ),
-                ],
-              ),
-              style: const TextStyle(fontSize: FlareSizes.fontSizeMd),
+    return _MessageBatchExitScope(
+      onExit: onExit,
+      busy: busy,
+      child: Container(
+        // Every key sits in a touch-target-tall run, and the exit key's target
+        // reaches past the key to the toolbar's end edge, so the toolbar gives
+        // that difference back to keep its height and inset.
+        padding: const EdgeInsetsDirectional.fromSTEB(
+          14,
+          10 - _targetInset,
+          0,
+          10 - _targetInset,
+        ),
+        decoration: BoxDecoration(
+          color: colors.bgPrimary,
+          borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
+          border: Border.all(color: colors.borderPrimary),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x1415131C),
+              blurRadius: 16,
+              offset: Offset(0, 6),
             ),
-          ),
-          const SizedBox(width: FlareSizes.spacingMd),
-          Expanded(
-            child: Wrap(
-              alignment: WrapAlignment.end,
-              spacing: FlareSizes.spacingSm,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                _button(
-                  colors,
-                  icon: Icons.done_all,
-                  label: strings.selectAll,
-                  disabled: total == 0 || busy,
-                  onTap: onSelectAll,
+          ],
+        ),
+        child: Row(
+          children: [
+            // At large text sizes the count wraps instead of starving the keys.
+            Flexible(
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: '$count',
+                      style: TextStyle(
+                        color: colors.primaryText,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    TextSpan(
+                      text: ' / $total · ${strings.selectedSuffix}',
+                      style: TextStyle(color: colors.textSecondary),
+                    ),
+                  ],
                 ),
-                _button(
-                  colors,
-                  icon: flareIconGlyph('close'),
-                  label: strings.messageBatchClear,
-                  disabled: count == 0 || busy,
-                  onTap: onClearSelection,
-                ),
-                for (final action in visible)
+                style: const TextStyle(fontSize: FlareSizes.fontSizeMd),
+              ),
+            ),
+            const SizedBox(width: FlareSizes.spacingMd),
+            Expanded(
+              child: Wrap(
+                alignment: WrapAlignment.end,
+                spacing: FlareSizes.spacingSm,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
                   _button(
                     colors,
-                    icon: _icon(action),
-                    label: _label(action, strings),
-                    color: action == FlareMessageBatchAction.delete
-                        ? colors.error
-                        : null,
-                    disabled: !available.contains(action),
-                    onTap: () =>
-                        onAction?.call(action, List<String>.from(selectedIds)),
+                    icon: Icons.done_all,
+                    label: strings.selectAll,
+                    disabled: total == 0 || busy,
+                    onTap: onSelectAll,
                   ),
-                _exitButton(colors, strings.messageBatchExit),
-              ],
+                  _button(
+                    colors,
+                    icon: flareIconGlyph('close'),
+                    label: strings.messageBatchClear,
+                    disabled: count == 0 || busy,
+                    onTap: onClearSelection,
+                  ),
+                  for (final action in visible)
+                    _button(
+                      colors,
+                      icon: _icon(action),
+                      label: _label(action, strings),
+                      color: action == FlareMessageBatchAction.delete
+                          ? colors.error
+                          : null,
+                      disabled: !available.contains(action),
+                      onTap: () => onAction?.call(
+                        action,
+                        List<String>.from(selectedIds),
+                      ),
+                    ),
+                  _exitButton(colors, strings.messageBatchExit),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -232,7 +239,9 @@ class FlareMessageBatchToolbar extends StatelessWidget {
             widthFactor: 1,
             child: Container(
               height: _key,
-              padding: const EdgeInsets.symmetric(horizontal: 10),
+              padding: const EdgeInsets.symmetric(
+                horizontal: FlareSizes.spacing2sm,
+              ),
               decoration: BoxDecoration(
                 color: colors.bgSecondary,
                 borderRadius: BorderRadius.circular(FlareSizes.radiusMd),
@@ -281,4 +290,70 @@ class FlareMessageBatchToolbar extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The toolbar being on screen is the selection being on: the system back and a hardware
+/// keyboard's Escape leave the selection before they leave the chat. While [busy] both are
+/// consumed and nothing exits — the same rule as the disabled exit key. Without an [onExit]
+/// handler nothing is claimed.
+///
+/// Escape is read from [HardwareKeyboard] rather than a [Shortcuts] binding: shortcuts only see
+/// keys while focus is inside their subtree, and the toolbar never holds focus (its keys are
+/// gesture targets) — in a chat the focus is in the composer or nowhere. The handler steps aside
+/// when another route is on top or an editable control has focus (its own Escape comes first),
+/// so nothing here fires under a dialog or while typing.
+class _MessageBatchExitScope extends StatefulWidget {
+  const _MessageBatchExitScope({
+    required this.onExit,
+    required this.busy,
+    required this.child,
+  });
+
+  final VoidCallback? onExit;
+  final bool busy;
+  final Widget child;
+
+  @override
+  State<_MessageBatchExitScope> createState() => _MessageBatchExitScopeState();
+}
+
+class _MessageBatchExitScopeState extends State<_MessageBatchExitScope> {
+  @override
+  void initState() {
+    super.initState();
+    HardwareKeyboard.instance.addHandler(_onKey);
+  }
+
+  @override
+  void dispose() {
+    HardwareKeyboard.instance.removeHandler(_onKey);
+    super.dispose();
+  }
+
+  bool _onKey(KeyEvent event) {
+    if (event is! KeyDownEvent ||
+        event.logicalKey != LogicalKeyboardKey.escape) {
+      return false;
+    }
+    final onExit = widget.onExit;
+    if (onExit == null || !mounted) return false;
+    if (ModalRoute.of(context)?.isCurrent == false) return false;
+    final focused = FocusManager.instance.primaryFocus?.context;
+    if (focused != null &&
+        (focused.widget is EditableText ||
+            focused.findAncestorWidgetOfExactType<EditableText>() != null)) {
+      return false;
+    }
+    if (!widget.busy) onExit();
+    return true;
+  }
+
+  @override
+  Widget build(BuildContext context) => PopScope(
+    canPop: widget.onExit == null,
+    onPopInvokedWithResult: (didPop, _) {
+      if (!didPop && !widget.busy) widget.onExit?.call();
+    },
+    child: widget.child,
+  );
 }

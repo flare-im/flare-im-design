@@ -266,7 +266,7 @@ fun GroupPermissionMatrix(
                 modifier = Modifier.weight(1f),
             )
             if (!canEdit) {
-                Icon(Icons.Outlined.Lock, null, Modifier.size(14.dp), tint = colors.textTertiary)
+                Icon(Icons.Outlined.Lock, null, Modifier.size(FlareSizes.spacing2md), tint = colors.textTertiary)
                 Spacer(Modifier.width(4.dp))
                 Text(readOnlyHintText, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
             }
@@ -303,7 +303,7 @@ fun GroupPermissionMatrix(
                     if (row.busy) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             CircularProgressIndicator(
-                                Modifier.size(14.dp),
+                                Modifier.size(FlareSizes.spacing2md),
                                 color = colors.textTertiary,
                                 strokeWidth = 2.dp,
                             )
@@ -333,7 +333,7 @@ fun GroupPermissionMatrix(
 
                 if (row.kind == FlareGroupPermissionRowKind.Choice && row.editable) {
                     Column(Modifier.padding(start = 44.dp, top = FlareSizes.spacingXs)) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs)) {
                             FlareGroupJoinPolicy.entries.forEach { policy ->
                                 ChoiceChip(
                                     label = joinChoiceText(policy),
@@ -348,7 +348,7 @@ fun GroupPermissionMatrix(
                                 unknownJoinPolicyText,
                                 color = colors.warningText,
                                 fontSize = FlareSizes.fontSizeSm.value.sp,
-                                modifier = Modifier.padding(top = 4.dp),
+                                modifier = Modifier.padding(top = FlareSizes.spacingXs),
                             )
                         }
                     }
@@ -361,10 +361,10 @@ fun GroupPermissionMatrix(
                         Modifier.padding(start = 44.dp, top = FlareSizes.spacingXs)
                             .clip(RoundedCornerShape(FlareSizes.radiusSm))
                             .background(colors.error.copy(alpha = 0.08f))
-                            .padding(horizontal = 8.dp, vertical = 6.dp),
+                            .padding(horizontal = FlareSizes.spacingSm, vertical = FlareSizes.spacing2xs),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Icon(Icons.Outlined.ErrorOutline, null, Modifier.size(14.dp), tint = colors.errorText)
+                        Icon(Icons.Outlined.ErrorOutline, null, Modifier.size(FlareSizes.spacing2md), tint = colors.errorText)
                         Spacer(Modifier.width(6.dp))
                         Text(
                             error,
@@ -376,10 +376,10 @@ fun GroupPermissionMatrix(
                             Row(
                                 Modifier.clip(RoundedCornerShape(FlareSizes.radiusSm))
                                     .clickable(role = Role.Button, onClickLabel = retryText) { dispatch(row, retry) }
-                                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                                    .padding(horizontal = FlareSizes.spacingSm, vertical = FlareSizes.spacingXs),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                Icon(Icons.Outlined.Refresh, null, Modifier.size(14.dp), tint = colors.textPrimary)
+                                Icon(Icons.Outlined.Refresh, null, Modifier.size(FlareSizes.spacing2md), tint = colors.textPrimary)
                                 Spacer(Modifier.width(4.dp))
                                 Text(retryText, color = colors.textPrimary, fontSize = FlareSizes.fontSizeSm.value.sp)
                             }
@@ -391,7 +391,7 @@ fun GroupPermissionMatrix(
                                 onClick = { onDismissError(row.key) },
                                 shape = RoundedCornerShape(FlareSizes.radiusSm),
                             ) {
-                                Icon(flareIconVector("close"), null, Modifier.size(14.dp), tint = colors.textSecondary)
+                                Icon(flareIconVector("close"), null, Modifier.size(FlareSizes.spacing2md), tint = colors.textSecondary)
                             }
                         }
                     }
@@ -420,11 +420,11 @@ private fun ChoiceChip(
             )
             .alpha(if (enabled) 1f else 0.5f)
             .clickable(enabled = enabled, role = Role.RadioButton, onClickLabel = label) { onClick() }
-            .padding(horizontal = 10.dp),
+            .padding(horizontal = FlareSizes.spacing2sm),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.size(14.dp), contentAlignment = Alignment.Center) {
-            if (selected) Icon(Icons.Outlined.Check, null, Modifier.size(14.dp), tint = colors.primaryText)
+        Box(Modifier.size(FlareSizes.spacing2md), contentAlignment = Alignment.Center) {
+            if (selected) Icon(Icons.Outlined.Check, null, Modifier.size(FlareSizes.spacing2md), tint = colors.primaryText)
         }
         Spacer(Modifier.width(5.dp))
         Text(

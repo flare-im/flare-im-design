@@ -67,6 +67,18 @@ class FlareColors {
     required this.textTertiary,
     required this.warning,
     required this.warningText,
+    required this.avatarTintBlueBg,
+    required this.avatarTintBlueFg,
+    required this.avatarTintPurpleBg,
+    required this.avatarTintPurpleFg,
+    required this.avatarTintPinkBg,
+    required this.avatarTintPinkFg,
+    required this.avatarTintGreenBg,
+    required this.avatarTintGreenFg,
+    required this.avatarTintAmberBg,
+    required this.avatarTintAmberFg,
+    required this.avatarTintSlateBg,
+    required this.avatarTintSlateFg,
   });
 
   final Color bgDisabled;
@@ -125,6 +137,18 @@ class FlareColors {
   final Color textTertiary;
   final Color warning;
   final Color warningText;
+  final Color avatarTintBlueBg;
+  final Color avatarTintBlueFg;
+  final Color avatarTintPurpleBg;
+  final Color avatarTintPurpleFg;
+  final Color avatarTintPinkBg;
+  final Color avatarTintPinkFg;
+  final Color avatarTintGreenBg;
+  final Color avatarTintGreenFg;
+  final Color avatarTintAmberBg;
+  final Color avatarTintAmberFg;
+  final Color avatarTintSlateBg;
+  final Color avatarTintSlateFg;
 
   FlareColors copyWith({
     Color? bgDisabled,
@@ -183,6 +207,18 @@ class FlareColors {
     Color? textTertiary,
     Color? warning,
     Color? warningText,
+    Color? avatarTintBlueBg,
+    Color? avatarTintBlueFg,
+    Color? avatarTintPurpleBg,
+    Color? avatarTintPurpleFg,
+    Color? avatarTintPinkBg,
+    Color? avatarTintPinkFg,
+    Color? avatarTintGreenBg,
+    Color? avatarTintGreenFg,
+    Color? avatarTintAmberBg,
+    Color? avatarTintAmberFg,
+    Color? avatarTintSlateBg,
+    Color? avatarTintSlateFg,
   }) => FlareColors(
     bgDisabled: bgDisabled ?? this.bgDisabled,
     bgElevated: bgElevated ?? this.bgElevated,
@@ -240,6 +276,18 @@ class FlareColors {
     textTertiary: textTertiary ?? this.textTertiary,
     warning: warning ?? this.warning,
     warningText: warningText ?? this.warningText,
+    avatarTintBlueBg: avatarTintBlueBg ?? this.avatarTintBlueBg,
+    avatarTintBlueFg: avatarTintBlueFg ?? this.avatarTintBlueFg,
+    avatarTintPurpleBg: avatarTintPurpleBg ?? this.avatarTintPurpleBg,
+    avatarTintPurpleFg: avatarTintPurpleFg ?? this.avatarTintPurpleFg,
+    avatarTintPinkBg: avatarTintPinkBg ?? this.avatarTintPinkBg,
+    avatarTintPinkFg: avatarTintPinkFg ?? this.avatarTintPinkFg,
+    avatarTintGreenBg: avatarTintGreenBg ?? this.avatarTintGreenBg,
+    avatarTintGreenFg: avatarTintGreenFg ?? this.avatarTintGreenFg,
+    avatarTintAmberBg: avatarTintAmberBg ?? this.avatarTintAmberBg,
+    avatarTintAmberFg: avatarTintAmberFg ?? this.avatarTintAmberFg,
+    avatarTintSlateBg: avatarTintSlateBg ?? this.avatarTintSlateBg,
+    avatarTintSlateFg: avatarTintSlateFg ?? this.avatarTintSlateFg,
   );
 
   static const FlareColors violetLight = FlareColors(
@@ -254,7 +302,7 @@ class FlareColors {
     borderPrimary: Color(0xFFE3E5EB),
     borderSecondary: Color(0xFFECEEF2),
     borderSelected: Color(0xFF7C3AED),
-    messageIncomingBackground: Color(0xFFFFFFFF),
+    messageIncomingBackground: Color(0xFFF1F2F5),
     messageIncomingForeground: Color(0xFF20232D),
     messageIncomingBorder: Color(0xFFE3E5EB),
     messageOutgoingBackground: Color(0xFF6D28D9),
@@ -299,6 +347,18 @@ class FlareColors {
     textTertiary: Color(0xFF5F6776),
     warning: Color(0xFFB45309),
     warningText: Color(0xFFB45309),
+    avatarTintBlueBg: Color(0xFFDBEAFE),
+    avatarTintBlueFg: Color(0xFF1D4ED8),
+    avatarTintPurpleBg: Color(0xFFE9D5FF),
+    avatarTintPurpleFg: Color(0xFF6D28D9),
+    avatarTintPinkBg: Color(0xFFFBCFE8),
+    avatarTintPinkFg: Color(0xFF9D174D),
+    avatarTintGreenBg: Color(0xFFD1FAE5),
+    avatarTintGreenFg: Color(0xFF047857),
+    avatarTintAmberBg: Color(0xFFFEF3C7),
+    avatarTintAmberFg: Color(0xFFB45309),
+    avatarTintSlateBg: Color(0xFFE5E7EB),
+    avatarTintSlateFg: Color(0xFF374151),
   );
 
   static const FlareColors violetDark = FlareColors(
@@ -313,7 +373,7 @@ class FlareColors {
     borderPrimary: Color(0x1AFFFFFF),
     borderSecondary: Color(0x14FFFFFF),
     borderSelected: Color(0xFFA78BFA),
-    messageIncomingBackground: Color(0xFF20232B),
+    messageIncomingBackground: Color(0xFF292D37),
     messageIncomingForeground: Color(0xF0FFFFFF),
     messageIncomingBorder: Color(0x1AFFFFFF),
     messageOutgoingBackground: Color(0xFF5B21B6),
@@ -358,6 +418,18 @@ class FlareColors {
     textTertiary: Color(0xFF9AA3B3),
     warning: Color(0xFFA16207),
     warningText: Color(0xFFFBBF24),
+    avatarTintBlueBg: Color(0xFF1F3266),
+    avatarTintBlueFg: Color(0xFFBFDBFE),
+    avatarTintPurpleBg: Color(0xFF3A2566),
+    avatarTintPurpleFg: Color(0xFFDDD6FE),
+    avatarTintPinkBg: Color(0xFF5C1F3E),
+    avatarTintPinkFg: Color(0xFFFBCFE8),
+    avatarTintGreenBg: Color(0xFF15433C),
+    avatarTintGreenFg: Color(0xFFA7F3D0),
+    avatarTintAmberBg: Color(0xFF58351E),
+    avatarTintAmberFg: Color(0xFFFDE68A),
+    avatarTintSlateBg: Color(0xFF282D38),
+    avatarTintSlateFg: Color(0xFFE5E7EB),
   );
 
   static const FlareColors oceanLight = FlareColors(
@@ -372,7 +444,7 @@ class FlareColors {
     borderPrimary: Color(0xFFE3E5EB),
     borderSecondary: Color(0xFFECEEF2),
     borderSelected: Color(0xFF2563EB),
-    messageIncomingBackground: Color(0xFFFFFFFF),
+    messageIncomingBackground: Color(0xFFF1F2F5),
     messageIncomingForeground: Color(0xFF20232D),
     messageIncomingBorder: Color(0xFFE3E5EB),
     messageOutgoingBackground: Color(0xFF1D4ED8),
@@ -417,6 +489,18 @@ class FlareColors {
     textTertiary: Color(0xFF5F6776),
     warning: Color(0xFFB45309),
     warningText: Color(0xFFB45309),
+    avatarTintBlueBg: Color(0xFFDBEAFE),
+    avatarTintBlueFg: Color(0xFF1D4ED8),
+    avatarTintPurpleBg: Color(0xFFE9D5FF),
+    avatarTintPurpleFg: Color(0xFF6D28D9),
+    avatarTintPinkBg: Color(0xFFFBCFE8),
+    avatarTintPinkFg: Color(0xFF9D174D),
+    avatarTintGreenBg: Color(0xFFD1FAE5),
+    avatarTintGreenFg: Color(0xFF047857),
+    avatarTintAmberBg: Color(0xFFFEF3C7),
+    avatarTintAmberFg: Color(0xFFB45309),
+    avatarTintSlateBg: Color(0xFFE5E7EB),
+    avatarTintSlateFg: Color(0xFF374151),
   );
 
   static const FlareColors oceanDark = FlareColors(
@@ -431,7 +515,7 @@ class FlareColors {
     borderPrimary: Color(0x1AFFFFFF),
     borderSecondary: Color(0x14FFFFFF),
     borderSelected: Color(0xFF60A5FA),
-    messageIncomingBackground: Color(0xFF20232B),
+    messageIncomingBackground: Color(0xFF292D37),
     messageIncomingForeground: Color(0xF0FFFFFF),
     messageIncomingBorder: Color(0x1AFFFFFF),
     messageOutgoingBackground: Color(0xFF1E40AF),
@@ -476,6 +560,18 @@ class FlareColors {
     textTertiary: Color(0xFF9AA3B3),
     warning: Color(0xFFA16207),
     warningText: Color(0xFFFBBF24),
+    avatarTintBlueBg: Color(0xFF1F3266),
+    avatarTintBlueFg: Color(0xFFBFDBFE),
+    avatarTintPurpleBg: Color(0xFF3A2566),
+    avatarTintPurpleFg: Color(0xFFDDD6FE),
+    avatarTintPinkBg: Color(0xFF5C1F3E),
+    avatarTintPinkFg: Color(0xFFFBCFE8),
+    avatarTintGreenBg: Color(0xFF15433C),
+    avatarTintGreenFg: Color(0xFFA7F3D0),
+    avatarTintAmberBg: Color(0xFF58351E),
+    avatarTintAmberFg: Color(0xFFFDE68A),
+    avatarTintSlateBg: Color(0xFF282D38),
+    avatarTintSlateFg: Color(0xFFE5E7EB),
   );
 
   static const FlareColors forestLight = FlareColors(
@@ -490,7 +586,7 @@ class FlareColors {
     borderPrimary: Color(0xFFE3E5EB),
     borderSecondary: Color(0xFFECEEF2),
     borderSelected: Color(0xFF16A34A),
-    messageIncomingBackground: Color(0xFFFFFFFF),
+    messageIncomingBackground: Color(0xFFF1F2F5),
     messageIncomingForeground: Color(0xFF20232D),
     messageIncomingBorder: Color(0xFFE3E5EB),
     messageOutgoingBackground: Color(0xFF15803D),
@@ -535,6 +631,18 @@ class FlareColors {
     textTertiary: Color(0xFF5F6776),
     warning: Color(0xFFB45309),
     warningText: Color(0xFFB45309),
+    avatarTintBlueBg: Color(0xFFDBEAFE),
+    avatarTintBlueFg: Color(0xFF1D4ED8),
+    avatarTintPurpleBg: Color(0xFFE9D5FF),
+    avatarTintPurpleFg: Color(0xFF6D28D9),
+    avatarTintPinkBg: Color(0xFFFBCFE8),
+    avatarTintPinkFg: Color(0xFF9D174D),
+    avatarTintGreenBg: Color(0xFFD1FAE5),
+    avatarTintGreenFg: Color(0xFF047857),
+    avatarTintAmberBg: Color(0xFFFEF3C7),
+    avatarTintAmberFg: Color(0xFFB45309),
+    avatarTintSlateBg: Color(0xFFE5E7EB),
+    avatarTintSlateFg: Color(0xFF374151),
   );
 
   static const FlareColors forestDark = FlareColors(
@@ -549,7 +657,7 @@ class FlareColors {
     borderPrimary: Color(0x1AFFFFFF),
     borderSecondary: Color(0x14FFFFFF),
     borderSelected: Color(0xFF4ADE80),
-    messageIncomingBackground: Color(0xFF20232B),
+    messageIncomingBackground: Color(0xFF292D37),
     messageIncomingForeground: Color(0xF0FFFFFF),
     messageIncomingBorder: Color(0x1AFFFFFF),
     messageOutgoingBackground: Color(0xFF166534),
@@ -594,6 +702,18 @@ class FlareColors {
     textTertiary: Color(0xFF9AA3B3),
     warning: Color(0xFFA16207),
     warningText: Color(0xFFFBBF24),
+    avatarTintBlueBg: Color(0xFF1F3266),
+    avatarTintBlueFg: Color(0xFFBFDBFE),
+    avatarTintPurpleBg: Color(0xFF3A2566),
+    avatarTintPurpleFg: Color(0xFFDDD6FE),
+    avatarTintPinkBg: Color(0xFF5C1F3E),
+    avatarTintPinkFg: Color(0xFFFBCFE8),
+    avatarTintGreenBg: Color(0xFF15433C),
+    avatarTintGreenFg: Color(0xFFA7F3D0),
+    avatarTintAmberBg: Color(0xFF58351E),
+    avatarTintAmberFg: Color(0xFFFDE68A),
+    avatarTintSlateBg: Color(0xFF282D38),
+    avatarTintSlateFg: Color(0xFFE5E7EB),
   );
 
   static const FlareColors sunsetLight = FlareColors(
@@ -608,7 +728,7 @@ class FlareColors {
     borderPrimary: Color(0xFFE3E5EB),
     borderSecondary: Color(0xFFECEEF2),
     borderSelected: Color(0xFFEA580C),
-    messageIncomingBackground: Color(0xFFFFFFFF),
+    messageIncomingBackground: Color(0xFFF1F2F5),
     messageIncomingForeground: Color(0xFF20232D),
     messageIncomingBorder: Color(0xFFE3E5EB),
     messageOutgoingBackground: Color(0xFFC2410C),
@@ -653,6 +773,18 @@ class FlareColors {
     textTertiary: Color(0xFF5F6776),
     warning: Color(0xFFB45309),
     warningText: Color(0xFFB45309),
+    avatarTintBlueBg: Color(0xFFDBEAFE),
+    avatarTintBlueFg: Color(0xFF1D4ED8),
+    avatarTintPurpleBg: Color(0xFFE9D5FF),
+    avatarTintPurpleFg: Color(0xFF6D28D9),
+    avatarTintPinkBg: Color(0xFFFBCFE8),
+    avatarTintPinkFg: Color(0xFF9D174D),
+    avatarTintGreenBg: Color(0xFFD1FAE5),
+    avatarTintGreenFg: Color(0xFF047857),
+    avatarTintAmberBg: Color(0xFFFEF3C7),
+    avatarTintAmberFg: Color(0xFFB45309),
+    avatarTintSlateBg: Color(0xFFE5E7EB),
+    avatarTintSlateFg: Color(0xFF374151),
   );
 
   static const FlareColors sunsetDark = FlareColors(
@@ -667,7 +799,7 @@ class FlareColors {
     borderPrimary: Color(0x1AFFFFFF),
     borderSecondary: Color(0x14FFFFFF),
     borderSelected: Color(0xFFFB923C),
-    messageIncomingBackground: Color(0xFF20232B),
+    messageIncomingBackground: Color(0xFF292D37),
     messageIncomingForeground: Color(0xF0FFFFFF),
     messageIncomingBorder: Color(0x1AFFFFFF),
     messageOutgoingBackground: Color(0xFF9A3412),
@@ -712,6 +844,18 @@ class FlareColors {
     textTertiary: Color(0xFF9AA3B3),
     warning: Color(0xFFA16207),
     warningText: Color(0xFFFBBF24),
+    avatarTintBlueBg: Color(0xFF1F3266),
+    avatarTintBlueFg: Color(0xFFBFDBFE),
+    avatarTintPurpleBg: Color(0xFF3A2566),
+    avatarTintPurpleFg: Color(0xFFDDD6FE),
+    avatarTintPinkBg: Color(0xFF5C1F3E),
+    avatarTintPinkFg: Color(0xFFFBCFE8),
+    avatarTintGreenBg: Color(0xFF15433C),
+    avatarTintGreenFg: Color(0xFFA7F3D0),
+    avatarTintAmberBg: Color(0xFF58351E),
+    avatarTintAmberFg: Color(0xFFFDE68A),
+    avatarTintSlateBg: Color(0xFF282D38),
+    avatarTintSlateFg: Color(0xFFE5E7EB),
   );
 
   static const FlareColors roseLight = FlareColors(
@@ -726,7 +870,7 @@ class FlareColors {
     borderPrimary: Color(0xFFE3E5EB),
     borderSecondary: Color(0xFFECEEF2),
     borderSelected: Color(0xFFE11D48),
-    messageIncomingBackground: Color(0xFFFFFFFF),
+    messageIncomingBackground: Color(0xFFF1F2F5),
     messageIncomingForeground: Color(0xFF20232D),
     messageIncomingBorder: Color(0xFFE3E5EB),
     messageOutgoingBackground: Color(0xFFBE123C),
@@ -771,6 +915,18 @@ class FlareColors {
     textTertiary: Color(0xFF5F6776),
     warning: Color(0xFFB45309),
     warningText: Color(0xFFB45309),
+    avatarTintBlueBg: Color(0xFFDBEAFE),
+    avatarTintBlueFg: Color(0xFF1D4ED8),
+    avatarTintPurpleBg: Color(0xFFE9D5FF),
+    avatarTintPurpleFg: Color(0xFF6D28D9),
+    avatarTintPinkBg: Color(0xFFFBCFE8),
+    avatarTintPinkFg: Color(0xFF9D174D),
+    avatarTintGreenBg: Color(0xFFD1FAE5),
+    avatarTintGreenFg: Color(0xFF047857),
+    avatarTintAmberBg: Color(0xFFFEF3C7),
+    avatarTintAmberFg: Color(0xFFB45309),
+    avatarTintSlateBg: Color(0xFFE5E7EB),
+    avatarTintSlateFg: Color(0xFF374151),
   );
 
   static const FlareColors roseDark = FlareColors(
@@ -785,7 +941,7 @@ class FlareColors {
     borderPrimary: Color(0x1AFFFFFF),
     borderSecondary: Color(0x14FFFFFF),
     borderSelected: Color(0xFFFB7185),
-    messageIncomingBackground: Color(0xFF20232B),
+    messageIncomingBackground: Color(0xFF292D37),
     messageIncomingForeground: Color(0xF0FFFFFF),
     messageIncomingBorder: Color(0x1AFFFFFF),
     messageOutgoingBackground: Color(0xFF9F1239),
@@ -830,6 +986,18 @@ class FlareColors {
     textTertiary: Color(0xFF9AA3B3),
     warning: Color(0xFFA16207),
     warningText: Color(0xFFFBBF24),
+    avatarTintBlueBg: Color(0xFF1F3266),
+    avatarTintBlueFg: Color(0xFFBFDBFE),
+    avatarTintPurpleBg: Color(0xFF3A2566),
+    avatarTintPurpleFg: Color(0xFFDDD6FE),
+    avatarTintPinkBg: Color(0xFF5C1F3E),
+    avatarTintPinkFg: Color(0xFFFBCFE8),
+    avatarTintGreenBg: Color(0xFF15433C),
+    avatarTintGreenFg: Color(0xFFA7F3D0),
+    avatarTintAmberBg: Color(0xFF58351E),
+    avatarTintAmberFg: Color(0xFFFDE68A),
+    avatarTintSlateBg: Color(0xFF282D38),
+    avatarTintSlateFg: Color(0xFFE5E7EB),
   );
 
   static const FlareColors graphiteLight = FlareColors(
@@ -844,7 +1012,7 @@ class FlareColors {
     borderPrimary: Color(0xFFE3E5EB),
     borderSecondary: Color(0xFFECEEF2),
     borderSelected: Color(0xFF64748B),
-    messageIncomingBackground: Color(0xFFFFFFFF),
+    messageIncomingBackground: Color(0xFFF1F2F5),
     messageIncomingForeground: Color(0xFF20232D),
     messageIncomingBorder: Color(0xFFE3E5EB),
     messageOutgoingBackground: Color(0xFF475569),
@@ -889,6 +1057,18 @@ class FlareColors {
     textTertiary: Color(0xFF5F6776),
     warning: Color(0xFFB45309),
     warningText: Color(0xFFB45309),
+    avatarTintBlueBg: Color(0xFFDBEAFE),
+    avatarTintBlueFg: Color(0xFF1D4ED8),
+    avatarTintPurpleBg: Color(0xFFE9D5FF),
+    avatarTintPurpleFg: Color(0xFF6D28D9),
+    avatarTintPinkBg: Color(0xFFFBCFE8),
+    avatarTintPinkFg: Color(0xFF9D174D),
+    avatarTintGreenBg: Color(0xFFD1FAE5),
+    avatarTintGreenFg: Color(0xFF047857),
+    avatarTintAmberBg: Color(0xFFFEF3C7),
+    avatarTintAmberFg: Color(0xFFB45309),
+    avatarTintSlateBg: Color(0xFFE5E7EB),
+    avatarTintSlateFg: Color(0xFF374151),
   );
 
   static const FlareColors graphiteDark = FlareColors(
@@ -903,7 +1083,7 @@ class FlareColors {
     borderPrimary: Color(0x1AFFFFFF),
     borderSecondary: Color(0x14FFFFFF),
     borderSelected: Color(0xFF94A3B8),
-    messageIncomingBackground: Color(0xFF20232B),
+    messageIncomingBackground: Color(0xFF292D37),
     messageIncomingForeground: Color(0xF0FFFFFF),
     messageIncomingBorder: Color(0x1AFFFFFF),
     messageOutgoingBackground: Color(0xFF475569),
@@ -948,6 +1128,18 @@ class FlareColors {
     textTertiary: Color(0xFF9AA3B3),
     warning: Color(0xFFA16207),
     warningText: Color(0xFFFBBF24),
+    avatarTintBlueBg: Color(0xFF1F3266),
+    avatarTintBlueFg: Color(0xFFBFDBFE),
+    avatarTintPurpleBg: Color(0xFF3A2566),
+    avatarTintPurpleFg: Color(0xFFDDD6FE),
+    avatarTintPinkBg: Color(0xFF5C1F3E),
+    avatarTintPinkFg: Color(0xFFFBCFE8),
+    avatarTintGreenBg: Color(0xFF15433C),
+    avatarTintGreenFg: Color(0xFFA7F3D0),
+    avatarTintAmberBg: Color(0xFF58351E),
+    avatarTintAmberFg: Color(0xFFFDE68A),
+    avatarTintSlateBg: Color(0xFF282D38),
+    avatarTintSlateFg: Color(0xFFE5E7EB),
   );
 
   static const FlareColors light = violetLight;
@@ -1018,18 +1210,21 @@ abstract final class FlareTextRoles {
   static const FlareTextRole section = FlareTextRole(fontSize: 13.0, lineHeight: 1.2, weight: 600);
   static const FlareTextRole body = FlareTextRole(fontSize: 14.0, lineHeight: 1.5, weight: 400);
   static const FlareTextRole caption = FlareTextRole(fontSize: 12.0, lineHeight: 1.5, weight: 400);
+  static const FlareTextRole message = FlareTextRole(fontSize: 15.0, lineHeight: 1.45, weight: 400);
 }
 
 /// Flare IM spacing / radius / font-size / line-height / layout tokens (logical px).
 abstract final class FlareSizes {
+  static const double fontSize2xs = 10.0;
+  static const double fontSizeXs = 11.0;
+  static const double fontSizeSm = 12.0;
+  static const double fontSizeMd = 13.0;
+  static const double fontSizeLg = 14.0;
+  static const double fontSizeXl = 15.0;
   static const double fontSize2xl = 16.0;
   static const double fontSize3xl = 18.0;
   static const double fontSize4xl = 20.0;
-  static const double fontSizeLg = 14.0;
-  static const double fontSizeMd = 13.0;
-  static const double fontSizeSm = 12.0;
-  static const double fontSizeXl = 15.0;
-  static const double fontSizeXs = 11.0;
+  static const double fontSize5xl = 24.0;
   static const double iconSizeLg = 24.0;
   static const double iconSizeMd = 20.0;
   static const double iconSizeSm = 16.0;
@@ -1058,25 +1253,54 @@ abstract final class FlareSizes {
   static const double sessionItemHeight = 72.0;
   static const double touchTarget = 48.0;
   static const double touchTargetMin = 44.0;
+  static const double lineHeightNone = 1.0;
+  static const double lineHeightTight = 1.2;
+  static const double lineHeightSnug = 1.4;
   static const double lineHeightNormal = 1.5;
   static const double lineHeightRelaxed = 1.6;
-  static const double lineHeightTight = 1.2;
-  static const double radius2xl = 18.0;
-  static const double radiusBubble = 16.0;
-  static const double radiusBubbleTail = 4.0;
-  static const double radiusFull = 999.0;
-  static const double radiusLg = 10.0;
-  static const double radiusMd = 8.0;
-  static const double radiusSm = 6.0;
-  static const double radiusXl = 14.0;
   static const double radiusXs = 3.0;
-  static const double spacing2xl = 24.0;
-  static const double spacing2xs = 6.0;
-  static const double spacingLg = 16.0;
-  static const double spacingMd = 12.0;
-  static const double spacingSm = 8.0;
-  static const double spacingXl = 20.0;
+  static const double radiusBubbleTail = 4.0;
+  static const double radiusSm = 6.0;
+  static const double radiusMd = 8.0;
+  static const double radiusLg = 10.0;
+  static const double radiusCard = 12.0;
+  static const double radiusXl = 14.0;
+  static const double radiusBubble = 16.0;
+  static const double radius2xl = 18.0;
+  static const double radiusFull = 999.0;
+  static const double spacing3xs = 2.0;
   static const double spacingXs = 4.0;
+  static const double spacing2xs = 6.0;
+  static const double spacingSm = 8.0;
+  static const double spacing2sm = 10.0;
+  static const double spacingMd = 12.0;
+  static const double spacing2md = 14.0;
+  static const double spacingLg = 16.0;
+  static const double spacingXl = 20.0;
+  static const double spacing2xl = 24.0;
+  static const double componentBubblePaddingX = 14.0;
+  static const double componentBubblePaddingY = 9.0;
+  static const double componentMessageAvatarSize = 40.0;
+  static const double componentComposerActionHeight = 40.0;
+  static const double componentComposerActionWidth = 44.0;
+  static const double componentComposerToolbarIcon = 34.0;
+  static const double componentComposerToolbarWidth = 44.0;
+  static const double componentComposerDesktopHeight = 46.0;
+  static const double componentBubbleRichMinWidth = 220.0;
+  static const double componentBubbleSystemMaxWidth = 560.0;
+  static const double componentMessageGutterInline = 16.0;
+  static const double componentMessageTailSpace = 10.0;
+  static const double componentMediaCardMinWidth = 220.0;
+  static const double componentMediaImageMaxWidth = 320.0;
+  static const double componentMediaVideoWidth = 320.0;
+  static const double componentRichCardWidth = 320.0;
+  static const double componentRichCardCompactWidth = 240.0;
+  static const double componentRichCardMediaHeight = 148.0;
+  static const double componentSheetWidth = 420.0;
+  static const double componentSheetDialogWidth = 480.0;
+  static const double componentConversationRowMetaWidth = 60.0;
+  static const double componentBubbleMaxWidthRatioCompact = 0.88;
+  static const double componentBubbleMaxWidthRatioRegular = 0.62;
 }
 
 /// Const palette for const widget and ThemeData declarations.
@@ -1103,8 +1327,8 @@ abstract final class FlarePalette {
   static const Color darkBorderSecondary = Color(0x14FFFFFF);
   static const Color lightBorderSelected = Color(0xFF7C3AED);
   static const Color darkBorderSelected = Color(0xFFA78BFA);
-  static const Color lightMessageIncomingBackground = Color(0xFFFFFFFF);
-  static const Color darkMessageIncomingBackground = Color(0xFF20232B);
+  static const Color lightMessageIncomingBackground = Color(0xFFF1F2F5);
+  static const Color darkMessageIncomingBackground = Color(0xFF292D37);
   static const Color lightMessageIncomingForeground = Color(0xFF20232D);
   static const Color darkMessageIncomingForeground = Color(0xF0FFFFFF);
   static const Color lightMessageIncomingBorder = Color(0xFFE3E5EB);
@@ -1170,7 +1394,7 @@ abstract final class FlarePalette {
   static const Color lightPrimaryHover = Color(0xFF6138C4);
   static const Color darkPrimaryHover = Color(0xFF7D58DD);
   static const Color lightPrimaryText = Color(0xFF7047D6);
-  static const Color darkPrimaryText = Color(0xFFA78BFA);
+  static const Color darkPrimaryText = Color(0xFFC4B5FD);
   static const Color lightRobot = Color(0xFF64748B);
   static const Color darkRobot = Color(0xFF94A3B8);
   static const Color lightSuccess = Color(0xFF16A34A);
@@ -1193,6 +1417,30 @@ abstract final class FlarePalette {
   static const Color darkWarning = Color(0xFFA16207);
   static const Color lightWarningText = Color(0xFFB45309);
   static const Color darkWarningText = Color(0xFFFBBF24);
+  static const Color lightAvatarTintBlueBg = Color(0xFFDBEAFE);
+  static const Color darkAvatarTintBlueBg = Color(0xFF1F3266);
+  static const Color lightAvatarTintBlueFg = Color(0xFF1D4ED8);
+  static const Color darkAvatarTintBlueFg = Color(0xFFBFDBFE);
+  static const Color lightAvatarTintPurpleBg = Color(0xFFE9D5FF);
+  static const Color darkAvatarTintPurpleBg = Color(0xFF3A2566);
+  static const Color lightAvatarTintPurpleFg = Color(0xFF6D28D9);
+  static const Color darkAvatarTintPurpleFg = Color(0xFFDDD6FE);
+  static const Color lightAvatarTintPinkBg = Color(0xFFFBCFE8);
+  static const Color darkAvatarTintPinkBg = Color(0xFF5C1F3E);
+  static const Color lightAvatarTintPinkFg = Color(0xFF9D174D);
+  static const Color darkAvatarTintPinkFg = Color(0xFFFBCFE8);
+  static const Color lightAvatarTintGreenBg = Color(0xFFD1FAE5);
+  static const Color darkAvatarTintGreenBg = Color(0xFF15433C);
+  static const Color lightAvatarTintGreenFg = Color(0xFF047857);
+  static const Color darkAvatarTintGreenFg = Color(0xFFA7F3D0);
+  static const Color lightAvatarTintAmberBg = Color(0xFFFEF3C7);
+  static const Color darkAvatarTintAmberBg = Color(0xFF58351E);
+  static const Color lightAvatarTintAmberFg = Color(0xFFB45309);
+  static const Color darkAvatarTintAmberFg = Color(0xFFFDE68A);
+  static const Color lightAvatarTintSlateBg = Color(0xFFE5E7EB);
+  static const Color darkAvatarTintSlateBg = Color(0xFF282D38);
+  static const Color lightAvatarTintSlateFg = Color(0xFF374151);
+  static const Color darkAvatarTintSlateFg = Color(0xFFE5E7EB);
 }
 
 /// Opacity tokens (disabled / muted / tint overlays).

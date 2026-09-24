@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../tokens/flare_tokens.dart';
 
+/// Visual treatment for a filter row. [quiet] is the persistent inbox style:
+/// text plus an underline, without a row of competing filled pills.
+enum FlareFilterTabsAppearance { filled, quiet }
+
 /// A single option in a [FlareFilterTabs] row.
 class FlareFilterTabOption {
   const FlareFilterTabOption({
@@ -25,6 +29,7 @@ class FlareFilterTabs extends StatelessWidget {
     required this.selected,
     required this.onSelect,
     this.padding = const EdgeInsets.all(2),
+    this.appearance = FlareFilterTabsAppearance.filled,
   });
 
   final List<FlareFilterTabOption> options;
@@ -34,23 +39,34 @@ class FlareFilterTabs extends StatelessWidget {
   /// Content padding for the scroll viewport (tabs scroll under it). Lets a host
   /// give the row its own horizontal gutter without breaking the scroll edges.
   final EdgeInsetsGeometry padding;
+  final FlareFilterTabsAppearance appearance;
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: padding,
-      child: Row(
-        children: [
-          for (var i = 0; i < options.length; i++) ...[
-            if (i > 0) const SizedBox(width: 6),
-            _FilterTab(
-              option: options[i],
-              active: options[i].value == selected,
-              onTap: () => onSelect(options[i].value),
-            ),
+    final colors = FlareColors.of(context);
+    final quiet = appearance == FlareFilterTabsAppearance.quiet;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: quiet
+            ? Border(bottom: BorderSide(color: colors.borderSecondary))
+            : null,
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: padding,
+        child: Row(
+          children: [
+            for (var i = 0; i < options.length; i++) ...[
+              if (!quiet && i > 0) const SizedBox(width: 6),
+              _FilterTab(
+                option: options[i],
+                active: options[i].value == selected,
+                appearance: appearance,
+                onTap: () => onSelect(options[i].value),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -60,31 +76,48 @@ class _FilterTab extends StatelessWidget {
   const _FilterTab({
     required this.option,
     required this.active,
+    required this.appearance,
     required this.onTap,
   });
 
   final FlareFilterTabOption option;
   final bool active;
+  final FlareFilterTabsAppearance appearance;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
+    final quiet = appearance == FlareFilterTabsAppearance.quiet;
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: EdgeInsets.symmetric(
+          horizontal: quiet ? FlareSizes.spacingSm : FlareSizes.spacing2md,
+          vertical: 6,
+        ),
         decoration: BoxDecoration(
-          color: active
+          color: quiet
+              ? Colors.transparent
+              : active
               ? colors.primary.withValues(alpha: 0.12)
               : colors.bgSecondary,
-          borderRadius: BorderRadius.circular(FlareSizes.radiusFull),
-          border: Border.all(
-            color: active
-                ? colors.primary.withValues(alpha: 0.26)
-                : Colors.transparent,
-          ),
+          borderRadius: quiet
+              ? BorderRadius.zero
+              : BorderRadius.circular(FlareSizes.radiusFull),
+          border: quiet
+              ? Border(
+                  bottom: BorderSide(
+                    color: active ? colors.primary : Colors.transparent,
+                    width: 2,
+                  ),
+                )
+              : Border.all(
+                  color: active
+                      ? colors.primary.withValues(alpha: 0.26)
+                      : Colors.transparent,
+                ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

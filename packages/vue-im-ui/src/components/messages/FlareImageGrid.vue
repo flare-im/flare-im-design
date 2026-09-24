@@ -78,7 +78,7 @@ const { t } = useFlareI18nOptional();
   height: auto;
   max-width: 220px;
   max-height: 260px;
-  border-radius: 12px;
+  border-radius: var(--flare-size-radius-card);
 }
 .flare-image-grid__cell:hover { filter: brightness(0.96); }
 .flare-image-grid__cell img {

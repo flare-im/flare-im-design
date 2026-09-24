@@ -437,7 +437,10 @@ private struct FlareToastStack: View {
             }
         }
         .padding(.horizontal, FlareSizes.spacingLg)
-        .padding(.top, FlareSizes.spacingLg)
+        // Clear the page header. A toast anchored to the very top lands on the title and the
+        // header's own actions — readable text over readable text, and the actions under it
+        // stop taking taps for as long as the toast is up.
+        .padding(.top, FlareSizes.screenHeaderHeight + FlareSizes.spacingSm)
         .animation(reduceMotion ? nil : FlareMotion.normalAnimation, value: feedback.toasts)
     }
 }

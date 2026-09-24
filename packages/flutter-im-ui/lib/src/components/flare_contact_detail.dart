@@ -183,7 +183,7 @@ class FlareContactDetail extends StatelessWidget {
                 const SizedBox(height: FlareSizes.spacingSm),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
+                    horizontal: FlareSizes.spacing2sm,
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(

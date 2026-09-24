@@ -2,6 +2,12 @@
 // A compact status strip (connection / sync / runtime state) with an optional
 // pulsing dot and an optional inline action. Replaces the per-app bespoke
 // runtime/connection/sync banners.
+//
+// `floating` is for a banner a host lifts out of the page flow and hangs over the
+// content (a global connection notice, say). The inline fill is the tone at 10%:
+// right on the page's own surface, but as an overlay the content underneath shows
+// straight through it and the two sets of words collide. The floating form puts the
+// tint on an opaque surface and adds the elevation that says it is above the page.
 import type { FlareTone } from "../../shared/contracts/tone";
 
 withDefaults(
@@ -11,14 +17,20 @@ withDefaults(
     dot?: boolean;
     pulse?: boolean;
     actionText?: string;
+    floating?: boolean;
   }>(),
-  { tone: "info", dot: true, pulse: false },
+  { tone: "info", dot: true, pulse: false, floating: false },
 );
 const emit = defineEmits<{ (e: "action"): void }>();
 </script>
 
 <template>
-  <div class="flare-status-banner" :class="`flare-status-banner--${tone}`" role="status" aria-live="polite">
+  <div
+    class="flare-status-banner"
+    :class="[`flare-status-banner--${tone}`, { 'is-floating': floating }]"
+    role="status"
+    aria-live="polite"
+  >
     <span
       v-if="dot"
       aria-hidden="true"
@@ -42,13 +54,21 @@ const emit = defineEmits<{ (e: "action"): void }>();
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 14px;
+  padding: 8px var(--flare-size-spacing-2md);
   font-size: 13px;
   line-height: 1.4;
   border-radius: 10px;
   color: var(--flare-tone);
   background: color-mix(in srgb, var(--flare-tone) 10%, transparent);
   border: 1px solid color-mix(in srgb, var(--flare-tone) 24%, transparent);
+}
+
+/* Over content the tint alone is see-through; it needs a surface under it. */
+.flare-status-banner.is-floating {
+  background:
+    linear-gradient(color-mix(in srgb, var(--flare-tone) 10%, transparent), color-mix(in srgb, var(--flare-tone) 10%, transparent)),
+    var(--flare-color-bg-elevated);
+  box-shadow: var(--flare-shadow-md);
 }
 
 .flare-status-banner--info {

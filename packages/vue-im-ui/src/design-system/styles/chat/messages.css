@@ -11,7 +11,7 @@
   display: grid;
   place-items: center;
   height: 112px;
-  margin: -10px -13px 8px;
+  margin: calc(-1 * var(--flare-size-spacing-2sm)) -13px 8px;
   border-radius: 13px 13px 0 0;
   color: var(--flare-color-text-tertiary);
   background: #fbfbfc;
@@ -23,7 +23,7 @@
 .message-media-card strong {
   color: inherit;
   font-size: 15px;
-  font-weight: 800;
+  font-weight: var(--flare-size-font-weight-bold);
 }
 
 .message-location-card span,
@@ -114,7 +114,7 @@ a.im-rich-message-card:focus-visible {
   align-items: flex-start;
   gap: 9px;
   min-width: 0;
-  padding: 11px 12px 10px;
+  padding: 11px 12px var(--flare-size-spacing-2sm);
 }
 
 .business-message-view__header {
@@ -207,7 +207,7 @@ a.im-rich-message-card:focus-visible {
   overflow: hidden;
   color: var(--flare-color-text-primary);
   font-size: 14px;
-  font-weight: 650;
+  font-weight: var(--flare-size-font-weight-semibold);
   line-height: 1.36;
   overflow-wrap: anywhere;
   -webkit-box-orient: vertical;
@@ -277,7 +277,7 @@ a.im-rich-message-card:focus-visible {
 .im-rich-message-card__footer-action {
   flex: 0 0 auto;
   color: color-mix(in srgb, var(--flare-color-primary-text) 88%, var(--flare-color-text-primary));
-  font-weight: 650;
+  font-weight: var(--flare-size-font-weight-semibold);
 }
 
 .im-rich-message-card__pill,
@@ -334,7 +334,7 @@ a.im-rich-message-card:focus-visible {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
-  padding: 0 12px 10px;
+  padding: 0 12px var(--flare-size-spacing-2sm);
 }
 
 .business-message-view__option {
@@ -378,7 +378,7 @@ a.im-rich-message-card:focus-visible {
 .message-row--system .message-bubble {
   max-width: var(--flare-component-bubble-system-max-width);
   margin-inline: auto;
-  padding: 5px 10px;
+  padding: 5px var(--flare-size-spacing-2sm);
   border: 0;
   border-radius: var(--flare-component-radius-pill);
   color: #7d838c;
@@ -475,10 +475,10 @@ a.im-rich-message-card:focus-visible {
   place-items: center;
   min-width: 112px;
   min-height: 112px;
-  border-radius: 12px;
+  border-radius: var(--flare-size-radius-card);
   color: color-mix(in srgb, currentColor 68%, transparent);
   background: rgb(255 255 255 / 16%);
-  font-weight: 800;
+  font-weight: var(--flare-size-font-weight-bold);
 }
 
 .message-sticker img {
@@ -536,7 +536,7 @@ a.im-rich-message-card:focus-visible {
 .message-content-view .message-file-card strong {
   color: inherit;
   font-size: 15px;
-  font-weight: 800;
+  font-weight: var(--flare-size-font-weight-bold);
   line-height: 1.3;
 }
 
@@ -562,7 +562,7 @@ a.im-rich-message-card:focus-visible {
   display: grid;
   grid-template-columns: 38px minmax(0, 1fr);
   align-items: center;
-  gap: 10px;
+  gap: var(--flare-size-spacing-2sm);
 }
 
 .message-content-view .message-info-card > .n-icon,
@@ -581,7 +581,7 @@ a.im-rich-message-card:focus-visible {
 .message-audio-card {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--flare-size-spacing-2sm);
   min-width: 148px;
 }
 
@@ -657,21 +657,18 @@ a.im-rich-message-card:focus-visible {
   line-height: 1.35;
 }
 
+/* 输入区的盒子(内距 / 背景 / 那唯一一条上边线)由 composer-studio.css 独占声明 —— 这里只留
+   不涉及外观的排布。原来两个文件都在画这只盒子:那边把它改扁了,这里仍在补一个 10px 的圆角
+   上沿和一道向上的投影,于是「去掉外围包裹」之后它还是一张浮起来的卡片。 */
 .composer {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 4px;
   width: 100%;
   min-width: 0;
   max-width: 100%;
   box-sizing: border-box;
-  padding: 6px 6px calc(8px + env(safe-area-inset-bottom));
-  border-top: 1px solid var(--flare-color-border-primary);
-  border-radius: 10px 10px 0 0;
-  background: var(--flare-component-composer-bar-bg);
-  box-shadow: 0 -6px 18px rgb(15 23 42 / 5%);
 }
 
 /* Mobile: expand button docked inside the input field (top-right). Desktop hides
@@ -741,7 +738,7 @@ a.im-rich-message-card:focus-visible {
 
 .composer-input-row--multiline {
   align-items: flex-start;
-  border-radius: 12px;
+  border-radius: var(--flare-size-radius-card);
 }
 
 .composer-input-row--focused {
@@ -799,7 +796,7 @@ a.im-rich-message-card:focus-visible {
   grid-template-columns: 40px minmax(0, 1fr) auto;
   grid-template-rows: 1fr 4px;
   align-items: center;
-  gap: 0 10px;
+  gap: 0 var(--flare-size-spacing-2sm);
   min-height: 44px;
   padding: 6px 12px;
   border: 1px solid color-mix(in srgb, var(--flare-component-brand-primary) 22%, var(--flare-color-border-primary));
@@ -921,8 +918,8 @@ a.im-rich-message-card:focus-visible {
 .composer-input .n-input__textarea {
   font-size: 15px;
   line-height: 1.45;
-  padding-top: 10px;
-  padding-bottom: 10px;
+  padding-top: var(--flare-size-spacing-2sm);
+  padding-bottom: var(--flare-size-spacing-2sm);
 }
 
 .composer-input .n-input__textarea-el {
@@ -975,8 +972,8 @@ a.im-rich-message-card:focus-visible {
 .composer-input-row--multiline .composer-input .n-input__textarea-mirror {
   top: auto !important;
   transform: none !important;
-  padding-top: 10px !important;
-  padding-bottom: 10px !important;
+  padding-top: var(--flare-size-spacing-2sm) !important;
+  padding-bottom: var(--flare-size-spacing-2sm) !important;
   line-height: 22px !important;
 }
 
@@ -996,7 +993,7 @@ a.im-rich-message-card:focus-visible {
   width: 100%;
   min-height: 44px;
   max-height: 144px;
-  padding: 10px 12px;
+  padding: var(--flare-size-spacing-2sm) 12px;
   overflow-x: hidden;
   overflow-y: auto;
   color: var(--flare-color-text-primary);
@@ -1062,7 +1059,7 @@ a.im-rich-message-card:focus-visible {
 }
 
 .composer-md-token--heading {
-  font-weight: 750;
+  font-weight: var(--flare-size-font-weight-bold);
   line-height: 1.35;
 }
 
@@ -1188,7 +1185,7 @@ a.im-rich-message-card:focus-visible {
    here never won (FR-154). The rules that do win are the ones below. */
 .composer:not(.composer--wide) .composer-rich-markdown-input__editable {
   min-height: 44px;
-  padding: 10px 12px;
+  padding: var(--flare-size-spacing-2sm) 12px;
 }
 
 .composer:not(.composer--wide) .composer-input-hint {
@@ -1205,242 +1202,9 @@ a.im-rich-message-card:focus-visible {
   background: color-mix(in srgb, var(--flare-color-error) 12%, transparent);
 }
 
-.composer-format-strip {
-  --composer-format-surface: color-mix(in srgb, var(--flare-color-bg-primary) 92%, var(--flare-color-bg-tertiary));
-  --composer-format-surface-raised: color-mix(in srgb, var(--flare-color-bg-primary) 96%, var(--flare-color-bg-tertiary));
-  --composer-format-control-bg: color-mix(in srgb, var(--flare-color-bg-tertiary) 62%, transparent);
-  --composer-format-control-hover: color-mix(in srgb, var(--flare-component-brand-primary) 10%, var(--flare-color-bg-primary));
-  --composer-format-control-active: color-mix(in srgb, var(--flare-component-brand-primary) 14%, var(--flare-color-bg-primary));
-  --composer-format-divider: color-mix(in srgb, var(--flare-color-border-primary) 72%, transparent);
-  --composer-format-highlight: color-mix(in srgb, var(--flare-component-brand-primary) 24%, transparent);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0;
-  min-width: 0;
-  min-height: 36px;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  padding: 3px;
-  border: 1px solid color-mix(in srgb, var(--flare-color-border-primary) 76%, transparent);
-  border-radius: 12px;
-  background:
-    linear-gradient(180deg, var(--composer-format-surface-raised), var(--composer-format-surface)),
-    color-mix(in srgb, var(--flare-color-bg-tertiary) 86%, transparent);
-  box-shadow:
-    0 1px 2px rgb(15 23 42 / 4%),
-    inset 0 1px 0 color-mix(in srgb, var(--flare-color-text-primary) 7%, transparent);
-  overflow: hidden;
-}
-
-.composer-format-group {
-  display: inline-flex;
-  align-items: center;
-  flex: 0 0 auto;
-  gap: 1px;
-  min-width: 0;
-  padding: 0 5px;
-  border-right: 1px solid var(--composer-format-divider);
-}
-
-.composer-format-group:first-child {
-  padding-left: 0;
-}
-
-.composer-format-group:last-child {
-  padding-right: 0;
-  border-right: 0;
-}
-
-.composer-format-group--heading {
-  gap: 4px;
-}
-
-.composer-format-heading-control {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  min-width: 0;
-}
-
-.composer-heading-select {
-  height: 28px;
-  width: 56px;
-  min-width: 56px;
-  max-width: 56px;
-  padding: 0 8px 0 6px;
-  border: 0;
-  border-radius: 8px;
-  color: var(--flare-color-text-secondary);
-  background: var(--composer-format-control-bg);
-  font: 700 13px/1 var(--flare-component-font-family);
-  outline: none;
-  cursor: pointer;
-  appearance: auto;
-}
-
-.composer-heading-select.is-active {
-  color: var(--flare-component-brand-primary);
-  background: var(--composer-format-control-hover);
-}
-
-.composer-heading-select:hover,
-.composer-heading-select:focus-visible {
-  color: var(--flare-component-brand-primary);
-  background: var(--composer-format-control-hover);
-}
-
-.composer-heading-select:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-
-.composer-format-button {
-  display: inline-grid;
-  place-items: center;
-  flex: 0 0 auto;
-  width: 30px;
-  min-width: 30px;
-  height: 30px;
-  padding: 0;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  color: var(--flare-color-text-secondary);
-  background: transparent;
-  font: 700 14px/1 var(--flare-component-font-family);
-  cursor: pointer;
-  transition:
-    color var(--flare-component-motion-fast),
-    background var(--flare-component-motion-fast),
-    border-color var(--flare-component-motion-fast),
-    box-shadow var(--flare-component-motion-fast),
-    transform var(--flare-component-motion-fast);
-}
-
-.composer-format-button .n-icon {
-  pointer-events: none;
-}
-
-.composer-format-glyph {
-  display: inline-grid;
-  place-items: center;
-  width: 18px;
-  height: 18px;
-  color: inherit;
-  font-size: 15px;
-  line-height: 1;
-  pointer-events: none;
-}
-
-.composer-format-glyph--bold {
-  font-weight: 800;
-}
-
-.composer-format-glyph--strike {
-  font-weight: 800;
-  text-decoration: line-through;
-  text-decoration-thickness: 2px;
-}
-
-.composer-format-glyph--italic {
-  font-family: Georgia, "Times New Roman", serif;
-  font-style: italic;
-  font-weight: 700;
-}
-
-.composer-format-glyph--underline {
-  font-weight: 800;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-thickness: 2px;
-}
-
-.composer-format-button:hover,
-.composer-format-button:focus-visible,
-.composer-format-button.is-active {
-  color: var(--flare-component-brand-primary);
-  border-color: var(--composer-format-highlight);
-  background: var(--composer-format-control-active);
-  box-shadow: 0 5px 12px color-mix(in srgb, var(--flare-component-brand-primary) 12%, transparent);
-  outline: none;
-}
-
-.composer-format-button.is-active {
-  box-shadow:
-    0 4px 12px color-mix(in srgb, var(--flare-component-brand-primary) 10%, transparent),
-    inset 0 0 0 1px color-mix(in srgb, var(--flare-component-brand-primary) 16%, transparent);
-  transform: none;
-}
-
-.composer-format-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.42;
-}
-
-:root[data-theme="dark"] .composer-format-strip,
-[data-flare-theme="dark"] .composer-format-strip {
-  --composer-format-surface: color-mix(in srgb, var(--flare-color-bg-primary) 88%, var(--flare-color-bg-tertiary));
-  --composer-format-surface-raised: color-mix(in srgb, var(--flare-color-bg-primary) 92%, rgb(255 255 255 / 7%));
-  --composer-format-control-bg: color-mix(in srgb, var(--flare-color-bg-tertiary) 68%, transparent);
-  --composer-format-control-hover: color-mix(in srgb, var(--flare-component-brand-primary) 18%, var(--flare-color-bg-tertiary));
-  --composer-format-control-active: color-mix(in srgb, var(--flare-component-brand-primary) 26%, var(--flare-color-bg-tertiary));
-  --composer-format-divider: color-mix(in srgb, var(--flare-color-border-primary) 86%, transparent);
-  --composer-format-highlight: color-mix(in srgb, var(--flare-component-brand-primary) 42%, transparent);
-  border-color: color-mix(in srgb, var(--flare-color-border-primary) 92%, transparent);
-  box-shadow:
-    0 1px 0 rgb(0 0 0 / 24%),
-    inset 0 1px 0 rgb(255 255 255 / 7%);
-}
-
-:root[data-theme="dark"] .composer-format-button,
-[data-flare-theme="dark"] .composer-format-button,
-:root[data-theme="dark"] .composer-heading-select,
-[data-flare-theme="dark"] .composer-heading-select {
-  color: color-mix(in srgb, var(--flare-color-text-secondary) 92%, #ffffff);
-}
-
 .composer--format:not(.composer--wide) .composer-field {
   gap: 0;
   overflow: visible;
-}
-
-.composer:not(.composer--wide) .composer-format-strip {
-  flex-wrap: nowrap;
-  min-height: 34px;
-  padding: 2px;
-  border: 1px solid color-mix(in srgb, var(--flare-color-border-primary) 88%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--flare-color-border-primary) 74%, transparent);
-  border-radius: 14px 14px 0 0;
-  background: var(--flare-color-bg-primary);
-  box-shadow: none;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-}
-
-.composer--format:not(.composer--wide) .composer-field--focused .composer-format-strip {
-  border-color: color-mix(in srgb, var(--flare-component-brand-primary) 42%, var(--flare-color-border-primary));
-}
-
-.composer:not(.composer--wide) .composer-format-strip::-webkit-scrollbar {
-  display: none;
-}
-
-.composer:not(.composer--wide) .composer-format-group {
-  padding-inline: 4px;
-}
-
-.composer:not(.composer--wide) .composer-format-button {
-  width: 28px;
-  min-width: 28px;
-  height: 28px;
-  border-radius: 8px;
-}
-
-.composer:not(.composer--wide) .composer-heading-select {
-  height: 28px;
 }
 
 .composer--format .composer-input-row,
@@ -1464,7 +1228,7 @@ a.im-rich-message-card:focus-visible {
 .composer--format:not(.composer--wide) .composer-rich-markdown-input__editable {
   min-height: 58px;
   max-height: 132px;
-  padding: 10px 12px;
+  padding: var(--flare-size-spacing-2sm) 12px;
 }
 
 .composer--format:not(.composer--wide) .composer-toolbar {
@@ -1502,6 +1266,15 @@ a.im-rich-message-card:focus-visible {
   margin: 0;
   padding: 2px;
   border-top: none;
+}
+
+/* 够宽时这条是一组工具，不是键盘上那条七等分的栏。
+   上面那条 `repeat(7, 1fr)` 是给手机窄条写的：七个图标平分宽度正好占满一行。
+   同一条规则用在桌面上，七个 44px 的图标被摊在近 900px 上，相邻间距约 92px ——
+   读起来是七座孤岛，而不是一组可以扫一眼的工具。 */
+.composer--wide .composer-toolbar {
+  display: flex;
+  column-gap: var(--flare-size-spacing-2xs);
 }
 
 /* Mobile: the toolbar's own expand button is hidden (field-expand replaces it). */
@@ -1594,7 +1367,7 @@ a.im-rich-message-card:focus-visible {
   display: block;
   right: auto;
   left: 16px;
-  bottom: calc(10px + env(safe-area-inset-bottom));
+  bottom: calc(var(--flare-size-spacing-2sm) + env(safe-area-inset-bottom));
   text-align: left;
 }
 
@@ -1759,7 +1532,7 @@ a.im-rich-message-card:focus-visible {
 
 .composer--wide .composer-toolbar {
   position: absolute;
-  right: 10px;
+  right: var(--flare-size-spacing-2sm);
   top: 50%;
   bottom: auto;
   z-index: 2;
@@ -1919,10 +1692,10 @@ a.im-rich-message-card:focus-visible {
 .composer-panel--emoji {
   display: grid;
   grid-template-columns: repeat(8, minmax(0, 1fr));
-  gap: 10px 8px;
+  gap: var(--flare-size-spacing-2sm) 8px;
   max-height: 320px;
   overflow: auto;
-  padding: 12px 8px 14px;
+  padding: 12px 8px var(--flare-size-spacing-2md);
 }
 
 .composer-panel__label {
@@ -1962,7 +1735,7 @@ a.im-rich-message-card:focus-visible {
   gap: 8px;
   max-height: 320px;
   overflow: auto;
-  padding: 10px 8px 14px;
+  padding: var(--flare-size-spacing-2sm) 8px var(--flare-size-spacing-2md);
 }
 
 .sticker-cell {
@@ -1973,7 +1746,7 @@ a.im-rich-message-card:focus-visible {
   background: #ffffff;
   color: #5d6470;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: var(--flare-size-font-weight-bold);
 }
 
 .sticker-cell img {

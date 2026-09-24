@@ -133,6 +133,18 @@
      the media sizes follow this, not the window, so a chat in a 380px pane of a 1600px desktop
      reads like a chat on a phone (FR-139's note; the window still decides the page's own chrome). */
   container: flare-timeline / inline-size;
+  /* 一屏宽到一定程度以后，把行收进一条可读的列并居中。
+     改前时间线是通栏的：1920 下窗格有 1528px，消息挤在最左约 300px，右边一千多像素空着，
+     来往两侧的左右之分也就没了意义 —— 一条进来的和一条发出去的隔着大半个屏。
+     `layout.messageTimelineContentMaxWidth` 就是为这件事立的 token，但此前没有任何样式读它。
+     限在**根**上而不是里面某一层：根同时是容器查询的容器，气泡的百分比宽必须按这条列算，
+     否则 62% × 1528 会超出 920 的列。 */
+  width: 100%;
+  max-width: var(--flare-size-layout-message-timeline-content-max-width);
+  margin-inline: auto;
+  /* 时间线自己铺底,因为气泡是靠与这张底的色差画出来的 —— 宿主铺了什么不该决定
+     气泡看不看得见。默认与 FlareAppLayout 同一种面,所以在 app 里这一笔是隐形的。 */
+  background: var(--flare-component-chat-window-bg);
 }
 
 .message-list {
@@ -152,30 +164,31 @@
   padding-inline: var(--flare-component-message-gutter-inline);
 }
 
+/* 时间线顶部只有一个位置，三种状态（正在加载更早 / 可加载更早 / 已到开头）共用它。
+   改前它们是两套呈现：可加载那一条在流内撑开 48px，另外两条是 absolute 浮层 ——
+   点一下「加载更早消息」，在流内的带子被换成浮层，整条时间线跳 48px；而浮层长期钉在
+   顶部，滚动时消息从它下面穿过去被遮住。现在三态同为流内、同高，既不跳也不遮。
+   也不再做成卡片：白底 + 阴影 + 描边与消息气泡同一套表面语言，控件会被读成内容。 */
+.message-list-load-older,
+.message-list-history-end,
+.message-list-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--flare-size-spacing-sm);
+  min-height: var(--flare-size-layout-touch-target);
+  padding-inline: var(--flare-size-spacing-md);
+  color: var(--flare-color-text-tertiary);
+  font-size: var(--flare-size-font-size-sm);
+  font-weight: 500;
+}
+
 .message-list-load-older,
 .message-list-history-end {
-  position: absolute;
-  top: 8px;
-  left: 50%;
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  border: 1px solid var(--flare-color-border-primary);
-  border-radius: var(--flare-size-radius-full);
-  color: var(--flare-color-text-secondary);
-  background: var(--flare-color-bg-elevated);
-  box-shadow: var(--flare-shadow-sm);
-  font-size: 12px;
-  font-weight: 600;
-  transform: translateX(-50%);
   pointer-events: none;
 }
 
-.message-list-history-end {
-  color: var(--flare-color-text-tertiary);
-}
+
 
 .message-list-scroll-latest {
   position: absolute;
@@ -199,7 +212,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 10px;
+  padding: 6px var(--flare-size-spacing-2sm);
   border: 1px solid var(--flare-color-warning);
   border-radius: var(--flare-size-radius-md);
   color: var(--flare-color-warning-text);

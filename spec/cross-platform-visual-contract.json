@@ -1,0 +1,464 @@
+{
+  "$comment": "同一个槽位在四端必须解析到同一个 token。现有门禁比的是 props/events 签名,比不到像素 —— 这份比的是像素。每条 slot 给出四端各自的文件与必须出现的 token 引用;裸字面量即失败。",
+  "slots": [
+    {
+      "id": "MessageBubble.padding",
+      "why": "气泡是全 app 出现频率最高的组件;四端内距不同,同一条消息的高度就不同。",
+      "token": "sizes.component.bubblePaddingX / bubblePaddingY",
+      "platforms": {
+        "ios": {
+          "file": "packages/ios-im-ui/Sources/FlareIMUI/Components/MessageBubbleView.swift",
+          "require": [
+            "FlareSizes.componentBubblePaddingX",
+            "FlareSizes.componentBubblePaddingY"
+          ],
+          "forbid": [
+            "\\.padding\\(\\.horizontal, 14\\)",
+            "\\.padding\\(\\.vertical, 9\\)"
+          ]
+        },
+        "android": {
+          "file": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/MessageBubble.kt",
+          "require": [
+            "FlareSizes.componentBubblePaddingX",
+            "FlareSizes.componentBubblePaddingY"
+          ],
+          "forbid": [
+            "horizontal = 14\\.dp",
+            "vertical = 9\\.dp"
+          ]
+        },
+        "flutter": {
+          "file": "packages/flutter-im-ui/lib/src/components/flare_message_bubble.dart",
+          "require": [
+            "FlareSizes.componentBubblePaddingX",
+            "FlareSizes.componentBubblePaddingY"
+          ],
+          "forbid": [
+            "horizontal: 14",
+            "vertical: 9"
+          ]
+        },
+        "vue": {
+          "file": "packages/vue-im-ui/src/design-system/styles/chat/message-bubble.css",
+          "require": [
+            "--flare-size-component-bubble-padding-x",
+            "--flare-size-component-bubble-padding-y"
+          ],
+          "forbid": [
+            "padding: var\\(--flare-size-spacing-sm\\) 11px"
+          ]
+        }
+      }
+    },
+    {
+      "id": "MessageBubble.radius",
+      "why": "唯一真源早就有 radius.bubble=16 / bubbleTail=4,三端在用;Vue 曾另立 13/6 与 radius-xl/lg 两套竞争定义。 Android 已改为引用 token(原本钉的是 16\\.dp / 4\\.dp 两个字面量,与本门禁「比 token 引用而非数值」的原则相反);iOS 与 Flutter 仍钉字面量,待同样改造。",
+      "token": "sizes.radius.bubble / bubbleTail",
+      "platforms": {
+        "ios": {
+          "file": "packages/ios-im-ui/Sources/FlareIMUI/Components/MessageBubbleView.swift",
+          "require": [
+            "radius: CGFloat = 16",
+            "tailRadius: CGFloat = 4"
+          ]
+        },
+        "android": {
+          "file": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/MessageBubble.kt",
+          "require": [
+            "FlareSizes\\.radiusBubble\\b",
+            "FlareSizes\\.radiusBubbleTail\\b"
+          ]
+        },
+        "flutter": {
+          "file": "packages/flutter-im-ui/lib/src/components/flare_message_bubble.dart",
+          "require": [
+            "Radius.circular\\(16\\)",
+            "Radius.circular\\(4\\)"
+          ]
+        },
+        "vue": {
+          "file": "packages/vue-im-ui/src/design-system/styles/chat/message-bubble.css",
+          "require": [
+            "--flare-size-radius-bubble",
+            "--flare-size-radius-bubble-tail"
+          ],
+          "forbid": [
+            "--flare-component-bubble-radius"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ConversationRow.paddingX",
+      "why": "三端都是 spacingSm(8);Vue 曾是 10px。",
+      "token": "sizes.spacing.sm",
+      "platforms": {
+        "ios": {
+          "file": "packages/ios-im-ui/Sources/FlareIMUI/Components/ConversationRowView.swift",
+          "require": [
+            "FlareSizes.spacingSm"
+          ]
+        },
+        "android": {
+          "file": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/ConversationRow.kt",
+          "require": [
+            "FlareSizes.spacingSm"
+          ]
+        },
+        "flutter": {
+          "file": "packages/flutter-im-ui/lib/src/components/flare_conversation_row.dart",
+          "require": [
+            "FlareSizes.spacingSm"
+          ]
+        },
+        "vue": {
+          "file": "packages/vue-im-ui/src/components/conversation/FlareConversationRow.vue",
+          "require": [
+            "--flare-size-spacing-sm"
+          ],
+          "forbid": [
+            "padding: 10px;"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ChatHeader.surface",
+      "why": "三端页头是 bgPrimary + 实色 borderPrimary + 固定 headerHeight;Vue 曾是 bgSecondary + 72% 稀释分隔线 + min-height。",
+      "token": "colors.bg.primary / colors.border.primary / sizes.layout.headerHeight",
+      "platforms": {
+        "ios": {
+          "file": "packages/ios-im-ui/Sources/FlareIMUI/Components/ConversationHeaderView.swift",
+          "require": [
+            "FlareSizes.headerHeight",
+            "colors.borderPrimary"
+          ]
+        },
+        "android": {
+          "file": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/ConversationHeader.kt",
+          "require": [
+            "FlareSizes.headerHeight",
+            "colors.bgPrimary"
+          ]
+        },
+        "flutter": {
+          "file": "packages/flutter-im-ui/lib/src/components/flare_conversation_header.dart",
+          "require": [
+            "FlareSizes.headerHeight"
+          ]
+        },
+        "vue": {
+          "file": "packages/vue-im-ui/src/components/messages/ConversationHeader.vue",
+          "require": [
+            "height: var\\(--flare-size-layout-header-height\\)",
+            "var\\(--flare-color-bg-primary\\)",
+            "border-bottom: 1px solid var\\(--flare-color-border-primary\\)"
+          ],
+          "forbid": [
+            "color-mix\\(in srgb, var\\(--flare-color-border-primary\\) 72%"
+          ]
+        }
+      }
+    },
+    {
+      "id": "Avatar.identityTints",
+      "why": "身份色板每行都有。改前四端四种写法(Vue hex / Android hex / iOS sRGB 浮点 / Flutter hex 且重复两份),粉色还三比一不一致(Vue #9D174D vs 三端 #BE185D);更要紧的是**只有 Vue 有暗色变体**,三端暗色下是一块浅色马卡龙。",
+      "token": "colors.avatarTint.* (light + dark)",
+      "platforms": {
+        "ios": {
+          "file": "packages/ios-im-ui/Sources/FlareIMUI/Components/AvatarView.swift",
+          "require": [
+            "colors.avatarTintBlueBg",
+            "colors.avatarTintSlateFg"
+          ],
+          "forbid": [
+            "Color\\(\\.sRGB, red: 0\\.859"
+          ]
+        },
+        "android": {
+          "file": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/Avatar.kt",
+          "require": [
+            "colors.avatarTintBlueBg",
+            "colors.avatarTintSlateFg"
+          ],
+          "forbid": [
+            "Color\\(0xFFDBEAFE\\)"
+          ]
+        },
+        "flutter": {
+          "file": "packages/flutter-im-ui/lib/src/components/flare_avatar.dart",
+          "require": [
+            "colors.avatarTintBlueBg",
+            "colors.avatarTintSlateFg"
+          ],
+          "forbid": [
+            "Color\\(0xFFDBEAFE\\)"
+          ]
+        },
+        "vue": {
+          "file": "packages/vue-im-ui/src/design-system/styles/component-tokens.css",
+          "require": [
+            "--flare-color-avatar-tint-blue-bg",
+            "--flare-color-avatar-tint-slate-fg"
+          ],
+          "forbid": [
+            "avatar-tint-\\d-(bg|fg): #"
+          ]
+        }
+      }
+    },
+    {
+      "id": "Composer.actionSize",
+      "why": "Composer 是第二个 P0。三端动作按钮原本各写 40/44 裸值。",
+      "token": "sizes.component.composerActionHeight / composerActionWidth",
+      "platforms": {
+        "ios": {
+          "file": "packages/ios-im-ui/Sources/FlareIMUI/Components/ComposerParts.swift",
+          "require": [
+            "FlareSizes.componentComposerActionHeight",
+            "FlareSizes.componentComposerActionWidth"
+          ],
+          "forbid": [
+            "minHeight: 40\\)",
+            "frame\\(width: 44, height: 44\\)"
+          ]
+        },
+        "android": {
+          "file": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/ComposerParts.kt",
+          "require": [
+            "FlareSizes.componentComposerActionHeight",
+            "FlareSizes.componentComposerActionWidth"
+          ],
+          "forbid": [
+            "height\\(40\\.dp\\)",
+            "size\\(44\\.dp\\)"
+          ]
+        },
+        "flutter": {
+          "file": "packages/flutter-im-ui/lib/src/components/flare_composer.dart",
+          "require": [
+            "FlareSizes.componentComposerActionWidth"
+          ],
+          "forbid": [
+            "stripHeight: 44,"
+          ]
+        },
+        "vue": {
+          "file": "packages/vue-im-ui/src/design-system/styles/component-tokens.css",
+          "require": [
+            "--flare-size-component-composer-action-height",
+            "--flare-size-component-composer-action-width"
+          ],
+          "forbid": [
+            "composer-action-height: \\d+px"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ComponentTokens.noLocalValues",
+      "why": "组件级 token 必须来自 tokens.json 真源;Vue 侧只能做宿主覆写接缝(别名),不能自立数值 —— 自立就等于第二套 token 系统,三端拿不到。",
+      "token": "sizes.component.*",
+      "platforms": {
+        "vue": {
+          "file": "packages/vue-im-ui/src/design-system/styles/component-tokens.css",
+          "forbid": [
+            "--flare-component-(composer|bubble-rich|bubble-system|media|message-gutter|message-tail|rich-card|sheet)[a-z-]*: \\d+px"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ConversationRow.metaWidth",
+      "why": "尾列(时间+未读角标)三端固定 60,Vue 是 minmax(7ch/6ch) —— 两种尺寸模型:ch 随字号和字体变,60 不变。",
+      "token": "sizes.component.conversationRowMetaWidth",
+      "platforms": {
+        "ios": {
+          "file": "packages/ios-im-ui/Sources/FlareIMUI/Components/ConversationRowView.swift",
+          "require": [
+            "FlareSizes.componentConversationRowMetaWidth"
+          ],
+          "forbid": [
+            "frame\\(width: 60\\)"
+          ]
+        },
+        "android": {
+          "file": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/ConversationRow.kt",
+          "require": [
+            "FlareSizes.componentConversationRowMetaWidth"
+          ],
+          "forbid": [
+            "width\\(60\\.dp\\)"
+          ]
+        },
+        "flutter": {
+          "file": "packages/flutter-im-ui/lib/src/components/flare_conversation_row.dart",
+          "require": [
+            "FlareSizes.componentConversationRowMetaWidth"
+          ],
+          "forbid": [
+            "width: 60,"
+          ]
+        },
+        "vue": {
+          "file": "packages/vue-im-ui/src/components/conversation/FlareConversationRow.vue",
+          "require": [
+            "--flare-size-component-conversation-row-meta-width"
+          ],
+          "forbid": [
+            "minmax\\([67]ch"
+          ]
+        }
+      }
+    },
+    {
+      "id": "Navigation.activeMarker",
+      "why": "底部导航活跃态只由图标和文字的颜色表达。Material 的 NavigationBar/NavigationBarItem 默认会在活跃项外面画胶囊指示器,Vue 也画了 bg-selected —— 一行四项里只有一项带色块,比它要标示的图标还显眼。iOS 一直是只用颜色,取它为准。",
+      "token": "colors.primaryText / colors.textSecondary (无外围形状)",
+      "platforms": {
+        "ios": {
+          "file": "packages/ios-im-ui/Sources/FlareIMUI/Application/ApplicationComposition.swift",
+          "require": [
+            "activeID \\? colors.primaryText : colors.textSecondary"
+          ]
+        },
+        "android": {
+          "file": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/ApplicationComposition.kt",
+          "require": [
+            "indicatorColor = Color.Transparent"
+          ]
+        },
+        "flutter": {
+          "file": "packages/flutter-im-ui/lib/src/application/application_composition.dart",
+          "require": [
+            "indicatorColor: Colors.transparent"
+          ]
+        },
+        "vue": {
+          "file": "packages/vue-im-ui/src/components/layout/FlareAdaptiveNavigation.vue",
+          "require": [
+            "data-presentation=\"bottom\"\\] \\.flare-adaptive-navigation__item\\.is-active \\{ background: transparent"
+          ]
+        }
+      }
+    },
+    {
+      "id": "MessageBubble.maxWidth",
+      "why": "改前四端四种规则:iOS 完全不设上限(宽栏/iPad 贴满整栏)、Android 固定 320dp(平板上不跟窗格长)、Flutter 取**屏宽**而非窗格宽的 72%、web min(62%,640)。同一条长消息四种宽度,而这是 P0 组件。",
+      "token": "sizes.component.bubbleMaxWidthRatioCompact/Regular + sizes.layout.bubbleMaxWidth",
+      "platforms": {
+        "ios": {
+          "file": "packages/ios-im-ui/Sources/FlareIMUI/Components/MessageBubbleView.swift",
+          "require": [
+            "flareBubbleMaxWidth",
+            "frame\\(maxWidth: bubbleMaxWidth"
+          ]
+        },
+        "android": {
+          "file": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/MessageBubble.kt",
+          "require": [
+            "componentBubbleMaxWidthRatioCompact",
+            "FlareSizes.bubbleMaxWidth"
+          ],
+          "forbid": [
+            "widthIn\\(max = 320\\.dp\\)"
+          ]
+        },
+        "flutter": {
+          "file": "packages/flutter-im-ui/lib/src/components/flare_message_bubble.dart",
+          "require": [
+            "componentBubbleMaxWidthRatioCompact",
+            "FlareSizes.bubbleMaxWidth"
+          ],
+          "forbid": [
+            "size\\.width \\* 0\\.72"
+          ]
+        }
+      }
+    },
+    {
+      "id": "BottomNavigation.activeContentColor",
+      "why": "活跃态只靠颜色以后,这两个色就是唯一的标记。Flutter 的 NavigationBar 不暴露 selectedIconColor/selectedTextColor,光关掉 indicatorColor 图标和文字仍会落回 Material 默认色。",
+      "token": "colors.primaryText (active) / colors.textSecondary (inactive)",
+      "platforms": {
+        "ios": {
+          "file": "packages/ios-im-ui/Sources/FlareIMUI/Application/ApplicationComposition.swift",
+          "require": [
+            "colors.primaryText : colors.textSecondary"
+          ]
+        },
+        "android": {
+          "file": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/ApplicationComposition.kt",
+          "require": [
+            "selectedIconColor = colors.primaryText",
+            "unselectedTextColor = colors.textSecondary"
+          ]
+        },
+        "flutter": {
+          "file": "packages/flutter-im-ui/lib/src/application/application_composition.dart",
+          "require": [
+            "NavigationBarTheme",
+            "colors.primaryText",
+            "colors.textSecondary"
+          ]
+        },
+        "vue": {
+          "file": "packages/vue-im-ui/src/components/layout/FlareAdaptiveNavigation.vue",
+          "require": [
+            "--flare-color-primary-text"
+          ]
+        }
+      }
+    },
+    {
+      "id": "MessageRow.avatarSize",
+      "why": "时间线头像四端原本各写字面量 34,Vue 还按容器宽再分 34/36 两档、用四个魔数把头像底边对到单行气泡底边。现在一个 token:40 = 单行气泡高,头像与第一条消息上下两边都齐;槽宽四端同一算式 avatar + spacingSm。",
+      "token": "sizes.component.messageAvatarSize",
+      "platforms": {
+        "ios": {
+          "file": "packages/ios-im-ui/Sources/FlareIMUI/Components/MessageBubbleView.swift",
+          "require": [
+            "FlareSizes\\.componentMessageAvatarSize"
+          ],
+          "forbid": [
+            "size: 34\\)",
+            "frame\\(width: 34,"
+          ]
+        },
+        "android": {
+          "file": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/MessageBubble.kt",
+          "require": [
+            "FlareSizes\\.componentMessageAvatarSize"
+          ],
+          "forbid": [
+            "size = 34\\.dp",
+            "width\\(34\\.dp\\)"
+          ]
+        },
+        "flutter": {
+          "file": "packages/flutter-im-ui/lib/src/components/flare_message_bubble.dart",
+          "require": [
+            "FlareSizes\\.componentMessageAvatarSize"
+          ],
+          "forbid": [
+            "size: 34,",
+            "width: 34 \\+"
+          ]
+        },
+        "vue": {
+          "file": "packages/vue-im-ui/src/design-system/styles/chat/message-bubble.css",
+          "require": [
+            "--flare-size-component-message-avatar-size"
+          ],
+          "forbid": [
+            "\\.message-avatar \\{[^}]*(?:width|height): 3[46]px",
+            "top: 17px",
+            "top: 25px",
+            "\\.message-row--with-meta \\.message-avatar"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../components/flare_conversation_workspace.dart';
+import '../components/flare_action_menu.dart';
+import '../components/flare_avatar.dart';
 import '../components/flare_skeleton.dart';
 import '../components/flare_status_banner.dart';
 import '../tokens/flare_strings.dart';
@@ -73,6 +75,7 @@ class FlareNavigationItem {
     this.capability,
     this.intent,
     this.accessibilityLabel,
+    this.menu,
   });
   final String id;
   final String label;
@@ -85,6 +88,26 @@ class FlareNavigationItem {
   final int? order;
   final String? capability;
   final FlareNavigationIntent? intent;
+  final String? accessibilityLabel;
+
+  /// Optional anchored menu for a navigation action. Destination items leave
+  /// this null; actions such as "new" use it and report the selected entry id
+  /// through the same navigation callback.
+  final List<FlareActionItem>? menu;
+}
+
+/// The signed-in identity displayed at the top of a desktop navigation rail.
+class FlareNavigationIdentity {
+  const FlareNavigationIdentity({
+    required this.userId,
+    required this.displayName,
+    this.avatarUrl,
+    this.accessibilityLabel,
+  });
+
+  final String userId;
+  final String displayName;
+  final String? avatarUrl;
   final String? accessibilityLabel;
 }
 
@@ -283,7 +306,10 @@ class FlareViewState<T> {
 enum FlareViewPresentation { content, contentWithNotice, state }
 
 /// How a list container presents a state (`spec/view-state-vectors.json`, the same table on four kits).
-FlareViewPresentation flareViewPresentation(FlareViewStatus status, bool stale) {
+FlareViewPresentation flareViewPresentation(
+  FlareViewStatus status,
+  bool stale,
+) {
   if (status == FlareViewStatus.ready) return FlareViewPresentation.content;
   if (stale &&
       (status == FlareViewStatus.error || status == FlareViewStatus.offline)) {
@@ -346,10 +372,18 @@ class FlareIMAppConfiguration {
     required this.features,
     required this.navigation,
     this.capabilities = const FlareCapabilitySet({}),
+    this.identity,
+    this.navigationActions = const [],
   });
   final FlareFeatureSet features;
   final List<FlareNavigationGroup> navigation;
   final FlareCapabilitySet capabilities;
+
+  /// Desktop rail identity. Phone bottom navigation intentionally ignores it.
+  final FlareNavigationIdentity? identity;
+
+  /// High-frequency desktop rail actions, such as new and search.
+  final List<FlareNavigationItem> navigationActions;
 }
 
 class FlareMessageActionExtension<T> {
@@ -509,6 +543,8 @@ class FlareAdaptiveNavigation extends StatelessWidget {
     this.presentation,
     this.onNavigate,
     this.label,
+    this.identity,
+    this.actions = const [],
   });
   final List<FlareNavigationGroup> groups;
   final String activeId;
@@ -516,6 +552,8 @@ class FlareAdaptiveNavigation extends StatelessWidget {
   final FlareNavigationPresentation? presentation;
   final ValueChanged<String>? onNavigate;
   final String? label;
+  final FlareNavigationIdentity? identity;
+  final List<FlareNavigationItem> actions;
 
   List<FlareNavigationItem> get _items => groups
       .expand((group) => group.items)
@@ -541,43 +579,279 @@ class FlareAdaptiveNavigation extends StatelessWidget {
     return Badge(label: text == null ? null : Text(text), child: icon);
   }
 
+  Widget _railIcon(
+    BuildContext context,
+    FlareNavigationItem item, {
+    double size = FlareSizes.iconSizeLg,
+  }) {
+    final colors = FlareColors.of(context);
+    final badge = item.badge;
+    final count = badge?.count ?? 0;
+    final badgeText = switch (badge?.kind) {
+      FlareNavigationBadgeKind.count =>
+        '${count.clamp(0, 99)}${count > 99 ? '+' : ''}',
+      FlareNavigationBadgeKind.mention => badge?.label ?? '@',
+      _ => null,
+    };
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Center(child: Icon(flareIconGlyph(item.icon), size: size)),
+          if (badge != null)
+            PositionedDirectional(
+              top: badge.kind == FlareNavigationBadgeKind.dot ? -2 : -7,
+              end: badge.kind == FlareNavigationBadgeKind.dot ? -4 : -11,
+              child: Container(
+                constraints: BoxConstraints(
+                  minWidth: badge.kind == FlareNavigationBadgeKind.dot ? 8 : 16,
+                ),
+                height: badge.kind == FlareNavigationBadgeKind.dot ? 8 : 16,
+                padding: badge.kind == FlareNavigationBadgeKind.dot
+                    ? EdgeInsets.zero
+                    : const EdgeInsets.symmetric(horizontal: 4),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: badge.kind == FlareNavigationBadgeKind.mention
+                      ? colors.important
+                      : colors.errorText,
+                  borderRadius: BorderRadius.circular(FlareSizes.radiusFull),
+                ),
+                child: badgeText == null
+                    ? null
+                    : Text(
+                        badgeText,
+                        style: TextStyle(
+                          color: colors.messageOutgoingForeground,
+                          fontSize: FlareSizes.fontSize2xs,
+                          height: 1,
+                        ),
+                      ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _railDestination(BuildContext context, FlareNavigationItem item) {
+    final colors = FlareColors.of(context);
+    final active = item.id == activeId;
+    final foreground = active ? colors.primaryText : colors.textSecondary;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: FlareSizes.spacingXs),
+      child: Semantics(
+        selected: active,
+        button: true,
+        label: item.accessibilityLabel ?? item.label,
+        child: Tooltip(
+          message: item.label,
+          child: Material(
+            color: active ? colors.bgSelected : Colors.transparent,
+            borderRadius: BorderRadius.circular(FlareSizes.radiusMd),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(FlareSizes.radiusMd),
+              onTap: item.disabled ? null : () => onNavigate?.call(item.id),
+              child: SizedBox(
+                width: FlareSizes.navigationRailWidth - FlareSizes.spacingSm,
+                height: 60,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconTheme(
+                      data: IconThemeData(color: foreground),
+                      child: _railIcon(context, item),
+                    ),
+                    const SizedBox(height: FlareSizes.spacingXs),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: Text(
+                        item.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: foreground,
+                          fontSize: FlareSizes.fontSizeSm,
+                          fontWeight: active
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                          height: 1.2,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _railActionButton(
+    BuildContext context,
+    FlareNavigationItem item,
+    VoidCallback? onPressed,
+  ) {
+    final colors = FlareColors.of(context);
+    return Semantics(
+      button: true,
+      label: item.accessibilityLabel ?? item.label,
+      child: Tooltip(
+        message: item.label,
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(FlareSizes.radiusMd),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(FlareSizes.radiusMd),
+            onTap: item.disabled ? null : onPressed,
+            child: SizedBox(
+              width: FlareSizes.touchTarget,
+              height: FlareSizes.touchTarget,
+              child: IconTheme(
+                data: IconThemeData(color: colors.textSecondary),
+                child: Center(
+                  child: _railIcon(context, item, size: FlareSizes.iconSizeMd),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _railAction(BuildContext context, FlareNavigationItem item) {
+    final menu =
+        item.menu?.where((entry) => entry.visible).toList() ??
+        const <FlareActionItem>[];
+    if (menu.isEmpty) {
+      return _railActionButton(context, item, () => onNavigate?.call(item.id));
+    }
+    return FlareActionMenu(
+      items: menu,
+      label: item.label,
+      presentation: FlareActionMenuPresentation.anchored,
+      onSelected: (id) => onNavigate?.call(id),
+      builder: (context, open) => _railActionButton(context, item, open),
+    );
+  }
+
+  Widget _rail(BuildContext context) {
+    final colors = FlareColors.of(context);
+    final visibleActions = actions.where((item) => item.visible).toList();
+    final showLeading = identity != null || visibleActions.isNotEmpty;
+    return Semantics(
+      container: true,
+      label: label,
+      child: Material(
+        color: colors.bgSecondary,
+        child: SizedBox(
+          width: FlareSizes.navigationRailWidth,
+          // A rail inside a Row otherwise shrink-wraps its scroll content and the Row
+          // vertically centres that shorter box. On tall desktop windows this leaves a
+          // large bgPrimary band above the avatar. Fill the shell height so identity,
+          // actions and the rail surface all start at the same top edge as Web.
+          height: double.infinity,
+          child: SingleChildScrollView(
+            padding: const EdgeInsetsDirectional.fromSTEB(
+              FlareSizes.spacingXs,
+              FlareSizes.spacingLg,
+              FlareSizes.spacingXs,
+              FlareSizes.spacingMd,
+            ),
+            child: Column(
+              children: [
+                if (showLeading) ...[
+                  if (identity case final identity?)
+                    Semantics(
+                      button: true,
+                      label:
+                          identity.accessibilityLabel ?? identity.displayName,
+                      child: ExcludeSemantics(
+                        child: FlareAvatar(
+                          userId: identity.userId,
+                          displayName: identity.displayName,
+                          avatarUrl: identity.avatarUrl,
+                          size: FlareSizes.avatarSize,
+                          onTap: () => onNavigate?.call('profile'),
+                        ),
+                      ),
+                    ),
+                  for (final action in visibleActions) ...[
+                    const SizedBox(height: FlareSizes.spacingSm),
+                    _railAction(context, action),
+                  ],
+                  const SizedBox(height: FlareSizes.spacingMd),
+                  Divider(height: 1, color: colors.borderPrimary),
+                  const SizedBox(height: FlareSizes.spacingMd),
+                ],
+                for (final group in groups)
+                  for (final item in group.items)
+                    if (item.visible) _railDestination(context, item),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final items = _items;
     final mode = presentation ?? flareNavigationPresentation(responsiveMode);
     if (mode == FlareNavigationPresentation.bottom) {
-      return NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) {
-          final item = items[index];
-          if (!item.disabled) onNavigate?.call(item.id);
-        },
-        destinations: [
-          for (final item in items)
-            NavigationDestination(
-              icon: _icon(item),
-              label: item.label,
-              enabled: !item.disabled,
+      final colors = FlareColors.of(context);
+      // NavigationBar 不暴露 selectedIconColor / selectedTextColor,只能经 theme 下发 ——
+      // 光把 indicatorColor 关掉还不够:图标和文字仍会落回 Material 的 onSecondaryContainer
+      // 之类的默认色,活跃态就不是 Flare 的 primaryText 了。
+      return NavigationBarTheme(
+        data: NavigationBarThemeData(
+          iconTheme: WidgetStateProperty.resolveWith(
+            (states) => IconThemeData(
+              color: states.contains(WidgetState.selected)
+                  ? colors.primaryText
+                  : colors.textSecondary,
             ),
-        ],
+          ),
+          labelTextStyle: WidgetStateProperty.resolveWith(
+            (states) => TextStyle(
+              fontSize: FlareSizes.fontSizeSm,
+              color: states.contains(WidgetState.selected)
+                  ? colors.primaryText
+                  : colors.textSecondary,
+            ),
+          ),
+        ),
+        child: NavigationBar(
+          // 活跃态只由图标和文字的颜色表达。Material 默认会在活跃项外面画一块胶囊指示器 ——
+          // 那是 Material 的语言不是 Flare 的,一行四项里只有一项带色块,比它要标示的图标还显眼。
+          // iOS 一直是只用颜色。
+          indicatorColor: Colors.transparent,
+          backgroundColor: colors.bgPrimary,
+          surfaceTintColor: Colors.transparent,
+          selectedIndex: _selectedIndex,
+          onDestinationSelected: (index) {
+            final item = items[index];
+            if (!item.disabled) onNavigate?.call(item.id);
+          },
+          destinations: [
+            for (final item in items)
+              NavigationDestination(
+                icon: _icon(item),
+                label: item.label,
+                enabled: !item.disabled,
+              ),
+          ],
+        ),
       );
     }
     if (mode == FlareNavigationPresentation.rail) {
-      return NavigationRail(
-        selectedIndex: _selectedIndex,
-        labelType: NavigationRailLabelType.all,
-        onDestinationSelected: (index) {
-          final item = items[index];
-          if (!item.disabled) onNavigate?.call(item.id);
-        },
-        destinations: [
-          for (final item in items)
-            NavigationRailDestination(
-              icon: _icon(item),
-              label: Text(item.label),
-            ),
-        ],
-      );
+      return _rail(context);
     }
     final colors = FlareColors.of(context);
     // Material, not ColoredBox: ListTile paints its selection and ink on the
@@ -1140,6 +1414,7 @@ class FlareIMAppKit extends StatefulWidget {
     this.overlay,
     this.command,
     this.onNavigate,
+    this.onNavigateWithMode,
     this.onIntent,
     this.label,
   });
@@ -1149,6 +1424,12 @@ class FlareIMAppKit extends StatefulWidget {
   /// Builds the destination for a navigation item id.
   final Widget Function(BuildContext context, String id) destinationBuilder;
   final Widget? overlay, command;
+
+  /// Navigation callback for hosts whose presentation depends on the mode
+  /// already resolved by this shell. When supplied it replaces [onNavigate],
+  /// so the host never needs to duplicate the responsive breakpoint logic.
+  final void Function(String id, FlareApplicationResponsiveMode responsiveMode)?
+  onNavigateWithMode;
   final ValueChanged<String>? onNavigate;
   final ValueChanged<FlareNavigationIntent>? onIntent;
   final String? label;
@@ -1218,6 +1499,15 @@ class _FlareIMAppKitState extends State<FlareIMAppKit> {
       final mobile = mode == FlareApplicationResponsiveMode.mobile;
       final active = widget.activeNavigationId;
       final navigationHidden = mobile && (_depths[active]?.value ?? 0) > 0;
+      void navigate(String id) {
+        final contextual = widget.onNavigateWithMode;
+        if (contextual != null) {
+          contextual(id, mode);
+        } else {
+          widget.onNavigate?.call(id);
+        }
+      }
+
       final destinations = Stack(
         key: _destinationsKey,
         fit: StackFit.expand,
@@ -1256,8 +1546,14 @@ class _FlareIMAppKitState extends State<FlareIMAppKit> {
                               groups: widget.configuration.navigation,
                               activeId: active,
                               responsiveMode: mode,
-                              onNavigate: widget.onNavigate,
+                              // The Web app uses the compact 72px rail at every
+                              // non-mobile width; pane density grows in the
+                              // destination instead of widening app chrome.
+                              presentation: FlareNavigationPresentation.rail,
+                              onNavigate: navigate,
                               label: widget.label,
+                              identity: widget.configuration.identity,
+                              actions: widget.configuration.navigationActions,
                             ),
                             const VerticalDivider(width: 1),
                             Expanded(child: destinations),
@@ -1275,7 +1571,7 @@ class _FlareIMAppKitState extends State<FlareIMAppKit> {
                       groups: widget.configuration.navigation,
                       activeId: active,
                       responsiveMode: mode,
-                      onNavigate: widget.onNavigate,
+                      onNavigate: navigate,
                       label: widget.label,
                     ),
                   )

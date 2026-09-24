@@ -10,7 +10,7 @@ const matches = [
   { userId: "u2", displayName: "林夏", matchedBy: "Flare ID lin-xia", alreadyFriend: true },
 ];
 
-function render(props: Record<string, unknown>) {
+function render(props: InstanceType<typeof FlareContactMatchList>["$props"]) {
   return mount(defineComponent({
     setup() {
       useFlareI18nProvider("zh-CN");

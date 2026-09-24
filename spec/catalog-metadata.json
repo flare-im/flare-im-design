@@ -141,6 +141,7 @@
       "VideoPlayerModal",
       "MediaCenter",
       "SearchPanel",
+      "RecentSearches",
       "DangerConfirm",
       "CallView",
       "IncomingCall",

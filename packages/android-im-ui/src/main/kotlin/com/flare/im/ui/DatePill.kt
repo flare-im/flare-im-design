@@ -20,14 +20,14 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun DatePill(label: String, floating: Boolean = false) {
     val colors = flareColors()
-    Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.Center) {
+    Row(Modifier.fillMaxWidth().padding(vertical = FlareSizes.spacingXs), horizontalArrangement = Arrangement.Center) {
         Text(
             label, color = colors.textSecondary, fontWeight = FontWeight.Medium, fontSize = 12.sp,
             modifier = Modifier
                 .shadow(3.dp, RoundedCornerShape(999.dp), clip = false)
                 .clip(RoundedCornerShape(999.dp)).background(colors.bgPrimary.copy(alpha = 0.78f))
                 .border(1.dp, colors.borderPrimary, RoundedCornerShape(999.dp))
-                .padding(horizontal = 12.dp, vertical = 3.dp),
+                .padding(horizontal = FlareSizes.spacingMd, vertical = 3.dp),
         )
     }
 }

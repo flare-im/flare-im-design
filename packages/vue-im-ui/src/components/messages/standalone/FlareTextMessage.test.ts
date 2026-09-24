@@ -3,6 +3,8 @@ import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 import FlareTextMessage from "./FlareTextMessage.vue";
 import TextView from "../MessagesView/views/TextView.vue";
+import FlareEmojiMessage from "./FlareEmojiMessage.vue";
+import FrozenStickerThumb from "../../composer/FrozenStickerThumb/index.vue";
 
 describe("canonical text body", () => {
   it("escapes quotes and HTML instead of injecting link attributes", () => {
@@ -26,5 +28,15 @@ describe("canonical text body", () => {
     await wrapper.find("a").trigger("click");
     expect(wrapper.emitted("linkClick")?.[0]).toEqual(["https://example.com/"]);
     expect(wrapper.find("time, .flare-message-meta").exists()).toBe(false);
+  });
+
+  it("animates only a sent standalone emoji and freezes mixed inline emoji", async () => {
+    const standalone = mount(FlareTextMessage, { props: { text: "[alien]" } });
+    expect(standalone.findComponent(FlareEmojiMessage).exists()).toBe(true);
+    expect(standalone.findComponent(FlareEmojiMessage).props("animated")).toBe(true);
+
+    const inline = mount(FlareTextMessage, { props: { text: "hello [alien]" } });
+    expect(inline.findComponent(FlareEmojiMessage).exists()).toBe(false);
+    expect(inline.findComponent(FrozenStickerThumb).exists()).toBe(true);
   });
 });

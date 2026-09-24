@@ -55,7 +55,7 @@ const list = computed(() => Array.from({ length: Math.max(1, props.rows) }, (_, 
 </template>
 
 <style scoped>
-.flare-skeleton { display: flex; flex-direction: column; gap: 14px; }
+.flare-skeleton { display: flex; flex-direction: column; gap: var(--flare-size-spacing-2md); }
 .sk {
   display: block;
   border-radius: var(--flare-size-radius-md);

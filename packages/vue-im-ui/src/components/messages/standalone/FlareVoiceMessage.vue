@@ -121,7 +121,7 @@ function seekAt(event: MouseEvent): void {
   min-height: 48px;
   align-items: center;
   gap: 9px;
-  padding: 6px 10px;
+  padding: 6px var(--flare-size-spacing-2sm);
   border: 1px solid var(--flare-color-border-primary);
   border-radius: 13px 13px 13px 5px;
   color: var(--flare-color-text-secondary);

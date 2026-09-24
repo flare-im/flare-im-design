@@ -90,4 +90,60 @@ describe("FlareSearchBar", () => {
     expect(bar.emitted("search")).toBeUndefined();
     expect(bar.emitted("update:modelValue")).toEqual([["宇宙"]]);
   });
+  it("keeps the pill by default and drops it only for the quiet appearance", () => {
+    // 默认必须是药丸:全仓另外 7 处调用点(全局搜索、加好友、加群、发起聊天、群成员…)
+    // 都是浮在内容之上的搜索,把默认翻成 quiet 会把它们一起抹平。
+    expect(setup({ readOnly: true, placeholder: "搜索" }).get(".flare-search").classes()).not.toContain("is-quiet");
+    expect(setup({ readOnly: true, placeholder: "搜索", appearance: "quiet" }).get(".flare-search").classes()).toContain("is-quiet");
+    // 可输入形态也要跟着走,否则同一个外观在两种形态下不一致。
+    expect(setup({ appearance: "quiet" }).get(".flare-search").classes()).toContain("is-quiet");
+  });
+
+  it("keeps the affordance in quiet: the magnifier and the placeholder text stay", () => {
+    // 去掉的只有那块底色。没有放大镜和占位文字,一条不画边框的搜索就认不出来是搜索了。
+    const quiet = setup({ readOnly: true, placeholder: "搜索", appearance: "quiet" });
+    expect(quiet.find(".flare-search__ico").exists()).toBe(true);
+    expect(quiet.get(".flare-search__text").text()).toBe("搜索");
+  });
+  // 拼音还没变成字的时候不是查询词:停顿 300ms 就会拿 "zhou" 去搜。model 仍然逐键跟随,
+  // 搜索等到上屏(compositionend)才开始计时。
+  it("never searches for an IME's half-typed text, and searches once the composition ends", async () => {
+    const searched: string[] = [];
+    const updates: string[] = [];
+    const bar = setup({ modelValue: "" }, { onSearch: (q: string) => searched.push(q), "onUpdate:modelValue": (v: string) => updates.push(v) });
+    const input = bar.get("input");
+    const el = input.element as HTMLInputElement;
+    el.value = "zhou";
+    el.dispatchEvent(new InputEvent("input", { bubbles: true, isComposing: true }));
+    vi.advanceTimersByTime(1000);
+    expect(updates).toEqual(["zhou"]);
+    expect(searched).toEqual([]);
+    el.value = "周";
+    el.dispatchEvent(new CompositionEvent("compositionend", { bubbles: true, data: "周" }));
+    vi.advanceTimersByTime(299);
+    expect(searched).toEqual([]);
+    vi.advanceTimersByTime(1);
+    expect(searched).toEqual(["周"]);
+  });
+  // Safari / Firefox 的顺序是 compositionend 在前、再补一个同样文字的 input:那是同一次上屏,不是第二次。
+  // 防抖为 0 时最看得出来 —— 改前一次上屏搜两遍。
+  it("searches once per committed composition whatever order the engine reports it in", () => {
+    const searched: string[] = [];
+    const bar = setup({ modelValue: "", debounce: 0 }, { onSearch: (q: string) => searched.push(q) });
+    const el = bar.get("input").element as HTMLInputElement;
+    el.value = "周";
+    el.dispatchEvent(new CompositionEvent("compositionend", { bubbles: true, data: "周" }));
+    el.dispatchEvent(new InputEvent("input", { bubbles: true, isComposing: false }));
+    expect(searched).toEqual(["周"]);
+    // 之后的输入照常搜索。
+    el.value = "周屿";
+    el.dispatchEvent(new InputEvent("input", { bubbles: true, isComposing: false }));
+    expect(searched).toEqual(["周", "周屿"]);
+  });
+
+  it("can be told to take the caret back", () => {
+    const bar = setup({ modelValue: "" });
+    (bar.vm as unknown as { focus: () => void }).focus();
+    expect(document.activeElement).toBe(bar.get("input").element);
+  });
 });

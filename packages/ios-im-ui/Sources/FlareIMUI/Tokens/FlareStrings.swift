@@ -43,6 +43,9 @@ public struct FlareStrings: Sendable {
     // Generic actions
     public var close: String
     public var delete: String
+    /// 举报这一条（他人的动态/消息/资料）。与 `delete` 同层：都是「对这一条动作」，
+    /// 二者互斥 —— 自己的东西删、别人的东西报。
+    public var report: String
     public var manage: String
     public var selectAll: String
     public var retry: String
@@ -468,6 +471,7 @@ public struct FlareStrings: Sendable {
     public var groupDetailMyNickname: String
     public var groupDetailMuteNotif: String
     public var groupDetailPinGroup: String
+    public var groupDetailDiscoverable: String
     public var groupDetailJoinMode: String
     public var groupDetailJoinRequests: String
     public var groupDetailMuteAll: String
@@ -812,6 +816,7 @@ public struct FlareStrings: Sendable {
         noConversations: String = "暂无会话",
         close: String = "关闭",
         delete: String = "删除",
+        report: String = "举报",
         manage: String = "管理",
         selectAll: String = "全选",
         retry: String = "重试",
@@ -1205,6 +1210,7 @@ public struct FlareStrings: Sendable {
         groupDetailMyNickname: String = "我的群昵称",
         groupDetailMuteNotif: String = "消息免打扰",
         groupDetailPinGroup: String = "置顶该群",
+        groupDetailDiscoverable: String = "允许搜索到本群",
         groupDetailJoinMode: String = "进群方式",
         groupDetailJoinRequests: String = "入群申请",
         groupDetailMuteAll: String = "全员禁言",
@@ -1425,6 +1431,7 @@ public struct FlareStrings: Sendable {
         self.noConversations = noConversations
         self.close = close
         self.delete = delete
+        self.report = report
         self.manage = manage
         self.selectAll = selectAll
         self.retry = retry
@@ -1780,6 +1787,7 @@ public struct FlareStrings: Sendable {
         self.groupDetailMyNickname = groupDetailMyNickname
         self.groupDetailMuteNotif = groupDetailMuteNotif
         self.groupDetailPinGroup = groupDetailPinGroup
+        self.groupDetailDiscoverable = groupDetailDiscoverable
         self.groupDetailJoinMode = groupDetailJoinMode
         self.groupDetailJoinRequests = groupDetailJoinRequests
         self.groupDetailMuteAll = groupDetailMuteAll

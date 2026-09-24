@@ -75,7 +75,7 @@ public struct QuickPhrasesView: View {
         Button { onSelect?(p.text) } label: {
             Text(p.text).font(.system(size: 14)).foregroundColor(colors.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 12).padding(.vertical, 10)
+                .padding(.horizontal, 12).padding(.vertical, FlareSizes.spacing2sm)
                 .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.bgSecondary))
         }
         .buttonStyle(.plain)

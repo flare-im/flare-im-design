@@ -362,9 +362,24 @@ const fileInlineMediaAction = computed<MediaHoverActionModel | null>(() => {
   return resolvedMediaActionId.value ? mediaActionModel(resolvedMediaActionId.value) : null;
 });
 
+/**
+ * 时间戳与状态跟在最后一行右侧，而不是自己另起一行。
+ *
+ * `.message-bubble-body` 是块级的，而 `MessageMeta` 就在它里面，所以每条消息的
+ * 时间戳都会独占一行：一条两行的中文消息实测 42px 文本 + 13px 时间戳 = 78px 气泡，
+ * 约四分之一的高度花在一行只有「21:15」的行上。时间线是这个产品看得最多的一屏。
+ *
+ * kit 里本来就有这套机制（`.message-bubble-body--trailing-status` +
+ * `.bubble-inline-status`），但没有任何组件加过这两个类 —— 是写完没接上的死样式。
+ *
+ * 只对纯文本开：媒体、卡片、富文本各有自己的排版，把 meta 塞进它们的行尾会挤坏。
+ */
+const inlineMeta = computed(() => showMessageMeta.value && contentType.value === "text" && !isChromelessMedia.value && !isChromelessCard.value);
+
 const bubbleClassNames = computed(() => [
   `message-bubble--${contentType.value}`,
   {
+    "message-bubble--inline-meta": inlineMeta.value,
     "message-bubble-self": props.self,
     "message-bubble--pinned": isPinned(props.message),
     "message-bubble--chromeless-media": isChromelessMedia.value,

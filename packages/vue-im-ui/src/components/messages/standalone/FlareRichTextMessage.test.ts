@@ -1,8 +1,10 @@
 // @vitest-environment happy-dom
-import { mount } from "@vue/test-utils";
+import { mount, type VueWrapper } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 import FlareRichTextMessage from "./FlareRichTextMessage.vue";
 import RichTextView from "../MessagesView/views/RichTextView.vue";
+import FrozenStickerThumb from "../../composer/FrozenStickerThumb/index.vue";
+import { formatEmojiPackBracket } from "../../../utils/emojiPackI18n";
 
 const text = (value: string, ...marks: string[]) =>
   marks.length ? { type: "text", text: value, marks: marks.map((type) => ({ type })) } : { type: "text", text: value };
@@ -32,6 +34,30 @@ const docJson = JSON.stringify({
 });
 
 describe("rich-text body", () => {
+  // 核心的 Markdown 归一化把 composer 写进去的 `[key]` 留成字面 text run(不是 emoji run),
+  // 于是同一个表情在纯文本气泡里是图、进了富文本就成了 `[angry_face]`。text run 里的已知
+  // 令牌按纯文本的规则内联成图;未知的、代码里的原样保留。
+  it("draws known [key] emoji-pack tokens inside a text run inline, as a plain text body does", () => {
+    const wrapper = mount(FlareRichTextMessage, {
+      props: {
+        docJson: JSON.stringify({
+          type: "doc",
+          version: 2,
+          children: [
+            { type: "paragraph", children: [text("[angry_face][alien] 的高峰时段 [not_a_key]", "bold")] },
+            { type: "paragraph", children: [{ type: "inline_code", text: "[angry_face]" }] },
+          ],
+        }),
+      },
+    });
+    const bold = wrapper.find(".fm-rich__run.is-bold");
+    expect(bold.findAllComponents(FrozenStickerThumb).map((thumb: VueWrapper) => (thumb.props() as { alt?: string }).alt))
+      .toEqual([formatEmojiPackBracket("angry_face"), formatEmojiPackBracket("alien")]);
+    expect(bold.text()).toBe("的高峰时段 [not_a_key]");
+    expect(wrapper.find(".fm-rich__code").text()).toBe("[angry_face]");
+    expect(wrapper.find(".fm-rich__code").find(".fm-rich__emoji").exists()).toBe(false);
+  });
+
   it("draws the document's blocks, marks and code", () => {
     const wrapper = mount(FlareRichTextMessage, { props: { docJson } });
     expect(wrapper.find(".fm-rich__heading.is-level-2").text()).toBe("周会纪要");

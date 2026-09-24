@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { normalizeMarkdownText } from "../../utils/markdown";
-import { resolveEmojiPackAssetUrlByKey } from "./ComposerEmojiStickerPopover/composerEmojiAssets";
+import {
+  hasEmojiPackAssetKey,
+  resolveEmojiPackPreviewUrlByKey,
+} from "./ComposerEmojiStickerPopover/composerEmojiAssets";
+import { freezeStickerToStaticDataUrl } from "./FrozenStickerThumb/freezeStickerFrame";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 
 const ZERO_WIDTH_SPACE = "\u200B";
@@ -176,7 +180,7 @@ function parseStyledToken(token: string): { label: string; marks: InlineMark[] }
 
 function parseToken(token: string): RichSegment | null {
   const emojiMatch = /^\[([a-z][a-z0-9_]*)\]$/.exec(token);
-  if (emojiMatch) {
+  if (emojiMatch && hasEmojiPackAssetKey(emojiMatch[1])) {
     return {
       kind: "emoji",
       token,
@@ -356,8 +360,13 @@ function createTokenElement(segment: RichTokenSegment): HTMLElement {
     img.decoding = "async";
     img.loading = "lazy";
     tokenEl.appendChild(img);
-    void resolveEmojiPackAssetUrlByKey(segment.label).then((url) => {
-      if (url) img.src = url;
+    img.dataset.flareStaticPreview = "true";
+    void resolveEmojiPackPreviewUrlByKey(segment.label).then(async (url) => {
+      if (url) {
+        img.dataset.sourceUrl = url;
+        const frozen = await freezeStickerToStaticDataUrl(url);
+        if (frozen) img.src = frozen;
+      }
       else tokenEl.textContent = segment.token;
     });
     return tokenEl;

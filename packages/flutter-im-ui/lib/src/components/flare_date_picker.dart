@@ -273,7 +273,7 @@ class _DateSheetState extends State<_DateSheet> {
           ),
         ],
       ),
-      padding: EdgeInsets.fromLTRB(12, 8, 12, 10 + bottomInset),
+      padding: EdgeInsets.fromLTRB(12, 8, 12, FlareSizes.spacing2sm + bottomInset),
       // Scrolls when large text makes the month taller than the screen (a
       // phone in landscape, a short window) instead of overflowing.
       child: SingleChildScrollView(
@@ -475,7 +475,7 @@ class _DateSheetState extends State<_DateSheet> {
         borderRadius: BorderRadius.circular(FlareSizes.radiusMd),
       );
     } else if (isToday) {
-      textColor = colors.primary;
+      textColor = colors.primaryText;
       weight = FontWeight.w600;
       decoration = BoxDecoration(
         border: Border.all(color: colors.primary),

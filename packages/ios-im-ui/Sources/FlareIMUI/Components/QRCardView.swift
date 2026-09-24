@@ -77,7 +77,7 @@ public struct QRCardView: View {
                             .foregroundColor(colors.textTertiary)
                             .multilineTextAlignment(.center)
                     )
-                    .padding(14)
+                    .padding(FlareSizes.spacing2md)
                     .background(frame.fill(colors.bgSecondary))
             }
         }

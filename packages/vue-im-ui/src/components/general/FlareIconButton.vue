@@ -78,9 +78,19 @@ const overrideStyle = computed(() => {
 .is-circle { border-radius: 50%; }
 .is-square { border-radius: var(--flare-size-radius-md); }
 
-.flare-icon-button--sm { width: var(--flare-size-layout-control-height-sm); height: var(--flare-size-layout-control-height-sm); font-size: var(--flare-size-icon-size-sm); }
-.flare-icon-button--md { width: var(--flare-size-layout-control-height-md); height: var(--flare-size-layout-control-height-md); font-size: var(--flare-size-icon-size-md); }
-.flare-icon-button--lg { width: var(--flare-size-layout-control-height-lg); height: var(--flare-size-layout-control-height-lg); font-size: var(--flare-size-icon-size-lg); }
+/* 每一档都显式写出 min-width / min-height，压过 accessibility.css 在粗指针下给
+   :where(button) 兜的 44px 地板 —— min-* 会盖过 width/height，于是触摸端 sm(32) 和
+   md(40) 双双被撑成 44，两档渲染成同一个尺寸，size 这个 prop 在手机上等于失效。
+   触达区不靠盒子：上面的 ::after 已经是 max(100%, touch-target)，盒子缩回去也够得着。 */
+.flare-icon-button--sm { width: var(--flare-size-layout-control-height-sm); height: var(--flare-size-layout-control-height-sm);
+  min-width: var(--flare-size-layout-control-height-sm); min-height: var(--flare-size-layout-control-height-sm);
+  font-size: var(--flare-size-icon-size-sm); }
+.flare-icon-button--md { width: var(--flare-size-layout-control-height-md); height: var(--flare-size-layout-control-height-md);
+  min-width: var(--flare-size-layout-control-height-md); min-height: var(--flare-size-layout-control-height-md);
+  font-size: var(--flare-size-icon-size-md); }
+.flare-icon-button--lg { width: var(--flare-size-layout-control-height-lg); height: var(--flare-size-layout-control-height-lg);
+  min-width: var(--flare-size-layout-control-height-lg); min-height: var(--flare-size-layout-control-height-lg);
+  font-size: var(--flare-size-icon-size-lg); }
 
 .flare-icon-button--plain:hover:not(:disabled) { background: var(--flare-color-bg-secondary); color: var(--flare-color-text-primary); }
 .flare-icon-button--tinted { background: var(--flare-color-bg-secondary); }

@@ -34,7 +34,7 @@
       "colors": {
         "message": {
           "incoming": {
-            "background": "#FFFFFF",
+            "background": "#F1F2F5",
             "foreground": "#20232D",
             "border": "#E3E5EB"
           },
@@ -60,7 +60,7 @@
       "colors": {
         "message": {
           "incoming": {
-            "background": "#20232B",
+            "background": "#292D37",
             "foreground": "rgba(255, 255, 255, 0.94)",
             "border": "rgba(255, 255, 255, 0.10)"
           },

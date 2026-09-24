@@ -56,7 +56,7 @@ void main() {
       'mention': Icons.alternate_email_outlined,
       'read': Icons.done_all_outlined,
       'mark': Icons.flag_outlined,
-      'rich-text': Icons.text_format_outlined,
+      'rich-text': Icons.title,
       'attachment': Icons.attach_file_outlined,
       'mark-unread': Icons.mark_chat_unread_outlined,
       'archive': Icons.archive_outlined,

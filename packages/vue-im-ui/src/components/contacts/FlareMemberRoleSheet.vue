@@ -377,7 +377,7 @@ function onKeydown(event: KeyboardEvent): void {
 .flare-mrs--desktop .flare-mrs__head { gap: 8px; padding: 8px; }
 .flare-mrs--desktop .flare-mrs__name { font-size: 14px; }
 .flare-mrs--desktop .flare-mrs__group { border-radius: 0; }
-.flare-mrs--desktop .flare-mrs__row { grid-template-columns: 18px minmax(0, 1fr) auto; min-height: 36px; padding: 6px 8px; gap: 10px; border-radius: var(--flare-size-radius-sm); }
+.flare-mrs--desktop .flare-mrs__row { grid-template-columns: 18px minmax(0, 1fr) auto; min-height: 36px; padding: 6px 8px; gap: var(--flare-size-spacing-2sm); border-radius: var(--flare-size-radius-sm); }
 .flare-mrs--desktop .flare-mrs__icon { width: 18px; height: 18px; border-radius: 0; color: var(--flare-color-text-secondary); background: transparent; }
 .flare-mrs--desktop .flare-mrs__label { font-size: 13px; font-weight: 500; }
 .flare-mrs--desktop .flare-mrs__durations { padding-inline-start: 36px; }

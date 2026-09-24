@@ -2393,9 +2393,13 @@
       ],
       "events": [
         "navigate",
+        "navigateWithMode",
         "intent"
       ],
       "eventPlatforms": {
+        "navigateWithMode": [
+          "flutter"
+        ],
         "intent": [
           "vue",
           "flutter"
@@ -7851,6 +7855,19 @@
           }
         },
         {
+          "name": "appearance",
+          "type": "\"filled\" | \"quiet\"",
+          "required": false,
+          "default": "filled",
+          "description": {
+            "zh": "filled 是自带浅色圆角底的药丸；quiet 不画底也不画圆角，用于常驻在列表顶上的搜索——那里药丸会和下面的筛选、列表叠成三层各自为政的面。放大镜、占位文字、触达区和按下反馈在两种外观下都在。",
+            "en": "filled draws the tinted rounded pill; quiet drops the fill and the radius, for a search that lives permanently at the top of a list. The magnifier, placeholder, hit target and press feedback are kept in both."
+          },
+          "platforms": [
+            "vue"
+          ]
+        },
+        {
           "name": "readOnly",
           "type": "boolean",
           "default": "false",
@@ -8560,6 +8577,32 @@
       },
       "props": [
         {
+          "name": "size",
+          "type": "\"md\" | \"sm\"",
+          "required": false,
+          "default": "md",
+          "description": {
+            "zh": "sm 是辅助条件用的紧凑胶囊（搜索页输入框下面那一排）；视觉盒子 30，命中区仍撑到触达区。",
+            "en": "sm is the compact capsule for an assistive filter row (under a search field); the visual box is 30 while the hit area still reaches the touch target."
+          },
+          "platforms": [
+            "vue"
+          ]
+        },
+        {
+          "name": "appearance",
+          "type": "\"filled\" | \"quiet\"",
+          "required": false,
+          "default": "filled",
+          "description": {
+            "zh": "filled 每个选项各是一颗药丸；quiet 只有文字加一道下划线，用于常驻在列表顶上的筛选条。",
+            "en": "filled gives every option its own chip; quiet is text plus an underline, for a filter row that lives permanently at the top of a list."
+          },
+          "platforms": [
+            "vue"
+          ]
+        },
+        {
           "name": "options",
           "type": "FlareFilterTabOption[]",
           "required": true,
@@ -8672,6 +8715,18 @@
             "en": "Selection mode: each row is a checkbox named by the contact and a tap toggles it (toggleSelect) instead of selecting.",
             "zh": "选择模式：每行是以联系人命名的复选框，点按切换（toggleSelect），不触发 select。"
           }
+        },
+        {
+          "name": "activeId",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "右边那一栏正在显示的那个人；两栏布局下左列据此标出当前行。",
+            "en": "The person the detail pane is showing; the list marks that row as current."
+          },
+          "platforms": [
+            "vue"
+          ]
         },
         {
           "name": "selectedIds",
@@ -8811,6 +8866,19 @@
             "en": "Selection mode: the row is a checkbox named by the contact.",
             "zh": "选择模式：整行是以联系人命名的复选框。"
           }
+        },
+        {
+          "name": "current",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "zh": "这一行就是详情栏正在显示的人。与 selected(勾选)不是一回事。",
+            "en": "This row is what the detail pane is showing. Distinct from `selected` (checked)."
+          },
+          "platforms": [
+            "vue"
+          ]
         },
         {
           "name": "selected",
@@ -9089,6 +9157,7 @@
         "updateAnnouncement",
         "updateMyNickname",
         "setJoinPolicy",
+        "toggleDiscoverable",
         "toggleMuteAll",
         "setFlag",
         "toggleMyMuted",
@@ -10488,8 +10557,14 @@
       "states": [],
       "events": [
         "select",
-        "addMember"
+        "addMember",
+        "viewAll"
       ],
+      "eventPlatforms": {
+        "viewAll": [
+          "vue"
+        ]
+      },
       "platforms": {
         "vue": {
           "package": "@flare-im/vue-ui",
@@ -10773,8 +10848,9 @@
         "labelRequired": true,
         "focusable": "descendants",
         "keyboardBehavior": [
-          "Tab visits interactive descendants in visual order",
-          "Escape closes the active contextual layer"
+          "Tab visits interactive descendants in visual order; the exit key is the last one, on every platform",
+          "Escape exits the selection (`exit`) while the toolbar is mounted with an exit handler and no modal surface or aria-modal dialog is on top, no editable control has focus, and the toolbar is the topmost visible contextual layer; while `busy` the key is consumed and nothing exits",
+          "The platform back exits the selection under the same rule before it leaves the page; while `busy` it is consumed"
         ],
         "touchTarget": {
           "minWidth": 48,
@@ -13336,7 +13412,8 @@
         "selectAuthor",
         "selectLiker",
         "selectComment",
-        "delete"
+        "delete",
+        "report"
       ],
       "platforms": {
         "vue": {
@@ -13505,7 +13582,8 @@
       "events": [
         "like",
         "comment",
-        "delete"
+        "delete",
+        "report"
       ],
       "platforms": {
         "vue": {
@@ -13794,8 +13872,8 @@
           "required": false,
           "default": "\"primary\"",
           "description": {
-            "zh": "变体。",
-            "en": "Visual variant."
+            "zh": "变体。quiet 是中性的低强度一档:透明底、无描边、次级文字色,配在主按钮旁边当出口(text 用品牌色,两个都用紫色分不出主次)。",
+            "en": "Visual variant. `quiet` is the neutral low-emphasis rung — transparent, borderless, secondary label — for the exit that sits beside a primary action (`text` is branded, and two violet buttons have no hierarchy)."
           }
         },
         {
@@ -13853,7 +13931,8 @@
         "secondary",
         "ghost",
         "danger",
-        "text"
+        "text",
+        "quiet"
       ],
       "events": [
         "click"
@@ -16313,6 +16392,30 @@
           "platforms": [
             "vue"
           ]
+        },
+        {
+          "name": "layout",
+          "type": "\"inline\" | \"page\"",
+          "default": "inline",
+          "description": {
+            "en": "inline sits inside a padded surface and scrolls with its host. page is the panel as a whole screen or dialog: the field and the type row do not scroll, only the results under their hairline do (a new query's results start at the top); the panel owns the page gutter and the safe areas, and result rows run edge to edge. Give it a height.",
+            "zh": "inline 放在有内距的面里，跟着宿主滚。page 是面板自己当整页 / 整块对话框：搜索框与类型行不滚，只有发丝线下面的结果滚（新一次查询的结果从顶部开始）；面板自己持有页边距与安全区，结果行通栏。需要宿主给它一个高度。"
+          },
+          "platforms": [
+            "vue"
+          ]
+        },
+        {
+          "name": "requireQuery",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "A type or a time range alone is not a search: the panel rests idle until something is typed. For a search across kinds, where listing everything of one kind is another page's job.",
+            "zh": "只选类型或时间范围不算一次搜索：没输入之前面板保持空闲。用于跨类型的全局搜索——「某一类的全部」是别的页面的事。"
+          },
+          "platforms": [
+            "vue"
+          ]
         }
       ],
       "states": [
@@ -16325,7 +16428,8 @@
       "events": [
         "search",
         "open",
-        "viewAll"
+        "viewAll",
+        "cancel"
       ],
       "platforms": {
         "vue": {
@@ -16361,6 +16465,100 @@
         },
         "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
         "screenReaderSemantics": "Expose a named group and meaningful descendant roles, values, states, availability, and progress. Decorative imagery is hidden."
+      },
+      "slots": [
+        "idle"
+      ],
+      "notes": {
+        "en": "A host that listens for `cancel` gets the search bar's own way out beside the field; on the native kits a search page is pushed onto the platform's navigation stack, whose bar already carries the way out, so the event is Vue only. The Vue `idle` slot replaces the idle line and is handed `search(term)`, which searches for a term at once and puts the caret back in the field, and `focusField()` for a slot action that removes what had focus — [RecentSearches](/en/components/recent-searches) goes here; put `v-if` on the `<template #idle>` itself, because a slot that renders nothing still replaces the idle line. A result group with `hasMore` draws a countless more row (\"See more\" on Vue, the existing `more` string on the native kits). On Vue, when its kind is also a type id the panel switches to that type itself and still reports `viewAll`; the native panels only report `onViewAll` (their chosen type is private state too, so a host remounts the panel keyed on the new `criteria.filterId`, or pushes its own list). `snapshot.warning` (Vue only; the native snapshots have no such field yet) is said above results that came back incomplete, with a retry. `layout=\"page\"` needs a height from its host: a non-scrolling screen gives one, a FlareBottomSheet only caps its own, so inside a dialog wrap the panel in a box with a height.",
+        "zh": "宿主监听 `cancel` 时，搜索框旁边出现它自带的出口（取消）；原生端的搜索页是压进平台导航栈的，导航栏本来就带着出口，所以这个事件仅 Vue。Vue 的 `idle` 插槽替换空闲提示并拿到 `search(term)`（立即搜索这个词并把光标放回输入框）与 `focusField()`（插槽里的动作把持有焦点的东西移走时调用）——[RecentSearches](/components/recent-searches) 放在这里；`v-if` 要写在 `<template #idle>` 上，因为渲染为空的插槽同样会顶掉空闲提示。结果分组带 `hasMore` 时画一条不带数的更多行（Vue 是「查看更多」，原生三端用既有的 `more` 字符串）。在 Vue 上，分组的 kind 同时也是类型 id 时面板自己切到该类型，并照旧上报 `viewAll`；原生面板只上报 `onViewAll`（它们的类型同样是私有状态，宿主用新的 `criteria.filterId` 作 key 重建面板，或推入自己的列表）。`snapshot.warning`（仅 Vue；原生快照还没有这个字段）写在不完整的结果上方，带重试。`layout=\"page\"` 需要宿主给高度：不滚动的整页给得了，FlareBottomSheet 只封顶自己，所以放进对话框时要用一个定高的盒子包住面板。"
+      },
+      "slotPlatforms": {
+        "idle": [
+          "vue"
+        ]
+      },
+      "slotReasons": {
+        "idle": "The native panels draw the idle line themselves and have no recent-search list yet (RecentSearches is Vue only in 2.0.0-rc.1); the slot arrives on a platform together with that list, not before it has anything to hold."
+      },
+      "eventPlatforms": {
+        "cancel": [
+          "vue"
+        ]
+      }
+    },
+    {
+      "name": "RecentSearches",
+      "category": "Navigation",
+      "summary": {
+        "en": "Recent searches — the terms used last, one tap from searching again, with one way to forget them all.",
+        "zh": "最近搜索 —— 最近用过的搜索词，点一下再搜一次；一处清除全部。"
+      },
+      "dataSource": {
+        "en": "host-owned list (per signed-in user, in the host's storage); `flareRememberSearch` is the shared rule for keeping it",
+        "zh": "宿主持有的列表（按登录用户、存在宿主自己的存储里）；`flareRememberSearch` 是四端共用的记录规则"
+      },
+      "states": [
+        "default",
+        "empty"
+      ],
+      "events": [
+        "pick",
+        "clear"
+      ],
+      "props": [
+        {
+          "name": "items",
+          "type": "string[]",
+          "required": true,
+          "description": {
+            "en": "Terms, newest first. With none the component draws nothing, so the page's idle line shows instead.",
+            "zh": "搜索词，最新的在前。为空时不渲染任何东西，页面的空闲提示照常显示。"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": {
+            "en": "Section heading; defaults to the kit's \"Recent searches\".",
+            "zh": "分节标题；默认用组件库的「最近搜索」。"
+          }
+        },
+        {
+          "name": "clearText",
+          "type": "string",
+          "description": {
+            "en": "The clear key's words; defaults to the kit's \"Clear\".",
+            "zh": "清除键的文案；默认用组件库的「清除」。"
+          }
+        }
+      ],
+      "notes": {
+        "en": "A part of a search page's idle state: put it in [SearchPanel](/en/components/search-panel)'s `idle` slot and pass `search` to `pick`. Vue only in 2.0.0-rc.1: the native search panels have no idle slot yet.",
+        "zh": "搜索页空闲态的一部分：放进 [SearchPanel](/components/search-panel) 的 `idle` 插槽，把 `search` 接到 `pick`。2.0.0-rc.1 仅 Vue：原生搜索面板还没有空闲态插槽。"
+      },
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareRecentSearches"
+        }
+      },
+      "accessibility": {
+        "role": "group",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab visits the clear key, then each term in order",
+          "Enter or Space on a term searches for it"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "No motion.",
+        "screenReaderSemantics": "A section named by its heading; the terms are a list of full-width buttons named by the term (the clock glyph is decorative); the clear key is named \"Clear recent searches\"."
       }
     },
     {
@@ -19086,6 +19284,29 @@
             "zh": "呈现方式：auto 在手机形态（平台能力 bottomSheet）为底部面板、指针设备为居中对话框；drawer 为贴在行尾的全高抽屉，用于较长的次级面板。",
             "en": "How it appears: auto is a bottom sheet on phone form factors (platform capability bottomSheet) and a centered dialog on pointer devices; drawer is a full-height panel at the inline end for longer secondary panels."
           }
+        },
+        {
+          "name": "titleHidden",
+          "type": "boolean",
+          "default": false,
+          "platforms": [
+            "vue"
+          ],
+          "description": {
+            "zh": "只把 title 当可及名称用，不画那行可见标题：动作面板里每一条都是一句完整的动作，再写一遍面板叫什么只是重复刚点过的按钮。",
+            "en": "Use title as the accessible name only, without drawing the visible heading: in an action panel every row is already a whole action."
+          }
+        },
+        {
+          "name": "dialogWidth",
+          "type": "string",
+          "platforms": [
+            "vue"
+          ],
+          "description": {
+            "zh": "对话框形态下这张面的宽度，写进 --flare-component-sheet-dialog-width。组件根是 Teleport，宿主的 class 与自定义属性都到不了被传送出去的面上。",
+            "en": "Dialog-presentation width, written to --flare-component-sheet-dialog-width. The component's root is a Teleport, so a host class or custom property never reaches the teleported surface."
+          }
         }
       ],
       "states": [
@@ -19425,6 +19646,17 @@
           "description": {
             "zh": "与 BottomSheet 相同：手机上为底部面板，指针设备上为对话框；较长的表单可用 drawer。",
             "en": "Same as BottomSheet: a bottom sheet on phones and a dialog on pointer devices; drawer for long forms."
+          }
+        },
+        {
+          "name": "dialogWidth",
+          "type": "string",
+          "platforms": [
+            "vue"
+          ],
+          "description": {
+            "zh": "对话框形态下这张面的宽度，写进 --flare-component-sheet-dialog-width。组件根是 Teleport，宿主的 class 与自定义属性都到不了被传送出去的面上。",
+            "en": "Dialog-presentation width, written to --flare-component-sheet-dialog-width. The component's root is a Teleport, so a host class or custom property never reaches the teleported surface."
           }
         }
       ],

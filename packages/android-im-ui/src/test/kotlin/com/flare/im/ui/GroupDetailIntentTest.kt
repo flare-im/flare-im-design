@@ -42,6 +42,11 @@ class GroupDetailIntentTest {
         assertNull(model.joinPolicy)
     }
 
+    @Test fun discoverabilityDefaultsPrivateAndUsesTheSharedString() {
+        assertFalse(model.discoverable)
+        assertEquals(FlareStrings().groupDetailDiscoverable, flareGroupDetailLabels(FlareStrings()).discoverable)
+    }
+
     @Test fun theGridPreviewsTwentyCellsWithTheAddTileWhenManaging() {
         val members = (1..500).map { Contact("u$it", "成员$it") }
         assertEquals(19, groupPreviewMembers(members, canManage = true).size)

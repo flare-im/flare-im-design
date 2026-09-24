@@ -40,7 +40,7 @@ const { t } = useFlareI18n();
 .flare-wallpaper {
   width: 300px;
   max-width: 100%;
-  padding: 14px;
+  padding: var(--flare-size-spacing-2md);
   border-radius: var(--flare-size-radius-xl);
   background: var(--flare-color-bg-primary);
   border: 1px solid var(--flare-color-border-primary);
@@ -55,7 +55,7 @@ const { t } = useFlareI18n();
 .flare-wallpaper__grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  gap: var(--flare-size-spacing-2sm);
 }
 .flare-wallpaper__swatch {
   position: relative;

@@ -11,7 +11,7 @@ const options = [
   { id: "noname" },
 ];
 
-function render(props: Record<string, unknown>) {
+function render(props: InstanceType<typeof FlareChatWallpaperPicker>["$props"]) {
   return mount(defineComponent({
     setup() {
       useFlareI18nProvider("zh-CN");

@@ -49,16 +49,16 @@ public struct ChatWallpaperPickerView: View {
 
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: FlareSizes.spacing2sm) {
             Text(strings.chatBackground).font(.system(size: 13, weight: .semibold)).foregroundColor(colors.textSecondary)
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: FlareSizes.spacing2sm), count: 4), spacing: FlareSizes.spacing2sm) {
                 ForEach(options) { option in
                     swatch(colors, option)
                         .onTapGesture { onSelect?(option.id) }
                 }
             }
         }
-        .padding(14)
+        .padding(FlareSizes.spacing2md)
         .frame(width: 300)
         .background(RoundedRectangle(cornerRadius: FlareSizes.radiusXl).fill(colors.bgPrimary)
             .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusXl).stroke(colors.borderPrimary, lineWidth: 1)))
@@ -78,7 +78,7 @@ public struct ChatWallpaperPickerView: View {
             if selected {
                 ZStack {
                     Circle().fill(colors.primary)
-                    Image(systemName: "checkmark").font(.system(size: 10, weight: .bold)).foregroundColor(.white)
+                    Image(systemName: "checkmark").font(.system(size: FlareSizes.fontSize2xs, weight: .bold)).foregroundColor(.white)
                 }
                 .frame(width: 22, height: 22)
                 .padding(4)

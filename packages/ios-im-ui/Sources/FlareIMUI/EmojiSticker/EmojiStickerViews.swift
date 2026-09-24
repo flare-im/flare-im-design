@@ -16,6 +16,16 @@ private func resolvePackKey(_ raw: String) -> String? {
     return firstGroup(bracketKey, t) ?? firstGroup(bareKey, t)
 }
 
+/// A text body animates only when the entire trimmed wire value is one known
+/// bracket token. Mixed/inline emoji remain static first-frame images.
+func flareLoneEmojiPackKey(_ text: String) -> String? {
+    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard trimmed.hasPrefix("["), trimmed.hasSuffix("]"),
+          let key = resolvePackKey(trimmed),
+          FlareEmojiStickerCatalog.shared.hasEmojiKey(key) else { return nil }
+    return key
+}
+
 private func flareResized(_ image: FlarePlatformImage, to side: CGFloat) -> FlarePlatformImage {
     #if canImport(UIKit)
     let renderer = UIGraphicsImageRenderer(size: CGSize(width: side, height: side))
@@ -79,8 +89,7 @@ func flareInlineEmojiImage(key: String, side: CGFloat) -> FlarePlatformImage? {
     let rounded = max(8, (side * 2).rounded() / 2)
     let cacheKey = "\(key)@\(rounded)" as NSString
     if let cached = inlineEmojiCache.object(forKey: cacheKey) { return cached }
-    guard let url = FlareEmojiStickerCatalog.shared.emojiImageURL(key),
-          let image = FlareEmojiStickerCatalog.shared.image(at: url) else { return nil }
+    guard let image = FlareEmojiStickerCatalog.shared.emojiStaticImage(key) else { return nil }
     let resized = flareResized(image, to: rounded)
     inlineEmojiCache.setObject(resized, forKey: cacheKey, cost: Int(rounded * rounded) * 4)
     return resized
@@ -160,6 +169,46 @@ struct FlareBundleImage<Fallback: View>: View {
     }
 }
 
+/// Static first-frame renderer for local/remote and runtime-registered assets.
+/// It never schedules a frame loop, even when [url] points to animated webp.
+struct FlareStaticResourceImage<Fallback: View>: View {
+    private let url: URL?
+    private let data: Data?
+    private let fallback: () -> Fallback
+    @State private var image: FlarePlatformImage?
+    @State private var decoded = false
+
+    init(url: URL?, data: Data? = nil, @ViewBuilder fallback: @escaping () -> Fallback) {
+        self.url = url
+        self.data = data
+        self.fallback = fallback
+    }
+
+    var body: some View {
+        Group {
+            if let image { Image(flarePlatformImage: image).resizable().scaledToFit() }
+            else if decoded { fallback() }
+            else { Color.clear }
+        }
+        .task(id: "\(url?.absoluteString ?? ""):\(data?.count ?? 0)") {
+            decoded = false
+            image = nil
+            let frame: FlarePlatformImage?
+            if let data {
+                frame = await flareDecodeAnimatedDataAsync(data, firstFrameOnly: true)?.frames.first
+            } else if let url, ["https", "http"].contains(url.scheme?.lowercased() ?? "") {
+                let remote = try? await flareLoadAnimatedData(from: url)
+                frame = remote.flatMap { flareDecodeAnimatedData($0, firstFrameOnly: true)?.frames.first }
+            } else {
+                frame = await flareDecodeAnimatedFileAsync(url: url, firstFrameOnly: true)?.frames.first
+            }
+            guard !Task.isCancelled else { return }
+            image = frame
+            decoded = true
+        }
+    }
+}
+
 /// Emoji-pack message body (`[key]` / bare key / a raw unicode emoji).
 public struct FlareEmojiPackMessage: View {
     private let emoji: String
@@ -167,6 +216,7 @@ public struct FlareEmojiPackMessage: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.locale) private var locale
+    @ObservedObject private var catalog = FlareEmojiStickerCatalog.shared
 
     public init(emoji: String, isSelf: Bool = false) {
         self.emoji = emoji
@@ -176,8 +226,8 @@ public struct FlareEmojiPackMessage: View {
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         if let key = resolvePackKey(emoji) {
-            let label = FlareEmojiStickerCatalog.shared.emojiBracketLabel(key, locale: locale.identifier)
-            FlareAnimatedBundleImage(url: FlareEmojiStickerCatalog.shared.emojiImageURL(key)) {
+            let label = catalog.emojiBracketLabel(key, locale: locale.identifier)
+            FlareAnimatedBundleImage(url: catalog.emojiImageURL(key)) {
                 Text(label)
                     .font(.system(size: 20, weight: .medium))
                     .foregroundColor(colors.textSecondary)
@@ -200,6 +250,7 @@ public struct FlareStickerPackMessage: View {
     private let isSelf: Bool
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
+    @ObservedObject private var catalog = FlareEmojiStickerCatalog.shared
 
     public init(stickerId: String, packageId: String? = nil, url: String? = nil,
                 width: Int? = nil, height: Int? = nil, isSelf: Bool = false) {
@@ -222,11 +273,14 @@ public struct FlareStickerPackMessage: View {
         }
         let bundleURL = stickerId.trimmingCharacters(in: .whitespaces).isEmpty
             ? nil
-            : FlareEmojiStickerCatalog.shared.stickerImageURL(stickerId: stickerId, packageId: packageId)
+            : catalog.stickerImageURL(stickerId: stickerId, packageId: packageId)
         let remoteURL = url.flatMap(URL.init(string:)).flatMap {
             ["https", "http"].contains($0.scheme?.lowercased() ?? "") ? $0 : nil
         }
-        return FlareAnimatedBundleImage(url: bundleURL ?? remoteURL) {
+        return FlareStaticResourceImage(
+            url: bundleURL ?? remoteURL,
+            data: catalog.stickerStaticPreviewData(stickerId: stickerId, packageId: packageId)
+        ) {
             RoundedRectangle(cornerRadius: FlareSizes.radiusLg)
                 .fill(colors.bgHover)
                 .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).stroke(colors.borderPrimary))
@@ -247,6 +301,7 @@ public struct FlareEmojiStickerPicker: View {
     @State private var tab = 0
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
+    @ObservedObject private var catalog = FlareEmojiStickerCatalog.shared
 
     public init(emojiLabel: String = "Emoji", height: CGFloat? = 300,
                 onInsertEmoji: ((String) -> Void)? = nil,
@@ -259,7 +314,6 @@ public struct FlareEmojiStickerPicker: View {
 
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        let catalog = FlareEmojiStickerCatalog.shared
         let packs = catalog.loadedStickerPacks()
         let current = min(max(tab, 0), packs.count)
         let columns = [GridItem(.adaptive(minimum: current == 0 ? 44 : 76), spacing: 8)]
@@ -270,7 +324,10 @@ public struct FlareEmojiStickerPicker: View {
                     if current == 0 {
                         ForEach(catalog.loadedEmojiKeys(), id: \.self) { key in
                             Button { onInsertEmoji?(key) } label: {
-                                FlareBundleImage(url: catalog.emojiImageURL(key)) { Text(catalog.emojiBracketLabel(key, locale: locale.identifier)) }
+                                FlareStaticResourceImage(
+                                    url: catalog.emojiImageURL(key),
+                                    data: catalog.emojiStaticPreviewData(key)
+                                ) { Text(catalog.emojiBracketLabel(key, locale: locale.identifier)) }
                                     .frame(width: 32, height: 32)
                                     .frame(width: 44, height: 44)
                                     .contentShape(Rectangle())
@@ -283,7 +340,10 @@ public struct FlareEmojiStickerPicker: View {
                         let pack = packs[current - 1]
                         ForEach(pack.stickerIds, id: \.self) { id in
                             Button { onSendSticker?(pack.id, id) } label: {
-                                FlareBundleImage(url: catalog.stickerImageURL(stickerId: id, packageId: pack.id)) { Text(id) }
+                                FlareStaticResourceImage(
+                                    url: catalog.stickerImageURL(stickerId: id, packageId: pack.id),
+                                    data: catalog.stickerStaticPreviewData(stickerId: id, packageId: pack.id)
+                                ) { Text(id) }
                                     .frame(width: 72, height: 72)
                                     .contentShape(Rectangle())
                             }
@@ -293,7 +353,7 @@ public struct FlareEmojiStickerPicker: View {
                         }
                     }
                 }
-                .padding(10)
+                .padding(FlareSizes.spacing2sm)
             }
             Divider()
             ScrollView(.horizontal, showsIndicators: false) {

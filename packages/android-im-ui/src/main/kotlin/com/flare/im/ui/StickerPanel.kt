@@ -61,13 +61,13 @@ fun StickerPanel(
             .border(1.dp, colors.borderPrimary, RoundedCornerShape(FlareSizes.radiusXl)),
     ) {
         Text(activePack?.label ?: "", color = colors.textTertiary, fontWeight = FontWeight.SemiBold,
-            fontSize = 12.sp, modifier = Modifier.padding(start = 14.dp, end = 14.dp, top = 10.dp, bottom = 4.dp))
+            fontSize = 12.sp, modifier = Modifier.padding(start = FlareSizes.spacing2md, end = FlareSizes.spacing2md, top = FlareSizes.spacing2sm, bottom = FlareSizes.spacingXs))
         Column(
-            Modifier.height(208.dp).verticalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 6.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            Modifier.height(208.dp).verticalScroll(rememberScrollState()).padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacing2xs),
+            verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs),
         ) {
             (activePack?.stickers ?: emptyList()).chunked(4).forEach { row ->
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs)) {
                     row.forEach { s ->
                         Box(
                             Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(FlareSizes.radiusLg))
@@ -92,12 +92,12 @@ fun StickerPanel(
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderPrimary))
         Row(
-            Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = FlareSizes.spacingSm, vertical = FlareSizes.spacing2xs),
+            horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs),
         ) {
             railPacks.forEach { p ->
                 Box(
-                    Modifier.size(38.dp).clip(RoundedCornerShape(10.dp))
+                    Modifier.size(38.dp).clip(RoundedCornerShape(FlareSizes.radiusLg))
                         .background(if (p.key == activeKey) colors.bgSelected else Color.Transparent)
                         .clickable { activeKey = p.key },
                     contentAlignment = Alignment.Center,
@@ -105,7 +105,7 @@ fun StickerPanel(
                     when {
                         p.key == recentKey -> Icon(Icons.Outlined.Schedule, contentDescription = p.label, tint = colors.textSecondary, modifier = Modifier.size(18.dp))
                         p.coverUrl != null -> AsyncImage(model = p.coverUrl, contentDescription = p.label,
-                            modifier = Modifier.size(26.dp).clip(RoundedCornerShape(6.dp)), contentScale = ContentScale.Fit)
+                            modifier = Modifier.size(26.dp).clip(RoundedCornerShape(FlareSizes.radiusSm)), contentScale = ContentScale.Fit)
                         else -> Text(p.coverEmoji ?: p.stickers.firstOrNull()?.placeholder ?: "🖼️", fontSize = 20.sp)
                     }
                 }

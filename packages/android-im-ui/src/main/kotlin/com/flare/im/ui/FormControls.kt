@@ -269,7 +269,7 @@ fun Slider(
             Box(Modifier.offset(x = (trackW - thumb) * pct - 8.dp, y = (-16).dp)) {
                 Text(
                     "${round(value).toInt()}", color = Color.White, fontSize = 12.sp,
-                    modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(colors.primary).padding(horizontal = 8.dp, vertical = 2.dp),
+                    modifier = Modifier.clip(RoundedCornerShape(FlareSizes.radiusSm)).background(colors.primary).padding(horizontal = FlareSizes.spacingSm, vertical = 2.dp),
                 )
             }
         }
@@ -293,7 +293,7 @@ fun Rating(
     val interactive = !readonly && !disabled
     Row(
         Modifier.alpha(if (disabled) 0.5f else 1f).then(if (interactive) Modifier.selectableGroup() else Modifier),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         for (n in 1..count) {
@@ -366,7 +366,7 @@ fun TimePicker(
             .then(if (!disabled) Modifier.clickable { open = true } else Modifier)
             .padding(horizontal = trigPad.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
     ) {
         Icon(Icons.Outlined.Schedule, contentDescription = null, tint = colors.textTertiary, modifier = Modifier.size(16.dp))
         Text(
@@ -385,21 +385,21 @@ fun TimePicker(
             val heading = title ?: placeholder
             if (heading != null) {
                 Text(heading, color = colors.textTertiary, fontSize = 13.sp, fontWeight = FontWeight.Medium,
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp), textAlign = TextAlign.Center)
+                    modifier = Modifier.fillMaxWidth().padding(bottom = FlareSizes.spacing2xs), textAlign = TextAlign.Center)
             }
             Row(
-                Modifier.fillMaxWidth().height(232.dp).padding(horizontal = 24.dp),
+                Modifier.fillMaxWidth().height(232.dp).padding(horizontal = FlareSizes.spacing2xl),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 TimeColumn(hours, th, colors) { th = it }
                 Text(":", color = colors.textTertiary, fontWeight = FontWeight.SemiBold, fontSize = 18.sp,
-                    modifier = Modifier.padding(horizontal = 12.dp))
+                    modifier = Modifier.padding(horizontal = FlareSizes.spacingMd))
                 TimeColumn(mins, tm, colors) { tm = it }
             }
             Row(
-                Modifier.fillMaxWidth().padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                Modifier.fillMaxWidth().padding(FlareSizes.spacingLg),
+                horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2sm),
             ) {
                 Box(Modifier.weight(1f)) {
                     Button(label = cancelLabel, variant = FlareButtonVariant.Secondary, block = true, onClick = { open = false })
@@ -443,11 +443,11 @@ private fun androidx.compose.foundation.layout.RowScope.TimeColumn(
                 fontWeight = if (on) FontWeight.SemiBold else FontWeight.Normal,
                 fontSize = 17.sp,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                modifier = Modifier.fillMaxWidth().padding(vertical = FlareSizes.spacingXs)
                     .clip(RoundedCornerShape(FlareSizes.radiusMd))
                     .background(if (on) colors.bgSelected else androidx.compose.ui.graphics.Color.Transparent)
                     .clickable { onPick(v) }
-                    .padding(vertical = 10.dp),
+                    .padding(vertical = FlareSizes.spacing2sm),
             )
         }
     }
@@ -500,7 +500,7 @@ fun DatePicker(
             .then(if (!disabled) Modifier.clickable { open = true } else Modifier)
             .padding(horizontal = trigPad.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
     ) {
         Icon(Icons.Outlined.CalendarToday, contentDescription = null, tint = colors.textTertiary, modifier = Modifier.size(16.dp))
         Text(
@@ -519,9 +519,9 @@ fun DatePicker(
             val heading = title ?: placeholder
             if (heading != null) {
                 Text(heading, color = colors.textTertiary, fontSize = 13.sp, fontWeight = FontWeight.Medium,
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp), textAlign = TextAlign.Center)
+                    modifier = Modifier.fillMaxWidth().padding(bottom = FlareSizes.spacing2xs), textAlign = TextAlign.Center)
             }
-            Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+            Column(Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacingLg)) {
                 // month nav
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                     IconButton("chevron-left", flareStrings().previousMonth) { viewYm = viewYm.minusMonths(1) }
@@ -537,7 +537,7 @@ fun DatePicker(
                             .getDisplayName(java.time.format.TextStyle.NARROW, Locale.getDefault())
                     }
                 }
-                Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                Row(Modifier.fillMaxWidth().padding(vertical = FlareSizes.spacingXs)) {
                     weekdayNames.forEach {
                         Text(it, color = colors.textTertiary, fontSize = 12.sp, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
                     }
@@ -578,7 +578,7 @@ fun DatePicker(
                     }
                 }
                 // footer
-                Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(Modifier.fillMaxWidth().padding(vertical = FlareSizes.spacingMd), horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2sm)) {
                     Box(Modifier.weight(1f)) { Button(label = cancelLabel, variant = FlareButtonVariant.Secondary, block = true, onClick = { open = false }) }
                     Box(Modifier.weight(1f)) { Button(label = todayLabel, variant = FlareButtonVariant.Primary, block = true, onClick = { onChange?.invoke(todayStr); open = false }) }
                 }

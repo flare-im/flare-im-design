@@ -92,15 +92,15 @@ class _FlareTextareaState extends State<FlareTextarea> {
 
   EdgeInsets get _padding => switch (widget.size) {
     FlareControlSize.sm => const EdgeInsets.symmetric(
-      horizontal: 10,
+      horizontal: FlareSizes.spacing2sm,
       vertical: 8,
     ),
     FlareControlSize.md => const EdgeInsets.symmetric(
       horizontal: 12,
-      vertical: 10,
+      vertical: FlareSizes.spacing2sm,
     ),
     FlareControlSize.lg => const EdgeInsets.symmetric(
-      horizontal: 14,
+      horizontal: FlareSizes.spacing2md,
       vertical: 12,
     ),
   };

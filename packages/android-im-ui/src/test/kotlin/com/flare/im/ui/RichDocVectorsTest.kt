@@ -152,6 +152,24 @@ class RichTextMessageTest {
         assertEquals(setOf("smile", "cry_loudly"), flareRichEmojiKeys(blocks))
     }
 
+    // The core's Markdown normaliser stores the composer's `[key]` as literal text, not as an emoji run; a rich
+    // body reads the token as a plain text body does. Unknown keys and code stay the words they are.
+    @Test fun emojiPackTokensInATextRunDrawInline() {
+        val blocks = flareParseRichDoc(
+            """{"type":"doc","version":2,"children":[{"type":"paragraph","children":[{"type":"text","text":"[angry_face] 高峰 [not_a_key]"},{"type":"inline_code","text":"[alien]"}]}]}""",
+        )!!
+        assertEquals(setOf("angry_face", "not_a_key"), flareRichEmojiKeys(blocks))
+        val runs = (blocks.single() as FlareRichBlock.Paragraph).runs
+        val text = flareRichRunsText(runs, paint.copy(drawableEmoji = setOf("angry_face")), 15.sp, null) {}
+        val inline = text.getStringAnnotations("androidx.compose.foundation.text.inlineContent", 0, text.length)
+        assertEquals(listOf(flareInlineEmojiId("angry_face")), inline.map { it.item })
+        assertEquals(0 to "[angry_face]".length, inline.single().let { it.start to it.end })
+        assertEquals("[angry_face] 高峰 [not_a_key][alien]", text.text)
+        // Nothing is drawable until the catalog says so.
+        val plain = flareRichRunsText(runs, paint, 15.sp, null) {}
+        assertTrue(plain.getStringAnnotations("androidx.compose.foundation.text.inlineContent", 0, plain.length).isEmpty())
+    }
+
     @Test fun copyAndSummaryUseThePlainText() {
         val content = FlareRichTextContent(docJson = "", plainText = "周会纪要", title = "项目周报")
         assertEquals("周会纪要", flareMessageCopyText(content))

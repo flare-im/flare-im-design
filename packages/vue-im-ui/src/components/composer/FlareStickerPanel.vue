@@ -79,7 +79,7 @@ const activePack = computed(() => railPacks.value.find((p) => p.key === activeKe
   overflow: hidden;
 }
 .flare-sticker-panel__label {
-  padding: 10px 14px 4px;
+  padding: var(--flare-size-spacing-2sm) var(--flare-size-spacing-2md) 4px;
   font-size: 12px;
   font-weight: 600;
   color: var(--flare-color-text-tertiary);

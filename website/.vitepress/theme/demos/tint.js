@@ -1,16 +1,14 @@
-// Pastel identity palette — the soft avatar look from the reference app
-// (flare-core-flutter-app · FlareImDesign.avatarPastelForKey). Soft tinted
-// background + dark initials reads far more premium than a saturated solid,
-// and stays legible in light and dark. Keyed by a stable id so a given person
-// always gets the same tint.
-export const AVATAR_TINTS = [
-  { bg: "#DBEAFE", fg: "#1D4ED8" }, // blue
-  { bg: "#E9D5FF", fg: "#6D28D9" }, // purple
-  { bg: "#FBCFE8", fg: "#BE185D" }, // pink
-  { bg: "#D1FAE5", fg: "#047857" }, // green
-  { bg: "#FEF3C7", fg: "#B45309" }, // amber
-  { bg: "#E5E7EB", fg: "#374151" }, // slate
-];
+// Identity tint for the home showcase — read from the kit's own palette rather than a copy of it.
+//
+// This file used to hold six hex pairs "matching" the kit. Copies drift: the pink pair kept the
+// 4.4:1 foreground the kit had already moved off, and there was no dark set at all, so the home
+// page showed avatars the kit itself never renders. The kit publishes the palette as
+// `--flare-component-avatar-tint-{1..6}-{bg,fg}` (component-tokens.css, light and dark); the same
+// hash as `shared/avatar-tint.ts` keeps one person on one slot across the docs and the kit.
+export const AVATAR_TINTS = [1, 2, 3, 4, 5, 6].map((index) => ({
+  bg: `var(--flare-component-avatar-tint-${index}-bg)`,
+  fg: `var(--flare-component-avatar-tint-${index}-fg)`,
+}));
 
 function hash(key) {
   let h = 0;
@@ -18,14 +16,7 @@ function hash(key) {
   return Math.abs(h);
 }
 
-/** Stable pastel { bg, fg } for a key. */
+/** Stable { bg, fg } for a key, as CSS variable references that follow the active theme. */
 export function tint(key) {
   return AVATAR_TINTS[hash(key) % AVATAR_TINTS.length];
-}
-
-/** initials from a display name (first char, or first char of two words). */
-export function initials(name) {
-  const parts = String(name || "").trim().split(/\s+/);
-  const s = parts.length > 1 ? parts[0][0] + parts[1][0] : (parts[0] || "?")[0];
-  return (s || "?").toUpperCase();
 }

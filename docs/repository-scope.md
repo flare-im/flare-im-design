@@ -47,6 +47,7 @@ Flare Product
 | Path | Responsibility |
 |---|---|
 | `tokens/` | Token source, generation, and published output |
+| `strings/` | Component copy source (`en.json`) and the generator that writes the three native kits' English presets |
 | `spec/` | Component, interaction, accessibility, scenario, catalog, and compatibility contracts |
 | `packages/vue-im-ui/` | Vue native implementation and interactive reference |
 | `packages/flutter-im-ui/` | Flutter mobile/desktop implementation |

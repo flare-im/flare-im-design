@@ -48,16 +48,16 @@ fun AnnouncementBanner(
     Row(
         Modifier.clip(RoundedCornerShape(FlareSizes.radiusLg)).background(colors.bgSelected)
             .border(1.dp, colors.primary.copy(alpha = 0.22f), RoundedCornerShape(FlareSizes.radiusLg))
-            .padding(horizontal = 12.dp, vertical = 11.dp),
+            .padding(horizontal = FlareSizes.spacingMd, vertical = 11.dp),
     ) {
         Box(
-            Modifier.size(26.dp).clip(RoundedCornerShape(8.dp))
+            Modifier.size(26.dp).clip(RoundedCornerShape(FlareSizes.radiusMd))
                 .background(Brush.linearGradient(listOf(colors.primary, colors.primaryActive))),
             contentAlignment = Alignment.Center,
         ) {
             Icon(Icons.Outlined.Campaign, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
         }
-        Spacer(Modifier.width(10.dp))
+        Spacer(Modifier.width(FlareSizes.spacing2sm))
         Column(Modifier.weight(1f)) {
             Row {
                 Text(flareStrings().groupAnnouncement, color = colors.primaryText, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
@@ -70,12 +70,12 @@ fun AnnouncementBanner(
                 overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 3.dp))
             if (showToggle) {
                 Row(
-                    Modifier.padding(top = 4.dp).clickable { expanded = !expanded },
+                    Modifier.padding(top = FlareSizes.spacingXs).clickable { expanded = !expanded },
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(if (expanded) flareStrings().collapse else flareStrings().expand, color = colors.primaryText, fontSize = 12.sp)
                     Icon(Icons.Outlined.ExpandMore, contentDescription = null, tint = colors.primaryText,
-                        modifier = Modifier.size(14.dp).rotate(if (expanded) 180f else 0f))
+                        modifier = Modifier.size(FlareSizes.spacing2md).rotate(if (expanded) 180f else 0f))
                 }
             }
         }

@@ -16,6 +16,18 @@ describe('shared settings row', () => {
     expect(row.emitted('toggle')).toHaveLength(1);
     row.unmount();
   });
+  it('marks the row the other pane is showing, separately from disabled and read-only', () => {
+    // 设置列表被当成导航列用时（左边四个入口、右边加载对应名单）必须标出当前那条，
+    // 否则读的人看不出左右的对应关系。
+    const plain = mount(Row, { props: { item: { key: 'friends', label: '好友', kind: 'navigation' as const } } });
+    expect(plain.classes()).not.toContain('is-current');
+    expect(plain.attributes('aria-current')).toBeUndefined();
+    const current = mount(Row, { props: { item: { key: 'friends', label: '好友', kind: 'navigation' as const, current: true } } });
+    expect(current.classes()).toContain('is-current');
+    expect(current.attributes('aria-current')).toBe('true');
+    plain.unmount();
+    current.unmount();
+  });
   it('renders an in-place action as a button without a chevron, keeping detail, danger and icon composition', async () => {
     const row = mount(Row, { props: { item: { key: 'clear', label: '清空记录', kind: 'action', danger: true, detail: '不可撤销' } }, slots: { icon: '<svg aria-hidden="true"></svg>' } });
     expect(row.element.tagName).toBe('BUTTON');

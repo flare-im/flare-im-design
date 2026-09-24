@@ -59,20 +59,32 @@ final class ConversationHeaderMenuTests: XCTestCase {
     @MainActor
     func testChoosingAMenuItemDispatchesItsAction() throws {
         var dispatched: [String] = []
-        let header = ConversationHeaderView(identity: group, actions: hostActions, onAction: { dispatched.append($0.id) })
-        let more = try header.inspect().find(ViewType.Menu.self, where: {
-            try $0.accessibilityLabel().string() == FlareStrings().conversationHeaderMoreActions
-        })
+        let strings = FlareStrings()
+        // 菜单内容由 kit 自绘并挂在 popover 里(系统 Menu 有 ~250pt 最小宽,四端对不齐),
+        // 从页头这一层已经钻不进条目。改走页头自己的映射函数重建同一份菜单再点 ——
+        // 断言的行为(选中即派发、禁用项永不派发)一条没少。
+        func menu(_ actions: [ConversationHeaderAction], label: String) throws -> InspectableView<ViewType.ClassifiedView> {
+            let items = actions.map { ConversationHeaderView.menuItem($0, kind: group.kind, strings: strings) }
+            let view = ActionMenuView(
+                items: items,
+                accessibilityLabel: label,
+                onSelect: { id in if let a = actions.first(where: { $0.id == id }) { dispatched.append(a.id) } },
+                label: { EmptyView() })
+            return try view.sheet(ActionMenuRules.sections(items)).inspect()
+        }
+        // 分组用 kit 自己的解析 + 分区,与页头同一条路径,不在测试里复刻一份 placement 规则。
+        let regions = ConversationHeaderView.regions(
+            resolveConversationHeaderActions(identity: group, actions: hostActions), maxPrimary: 1)
+
+        let more = try menu(regions.overflow, label: strings.conversationHeaderMoreActions)
         try more.find(button: "Mute").tap()
         XCTAssertEqual(dispatched, ["mute"])
         XCTAssertThrowsError(try more.find(button: "Export  PDF").tap(), "a disabled action never dispatches")
-        try more.find(button: FlareStrings().conversationHeaderDetails).tap()
+        try more.find(button: strings.conversationHeaderDetails).tap()
         XCTAssertEqual(dispatched, ["mute", "details"])
 
-        let add = try header.inspect().find(ViewType.Menu.self, where: {
-            try $0.accessibilityLabel().string() == FlareStrings().conversationHeaderAddActions
-        })
-        try add.find(button: FlareStrings().conversationHeaderAddMember).tap()
+        let add = try menu(regions.add, label: strings.conversationHeaderAddActions)
+        try add.find(button: strings.conversationHeaderAddMember).tap()
         XCTAssertEqual(dispatched, ["mute", "details", "addMember"])
     }
 }

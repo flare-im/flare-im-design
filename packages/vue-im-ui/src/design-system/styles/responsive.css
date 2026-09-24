@@ -18,7 +18,7 @@
    padding is the app's outer gutter. These stay window queries on purpose (FR-157). */
 @media (min-width: 600px) and (max-width: 899px) {
   :root {
-    --flare-component-page-padding-inline: 14px;
+    --flare-component-page-padding-inline: var(--flare-size-spacing-2md);
     --flare-component-sheet-height: min(72dvh, 620px);
   }
 }
@@ -33,7 +33,7 @@
 
 @media (max-width: 599px) {
   :root {
-    --flare-component-page-padding-inline: 10px;
+    --flare-component-page-padding-inline: var(--flare-size-spacing-2sm);
   }
 }
 
@@ -203,14 +203,6 @@
   .composer-emoji-sticker-panel .panel-scroll {
     max-height: min(36dvh, 320px);
   }
-}
-
-/* —— 抽屉 / 弹层 —— */
-@media (max-width: 899px) {
-  .mobile-sheet .n-drawer-body-content-wrapper {
-    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-  }
-
 }
 
 @media (min-width: 900px) {

@@ -206,7 +206,7 @@ public struct ImagePreviewView: View {
             Circle().stroke(.white.opacity(0.3), lineWidth: 2)
             Circle().trim(from: 0, to: CGFloat(progressPct) / 100)
                 .stroke(.white, lineWidth: 2).rotationEffect(.degrees(-90))
-            Text("\(progressPct)").font(.system(size: 10)).foregroundColor(.white)
+            Text("\(progressPct)").font(.system(size: FlareSizes.fontSize2xs)).foregroundColor(.white)
         }.frame(width: 38, height: 38)
     }
 }

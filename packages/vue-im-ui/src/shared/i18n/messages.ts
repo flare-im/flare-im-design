@@ -162,6 +162,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       muteNotif: "消息免打扰",
       pinGroup: "置顶该群",
       manage: "群管理",
+      discoverable: "允许搜索到本群",
       joinMode: "进群方式",
       joinRequests: "入群申请",
       muteAll: "全员禁言",
@@ -274,8 +275,14 @@ export const flareMessages: Record<string, FlareMessageTree> = {
     },
     search: {
       viewAll: "查看全部 {count} 条",
+      viewMore: "查看更多",
       empty: "没有找到相关结果",
       emptyHint: "换个关键词试试",
+    },
+    recentSearches: {
+      title: "最近搜索",
+      clear: "清除",
+      clearLabel: "清除最近搜索",
     },
     quickPhrase: {
       title: "快捷短语",
@@ -403,6 +410,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       unlike: "取消",
       comment: "评论",
       delete: "删除",
+      report: "举报",
       more: "更多",
       replyTo: "回复",
       replyToComment: "回复 {name}：{text}",
@@ -481,6 +489,12 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       cancel: "取消",
       save: "保存",
       saving: "保存中…",
+    },
+    conversationFilter: {
+      label: "会话筛选",
+      all: "全部",
+      unread: "未读",
+      mentioned: "@我",
     },
     conversationDetails: {
       title: "会话详情",
@@ -1355,6 +1369,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       muteNotif: "Mute notifications",
       pinGroup: "Pin group",
       manage: "Management",
+      discoverable: "Allow this group to appear in search",
       joinMode: "Join mode",
       joinRequests: "Join requests",
       muteAll: "Mute all",
@@ -1467,8 +1482,14 @@ export const flareMessages: Record<string, FlareMessageTree> = {
     },
     search: {
       viewAll: "View all {count}",
+      viewMore: "See more",
       empty: "No results found",
       emptyHint: "Try a different keyword",
+    },
+    recentSearches: {
+      title: "Recent searches",
+      clear: "Clear",
+      clearLabel: "Clear recent searches",
     },
     quickPhrase: {
       title: "Quick phrases",
@@ -1596,6 +1617,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       unlike: "Unlike",
       comment: "Comment",
       delete: "Delete",
+      report: "Report",
       more: "More",
       replyTo: "replying to",
       replyToComment: "Reply to {name}: {text}",
@@ -1669,6 +1691,12 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       cancel: "Cancel",
       save: "Save",
       saving: "Saving…",
+    },
+    conversationFilter: {
+      label: "Filter conversations",
+      all: "All",
+      unread: "Unread",
+      mentioned: "Mentions",
     },
     conversationDetails: {
       title: "Conversation details",

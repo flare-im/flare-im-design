@@ -61,7 +61,7 @@ fun CallDock(
             .shadow(12.dp, RoundedCornerShape(999.dp), clip = false)
             .clip(RoundedCornerShape(999.dp))
             .background(colors.messageOutgoingBackground)
-            .padding(start = 8.dp, top = 4.dp, bottom = 4.dp, end = FlareSizes.spacingXs),
+            .padding(start = FlareSizes.spacingSm, top = FlareSizes.spacingXs, bottom = FlareSizes.spacingXs, end = FlareSizes.spacingXs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
@@ -79,7 +79,7 @@ fun CallDock(
                 )
                 Box(Modifier.size(40.dp).clip(CircleShape).border(2.dp, colors.success, CircleShape))
             }
-            Spacer(Modifier.width(10.dp))
+            Spacer(Modifier.width(FlareSizes.spacing2sm))
             Column {
                 Text(title, color = colors.messageOutgoingForeground, fontWeight = FontWeight.SemiBold,
                     fontSize = FlareSizes.fontSizeLg.value.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,

@@ -311,7 +311,7 @@ public struct SearchDateRangeFilterView: View {
     @ViewBuilder
     private func chip(_ label: String, icon: String?, selected: Bool, disabled: Bool,
                       colors: FlareColors, action: @escaping () -> Void) -> some View {
-        let foreground = disabled ? colors.textDisabled : (selected ? colors.primary : colors.textPrimary)
+        let foreground = disabled ? colors.textDisabled : (selected ? colors.primaryText : colors.textPrimary)
         Button(action: action) {
             HStack(spacing: FlareSizes.spacingXs) {
                 if let icon { IconView(icon, size: 16, color: foreground).accessibilityHidden(true) }

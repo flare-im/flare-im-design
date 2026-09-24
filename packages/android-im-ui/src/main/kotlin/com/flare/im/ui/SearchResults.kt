@@ -49,13 +49,13 @@ fun SearchResults(
                 color = colors.textTertiary,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = FlareSizes.fontSizeSm.value.sp,
-                modifier = Modifier.padding(start = FlareSizes.spacingLg, end = FlareSizes.spacingLg, top = 12.dp, bottom = 6.dp),
+                modifier = Modifier.padding(start = FlareSizes.spacingLg, end = FlareSizes.spacingLg, top = FlareSizes.spacingMd, bottom = FlareSizes.spacing2xs),
             )
             g.items.forEach { item ->
                 Row(
                     Modifier.fillMaxWidth()
                         .then(if (onOpen != null) Modifier.clickable { onOpen(item) } else Modifier)
-                        .padding(horizontal = FlareSizes.spacingLg, vertical = 8.dp),
+                        .padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingSm),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Avatar(userId = item.id, displayName = item.title, size = 38.dp)
@@ -85,19 +85,26 @@ fun SearchResults(
                     }
                 }
             }
-            if (g.total != null && g.total > g.items.size) {
+            val counted = g.total != null && g.total > g.items.size
+            if (counted || g.hasMore) {
                 Text(
-                    flareStrings().viewAll(g.total),
+                    flareSearchMoreText(g, flareStrings()),
                     color = colors.primaryText,
                     fontWeight = FontWeight.Medium,
                     fontSize = FlareSizes.fontSizeMd.value.sp,
                     modifier = Modifier.fillMaxWidth()
                         .then(if (onViewAll != null) Modifier.clickable { onViewAll(g.kind) } else Modifier)
-                        .padding(horizontal = FlareSizes.spacingLg, vertical = 10.dp),
+                        .padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacing2sm),
                 )
             }
         }
     }
+}
+
+/** The truncated group's last row: the counted "查看全部 N" when the total is known, the plain "更多" otherwise. */
+internal fun flareSearchMoreText(group: SearchResultGroup, strings: FlareStrings): String {
+    val total = group.total
+    return if (total != null && total > group.items.size) strings.viewAll(total) else strings.more
 }
 
 internal fun highlightQuery(text: String, query: String, colors: FlareColors): AnnotatedString {

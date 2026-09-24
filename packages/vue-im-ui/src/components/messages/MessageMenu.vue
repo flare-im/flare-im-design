@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from "vue";
-import { NDrawer, NDrawerContent } from "naive-ui";
+import { computed, ref, watch } from "vue";
 import type { MessageMenuPresentation } from "../../composables/chat/useMessageMenuInteraction";
 import type { MessageMenuConfig } from "../../shared/config/messageMenu";
 import type { MessageLike } from "../../shared/contracts/messageRow";
@@ -11,11 +10,10 @@ import {
   resolveMessageMenuAction,
   type MessageMenuExtension,
 } from "../../utils/buildMessageMenuOptions";
+import FlareBottomSheet from "../general/FlareBottomSheet.vue";
 import MessageActionSheet from "./MessageActionSheet.vue";
 import FlareActionMenu from "../general/FlareActionMenu.vue";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
-import { claimNativeBack } from "../../shared/platform/useFlareNativeBack";
-import { useFlarePlatformSafe } from "../../shared/platform/useFlarePlatform";
 
 const props = withDefaults(
   defineProps<{
@@ -79,7 +77,9 @@ const dropdownItems = computed(() =>
 
 const useBottomSheet = computed(() => props.presentation === "bottomSheet");
 
-const sheetHeight = computed(() => {
+// 面自己按内容撑开,这里只给上限 —— 从前是 naive 抽屉的一个固定高度,内容短了留白、
+// 长了被切(表情面板展开那一档尤其明显)。
+const sheetMaxHeight = computed(() => {
   if (typeof window === "undefined") return "auto";
   const vh = window.innerHeight;
   const react = sheetModel.value.showReactions ? 72 : 0;
@@ -97,15 +97,12 @@ function onEmojiExpanded(expanded: boolean): void {
   emojiPanelExpanded.value = expanded;
 }
 
-// While the sheet is open the platform back closes it (claimed on open, so a closed menu holds nothing).
-const platform = useFlarePlatformSafe();
-let releaseBack: (() => void) | undefined;
+// 滚动锁、焦点、Escape 和平台返回键都由 FlareBottomSheet 走共用的模态栈 —— 从前这张
+// 面是 naive 的底部抽屉:自己锁 documentElement 的 overflow(组件库锁的是 body,两把锁
+// 互相看不见),z-index 落在锚定层 2000(比所有模态都高),返回键还得在这里再接一次。
 watch(sheetOpen, (open) => {
-  releaseBack?.();
-  releaseBack = open ? claimNativeBack(platform, () => { sheetOpen.value = false; }) : undefined;
   if (!open) emojiPanelExpanded.value = false;
 });
-onBeforeUnmount(() => releaseBack?.());
 
 function dispatch(key: string): void {
   const action = resolveMessageMenuAction(props.message, key);
@@ -219,22 +216,23 @@ defineExpose({ openMenu });
     <div ref="anchorRef" class="message-menu-anchor" @contextmenu="onContextMenu">
       <slot />
     </div>
-    <n-drawer
+    <FlareBottomSheet
       v-if="useBottomSheet && sheetMounted"
-      v-model:show="sheetOpen"
-      placement="bottom"
-      :height="sheetHeight"
-      class="message-menu-drawer mobile-sheet"
+      :open="sheetOpen"
+      presentation="sheet"
+      :max-height="sheetMaxHeight"
+      :title="t('message.menuAria')"
+      title-hidden
+      @close="sheetOpen = false"
     >
-      <n-drawer-content :native-scrollbar="false" class="message-menu-drawer-content">
-        <MessageActionSheet
-          :model="sheetModel"
-          @action="onSelect"
-          @react="onReact"
-          @emoji-expanded="onEmojiExpanded"
-        />
-      </n-drawer-content>
-    </n-drawer>
+      <MessageActionSheet
+        :model="sheetModel"
+        :show-grabber="false"
+        @action="onSelect"
+        @react="onReact"
+        @emoji-expanded="onEmojiExpanded"
+      />
+    </FlareBottomSheet>
     <FlareActionMenu
       v-else-if="!useBottomSheet && menuMounted"
       :open="menuOpen"

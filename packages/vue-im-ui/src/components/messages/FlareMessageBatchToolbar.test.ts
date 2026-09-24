@@ -58,6 +58,40 @@ describe("FlareMessageBatchToolbar", () => {
     expect(wrapper.emitted("action")).toBeUndefined();
   });
 
+  // 工具条挂着 = 多选这层活着:它自己收 Escape。但只在宿主真的听 @exit 时 —— 没人听的工具条
+  // 既不吞键也不认领返回,不会变成键盘陷阱。
+  it("owns Escape while a host listens for exit, and stays silent otherwise", () => {
+    const escape = () => {
+      const event = new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true });
+      window.dispatchEvent(event);
+      return event;
+    };
+    const listened = setup({ selectedIds: ["a"], total: 4, capabilities: everything, onExit: () => undefined });
+    expect(escape().defaultPrevented).toBe(true);
+    expect(listened.emitted("exit")).toHaveLength(1);
+    listened.vm.$.appContext.app.unmount();
+    wrappers.splice(0).forEach((wrapper) => wrapper.unmount());
+
+    const silent = setup({ selectedIds: ["a"], total: 4, capabilities: everything });
+    expect(escape().defaultPrevented).toBe(false);
+    expect(silent.emitted("exit")).toBeUndefined();
+
+    const busy = setup({ selectedIds: ["a"], total: 4, capabilities: everything, busy: true, onExit: () => undefined });
+    expect(escape().defaultPrevented).toBe(true);
+    expect(busy.emitted("exit")).toBeUndefined();
+  });
+
+  // 退出键是这一流里最后一个键(三端原生同序),包在一层能被浮动条钉住的壳里,并把它的快捷键说出来。
+  it("keeps the exit key last in the strip, wrapped so the floating bar can pin it", () => {
+    const wrapper = setup({ selectedIds: ["a"], total: 4, capabilities: everything, floating: true });
+    const last = wrapper.get(".flare-batch-toolbar__actions > :last-child");
+    expect(last.classes()).toContain("flare-batch-toolbar__exit");
+    const exit = last.get("button");
+    expect(exit.attributes("aria-label")).toBe("退出多选");
+    expect(exit.attributes("aria-keyshortcuts")).toBe("Escape");
+    expect(wrapper.get(".flare-batch-toolbar__meta").attributes("aria-live")).toBe("polite");
+  });
+
   it("disables what the selection or a running batch does not allow, and still draws it", () => {
     const one = setup({ selectedIds: ["a"], total: 4, capabilities: everything });
     expect(one.get('[aria-label="合并转发"]').attributes("disabled")).toBeDefined();

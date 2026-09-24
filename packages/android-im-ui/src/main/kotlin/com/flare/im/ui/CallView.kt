@@ -61,7 +61,7 @@ fun CallView(
         }
 
         Column(
-            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 16.dp, end = 16.dp, top = 72.dp, bottom = 48.dp),
+            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = FlareSizes.spacingLg, end = FlareSizes.spacingLg, top = 72.dp, bottom = 48.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             if (mode == FlareCallMode.Audio || videoContent == null) {

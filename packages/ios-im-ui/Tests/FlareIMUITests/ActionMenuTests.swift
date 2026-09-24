@@ -29,11 +29,19 @@ final class ActionMenuTests: XCTestCase {
     }
 
     @MainActor
-    func testTheMenuKeepsItsOrderWhenItOpensUpward() {
-        // The system reverses a menu that opens upward unless its order is fixed.
+    func testTheMenuIsDrawnByTheKitSoNothingCanReverseItsOrder() {
+        // The system menu reverses a menu that opens upward, and gives it a ~250pt minimum width.
+        // The kit draws its own, so the host's order is the order and the width is the content's.
         let menu = ActionMenuView(items: [FlareActionItem(id: "a", label: "A")], accessibilityLabel: "More",
                                   onSelect: { _ in }) { Text("Open") }
-        XCTAssertTrue(String(describing: type(of: menu.body)).contains("MenuOrder"))
+        XCTAssertThrowsError(try menu.inspect().find(ViewType.Menu.self))
+    }
+
+    /// The width bounds are a cross-platform contract: Android's `ActionMenuMinWidth`/`MaxWidth`
+    /// and the 8em/20em in the Vue and Flutter menus are these same numbers at a 14px base.
+    func testTheWidthBoundsAreTheSameOnEveryPlatform() {
+        XCTAssertEqual(ActionMenuRules.minWidth, 112)
+        XCTAssertEqual(ActionMenuRules.maxWidth, 280)
     }
 
     // Rule 2: a separator before an item whose group is set and differs from the last group seen.
@@ -115,9 +123,21 @@ final class ActionMenuTests: XCTestCase {
         ], accessibilityLabel: "More", onSelect: { selected.append($0) }) {
             Image(systemName: "ellipsis")
         }
-        let inspected = try menu.inspect().find(ViewType.Menu.self)
+        let items = [
+            FlareActionItem(id: "search", label: "Search", icon: "search", group: "find"),
+            FlareActionItem(id: "export", label: "Export", group: "data", enabled: false, disabledReason: "Owner only"),
+            FlareActionItem(id: "leave", label: "Leave", icon: "logout", group: "danger", danger: true),
+        ]
+        let sections = ActionMenuRules.sections(items)
+        let inspected = try menu.sheet(sections).inspect()
         XCTAssertEqual(try inspected.accessibilityLabel().string(), "More")
-        XCTAssertEqual(inspected.findAll(ViewType.Section.self).count, 3, "one section per group run")
+        XCTAssertEqual(sections.count, 3, "one section per group run")
+        // The drawn surface keeps the host's order — the reason the kit stopped using the system
+        // menu, which reverses itself when it opens upward.
+        let drawn = inspected.findAll(ViewType.Text.self)
+            .compactMap { try? $0.string() }
+            .filter { ["Search", "Export", "Leave"].contains($0) }
+        XCTAssertEqual(drawn, ["Search", "Export", "Leave"])
 
         try inspected.find(button: "Search").tap()
         XCTAssertEqual(selected, ["search"])
@@ -128,10 +148,15 @@ final class ActionMenuTests: XCTestCase {
         XCTAssertThrowsError(try export.tap(), "a disabled item never reports")
         XCTAssertEqual(selected, ["search"])
 
-        let leave = try inspected.find(button: "Leave")
-        XCTAssertEqual(try leave.role(), .destructive)
-        XCTAssertNil(try inspected.find(button: "Search").role())
-        try leave.tap()
+        // Destructive is the error colour now that the row is the kit's, not a system menu role.
+        let colors = FlareColors.of(.light)
+        let leaveRow = try menu.row(items[2], colors).inspect()
+        XCTAssertEqual(try leaveRow.find(text: "Leave").attributes().foregroundColor(), colors.error)
+        let searchRow = try menu.row(items[0], colors).inspect()
+        XCTAssertEqual(try searchRow.find(text: "Search").attributes().foregroundColor(), colors.textPrimary,
+                       "a normal item is not tinted as destructive")
+
+        try inspected.find(button: "Leave").tap()
         XCTAssertEqual(selected, ["search", "leave"])
     }
 
@@ -141,16 +166,23 @@ final class ActionMenuTests: XCTestCase {
             FlareActionItem(id: "requests", label: "Requests", badge: "3", accessibilityLabel: "3 new requests"),
             FlareActionItem(id: "plain", label: "Plain"),
         ], accessibilityLabel: "Contacts", onSelect: { _ in }) { Text("Open") }
-        let inspected = try menu.inspect().find(ViewType.Menu.self)
+        let sections = ActionMenuRules.sections([
+            FlareActionItem(id: "requests", label: "Requests", badge: "3", accessibilityLabel: "3 new requests"),
+            FlareActionItem(id: "plain", label: "Plain"),
+        ])
+        let inspected = try menu.sheet(sections).inspect()
         XCTAssertEqual(try inspected.find(button: "Requests  3").accessibilityLabel().string(), "3 new requests")
-        XCTAssertThrowsError(try inspected.find(button: "Plain").accessibilityLabel(), "no override, the system label stays")
+        XCTAssertThrowsError(try inspected.find(button: "Plain").accessibilityLabel(), "no override, the row's own text stays")
     }
 
     // Rule 7: a menu with no visible item never opens — only its label is drawn.
     @MainActor
     func testAnEmptyMenuDrawsOnlyItsLabel() throws {
         let empty = ActionMenuView(items: [], accessibilityLabel: "More", onSelect: { _ in }) { Text("Trigger") }
-        XCTAssertThrowsError(try empty.inspect().find(ViewType.Menu.self))
+        // Not just "no system menu" — with nothing to show there is no trigger button at all,
+        // only the host's label.
+        XCTAssertThrowsError(try empty.inspect().find(ViewType.Button.self))
+        XCTAssertNoThrow(try empty.inspect().find(text: "Trigger"))
         XCTAssertNoThrow(try empty.inspect().find(text: "Trigger"))
         let hidden = ActionMenuView(items: [FlareActionItem(id: "h", label: "Hidden", visible: false)],
                                     accessibilityLabel: "More", onSelect: { _ in }) { Text("Trigger") }

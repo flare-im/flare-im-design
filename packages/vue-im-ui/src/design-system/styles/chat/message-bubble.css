@@ -83,7 +83,7 @@
 /* A clear breath before a new sender's run (any sender); continuations above
    stay tight — so runs group visually and different senders separate. */
 .message-row--group-start:not(.message-row--system) {
-  padding-top: 9px;
+  padding-top: var(--flare-size-spacing-sm);
 }
 
 .message-row--self {
@@ -94,12 +94,14 @@
   align-items: flex-start;
 }
 
+/* 头像槽 = 头像 + 一个 spacing-sm 的缝,四端同一算式(原生:avatar + spacingSm)。
+   所有宽度一个值:三个原生端只有一种头像尺寸,Vue 不再按容器宽另立 34/36 两档。 */
 .message-row--avatar-gutter:not(.message-row--avatar-trailing):not(.message-row--system) {
-  padding-left: 44px;
+  padding-left: calc(var(--flare-size-component-message-avatar-size) + var(--flare-size-spacing-sm));
 }
 
 .message-row--avatar-gutter.message-row--avatar-trailing:not(.message-row--system) {
-  padding-right: 44px;
+  padding-right: calc(var(--flare-size-component-message-avatar-size) + var(--flare-size-spacing-sm));
 }
 
 .message-row--selectable {
@@ -113,7 +115,7 @@
 
 .message-select {
   position: absolute;
-  left: 14px;
+  left: var(--flare-size-spacing-2md);
   top: 50%;
   z-index: 2;
   display: flex;
@@ -121,6 +123,9 @@
   justify-content: center;
   width: var(--flare-size-icon-size-md);
   height: var(--flare-size-icon-size-md);
+  /* 它是 position:absolute 的:被撑到 44 之后这个圆点会盖住 left:0 起的头像。 */
+  min-width: var(--flare-size-icon-size-md);
+  min-height: var(--flare-size-icon-size-md);
   padding: 0;
   border: 1px solid var(--flare-color-message-selected-border);
   border-radius: var(--flare-size-radius-full);
@@ -135,6 +140,15 @@
     background var(--flare-component-motion-fast),
     color var(--flare-component-motion-fast),
     transform var(--flare-component-motion-fast);
+}
+.message-select::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: max(100%, var(--flare-size-layout-touch-target));
+  height: max(100%, var(--flare-size-layout-touch-target));
 }
 
 .message-select:hover,
@@ -161,14 +175,18 @@
   transform-origin: center;
 }
 
+/* 头像顶边 = 这一行内容的顶边(行的 padding-top),与三个原生端的顶对齐一致;有发送者名字行时
+   自然就贴着名字行(飞书 / Slack),不再另写一条规则往下挪。改前是四个魔数(16/24/17/25)把 34px
+   的头像底边对到单行气泡的底边 —— 一行以上的消息头像就飘在半空。40 与一条单行气泡等高
+   (9 + 一行正文 + 9),所以每个 run 的第一条消息与它的头像上下两边都齐。 */
 .message-avatar {
   position: absolute;
-  top: var(--flare-size-spacing-lg);
+  top: var(--flare-size-spacing-sm);
   left: 0;
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: var(--flare-size-component-message-avatar-size);
+  height: var(--flare-size-component-message-avatar-size);
   overflow: hidden;
   border-radius: var(--flare-size-radius-full);
   /* Per-user pastel tint (bg + initials colour) is set inline from the shared
@@ -176,8 +194,9 @@
   background: var(--flare-color-bg-tertiary);
   color: var(--flare-color-text-secondary);
   box-shadow: 0 1px 4px color-mix(in srgb, #111827 10%, transparent);
-  font-size: var(--flare-size-font-size-md);
-  font-weight: 800;
+  /* 首字母按 FlareAvatar 的比例(0.4 × 40 = 16),列表里同一个人的头像字号一致。 */
+  font-size: var(--flare-size-font-size-2xl);
+  font-weight: var(--flare-size-font-weight-bold);
   line-height: 1;
 }
 
@@ -194,10 +213,6 @@
 
 .message-avatar span {
   transform: translateY(-0.5px);
-}
-
-.message-row--with-meta .message-avatar {
-  top: var(--flare-size-spacing-2xl);
 }
 
 .message-meta {
@@ -231,12 +246,20 @@
   transition: box-shadow var(--flare-component-motion-fast);
 }
 
+/* 气泡靠**面的色差**立住，不靠描边。
+   改前进来的一条是「和画布同色 + 1px 发丝线」：浅色 #FFFFFF 的气泡画在 #FFFFFF 的画布上、
+   暗色 #20232B 的气泡画在 #20232B 的画布上 —— 两边都是 1.00:1，那条线不是装饰，是气泡
+   唯一的轮廓。于是尾巴那块纯填充一盖上去就把线抹掉一段，出现豁口；描边和填充本来就在
+   打架。现在底色自己就是轮廓：进来的一条取 tertiary 面（浅 #F1F2F5 / 暗 #292D37），
+   画布留在 primary，尾巴与气泡同一种填充，接缝无处可露。发出去的一条本来就是实色紫，
+   三个原生端也从来没给它描过边 —— 这次一并去掉，四端同一套画法。 */
 .message-bubble:not(.message-bubble--chromeless-media) {
   --flare-component-bubble-tail-fill: var(--flare-color-message-incoming-background);
 
-  padding: var(--flare-size-spacing-sm) 11px;
-  border: 1px solid var(--flare-color-message-incoming-border);
-  border-radius: var(--flare-size-radius-xl) var(--flare-size-radius-xl) var(--flare-size-radius-xl) var(--flare-size-radius-lg);
+  padding: var(--flare-size-component-bubble-padding-y) var(--flare-size-component-bubble-padding-x);
+  border: 0;
+  border-radius: var(--flare-size-radius-bubble) var(--flare-size-radius-bubble)
+    var(--flare-size-radius-bubble) var(--flare-size-radius-bubble-tail);
   background: var(--flare-component-bubble-tail-fill);
   box-shadow: var(--flare-shadow-sm);
   outline: none;
@@ -251,22 +274,45 @@
 
 .message-bubble.message-bubble-self:not(.message-bubble--chromeless-media) {
   --flare-component-bubble-tail-fill: var(--flare-color-message-outgoing-background);
-  border-color: var(--flare-color-message-outgoing-border);
-  border-radius: var(--flare-size-radius-xl) var(--flare-size-radius-xl) var(--flare-size-radius-lg) var(--flare-size-radius-xl);
+  border-radius: var(--flare-size-radius-bubble) var(--flare-size-radius-bubble)
+    var(--flare-size-radius-bubble-tail) var(--flare-size-radius-bubble);
   color: var(--flare-color-message-outgoing-foreground);
   background: var(--flare-color-message-outgoing-background);
   box-shadow: none;
 }
 
+/* 两种「把作者的底色拿走」的模式，气泡得把轮廓要回来 —— 靠色差画的面，在这两种模式下
+   等于没画。
+   forced-colors(Windows 高对比度)会把 background 整片换成系统色：进来的和发出去的同为
+   Canvas，一列长方形分不出谁说的话。prefers-contrast: more 是用户明说「对比给我加强」，
+   面与面 1.1:1 的差达不到这个要求。两条都把发丝线补回来 —— 用的正是
+   message.incoming / outgoing.border，这两个 token 因此仍有真实消费者，而不是只留在契约里。
+   两种模式都不是原生端的处境：iOS / Android 的高对比度不会替换控件底色，色差照样成立。 */
+@media (prefers-contrast: more) {
+  .message-bubble:not(.message-bubble--chromeless-media) {
+    border: 1px solid var(--flare-color-message-incoming-border);
+  }
+
+  .message-bubble.message-bubble-self:not(.message-bubble--chromeless-media) {
+    border-color: var(--flare-color-message-outgoing-border);
+  }
+}
+
+@media (forced-colors: active) {
+  .message-bubble:not(.message-bubble--chromeless-media) {
+    border: 1px solid CanvasText;
+  }
+}
+
 .message-bubble--file:not(.message-bubble--chromeless-media) {
-  padding: 10px var(--flare-size-spacing-md);
+  padding: var(--flare-size-spacing-2sm) var(--flare-size-spacing-md);
 }
 
 .message-bubble--rich_text:not(.message-bubble--chromeless-card):not(.message-bubble--chromeless-media),
 .message-bubble--richText:not(.message-bubble--chromeless-card):not(.message-bubble--chromeless-media) {
   min-width: min(220px, 100%);
   max-width: min(520px, 100%);
-  padding: 10px var(--flare-size-spacing-md);
+  padding: var(--flare-size-spacing-2sm) var(--flare-size-spacing-md);
 }
 
 .message-bubble--rich_text:not(.message-bubble--chromeless-card) .im-content-view,
@@ -311,7 +357,9 @@
 .message-row--failed .message-bubble:not(.message-bubble--chromeless-media) {
   --flare-component-bubble-tail-fill: var(--flare-color-message-failed-background);
   color: var(--flare-color-message-failed-foreground);
-  border-color: var(--flare-color-message-failed-border);
+  /* 失败是唯一还描边的状态：它要在一眼扫过时从一列正常气泡里跳出来，
+     而这条边是红的、有语义，不是用来补轮廓的发丝线。 */
+  border: 1px solid var(--flare-color-message-failed-border);
   background: var(--flare-color-message-failed-background);
   box-shadow: none;
 }
@@ -401,9 +449,9 @@
 .message-upload-progress--media {
   position: absolute;
   z-index: 4;
-  right: 10px;
-  bottom: 10px;
-  left: 10px;
+  right: var(--flare-size-spacing-2sm);
+  bottom: var(--flare-size-spacing-2sm);
+  left: var(--flare-size-spacing-2sm);
   min-width: 0;
   margin-top: 0;
   padding: 7px 9px;
@@ -439,8 +487,8 @@
 
 .message-media-hover-action {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: var(--flare-size-spacing-2sm);
+  right: var(--flare-size-spacing-2sm);
   z-index: 7;
   display: inline-flex;
   align-items: center;
@@ -449,7 +497,7 @@
   height: 38px;
   padding: 0;
   border: 1px solid rgb(255 255 255 / 18%);
-  border-radius: 12px;
+  border-radius: var(--flare-size-radius-card);
   color: #ffffff;
   background:
     linear-gradient(135deg, rgb(15 23 42 / 74%), rgb(15 23 42 / 56%));
@@ -546,11 +594,18 @@
   padding-inline: 2px;
 }
 
+/* 尺寸由内容撑，所以这里显式声明「没有地板」而不是钉一个数：accessibility.css 在粗指针下
+   给 :where(button) 兜的 44px min-* 会盖过内容高度，把这排 22px 的反应 chip 撑成 44 的方块，
+   时间线里每条带反应的消息都被拉开一截。触达区不靠盒子 —— 下面的 ::after 撑满一个触达单位。
+   (`:where()` 把特异性压成 0 正是为了让组件能自己说话，见 accessibility.css 顶部注释) */
 .message-reactions > span,
 .message-reactions > button {
   display: inline-flex;
+  position: relative;
   align-items: center;
   gap: var(--flare-size-spacing-xs);
+  min-width: 0;
+  min-height: 0;
   padding: 3px var(--flare-size-spacing-sm);
   border: 1px solid var(--flare-color-message-incoming-border);
   border-radius: var(--flare-component-radius-pill);
@@ -570,6 +625,16 @@
   margin: 0;
   font-family: inherit;
   cursor: pointer;
+}
+
+.message-reactions > button::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: max(100%, var(--flare-size-layout-touch-target));
 }
 
 .message-reactions > button:hover {
@@ -602,19 +667,26 @@
   margin-inline: auto;
 }
 
-.message-bubble-body--trailing-status {
+/* 时间戳与状态跟在正文右侧，而不是自己另起一行。
+   气泡里是两个兄弟：`.message-bubble-body`（正文）和 `footer.message-meta-row`。
+   气泡原本是块级，于是每条消息的时间戳都独占一行 —— 实测一条两行的中文消息
+   42px 正文 + 16px 时间戳 + 内距 = 79px，约四分之一高度花在只写着「21:15」的一行上。
+   时间线是这个产品看得最多的一屏。只对纯文本开：媒体和卡片各有自己的排版。 */
+.message-bubble--inline-meta {
   display: inline-flex;
   align-items: flex-end;
-  gap: var(--flare-size-spacing-2xs);
-  min-width: 0;
-  max-width: 100%;
+  gap: var(--flare-size-spacing-sm);
 }
 
-.message-bubble-body--trailing-status :deep(.im-content-view) {
+.message-bubble--inline-meta > .message-bubble-body {
   flex: 0 1 auto;
   min-width: 0;
-  max-width: 100%;
   overflow-wrap: anywhere;
+}
+
+.message-bubble--inline-meta > .message-meta-row {
+  flex: 0 0 auto;
+  margin-inline-start: 0;
 }
 
 .bubble-inline-status {
@@ -698,13 +770,13 @@
 }
 
 .message-row--self .message-bubble.message-bubble--chromeless-media {
-  border-top-left-radius: var(--flare-component-bubble-radius);
-  border-top-right-radius: var(--flare-component-bubble-radius-tail);
+  border-top-left-radius: var(--flare-size-radius-bubble);
+  border-top-right-radius: var(--flare-size-radius-bubble-tail);
 }
 
 .message-row:not(.message-row--self) .message-bubble.message-bubble--chromeless-media {
-  border-top-left-radius: var(--flare-component-bubble-radius-tail);
-  border-top-right-radius: var(--flare-component-bubble-radius);
+  border-top-left-radius: var(--flare-size-radius-bubble-tail);
+  border-top-right-radius: var(--flare-size-radius-bubble);
 }
 
 .message-bubble-self .message-status-bubble-overlay {
@@ -722,26 +794,12 @@
   opacity: 1;
 }
 
-.message-bubble-self .bubble-inline-status .status-sent .status-icon,
-.message-bubble-self .bubble-inline-status .status-sending .status-icon {
-  color: var(--flare-component-bubble-on-sent-muted);
-}
-
-.message-bubble-self .bubble-inline-status .status-delivered .status-icon,
-.message-bubble-self .bubble-inline-status .status-read .status-icon {
-  color: rgba(255, 255, 255, 0.72);
-}
-
-.message-bubble-self .bubble-inline-status .status-read-path {
-  stroke: rgba(255, 255, 255, 0.72) !important;
-}
-
 /* System and recall notices are a quiet chip, the same as the native kits' notice line: no border,
    shadow or bold weight, so a notice never outranks the messages around it. */
 .message-recalled-hint {
   width: max-content;
   max-width: min(78%, 520px);
-  margin: var(--flare-size-spacing-sm) auto 10px;
+  margin: var(--flare-size-spacing-sm) auto var(--flare-size-spacing-2sm);
   padding: 3px var(--flare-size-spacing-md);
   border-radius: var(--flare-component-radius-pill);
   color: var(--flare-color-text-tertiary);
@@ -755,16 +813,6 @@
   .message-bubble-host {
     width: fit-content;
     max-width: min(var(--flare-component-bubble-max-width), calc(100% - var(--flare-component-message-tail-space)));
-  }
-
-  /* Reserve the avatar gutter for every received row so a run's messages align
-     (the avatar renders only on the first). */
-  .message-row--avatar-gutter:not(.message-row--avatar-trailing):not(.message-row--system) {
-    padding-left: 40px;
-  }
-
-  .message-row--avatar-gutter.message-row--avatar-trailing:not(.message-row--system) {
-    padding-right: 40px;
   }
 
   .message-row--self:not(.message-row--system) {
@@ -794,14 +842,6 @@
 }
 
 @container flare-timeline (min-width: 900px) {
-  .message-row--avatar-gutter:not(.message-row--avatar-trailing):not(.message-row--system) {
-    padding-left: 48px;
-  }
-
-  .message-row--avatar-gutter.message-row--avatar-trailing:not(.message-row--system) {
-    padding-right: 48px;
-  }
-
   .message-row--selectable {
     padding-inline: 40px;
   }
@@ -812,17 +852,6 @@
 
   .message-row--selectable .message-select {
     left: var(--flare-size-spacing-lg);
-  }
-
-  .message-avatar {
-    top: 17px;
-    width: 36px;
-    height: 36px;
-    font-size: var(--flare-size-font-size-lg);
-  }
-
-  .message-row--with-meta .message-avatar {
-    top: 25px;
   }
 
   .message-bubble-host--toolbar-beside:hover .message-bubble:not(.message-bubble--chromeless-media):not(.message-bubble--chromeless-card):not(.message-bubble-self),

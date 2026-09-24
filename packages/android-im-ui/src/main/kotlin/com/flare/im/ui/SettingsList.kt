@@ -165,7 +165,7 @@ fun SettingsRow(
         verticalAlignment = if (stacked) Alignment.Top else Alignment.CenterVertically,
     ) {
         item.icon?.let { name -> FlareIcon(name = name, tint = colors.textSecondary); Spacer(Modifier.width(FlareSizes.spacingMd)) }
-        val labelColor = if (item.danger) colors.error else colors.textPrimary
+        val labelColor = if (item.danger) colors.errorText else colors.textPrimary
         if (stacked) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {

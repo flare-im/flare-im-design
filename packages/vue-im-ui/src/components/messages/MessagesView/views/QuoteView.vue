@@ -75,7 +75,7 @@ const currentText = computed(() => {
   align-items: center;
   width: 100%;
   margin-bottom: 8px;
-  padding: 8px 10px;
+  padding: 8px var(--flare-size-spacing-2sm);
   border-left: 3px solid var(--flare-color-message-outgoing-background);
   border-top: 0;
   border-right: 0;

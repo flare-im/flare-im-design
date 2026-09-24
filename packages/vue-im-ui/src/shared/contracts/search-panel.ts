@@ -16,7 +16,20 @@ export interface FlareSearchSnapshot {
   state: 'idle' | 'loading' | 'success' | 'failure';
   groups: FlareSearchResultGroup[];
   error?: string;
+  /** Results came back but are incomplete (one of several sources failed): said above them, with a retry. */
+  warning?: string;
 }
 export function sameSearchCriteria(a: FlareSearchCriteria, b: FlareSearchCriteria): boolean {
   return a.query === b.query && a.filterId === b.filterId && sameSearchTimeRange(a, b);
+}
+
+/**
+ * The recent-search list after `term` was used: trimmed, newest first, an exact repeat moves to the
+ * front instead of appearing twice, and the oldest fall off past `max`. A blank term changes nothing.
+ * The host stores the list (per signed-in user); the rule is here so every client keeps the same one.
+ */
+export function flareRememberSearch(list: readonly string[], term: string, max = 8): string[] {
+  const value = term.trim();
+  if (!value) return [...list];
+  return [value, ...list.filter((entry) => entry !== value)].slice(0, Math.max(0, max));
 }

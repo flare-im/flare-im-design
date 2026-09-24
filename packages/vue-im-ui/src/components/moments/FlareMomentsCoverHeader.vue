@@ -23,18 +23,25 @@ const handles = (listener: "onEditCover" | "onAvatar"): boolean => Boolean(insta
 <template>
   <header class="flare-moments-cover" :class="{ 'flare-moments-cover--empty': !coverUrl }">
     <component
+      v-if="coverUrl"
       :is="handles('onEditCover') ? 'button' : 'div'"
       :type="handles('onEditCover') ? 'button' : undefined"
       class="flare-moments-cover__photo"
       :class="{ 'is-interactive': handles('onEditCover') }"
-      :style="coverUrl ? { backgroundImage: `url(${coverUrl})` } : undefined"
+      :style="{ backgroundImage: `url(${coverUrl})` }"
       :aria-label="handles('onEditCover') ? t('moment.editCover') : undefined"
       @click="handles('onEditCover') && emit('editCover')"
-    >
-      <span v-if="!coverUrl && handles('onEditCover')" class="flare-moments-cover__hint">{{ t("moment.editCover") }}</span>
-    </component>
+    />
 
     <div class="flare-moments-cover__id">
+      <!-- Without a photo the change-cover affordance has no photo to sit on top of, so it
+           takes its place at the end of the identity row instead of floating over a blank band. -->
+      <button
+        v-if="!coverUrl && handles('onEditCover')"
+        type="button"
+        class="flare-moments-cover__hint"
+        @click="emit('editCover')"
+      >{{ t("moment.editCover") }}</button>
       <div class="flare-moments-cover__text">
         <div class="flare-moments-cover__name">{{ name }}</div>
         <div v-if="signature" class="flare-moments-cover__sig">{{ signature }}</div>
@@ -78,8 +85,8 @@ const handles = (listener: "onEditCover" | "onAvatar"): boolean => Boolean(insta
 .flare-moments-cover__hint {
   position: absolute;
   z-index: 1;
-  right: 14px;
-  top: 14px;
+  right: var(--flare-size-spacing-2md);
+  top: var(--flare-size-spacing-2md);
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -98,7 +105,7 @@ const handles = (listener: "onEditCover" | "onAvatar"): boolean => Boolean(insta
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
-  gap: 14px;
+  gap: var(--flare-size-spacing-2md);
   padding: 0 16px;
   margin-top: -62px;
   position: relative;
@@ -142,9 +149,33 @@ button.flare-moments-cover__avatar { cursor: pointer; }
 .flare-moments-cover__avatar :deep(.im-avatar) { border-radius: 15px; }
 /* Without a cover photo the header stays quiet: a short neutral band instead of a brand gradient,
    and the name reads in the normal text colours because there is no image to lift it off. */
-.flare-moments-cover--empty .flare-moments-cover__photo { height: 140px; background-image: none; }
-.flare-moments-cover--empty .flare-moments-cover__photo::after { content: none; }
+/* No cover photo: the header is a compact identity row read left to right, sized by its
+   content and sitting on the tertiary surface. It used to keep the photo geometry — a 140px
+   band with the name right-aligned and pulled up onto where the scrim would be — but right
+   alignment, the overlap and the overhang only mean something with a photo under them. With
+   no photo they left ~110px of empty band above a name glued to its bottom-right corner. */
+.flare-moments-cover--empty { padding-bottom: 0; background: var(--flare-color-bg-tertiary); }
+.flare-moments-cover--empty .flare-moments-cover__photo { display: none; }
+.flare-moments-cover--empty .flare-moments-cover__id {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--flare-size-spacing-md);
+  margin-top: 0;
+  padding: var(--flare-size-spacing-md);
+}
+/* The avatar leads the row; the name follows it. */
+.flare-moments-cover--empty .flare-moments-cover__avatar,
+.flare-moments-cover--empty button.flare-moments-cover__avatar { order: 0; }
+.flare-moments-cover--empty .flare-moments-cover__text {
+  order: 1;
+  flex: 1;
+  text-align: left;
+  padding-bottom: 0;
+}
 .flare-moments-cover--empty .flare-moments-cover__hint {
+  order: 2;
+  position: static;
   border: 1px solid var(--flare-color-border-secondary);
   background: var(--flare-color-bg-elevated);
   backdrop-filter: none;

@@ -78,7 +78,7 @@ const filtered = computed(() => {
   grid-template-columns: auto 1fr;
   align-items: baseline;
   gap: 4px 8px;
-  padding: 8px 10px;
+  padding: 8px var(--flare-size-spacing-2sm);
   border: none;
   border-radius: var(--flare-size-radius-lg);
   background: transparent;
@@ -105,7 +105,7 @@ const filtered = computed(() => {
   line-height: 1.4;
 }
 .flare-slash-menu__empty {
-  padding: 14px;
+  padding: var(--flare-size-spacing-2md);
   text-align: center;
   font-size: 13px;
   color: var(--flare-color-text-tertiary);

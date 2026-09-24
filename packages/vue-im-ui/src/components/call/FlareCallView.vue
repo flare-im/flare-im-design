@@ -158,9 +158,11 @@ const pulsing = computed(() => props.state === "calling" || props.state === "rin
   .flare-call-view__avatar.is-pulsing::before,
   .flare-call-view__avatar.is-pulsing::after { animation: none; }
 }
+/* 通话对象的名字取 4xl(20)—— iOS CallViews / Flutter flare_call_view 都是这个台阶,
+   web 这边原本写死 24px,是通话屏上最大的那个元素在四端里唯一不一致的地方。 */
 .flare-call-view__name {
-  font-size: 24px;
-  font-weight: 600;
+  font-size: var(--flare-size-font-size-4xl);
+  font-weight: var(--flare-size-font-weight-semibold);
   letter-spacing: 0.01em;
 }
 .flare-call-view__status {
@@ -171,7 +173,7 @@ const pulsing = computed(() => props.state === "calling" || props.state === "rin
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 3px 10px;
+  padding: 3px var(--flare-size-spacing-2sm);
   border-radius: 999px;
   color: rgba(255, 255, 255, 0.66);
   background: rgba(255, 255, 255, 0.08);
@@ -186,6 +188,6 @@ const pulsing = computed(() => props.state === "calling" || props.state === "rin
 </style>
 
 <style scoped>
-.flare-call-view__recover { min-height:48px; padding:8px 16px; color:white; background:transparent; border:1px solid currentColor; border-radius:8px; font:inherit; cursor:pointer; }
-.flare-call-view__peer { text-align:center; padding-inline:16px; overflow-wrap:anywhere; }
+.flare-call-view__recover { min-height:48px; padding: 8px 16px; color:white; background:transparent; border:1px solid currentColor; border-radius: 8px; font:inherit; cursor:pointer; }
+.flare-call-view__peer { text-align:center; padding-inline: 16px; overflow-wrap:anywhere; }
 </style>

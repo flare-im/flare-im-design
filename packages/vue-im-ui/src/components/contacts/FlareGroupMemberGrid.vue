@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { flareIcons } from "../../shared/icons";
+import { computed, getCurrentInstance } from "vue";
 import { NIcon } from "naive-ui";
-import { AddOutline } from "../../shared/icon-glyphs";
 import FlareAvatar from "../conversation/FlareAvatar.vue";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 import type { FlareContact } from "../../shared/contracts";
@@ -21,7 +21,13 @@ const props = withDefaults(
 const emit = defineEmits<{
   (e: "select", id: string): void;
   (e: "addMember"): void;
+  /** Open the full roster. The head becomes the entry to it only when the host handles this. */
+  (e: "viewAll"): void;
 }>();
+
+const instance = getCurrentInstance();
+// 同 FlareProfilePanel：宿主接了才画成可点的入口，没接就还是一行说明文字。
+const opensRoster = computed(() => Boolean(instance?.vnode.props?.onViewAll));
 
 const { t } = useFlareI18n();
 const roleFor = (m: FlareContact) => {
@@ -35,10 +41,20 @@ const gridStyle = computed(() => ({ gridTemplateColumns: `repeat(${props.columns
 
 <template>
   <div class="flare-member-grid">
-    <div class="flare-member-grid__head">
+    <component
+      :is="opensRoster ? 'button' : 'div'"
+      :type="opensRoster ? 'button' : undefined"
+      class="flare-member-grid__head"
+      :class="{ 'is-interactive': opensRoster }"
+      :aria-label="opensRoster ? t('group.membersTitle', { count: total ?? members.length }) : undefined"
+      @click="opensRoster && emit('viewAll')"
+    >
       <span class="flare-member-grid__title">{{ t("group.members") }}</span>
       <span class="flare-member-grid__count">{{ t("group.memberCount", { count: total ?? members.length }) }}</span>
-    </div>
+      <span v-if="opensRoster" class="flare-member-grid__chev">
+        <n-icon aria-hidden="true" :size="16" :component="flareIcons['chevron-right']" />
+      </span>
+    </component>
     <div class="flare-member-grid__grid" :style="gridStyle">
       <button
         v-for="m in members"
@@ -56,7 +72,7 @@ const gridStyle = computed(() => ({ gridTemplateColumns: `repeat(${props.columns
       </button>
 
       <button v-if="showAdd" type="button" class="flare-member-grid__cell flare-member-grid__add" @click="emit('addMember')">
-        <span class="flare-member-grid__add-icon"><n-icon aria-hidden="true" :size="22" :component="AddOutline" /></span>
+        <span class="flare-member-grid__add-icon"><n-icon aria-hidden="true" :size="22" :component="flareIcons['add']" /></span>
         <span class="flare-member-grid__name">{{ t("group.addMember") }}</span>
       </button>
     </div>
@@ -67,11 +83,29 @@ const gridStyle = computed(() => ({ gridTemplateColumns: `repeat(${props.columns
 .flare-member-grid {
   padding: 16px;
 }
+/* 组名 + 人数。人数原来只是一行说明文字，同时「群成员 / N 名成员」在下面的设置列表里
+   又整行重复了一遍 —— 现在这一行就是打开完整成员名单的入口，那一行随之去掉。 */
 .flare-member-grid__head {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: 14px;
+  align-items: center;
+  gap: var(--flare-size-spacing-xs);
+  width: 100%;
+  margin-bottom: var(--flare-size-spacing-xs);
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: start;
+}
+.flare-member-grid__head.is-interactive {
+  /* 它替掉的是一整行设置行，触达区得跟那一行一样够得着。 */
+  min-height: var(--flare-size-layout-touch-target);
+  cursor: pointer;
+}
+.flare-member-grid__head.is-interactive:focus-visible {
+  outline: 2px solid var(--flare-color-border-selected);
+  outline-offset: 2px;
+  border-radius: var(--flare-size-radius-sm);
 }
 .flare-member-grid__title {
   font-size: 14px;
@@ -79,12 +113,18 @@ const gridStyle = computed(() => ({ gridTemplateColumns: `repeat(${props.columns
   color: var(--flare-color-text-primary);
 }
 .flare-member-grid__count {
+  margin-inline-start: auto;
   font-size: 12px;
+  color: var(--flare-color-text-tertiary);
+}
+.flare-member-grid__chev {
+  display: inline-flex;
+  align-items: center;
   color: var(--flare-color-text-tertiary);
 }
 .flare-member-grid__grid {
   display: grid;
-  gap: 14px 10px;
+  gap: var(--flare-size-spacing-2md) var(--flare-size-spacing-2sm);
 }
 .flare-member-grid__cell {
   position: relative;
@@ -103,7 +143,7 @@ const gridStyle = computed(() => ({ gridTemplateColumns: `repeat(${props.columns
   top: 34px;
   padding: 1px 6px;
   border-radius: 999px;
-  font-size: 10px;
+  font-size: var(--flare-size-font-size-2xs);
   line-height: 1.4;
   /* A neutral chip, not white on a text colour: `text-tertiary` is light enough in dark mode
      that white on it reads at 2.54:1. The owner chip below keeps its colour. */

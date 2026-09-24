@@ -6,7 +6,9 @@
  * it renders the `model` and emits intents; the host performs social.group.*
  * writes and refreshes the model.
  */
+import { flareIcons } from "../../shared/icons";
 import { computed, getCurrentInstance, ref, watch } from "vue";
+import { NIcon } from "naive-ui";
 import FlareAvatar from "../conversation/FlareAvatar.vue";
 import FlareGroupMemberGrid from "./FlareGroupMemberGrid.vue";
 import FlareSettingsList from "../profile/FlareSettingsList.vue";
@@ -54,6 +56,7 @@ const emit = defineEmits<{
   (e: "updateAnnouncement", value: string): void;
   (e: "updateMyNickname", value: string): void;
   (e: "setJoinPolicy", policy: FlareGroupJoinPolicy): void;
+  (e: "toggleDiscoverable", value: boolean): void;
   (e: "toggleMuteAll", value: boolean): void;
   (e: "setFlag", key: "onlyAdminCanAtAll" | "onlyAdminCanPin" | "shareCardPermission", value: boolean): void;
   (e: "toggleMyMuted", value: boolean): void;
@@ -105,10 +108,10 @@ const settingsSections = computed<FlareSettingsSection[]>(() => {
     {
       title: t("group.info"),
       items: [
+        // 群名称与群成员不在这里：它们已经分别由 hero 的标题和成员栅格的头部承担 ——
+        // 名字在同一屏上写两遍、人数在同一屏上写两遍，是同一件事说两次，不是两条信息。
         // Rows the viewer can change open their editor and carry a chevron; the rest read as values.
-        { key: "name", label: t("group.name"), icon: "tag", kind: m.canManage ? "navigation" : "value", detail: m.name || "-" },
         { key: "announcement", label: t("group.announcement"), icon: "announcement", kind: m.canManage ? "navigation" : "value", detail: m.announcement || t("group.notSet") },
-        { key: "members", label: t("group.members"), icon: "people", kind: "navigation", detail: t("group.memberCount", { count: m.memberCount }) },
       ],
     },
     {
@@ -129,6 +132,7 @@ const settingsSections = computed<FlareSettingsSection[]>(() => {
     sections.push({
       title: t("group.manage"),
       items: [
+        { key: "discoverable", label: t("group.discoverable"), icon: "search", kind: "toggle", value: m.discoverable },
         { key: "joinPolicy", label: t("group.joinMode"), icon: "lock", kind: "navigation", detail: joinPolicyLabel.value },
         { key: "joinRequests", label: t("group.joinRequests"), icon: "join-request", kind: "navigation", badge: requests.value.length || undefined },
         { key: "muteAll", label: t("group.muteAll"), icon: "silence", kind: "toggle", value: m.muteAll },
@@ -179,12 +183,19 @@ async function saveEdit() {
   }
 }
 
+/** 完整成员名单 —— 从成员栅格的头部进去（原来是设置列表里的「群成员」行）。 */
+function openRoster() {
+  memberQuery.value = "";
+  membersOpen.value = true;
+}
+/** 改群名 —— 从 hero 的标题进去（原来是设置列表里的「群名称」行）。 */
+function openRename() {
+  if (!canManage.value) return;
+  editKind.value = "name";
+  editDraft.value = model.value?.name || "";
+}
+
 function onSettingSelect(item: FlareSettingsItem) {
-  if (item.key === "members") {
-    memberQuery.value = "";
-    membersOpen.value = true;
-    return;
-  }
   if (item.key === "myNickname") {
     if (!canEditNickname()) return;
     editKind.value = "nickname";
@@ -192,10 +203,7 @@ function onSettingSelect(item: FlareSettingsItem) {
     return;
   }
   if (!canManage.value) return;
-  if (item.key === "name") {
-    editKind.value = "name";
-    editDraft.value = model.value?.name || "";
-  } else if (item.key === "announcement") {
+  if (item.key === "announcement") {
     editKind.value = "announcement";
     editDraft.value = model.value?.announcement || "";
   } else if (item.key === "joinPolicy") {
@@ -213,7 +221,8 @@ function onSettingToggle(item: FlareSettingsItem, value: boolean) {
   if (item.key === "notif") return emit("toggleMyMuted", value);
   if (item.key === "pin") return emit("toggleMyPinned", value);
   if (!canManage.value) return;
-  if (item.key === "muteAll") emit("toggleMuteAll", value);
+  if (item.key === "discoverable") emit("toggleDiscoverable", value);
+  else if (item.key === "muteAll") emit("toggleMuteAll", value);
   else if (item.key === "atAll") emit("setFlag", "onlyAdminCanAtAll", value);
   else if (item.key === "pinPerm") emit("setFlag", "onlyAdminCanPin", value);
   else if (item.key === "shareCard") emit("setFlag", "shareCardPermission", value);
@@ -346,7 +355,27 @@ function submitInvite() {
     <template v-else-if="model">
       <div class="flare-group-detail__hero">
         <FlareAvatar :user-id="model.groupId" :display-name="groupName" :avatar-url="model.avatarUrl || undefined" :size="72" />
-        <div class="flare-group-detail__title">{{ groupName }}</div>
+        <!-- 标题本身就是改名入口（管理员）。原来标题下面还有一行「群名称 Team ›」，
+             同一个名字在同一屏上写两遍；现在名字只有这一处，改名从它进去。 -->
+        <component
+          :is="canManage ? 'button' : 'div'"
+          :type="canManage ? 'button' : undefined"
+          class="flare-group-detail__title"
+          :class="{ 'is-interactive': canManage }"
+          @click="canManage && openRename()"
+        >
+          <span class="flare-group-detail__title-text">{{ groupName }}</span>
+          <!-- 名字是这个按钮的名字,用途挂在铅笔上 —— 把 aria-label 放在外层会顶掉里面的文字,
+               而群名现在只有这一处,顶掉就等于读屏里再也读不到这个群叫什么。 -->
+          <span
+            v-if="canManage"
+            class="flare-group-detail__title-edit"
+            role="img"
+            :aria-label="t('group.editName')"
+          >
+            <n-icon aria-hidden="true" :size="16" :component="flareIcons['edit']" />
+          </span>
+        </component>
       </div>
 
       <FlareGroupMemberGrid
@@ -357,6 +386,7 @@ function submitInvite() {
         :show-add="canManage"
         @select="onMemberSelect"
         @add-member="openInvite"
+        @view-all="openRoster"
       />
 
       <!-- Host content that belongs with the group information (an announcement read bar) goes right after that section. -->
@@ -512,23 +542,49 @@ function submitInvite() {
 <style scoped>
 .flare-group-detail { display: flex; flex-direction: column; }
 .flare-group-detail__empty { margin: 40px auto; }
-.flare-group-detail__hero { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 20px 16px 8px; }
-.flare-group-detail__title { font-size: 18px; font-weight: 600; color: var(--flare-color-text-primary); }
-.flare-group-detail__foot { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+.flare-group-detail__hero { display: flex; flex-direction: column; align-items: center; gap: var(--flare-size-spacing-2sm); padding: 20px 16px 8px; }
+.flare-group-detail__title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--flare-size-spacing-xs);
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--flare-color-text-primary);
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+}
+.flare-group-detail__title.is-interactive {
+  /* 它替掉的是一整行设置行，触达区得跟那一行一样够得着。 */
+  min-height: var(--flare-size-layout-touch-target);
+  padding-inline: var(--flare-size-spacing-sm);
+  border-radius: var(--flare-size-radius-md);
+  cursor: pointer;
+}
+.flare-group-detail__title.is-interactive:hover { background: var(--flare-color-bg-hover); }
+.flare-group-detail__title.is-interactive:focus-visible {
+  outline: 2px solid var(--flare-color-border-selected);
+  outline-offset: 2px;
+}
+.flare-group-detail__title-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.flare-group-detail__title-edit { display: inline-flex; flex: none; align-items: center; color: var(--flare-color-text-tertiary); }
+.flare-group-detail__foot { display: flex; flex-direction: column; gap: var(--flare-size-spacing-2sm); padding: 16px; }
 .flare-group-detail__slot { margin: 0 var(--flare-size-spacing-md); }
 .flare-group-detail__footer { display: flex; flex-direction: column; align-items: center; gap: var(--flare-size-spacing-sm); padding: 0 var(--flare-size-spacing-lg) var(--flare-size-spacing-lg); }
-.flare-group-detail__sheet { padding: 8px 12px 16px; display: flex; flex-direction: column; gap: 14px; }
+.flare-group-detail__sheet { padding: 8px 12px 16px; display: flex; flex-direction: column; gap: var(--flare-size-spacing-2md); }
 .flare-group-detail__sheet-actions { display: flex; gap: 12px; }
 .flare-group-detail__sheet-actions > * { flex: 1; }
-.flare-group-detail__member-actions { gap: 10px; }
+.flare-group-detail__member-actions { gap: var(--flare-size-spacing-2sm); }
 .flare-group-detail__confirm { margin: 0; color: var(--flare-color-text-secondary); font-size: 14px; line-height: 1.6; }
 .flare-group-detail__list { max-height: 46vh; overflow-y: auto; border-radius: var(--flare-size-radius-lg); background: var(--flare-color-bg-secondary); }
 .flare-group-detail__members { height: min(56vh, 520px); min-height: 0; border-radius: var(--flare-size-radius-lg); background: var(--flare-color-bg-secondary); overflow: hidden; }
 .flare-group-detail__row-name { flex: 1; min-width: 0; color: var(--flare-color-text-primary); }
 .flare-group-detail__empty-row { padding: 20px; text-align: center; color: var(--flare-color-text-tertiary); font-size: 13px; }
-.flare-group-detail__req { display: flex; align-items: center; gap: 12px; padding: 10px 12px; }
+.flare-group-detail__req { display: flex; align-items: center; gap: 12px; padding: var(--flare-size-spacing-2sm) 12px; }
 .flare-group-detail__req-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .flare-group-detail__req-msg { font-size: 12px; color: var(--flare-color-text-tertiary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .flare-group-detail__req-actions { display: flex; gap: 8px; flex-shrink: 0; }
-.flare-group-detail__code { padding: 14px 16px; border-radius: var(--flare-size-radius-lg); background: var(--flare-color-bg-secondary); text-align: center; font-size: 18px; font-weight: 700; letter-spacing: 0.08em; color: var(--flare-color-text-primary); word-break: break-all; }
+.flare-group-detail__code { padding: var(--flare-size-spacing-2md) 16px; border-radius: var(--flare-size-radius-lg); background: var(--flare-color-bg-secondary); text-align: center; font-size: 18px; font-weight: 700; letter-spacing: 0.08em; color: var(--flare-color-text-primary); word-break: break-all; }
 </style>

@@ -112,24 +112,35 @@ public struct CommentThreadView: View {
 // MARK: - MomentActionPopover
 
 /// Dark like / comment popover shown next to a moment's "…" button. When `canDelete`
-/// is set (the moment is the current user's) a destructive Delete action is appended.
+/// is set (the moment is the current user's) a destructive Delete action is appended;
+/// when `canReport` is set (someone else's moment) a Report action is appended instead.
+///
+/// The two are the same shape on purpose: 删除 and 举报 are both "act on this one post",
+/// they are mutually exclusive (you cannot report your own post, and you do not delete
+/// someone else's), and they are both low-frequency. Hosts used to have nowhere to put
+/// 举报 and hung a text button in a strip *below* the card — a per-post action rendered
+/// outside the post, which also broke the feed's vertical rhythm because only some cards
+/// had one. It belongs in the same popover as the rest of the post's actions.
 /// Spec: Moments/MomentActionPopover (`MomentActionPopoverView`).
 public struct MomentActionPopoverView: View {
     private let liked: Bool
     private let canDelete: Bool
+    private let canReport: Bool
     private let onLike: (() -> Void)?
     private let onComment: (() -> Void)?
     private let onDelete: (() -> Void)?
+    private let onReport: (() -> Void)?
     @Environment(\.flareStrings) private var strings
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     private var colors: FlareColors { FlareColors.of(scheme, brand: flareBrandTheme) }
 
-    public init(liked: Bool = false, canDelete: Bool = false,
+    public init(liked: Bool = false, canDelete: Bool = false, canReport: Bool = false,
                 onLike: (() -> Void)? = nil, onComment: (() -> Void)? = nil,
-                onDelete: (() -> Void)? = nil) {
-        self.liked = liked; self.canDelete = canDelete
+                onDelete: (() -> Void)? = nil, onReport: (() -> Void)? = nil) {
+        self.liked = liked; self.canDelete = canDelete; self.canReport = canReport
         self.onLike = onLike; self.onComment = onComment; self.onDelete = onDelete
+        self.onReport = onReport
     }
 
     public var body: some View {
@@ -148,6 +159,13 @@ public struct MomentActionPopoverView: View {
                 divider
                 Button { onDelete?() } label: {
                     item(icon: "trash", label: strings.delete, tint: colors.error)
+                }.buttonStyle(.plain)
+            } else if canReport {
+                // 举报 is not destructive to my own data, so it keeps the normal tint —
+                // the danger colour is reserved for "this deletes something of yours".
+                divider
+                Button { onReport?() } label: {
+                    item(icon: flareIconSymbol("report"), label: strings.report)
                 }.buttonStyle(.plain)
             }
         }
@@ -170,7 +188,7 @@ public struct MomentActionPopoverView: View {
             Text(label).font(.system(size: 13))
         }
         .foregroundColor(tint ?? colors.textPrimary)
-        .padding(.horizontal, 14)
+        .padding(.horizontal, FlareSizes.spacing2md)
         .frame(maxHeight: .infinity)
     }
 }
@@ -180,10 +198,17 @@ public struct MomentActionPopoverView: View {
 /// Cover header for a user's moments — cover photo, name / signature and avatar.
 /// Spec: Moments/MomentsCoverHeader (`MomentsCoverHeaderView`).
 ///
-/// With a cover image the photo is tall, with a scrim under white text. Without one the header stays quiet
-/// (G18): a short neutral band on the tertiary surface — no brand gradient, no dark scrim — with the name and
-/// signature in the normal text colours. The change-cover chip and the avatar are controls only with their
-/// handlers.
+/// With a cover image the photo is tall, with a scrim under white text, and the avatar overhangs the photo's
+/// bottom edge.
+///
+/// Without one the header is a **compact identity row** on the tertiary surface, read left to right: avatar,
+/// then name and signature. It used to keep the photo geometry — a 140pt band with the name right-aligned and
+/// pulled up onto where the scrim would be — but right alignment, the overlap and the overhang only mean
+/// something when there is a photo under them. With no photo they left ~110pt of empty band above a name glued
+/// to its bottom-right corner, which read as floating text rather than as this person's header. The band is now
+/// sized by its content.
+///
+/// The change-cover chip and the avatar are controls only with their handlers.
 public struct MomentsCoverHeaderView: View {
     private let userId: String
     private let name: String
@@ -202,8 +227,9 @@ public struct MomentsCoverHeaderView: View {
         self.signature = signature; self.onEditCover = onEditCover; self.onAvatar = onAvatar
     }
 
-    /// The cover's height: a tall photo, or a short band without one.
-    static func coverHeight(hasImage: Bool) -> CGFloat { hasImage ? 240 : 140 }
+    /// The cover photo's height. Without a photo there is no band to reserve: the header is the identity
+    /// row itself, so the height is whatever that row needs.
+    static func coverHeight(hasImage: Bool) -> CGFloat { hasImage ? 240 : 0 }
 
     /// The cover image's address, when there is one to load.
     private var coverImageURL: URL? {
@@ -216,13 +242,58 @@ public struct MomentsCoverHeaderView: View {
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         let image = coverImageURL
-        VStack(spacing: 0) {
-            cover(colors, image: image)
-            identity(colors, onImage: image != nil)
-                .padding(.horizontal, FlareSizes.spacingLg)
-                .offset(y: -30)
+        if image == nil {
+            // No photo: the header IS the identity row. No reserved band, no negative offsets, no right
+            // alignment — nothing here is positioned relative to a picture that does not exist.
+            compactIdentity(colors)
+        } else {
+            VStack(spacing: 0) {
+                cover(colors, image: image)
+                identity(colors, onImage: true)
+                    .padding(.horizontal, FlareSizes.spacingLg)
+                    .offset(y: -30)
+            }
+            .padding(.bottom, 20 - 30)
         }
-        .padding(.bottom, 20 - 30)
+    }
+
+    /// The no-cover header: avatar, then name and signature, in reading order on the tertiary surface.
+    private func compactIdentity(_ colors: FlareColors) -> some View {
+        HStack(spacing: FlareSizes.spacingMd) {
+            avatar
+            VStack(alignment: .leading, spacing: 4) {
+                Text(name)
+                    .font(.system(size: FlareSizes.fontSize3xl, weight: .bold))
+                    .foregroundColor(colors.textPrimary)
+                    .lineLimit(1)
+                if let signature {
+                    Text(signature)
+                        .font(.system(size: 12.5))
+                        .foregroundColor(colors.textSecondary)
+                        .lineLimit(1)
+                }
+            }
+            Spacer(minLength: FlareSizes.spacingSm)
+            if let onEditCover {
+                Button(action: onEditCover) {
+                    HStack(spacing: FlareSizes.spacingXs) {
+                        Image(systemName: flareIconSymbol("image")).font(.system(size: FlareSizes.fontSizeXs))
+                        Text(strings.changeCover).font(.system(size: FlareSizes.fontSizeSm))
+                    }
+                    .foregroundColor(colors.textSecondary)
+                    .padding(.horizontal, 11).padding(.vertical, 5)
+                    .background(Capsule().fill(colors.bgElevated))
+                    .overlay(Capsule().stroke(colors.borderSecondary, lineWidth: 1))
+                    .flareTouchTarget()
+                }
+                .buttonStyle(.plain)
+                .flareCompactLayout(height: 30)
+            }
+        }
+        .padding(.horizontal, FlareSizes.spacingMd)
+        .padding(.vertical, FlareSizes.spacingMd)
+        .frame(maxWidth: .infinity)
+        .background(colors.bgTertiary)
     }
 
     private func cover(_ colors: FlareColors, image: URL?) -> some View {
@@ -249,7 +320,7 @@ public struct MomentsCoverHeaderView: View {
                 // on the band.
                 Button(action: onEditCover) {
                     HStack(spacing: FlareSizes.spacingXs) {
-                        Image(systemName: "camera").font(.system(size: FlareSizes.fontSizeXs))
+                        Image(systemName: flareIconSymbol("image")).font(.system(size: FlareSizes.fontSizeXs))
                         Text(strings.changeCover).font(.system(size: FlareSizes.fontSizeSm))
                     }
                     .foregroundColor(image != nil ? Color.white.opacity(0.92) : colors.textSecondary)
@@ -262,7 +333,7 @@ public struct MomentsCoverHeaderView: View {
                     .flareTouchTarget()
                 }
                 .buttonStyle(.plain)
-                .padding(.trailing, 14).padding(.top, FlareSizes.spacingXs)
+                .padding(.trailing, FlareSizes.spacing2md).padding(.top, FlareSizes.spacingXs)
             }
         }
     }
@@ -370,7 +441,7 @@ public struct MomentComposerView: View {
                 .font(.system(size: 15))
                 .foregroundColor(colors.textPrimary)
                 .textFieldStyle(.plain)
-                .padding(14)
+                .padding(FlareSizes.spacing2md)
 
             grid(colors)
 
@@ -404,7 +475,7 @@ public struct MomentComposerView: View {
             .disabled(!canPost || busy)
             .opacity(canPost && !busy ? 1 : 0.45)
         }
-        .padding(.horizontal, 14).padding(.vertical, 12)
+        .padding(.horizontal, FlareSizes.spacing2md).padding(.vertical, 12)
     }
 
     @ViewBuilder
@@ -418,7 +489,7 @@ public struct MomentComposerView: View {
                     addTile(colors)
                 }
             }
-            .padding(.horizontal, 14).padding(.bottom, 12)
+            .padding(.horizontal, FlareSizes.spacing2md).padding(.bottom, 12)
         }
     }
 
@@ -473,12 +544,12 @@ public struct MomentComposerView: View {
 
     private func row(_ colors: FlareColors, icon: String, label: String, onTap: (() -> Void)?) -> some View {
         Button { onTap?() } label: {
-            HStack(spacing: 10) {
+            HStack(spacing: FlareSizes.spacing2sm) {
                 Image(systemName: icon).font(.system(size: 18)).foregroundColor(colors.textSecondary)
                 Text(label).font(.system(size: 14)).foregroundColor(colors.textSecondary)
                 Spacer(minLength: 0)
             }
-            .padding(.horizontal, 14).padding(.vertical, 13)
+            .padding(.horizontal, FlareSizes.spacing2md).padding(.vertical, 13)
             .contentShape(Rectangle())
         }.buttonStyle(.plain)
     }
@@ -496,9 +567,11 @@ public struct MomentComposerView: View {
 public struct MomentCardView: View {
     private let moment: Moment
     private let canDelete: Bool
+    private let canReport: Bool
     private let onLike: (() -> Void)?
     private let onComment: (() -> Void)?
     private let onDelete: (() -> Void)?
+    private let onReport: (() -> Void)?
     private let onOpenImage: ((Int) -> Void)?
     private let onSelectAuthor: ((String) -> Void)?
     private let onSelectLiker: ((String) -> Void)?
@@ -508,12 +581,16 @@ public struct MomentCardView: View {
     @Environment(\.flareStrings) private var strings
     @State private var menuOpen = false
 
-    public init(moment: Moment, canDelete: Bool = false, onLike: (() -> Void)? = nil,
+    public init(moment: Moment, canDelete: Bool = false, canReport: Bool = false,
+                onLike: (() -> Void)? = nil,
                 onComment: (() -> Void)? = nil, onDelete: (() -> Void)? = nil,
+                onReport: (() -> Void)? = nil,
                 onOpenImage: ((Int) -> Void)? = nil, onSelectAuthor: ((String) -> Void)? = nil,
                 onSelectLiker: ((String) -> Void)? = nil, onSelectComment: ((MomentComment) -> Void)? = nil) {
-        self.moment = moment; self.canDelete = canDelete; self.onLike = onLike; self.onComment = onComment
-        self.onDelete = onDelete; self.onOpenImage = onOpenImage; self.onSelectAuthor = onSelectAuthor
+        self.moment = moment; self.canDelete = canDelete; self.canReport = canReport
+        self.onLike = onLike; self.onComment = onComment
+        self.onDelete = onDelete; self.onReport = onReport
+        self.onOpenImage = onOpenImage; self.onSelectAuthor = onSelectAuthor
         self.onSelectLiker = onSelectLiker; self.onSelectComment = onSelectComment
     }
 
@@ -538,7 +615,7 @@ public struct MomentCardView: View {
 
                 if !moment.images.isEmpty {
                     ImageGridView(images: moment.images, onOpen: onOpenImage)
-                        .padding(.top, 10)
+                        .padding(.top, FlareSizes.spacing2sm)
                 }
 
                 if let location = moment.location {
@@ -550,10 +627,10 @@ public struct MomentCardView: View {
                     .padding(.top, 8)
                 }
 
-                meta(colors).padding(.top, 10)
+                meta(colors).padding(.top, FlareSizes.spacing2sm)
 
                 if hasSocial {
-                    social(colors).padding(.top, 10)
+                    social(colors).padding(.top, FlareSizes.spacing2sm)
                 }
             }
         }
@@ -615,9 +692,11 @@ public struct MomentCardView: View {
                     MomentActionPopoverView(
                         liked: moment.likedBySelf,
                         canDelete: canDelete,
+                        canReport: canReport,
                         onLike: { menuOpen = false; onLike?() },
                         onComment: { menuOpen = false; onComment?() },
-                        onDelete: { menuOpen = false; onDelete?() })
+                        onDelete: { menuOpen = false; onDelete?() },
+                        onReport: { menuOpen = false; onReport?() })
                     .fixedSize()
                     .offset(x: -36)
                 }

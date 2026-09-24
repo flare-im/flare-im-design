@@ -15,7 +15,7 @@ import {
 import { flareIcons } from "../../shared/icons";
 import { NButton, NIcon, NInput } from "naive-ui";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
-import { FLARE_BREAKPOINT_DESKTOP_MIN } from "../../shared/contracts/layout";
+import { FLARE_BREAKPOINT_TABLET_MIN } from "../../shared/contracts/layout";
 import { useFlarePlatformSafe } from "../../shared/platform/useFlarePlatform";
 import { callPlatform } from "../../shared/platform/contract";
 import { useFileDrop } from "../../composables/composer/useFileDrop";
@@ -216,6 +216,14 @@ watch([replyKey, editKey], ([reply, edit], [previousReply, previousEdit]) => {
   if ((reply && reply !== previousReply) || (edit && edit !== previousEdit)) focusInput();
 });
 const hasUploading = computed(() => props.uploadItems.some((item) => (item.state ?? "uploading") === "uploading"));
+/**
+ * `expanded` 只多给桌面一点余裕，**不再决定基础动作有几个**。
+ *
+ * 原来 mention / 图片 / 富文本三个是 expanded 专属，于是同一个输入框在手机上只剩
+ * 表情 / 语音 / + / 发送 —— 四端同一个 composer，用户换个屏幕宽度就少三个入口，
+ * 而且底下面板一开，上面这排还会跟着变。基础动作在哪儿都是同一排七个；
+ * 这个开关现在只管工具条里那个「放大输入框」按钮（窄屏它在输入框自己的角上）。
+ */
 const expandedToolbar = computed(() => props.toolbarPresentation === "expanded");
 const replyPreviewWarn = computed(() => /fail|error|invalid|expired|warn/i.test(props.replyPreview ?? ""));
 const replyTitle = computed(() =>
@@ -265,6 +273,9 @@ const pickerCandidates = computed<FlareMentionCandidate[]>(() =>
 // ── "+" actions (the default is intentionally useful but restrained; business actions are host additions) ──
 const defaultAttachActions = computed<FlareComposerAttachAction[]>(() => [
   { id: "image", label: t("composer.image"), icon: ImageOutline },
+  // 视频 composer 自己就能拾取(PICKER_INTENTS.video,accept video/*),却一直没出现在「+」里 ——
+  // 宿主要么自己再造一个文件框,要么这个能力等于不存在。
+  { id: "video", label: t("composer.video"), icon: flareIcons.video },
   { id: "file", label: t("composer.file"), icon: flareIcons.file },
   { id: "voice", label: t("composer.voice"), icon: MicOutline },
   { id: "location", label: t("composer.location"), icon: MoreLocationOutline },
@@ -347,7 +358,13 @@ function openVoicePanel(): void {
   voicePanelOpen.value = next;
 }
 function onOutsidePointer(event: PointerEvent): void {
-  if (!voicePanelOpen.value && !root.value?.contains(event.target as Node)) closePanels();
+  if (voicePanelOpen.value) return;
+  const target = event.target;
+  if (root.value?.contains(target as Node)) return;
+  // 格式条的文本样式菜单锚定后传送到 body,在 root 之外:点它的一项不是「点到了别处」,
+  // 不能顺手把正开着的表情 / 贴纸面板关掉(那会往宿主发一次 toggle-panel(null))。
+  if (target instanceof Element && target.closest(".flare-action-menu-popover")) return;
+  closePanels();
 }
 function onPanelEscape(event: KeyboardEvent): void {
   if (event.key !== "Escape") return;
@@ -458,7 +475,9 @@ function openMentionPicker(): void {
 // Typing "@" at the start of a word opens the member picker when the host provides a roster
 // (a group). An "@" inside a word, such as an email address, stays plain text.
 watch(value, (next, previous = "") => {
-  if (!userEditPending || useRichEditor.value || editingBlocked.value || mentionMenuOpen.value || !mentionCandidates.value.length) return;
+  if (!userEditPending || useRichEditor.value || editingBlocked.value || mentionMenuOpen.value) return;
+  // 名册还没到 → 这次不弹(下次输入会再试);这个会话根本不支持 @ → 永远不弹。
+  if (!mentionCandidates.value.length || props.capabilities?.mentions === false) return;
   const inserted = next.length - previous.length;
   if (inserted < 1) return;
   // A pure insertion (a keystroke, an IME commit or a paste) starts where the strings first differ.
@@ -708,7 +727,11 @@ watch(root, (element) => {
     const width = element.getBoundingClientRect().width;
     // A 0 means "not laid out yet" (hidden tab, pre-paint), not "very narrow".
     if (width === 0) return;
-    const wide = width >= FLARE_BREAKPOINT_DESKTOP_MIN;
+    // 量的是**自己这个容器**的宽度，所以门槛也要用容器级的那一档。
+    // 原来比的是窗口级的 900：聊天栏永远比窗口窄（左侧栏 72 + 会话列表 320 + 内距
+    // 约 400），于是 1280 的笔记本上这里只有 874 —— composer 永远进不了桌面形态，
+    // 工具条一直是手机那条 7 等分的键盘栏，横向摊在近 900px 上。
+    const wide = width >= FLARE_BREAKPOINT_TABLET_MIN;
     if (wide !== isWide.value) isWide.value = wide;
   };
   measure();
@@ -775,7 +798,7 @@ onBeforeUnmount(() => {
         <span>{{ statusHint }}</span>
       </section>
 
-      <div v-show="resolvedActivePanel !== 'more'" v-if="showEdit" class="composer-reply-strip composer-reply-strip--edit">
+      <div v-if="showEdit" class="composer-reply-strip composer-reply-strip--edit">
         <FlareComposerReplyStrip
           tone="edit"
           sender-name=""
@@ -786,7 +809,7 @@ onBeforeUnmount(() => {
         />
       </div>
 
-      <div v-show="resolvedActivePanel !== 'more'" v-else-if="showReply" class="composer-reply-strip" :class="{ 'composer-reply-strip--warn': replyPreviewWarn }">
+      <div v-else-if="showReply" class="composer-reply-strip" :class="{ 'composer-reply-strip--warn': replyPreviewWarn }">
         <FlareComposerReplyStrip
           :tone="replyPreviewWarn ? 'warn' : 'default'"
           :sender-name="replySender?.trim() || t('composer.replyFallback')"
@@ -807,7 +830,6 @@ onBeforeUnmount(() => {
 
       <div class="composer-editor-area">
       <ComposerFormatStrip
-        v-show="resolvedActivePanel !== 'more'"
         v-if="richMode"
         :state="richFormatState"
         :disabled="editingBlocked"
@@ -815,8 +837,7 @@ onBeforeUnmount(() => {
         @heading="applyHeadingLevel"
       />
 
-      <button v-if="resolvedActivePanel === 'more' && value.trim()" type="button" class="composer-draft-peek" :aria-label="t('composer.resumeDraft')" @click="closePanels(); focusInput()"><n-icon aria-hidden="true" :component="TextOutline" /><span>{{ value }}</span><n-icon aria-hidden="true" :component="ChevronUpOutline" /></button>
-      <div v-show="resolvedActivePanel !== 'more'" class="composer-input-layer">
+      <div class="composer-input-layer">
         <!--
           点输入行的任意空白处都要能开始打字——这是 IM 里最高频的一个动作。
           编辑器（textarea / 富文本）只占这一行的一部分，点到它旁边的空白
@@ -902,7 +923,8 @@ onBeforeUnmount(() => {
         <n-button circle quaternary :title="t('composer.emoji')" :aria-label="t('composer.emoji')" :class="{ 'is-selected': resolvedActivePanel === 'emoji' }" :disabled="editingBlocked" @click="toggle('emoji')">
           <template #icon><n-icon aria-hidden="true" :size="20" :component="HappyOutline" /></template>
         </n-button>
-        <div v-if="expandedToolbar" class="composer-mention-anchor">
+        <!-- 单聊不摆 @:由会话的能力位决定,不看名册空不空(群聊名册加载中也是空的)。 -->
+        <div v-if="capabilities?.mentions !== false" class="composer-mention-anchor">
           <n-button circle quaternary :title="t('composer.mention')" :aria-label="t('composer.mention')" :class="{ 'is-selected': mentionMenuOpen }" :aria-expanded="mentionMenuOpen" :disabled="editingBlocked" @click="openMentionPicker">
             <template #icon><n-icon aria-hidden="true" :size="20" :component="AtOutline" /></template>
           </n-button>
@@ -920,10 +942,10 @@ onBeforeUnmount(() => {
         >
           <template #icon><n-icon aria-hidden="true" :size="20" :component="MicOutline" /></template>
         </n-button>
-        <n-button v-if="expandedToolbar" circle quaternary class="composer-toolbar__image" :title="t('composer.image')" :aria-label="t('composer.image')" :disabled="editingBlocked" @click="build('image')">
+        <n-button circle quaternary class="composer-toolbar__image" :title="t('composer.image')" :aria-label="t('composer.image')" :disabled="editingBlocked" @click="build('image')">
           <template #icon><n-icon aria-hidden="true" :size="20" :component="ImageOutline" /></template>
         </n-button>
-        <n-button v-if="expandedToolbar || richMode" circle quaternary class="composer-toolbar__rich" :title="t('composer.richText')" :aria-label="t('composer.richText')" :class="{ 'is-selected': richMode }" :disabled="editingBlocked" @click="toggleRichMode">
+        <n-button circle quaternary class="composer-toolbar__rich" :title="t('composer.richText')" :aria-label="t('composer.richText')" :class="{ 'is-selected': richMode }" :disabled="editingBlocked" @click="toggleRichMode">
           <template #icon><n-icon aria-hidden="true" :size="20" :component="TextOutline" /></template>
         </n-button>
         <n-button circle quaternary :title="t('composer.more')" :aria-label="t('composer.more')" :class="{ 'is-selected': resolvedActivePanel === 'more' }" :aria-expanded="resolvedActivePanel === 'more'" :disabled="editingBlocked" @click="toggle('more')">
@@ -943,11 +965,9 @@ onBeforeUnmount(() => {
     </div>
 
     <section v-if="mediaPanelActive && !editingBlocked && $slots['media-panel']" class="composer-surface composer-media-surface" :aria-label="t('composer.emoji')">
-      <button type="button" class="composer-surface-close" :aria-label="t('composer.closePanel')" @click="closePanels"><n-icon aria-hidden="true" :component="CloseOutline" /></button>
       <slot name="media-panel" />
     </section>
     <section v-if="mentionMenuOpen" class="composer-surface" :aria-label="t('composer.mention')">
-      <button type="button" class="composer-surface-close" :aria-label="t('composer.closePanel')" @click="closePanels"><n-icon aria-hidden="true" :component="CloseOutline" /></button>
       <div class="composer-mention-menu">
         <FlareMentionPicker
           :candidates="pickerCandidates"

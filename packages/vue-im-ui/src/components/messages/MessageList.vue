@@ -165,7 +165,13 @@ type TimelineRow =
     };
 
 function timelineKey(message: MessageLike): string {
-  return message.timelineKey;
+  // A row keeps the client id it was optimistically inserted with after ACK. The
+  // core's timelineKey deliberately switches to the authoritative server id, but
+  // using that value as Vue's vnode key would destroy the live bubble (and an open
+  // context menu) exactly when the ACK arrives. This is the same two-id contract
+  // used by the Flutter, iOS and Compose lists: row id first, server id for core
+  // actions/quote lookup.
+  return resolveMessageId(message) || message.timelineKey;
 }
 
 const displayMessages = computed(() =>
@@ -1116,7 +1122,15 @@ defineExpose({
 
 .message-list-content--empty { display: flex; flex-direction: column; box-sizing: border-box; min-height: 100%; }
 .message-list-empty { display: grid; flex: 1; place-items: center; }
-.message-list-pagination { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px; color: var(--flare-color-text-primary); }
-.message-list-pagination button { min-height: 48px; min-width: 48px; padding: 8px 12px; color: inherit; background: transparent; border: 1px solid var(--flare-color-border-primary); border-radius: 8px; cursor: pointer; }
+/* 版面在 design-system/styles/message-workspace.css 上，与另外两个顶部状态同一条带子。
+   这里只留这一态独有的部分：它是三态中唯一可点的。 */
+.message-list-pagination { flex-wrap: wrap; }
+/* 文字按钮而不是描边盒子：描边圆角盒子与消息气泡是同一套表面语言，
+   放在时间线顶部会被读成一条消息。触达区靠带子的 min-height 给满。 */
+.message-list-pagination button { align-self: stretch; min-width: var(--flare-size-layout-touch-target); padding-inline: var(--flare-size-spacing-sm); color: var(--flare-color-primary-text); background: transparent; border: 0; font-size: inherit; font-weight: 600; cursor: pointer; }
+/* 悬停只加下划线,不换色:--flare-color-primary 是「填充」色,暗色主题下它是深紫 #7047D6,
+   而静息态用的 --flare-color-primary-text 在暗色下是浅紫 #A78BFA —— 拿填充色去画文字,
+   一悬停就把可读的浅紫换成压在深底上的深紫。 */
+.message-list-pagination button:hover { text-decoration: underline; }
 .message-list-pagination button:focus-visible { outline: 2px solid var(--flare-color-border-selected); }
 </style>

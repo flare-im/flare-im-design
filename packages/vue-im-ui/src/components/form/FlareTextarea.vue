@@ -143,9 +143,9 @@ onMounted(() => {
   display: block;
 }
 .flare-textarea__field::placeholder { color: var(--flare-color-text-tertiary); }
-.flare-textarea--sm .flare-textarea__field { padding: 8px 10px; font-size: 13px; }
-.flare-textarea--md .flare-textarea__field { padding: 10px 12px; font-size: 14px; }
-.flare-textarea--lg .flare-textarea__field { padding: 12px 14px; font-size: 15px; }
+.flare-textarea--sm .flare-textarea__field { padding: 8px var(--flare-size-spacing-2sm); font-size: 13px; }
+.flare-textarea--md .flare-textarea__field { padding: var(--flare-size-spacing-2sm) 12px; font-size: 14px; }
+.flare-textarea--lg .flare-textarea__field { padding: 12px var(--flare-size-spacing-2md); font-size: 15px; }
 .flare-textarea__count {
   display: block;
   padding: 0 12px 6px;

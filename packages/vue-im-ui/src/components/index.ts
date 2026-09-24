@@ -124,6 +124,7 @@ export type { FlareCallMode, FlareCallState, FlareCallParticipant } from "../sha
 export { default as FlareResponsiveLayout } from "./layout/FlareResponsiveLayout.vue";
 export { default as FlareScreenHeader } from "./layout/FlareScreenHeader.vue";
 export { default as FlareScreen } from "./layout/FlareScreen.vue";
+export { default as FlareAuthShell } from "./layout/FlareAuthShell.vue";
 
 // General primitives surfaced by the example-app migration (button / segmented control)
 export { default as FlareSegmentedControl } from "./general/FlareSegmentedControl.vue";
@@ -180,6 +181,7 @@ export { default as FlareMentionPicker } from "./composer/FlareMentionPicker.vue
 export { default as FlareTransferProgress } from "./media/FlareTransferProgress.vue";
 
 export { default as FlareSearchPanel } from './general/FlareSearchPanel.vue';
+export { default as FlareRecentSearches } from './general/FlareRecentSearches.vue';
 export { default as FlareCommandPalette } from './general/FlareCommandPalette.vue';
 export type { FlareCommandPaletteCommand, FlareCommandPaletteGroup } from '../shared/contracts/command-palette';
 

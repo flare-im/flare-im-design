@@ -39,7 +39,7 @@ class FlareChatWallpaperPicker extends StatelessWidget {
     final colors = FlareColors.of(context);
     return Container(
       width: 300,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(FlareSizes.spacing2md),
       decoration: BoxDecoration(
         color: colors.bgPrimary,
         borderRadius: BorderRadius.circular(FlareSizes.radiusXl),

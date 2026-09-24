@@ -91,10 +91,13 @@ class FlareBottomSheet extends StatelessWidget {
                     child: Text(
                       title,
                       textAlign: TextAlign.center,
+                      // 面板名比它里面的每一行都轻一档 —— 说明这块界面「是什么」的那行字
+                      // 不该盖过界面里的内容。iOS / Android / web 手机档都是 13/500/tertiary,
+                      // 这份从前写的是 15/600/primary,同一个 prop 在四端落在两个层级上。
                       style: TextStyle(
-                        color: colors.textPrimary,
-                        fontSize: FlareSizes.fontSizeXl,
-                        fontWeight: FontWeight.w600,
+                        color: colors.textTertiary,
+                        fontSize: FlareSizes.fontSizeMd,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),

@@ -1,4 +1,5 @@
 import { flareLayout } from "../../design-system/theme/layout-tokens";
+import type { FlareActionItem } from "./action-menu";
 import type { WorkspaceBanner, WorkspacePaneState } from "./conversation-workspace";
 import {
   FLARE_BREAKPOINT_DESKTOP_MIN,
@@ -26,6 +27,27 @@ export interface FlareNavigationItem {
   order?: number;
   capability?: string;
   intent?: FlareNavigationIntent;
+  accessibilityLabel?: string;
+  /**
+   * 只对 `navigationActions` 有意义：这个动作不是一件事，而是一组。给了就由侧栏
+   * 自己把菜单锚在那个按钮上（宿主拿不到这个按钮，锚不了），选中的条目仍然以
+   * `navigate` 交回宿主 —— 所以菜单条目的 id 要和导航项的 id 区分开。
+   */
+  menu?: readonly FlareActionItem[];
+}
+
+/**
+ * 谁在用这个 app —— 画在侧栏最上面的那个头像。
+ *
+ * 桌面端的左栏以前只有导航项，身份和「新建 / 搜索」这两个高频动作散在内容区的页头里：
+ * 同一个入口在手机上在页头、在桌面上在另一处，而参照的成熟 IM（飞书/Lark）是把
+ * 身份 → 新建 → 搜索 → 导航 竖着叠在左栏顶部，作为一条固定的纵向路径。
+ */
+export interface FlareNavigationIdentity {
+  userId: string;
+  displayName: string;
+  avatarUrl?: string;
+  /** 读屏名字；留空时用 displayName。 */
   accessibilityLabel?: string;
 }
 
@@ -181,6 +203,13 @@ export interface FlareIMAppConfiguration {
   features: FlareFeatureSet;
   navigation: readonly FlareNavigationGroup[];
   capabilities?: FlareCapabilitySet;
+  /** 谁在用这个 app —— 画在桌面左栏最上面。手机底栏没有这个位置,会忽略。 */
+  identity?: FlareNavigationIdentity;
+  /**
+   * 身份下面那一组高频动作(新建 / 搜索)。不是目的地:没有选中态,
+   * 但走同一个 `navigate` 回调,宿主按 id 路由。
+   */
+  navigationActions?: readonly FlareNavigationItem[];
 }
 
 export interface FlareMessageActionExtension<TContext = unknown> {

@@ -36,8 +36,12 @@ class FlareMomentsCoverHeader extends StatelessWidget {
   final VoidCallback? onAvatar;
 
   static const double _coverHeight = 240;
-  // Without an image there is nothing to show off, so the band is short.
-  static const double _emptyCoverHeight = 140;
+  // Without an image there is no band to reserve: the header is the identity row
+  // itself. It used to reserve 140 and keep the photo geometry — the name right
+  // aligned and pulled up onto where the scrim would be — but right alignment,
+  // the overlap and the overhang only mean something with a photo under them,
+  // so that left ~110 of empty band above a name glued to its bottom-right.
+  static const double _emptyCoverHeight = 0;
   static const double _avatarSize = 66;
   // How far the avatar overhangs the cover's bottom edge.
   static const double _overhang = 24;
@@ -48,6 +52,7 @@ class FlareMomentsCoverHeader extends StatelessWidget {
     final strings = FlareStrings.of(context);
     final hasCover = coverUrl != null && coverUrl!.isNotEmpty;
     final coverHeight = hasCover ? _coverHeight : _emptyCoverHeight;
+    if (!hasCover) return _compactIdentity(context, colors, strings);
 
     Widget cover = Stack(
       fit: StackFit.expand,
@@ -204,6 +209,97 @@ class FlareMomentsCoverHeader extends StatelessWidget {
                 ],
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// The no-cover header: avatar, then name and signature, in reading order on
+  /// the tertiary surface, sized by its content. The change-cover affordance has
+  /// no photo to sit on top of, so it ends the row instead of floating over a
+  /// blank band.
+  Widget _compactIdentity(
+    BuildContext context,
+    FlareColors colors,
+    FlareStrings strings,
+  ) {
+    Widget avatar = Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x4715131C),
+            blurRadius: 18,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(15),
+        child: FlareAvatar(
+          userId: userId,
+          displayName: name,
+          avatarUrl: avatarUrl,
+          size: _avatarSize,
+        ),
+      ),
+    );
+    avatar = onAvatar == null
+        ? ExcludeSemantics(child: avatar)
+        : FlareContentControl(label: name, onTap: onAvatar!, child: avatar);
+
+    Widget? pill;
+    if (onEditCover != null) {
+      pill = FlareContentControl(
+        label: strings.changeCover,
+        onTap: onEditCover!,
+        child: _EditCoverPill(label: strings.changeCover, onImage: false),
+      );
+    }
+
+    return ColoredBox(
+      color: colors.bgTertiary,
+      child: Padding(
+        padding: const EdgeInsets.all(FlareSizes.spacingMd),
+        child: Row(
+          children: [
+            avatar,
+            const SizedBox(width: FlareSizes.spacingMd),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: colors.textPrimary,
+                    ),
+                  ),
+                  if (signature != null && signature!.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      signature!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: colors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if (pill != null) ...[
+              const SizedBox(width: FlareSizes.spacingSm),
+              pill,
+            ],
           ],
         ),
       ),

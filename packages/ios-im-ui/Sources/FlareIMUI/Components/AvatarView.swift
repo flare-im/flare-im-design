@@ -66,7 +66,8 @@ public struct AvatarView: View {
         // Seed by the stable display name (not the id, which varies by surface —
         // peer id vs conversation id vs sender id) so a person is one colour
         // everywhere: list, chat header, message bubbles.
-        let tint = Self.seedTint(displayName.isEmpty ? userId : displayName)
+        let colors = FlareColors.of(scheme, brand: flareBrandTheme)
+        let tint = Self.seedTint(displayName.isEmpty ? userId : displayName, colors)
         return ZStack {
             tint.bg
             Text(Self.initials(displayName))
@@ -89,14 +90,18 @@ public struct AvatarView: View {
     /// Soft pastel identity — matches the reference app (avatarPastelForKey): a
     /// tinted surface + dark initials reads more premium than a saturated solid
     /// and stays legible in both themes.
-    static func seedTint(_ seed: String) -> (bg: Color, fg: Color) {
+    /// 身份色板现在来自 token 真源(`colors.avatarTint.*`),四端同一组值、**并且有暗色**。
+    /// 原来这里是 6 组 sRGB 浮点三元组:肉眼核对不了,三端各写一份,暗色下还会当作
+    /// 浅色马卡龙直接糊在深色表面上 —— 只有 web 侧做过暗色处理。
+    /// 顺序是契约的一部分(按种子哈希取模选色),生成器不排序,按真源里的插入序走。
+    static func seedTint(_ seed: String, _ colors: FlareColors) -> (bg: Color, fg: Color) {
         let pairs: [(Color, Color)] = [
-            (Color(.sRGB, red: 0.859, green: 0.918, blue: 0.996, opacity: 1), Color(.sRGB, red: 0.114, green: 0.306, blue: 0.847, opacity: 1)), // blue
-            (Color(.sRGB, red: 0.914, green: 0.835, blue: 1.000, opacity: 1), Color(.sRGB, red: 0.427, green: 0.157, blue: 0.851, opacity: 1)), // purple
-            (Color(.sRGB, red: 0.984, green: 0.812, blue: 0.910, opacity: 1), Color(.sRGB, red: 0.745, green: 0.094, blue: 0.365, opacity: 1)), // pink
-            (Color(.sRGB, red: 0.820, green: 0.980, blue: 0.898, opacity: 1), Color(.sRGB, red: 0.016, green: 0.471, blue: 0.341, opacity: 1)), // green
-            (Color(.sRGB, red: 0.996, green: 0.953, blue: 0.780, opacity: 1), Color(.sRGB, red: 0.706, green: 0.325, blue: 0.035, opacity: 1)), // amber
-            (Color(.sRGB, red: 0.898, green: 0.906, blue: 0.922, opacity: 1), Color(.sRGB, red: 0.216, green: 0.255, blue: 0.318, opacity: 1)), // slate
+            (colors.avatarTintBlueBg, colors.avatarTintBlueFg),
+            (colors.avatarTintPurpleBg, colors.avatarTintPurpleFg),
+            (colors.avatarTintPinkBg, colors.avatarTintPinkFg),
+            (colors.avatarTintGreenBg, colors.avatarTintGreenFg),
+            (colors.avatarTintAmberBg, colors.avatarTintAmberFg),
+            (colors.avatarTintSlateBg, colors.avatarTintSlateFg),
         ]
         var hash = 0
         for byte in seed.unicodeScalars {

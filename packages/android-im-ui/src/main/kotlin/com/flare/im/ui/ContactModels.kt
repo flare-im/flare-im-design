@@ -167,7 +167,8 @@ data class StickerPack(
 )
 
 // --- Form / controls ---
-enum class FlareButtonVariant { Primary, Secondary, Ghost, Danger, Text }
+/** 中性的低强度动作:配在主按钮旁边的那个「出口」。和 text 的唯一区别是不用品牌色 —— 两个都用紫色就分不出主次;和 ghost 的区别是没有那圈 40% 品牌色描边。内距走尺寸类而不是像 text 那样压成固定值,这样它和配对的主按钮同字数时同宽。 */
+enum class FlareButtonVariant { Primary, Secondary, Ghost, Danger, Text, Quiet }
 enum class FlareControlSize { Sm, Md, Lg }
 enum class FlareIconButtonVariant { Plain, Tinted, Solid }
 data class FlareSelectOption(val value: String, val label: String, val disabled: Boolean = false)
@@ -206,10 +207,15 @@ data class SearchResultItem(
     val meta: String? = null,
 )
 
-/** A section of search results of one kind. */
+/**
+ * A section of search results of one kind. [total] is the match count when the list is truncated and the
+ * host knows it; [hasMore] says the list is truncated when it does not (a search that takes a limit and
+ * returns no count: ask for one more than is shown). [total] wins; a count is never made up.
+ */
 data class SearchResultGroup(
     val kind: SearchResultKind,
     val label: String,
     val items: List<SearchResultItem> = emptyList(),
     val total: Int? = null,
+    val hasMore: Boolean = false,
 )

@@ -106,7 +106,7 @@ function isDisabled(d: number): boolean {
 </template>
 
 <style scoped>
-.flare-cal { display: flex; flex-direction: column; gap: 8px; padding: 10px; min-width: 262px; }
+.flare-cal { display: flex; flex-direction: column; gap: 8px; padding: var(--flare-size-spacing-2sm); min-width: 262px; }
 .flare-cal__head { display: flex; align-items: center; justify-content: space-between; padding: 2px 4px 4px; }
 .flare-cal__label { font-size: 14px; font-weight: 600; color: var(--flare-color-text-primary); font-variant-numeric: tabular-nums; }
 .flare-cal__nav {

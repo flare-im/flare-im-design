@@ -28,7 +28,14 @@ export interface FlareContact {
 }
 
 export interface FlareFriendRequest {
+  /** 这条**申请**的 id(用来回应它),不是人的 id。 */
   id: string;
+  /**
+   * 发起人(incoming)或收件人(outgoing)的 user id。
+   * 头像配色按人取色,不按申请取色 —— 只有 `id` 时同一个人在这份列表里的颜色和别处不一样;
+   * 而且没有它,宿主就没法从这一行打开这个人的资料。
+   */
+  userId?: string;
   name: string;
   avatarUrl?: string;
   message?: string;
@@ -70,6 +77,12 @@ export interface FlareSettingsItem {
   detail?: string;
   /** Optional red count badge (e.g. pending friend requests) on a navigation row. */
   badge?: number;
+  /**
+   * 这一行就是另一栏正在显示的那一项。设置列表被当成导航列用时（左边四个入口、
+   * 右边加载对应列表）必须标出来，否则读的人看不出左右的对应关系。
+   * 与 `value`(只读信息) 和 `disabled` 都无关。
+   */
+  current?: boolean;
 }
 
 export interface FlareSettingsSection {
@@ -111,6 +124,8 @@ export interface FlareGroupDetailModel {
   myPinned: boolean | null;
   /** How people join; null when the host does not know. */
   joinPolicy: FlareGroupJoinPolicy | null;
+  /** Whether non-members can find this group through directory search. */
+  discoverable: boolean;
   muteAll: boolean;
   onlyAdminCanAtAll: boolean;
   onlyAdminCanPin: boolean;

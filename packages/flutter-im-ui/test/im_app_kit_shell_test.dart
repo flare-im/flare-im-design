@@ -57,11 +57,13 @@ Widget _shell({
   required Widget Function(BuildContext, String) destination,
   FlareIMAppConfiguration configuration = _configuration,
   ValueChanged<String>? onNavigate,
+  void Function(String, FlareApplicationResponsiveMode)? onNavigateWithMode,
 }) => MaterialApp(
   home: FlareIMAppKit(
     configuration: configuration,
     activeNavigationId: active,
     onNavigate: onNavigate,
+    onNavigateWithMode: onNavigateWithMode,
     destinationBuilder: destination,
     label: 'Reference IM',
   ),
@@ -91,6 +93,87 @@ void main() {
       FlareApplicationResponsiveMode.mobile,
     );
   });
+
+  testWidgets('reports its resolved mode with navigation', (tester) async {
+    _size(tester, 900);
+    String? navigation;
+    FlareApplicationResponsiveMode? mode;
+    await tester.pumpWidget(
+      _shell(
+        active: 'chats',
+        destination: (_, id) => Text(id),
+        onNavigateWithMode: (id, resolvedMode) {
+          navigation = id;
+          mode = resolvedMode;
+        },
+      ),
+    );
+
+    await tester.tap(find.text('Contacts'));
+    expect(navigation, 'contacts');
+    expect(mode, FlareApplicationResponsiveMode.desktop);
+  });
+
+  testWidgets(
+    'non-mobile app kit keeps the compact Web rail with identity and actions',
+    (tester) async {
+      _size(tester, 1600);
+      final navigated = <String>[];
+      const configuration = FlareIMAppConfiguration(
+        features: FlareFeatureSet({'conversations', 'contacts'}),
+        identity: FlareNavigationIdentity(
+          userId: 'qa-bob',
+          displayName: 'QA Bob',
+          accessibilityLabel: 'QA Bob, my profile',
+        ),
+        navigationActions: [
+          FlareNavigationItem(id: 'search', label: 'Search', icon: 'search'),
+        ],
+        navigation: [
+          FlareNavigationGroup(
+            id: 'main',
+            items: [
+              FlareNavigationItem(id: 'chats', label: 'Chats', icon: 'chats'),
+              FlareNavigationItem(
+                id: 'contacts',
+                label: 'Contacts',
+                icon: 'people',
+              ),
+            ],
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        _shell(
+          active: 'chats',
+          configuration: configuration,
+          onNavigate: navigated.add,
+          destination: (_, id) => Text(id),
+        ),
+      );
+
+      expect(
+        _navigation(tester).presentation,
+        FlareNavigationPresentation.rail,
+      );
+      expect(
+        tester.getSize(find.byType(FlareAdaptiveNavigation)).width,
+        FlareSizes.navigationRailWidth,
+      );
+      expect(
+        tester.getSize(find.byType(FlareAdaptiveNavigation)).height,
+        900,
+        reason:
+            'the rail surface fills the desktop shell instead of being vertically centred',
+      );
+      expect(find.bySemanticsLabel('QA Bob, my profile'), findsOneWidget);
+      expect(find.bySemanticsLabel('Search'), findsOneWidget);
+
+      await tester.tap(find.bySemanticsLabel('QA Bob, my profile'));
+      await tester.tap(find.bySemanticsLabel('Search'));
+      expect(navigated, ['profile', 'search']);
+    },
+  );
 
   testWidgets(
     'keeps a destination it has shown, with its state, across a switch and a change of mode',

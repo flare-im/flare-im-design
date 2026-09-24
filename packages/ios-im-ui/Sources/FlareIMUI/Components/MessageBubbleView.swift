@@ -78,6 +78,7 @@ public struct MessageBubbleView: View {
     private var gallery: FlareImageGallerySource?
 
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareBubbleMaxWidth) private var bubbleMaxWidth
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
     @Environment(\.flareLocateMark) private var locateMark
@@ -288,9 +289,9 @@ public struct MessageBubbleView: View {
     private var leadingAvatar: some View {
         if showAvatar {
             AvatarView(userId: message.senderId, displayName: message.senderName,
-                       avatarURL: message.senderAvatarURL, size: 34)
+                       avatarURL: message.senderAvatarURL, size: FlareSizes.componentMessageAvatarSize)
         } else {
-            Color.clear.frame(width: 34, height: 1)
+            Color.clear.frame(width: FlareSizes.componentMessageAvatarSize, height: 1)
         }
     }
 
@@ -298,13 +299,15 @@ public struct MessageBubbleView: View {
     private var trailingAvatar: some View {
         if showAvatar {
             AvatarView(userId: message.senderId, displayName: message.senderName,
-                       avatarURL: message.senderAvatarURL, size: 34)
+                       avatarURL: message.senderAvatarURL, size: FlareSizes.componentMessageAvatarSize)
         } else {
-            Color.clear.frame(width: 34, height: 1)
+            Color.clear.frame(width: FlareSizes.componentMessageAvatarSize, height: 1)
         }
     }
 
     private func bubbleColumn(_ colors: FlareColors) -> some View {
+        // 最大宽由时间线量一次后经环境下发(见 EnvironmentValues.flareBubbleMaxWidth)。
+        // 这里原来完全不设上限:一条长消息会铺满整栏,宽栏/iPad 上尤其明显。
         VStack(alignment: isSelf ? .trailing : .leading, spacing: 2) {
             if rowPresentation.showSenderName {
                 Text(message.senderName)
@@ -319,6 +322,7 @@ public struct MessageBubbleView: View {
                     .padding(.top, FlareSizes.spacingXs)
             }
         }
+        .frame(maxWidth: bubbleMaxWidth, alignment: isSelf ? .trailing : .leading)
     }
 
     @ViewBuilder
@@ -333,8 +337,8 @@ public struct MessageBubbleView: View {
                 bubbleContent(colors)
             }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 9)
+        .padding(.horizontal, FlareSizes.componentBubblePaddingX)
+        .padding(.vertical, FlareSizes.componentBubblePaddingY)
     }
 
     private func bubbleContent(_ colors: FlareColors) -> some View {
@@ -419,9 +423,12 @@ public struct MessageBubbleView: View {
                 .clipShape(flareBubbleShape(groupEnd ? .bottomTrailing : .none))
                 .background { locateRing(colors, shape: flareBubbleShape(groupEnd ? .bottomTrailing : .none)) }
         } else {
+            // Drawn by fill, not by outline: the incoming surface is a tertiary tone the chat canvas
+            // never uses, so the bubble has an edge without a hairline to keep in sync with it. The
+            // stroke that used to sit here was the only thing separating a #FFFFFF bubble from a
+            // #FFFFFF canvas, and a solid tail painted straight over it.
             bubbleInner(colors)
                 .background(flareBubbleShape(groupEnd ? .bottomLeading : .none).fill(colors.messageIncomingBackground))
-                .overlay(flareBubbleShape(groupEnd ? .bottomLeading : .none).strokeBorder(colors.messageIncomingBorder, lineWidth: 1))
                 .shadow(color: Color.black.opacity(0.05), radius: 5, y: 2)
                 .background { locateRing(colors, shape: flareBubbleShape(groupEnd ? .bottomLeading : .none)) }
         }

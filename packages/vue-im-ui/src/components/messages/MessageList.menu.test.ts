@@ -1,11 +1,13 @@
 // @vitest-environment happy-dom
-import { mount } from "@vue/test-utils";
-import { h } from "vue";
+import { flushPromises, mount } from "@vue/test-utils";
+import { h, ref } from "vue";
 import { describe, expect, it } from "vitest";
 import FlareUiProvider from "../../design-system/provider/FlareUiProvider.vue";
 import type { MessageLike } from "../../shared/contracts/messageRow";
 import MessageBubble from "./MessageBubble.vue";
 import MessageList from "./MessageList.vue";
+import MessageMenu from "./MessageMenu.vue";
+import FlareActionMenu from "../general/FlareActionMenu.vue";
 
 const message: MessageLike = {
   serverId: "server-1", clientMsgId: "client-1", senderId: "ivy", senderDisplayName: "Ivy",
@@ -33,6 +35,56 @@ describe("MessageList menu intents", () => {
   it("drops the actions nobody handles", () => {
     const actions = bubbleActions({ onReply: () => {} });
     expect(actions).toMatchObject({ reply: true, forward: false, react: false, pin: false, delete: false });
+  });
+
+  it("keeps an open menu alive and refreshes its actions when a pending row is acknowledged", async () => {
+    const pending: MessageLike = {
+      ...message,
+      serverId: "",
+      senderId: "me",
+      conversationSeq: 0,
+      status: "sending",
+      timelineKey: "client:client-1",
+      localState: { sending: true },
+    };
+    const rows = ref<readonly MessageLike[]>([pending]);
+    const host = mount(FlareUiProvider, {
+      props: { themeMode: "light", locale: "en-US", layoutMode: "pc" },
+      slots: {
+        default: () => h(MessageList, {
+          messages: rows.value,
+          currentUserId: "me",
+          hasOlder: false,
+          onEdit: () => {},
+          onForward: () => {},
+          onPin: () => {},
+        }),
+      },
+    });
+    const bubbleBeforeAck = host.findComponent(MessageBubble).vm.$.uid;
+    const menuWrapper = host.findComponent(MessageMenu);
+    const menuBeforeAck = menuWrapper.vm.$.uid;
+    (menuWrapper.vm as unknown as { openMenu(): void }).openMenu();
+    await flushPromises();
+    expect(host.findComponent(FlareActionMenu).props("items").map((item: { id: string }) => item.id))
+      .not.toContain("edit");
+
+    rows.value = [{
+      ...pending,
+      serverId: "server-1",
+      conversationSeq: 1,
+      status: "sent",
+      timelineKey: "server:server-1",
+      localState: { sending: false },
+    }];
+    await flushPromises();
+
+    expect(host.findComponent(MessageBubble).vm.$.uid).toBe(bubbleBeforeAck);
+    expect(host.findComponent(MessageMenu).vm.$.uid).toBe(menuBeforeAck);
+    expect(host.findComponent(FlareActionMenu).props("open")).toBe(true);
+    expect(host.findComponent(FlareActionMenu).props("items").map((item: { id: string }) => item.id))
+      .toEqual(expect.arrayContaining(["edit", "forward", "pin"]));
+    host.unmount();
   });
 });
 

@@ -169,7 +169,7 @@ function toggleExpanded(): void {
 .business-detail-block__row {
   display: grid;
   grid-template-columns: minmax(58px, 0.34fr) minmax(0, 1fr);
-  gap: 10px;
+  gap: var(--flare-size-spacing-2sm);
   align-items: start;
   padding: 8px 9px;
   border-top: 1px solid color-mix(in srgb, var(--flare-color-border-primary) 30%, transparent);
@@ -215,7 +215,7 @@ function toggleExpanded(): void {
   display: flex;
   align-items: center;
   min-height: 38px;
-  margin: 10px -12px -11px;
+  margin: var(--flare-size-spacing-2sm) -12px -11px;
   overflow: hidden;
   border-top: 1px solid color-mix(in srgb, var(--flare-color-border-primary) 56%, transparent);
   background: color-mix(in srgb, var(--flare-color-bg-tertiary) 42%, var(--flare-color-bg-primary));

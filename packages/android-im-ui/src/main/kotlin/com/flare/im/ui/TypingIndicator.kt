@@ -57,7 +57,7 @@ fun TypingIndicator(
                 Text(label, color = colors.textTertiary, fontSize = FlareSizes.fontSizeLg.value.sp)
                 Spacer(Modifier.width(8.dp))
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs), verticalAlignment = Alignment.CenterVertically) {
                 repeat(3) { i ->
                     val y by transition.animateFloat(
                         initialValue = 0f, targetValue = -4f,
@@ -83,11 +83,17 @@ fun TypingIndicator(
                 },
             )
             Spacer(Modifier.width(FlareSizes.spacingSm))
+            // 一个形状同时给填充和描边。从前这两处各写一遍,而且尾角写反了(描边把
+            // 尖角放在左上、填充放在左下),1dp 的线于是画在背景没填到的形状上。
+            val bubbleShape = RoundedCornerShape(
+                FlareSizes.radiusBubble, FlareSizes.radiusBubble,
+                FlareSizes.radiusBubble, FlareSizes.radiusBubbleTail,
+            )
             Box(
-                Modifier.clip(RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp))
+                Modifier.clip(bubbleShape)
                     .background(colors.bgPrimary)
-                    .border(1.dp, colors.borderPrimary, RoundedCornerShape(4.dp, 16.dp, 16.dp, 16.dp))
-                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                    .border(1.dp, colors.borderPrimary, bubbleShape)
+                    .padding(horizontal = FlareSizes.spacing2md, vertical = FlareSizes.spacing2sm),
             ) { body() }
         }
     }

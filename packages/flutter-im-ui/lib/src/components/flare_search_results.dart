@@ -114,8 +114,7 @@ class FlareSearchResults extends StatelessWidget {
         ),
       ),
       for (final item in g.items) _row(colors, item),
-      if (g.total != null && g.total! > g.items.length)
-        _viewAll(context, colors, g),
+      if (g.counted || g.hasMore) _viewAll(context, colors, g),
     ];
   }
 
@@ -204,8 +203,10 @@ class FlareSearchResults extends StatelessWidget {
         child: Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            viewAllText?.call(g.total!) ??
-                FlareStrings.of(context).viewAll(g.total!),
+            g.counted
+                ? (viewAllText?.call(g.total!) ??
+                      FlareStrings.of(context).viewAll(g.total!))
+                : FlareStrings.of(context).more,
             style: TextStyle(
               color: colors.primaryText,
               fontSize: FlareSizes.fontSizeMd,

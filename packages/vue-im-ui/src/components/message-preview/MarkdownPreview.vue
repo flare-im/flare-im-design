@@ -30,7 +30,7 @@ const readingTime = computed(() => estimateReadingTime(props.content));
 .markdown-preview__header {
   display: flex;
   gap: 12px;
-  margin-bottom: 10px;
+  margin-bottom: var(--flare-size-spacing-2sm);
   color: var(--flare-color-text-tertiary);
   font-size: 12px;
 }
@@ -42,6 +42,9 @@ const readingTime = computed(() => estimateReadingTime(props.content));
   word-break: break-word;
 }
 
+/* 标题走绝对台阶,和 iOS(MarkdownPreviewView) / Flutter(flare_markdown_preview) 一致。
+   从前 web 是 1.32/1.18/1.06em,落在 14px 正文上 h3 只比正文大 0.8px —— 读者只能靠
+   字重认出那是标题。 */
 .markdown-preview__body :deep(h1),
 .markdown-preview__body :deep(h2),
 .markdown-preview__body :deep(h3) {
@@ -52,15 +55,15 @@ const readingTime = computed(() => estimateReadingTime(props.content));
 }
 
 .markdown-preview__body :deep(h1) {
-  font-size: 1.32em;
+  font-size: var(--flare-size-font-size-4xl);
 }
 
 .markdown-preview__body :deep(h2) {
-  font-size: 1.18em;
+  font-size: var(--flare-size-font-size-3xl);
 }
 
 .markdown-preview__body :deep(h3) {
-  font-size: 1.06em;
+  font-size: var(--flare-size-font-size-2xl);
 }
 
 .markdown-preview__body :deep(p),
@@ -93,7 +96,7 @@ const readingTime = computed(() => estimateReadingTime(props.content));
 }
 
 .markdown-preview__body :deep(blockquote) {
-  padding: 6px 10px;
+  padding: 6px var(--flare-size-spacing-2sm);
   border-left: 3px solid color-mix(in srgb, var(--flare-color-primary) 46%, transparent);
   border-radius: 0 7px 7px 0;
   color: var(--flare-color-text-secondary);
@@ -101,7 +104,7 @@ const readingTime = computed(() => estimateReadingTime(props.content));
 }
 
 .markdown-preview__body :deep(pre) {
-  padding: 10px;
+  padding: var(--flare-size-spacing-2sm);
   border-radius: 8px;
   background: var(--flare-color-bg-tertiary);
   overflow-x: auto;

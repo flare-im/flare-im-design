@@ -60,12 +60,12 @@ fun Skeleton(
         SkeletonVariant.Conversation -> Column(Modifier.fillMaxWidth()) {
             repeat(rows) {
                 Row(
-                    Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacingLg, vertical = 10.dp),
+                    Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacing2sm),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     skBlock(Modifier.size(44.dp), brush, CircleShape)
                     Spacer(Modifier.width(FlareSizes.spacingMd))
-                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
                         skBlock(Modifier.fillMaxWidth(0.42f).height(11.dp), brush)
                         skBlock(Modifier.fillMaxWidth(0.68f).height(11.dp), brush)
                     }
@@ -116,7 +116,7 @@ fun Skeleton(
 
         SkeletonVariant.Text -> Column(
             Modifier.fillMaxWidth().padding(FlareSizes.spacingLg),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2sm),
         ) {
             val fractions = listOf(0.9f, 0.75f, 0.85f, 0.6f, 0.8f)
             repeat(rows) { i ->
@@ -127,6 +127,6 @@ fun Skeleton(
 }
 
 @Composable
-private fun skBlock(modifier: Modifier, brush: Brush, shape: Shape = RoundedCornerShape(6.dp)) {
+private fun skBlock(modifier: Modifier, brush: Brush, shape: Shape = RoundedCornerShape(FlareSizes.radiusSm)) {
     Box(modifier.clip(shape).background(brush))
 }

@@ -74,11 +74,11 @@ fun GroupMemberGrid(
                 fontSize = FlareSizes.fontSizeLg.value.sp)
             Text(memberCountText(total ?: members.size), color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
         }
-        Spacer(Modifier.height(14.dp))
+        Spacer(Modifier.height(FlareSizes.spacing2md))
         LazyVerticalGrid(
             columns = GridCells.Fixed(columns),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2sm),
+            verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2md),
             contentPadding = PaddingValues(0.dp),
             modifier = Modifier.height(((members.size + (if (showAdd) 1 else 0) + columns - 1) / columns * 84).dp),
         ) {
@@ -88,10 +88,10 @@ fun GroupMemberGrid(
                     Box(contentAlignment = Alignment.BottomCenter) {
                         Avatar(userId = m.id, displayName = m.name, size = 48.dp)
                         role(m)?.let { r ->
-                            Text(r, color = Color.White, fontSize = 10.sp,
+                            Text(r, color = Color.White, fontSize = FlareSizes.fontSize2xs,
                                 modifier = Modifier.offset(y = 6.dp).clip(RoundedCornerShape(999.dp))
                                     .background(if (m.id == ownerId) colors.warning else colors.textTertiary)
-                                    .padding(horizontal = 6.dp, vertical = 1.dp))
+                                    .padding(horizontal = FlareSizes.spacing2xs, vertical = 1.dp))
                         }
                     }
                     Spacer(Modifier.height(8.dp))

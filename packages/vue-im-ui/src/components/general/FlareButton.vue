@@ -57,17 +57,30 @@ const rsize = computed(() => props.size ?? config.size.value);
     border-color var(--flare-transition-fast), transform var(--flare-transition-fast),
     opacity var(--flare-transition-fast);
 }
-.flare-button::after { content: ""; position: absolute; width: max(100%, var(--flare-size-layout-touch-target)); height: max(100%, var(--flare-size-layout-touch-target)); }
+/* 命中区撑到触达区大小。要居中:原来从左上角铺开,按钮一带内距,多出来的那圈就全偏到右下。 */
+.flare-button::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: max(100%, var(--flare-size-layout-touch-target));
+  height: max(100%, var(--flare-size-layout-touch-target));
+}
 .flare-button:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: 2px; }
 .flare-button.is-block { width: 100%; }
 .flare-button:active:not(:disabled) { transform: scale(0.98); }
 .flare-button:disabled { opacity: var(--flare-opacity-disabled); cursor: not-allowed; }
 .flare-button__icon { font-size: 1.1em; }
 
-/* sizes */
-.flare-button--sm { height: var(--flare-size-layout-control-height-sm); padding: 0 var(--flare-size-layout-control-pad-xsm); font-size: var(--flare-size-font-size-md); }
-.flare-button--md { height: var(--flare-size-layout-control-height-md); padding: 0 var(--flare-size-layout-control-pad-xmd); font-size: var(--flare-size-font-size-lg); }
-.flare-button--lg { height: var(--flare-size-layout-control-height-lg); padding: 0 var(--flare-size-layout-control-pad-xlg); font-size: var(--flare-size-font-size-xl); }
+/* sizes
+   每个尺寸都要显式写 min-height:accessibility.css 在 (pointer: coarse) 下给 :where(button)
+   兜了 44px 的 min-height,而 min-height 压过 height —— 于是手机上每一颗 size="sm" 都是 44 高,
+   内距(12)和圆角(10)却还是按 32 调的,长出一个 52x44 的近正方紫块(这就是「接受按钮太丑」)。
+   触达区不受影响:上面 ::after 一直在把命中区撑到 48x48,那才是真正该保证 44 的东西。 */
+.flare-button--sm { height: var(--flare-size-layout-control-height-sm); min-height: var(--flare-size-layout-control-height-sm); padding: 0 var(--flare-size-layout-control-pad-xsm); font-size: var(--flare-size-font-size-md); }
+.flare-button--md { height: var(--flare-size-layout-control-height-md); min-height: var(--flare-size-layout-control-height-md); padding: 0 var(--flare-size-layout-control-pad-xmd); font-size: var(--flare-size-font-size-lg); }
+.flare-button--lg { height: var(--flare-size-layout-control-height-lg); min-height: var(--flare-size-layout-control-height-lg); padding: 0 var(--flare-size-layout-control-pad-xlg); font-size: var(--flare-size-font-size-xl); }
 
 /* variants */
 .flare-button--primary {
@@ -100,6 +113,13 @@ const rsize = computed(() => props.size ?? config.size.value);
   padding-right: 8px;
 }
 .flare-button--text:hover:not(:disabled) { background: var(--flare-color-bg-secondary); }
+/* 中性的安静动作。和 text 的区别只有一条:不用品牌色 —— 它是配在主按钮旁边的那个出口,
+   两个都用紫色就分不出主次。内距交给尺寸类,这样和它配对的主按钮同字数时同宽。 */
+.flare-button--quiet {
+  background: transparent;
+  color: var(--flare-color-text-secondary);
+}
+.flare-button--quiet:hover:not(:disabled) { color: var(--flare-color-text-primary); background: var(--flare-color-bg-secondary); }
 
 .flare-button__spinner {
   width: 15px;

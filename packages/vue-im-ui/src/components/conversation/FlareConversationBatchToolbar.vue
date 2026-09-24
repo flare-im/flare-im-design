@@ -264,7 +264,7 @@ function dismiss() {
   align-items: center;
   gap: var(--flare-size-spacing-md);
   flex-wrap: wrap;
-  padding: 10px 14px;
+  padding: var(--flare-size-spacing-2sm) var(--flare-size-spacing-2md);
 }
 .flare-conv-batch__meta {
   display: inline-flex;
@@ -304,7 +304,7 @@ function dismiss() {
   gap: 5px;
   min-height: 40px;
   min-width: 40px;
-  padding: 0 10px;
+  padding: 0 var(--flare-size-spacing-2sm);
   border: none;
   border-radius: var(--flare-size-radius-md);
   background: var(--flare-color-bg-secondary);
@@ -343,7 +343,7 @@ function dismiss() {
 .flare-conv-batch__result {
   border-top: 1px solid var(--flare-color-border-secondary);
   background: var(--flare-color-bg-secondary);
-  padding: 8px 14px;
+  padding: 8px var(--flare-size-spacing-2md);
   display: grid;
   gap: 8px;
 }

@@ -93,7 +93,7 @@ void main() {
         ),
       );
       await tester.pump();
-      expect(find.byType(Image), findsOneWidget);
+      expect(find.byType(FlareStaticImage), findsOneWidget);
       final paragraph = tester.widget<Text>(find.byType(Text).first);
       final plain = paragraph.textSpan!.toPlainText(includePlaceholders: false);
       expect(plain, '早上好出发', reason: 'the token is drawn, not spelled out');
@@ -108,7 +108,7 @@ void main() {
         ),
       );
       await tester.pump();
-      expect(find.byType(Image), findsNothing);
+      expect(find.byType(FlareStaticImage), findsNothing);
       final paragraph = tester.widget<Text>(find.byType(Text).first);
       expect(
         paragraph.textSpan!.toPlainText(includePlaceholders: false),
@@ -141,7 +141,7 @@ void main() {
       // The mention keeps its own ground (a widget span) and the token is an
       // image: both survive in one paragraph.
       expect(find.text('@Ann'), findsOneWidget);
-      expect(find.byType(Image), findsOneWidget);
+      expect(find.byType(FlareStaticImage), findsOneWidget);
     });
   });
 

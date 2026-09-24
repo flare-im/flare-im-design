@@ -172,7 +172,7 @@ fun UnknownUserPlaceholder(
                         unknownUserIcon(presentation.kind),
                         contentDescription = null,
                         tint = badge,
-                        modifier = Modifier.size(14.dp),
+                        modifier = Modifier.size(FlareSizes.spacing2md),
                     )
                 }
                 Spacer(Modifier.width(6.dp))

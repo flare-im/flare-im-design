@@ -246,13 +246,19 @@ public struct ComposerView: View {
                         if rich || formatMode { formatStrip(colors, m) }
                         HStack(alignment: .top, spacing: 0) {
                             Group {
-                                TextField(copy.placeholder, text: textBinding, axis: .vertical)
-                                    .lineLimit(expanded ? 9...14 : 1...5)
-                                    .font(.system(size: formats.contains("heading") ? 17 : 15, weight: formats.contains("bold") ? .bold : .regular))
-                                    .italic(formats.contains("italic"))
-                                    .strikethrough(formats.contains("strike"))
-                                    .underline(formats.contains("link"))
-                                    .disabled(disabled)
+                                FlareComposerEmojiTextEditor(
+                                    text: textBinding,
+                                    placeholder: copy.placeholder,
+                                    disabled: disabled,
+                                    expanded: expanded,
+                                    fontSize: formats.contains("heading") ? 17 : 15,
+                                    bold: formats.contains("bold"),
+                                    italic: formats.contains("italic"),
+                                    strike: formats.contains("strike"),
+                                    underline: formats.contains("link"),
+                                    textColor: formats.contains("link") ? colors.primaryText : colors.textPrimary,
+                                    hintColor: colors.textTertiary
+                                )
                             }.padding(m.text)
                             iconButton(expanded ? "collapse" : "expand",
                                        label: expanded ? strings.composerCollapseInput : strings.composerExpandInput,
@@ -262,7 +268,7 @@ public struct ComposerView: View {
                     if !m.band { toolbar(colors, distributed: false) }
                 }
                 .background(colors.bgPrimary)
-                .overlay { if !m.band { RoundedRectangle(cornerRadius: 12).strokeBorder(colors.borderPrimary, lineWidth: 1) } }
+                .overlay { if !m.band { RoundedRectangle(cornerRadius: FlareSizes.radiusCard).strokeBorder(colors.borderPrimary, lineWidth: 1) } }
                 // The tools leave the band and rest on the ground, taking back
                 // the inset the band gave up.
                 if m.band { toolbar(colors, distributed: true).padding(.horizontal, m.toolInset) }

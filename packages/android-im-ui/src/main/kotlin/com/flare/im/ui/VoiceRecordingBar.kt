@@ -76,7 +76,7 @@ fun VoiceRecordingBar(
             Icon(flareIconVector(cancel.icon), contentDescription = null,
                 tint = if (cancelling) Color.White else colors.textSecondary, modifier = Modifier.size(18.dp))
         }
-        Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
             Box(Modifier.size(9.dp).clip(CircleShape).background(colors.error.copy(alpha = dotAlpha)))
             Text(durationLabel, color = colors.textPrimary, fontSize = 13.sp)
             Row(
@@ -95,7 +95,7 @@ fun VoiceRecordingBar(
         val send = controls["send"]
         if (send == null) {
             Text(strings.releaseToCancel, color = colors.errorText, fontWeight = FontWeight.Medium, fontSize = 12.sp,
-                modifier = Modifier.padding(start = FlareSizes.spacing2xs, end = 10.dp))
+                modifier = Modifier.padding(start = FlareSizes.spacing2xs, end = FlareSizes.spacing2sm))
         } else {
             FlareIconControl(label = send.label, onClick = onSend) {
                 Box(Modifier.size(36.dp).clip(CircleShape).background(Brush.linearGradient(listOf(colors.primary, colors.primaryActive))))

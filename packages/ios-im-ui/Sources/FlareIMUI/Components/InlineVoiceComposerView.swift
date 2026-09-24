@@ -144,8 +144,8 @@ public struct InlineVoiceComposerView: View {
                 }
             }
             .padding(.horizontal, 3).padding(.vertical, 6)
-            .background(colors.bgPrimary).clipShape(RoundedRectangle(cornerRadius: 12))
-            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(colors.borderPrimary, lineWidth: 1))
+            .background(colors.bgPrimary).clipShape(RoundedRectangle(cornerRadius: FlareSizes.radiusCard))
+            .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusCard).strokeBorder(colors.borderPrimary, lineWidth: 1))
             if let error = capture.error { Text(error).font(.caption).foregroundColor(colors.errorText) }
         }
         // The recorder's own two messages come from the strings table, which only the view can read.

@@ -240,7 +240,7 @@ fun ScreenShare(
                         enabled = !busy,
                         shape = RoundedCornerShape(FlareSizes.radiusMd),
                         colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = colors.error,
+                            contentColor = colors.errorText,
                             disabledContentColor = colors.textDisabled,
                         ),
                         modifier = Modifier.defaultMinSize(minWidth = FlareSizes.touchTarget, minHeight = FlareSizes.touchTarget),

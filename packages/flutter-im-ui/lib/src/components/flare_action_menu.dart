@@ -580,7 +580,9 @@ class _ActionMenuPanelState extends State<_ActionMenuPanel> {
     // 12em to 22em of the menu's own text, so the width follows text scaling.
     final em = MediaQuery.textScalerOf(context).scale(FlareSizes.fontSizeLg);
     return ConstrainedBox(
-      constraints: BoxConstraints(minWidth: 12 * em, maxWidth: 22 * em),
+      // 内容定宽，只夹住两头。8em/20em = 14px 基准下的 112/280，与 Android / iOS / Vue
+      // 同一组数；原来的 12em/22em 让两三个两字动作也撑出半屏宽。
+      constraints: BoxConstraints(minWidth: 8 * em, maxWidth: 20 * em),
       child: IntrinsicWidth(
         child: Material(
           type: MaterialType.transparency,

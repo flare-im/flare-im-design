@@ -94,16 +94,16 @@ fun Toast(
             .clip(RoundedCornerShape(FlareSizes.radiusLg))
             .background(colors.bgPrimary)
             .border(1.dp, colors.borderPrimary, RoundedCornerShape(FlareSizes.radiusLg))
-            .padding(horizontal = 14.dp, vertical = 11.dp),
+            .padding(horizontal = FlareSizes.spacing2md, vertical = 11.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(icon, contentDescription = null, tint = tint,
             modifier = Modifier.size(18.dp)
                 .then(if (variant == ToastVariant.Loading) Modifier.rotate(angle) else Modifier))
-        Spacer(Modifier.width(10.dp))
+        Spacer(Modifier.width(FlareSizes.spacing2sm))
         Text(message, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp, modifier = Modifier.weight(1f, fill = false))
         if (actionLabel != null) {
-            Spacer(Modifier.width(10.dp))
+            Spacer(Modifier.width(FlareSizes.spacing2sm))
             Text(actionLabel, color = colors.primaryText, fontWeight = FontWeight.SemiBold,
                 fontSize = FlareSizes.fontSizeLg.value.sp,
                 modifier = Modifier.clickable { onAction?.invoke() })
@@ -139,7 +139,10 @@ fun FlareToastHost(
             Column(
                 Modifier.align(Alignment.TopCenter)
                     .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal))
-                    .padding(FlareSizes.spacingLg)
+                    // 让开页头：贴着最顶端的 toast 会压在标题和页头动作上 —— 字压字，
+                    // 而且它盖住的按钮在它消失前一直点不到。
+                    .padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingLg)
+                    .padding(top = FlareSizes.screenHeaderHeight)
                     .semantics { liveRegion = LiveRegionMode.Polite },
                 verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
                 horizontalAlignment = Alignment.CenterHorizontally,

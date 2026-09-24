@@ -68,7 +68,7 @@ const label = computed(() => {
   </button>
 </template>
 <style scoped>
-.fm-video { padding: 0; border: none; position: relative; width: 148px; height: 92px; border-radius: 12px; overflow: hidden; background: var(--flare-color-bg-tertiary); display: grid; place-items: center; cursor: pointer; }
+.fm-video { padding: 0; border: none; position: relative; width: 148px; height: 92px; border-radius: var(--flare-size-radius-card); overflow: hidden; background: var(--flare-color-bg-tertiary); display: grid; place-items: center; cursor: pointer; }
 .fm-video img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .fm-video:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: 2px; }
 .fm-video:disabled { cursor: default; }
@@ -80,5 +80,5 @@ const label = computed(() => {
 .ph svg { opacity: 0.5; color: var(--flare-color-text-tertiary); }
 .ph small { font-size: var(--flare-size-font-size-xs); color: var(--flare-color-text-tertiary); text-align: center; }
 .play { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; background: rgba(0,0,0,.28); }
-.dur { position: absolute; right: 6px; bottom: 5px; font-size: 10px; color: #fff; background: rgba(0,0,0,.45); padding: 1px 5px; border-radius: 5px; font-variant-numeric: tabular-nums; }
+.dur { position: absolute; right: 6px; bottom: 5px; font-size: var(--flare-size-font-size-2xs); color: #fff; background: rgba(0,0,0,.45); padding: 1px 5px; border-radius: 5px; font-variant-numeric: tabular-nums; }
 </style>

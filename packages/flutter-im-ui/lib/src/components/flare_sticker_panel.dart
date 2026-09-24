@@ -81,7 +81,7 @@ class _FlareStickerPanelState extends State<FlareStickerPanel> {
         children: [
           if (pack != null)
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+              padding: const EdgeInsets.fromLTRB(12, FlareSizes.spacing2sm, 12, 6),
               child: Text(
                 pack.label,
                 style: TextStyle(

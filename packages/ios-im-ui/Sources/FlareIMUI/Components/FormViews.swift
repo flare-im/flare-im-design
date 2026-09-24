@@ -46,7 +46,7 @@ public struct ButtonView: View {
         case .primary: return colors.primary
         case .danger: return colors.error
         case .secondary: return colors.bgSecondary
-        case .ghost, .text: return .clear
+        case .ghost, .text, .quiet: return .clear
         }
     }
 
@@ -59,10 +59,14 @@ public struct ButtonView: View {
     }
 
     private func fg(_ colors: FlareColors) -> Color {
+        // ghost / text 的**文字**要取 primaryText 而不是 primary。两者是一对的两半:
+        // 浅色下同为 #7047D6 所以看不出来,暗色下 primary 不变(在 #20232B 上 2.66:1,
+        // AA 正文要 4.5)而 primaryText 提亮成 #A78BFA(5.77:1)。描边仍用 primary —— 描边是填充。
         switch variant {
         case .primary, .danger: return .white
         case .secondary: return colors.textPrimary
-        case .ghost, .text: return colors.primary
+        case .ghost, .text: return colors.primaryText
+        case .quiet: return colors.textSecondary
         }
     }
 

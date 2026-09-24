@@ -25,7 +25,7 @@ const initials = computed(() => {
   </div>
 </template>
 <style scoped>
-.fm-contact { display: inline-flex; align-items: center; gap: 12px; min-width: 240px; padding: 9px 14px; border-radius: 16px 16px 16px 4px; background: var(--flare-color-bg-primary); border: 1px solid var(--flare-color-border-secondary); box-shadow: var(--flare-component-bubble-shadow); cursor: pointer; }
+.fm-contact { display: inline-flex; align-items: center; gap: 12px; min-width: 240px; padding: 9px var(--flare-size-spacing-2md); border-radius: 16px 16px 16px 4px; background: var(--flare-color-bg-primary); border: 1px solid var(--flare-color-border-secondary); box-shadow: var(--flare-component-bubble-shadow); cursor: pointer; }
 .av { width: 44px; height: 44px; border-radius: 10px; flex: none; display: grid; place-items: center; font-weight: 600; font-size: 14px; }
 .av.img { object-fit: cover; }
 .meta { flex: 1; min-width: 0; display: flex; flex-direction: column; }

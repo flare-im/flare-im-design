@@ -299,6 +299,16 @@ public struct MessageListView: View {
         // The host's handle learns the rows this pass draws before the pass draws them, so
         // `scrollToMessage` never answers from the previous set of messages.
         let _ = attachController()
+        // 量一次窗格宽,经环境值下发给每一行 —— 气泡最大宽 = 可用宽 × 比例,再被
+        // layout.bubbleMaxWidth 封顶,与另外三端同一条规则。
+        GeometryReader { proxy in
+            timelineBody(colors)
+                .environment(\.flareBubbleMaxWidth, flareBubbleMaxWidth(paneWidth: proxy.size.width))
+        }
+    }
+
+    @ViewBuilder
+    private func timelineBody(_ colors: FlareColors) -> some View {
         VStack(spacing: 0) {
             if let olderError { Text(olderError).foregroundColor(colors.textPrimary).padding(.horizontal, 12) }
             if loadingOlder { ProgressView().frame(minHeight: 48) }
@@ -415,7 +425,12 @@ public struct MessageListView: View {
                             timelineIds = followRows.map(\.id)
                             scrollToEnd(proxy, tailId: followRows.last?.id)
                         }
-                        .onChange(of: locateGeneration) { _ in scrollToLocated(proxy) }
+                        .onChange(of: locateGeneration) { _ in
+                            // Match the modern path: let this update finish before asking the
+                            // proxy to move. In the legacy path an onAppear/end-restoration scroll
+                            // can otherwise run later in the same pass and pull the reader back.
+                            DispatchQueue.main.async { scrollToLocated(proxy) }
+                        }
                         .onPreferenceChange(TimelineRowFrames.self) { rowFrames = $0 }
                         .onPreferenceChange(TimelineEnd.self) { syncPosition($0) }
                         .onChange(of: jumpGeneration) { _ in scrollToEnd(proxy, tailId: timelineIds.last) }
@@ -499,9 +514,14 @@ public struct MessageListView: View {
         legacyVisibleId = Self.timelineEndId
         proxy.scrollTo(Self.timelineEndId, anchor: .bottom)
         follow.reachedBottom(tailId: tailId)
+        let locateAtRequest = locateGeneration
         DispatchQueue.main.async {
+            guard locateAtRequest == locateGeneration else { return }
             proxy.scrollTo(Self.timelineEndId, anchor: .bottom)
-            DispatchQueue.main.async { proxy.scrollTo(Self.timelineEndId, anchor: .bottom) }
+            DispatchQueue.main.async {
+                guard locateAtRequest == locateGeneration else { return }
+                proxy.scrollTo(Self.timelineEndId, anchor: .bottom)
+            }
         }
     }
 
@@ -660,11 +680,28 @@ private struct LegacyTimelineScrollingKey: EnvironmentKey {
     static let defaultValue = false
 }
 
+/// The width a bubble may take, measured once on the timeline instead of per row.
+private struct FlareBubbleMaxWidthKey: EnvironmentKey {
+    static let defaultValue: CGFloat = FlareSizes.bubbleMaxWidth
+}
+
 private struct TimelineBelowCountObserverKey: EnvironmentKey {
     static let defaultValue: ((Int) -> Void)? = nil
 }
 
 extension EnvironmentValues {
+    /// The widest a message bubble may be: the pane's width times the kit's ratio, capped by
+    /// ``FlareSizes/bubbleMaxWidth``. Measured once on the timeline and read by every row —
+    /// a `GeometryReader` per row would measure the same number hundreds of times.
+    ///
+    /// Bubbles had no width limit at all on this platform: a long message ran the full width of
+    /// the pane, so on an iPad (or any wide column) it reached edge to edge while the same message
+    /// stopped at 62–88% on the other three kits.
+    var flareBubbleMaxWidth: CGFloat {
+        get { self[FlareBubbleMaxWidthKey.self] }
+        set { self[FlareBubbleMaxWidthKey.self] = newValue }
+    }
+
     /// Draws the timeline with the iOS 16 scrolling on a later system, so tests on a current host cover that path.
     var flareLegacyTimelineScrolling: Bool {
         get { self[LegacyTimelineScrollingKey.self] }
@@ -745,4 +782,19 @@ private struct RowLongPress: ViewModifier {
 private struct TimelineRowFrames: PreferenceKey {
     static let defaultValue: [String: CGRect] = [:]
     static func reduce(value: inout [String: CGRect], nextValue: () -> [String: CGRect]) { value.merge(nextValue(), uniquingKeysWith: { _, new in new }) }
+}
+
+
+/// 气泡最大宽 = 可用宽 × 比例，再被 ``FlareSizes/bubbleMaxWidth`` 封顶 —— 四端同一条规则。
+///
+/// 抽成纯函数是为了能直接断言这条规则本身：SwiftUI 的环境传播在单测里很难验，
+/// 而真正要钉住的是「窄栏给得更满、宽栏按比例并封顶」这个算式。
+///
+/// 改前这条规则四端各写各的：这一端**完全不设上限**（宽栏/iPad 上一条长消息贴满整栏）、
+/// Android 固定 320dp、Flutter 取屏宽而非窗格宽的 72%、web 是 `min(62%, 640)`。
+public func flareBubbleMaxWidth(paneWidth: CGFloat) -> CGFloat {
+    let ratio = paneWidth < FlareSizes.navigationRailMinWidth
+        ? FlareSizes.componentBubbleMaxWidthRatioCompact
+        : FlareSizes.componentBubbleMaxWidthRatioRegular
+    return min(paneWidth * ratio, FlareSizes.bubbleMaxWidth)
 }

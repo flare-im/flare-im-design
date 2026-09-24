@@ -69,17 +69,17 @@ fun QuickPhrases(
                 Row(
                     Modifier.then(if (onManage != null) Modifier.clickable { onManage() } else Modifier),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs),
                 ) {
                     Text(flareStrings().manage, color = colors.primaryText, fontSize = FlareSizes.fontSizeMd.value.sp, fontWeight = FontWeight.Medium)
-                    Icon(Icons.Outlined.Edit, contentDescription = null, tint = colors.primaryText, modifier = Modifier.size(14.dp))
+                    Icon(Icons.Outlined.Edit, contentDescription = null, tint = colors.primaryText, modifier = Modifier.size(FlareSizes.spacing2md))
                 }
             }
         }
         if (groups.size > 1) {
             Row(
                 Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = FlareSizes.spacingLg),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
             ) {
                 groups.forEach { g ->
                     val sel = g.key == active?.key
@@ -91,7 +91,7 @@ fun QuickPhrases(
                         modifier = Modifier.clip(RoundedCornerShape(999.dp))
                             .background(if (sel) colors.bgSelected else colors.bgSecondary)
                             .clickable { activeKey = g.key }
-                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                            .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacing2xs),
                     )
                 }
             }
@@ -100,7 +100,7 @@ fun QuickPhrases(
         Column(
             Modifier.fillMaxWidth().heightIn(max = 280.dp).verticalScroll(rememberScrollState())
                 .padding(start = FlareSizes.spacingLg, end = FlareSizes.spacingLg, bottom = FlareSizes.spacingMd),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs),
         ) {
             active?.phrases?.forEach { p ->
                 Text(
@@ -111,7 +111,7 @@ fun QuickPhrases(
                         .clip(RoundedCornerShape(FlareSizes.radiusLg))
                         .background(colors.bgSecondary)
                         .then(if (onSelect != null) Modifier.clickable { onSelect(p.text) } else Modifier)
-                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                        .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacing2sm),
                 )
             }
         }

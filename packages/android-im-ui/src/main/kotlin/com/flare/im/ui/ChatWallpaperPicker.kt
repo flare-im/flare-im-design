@@ -45,14 +45,14 @@ fun ChatWallpaperPicker(
         Modifier.width(300.dp)
             .shadow(16.dp, RoundedCornerShape(FlareSizes.radiusXl), clip = false)
             .clip(RoundedCornerShape(FlareSizes.radiusXl)).background(colors.bgPrimary)
-            .border(1.dp, colors.borderPrimary, RoundedCornerShape(FlareSizes.radiusXl)).padding(14.dp),
+            .border(1.dp, colors.borderPrimary, RoundedCornerShape(FlareSizes.radiusXl)).padding(FlareSizes.spacing2md),
     ) {
         Text(flareStrings().chatBackground, color = colors.textSecondary, fontWeight = FontWeight.SemiBold,
-            fontSize = 13.sp, modifier = Modifier.padding(bottom = 12.dp))
+            fontSize = 13.sp, modifier = Modifier.padding(bottom = FlareSizes.spacingMd))
         options.chunked(4).forEach { row ->
             Row(
-                Modifier.fillMaxWidth().padding(bottom = 10.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                Modifier.fillMaxWidth().padding(bottom = FlareSizes.spacing2sm),
+                horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2sm),
             ) {
                 row.forEach { opt -> swatch(colors, opt, opt.id == selectedId, onSelect) }
                 repeat(4 - row.size) { Spacer(Modifier.weight(1f)) }
@@ -81,11 +81,11 @@ private fun RowScope.swatch(
         }
         if (selected) {
             Box(
-                Modifier.align(Alignment.BottomEnd).padding(4.dp).size(22.dp).clip(CircleShape).background(colors.primary),
+                Modifier.align(Alignment.BottomEnd).padding(FlareSizes.spacingXs).size(22.dp).clip(CircleShape).background(colors.primary),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(Icons.Outlined.Check, contentDescription = null,
-                    tint = Color.White, modifier = Modifier.size(14.dp))
+                    tint = Color.White, modifier = Modifier.size(FlareSizes.spacing2md))
             }
         }
     }

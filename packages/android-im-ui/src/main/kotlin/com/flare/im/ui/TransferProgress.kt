@@ -42,14 +42,14 @@ fun TransferProgress(name: String, state: FlareTransferState, statusText: String
                      onAction: ((FlareTransferAction) -> Unit)? = null) {
     val colors = flareColors()
     val value = state.normalizedProgress(progress)
-    Column(Modifier.fillMaxWidth().background(colors.bgPrimary, RoundedCornerShape(10.dp))
-        .border(1.dp, colors.borderPrimary, RoundedCornerShape(10.dp)).padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(Modifier.fillMaxWidth().background(colors.bgPrimary, RoundedCornerShape(FlareSizes.radiusLg))
+        .border(1.dp, colors.borderPrimary, RoundedCornerShape(FlareSizes.radiusLg)).padding(FlareSizes.spacingMd), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
         Text(name, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
         Text(statusText, fontSize = 13.sp, color = colors.textSecondary, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
         if (value != null) LinearProgressIndicator(progress = { value }, modifier = Modifier.fillMaxWidth(), color = colors.primaryText)
         else if (state == FlareTransferState.Transferring) LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), color = colors.primaryText)
         val actions = state.actions.filter { !actionLabels[it].isNullOrBlank() && onAction != null }
-        if (actions.isNotEmpty()) FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (actions.isNotEmpty()) FlowRow(horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
             actions.forEach { action ->
                 TextButton(onClick = { if (!busy) onAction?.invoke(action) }, enabled = !busy,
                     modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)) { Text(actionLabels.getValue(action), color = colors.textPrimary.copy(alpha = if (busy) 0.4f else 1f)) }

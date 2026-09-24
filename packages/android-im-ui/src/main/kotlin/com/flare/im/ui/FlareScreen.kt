@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.FontWeight
@@ -76,7 +77,7 @@ fun FlareScreen(
                 }
                 if (title != null) {
                     Text(
-                        title, color = colors.textPrimary, fontSize = 24.sp, fontWeight = FontWeight.Bold,
+                        title, color = colors.textPrimary, fontSize = FlareSizes.fontSize5xl, fontWeight = FontWeight.Bold,
                         maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
                     )
                 } else {
@@ -94,3 +95,13 @@ fun FlareScreen(
         }
     }
 }
+
+/**
+ * The height a page header occupies: [FlareScreen]'s header row is a touch-target-tall row with
+ * [FlareSizes.spacingSm] above and below.
+ *
+ * Exposed because anything that floats *over* a page — a connection banner, a toast — has to clear
+ * the header without reserving layout space, and guessing that height in the host is how it ends up
+ * sitting on top of the title.
+ */
+val FlareSizes.screenHeaderHeight: Dp get() = touchTarget + spacingSm * 2

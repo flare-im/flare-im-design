@@ -89,7 +89,7 @@ function submit(): void {
   max-width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--flare-size-spacing-2sm);
   padding: 16px;
   border-radius: var(--flare-size-radius-xl);
   background: var(--flare-color-bg-primary);

@@ -1,13 +1,23 @@
 <script setup lang="ts">
 import { NIcon } from "naive-ui";
+import { flareIcons } from "../../shared/icons";
 import { HeartOutline, HeartDislikeOutline, ChatbubbleOutline, TrashOutline } from "../../shared/icon-glyphs";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 
-defineProps<{ liked?: boolean; canDelete?: boolean }>();
+/**
+ * `canDelete` (my own moment) appends 删除; `canReport` (someone else's) appends 举报
+ * in the same slot. The two are the same shape on purpose: both are "act on this one
+ * post", both low-frequency, and they are mutually exclusive — you do not report your
+ * own post and you do not delete someone else's. Hosts used to have nowhere to put
+ * 举报 and hung a text button *below* the card, which put a per-post action outside
+ * the post and gave the feed a different row rhythm for other people's moments.
+ */
+defineProps<{ liked?: boolean; canDelete?: boolean; canReport?: boolean }>();
 const emit = defineEmits<{
   (e: "like"): void;
   (e: "comment"): void;
   (e: "delete"): void;
+  (e: "report"): void;
 }>();
 const { t } = useFlareI18n();
 </script>
@@ -28,6 +38,15 @@ const { t } = useFlareI18n();
       <button type="button" class="flare-moment-actions__btn is-danger" @click="emit('delete')">
         <n-icon aria-hidden="true" :size="16" :component="TrashOutline" />
         {{ t("moment.delete") }}
+      </button>
+    </template>
+    <!-- 举报 does not destroy anything of mine, so it keeps the normal tint: the danger
+         colour stays reserved for "this deletes something of yours". -->
+    <template v-else-if="canReport">
+      <span class="flare-moment-actions__divider" />
+      <button type="button" class="flare-moment-actions__btn" @click="emit('report')">
+        <n-icon aria-hidden="true" :size="16" :component="flareIcons['report']" />
+        {{ t("moment.report") }}
       </button>
     </template>
   </div>

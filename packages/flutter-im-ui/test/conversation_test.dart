@@ -45,6 +45,19 @@ void main() {
       expect(find.text('999+'), findsOneWidget);
     });
 
+    testWidgets(
+      'a one-digit unread badge stays compact in the metadata column',
+      (tester) async {
+        await tester.pumpWidget(
+          _host(FlareConversationRow(item: _row('c1', 'A', unread: 1))),
+        );
+
+        final size = tester.getSize(find.byType(FlareUnreadBadge));
+        expect(size.width, inInclusiveRange(20, 28));
+        expect(size.height, 20);
+      },
+    );
+
     testWidgets('draft takes precedence over preview', (tester) async {
       await tester.pumpWidget(
         _host(FlareConversationRow(item: _row('c1', 'A', draft: 'wip'))),

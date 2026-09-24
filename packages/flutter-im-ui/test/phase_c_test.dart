@@ -1,5 +1,6 @@
 import 'package:flare_im_ui/flare_im_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Widget _host(Widget child, {double w = 400, double h = 700}) => MaterialApp(
@@ -29,6 +30,25 @@ void main() {
     await tester.enterText(find.byType(TextField), 'abcdefgh');
     await tester.pump();
     expect(find.text('5/5'), findsOneWidget);
+  });
+
+  testWidgets('FlareInput forwards keyboard and autofill semantics', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _host(
+        FlareInput(
+          keyboardType: TextInputType.number,
+          autofillHints: const [AutofillHints.oneTimeCode],
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        ),
+      ),
+    );
+
+    final field = tester.widget<TextField>(find.byType(TextField));
+    expect(field.keyboardType, TextInputType.number);
+    expect(field.autofillHints, contains(AutofillHints.oneTimeCode));
+    expect(field.inputFormatters, hasLength(1));
   });
 
   testWidgets('FlareEmptyState renders title/desc/action', (tester) async {

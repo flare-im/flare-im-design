@@ -8,6 +8,7 @@ library;
 
 export 'src/tokens/flare_tokens.dart';
 export 'src/tokens/flare_strings.dart';
+export 'src/tokens/flare_strings_english.dart';
 
 // primitives (shared building blocks)
 export 'src/primitives/flare_unread_badge.dart';
@@ -88,6 +89,7 @@ export 'src/components/flare_image_grid.dart';
 export 'src/components/flare_image_preview.dart';
 export 'src/components/flare_incoming_call.dart';
 export 'src/components/flare_brand_logo.dart';
+export 'src/components/flare_auth_shell.dart';
 export 'src/components/flare_input.dart';
 export 'src/components/flare_invite_code_field.dart';
 export 'src/components/flare_markdown_preview.dart';

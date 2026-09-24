@@ -9,9 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -73,18 +70,18 @@ fun NewFriendRequests(
                 }
                 when (req.direction) {
                     FriendRequestDirection.Incoming -> {
+                        // 两颗都走 kit 自己的 Button。从前这里是 Material 的 OutlinedButton +
+                        // Button:一是 kit 没有「中性的低强度」这一档(现在有了 Quiet),二是
+                        // `import androidx.compose.material3.Button` 和本包自己声明的 Button
+                        // 重名,重载按参数名静默选中 —— 写 `colors =` 就悄悄走了 Material 那个。
                         if (onReject != null) {
-                            OutlinedButton(onClick = { onReject(req) }, contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 4.dp)) {
-                                Text(declineLabel, fontSize = 13.sp)
-                            }
+                            Button(label = declineLabel, variant = FlareButtonVariant.Quiet,
+                                size = FlareControlSize.Sm, onClick = { onReject(req) })
                         }
-                        if (onReject != null && onAccept != null) Spacer(Modifier.width(8.dp))
+                        if (onReject != null && onAccept != null) Spacer(Modifier.width(FlareSizes.spacingSm))
                         if (onAccept != null) {
-                            Button(onClick = { onAccept(req) },
-                                colors = ButtonDefaults.buttonColors(containerColor = colors.primary),
-                                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 14.dp, vertical = 4.dp)) {
-                                Text(acceptLabel, fontSize = 13.sp)
-                            }
+                            Button(label = acceptLabel, variant = FlareButtonVariant.Primary,
+                                size = FlareControlSize.Sm, onClick = { onAccept(req) })
                         }
                     }
                     FriendRequestDirection.Outgoing -> {
@@ -92,9 +89,8 @@ fun NewFriendRequests(
                         Text(strings.newFriendRequestsPending, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm.value.sp)
                         if (onWithdraw != null) {
                             Spacer(Modifier.width(FlareSizes.spacingSm))
-                            OutlinedButton(onClick = { onWithdraw(req) }, contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingXs)) {
-                                Text(withdrawLabel, fontSize = FlareSizes.fontSizeMd.value.sp)
-                            }
+                            Button(label = withdrawLabel, variant = FlareButtonVariant.Quiet,
+                                size = FlareControlSize.Sm, onClick = { onWithdraw(req) })
                         }
                     }
                 }

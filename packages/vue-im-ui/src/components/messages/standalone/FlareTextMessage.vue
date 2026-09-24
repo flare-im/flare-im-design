@@ -8,7 +8,7 @@ import {
 import { formatEmojiPackBracket } from "../../../utils/emojiPackI18n";
 import PlainTextEmojiRich from "../../shared/PlainTextEmojiRich.vue";
 import { segmentTextByMentions, type FlareTextMentionSpan } from "../../../utils/textMentions";
-import FrozenStickerThumb from "../../composer/FrozenStickerThumb/index.vue";
+import FlareEmojiMessage from "./FlareEmojiMessage.vue";
 
 const props = withDefaults(defineProps<{
   text?: string;
@@ -40,7 +40,7 @@ function onClick(event: MouseEvent) {
 
 <template>
   <div class="fm-text im-text" :class="{ 'is-self': self, selectable, 'im-text--lone-emoji': loneEmoji || unknownEmoji }" @click="onClick">
-    <FrozenStickerThumb v-if="loneEmoji" class="im-lone-emoji-img" :load-src="loneEmoji.loadUrl" :alt="loneEmoji.key" object-fit="contain" />
+    <FlareEmojiMessage v-if="loneEmoji" class="im-lone-emoji-img" :load-src="loneEmoji.loadUrl" :alt="loneEmoji.key" animated />
     <span v-else-if="unknownEmoji" class="im-emoji-bracket">{{ formatEmojiPackBracket(unknownEmoji.key) }}</span>
     <PlainTextEmojiRich v-else-if="hasInlineEmoji" :text="text" />
     <p v-else-if="mentionSegments.length" class="fm-text__plain"><template v-for="(segment, index) in mentionSegments" :key="index"><span
@@ -53,7 +53,9 @@ function onClick(event: MouseEvent) {
 </template>
 
 <style scoped>
-.fm-text { min-width: 0; font-size: var(--flare-size-font-size-lg); line-height: 1.5; color: inherit; overflow-wrap: anywhere; user-select: none; }
+/* 消息正文引用 message 角色 —— 四端同一个出处。从前 web 写 14/1.5、三端原生写 15/1.45,
+   而 web 的输入框是 15:同一块界面上「打出来的字」比「读到的字」大一号。 */
+.fm-text { min-width: 0; font-size: var(--flare-text-message-font-size); line-height: var(--flare-text-message-line-height); color: inherit; overflow-wrap: anywhere; user-select: none; }
 .fm-text.selectable { user-select: text; }
 .fm-text :deep(p) { margin: 0; line-height: inherit; white-space: pre-wrap; }
 .fm-text :deep(a) { color: inherit; text-decoration: underline; text-underline-offset: 2px; }

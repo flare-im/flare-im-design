@@ -44,10 +44,10 @@ fun SlashCommandMenu(
         Modifier.width(300.dp).heightIn(max = 280.dp).clip(RoundedCornerShape(FlareSizes.radiusXl))
             .background(colors.bgPrimary)
             .border(1.dp, colors.borderPrimary, RoundedCornerShape(FlareSizes.radiusXl))
-            .verticalScroll(rememberScrollState()).padding(6.dp),
+            .verticalScroll(rememberScrollState()).padding(FlareSizes.spacing2xs),
     ) {
         Row(
-            Modifier.padding(start = 8.dp, end = 8.dp, top = 6.dp, bottom = 4.dp),
+            Modifier.padding(start = FlareSizes.spacingSm, end = FlareSizes.spacingSm, top = FlareSizes.spacing2xs, bottom = FlareSizes.spacingXs),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(Icons.Outlined.Terminal, contentDescription = null, tint = colors.textTertiary, modifier = Modifier.size(13.dp))
@@ -57,7 +57,7 @@ fun SlashCommandMenu(
         filtered.forEach { cmd ->
             Column(
                 Modifier.fillMaxWidth().clip(RoundedCornerShape(FlareSizes.radiusLg))
-                    .clickable { onSelect?.invoke(cmd) }.padding(horizontal = 10.dp, vertical = 8.dp),
+                    .clickable { onSelect?.invoke(cmd) }.padding(horizontal = FlareSizes.spacing2sm, vertical = FlareSizes.spacingSm),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("/${cmd.command}", color = colors.primaryText, fontWeight = FontWeight.SemiBold,
@@ -74,7 +74,7 @@ fun SlashCommandMenu(
         }
         if (filtered.isEmpty()) {
             Text(flareStrings().noMatchingCommands, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp,
-                modifier = Modifier.fillMaxWidth().padding(14.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                modifier = Modifier.fillMaxWidth().padding(FlareSizes.spacing2md), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
     }
 }

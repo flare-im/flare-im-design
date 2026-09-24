@@ -132,7 +132,7 @@ const statusText = computed(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 16px;
+  padding: var(--flare-size-spacing-2md) 16px;
 }
 .flare-group-call__minimize {
   display: grid;

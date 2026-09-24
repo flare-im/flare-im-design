@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, lstatSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { extname, join, relative } from "node:path";
@@ -18,11 +19,24 @@ const textExtensions = new Set([
   ".swift", ".ts", ".vue", ".xml", ".yaml", ".yml",
 ]);
 
+// Paths git ignores on this checkout (collapsed to directories). The inventory must describe
+// the repository, not one machine: locally fetched emoji/sticker webp mirrors, build caches
+// and editor files would otherwise change the counts from one checkout to the next.
+const gitIgnored = execFileSync(
+  "git",
+  ["ls-files", "--others", "--ignored", "--exclude-standard", "--directory", "-z"],
+  { cwd: root, encoding: "utf8" },
+).split("\0").filter(Boolean);
+function isGitIgnored(rel) {
+  return gitIgnored.some((entry) => (entry.endsWith("/") ? rel.startsWith(entry) : rel === entry));
+}
+
 function walk(path, files = []) {
   for (const name of readdirSync(path)) {
     const absolute = join(path, name);
     const rel = relative(root, absolute);
     if (absolute === output) continue;
+    if (isGitIgnored(rel) || isGitIgnored(`${rel}/`)) continue;
     if (rel === "website/.vitepress/.temp") continue;
     // Vite dependency-optimizer cache: any website preview or Playwright run rewrites it
     // (deps_temp_*), so counting it made design-system go stale when release:check ran the
@@ -44,6 +58,7 @@ function walk(path, files = []) {
 const files = walk(root);
 const topItems = readdirSync(root)
   .filter((name) => ![".git", ".codegraph", ".build", "node_modules", ".DS_Store"].includes(name))
+  .filter((name) => !isGitIgnored(name) && !isGitIgnored(`${name}/`))
   .sort();
 const rules = [
   [/^tokens(?:\/|$)/, "SOURCE_OF_TRUTH / TOKENS", "Theme primitives, semantics, generators, and published output"],

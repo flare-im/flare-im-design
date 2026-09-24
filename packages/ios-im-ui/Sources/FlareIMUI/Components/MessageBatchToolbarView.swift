@@ -122,6 +122,7 @@ public struct MessageBatchToolbarView: View {
         .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.bgPrimary)
             .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).stroke(colors.borderPrimary, lineWidth: 1)))
         .shadow(color: Color.black.opacity(0.12), radius: 16, y: 6)
+        .modifier(MessageBatchEscape(busy: busy, onExit: onExit))
     }
 
     private func button(_ colors: FlareColors, _ icon: String, _ label: String, _ onTap: (() -> Void)?,
@@ -153,5 +154,22 @@ public struct MessageBatchToolbarView: View {
         .buttonStyle(.plain)
         .flareCompactLayout(width: FlareSizes.controlHeightSm, height: FlareSizes.controlHeightSm)
         .accessibilityLabel(label)
+    }
+}
+
+/// The toolbar being on screen is the selection being on: Escape (a hardware keyboard on macOS) and the
+/// assistive escape gesture leave the selection. While busy the press is consumed and nothing exits — the
+/// same rule as the disabled exit key. Nothing on iOS delivers a bare Escape to a view, so there the
+/// gesture is the only path; the exit key itself is always there.
+struct MessageBatchEscape: ViewModifier {
+    let busy: Bool
+    let onExit: (() -> Void)?
+    func body(content: Content) -> some View {
+        let escaped = content.accessibilityAction(.escape) { if !busy { onExit?() } }
+        #if os(macOS)
+        return escaped.onExitCommand { if !busy { onExit?() } }
+        #else
+        return escaped
+        #endif
     }
 }

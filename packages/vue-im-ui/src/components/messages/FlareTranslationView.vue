@@ -51,7 +51,7 @@ const showOriginal = ref(false);
 <style scoped>
 .flare-translation {
   border-left: 2px solid color-mix(in srgb, var(--flare-color-primary) 40%, transparent);
-  padding: 6px 0 2px 10px;
+  padding: 6px 0 2px var(--flare-size-spacing-2sm);
   margin-top: 4px;
 }
 .flare-translation__text {
@@ -66,7 +66,7 @@ const showOriginal = ref(false);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: var(--flare-size-spacing-2sm);
   margin-top: 5px;
 }
 .flare-translation__by {

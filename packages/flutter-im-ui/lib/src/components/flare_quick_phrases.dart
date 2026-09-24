@@ -185,7 +185,7 @@ class _FlareQuickPhrasesState extends State<FlareQuickPhrases> {
       child: Container(
         width: double.infinity,
         margin: const EdgeInsets.only(bottom: FlareSizes.spacingXs),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: FlareSizes.spacing2sm),
         decoration: BoxDecoration(
           color: colors.bgSecondary,
           borderRadius: BorderRadius.circular(FlareSizes.radiusLg),

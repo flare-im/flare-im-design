@@ -95,7 +95,7 @@ const canPost = computed(() => text.value.trim().length > 0 || props.images.leng
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 14px;
+  padding: 12px var(--flare-size-spacing-2md);
   border-bottom: 1px solid var(--flare-color-border-primary);
 }
 .flare-moment-composer__cancel {
@@ -118,13 +118,19 @@ const canPost = computed(() => text.value.trim().length > 0 || props.images.leng
 }
 .flare-moment-composer__post:disabled { opacity: 0.45; cursor: not-allowed; }
 .flare-moment-composer__post:hover:not(:disabled) { filter: brightness(0.97); }
-.flare-moment-composer__text:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: -2px; }
+/* 同 FlareMentionPicker:一条整宽的写作区,框不住 —— 2px 实色 outline 在它四周画出的是一个
+   巨大的紫色矩形。改成底边加重,仍然是同一个实色 token(对比度达标),但不是一个框。
+   小尺寸的输入(如 FlareEmojiPicker 的搜索)保留那圈 outline:那里框得住。 */
+.flare-moment-composer__text:focus-visible {
+  outline: none;
+  box-shadow: inset 0 -2px 0 var(--flare-color-border-selected);
+}
 .flare-moment-composer__text {
   width: 100%;
   border: none;
   outline: none;
   resize: none;
-  padding: 14px;
+  padding: var(--flare-size-spacing-2md);
   font-size: 15px;
   line-height: 1.55;
   color: var(--flare-color-text-primary);
@@ -135,7 +141,7 @@ const canPost = computed(() => text.value.trim().length > 0 || props.images.leng
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 6px;
-  padding: 0 14px 12px;
+  padding: 0 var(--flare-size-spacing-2md) 12px;
 }
 .flare-moment-composer__thumb {
   position: relative;
@@ -177,9 +183,9 @@ const canPost = computed(() => text.value.trim().length > 0 || props.images.leng
 .flare-moment-composer__row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--flare-size-spacing-2sm);
   width: 100%;
-  padding: 13px 14px;
+  padding: 13px var(--flare-size-spacing-2md);
   border: none;
   border-bottom: 1px solid var(--flare-color-border-primary);
   background: none;

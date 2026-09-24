@@ -191,7 +191,10 @@ const Map<String, IconData> flareIconMap = <String, IconData>{
   'mention': Icons.alternate_email_outlined,
   'read': Icons.done_all_outlined,
   'mark': Icons.flag_outlined,
-  'rich-text': Icons.text_format_outlined,
+  // Web uses a single T glyph for the rich-composer toggle. `text_format`
+  // renders as an underlined A, which made the Flutter footer look like a
+  // font-color action instead of the same rich-text entry point.
+  'rich-text': Icons.title,
   'attachment': Icons.attach_file_outlined,
   'mark-unread': Icons.mark_chat_unread_outlined,
   'archive': Icons.archive_outlined,

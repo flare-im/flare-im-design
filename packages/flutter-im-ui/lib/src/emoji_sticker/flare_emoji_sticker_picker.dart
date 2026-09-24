@@ -19,6 +19,7 @@ class FlareEmojiStickerPicker extends StatefulWidget {
 
   final ValueChanged<String>? onInsertEmoji;
   final void Function(String packageId, String stickerId)? onSendSticker;
+
   /// The emoji tab's name; null takes it from [FlareStrings].
   final String? emojiLabel;
   final double height;
@@ -35,9 +36,20 @@ class _FlareEmojiStickerPickerState extends State<FlareEmojiStickerPicker> {
   @override
   void initState() {
     super.initState();
+    _catalog.addListener(_catalogChanged);
     _catalog.ensureLoaded().then((_) {
       if (mounted) setState(() {});
     });
+  }
+
+  void _catalogChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _catalog.removeListener(_catalogChanged);
+    super.dispose();
   }
 
   @override
@@ -124,7 +136,7 @@ class _FlareEmojiStickerPickerState extends State<FlareEmojiStickerPicker> {
   Widget _emojiGrid(FlareColors colors) {
     final keys = _catalog.emojiKeys;
     return GridView.builder(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(FlareSizes.spacing2sm),
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
         maxCrossAxisExtent: 48,
         mainAxisSpacing: 6,
@@ -135,7 +147,7 @@ class _FlareEmojiStickerPickerState extends State<FlareEmojiStickerPicker> {
         final key = keys[i];
         return _cell(
           colors,
-          FlareEmojiStickerCatalog.emojiAssetPath(key),
+          _catalog.emojiImageProvider(key, staticPreview: true),
           () => widget.onInsertEmoji?.call(key),
         );
       },
@@ -144,7 +156,7 @@ class _FlareEmojiStickerPickerState extends State<FlareEmojiStickerPicker> {
 
   Widget _stickerGrid(FlareColors colors, FlareStickerManifestPack pack) {
     return GridView.builder(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(FlareSizes.spacing2sm),
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
         maxCrossAxisExtent: 84,
         mainAxisSpacing: 8,
@@ -155,9 +167,10 @@ class _FlareEmojiStickerPickerState extends State<FlareEmojiStickerPicker> {
         final id = pack.stickerIds[i];
         return _cell(
           colors,
-          FlareEmojiStickerCatalog.stickerAssetPath(
+          _catalog.stickerImageProvider(
             stickerId: id,
             packageId: pack.id,
+            staticPreview: true,
           ),
           () => widget.onSendSticker?.call(pack.id, id),
         );
@@ -165,16 +178,17 @@ class _FlareEmojiStickerPickerState extends State<FlareEmojiStickerPicker> {
     );
   }
 
-  Widget _cell(FlareColors colors, String assetPath, VoidCallback onTap) {
+  Widget _cell(
+    FlareColors colors,
+    ImageProvider<Object> image,
+    VoidCallback onTap,
+  ) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(FlareSizes.radiusMd),
       child: Padding(
         padding: const EdgeInsets.all(4),
-        child: FlareStaticAssetImage(
-          assetPath: assetPath,
-          package: FlareEmojiStickerCatalog.package,
-        ),
+        child: FlareStaticImage(image: image),
       ),
     );
   }

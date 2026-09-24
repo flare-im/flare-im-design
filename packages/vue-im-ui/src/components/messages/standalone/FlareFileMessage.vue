@@ -101,9 +101,9 @@ const actionDisabled = computed(
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  gap: var(--flare-size-spacing-2sm);
   max-width: 300px;
-  padding: 9px 14px;
+  padding: 9px var(--flare-size-spacing-2md);
   border-radius: 16px 16px 16px 4px;
   color: var(--flare-color-text-primary);
   background: var(--flare-color-bg-primary);
@@ -123,7 +123,7 @@ const actionDisabled = computed(
   display: inline-flex;
   flex: 1;
   align-items: center;
-  gap: 10px;
+  gap: var(--flare-size-spacing-2sm);
   min-width: 0;
   padding: 0;
   border: 0;

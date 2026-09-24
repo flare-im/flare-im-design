@@ -11,7 +11,7 @@ const send = SendOutline;
 <template>
   <DemoStage>
     <div class="stack">
-      <div class="row"><FlareButton label="Primary" /><FlareButton label="Secondary" variant="secondary" /><FlareButton label="Ghost" variant="ghost" /><FlareButton label="Danger" variant="danger" /><FlareButton label="Text" variant="text" /></div>
+      <div class="row"><FlareButton label="Primary" /><FlareButton label="Secondary" variant="secondary" /><FlareButton label="Ghost" variant="ghost" /><FlareButton label="Danger" variant="danger" /><FlareButton label="Text" variant="text" /><FlareButton label="Quiet" variant="quiet" /></div>
       <div class="row"><FlareButton label="Small" size="sm" /><FlareButton label="Medium" size="md" /><FlareButton label="Large" size="lg" /></div>
       <div class="row"><FlareButton label="发送" :icon="send" /><FlareButton :label="busy ? '提交中' : '提交'" :loading="busy" @click="go" /><FlareButton label="Disabled" disabled /></div>
     </div>

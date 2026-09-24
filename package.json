@@ -10,11 +10,12 @@
     "examples/vue"
   ],
   "scripts": {
-    "generate": "node packages/vue-im-ui/scripts/gen-icon-shim.mjs && node spec/build-maturity-model.mjs && node spec/gen-readme-catalog.mjs && node spec/build-im-coverage.mjs && node spec/build-component-layers.mjs && node website/scripts/gen-components.mjs && node tooling/normalize-component-docs.mjs && node website/scripts/build-library-guides.mjs && node tooling/build-component-catalog.mjs && node tooling/build-component-style-audit.mjs && node tooling/build-pinyin-initials.mjs && node tooling/build-repository-inventory.mjs && node tokens/build.mjs",
+    "generate": "node packages/vue-im-ui/scripts/gen-icon-shim.mjs && node spec/build-maturity-model.mjs && node spec/gen-readme-catalog.mjs && node spec/build-im-coverage.mjs && node spec/build-component-layers.mjs && node website/scripts/gen-components.mjs && node tooling/normalize-component-docs.mjs && node website/scripts/build-library-guides.mjs && node tooling/build-component-catalog.mjs && node tooling/build-component-style-audit.mjs && node tooling/build-pinyin-initials.mjs && node tooling/build-repository-inventory.mjs && node tokens/build.mjs && node strings/build.mjs",
     "check": "node tooling/check-design-system.mjs",
     "release:check": "node tooling/release-check.mjs",
     "release:packages": "node tooling/check-release-packages.mjs",
     "check:generated": "node tooling/check-generated-files.mjs",
+    "check:strings": "node strings/build.mjs --check",
     "check:duplicate-components": "node tooling/check-duplicate-components.mjs",
     "check:dead-components": "node tooling/check-dead-components.mjs",
     "check:design-source": "node tooling/check-design-source.mjs",

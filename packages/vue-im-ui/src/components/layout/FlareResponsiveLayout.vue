@@ -6,6 +6,7 @@ import { flareLayout } from "../../design-system/theme/layout-tokens";
 import { resolvePaneMode, type FlareLayoutChange } from "../../shared/contracts/application";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 import { useFlareNativeBack } from "../../shared/platform/useFlareNativeBack";
+import { dismissTopFlareContextualLayer } from "../../shared/useContextualLayer";
 import { useFlareDestinationDepth } from "../../composables/useFlareShell";
 
 type Pane = "list" | "chat" | "detail";
@@ -56,6 +57,9 @@ watch([paneMode, detailMode, () => width.value !== undefined], ([mode, detail, m
   if (measured) emit("layoutChange", { paneMode: mode, detailMode: detail });
 }, { immediate: true });
 function goBack(): void {
+  // 单栏里返回先退当前 pane 里的上下文层(多选);跨断点 resize 会让这里重新认领平台返回、
+  // 压到工具条上面,所以这一问不能省。
+  if (dismissTopFlareContextualLayer(root.value ?? null)) return;
   emit('paneChange', props.activePane === 'detail' ? 'chat' : 'list');
 }
 const instance = getCurrentInstance();
@@ -105,7 +109,7 @@ const columns = computed(() => ({ '--list-width': `${Math.max(0, props.listWidth
 .flare-rl__bar { border-bottom: 1px solid var(--flare-color-border-primary); }
 .flare-rl__back {
   display: inline-flex; align-items: center; gap: 4px;
-  min-width: 48px; min-height: 48px; border: none; background: none; padding: 10px 14px;
+  min-width: 48px; min-height: 48px; border: none; background: none; padding: var(--flare-size-spacing-2sm) var(--flare-size-spacing-2md);
   color: var(--flare-color-primary-text); font-size: 14px; cursor: pointer;
 }
 .flare-rl__back:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: -2px; }

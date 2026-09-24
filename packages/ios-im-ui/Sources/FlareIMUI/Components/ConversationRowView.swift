@@ -78,7 +78,7 @@ public struct ConversationRowView: View {
     }
 
     private var rowBody: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: FlareSizes.spacing2sm) {
             AvatarView(userId: item.id, displayName: item.title, avatarURL: item.avatarURL,
                        size: compact ? 40 : avatarSize, presence: item.presence)
             VStack(alignment: .leading, spacing: 4) {
@@ -105,7 +105,7 @@ public struct ConversationRowView: View {
                         Color.clear.frame(height: 20)
                     }
                 }
-            }.frame(width: 60)
+            }.frame(width: FlareSizes.componentConversationRowMetaWidth)
         }
         .padding(.horizontal, FlareSizes.spacingSm).padding(.vertical, compact ? 10 : 14)
         .frame(minHeight: compact ? 72 : 80)

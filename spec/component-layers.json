@@ -176,6 +176,7 @@
     "MomentAudienceSheet": "im-ui",
     "TransferProgress": "im-ui",
     "SearchPanel": "im-ui",
+    "RecentSearches": "general-ui",
     "TransferQueue": "im-ui",
     "CapabilityBoundary": "general-ui",
     "DangerConfirm": "general-ui",

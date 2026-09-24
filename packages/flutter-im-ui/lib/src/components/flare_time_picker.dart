@@ -248,7 +248,7 @@ class _TimeSheetState extends State<_TimeSheet> {
           ),
         ],
       ),
-      padding: EdgeInsets.fromLTRB(8, 8, 8, 10 + bottomInset),
+      padding: EdgeInsets.fromLTRB(8, 8, 8, FlareSizes.spacing2sm + bottomInset),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -312,7 +312,7 @@ class _TimeSheetState extends State<_TimeSheet> {
           ),
           // Footer: 取消 / 确定.
           Padding(
-            padding: const EdgeInsets.fromLTRB(4, 10, 4, 2),
+            padding: const EdgeInsets.fromLTRB(4, FlareSizes.spacing2sm, 4, 2),
             child: Row(
               children: [
                 Expanded(

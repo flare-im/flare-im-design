@@ -9,11 +9,12 @@ import FlareMomentActionPopover from "./FlareMomentActionPopover.vue";
 import type { FlareMoment, FlareMomentComment } from "../../shared/contracts";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 
-const props = defineProps<{ moment: FlareMoment; canDelete?: boolean }>();
+const props = defineProps<{ moment: FlareMoment; canDelete?: boolean; canReport?: boolean }>();
 const emit = defineEmits<{
   (e: "like"): void;
   (e: "comment"): void;
   (e: "delete"): void;
+  (e: "report"): void;
   (e: "openImage", index: number): void;
   (e: "selectAuthor", id: string): void;
   (e: "selectLiker", id: string): void;
@@ -46,6 +47,10 @@ function onComment(): void {
 function onDelete(): void {
   menuOpen.value = false;
   emit("delete");
+}
+function onReport(): void {
+  menuOpen.value = false;
+  emit("report");
 }
 </script>
 
@@ -88,9 +93,11 @@ function onDelete(): void {
               class="flare-moment__pop"
               :liked="moment.likedBySelf"
               :can-delete="canDelete"
+              :can-report="canReport"
               @like="onLike"
               @comment="onComment"
               @delete="onDelete"
+              @report="onReport"
             />
           </transition>
           <button
@@ -158,7 +165,7 @@ button.flare-moment__avatar { cursor: pointer; }
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
-.flare-moment__media { margin-top: 10px; }
+.flare-moment__media { margin-top: var(--flare-size-spacing-2sm); }
 .flare-moment__location {
   display: inline-flex;
   align-items: center;
@@ -171,7 +178,7 @@ button.flare-moment__avatar { cursor: pointer; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 10px;
+  margin-top: var(--flare-size-spacing-2sm);
 }
 .flare-moment__time { font-size: 12px; color: var(--flare-color-text-tertiary); }
 /*
@@ -209,11 +216,13 @@ button.flare-moment__avatar { cursor: pointer; }
 .flare-moment-pop-leave-active { transition: opacity 0.15s ease, transform 0.15s ease; }
 .flare-moment-pop-enter-from,
 .flare-moment-pop-leave-to { opacity: 0; transform: translateY(-50%) translateX(6px); }
+/* 互动区与正文之间要有分界，但一条线就够 —— 改前这里是白卡里再套一张灰色圆角卡，
+   同一条动态被切成两块表面，点赞和评论看着比正文还像个独立的东西。
+   卡片已经是这条动态的容器了，里面不需要第二个容器。 */
 .flare-moment__social {
-  margin-top: 10px;
-  padding: 8px 12px;
-  border-radius: var(--flare-size-radius-lg);
-  background: var(--flare-color-bg-secondary);
+  margin-top: var(--flare-size-spacing-md);
+  padding-top: var(--flare-size-spacing-sm);
+  border-top: 1px solid var(--flare-color-border-secondary);
 }
 .flare-moment__likes {
   display: flex;

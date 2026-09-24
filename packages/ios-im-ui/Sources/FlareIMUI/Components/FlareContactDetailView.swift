@@ -184,7 +184,7 @@ public struct FlareContactDetail: View {
                         .font(.system(size: FlareSizes.fontSizeSm, weight: .semibold))
                 }
                 .foregroundColor(colors.primaryText)
-                .padding(.horizontal, 10).padding(.vertical, 2)
+                .padding(.horizontal, FlareSizes.spacing2sm).padding(.vertical, 2)
                 .background(Capsule().fill(colors.bgSelected))
                 .accessibilityElement(children: .combine)
             }

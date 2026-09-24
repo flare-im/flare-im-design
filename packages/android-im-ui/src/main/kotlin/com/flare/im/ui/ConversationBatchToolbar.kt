@@ -192,7 +192,7 @@ fun ConversationBatchToolbar(
             .border(1.dp, colors.borderPrimary, shape),
     ) {
         FlowRow(
-            Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
+            Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacing2md, vertical = FlareSizes.spacing2sm),
             horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd, Alignment.Start),
             verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
         ) {
@@ -208,18 +208,18 @@ fun ConversationBatchToolbar(
                     val tint = if (exceeded && !busy) colors.warningText else colors.textTertiary
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs),
                         modifier = Modifier.defaultMinSize(minHeight = FlareSizes.touchTarget)
                             .semantics { liveRegion = LiveRegionMode.Polite },
                     ) {
-                        if (busy) CircularProgressIndicator(Modifier.size(14.dp), color = tint, strokeWidth = 2.dp)
-                        else if (exceeded) Icon(Icons.Outlined.ErrorOutline, contentDescription = null, tint = tint, modifier = Modifier.size(14.dp))
+                        if (busy) CircularProgressIndicator(Modifier.size(FlareSizes.spacing2md), color = tint, strokeWidth = 2.dp)
+                        else if (exceeded) Icon(Icons.Outlined.ErrorOutline, contentDescription = null, tint = tint, modifier = Modifier.size(FlareSizes.spacing2md))
                         Text(hint, color = tint, fontSize = FlareSizes.fontSizeSm.value.sp)
                     }
                 }
             }
             if (onAction != null || onClearSelection != null) {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs)) {
                     if (onAction != null) {
                         for (action in visible) {
                             BatchButton(
@@ -246,13 +246,13 @@ fun ConversationBatchToolbar(
         if (hasResult) {
             val failed = summary.failedCount > 0
             Column(
-                Modifier.fillMaxWidth().background(colors.bgSecondary).padding(horizontal = 14.dp, vertical = 8.dp),
+                Modifier.fillMaxWidth().background(colors.bgSecondary).padding(horizontal = FlareSizes.spacing2md, vertical = FlareSizes.spacingSm),
                 verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
             ) {
                 FlowRow(
                     Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite },
                     horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs),
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -281,7 +281,7 @@ fun ConversationBatchToolbar(
                             }
                         }
                     }
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs)) {
                         if (failed) {
                             BatchButton(
                                 colors,
@@ -310,15 +310,15 @@ fun ConversationBatchToolbar(
                     }
                 }
                 if (expanded && result != null && result.failed.isNotEmpty()) {
-                    LazyColumn(Modifier.fillMaxWidth().heightIn(max = 200.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    LazyColumn(Modifier.fillMaxWidth().heightIn(max = 200.dp), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
                         itemsIndexed(result.failed, key = { i, f -> "${f.id}-$i" }) { _, item ->
                             FlowRow(
                                 Modifier.fillMaxWidth()
                                     .clip(RoundedCornerShape(FlareSizes.radiusSm))
                                     .background(colors.bgPrimary)
-                                    .padding(horizontal = 8.dp, vertical = 6.dp)
+                                    .padding(horizontal = FlareSizes.spacingSm, vertical = FlareSizes.spacing2xs)
                                     .semantics(mergeDescendants = true) { contentDescription = "${item.title} ${item.reason}" },
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
                             ) {
                                 Text(
                                     item.title, color = colors.textPrimary, fontWeight = FontWeight.Medium,
@@ -378,12 +378,12 @@ private fun BatchButton(
             .background(bg)
             .then(if (enabled) Modifier.clickable(onClick = onTap) else Modifier)
             .alpha(if (enabled) 1f else if (pending) 0.85f else 0.45f)
-            .padding(horizontal = 10.dp)
+            .padding(horizontal = FlareSizes.spacing2sm)
             .semantics(mergeDescendants = true) { contentDescription = description },
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs),
     ) {
-        if (pending) CircularProgressIndicator(Modifier.size(14.dp), color = fg, strokeWidth = 2.dp)
+        if (pending) CircularProgressIndicator(Modifier.size(FlareSizes.spacing2md), color = fg, strokeWidth = 2.dp)
         else Icon(icon, contentDescription = null, tint = fg, modifier = Modifier.size(16.dp))
         Text(label, color = fg, fontWeight = FontWeight.Medium, fontSize = FlareSizes.fontSizeMd.value.sp, maxLines = 1)
     }

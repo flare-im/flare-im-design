@@ -246,7 +246,7 @@ function onKeydown(e: KeyboardEvent): void {
 .flare-conv-actions__row--danger:not(:disabled) .flare-conv-actions__icon {
   background: color-mix(in srgb, var(--flare-color-error) 12%, var(--flare-color-bg-primary));
 }
-.flare-conv-actions--desktop .flare-conv-actions__row { grid-template-columns: 18px minmax(0, 1fr); min-height: 36px; padding: 6px 10px; gap: 10px; border-radius: var(--flare-size-radius-md); }
+.flare-conv-actions--desktop .flare-conv-actions__row { grid-template-columns: 18px minmax(0, 1fr); min-height: 36px; padding: 6px var(--flare-size-spacing-2sm); gap: var(--flare-size-spacing-2sm); border-radius: var(--flare-size-radius-md); }
 .flare-conv-actions--desktop .flare-conv-actions__icon { width: 18px; height: 18px; background: transparent; color: var(--flare-color-text-secondary); }
 .flare-conv-actions--desktop .flare-conv-actions__label { font-size: var(--flare-size-font-size-md); font-weight: 500; }
 .flare-conv-actions--desktop .flare-conv-actions__group { border-radius: 0; padding: 4px 0; }

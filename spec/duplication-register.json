@@ -154,7 +154,7 @@
         "StartConversationDialog"
       ],
       "decision": "MERGE",
-      "into": "StartConversationDialog (renders as FlareBottomSheet where the platform capability bottomSheet is true, otherwise a centered modal)",
+      "into": "StartConversationDialog (renders FlareBottomSheet; presentation=\"auto\" is the platform capability bottomSheet)",
       "state": "DONE",
       "removed": {
         "vue": [
@@ -165,6 +165,14 @@
       "requires": [
         {
           "file": "packages/vue-im-ui/src/components/shell/FlareStartConversationDialog.vue",
+          "contains": "<FlareBottomSheet"
+        },
+        {
+          "file": "packages/vue-im-ui/src/components/shell/FlareStartConversationDialog.vue",
+          "lacks": "NModal"
+        },
+        {
+          "file": "packages/vue-im-ui/src/components/general/FlareBottomSheet.vue",
           "contains": "capabilities.value.bottomSheet"
         }
       ]
@@ -482,6 +490,34 @@
         {
           "file": "packages/vue-im-ui/src/components/index.ts",
           "lacks": "AdaptiveWorkbench"
+        }
+      ]
+    },
+    {
+      "id": "D19",
+      "title": "naive NModal 与 FlareBottomSheet —— 同一张弹窗的两套外壳",
+      "components": [
+        "DangerConfirm",
+        "StartConversationDialog",
+        "ComposerMediaPreview"
+      ],
+      "decision": "MERGE",
+      "into": "BottomSheet (presentation=\"auto\")",
+      "state": "DONE",
+      "resolvedBy": "Overlay 体系统一",
+      "rationale": "三处各挂一棵 naive NModal 的树:DangerConfirm 与 StartConversationDialog 靠 asSheet 在两棵树之间切,判的正是 FlareBottomSheet 的 presentation=\"auto\" 已经判过的 capabilities.bottomSheet;ComposerMediaPreview 干脆只有桌面那棵,手机上也弹一张居中卡片。三处收到同一张面之后,滚动锁、Escape 的层序、传送目标和平台返回键也跟着并进了共用的模态栈。",
+      "requires": [
+        {
+          "file": "packages/vue-im-ui/src/components/scenes/FlareDangerConfirm.vue",
+          "lacks": "NModal"
+        },
+        {
+          "file": "packages/vue-im-ui/src/components/composer/FlareComposerMediaPreview.vue",
+          "lacks": "NModal"
+        },
+        {
+          "file": "packages/vue-im-ui/src/components/composer/FlareComposerMediaPreview.vue",
+          "contains": "<FlareBottomSheet"
         }
       ]
     },

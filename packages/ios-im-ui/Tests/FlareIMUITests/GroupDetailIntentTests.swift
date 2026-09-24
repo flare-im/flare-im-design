@@ -26,6 +26,12 @@ final class GroupDetailIntentTests: XCTestCase {
         XCTAssertEqual(FlareGroupDetail.memberIntentTargets("u3", in: detail).muted, false)
     }
 
+    func testDiscoverabilityDefaultsPrivateAndUsesTheSharedString() {
+        XCTAssertFalse(model().discoverable)
+        XCTAssertEqual(FlareGroupDetailLabels().resolve(FlareStrings()).discoverable,
+                       FlareStrings().groupDetailDiscoverable)
+    }
+
     func testTransferConfirmationCopyNamesTheStepAndTheMember() {
         let copy = FlareGroupDetailLabels().resolve(FlareStrings())
         let transfer = FlareGroupDetail.transferOptions(ann, copy: copy, onTransferOwner: nil)

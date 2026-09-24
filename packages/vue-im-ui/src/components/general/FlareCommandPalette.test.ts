@@ -30,6 +30,7 @@ describe("FlareCommandPalette", () => {
   it("navigates enabled commands and closes from the keyboard", async () => {
     const wrapper = mount(FlareCommandPalette, {
       props: { open: true, query: "", groups, label: "Commands", placeholder: "Find", emptyText: "None", selectedId: "reply" },
+      attachTo: document.body,
       global: { stubs: { Teleport: true } },
     });
     const dialog = wrapper.get("[role=dialog]");
@@ -38,8 +39,11 @@ describe("FlareCommandPalette", () => {
     await wrapper.setProps({ selectedId: "copy" });
     await dialog.trigger("keydown", { key: "Enter" });
     expect(wrapper.emitted("invoke")?.at(-1)?.[0]).toMatchObject({ id: "copy" });
-    await dialog.trigger("keydown", { key: "Escape" });
+    // Escape 归共用的模态栈管,监听在 document 上:面板叠起来时只有最上面那张收得到。
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    await nextTick();
     expect(wrapper.emitted("close")).toHaveLength(1);
+    wrapper.unmount();
   });
 
   it("restores focus to the trigger after closing", async () => {

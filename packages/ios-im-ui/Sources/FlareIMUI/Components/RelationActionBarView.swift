@@ -255,7 +255,7 @@ public struct RelationActionBarView: View {
         let enabled = !busy && onAction != nil
         let inProgress = busy && pending == entry.action
         let text = label(for: entry.action)
-        let fg: Color = entry.primary ? .white : (entry.destructive ? colors.error : colors.textPrimary)
+        let fg: Color = entry.primary ? .white : (entry.destructive ? colors.errorText : colors.textPrimary)
         let bg: Color = entry.primary
             ? colors.primary
             : (entry.destructive ? colors.error.opacity(0.10) : colors.bgSecondary)

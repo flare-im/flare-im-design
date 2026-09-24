@@ -143,8 +143,11 @@ onMounted(() => {
   outline: none;
 }
 .flare-action-menu--anchored {
-  min-width: 12em;
-  max-width: min(22em, calc(100vw - 2 * var(--flare-size-spacing-lg)));
+  /* 内容定宽，只夹住两头。8em/20em = 14px 基准下的 112/280，与 Android / iOS / Flutter
+     同一组数；原来的 12em/22em 让两三个两字动作也撑出半屏宽。用 em 而不是 px，
+     是为了跟着字号缩放走。 */
+  min-width: 8em;
+  max-width: min(20em, calc(100vw - 2 * var(--flare-size-spacing-lg)));
   max-height: min(32em, calc(100vh - 2 * var(--flare-size-spacing-lg)));
   overflow-y: auto;
   padding: var(--flare-size-spacing-xs);

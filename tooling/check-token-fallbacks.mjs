@@ -62,8 +62,17 @@ for (const file of files) for (const [, name] of readFileSync(file, "utf8").matc
 
 const drifted = [];
 const unknown = [];
+// `-var(--x)` 不是「取负」:CSS 把它读成一个叫 `-var` 的未知函数,整条声明作废 —— 机械地把 `-10px` 换成
+// `-var(--flare-size-spacing-2sm)` 时,裸值门禁还会把它记成一次改进。要取负写 calc(-1 * var(--x))。
+const NEGATED = /(^|[\s:(,])-var\(/g;
+const negated = [];
 for (const file of files) {
   const rel = relative(root, file);
+  const text = readFileSync(file, "utf8");
+  for (const match of text.matchAll(NEGATED)) {
+    const line = text.slice(0, match.index).split("\n").length;
+    negated.push(`${rel}:${line}: \`-var(…)\` is not a negated var() and drops the whole declaration — write calc(-1 * var(…))`);
+  }
   for (const [, name] of readFileSync(file, "utf8").matchAll(NOFB)) {
     if (!light.has(name) && !declared.has(name)) unknown.push(`${rel}: var(${name}) — no such token and never declared`);
   }
@@ -76,7 +85,7 @@ for (const file of files) {
   }
 }
 
-const problems = [...unknown, ...drifted];
+const problems = [...negated, ...unknown, ...drifted];
 if (problems.length) {
   console.error(`✗ token fallbacks out of sync (${problems.length}):`);
   // One line per site would drown the signal on a large drift; show a sample.

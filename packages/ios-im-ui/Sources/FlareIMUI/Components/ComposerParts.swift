@@ -35,7 +35,7 @@ public struct FlareVoiceHoldButton: View {
         Text(pressing ? (willCancel ? cancelLabel ?? strings.releaseToCancel : recordingLabel ?? strings.voiceHoldButtonRecording) : label ?? strings.voiceHoldButtonLabel)
             .font(.system(size: FlareSizes.fontSizeLg, weight: .medium))
             .foregroundColor(fg)
-            .frame(maxWidth: .infinity, minHeight: 40)
+            .frame(maxWidth: .infinity, minHeight: FlareSizes.componentComposerActionHeight)
             .background(RoundedRectangle(cornerRadius: FlareSizes.radiusXl).fill(bg))
             .gesture(
                 DragGesture(minimumDistance: 0)
@@ -162,7 +162,7 @@ public struct FlareComposerActionPanel: View {
                 Button { onAction?(action) } label: {
                     VStack(spacing: FlareSizes.spacingXs) {
                         ZStack {
-                            Color.clear.frame(width: 44, height: 44)
+                            Color.clear.frame(width: FlareSizes.componentComposerActionWidth, height: FlareSizes.componentComposerActionWidth)
                             Image(systemName: flareIconSymbol(action.icon)).font(.system(size: FlareSizes.iconSizeMd))
                                 .foregroundColor(colors.textPrimary)
                         }

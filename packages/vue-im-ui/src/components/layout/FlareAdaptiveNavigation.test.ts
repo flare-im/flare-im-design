@@ -55,6 +55,68 @@ describe("FlareAdaptiveNavigation", () => {
     wrapper.unmount();
   });
 
+  it("routes a plain rail action straight back, and anchors a menu on one that carries items", async () => {
+    const wrapper = mount(FlareAdaptiveNavigation, {
+      attachTo: document.body,
+      props: {
+        groups,
+        activeId: "chats",
+        responsiveMode: "desktop",
+        presentation: "rail",
+        identity: { userId: "u1", displayName: "QA Bob" },
+        actions: [
+          {
+            id: "newChat",
+            label: "新建",
+            icon: "add",
+            menu: [{ id: "new:start", label: "发起聊天" }, { id: "new:addFriend", label: "加好友" }],
+          },
+          { id: "search", label: "搜索", icon: "search" },
+        ],
+      },
+    });
+
+    const actions = wrapper.findAll(".flare-adaptive-navigation__action");
+    expect(actions).toHaveLength(2);
+
+    // 没菜单的那个:点一下就把 id 交回宿主。
+    await actions[1].trigger("click");
+    expect(wrapper.emitted("navigate")).toEqual([["search"]]);
+
+    // 带菜单的那个:点开的是菜单,不是一次 navigate —— 宿主收到的是菜单里选中的那一条。
+    await actions[0].trigger("click");
+    await nextTick();
+    const entry = [...document.body.querySelectorAll("button, [role=menuitem]")]
+      .find((node) => node.textContent?.includes("加好友"));
+    expect(entry).toBeTruthy();
+    (entry as HTMLElement).click();
+    await nextTick();
+    expect(wrapper.emitted("navigate")).toEqual([["search"], ["new:addFriend"]]);
+    wrapper.unmount();
+  });
+
+  it("draws the identity bigger than a rail icon and keeps the actions off the rail's two-line height", () => {
+    const wrapper = mount(FlareAdaptiveNavigation, {
+      attachTo: document.body,
+      props: {
+        groups,
+        activeId: "chats",
+        responsiveMode: "desktop",
+        presentation: "rail",
+        identity: { userId: "u1", displayName: "QA Bob" },
+        actions: [{ id: "search", label: "搜索", icon: "search" }],
+      },
+    });
+    // 头像是这一段里最大的东西:它是「谁在用」,不是又一个动作图标(导航项的图标是 24)。
+    const avatar = wrapper.get(".flare-adaptive-navigation__identity").get(".im-avatar");
+    expect(avatar.attributes("style")).toContain("44px");
+    // 动作不带文字 —— rail 上那 60px 是给「图标 + 一行标签」两行留的,动作不需要,
+    // 所以 CSS 给它收到触达区那么高。这里锁的是「没有标签」这个前提。
+    expect(wrapper.get(".flare-adaptive-navigation__action").find(".flare-adaptive-navigation__label").exists()).toBe(false);
+    expect(wrapper.get('[aria-current="page"]').find(".flare-adaptive-navigation__label").exists()).toBe(true);
+    wrapper.unmount();
+  });
+
   it("moves vertical keyboard focus across groups and skips disabled items", async () => {
     const wrapper = mount(FlareAdaptiveNavigation, {
       attachTo: document.body,

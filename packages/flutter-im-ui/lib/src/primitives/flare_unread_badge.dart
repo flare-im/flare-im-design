@@ -38,14 +38,18 @@ class FlareUnreadBadge extends StatelessWidget {
     final base = quiet ? colors.bgTertiary : colors.primary;
     return Container(
       constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
-      padding: const EdgeInsets.symmetric(horizontal: 6),
+      // Do not set `alignment` here. Inside the conversation row's bounded
+      // metadata column an aligned Container expands to the full column width,
+      // turning a one-digit badge into a long pill. Padding gives the text the
+      // same 20px minimum while allowing the badge to shrink-wrap everywhere.
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       decoration: BoxDecoration(
         color: base,
         borderRadius: BorderRadius.circular(999),
       ),
-      alignment: Alignment.center,
       child: Text(
         count > maxCount ? '$maxCount+' : '$count',
+        textAlign: TextAlign.center,
         style: TextStyle(
           color: quiet
               ? colors.textSecondary

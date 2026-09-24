@@ -55,11 +55,16 @@ function tooltip(group: FlareReactionGroup): string {
   gap: 6px;
   margin-top: 6px;
 }
+/* 只钉高度:宽度由内容撑,钉住就把长反应条截断了。撑到 44 高会把时间线里每一条
+   带反应的消息都拉开一截 —— 而它本来就有 47px 宽,横向够得着,缺的只是纵向,
+   所以纵向用 ::after 补,不动盒子。(机制见 accessibility.css 顶部注释) */
 .flare-reaction-pill {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 4px;
   height: 26px;
+  min-height: 26px;
   padding: 0 9px;
   border-radius: 999px;
   border: 1px solid var(--flare-color-border-primary);
@@ -81,6 +86,15 @@ function tooltip(group: FlareReactionGroup): string {
 .flare-reaction-pill__count {
   font-variant-numeric: tabular-nums;
   font-weight: 500;
+}
+.flare-reaction-pill::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: max(100%, var(--flare-size-layout-touch-target));
 }
 .flare-reaction-pill.is-self {
   border-color: var(--flare-color-primary);

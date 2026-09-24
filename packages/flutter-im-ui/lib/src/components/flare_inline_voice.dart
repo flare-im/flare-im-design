@@ -309,7 +309,7 @@ class _FlareInlineVoiceState extends State<FlareInlineVoice>
           decoration: BoxDecoration(
             color: colors.bgPrimary,
             border: Border.all(color: colors.borderPrimary),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(FlareSizes.radiusCard),
           ),
           child: Row(
             children: [

@@ -15,7 +15,7 @@ const emit = defineEmits<{ (e: "open"): void }>();
   </div>
 </template>
 <style scoped>
-.fm-link { display: inline-flex; gap: 10px; align-items: center; max-width: 300px; padding: 8px 10px; border-radius: 16px 16px 16px 4px; background: var(--flare-color-bg-primary); border: 1px solid var(--flare-color-border-secondary); box-shadow: var(--flare-component-bubble-shadow); cursor: pointer; }
+.fm-link { display: inline-flex; gap: var(--flare-size-spacing-2sm); align-items: center; max-width: 300px; padding: 8px var(--flare-size-spacing-2sm); border-radius: 16px 16px 16px 4px; background: var(--flare-color-bg-primary); border: 1px solid var(--flare-color-border-secondary); box-shadow: var(--flare-component-bubble-shadow); cursor: pointer; }
 .thumb { width: 48px; height: 48px; border-radius: 8px; flex: none; overflow: hidden; background: var(--flare-color-bg-tertiary); display: grid; place-items: center; color: var(--flare-color-text-tertiary); }
 .thumb img { width: 100%; height: 100%; object-fit: cover; }
 .meta { min-width: 0; display: flex; flex-direction: column; gap: 3px; }

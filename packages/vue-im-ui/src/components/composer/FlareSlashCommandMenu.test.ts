@@ -11,7 +11,7 @@ const commands = [
   { command: "remind", description: "设置提醒" },
 ];
 
-function render(props: Record<string, unknown>) {
+function render(props: InstanceType<typeof FlareSlashCommandMenu>["$props"]) {
   return mount(defineComponent({
     setup() {
       useFlareI18nProvider("zh-CN");

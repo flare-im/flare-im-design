@@ -4,6 +4,7 @@ import '../models/directory_data.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_avatar.dart';
+import 'flare_button.dart';
 import 'flare_empty_state.dart';
 
 /// New friends — incoming requests with accept / reject, and the current
@@ -101,32 +102,28 @@ class FlareNewFriendRequests extends StatelessWidget {
                 ),
                 if (onWithdraw != null) ...[
                   const SizedBox(width: FlareSizes.spacingSm),
-                  OutlinedButton(
+                  FlareButton(
+                    label: withdrawLabel ?? strings.newFriendRequestsWithdraw,
+                    variant: FlareButtonVariant.quiet,
+                    size: FlareControlSize.sm,
                     onPressed: () => onWithdraw!(r),
-                    style: OutlinedButton.styleFrom(
-                      visualDensity: VisualDensity.compact,
-                    ),
-                    child: Text(
-                      withdrawLabel ?? strings.newFriendRequestsWithdraw,
-                    ),
                   ),
                 ],
               ] else ...[
-                OutlinedButton(
+                // 两颗都走 kit 自己的 FlareButton。从前是 Material 的 OutlinedButton +
+                // FilledButton —— 拒绝那颗描边按钮和接受那颗填充按钮分量相当,两个都想被点;
+                // kit 从前没有「中性的低强度」这一档,现在有了 quiet。
+                FlareButton(
+                  label: rejectLabel ?? strings.newFriendRequestsReject,
+                  variant: FlareButtonVariant.quiet,
+                  size: FlareControlSize.sm,
                   onPressed: onReject == null ? null : () => onReject!(r),
-                  style: OutlinedButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  child: Text(rejectLabel ?? strings.newFriendRequestsReject),
                 ),
                 const SizedBox(width: FlareSizes.spacingSm),
-                FilledButton(
+                FlareButton(
+                  label: acceptLabel ?? strings.newFriendRequestsAccept,
+                  size: FlareControlSize.sm,
                   onPressed: onAccept == null ? null : () => onAccept!(r),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: colors.primary,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  child: Text(acceptLabel ?? strings.newFriendRequestsAccept),
                 ),
               ],
             ],

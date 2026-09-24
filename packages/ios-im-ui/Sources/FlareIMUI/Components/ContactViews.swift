@@ -226,7 +226,7 @@ public struct ContactListView: View {
                         VStack(spacing: 2) {
                             ForEach(groups, id: \.letter) { g in
                                 Text(g.letter)
-                                    .font(.system(size: 10, weight: .semibold))
+                                    .font(.system(size: FlareSizes.fontSize2xs, weight: .semibold))
                                     .foregroundColor(colors.primaryText)
                                     .onTapGesture { withAnimation { proxy.scrollTo(g.letter, anchor: .top) } }
                             }
@@ -322,12 +322,14 @@ public struct NewFriendRequestsView: View {
                             ForEach(Self.rowControls(req.direction, hasAccept: onAccept != nil, hasReject: onReject != nil,
                                                      hasWithdraw: onWithdraw != nil), id: \.self) { control in
                                 switch control {
+                                // 出口用 .quiet 而不是 .secondary:secondary 是填充+描边,
+                                // 分量和旁边的接受按钮相当,一行里两颗都想被点。
                                 case .decline:
-                                    ButtonView(label: declineLabel ?? strings.reject, variant: .secondary, size: .sm) { onReject?(req) }
+                                    ButtonView(label: declineLabel ?? strings.reject, variant: .quiet, size: .sm) { onReject?(req) }
                                 case .accept:
                                     ButtonView(label: acceptLabel ?? strings.newFriendRequestsAccept, size: .sm) { onAccept?(req) }
                                 case .withdraw:
-                                    ButtonView(label: withdrawLabel ?? strings.newFriendRequestsWithdraw, variant: .secondary, size: .sm) { onWithdraw?(req) }
+                                    ButtonView(label: withdrawLabel ?? strings.newFriendRequestsWithdraw, variant: .quiet, size: .sm) { onWithdraw?(req) }
                                 }
                             }
                         }

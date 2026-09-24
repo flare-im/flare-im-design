@@ -58,7 +58,7 @@ public struct CallControlsView: View {
     private func ctrl(_ icon: String, _ label: String, _ on: Bool, _ action: (() -> Void)?, state: String = "") -> some View {
         VStack(spacing: 6) {
             Button { action?() } label: {
-                Image(systemName: flareIconSymbol(icon)).font(.system(size: 24))
+                Image(systemName: flareIconSymbol(icon)).font(.system(size: FlareSizes.fontSize5xl))
                     .foregroundColor(on ? .black : .white)
                     .frame(width: 56, height: 56)
                     .background(Circle().fill(on ? Color.white : Color.white.opacity(0.16)))
@@ -74,7 +74,7 @@ public struct CallControlsView: View {
 
     private var hangup: some View {
         Button { onHangup?() } label: {
-            Image(systemName: flareIconSymbol("end-call")).font(.system(size: 24)).foregroundColor(.white)
+            Image(systemName: flareIconSymbol("end-call")).font(.system(size: FlareSizes.fontSize5xl)).foregroundColor(.white)
                 .frame(width: 56, height: 56).background(Circle().fill(Color(.sRGB, red: 0.937, green: 0.267, blue: 0.267, opacity: 1)))
         }
         .buttonStyle(.plain)
@@ -193,7 +193,7 @@ public struct IncomingCallView: View {
     private func action(_ icon: String, _ label: String, _ color: Color, _ handler: (() -> Void)?) -> some View {
         VStack(spacing: 8) {
             Button { handler?() } label: {
-                Image(systemName: flareIconSymbol(icon)).font(.system(size: 24)).foregroundColor(.white)
+                Image(systemName: flareIconSymbol(icon)).font(.system(size: FlareSizes.fontSize5xl)).foregroundColor(.white)
                     .frame(width: 64, height: 64).background(Circle().fill(color))
             }
             .buttonStyle(.plain)

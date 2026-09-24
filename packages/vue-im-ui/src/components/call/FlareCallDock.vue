@@ -71,8 +71,8 @@ const { t } = useFlareI18n();
 .flare-call-dock {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px 8px 8px;
+  gap: var(--flare-size-spacing-2sm);
+  padding: 8px var(--flare-size-spacing-2sm) 8px 8px;
   border-radius: 999px;
   background: var(--flare-color-message-outgoing-background);
   box-shadow: 0 14px 34px rgba(21, 18, 32, 0.34);
@@ -81,7 +81,7 @@ const { t } = useFlareI18n();
 .flare-call-dock__main {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--flare-size-spacing-2sm);
   border: none;
   background: transparent;
   color: inherit;

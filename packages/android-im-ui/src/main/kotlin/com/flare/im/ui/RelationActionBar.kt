@@ -337,10 +337,10 @@ private fun RelationButton(
             .padding(horizontal = FlareSizes.spacingMd)
             .semantics(mergeDescendants = true) { contentDescription = description },
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs),
     ) {
         if (inProgress) {
-            CircularProgressIndicator(Modifier.size(14.dp), color = fg, strokeWidth = 2.dp)
+            CircularProgressIndicator(Modifier.size(FlareSizes.spacing2md), color = fg, strokeWidth = 2.dp)
         } else {
             Icon(iconFor(entry.action), contentDescription = null, tint = fg, modifier = Modifier.size(16.dp))
         }

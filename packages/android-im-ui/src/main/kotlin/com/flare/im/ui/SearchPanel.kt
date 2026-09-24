@@ -51,10 +51,10 @@ fun SearchPanel(
         onSearch(submitted)
     }
     val colors = flareColors()
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
         SearchBar(value = query, onValueChange = { query = it }, placeholder = searchText, onSubmit = submit)
         TextButton(onClick = submit, modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)) { Text(searchText) }
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
             filters.forEach { (id, label) ->
                 OutlinedButton(
                     onClick = { filter = id; submit() },
@@ -65,7 +65,7 @@ fun SearchPanel(
         }
         if (timeRanges.isNotEmpty()) {
             Text(timeRangeText, color = colors.textSecondary)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
                 timeRanges.forEach { range ->
                     val active = range.fromTime == fromTime && range.toTime == toTime
                     OutlinedButton(onClick = { fromTime = range.fromTime; toTime = range.toTime; submit() }, enabled = range.isValid,

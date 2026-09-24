@@ -68,9 +68,9 @@ const icon = computed(
 .flare-toast {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--flare-size-spacing-2sm);
   max-width: 420px;
-  padding: 11px 14px;
+  padding: 11px var(--flare-size-spacing-2md);
   border-radius: var(--flare-size-radius-lg);
   background: var(--flare-color-bg-primary);
   border: 1px solid var(--flare-color-border-primary);

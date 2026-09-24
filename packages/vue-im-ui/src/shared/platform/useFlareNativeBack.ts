@@ -35,12 +35,10 @@ function hasNativeBack(platform: FlarePlatformContext): boolean {
 /**
  * Claim the platform back for `onBack` now and return the release, or undefined when the platform
  * has none. For a layer that opens imperatively and should not keep a watcher while closed (a
- * message menu exists once per timeline message).
+ * message menu exists once per timeline message). `onBack` may return `false` to leave the action
+ * unconsumed (a layer that is mounted but hidden); anything else counts as consumed.
  */
-export function claimNativeBack(platform: FlarePlatformContext, onBack: () => void): (() => void) | undefined {
+export function claimNativeBack(platform: FlarePlatformContext, onBack: () => boolean | void): (() => void) | undefined {
   if (!hasNativeBack(platform)) return undefined;
-  return platform.adapter.value.onNativeBack!(() => {
-    onBack();
-    return true;
-  });
+  return platform.adapter.value.onNativeBack!(() => onBack() !== false);
 }

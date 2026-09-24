@@ -3,7 +3,7 @@
 // symbols actually exist in the realised packages (anti-drift, like sdk-spec's
 // two-way coverage). Vue = flare-im-design/packages/vue-im-ui; Flutter = packages/flutter-im-ui.
 // Run: node validate.mjs
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { execSync } from "node:child_process";
@@ -258,6 +258,97 @@ for (const c of spec.components) {
     if (!baseline.includes(item)) errors.push(`accessibility contract missing: ${item}`);
   for (const item of baseline)
     if (!missing.includes(item)) errors.push(`accessibility-baseline.json is stale: ${item}`);
+}
+
+// ── 枚举成员四端等值 ────────────────────────────────────────────────────
+// 上面那一关比的是 prop 的**名字**在不在实现签名里,不看类型。于是 Vue 给
+// FlareButtonVariant 加了第六个成员 quiet、三端原生只有五个,契约还写着
+// platforms: "all" —— 这种分裂对签名关完全隐形,只能靠人肉发现。
+// 这里把「枚举型的 prop」补上:两端以上把它声明成枚举,就要求四端成员集合相等
+// (大小写归一;数据模型类的 Flare* 自然落不进来,因为它们不是枚举)。
+{
+  const ENUM_ROOTS = {
+    vue: { dir: "../packages/vue-im-ui/src", ext: [".ts"] },
+    ios: { dir: "../packages/ios-im-ui/Sources", ext: [".swift"] },
+    compose: { dir: "../packages/android-im-ui/src/main", ext: [".kt"] },
+    flutter: { dir: "../packages/flutter-im-ui/lib", ext: [".dart"] },
+  };
+  // 登记在案的例外:不是漂移,是 web 侧真实多出来的能力。
+  const ENUM_EXCEPTIONS = {
+    FlareBrandTheme: "vue 的是 `FlareThemeName | FlareCustomTheme`,额外接一个自定义主题对象;原生三端只收内置那六个",
+  };
+  const walkFiles = (dir, ext) => {
+    const out = [];
+    if (!existsSync(dir)) return out;
+    for (const n of readdirSync(dir)) {
+      const p = join(dir, n);
+      if (statSync(p).isDirectory()) {
+        if (/(^|\/)(build|\.build|\.gradle|node_modules|dist)$/.test(p)) continue;
+        out.push(...walkFiles(p, ext));
+      } else if (ext.some((e) => p.endsWith(e))) out.push(p);
+    }
+    return out;
+  };
+  const sources = Object.fromEntries(Object.entries(ENUM_ROOTS)
+    .map(([p, c]) => [p, walkFiles(join(here, c.dir), c.ext).map((f) => readFileSync(f, "utf8"))]));
+  const parsers = {
+    vue: (text, name) => {
+      const m = text.match(new RegExp(`export type ${name}\\s*=\\s*([^;]+);`));
+      if (!m || !/["']/.test(m[1])) return null;
+      return [...m[1].matchAll(/["']([\w-]+)["']/g)].map((x) => x[1].toLowerCase());
+    },
+    ios: (text, name) => {
+      const m = text.match(new RegExp(`enum ${name}\\b[^{]*\\{([\\s\\S]*?)\\n?\\}`));
+      if (!m) return null;
+      const cases = [...m[1].matchAll(/\bcase\s+([A-Za-z_][\w]*(?:\s*,\s*[A-Za-z_][\w]*)*)/g)]
+        .flatMap((x) => x[1].split(",").map((s) => s.trim().toLowerCase()));
+      return cases.length ? cases : null;
+    },
+    compose: (text, name) => {
+      const m = text.match(new RegExp(`enum class ${name}\\b[^{]*\\{([^}]*)\\}`));
+      if (!m) return null;
+      const v = m[1].split(",").map((s) => s.trim().split(/[({\s]/)[0]).filter(Boolean);
+      return v.length ? v.map((s) => s.toLowerCase()) : null;
+    },
+    flutter: (text, name) => {
+      const m = text.match(new RegExp(`enum ${name}\\b[^{]*\\{([^}]*)\\}`));
+      if (!m) return null;
+      const v = m[1].split(",").map((s) => s.trim().split(/[({\s;]/)[0]).filter(Boolean);
+      return v.length ? v.map((s) => s.toLowerCase()) : null;
+    },
+  };
+  const membersOf = (platform, name) => {
+    for (const candidate of name.startsWith("Flare") ? [name, name.slice(5)] : [name, `Flare${name}`])
+      for (const text of sources[platform]) {
+        const found = parsers[platform](text, candidate);
+        if (found) return found;
+      }
+    return null;
+  };
+  const typeNames = new Set();
+  for (const c of spec.components) {
+    if (c.status === "planned") continue;
+    for (const p of c.props ?? []) if (/^Flare[A-Za-z]+$/.test(p.type ?? "")) typeNames.add(p.type);
+  }
+  for (const name of [...typeNames].sort()) {
+    if (ENUM_EXCEPTIONS[name]) continue;
+    const got = Object.fromEntries(Object.keys(ENUM_ROOTS).map((p) => [p, membersOf(p, name)]));
+    const declaring = Object.entries(got).filter(([, v]) => v);
+    if (declaring.length < 2) continue;
+    const absent = Object.entries(got).filter(([, v]) => !v).map(([p]) => p);
+    if (absent.length) {
+      errors.push(`enum "${name}": ${declaring.map(([p]) => p).join("/")} declare it as an enum but ${absent.join("/")} do not — one contract, four implementations`);
+      continue;
+    }
+    const sets = Object.fromEntries(declaring.map(([p, v]) => [p, [...new Set(v)].sort()]));
+    const ref = sets.vue ?? Object.values(sets)[0];
+    for (const [p, v] of Object.entries(sets)) {
+      const extra = v.filter((x) => !ref.includes(x));
+      const missing = ref.filter((x) => !v.includes(x));
+      if (extra.length) errors.push(`enum "${name}" [${p}]: member(s) ${extra.join(", ")} that vue does not have`);
+      if (missing.length) errors.push(`enum "${name}" [${p}]: missing member(s) ${missing.join(", ")} that vue declares`);
+    }
+  }
 }
 
 // 每个组件每个端：契约声明的 props/事件必须能在实现签名里找到（允许 lexicon /

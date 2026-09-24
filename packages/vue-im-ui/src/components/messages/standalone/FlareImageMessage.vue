@@ -87,7 +87,7 @@ function onClick(): void {
   </button>
 </template>
 <style scoped>
-.fm-img { position: relative; padding: 0; border: none; border-radius: 12px; overflow: hidden; background: var(--flare-color-bg-tertiary); display: grid; place-items: center; color: var(--flare-color-text-tertiary); cursor: pointer; }
+.fm-img { position: relative; padding: 0; border: none; border-radius: var(--flare-size-radius-card); overflow: hidden; background: var(--flare-color-bg-tertiary); display: grid; place-items: center; color: var(--flare-color-text-tertiary); cursor: pointer; }
 .fm-img img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .fm-img:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: 2px; }
 .fm-img--flex { width: auto; height: auto; min-width: min(220px, 100%); min-height: 132px; max-width: min(var(--fm-img-max-w), 100%); }

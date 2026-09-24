@@ -47,53 +47,59 @@ class FlareGroupList extends StatelessWidget {
         ),
       );
     }
-    return ListView.builder(
-      itemCount: items.length,
-      itemBuilder: (context, i) {
-        final g = items[i];
-        return InkWell(
-          onTap: onSelect == null ? null : () => onSelect!(g),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: FlareSizes.spacingMd,
-              vertical: FlareSizes.spacingSm,
-            ),
-            child: Row(
-              children: [
-                FlareAvatar(
-                  userId: g.id,
-                  displayName: g.name,
-                  avatarUrl: g.avatarUrl,
-                  size: 44,
-                ),
-                const SizedBox(width: FlareSizes.spacingMd),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      g.name,
-                      style: TextStyle(
-                        color: colors.textPrimary,
-                        fontSize: FlareSizes.fontSizeLg,
-                        fontWeight: FontWeight.w500,
+    // The kit is also hosted by Cupertino-style app shells. InkWell still needs
+    // a Material paint target there, so provide the smallest possible one inside
+    // the reusable component instead of making every host wrap this list.
+    return Material(
+      type: MaterialType.transparency,
+      child: ListView.builder(
+        itemCount: items.length,
+        itemBuilder: (context, i) {
+          final g = items[i];
+          return InkWell(
+            onTap: onSelect == null ? null : () => onSelect!(g),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: FlareSizes.spacingMd,
+                vertical: FlareSizes.spacingSm,
+              ),
+              child: Row(
+                children: [
+                  FlareAvatar(
+                    userId: g.id,
+                    displayName: g.name,
+                    avatarUrl: g.avatarUrl,
+                    size: 44,
+                  ),
+                  const SizedBox(width: FlareSizes.spacingMd),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        g.name,
+                        style: TextStyle(
+                          color: colors.textPrimary,
+                          fontSize: FlareSizes.fontSizeLg,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                    Text(
-                      memberCountText?.call(g.memberCount) ??
-                          strings.memberCount(g.memberCount),
-                      style: TextStyle(
-                        color: colors.textTertiary,
-                        fontSize: FlareSizes.fontSizeSm,
+                      Text(
+                        memberCountText?.call(g.memberCount) ??
+                            strings.memberCount(g.memberCount),
+                        style: TextStyle(
+                          color: colors.textTertiary,
+                          fontSize: FlareSizes.fontSizeSm,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

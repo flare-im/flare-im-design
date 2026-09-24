@@ -63,16 +63,18 @@ const shown = computed(() => formatVoiceDuration(playing.value ? playbackMs.valu
 </template>
 
 <style scoped>
+/* 录音条是输入区的一行，不是浮在里面的一张卡片：它是最后一个还自带边框 / 圆角 / 底色的
+   composer 子面板（表情、「+」、@ 都已经扁平化）。高度对齐 .composer-toolbar / .composer-input-row
+   的 44px，左右内距与工具条同源，这样首尾按钮和工具条图标落在同一条竖线上。 */
 .composer-voice-inline {
   display: flex;
   align-items: center;
   gap: var(--flare-size-spacing-2xs);
-  min-height: 58px;
+  min-height: var(--flare-size-layout-touch-target);
   width: 100%;
-  padding: 7px 10px;
-  border: 1px solid var(--studio-border, var(--flare-color-border-primary));
-  border-radius: var(--studio-radius, var(--flare-size-radius-lg));
-  background: var(--studio-surface, var(--flare-color-bg-primary));
+  padding: 0 var(--flare-size-spacing-sm);
+  border: 0;
+  background: transparent;
 }
 .composer-voice-inline button {
   display: inline-flex;
@@ -119,7 +121,7 @@ const shown = computed(() => formatVoiceDuration(playing.value ? playbackMs.valu
 .voice-track input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 @keyframes composer-voice-pulse { from { transform: scaleY(0.35); } to { transform: scaleY(1); } }
 @container flare-composer (max-width: 639px) {
-  .composer-voice-inline { gap: 1px; padding: 5px 3px; }
+  .composer-voice-inline { gap: 1px; padding: 0 var(--flare-size-spacing-2xs); }
   .composer-voice-inline button { flex-basis: 44px; width: 44px; height: 44px; }
   .composer-voice-inline time { min-width: var(--flare-size-layout-control-height-sm); font-size: var(--flare-size-font-size-xs); }
 }

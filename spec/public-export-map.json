@@ -3354,6 +3354,17 @@
       }
     },
     {
+      "name": "RecentSearches",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareRecentSearches",
+          "sourcePath": "packages/vue-im-ui/src/components/general/FlareRecentSearches.vue"
+        }
+      }
+    },
+    {
       "name": "TransferQueue",
       "status": "stable",
       "platforms": {

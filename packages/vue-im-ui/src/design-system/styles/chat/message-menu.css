@@ -142,10 +142,6 @@
   user-select: text;
 }
 
-.message-menu-drawer .n-drawer-body-content-wrapper {
-  padding: 0 !important;
-}
-
 @media (max-width: 899px) {
   .message-bubble-host--toolbar-beside .im-floating-bar {
     display: none !important;

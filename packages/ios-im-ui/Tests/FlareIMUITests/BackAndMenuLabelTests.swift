@@ -22,8 +22,11 @@ final class BackAndMenuLabelTests: XCTestCase {
         let view = try header.inspect()
         XCTAssertNoThrow(try view.find(text: s.memberCount(12)))
         XCTAssertThrowsError(try view.find(text: "12 members"))
-        XCTAssertNoThrow(try view.find(ViewType.Menu.self, where: { try $0.accessibilityLabel().string() == self.s.conversationHeaderAddActions }))
-        XCTAssertNoThrow(try view.find(ViewType.Menu.self, where: { try $0.accessibilityLabel().string() == self.s.conversationHeaderMoreActions }))
+        // The menu trigger is the kit's own button now, not a system `Menu` (UIKit gave that a
+        // ~250pt minimum width). The name still has to come from the strings table, and it has to
+        // sit on the control the user actually touches.
+        XCTAssertNoThrow(try view.find(ViewType.Button.self, where: { try $0.accessibilityLabel().string() == self.s.conversationHeaderAddActions }))
+        XCTAssertNoThrow(try view.find(ViewType.Button.self, where: { try $0.accessibilityLabel().string() == self.s.conversationHeaderMoreActions }))
     }
 
     @MainActor

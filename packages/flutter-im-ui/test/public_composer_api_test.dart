@@ -13,6 +13,21 @@ void main() {
         RichComposerMarkdownSerializer.serialize('Flare', formatting),
         '**Flare**',
       );
+      expect(
+        RichComposerMarkdownSerializer.serialize(
+          'Flare',
+          const RichComposerFormatting(
+            inlineStyles: {RichComposerInlineStyle.underline},
+            blockStyle: RichComposerBlockStyle.heading,
+            headingLevel: 3,
+          ),
+        ),
+        '### <u>Flare</u>',
+      );
+      expect(
+        const RichComposerFormatting().withHeadingLevel(6).headingLevel,
+        6,
+      );
       expect(ComposerInlineTextField, isNotNull);
     },
   );

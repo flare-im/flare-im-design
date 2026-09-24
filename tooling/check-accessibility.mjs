@@ -151,10 +151,14 @@ function styleFiles(directory) {
   }
   return out;
 }
+// 注释不是声明。这条规则扫的是 `outline:` 后面那一截,而一句解释「为什么这里不画
+// outline:...」会被原样当成值读出来 —— 门禁于是报一个它自己造出来的违规,而真正的
+// 声明就在同一个文件里好好地引用着 token。剥掉注释再扫:只会少匹配,不会漏真声明。
+const stripComments = (text) => text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/<!--[\s\S]*?-->/g, "");
 let focusOutlineCount = 0;
 for (const file of styleFiles(vueRoot)) {
   const rel = relative(root, file);
-  const source = readFileSync(file, "utf8");
+  const source = stripComments(readFileSync(file, "utf8"));
   for (const match of source.matchAll(/outline:\s*([^;}]+)/g)) {
     const value = match[1].trim();
     if (/^(none|0|inherit|initial|unset)\b/.test(value)) continue;

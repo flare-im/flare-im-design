@@ -10,38 +10,56 @@ Two searches, one pattern. Global search finds contacts, groups and messages fro
 | Search entry in a list header (opens search) | `FlareSearchBar` with `read-only` and `@activate` | `FlareSearchBar(readOnly: true, onActivate:)` | `SearchBarView(readOnly: true, onActivate:)` | `SearchBar(readOnly = true, onActivate =)` |
 | Grouped results (contacts, groups, messages) | `FlareSearchResults` | `FlareSearchResults` | `SearchResultsView` | `SearchResults` |
 | Query, filters, time ranges and result states | `FlareSearchPanel` | `FlareSearchPanel` | `SearchPanelView` | `SearchPanel` |
+| Recent searches (idle state) | `FlareRecentSearches` | — | — | — |
 | Page | `FlareScreen` | `FlareScreen` | `FlareScreen` | `FlareScreen` |
 
 ## Global search (Vue)
 
+The panel is the page. On a phone it is a second-level screen, not a sheet: the keyboard is up on entry, and a sheet capped at 72vh would leave the results under 200px. On a wide window it is a centred dialog.
+
 ```vue
 <script setup lang="ts">
-import { ref } from "vue";
-import { FlareButton, FlareEmptyState, FlareScreen, FlareSearchBar, FlareSearchResults, type FlareSearchResultItem } from "@flare-im/vue-ui";
+import { computed, onBeforeUnmount } from "vue";
+import { FlareBottomSheet, FlareRecentSearches, FlareScreen, FlareSearchPanel, useViewport, type FlareSearchResultItem } from "@flare-im/vue-ui";
 
 const emit = defineEmits<{ (e: "open", item: FlareSearchResultItem): void; (e: "close"): void }>();
-const keyword = ref("");
-let debounce: ReturnType<typeof setTimeout> | null = null;
+const { isDesktop } = useViewport();
+// Type ids are the result kinds, so "查看更多" on a group is that kind's type: the panel switches itself.
+const kinds = computed(() => ({ all: "全部", contact: "联系人", group: "群聊", message: "聊天记录" }));
 
-// Debounce typing; submit runs immediately.
-function onInput(value: string) {
-  keyword.value = value;
-  if (debounce) clearTimeout(debounce);
-  debounce = setTimeout(() => void runGlobalSearch(value), 300);
-}
+// Remember a search that was used: a hit was opened, or the page was left with results on it.
+function open(item: FlareSearchResultItem) { rememberSearch(searchSnapshot.value.criteria.query); emit("open", item); }
+onBeforeUnmount(() => clearGlobalSearch()); // every opening starts idle
 </script>
 
 <template>
-  <FlareScreen surface="surface" aria-label="全局搜索">
-    <template #header>
-      <FlareSearchBar :model-value="keyword" placeholder="搜索消息、联系人、群" :loading="searchingGlobal"
-        @update:model-value="onInput" @submit="runGlobalSearch(keyword)" @clear="clearGlobalSearch()" />
-      <FlareButton variant="text" @click="emit('close')">取消</FlareButton>
-    </template>
-    <FlareSearchResults v-if="searchQuery.trim()" :groups="searchResults" :query="searchQuery" @open="emit('open', $event)" />
-    <FlareEmptyState v-else icon="search" title="搜索" description="查找消息、联系人和群聊。" />
+  <FlareScreen v-if="!isDesktop" surface="surface" :scroll="false" aria-label="全局搜索">
+    <FlareSearchPanel layout="page" :snapshot="searchSnapshot" :filters="kinds" require-query autofocus
+      search-text="搜索联系人、群聊、聊天记录" idle-text="输入关键字，搜索联系人、群聊和聊天记录"
+      @search="searchGlobal" @open="open" @cancel="emit('close')">
+      <template v-if="recentSearches.length" #idle="{ search, focusField }">
+        <FlareRecentSearches :items="recentSearches" @pick="search" @clear="() => { clearRecentSearches(); focusField(); }" />
+      </template>
+    </FlareSearchPanel>
   </FlareScreen>
+  <FlareBottomSheet v-else :open="true" presentation="dialog" title="搜索" title-hidden max-height="72vh" dialog-width="720px" @close="emit('close')">
+    <!-- A sheet only caps its height; the page layout needs one, or the centred dialog re-centres with every result count. -->
+    <div class="search-dialog-body"><FlareSearchPanel layout="page" … /></div>
+  </FlareBottomSheet>
 </template>
+```
+
+`layout="page"` keeps the field and the type row still and scrolls only the results; listening for `cancel` brings the search bar's own 取消 beside the field (the dialog does not listen, so it has none); `require-query` keeps a type alone from searching. The host owns the recent list (per signed-in user, in its own storage) and keeps it with `flareRememberSearch(list, term, max)`.
+
+The search ops take a limit and return no count, so the store asks each source for one row more than it shows and sets `hasMore` on the group; a count is never made up. One source failing is `warning` over the results that did come back; only every asked source failing is `failure`.
+
+```ts
+const snapshot = computed<FlareSearchSnapshot>(() => ({
+  criteria,                                   // exactly what the panel gave `search`
+  state: loading ? "loading" : failedAll ? "failure" : "success",
+  groups,                                     // [{ kind: "contact", label: "联系人", items, hasMore }, …]
+  warning: failedSome ? "部分结果没有加载出来" : undefined,
+}));
 ```
 
 The app runs contacts, groups and messages in parallel (`social.relation.search_contacts`, `social.group.search_groups`, `message.search`) and fills one group per kind. A backend that cannot answer one kind returns an empty group for it rather than failing the whole search.
@@ -112,11 +130,13 @@ Opening a hit hands the id to the chat, which pages older history until the mess
 
 | State | Behaviour |
 |---|---|
-| Idle | Empty state that says what can be searched; empty criteria never call the host |
+| Idle | One line that says what can be searched, or the recent searches in its place; empty criteria never call the host |
 | Typing | The panel searches 300 ms after typing stops and not while an IME is composing; Enter, clear, a type filter and a time range search at once |
 | Loading | The search bar shows progress; the previous results stay on screen, dimmed and `aria-busy`, until the new ones arrive |
 | No results | "No results" for the query, distinct from failure |
 | Failure | A danger banner with the host's product copy (`error`) and 重试; the query stays in the input. Never pass the raw error |
+| Partial | Results stay; a warning banner (`warning`) above them with 重试 |
+| Truncated | A countless "查看更多" row (`hasMore`); it leads to that kind's type, where the row is gone |
 | Stale response | A late response for an older query is ignored (generation counter) |
 | Hit not loaded | Page older history, then scroll; report missing only at the end |
 

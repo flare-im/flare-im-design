@@ -100,7 +100,7 @@ fun ReadReceiptSheet(
                     Row(
                         Modifier.fillMaxWidth()
                             .then(if (onSelect != null) Modifier.clickable { onSelect(c.id) } else Modifier)
-                            .padding(horizontal = FlareSizes.spacingLg, vertical = 8.dp),
+                            .padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingSm),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Avatar(userId = c.id, displayName = c.name, size = 36.dp, presence = c.presence)
@@ -122,7 +122,7 @@ fun ReadReceiptSheet(
 @Composable
 private fun RowScope.receiptTab(colors: FlareColors, label: String, active: Boolean, onClick: () -> Unit) {
     Column(
-        Modifier.weight(1f).clickable { onClick() }.padding(vertical = 8.dp),
+        Modifier.weight(1f).clickable { onClick() }.padding(vertical = FlareSizes.spacingSm),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(

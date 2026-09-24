@@ -65,12 +65,12 @@ fun ConversationRow(
             .semantics(mergeDescendants = true) { contentDescription = label; selected = active }
             .then(if (onSelect != null || onLongPress != null) Modifier.combinedClickable(role = Role.Button, onClick = { onSelect?.invoke() }, onLongClick = onLongPress) else Modifier)
             .defaultMinSize(minHeight = if (compact) 72.dp else 80.dp)
-            .padding(horizontal = FlareSizes.spacingSm, vertical = if (compact) 10.dp else 14.dp),
+            .padding(horizontal = FlareSizes.spacingSm, vertical = if (compact) FlareSizes.spacing2sm else FlareSizes.spacing2md),
     ) {
         Box(Modifier.clearAndSetSemantics {}) {
             Avatar(userId = item.id, displayName = item.title, avatarUrl = item.avatarUrl, size = if (compact) 40.dp else avatarSize, presence = item.presence)
         }
-        Spacer(Modifier.width(10.dp))
+        Spacer(Modifier.width(FlareSizes.spacing2sm))
         Column(Modifier.weight(1f).clearAndSetSemantics {}) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(item.title, maxLines = 1, overflow = TextOverflow.Ellipsis,
@@ -87,7 +87,7 @@ fun ConversationRow(
             }, maxLines = 1, overflow = TextOverflow.Ellipsis, fontSize = FlareSizes.fontSizeMd, color = colors.textSecondary)
         }
         Spacer(Modifier.width(8.dp))
-        Column(Modifier.width(60.dp).clearAndSetSemantics {}, horizontalAlignment = Alignment.End) {
+        Column(Modifier.width(FlareSizes.componentConversationRowMetaWidth).clearAndSetSemantics {}, horizontalAlignment = Alignment.End) {
             Text(item.timestampLabel, maxLines = 1, overflow = TextOverflow.Ellipsis, color = if (active) colors.textSecondary else colors.textTertiary, fontSize = FlareSizes.fontSizeXs)
             Spacer(Modifier.height(4.dp))
             Box(Modifier.heightIn(min = 20.dp), contentAlignment = Alignment.CenterEnd) {

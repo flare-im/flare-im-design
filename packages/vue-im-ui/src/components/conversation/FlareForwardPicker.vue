@@ -131,7 +131,7 @@ const isSelected = (id: string): boolean => selected.value.includes(id);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px 8px;
+  padding: var(--flare-size-spacing-2md) 16px 8px;
 }
 .flare-forward-picker__title {
   font-size: 15px;
@@ -150,7 +150,7 @@ const isSelected = (id: string): boolean => selected.value.includes(id);
   align-items: center;
   gap: 8px;
   margin: 0 12px 4px;
-  padding: 8px 10px;
+  padding: 8px var(--flare-size-spacing-2sm);
   border-radius: var(--flare-size-radius-lg);
   background: var(--flare-color-bg-secondary);
 }
@@ -172,7 +172,7 @@ const isSelected = (id: string): boolean => selected.value.includes(id);
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--flare-size-spacing-2sm);
   padding: 7px 8px;
   border: none;
   border-radius: var(--flare-size-radius-lg);
@@ -218,7 +218,7 @@ const isSelected = (id: string): boolean => selected.value.includes(id);
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 16px 14px;
+  padding: var(--flare-size-spacing-2sm) 16px var(--flare-size-spacing-2md);
   border-top: 1px solid var(--flare-color-border-primary);
 }
 .flare-forward-picker__count {
