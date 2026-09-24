@@ -12,6 +12,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: 拉取表情 / 贴纸素材（webp 不入库，见 assets/emoji-sticker/fetch-assets.sh）
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash assets/emoji-sticker/fetch-assets.sh
+        working-directory: .
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -25,6 +30,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: 拉取表情 / 贴纸素材（webp 不入库，见 assets/emoji-sticker/fetch-assets.sh）
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash assets/emoji-sticker/fetch-assets.sh
+        working-directory: .
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -42,6 +52,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: 拉取表情 / 贴纸素材（webp 不入库，见 assets/emoji-sticker/fetch-assets.sh）
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash assets/emoji-sticker/fetch-assets.sh
+        working-directory: .
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -60,6 +75,11 @@ jobs:
         working-directory: packages/flutter-im-ui
     steps:
       - uses: actions/checkout@v4
+      - name: 拉取表情 / 贴纸素材（webp 不入库，见 assets/emoji-sticker/fetch-assets.sh）
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash assets/emoji-sticker/fetch-assets.sh
+        working-directory: .
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -81,6 +101,11 @@ jobs:
         working-directory: packages/android-im-ui
     steps:
       - uses: actions/checkout@v4
+      - name: 拉取表情 / 贴纸素材（webp 不入库，见 assets/emoji-sticker/fetch-assets.sh）
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash assets/emoji-sticker/fetch-assets.sh
+        working-directory: .
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -111,7 +136,13 @@ jobs:
         working-directory: packages/ios-im-ui
     steps:
       - uses: actions/checkout@v4
+      - name: 拉取表情 / 贴纸素材（webp 不入库，见 assets/emoji-sticker/fetch-assets.sh）
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash assets/emoji-sticker/fetch-assets.sh
+        working-directory: .
       - run: swift package resolve
+      - run: ./sync-resources.sh
       - run: swift test
       - run: swift build
       - run: xcodebuild -scheme FlareIMUI -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/flare-ui-ios" build CODE_SIGNING_ALLOWED=NO
@@ -121,6 +152,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: 拉取表情 / 贴纸素材（webp 不入库，见 assets/emoji-sticker/fetch-assets.sh）
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash assets/emoji-sticker/fetch-assets.sh
+        working-directory: .
         with:
           fetch-depth: 0
       - uses: actions/setup-node@v4
