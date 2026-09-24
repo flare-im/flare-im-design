@@ -32,7 +32,9 @@ function isGitIgnored(rel) {
 }
 
 function walk(path, files = []) {
-  for (const name of readdirSync(path)) {
+  // Sorted so the inventory does not depend on the file system's directory order
+  // (APFS returns names sorted, ext4 does not): ties below would otherwise flip between machines.
+  for (const name of readdirSync(path).sort()) {
     const absolute = join(path, name);
     const rel = relative(root, absolute);
     if (absolute === output) continue;
@@ -98,7 +100,7 @@ const large = files
   .filter((file) => !file.link && textExtensions.has(file.ext) && file.bytes < 2_000_000)
   .map((file) => ({ ...file, lines: readFileSync(file.absolute, "utf8").split("\n").length }))
   .filter((file) => file.lines > 500)
-  .sort((a, b) => b.lines - a.lines);
+  .sort((a, b) => b.lines - a.lines || (a.rel < b.rel ? -1 : a.rel > b.rel ? 1 : 0));
 const largeRows = large.map((file) => {
   const threshold = file.lines > 1000 ? ">1000" : file.lines > 800 ? ">800" : ">500";
   return `| \`${file.rel}\` | ${file.lines} | ${threshold} | Review responsibilities; do not split by size alone |`;
