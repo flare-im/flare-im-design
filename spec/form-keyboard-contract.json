@@ -50,7 +50,7 @@
       "test": "packages/android-im-ui/src/test/kotlin/com/flare/im/ui/FormBehaviorTest.kt"
     },
     "ios": {
-      "module": "packages/ios-im-ui/Sources/FlareImUI/Models/FormBehavior.swift",
+      "module": "packages/ios-im-ui/Sources/FlareIMUI/Models/FormBehavior.swift",
       "symbol": "resolveFormKeyboardIntent",
       "test": "packages/ios-im-ui/Tests/FlareIMUITests/FormBehaviorTests.swift"
     }

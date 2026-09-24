@@ -382,7 +382,7 @@
           "contains": "WorkspacePane("
         },
         {
-          "file": "packages/ios-im-ui/Sources/FlareImUI/Application/ApplicationComposition.swift",
+          "file": "packages/ios-im-ui/Sources/FlareIMUI/Application/ApplicationComposition.swift",
           "contains": "WorkspacePaneView("
         },
         {

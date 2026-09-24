@@ -17,11 +17,11 @@
 # 通过 git URL 引入的包只含文本契约（目录能列、图片为空），要图片必须走本地
 # 路径/submodule 引入并在检出里跑 fetch-assets.sh + 本脚本。
 #
-#   ../assets/emoji-sticker/fetch-assets.sh   # 先拉 webp（只需一次）
+#   ../../assets/emoji-sticker/fetch-assets.sh   # 先拉 webp（只需一次）
 #   ./sync-resources.sh
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
-src="$here/../assets/emoji-sticker/"
+src="$here/../../assets/emoji-sticker/"
 dest="$here/Sources/FlareIMUI/Resources/emoji-sticker/"
 
 rsync -a --delete \

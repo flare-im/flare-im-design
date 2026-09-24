@@ -122,7 +122,7 @@
       "test": "packages/android-im-ui/src/test/kotlin/com/flare/im/ui/UrlSafetyTest.kt"
     },
     "ios": {
-      "module": "packages/ios-im-ui/Sources/FlareImUI/Models/UrlSafety.swift",
+      "module": "packages/ios-im-ui/Sources/FlareIMUI/Models/UrlSafety.swift",
       "symbol": "safeExternalURL",
       "test": "packages/ios-im-ui/Tests/FlareIMUITests/UrlSafetyTests.swift"
     }
