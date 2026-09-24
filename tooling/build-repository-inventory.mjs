@@ -154,8 +154,19 @@ ${duplicates.slice(0, 20).map((group) => `- ${group.map((path) => `\`${path}\``)
 `;
 
 if (process.argv.includes("--check")) {
-  if (!existsSync(output) || readFileSync(output, "utf8") !== markdown) {
+  const current = existsSync(output) ? readFileSync(output, "utf8") : "";
+  if (current !== markdown) {
     console.error("repository inventory is stale; run node tooling/build-repository-inventory.mjs");
+    // Say what differs: a stale inventory on CI usually means the checkout differs from the
+    // machine that generated it (line endings, files git ignores only locally, directory order).
+    const want = markdown.split("\n");
+    const have = current.split("\n");
+    let shown = 0;
+    for (let i = 0; i < Math.max(want.length, have.length) && shown < 8; i++) {
+      if (want[i] === have[i]) continue;
+      console.error(`  line ${i + 1}\n    committed: ${have[i] ?? "<missing>"}\n    generated: ${want[i] ?? "<missing>"}`);
+      shown++;
+    }
     process.exit(1);
   }
   console.log(`repository inventory current: ${topItems.length} major paths, ${files.length} files`);
