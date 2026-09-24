@@ -32,7 +32,9 @@ fetch() {
   echo "→ 拉取 $name …"
   gh release download "$TAG" --repo "$REPO" --pattern "$name-assets.tar.gz" \
      --output "$here/.$name.tar.gz" --clobber
-  tar -xzf "$here/.$name.tar.gz" -C "$here"
+  # 压缩包是在 macOS 上打的,带 AppleDouble 条目(._stickers / ._manifest.json …);bsdtar 解包时会把它们
+  # 还原成扩展属性,GNU tar 则留成真文件,Linux runner 上仓库清单就会多出 3 个文件而判「陈旧」。
+  tar -xzf "$here/.$name.tar.gz" -C "$here" --exclude '._*'
   rm -f "$here/.$name.tar.gz"
   echo "✓ $name: $(find "$here/$dir" -name '*.webp' | wc -l | tr -d ' ') 个 webp"
 }

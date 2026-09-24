@@ -67,3 +67,6 @@ examples/*/.build/
 # 本地编辑器配置与测试运行产物，不是候选物的一部分
 .claude/
 test-results/
+
+# macOS AppleDouble 元数据(GNU tar 解 macOS 打的包会留下)
+._*
