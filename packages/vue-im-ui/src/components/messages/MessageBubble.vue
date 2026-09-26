@@ -229,9 +229,11 @@ const showUploadProgress = computed(() =>
   !isRecalled.value &&
   Boolean(props.message.localState?.uploading || (uploadProgress.value > 0 && uploadProgress.value < 100)),
 );
+// Over the picture for images and video; under the body for a file or a voice note, whose name and size are what
+// the sender checks while it uploads — a pill over them hid the size line.
 const uploadProgressOnMedia = computed(() =>
   showUploadProgress.value &&
-  ["image", "image_group", "video", "audio", "file"].includes(contentType.value),
+  ["image", "image_group", "video"].includes(contentType.value),
 );
 
 const showSelectControl = computed(
