@@ -24,6 +24,7 @@ class FlareImageGroupMessage extends StatelessWidget {
     this.self = false,
     this.width = 240,
     this.onOpen,
+    this.allowLocalFile = false,
   });
 
   final List<FlareImageContent> images;
@@ -31,6 +32,10 @@ class FlareImageGroupMessage extends StatelessWidget {
   final bool self;
   final double width;
   final ValueChanged<int>? onOpen;
+
+  /// The pictures may be files on this device: only for the sender's own
+  /// album while it uploads (see `flareMediaImageProvider`).
+  final bool allowLocalFile;
 
   @override
   Widget build(BuildContext context) {
@@ -134,6 +139,7 @@ class FlareImageGroupMessage extends StatelessWidget {
                 src,
                 placeholder: placeholder,
                 gaplessPlayback: true,
+                allowLocalFile: allowLocalFile,
               ),
               if (covered)
                 ColoredBox(

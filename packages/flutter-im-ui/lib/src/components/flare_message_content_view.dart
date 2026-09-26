@@ -95,9 +95,16 @@ class FlareMessageContentView extends StatelessWidget {
     this.onVote,
     this.onTaskToggle,
     this.onMediaDownload,
+    this.uploading = false,
   });
 
   final FlareMessageContent content;
+
+  /// This device's own message whose media is still uploading
+  /// (`FlareMessageData.uploadProgress`). Its pictures may then come from the
+  /// file on this device, and nothing opens or plays until the upload is done:
+  /// the addresses the players need do not exist yet.
+  final bool uploading;
   final bool self;
   final bool previewMode;
   final String? senderName;
@@ -178,9 +185,42 @@ class FlareMessageContentView extends StatelessWidget {
     return () => _openLink(raw);
   }
 
+  /// A media body while its upload runs: drawn like the finished one (a
+  /// picture from the local file, the video or voice card) but inert.
+  Widget? _uploadingBody() => switch (content) {
+    FlareImageContent c => FlareImageMessage(
+      src: c.thumbnailUrl ?? c.url,
+      alt: c.alt,
+      width: 240,
+      height: c.width != null && c.height != null && c.width! > 0
+          ? (240 * c.height! / c.width!).clamp(48, 240)
+          : 180,
+      allowLocalFile: true,
+    ),
+    FlareImageGroupContent c => FlareImageGroupMessage(
+      images: c.images,
+      description: c.description,
+      self: self,
+      allowLocalFile: true,
+    ),
+    FlareVideoContent c => FlareVideoMessage(
+      poster: c.poster,
+      duration: _duration(c.durationSec),
+    ),
+    FlareFileContent c => FlareFileMessage(
+      name: c.name,
+      size: _bytes(c.sizeBytes),
+    ),
+    _ => null,
+  };
+
   Widget _body(BuildContext context) {
     VoidCallback? action(FlareMessageContent value) =>
         onMediaAction == null ? null : () => onMediaAction!(value);
+    if (uploading) {
+      final pending = _uploadingBody();
+      if (pending != null) return pending;
+    }
     final media = FlareMediaScope.maybeOf(context);
     final body = switch (content) {
       FlareTextContent c

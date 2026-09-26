@@ -84,8 +84,42 @@ void main() {
     });
   });
 
-  group('flareMediaImageProvider', () {
-    test('reads remote, inline and local pictures', () {
+  group('pictures from a file on this device', () {
+    FlareMessageData message(String sender, {int? uploadProgress}) =>
+        FlareMessageData(
+          id: 'm-$sender',
+          senderId: sender,
+          senderName: sender,
+          content: const FlareImageContent(url: '/tmp/picked.png'),
+          uploadProgress: uploadProgress,
+        );
+    Iterable<ImageProvider> providers(WidgetTester tester) =>
+        tester.widgetList<Image>(find.byType(Image)).map((i) => i.image);
+
+    testWidgets('are drawn for my own picture while it uploads', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(
+          FlareMessageBubble(
+            currentUserId: 'me',
+            message: message('me', uploadProgress: 10),
+          ),
+        ),
+      );
+      expect(providers(tester).whereType<FileImage>(), hasLength(1));
+    });
+
+    testWidgets('are never drawn for a message someone else wrote', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(FlareMessageBubble(currentUserId: 'me', message: message('ivy'))),
+      );
+      expect(providers(tester).whereType<FileImage>(), isEmpty);
+    });
+
+    test('need an explicit request', () {
       expect(
         flareMediaImageProvider('https://cdn.example/a.png'),
         isA<NetworkImage>(),
@@ -94,18 +128,49 @@ void main() {
         flareMediaImageProvider('data:image/png;base64,iVBORw0KGgo='),
         isA<MemoryImage>(),
       );
-      final local = flareMediaImageProvider('/tmp/picked.png');
-      expect(local, isA<FileImage>());
+      expect(flareMediaImageProvider('/tmp/picked.png'), isNull);
+      expect(flareMediaImageProvider('file:///tmp/picked.png'), isNull);
+      final local = flareMediaImageProvider(
+        '/tmp/picked.png',
+        allowLocalFile: true,
+      );
       expect((local! as FileImage).file.path, '/tmp/picked.png');
-      final uri = flareMediaImageProvider('file:///tmp/a%20b.png');
+      final uri = flareMediaImageProvider(
+        'file:///tmp/a%20b.png',
+        allowLocalFile: true,
+      );
       expect((uri! as FileImage).file.path, File('/tmp/a b.png').path);
     });
 
-    test('has no picture for anything it cannot load', () {
+    test('have no picture for anything else', () {
       expect(flareMediaImageProvider(null), isNull);
       expect(flareMediaImageProvider('  '), isNull);
-      expect(flareMediaImageProvider('file-id-123'), isNull);
-      expect(flareMediaImageProvider('ftp://host/a.png'), isNull);
+      expect(
+        flareMediaImageProvider('file-id-123', allowLocalFile: true),
+        isNull,
+      );
+      expect(
+        flareMediaImageProvider('ftp://host/a.png', allowLocalFile: true),
+        isNull,
+      );
     });
+  });
+
+  testWidgets('an uploading video is its card, and does not play yet', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _host(
+        FlareMessageBubble(
+          currentUserId: 'me',
+          message: _mine(const FlareVideoContent(url: ''), uploadProgress: 40),
+        ),
+      ),
+    );
+    final video = tester.widget<FlareVideoMessage>(
+      find.byType(FlareVideoMessage),
+    );
+    expect(video.onPlay, isNull);
+    expect(find.text('40%'), findsOneWidget);
   });
 }

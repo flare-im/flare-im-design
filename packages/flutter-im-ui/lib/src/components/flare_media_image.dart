@@ -4,10 +4,19 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/widgets.dart';
 
 /// Where a message picture comes from: the web (`http(s)`), inline bytes
-/// (`data:`), or — while the message is still uploading — the file on this
-/// device (`file://` or an absolute path). Anything else, or a local file on
-/// the web, has no picture: the caller shows its placeholder.
-ImageProvider? flareMediaImageProvider(String? url) {
+/// (`data:`), or — only with [allowLocalFile] — the file on this device
+/// (`file://` or an absolute path). Anything else, or a local file on the web,
+/// has no picture: the caller shows its placeholder.
+///
+/// A local file is drawn only for this device's own message while its upload
+/// is still running (the bubble passes [allowLocalFile] then). Message content
+/// is written by someone else, and a `file:` reference in a received message
+/// must not have the reader's app open local data — the same rule as the
+/// kit's players (`flarePlayableMediaUri`).
+ImageProvider? flareMediaImageProvider(
+  String? url, {
+  bool allowLocalFile = false,
+}) {
   final value = url?.trim() ?? '';
   if (value.isEmpty) return null;
   final lower = value.toLowerCase();
@@ -21,7 +30,7 @@ ImageProvider? flareMediaImageProvider(String? url) {
       return null;
     }
   }
-  if (kIsWeb) return null;
+  if (kIsWeb || !allowLocalFile) return null;
   if (lower.startsWith('file://')) {
     return FileImage(File(Uri.parse(value).toFilePath()));
   }
@@ -33,14 +42,15 @@ ImageProvider? flareMediaImageProvider(String? url) {
 }
 
 /// [flareMediaImageProvider] drawn, or [placeholder] when there is no picture
-/// or it fails to load.
+/// or it fails to load. [allowLocalFile]: see [flareMediaImageProvider].
 Widget flareMediaImage(
   String? url, {
   required Widget placeholder,
   BoxFit fit = BoxFit.cover,
   bool gaplessPlayback = false,
+  bool allowLocalFile = false,
 }) {
-  final provider = flareMediaImageProvider(url);
+  final provider = flareMediaImageProvider(url, allowLocalFile: allowLocalFile);
   if (provider == null) return placeholder;
   return Image(
     image: provider,

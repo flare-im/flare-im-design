@@ -35,7 +35,13 @@ Widget _netImage(
   String? url, {
   required Widget placeholder,
   BoxFit fit = BoxFit.cover,
-}) => flareMediaImage(url, placeholder: placeholder, fit: fit);
+  bool allowLocalFile = false,
+}) => flareMediaImage(
+  url,
+  placeholder: placeholder,
+  fit: fit,
+  allowLocalFile: allowLocalFile,
+);
 
 Widget _tap(VoidCallback? onTap, Widget child) => onTap == null
     ? child
@@ -323,6 +329,7 @@ class FlareImageMessage extends StatelessWidget {
     this.height = 92,
     this.alt,
     this.onTap,
+    this.allowLocalFile = false,
   });
 
   final String? src;
@@ -330,6 +337,10 @@ class FlareImageMessage extends StatelessWidget {
   final double height;
   final String? alt;
   final VoidCallback? onTap;
+
+  /// [src] may be a file on this device: only for the sender's own picture
+  /// while it uploads (see `flareMediaImageProvider`).
+  final bool allowLocalFile;
 
   @override
   Widget build(BuildContext context) {
@@ -345,6 +356,7 @@ class FlareImageMessage extends StatelessWidget {
             height: height,
             child: _netImage(
               src,
+              allowLocalFile: allowLocalFile,
               placeholder: ColoredBox(
                 color: c.bgTertiary,
                 child: Icon(

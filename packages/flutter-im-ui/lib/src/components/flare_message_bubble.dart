@@ -276,6 +276,7 @@ class FlareMessageBubble extends StatelessWidget {
       child: FlareMessageContentView(
         content: message.content,
         self: self,
+        uploading: message.uploadProgress != null,
         senderName: message.senderName,
         messageId: message.id,
         mediaState: mediaState,
