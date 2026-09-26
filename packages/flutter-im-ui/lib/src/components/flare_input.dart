@@ -68,7 +68,9 @@ class FlareInput extends StatefulWidget {
 }
 
 class _FlareInputState extends State<FlareInput> {
-  late final TextEditingController _controller =
+  // 不能是 final:元素被复用到另一个 FlareInput 时 widget.controller 会换,
+  // 不跟着换就会出现两个输入框共用一个 controller、内容互相镜像(注册页昵称/密码曾这样)。
+  late TextEditingController _controller =
       widget.controller ?? TextEditingController();
   late final FocusNode _focus = FocusNode()..addListener(_onFocus);
   bool _own = false;
@@ -90,6 +92,17 @@ class _FlareInputState extends State<FlareInput> {
   }
 
   void _onFocus() => setState(() => _focused = _focus.hasFocus);
+
+  @override
+  void didUpdateWidget(covariant FlareInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller == widget.controller) return;
+    _controller.removeListener(_onChange);
+    if (_own) _controller.dispose();
+    _own = widget.controller == null;
+    _controller = widget.controller ?? TextEditingController();
+    _controller.addListener(_onChange);
+  }
 
   @override
   void dispose() {
