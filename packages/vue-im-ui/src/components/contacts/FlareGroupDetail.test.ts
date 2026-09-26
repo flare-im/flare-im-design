@@ -24,7 +24,7 @@ it("keeps failed group edits, blocks empty names, and awaits a successful retry"
     });
   } }), { attachTo: document.body });
   // 改名从 hero 的标题进去:「群名称」那一行已经去掉了(名字在同一屏上不写两遍)。
-  await host.find(".flare-group-detail__title").trigger("click");
+  await host.find(".flare-group-detail__title-text").trigger("click");
   await flushPromises();
   const form = host.findComponent(FlareFormSheet);
   const input = host.findComponent(FlareInput);
@@ -276,8 +276,13 @@ it("gives the rows the viewer can change a chevron and leaves the rest as values
   // 群名现在只有这一处,所以这个按钮的可及名称必须**还是群名**:外层挂 aria-label
   // 会顶掉里面的文字,读屏就再也读不到这个群叫什么。用途挂在铅笔上。
   expect(editableTitle.attributes("aria-label")).toBeUndefined();
-  expect(editableTitle.get(".flare-group-detail__title-text").text()).toBe("Team");
-  expect(editableTitle.get(".flare-group-detail__title-edit").attributes("aria-label")).toBe("修改群名称");
+  const nameButton = editableTitle.get(".flare-group-detail__title-text");
+  expect(nameButton.element.tagName).toBe("BUTTON");
+  expect(nameButton.text()).toBe("Team");
+  // 铅笔是并排的第二颗按钮,不是名字按钮里的一张图。
+  const pencil = editableTitle.get(".flare-group-detail__title-edit");
+  expect(pencil.element.tagName).toBe("BUTTON");
+  expect(pencil.attributes("aria-label")).toBe("修改群名称");
   host.unmount();
 
   // A host that persists through submitEdit instead of the event can edit its nickname too.
@@ -303,4 +308,39 @@ it("claims no state for my notification and pin settings when they could not be 
   expect(items.find((item) => item.key === "notif")).toMatchObject({ kind: "value", detail: "暂时无法读取" });
   expect(items.find((item) => item.key === "pin")).toMatchObject({ kind: "value", detail: "暂时无法读取" });
   expect(host.findAll('[role="switch"]')).toHaveLength(0);
+});
+it("opens the rename editor, never the member roster, from the pencil next to the name", async () => {
+  // 窄屏上的现场:点铅笔弹出来的是「群成员」名单而不是改名框。铅笔现在是自己的按钮,
+  // 它的点击到它为止 —— 包着标题的任何入口(这里用宿主的监听代替)都收不到。
+  const hostClick = vi.fn();
+  host = mount(defineComponent({ setup() {
+    useFlareI18nProvider("zh-CN");
+    return () => h("div", { onClick: hostClick }, [h(FlareGroupDetail as Component, {
+      model: { groupId: "g", name: "Team", memberCount: 30, ownerId: "me", adminIds: [], mutedIds: [],
+        canManage: true, isOwner: true, discoverable: false,
+        members: Array.from({ length: 30 }, (_, index) => ({ id: `u${index}`, name: `成员${index}` })) },
+    })]);
+  } }), { attachTo: document.body });
+  await flushPromises();
+  const pencil = host.get(".flare-group-detail__title-edit");
+  // 成员栅格的头部确实是成员名单的入口 —— 铅笔不是它的一部分。
+  expect(host.get(".flare-member-grid__head").classes()).toContain("is-interactive");
+  expect(pencil.element.closest(".flare-member-grid__head")).toBeNull();
+  await pencil.trigger("click");
+  await flushPromises();
+  const form = host.findComponent(FlareFormSheet);
+  expect(form.props("open")).toBe(true);
+  expect(form.props("title")).toBe("修改群名称");
+  expect(host.findComponent(FlareInput).props("modelValue")).toBe("Team");
+  expect(document.body.textContent).not.toContain("群成员（30）");
+  expect(document.body.querySelector(".flare-group-detail__members")).toBeNull();
+  expect(hostClick).not.toHaveBeenCalled();
+  // 名字本身仍是桌面上的改名入口。
+  form.vm.$emit("close");
+  await flushPromises();
+  expect(form.props("open")).toBe(false);
+  await host.get(".flare-group-detail__title-text").trigger("click");
+  await flushPromises();
+  expect(form.props("open")).toBe(true);
+  expect(document.body.querySelector(".flare-group-detail__members")).toBeNull();
 });

@@ -357,25 +357,27 @@ function submitInvite() {
         <FlareAvatar :user-id="model.groupId" :display-name="groupName" :avatar-url="model.avatarUrl || undefined" :size="72" />
         <!-- 标题本身就是改名入口（管理员）。原来标题下面还有一行「群名称 Team ›」，
              同一个名字在同一屏上写两遍；现在名字只有这一处，改名从它进去。 -->
-        <component
-          :is="canManage ? 'button' : 'div'"
-          :type="canManage ? 'button' : undefined"
-          class="flare-group-detail__title"
-          :class="{ 'is-interactive': canManage }"
-          @click="canManage && openRename()"
-        >
-          <span class="flare-group-detail__title-text">{{ groupName }}</span>
-          <!-- 名字是这个按钮的名字,用途挂在铅笔上 —— 把 aria-label 放在外层会顶掉里面的文字,
-               而群名现在只有这一处,顶掉就等于读屏里再也读不到这个群叫什么。 -->
-          <span
+        <div class="flare-group-detail__title" :class="{ 'is-interactive': canManage }">
+          <!-- 名字是这个按钮的名字 —— 外层不挂 aria-label,群名现在只有这一处,
+               顶掉就等于读屏里再也读不到这个群叫什么。改名的用途挂在旁边的铅笔上。 -->
+          <component
+            :is="canManage ? 'button' : 'span'"
+            :type="canManage ? 'button' : undefined"
+            class="flare-group-detail__title-text"
+            @click="canManage && openRename()"
+          >{{ groupName }}</component>
+          <!-- 铅笔是自己的控件,不再是标题按钮里的一张图:它的点击到这里就结束(.stop),
+               不会再冒泡给任何包着标题的入口 —— 窄屏上曾经点到铅笔却打开了成员名单。 -->
+          <button
             v-if="canManage"
+            type="button"
             class="flare-group-detail__title-edit"
-            role="img"
             :aria-label="t('group.editName')"
+            @click.stop="openRename()"
           >
             <n-icon aria-hidden="true" :size="16" :component="flareIcons['edit']" />
-          </span>
-        </component>
+          </button>
+        </div>
       </div>
 
       <FlareGroupMemberGrid
@@ -548,28 +550,55 @@ function submitInvite() {
   align-items: center;
   gap: var(--flare-size-spacing-xs);
   max-width: 100%;
-  padding: 0;
-  border: 0;
-  background: none;
+  min-width: 0;
   color: var(--flare-color-text-primary);
   font-size: 18px;
   font-weight: 600;
   text-align: center;
 }
-.flare-group-detail__title.is-interactive {
+.flare-group-detail__title-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+}
+.flare-group-detail__title.is-interactive .flare-group-detail__title-text {
   /* 它替掉的是一整行设置行，触达区得跟那一行一样够得着。 */
   min-height: var(--flare-size-layout-touch-target);
   padding-inline: var(--flare-size-spacing-sm);
   border-radius: var(--flare-size-radius-md);
   cursor: pointer;
 }
-.flare-group-detail__title.is-interactive:hover { background: var(--flare-color-bg-hover); }
-.flare-group-detail__title.is-interactive:focus-visible {
+.flare-group-detail__title.is-interactive .flare-group-detail__title-text:hover { background: var(--flare-color-bg-hover); }
+.flare-group-detail__title.is-interactive .flare-group-detail__title-text:focus-visible {
   outline: 2px solid var(--flare-color-border-selected);
   outline-offset: 2px;
 }
-.flare-group-detail__title-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.flare-group-detail__title-edit { display: inline-flex; flex: none; align-items: center; color: var(--flare-color-text-tertiary); }
+/* 铅笔自己就是一颗图标按钮:视觉只有 16px,命中区拉到触达尺寸,和名字并排各归各。 */
+.flare-group-detail__title-edit {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--flare-size-layout-touch-target);
+  height: var(--flare-size-layout-touch-target);
+  padding: 0;
+  border: 0;
+  border-radius: var(--flare-size-radius-md);
+  background: none;
+  color: var(--flare-color-text-tertiary);
+  cursor: pointer;
+}
+.flare-group-detail__title-edit:hover { background: var(--flare-color-bg-hover); color: var(--flare-color-text-secondary); }
+.flare-group-detail__title-edit:focus-visible {
+  outline: 2px solid var(--flare-color-border-selected);
+  outline-offset: 2px;
+}
 .flare-group-detail__foot { display: flex; flex-direction: column; gap: var(--flare-size-spacing-2sm); padding: 16px; }
 .flare-group-detail__slot { margin: 0 var(--flare-size-spacing-md); }
 .flare-group-detail__footer { display: flex; flex-direction: column; align-items: center; gap: var(--flare-size-spacing-sm); padding: 0 var(--flare-size-spacing-lg) var(--flare-size-spacing-lg); }
