@@ -27,6 +27,13 @@ export function useFlareMediaResolver(): FlareMediaResolverContext {
   });
 }
 
+/** What a resolve request asks for, as one comparable value: two requests with the same key resolve the same. */
+function mediaRequestKey(request: FlareMediaResolveRequest | null): string {
+  if (!request) return "";
+  const { kind, messageId, fileId, url, localPath, mimeType, fileName } = request;
+  return JSON.stringify([kind, messageId, fileId, url, localPath, mimeType, fileName]);
+}
+
 export function useResolvedMediaUrl(request: Ref<FlareMediaResolveRequest | null>) {
   const { resolveMediaUrl } = useFlareMediaResolver();
   const url = ref("");
@@ -34,9 +41,13 @@ export function useResolvedMediaUrl(request: Ref<FlareMediaResolveRequest | null
   const error = ref("");
   let version = 0;
 
+  // Keyed by what the request says, not by the object: a timeline refresh maps every message into new request
+  // objects, and resolving on identity blanked every picture to its loading state and fetched a fresh address for it
+  // on each refresh — while an upload reports progress, several times a second.
   watch(
-    computed(() => request.value),
-    async (next) => {
+    computed(() => mediaRequestKey(request.value)),
+    async () => {
+      const next = request.value;
       version += 1;
       const current = version;
       url.value = "";
