@@ -14,6 +14,7 @@ import 'flare_avatar.dart';
 import 'flare_message_content_view.dart';
 import 'flare_locate_highlight_scope.dart';
 import 'flare_message_meta.dart';
+import 'flare_upload_progress.dart';
 import 'flare_message_status.dart';
 import 'flare_reaction_summary.dart';
 
@@ -307,7 +308,25 @@ class FlareMessageBubble extends StatelessWidget {
               : CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            body,
+            if (message.uploadProgress == null)
+              body
+            else
+              Stack(
+                children: [
+                  body,
+                  Positioned(
+                    left: FlareSizes.spacingSm,
+                    right: FlareSizes.spacingSm,
+                    bottom: FlareSizes.spacingSm,
+                    child: IgnorePointer(
+                      child: FlareUploadProgress(
+                        percent: message.uploadProgress!,
+                        overlay: true,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             if (message.timeLabel.isNotEmpty ||
                 message.edited ||
                 message.lifecycle != null ||
@@ -351,6 +370,14 @@ class FlareMessageBubble extends StatelessWidget {
 
     final rows = <Widget>[
       body,
+      if (message.uploadProgress != null)
+        Padding(
+          padding: const EdgeInsets.only(top: 7),
+          child: FlareUploadProgress(
+            percent: message.uploadProgress!,
+            color: self ? colors.messageStatusOnOutgoing : null,
+          ),
+        ),
       // Inline meta: time + (self) delivery status, kept inside the bubble.
       if (message.timeLabel.isNotEmpty ||
           message.edited ||

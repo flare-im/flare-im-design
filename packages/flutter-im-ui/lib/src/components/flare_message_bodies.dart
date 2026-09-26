@@ -7,6 +7,7 @@ import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import '../emoji_sticker/emoji_sticker.dart';
 import 'action_icon.dart';
+import 'flare_media_image.dart';
 import 'flare_icon.dart';
 import 'icon_control.dart';
 
@@ -28,19 +29,13 @@ BorderRadius _bubbleRadius() => const BorderRadius.only(
   bottomLeft: _tail,
 );
 
-/// A network image with a placeholder fallback (host provides the URL).
+/// The message picture with a placeholder fallback (host provides the URL; a
+/// local file shows while the message is still uploading).
 Widget _netImage(
   String? url, {
   required Widget placeholder,
   BoxFit fit = BoxFit.cover,
-}) {
-  if (url == null || url.isEmpty) return placeholder;
-  return Image.network(
-    url,
-    fit: fit,
-    errorBuilder: (_, __, ___) => placeholder,
-  );
-}
+}) => flareMediaImage(url, placeholder: placeholder, fit: fit);
 
 Widget _tap(VoidCallback? onTap, Widget child) => onTap == null
     ? child

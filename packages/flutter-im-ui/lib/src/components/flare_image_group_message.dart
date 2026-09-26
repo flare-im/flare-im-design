@@ -5,6 +5,7 @@ import '../models/message_content.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_icon.dart';
+import 'flare_media_image.dart';
 
 /// image group — an album: square tiles laid out by the shared rule
 /// (`spec/image-group-layout-vectors.json`), the last drawn tile covered with
@@ -129,15 +130,11 @@ class FlareImageGroupMessage extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              if (src.trim().isEmpty)
-                placeholder
-              else
-                Image.network(
-                  src,
-                  fit: BoxFit.cover,
-                  gaplessPlayback: true,
-                  errorBuilder: (context, error, stackTrace) => placeholder,
-                ),
+              flareMediaImage(
+                src,
+                placeholder: placeholder,
+                gaplessPlayback: true,
+              ),
               if (covered)
                 ColoredBox(
                   color: const Color(0x73000000),

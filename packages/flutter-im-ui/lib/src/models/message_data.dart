@@ -37,6 +37,7 @@ class FlareMessageData {
     this.edited = false,
     this.reactions = const [],
     this.replyTo,
+    this.uploadProgress,
   });
 
   final String id;
@@ -66,6 +67,12 @@ class FlareMessageData {
 
   /// The message this one quotes, drawn at the top of the bubble.
   final FlareReplyTarget? replyTo;
+
+  /// How much of this message's media has been uploaded (0–100) while it is
+  /// uploading; null when nothing is. The bubble draws it as a bar with the
+  /// percent (`FlareUploadProgress`), the same as the Vue kit's
+  /// `localState.uploadProgress`.
+  final int? uploadProgress;
 
   /// System/notification lines render centred, without a bubble.
   bool get isSystem => content is FlareNotificationContent;

@@ -100,6 +100,8 @@ export 'src/components/flare_message_bodies.dart';
 export 'src/components/flare_rich_text_message.dart';
 export 'src/components/flare_image_group_message.dart';
 export 'src/components/flare_message_bubble.dart';
+export 'src/components/flare_media_image.dart';
+export 'src/components/flare_upload_progress.dart';
 export 'src/components/flare_message_content_view.dart';
 export 'src/components/flare_media_controller.dart' show FlareMediaController;
 export 'src/components/flare_message_list.dart';
