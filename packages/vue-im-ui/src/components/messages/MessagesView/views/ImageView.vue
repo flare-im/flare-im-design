@@ -107,4 +107,12 @@ function openPreview(): void {
     max-width: min(76vw, 100%);
   }
 }
+
+/* The picture's own `min(width, 100%)` cap is a percentage, which intrinsic sizing ignores: the bubble was sized to
+   the image file's natural width (up to the bubble limit) while the picture drew at its 240px cap, so an outgoing
+   picture sat at the start of a too-wide bubble instead of against the edge. The width here already carries the
+   timeline bound (`min(76cqw, 240px)`), so it stands without the percentage. */
+.im-image :deep(.fm-img--flex) {
+  max-width: var(--fm-img-max-w);
+}
 </style>
