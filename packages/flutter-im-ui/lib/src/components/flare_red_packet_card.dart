@@ -52,7 +52,10 @@ class FlareRedPacketCard extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: FlareSizes.spacing2md, vertical: FlareSizes.spacing2md),
+        padding: const EdgeInsets.symmetric(
+          horizontal: FlareSizes.spacing2md,
+          vertical: FlareSizes.spacing2md,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,

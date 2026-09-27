@@ -255,11 +255,17 @@ class FlareImageContent extends FlareMessageContent {
     this.height,
     this.alt,
     this.animated = false,
+    this.localPath,
   });
   final String url;
   final String? thumbnailUrl;
   final double? width;
   final double? height;
+
+  /// A copy of the picture on this device that the host resolved through the
+  /// SDK media cache — never an address taken from message content. Drawn in
+  /// place of [url] and [thumbnailUrl] when present (not on the web).
+  final String? localPath;
 
   /// What the image shows, in words — the caption the sender wrote or the
   /// core's description. A one-line summary prefers it over "[图片]".

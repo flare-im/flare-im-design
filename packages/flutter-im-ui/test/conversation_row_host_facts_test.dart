@@ -28,7 +28,10 @@ void main() {
   });
 
   test('a draft outranks typing, as the shared rule says', () {
-    expect(row.hostFacts(typing: true, draftPreview: 'half a thought').previewKind, 'draft');
+    expect(
+      row.hostFacts(typing: true, draftPreview: 'half a thought').previewKind,
+      'draft',
+    );
   });
 
   test('passing nothing keeps what the row had', () {

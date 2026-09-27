@@ -113,7 +113,11 @@ void main() {
     for (final v in table('joinedDate')) {
       test(v['id'] as String, () {
         expect(
-          formatInviteJoinedDate(v['year'] as int, v['month'] as int, v['day'] as int),
+          formatInviteJoinedDate(
+            v['year'] as int,
+            v['month'] as int,
+            v['day'] as int,
+          ),
           v['expected'],
         );
       });

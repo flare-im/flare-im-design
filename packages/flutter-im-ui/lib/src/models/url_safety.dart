@@ -44,7 +44,10 @@ bool isSafeExternalUrl(String? raw) => safeExternalUrl(raw) != null;
 /// 后面跟数字就当端口。认错的最坏结果是一个主机名古怪的 https URL,无害;把真
 /// scheme 认成主机才是不能发生的,这里的偏向就是躲开那一侧。
 bool _hasScheme(String value) {
-  final match = RegExp(r'^[a-z][a-z0-9+.\-]*:', caseSensitive: false).firstMatch(value);
+  final match = RegExp(
+    r'^[a-z][a-z0-9+.\-]*:',
+    caseSensitive: false,
+  ).firstMatch(value);
   if (match == null) return false;
   return !RegExp(r'^\d').hasMatch(value.substring(match.end));
 }

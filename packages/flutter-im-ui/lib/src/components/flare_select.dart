@@ -177,7 +177,12 @@ class _OptionsSheet extends StatelessWidget {
           ),
         ],
       ),
-      padding: EdgeInsets.fromLTRB(8, 8, 8, FlareSizes.spacing2sm + bottomInset),
+      padding: EdgeInsets.fromLTRB(
+        8,
+        8,
+        8,
+        FlareSizes.spacing2sm + bottomInset,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -193,7 +198,12 @@ class _OptionsSheet extends StatelessWidget {
           ),
           if (title != null && title!.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 4, 12, FlareSizes.spacing2sm),
+              padding: const EdgeInsets.fromLTRB(
+                12,
+                4,
+                12,
+                FlareSizes.spacing2sm,
+              ),
               child: Text(
                 title!,
                 textAlign: TextAlign.center,

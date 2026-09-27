@@ -133,7 +133,10 @@ class FlareGroupMemberGrid extends StatelessWidget {
                     ),
                     child: Text(
                       role,
-                      style: const TextStyle(color: Colors.white, fontSize: FlareSizes.fontSize2xs),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: FlareSizes.fontSize2xs,
+                      ),
                     ),
                   ),
                 ),

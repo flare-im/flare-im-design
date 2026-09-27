@@ -5,6 +5,7 @@ import 'package:video_player/video_player.dart';
 
 import '../models/image_gallery.dart';
 import '../models/message_content.dart';
+import 'flare_media_image.dart';
 import 'flare_image_preview.dart';
 import 'flare_message_bodies.dart';
 import 'flare_video_player.dart';
@@ -177,14 +178,13 @@ bool flarePresentImage(
   FlareImageContent image, {
   VoidCallback? onDownload,
 }) {
-  final source = image.url.trim().isNotEmpty
-      ? image.url
-      : (image.thumbnailUrl ?? '');
-  if (source.trim().isEmpty) return false;
+  final picture = flarePictureSource(image, preferThumbnail: false);
+  if (picture.src.isEmpty) return false;
   unawaited(
     FlareImagePreview.present(
       context,
-      imageSrc: source,
+      imageSrc: picture.src,
+      allowLocalFile: picture.local,
       alt: image.alt,
       onDownload: onDownload,
     ),
@@ -252,15 +252,21 @@ class FlareImageGalleryScope extends InheritedWidget {
       (download == null) != (oldWidget.download == null);
 }
 
-/// Opens [video] in the kit player, which starts playing it.
+/// Opens [video] in the kit player, which starts playing it. The player
+/// offers a download key only with [onDownload].
 ///
 /// Internal: not exported from the package.
-void flarePresentVideo(BuildContext context, FlareVideoContent video) {
+void flarePresentVideo(
+  BuildContext context,
+  FlareVideoContent video, {
+  VoidCallback? onDownload,
+}) {
   unawaited(
     FlareVideoPlayer.present(
       context,
       videoSrc: video.url,
       poster: video.poster,
+      onDownload: onDownload,
     ),
   );
 }

@@ -42,9 +42,7 @@ class FlareMomentAudienceSheet extends StatelessWidget {
   void _pickMode(FlareMomentAudienceMode mode) {
     // 再点一次当前模式即取消，并清空名单 —— 留着名单而把 mode 归零，
     // 下次切回来会突然冒出一份用户以为已经删掉的名单。
-    final next = audienceMode == mode
-        ? FlareMomentAudienceMode.everyone
-        : mode;
+    final next = audienceMode == mode ? FlareMomentAudienceMode.everyone : mode;
     onAudienceChanged?.call(
       next,
       next == FlareMomentAudienceMode.everyone ? const [] : audienceUserIds,

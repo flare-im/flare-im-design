@@ -248,7 +248,12 @@ class _TimeSheetState extends State<_TimeSheet> {
           ),
         ],
       ),
-      padding: EdgeInsets.fromLTRB(8, 8, 8, FlareSizes.spacing2sm + bottomInset),
+      padding: EdgeInsets.fromLTRB(
+        8,
+        8,
+        8,
+        FlareSizes.spacing2sm + bottomInset,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

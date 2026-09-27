@@ -14,7 +14,10 @@ enum FlareInviteCodeMode { off, optional, required }
 
 /// Result of the host's pre-check for one code.
 class FlareInviteCodeCheckResult {
-  const FlareInviteCodeCheckResult({required this.valid, this.inviterDisplayName});
+  const FlareInviteCodeCheckResult({
+    required this.valid,
+    this.inviterDisplayName,
+  });
 
   final bool valid;
 
@@ -23,7 +26,15 @@ class FlareInviteCodeCheckResult {
 }
 
 /// The invite-code field's state vector.
-enum FlareInviteCodeFieldState { off, idle, typing, checking, valid, invalid, disabled }
+enum FlareInviteCodeFieldState {
+  off,
+  idle,
+  typing,
+  checking,
+  valid,
+  invalid,
+  disabled,
+}
 
 /// Referral counts per depth for the current person.
 class FlareReferralStats {
@@ -72,7 +83,10 @@ const Duration flareInviteCheckDebounce = Duration(milliseconds: 400);
 /// What the server would read from what the person typed or pasted: whitespace
 /// and separators dropped, uppercased, O→0 and I/L→1, cut to [length].
 /// Idempotent, so it can run on every keystroke.
-String normalizeInviteCode(String? raw, [int length = flareInviteCodeDefaultLength]) {
+String normalizeInviteCode(
+  String? raw, [
+  int length = flareInviteCodeDefaultLength,
+]) {
   final cap = length > 0 ? length : flareInviteCodeDefaultLength;
   final out = StringBuffer();
   for (final rune in (raw ?? '').toUpperCase().runes) {
@@ -103,12 +117,17 @@ FlareInviteCodeFieldState inviteCodeFieldState({
 }) {
   if (mode == FlareInviteCodeMode.off) return FlareInviteCodeFieldState.off;
   if (disabled) return FlareInviteCodeFieldState.disabled;
-  if (error != null && error.isNotEmpty) return FlareInviteCodeFieldState.invalid;
+  if (error != null && error.isNotEmpty)
+    return FlareInviteCodeFieldState.invalid;
   if (checking) return FlareInviteCodeFieldState.checking;
   if (checkResult != null) {
-    return checkResult.valid ? FlareInviteCodeFieldState.valid : FlareInviteCodeFieldState.invalid;
+    return checkResult.valid
+        ? FlareInviteCodeFieldState.valid
+        : FlareInviteCodeFieldState.invalid;
   }
-  return value.isEmpty ? FlareInviteCodeFieldState.idle : FlareInviteCodeFieldState.typing;
+  return value.isEmpty
+      ? FlareInviteCodeFieldState.idle
+      : FlareInviteCodeFieldState.typing;
 }
 
 /// The code the host should pre-check for [value], or null when no request
@@ -129,7 +148,10 @@ enum FlareReferralDepth { direct, l2, l3, total }
 
 /// Which rows the panel lists for [stats], honouring the tenant's visibility
 /// depth (1–3, clamped). `total` is always the last row once stats exist.
-List<FlareReferralDepth> referralDepthRows(FlareReferralStats? stats, [int maxDepthShown = 3]) {
+List<FlareReferralDepth> referralDepthRows(
+  FlareReferralStats? stats, [
+  int maxDepthShown = 3,
+]) {
   if (stats == null) return const [];
   final depth = maxDepthShown.clamp(1, 3);
   return [
@@ -149,7 +171,9 @@ class FlareInviteCooldown {
 
   @override
   bool operator ==(Object other) =>
-      other is FlareInviteCooldown && other.unit == unit && other.count == count;
+      other is FlareInviteCooldown &&
+      other.unit == unit &&
+      other.count == count;
 
   @override
   int get hashCode => Object.hash(unit, count);
@@ -159,7 +183,11 @@ class FlareInviteCooldown {
 }
 
 class FlareRegenerateAvailability {
-  const FlareRegenerateAvailability({required this.shown, required this.enabled, this.remaining});
+  const FlareRegenerateAvailability({
+    required this.shown,
+    required this.enabled,
+    this.remaining,
+  });
 
   /// The control is drawn at all (the tenant allows regenerating).
   final bool shown;
@@ -174,23 +202,42 @@ class FlareRegenerateAvailability {
 /// Whether regenerating is offered, and if so whether it is still cooling
 /// down. The remaining time rounds *up* so the control never re-enables before
 /// the server would.
-FlareRegenerateAvailability regenerateAvailability(bool canRegenerate, int? availableAt, int now) {
-  if (!canRegenerate) return const FlareRegenerateAvailability(shown: false, enabled: false);
+FlareRegenerateAvailability regenerateAvailability(
+  bool canRegenerate,
+  int? availableAt,
+  int now,
+) {
+  if (!canRegenerate)
+    return const FlareRegenerateAvailability(shown: false, enabled: false);
   final remainingMs = availableAt == null ? 0 : availableAt - now;
-  if (remainingMs <= 0) return const FlareRegenerateAvailability(shown: true, enabled: true);
+  if (remainingMs <= 0)
+    return const FlareRegenerateAvailability(shown: true, enabled: true);
   const minute = 60000;
   const hour = 60 * minute;
   const day = 24 * hour;
   final FlareInviteCooldown remaining;
   if (remainingMs < hour) {
     final n = (remainingMs / minute).ceil();
-    remaining = FlareInviteCooldown(FlareInviteCooldownUnit.minute, n < 1 ? 1 : n);
+    remaining = FlareInviteCooldown(
+      FlareInviteCooldownUnit.minute,
+      n < 1 ? 1 : n,
+    );
   } else if (remainingMs < day) {
-    remaining = FlareInviteCooldown(FlareInviteCooldownUnit.hour, (remainingMs / hour).ceil());
+    remaining = FlareInviteCooldown(
+      FlareInviteCooldownUnit.hour,
+      (remainingMs / hour).ceil(),
+    );
   } else {
-    remaining = FlareInviteCooldown(FlareInviteCooldownUnit.day, (remainingMs / day).ceil());
+    remaining = FlareInviteCooldown(
+      FlareInviteCooldownUnit.day,
+      (remainingMs / day).ceil(),
+    );
   }
-  return FlareRegenerateAvailability(shown: true, enabled: false, remaining: remaining);
+  return FlareRegenerateAvailability(
+    shown: true,
+    enabled: false,
+    remaining: remaining,
+  );
 }
 
 /// `YYYY-MM-DD` for a calendar date — the same on every platform.

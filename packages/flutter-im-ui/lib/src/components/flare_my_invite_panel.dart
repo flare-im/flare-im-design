@@ -102,12 +102,13 @@ class _FlareMyInvitePanelState extends State<FlareMyInvitePanel> {
     super.dispose();
   }
 
-  String _depthLabel(FlareStrings s, FlareReferralDepth depth) => switch (depth) {
-    FlareReferralDepth.direct => s.myInviteDirect,
-    FlareReferralDepth.l2 => s.myInviteLevel2,
-    FlareReferralDepth.l3 => s.myInviteLevel3,
-    FlareReferralDepth.total => s.myInviteTotal,
-  };
+  String _depthLabel(FlareStrings s, FlareReferralDepth depth) =>
+      switch (depth) {
+        FlareReferralDepth.direct => s.myInviteDirect,
+        FlareReferralDepth.l2 => s.myInviteLevel2,
+        FlareReferralDepth.l3 => s.myInviteLevel3,
+        FlareReferralDepth.total => s.myInviteTotal,
+      };
 
   String _cooldownText(FlareStrings s, FlareInviteCooldown remaining) {
     final unit = switch (remaining.unit) {
@@ -115,7 +116,10 @@ class _FlareMyInvitePanelState extends State<FlareMyInvitePanel> {
       FlareInviteCooldownUnit.hour => s.myInviteUnitHours,
       FlareInviteCooldownUnit.day => s.myInviteUnitDays,
     };
-    return s.myInviteCooldown.replaceAll('{time}', unit.replaceAll('{n}', '${remaining.count}'));
+    return s.myInviteCooldown.replaceAll(
+      '{time}',
+      unit.replaceAll('{n}', '${remaining.count}'),
+    );
   }
 
   @override
@@ -132,7 +136,8 @@ class _FlareMyInvitePanelState extends State<FlareMyInvitePanel> {
     );
     final rows = referralDepthRows(widget.stats, widget.maxDepthShown);
     final inviteeCount = widget.stats?.direct ?? widget.invitees.length;
-    final showEmpty = !widget.loading && widget.showProfiles && widget.invitees.isEmpty;
+    final showEmpty =
+        !widget.loading && widget.showProfiles && widget.invitees.isEmpty;
 
     return Semantics(
       container: true,
@@ -171,21 +176,32 @@ class _FlareMyInvitePanelState extends State<FlareMyInvitePanel> {
                 children: [
                   Text(
                     s.myInviteCodeLabel,
-                    style: TextStyle(fontSize: FlareSizes.fontSizeSm, color: colors.textTertiary),
+                    style: TextStyle(
+                      fontSize: FlareSizes.fontSizeSm,
+                      color: colors.textTertiary,
+                    ),
                   ),
                   const SizedBox(height: FlareSizes.spacingSm),
                   if (showSkeleton)
                     Semantics(
                       label: s.myInviteLoading,
                       liveRegion: true,
-                      child: _Ghost(width: 160, height: 28, color: colors.bgPrimary),
+                      child: _Ghost(
+                        width: 160,
+                        height: 28,
+                        color: colors.bgPrimary,
+                      ),
                     )
                   else if (hasCode)
                     SelectableText(
                       widget.code,
                       style: TextStyle(
                         fontFamily: 'monospace',
-                        fontFamilyFallback: const ['Menlo', 'Roboto Mono', 'Courier New'],
+                        fontFamilyFallback: const [
+                          'Menlo',
+                          'Roboto Mono',
+                          'Courier New',
+                        ],
                         fontSize: FlareSizes.fontSize4xl,
                         fontWeight: FontWeight.w600,
                         letterSpacing: 4,
@@ -195,13 +211,21 @@ class _FlareMyInvitePanelState extends State<FlareMyInvitePanel> {
                   else
                     Text(
                       s.myInviteCodeUnavailable,
-                      style: TextStyle(fontSize: FlareSizes.fontSizeSm, color: colors.textSecondary),
+                      style: TextStyle(
+                        fontSize: FlareSizes.fontSizeSm,
+                        color: colors.textSecondary,
+                      ),
                     ),
-                  if (hasCode && widget.shareUrl != null && widget.shareUrl!.isNotEmpty) ...[
+                  if (hasCode &&
+                      widget.shareUrl != null &&
+                      widget.shareUrl!.isNotEmpty) ...[
                     const SizedBox(height: FlareSizes.spacingXs),
                     Text(
                       widget.shareUrl!,
-                      style: TextStyle(fontSize: FlareSizes.fontSizeSm, color: colors.textTertiary),
+                      style: TextStyle(
+                        fontSize: FlareSizes.fontSizeSm,
+                        color: colors.textTertiary,
+                      ),
                     ),
                   ],
                   const SizedBox(height: FlareSizes.spacingSm),
@@ -224,17 +248,24 @@ class _FlareMyInvitePanelState extends State<FlareMyInvitePanel> {
                         size: FlareControlSize.sm,
                         disabled: !hasCode,
                         onPressed: () => widget.onShare?.call(
-                          (widget.shareUrl?.isNotEmpty ?? false) ? widget.shareUrl! : widget.code,
+                          (widget.shareUrl?.isNotEmpty ?? false)
+                              ? widget.shareUrl!
+                              : widget.code,
                         ),
                       ),
                       if (regenerate.shown)
                         FlareButton(
-                          label: widget.regenerating ? s.myInviteRegenerating : s.myInviteRegenerate,
+                          label: widget.regenerating
+                              ? s.myInviteRegenerating
+                              : s.myInviteRegenerate,
                           icon: 'refresh',
                           variant: FlareButtonVariant.ghost,
                           size: FlareControlSize.sm,
                           loading: widget.regenerating,
-                          disabled: !regenerate.enabled || widget.regenerating || widget.loading,
+                          disabled:
+                              !regenerate.enabled ||
+                              widget.regenerating ||
+                              widget.loading,
                           onPressed: widget.onRegenerate,
                         ),
                     ],
@@ -245,7 +276,10 @@ class _FlareMyInvitePanelState extends State<FlareMyInvitePanel> {
                       liveRegion: true,
                       child: Text(
                         _cooldownText(s, regenerate.remaining!),
-                        style: TextStyle(fontSize: FlareSizes.fontSizeSm, color: colors.textSecondary),
+                        style: TextStyle(
+                          fontSize: FlareSizes.fontSizeSm,
+                          color: colors.textSecondary,
+                        ),
                       ),
                     ),
                   ],
@@ -283,7 +317,10 @@ class _FlareMyInvitePanelState extends State<FlareMyInvitePanel> {
             if (!widget.showProfiles)
               Text(
                 s.myInviteCountOnly.replaceAll('{count}', '$inviteeCount'),
-                style: TextStyle(fontSize: FlareSizes.fontSizeLg, color: colors.textPrimary),
+                style: TextStyle(
+                  fontSize: FlareSizes.fontSizeLg,
+                  color: colors.textPrimary,
+                ),
               )
             else if (showSkeleton)
               ExcludeSemantics(
@@ -294,9 +331,18 @@ class _FlareMyInvitePanelState extends State<FlareMyInvitePanel> {
                         height: FlareSizes.touchTarget,
                         child: Row(
                           children: [
-                            _Ghost(width: FlareSizes.avatarSize, height: FlareSizes.avatarSize, color: colors.bgSecondary, round: true),
+                            _Ghost(
+                              width: FlareSizes.avatarSize,
+                              height: FlareSizes.avatarSize,
+                              color: colors.bgSecondary,
+                              round: true,
+                            ),
                             const SizedBox(width: FlareSizes.spacingMd),
-                            _Ghost(width: 120, height: FlareSizes.iconSizeSm, color: colors.bgSecondary),
+                            _Ghost(
+                              width: 120,
+                              height: FlareSizes.iconSizeSm,
+                              color: colors.bgSecondary,
+                            ),
                           ],
                         ),
                       ),
@@ -308,7 +354,10 @@ class _FlareMyInvitePanelState extends State<FlareMyInvitePanel> {
                 liveRegion: true,
                 child: Text(
                   s.myInviteEmpty,
-                  style: TextStyle(fontSize: FlareSizes.fontSizeSm, color: colors.textSecondary),
+                  style: TextStyle(
+                    fontSize: FlareSizes.fontSizeSm,
+                    color: colors.textSecondary,
+                  ),
                 ),
               )
             else ...[
@@ -344,7 +393,11 @@ class _FlareMyInvitePanelState extends State<FlareMyInvitePanel> {
 }
 
 class _StatTile extends StatelessWidget {
-  const _StatTile({required this.label, required this.value, required this.emphasized});
+  const _StatTile({
+    required this.label,
+    required this.value,
+    required this.emphasized,
+  });
   final String label;
   final String value;
   final bool emphasized;
@@ -366,7 +419,13 @@ class _StatTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(label, style: TextStyle(fontSize: FlareSizes.fontSizeSm, color: colors.textTertiary)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: FlareSizes.fontSizeSm,
+              color: colors.textTertiary,
+            ),
+          ),
           const SizedBox(height: 2),
           Text(
             value,
@@ -384,7 +443,11 @@ class _StatTile extends StatelessWidget {
 }
 
 class _InviteeRow extends StatelessWidget {
-  const _InviteeRow({required this.invitee, required this.joined, required this.onSelect});
+  const _InviteeRow({
+    required this.invitee,
+    required this.joined,
+    required this.onSelect,
+  });
   final FlareInvitee invitee;
   final String joined;
   final ValueChanged<String>? onSelect;
@@ -426,7 +489,10 @@ class _InviteeRow extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         joined,
-                        style: TextStyle(fontSize: FlareSizes.fontSizeSm, color: colors.textTertiary),
+                        style: TextStyle(
+                          fontSize: FlareSizes.fontSizeSm,
+                          color: colors.textTertiary,
+                        ),
                       ),
                     ],
                   ),
@@ -441,7 +507,12 @@ class _InviteeRow extends StatelessWidget {
 }
 
 class _Ghost extends StatelessWidget {
-  const _Ghost({required this.width, required this.height, required this.color, this.round = false});
+  const _Ghost({
+    required this.width,
+    required this.height,
+    required this.color,
+    this.round = false,
+  });
   final double width;
   final double height;
   final Color color;
@@ -453,7 +524,9 @@ class _Ghost extends StatelessWidget {
     height: height,
     decoration: BoxDecoration(
       color: color,
-      borderRadius: BorderRadius.circular(round ? height / 2 : FlareSizes.radiusSm),
+      borderRadius: BorderRadius.circular(
+        round ? height / 2 : FlareSizes.radiusSm,
+      ),
     ),
   );
 }

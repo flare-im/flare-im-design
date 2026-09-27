@@ -10,10 +10,14 @@ import 'package:flutter_test/flutter_test.dart';
 // everywhere else for three rounds because nothing compared them.
 
 void main() {
-  final file = File('${Directory.current.path}/../../spec/contact-index-vectors.json');
+  final file = File(
+    '${Directory.current.path}/../../spec/contact-index-vectors.json',
+  );
   final data = jsonDecode(file.readAsStringSync()) as Map<String, dynamic>;
-  final letters = (data['letters'] as Map<String, dynamic>).cast<String, String>();
-  final groups = (data['groups'] as Map<String, dynamic>).cast<String, String>();
+  final letters = (data['letters'] as Map<String, dynamic>)
+      .cast<String, String>();
+  final groups = (data['groups'] as Map<String, dynamic>)
+      .cast<String, String>();
 
   String letterOf(String character) =>
       flareContactLetter(FlareContact(id: character, name: character));
@@ -22,7 +26,8 @@ void main() {
     final wrong = <String>[];
     letters.forEach((character, letter) {
       final actual = letterOf(character);
-      if (actual != letter) wrong.add('$character: $actual (table says $letter)');
+      if (actual != letter)
+        wrong.add('$character: $actual (table says $letter)');
     });
     expect(wrong, isEmpty);
   });

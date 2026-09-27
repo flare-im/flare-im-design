@@ -34,7 +34,10 @@ class FlareTypingReport {
 
   @override
   bool operator ==(Object other) =>
-      other is FlareTypingReport && other.conversationId == conversationId && other.typing == typing && other.atMs == atMs;
+      other is FlareTypingReport &&
+      other.conversationId == conversationId &&
+      other.typing == typing &&
+      other.atMs == atMs;
 
   @override
   int get hashCode => Object.hash(conversationId, typing, atMs);
@@ -60,7 +63,8 @@ class FlareTypingSignal {
   /// The composer's text changed. Text that trims to nothing is not typing.
   List<FlareTypingReport> edit(String conversationId, String text, int nowMs) {
     final out = <FlareTypingReport>[...tick(nowMs)];
-    if (text.trim().isEmpty || conversationId.isEmpty) return [...out, ..._stop(nowMs)];
+    if (text.trim().isEmpty || conversationId.isEmpty)
+      return [...out, ..._stop(nowMs)];
     if (_activeId != conversationId) {
       out.addAll(_stop(nowMs));
       _activeId = conversationId;
@@ -75,7 +79,10 @@ class FlareTypingSignal {
   }
 
   /// The message went out. It says more than the signal does, so typing ends with it.
-  List<FlareTypingReport> send(String conversationId, int nowMs) => [...tick(nowMs), ..._stop(nowMs)];
+  List<FlareTypingReport> send(String conversationId, int nowMs) => [
+    ...tick(nowMs),
+    ..._stop(nowMs),
+  ];
 
   /// The reader left the conversation, the screen or the app.
   List<FlareTypingReport> close(int nowMs) => [...tick(nowMs), ..._stop(nowMs)];
@@ -118,7 +125,8 @@ class FlareTypingRoster {
   /// Someone began typing in a conversation.
   void started(String conversationId, String userId, int nowMs) {
     if (conversationId.isEmpty || userId.isEmpty || userId == selfId) return;
-    (_state[conversationId] ??= <String, int>{})[userId] = nowMs + flareTypingPeerTtlMs;
+    (_state[conversationId] ??= <String, int>{})[userId] =
+        nowMs + flareTypingPeerTtlMs;
   }
 
   /// Someone stopped — an explicit signal, believed at once.
@@ -136,11 +144,14 @@ class FlareTypingRoster {
       _state.remove(conversationId);
       return;
     }
-    _state[conversationId] = {for (final id in kept) id: nowMs + flareTypingPeerTtlMs};
+    _state[conversationId] = {
+      for (final id in kept) id: nowMs + flareTypingPeerTtlMs,
+    };
   }
 
   /// A message arrived. It says more than the signal did, so its sender is no longer typing.
-  void sent(String conversationId, String senderId) => stopped(conversationId, senderId);
+  void sent(String conversationId, String senderId) =>
+      stopped(conversationId, senderId);
 
   /// Drops every belief whose time has run out. Hosts call it on a timer armed from [nextExpiry].
   void prune(int nowMs) {
@@ -152,7 +163,8 @@ class FlareTypingRoster {
   }
 
   /// Who is typing in a conversation, in the order they started.
-  List<String> typers(String conversationId) => _state[conversationId]?.keys.toList() ?? const [];
+  List<String> typers(String conversationId) =>
+      _state[conversationId]?.keys.toList() ?? const [];
 
   /// When the soonest belief runs out, or null when nothing is typing.
   int? get nextExpiry {

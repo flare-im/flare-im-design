@@ -10,12 +10,17 @@ const _strings = FlareStrings();
 Widget _host(Widget child) => FlareStringsScope(
   strings: _strings,
   child: MaterialApp(
-    home: FlareTheme(mode: FlareThemeMode.light, child: Scaffold(body: child)),
+    home: FlareTheme(
+      mode: FlareThemeMode.light,
+      child: Scaffold(body: child),
+    ),
   ),
 );
 
 void main() {
-  testWidgets('a contact detail draws host actions and reports the id', (tester) async {
+  testWidgets('a contact detail draws host actions and reports the id', (
+    tester,
+  ) async {
     final reported = <String>[];
     await tester.pumpWidget(
       _host(
@@ -37,10 +42,14 @@ void main() {
     expect(reported, ['report']);
   });
 
-  testWidgets('a contact detail without them draws no footer at all', (tester) async {
+  testWidgets('a contact detail without them draws no footer at all', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       _host(
-        const FlareContactDetail(contact: FlareContact(id: 'u1', name: 'Ada Chen')),
+        const FlareContactDetail(
+          contact: FlareContact(id: 'u1', name: 'Ada Chen'),
+        ),
       ),
     );
     expect(find.text('举报'), findsNothing);

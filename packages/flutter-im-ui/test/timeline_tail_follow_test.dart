@@ -55,7 +55,8 @@ class _Harness {
     final finder = find.text(text);
     if (finder.evaluate().isEmpty) return false;
     final rect = tester.getRect(finder);
-    return rect.top >= listRect.top - 0.5 && rect.bottom <= listRect.bottom + 0.5;
+    return rect.top >= listRect.top - 0.5 &&
+        rect.bottom <= listRect.bottom + 0.5;
   }
 
   double top(String text) => tester.getTopLeft(find.text(text)).dy;
@@ -67,7 +68,10 @@ class _Harness {
       final bubble = element.widget as FlareMessageBubble;
       final rect = tester.getRect(find.byWidget(bubble));
       if (rect.top >= listRect.top && rect.bottom <= listRect.bottom) {
-        visible.add((rect.top, (bubble.message.content as FlareTextContent).text));
+        visible.add((
+          rect.top,
+          (bubble.message.content as FlareTextContent).text,
+        ));
       }
     }
     visible.sort((a, b) => a.$1.compareTo(b.$1));

@@ -86,7 +86,8 @@ class _FlareInviteCodeFieldState extends State<FlareInviteCodeField> {
   @override
   void didUpdateWidget(covariant FlareInviteCodeField old) {
     super.didUpdateWidget(old);
-    if (old.prefill != widget.prefill || old.mode != widget.mode) _applyPrefill();
+    if (old.prefill != widget.prefill || old.mode != widget.mode)
+      _applyPrefill();
   }
 
   @override
@@ -102,7 +103,8 @@ class _FlareInviteCodeFieldState extends State<FlareInviteCodeField> {
   void _applyPrefill() {
     final prefill = widget.prefill;
     if (_prefillApplied || widget.mode == FlareInviteCodeMode.off) return;
-    if (prefill == null || prefill.isEmpty || _controller.text.isNotEmpty) return;
+    if (prefill == null || prefill.isEmpty || _controller.text.isNotEmpty)
+      return;
     final next = normalizeInviteCode(prefill, widget.length);
     if (next.isEmpty) return;
     _prefillApplied = true;
@@ -161,15 +163,18 @@ class _FlareInviteCodeFieldState extends State<FlareInviteCodeField> {
     final strings = FlareStrings.of(context);
     final colors = FlareColors.of(context);
     // A stale result for another code must not be shown as this code's verdict.
-    final resultMatches = widget.checkResult == null ||
-        inviteCodeToCheck(value: _controller.text, length: widget.length) != null;
+    final resultMatches =
+        widget.checkResult == null ||
+        inviteCodeToCheck(value: _controller.text, length: widget.length) !=
+            null;
     final inviter = widget.checkResult?.inviterDisplayName?.trim();
     final String? errorLine = widget.error != null && widget.error!.isNotEmpty
         ? widget.error
         : (state == FlareInviteCodeFieldState.invalid && resultMatches
-            ? strings.inviteCodeInvalid
-            : null);
-    final String? hint = widget.mode == FlareInviteCodeMode.optional &&
+              ? strings.inviteCodeInvalid
+              : null);
+    final String? hint =
+        widget.mode == FlareInviteCodeMode.optional &&
             state == FlareInviteCodeFieldState.idle
         ? strings.inviteCodeOptional
         : null;
@@ -179,14 +184,21 @@ class _FlareInviteCodeFieldState extends State<FlareInviteCodeField> {
         leading: SizedBox(
           width: FlareSizes.iconSizeSm,
           height: FlareSizes.iconSizeSm,
-          child: CircularProgressIndicator(strokeWidth: 2, color: colors.textSecondary),
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: colors.textSecondary,
+          ),
         ),
         text: strings.inviteCodeChecking,
         color: colors.textSecondary,
       );
     } else if (state == FlareInviteCodeFieldState.valid && resultMatches) {
       status = _StatusLine(
-        leading: FlareIcon('success', size: FlareSizes.iconSizeSm, color: colors.successText),
+        leading: FlareIcon(
+          'success',
+          size: FlareSizes.iconSizeSm,
+          color: colors.successText,
+        ),
         text: inviter != null && inviter.isNotEmpty
             ? strings.inviteCodeInviter.replaceAll('{name}', inviter)
             : strings.inviteCodeValid,
@@ -219,7 +231,11 @@ class _FlareInviteCodeFieldState extends State<FlareInviteCodeField> {
 }
 
 class _StatusLine extends StatelessWidget {
-  const _StatusLine({required this.leading, required this.text, required this.color});
+  const _StatusLine({
+    required this.leading,
+    required this.text,
+    required this.color,
+  });
   final Widget leading;
   final String text;
   final Color color;
@@ -231,7 +247,10 @@ class _StatusLine extends StatelessWidget {
       leading,
       const SizedBox(width: FlareSizes.spacing2xs),
       Flexible(
-        child: Text(text, style: TextStyle(fontSize: FlareSizes.fontSizeSm, color: color)),
+        child: Text(
+          text,
+          style: TextStyle(fontSize: FlareSizes.fontSizeSm, color: color),
+        ),
       ),
     ],
   );

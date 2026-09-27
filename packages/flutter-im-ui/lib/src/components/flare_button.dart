@@ -103,7 +103,9 @@ class _FlareButtonState extends State<FlareButton> {
         background = _hovering && !off
             ? colors.bgSecondary
             : Colors.transparent;
-        foreground = _hovering && !off ? colors.textPrimary : colors.textSecondary;
+        foreground = _hovering && !off
+            ? colors.textPrimary
+            : colors.textSecondary;
     }
 
     Widget label;

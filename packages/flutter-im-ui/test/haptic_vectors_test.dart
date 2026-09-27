@@ -79,7 +79,9 @@ void main() {
       ),
     );
 
-    final gesture = await tester.startGesture(tester.getCenter(find.text('第一条')));
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('第一条')),
+    );
     // The move that crosses the touch slop starts the drag; travel counts from there.
     await gesture.moveBy(const Offset(20, 0));
     await tester.pump();

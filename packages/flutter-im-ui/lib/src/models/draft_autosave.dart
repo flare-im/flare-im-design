@@ -24,13 +24,17 @@ class FlareDraftSave {
 
   @override
   bool operator ==(Object other) =>
-      other is FlareDraftSave && other.conversationId == conversationId && other.text == text && other.atMs == atMs;
+      other is FlareDraftSave &&
+      other.conversationId == conversationId &&
+      other.text == text &&
+      other.atMs == atMs;
 
   @override
   int get hashCode => Object.hash(conversationId, text, atMs);
 
   @override
-  String toString() => 'FlareDraftSave($conversationId, ${text.length} chars, $atMs)';
+  String toString() =>
+      'FlareDraftSave($conversationId, ${text.length} chars, $atMs)';
 }
 
 /// The text a send that reached nothing leaves behind: above whatever was typed while it was in flight,
@@ -68,7 +72,8 @@ class FlareDraftAutosave {
     if (conversationId.isEmpty) return out;
     // Moving to another conversation writes the one being left before starting the new one.
     final pending = _pending;
-    if (pending != null && pending.conversationId != conversationId) out.addAll(_flush(nowMs));
+    if (pending != null && pending.conversationId != conversationId)
+      out.addAll(_flush(nowMs));
     _pending = (conversationId: conversationId, text: _stored(text));
     _deadlineMs = nowMs + flareDraftSaveDelayMs;
     return out;
@@ -86,11 +91,22 @@ class FlareDraftAutosave {
 
   /// A send that reached nothing. Its text goes back immediately, never on the timer: a draft lost to a
   /// pending write is the one case where losing it is unforgivable.
-  List<FlareDraftSave> restore(String conversationId, String failedText, int nowMs) {
+  List<FlareDraftSave> restore(
+    String conversationId,
+    String failedText,
+    int nowMs,
+  ) {
     final out = <FlareDraftSave>[...tick(nowMs)];
     if (conversationId.isEmpty) return out;
     if (_pending?.conversationId == conversationId) _pending = null;
-    return [...out, ..._write(conversationId, flareRestoredDraft(storedText(conversationId), failedText), nowMs)];
+    return [
+      ...out,
+      ..._write(
+        conversationId,
+        flareRestoredDraft(storedText(conversationId), failedText),
+        nowMs,
+      ),
+    ];
   }
 
   /// Time passed. Fires the pending write at its deadline, not at [nowMs].

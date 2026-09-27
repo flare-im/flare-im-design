@@ -105,9 +105,8 @@ class FlareImageGroupMessage extends StatelessWidget {
     FlareStrings strings,
   ) {
     final image = images[index];
-    final src = (image.thumbnailUrl ?? '').trim().isNotEmpty
-        ? image.thumbnailUrl!
-        : image.url;
+    final picture = flarePictureSource(image);
+    final src = picture.src;
     final placeholder = ColoredBox(
       color: colors.bgTertiary,
       child: Center(child: FlareIcon('image', color: colors.textTertiary)),
@@ -139,7 +138,7 @@ class FlareImageGroupMessage extends StatelessWidget {
                 src,
                 placeholder: placeholder,
                 gaplessPlayback: true,
-                allowLocalFile: allowLocalFile,
+                allowLocalFile: allowLocalFile || picture.local,
               ),
               if (covered)
                 ColoredBox(

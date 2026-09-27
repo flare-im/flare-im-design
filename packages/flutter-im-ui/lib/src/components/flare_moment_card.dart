@@ -234,11 +234,11 @@ class _FlareMomentCardState extends State<FlareMomentCard> {
               FlareMomentActionPopover(
                 liked: moment.likedBySelf,
                 canDelete: widget.canDelete,
-              canReport: widget.canReport,
+                canReport: widget.canReport,
                 onLike: _onLike,
                 onComment: _onComment,
                 onDelete: _onDelete,
-              onReport: _onReport,
+                onReport: _onReport,
               ),
             ],
             FlareIconControl(

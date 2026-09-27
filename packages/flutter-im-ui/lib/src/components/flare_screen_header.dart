@@ -26,7 +26,10 @@ class FlareScreenHeader extends StatelessWidget {
     return Container(
       width: double.infinity,
       color: colors.bgPrimary,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: FlareSizes.spacing2md),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: FlareSizes.spacing2md,
+      ),
       child: Row(
         children: [
           if (leading != null) ...[

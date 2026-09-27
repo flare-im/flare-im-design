@@ -12,8 +12,7 @@ void main() {
     'javascript.embeddedTab': 'java\tscript:alert(1)',
     'javascript.embeddedNewline': 'java\nscript:alert(1)',
     'data.html': 'data:text/html,<script>alert(1)</script>',
-    'data.base64':
-        'data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==',
+    'data.base64': 'data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==',
     'vbscript': 'vbscript:msgbox(1)',
     'file': 'file:///etc/passwd',
     'blob': 'blob:https://evil.example/9b2d',

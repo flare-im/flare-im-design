@@ -36,7 +36,9 @@ void main() {
     );
     expect(_opacity(tester), 0);
 
-    final gesture = await tester.startGesture(tester.getCenter(find.text('第一条')));
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('第一条')),
+    );
     // The move that crosses the touch slop starts the drag; travel counts from
     // there, so the row has not moved yet.
     await gesture.moveBy(const Offset(20, 0));
@@ -51,7 +53,10 @@ void main() {
     // The row tracks the finger one for one below the arming distance.
     await gesture.moveBy(const Offset(12, 0));
     await tester.pump();
-    expect(tester.getTopLeft(find.text('第一条')).dx - followed, closeTo(12, 0.001));
+    expect(
+      tester.getTopLeft(find.text('第一条')).dx - followed,
+      closeTo(12, 0.001),
+    );
 
     // Past the arming distance the affordance is fully drawn, before release.
     await gesture.moveBy(const Offset(60, 0));
@@ -78,7 +83,9 @@ void main() {
       ),
     );
     final rest = tester.getTopLeft(find.text('第一条')).dx;
-    final gesture = await tester.startGesture(tester.getCenter(find.text('第一条')));
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('第一条')),
+    );
     await gesture.moveBy(const Offset(20, 0));
     await tester.pump();
     await gesture.moveBy(const Offset(30, 0));
@@ -104,7 +111,9 @@ void main() {
       ),
     );
     final rest = tester.getTopLeft(find.text('第一条')).dx;
-    final gesture = await tester.startGesture(tester.getCenter(find.text('第一条')));
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('第一条')),
+    );
     await gesture.moveBy(const Offset(-20, 0));
     await tester.pump();
     await gesture.moveBy(const Offset(-100, 0));
@@ -122,9 +131,7 @@ void main() {
       _host(
         FlareMessageList(
           currentUserId: 'me',
-          messages: [
-            for (var i = 0; i < 40; i++) _message('m$i', '第 $i 条'),
-          ],
+          messages: [for (var i = 0; i < 40; i++) _message('m$i', '第 $i 条')],
           onSwipeReply: (message) => replied.add(message.id),
         ),
       ),
@@ -145,7 +152,10 @@ void main() {
   ) async {
     await tester.pumpWidget(
       _host(
-        FlareMessageList(currentUserId: 'me', messages: [_message('m1', '第一条')]),
+        FlareMessageList(
+          currentUserId: 'me',
+          messages: [_message('m1', '第一条')],
+        ),
       ),
     );
     expect(_affordance, findsNothing);

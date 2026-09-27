@@ -273,7 +273,12 @@ class _DateSheetState extends State<_DateSheet> {
           ),
         ],
       ),
-      padding: EdgeInsets.fromLTRB(12, 8, 12, FlareSizes.spacing2sm + bottomInset),
+      padding: EdgeInsets.fromLTRB(
+        12,
+        8,
+        12,
+        FlareSizes.spacing2sm + bottomInset,
+      ),
       // Scrolls when large text makes the month taller than the screen (a
       // phone in landscape, a short window) instead of overflowing.
       child: SingleChildScrollView(

@@ -35,7 +35,14 @@ void main() {
       // 梓 琪 苒 珩 婧 are GB2312 level 2 and 玥 is not in GB2312 at all, so all
       // six went under "#" until the table covered every BMP hanzi. These are
       // the letters Vue reads from the engine's collation.
-      const names = {'梓': 'Z', '琪': 'Q', '苒': 'R', '珩': 'H', '玥': 'Y', '婧': 'J'};
+      const names = {
+        '梓': 'Z',
+        '琪': 'Q',
+        '苒': 'R',
+        '珩': 'H',
+        '玥': 'Y',
+        '婧': 'J',
+      };
       for (final entry in names.entries) {
         expect(_letter(entry.key), entry.value, reason: entry.key);
       }

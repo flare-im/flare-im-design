@@ -22,7 +22,10 @@ void main() {
         FlareMessageList(
           messages: [_message('m1'), _message('m2')],
           currentUserId: 'me',
-          footer: const FlareTypingIndicator(names: ['Ann'], variant: FlareTypingVariant.inline),
+          footer: const FlareTypingIndicator(
+            names: ['Ann'],
+            variant: FlareTypingVariant.inline,
+          ),
         ),
       ),
     );

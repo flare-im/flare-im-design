@@ -8,6 +8,7 @@ import 'flare_message_bodies.dart';
 import 'flare_image_group_message.dart';
 import 'flare_rich_text_message.dart';
 import '../models/message_content.dart';
+import 'flare_media_image.dart';
 import '../models/url_safety.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_unknown_message.dart';
@@ -253,7 +254,8 @@ class FlareMessageContentView extends StatelessWidget {
         onTap: action(c),
       ),
       FlareImageContent c => FlareImageMessage(
-        src: c.thumbnailUrl ?? c.url,
+        src: flarePictureSource(c).src,
+        allowLocalFile: flarePictureSource(c).local,
         alt: c.alt,
         width: 240,
         height: c.width != null && c.height != null && c.width! > 0
@@ -261,7 +263,7 @@ class FlareMessageContentView extends StatelessWidget {
             : 180,
         onTap:
             action(c) ??
-            (c.url.trim().isEmpty && (c.thumbnailUrl ?? '').trim().isEmpty
+            (flarePictureSource(c).src.isEmpty
                 ? null
                 : () => flareOpenImage(
                     context,
@@ -296,7 +298,13 @@ class FlareMessageContentView extends StatelessWidget {
             () {
               // A video and a voice message never talk over each other.
               if (media != null) unawaited(media.stopVoice());
-              flarePresentVideo(context, c);
+              flarePresentVideo(
+                context,
+                c,
+                onDownload: onMediaDownload == null
+                    ? null
+                    : () => onMediaDownload!(c),
+              );
             },
       ),
       FlareAudioContent c => FlareVoicePlaybackMessage(

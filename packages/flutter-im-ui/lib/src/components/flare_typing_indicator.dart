@@ -91,7 +91,10 @@ class _FlareTypingIndicatorState extends State<FlareTypingIndicator>
 
     final body = Container(
       padding: isBubble
-          ? const EdgeInsets.symmetric(horizontal: FlareSizes.spacing2md, vertical: FlareSizes.spacing2sm)
+          ? const EdgeInsets.symmetric(
+              horizontal: FlareSizes.spacing2md,
+              vertical: FlareSizes.spacing2sm,
+            )
           : EdgeInsets.zero,
       decoration: isBubble
           ? BoxDecoration(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/message_content.dart';
+import 'flare_media_image.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_icon_button.dart';
@@ -35,10 +36,15 @@ class FlareImagePreview extends StatefulWidget {
     this.galleryCount,
     this.onPrevious,
     this.onNext,
+    this.allowLocalFile = false,
   });
 
   final bool show;
   final String imageSrc;
+
+  /// [imageSrc] may be a file on this device: the copy the host resolved
+  /// through the SDK cache (`FlareImageContent.localPath`).
+  final bool allowLocalFile;
   final bool loading;
   final String? alt;
   final bool downloading;
@@ -66,6 +72,7 @@ class FlareImagePreview extends StatefulWidget {
     String? alt,
     VoidCallback? onDownload,
     Widget Function(BuildContext context, String imageSrc)? imageBuilder,
+    bool allowLocalFile = false,
   }) {
     return showGeneralDialog(
       context: context,
@@ -75,6 +82,7 @@ class FlareImagePreview extends StatefulWidget {
       pageBuilder: (ctx, _, __) => FlareImagePreview(
         show: true,
         imageSrc: imageSrc,
+        allowLocalFile: allowLocalFile,
         alt: alt,
         onClose: () => Navigator.of(ctx).maybePop(),
         onDownload: onDownload,
@@ -208,8 +216,13 @@ class _FlareImagePreviewState extends State<FlareImagePreview> {
                                 context,
                                 widget.imageSrc,
                               ) ??
-                              Image.network(
-                                widget.imageSrc,
+                              Image(
+                                image:
+                                    flareMediaImageProvider(
+                                      widget.imageSrc,
+                                      allowLocalFile: widget.allowLocalFile,
+                                    ) ??
+                                    NetworkImage(widget.imageSrc),
                                 fit: BoxFit.contain,
                                 // A picture that cannot load says so, instead
                                 // of leaving a dark screen with a glyph.
@@ -337,7 +350,10 @@ class _FlareImagePreviewState extends State<FlareImagePreview> {
           ),
           Text(
             '$pct',
-            style: const TextStyle(color: Colors.white, fontSize: FlareSizes.fontSize2xs),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: FlareSizes.fontSize2xs,
+            ),
           ),
         ],
       ),
@@ -374,15 +390,14 @@ class _FlareImageGalleryState extends State<_FlareImageGallery> {
   Widget build(BuildContext context) {
     if (widget.images.isEmpty) return const SizedBox.shrink();
     final image = widget.images[_index];
-    final source = image.url.trim().isNotEmpty
-        ? image.url
-        : (image.thumbnailUrl ?? '');
+    final picture = flarePictureSource(image, preferThumbnail: false);
     final download = widget.onDownload;
     return FlareImagePreview(
       // A new image starts at normal size.
       key: ValueKey(_index),
       show: true,
-      imageSrc: source,
+      imageSrc: picture.src,
+      allowLocalFile: picture.local,
       alt: image.alt,
       galleryIndex: _index,
       galleryCount: widget.images.length,

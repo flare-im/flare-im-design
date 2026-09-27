@@ -144,10 +144,10 @@ class FlareMessageList extends StatefulWidget {
   /// address that passed `safeExternalUrl` and never opens it itself.
   final void Function(FlareMessageData message, String url)? onOpenLink;
 
-  /// Offered as the download key of the kit's image preview; without it the
-  /// preview has no download key. A tapped picture opens the conversation's
-  /// gallery, and the key saves the picture on screen with the message it
-  /// belongs to.
+  /// Offered as the download key of the kit's image preview and video player;
+  /// without it neither has a download key. A tapped picture opens the
+  /// conversation's gallery, and the key saves the picture on screen with the
+  /// message it belongs to; a video's key saves that video.
   final void Function(FlareMessageData message, FlareMessageContent content)?
   onMediaDownload;
 

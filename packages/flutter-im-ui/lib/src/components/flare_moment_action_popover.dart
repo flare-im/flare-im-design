@@ -39,6 +39,7 @@ class FlareMomentActionPopover extends StatelessWidget {
   final VoidCallback? onComment;
   final VoidCallback? onDelete;
   final VoidCallback? onReport;
+
   /// 每个标签都可以由宿主指定；留空则取 [FlareStrings]，也就是随宿主装的语言走。
   ///
   /// 这些参数原来带着写死的中文默认值（`'赞'`、`'取消'`…），于是：宿主换成英文预设
@@ -78,7 +79,12 @@ class FlareMomentActionPopover extends StatelessWidget {
             onLike,
           ),
           _divider(colors),
-          _btn(colors, Icons.chat_bubble_outline, commentLabel ?? s.comment, onComment),
+          _btn(
+            colors,
+            Icons.chat_bubble_outline,
+            commentLabel ?? s.comment,
+            onComment,
+          ),
           if (canDelete) ...[
             _divider(colors),
             _btn(
@@ -93,7 +99,12 @@ class FlareMomentActionPopover extends StatelessWidget {
           // danger colour stays reserved for "this deletes something of yours".
           else if (canReport) ...[
             _divider(colors),
-            _btn(colors, flareIconMap['report']!, reportLabel ?? s.report, onReport),
+            _btn(
+              colors,
+              flareIconMap['report']!,
+              reportLabel ?? s.report,
+              onReport,
+            ),
           ],
         ],
       ),

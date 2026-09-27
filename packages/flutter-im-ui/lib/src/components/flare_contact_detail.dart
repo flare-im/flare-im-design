@@ -61,6 +61,7 @@ class FlareContactDetail extends StatelessWidget {
   /// Edit the description (描述).
   final VoidCallback? onEditDescription;
   final ValueChanged<bool>? onToggleStar;
+
   /// Host actions the kit cannot know about (report, share, an admin tool), drawn with the
   /// kit's own footer buttons; the kit reports the id back and nothing else (FR-046).
   final List<FlareDetailExtraAction> extraActions;

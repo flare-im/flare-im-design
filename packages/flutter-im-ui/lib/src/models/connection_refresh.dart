@@ -38,7 +38,11 @@ class FlareReconnectWork {
   /// Whether this transition asks for anything at all.
   bool get isEmpty => !dropStaleBeliefs && !resubscribe && !reread;
 
-  static const none = FlareReconnectWork(dropStaleBeliefs: false, resubscribe: false, reread: false);
+  static const none = FlareReconnectWork(
+    dropStaleBeliefs: false,
+    resubscribe: false,
+    reread: false,
+  );
 
   @override
   bool operator ==(Object other) =>
@@ -51,7 +55,8 @@ class FlareReconnectWork {
   int get hashCode => Object.hash(dropStaleBeliefs, resubscribe, reread);
 
   @override
-  String toString() => 'FlareReconnectWork(drop: $dropStaleBeliefs, resubscribe: $resubscribe, reread: $reread)';
+  String toString() =>
+      'FlareReconnectWork(drop: $dropStaleBeliefs, resubscribe: $resubscribe, reread: $reread)';
 }
 
 class FlareConnectionRefresh {
@@ -64,19 +69,28 @@ class FlareConnectionRefresh {
     if (phase == _previous) return FlareReconnectWork.none;
     _previous = phase;
 
-    if (phase == FlareConnectionPhase.kicked || phase == FlareConnectionPhase.expired) {
+    if (phase == FlareConnectionPhase.kicked ||
+        phase == FlareConnectionPhase.expired) {
       // A session that ended is not an interruption to recover from: it is over. Forgetting that this
       // client was ever connected is what makes the next `connected` a fresh start — the app's own open
       // path does the work then, exactly as on a cold start, and nothing re-subscribes on the way out.
       _interrupted = false;
       _hasBeenConnected = false;
-      return const FlareReconnectWork(dropStaleBeliefs: true, resubscribe: false, reread: false);
+      return const FlareReconnectWork(
+        dropStaleBeliefs: true,
+        resubscribe: false,
+        reread: false,
+      );
     }
 
     if (phase == FlareConnectionPhase.connected) {
       if (_hasBeenConnected && _interrupted) {
         _interrupted = false;
-        return const FlareReconnectWork(dropStaleBeliefs: false, resubscribe: true, reread: true);
+        return const FlareReconnectWork(
+          dropStaleBeliefs: false,
+          resubscribe: true,
+          reread: true,
+        );
       }
       _hasBeenConnected = true;
       return FlareReconnectWork.none;
@@ -85,6 +99,10 @@ class FlareConnectionRefresh {
     // connecting / reconnecting / offline / disconnected
     if (!_hasBeenConnected || _interrupted) return FlareReconnectWork.none;
     _interrupted = true;
-    return const FlareReconnectWork(dropStaleBeliefs: true, resubscribe: false, reread: false);
+    return const FlareReconnectWork(
+      dropStaleBeliefs: true,
+      resubscribe: false,
+      reread: false,
+    );
   }
 }

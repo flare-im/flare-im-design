@@ -103,7 +103,9 @@ class FlareVoicePlayer extends StatelessWidget {
         FlareSizes.spacing2sm,
         FlareSizes.spacing2sm - _targetInset,
         FlareSizes.spacing2sm,
-        transcript != null && transcriptOpen ? FlareSizes.spacing2sm : FlareSizes.spacing2sm - _targetInset,
+        transcript != null && transcriptOpen
+            ? FlareSizes.spacing2sm
+            : FlareSizes.spacing2sm - _targetInset,
       ),
       decoration: BoxDecoration(
         color: bg,

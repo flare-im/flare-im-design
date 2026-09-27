@@ -279,10 +279,7 @@ void main() {
           home: Scaffold(
             body: Align(
               alignment: Alignment.bottomCenter,
-              child: FlareComposer(
-                key: ValueKey(width),
-                onSend: (_) => true,
-              ),
+              child: FlareComposer(key: ValueKey(width), onSend: (_) => true),
             ),
           ),
         ),

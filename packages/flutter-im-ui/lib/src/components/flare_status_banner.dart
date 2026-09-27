@@ -104,7 +104,10 @@ class _FlareStatusBannerState extends State<FlareStatusBanner>
     final colors = FlareColors.of(context);
     final tone = _toneColor(colors);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: FlareSizes.spacing2md, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+        horizontal: FlareSizes.spacing2md,
+        vertical: 8,
+      ),
       decoration: BoxDecoration(
         color: tone.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(FlareSizes.radiusLg),

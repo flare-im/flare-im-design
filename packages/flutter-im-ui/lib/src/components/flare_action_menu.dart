@@ -603,7 +603,9 @@ class _ActionMenuPanelState extends State<_ActionMenuPanel> {
   /// The brightness [FlareColors.of] resolves for [context].
   static Brightness _brightnessOf(BuildContext context) {
     final mode = FlareTheme.maybeOf(context)?.mode ?? FlareThemeMode.system;
-    return flareThemeIsDark(mode, systemDark: flareSystemDark(context)) ? Brightness.dark : Brightness.light;
+    return flareThemeIsDark(mode, systemDark: flareSystemDark(context))
+        ? Brightness.dark
+        : Brightness.light;
   }
 }
 

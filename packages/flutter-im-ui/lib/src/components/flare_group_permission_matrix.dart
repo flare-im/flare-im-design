@@ -557,7 +557,9 @@ class _FlareGroupPermissionMatrixState
             constraints: const BoxConstraints(
               minHeight: FlareSizes.touchTarget,
             ),
-            padding: const EdgeInsets.symmetric(horizontal: FlareSizes.spacing2sm),
+            padding: const EdgeInsets.symmetric(
+              horizontal: FlareSizes.spacing2sm,
+            ),
             decoration: BoxDecoration(
               color: selected ? colors.bgSelected : colors.bgSecondary,
               border: Border.all(

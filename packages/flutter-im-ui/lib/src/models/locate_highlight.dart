@@ -35,7 +35,11 @@ const _stops = <({int atMs, double alpha, double spread})>[
 /// Held still for a reader who asked for less motion: the middle stop, for the
 /// whole window. Less motion is not no answer — the jump still has to say where
 /// it landed.
-const _reducedMotion = FlareLocateHighlight(marked: true, alpha: 0.18, spread: 10);
+const _reducedMotion = FlareLocateHighlight(
+  marked: true,
+  alpha: 0.18,
+  spread: 10,
+);
 
 /// The one locate-mark rule, shared with the SwiftUI and Compose kits and with
 /// Vue's stylesheet, and tested against `spec/locate-highlight-vectors.json`.

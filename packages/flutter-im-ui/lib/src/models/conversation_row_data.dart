@@ -69,7 +69,6 @@ class ConversationRowData {
   /// Small inline tags shown after the title (e.g. "Group", "Official").
   final List<ConversationRowTag> tags;
 
-
   /// The facts a host feeds a row after the core built it: the draft this device is holding for the
   /// conversation, whether anyone is typing in it, and the peer's presence. Everything else on a row comes
   /// from the core's own summary and is not the host's to rewrite. Kotlin gets this from `data class`;
@@ -78,7 +77,11 @@ class ConversationRowData {
   ///
   /// Each argument left out keeps what the row had. Presence in particular is only ever *set* here: a
   /// presence nobody could look up stays null, and a null presence draws no dot — unknown is not offline.
-  ConversationRowData hostFacts({String? draftPreview, bool? typing, FlarePresence? presence}) => ConversationRowData(
+  ConversationRowData hostFacts({
+    String? draftPreview,
+    bool? typing,
+    FlarePresence? presence,
+  }) => ConversationRowData(
     id: id,
     title: title,
     avatarUrl: avatarUrl,
@@ -106,6 +109,7 @@ class ConversationRowData {
       : mentioned
       ? 'mention'
       : 'normal';
+
   /// Title weight tier: strong only when unread and not quiet (muted without a mention).
   String get titleEmphasis =>
       hasUnread && !(muted && !mentioned) ? 'strong' : 'quiet';

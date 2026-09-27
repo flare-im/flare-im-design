@@ -170,7 +170,8 @@ const FlareStrings flareStringsEnglish = FlareStrings(
   groupDetailCopyCode: 'Copy invite code',
   groupDetailDiscoverable: 'Allow this group to appear in search',
   groupDetailDissolve: 'Delete group',
-  groupDetailDissolveConfirm: 'The group will be deleted permanently and cannot be restored.',
+  groupDetailDissolveConfirm:
+      'The group will be deleted permanently and cannot be restored.',
   groupDetailEditAnnouncement: 'Edit announcement',
   groupDetailEditName: 'Edit group name',
   groupDetailGroupFallback: 'Group',
@@ -178,7 +179,8 @@ const FlareStrings flareStringsEnglish = FlareStrings(
   groupDetailInvite: 'Invite members',
   groupDetailInviteEmpty: 'No contacts left to invite',
   groupDetailInviteLink: 'Group invite link',
-  groupDetailInviteLinkHint: 'Share the invite code and your friends can join this group.',
+  groupDetailInviteLinkHint:
+      'Share the invite code and your friends can join this group.',
   groupDetailJoinApproval: 'Admin approval required',
   groupDetailJoinInvite: 'By invite only',
   groupDetailJoinMode: 'How people join',
@@ -222,20 +224,26 @@ const FlareStrings flareStringsEnglish = FlareStrings(
   groupPermissionMatrixJoinInvite: 'By invite only',
   groupPermissionMatrixJoinOpen: 'Anyone can join',
   groupPermissionMatrixJoinPolicy: 'How people join',
-  groupPermissionMatrixJoinPolicyDescription: 'Decides how others can join this group',
+  groupPermissionMatrixJoinPolicyDescription:
+      'Decides how others can join this group',
   groupPermissionMatrixMuteAll: 'Mute everyone',
   groupPermissionMatrixMuteAllDescription: 'Only the owner and admins can post',
   groupPermissionMatrixOff: 'Off',
   groupPermissionMatrixOn: 'On',
   groupPermissionMatrixOnlyAdminCanAtAll: 'Only admins can @everyone',
-  groupPermissionMatrixOnlyAdminCanAtAllDescription: 'Limits who can use @everyone',
+  groupPermissionMatrixOnlyAdminCanAtAllDescription:
+      'Limits who can use @everyone',
   groupPermissionMatrixOnlyAdminCanPin: 'Only admins can pin messages',
-  groupPermissionMatrixOnlyAdminCanPinDescription: 'Limits who can pin messages in this group',
-  groupPermissionMatrixReadOnlyHint: 'Only the owner and admins can change this',
+  groupPermissionMatrixOnlyAdminCanPinDescription:
+      'Limits who can pin messages in this group',
+  groupPermissionMatrixReadOnlyHint:
+      'Only the owner and admins can change this',
   groupPermissionMatrixShareCardPermission: 'Allow sharing the group card',
-  groupPermissionMatrixShareCardPermissionDescription: 'When off, members can\'t share this group with others',
+  groupPermissionMatrixShareCardPermissionDescription:
+      'When off, members can\'t share this group with others',
   groupPermissionMatrixTitle: 'Group settings',
-  groupPermissionMatrixUnknownJoinPolicy: 'The current join setting is unknown — pick one again',
+  groupPermissionMatrixUnknownJoinPolicy:
+      'The current join setting is unknown — pick one again',
   hangUp: 'Hang up',
   hideOriginal: 'Hide original',
   hideTranscript: 'Hide transcript',
@@ -247,7 +255,8 @@ const FlareStrings flareStringsEnglish = FlareStrings(
   increase: 'Increase',
   inlineVoiceDiscard: 'Delete recording',
   inlineVoiceKeyboard: 'Back to keyboard and delete recording',
-  inlineVoiceMicrophoneUnavailable: 'Microphone unavailable — check permissions',
+  inlineVoiceMicrophoneUnavailable:
+      'Microphone unavailable — check permissions',
   inlineVoicePause: 'Pause recording',
   inlineVoicePreview: 'Play / pause',
   inlineVoiceResume: 'Resume recording',

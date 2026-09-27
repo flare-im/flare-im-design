@@ -28,7 +28,10 @@ void main() {
       (vocabulary['historyRange'] as List).cast<String>(),
     );
     expect(
-      FlareMomentVisibility.values.where(flareMomentAudienceApplies).map((v) => v.name).toList(),
+      FlareMomentVisibility.values
+          .where(flareMomentAudienceApplies)
+          .map((v) => v.name)
+          .toList(),
       ['friends', 'public'],
     );
   });

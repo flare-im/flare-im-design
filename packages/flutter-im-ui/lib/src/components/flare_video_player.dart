@@ -31,6 +31,9 @@ class FlareVideoPlayer extends StatefulWidget {
     this.playerBuilder,
     this.onPlay,
     this.onClose,
+    this.onDownload,
+    this.downloading = false,
+    this.progressPct = 0,
   });
 
   final bool show;
@@ -46,12 +49,19 @@ class FlareVideoPlayer extends StatefulWidget {
   final VoidCallback? onPlay;
   final VoidCallback? onClose;
 
+  /// The download key at the top right, as in the image preview; hidden
+  /// without it. While [downloading] it shows [progressPct] instead.
+  final VoidCallback? onDownload;
+  final bool downloading;
+  final int progressPct;
+
   static Future<void> present(
     BuildContext context, {
     required String videoSrc,
     String? poster,
     String? title,
     Widget Function(BuildContext, String)? playerBuilder,
+    VoidCallback? onDownload,
   }) {
     return showGeneralDialog(
       context: context,
@@ -63,6 +73,7 @@ class FlareVideoPlayer extends StatefulWidget {
         title: title,
         playerBuilder: playerBuilder,
         onClose: () => Navigator.of(ctx).maybePop(),
+        onDownload: onDownload,
       ),
     );
   }
@@ -187,11 +198,35 @@ class _FlareVideoPlayerState extends State<FlareVideoPlayer> {
               customSize: FlareSizes.touchTarget,
             ),
           ),
+          if (widget.onDownload != null)
+            Positioned(
+              top: top + FlareSizes.spacingSm,
+              right: FlareSizes.spacingSm,
+              child: widget.downloading
+                  ? SizedBox.square(
+                      dimension: FlareSizes.touchTarget,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          value: widget.progressPct.clamp(0, 100) / 100,
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      ),
+                    )
+                  : FlareIconButton(
+                      icon: 'download',
+                      semanticLabel: strings.download,
+                      onPressed: widget.onDownload,
+                      tintColor: Colors.white,
+                      backgroundColor: Colors.white24,
+                      customSize: FlareSizes.touchTarget,
+                    ),
+            ),
           if (widget.title != null && widget.title!.isNotEmpty)
             Positioned(
               top: top + FlareSizes.spacingMd,
               left: 56,
-              right: FlareSizes.spacingMd,
+              right: widget.onDownload != null ? 56 : FlareSizes.spacingMd,
               child: Text(
                 widget.title!,
                 maxLines: 1,
