@@ -138,7 +138,12 @@ class _FlareIconButtonState extends State<FlareIconButton> {
                 minWidth: FlareSizes.touchTarget,
                 minHeight: FlareSizes.touchTarget,
               ),
+              // 因子 1：按钮只有「圆盘或触达区，取大者」那么大。不写因子的 Center 会撑满父级给的
+              // 宽松约束 —— 放进 Positioned(top: 0, bottom: 0) 里（图片预览两侧的翻页键）就成了
+              // 一整条不透明的命中区，盖住同一侧的关闭键，点「关闭」变成翻页。
               child: Center(
+                widthFactor: 1,
+                heightFactor: 1,
                 child: AnimatedContainer(
                   duration: reduceMotion ? Duration.zero : FlareMotion.fast,
                   width: _side,

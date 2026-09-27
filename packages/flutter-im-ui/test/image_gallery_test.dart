@@ -266,4 +266,40 @@ void main() {
       expect(find.text('3 / 3'), findsOneWidget);
     });
   });
+
+  testWidgets(
+    'the close key closes a gallery, the paging keys do not cover it',
+    (tester) async {
+      var closed = 0;
+      var previous = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: FlareImagePreview(
+            show: true,
+            imageSrc: 'https://cdn.example/a.png',
+            galleryIndex: 1,
+            galleryCount: 3,
+            onClose: () => closed++,
+            onPrevious: () => previous++,
+            onNext: () {},
+            imageBuilder: (_, __) => const SizedBox(width: 100, height: 100),
+          ),
+        ),
+      );
+      await tester.tapAt(
+        tester.getCenter(find.bySemanticsLabel(RegExp('关闭|Close')).first),
+      );
+      await tester.pump();
+      expect(closed, 1);
+      expect(previous, 0);
+      // The paging key stays a key-sized target, centred on its side.
+      final key = tester.getSize(
+        find.ancestor(
+          of: find.bySemanticsLabel(RegExp('上一张|Previous')).first,
+          matching: find.byType(FlareIconButton),
+        ),
+      );
+      expect(key.height, lessThan(100));
+    },
+  );
 }
