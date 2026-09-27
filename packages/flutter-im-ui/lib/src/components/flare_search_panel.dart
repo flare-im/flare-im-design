@@ -4,6 +4,7 @@ import 'flare_search_bar.dart';
 import 'flare_search_results.dart';
 import 'flare_status_banner.dart';
 import '../tokens/flare_strings.dart';
+import '../tokens/flare_tokens.dart';
 
 @immutable
 class FlareSearchCriteria {
@@ -57,6 +58,19 @@ class FlareSearchSnapshot {
   final String? error;
 }
 
+/// How a [FlareSearchPanel] sits in its host (spec SearchPanel `layout`).
+enum FlareSearchPanelLayout {
+  /// Inside a padded surface, scrolling with its host.
+  inline,
+
+  /// The panel is the whole page, drawer or modal body: the field and the
+  /// type row stay put and only the results under their hairline scroll (a
+  /// new query's results start at the top). The panel owns the page gutter
+  /// and the bottom safe area; result rows run edge to edge. It needs a
+  /// bounded height from its host.
+  page,
+}
+
 class FlareSearchPanel extends StatefulWidget {
   const FlareSearchPanel({
     super.key,
@@ -69,6 +83,8 @@ class FlareSearchPanel extends StatefulWidget {
     this.timeRangeText,
     this.searchText,
     this.idleText,
+    this.autofocus = false,
+    this.layout = FlareSearchPanelLayout.inline,
   });
   final FlareSearchSnapshot snapshot;
   final Map<String, String> filters;
@@ -77,6 +93,10 @@ class FlareSearchPanel extends StatefulWidget {
   final ValueChanged<FlareSearchResultKind>? onViewAll;
   final String? searchText, idleText, timeRangeText;
   final List<FlareSearchRangeOption> timeRanges;
+
+  /// Put the caret in the search field when the panel opens.
+  final bool autofocus;
+  final FlareSearchPanelLayout layout;
   @override
   State<FlareSearchPanel> createState() => _FlareSearchPanelState();
 }
@@ -95,6 +115,18 @@ class _FlareSearchPanelState extends State<FlareSearchPanel> {
   late int? _toTime = widget.snapshot.criteria.toTime;
   late String _filter = widget.snapshot.criteria.filterId;
   late FlareSearchCriteria _submitted = widget.snapshot.criteria;
+  final FocusNode _field = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.autofocus) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _field.requestFocus();
+      });
+    }
+  }
+
   void _submit() {
     setState(
       () => _submitted = FlareSearchCriteria(
@@ -109,6 +141,7 @@ class _FlareSearchPanelState extends State<FlareSearchPanel> {
 
   @override
   void dispose() {
+    _field.dispose();
     _text.dispose();
     super.dispose();
   }
@@ -119,99 +152,144 @@ class _FlareSearchPanelState extends State<FlareSearchPanel> {
     final waiting =
         snapshot.criteria != _submitted ||
         snapshot.state == FlareSearchState.loading;
+    final controls = <Widget>[
+      FlareSearchBar(
+        controller: _text,
+        focusNode: _field,
+        placeholder: _searchText,
+        onSubmitted: (_) => _submit(),
+      ),
+      Align(
+        alignment: AlignmentDirectional.centerEnd,
+        child: TextButton(
+          onPressed: _submit,
+          style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+          child: Text(_searchText),
+        ),
+      ),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final f in widget.filters.entries)
+            Semantics(
+              selected: _filter == f.key,
+              child: OutlinedButton(
+                onPressed: () {
+                  _filter = f.key;
+                  _submit();
+                },
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(48, 48),
+                  backgroundColor: _filter == f.key
+                      ? Theme.of(context).colorScheme.secondaryContainer
+                      : null,
+                ),
+                child: Text(f.value),
+              ),
+            ),
+        ],
+      ),
+      if (widget.timeRanges.isNotEmpty)
+        Semantics(
+          label: _timeRangeText,
+          container: true,
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final range in widget.timeRanges)
+                Semantics(
+                  selected:
+                      range.fromTime == _fromTime && range.toTime == _toTime,
+                  child: OutlinedButton(
+                    onPressed: range.isValid
+                        ? () {
+                            _fromTime = range.fromTime;
+                            _toTime = range.toTime;
+                            _submit();
+                          }
+                        : null,
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(48, 48),
+                      backgroundColor:
+                          range.fromTime == _fromTime && range.toTime == _toTime
+                          ? Theme.of(context).colorScheme.secondaryContainer
+                          : null,
+                    ),
+                    child: Text(range.label),
+                  ),
+                ),
+            ],
+          ),
+        ),
+    ];
+    final Widget outcome;
+    if (waiting) {
+      outcome = const Center(child: CircularProgressIndicator());
+    } else if (snapshot.state == FlareSearchState.failure) {
+      outcome = FlareStatusBanner(
+        text: snapshot.error ?? _idleText,
+        tone: FlareStatusTone.danger,
+        actionText: _searchText,
+        onAction: () => widget.onSearch(_submitted),
+      );
+    } else if (snapshot.state == FlareSearchState.success) {
+      outcome = FlareSearchResults(
+        groups: snapshot.groups,
+        query: _submitted.query,
+        onOpen: widget.onOpen,
+        onViewAll: widget.onViewAll,
+      );
+    } else {
+      outcome = Text(_idleText);
+    }
+    if (widget.layout == FlareSearchPanelLayout.inline) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ...controls,
+          const SizedBox(height: FlareSizes.spacingMd),
+          outcome,
+        ],
+      );
+    }
+    final colors = FlareColors.of(context);
+    final bottom = MediaQuery.paddingOf(context).bottom;
+    final results = snapshot.state == FlareSearchState.success && !waiting;
     return Column(
-      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        FlareSearchBar(
-          controller: _text,
-          placeholder: _searchText,
-          onSubmitted: (_) => _submit(),
-        ),
-        Align(
-          alignment: AlignmentDirectional.centerEnd,
-          child: TextButton(
-            onPressed: _submit,
-            style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-            child: Text(_searchText),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            FlareSizes.spacingLg,
+            FlareSizes.spacingSm,
+            FlareSizes.spacingLg,
+            FlareSizes.spacingSm,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: controls,
           ),
         ),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final f in widget.filters.entries)
-              Semantics(
-                selected: _filter == f.key,
-                child: OutlinedButton(
-                  onPressed: () {
-                    _filter = f.key;
-                    _submit();
-                  },
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(48, 48),
-                    backgroundColor: _filter == f.key
-                        ? Theme.of(context).colorScheme.secondaryContainer
-                        : null,
+        Divider(height: 1, thickness: 1, color: colors.borderSecondary),
+        Expanded(
+          child: waiting
+              ? outcome
+              : SingleChildScrollView(
+                  // A new query's results start at the top.
+                  key: ValueKey(_submitted),
+                  padding: EdgeInsets.fromLTRB(
+                    results ? 0 : FlareSizes.spacingLg,
+                    FlareSizes.spacingMd,
+                    results ? 0 : FlareSizes.spacingLg,
+                    FlareSizes.spacingMd + bottom,
                   ),
-                  child: Text(f.value),
+                  child: outcome,
                 ),
-              ),
-          ],
         ),
-        if (widget.timeRanges.isNotEmpty)
-          Semantics(
-            label: _timeRangeText,
-            container: true,
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final range in widget.timeRanges)
-                  Semantics(
-                    selected:
-                        range.fromTime == _fromTime && range.toTime == _toTime,
-                    child: OutlinedButton(
-                      onPressed: range.isValid
-                          ? () {
-                              _fromTime = range.fromTime;
-                              _toTime = range.toTime;
-                              _submit();
-                            }
-                          : null,
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(48, 48),
-                        backgroundColor:
-                            range.fromTime == _fromTime &&
-                                range.toTime == _toTime
-                            ? Theme.of(context).colorScheme.secondaryContainer
-                            : null,
-                      ),
-                      child: Text(range.label),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        const SizedBox(height: 12),
-        if (waiting)
-          const Center(child: CircularProgressIndicator())
-        else if (snapshot.state == FlareSearchState.failure)
-          FlareStatusBanner(
-            text: snapshot.error ?? _idleText,
-            tone: FlareStatusTone.danger,
-            actionText: _searchText,
-            onAction: () => widget.onSearch(_submitted),
-          )
-        else if (snapshot.state == FlareSearchState.success)
-          FlareSearchResults(
-            groups: snapshot.groups,
-            query: _submitted.query,
-            onOpen: widget.onOpen,
-            onViewAll: widget.onViewAll,
-          )
-        else
-          Text(_idleText),
       ],
     );
   }

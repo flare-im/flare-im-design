@@ -4,6 +4,8 @@ import '../models/message_content.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'action_icon.dart';
+import 'flare_bottom_sheet.dart';
+import 'flare_overlay.dart';
 
 enum FlareMessageMenuGroup { primary, organize, destructive }
 
@@ -235,10 +237,13 @@ class FlareMessageActionSheet extends StatelessWidget {
     String? label,
     String? emptyText,
   }) {
-    return showModalBottomSheet<FlareMessageMenuSelection>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+    // The kit's short-task surface: a bottom sheet on the phone form factor, a
+    // centered Modal on wide layouts. The list of actions is the whole panel,
+    // so its name is spoken but not drawn.
+    return FlareBottomSheet.show<FlareMessageMenuSelection>(
+      context,
+      title: label ?? FlareStrings.of(context).messageActionSheetLabel,
+      titleHidden: true,
       builder: (sheetContext) => FlareMessageActionSheet(
         availability: availability,
         content: content,
@@ -286,6 +291,47 @@ class FlareMessageActionSheet extends StatelessWidget {
         .where((entry) => entry.value.isNotEmpty)
         .toList();
 
+    // On a kit overlay the surface is the frame, the safe area and the name;
+    // standing alone the sheet draws its own grouped backdrop.
+    final onSurface = FlareOverlaySurface.maybeOf(context) != null;
+    final body = SingleChildScrollView(
+      padding: EdgeInsets.fromLTRB(
+        FlareSizes.spacingMd,
+        onSurface ? FlareSizes.spacingXs : FlareSizes.spacingLg,
+        FlareSizes.spacingMd,
+        FlareSizes.spacingMd,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (strip.isNotEmpty) ...[
+            Wrap(
+              alignment: WrapAlignment.spaceEvenly,
+              runSpacing: FlareSizes.spacingSm,
+              children: strip
+                  .map((reaction) => _reaction(reaction))
+                  .toList(growable: false),
+            ),
+            const SizedBox(height: FlareSizes.spacingMd),
+          ],
+          if (grouped.isEmpty && strip.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(FlareSizes.spacingLg),
+              child: Text(
+                emptyText,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: colors.textSecondary),
+              ),
+            ),
+          for (var index = 0; index < grouped.length; index++) ...[
+            if (index > 0) const SizedBox(height: FlareSizes.spacingSm),
+            _actionGroup(grouped[index].value, colors),
+          ],
+        ],
+      ),
+    );
+    if (onSurface) return body;
     return Semantics(
       container: true,
       label: label,
@@ -298,43 +344,7 @@ class FlareMessageActionSheet extends StatelessWidget {
               top: Radius.circular(FlareSizes.radiusXl),
             ),
           ),
-          padding: const EdgeInsets.fromLTRB(
-            FlareSizes.spacingMd,
-            FlareSizes.spacingLg,
-            FlareSizes.spacingMd,
-            FlareSizes.spacingMd,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (strip.isNotEmpty) ...[
-                  Wrap(
-                    alignment: WrapAlignment.spaceEvenly,
-                    runSpacing: FlareSizes.spacingSm,
-                    children: strip
-                        .map((reaction) => _reaction(reaction))
-                        .toList(growable: false),
-                  ),
-                  const SizedBox(height: FlareSizes.spacingMd),
-                ],
-                if (grouped.isEmpty && strip.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.all(FlareSizes.spacingLg),
-                    child: Text(
-                      emptyText,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: colors.textSecondary),
-                    ),
-                  ),
-                for (var index = 0; index < grouped.length; index++) ...[
-                  if (index > 0) const SizedBox(height: FlareSizes.spacingSm),
-                  _actionGroup(grouped[index].value, colors),
-                ],
-              ],
-            ),
-          ),
+          child: body,
         ),
       ),
     );

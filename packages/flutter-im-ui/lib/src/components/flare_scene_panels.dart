@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../models/directory_data.dart';
+import '../platform/flare_platform.dart';
 import '../tokens/flare_strings.dart';
+import '../tokens/flare_tokens.dart';
+import 'flare_bottom_sheet.dart';
+import 'flare_button.dart';
+import 'flare_overlay.dart';
 import 'flare_status_banner.dart';
 import 'flare_transfer_queue.dart';
 import 'flare_transfer_progress.dart';
@@ -373,8 +379,15 @@ class FlareNotificationPreferences extends StatelessWidget {
   );
 }
 
-/// Destructive confirmation. Present it with [FlareDangerConfirm.show]; the
-/// dialog blocks barrier and back dismissal while busy.
+/// Destructive confirmation (spec DangerConfirm): what is about to happen,
+/// to what, and a danger-styled confirm next to cancel. Present it with
+/// [FlareDangerConfirm.show] — the kit's short-task surface, a bottom sheet on
+/// the phone form factor and a centered FlareModal elsewhere — which locks
+/// every way of closing it while the action runs.
+///
+/// On a kit overlay the surface carries the [title]; standing alone the widget
+/// draws it as its own heading. [confirmText] and [cancelText] default to the
+/// strings table.
 class FlareDangerConfirm extends StatelessWidget {
   const FlareDangerConfirm({
     super.key,
@@ -383,26 +396,22 @@ class FlareDangerConfirm extends StatelessWidget {
     required this.target,
     this.busy = false,
     this.error,
-    this.confirmText = '确认',
-    this.cancelText = '取消',
+    this.confirmText,
+    this.cancelText,
     this.onConfirm,
     this.onCancel,
   });
-  final String title, description, target, confirmText, cancelText;
+  final String title, description, target;
+  final String? confirmText, cancelText;
   final String? error;
   final bool busy;
   final VoidCallback? onConfirm, onCancel;
 
-  static const _defaults = FlareDangerConfirm(
-    title: '',
-    description: '',
-    target: '',
-  );
-
   /// Ask before a destructive step. Resolves true once confirmed and [action],
-  /// when given, has succeeded; false when cancelled. While [action] runs the
-  /// dialog shows busy, and a failure keeps it open with the error so the user
-  /// can retry or cancel.
+  /// when given, has succeeded; false when cancelled or dismissed. While
+  /// [action] runs the confirmation shows busy and nothing closes it — not the
+  /// scrim, a drag, Escape nor back; a failure keeps it open with the error so
+  /// the user can retry or cancel.
   static Future<bool> show(
     BuildContext context, {
     required String title,
@@ -412,56 +421,135 @@ class FlareDangerConfirm extends StatelessWidget {
     String? cancelText,
     Future<void> Function()? action,
   }) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => _FlareDangerConfirmPresenter(
+    final busy = ValueNotifier<bool>(false);
+    try {
+      final confirmed = await FlareBottomSheet.show<bool>(
+        context,
         title: title,
-        description: description,
-        target: target,
-        confirmText: confirmText ?? _defaults.confirmText,
-        cancelText: cancelText ?? _defaults.cancelText,
-        action: action,
-      ),
-    );
-    return confirmed ?? false;
+        busy: busy,
+        builder: (_) => _FlareDangerConfirmPresenter(
+          busy: busy,
+          title: title,
+          description: description,
+          target: target,
+          confirmText: confirmText,
+          cancelText: cancelText,
+          action: action,
+        ),
+      );
+      return confirmed ?? false;
+    } finally {
+      busy.dispose();
+    }
   }
 
   @override
-  Widget build(BuildContext context) => PopScope(
-    canPop: !busy,
-    child: AlertDialog(
-      title: Text(title),
-      scrollable: true,
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(description),
-          Text(target, style: const TextStyle(fontWeight: FontWeight.bold)),
-          if (error != null) Semantics(liveRegion: true, child: Text(error!)),
-        ],
+  Widget build(BuildContext context) {
+    final colors = FlareColors.of(context);
+    final strings = FlareStrings.of(context);
+    final onSurface = FlareOverlaySurface.maybeOf(context) != null;
+    final error = this.error;
+    final cancel = FlareButton(
+      label: cancelText ?? strings.cancel,
+      variant: FlareButtonVariant.secondary,
+      size: FlareControlSize.lg,
+      block: true,
+      disabled: busy,
+      onPressed: onCancel,
+    );
+    final confirm = FlareButton(
+      label: confirmText ?? strings.confirm,
+      variant: FlareButtonVariant.danger,
+      size: FlareControlSize.lg,
+      block: true,
+      loading: busy,
+      disabled: busy,
+      onPressed: onConfirm,
+    );
+    // Thumb-reachable full-width keys on the phone form factor, danger last;
+    // a trailing pair everywhere else.
+    final stacked = flareCapabilitiesOf(context).bottomSheet;
+    return PopScope(
+      canPop: !busy,
+      child: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(
+          FlareSizes.spacingLg,
+          onSurface ? FlareSizes.spacingXs : FlareSizes.spacingLg,
+          FlareSizes.spacingLg,
+          FlareSizes.spacingLg,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (!onSurface) ...[
+              Semantics(
+                header: true,
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: colors.textPrimary,
+                    fontSize: FlareSizes.fontSizeXl,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(height: FlareSizes.spacingMd),
+            ],
+            Text(
+              description,
+              style: TextStyle(
+                color: colors.textSecondary,
+                fontSize: FlareSizes.fontSizeLg,
+              ),
+            ),
+            if (target.isNotEmpty) ...[
+              const SizedBox(height: FlareSizes.spacingSm),
+              Text(
+                target,
+                style: TextStyle(
+                  color: colors.textPrimary,
+                  fontSize: FlareSizes.fontSizeLg,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+            if (error != null) ...[
+              const SizedBox(height: FlareSizes.spacingSm),
+              Semantics(
+                liveRegion: true,
+                child: Text(
+                  error,
+                  style: TextStyle(
+                    color: colors.errorText,
+                    fontSize: FlareSizes.fontSizeMd,
+                  ),
+                ),
+              ),
+            ],
+            const SizedBox(height: FlareSizes.spacingLg),
+            if (stacked) ...[
+              cancel,
+              const SizedBox(height: FlareSizes.spacingSm),
+              confirm,
+            ] else
+              Row(
+                children: [
+                  Expanded(child: cancel),
+                  const SizedBox(width: FlareSizes.spacingMd),
+                  Expanded(child: confirm),
+                ],
+              ),
+          ],
+        ),
       ),
-      actions: [
-        TextButton(
-          onPressed: busy ? null : onCancel,
-          style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-          child: Text(cancelText),
-        ),
-        TextButton(
-          onPressed: busy ? null : onConfirm,
-          style: TextButton.styleFrom(
-            minimumSize: const Size(48, 48),
-            foregroundColor: Theme.of(context).colorScheme.error,
-          ),
-          child: Text(confirmText),
-        ),
-      ],
-    ),
-  );
+    );
+  }
 }
 
 class _FlareDangerConfirmPresenter extends StatefulWidget {
   const _FlareDangerConfirmPresenter({
+    required this.busy,
     required this.title,
     required this.description,
     required this.target,
@@ -469,7 +557,9 @@ class _FlareDangerConfirmPresenter extends StatefulWidget {
     required this.cancelText,
     this.action,
   });
-  final String title, description, target, confirmText, cancelText;
+  final ValueNotifier<bool> busy;
+  final String title, description, target;
+  final String? confirmText, cancelText;
   final Future<void> Function()? action;
 
   @override
@@ -482,6 +572,11 @@ class _FlareDangerConfirmPresenterState
   bool _busy = false;
   String? _error;
 
+  void _setBusy(bool value) {
+    _busy = value;
+    widget.busy.value = value;
+  }
+
   Future<void> _confirm() async {
     final action = widget.action;
     if (action == null) {
@@ -489,16 +584,18 @@ class _FlareDangerConfirmPresenterState
       return;
     }
     setState(() {
-      _busy = true;
+      _setBusy(true);
       _error = null;
     });
     try {
       await action();
-      if (mounted) Navigator.of(context).pop(true);
+      if (!mounted) return;
+      _setBusy(false);
+      Navigator.of(context).pop(true);
     } catch (error) {
       if (mounted) {
         setState(() {
-          _busy = false;
+          _setBusy(false);
           _error = '$error';
         });
       }

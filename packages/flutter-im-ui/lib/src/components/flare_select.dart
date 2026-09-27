@@ -64,7 +64,8 @@ class _FlareSelectState extends State<FlareSelect> {
     final picked = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: Colors.transparent,
-      barrierColor: const Color(0xFF151220).withValues(alpha: 0.44),
+      useRootNavigator: true,
+      barrierColor: FlareColors.of(context).scrim,
       isScrollControlled: true,
       builder: (ctx) => _OptionsSheet(
         options: widget.options,

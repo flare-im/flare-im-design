@@ -419,3 +419,15 @@ abstract final class FlarePlatform {
   static FlarePlatformAdapter of(BuildContext context) =>
       maybeOf(context) ?? _fallback;
 }
+
+/// The capabilities a component lays itself out by: the installed adapter's,
+/// or — with no [FlarePlatformScope] above [context] — the kit's detection
+/// applied to the window width, which [FlarePlatform.of]'s fallback adapter
+/// cannot see (it reports `bottomSheet == false` at every width). The overlay
+/// presenters read the phone form factor here: FlareBottomSheet's `auto`,
+/// FlareDrawer.showAdaptive and FlareActionMenu's `auto`.
+FlarePlatformCapabilities flareCapabilitiesOf(BuildContext context) =>
+    FlarePlatform.maybeOf(context)?.capabilities ??
+    FlarePlatformCapabilities.detect(
+      width: MediaQuery.maybeSizeOf(context)?.width,
+    );

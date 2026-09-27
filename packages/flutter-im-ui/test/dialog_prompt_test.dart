@@ -36,7 +36,7 @@ void main() {
     final context = await _pumpHost(tester);
     String? result = 'untouched';
     unawaited(
-      FlareDialog.prompt(
+      FlareBottomSheet.prompt(
         context,
         title: '修改备注',
         message: '只有你能看到备注。',
@@ -54,10 +54,10 @@ void main() {
     await tester.tap(_button(_strings.confirm));
     await tester.pumpAndSettle();
     expect(result, 'Ann Lee');
-    expect(find.byType(FlareDialog), findsNothing);
+    expect(find.byType(FlareBottomSheet), findsNothing);
 
     unawaited(
-      FlareDialog.prompt(
+      FlareBottomSheet.prompt(
         context,
         title: '修改备注',
       ).then((value) => result = value),
@@ -72,7 +72,7 @@ void main() {
     tester,
   ) async {
     final context = await _pumpHost(tester);
-    unawaited(FlareDialog.prompt(context, title: '群名称'));
+    unawaited(FlareBottomSheet.prompt(context, title: '群名称'));
     await tester.pumpAndSettle();
     FlareButton confirm() =>
         tester.widget<FlareButton>(_button(_strings.confirm));
@@ -88,7 +88,7 @@ void main() {
 
     String? cleared = 'untouched';
     unawaited(
-      FlareDialog.prompt(
+      FlareBottomSheet.prompt(
         context,
         title: '修改备注',
         initialValue: 'Ann',
@@ -110,7 +110,7 @@ void main() {
     var pending = Completer<void>();
     String? result;
     unawaited(
-      FlareDialog.prompt(
+      FlareBottomSheet.prompt(
         context,
         title: '评论',
         confirmText: '发送',
@@ -135,11 +135,11 @@ void main() {
     expect(tester.widget<TextField>(find.byType(TextField)).enabled, isFalse);
     await tester.binding.handlePopRoute();
     await tester.pump();
-    expect(find.byType(FlareDialog), findsOneWidget);
+    expect(find.byType(FlareBottomSheet), findsOneWidget);
 
     pending.completeError(StateError('network down'));
     await tester.pumpAndSettle();
-    expect(find.byType(FlareDialog), findsOneWidget);
+    expect(find.byType(FlareBottomSheet), findsOneWidget);
     expect(find.textContaining('network down'), findsOneWidget);
     expect(find.text('好看'), findsOneWidget, reason: 'the draft is kept');
     expect(result, isNull);
@@ -148,7 +148,38 @@ void main() {
     await tester.tap(_button('发送'));
     await tester.pumpAndSettle();
     expect(submitted, ['好看', '好看']);
-    expect(find.byType(FlareDialog), findsNothing);
+    expect(find.byType(FlareBottomSheet), findsNothing);
     expect(result, '好看');
+  });
+
+  testWidgets('on a phone the prompt is a sheet that no drag closes while '
+      'the submit runs', (tester) async {
+    tester.view.physicalSize = const Size(402, 874);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final context = await _pumpHost(tester);
+    final pending = Completer<void>();
+    String? result;
+    unawaited(
+      FlareBottomSheet.prompt(
+        context,
+        title: '群名称',
+        initialValue: '发版群',
+        onSubmit: (_) => pending.future,
+      ).then((value) => result = value),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsOneWidget);
+    await tester.tap(_button(_strings.confirm));
+    await tester.pump();
+    await tester.drag(find.byType(TextField), const Offset(0, 600));
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.byType(FlareBottomSheet), findsOneWidget);
+    pending.complete();
+    await tester.pumpAndSettle();
+    expect(find.byType(FlareBottomSheet), findsNothing);
+    expect(result, '发版群');
   });
 }

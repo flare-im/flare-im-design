@@ -78,6 +78,7 @@ void main() {
     );
     await _act(tester, 'Bob', _labels.removeMember);
     // The host confirms these with its own presenter; the kit asks nothing.
+    expect(find.byType(FlareDangerConfirm), findsNothing);
     expect(find.byType(AlertDialog), findsNothing);
     expect(log, ['remove u2']);
 
@@ -90,6 +91,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(leave);
     await tester.pumpAndSettle();
+    expect(find.byType(FlareDangerConfirm), findsNothing);
     expect(find.byType(AlertDialog), findsNothing);
     expect(log, ['remove u2', 'leave']);
   });
@@ -109,13 +111,15 @@ void main() {
       ),
     );
     await _act(tester, 'Bob', _labels.transferOwner);
-    expect(find.byType(AlertDialog), findsOneWidget);
+    // The kit's own confirmation, on the kit's short-task surface.
+    expect(find.byType(FlareDangerConfirm), findsOneWidget);
+    expect(find.byType(AlertDialog), findsNothing);
     expect(find.text(_labels.transferConfirm('Bob')), findsOneWidget);
     expect(transfers, isEmpty);
 
     await tester.tap(find.text(_labels.cancel));
     await tester.pumpAndSettle();
-    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.byType(FlareDangerConfirm), findsNothing);
     expect(transfers, isEmpty);
 
     await _act(tester, 'Bob', _labels.transferOwner);

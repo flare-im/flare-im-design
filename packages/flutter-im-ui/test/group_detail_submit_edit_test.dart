@@ -32,7 +32,7 @@ Future<void> _pump(WidgetTester tester, Widget detail) async {
 }
 
 Finder get _field => find.descendant(
-  of: find.byType(FlareDialog),
+  of: find.byType(FlareBottomSheet),
   matching: find.byType(TextField),
 );
 
@@ -64,17 +64,21 @@ void main() {
     await tester.pump();
     await tester.tap(_save);
     await tester.pumpAndSettle();
-    expect(find.byType(FlareDialog), findsOneWidget);
+    expect(find.byType(FlareBottomSheet), findsOneWidget);
     expect(find.textContaining('Unavailable'), findsOneWidget);
     expect(find.text('New team'), findsOneWidget, reason: 'the draft is kept');
 
     await tester.tap(_save);
     await tester.pump();
-    expect(find.byType(FlareDialog), findsOneWidget, reason: 'busy writing');
+    expect(
+      find.byType(FlareBottomSheet),
+      findsOneWidget,
+      reason: 'busy writing',
+    );
     expect(tester.widget<FlareButton>(_save).loading, isTrue);
     pending!.complete();
     await tester.pumpAndSettle();
-    expect(find.byType(FlareDialog), findsNothing);
+    expect(find.byType(FlareBottomSheet), findsNothing);
     expect(writes, [
       (FlareGroupEditKind.name, 'New team'),
       (FlareGroupEditKind.name, 'New team'),
@@ -126,7 +130,7 @@ void main() {
     await tester.pump();
     await tester.tap(_save);
     await tester.pumpAndSettle();
-    expect(find.byType(FlareDialog), findsNothing);
+    expect(find.byType(FlareBottomSheet), findsNothing);
     expect(reported, ['Skipper']);
   });
 }

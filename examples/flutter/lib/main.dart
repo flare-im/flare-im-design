@@ -403,19 +403,44 @@ class _Gallery extends StatelessWidget {
                 FlareButton(label: '处理中', loading: true, onPressed: () {}),
                 const FlareButton(label: '不可用', disabled: true),
                 FlareButton(
-                  label: '打开对话框',
+                  label: '打开模态框',
                   variant: FlareButtonVariant.secondary,
-                  onPressed: () => showDialog<void>(
-                    context: context,
-                    builder: (context) => FlareDialog(
-                      title: const Text('确认操作'),
-                      content: const Text('这是真实的公共 Dialog 组件。'),
-                      actions: [
+                  onPressed: () => FlareModal.show<void>(
+                    context,
+                    builder: (modalContext) => FlareModal(
+                      title: '确认操作',
+                      footer: [
                         FlareButton(
                           label: '关闭',
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: () => Navigator.pop(modalContext),
                         ),
                       ],
+                      child: const Text('这是真实的公共 Modal 组件。'),
+                    ),
+                  ),
+                ),
+                FlareButton(
+                  label: '打开侧边抽屉',
+                  variant: FlareButtonVariant.secondary,
+                  onPressed: () => FlareDrawer.show<void>(
+                    context,
+                    title: '会话详情',
+                    navigable: false,
+                    builder: (_) => const Padding(
+                      padding: EdgeInsets.all(FlareSizes.spacingLg),
+                      child: Text('这是真实的公共 Drawer 组件。'),
+                    ),
+                  ),
+                ),
+                FlareButton(
+                  label: '打开底部面板',
+                  variant: FlareButtonVariant.secondary,
+                  onPressed: () => FlareBottomSheet.show<void>(
+                    context,
+                    title: '选择操作',
+                    builder: (_) => const Padding(
+                      padding: EdgeInsets.all(FlareSizes.spacingLg),
+                      child: Text('手机上是底部面板，宽屏交给模态框。'),
                     ),
                   ),
                 ),
@@ -520,7 +545,12 @@ class _Gallery extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 FlareMessageBubble(
-                  message: _msg('text-out', 'Me', '收到，我下午过一遍给你反馈 👍', self: true),
+                  message: _msg(
+                    'text-out',
+                    'Me',
+                    '收到，我下午过一遍给你反馈 👍',
+                    self: true,
+                  ),
                   currentUserId: 'me',
                 ),
                 const SizedBox(height: 8),

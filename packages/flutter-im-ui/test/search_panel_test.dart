@@ -172,4 +172,120 @@ void main() {
       expect(viewed, [FlareSearchResultKind.contact]);
     },
   );
+
+  group('page layout', () {
+    FlareSearchSnapshot results(int count, {String query = 'a'}) =>
+        FlareSearchSnapshot(
+          criteria: FlareSearchCriteria(query: query, filterId: 'all'),
+          state: FlareSearchState.success,
+          groups: [
+            FlareSearchResultGroup(
+              kind: FlareSearchResultKind.message,
+              label: '消息',
+              items: [
+                for (var i = 0; i < count; i++)
+                  FlareSearchResultItem(
+                    id: 'm$i',
+                    kind: FlareSearchResultKind.message,
+                    title: '结果 $i',
+                  ),
+              ],
+            ),
+          ],
+        );
+
+    testWidgets('the field stays put and only the results scroll', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(402, 700);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FlareSearchPanel(
+              layout: FlareSearchPanelLayout.page,
+              snapshot: results(60),
+              filters: const {'all': '全部', 'text': '文本'},
+              onSearch: (_) {},
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      final field = tester.getRect(find.byType(FlareSearchBar));
+      final before = tester.getRect(find.text('结果 3')).top;
+      await tester.drag(find.text('结果 3'), const Offset(0, -300));
+      await tester.pumpAndSettle();
+      expect(tester.getRect(find.byType(FlareSearchBar)), field);
+      expect(
+        tester.getRect(find.text('结果 3')).top,
+        lessThan(before - 200),
+        reason: 'the results scrolled under the fixed field',
+      );
+      expect(find.text('结果 0').hitTestable(), findsNothing);
+      // Result rows run edge to edge: the panel adds no gutter of its own.
+      expect(tester.getRect(find.byType(FlareSearchResults)).width, 402);
+    });
+
+    testWidgets('autofocus puts the caret in the field', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FlareSearchPanel(
+              autofocus: true,
+              layout: FlareSearchPanelLayout.page,
+              snapshot: const FlareSearchSnapshot(
+                criteria: FlareSearchCriteria(query: '', filterId: 'all'),
+                state: FlareSearchState.idle,
+              ),
+              filters: const {'all': '全部'},
+              onSearch: (_) {},
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final field = tester.widget<EditableText>(find.byType(EditableText));
+      expect(field.focusNode.hasFocus, isTrue);
+    });
+
+    testWidgets('no autofocus leaves the field alone', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FlareSearchPanel(
+              snapshot: const FlareSearchSnapshot(
+                criteria: FlareSearchCriteria(query: '', filterId: 'all'),
+                state: FlareSearchState.idle,
+              ),
+              filters: const {'all': '全部'},
+              onSearch: (_) {},
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final field = tester.widget<EditableText>(find.byType(EditableText));
+      expect(field.focusNode.hasFocus, isFalse);
+    });
+  });
+
+  testWidgets('no results says so in the strings table language', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: FlareStringsScope(
+          strings: flareStringsEnglish,
+          child: Scaffold(
+            body: FlareSearchResults(groups: [], query: 'zzz'),
+          ),
+        ),
+      ),
+    );
+    expect(find.text(flareStringsEnglish.noResults), findsOneWidget);
+    expect(find.text('未找到结果'), findsNothing);
+  });
 }

@@ -242,4 +242,78 @@ void main() {
       expect(reaction, flareQuickReactions.first);
     },
   );
+
+  group('FlareMessageActionSheet.show', () {
+    Future<BuildContext> host(WidgetTester tester, Size size) async {
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      late BuildContext captured;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              captured = context;
+              return const Scaffold(body: SizedBox.expand());
+            },
+          ),
+        ),
+      );
+      return captured;
+    }
+
+    const availability = FlareMessageActionAvailability(
+      canReply: true,
+      canReact: true,
+    );
+
+    testWidgets('a phone shows it on the kit sheet, named but untitled, and '
+        'resolves with the chosen action', (tester) async {
+      final semantics = tester.ensureSemantics();
+      final context = await host(tester, const Size(402, 874));
+      final result = FlareMessageActionSheet.show(
+        context,
+        availability: availability,
+        reactions: const ['OK'],
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(BottomSheet), findsOneWidget);
+      expect(
+        find.ancestor(
+          of: find.byType(FlareMessageActionSheet),
+          matching: find.byType(FlareBottomSheet),
+        ),
+        findsOneWidget,
+      );
+      final label = const FlareStrings().messageActionSheetLabel;
+      expect(find.text(label), findsNothing);
+      expect(find.bySemanticsLabel(label), findsOneWidget);
+      await tester.tap(find.text(const FlareStrings().messageActionReply));
+      await tester.pumpAndSettle();
+      expect((await result)?.actionId, 'reply');
+      semantics.dispose();
+    });
+
+    testWidgets('a wide window shows it in a Modal; a reaction resolves', (
+      tester,
+    ) async {
+      final context = await host(tester, const Size(1280, 800));
+      final result = FlareMessageActionSheet.show(
+        context,
+        availability: availability,
+        reactions: const ['OK'],
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.ancestor(
+          of: find.byType(FlareMessageActionSheet),
+          matching: find.byType(FlareModal),
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      expect((await result)?.reaction, 'OK');
+    });
+  });
 }

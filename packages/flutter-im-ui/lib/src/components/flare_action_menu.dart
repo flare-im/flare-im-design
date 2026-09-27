@@ -159,7 +159,7 @@ class FlareActionMenu extends StatelessWidget {
         if (item.visible) item,
     ];
     if (visible.isEmpty) return Future<String?>.value();
-    final capabilities = _capabilitiesOf(context);
+    final capabilities = flareCapabilitiesOf(context);
     final sheet = switch (presentation) {
       FlareActionMenuPresentation.sheet => true,
       FlareActionMenuPresentation.anchored => false,
@@ -181,9 +181,12 @@ class FlareActionMenu extends StatelessWidget {
     // press, as a browser's :focus-visible would.
     final byKeyboard = HardwareKeyboard.instance.logicalKeysPressed.isNotEmpty;
     if (sheet) {
+      // The menu already chose the sheet from its own presentation rule, so
+      // the sheet must not re-resolve itself into a centered Modal.
       return FlareBottomSheet.show<String>(
         context,
         title: label,
+        presentation: FlareSheetPresentation.sheet,
         builder: (_) => themed(
           _ActionMenuPanel(
             items: visible,
@@ -216,14 +219,6 @@ class FlareActionMenu extends StatelessWidget {
       ),
     );
   }
-
-  /// The installed adapter's capabilities; without one, the kit's detection
-  /// applied to the real window width, which the fallback adapter cannot see.
-  static FlarePlatformCapabilities _capabilitiesOf(BuildContext context) =>
-      FlarePlatform.maybeOf(context)?.capabilities ??
-      FlarePlatformCapabilities.detect(
-        width: MediaQuery.maybeSizeOf(context)?.width,
-      );
 
   static Rect? _globalRect(BuildContext context) {
     final box = context.findRenderObject();

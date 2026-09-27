@@ -7,13 +7,14 @@ import '../models/directory_data.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_avatar.dart';
+import 'flare_bottom_sheet.dart';
 import 'flare_button.dart';
 import 'flare_checkbox.dart';
 import 'flare_contact_list.dart';
-import 'flare_dialog.dart';
 import 'flare_empty_state.dart';
 import 'flare_group_member_grid.dart';
 import 'flare_radio_group.dart';
+import 'flare_scene_panels.dart';
 import 'flare_search_bar.dart';
 import 'flare_settings_list.dart';
 
@@ -434,7 +435,7 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
     bool allowEmpty = true,
   }) async {
     final submit = widget.submitEdit;
-    final value = await FlareDialog.prompt(
+    final value = await FlareBottomSheet.prompt(
       context,
       title: title,
       initialValue: initial,
@@ -482,54 +483,51 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
   Future<void> _pickJoinPolicy() async {
     // An unknown policy opens with nothing selected; saving waits for a pick.
     var draft = _m?.joinPolicy;
-    final ok = await showModalBottomSheet<bool>(
-      context: context,
-      builder: (c) => SafeArea(
-        child: StatefulBuilder(
-          builder: (c, setSheet) => Padding(
-            padding: const EdgeInsets.all(FlareSizes.spacingLg),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _sheetTitle(_l.joinMode),
-                const SizedBox(height: FlareSizes.spacingMd),
-                FlareRadioGroup(
-                  vertical: true,
-                  value: draft?.name ?? '',
-                  options: [
-                    for (final policy in FlareGroupJoinPolicy.values)
-                      FlareSelectOption(
-                        value: policy.name,
-                        label: _joinPolicyLabel(policy),
-                      ),
-                  ],
-                  onSelect: (v) => setSheet(
-                    () => draft = FlareGroupJoinPolicy.values.byName(v),
+    final ok = await FlareBottomSheet.show<bool>(
+      context,
+      title: _l.joinMode,
+      builder: (c) => StatefulBuilder(
+        builder: (c, setSheet) => SingleChildScrollView(
+          padding: const EdgeInsets.all(FlareSizes.spacingLg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              FlareRadioGroup(
+                vertical: true,
+                value: draft?.name ?? '',
+                options: [
+                  for (final policy in FlareGroupJoinPolicy.values)
+                    FlareSelectOption(
+                      value: policy.name,
+                      label: _joinPolicyLabel(policy),
+                    ),
+                ],
+                onSelect: (v) => setSheet(
+                  () => draft = FlareGroupJoinPolicy.values.byName(v),
+                ),
+              ),
+              const SizedBox(height: FlareSizes.spacingLg),
+              Row(
+                children: [
+                  Expanded(
+                    child: FlareButton(
+                      label: _l.cancel,
+                      variant: FlareButtonVariant.secondary,
+                      onPressed: () => Navigator.pop(c, false),
+                    ),
                   ),
-                ),
-                const SizedBox(height: FlareSizes.spacingLg),
-                Row(
-                  children: [
-                    Expanded(
-                      child: FlareButton(
-                        label: _l.cancel,
-                        variant: FlareButtonVariant.secondary,
-                        onPressed: () => Navigator.pop(c, false),
-                      ),
+                  const SizedBox(width: FlareSizes.spacingMd),
+                  Expanded(
+                    child: FlareButton(
+                      label: _l.save,
+                      disabled: draft == null,
+                      onPressed: () => Navigator.pop(c, true),
                     ),
-                    const SizedBox(width: FlareSizes.spacingMd),
-                    Expanded(
-                      child: FlareButton(
-                        label: _l.save,
-                        disabled: draft == null,
-                        onPressed: () => Navigator.pop(c, true),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
@@ -542,81 +540,74 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
   Future<void> _showJoinRequests() async {
     widget.onLoadJoinRequests?.call();
     final local = [...widget.joinRequests];
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
+    await FlareBottomSheet.show<void>(
+      context,
+      title: _l.joinRequests,
       builder: (c) => StatefulBuilder(
-        builder: (c, setSheet) => SizedBox(
-          height: MediaQuery.of(context).size.height * 0.6,
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(FlareSizes.spacingLg),
-                child: _sheetTitle(_l.joinRequests),
-              ),
-              Expanded(
-                child: widget.loadingJoinRequests
-                    ? Center(child: Text(_l.loading))
-                    : local.isEmpty
-                    ? Center(child: Text(_l.noRequests))
-                    : ListView(
-                        children: local
-                            .map(
-                              (r) => ListTile(
-                                leading: FlareAvatar(
-                                  userId: r.applicantId,
-                                  displayName: r.applicantName,
-                                  avatarUrl: r.avatarUrl,
-                                  size: 44,
-                                ),
-                                title: Text(r.applicantName),
-                                subtitle: (r.message?.isNotEmpty ?? false)
-                                    ? Text(r.message!)
-                                    : null,
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    FlareButton(
-                                      label: _l.reject,
-                                      size: FlareControlSize.sm,
-                                      variant: FlareButtonVariant.secondary,
-                                      onPressed: () {
-                                        widget.onRespondRequest?.call(
-                                          r.requestId,
-                                          false,
-                                        );
-                                        setSheet(
-                                          () => local.removeWhere(
-                                            (x) => x.requestId == r.requestId,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                    const SizedBox(width: FlareSizes.spacingSm),
-                                    FlareButton(
-                                      label: _l.approve,
-                                      size: FlareControlSize.sm,
-                                      onPressed: () {
-                                        widget.onRespondRequest?.call(
-                                          r.requestId,
-                                          true,
-                                        );
-                                        setSheet(
-                                          () => local.removeWhere(
-                                            (x) => x.requestId == r.requestId,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ],
-                                ),
+        builder: (c, setSheet) => Column(
+          children: [
+            Expanded(
+              child: widget.loadingJoinRequests
+                  ? Center(child: Text(_l.loading))
+                  : local.isEmpty
+                  ? Center(child: Text(_l.noRequests))
+                  : ListView(
+                      children: local
+                          .map(
+                            (r) => ListTile(
+                              leading: FlareAvatar(
+                                userId: r.applicantId,
+                                displayName: r.applicantName,
+                                avatarUrl: r.avatarUrl,
+                                size: 44,
                               ),
-                            )
-                            .toList(),
-                      ),
-              ),
-            ],
-          ),
+                              title: Text(r.applicantName),
+                              subtitle: (r.message?.isNotEmpty ?? false)
+                                  ? Text(r.message!)
+                                  : null,
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  FlareButton(
+                                    label: _l.reject,
+                                    size: FlareControlSize.sm,
+                                    variant: FlareButtonVariant.secondary,
+                                    onPressed: () {
+                                      widget.onRespondRequest?.call(
+                                        r.requestId,
+                                        false,
+                                      );
+                                      setSheet(
+                                        () => local.removeWhere(
+                                          (x) => x.requestId == r.requestId,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  const SizedBox(width: FlareSizes.spacingSm),
+                                  FlareButton(
+                                    label: _l.approve,
+                                    size: FlareControlSize.sm,
+                                    onPressed: () {
+                                      widget.onRespondRequest?.call(
+                                        r.requestId,
+                                        true,
+                                      );
+                                      setSheet(
+                                        () => local.removeWhere(
+                                          (x) => x.requestId == r.requestId,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+            ),
+          ],
         ),
       ),
     );
@@ -625,68 +616,65 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
   // ── Invite link ───────────────────────────────────────────────────────────────
   Future<void> _showInviteLink() async {
     widget.onEnsureInviteLink?.call();
-    await showModalBottomSheet<void>(
-      context: context,
-      builder: (c) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(FlareSizes.spacingXl),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _sheetTitle(_l.inviteLink),
-              const SizedBox(height: FlareSizes.spacingMd),
-              Text(
-                _l.inviteLinkHint,
-                style: TextStyle(
-                  color: FlareColors.of(c).textSecondary,
-                  fontSize: FlareSizes.fontSizeLg,
+    await FlareBottomSheet.show<void>(
+      context,
+      title: _l.inviteLink,
+      builder: (c) => SingleChildScrollView(
+        padding: const EdgeInsets.all(FlareSizes.spacingXl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              _l.inviteLinkHint,
+              style: TextStyle(
+                color: FlareColors.of(c).textSecondary,
+                fontSize: FlareSizes.fontSizeLg,
+              ),
+            ),
+            const SizedBox(height: FlareSizes.spacingLg),
+            if (widget.loadingInviteLink)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            else if (widget.inviteCode?.isNotEmpty ?? false) ...[
+              Container(
+                padding: const EdgeInsets.all(FlareSizes.spacingLg),
+                decoration: BoxDecoration(
+                  color: FlareColors.of(c).bgSecondary,
+                  borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
+                ),
+                child: SelectableText(
+                  widget.inviteCode!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.2,
+                  ),
                 ),
               ),
               const SizedBox(height: FlareSizes.spacingLg),
-              if (widget.loadingInviteLink)
-                const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: CircularProgressIndicator(),
-                  ),
-                )
-              else if (widget.inviteCode?.isNotEmpty ?? false) ...[
-                Container(
-                  padding: const EdgeInsets.all(FlareSizes.spacingLg),
-                  decoration: BoxDecoration(
-                    color: FlareColors.of(c).bgSecondary,
-                    borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
-                  ),
-                  child: SelectableText(
-                    widget.inviteCode!,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: FlareSizes.spacingLg),
-                FlareButton(
-                  block: true,
-                  label: _l.copyCode,
-                  icon: 'copy',
-                  onPressed: () async {
-                    await Clipboard.setData(
-                      ClipboardData(text: widget.inviteCode!),
-                    );
-                    if (c.mounted) Navigator.pop(c);
-                  },
-                ),
-              ] else
-                Text(
-                  _l.cannotGenerate,
-                  style: TextStyle(color: FlareColors.of(c).textTertiary),
-                ),
-            ],
-          ),
+              FlareButton(
+                block: true,
+                label: _l.copyCode,
+                icon: 'copy',
+                onPressed: () async {
+                  await Clipboard.setData(
+                    ClipboardData(text: widget.inviteCode!),
+                  );
+                  if (c.mounted) Navigator.pop(c);
+                },
+              ),
+            ] else
+              Text(
+                _l.cannotGenerate,
+                style: TextStyle(color: FlareColors.of(c).textTertiary),
+              ),
+          ],
         ),
       ),
     );
@@ -696,22 +684,20 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
   /// Every member, searchable by name. Choosing one opens the member actions
   /// when the viewer can manage them, once the sheet has closed.
   Future<void> _showMembers() async {
-    final chosen = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      builder: (c) => SizedBox(
-        height: MediaQuery.of(context).size.height * 0.8,
-        child: ValueListenableBuilder(
-          valueListenable: _model,
-          builder: (c, m, _) => _GroupMembersSheet(
-            model: m,
-            title: _sheetTitle,
-            onSearchMembers: widget.onSearchMembers,
-            onSelect: (member) {
-              if (m == null || !m.canManage || member.id == m.ownerId) return;
-              Navigator.pop(c, member.id);
-            },
-          ),
+    final strings = FlareStrings.of(context);
+    final count = _m?.memberCount ?? _m?.members.length ?? 0;
+    final chosen = await FlareBottomSheet.show<String>(
+      context,
+      title: strings.groupDetailMembersTitle(count),
+      builder: (c) => ValueListenableBuilder(
+        valueListenable: _model,
+        builder: (c, m, _) => _GroupMembersSheet(
+          model: m,
+          onSearchMembers: widget.onSearchMembers,
+          onSelect: (member) {
+            if (m == null || !m.canManage || member.id == m.ownerId) return;
+            Navigator.pop(c, member.id);
+          },
         ),
       ),
     );
@@ -726,17 +712,16 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
   }
 
   Future<void> _memberActions(String id) async {
-    await showModalBottomSheet<void>(
-      context: context,
-      builder: (c) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(FlareSizes.spacingLg),
-          // Labels follow the current model, and each intent carries the state
-          // its label names, so the host never re-derives the direction.
-          child: ValueListenableBuilder(
-            valueListenable: _model,
-            builder: (c, m, _) => _memberActionList(c, id, m),
-          ),
+    await FlareBottomSheet.show<void>(
+      context,
+      title: _l.memberManage,
+      builder: (c) => SingleChildScrollView(
+        padding: const EdgeInsets.all(FlareSizes.spacingLg),
+        // Labels follow the current model, and each intent carries the state
+        // its label names, so the host never re-derives the direction.
+        child: ValueListenableBuilder(
+          valueListenable: _model,
+          builder: (c, m, _) => _memberActionList(c, id, m),
         ),
       ),
     );
@@ -753,8 +738,6 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _sheetTitle(_l.memberManage),
-        const SizedBox(height: FlareSizes.spacingMd),
         FlareButton(
           block: true,
           variant: FlareButtonVariant.secondary,
@@ -808,24 +791,14 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
         break;
       }
     }
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (c) => AlertDialog(
-        title: Text(_l.transferOwner),
-        content: Text(_l.transferConfirm(name)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(c, false),
-            child: Text(_l.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(c, true),
-            child: Text(_l.confirmTransfer),
-          ),
-        ],
-      ),
+    final ok = await FlareDangerConfirm.show(
+      context,
+      title: _l.transferOwner,
+      description: _l.transferConfirm(name),
+      confirmText: _l.confirmTransfer,
+      cancelText: _l.cancel,
     );
-    if (ok == true) widget.onTransferOwner?.call(id);
+    if (ok) widget.onTransferOwner?.call(id);
   }
 
   // ── Invite members ─────────────────────────────────────────────────────────────
@@ -837,67 +810,48 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
         .where((c) => !memberIds.contains(c.id))
         .toList();
     final picked = <String>{};
-    final ok = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
+    final ok = await FlareBottomSheet.show<bool>(
+      context,
+      title: _l.invite,
       builder: (c) => StatefulBuilder(
-        builder: (c, setSheet) => SizedBox(
-          height: MediaQuery.of(context).size.height * 0.7,
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(FlareSizes.spacingLg),
-                child: _sheetTitle(_l.invite),
+        builder: (c, setSheet) => Column(
+          children: [
+            Expanded(
+              child: options.isEmpty
+                  ? Center(child: Text(_l.inviteEmpty))
+                  : ListView(
+                      children: options
+                          .map(
+                            (ct) => _CheckboxListTileLike(
+                              contact: ct,
+                              checked: picked.contains(ct.id),
+                              onTap: () => setSheet(() {
+                                if (picked.contains(ct.id)) {
+                                  picked.remove(ct.id);
+                                } else {
+                                  picked.add(ct.id);
+                                }
+                              }),
+                            ),
+                          )
+                          .toList(),
+                    ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(FlareSizes.spacingLg),
+              child: FlareButton(
+                block: true,
+                disabled: picked.isEmpty,
+                label: _l.inviteConfirm(picked.length),
+                onPressed: () => Navigator.pop(c, true),
               ),
-              Expanded(
-                child: options.isEmpty
-                    ? Center(child: Text(_l.inviteEmpty))
-                    : ListView(
-                        children: options
-                            .map(
-                              (ct) => _CheckboxListTileLike(
-                                contact: ct,
-                                checked: picked.contains(ct.id),
-                                onTap: () => setSheet(() {
-                                  if (picked.contains(ct.id)) {
-                                    picked.remove(ct.id);
-                                  } else {
-                                    picked.add(ct.id);
-                                  }
-                                }),
-                              ),
-                            )
-                            .toList(),
-                      ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(FlareSizes.spacingLg),
-                child: FlareButton(
-                  block: true,
-                  disabled: picked.isEmpty,
-                  label: _l.inviteConfirm(picked.length),
-                  onPressed: () => Navigator.pop(c, true),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
     if (ok == true && picked.isNotEmpty)
       widget.onInviteMembers?.call(picked.toList());
-  }
-
-  Widget _sheetTitle(String text) {
-    final colors = FlareColors.of(context);
-    return Text(
-      text,
-      style: TextStyle(
-        color: colors.textPrimary,
-        fontSize: FlareSizes.fontSize2xl,
-        fontWeight: FontWeight.w600,
-      ),
-    );
   }
 
   @override
@@ -1047,18 +1001,16 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
   }
 }
 
-/// The members sheet of [FlareGroupDetail]: the title with the member count, a
-/// search field and every member matching it.
+/// The members sheet of [FlareGroupDetail] (the sheet's title carries the
+/// member count): a search field and every member matching it.
 class _GroupMembersSheet extends StatefulWidget {
   const _GroupMembersSheet({
     required this.model,
-    required this.title,
     required this.onSelect,
     this.onSearchMembers,
   });
 
   final FlareGroupDetailModel? model;
-  final Widget Function(String text) title;
   final ValueChanged<FlareContact> onSelect;
   final Future<List<FlareContact>> Function(String keyword)? onSearchMembers;
 
@@ -1151,19 +1103,6 @@ class _GroupMembersSheetState extends State<_GroupMembersSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            FlareSizes.spacingLg,
-            FlareSizes.spacingLg,
-            FlareSizes.spacingLg,
-            FlareSizes.spacingSm,
-          ),
-          child: widget.title(
-            strings.groupDetailMembersTitle(
-              widget.model?.memberCount ?? members.length,
-            ),
-          ),
-        ),
         Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: FlareSizes.spacingLg,

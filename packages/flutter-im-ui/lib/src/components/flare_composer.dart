@@ -315,9 +315,12 @@ class FlareComposerState extends State<FlareComposer> {
   Future<void> _pickMention({int? typedAt}) async {
     if (_mentionOpen || widget.mentionCandidates.isEmpty) return;
     _mentionOpen = true;
+    // The picker sits over the composer it types into: a sheet on every form
+    // factor, like the emoji and more panels, not a centered Modal.
     final picked = await FlareBottomSheet.show<FlareMentionCandidate>(
       context,
       title: FlareStrings.of(context).composerMention,
+      presentation: FlareSheetPresentation.sheet,
       builder: (sheetContext) => FlareMentionPicker(
         candidates: widget.mentionCandidates,
         autofocus: true,

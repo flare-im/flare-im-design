@@ -184,10 +184,10 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text(_labels.name));
     await tester.pumpAndSettle();
-    expect(find.byType(FlareDialog), findsOneWidget);
+    expect(find.byType(FlareBottomSheet), findsOneWidget);
     await tester.enterText(
       find.descendant(
-        of: find.byType(FlareDialog),
+        of: find.byType(FlareBottomSheet),
         matching: find.byType(TextField),
       ),
       '  ',
@@ -197,7 +197,7 @@ void main() {
     expect(tester.widget<FlareButton>(save).disabled, isTrue);
     await tester.enterText(
       find.descendant(
-        of: find.byType(FlareDialog),
+        of: find.byType(FlareBottomSheet),
         matching: find.byType(TextField),
       ),
       ' Release room ',
@@ -205,7 +205,7 @@ void main() {
     await tester.pump();
     await tester.tap(save);
     await tester.pumpAndSettle();
-    expect(find.byType(FlareDialog), findsNothing);
+    expect(find.byType(FlareBottomSheet), findsNothing);
     expect(names, ['Release room']);
   });
 }

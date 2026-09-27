@@ -88,7 +88,8 @@ class _FlareDatePickerState extends State<FlareDatePicker> {
     final picked = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: Colors.transparent,
-      barrierColor: const Color(0xFF151220).withValues(alpha: 0.44),
+      useRootNavigator: true,
+      barrierColor: FlareColors.of(context).scrim,
       isScrollControlled: true,
       builder: (ctx) => _DateSheet(
         value: widget.value,

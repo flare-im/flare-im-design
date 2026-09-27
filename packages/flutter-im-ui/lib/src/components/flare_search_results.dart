@@ -14,7 +14,7 @@ class FlareSearchResults extends StatelessWidget {
     required this.query,
     this.onOpen,
     this.onViewAll,
-    this.emptyText = '未找到结果',
+    this.emptyText,
     this.viewAllText,
   });
 
@@ -22,7 +22,10 @@ class FlareSearchResults extends StatelessWidget {
   final String query;
   final void Function(FlareSearchResultItem)? onOpen;
   final void Function(FlareSearchResultKind)? onViewAll;
-  final String emptyText;
+
+  /// Shown when no group has a row; defaults to the strings table's
+  /// `noResults`.
+  final String? emptyText;
 
   /// Formats the per-group "view all" row (defaults to "查看全部 N").
   final String Function(int total)? viewAllText;
@@ -75,7 +78,7 @@ class FlareSearchResults extends StatelessWidget {
         ),
         child: Center(
           child: Text(
-            emptyText,
+            emptyText ?? FlareStrings.of(context).noResults,
             style: TextStyle(
               color: colors.textTertiary,
               fontSize: FlareSizes.fontSizeMd,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flare_im_ui/flare_im_ui.dart';
@@ -122,9 +124,20 @@ void main() {
         ),
       ),
     );
-    for (final b in tester.widgetList<TextButton>(find.byType(TextButton))) {
-      expect(b.onPressed, isNull);
+    final buttons = tester.widgetList<FlareButton>(find.byType(FlareButton));
+    expect(buttons, hasLength(2));
+    for (final b in buttons) {
+      expect(b.disabled, isTrue);
     }
+    expect(
+      tester
+          .widget<FlareButton>(find.widgetWithText(FlareButton, '确定'))
+          .loading,
+      isTrue,
+    );
+    // Standing alone it carries its own heading; the error is announced.
+    expect(find.text('移除成员'), findsOneWidget);
+    expect(find.text('操作失败，可以重试'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -197,5 +210,106 @@ void main() {
     await tester.pumpAndSettle();
     expect(await result, isFalse);
     expect(ran, isFalse);
+  });
+
+  group('FlareDangerConfirm.show on the adaptive surface', () {
+    Future<BuildContext> host(WidgetTester tester, Size size) async {
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      late BuildContext captured;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              captured = context;
+              return const Scaffold(body: SizedBox.expand());
+            },
+          ),
+        ),
+      );
+      return captured;
+    }
+
+    testWidgets('a phone gets a sheet; nothing closes it while the action '
+        'runs, and it resolves true once the action succeeds', (tester) async {
+      final context = await host(tester, const Size(402, 874));
+      final pending = Completer<void>();
+      final result = FlareDangerConfirm.show(
+        context,
+        title: '删除消息',
+        description: '只删除本机上的这条消息',
+        target: '你好',
+        confirmText: '删除',
+        action: () => pending.future,
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(BottomSheet), findsOneWidget);
+      expect(find.byType(FlareDangerConfirm), findsOneWidget);
+      // The surface carries the title once; the body does not repeat it.
+      expect(find.text('删除消息'), findsOneWidget);
+      await tester.tap(find.text('删除'));
+      await tester.pump();
+
+      await tester.drag(find.text('只删除本机上的这条消息'), const Offset(0, 600));
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.binding.handlePopRoute();
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(find.byType(FlareDangerConfirm), findsOneWidget);
+
+      pending.complete();
+      await tester.pumpAndSettle();
+      expect(find.byType(FlareDangerConfirm), findsNothing);
+      expect(await result, isTrue);
+    });
+
+    testWidgets('a wide window gets a Modal; dismissing it is a cancel', (
+      tester,
+    ) async {
+      final context = await host(tester, const Size(1280, 800));
+      final result = FlareDangerConfirm.show(
+        context,
+        title: '清空缓存',
+        description: '缓存的图片与文件会被删除',
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.ancestor(
+          of: find.byType(FlareDangerConfirm),
+          matching: find.byType(FlareModal),
+        ),
+        findsOneWidget,
+      );
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+      expect(find.byType(FlareDangerConfirm), findsNothing);
+      expect(await result, isFalse);
+    });
+
+    testWidgets('confirm and cancel default to the strings table', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: FlareStringsScope(
+            strings: flareStringsEnglish,
+            child: Scaffold(
+              body: FlareDangerConfirm(
+                title: 'Remove member',
+                description: 'They lose access to the group.',
+                target: 'Bob',
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(find.widgetWithText(FlareButton, 'Cancel'), findsOneWidget);
+      expect(
+        find.widgetWithText(FlareButton, flareStringsEnglish.confirm),
+        findsOneWidget,
+      );
+    });
   });
 }

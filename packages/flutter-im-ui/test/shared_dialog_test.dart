@@ -9,7 +9,7 @@ void main() {
   for (final width in [320.0, 1024.0]) {
     for (final brightness in Brightness.values) {
       testWidgets(
-        'dialog remains usable with constrained height $width $brightness',
+        'modal remains usable with constrained height $width $brightness',
         (tester) async {
           tester.view.devicePixelRatio = 1;
           tester.view.physicalSize = Size(width, 420);
@@ -22,19 +22,9 @@ void main() {
               child: MaterialApp(
                 theme: ThemeData(brightness: brightness),
                 home: Scaffold(
-                  body: FlareDialog(
-                    title: const Text('编辑资料'),
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: List.generate(
-                        8,
-                        (i) => FlareFormField(
-                          label: '资料项 $i',
-                          child: const FlareInput(placeholder: '请输入内容'),
-                        ),
-                      ),
-                    ),
-                    actions: [
+                  body: FlareModal(
+                    title: '编辑资料',
+                    footer: [
                       FlareButton(
                         label: '取消',
                         variant: FlareButtonVariant.secondary,
@@ -45,6 +35,16 @@ void main() {
                         onPressed: () => submitted = true,
                       ),
                     ],
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(
+                        8,
+                        (i) => FlareFormField(
+                          label: '资料项 $i',
+                          child: const FlareInput(placeholder: '请输入内容'),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
