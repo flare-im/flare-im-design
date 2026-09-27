@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flare_im_ui/src/components/flare_permission_prompt.dart';
 import 'package:flare_im_ui/src/tokens/flare_strings.dart';
+import 'package:flare_im_ui/src/tokens/flare_strings_english.dart';
 
 void main() {
   group('FlareStrings defaults', () {
@@ -93,6 +94,20 @@ void main() {
       final patched = s.copyWith(actionMiniProgram: 'Mini app');
       expect(patched.actionMiniProgram, 'Mini app');
       expect(patched.actionTranslate, s.actionTranslate);
+    });
+
+    test('overlay fallback names are distinct, translated and overridable', () {
+      // FlareDrawer / FlareModal fall back to these when the host gives
+      // neither a title nor a label, so a modal route is never unnamed.
+      const s = FlareStrings();
+      expect(s.drawerLabel, '侧边面板');
+      expect(s.modalLabel, '对话框');
+      expect(s.drawerLabel, isNot(s.modalLabel));
+      expect(flareStringsEnglish.drawerLabel, 'Side panel');
+      expect(flareStringsEnglish.modalLabel, 'Dialog');
+      final patched = s.copyWith(drawerLabel: 'Details');
+      expect(patched.drawerLabel, 'Details');
+      expect(patched.modalLabel, s.modalLabel);
     });
   });
 

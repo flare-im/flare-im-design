@@ -47,6 +47,8 @@ class FlareStrings {
     this.noContent = '暂无内容',
     // 通用动作
     this.close = '关闭',
+    this.drawerLabel = '侧边面板', // en: Side panel
+    this.modalLabel = '对话框', // en: Dialog
     this.closePreview = '关闭预览', // en: Close preview
     this.imagePreviewPrevious = '上一张', // en: Previous image
     this.imagePreviewNext = '下一张', // en: Next image
@@ -713,6 +715,12 @@ class FlareStrings {
   final String noContent;
   // 通用动作
   final String close;
+
+  /// FlareDrawer 既无标题也无 label 时的可及名称。
+  final String drawerLabel;
+
+  /// FlareModal 既无标题也无 label 时的可及名称。
+  final String modalLabel;
 
   /// The image preview's close control.
   final String closePreview;
@@ -1425,6 +1433,8 @@ class FlareStrings {
     String? noMessages,
     String? noContent,
     String? close,
+    String? drawerLabel,
+    String? modalLabel,
     String? closePreview,
     String? imagePreviewPrevious,
     String? imagePreviewNext,
@@ -2026,6 +2036,8 @@ class FlareStrings {
       noMessages: noMessages ?? this.noMessages,
       noContent: noContent ?? this.noContent,
       close: close ?? this.close,
+      drawerLabel: drawerLabel ?? this.drawerLabel,
+      modalLabel: modalLabel ?? this.modalLabel,
       closePreview: closePreview ?? this.closePreview,
       imagePreviewPrevious: imagePreviewPrevious ?? this.imagePreviewPrevious,
       imagePreviewNext: imagePreviewNext ?? this.imagePreviewNext,

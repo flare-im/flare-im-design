@@ -19303,8 +19303,8 @@
       "name": "BottomSheet",
       "category": "Overlay",
       "summary": {
-        "zh": "自适应底部面板原语 —— Select / 时间日期选择器 / 表单面板在手机形态下的承载面；焦点回收、滚动锁、可选标题与高度上限。",
-        "en": "Adaptive bottom-sheet primitive — the phone-form-factor surface behind Select / the pickers / form sheets; focus return, scroll lock, optional title and height cap."
+        "zh": "自适应底部面板 —— 短小、聚焦任务（选择器、表单、确认、提示）的承载面：手机形态为底部面板，其它形态把同一份内容交给 Modal 居中呈现；焦点回收、滚动锁、可选标题与高度上限。",
+        "en": "Adaptive bottom sheet — the surface for short, focused tasks (pickers, forms, confirms, prompts): a bottom sheet on the phone form factor, and on other form factors the same content handed to Modal as a centered box; focus return, scroll lock, optional title and height cap."
       },
       "dataSource": {
         "zh": "由你传入",
@@ -19328,8 +19328,8 @@
           "type": "boolean",
           "default": true,
           "description": {
-            "zh": "操作占用草稿时禁止关闭。",
-            "en": "Prevent closing while an operation owns the draft."
+            "zh": "操作占用草稿时禁止关闭（遮罩、拖拽、Escape、返回键都不再关闭）。Flutter 由 `FlareBottomSheet.show(dismissible:, busy:)` 表达，iOS 由 `flareBottomSheet(dismissible:)` 与 `FlareLayerDismissDisabledKey` 偏好表达。",
+            "en": "Prevent closing while an operation owns the draft (scrim, drag, Escape and back no longer close it). Flutter expresses it through `FlareBottomSheet.show(dismissible:, busy:)`, iOS through `flareBottomSheet(dismissible:)` and the `FlareLayerDismissDisabledKey` preference."
           },
           "platforms": [
             "vue",
@@ -19340,32 +19340,37 @@
           "name": "title",
           "type": "string",
           "description": {
-            "zh": "可选标题：底部面板居中，对话框与抽屉靠起始边。",
-            "en": "Optional header: centered on a sheet, leading on a dialog or drawer."
+            "zh": "可选标题，同时是面板的可及名称：底部面板居中；交给 Modal 时靠起始边。",
+            "en": "Optional header, also the surface's accessible name: centered on a sheet, leading when handed to Modal."
           }
         },
         {
           "name": "maxHeight",
-          "type": "string",
+          "type": "string | number",
           "description": {
-            "zh": "底部面板或对话框的高度上限（如 \"72vh\"）；抽屉为全高。",
-            "en": "Cap the sheet or dialog height (e.g. \"72vh\"); a drawer is full height."
+            "zh": "高度上限。Vue 为 CSS 长度（默认 \"72vh\"）；原生为逻辑像素（Flutter double、iOS CGFloat、Compose Dp），不传即可用高度（扣除键盘与安全区后）的 72%。内容自己负责滚动，面板只给出有界约束。",
+            "en": "Height cap. Vue takes a CSS length (default \"72vh\"); natives take logical pixels (Flutter double, iOS CGFloat, Compose Dp) and default to 72% of the available height after the keyboard and safe area. The content owns its scrolling; the surface only gives it bounded constraints."
           },
           "platforms": [
-            "vue"
-          ]
+            "vue",
+            "flutter",
+            "ios",
+            "compose"
+          ],
+          "default": "72vh"
         },
         {
           "name": "presentation",
-          "type": "'auto' | 'sheet' | 'dialog' | 'drawer'",
+          "type": "'auto' | 'sheet'",
           "default": "auto",
           "platforms": [
             "vue",
-            "flutter"
+            "flutter",
+            "compose"
           ],
           "description": {
-            "zh": "呈现方式：auto 在手机形态（平台能力 bottomSheet）为底部面板、指针设备为居中对话框；drawer 为贴在行尾的全高抽屉，用于较长的次级面板。Flutter（FlareSheetPresentation）实现 sheet 与 drawer，默认 sheet。",
-            "en": "How it appears: auto is a bottom sheet on phone form factors (platform capability bottomSheet) and a centered dialog on pointer devices; drawer is a full-height panel at the inline end for longer secondary panels. Flutter (FlareSheetPresentation) implements sheet and drawer, defaulting to sheet."
+            "zh": "呈现方式：auto 在手机形态（平台能力 bottomSheet）为底部面板，其它形态把内容交给 Modal 居中呈现（委托，不是第二套对话框实现）；sheet 总是底部面板。auto 在打开时判定一次，关闭前不再改变。需要居中弹窗用 Modal，需要侧边面板用 Drawer —— 原来的 dialog / drawer 取值已移除。iOS 由 `flareBottomSheet(presentation:)` 表达。",
+            "en": "How it appears: auto is a bottom sheet on the phone form factor (platform capability bottomSheet) and otherwise hands the content to Modal as a centered box (delegation, not a second dialog implementation); sheet is always a bottom sheet. auto is resolved once when the sheet opens and kept until it closes. Use Modal for a centered box and Drawer for a side panel — the former dialog and drawer values are removed. iOS expresses it through `flareBottomSheet(presentation:)`."
           }
         },
         {
@@ -19373,7 +19378,10 @@
           "type": "boolean",
           "default": false,
           "platforms": [
-            "vue"
+            "vue",
+            "flutter",
+            "ios",
+            "compose"
           ],
           "description": {
             "zh": "只把 title 当可及名称用，不画那行可见标题：动作面板里每一条都是一句完整的动作，再写一遍面板叫什么只是重复刚点过的按钮。",
@@ -19387,8 +19395,8 @@
             "vue"
           ],
           "description": {
-            "zh": "对话框形态下这张面的宽度，写进 --flare-component-sheet-dialog-width。组件根是 Teleport，宿主的 class 与自定义属性都到不了被传送出去的面上。",
-            "en": "Dialog-presentation width, written to --flare-component-sheet-dialog-width. The component's root is a Teleport, so a host class or custom property never reaches the teleported surface."
+            "zh": "交给 Modal 呈现时的宽度（转给 FlareModal 的 width）。组件根是 Teleport，宿主的 class 与自定义属性都到不了被传送出去的面上，所以要走 prop。",
+            "en": "Width when the content is handed to Modal (forwarded as FlareModal's width). The component's root is a Teleport, so a host class or custom property never reaches the teleported surface — hence a prop."
           }
         }
       ],
@@ -19432,18 +19440,333 @@
           "unit": "logicalPx",
           "appliesTo": "interactiveTargets"
         },
-        "reducedMotionBehavior": "The sheet appears without slide animation; the backdrop fades instantly.",
+        "reducedMotionBehavior": "The sheet appears without slide animation; the scrim appears instantly.",
         "screenReaderSemantics": "Announce the title as the dialog name; the backdrop is inert; the body behind is aria-hidden while open."
       },
       "notes": {
-        "en": "The kit's modal surface on every platform, so hosts never reach for system sheets. Vue renders it from `open` with `presentation` (auto: a bottom sheet on phone form factors, a centered dialog on pointer devices; drawer for long panels). Flutter presents it with `FlareBottomSheet.show(context, title:, dismissible:, builder:)`; iOS with the `flareBottomSheet(item:title:onDismiss:content:)` modifier around `BottomSheetView`; Compose by composing `BottomSheet(onClose, title, dismissible) { }`, a dialog window with scrim, handle, insets and back handling.",
-        "zh": "各端统一的组件库模态面板，宿主不必再调用系统面板。Vue 由 `open` 与 `presentation` 呈现（auto：手机形态为底部面板，指针设备为居中对话框；较长面板用 drawer）。Flutter 用 `FlareBottomSheet.show(context, title:, dismissible:, builder:)` 呈现；iOS 用包裹 `BottomSheetView` 的 `flareBottomSheet(item:title:onDismiss:content:)` 修饰符；Compose 直接组合 `BottomSheet(onClose, title, dismissible) { }`，它是带遮罩、把手、安全区与返回处理的对话框窗口。"
+        "en": "The kit's surface for short, focused tasks on every platform, so hosts never reach for system sheets. `presentation=\"auto\"` (the default on all four platforms) is a bottom sheet on the phone form factor and otherwise shows the content in Modal; long-lived secondary content belongs in Drawer, not here. Vue renders it from `open` (the form factor is `platform.capabilities.value.bottomSheet`). Flutter presents it with `FlareBottomSheet.show(context, title:, titleHidden:, dismissible:, busy:, maxHeight:, presentation:, builder:)` and `FlareBottomSheet.prompt`; the form factor is `flareCapabilitiesOf(context).bottomSheet`. iOS presents it with `flareBottomSheet(isPresented:|item:, title:, presentation:, dismissible:, size:, onDismiss:, content:)` around `BottomSheetView` (`size: .large` fills the large detent for search, pickers and flows with their own NavigationStack); presentation and dismissible live on that presenter, not on `BottomSheetView`. Compose composes `BottomSheet(onClose, title, titleHidden, maxHeight, dismissible, presentation) { }`, a dialog window whose content owns its scrolling; `flareCompactOverlays()` is its form-factor resolver. DangerConfirm, FormSheet and prompts follow the same auto rule on all four platforms.",
+        "zh": "各端统一的短任务承载面，宿主不必再调用系统面板。`presentation=\"auto\"`（四端默认）在手机形态为底部面板，其它形态把内容交给 Modal；长驻的次级内容属于 Drawer，不放这里。Vue 由 `open` 呈现（形态判据是 `platform.capabilities.value.bottomSheet`）。Flutter 用 `FlareBottomSheet.show(context, title:, titleHidden:, dismissible:, busy:, maxHeight:, presentation:, builder:)` 与 `FlareBottomSheet.prompt` 呈现，形态判据是 `flareCapabilitiesOf(context).bottomSheet`。iOS 用包裹 `BottomSheetView` 的 `flareBottomSheet(isPresented:|item:, title:, presentation:, dismissible:, size:, onDismiss:, content:)` 呈现（`size: .large` 占满大档位，用于搜索、选择器与自带 NavigationStack 的流程）；presentation 与 dismissible 在这个呈现器上，不在 `BottomSheetView` 上。Compose 直接组合 `BottomSheet(onClose, title, titleHidden, maxHeight, dismissible, presentation) { }`，它是对话框窗口，内容自己负责滚动；形态判据是 `flareCompactOverlays()`。DangerConfirm、FormSheet 与提示框在四端遵循同一条 auto 规则。"
       },
       "eventPlatforms": {
         "close": [
           "vue",
           "compose"
         ]
+      }
+    },
+    {
+      "name": "Drawer",
+      "category": "Overlay",
+      "summary": {
+        "zh": "侧边抽屉 —— 从行尾（默认）或行首边滑出的全高模态面板，承载长驻的次级内容（会话 / 群 / 联系人详情、设置栈、资料编辑）；遮罩、焦点陷阱、Escape 与平台返回键、可选返回键与页内导航。",
+        "en": "Side drawer — a full-height modal panel sliding in from the inline end (default) or start edge, for long-lived secondary content (conversation, group and contact details, settings stacks, the profile editor); scrim, focus trap, Escape and platform back, an optional back control and in-panel navigation."
+      },
+      "dataSource": {
+        "zh": "由你传入",
+        "en": "passed in by you"
+      },
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "zh": "是否打开（受控）。",
+            "en": "Whether the drawer is open (controlled)."
+          },
+          "platforms": [
+            "vue"
+          ]
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": {
+            "zh": "可选标题，同时是抽屉的可及名称；位于头部行起始。",
+            "en": "Optional header, also the drawer's accessible name; leads the header row."
+          }
+        },
+        {
+          "name": "titleHidden",
+          "type": "boolean",
+          "default": false,
+          "description": {
+            "zh": "只把 title 当可及名称用，不画可见标题。",
+            "en": "Use title as the accessible name only, without drawing the heading."
+          }
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "description": {
+            "zh": "没有可见标题时的可及名称（自带页头的页面式内容）。每个抽屉都要有 title 或 label；原生端兜底为 FlareStrings.drawerLabel。",
+            "en": "Accessible name when there is no visible title (page-like content that brings its own header). Every drawer needs a title or a label; natives fall back to FlareStrings.drawerLabel."
+          }
+        },
+        {
+          "name": "placement",
+          "type": "'end' | 'start'",
+          "default": "end",
+          "description": {
+            "zh": "抽屉贴靠的边，按行内方向（随 RTL 翻转）。",
+            "en": "Edge the drawer docks to, in inline (RTL-aware) terms."
+          }
+        },
+        {
+          "name": "width",
+          "type": "string | number",
+          "description": {
+            "zh": "面板宽度。默认取 token sizes.component.sheetWidth（420），并夹到「窗口宽 − 触达尺寸」，始终留出一条可点的遮罩；Vue 在手机形态为全宽。Vue 为 CSS 长度；原生为逻辑像素（Flutter double、iOS CGFloat、Compose Dp）。",
+            "en": "Panel width. Defaults to the token sizes.component.sheetWidth (420) and is clamped to the window minus the touch target so a scrim gutter always remains; Vue is full width on the phone form factor. Vue takes a CSS length; natives take logical pixels (Flutter double, iOS CGFloat, Compose Dp)."
+          }
+        },
+        {
+          "name": "dismissible",
+          "type": "boolean",
+          "default": true,
+          "description": {
+            "zh": "允许遮罩、Escape、平台返回键与关闭按钮关闭抽屉；false 在操作占用时锁住。",
+            "en": "Allow the scrim, Escape, platform back and the close button to close the drawer; false locks it while an operation owns it."
+          }
+        },
+        {
+          "name": "showClose",
+          "type": "boolean",
+          "default": true,
+          "description": {
+            "zh": "在头部画关闭按钮（48 触达区，iOS 44pt，标签为 FlareStrings close）；不可关闭时禁用。",
+            "en": "Draw the header close button (a 48 target, 44pt on iOS, labelled FlareStrings close); disabled while not dismissible."
+          }
+        },
+        {
+          "name": "showBack",
+          "type": "boolean",
+          "default": false,
+          "description": {
+            "zh": "在起始处画返回键；此时 Escape 与平台返回键发出 back 而不是 close。宿主在默认插槽内切换页面。叫 showBack 而不是 Screen 的 back，是因为抽屉同时发出 back 事件。",
+            "en": "Draw a leading back button; Escape and platform back then emit back instead of close. The host swaps its page inside the default slot. Named showBack (not Screen's back) because the drawer also emits back."
+          }
+        }
+      ],
+      "states": [
+        "closed",
+        "open",
+        "nested"
+      ],
+      "events": [
+        "close",
+        "back"
+      ],
+      "slots": [
+        "actions",
+        "footer"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareDrawer"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareDrawer"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "DrawerView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "Drawer"
+        }
+      },
+      "accessibility": {
+        "role": "dialog",
+        "labelRequired": true,
+        "focusable": "self",
+        "keyboardBehavior": [
+          "Escape closes the drawer when dismissible, or emits back when showBack",
+          "Tab is trapped inside the drawer, including after an in-panel page change",
+          "Focus moves into the drawer on open and to its surface or heading when the page changes",
+          "Focus returns to the opener on close"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "The drawer appears and leaves without the slide; the scrim appears instantly.",
+        "screenReaderSemantics": "Announce the title or label as the dialog name (aria-modal, isModal, paneTitle, scopesRoute); everything behind the scrim is inert while it is open."
+      },
+      "notes": {
+        "en": "Long-lived secondary content beside the main view: on wide layouts a Drawer, on the phone form factor a page (the host's single-pane layout fact wins). The scrim is the token colors.scrim; the width is sizes.component.sheetWidth. Header row: [back?] title … [actions] [close?]; there is no header row when there is no title, no actions and showClose is false (page content that brings its own header). Vue renders it from `open` through the shared modal-surface stack and is full width on the phone form factor. Flutter presents it with `FlareDrawer.show<T>(context, title:, label:, placement:, width:, dismissible:, showClose:, navigable:, builder:)` — a nested Navigator on the root navigator, where the scrim closes the whole stack and Escape/back pop one page — and `FlareDrawer.showAdaptive<T>(context, asPage:, …)`, which pushes a page on the phone form factor and pushes inside an enclosing drawer. iOS presents `DrawerView` with `.flareDrawer(isPresented:|item:, …, navigable:, compactFallback: .none|.push)` (iOS 16.4+ full-screen cover with a clear background; a sheet on earlier iOS and on macOS). Compose composes `Drawer(onClose, …) { }` as a dialog window with a token scrim; hosts choose page or drawer with `flareCompactOverlays()`.",
+        "zh": "放在主视图旁边的长驻次级内容：宽布局用 Drawer，手机形态用页面（宿主的单栏布局事实优先）。遮罩为 token colors.scrim，宽度为 sizes.component.sheetWidth。头部行：[返回?] 标题 … [actions] [关闭?]；没有标题、没有 actions 且 showClose 为 false 时不画头部行（自带页头的页面内容）。Vue 由 `open` 经共用模态栈呈现，手机形态为全宽。Flutter 用 `FlareDrawer.show<T>(context, title:, label:, placement:, width:, dismissible:, showClose:, navigable:, builder:)` 呈现 —— 根导航器上的嵌套 Navigator，遮罩关闭整栈，Escape / 返回键逐页返回 —— 以及 `FlareDrawer.showAdaptive<T>(context, asPage:, …)`：手机形态推一页，已在抽屉内则在抽屉里推。iOS 用 `.flareDrawer(isPresented:|item:, …, navigable:, compactFallback: .none|.push)` 呈现 `DrawerView`（iOS 16.4+ 为透明背景的全屏覆盖；更早的 iOS 与 macOS 退为面板）。Compose 组合 `Drawer(onClose, …) { }`，它是带 token 遮罩的对话框窗口；宿主用 `flareCompactOverlays()` 在页面与抽屉之间选择。"
+      }
+    },
+    {
+      "name": "Modal",
+      "category": "Overlay",
+      "summary": {
+        "zh": "模态框 —— 遮罩上的居中面板，用于聚焦任务（全局搜索、较宽的编辑流程）；标题、头部 actions、底部按钮行、忙碌锁、高度上限与定高模式。",
+        "en": "Modal — a centered box over a scrim for focused tasks (global search, wider editing flows); title, header actions, a footer button row, a busy lock, a height cap and a fixed-height mode."
+      },
+      "dataSource": {
+        "zh": "由你传入",
+        "en": "passed in by you"
+      },
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "zh": "是否打开（受控）。",
+            "en": "Whether the modal is open (controlled)."
+          },
+          "platforms": [
+            "vue"
+          ]
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": {
+            "zh": "可选标题，同时是模态框的可及名称；位于头部行起始。",
+            "en": "Optional header, also the modal's accessible name; leads the header row."
+          }
+        },
+        {
+          "name": "titleHidden",
+          "type": "boolean",
+          "default": false,
+          "description": {
+            "zh": "只把 title 当可及名称用，不画可见标题。",
+            "en": "Use title as the accessible name only, without drawing the heading."
+          }
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "description": {
+            "zh": "没有可见标题时的可及名称。每个模态框都要有 title 或 label；原生端兜底为 FlareStrings.modalLabel。",
+            "en": "Accessible name when there is no visible title. Every modal needs a title or a label; natives fall back to FlareStrings.modalLabel."
+          }
+        },
+        {
+          "name": "width",
+          "type": "string | number",
+          "description": {
+            "zh": "面板宽度。默认取 token sizes.component.sheetDialogWidth（480），并夹到「窗口宽 − 2 × spacing-xl」。Vue 为 CSS 长度；原生为逻辑像素（Flutter double、iOS CGFloat、Compose Dp）。",
+            "en": "Box width. Defaults to the token sizes.component.sheetDialogWidth (480) and is clamped to the window minus twice spacing-xl. Vue takes a CSS length; natives take logical pixels (Flutter double, iOS CGFloat, Compose Dp)."
+          }
+        },
+        {
+          "name": "maxHeight",
+          "type": "string | number",
+          "default": "72vh",
+          "description": {
+            "zh": "高度上限。Vue 为 CSS 长度（默认 \"72vh\"）；原生为逻辑像素，不传即可用高度（扣除键盘与安全区后）的 72%。",
+            "en": "Height cap. Vue takes a CSS length (default \"72vh\"); natives take logical pixels and default to 72% of the available height after the keyboard and safe area."
+          }
+        },
+        {
+          "name": "fill",
+          "type": "boolean",
+          "default": false,
+          "description": {
+            "zh": "定高模式：面板取满 maxHeight 而不是贴合内容，页面式内容（全局搜索）不会随结果到达而伸缩。",
+            "en": "Fixed-height mode: the box takes its whole maxHeight instead of fitting its content, so page-like content (global search) does not resize as results arrive."
+          }
+        },
+        {
+          "name": "dismissible",
+          "type": "boolean",
+          "default": true,
+          "description": {
+            "zh": "允许遮罩、Escape、平台返回键与关闭按钮关闭模态框。",
+            "en": "Allow the scrim, Escape, platform back and the close button to close the modal."
+          }
+        },
+        {
+          "name": "showClose",
+          "type": "boolean",
+          "default": true,
+          "description": {
+            "zh": "在头部画关闭按钮（48 触达区，iOS 44pt，标签为 FlareStrings close）；不可关闭或忙碌时禁用。",
+            "en": "Draw the header close button (a 48 target, 44pt on iOS, labelled FlareStrings close); disabled while not dismissible or busy."
+          }
+        },
+        {
+          "name": "busy",
+          "type": "boolean",
+          "default": false,
+          "description": {
+            "zh": "操作占用中：所有关闭途径禁用，直到操作结束。",
+            "en": "An operation owns the modal: every way of closing it is disabled until it finishes."
+          }
+        },
+        {
+          "name": "scrollable",
+          "type": "boolean",
+          "default": true,
+          "description": {
+            "zh": "正文在高度上限内滚动；false 时给内容有界约束，由内容自己滚动（列表、搜索结果）。",
+            "en": "The body scrolls inside the height cap; false hands the content bounded constraints and lets it own its scrolling (lists, search results)."
+          }
+        }
+      ],
+      "states": [
+        "closed",
+        "open",
+        "busy"
+      ],
+      "events": [
+        "close"
+      ],
+      "slots": [
+        "actions",
+        "footer"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareModal"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareModal"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ModalView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "Modal"
+        }
+      },
+      "accessibility": {
+        "role": "dialog",
+        "labelRequired": true,
+        "focusable": "self",
+        "keyboardBehavior": [
+          "Escape closes the modal when dismissible and not busy",
+          "Tab is trapped inside the modal",
+          "Focus moves to the first control in the body on open, then the header controls",
+          "Focus returns to the opener on close"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "The modal appears without the scale animation; the scrim appears instantly.",
+        "screenReaderSemantics": "Announce the title or label as the dialog name (aria-modal, isModal, paneTitle, scopesRoute); everything behind the scrim is inert while it is open."
+      },
+      "notes": {
+        "en": "The centered form of the overlay family: BottomSheet's auto presentation hands its content here off the phone form factor, and global search uses it with `fill` on wide layouts (a page on the phone form factor). The scrim is the token colors.scrim; the width is sizes.component.sheetDialogWidth. The footer is the button row (trailing on wide, stacked full width on narrow); actions sit at the header's trailing edge. Vue renders it from `open` through the shared modal-surface stack. Flutter presents it with `FlareModal.show<T>(context, …, framed:, builder:)` (framed false for self-carded content); FlareModal replaces the former FlareDialog (its actions became footer, content became child, maxWidth became width, contentScrollable became scrollable, and FlareDialog.prompt became FlareBottomSheet.prompt). iOS presents `ModalView` with `.flareModal(isPresented:|item:, …)`. Compose composes `Modal(onClose, …) { }` as a dialog window with a token scrim.",
+        "zh": "浮层家族里的居中形态：BottomSheet 的 auto 在非手机形态把内容交到这里，全局搜索在宽布局用它的 `fill`（手机形态为页面）。遮罩为 token colors.scrim，宽度为 sizes.component.sheetDialogWidth。footer 是按钮行（宽屏靠行尾，窄屏整宽堆叠）；actions 位于头部行尾。Vue 由 `open` 经共用模态栈呈现。Flutter 用 `FlareModal.show<T>(context, …, framed:, builder:)` 呈现（自带卡片的内容传 framed: false）；FlareModal 取代了原来的 FlareDialog（actions 改为 footer，content 改为 child，maxWidth 改为 width，contentScrollable 改为 scrollable，FlareDialog.prompt 改为 FlareBottomSheet.prompt）。iOS 用 `.flareModal(isPresented:|item:, …)` 呈现 `ModalView`。Compose 组合 `Modal(onClose, …) { }`，它是带 token 遮罩的对话框窗口。"
       }
     },
     {
@@ -19721,14 +20044,15 @@
         },
         {
           "name": "presentation",
-          "type": "'auto' | 'sheet' | 'dialog' | 'drawer'",
+          "type": "'auto' | 'sheet'",
           "default": "auto",
           "platforms": [
-            "vue"
+            "vue",
+            "compose"
           ],
           "description": {
-            "zh": "与 BottomSheet 相同：手机上为底部面板，指针设备上为对话框；较长的表单可用 drawer。",
-            "en": "Same as BottomSheet: a bottom sheet on phones and a dialog on pointer devices; drawer for long forms."
+            "zh": "与 BottomSheet 相同：手机形态为底部面板，其它形态交给 Modal 居中呈现；sheet 总是底部面板。",
+            "en": "Same as BottomSheet: a bottom sheet on the phone form factor, otherwise handed to Modal as a centered box; sheet is always a bottom sheet."
           }
         },
         {
@@ -19738,8 +20062,8 @@
             "vue"
           ],
           "description": {
-            "zh": "对话框形态下这张面的宽度，写进 --flare-component-sheet-dialog-width。组件根是 Teleport，宿主的 class 与自定义属性都到不了被传送出去的面上。",
-            "en": "Dialog-presentation width, written to --flare-component-sheet-dialog-width. The component's root is a Teleport, so a host class or custom property never reaches the teleported surface."
+            "zh": "交给 Modal 呈现时的宽度（转给 BottomSheet 的 dialogWidth）。组件根是 Teleport，宿主的 class 与自定义属性到不了被传送出去的面上。",
+            "en": "Width when the form is handed to Modal (forwarded as BottomSheet's dialogWidth). The component's root is a Teleport, so a host class or custom property never reaches the teleported surface."
           }
         }
       ],
@@ -19785,8 +20109,8 @@
         "screenReaderSemantics": "Announce the title as the dialog name, the busy state via aria-busy, the form-level error as an alert, and the confirm availability."
       },
       "notes": {
-        "en": "Vue FormSheet follows BottomSheet's `presentation` (a sheet on phones, a dialog on pointer devices, drawer for long forms). iOS FormSheetView sizes itself to the kit sheet when presented with `flareBottomSheet`; Compose FormDialog is its dialog form; Flutter hosts compose the same form inside `FlareBottomSheet.show` or `FlareDialog.show`.",
-        "zh": "Vue FormSheet 跟随 BottomSheet 的 `presentation`（手机上为底部面板，指针设备为对话框，长表单用抽屉）。iOS FormSheetView 在经 `flareBottomSheet` 呈现时适配组件库面板尺寸；Compose FormDialog 是其对话框形态；Flutter 宿主在 `FlareBottomSheet.show` 或 `FlareDialog.show` 中组合同样的表单。"
+        "en": "FormSheet is hosted in BottomSheet with `presentation=\"auto\"` on every platform: a bottom sheet on the phone form factor, Modal otherwise. Vue FlareFormSheet passes `presentation` through; iOS FormSheetView sizes itself to the kit sheet when presented with `flareBottomSheet` (auto) and locks dismissal through `FlareLayerDismissDisabledKey` while busy; Compose FormDialog hosts itself in `BottomSheet(presentation = FlareSheetPresentation.Auto)`; Flutter hosts compose the same form inside `FlareBottomSheet.show` (auto) or use `FlareBottomSheet.prompt`.",
+        "zh": "FormSheet 在各端都由 `presentation=\"auto\"` 的 BottomSheet 承载：手机形态为底部面板，其它形态为 Modal。Vue FlareFormSheet 透传 `presentation`；iOS FormSheetView 经 `flareBottomSheet`（auto）呈现时适配组件库面板尺寸，忙碌时通过 `FlareLayerDismissDisabledKey` 锁住关闭；Compose FormDialog 把自己放进 `BottomSheet(presentation = FlareSheetPresentation.Auto)`；Flutter 宿主在 `FlareBottomSheet.show`（auto）中组合同样的表单，或直接用 `FlareBottomSheet.prompt`。"
       }
     },
     {
@@ -21281,17 +21605,15 @@
     },
     "Dialog": {
       "implementationStatus": "alias",
-      "component": "DangerConfirm",
+      "component": "Modal",
       "visual": {
         "variants": [
-          "open",
-          "busy",
-          "failure"
+          "default",
+          "fill"
         ],
         "sizes": [
-          "contentDriven",
-          "compact",
-          "comfortable"
+          "sheetDialogWidth",
+          "contentDriven"
         ],
         "tokenPolicy": "semanticTokensOnly"
       },
@@ -21302,67 +21624,72 @@
       },
       "state": {
         "required": [
-          "default",
-          "disabled",
-          "loading",
-          "error",
-          "empty"
-        ],
-        "componentStates": [
+          "closed",
           "open",
           "busy",
-          "failure"
+          "locked"
+        ],
+        "componentStates": [
+          "closed",
+          "open",
+          "busy"
         ]
       },
       "accessibility": {
-        "semantics": "Expose localized name, role, value/state, availability, and progress. Decorative imagery is hidden.",
+        "semantics": "Expose a named modal dialog (title or label); the content behind the scrim is inert.",
         "keyboard": [
           "Focus moves inside on open",
           "Tab is contained",
           "Escape dismisses when allowed",
           "Focus returns to trigger"
         ],
-        "focus": "visibleFocusAndRestoration"
+        "focus": "containedFocusAndRestoration"
       },
       "props": [
         "open",
         "title",
-        "description",
-        "target",
+        "titleHidden",
+        "label",
+        "width",
+        "maxHeight",
+        "fill",
+        "dismissible",
+        "showClose",
         "busy",
-        "error",
-        "confirmText",
-        "cancelText"
+        "scrollable"
       ],
       "events": [
-        "confirm",
-        "cancel"
+        "close"
       ],
       "content": [
-        "labelOrContent"
+        "title",
+        "actions",
+        "body",
+        "footer"
       ],
       "responsiveNotes": [
-        "Preserve content hierarchy and minimum target size",
-        "Allow long content and large text to reflow without overlap"
+        "Centered box clamped to the window minus twice spacing-xl",
+        "Short tasks use BottomSheet auto, which becomes this box off the phone form factor",
+        "Footer buttons trail on wide layouts and stack full width on narrow ones"
       ],
       "platformDifferences": {
-        "vue": "ARIA and CSS focus-visible; pointer hover when available.",
-        "flutter": "Semantics, FocusTraversal, Shortcuts/Actions, and platform pointer conventions.",
-        "compose": "Compose semantics and Material interaction primitives.",
-        "ios": "SwiftUI accessibility traits, Dynamic Type, and native presentation conventions."
+        "vue": "Teleported role=dialog surface on the shared modal-surface stack; initial focus skips the header chrome and lands in the body.",
+        "flutter": "FlareModal replaces the former FlareDialog; FlareModal.show presents it on the root navigator, and a FlareModal placed directly in showDialog still centers itself.",
+        "compose": "Dialog window with the window dim off and a token scrim drawn instead; toasts render inside the topmost overlay window so they stay above it.",
+        "ios": "iOS 16.4+ full-screen cover with a clear background and a kit-drawn scrim; the system sheet's dim colour cannot be changed, so BottomSheet keeps the system dim while Modal and Drawer use colors.scrim."
       }
     },
     "Drawer": {
-      "implementationStatus": "planned",
-      "component": null,
+      "implementationStatus": "stable",
+      "component": "Drawer",
       "visual": {
         "variants": [
-          "default"
+          "end",
+          "start"
         ],
         "sizes": [
-          "contentDriven",
-          "compact",
-          "comfortable"
+          "sheetWidth",
+          "fullWidthOnPhone"
         ],
         "tokenPolicy": "semanticTokensOnly"
       },
@@ -21373,36 +21700,58 @@
       },
       "state": {
         "required": [
-          "default",
-          "disabled",
-          "loading",
-          "error",
-          "empty"
+          "closed",
+          "open",
+          "nested",
+          "locked"
         ],
-        "componentStates": []
+        "componentStates": [
+          "closed",
+          "open",
+          "nested"
+        ]
       },
       "accessibility": {
-        "semantics": "Expose role, name, value, state, and progress when applicable.",
+        "semantics": "Expose a named modal dialog (title or label); the content behind the scrim is inert.",
         "keyboard": [
-          "Tab reaches the control",
-          "Enter or Space invokes the primary action"
+          "Focus moves inside on open",
+          "Tab is contained",
+          "Escape closes when dismissible, or goes back one page when showBack",
+          "Focus returns to trigger"
         ],
-        "focus": "visibleFocusAndRestoration"
+        "focus": "containedFocusAndRestoration"
       },
-      "props": [],
-      "events": [],
+      "props": [
+        "open",
+        "title",
+        "titleHidden",
+        "label",
+        "placement",
+        "width",
+        "dismissible",
+        "showClose",
+        "showBack"
+      ],
+      "events": [
+        "close",
+        "back"
+      ],
       "content": [
-        "labelOrContent"
+        "title",
+        "actions",
+        "body",
+        "footer"
       ],
       "responsiveNotes": [
-        "Preserve content hierarchy and minimum target size",
-        "Allow long content and large text to reflow without overlap"
+        "Full-height panel at the inline end on wide layouts, clamped so a scrim gutter remains",
+        "A page on the phone form factor (Vue: full-width drawer)",
+        "Placement mirrors under RTL"
       ],
       "platformDifferences": {
-        "vue": "ARIA and CSS focus-visible; pointer hover when available.",
-        "flutter": "Semantics, FocusTraversal, Shortcuts/Actions, and platform pointer conventions.",
-        "compose": "Compose semantics and Material interaction primitives.",
-        "ios": "SwiftUI accessibility traits, Dynamic Type, and native presentation conventions."
+        "vue": "Teleported role=dialog surface on the shared modal-surface stack; full width on the phone form factor instead of falling back to a page, because web hosts do not compute the form factor themselves.",
+        "flutter": "Root-navigator route with a nested Navigator: the scrim closes the whole stack while Escape and system back pop one page; showAdaptive pushes a page on the phone form factor.",
+        "compose": "Dialog window with the window dim off and a token scrim drawn instead; one BackHandler routes back to onBack or close, and the host picks page or drawer with flareCompactOverlays().",
+        "ios": "iOS 16.4+ full-screen cover with a clear background and a kit-drawn scrim and panel; falls back to a system sheet below 16.4 and on macOS, and to a pushed page in compact width when compactFallback is .push."
       }
     },
     "Toast": {

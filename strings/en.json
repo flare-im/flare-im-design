@@ -1422,6 +1422,15 @@
     ],
     "zh": "下载中"
   },
+  "drawerLabel": {
+    "en": "Side panel",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "侧边面板"
+  },
   "emojiPickerEmoji": {
     "en": "Emoji",
     "kits": [
@@ -3166,6 +3175,15 @@
       "ios"
     ],
     "zh": "麦克风"
+  },
+  "modalLabel": {
+    "en": "Dialog",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "对话框"
   },
   "momentActions": {
     "en": "Moment actions",

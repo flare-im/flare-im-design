@@ -82,6 +82,7 @@ export const flareDesignTokens = {
     },
     "warning": "#B45309",
     "warningText": "#B45309",
+    "scrim": "rgba(21, 18, 32, 0.44)",
     "avatarTint": {
       "blue": {
         "bg": "#DBEAFE",
@@ -191,6 +192,7 @@ export const flareDesignTokens = {
       },
       "warning": "#A16207",
       "warningText": "#FBBF24",
+      "scrim": "rgba(8, 6, 16, 0.6)",
       "avatarTint": {
         "blue": {
           "bg": "#1F3266",
@@ -492,6 +494,7 @@ export const flareDesignTokens = {
           },
           "warning": "#B45309",
           "warningText": "#B45309",
+          "scrim": "rgba(21, 18, 32, 0.44)",
           "avatarTint": {
             "blue": {
               "bg": "#DBEAFE",
@@ -602,6 +605,7 @@ export const flareDesignTokens = {
           },
           "warning": "#A16207",
           "warningText": "#FBBF24",
+          "scrim": "rgba(8, 6, 16, 0.6)",
           "avatarTint": {
             "blue": {
               "bg": "#1F3266",
@@ -715,6 +719,7 @@ export const flareDesignTokens = {
           },
           "warning": "#B45309",
           "warningText": "#B45309",
+          "scrim": "rgba(21, 18, 32, 0.44)",
           "avatarTint": {
             "blue": {
               "bg": "#DBEAFE",
@@ -825,6 +830,7 @@ export const flareDesignTokens = {
           },
           "warning": "#A16207",
           "warningText": "#FBBF24",
+          "scrim": "rgba(8, 6, 16, 0.6)",
           "avatarTint": {
             "blue": {
               "bg": "#1F3266",
@@ -938,6 +944,7 @@ export const flareDesignTokens = {
           },
           "warning": "#B45309",
           "warningText": "#B45309",
+          "scrim": "rgba(21, 18, 32, 0.44)",
           "avatarTint": {
             "blue": {
               "bg": "#DBEAFE",
@@ -1048,6 +1055,7 @@ export const flareDesignTokens = {
           },
           "warning": "#A16207",
           "warningText": "#FBBF24",
+          "scrim": "rgba(8, 6, 16, 0.6)",
           "avatarTint": {
             "blue": {
               "bg": "#1F3266",
@@ -1161,6 +1169,7 @@ export const flareDesignTokens = {
           },
           "warning": "#B45309",
           "warningText": "#B45309",
+          "scrim": "rgba(21, 18, 32, 0.44)",
           "avatarTint": {
             "blue": {
               "bg": "#DBEAFE",
@@ -1271,6 +1280,7 @@ export const flareDesignTokens = {
           },
           "warning": "#A16207",
           "warningText": "#FBBF24",
+          "scrim": "rgba(8, 6, 16, 0.6)",
           "avatarTint": {
             "blue": {
               "bg": "#1F3266",
@@ -1384,6 +1394,7 @@ export const flareDesignTokens = {
           },
           "warning": "#B45309",
           "warningText": "#B45309",
+          "scrim": "rgba(21, 18, 32, 0.44)",
           "avatarTint": {
             "blue": {
               "bg": "#DBEAFE",
@@ -1494,6 +1505,7 @@ export const flareDesignTokens = {
           },
           "warning": "#A16207",
           "warningText": "#FBBF24",
+          "scrim": "rgba(8, 6, 16, 0.6)",
           "avatarTint": {
             "blue": {
               "bg": "#1F3266",
@@ -1607,6 +1619,7 @@ export const flareDesignTokens = {
           },
           "warning": "#B45309",
           "warningText": "#B45309",
+          "scrim": "rgba(21, 18, 32, 0.44)",
           "avatarTint": {
             "blue": {
               "bg": "#DBEAFE",
@@ -1717,6 +1730,7 @@ export const flareDesignTokens = {
           },
           "warning": "#A16207",
           "warningText": "#FBBF24",
+          "scrim": "rgba(8, 6, 16, 0.6)",
           "avatarTint": {
             "blue": {
               "bg": "#1F3266",

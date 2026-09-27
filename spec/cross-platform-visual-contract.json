@@ -459,6 +459,117 @@
           ]
         }
       }
+    },
+    {
+      "id": "Drawer.surface",
+      "why": "侧边抽屉的宽度与遮罩在四端必须来自同一对 token:Vue 的抽屉曾写死 max-width: 420px,Flutter 用 Colors.black54、Compose 用窗口 dim 当遮罩,四端的同一层遮罩是四种颜色。",
+      "token": "sizes.component.sheetWidth / colors.scrim",
+      "platforms": {
+        "ios": {
+          "file": "packages/ios-im-ui/Sources/FlareIMUI/Components/DrawerView.swift",
+          "require": [
+            "FlareSizes\\.componentSheetWidth",
+            "colors\\.scrim"
+          ],
+          "forbid": [
+            "Color\\.black\\.opacity"
+          ]
+        },
+        "android": {
+          "file": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/Drawer.kt",
+          "require": [
+            "FlareSizes\\.componentSheetWidth",
+            "colors\\.scrim"
+          ],
+          "forbid": [
+            "420\\.dp"
+          ]
+        },
+        "flutter": {
+          "file": "packages/flutter-im-ui/lib/src/components/flare_drawer.dart",
+          "require": [
+            "FlareSizes\\.componentSheetWidth",
+            "colors\\.scrim"
+          ],
+          "forbid": [
+            "Colors\\.black54"
+          ]
+        },
+        "vue": {
+          "file": "packages/vue-im-ui/src/components/general/FlareDrawer.vue",
+          "require": [
+            "var\\(--flare-size-component-sheet-width\\)",
+            "var\\(--flare-color-scrim\\)"
+          ],
+          "forbid": [
+            "max-width: 420px",
+            "rgba\\(21, 18, 32, 0\\.44\\)"
+          ]
+        }
+      }
+    },
+    {
+      "id": "Modal.surface",
+      "why": "居中模态框的宽度与遮罩在四端必须来自同一对 token:Vue 的对话框宽度走 sheet-dialog-width 缝,Flutter 的 FlareDialog 用 showDialog 默认的黑色遮罩,两端的同一个弹窗宽度与遮罩色都不同。",
+      "token": "sizes.component.sheetDialogWidth / colors.scrim",
+      "platforms": {
+        "ios": {
+          "file": "packages/ios-im-ui/Sources/FlareIMUI/Components/ModalView.swift",
+          "require": [
+            "FlareSizes\\.componentSheetDialogWidth",
+            "colors\\.scrim"
+          ],
+          "forbid": [
+            "Color\\.black\\.opacity"
+          ]
+        },
+        "android": {
+          "file": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/Modal.kt",
+          "require": [
+            "FlareSizes\\.componentSheetDialogWidth",
+            "colors\\.scrim"
+          ],
+          "forbid": [
+            "480\\.dp"
+          ]
+        },
+        "flutter": {
+          "file": "packages/flutter-im-ui/lib/src/components/flare_modal.dart",
+          "require": [
+            "FlareSizes\\.componentSheetDialogWidth",
+            "colors\\.scrim"
+          ],
+          "forbid": [
+            "Colors\\.black54"
+          ]
+        },
+        "vue": {
+          "file": "packages/vue-im-ui/src/components/general/FlareModal.vue",
+          "require": [
+            "var\\(--flare-size-component-sheet-dialog-width\\)",
+            "var\\(--flare-color-scrim\\)"
+          ],
+          "forbid": [
+            "rgba\\(21, 18, 32, 0\\.44\\)"
+          ]
+        }
+      }
+    },
+    {
+      "id": "BottomSheet.scrim",
+      "why": "Vue 底部面板的遮罩曾是裸值 rgba(21, 18, 32, 0.44),与新 token colors.scrim 同值却不引用;token 一改就漂移。原生端:iOS 系统面板的 dim 颜色不可改,Flutter / Compose 的底部面板遮罩对齐 token 记为后续项。",
+      "token": "colors.scrim",
+      "platforms": {
+        "vue": {
+          "file": "packages/vue-im-ui/src/components/general/FlareBottomSheet.vue",
+          "require": [
+            "var\\(--flare-color-scrim\\)"
+          ],
+          "forbid": [
+            "rgba\\(21, 18, 32, 0\\.44\\)"
+          ]
+        }
+      }
     }
   ]
 }

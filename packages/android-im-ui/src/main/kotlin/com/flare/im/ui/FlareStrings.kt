@@ -85,6 +85,12 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
     val bottomSheetLabel: String
         get() = (overrides["bottomSheetLabel"] as? (String)) ?: "底部面板"
 
+    // 侧边抽屉 / 模态框无标题也无 label 时的面板名（en: "Side panel" / "Dialog"）
+    val drawerLabel: String
+        get() = (overrides["drawerLabel"] as? (String)) ?: "侧边面板"
+    val modalLabel: String
+        get() = (overrides["modalLabel"] as? (String)) ?: "对话框"
+
     // 消息操作
     val addReaction: String
         get() = (overrides["addReaction"] as? (String)) ?: "添加表情回复"
@@ -1452,6 +1458,14 @@ class FlareStringsBuilder internal constructor() {
     var bottomSheetLabel: String
         get() = (values["bottomSheetLabel"] as? (String)) ?: "底部面板"
         set(value) { values["bottomSheetLabel"] = value }
+
+    var drawerLabel: String
+        get() = (values["drawerLabel"] as? (String)) ?: "侧边面板"
+        set(value) { values["drawerLabel"] = value }
+
+    var modalLabel: String
+        get() = (values["modalLabel"] as? (String)) ?: "对话框"
+        set(value) { values["modalLabel"] = value }
 
     var addReaction: String
         get() = (values["addReaction"] as? (String)) ?: "添加表情回复"

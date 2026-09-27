@@ -36,6 +36,8 @@ public extension FlareStrings {
             noContent: "Nothing here",
             noConversations: "No conversations",
             close: "Close",
+            drawerLabel: "Side panel",
+            modalLabel: "Dialog",
             delete: "Delete",
             report: "Report",
             manage: "Manage",

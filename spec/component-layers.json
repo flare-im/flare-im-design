@@ -196,6 +196,8 @@
     "CommandPalette": "general-ui",
     "Screen": "general-ui",
     "BottomSheet": "general-ui",
+    "Drawer": "general-ui",
+    "Modal": "general-ui",
     "ActionMenu": "general-ui",
     "FormSheet": "general-ui",
     "SettingsRow": "im-ui",

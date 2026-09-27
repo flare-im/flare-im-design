@@ -10,7 +10,6 @@
     "flutter": {
       "FlareConversationSliverList": "Sliver form of ConversationList for CustomScrollView hosts (flare-core-flutter-app conversation_list_screen.dart).",
       "FlareMessageSliverList": "Sliver form of MessageList for CustomScrollView hosts (flare-core-flutter-app chat_screen.dart).",
-      "FlareDialog": "Base dialog primitive DangerConfirm and hosts build on (flare-core-flutter-app, flare-social-flutter-app).",
       "ComposerInlineTextField": "Composer text-field part hosts embed in their own bars (flare-core-flutter-app message_composer.dart / composer_sheets.dart); the Vue counterpart is the composer's internal input row."
     },
     "compose": {

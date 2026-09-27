@@ -101,6 +101,20 @@
       "three pane",
       "三栏",
       "桌面工作台"
+    ],
+    "Drawer": [
+      "side panel",
+      "drawer",
+      "侧边抽屉",
+      "侧边面板",
+      "抽屉"
+    ],
+    "Modal": [
+      "dialog",
+      "modal dialog",
+      "弹窗",
+      "模态框",
+      "对话框"
     ]
   },
   "overrides": {
@@ -149,6 +163,8 @@
       "EmojiStickerPicker",
       "ComposerMediaPreview",
       "BottomSheet",
+      "Drawer",
+      "Modal",
       "FormSheet",
       "ActionMenu"
     ],
@@ -241,7 +257,9 @@
         "SearchPanel",
         "DangerConfirm",
         "MemberRoleSheet",
-        "MomentAudienceSheet"
+        "MomentAudienceSheet",
+        "Drawer",
+        "Modal"
       ],
       "workspace": [
         "AppLayout",
@@ -257,6 +275,8 @@
     },
     "openers": {
       "BottomSheet": "打开底部面板",
+      "Drawer": "打开侧边抽屉",
+      "Modal": "打开模态框",
       "FormSheet": "重命名群聊",
       "CommandPalette": "打开命令面板",
       "ImagePreviewModal": "打开图片预览",

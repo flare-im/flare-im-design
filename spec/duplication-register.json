@@ -522,6 +522,61 @@
       ]
     },
     {
+      "id": "D20",
+      "title": "BottomSheet 的 dialog / drawer 形态 vs 独立的 Modal / Drawer",
+      "components": [
+        "BottomSheet",
+        "Modal",
+        "Drawer"
+      ],
+      "decision": "SPLIT",
+      "into": "BottomSheet keeps 'auto' | 'sheet' and delegates auto off the phone form factor to Modal; centered boxes are Modal, side panels are Drawer",
+      "state": "DONE",
+      "resolvedBy": "Overlay 三件套（Sheet / Drawer / Modal）",
+      "rationale": "一个组件四种形态让 Vue 的 FlareBottomSheet 同时画底部面板、居中对话框与侧边抽屉，Flutter 只有 sheet 与 drawer、iOS 与 Compose 只有 sheet，四端的同一个 prop 取值集合各不相同；抽屉还因为要装页面栈而长出了应用层的外壳（Flutter lib/host/detail_drawer.dart）。拆成三个组件后 presentation 只剩 auto / sheet，auto 的居中形态委托给 Modal 而不是再实现一份，侧边面板统一走 Drawer。",
+      "requires": [
+        {
+          "file": "packages/vue-im-ui/src/components/general/FlareBottomSheet.vue",
+          "contains": "<FlareModal"
+        },
+        {
+          "file": "packages/vue-im-ui/src/components/general/FlareBottomSheet.vue",
+          "contains": "capabilities.value.bottomSheet"
+        },
+        {
+          "file": "packages/vue-im-ui/src/components/general/FlareBottomSheet.vue",
+          "lacks": "flare-sheet--drawer"
+        },
+        {
+          "file": "packages/flutter-im-ui/lib/src/components/flare_bottom_sheet.dart",
+          "lacks": "FlareSheetPresentation.drawer"
+        }
+      ]
+    },
+    {
+      "id": "D21",
+      "title": "Flutter FlareDialog vs Modal",
+      "components": [
+        "Modal"
+      ],
+      "decision": "MERGE",
+      "into": "Modal (Flutter symbol FlareModal)",
+      "state": "DONE",
+      "resolvedBy": "Overlay 三件套（Sheet / Drawer / Modal）",
+      "rationale": "FlareDialog 是只有 Flutter 才有的公开对话框原语（登记为 nativeCompanion），与目录组件 Modal 是同一张居中面板的第二个公开入口。按 P0 重复公开面收敛处理：直接改名为 FlareModal 并删除旧名，不留别名；actions → footer、content → child、maxWidth → width、contentScrollable → scrollable、FlareDialog.prompt → FlareBottomSheet.prompt。",
+      "removed": {
+        "flutter": [
+          "FlareDialog"
+        ]
+      },
+      "requires": [
+        {
+          "file": "packages/flutter-im-ui/lib/src/components/flare_modal.dart",
+          "contains": "class FlareModal"
+        }
+      ]
+    },
+    {
       "id": "N1",
       "title": "DesktopWorkbench vs DesktopAppShell (naming-pattern hit)",
       "components": [

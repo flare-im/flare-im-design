@@ -67,6 +67,7 @@ class FlareColors {
     required this.textTertiary,
     required this.warning,
     required this.warningText,
+    required this.scrim,
     required this.avatarTintBlueBg,
     required this.avatarTintBlueFg,
     required this.avatarTintPurpleBg,
@@ -137,6 +138,7 @@ class FlareColors {
   final Color textTertiary;
   final Color warning;
   final Color warningText;
+  final Color scrim;
   final Color avatarTintBlueBg;
   final Color avatarTintBlueFg;
   final Color avatarTintPurpleBg;
@@ -207,6 +209,7 @@ class FlareColors {
     Color? textTertiary,
     Color? warning,
     Color? warningText,
+    Color? scrim,
     Color? avatarTintBlueBg,
     Color? avatarTintBlueFg,
     Color? avatarTintPurpleBg,
@@ -276,6 +279,7 @@ class FlareColors {
     textTertiary: textTertiary ?? this.textTertiary,
     warning: warning ?? this.warning,
     warningText: warningText ?? this.warningText,
+    scrim: scrim ?? this.scrim,
     avatarTintBlueBg: avatarTintBlueBg ?? this.avatarTintBlueBg,
     avatarTintBlueFg: avatarTintBlueFg ?? this.avatarTintBlueFg,
     avatarTintPurpleBg: avatarTintPurpleBg ?? this.avatarTintPurpleBg,
@@ -347,6 +351,7 @@ class FlareColors {
     textTertiary: Color(0xFF5F6776),
     warning: Color(0xFFB45309),
     warningText: Color(0xFFB45309),
+    scrim: Color(0x70151220),
     avatarTintBlueBg: Color(0xFFDBEAFE),
     avatarTintBlueFg: Color(0xFF1D4ED8),
     avatarTintPurpleBg: Color(0xFFE9D5FF),
@@ -418,6 +423,7 @@ class FlareColors {
     textTertiary: Color(0xFF9AA3B3),
     warning: Color(0xFFA16207),
     warningText: Color(0xFFFBBF24),
+    scrim: Color(0x99080610),
     avatarTintBlueBg: Color(0xFF1F3266),
     avatarTintBlueFg: Color(0xFFBFDBFE),
     avatarTintPurpleBg: Color(0xFF3A2566),
@@ -489,6 +495,7 @@ class FlareColors {
     textTertiary: Color(0xFF5F6776),
     warning: Color(0xFFB45309),
     warningText: Color(0xFFB45309),
+    scrim: Color(0x70151220),
     avatarTintBlueBg: Color(0xFFDBEAFE),
     avatarTintBlueFg: Color(0xFF1D4ED8),
     avatarTintPurpleBg: Color(0xFFE9D5FF),
@@ -560,6 +567,7 @@ class FlareColors {
     textTertiary: Color(0xFF9AA3B3),
     warning: Color(0xFFA16207),
     warningText: Color(0xFFFBBF24),
+    scrim: Color(0x99080610),
     avatarTintBlueBg: Color(0xFF1F3266),
     avatarTintBlueFg: Color(0xFFBFDBFE),
     avatarTintPurpleBg: Color(0xFF3A2566),
@@ -631,6 +639,7 @@ class FlareColors {
     textTertiary: Color(0xFF5F6776),
     warning: Color(0xFFB45309),
     warningText: Color(0xFFB45309),
+    scrim: Color(0x70151220),
     avatarTintBlueBg: Color(0xFFDBEAFE),
     avatarTintBlueFg: Color(0xFF1D4ED8),
     avatarTintPurpleBg: Color(0xFFE9D5FF),
@@ -702,6 +711,7 @@ class FlareColors {
     textTertiary: Color(0xFF9AA3B3),
     warning: Color(0xFFA16207),
     warningText: Color(0xFFFBBF24),
+    scrim: Color(0x99080610),
     avatarTintBlueBg: Color(0xFF1F3266),
     avatarTintBlueFg: Color(0xFFBFDBFE),
     avatarTintPurpleBg: Color(0xFF3A2566),
@@ -773,6 +783,7 @@ class FlareColors {
     textTertiary: Color(0xFF5F6776),
     warning: Color(0xFFB45309),
     warningText: Color(0xFFB45309),
+    scrim: Color(0x70151220),
     avatarTintBlueBg: Color(0xFFDBEAFE),
     avatarTintBlueFg: Color(0xFF1D4ED8),
     avatarTintPurpleBg: Color(0xFFE9D5FF),
@@ -844,6 +855,7 @@ class FlareColors {
     textTertiary: Color(0xFF9AA3B3),
     warning: Color(0xFFA16207),
     warningText: Color(0xFFFBBF24),
+    scrim: Color(0x99080610),
     avatarTintBlueBg: Color(0xFF1F3266),
     avatarTintBlueFg: Color(0xFFBFDBFE),
     avatarTintPurpleBg: Color(0xFF3A2566),
@@ -915,6 +927,7 @@ class FlareColors {
     textTertiary: Color(0xFF5F6776),
     warning: Color(0xFFB45309),
     warningText: Color(0xFFB45309),
+    scrim: Color(0x70151220),
     avatarTintBlueBg: Color(0xFFDBEAFE),
     avatarTintBlueFg: Color(0xFF1D4ED8),
     avatarTintPurpleBg: Color(0xFFE9D5FF),
@@ -986,6 +999,7 @@ class FlareColors {
     textTertiary: Color(0xFF9AA3B3),
     warning: Color(0xFFA16207),
     warningText: Color(0xFFFBBF24),
+    scrim: Color(0x99080610),
     avatarTintBlueBg: Color(0xFF1F3266),
     avatarTintBlueFg: Color(0xFFBFDBFE),
     avatarTintPurpleBg: Color(0xFF3A2566),
@@ -1057,6 +1071,7 @@ class FlareColors {
     textTertiary: Color(0xFF5F6776),
     warning: Color(0xFFB45309),
     warningText: Color(0xFFB45309),
+    scrim: Color(0x70151220),
     avatarTintBlueBg: Color(0xFFDBEAFE),
     avatarTintBlueFg: Color(0xFF1D4ED8),
     avatarTintPurpleBg: Color(0xFFE9D5FF),
@@ -1128,6 +1143,7 @@ class FlareColors {
     textTertiary: Color(0xFF9AA3B3),
     warning: Color(0xFFA16207),
     warningText: Color(0xFFFBBF24),
+    scrim: Color(0x99080610),
     avatarTintBlueBg: Color(0xFF1F3266),
     avatarTintBlueFg: Color(0xFFBFDBFE),
     avatarTintPurpleBg: Color(0xFF3A2566),
@@ -1417,6 +1433,8 @@ abstract final class FlarePalette {
   static const Color darkWarning = Color(0xFFA16207);
   static const Color lightWarningText = Color(0xFFB45309);
   static const Color darkWarningText = Color(0xFFFBBF24);
+  static const Color lightScrim = Color(0x70151220);
+  static const Color darkScrim = Color(0x99080610);
   static const Color lightAvatarTintBlueBg = Color(0xFFDBEAFE);
   static const Color darkAvatarTintBlueBg = Color(0xFF1F3266);
   static const Color lightAvatarTintBlueFg = Color(0xFF1D4ED8);

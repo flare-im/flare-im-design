@@ -42,6 +42,10 @@ public struct FlareStrings: Sendable {
     public var noConversations: String
     // Generic actions
     public var close: String
+    /// DrawerView 既无标题也无 label 时的可及名称（en: "Side panel"）。
+    public var drawerLabel: String
+    /// ModalView 既无标题也无 label 时的可及名称（en: "Dialog"）。
+    public var modalLabel: String
     public var delete: String
     /// 举报这一条（他人的动态/消息/资料）。与 `delete` 同层：都是「对这一条动作」，
     /// 二者互斥 —— 自己的东西删、别人的东西报。
@@ -820,6 +824,8 @@ public struct FlareStrings: Sendable {
         noContent: String = "暂无内容",
         noConversations: String = "暂无会话",
         close: String = "关闭",
+        drawerLabel: String = "侧边面板",
+        modalLabel: String = "对话框",
         delete: String = "删除",
         report: String = "举报",
         manage: String = "管理",
@@ -1438,6 +1444,8 @@ public struct FlareStrings: Sendable {
         self.noContent = noContent
         self.noConversations = noConversations
         self.close = close
+        self.drawerLabel = drawerLabel
+        self.modalLabel = modalLabel
         self.delete = delete
         self.report = report
         self.manage = manage
