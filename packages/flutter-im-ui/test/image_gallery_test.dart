@@ -302,4 +302,23 @@ void main() {
       expect(key.height, lessThan(100));
     },
   );
+
+  test('a picture with only its local copy is still in the gallery', () {
+    final items = flareImageGalleryItems([
+      const FlareMessageData(
+        id: 'm1',
+        senderId: 'ivy',
+        senderName: 'ivy',
+        content: FlareImageContent(url: '', localPath: '/cache/a.png'),
+      ),
+      const FlareMessageData(
+        id: 'm2',
+        senderId: 'ivy',
+        senderName: 'ivy',
+        content: FlareImageContent(url: ''),
+      ),
+    ]);
+    expect(items.map((i) => i.messageId), ['m1']);
+    expect(items.single.source, '/cache/a.png');
+  });
 }

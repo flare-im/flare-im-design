@@ -3,6 +3,7 @@
 /// (`spec/image-gallery-vectors.json`).
 library;
 
+import '../components/flare_media_image.dart' show flarePictureSource;
 import 'message_content.dart';
 import 'message_data.dart';
 
@@ -19,10 +20,11 @@ class FlareImageGalleryItem {
   final int index;
   final FlareImageContent image;
 
-  /// The address the preview loads: the full-size image, else its thumbnail.
-  String get source => image.url.trim().isNotEmpty
-      ? image.url
-      : (image.thumbnailUrl ?? '').trim();
+  /// The address the preview loads: the host-resolved local copy
+  /// ([FlareImageContent.localPath], not on the web), else the full-size
+  /// image, else its thumbnail. A picture the SDK has cached may carry only
+  /// its local copy and still belongs to the gallery.
+  String get source => flarePictureSource(image, preferThumbnail: false).src;
 }
 
 /// Every picture of every image and album message in [messages] (timeline

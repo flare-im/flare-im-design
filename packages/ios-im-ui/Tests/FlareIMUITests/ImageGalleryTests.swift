@@ -79,6 +79,13 @@ final class ImageGalleryTests: XCTestCase {
         XCTAssertEqual(flareImageGalleryItems([message]).map(\.source), ["https://cdn.example/t.jpg"])
     }
 
+    func testAPictureWithOnlyItsLocalCopyIsStillInTheGallery() {
+        let cached = FlareMessageData(id: "m1", senderId: "u", senderName: "U",
+                                      content: FlareImageContent(url: "", localPath: "/cache/a.png"))
+        let empty = FlareMessageData(id: "m2", senderId: "u", senderName: "U", content: FlareImageContent(url: ""))
+        XCTAssertEqual(flareImageGalleryItems([cached, empty]).map(\.source), ["/cache/a.png"])
+    }
+
     // MARK: The preview
 
     func testASidewaysSwipePagesAndAnythingElseDoesNot() {

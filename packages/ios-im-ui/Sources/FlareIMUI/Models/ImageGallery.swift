@@ -13,11 +13,11 @@ public struct FlareImageGalleryItem: Equatable {
         self.messageId = messageId; self.index = index; self.image = image
     }
 
-    /// The picture's address in the message: the full-size image, else its thumbnail. A picture without one is not
-    /// in the gallery; the preview draws ``flarePictureSource(_:preferThumbnail:)``, the local copy first.
+    /// The address the preview loads: the host-resolved local copy (``FlareImageContent/localPath``), else the
+    /// full-size image, else its thumbnail — ``flarePictureSource(_:preferThumbnail:)``. A picture the SDK has cached
+    /// may carry only its local copy and still belongs to the gallery; one with nothing to load does not.
     public var source: String {
-        image.url.trimmingCharacters(in: .whitespaces).isEmpty
-            ? (image.thumbnailURL ?? "").trimmingCharacters(in: .whitespaces) : image.url
+        flarePictureSource(image, preferThumbnail: false).src
     }
 
     public static func == (lhs: Self, rhs: Self) -> Bool {
