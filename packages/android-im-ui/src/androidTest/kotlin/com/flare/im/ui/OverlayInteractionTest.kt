@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -23,6 +24,7 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
@@ -36,7 +38,9 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -256,6 +260,48 @@ class OverlayInteractionTest {
         compose.onNodeWithText("成员 0").assertIsDisplayed()
         // Sheet chrome: no close button; the scrim stays the announced close action.
         compose.onAllNodesWithContentDescription(strings.close).assertCountEquals(1)
+    }
+
+    /**
+     * The conversation action sheet on a short window: its content is drawn at twice the density so the seven rows
+     * are taller than the overlay's cap on any test device (the effect of a landscape phone or a split screen),
+     * and the danger group at the bottom must still scroll into view, in the sheet form and in the Modal form.
+     */
+    @Composable
+    private fun TallConversationActions(widthDp: Int) {
+        FlarePlatformProvider(formFactor(widthDp)) {
+            BottomSheet(onClose = {}, title = "会话操作") {
+                val base = LocalDensity.current
+                CompositionLocalProvider(LocalDensity provides Density(base.density * 2, base.fontScale)) {
+                    ConversationActionSheet(
+                        conversation = FlareConversationActionSnapshot(id = "c1", title = "产品周会"),
+                        capabilities = FlareConversationActionCapabilities(
+                            pin = true, mute = true, markRead = true, markUnread = true, archive = true,
+                            hide = true, clearHistory = true, delete = true,
+                        ),
+                    )
+                }
+            }
+        }
+    }
+
+    private fun assertTheDangerGroupScrollsIntoView() {
+        compose.waitForIdle()
+        val delete = compose.onNodeWithText(strings.delete)
+        delete.assertIsNotDisplayed()
+        delete.performScrollTo()
+        delete.assertIsDisplayed()
+        compose.onNodeWithText(strings.conversationActionSheetClearHistory).assertIsDisplayed()
+    }
+
+    @Test fun aConversationActionSheetScrollsToItsDangerGroupOnAShortWindowAsASheet() {
+        compose.setContent { MaterialTheme { TallConversationActions(widthDp = 390) } }
+        assertTheDangerGroupScrollsIntoView()
+    }
+
+    @Test fun aConversationActionSheetScrollsToItsDangerGroupOnAShortWindowAsAModal() {
+        compose.setContent { MaterialTheme { TallConversationActions(widthDp = 1024) } }
+        assertTheDangerGroupScrollsIntoView()
     }
 
     @Test fun dangerConfirmStacksItsKeysOnAPhoneAndLinesThemUpOnWideLayouts() {

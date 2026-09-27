@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -163,6 +165,7 @@ fun ConversationActionSheet(
         FlareConversationAction.Delete -> deleteText
     }
 
+    val inSheet = LocalFlareOverlaySurface.current != null
     Column(
         Modifier.fillMaxWidth()
             .padding(horizontal = FlareSizes.spacingSm, vertical = FlareSizes.spacingXs)
@@ -180,24 +183,29 @@ fun ConversationActionSheet(
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingXs),
         )
-        if (entries.isEmpty()) {
-            Text(
-                emptyText,
-                color = colors.textSecondary,
-                fontSize = FlareSizes.fontSizeLg.value.sp,
-                modifier = Modifier.fillMaxWidth().padding(FlareSizes.spacingMd),
-            )
-        }
-        if (primary.isNotEmpty()) {
-            ActionGroup(colors) {
-                primary.forEach { ActionRow(it, labelFor(it.action), busy, colors, onAction?.let { cb -> { cb(conversation.id, it.action) } }) }
+        // A kit overlay (a sheet, or the Modal a sheet becomes on wide layouts) bounds its content: the action
+        // groups scroll inside that cap so clear-history / delete stay reachable on a short window (landscape
+        // phone, split screen), with the title kept in view.
+        Column(if (inSheet) Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()) else Modifier) {
+            if (entries.isEmpty()) {
+                Text(
+                    emptyText,
+                    color = colors.textSecondary,
+                    fontSize = FlareSizes.fontSizeLg.value.sp,
+                    modifier = Modifier.fillMaxWidth().padding(FlareSizes.spacingMd),
+                )
             }
-        }
-        if (danger.isNotEmpty()) {
-            Spacer(Modifier.size(FlareSizes.spacingSm))
-            ActionGroup(colors) {
-                HorizontalDivider(color = colors.borderSecondary)
-                danger.forEach { ActionRow(it, labelFor(it.action), busy, colors, onAction?.let { cb -> { cb(conversation.id, it.action) } }) }
+            if (primary.isNotEmpty()) {
+                ActionGroup(colors) {
+                    primary.forEach { ActionRow(it, labelFor(it.action), busy, colors, onAction?.let { cb -> { cb(conversation.id, it.action) } }) }
+                }
+            }
+            if (danger.isNotEmpty()) {
+                Spacer(Modifier.size(FlareSizes.spacingSm))
+                ActionGroup(colors) {
+                    HorizontalDivider(color = colors.borderSecondary)
+                    danger.forEach { ActionRow(it, labelFor(it.action), busy, colors, onAction?.let { cb -> { cb(conversation.id, it.action) } }) }
+                }
             }
         }
     }
