@@ -78,6 +78,25 @@ struct FlareBottomSheet_Previews: PreviewProvider {
     }
 }
 
+struct FlareDrawer_Previews: PreviewProvider {
+    static var previews: some View {
+        DrawerView(title: "群聊信息", footer: AnyView(ButtonView(label: "退出群聊", variant: .danger, block: true) {}),
+                   onClose: {}) {
+            Text("成员、公告与设置").frame(maxWidth: .infinity, alignment: .leading).padding()
+        }
+        .frame(width: 1024, height: 700)
+    }
+}
+
+struct FlareModal_Previews: PreviewProvider {
+    static var previews: some View {
+        ModalView(title: "修改群名称", footer: AnyView(ButtonView(label: "保存") {}), onClose: {}) {
+            InputView(text: .constant("设计评审组"))
+        }
+        .frame(width: 1024, height: 700)
+    }
+}
+
 struct FlareInput_Previews: PreviewProvider {
     static var previews: some View { InputView(text: .constant("Flare IM 组件库"), placeholder: "请输入…", maxLength: 40, clearable: true).padding() }
 }

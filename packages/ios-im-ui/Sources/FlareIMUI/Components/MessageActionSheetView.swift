@@ -129,7 +129,7 @@ public func messageMenuActions(_ availability: FlareMessageActionAvailability, s
 /// with text to copy, so pass `content`. `reactions` defaults to `flareQuickReactions` when the
 /// message can take one.
 /// Dispatches `onAction` with the action id and `onReact` with the emoji; owns no
-/// positioning — present it with ``SwiftUI/View/flareBottomSheet(item:title:onDismiss:content:)``
+/// positioning — present it with ``SwiftUI/View/flareBottomSheet(item:title:titleHidden:presentation:dismissible:size:maxHeight:onDismiss:content:)``
 /// (or in a popover on a pointer device).
 public struct MessageActionSheetView: View {
     private let availability: FlareMessageActionAvailability

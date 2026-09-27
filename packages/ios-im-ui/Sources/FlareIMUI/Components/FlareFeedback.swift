@@ -90,19 +90,32 @@ struct FlarePromptRequest: Identifiable {
     }
 }
 
-/// A kit bottom sheet on screen, and whether it is closing.
-struct FlareSheetPresence: Equatable {
+/// What a kit layer on screen is.
+enum FlareLayerKind: Equatable {
+    /// A kit bottom sheet shown as a system sheet.
+    case sheet
+    /// A kit bottom sheet whose `auto` presentation handed its content to a Modal.
+    case modalFromBottomSheet
+    /// A ``ModalView`` from ``SwiftUI/View/flareModal(isPresented:title:titleHidden:label:width:maxHeight:fill:dismissible:showClose:busy:scrollable:actions:footer:onDismiss:content:)``.
+    case modal
+    /// A ``DrawerView`` from ``SwiftUI/View/flareDrawer(isPresented:title:titleHidden:label:placement:width:dismissible:showClose:showBack:navigable:compactFallback:actions:footer:onBack:onDismiss:content:)``.
+    case drawer
+}
+
+/// A kit layer on screen, and whether it is closing.
+struct FlareLayerPresence: Equatable {
     let id: UUID
+    var kind: FlareLayerKind
     var closing = false
 }
 
 /// Who shows toasts or the confirmation right now.
 enum FlareFeedbackPresenter: Equatable {
-    /// No kit bottom sheet is on screen: the host view.
+    /// No kit layer is on screen: the host view.
     case host
-    /// The newest kit bottom sheet, above its content (toasts only).
-    case sheet(UUID)
-    /// Nobody until a kit bottom sheet is gone.
+    /// The topmost kit layer: toasts above its content; confirmations too when it is an open Drawer.
+    case layer(UUID)
+    /// Nobody until the topmost kit layer is gone.
     case waiting
 }
 
@@ -115,11 +128,16 @@ enum FlareFeedbackPresenter: Equatable {
 /// Toasts stack top-center below the safe area, at most ``toastLimit`` (a new one removes the
 /// oldest), each with a close button; VoiceOver reads each message without interrupting. A toast
 /// stays 4 s, 6 s in the danger tone, or until its action or close runs with `duration: 0`;
-/// running its action dismisses it. A confirmation is ``DangerConfirmView`` in a sheet from the
-/// host, one at a time. While a ``SwiftUI/View/flareBottomSheet(item:title:onDismiss:content:)``
-/// sheet is open, toasts show above it and a confirmation waits until the sheet is gone — so a
-/// sheet action can close its sheet and ask right away. The host cannot present over a system
-/// `.sheet`; ask from content that is not inside one.
+/// running its action dismisses it. A confirmation is ``DangerConfirmView`` and a prompt a kit form, one
+/// at a time, each shown as a kit bottom sheet in its `auto` presentation (a sheet on the phone form
+/// factor, a Modal otherwise; the host measures its own width for this and publishes it as
+/// ``SwiftUI/EnvironmentValues/flareCompactOverlays``).
+///
+/// The kit's layers — bottom sheets, Modals and Drawers — form one ordered stack. Toasts show above the
+/// topmost one. A confirmation or prompt waits while the topmost is a bottom sheet or a Modal, or is
+/// closing — so a sheet action can close its sheet and ask right away; while the topmost is an open
+/// Drawer, the Drawer presents it. The host cannot present over a system `.sheet`; ask from content that
+/// is not inside one.
 @MainActor
 public final class FlareFeedback: ObservableObject {
     /// Toasts on screen at once.
@@ -128,8 +146,8 @@ public final class FlareFeedback: ObservableObject {
     @Published private(set) var toasts: [FlareToastEntry] = []
     @Published private(set) var confirmRequest: FlareConfirmRequest?
     @Published private(set) var promptRequest: FlarePromptRequest?
-    /// Kit bottom sheets on screen, oldest first.
-    @Published private(set) var sheets: [FlareSheetPresence] = []
+    /// Kit layers on screen (sheets, Modals, Drawers), oldest first.
+    @Published private(set) var layers: [FlareLayerPresence] = []
 
     private var toastActions: [Int: () -> Void] = [:]
     private var toastTimers: [Int: Task<Void, Never>] = [:]
@@ -307,55 +325,64 @@ public final class FlareFeedback: ObservableObject {
         done?.resume(returning: confirmed)
     }
 
-    // MARK: Kit bottom sheets
+    // MARK: Kit layers
 
-    /// Toasts show above the newest open kit sheet, on the host when none is on screen, and
-    /// nowhere while the newest one closes.
+    /// Toasts show above the topmost open kit layer, on the host when none is on screen, and
+    /// nowhere while the topmost one closes.
     var toastPresenter: FlareFeedbackPresenter {
-        guard let newest = sheets.last else { return .host }
-        return newest.closing ? .waiting : .sheet(newest.id)
+        guard let top = layers.last else { return .host }
+        return top.closing ? .waiting : .layer(top.id)
     }
 
-    /// The confirmation shows from the host once no kit sheet is on screen. A sheet never shows
-    /// it: a host may close the sheet and ask in the same turn, before the sheet reports closing,
-    /// and SwiftUI cannot present from a sheet on its way out.
+    /// The confirmation and the prompt show from the host once no kit layer is on screen, and from the
+    /// topmost layer while that is an open Drawer (a Drawer is where the person works; its actions ask).
+    /// A sheet or Modal never shows them: a host may close it and ask in the same turn, before it reports
+    /// closing, and SwiftUI cannot present from a layer on its way out.
     var confirmPresenter: FlareFeedbackPresenter {
-        sheets.isEmpty ? .host : .waiting
+        guard let top = layers.last else { return .host }
+        return top.kind == .drawer && !top.closing ? .layer(top.id) : .waiting
     }
 
-    func sheetPresented(_ id: UUID) {
-        if let index = sheets.firstIndex(where: { $0.id == id }) {
-            if sheets[index].closing { sheets[index].closing = false }
+    /// A kit layer opened (or, reopened before it was gone, stopped closing).
+    func layerPresented(_ id: UUID, kind: FlareLayerKind) {
+        if let index = layers.firstIndex(where: { $0.id == id }) {
+            if layers[index].closing { layers[index].closing = false }
+            if layers[index].kind != kind { layers[index].kind = kind }
         } else {
-            sheets.append(FlareSheetPresence(id: id))
+            layers.append(FlareLayerPresence(id: id, kind: kind))
         }
     }
 
-    func sheetClosing(_ id: UUID) {
-        if let index = sheets.firstIndex(where: { $0.id == id }), !sheets[index].closing { sheets[index].closing = true }
+    func layerClosing(_ id: UUID) {
+        if let index = layers.firstIndex(where: { $0.id == id }), !layers[index].closing { layers[index].closing = true }
     }
 
-    func sheetDismissed(_ id: UUID) {
-        if let index = sheets.firstIndex(where: { $0.id == id }) { sheets.remove(at: index) }
+    func layerDismissed(_ id: UUID) {
+        if let index = layers.firstIndex(where: { $0.id == id }) { layers.remove(at: index) }
     }
 
-    /// Whether the host shows the prompt: like the confirmation, once no kit sheet is on screen; a swipe
-    /// down cancels it.
-    var hostPromptPresented: Binding<Bool> {
+    /// Whether `presenter` shows the prompt: like the confirmation; dismissing it (a swipe, the scrim) cancels.
+    func promptPresented(by presenter: FlareFeedbackPresenter) -> Binding<Bool> {
         Binding(
-            get: { self.promptRequest != nil && self.confirmPresenter == .host },
-            set: { shown in if !shown && self.confirmPresenter == .host { self.cancelPrompt() } }
+            get: { self.promptRequest != nil && self.confirmPresenter == presenter },
+            set: { shown in if !shown && self.confirmPresenter == presenter { self.cancelPrompt() } }
         )
     }
 
-    /// Whether the host shows the confirmation; a swipe down (false) cancels it, while dropping a
-    /// presentation the host does not own (a kit sheet opened) leaves the request waiting.
-    var hostConfirmPresented: Binding<Bool> {
+    /// Whether `presenter` shows the confirmation; dismissing it (false) cancels, while dropping a
+    /// presentation it no longer owns (a kit layer opened above) leaves the request waiting.
+    func confirmPresented(by presenter: FlareFeedbackPresenter) -> Binding<Bool> {
         Binding(
-            get: { self.confirmRequest != nil && self.confirmPresenter == .host },
-            set: { shown in if !shown && self.confirmPresenter == .host { self.cancel() } }
+            get: { self.confirmRequest != nil && self.confirmPresenter == presenter },
+            set: { shown in if !shown && self.confirmPresenter == presenter { self.cancel() } }
         )
     }
+
+    /// Whether the host shows the prompt.
+    var hostPromptPresented: Binding<Bool> { promptPresented(by: .host) }
+
+    /// Whether the host shows the confirmation.
+    var hostConfirmPresented: Binding<Bool> { confirmPresented(by: .host) }
 }
 
 /// Reads `message` to VoiceOver after what it is saying (a polite live region).
@@ -389,23 +416,68 @@ public extension EnvironmentValues {
 }
 
 public extension View {
-    /// Presents `feedback`'s toast stack and confirmations over this view and installs it as
-    /// `EnvironmentValues.flareFeedback` below. Install once, near the app root.
+    /// Presents `feedback`'s toast stack, confirmations and prompts over this view and installs it as
+    /// `EnvironmentValues.flareFeedback` below. It also measures its own box live and publishes
+    /// ``SwiftUI/EnvironmentValues/flareCompactOverlays`` from that width, which the kit's `auto`
+    /// overlays resolve with. Install once, near the app root.
     func flareFeedbackHost(_ feedback: FlareFeedback) -> some View {
         modifier(FlareFeedbackHost(feedback: feedback))
             .environment(\.flareFeedback, feedback)
     }
 }
 
+/// The feedback host's measured box.
+private struct FlareFeedbackHostSizeKey: PreferenceKey {
+    static let defaultValue: CGSize = .zero
+    static func reduce(value: inout CGSize, nextValue: () -> CGSize) { value = nextValue() }
+}
+
 private struct FlareFeedbackHost: ViewModifier {
     @ObservedObject var feedback: FlareFeedback
+    @State private var size: CGSize?
+    @Environment(\.flareShellResponsiveMode) private var shellMode
 
     func body(content: Content) -> some View {
         content
+            .environment(\.flareOverlayHostSize, size)
+            .background(GeometryReader { proxy in
+                Color.clear.preference(key: FlareFeedbackHostSizeKey.self, value: proxy.size)
+            })
+            .onPreferenceChange(FlareFeedbackHostSizeKey.self) { measured in
+                if measured.width > 0 { size = measured }
+            }
             .modifier(FlareToastLayer(feedback: feedback, presenter: .host))
-            .sheet(isPresented: feedback.hostConfirmPresented) { FlareConfirmSheet(feedback: feedback) }
+            // The host's own confirmations never register: they would wait on themselves.
+            .modifier(FlareFeedbackRequests(
+                feedback: feedback, presenter: .host,
+                compact: FlareOverlayRules.compact(shellMode: shellMode, hostWidth: size?.width)
+            ))
+    }
+}
+
+/// The confirmation and the prompt, presented by `presenter` (the host or an open Drawer) as kit bottom
+/// sheets in the `auto` presentation, without registering in the layer stack.
+struct FlareFeedbackRequests: ViewModifier {
+    @ObservedObject var feedback: FlareFeedback
+    let presenter: FlareFeedbackPresenter
+    /// The form factor when the presenter knows it better than its environment (the host measures itself).
+    let compact: Bool?
+
+    func body(content: Content) -> some View {
+        let confirm = feedback.confirmRequest
+        let prompt = feedback.promptRequest
+        content
+            .modifier(FlareSheetLayerPresenter(
+                isPresented: feedback.confirmPresented(by: presenter), title: confirm?.options.title,
+                titleHidden: true, presentation: .auto, dismissible: confirm?.busy != true, size: .fitted,
+                maxHeight: nil, registers: false, compact: compact, onDismiss: nil
+            ) { FlareConfirmSheet(feedback: feedback) })
             // A second presentation needs its own anchor view.
-            .background(Color.clear.sheet(isPresented: feedback.hostPromptPresented) { FlarePromptSheet(feedback: feedback) })
+            .background(Color.clear.modifier(FlareSheetLayerPresenter(
+                isPresented: feedback.promptPresented(by: presenter), title: prompt?.options.title,
+                titleHidden: true, presentation: .auto, dismissible: prompt?.busy != true, size: .fitted,
+                maxHeight: nil, registers: false, compact: compact, onDismiss: nil
+            ) { FlarePromptSheet(feedback: feedback) }))
     }
 }
 
@@ -445,7 +517,7 @@ private struct FlareToastStack: View {
     }
 }
 
-/// ``DangerConfirmView`` for the current request. Keeps the last request while the sheet
+/// ``DangerConfirmView`` for the current request. Keeps the last request while the sheet or Modal
 /// animates away, so it does not empty on its way out.
 private struct FlareConfirmSheet: View {
     @ObservedObject var feedback: FlareFeedback
@@ -467,7 +539,6 @@ private struct FlareConfirmSheet: View {
                 )
             }
         }
-        .presentationDetents([.medium])
         .onReceive(feedback.$confirmRequest) { request in if let request { shown = request } }
     }
 }

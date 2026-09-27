@@ -3,8 +3,10 @@ import SwiftUI
 /// Shared editable sheet. Hosts supply fields, validation and persistence
 /// callbacks. Spec: Overlay/FormSheet — `onConfirm` / `onClose` mirror the
 /// contract's confirm / close events. Present it with
-/// ``SwiftUI/View/flareBottomSheet(item:title:onDismiss:content:)`` (the sheet fits the form), or in a
-/// `.sheet`, where it sets medium and large detents itself.
+/// ``SwiftUI/View/flareBottomSheet(isPresented:title:titleHidden:presentation:dismissible:size:maxHeight:onDismiss:content:)``
+/// in its `auto` presentation (a fitted sheet on the phone form factor, a Modal otherwise), or in a `.sheet`,
+/// where it sets medium and large detents itself. While `busy` it blocks dismissing whichever layer holds it
+/// (``SwiftUI/View/flareLayerDismissDisabled(_:)``).
 public struct FormSheetView<Content: View>: View {
     private let title: String
     private let confirmLabel: String
@@ -47,10 +49,10 @@ public struct FormSheetView<Content: View>: View {
             }
         }
         .padding(FlareSizes.spacingLg)
-        .frame(maxWidth: 480, maxHeight: .infinity)
+        .frame(maxWidth: FlareSizes.componentSheetDialogWidth, maxHeight: .infinity)
         .frame(maxWidth: .infinity)
         .foregroundColor(FlareColors.of(scheme, brand: flareBrandTheme).textPrimary)
         .background(FlareColors.of(scheme, brand: flareBrandTheme).bgPrimary)
-        .interactiveDismissDisabled(busy)
+        .flareLayerDismissDisabled(busy)
     }
 }

@@ -111,4 +111,16 @@ final class PlatformContractTests: XCTestCase {
         XCTAssertTrue(padWithTrackpad.contextMenu)
         _ = EmptyView().flarePlatform(Scripted(outcome: .success))
     }
+
+    /// `bottomSheet` is `viewport` on iOS (spec defaults.ios.bottomSheet): the overlays read the width the feedback
+    /// host measures live, with the same breakpoint as the capability record, and treat the default adapter's
+    /// unknown (infinite) width as the phone form factor rather than the desktop one.
+    func testOverlayFormFactorFollowsTheLiveViewportWidth() {
+        for width: CGFloat in [320, 390, 599, 600, 744, 1024, 1366] {
+            XCTAssertEqual(FlareOverlayRules.compact(shellMode: nil, hostWidth: width),
+                           FlarePlatformCapabilities.ios(width: width).bottomSheet, "width \(width)")
+        }
+        XCTAssertFalse(FlarePlatformCapabilities.ios().bottomSheet)
+        XCTAssertTrue(FlareOverlayRules.compact(shellMode: nil, hostWidth: .infinity))
+    }
 }

@@ -106,11 +106,12 @@ public struct NotificationPreferencesView:View {
  ForEach(items){i in Toggle(isOn:Binding(get:{i.value},set:{onChange?(i.id,$0)})){VStack(alignment:.leading){Text(i.title);Text(i.detail).font(.caption)}}.frame(minHeight:48).disabled(permission != .available || !i.enabled || i.busy || onChange == nil)}
  }}
 }
-/// Present inside a sheet; host keeps it open after failures. Interactive dismissal is blocked while busy.
+/// Present inside a kit bottom sheet (auto: a sheet on the phone form factor, a Modal otherwise); host keeps it
+/// open after failures. Dismissing the layer that holds it is blocked while busy (``SwiftUI/View/flareLayerDismissDisabled(_:)``).
 /// ``FlareFeedback/confirm(_:)`` presents it for you. An empty `target` shows no target line.
 public struct DangerConfirmView:View {
  let title:String;let description:String;let target:String;let busy:Bool;let error:String?;let confirmText:String?;let cancelText:String?;let onConfirm:()->Void;let onCancel:()->Void
  @Environment(\.flareStrings) private var strings
  public init(title:String,description:String,target:String,busy:Bool=false,error:String?=nil,confirmText:String?=nil,cancelText:String?=nil,onConfirm:@escaping ()->Void,onCancel:@escaping ()->Void){self.title=title;self.description=description;self.target=target;self.busy=busy;self.error=error;self.confirmText=confirmText;self.cancelText=cancelText;self.onConfirm=onConfirm;self.onCancel=onCancel}
- public var body:some View {ScrollView{VStack(alignment:.leading,spacing:12){Text(title).font(.headline);Text(description);if !target.isEmpty {Text(target).bold()};if let error {Text(error)};Button(action:onCancel){Text(cancelText ?? strings.cancel).frame(minWidth:48,minHeight:48)}.disabled(busy);Button(role:.destructive,action:onConfirm){Text(confirmText ?? strings.confirmAction).frame(minWidth:48,minHeight:48)}.disabled(busy)}.padding(20)}.interactiveDismissDisabled(busy)}
+ public var body:some View {ScrollView{VStack(alignment:.leading,spacing:FlareSizes.spacingMd){Text(title).font(.headline);Text(description);if !target.isEmpty {Text(target).bold()};if let error {Text(error)};Button(action:onCancel){Text(cancelText ?? strings.cancel).frame(minWidth:FlareSizes.touchTarget,minHeight:FlareSizes.touchTarget)}.disabled(busy);Button(role:.destructive,action:onConfirm){Text(confirmText ?? strings.confirmAction).frame(minWidth:FlareSizes.touchTarget,minHeight:FlareSizes.touchTarget)}.disabled(busy)}.padding(FlareSizes.spacingXl)}.flareLayerDismissDisabled(busy)}
 }

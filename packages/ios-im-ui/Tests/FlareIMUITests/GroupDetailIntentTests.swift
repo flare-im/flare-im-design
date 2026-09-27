@@ -57,7 +57,7 @@ final class GroupDetailIntentTests: XCTestCase {
         for _ in 0..<1_000 where feedback.confirmRequest == nil { await Task.yield() }
         feedback.cancel()
         XCTAssertEqual(transferred, ["u2"])
-        // Without a host the view falls back to its system alert.
+        // Without a host the view falls back to its own confirmation sheet.
         XCTAssertFalse(FlareGroupDetail.confirm(options, through: nil))
     }
 
@@ -70,7 +70,7 @@ final class GroupDetailIntentTests: XCTestCase {
                                       onRemoveMember: { intents.append("remove \($0)") },
                                       onLeave: { intents.append("leave") })
         let memberDialog = try AnyView(detail.memberActionButtons(for: bob)).inspect()
-        // Transferring ownership asks first (no feedback host here: the view's own alert).
+        // Transferring ownership asks first (no feedback host here: the view's own confirmation sheet).
         try memberDialog.find(button: copy.transferOwner).tap()
         XCTAssertEqual(intents, [])
         // Removing is the host's to confirm: the tap is the intent.

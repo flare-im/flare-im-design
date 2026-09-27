@@ -377,10 +377,11 @@ public extension FlareGroupDetailLabels {
 ///
 /// Purely presentational: it renders ``FlareGroupDetailModel`` and emits intents through its
 /// closures; the host persists changes and refreshes the model. Mirrors the Vue kit's
-/// `FlareGroupDetail`. Owns its editing sheets / alerts and reuses ``GroupMemberGridView``.
-/// Transferring ownership confirms first, inside the member dialog it starts from — through the
-/// app's ``FlareFeedback`` when a ``SwiftUI/View/flareFeedbackHost(_:)`` is installed, else with a
-/// system alert — and only then emits. Removing a member and leaving / dissolving are emitted as
+/// `FlareGroupDetail`. Owns its editing and member sub-steps as kit bottom sheets in the `auto`
+/// presentation (a sheet on the phone form factor, a Modal otherwise) and reuses ``GroupMemberGridView``.
+/// Transferring ownership confirms first, once the member sheet it starts from is gone — through the
+/// app's ``FlareFeedback`` when a ``SwiftUI/View/flareFeedbackHost(_:)`` is installed, else with the
+/// view's own ``DangerConfirmView`` sheet — and only then emits. Removing a member and leaving / dissolving are emitted as
 /// tapped: the host confirms them (e.g. `feedback.confirm(FlareConfirmOptions(action:))`) because
 /// it owns the busy and error states of the write.
 public struct FlareGroupDetail: View {
@@ -437,6 +438,8 @@ public struct FlareGroupDetail: View {
     // Member management
     @State private var memberAction: Contact?
     @State private var transferTarget: Contact?
+    /// A transfer chosen in the member sheet without a feedback host: confirmed once that sheet is gone.
+    @State private var pendingTransfer: Contact?
     // All members (the 群成员 row)
     @State private var showMembers = false
     @State private var memberQuery = ""
@@ -550,8 +553,8 @@ public struct FlareGroupDetail: View {
             }
         }
         .background(colors.bgSecondary.ignoresSafeArea())
-        // ── Edit name / announcement / nickname ──
-        .sheet(item: $editKind) { kind in
+        // ── Edit name / announcement / nickname: the form draws its own title ──
+        .flareBottomSheet(item: $editKind, title: editAlertTitle, titleHidden: true) { kind in
             FormSheetView(title: editAlertTitle, confirmLabel: copy.save, cancelLabel: copy.cancel,
                           confirmEnabled: kind != .name || !editDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                           onConfirm: saveEdit, onClose: { editKind = nil }) {
@@ -565,27 +568,42 @@ public struct FlareGroupDetail: View {
                 onSetJoinPolicy?(policy)
             }
         }
-        // ── Member management ──
-        .confirmationDialog(memberAction?.name ?? "", isPresented: Binding(
-            get: { memberAction != nil }, set: { if !$0 { memberAction = nil } }
-        ), titleVisibility: .visible) { memberActionButtons(for: memberAction) }
-        // ── Transfer owner confirm (without a feedback host) ──
-        .alert(copy.transferOwner, isPresented: Binding(
-            get: { transferTarget != nil }, set: { if !$0 { transferTarget = nil } }
-        )) {
-            Button(copy.transferOwner, role: .destructive) {
-                if let t = transferTarget { onTransferOwner?(t.id) }
+        // ── Member management: the member's actions; a transfer asks once this sheet is gone ──
+        .flareBottomSheet(item: $memberAction, onDismiss: {
+            if let member = pendingTransfer { pendingTransfer = nil; transferTarget = member }
+        }) { member in
+            // The member's name heads the sheet from its content, so it stays while the sheet leaves.
+            VStack(spacing: 0) {
+                Text(member.name)
+                    .font(.system(size: FlareSizes.fontSizeMd, weight: .medium))
+                    .foregroundColor(FlareColors.of(scheme, brand: flareBrandTheme).textTertiary)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, FlareSizes.spacingXl)
+                    .padding(.bottom, FlareSizes.spacingSm)
+                    .accessibilityAddTraits(.isHeader)
+                memberActionButtons(for: member)
             }
-            Button(copy.cancel, role: .cancel) { transferTarget = nil }
-        } message: {
-            Text(String(format: copy.transferConfirm, transferTarget?.name ?? ""))
+                .buttonStyle(FlareGroupSheetRowStyle())
+                .padding(.horizontal, FlareSizes.spacingSm)
+                .padding(.bottom, FlareSizes.spacingLg)
         }
-        // ── Sheets ──
-        .sheet(isPresented: $showJoinRequests) { joinRequestsSheet }
-        .sheet(isPresented: $showInviteLink) { inviteLinkSheet }
-        .sheet(isPresented: $showInvite) { inviteMembersSheet }
-        .sheet(isPresented: $showMembers, onDismiss: {
-            // The member dialog belongs to the page: open it once the members sheet is gone.
+        // ── Transfer owner confirm (without a feedback host) ──
+        .flareBottomSheet(item: $transferTarget, title: copy.transferOwner, titleHidden: true) { target in
+            DangerConfirmView(title: copy.transferOwner, description: String(format: copy.transferConfirm, target.name),
+                              target: "", confirmText: copy.transferOwner, cancelText: copy.cancel,
+                              onConfirm: { transferTarget = nil; onTransferOwner?(target.id) },
+                              onCancel: { transferTarget = nil })
+        }
+        // ── Sub-steps: short overlays (a sheet on the phone form factor, a Modal otherwise) ──
+        .flareBottomSheet(isPresented: $showJoinRequests, title: copy.joinRequests, titleHidden: true,
+                          size: .large) { joinRequestsSheet }
+        .flareBottomSheet(isPresented: $showInviteLink, title: copy.inviteLink, titleHidden: true) { inviteLinkSheet }
+        .flareBottomSheet(isPresented: $showInvite, title: copy.invite, titleHidden: true,
+                          size: .large) { inviteMembersSheet }
+        .flareBottomSheet(isPresented: $showMembers, title: strings.groupDetailMembersTitle(model?.memberCount ?? 0),
+                          titleHidden: true, size: .large, onDismiss: {
+            // The member sheet belongs to the page: open it once the members sheet is gone.
             if let member = pendingMemberAction { pendingMemberAction = nil; memberAction = member }
         }) { membersSheet }
     }
@@ -784,7 +802,7 @@ public struct FlareGroupDetail: View {
 
     // MARK: - Member action buttons
 
-    /// The member dialog's buttons for `member` (the one whose dialog is open).
+    /// The member sheet's buttons for `member` (the one whose sheet is open).
     @ViewBuilder func memberActionButtons(for member: Contact?) -> some View {
         if let mem = member, let m = model, canManage, mem.id != m.ownerId {
             // Each intent carries the state its label offers.
@@ -796,24 +814,25 @@ public struct FlareGroupDetail: View {
             }
             // Removing is the host's to confirm: the tap is the intent.
             Button(copy.removeMember, role: .destructive) { memberAction = nil; onRemoveMember?(mem.id) }
-            Button(copy.cancel, role: .cancel) {}
+            Button(copy.cancel, role: .cancel) { memberAction = nil }
         } else {
-            Button(copy.cancel, role: .cancel) {}
+            Button(copy.cancel, role: .cancel) { memberAction = nil }
         }
     }
 
     // MARK: - Transfer confirmation
 
-    // Member-dialog buttons run once the dialog is gone, so a confirmation can present right away.
+    // The member sheet closes first: the feedback's confirmation waits until it is gone, and without a feedback
+    // host the view's own confirmation opens from the sheet's onDismiss.
 
     private func confirmTransfer(_ member: Contact) {
         if !Self.confirm(Self.transferOptions(member, copy: copy, onTransferOwner: onTransferOwner), through: feedback) {
-            transferTarget = member
+            pendingTransfer = member
         }
     }
 
     /// Asks through the app's feedback host when one is installed — the step runs once confirmed —
-    /// and returns true; false leaves the confirmation to the system alert.
+    /// and returns true; false leaves the confirmation to the view's own kit confirmation sheet.
     @MainActor
     static func confirm(_ options: FlareConfirmOptions, through feedback: FlareFeedback?) -> Bool {
         guard let feedback else { return false }
@@ -983,7 +1002,8 @@ public struct FlareGroupDetail: View {
     }
 
     /// Cross-platform sheet header (the kit also builds on macOS, where iOS navigation-bar
-    /// toolbars are unavailable): a centered title with a trailing Done button.
+    /// toolbars are unavailable): a centered title with a trailing Done button. The kit sheet is presented with
+    /// its title hidden, so this is the one visible title and Done closes it in either form (sheet or Modal).
     private func sheetHeader(_ title: String, _ onDone: @escaping () -> Void) -> some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         return ZStack {
@@ -998,6 +1018,28 @@ public struct FlareGroupDetail: View {
 }
 
 // MARK: - Supporting views
+
+/// A member-sheet action as a full-width row: the kit touch target, the danger colour for destructive actions,
+/// the secondary text colour for cancel.
+private struct FlareGroupSheetRowStyle: ButtonStyle {
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareBrandTheme) private var flareBrandTheme
+    @Environment(\.isEnabled) private var isEnabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        let colors = FlareColors.of(scheme, brand: flareBrandTheme)
+        let tint: Color = configuration.role == .destructive ? colors.errorText
+            : configuration.role == .cancel ? colors.textSecondary : colors.textPrimary
+        return configuration.label
+            .font(.system(size: FlareSizes.fontSizeLg))
+            .foregroundColor(tint)
+            .frame(maxWidth: .infinity, minHeight: FlareSizes.touchTarget)
+            .contentShape(Rectangle())
+            .background(RoundedRectangle(cornerRadius: FlareSizes.radiusMd)
+                .fill(configuration.isPressed ? colors.bgSecondary : Color.clear))
+            .opacity(isEnabled ? 1 : FlareOpacity.disabled)
+    }
+}
 
 /// The join-policy sheet's body: the choices as a kit radio group with the current policy selected —
 /// none when it is unknown — and picking one reports it.
