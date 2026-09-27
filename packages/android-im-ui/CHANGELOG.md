@@ -1,3 +1,8 @@
+## 未发布
+
+- 图片、视频、文件保存后，下载键变成「在文件夹中显示」；宿主发现文件被删后传回 idle，键回到下载。收发两侧的消息时间都在右侧。详见仓库根 CHANGELOG。
+- `FileMessage` 新增 `downloadState` / `onReveal`，没有 `onDownload` 时不再画装饰性的下载图标；`ImagePreview` / `VideoPlayer` 新增 `saved` / `onReveal`；列表、气泡、分发器新增 `onMediaReveal`；`VideoMessage.duration` 默认空串（不画角标）。
+
 ## 1.0.10
 
 ### Android

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { DownloadOutline } from "../../shared/icon-glyphs";
+import { flareIcons } from "../../shared/icons";
 import { useResolvedMediaUrl } from "../../composables/useMediaResolver";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 import { downloadUrlWithFileName } from "../../utils/browserDownload";
@@ -31,6 +32,15 @@ const download = computed<(() => void) | null>(() => {
   if (item?.kind !== "imageGroupItem" || !url) return null;
   return () => void downloadUrlWithFileName(url, imageGroupItemFileName(item.image, item.index));
 });
+const reveal = computed(() => entry.value?.reveal ?? null);
+const primaryIcon = computed(() => (reveal.value ? flareIcons.folder : download.value ? DownloadOutline : undefined));
+const primaryTitle = computed(() =>
+  reveal.value ? t("messageMenu.openMediaFolder") : download.value ? t("media.downloadImage") : "",
+);
+function primaryAction(): void {
+  if (reveal.value) reveal.value();
+  else download.value?.();
+}
 const show = computed({
   get: () => current.value != null,
   set: (open: boolean) => {
@@ -47,11 +57,11 @@ const show = computed({
     :alt="alt"
     :gallery-index="gallery.position.value ?? undefined"
     :gallery-count="gallery.pictures.value.length"
-    :primary-action-icon="download ? DownloadOutline : undefined"
-    :primary-action-title="download ? t('media.downloadImage') : ''"
+    :primary-action-icon="primaryIcon"
+    :primary-action-title="primaryTitle"
     :primary-action-disabled="Boolean(entry?.downloading)"
     :downloading="Boolean(entry?.downloading)"
-    @primary-action="download?.()"
+    @primary-action="primaryAction"
     @previous="gallery.page(-1)"
     @next="gallery.page(1)"
   />

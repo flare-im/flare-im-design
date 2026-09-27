@@ -713,19 +713,15 @@
   grid-area: 1 / 1 / 2 / 2;
 }
 
-/* Media owns the image; receipts follow it without covering pixels or controls. */
+/* Media owns the image; receipts follow it without covering pixels or controls. The time sits under the picture's
+   trailing edge for every message, received or sent — the same place as in a framed bubble, so it is read in one
+   place down the whole timeline. */
 .message-bubble.message-bubble--chromeless-media > .message-meta-row {
   grid-area: 2 / 1 / 3 / 2;
   margin-block-start: var(--flare-size-spacing-xs);
   color: var(--flare-color-message-meta-foreground);
   flex-wrap: wrap;
   font-variant-numeric: tabular-nums;
-}
-
-.message-row:not(.message-row--self) .message-bubble--chromeless-media > .message-meta-row {
-  margin-inline-start: 0;
-  margin-inline-end: auto;
-  justify-content: flex-start;
 }
 
 .message-bubble.message-bubble--chromeless-card:not(.message-bubble--chromeless-media) {

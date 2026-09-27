@@ -51,8 +51,9 @@ public func flareImageGalleryStart(_ items: [FlareImageGalleryItem], messageId: 
 }
 
 /// The gallery of the timeline a message body is drawn in: the timeline's messages, read only when a picture opens,
-/// and the host's download handler for a picture of one of them.
+/// and the host's download and reveal handlers for a picture of one of them.
 struct FlareImageGallerySource {
     let messages: [FlareMessageData]
     let download: ((FlareMessageData, FlareMessageContent) -> Void)?
+    var reveal: ((FlareMessageData, FlareMessageContent) -> Void)? = nil
 }

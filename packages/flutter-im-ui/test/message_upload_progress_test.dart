@@ -38,7 +38,7 @@ void main() {
           ),
         );
         expect(find.text('季度报表.xlsx'), findsOneWidget);
-        expect(find.text('2.0 KB'), findsOneWidget);
+        expect(find.text('2.0 KB · XLSX'), findsOneWidget);
         final progress = tester.widget<FlareUploadProgress>(
           find.byType(FlareUploadProgress),
         );

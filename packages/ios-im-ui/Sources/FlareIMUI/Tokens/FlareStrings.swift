@@ -623,6 +623,11 @@ public struct FlareStrings: Sendable {
     public var pause: String
     /// en: "Download"
     public var download: String
+    /// A saved file's key: shows it in its folder, or where it was saved (en: "Show in folder").
+    public var showInFolder: String
+    /// A media download in progress, and one that finished (en: "Downloading", "Downloaded").
+    public var downloading: String
+    public var downloaded: String
     /// en: "Close preview"
     public var imagePreviewClose: String
     /// A gallery preview's paging keys and where it is (en: "Previous image", "Next image", "{index} of {count}").
@@ -1324,6 +1329,9 @@ public struct FlareStrings: Sendable {
         sendVoice: String = "发送语音",
         pause: String = "暂停",
         download: String = "下载",
+        showInFolder: String = "在文件夹中显示",
+        downloading: String = "下载中",
+        downloaded: String = "已下载",
         imagePreviewClose: String = "关闭预览",
         imagePreviewPrevious: String = "上一张",
         imagePreviewNext: String = "下一张",
@@ -1901,6 +1909,9 @@ public struct FlareStrings: Sendable {
         self.sendVoice = sendVoice
         self.pause = pause
         self.download = download
+        self.showInFolder = showInFolder
+        self.downloading = downloading
+        self.downloaded = downloaded
         self.imagePreviewClose = imagePreviewClose
         self.imagePreviewPrevious = imagePreviewPrevious
         self.imagePreviewNext = imagePreviewNext

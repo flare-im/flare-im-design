@@ -67,9 +67,12 @@ object FlareContentRegistry {
  * file goes to [onOpenFile], which opens it outside the app after the host's URL gate. Location and cards
  * stay host actions, reached through [onMediaAction].
  *
- * Downloads: [onMediaDownload] is the download key of the kit's image preview, with the picture on screen, and of its
- * video player, with the video; without it neither has a download key. Inside a [MessageList] a picture opens the
- * conversation's gallery instead, whose key downloads each picture through the list's `onMediaDownload`.
+ * Downloads: [onMediaDownload] is the download key of the kit's image preview, with the picture on screen, of its
+ * video player, with the video, and of a file card, with the file; without it none has a download key. Inside a
+ * [MessageList] a picture opens the conversation's gallery instead, whose key downloads each picture through the
+ * list's `onMediaDownload`. The key follows [mediaState]: a download, its progress while it runs, and once the file is
+ * saved on this device a folder that hands the content to [onMediaReveal] (the host shows the file in its folder, or
+ * passes an idle state again when the file is gone).
  *
  * Pictures: an image or album tile draws the picture's local copy ([FlareImageContent.localPath]) when the host has
  * one, else its thumbnail, else its full-size address; the preview opens the copy, else the full size
@@ -92,8 +95,10 @@ fun MessageContentView(
     onVote: ((Int) -> Unit)? = null,
     /** A tapped task checkbox (the done state asked for); without it the task is read-only. */
     onTaskToggle: ((Boolean) -> Unit)? = null,
-    /** The download key of the image preview (the picture on screen) and the video player (the video); without it neither has one. */
+    /** The download key of the image preview (the picture on screen), the video player (the video) and the file card (the file); without it none has one. */
     onMediaDownload: ((FlareMessageContent) -> Unit)? = null,
+    /** The folder key those keys become once [mediaState] says the media is saved: the host shows the file in its folder. */
+    onMediaReveal: ((FlareMessageContent) -> Unit)? = null,
 ) {
     val ctx = FlareContentContext(isSelf, senderName = senderName, mediaState = mediaState, onMediaAction = onMediaAction)
     val custom = FlareContentRegistry.lookup(content.type)
@@ -107,7 +112,7 @@ fun MessageContentView(
         tap !is FlareContentTap.PreviewImage && tap !is FlareContentTap.PreviewAlbumImage && tap !is FlareContentTap.PlayVideo &&
             tap !is FlareContentTap.PlayVoice -> inherited
         inherited != null -> inherited
-        else -> rememberFlareMediaHost().also { FlareMediaOverlay(it) }
+        else -> rememberFlareMediaHost().also { host -> FlareMediaOverlay(host) { mediaState } }
     }
     val messageKey = LocalFlareMessageKey.current
     val gallery = LocalFlareImageGallery.current
@@ -116,11 +121,12 @@ fun MessageContentView(
         null -> null
         FlareContentTap.Host -> { { onMediaAction?.invoke(content) } }
         is FlareContentTap.PreviewImage -> { {
-            media?.present(flareImagePresentation(gallery, messageKey, 0, tap.src, onMediaDownload?.let { download -> { download(content) } }))
+            media?.present(flareImagePresentation(gallery, messageKey, 0, tap.src, onMediaDownload?.let { download -> { download(content) } },
+                onMediaReveal?.let { reveal -> { reveal(content) } }))
         } }
         // An album's tiles open their own images; the body reports which one (below).
         FlareContentTap.PreviewAlbumImage -> null
-        is FlareContentTap.PlayVideo -> { { media?.present(flareVideoPresentation(tap.src, content, onMediaDownload)) } }
+        is FlareContentTap.PlayVideo -> { { media?.present(flareVideoPresentation(tap.src, content, messageKey, onReveal = onMediaReveal, onDownload = onMediaDownload)) } }
         is FlareContentTap.PlayVoice -> { { media?.voice?.toggle(voiceKey, tap.src) } }
         FlareContentTap.OpenFile -> { { (content as? FlareFileContent)?.let { onOpenFile?.invoke(it) } } }
         is FlareContentTap.OpenLink -> { { openLink(tap.url) } }
@@ -132,6 +138,9 @@ fun MessageContentView(
         textPrimary = foreground, textSecondary = foreground,
         textTertiary = foreground.copy(alpha = 0.8f),
         primary = if (isSelf) foreground else colors.primary,
+        // An accent glyph (a file's icon, a voice's play key) on the outgoing surface is its foreground: the accent
+        // text colour on the accent bubble drew nothing.
+        primaryText = if (isSelf) foreground else colors.primaryText,
     )) {
         Column {
             when (content) {
@@ -150,12 +159,13 @@ fun MessageContentView(
                         FlareContentTap.PreviewAlbumImage -> { index ->
                             val image = content.images[index]
                             val source = flarePictureSource(image, preferThumbnail = false).src
-                            media?.present(flareImagePresentation(gallery, messageKey, index, source, onMediaDownload?.let { download -> { download(image) } }))
+                            media?.present(flareImagePresentation(gallery, messageKey, index, source, onMediaDownload?.let { download -> { download(image) } },
+                                onMediaReveal?.let { reveal -> { reveal(image) } }))
                         }
                         else -> null
                     },
                 )
-                is FlareVideoContent -> VideoMessage(poster = content.poster, duration = duration(content.durationSec), onPlay = action)
+                is FlareVideoContent -> VideoMessage(poster = content.poster, duration = videoDurationLabel(content.durationSec), onPlay = action)
                 is FlareAudioContent -> {
                     val voice = media?.voice?.takeIf { tap is FlareContentTap.PlayVoice }
                     val phase = voice?.phaseOf(voiceKey) ?: FlareVoicePhase.Idle
@@ -168,7 +178,12 @@ fun MessageContentView(
                         failed = phase == FlareVoicePhase.Failed,
                     )
                 }
-                is FlareFileContent -> FileMessage(name = content.name, size = bytes(content.sizeBytes), onOpen = action)
+                is FlareFileContent -> FileMessage(
+                    name = content.name, size = bytes(content.sizeBytes), ext = flareFileExtension(content.name), onOpen = action,
+                    onDownload = onMediaDownload?.let { download -> { download(content) } },
+                    downloadState = mediaState,
+                    onReveal = onMediaReveal?.let { reveal -> { reveal(content) } },
+                )
                 is FlareLocationContent -> LocationMessage(title = content.name, address = content.address, onOpen = action)
                 is FlareCardContent -> ContactMessage(name = content.title, subtitle = content.subtitle,
                     avatarUrl = content.imageUrl, onOpen = action)
@@ -199,14 +214,21 @@ fun MessageContentView(
                 is FlareGenericContent -> UnknownMessage(contentType = content.type, summary = flareMessagePreviewText(content, flareStrings()), isSelf = isSelf)
                 else -> UnknownMessage(contentType = content.type, isSelf = isSelf)
             }
-            if (mediaState?.isDownloading == true) {
-                androidx.compose.material3.LinearProgressIndicator(progress = { mediaState.progressPct.coerceIn(0, 100) / 100f })
+            // A picture or video downloading from its viewer shows the progress under its body too; a file card's own key
+            // is its progress. Progress not known yet (0) runs without a share.
+            if (mediaState?.isDownloading == true && content !is FlareFileContent) {
+                val pct = mediaState.progressPct.coerceIn(0, 100)
+                if (pct > 0) androidx.compose.material3.LinearProgressIndicator(progress = { pct / 100f })
+                else androidx.compose.material3.LinearProgressIndicator()
             }
         }
     }
 }
 
 internal fun duration(seconds: Int): String = "%02d:%02d".format(seconds / 60, seconds % 60)
+
+/** A video body's badge: its length, or nothing when the message does not carry one — unknown, not a "00:00" video. */
+internal fun videoDurationLabel(seconds: Int): String = if (seconds > 0) duration(seconds) else ""
 
 internal fun bytes(b: Int): String = when {
     b < 1024 -> "$b B"

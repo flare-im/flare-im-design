@@ -6,7 +6,9 @@ import SwiftUI
 ///
 /// Closing: the close key (关闭预览), a tap on the image, a downward swipe while the image is not
 /// zoomed, or VoiceOver's escape gesture. An image that cannot load shows that it failed instead of
-/// a spinner that never ends. The download key appears only with `onDownload`.
+/// a spinner that never ends. The download key appears only with `onDownload`; while `downloading` it
+/// shows the progress (`progressPct`) in its place, and once the image is `saved` it is a folder that
+/// calls `onReveal` (a saved image without `onReveal` keeps the download key).
 ///
 /// In a gallery the preview says where it is (`galleryIndex` of `galleryCount`) and pages with `onPrevious` and
 /// `onNext`: their keys at the sides, or a sideways swipe while the image is not zoomed. A key with no action (the
@@ -26,6 +28,8 @@ public struct ImagePreviewView: View {
     private let zoomMax: CGFloat
     private let onClose: (() -> Void)?
     private let onDownload: (() -> Void)?
+    private let saved: Bool
+    private let onReveal: (() -> Void)?
     private let galleryIndex: Int?
     private let galleryCount: Int?
     private let onPrevious: (() -> Void)?
@@ -47,6 +51,8 @@ public struct ImagePreviewView: View {
         zoomMax: CGFloat = 4,
         onClose: (() -> Void)? = nil,
         onDownload: (() -> Void)? = nil,
+        saved: Bool = false,
+        onReveal: (() -> Void)? = nil,
         galleryIndex: Int? = nil,
         galleryCount: Int? = nil,
         onPrevious: (() -> Void)? = nil,
@@ -64,6 +70,8 @@ public struct ImagePreviewView: View {
         self.zoomMax = zoomMax
         self.onClose = onClose
         self.onDownload = onDownload
+        self.saved = saved
+        self.onReveal = onReveal
         self.galleryIndex = galleryIndex
         self.galleryCount = galleryCount
         self.onPrevious = onPrevious
@@ -120,8 +128,12 @@ public struct ImagePreviewView: View {
                     HStack {
                         circleButton("close", label: strings.imagePreviewClose, onClose)
                         Spacer()
-                        if onDownload != nil {
-                            if downloading { progressRing } else { circleButton("download", label: strings.download, onDownload) }
+                        switch FlareMediaKey.resolve(canDownload: onDownload != nil, downloading: downloading,
+                                                     saved: saved, canReveal: onReveal != nil) {
+                        case .folder?: circleButton("folder", label: strings.showInFolder, onReveal)
+                        case .progress?: progressRing
+                        case .download?: circleButton("download", label: strings.download, onDownload)
+                        case nil: EmptyView()
                         }
                     }
                     .padding()
@@ -209,6 +221,18 @@ public struct ImagePreviewView: View {
 
     private var progressRing: some View {
         FlareMediaDownloadRing(progressPct: progressPct).frame(width: 38, height: 38)
+    }
+}
+
+/// The key at the top right of the image preview and the video player: the folder once the media is saved and the host
+/// can show it, the progress while it is being saved, else the download; none without a download handler.
+enum FlareMediaKey: Equatable {
+    case download, progress, folder
+
+    static func resolve(canDownload: Bool, downloading: Bool, saved: Bool, canReveal: Bool) -> FlareMediaKey? {
+        guard canDownload else { return nil }
+        if saved && canReveal { return .folder }
+        return downloading ? .progress : .download
     }
 }
 

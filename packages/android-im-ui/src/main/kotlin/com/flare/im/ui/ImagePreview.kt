@@ -58,13 +58,40 @@ import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 /**
- * The icon-only controls on an [ImagePreview]: close, and download while the host offers it and no
- * download is running (the progress ring takes its place).
+ * The download key of a message's picture, video or file, for where it stands on this device — the same key on the
+ * file card, in the image preview and in the video player. Only with the host's download handler ([canDownload]):
+ * a download while the file is not saved (a failed download is retried from it), nothing to press while it downloads
+ * (the progress ring stands there), and once it is [saved] a folder (`reveal`) that shows the file in its folder
+ * through the host ([canReveal]). Never a spent "downloaded" mark: a saved file the host cannot show keeps the
+ * download key.
  */
-internal fun imagePreviewControls(strings: FlareStrings, canDownload: Boolean, downloading: Boolean): List<FlareIconControlSpec> =
+internal fun mediaDownloadKey(
+    strings: FlareStrings,
+    canDownload: Boolean,
+    downloading: Boolean,
+    saved: Boolean,
+    canReveal: Boolean,
+): FlareIconControlSpec? = when {
+    !canDownload || downloading -> null
+    saved && canReveal -> FlareIconControlSpec("reveal", "folder", strings.showInFolder)
+    else -> FlareIconControlSpec("download", "download", strings.download)
+}
+
+/**
+ * The icon-only controls on an [ImagePreview]: close, and the download key while the host offers it — a download, or
+ * the folder once the picture is [saved] and the host can show it ([mediaDownloadKey]); none while a download runs
+ * (the progress ring takes its place).
+ */
+internal fun imagePreviewControls(
+    strings: FlareStrings,
+    canDownload: Boolean,
+    downloading: Boolean,
+    saved: Boolean = false,
+    canReveal: Boolean = false,
+): List<FlareIconControlSpec> =
     buildList {
         add(FlareIconControlSpec("close", "close", strings.imagePreviewClose))
-        if (canDownload && !downloading) add(FlareIconControlSpec("download", "download", strings.download))
+        mediaDownloadKey(strings, canDownload, downloading, saved, canReveal)?.let(::add)
     }
 
 /** How far a swipe down must travel before the preview closes: two touch targets. */
@@ -77,7 +104,9 @@ private val DismissDistance = FlareSizes.touchTarget * 2
  * Without [image] the preview loads [imageSrc] itself (web or local media; anything else shows the
  * failed state), with a spinner while loading and a failed state with retry. Pinch zooms 1x–4x, a drag
  * pans while zoomed, a double tap toggles zoom; unzoomed, a tap, a swipe down or system back closes
- * through [onClose]. The download control appears only with [onDownload].
+ * through [onClose]. The download control appears only with [onDownload]: a ring with [progressPct] while
+ * [downloading], and once the picture is [saved] on this device a folder that calls [onReveal] (the host shows the
+ * file in its folder); a saved picture without [onReveal] keeps the download key.
  *
  * In a gallery ([ImageGalleryPreview]) the preview says where it is ([galleryIndex] of [galleryCount]) and pages with
  * [onPrevious] and [onNext]: their controls at the sides, or a sideways swipe while unzoomed. A control with no
@@ -97,6 +126,8 @@ fun ImagePreview(
     galleryCount: Int? = null,
     onPrevious: (() -> Unit)? = null,
     onNext: (() -> Unit)? = null,
+    saved: Boolean = false,
+    onReveal: (() -> Unit)? = null,
 ) {
     if (!show) return
     val strings = flareStrings()
@@ -216,10 +247,11 @@ fun ImagePreview(
             }
         }
         Row(Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.safeDrawing).padding(FlareSizes.spacingMd)) {
-            imagePreviewControls(strings, canDownload = onDownload != null, downloading = downloading).forEach { control ->
+            imagePreviewControls(strings, canDownload = onDownload != null, downloading = downloading, saved = saved, canReveal = onReveal != null).forEach { control ->
                 when (control.id) {
                     "close" -> CircleButton(control, onClose)
                     "download" -> CircleButton(control, onDownload)
+                    "reveal" -> CircleButton(control, onReveal)
                 }
                 if (control.id == "close") androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
             }
@@ -229,22 +261,36 @@ fun ImagePreview(
 }
 
 /**
- * A download running, where the download key was: the ring stands at the key's size and is named for what it
- * reports; the ring itself carries [progressPct]. The image preview and the video player show the same ring.
+ * A download running, where the download key was: the ring stands at the key's size, is named for what it reports
+ * (downloading) and is not a key. The ring carries [progressPct], with the number inside it at the viewers' size
+ * ([showPercent]); a download whose progress is not known yet (0) spins instead. The image preview, the video player
+ * and the file card show the same ring, in [tint] at [ringSize].
  */
 @Composable
-internal fun DownloadProgressRing(progressPct: Int) {
+internal fun DownloadProgressRing(
+    progressPct: Int,
+    tint: Color = Color.White,
+    ringSize: androidx.compose.ui.unit.Dp = 40.dp,
+    showPercent: Boolean = true,
+) {
     val strings = flareStrings()
+    val pct = progressPct.coerceIn(0, 100)
     Box(
-        Modifier.size(FlareSizes.touchTarget).semantics(mergeDescendants = true) { contentDescription = strings.download },
+        Modifier.size(FlareSizes.touchTarget).semantics(mergeDescendants = true) { contentDescription = strings.downloading },
         contentAlignment = Alignment.Center,
     ) {
-        CircularProgressIndicator(progress = { progressPct / 100f }, color = Color.White, strokeWidth = 2.dp)
-        Text(
-            "$progressPct", color = Color.White,
-            fontSize = androidx.compose.ui.unit.TextUnit(10f, androidx.compose.ui.unit.TextUnitType.Sp),
-            modifier = Modifier.clearAndSetSemantics {},
-        )
+        if (pct > 0) {
+            CircularProgressIndicator(progress = { pct / 100f }, modifier = Modifier.size(ringSize), color = tint, strokeWidth = 2.dp)
+            if (showPercent) {
+                Text(
+                    "$pct", color = tint,
+                    fontSize = androidx.compose.ui.unit.TextUnit(10f, androidx.compose.ui.unit.TextUnitType.Sp),
+                    modifier = Modifier.clearAndSetSemantics {},
+                )
+            }
+        } else {
+            CircularProgressIndicator(modifier = Modifier.size(ringSize), color = tint, strokeWidth = 2.dp)
+        }
     }
 }
 
@@ -287,22 +333,35 @@ private fun PagingButton(control: FlareIconControlSpec, onClick: (() -> Unit)?) 
 /**
  * A conversation's image gallery: [ImagePreview] of one of [sources] at a time, starting at [initialIndex], paging to
  * its neighbours with the side controls or a sideways swipe, and saying where it is. Each image opens fresh at normal
- * size. With [onDownload] the download key downloads the image on screen (its index in [sources]).
+ * size. With [onDownload] the download key downloads the image on screen (its index in [sources]); the key follows
+ * [stateOf] that page — progress while it downloads, and once saved the folder that hands the page to [onReveal].
  */
 @Composable
-internal fun ImageGalleryPreview(sources: List<String>, initialIndex: Int, onClose: () -> Unit, onDownload: ((Int) -> Unit)? = null) {
+internal fun ImageGalleryPreview(
+    sources: List<String>,
+    initialIndex: Int,
+    onClose: () -> Unit,
+    onDownload: ((Int) -> Unit)? = null,
+    onReveal: ((Int) -> Unit)? = null,
+    stateOf: (Int) -> FlareMediaDownloadState? = { null },
+) {
     if (sources.isEmpty()) return
     var index by remember(sources) { mutableIntStateOf(initialIndex.coerceIn(0, sources.lastIndex)) }
+    val state = stateOf(index)
     key(index) {
         ImagePreview(
             show = true,
             imageSrc = sources[index],
+            downloading = state?.isDownloading == true,
+            progressPct = state?.progressPct ?: 0,
             onClose = onClose,
             onDownload = onDownload?.let { download -> { download(index) } },
             galleryIndex = index,
             galleryCount = sources.size,
             onPrevious = if (index > 0) ({ index -= 1 }) else null,
             onNext = if (index < sources.lastIndex) ({ index += 1 }) else null,
+            saved = state?.isSaved == true,
+            onReveal = onReveal?.let { reveal -> { reveal(index) } },
         )
     }
 }

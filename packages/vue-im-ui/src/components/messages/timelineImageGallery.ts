@@ -4,12 +4,14 @@ import { flareImageGalleryItems, flareImageGalleryStart, type FlareImageGalleryI
 
 /**
  * What a picture body drawn in the timeline knows about its picture: the address it resolved (empty while it
- * resolves) and how the picture is saved (null when the host offers no download for it).
+ * resolves), how the picture is saved (null when the host offers no download for it) and, once it is saved, how it
+ * is shown in its folder (null until then — the preview's key is then a folder, not a second download).
  */
 export interface TimelineImageEntry {
   fullUrl: string;
   alt: string;
   download: (() => void) | null;
+  reveal?: (() => void) | null;
   downloading: boolean;
 }
 

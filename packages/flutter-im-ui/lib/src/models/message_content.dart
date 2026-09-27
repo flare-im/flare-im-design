@@ -502,7 +502,10 @@ class FlareGenericContent extends FlareMessageContent {
   String get type => contentType;
 }
 
-/// Status of a media (image/video/file) download, used to overlay progress.
+/// Status of a media (image/video/file) download: what the media's key shows.
+/// [idle] and [failed] offer the download, [downloading] shows progress, and
+/// [done] means the file is saved on this device, so the key shows it in its
+/// folder instead.
 enum FlareMediaDownloadStatus { idle, downloading, done, failed }
 
 class FlareMediaDownloadState {
@@ -516,4 +519,16 @@ class FlareMediaDownloadState {
   final int progressPct;
 
   bool get isDownloading => status == FlareMediaDownloadStatus.downloading;
+
+  /// The file is saved on this device: its key shows it in its folder.
+  bool get isSaved => status == FlareMediaDownloadStatus.done;
+
+  @override
+  bool operator ==(Object other) =>
+      other is FlareMediaDownloadState &&
+      other.status == status &&
+      other.progressPct == progressPct;
+
+  @override
+  int get hashCode => Object.hash(status, progressPct);
 }

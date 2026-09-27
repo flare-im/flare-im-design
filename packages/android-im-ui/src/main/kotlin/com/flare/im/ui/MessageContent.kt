@@ -162,13 +162,22 @@ data class FlareGenericContent(
     override val type get() = contentType
 }
 
+/**
+ * Where a message's picture, video or file stands on this device, as the host knows it. [Done] means saved here: the
+ * download key becomes a folder that shows the file in its folder. [Failed] is an [Idle] that may be retried. A host
+ * that finds the saved file gone passes [Idle] again, and the key is a download once more.
+ */
 enum class FlareMediaDownloadStatus { Idle, Downloading, Done, Failed }
 
+/** A [FlareMediaDownloadStatus] with the share downloaded so far; a [progressPct] of 0 while downloading is unknown progress. */
 data class FlareMediaDownloadState(
     val status: FlareMediaDownloadStatus = FlareMediaDownloadStatus.Idle,
     val progressPct: Int = 0,
 ) {
     val isDownloading: Boolean get() = status == FlareMediaDownloadStatus.Downloading
+
+    /** Saved on this device: the key shows the file in its folder. */
+    val isSaved: Boolean get() = status == FlareMediaDownloadStatus.Done
 }
 
 /**

@@ -42,7 +42,8 @@ void main() {
         ),
       );
       expect(find.text('report.pdf'), findsOneWidget);
-      expect(find.text('2.0 KB'), findsOneWidget);
+      // Size and type, the type read off the name.
+      expect(find.text('2.0 KB · PDF'), findsOneWidget);
     });
 
     testWidgets('unknown/generic type falls back to a labelled chip', (

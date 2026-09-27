@@ -18,6 +18,13 @@ export interface FlareMediaResolveRequest {
   fileName?: string;
 }
 
+/**
+ * Where a message's picture, video or file stands on this device, as the host knows it. `openFolder`: saved, and the
+ * host can show it in its folder — the key becomes a folder. `downloaded` is drawn the same way (the save just
+ * finished). A host that finds the saved file gone passes `idle` again, and the key is a download once more.
+ */
+export type MessageMediaDownloadUiState = "idle" | "downloading" | "downloaded" | "openFolder";
+
 export type FlareMediaResolver = (
   request: FlareMediaResolveRequest,
 ) => string | Promise<string>;

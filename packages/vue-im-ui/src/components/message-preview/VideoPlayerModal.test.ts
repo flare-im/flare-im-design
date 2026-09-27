@@ -52,3 +52,23 @@ describe("VideoPlayerModal download key", () => {
     expect(document.querySelector(".video-player-modal__progress")?.textContent).toBe("42%");
   });
 });
+
+const folderKey = () => document.querySelector<HTMLButtonElement>('button[aria-label="在文件夹中显示"]');
+
+describe("VideoPlayerModal saved video", () => {
+  it("shows the video in its folder instead of downloading it again", () => {
+    let saves = 0;
+    let reveals = 0;
+    mountPlayer({ saved: true, onDownload: () => (saves += 1), onReveal: () => (reveals += 1) });
+    expect(downloadKey()).toBeNull();
+    folderKey()?.click();
+    expect(reveals).toBe(1);
+    expect(saves).toBe(0);
+  });
+
+  it("keeps the download key when nobody handles reveal", () => {
+    mountPlayer({ saved: true, onDownload: () => undefined });
+    expect(folderKey()).toBeNull();
+    expect(downloadKey()).not.toBeNull();
+  });
+});

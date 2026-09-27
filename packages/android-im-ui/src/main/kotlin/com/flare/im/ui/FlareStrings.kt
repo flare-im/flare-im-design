@@ -367,6 +367,13 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["pause"] as? (String)) ?: "暂停"
     val download: String
         get() = (overrides["download"] as? (String)) ?: "下载"
+    /** A saved file's key: shows it in its folder, or where it was saved (en: "Show in folder"). */
+    val showInFolder: String
+        get() = (overrides["showInFolder"] as? (String)) ?: "在文件夹中显示"
+    val downloading: String
+        get() = (overrides["downloading"] as? (String)) ?: "下载中"
+    val downloaded: String
+        get() = (overrides["downloaded"] as? (String)) ?: "已下载"
     val imagePreviewClose: String
         get() = (overrides["imagePreviewClose"] as? (String)) ?: "关闭预览"
     /** A gallery preview's paging keys and where it is (en: "Previous image", "Next image", "{index} of {count}"). */
@@ -1917,6 +1924,18 @@ class FlareStringsBuilder internal constructor() {
     var download: String
         get() = (values["download"] as? (String)) ?: "下载"
         set(value) { values["download"] = value }
+
+    var showInFolder: String
+        get() = (values["showInFolder"] as? (String)) ?: "在文件夹中显示"
+        set(value) { values["showInFolder"] = value }
+
+    var downloading: String
+        get() = (values["downloading"] as? (String)) ?: "下载中"
+        set(value) { values["downloading"] = value }
+
+    var downloaded: String
+        get() = (values["downloaded"] as? (String)) ?: "已下载"
+        set(value) { values["downloaded"] = value }
 
     var imagePreviewClose: String
         get() = (values["imagePreviewClose"] as? (String)) ?: "关闭预览"

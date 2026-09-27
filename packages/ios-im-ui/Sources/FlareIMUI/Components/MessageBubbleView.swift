@@ -50,6 +50,34 @@ struct FlareQuoteStack: Layout {
     }
 }
 
+/// A message body over its meta row (time, edits, delivery). The stack is as wide as the wider of the two; the body
+/// keeps its side of the bubble (`bodyTrailing`: an outgoing one), and the meta row sits at the trailing edge for every
+/// message — under an incoming picture at the picture's right edge, in an incoming bubble at its bottom right — as on
+/// the other kits. Only the meta row moves: an incoming text stays where it starts.
+struct FlareMessageMetaStack: Layout {
+    let bodyTrailing: Bool
+    /// The last subview is the meta row.
+    let hasMeta: Bool
+    let spacing: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) -> CGSize {
+        let sizes = subviews.map { $0.sizeThatFits(ProposedViewSize(width: proposal.width, height: nil)) }
+        let height = sizes.reduce(0) { $0 + $1.height } + spacing * CGFloat(max(sizes.count - 1, 0))
+        return CGSize(width: sizes.map(\.width).max() ?? 0, height: height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) {
+        var y = bounds.minY
+        for (index, subview) in subviews.enumerated() {
+            let size = subview.sizeThatFits(ProposedViewSize(width: bounds.width, height: nil))
+            let trailing = bodyTrailing || (hasMeta && index == subviews.count - 1)
+            subview.place(at: CGPoint(x: trailing ? bounds.maxX - size.width : bounds.minX, y: y), anchor: .topLeading,
+                          proposal: ProposedViewSize(width: size.width, height: size.height))
+            y += size.height + spacing
+        }
+    }
+}
+
 /// One message in a thread — content, sender, grouping, delivery status.
 /// Spec: Message/MessageBubble (`MessageBubbleView`). Status comes from host lifecycle state
 /// view (optimistic), never a network wait.
@@ -62,6 +90,7 @@ public struct MessageBubbleView: View {
     private let mediaState: FlareMediaDownloadState?
     private let onMediaAction: ((FlareMessageData, FlareMessageContent) -> Void)?
     private let onMediaDownload: ((FlareMessageData, FlareMessageContent) -> Void)?
+    private let onMediaReveal: ((FlareMessageData, FlareMessageContent) -> Void)?
     private let onOpenFile: ((FlareMessageData, FlareFileContent) -> Void)?
     private let onOpenLink: ((FlareMessageData, String) -> Void)?
     private let onResend: ((FlareMessageData) -> Void)?
@@ -98,7 +127,12 @@ public struct MessageBubbleView: View {
     ///   - onMediaAction: Takes every media tap. Without it the kit opens images and videos in its
     ///     full-screen viewer and plays voice messages in the bubble (see ``MessageContentView``).
     ///   - onMediaDownload: Offered as the download key of the kit's image preview and video player,
-    ///     called with the picture or the video on screen; without it neither has a download key.
+    ///     called with the picture or the video on screen, and as the key at the trailing edge of a file
+    ///     card; without it none of them has a key.
+    ///   - mediaState: The media on this device, as the host knows it — the keys show a download, the
+    ///     save's progress, or once it is saved a folder.
+    ///   - onMediaReveal: The folder key of a saved file, picture or video (message, the content): the host
+    ///     shows it where it was saved, or finds it gone and passes `idle` again.
     ///   - onOpenFile: A file tap when there is no `onMediaAction`: the host opens the file (the kit
     ///     never leaves the app), and images, videos and voice keep the kit defaults.
     ///   - onOpenLink: A tapped link, in the text body or on a link card, with its raw URL. Without it
@@ -116,6 +150,7 @@ public struct MessageBubbleView: View {
         mediaState: FlareMediaDownloadState? = nil,
         onMediaAction: ((FlareMessageData, FlareMessageContent) -> Void)? = nil,
         onMediaDownload: ((FlareMessageData, FlareMessageContent) -> Void)? = nil,
+        onMediaReveal: ((FlareMessageData, FlareMessageContent) -> Void)? = nil,
         onOpenFile: ((FlareMessageData, FlareFileContent) -> Void)? = nil,
         onOpenLink: ((FlareMessageData, String) -> Void)? = nil,
         onResend: ((FlareMessageData) -> Void)? = nil,
@@ -135,6 +170,7 @@ public struct MessageBubbleView: View {
         self.mediaState = mediaState
         self.onMediaAction = onMediaAction
         self.onMediaDownload = onMediaDownload
+        self.onMediaReveal = onMediaReveal
         self.onOpenFile = onOpenFile
         self.onOpenLink = onOpenLink
         self.onResend = onResend
@@ -162,6 +198,7 @@ public struct MessageBubbleView: View {
             mediaState: mediaState,
             onMediaAction: onMediaAction == nil ? nil : { onMediaAction?(message, $0) },
             onMediaDownload: onMediaDownload == nil ? nil : { onMediaDownload?(message, $0) },
+            onMediaReveal: onMediaReveal == nil ? nil : { onMediaReveal?(message, $0) },
             onOpenFile: onOpenFile == nil ? nil : { onOpenFile?(message, $0) },
             onOpenLink: onOpenLink == nil ? nil : { onOpenLink?(message, $0) },
             // Multi-select taps select the row: a poll or a task is not a control then.
@@ -327,38 +364,41 @@ public struct MessageBubbleView: View {
 
     @ViewBuilder
     private func bubbleInner(_ colors: FlareColors) -> some View {
-        Group {
+        // Inline meta: time + (self) delivery status, kept inside the bubble at its bottom right.
+        FlareMessageMetaStack(bodyTrailing: isSelf, hasMeta: showsMeta, spacing: 3) {
             if let quote = Self.quote(message) {
                 FlareQuoteStack(trailing: isSelf, spacing: FlareSizes.spacingSm) {
                     quoteStrip(quote, colors)
-                    bubbleContent(colors)
+                    content
                 }
             } else {
-                bubbleContent(colors)
+                content
+            }
+            if showsMeta {
+                meta(tint: isSelf
+                    ? (message.status == .read ? colors.messageStatusReadOnOutgoing : colors.messageStatusOnOutgoing)
+                    : nil)
             }
         }
         .padding(.horizontal, FlareSizes.componentBubblePaddingX)
         .padding(.vertical, FlareSizes.componentBubblePaddingY)
     }
 
-    private func bubbleContent(_ colors: FlareColors) -> some View {
-        VStack(alignment: isSelf ? .trailing : .leading, spacing: 3) {
-            content
-            // Inline meta: time + (self) delivery status, kept inside the bubble.
-            if !message.timeLabel.isEmpty || message.edited || message.lifecycle != nil || isSelf {
-                MessageMetaView(
-                    timestamp: message.timeLabel,
-                    edited: message.edited,
-                    status: isSelf ? message.status : nil,
-                    lifecycle: isSelf ? message.lifecycle : nil,
-                    ephemeral: message.lifecycle?.ephemeral ?? .none,
-                    tint: isSelf
-                        ? (message.status == .read ? colors.messageStatusReadOnOutgoing : colors.messageStatusOnOutgoing)
-                        : nil,
-                    onResend: onResend == nil ? nil : { onResend?(message) }
-                )
-            }
-        }
+    /// Whether the message has a meta row: a time, an edit or a lifecycle to say, or my delivery status.
+    private var showsMeta: Bool {
+        !message.timeLabel.isEmpty || message.edited || message.lifecycle != nil || isSelf
+    }
+
+    private func meta(tint: Color?) -> MessageMetaView {
+        MessageMetaView(
+            timestamp: message.timeLabel,
+            edited: message.edited,
+            status: isSelf ? message.status : nil,
+            lifecycle: isSelf ? message.lifecycle : nil,
+            ephemeral: message.lifecycle?.ephemeral ?? .none,
+            tint: tint,
+            onResend: onResend == nil ? nil : { onResend?(message) }
+        )
     }
 
     /// The reply's quote: accent bar, quoted sender (omitted when empty) and a one-line summary.
@@ -403,19 +443,10 @@ public struct MessageBubbleView: View {
     @ViewBuilder
     private func bubble(_ colors: FlareColors) -> some View {
         if Self.isChromeless(message) {
-            VStack(alignment: isSelf ? .trailing : .leading, spacing: FlareSizes.spacingXs) {
+            // The meta row under bare media ends at the media's right edge, whoever sent it.
+            FlareMessageMetaStack(bodyTrailing: isSelf, hasMeta: showsMeta, spacing: FlareSizes.spacingXs) {
                 content
-                if !message.timeLabel.isEmpty || message.edited || message.lifecycle != nil || isSelf {
-                    MessageMetaView(
-                        timestamp: message.timeLabel,
-                        edited: message.edited,
-                        status: isSelf ? message.status : nil,
-                        lifecycle: isSelf ? message.lifecycle : nil,
-                        ephemeral: message.lifecycle?.ephemeral ?? .none,
-                        tint: nil,
-                        onResend: onResend == nil ? nil : { onResend?(message) }
-                    )
-                }
+                if showsMeta { meta(tint: nil) }
             }
         } else if isSelf {
             bubbleInner(colors)

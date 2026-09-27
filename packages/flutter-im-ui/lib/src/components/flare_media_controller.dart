@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:video_player/video_player.dart';
 
@@ -170,13 +171,17 @@ class _VoiceView {
 
 /// Opens [image] in the kit preview: its full-size address when it has one,
 /// else its thumbnail. Returns false when it has neither. The preview offers a
-/// download key only with [onDownload].
+/// download key only with [onDownload], and a folder key for a saved picture
+/// only with [onReveal]; with [downloadState] the key follows the picture's
+/// download while the preview is open.
 ///
 /// Internal: not exported from the package.
 bool flarePresentImage(
   BuildContext context,
   FlareImageContent image, {
   VoidCallback? onDownload,
+  VoidCallback? onReveal,
+  ValueListenable<FlareMediaDownloadState?>? downloadState,
 }) {
   final picture = flarePictureSource(image, preferThumbnail: false);
   if (picture.src.isEmpty) return false;
@@ -187,6 +192,8 @@ bool flarePresentImage(
       allowLocalFile: picture.local,
       alt: image.alt,
       onDownload: onDownload,
+      onReveal: onReveal,
+      downloadState: downloadState,
     ),
   );
   return true;
@@ -194,9 +201,10 @@ bool flarePresentImage(
 
 /// Opens the picture at [index] of message [messageId]: inside a timeline
 /// ([FlareImageGalleryScope]) as the conversation's gallery starting at that
-/// picture, each picture downloadable through the timeline's handler; else —
-/// or when the picture is not in the gallery — [image] alone, downloadable
-/// through [onDownload]. Returns false when there is nothing to open.
+/// picture, each picture downloadable (and, once saved, shown in its folder)
+/// through the timeline's handlers; else — or when the picture is not in the
+/// gallery — [image] alone, through [onDownload] / [onReveal] with its
+/// [downloadState]. Returns false when there is nothing to open.
 ///
 /// Internal: not exported from the package.
 bool flareOpenImage(
@@ -205,6 +213,8 @@ bool flareOpenImage(
   String? messageId,
   int index = 0,
   VoidCallback? onDownload,
+  VoidCallback? onReveal,
+  ValueListenable<FlareMediaDownloadState?>? downloadState,
 }) {
   final gallery = FlareImageGalleryScope.maybeOf(context);
   final items = gallery?.items;
@@ -212,15 +222,25 @@ bool flareOpenImage(
       ? null
       : flareImageGalleryStart(items, messageId, index);
   if (items == null || start == null) {
-    return flarePresentImage(context, image, onDownload: onDownload);
+    return flarePresentImage(
+      context,
+      image,
+      onDownload: onDownload,
+      onReveal: onReveal,
+      downloadState: downloadState,
+    );
   }
   final download = gallery!.download;
+  final reveal = gallery.reveal;
+  final stateOf = gallery.downloadStateOf;
   unawaited(
     FlareImagePreview.presentGallery(
       context,
       images: [for (final item in items) item.image],
       initialIndex: start,
       onDownload: download == null ? null : (i) => download(items[i]),
+      onReveal: reveal == null ? null : (i) => reveal(items[i]),
+      downloadStateAt: stateOf == null ? null : (i) => stateOf(items[i]),
     ),
   );
   return true;
@@ -234,6 +254,8 @@ class FlareImageGalleryScope extends InheritedWidget {
     super.key,
     required this.items,
     this.download,
+    this.reveal,
+    this.downloadStateOf,
     required super.child,
   });
 
@@ -243,23 +265,41 @@ class FlareImageGalleryScope extends InheritedWidget {
   /// null when the host offers none.
   final ValueChanged<FlareImageGalleryItem>? download;
 
+  /// Shows a saved picture of the gallery in its folder through the
+  /// timeline's handler; null when the host offers none.
+  final ValueChanged<FlareImageGalleryItem>? reveal;
+
+  /// The live download state of a picture of the gallery, which its key
+  /// follows while the gallery is open; null for a picture the timeline does
+  /// not track (an album's).
+  final ValueListenable<FlareMediaDownloadState?>? Function(
+    FlareImageGalleryItem item,
+  )?
+  downloadStateOf;
+
   static FlareImageGalleryScope? maybeOf(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<FlareImageGalleryScope>();
 
   @override
   bool updateShouldNotify(FlareImageGalleryScope oldWidget) =>
       !identical(items, oldWidget.items) ||
-      (download == null) != (oldWidget.download == null);
+      (download == null) != (oldWidget.download == null) ||
+      (reveal == null) != (oldWidget.reveal == null) ||
+      (downloadStateOf == null) != (oldWidget.downloadStateOf == null);
 }
 
 /// Opens [video] in the kit player, which starts playing it. The player
-/// offers a download key only with [onDownload].
+/// offers a download key only with [onDownload], and a folder key for a saved
+/// video only with [onReveal]; with [downloadState] the key follows the
+/// video's download while the player is open.
 ///
 /// Internal: not exported from the package.
 void flarePresentVideo(
   BuildContext context,
   FlareVideoContent video, {
   VoidCallback? onDownload,
+  VoidCallback? onReveal,
+  ValueListenable<FlareMediaDownloadState?>? downloadState,
 }) {
   unawaited(
     FlareVideoPlayer.present(
@@ -267,28 +307,87 @@ void flarePresentVideo(
       videoSrc: video.url,
       poster: video.poster,
       onDownload: onDownload,
+      onReveal: onReveal,
+      downloadState: downloadState,
     ),
   );
 }
 
-/// Gives the bubbles below it the list's [FlareMediaController].
+/// Message [id]'s entry of [states]: notifies when any entry changes, and
+/// reads its own.
+///
+/// Internal: not exported from the package.
+ValueListenable<FlareMediaDownloadState?> flareMediaDownloadEntry(
+  ValueListenable<Map<String, FlareMediaDownloadState>> states,
+  String id,
+) => _MediaDownloadEntry(states, id);
+
+class _MediaDownloadEntry implements ValueListenable<FlareMediaDownloadState?> {
+  const _MediaDownloadEntry(this._states, this._id);
+
+  final ValueListenable<Map<String, FlareMediaDownloadState>> _states;
+  final String _id;
+
+  @override
+  FlareMediaDownloadState? get value => _states.value[_id];
+
+  @override
+  void addListener(VoidCallback listener) => _states.addListener(listener);
+
+  @override
+  void removeListener(VoidCallback listener) =>
+      _states.removeListener(listener);
+
+  @override
+  bool operator ==(Object other) =>
+      other is _MediaDownloadEntry &&
+      identical(other._states, _states) &&
+      other._id == _id;
+
+  @override
+  int get hashCode => Object.hash(identityHashCode(_states), _id);
+}
+
+/// Gives the bubbles below it the list's [FlareMediaController], and the live
+/// download state of the list's messages ([downloadStates]) so a viewer opened
+/// from one of them (the image preview, the video player) keeps its key in
+/// step with the download it started: download, progress, then the folder —
+/// without closing.
 ///
 /// Internal: not exported from the package.
 class FlareMediaScope extends InheritedWidget {
   const FlareMediaScope({
     super.key,
     required this.controller,
+    this.downloadStates,
     required super.child,
   });
 
   final FlareMediaController controller;
 
+  /// Download state by message id, as the host last passed it.
+  final ValueListenable<Map<String, FlareMediaDownloadState>>? downloadStates;
+
   static FlareMediaController? maybeOf(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<FlareMediaScope>()?.controller;
 
+  /// The live download state of message [id] from the scope above [context],
+  /// without making [context] depend on the scope: a body reads it when a
+  /// viewer opens.
+  static ValueListenable<FlareMediaDownloadState?>? downloadStateOf(
+    BuildContext context,
+    String id,
+  ) {
+    final states = context
+        .getInheritedWidgetOfExactType<FlareMediaScope>()
+        ?.downloadStates;
+    return states == null ? null : flareMediaDownloadEntry(states, id);
+  }
+
   @override
   bool updateShouldNotify(FlareMediaScope oldWidget) =>
-      !identical(controller, oldWidget.controller);
+      !identical(controller, oldWidget.controller) ||
+      !identical(downloadStates, oldWidget.downloadStates);
 }
 
 /// A received voice message that shows its playback state from the nearest

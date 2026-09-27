@@ -44,10 +44,15 @@ public struct FlareImageContent: FlareMessageContent {
     /// address taken from message content. Drawn in place of `url` and `thumbnailURL` when present
     /// (``flarePictureSource(_:preferThumbnail:)``).
     public let localPath: String?
+    /// The picture's pixel size when the host knows it; the timeline then draws it at its own aspect
+    /// (``MessageContentView/imageSize(_:)``) instead of the default 4:3 frame.
+    public let width: Double?
+    public let height: Double?
     public init(url: String, thumbnailURL: String? = nil, alt: String? = nil, animated: Bool = false,
-                localPath: String? = nil) {
+                localPath: String? = nil, width: Double? = nil, height: Double? = nil) {
         self.url = url; self.thumbnailURL = thumbnailURL; self.alt = alt; self.animated = animated
         self.localPath = localPath
+        self.width = width; self.height = height
     }
     public var type: String { "image" }
 }
@@ -265,14 +270,20 @@ public struct FlareGenericContent: FlareMessageContent {
     public var type: String { contentType }
 }
 
-/// Media (image/video/file) download progress overlay state.
-public enum FlareMediaDownloadStatus: Sendable { case idle, downloading, done, failed }
+/// Where a message's picture, video or file stands on this device, as the host knows it: not saved (`idle`, or
+/// `failed` — a save that can be tried again), being saved (`downloading`), or saved (`done`). A saved one's key is a
+/// folder that shows it where it was saved (`onMediaReveal`); a host that finds the saved file gone passes `idle`
+/// again, and the key is a download once more.
+public enum FlareMediaDownloadStatus: Sendable, Equatable { case idle, downloading, done, failed }
 
-public struct FlareMediaDownloadState: Sendable {
+public struct FlareMediaDownloadState: Sendable, Equatable {
     public let status: FlareMediaDownloadStatus
+    /// How far a save under way is, 0–100.
     public let progressPct: Int
     public init(status: FlareMediaDownloadStatus = .idle, progressPct: Int = 0) {
         self.status = status; self.progressPct = progressPct
     }
     public var isDownloading: Bool { status == .downloading }
+    /// The file is saved on this device: its key shows it in its folder instead of saving it again.
+    public var isSaved: Bool { status == .done }
 }

@@ -22,8 +22,18 @@ const props = defineProps<{
   mediaState?: MessageMediaDownloadUiState | null;
 }>();
 const emit = defineEmits<{ (event: "media-action", action: "download" | "openFolder"): void }>();
-const canDownload = computed(() => props.mediaAction === "download");
+const saved = computed(() =>
+  props.mediaAction === "openFolder" || props.mediaState === "openFolder" || props.mediaState === "downloaded",
+);
+const canDownload = computed(() => props.mediaAction === "download" && !saved.value);
 const { t } = useFlareI18n();
+
+// The player's key: a download while the video is not saved, its progress while it saves, its folder once it is.
+const playerListeners = computed(() => {
+  if (saved.value && props.mediaAction) return { reveal: () => emit("media-action", "openFolder") };
+  if (props.mediaState === "downloading") return { download: () => undefined };
+  return canDownload.value ? { download: () => emit("media-action", "download") } : {};
+});
 
 const previewOpen = ref(false);
 const generatedPosterUrl = ref("");
@@ -204,7 +214,8 @@ watch(
       :poster="displayPosterUrl"
       :title="title"
       :downloading="mediaState === 'downloading'"
-      v-on="canDownload ? { download: () => emit('media-action', 'download') } : {}"
+      :saved="saved"
+      v-on="playerListeners"
     />
   </div>
 </template>

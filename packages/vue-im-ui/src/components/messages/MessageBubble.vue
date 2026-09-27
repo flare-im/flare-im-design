@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, getCurrentInstance, h, ref, useId, type Component } from "vue";
 import type { FlareConversationKind } from "../../shared/contracts/conversation";
+import type { MessageMediaDownloadUiState } from "../../shared/contracts/media";
 import {
-  CloudDoneOutline,
   DownloadOutline,
   EllipsisHorizontalOutline,
   FolderOpenOutline,
@@ -43,11 +43,7 @@ import type {
 
 export type { MessageLike } from "../../shared/contracts/messageRow";
 
-export type MessageMediaDownloadUiState =
-  | "idle"
-  | "downloading"
-  | "downloaded"
-  | "openFolder";
+export type { MessageMediaDownloadUiState } from "../../shared/contracts/media";
 
 const props = defineProps<{
   message: MessageLike;
@@ -322,16 +318,8 @@ function mediaStateModel(state: MessageMediaDownloadUiState): MediaHoverActionMo
       state,
     };
   }
-  if (state === "downloaded") {
-    return {
-      id: "downloadMedia",
-      action: null,
-      label: t("messageMenu.downloadedMedia"),
-      icon: CloudDoneOutline,
-      state,
-    };
-  }
-  if (state === "openFolder") {
+  // Saved: the key shows the file in its folder, never a spent "downloaded" tick.
+  if (state === "downloaded" || state === "openFolder") {
     return mediaActionModel("openMediaFolder");
   }
   return null;
@@ -356,9 +344,9 @@ const mediaHoverAction = computed<MediaHoverActionModel | null>(() => {
   return resolvedMediaActionId.value ? mediaActionModel(resolvedMediaActionId.value) : null;
 });
 
-// Files show the action inline; images offer the download inside their full-screen preview.
+// Files show the action inline; pictures and videos offer it inside their full-screen preview and player.
 const fileInlineMediaAction = computed<MediaHoverActionModel | null>(() => {
-  if (contentType.value !== "file" && contentType.value !== "image") return null;
+  if (!["file", "image", "video"].includes(contentType.value)) return null;
   const stateModel = mediaStateModel(props.mediaDownloadState ?? "idle");
   if (stateModel) return stateModel;
   return resolvedMediaActionId.value ? mediaActionModel(resolvedMediaActionId.value) : null;

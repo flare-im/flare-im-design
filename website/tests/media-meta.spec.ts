@@ -41,7 +41,7 @@ for (const mode of ["light", "dark"] as const) {
             gap: rect.top - body.bottom, right: rect.right, left: rect.left,
             position: style.position, background: style.backgroundColor, color: style.color,
             surface: getComputedStyle(node.closest("main")!).backgroundColor,
-            outgoing: !!node.closest(".message-row--self"), bodyLeft: body.left, bodyRight: body.right,
+            bodyRight: body.right,
             onOutgoing: meta.classList.contains("message-meta-row--on-outgoing"),
           };
         });
@@ -54,7 +54,8 @@ for (const mode of ["light", "dark"] as const) {
         // 在 #F1F2F5 底上只有 4.39:1；下面那条断言就是它非过不可的原因。
         expect(geometry.color).toBe(mode === "light" ? "rgb(92, 99, 113)" : "rgb(154, 163, 179)");
         expect(contrast(geometry.color, geometry.surface)).toBeGreaterThanOrEqual(4.5);
-        expect(Math.abs(geometry.outgoing ? geometry.right - geometry.bodyRight : geometry.left - geometry.bodyLeft)).toBeLessThan(1);
+        // Received or sent, the time sits under the media's trailing edge.
+        expect(Math.abs(geometry.right - geometry.bodyRight)).toBeLessThan(1);
         expect(geometry.left).toBeGreaterThanOrEqual(0);
         expect(geometry.right).toBeLessThanOrEqual(width);
       }
@@ -64,6 +65,22 @@ for (const mode of ["light", "dark"] as const) {
       const progressBox = (await upload.locator(".message-upload-progress--media").boundingBox())!;
       expect(progressBox.y).toBeGreaterThanOrEqual(mediaBox.y);
       expect(progressBox.y + progressBox.height).toBeLessThanOrEqual(mediaBox.y + mediaBox.height);
+      // A framed bubble (a file card) keeps its time at the bottom-right inside the bubble, received or sent, and
+      // the card's key sits on its right: a download until the file is saved, then its folder.
+      for (const row of await fixture.locator('[data-media-case="file"] .message-row').all()) {
+        const inside = await row.locator(".message-bubble").evaluate(node => {
+          const bubble = node.getBoundingClientRect();
+          const style = getComputedStyle(node);
+          const meta = node.querySelector(".message-meta-row")!.getBoundingClientRect();
+          const key = node.querySelector(".fm-file .dl")!.getBoundingClientRect();
+          const name = node.querySelector(".fm-file .meta b")!.getBoundingClientRect();
+          return { metaRight: meta.right, inner: bubble.right - parseFloat(style.paddingRight), keyLeft: key.left, nameRight: name.right };
+        });
+        expect(Math.abs(inside.metaRight - inside.inner)).toBeLessThan(1);
+        expect(inside.keyLeft).toBeGreaterThanOrEqual(inside.nameRight);
+      }
+      await expect(fixture.locator('[data-media-case="file"] .message-row:not(.message-row--self) .fm-file .dl')).toHaveAttribute("aria-label", "下载");
+      await expect(fixture.locator('[data-media-case="file"] .message-row--self .fm-file .dl')).toHaveAttribute("aria-label", "在文件夹中显示");
       const text = fixture.locator('[data-media-case="text"] .message-row--self .message-meta-row');
       await expect(text).toHaveClass(/message-meta-row--on-outgoing/);
       const target = fixture.locator('[data-media-case="sticker"] .message-row--self');

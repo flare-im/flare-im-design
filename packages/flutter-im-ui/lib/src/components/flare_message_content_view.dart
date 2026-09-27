@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'action_icon.dart';
@@ -96,6 +97,7 @@ class FlareMessageContentView extends StatelessWidget {
     this.onVote,
     this.onTaskToggle,
     this.onMediaDownload,
+    this.onMediaReveal,
     this.uploading = false,
   });
 
@@ -133,11 +135,18 @@ class FlareMessageContentView extends StatelessWidget {
   /// A tapped task checkbox, with the done state the user asks for.
   final ValueChanged<bool>? onTaskToggle;
 
-  /// Offered as the download key of the kit's image preview, with the picture
-  /// on screen; without it the preview has no download key. Inside a
-  /// [FlareMessageList] a picture opens the conversation's gallery, whose key
-  /// saves each picture through the list's handler instead.
+  /// The download key of a file card, of the kit's image preview (with the
+  /// picture on screen) and of its video player; without it none of them has
+  /// a download key. Inside a [FlareMessageList] a picture opens the
+  /// conversation's gallery, whose key saves each picture through the list's
+  /// handler instead.
   final ValueChanged<FlareMessageContent>? onMediaDownload;
+
+  /// The folder key that replaces the download key once [mediaState] says the
+  /// media is saved on this device: the host shows the file in its folder, or
+  /// — when the file is gone — sets the state back so the key offers the
+  /// download again. Without it a saved media has no key.
+  final ValueChanged<FlareMessageContent>? onMediaReveal;
 
   @override
   Widget build(BuildContext context) {
@@ -211,9 +220,24 @@ class FlareMessageContentView extends StatelessWidget {
     FlareFileContent c => FlareFileMessage(
       name: c.name,
       size: _bytes(c.sizeBytes),
+      ext: _ext(c.name),
     ),
     _ => null,
   };
+
+  /// The live download state of this message for a viewer opened from it:
+  /// the timeline's ([FlareMediaScope.downloadStateOf]) when there is one, so
+  /// the viewer's key keeps up with a download started inside it; else a
+  /// snapshot of [mediaState].
+  ValueListenable<FlareMediaDownloadState?>? _liveState(BuildContext context) {
+    final id = messageId;
+    final live = id == null
+        ? null
+        : FlareMediaScope.downloadStateOf(context, id);
+    if (live != null) return live;
+    final state = mediaState;
+    return state == null ? null : _FixedDownloadState(state);
+  }
 
   Widget _body(BuildContext context) {
     VoidCallback? action(FlareMessageContent value) =>
@@ -272,6 +296,10 @@ class FlareMessageContentView extends StatelessWidget {
                     onDownload: onMediaDownload == null
                         ? null
                         : () => onMediaDownload!(c),
+                    onReveal: onMediaReveal == null
+                        ? null
+                        : () => onMediaReveal!(c),
+                    downloadState: _liveState(context),
                   )),
       ),
       FlareImageGroupContent c => FlareImageGroupMessage(
@@ -304,6 +332,10 @@ class FlareMessageContentView extends StatelessWidget {
                 onDownload: onMediaDownload == null
                     ? null
                     : () => onMediaDownload!(c),
+                onReveal: onMediaReveal == null
+                    ? null
+                    : () => onMediaReveal!(c),
+                downloadState: _liveState(context),
               );
             },
       ),
@@ -315,7 +347,11 @@ class FlareMessageContentView extends StatelessWidget {
       FlareFileContent c => FlareFileMessage(
         name: c.name,
         size: _bytes(c.sizeBytes),
+        ext: _ext(c.name),
+        downloadState: mediaState,
         onOpen: action(c) ?? (onOpenFile == null ? null : () => onOpenFile!(c)),
+        onDownload: onMediaDownload == null ? null : () => onMediaDownload!(c),
+        onReveal: onMediaReveal == null ? null : () => onMediaReveal!(c),
       ),
       FlareLocationContent c => FlareLocationMessage(
         title: c.name,
@@ -377,7 +413,10 @@ class FlareMessageContentView extends StatelessWidget {
       ),
       _ => FlareUnknownMessage(contentType: content.type, isSelf: self),
     };
-    if (mediaState?.isDownloading != true) return body;
+    // A file card shows its own progress in its key.
+    if (mediaState?.isDownloading != true || content is FlareFileContent) {
+      return body;
+    }
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -389,12 +428,40 @@ class FlareMessageContentView extends StatelessWidget {
     );
   }
 
-  static String _duration(int seconds) =>
-      '${(seconds ~/ 60).toString().padLeft(2, '0')}:${(seconds % 60).toString().padLeft(2, '0')}';
+  /// A video's length as its badge shows it; null when it is unknown, so the
+  /// badge is left out rather than saying `00:00`.
+  static String? _duration(int seconds) => seconds <= 0
+      ? null
+      : '${(seconds ~/ 60).toString().padLeft(2, '0')}:${(seconds % 60).toString().padLeft(2, '0')}';
+
+  /// The type label of a file card: the name's extension (1–5 letters or
+  /// digits) in capitals, the rule the other kits use; null without one.
+  static String? _ext(String name) {
+    final match = RegExp(
+      r'\.([a-z0-9]{1,5})$',
+      caseSensitive: false,
+    ).firstMatch(name);
+    return match?.group(1)!.toUpperCase();
+  }
 
   static String _bytes(int bytes) {
     if (bytes < 1024) return '$bytes B';
     if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
     return '${(bytes / 1024 / 1024).toStringAsFixed(1)} MB';
   }
+}
+
+/// A download state that does not change: a standalone body's snapshot for
+/// the viewer it opens.
+class _FixedDownloadState implements ValueListenable<FlareMediaDownloadState?> {
+  const _FixedDownloadState(this.value);
+
+  @override
+  final FlareMediaDownloadState? value;
+
+  @override
+  void addListener(VoidCallback listener) {}
+
+  @override
+  void removeListener(VoidCallback listener) {}
 }

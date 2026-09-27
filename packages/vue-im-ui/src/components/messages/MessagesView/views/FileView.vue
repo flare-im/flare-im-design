@@ -65,11 +65,15 @@ const state = computed<MessageMediaDownloadUiState | "unavailable">(() => {
 });
 
 function onDownload(): void {
-  if (!props.mediaAction || state.value === "downloading" || state.value === "downloaded") return;
-  emit("media-action", props.mediaAction);
+  if (!props.mediaAction || state.value === "downloading") return;
+  emit("media-action", "download");
 }
-// The download affordance exists only when the host resolved a media action.
-const downloadListeners = computed(() => (props.mediaAction ? { download: onDownload } : {}));
+function onReveal(): void {
+  if (!props.mediaAction) return;
+  emit("media-action", "openFolder");
+}
+// The key exists only when the host resolved a media action: a download, or the saved file's folder.
+const downloadListeners = computed(() => (props.mediaAction ? { download: onDownload, reveal: onReveal } : {}));
 </script>
 
 <template>

@@ -1,5 +1,6 @@
 package com.flare.im.ui
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -24,11 +26,9 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.ChevronRight
-import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Icon
 import androidx.compose.foundation.layout.Spacer
@@ -49,6 +49,9 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -311,39 +314,70 @@ internal fun ImageMessageBody(
     }
 }
 
-/** video — a thumbnail with a play overlay and duration badge; emits [onPlay]. */
+/** How wide a video thumbnail is when no poster slot sizes it: an image body's width, so the two read as one family. */
+private val VideoThumbnailWidth = 240.dp
+
+/** The play disc on a video thumbnail: large enough to read as the thing to tap, small enough to leave the frame visible. */
+private val VideoPlayDisc = 44.dp
+
+/**
+ * video — a thumbnail with a centred play disc and a duration badge; emits [onPlay]. [duration] empty (a video whose
+ * length is not known) draws no badge rather than a "00:00" that reads as an empty video. Without [posterContent]
+ * the thumbnail is 16:9 at an image body's width, narrower where the bubble is; without a [poster] it is the
+ * tertiary surface with the play disc, not a stray glyph.
+ */
 @Composable
 fun VideoMessage(
     poster: String? = null,
     posterContent: (@Composable () -> Unit)? = null,
-    duration: String = "00:00",
+    duration: String = "",
     alt: String? = null,
     onPlay: (() -> Unit)? = null,
 ) {
     val colors = flareColors()
-    // With posterContent (e.g. a host-generated frame bitmap of any size) the slot
-    // defines the size; otherwise the fixed 148×92 thumbnail from the poster URL.
-    val outer = if (posterContent != null) Modifier else Modifier.size(148.dp, 92.dp)
+    // With posterContent (e.g. a host-generated frame bitmap of any size) the slot defines the size.
+    val outer = if (posterContent != null) Modifier else Modifier.width(VideoThumbnailWidth).aspectRatio(16f / 9f)
     Box(
         outer.clip(RoundedCornerShape(FlareSizes.radiusCard)).background(colors.bgTertiary).onClickIf(onPlay, flareStrings().play),
         contentAlignment = Alignment.Center,
     ) {
         if (posterContent != null) {
             posterContent()
-        } else {
-            NetImage(poster, Modifier.matchParentSize(), contentDescription = alt) {
-                Icon(Icons.Outlined.Videocam, null, Modifier.size(24.dp), tint = colors.textTertiary.copy(alpha = 0.5f))
+        } else if (!poster.isNullOrEmpty()) {
+            AsyncImage(model = poster, contentDescription = alt, modifier = Modifier.matchParentSize(), contentScale = ContentScale.Crop)
+        }
+        // A translucent dark disc with a solid white glyph: legible on a bright frame, a dark one and the bare surface.
+        Box(
+            Modifier.size(VideoPlayDisc).clip(CircleShape).background(Color.Black.copy(alpha = 0.45f)),
+            contentAlignment = Alignment.Center,
+        ) { VideoPlayGlyph() }
+        if (duration.isNotEmpty()) {
+            Box(Modifier.matchParentSize().padding(FlareSizes.spacing2xs), contentAlignment = Alignment.BottomEnd) {
+                Text(
+                    duration, color = Color.White, fontSize = FlareSizes.fontSize2xs,
+                    modifier = Modifier.clip(RoundedCornerShape(5.dp)).background(Color.Black.copy(alpha = 0.45f))
+                        .padding(horizontal = 5.dp, vertical = 1.dp),
+                )
             }
         }
-        Box(Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.28f)))
-        Icon(flareIconVector("play"), null, Modifier.size(34.dp), tint = Color.White)
-        Box(Modifier.matchParentSize().padding(FlareSizes.spacing2xs), contentAlignment = Alignment.BottomEnd) {
-            Text(
-                duration, color = Color.White, fontSize = FlareSizes.fontSize2xs,
-                modifier = Modifier.clip(RoundedCornerShape(5.dp)).background(Color.Black.copy(alpha = 0.45f))
-                    .padding(horizontal = 5.dp, vertical = 1.dp),
-            )
+    }
+}
+
+/**
+ * The play glyph on a video thumbnail: a solid triangle with softened corners, its centroid on the box's centre so it
+ * sits optically centred in the disc. The library's `play` is an outline, which reads as a thin hollow mark on a frame.
+ */
+@Composable
+private fun VideoPlayGlyph() {
+    Canvas(Modifier.size(FlareSizes.iconSizeLg)) {
+        val triangle = Path().apply {
+            moveTo(size.width * 0.34f, size.height * 0.21f)
+            lineTo(size.width * 0.82f, size.height * 0.5f)
+            lineTo(size.width * 0.34f, size.height * 0.79f)
+            close()
         }
+        drawPath(triangle, Color.White)
+        drawPath(triangle, Color.White, style = Stroke(width = 1.5.dp.toPx(), join = StrokeJoin.Round))
     }
 }
 
@@ -425,8 +459,33 @@ fun VoiceMessage(
     }
 }
 
-/** file — icon / name / size / ext; emits [onOpen] (card) and [onDownload].
- *  Override the leading [icon] slot to show a per-file-type glyph. */
+/** The type a file's [name] ends in, as a file card shows it (`PDF`): one to five letters or digits after the last dot, else null. */
+internal fun flareFileExtension(name: String): String? =
+    Regex("\\.([A-Za-z0-9]{1,5})$").find(name.trim())?.groupValues?.get(1)?.uppercase()
+
+/**
+ * The second line of a file card: the size and the type, then where the file stands on this device — downloading
+ * (with the share once it is known) or downloaded. The size and type stay whatever the state.
+ */
+internal fun fileMessageSubtitle(strings: FlareStrings, size: String, ext: String?, state: FlareMediaDownloadState?): String =
+    buildList {
+        if (size.isNotEmpty()) add(size)
+        if (!ext.isNullOrEmpty()) add(ext)
+        when {
+            state?.isDownloading == true -> {
+                val pct = state.progressPct.coerceIn(0, 100)
+                add(if (pct > 0) "${strings.downloading} $pct%" else strings.downloading)
+            }
+            state?.isSaved == true -> add(strings.downloaded)
+        }
+    }.joinToString(" · ")
+
+/**
+ * file — icon / name / size · type, and a trailing download key; emits [onOpen] (the card). The key is there only
+ * with [onDownload] and follows [downloadState] ([mediaDownloadKey]): a download, a ring while the file downloads,
+ * and once it is saved on this device a folder that calls [onReveal] (the host shows the file in its folder). The
+ * key is a named button with a 48 dp target. Override the leading [icon] slot to show a per-file-type glyph.
+ */
 @Composable
 fun FileMessage(
     name: String,
@@ -435,24 +494,37 @@ fun FileMessage(
     icon: (@Composable () -> Unit)? = null,
     onOpen: (() -> Unit)? = null,
     onDownload: (() -> Unit)? = null,
+    downloadState: FlareMediaDownloadState? = null,
+    onReveal: (() -> Unit)? = null,
 ) {
     val colors = flareColors()
-    val sub = if (!ext.isNullOrEmpty()) "$size · $ext" else size
+    val strings = flareStrings()
+    val downloading = onDownload != null && downloadState?.isDownloading == true
+    val key = mediaDownloadKey(strings, canDownload = onDownload != null, downloading = downloading,
+        saved = downloadState?.isSaved == true, canReveal = onReveal != null)
     Row(
-        Modifier.widthIn(max = 300.dp).onClickIf(onOpen),
+        // A card of its own width: the key sits at its trailing edge whatever the name's length.
+        Modifier.widthIn(min = FlareSizes.componentMediaCardMinWidth, max = 300.dp).onClickIf(onOpen),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2sm),
     ) {
-        if (icon != null) icon() else Icon(Icons.Outlined.Description, null, Modifier.size(20.dp), tint = colors.primaryText)
-        Column(Modifier.weight(1f, fill = false)) {
+        if (icon != null) icon() else Icon(flareIconVector("file"), null, Modifier.size(FlareSizes.iconSizeMd), tint = colors.primaryText)
+        Column(Modifier.weight(1f)) {
             Text(name, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp,
                 fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(sub, color = colors.textTertiary, fontSize = 11.sp)
+            Text(fileMessageSubtitle(strings, size, ext, downloadState), color = colors.textTertiary, fontSize = 11.sp,
+                maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
-        // With a host download handler the glyph is a named button with a 48 dp target; without one
-        // it stays a small decorative mark and the card keeps its compact height.
-        FlareIconControl(label = flareStrings().download, onClick = onDownload, minSize = if (onDownload != null) FlareSizes.touchTarget else 0.dp) {
-            Icon(flareIconVector("download"), null, Modifier.size(17.dp), tint = colors.textTertiary)
+        when {
+            downloading -> DownloadProgressRing(downloadState?.progressPct ?: 0, tint = colors.primaryText, ringSize = FlareSizes.iconSizeMd, showPercent = false)
+            key?.id == "reveal" -> FlareIconControl(label = key.label, onClick = onReveal) {
+                // The saved file's folder, in the accent on a faint disc: the one thing on the card that goes elsewhere.
+                Box(Modifier.size(FlareSizes.controlHeightSm).clip(CircleShape).background(colors.primary.copy(alpha = FlareOpacity.tintWeak)))
+                Icon(flareIconVector(key.icon), null, Modifier.size(FlareSizes.iconSizeMd), tint = colors.primaryText)
+            }
+            key != null -> FlareIconControl(label = key.label, onClick = onDownload) {
+                Icon(flareIconVector(key.icon), null, Modifier.size(FlareSizes.iconSizeMd), tint = colors.textTertiary)
+            }
         }
     }
 }

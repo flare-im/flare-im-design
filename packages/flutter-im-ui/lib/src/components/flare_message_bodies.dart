@@ -376,24 +376,36 @@ class FlareImageMessage extends StatelessWidget {
   }
 }
 
-/// video — a thumbnail with a play overlay and duration badge; emits `onPlay`.
+/// video — a thumbnail with a play disc and duration badge; emits `onPlay`.
+///
+/// The poster fills [width] × [height] (16:9 at the image width by default);
+/// without one the frame is the tertiary surface. The play affordance is a
+/// round translucent dark disc with a white play glyph, centred. The badge
+/// shows [duration] only when there is one: a video whose length is unknown
+/// says nothing rather than `00:00`.
 class FlareVideoMessage extends StatelessWidget {
   const FlareVideoMessage({
     super.key,
-    this.duration = '00:00',
+    this.duration,
     this.poster,
     this.alt,
     this.onPlay,
+    this.width = 240,
+    this.height = 135,
   });
 
-  final String duration;
+  /// The length as shown (`01:05`); null or empty draws no badge.
+  final String? duration;
   final String? poster;
   final String? alt;
   final VoidCallback? onPlay;
+  final double width;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
     final c = FlareColors.of(context);
+    final length = duration;
     return _tap(
       onPlay,
       Semantics(
@@ -401,47 +413,51 @@ class FlareVideoMessage extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(FlareSizes.radiusCard),
           child: SizedBox(
-            width: 148,
-            height: 92,
+            width: width,
+            height: height,
             child: Stack(
               fit: StackFit.expand,
               children: [
-                _netImage(
-                  poster,
-                  placeholder: ColoredBox(
-                    color: c.bgTertiary,
-                    child: Icon(
-                      Icons.videocam_outlined,
-                      color: c.textTertiary,
-                      size: 24,
+                _netImage(poster, placeholder: ColoredBox(color: c.bgTertiary)),
+                Center(
+                  child: Container(
+                    width: FlareSizes.touchTargetMin,
+                    height: FlareSizes.touchTargetMin,
+                    alignment: Alignment.center,
+                    decoration: const BoxDecoration(
+                      color: Color(0x73000000),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const FlareIcon(
+                      'play',
+                      color: Colors.white,
+                      size: FlareSizes.iconSizeLg,
                     ),
                   ),
                 ),
-                const ColoredBox(color: Color(0x47000000)),
-                const Center(
-                  child: FlareIcon('play', color: Colors.white, size: 34),
-                ),
-                Positioned(
-                  right: 6,
-                  bottom: 5,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 5,
-                      vertical: 1,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0x73000000),
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    child: Text(
-                      duration,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: FlareSizes.fontSize2xs,
+                if (length != null && length.isNotEmpty)
+                  PositionedDirectional(
+                    end: FlareSizes.spacing2xs,
+                    bottom: FlareSizes.spacing2xs,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 1,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0x73000000),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      child: Text(
+                        length,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: FlareSizes.fontSize2xs,
+                          fontFeatures: [FontFeature.tabularFigures()],
+                        ),
                       ),
                     ),
                   ),
-                ),
               ],
             ),
           ),
@@ -563,9 +579,15 @@ class FlareVoiceMessage extends StatelessWidget {
   }
 }
 
-/// file — icon / name / size / ext; emits `onOpen` (card) and `onDownload`.
-/// Override the leading [icon] to show a per-file-type glyph. The download key
-/// is drawn only when there is an [onDownload] to call.
+/// file — icon / name / size / ext; emits `onOpen` (card), `onDownload` and
+/// `onReveal`. Override the leading [icon] to show a per-file-type glyph.
+///
+/// The key on the right follows [downloadState]: a download key while the file
+/// is not on this device ([onDownload]), progress while it downloads (not a
+/// control), and once it is saved a folder key that shows it in its folder
+/// ([onReveal]). A key with nothing to call is not drawn — a saved file without
+/// [onReveal] has no key rather than a spent one. The line under the name keeps
+/// the size and type and says "downloading" / "downloaded" after them.
 class FlareFileMessage extends StatelessWidget {
   const FlareFileMessage({
     super.key,
@@ -573,21 +595,49 @@ class FlareFileMessage extends StatelessWidget {
     this.size = '',
     this.ext,
     this.icon,
+    this.downloadState,
     this.onOpen,
     this.onDownload,
+    this.onReveal,
   });
 
   final String name;
   final String size;
   final String? ext;
   final Widget? icon;
+
+  /// Where the file's download stands on this device; null is not downloaded.
+  final FlareMediaDownloadState? downloadState;
   final VoidCallback? onOpen;
   final VoidCallback? onDownload;
+
+  /// Shows the saved file in its folder (the key once [downloadState] is done).
+  final VoidCallback? onReveal;
 
   @override
   Widget build(BuildContext context) {
     final c = FlareColors.of(context);
-    final sub = ext == null || ext!.isEmpty ? size : '$size · $ext';
+    final strings = FlareStrings.of(context);
+    final status = downloadState?.status ?? FlareMediaDownloadStatus.idle;
+    final pct = (downloadState?.progressPct ?? 0).clamp(0, 100);
+    final downloading = status == FlareMediaDownloadStatus.downloading;
+    final saved = status == FlareMediaDownloadStatus.done;
+    final progress = pct > 0
+        ? '${strings.downloading} $pct%'
+        : strings.downloading;
+    final sub = [
+      if (size.isNotEmpty) size,
+      if (ext != null && ext!.isNotEmpty) ext!,
+      if (downloading) progress else if (saved) strings.downloaded,
+    ].join(' · ');
+    final key = _key(
+      c,
+      strings,
+      downloading: downloading,
+      saved: saved,
+      pct: pct,
+      progress: progress,
+    );
     return _tap(
       onOpen,
       Container(
@@ -618,24 +668,71 @@ class FlareFileMessage extends StatelessWidget {
                       color: c.textPrimary,
                     ),
                   ),
-                  Text(
-                    sub,
-                    style: TextStyle(fontSize: 11, color: c.textTertiary),
-                  ),
+                  if (sub.isNotEmpty)
+                    Text(
+                      sub,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: FlareSizes.fontSizeXs,
+                        color: c.textTertiary,
+                      ),
+                    ),
                 ],
               ),
             ),
-            // No tooltip: a long press on a message belongs to its bubble.
-            if (onDownload != null)
-              FlareIconControl(
-                label: FlareStrings.of(context).download,
-                onTap: onDownload,
-                tooltip: false,
-                child: FlareIcon('download', size: 17, color: c.textTertiary),
-              ),
+            if (key != null) ...[
+              const SizedBox(width: FlareSizes.spacingXs),
+              key,
+            ],
           ],
         ),
       ),
+    );
+  }
+
+  /// The key on the right — progress, the folder or the download — or null
+  /// when there is nothing to call. No tooltip: a long press on a message
+  /// belongs to its bubble.
+  Widget? _key(
+    FlareColors c,
+    FlareStrings strings, {
+    required bool downloading,
+    required bool saved,
+    required int pct,
+    required String progress,
+  }) {
+    if (downloading) {
+      if (onDownload == null && onReveal == null) return null;
+      // Not a control, but it keeps its place: a tap on the progress does not
+      // fall through to the card and open the file.
+      return GestureDetector(
+        onTap: () {},
+        excludeFromSemantics: true,
+        child: FlareIconControl(
+          label: progress,
+          onTap: null,
+          tooltip: false,
+          child: SizedBox.square(
+            dimension: FlareSizes.iconSizeMd,
+            child: CircularProgressIndicator(
+              value: pct > 0 ? pct / 100 : null,
+              strokeWidth: 2,
+              color: c.primary,
+            ),
+          ),
+        ),
+      );
+    }
+    final (icon, label, onTap, color) = saved
+        ? ('folder', strings.showInFolder, onReveal, c.primary)
+        : ('download', strings.download, onDownload, c.textTertiary);
+    if (onTap == null) return null;
+    return FlareIconControl(
+      label: label,
+      onTap: onTap,
+      tooltip: false,
+      child: FlareIcon(icon, size: FlareSizes.iconSizeMd, color: color),
     );
   }
 }

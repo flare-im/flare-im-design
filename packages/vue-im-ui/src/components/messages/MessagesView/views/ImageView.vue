@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect } from "vue";
 import { DownloadOutline } from "../../../../shared/icon-glyphs";
+import { flareIcons } from "../../../../shared/icons";
 import type { ContentElem } from "../../../../utils/contentElem";
 import { readString } from "../../../../utils/contentData";
 import { imageInfoIsMotion } from "../../../../utils/motionImage";
@@ -28,7 +29,20 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ (event: "media-action", action: "download" | "openFolder"): void }>();
 const { t } = useFlareI18n();
-const canDownload = computed(() => props.mediaAction === "download");
+const saved = computed(() =>
+  props.mediaAction === "openFolder" || props.mediaState === "openFolder" || props.mediaState === "downloaded",
+);
+const canReveal = computed(() => saved.value && Boolean(props.mediaAction));
+const canDownload = computed(() => props.mediaAction === "download" && !saved.value);
+// The preview's key: a download while the picture is not saved, its folder once it is.
+const primaryIcon = computed(() => (canReveal.value ? flareIcons.folder : canDownload.value ? DownloadOutline : undefined));
+const primaryTitle = computed(() =>
+  canReveal.value ? t("messageMenu.openMediaFolder") : canDownload.value ? t("media.downloadImage") : "",
+);
+function primaryAction(): void {
+  if (canReveal.value) emit("media-action", "openFolder");
+  else if (canDownload.value) emit("media-action", "download");
+}
 
 const previewOpen = ref(false);
 
@@ -53,6 +67,7 @@ watchEffect((onCleanup) => {
     fullUrl: fullUrl.value,
     alt: description.value,
     download: canDownload.value ? () => emit("media-action", "download") : null,
+    reveal: canReveal.value ? () => emit("media-action", "openFolder") : null,
     downloading: props.mediaState === "downloading",
   });
   onCleanup(() => gallery.report(messageId, 0, undefined));
@@ -81,11 +96,11 @@ function openPreview(): void {
       v-model:show="previewOpen"
       :image-src="fullUrl"
       :alt="description || t('mediaMessage.image')"
-      :primary-action-icon="canDownload ? DownloadOutline : undefined"
-      :primary-action-title="canDownload ? t('media.downloadImage') : ''"
+      :primary-action-icon="primaryIcon"
+      :primary-action-title="primaryTitle"
       :primary-action-disabled="mediaState === 'downloading'"
       :downloading="mediaState === 'downloading'"
-      @primary-action="emit('media-action', 'download')"
+      @primary-action="primaryAction"
     />
   </div>
 </template>

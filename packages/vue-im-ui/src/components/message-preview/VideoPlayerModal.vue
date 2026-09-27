@@ -4,6 +4,7 @@
 // 也不还原:开在一张面板之上再关掉,面板还开着,背后的页面却又能滚了。
 import { computed, getCurrentInstance, ref, watch } from "vue";
 import { CloseOutline, DownloadOutline } from "../../shared/icon-glyphs";
+import { flareIcons } from "../../shared/icons";
 import { NIcon } from "naive-ui";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 import { useFlareModalSurface } from "../../shared/useModalSurface";
@@ -17,20 +18,26 @@ const props = withDefaults(
     /** A save is in progress: the download key shows `progressPct` instead. */
     downloading?: boolean;
     progressPct?: number;
+    /** The video is saved on this device: the key shows it in its folder (`reveal`) instead of downloading it again. */
+    saved?: boolean;
   }>(),
-  { poster: "", downloading: false, progressPct: 0 },
+  { poster: "", downloading: false, progressPct: 0, saved: false },
 );
 const { t } = useFlareI18n();
 const strings = computed(() => ({
   title: props.title ?? t("videoPlayerModal.title"),
 }));
 
-const emit = defineEmits<{ "update:show": [value: boolean]; download: [] }>();
+const emit = defineEmits<{ "update:show": [value: boolean]; download: []; reveal: [] }>();
 
 // 下载键（右上角，与图片预览一致）只在宿主处理 download 时出现：没人接的键点了什么也不会发生。
+// 已保存（saved）且宿主处理 reveal 时换成文件夹键：在文件夹中显示，而不是再下一份。
 const instance = getCurrentInstance();
 function handlesDownload(): boolean {
   return Boolean(instance?.vnode.props?.onDownload);
+}
+function showsFolder(): boolean {
+  return props.saved && Boolean(instance?.vnode.props?.onReveal);
 }
 const progressLabel = computed(() => `${Math.round(Math.min(100, Math.max(0, props.progressPct)))}%`);
 
@@ -59,7 +66,17 @@ watch(() => props.show, (open) => { if (!open) videoRef.value?.pause(); });
       <header class="video-player-modal__header">
         <strong class="video-player-modal__title">{{ displayTitle }}</strong>
         <div class="video-player-modal__actions">
-          <template v-if="handlesDownload()">
+          <button
+            v-if="showsFolder()"
+            type="button"
+            class="video-player-modal__close"
+            :title="t('messageMenu.openMediaFolder')"
+            :aria-label="t('messageMenu.openMediaFolder')"
+            @click="emit('reveal')"
+          >
+            <n-icon aria-hidden="true" :component="flareIcons.folder" />
+          </button>
+          <template v-else-if="handlesDownload()">
             <span v-if="downloading" class="video-player-modal__progress" role="status" aria-live="polite">{{ progressLabel }}</span>
             <button
               v-else

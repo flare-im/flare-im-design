@@ -48,6 +48,11 @@ public enum FlareContentRegistry {
 /// before. Files and locations always go to the host — a file tap goes to `onMediaAction`, else to `onOpenFile`
 /// (which leaves the image, video and voice defaults on).
 ///
+/// A file card carries its key at the trailing edge whenever `onMediaDownload` is given. The key, and the one in the
+/// preview and the player, follow `mediaState`, the host's view of the media on this device: a download, the save's
+/// progress, and once it is saved a folder that calls `onMediaReveal` — the host shows it where it was saved, or finds
+/// it gone and passes `idle` again. A viewer that is open follows the state as it changes.
+///
 /// A picture — in the bubble, an album tile, the preview and the gallery — is drawn from its local copy when the
 /// host resolved one through the SDK media cache (``FlareImageContent/localPath``,
 /// ``flarePictureSource(_:preferThumbnail:)``). A file address in the message's own `url` is never drawn.
@@ -62,6 +67,7 @@ public struct MessageContentView: View {
     private let content: FlareMessageContent
     private let ctx: FlareContentContext
     private let onMediaDownload: ((FlareMessageContent) -> Void)?
+    private let onMediaReveal: ((FlareMessageContent) -> Void)?
     private let onOpenFile: ((FlareFileContent) -> Void)?
     private let onOpenLink: ((String) -> Void)?
     private let onVote: ((Int) -> Void)?
@@ -86,6 +92,7 @@ public struct MessageContentView: View {
         mediaState: FlareMediaDownloadState? = nil,
         onMediaAction: ((FlareMessageContent) -> Void)? = nil,
         onMediaDownload: ((FlareMessageContent) -> Void)? = nil,
+        onMediaReveal: ((FlareMessageContent) -> Void)? = nil,
         onOpenFile: ((FlareFileContent) -> Void)? = nil,
         onOpenLink: ((String) -> Void)? = nil,
         onVote: ((Int) -> Void)? = nil,
@@ -96,6 +103,7 @@ public struct MessageContentView: View {
             isSelf: isSelf, previewMode: previewMode, senderName: senderName,
             mediaState: mediaState, onMediaAction: onMediaAction)
         self.onMediaDownload = onMediaDownload
+        self.onMediaReveal = onMediaReveal
         self.onOpenFile = onOpenFile
         self.onOpenLink = onOpenLink
         self.onVote = onVote
@@ -126,7 +134,8 @@ public struct MessageContentView: View {
         if let custom = FlareContentRegistry.lookup(content.type) {
             custom(content, ctx)
         } else if mediaSession == nil, Self.usesMediaDefaults(content, hostHandles: ctx.onMediaAction != nil) {
-            FlareOwnedMediaSession { session in
+            // Outside a list the body owns its viewer, which follows this body's state.
+            FlareOwnedMediaSession(downloads: ctx.mediaState.map { [downloadId: $0] } ?? [:]) { session in
                 framedBody(session, foreground: foreground)
             }
         } else {
@@ -135,14 +144,18 @@ public struct MessageContentView: View {
     }
 
     private func framedBody(_ session: FlareMediaSession?, foreground: Color) -> some View {
-        VStack(alignment: .leading) {
-            canonicalBody(session)
-            if let media = ctx.mediaState, media.isDownloading {
-                ProgressView(value: Double(min(max(media.progressPct, 0), 100)), total: 100)
+        canonicalBody(session)
+            // A picture or a video being saved shows it along its bottom edge, inside the media, so the bubble keeps
+            // the media's width; a file card shows it in its own key.
+            .overlay(alignment: .bottom) {
+                if let media = ctx.mediaState, media.isDownloading, !(content is FlareFileContent) {
+                    ProgressView(value: Double(min(max(media.progressPct, 0), 100)), total: 100)
+                        .tint(.white)
+                        .padding(FlareSizes.spacingSm)
+                }
             }
-        }
-        .environment(\.flareMessageBodyForeground, foreground)
-        .foregroundStyle(foreground)
+            .environment(\.flareMessageBodyForeground, foreground)
+            .foregroundStyle(foreground)
     }
 
     private var action: (() -> Void)? {
@@ -155,6 +168,16 @@ public struct MessageContentView: View {
         guard let onMediaDownload else { return nil }
         return { onMediaDownload(content) }
     }
+
+    /// The host's reveal handler for this body: the folder key of the file card, the preview and the player.
+    private var reveal: (() -> Void)? {
+        guard let onMediaReveal else { return nil }
+        return { onMediaReveal(content) }
+    }
+
+    /// Where the viewer finds this body's state: the message in a list; outside one, the body's own session holds
+    /// only this body's.
+    private var downloadId: String { messageId ?? "" }
 
     /// Opening an album tile: the host's media handler takes the whole album; without one the kit previews the
     /// tile's image — in a timeline, the conversation's gallery from it — which the host's download handler can save.
@@ -190,17 +213,21 @@ public struct MessageContentView: View {
                 width: c.width, height: c.height, onTap: action)
         case let c as FlareImageContent:
             let picture = flarePictureSource(c)
-            ImageMessageView(src: picture.src, width: 240, height: 180, alt: c.alt,
+            let frame = Self.imageSize(c)
+            ImageMessageView(src: picture.src, width: frame.width, height: frame.height, alt: c.alt,
                              onTap: action ?? session.map { session in
-                                 { session.open(c, messageId: messageId, index: 0, gallery: gallery, onDownload: download) }
+                                 { session.open(c, messageId: messageId, index: 0, gallery: gallery, onDownload: download,
+                                                onReveal: reveal, downloadId: downloadId) }
                              },
                              allowLocalFile: picture.local)
         case let c as FlareImageGroupContent:
             ImageGroupMessageView(images: c.images, description: c.description, isSelf: ctx.isSelf,
                                   onOpen: albumOpener(c, session: session))
         case let c as FlareVideoContent:
-            VideoMessageView(poster: c.poster, duration: Self.duration(c.durationSec),
-                             onPlay: action ?? session.map { session in { session.present(c, onDownload: download) } })
+            VideoMessageView(poster: c.poster, duration: c.durationSec > 0 ? Self.duration(c.durationSec) : "",
+                             onPlay: action ?? session.map { session in
+                                 { session.present(c, onDownload: download, onReveal: reveal, downloadId: downloadId) }
+                             })
         case let c as FlareAudioContent:
             if let action {
                 VoiceMessageView(seconds: c.durationSec, onPlay: action)
@@ -210,8 +237,9 @@ public struct MessageContentView: View {
                 VoiceMessageView(seconds: c.durationSec)
             }
         case let c as FlareFileContent:
-            FileMessageView(name: c.name, size: Self.bytes(c.sizeBytes),
-                            onOpen: action ?? onOpenFile.map { open in { open(c) } })
+            FileMessageView(name: c.name, size: Self.bytes(c.sizeBytes), ext: Self.fileExtension(c.name),
+                            onOpen: action ?? onOpenFile.map { open in { open(c) } },
+                            onDownload: download, downloadState: ctx.mediaState, onReveal: reveal)
         case let c as FlareLocationContent:
             LocationMessageView(title: c.name, address: c.address, onOpen: action)
         case let c as FlareCardContent:
@@ -245,6 +273,20 @@ public struct MessageContentView: View {
         default:
             UnknownMessageView(contentType: content.type, isSelf: ctx.isSelf)
         }
+    }
+
+    /// The timeline's picture frame: the image width, and the height its aspect gives when the host knows its size —
+    /// kept between a strip and a square — else 4:3. The same rule as the other kits.
+    static func imageSize(_ image: FlareImageContent) -> CGSize {
+        let width: CGFloat = 240
+        guard let w = image.width, let h = image.height, w > 0, h > 0 else { return CGSize(width: width, height: 180) }
+        return CGSize(width: width, height: min(max(width * CGFloat(h / w), 48), 240))
+    }
+
+    /// A file's type as its card names it: the name's extension, upper-cased; nil without one.
+    static func fileExtension(_ name: String) -> String? {
+        let ext = (name as NSString).pathExtension.trimmingCharacters(in: .whitespacesAndNewlines)
+        return ext.isEmpty || ext.count > 8 ? nil : ext.uppercased()
     }
 
     static func duration(_ seconds: Int) -> String {

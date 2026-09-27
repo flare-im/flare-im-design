@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'dart:async';
@@ -77,6 +78,7 @@ class FlareMessageList extends StatefulWidget {
     this.onOpenFile,
     this.onOpenLink,
     this.onMediaDownload,
+    this.onMediaReveal,
     this.onVote,
     this.onTaskToggle,
     this.onResend,
@@ -109,7 +111,10 @@ class FlareMessageList extends StatefulWidget {
   /// 空态文案。整块替换用 [emptyPlaceholder]，仅换文字用本参数。
   final String? emptyText;
 
-  /// Per-message-id media download state.
+  /// Per-message-id media download state: what the media's key shows — the
+  /// file card's key in the timeline, and the key of an image preview or video
+  /// player opened from the message, which follows it live (pressing download
+  /// there turns the key into progress, then a folder, without closing).
   final Map<String, FlareMediaDownloadState> mediaDownloadStates;
 
   /// Coordinates voice playback across the bubbles (one voice message at a
@@ -144,12 +149,21 @@ class FlareMessageList extends StatefulWidget {
   /// address that passed `safeExternalUrl` and never opens it itself.
   final void Function(FlareMessageData message, String url)? onOpenLink;
 
-  /// Offered as the download key of the kit's image preview and video player;
-  /// without it neither has a download key. A tapped picture opens the
-  /// conversation's gallery, and the key saves the picture on screen with the
-  /// message it belongs to; a video's key saves that video.
+  /// The download key of a file card, the kit's image preview and its video
+  /// player; without it none of them has a download key. A tapped picture
+  /// opens the conversation's gallery, and the key saves the picture on screen
+  /// with the message it belongs to; a video's key saves that video, a file
+  /// card's that file. The host reports the download in [mediaDownloadStates].
   final void Function(FlareMessageData message, FlareMessageContent content)?
   onMediaDownload;
+
+  /// The folder key that replaces the download key once [mediaDownloadStates]
+  /// says a message's media is saved on this device (`done`): the host shows
+  /// the file in the system file manager, or — when the file is gone — sets
+  /// the state back to idle so the key offers the download again. Without it
+  /// a saved media has no key.
+  final void Function(FlareMessageData message, FlareMessageContent content)?
+  onMediaReveal;
 
   /// A tapped poll option, by its index; without it polls are read-only.
   final void Function(FlareMessageData message, int optionIndex)? onVote;
@@ -326,6 +340,27 @@ class _FlareMessageListState extends State<FlareMessageList>
 
   FlareMediaController? _ownMedia;
   bool _onScreen = true;
+
+  /// [FlareMessageList.mediaDownloadStates] for the viewers opened from the
+  /// thread (they live in their own routes, outside this list's rebuilds).
+  late final ValueNotifier<Map<String, FlareMediaDownloadState>>
+  _downloadStates = ValueNotifier(Map.of(widget.mediaDownloadStates));
+  bool _downloadStatesQueued = false;
+
+  /// Hands the viewers the host's latest states after this frame: they are in
+  /// other routes, which must not be marked dirty while this list builds.
+  void _publishDownloadStates() {
+    if (mapEquals(_downloadStates.value, widget.mediaDownloadStates) ||
+        _downloadStatesQueued) {
+      return;
+    }
+    _downloadStatesQueued = true;
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _downloadStatesQueued = false;
+      if (!mounted) return;
+      _downloadStates.value = Map.of(widget.mediaDownloadStates);
+    });
+  }
 
   FlareMediaController get _media =>
       widget.mediaController ?? (_ownMedia ??= FlareMediaController());
@@ -688,6 +723,7 @@ class _FlareMessageListState extends State<FlareMessageList>
       }
     }
     _rowKeys.removeWhere((id, _) => !surviving.contains(id));
+    _publishDownloadStates();
     if (oldWidget.loadingOlder && !widget.loadingOlder ||
         oldWidget.messages.firstOrNull?.id != widget.messages.firstOrNull?.id ||
         oldWidget.olderError != widget.olderError)
@@ -704,6 +740,7 @@ class _FlareMessageListState extends State<FlareMessageList>
     final hostMedia = widget.mediaController;
     if (hostMedia != null) unawaited(hostMedia.stopVoice());
     _ownMedia?.dispose();
+    _downloadStates.dispose();
     super.dispose();
   }
 
@@ -750,6 +787,7 @@ class _FlareMessageListState extends State<FlareMessageList>
       onOpenFile: widget.onOpenFile,
       onOpenLink: widget.onOpenLink,
       onMediaDownload: widget.onMediaDownload,
+      onMediaReveal: widget.onMediaReveal,
       onVote: widget.onVote,
       onTaskToggle: widget.onTaskToggle,
       onResend: widget.onResend,
@@ -817,11 +855,14 @@ class _FlareMessageListState extends State<FlareMessageList>
       reduceMotion: MediaQuery.maybeDisableAnimationsOf(context) ?? false,
       child: FlareMediaScope(
         controller: _media,
+        downloadStates: _downloadStates,
         child: FlareImageGalleryScope(
           items: _gallery(),
           download: widget.onMediaDownload == null
               ? null
               : _downloadGalleryPicture,
+          reveal: widget.onMediaReveal == null ? null : _revealGalleryPicture,
+          downloadStateOf: _galleryPictureState,
           child: ColoredBox(
             color: colors.bgSecondary,
             child: Column(
@@ -1013,13 +1054,31 @@ class _FlareMessageListState extends State<FlareMessageList>
   /// Saves a picture of the gallery with the message it belongs to.
   void _downloadGalleryPicture(FlareImageGalleryItem item) {
     final download = widget.onMediaDownload;
-    if (download == null) return;
-    for (final message in widget.messages) {
-      if (message.id == item.messageId) {
-        download(message, item.image);
-        return;
-      }
-    }
+    final message = _galleryMessage(item);
+    if (download != null && message != null) download(message, item.image);
+  }
+
+  /// Shows a saved picture of the gallery in its folder.
+  void _revealGalleryPicture(FlareImageGalleryItem item) {
+    final reveal = widget.onMediaReveal;
+    final message = _galleryMessage(item);
+    if (reveal != null && message != null) reveal(message, item.image);
+  }
+
+  /// The live download state of a gallery picture: an image message's own.
+  /// An album's pictures share one message, so a state for it cannot say which
+  /// picture is saved; they keep the plain download key.
+  ValueListenable<FlareMediaDownloadState?>? _galleryPictureState(
+    FlareImageGalleryItem item,
+  ) {
+    final message = _galleryMessage(item);
+    if (message == null || message.content is! FlareImageContent) return null;
+    return flareMediaDownloadEntry(_downloadStates, item.messageId);
+  }
+
+  FlareMessageData? _galleryMessage(FlareImageGalleryItem item) {
+    final index = _indexes[item.messageId];
+    return index == null ? null : widget.messages[index];
   }
 
   /// The gallery of the rows on screen, rebuilt only when the host passes new rows.

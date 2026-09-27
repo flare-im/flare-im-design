@@ -77,6 +77,7 @@ export type {
   FlareMediaResolver,
   FlareGridImage,
   FlareWallpaperOption,
+  MessageMediaDownloadUiState,
 } from "./media";
 export type {
   FlareMomentAuthor,

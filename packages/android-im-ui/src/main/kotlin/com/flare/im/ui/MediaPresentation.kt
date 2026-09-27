@@ -168,25 +168,56 @@ internal fun flarePictureModel(picture: FlarePictureSource): Any? = when {
     else -> picture.src
 }
 
-/** A full-screen presentation the kit owns. */
+/**
+ * A full-screen presentation the kit owns. Each names the message its media belongs to ([Image.messageId],
+ * [Gallery.messageIds] by page, [Video.messageId]; null outside a list), so its download key follows that message's
+ * download state while it is open ([FlareMediaOverlay]).
+ */
 internal sealed interface FlareMediaPresentation {
-    /** One picture; [onDownload] is its download key, and there is none without it. */
-    data class Image(val src: String, val onDownload: (() -> Unit)? = null) : FlareMediaPresentation
-    /** A gallery of [sources], starting at [index]; [onDownload] downloads the picture of a page, and there is no key without it. */
-    data class Gallery(val sources: List<String>, val index: Int, val onDownload: ((Int) -> Unit)? = null) : FlareMediaPresentation
-    /** A video; [onDownload] is the player's download key, and there is none without it. */
-    data class Video(val src: String, val onDownload: (() -> Unit)? = null) : FlareMediaPresentation
+    /** One picture; [onDownload] is its download key, and there is none without it. [onReveal] is the key once the picture is saved. */
+    data class Image(
+        val src: String,
+        val onDownload: (() -> Unit)? = null,
+        val messageId: String? = null,
+        val onReveal: (() -> Unit)? = null,
+    ) : FlareMediaPresentation
+    /**
+     * A gallery of [sources], starting at [index]; [onDownload] downloads the picture of a page, and there is no key
+     * without it. [messageIds] are the messages of the pages, in the same order; [onReveal] shows a saved page's file.
+     */
+    data class Gallery(
+        val sources: List<String>,
+        val index: Int,
+        val onDownload: ((Int) -> Unit)? = null,
+        val messageIds: List<String> = emptyList(),
+        val onReveal: ((Int) -> Unit)? = null,
+    ) : FlareMediaPresentation
+    /** A video; [onDownload] is the player's download key, and there is none without it. [onReveal] is the key once the video is saved. */
+    data class Video(
+        val src: String,
+        val onDownload: (() -> Unit)? = null,
+        val messageId: String? = null,
+        val onReveal: (() -> Unit)? = null,
+    ) : FlareMediaPresentation
 }
 
 /**
  * What a tap on a video body opens: the kit player at [src], whose download key hands the body's [content] to
- * [onDownload] (the body's `onMediaDownload`); there is no key without it.
+ * [onDownload] (the body's `onMediaDownload`) and, once the video of message [messageId] is saved, to [onReveal]
+ * (the body's `onMediaReveal`); there is no key without [onDownload].
  */
 internal fun flareVideoPresentation(
     src: String,
     content: FlareMessageContent,
+    messageId: String? = null,
+    onReveal: ((FlareMessageContent) -> Unit)? = null,
     onDownload: ((FlareMessageContent) -> Unit)?,
-): FlareMediaPresentation.Video = FlareMediaPresentation.Video(src, onDownload?.let { download -> { download(content) } })
+): FlareMediaPresentation.Video = FlareMediaPresentation.Video(
+    src,
+    onDownload?.let { download -> { download(content) } },
+    messageId,
+    onReveal?.let { reveal -> { reveal(content) } },
+)
 
 internal enum class FlareVoicePhase { Idle, Preparing, Playing, Paused, Failed }
 
@@ -373,9 +404,13 @@ internal fun rememberFlareMediaHost(): FlareMediaHost {
 /**
  * The host's full-screen presentation, in its own dialog window over everything: system back and the
  * close control dismiss it, and the preview also closes on a swipe down.
+ *
+ * The download key follows [stateOf] the message on screen (its id, null outside a list) while the presentation
+ * stays open: read here, in the caller's composition, so a download pressed in the viewer turns the key into its
+ * progress and then into the folder without closing it.
  */
 @Composable
-internal fun FlareMediaOverlay(host: FlareMediaHost) {
+internal fun FlareMediaOverlay(host: FlareMediaHost, stateOf: (String?) -> FlareMediaDownloadState? = { null }) {
     val presentation = host.presentation ?: return
     Dialog(
         onDismissRequest = host::dismiss,
@@ -383,12 +418,27 @@ internal fun FlareMediaOverlay(host: FlareMediaHost) {
     ) {
         FlareEdgeToEdgeDialogWindow()
         when (presentation) {
-            is FlareMediaPresentation.Image ->
-                ImagePreview(show = true, imageSrc = presentation.src, onClose = host::dismiss, onDownload = presentation.onDownload)
+            is FlareMediaPresentation.Image -> {
+                val state = stateOf(presentation.messageId)
+                ImagePreview(
+                    show = true, imageSrc = presentation.src, onClose = host::dismiss, onDownload = presentation.onDownload,
+                    downloading = state?.isDownloading == true, progressPct = state?.progressPct ?: 0,
+                    saved = state?.isSaved == true, onReveal = presentation.onReveal,
+                )
+            }
             is FlareMediaPresentation.Gallery ->
-                ImageGalleryPreview(presentation.sources, presentation.index, onClose = host::dismiss, onDownload = presentation.onDownload)
-            is FlareMediaPresentation.Video ->
-                VideoPlayer(show = true, videoSrc = presentation.src, onClose = host::dismiss, onDownload = presentation.onDownload)
+                ImageGalleryPreview(
+                    presentation.sources, presentation.index, onClose = host::dismiss, onDownload = presentation.onDownload,
+                    onReveal = presentation.onReveal, stateOf = { page -> stateOf(presentation.messageIds.getOrNull(page)) },
+                )
+            is FlareMediaPresentation.Video -> {
+                val state = stateOf(presentation.messageId)
+                VideoPlayer(
+                    show = true, videoSrc = presentation.src, onClose = host::dismiss, onDownload = presentation.onDownload,
+                    downloading = state?.isDownloading == true, progressPct = state?.progressPct ?: 0,
+                    saved = state?.isSaved == true, onReveal = presentation.onReveal,
+                )
+            }
         }
     }
 }

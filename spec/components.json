@@ -3312,8 +3312,8 @@
           "name": "mediaDownloadState",
           "type": "MessageMediaDownloadUiState",
           "description": {
-            "en": "Progress/state for media bodies (image/video/file).",
-            "zh": "媒体正文（图 / 视频 / 文件）的下载进度 / 状态。"
+            "en": "Where this message's picture, video or file stands on the device: idle / failed show a download key, downloading shows progress, saved (Vue `openFolder`, or `downloaded` right after the save; native `done`) turns the key into a folder that emits `mediaReveal` (Vue `mediaAction(…, \"openFolder\")`). A host that finds the saved file gone passes idle again. Received or sent, the time row sits on the bubble's trailing edge.",
+            "zh": "这条消息的图片 / 视频 / 文件在本机的状态：idle / failed 显示下载键，downloading 显示进度，已保存（Vue `openFolder`，或刚下完的 `downloaded`；原生 `done`）时键变成文件夹，点击发 `mediaReveal`（Vue 为 `mediaAction(…, \"openFolder\")`）。宿主发现保存的文件已不在就传回 idle。收发两侧的时间行都贴在气泡尾边（右侧）。"
           }
         }
       ],
@@ -3344,6 +3344,7 @@
         "copy",
         "openFile",
         "mediaDownload",
+        "mediaReveal",
         "openLink",
         "vote",
         "taskToggle"
@@ -3433,6 +3434,11 @@
           "compose"
         ],
         "openLink": [
+          "flutter",
+          "ios",
+          "compose"
+        ],
+        "mediaReveal": [
           "flutter",
           "ios",
           "compose"
@@ -3573,8 +3579,8 @@
           "name": "mediaDownloadStates",
           "type": "Record<string, MessageMediaDownloadUiState>",
           "description": {
-            "en": "Map of messageId → media download state.",
-            "zh": "messageId → 媒体下载状态 的映射。"
+            "en": "Per-message media save state (see MessageBubble.mediaDownloadState). The list keeps the image preview and video player it opened in step with it: pressing download there turns the key into progress, then a folder, without closing the viewer. Vue hosts can take the whole flow from `useMessageMediaSaves` (states, menuConfig, mediaAction handler).",
+            "zh": "按消息 id 的媒体保存状态（见 MessageBubble.mediaDownloadState）。列表打开的图片预览与视频播放器跟着它实时变化：在里面点下载，键变成进度再变成文件夹，不用关掉预览。Vue 宿主可直接用 `useMessageMediaSaves`（states、menuConfig、mediaAction 处理）。"
           }
         },
         {
@@ -3702,6 +3708,7 @@
         "copy",
         "openFile",
         "mediaDownload",
+        "mediaReveal",
         "openLink",
         "vote",
         "taskToggle"
@@ -3801,6 +3808,11 @@
           "compose"
         ],
         "openLink": [
+          "flutter",
+          "ios",
+          "compose"
+        ],
+        "mediaReveal": [
           "flutter",
           "ios",
           "compose"
@@ -4322,6 +4334,7 @@
         "mediaAction",
         "openFile",
         "mediaDownload",
+        "mediaReveal",
         "openLink",
         "vote",
         "taskToggle"
@@ -4364,6 +4377,11 @@
           "compose"
         ],
         "openLink": [
+          "flutter",
+          "ios",
+          "compose"
+        ],
+        "mediaReveal": [
           "flutter",
           "ios",
           "compose"
@@ -5101,7 +5119,8 @@
       "states": [],
       "events": [
         "open",
-        "download"
+        "download",
+        "reveal"
       ],
       "props": [
         {
@@ -5148,8 +5167,21 @@
             "vue"
           ],
           "description": {
-            "en": "Host download lifecycle; drives the trailing action glyph, the meta line and the indeterminate progress bar. The timeline dispatcher maps MessageBubble.mediaDownloadState onto it.",
-            "zh": "宿主下载生命周期；驱动尾部操作图标、meta 行与不定进度条。时间线分发器把 MessageBubble.mediaDownloadState 映射到这里。"
+            "en": "Host download lifecycle; drives the trailing key and the meta line. The key is a download until the file is saved (`openFolder`, or `downloaded` right after the save), then a folder that emits `reveal`; a host that finds the file gone passes `idle` again. Size and type stay on the meta line, followed by 下载中 / 已下载. The timeline dispatcher maps MessageBubble.mediaDownloadState onto it.",
+            "zh": "宿主下载生命周期；驱动尾部键与 meta 行。文件保存前是下载键，保存后（`openFolder`，或刚下完的 `downloaded`）是文件夹键，点击发 `reveal`；宿主发现文件已不在就传回 `idle`。meta 行始终保留大小与类型，后跟「下载中 / 已下载」。时间线分发器把 MessageBubble.mediaDownloadState 映射到这里。"
+          }
+        },
+        {
+          "name": "downloadState",
+          "type": "FlareMediaDownloadState",
+          "platforms": [
+            "flutter",
+            "ios",
+            "compose"
+          ],
+          "description": {
+            "en": "Native counterpart of `state`: idle / failed → download key, downloading (+progressPct) → progress, done → folder key calling `onReveal`. Without `onReveal` a saved file keeps no folder key.",
+            "zh": "原生端对应 `state`：idle / failed → 下载键，downloading（+progressPct）→ 进度，done → 文件夹键，调用 `onReveal`。没有 `onReveal` 时已保存的文件不画文件夹键。"
           }
         },
         {
@@ -7499,6 +7531,20 @@
           }
         },
         {
+          "name": "saved",
+          "type": "boolean",
+          "default": false,
+          "platforms": [
+            "flutter",
+            "ios",
+            "compose"
+          ],
+          "description": {
+            "en": "The picture is saved on this device: the top-right key shows it in its folder (`reveal`) instead of downloading it again. Vue sets the primary action to the folder instead (`primaryActionIcon` / `primaryAction`). Opened from a message list, the key follows the list's live `mediaDownloadStates`.",
+            "zh": "图片已保存在本机：右上角的键改为「在文件夹中显示」（`reveal`），不再重复下载。Vue 端把 primary action 换成文件夹（`primaryActionIcon` / `primaryAction`）。从消息列表打开时，键跟随列表实时的 `mediaDownloadStates`。"
+          }
+        },
+        {
           "name": "progressPct",
           "type": "number",
           "description": {
@@ -7569,11 +7615,17 @@
         "primaryAction",
         "previous",
         "next",
-        "retry"
+        "retry",
+        "reveal"
       ],
       "eventPlatforms": {
         "retry": [
           "vue"
+        ],
+        "reveal": [
+          "flutter",
+          "ios",
+          "compose"
         ]
       },
       "platforms": {
@@ -7697,6 +7749,15 @@
           }
         },
         {
+          "name": "saved",
+          "type": "boolean",
+          "default": false,
+          "description": {
+            "en": "The video is saved on this device: the top-right key shows it in its folder (`reveal`, when the host handles it) instead of downloading it again. Opened from a message list, the key follows the list's live `mediaDownloadStates`: download → progress → folder, without closing the player.",
+            "zh": "视频已保存在本机：右上角的键改为「在文件夹中显示」（宿主处理 `reveal` 时），不再重复下载。从消息列表打开时，键跟随列表实时的 `mediaDownloadStates`：下载 → 进度 → 文件夹，不用关掉播放器。"
+          }
+        },
+        {
           "name": "progressPct",
           "type": "number",
           "description": {
@@ -7713,7 +7774,8 @@
       "events": [
         "update:show",
         "play",
-        "download"
+        "download",
+        "reveal"
       ],
       "platforms": {
         "vue": {

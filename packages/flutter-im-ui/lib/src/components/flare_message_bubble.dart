@@ -26,6 +26,11 @@ enum FlareConversationKind { single, group, channel, ai, system }
 /// One message in a thread — content, sender, grouping, delivery status.
 /// Spec: Message/MessageBubble (`FlareMessageBubble`). Pure/presentational:
 /// status comes from host-owned lifecycle state (optimistic), never a network wait.
+///
+/// The body sits on the sender's side, but the meta row (time and delivery
+/// status) always sits on the trailing edge: at the bottom right of a framed
+/// bubble, and under bare media aligned to its right edge — for everyone's
+/// messages, not only the current user's.
 class FlareMessageBubble extends StatelessWidget {
   const FlareMessageBubble({
     super.key,
@@ -49,6 +54,7 @@ class FlareMessageBubble extends StatelessWidget {
     this.onVote,
     this.onTaskToggle,
     this.onMediaDownload,
+    this.onMediaReveal,
   });
 
   final FlareMessageData message;
@@ -93,10 +99,15 @@ class FlareMessageBubble extends StatelessWidget {
   /// multi-select mode (the body ignores taps then), the task is read-only.
   final void Function(FlareMessageData message, bool done)? onTaskToggle;
 
-  /// Offered as the download key of the kit's image preview; without it the
-  /// preview has no download key.
+  /// The download key of a file card, the kit's image preview and its video
+  /// player; without it none of them has a download key.
   final void Function(FlareMessageData message, FlareMessageContent content)?
   onMediaDownload;
+
+  /// The folder key that replaces the download key once [mediaState] says the
+  /// media is saved on this device (`FlareMessageContentView.onMediaReveal`).
+  final void Function(FlareMessageData message, FlareMessageContent content)?
+  onMediaReveal;
 
   /// Tapping the quote asks to show the quoted message (its
   /// [FlareReplyTarget.messageId]). Without it, without that id, or while
@@ -296,18 +307,26 @@ class FlareMessageBubble extends StatelessWidget {
         onMediaDownload: onMediaDownload == null
             ? null
             : (content) => onMediaDownload!(message, content),
+        onMediaReveal: onMediaReveal == null
+            ? null
+            : (content) => onMediaReveal!(message, content),
       ),
     );
+    final hasMeta =
+        message.timeLabel.isNotEmpty ||
+        message.edited ||
+        message.lifecycle != null ||
+        self;
 
-    // Bare media (image / sticker / emoji / video) carries its own frame.
+    // Bare media (image / sticker / emoji / video) carries its own frame; the
+    // meta row under it lines up with its trailing edge.
     if (bare) {
       return ConstrainedBox(
         constraints: BoxConstraints(maxWidth: maxWidth),
-        child: Column(
-          crossAxisAlignment: self
-              ? CrossAxisAlignment.end
-              : CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
+        child: _BubbleColumn(
+          end: self,
+          trailingLast: hasMeta,
+          textDirection: Directionality.of(context),
           children: [
             if (message.uploadProgress == null)
               body
@@ -328,10 +347,7 @@ class FlareMessageBubble extends StatelessWidget {
                   ),
                 ],
               ),
-            if (message.timeLabel.isNotEmpty ||
-                message.edited ||
-                message.lifecycle != null ||
-                self)
+            if (hasMeta)
               Padding(
                 padding: const EdgeInsets.only(top: FlareSizes.spacingXs),
                 child: FlareMessageMeta(
@@ -379,11 +395,9 @@ class FlareMessageBubble extends StatelessWidget {
             color: self ? colors.messageStatusOnOutgoing : null,
           ),
         ),
-      // Inline meta: time + (self) delivery status, kept inside the bubble.
-      if (message.timeLabel.isNotEmpty ||
-          message.edited ||
-          message.lifecycle != null ||
-          self)
+      // Inline meta: time + (self) delivery status, kept inside the bubble at
+      // its bottom right.
+      if (hasMeta)
         Padding(
           padding: const EdgeInsets.only(top: 3),
           child: FlareMessageMeta(
@@ -402,19 +416,13 @@ class FlareMessageBubble extends StatelessWidget {
           ),
         ),
     ];
-    final content = quote == null
-        ? Column(
-            crossAxisAlignment: self
-                ? CrossAxisAlignment.end
-                : CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: rows,
-          )
-        : _QuoteColumn(
-            end: self,
-            textDirection: Directionality.of(context),
-            children: [_quote(context, colors, quote), ...rows],
-          );
+    final content = _BubbleColumn(
+      end: self,
+      quote: quote != null,
+      trailingLast: hasMeta,
+      textDirection: Directionality.of(context),
+      children: [if (quote != null) _quote(context, colors, quote), ...rows],
+    );
 
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: maxWidth),
@@ -630,14 +638,20 @@ class _NoticeLine extends StatelessWidget {
   }
 }
 
-/// The rows of a quoting bubble. The rows after the first size the bubble and
-/// the first — the quote — stretches to that width, or widens the bubble up to
-/// its limit. Laid out without intrinsic measuring, which content renderers
-/// (host-registered ones included) are not required to support.
-class _QuoteColumn extends MultiChildRenderObjectWidget {
-  const _QuoteColumn({
+/// The rows of a bubble, as wide as its widest row. Content rows sit on the
+/// sender's edge — the end for the current user's messages ([end]), the start
+/// for everyone else's — and with [trailingLast] the last row (the meta row)
+/// sits on the trailing edge for everyone, so every message's time lines up on
+/// the same side. With [quote] the first row is a quote that stretches to the
+/// width of the others, or widens the bubble up to its limit. Laid out without
+/// intrinsic measuring, which content renderers (host-registered ones
+/// included) are not required to support.
+class _BubbleColumn extends MultiChildRenderObjectWidget {
+  const _BubbleColumn({
     required this.end,
     required this.textDirection,
+    this.quote = false,
+    this.trailingLast = false,
     required super.children,
   });
 
@@ -645,35 +659,68 @@ class _QuoteColumn extends MultiChildRenderObjectWidget {
   final bool end;
   final TextDirection textDirection;
 
+  /// The first row is a quote that takes the bubble's full width.
+  final bool quote;
+
+  /// The last row sits on the trailing edge whatever [end] says.
+  final bool trailingLast;
+
   @override
-  _RenderQuoteColumn createRenderObject(BuildContext context) =>
-      _RenderQuoteColumn(end: end, textDirection: textDirection);
+  _RenderBubbleColumn createRenderObject(BuildContext context) =>
+      _RenderBubbleColumn(
+        end: end,
+        quote: quote,
+        trailingLast: trailingLast,
+        textDirection: textDirection,
+      );
 
   @override
   void updateRenderObject(
     BuildContext context,
-    _RenderQuoteColumn renderObject,
+    _RenderBubbleColumn renderObject,
   ) {
     renderObject
       ..end = end
+      ..quote = quote
+      ..trailingLast = trailingLast
       ..textDirection = textDirection;
   }
 }
 
-class _QuoteColumnParentData extends ContainerBoxParentData<RenderBox> {}
+class _BubbleColumnParentData extends ContainerBoxParentData<RenderBox> {}
 
-class _RenderQuoteColumn extends RenderBox
+class _RenderBubbleColumn extends RenderBox
     with
-        ContainerRenderObjectMixin<RenderBox, _QuoteColumnParentData>,
-        RenderBoxContainerDefaultsMixin<RenderBox, _QuoteColumnParentData> {
-  _RenderQuoteColumn({required bool end, required TextDirection textDirection})
-    : _end = end,
-      _textDirection = textDirection;
+        ContainerRenderObjectMixin<RenderBox, _BubbleColumnParentData>,
+        RenderBoxContainerDefaultsMixin<RenderBox, _BubbleColumnParentData> {
+  _RenderBubbleColumn({
+    required bool end,
+    required bool quote,
+    required bool trailingLast,
+    required TextDirection textDirection,
+  }) : _end = end,
+       _quote = quote,
+       _trailingLast = trailingLast,
+       _textDirection = textDirection;
 
   bool _end;
   set end(bool value) {
     if (value == _end) return;
     _end = value;
+    markNeedsLayout();
+  }
+
+  bool _quote;
+  set quote(bool value) {
+    if (value == _quote) return;
+    _quote = value;
+    markNeedsLayout();
+  }
+
+  bool _trailingLast;
+  set trailingLast(bool value) {
+    if (value == _trailingLast) return;
+    _trailingLast = value;
     markNeedsLayout();
   }
 
@@ -686,8 +733,8 @@ class _RenderQuoteColumn extends RenderBox
 
   @override
   void setupParentData(RenderBox child) {
-    if (child.parentData is! _QuoteColumnParentData) {
-      child.parentData = _QuoteColumnParentData();
+    if (child.parentData is! _BubbleColumnParentData) {
+      child.parentData = _BubbleColumnParentData();
     }
   }
 
@@ -699,36 +746,49 @@ class _RenderQuoteColumn extends RenderBox
       return child.size;
     }
 
-    final quote = firstChild;
-    if (quote == null) return constraints.smallest;
+    final first = firstChild;
+    if (first == null) return constraints.smallest;
+    final quote = _quote ? first : null;
     final maxWidth = constraints.maxWidth;
     final rows = <(RenderBox, Size)>[];
     var width = 0.0;
-    for (var row = childAfter(quote); row != null; row = childAfter(row)) {
+    for (
+      var row = quote == null ? first : childAfter(quote);
+      row != null;
+      row = childAfter(row)
+    ) {
       final size = measure(row, BoxConstraints(maxWidth: maxWidth));
       rows.add((row, size));
       width = math.max(width, size.width);
     }
-    final quoteSize = measure(
-      quote,
-      BoxConstraints(minWidth: math.min(width, maxWidth), maxWidth: maxWidth),
-    );
-    width = math.max(width, quoteSize.width);
-    var height = quoteSize.height;
-    if (!dry) {
-      (quote.parentData! as _QuoteColumnParentData).offset = Offset.zero;
-    }
-    final right = _end == (_textDirection == TextDirection.ltr);
-    for (final (row, size) in rows) {
+    var top = 0.0;
+    if (quote != null) {
+      final quoteSize = measure(
+        quote,
+        BoxConstraints(minWidth: math.min(width, maxWidth), maxWidth: maxWidth),
+      );
+      width = math.max(width, quoteSize.width);
+      top = quoteSize.height;
       if (!dry) {
-        (row.parentData! as _QuoteColumnParentData).offset = Offset(
-          right ? width - size.width : 0,
-          height,
-        );
+        (quote.parentData! as _BubbleColumnParentData).offset = Offset.zero;
       }
-      height += size.height;
     }
-    return constraints.constrain(Size(width, height));
+    final height = rows.fold(top, (sum, row) => sum + row.$2.height);
+    final size = constraints.constrain(Size(width, height));
+    if (dry) return size;
+    final ltr = _textDirection == TextDirection.ltr;
+    for (var i = 0; i < rows.length; i++) {
+      final (row, rowSize) = rows[i];
+      final trailing = _trailingLast && i == rows.length - 1;
+      // The end edge is the right in a left-to-right layout.
+      final right = (trailing || _end) == ltr;
+      (row.parentData! as _BubbleColumnParentData).offset = Offset(
+        right ? size.width - rowSize.width : 0,
+        top,
+      );
+      top += rowSize.height;
+    }
+    return size;
   }
 
   @override

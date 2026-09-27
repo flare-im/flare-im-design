@@ -200,6 +200,9 @@ class FlareStrings {
     this.play = '播放',
     this.pause = '暂停', // en: Pause
     this.download = '下载', // en: Download
+    this.showInFolder = '在文件夹中显示', // en: Show in folder
+    this.downloading = '下载中', // en: Downloading
+    this.downloaded = '已下载', // en: Downloaded
     this.voicePlaybackFailed = '播放失败', // en: Playback failed
     this.videoLoadFailed = '视频无法播放', // en: This video can't be played
     // 权限提示（名词 / 动词短语 / 状态 / 说明）
@@ -887,6 +890,13 @@ class FlareStrings {
   final String pause;
   final String download;
 
+  /// A saved file's key: shows it in its folder (desktop), or where it was saved.
+  final String showInFolder;
+
+  /// A media download in progress, and one that finished.
+  final String downloading;
+  final String downloaded;
+
   /// A voice message that could not be played; its control then retries.
   final String voicePlaybackFailed;
 
@@ -1551,6 +1561,9 @@ class FlareStrings {
     String? play,
     String? pause,
     String? download,
+    String? showInFolder,
+    String? downloading,
+    String? downloaded,
     String? voicePlaybackFailed,
     String? videoLoadFailed,
     String? permissionNotifications,
@@ -2151,6 +2164,9 @@ class FlareStrings {
       play: play ?? this.play,
       pause: pause ?? this.pause,
       download: download ?? this.download,
+      showInFolder: showInFolder ?? this.showInFolder,
+      downloading: downloading ?? this.downloading,
+      downloaded: downloaded ?? this.downloaded,
       voicePlaybackFailed: voicePlaybackFailed ?? this.voicePlaybackFailed,
       videoLoadFailed: videoLoadFailed ?? this.videoLoadFailed,
       permissionNotifications:

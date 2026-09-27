@@ -57,13 +57,20 @@ internal fun videoPlayerToggle(strings: FlareStrings, phase: FlareVideoPhase): F
     else FlareIconControlSpec("toggle", "play", strings.play)
 
 /**
- * The keys of a [VideoPlayer]'s top bar: close, and download while the host offers it and no download is running (the
- * progress ring takes its place) — the image preview's download key ([imagePreviewControls]).
+ * The keys of a [VideoPlayer]'s top bar: close, and the download key while the host offers it — the image preview's
+ * ([mediaDownloadKey]): a download, or the folder once the video is [saved] and the host can show it; none while a
+ * download runs (the progress ring takes its place).
  */
-internal fun videoPlayerControls(strings: FlareStrings, canDownload: Boolean, downloading: Boolean): List<FlareIconControlSpec> =
+internal fun videoPlayerControls(
+    strings: FlareStrings,
+    canDownload: Boolean,
+    downloading: Boolean,
+    saved: Boolean = false,
+    canReveal: Boolean = false,
+): List<FlareIconControlSpec> =
     buildList {
         add(FlareIconControlSpec("close", "close", strings.close))
-        if (canDownload && !downloading) add(FlareIconControlSpec("download", "download", strings.download))
+        mediaDownloadKey(strings, canDownload, downloading, saved, canReveal)?.let(::add)
     }
 
 /** The phase a video starts in: an address the player may not load fails at once, so the screen is never blank. */
@@ -81,7 +88,8 @@ internal fun videoPlayerStartPhase(src: String): FlareVideoPhase =
  * stops and ends when the player leaves composition.
  *
  * [onDownload] is the download key at the top right, as in the image preview; there is none without it. While
- * [downloading] the image preview's progress ring with [progressPct] takes the key's place.
+ * [downloading] the image preview's progress ring with [progressPct] takes the key's place, and once the video is
+ * [saved] on this device the key is a folder that calls [onReveal] (the host shows the file in its folder).
  */
 @Composable
 fun VideoPlayer(
@@ -94,12 +102,14 @@ fun VideoPlayer(
     onDownload: (() -> Unit)? = null,
     downloading: Boolean = false,
     progressPct: Int = 0,
+    saved: Boolean = false,
+    onReveal: (() -> Unit)? = null,
 ) {
     if (!show) return
     val strings = flareStrings()
     val close by rememberUpdatedState(onClose)
     FlareNativeBackEffect(enabled = onClose != null) { close?.invoke() }
-    val keys = videoPlayerControls(strings, canDownload = onDownload != null, downloading = downloading)
+    val keys = videoPlayerControls(strings, canDownload = onDownload != null, downloading = downloading, saved = saved, canReveal = onReveal != null)
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             if (player != null) player() else KitVideoPlayback(videoSrc, onPlay, onClose)
@@ -118,6 +128,7 @@ fun VideoPlayer(
                 Spacer(Modifier.weight(1f))
             }
             keys.firstOrNull { it.id == "download" }?.let { PlayerKey(it, onDownload) }
+            keys.firstOrNull { it.id == "reveal" }?.let { PlayerKey(it, onReveal) }
             if (onDownload != null && downloading) DownloadProgressRing(progressPct)
         }
     }

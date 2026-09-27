@@ -64,12 +64,13 @@ class ImageGalleryTest {
 
     @Test fun aTapInATimelineOpensTheGalleryElseThePictureAlone() {
         val gallery = FlareTimelineGallery(flareImageGalleryItems(timeline), download = null)
+        // Each page names its message, so the key follows that message's download state.
         assertEquals(
-            FlareMediaPresentation.Gallery(listOf("https://cdn/1.jpg", "https://cdn/2.jpg", "https://cdn/3t.jpg"), 2),
+            FlareMediaPresentation.Gallery(listOf("https://cdn/1.jpg", "https://cdn/2.jpg", "https://cdn/3t.jpg"), 2, messageIds = listOf("m1", "m2", "m2")),
             flareImagePresentation(gallery, "m2", 1, "https://cdn/3t.jpg"),
         )
-        assertEquals(FlareMediaPresentation.Image("https://cdn/x.jpg"), flareImagePresentation(null, "m2", 1, "https://cdn/x.jpg"))
-        assertEquals(FlareMediaPresentation.Image("https://cdn/x.jpg"), flareImagePresentation(gallery, "m9", 0, "https://cdn/x.jpg"))
+        assertEquals(FlareMediaPresentation.Image("https://cdn/x.jpg", messageId = "m2"), flareImagePresentation(null, "m2", 1, "https://cdn/x.jpg"))
+        assertEquals(FlareMediaPresentation.Image("https://cdn/x.jpg", messageId = "m9"), flareImagePresentation(gallery, "m9", 0, "https://cdn/x.jpg"))
         assertEquals(FlareMediaPresentation.Image("https://cdn/x.jpg"), flareImagePresentation(gallery, null, 0, "https://cdn/x.jpg"))
     }
 

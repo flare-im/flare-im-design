@@ -60,6 +60,7 @@ public struct MessageListView: View {
     private let onMessageLongPress: ((FlareMessageData) -> Void)?
     private let onMediaAction: ((FlareMessageData, FlareMessageContent) -> Void)?
     private let onMediaDownload: ((FlareMessageData, FlareMessageContent) -> Void)?
+    private let onMediaReveal: ((FlareMessageData, FlareMessageContent) -> Void)?
     private let onOpenFile: ((FlareMessageData, FlareFileContent) -> Void)?
     private let onOpenLink: ((FlareMessageData, String) -> Void)?
     private let onVote: ((FlareMessageData, Int) -> Void)?
@@ -90,10 +91,17 @@ public struct MessageListView: View {
     ///   - onMediaAction: Takes every media tap. Without it the list opens images and videos in the
     ///     kit's full-screen viewer and plays voice messages in their bubbles, one at a time, stopping
     ///     when the list goes away. Files, locations and links always go to the host.
-    ///   - onMediaDownload: Offered as the download key of the kit's image preview and video player;
-    ///     without it neither has a download key. A tapped picture opens the conversation's gallery, every
-    ///     picture of `messages` in timeline order, and each one's key downloads that picture with the message
-    ///     it belongs to; a video's key downloads that video.
+    ///   - mediaDownloadStates: The host's media download states by message id
+    ///     (``FlareMediaDownloadState``). A file card's key, and the key of the image preview and the video
+    ///     player, show a download, the save's progress, or once the media is saved a folder. A viewer that
+    ///     is open follows the states as they change.
+    ///   - onMediaDownload: Offered as the download key of the kit's image preview and video player, and as
+    ///     the key at the trailing edge of every file card; without it none of them has a key. A tapped
+    ///     picture opens the conversation's gallery, every picture of `messages` in timeline order, and each
+    ///     one's key downloads that picture with the message it belongs to; a video's key downloads that video.
+    ///   - onMediaReveal: The folder key of a saved file, picture or video (message, the content): the host
+    ///     shows it where it was saved — or, finding it gone, passes `idle` for it again, and the key is a
+    ///     download once more. An album's pictures keep the download key.
     ///   - onOpenFile: A file tap when there is no `onMediaAction`: the host opens the file (after
     ///     ``safeExternalURL(_:)`` for a remote one), and images, videos and voice keep the kit defaults.
     ///   - onOpenLink: A tapped link, in a text body or on a link card, with its raw URL. Without it the
@@ -130,6 +138,7 @@ public struct MessageListView: View {
         onMessageLongPress: ((FlareMessageData) -> Void)? = nil,
         onMediaAction: ((FlareMessageData, FlareMessageContent) -> Void)? = nil,
         onMediaDownload: ((FlareMessageData, FlareMessageContent) -> Void)? = nil,
+        onMediaReveal: ((FlareMessageData, FlareMessageContent) -> Void)? = nil,
         onOpenFile: ((FlareMessageData, FlareFileContent) -> Void)? = nil,
         onOpenLink: ((FlareMessageData, String) -> Void)? = nil,
         onVote: ((FlareMessageData, Int) -> Void)? = nil,
@@ -167,6 +176,7 @@ public struct MessageListView: View {
         self.onMessageLongPress = onMessageLongPress
         self.onMediaAction = onMediaAction
         self.onMediaDownload = onMediaDownload
+        self.onMediaReveal = onMediaReveal
         self.onOpenFile = onOpenFile
         self.onOpenLink = onOpenLink
         self.onVote = onVote
@@ -343,6 +353,9 @@ public struct MessageListView: View {
             // a view that is no longer there.
             .onAppear { attachController() }
             .onDisappear { controller?.detach(controllerToken) }
+            // The viewer is presented over the list and follows the host's states from here.
+            .onAppear { mediaSession.downloads.update(mediaDownloadStates) }
+            .onChange(of: mediaDownloadStates) { mediaSession.downloads.update($0) }
             // The mark the located row wears (`spec/locate-highlight-vectors.json`). Keyed on the locate
             // generation, so a second jump inside the window cancels the first window instead of adding a
             // second marked row — and the row that was marked stops being marked the moment the new one is.
@@ -594,7 +607,8 @@ public struct MessageListView: View {
                     }
                     MessageBubbleView(message: msg, currentUserId: currentUserId, conversationKind: conversationKind,
                         groupPosition: groupPosition, rowPresentation: presentation, mediaState: mediaDownloadStates[msg.id],
-                        onMediaAction: onMediaAction, onMediaDownload: onMediaDownload, onOpenFile: onOpenFile,
+                        onMediaAction: onMediaAction, onMediaDownload: onMediaDownload, onMediaReveal: onMediaReveal,
+                        onOpenFile: onOpenFile,
                         onOpenLink: onOpenLink, onResend: onResend,
                         multiSelectMode: multiSelectMode,
                         selected: Self.isSelected(msg.id, multiSelectMode: multiSelectMode, selectedIds: selectedIds),
@@ -602,7 +616,8 @@ public struct MessageListView: View {
                         onReact: onReact,
                         onLocateMessage: locateCallback(msg, rows: rowIndex),
                         onVote: onVote, onTaskToggle: onTaskToggle)
-                        .mediaDefaults(mediaSession, gallery: FlareImageGallerySource(messages: messages, download: onMediaDownload))
+                        .mediaDefaults(mediaSession, gallery: FlareImageGallerySource(messages: messages, download: onMediaDownload,
+                                                                                      reveal: onMediaReveal))
                         .accessibilityFocused($readingCursor, equals: msg.id)
                         .contentShape(Rectangle())
                         .modifier(RowLongPress(enabled: actionable && Self.longPressEnabled(multiSelectMode: multiSelectMode, onMessageLongPress: onMessageLongPress)) {

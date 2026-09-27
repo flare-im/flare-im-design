@@ -836,7 +836,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       edit: "编辑",
       preview: "预览",
       downloadMedia: "下载",
-      openMediaFolder: "打开所在文件夹",
+      openMediaFolder: "在文件夹中显示",
       delete: "删除",
       noActions: "暂无可用操作",
       reactionsAria: "表情回应",

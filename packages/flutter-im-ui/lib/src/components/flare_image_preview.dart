@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../models/message_content.dart';
@@ -12,7 +13,10 @@ import 'flare_icon_button.dart';
 ///
 /// Pinch zooms between [zoomMin] and [zoomMax]; a tap or, at normal size, a
 /// swipe down closes it, and so does the platform back gesture when it is a
-/// route. The download key appears only with [onDownload].
+/// route. The key at the top right is a download ([onDownload]) until the
+/// picture is [saved], then a folder that shows it in its folder ([onReveal]);
+/// while [downloading] it shows [progressPct] instead. A key with nothing to
+/// call is not drawn.
 ///
 /// In a gallery ([presentGallery]) the preview shows where it is
 /// ([galleryIndex] of [galleryCount]) and pages with [onPrevious] and [onNext]:
@@ -27,10 +31,12 @@ class FlareImagePreview extends StatefulWidget {
     this.alt,
     this.downloading = false,
     this.progressPct = 0,
+    this.saved = false,
     this.zoomMin = 1.0,
     this.zoomMax = 4.0,
     this.onClose,
     this.onDownload,
+    this.onReveal,
     this.imageBuilder,
     this.galleryIndex,
     this.galleryCount,
@@ -49,10 +55,16 @@ class FlareImagePreview extends StatefulWidget {
   final String? alt;
   final bool downloading;
   final int progressPct;
+
+  /// The picture is saved on this device: the key shows it in its folder.
+  final bool saved;
   final double zoomMin;
   final double zoomMax;
   final VoidCallback? onClose;
   final VoidCallback? onDownload;
+
+  /// Shows the saved picture in its folder (the key while [saved]).
+  final VoidCallback? onReveal;
 
   /// Optional host image loader for local files, authenticated media, or a
   /// product cache. The kit continues to own viewer chrome and gestures.
@@ -65,41 +77,60 @@ class FlareImagePreview extends StatefulWidget {
   final VoidCallback? onPrevious;
   final VoidCallback? onNext;
 
-  /// Present as a full-screen dialog route.
+  /// Present as a full-screen dialog route. With [downloadState] the key
+  /// follows the picture's download while the preview is open: pressing
+  /// download turns it into progress and then the folder without closing.
   static Future<void> present(
     BuildContext context, {
     required String imageSrc,
     String? alt,
     VoidCallback? onDownload,
+    VoidCallback? onReveal,
+    ValueListenable<FlareMediaDownloadState?>? downloadState,
     Widget Function(BuildContext context, String imageSrc)? imageBuilder,
     bool allowLocalFile = false,
   }) {
+    Widget preview(BuildContext ctx, FlareMediaDownloadState? state) =>
+        FlareImagePreview(
+          show: true,
+          imageSrc: imageSrc,
+          allowLocalFile: allowLocalFile,
+          alt: alt,
+          downloading: state?.isDownloading ?? false,
+          progressPct: state?.progressPct ?? 0,
+          saved: state?.isSaved ?? false,
+          onClose: () => Navigator.of(ctx).maybePop(),
+          onDownload: onDownload,
+          onReveal: onReveal,
+          imageBuilder: imageBuilder,
+        );
     return showGeneralDialog(
       context: context,
       // The viewer paints its own black, which fades while the image is
       // pulled down to close, showing the screen underneath.
       barrierColor: Colors.transparent,
-      pageBuilder: (ctx, _, __) => FlareImagePreview(
-        show: true,
-        imageSrc: imageSrc,
-        allowLocalFile: allowLocalFile,
-        alt: alt,
-        onClose: () => Navigator.of(ctx).maybePop(),
-        onDownload: onDownload,
-        imageBuilder: imageBuilder,
-      ),
+      pageBuilder: (ctx, _, __) => downloadState == null
+          ? preview(ctx, null)
+          : ValueListenableBuilder<FlareMediaDownloadState?>(
+              valueListenable: downloadState,
+              builder: (ctx, state, _) => preview(ctx, state),
+            ),
     );
   }
 
   /// Present [images] as a gallery — one at a time, starting at [initialIndex],
   /// paging to the neighbours with the side keys or a sideways swipe — in a
-  /// full-screen dialog route. [onDownload], when given, is told the index of
-  /// the image on screen.
+  /// full-screen dialog route. [onDownload] and [onReveal], when given, are
+  /// told the index of the image on screen; [downloadStateAt] gives that
+  /// image's live download state, which its key follows.
   static Future<void> presentGallery(
     BuildContext context, {
     required List<FlareImageContent> images,
     int initialIndex = 0,
     ValueChanged<int>? onDownload,
+    ValueChanged<int>? onReveal,
+    ValueListenable<FlareMediaDownloadState?>? Function(int index)?
+    downloadStateAt,
   }) {
     return showGeneralDialog(
       context: context,
@@ -109,6 +140,8 @@ class FlareImagePreview extends StatefulWidget {
         initialIndex: initialIndex,
         onClose: () => Navigator.of(ctx).maybePop(),
         onDownload: onDownload,
+        onReveal: onReveal,
+        downloadStateAt: downloadStateAt,
       ),
     );
   }
@@ -306,21 +339,35 @@ class _FlareImagePreviewState extends State<FlareImagePreview> {
               ),
             ),
           ],
-          if (widget.onDownload != null)
+          if (_mediaKey(strings) case final key?)
             Positioned(
               top: MediaQuery.of(context).padding.top + FlareSizes.spacingSm,
               right: FlareSizes.spacingSm,
-              child: widget.downloading
-                  ? _progress(widget.progressPct)
-                  : _circleButton(
-                      'download',
-                      strings.download,
-                      widget.onDownload,
-                    ),
+              child: key,
             ),
         ],
       ),
     );
+  }
+
+  /// The key at the top right: progress while downloading, the folder once
+  /// saved, else the download — or nothing when there is nothing to call.
+  Widget? _mediaKey(FlareStrings strings) {
+    final download = widget.onDownload;
+    final reveal = widget.onReveal;
+    if (widget.downloading) {
+      return download == null && reveal == null
+          ? null
+          : _progress(widget.progressPct.clamp(0, 100));
+    }
+    if (widget.saved) {
+      return reveal == null
+          ? null
+          : _circleButton('folder', strings.showInFolder, reveal);
+    }
+    return download == null
+        ? null
+        : _circleButton('download', strings.download, download);
   }
 
   /// The same labelled control as the video player's close: a full touch
@@ -336,26 +383,36 @@ class _FlareImagePreviewState extends State<FlareImagePreview> {
     );
   }
 
+  /// Progress in the key's place: not a control, but named for a screen
+  /// reader.
   Widget _progress(int pct) {
-    return SizedBox(
-      width: 38,
-      height: 38,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          CircularProgressIndicator(
-            value: pct / 100,
-            color: Colors.white,
-            strokeWidth: 2,
-          ),
-          Text(
-            '$pct',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: FlareSizes.fontSize2xs,
+    final strings = FlareStrings.of(context);
+    return Semantics(
+      label: '${strings.downloading} $pct%',
+      excludeSemantics: true,
+      child: SizedBox.square(
+        dimension: FlareSizes.touchTarget,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            SizedBox(
+              width: 38,
+              height: 38,
+              child: CircularProgressIndicator(
+                value: pct > 0 ? pct / 100 : null,
+                color: Colors.white,
+                strokeWidth: 2,
+              ),
             ),
-          ),
-        ],
+            Text(
+              '$pct',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: FlareSizes.fontSize2xs,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -364,20 +421,26 @@ class _FlareImagePreviewState extends State<FlareImagePreview> {
 /// A conversation's image gallery: the kit preview of one of [images] at a
 /// time, starting at [initialIndex], paging to its neighbours with the side
 /// keys or a sideways swipe, and saying where it is. Each image opens fresh at
-/// normal size. The download key appears only with [onDownload], which is told
-/// the index of the image on screen.
+/// normal size. The download key appears only with [onDownload] and the folder
+/// key only with [onReveal], each told the index of the image on screen; the
+/// key follows that image's live state from [downloadStateAt].
 class _FlareImageGallery extends StatefulWidget {
   const _FlareImageGallery({
     required this.images,
     this.initialIndex = 0,
     this.onClose,
     this.onDownload,
+    this.onReveal,
+    this.downloadStateAt,
   });
 
   final List<FlareImageContent> images;
   final int initialIndex;
   final VoidCallback? onClose;
   final ValueChanged<int>? onDownload;
+  final ValueChanged<int>? onReveal;
+  final ValueListenable<FlareMediaDownloadState?>? Function(int index)?
+  downloadStateAt;
 
   @override
   State<_FlareImageGallery> createState() => _FlareImageGalleryState();
@@ -389,22 +452,37 @@ class _FlareImageGalleryState extends State<_FlareImageGallery> {
   @override
   Widget build(BuildContext context) {
     if (widget.images.isEmpty) return const SizedBox.shrink();
-    final image = widget.images[_index];
+    final state = widget.downloadStateAt?.call(_index);
+    if (state == null) return _page(null);
+    return ValueListenableBuilder<FlareMediaDownloadState?>(
+      valueListenable: state,
+      builder: (_, value, __) => _page(value),
+    );
+  }
+
+  Widget _page(FlareMediaDownloadState? state) {
+    final index = _index;
+    final image = widget.images[index];
     final picture = flarePictureSource(image, preferThumbnail: false);
     final download = widget.onDownload;
+    final reveal = widget.onReveal;
     return FlareImagePreview(
       // A new image starts at normal size.
-      key: ValueKey(_index),
+      key: ValueKey(index),
       show: true,
       imageSrc: picture.src,
       allowLocalFile: picture.local,
       alt: image.alt,
-      galleryIndex: _index,
+      galleryIndex: index,
       galleryCount: widget.images.length,
+      downloading: state?.isDownloading ?? false,
+      progressPct: state?.progressPct ?? 0,
+      saved: state?.isSaved ?? false,
       onClose: widget.onClose,
-      onDownload: download == null ? null : () => download(_index),
-      onPrevious: _index > 0 ? () => setState(() => _index -= 1) : null,
-      onNext: _index < widget.images.length - 1
+      onDownload: download == null ? null : () => download(index),
+      onReveal: reveal == null ? null : () => reveal(index),
+      onPrevious: index > 0 ? () => setState(() => _index -= 1) : null,
+      onNext: index < widget.images.length - 1
           ? () => setState(() => _index += 1)
           : null,
     );

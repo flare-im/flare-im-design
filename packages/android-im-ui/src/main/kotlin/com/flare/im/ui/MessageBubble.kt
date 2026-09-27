@@ -101,9 +101,14 @@ internal fun messageQuoteLocateId(replyTo: FlareReplyTarget?, hasOnLocate: Boole
  *
  * Media taps follow [MessageContentView]: [onMediaAction] takes them all; without it the kit
  * previews images, plays videos and voice, and a file tap goes to [onOpenFile]. [onMediaDownload] is the download key
- * of the image preview (the message, and the picture on screen) and of the video player (the message, and the video);
- * without it neither has one. Links in the text and link cards go to [onOpenLink]; without it the kit opens only safe
- * web addresses with the platform opener.
+ * of the image preview (the message, and the picture on screen), of the video player (the message, and the video) and
+ * of a file card (the message, and the file); without it none has one. The key follows [mediaState], and once the media
+ * is saved on this device it is a folder that calls [onMediaReveal]. Links in the text and link cards go to
+ * [onOpenLink]; without it the kit opens only safe web addresses with the platform opener.
+ *
+ * The time and delivery status sit at the trailing edge of every message, received ones included: under bare media
+ * at its trailing edge, inside a bubble at its bottom trailing corner. Only that row moves; a received text keeps its
+ * own alignment.
  */
 @Composable
 fun MessageBubble(
@@ -127,8 +132,10 @@ fun MessageBubble(
     onVote: ((FlareMessageData, Int) -> Unit)? = null,
     /** A tapped task checkbox (message, the done state asked for); without it, or in multi-select mode, the task is read-only. */
     onTaskToggle: ((FlareMessageData, Boolean) -> Unit)? = null,
-    /** The download key of the image preview (message, the picture on screen) and the video player (message, the video); without it neither has one. */
+    /** The download key of the image preview (message, the picture on screen), the video player (message, the video) and the file card; without it none has one. */
     onMediaDownload: ((FlareMessageData, FlareMessageContent) -> Unit)? = null,
+    /** The folder key those keys become once [mediaState] says the media is saved: the host shows the file in its folder. */
+    onMediaReveal: ((FlareMessageData, FlareMessageContent) -> Unit)? = null,
 ) {
     val colors = flareColors()
     val self = message.senderId == currentUserId
@@ -197,7 +204,7 @@ fun MessageBubble(
                 vote = onVote?.takeIf { !multiSelectMode }?.let { cb -> { index -> cb(message, index) } },
                 taskToggle = onTaskToggle?.takeIf { !multiSelectMode }?.let { cb -> { done -> cb(message, done) } },
             )
-            bubble(message, self, groupEnd, colors, mediaState, onResend, onMediaAction, onMediaDownload, onOpenFile, onOpenLink, onLocateQuote, intents)
+            bubble(message, self, groupEnd, colors, mediaState, onResend, onMediaAction, onMediaDownload, onMediaReveal, onOpenFile, onOpenLink, onLocateQuote, intents)
             if (message.reactions.isNotEmpty()) {
                 Box(Modifier.padding(top = FlareSizes.spacingXs)) {
                     // Multi-select taps select the row; pills toggle only outside it.
@@ -241,6 +248,7 @@ private fun bubble(
     onResend: ((FlareMessageData) -> Unit)?,
     onMediaAction: ((FlareMessageData, FlareMessageContent) -> Unit)?,
     onMediaDownload: ((FlareMessageData, FlareMessageContent) -> Unit)?,
+    onMediaReveal: ((FlareMessageData, FlareMessageContent) -> Unit)?,
     onOpenFile: ((FlareMessageData, FlareFileContent) -> Unit)?,
     onOpenLink: ((String) -> Unit)?,
     onLocateQuote: (() -> Unit)?,
@@ -259,16 +267,18 @@ private fun bubble(
                 onVote = intents.vote,
                 onTaskToggle = intents.taskToggle,
                 onMediaDownload = onMediaDownload?.let { cb -> { c -> cb(message, c) } },
+                onMediaReveal = onMediaReveal?.let { cb -> { c -> cb(message, c) } },
             )
         }
     }
+    val hasMeta = message.timeLabel.isNotEmpty() || message.edited || message.lifecycle != null || self
     if (bare) {
         Column(
             modifier = Modifier.widthIn(max = flareBubbleMaxWidth()),
             horizontalAlignment = if (self) Alignment.End else Alignment.Start,
         ) {
             body()
-            if (message.timeLabel.isNotEmpty() || message.edited || message.lifecycle != null || self) {
+            if (hasMeta) {
                 MessageMeta(
                     timestamp = message.timeLabel,
                     edited = message.edited,
@@ -277,7 +287,8 @@ private fun bubble(
                     ephemeral = message.lifecycle?.ephemeral ?: FlareMessageEphemeralState.None,
                     tint = null,
                     onResend = onResend?.let { cb -> { cb(message) } },
-                    modifier = Modifier.padding(top = FlareSizes.spacingXs),
+                    // Under the media at its trailing edge, received or sent.
+                    modifier = Modifier.align(Alignment.End).padding(top = FlareSizes.spacingXs),
                 )
             }
         }
@@ -292,29 +303,27 @@ private fun bubble(
         bottomEnd = if (!self || !groupEnd) FlareSizes.radiusBubble else FlareSizes.radiusBubbleTail,
     )
     val inner: @Composable () -> Unit = {
-        val content: @Composable () -> Unit = {
-            Column(horizontalAlignment = if (self) Alignment.End else Alignment.Start) {
-                body()
-                // Inline meta: time + (self) delivery status, kept inside the bubble.
-                if (message.timeLabel.isNotEmpty() || message.edited || message.lifecycle != null || self) {
-                    MessageMeta(
-                        timestamp = message.timeLabel,
-                        edited = message.edited,
-                        status = if (self) message.status else null,
-                        lifecycle = if (self) message.lifecycle else null,
-                        ephemeral = message.lifecycle?.ephemeral ?: FlareMessageEphemeralState.None,
-                        tint = if (self) {
-                            if (message.status == FlareMessageDeliveryStatus.Read) colors.messageStatusReadOnOutgoing
-                            else colors.messageStatusOnOutgoing
-                        } else null,
-                        onResend = onResend?.let { cb -> { cb(message) } },
-                        modifier = Modifier.padding(top = 3.dp),
-                    )
-                }
+        Column(horizontalAlignment = if (self) Alignment.End else Alignment.Start) {
+            if (quote == null) body()
+            else QuotedBody(quote = { MessageQuote(quote, colors, onLocateQuote) }, body = body, alignEnd = self)
+            // Inline meta: time + (self) delivery status, kept inside the bubble at its bottom trailing corner — under
+            // the body and any quote wider than it, received or sent.
+            if (hasMeta) {
+                MessageMeta(
+                    timestamp = message.timeLabel,
+                    edited = message.edited,
+                    status = if (self) message.status else null,
+                    lifecycle = if (self) message.lifecycle else null,
+                    ephemeral = message.lifecycle?.ephemeral ?: FlareMessageEphemeralState.None,
+                    tint = if (self) {
+                        if (message.status == FlareMessageDeliveryStatus.Read) colors.messageStatusReadOnOutgoing
+                        else colors.messageStatusOnOutgoing
+                    } else null,
+                    onResend = onResend?.let { cb -> { cb(message) } },
+                    modifier = Modifier.align(Alignment.End).padding(top = 3.dp),
+                )
             }
         }
-        if (quote == null) content()
-        else QuotedBody(quote = { MessageQuote(quote, colors, onLocateQuote) }, body = content, alignEnd = self)
     }
     val locateMark = Modifier.locateMark(message.id, shape, colors.primary)
     if (self) {

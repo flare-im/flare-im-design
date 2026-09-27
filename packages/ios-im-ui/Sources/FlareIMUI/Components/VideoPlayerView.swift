@@ -9,7 +9,8 @@ import SwiftUI
 /// gesture closes it like the close key.
 ///
 /// The download key sits at the top right, as in ``ImagePreviewView``, and appears only with
-/// `onDownload`; while `downloading` it shows the progress (`progressPct`, 0–100) in its place.
+/// `onDownload`; while `downloading` it shows the progress (`progressPct`, 0–100) in its place, and once
+/// the video is `saved` it is a folder that calls `onReveal` (without `onReveal` it stays the download key).
 public struct VideoPlayerView: View {
     private let show: Bool
     private let videoSrc: String
@@ -21,6 +22,8 @@ public struct VideoPlayerView: View {
     private let onDownload: (() -> Void)?
     private let downloading: Bool
     private let progressPct: Int
+    private let saved: Bool
+    private let onReveal: (() -> Void)?
     @Environment(\.flareStrings) private var strings
 
     public init(
@@ -33,7 +36,9 @@ public struct VideoPlayerView: View {
         onClose: (() -> Void)? = nil,
         onDownload: (() -> Void)? = nil,
         downloading: Bool = false,
-        progressPct: Int = 0
+        progressPct: Int = 0,
+        saved: Bool = false,
+        onReveal: (() -> Void)? = nil
     ) {
         self.show = show
         self.videoSrc = videoSrc
@@ -45,6 +50,8 @@ public struct VideoPlayerView: View {
         self.onDownload = onDownload
         self.downloading = downloading
         self.progressPct = progressPct
+        self.saved = saved
+        self.onReveal = onReveal
     }
 
     public var body: some View {
@@ -72,7 +79,7 @@ public struct VideoPlayerView: View {
         }
     }
 
-    /// The close key, the title, and the download key (or its progress) at the trailing end.
+    /// The close key, the title, and the download key (its progress, or the saved video's folder) at the trailing end.
     private var chrome: some View {
         HStack(spacing: FlareSizes.spacingMd) {
             chromeKey("close", label: strings.close) { onClose?() }
@@ -81,13 +88,17 @@ public struct VideoPlayerView: View {
                     .foregroundColor(.white).lineLimit(1)
             }
             Spacer()
-            if let onDownload {
-                if downloading {
-                    FlareMediaDownloadRing(progressPct: progressPct)
-                        .frame(width: FlareSizes.touchTarget, height: FlareSizes.touchTarget)
-                } else {
-                    chromeKey("download", label: strings.download, onDownload)
-                }
+            switch FlareMediaKey.resolve(canDownload: onDownload != nil, downloading: downloading, saved: saved,
+                                         canReveal: onReveal != nil) {
+            case .folder?:
+                chromeKey("folder", label: strings.showInFolder) { onReveal?() }
+            case .progress?:
+                FlareMediaDownloadRing(progressPct: progressPct)
+                    .frame(width: FlareSizes.touchTarget, height: FlareSizes.touchTarget)
+            case .download?:
+                chromeKey("download", label: strings.download) { onDownload?() }
+            case nil:
+                EmptyView()
             }
         }
         .padding()

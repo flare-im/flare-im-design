@@ -119,7 +119,8 @@ class MediaDefaultsInteractionTest {
             FlareThemeProvider { VideoPlayer(show = true, videoSrc = "javascript:alert(1)", onDownload = {}, downloading = true, progressPct = 40) }
         }
         // The ring is named for what it reports and is not a second key.
-        compose.onNodeWithContentDescription(strings.download).assertIsDisplayed().assertHasNoClickAction().assertTouchTarget()
+        compose.onNodeWithContentDescription(strings.downloading).assertIsDisplayed().assertHasNoClickAction().assertTouchTarget()
+        compose.onNodeWithContentDescription(strings.download).assertDoesNotExist()
         compose.onNode(hasProgressBarRangeInfo(ProgressBarRangeInfo(0.4f, 0f..1f)), useUnmergedTree = true).assertExists()
     }
 

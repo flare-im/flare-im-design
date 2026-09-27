@@ -1931,6 +1931,7 @@
         "copy",
         "openFile",
         "mediaDownload",
+        "mediaReveal",
         "openLink",
         "vote",
         "taskToggle"
@@ -1962,6 +1963,7 @@
         "copy",
         "openFile",
         "mediaDownload",
+        "mediaReveal",
         "openLink",
         "vote",
         "taskToggle"
@@ -2006,7 +2008,7 @@
         "gallery": true
       },
       "sourceOfTruth": "spec/components.json#MessageBubble",
-      "searchText": "messagebubble message im-ui stable message pending sent read failed react reply edit delete pin mark preview mediaaction resend toggleselect longpress avatartap forward multiselect recall locatemessage action copy openfile mediadownload openlink vote tasktoggle supportsconfiguration supportscustomcontent supportsslots supportsresponsive one message in a thread — content, sender, grouping, delivery status. delegates body to a per-content-type view. 线程里的一条消息 —— 内容、发送者、分组、送达状态。正文按内容类型委派给对应视图。"
+      "searchText": "messagebubble message im-ui stable message pending sent read failed react reply edit delete pin mark preview mediaaction resend toggleselect longpress avatartap forward multiselect recall locatemessage action copy openfile mediadownload mediareveal openlink vote tasktoggle supportsconfiguration supportscustomcontent supportsslots supportsresponsive one message in a thread — content, sender, grouping, delivery status. delegates body to a per-content-type view. 线程里的一条消息 —— 内容、发送者、分组、送达状态。正文按内容类型委派给对应视图。"
     },
     {
       "name": "MessageList",
@@ -2095,6 +2097,7 @@
         "copy",
         "openFile",
         "mediaDownload",
+        "mediaReveal",
         "openLink",
         "vote",
         "taskToggle"
@@ -2131,6 +2134,7 @@
         "copy",
         "openFile",
         "mediaDownload",
+        "mediaReveal",
         "openLink",
         "vote",
         "taskToggle"
@@ -2175,7 +2179,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#MessageList",
-      "searchText": "messagelist message im-ui stable message loading empty loadingolder atbottom multiselect oldererror atbottomchange react reply edit delete recall forward pin mark preview resend mediaaction multiselect loadolder toggleselect messagelongpress avatartap locatemessage swipereply action copy openfile mediadownload openlink vote tasktoggle supportsconfiguration supportscustomcontent supportsslots supportsresponsive the virtualised message thread — grouping, load-older, multi-select, per-message actions, media state. 虚拟化消息线程 —— 分组、加载更早、多选、逐条操作、媒体状态。"
+      "searchText": "messagelist message im-ui stable message loading empty loadingolder atbottom multiselect oldererror atbottomchange react reply edit delete recall forward pin mark preview resend mediaaction multiselect loadolder toggleselect messagelongpress avatartap locatemessage swipereply action copy openfile mediadownload mediareveal openlink vote tasktoggle supportsconfiguration supportscustomcontent supportsslots supportsresponsive the virtualised message thread — grouping, load-older, multi-select, per-message actions, media state. 虚拟化消息线程 —— 分组、加载更早、多选、逐条操作、媒体状态。"
     },
     {
       "name": "ConversationHeader",
@@ -2592,6 +2596,7 @@
         "mediaAction",
         "openFile",
         "mediaDownload",
+        "mediaReveal",
         "openLink",
         "vote",
         "taskToggle"
@@ -2606,6 +2611,7 @@
         "mediaAction",
         "openFile",
         "mediaDownload",
+        "mediaReveal",
         "openLink",
         "vote",
         "taskToggle"
@@ -2650,7 +2656,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#MessageContentView",
-      "searchText": "messagecontentview message im-ui stable message ready downloading unsupported locatemessage mediaaction openfile mediadownload openlink vote tasktoggle supportsconfiguration supportscustomcontent supportsslots content-type dispatcher — renders a message body by type via the content-type registry (text/image/video/card/vote/task/…). extension point for products. 内容类型分发器 —— 经内容类型注册表按类型渲染消息正文（文本 / 图片 / 视频 / 名片 / 投票 / 任务 / …）。产品扩展点。"
+      "searchText": "messagecontentview message im-ui stable message ready downloading unsupported locatemessage mediaaction openfile mediadownload mediareveal openlink vote tasktoggle supportsconfiguration supportscustomcontent supportsslots content-type dispatcher — renders a message body by type via the content-type registry (text/image/video/card/vote/task/…). extension point for products. 内容类型分发器 —— 经内容类型注册表按类型渲染消息正文（文本 / 图片 / 视频 / 名片 / 投票 / 任务 / …）。产品扩展点。"
     },
     {
       "name": "TextMessage",
@@ -3291,12 +3297,14 @@
       "aliases": [
         "Message",
         "open",
-        "download"
+        "download",
+        "reveal"
       ],
       "states": [],
       "interactions": [
         "open",
-        "download"
+        "download",
+        "reveal"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -3338,7 +3346,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#FileMessage",
-      "searchText": "filemessage message im-ui stable message open download supportsconfiguration file message body — icon, name / size / ext, download affordance. 文件消息体 —— 图标、名称 / 大小 / 类型、下载。"
+      "searchText": "filemessage message im-ui stable message open download reveal supportsconfiguration file message body — icon, name / size / ext, download affordance. 文件消息体 —— 图标、名称 / 大小 / 类型、下载。"
     },
     {
       "name": "LocationMessage",
@@ -5178,7 +5186,8 @@
         "primaryAction",
         "previous",
         "next",
-        "retry"
+        "retry",
+        "reveal"
       ],
       "states": [
         "loading",
@@ -5191,7 +5200,8 @@
         "primaryAction",
         "previous",
         "next",
-        "retry"
+        "retry",
+        "reveal"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -5233,7 +5243,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#ImagePreviewModal",
-      "searchText": "imagepreviewmodal media im-ui stable media loading ready zoomed downloading update:show primaryaction previous next retry supportsconfiguration supportsresponsive full-screen image viewer — zoom/pan, download with progress. 全屏图片查看器 —— 缩放 / 拖动，带进度下载。"
+      "searchText": "imagepreviewmodal media im-ui stable media loading ready zoomed downloading update:show primaryaction previous next retry reveal supportsconfiguration supportsresponsive full-screen image viewer — zoom/pan, download with progress. 全屏图片查看器 —— 缩放 / 拖动，带进度下载。"
     },
     {
       "name": "VideoPlayerModal",
@@ -5288,7 +5298,8 @@
         "paused",
         "update:show",
         "play",
-        "download"
+        "download",
+        "reveal"
       ],
       "states": [
         "loading",
@@ -5298,7 +5309,8 @@
       "interactions": [
         "update:show",
         "play",
-        "download"
+        "download",
+        "reveal"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -5340,7 +5352,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#VideoPlayerModal",
-      "searchText": "videoplayermodal media im-ui stable media loading playing paused update:show play download supportsconfiguration supportsresponsive full-screen video player with poster and title. 全屏视频播放器，带封面与标题。"
+      "searchText": "videoplayermodal media im-ui stable media loading playing paused update:show play download reveal supportsconfiguration supportsresponsive full-screen video player with poster and title. 全屏视频播放器，带封面与标题。"
     },
     {
       "name": "MarkdownPreview",

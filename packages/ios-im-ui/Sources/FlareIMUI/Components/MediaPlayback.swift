@@ -22,9 +22,14 @@ struct FlareMediaPresentation: Identifiable, Equatable {
     let kind: Kind
     /// The host's download handler for this media; the viewer offers a download control only with one.
     let onDownload: (() -> Void)?
+    /// The host's reveal handler for this media: the viewer's key once the media is saved.
+    let onReveal: (() -> Void)?
+    /// Where the viewer reads this media's state on the session's ``FlareMediaDownloadBoard`` (the message); nil for
+    /// media whose state the host does not keep (an album's picture).
+    let downloadId: String?
 
-    init(_ kind: Kind, onDownload: (() -> Void)? = nil) {
-        self.kind = kind; self.onDownload = onDownload
+    init(_ kind: Kind, onDownload: (() -> Void)? = nil, onReveal: (() -> Void)? = nil, downloadId: String? = nil) {
+        self.kind = kind; self.onDownload = onDownload; self.onReveal = onReveal; self.downloadId = downloadId
     }
 
     static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id && lhs.kind == rhs.kind }
@@ -38,12 +43,34 @@ struct FlareGalleryImage: Equatable {
     let local: Bool
     /// The host's download handler for this image; the viewer offers a download control only with one.
     let onDownload: (() -> Void)?
+    /// Where the viewer reads this image's state (its message); nil for an album's picture, whose state the host does
+    /// not keep per picture.
+    let downloadId: String?
+    /// The host's reveal handler for this image, once it is saved.
+    let onReveal: (() -> Void)?
 
-    init(url: String, alt: String?, local: Bool = false, onDownload: (() -> Void)?) {
+    init(url: String, alt: String?, local: Bool = false, onDownload: (() -> Void)?, downloadId: String? = nil,
+         onReveal: (() -> Void)? = nil) {
         self.url = url; self.alt = alt; self.local = local; self.onDownload = onDownload
+        self.downloadId = downloadId; self.onReveal = onReveal
     }
 
-    static func == (lhs: Self, rhs: Self) -> Bool { lhs.url == rhs.url && lhs.alt == rhs.alt && lhs.local == rhs.local }
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.url == rhs.url && lhs.alt == rhs.alt && lhs.local == rhs.local && lhs.downloadId == rhs.downloadId
+    }
+}
+
+/// The host's media download states (``FlareMediaDownloadState``) by message id, as the list last received them. The
+/// full-screen viewer is presented over the list and reads its key from here, so a download started in the viewer
+/// shows its progress and then the folder without the viewer being closed.
+@MainActor
+final class FlareMediaDownloadBoard: ObservableObject {
+    @Published private(set) var states: [String: FlareMediaDownloadState] = [:]
+
+    /// Takes the host's states; publishes only a change.
+    func update(_ next: [String: FlareMediaDownloadState]) {
+        if next != states { states = next }
+    }
 }
 
 /// The media the kit viewer presents, if any.
@@ -329,48 +356,63 @@ final class FlareVideoPlayback: ObservableObject {
 final class FlareMediaSession: ObservableObject {
     let viewer: FlareMediaViewerState
     let voice: FlareVoicePlayback
+    /// The host's download states, which the viewer follows while it is open.
+    let downloads: FlareMediaDownloadBoard
 
     init(voice: FlareVoicePlayback? = nil) {
         viewer = FlareMediaViewerState()
         self.voice = voice ?? FlareVoicePlayback()
+        downloads = FlareMediaDownloadBoard()
     }
 
-    /// Opens the kit preview on the image: its local copy, else its full-size URL, else the thumbnail.
-    func present(_ image: FlareImageContent, onDownload: (() -> Void)?) {
+    /// Opens the kit preview on the image: its local copy, else its full-size URL, else the thumbnail. Its key follows
+    /// the state of `downloadId`.
+    func present(_ image: FlareImageContent, onDownload: (() -> Void)?, onReveal: (() -> Void)? = nil,
+                 downloadId: String? = nil) {
         let picture = flarePictureSource(image, preferThumbnail: false)
         viewer.presentation = FlareMediaPresentation(.image(url: picture.src, alt: image.alt, local: picture.local),
-                                                     onDownload: onDownload)
+                                                     onDownload: onDownload, onReveal: onReveal, downloadId: downloadId)
     }
 
     /// Opens the picture at `index` of message `messageId`: inside a timeline (`gallery`) as the conversation's gallery
     /// starting at that picture, each picture downloadable with the timeline's handler; else — or when the picture is
-    /// not in the gallery — `image` alone, downloadable with `onDownload`.
+    /// not in the gallery — `image` alone, downloadable with `onDownload`, its key following `downloadId`. A picture of
+    /// an image message follows its message's state and can be revealed; an album's pictures keep the download key.
     func open(_ image: FlareImageContent, messageId: String?, index: Int, gallery: FlareImageGallerySource?,
-              onDownload: (() -> Void)?) {
+              onDownload: (() -> Void)?, onReveal: (() -> Void)? = nil, downloadId: String? = nil) {
         let items = gallery.map { flareImageGalleryItems($0.messages) } ?? []
         guard let gallery, let messageId, let start = flareImageGalleryStart(items, messageId: messageId, index: index) else {
-            present(image, onDownload: onDownload)
+            present(image, onDownload: onDownload, onReveal: onReveal, downloadId: downloadId)
             return
         }
         var owners: [String: FlareMessageData] = [:]
-        if gallery.download != nil {
+        if gallery.download != nil || gallery.reveal != nil {
             for message in gallery.messages where owners[message.id] == nil { owners[message.id] = message }
         }
         let images = items.map { item in
             let picture = flarePictureSource(item.image, preferThumbnail: false)
+            let owner = owners[item.messageId]
+            // Only an image message has a state of its own; an album's state would stand for all of its pictures.
+            let single = owner?.content is FlareImageContent
             return FlareGalleryImage(url: picture.src, alt: item.image.alt, local: picture.local,
                                      onDownload: gallery.download.flatMap { download in
-                owners[item.messageId].map { owner in { download(owner, item.image) } }
-            })
+                                         owner.map { owner in { download(owner, item.image) } }
+                                     },
+                                     downloadId: single ? item.messageId : nil,
+                                     onReveal: single ? gallery.reveal.flatMap { reveal in
+                                         owner.map { owner in { reveal(owner, item.image) } }
+                                     } : nil)
         }
         viewer.presentation = FlareMediaPresentation(.gallery(images: images, index: start))
     }
 
-    /// Opens the kit player on the video, with a download key only with `onDownload`; a voice message playing
-    /// stops first.
-    func present(_ video: FlareVideoContent, onDownload: (() -> Void)? = nil) {
+    /// Opens the kit player on the video, with a download key only with `onDownload`, following the state of
+    /// `downloadId`; a voice message playing stops first.
+    func present(_ video: FlareVideoContent, onDownload: (() -> Void)? = nil, onReveal: (() -> Void)? = nil,
+                 downloadId: String? = nil) {
         voice.stop()
-        viewer.presentation = FlareMediaPresentation(.video(url: video.url, poster: video.poster), onDownload: onDownload)
+        viewer.presentation = FlareMediaPresentation(.video(url: video.url, poster: video.poster), onDownload: onDownload,
+                                                     onReveal: onReveal, downloadId: downloadId)
     }
 
     func dismiss() {
@@ -379,63 +421,106 @@ final class FlareMediaSession: ObservableObject {
 }
 
 /// The kit viewer for one presentation: ``ImagePreviewView`` or ``VideoPlayerView`` with the kit's
-/// AVKit player.
+/// AVKit player. Its key follows `downloads` — the list's states, as they change — for the presented media.
 struct FlareMediaViewer: View {
     let presentation: FlareMediaPresentation
     let onClose: () -> Void
+    var downloads: FlareMediaDownloadBoard? = nil
     @StateObject private var video = FlareVideoPlayback()
 
     var body: some View {
-        switch presentation.kind {
-        case let .image(url, alt, local):
-            ImagePreviewView(show: true, imageSrc: url, alt: alt, onClose: onClose, onDownload: presentation.onDownload,
-                             allowLocalFile: local)
-        case let .gallery(images, index):
-            FlareImageGalleryViewer(images: images, startIndex: index, onClose: onClose)
-        case let .video(url, poster):
-            FlareVideoViewer(url: url, poster: poster, playback: video, onClose: onClose, onDownload: presentation.onDownload)
+        FlareFollowingDownloads(board: downloads) { states in
+            let state = presentation.downloadId.flatMap { states[$0] }
+            switch presentation.kind {
+            case let .image(url, alt, local):
+                ImagePreviewView(show: true, imageSrc: url, alt: alt, downloading: state?.isDownloading ?? false,
+                                 progressPct: state?.progressPct ?? 0, onClose: onClose,
+                                 onDownload: presentation.onDownload,
+                                 saved: state?.isSaved ?? false, onReveal: presentation.onReveal,
+                                 allowLocalFile: local)
+            case let .gallery(images, index):
+                FlareImageGalleryViewer(images: images, startIndex: index, onClose: onClose, states: states)
+            case let .video(url, poster):
+                FlareVideoViewer(url: url, poster: poster, playback: video, onClose: onClose,
+                                 onDownload: presentation.onDownload, state: state, onReveal: presentation.onReveal)
+            }
         }
     }
 }
 
+/// Hands `content` the board's states, and again whenever they change; no states without a board.
+struct FlareFollowingDownloads<Content: View>: View {
+    let board: FlareMediaDownloadBoard?
+    @ViewBuilder let content: ([String: FlareMediaDownloadState]) -> Content
+
+    var body: some View {
+        if let board {
+            Following(board: board, content: content)
+        } else {
+            content([:])
+        }
+    }
+
+    private struct Following: View {
+        @ObservedObject var board: FlareMediaDownloadBoard
+        let content: ([String: FlareMediaDownloadState]) -> Content
+
+        var body: some View { content(board.states) }
+    }
+}
+
 /// A conversation's image gallery: ``ImagePreviewView`` of one image at a time, paging to its neighbours with the side
-/// keys or a sideways swipe and saying where it is. Each image opens fresh at normal size.
+/// keys or a sideways swipe and saying where it is. Each image opens fresh at normal size. The key of an image message's
+/// picture follows its message's state in `states`.
 struct FlareImageGalleryViewer: View {
     let images: [FlareGalleryImage]
     let onClose: () -> Void
+    let states: [String: FlareMediaDownloadState]
     @State private var index: Int
 
-    init(images: [FlareGalleryImage], startIndex: Int, onClose: @escaping () -> Void) {
+    init(images: [FlareGalleryImage], startIndex: Int, onClose: @escaping () -> Void,
+         states: [String: FlareMediaDownloadState] = [:]) {
         self.images = images
         self.onClose = onClose
+        self.states = states
         _index = State(initialValue: min(max(startIndex, 0), max(images.count - 1, 0)))
     }
 
     var body: some View {
         if images.indices.contains(index) {
-            ImagePreviewView(show: true, imageSrc: images[index].url, alt: images[index].alt, onClose: onClose,
-                             onDownload: images[index].onDownload, galleryIndex: index, galleryCount: images.count,
+            let image = images[index]
+            let state = image.downloadId.flatMap { states[$0] }
+            ImagePreviewView(show: true, imageSrc: image.url, alt: image.alt,
+                             downloading: state?.isDownloading ?? false, progressPct: state?.progressPct ?? 0,
+                             onClose: onClose, onDownload: image.onDownload,
+                             saved: state?.isSaved ?? false, onReveal: image.onReveal,
+                             galleryIndex: index, galleryCount: images.count,
                              onPrevious: index > 0 ? { index -= 1 } : nil,
                              onNext: index < images.count - 1 ? { index += 1 } : nil,
-                             allowLocalFile: images[index].local)
+                             allowLocalFile: image.local)
                 .id(index)
         }
     }
 }
 
-/// ``VideoPlayerView`` over the kit's player surface, with a download key only with the host's `onDownload`; plays
-/// on appear and stops when it goes away.
+/// ``VideoPlayerView`` over the kit's player surface, with a download key only with the host's `onDownload` — its
+/// progress while `state` is downloading, and the folder (`onReveal`) once it is saved; plays on appear and stops when
+/// it goes away.
 struct FlareVideoViewer: View {
     let url: String
     let poster: String?
     @ObservedObject var playback: FlareVideoPlayback
     let onClose: () -> Void
     var onDownload: (() -> Void)? = nil
+    var state: FlareMediaDownloadState? = nil
+    var onReveal: (() -> Void)? = nil
 
     var body: some View {
         VideoPlayerView(show: true, videoSrc: url, poster: poster,
                         player: AnyView(FlareVideoSurface(playback: playback, onClose: onClose)),
-                        onClose: onClose, onDownload: onDownload)
+                        onClose: onClose, onDownload: onDownload,
+                        downloading: state?.isDownloading ?? false, progressPct: state?.progressPct ?? 0,
+                        saved: state?.isSaved ?? false, onReveal: onReveal)
             .onAppear { playback.load(url) }
             .onDisappear { playback.stop() }
     }
@@ -515,22 +600,25 @@ private struct FlareMediaDefaultsPresenter: ViewModifier {
     private func presented(_ content: Content, item: Binding<FlareMediaPresentation?>) -> some View {
         #if os(iOS)
         content.fullScreenCover(item: item) { presentation in
-            FlareMediaViewer(presentation: presentation, onClose: { session.dismiss() })
+            FlareMediaViewer(presentation: presentation, onClose: { session.dismiss() }, downloads: session.downloads)
         }
         #else
         content.sheet(item: item) { presentation in
-            FlareMediaViewer(presentation: presentation, onClose: { session.dismiss() })
+            FlareMediaViewer(presentation: presentation, onClose: { session.dismiss() }, downloads: session.downloads)
         }
         #endif
     }
 }
 
-/// A message body outside a list owns its media defaults.
+/// A message body outside a list owns its media defaults, and hands its viewer the body's own download state.
 struct FlareOwnedMediaSession<Content: View>: View {
     @StateObject private var session = FlareMediaSession()
+    var downloads: [String: FlareMediaDownloadState] = [:]
     let content: (FlareMediaSession) -> Content
 
     var body: some View {
         content(session).flareMediaDefaults(session)
+            .onAppear { session.downloads.update(downloads) }
+            .onChange(of: downloads) { session.downloads.update($0) }
     }
 }

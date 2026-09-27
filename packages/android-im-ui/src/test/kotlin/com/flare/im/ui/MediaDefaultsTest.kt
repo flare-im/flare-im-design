@@ -64,7 +64,7 @@ class MediaDefaultsTest {
         val tap = assertIs<FlareContentTap.PreviewImage>(flareContentTap(cached, hasMediaHandler = false, hasFileHandler = false))
         assertEquals("/data/user/0/app/cache/a.png", tap.src)
         assertEquals(tap.src, flarePlayableMediaUrl(tap.src))
-        assertEquals(FlareMediaPresentation.Image("/data/user/0/app/cache/a.png"), flareImagePresentation(null, "m1", 0, tap.src))
+        assertEquals(FlareMediaPresentation.Image("/data/user/0/app/cache/a.png", messageId = "m1"), flareImagePresentation(null, "m1", 0, tap.src))
         // An album's tile draws its own picture's copy, and the others their addresses.
         val album = listOf(FlareImageContent("https://cdn/1.png"), cached)
         assertEquals(listOf<Any?>("https://cdn/1.png", File("/data/user/0/app/cache/a.png")), album.map { flarePictureModel(flarePictureSource(it)) })

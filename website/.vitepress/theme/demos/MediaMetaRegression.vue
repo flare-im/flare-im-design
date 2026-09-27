@@ -17,7 +17,10 @@ const cases = [
   { id: "upload", content: { contentType: "image", image: { url: artwork } } },
   { id: "edited", content: { contentType: "emoji", emoji: { key: "grinning_face" } } },
   { id: "text", content: { contentType: "text", text: { text: "See you tomorrow." } } },
+  { id: "file", content: { contentType: "file", file: { fileId: "f-1", fileName: "连调测试.txt", fileSize: 8704 } } },
 ];
+// A stored file offers its download key; the saved one on the right shows its folder.
+const fileMenu = { resolveMediaAction: () => "downloadMedia" as const };
 const timestamp = new Date(2025, 0, 15, 23, 13).getTime();
 function message(item: typeof cases[number], self: boolean): MessageLike {
   const id = `${item.id}-${self ? "out" : "in"}`;
@@ -44,6 +47,8 @@ function message(item: typeof cases[number], self: boolean): MessageLike {
       <section v-for="item in cases" :key="item.id" :data-media-case="item.id" :aria-label="item.id">
         <FlareMessageBubble v-for="self in [false, true]" :key="String(self)"
           :message="message(item, self)" :self="self" current-user-id="me"
+          :menu-config="item.id === 'file' ? fileMenu : undefined"
+          :media-download-state="item.id === 'file' && self ? 'openFolder' : undefined"
           @resend="retries += 1" />
       </section>
     </main>

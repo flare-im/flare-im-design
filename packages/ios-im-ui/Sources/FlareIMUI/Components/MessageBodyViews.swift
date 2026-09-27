@@ -373,44 +373,79 @@ public struct ImageMessageView: View {
     }
 }
 
-/// video — thumbnail with play overlay + duration badge, named by its description (else 视频) with
-/// the duration as its value; emits `onPlay`.
+/// video — the poster (the tertiary surface while there is none) with the play disc at its centre and the duration
+/// in its corner, named by its description (else 视频) with the duration as its value; emits `onPlay`.
+///
+/// An unknown duration (`duration` empty) draws no badge rather than a made-up 00:00. The timeline draws it at the
+/// image width, 16:9 (``defaultWidth`` x ``defaultHeight``).
 public struct VideoMessageView: View {
+    /// The thumbnail's size when the caller gives none: the timeline's picture width at 16:9.
+    public static let defaultWidth: CGFloat = 240
+    public static let defaultHeight: CGFloat = 135
+
     private let poster: String?
     private let duration: String
     private let alt: String?
+    private let width: CGFloat
+    private let height: CGFloat
     private let onPlay: (() -> Void)?
     @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
-    @Environment(\.flareMessageBodyForeground) private var bodyForeground
-    public init(poster: String? = nil, duration: String = "00:00", alt: String? = nil,
+    public init(poster: String? = nil, duration: String = "", alt: String? = nil,
+                width: CGFloat = VideoMessageView.defaultWidth, height: CGFloat = VideoMessageView.defaultHeight,
                 onPlay: (() -> Void)? = nil) {
         self.poster = poster; self.duration = duration; self.alt = alt; self.onPlay = onPlay
+        self.width = width; self.height = height
     }
+
+    /// Whether the thumbnail carries a duration badge: only for a duration it knows.
+    static func showsDuration(_ duration: String) -> Bool {
+        !duration.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         ZStack {
-            NetImage(url: poster) {
-                colors.bgTertiary.overlay(
-                    Image(systemName: "video").font(.system(size: FlareSizes.fontSize5xl * textScale)).foregroundColor(bodyForeground ?? colors.textTertiary).opacity(0.5))
+            NetImage(url: poster) { colors.bgTertiary }
+            FlareVideoPlayDisc()
+            if Self.showsDuration(duration) {
+                VStack { Spacer(); HStack { Spacer()
+                    Text(duration).font(.system(size: FlareSizes.fontSize2xs * textScale).monospacedDigit())
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 5).padding(.vertical, 1)
+                        .background(Capsule().fill(Color.black.opacity(0.5)))
+                } }.padding(FlareSizes.spacingSm)
             }
-            Color.black.opacity(0.28)
-            Image(systemName: "play.fill").font(.system(size: 34 * textScale)).foregroundColor(.white)
-                .accessibilityHidden(true)
-            VStack { Spacer(); HStack { Spacer()
-                Text(duration).font(.system(size: FlareSizes.fontSize2xs * textScale)).foregroundColor(.white)
-                    .padding(.horizontal, 5).padding(.vertical, 1)
-                    .background(Color.black.opacity(0.45)).clipShape(RoundedRectangle(cornerRadius: 5))
-            } }.padding(6)
         }
-        .frame(width: 148, height: 92)
+        .frame(width: width, height: height)
         .clipShape(RoundedRectangle(cornerRadius: FlareSizes.radiusCard, style: .continuous))
         .accessibilityElement(children: .ignore)
         .onTapIf(onPlay)
         .accessibilityLabel(alt?.isEmpty == false ? alt! : strings.messageVideo)
-        .accessibilityValue(duration)
+        .accessibilityValue(Self.showsDuration(duration) ? duration : "")
+    }
+}
+
+/// A video thumbnail's play affordance: the kit's play glyph, filled, in white on a translucent dark disc the size of
+/// the minimum touch target — legible on a bright poster, a dark one, and the empty surface alike.
+struct FlareVideoPlayDisc: View {
+    @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
+
+    var body: some View {
+        Circle()
+            .fill(Color.black.opacity(0.45))
+            .frame(width: FlareSizes.touchTargetMin, height: FlareSizes.touchTargetMin)
+            .overlay(
+                Image(systemName: flareIconSymbol("play"))
+                    .symbolVariant(.fill)
+                    .font(.system(size: FlareSizes.fontSize3xl * textScale, weight: .semibold))
+                    .foregroundColor(.white)
+                    // The triangle's visual centre sits right of its box's centre.
+                    .offset(x: 1.5)
+            )
+            .accessibilityHidden(true)
     }
 }
 
@@ -484,46 +519,150 @@ public struct VoiceMessageView: View {
     }
 }
 
-/// file — icon / name / size / ext; emits `onOpen` (card) and `onDownload`.
-/// Override the leading [icon] to show a per-file-type glyph.
+/// file — icon, name (one line), and its size and type; emits `onOpen` from the card and, from the key at its trailing
+/// edge, `onDownload` or `onReveal`. Override the leading [icon] to show a per-file-type glyph.
+///
+/// The key follows `downloadState`, the host's view of the file on this device: a download while it is not saved
+/// (`idle`, or `failed` — try again), the save's progress while `downloading` (not pressable), and once it is saved
+/// (`done`) a folder that shows it where it was saved (`onReveal`) — never a spent "downloaded" tick. The size line says
+/// the same after the size and type (`· 下载中 42%`, `· 已下载`). There is no key without `onDownload`, and a saved file
+/// whose host passes no `onReveal` keeps the download key.
 public struct FileMessageView: View {
+    /// What the trailing key is.
+    enum Key: Equatable {
+        case download
+        /// A save under way, 0–100.
+        case progress(Int)
+        case folder
+    }
+
     private let name: String
     private let size: String
     private let ext: String?
     private let icon: AnyView?
     private let onOpen: (() -> Void)?
     private let onDownload: (() -> Void)?
-    private let downloadLabel: String
+    private let downloadLabel: String?
+    private let downloadState: FlareMediaDownloadState?
+    private let onReveal: (() -> Void)?
     @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
+    @Environment(\.flareStrings) private var strings
     @Environment(\.flareMessageBodyForeground) private var bodyForeground
+    /// - Parameters:
+    ///   - downloadLabel: The download key's name; the kit's 下载 when nil.
+    ///   - downloadState: The file on this device, as the host knows it; nil is not saved.
+    ///   - onReveal: Shows the saved file in its folder; the key of a saved file.
     public init(name: String, size: String = "", ext: String? = nil, icon: AnyView? = nil,
-                onOpen: (() -> Void)? = nil, onDownload: (() -> Void)? = nil, downloadLabel: String = "Download") {
+                onOpen: (() -> Void)? = nil, onDownload: (() -> Void)? = nil, downloadLabel: String? = nil,
+                downloadState: FlareMediaDownloadState? = nil, onReveal: (() -> Void)? = nil) {
         self.name = name; self.size = size; self.ext = ext; self.icon = icon
         self.onOpen = onOpen; self.onDownload = onDownload
         self.downloadLabel = downloadLabel
+        self.downloadState = downloadState; self.onReveal = onReveal
     }
+
+    /// The trailing key for `state`: a folder for a saved file the host can show, the progress while a save runs, else
+    /// a download; none without a download handler.
+    static func key(_ state: FlareMediaDownloadState?, canDownload: Bool, canReveal: Bool) -> Key? {
+        guard canDownload else { return nil }
+        switch state?.status {
+        case .done? where canReveal: return .folder
+        case .downloading?: return .progress(min(max(state?.progressPct ?? 0, 0), 100))
+        default: return .download
+        }
+    }
+
+    /// The line under the name: the size and type, then where the file stands on this device while it is being saved
+    /// (with the percent once there is one) or once it is.
+    static func subtitle(size: String, ext: String?, state: FlareMediaDownloadState?, strings: FlareStrings) -> String {
+        var facts = [size, ext ?? ""].map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+        switch state?.status {
+        case .downloading?:
+            let pct = min(max(state?.progressPct ?? 0, 0), 100)
+            facts.append(pct > 0 ? "\(strings.downloading) \(pct)%" : strings.downloading)
+        case .done?:
+            facts.append(strings.downloaded)
+        default:
+            break
+        }
+        return facts.joined(separator: " · ")
+    }
+
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        let sub = (ext?.isEmpty == false) ? "\(size) · \(ext!)" : size
-        HStack(spacing: FlareSizes.spacing2sm) {
+        HStack(spacing: FlareSizes.spacingSm) {
             HStack(spacing: FlareSizes.spacingSm) {
-                icon ?? AnyView(Image(systemName: "doc").font(.system(size: 20 * textScale)).foregroundColor(bodyForeground ?? colors.primaryText))
+                icon ?? AnyView(Image(systemName: flareIconSymbol("file")).font(.system(size: FlareSizes.iconSizeMd * textScale))
+                    .foregroundColor(bodyForeground ?? colors.primaryText).accessibilityHidden(true))
                 VStack(alignment: .leading, spacing: 1) {
                     Text(name).font(.system(size: FlareSizes.fontSizeLg * textScale, weight: .medium))
-                        .foregroundColor(bodyForeground ?? colors.textPrimary).lineLimit(2)
-                    Text(sub).font(.system(size: 11 * textScale)).foregroundColor(bodyForeground ?? colors.textTertiary)
+                        .foregroundColor(bodyForeground ?? colors.textPrimary)
+                        .lineLimit(1).truncationMode(.middle)
+                    Text(Self.subtitle(size: size, ext: ext, state: downloadState, strings: strings))
+                        .font(.system(size: FlareSizes.fontSizeXs * textScale).monospacedDigit())
+                        .foregroundColor(bodyForeground?.opacity(0.72) ?? colors.textTertiary)
+                        .lineLimit(1)
                 }
-            }.onTapIf(onOpen)
-            if let onDownload {
-                Button(action: onDownload) {
-                    Image(systemName: "square.and.arrow.down").foregroundColor(bodyForeground ?? colors.textTertiary)
-                        .frame(width: FlareSizes.touchTarget, height: FlareSizes.touchTarget)
-                }.buttonStyle(.plain).accessibilityLabel(downloadLabel)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .onTapIf(onOpen)
+            if let key = Self.key(downloadState, canDownload: onDownload != nil, canReveal: onReveal != nil) {
+                keyView(key, colors)
             }
         }
         .frame(maxWidth: 300, alignment: .leading)
+    }
+
+    /// The trailing key: the kit icon inside a touch-target frame — the folder on a quiet disc of its own colour, the one
+    /// thing on the card that goes somewhere else; the progress ring in its place while a save runs, which is not a
+    /// control.
+    @ViewBuilder
+    private func keyView(_ key: Key, _ colors: FlareColors) -> some View {
+        let tint = bodyForeground ?? (key == .folder ? colors.primaryText : colors.textSecondary)
+        switch key {
+        case .progress(let pct):
+            FlareFileKeyDisc(tint: tint, filled: false) {
+                ZStack {
+                    Circle().stroke(tint.opacity(0.25), lineWidth: 2)
+                    Circle().trim(from: 0, to: CGFloat(pct) / 100)
+                        .stroke(tint, style: StrokeStyle(lineWidth: 2, lineCap: .round)).rotationEffect(.degrees(-90))
+                }
+                .frame(width: FlareSizes.iconSizeSm, height: FlareSizes.iconSizeSm)
+            }
+            .frame(width: FlareSizes.touchTarget, height: FlareSizes.touchTarget)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(strings.downloading)
+            .accessibilityValue("\(pct)%")
+        case .download, .folder:
+            let folder = key == .folder
+            Button { (folder ? onReveal : onDownload)?() } label: {
+                FlareFileKeyDisc(tint: tint, filled: folder) {
+                    Image(systemName: flareIconSymbol(folder ? "folder" : "download"))
+                        .font(.system(size: FlareSizes.fontSize3xl * textScale))
+                        .foregroundColor(tint)
+                }
+                .frame(width: FlareSizes.touchTarget, height: FlareSizes.touchTarget)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(folder ? strings.showInFolder : (downloadLabel ?? strings.download))
+        }
+    }
+}
+
+/// The file card key's glyph box, `filled` with a wash of the key's own colour.
+private struct FlareFileKeyDisc<Content: View>: View {
+    let tint: Color
+    let filled: Bool
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        content()
+            .frame(width: FlareSizes.iconSizeXl, height: FlareSizes.iconSizeXl)
+            .background(Circle().fill(filled ? tint.opacity(0.12) : Color.clear))
     }
 }
 

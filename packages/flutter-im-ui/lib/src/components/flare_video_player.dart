@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 import '../models/directory_data.dart';
+import '../models/message_content.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_button.dart';
@@ -32,8 +34,10 @@ class FlareVideoPlayer extends StatefulWidget {
     this.onPlay,
     this.onClose,
     this.onDownload,
+    this.onReveal,
     this.downloading = false,
     this.progressPct = 0,
+    this.saved = false,
   });
 
   final bool show;
@@ -50,11 +54,22 @@ class FlareVideoPlayer extends StatefulWidget {
   final VoidCallback? onClose;
 
   /// The download key at the top right, as in the image preview; hidden
-  /// without it. While [downloading] it shows [progressPct] instead.
+  /// without it. While [downloading] it shows [progressPct] instead, and once
+  /// the video is [saved] it is a folder key that calls [onReveal] (hidden
+  /// without it).
   final VoidCallback? onDownload;
+
+  /// Shows the saved video in its folder (the key while [saved]).
+  final VoidCallback? onReveal;
   final bool downloading;
   final int progressPct;
 
+  /// The video is saved on this device: the key shows it in its folder.
+  final bool saved;
+
+  /// Presents the player as a full-screen dialog route. With [downloadState]
+  /// the key follows the video's download while the player is open, without
+  /// interrupting playback.
   static Future<void> present(
     BuildContext context, {
     required String videoSrc,
@@ -62,19 +77,32 @@ class FlareVideoPlayer extends StatefulWidget {
     String? title,
     Widget Function(BuildContext, String)? playerBuilder,
     VoidCallback? onDownload,
+    VoidCallback? onReveal,
+    ValueListenable<FlareMediaDownloadState?>? downloadState,
   }) {
+    Widget player(BuildContext ctx, FlareMediaDownloadState? state) =>
+        FlareVideoPlayer(
+          show: true,
+          videoSrc: videoSrc,
+          poster: poster,
+          title: title,
+          playerBuilder: playerBuilder,
+          onClose: () => Navigator.of(ctx).maybePop(),
+          onDownload: onDownload,
+          onReveal: onReveal,
+          downloading: state?.isDownloading ?? false,
+          progressPct: state?.progressPct ?? 0,
+          saved: state?.isSaved ?? false,
+        );
     return showGeneralDialog(
       context: context,
       barrierColor: Colors.black,
-      pageBuilder: (ctx, _, __) => FlareVideoPlayer(
-        show: true,
-        videoSrc: videoSrc,
-        poster: poster,
-        title: title,
-        playerBuilder: playerBuilder,
-        onClose: () => Navigator.of(ctx).maybePop(),
-        onDownload: onDownload,
-      ),
+      pageBuilder: (ctx, _, __) => downloadState == null
+          ? player(ctx, null)
+          : ValueListenableBuilder<FlareMediaDownloadState?>(
+              valueListenable: downloadState,
+              builder: (ctx, state, _) => player(ctx, state),
+            ),
     );
   }
 
@@ -168,11 +196,49 @@ class _FlareVideoPlayerState extends State<FlareVideoPlayer> {
     }
   }
 
+  /// The key at the top right: progress while downloading, the folder once
+  /// saved, else the download — or nothing when there is nothing to call.
+  Widget? _mediaKey(FlareStrings strings) {
+    final download = widget.onDownload;
+    final reveal = widget.onReveal;
+    if (widget.downloading) {
+      if (download == null && reveal == null) return null;
+      final pct = widget.progressPct.clamp(0, 100);
+      return Semantics(
+        label: '${strings.downloading} $pct%',
+        excludeSemantics: true,
+        child: SizedBox.square(
+          dimension: FlareSizes.touchTarget,
+          child: Center(
+            child: CircularProgressIndicator(
+              value: pct > 0 ? pct / 100 : null,
+              color: Colors.white,
+              strokeWidth: 2,
+            ),
+          ),
+        ),
+      );
+    }
+    final (icon, label, onTap) = widget.saved
+        ? ('folder', strings.showInFolder, reveal)
+        : ('download', strings.download, download);
+    if (onTap == null) return null;
+    return FlareIconButton(
+      icon: icon,
+      semanticLabel: label,
+      onPressed: onTap,
+      tintColor: Colors.white,
+      backgroundColor: Colors.white24,
+      customSize: FlareSizes.touchTarget,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!widget.show) return const SizedBox.shrink();
     final strings = FlareStrings.of(context);
     final top = MediaQuery.of(context).padding.top;
+    final mediaKey = _mediaKey(strings);
     return Material(
       color: Colors.black,
       child: Stack(
@@ -198,35 +264,17 @@ class _FlareVideoPlayerState extends State<FlareVideoPlayer> {
               customSize: FlareSizes.touchTarget,
             ),
           ),
-          if (widget.onDownload != null)
+          if (mediaKey != null)
             Positioned(
               top: top + FlareSizes.spacingSm,
               right: FlareSizes.spacingSm,
-              child: widget.downloading
-                  ? SizedBox.square(
-                      dimension: FlareSizes.touchTarget,
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          value: widget.progressPct.clamp(0, 100) / 100,
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      ),
-                    )
-                  : FlareIconButton(
-                      icon: 'download',
-                      semanticLabel: strings.download,
-                      onPressed: widget.onDownload,
-                      tintColor: Colors.white,
-                      backgroundColor: Colors.white24,
-                      customSize: FlareSizes.touchTarget,
-                    ),
+              child: mediaKey,
             ),
           if (widget.title != null && widget.title!.isNotEmpty)
             Positioned(
               top: top + FlareSizes.spacingMd,
               left: 56,
-              right: widget.onDownload != null ? 56 : FlareSizes.spacingMd,
+              right: mediaKey != null ? 56 : FlareSizes.spacingMd,
               child: Text(
                 widget.title!,
                 maxLines: 1,

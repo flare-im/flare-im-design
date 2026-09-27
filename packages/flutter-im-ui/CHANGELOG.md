@@ -1,3 +1,8 @@
+## 未发布
+
+- 图片、视频、文件保存后，下载键变成「在文件夹中显示」；宿主发现文件被删后传回 idle，键回到下载。收发两侧的消息时间都在右侧。详见仓库根 CHANGELOG。
+- `FlareFileMessage` 新增 `downloadState` / `onReveal`；`FlareImagePreview` / `FlareVideoPlayer` 新增 `saved` / `onReveal`，`present` 可传实时下载状态；列表、气泡、分发器新增 `onMediaReveal`；`FlareVideoMessage.duration` 可空，未知时长不画角标。
+
 ## 2.0.0-rc.1
 
 - **许可证由 MIT 变更为 Apache-2.0。** 已发布的 1.0.5 及更早版本仍按 MIT 授权，

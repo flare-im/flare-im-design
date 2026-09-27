@@ -1404,6 +1404,24 @@
     ],
     "zh": "下载"
   },
+  "downloaded": {
+    "en": "Downloaded",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已下载"
+  },
+  "downloading": {
+    "en": "Downloading",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "下载中"
+  },
   "emojiPickerEmoji": {
     "en": "Emoji",
     "kits": [
@@ -4978,6 +4996,15 @@
       "ios"
     ],
     "zh": "设置"
+  },
+  "showInFolder": {
+    "en": "Show in folder",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "在文件夹中显示"
   },
   "showOriginal": {
     "en": "Show original",

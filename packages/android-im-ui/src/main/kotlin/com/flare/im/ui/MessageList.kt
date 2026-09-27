@@ -400,9 +400,14 @@ internal suspend fun LazyListState.scrollToMessageListEnd(rows: Int) {
  * Media: [onMediaAction] takes every media tap. Without it the list previews images and plays videos
  * full screen and plays voice messages in their bubbles, one at a time; playback stops when the list
  * leaves composition or the screen stops. A file tap goes to [onOpenFile]. [onMediaDownload] is the download key of the
- * image preview and the video player; without it neither has one. A tapped picture opens the conversation's gallery —
- * every picture of [messages] in timeline order — and the key downloads the picture on screen with the message it
- * belongs to; a video's key downloads that video.
+ * image preview, the video player and a file card; without it none has one. A tapped picture opens the conversation's
+ * gallery — every picture of [messages] in timeline order — and the key downloads the picture on screen with the message
+ * it belongs to; a video's key downloads that video, a file card's key that file.
+ *
+ * Download state: [mediaDownloadStates] (by message id) is where each message's media stands on this device, and every
+ * key follows it — in the bubble and in a preview or player that is open, which never has to close to catch up: a
+ * download key, its progress while the download runs, and once the media is saved a folder that calls [onMediaReveal]
+ * with the message and the content (the host shows the file in its folder, or passes an idle state again when it is gone).
  *
  * Links: a link in a text message and a link card go to [onOpenLink]; without it the kit opens only a safe
  * web address ([safeExternalUrl]) with the platform opener, and never another scheme.
@@ -450,10 +455,15 @@ fun MessageList(
     /** A tapped task checkbox (message, the done state asked for); without it tasks are read-only. */
     onTaskToggle: ((FlareMessageData, Boolean) -> Unit)? = null,
     /**
-     * The download key of the image preview (the message a picture belongs to, and the picture) and of the video player
-     * (the message, and the video); without it neither has one.
+     * The download key of the image preview (the message a picture belongs to, and the picture), of the video player
+     * (the message, and the video) and of a file card (the message, and the file); without it none has one.
      */
     onMediaDownload: ((FlareMessageData, FlareMessageContent) -> Unit)? = null,
+    /**
+     * The folder key the download key becomes once [mediaDownloadStates] says a message's media is saved: the message,
+     * and the content (the picture on screen in the gallery); the host shows the file in its folder.
+     */
+    onMediaReveal: ((FlareMessageData, FlareMessageContent) -> Unit)? = null,
     /**
      * Host content under the newest message, scrolling with the timeline — the contract's `footer` slot,
      * as on Vue. The typing indicator lives here: it belongs to the conversation, not to the composer, and
@@ -582,10 +592,15 @@ fun MessageList(
     // A page's download names the message its picture belongs to, looked up when the key is pressed: the thread may
     // have changed while the preview was open, and a picture whose message is gone downloads nothing.
     val currentDownload by rememberUpdatedState(onMediaDownload)
-    val gallery = remember(pictures, onMediaDownload != null) {
+    val currentReveal by rememberUpdatedState(onMediaReveal)
+    val gallery = remember(pictures, onMediaDownload != null, onMediaReveal != null) {
         FlareTimelineGallery(
             pictures,
-            if (onMediaDownload == null) null else ({ item ->
+            reveal = if (onMediaReveal == null) null else ({ item ->
+                val owner = currentMessages.firstOrNull { it.id == item.messageId }
+                if (owner != null) currentReveal?.invoke(owner, item.image)
+            }),
+            download = if (onMediaDownload == null) null else ({ item ->
                 val owner = currentMessages.firstOrNull { it.id == item.messageId }
                 if (owner != null) currentDownload?.invoke(owner, item.image)
             }),
@@ -700,7 +715,8 @@ fun MessageList(
                                             mediaState = mediaDownloadStates[msg.id], onMediaAction = onMediaAction, onResend = onResend,
                                             multiSelectMode = multiSelectMode, selected = msg.id in selectedIds, onToggleSelect = onToggleSelect,
                                             onReact = onReact, onLocateMessage = locate, onOpenFile = onOpenFile, onOpenLink = onOpenLink,
-                                            onVote = onVote, onTaskToggle = onTaskToggle, onMediaDownload = onMediaDownload)
+                                            onVote = onVote, onTaskToggle = onTaskToggle, onMediaDownload = onMediaDownload,
+                                            onMediaReveal = onMediaReveal)
                                     }
                                 }
                             }
@@ -717,5 +733,6 @@ fun MessageList(
             }
         }
     }
-    FlareMediaOverlay(media)
+    // The open preview or player reads the states of this composition, so its key follows them.
+    FlareMediaOverlay(media) { id -> id?.let { mediaDownloadStates[it] } }
 }
