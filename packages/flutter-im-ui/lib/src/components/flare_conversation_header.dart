@@ -221,6 +221,8 @@ class FlareConversationHeader extends StatelessWidget
   actionIconBuilder;
   final Widget? trailing;
 
+  /// The bar's own height. Used as a Scaffold app bar it is given the top safe
+  /// area on top of this and draws its background there.
   @override
   Size get preferredSize => const Size.fromHeight(FlareSizes.headerHeight);
 
@@ -265,58 +267,69 @@ class FlareConversationHeader extends StatelessWidget
         return Semantics(
           container: true,
           label: identity.accessibilityLabel ?? identity.title,
-          child: Container(
-            height: FlareSizes.headerHeight,
-            padding: EdgeInsets.symmetric(
-              horizontal: compact ? FlareSizes.spacingSm : FlareSizes.spacingLg,
-            ),
+          // The surface runs up under the status bar / notch; the row keeps to the
+          // safe area below it. As a Scaffold app bar nothing else pads the top, so
+          // on a phone the back button and title sat under the clock and the
+          // back button landed in the system's status-bar touch zone.
+          child: DecoratedBox(
             decoration: BoxDecoration(
               color: colors.bgSecondary,
               border: Border(bottom: BorderSide(color: colors.borderPrimary)),
             ),
-            child: Row(
-              children: [
-                if (showBack)
-                  IconButton(
-                    tooltip: strings.back,
-                    onPressed: onBack,
-                    icon: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      size: 20,
-                    ),
-                  ),
-                Expanded(
-                  child:
-                      identityBuilder?.call(context, identity) ??
-                      _identity(colors, strings, compact, identityAction),
+            child: SafeArea(
+              bottom: false,
+              child: Container(
+                height: FlareSizes.headerHeight,
+                padding: EdgeInsets.symmetric(
+                  horizontal: compact
+                      ? FlareSizes.spacingSm
+                      : FlareSizes.spacingLg,
                 ),
-                for (final action in primary)
-                  _actionButton(context, action, colors),
-                if (add.isNotEmpty)
-                  _menu(
-                    add,
-                    Icons.add_rounded,
-                    strings.conversationHeaderAddActions,
-                    colors,
-                  ),
-                // A More menu holding one action is a detour: that action
-                // takes the More button itself, named by its own label.
-                if (overflow.length == 1)
-                  _actionButton(
-                    context,
-                    overflow.single,
-                    colors,
-                    icon: const Icon(Icons.more_horiz_rounded, size: 22),
-                  )
-                else if (overflow.isNotEmpty)
-                  _menu(
-                    overflow,
-                    Icons.more_horiz_rounded,
-                    strings.conversationHeaderMoreActions,
-                    colors,
-                  ),
-                if (trailing != null) trailing!,
-              ],
+                child: Row(
+                  children: [
+                    if (showBack)
+                      IconButton(
+                        tooltip: strings.back,
+                        onPressed: onBack,
+                        icon: const Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          size: 20,
+                        ),
+                      ),
+                    Expanded(
+                      child:
+                          identityBuilder?.call(context, identity) ??
+                          _identity(colors, strings, compact, identityAction),
+                    ),
+                    for (final action in primary)
+                      _actionButton(context, action, colors),
+                    if (add.isNotEmpty)
+                      _menu(
+                        add,
+                        Icons.add_rounded,
+                        strings.conversationHeaderAddActions,
+                        colors,
+                      ),
+                    // A More menu holding one action is a detour: that action
+                    // takes the More button itself, named by its own label.
+                    if (overflow.length == 1)
+                      _actionButton(
+                        context,
+                        overflow.single,
+                        colors,
+                        icon: const Icon(Icons.more_horiz_rounded, size: 22),
+                      )
+                    else if (overflow.isNotEmpty)
+                      _menu(
+                        overflow,
+                        Icons.more_horiz_rounded,
+                        strings.conversationHeaderMoreActions,
+                        colors,
+                      ),
+                    if (trailing != null) trailing!,
+                  ],
+                ),
+              ),
             ),
           ),
         );

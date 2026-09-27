@@ -19298,11 +19298,12 @@
           "type": "'auto' | 'sheet' | 'dialog' | 'drawer'",
           "default": "auto",
           "platforms": [
-            "vue"
+            "vue",
+            "flutter"
           ],
           "description": {
-            "zh": "呈现方式：auto 在手机形态（平台能力 bottomSheet）为底部面板、指针设备为居中对话框；drawer 为贴在行尾的全高抽屉，用于较长的次级面板。",
-            "en": "How it appears: auto is a bottom sheet on phone form factors (platform capability bottomSheet) and a centered dialog on pointer devices; drawer is a full-height panel at the inline end for longer secondary panels."
+            "zh": "呈现方式：auto 在手机形态（平台能力 bottomSheet）为底部面板、指针设备为居中对话框；drawer 为贴在行尾的全高抽屉，用于较长的次级面板。Flutter（FlareSheetPresentation）实现 sheet 与 drawer，默认 sheet。",
+            "en": "How it appears: auto is a bottom sheet on phone form factors (platform capability bottomSheet) and a centered dialog on pointer devices; drawer is a full-height panel at the inline end for longer secondary panels. Flutter (FlareSheetPresentation) implements sheet and drawer, defaulting to sheet."
           }
         },
         {

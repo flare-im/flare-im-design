@@ -44,8 +44,9 @@ ImageProvider? flareMediaImageProvider(
   return null;
 }
 
-/// [flareMediaImageProvider] drawn, or [placeholder] when there is no picture
-/// or it fails to load. [allowLocalFile]: see [flareMediaImageProvider].
+/// [flareMediaImageProvider] drawn, or [placeholder] when there is no picture,
+/// while it is still loading, or when it fails to load. [allowLocalFile]: see
+/// [flareMediaImageProvider].
 /// Where to draw [image] from: its local copy ([FlareImageContent.localPath],
 /// resolved by the host through the SDK cache) when there is one, otherwise
 /// its thumbnail then full-size address ([preferThumbnail]) or the reverse.
@@ -64,6 +65,12 @@ ImageProvider? flareMediaImageProvider(
   return (src: src, local: false);
 }
 
+///
+/// Until the first frame arrives the [placeholder] shows: a picture on a slow
+/// link used to be an empty hole the size of the bubble for as long as the
+/// download took. With [gaplessPlayback] a new address for the same picture
+/// (a re-signed URL, or the local copy replacing the remote one) keeps the
+/// frame on screen until the new one is ready instead of blanking first.
 Widget flareMediaImage(
   String? url, {
   required Widget placeholder,
@@ -77,6 +84,8 @@ Widget flareMediaImage(
     image: provider,
     fit: fit,
     gaplessPlayback: gaplessPlayback,
+    frameBuilder: (_, child, frame, wasSynchronouslyLoaded) =>
+        wasSynchronouslyLoaded || frame != null ? child : placeholder,
     errorBuilder: (_, __, ___) => placeholder,
   );
 }

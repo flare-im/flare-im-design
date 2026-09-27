@@ -30,7 +30,9 @@ BorderRadius _bubbleRadius() => const BorderRadius.only(
 );
 
 /// The message picture with a placeholder fallback (host provides the URL; a
-/// local file shows while the message is still uploading).
+/// local file shows while the message is still uploading). Gapless: the host
+/// re-resolves a picture's address (a re-signed URL, then the cached copy), and
+/// the bubble must keep showing it through that rather than flash empty.
 Widget _netImage(
   String? url, {
   required Widget placeholder,
@@ -40,6 +42,7 @@ Widget _netImage(
   url,
   placeholder: placeholder,
   fit: fit,
+  gaplessPlayback: true,
   allowLocalFile: allowLocalFile,
 );
 

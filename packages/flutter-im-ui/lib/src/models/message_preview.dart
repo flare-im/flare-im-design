@@ -9,6 +9,7 @@
 /// "[消息]" drifts from the other platforms the moment one of them changes.
 library;
 
+import 'dart:convert' show jsonDecode;
 import 'dart:ui' show PlatformDispatcher;
 
 import '../emoji_sticker/flare_emoji_sticker_catalog.dart';
@@ -211,6 +212,187 @@ FlareReplyTarget flareReplyTargetFor(
 String _or(String? value, String fallback) {
   final text = value?.trim() ?? '';
   return text.isEmpty ? fallback : text;
+}
+
+/// The one-line summary the core stored for a conversation's last message (or a
+/// quote), in the host's words.
+///
+/// The core stores a stable token, not display text:
+/// `{"k":"im.preview.image","a":{"d":"说明","m":true}}` (`preview_storage.rs`).
+/// Plain text — history written before the tokens — is shown as it is. The
+/// mapping is Vue's `displayTextFromStoredPreview`: a token with its own words
+/// (a caption, a file name, a system line's fallback) shows them, the rest their
+/// `preview*` term. A token the kit does not know shows nothing rather than its
+/// raw JSON.
+///
+/// [systemEventText] names a system / notification event (`ek`, e.g.
+/// `group.member_kicked`) whose token carries no fallback text; without one, or
+/// when it returns '', the line reads [FlareStrings.previewSystem].
+String flareStoredPreviewText(
+  String? raw,
+  FlareStrings strings, {
+  String? locale,
+  String Function(String eventKey)? systemEventText,
+}) {
+  final text = raw?.trim() ?? '';
+  if (text.isEmpty) return '';
+  final token = _storedPreviewToken(text);
+  if (token == null) return flareMarkdownToPlainText(text, strings).trim();
+  return flareMarkdownToPlainText(
+    _storedPreviewTokenText(
+      token.$1,
+      token.$2,
+      strings,
+      locale: locale,
+      systemEventText: systemEventText,
+    ),
+    strings,
+  ).trim();
+}
+
+(String, Map<String, Object?>)? _storedPreviewToken(String text) {
+  if (!text.startsWith('{')) return null;
+  try {
+    final decoded = jsonDecode(text);
+    if (decoded is! Map) return null;
+    final key = decoded['k'];
+    if (key is! String) return null;
+    final args = decoded['a'];
+    return (
+      key,
+      args is Map ? args.map((k, v) => MapEntry('$k', v)) : <String, Object?>{},
+    );
+  } on FormatException {
+    return null;
+  }
+}
+
+String _arg(Map<String, Object?> args, List<String> names) {
+  for (final name in names) {
+    final value = args[name];
+    if (value is String && value.trim().isNotEmpty) return value.trim();
+  }
+  return '';
+}
+
+String _storedPreviewTokenText(
+  String key,
+  Map<String, Object?> args,
+  FlareStrings strings, {
+  String? locale,
+  String Function(String eventKey)? systemEventText,
+}) {
+  String event(String fallback) {
+    final words = _arg(args, const ['fb', 't', 'body', 'title']);
+    if (words.isNotEmpty) return words;
+    final eventKey = _arg(args, const ['ek']);
+    final named = eventKey.isEmpty
+        ? ''
+        : (systemEventText?.call(eventKey) ?? '');
+    return _or(named, fallback);
+  }
+
+  switch (key) {
+    case 'im.preview.user_text':
+      return _arg(args, const ['t']);
+    case 'im.preview.rich_text':
+      return _or(
+        [
+          _arg(args, const ['title']),
+          _arg(args, const ['body']),
+          _arg(args, const ['markdown']),
+        ].where((part) => part.isNotEmpty).join(' '),
+        strings.previewRichText,
+      );
+    case 'im.preview.file':
+      return _named(
+        _arg(args, const ['n']),
+        strings.previewFileNamed,
+        strings.previewFile,
+      );
+    case 'im.preview.image':
+      if (args['m'] == true) return strings.previewGif;
+      return _or(_arg(args, const ['d']), strings.previewImage);
+    case 'im.preview.video':
+      return _or(_arg(args, const ['d']), strings.previewVideo);
+    case 'im.preview.audio':
+      return _or(_arg(args, const ['d']), strings.previewAudio);
+    case 'im.preview.location':
+      return _named(
+        _arg(args, const ['label']),
+        strings.previewLocationNamed,
+        strings.previewLocation,
+      );
+    case 'im.preview.card':
+      return _named(
+        _arg(args, const ['label']),
+        strings.previewCardNamed,
+        strings.previewCard,
+      );
+    case 'im.preview.sticker':
+      return strings.previewSticker;
+    case 'im.preview.emoji':
+      final packKey = _arg(args, const ['ek', 'k', 'key', 'emoji']);
+      final label = packKey.isEmpty
+          ? ''
+          : FlareEmojiStickerCatalog.instance.emojiLabel(
+              packKey,
+              locale:
+                  locale ?? PlatformDispatcher.instance.locale.toLanguageTag(),
+            );
+      return _or(label, strings.previewEmoji);
+    case 'im.preview.quote':
+      final inner = args['inner'];
+      if (inner is Map && inner['k'] is String) {
+        final innerArgs = inner['a'];
+        final text = _storedPreviewTokenText(
+          inner['k'] as String,
+          innerArgs is Map
+              ? innerArgs.map((k, v) => MapEntry('$k', v))
+              : <String, Object?>{},
+          strings,
+          locale: locale,
+          systemEventText: systemEventText,
+        );
+        if (text.isNotEmpty) return text;
+      }
+      return strings.previewQuote;
+    case 'im.preview.link':
+      return _or(_arg(args, const ['t']), strings.previewLink);
+    case 'im.preview.forward_empty':
+      return strings.previewForward;
+    case 'im.preview.forward_many':
+      final count = args['n'];
+      return count is num && count > 0
+          ? strings.previewForwardCount(count.toInt())
+          : strings.previewForward;
+    case 'im.preview.thread':
+      return _or(_arg(args, const ['t']), strings.previewMessage);
+    case 'im.preview.mini_program':
+      return _or(_arg(args, const ['t']), strings.previewMiniProgram);
+    case 'im.preview.image_group':
+      return strings.previewImageGroup;
+    case 'im.preview.system':
+      return event(strings.previewSystem);
+    case 'im.preview.notification':
+      return event(strings.previewNotification);
+    case 'im.preview.vote':
+      return strings.previewVote;
+    case 'im.preview.task':
+      return _or(_arg(args, const ['t']), strings.previewTask);
+    case 'im.preview.schedule':
+      return strings.previewSchedule;
+    case 'im.preview.announcement':
+      return _or(_arg(args, const ['t']), strings.previewAnnouncement);
+    case 'im.preview.custom':
+      return _or(_arg(args, const ['d']), strings.previewCustom);
+    case 'im.preview.placeholder':
+      return _or(_arg(args, const ['t']), strings.previewPlaceholder);
+    case 'im.preview.unknown':
+      return strings.previewUnknown;
+    default:
+      return '';
+  }
 }
 
 /// The `…Named` term for [value], or the plain term when there is no name.
