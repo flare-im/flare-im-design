@@ -137,7 +137,8 @@ enum FlareFeedbackPresenter: Equatable {
 /// topmost one. A confirmation or prompt waits while the topmost is a bottom sheet or a Modal, or is
 /// closing — so a sheet action can close its sheet and ask right away; while the topmost is an open
 /// Drawer, the Drawer presents it. The host cannot present over a system `.sheet`; ask from content that
-/// is not inside one.
+/// is not inside one. A layer opened while another is on its way out (a host that closes one and opens the
+/// next in the same turn) appears once that one is gone.
 @MainActor
 public final class FlareFeedback: ObservableObject {
     /// Toasts on screen at once.
@@ -157,6 +158,11 @@ public final class FlareFeedback: ObservableObject {
     private var nextPromptId = 0
     private var settlePrompt: CheckedContinuation<String?, Never>?
     private let announce: @MainActor (String) -> Void
+    /// Kit layer presentations (a system sheet or a full-screen cover) from the moment they are shown until they
+    /// report gone, and whether each is on its way out.
+    private var presentations: [UUID: Bool] = [:]
+    /// Presentations asked for and not shown yet, oldest first.
+    private var presentationQueue: [(id: UUID, present: () -> Void)] = []
 
     public convenience init() {
         self.init(announce: flareAnnounce)
@@ -359,6 +365,50 @@ public final class FlareFeedback: ObservableObject {
 
     func layerDismissed(_ id: UUID) {
         if let index = layers.firstIndex(where: { $0.id == id }) { layers.remove(at: index) }
+    }
+
+    // MARK: Presentations
+
+    /// Runs `present` (which shows `id`'s system sheet or full-screen cover) at the end of this turn, or — while
+    /// another kit layer's presentation is on its way out — once that one is gone. UIKit refuses a second
+    /// presentation from the same presenter while one is still up, and the refused swap also loses the first
+    /// one's dismissal: closing one layer and opening another in the same turn (an action sheet that opens a
+    /// forward picker) would show nothing and leave the first layer in the stack as closing for good. Waiting
+    /// for the end of the turn lets a close made in the same turn, in either order, register first. A layer
+    /// asked for while another is up and open presents right away: it is opened from inside that one.
+    func presentWhenClear(_ id: UUID, _ present: @escaping () -> Void) {
+        presentationQueue.removeAll { $0.id == id }
+        presentationQueue.append((id, present))
+        DispatchQueue.main.async { [weak self] in self?.presentWaiting() }
+    }
+
+    /// `id`'s presentation is shown without waiting (reopened before it was gone).
+    func presentationShown(_ id: UUID) {
+        presentations[id] = false
+    }
+
+    /// `id`'s presentation started to go.
+    func presentationClosing(_ id: UUID) {
+        if presentations[id] != nil { presentations[id] = true }
+    }
+
+    /// `id`'s presentation is gone, or will never be shown. Whatever waited for it presents on the following
+    /// turn, once UIKit has finished the dismissal that just reported.
+    func presentationGone(_ id: UUID) {
+        presentationQueue.removeAll { $0.id == id }
+        guard presentations.removeValue(forKey: id) != nil, !presentationQueue.isEmpty else { return }
+        DispatchQueue.main.async { [weak self] in self?.presentWaiting() }
+    }
+
+    /// Whether `id`'s presentation was asked for and is not shown yet.
+    func presentationWaiting(_ id: UUID) -> Bool { presentationQueue.contains { $0.id == id } }
+
+    private func presentWaiting() {
+        while let next = presentationQueue.first, !presentations.contains(where: { $0.key != next.id && $0.value }) {
+            presentationQueue.removeFirst()
+            presentations[next.id] = false
+            next.present()
+        }
     }
 
     /// Whether `presenter` shows the prompt: like the confirmation; dismissing it (a swipe, the scrim) cancels.

@@ -232,6 +232,14 @@ extension EnvironmentValues {
 
 // MARK: - Presentation engine
 
+/// How long the presenter waits for UIKit to report a presentation before it gives the layer up.
+enum FlareLayerTiming {
+    /// A shown cover whose content has not appeared by then was refused.
+    static let presentTimeout: TimeInterval = 1.5
+    /// A dropped sheet or cover that has not reported its dismissal by then never will.
+    static let dismissTimeout: TimeInterval = 1.0
+}
+
 enum FlareLayerPlatform {
     /// Whether the kit draws its own layer over a clear full-screen cover (iOS 16.4+); otherwise a system sheet.
     static var clearCover: Bool {
@@ -280,6 +288,8 @@ struct FlareLayerPresenter<SheetLayer: View, CoverLayer: View, PushLayer: View>:
     @State private var pushShown = false
     @State private var closing = false
     @State private var generation = 0
+    /// The cover's content appeared (a cover UIKit refused never does).
+    @State private var coverAppeared = false
     @Environment(\.flareFeedback) private var feedback
     @Environment(\.flareCompactOverlays) private var compactOverlays
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -295,7 +305,11 @@ struct FlareLayerPresenter<SheetLayer: View, CoverLayer: View, PushLayer: View>:
         .onChange(of: pushShown) { shown in if !shown && form == .push { finish() } }
         // A presenter that leaves the screen takes its layer along. While its cover is up the cover's own content
         // reports the layer gone (a full-screen presentation may take the presenter off screen while it stays).
-        .onDisappear { if registers && !coverShown { feedback?.layerDismissed(presence) } }
+        .onDisappear {
+            guard !coverShown else { return }
+            if registers { feedback?.layerDismissed(presence) }
+            feedback?.presentationGone(presence)
+        }
     }
 
     @ViewBuilder
@@ -320,7 +334,7 @@ struct FlareLayerPresenter<SheetLayer: View, CoverLayer: View, PushLayer: View>:
     private var stage: some View {
         FlareLayerStage(closing: closing, chromeless: !FlareLayerPlatform.clearCover,
                         feedback: registers ? feedback : nil, presence: presence,
-                        presentsRequests: coverKind == .drawer) { coverLayer() }
+                        presentsRequests: coverKind == .drawer, shown: { coverAppeared = true }) { coverLayer() }
     }
 
     @ViewBuilder
@@ -341,44 +355,92 @@ struct FlareLayerPresenter<SheetLayer: View, CoverLayer: View, PushLayer: View>:
         case .sheet:
             if registers { feedback?.layerPresented(presence, kind: .sheet) }
             FlareLayerPlatform.endEditing()
-            sheetShown = true
+            present(generation) { sheetShown = true }
         case .cover:
             if registers { feedback?.layerPresented(presence, kind: coverKind) }
             FlareLayerPlatform.endEditing()
-            guard !coverShown else { return }
-            if FlareLayerPlatform.clearCover {
-                var instant = Transaction()
-                instant.disablesAnimations = true
-                withTransaction(instant) { coverShown = true }
-            } else {
-                coverShown = true
+            guard !coverShown else {
+                // Reopened while it was going: the cover never left.
+                feedback?.presentationShown(presence)
+                return
+            }
+            let pending = generation
+            present(pending) {
+                coverAppeared = false
+                if FlareLayerPlatform.clearCover {
+                    var instant = Transaction()
+                    instant.disablesAnimations = true
+                    withTransaction(instant) { coverShown = true }
+                } else {
+                    coverShown = true
+                }
+                // A cover UIKit refused never shows its content and never reports a dismissal: give the layer
+                // up rather than leave it in the stack, where toasts would go to it and confirmations wait.
+                DispatchQueue.main.asyncAfter(deadline: .now() + FlareLayerTiming.presentTimeout) {
+                    guard pending == generation, form == .cover, coverShown, !closing, !coverAppeared else { return }
+                    var instant = Transaction()
+                    instant.disablesAnimations = true
+                    withTransaction(instant) { coverShown = false }
+                    finish()
+                }
             }
         case .push:
             pushShown = true
         }
     }
 
+    /// Shows the sheet or cover once the feedback clears it (see ``FlareFeedback/presentWhenClear(_:_:)``),
+    /// unless the layer was closed or reopened meanwhile.
+    private func present(_ pending: Int, _ show: @escaping () -> Void) {
+        guard let feedback else { show(); return }
+        feedback.presentWhenClear(presence) {
+            guard pending == generation, form != nil, !closing, isPresented else { return }
+            show()
+        }
+    }
+
     private func close() {
         guard let form else { return }
         if registers { feedback?.layerClosing(presence) }
+        // Asked for and still waiting for another layer to go: it never showed, so it is gone now.
+        if feedback?.presentationWaiting(presence) == true, !sheetShown, !coverShown {
+            finish()
+            return
+        }
+        feedback?.presentationClosing(presence)
+        let pending = generation
         switch form {
         case .sheet:
             sheetShown = false
+            finishIfNeverGone(pending)
         case .push:
             pushShown = false
         case .cover:
             guard coverShown else { return }
-            guard FlareLayerPlatform.clearCover else { coverShown = false; return }
+            guard FlareLayerPlatform.clearCover else {
+                coverShown = false
+                finishIfNeverGone(pending)
+                return
+            }
             // Animate the layer out, then drop the cover without the system slide.
             closing = true
-            let pending = generation
             let delay = reduceMotion ? 0 : FlareMotion.normal
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
                 guard pending == generation, closing else { return }
                 var instant = Transaction()
                 instant.disablesAnimations = true
                 withTransaction(instant) { coverShown = false }
+                finishIfNeverGone(pending)
             }
+        }
+    }
+
+    /// A dropped sheet or cover reports its dismissal; if that report never comes, finish anyway so the layer
+    /// cannot stay in the stack as closing — where it would hide every toast and hold every confirmation.
+    private func finishIfNeverGone(_ pending: Int) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + FlareLayerTiming.dismissTimeout) {
+            guard pending == generation, form != nil, form != .push, !sheetShown, !coverShown else { return }
+            finish()
         }
     }
 
@@ -394,6 +456,7 @@ struct FlareLayerPresenter<SheetLayer: View, CoverLayer: View, PushLayer: View>:
         form = nil
         closing = false
         if registers { feedback?.layerDismissed(presence) }
+        feedback?.presentationGone(presence)
         if isPresented { isPresented = false }
         onDismiss?()
     }
@@ -407,14 +470,17 @@ struct FlareLayerStage<Content: View>: View {
     let feedback: FlareFeedback?
     let presence: UUID
     let presentsRequests: Bool
+    /// Called when the content appears.
+    let shown: (() -> Void)?
     let content: Content
     @State private var appeared = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(closing: Bool, chromeless: Bool, feedback: FlareFeedback?, presence: UUID, presentsRequests: Bool,
-         @ViewBuilder content: () -> Content) {
+         shown: (() -> Void)? = nil, @ViewBuilder content: () -> Content) {
         self.closing = closing; self.chromeless = chromeless; self.feedback = feedback
-        self.presence = presence; self.presentsRequests = presentsRequests; self.content = content()
+        self.presence = presence; self.presentsRequests = presentsRequests; self.shown = shown
+        self.content = content()
     }
 
     var body: some View {
@@ -423,7 +489,7 @@ struct FlareLayerStage<Content: View>: View {
             .environment(\.flareLayerVisible, visible)
             .environment(\.flareLayerChromeless, chromeless)
             .animation(reduceMotion ? nil : FlareMotion.normalAnimation, value: visible)
-            .onAppear { appeared = true }
+            .onAppear { appeared = true; shown?() }
             // The cover's content lives exactly as long as the layer is on screen, however it went.
             .onDisappear { feedback?.layerDismissed(presence) }
     }

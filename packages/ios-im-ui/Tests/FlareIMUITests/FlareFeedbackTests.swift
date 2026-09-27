@@ -218,6 +218,64 @@ final class FlareFeedbackTests: XCTestCase {
         XCTAssertFalse(confirmed)
     }
 
+    // MARK: Presentations (one sheet or cover at a time from a host)
+
+    /// Lets the main queue run what the feedback scheduled for the following turns.
+    @MainActor
+    private func nextTurns() async {
+        for _ in 0..<5 { try? await Task.sleep(nanoseconds: 10_000_000) }
+    }
+
+    @MainActor
+    func testClosingOneLayerAndOpeningAnotherInTheSameTurnShowsTheSecondOnceTheFirstIsGone() async {
+        let feedback = FlareFeedback(announce: { _ in })
+        let actions = UUID(), forward = UUID()
+        var shown: [String] = []
+        feedback.presentWhenClear(actions) { shown.append("actions") }
+        await nextTurns()
+        XCTAssertEqual(shown, ["actions"])
+        // One turn, in the order a host happens to write it: open the forward picker, then close the action sheet.
+        feedback.presentWhenClear(forward) { shown.append("forward") }
+        feedback.presentationClosing(actions)
+        await nextTurns()
+        XCTAssertEqual(shown, ["actions"], "UIKit would refuse a second presentation while the first is still up")
+        XCTAssertTrue(feedback.presentationWaiting(forward))
+        feedback.presentationGone(actions)
+        XCTAssertEqual(shown, ["actions"], "not in the turn the dismissal reports")
+        await nextTurns()
+        XCTAssertEqual(shown, ["actions", "forward"])
+        XCTAssertFalse(feedback.presentationWaiting(forward))
+    }
+
+    @MainActor
+    func testALayerOpenedFromInsideAnOpenOneShowsRightAway() async {
+        let feedback = FlareFeedback(announce: { _ in })
+        let drawer = UUID(), sheet = UUID()
+        var shown: [String] = []
+        feedback.presentWhenClear(drawer) { shown.append("drawer") }
+        await nextTurns()
+        feedback.presentWhenClear(sheet) { shown.append("sheet") }
+        await nextTurns()
+        XCTAssertEqual(shown, ["drawer", "sheet"])
+    }
+
+    @MainActor
+    func testALayerClosedWhileItWaitsNeverShows() async {
+        let feedback = FlareFeedback(announce: { _ in })
+        let first = UUID(), second = UUID()
+        var shown: [String] = []
+        feedback.presentWhenClear(first) { shown.append("first") }
+        await nextTurns()
+        feedback.presentationClosing(first)
+        feedback.presentWhenClear(second) { shown.append("second") }
+        await nextTurns()
+        feedback.presentationGone(second)
+        XCTAssertFalse(feedback.presentationWaiting(second))
+        feedback.presentationGone(first)
+        await nextTurns()
+        XCTAssertEqual(shown, ["first"])
+    }
+
     // MARK: Layer stack (sheets, Modals, Drawers)
 
     @MainActor
