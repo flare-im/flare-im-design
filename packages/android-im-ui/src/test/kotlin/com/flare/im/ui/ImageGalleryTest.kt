@@ -54,6 +54,14 @@ class ImageGalleryTest {
         FlareMessageData("m2", "u", "U", FlareImageGroupContent(listOf(FlareImageContent("https://cdn/2.jpg"), FlareImageContent("", thumbnailUrl = "https://cdn/3t.jpg")))),
     )
 
+    @Test fun aGalleryPageShowsThePicturesLocalCopyWhenTheHostHasOne() {
+        val cached = FlareImageContent("https://cdn/4.jpg", thumbnailUrl = "https://cdn/4t.jpg", localPath = "/data/user/0/app/cache/4.jpg")
+        val items = flareImageGalleryItems(timeline + FlareMessageData("m3", "ivy", "Ivy", cached))
+        assertEquals(listOf("https://cdn/1.jpg", "https://cdn/2.jpg", "https://cdn/3t.jpg", "/data/user/0/app/cache/4.jpg"), items.map { it.source })
+        // A picture known only by its local copy still has a page.
+        assertEquals(listOf("/c/5.jpg"), flareImageGalleryItems(listOf(FlareMessageData("m5", "ivy", "Ivy", FlareImageContent("", localPath = "/c/5.jpg")))).map { it.source })
+    }
+
     @Test fun aTapInATimelineOpensTheGalleryElseThePictureAlone() {
         val gallery = FlareTimelineGallery(flareImageGalleryItems(timeline), download = null)
         assertEquals(

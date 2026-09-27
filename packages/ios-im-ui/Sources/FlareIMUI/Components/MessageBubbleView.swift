@@ -97,8 +97,8 @@ public struct MessageBubbleView: View {
     ///     (`replyTo.messageId`); without it, or without that id, the quote is plain text.
     ///   - onMediaAction: Takes every media tap. Without it the kit opens images and videos in its
     ///     full-screen viewer and plays voice messages in the bubble (see ``MessageContentView``).
-    ///   - onMediaDownload: Offered as the download key of the kit's image preview; without it the
-    ///     preview has no download key.
+    ///   - onMediaDownload: Offered as the download key of the kit's image preview and video player,
+    ///     called with the picture or the video on screen; without it neither has a download key.
     ///   - onOpenFile: A file tap when there is no `onMediaAction`: the host opens the file (the kit
     ///     never leaves the app), and images, videos and voice keep the kit defaults.
     ///   - onOpenLink: A tapped link, in the text body or on a link card, with its raw URL. Without it

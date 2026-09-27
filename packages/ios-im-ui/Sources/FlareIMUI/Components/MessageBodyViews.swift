@@ -34,12 +34,31 @@ extension View {
     }
 }
 
-/// A network image (host-provided URL) with a placeholder fallback.
+/// The URL a message picture loads from. A web or inline address loads as given; a file on this device — a `file:`
+/// URL or an absolute path — only when `local`: the picture's local copy, which the host resolved through the SDK
+/// media cache (``FlareImageContent/localPath``). Message content is written by someone else, and a file reference in
+/// it must not have the reader's app open local data.
+func flarePictureURL(_ raw: String?, local: Bool = false) -> URL? {
+    guard let raw, !raw.isEmpty else { return nil }
+    let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+    if trimmed.hasPrefix("/") { return local ? URL(fileURLWithPath: trimmed) : nil }
+    guard let url = URL(string: local ? trimmed : raw) else { return nil }
+    return url.isFileURL && !local ? nil : url
+}
+
+/// A picture with a placeholder fallback: a network image from a host-provided URL, or — only when `local` — the
+/// file on this device that is the picture's local copy (``flarePictureURL(_:local:)``).
 struct NetImage<Placeholder: View>: View {
     let url: String?
-    @ViewBuilder let placeholder: () -> Placeholder
+    let local: Bool
+    let placeholder: () -> Placeholder
+
+    init(url: String?, local: Bool = false, @ViewBuilder placeholder: @escaping () -> Placeholder) {
+        self.url = url; self.local = local; self.placeholder = placeholder
+    }
+
     var body: some View {
-        if let s = url, !s.isEmpty, let u = URL(string: s) {
+        if let u = flarePictureURL(url, local: local) {
             AsyncImage(url: u) { image in
                 image.resizable().scaledToFill()
             } placeholder: { placeholder() }
@@ -317,24 +336,31 @@ struct FlareMentionHighlightRenderer: TextRenderer {
 }
 
 /// image — a rounded thumbnail named by its description (else 图片); emits `onTap`.
+///
+/// `src` is a web or inline address. It may be a file on this device (a `file:` URL or an absolute path) only with
+/// `allowLocalFile`: the picture's local copy, which the host resolved through the SDK media cache
+/// (``FlareImageContent/localPath``, ``flarePictureSource(_:preferThumbnail:)``). A file address taken from message
+/// content is never drawn.
 public struct ImageMessageView: View {
     private let src: String?
     private let width: CGFloat
     private let height: CGFloat
     private let alt: String?
     private let onTap: (() -> Void)?
+    private let allowLocalFile: Bool
     @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
     @Environment(\.flareMessageBodyForeground) private var bodyForeground
     public init(src: String? = nil, width: CGFloat = 132, height: CGFloat = 92,
-                alt: String? = nil, onTap: (() -> Void)? = nil) {
+                alt: String? = nil, onTap: (() -> Void)? = nil, allowLocalFile: Bool = false) {
         self.src = src; self.width = width; self.height = height; self.alt = alt; self.onTap = onTap
+        self.allowLocalFile = allowLocalFile
     }
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        NetImage(url: src) {
+        NetImage(url: src, local: allowLocalFile) {
             colors.bgTertiary.overlay(
                 Image(systemName: "photo").font(.system(size: 26 * textScale)).foregroundColor(bodyForeground ?? colors.textTertiary))
         }

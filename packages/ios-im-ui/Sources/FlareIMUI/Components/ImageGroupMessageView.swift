@@ -2,7 +2,8 @@ import SwiftUI
 
 /// image group — an album: square tiles laid out by the shared rule (`spec/image-group-layout-vectors.json`), the
 /// last drawn tile covered with `+N` when the album holds more images than tiles, and the album's `description`
-/// under them.
+/// under them. A tile draws its image's local copy when the host resolved one (``flarePictureSource(_:preferThumbnail:)``),
+/// else its thumbnail.
 ///
 /// Presentational: a tile calls `onOpen` with its image's index — the covered tile opens its own image — and the
 /// host decides what opens (one image, or the conversation's gallery). Every tile is a button named with its
@@ -62,10 +63,9 @@ public struct ImageGroupMessageView: View {
 
     @ViewBuilder
     private func tile(_ index: Int, side: CGFloat, layout: FlareImageGroupLayout, colors: FlareColors) -> some View {
-        let image = images[index]
-        let source = (image.thumbnailURL ?? "").isEmpty ? image.url : (image.thumbnailURL ?? image.url)
+        let source = flarePictureSource(images[index])
         let picture = ZStack {
-            NetImage(url: source) {
+            NetImage(url: source.src, local: source.local) {
                 colors.bgTertiary.overlay(IconView("image", color: colors.textTertiary))
             }
             .frame(width: side, height: side)

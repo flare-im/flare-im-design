@@ -90,9 +90,10 @@ public struct MessageListView: View {
     ///   - onMediaAction: Takes every media tap. Without it the list opens images and videos in the
     ///     kit's full-screen viewer and plays voice messages in their bubbles, one at a time, stopping
     ///     when the list goes away. Files, locations and links always go to the host.
-    ///   - onMediaDownload: Offered as the download key of the kit's image preview; without it the
-    ///     preview has no download key. A tapped picture opens the conversation's gallery, every picture of
-    ///     `messages` in timeline order, and each one's key downloads that picture.
+    ///   - onMediaDownload: Offered as the download key of the kit's image preview and video player;
+    ///     without it neither has a download key. A tapped picture opens the conversation's gallery, every
+    ///     picture of `messages` in timeline order, and each one's key downloads that picture with the message
+    ///     it belongs to; a video's key downloads that video.
     ///   - onOpenFile: A file tap when there is no `onMediaAction`: the host opens the file (after
     ///     ``safeExternalURL(_:)`` for a remote one), and images, videos and voice keep the kit defaults.
     ///   - onOpenLink: A tapped link, in a text body or on a link card, with its raw URL. Without it the

@@ -1,7 +1,14 @@
 package com.flare.im.ui
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -11,16 +18,22 @@ import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasClickAction
+import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertWidthIsAtLeast
+import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.getBoundsInRoot
+import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.Dp
+import androidx.test.platform.app.InstrumentationRegistry
+import java.io.File
 import java.time.LocalDate
 import java.time.ZoneId
 import org.junit.Assert.assertEquals
@@ -74,6 +87,86 @@ class MediaDefaultsInteractionTest {
         compose.onNodeWithText("00:12").assert(clickLabel(strings.play)).performClick()
         compose.onNodeWithContentDescription(strings.close).assertIsDisplayed().assertTouchTarget().performClick()
         compose.onNodeWithContentDescription(strings.close).assertDoesNotExist()
+    }
+
+    /** The player's download key is the image preview's, offered only with the list's handler, and hands back the video. */
+    @Test fun aVideoPlayerOffersTheDownloadKeyOnlyWithAHandlerAndHandsBackTheVideo() {
+        val video = FlareVideoContent("https://example.invalid/v.mp4", durationSec = 12)
+        val saved = mutableListOf<Pair<String, FlareMessageContent>>()
+        var offer by mutableStateOf(false)
+        compose.setContent {
+            FlareThemeProvider {
+                MessageList(
+                    messages = listOf(message("v1", video)),
+                    currentUserId = "me",
+                    onMediaDownload = if (offer) { msg, content -> saved += msg.id to content } else null,
+                )
+            }
+        }
+        compose.onNodeWithText("00:12").performClick()
+        compose.onNodeWithContentDescription(strings.close).assertIsDisplayed()
+        compose.onNodeWithContentDescription(strings.download).assertDoesNotExist()
+        compose.onNodeWithContentDescription(strings.close).performClick()
+
+        offer = true
+        compose.onNodeWithText("00:12").performClick()
+        compose.onNodeWithContentDescription(strings.download).assertIsDisplayed().assertButton().assertTouchTarget().performClick()
+        compose.runOnIdle { assertEquals(listOf("v1" to video), saved) }
+    }
+
+    @Test fun aRunningVideoDownloadShowsTheRingWhereTheKeyWas() {
+        compose.setContent {
+            FlareThemeProvider { VideoPlayer(show = true, videoSrc = "javascript:alert(1)", onDownload = {}, downloading = true, progressPct = 40) }
+        }
+        // The ring is named for what it reports and is not a second key.
+        compose.onNodeWithContentDescription(strings.download).assertIsDisplayed().assertHasNoClickAction().assertTouchTarget()
+        compose.onNode(hasProgressBarRangeInfo(ProgressBarRangeInfo(0.4f, 0f..1f)), useUnmergedTree = true).assertExists()
+    }
+
+    /** A solid [color] picture on this device, as the copy a host resolves through the SDK cache. */
+    private fun localPicture(name: String, color: Int): File {
+        val file = File(InstrumentationRegistry.getInstrumentation().targetContext.cacheDir, name)
+        val bitmap = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888).apply { eraseColor(color) }
+        file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+        return file
+    }
+
+    private fun waitForImageLoads() = compose.waitUntil(timeoutMillis = 10_000) {
+        compose.onAllNodes(hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate), useUnmergedTree = true).fetchSemanticsNodes().isEmpty()
+    }
+
+    /**
+     * A received picture whose address cannot load draws the copy the host resolved — in its bubble and in the preview a
+     * tap opens. Without the copy the same message shows the preview's failure, so the copy is what was drawn.
+     */
+    @Test fun theHostsLocalCopyIsDrawnForAReceivedPictureInTheBubbleAndThePreview() {
+        val copy = localPicture("flare-local-copy.png", android.graphics.Color.RED)
+        var localPath by mutableStateOf<String?>(copy.absolutePath)
+        compose.setContent {
+            FlareThemeProvider {
+                MessageList(
+                    messages = listOf(message("i1", FlareImageContent("https://example.invalid/a.png", alt = "照片", localPath = localPath))),
+                    currentUserId = "me",
+                )
+            }
+        }
+        compose.waitUntil(timeoutMillis = 10_000) {
+            runCatching {
+                val bubble = compose.onNodeWithContentDescription("照片").captureToImage().asAndroidBitmap()
+                val centre = Color(bubble.getPixel(bubble.width / 2, bubble.height / 2))
+                centre.red > 0.8f && centre.green < 0.2f && centre.blue < 0.2f
+            }.getOrDefault(false)
+        }
+        compose.onNodeWithContentDescription("照片").performClick()
+        waitForImageLoads()
+        compose.onNodeWithText(strings.imageLoadFailed).assertDoesNotExist()
+        compose.onNodeWithContentDescription(strings.imagePreviewClose).performClick()
+
+        // The address alone does not load here: the preview says so.
+        localPath = null
+        compose.onNodeWithContentDescription("照片").performClick()
+        waitForImageLoads()
+        compose.onAllNodesWithText(strings.imageLoadFailed).assertCountEquals(1)
     }
 
     @Test fun anUnplayableVideoShowsTheFailureAndCloseInsteadOfABlankScreen() {

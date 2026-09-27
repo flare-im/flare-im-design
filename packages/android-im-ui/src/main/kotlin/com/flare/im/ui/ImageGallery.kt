@@ -9,8 +9,8 @@ import androidx.compose.runtime.staticCompositionLocalOf
 
 /** One picture of the gallery: the message it belongs to, its place in that message, and the picture. */
 data class FlareImageGalleryItem(val messageId: String, val index: Int, val image: FlareImageContent) {
-    /** The address the preview loads: the full-size image, else its thumbnail. */
-    val source: String get() = image.url.ifBlank { image.thumbnailUrl.orEmpty().trim() }
+    /** The address the preview loads: the picture's local copy, else the full-size image, else its thumbnail ([flarePictureSource]). */
+    val source: String get() = flarePictureSource(image, preferThumbnail = false).src
 }
 
 /**

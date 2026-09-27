@@ -400,8 +400,9 @@ internal suspend fun LazyListState.scrollToMessageListEnd(rows: Int) {
  * Media: [onMediaAction] takes every media tap. Without it the list previews images and plays videos
  * full screen and plays voice messages in their bubbles, one at a time; playback stops when the list
  * leaves composition or the screen stops. A file tap goes to [onOpenFile]. [onMediaDownload] is the download key of the
- * image preview; without it the preview has none. A tapped picture opens the conversation's gallery — every picture of
- * [messages] in timeline order — and the key downloads the picture on screen with the message it belongs to.
+ * image preview and the video player; without it neither has one. A tapped picture opens the conversation's gallery —
+ * every picture of [messages] in timeline order — and the key downloads the picture on screen with the message it
+ * belongs to; a video's key downloads that video.
  *
  * Links: a link in a text message and a link card go to [onOpenLink]; without it the kit opens only a safe
  * web address ([safeExternalUrl]) with the platform opener, and never another scheme.
@@ -448,7 +449,10 @@ fun MessageList(
     onVote: ((FlareMessageData, Int) -> Unit)? = null,
     /** A tapped task checkbox (message, the done state asked for); without it tasks are read-only. */
     onTaskToggle: ((FlareMessageData, Boolean) -> Unit)? = null,
-    /** The image preview's download key (the message a picture belongs to, and the picture); without it the preview has none. */
+    /**
+     * The download key of the image preview (the message a picture belongs to, and the picture) and of the video player
+     * (the message, and the video); without it neither has one.
+     */
     onMediaDownload: ((FlareMessageData, FlareMessageContent) -> Unit)? = null,
     /**
      * Host content under the newest message, scrolling with the timeline — the contract's `footer` slot,

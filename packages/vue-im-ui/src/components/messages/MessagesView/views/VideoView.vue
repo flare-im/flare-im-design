@@ -8,11 +8,21 @@ import { buildMediaResolveRequest, readMediaLocalPath } from "../../../../utils/
 import { useResolvedMediaUrl } from "../../../../composables/useMediaResolver";
 import { useFlareI18n } from "../../../../shared/i18n/useFlareI18n";
 import FlareVideoMessage from "../../standalone/FlareVideoMessage.vue";
+import type { MessageMediaDownloadUiState } from "../../MessageBubble.vue";
 
 // Timeline adapter: video payload → source / poster resolution (with a poster
 // frame captured from the video when the payload has none) → the contract body
 // in flexible mode. The player modal and caption stay here.
-const props = defineProps<{ content: ContentElem; isSelf: boolean; messageId?: string }>();
+const props = defineProps<{
+  content: ContentElem;
+  isSelf: boolean;
+  messageId?: string;
+  /** The download the host offers for this video; the player shows a download key only then. */
+  mediaAction?: "download" | "openFolder" | null;
+  mediaState?: MessageMediaDownloadUiState | null;
+}>();
+const emit = defineEmits<{ (event: "media-action", action: "download" | "openFolder"): void }>();
+const canDownload = computed(() => props.mediaAction === "download");
 const { t } = useFlareI18n();
 
 const previewOpen = ref(false);
@@ -188,7 +198,14 @@ watch(
       @play="previewOpen = true"
     />
     <p v-if="description" class="im-media-caption">{{ description }}</p>
-    <VideoPlayerModal v-model:show="previewOpen" :video-src="videoUrl" :poster="displayPosterUrl" :title="title" />
+    <VideoPlayerModal
+      v-model:show="previewOpen"
+      :video-src="videoUrl"
+      :poster="displayPosterUrl"
+      :title="title"
+      :downloading="mediaState === 'downloading'"
+      v-on="canDownload ? { download: () => emit('media-action', 'download') } : {}"
+    />
   </div>
 </template>
 

@@ -223,22 +223,28 @@ fun ImagePreview(
                 }
                 if (control.id == "close") androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
             }
-            if (onDownload != null && downloading) {
-                // The ring stands where the download button was, at the same size, and is named for
-                // what it reports; the ring itself carries the progress.
-                Box(
-                    Modifier.size(FlareSizes.touchTarget).semantics(mergeDescendants = true) { contentDescription = strings.download },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator(progress = { progressPct / 100f }, color = Color.White, strokeWidth = 2.dp)
-                    Text(
-                        "$progressPct", color = Color.White,
-                        fontSize = androidx.compose.ui.unit.TextUnit(10f, androidx.compose.ui.unit.TextUnitType.Sp),
-                        modifier = Modifier.clearAndSetSemantics {},
-                    )
-                }
-            }
+            if (onDownload != null && downloading) DownloadProgressRing(progressPct)
         }
+    }
+}
+
+/**
+ * A download running, where the download key was: the ring stands at the key's size and is named for what it
+ * reports; the ring itself carries [progressPct]. The image preview and the video player show the same ring.
+ */
+@Composable
+internal fun DownloadProgressRing(progressPct: Int) {
+    val strings = flareStrings()
+    Box(
+        Modifier.size(FlareSizes.touchTarget).semantics(mergeDescendants = true) { contentDescription = strings.download },
+        contentAlignment = Alignment.Center,
+    ) {
+        CircularProgressIndicator(progress = { progressPct / 100f }, color = Color.White, strokeWidth = 2.dp)
+        Text(
+            "$progressPct", color = Color.White,
+            fontSize = androidx.compose.ui.unit.TextUnit(10f, androidx.compose.ui.unit.TextUnitType.Sp),
+            modifier = Modifier.clearAndSetSemantics {},
+        )
     }
 }
 

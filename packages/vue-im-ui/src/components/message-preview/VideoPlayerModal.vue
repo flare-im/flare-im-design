@@ -2,8 +2,8 @@
 // 全屏播放器是一张模态面 —— 栈、滚动锁、焦点陷阱、Escape 和平台返回键都来自共用的
 // `useFlareModalSurface`。以前它自己写 `document.body.style.overflow = ''`,不计数
 // 也不还原:开在一张面板之上再关掉,面板还开着,背后的页面却又能滚了。
-import { computed, ref, watch } from "vue";
-import { CloseOutline } from "../../shared/icon-glyphs";
+import { computed, getCurrentInstance, ref, watch } from "vue";
+import { CloseOutline, DownloadOutline } from "../../shared/icon-glyphs";
 import { NIcon } from "naive-ui";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 import { useFlareModalSurface } from "../../shared/useModalSurface";
@@ -14,15 +14,25 @@ const props = withDefaults(
     videoSrc: string;
     poster?: string;
     title?: string;
+    /** A save is in progress: the download key shows `progressPct` instead. */
+    downloading?: boolean;
+    progressPct?: number;
   }>(),
-  { poster: "" },
+  { poster: "", downloading: false, progressPct: 0 },
 );
 const { t } = useFlareI18n();
 const strings = computed(() => ({
   title: props.title ?? t("videoPlayerModal.title"),
 }));
 
-const emit = defineEmits<{ "update:show": [value: boolean] }>();
+const emit = defineEmits<{ "update:show": [value: boolean]; download: [] }>();
+
+// 下载键（右上角，与图片预览一致）只在宿主处理 download 时出现：没人接的键点了什么也不会发生。
+const instance = getCurrentInstance();
+function handlesDownload(): boolean {
+  return Boolean(instance?.vnode.props?.onDownload);
+}
+const progressLabel = computed(() => `${Math.round(Math.min(100, Math.max(0, props.progressPct)))}%`);
 
 const videoRef = ref<HTMLVideoElement | null>(null);
 const surfaceEl = ref<HTMLElement | null>(null);
@@ -48,9 +58,24 @@ watch(() => props.show, (open) => { if (!open) videoRef.value?.pause(); });
     <div v-if="show" ref="surfaceEl" class="video-player-modal" role="dialog" aria-modal="true" tabindex="-1" @click.self="requestClose">
       <header class="video-player-modal__header">
         <strong class="video-player-modal__title">{{ displayTitle }}</strong>
-        <button type="button" class="video-player-modal__close" :aria-label="t('common.close')" @click="requestClose">
-          <n-icon aria-hidden="true" :component="CloseOutline" />
-        </button>
+        <div class="video-player-modal__actions">
+          <template v-if="handlesDownload()">
+            <span v-if="downloading" class="video-player-modal__progress" role="status" aria-live="polite">{{ progressLabel }}</span>
+            <button
+              v-else
+              type="button"
+              class="video-player-modal__close"
+              :title="t('media.downloadVideo')"
+              :aria-label="t('media.downloadVideo')"
+              @click="emit('download')"
+            >
+              <n-icon aria-hidden="true" :component="DownloadOutline" />
+            </button>
+          </template>
+          <button type="button" class="video-player-modal__close" :aria-label="t('common.close')" @click="requestClose">
+            <n-icon aria-hidden="true" :component="CloseOutline" />
+          </button>
+        </div>
       </header>
       <div class="video-player-modal__body" @click.stop>
         <video
@@ -92,6 +117,20 @@ watch(() => props.show, (open) => { if (!open) videoRef.value?.pause(); });
 .video-player-modal__title {
   font-size: 15px;
   font-weight: 600;
+}
+
+.video-player-modal__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--flare-size-spacing-sm);
+}
+
+/* 与旁边的关闭键同宽，数字换位时不挤动它。 */
+.video-player-modal__progress {
+  min-width: 36px;
+  font-size: var(--flare-size-font-size-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
 }
 
 .video-player-modal__close {

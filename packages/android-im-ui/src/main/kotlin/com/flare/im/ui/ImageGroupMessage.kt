@@ -29,6 +29,8 @@ import androidx.compose.ui.unit.dp
 /**
  * image group — an album: square tiles laid out by the shared rule (`spec/image-group-layout-vectors.json`), the last
  * drawn tile covered with `+N` when the album holds more images than tiles, and the album's [description] under them.
+ * A tile draws its picture's local copy when the host has one, else its thumbnail, else the full size
+ * ([flarePictureSource]).
  *
  * Presentational: a tile calls [onOpen] with its image's index — the covered tile opens its own image — and the host
  * decides what opens (one image, or the conversation's gallery). Every tile is a button named with its position in
@@ -71,7 +73,7 @@ fun ImageGroupMessage(
                                 },
                             contentAlignment = Alignment.Center,
                         ) {
-                            NetImage(image.thumbnailUrl?.takeIf { it.isNotBlank() } ?: image.url, Modifier.matchParentSize()) {
+                            NetImage(flarePictureModel(flarePictureSource(image)), Modifier.matchParentSize()) {
                                 Icon(flareIconVector("image"), null, Modifier.size(22.dp), tint = colors.textTertiary)
                             }
                             if (layout.covers(index)) {

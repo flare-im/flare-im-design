@@ -41,12 +41,16 @@ public enum FlareContentRegistry {
 /// Message/MessageContentView (`MessageContentView`).
 ///
 /// Media without `onMediaAction` is still consumable: an image opens the kit ``ImagePreviewView``
-/// full screen (with a download key only when `onMediaDownload` is given; in a ``MessageListView`` as the
-/// conversation's gallery, `spec/image-gallery-vectors.json`), a video opens the kit
-/// ``VideoPlayerView`` full screen and plays, and a voice message plays inside its body, one at a time
-/// in a ``MessageListView``. With `onMediaAction` every media tap goes to the host, as before. Files
-/// and locations always go to the host — a file tap goes to `onMediaAction`, else to `onOpenFile`
+/// full screen (in a ``MessageListView`` as the conversation's gallery, `spec/image-gallery-vectors.json`), a
+/// video opens the kit ``VideoPlayerView`` full screen and plays — each with a download key only when
+/// `onMediaDownload` is given, which it calls with the image or the video — and a voice message plays inside
+/// its body, one at a time in a ``MessageListView``. With `onMediaAction` every media tap goes to the host, as
+/// before. Files and locations always go to the host — a file tap goes to `onMediaAction`, else to `onOpenFile`
 /// (which leaves the image, video and voice defaults on).
+///
+/// A picture — in the bubble, an album tile, the preview and the gallery — is drawn from its local copy when the
+/// host resolved one through the SDK media cache (``FlareImageContent/localPath``,
+/// ``flarePictureSource(_:preferThumbnail:)``). A file address in the message's own `url` is never drawn.
 ///
 /// A poll's option and a task's checkbox are controls only with `onVote` (the option's index) and
 /// `onTaskToggle` (the state the user asks for); without them the bodies are read-only.
@@ -146,7 +150,7 @@ public struct MessageContentView: View {
         return { handler(content) }
     }
 
-    /// The host's download handler for this body, as the preview's download key.
+    /// The host's download handler for this body, as the download key of the image preview or the video player.
     private var download: (() -> Void)? {
         guard let onMediaDownload else { return nil }
         return { onMediaDownload(content) }
@@ -185,16 +189,18 @@ public struct MessageContentView: View {
             StickerMessageView(url: c.url, packageId: c.packageId, stickerId: c.stickerId,
                 width: c.width, height: c.height, onTap: action)
         case let c as FlareImageContent:
-            ImageMessageView(src: c.thumbnailURL ?? c.url, width: 240, height: 180, alt: c.alt,
+            let picture = flarePictureSource(c)
+            ImageMessageView(src: picture.src, width: 240, height: 180, alt: c.alt,
                              onTap: action ?? session.map { session in
                                  { session.open(c, messageId: messageId, index: 0, gallery: gallery, onDownload: download) }
-                             })
+                             },
+                             allowLocalFile: picture.local)
         case let c as FlareImageGroupContent:
             ImageGroupMessageView(images: c.images, description: c.description, isSelf: ctx.isSelf,
                                   onOpen: albumOpener(c, session: session))
         case let c as FlareVideoContent:
             VideoMessageView(poster: c.poster, duration: Self.duration(c.durationSec),
-                             onPlay: action ?? session.map { session in { session.present(c) } })
+                             onPlay: action ?? session.map { session in { session.present(c, onDownload: download) } })
         case let c as FlareAudioContent:
             if let action {
                 VoiceMessageView(seconds: c.durationSec, onPlay: action)

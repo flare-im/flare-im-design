@@ -7687,6 +7687,22 @@
             "en": "Title shown in the player chrome.",
             "zh": "播放器顶部显示的标题。"
           }
+        },
+        {
+          "name": "downloading",
+          "type": "boolean",
+          "description": {
+            "en": "A save is in progress.",
+            "zh": "正在保存中。"
+          }
+        },
+        {
+          "name": "progressPct",
+          "type": "number",
+          "description": {
+            "en": "Download progress, 0–100.",
+            "zh": "下载进度，0–100。"
+          }
         }
       ],
       "states": [
@@ -7696,7 +7712,8 @@
       ],
       "events": [
         "update:show",
-        "play"
+        "play",
+        "download"
       ],
       "platforms": {
         "vue": {
@@ -7717,23 +7734,26 @@
         }
       },
       "notes": {
-        "en": "Vue closes through v-model:show with no standalone close event; Flutter/iOS/Compose take onPlay / onClose.",
-        "zh": "Vue 端通过 v-model:show 关闭,没有独立 close 事件;Flutter/iOS/Compose 是 onPlay / onClose。"
+        "en": "Vue closes through v-model:show with no standalone close event; Flutter/iOS/Compose take onPlay / onClose. The download key (top right, as in the image preview) shows only when the host handles download.",
+        "zh": "Vue 端通过 v-model:show 关闭,没有独立 close 事件;Flutter/iOS/Compose 是 onPlay / onClose。 下载键（右上角，与图片预览一致）只在宿主处理下载时出现。"
       },
       "platformAliases": {
         "flutter": {
           "events": {
-            "update:show": "onClose"
+            "update:show": "onClose",
+            "download": "onDownload"
           }
         },
         "ios": {
           "events": {
-            "update:show": "onClose"
+            "update:show": "onClose",
+            "download": "onDownload"
           }
         },
         "compose": {
           "events": {
-            "update:show": "onClose"
+            "update:show": "onClose",
+            "download": "onDownload"
           }
         }
       },

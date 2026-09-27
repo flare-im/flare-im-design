@@ -101,8 +101,9 @@ internal fun messageQuoteLocateId(replyTo: FlareReplyTarget?, hasOnLocate: Boole
  *
  * Media taps follow [MessageContentView]: [onMediaAction] takes them all; without it the kit
  * previews images, plays videos and voice, and a file tap goes to [onOpenFile]. [onMediaDownload] is the download key
- * of the image preview (the message, and the picture on screen); without it the preview has none. Links in the text and
- * link cards go to [onOpenLink]; without it the kit opens only safe web addresses with the platform opener.
+ * of the image preview (the message, and the picture on screen) and of the video player (the message, and the video);
+ * without it neither has one. Links in the text and link cards go to [onOpenLink]; without it the kit opens only safe
+ * web addresses with the platform opener.
  */
 @Composable
 fun MessageBubble(
@@ -126,7 +127,7 @@ fun MessageBubble(
     onVote: ((FlareMessageData, Int) -> Unit)? = null,
     /** A tapped task checkbox (message, the done state asked for); without it, or in multi-select mode, the task is read-only. */
     onTaskToggle: ((FlareMessageData, Boolean) -> Unit)? = null,
-    /** The image preview's download key (message, the picture on screen); without it the preview has none. */
+    /** The download key of the image preview (message, the picture on screen) and the video player (message, the video); without it neither has one. */
     onMediaDownload: ((FlareMessageData, FlareMessageContent) -> Unit)? = null,
 ) {
     val colors = flareColors()

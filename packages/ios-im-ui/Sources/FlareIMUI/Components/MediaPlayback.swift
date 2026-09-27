@@ -9,8 +9,9 @@ import SwiftUI
 /// What the kit viewer shows full screen.
 struct FlareMediaPresentation: Identifiable, Equatable {
     enum Kind: Equatable {
-        /// The full-size image (else the thumbnail) and its description.
-        case image(url: String, alt: String?)
+        /// The full-size image (else the thumbnail) and its description; `local` when `url` is the picture's local
+        /// copy (``flarePictureSource(_:preferThumbnail:)``).
+        case image(url: String, alt: String?, local: Bool = false)
         /// A gallery of images (address and description each), starting at `index`.
         case gallery(images: [FlareGalleryImage], index: Int)
         /// The video and its poster.
@@ -33,10 +34,16 @@ struct FlareMediaPresentation: Identifiable, Equatable {
 struct FlareGalleryImage: Equatable {
     let url: String
     let alt: String?
+    /// `url` is the picture's local copy (``flarePictureSource(_:preferThumbnail:)``).
+    let local: Bool
     /// The host's download handler for this image; the viewer offers a download control only with one.
     let onDownload: (() -> Void)?
 
-    static func == (lhs: Self, rhs: Self) -> Bool { lhs.url == rhs.url && lhs.alt == rhs.alt }
+    init(url: String, alt: String?, local: Bool = false, onDownload: (() -> Void)?) {
+        self.url = url; self.alt = alt; self.local = local; self.onDownload = onDownload
+    }
+
+    static func == (lhs: Self, rhs: Self) -> Bool { lhs.url == rhs.url && lhs.alt == rhs.alt && lhs.local == rhs.local }
 }
 
 /// The media the kit viewer presents, if any.
@@ -328,10 +335,11 @@ final class FlareMediaSession: ObservableObject {
         self.voice = voice ?? FlareVoicePlayback()
     }
 
-    /// Opens the kit preview on the image: its full-size URL, else the thumbnail.
+    /// Opens the kit preview on the image: its local copy, else its full-size URL, else the thumbnail.
     func present(_ image: FlareImageContent, onDownload: (() -> Void)?) {
-        let url = image.url.isEmpty ? (image.thumbnailURL ?? "") : image.url
-        viewer.presentation = FlareMediaPresentation(.image(url: url, alt: image.alt), onDownload: onDownload)
+        let picture = flarePictureSource(image, preferThumbnail: false)
+        viewer.presentation = FlareMediaPresentation(.image(url: picture.src, alt: image.alt, local: picture.local),
+                                                     onDownload: onDownload)
     }
 
     /// Opens the picture at `index` of message `messageId`: inside a timeline (`gallery`) as the conversation's gallery
@@ -349,17 +357,20 @@ final class FlareMediaSession: ObservableObject {
             for message in gallery.messages where owners[message.id] == nil { owners[message.id] = message }
         }
         let images = items.map { item in
-            FlareGalleryImage(url: item.source, alt: item.image.alt, onDownload: gallery.download.flatMap { download in
+            let picture = flarePictureSource(item.image, preferThumbnail: false)
+            return FlareGalleryImage(url: picture.src, alt: item.image.alt, local: picture.local,
+                                     onDownload: gallery.download.flatMap { download in
                 owners[item.messageId].map { owner in { download(owner, item.image) } }
             })
         }
         viewer.presentation = FlareMediaPresentation(.gallery(images: images, index: start))
     }
 
-    /// Opens the kit player on the video; a voice message playing stops first.
-    func present(_ video: FlareVideoContent) {
+    /// Opens the kit player on the video, with a download key only with `onDownload`; a voice message playing
+    /// stops first.
+    func present(_ video: FlareVideoContent, onDownload: (() -> Void)? = nil) {
         voice.stop()
-        viewer.presentation = FlareMediaPresentation(.video(url: video.url, poster: video.poster))
+        viewer.presentation = FlareMediaPresentation(.video(url: video.url, poster: video.poster), onDownload: onDownload)
     }
 
     func dismiss() {
@@ -376,12 +387,13 @@ struct FlareMediaViewer: View {
 
     var body: some View {
         switch presentation.kind {
-        case let .image(url, alt):
-            ImagePreviewView(show: true, imageSrc: url, alt: alt, onClose: onClose, onDownload: presentation.onDownload)
+        case let .image(url, alt, local):
+            ImagePreviewView(show: true, imageSrc: url, alt: alt, onClose: onClose, onDownload: presentation.onDownload,
+                             allowLocalFile: local)
         case let .gallery(images, index):
             FlareImageGalleryViewer(images: images, startIndex: index, onClose: onClose)
         case let .video(url, poster):
-            FlareVideoViewer(url: url, poster: poster, playback: video, onClose: onClose)
+            FlareVideoViewer(url: url, poster: poster, playback: video, onClose: onClose, onDownload: presentation.onDownload)
         }
     }
 }
@@ -404,23 +416,26 @@ struct FlareImageGalleryViewer: View {
             ImagePreviewView(show: true, imageSrc: images[index].url, alt: images[index].alt, onClose: onClose,
                              onDownload: images[index].onDownload, galleryIndex: index, galleryCount: images.count,
                              onPrevious: index > 0 ? { index -= 1 } : nil,
-                             onNext: index < images.count - 1 ? { index += 1 } : nil)
+                             onNext: index < images.count - 1 ? { index += 1 } : nil,
+                             allowLocalFile: images[index].local)
                 .id(index)
         }
     }
 }
 
-/// ``VideoPlayerView`` over the kit's player surface; plays on appear and stops when it goes away.
+/// ``VideoPlayerView`` over the kit's player surface, with a download key only with the host's `onDownload`; plays
+/// on appear and stops when it goes away.
 struct FlareVideoViewer: View {
     let url: String
     let poster: String?
     @ObservedObject var playback: FlareVideoPlayback
     let onClose: () -> Void
+    var onDownload: (() -> Void)? = nil
 
     var body: some View {
         VideoPlayerView(show: true, videoSrc: url, poster: poster,
                         player: AnyView(FlareVideoSurface(playback: playback, onClose: onClose)),
-                        onClose: onClose)
+                        onClose: onClose, onDownload: onDownload)
             .onAppear { playback.load(url) }
             .onDisappear { playback.stop() }
     }

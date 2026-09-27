@@ -162,7 +162,13 @@ const fallbackType = computed(() => String(decoded.value?.contentType ?? ""));
       :media-state="mediaState"
       @media-action="emit('media-action', $event)"
     />
-    <VideoView v-else-if="viewType === 'video' && viewProps" v-bind="viewProps" />
+    <VideoView
+      v-else-if="viewType === 'video' && viewProps"
+      v-bind="viewProps"
+      :media-action="mediaAction"
+      :media-state="mediaState"
+      @media-action="emit('media-action', $event)"
+    />
     <AudioView v-else-if="viewType === 'audio' && viewProps" v-bind="viewProps" />
     <FileView
       v-else-if="viewType === 'file' && viewProps"

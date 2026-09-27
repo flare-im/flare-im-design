@@ -243,6 +243,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       imageActions: "图片操作",
       previewImage: "预览图片",
       downloadImage: "下载图片",
+      downloadVideo: "下载视频",
     },
     reaction: {
       add: "添加表情回应",
@@ -1450,6 +1451,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       imageActions: "Image actions",
       previewImage: "Preview image",
       downloadImage: "Download image",
+      downloadVideo: "Download video",
     },
     reaction: {
       add: "Add reaction",

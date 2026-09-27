@@ -40,10 +40,40 @@ public struct FlareImageContent: FlareMessageContent {
     /// The image moves (GIF / APNG). Its one-line summary says so — a moving image reads as
     /// `[动图]`, not `[图片]` — so fill it from the source's format or MIME type.
     public let animated: Bool
-    public init(url: String, thumbnailURL: String? = nil, alt: String? = nil, animated: Bool = false) {
+    /// A copy of the picture on this device that the host resolved through the SDK media cache — never an
+    /// address taken from message content. Drawn in place of `url` and `thumbnailURL` when present
+    /// (``flarePictureSource(_:preferThumbnail:)``).
+    public let localPath: String?
+    public init(url: String, thumbnailURL: String? = nil, alt: String? = nil, animated: Bool = false,
+                localPath: String? = nil) {
         self.url = url; self.thumbnailURL = thumbnailURL; self.alt = alt; self.animated = animated
+        self.localPath = localPath
     }
     public var type: String { "image" }
+}
+
+/// Where a message picture is drawn from (``flarePictureSource(_:preferThumbnail:)``).
+public struct FlarePictureSource: Equatable, Sendable {
+    /// The address to draw; empty when the picture has none.
+    public let src: String
+    /// `src` is the picture's local copy (``FlareImageContent/localPath``), which the host resolved through the
+    /// SDK media cache — the only file on this device a message picture may draw.
+    public let local: Bool
+    public init(src: String, local: Bool) {
+        self.src = src; self.local = local
+    }
+}
+
+/// Where to draw `image` from: its local copy (``FlareImageContent/localPath``, resolved by the host through the SDK
+/// media cache) when there is one, otherwise its thumbnail then full-size address (`preferThumbnail`) or the
+/// reverse. The bubble and an album's tiles prefer the thumbnail; the preview and the gallery the full size.
+public func flarePictureSource(_ image: FlareImageContent, preferThumbnail: Bool = true) -> FlarePictureSource {
+    let local = image.localPath?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    if !local.isEmpty { return FlarePictureSource(src: local, local: true) }
+    let thumb = image.thumbnailURL?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    let full = image.url.trimmingCharacters(in: .whitespacesAndNewlines)
+    let src = preferThumbnail ? (thumb.isEmpty ? full : thumb) : (full.isEmpty ? thumb : full)
+    return FlarePictureSource(src: src, local: false)
 }
 
 /// An image-group (album) message: its `images` in order, each drawn and opened like an image message, and

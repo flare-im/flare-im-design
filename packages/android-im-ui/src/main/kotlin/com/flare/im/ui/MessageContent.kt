@@ -36,6 +36,12 @@ data class FlareImageContent(
     val thumbnailUrl: String? = null,
     val alt: String? = null,
     val animated: Boolean = false,
+    /**
+     * A copy of the picture on this device that the host resolved through the SDK media cache — never an
+     * address taken from message content. Drawn in place of [url] and [thumbnailUrl] when present
+     * ([flarePictureSource]).
+     */
+    val localPath: String? = null,
 ) : FlareMessageContent {
     override val type get() = "image"
 }

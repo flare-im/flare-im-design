@@ -26,6 +26,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import java.io.File
 
 /*
  * Received media the kit consumes on its own. When the host passes no media handler, a tap on an image
@@ -52,10 +53,10 @@ internal sealed interface FlareContentTap {
 
 /**
  * The host's media handler, when passed, takes every tap on a media body (full control). Without one,
- * the kit previews an image (the full-size URL, else the thumbnail), plays a video and plays a voice
- * message, and a file goes to the host's file handler when there is one. A link card is a link, whatever
- * the media handler: it follows the link intent ([flareLinkTarget]) and is not tappable when the link can
- * go nowhere. Location and cards stay the host's: without its media handler they are not tappable.
+ * the kit previews an image (its local copy, else the full-size URL, else the thumbnail: [flarePictureSource]),
+ * plays a video and plays a voice message, and a file goes to the host's file handler when there is one. A link
+ * card is a link, whatever the media handler: it follows the link intent ([flareLinkTarget]) and is not tappable
+ * when the link can go nowhere. Location and cards stay the host's: without its media handler they are not tappable.
  */
 internal fun flareContentTap(
     content: FlareMessageContent,
@@ -67,7 +68,7 @@ internal fun flareContentTap(
     if (!acceptsMediaAction(content)) return null
     if (hasMediaHandler) return FlareContentTap.Host
     return when (content) {
-        is FlareImageContent -> FlareContentTap.PreviewImage(content.url.ifBlank { content.thumbnailUrl.orEmpty() })
+        is FlareImageContent -> FlareContentTap.PreviewImage(flarePictureSource(content, preferThumbnail = false).src)
         is FlareImageGroupContent -> FlareContentTap.PreviewAlbumImage
         is FlareVideoContent -> FlareContentTap.PlayVideo(content.url)
         is FlareAudioContent -> FlareContentTap.PlayVoice(content.url)
@@ -139,14 +140,53 @@ internal fun flarePlayableMediaUrl(raw: String?): String? {
     return value.takeIf { scheme in flarePlayableMediaSchemes }
 }
 
+/** Where a message picture is drawn from: [src], and whether it is the host's local copy ([local]). */
+internal data class FlarePictureSource(val src: String, val local: Boolean)
+
+/**
+ * Where to draw [image] from: its local copy ([FlareImageContent.localPath], resolved by the host through the SDK
+ * cache) when there is one, otherwise its thumbnail then full-size address ([preferThumbnail]) or the reverse. Every
+ * message picture is chosen here: the image body and an album's tiles prefer the thumbnail, the preview and the
+ * gallery the full size.
+ */
+internal fun flarePictureSource(image: FlareImageContent, preferThumbnail: Boolean = true): FlarePictureSource {
+    val local = image.localPath?.trim().orEmpty()
+    if (local.isNotEmpty()) return FlarePictureSource(local, local = true)
+    val thumb = image.thumbnailUrl?.trim().orEmpty()
+    val full = image.url.trim()
+    return FlarePictureSource(if (preferThumbnail) thumb.ifEmpty { full } else full.ifEmpty { thumb }, local = false)
+}
+
+/**
+ * What the image loader draws for [picture]: the local copy's file when it is a path, any other source as the
+ * address it is; null when there is nothing to draw (the caller's placeholder shows). The preview loads the copy's
+ * path through [flarePlayableMediaUrl], which takes local media.
+ */
+internal fun flarePictureModel(picture: FlarePictureSource): Any? = when {
+    picture.src.isEmpty() -> null
+    picture.local && picture.src.startsWith("/") -> File(picture.src)
+    else -> picture.src
+}
+
 /** A full-screen presentation the kit owns. */
 internal sealed interface FlareMediaPresentation {
     /** One picture; [onDownload] is its download key, and there is none without it. */
     data class Image(val src: String, val onDownload: (() -> Unit)? = null) : FlareMediaPresentation
     /** A gallery of [sources], starting at [index]; [onDownload] downloads the picture of a page, and there is no key without it. */
     data class Gallery(val sources: List<String>, val index: Int, val onDownload: ((Int) -> Unit)? = null) : FlareMediaPresentation
-    data class Video(val src: String) : FlareMediaPresentation
+    /** A video; [onDownload] is the player's download key, and there is none without it. */
+    data class Video(val src: String, val onDownload: (() -> Unit)? = null) : FlareMediaPresentation
 }
+
+/**
+ * What a tap on a video body opens: the kit player at [src], whose download key hands the body's [content] to
+ * [onDownload] (the body's `onMediaDownload`); there is no key without it.
+ */
+internal fun flareVideoPresentation(
+    src: String,
+    content: FlareMessageContent,
+    onDownload: ((FlareMessageContent) -> Unit)?,
+): FlareMediaPresentation.Video = FlareMediaPresentation.Video(src, onDownload?.let { download -> { download(content) } })
 
 internal enum class FlareVoicePhase { Idle, Preparing, Playing, Paused, Failed }
 
@@ -347,7 +387,8 @@ internal fun FlareMediaOverlay(host: FlareMediaHost) {
                 ImagePreview(show = true, imageSrc = presentation.src, onClose = host::dismiss, onDownload = presentation.onDownload)
             is FlareMediaPresentation.Gallery ->
                 ImageGalleryPreview(presentation.sources, presentation.index, onClose = host::dismiss, onDownload = presentation.onDownload)
-            is FlareMediaPresentation.Video -> VideoPlayer(show = true, videoSrc = presentation.src, onClose = host::dismiss)
+            is FlareMediaPresentation.Video ->
+                VideoPlayer(show = true, videoSrc = presentation.src, onClose = host::dismiss, onDownload = presentation.onDownload)
         }
     }
 }

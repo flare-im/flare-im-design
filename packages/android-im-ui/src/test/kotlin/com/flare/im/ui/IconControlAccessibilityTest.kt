@@ -108,6 +108,21 @@ class IconControlAccessibilityTest {
         assertTrue(controls.all { it.checked == null && it.enabled })
     }
 
+    // MARK: video player
+
+    @Test fun videoPlayerClosesAndDownloadsByNameWithTheImagePreviewsKey() {
+        val controls = videoPlayerControls(zh, canDownload = true, downloading = false)
+        assertNamedWithRegistryGlyphs(controls)
+        assertEquals(listOf("close" to "关闭", "download" to "下载"), controls.map { it.icon to it.label })
+        // The download key is the image preview's: the same glyph and name.
+        assertEquals(imagePreviewControls(zh, canDownload = true, downloading = false).last(), controls.last())
+        assertEquals(listOf("Close", "Download"), labels(videoPlayerControls(FlareStrings { close = "Close"; download = "Download" }, canDownload = true, downloading = false)))
+        // No download handler, or a download already running (the progress ring stands there): close stays alone.
+        assertEquals(listOf("close"), videoPlayerControls(zh, canDownload = false, downloading = false).map { it.id })
+        assertEquals(listOf("close"), videoPlayerControls(zh, canDownload = true, downloading = true).map { it.id })
+        assertTrue(controls.all { it.checked == null && it.enabled })
+    }
+
     // MARK: voice recording bar
 
     @Test fun voiceRecordingBarCancelsAndSendsByName() {

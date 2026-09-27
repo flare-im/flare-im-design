@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.shape.CircleShape
@@ -57,6 +56,16 @@ internal fun videoPlayerToggle(strings: FlareStrings, phase: FlareVideoPhase): F
     if (phase == FlareVideoPhase.Playing) FlareIconControlSpec("toggle", "pause", strings.pause)
     else FlareIconControlSpec("toggle", "play", strings.play)
 
+/**
+ * The keys of a [VideoPlayer]'s top bar: close, and download while the host offers it and no download is running (the
+ * progress ring takes its place) — the image preview's download key ([imagePreviewControls]).
+ */
+internal fun videoPlayerControls(strings: FlareStrings, canDownload: Boolean, downloading: Boolean): List<FlareIconControlSpec> =
+    buildList {
+        add(FlareIconControlSpec("close", "close", strings.close))
+        if (canDownload && !downloading) add(FlareIconControlSpec("download", "download", strings.download))
+    }
+
 /** The phase a video starts in: an address the player may not load fails at once, so the screen is never blank. */
 internal fun videoPlayerStartPhase(src: String): FlareVideoPhase =
     if (flarePlayableMediaUrl(src) == null) FlareVideoPhase.Failed else FlareVideoPhase.Loading
@@ -70,6 +79,9 @@ internal fun videoPlayerStartPhase(src: String): FlareVideoPhase =
  * and close (never a blank screen). [onPlay] reports each start. A host [player] replaces the playback
  * and keeps the chrome. System back and the close key call [onClose]; playback pauses when the screen
  * stops and ends when the player leaves composition.
+ *
+ * [onDownload] is the download key at the top right, as in the image preview; there is none without it. While
+ * [downloading] the image preview's progress ring with [progressPct] takes the key's place.
  */
 @Composable
 fun VideoPlayer(
@@ -79,11 +91,15 @@ fun VideoPlayer(
     player: (@Composable () -> Unit)? = null,
     onPlay: (() -> Unit)? = null,
     onClose: (() -> Unit)? = null,
+    onDownload: (() -> Unit)? = null,
+    downloading: Boolean = false,
+    progressPct: Int = 0,
 ) {
     if (!show) return
     val strings = flareStrings()
     val close by rememberUpdatedState(onClose)
     FlareNativeBackEffect(enabled = onClose != null) { close?.invoke() }
+    val keys = videoPlayerControls(strings, canDownload = onDownload != null, downloading = downloading)
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             if (player != null) player() else KitVideoPlayback(videoSrc, onPlay, onClose)
@@ -91,22 +107,33 @@ fun VideoPlayer(
         Row(
             Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.safeDrawing).padding(FlareSizes.spacingMd),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd),
         ) {
-            IconButton(
-                icon = "close",
-                contentDescription = strings.close,
-                customSize = FlareSizes.touchTarget,
-                tint = Color.White,
-                background = Color.White.copy(alpha = 0.25f),
-                onClick = onClose,
-            )
+            PlayerKey(keys.first { it.id == "close" }, onClose)
+            // The title takes the room between the keys, so a long one ellipsizes before the download key.
             if (!title.isNullOrEmpty()) {
-                Spacer(Modifier.width(FlareSizes.spacingMd))
                 Text(title, color = Color.White, fontSize = FlareSizes.fontSize2xl.value.sp, fontWeight = FontWeight.SemiBold,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+            } else {
+                Spacer(Modifier.weight(1f))
             }
+            keys.firstOrNull { it.id == "download" }?.let { PlayerKey(it, onDownload) }
+            if (onDownload != null && downloading) DownloadProgressRing(progressPct)
         }
     }
+}
+
+/** A key of the player's top bar: a white glyph on a translucent disc the size of the touch target. */
+@Composable
+private fun PlayerKey(control: FlareIconControlSpec, onClick: (() -> Unit)?) {
+    IconButton(
+        icon = control.icon,
+        contentDescription = control.label,
+        customSize = FlareSizes.touchTarget,
+        tint = Color.White,
+        background = Color.White.copy(alpha = 0.25f),
+        onClick = onClick,
+    )
 }
 
 /** The kit's playback of [src] on the platform [VideoView]. */

@@ -67,9 +67,13 @@ object FlareContentRegistry {
  * file goes to [onOpenFile], which opens it outside the app after the host's URL gate. Location and cards
  * stay host actions, reached through [onMediaAction].
  *
- * Downloads: [onMediaDownload] is the download key of the kit's image preview, with the picture on screen; without it
- * the preview has no download key. Inside a [MessageList] a picture opens the conversation's gallery instead, whose
- * key downloads each picture through the list's `onMediaDownload`.
+ * Downloads: [onMediaDownload] is the download key of the kit's image preview, with the picture on screen, and of its
+ * video player, with the video; without it neither has a download key. Inside a [MessageList] a picture opens the
+ * conversation's gallery instead, whose key downloads each picture through the list's `onMediaDownload`.
+ *
+ * Pictures: an image or album tile draws the picture's local copy ([FlareImageContent.localPath]) when the host has
+ * one, else its thumbnail, else its full-size address; the preview opens the copy, else the full size
+ * ([flarePictureSource]).
  *
  * Links: a link in a text body and a link card go to [onOpenLink] with the address. Without it the kit opens
  * an http or https address that passes [safeExternalUrl] with the platform opener ([LocalUriHandler]) and
@@ -88,7 +92,7 @@ fun MessageContentView(
     onVote: ((Int) -> Unit)? = null,
     /** A tapped task checkbox (the done state asked for); without it the task is read-only. */
     onTaskToggle: ((Boolean) -> Unit)? = null,
-    /** The image preview's download key, with the picture on screen; without it the preview has none. */
+    /** The download key of the image preview (the picture on screen) and the video player (the video); without it neither has one. */
     onMediaDownload: ((FlareMessageContent) -> Unit)? = null,
 ) {
     val ctx = FlareContentContext(isSelf, senderName = senderName, mediaState = mediaState, onMediaAction = onMediaAction)
@@ -116,7 +120,7 @@ fun MessageContentView(
         } }
         // An album's tiles open their own images; the body reports which one (below).
         FlareContentTap.PreviewAlbumImage -> null
-        is FlareContentTap.PlayVideo -> { { media?.present(FlareMediaPresentation.Video(tap.src)) } }
+        is FlareContentTap.PlayVideo -> { { media?.present(flareVideoPresentation(tap.src, content, onMediaDownload)) } }
         is FlareContentTap.PlayVoice -> { { media?.voice?.toggle(voiceKey, tap.src) } }
         FlareContentTap.OpenFile -> { { (content as? FlareFileContent)?.let { onOpenFile?.invoke(it) } } }
         is FlareContentTap.OpenLink -> { { openLink(tap.url) } }
@@ -137,7 +141,7 @@ fun MessageContentView(
                 is FlareEmojiContent -> EmojiMessage(content.emoji, onTap = action)
                 is FlareStickerContent -> StickerMessage(url = content.url, packageId = content.packageId,
                     stickerId = content.stickerId, width = content.width, height = content.height, onTap = action)
-                is FlareImageContent -> ImageMessage(src = content.thumbnailUrl ?: content.url,
+                is FlareImageContent -> ImageMessageBody(model = flarePictureModel(flarePictureSource(content)),
                     maxWidth = 240, maxHeight = 240, alt = content.alt, onTap = action)
                 is FlareImageGroupContent -> ImageGroupMessage(
                     content.images, description = content.description, self = isSelf,
@@ -145,7 +149,7 @@ fun MessageContentView(
                         FlareContentTap.Host -> { _ -> onMediaAction?.invoke(content) }
                         FlareContentTap.PreviewAlbumImage -> { index ->
                             val image = content.images[index]
-                            val source = image.url.ifBlank { image.thumbnailUrl.orEmpty() }
+                            val source = flarePictureSource(image, preferThumbnail = false).src
                             media?.present(flareImagePresentation(gallery, messageKey, index, source, onMediaDownload?.let { download -> { download(image) } }))
                         }
                         else -> null

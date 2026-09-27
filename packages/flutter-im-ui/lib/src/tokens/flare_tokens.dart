@@ -231,42 +231,29 @@ class FlareColors {
     borderPrimary: borderPrimary ?? this.borderPrimary,
     borderSecondary: borderSecondary ?? this.borderSecondary,
     borderSelected: borderSelected ?? this.borderSelected,
-    messageIncomingBackground:
-        messageIncomingBackground ?? this.messageIncomingBackground,
-    messageIncomingForeground:
-        messageIncomingForeground ?? this.messageIncomingForeground,
+    messageIncomingBackground: messageIncomingBackground ?? this.messageIncomingBackground,
+    messageIncomingForeground: messageIncomingForeground ?? this.messageIncomingForeground,
     messageIncomingBorder: messageIncomingBorder ?? this.messageIncomingBorder,
-    messageOutgoingBackground:
-        messageOutgoingBackground ?? this.messageOutgoingBackground,
-    messageOutgoingForeground:
-        messageOutgoingForeground ?? this.messageOutgoingForeground,
+    messageOutgoingBackground: messageOutgoingBackground ?? this.messageOutgoingBackground,
+    messageOutgoingForeground: messageOutgoingForeground ?? this.messageOutgoingForeground,
     messageOutgoingBorder: messageOutgoingBorder ?? this.messageOutgoingBorder,
-    messageSelectedBackground:
-        messageSelectedBackground ?? this.messageSelectedBackground,
+    messageSelectedBackground: messageSelectedBackground ?? this.messageSelectedBackground,
     messageSelectedBorder: messageSelectedBorder ?? this.messageSelectedBorder,
-    messageFailedBackground:
-        messageFailedBackground ?? this.messageFailedBackground,
-    messageFailedForeground:
-        messageFailedForeground ?? this.messageFailedForeground,
+    messageFailedBackground: messageFailedBackground ?? this.messageFailedBackground,
+    messageFailedForeground: messageFailedForeground ?? this.messageFailedForeground,
     messageFailedBorder: messageFailedBorder ?? this.messageFailedBorder,
     messageMetaForeground: messageMetaForeground ?? this.messageMetaForeground,
     messageStatusPending: messageStatusPending ?? this.messageStatusPending,
     messageStatusSent: messageStatusSent ?? this.messageStatusSent,
-    messageStatusDelivered:
-        messageStatusDelivered ?? this.messageStatusDelivered,
+    messageStatusDelivered: messageStatusDelivered ?? this.messageStatusDelivered,
     messageStatusRead: messageStatusRead ?? this.messageStatusRead,
     messageStatusFailed: messageStatusFailed ?? this.messageStatusFailed,
-    messageStatusOnOutgoing:
-        messageStatusOnOutgoing ?? this.messageStatusOnOutgoing,
-    messageStatusReadOnOutgoing:
-        messageStatusReadOnOutgoing ?? this.messageStatusReadOnOutgoing,
-    messageReplyBackground:
-        messageReplyBackground ?? this.messageReplyBackground,
+    messageStatusOnOutgoing: messageStatusOnOutgoing ?? this.messageStatusOnOutgoing,
+    messageStatusReadOnOutgoing: messageStatusReadOnOutgoing ?? this.messageStatusReadOnOutgoing,
+    messageReplyBackground: messageReplyBackground ?? this.messageReplyBackground,
     messageReplyBorder: messageReplyBorder ?? this.messageReplyBorder,
-    messageReactionBackground:
-        messageReactionBackground ?? this.messageReactionBackground,
-    messageReactionSelected:
-        messageReactionSelected ?? this.messageReactionSelected,
+    messageReactionBackground: messageReactionBackground ?? this.messageReactionBackground,
+    messageReactionSelected: messageReactionSelected ?? this.messageReactionSelected,
     error: error ?? this.error,
     errorText: errorText ?? this.errorText,
     focusRing: focusRing ?? this.focusRing,
@@ -1158,39 +1145,23 @@ class FlareColors {
   static const FlareColors light = violetLight;
   static const FlareColors dark = violetDark;
 
-  static FlareColors resolve(
-    Brightness brightness, {
-    FlareBrandTheme brand = FlareBrandTheme.violet,
-  }) => switch (brand) {
-    FlareBrandTheme.violet =>
-      brightness == Brightness.dark ? violetDark : violetLight,
-    FlareBrandTheme.ocean =>
-      brightness == Brightness.dark ? oceanDark : oceanLight,
-    FlareBrandTheme.forest =>
-      brightness == Brightness.dark ? forestDark : forestLight,
-    FlareBrandTheme.sunset =>
-      brightness == Brightness.dark ? sunsetDark : sunsetLight,
-    FlareBrandTheme.rose =>
-      brightness == Brightness.dark ? roseDark : roseLight,
-    FlareBrandTheme.graphite =>
-      brightness == Brightness.dark ? graphiteDark : graphiteLight,
-  };
+  static FlareColors resolve(Brightness brightness, {FlareBrandTheme brand = FlareBrandTheme.violet}) => switch (brand) {
+      FlareBrandTheme.violet => brightness == Brightness.dark ? violetDark : violetLight,
+      FlareBrandTheme.ocean => brightness == Brightness.dark ? oceanDark : oceanLight,
+      FlareBrandTheme.forest => brightness == Brightness.dark ? forestDark : forestLight,
+      FlareBrandTheme.sunset => brightness == Brightness.dark ? sunsetDark : sunsetLight,
+      FlareBrandTheme.rose => brightness == Brightness.dark ? roseDark : roseLight,
+      FlareBrandTheme.graphite => brightness == Brightness.dark ? graphiteDark : graphiteLight,
+    };
 
-  static FlareColors of(
-    Object source, {
-    FlareBrandTheme brand = FlareBrandTheme.violet,
-  }) {
+  static FlareColors of(Object source, {FlareBrandTheme brand = FlareBrandTheme.violet}) {
     if (source is BuildContext) {
       final inherited = FlareTheme.maybeOf(source);
       final dark = flareThemeIsDark(
         inherited?.mode ?? FlareThemeMode.system,
         systemDark: flareSystemDark(source),
       );
-      return inherited?.colors ??
-          resolve(
-            dark ? Brightness.dark : Brightness.light,
-            brand: inherited?.brand ?? brand,
-          );
+      return inherited?.colors ?? resolve(dark ? Brightness.dark : Brightness.light, brand: inherited?.brand ?? brand);
     }
     return resolve(source as Brightness, brand: brand);
   }
@@ -1205,8 +1176,7 @@ bool flareThemeIsDark(FlareThemeMode mode, {required bool systemDark}) =>
 
 /// What the app itself is set to: the enclosing Material theme's brightness, which `MaterialApp` resolves from the
 /// platform for `ThemeMode.system` and which a host (or a test) can set directly by wrapping in a `Theme`.
-bool flareSystemDark(BuildContext context) =>
-    Theme.of(context).brightness == Brightness.dark;
+bool flareSystemDark(BuildContext context) => Theme.of(context).brightness == Brightness.dark;
 
 /// The kit's theme for this subtree. [mode] is the person's choice, which the host holds and stores.
 class FlareTheme extends InheritedWidget {
@@ -1220,23 +1190,15 @@ class FlareTheme extends InheritedWidget {
   final FlareBrandTheme brand;
   final FlareThemeMode mode;
   final FlareColors? colors;
-  static FlareTheme? maybeOf(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<FlareTheme>();
+  static FlareTheme? maybeOf(BuildContext context) => context.dependOnInheritedWidgetOfExactType<FlareTheme>();
   @override
-  bool updateShouldNotify(FlareTheme oldWidget) =>
-      brand != oldWidget.brand ||
-      mode != oldWidget.mode ||
-      colors != oldWidget.colors;
+  bool updateShouldNotify(FlareTheme oldWidget) => brand != oldWidget.brand || mode != oldWidget.mode || colors != oldWidget.colors;
 }
 
 /// A named text role: what a title, a section header, body text or a caption is, in one place
 /// (FR-051). Sizes are logical px; [weight] is the CSS weight the platform maps to its own.
 class FlareTextRole {
-  const FlareTextRole({
-    required this.fontSize,
-    required this.lineHeight,
-    required this.weight,
-  });
+  const FlareTextRole({required this.fontSize, required this.lineHeight, required this.weight});
   final double fontSize;
   final double lineHeight;
   final int weight;
@@ -1244,31 +1206,11 @@ class FlareTextRole {
 
 /// Flare IM text roles.
 abstract final class FlareTextRoles {
-  static const FlareTextRole title = FlareTextRole(
-    fontSize: 20.0,
-    lineHeight: 1.2,
-    weight: 700,
-  );
-  static const FlareTextRole section = FlareTextRole(
-    fontSize: 13.0,
-    lineHeight: 1.2,
-    weight: 600,
-  );
-  static const FlareTextRole body = FlareTextRole(
-    fontSize: 14.0,
-    lineHeight: 1.5,
-    weight: 400,
-  );
-  static const FlareTextRole caption = FlareTextRole(
-    fontSize: 12.0,
-    lineHeight: 1.5,
-    weight: 400,
-  );
-  static const FlareTextRole message = FlareTextRole(
-    fontSize: 15.0,
-    lineHeight: 1.45,
-    weight: 400,
-  );
+  static const FlareTextRole title = FlareTextRole(fontSize: 20.0, lineHeight: 1.2, weight: 700);
+  static const FlareTextRole section = FlareTextRole(fontSize: 13.0, lineHeight: 1.2, weight: 600);
+  static const FlareTextRole body = FlareTextRole(fontSize: 14.0, lineHeight: 1.5, weight: 400);
+  static const FlareTextRole caption = FlareTextRole(fontSize: 12.0, lineHeight: 1.5, weight: 400);
+  static const FlareTextRole message = FlareTextRole(fontSize: 15.0, lineHeight: 1.45, weight: 400);
 }
 
 /// Flare IM spacing / radius / font-size / line-height / layout tokens (logical px).
@@ -1511,14 +1453,7 @@ abstract final class FlareOpacity {
 
 /// Elevation tokens as [BoxShadow] lists; pick by [Brightness] with [FlareShadows.of].
 class FlareShadows {
-  const FlareShadows({
-    required this.card,
-    required this.lg,
-    required this.md,
-    required this.none,
-    required this.sm,
-    required this.xl,
-  });
+  const FlareShadows({required this.card, required this.lg, required this.md, required this.none, required this.sm, required this.xl});
   final List<BoxShadow> card;
   final List<BoxShadow> lg;
   final List<BoxShadow> md;
@@ -1526,105 +1461,22 @@ class FlareShadows {
   final List<BoxShadow> sm;
   final List<BoxShadow> xl;
   static const FlareShadows light = FlareShadows(
-    card: [
-      BoxShadow(
-        color: Color(0x0F141926),
-        offset: Offset(0, 2),
-        blurRadius: 8,
-        spreadRadius: 0,
-      ),
-    ],
-    lg: [
-      BoxShadow(
-        color: Color(0x1F141926),
-        offset: Offset(0, 12),
-        blurRadius: 32,
-        spreadRadius: 0,
-      ),
-    ],
-    md: [
-      BoxShadow(
-        color: Color(0x1A141926),
-        offset: Offset(0, 4),
-        blurRadius: 16,
-        spreadRadius: 0,
-      ),
-    ],
+    card: [BoxShadow(color: Color(0x0F141926), offset: Offset(0, 2), blurRadius: 8, spreadRadius: 0)],
+    lg: [BoxShadow(color: Color(0x1F141926), offset: Offset(0, 12), blurRadius: 32, spreadRadius: 0)],
+    md: [BoxShadow(color: Color(0x1A141926), offset: Offset(0, 4), blurRadius: 16, spreadRadius: 0)],
     none: [],
-    sm: [
-      BoxShadow(
-        color: Color(0x0D151220),
-        offset: Offset(0, 1),
-        blurRadius: 2,
-        spreadRadius: 0,
-      ),
-      BoxShadow(
-        color: Color(0x0A151220),
-        offset: Offset(0, 1),
-        blurRadius: 1,
-        spreadRadius: 0,
-      ),
-    ],
-    xl: [
-      BoxShadow(
-        color: Color(0x29141926),
-        offset: Offset(0, 20),
-        blurRadius: 56,
-        spreadRadius: 0,
-      ),
-    ],
+    sm: [BoxShadow(color: Color(0x0D151220), offset: Offset(0, 1), blurRadius: 2, spreadRadius: 0), BoxShadow(color: Color(0x0A151220), offset: Offset(0, 1), blurRadius: 1, spreadRadius: 0)],
+    xl: [BoxShadow(color: Color(0x29141926), offset: Offset(0, 20), blurRadius: 56, spreadRadius: 0)],
   );
   static const FlareShadows dark = FlareShadows(
-    card: [
-      BoxShadow(
-        color: Color(0x52000000),
-        offset: Offset(0, 8),
-        blurRadius: 28,
-        spreadRadius: 0,
-      ),
-    ],
-    lg: [
-      BoxShadow(
-        color: Color(0x52000000),
-        offset: Offset(0, 8),
-        blurRadius: 28,
-        spreadRadius: 0,
-      ),
-    ],
-    md: [
-      BoxShadow(
-        color: Color(0x52000000),
-        offset: Offset(0, 8),
-        blurRadius: 28,
-        spreadRadius: 0,
-      ),
-    ],
+    card: [BoxShadow(color: Color(0x52000000), offset: Offset(0, 8), blurRadius: 28, spreadRadius: 0)],
+    lg: [BoxShadow(color: Color(0x52000000), offset: Offset(0, 8), blurRadius: 28, spreadRadius: 0)],
+    md: [BoxShadow(color: Color(0x52000000), offset: Offset(0, 8), blurRadius: 28, spreadRadius: 0)],
     none: [],
-    sm: [
-      BoxShadow(
-        color: Color(0x6B000000),
-        offset: Offset(0, 1),
-        blurRadius: 2,
-        spreadRadius: 0,
-      ),
-      BoxShadow(
-        color: Color(0x4D000000),
-        offset: Offset(0, 1),
-        blurRadius: 1,
-        spreadRadius: 0,
-      ),
-    ],
-    xl: [
-      BoxShadow(
-        color: Color(0x52000000),
-        offset: Offset(0, 8),
-        blurRadius: 28,
-        spreadRadius: 0,
-      ),
-    ],
+    sm: [BoxShadow(color: Color(0x6B000000), offset: Offset(0, 1), blurRadius: 2, spreadRadius: 0), BoxShadow(color: Color(0x4D000000), offset: Offset(0, 1), blurRadius: 1, spreadRadius: 0)],
+    xl: [BoxShadow(color: Color(0x52000000), offset: Offset(0, 8), blurRadius: 28, spreadRadius: 0)],
   );
-  static FlareShadows of(Brightness brightness) =>
-      brightness == Brightness.dark ? dark : light;
+  static FlareShadows of(Brightness brightness) => brightness == Brightness.dark ? dark : light;
 }
 
 /// Motion tokens: durations and curves shared with the web transitions.

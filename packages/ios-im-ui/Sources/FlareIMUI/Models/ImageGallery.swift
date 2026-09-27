@@ -13,7 +13,8 @@ public struct FlareImageGalleryItem: Equatable {
         self.messageId = messageId; self.index = index; self.image = image
     }
 
-    /// The address the preview loads: the full-size image, else its thumbnail.
+    /// The picture's address in the message: the full-size image, else its thumbnail. A picture without one is not
+    /// in the gallery; the preview draws ``flarePictureSource(_:preferThumbnail:)``, the local copy first.
     public var source: String {
         image.url.trimmingCharacters(in: .whitespaces).isEmpty
             ? (image.thumbnailURL ?? "").trimmingCharacters(in: .whitespaces) : image.url

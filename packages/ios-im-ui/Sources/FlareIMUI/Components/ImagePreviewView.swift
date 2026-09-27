@@ -11,9 +11,13 @@ import SwiftUI
 /// In a gallery the preview says where it is (`galleryIndex` of `galleryCount`) and pages with `onPrevious` and
 /// `onNext`: their keys at the sides, or a sideways swipe while the image is not zoomed. A key with no action (the
 /// first or the last image) is disabled.
+///
+/// `imageSrc` may be a file on this device (a `file:` URL or an absolute path) only with `allowLocalFile`: the
+/// picture's local copy, which the host resolved through the SDK media cache (``FlareImageContent/localPath``).
 public struct ImagePreviewView: View {
     private let show: Bool
     private let imageSrc: String
+    private let allowLocalFile: Bool
     private let loading: Bool
     private let alt: String?
     private let downloading: Bool
@@ -46,10 +50,12 @@ public struct ImagePreviewView: View {
         galleryIndex: Int? = nil,
         galleryCount: Int? = nil,
         onPrevious: (() -> Void)? = nil,
-        onNext: (() -> Void)? = nil
+        onNext: (() -> Void)? = nil,
+        allowLocalFile: Bool = false
     ) {
         self.show = show
         self.imageSrc = imageSrc
+        self.allowLocalFile = allowLocalFile
         self.loading = loading
         self.alt = alt
         self.downloading = downloading
@@ -132,7 +138,7 @@ public struct ImagePreviewView: View {
     private var imageContent: some View {
         if loading {
             ProgressView().tint(.white)
-        } else if !imageSrc.isEmpty, let url = URL(string: imageSrc) {
+        } else if let url = flarePictureURL(imageSrc, local: allowLocalFile) {
             AsyncImage(url: url) { phase in
                 switch phase {
                 case .success(let image):
@@ -202,11 +208,27 @@ public struct ImagePreviewView: View {
     }
 
     private var progressRing: some View {
+        FlareMediaDownloadRing(progressPct: progressPct).frame(width: 38, height: 38)
+    }
+}
+
+/// A download under way over the dark media chrome, in place of the download key: a ring filling with `progressPct`
+/// (0–100) and the number inside it, read as the download key's name with the percent. The image preview and the
+/// video player share it.
+struct FlareMediaDownloadRing: View {
+    let progressPct: Int
+    @Environment(\.flareStrings) private var strings
+
+    var body: some View {
+        let pct = min(max(progressPct, 0), 100)
         ZStack {
             Circle().stroke(.white.opacity(0.3), lineWidth: 2)
-            Circle().trim(from: 0, to: CGFloat(progressPct) / 100)
+            Circle().trim(from: 0, to: CGFloat(pct) / 100)
                 .stroke(.white, lineWidth: 2).rotationEffect(.degrees(-90))
-            Text("\(progressPct)").font(.system(size: FlareSizes.fontSize2xs)).foregroundColor(.white)
-        }.frame(width: 38, height: 38)
+            Text("\(pct)").font(.system(size: FlareSizes.fontSize2xs)).foregroundColor(.white)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(strings.download)
+        .accessibilityValue("\(pct)%")
     }
 }

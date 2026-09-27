@@ -1,14 +1,18 @@
 package com.flare.im.ui
 
+import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
- * Received media without a host media handler: what a tap opens, which addresses the kit's players load,
- * and voice playback (one at a time, pause and resume, failure and retry) on a fake audio engine.
+ * Received media without a host media handler: what a tap opens, where a picture is drawn from, which addresses
+ * the kit's players load, and voice playback (one at a time, pause and resume, failure and retry) on a fake audio
+ * engine.
  */
 class MediaDefaultsTest {
     private val zh = FlareStrings()
@@ -47,6 +51,63 @@ class MediaDefaultsTest {
         assertEquals(FlareContentTap.OpenFile, flareContentTap(file, hasMediaHandler = false, hasFileHandler = true))
         assertNull(flareContentTap(FlareLocationContent("西湖"), hasMediaHandler = false, hasFileHandler = true))
         assertNull(flareContentTap(FlareCardContent("Ann"), hasMediaHandler = false, hasFileHandler = true))
+    }
+
+    // MARK: pictures
+
+    @Test fun theCopyTheHostResolvedIsDrawnForAnyonesPictureInTheBodyAndThePreview() {
+        // Nothing here knows the sender: the copy the host resolved through the SDK cache is drawn for every picture.
+        val cached = FlareImageContent("https://cdn/a.png?sig=1", thumbnailUrl = "https://cdn/a-t.png", localPath = "/data/user/0/app/cache/a.png")
+        // The body draws the file itself, in place of the thumbnail.
+        assertEquals(File("/data/user/0/app/cache/a.png"), flarePictureModel(flarePictureSource(cached)))
+        // A tap previews the same copy, and the preview loads it.
+        val tap = assertIs<FlareContentTap.PreviewImage>(flareContentTap(cached, hasMediaHandler = false, hasFileHandler = false))
+        assertEquals("/data/user/0/app/cache/a.png", tap.src)
+        assertEquals(tap.src, flarePlayableMediaUrl(tap.src))
+        assertEquals(FlareMediaPresentation.Image("/data/user/0/app/cache/a.png"), flareImagePresentation(null, "m1", 0, tap.src))
+        // An album's tile draws its own picture's copy, and the others their addresses.
+        val album = listOf(FlareImageContent("https://cdn/1.png"), cached)
+        assertEquals(listOf<Any?>("https://cdn/1.png", File("/data/user/0/app/cache/a.png")), album.map { flarePictureModel(flarePictureSource(it)) })
+    }
+
+    @Test fun aPictureSourcePrefersTheLocalCopyThenTheThumbnailOrTheFullSize() {
+        val remote = FlareImageContent("https://cdn/full.png", thumbnailUrl = "https://cdn/thumb.png")
+        assertEquals(FlarePictureSource("https://cdn/thumb.png", local = false), flarePictureSource(remote))
+        assertEquals(FlarePictureSource("https://cdn/full.png", local = false), flarePictureSource(remote, preferThumbnail = false))
+        // A blank side gives way to the other.
+        assertEquals(FlarePictureSource("https://cdn/full.png", local = false), flarePictureSource(FlareImageContent(" https://cdn/full.png ", thumbnailUrl = " ")))
+        assertEquals(FlarePictureSource("https://cdn/thumb.png", local = false), flarePictureSource(FlareImageContent("", thumbnailUrl = "https://cdn/thumb.png"), preferThumbnail = false))
+        // The local copy comes first either way; a blank one is none.
+        val cached = FlareImageContent("", localPath = "/c/p.png")
+        assertEquals(FlarePictureSource("/c/p.png", local = true), flarePictureSource(cached))
+        assertEquals(FlarePictureSource("/c/p.png", local = true), flarePictureSource(cached, preferThumbnail = false))
+        assertEquals(FlarePictureSource("https://cdn/full.png", local = false), flarePictureSource(remote.copy(localPath = "  "), preferThumbnail = false))
+        // Nothing to draw: the placeholder.
+        assertNull(flarePictureModel(flarePictureSource(FlareImageContent(""))))
+    }
+
+    @Test fun aLocalAddressInTheMessageIsNeverTakenForTheHostsCopy() {
+        // Message content is written by someone else. A local address in its url stays the address it is — handed to
+        // the loader exactly as before, never promoted to the host's copy — and only localPath is drawn as a file.
+        for (written in listOf("file:///data/user/0/app/files/a.png", "/data/user/0/app/files/a.png")) {
+            val image = FlareImageContent(written)
+            assertEquals(FlarePictureSource(written, local = false), flarePictureSource(image))
+            assertEquals<Any?>(written, flarePictureModel(flarePictureSource(image)))
+            assertEquals(FlareContentTap.PreviewImage(written), flareContentTap(image, hasMediaHandler = false, hasFileHandler = false))
+        }
+    }
+
+    // MARK: video download
+
+    @Test fun aVideoOpensThePlayerWithADownloadKeyOnlyWithAHandler() {
+        val video = FlareVideoContent("https://cdn/v.mp4", poster = "https://cdn/v.jpg", durationSec = 12)
+        val saved = mutableListOf<FlareMessageContent>()
+        val opened = flareVideoPresentation("https://cdn/v.mp4", video) { saved += it }
+        assertEquals("https://cdn/v.mp4", opened.src)
+        // The player's key hands back the video the body shows.
+        assertNotNull(opened.onDownload).invoke()
+        assertEquals(listOf<FlareMessageContent>(video), saved)
+        assertNull(flareVideoPresentation("https://cdn/v.mp4", video, onDownload = null).onDownload)
     }
 
     // MARK: links (K4)

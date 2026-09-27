@@ -5287,7 +5287,8 @@
         "playing",
         "paused",
         "update:show",
-        "play"
+        "play",
+        "download"
       ],
       "states": [
         "loading",
@@ -5296,7 +5297,8 @@
       ],
       "interactions": [
         "update:show",
-        "play"
+        "play",
+        "download"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -5338,7 +5340,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#VideoPlayerModal",
-      "searchText": "videoplayermodal media im-ui stable media loading playing paused update:show play supportsconfiguration supportsresponsive full-screen video player with poster and title. 全屏视频播放器，带封面与标题。"
+      "searchText": "videoplayermodal media im-ui stable media loading playing paused update:show play download supportsconfiguration supportsresponsive full-screen video player with poster and title. 全屏视频播放器，带封面与标题。"
     },
     {
       "name": "MarkdownPreview",

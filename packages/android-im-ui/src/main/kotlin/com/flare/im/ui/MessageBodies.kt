@@ -87,16 +87,19 @@ private fun Modifier.onClickIf(action: (() -> Unit)?): Modifier =
 private fun Modifier.onClickIf(action: (() -> Unit)?, label: String): Modifier =
     if (action != null) this.clickable(onClickLabel = label) { action() } else this
 
-/** A network image (host-provided URL) that falls back to a placeholder. */
+/**
+ * A network image (host-provided URL, or the file of a picture's local copy: [flarePictureModel]) that falls back to
+ * a placeholder.
+ */
 @Composable
 internal fun NetImage(
-    url: String?,
+    model: Any?,
     modifier: Modifier,
     contentDescription: String? = null,
     placeholder: @Composable () -> Unit,
 ) {
-    if (!url.isNullOrEmpty()) {
-        AsyncImage(model = url, contentDescription = contentDescription, modifier = modifier, contentScale = ContentScale.Crop)
+    if (model != null && model != "") {
+        AsyncImage(model = model, contentDescription = contentDescription, modifier = modifier, contentScale = ContentScale.Crop)
     } else {
         Box(modifier, contentAlignment = Alignment.Center) { placeholder() }
     }
@@ -270,6 +273,21 @@ fun ImageMessage(
     maxHeight: Int? = null,
     alt: String? = null,
     onTap: (() -> Unit)? = null,
+) = ImageMessageBody(src?.takeIf { it.isNotEmpty() }, width, height, maxWidth, maxHeight, alt, onTap)
+
+/**
+ * [ImageMessage] drawing [model], what the image loader takes: an address, or the file of a picture's local copy
+ * ([flarePictureModel]). Null draws the placeholder.
+ */
+@Composable
+internal fun ImageMessageBody(
+    model: Any?,
+    width: Int = 132,
+    height: Int = 92,
+    maxWidth: Int? = null,
+    maxHeight: Int? = null,
+    alt: String? = null,
+    onTap: (() -> Unit)? = null,
 ) {
     val colors = flareColors()
     // Flexible mode: given maxWidth/maxHeight, size within bounds preserving aspect
@@ -279,9 +297,9 @@ fun ImageMessage(
         Modifier.sizeIn(maxWidth = (maxWidth ?: 10_000).dp, maxHeight = (maxHeight ?: 10_000).dp)
     else Modifier.size(width.dp, height.dp)
     val mod = sizeMod.clip(RoundedCornerShape(FlareSizes.radiusCard)).background(colors.bgTertiary).onClickIf(onTap, flareStrings().imagePreviewOpen)
-    if (!src.isNullOrEmpty()) {
+    if (model != null) {
         AsyncImage(
-            model = src,
+            model = model,
             contentDescription = alt,
             modifier = mod,
             contentScale = if (flexible) ContentScale.Fit else ContentScale.Crop,
