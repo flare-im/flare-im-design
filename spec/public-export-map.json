@@ -3859,6 +3859,58 @@
       }
     },
     {
+      "name": "Drawer",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareDrawer",
+          "sourcePath": "packages/vue-im-ui/src/components/general/FlareDrawer.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareDrawer",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_drawer.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "Drawer",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/Drawer.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "DrawerView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/DrawerView.swift"
+        }
+      }
+    },
+    {
+      "name": "Modal",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareModal",
+          "sourcePath": "packages/vue-im-ui/src/components/general/FlareModal.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareModal",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_modal.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "Modal",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/Modal.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ModalView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/ModalView.swift"
+        }
+      }
+    },
+    {
       "name": "ActionMenu",
       "status": "stable",
       "platforms": {

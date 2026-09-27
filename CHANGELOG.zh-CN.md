@@ -9,6 +9,12 @@
 - 图片、视频、文件下载后，下载键变成「在文件夹中显示」（四端）：保存状态 idle / failed → 下载键，downloading → 进度，已保存 → 文件夹键；宿主发现文件被删后传回 idle，键回到下载，再下载又是文件夹。文件卡片右侧固定这个键，图片预览、图库与视频播放器右上角的键跟随列表实时状态。Vue 宿主用 `useMessageMediaSaves` 接整条流程。
 - 收发两侧的消息时间都显示在右侧（四端）：媒体下方贴右边缘，气泡内在右下角；正文仍在发送方一侧。
 - 原生视频消息：时长未知时不再显示「00:00」，播放键改为半透明圆盘，默认 240×135。
+- **浮层收为三件套：BottomSheet、Modal、Drawer**（四端）。短任务用 BottomSheet，`presentation` 默认 `auto`：手机形态是底部面板，其它形态把同一份内容交给新组件 **Modal**，打开时判定一次；长驻的次级内容（详情、设置栈、资料编辑）宽布局用新组件 **Drawer**、手机上是页面；全局搜索手机上是整页、其它形态是定高的 Modal。符号：Vue `FlareModal` / `FlareDrawer`（及 `FlareDrawerPlacement`）、Flutter `FlareModal` / `FlareDrawer`（`show`、`showAdaptive`）、iOS `ModalView` + `.flareModal` / `DrawerView` + `.flareDrawer`、Compose `Modal` / `Drawer`。形态判据由 kit 给出：Flutter `flareCapabilitiesOf(context)`、iOS `EnvironmentValues.flareCompactOverlays`、Compose `flareCompactOverlays()`。每个浮层都是有名称的模态对话框（标题 → `label` → 新增的 `drawerLabel` / `modalLabel` 兜底），忙碌时锁住关闭，遮罩用新令牌 `colors.scrim`。
+- **破坏性（枚举）：`FlareSheetPresentation` 删除 `dialog` 与 `drawer`**（四端），只剩 `auto | sheet`。居中框用 Modal，侧边面板用 Drawer。Vue 的 `.flare-sheet--dialog` / `--drawer` 样式删除；三种面都是 `role="dialog"`，带 `data-flare-presentation` 与共用遮罩类 `flare-overlay-scrim`。
+- **破坏性：Flutter 公开的对话框类并入 `FlareModal`**（无别名）：`actions` → `footer`、`content` → `child`、`maxWidth` → `width`、`title` 改为字符串、`contentScrollable` → `scrollable`；原 `show` → `FlareModal.show(framed:)`，原 `prompt` → `FlareBottomSheet.prompt`。`FlareBottomSheet.show` 新增 `titleHidden`、`dismissible`、`busy`、`maxHeight`，默认 auto（宽度 600 及以上是 Modal）；`FlareDangerConfirm.show` 遵循 auto，按钮文案取 FlareStrings；`FlareSearchPanel` 新增 `autofocus` 与 `layout`。
+- iOS `flareBottomSheet` 新增 `isPresented:` 重载与 `titleHidden`、`presentation`、`dismissible`、`size`（`.fitted` / `.large`）、`maxHeight`；`FlareLayerDismissDisabledKey` / `.flareLayerDismissDisabled(_:)` 在忙碌时锁住浮层；`FlareFeedback` 的确认与提示输入、`FormSheetView` 遵循 auto，不再固定 medium 档位；`FlareGroupDetailView` 的子步骤改为 kit 面板，不再用系统 alert 与 confirmationDialog。Modal 与 Drawer 在 iOS 16.4+ 是透明全屏覆盖层加 kit 遮罩，更低版本与 macOS 回退为系统面板。
+- Compose `BottomSheet` 新增 `titleHidden`、`maxHeight`、`presentation`（默认 Auto），内容拿到有界约束并自己负责滚动；`FormDialog` 新增 `presentation`；`DangerConfirm` 改由 `BottomSheet(Auto)` 承载，不再是 Material3 `AlertDialog`；浮层窗口关闭窗口 dim、改画 `colors.scrim`；toast 画在最上层浮层窗口里；`CommandPalette` 宽度按令牌夹紧；`FlareGroupDetail` 的 Material3 面板与 alert 改为 kit 浮层。
+- Vue 浮层焦点：初始焦点跳过标头控件（`data-flare-overlay-chrome`）落在内容里，焦点在面外时正向 Tab 拉回面内，关闭与卸载时焦点还给打开它的元素。底部面板的离场动画恢复播放，减少动态效果时遮罩也不淡入淡出，顶部圆角改为 `radius-2xl`、最大宽度改为气泡最大宽度令牌；命令面板背景改读 `colors.scrim`；合并转发查看器改用 `FlareDrawer`；`responsive.css` 里按窗口改写 sheet-width / sheet-height 的两处死代码删除（`--flare-component-sheet-dialog-width` 仍生效，现由 FlareModal 读取）。
 
 - Vue、Flutter、Compose、SwiftUI 通过契约和生成链路共享语义 Token、六套品牌主题及明暗模式。
 - 可选 AppKit、Workspace 和响应式布局消费公开组件，不绑定具体 SDK。
@@ -32,6 +38,7 @@
 
 ### 破坏性变更与迁移
 
+- 浮层三件套（2026-09-28）：`FlareSheetPresentation` 的 `dialog` / `drawer` 删除、Flutter 对话框类并入 `FlareModal`、iOS `flareBottomSheet` 签名扩展。逐端迁移见 docs/release/migration/2.0-rc-to-2.0.md §4r。
 - 消息内容组件不再负责气泡表面，应通过 MessageBubble 与 MessageMeta 组合。
 - VoteOption.pct 改为可选或空值，未知结果不能用零替代。
 - 只使用公开包入口和语义主题 Provider。详见 docs/migration-to-2.0.md。

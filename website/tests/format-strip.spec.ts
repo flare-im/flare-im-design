@@ -91,7 +91,7 @@ test.describe("keys on a coarse pointer", () => {
     const levels = strip.getByRole("radiogroup", { name: "文本样式" });
     await expect(levels).toBeVisible();
     await expect(levels.getByRole("radio")).toHaveCount(7);
-    await expect(page.locator(".flare-sheet")).toHaveCount(0);
+    await expect(page.locator('[role="dialog"]')).toHaveCount(0);
     await expect(strip.getByRole("button", { name: "加粗" })).toBeHidden();
     expect(await page.evaluate(() => document.activeElement?.getAttribute("contenteditable"))).toBe("true");
     await levels.getByRole("radio", { name: "标题 2" }).click();
@@ -119,7 +119,7 @@ test.describe("keys on a fine pointer", () => {
     await target.locator(".composer-heading-select").click();
     const menu = page.getByRole("menu", { name: "文本样式" });
     await expect(menu).toBeVisible();
-    await expect(page.locator(".flare-sheet")).toHaveCount(0);
+    await expect(page.locator('[role="dialog"]')).toHaveCount(0);
     await page.keyboard.press("Escape");
     await expect(menu).toBeHidden();
   });

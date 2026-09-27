@@ -15,15 +15,16 @@ Two searches, one pattern. Global search finds contacts, groups and messages fro
 
 ## Global search (Vue)
 
-The panel is the page. On a phone it is a second-level screen, not a sheet: the keyboard is up on entry, and a sheet capped at 72vh would leave the results under 200px. On a wide window it is a centred dialog.
+The panel is the page. On a phone it is a second-level screen, not a sheet: the keyboard is up on entry, and a sheet capped at 72vh would leave the results under 200px. On every other form factor it is a `FlareModal`: a fixed-height, 720px centred box that does not jump as results arrive. The choice is made once, when search opens, so crossing a breakpoint while typing does not remount the panel.
 
 ```vue
 <script setup lang="ts">
 import { computed, onBeforeUnmount } from "vue";
-import { FlareBottomSheet, FlareRecentSearches, FlareScreen, FlareSearchPanel, useViewport, type FlareSearchResultItem } from "@flare-im/vue-ui";
+import { FlareModal, FlareRecentSearches, FlareScreen, FlareSearchPanel, useFlarePlatform, type FlareSearchResultItem } from "@flare-im/vue-ui";
 
 const emit = defineEmits<{ (e: "open", item: FlareSearchResultItem): void; (e: "close"): void }>();
-const { isDesktop } = useViewport();
+// Phone form factor → page, anything else → modal; read once when search opens.
+const asPage = useFlarePlatform().capabilities.value.bottomSheet;
 // Type ids are the result kinds, so "查看更多" on a group is that kind's type: the panel switches itself.
 const kinds = computed(() => ({ all: "全部", contact: "联系人", group: "群聊", message: "聊天记录" }));
 
@@ -33,7 +34,7 @@ onBeforeUnmount(() => clearGlobalSearch()); // every opening starts idle
 </script>
 
 <template>
-  <FlareScreen v-if="!isDesktop" surface="surface" :scroll="false" aria-label="全局搜索">
+  <FlareScreen v-if="asPage" surface="surface" :scroll="false" aria-label="全局搜索">
     <FlareSearchPanel layout="page" :snapshot="searchSnapshot" :filters="kinds" require-query autofocus
       search-text="搜索联系人、群聊、聊天记录" idle-text="输入关键字，搜索联系人、群聊和聊天记录"
       @search="searchGlobal" @open="open" @cancel="emit('close')">
@@ -42,14 +43,15 @@ onBeforeUnmount(() => clearGlobalSearch()); // every opening starts idle
       </template>
     </FlareSearchPanel>
   </FlareScreen>
-  <FlareBottomSheet v-else :open="true" presentation="dialog" title="搜索" title-hidden max-height="72vh" dialog-width="720px" @close="emit('close')">
-    <!-- A sheet only caps its height; the page layout needs one, or the centred dialog re-centres with every result count. -->
-    <div class="search-dialog-body"><FlareSearchPanel layout="page" … /></div>
-  </FlareBottomSheet>
+  <FlareModal v-else :open="true" title="搜索" title-hidden width="720px" max-height="min(72vh, 640px)" fill
+    :scrollable="false" :show-close="false" @close="emit('close')">
+    <!-- `fill` gives the box a fixed height, which the page layout needs; `scrollable=false` lets the panel scroll its own results. -->
+    <div class="search-modal-body"><FlareSearchPanel layout="page" … /></div>
+  </FlareModal>
 </template>
 ```
 
-`layout="page"` keeps the field and the type row still and scrolls only the results; listening for `cancel` brings the search bar's own 取消 beside the field (the dialog does not listen, so it has none); `require-query` keeps a type alone from searching. The host owns the recent list (per signed-in user, in its own storage) and keeps it with `flareRememberSearch(list, term, max)`.
+`layout="page"` keeps the field and the type row still and scrolls only the results; listening for `cancel` brings the search bar's own 取消 beside the field (the modal does not listen, so it has none; Escape, platform back and the scrim close it); `require-query` keeps a type alone from searching. The host owns the recent list (per signed-in user, in its own storage) and keeps it with `flareRememberSearch(list, term, max)`.
 
 The search ops take a limit and return no count, so the store asks each source for one row more than it shows and sets `hasMore` on the group; a count is never made up. One source failing is `warning` over the results that did come back; only every asked source failing is `failure`.
 

@@ -41,7 +41,8 @@ for (const width of [1280, 390]) {
       await expect(preview).toHaveScreenshot(`attachment-surface-${width}-${mode}.png`);
       await preview.getByRole("button", { name: "取消", exact: true }).click();
       await page.getByRole("button", { name: "Edit note", exact: true }).click();
-      const sheet = page.locator(".flare-sheet");
+      // 390 是底部面板,1280 是 BottomSheet auto 交给的 FlareModal;两者都是 role="dialog"。
+      const sheet = page.locator('[role="dialog"]');
       await expect(sheet).toBeVisible();
       const sheetBounds = await sheet.boundingBox();
       expect(sheetBounds!.x).toBeGreaterThanOrEqual(0);

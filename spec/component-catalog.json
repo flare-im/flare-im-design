@@ -42,9 +42,9 @@
     "supportsDensity": "The component takes a density of its own (its prop says what the values mean); the kit has no global density scale."
   },
   "counts": {
-    "total": 154,
-    "stable": 154,
-    "general": 44,
+    "total": 156,
+    "stable": 156,
+    "general": 46,
     "im": 105
   },
   "specializedMessageGroups": {
@@ -318,7 +318,7 @@
       "examples": {
         "live": true,
         "code": true,
-        "gallery": true
+        "gallery": false
       },
       "sourceOfTruth": "spec/components.json#AppLayout",
       "searchText": "applayout layout general-ui stable adaptive pane master content detail responsive workspace three pane 三栏 三栏布局 自适应工作台 layout mobile tablet desktop widedesktop layoutchange supportsconfiguration supportscustomcontent supportsslots supportsresponsive root application region composer for mobile, tablet, desktop, and wide desktop. 面向手机、平板、桌面与宽桌面的应用根区域编排器。"
@@ -14358,7 +14358,7 @@
       "examples": {
         "live": true,
         "code": true,
-        "gallery": true
+        "gallery": false
       },
       "sourceOfTruth": "spec/components.json#DangerConfirm",
       "searchText": "dangerconfirm overlay general-ui stable overlay open busy failure confirm cancel supportsconfiguration dangerconfirm scene composition with explicit host-owned state. 危险操作目标、后果、确认与失败恢复。"
@@ -16138,12 +16138,17 @@
       "docExamples": {
         "variants": [
           {
+            "name": "maxHeight",
+            "values": [
+              "string",
+              "number"
+            ]
+          },
+          {
             "name": "presentation",
             "values": [
               "auto",
-              "sheet",
-              "dialog",
-              "drawer"
+              "sheet"
             ]
           }
         ],
@@ -16153,8 +16158,8 @@
         ]
       },
       "summary": {
-        "zh": "自适应底部面板原语 —— Select / 时间日期选择器 / 表单面板在手机形态下的承载面；焦点回收、滚动锁、可选标题与高度上限。",
-        "en": "Adaptive bottom-sheet primitive — the phone-form-factor surface behind Select / the pickers / form sheets; focus return, scroll lock, optional title and height cap."
+        "zh": "自适应底部面板 —— 短小、聚焦任务（选择器、表单、确认、提示）的承载面：手机形态为底部面板，其它形态把同一份内容交给 Modal 居中呈现；焦点回收、滚动锁、可选标题与高度上限。",
+        "en": "Adaptive bottom sheet — the surface for short, focused tasks (pickers, forms, confirms, prompts): a bottom sheet on the phone form factor, and on other form factors the same content handed to Modal as a centered box; focus return, scroll lock, optional title and height cap."
       },
       "aliases": [
         "Overlay",
@@ -16209,7 +16214,255 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#BottomSheet",
-      "searchText": "bottomsheet overlay general-ui stable overlay closed open close supportsconfiguration adaptive bottom-sheet primitive — the phone-form-factor surface behind select / the pickers / form sheets; focus return, scroll lock, optional title and height cap. 自适应底部面板原语 —— select / 时间日期选择器 / 表单面板在手机形态下的承载面；焦点回收、滚动锁、可选标题与高度上限。"
+      "searchText": "bottomsheet overlay general-ui stable overlay closed open close supportsconfiguration adaptive bottom sheet — the surface for short, focused tasks (pickers, forms, confirms, prompts): a bottom sheet on the phone form factor, and on other form factors the same content handed to modal as a centered box; focus return, scroll lock, optional title and height cap. 自适应底部面板 —— 短小、聚焦任务（选择器、表单、确认、提示）的承载面：手机形态为底部面板，其它形态把同一份内容交给 modal 居中呈现；焦点回收、滚动锁、可选标题与高度上限。"
+    },
+    {
+      "name": "Drawer",
+      "slug": "drawer",
+      "category": "Overlay",
+      "layer": "general-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "responsive",
+      "previewViewports": [
+        "desktop",
+        "mobile"
+      ],
+      "previewPresentation": "overlay",
+      "previewOpener": "打开侧边抽屉",
+      "docsSections": {
+        "configuration": true,
+        "variants": true,
+        "states": true,
+        "interaction": true,
+        "responsive": true,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [
+          {
+            "name": "placement",
+            "values": [
+              "end",
+              "start"
+            ]
+          },
+          {
+            "name": "width",
+            "values": [
+              "string",
+              "number"
+            ]
+          }
+        ],
+        "states": [
+          "closed",
+          "open",
+          "nested"
+        ]
+      },
+      "summary": {
+        "zh": "侧边抽屉 —— 从行尾（默认）或行首边滑出的全高模态面板，承载长驻的次级内容（会话 / 群 / 联系人详情、设置栈、资料编辑）；遮罩、焦点陷阱、Escape 与平台返回键、可选返回键与页内导航。",
+        "en": "Side drawer — a full-height modal panel sliding in from the inline end (default) or start edge, for long-lived secondary content (conversation, group and contact details, settings stacks, the profile editor); scrim, focus trap, Escape and platform back, an optional back control and in-panel navigation."
+      },
+      "aliases": [
+        "side panel",
+        "drawer",
+        "侧边抽屉",
+        "侧边面板",
+        "抽屉",
+        "Overlay",
+        "closed",
+        "open",
+        "nested",
+        "close",
+        "back"
+      ],
+      "states": [
+        "closed",
+        "open",
+        "nested"
+      ],
+      "interactions": [
+        "close",
+        "back"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareDrawer"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareDrawer"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "Drawer"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "DrawerView"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/general/FlareDrawer.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_drawer.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/Drawer.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/DrawerView.swift"
+      },
+      "docs": {
+        "zh": "website/components/drawer.md",
+        "en": "website/en/components/drawer.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": true
+      },
+      "sourceOfTruth": "spec/components.json#Drawer",
+      "searchText": "drawer overlay general-ui stable side panel drawer 侧边抽屉 侧边面板 抽屉 overlay closed open nested close back supportsconfiguration side drawer — a full-height modal panel sliding in from the inline end (default) or start edge, for long-lived secondary content (conversation, group and contact details, settings stacks, the profile editor); scrim, focus trap, escape and platform back, an optional back control and in-panel navigation. 侧边抽屉 —— 从行尾（默认）或行首边滑出的全高模态面板，承载长驻的次级内容（会话 / 群 / 联系人详情、设置栈、资料编辑）；遮罩、焦点陷阱、escape 与平台返回键、可选返回键与页内导航。"
+    },
+    {
+      "name": "Modal",
+      "slug": "modal",
+      "category": "Overlay",
+      "layer": "general-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "responsive",
+      "previewViewports": [
+        "desktop",
+        "mobile"
+      ],
+      "previewPresentation": "overlay",
+      "previewOpener": "打开模态框",
+      "docsSections": {
+        "configuration": true,
+        "variants": true,
+        "states": true,
+        "interaction": true,
+        "responsive": true,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [
+          {
+            "name": "width",
+            "values": [
+              "string",
+              "number"
+            ]
+          },
+          {
+            "name": "maxHeight",
+            "values": [
+              "string",
+              "number"
+            ]
+          }
+        ],
+        "states": [
+          "closed",
+          "open",
+          "busy"
+        ]
+      },
+      "summary": {
+        "zh": "模态框 —— 遮罩上的居中面板，用于聚焦任务（全局搜索、较宽的编辑流程）；标题、头部 actions、底部按钮行、忙碌锁、高度上限与定高模式。",
+        "en": "Modal — a centered box over a scrim for focused tasks (global search, wider editing flows); title, header actions, a footer button row, a busy lock, a height cap and a fixed-height mode."
+      },
+      "aliases": [
+        "dialog",
+        "modal dialog",
+        "弹窗",
+        "模态框",
+        "对话框",
+        "Overlay",
+        "closed",
+        "open",
+        "busy",
+        "close"
+      ],
+      "states": [
+        "closed",
+        "open",
+        "busy"
+      ],
+      "interactions": [
+        "close"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareModal"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareModal"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "Modal"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "ModalView"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/general/FlareModal.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_modal.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/Modal.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/ModalView.swift"
+      },
+      "docs": {
+        "zh": "website/components/modal.md",
+        "en": "website/en/components/modal.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": true
+      },
+      "sourceOfTruth": "spec/components.json#Modal",
+      "searchText": "modal overlay general-ui stable dialog modal dialog 弹窗 模态框 对话框 overlay closed open busy close supportsconfiguration modal — a centered box over a scrim for focused tasks (global search, wider editing flows); title, header actions, a footer button row, a busy lock, a height cap and a fixed-height mode. 模态框 —— 遮罩上的居中面板，用于聚焦任务（全局搜索、较宽的编辑流程）；标题、头部 actions、底部按钮行、忙碌锁、高度上限与定高模式。"
     },
     {
       "name": "ActionMenu",
@@ -16382,9 +16635,7 @@
             "name": "presentation",
             "values": [
               "auto",
-              "sheet",
-              "dialog",
-              "drawer"
+              "sheet"
             ]
           }
         ],

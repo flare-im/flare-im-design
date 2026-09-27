@@ -557,7 +557,7 @@
     },
     {
       "id": "BottomSheet.scrim",
-      "why": "Vue 底部面板的遮罩曾是裸值 rgba(21, 18, 32, 0.44),与新 token colors.scrim 同值却不引用;token 一改就漂移。原生端:iOS 系统面板的 dim 颜色不可改,Flutter / Compose 的底部面板遮罩对齐 token 记为后续项。",
+      "why": "底部面板的遮罩曾是四种颜色:Vue 写死 rgba(21, 18, 32, 0.44)(与 colors.scrim 同值却不引用,token 一改就漂移),Flutter 用 showModalBottomSheet 默认遮罩,Compose 用窗口 dim。三端现在都引用 colors.scrim;iOS 系统面板的 dim 颜色不可改,不在此槽位。",
       "token": "colors.scrim",
       "platforms": {
         "vue": {
@@ -567,6 +567,22 @@
           ],
           "forbid": [
             "rgba\\(21, 18, 32, 0\\.44\\)"
+          ]
+        },
+        "android": {
+          "file": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/BottomSheet.kt",
+          "require": [
+            "colors\\.scrim"
+          ],
+          "forbid": []
+        },
+        "flutter": {
+          "file": "packages/flutter-im-ui/lib/src/components/flare_bottom_sheet.dart",
+          "require": [
+            "FlareColors\\.of\\(context\\)\\.scrim"
+          ],
+          "forbid": [
+            "Colors\\.black54"
           ]
         }
       }

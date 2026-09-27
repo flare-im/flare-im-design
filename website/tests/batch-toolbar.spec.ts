@@ -109,7 +109,7 @@ test.describe("leaving the selection", () => {
   test("a sheet on top takes Escape first; the selection stays until the next press", async ({ page }) => {
     await open(page);
     await page.getByRole("button", { name: "打开面板" }).click();
-    const sheet = page.locator(".flare-sheet");
+    const sheet = page.locator('[role="dialog"]');
     await expect(sheet).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(sheet).toBeHidden();

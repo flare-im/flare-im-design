@@ -16,6 +16,8 @@ const allowedDirectories = new Set([
 const allowedFiles = new Set([
   ".gitignore", "CHANGELOG.md", "CHANGELOG.zh-CN.md", "COMPATIBILITY.md", "CONTRIBUTING.md",
   "LICENSE", "PUBLIC_API.md", "README.md", "README.zh-CN.md", "jitpack.yml", "package-lock.json", "package.json",
+  // In a linked `git worktree` checkout `.git` is a gitlink file, not a directory.
+  ".git",
 ]);
 const required = [
   "packages/vue-im-ui/package.json",

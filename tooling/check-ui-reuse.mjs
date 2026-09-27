@@ -235,6 +235,8 @@ for (const path of [
   `${social}/flare-social-tauri-app/src/components/settings/SettingsToggleRow.vue`,
   `${social}/flare-social-tauri-app/src/components/settings/SettingsMenuItem.vue`,
   `${social}/flare-social-android-app/app/src/main/kotlin/com/flare/social/app/UiHelpers.kt`,
+  // 应用自带的嵌套导航抽屉已由 kit 的 FlareDrawer.show / showAdaptive 取代。
+  `${social}/flare-social-flutter-app/lib/host/detail_drawer.dart`,
 ]) {
   if (existsSync(resolve(root, path))) { console.error(`FAIL obsolete local UI: ${path}`); failures++; }
 }

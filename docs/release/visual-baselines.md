@@ -83,3 +83,4 @@ Compose 有基线（明暗两套加 200% 大字号），但它是 instrumented �
 - **Compose 的自动比对**——它的基线只在固定 AVD 上才跑得动，本轮的四端验证扫不到它。要进 CI 需要模拟器 runner，或者改用 Paparazzi / Roborazzi 这类离线截图框架（是一次依赖与构建链的变更，不在 RC 范围）。
 - **真机 / 模拟器**上的原生渲染：Flutter 与 iOS 的基线都是宿主机离线渲染，不等于设备上的观感。
 - **动效**：所有截图都关掉了动画（`animations: "disabled"`），过渡过程没有基线。
+- **浮层三件套（2026-09-28）待重建的基线**：Vue `sheet-surface-390-*` 的顶部圆角由 20px 改为 `radius-2xl`（18px），暗色遮罩改为 `colors.scrim` 的暗色值；`sheet-surface-1280-*` 与 `attachment-surface-1280-*` 改由 FlareModal 绘制（内距与标题样式保持），差异应只在面的外框。三项都判 EXPECTED，但**这一轮没有重建**：`website/tests/surface-integrity.spec.ts` 在改动前的提交上已经先红在第 17 行（搜索框聚焦后 `box-shadow` 为 `none`），跳过该行后又红在 `core-surfaces-*` 截图与夹具里找不到的 `.media-composer-preview`，走不到这几张图；修好夹具后按第 1 节逐张看 diff 再重建。`overlay-system`、`format-strip`、`batch-toolbar` 三个用例集在改动后本机全绿，没有基线变化。Compose RC 截图里若有面板，遮罩由窗口 dim 改为 `colors.scrim`，下次在固定 AVD 上比对时同样按 EXPECTED 审图。

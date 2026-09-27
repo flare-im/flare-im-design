@@ -18,7 +18,7 @@ Using the kit's published extension points is not an escape hatch. Those come fi
 | Confirm a destructive step, show feedback | `useFlareConfirm` / `useFlareToast` (Vue, rendered by `FlareUiProvider`); `FlareDangerConfirm.show` and `FlareToast.show` (Flutter); `FlareFeedback` under `flareFeedbackHost` (iOS); `FlareToastHost` / `LocalFlareToast` and `DangerConfirm` (Compose) | All five apps; no app owns a toast host |
 | Offer a small menu of actions (new, more, context) | `FlareActionMenu` (Vue), `FlareActionMenu` and `.show` (Flutter), `ActionMenuView` (iOS), `ActionMenu` (Compose), all drawing `FlareActionItem` | Tauri `SessionList.vue`; iOS `MainShell.swift`; Android contacts, contact details and group details |
 | Put app content inside group details | `FlareGroupDetail` `after-info` / `afterInfo` and `footer` | Announcement read bar in web, Tauri, Flutter, iOS and Android; the report entry in web, Tauri, iOS and Android |
-| Present a kit sheet or dialog | Vue `presentation` on `FlareBottomSheet` / `FlareFormSheet`; `FlareBottomSheet.show` and `FlareDialog.show` (Flutter); `flareBottomSheet(item:)` (iOS); `BottomSheet` (Compose) | Tauri drawers; Flutter (10 sheets, 7 dialogs); iOS (7 kit sheets); Android message sheet, audience and profile editor |
+| Present a kit sheet, modal or drawer | Vue `FlareBottomSheet` / `FlareFormSheet` (`presentation` `auto` or `sheet`), `FlareModal`, `FlareDrawer`; Flutter `FlareBottomSheet.show` / `.prompt`, `FlareModal.show`, `FlareDrawer.showAdaptive`; iOS `flareBottomSheet(isPresented:|item:)`, `flareModal`, `flareDrawer`; Compose `BottomSheet`, `Modal`, `Drawer` | Tauri settings drawer and search modal; web search modal and moments drawer; Flutter details drawer, sheets and prompts; iOS kit sheets and details drawer; Android details drawer, search modal and sheets |
 | Imperative scroll, focus or insert | Exposed handles: `FlareMessageList.scrollToMessage` / `scrollToBottom`, `FlareComposer.insertAtCursor` / `focus` / `resetInput` | Web `ChatArea.vue` (locate a search hit, insert emoji), Tauri `ChatPanel.vue` |
 | Keep composer text under app control | Controlled value: Vue `v-model`, Flutter `controller` (and `onSend` returning whether the text was sent), iOS text binding, Compose `value` / `onValueChange` | Web `ChatArea.vue` (restores rich-send failures), Android `ChatScreen.kt` (draft per conversation) |
 | Resolve media from app storage | `FlareUiProvider` `media-resolver` | Tauri `App.vue` |
@@ -67,7 +67,7 @@ Before counts are each app's committed HEAD (the state before this program's edi
 
 | Hatch | Before | After | Class and priority | Note |
 |---|---:|---:|---|---|
-| App-owned route presenters (`presentDialog`, `presentSheet`) | 18 sites | 0 | fixed (Round 3) | `FlareBottomSheet.show` and `FlareDialog.show`; `presentation.dart` is deleted (FR-025). |
+| App-owned route presenters (`presentDialog`, `presentSheet`) | 18 sites | 0 | fixed (Round 3) | `FlareBottomSheet.show` and the Flutter dialog presenter (now `FlareModal.show`); `presentation.dart` is deleted (FR-025). |
 | App-owned toast host (`showFlareToast`) | 18 sites | 0 | fixed (Round 3) | `FlareToast.show` (FR-021). |
 | Composer text restored by the app after a failed send | 1 | 0 | fixed (Round 3) | `onSend` returns whether the text was sent (FR-015). |
 | Pending friend requests written into signatures | 1 | 0 | fixed (Round 3) | Request `direction` (FR-030). |
@@ -81,7 +81,7 @@ Before counts are each app's committed HEAD (the state before this program's edi
 |---|---:|---:|---|---|
 | Product UI in `confirmationDialog` | 8 | 0 | fixed (Round 4) | Destructive steps confirm through `FlareFeedback.confirm` (FR-022, Round 3); the moments history range, theme and language pickers are kit sheets with radio groups (Round 4). |
 | Hand-written system `Menu` in the toolbar | 1 | 0 | fixed (Round 4) | `ActionMenuView` (FR-024). |
-| `.sheet` hosting app screens | 16 | 9 | sanctioned | Kit sheets moved to `flareBottomSheet(item:)` (7 sites, FR-010); the remaining system sheets host whole app screens (moment composer and comments, create group, profile editor, QR code twice, search, emoji picker, the moments privacy contact picker). |
+| `.sheet` hosting app screens | 16 | 1 | sanctioned | Kit sheets moved to `flareBottomSheet(item:)` (7 sites, FR-010); on 2026-09-28 the whole-screen hosts (moment composer and comments, create group, start chat, add friend, profile editor, QR code twice, the moments privacy contact picker) moved to `flareBottomSheet(isPresented:)` with `size: .large`, conversation details to `flareDrawer` and search to `flareModal` or a page. The one remaining `.sheet(` is the system share sheet (`InviteViews.swift`), allowed by name in the example gate's `rawOverlay` counter. |
 | Toast hosted in the root view with timers in the session | 1 | 0 | fixed (Round 3) | `FlareFeedback` under `flareFeedbackHost` (FR-021). |
 | Contact and group rows wrapped in stacks to add a trailing button | 4 | 0 | fixed (Round 3) | `ContactItemView` trailing content (FR-029). |
 
@@ -110,7 +110,7 @@ Before counts are each app's committed HEAD (the state before this program's edi
 | `FlareDangerConfirm.show` (Flutter) | Unconfirmed recall and delete in the Flutter chat |
 | Compose system back | Back closing the Android app from any sub-screen |
 | Native toast presenters (Flutter `FlareToast.show`, iOS `FlareFeedback`, Compose `FlareToastHost`) | Flutter's toast helper (18 sites), the iOS root toast views and session timers, Android's platform toasts |
-| Native sheet and dialog presenters (Flutter `FlareBottomSheet.show` / `FlareDialog.show`, iOS `flareBottomSheet`, Compose `BottomSheet`) | Flutter's transparent route presenters, iOS system sheets around kit views, Android's raw `Dialog` |
+| Native sheet and dialog presenters (Flutter `FlareBottomSheet.show` / `FlareModal.show` / `FlareDrawer.show`, iOS `flareBottomSheet` / `flareModal` / `flareDrawer`, Compose `BottomSheet` / `Modal` / `Drawer`) | Flutter's transparent route presenters, iOS system sheets around kit views, Android's raw `Dialog` |
 | `capabilities` and `selectable` on the Vue conversation list | Tauri's second menu, its action maps and its checkbox wrappers; web's per-row action lists |
 | SearchBar entry mode, contact `trailing` and request `direction` on four kits | Android's search overlay, iOS and Android hand-built contact rows, pending requests written into signatures in five apps |
 | MessageList slots and a timeline that fills its pane | Tauri's typing-row growth fix |

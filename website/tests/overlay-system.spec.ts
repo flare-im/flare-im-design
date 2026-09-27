@@ -19,13 +19,14 @@ const LADDER = ["base", "sticky", "overlay", "modal", "media", "dropdown", "toas
 test("the overlay layers are one ordered scale that every surface reads from", async ({ page }) => {
   await page.goto("/embed/component-frame?name=DangerConfirm&viewport=desktop");
   await page.getByRole("button", { name: "打开确认" }).click();
-  await page.locator(".flare-sheet").waitFor();
+  // 桌面视口下 DangerConfirm 走 BottomSheet auto → FlareModal;三种浮层面都带 role="dialog" 与共用遮罩类。
+  await page.locator('[role="dialog"]').waitFor();
 
   const { layers, scrim } = await page.evaluate((names) => {
     const style = getComputedStyle(document.documentElement);
     return {
       layers: names.map((name) => Number(style.getPropertyValue(`--flare-z-index-${name}`).trim())),
-      scrim: getComputedStyle(document.querySelector(".flare-sheet-scrim")!).zIndex,
+      scrim: getComputedStyle(document.querySelector(".flare-overlay-scrim")!).zIndex,
     };
   }, LADDER as unknown as string[]);
 

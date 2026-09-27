@@ -29,7 +29,7 @@
 
 - `./components`：150 个组件导出 = 150 个 catalog symbol + 0 个 pendingMerge，`api-check --strict` 绿；2 个伴随导出（`flareIcons` / `flareIconNames` / `FlareIconName` 中的值与类型）。
 - `check-public-exports`：593 个平台组件表面可达；`check-doc-code`：686 个 Vue 公开导出作为文档真源（2026-09-14 补上 `safeExternalUrl` 等 3 个此前漏导出的 `./contracts` 符号）。
-- 原生包的非 catalog 宿主 API（Flutter sliver 列表 / `FlareDialog` / `ComposerInlineTextField`，Compose `FlarePlatformProvider`）登记在 `nativeCompanions`，`check:dead-components` 视其为存活。
+- 原生包的非 catalog 宿主 API（Flutter sliver 列表 / `FlareDialog` / `ComposerInlineTextField`，Compose `FlarePlatformProvider`）登记在 `nativeCompanions`，`check:dead-components` 视其为存活。（2026-09-28：`FlareDialog` 并入 catalog 组件 Modal 的 Flutter 实现 `FlareModal`，已从 `nativeCompanions` 移出，见 §5。）
 - `spec/duplication-register.json` 20 条全部关闭（P0-8 收掉最后的 D15 / D17 / N2），`check:duplicate-components --strict` 绿。
 
 ## 5. P0-3 之后新增的公开面
@@ -74,6 +74,11 @@
 | Round 10 删除（无别名）：`AdaptiveWorkbench` 四端（`FlareAdaptiveWorkbench`、`AdaptiveWorkbenchView`、`AdaptiveWorkbench`），改用 `AppLayout`（插槽 `navigation` / `primary` / `content` / `detail` / `overlay` / `floating` / `command`，栏数由共享分栏规则决定） | 组件 | 参考应用 Round 9（FR-140）：同一组区域两套组件，其中一套不量盒子、不走分栏规则、无消费者 |
 | Round 10 Vue 图标属性：kit 画出的每个图标 SVG 带 `data-flare-glyph`（Lucide 字形名） | 渲染输出 | 参考应用 Round 9（FR-136）：像素容差比一个图标还大，换了图标截图看不出来 |
 | Round 9 投票 / 任务意图：`MessageList`、`MessageBubble`、`MessageContentView` 的 `vote`、`taskToggle`（Vue 事件；原生 `onVote` / `onTaskToggle`） | 组件事件 | 参考应用 Round 9（FR-143）：时间线里的投票与任务只读，宿主接不到意图 |
+| 2026-09-28 浮层三件套：新组件 `Modal`（Vue `FlareModal`、Flutter `FlareModal`、iOS `ModalView` + `.flareModal`、Compose `Modal`）与 `Drawer`（Vue `FlareDrawer` 与类型 `FlareDrawerPlacement`、Flutter `FlareDrawer`（`show` / `showAdaptive`）与 `FlareDrawerPlacement`、iOS `DrawerView` + `.flareDrawer`、Compose `Drawer` 与 `FlareDrawerPlacement`） | 组件 | 参考应用：五端用底部面板的 `dialog` / `drawer` 形态或各自手写的居中框、嵌套导航抽屉承载详情、设置与搜索 |
+| 2026-09-28 `FlareSheetPresentation` 收为 `auto` / `sheet`（四端，删除 `dialog` / `drawer`）；BottomSheet 的 `maxHeight`、`titleHidden` 扩到四端；Compose `BottomSheet.presentation`、`FormDialog.presentation`；iOS `flareBottomSheet(isPresented:)` 重载与 `titleHidden` / `presentation` / `dismissible` / `size` / `maxHeight` 参数、`FlareSheetSize`；Flutter `FlareBottomSheet.show` 的 `titleHidden` / `dismissible` / `busy` / `maxHeight` 与 `FlareBottomSheet.prompt` | 组件 props / 呈现器 | 同上：`auto` 在非手机形态委托给 Modal，一条规则四端通用 |
+| 2026-09-28 形态判据与关闭锁：Flutter `flareCapabilitiesOf(context)`、iOS `EnvironmentValues.flareCompactOverlays`、Compose `flareCompactOverlays()`；iOS `FlareDrawerCompactFallback`、`FlareLayerDismissDisabledKey` / `.flareLayerDismissDisabled(_:)` | 原生函数与类型 | 应用自己量窗口决定面板还是页面 |
+| 2026-09-28 令牌与文案：`colors.scrim`（四端 `FlareColors.scrim`、Vue `--flare-color-scrim`）；`FlareStrings.drawerLabel` / `modalLabel`（原生）与 Vue `common.drawerLabel` / `common.modalLabel`；Flutter `FlareSearchPanel.autofocus` / `layout`（`FlareSearchPanelLayout`） | 令牌 / 文案 / 组件 props | 同一层遮罩在四端是四种颜色；无标题浮层没有可及名称 |
+| 2026-09-28 删除（无别名）：Flutter 公开的对话框类（改名 `FlareModal`，`show` → `FlareModal.show`，`prompt` → `FlareBottomSheet.prompt`，登记 D21）；Vue `.flare-sheet--dialog` / `.flare-sheet--drawer` 样式（D20） | 删除 | 同一职责两份公开实现 |
 
 行为变化（非新增符号）：Vue Composer 在词首输入 “@” 且宿主提供了成员名册时打开成员选择器，名册不再截断为 8 人；平板请求三栏时详情以浮层打开；快捷表情默认集改为 👍 ❤️ 😂 😮 😢 🎉（四端）；宿主传入的表情条同样受 `canReact` 约束；IMAppKit 的 `#overlay` 插槽成为覆盖层（不再参与窗格网格）；Vue 气泡的表情药丸在宿主处理 `react` 时可点击切换。
 
@@ -81,7 +86,7 @@ Round 3 的行为变化（非新增符号）：Vue `FlareComposer` 删除 `media
 
 Round 4 的行为变化（非新增符号）：Vue 会话行、会话头部与消息下拉菜单改由 `FlareActionMenu` 绘制（具名 `role="menu"`，条目 `menuitem` / `menuitemcheckbox`，不再有 `.n-dropdown` 类名）；`FlareGroupDetail` 的发消息按钮只在宿主处理打开聊天时出现（四端）；Vue `FlareAnnouncementReadBar` 显示文案（此前渲染消息键），「查看未读」要有 `view-unread` 监听；未知进群方式显示「未设置」；iOS 会话头部操作的 `icon` 为组件库语义图标名。迁移见 migration/2.0-rc-to-2.0.md §4o。
 
-组件数量：Round 4 新增 `ActionMenu`（契约 `Menu` 的实现，四端），149 → 150。Round 9 新增 `RichTextMessage` 与 `ImageGroupMessage`（四端），150 → 152。Round 10 删除 `AdaptiveWorkbench`（四端），152 → 151。
+组件数量：Round 4 新增 `ActionMenu`（契约 `Menu` 的实现，四端），149 → 150。Round 9 新增 `RichTextMessage` 与 `ImageGroupMessage`（四端），150 → 152。Round 10 删除 `AdaptiveWorkbench`（四端），152 → 151。2026-09-28 浮层三件套新增 `Modal` 与 `Drawer`（四端），154 → 156。
 
 ## 6. 证据
 

@@ -10,7 +10,8 @@ On a phone the app shows one thing at a time: the inbox, a conversation, or its 
 | A destination's panes, phone single pane | `FlareAppLayout` | `FlareAppLayout` | `AppLayoutView` | `AppLayout` |
 | Back in the chat header | `FlareConversationHeader` `show-back` | `FlareConversationHeader` | `ConversationHeaderView` `showBack` | `ConversationHeader` `showBack` |
 | Open details from the header | identity `action` (the avatar, title and subtitle are one button) | identity `action` | identity `action` | identity `action` |
-| Secondary panels on wide screens | `FlareBottomSheet` / `FlareFormSheet`: a sheet on phones, a dialog on pointer devices, `presentation="drawer"` for long panels | `FlareBottomSheet.show`, `FlareDialog.show` | `flareBottomSheet(item:)` | `BottomSheet` |
+| Short tasks: a sheet on phones, a centred Modal elsewhere | `FlareBottomSheet` / `FlareFormSheet` (`presentation="auto"`) | `FlareBottomSheet.show`, `FlareBottomSheet.prompt` | `flareBottomSheet(isPresented:)` | `BottomSheet` |
+| Long-lived secondary panels on wide screens (a page on phones) | `FlareDrawer` | `FlareDrawer.showAdaptive` | `flareDrawer(isPresented:, compactFallback: .push)` | `Drawer` with `flareCompactOverlays()` |
 | Back on secondary pages | `FlareScreen` `back` | `FlareScreen` | `FlareScreen` | `FlareScreen` `onBack` |
 | A host-drawn secondary page hides the tab bar | `useFlareDestinationDepth(active)` | `FlareDestinationDepth` | `.flareDestinationDepth(_:)` | `FlareDestinationDepth(active)` |
 

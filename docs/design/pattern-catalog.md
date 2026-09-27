@@ -197,14 +197,15 @@ Every presenter keeps the same queue, durations, close control and polite announ
 **Problem.** Forms and panels slid up from the bottom edge of a 1440 px desktop window, far from the pointer that opened them.
 
 **Rules.**
-- On phone form factors a sheet rises from the bottom, with a grip.
-- On pointer devices the same content is a centred dialog.
-- Long-lived side panels (settings, profile, search) are drawers on the inline end, full height.
-- All three take focus on open and return it to the opener on close; Escape and the scrim dismiss them unless the step must not be interrupted; motion is reduced when the user asks.
+Three components, one rule each:
+- **BottomSheet** carries a short, focused task (a confirm, a form, a picker, a prompt). With `presentation` `auto` (the default on all four kits) it rises from the bottom with a grip on the phone form factor and hands the same content to Modal everywhere else. Auto is resolved once when it opens and kept until it closes.
+- **Modal** is the centred box for a focused task on wide layouts; global search uses it in fixed-height mode (`fill`) so the box does not jump as results arrive.
+- **Drawer** carries long-lived secondary content beside the main view (conversation, group and contact details, settings stacks, a profile editor) as a full-height panel on the inline end. On phones that content is a page instead; a host layout fact such as a single-pane window wins.
+- All three take focus on open and return it to the opener on close; Escape, back and the scrim dismiss them unless the step must not be interrupted (`dismissible`, `busy`); motion is reduced when the user asks. The scrim is the `colors.scrim` token.
 
-**API.** Vue `presentation` on `FlareBottomSheet` and `FlareFormSheet`: `auto` (default; the platform `bottomSheet` capability decides), `sheet`, `dialog`, `drawer`. Flutter `FlareBottomSheet.show` and `FlareDialog.show`; iOS `flareBottomSheet(item:)`; Compose `BottomSheet`.
+**API.** Vue `FlareBottomSheet` / `FlareFormSheet` (`presentation`: `auto` or `sheet`), `FlareModal`, `FlareDrawer`. Flutter `FlareBottomSheet.show` / `.prompt`, `FlareModal.show`, `FlareDrawer.show` / `.showAdaptive`. iOS `flareBottomSheet(isPresented:|item:)`, `flareModal`, `flareDrawer`. Compose `BottomSheet`, `Modal`, `Drawer`, with `flareCompactOverlays()` as the form-factor resolver.
 
-**Used by.** Web and Tauri forms (dialogs at desktop widths); Tauri settings, privacy, search and profile (drawers); Flutter (10 sheets, 7 dialogs), iOS (7 kit sheets, plus the moments history range, theme and language pickers since Round 4) and Android (message sheet, audience and profile editor).
+**Used by.** Web and Tauri forms (Modal at desktop widths); Tauri settings (one Drawer with a page stack) and global search (Modal); web moments profile (Drawer) and global search (Modal); Flutter details (Drawer on wide, page on phone), prompts and sheets; iOS kit sheets and the conversation-details Drawer; Android details Drawer, search Modal and sheets.
 
 **Replaces.** Bottom sheets on desktop, and Flutter's transparent route presenters.
 
@@ -340,9 +341,9 @@ Every presenter keeps the same queue, durations, close control and polite announ
 - On phones search is a full page with its own back control.
 - A failed source says so and offers a retry; partial failures keep the results that did arrive under a warning.
 
-**API.** Vue `FlareBottomSheet` `presentation="dialog"` with `--flare-component-sheet-dialog-width` for the palette width; `FlareSearchBar` and `FlareSearchResults`, or the composed `FlareSearchPanel`.
+**API.** Vue `FlareModal` (`width`, `max-height`, `fill`, `:scrollable="false"`) on wide layouts and `FlareScreen` on phones, decided by the platform `bottomSheet` capability; `FlareSearchBar` and `FlareSearchResults`, or the composed `FlareSearchPanel` with `layout="page"`. Flutter `FlareModal` / page, iOS `flareModal` / page, Compose `Modal` / page.
 
-**Used by.** Web global search (palette on desktop, page on phones), Tauri global search (drawer), in-conversation search on both.
+**Used by.** Global search in all five apps (Modal on wide layouts, page on phones); in-conversation search in the web and Tauri detail pane and the Flutter drawer or page.
 
 ## 25. What a message says in one line
 

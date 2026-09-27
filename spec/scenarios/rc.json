@@ -250,6 +250,36 @@
       "content": "urlOnly",
       "interaction": "open",
       "accessibilityExpectation": "safe URL fallback remains operable without indefinite loading"
+    },
+    {
+      "id": "drawer-open-back",
+      "component": "Drawer",
+      "variant": "navigable",
+      "state": "open",
+      "theme": "light",
+      "content": "long",
+      "interaction": "back",
+      "accessibilityExpectation": "modal dialog named by its title; back returns one page, then closes; scrim closes"
+    },
+    {
+      "id": "drawer-closed-focus-return",
+      "component": "Drawer",
+      "variant": "end",
+      "state": "closed",
+      "theme": "dark",
+      "content": "short",
+      "interaction": "keyboard",
+      "accessibilityExpectation": "Escape closes and focus returns to the opener; RTL docks at the other edge"
+    },
+    {
+      "id": "modal-busy",
+      "component": "Modal",
+      "variant": "footer",
+      "state": "busy",
+      "theme": "dark",
+      "content": "long",
+      "interaction": "keyboard",
+      "accessibilityExpectation": "busy dialog: close, Escape, back and scrim blocked until the action settles"
     }
   ]
 }

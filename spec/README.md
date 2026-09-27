@@ -48,7 +48,7 @@ Top-level tables shared by every component:
 <!-- CATALOG:START -->
 ## Component catalog
 
-**154 components / 17 categories** (source in [`components.json`](./components.json);
+**156 components / 17 categories** (source in [`components.json`](./components.json);
 props/events extracted and calibrated from the `@flare-im/vue-ui` source).
 
 > This section is generated from the contract by `gen-readme-catalog.mjs`; do not edit by hand — a hand-written catalog rots as the contract grows.
@@ -73,14 +73,14 @@ props/events extracted and calibrated from the `@flare-im/vue-ui` source).
   `CommentThread` · `MomentActionPopover` · `MomentAudienceSheet` · `MomentCard` · `MomentComposer` · `MomentsCoverHeader` · `MomentsVisibilityRuleList` · `TopicChip`
 - **Call** — 7
   `CallControls` · `CallDevicePicker` · `CallDock` · `CallView` · `GroupCallView` · `IncomingCall` · `ScreenShare`
+- **Overlay** — 7
+  `ActionMenu` · `BottomSheet` · `DangerConfirm` · `Drawer` · `FormSheet` · `Modal` · `SearchPanel`
 - **General** — 6
   `Avatar` · `BrandLogo` · `Button` · `ConfigProvider` · `Icon` · `IconButton`
 - **Media** — 6
   `ImagePreviewModal` · `MarkdownPreview` · `MediaCenter` · `TransferProgress` · `TransferQueue` · `VideoPlayerModal`
 - **Navigation** — 6
   `AdaptiveNavigation` · `CommandPalette` · `FilterTabs` · `RecentSearches` · `SearchBar` · `SegmentedControl`
-- **Overlay** — 5
-  `ActionMenu` · `BottomSheet` · `DangerConfirm` · `FormSheet` · `SearchPanel`
 - **Patterns** — 2
   `ConversationListContainer` · `FriendListContainer`
 - **AppKit** — 1

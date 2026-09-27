@@ -368,11 +368,11 @@
 - Moments on an MVVM view model with audience rules (`flutter:viewmodels/moments_view_model.dart:14-200`).
 - Profile center: nickname and signature edit, QR token, privacy toggle, moments hide and mute lists (`flutter:screens/profile_center_screen.dart:12-607`).
 
-**Design System Usage:** 45 of 149 catalog components, plus ChatHeader (removed), Surface (removed, Flutter) and the uncatalogued FlareDialog.
+**Design System Usage:** 45 of 149 catalog components, plus ChatHeader (removed), Surface (removed, Flutter) and the then-uncatalogued Flutter dialog (catalogued as Modal, `FlareModal`, on 2026-09-28).
 - Auth: FlareScreen, FlareSegmentedControl, FlareFormField, FlareInput, FlareCheckbox, FlareButton, FlareStatusBanner, FlareBrandLogo, FlareTopicChip; Surface (removed, Flutter).
 - Shell and Chats tab: FlareIMAppKit, FlareConversationListContainer, FlareScreenHeader, FlareConversationList, FlareAvatar, FlareStatusBanner, FlareEmptyState.
 - Chat: FlareMessageList, FlareComposer, FlareMessageActionSheet (old API), FlareForwardPicker; ChatHeader (removed).
-- Contacts and requests: FlareFriendListContainer, FlareContactList, FlareSettingsList, FlareSearchBar, FlareContactMatchList, FlareFilterTabs, FlareNewFriendRequests, FlareDangerConfirm, FlareContactDetail, FlareGroupList, FlareDialog.
+- Contacts and requests: FlareFriendListContainer, FlareContactList, FlareSettingsList, FlareSearchBar, FlareContactMatchList, FlareFilterTabs, FlareNewFriendRequests, FlareDangerConfirm, FlareContactDetail, FlareGroupList, the Flutter dialog (now FlareModal).
 - Group: FlareGroupDetail, FlareAnnouncementReadBar.
 - Moments: FlareMomentsCoverHeader, FlareMomentCard, FlareMomentComposer, FlareMomentAudienceSheet, FlareSkeleton.
 - Profile center: FlareProfilePanel, FlareProfileEditor, FlareDeviceSessions, FlareStorageUsage, FlareMomentsVisibilityRuleList, FlareQRCard.
@@ -382,7 +382,7 @@
 | Component | LOC | Renders | Class | Should migrate? |
 |---|---:|---|---|---|
 | showFlareToast `flutter:host/presentation.dart:38-71` | 34 | Toast in a root OverlayEntry, fixed 3 s, no queue, 17 call sites | G | YES: kit toast host with queue and live region |
-| `_promptText` `flutter:screens/moments_screen.dart:302-334` | 33 | One-line prompt dialog, third copy of the pattern | G | YES: FlareDialog prompt helper |
+| `_promptText` `flutter:screens/moments_screen.dart:302-334` | 33 | One-line prompt dialog, third copy of the pattern | G | YES: kit prompt helper (now `FlareBottomSheet.prompt`) |
 | presentDialog and presentSheet `flutter:host/presentation.dart:7-34` | 28 | DialogRoute and ModalBottomSheetRoute presenters, 7 and 11 call sites | H (belongs in kit) | YES: kit dialog and sheet presenters |
 | flareMaterialTheme `flutter:host/material_theme.dart:9-23` | 15 | Material ThemeData from kit tokens | H (belongs in kit) | YES: a kit Material theme bridge |
 | ChatScreen `flutter:screens/chat_screen.dart` | 289 | Chat page with app-owned message action list, forward sheet sizing, scroll to bottom | A (G fragments) | YES for the action list: `FlareMessageActionSheet.show` with availability; page composition NO |
