@@ -133,6 +133,9 @@ export function useFlareModalSurface(options: FlareModalSurfaceOptions): FlareMo
   function onKeydown(event: KeyboardEvent): void {
     if (!isTopmost()) return;
     if (event.key === "Escape") {
+      // 面里的控件(Select / 日期 / 时间的弹层)已经用掉这下 Escape 了:只收它自己的弹层,
+      // 面不能再跟着返回或关闭。它们在捕获阶段处理并 preventDefault。
+      if (event.defaultPrevented) return;
       event.preventDefault();
       if (dismissible()) options.onRequestClose();
       return;

@@ -5,6 +5,7 @@ import { defineComponent, h, nextTick, reactive, type Component } from "vue";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
 import { useFlarePlatformProvider } from "../../shared/platform/useFlarePlatform";
 import FlareModal from "./FlareModal.vue";
+import FlareDatePicker from "../form/FlareDatePicker.vue";
 
 let host: ReturnType<typeof mount> | undefined;
 afterEach(() => {
@@ -40,6 +41,8 @@ function mountModal(props: Record<string, unknown>, options: MountOptions = {}) 
 const surface = () => document.body.querySelector('[role="dialog"]') as HTMLElement;
 const closeButton = () => surface().querySelector<HTMLButtonElement>('[aria-label="Close"]');
 const escape = () => document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+// 真键盘事件从获得焦点的元素出发、冒泡到 document,并且可取消 —— 捕获阶段的监听才先于冒泡的那些,preventDefault 才留得下痕迹。
+const pressEscape = (from: Element) => from.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
 
 describe("FlareModal DOM contract", () => {
   it("is a named, modal dialog surface stamped dialog over the shared scrim", async () => {
@@ -128,6 +131,24 @@ describe("FlareModal closing", () => {
     await nextTick();
     // A click inside the surface does not reach the scrim.
     expect(events).toEqual(["close", "close", "close"]);
+  });
+
+  it("leaves an Escape that closes an inner date popover to the picker: no close, and the next Escape closes", async () => {
+    const { events } = mountModal({ title: "Search" }, {
+      slots: { default: () => h(FlareDatePicker as Component, { placeholder: "From", modelValue: "2026-09-01" }) },
+    });
+    await nextTick();
+    const trigger = surface().querySelector<HTMLButtonElement>("button.flare-dp__trigger")!;
+    trigger.click();
+    await nextTick();
+    expect(surface().querySelector(".flare-dp__pop")).not.toBeNull();
+    pressEscape(trigger);
+    await nextTick();
+    expect(surface().querySelector(".flare-dp__pop")).toBeNull();
+    expect(events).toEqual([]);
+    pressEscape(trigger);
+    await nextTick();
+    expect(events).toEqual(["close"]);
   });
 
   it("hides the close button when asked", async () => {

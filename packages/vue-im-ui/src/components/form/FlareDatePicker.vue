@@ -73,6 +73,9 @@ function onDocPointer(e: MouseEvent): void {
   if (root.value && !root.value.contains(e.target as Node)) open.value = false;
 }
 // 用掉 Escape 就要 preventDefault:下面可能还有一层上下文层(多选工具条)在听同一下键。
+// 键盘监听挂在捕获阶段:弹层放在 Drawer / Modal 里时,面的冒泡监听比这里先注册,
+// 冒泡阶段它会先把这下 Escape 当成「返回 / 关闭」。捕获阶段先到这里,面看到
+// defaultPrevented 就不再处理。不 stopPropagation —— 别的层还靠 defaultPrevented 判断。
 function onDocKey(e: KeyboardEvent): void {
   if (e.key === "Escape" && !asSheet.value && open.value) {
     e.preventDefault();
@@ -81,12 +84,12 @@ function onDocKey(e: KeyboardEvent): void {
 }
 if (typeof document !== "undefined") {
   document.addEventListener("click", onDocPointer, true);
-  document.addEventListener("keydown", onDocKey);
+  document.addEventListener("keydown", onDocKey, true);
 }
 onBeforeUnmount(() => {
   if (typeof document !== "undefined") {
     document.removeEventListener("click", onDocPointer, true);
-    document.removeEventListener("keydown", onDocKey);
+    document.removeEventListener("keydown", onDocKey, true);
   }
 });
 </script>

@@ -5,6 +5,7 @@ import { defineComponent, h, nextTick, reactive, type Component } from "vue";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
 import { useFlarePlatformProvider } from "../../shared/platform/useFlarePlatform";
 import FlareDrawer from "./FlareDrawer.vue";
+import FlareSelect from "../form/FlareSelect.vue";
 
 let host: ReturnType<typeof mount> | undefined;
 afterEach(() => {
@@ -56,6 +57,8 @@ function mountDrawer(props: Record<string, unknown>, options: MountOptions = {})
 const surface = () => document.body.querySelector('[role="dialog"]') as HTMLElement;
 const button = (label: string) => surface().querySelector<HTMLButtonElement>(`[aria-label="${label}"]`);
 const escape = () => document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+// 真键盘事件从获得焦点的元素出发、冒泡到 document,并且可取消 —— 捕获阶段的监听才先于冒泡的那些,preventDefault 才留得下痕迹。
+const pressEscape = (from: Element) => from.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
 
 describe("FlareDrawer DOM contract", () => {
   it("is a named, modal dialog surface stamped drawer, docked to the inline end over the shared scrim", async () => {
@@ -147,6 +150,30 @@ describe("FlareDrawer navigation and closing", () => {
     (surface().parentElement as HTMLElement).click();
     button("Close")!.click();
     expect(events).toEqual(["back", "back", "back", "close", "close"]);
+  });
+
+  it("leaves an Escape that closes an inner Select popover to the Select: no back, and the next Escape goes back", async () => {
+    const { events } = mountDrawer({ title: "Privacy", showBack: true }, {
+      slots: {
+        default: () => h(FlareSelect as Component, {
+          title: "Profile visibility",
+          options: [{ value: "all", label: "Everyone" }, { value: "friends", label: "Friends" }],
+          modelValue: "all",
+        }),
+      },
+    });
+    await nextTick();
+    const trigger = surface().querySelector<HTMLButtonElement>("button.flare-select__trigger")!;
+    trigger.click();
+    await nextTick();
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    pressEscape(trigger);
+    await nextTick();
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    expect(events).toEqual([]);
+    pressEscape(trigger);
+    await nextTick();
+    expect(events).toEqual(["back"]);
   });
 
   it("follows showBack as it changes while open: the platform back closes on the root page", async () => {
