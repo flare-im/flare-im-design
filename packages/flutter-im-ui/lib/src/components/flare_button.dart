@@ -132,8 +132,11 @@ class _FlareButtonState extends State<FlareButton> {
       );
     }
 
+    // A block button fills its width and keeps the content centred like the
+    // Vue block button; the label is Flexible so a long one still wraps or
+    // ellipsizes inside the button instead of overflowing.
     final row = Row(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: widget.block ? MainAxisSize.max : MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         if (widget.loading)
@@ -152,7 +155,7 @@ class _FlareButtonState extends State<FlareButton> {
             (widget.label != null || widget.child != null))
           const SizedBox(width: 6),
         if (widget.label != null || widget.child != null)
-          if (widget.block) Expanded(child: label) else label,
+          if (widget.block) Flexible(child: label) else label,
       ],
     );
 

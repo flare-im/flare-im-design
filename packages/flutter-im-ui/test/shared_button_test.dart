@@ -65,4 +65,50 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(tester.getSize(find.byType(FlareButton).first).width, lessThan(200));
   });
+  testWidgets('a block button centres its label across its width', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            width: 300,
+            child: FlareButton(label: 'Save', block: true, onPressed: () {}),
+          ),
+        ),
+      ),
+    );
+    final button = tester.getRect(find.byType(FlareButton));
+    final label = tester.getRect(find.text('Save'));
+    expect(button.width, 300);
+    // The label box hugs the text (a full-width box would draw it at the
+    // start edge) and sits in the middle of the button.
+    expect(label.width, lessThan(button.width / 2));
+    expect(label.center.dx, closeTo(button.center.dx, 1));
+  });
+  testWidgets('a long label in a narrow block button stays inside it', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            width: 120,
+            child: FlareButton(
+              label: 'A very long confirmation label that cannot fit',
+              block: true,
+              icon: 'check',
+              onPressed: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(tester.takeException(), isNull);
+    final button = tester.getRect(find.byType(FlareButton));
+    final label = tester.getRect(
+      find.text('A very long confirmation label that cannot fit'),
+    );
+    expect(label.right, lessThanOrEqualTo(button.right));
+  });
 }
