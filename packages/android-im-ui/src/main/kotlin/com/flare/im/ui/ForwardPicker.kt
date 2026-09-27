@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -42,7 +43,18 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-/** Forward-target picker — search + multi-select + send. Spec: Conversation/ForwardPicker. */
+/**
+ * Forward-target picker — search + multi-select + send. Spec: Conversation/ForwardPicker.
+ *
+ * Height: the header, search field and Send footer always keep their size; the target list takes what is left,
+ * up to 300 dp, and scrolls. So under a bounded host (a [BottomSheet], a [Modal], `FlareScreen(scroll = false)`,
+ * or any fixed-height box) Send stays on screen however short the host gets — a small phone, landscape, or the
+ * keyboard raised by the search field. Under an unbounded host (inside a vertical scroll) the list is simply
+ * 300 dp tall.
+ *
+ * On a kit overlay (sheet, modal, drawer) the overlay supplies the surface and closes on its scrim and back, so
+ * the picker drops its own card, fixed width and close control; standalone it is a 340 dp card.
+ */
 @Composable
 fun ForwardPicker(
     targets: List<ForwardTarget>,
@@ -65,98 +77,109 @@ fun ForwardPicker(
         if (selected.contains(id)) selected.remove(id) else selected.add(id)
     }
 
-    Column(
-        Modifier.width(340.dp).clip(RoundedCornerShape(FlareSizes.radiusXl))
+    val onOverlay = LocalFlareOverlaySurface.current != null
+    BoxWithConstraints(
+        if (onOverlay) Modifier.fillMaxWidth()
+        else Modifier.width(340.dp).clip(RoundedCornerShape(FlareSizes.radiusXl))
             .background(colors.bgPrimary)
             .border(1.dp, colors.borderPrimary, RoundedCornerShape(FlareSizes.radiusXl)),
     ) {
-        Row(
-            Modifier.fillMaxWidth().padding(start = FlareSizes.spacingLg, end = FlareSizes.spacingMd, top = FlareSizes.spacing2md, bottom = FlareSizes.spacingSm),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(flareStrings().forwardTo, color = colors.textPrimary, fontWeight = FontWeight.SemiBold,
-                fontSize = FlareSizes.fontSizeXl.value.sp)
-            Spacer(Modifier.weight(1f))
-            if (dismissible) {
-                Icon(Icons.Outlined.Close, contentDescription = flareStrings().close, tint = colors.textTertiary,
-                    modifier = Modifier.size(18.dp).clickable { onClose?.invoke() })
+        // A weighted child of an unbounded Column collapses to nothing, so the list yields to the footer only when
+        // there is a bound to yield under.
+        val bounded = constraints.hasBoundedHeight
+        Column(Modifier.fillMaxWidth()) {
+            Row(
+                Modifier.fillMaxWidth().padding(start = FlareSizes.spacingLg, end = FlareSizes.spacingMd, top = FlareSizes.spacing2md, bottom = FlareSizes.spacingSm),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(flareStrings().forwardTo, color = colors.textPrimary, fontWeight = FontWeight.SemiBold,
+                    fontSize = FlareSizes.fontSizeXl.value.sp)
+                Spacer(Modifier.weight(1f))
+                if (dismissible && !onOverlay) {
+                    Icon(Icons.Outlined.Close, contentDescription = flareStrings().close, tint = colors.textTertiary,
+                        modifier = Modifier.size(18.dp).clickable { onClose?.invoke() })
+                }
             }
-        }
-        // search
-        Row(
-            Modifier.padding(horizontal = FlareSizes.spacingMd).fillMaxWidth()
-                .clip(RoundedCornerShape(FlareSizes.radiusLg)).background(colors.bgSecondary)
-                .padding(horizontal = FlareSizes.spacing2sm, vertical = FlareSizes.spacingSm),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(Icons.Outlined.Search, contentDescription = null, tint = colors.textTertiary, modifier = Modifier.size(16.dp))
-            Spacer(Modifier.width(8.dp))
-            BasicTextField(
-                value = query, onValueChange = { query = it }, singleLine = true,
-                textStyle = TextStyle(color = colors.textPrimary, fontSize = 14.sp),
-                cursorBrush = SolidColor(colors.primary),
-                modifier = Modifier.weight(1f),
-                decorationBox = { inner ->
-                    if (query.isEmpty()) Text(flareStrings().searchConversations, color = colors.textTertiary, fontSize = 14.sp)
-                    inner()
-                },
-            )
-        }
-        Column(Modifier.heightIn(max = 300.dp).verticalScroll(rememberScrollState()).padding(horizontal = FlareSizes.spacingSm, vertical = FlareSizes.spacingXs)) {
-            filtered.forEach { tgt ->
-                val on = selected.contains(tgt.id)
-                Row(
-                    Modifier.fillMaxWidth().clip(RoundedCornerShape(FlareSizes.radiusLg))
-                        .background(if (on) colors.bgSelected else Color.Transparent)
-                        .clickable { toggle(tgt.id) }.padding(horizontal = FlareSizes.spacingSm, vertical = 7.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Box(
-                        Modifier.size(20.dp).clip(CircleShape)
-                            .background(if (on) colors.primary else Color.Transparent)
-                            .border(1.5.dp, if (on) colors.primary else colors.borderHover, CircleShape),
-                        contentAlignment = Alignment.Center,
+            // search
+            Row(
+                Modifier.padding(horizontal = FlareSizes.spacingMd).fillMaxWidth()
+                    .clip(RoundedCornerShape(FlareSizes.radiusLg)).background(colors.bgSecondary)
+                    .padding(horizontal = FlareSizes.spacing2sm, vertical = FlareSizes.spacingSm),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Outlined.Search, contentDescription = null, tint = colors.textTertiary, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(8.dp))
+                BasicTextField(
+                    value = query, onValueChange = { query = it }, singleLine = true,
+                    textStyle = TextStyle(color = colors.textPrimary, fontSize = 14.sp),
+                    cursorBrush = SolidColor(colors.primary),
+                    modifier = Modifier.weight(1f),
+                    decorationBox = { inner ->
+                        if (query.isEmpty()) Text(flareStrings().searchConversations, color = colors.textTertiary, fontSize = 14.sp)
+                        inner()
+                    },
+                )
+            }
+            Column(
+                Modifier.then(if (bounded) Modifier.weight(1f, fill = false) else Modifier)
+                    .heightIn(max = 300.dp).verticalScroll(rememberScrollState())
+                    .padding(horizontal = FlareSizes.spacingSm, vertical = FlareSizes.spacingXs),
+            ) {
+                filtered.forEach { tgt ->
+                    val on = selected.contains(tgt.id)
+                    Row(
+                        Modifier.fillMaxWidth().clip(RoundedCornerShape(FlareSizes.radiusLg))
+                            .background(if (on) colors.bgSelected else Color.Transparent)
+                            .clickable { toggle(tgt.id) }.padding(horizontal = FlareSizes.spacingSm, vertical = 7.dp),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        if (on) Icon(Icons.Outlined.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(13.dp))
-                    }
-                    Spacer(Modifier.width(FlareSizes.spacing2sm))
-                    Avatar(userId = tgt.id, displayName = tgt.name, size = 38.dp)
-                    Spacer(Modifier.width(FlareSizes.spacing2sm))
-                    Column(Modifier.weight(1f)) {
-                        Text(tgt.name, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp,
-                            maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        tgt.subtitle?.let {
-                            Text(it, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp,
+                        Box(
+                            Modifier.size(20.dp).clip(CircleShape)
+                                .background(if (on) colors.primary else Color.Transparent)
+                                .border(1.5.dp, if (on) colors.primary else colors.borderHover, CircleShape),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            if (on) Icon(Icons.Outlined.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(13.dp))
+                        }
+                        Spacer(Modifier.width(FlareSizes.spacing2sm))
+                        Avatar(userId = tgt.id, displayName = tgt.name, size = 38.dp)
+                        Spacer(Modifier.width(FlareSizes.spacing2sm))
+                        Column(Modifier.weight(1f)) {
+                            Text(tgt.name, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp,
                                 maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            tgt.subtitle?.let {
+                                Text(it, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp,
+                                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            }
                         }
                     }
                 }
+                if (filtered.isEmpty()) {
+                    Text(flareStrings().noMatchingConversations, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp,
+                        modifier = Modifier.fillMaxWidth().padding(FlareSizes.spacing2xl), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                }
             }
-            if (filtered.isEmpty()) {
-                Text(flareStrings().noMatchingConversations, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp,
-                    modifier = Modifier.fillMaxWidth().padding(FlareSizes.spacing2xl), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-            }
-        }
-        Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderPrimary))
-        Row(
-            Modifier.fillMaxWidth().padding(start = FlareSizes.spacingLg, end = FlareSizes.spacingLg, top = FlareSizes.spacing2sm, bottom = FlareSizes.spacing2md),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(flareStrings().selectedCount(selected.size), color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd.value.sp)
-            Spacer(Modifier.weight(1f))
-            val enabled = selected.isNotEmpty()
-            Box(
-                Modifier.height(36.dp).clip(RoundedCornerShape(FlareSizes.radiusLg))
-                    .background(
-                        if (enabled) Brush.linearGradient(listOf(colors.primary, colors.primaryActive))
-                        else Brush.linearGradient(listOf(colors.bgSecondary, colors.bgSecondary)),
-                    )
-                    .then(if (enabled) Modifier.clickable { onConfirm?.invoke(selected.toList()) } else Modifier)
-                    .padding(horizontal = FlareSizes.spacingXl),
-                contentAlignment = Alignment.Center,
+            Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderPrimary))
+            Row(
+                Modifier.fillMaxWidth().padding(start = FlareSizes.spacingLg, end = FlareSizes.spacingLg, top = FlareSizes.spacing2sm, bottom = FlareSizes.spacing2md),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(flareStrings().send, color = if (enabled) Color.White else colors.textTertiary,
-                    fontWeight = FontWeight.Medium, fontSize = FlareSizes.fontSizeMd.value.sp)
+                Text(flareStrings().selectedCount(selected.size), color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd.value.sp)
+                Spacer(Modifier.weight(1f))
+                val enabled = selected.isNotEmpty()
+                Box(
+                    Modifier.height(36.dp).clip(RoundedCornerShape(FlareSizes.radiusLg))
+                        .background(
+                            if (enabled) Brush.linearGradient(listOf(colors.primary, colors.primaryActive))
+                            else Brush.linearGradient(listOf(colors.bgSecondary, colors.bgSecondary)),
+                        )
+                        .then(if (enabled) Modifier.clickable { onConfirm?.invoke(selected.toList()) } else Modifier)
+                        .padding(horizontal = FlareSizes.spacingXl),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(flareStrings().send, color = if (enabled) Color.White else colors.textTertiary,
+                        fontWeight = FontWeight.Medium, fontSize = FlareSizes.fontSizeMd.value.sp)
+                }
             }
         }
     }

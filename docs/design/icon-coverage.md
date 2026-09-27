@@ -29,7 +29,7 @@ Decision values: **Use** an existing name; **ADD** a name, because a kit or app 
 | Navigation | `profile` | as `person` | yes: kit default nav application_composition.dart:126, ApplicationComposition.swift:126, ApplicationComposition.kt:92; apps MainShell.swift:23, FlareSocialApp.kt:573 | Use `person` |
 | Navigation | `back` | exact | yes: flare_screen.dart:101, FlareScreen.swift:58, FlareScreen.kt:72 | Use `back` |
 | Navigation | `forward` | exact (message forward) | no (as navigation): no forward navigation control; the registry name is used for message forwarding | Use `forward` (message forwarding; no forward navigation) |
-| Navigation | `close` | exact | yes: flare_forward_picker.dart:130, ForwardPickerView.swift:49, ForwardPicker.kt:81 | Use `close` |
+| Navigation | `close` | exact | yes: flare_forward_picker.dart:130, ForwardPickerView.swift:49, ForwardPicker.kt:99 | Use `close` |
 | Navigation | `more` | exact | yes: flare_conversation_header.dart:332, ConversationHeaderView.swift:255, ConversationHeader.kt:205; apps MoreVert ContactsScreen.kt:55 | Use `more` |
 | Navigation | `menu` | - | no: no drawer/hamburger anywhere | Not added: no drawer or hamburger |
 | Message | `send` | exact | yes: flare_composer_parts.dart:79, ComposerParts.swift:216, ComposerParts.kt:160 | Use `send` |

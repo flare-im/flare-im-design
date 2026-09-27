@@ -2,6 +2,7 @@
 
 - 图片、视频、文件保存后，下载键变成「在文件夹中显示」；宿主发现文件被删后传回 idle，键回到下载。收发两侧的消息时间都在右侧。详见仓库根 CHANGELOG。
 - `FileMessage` 新增 `downloadState` / `onReveal`，没有 `onDownload` 时不再画装饰性的下载图标；`ImagePreview` / `VideoPlayer` 新增 `saved` / `onReveal`；列表、气泡、分发器新增 `onMediaReveal`；`VideoMessage.duration` 默认空串（不画角标）。
+- `ForwardPicker` 在有界高度的宿主里（`BottomSheet`、`Modal`、`FlareScreen(scroll = false)`）让目标列表让出高度，标题、搜索框与「发送」栏始终完整可见——小屏竖屏、横屏、搜索框弹出键盘时不再丢失发送键；无界宿主里列表仍是 300dp。放在 kit 浮层上时去掉自带的 340dp 卡片与关闭键，由浮层提供表面、遮罩与返回关闭。
 
 ## 1.0.10
 
