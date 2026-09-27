@@ -388,5 +388,55 @@ void main() {
       await tester.tap(_iconButton('close'));
       expect(events, ['back', 'back', 'back', 'close']);
     });
+
+    testWidgets('a locked drawer draws its back control disabled and inert', (
+      tester,
+    ) async {
+      Future<List<String>> pump({required bool dismissible}) async {
+        final events = <String>[];
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: FlareDrawer(
+                key: ValueKey(dismissible),
+                title: '隐私',
+                showBack: true,
+                dismissible: dismissible,
+                onBack: () => events.add('back'),
+                onClose: () => events.add('close'),
+                child: const Text('内容'),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        return events;
+      }
+
+      tester.view.physicalSize = _wide;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      final locked = await pump(dismissible: false);
+      final back = tester.widget<FlareIconButton>(_iconButton('back'));
+      expect(back.disabled, isTrue);
+      expect(
+        tester.widget<FlareIconButton>(_iconButton('close')).disabled,
+        isTrue,
+      );
+      await tester.tap(_iconButton('back'), warnIfMissed: false);
+      back.onPressed?.call();
+      await tester.pumpAndSettle();
+      expect(locked, isEmpty);
+
+      final open = await pump(dismissible: true);
+      expect(
+        tester.widget<FlareIconButton>(_iconButton('back')).disabled,
+        isFalse,
+      );
+      await tester.tap(_iconButton('back'));
+      await tester.pumpAndSettle();
+      expect(open, ['back']);
+    });
   });
 }

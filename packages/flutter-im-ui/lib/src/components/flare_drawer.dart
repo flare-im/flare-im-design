@@ -252,7 +252,14 @@ class FlareDrawer extends StatelessWidget {
                     showClose: showClose,
                     closeEnabled: dismissible,
                     onClose: () => _close(context),
-                    onBack: showBack ? () => onBack?.call() : null,
+                    // 锁住(dismissible=false)时返回键和关闭键一样画出来但禁用,
+                    // 回调里也再挡一次 —— 与 Escape / 系统返回走的 _requestDismiss 一致。
+                    onBack: showBack
+                        ? () {
+                            if (dismissible) onBack?.call();
+                          }
+                        : null,
+                    backEnabled: dismissible,
                     padding: EdgeInsetsDirectional.fromSTEB(
                       showBack ? FlareSizes.spacingXs : FlareSizes.spacingLg,
                       FlareSizes.spacingSm,
