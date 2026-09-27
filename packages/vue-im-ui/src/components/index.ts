@@ -137,6 +137,10 @@ export { default as FlareBrandLogo } from "./general/FlareBrandLogo.vue";
 export { default as FlareBottomSheet } from "./general/FlareBottomSheet.vue";
 export { default as FlareActionMenu } from "./general/FlareActionMenu.vue";
 export type { FlareSheetPresentation } from "./general/FlareBottomSheet.vue";
+// Overlays: a centered box (Modal) and a side panel (Drawer); BottomSheet auto hands off to Modal.
+export { default as FlareModal } from "./general/FlareModal.vue";
+export { default as FlareDrawer } from "./general/FlareDrawer.vue";
+export type { FlareDrawerPlacement } from "./general/FlareDrawer.vue";
 export { flareIcons, flareIconNames, type FlareIconName } from "../shared/icons";
 export { default as FlareFormField } from "./form/FlareFormField.vue";
 export { default as FlareInviteCodeField } from "./form/FlareInviteCodeField.vue";

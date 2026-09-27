@@ -28,6 +28,12 @@ let priorOverflow = "";
 
 const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
+/**
+ * 模态面页头控件(关闭、返回、页头 actions 的容器)上的标记:打开时的初始焦点跳过它们,
+ * 先落到内容里第一个可聚焦元素上。FlareModal / FlareDrawer 的页头都带着它。
+ */
+export const FLARE_OVERLAY_CHROME = "data-flare-overlay-chrome";
+
 export interface FlareModalSurfaceOptions {
   /** 这张面开着没有。 */
   open: MaybeRefOrGetter<boolean>;
@@ -108,6 +114,22 @@ export function useFlareModalSurface(options: FlareModalSurfaceOptions): FlareMo
       .filter((el) => !el.hasAttribute("disabled"));
   }
 
+  // 打开时焦点先给内容,再给页头那几颗键,最后才是面本身。页头的关闭键画在最前面,
+  // 按「第一个可聚焦」走的话,表单打开时焦点落在 × 上而不是第一个字段 —— 所以页头
+  // 控件带 `data-flare-overlay-chrome`,这里跳过它们。
+  function initialFocusTarget(): HTMLElement | null {
+    const items = focusables();
+    const content = items.find((el) => !el.closest(`[${FLARE_OVERLAY_CHROME}]`));
+    return content ?? items[0] ?? options.surface.value;
+  }
+
+  // 焦点还给打开它的那个元素 —— 只在它还在文档里时;不滚动,免得关掉面板页面跳一下。
+  function restoreFocus(): void {
+    const target = opener;
+    opener = null;
+    if (target && target.isConnected && typeof target.focus === "function") target.focus({ preventScroll: true });
+  }
+
   function onKeydown(event: KeyboardEvent): void {
     if (!isTopmost()) return;
     if (event.key === "Escape") {
@@ -125,10 +147,13 @@ export function useFlareModalSurface(options: FlareModalSurfaceOptions): FlareMo
       const first = items[0];
       const last = items[items.length - 1];
       const active = document.activeElement as HTMLElement | null;
-      if (event.shiftKey && (active === first || !options.surface.value.contains(active))) {
+      // 焦点不在面里(抽屉里换了一页、按着的那颗键被拿掉了,activeElement 退回 body)时,
+      // 两个方向都要拉回来 —— 否则浏览器把 Tab 交给遮罩后面的第一个可聚焦元素。
+      const outside = !options.surface.value.contains(active);
+      if (event.shiftKey && (active === first || outside)) {
         event.preventDefault();
         last.focus();
-      } else if (!event.shiftKey && active === last) {
+      } else if (!event.shiftKey && (active === last || outside)) {
         event.preventDefault();
         first.focus();
       }
@@ -153,13 +178,14 @@ export function useFlareModalSurface(options: FlareModalSurfaceOptions): FlareMo
         lockScroll();
         document.addEventListener("keydown", onKeydown);
         if (toValue(options.autoFocus ?? true)) {
-          void nextTick(() => (focusables()[0] ?? options.surface.value)?.focus());
+          void nextTick(() => initialFocusTarget()?.focus());
         }
       } else {
         document.removeEventListener("keydown", onKeydown);
+        const held = holdsLock;
         unlockScroll();
-        opener?.focus?.();
-        opener = null;
+        if (held) restoreFocus();
+        else opener = null;
       }
     },
     { immediate: true },
@@ -169,7 +195,13 @@ export function useFlareModalSurface(options: FlareModalSurfaceOptions): FlareMo
     releaseBack?.();
     if (typeof document === "undefined") return;
     document.removeEventListener("keydown", onKeydown);
+    // 宿主直接用 v-if 拿掉一张还开着的面(没经过 open → false)时,焦点也得还回去,
+    // 不然它留在一个已经不在文档里的元素上,键盘用户从 body 重新开始。只有真的开着
+    // (持有锁)的那张才还 —— 关着的面从没拿走过焦点。
+    const held = holdsLock;
     unlockScroll();
+    if (held) restoreFocus();
+    else opener = null;
   });
 
   return { overlayContainer, isTopmost };

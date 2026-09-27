@@ -136,8 +136,8 @@ function submitDialog(): void {
   background: var(--flare-color-primary);
 }
 
-/* 判据取自 FlareBottomSheet 画在面上的 data-flare-presentation —— 这里不再自己
-   算一遍「现在是手机还是桌面」。 */
+/* 判据取自面上的 data-flare-presentation(底部面板写 sheet,交给 FlareModal 时写 dialog)
+   —— 这里不再自己算一遍「现在是手机还是桌面」。 */
 [data-flare-presentation="sheet"] .start-dialog-form {
   padding: 0 16px calc(16px + env(safe-area-inset-bottom, 0px));
 }

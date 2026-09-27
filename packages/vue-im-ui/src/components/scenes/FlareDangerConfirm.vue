@@ -80,19 +80,16 @@ function cancel(): void { if (!props.busy) emit("cancel"); }
   margin-top: var(--flare-size-spacing-md);
 }
 /* 弹窗里没有拇指够不够得着的问题,横排收在末端,和别的桌面弹窗一个样子。
-   判据取自 FlareBottomSheet 画在面上的 data-flare-presentation —— 这里不再自己
-   算一遍「现在是手机还是桌面」。 */
-[data-flare-presentation="dialog"] .flare-danger-confirm,
-[data-flare-presentation="drawer"] .flare-danger-confirm {
+   判据取自面上的 data-flare-presentation(FlareBottomSheet 自己的面写 sheet,交给
+   FlareModal 时 FlareModal 写 dialog)—— 这里不再自己算一遍「现在是手机还是桌面」。 */
+[data-flare-presentation="dialog"] .flare-danger-confirm {
   padding: 0 var(--flare-size-spacing-lg) var(--flare-size-spacing-md);
 }
-[data-flare-presentation="dialog"] .flare-danger-confirm__actions,
-[data-flare-presentation="drawer"] .flare-danger-confirm__actions {
+[data-flare-presentation="dialog"] .flare-danger-confirm__actions {
   flex-direction: row;
   justify-content: flex-end;
 }
-[data-flare-presentation="dialog"] .flare-danger-confirm__actions :deep(.flare-button),
-[data-flare-presentation="drawer"] .flare-danger-confirm__actions :deep(.flare-button) {
+[data-flare-presentation="dialog"] .flare-danger-confirm__actions :deep(.flare-button) {
   width: auto;
   min-width: 96px;
 }

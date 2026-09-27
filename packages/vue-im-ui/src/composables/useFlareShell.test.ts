@@ -152,7 +152,7 @@ describe("the shell's mode is the one answer inside it (FR-139)", () => {
     await wrapper.get("button.flare-select__trigger").trigger("click");
     await settle();
     expect(wrapper.find(".flare-select__menu").exists()).toBe(false);
-    expect(document.body.querySelector(".flare-sheet")?.getAttribute("data-flare-presentation")).toBe("sheet");
+    expect(document.body.querySelector('[role="dialog"]')?.getAttribute("data-flare-presentation")).toBe("sheet");
     wrapper.unmount();
   });
 });

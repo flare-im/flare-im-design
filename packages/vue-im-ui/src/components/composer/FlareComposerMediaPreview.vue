@@ -292,8 +292,7 @@ function formatBytes(value: number): string {
 [data-flare-presentation="sheet"] .media-composer-preview__footer > * {
   flex: 1;
 }
-[data-flare-presentation="dialog"] .media-composer-preview__footer,
-[data-flare-presentation="drawer"] .media-composer-preview__footer {
+[data-flare-presentation="dialog"] .media-composer-preview__footer {
   justify-content: flex-end;
 }
 /* The host decides where this mounts, so there is no container it is guaranteed to sit inside,

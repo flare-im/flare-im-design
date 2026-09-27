@@ -46,49 +46,48 @@
       </div>
     </button>
 
-    <n-drawer v-model:show="drawerOpen" :width="502" placement="right" display-directive="show">
-      <n-drawer-content :title="drawerTitle" closable>
-        <div class="im-fwd-drawer">
-          <ol class="im-fwd-list">
-            <li v-for="(it, i) in allItems" :key="itemKey(it, i)" class="im-fwd-item">
-              <div class="im-fwd-item__top">
-                <div
-                  class="im-fwd-item__avatar"
-                  :style="{ '--flare-component-fwd-hue': String(avatarHue(it)) }"
-                  aria-hidden="true"
-                >
-                  {{ avatarInitial(it) }}
-                </div>
-                <div class="im-fwd-item__meta">
-                  <span class="im-fwd-item__sender">{{ senderLabel(it) }}</span>
-                  <span v-if="formatItemTime(it)" class="im-fwd-item__time">
-                    {{ formatItemTime(it) }}
-                  </span>
-                </div>
+    <!-- 合并转发的完整列表:kit 自己的侧边抽屉(遮罩、焦点、Escape 与平台返回键都由它负责),
+         宽度取 sheetWidth token。 -->
+    <FlareDrawer :open="drawerOpen" :title="drawerTitle" @close="drawerOpen = false">
+      <div class="im-fwd-drawer">
+        <ol class="im-fwd-list">
+          <li v-for="(it, i) in allItems" :key="itemKey(it, i)" class="im-fwd-item">
+            <div class="im-fwd-item__top">
+              <div
+                class="im-fwd-item__avatar"
+                :style="{ '--flare-component-fwd-hue': String(avatarHue(it)) }"
+                aria-hidden="true"
+              >
+                {{ avatarInitial(it) }}
               </div>
-              <p class="im-fwd-item__preview">
-                <PlainTextEmojiRich :text="itemPreviewLine(it)" />
-              </p>
-              <div v-if="shouldShowContentEmbed(it)" class="im-fwd-item__embed">
-                <ContentView :content="itemContent(it)" :is-self="false" />
+              <div class="im-fwd-item__meta">
+                <span class="im-fwd-item__sender">{{ senderLabel(it) }}</span>
+                <span v-if="formatItemTime(it)" class="im-fwd-item__time">
+                  {{ formatItemTime(it) }}
+                </span>
               </div>
-            </li>
-          </ol>
-        </div>
-      </n-drawer-content>
-    </n-drawer>
+            </div>
+            <p class="im-fwd-item__preview">
+              <PlainTextEmojiRich :text="itemPreviewLine(it)" />
+            </p>
+            <div v-if="shouldShowContentEmbed(it)" class="im-fwd-item__embed">
+              <ContentView :content="itemContent(it)" :is-self="false" />
+            </div>
+          </li>
+        </ol>
+      </div>
+    </FlareDrawer>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { NDrawer, NDrawerContent } from "naive-ui";
 import type { ContentElem } from "../../../../utils/contentElem";
 import { pickNestedPayload } from "../../../../utils/contentElem";
 import { asRecord, readArray, readNumber, readString } from "../../../../utils/contentData";
 import { getContentDecodedPreview } from "../../../../utils/messagePreview";
 import { useFlareI18n } from "../../../../shared/i18n/useFlareI18n";
-import { useFlareNativeBack } from "../../../../shared/platform/useFlareNativeBack";
+import FlareDrawer from "../../../general/FlareDrawer.vue";
 import ContentView from "../ContentView.vue";
 import PlainTextEmojiRich from "../../../shared/PlainTextEmojiRich.vue";
 
@@ -102,8 +101,8 @@ const props = defineProps<{ content: ContentElem; isSelf: boolean }>();
 
 const { t } = useFlareI18n();
 
+// 平台返回键由 FlareDrawer 自己认领(它听得到这里的 @close),这里不再另外认领一次。
 const drawerOpen = ref(false);
-useFlareNativeBack(drawerOpen, () => { drawerOpen.value = false; });
 const compactPreviewLimit = 3;
 
 // Accept both the nested `forward` payload and a serde-flattened root carrying
@@ -349,6 +348,10 @@ const ariaCardLabel = computed(() =>
   margin-top: 2px;
 }
 
+
+.im-fwd-drawer {
+  padding: 0 var(--flare-size-spacing-lg) var(--flare-size-spacing-lg);
+}
 
 .im-fwd-list {
   margin: 0;

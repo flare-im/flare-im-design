@@ -79,7 +79,7 @@ function onKeydown(event: KeyboardEvent): void {
 
 <template>
   <Teleport :to="overlayContainer">
-    <div v-if="open" class="flare-command-palette-backdrop" @mousedown.self="emit('close')">
+    <div v-if="open" class="flare-overlay-scrim flare-command-palette-backdrop" @mousedown.self="emit('close')">
       <section
         ref="paletteEl"
         class="flare-command-palette"
@@ -141,7 +141,7 @@ function onKeydown(event: KeyboardEvent): void {
   justify-content: center;
   align-items: flex-start;
   padding: 12vh var(--flare-size-spacing-md);
-  background: rgb(0 0 0 / 32%);
+  background: var(--flare-color-scrim);
 }
 
 .flare-command-palette {

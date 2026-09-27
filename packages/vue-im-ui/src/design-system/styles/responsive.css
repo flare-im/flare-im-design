@@ -10,24 +10,21 @@
   /* 消息区左右留白：贴近聊天边缘，头像和气泡自己承担视觉呼吸感。 */
   --flare-component-message-gutter-inline: 8px;
   --flare-component-composer-toolbar-icon: 26px;
-  --flare-component-sheet-width: 100%;
-  --flare-component-sheet-height: min(70dvh, 560px);
 }
 
-/* A page's own padding and a sheet's size are window-scale: a drawer covers the window, and the page
-   padding is the app's outer gutter. These stay window queries on purpose (FR-157). */
+/* A page's own padding is window-scale: it is the app's outer gutter. This stays a window query on
+   purpose (FR-157). Overlay sizes are not set here: FlareDrawer and FlareModal read the sheetWidth /
+   sheetDialogWidth tokens directly — the old window-keyed sheet-width/height seams here overrode the
+   token and nothing read them. */
 @media (min-width: 600px) and (max-width: 899px) {
   :root {
     --flare-component-page-padding-inline: var(--flare-size-spacing-2md);
-    --flare-component-sheet-height: min(72dvh, 620px);
   }
 }
 
 @media (min-width: 900px) {
   :root {
     --flare-component-page-padding-inline: 16px;
-    --flare-component-sheet-width: min(440px, 36vw);
-    --flare-component-sheet-height: 100%;
   }
 }
 

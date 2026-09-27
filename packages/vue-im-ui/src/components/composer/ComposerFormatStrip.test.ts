@@ -49,7 +49,7 @@ describe("ComposerFormatStrip — text-style picker by pointer kind", () => {
     expect(radios[0].attributes("aria-checked")).toBe("true");
     // 级别行占掉了格式组的位置。
     expect(strip.get('[aria-label="加粗"]').isVisible()).toBe(false);
-    expect(document.body.querySelector('[role="menu"], .flare-sheet')).toBeNull();
+    expect(document.body.querySelector('[role="menu"], [role="dialog"]')).toBeNull();
 
     await radios[2].trigger("pointerdown");
     await radios[2].trigger("click");

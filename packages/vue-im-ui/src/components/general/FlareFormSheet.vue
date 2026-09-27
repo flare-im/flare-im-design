@@ -5,9 +5,12 @@ import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 const props = withDefaults(defineProps<{
   open: boolean; title: string; busy?: boolean; confirmDisabled?: boolean;
   confirmLabel?: string; cancelLabel?: string; error?: string;
-  /** Bottom sheet on phones and a dialog on pointer devices by default; `drawer` for long forms. */
+  /**
+   * `auto` (default): a bottom sheet on phones and a FlareModal on pointer devices; `sheet` always a sheet.
+   * A long-lived form that belongs beside the main view is a FlareDrawer, not this.
+   */
   presentation?: FlareSheetPresentation;
-  /** 弹窗形态下这张面有多宽;`class` 与外部的自定义属性都到不了那里,见 FlareBottomSheet。 */
+  /** 交给 FlareModal 时这张面有多宽;`class` 与外部的自定义属性都到不了那里,见 FlareBottomSheet。 */
   dialogWidth?: string;
 }>(), { busy: false, confirmDisabled: false, presentation: "auto" });
 const emit = defineEmits<{ confirm: []; close: [] }>();

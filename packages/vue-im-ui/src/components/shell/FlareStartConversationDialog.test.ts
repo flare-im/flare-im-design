@@ -28,14 +28,15 @@ describe("FlareStartConversationDialog", () => {
   // 滚动锁、Escape 的层序、传送目标两边同一套。
   it("renders the kit's centered dialog where the platform has no bottom sheet", () => {
     mountDialog({ open: true, peerUserId: "u2" }, false);
-    const surface = document.body.querySelector(".flare-sheet");
+    const surface = document.body.querySelector('[role="dialog"]');
     expect(surface).not.toBeNull();
     expect((surface as HTMLElement).dataset.flarePresentation).toBe("dialog");
+    expect(surface!.querySelector(".start-dialog-form")).not.toBeNull();
   });
 
   it("renders the same form as a bottom sheet where the platform says so", async () => {
     const dialog = mountDialog({ open: true, peerUserId: "u2" }, true);
-    const sheet = document.body.querySelector(".flare-sheet");
+    const sheet = document.body.querySelector('[role="dialog"]');
     expect(sheet).not.toBeNull();
     expect((sheet as HTMLElement).dataset.flarePresentation).toBe("sheet");
     expect(sheet!.querySelector(".start-dialog-form")).not.toBeNull();
@@ -46,7 +47,7 @@ describe("FlareStartConversationDialog", () => {
 
   it("refuses to confirm without a peer and never closes while busy", () => {
     const dialog = mountDialog({ open: true, peerUserId: "   ", busy: true }, true);
-    const sheet = document.body.querySelector(".flare-sheet")!;
+    const sheet = document.body.querySelector('[role="dialog"]')!;
     [...sheet.querySelectorAll("button")].at(-1)!.click();
     expect(dialog.emitted("confirm")).toBeUndefined();
     (sheet.parentElement as HTMLElement).click();

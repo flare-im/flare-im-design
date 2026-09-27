@@ -25,7 +25,7 @@ describe("shared edit sheet", () => {
     expect(document.querySelector('[role="dialog"]')?.getAttribute("aria-label")).toBe("Edit");
     expect(document.querySelector("fieldset")?.disabled).toBe(true);
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
-    (document.querySelector(".flare-sheet-scrim") as HTMLElement).click();
+    (document.querySelector(".flare-overlay-scrim") as HTMLElement).click();
     document.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
     expect(wrapper.emitted("close")).toBeUndefined();
     expect(wrapper.emitted("confirm")).toBeUndefined();
