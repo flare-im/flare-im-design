@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -104,7 +104,10 @@ fun CommandPalette(
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         val colors = flareColors()
         Surface(
-            modifier = Modifier.width(640.dp).heightIn(max = 560.dp)
+            // As wide as the bubble cap (640) but never closer than spacing-xl to the window's sides: a fixed 640 was
+            // wider than a phone.
+            modifier = Modifier.padding(horizontal = FlareSizes.spacingXl).widthIn(max = FlareSizes.bubbleMaxWidth).fillMaxWidth()
+                .heightIn(max = 560.dp)
                 .semantics {
                     paneTitle = label
                     contentDescription = label

@@ -30,6 +30,8 @@ internal fun flareMaterialColorScheme(colors: FlareColors, dark: Boolean): Color
         surfaceContainerLowest = colors.bgPrimary, surfaceContainerLow = colors.bgSecondary,
         surfaceContainer = colors.bgSecondary, surfaceContainerHigh = colors.bgTertiary,
         surfaceContainerHighest = colors.bgElevated,
+        // M3 surfaces that still draw a scrim (menus, date pickers) use the kit's scrim token.
+        scrim = colors.scrim,
     )
 }
 

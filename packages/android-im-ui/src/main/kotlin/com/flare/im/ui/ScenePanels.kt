@@ -5,7 +5,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 enum class FlareCapabilityState { Loading, Available, Unavailable, Denied, Failed }
@@ -83,12 +88,37 @@ fun NotificationPreferences(items:List<FlareNotificationPreference>,permission:F
   } }
  }
 }
+/**
+ * Confirmation before something destructive or irreversible: what happens ([description]), to what ([target]),
+ * cancel and a danger confirm. Spec: Overlay/DangerConfirm. Hosted in [BottomSheet] with the automatic
+ * presentation — a bottom sheet on the phone form factor (stacked full-width keys, danger last) and a centered
+ * [Modal] elsewhere (keys at the trailing end) — like Vue and Flutter. Closing by the scrim, back or Escape is a
+ * cancel; while [busy] nothing closes it and both keys are disabled. A failure shows [error], announced at once.
+ */
 @Suppress("NAME_SHADOWING")
 @Composable
 fun DangerConfirm(title:String,description:String,target:String,busy:Boolean=false,error:String?=null,confirmText:String?=null,cancelText:String?=null,onConfirm:()->Unit,onCancel:()->Unit) {
  val strings = flareStrings()
+ val colors = flareColors()
  val confirmText = confirmText ?: strings.confirmAction
  val cancelText = cancelText ?: strings.cancel
- AlertDialog(onDismissRequest={if(!busy)onCancel()},title={Text(title)},text={Column(Modifier.verticalScroll(rememberScrollState())) {Text(description);if(target.isNotBlank())Text(target,style=MaterialTheme.typography.titleSmall);error?.let {Text(it,color=flareColors().errorText)}}},
- confirmButton={TextButton(onClick=onConfirm,enabled=!busy,modifier=Modifier.defaultMinSize(minHeight=48.dp,minWidth=48.dp)){Text(confirmText,color=MaterialTheme.colorScheme.error)}},dismissButton={TextButton(onClick=onCancel,enabled=!busy,modifier=Modifier.defaultMinSize(minHeight=48.dp,minWidth=48.dp)){Text(cancelText)}})
+ BottomSheet(onClose = { if (!busy) onCancel() }, title = title, dismissible = !busy) {
+  val stacked = LocalFlareOverlaySurface.current == FlareOverlaySurfaceKind.Sheet
+  Column(
+   Modifier.fillMaxWidth().weight(1f, fill = false).verticalScroll(rememberScrollState())
+    .padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingSm),
+   verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
+  ) {
+   Text(description, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg)
+   if (target.isNotBlank()) Text(target, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg, fontWeight = FontWeight.SemiBold)
+   error?.let { Text(it, color = colors.errorText, fontSize = FlareSizes.fontSizeMd, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Assertive }) }
+  }
+  val cancel: @Composable () -> Unit = { Button(label = cancelText, variant = FlareButtonVariant.Secondary, disabled = busy, block = stacked, onClick = onCancel) }
+  val confirm: @Composable () -> Unit = { Button(label = confirmText, variant = FlareButtonVariant.Danger, disabled = busy, loading = busy, block = stacked, onClick = onConfirm) }
+  if (stacked) {
+   Column(Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingMd), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) { cancel(); confirm() }
+  } else {
+   Row(Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingMd), horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm, Alignment.End)) { cancel(); confirm() }
+  }
+ }
 }

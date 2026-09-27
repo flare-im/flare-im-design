@@ -182,10 +182,14 @@ suspend fun <T> callFlarePlatform(timeoutMs: Long? = null, operation: suspend ()
 
 val LocalFlarePlatform = staticCompositionLocalOf<FlarePlatformAdapter> { FlareUnsupportedPlatformAdapter() }
 
-/** Installs the host's [FlarePlatformAdapter] for a subtree; read it with [flarePlatform]. */
+/**
+ * Installs the host's [FlarePlatformAdapter] for a subtree; read it with [flarePlatform]. Below it the kit trusts
+ * the adapter's capabilities — including `bottomSheet` for [flareCompactOverlays] — so an adapter builds them from
+ * the live window width (e.g. `FlarePlatformCapabilities.android(widthDp = LocalConfiguration.current.screenWidthDp)`).
+ */
 @Composable
 fun FlarePlatformProvider(adapter: FlarePlatformAdapter, content: @Composable () -> Unit) {
-    CompositionLocalProvider(LocalFlarePlatform provides adapter, content = content)
+    CompositionLocalProvider(LocalFlarePlatform provides adapter, LocalFlarePlatformInstalled provides true, content = content)
 }
 
 /** The host adapter in effect (the unsupported fallback when none is installed). */

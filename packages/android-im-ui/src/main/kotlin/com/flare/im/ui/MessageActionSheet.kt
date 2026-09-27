@@ -3,6 +3,8 @@ package com.flare.im.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -162,8 +164,8 @@ fun MessageActionSheet(
     val empty = emptyText ?: strings.messageActionSheetEmpty
     val groups = messageMenuGroups(messageMenuActions(availability, strings, hiddenActions, content) + actions)
     val strip = if (availability.canReact) reactions ?: flareQuickReactions else emptyList()
-    // In a BottomSheet the sheet supplies the surface and the top spacing above the handle.
-    val inSheet = LocalFlareBottomSheet.current
+    // On a kit overlay (sheet, or the Modal a sheet becomes on wide layouts) the overlay supplies the surface.
+    val inSheet = LocalFlareOverlaySurface.current != null
     Column(
         Modifier.fillMaxWidth()
             .then(
@@ -199,30 +201,34 @@ fun MessageActionSheet(
                 textAlign = TextAlign.Center,
             )
         }
-        groups.forEachIndexed { index, entries ->
-            if (index > 0) Spacer(Modifier.height(FlareSizes.spacingSm))
-            Column(
-                Modifier.fillMaxWidth().clip(RoundedCornerShape(FlareSizes.radiusLg))
-                    .background(colors.bgPrimary)
-                    .border(1.dp, colors.borderPrimary, RoundedCornerShape(FlareSizes.radiusLg)),
-            ) {
-                entries.forEachIndexed { rowIndex, entry ->
-                    if (rowIndex > 0) HorizontalDivider(color = colors.borderSecondary)
-                    val destructive = entry.group == FlareMessageMenuGroup.Destructive
-                    val foreground = when {
-                        !entry.enabled -> colors.textTertiary
-                        destructive -> colors.error
-                        else -> colors.textPrimary
-                    }
-                    Row(
-                        Modifier.fillMaxWidth().heightIn(min = FlareSizes.touchTarget)
-                            .clickable(enabled = entry.enabled && onAction != null) { onAction?.invoke(entry.id) }
-                            .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingSm),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        FlareIcon(name = entry.icon, size = FlareSizes.iconSizeMd, tint = foreground)
-                        Spacer(Modifier.width(FlareSizes.spacingMd))
-                        Text(entry.label, color = foreground, fontSize = FlareSizes.fontSizeXl.value.sp)
+        // The overlay bounds its content; the grouped actions scroll inside it when a long list outgrows the cap
+        // (a sheet on a short landscape window), with the reaction strip kept in view.
+        Column(if (inSheet) Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()) else Modifier) {
+            groups.forEachIndexed { index, entries ->
+                if (index > 0) Spacer(Modifier.height(FlareSizes.spacingSm))
+                Column(
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(FlareSizes.radiusLg))
+                        .background(colors.bgPrimary)
+                        .border(1.dp, colors.borderPrimary, RoundedCornerShape(FlareSizes.radiusLg)),
+                ) {
+                    entries.forEachIndexed { rowIndex, entry ->
+                        if (rowIndex > 0) HorizontalDivider(color = colors.borderSecondary)
+                        val destructive = entry.group == FlareMessageMenuGroup.Destructive
+                        val foreground = when {
+                            !entry.enabled -> colors.textTertiary
+                            destructive -> colors.error
+                            else -> colors.textPrimary
+                        }
+                        Row(
+                            Modifier.fillMaxWidth().heightIn(min = FlareSizes.touchTarget)
+                                .clickable(enabled = entry.enabled && onAction != null) { onAction?.invoke(entry.id) }
+                                .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingSm),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            FlareIcon(name = entry.icon, size = FlareSizes.iconSizeMd, tint = foreground)
+                            Spacer(Modifier.width(FlareSizes.spacingMd))
+                            Text(entry.label, color = foreground, fontSize = FlareSizes.fontSizeXl.value.sp)
+                        }
                     }
                 }
             }

@@ -17,18 +17,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -356,7 +351,6 @@ internal fun groupMemberMuteTarget(model: FlareGroupDetailModel, userId: String)
  *
  * Mirrors the Vue kit's `FlareGroupDetail.vue`.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FlareGroupDetail(
     model: FlareGroupDetailModel?,
@@ -445,7 +439,6 @@ fun FlareGroupDetail(
     var memberSheet by remember { mutableStateOf<String?>(null) }
     var membersOpen by remember { mutableStateOf(false) }
     var transferTarget by remember { mutableStateOf<String?>(null) }
-    val memberSheetState = rememberModalBottomSheetState()
 
     Column(modifier.fillMaxSize().background(colors.bgSecondary)) {
         Row(
@@ -694,9 +687,12 @@ fun FlareGroupDetail(
         val member = m.members.firstOrNull { it.id == selected }
         val isAdmin = m.adminIds.contains(selected)
         val isMuted = m.mutedIds.contains(selected)
-        ModalBottomSheet(onDismissRequest = { memberSheet = null }, sheetState = memberSheetState) {
-            Column(Modifier.fillMaxWidth().padding(FlareSizes.spacingLg), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
-                Text(member?.name ?: labels.memberManage, color = colors.textPrimary, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+        BottomSheet(onClose = { memberSheet = null }, title = member?.name ?: labels.memberManage) {
+            Column(
+                Modifier.fillMaxWidth().weight(1f, fill = false).verticalScroll(rememberScrollState())
+                    .padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingSm),
+                verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
+            ) {
                 onPromoteMember?.let { promote ->
                     SecondaryBlockButton(text = if (isAdmin) labels.unsetAdmin else labels.setAdmin) {
                         memberSheet = null
@@ -720,12 +716,14 @@ fun FlareGroupDetail(
     // ── Transfer owner confirm ──────────────────────────────────────────────────
     transferTarget?.let { target ->
         val name = model?.members?.firstOrNull { it.id == target }?.name ?: ""
-        AlertDialog(
-            onDismissRequest = { transferTarget = null },
-            title = { Text(labels.transferOwner) },
-            text = { Text(labels.transferConfirmPrefix + name + labels.transferConfirmSuffix) },
-            confirmButton = { TextButton(onClick = { transferTarget = null; onTransferOwner(target) }) { Text(labels.confirmTransfer, color = colors.errorText) } },
-            dismissButton = { TextButton(onClick = { transferTarget = null }) { Text(labels.cancel) } },
+        DangerConfirm(
+            title = labels.transferOwner,
+            description = labels.transferConfirmPrefix + name + labels.transferConfirmSuffix,
+            target = "",
+            confirmText = labels.confirmTransfer,
+            cancelText = labels.cancel,
+            onConfirm = { transferTarget = null; onTransferOwner(target) },
+            onCancel = { transferTarget = null },
         )
     }
 
@@ -734,43 +732,43 @@ fun FlareGroupDetail(
     if (joinModeOpen && model != null && setJoinPolicy != null) {
         // An unknown policy opens with nothing selected; saving waits for a choice.
         var draft by remember(model.joinPolicy) { mutableStateOf(model.joinPolicy) }
-        AlertDialog(
-            onDismissRequest = { joinModeOpen = false },
-            title = { Text(labels.joinMode) },
-            text = {
-                RadioGroup(
-                    options = FlareGroupJoinPolicy.entries.map { FlareSelectOption(it.name, groupJoinPolicyLabel(it, labels)) },
-                    value = draft?.name.orEmpty(), vertical = true,
-                    onSelect = { name -> draft = FlareGroupJoinPolicy.entries.firstOrNull { it.name == name } },
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    enabled = draft != null,
-                    onClick = { draft?.let { policy -> joinModeOpen = false; setJoinPolicy(policy) } },
-                ) { Text(labels.save) }
-            },
-            dismissButton = { TextButton(onClick = { joinModeOpen = false }) { Text(labels.cancel) } },
-        )
+        FormDialog(
+            title = labels.joinMode,
+            confirmLabel = labels.save,
+            cancelLabel = labels.cancel,
+            onClose = { joinModeOpen = false },
+            onConfirm = { draft?.let { policy -> joinModeOpen = false; setJoinPolicy(policy) } },
+            confirmEnabled = draft != null,
+        ) {
+            RadioGroup(
+                options = FlareGroupJoinPolicy.entries.map { FlareSelectOption(it.name, groupJoinPolicyLabel(it, labels)) },
+                value = draft?.name.orEmpty(), vertical = true,
+                onSelect = { name -> draft = FlareGroupJoinPolicy.entries.firstOrNull { it.name == name } },
+            )
+        }
     }
 
     // ── Join requests ───────────────────────────────────────────────────────────
     if (joinRequestsOpen) {
-        ModalBottomSheet(onDismissRequest = { joinRequestsOpen = false }) {
-            Column(Modifier.fillMaxWidth().padding(FlareSizes.spacingLg), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
-                Text(labels.joinRequests, color = colors.textPrimary, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+        BottomSheet(onClose = { joinRequestsOpen = false }, title = labels.joinRequests) {
+            // A long request list scrolls inside the sheet's cap instead of running off its bottom.
+            Column(
+                Modifier.fillMaxWidth().weight(1f, fill = false).verticalScroll(rememberScrollState())
+                    .padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingSm),
+                verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd),
+            ) {
                 if (loadingJoinRequests && joinRequests.isEmpty()) {
                     Row(Modifier.fillMaxWidth().padding(FlareSizes.spacingLg), horizontalArrangement = Arrangement.Center) { CircularProgressIndicator() }
                 } else if (joinRequests.isEmpty()) {
-                    Text(labels.noRequests, color = colors.textTertiary, fontSize = 14.sp)
+                    Text(labels.noRequests, color = colors.textTertiary, fontSize = FlareSizes.fontSizeLg)
                 } else {
                     joinRequests.forEach { req ->
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             Avatar(userId = req.applicantId, displayName = req.applicantName, size = 40.dp)
                             Spacer(Modifier.width(FlareSizes.spacingMd))
                             Column(Modifier.weight(1f)) {
-                                Text(req.applicantName, color = colors.textPrimary, fontWeight = FontWeight.Medium, fontSize = 15.sp)
-                                req.message?.takeIf { it.isNotEmpty() }?.let { Text(it, color = colors.textTertiary, fontSize = 13.sp) }
+                                Text(req.applicantName, color = colors.textPrimary, fontWeight = FontWeight.Medium, fontSize = FlareSizes.fontSizeXl)
+                                req.message?.takeIf { it.isNotEmpty() }?.let { Text(it, color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd) }
                             }
                             Button(label = labels.approve, onClick = { onRespondRequest(req.requestId, true) })
                             Spacer(Modifier.width(FlareSizes.spacingSm))
@@ -785,37 +783,33 @@ fun FlareGroupDetail(
     // ── Invite link ─────────────────────────────────────────────────────────────
     if (inviteLinkOpen) {
         val clipboard = LocalClipboardManager.current
-        AlertDialog(
-            onDismissRequest = { inviteLinkOpen = false },
-            title = { Text(labels.inviteLink) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
-                    Text(labels.inviteLinkHint, color = colors.textTertiary, fontSize = 13.sp)
-                    if (loadingInviteLink && inviteCode.isNullOrEmpty()) {
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) { CircularProgressIndicator() }
-                    } else if (inviteCode.isNullOrEmpty()) {
-                        Text(labels.cannotGenerate, color = colors.textTertiary)
-                    } else {
-                        Text(labels.inviteCodeLabel, color = colors.textTertiary, fontSize = 13.sp)
-                        Text(inviteCode, color = colors.textPrimary, fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
-                    }
+        FormDialog(
+            title = labels.inviteLink,
+            confirmLabel = labels.copyCode,
+            cancelLabel = labels.close,
+            onClose = { inviteLinkOpen = false },
+            onConfirm = { inviteCode?.let { clipboard.setText(AnnotatedString(it)) }; inviteLinkOpen = false },
+            confirmEnabled = !inviteCode.isNullOrEmpty(),
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
+                Text(labels.inviteLinkHint, color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd)
+                if (loadingInviteLink && inviteCode.isNullOrEmpty()) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) { CircularProgressIndicator() }
+                } else if (inviteCode.isNullOrEmpty()) {
+                    Text(labels.cannotGenerate, color = colors.textTertiary)
+                } else {
+                    Text(labels.inviteCodeLabel, color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd)
+                    Text(inviteCode, color = colors.textPrimary, fontWeight = FontWeight.SemiBold, fontSize = FlareSizes.fontSize3xl)
                 }
-            },
-            confirmButton = {
-                TextButton(
-                    enabled = !inviteCode.isNullOrEmpty(),
-                    onClick = { inviteCode?.let { clipboard.setText(AnnotatedString(it)) }; inviteLinkOpen = false },
-                ) { Text(labels.copyCode) }
-            },
-            dismissButton = { TextButton(onClick = { inviteLinkOpen = false }) { Text(labels.close) } },
-        )
+            }
+        }
     }
 
     // ── Invite members ──────────────────────────────────────────────────────────
     if (inviteMembersOpen) {
         val memberIds = model?.members?.map { it.id }?.toSet() ?: emptySet()
         val invitable = invitableContacts.filter { it.id !in memberIds }
-        ModalBottomSheet(onDismissRequest = { inviteMembersOpen = false }) {
+        BottomSheet(onClose = { inviteMembersOpen = false }, title = labels.invite) {
             StartConversationDialog(
                 searchPlaceholder = labels.inviteSearchPlaceholder,
                 contacts = invitable.map { FlareContactOption(id = it.id, name = it.name, avatarUrl = it.avatarUrl, subtitle = it.signature) },

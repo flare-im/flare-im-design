@@ -1,27 +1,25 @@
 package com.flare.im.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 
-/** Shared form/confirmation surface. The host owns data, validation and side effects. */
-@OptIn(ExperimentalLayoutApi::class)
+/**
+ * Shared form surface (Spec: Overlay/FormSheet, Compose symbol `FormDialog`): the [title], the host's fields in
+ * [content], and cancel / confirm. The host owns data, validation and side effects.
+ *
+ * It is hosted in [BottomSheet] with [presentation] (default [FlareSheetPresentation.Auto]): a bottom sheet on
+ * the phone form factor and a centered [Modal] elsewhere, like the Vue FormSheet and the iOS FormSheetView.
+ * While [busy] confirm shows progress, cancel is disabled and nothing closes it (scrim, back, Escape). The
+ * fields scroll inside the sheet's height cap; the buttons stay in view.
+ */
 @Composable
 fun FormDialog(
     title: String,
@@ -32,25 +30,30 @@ fun FormDialog(
     confirmEnabled: Boolean = true,
     busy: Boolean = false,
     danger: Boolean = false,
+    presentation: FlareSheetPresentation = FlareSheetPresentation.Auto,
     content: @Composable () -> Unit,
 ) {
-    val colors = flareColors()
-    Dialog(
-        onDismissRequest = { if (!busy) onClose() },
-        properties = DialogProperties(dismissOnBackPress = !busy, dismissOnClickOutside = !busy, usePlatformDefaultWidth = false),
-    ) {
-        Surface(
-            modifier = Modifier.padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacing2xl).widthIn(max = 480.dp).fillMaxWidth(),
-            shape = RoundedCornerShape(FlareSizes.radiusXl), color = colors.bgPrimary, contentColor = colors.textPrimary,
+    BottomSheet(onClose = { if (!busy) onClose() }, title = title, dismissible = !busy, presentation = presentation) {
+        Column(
+            Modifier.fillMaxWidth().weight(1f, fill = false).verticalScroll(rememberScrollState())
+                .padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingSm),
+        ) { content() }
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingMd),
+            horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2sm),
         ) {
-            Column(Modifier.padding(FlareSizes.spacingLg), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
-                Text(title, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp, fontWeight = FontWeight.SemiBold)
-                Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())) { content() }
-                FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm, androidx.compose.ui.Alignment.End), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
-                    Button(label = cancelLabel, variant = FlareButtonVariant.Secondary, disabled = busy, onClick = onClose)
-                    Button(label = confirmLabel, variant = if (danger) FlareButtonVariant.Danger else FlareButtonVariant.Primary,
-                        disabled = !confirmEnabled, loading = busy, onClick = onConfirm)
-                }
+            Box(Modifier.weight(1f)) {
+                Button(label = cancelLabel, variant = FlareButtonVariant.Secondary, disabled = busy, block = true, onClick = onClose)
+            }
+            Box(Modifier.weight(1f)) {
+                Button(
+                    label = confirmLabel,
+                    variant = if (danger) FlareButtonVariant.Danger else FlareButtonVariant.Primary,
+                    disabled = !confirmEnabled,
+                    loading = busy,
+                    block = true,
+                    onClick = onConfirm,
+                )
             }
         }
     }

@@ -20,6 +20,7 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isSelectable
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -209,6 +210,30 @@ class GroupDetailInteractionTest {
         compose.onNode(hasText(labels.members) and androidx.compose.ui.test.hasClickAction()).performScrollTo().performClick()
         compose.onNode(androidx.compose.ui.test.hasSetTextAction()).performTextInput("陈")
         compose.onNodeWithText(strings.groupDetailNoMatchingMembers).assertIsDisplayed()
+    }
+
+    @Test fun aLongJoinRequestListScrollsInsideItsSheet() {
+        val requests = (1..30).map { FlareGroupJoinRequestView(requestId = "r$it", applicantId = "u$it", applicantName = "申请人$it") }
+        val answered = mutableListOf<Pair<String, Boolean>>()
+        compose.setContent { MaterialTheme {
+            FlareGroupDetail(model = model, joinRequests = requests, onRespondRequest = { id, approve -> answered += id to approve })
+        } }
+        compose.onNode(hasText(labels.joinRequests) and androidx.compose.ui.test.hasClickAction()).performScrollTo().performClick()
+        // The sheet is capped and its list scrolls: the last request is reachable, not cut off below the sheet.
+        compose.onNode(isDialog()).assertExists()
+        compose.onNodeWithText("申请人30").performScrollTo().assertIsDisplayed()
+        compose.onAllNodesWithText(labels.approve).onLast().performScrollTo().performClick()
+        compose.runOnIdle { assertEquals(listOf("r30" to true), answered) }
+    }
+
+    @Test fun theTransferConfirmationIsTheKitDangerConfirmNamedByItsTitle() {
+        compose.setContent { MaterialTheme { FlareGroupDetail(model = model) } }
+        compose.onNodeWithText("Ann").performClick()
+        compose.onNodeWithText(labels.transferOwner).performClick()
+        compose.onNode(androidx.compose.ui.test.SemanticsMatcher.expectValue(androidx.compose.ui.semantics.SemanticsProperties.PaneTitle, labels.transferOwner)).assertExists()
+        compose.onNodeWithText(labels.cancel).performClick()
+        compose.waitForIdle()
+        compose.onNode(isDialog()).assertDoesNotExist()
     }
 
     @Test fun aSubmitEditKeepsTheEditorOpenWithTheDraftAndTheErrorUntilItSucceeds() {

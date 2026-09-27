@@ -39,6 +39,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -123,7 +124,9 @@ fun Toast(
  * below the safe area, oldest first — and the confirm or prompt dialog of [dialogs], and
  * provides them as [LocalFlareToast] and [LocalFlareDialog]. The host wires every toast's
  * close button and action, runs the timers while it is composed, and keeps the stack a
- * polite live region so each new message is announced.
+ * polite live region so each new message is announced. While a kit overlay ([BottomSheet],
+ * [Modal], [Drawer]) is open, its dialog window sits above this one, so the topmost overlay
+ * draws the toast stack in its own window instead and the host draws none.
  */
 @Composable
 fun FlareToastHost(
@@ -132,38 +135,50 @@ fun FlareToastHost(
     dialogs: FlareDialogState = rememberFlareDialogState(),
     content: @Composable () -> Unit,
 ) {
-    CompositionLocalProvider(LocalFlareToast provides state, LocalFlareDialog provides dialogs) {
+    val overlays = remember(state) { FlareOverlayStack(state) }
+    CompositionLocalProvider(LocalFlareToast provides state, LocalFlareDialog provides dialogs, LocalFlareOverlayStack provides overlays) {
+        // The timers run here whichever window draws the stack, so moving it into an overlay does not restart them.
+        for (entry in state.entries) key(entry.id) {
+            if (entry.durationMs > 0) LaunchedEffect(Unit) {
+                delay(entry.durationMs)
+                state.dismiss(entry.id)
+            }
+        }
         Box(modifier) {
             content()
-            // Composed even when empty: a toast joining an existing live region is announced.
-            Column(
-                Modifier.align(Alignment.TopCenter)
-                    .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal))
-                    // 让开页头：贴着最顶端的 toast 会压在标题和页头动作上 —— 字压字，
-                    // 而且它盖住的按钮在它消失前一直点不到。
-                    .padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingLg)
-                    .padding(top = FlareSizes.screenHeaderHeight)
-                    .semantics { liveRegion = LiveRegionMode.Polite },
-                verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                for (entry in state.entries) key(entry.id) {
-                    if (entry.durationMs > 0) LaunchedEffect(Unit) {
-                        delay(entry.durationMs)
-                        state.dismiss(entry.id)
-                    }
-                    Toast(
-                        message = entry.message,
-                        variant = entry.variant,
-                        tone = entry.tone,
-                        actionLabel = entry.actionLabel,
-                        onAction = { state.runAction(entry.id) },
-                        onClose = { state.dismiss(entry.id) },
-                    )
-                }
-            }
+            if (overlays.isEmpty) FlareToastLayer(state, Modifier.align(Alignment.TopCenter))
             // A dialog opens its own window above the content and the toasts.
             FlareDialogPresenter(dialogs)
+        }
+    }
+}
+
+/**
+ * The toast stack of [state] — composed even when empty, so a toast joining an existing live region is
+ * announced. Drawn by [FlareToastHost], or by the topmost kit overlay while one is open.
+ */
+@Composable
+internal fun FlareToastLayer(state: FlareToastState, modifier: Modifier = Modifier) {
+    Column(
+        modifier
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal))
+            // 让开页头：贴着最顶端的 toast 会压在标题和页头动作上 —— 字压字，
+            // 而且它盖住的按钮在它消失前一直点不到。
+            .padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingLg)
+            .padding(top = FlareSizes.screenHeaderHeight)
+            .semantics { liveRegion = LiveRegionMode.Polite },
+        verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        for (entry in state.entries) key(entry.id) {
+            Toast(
+                message = entry.message,
+                variant = entry.variant,
+                tone = entry.tone,
+                actionLabel = entry.actionLabel,
+                onAction = { state.runAction(entry.id) },
+                onClose = { state.dismiss(entry.id) },
+            )
         }
     }
 }

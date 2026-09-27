@@ -219,7 +219,6 @@ private fun FlarePromptDialog(
     var draft by remember { mutableStateOf(options.value) }
     val filled = options.allowEmpty || draft.isNotBlank()
     val focus = remember { FocusRequester() }
-    LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
     FormDialog(
         title = options.title,
         confirmLabel = options.confirmText ?: strings.confirmAction,
@@ -229,6 +228,8 @@ private fun FlarePromptDialog(
         confirmEnabled = filled,
         busy = busy,
     ) {
+        // Asked from inside the overlay's window, once the field is composed there: the keyboard comes up on the field.
+        LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
         Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
             options.message?.takeIf { it.isNotBlank() }?.let {
                 Text(it, color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd)

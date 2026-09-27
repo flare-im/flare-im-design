@@ -14,6 +14,8 @@ class MaterialPresentationTest {
             assertEquals(colors.textPrimary, material.onSurface)
             assertEquals(colors.bgTertiary, material.surfaceContainerHigh)
             assertEquals(colors.borderPrimary, material.outline)
+            // Any M3 surface that still draws a scrim uses the overlay family's token.
+            assertEquals(colors.scrim, material.scrim)
         }
         val custom = FlareColors.Light.copy(primary = FlareColors.ForestLight.primary)
         assertEquals(custom.primary, flareMaterialColorScheme(custom, false).primary)
