@@ -58,6 +58,7 @@ function localPathFromValue(value: string): string {
 
 function descriptorFromFields(input: {
   message: MessageLike;
+  ownMessage: boolean;
   kind: MessageMediaDownloadKind;
   index: number;
   payload: Record<string, unknown>;
@@ -72,12 +73,13 @@ function descriptorFromFields(input: {
   const directUrl =
     readString(source, "url", "downloadUrl", "localPreviewUrl") ||
     readString(input.payload, "url", "downloadUrl", "localPreviewUrl");
-  const sourcePath =
-    readMediaLocalPath(source, input.payload) ||
-    localPathFromValue(id) ||
-    localPathFromValue(directUrl);
+  // A path on this device is only a source for what this device sent: in someone else's message it is
+  // text they chose, and saving it would copy one of this device's own files into the download folder.
+  const sourcePath = input.ownMessage
+    ? readMediaLocalPath(source, input.payload) || localPathFromValue(id) || localPathFromValue(directUrl)
+    : "";
   const sourceHttpUrl = httpUrl(directUrl);
-  const browserUrl = directUrl && !sourcePath ? directUrl : "";
+  const browserUrl = directUrl && !sourcePath && !localPathFromValue(directUrl) ? directUrl : "";
   const remoteFileId = sourcePath ? "" : remoteFileIdFromValue(id);
   const fileId = remoteFileId || sourceHttpUrl || sourcePath || browserUrl;
   if (!fileId) return null;
@@ -108,17 +110,28 @@ function descriptorFromFields(input: {
   };
 }
 
+export interface MessageMediaDownloadOptions {
+  /**
+   * The signed-in user. A local file path in a message is used as the save source only when the
+   * message is this user's own (a picture still uploading, say); without it no local path is used.
+   */
+  currentUserId?: string;
+}
+
 export function listMessageMediaDownloadSources(
   message: MessageLike,
+  options: MessageMediaDownloadOptions = {},
 ): MessageMediaDownloadSource[] {
   const content = normalizeToContentElem(message.content);
   if (!content || message.isRecalled) return [];
+  const ownMessage = Boolean(options.currentUserId) && message.senderId === options.currentUserId;
   const type = messageContentTypeForUi(content.contentType);
   if (type === "image") {
     const payload = payloadFor(content, "image");
     return [
       descriptorFromFields({
         message,
+        ownMessage,
         kind: "image",
         index: 0,
         payload,
@@ -133,6 +146,7 @@ export function listMessageMediaDownloadSources(
     return [
       descriptorFromFields({
         message,
+        ownMessage,
         kind: "video",
         index: 0,
         payload,
@@ -147,6 +161,7 @@ export function listMessageMediaDownloadSources(
     return [
       descriptorFromFields({
         message,
+        ownMessage,
         kind: "file",
         index: 0,
         payload,
@@ -161,6 +176,7 @@ export function listMessageMediaDownloadSources(
       .map((item, index) =>
         descriptorFromFields({
           message,
+          ownMessage,
           kind: "image",
           index,
           payload: asRecord(item),
@@ -174,6 +190,9 @@ export function listMessageMediaDownloadSources(
   return [];
 }
 
-export function hasDownloadableMessageMedia(message: MessageLike): boolean {
-  return listMessageMediaDownloadSources(message).length > 0;
+export function hasDownloadableMessageMedia(
+  message: MessageLike,
+  options: MessageMediaDownloadOptions = {},
+): boolean {
+  return listMessageMediaDownloadSources(message, options).length > 0;
 }

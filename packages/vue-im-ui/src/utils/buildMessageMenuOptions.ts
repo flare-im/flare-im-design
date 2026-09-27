@@ -132,7 +132,7 @@ export function buildMessageMenuContext(
     canEdit: false,
     isPinned: isPinned(message),
     isFailed: resolveMessageStatus(message) === "failed",
-    hasDownloadableMedia: hasDownloadableMessageMedia(message),
+    hasDownloadableMedia: hasDownloadableMessageMedia(message, { currentUserId }),
   };
 }
 
