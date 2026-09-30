@@ -4008,6 +4008,28 @@
           "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/FlareBrandLogo.swift"
         }
       }
+    },
+    {
+      "name": "MetricTile",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareMetricTile",
+          "sourcePath": "packages/vue-im-ui/src/components/data/FlareMetricTile.vue"
+        }
+      }
+    },
+    {
+      "name": "ChartCard",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareChartCard",
+          "sourcePath": "packages/vue-im-ui/src/components/data/FlareChartCard.vue"
+        }
+      }
     }
   ]
 }

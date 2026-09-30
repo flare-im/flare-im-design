@@ -1470,6 +1470,35 @@
           }
         }
       ]
+    },
+    {
+      "name": "ChartPoint",
+      "symbol": "FlareChartPoint",
+      "kind": "interface",
+      "summary": {
+        "en": "One reading of a ChartCard series.",
+        "zh": "ChartCard 序列中的一个读数。"
+      },
+      "fields": [
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "What the reading is for — a date, a period, a name — already formatted by the host.",
+            "zh": "读数对应的标签 —— 日期、周期、名称，由宿主格式化好。"
+          }
+        },
+        {
+          "name": "value",
+          "type": "number | null",
+          "required": true,
+          "description": {
+            "en": "The reading. `null` when there is none for this label (a gap); never substitute zero.",
+            "zh": "读数。该标签没有读数时传 `null`（缺口），不得用 0 代替。"
+          }
+        }
+      ]
     }
   ],
   "components": [
@@ -20261,6 +20290,279 @@
       "notes": {
         "en": "Decorative brand artwork; hosts compose it into auth screens, splash and about pages. Colors follow the active brand theme.",
         "zh": "装饰性的品牌图形；宿主把它组合进登录页、启动页与关于页。颜色跟随当前品牌主题。"
+      }
+    },
+    {
+      "name": "MetricTile",
+      "category": "General",
+      "summary": {
+        "en": "Metric tile — the one number a dashboard leads with: what is measured, its value, and optionally the change since the last period and a line of context.",
+        "zh": "指标卡 —— 仪表盘领头的那个数字：度量什么、当前值，可选与上期相比的变化和一行说明。"
+      },
+      "dataSource": {
+        "en": "host-owned reading — a number (formatted in the kit's language), a preformatted string, or `null` for no data; the host decides whether a rise is good news (`polarity`)",
+        "zh": "宿主持有的读数 —— 数字（按组件库语言格式化）、已格式化的字符串，或表示无数据的 `null`；上升算好消息还是坏消息由宿主决定（`polarity`）"
+      },
+      "states": [
+        "default",
+        "loading",
+        "empty"
+      ],
+      "events": [],
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "What is measured. Names the tile for assistive technology.",
+            "zh": "度量的名称；也是辅助技术读到的分组名。"
+          }
+        },
+        {
+          "name": "value",
+          "type": "number | string | null",
+          "required": true,
+          "description": {
+            "en": "The reading. A number is formatted per locale; a string is shown as it is; `null` draws a dash that is read as \"No data\", never a 0.",
+            "zh": "读数。数字按语言格式化；字符串原样显示；`null` 画一条横线，读屏读作「暂无数据」，绝不显示成 0。"
+          }
+        },
+        {
+          "name": "unit",
+          "type": "string",
+          "description": {
+            "en": "Unit after the value: a lone symbol such as % sits on the number, a word takes a space.",
+            "zh": "数值后的单位：% 这类单个符号紧贴数字，词语单位前留一个空格。"
+          }
+        },
+        {
+          "name": "caption",
+          "type": "string",
+          "description": {
+            "en": "One line of context under the value — the period, the quota, a collection time.",
+            "zh": "数值下的一行说明 —— 统计周期、配额、采集时间。"
+          }
+        },
+        {
+          "name": "delta",
+          "type": "number | null",
+          "default": "null",
+          "description": {
+            "en": "Change since the previous period, drawn signed with a direction mark and read as \"up 12\" / \"down 3\" / \"unchanged\".",
+            "zh": "与上期相比的变化，带正负号和方向标记；读屏读作「增加 12」/「减少 3」/「持平」。"
+          }
+        },
+        {
+          "name": "deltaUnit",
+          "type": "string",
+          "description": {
+            "en": "Unit after the change, e.g. % for a relative change.",
+            "zh": "变化量的单位，例如相对变化用 %。"
+          }
+        },
+        {
+          "name": "polarity",
+          "type": "'neutral' | 'higher-is-better' | 'lower-is-better'",
+          "default": "'neutral'",
+          "description": {
+            "en": "Which direction is good news: colours the change green or red. `neutral` reports it without judging.",
+            "zh": "哪个方向是好消息：据此把变化染成成功色或错误色。`neutral` 只陈述不评判。"
+          }
+        },
+        {
+          "name": "compact",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "Abbreviate large numbers (1.2万 / 12K).",
+            "zh": "大数缩写（1.2万 / 12K）。"
+          }
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "Draw a placeholder of the value's size (aria-busy) while the host fetches it.",
+            "zh": "宿主取数期间画一个与数值同高的占位（aria-busy）。"
+          }
+        },
+        {
+          "name": "appearance",
+          "type": "'card' | 'plain'",
+          "default": "'card'",
+          "description": {
+            "en": "`card` draws its own surface; `plain` sits inside a surface the host already drew.",
+            "zh": "`card` 自带卡片面；`plain` 放在宿主已画好的面里。"
+          }
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "description": {
+            "en": "BCP-47 tag for the digits. Default: the kit's language.",
+            "zh": "数字所用的 BCP-47 语言标签。默认跟随组件库语言。"
+          }
+        }
+      ],
+      "notes": {
+        "en": "Place tiles in a grid; one tile per number. Vue only: native N/A. It is a dashboard component for web consoles (the admin console's tenant and workspace overviews); no Flutter, SwiftUI or Compose app ships an analytics dashboard, and a native widget nobody renders would only drift from this one. Add the native kits when a native screen needs it, with the same contract.",
+        "zh": "多个指标卡放进网格，一个数字一张。仅 Vue，原生端 N/A：这是给 Web 控制台用的仪表盘组件（管理控制台的租户与工作区概览）；Flutter、SwiftUI、Compose 端没有任何 App 提供数据看板，一个无人渲染的原生控件只会和这里渐行渐远。等原生界面真正需要时再按同一契约实现。"
+      },
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareMetricTile"
+        }
+      },
+      "accessibility": {
+        "role": "group",
+        "labelRequired": true,
+        "focusable": "none",
+        "keyboardBehavior": [],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "No motion.",
+        "screenReaderSemantics": "A group named by the label. The value is read as text with its unit; no data is read as \"No data\" (the dash is hidden); the change is read as \"up 12%\" / \"down 3%\" / \"unchanged\" (the signed number and the caret are hidden); while loading the group is aria-busy and reads \"Loading\"."
+      }
+    },
+    {
+      "name": "ChartCard",
+      "category": "General",
+      "summary": {
+        "en": "Chart card — one series over time as bars or a line, in a titled card. Plain SVG drawn from kit tokens, with every reading also available as text.",
+        "zh": "图表卡片 —— 一条随时间变化的序列，画成柱状图或折线图，放在带标题的卡片里。纯 SVG、只用组件库 token 绘制，每个读数同时以文字提供。"
+      },
+      "dataSource": {
+        "en": "host-owned series of `{ label, value }` points in display order (`value: null` is a gap, not a zero); the host formats the labels (dates, periods)",
+        "zh": "宿主持有的 `{ label, value }` 序列，按显示顺序（`value: null` 表示缺数据，不是 0）；日期、周期等标签由宿主格式化"
+      },
+      "states": [
+        "default",
+        "loading",
+        "empty"
+      ],
+      "events": [],
+      "slots": [
+        "extra",
+        "footer"
+      ],
+      "props": [
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Card heading; also names the plot for assistive technology.",
+            "zh": "卡片标题；也用于给图表命名。"
+          }
+        },
+        {
+          "name": "points",
+          "type": "readonly FlareChartPoint[]",
+          "required": true,
+          "description": {
+            "en": "The series in order. `value: null` is a label with no reading: no bar, a break in the line.",
+            "zh": "按顺序排列的序列。`value: null` 表示该标签没有读数：不画柱，折线在此断开。"
+          }
+        },
+        {
+          "name": "kind",
+          "type": "'bar' | 'line'",
+          "default": "'bar'",
+          "description": {
+            "en": "`bar` for counts per period, `line` for a level over time.",
+            "zh": "`bar` 表示每个周期的计数，`line` 表示随时间变化的水平。"
+          }
+        },
+        {
+          "name": "tone",
+          "type": "'brand' | 'info' | 'success' | 'warning' | 'danger' | 'neutral'",
+          "default": "'brand'",
+          "description": {
+            "en": "Colour of the series; `brand` is the theme's primary colour.",
+            "zh": "序列颜色；`brand` 是主题主色。"
+          }
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "description": {
+            "en": "One line under the title — the period, the source.",
+            "zh": "标题下的一行说明 —— 统计周期、数据来源。"
+          }
+        },
+        {
+          "name": "unit",
+          "type": "string",
+          "description": {
+            "en": "Unit of the readings, used in the summary, the table and on hover; a lone symbol such as % also marks the scale.",
+            "zh": "读数单位，用于摘要、数据表和悬停提示；% 这类单个符号也标在刻度上。"
+          }
+        },
+        {
+          "name": "emptyText",
+          "type": "string",
+          "description": {
+            "en": "Shown when there is no reading to draw. Default: the kit's \"No data yet\".",
+            "zh": "没有可画的读数时显示。默认用组件库的「暂无数据」。"
+          }
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "Draw a placeholder of the plot's size (aria-busy) while the host fetches the series.",
+            "zh": "宿主取数期间画一个与图表同尺寸的占位（aria-busy）。"
+          }
+        },
+        {
+          "name": "appearance",
+          "type": "'card' | 'plain'",
+          "default": "'card'",
+          "description": {
+            "en": "`card` draws its own surface; `plain` sits inside a surface the host already drew.",
+            "zh": "`card` 自带卡片面；`plain` 放在宿主已画好的面里。"
+          }
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "description": {
+            "en": "BCP-47 tag for the digits. Default: the kit's language.",
+            "zh": "数字所用的 BCP-47 语言标签。默认跟随组件库语言。"
+          }
+        }
+      ],
+      "notes": {
+        "en": "No readings draw the empty text instead of an empty axis; one reading is one bar or one dot; a series of zeros draws the zero line alone. The plot's height is the `--flare-chart-card-plot-height` custom property on the card. `extra` holds the host's controls (period switch, export), `footer` a note under the plot (collection time). Vue only: native N/A. It is a dashboard component for web consoles (the admin console's tenant and workspace overviews); no Flutter, SwiftUI or Compose app ships an analytics dashboard, and a native widget nobody renders would only drift from this one. Add the native kits when a native screen needs it, with the same contract.",
+        "zh": "没有读数时显示空态文案而不是一条空坐标轴；只有一个读数就是一根柱或一个点；全为 0 时只画零线。图表高度由卡片上的 `--flare-chart-card-plot-height` 自定义属性决定。`extra` 放宿主的控件（周期切换、导出），`footer` 放图下的说明（采集时间）。仅 Vue，原生端 N/A：这是给 Web 控制台用的仪表盘组件（管理控制台的租户与工作区概览）；Flutter、SwiftUI、Compose 端没有任何 App 提供数据看板，一个无人渲染的原生控件只会和这里渐行渐远。等原生界面真正需要时再按同一契约实现。"
+      },
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareChartCard"
+        }
+      },
+      "accessibility": {
+        "role": "img",
+        "labelRequired": true,
+        "focusable": "none",
+        "keyboardBehavior": [],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "No motion.",
+        "screenReaderSemantics": "The card is a region named by its title. The plot is role=img named by a numeric summary — how many points, the first and last label, the lowest, highest and latest reading with the unit — and every reading is also in a visually hidden table (label, value; a gap reads \"no data\"). The scale and the axis labels are hidden from assistive technology; while loading the card is aria-busy and reads \"Loading\"; with no readings it is the empty text."
       }
     }
   ],

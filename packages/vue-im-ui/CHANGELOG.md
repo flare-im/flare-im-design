@@ -1,5 +1,6 @@
 ## 未发布
 
+- 新增 `FlareMetricTile`、`FlareChartCard` 与类型 `FlareChartPoint`（`./components`）：仪表盘指标卡与柱状 / 折线图卡片，纯 SVG、只用 token，数值同时以文字提供。详见仓库根 CHANGELOG。
 - 图片、视频、文件保存后，下载键变成「在文件夹中显示」；宿主发现文件被删后传回 idle，键回到下载。收发两侧的消息时间都在右侧。详见仓库根 CHANGELOG。
 - 新增 `useMessageMediaSaves`（宿主只接 save / isSaved / reveal）；`FlareFileMessage` 新增 `reveal` 事件，`VideoPlayerModal` 新增 `saved` + `reveal`；`MessageMediaDownloadUiState` 从 `./contracts` 导出。
 - **许可证由 MIT 变更为 Apache-2.0。** 已发布的 1.0.5 及更早版本仍按 MIT 授权，

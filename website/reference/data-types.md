@@ -336,6 +336,19 @@ title: 数据类型
 | `avatarUrl` | `string` |  | 宿主有头像时的地址。 |
 | `joinedAt` | `number` | ✓ | 注册时间，毫秒时间戳。 |
 
+### ChartPoint {#chart-point}
+
+`FlareChartPoint`
+
+> ChartCard 序列中的一个读数。
+
+**被使用于：**[ChartCard](/components/chart-card)
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `label` | `string` | ✓ | 读数对应的标签 —— 日期、周期、名称，由宿主格式化好。 |
+| `value` | `number \| null` | ✓ | 读数。该标签没有读数时传 `null`（缺口），不得用 0 代替。 |
+
 ## 枚举 / 联合类型
 
 ### MessageGroupPosition {#message-group-position}

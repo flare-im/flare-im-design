@@ -129,6 +129,11 @@ export { default as FlareAuthShell } from "./layout/FlareAuthShell.vue";
 // General primitives surfaced by the example-app migration (button / segmented control)
 export { default as FlareSegmentedControl } from "./general/FlareSegmentedControl.vue";
 
+// Data display — dependency-free SVG charts and headline numbers for dashboards
+export { default as FlareMetricTile } from "./data/FlareMetricTile.vue";
+export { default as FlareChartCard } from "./data/FlareChartCard.vue";
+export type { FlareChartPoint } from "./data/chart-geometry";
+
 // Foundation — buttons + form controls
 export { default as FlareButton } from "./general/FlareButton.vue";
 export { default as FlareIconButton } from "./general/FlareIconButton.vue";

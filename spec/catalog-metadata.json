@@ -115,6 +115,25 @@
       "弹窗",
       "模态框",
       "对话框"
+    ],
+    "MetricTile": [
+      "KPI",
+      "statistic",
+      "stat card",
+      "dashboard number",
+      "指标",
+      "统计数字",
+      "数据看板"
+    ],
+    "ChartCard": [
+      "chart",
+      "bar chart",
+      "line chart",
+      "usage chart",
+      "图表",
+      "柱状图",
+      "折线图",
+      "用量趋势"
     ]
   },
   "overrides": {

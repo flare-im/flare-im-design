@@ -42,9 +42,9 @@
     "supportsDensity": "The component takes a density of its own (its prop says what the values mean); the kit has no global density scale."
   },
   "counts": {
-    "total": 156,
-    "stable": 156,
-    "general": 46,
+    "total": 158,
+    "stable": 158,
+    "general": 48,
     "im": 105
   },
   "specializedMessageGroups": {
@@ -16924,6 +16924,258 @@
       },
       "sourceOfTruth": "spec/components.json#BrandLogo",
       "searchText": "brandlogo general general-ui stable general gradient plate supportsconfiguration brand logo — the forward-leaning geometric f (skewx -9°) in two variants, gradient (brand gradient plate + white f) or plate (white plate + gradient f); one geometry on all four platforms. 品牌 logo —— 前倾几何 f（skewx -9°），gradient（品牌渐变底 + 白 f）或 plate（白底 + 渐变 f）两种变体；四端共用同一几何。"
+    },
+    {
+      "name": "MetricTile",
+      "slug": "metric-tile",
+      "category": "General",
+      "layer": "general-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": true,
+        "states": true,
+        "interaction": false,
+        "responsive": false,
+        "keyboard": false,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [
+          {
+            "name": "value",
+            "values": [
+              "number",
+              "string",
+              "null"
+            ]
+          },
+          {
+            "name": "delta",
+            "values": [
+              "number",
+              "null"
+            ]
+          },
+          {
+            "name": "polarity",
+            "values": [
+              "neutral",
+              "higher-is-better",
+              "lower-is-better"
+            ]
+          },
+          {
+            "name": "appearance",
+            "values": [
+              "card",
+              "plain"
+            ]
+          }
+        ],
+        "states": [
+          "default",
+          "loading",
+          "empty"
+        ]
+      },
+      "summary": {
+        "en": "Metric tile — the one number a dashboard leads with: what is measured, its value, and optionally the change since the last period and a line of context.",
+        "zh": "指标卡 —— 仪表盘领头的那个数字：度量什么、当前值，可选与上期相比的变化和一行说明。"
+      },
+      "aliases": [
+        "KPI",
+        "statistic",
+        "stat card",
+        "dashboard number",
+        "指标",
+        "统计数字",
+        "数据看板",
+        "General",
+        "default",
+        "loading",
+        "empty"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty"
+      ],
+      "interactions": [],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareMetricTile"
+        },
+        "flutter": {
+          "support": "not-applicable"
+        },
+        "compose": {
+          "support": "not-applicable"
+        },
+        "ios": {
+          "support": "not-applicable"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/data/FlareMetricTile.vue"
+      },
+      "docs": {
+        "zh": "website/components/metric-tile.md",
+        "en": "website/en/components/metric-tile.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#MetricTile",
+      "searchText": "metrictile general general-ui stable kpi statistic stat card dashboard number 指标 统计数字 数据看板 general default loading empty supportsconfiguration metric tile — the one number a dashboard leads with: what is measured, its value, and optionally the change since the last period and a line of context. 指标卡 —— 仪表盘领头的那个数字：度量什么、当前值，可选与上期相比的变化和一行说明。"
+    },
+    {
+      "name": "ChartCard",
+      "slug": "chart-card",
+      "category": "General",
+      "layer": "general-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": true,
+        "states": true,
+        "interaction": false,
+        "responsive": false,
+        "keyboard": false,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [
+          {
+            "name": "kind",
+            "values": [
+              "bar",
+              "line"
+            ]
+          },
+          {
+            "name": "tone",
+            "values": [
+              "brand",
+              "info",
+              "success",
+              "warning",
+              "danger",
+              "neutral"
+            ]
+          },
+          {
+            "name": "appearance",
+            "values": [
+              "card",
+              "plain"
+            ]
+          }
+        ],
+        "states": [
+          "default",
+          "loading",
+          "empty"
+        ]
+      },
+      "summary": {
+        "en": "Chart card — one series over time as bars or a line, in a titled card. Plain SVG drawn from kit tokens, with every reading also available as text.",
+        "zh": "图表卡片 —— 一条随时间变化的序列，画成柱状图或折线图，放在带标题的卡片里。纯 SVG、只用组件库 token 绘制，每个读数同时以文字提供。"
+      },
+      "aliases": [
+        "chart",
+        "bar chart",
+        "line chart",
+        "usage chart",
+        "图表",
+        "柱状图",
+        "折线图",
+        "用量趋势",
+        "General",
+        "default",
+        "loading",
+        "empty"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty"
+      ],
+      "interactions": [],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareChartCard"
+        },
+        "flutter": {
+          "support": "not-applicable"
+        },
+        "compose": {
+          "support": "not-applicable"
+        },
+        "ios": {
+          "support": "not-applicable"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/data/FlareChartCard.vue"
+      },
+      "docs": {
+        "zh": "website/components/chart-card.md",
+        "en": "website/en/components/chart-card.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#ChartCard",
+      "searchText": "chartcard general general-ui stable chart bar chart line chart usage chart 图表 柱状图 折线图 用量趋势 general default loading empty supportsconfiguration chart card — one series over time as bars or a line, in a titled card. plain svg drawn from kit tokens, with every reading also available as text. 图表卡片 —— 一条随时间变化的序列，画成柱状图或折线图，放在带标题的卡片里。纯 svg、只用组件库 token 绘制，每个读数同时以文字提供。"
     }
   ]
 }

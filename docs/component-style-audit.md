@@ -175,6 +175,8 @@ The audit checks typography, spacing, padding, alignment, icon scale and stroke,
 | FormSheet | Overlay | Elevated overlay; semantic tokens; base controlled contract | No blocking drift found; inherits the category token and state grammar. | Uses the shared focus, touch-target, disabled, and recovery expectations. | Configuration is limited to its public task boundary. | Retain current boundary and review with its category when behavior changes. | P3 monitor |
 | SettingsRow | Profile | General UI primitive; semantic tokens; base controlled contract | No blocking drift found; inherits the category token and state grammar. | Uses the shared focus, touch-target, disabled, and recovery expectations. | Configuration is limited to its public task boundary. | Retain current boundary and review with its category when behavior changes. | P3 monitor |
 | BrandLogo | General | General UI primitive; semantic tokens; base controlled contract | No blocking drift found; inherits the category token and state grammar. | Uses the shared focus, touch-target, disabled, and recovery expectations. | Configuration is limited to its public task boundary. | Retain current boundary and review with its category when behavior changes. | P3 monitor |
+| MetricTile | General | General UI primitive; semantic tokens; base controlled contract | No blocking drift found; inherits the category token and state grammar. | Uses the shared focus, touch-target, disabled, and recovery expectations. | Configuration is limited to its public task boundary. | Retain current boundary and review with its category when behavior changes. | P3 monitor |
+| ChartCard | General | General UI primitive; semantic tokens; base controlled contract | No blocking drift found; inherits the category token and state grammar. | Uses the shared focus, touch-target, disabled, and recovery expectations. | Configuration is limited to its public task boundary. | Retain current boundary and review with its category when behavior changes. | P3 monitor |
 
 ## Priority summary
 
@@ -183,4 +185,4 @@ The audit checks typography, spacing, padding, alignment, icon scale and stroke,
 - P2 guarded: core visual components remain under token, state, and visual regression gates.
 - P3 monitor: focused primitives retain their existing boundary unless a real product inconsistency appears.
 
-Audited components: 156.
+Audited components: 158.

@@ -336,6 +336,19 @@ title: Data Types
 | `avatarUrl` | `string` |  | Avatar URL when the host has one. |
 | `joinedAt` | `number` | ✓ | Registration time, epoch milliseconds. |
 
+### ChartPoint {#chart-point}
+
+`FlareChartPoint`
+
+> One reading of a ChartCard series.
+
+**Used by: **[ChartCard](/en/components/chart-card)
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `label` | `string` | ✓ | What the reading is for — a date, a period, a name — already formatted by the host. |
+| `value` | `number \| null` | ✓ | The reading. `null` when there is none for this label (a gap); never substitute zero. |
+
 ## Enums / unions
 
 ### MessageGroupPosition {#message-group-position}

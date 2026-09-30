@@ -140,6 +140,16 @@ export function useFlareI18nOptional(): Pick<FlareI18nContext, "t" | "hasKey"> {
   return inject(flareI18nKey, null) ?? runtimeI18n;
 }
 
+/**
+ * The language a leaf component formats numbers in: the provider's when one is mounted above,
+ * otherwise the runtime locale — the same fallback as {@link useFlareI18nOptional}, so the digits and
+ * the words around them never disagree.
+ */
+export function useFlareLocaleOptional(): Readonly<Ref<FlareLocale>> {
+  const ctx = inject(flareI18nKey, null);
+  return ctx ? ctx.locale : computed(() => currentFlareRuntimeLocale());
+}
+
 export function listI18nKeys(locale: FlareLocale = FLARE_DEFAULT_LOCALE): string[] {
   const keys: string[] = [];
   function walk(node: Record<string, unknown>, prefix = ""): void {

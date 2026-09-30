@@ -48,6 +48,10 @@ A list that is empty can be replaced by the host on all four kits (`ContactList.
 
 The A–Z index letter of a name is one contract on four kits, checked against `spec/contact-index-vectors.json`. Vue and SwiftUI read the platform's pinyin collation; Flutter and Compose read `tooling/build-pinyin-initials.mjs`'s generated table of every character in CJK Unified Ideographs, produced from that same collation. A polyphonic character follows the collation's reading on every kit; a host that knows a surname's reading passes `indexKey`.
 
+## Data Display
+
+`FlareMetricTile` and `FlareChartCard`, with the `FlareChartPoint` type, are on `./components` for web dashboards and have no native counterpart: their contracts in `spec/components.json` declare the Vue platform only and say why in `notes`. They take host-owned readings — a number, a preformatted string, or `null` for no reading, which is drawn as a dash or a gap and never as 0 — and draw with kit tokens only, as plain SVG with no chart library, so a theme or dark mode restyles them with the page. The plot is `role="img"` named by a numeric summary and every reading is also in a table for assistive technology. The styling seams are the `extra` and `footer` slots, `appearance` (`card` / `plain`) and the `--flare-chart-card-plot-height` custom property.
+
 ## Theme API
 
 `FlareThemeMode` (light / dark / system) and `flareThemeIsDark(mode, systemDark)` are public on all four kits, over `spec/theme-mode-vectors.json`; the host holds and stores the person's choice, and the three labels are in every strings table. `tokens.json` also carries the text roles (title / section / body / caption), public as `--flare-text-<role>-*` on the web and `FlareTextRole` / `FlareTextRoles` on the three native kits. There is no global density preset.

@@ -201,6 +201,8 @@
     "ActionMenu": "general-ui",
     "FormSheet": "general-ui",
     "SettingsRow": "im-ui",
-    "BrandLogo": "general-ui"
+    "BrandLogo": "general-ui",
+    "MetricTile": "general-ui",
+    "ChartCard": "general-ui"
   }
 }

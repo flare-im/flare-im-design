@@ -589,4 +589,33 @@ FlareComposerActionPanel(actions = myActions, onAction = ::pick)`,
 )`,
     },
   ],
+
+  MetricTile: [
+    {
+      title: { en: "A row of dashboard numbers", zh: "仪表盘上的一排数字" },
+      description: { en: "One tile per number, in a grid. The host passes the reading and the change since the last period, and says which direction is good news; a reading that was not collected is `null`, never 0.", zh: "一个数字一张卡，放进网格。宿主传读数和与上期相比的变化，并说明哪个方向是好消息；没采集到的读数传 `null`，不要传 0。" },
+      vue: `<div class="overview">
+  <FlareMetricTile :label="t('users.total')" :value="stats.users" :caption="quotaText" :delta="stats.usersDeltaPct" delta-unit="%" polarity="higher-is-better" />
+  <FlareMetricTile :label="t('users.frozen')" :value="stats.frozen" :delta="stats.frozenDelta" polarity="lower-is-better" />
+  <FlareMetricTile :label="t('messages.today')" :value="stats.messagesToday ?? null" :loading="pending" compact />
+</div>`,
+    },
+  ],
+
+  ChartCard: [
+    {
+      title: { en: "Daily usage, bars or a line", zh: "每日用量，柱状或折线" },
+      description: { en: "Map the host's rows to `{ label, value }` (format the dates yourself; a day that failed to collect is `null`, a gap). Controls go in `extra`, a note in `footer`; the plot's height is `--flare-chart-card-plot-height`.", zh: "把宿主的数据行映射成 `{ label, value }`（日期自己格式化；采集失败的那天传 `null`，画成缺口）。控件放 `extra`，说明放 `footer`；图表高度用 `--flare-chart-card-plot-height` 调。" },
+      vue: `<FlareChartCard
+  :title="t('usage.newUsers')"
+  :description="t('usage.lastDays', { days: 30 })"
+  :points="usage.series.map((row) => ({ label: shortDate(row.day), value: row.new_users }))"
+  :kind="kind"
+  :loading="pending"
+>
+  <template #extra><FlareSegmentedControl v-model="kindIndex" :options="kindLabels" /></template>
+  <template #footer>{{ t('usage.collectedAt') }} {{ collectedAt }}</template>
+</FlareChartCard>`,
+    },
+  ],
 };
