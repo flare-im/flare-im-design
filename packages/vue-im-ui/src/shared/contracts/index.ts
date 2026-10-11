@@ -179,7 +179,7 @@ export {
 // P0-11 security boundary: the host applies the same URL rule the kit's own anchors use
 // (docs/release/security-boundary.md, public-api-2.0.md). Flutter, Compose and SwiftUI
 // already export it; the Vue entry had omitted it.
-export { FLARE_SAFE_URL_PROTOCOLS, isSafeExternalUrl, safeExternalUrl } from "./url-safety";
+export { FLARE_SAFE_URL_PROTOCOLS, isSafeExternalUrl, safeExternalUrl, safeNavigationHref } from "./url-safety";
 export type {
   FlareInviteCodeMode,
   FlareInviteCodeCheckResult,

@@ -89,4 +89,85 @@ describe("FlareDangerConfirm", () => {
     expect(busy.emitted("cancel")).toBeUndefined();
     expect(busy.emitted("confirm")).toBeUndefined();
   });
+
+  it("asks for a reason before a recorded change and hands the trimmed reason to confirm", async () => {
+    const host = setup({ reason: { label: "审计原因", placeholder: "说明变更原因", hint: "记入审计日志", maxLength: 200 } });
+    const confirm = host.findComponent(FlareDangerConfirm);
+    const input = document.body.querySelector<HTMLInputElement>(".flare-danger-confirm__reason input")!;
+    const field = document.body.querySelector(".flare-danger-confirm__reason")!;
+    expect(field.querySelector("label")?.textContent).toContain("审计原因");
+    expect(input.getAttribute("aria-required")).toBe("true");
+    expect(input.getAttribute("maxlength")).toBe("200");
+    const key = () => document.body.querySelectorAll<HTMLButtonElement>(".flare-danger-confirm__actions button")[1];
+    // No reason, no confirm: the key waits, and pressing it does nothing.
+    expect(key().disabled).toBe(true);
+    input.value = "   ";
+    input.dispatchEvent(new Event("input"));
+    await confirm.vm.$nextTick();
+    expect(key().disabled).toBe(true);
+    input.value = "  关闭外部推送 ";
+    input.dispatchEvent(new Event("input"));
+    await confirm.vm.$nextTick();
+    expect(key().disabled).toBe(false);
+    key().click();
+    await confirm.vm.$nextTick();
+    expect(confirm.emitted("confirm")).toEqual([[{ reason: "关闭外部推送" }]]);
+  });
+
+  it("holds a reason over the server's UTF-8 limit and says why", async () => {
+    const host = setup({ reason: { label: "审计原因", maxBytes: 9 } });
+    const confirm = host.findComponent(FlareDangerConfirm);
+    const input = document.body.querySelector<HTMLInputElement>(".flare-danger-confirm__reason input")!;
+    const key = () => document.body.querySelectorAll<HTMLButtonElement>(".flare-danger-confirm__actions button")[1];
+    // Three CJK characters are nine bytes: they fit; a fourth does not.
+    input.value = "关推送";
+    input.dispatchEvent(new Event("input"));
+    await confirm.vm.$nextTick();
+    expect(key().disabled).toBe(false);
+    expect(document.body.querySelector(".flare-form-field__error")).toBeNull();
+    input.value = "关闭推送";
+    input.dispatchEvent(new Event("input"));
+    await confirm.vm.$nextTick();
+    expect(key().disabled).toBe(true);
+    expect(document.body.querySelector(".flare-form-field__error")?.textContent).toBe("原因过长：最多 9 字节");
+    expect(input.getAttribute("aria-invalid")).toBe("true");
+  });
+
+  it("lets an optional reason be left empty", async () => {
+    const host = setup({ reason: { label: "备注", optional: true } });
+    const confirm = host.findComponent(FlareDangerConfirm);
+    const key = document.body.querySelectorAll<HTMLButtonElement>(".flare-danger-confirm__actions button")[1];
+    expect(key.disabled).toBe(false);
+    key.click();
+    await confirm.vm.$nextTick();
+    expect(confirm.emitted("confirm")).toEqual([[{ reason: "" }]]);
+  });
+
+  it("makes the person type the target's name before an irreversible step", async () => {
+    const host = setup({ confirmPhrase: "acme-prod" });
+    const confirm = host.findComponent(FlareDangerConfirm);
+    const field = document.body.querySelector(".flare-danger-confirm__phrase")!;
+    expect(field.querySelector("label")?.textContent).toContain("输入「acme-prod」以确认");
+    const input = field.querySelector<HTMLInputElement>("input")!;
+    const key = () => document.body.querySelectorAll<HTMLButtonElement>(".flare-danger-confirm__actions button")[1];
+    expect(key().disabled).toBe(true);
+    input.value = "acme-pro";
+    input.dispatchEvent(new Event("input"));
+    await confirm.vm.$nextTick();
+    expect(key().disabled).toBe(true);
+    input.value = "acme-prod";
+    input.dispatchEvent(new Event("input"));
+    await confirm.vm.$nextTick();
+    expect(key().disabled).toBe(false);
+    key().click();
+    await confirm.vm.$nextTick();
+    expect(confirm.emitted("confirm")).toEqual([[{ reason: "" }]]);
+  });
+
+  it("locks what was typed while the step runs", () => {
+    setup({ busy: true, reason: { label: "审计原因" }, confirmPhrase: "acme" });
+    const inputs = [...document.body.querySelectorAll<HTMLInputElement>(".flare-danger-confirm input")];
+    expect(inputs).toHaveLength(2);
+    expect(inputs.every((input) => input.disabled)).toBe(true);
+  });
 });

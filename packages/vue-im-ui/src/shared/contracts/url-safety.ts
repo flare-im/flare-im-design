@@ -65,3 +65,21 @@ function hasScheme(value: string): boolean {
   if (!match) return false;
   return !/^\d/.test(value.slice(match[0].length));
 }
+
+/**
+ * The href an app's own navigation item may carry (Vue only), or null.
+ *
+ * Unlike a message link it comes from the host, so a path inside the app is the normal case: a
+ * same-origin path (`/apps/a1/users`), a hash route (`#/users`) or a query (`?tab=2`) is kept as
+ * written. Anything else must be an explicit http/https URL that safeExternalUrl accepts — a bare
+ * `users` is not read as `https://users/`, and `//host` or `/\host` (a scheme-relative escape to
+ * another origin) is refused, as is any whitespace or control character.
+ */
+export function safeNavigationHref(raw: string | null | undefined): string | null {
+  if (typeof raw !== "string") return null;
+  const value = raw.trim();
+  if (!value || /[\s\u0000-\u001f\u007f\\]/.test(value)) return null;
+  if (value.startsWith("/")) return value.startsWith("//") ? null : value;
+  if (value.startsWith("#") || value.startsWith("?")) return value;
+  return /^https?:/i.test(value) ? safeExternalUrl(value) : null;
+}

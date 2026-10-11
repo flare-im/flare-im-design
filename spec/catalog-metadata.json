@@ -154,6 +154,45 @@
       "权限",
       "角色权限",
       "树形选择"
+    ],
+    "FilterBar": [
+      "query form",
+      "filters",
+      "search form",
+      "advanced search",
+      "查询条件",
+      "筛选",
+      "查询表单",
+      "高级搜索"
+    ],
+    "DescriptionList": [
+      "descriptions",
+      "key value",
+      "detail list",
+      "properties",
+      "描述列表",
+      "详情",
+      "键值对",
+      "属性列表"
+    ],
+    "CodeBlock": [
+      "code",
+      "json viewer",
+      "raw payload",
+      "snippet",
+      "代码块",
+      "代码",
+      "原始报文",
+      "代码片段"
+    ],
+    "Tag": [
+      "badge",
+      "status tag",
+      "label",
+      "chip",
+      "标签",
+      "状态标签",
+      "徽标"
     ]
   },
   "overrides": {
@@ -206,7 +245,9 @@
       "Modal",
       "FormSheet",
       "ActionMenu",
-      "DataTable"
+      "DataTable",
+      "FilterBar",
+      "DescriptionList"
     ],
     "workspace": [
       "AppLayout",

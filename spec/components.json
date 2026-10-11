@@ -1626,8 +1626,8 @@
       "symbol": "FlareDataTablePagination",
       "kind": "interface",
       "summary": {
-        "en": "Server-side paging of a DataTable: what page is shown and how many rows exist.",
-        "zh": "DataTable 的服务端分页：当前在第几页、总共有多少行。"
+        "en": "Server-side paging of a DataTable: what page is shown, and how many rows exist or, for a cursor source, whether another page follows.",
+        "zh": "DataTable 的服务端分页：当前在第几页，以及总共有多少行；游标数据源则是后面是否还有一页。"
       },
       "fields": [
         {
@@ -1651,10 +1651,19 @@
         {
           "name": "total",
           "type": "number",
-          "required": true,
+          "required": false,
           "description": {
-            "en": "Rows on the server, not on this page.",
-            "zh": "服务端总行数，不是本页行数。"
+            "en": "Rows on the server, not on this page. Omit it for a cursor-paged source that cannot count.",
+            "zh": "服务端总行数，不是本页行数。游标分页、无法计数的数据源不传。"
+          }
+        },
+        {
+          "name": "hasNext",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "Cursor sources: whether the server has a page after this one (its `has_more`). Ignored when `total` is given.",
+            "zh": "游标数据源：服务端在本页之后是否还有一页（即 `has_more`）。传了 `total` 时忽略。"
           }
         },
         {
@@ -1711,6 +1720,136 @@
           "description": {
             "en": "Child nodes; a node with children is a group.",
             "zh": "子节点；有子节点的是分组。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "DescriptionItem",
+      "symbol": "FlareDescriptionItem",
+      "kind": "interface",
+      "summary": {
+        "en": "One label / value line of a DescriptionList.",
+        "zh": "DescriptionList 的一行「标签 / 值」。"
+      },
+      "fields": [
+        {
+          "name": "key",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Stable id of the line; also names the `item-<key>` slot.",
+            "zh": "这一行的稳定 id；也是 `item-<key>` 插槽的名字。"
+          }
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "What the value is.",
+            "zh": "值是什么。"
+          }
+        },
+        {
+          "name": "value",
+          "type": "string | number | null",
+          "required": false,
+          "description": {
+            "en": "The value as text, formatted by the host. `null`, `undefined` and an empty string are \"not set\".",
+            "zh": "值的文字，由宿主格式化。`null`、`undefined` 与空串表示「未设置」。"
+          }
+        },
+        {
+          "name": "span",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "Columns this line spans; clamped to the list's columns. Default 1.",
+            "zh": "这一行跨的列数，不超过列表的列数。默认 1。"
+          }
+        },
+        {
+          "name": "monospace",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "Draw the value in the monospaced face — ids, codes, keys.",
+            "zh": "用等宽字体显示 —— id、代码、密钥。"
+          }
+        },
+        {
+          "name": "copyable",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "Draw a copy key after the value.",
+            "zh": "在值后画一个复制键。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ConfirmReason",
+      "symbol": "FlareConfirmReason",
+      "kind": "interface",
+      "summary": {
+        "en": "The reason a DangerConfirm asks for before a recorded change (an audit reason).",
+        "zh": "DangerConfirm 在被审计的变更前要求填写的原因（审计原因）。"
+      },
+      "fields": [
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Field label, e.g. \"Audit reason\".",
+            "zh": "字段标签，例如「审计原因」。"
+          }
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Placeholder of the field.",
+            "zh": "字段占位文字。"
+          }
+        },
+        {
+          "name": "hint",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "A line under the field: who reads the reason, where it is kept.",
+            "zh": "字段下的一行说明：谁会看到原因、记在哪里。"
+          }
+        },
+        {
+          "name": "maxLength",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "Characters the field takes.",
+            "zh": "字段最多接受的字符数。"
+          }
+        },
+        {
+          "name": "maxBytes",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "UTF-8 bytes the trimmed reason may take; more marks the field and holds the confirm key.",
+            "zh": "去掉首尾空白后的原因最多占用的 UTF-8 字节数；超出时标记字段并锁住确认键。"
+          }
+        },
+        {
+          "name": "optional",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "The reason may be left empty. Default false.",
+            "zh": "原因可以不填。默认 false。"
           }
         }
       ]
@@ -1993,6 +2132,10 @@
       "events": [
         "navigate"
       ],
+      "notes": {
+        "en": "Vue only: an item with `href` is a real link (`<a>`), so a web console keeps open-in-new-tab — Cmd / Ctrl / Shift click or the middle button is the browser's and reports nothing, while a plain click is prevented and reports `navigate` for the host's router. A disabled item stays a disabled button, and an href that `safeNavigationHref` refuses (anything but a same-origin path, a hash route, a query or an explicit http/https URL) draws a button too. Native items have no URL.",
+        "zh": "仅 Vue：带 `href` 的导航项是真正的链接（`<a>`），Web 控制台因此保留「在新标签页打开」—— Cmd / Ctrl / Shift 点击或中键交给浏览器、不上报；普通点击被拦下并上报 `navigate`，由宿主路由。禁用的导航项仍是禁用的按钮；`safeNavigationHref` 拒绝的 href（同源路径、`#…`、`?…` 与显式 http/https 之外的一切）同样画成按钮。原生端导航项没有 URL。"
+      },
       "platformAliases": {
         "ios": {
           "props": {
@@ -8846,13 +8989,36 @@
             "en": "Optional inline action label.",
             "zh": "可选内联操作按钮文案。"
           }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": {
+            "en": "A bold first line over the text — a notice's subject (a console's platform announcement). Web consoles.",
+            "zh": "正文上方加粗的第一行 —— 通知的主题（控制台的平台公告）。用于 Web 控制台。"
+          },
+          "platforms": [
+            "vue"
+          ]
+        },
+        {
+          "name": "dismissible",
+          "type": "boolean",
+          "description": {
+            "en": "Draw a close key that reports `dismiss`; the host removes the banner and remembers it. Web consoles.",
+            "zh": "画一个关闭键并上报 `dismiss`；由宿主移除横幅并记住。用于 Web 控制台。"
+          },
+          "platforms": [
+            "vue"
+          ]
         }
       ],
       "states": [
         "default"
       ],
       "events": [
-        "action"
+        "action",
+        "dismiss"
       ],
       "platforms": {
         "vue": {
@@ -8888,6 +9054,15 @@
         },
         "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
         "screenReaderSemantics": "Expose localized name, role, value/state, availability, and progress. Decorative imagery is hidden."
+      },
+      "eventPlatforms": {
+        "dismiss": [
+          "vue"
+        ]
+      },
+      "notes": {
+        "en": "Vue's `title` and `dismissible` turn the strip into a notice a person reads once and puts away — the console's platform announcements, by level (`tone`): a bold subject over the text and a close key (named by the kit's \"Close\", 48 logical px) that reports `dismiss`; the host keeps which notices were dismissed. Without them the banner is unchanged. They serve web consoles; the native banners stay status strips.",
+        "zh": "Vue 的 `title` 与 `dismissible` 让这条状态条承载看过即可关闭的通知 —— 控制台按级别（`tone`）显示的平台公告：正文上方加粗的主题，以及一个关闭键（名称取组件库的「关闭」，48 逻辑像素），点击上报 `dismiss`；哪些公告已关闭由宿主记住。不传时横幅不变。它们服务于 Web 控制台；原生端横幅仍是状态条。"
       }
     },
     {
@@ -17184,6 +17359,28 @@
             "en": "取消按钮文案",
             "zh": "取消按钮文案"
           }
+        },
+        {
+          "name": "reason",
+          "type": "FlareConfirmReason",
+          "description": {
+            "en": "Ask for a reason before the confirm key works — the audit reason a recorded console write carries (`label`, `placeholder`, `hint`, `maxLength`, `maxBytes` in UTF-8, `optional`). `confirm` hands over the trimmed reason. Web consoles.",
+            "zh": "确认前先要求填写原因 —— 控制台被审计的写操作所带的审计原因（`label`、`placeholder`、`hint`、`maxLength`、按 UTF-8 计的 `maxBytes`、`optional`）。`confirm` 交出去掉首尾空白的原因。用于 Web 控制台。"
+          },
+          "platforms": [
+            "vue"
+          ]
+        },
+        {
+          "name": "confirmPhrase",
+          "type": "string",
+          "description": {
+            "en": "Text the person types to confirm — the target's name or code — before an irreversible step; the confirm key waits until it matches. Web consoles.",
+            "zh": "不可撤销的操作前，要求输入的确认文字（目标的名称或代码）；输入一致前确认键不可用。用于 Web 控制台。"
+          },
+          "platforms": [
+            "vue"
+          ]
         }
       ],
       "states": [
@@ -17233,8 +17430,8 @@
         "screenReaderSemantics": "Expose localized name, role, value/state, availability, and progress. Decorative imagery is hidden."
       },
       "notes": {
-        "en": "Ask-and-await presenters with busy, error and retry: Vue `useFlareConfirm` (FlareUiProvider), Flutter `FlareDangerConfirm.show(context, ..., action:)`, iOS `await FlareFeedback.confirm(FlareConfirmOptions(..., action:))`. A failing action keeps the dialog open with the error; the answer resolves true only after the action succeeds. Every presenter follows BottomSheet auto: a sheet on the phone form factor, Modal elsewhere, with scrim, drag, Escape and back locked while the action runs. Flutter's `confirmText` / `cancelText` default to FlareStrings confirm / cancel. Compose DangerConfirm hosts itself in `BottomSheet(presentation = Auto)`; `LocalFlareDialog.current.confirm(FlareConfirmOptions(..., action =))` is the ask-and-await presenter (inside FlareToastHost).",
-        "zh": "询问并等待结果的呈现器，带忙碌、错误与重试：Vue `useFlareConfirm`（FlareUiProvider）、Flutter `FlareDangerConfirm.show(context, ..., action:)`、iOS `await FlareFeedback.confirm(FlareConfirmOptions(..., action:))`。动作失败时对话框保留并显示错误；只有动作成功后结果才为 true。各端呈现器都遵循 BottomSheet auto：手机形态为底部面板，其它形态为 Modal，动作进行中遮罩、拖拽、Escape 与返回都被锁住。Flutter 的 `confirmText` / `cancelText` 默认取 FlareStrings 的 confirm / cancel。Compose DangerConfirm 自己托管在 `BottomSheet(presentation = Auto)` 里；`LocalFlareDialog.current.confirm(FlareConfirmOptions(..., action =))` 是询问并等待结果的呈现器（在 FlareToastHost 之内）。"
+        "en": "Ask-and-await presenters with busy, error and retry: Vue `useFlareConfirm` (FlareUiProvider), Flutter `FlareDangerConfirm.show(context, ..., action:)`, iOS `await FlareFeedback.confirm(FlareConfirmOptions(..., action:))`. A failing action keeps the dialog open with the error; the answer resolves true only after the action succeeds. Every presenter follows BottomSheet auto: a sheet on the phone form factor, Modal elsewhere, with scrim, drag, Escape and back locked while the action runs. Flutter's `confirmText` / `cancelText` default to FlareStrings confirm / cancel. Compose DangerConfirm hosts itself in `BottomSheet(presentation = Auto)`; `LocalFlareDialog.current.confirm(FlareConfirmOptions(..., action =))` is the ask-and-await presenter (inside FlareToastHost). Vue's `reason` and `confirmPhrase` (also on `useFlareConfirm` options) hold the confirm key until a reason is given (within `maxBytes` of UTF-8) and the phrase is typed; `confirm` emits `{ reason }` and the presenter passes it to `action`, keeping what was typed when the action fails. They serve web consoles; the native presenters keep the plain confirmation.",
+        "zh": "询问并等待结果的呈现器，带忙碌、错误与重试：Vue `useFlareConfirm`（FlareUiProvider）、Flutter `FlareDangerConfirm.show(context, ..., action:)`、iOS `await FlareFeedback.confirm(FlareConfirmOptions(..., action:))`。动作失败时对话框保留并显示错误；只有动作成功后结果才为 true。各端呈现器都遵循 BottomSheet auto：手机形态为底部面板，其它形态为 Modal，动作进行中遮罩、拖拽、Escape 与返回都被锁住。Flutter 的 `confirmText` / `cancelText` 默认取 FlareStrings 的 confirm / cancel。Compose DangerConfirm 自己托管在 `BottomSheet(presentation = Auto)` 里；`LocalFlareDialog.current.confirm(FlareConfirmOptions(..., action =))` 是询问并等待结果的呈现器（在 FlareToastHost 之内）。 Vue 的 `reason` 与 `confirmPhrase`（`useFlareConfirm` 的选项里也有）在填好原因（UTF-8 不超过 `maxBytes`）并输入确认文字之前不放开确认键；`confirm` 上报 `{ reason }`，呈现器把它交给 `action`，动作失败时保留已输入的内容。它们服务于 Web 控制台；原生端呈现器保持普通确认。"
       }
     },
     {
@@ -20872,8 +21069,8 @@
           "type": "FlareDataTablePagination | null",
           "default": "null",
           "description": {
-            "en": "Server-side pagination; the table emits the next page or page size and the host fetches.",
-            "zh": "服务端分页；表格上报下一页或每页条数，由宿主取数。"
+            "en": "Server-side pagination; the table emits the next page or page size and the host fetches. Without `total` it pages by cursor: the page number alone, and `hasNext` enables the next key.",
+            "zh": "服务端分页；表格上报下一页或每页条数，由宿主取数。不传 `total` 即游标分页：只显示页码，由 `hasNext` 决定下一页键是否可用。"
           }
         },
         {
@@ -20941,8 +21138,8 @@
         }
       ],
       "notes": {
-        "en": "Cells render through `cell-<key>` scoped slots (`{ row, value, index, column }`), or the slot a column names; `row-actions` adds a trailing actions column (`{ row, index }`); `batch` renders inside the batch toolbar with `{ selectedKeys, selectedRows, clear }`; `toolbar` is the leading area of the bar above the table, beside the column chooser; `empty` replaces the empty state. A non-empty selection is a contextual layer: Escape, the platform back and the kit's back controls clear it. On a container narrower than 600px rows stack into labelled lines, the header stays for assistive technology and sorting moves into a menu in the bar; every table element carries its explicit role because the stacked form changes `display`. Vue only: native N/A. It is a console component (the admin console's lists of users, apps, audit events); no Flutter, SwiftUI or Compose app ships an admin console, and a native widget nobody renders would only drift from this one. Add the native kits when a native screen needs it, with the same contract.",
-        "zh": "单元格通过 `cell-<key>` 作用域插槽渲染（`{ row, value, index, column }`），或列指定的插槽；`row-actions` 在末尾加一列操作（`{ row, index }`）；`batch` 渲染在批量工具条里，拿到 `{ selectedKeys, selectedRows, clear }`；`toolbar` 是表格上方那条栏的前部，与列设置并排；`empty` 替换空态。选中不为空就是一个上下文层：Escape、平台返回与组件库的返回控件都会清空它。容器窄于 600px 时行堆叠成带标签的行，表头留给辅助技术，排序移到栏里的菜单；堆叠会改变 `display`，所以每个表格元素都显式带 role。仅 Vue，原生端 N/A：这是控制台组件（管理控制台的用户、应用、审计列表）；Flutter、SwiftUI、Compose 端没有任何 App 提供管理控制台，一个无人渲染的原生控件只会和这里渐行渐远。等原生界面真正需要时再按同一契约实现。"
+        "en": "Cells render through `cell-<key>` scoped slots (`{ row, value, index, column }`), or the slot a column names; `row-actions` adds a trailing actions column (`{ row, index }`); `batch` renders inside the batch toolbar with `{ selectedKeys, selectedRows, clear }`; `toolbar` is the leading area of the bar above the table, beside the column chooser; `empty` replaces the empty state. A source that pages by cursor and cannot count (`has_more` / `next_cursor`) omits `total`: the pager shows the rows of this page and the page number, previous / next move one page at a time, next follows `hasNext`, and the host keeps the cursor of each page it visited; the table's row count is then -1 (unknown). A non-empty selection is a contextual layer: Escape, the platform back and the kit's back controls clear it. On a container narrower than 600px rows stack into labelled lines, the header stays for assistive technology and sorting moves into a menu in the bar; every table element carries its explicit role because the stacked form changes `display`. Vue only: native N/A. It is a console component (the admin console's lists of users, apps, audit events); no Flutter, SwiftUI or Compose app ships an admin console, and a native widget nobody renders would only drift from this one. Add the native kits when a native screen needs it, with the same contract.",
+        "zh": "单元格通过 `cell-<key>` 作用域插槽渲染（`{ row, value, index, column }`），或列指定的插槽；`row-actions` 在末尾加一列操作（`{ row, index }`）；`batch` 渲染在批量工具条里，拿到 `{ selectedKeys, selectedRows, clear }`；`toolbar` 是表格上方那条栏的前部，与列设置并排；`empty` 替换空态。游标分页、无法计数的数据源（`has_more` / `next_cursor`）不传 `total`：分页器显示本页行号与页码，上一页 / 下一页每次移动一页，下一页跟随 `hasNext`，宿主记住访问过的每页游标；此时表格的总行数为 -1（未知）。选中不为空就是一个上下文层：Escape、平台返回与组件库的返回控件都会清空它。容器窄于 600px 时行堆叠成带标签的行，表头留给辅助技术，排序移到栏里的菜单；堆叠会改变 `display`，所以每个表格元素都显式带 role。仅 Vue，原生端 N/A：这是控制台组件（管理控制台的用户、应用、审计列表）；Flutter、SwiftUI、Compose 端没有任何 App 提供管理控制台，一个无人渲染的原生控件只会和这里渐行渐远。等原生界面真正需要时再按同一契约实现。"
       },
       "platforms": {
         "vue": {
@@ -20968,7 +21165,7 @@
           "appliesTo": "interactiveTargets"
         },
         "reducedMotionBehavior": "The sort glyph appears without a fade; nothing else moves.",
-        "screenReaderSemantics": "A named table with explicit table, rowgroup, row, columnheader and cell roles (kept when a narrow container stacks the rows). Sortable headers carry aria-sort; the header checkbox reads mixed when some rows of the page are selected; each row checkbox is named by its row number and each selected row is aria-selected. The batch toolbar is a named toolbar whose count is a polite live region. Loading is aria-busy with a status; the empty state is text. The pager is a named navigation with a named page-size combobox and previous / next buttons."
+        "screenReaderSemantics": "A named table with explicit table, rowgroup, row, columnheader and cell roles (kept when a narrow container stacks the rows). Sortable headers carry aria-sort; the header checkbox reads mixed when some rows of the page are selected; each row checkbox is named by its row number and each selected row is aria-selected. The batch toolbar is a named toolbar whose count is a polite live region. Loading is aria-busy with a status; the empty state is text. The pager is a named navigation with a named page-size combobox and previous / next buttons; a cursor-paged table reports aria-rowcount -1 because the total is unknown."
       }
     },
     {
@@ -21108,6 +21305,401 @@
         },
         "reducedMotionBehavior": "The check mark fills without a transition; nothing else moves.",
         "screenReaderSemantics": "A named tree of tree items with aria-level, aria-posinset and aria-setsize; a group exposes aria-expanded; every item exposes aria-checked true / false / mixed derived from its leaves, and a disabled item aria-disabled. The item itself is the one control, so the check box beside the name is decorative. The selected count is a polite live region; read-only draws a view-only hint; no match is the empty text."
+      }
+    },
+    {
+      "name": "FilterBar",
+      "category": "Form",
+      "summary": {
+        "en": "Filter bar — the query form above a console list: labelled fields in a grid that wraps by its own width, Search and Reset keys, and less used fields folded behind \"More filters\".",
+        "zh": "查询条件栏 —— 控制台列表上方的查询表单：带标签的字段放进按自身宽度换行的网格，查询与重置键，不常用的字段收进「更多条件」。"
+      },
+      "dataSource": {
+        "en": "host-owned field values (each field a FormField around a kit control in the default and `more` slots); the bar only reports `search` and `reset` and never reads or clears a value itself",
+        "zh": "宿主持有的字段值（每个字段是放进默认插槽与 `more` 插槽的 FormField + 组件库控件）；查询栏只上报 `search` 与 `reset`，自己从不读取或清空字段值"
+      },
+      "states": [
+        "default",
+        "loading",
+        "expanded"
+      ],
+      "events": [
+        "search",
+        "reset",
+        "update:expanded"
+      ],
+      "model": {
+        "prop": "expanded",
+        "event": "update:expanded"
+      },
+      "slots": [
+        "more",
+        "actions"
+      ],
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "description": {
+            "en": "Accessible name of the search region. Default: the kit's \"Filters\".",
+            "zh": "查询区域的可及名称。默认用组件库的「查询条件」。"
+          }
+        },
+        {
+          "name": "hint",
+          "type": "string",
+          "description": {
+            "en": "A line above the fields — what the query needs, what it searches; it also describes the region.",
+            "zh": "字段上方的一行说明 —— 查询需要什么、查的是什么；同时作为区域的描述。"
+          }
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "The host is running the query: the Search key shows progress and Enter does not queue a second one.",
+            "zh": "宿主正在查询：查询键显示进度，回车不会再排一次查询。"
+          }
+        },
+        {
+          "name": "searchText",
+          "type": "string",
+          "description": {
+            "en": "Search key text. Default: the kit's \"Search\".",
+            "zh": "查询键文字。默认用组件库的「查询」。"
+          }
+        },
+        {
+          "name": "resetText",
+          "type": "string",
+          "description": {
+            "en": "Reset key text. Default: the kit's \"Reset\".",
+            "zh": "重置键文字。默认用组件库的「重置」。"
+          }
+        },
+        {
+          "name": "resettable",
+          "type": "boolean",
+          "default": "true",
+          "description": {
+            "en": "Draw the Reset key.",
+            "zh": "是否画重置键。"
+          }
+        },
+        {
+          "name": "moreActiveCount",
+          "type": "number",
+          "default": "0",
+          "description": {
+            "en": "How many folded fields hold a value; shown on the \"More filters\" key while they are folded, so a hidden condition is never a surprise.",
+            "zh": "收起的字段里有几项已填值；收起时显示在「更多条件」键上，被收起的条件不会让人意外。"
+          }
+        },
+        {
+          "name": "expanded",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "Whether the `more` fields are shown (v-model).",
+            "zh": "是否展开 `more` 字段（v-model）。"
+          }
+        }
+      ],
+      "notes": {
+        "en": "Put one FormField per condition in the default slot and the rarely used ones in `more`; `actions` takes host keys (export, create) after Search, Reset and the disclosure. Enter in a one-line text field reports `search`; a control that acts on its own Enter keeps it (a handled key, an open combobox, an IME composition, a textarea, a button). The region is a `search` landmark, not a `<form>`, so a host button in `actions` never submits by accident. The keys take the last two cells of the last grid row, or the whole row on a one-column grid; the minimum field width is `--flare-component-filter-bar-field-min-width`. Vue only: native N/A. It is a console component (the query bar of every admin list); no Flutter, SwiftUI or Compose app ships an admin console, and a native widget nobody renders would only drift from this one. Add the native kits when a native screen needs it, with the same contract.",
+        "zh": "每个条件一个 FormField 放进默认插槽，不常用的放进 `more`；`actions` 放宿主的键（导出、新建），排在查询、重置与展开键之后。单行文本框里按回车上报 `search`；自己处理回车的控件保留它（已处理的按键、展开中的组合框、输入法组字、多行文本框、按钮）。区域是 `search` 地标而不是 `<form>`，所以 `actions` 里宿主的按钮不会误提交。按键占网格最后一行的最后两格，单列网格时占满整行；字段最小宽度是 `--flare-component-filter-bar-field-min-width`。仅 Vue，原生端 N/A：这是控制台组件（每个管理列表上方的查询栏）；Flutter、SwiftUI、Compose 端没有任何 App 提供管理控制台，一个无人渲染的原生控件只会和这里渐行渐远。等原生界面真正需要时再按同一契约实现。"
+      },
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareFilterBar"
+        }
+      },
+      "accessibility": {
+        "role": "search",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab visits the fields, then Search, Reset, the More filters disclosure and the host's keys",
+          "Enter in a one-line text field searches; a control that handles its own Enter keeps it",
+          "Enter or Space on the disclosure shows or hides the folded fields; focus stays on it"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "The folded fields appear and leave without a transition.",
+        "screenReaderSemantics": "A named search landmark described by its hint. Each field is a labelled FormField. The disclosure exposes aria-expanded and, while open, aria-controls on the folded fields; its name says how many folded fields hold a value. The Search key is aria-busy while the host runs the query."
+      }
+    },
+    {
+      "name": "DescriptionList",
+      "category": "General",
+      "summary": {
+        "en": "Description list — the facts of one record as label / value lines in a real `<dl>`, laid out in columns by its own width, with \"not set\" for an empty value and a copy key on identifiers.",
+        "zh": "描述列表 —— 一条记录的各项事实，以「标签 / 值」行放进真正的 `<dl>`，按自身宽度分栏；空值显示「未设置」，标识符带复制键。"
+      },
+      "dataSource": {
+        "en": "host-owned `items` (key, label, value already formatted, span, monospace, copyable); a value the host leaves `null`, `undefined` or empty is drawn as not set, and an `item-<key>` slot renders a line the host draws itself",
+        "zh": "宿主持有的 `items`（key、label、已格式化的 value、span、monospace、copyable）；宿主留空（`null`、`undefined` 或空串）的值画成「未设置」，`item-<key>` 插槽让宿主自己画某一行"
+      },
+      "states": [
+        "default",
+        "empty"
+      ],
+      "events": [
+        "copy"
+      ],
+      "props": [
+        {
+          "name": "items",
+          "type": "readonly FlareDescriptionItem[]",
+          "required": true,
+          "description": {
+            "en": "The lines, in reading order.",
+            "zh": "各行，按阅读顺序。"
+          }
+        },
+        {
+          "name": "columns",
+          "type": "number",
+          "default": "2",
+          "description": {
+            "en": "Columns on a wide container (1–4). Under 480px of its own width the list is one column.",
+            "zh": "宽容器下的列数（1–4）。自身宽度不足 480px 时为单列。"
+          }
+        },
+        {
+          "name": "labelPlacement",
+          "type": "'start' | 'top'",
+          "default": "'start'",
+          "description": {
+            "en": "`start` puts each label beside its value; `top` puts it above.",
+            "zh": "`start` 标签在值的旁边；`top` 标签在值的上方。"
+          }
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "description": {
+            "en": "Names the list as a group, when a page holds more than one.",
+            "zh": "页面上有多个列表时，作为分组名称。"
+          }
+        },
+        {
+          "name": "appearance",
+          "type": "'plain' | 'card'",
+          "default": "'plain'",
+          "description": {
+            "en": "`plain` sits inside a surface the host already drew; `card` draws its own.",
+            "zh": "`plain` 放在宿主已画好的面里；`card` 自带卡片面。"
+          }
+        }
+      ],
+      "notes": {
+        "en": "Lines render through `item-<key>` scoped slots (`{ item, value }`) when the value is more than text — a Tag, a link, an avatar. A copy key writes the value's text and reports `copy(key, copied)`; the host shows the toast. An empty value is a dash that a screen reader reads as \"Not set\", never a blank or \"null\"; zero is a value. Vue only: native N/A. It is a console component (detail drawers for users, applications, messages and audit events); no Flutter, SwiftUI or Compose app ships an admin console, and a native widget nobody renders would only drift from this one. Add the native kits when a native screen needs it, with the same contract.",
+        "zh": "某一行不只是文字时（标签、链接、头像）用 `item-<key>` 作用域插槽（`{ item, value }`）渲染。复制键写入该值的文字并上报 `copy(key, copied)`，提示由宿主给。空值是一条横线，读屏读作「未设置」，绝不是空白或「null」；0 是值。仅 Vue，原生端 N/A：这是控制台组件（用户、应用、消息与审计事件的详情抽屉）；Flutter、SwiftUI、Compose 端没有任何 App 提供管理控制台，一个无人渲染的原生控件只会和这里渐行渐远。等原生界面真正需要时再按同一契约实现。"
+      },
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareDescriptionList"
+        }
+      },
+      "accessibility": {
+        "role": "group",
+        "labelRequired": false,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab reaches each copy key; Enter or Space copies the value"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "No motion.",
+        "screenReaderSemantics": "A description list: each line is a term (the label) and its definition (the value). With `label` the list is a named group. An empty value reads \"Not set\" (the dash is hidden). Each copy key is named \"Copy <label>\"."
+      }
+    },
+    {
+      "name": "CodeBlock",
+      "category": "General",
+      "summary": {
+        "en": "Code block — text a person reads exactly and usually copies (a raw payload, an initialisation snippet) in a monospaced, bounded scroll box with a copy key.",
+        "zh": "代码块 —— 需要逐字阅读、通常还要复制的文本（原始报文、初始化代码），放在等宽、限高的滚动框里，带复制键。"
+      },
+      "dataSource": {
+        "en": "host-owned `code`, already formatted (`JSON.stringify(value, null, 2)` for a payload) and already reduced to what may be shown; `language` is only the label over it",
+        "zh": "宿主持有的 `code`，已格式化（报文用 `JSON.stringify(value, null, 2)`）且已裁剪到可以展示的内容；`language` 只是上方的标签"
+      },
+      "states": [
+        "default"
+      ],
+      "events": [
+        "copy"
+      ],
+      "props": [
+        {
+          "name": "code",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "The text, exactly as it should be read and copied.",
+            "zh": "要逐字阅读与复制的文本。"
+          }
+        },
+        {
+          "name": "language",
+          "type": "string",
+          "description": {
+            "en": "What the text is (JSON, TypeScript, curl), shown over it. Nothing is highlighted.",
+            "zh": "文本是什么（JSON、TypeScript、curl），显示在上方。不做语法高亮。"
+          }
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "description": {
+            "en": "Accessible name of the scroll box. Default: `language`, else the kit's \"Code\".",
+            "zh": "滚动框的可及名称。默认用 `language`，否则用组件库的「代码」。"
+          }
+        },
+        {
+          "name": "copyable",
+          "type": "boolean",
+          "default": "true",
+          "description": {
+            "en": "Draw the copy key; it reports `copy(copied)`.",
+            "zh": "是否画复制键；复制后上报 `copy(copied)`。"
+          }
+        },
+        {
+          "name": "wrap",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "Wrap long lines instead of scrolling sideways.",
+            "zh": "长行折行，而不是横向滚动。"
+          }
+        },
+        {
+          "name": "maxHeight",
+          "type": "string",
+          "description": {
+            "en": "Height cap as a CSS length. Default `--flare-component-code-block-max-height`.",
+            "zh": "高度上限（CSS 长度）。默认 `--flare-component-code-block-max-height`。"
+          }
+        }
+      ],
+      "notes": {
+        "en": "No syntax highlighting: a console shows a payload to read and copy, and a highlighter is a parser per language plus a palette per theme the kit would have to keep at 4.5:1 in every brand. The scroll box is a named, focusable region, so a keyboard can scroll it. The host decides what may be shown (no secrets in a payload view). Vue only: native N/A. It is a console component (raw message payloads, webhook bodies, the quick-start snippet); no Flutter, SwiftUI or Compose app ships an admin console, and a native widget nobody renders would only drift from this one. Add the native kits when a native screen needs it, with the same contract.",
+        "zh": "不做语法高亮：控制台展示报文是为了阅读与复制，而高亮器意味着每种语言一个解析器、每个主题一套配色，组件库还得保证每个品牌都 4.5:1。滚动框是有名称、可聚焦的区域，键盘可以滚动它。能展示什么由宿主决定（报文视图里不放密钥）。仅 Vue，原生端 N/A：这是控制台组件（原始消息报文、Webhook 请求体、快速开始代码）；Flutter、SwiftUI、Compose 端没有任何 App 提供管理控制台，一个无人渲染的原生控件只会和这里渐行渐远。等原生界面真正需要时再按同一契约实现。"
+      },
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareCodeBlock"
+        }
+      },
+      "accessibility": {
+        "role": "region",
+        "labelRequired": true,
+        "focusable": "self",
+        "keyboardBehavior": [
+          "Tab reaches the copy key, then the scroll box; arrow keys scroll the box",
+          "Enter or Space on the copy key copies the whole text"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "No motion.",
+        "screenReaderSemantics": "The text is in a named, focusable region (role region) so a screen reader and a keyboard both reach it; the copy key is named \"Copy code\" and is disabled when there is nothing to copy. The language label is plain text."
+      }
+    },
+    {
+      "name": "Tag",
+      "category": "General",
+      "summary": {
+        "en": "Tag — a short status or category label on a table row or a detail line, coloured by a semantic tone that only repeats what the words say.",
+        "zh": "标签 —— 表格行或详情行上一个简短的状态或类别标签，语义色调只是重复文字已经表达的含义。"
+      },
+      "dataSource": {
+        "en": "host-owned `label` (already translated) and the `tone` the host maps its state to",
+        "zh": "宿主持有的 `label`（已翻译）与宿主为该状态选定的 `tone`"
+      },
+      "states": [
+        "default"
+      ],
+      "events": [],
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "The words: a state or a category, not a sentence.",
+            "zh": "文字：一个状态或类别，不是一句话。"
+          }
+        },
+        {
+          "name": "tone",
+          "type": "FlareTone",
+          "default": "'neutral'",
+          "description": {
+            "en": "What the state means: `info`, `success`, `warning`, `danger`, or `neutral` for a category with no judgement.",
+            "zh": "状态的含义：`info`、`success`、`warning`、`danger`，或无评判的类别 `neutral`。"
+          }
+        },
+        {
+          "name": "dot",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "A leading dot for a live state (online, running) rather than a category.",
+            "zh": "前置圆点，用于实时状态（在线、运行中）而不是类别。"
+          }
+        },
+        {
+          "name": "monospace",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "Draw the label in the monospaced face — an identifier, a code, a version.",
+            "zh": "用等宽字体显示 —— 标识符、代码、版本号。"
+          }
+        }
+      ],
+      "notes": {
+        "en": "Not a control: no hover, no focus, no click (a filter a person toggles is FilterTabs, an action is a Button). Each tone writes its text colour on a 6% tint of the tone over the primary surface, which keeps 4.5:1 in every brand and both modes as painted (lowest 4.64:1); at 8% the light warning tag paints at 4.49:1. Vue only: native N/A. It is a console component (status and kind labels in console tables and detail drawers); no Flutter, SwiftUI or Compose app ships an admin console, and a native widget nobody renders would only drift from this one. Add the native kits when a native screen needs it, with the same contract.",
+        "zh": "不是控件：没有悬停、焦点与点击（可切换的筛选是 FilterTabs，动作是 Button）。每种色调把文字色写在该色调 6% 叠加主背景的底上，按实际绘制的颜色各品牌明暗两种模式都保持 4.5:1（最低 4.64:1）；用 8% 时浅色警告标签实绘只有 4.49:1。仅 Vue，原生端 N/A：这是控制台组件（控制台表格与详情抽屉里的状态与类型标签）；Flutter、SwiftUI、Compose 端没有任何 App 提供管理控制台，一个无人渲染的原生控件只会和这里渐行渐远。等原生界面真正需要时再按同一契约实现。"
+      },
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareTag"
+        }
+      },
+      "accessibility": {
+        "role": "text",
+        "labelRequired": false,
+        "focusable": "none",
+        "keyboardBehavior": [],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "No motion.",
+        "screenReaderSemantics": "Plain text: a screen reader reads the label; the tone colour and the dot are not announced, so the label carries the meaning on its own."
       }
     }
   ],

@@ -45,6 +45,30 @@ describe("confirm presenter", () => {
     expect(action).toHaveBeenCalledTimes(2);
   });
 
+  it("hands the action what the person entered, and keeps it for a retry", async () => {
+    const feedback = createFlareFeedback();
+    const action = vi.fn().mockRejectedValueOnce(new Error("conflict")).mockResolvedValueOnce(undefined);
+    const result = feedback.confirm({ title: "关闭能力", description: "写入审计", reason: { label: "审计原因" }, action });
+    await feedback.accept({ reason: "排查投递" });
+    expect(feedback.confirmRequest.value).toMatchObject({ busy: false, error: "conflict" });
+    await feedback.accept({ reason: "排查投递" });
+    expect(await result).toBe(true);
+    expect(action.mock.calls).toEqual([[{ reason: "排查投递" }], [{ reason: "排查投递" }]]);
+    // Without a dialog in between (a direct accept) the reason is empty, never undefined.
+    const plain = vi.fn();
+    void feedback.confirm({ title: "A", description: "a", action: plain });
+    await feedback.accept();
+    expect(plain).toHaveBeenCalledWith({ reason: "" });
+  });
+
+  it("gives every question its own id, so a replaced dialog starts empty", () => {
+    const feedback = createFlareFeedback();
+    void feedback.confirm({ title: "A", description: "a" });
+    const first = feedback.confirmRequest.value!.id;
+    void feedback.confirm({ title: "B", description: "b" });
+    expect(feedback.confirmRequest.value!.id).not.toBe(first);
+  });
+
   it("does not let a second request replace a running action", async () => {
     const feedback = createFlareFeedback();
     let finish = () => {};
@@ -92,6 +116,26 @@ describe("FlareUiProvider presentation", () => {
     await flushPromises();
     expect(host.find(".flare-ui-provider__toasts").text()).toContain("Copied");
     expect(document.body.textContent).toContain("Delete conversation");
+    host.unmount();
+  });
+
+  it("collects the reason in the dialog and hands it to the action", async () => {
+    let confirm: ReturnType<typeof useFlareConfirm> | undefined;
+    const Child = defineComponent({ setup() { confirm = useFlareConfirm(); return () => h("div"); } });
+    const host = mount(FlareUiProvider, { props: { themeMode: "light", locale: "en-US" }, slots: { default: () => h(Child) }, attachTo: document.body });
+    const action = vi.fn();
+    const answer = confirm!({ title: "Turn off push", description: "Recorded in the audit log.", target: "acme", reason: { label: "Audit reason", maxBytes: 512 }, confirmPhrase: "acme", action });
+    await flushPromises();
+    const inputs = [...document.body.querySelectorAll<HTMLInputElement>(".flare-danger-confirm input")];
+    expect(inputs).toHaveLength(2);
+    inputs[0].value = "Investigating delivery";
+    inputs[0].dispatchEvent(new Event("input"));
+    inputs[1].value = "acme";
+    inputs[1].dispatchEvent(new Event("input"));
+    await flushPromises();
+    document.body.querySelectorAll<HTMLButtonElement>(".flare-danger-confirm__actions button")[1].click();
+    expect(await answer).toBe(true);
+    expect(action).toHaveBeenCalledWith({ reason: "Investigating delivery" });
     host.unmount();
   });
 

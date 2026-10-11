@@ -39,8 +39,14 @@ export interface FlareDataTablePagination {
   /** 1-based current page. */
   page: number;
   pageSize: number;
-  /** Rows on the server, not on this page. */
-  total: number;
+  /**
+   * Rows on the server, not on this page. Omit it for a cursor-paged source that cannot count
+   * (`has_more` / `next_cursor`): the pager then shows the page number alone and `hasNext` decides
+   * whether there is a next page. The host keeps the cursor of each page it has visited.
+   */
+  total?: number;
+  /** Cursor-paged sources: whether the server has a page after this one. Ignored when `total` is given. */
+  hasNext?: boolean;
   /** Page sizes the person may pick; omitted draws no page-size control. */
   pageSizes?: readonly number[];
 }
@@ -75,19 +81,42 @@ export function dataTableAriaSort(
   return sort.order === "asc" ? "ascending" : "descending";
 }
 
-export function dataTablePageCount(pagination: FlareDataTablePagination): number {
-  const size = Math.max(1, Math.floor(pagination.pageSize));
-  return Math.max(1, Math.ceil(Math.max(0, pagination.total) / size));
+/** A source that pages by cursor and cannot say how many rows it has. */
+export function dataTableIsCursor(pagination: FlareDataTablePagination): boolean {
+  return typeof pagination.total !== "number" || !Number.isFinite(pagination.total);
 }
 
-/** 1-based inclusive bounds of the rows on this page; `{ from: 0, to: 0 }` when there are none. */
-export function dataTableRange(pagination: FlareDataTablePagination): { from: number; to: number } {
-  const total = Math.max(0, pagination.total);
-  if (total === 0) return { from: 0, to: 0 };
+/** Pages a counted source has; a cursor source has no known last page, so it reports the current one. */
+export function dataTablePageCount(pagination: FlareDataTablePagination): number {
+  if (dataTableIsCursor(pagination)) return Math.max(1, Math.floor(pagination.page));
   const size = Math.max(1, Math.floor(pagination.pageSize));
+  return Math.max(1, Math.ceil(Math.max(0, pagination.total as number) / size));
+}
+
+/**
+ * 1-based inclusive bounds of the rows on this page; `{ from: 0, to: 0 }` when there are none. A
+ * cursor source is counted from the rows the host passed for this page (`rowCount`).
+ */
+export function dataTableRange(pagination: FlareDataTablePagination, rowCount = 0): { from: number; to: number } {
+  const size = Math.max(1, Math.floor(pagination.pageSize));
+  if (dataTableIsCursor(pagination)) {
+    const rows = Math.max(0, Math.floor(rowCount));
+    if (rows === 0) return { from: 0, to: 0 };
+    const from = (Math.max(1, Math.floor(pagination.page)) - 1) * size + 1;
+    return { from, to: from + rows - 1 };
+  }
+  const total = Math.max(0, pagination.total as number);
+  if (total === 0) return { from: 0, to: 0 };
   const page = Math.min(Math.max(1, pagination.page), dataTablePageCount(pagination));
   const from = (page - 1) * size + 1;
   return { from, to: Math.min(total, from + size - 1) };
+}
+
+/** Whether the previous and next keys lead anywhere. */
+export function dataTablePageSteps(pagination: FlareDataTablePagination): { previous: boolean; next: boolean } {
+  const page = Math.max(1, Math.floor(pagination.page));
+  const next = dataTableIsCursor(pagination) ? pagination.hasNext === true : page < dataTablePageCount(pagination);
+  return { previous: page > 1, next };
 }
 
 /**

@@ -29,6 +29,12 @@ export interface FlareNavigationItem {
   intent?: FlareNavigationIntent;
   accessibilityLabel?: string;
   /**
+   * Vue only: the destination's URL. The item is then a real link, so a modified click (Cmd / Ctrl /
+   * Shift, the middle button) opens it where the browser puts it; a plain click still reports
+   * `navigate` and the host routes in place. A disabled item stays a button.
+   */
+  href?: string;
+  /**
    * 只对 `navigationActions` 有意义：这个动作不是一件事，而是一组。给了就由侧栏
    * 自己把菜单锚在那个按钮上（宿主拿不到这个按钮，锚不了），选中的条目仍然以
    * `navigate` 交回宿主 —— 所以菜单条目的 id 要和导航项的 id 区分开。

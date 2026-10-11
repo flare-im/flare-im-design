@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   dataTableAriaSort,
   dataTableCellText,
+  dataTableIsCursor,
   dataTableNextSort,
   dataTablePageCount,
+  dataTablePageSteps,
   dataTableRange,
   dataTableRowKey,
   dataTableSelection,
@@ -51,6 +53,25 @@ describe("data-table rules", () => {
     expect(dataTableRange({ page: 5, pageSize: 25, total: 120 })).toEqual({ from: 101, to: 120 });
     expect(dataTableRange({ page: 9, pageSize: 25, total: 120 })).toEqual({ from: 101, to: 120 });
     expect(dataTableRange({ page: 1, pageSize: 25, total: 0 })).toEqual({ from: 0, to: 0 });
+  });
+
+  it("pages a cursor source that cannot count: from the rows it passed, one page at a time", () => {
+    expect(dataTableIsCursor({ page: 1, pageSize: 20 })).toBe(true);
+    expect(dataTableIsCursor({ page: 1, pageSize: 20, total: Number.NaN })).toBe(true);
+    expect(dataTableIsCursor({ page: 1, pageSize: 20, total: 0 })).toBe(false);
+    // The rows of this page, numbered after the pages the person has walked through.
+    expect(dataTableRange({ page: 1, pageSize: 20, hasNext: true }, 20)).toEqual({ from: 1, to: 20 });
+    expect(dataTableRange({ page: 3, pageSize: 20 }, 7)).toEqual({ from: 41, to: 47 });
+    expect(dataTableRange({ page: 1, pageSize: 20 }, 0)).toEqual({ from: 0, to: 0 });
+    // No known last page: the count is the page the person is on.
+    expect(dataTablePageCount({ page: 3, pageSize: 20, hasNext: true })).toBe(3);
+    // Next follows the server's has_more, never a guess from a full page.
+    expect(dataTablePageSteps({ page: 1, pageSize: 20, hasNext: true })).toEqual({ previous: false, next: true });
+    expect(dataTablePageSteps({ page: 2, pageSize: 20 })).toEqual({ previous: true, next: false });
+    expect(dataTablePageSteps({ page: 2, pageSize: 20, hasNext: false })).toEqual({ previous: true, next: false });
+    // A counted source ignores hasNext.
+    expect(dataTablePageSteps({ page: 5, pageSize: 25, total: 120, hasNext: true })).toEqual({ previous: true, next: false });
+    expect(dataTablePageSteps({ page: 1, pageSize: 25, total: 120 })).toEqual({ previous: false, next: true });
   });
 
   it("shows every column until the chooser has chosen, and keeps a column that cannot be hidden", () => {

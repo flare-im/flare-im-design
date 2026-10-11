@@ -627,6 +627,99 @@ FlareComposerActionPanel(actions = myActions, onAction = ::pick)`,
   <template #batch="{ selectedKeys, clear }"><FlareButton variant="danger" size="sm" :label="t('users.freeze')" @click="freeze(selectedKeys).then(clear)" /></template>
 </FlareDataTable>`,
     },
+    {
+      title: { en: "A cursor-paged source that cannot count", zh: "游标分页、无法计数的数据源" },
+      description: { en: "Leave out `total` and pass the server's `has_more` as `hasNext`. The table asks for page n ± 1; the host keeps the cursor of every page it visited, so going back needs no second query plan.", zh: "不传 `total`，把服务端的 `has_more` 作为 `hasNext`。表格只会请求第 n ± 1 页；宿主记住访问过的每一页的游标，返回上一页无需另一套查询。" },
+      vue: `<FlareDataTable
+  :label="t('messages.title')"
+  :columns="columns"
+  :rows="page.messages"
+  :loading="pending"
+  :pagination="{ page: cursors.length + 1, pageSize: 20, hasNext: page.has_more }"
+  @update:pagination="(next) => (next.page > cursors.length + 1 ? forward(page.next_cursor) : back())"
+/>`,
+    },
+  ],
+
+  FilterBar: [
+    {
+      title: { en: "The query bar of a message search", zh: "消息检索的查询栏" },
+      description: { en: "Every value lives in the host; the bar reports `search` (the key, or Enter in a one-line field) and `reset`. Rarely used conditions go in `more`; `moreActiveCount` tells the person how many of them hold a value while they are folded.", zh: "所有字段值都在宿主里；查询栏只上报 `search`（按键，或在单行文本框里回车）与 `reset`。不常用的条件放进 `more`；收起时 `moreActiveCount` 告诉对方其中几项已填。" },
+      vue: `<FlareFilterBar
+  :hint="t('messages.hint')"
+  :loading="pending"
+  :more-active-count="[query.senderId, query.channelId].filter(Boolean).length"
+  v-model:expanded="moreOpen"
+  @search="runSearch"
+  @reset="resetQuery"
+>
+  <FlareFormField :label="t('messages.conversation')"><FlareInput v-model="query.conversationId" monospace clearable /></FlareFormField>
+  <FlareFormField :label="t('messages.messageId')"><FlareInput v-model="query.messageId" monospace clearable /></FlareFormField>
+  <template #more>
+    <FlareFormField :label="t('messages.sender')"><FlareInput v-model="query.senderId" monospace clearable /></FlareFormField>
+    <FlareFormField :label="t('messages.channel')"><FlareInput v-model="query.channelId" monospace clearable /></FlareFormField>
+  </template>
+  <template #actions><FlareButton variant="secondary" :label="t('common.export')" @click="exportRows" /></template>
+</FlareFilterBar>`,
+    },
+  ],
+
+  DescriptionList: [
+    {
+      title: { en: "A message's facts in a detail drawer", zh: "详情抽屉里一条消息的各项事实" },
+      description: { en: "The host formats each value (dates, enums) and leaves an unknown one empty — the list says \"not set\". Identifiers copy; the host toasts the result. A line that is more than text renders through its `item-<key>` slot.", zh: "宿主格式化每个值（日期、枚举），未知的留空 —— 列表会显示「未设置」。标识符可复制，结果提示由宿主给。不只是文字的行用 `item-<key>` 插槽渲染。" },
+      vue: `<FlareDrawer :open="Boolean(detail)" :title="t('messages.detail')" width="min(760px, 100vw)" @close="detail = null">
+  <FlareDescriptionList
+    :items="[
+      { key: 'serverId', label: t('messages.serverId'), value: detail.server_id, monospace: true, copyable: true },
+      { key: 'conversation', label: t('messages.conversation'), value: detail.conversation_id, monospace: true, copyable: true },
+      { key: 'seq', label: t('messages.seq'), value: detail.conversation_seq },
+      { key: 'sender', label: t('messages.sender'), value: detail.sender_name },
+      { key: 'kind', label: t('messages.kind'), value: detail.content_kind },
+      { key: 'createdAt', label: t('messages.createdAt'), value: dateTime(detail.created_at) },
+    ]"
+    @copy="(key, copied) => toast(copied ? t('common.copied') : t('common.copyFailed'))"
+  >
+    <template #item-kind="{ value }"><FlareTag :label="String(value)" /></template>
+  </FlareDescriptionList>
+</FlareDrawer>`,
+    },
+  ],
+
+  CodeBlock: [
+    {
+      title: { en: "A raw payload, and the quick-start snippet", zh: "原始报文，以及快速开始代码" },
+      description: { en: "The host formats the text and decides what may be shown; the block keeps it exactly as written, scrolls inside its own box and copies the whole text.", zh: "文本由宿主格式化，能展示什么也由宿主决定；代码块原样保留文本、在自己的框里滚动，并复制全文。" },
+      vue: `<FlareCodeBlock language="JSON" :code="JSON.stringify(detail, null, 2)" @copy="(copied) => toast(copied ? t('common.copied') : t('common.copyFailed'))" />
+<FlareCodeBlock language="TypeScript" :label="t('quickStart.init')" :code="initSnippet" wrap />`,
+    },
+  ],
+
+  Tag: [
+    {
+      title: { en: "A status the host maps to a tone", zh: "宿主把状态映射成色调" },
+      description: { en: "The words carry the meaning; the tone only repeats it. Map each server state to one tone in the host, and keep identifiers in the monospaced face.", zh: "含义由文字承载，色调只是重复它。在宿主里把每个服务端状态映射到一个色调；标识符用等宽字体。" },
+      vue: `<FlareTag :label="t('users.status.' + user.status)" :tone="{ active: 'success', frozen: 'danger', pending: 'warning' }[user.status] ?? 'neutral'" />
+<FlareTag :label="t('apps.online')" tone="success" dot />
+<FlareTag :label="app.version" monospace />`,
+    },
+  ],
+
+  DangerConfirm: [
+    {
+      title: { en: "A recorded console write: audit reason and typed name", zh: "被审计的控制台写操作：审计原因与输入名称" },
+      description: { en: "`reason` holds the confirm key until a reason is given (within the server's UTF-8 limit); `confirmPhrase` until the target's code is typed. The presenter hands the reason to `action` and keeps it if the write fails.", zh: "`reason` 在填好原因（不超过服务端的 UTF-8 上限）之前锁住确认键；`confirmPhrase` 在输入目标代码之前锁住确认键。呈现器把原因交给 `action`，写入失败时保留已填内容。" },
+      vue: `const confirm = useFlareConfirm();
+await confirm({
+  title: t('apps.delete.title'),
+  description: t('apps.delete.consequence'),
+  target: app.name,
+  confirmText: t('apps.delete.action'),
+  reason: { label: t('audit.reason'), placeholder: t('audit.reasonPlaceholder'), maxBytes: 512 },
+  confirmPhrase: app.code,
+  action: ({ reason }) => deleteApp(app.id, { auditReason: reason }),
+});`,
+    },
   ],
 
   PermissionTree: [

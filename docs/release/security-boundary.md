@@ -55,13 +55,14 @@ Round 5 之前这里写的是「kit 几乎从不自己跳转」。那条措辞�
 
 ## 4. 自己跳转的组件
 
-三个，都登记在契约里，门禁校验它们仍然过闸：
+四个，都登记在契约里，门禁校验它们仍然过闸：
 
 | 组件 | 怎么把关 |
 |---|---|
 | `LinkCardView.vue` | `safeExternalUrl(rawUrl)`，拿不到就不渲染 `<a>`，退化成不可点的卡片 |
 | `LocationView.vue` | href 由经纬度拼出，不取用户字符串 |
 | `FlareRichDocRuns.vue` | 富文本消息体的链接（Round 9）：文档里的 `href` 在读取时就要过 `safeExternalUrl` 才挂到行上，渲染时再过一次，拿不到就只画文字；`rel="noopener noreferrer"`，宿主接 `linkClick` 即 `preventDefault` 接管。三个原生 kit 同一规则（`spec/rich-doc-vectors.json`） |
+| `FlareAdaptiveNavigation.vue` | 宿主自己的导航项（2026-10-11，仅 Vue）：`href` 过 `safeNavigationHref`，只收同源路径（`/…`，不含 `//`、反斜杠、空白与控制字符）、`#…` 与 `?…`，其余必须是 `safeExternalUrl` 接受的显式 http/https；拿不到就画成按钮，普通点击仍上报 `navigate`。修饰键 / 中键点击交给浏览器 |
 
 其余一切——文本里的链接、独立的链接卡片消息体、小程序卡片——都是把 URL 通过事件报给宿主。
 

@@ -384,13 +384,14 @@ title: 数据类型
 
 `FlareDataTablePagination`
 
-> DataTable 的服务端分页：当前在第几页、总共有多少行。
+> DataTable 的服务端分页：当前在第几页，以及总共有多少行；游标数据源则是后面是否还有一页。
 
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
 | `page` | `number` | ✓ | 当前页，从 1 起。 |
 | `pageSize` | `number` | ✓ | 每页行数。 |
-| `total` | `number` | ✓ | 服务端总行数，不是本页行数。 |
+| `total` | `number` |  | 服务端总行数，不是本页行数。游标分页、无法计数的数据源不传。 |
+| `hasNext` | `boolean` |  | 游标数据源：服务端在本页之后是否还有一页（即 `has_more`）。传了 `total` 时忽略。 |
 | `pageSizes` | `number[]` |  | 可选的每页行数；省略则不画每页条数控件。 |
 
 ### PermissionNode {#permission-node}
@@ -407,6 +408,40 @@ title: 数据类型
 | `name` | `string` | ✓ | 显示名称。 |
 | `description` | `string` |  | 名称下的一行说明。 |
 | `children` | [`FlarePermissionNode[]`](/reference/data-types#permission-node) |  | 子节点；有子节点的是分组。 |
+
+### DescriptionItem {#description-item}
+
+`FlareDescriptionItem`
+
+> DescriptionList 的一行「标签 / 值」。
+
+**被使用于：**[DescriptionList](/components/description-list)
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `key` | `string` | ✓ | 这一行的稳定 id；也是 `item-<key>` 插槽的名字。 |
+| `label` | `string` | ✓ | 值是什么。 |
+| `value` | `string \| number \| null` |  | 值的文字，由宿主格式化。`null`、`undefined` 与空串表示「未设置」。 |
+| `span` | `number` |  | 这一行跨的列数，不超过列表的列数。默认 1。 |
+| `monospace` | `boolean` |  | 用等宽字体显示 —— id、代码、密钥。 |
+| `copyable` | `boolean` |  | 在值后画一个复制键。 |
+
+### ConfirmReason {#confirm-reason}
+
+`FlareConfirmReason`
+
+> DangerConfirm 在被审计的变更前要求填写的原因（审计原因）。
+
+**被使用于：**[DangerConfirm](/components/danger-confirm)
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `label` | `string` | ✓ | 字段标签，例如「审计原因」。 |
+| `placeholder` | `string` |  | 字段占位文字。 |
+| `hint` | `string` |  | 字段下的一行说明：谁会看到原因、记在哪里。 |
+| `maxLength` | `number` |  | 字段最多接受的字符数。 |
+| `maxBytes` | `number` |  | 去掉首尾空白后的原因最多占用的 UTF-8 字节数；超出时标记字段并锁住确认键。 |
+| `optional` | `boolean` |  | 原因可以不填。默认 false。 |
 
 ## 枚举 / 联合类型
 

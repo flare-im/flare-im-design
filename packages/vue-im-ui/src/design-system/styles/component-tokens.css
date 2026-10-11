@@ -53,6 +53,12 @@
   --flare-component-data-table-row-height-compact: var(--flare-size-layout-control-height-md);
   --flare-component-data-table-max-height: 70vh;
   --flare-component-permission-tree-row-height: var(--flare-size-layout-control-height-md);
+  /* Console detail and query surfaces. A description list's labels share one column this wide when they
+     sit beside their values; a filter bar's fields are never narrower than this before they wrap; a code
+     block scrolls inside this height. */
+  --flare-component-description-list-label-width: 8em;
+  --flare-component-filter-bar-field-min-width: 200px;
+  --flare-component-code-block-max-height: 360px;
   --flare-component-media-video-width: var(--flare-size-component-media-video-width);
   --flare-component-message-gutter-inline: var(--flare-size-component-message-gutter-inline);
   --flare-component-message-shadow: var(--flare-shadow-sm);

@@ -24,13 +24,13 @@ The table fills its container. A column takes `width` or `minWidth` (numbers are
 Default, loading (`aria-busy`, placeholder rows and a status), empty (the empty text or the `empty` slot), selection (the batch toolbar is up), sorted (one header carries `aria-sort`). A selected row is `aria-selected` and drawn on the selected surface.
 
 ## Interactions
-A sortable header cycles ascending, descending, then back to the host's order; the table emits `update:sort` and never reorders rows itself. Previous / next and the page-size select emit `update:pagination` (a new page size resets to page 1). The header checkbox selects or clears the rows of this page and keeps keys from other pages; each row checkbox toggles its row. The chooser emits `update:visibleColumns` with the keys in column order; the last visible column and a column with `hideable: false` cannot be hidden. A row emits `rowClick` only for a host that listens; its checkbox and its actions do not activate the row.
+A sortable header cycles ascending, descending, then back to the host's order; the table emits `update:sort` and never reorders rows itself. Previous / next and the page-size select emit `update:pagination` (a new page size resets to page 1). A source that pages by cursor and cannot count (`has_more` / `next_cursor`) leaves `total` out and passes `hasNext`: the pager shows the rows of this page and the page number, previous / next move one page at a time and next follows `hasNext`; the host keeps the cursor of each page it visited. The header checkbox selects or clears the rows of this page and keeps keys from other pages; each row checkbox toggles its row. The chooser emits `update:visibleColumns` with the keys in column order; the last visible column and a column with `hideable: false` cannot be hidden. A row emits `rowClick` only for a host that listens; its checkbox and its actions do not activate the row.
 
 ## Keyboard
 Tab visits the sort buttons, the checkboxes, the row actions and the pager in reading order. Enter or Space on a sortable header cycles its sort; on an activatable row it activates the row. Escape clears a non-empty selection (the batch toolbar is a contextual layer, the same rule as the message and conversation batch toolbars, so the platform back and the kit's back controls clear it too). The column chooser opens on its trigger, moves focus to its first checkbox, closes on Escape and returns focus to the trigger.
 
 ## Accessibility
-`table`, `rowgroup`, `row`, `columnheader` and `cell` are explicit roles, so they survive the stacked form, which changes `display`. The table is named by `label`. Sortable headers carry `aria-sort`; the header checkbox reads `mixed` when some rows of the page are selected; every row checkbox is named by its row number. The batch toolbar is a named `toolbar` whose count is a polite live region. The pager is a named `navigation` with a named page-size combobox. Decorative glyphs are hidden; focus rings use the solid focus token; hover styles sit behind `(hover: hover)`.
+`table`, `rowgroup`, `row`, `columnheader` and `cell` are explicit roles, so they survive the stacked form, which changes `display`. The table is named by `label`. Sortable headers carry `aria-sort`; the header checkbox reads `mixed` when some rows of the page are selected; every row checkbox is named by its row number. The batch toolbar is a named `toolbar` whose count is a polite live region. The pager is a named `navigation` with a named page-size combobox; a cursor-paged table reports `aria-rowcount="-1"` because its total is unknown. Decorative glyphs are hidden; focus rings use the solid focus token; hover styles sit behind `(hover: hover)`.
 
 ## Responsive
 The table asks its own container, not the window. Under 600px each row stacks into labelled lines (`data-label` is the column title), the selection checkbox sits beside the stack, the header stays in the accessibility tree, and sorting is a menu in the bar. Nothing scrolls sideways.
@@ -74,7 +74,7 @@ Vue only. The column chooser is a popover on pointer devices and a bottom sheet 
 | `label` | `string` | kit "Table" | Accessible name of the table. |
 | `loading` | `boolean` | `false` | Placeholder rows and `aria-busy`. |
 | `emptyText` | `string` | kit "No data yet" | Text of the empty state. |
-| `pagination` | `FlareDataTablePagination \| null` | `null` | `{ page, pageSize, total, pageSizes? }`. |
+| `pagination` | `FlareDataTablePagination \| null` | `null` | `{ page, pageSize, total?, hasNext?, pageSizes? }`; without `total` it pages by cursor. |
 | `sort` | `FlareDataTableSort \| null` | `null` | `{ key, order: 'asc' \| 'desc' }`. |
 | `selectable` | `boolean` | `false` | Row and header checkboxes; a selection raises the batch toolbar. |
 | `selectedKeys` | `string[]` | `[]` | v-model; keys of the selected rows across pages. |
@@ -88,7 +88,7 @@ Vue only. The column chooser is a popover on pointer devices and a bottom sheet 
 | Event | Payload | When |
 |---|---|---|
 | `update:sort` | `FlareDataTableSort \| null` | A sortable header was activated (ascending, descending, then `null`). |
-| `update:pagination` | `FlareDataTablePagination` | Previous / next, or a new page size (page 1). |
+| `update:pagination` | `FlareDataTablePagination` | Previous / next (one page at a time for a cursor source), or a new page size (page 1). |
 | `update:selectedKeys` | `string[]` | A checkbox, the header checkbox, clear or Escape. |
 | `update:visibleColumns` | `string[]` | A column was shown or hidden, keys in column order. |
 | `rowClick` | `(row, index)` | A row was activated by pointer, Enter or Space (only for a host that listens). |

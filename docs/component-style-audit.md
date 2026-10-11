@@ -179,6 +179,10 @@ The audit checks typography, spacing, padding, alignment, icon scale and stroke,
 | ChartCard | General | General UI primitive; semantic tokens; base controlled contract | No blocking drift found; inherits the category token and state grammar. | Uses the shared focus, touch-target, disabled, and recovery expectations. | Configuration is limited to its public task boundary. | Retain current boundary and review with its category when behavior changes. | P3 monitor |
 | DataTable | General | General UI primitive; semantic tokens; density, slots/builders | No blocking drift found; inherits the category token and state grammar. | Uses the shared focus, touch-target, disabled, and recovery expectations. | Configuration is limited to its public task boundary. | Retain current boundary and review with its category when behavior changes. | P3 monitor |
 | PermissionTree | General | General UI primitive; semantic tokens; slots/builders | No blocking drift found; inherits the category token and state grammar. | Uses the shared focus, touch-target, disabled, and recovery expectations. | Configuration is limited to its public task boundary. | Retain current boundary and review with its category when behavior changes. | P3 monitor |
+| FilterBar | Form | General UI primitive; semantic tokens; responsive, slots/builders | No blocking drift found; inherits the category token and state grammar. | Uses the shared focus, touch-target, disabled, and recovery expectations. | Configuration is limited to its public task boundary. | Retain current boundary and review with its category when behavior changes. | P3 monitor |
+| DescriptionList | General | General UI primitive; semantic tokens; responsive, slots/builders | No blocking drift found; inherits the category token and state grammar. | Uses the shared focus, touch-target, disabled, and recovery expectations. | Configuration is limited to its public task boundary. | Retain current boundary and review with its category when behavior changes. | P3 monitor |
+| CodeBlock | General | General UI primitive; semantic tokens; base controlled contract | No blocking drift found; inherits the category token and state grammar. | Uses the shared focus, touch-target, disabled, and recovery expectations. | Configuration is limited to its public task boundary. | Retain current boundary and review with its category when behavior changes. | P3 monitor |
+| Tag | General | General UI primitive; semantic tokens; base controlled contract | No blocking drift found; inherits the category token and state grammar. | Uses the shared focus, touch-target, disabled, and recovery expectations. | Configuration is limited to its public task boundary. | Retain current boundary and review with its category when behavior changes. | P3 monitor |
 
 ## Priority summary
 
@@ -187,4 +191,4 @@ The audit checks typography, spacing, padding, alignment, icon scale and stroke,
 - P2 guarded: core visual components remain under token, state, and visual regression gates.
 - P3 monitor: focused primitives retain their existing boundary unless a real product inconsistency appears.
 
-Audited components: 160.
+Audited components: 164.

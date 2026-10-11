@@ -9,10 +9,19 @@
 // 再补一次。而 `FlareBottomSheet` 的 `presentation="auto"` 判的就是同一个
 // `capabilities.bottomSheet`,所以那层分支只是把一件事写了两遍。现在只剩下按钮
 // 怎么排的差别,那是 CSS 的事,不该长出第二棵组件树。
-import { computed } from "vue";
+//
+// A console write that is recorded asks for more than a yes: `reason` takes the audit reason the
+// write carries (required unless `optional`, held to `maxBytes` of UTF-8), and `confirmPhrase` makes
+// the person type the target's name before an irreversible step. The confirm key waits for both, and
+// `confirm` hands the trimmed reason over. Both are Vue only (web consoles); the native presenters
+// keep the plain confirmation.
+import { computed, ref, watch } from "vue";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
+import { confirmReasonBytes, type FlareConfirmInput, type FlareConfirmReason } from "../../shared/contracts/scenes";
 import FlareBottomSheet from "../general/FlareBottomSheet.vue";
 import FlareButton from "../general/FlareButton.vue";
+import FlareInput from "../general/FlareInput.vue";
+import FlareFormField from "../form/FlareFormField.vue";
 
 const props = defineProps<{
   open: boolean;
@@ -23,14 +32,34 @@ const props = defineProps<{
   error?: string;
   confirmText?: string;
   cancelText?: string;
+  /** Ask for a reason (an audit reason) before the confirm key works. */
+  reason?: FlareConfirmReason;
+  /** Text the person types to confirm — the target's name or code — before the confirm key works. */
+  confirmPhrase?: string;
 }>();
 const { t } = useFlareI18n();
 const strings = computed(() => ({
   confirmText: props.confirmText ?? t("dangerConfirm.confirm"),
   cancelText: props.cancelText ?? t("dangerConfirm.cancel"),
 }));
-const emit = defineEmits<{ confirm: []; cancel: [] }>();
-function confirm(): void { if (!props.busy) emit("confirm"); }
+const emit = defineEmits<{ confirm: [input: FlareConfirmInput]; cancel: [] }>();
+
+const reasonText = ref("");
+const phraseText = ref("");
+// A new question starts empty; a failed attempt keeps what was typed, so a retry is one press.
+watch(() => props.open, (open) => {
+  if (!open) return;
+  reasonText.value = "";
+  phraseText.value = "";
+});
+// Not `reason`: a <script setup> binding of a prop's name shadows the prop in the template.
+const typedReason = computed(() => reasonText.value.trim());
+const reasonTooLong = computed(() => props.reason?.maxBytes != null && confirmReasonBytes(typedReason.value) > props.reason.maxBytes);
+const reasonMissing = computed(() => Boolean(props.reason) && !props.reason?.optional && !typedReason.value);
+const phraseMatches = computed(() => !props.confirmPhrase || phraseText.value.trim() === props.confirmPhrase);
+const ready = computed(() => !reasonMissing.value && !reasonTooLong.value && phraseMatches.value);
+
+function confirm(): void { if (!props.busy && ready.value) emit("confirm", { reason: props.reason ? typedReason.value : "" }); }
 function cancel(): void { if (!props.busy) emit("cancel"); }
 </script>
 
@@ -39,6 +68,19 @@ function cancel(): void { if (!props.busy) emit("cancel"); }
     <div class="flare-danger-confirm">
       <p>{{ description }}</p>
       <strong>{{ target }}</strong>
+      <FlareFormField
+        v-if="reason"
+        class="flare-danger-confirm__reason"
+        :label="reason.label"
+        :required="!reason.optional"
+        :hint="reason.hint"
+        :error="reasonTooLong ? t('dangerConfirm.reasonTooLong', { max: reason.maxBytes ?? 0 }) : undefined"
+      >
+        <FlareInput v-model="reasonText" :placeholder="reason.placeholder" :max-length="reason.maxLength" :disabled="busy" />
+      </FlareFormField>
+      <FlareFormField v-if="confirmPhrase" class="flare-danger-confirm__phrase" :label="t('dangerConfirm.phraseLabel', { phrase: confirmPhrase })">
+        <FlareInput v-model="phraseText" monospace autocomplete="off" :disabled="busy" />
+      </FlareFormField>
       <p v-if="error" role="alert" class="flare-danger-confirm__error">{{ error }}</p>
       <div class="flare-danger-confirm__actions">
         <FlareButton
@@ -53,7 +95,7 @@ function cancel(): void { if (!props.busy) emit("cancel"); }
           variant="danger"
           :label="strings.confirmText"
           :aria-label="strings.confirmText"
-          :disabled="busy"
+          :disabled="busy || !ready"
           :loading="busy"
           block
           @click="confirm"

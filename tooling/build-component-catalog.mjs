@@ -60,7 +60,7 @@ const slotComponents = new Set([
   ...customContentComponents,
   "EmptyState", "StatusBanner", "SearchResults", "SearchPanel", "ConversationList",
   "ContactList", "GroupList", "CommandPalette",
-  "ConversationHeader", "DataTable", "PermissionTree",
+  "ConversationHeader", "DataTable", "PermissionTree", "FilterBar", "DescriptionList",
 ]);
 const capabilityComponents = new Set([
   "CapabilityBoundary", "IMAppKit", "Composer", "ComposerActionPanel", "MessageActionSheet",
@@ -80,7 +80,7 @@ const responsiveComponents = new Set([
   "ConversationListContainer", "FriendListContainer", "DesktopWorkbench",
   "MasterDetailLayout", "ThreePaneLayout", "ContactsWorkspace", "GroupWorkspace",
   "SearchWorkspace", "MediaWorkspace", "CallWorkspace", "SettingsWorkspace",
-  "SavedMessagesWorkspace", "IMAppKit",
+  "SavedMessagesWorkspace", "IMAppKit", "FilterBar", "DescriptionList",
 ]);
 
 function capabilities(component) {

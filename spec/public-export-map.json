@@ -4052,6 +4052,50 @@
           "sourcePath": "packages/vue-im-ui/src/components/data/FlarePermissionTree.vue"
         }
       }
+    },
+    {
+      "name": "FilterBar",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareFilterBar",
+          "sourcePath": "packages/vue-im-ui/src/components/general/FlareFilterBar.vue"
+        }
+      }
+    },
+    {
+      "name": "DescriptionList",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareDescriptionList",
+          "sourcePath": "packages/vue-im-ui/src/components/data/FlareDescriptionList.vue"
+        }
+      }
+    },
+    {
+      "name": "CodeBlock",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareCodeBlock",
+          "sourcePath": "packages/vue-im-ui/src/components/data/FlareCodeBlock.vue"
+        }
+      }
+    },
+    {
+      "name": "Tag",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareTag",
+          "sourcePath": "packages/vue-im-ui/src/components/general/FlareTag.vue"
+        }
+      }
     }
   ]
 }

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 /**
  * A data table for web consoles: host-owned rows and columns in a real `<table>`, with sorting
- * the host performs (the table only says which column and which way), server-side pagination,
+ * the host performs (the table only says which column and which way), server-side pagination
+ * (counted, or by cursor for a source that only knows whether there is a next page),
  * a tri-state selection that spans pages and surfaces a batch toolbar, and a column chooser
  * whose choice the host keeps. Nothing in here knows what the rows are.
  *
@@ -32,8 +33,10 @@ import { useFlareContextualLayer } from "../../shared/useContextualLayer";
 import {
   dataTableAriaSort,
   dataTableCellText,
+  dataTableIsCursor,
   dataTableNextSort,
   dataTablePageCount,
+  dataTablePageSteps,
   dataTableRange,
   dataTableRowKey,
   dataTableSelection,
@@ -61,7 +64,10 @@ const props = withDefaults(
     loading?: boolean;
     /** Shown when there are no rows. Default: the kit's "No data yet". */
     emptyText?: string;
-    /** Server-side pagination; the table emits the next page or page size and the host fetches. */
+    /**
+     * Server-side pagination; the table emits the next page or page size and the host fetches. Without
+     * `total` it is cursor paging: the page number alone, and `hasNext` enables the next key.
+     */
     pagination?: FlareDataTablePagination | null;
     /** The current sort; the table emits the next one and the host sorts. */
     sort?: FlareDataTableSort | null;
@@ -182,16 +188,43 @@ const batchRoot = ref<HTMLElement | null>(null);
 useFlareContextualLayer({ active: selecting, root: batchRoot, onDismiss: clearSelection });
 
 // ── Pagination ─────────────────────────────────────────────────────────────────
+const cursorPaging = computed(() => (props.pagination ? dataTableIsCursor(props.pagination) : false));
 const pageCount = computed(() => (props.pagination ? dataTablePageCount(props.pagination) : 1));
-const range = computed(() => (props.pagination ? dataTableRange(props.pagination) : null));
+const range = computed(() => (props.pagination ? dataTableRange(props.pagination, props.rows.length) : null));
+const steps = computed(() => (props.pagination ? dataTablePageSteps(props.pagination) : { previous: false, next: false }));
+/** Unknown to a cursor source: -1 says so (WAI-ARIA), rather than claiming this page is all there is. */
+const rowCount = computed(() => {
+  if (!props.pagination) return undefined;
+  return cursorPaging.value ? -1 : props.pagination.total;
+});
+const rangeText = computed(() => {
+  const pagination = props.pagination;
+  const bounds = range.value;
+  if (!pagination || !bounds) return "";
+  if (cursorPaging.value) {
+    if (bounds.to > 0) return t("dataTable.rangeOpen", { from: bounds.from, to: bounds.to });
+    return pagination.page <= 1 && !pagination.hasNext ? t("dataTable.rangeEmpty") : "";
+  }
+  return (pagination.total ?? 0) > 0 ? t("dataTable.range", { from: bounds.from, to: bounds.to, total: pagination.total as number }) : t("dataTable.rangeEmpty");
+});
+const pageText = computed(() => {
+  const pagination = props.pagination;
+  if (!pagination) return "";
+  if (cursorPaging.value) return t("dataTable.pageOnly", { page: Math.max(1, pagination.page) });
+  return t("dataTable.pageOf", { page: Math.min(pagination.page, pageCount.value), pages: pageCount.value });
+});
 const pageSizeOptions = computed<FlareSelectOption[]>(() => (props.pagination?.pageSizes ?? []).map((size) => ({
   value: String(size),
   label: t("dataTable.perPage", { size }),
 })));
 function goTo(page: number): void {
   if (!props.pagination) return;
-  const next = Math.min(Math.max(1, page), pageCount.value);
-  if (next === props.pagination.page) return;
+  const current = props.pagination.page;
+  // A cursor source only knows the page after this one, so it moves one page at a time.
+  if (page > current && !steps.value.next) return;
+  if (page < current && !steps.value.previous) return;
+  const next = cursorPaging.value ? Math.max(1, current + Math.sign(page - current)) : Math.min(Math.max(1, page), pageCount.value);
+  if (next === current) return;
   emit("update:pagination", { ...props.pagination, page: next });
 }
 function setPageSize(value: string): void {
@@ -364,7 +397,7 @@ function onRowKeydown(event: KeyboardEvent, row: FlareDataTableRow, index: numbe
     </div>
 
     <div class="flare-data-table__scroll">
-      <table class="flare-data-table__table" role="table" :aria-label="tableLabel" :aria-rowcount="pagination ? pagination.total : undefined">
+      <table class="flare-data-table__table" role="table" :aria-label="tableLabel" :aria-rowcount="rowCount">
         <thead role="rowgroup" class="flare-data-table__head">
           <tr role="row">
             <th v-if="selectable" role="columnheader" scope="col" class="flare-data-table__th flare-data-table__th--select">
@@ -454,7 +487,7 @@ function onRowKeydown(event: KeyboardEvent, row: FlareDataTableRow, index: numbe
 
     <nav v-if="pagination && range" class="flare-data-table__pagination" :aria-label="t('dataTable.pagination')">
       <span class="flare-data-table__range">
-        {{ pagination.total > 0 ? t("dataTable.range", { from: range.from, to: range.to, total: pagination.total }) : t("dataTable.rangeEmpty") }}
+        {{ rangeText }}
       </span>
       <div class="flare-data-table__pager">
         <FlareSelect
@@ -471,16 +504,16 @@ function onRowKeydown(event: KeyboardEvent, row: FlareDataTableRow, index: numbe
           :ariaLabel="t('dataTable.previous')"
           size="sm"
           shape="square"
-          :disabled="loading || pagination.page <= 1"
+          :disabled="loading || !steps.previous"
           @click="goTo(pagination.page - 1)"
         />
-        <span class="flare-data-table__page" aria-live="polite">{{ t("dataTable.pageOf", { page: Math.min(pagination.page, pageCount), pages: pageCount }) }}</span>
+        <span class="flare-data-table__page" aria-live="polite">{{ pageText }}</span>
         <FlareIconButton
           :icon="flareIcons['chevron-right']"
           :ariaLabel="t('dataTable.next')"
           size="sm"
           shape="square"
-          :disabled="loading || pagination.page >= pageCount"
+          :disabled="loading || !steps.next"
           @click="goTo(pagination.page + 1)"
         />
       </div>

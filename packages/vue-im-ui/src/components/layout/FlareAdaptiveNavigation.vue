@@ -12,6 +12,7 @@ import FlareActionMenu from "../general/FlareActionMenu.vue";
 import FlareAvatar from "../conversation/FlareAvatar.vue";
 import FlareGlyph from "../general/FlareGlyph.vue";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
+import { safeNavigationHref } from "../../shared/contracts/url-safety";
 
 const props = withDefaults(defineProps<{
   groups: readonly FlareNavigationGroup[];
@@ -66,7 +67,9 @@ const visibleGroups = computed(() => props.groups.map((group) => ({
 })).filter((group) => group.items.length));
 const items = computed(() => visibleGroups.value.flatMap((group) => group.items));
 const resolvedPresentation = computed(() => props.presentation ?? resolveNavigationPresentation(props.responsiveMode));
-const buttons = ref<HTMLButtonElement[]>([]);
+// Items are buttons, or links when the host gives an `href` (Vue only).
+const buttons = ref<HTMLElement[]>([]);
+const isDisabled = (element: HTMLElement | undefined) => !element || element.matches(":disabled");
 
 function badgeText(item: FlareNavigationItem): string {
   if (!item.badge) return "";
@@ -79,6 +82,22 @@ function badgeText(item: FlareNavigationItem): string {
 function badgeLabel(item: FlareNavigationItem): string | undefined {
   if (!item.badge) return undefined;
   return item.badge.label || item.accessibilityLabel || itemLabel(item);
+}
+
+/**
+ * A link item routes in place on a plain click; a modified click (new tab or window, download) or a
+ * middle click is the browser's, and the host is not told.
+ */
+/** The link an item renders: none when it is disabled, and only an href the gate accepts. */
+function itemHref(item: FlareNavigationItem): string | undefined {
+  return item.disabled ? undefined : safeNavigationHref(item.href) ?? undefined;
+}
+function onItemClick(event: MouseEvent, item: FlareNavigationItem): void {
+  if (itemHref(item)) {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+  }
+  emit("navigate", item.id);
 }
 
 async function moveFocus(current: number, delta: number): Promise<void> {
@@ -99,7 +118,7 @@ function onKeydown(event: KeyboardEvent, index: number): void {
     void moveFocus(index, previous ? -1 : 1);
   } else if (event.key === "Home" || event.key === "End") {
     event.preventDefault();
-    const target = event.key === "Home" ? buttons.value.find((button) => !button.disabled) : [...buttons.value].reverse().find((button) => !button.disabled);
+    const target = event.key === "Home" ? buttons.value.find((button) => !isDisabled(button)) : [...buttons.value].reverse().find((button) => !isDisabled(button));
     target?.focus();
   }
 }
@@ -167,18 +186,20 @@ function onKeydown(event: KeyboardEvent, index: number): void {
       :aria-label="group.label || undefined"
     >
       <span v-if="group.label && resolvedPresentation === 'expandedSidebar'" class="flare-adaptive-navigation__group-label">{{ group.label }}</span>
-      <button
+      <component
+        :is="itemHref(item) ? 'a' : 'button'"
         v-for="item in group.items"
         :key="item.id"
-        :ref="(element) => { if (element) buttons[items.indexOf(item)] = element as HTMLButtonElement }"
-        type="button"
+        :ref="(element: unknown) => { if (element) buttons[items.indexOf(item)] = element as HTMLElement }"
+        :type="itemHref(item) ? undefined : 'button'"
+        :href="itemHref(item)"
         class="flare-adaptive-navigation__item"
         :class="{ 'is-active': item.id === activeId }"
-        :disabled="item.disabled"
+        :disabled="itemHref(item) ? undefined : item.disabled"
         :aria-current="item.id === activeId ? 'page' : undefined"
         :aria-label="item.accessibilityLabel || itemLabel(item)"
         :title="resolvedPresentation === 'rail' ? itemLabel(item) : undefined"
-        @click="emit('navigate', item.id)"
+        @click="onItemClick($event, item)"
         @keydown="onKeydown($event, items.indexOf(item))"
       >
         <span class="flare-adaptive-navigation__icon">
@@ -191,7 +212,7 @@ function onKeydown(event: KeyboardEvent, index: number): void {
           >{{ badgeText(item) }}</span>
         </span>
         <span class="flare-adaptive-navigation__label">{{ itemLabel(item) }}</span>
-      </button>
+      </component>
     </div>
   </nav>
 </template>
@@ -253,6 +274,8 @@ function onKeydown(event: KeyboardEvent, index: number): void {
   cursor: pointer;
   font: inherit;
   text-align: start;
+  /* A link item looks like a button item. */
+  text-decoration: none;
 }
 .flare-adaptive-navigation[data-presentation="rail"] .flare-adaptive-navigation__item {
   align-self: center;

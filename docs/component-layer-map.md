@@ -164,3 +164,7 @@ Generated from the component contract and platform signatures. Do not hand-edit 
 | ChartCard | `packages/vue-im-ui/src/components/data/FlareChartCard.vue` | General UI | General UI | yes | yes | Foundation | Low: logical classification only |
 | DataTable | `packages/vue-im-ui/src/components/data/FlareDataTable.vue` | General UI | General UI | yes | yes | Foundation | Low: logical classification only |
 | PermissionTree | `packages/vue-im-ui/src/components/data/FlarePermissionTree.vue` | General UI | General UI | yes | yes | Foundation | Low: logical classification only |
+| FilterBar | `packages/vue-im-ui/src/components/general/FlareFilterBar.vue` | General UI | General UI | yes | yes | Foundation | Low: logical classification only |
+| DescriptionList | `packages/vue-im-ui/src/components/data/FlareDescriptionList.vue` | General UI | General UI | yes | yes | Foundation | Low: logical classification only |
+| CodeBlock | `packages/vue-im-ui/src/components/data/FlareCodeBlock.vue` | General UI | General UI | yes | yes | Foundation | Low: logical classification only |
+| Tag | `packages/vue-im-ui/src/components/general/FlareTag.vue` | General UI | General UI | yes | yes | Foundation | Low: logical classification only |

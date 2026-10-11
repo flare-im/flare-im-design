@@ -96,6 +96,9 @@ Execution: none of the non-KEEP decisions is executed in the 2.0 RC. Each one ch
 | BrandLogo | Brand logo — the forward-leaning geometric F (skewX -9°) in two variants, gradient (brand gradient plate + white F) or plate (white plate + gradient F); one geometry on all four platforms. | flutter, ios, android | vue, flutter, ios, compose | - | KEEP | Friction: FR-048 |
 | DataTable | Data table — host-owned rows in a real table: sorting the host performs, server-side pagination, a tri-state selection across pages with a batch toolbar, a column chooser the host persists; rows stack on narrow containers. Vue only. | - | - | - | KEEP | Added 2026-10-09 for the admin console (SaaS v4 R5-3); consumer: flare-social `platform/console-web` lists (R5-4). |
 | PermissionTree | Permission tree — leaf codes with derived tri-state parents, search that keeps ancestors, fold / unfold, a WAI-ARIA tree with one roving tab stop. Vue only. | - | - | - | KEEP | Added 2026-10-09 for the admin console (SaaS v4 R5-3); consumer: role and credential-scope editors (R5-4). |
+| DescriptionList | Description list — one record's facts as label / value lines in a real `<dl>`, columns by its own width, "not set" for an empty value, a copy key on identifiers. Vue only. | - | - | - | KEEP | Added 2026-10-11 for the admin console (SaaS v4 R5-3); consumer: user, application and message detail drawers (R5-4). |
+| CodeBlock | Code block — a raw payload or a snippet kept as written in a monospaced, bounded scroll box with a copy key; no highlighting. Vue only. | - | - | - | KEEP | Added 2026-10-11 for the admin console (SaaS v4 R5-3); consumer: raw message payloads and the Quick Start snippet (R5-4). |
+| Tag | Tag — a short status or category label coloured by a semantic tone at 4.5:1 in every brand; not a control. Vue only. | - | - | - | KEEP | Added 2026-10-11 for the admin console (SaaS v4 R5-3); consumer: status and kind columns of console tables (R5-4). |
 
 ### Layout
 
@@ -240,6 +243,7 @@ Execution: none of the non-KEEP decisions is executed in the 2.0 RC. Each one ch
 | TimePicker | TimePicker — adaptive: anchored popover (hour/minute columns) on PC, bottom sheet on App/H5; v-model as "HH:mm". | - | - | - | DEPRECATE | - |
 | DatePicker | DatePicker — adaptive: anchored month-calendar popover on PC, bottom sheet on App/H5; v-model as "YYYY-MM-DD", min/max supported. | - | - | SearchDateRangeFilter | KEEP | Composition part of SearchDateRangeFilter. |
 | SearchDateRangeFilter | Search time-range filter: host-supplied preset chips plus a custom start/end pair built from the shared DatePicker, emitting one inclusive epoch-millisecond FlareSearchTimeRange. | tauri | - | - | KEEP | - |
+| FilterBar | Filter bar — the query form above a console list: labelled fields in a grid that wraps by its own width, Search / Reset, folded "More filters" that say how many hold a value, Enter in a one-line field searches. Vue only. | - | - | - | KEEP | Added 2026-10-11 for the admin console (SaaS v4 R5-3); consumer: the query bar of every console list (R5-4). |
 
 ### Feedback
 

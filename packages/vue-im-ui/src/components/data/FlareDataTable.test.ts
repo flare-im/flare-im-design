@@ -150,6 +150,41 @@ describe("FlareDataTable", () => {
     host.unmount();
   });
 
+  it("pages a cursor source by its next-page flag, one page at a time, without inventing a total", async () => {
+    const { host, table, set } = mountTable({ pagination: { page: 1, pageSize: 3, hasNext: true } });
+    const nav = table.get("nav");
+    const step = (label: string) => nav.findAll("button").find((button) => button.attributes("aria-label") === label)!;
+    expect(nav.get(".flare-data-table__range").text()).toBe("1–3");
+    expect(nav.get(".flare-data-table__page").text()).toBe("Page 1");
+    expect(table.get("table").attributes("aria-rowcount")).toBe("-1");
+    expect(step("Previous page").attributes("disabled")).toBeDefined();
+    expect(step("Next page").attributes("disabled")).toBeUndefined();
+    await step("Next page").trigger("click");
+    expect(emitted(table, "update:pagination")).toEqual([[{ page: 2, pageSize: 3, hasNext: true }]]);
+
+    // The last page: the server says there is nothing after it.
+    await set({ pagination: { page: 2, pageSize: 3, hasNext: false }, rows: rows.slice(0, 2) });
+    expect(table.get(".flare-data-table__range").text()).toBe("4–5");
+    expect(table.get(".flare-data-table__page").text()).toBe("Page 2");
+    expect(step("Next page").attributes("disabled")).toBeDefined();
+    await step("Next page").trigger("click");
+    await step("Previous page").trigger("click");
+    expect(emitted(table, "update:pagination")?.[1]).toEqual([{ page: 1, pageSize: 3, hasNext: false }]);
+    expect(emitted(table, "update:pagination")).toHaveLength(2);
+
+    // Nothing matched at all.
+    await set({ pagination: { page: 1, pageSize: 3, hasNext: false }, rows: [] });
+    expect(table.get(".flare-data-table__range").text()).toBe("0 items");
+    host.unmount();
+  });
+
+  it("speaks cursor paging in the kit's Chinese", () => {
+    const { host, table } = mountTable({ pagination: { page: 2, pageSize: 3, hasNext: true } }, {}, "zh-CN");
+    expect(table.get(".flare-data-table__range").text()).toBe("第 4–6 条");
+    expect(table.get(".flare-data-table__page").text()).toBe("第 2 页");
+    host.unmount();
+  });
+
   it("lets the person choose columns, hands the choice to the host, and never hides the last one", async () => {
     const { host, table, set } = mountTable({ columnChooser: true, visibleColumns: ["name", "role"] });
     expect(table.findAll("th").map((th) => th.text())).toEqual(["Name", "Role"]);

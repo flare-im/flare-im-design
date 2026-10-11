@@ -94,12 +94,15 @@ onBeforeUnmount(() => feedback.dispose());
         <slot />
         <FlareDangerConfirm
           v-if="confirmRequest"
+          :key="confirmRequest.id"
           open
           :title="confirmRequest.options.title"
           :description="confirmRequest.options.description"
           :target="confirmRequest.options.target ?? ''"
           :confirm-text="confirmRequest.options.confirmText"
           :cancel-text="confirmRequest.options.cancelText"
+          :reason="confirmRequest.options.reason"
+          :confirm-phrase="confirmRequest.options.confirmPhrase"
           :busy="confirmRequest.busy"
           :error="confirmRequest.error || undefined"
           @confirm="feedback.accept"

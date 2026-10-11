@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isSafeExternalUrl, safeExternalUrl } from "./url-safety";
+import { isSafeExternalUrl, safeExternalUrl, safeNavigationHref } from "./url-safety";
 
 // DoD 32 — the vector table of spec/security-boundary.json. Message content is
 // written by other people; every one of these is something an attacker can put
@@ -48,5 +48,21 @@ describe("safeExternalUrl", () => {
     expect(safeExternalUrl(null)).toBeNull();
     expect(safeExternalUrl(undefined)).toBeNull();
     expect(safeExternalUrl(42 as unknown as string)).toBeNull();
+  });
+});
+
+describe("safeNavigationHref", () => {
+  it("keeps the app's own paths, hash routes and queries as written", () => {
+    for (const href of ["/apps/a1/users", "/", "#/users", "?tab=2", "https://console.example.com/apps"]) {
+      expect(safeNavigationHref(href)).toBe(href);
+    }
+    expect(safeNavigationHref("  /apps/a1/users  ")).toBe("/apps/a1/users");
+  });
+
+  it("refuses every hostile vector, a scheme-relative escape and a bare word", () => {
+    for (const [, input] of hostile) expect(safeNavigationHref(input)).toBeNull();
+    for (const input of ["//evil.example/x", "/\\evil.example", "/a\tb", "users", "example.com/path", "mailto:a@b.c", undefined, null]) {
+      expect(safeNavigationHref(input as string | null | undefined)).toBeNull();
+    }
   });
 });

@@ -138,4 +138,66 @@ describe("FlareAdaptiveNavigation", () => {
     expect(document.activeElement).toBe(buttons[3].element);
     wrapper.unmount();
   });
+
+  it("draws an item with an href as a real link: a plain click routes in place, a modified click is the browser's", async () => {
+    const linked: readonly FlareNavigationGroup[] = [
+      {
+        id: "console",
+        label: "Users",
+        items: [
+          { id: "im-users", label: "Users", icon: "people", href: "/apps/app_1/users" },
+          { id: "im-groups", label: "Groups", icon: "group", href: "/apps/app_1/groups", disabled: true },
+          { id: "im-messages", label: "Messages", icon: "comment", href: "/apps/app_1/messages" },
+        ],
+      },
+    ];
+    const wrapper = mount(FlareAdaptiveNavigation, {
+      attachTo: document.body,
+      props: { groups: linked, activeId: "im-users", responsiveMode: "desktop", presentation: "expandedSidebar" },
+    });
+    const users = wrapper.get('a[href="/apps/app_1/users"]');
+    expect(users.attributes("aria-current")).toBe("page");
+    expect(users.attributes("type")).toBeUndefined();
+    expect(users.attributes("disabled")).toBeUndefined();
+    // A disabled destination is not a link anyone can open.
+    const groupsItem = wrapper.get('button[aria-label="Groups"]');
+    expect(groupsItem.attributes("disabled")).toBeDefined();
+    expect(groupsItem.attributes("href")).toBeUndefined();
+
+    const plain = new MouseEvent("click", { bubbles: true, cancelable: true, button: 0 });
+    users.element.dispatchEvent(plain);
+    expect(plain.defaultPrevented).toBe(true);
+    expect(wrapper.emitted("navigate")).toEqual([["im-users"]]);
+
+    for (const init of [{ metaKey: true }, { ctrlKey: true }, { shiftKey: true }, { button: 1 }]) {
+      const modified = new MouseEvent("click", { bubbles: true, cancelable: true, button: 0, ...init });
+      users.element.dispatchEvent(modified);
+      expect(modified.defaultPrevented).toBe(false);
+    }
+    expect(wrapper.emitted("navigate")).toHaveLength(1);
+
+    // An href the gate refuses is never drawn: the item falls back to a button that still navigates.
+    const hostile = mount(FlareAdaptiveNavigation, {
+      attachTo: document.body,
+      props: {
+        groups: [{ id: "x", items: [{ id: "evil", label: "Evil", href: "javascript:alert(1)" }, { id: "escape", label: "Escape", href: "//evil.example/x" }] }],
+        activeId: "",
+        responsiveMode: "desktop",
+        presentation: "expandedSidebar",
+      },
+    });
+    expect(hostile.findAll("a")).toHaveLength(0);
+    await hostile.get('button[aria-label="Evil"]').trigger("click");
+    expect(hostile.emitted("navigate")).toEqual([["evil"]]);
+    hostile.unmount();
+
+    // Arrow keys walk links like buttons and skip the disabled one.
+    (users.element as HTMLElement).focus();
+    await users.trigger("keydown", { key: "ArrowDown" });
+    await nextTick();
+    expect(document.activeElement).toBe(wrapper.get('a[href="/apps/app_1/messages"]').element);
+    await wrapper.get('a[href="/apps/app_1/messages"]').trigger("keydown", { key: "Home" });
+    expect(document.activeElement).toBe(users.element);
+    wrapper.unmount();
+  });
 });

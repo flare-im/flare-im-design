@@ -145,6 +145,12 @@ export type {
 } from "./data/data-table";
 export { default as FlarePermissionTree } from "./data/FlarePermissionTree.vue";
 export type { FlarePermissionCheckState, FlarePermissionNode } from "./data/permission-tree";
+// Console detail and query surfaces — a record's facts, a raw payload, a status label, a query form
+export { default as FlareDescriptionList } from "./data/FlareDescriptionList.vue";
+export type { FlareDescriptionItem, FlareDescriptionLabelPlacement, FlareDescriptionValue } from "./data/description-list";
+export { default as FlareCodeBlock } from "./data/FlareCodeBlock.vue";
+export { default as FlareTag } from "./general/FlareTag.vue";
+export { default as FlareFilterBar } from "./general/FlareFilterBar.vue";
 
 // Foundation — buttons + form controls
 export { default as FlareButton } from "./general/FlareButton.vue";

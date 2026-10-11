@@ -1,5 +1,6 @@
 import { inject, provide, shallowRef, type InjectionKey, type Ref } from "vue";
 import type { FlareTone } from "../shared/contracts/tone";
+import type { FlareConfirmInput, FlareConfirmReason } from "../shared/contracts/scenes";
 import { flareErrorText } from "../shared/errors";
 
 /** A destructive or irreversible step the user must confirm. */
@@ -10,11 +11,16 @@ export interface FlareConfirmOptions {
   target?: string;
   confirmText?: string;
   cancelText?: string;
+  /** Ask for a reason (an audit reason) before the confirm key works; `action` receives it. Vue only. */
+  reason?: FlareConfirmReason;
+  /** Text the person types to confirm (the target's name or code) before the confirm key works. Vue only. */
+  confirmPhrase?: string;
   /**
-   * Runs after the user confirms while the dialog shows busy. A failure keeps the
-   * dialog open with the error, so the user can try again or cancel.
+   * Runs after the user confirms while the dialog shows busy, with what the person entered
+   * (`{ reason }`). A failure keeps the dialog open with the error and the typed reason, so the
+   * user can try again or cancel.
    */
-  action?: () => unknown | Promise<unknown>;
+  action?: (input: FlareConfirmInput) => unknown | Promise<unknown>;
 }
 
 /** Resolves true once confirmed (and `action`, if any, succeeded); false when cancelled. */
@@ -37,6 +43,8 @@ export interface FlareToastOptions {
 export type FlareShowToast = (options: FlareToastOptions | string | Error) => () => void;
 
 export interface FlareConfirmRequest {
+  /** Identifies one question: a newer request is a new dialog, with nothing typed carried over. */
+  id: number;
   options: FlareConfirmOptions;
   busy: boolean;
   error: string;
@@ -55,7 +63,8 @@ export interface FlareFeedback {
   toasts: Readonly<Ref<readonly FlareToastEntry[]>>;
   confirm: FlareConfirm;
   toast: FlareShowToast;
-  accept(): Promise<void>;
+  /** The person confirmed; `input` is what the dialog collected (the reason). */
+  accept(input?: FlareConfirmInput): Promise<void>;
   cancel(): void;
   runToastAction(id: number): void;
   dismissToast(id: number): void;
@@ -72,6 +81,7 @@ export function createFlareFeedback(): FlareFeedback {
   const actions = new Map<number, () => void>();
   const timers = new Map<number, ReturnType<typeof setTimeout>>();
   let nextId = 0;
+  let nextRequestId = 0;
 
   function close(confirmed: boolean): void {
     const done = settle;
@@ -86,11 +96,11 @@ export function createFlareFeedback(): FlareFeedback {
     if (confirmRequest.value) close(false);
     return new Promise<boolean>((resolve) => {
       settle = resolve;
-      confirmRequest.value = { options, busy: false, error: "" };
+      confirmRequest.value = { id: ++nextRequestId, options, busy: false, error: "" };
     });
   };
 
-  async function accept(): Promise<void> {
+  async function accept(input: FlareConfirmInput = { reason: "" }): Promise<void> {
     const request = confirmRequest.value;
     if (!request || request.busy) return;
     if (!request.options.action) {
@@ -99,7 +109,7 @@ export function createFlareFeedback(): FlareFeedback {
     }
     confirmRequest.value = { ...request, busy: true, error: "" };
     try {
-      await request.options.action();
+      await request.options.action(input);
       close(true);
     } catch (error) {
       confirmRequest.value = { ...request, busy: false, error: flareErrorText(error) };

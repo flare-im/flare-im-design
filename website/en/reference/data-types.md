@@ -384,13 +384,14 @@ title: Data Types
 
 `FlareDataTablePagination`
 
-> Server-side paging of a DataTable: what page is shown and how many rows exist.
+> Server-side paging of a DataTable: what page is shown, and how many rows exist or, for a cursor source, whether another page follows.
 
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
 | `page` | `number` | ✓ | 1-based current page. |
 | `pageSize` | `number` | ✓ | Rows per page. |
-| `total` | `number` | ✓ | Rows on the server, not on this page. |
+| `total` | `number` |  | Rows on the server, not on this page. Omit it for a cursor-paged source that cannot count. |
+| `hasNext` | `boolean` |  | Cursor sources: whether the server has a page after this one (its `has_more`). Ignored when `total` is given. |
 | `pageSizes` | `number[]` |  | Page sizes the person may pick; omitted draws no page-size control. |
 
 ### PermissionNode {#permission-node}
@@ -407,6 +408,40 @@ title: Data Types
 | `name` | `string` | ✓ | Display name. |
 | `description` | `string` |  | One line under the name. |
 | `children` | [`FlarePermissionNode[]`](/en/reference/data-types#permission-node) |  | Child nodes; a node with children is a group. |
+
+### DescriptionItem {#description-item}
+
+`FlareDescriptionItem`
+
+> One label / value line of a DescriptionList.
+
+**Used by: **[DescriptionList](/en/components/description-list)
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `key` | `string` | ✓ | Stable id of the line; also names the `item-<key>` slot. |
+| `label` | `string` | ✓ | What the value is. |
+| `value` | `string \| number \| null` |  | The value as text, formatted by the host. `null`, `undefined` and an empty string are "not set". |
+| `span` | `number` |  | Columns this line spans; clamped to the list's columns. Default 1. |
+| `monospace` | `boolean` |  | Draw the value in the monospaced face — ids, codes, keys. |
+| `copyable` | `boolean` |  | Draw a copy key after the value. |
+
+### ConfirmReason {#confirm-reason}
+
+`FlareConfirmReason`
+
+> The reason a DangerConfirm asks for before a recorded change (an audit reason).
+
+**Used by: **[DangerConfirm](/en/components/danger-confirm)
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `label` | `string` | ✓ | Field label, e.g. "Audit reason". |
+| `placeholder` | `string` |  | Placeholder of the field. |
+| `hint` | `string` |  | A line under the field: who reads the reason, where it is kept. |
+| `maxLength` | `number` |  | Characters the field takes. |
+| `maxBytes` | `number` |  | UTF-8 bytes the trimmed reason may take; more marks the field and holds the confirm key. |
+| `optional` | `boolean` |  | The reason may be left empty. Default false. |
 
 ## Enums / unions
 

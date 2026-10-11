@@ -8,7 +8,7 @@ import { FlareCapabilityBoundary } from "@flare-im/vue-ui/components";
 import { FlareDangerConfirm } from "@flare-im/vue-ui/components";
 import DemoStage from './DemoStage.vue';
 const props=defineProps({mode:{type:String,default:'MemberPanel'}});
-const state=ref('available'),busy=ref(false),error=ref(),last=ref('尚未操作'),open=ref(false),confirmed=ref(0),cancelled=ref(0),crash=ref(false),generation=ref(0);
+const state=ref('available'),busy=ref(false),error=ref(),last=ref('尚未操作'),open=ref(false),auditOpen=ref(false),confirmed=ref(0),cancelled=ref(0),crash=ref(false),generation=ref(0);
 const toggle=ref(true), partial=ref(false);
 const members=computed(()=>state.value==='empty'?[]:[{id:'owner',title:'林川',badge:'群主',detail:'团队创建者',actions:[]},{id:'member',title:'超长成员名称与权限说明',badge:'成员',error:partial.value?'该成员操作失败，可单独重试':undefined,detail:'仅显示当前账号有权执行的操作',busy:busy.value,actions:[{id:'remove',label:'移出群聊',destructive:true}]}]);
 const devices=computed(()=>[{id:'current',title:'本机',detail:'正在使用的会话',current:true,actions:[{id:'revoke',label:'退出登录',destructive:true}]},{id:'other',title:'另一台设备',detail:'最近活跃 · 由宿主提供',current:false,error:partial.value?'该设备退出失败，可单独重试':undefined,busy:busy.value,actions:[{id:'revoke',label:'退出登录',destructive:true}]}]);
@@ -27,7 +27,9 @@ const Plugin=defineComponent({setup(){return()=>{if(crash.value)throw Error('sim
  <FlareNotificationPreferences v-if="mode==='NotificationPreferences'" :items="prefs" :permission="state==='empty'?'unavailable':state" permission-text="系统通知权限由宿主提供" permission-action-text="打开系统设置" @change="toggle=$event.value;last=$event.id+'/'+$event.value" @permission-action="last='打开系统设置'" />
  <template v-if="mode==='CapabilityBoundary'"><p>基础聊天始终可用</p><FlareCapabilityBoundary :state="state==='empty'?'unavailable':state" text="可选能力尚未就绪或发生错误" action-text="恢复能力" :reset-key="generation" @action="crash=false;generation++;state='available'" @error="last='插件错误已隔离'"><Plugin /></FlareCapabilityBoundary><button @click="crash=true">插件渲染失败</button></template>
  <button v-if="mode==='DangerConfirm'" @click="open=true">打开确认</button>
+ <button v-if="mode==='DangerConfirm'" @click="auditOpen=true">需要审计原因的确认</button>
  <FlareDangerConfirm :open="open" title="确认移除？" description="此操作会移除目标的访问权限，请确认对象。" target="测试对象" :busy="busy" :error="error" confirm-text="确认移除" @confirm="confirm" @cancel="cancelled++;open=false;last='取消 '+cancelled+' 次'" />
+ <FlareDangerConfirm v-if="mode==='DangerConfirm'" :open="auditOpen" title="删除应用？" description="应用的会话、消息与凭证都会删除，且不可恢复。" target="acme-prod" :reason="{label:'审计原因',placeholder:'说明删除原因，会记入审计日志',maxBytes:512}" confirm-phrase="acme-prod" confirm-text="删除应用" @confirm="auditOpen=false;last='已删除（本地模拟），原因：'+$event.reason" @cancel="auditOpen=false;last='取消删除'" />
  <p role="status">{{ last }}。本地演示，不修改账号、成员或文件。</p>
 </div></DemoStage></template>
 <style scoped>

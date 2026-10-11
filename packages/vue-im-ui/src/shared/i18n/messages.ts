@@ -324,6 +324,8 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       previous: "上一页",
       next: "下一页",
       pageOf: "第 {page} / {pages} 页",
+      pageOnly: "第 {page} 页",
+      rangeOpen: "第 {from}–{to} 条",
     },
     permissionTree: {
       label: "权限",
@@ -333,6 +335,22 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       summary: "已选 {checked} / {total} 项",
       empty: "没有匹配的权限",
       readOnlyHint: "仅可查看",
+    },
+    descriptionList: {
+      empty: "未设置",
+      copy: "复制{label}",
+    },
+    codeBlock: {
+      label: "代码",
+      copy: "复制代码",
+    },
+    filterBar: {
+      label: "查询条件",
+      search: "查询",
+      reset: "重置",
+      more: "更多条件",
+      moreCount: "更多条件（{count}）",
+      less: "收起条件",
     },
     quickPhrase: {
       title: "快捷短语",
@@ -1105,6 +1123,8 @@ export const flareMessages: Record<string, FlareMessageTree> = {
     dangerConfirm: {
       confirm: "确认",
       cancel: "取消",
+      reasonTooLong: "原因过长：最多 {max} 字节",
+      phraseLabel: "输入「{phrase}」以确认",
     },
     mediaCenter: {
       title: "文件与媒体",
@@ -1583,6 +1603,8 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       previous: "Previous page",
       next: "Next page",
       pageOf: "Page {page} of {pages}",
+      pageOnly: "Page {page}",
+      rangeOpen: "{from}–{to}",
     },
     permissionTree: {
       label: "Permissions",
@@ -1592,6 +1614,22 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       summary: "{checked} of {total} selected",
       empty: "No matching permissions",
       readOnlyHint: "View only",
+    },
+    descriptionList: {
+      empty: "Not set",
+      copy: "Copy {label}",
+    },
+    codeBlock: {
+      label: "Code",
+      copy: "Copy code",
+    },
+    filterBar: {
+      label: "Filters",
+      search: "Search",
+      reset: "Reset",
+      more: "More filters",
+      moreCount: "More filters ({count})",
+      less: "Fewer filters",
     },
     quickPhrase: {
       title: "Quick phrases",
@@ -2358,6 +2396,8 @@ export const flareMessages: Record<string, FlareMessageTree> = {
     dangerConfirm: {
       confirm: "Confirm",
       cancel: "Cancel",
+      reasonTooLong: "Too long: at most {max} bytes",
+      phraseLabel: "Type “{phrase}” to confirm",
     },
     mediaCenter: {
       title: "Files and media",
