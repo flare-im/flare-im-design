@@ -6,6 +6,7 @@
 
 ### 设计系统与跨端组件
 
+- 新增 `FlareDataTable`（数据表格）与 `FlarePermissionTree`（权限树）（仅 Vue，原生端 N/A：没有原生 App 提供管理控制台，契约 `notes` 里写明）。表格把宿主的行放进真正的 `<table>`（显式 table 角色）并只上报意图：可排序表头依次升序、降序、回到宿主顺序（`update:sort`）；上下页与每页条数发 `update:pagination`；表头三态复选框选中本页并保留其他页的 key（`selectedKeys`），选中不为空时出现批量工具条，它是一个上下文层（Escape、平台返回与组件库返回控件都会清空），宿主的动作放 `batch` 插槽；列设置（指针设备上是浮层、手机上是底部面板）把 `visibleColumns` 交给宿主持久化，且不会隐藏最后一列；单元格用 `cell-<key>` 插槽、`row-actions` 加操作列、`toolbar` 是栏的前部、`empty` 替换空态；`density` 分舒适 / 紧凑，`stickyHeader` 把表头钉在表格自己的滚动盒里。容器窄于 600px 时行堆叠成带标签的行，表头留给辅助技术，排序移到菜单。权限树只接叶子权限码（`checkedCodes`），父节点推导为全选 / 半选 / 未选；切换分组会勾选或清空其未禁用的叶子（`disabledCodes` 保持原样）；搜索保留匹配项的祖先（强制展开）与后代；是单一 tab 停留点的 WAI-ARIA 树（方向键遍历与折叠，空格 / 回车切换），`readonly` 显示仅可查看提示，一千个节点每次变化仍只遍历一次。新增类型 `FlareDataTableColumn`、`FlareDataTablePagination`、`FlareDataTableSort`、`FlarePermissionNode`；新增组件令牌 `--flare-component-data-table-row-height` / `-row-height-compact` / `-max-height` 与 `--flare-component-permission-tree-row-height`；Vue 词条 `dataTable.*` / `permissionTree.*`。两者都有文档页与在线 demo。
 - 新增 `FlareMetricTile`（指标卡）与 `FlareChartCard`（图表卡片）（仅 Vue，原生端 N/A：没有原生 App 提供数据看板，契约 `notes` 里写明）。纯 SVG、只用组件库 token，不依赖图表库；空数据、单点、全零、缺数据（`null` 画成缺口或横线，不是 0）都写进契约；图表是 `role="img"`，名称是数值摘要，每个读数另有只给读屏的数据表；序列用各语气的文字色，因为填充色在暗色卡片上对比度只有 1.80–2.66:1。
 - 图片、视频、文件下载后，下载键变成「在文件夹中显示」（四端）：保存状态 idle / failed → 下载键，downloading → 进度，已保存 → 文件夹键；宿主发现文件被删后传回 idle，键回到下载，再下载又是文件夹。文件卡片右侧固定这个键，图片预览、图库与视频播放器右上角的键跟随列表实时状态。Vue 宿主用 `useMessageMediaSaves` 接整条流程。
 - 收发两侧的消息时间都显示在右侧（四端）：媒体下方贴右边缘，气泡内在右下角；正文仍在发送方一侧。

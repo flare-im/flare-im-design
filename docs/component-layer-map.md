@@ -162,3 +162,5 @@ Generated from the component contract and platform signatures. Do not hand-edit 
 | BrandLogo | `packages/vue-im-ui/src/components/general/FlareBrandLogo.vue`<br>`packages/flutter-im-ui/lib/src/components/flare_brand_logo.dart`<br>`packages/android-im-ui/src/main/kotlin/com/flare/im/ui/FlareBrandLogo.kt`<br>`packages/ios-im-ui/Sources/FlareIMUI/Components/FlareBrandLogo.swift` | General UI | General UI | yes | yes | Foundation | Low: logical classification only |
 | MetricTile | `packages/vue-im-ui/src/components/data/FlareMetricTile.vue` | General UI | General UI | yes | yes | Foundation | Low: logical classification only |
 | ChartCard | `packages/vue-im-ui/src/components/data/FlareChartCard.vue` | General UI | General UI | yes | yes | Foundation | Low: logical classification only |
+| DataTable | `packages/vue-im-ui/src/components/data/FlareDataTable.vue` | General UI | General UI | yes | yes | Foundation | Low: logical classification only |
+| PermissionTree | `packages/vue-im-ui/src/components/data/FlarePermissionTree.vue` | General UI | General UI | yes | yes | Foundation | Low: logical classification only |

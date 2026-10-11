@@ -60,7 +60,7 @@ const slotComponents = new Set([
   ...customContentComponents,
   "EmptyState", "StatusBanner", "SearchResults", "SearchPanel", "ConversationList",
   "ContactList", "GroupList", "CommandPalette",
-  "ConversationHeader",
+  "ConversationHeader", "DataTable", "PermissionTree",
 ]);
 const capabilityComponents = new Set([
   "CapabilityBoundary", "IMAppKit", "Composer", "ComposerActionPanel", "MessageActionSheet",

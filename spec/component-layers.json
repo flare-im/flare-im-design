@@ -203,6 +203,8 @@
     "SettingsRow": "im-ui",
     "BrandLogo": "general-ui",
     "MetricTile": "general-ui",
-    "ChartCard": "general-ui"
+    "ChartCard": "general-ui",
+    "DataTable": "general-ui",
+    "PermissionTree": "general-ui"
   }
 }

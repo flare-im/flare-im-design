@@ -47,6 +47,12 @@
   --flare-component-switch-width: 44px;
   --flare-component-switch-height: 26px;
   --flare-component-sheet-dialog-width: var(--flare-size-component-sheet-dialog-width);
+  /* Data table rows: the touch row for reading, the control row for scanning (`density`); a pinned
+     header needs its own scroll box, and this is how tall it is. A permission tree row is a control row. */
+  --flare-component-data-table-row-height: var(--flare-size-layout-touch-target);
+  --flare-component-data-table-row-height-compact: var(--flare-size-layout-control-height-md);
+  --flare-component-data-table-max-height: 70vh;
+  --flare-component-permission-tree-row-height: var(--flare-size-layout-control-height-md);
   --flare-component-media-video-width: var(--flare-size-component-media-video-width);
   --flare-component-message-gutter-inline: var(--flare-size-component-message-gutter-inline);
   --flare-component-message-shadow: var(--flare-shadow-sm);

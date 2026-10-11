@@ -1,5 +1,6 @@
 ## 未发布
 
+- 新增 `FlareDataTable`、`FlarePermissionTree` 与类型 `FlareDataTableColumn` / `FlareDataTablePagination` / `FlareDataTableSort` / `FlarePermissionNode`（`./components`）：控制台数据表格（排序 / 分页只上报意图、跨页三态多选与批量工具条、列设置、窄容器堆叠）与三态权限树（只接叶子权限码、搜索保留祖先、WAI-ARIA 树键盘）。详见仓库根 CHANGELOG。
 - 新增 `FlareMetricTile`、`FlareChartCard` 与类型 `FlareChartPoint`（`./components`）：仪表盘指标卡与柱状 / 折线图卡片，纯 SVG、只用 token，数值同时以文字提供。详见仓库根 CHANGELOG。
 - 图片、视频、文件保存后，下载键变成「在文件夹中显示」；宿主发现文件被删后传回 idle，键回到下载。收发两侧的消息时间都在右侧。详见仓库根 CHANGELOG。
 - 新增 `useMessageMediaSaves`（宿主只接 save / isSaved / reveal）；`FlareFileMessage` 新增 `reveal` 事件，`VideoPlayerModal` 新增 `saved` + `reveal`；`MessageMediaDownloadUiState` 从 `./contracts` 导出。

@@ -79,6 +79,8 @@
 | 2026-09-28 形态判据与关闭锁：Flutter `flareCapabilitiesOf(context)`、iOS `EnvironmentValues.flareCompactOverlays`、Compose `flareCompactOverlays()`；iOS `FlareDrawerCompactFallback`、`FlareLayerDismissDisabledKey` / `.flareLayerDismissDisabled(_:)` | 原生函数与类型 | 应用自己量窗口决定面板还是页面 |
 | 2026-09-28 令牌与文案：`colors.scrim`（四端 `FlareColors.scrim`、Vue `--flare-color-scrim`）；`FlareStrings.drawerLabel` / `modalLabel`（原生）与 Vue `common.drawerLabel` / `common.modalLabel`；Flutter `FlareSearchPanel.autofocus` / `layout`（`FlareSearchPanelLayout`） | 令牌 / 文案 / 组件 props | 同一层遮罩在四端是四种颜色；无标题浮层没有可及名称 |
 | 2026-09-28 删除（无别名）：Flutter 公开的对话框类（改名 `FlareModal`，`show` → `FlareModal.show`，`prompt` → `FlareBottomSheet.prompt`，登记 D21）；Vue `.flare-sheet--dialog` / `.flare-sheet--drawer` 样式（D20） | 删除 | 同一职责两份公开实现 |
+| 2026-10-01 数据展示（Vue，原生 N/A）：`MetricTile`（`FlareMetricTile`）、`ChartCard`（`FlareChartCard` 与类型 `FlareChartPoint`） | 组件 | 控制台概览需要指标卡与用量图（R5-3 / 原 ADM-04） |
+| 2026-10-09 数据展示（Vue，原生 N/A）：`DataTable`（`FlareDataTable` 与类型 `FlareDataTableColumn` / `FlareDataTablePagination` / `FlareDataTableSort`；`cell-<key>` / `row-actions` / `batch` / `toolbar` / `empty` 插槽，`update:sort` / `update:pagination` / `update:selectedKeys` / `update:visibleColumns` / `rowClick` 事件，组件令牌 `--flare-component-data-table-*`）、`PermissionTree`（`FlarePermissionTree` 与类型 `FlarePermissionNode`；`node` / `empty` 插槽，`update:checkedCodes`，令牌 `--flare-component-permission-tree-row-height`）；Vue 词条 `dataTable.*` / `permissionTree.*` | 组件、类型、插槽、事件、令牌 | SaaS v4 R5-3：管理控制台的列表与角色权限编辑改用 kit，只增不改 |
 
 行为变化（非新增符号）：Vue Composer 在词首输入 “@” 且宿主提供了成员名册时打开成员选择器，名册不再截断为 8 人；平板请求三栏时详情以浮层打开；快捷表情默认集改为 👍 ❤️ 😂 😮 😢 🎉（四端）；宿主传入的表情条同样受 `canReact` 约束；IMAppKit 的 `#overlay` 插槽成为覆盖层（不再参与窗格网格）；Vue 气泡的表情药丸在宿主处理 `react` 时可点击切换。
 
@@ -86,7 +88,7 @@ Round 3 的行为变化（非新增符号）：Vue `FlareComposer` 删除 `media
 
 Round 4 的行为变化（非新增符号）：Vue 会话行、会话头部与消息下拉菜单改由 `FlareActionMenu` 绘制（具名 `role="menu"`，条目 `menuitem` / `menuitemcheckbox`，不再有 `.n-dropdown` 类名）；`FlareGroupDetail` 的发消息按钮只在宿主处理打开聊天时出现（四端）；Vue `FlareAnnouncementReadBar` 显示文案（此前渲染消息键），「查看未读」要有 `view-unread` 监听；未知进群方式显示「未设置」；iOS 会话头部操作的 `icon` 为组件库语义图标名。迁移见 migration/2.0-rc-to-2.0.md §4o。
 
-组件数量：Round 4 新增 `ActionMenu`（契约 `Menu` 的实现，四端），149 → 150。Round 9 新增 `RichTextMessage` 与 `ImageGroupMessage`（四端），150 → 152。Round 10 删除 `AdaptiveWorkbench`（四端），152 → 151。2026-09-28 浮层三件套新增 `Modal` 与 `Drawer`（四端），154 → 156。
+组件数量：Round 4 新增 `ActionMenu`（契约 `Menu` 的实现，四端），149 → 150。Round 9 新增 `RichTextMessage` 与 `ImageGroupMessage`（四端），150 → 152。Round 10 删除 `AdaptiveWorkbench`（四端），152 → 151。2026-09-28 浮层三件套新增 `Modal` 与 `Drawer`（四端），154 → 156。2026-10-01 新增 `MetricTile` 与 `ChartCard`（仅 Vue），156 → 158。2026-10-09 新增 `DataTable` 与 `PermissionTree`（仅 Vue），158 → 160。
 
 ## 6. 证据
 

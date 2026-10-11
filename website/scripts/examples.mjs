@@ -602,6 +602,47 @@ FlareComposerActionPanel(actions = myActions, onAction = ::pick)`,
     },
   ],
 
+  DataTable: [
+    {
+      title: { en: "A server-paged list with selection and a column chooser", zh: "服务端分页的列表，带多选与列设置" },
+      description: { en: "The host owns the page: it fetches on every `update:pagination` / `update:sort`, passes the rows of that page back, keeps the selection across pages and persists the chosen columns. Cells render through `cell-<key>` slots; `batch` sits in the toolbar that appears with a selection.", zh: "页由宿主持有：每次 `update:pagination` / `update:sort` 都去取数，把那一页的行传回来，跨页保留选中项，并持久化选中的列。单元格用 `cell-<key>` 插槽渲染；`batch` 放进选中后出现的工具条。" },
+      vue: `<FlareDataTable
+  :label="t('users.title')"
+  :columns="columns"
+  :rows="page.rows"
+  :loading="pending"
+  :pagination="page.pagination"
+  :sort="query.sort"
+  selectable
+  column-chooser
+  v-model:selected-keys="selected"
+  v-model:visible-columns="prefs.userColumns"
+  @update:pagination="(next) => load({ ...query, page: next.page, pageSize: next.pageSize })"
+  @update:sort="(sort) => load({ ...query, sort, page: 1 })"
+  @row-click="(row) => router.push({ name: 'user', params: { id: row.id } })"
+>
+  <template #toolbar><FlareSearchBar v-model="keyword" @search="load" /></template>
+  <template #cell-status="{ value }">{{ t(\`users.status.\${value}\`) }}</template>
+  <template #row-actions="{ row }"><FlareButton variant="text" size="sm" :label="t('users.edit')" @click="edit(row)" /></template>
+  <template #batch="{ selectedKeys, clear }"><FlareButton variant="danger" size="sm" :label="t('users.freeze')" @click="freeze(selectedKeys).then(clear)" /></template>
+</FlareDataTable>`,
+    },
+  ],
+
+  PermissionTree: [
+    {
+      title: { en: "Editing a role's permissions", zh: "编辑一个角色的权限" },
+      description: { en: "The catalogue comes from the host; the model is the leaf codes only — parents are derived — so what the tree holds is exactly what the role grants. Codes the current person may not grant are `disabledCodes`; a viewer gets `readonly`.", zh: "权限目录来自宿主；模型只有叶子权限码（父节点推导），树里的就是角色真正授予的。当前人无权授予的权限码放 `disabledCodes`；只读查看传 `readonly`。" },
+      vue: `<FlarePermissionTree
+  :label="t('roles.permissions')"
+  :nodes="catalogue"
+  v-model:checked-codes="draft.permissions"
+  :disabled-codes="notGrantable"
+  :readonly="!canEdit"
+/>`,
+    },
+  ],
+
   ChartCard: [
     {
       title: { en: "Daily usage, bars or a line", zh: "每日用量，柱状或折线" },

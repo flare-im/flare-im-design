@@ -134,6 +134,26 @@
       "柱状图",
       "折线图",
       "用量趋势"
+    ],
+    "DataTable": [
+      "table",
+      "grid",
+      "list view",
+      "pagination",
+      "数据表格",
+      "表格",
+      "分页",
+      "列表"
+    ],
+    "PermissionTree": [
+      "permissions",
+      "role permissions",
+      "tree",
+      "tri-state checkbox",
+      "权限树",
+      "权限",
+      "角色权限",
+      "树形选择"
     ]
   },
   "overrides": {
@@ -185,7 +205,8 @@
       "Drawer",
       "Modal",
       "FormSheet",
-      "ActionMenu"
+      "ActionMenu",
+      "DataTable"
     ],
     "workspace": [
       "AppLayout",

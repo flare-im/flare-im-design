@@ -48,7 +48,7 @@ Top-level tables shared by every component:
 <!-- CATALOG:START -->
 ## Component catalog
 
-**158 components / 17 categories** (source in [`components.json`](./components.json);
+**160 components / 17 categories** (source in [`components.json`](./components.json);
 props/events extracted and calibrated from the `@flare-im/vue-ui` source).
 
 > This section is generated from the contract by `gen-readme-catalog.mjs`; do not edit by hand — a hand-written catalog rots as the contract grows.
@@ -61,14 +61,14 @@ props/events extracted and calibrated from the `@flare-im/vue-ui` source).
   `Checkbox` · `DatePicker` · `FormField` · `Input` · `InviteCodeField` · `RadioGroup` · `Rating` · `SearchDateRangeFilter` · `Select` · `Slider` · `Stepper` · `Switch` · `Textarea` · `TimePicker`
 - **Contacts** — 13
   `ContactDetail` · `ContactItem` · `ContactList` · `ContactMatchList` · `GroupDetail` · `GroupList` · `GroupMemberGrid` · `GroupPermissionMatrix` · `MemberPanel` · `MemberRoleSheet` · `NewFriendRequests` · `RelationActionBar` · `UnknownUserPlaceholder`
+- **General** — 10
+  `Avatar` · `BrandLogo` · `Button` · `ChartCard` · `ConfigProvider` · `DataTable` · `Icon` · `IconButton` · `MetricTile` · `PermissionTree`
 - **Profile** — 10
   `DeviceSessions` · `MyInvitePanel` · `NotificationPreferences` · `ProfileCard` · `ProfileEditor` · `ProfilePanel` · `QRCard` · `SettingsList` · `SettingsRow` · `StorageUsage`
 - **Conversation** — 8
   `ChatWallpaperPicker` · `ConversationActionSheet` · `ConversationBatchToolbar` · `ConversationDetails` · `ConversationList` · `ConversationRow` · `ForwardPicker` · `StartConversationDialog`
 - **Feedback** — 8
   `AnnouncementReadBar` · `CapabilityBoundary` · `EmptyState` · `PermissionPrompt` · `SearchResults` · `Skeleton` · `StatusBanner` · `Toast`
-- **General** — 8
-  `Avatar` · `BrandLogo` · `Button` · `ChartCard` · `ConfigProvider` · `Icon` · `IconButton` · `MetricTile`
 - **Layout** — 8
   `AppLayout` · `ChatWorkspace` · `ConversationWorkspace` · `DesktopAppShell` · `MobileAppShell` · `ResponsiveLayout` · `Screen` · `ScreenHeader`
 - **Moments** — 8

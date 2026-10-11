@@ -133,6 +133,18 @@ export { default as FlareSegmentedControl } from "./general/FlareSegmentedContro
 export { default as FlareMetricTile } from "./data/FlareMetricTile.vue";
 export { default as FlareChartCard } from "./data/FlareChartCard.vue";
 export type { FlareChartPoint } from "./data/chart-geometry";
+// Data display — a host-driven table and a tri-state permission tree for web consoles
+export { default as FlareDataTable } from "./data/FlareDataTable.vue";
+export type {
+  FlareDataTableAlign,
+  FlareDataTableColumn,
+  FlareDataTablePagination,
+  FlareDataTableRow,
+  FlareDataTableSort,
+  FlareDataTableSortOrder,
+} from "./data/data-table";
+export { default as FlarePermissionTree } from "./data/FlarePermissionTree.vue";
+export type { FlarePermissionCheckState, FlarePermissionNode } from "./data/permission-tree";
 
 // Foundation — buttons + form controls
 export { default as FlareButton } from "./general/FlareButton.vue";

@@ -4030,6 +4030,28 @@
           "sourcePath": "packages/vue-im-ui/src/components/data/FlareChartCard.vue"
         }
       }
+    },
+    {
+      "name": "DataTable",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareDataTable",
+          "sourcePath": "packages/vue-im-ui/src/components/data/FlareDataTable.vue"
+        }
+      }
+    },
+    {
+      "name": "PermissionTree",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlarePermissionTree",
+          "sourcePath": "packages/vue-im-ui/src/components/data/FlarePermissionTree.vue"
+        }
+      }
     }
   ]
 }

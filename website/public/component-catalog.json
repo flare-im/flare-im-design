@@ -42,9 +42,9 @@
     "supportsDensity": "The component takes a density of its own (its prop says what the values mean); the kit has no global density scale."
   },
   "counts": {
-    "total": 158,
-    "stable": 158,
-    "general": 48,
+    "total": 160,
+    "stable": 160,
+    "general": 50,
     "im": 105
   },
   "specializedMessageGroups": {
@@ -17176,6 +17176,259 @@
       },
       "sourceOfTruth": "spec/components.json#ChartCard",
       "searchText": "chartcard general general-ui stable chart bar chart line chart usage chart 图表 柱状图 折线图 用量趋势 general default loading empty supportsconfiguration chart card — one series over time as bars or a line, in a titled card. plain svg drawn from kit tokens, with every reading also available as text. 图表卡片 —— 一条随时间变化的序列，画成柱状图或折线图，放在带标题的卡片里。纯 svg、只用组件库 token 绘制，每个读数同时以文字提供。"
+    },
+    {
+      "name": "DataTable",
+      "slug": "data-table",
+      "category": "General",
+      "layer": "general-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": true,
+      "supportsCapabilities": false,
+      "supportsDensity": true,
+      "supportsResponsive": false,
+      "previewMode": "responsive",
+      "previewViewports": [
+        "desktop",
+        "mobile"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": true,
+        "states": true,
+        "interaction": true,
+        "responsive": true,
+        "keyboard": true,
+        "density": true,
+        "slots": true,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [
+          {
+            "name": "rowKey",
+            "values": [
+              "string",
+              "((row, index) => string)"
+            ]
+          },
+          {
+            "name": "pagination",
+            "values": [
+              "FlareDataTablePagination",
+              "null"
+            ]
+          },
+          {
+            "name": "sort",
+            "values": [
+              "FlareDataTableSort",
+              "null"
+            ]
+          },
+          {
+            "name": "visibleColumns",
+            "values": [
+              "string[]",
+              "null"
+            ]
+          },
+          {
+            "name": "density",
+            "values": [
+              "comfortable",
+              "compact"
+            ]
+          }
+        ],
+        "states": [
+          "default",
+          "loading",
+          "empty",
+          "selection"
+        ]
+      },
+      "summary": {
+        "en": "Data table — host-owned rows in a real table, with sorting the host performs, server-side pagination, a tri-state selection that spans pages and raises a batch toolbar, and a column chooser whose choice the host keeps.",
+        "zh": "数据表格 —— 宿主持有的行放进真正的表格：排序由宿主执行、服务端分页、跨页的三态多选并带出批量工具条、列设置由宿主持久化。"
+      },
+      "aliases": [
+        "table",
+        "grid",
+        "list view",
+        "pagination",
+        "数据表格",
+        "表格",
+        "分页",
+        "列表",
+        "General",
+        "default",
+        "loading",
+        "empty",
+        "selection",
+        "rowClick",
+        "update:pagination",
+        "update:sort",
+        "update:selectedKeys",
+        "update:visibleColumns"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "selection"
+      ],
+      "interactions": [
+        "rowClick",
+        "update:pagination",
+        "update:sort",
+        "update:selectedKeys",
+        "update:visibleColumns"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareDataTable"
+        },
+        "flutter": {
+          "support": "not-applicable"
+        },
+        "compose": {
+          "support": "not-applicable"
+        },
+        "ios": {
+          "support": "not-applicable"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/data/FlareDataTable.vue"
+      },
+      "docs": {
+        "zh": "website/components/data-table.md",
+        "en": "website/en/components/data-table.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#DataTable",
+      "searchText": "datatable general general-ui stable table grid list view pagination 数据表格 表格 分页 列表 general default loading empty selection rowclick update:pagination update:sort update:selectedkeys update:visiblecolumns supportsconfiguration supportsslots supportsdensity data table — host-owned rows in a real table, with sorting the host performs, server-side pagination, a tri-state selection that spans pages and raises a batch toolbar, and a column chooser whose choice the host keeps. 数据表格 —— 宿主持有的行放进真正的表格：排序由宿主执行、服务端分页、跨页的三态多选并带出批量工具条、列设置由宿主持久化。"
+    },
+    {
+      "name": "PermissionTree",
+      "slug": "permission-tree",
+      "category": "General",
+      "layer": "general-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": true,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": false,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": true,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [],
+        "states": [
+          "default",
+          "readOnly",
+          "searching",
+          "empty"
+        ]
+      },
+      "summary": {
+        "en": "Permission tree — a tree of permission codes with tri-state checks: a leaf is a code, a parent reads as checked, mixed or clear from its leaves. Searchable, foldable, keyboard-walkable.",
+        "zh": "权限树 —— 带三态勾选的权限码树：叶子是权限码，父节点由叶子推出全选、半选或未选。可搜索、可折叠、可用键盘遍历。"
+      },
+      "aliases": [
+        "permissions",
+        "role permissions",
+        "tree",
+        "tri-state checkbox",
+        "权限树",
+        "权限",
+        "角色权限",
+        "树形选择",
+        "General",
+        "default",
+        "readOnly",
+        "searching",
+        "empty",
+        "update:checkedCodes"
+      ],
+      "states": [
+        "default",
+        "readOnly",
+        "searching",
+        "empty"
+      ],
+      "interactions": [
+        "update:checkedCodes"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlarePermissionTree"
+        },
+        "flutter": {
+          "support": "not-applicable"
+        },
+        "compose": {
+          "support": "not-applicable"
+        },
+        "ios": {
+          "support": "not-applicable"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/data/FlarePermissionTree.vue"
+      },
+      "docs": {
+        "zh": "website/components/permission-tree.md",
+        "en": "website/en/components/permission-tree.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#PermissionTree",
+      "searchText": "permissiontree general general-ui stable permissions role permissions tree tri-state checkbox 权限树 权限 角色权限 树形选择 general default readonly searching empty update:checkedcodes supportsconfiguration supportsslots permission tree — a tree of permission codes with tri-state checks: a leaf is a code, a parent reads as checked, mixed or clear from its leaves. searchable, foldable, keyboard-walkable. 权限树 —— 带三态勾选的权限码树：叶子是权限码，父节点由叶子推出全选、半选或未选。可搜索、可折叠、可用键盘遍历。"
     }
   ]
 }

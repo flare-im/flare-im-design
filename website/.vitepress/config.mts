@@ -20,7 +20,7 @@ const byCat: Record<string, { name: string; category: string }[]> = {};
 for (const c of spec.components) (byCat[c.category] ??= []).push(c);
 
 const layers = JSON.parse(readFileSync(join(here, "../../spec/component-layers.json"), "utf8")).components;
-const dataDisplayNames = new Set(["Avatar", "Icon", "Rating", "MetricTile", "ChartCard"]);
+const dataDisplayNames = new Set(["Avatar", "Icon", "Rating", "MetricTile", "ChartCard", "DataTable", "PermissionTree"]);
 const mediaPreviewNames = new Set(["ImagePreviewModal", "VideoPlayerModal", "MarkdownPreview"]);
 const groupNames = new Set([
   "GroupDetail", "GroupList", "GroupMemberGrid", "GroupPermissionMatrix", "MemberRoleSheet", "MemberPanel",

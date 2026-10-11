@@ -1499,6 +1499,221 @@
           }
         }
       ]
+    },
+    {
+      "name": "DataTableColumn",
+      "symbol": "FlareDataTableColumn",
+      "kind": "interface",
+      "summary": {
+        "en": "One column of a DataTable.",
+        "zh": "DataTable 的一列。"
+      },
+      "fields": [
+        {
+          "name": "key",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Field of the row this column reads; also names the `cell-<key>` slot.",
+            "zh": "这一列读取的行字段；也是 `cell-<key>` 插槽的名字。"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Header text; on a narrow container it labels every stacked cell.",
+            "zh": "表头文字；窄容器下成为每个堆叠单元格的标签。"
+          }
+        },
+        {
+          "name": "width",
+          "type": "number | string",
+          "required": false,
+          "description": {
+            "en": "Fixed width (a number is px).",
+            "zh": "固定宽度（数字按 px）。"
+          }
+        },
+        {
+          "name": "minWidth",
+          "type": "number | string",
+          "required": false,
+          "description": {
+            "en": "Lower bound when the table shares the space out.",
+            "zh": "表格分配空间时的下限。"
+          }
+        },
+        {
+          "name": "sortable",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "Draw a sort control in the header; the host sorts and passes `sort` back.",
+            "zh": "表头画出排序控件；排序由宿主执行并回传 `sort`。"
+          }
+        },
+        {
+          "name": "align",
+          "type": "'start' | 'center' | 'end'",
+          "required": false,
+          "description": {
+            "en": "Horizontal alignment of the header and the cells. Default `start`.",
+            "zh": "表头与单元格的水平对齐。默认 `start`。"
+          }
+        },
+        {
+          "name": "ellipsis",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "Keep the cell on one line and cut it with an ellipsis; the full text stays in `title`.",
+            "zh": "单元格保持单行，超出用省略号截断；完整文本放在 `title` 里。"
+          }
+        },
+        {
+          "name": "slot",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Slot that renders this column's cells. Default `cell-<key>`.",
+            "zh": "渲染这一列单元格的插槽。默认 `cell-<key>`。"
+          }
+        },
+        {
+          "name": "hideable",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "False keeps the column out of the column chooser: it is always visible. Default true.",
+            "zh": "为 false 时不进入列设置，始终可见。默认 true。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "DataTableSort",
+      "symbol": "FlareDataTableSort",
+      "kind": "interface",
+      "summary": {
+        "en": "The sort a DataTable shows and reports.",
+        "zh": "DataTable 当前显示并上报的排序。"
+      },
+      "fields": [
+        {
+          "name": "key",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Column key.",
+            "zh": "列的 key。"
+          }
+        },
+        {
+          "name": "order",
+          "type": "'asc' | 'desc'",
+          "required": true,
+          "description": {
+            "en": "Direction.",
+            "zh": "方向。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "DataTablePagination",
+      "symbol": "FlareDataTablePagination",
+      "kind": "interface",
+      "summary": {
+        "en": "Server-side paging of a DataTable: what page is shown and how many rows exist.",
+        "zh": "DataTable 的服务端分页：当前在第几页、总共有多少行。"
+      },
+      "fields": [
+        {
+          "name": "page",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "1-based current page.",
+            "zh": "当前页，从 1 起。"
+          }
+        },
+        {
+          "name": "pageSize",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "Rows per page.",
+            "zh": "每页行数。"
+          }
+        },
+        {
+          "name": "total",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "Rows on the server, not on this page.",
+            "zh": "服务端总行数，不是本页行数。"
+          }
+        },
+        {
+          "name": "pageSizes",
+          "type": "number[]",
+          "required": false,
+          "description": {
+            "en": "Page sizes the person may pick; omitted draws no page-size control.",
+            "zh": "可选的每页行数；省略则不画每页条数控件。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "PermissionNode",
+      "symbol": "FlarePermissionNode",
+      "kind": "interface",
+      "summary": {
+        "en": "One node of a PermissionTree: a permission code, or a group of them.",
+        "zh": "PermissionTree 的一个节点：一个权限码，或一组权限。"
+      },
+      "fields": [
+        {
+          "name": "code",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "The permission code a leaf stands for; a parent's code only groups.",
+            "zh": "叶子代表的权限码；父节点的 code 只用于分组。"
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Display name.",
+            "zh": "显示名称。"
+          }
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "One line under the name.",
+            "zh": "名称下的一行说明。"
+          }
+        },
+        {
+          "name": "children",
+          "type": "FlarePermissionNode[]",
+          "required": false,
+          "description": {
+            "en": "Child nodes; a node with children is a group.",
+            "zh": "子节点；有子节点的是分组。"
+          }
+        }
+      ]
     }
   ],
   "components": [
@@ -20563,6 +20778,336 @@
         },
         "reducedMotionBehavior": "No motion.",
         "screenReaderSemantics": "The card is a region named by its title. The plot is role=img named by a numeric summary — how many points, the first and last label, the lowest, highest and latest reading with the unit — and every reading is also in a visually hidden table (label, value; a gap reads \"no data\"). The scale and the axis labels are hidden from assistive technology; while loading the card is aria-busy and reads \"Loading\"; with no readings it is the empty text."
+      }
+    },
+    {
+      "name": "DataTable",
+      "category": "General",
+      "summary": {
+        "en": "Data table — host-owned rows in a real table, with sorting the host performs, server-side pagination, a tri-state selection that spans pages and raises a batch toolbar, and a column chooser whose choice the host keeps.",
+        "zh": "数据表格 —— 宿主持有的行放进真正的表格：排序由宿主执行、服务端分页、跨页的三态多选并带出批量工具条、列设置由宿主持久化。"
+      },
+      "dataSource": {
+        "en": "host-owned `rows` of this page (already sorted and paged), `columns`, the current `sort` and `pagination`; the table emits the next sort / page / page size and never reorders rows itself",
+        "zh": "宿主持有的本页 `rows`（已排好序、已分页）、`columns`、当前 `sort` 与 `pagination`；表格只上报下一个排序 / 页码 / 每页条数，自己从不重排行"
+      },
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "selection"
+      ],
+      "events": [
+        "rowClick",
+        "update:pagination",
+        "update:sort",
+        "update:selectedKeys",
+        "update:visibleColumns"
+      ],
+      "model": {
+        "prop": "selectedKeys",
+        "event": "update:selectedKeys"
+      },
+      "slots": [
+        "toolbar",
+        "batch",
+        "row-actions",
+        "empty"
+      ],
+      "props": [
+        {
+          "name": "columns",
+          "type": "readonly FlareDataTableColumn[]",
+          "required": true,
+          "description": {
+            "en": "Columns in display order.",
+            "zh": "按显示顺序排列的列。"
+          }
+        },
+        {
+          "name": "rows",
+          "type": "readonly Record<string, unknown>[]",
+          "required": true,
+          "description": {
+            "en": "The rows of this page, already sorted and paged by the host.",
+            "zh": "本页的行，由宿主排好序并分好页。"
+          }
+        },
+        {
+          "name": "rowKey",
+          "type": "string | ((row, index) => string)",
+          "default": "'id'",
+          "description": {
+            "en": "Field that identifies a row, or a function of the row.",
+            "zh": "标识一行的字段，或由行计算 key 的函数。"
+          }
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "description": {
+            "en": "Accessible name of the table. Default: the kit's \"Table\".",
+            "zh": "表格的可及名称。默认用组件库的「数据表格」。"
+          }
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "Draw placeholder rows (aria-busy) while the host fetches the page.",
+            "zh": "宿主取数期间画占位行（aria-busy）。"
+          }
+        },
+        {
+          "name": "emptyText",
+          "type": "string",
+          "description": {
+            "en": "Shown when there are no rows. Default: the kit's \"No data yet\".",
+            "zh": "没有行时显示。默认用组件库的「暂无数据」。"
+          }
+        },
+        {
+          "name": "pagination",
+          "type": "FlareDataTablePagination | null",
+          "default": "null",
+          "description": {
+            "en": "Server-side pagination; the table emits the next page or page size and the host fetches.",
+            "zh": "服务端分页；表格上报下一页或每页条数，由宿主取数。"
+          }
+        },
+        {
+          "name": "sort",
+          "type": "FlareDataTableSort | null",
+          "default": "null",
+          "description": {
+            "en": "The current sort; a sortable header cycles ascending, descending, then the host's order, and the host sorts.",
+            "zh": "当前排序；可排序表头依次升序、降序、回到宿主默认顺序，排序由宿主执行。"
+          }
+        },
+        {
+          "name": "selectable",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "A checkbox per row and a tri-state one in the header; a non-empty selection shows the batch toolbar.",
+            "zh": "每行一个复选框，表头一个三态复选框；选中不为空时显示批量工具条。"
+          }
+        },
+        {
+          "name": "selectedKeys",
+          "type": "string[]",
+          "default": "[]",
+          "description": {
+            "en": "Keys of the selected rows, across pages (v-model).",
+            "zh": "选中行的 key，跨页保留（v-model）。"
+          }
+        },
+        {
+          "name": "columnChooser",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "A control that shows or hides columns; a popover on pointer devices, a sheet on phones.",
+            "zh": "显示 / 隐藏列的控件；指针设备上是浮层，手机上是底部面板。"
+          }
+        },
+        {
+          "name": "visibleColumns",
+          "type": "string[] | null",
+          "default": "null",
+          "description": {
+            "en": "Keys of the columns the chooser shows; `null` shows every column. The host persists it (v-model). The last visible column and a column with `hideable: false` cannot be hidden.",
+            "zh": "列设置里可见列的 key；`null` 表示全部可见。由宿主持久化（v-model）。最后一列与 `hideable: false` 的列不能隐藏。"
+          }
+        },
+        {
+          "name": "stickyHeader",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "Pin the header inside the table's own scroll box, whose height is `--flare-component-data-table-max-height`.",
+            "zh": "把表头钉在表格自己的滚动盒里，盒高由 `--flare-component-data-table-max-height` 决定。"
+          }
+        },
+        {
+          "name": "density",
+          "type": "'comfortable' | 'compact'",
+          "default": "'comfortable'",
+          "description": {
+            "en": "Row height: `comfortable` for reading, `compact` for scanning. Touch targets do not shrink.",
+            "zh": "行高：`comfortable` 便于阅读，`compact` 便于扫视。触控区不缩小。"
+          }
+        }
+      ],
+      "notes": {
+        "en": "Cells render through `cell-<key>` scoped slots (`{ row, value, index, column }`), or the slot a column names; `row-actions` adds a trailing actions column (`{ row, index }`); `batch` renders inside the batch toolbar with `{ selectedKeys, selectedRows, clear }`; `toolbar` is the leading area of the bar above the table, beside the column chooser; `empty` replaces the empty state. A non-empty selection is a contextual layer: Escape, the platform back and the kit's back controls clear it. On a container narrower than 600px rows stack into labelled lines, the header stays for assistive technology and sorting moves into a menu in the bar; every table element carries its explicit role because the stacked form changes `display`. Vue only: native N/A. It is a console component (the admin console's lists of users, apps, audit events); no Flutter, SwiftUI or Compose app ships an admin console, and a native widget nobody renders would only drift from this one. Add the native kits when a native screen needs it, with the same contract.",
+        "zh": "单元格通过 `cell-<key>` 作用域插槽渲染（`{ row, value, index, column }`），或列指定的插槽；`row-actions` 在末尾加一列操作（`{ row, index }`）；`batch` 渲染在批量工具条里，拿到 `{ selectedKeys, selectedRows, clear }`；`toolbar` 是表格上方那条栏的前部，与列设置并排；`empty` 替换空态。选中不为空就是一个上下文层：Escape、平台返回与组件库的返回控件都会清空它。容器窄于 600px 时行堆叠成带标签的行，表头留给辅助技术，排序移到栏里的菜单；堆叠会改变 `display`，所以每个表格元素都显式带 role。仅 Vue，原生端 N/A：这是控制台组件（管理控制台的用户、应用、审计列表）；Flutter、SwiftUI、Compose 端没有任何 App 提供管理控制台，一个无人渲染的原生控件只会和这里渐行渐远。等原生界面真正需要时再按同一契约实现。"
+      },
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareDataTable"
+        }
+      },
+      "accessibility": {
+        "role": "table",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab visits the sort buttons, the checkboxes, the row actions and the pager in reading order",
+          "Enter or Space on a sortable header cycles its sort",
+          "Enter or Space on a row activates it when the host listens for rowClick",
+          "Escape clears a non-empty selection (the batch toolbar is a contextual layer)",
+          "Escape closes the column chooser and returns focus to its trigger"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "The sort glyph appears without a fade; nothing else moves.",
+        "screenReaderSemantics": "A named table with explicit table, rowgroup, row, columnheader and cell roles (kept when a narrow container stacks the rows). Sortable headers carry aria-sort; the header checkbox reads mixed when some rows of the page are selected; each row checkbox is named by its row number and each selected row is aria-selected. The batch toolbar is a named toolbar whose count is a polite live region. Loading is aria-busy with a status; the empty state is text. The pager is a named navigation with a named page-size combobox and previous / next buttons."
+      }
+    },
+    {
+      "name": "PermissionTree",
+      "category": "General",
+      "summary": {
+        "en": "Permission tree — a tree of permission codes with tri-state checks: a leaf is a code, a parent reads as checked, mixed or clear from its leaves. Searchable, foldable, keyboard-walkable.",
+        "zh": "权限树 —— 带三态勾选的权限码树：叶子是权限码，父节点由叶子推出全选、半选或未选。可搜索、可折叠、可用键盘遍历。"
+      },
+      "dataSource": {
+        "en": "host-owned `nodes` (`{ code, name, description?, children? }`) and the leaf codes that are checked (`checkedCodes`); parents are derived and never stored",
+        "zh": "宿主持有的 `nodes`（`{ code, name, description?, children? }`）与已勾选的叶子权限码（`checkedCodes`）；父节点只推导、从不存储"
+      },
+      "states": [
+        "default",
+        "readOnly",
+        "searching",
+        "empty"
+      ],
+      "events": [
+        "update:checkedCodes"
+      ],
+      "model": {
+        "prop": "checkedCodes",
+        "event": "update:checkedCodes"
+      },
+      "slots": [
+        "node",
+        "empty"
+      ],
+      "props": [
+        {
+          "name": "nodes",
+          "type": "readonly FlarePermissionNode[]",
+          "required": true,
+          "description": {
+            "en": "The permission catalogue, nested.",
+            "zh": "嵌套的权限目录。"
+          }
+        },
+        {
+          "name": "checkedCodes",
+          "type": "string[]",
+          "default": "[]",
+          "description": {
+            "en": "Leaf codes that are checked (v-model). A parent toggle checks or clears every enabled leaf below it.",
+            "zh": "已勾选的叶子权限码（v-model）。切换父节点会勾选或清空其下所有未禁用的叶子。"
+          }
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "description": {
+            "en": "Accessible name of the tree. Default: the kit's \"Permissions\".",
+            "zh": "树的可及名称。默认用组件库的「权限」。"
+          }
+        },
+        {
+          "name": "readonly",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "Show the state with a view-only hint and ignore every toggle.",
+            "zh": "只显示状态并提示仅可查看，忽略所有切换。"
+          }
+        },
+        {
+          "name": "disabledCodes",
+          "type": "readonly string[]",
+          "default": "[]",
+          "description": {
+            "en": "Leaf codes that cannot be changed; a parent toggle leaves them as they are.",
+            "zh": "不可更改的叶子权限码；切换父节点时保持原样。"
+          }
+        },
+        {
+          "name": "searchable",
+          "type": "boolean",
+          "default": "true",
+          "description": {
+            "en": "Draw the search field above the tree: a match is kept with its ancestors (forced open) and its descendants.",
+            "zh": "在树上方画搜索框：匹配项连同祖先（强制展开）和后代一起保留。"
+          }
+        },
+        {
+          "name": "searchPlaceholder",
+          "type": "string",
+          "description": {
+            "en": "Placeholder of the search field. Default: the kit's \"Search permissions\".",
+            "zh": "搜索框的占位文字。默认用组件库的「搜索权限」。"
+          }
+        },
+        {
+          "name": "defaultExpanded",
+          "type": "boolean",
+          "default": "true",
+          "description": {
+            "en": "Start with every group open.",
+            "zh": "初始时展开所有分组。"
+          }
+        },
+        {
+          "name": "emptyText",
+          "type": "string",
+          "description": {
+            "en": "Shown when the search matches nothing. Default: the kit's \"No matching permissions\".",
+            "zh": "搜索无结果时显示。默认用组件库的「没有匹配的权限」。"
+          }
+        }
+      ],
+      "notes": {
+        "en": "`node` renders an item's content with `{ node, depth, state, expanded, matched, disabled }`; `empty` replaces the no-match state. The tree is flattened once and every derived answer (states, matches, rows on screen) is one pass over the flat list, so a thousand nodes stay smooth. The row height is `--flare-component-permission-tree-row-height`. Vue only: native N/A. It is a console component (role editing in the admin console); no Flutter, SwiftUI or Compose app edits roles, and a native widget nobody renders would only drift from this one. Add the native kits when a native screen needs it, with the same contract.",
+        "zh": "`node` 用 `{ node, depth, state, expanded, matched, disabled }` 渲染一项的内容；`empty` 替换无结果状态。树只拍平一次，每个派生结果（状态、匹配、屏上行）都是对扁平列表的一次遍历，一千个节点仍然流畅。行高是 `--flare-component-permission-tree-row-height`。仅 Vue，原生端 N/A：这是控制台组件（管理控制台的角色权限编辑）；Flutter、SwiftUI、Compose 端没有任何 App 编辑角色，一个无人渲染的原生控件只会和这里渐行渐远。等原生界面真正需要时再按同一契约实现。"
+      },
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlarePermissionTree"
+        }
+      },
+      "accessibility": {
+        "role": "tree",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab reaches one item (roving tabindex); Arrow Down and Arrow Up move between visible items",
+          "Arrow Right opens a group, then moves to its first child; Arrow Left closes a group or moves to the parent",
+          "Home and End move to the first and last visible item",
+          "Space or Enter toggles the item (checked, or every enabled leaf of a group)",
+          "Typing in the search field filters the tree; matches keep their ancestors open"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "The check mark fills without a transition; nothing else moves.",
+        "screenReaderSemantics": "A named tree of tree items with aria-level, aria-posinset and aria-setsize; a group exposes aria-expanded; every item exposes aria-checked true / false / mixed derived from its leaves, and a disabled item aria-disabled. The item itself is the one control, so the check box beside the name is decorative. The selected count is a polite live region; read-only draws a view-only hint; no match is the empty text."
       }
     }
   ],

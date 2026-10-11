@@ -349,6 +349,65 @@ title: Data Types
 | `label` | `string` | ✓ | What the reading is for — a date, a period, a name — already formatted by the host. |
 | `value` | `number \| null` | ✓ | The reading. `null` when there is none for this label (a gap); never substitute zero. |
 
+### DataTableColumn {#data-table-column}
+
+`FlareDataTableColumn`
+
+> One column of a DataTable.
+
+**Used by: **[DataTable](/en/components/data-table)
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `key` | `string` | ✓ | Field of the row this column reads; also names the `cell-<key>` slot. |
+| `title` | `string` | ✓ | Header text; on a narrow container it labels every stacked cell. |
+| `width` | `number \| string` |  | Fixed width (a number is px). |
+| `minWidth` | `number \| string` |  | Lower bound when the table shares the space out. |
+| `sortable` | `boolean` |  | Draw a sort control in the header; the host sorts and passes `sort` back. |
+| `align` | `'start' \| 'center' \| 'end'` |  | Horizontal alignment of the header and the cells. Default `start`. |
+| `ellipsis` | `boolean` |  | Keep the cell on one line and cut it with an ellipsis; the full text stays in `title`. |
+| `slot` | `string` |  | Slot that renders this column's cells. Default `cell-<key>`. |
+| `hideable` | `boolean` |  | False keeps the column out of the column chooser: it is always visible. Default true. |
+
+### DataTableSort {#data-table-sort}
+
+`FlareDataTableSort`
+
+> The sort a DataTable shows and reports.
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `key` | `string` | ✓ | Column key. |
+| `order` | `'asc' \| 'desc'` | ✓ | Direction. |
+
+### DataTablePagination {#data-table-pagination}
+
+`FlareDataTablePagination`
+
+> Server-side paging of a DataTable: what page is shown and how many rows exist.
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `page` | `number` | ✓ | 1-based current page. |
+| `pageSize` | `number` | ✓ | Rows per page. |
+| `total` | `number` | ✓ | Rows on the server, not on this page. |
+| `pageSizes` | `number[]` |  | Page sizes the person may pick; omitted draws no page-size control. |
+
+### PermissionNode {#permission-node}
+
+`FlarePermissionNode`
+
+> One node of a PermissionTree: a permission code, or a group of them.
+
+**Used by: **[PermissionTree](/en/components/permission-tree)
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `code` | `string` | ✓ | The permission code a leaf stands for; a parent's code only groups. |
+| `name` | `string` | ✓ | Display name. |
+| `description` | `string` |  | One line under the name. |
+| `children` | [`FlarePermissionNode[]`](/en/reference/data-types#permission-node) |  | Child nodes; a node with children is a group. |
+
 ## Enums / unions
 
 ### MessageGroupPosition {#message-group-position}

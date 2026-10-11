@@ -349,6 +349,65 @@ title: 数据类型
 | `label` | `string` | ✓ | 读数对应的标签 —— 日期、周期、名称，由宿主格式化好。 |
 | `value` | `number \| null` | ✓ | 读数。该标签没有读数时传 `null`（缺口），不得用 0 代替。 |
 
+### DataTableColumn {#data-table-column}
+
+`FlareDataTableColumn`
+
+> DataTable 的一列。
+
+**被使用于：**[DataTable](/components/data-table)
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `key` | `string` | ✓ | 这一列读取的行字段；也是 `cell-<key>` 插槽的名字。 |
+| `title` | `string` | ✓ | 表头文字；窄容器下成为每个堆叠单元格的标签。 |
+| `width` | `number \| string` |  | 固定宽度（数字按 px）。 |
+| `minWidth` | `number \| string` |  | 表格分配空间时的下限。 |
+| `sortable` | `boolean` |  | 表头画出排序控件；排序由宿主执行并回传 `sort`。 |
+| `align` | `'start' \| 'center' \| 'end'` |  | 表头与单元格的水平对齐。默认 `start`。 |
+| `ellipsis` | `boolean` |  | 单元格保持单行，超出用省略号截断；完整文本放在 `title` 里。 |
+| `slot` | `string` |  | 渲染这一列单元格的插槽。默认 `cell-<key>`。 |
+| `hideable` | `boolean` |  | 为 false 时不进入列设置，始终可见。默认 true。 |
+
+### DataTableSort {#data-table-sort}
+
+`FlareDataTableSort`
+
+> DataTable 当前显示并上报的排序。
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `key` | `string` | ✓ | 列的 key。 |
+| `order` | `'asc' \| 'desc'` | ✓ | 方向。 |
+
+### DataTablePagination {#data-table-pagination}
+
+`FlareDataTablePagination`
+
+> DataTable 的服务端分页：当前在第几页、总共有多少行。
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `page` | `number` | ✓ | 当前页，从 1 起。 |
+| `pageSize` | `number` | ✓ | 每页行数。 |
+| `total` | `number` | ✓ | 服务端总行数，不是本页行数。 |
+| `pageSizes` | `number[]` |  | 可选的每页行数；省略则不画每页条数控件。 |
+
+### PermissionNode {#permission-node}
+
+`FlarePermissionNode`
+
+> PermissionTree 的一个节点：一个权限码，或一组权限。
+
+**被使用于：**[PermissionTree](/components/permission-tree)
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `code` | `string` | ✓ | 叶子代表的权限码；父节点的 code 只用于分组。 |
+| `name` | `string` | ✓ | 显示名称。 |
+| `description` | `string` |  | 名称下的一行说明。 |
+| `children` | [`FlarePermissionNode[]`](/reference/data-types#permission-node) |  | 子节点；有子节点的是分组。 |
+
 ## 枚举 / 联合类型
 
 ### MessageGroupPosition {#message-group-position}

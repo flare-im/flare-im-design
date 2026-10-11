@@ -94,6 +94,8 @@ Execution: none of the non-KEEP decisions is executed in the 2.0 RC. Each one ch
 | Icon | Icon library — a cross-platform set of semantic icon names (search/send/heart/…); each platform maps the same names. | - | vue | ConversationHeader, FlareActionMenuList, FlareGlyph, Input, PermissionPrompt, ScreenShare, SearchBar, SearchDateRangeFilter, UnknownMessage | KEEP | - |
 | ConfigProvider | Root UI provider — installs theme (brand / light-dark), language, adaptive layout, viewport, media resolution, the platform contract, the overlay container and the default control size in one place; descendants read and switch through useFlareConfig() / useFlarePlatform() / useFlareAdaptive(). | web, tauri | vue | - | KEEP | - |
 | BrandLogo | Brand logo — the forward-leaning geometric F (skewX -9°) in two variants, gradient (brand gradient plate + white F) or plate (white plate + gradient F); one geometry on all four platforms. | flutter, ios, android | vue, flutter, ios, compose | - | KEEP | Friction: FR-048 |
+| DataTable | Data table — host-owned rows in a real table: sorting the host performs, server-side pagination, a tri-state selection across pages with a batch toolbar, a column chooser the host persists; rows stack on narrow containers. Vue only. | - | - | - | KEEP | Added 2026-10-09 for the admin console (SaaS v4 R5-3); consumer: flare-social `platform/console-web` lists (R5-4). |
+| PermissionTree | Permission tree — leaf codes with derived tri-state parents, search that keeps ancestors, fold / unfold, a WAI-ARIA tree with one roving tab stop. Vue only. | - | - | - | KEEP | Added 2026-10-09 for the admin console (SaaS v4 R5-3); consumer: role and credential-scope editors (R5-4). |
 
 ### Layout
 
