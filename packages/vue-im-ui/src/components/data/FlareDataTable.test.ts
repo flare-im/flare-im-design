@@ -157,6 +157,26 @@ describe("FlareDataTable", () => {
     host.unmount();
   });
 
+  it("selects only eligible rows and rechecks row eligibility for late checkbox events", async () => {
+    const { host, table, set } = mountTable({ selectable: true, rowSelectable: (row: { id: string }) => row.id !== "u1", selectedKeys: ["other-page"] });
+    const boxes = table.findAllComponents({ name: "FlareCheckbox" });
+    expect(boxes[1].props("disabled")).toBe(true);
+    boxes[1].vm.$emit("update:modelValue", true);
+    expect(emitted(table, "update:selectedKeys")).toBeUndefined();
+    await table.get("thead [role=checkbox]").trigger("click");
+    expect(emitted(table, "update:selectedKeys")).toEqual([[["other-page", "u2", "u3"]]]);
+    await set({ selectedKeys: ["other-page", "u2", "u3"] });
+    expect(table.get("thead [role=checkbox]").attributes("aria-checked")).toBe("true");
+    await table.get("thead [role=checkbox]").trigger("click");
+    expect(emitted(table, "update:selectedKeys")?.[1]).toEqual([["other-page"]]);
+    await set({ rowSelectable: () => false });
+    boxes[2].vm.$emit("update:modelValue", true);
+    boxes[0].vm.$emit("update:modelValue", true);
+    expect(table.get("thead [role=checkbox]").attributes("disabled")).toBeDefined();
+    expect(emitted(table, "update:selectedKeys")).toHaveLength(2);
+    host.unmount();
+  });
+
   it("rejects loading and stale-page selection events, then accepts only a current-page row", async () => {
     const { host, table, set } = mountTable({ selectable: true, selectedKeys: ["u1"] });
     const oldRow = table.findAllComponents({ name: "FlareCheckbox" })[1];

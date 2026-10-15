@@ -77,6 +77,8 @@ const props = withDefaults(
     selectable?: boolean;
     /** Keep the selected target visible, but prevent selection changes during a host mutation. */
     selectionDisabled?: boolean;
+    /** Host-owned row eligibility; header/select-all only includes eligible rows on this page. */
+    rowSelectable?: (row: FlareDataTableRow, index: number) => boolean;
     /** A control that shows or hides columns; the choice is `visibleColumns`. */
     columnChooser?: boolean;
     /** Pin the header inside the table's own scroll box (`--flare-component-data-table-max-height`). */
@@ -124,8 +126,9 @@ const hasRowActions = computed(() => Boolean(slots["row-actions"]));
 /** Rows are activatable only for a host that listens; otherwise they are plain rows. */
 const interactive = computed(() => Boolean(instance?.vnode.props?.onRowClick));
 const keys = computed(() => props.rows.map((row, index) => dataTableRowKey(row, props.rowKey, index)));
+const selectableKeys = computed(() => keys.value.filter((_, index) => props.rowSelectable?.(props.rows[index], index) !== false));
 const selectedSet = computed(() => new Set(selectedKeys.value));
-const selection = computed(() => dataTableSelection(keys.value, selectedKeys.value));
+const selection = computed(() => dataTableSelection(selectableKeys.value, selectedKeys.value));
 const selectedRows = computed(() => props.rows.filter((_, index) => selectedSet.value.has(keys.value[index])));
 const selecting = computed(() => props.selectable && selectedKeys.value.length > 0);
 const columnCount = computed(() => shownColumns.value.length + (props.selectable ? 1 : 0) + (hasRowActions.value ? 1 : 0));
@@ -183,11 +186,11 @@ function sortFromMenu(key: string): void {
 
 // ── Selection and the batch toolbar ────────────────────────────────────────────
 function toggleAll(): void {
-  if (!props.selectable || props.selectionDisabled || props.loading) return;
-  selectedKeys.value = dataTableToggleAll(keys.value, selectedKeys.value);
+  if (!props.selectable || props.selectionDisabled || props.loading || selectableKeys.value.length === 0) return;
+  selectedKeys.value = dataTableToggleAll(selectableKeys.value, selectedKeys.value);
 }
 function setRow(key: string, on: boolean): void {
-  if (!props.selectable || props.selectionDisabled || props.loading || !keys.value.includes(key)) return;
+  if (!props.selectable || props.selectionDisabled || props.loading || !selectableKeys.value.includes(key)) return;
   selectedKeys.value = dataTableToggleRow(key, selectedKeys.value, on);
 }
 function clearSelection(): void {
@@ -393,7 +396,7 @@ function onRowKeydown(event: KeyboardEvent, row: FlareDataTableRow, index: numbe
           variant="quiet"
           size="sm"
           :label="t('dataTable.selectAll')"
-          :disabled="selectionDisabled || loading"
+          :disabled="selectionDisabled || loading || selectableKeys.length === 0"
           @click="toggleAll"
         />
         <FlareButton variant="quiet" size="sm" :disabled="selectionDisabled || loading" :label="t('dataTable.clearSelection')" @click="clearSelection" />
@@ -420,7 +423,7 @@ function onRowKeydown(event: KeyboardEvent, row: FlareDataTableRow, index: numbe
                 :model-value="selection === 'all'"
                 :indeterminate="selection === 'some'"
                 :ariaLabel="t('dataTable.selectAll')"
-                :disabled="selectionDisabled || loading || rows.length === 0"
+                :disabled="selectionDisabled || loading || selectableKeys.length === 0"
                 @update:model-value="toggleAll"
               />
               <span v-else class="flare-data-table__title">{{ t("dataTable.selectColumn") }}</span>
@@ -474,7 +477,7 @@ function onRowKeydown(event: KeyboardEvent, row: FlareDataTableRow, index: numbe
             <td v-if="selectable" role="cell" class="flare-data-table__td flare-data-table__td--select" @click.stop>
               <FlareCheckbox
                 :model-value="selectedSet.has(keys[index])"
-                :disabled="selectionDisabled || loading"
+                :disabled="selectionDisabled || loading || !selectableKeys.includes(keys[index])"
                 :ariaLabel="t('dataTable.selectRow', { index: index + 1 })"
                 @update:model-value="(on) => setRow(keys[index], on)"
               />

@@ -57,6 +57,9 @@ controls without hiding the readable rows. Loading locks paging automatically.
 Set `selectionDisabled` for a confirmed batch mutation: row/header checkboxes, clear,
 exit and Escape cannot change its target set while the host owns the write. Loading
 also locks selection; the host still checks permission and current-page membership.
+Use `rowSelectable` when some rows cannot join a batch: both row checkboxes and
+select-all respect the same predicate. Hosts remain responsible for validation and
+for clearing selections when their source records or permissions change.
 Cursor sources display only the actual count on this page and the page number: short
 or filtered pages do not justify a global row offset or an estimated total.
 Use `FlarePermissionTree selection-mode="independent"` when parents are real grants:

@@ -79,6 +79,7 @@ Vue only. The column chooser is a popover on pointer devices and a bottom sheet 
 | `sort` | `FlareDataTableSort \| null` | `null` | `{ key, order: 'asc' \| 'desc' }`. |
 | `selectable` | `boolean` | `false` | Row and header checkboxes; a selection raises the batch toolbar. |
 | `selectionDisabled` | `boolean` | `false` | Preserve the host's confirmed batch target: lock row/header checkboxes, clear, exit and Escape. Loading also locks selection. Late row events must still refer to this page. |
+| `rowSelectable` | `(row, index) => boolean` | all rows | Host-owned eligibility; false disables that row and excludes it from header/select-all. The host still validates permissions and submitted IDs, and prunes stale selections when records change. |
 | `selectedKeys` | `string[]` | `[]` | v-model; keys of the selected rows across pages. |
 | `columnChooser` | `boolean` | `false` | The show / hide columns control. |
 | `visibleColumns` | `string[] \| null` | `null` | v-model; keys the chooser shows, `null` for all. |
