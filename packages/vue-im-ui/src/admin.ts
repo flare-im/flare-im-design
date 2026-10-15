@@ -1,6 +1,9 @@
 /** Focused admin entry: consume shared controls without importing the chat/composer graph. */
 export { default as FlareUiProvider } from "./design-system/provider/FlareUiProvider.vue";
 export { default as FlareDataTable } from "./components/data/FlareDataTable.vue";
+export { default as FlareChartCard } from "./components/data/FlareChartCard.vue";
+export { default as FlareEmptyState } from "./components/general/FlareEmptyState.vue";
+export type { FlareChartPoint } from "./components/data/chart-geometry";
 export { default as FlarePermissionTree } from "./components/data/FlarePermissionTree.vue";
 export type {
   FlarePermissionNode,
