@@ -1,8 +1,8 @@
 <script setup lang="ts">
 /**
- * A tree of permissions with tri-state checks: a leaf is a permission code, a parent only groups
- * its leaves and reads as checked, mixed or clear from them. The host owns the leaf codes
- * (`checkedCodes`); the tree derives every parent, so a parent is never stored and never drifts.
+ * A host-owned permission tree. Default leaves mode derives tri-state parent groups from leaves.
+ * Independent mode treats every code, including a parent, as a separate explicit permission;
+ * changing a node never changes its ancestors or descendants.
  *
  * It is a WAI-ARIA tree: one focusable item at a time, arrow keys walk and fold it, Space and
  * Enter toggle. The item itself carries the checked state, so the box beside the name is drawn
@@ -24,6 +24,7 @@ import {
   permissionTreeToggle,
   type FlarePermissionCheckState,
   type FlarePermissionNode,
+  type FlarePermissionSelectionMode,
   type FlarePermissionTreeEntry,
 } from "./permission-tree";
 
@@ -31,11 +32,13 @@ const props = withDefaults(
   defineProps<{
     /** The permission catalogue, nested. */
     nodes: readonly FlarePermissionNode[];
+    /** Explicit codes, including parents, are independent; no implicit ancestor/descendant grant. */
+    selectionMode?: FlarePermissionSelectionMode;
     /** Accessible name of the tree. Default: the kit's "Permissions". */
     label?: string;
     /** Show the state and ignore every toggle. */
     readonly?: boolean;
-    /** Leaf codes that cannot be changed; a parent toggle leaves them as they are. */
+    /** Codes that cannot be changed; a grouped leaves-mode toggle leaves them as they are. */
     disabledCodes?: readonly string[];
     /** Draw the search field above the tree. Default true. */
     searchable?: boolean;
@@ -48,6 +51,7 @@ const props = withDefaults(
   }>(),
   {
     label: undefined,
+    selectionMode: "leaves",
     readonly: false,
     disabledCodes: () => [],
     searchable: true,
@@ -56,7 +60,7 @@ const props = withDefaults(
     emptyText: undefined,
   },
 );
-/** Leaf codes that are checked. Parents are derived and never part of it. */
+/** Host-owned explicit codes; leaves mode derives parent groups, independent mode stores parents too. */
 const checkedCodes = defineModel<string[]>("checkedCodes", { default: () => [] });
 
 const { t } = useFlareI18nOptional();
@@ -67,9 +71,10 @@ const byCode = computed(() => new Map(entries.value.map((entry) => [entry.code, 
 const groupCodes = computed(() => entries.value.filter((entry) => !entry.isLeaf).map((entry) => entry.code));
 const checkedSet = computed(() => new Set(checkedCodes.value));
 const disabledSet = computed(() => new Set(props.disabledCodes));
-const states = computed(() => permissionTreeStates(entries.value, checkedSet.value));
-const leafTotal = computed(() => entries.value.reduce((sum, entry) => sum + (entry.isLeaf ? 1 : 0), 0));
-const leafChecked = computed(() => entries.value.reduce((sum, entry) => sum + (entry.isLeaf && checkedSet.value.has(entry.code) ? 1 : 0), 0));
+const states = computed(() => permissionTreeStates(entries.value, checkedSet.value, props.selectionMode));
+const countable = computed(() => entries.value.filter((entry) => props.selectionMode === "independent" || entry.isLeaf));
+const leafTotal = computed(() => countable.value.length);
+const leafChecked = computed(() => countable.value.filter((entry) => checkedSet.value.has(entry.code)).length);
 
 const query = ref("");
 const search = computed(() => permissionTreeSearch(entries.value, byCode.value, query.value));
@@ -100,12 +105,12 @@ function isOpen(entry: FlarePermissionTreeEntry): boolean {
   return !entry.isLeaf && (expanded.value.has(entry.code) || search.value.open.has(entry.code));
 }
 function isDisabled(entry: FlarePermissionTreeEntry): boolean {
-  return entry.isLeaf ? disabledSet.value.has(entry.code) : entry.leafCodes.every((code) => disabledSet.value.has(code));
+  return props.selectionMode === "independent" || entry.isLeaf ? disabledSet.value.has(entry.code) : entry.leafCodes.every((code) => disabledSet.value.has(code));
 }
 
 function toggleCheck(entry: FlarePermissionTreeEntry): void {
   if (props.readonly || isDisabled(entry)) return;
-  checkedCodes.value = permissionTreeToggle(entry, checkedCodes.value, disabledSet.value);
+  checkedCodes.value = permissionTreeToggle(entry, checkedCodes.value, disabledSet.value, props.selectionMode);
 }
 function setOpen(entry: FlarePermissionTreeEntry, open: boolean): void {
   if (entry.isLeaf) return;
@@ -210,7 +215,7 @@ function onKeydown(event: KeyboardEvent, entry: FlarePermissionTreeEntry): void 
         :aria-setsize="entry.setSize"
         :aria-expanded="entry.isLeaf ? undefined : isOpen(entry)"
         :aria-checked="ariaChecked(entry)"
-        :aria-disabled="isDisabled(entry) || undefined"
+        :aria-disabled="readonly || isDisabled(entry) || undefined"
         :tabindex="entry.code === activeCode ? 0 : -1"
         @focus="active = entry.code"
         @keydown="onKeydown($event, entry)"

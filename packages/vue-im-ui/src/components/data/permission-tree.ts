@@ -6,7 +6,7 @@
  */
 
 export interface FlarePermissionNode {
-  /** The permission code a leaf stands for; a parent's code only groups. */
+  /** Stable permission code. Parents only group in leaves mode; independent mode grants each code. */
   code: string;
   name: string;
   description?: string;
@@ -14,6 +14,8 @@ export interface FlarePermissionNode {
 }
 
 export type FlarePermissionCheckState = "checked" | "indeterminate" | "none";
+/** Leaf mode groups descendants; independent mode treats every code as an explicit grant. */
+export type FlarePermissionSelectionMode = "leaves" | "independent";
 
 export interface FlarePermissionTreeEntry {
   node: FlarePermissionNode;
@@ -72,17 +74,18 @@ export function flattenPermissionNodes(nodes: readonly FlarePermissionNode[]): F
 }
 
 /**
- * Checked / mixed / none for every node from the leaf codes alone, in one bottom-up pass: a
- * parent is checked when every child is, mixed when any child is checked or mixed.
+ * In leaves mode parents aggregate checked/mixed descendants. In independent mode every node
+ * reflects only its explicit code, including parents that are themselves real permissions.
  */
 export function permissionTreeStates(
   entries: readonly FlarePermissionTreeEntry[],
   checked: ReadonlySet<string>,
+  mode: FlarePermissionSelectionMode = "leaves",
 ): Map<string, FlarePermissionCheckState> {
   const states = new Map<string, FlarePermissionCheckState>();
   for (let index = entries.length - 1; index >= 0; index -= 1) {
     const entry = entries[index];
-    if (entry.isLeaf) {
+    if (entry.isLeaf || mode === "independent") {
       states.set(entry.code, checked.has(entry.code) ? "checked" : "none");
       continue;
     }
@@ -103,14 +106,16 @@ export function permissionTreeStates(
  * are all checked clears them, otherwise it checks them all. Disabled leaves keep whatever state
  * they have and do not decide the direction — a group holding an unchecked disabled leaf still
  * reads as mixed, yet must clear once everything the person may change is on.
+ * Independent mode flips only the chosen code, never its ancestors or descendants.
  * Order is kept so the host's list does not reshuffle on every toggle.
  */
 export function permissionTreeToggle(
   entry: FlarePermissionTreeEntry,
   checked: readonly string[],
   disabled: ReadonlySet<string>,
+  mode: FlarePermissionSelectionMode = "leaves",
 ): string[] {
-  const leaves = entry.leafCodes.filter((code) => !disabled.has(code));
+  const leaves = (mode === "independent" ? [entry.code] : entry.leafCodes).filter((code) => !disabled.has(code));
   if (leaves.length === 0) return [...checked];
   const have = new Set(checked);
   const on = leaves.some((code) => !have.has(code));

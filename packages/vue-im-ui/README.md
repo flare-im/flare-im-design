@@ -50,6 +50,12 @@ import "@flare-im/vue-ui/style.css";
 
 ## Ownership
 
+Admin tables can set `fill` inside a height-bounded panel: only the rows scroll, while
+the column toolbar and pagination remain reachable on narrow and short viewports.
+Use `FlarePermissionTree selection-mode="independent"` when parents are real grants:
+every code is toggled on its own, never by ancestor/descendant inference. The default
+leaf-selection mode is for grouping-only trees. The host still owns authorization.
+
 The package owns rendering, focus, selection affordances, responsive composition, accessibility semantics, theme resolution, and deterministic UI state projection. The host owns application routing, data acquisition, authoritative lifecycle state, permissions, commands, persistence, media transport, and business policy.
 
 General UI and IM UI are logical layers inside one cohesive package. They are not separate placeholder packages and there are no compatibility entry points for the former repository layout.

@@ -42,6 +42,14 @@ afterEach(() => {
 });
 
 describe("FlareDataTable", () => {
+  it("opts into a bounded host panel without losing toolbar or pager semantics", () => {
+    const { host, table } = mountTable({ fill: true, columnChooser: true,
+      pagination: { page: 1, pageSize: 2, total: 6 } });
+    expect(table.classes()).toContain("is-fill");
+    expect(table.find('[aria-label="Pagination"]').exists()).toBe(true);
+    expect(table.find('[aria-label="Next page"]').exists()).toBe(true);
+    host.unmount();
+  });
   it("is a named table whose headers carry aria-sort only when they sort, and whose cells are labelled", () => {
     const { host, table } = mountTable({ label: "Members" });
     const el = table.get("table");

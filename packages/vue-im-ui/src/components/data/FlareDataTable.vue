@@ -77,6 +77,8 @@ const props = withDefaults(
     columnChooser?: boolean;
     /** Pin the header inside the table's own scroll box (`--flare-component-data-table-max-height`). */
     stickyHeader?: boolean;
+    /** Fill a bounded host panel; rows scroll while toolbar and pagination stay reachable. */
+    fill?: boolean;
     /** Row height: `comfortable` for reading, `compact` for scanning. */
     density?: "comfortable" | "compact";
   }>(),
@@ -90,6 +92,7 @@ const props = withDefaults(
     selectable: false,
     columnChooser: false,
     stickyHeader: false,
+    fill: false,
     density: "comfortable",
   },
 );
@@ -288,7 +291,7 @@ function onRowKeydown(event: KeyboardEvent, row: FlareDataTableRow, index: numbe
   <div
     ref="root"
     class="flare-data-table"
-    :class="[`flare-data-table--${density}`, { 'is-sticky': stickyHeader, 'is-interactive': interactive, 'is-selecting': selecting, 'is-narrow': narrow }]"
+    :class="[`flare-data-table--${density}`, { 'is-fill': fill, 'is-sticky': stickyHeader, 'is-interactive': interactive, 'is-selecting': selecting, 'is-narrow': narrow }]"
     :aria-busy="loading || undefined"
   >
     <div v-if="showBar" class="flare-data-table__bar">
@@ -623,6 +626,21 @@ function onRowKeydown(event: KeyboardEvent, row: FlareDataTableRow, index: numbe
 .is-sticky .flare-data-table__scroll {
   max-height: var(--flare-component-data-table-max-height);
   overflow-y: auto;
+}
+.flare-data-table.is-fill {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+.is-fill .flare-data-table__scroll {
+  flex: 1 1 0;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
+}
+.is-fill .flare-data-table__bar,
+.is-fill .flare-data-table__pagination {
+  flex: none;
 }
 .flare-data-table__table {
   width: 100%;

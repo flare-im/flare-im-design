@@ -52,6 +52,24 @@ afterEach(() => {
 });
 
 describe("FlarePermissionTree", () => {
+  it("keeps parent and child grants independent without silently granting ancestors or descendants", async () => {
+    const { host, tree, set } = mountTree({ selectionMode: "independent", checkedCodes: ["users.read", "unlisted.existing"] });
+    expect(tree.get('[data-code="users"]').attributes("aria-checked")).toBe("false");
+    expect(tree.get('[aria-live="polite"]').text()).toBe("1 of 9 selected");
+    await tree.get('[data-code="users"]').trigger("click");
+    expect(checkedEmits(tree)?.at(-1)).toEqual([["users.read", "unlisted.existing", "users"]]);
+    expect(tree.get('[data-code="users.write"]').attributes("aria-checked")).toBe("false");
+    await set({ checkedCodes: ["users", "unlisted.existing"], disabledCodes: ["users"] });
+    await tree.get('[data-code="users"]').trigger("keydown", { key: " " });
+    expect(checkedEmits(tree)).toHaveLength(1);
+    await tree.get('[data-code="users.read"]').trigger("keydown", { key: " " });
+    expect(checkedEmits(tree)?.at(-1)).toEqual([["users", "unlisted.existing", "users.read"]]);
+    await set({ readonly: true });
+    expect(tree.get('[data-code="users.read"]').attributes("aria-disabled")).toBe("true");
+    await tree.get('[data-code="users.write"]').trigger("click");
+    expect(checkedEmits(tree)).toHaveLength(2);
+    host.unmount();
+  });
   it("is a named tree whose items carry level, position and a checked state derived from the leaves", () => {
     const { host, tree } = mountTree({ checkedCodes: ["users.read", "users.admin.delete", "users.admin.export"] });
     expect(tree.get("[role=tree]").attributes("aria-label")).toBe("Permissions");
