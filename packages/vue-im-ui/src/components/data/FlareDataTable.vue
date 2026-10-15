@@ -75,6 +75,8 @@ const props = withDefaults(
     sort?: FlareDataTableSort | null;
     /** A checkbox per row and in the header; the selection is `selectedKeys`. */
     selectable?: boolean;
+    /** Keep the selected target visible, but prevent selection changes during a host mutation. */
+    selectionDisabled?: boolean;
     /** A control that shows or hides columns; the choice is `visibleColumns`. */
     columnChooser?: boolean;
     /** Pin the header inside the table's own scroll box (`--flare-component-data-table-max-height`). */
@@ -93,6 +95,7 @@ const props = withDefaults(
     paginationDisabled: false,
     sort: null,
     selectable: false,
+    selectionDisabled: false,
     columnChooser: false,
     stickyHeader: false,
     fill: false,
@@ -180,12 +183,15 @@ function sortFromMenu(key: string): void {
 
 // ── Selection and the batch toolbar ────────────────────────────────────────────
 function toggleAll(): void {
+  if (!props.selectable || props.selectionDisabled || props.loading) return;
   selectedKeys.value = dataTableToggleAll(keys.value, selectedKeys.value);
 }
 function setRow(key: string, on: boolean): void {
+  if (!props.selectable || props.selectionDisabled || props.loading || !keys.value.includes(key)) return;
   selectedKeys.value = dataTableToggleRow(key, selectedKeys.value, on);
 }
 function clearSelection(): void {
+  if (!props.selectable || props.selectionDisabled || props.loading) return;
   if (selectedKeys.value.length) selectedKeys.value = [];
 }
 const batchRoot = ref<HTMLElement | null>(null);
@@ -387,9 +393,10 @@ function onRowKeydown(event: KeyboardEvent, row: FlareDataTableRow, index: numbe
           variant="quiet"
           size="sm"
           :label="t('dataTable.selectAll')"
+          :disabled="selectionDisabled || loading"
           @click="toggleAll"
         />
-        <FlareButton variant="quiet" size="sm" :label="t('dataTable.clearSelection')" @click="clearSelection" />
+        <FlareButton variant="quiet" size="sm" :disabled="selectionDisabled || loading" :label="t('dataTable.clearSelection')" @click="clearSelection" />
         <slot name="batch" :selected-keys="selectedKeys" :selected-rows="selectedRows" :clear="clearSelection" />
       </div>
       <FlareIconButton
@@ -397,6 +404,7 @@ function onRowKeydown(event: KeyboardEvent, row: FlareDataTableRow, index: numbe
         :icon="flareIcons.close"
         :ariaLabel="t('dataTable.exitSelection')"
         aria-keyshortcuts="Escape"
+        :disabled="selectionDisabled || loading"
         size="sm"
         @click="clearSelection"
       />
@@ -412,7 +420,7 @@ function onRowKeydown(event: KeyboardEvent, row: FlareDataTableRow, index: numbe
                 :model-value="selection === 'all'"
                 :indeterminate="selection === 'some'"
                 :ariaLabel="t('dataTable.selectAll')"
-                :disabled="loading || rows.length === 0"
+                :disabled="selectionDisabled || loading || rows.length === 0"
                 @update:model-value="toggleAll"
               />
               <span v-else class="flare-data-table__title">{{ t("dataTable.selectColumn") }}</span>
@@ -466,6 +474,7 @@ function onRowKeydown(event: KeyboardEvent, row: FlareDataTableRow, index: numbe
             <td v-if="selectable" role="cell" class="flare-data-table__td flare-data-table__td--select" @click.stop>
               <FlareCheckbox
                 :model-value="selectedSet.has(keys[index])"
+                :disabled="selectionDisabled || loading"
                 :ariaLabel="t('dataTable.selectRow', { index: index + 1 })"
                 @update:model-value="(on) => setRow(keys[index], on)"
               />

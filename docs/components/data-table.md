@@ -75,13 +75,16 @@ Vue only. The column chooser is a popover on pointer devices and a bottom sheet 
 | `loading` | `boolean` | `false` | Placeholder rows and `aria-busy`. |
 | `emptyText` | `string` | kit "No data yet" | Text of the empty state. |
 | `pagination` | `FlareDataTablePagination \| null` | `null` | `{ page, pageSize, total?, hasNext?, pageSizes? }`; without `total` it pages by cursor. |
+| `paginationDisabled` | `boolean` | `false` | Lock page and page-size controls during a host mutation. Loading also locks them. |
 | `sort` | `FlareDataTableSort \| null` | `null` | `{ key, order: 'asc' \| 'desc' }`. |
 | `selectable` | `boolean` | `false` | Row and header checkboxes; a selection raises the batch toolbar. |
+| `selectionDisabled` | `boolean` | `false` | Preserve the host's confirmed batch target: lock row/header checkboxes, clear, exit and Escape. Loading also locks selection. Late row events must still refer to this page. |
 | `selectedKeys` | `string[]` | `[]` | v-model; keys of the selected rows across pages. |
 | `columnChooser` | `boolean` | `false` | The show / hide columns control. |
 | `visibleColumns` | `string[] \| null` | `null` | v-model; keys the chooser shows, `null` for all. |
 | `stickyHeader` | `boolean` | `false` | Pin the header inside the table's scroll box. |
 | `density` | `'comfortable' \| 'compact'` | `'comfortable'` | Row height. |
+| `fill` | `boolean` | `false` | In a height-bounded host panel, rows scroll while toolbar and pagination stay reachable. |
 
 ### Emits
 

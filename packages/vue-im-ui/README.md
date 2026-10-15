@@ -54,6 +54,9 @@ Admin tables can set `fill` inside a height-bounded panel: only the rows scroll,
 the column toolbar and pagination remain reachable on narrow and short viewports.
 Set `paginationDisabled` during a host-owned mutation to lock both page and page-size
 controls without hiding the readable rows. Loading locks paging automatically.
+Set `selectionDisabled` for a confirmed batch mutation: row/header checkboxes, clear,
+exit and Escape cannot change its target set while the host owns the write. Loading
+also locks selection; the host still checks permission and current-page membership.
 Cursor sources display only the actual count on this page and the page number: short
 or filtered pages do not justify a global row offset or an estimated total.
 Use `FlarePermissionTree selection-mode="independent"` when parents are real grants:

@@ -135,6 +135,44 @@ describe("FlareDataTable", () => {
     host.unmount();
   });
 
+  it("preserves the confirmed selection while a host mutation locks every selection entry", async () => {
+    const { host, table, set } = mountTable({ selectable: true, selectionDisabled: true, selectedKeys: ["u1"] });
+    const boxes = table.findAllComponents({ name: "FlareCheckbox" });
+    expect(boxes.length).toBe(4);
+    for (const box of boxes) {
+      expect(box.props("disabled")).toBe(true);
+      box.vm.$emit("update:modelValue", true);
+    }
+    for (const button of table.get("[role=toolbar]").findAll("button")) {
+      expect(button.attributes("disabled")).toBeDefined();
+      await button.trigger("click");
+    }
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
+    await nextTick();
+    expect(emitted(table, "update:selectedKeys")).toBeUndefined();
+    expect(table.get("[aria-live=polite]").text()).toBe("1 selected");
+    await set({ selectionDisabled: false });
+    await table.get("tbody [role=checkbox]").trigger("click");
+    expect(emitted(table, "update:selectedKeys")).toEqual([[[]]]);
+    host.unmount();
+  });
+
+  it("rejects loading and stale-page selection events, then accepts only a current-page row", async () => {
+    const { host, table, set } = mountTable({ selectable: true, selectedKeys: ["u1"] });
+    const oldRow = table.findAllComponents({ name: "FlareCheckbox" })[1];
+    await set({ loading: true });
+    oldRow.vm.$emit("update:modelValue", false);
+    await table.get("[aria-keyshortcuts=Escape]").trigger("click");
+    expect(emitted(table, "update:selectedKeys")).toBeUndefined();
+    await set({ loading: false, rows: [{ id: "new", name: "New" }] });
+    oldRow.vm.$emit("update:modelValue", true);
+    await nextTick();
+    expect(emitted(table, "update:selectedKeys")).toBeUndefined();
+    await table.get("tbody [role=checkbox]").trigger("click");
+    expect(emitted(table, "update:selectedKeys")).toEqual([[["u1", "new"]]]);
+    host.unmount();
+  });
+
   it("pages on the server: it only says which page or page size comes next", async () => {
     const { host, table, set } = mountTable({ pagination: { page: 1, pageSize: 25, total: 120, pageSizes: [10, 25, 50] } });
     const nav = table.get("nav");
