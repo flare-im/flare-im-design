@@ -52,6 +52,10 @@ import "@flare-im/vue-ui/style.css";
 
 Admin tables can set `fill` inside a height-bounded panel: only the rows scroll, while
 the column toolbar and pagination remain reachable on narrow and short viewports.
+Set `paginationDisabled` during a host-owned mutation to lock both page and page-size
+controls without hiding the readable rows. Loading locks paging automatically.
+Cursor sources display only the actual count on this page and the page number: short
+or filtered pages do not justify a global row offset or an estimated total.
 Use `FlarePermissionTree selection-mode="independent"` when parents are real grants:
 every code is toggled on its own, never by ancestor/descendant inference. The default
 leaf-selection mode is for grouping-only trees. The host still owns authorization.

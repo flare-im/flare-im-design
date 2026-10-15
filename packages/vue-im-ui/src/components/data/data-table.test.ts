@@ -61,7 +61,7 @@ describe("data-table rules", () => {
     expect(dataTableIsCursor({ page: 1, pageSize: 20, total: 0 })).toBe(false);
     // The rows of this page, numbered after the pages the person has walked through.
     expect(dataTableRange({ page: 1, pageSize: 20, hasNext: true }, 20)).toEqual({ from: 1, to: 20 });
-    expect(dataTableRange({ page: 3, pageSize: 20 }, 7)).toEqual({ from: 41, to: 47 });
+    expect(dataTableRange({ page: 3, pageSize: 20 }, 7)).toEqual({ from: 1, to: 7 });
     expect(dataTableRange({ page: 1, pageSize: 20 }, 0)).toEqual({ from: 0, to: 0 });
     // No known last page: the count is the page the person is on.
     expect(dataTablePageCount({ page: 3, pageSize: 20, hasNext: true })).toBe(3);

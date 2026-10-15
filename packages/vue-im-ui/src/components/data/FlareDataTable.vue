@@ -69,6 +69,8 @@ const props = withDefaults(
      * `total` it is cursor paging: the page number alone, and `hasNext` enables the next key.
      */
     pagination?: FlareDataTablePagination | null;
+    /** Lock paging during a host-owned mutation without replacing readable rows by skeletons. */
+    paginationDisabled?: boolean;
     /** The current sort; the table emits the next one and the host sorts. */
     sort?: FlareDataTableSort | null;
     /** A checkbox per row and in the header; the selection is `selectedKeys`. */
@@ -88,6 +90,7 @@ const props = withDefaults(
     loading: false,
     emptyText: undefined,
     pagination: null,
+    paginationDisabled: false,
     sort: null,
     selectable: false,
     columnChooser: false,
@@ -205,8 +208,8 @@ const rangeText = computed(() => {
   const bounds = range.value;
   if (!pagination || !bounds) return "";
   if (cursorPaging.value) {
-    if (bounds.to > 0) return t("dataTable.rangeOpen", { from: bounds.from, to: bounds.to });
-    return pagination.page <= 1 && !pagination.hasNext ? t("dataTable.rangeEmpty") : "";
+    // Cursors can yield short/empty pages: page * limit is not a global row position.
+    return t("dataTable.pageItems", { count: props.rows.length });
   }
   return (pagination.total ?? 0) > 0 ? t("dataTable.range", { from: bounds.from, to: bounds.to, total: pagination.total as number }) : t("dataTable.rangeEmpty");
 });
@@ -221,7 +224,7 @@ const pageSizeOptions = computed<FlareSelectOption[]>(() => (props.pagination?.p
   label: t("dataTable.perPage", { size }),
 })));
 function goTo(page: number): void {
-  if (!props.pagination) return;
+  if (!props.pagination || props.loading || props.paginationDisabled) return;
   const current = props.pagination.page;
   // A cursor source only knows the page after this one, so it moves one page at a time.
   if (page > current && !steps.value.next) return;
@@ -232,7 +235,7 @@ function goTo(page: number): void {
 }
 function setPageSize(value: string): void {
   const size = Number(value);
-  if (!props.pagination || !size || size === props.pagination.pageSize) return;
+  if (!props.pagination || props.loading || props.paginationDisabled || !size || size === props.pagination.pageSize) return;
   emit("update:pagination", { ...props.pagination, pageSize: size, page: 1 });
 }
 
@@ -499,6 +502,7 @@ function onRowKeydown(event: KeyboardEvent, row: FlareDataTableRow, index: numbe
           size="sm"
           :options="pageSizeOptions"
           :model-value="String(pagination.pageSize)"
+          :disabled="loading || paginationDisabled"
           :title="t('dataTable.pageSize')"
           @update:model-value="setPageSize"
         />
@@ -507,7 +511,7 @@ function onRowKeydown(event: KeyboardEvent, row: FlareDataTableRow, index: numbe
           :ariaLabel="t('dataTable.previous')"
           size="sm"
           shape="square"
-          :disabled="loading || !steps.previous"
+          :disabled="loading || paginationDisabled || !steps.previous"
           @click="goTo(pagination.page - 1)"
         />
         <span class="flare-data-table__page" aria-live="polite">{{ pageText }}</span>
@@ -516,7 +520,7 @@ function onRowKeydown(event: KeyboardEvent, row: FlareDataTableRow, index: numbe
           :ariaLabel="t('dataTable.next')"
           size="sm"
           shape="square"
-          :disabled="loading || !steps.next"
+          :disabled="loading || paginationDisabled || !steps.next"
           @click="goTo(pagination.page + 1)"
         />
       </div>

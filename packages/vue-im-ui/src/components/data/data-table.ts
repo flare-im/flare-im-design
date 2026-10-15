@@ -94,16 +94,15 @@ export function dataTablePageCount(pagination: FlareDataTablePagination): number
 }
 
 /**
- * 1-based inclusive bounds of the rows on this page; `{ from: 0, to: 0 }` when there are none. A
- * cursor source is counted from the rows the host passed for this page (`rowCount`).
+ * Counted sources have global bounds. Cursor sources have only page-local bounds from actual
+ * rows (`rowCount`), never an estimated global offset. Empty bounds are `{ from: 0, to: 0 }`.
  */
 export function dataTableRange(pagination: FlareDataTablePagination, rowCount = 0): { from: number; to: number } {
   const size = Math.max(1, Math.floor(pagination.pageSize));
   if (dataTableIsCursor(pagination)) {
     const rows = Math.max(0, Math.floor(rowCount));
     if (rows === 0) return { from: 0, to: 0 };
-    const from = (Math.max(1, Math.floor(pagination.page)) - 1) * size + 1;
-    return { from, to: from + rows - 1 };
+    return { from: 1, to: rows };
   }
   const total = Math.max(0, pagination.total as number);
   if (total === 0) return { from: 0, to: 0 };

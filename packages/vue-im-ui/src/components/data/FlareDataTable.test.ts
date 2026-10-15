@@ -157,12 +157,33 @@ describe("FlareDataTable", () => {
     expect(table.get(".flare-data-table__range").text()).toBe("0 items");
     host.unmount();
   });
+  it("locks every paging control and late size events during loading or a host mutation", async () => {
+    const { host, table, set } = mountTable({ paginationDisabled: true,
+      pagination: { page: 1, pageSize: 25, total: 120, pageSizes: [25, 50] } });
+    const select = table.findComponent({ name: "FlareSelect" });
+    expect(select.props("disabled")).toBe(true);
+    const next = table.get('button[aria-label="Next page"]');
+    expect(next.attributes("disabled")).toBeDefined();
+    select.vm.$emit("update:modelValue", "50");
+    await next.trigger("click");
+    expect(emitted(table, "update:pagination")).toBeUndefined();
+    await set({ paginationDisabled: false, loading: true });
+    select.vm.$emit("update:modelValue", "50");
+    await nextTick();
+    expect(select.props("disabled")).toBe(true);
+    expect(emitted(table, "update:pagination")).toBeUndefined();
+    await set({ loading: false });
+    expect(select.props("disabled")).toBe(false);
+    await table.get('button[aria-label="Next page"]').trigger("click");
+    expect(emitted(table, "update:pagination")).toHaveLength(1);
+    host.unmount();
+  });
 
   it("pages a cursor source by its next-page flag, one page at a time, without inventing a total", async () => {
     const { host, table, set } = mountTable({ pagination: { page: 1, pageSize: 3, hasNext: true } });
     const nav = table.get("nav");
     const step = (label: string) => nav.findAll("button").find((button) => button.attributes("aria-label") === label)!;
-    expect(nav.get(".flare-data-table__range").text()).toBe("1–3");
+    expect(nav.get(".flare-data-table__range").text()).toBe("Rows on this page: 3");
     expect(nav.get(".flare-data-table__page").text()).toBe("Page 1");
     expect(table.get("table").attributes("aria-rowcount")).toBe("-1");
     expect(step("Previous page").attributes("disabled")).toBeDefined();
@@ -172,7 +193,7 @@ describe("FlareDataTable", () => {
 
     // The last page: the server says there is nothing after it.
     await set({ pagination: { page: 2, pageSize: 3, hasNext: false }, rows: rows.slice(0, 2) });
-    expect(table.get(".flare-data-table__range").text()).toBe("4–5");
+    expect(table.get(".flare-data-table__range").text()).toBe("Rows on this page: 2");
     expect(table.get(".flare-data-table__page").text()).toBe("Page 2");
     expect(step("Next page").attributes("disabled")).toBeDefined();
     await step("Next page").trigger("click");
@@ -180,15 +201,19 @@ describe("FlareDataTable", () => {
     expect(emitted(table, "update:pagination")?.[1]).toEqual([{ page: 1, pageSize: 3, hasNext: false }]);
     expect(emitted(table, "update:pagination")).toHaveLength(2);
 
+    // A short intermediate cursor page cannot justify an estimated global offset.
+    await set({ pagination: { page: 9, pageSize: 50, hasNext: true }, rows: rows.slice(0, 1) });
+    expect(table.get(".flare-data-table__range").text()).toBe("Rows on this page: 1");
+    expect(table.get("table").attributes("aria-rowcount")).toBe("-1");
     // Nothing matched at all.
     await set({ pagination: { page: 1, pageSize: 3, hasNext: false }, rows: [] });
-    expect(table.get(".flare-data-table__range").text()).toBe("0 items");
+    expect(table.get(".flare-data-table__range").text()).toBe("Rows on this page: 0");
     host.unmount();
   });
 
   it("speaks cursor paging in the kit's Chinese", () => {
     const { host, table } = mountTable({ pagination: { page: 2, pageSize: 3, hasNext: true } }, {}, "zh-CN");
-    expect(table.get(".flare-data-table__range").text()).toBe("第 4–6 条");
+    expect(table.get(".flare-data-table__range").text()).toBe("本页 3 条");
     expect(table.get(".flare-data-table__page").text()).toBe("第 2 页");
     host.unmount();
   });

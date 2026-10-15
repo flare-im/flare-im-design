@@ -325,7 +325,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       next: "下一页",
       pageOf: "第 {page} / {pages} 页",
       pageOnly: "第 {page} 页",
-      rangeOpen: "第 {from}–{to} 条",
+      pageItems: "本页 {count} 条",
     },
     permissionTree: {
       label: "权限",
@@ -1604,7 +1604,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       next: "Next page",
       pageOf: "Page {page} of {pages}",
       pageOnly: "Page {page}",
-      rangeOpen: "{from}–{to}",
+      pageItems: "Rows on this page: {count}",
     },
     permissionTree: {
       label: "Permissions",
