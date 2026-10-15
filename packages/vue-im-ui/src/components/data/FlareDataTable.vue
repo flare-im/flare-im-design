@@ -730,6 +730,11 @@ function onRowKeydown(event: KeyboardEvent, row: FlareDataTableRow, index: numbe
 .flare-data-table__range { font-variant-numeric: tabular-nums; }
 .flare-data-table__pager {
   display: inline-flex;
+  flex: none;
+  flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
+  justify-content: flex-end;
   align-items: center;
   gap: var(--flare-size-spacing-sm);
 }
@@ -757,6 +762,8 @@ function onRowKeydown(event: KeyboardEvent, row: FlareDataTableRow, index: numbe
    Nothing can overflow sideways any more, so the scroll box stops clipping — a checkbox's hit halo
    in the first row reaches above the row. */
 @container flare-data-table (max-width: 599px) {
+  .flare-data-table__range { flex-basis: 100%; }
+  .flare-data-table__pager { margin-inline-start: auto; }
   .flare-data-table__scroll {
     max-height: none;
     overflow: visible;

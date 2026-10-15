@@ -15,6 +15,8 @@ The package publishes Vue and TypeScript source so the host bundler compiles it 
 | Path | Contents |
 |---|---|
 | `@flare-im/vue-ui` | Complete public API |
+| `@flare-im/vue-ui/admin` | Focused shared table, drawer, form and provider entry without the chat/composer graph |
+| `@flare-im/vue-ui/admin.css` | Tokens and admin control foundations without chat/timeline styles |
 | `@flare-im/vue-ui/components` | General, IM, and composition components |
 | `@flare-im/vue-ui/contracts` | Host-facing view-state and interaction contracts |
 | `@flare-im/vue-ui/theme` | Theme runtime and semantic token helpers |

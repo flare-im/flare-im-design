@@ -14,7 +14,6 @@ import type { FlareLayoutMode, FlareViewportKind } from "../shared/contracts/lay
 import {
   FLARE_BREAKPOINT_DESKTOP_MIN,
   FLARE_BREAKPOINT_H5_MAX,
-  FLARE_BREAKPOINT_IPAD_MAX,
 } from "../shared/contracts/layout";
 
 export type FlareAdaptiveContext = {

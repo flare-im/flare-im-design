@@ -35,6 +35,8 @@
     "!src/**/__tests__/**"
   ],
   "exports": {
+    "./admin": "./src/admin.ts",
+    "./admin.css": "./src/design-system/styles/admin.css",
     ".": "./src/index.ts",
     "./theme": "./src/design-system/theme/index.ts",
     "./i18n": "./src/shared/i18n/index.ts",

@@ -1,0 +1,5 @@
+/* Shared admin controls: no chat/composer/timeline styles in console consumers. */
+@import "@flare-im/tokens/tokens.css";
+@import "./component-tokens.css";
+@import "./layout-tokens.css";
+@import "./accessibility.css";
