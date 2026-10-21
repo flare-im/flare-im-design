@@ -1,5 +1,7 @@
 ## 未发布
 
+- 「+」面板默认集改为内置功能 image、video、file、voice、card、poll（图标 image / video / file / mic / card / poll），去掉 location 与 contact；`poll` 的文案取 `actionVote`。`FlareComposerAction` 新增可选 `kind`（`FlareComposerActionKind`：feature / plugin）与 `resolvedIcon`。
+- 图标 `plugin`（注册表最后一项，共 107 个，`Icons.extension_outlined`）：「+」面板里图标名不在注册表里的项画它（`flareComposerPluginIcon`），不再画兜底问号。
 - 图片、视频、文件保存后，下载键变成「在文件夹中显示」；宿主发现文件被删后传回 idle，键回到下载。收发两侧的消息时间都在右侧。详见仓库根 CHANGELOG。
 - `FlareFileMessage` 新增 `downloadState` / `onReveal`；`FlareImagePreview` / `FlareVideoPlayer` 新增 `saved` / `onReveal`，`present` 可传实时下载状态；列表、气泡、分发器新增 `onMediaReveal`；`FlareVideoMessage.duration` 可空，未知时长不画角标。
 

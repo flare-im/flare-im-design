@@ -3,19 +3,31 @@ import 'package:flutter/material.dart';
 import '../../tokens/flare_strings.dart';
 import '../../tokens/flare_tokens.dart';
 import '../action_icon.dart';
+import '../flare_icon.dart' show flareIconMap;
+
+/// Where a "+" tile comes from: a built-in [feature] the tenant's feature
+/// switches control, or a [plugin] — the composer-action an authorised plugin
+/// declares. Contract `composerActions.kinds`.
+enum FlareComposerActionKind { feature, plugin }
+
+/// The generic plugin glyph: a tile whose [FlareComposerAction.icon] is not a
+/// registry name draws this instead.
+const String flareComposerPluginIcon = 'plugin';
 
 /// One attachment/action tile in [FlareComposerActionPanel].
 ///
 /// [id] is the stable, cross-platform action identifier (contract
-/// `composerActions`: image, camera, video, file, location, card, vote, task,
-/// schedule, link, announcement, notification, miniProgram, translate). [label]
-/// is optional — when omitted the kit resolves it from [FlareStrings] via
-/// [resolveLabel], so the default set never hard-codes a language.
+/// `composerActions`: image, camera, video, file, location, card, poll, vote,
+/// task, schedule, link, announcement, notification, miniProgram, translate).
+/// [label] is optional — when omitted the kit resolves it from [FlareStrings]
+/// via [resolveLabel], so the default set never hard-codes a language and the
+/// built-in items of a composer menu pass through as they come.
 class FlareComposerAction {
   const FlareComposerAction({
     required this.id,
     this.label,
     required this.icon,
+    this.kind,
     this.group,
     this.order,
     this.visible = true,
@@ -32,8 +44,12 @@ class FlareComposerAction {
   /// Host-provided label override. `null` ⇒ resolved from [FlareStrings].
   final String? label;
 
-  /// A semantic icon name from `flareIconNames`.
+  /// A semantic icon name from `flareIconNames`; an unknown name draws
+  /// [flareComposerPluginIcon] (see [resolvedIcon]).
   final String icon;
+
+  /// Built-in feature or plugin entry; null for a host's own tile.
+  final FlareComposerActionKind? kind;
   final String? group;
   final int? order;
   final bool visible;
@@ -57,6 +73,7 @@ class FlareComposerAction {
       'location' => strings.actionLocation,
       'contact' => strings.actionCard,
       'card' => strings.actionCard,
+      'poll' => strings.actionVote,
       'vote' => strings.actionVote,
       'task' => strings.actionTask,
       'schedule' => strings.actionSchedule,
@@ -68,6 +85,13 @@ class FlareComposerAction {
       _ => id,
     };
   }
+
+  /// The registry name the tile draws, the same rule on all four platforms:
+  /// a name the registry does not know (a plugin's own icon name, a typo)
+  /// draws the generic [flareComposerPluginIcon] rather than a "missing glyph"
+  /// mark.
+  String get resolvedIcon =>
+      flareIconMap.containsKey(icon) ? icon : flareComposerPluginIcon;
 }
 
 /// Business availability supplied by the host. An omitted set allows all ids.
@@ -124,15 +148,40 @@ class FlareComposerActionPanel extends StatelessWidget {
   final double maxHeight;
   final void Function(FlareComposerAction action)? onAction;
 
-  /// Default action set shared by all platforms (labels come from
-  /// [FlareStrings]; the host passes its own `actions` to add or reorder).
+  /// The built-in features of the panel, in the order every platform shows
+  /// them (contract `composerActions.defaults`). Labels come from
+  /// [FlareStrings]; a host list replaces the set whole.
   static const List<FlareComposerAction> defaultActions = [
-    FlareComposerAction(id: 'image', icon: 'image'),
-    FlareComposerAction(id: 'video', icon: 'video'),
-    FlareComposerAction(id: 'file', icon: 'file'),
-    FlareComposerAction(id: 'voice', icon: 'mic'),
-    FlareComposerAction(id: 'location', icon: 'location'),
-    FlareComposerAction(id: 'contact', icon: 'card'),
+    FlareComposerAction(
+      id: 'image',
+      icon: 'image',
+      kind: FlareComposerActionKind.feature,
+    ),
+    FlareComposerAction(
+      id: 'video',
+      icon: 'video',
+      kind: FlareComposerActionKind.feature,
+    ),
+    FlareComposerAction(
+      id: 'file',
+      icon: 'file',
+      kind: FlareComposerActionKind.feature,
+    ),
+    FlareComposerAction(
+      id: 'voice',
+      icon: 'mic',
+      kind: FlareComposerActionKind.feature,
+    ),
+    FlareComposerAction(
+      id: 'card',
+      icon: 'card',
+      kind: FlareComposerActionKind.feature,
+    ),
+    FlareComposerAction(
+      id: 'poll',
+      icon: 'poll',
+      kind: FlareComposerActionKind.feature,
+    ),
   ];
 
   @override
@@ -205,7 +254,7 @@ class FlareComposerActionPanel extends StatelessWidget {
                 borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
               ),
               child: Icon(
-                flareIconGlyph(action.icon),
+                flareIconGlyph(action.resolvedIcon),
                 color: colors.textPrimary,
                 size: 24,
               ),
