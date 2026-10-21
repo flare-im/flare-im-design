@@ -408,11 +408,12 @@ public struct ComposerView: View {
     }
 
     /// A composer tool key: the kit icon `icon`, named `label`; `active` is its on state (the rich-text
-    /// mode, the open action panel), shown in the brand colour and exposed as selected.
+    /// mode, the open action panel), shown in the brand colour and exposed as selected. Drawn through
+    /// ``FlareIconImage``, so a kit-drawn name (the rich-text "T") is the kit's glyph, never a system symbol.
     private func iconButton(_ icon: String, label: String, _ action: (() -> Void)?, _ colors: FlareColors,
                             active: Bool = false) -> some View {
         Button { action?() } label: {
-            Image(systemName: flareIconSymbol(icon)).font(.system(size: 20))
+            FlareIconImage(name: icon, size: 20)
                 .frame(width: FlareSizes.touchTargetMin, height: FlareSizes.touchTargetMin).contentShape(Rectangle())
                 .foregroundColor(active ? colors.primaryText : colors.textSecondary)
         }

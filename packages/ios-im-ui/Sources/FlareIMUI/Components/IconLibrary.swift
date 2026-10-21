@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Ordered list of the 106 semantic icon names supported by `IconView`.
+/// Ordered list of the 107 semantic icon names supported by `IconView`.
 public let flareIconNames: [String] = [
     "search", "send", "more", "back", "close",
     "check", "add", "remove", "edit", "delete",
@@ -31,7 +31,7 @@ public let flareIconNames: [String] = [
     // General
     "chevron-up", "chevron-left", "keyboard", "mini-app",
     "pin-self", "diagnostics", "card", "id", "join-request", "storage",
-    "red-packet",
+    "red-packet", "plugin",
 ]
 
 /// Maps each semantic icon name to the closest SF Symbol name. Every symbol is in the SF Symbols
@@ -113,7 +113,9 @@ public let flareIconMap: [String: String] = [
     // SF Symbols has no double check; an opened envelope reads as "read".
     "read": "envelope.open",
     "mark": "flag",
-    "rich-text": "textformat",
+    // The kit draws the "T" (``FlareRichTextIcon``); `textformat` is a localized glyph, so the stand-in for a raw
+    // `Image(systemName:)` is the plain letter in a square.
+    "rich-text": "t.square",
     "attachment": "paperclip",
     "mark-unread": "message.badge",
     "archive": "archivebox",
@@ -155,11 +157,13 @@ public let flareIconMap: [String: String] = [
     // SF Symbols has no red packet: the kit draws its own glyph (``FlareIconImage``); the envelope is what a raw
     // `Image(systemName:)` of this name shows.
     "red-packet": "envelope",
+    // The generic plugin glyph: a "+" tile whose icon is not a registry name draws it.
+    "plugin": "puzzlepiece.extension",
 ]
 
 /// The names the kit draws itself rather than with an SF Symbol: ``FlareIconImage`` draws them, and the symbol in
 /// ``flareIconMap`` is only the stand-in for a raw `Image(systemName:)`.
-let flareKitGlyphNames: Set<String> = ["red-packet"]
+let flareKitGlyphNames: Set<String> = ["red-packet", "rich-text"]
 
 /// A semantic icon at `size`: the registry's SF Symbol, or for a kit-drawn name (``flareKitGlyphNames``) the kit's
 /// own line glyph in a `size` square. Either takes the foreground colour, as a symbol does. Controls that draw a
@@ -170,11 +174,53 @@ struct FlareIconImage: View {
     var weight: Font.Weight = .regular
 
     var body: some View {
-        if name == "red-packet" {
-            FlareRedPacketIcon().frame(width: size, height: size)
-        } else {
-            Image(systemName: flareIconSymbol(name)).font(.system(size: size, weight: weight))
+        switch name {
+        case "red-packet": FlareRedPacketIcon().frame(width: size, height: size)
+        case "rich-text": FlareRichTextIcon().frame(width: size, height: size)
+        default: Image(systemName: flareIconSymbol(name)).font(.system(size: size, weight: weight))
         }
+    }
+}
+
+/// `rich-text`: the "T" every kit draws for the format key — Lucide's `Type` on the 24 grid: a bar across the top
+/// from 4 to 20 whose ends turn down to 7 over corners of 1, a stem from 4 to 20 down the middle and a foot from 9
+/// to 15. SF Symbols' `textformat` is not used: it is a localized glyph (it reads 格式 in Chinese) and is not the
+/// letter the other kits show. Lines follow SF Symbols' regular weight, as ``FlareRedPacketIcon``'s do.
+struct FlareRichTextIcon: View {
+    var body: some View {
+        FlareRichTextIconLines().fill()
+            .aspectRatio(1, contentMode: .fit)
+            .accessibilityHidden(true)
+    }
+
+    /// The glyph's geometry on the 24 grid.
+    enum Grid {
+        static let left: CGFloat = 4, right: CGFloat = 20, top: CGFloat = 4, bottom: CGFloat = 20
+        /// How far the bar's ends turn down, and the corners they turn over.
+        static let drop: CGFloat = 7, corner: CGFloat = 1
+        static let footLeft: CGFloat = 9, footRight: CGFloat = 15
+        static let line: CGFloat = 1.8
+    }
+}
+
+/// The "T"'s stroked outline; internal so the tests can read the geometry.
+struct FlareRichTextIconLines: Shape {
+    func path(in rect: CGRect) -> Path {
+        typealias G = FlareRichTextIcon.Grid
+        let u = min(rect.width, rect.height) / 24
+        func p(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: rect.minX + x * u, y: rect.minY + y * u) }
+        var path = Path()
+        path.move(to: p(12, G.top))
+        path.addLine(to: p(12, G.bottom))
+        path.move(to: p(G.left, G.drop))
+        path.addLine(to: p(G.left, G.top + G.corner))
+        path.addArc(tangent1End: p(G.left, G.top), tangent2End: p(G.left + G.corner, G.top), radius: G.corner * u)
+        path.addLine(to: p(G.right - G.corner, G.top))
+        path.addArc(tangent1End: p(G.right, G.top), tangent2End: p(G.right, G.top + G.corner), radius: G.corner * u)
+        path.addLine(to: p(G.right, G.drop))
+        path.move(to: p(G.footLeft, G.bottom))
+        path.addLine(to: p(G.footRight, G.bottom))
+        return path.strokedPath(StrokeStyle(lineWidth: G.line * u, lineCap: .round, lineJoin: .round))
     }
 }
 

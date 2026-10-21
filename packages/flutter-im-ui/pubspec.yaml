@@ -27,7 +27,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  # The kit's own glyphs Material Icons has no shape for (`red-packet`), built by
+  # The kit's own glyphs: shapes Material Icons lacks (`red-packet`) or draws
+  # unlike the other kits (`rich-text`, Lucide Type), built by
   # scripts/build-icon-font.mjs so they resolve as ordinary IconData.
   fonts:
     - family: FlareKitIcons

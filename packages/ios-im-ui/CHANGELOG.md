@@ -1,5 +1,6 @@
 ## 未发布
 
+- 「格式」键改为 Kit 自绘的「T」（Lucide `Type` 几何，`rich-text` 进入 Kit 自绘名单），不再用会本地化成「格式」的 SF `textformat`；直接 `Image(systemName:)` 的地方退为 `t.square`。
 - 自定义内容渲染器：`flareContentRenderers(_:bare:)` 列出的类型不画气泡（保留头像、昵称、时间、多选和长按菜单）；`FlareContentContext` 新增 `messageId`（服务端 ID，没有时用 client ID）与 `conversationId`（来自 `MessageListView` 的 `conversationId`）。
 - 图标 `red-packet`（注册表最后一项，共 106 个）：`IconView`、按钮、「+」面板、菜单和消息操作面板画 Kit 自绘的线性小信封；直接 `Image(systemName:)` 的地方退为 `envelope`。
 - `RedPacketDetailView` 新增可选 `title`、`onBack`（自带红色标题栏）；`RedPacketComposerView` 新增 `locked`；`SegmentedControlView` 新增可选 `accent`。

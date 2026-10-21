@@ -26,6 +26,7 @@ import androidx.compose.material.icons.outlined.ContactPage
 import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.Extension
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.FormatQuote
@@ -45,6 +46,7 @@ import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material.icons.outlined.Tag
 import androidx.compose.material.icons.outlined.TextFormat
 import androidx.compose.material.icons.outlined.Translate
+import androidx.compose.ui.graphics.vector.PathNode
 import androidx.compose.material.icons.outlined.Unarchive
 import androidx.compose.material.icons.outlined.VideocamOff
 import androidx.compose.material.icons.outlined.ZoomIn
@@ -55,7 +57,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/** The icon registry contract: the same 106 kebab-case names, in the same order, as the other three kits. */
+/** The icon registry contract: the same 107 kebab-case names, in the same order, as the other three kits. */
 class IconLibraryTest {
     private val canonical = listOf(
         "search", "send", "more", "back", "close", "check", "add", "remove", "edit", "delete",
@@ -69,11 +71,11 @@ class IconLibraryTest {
         "end-call", "switch-camera", "screen-share", "play", "pause", "expand", "collapse", "zoom-in", "zoom-out", "rotate",
         "group", "admin", "remove-member", "transfer-owner", "silence", "report", "chevron-up", "chevron-left", "keyboard", "mini-app",
         "pin-self", "diagnostics", "card", "id", "join-request", "storage",
-        "red-packet",
+        "red-packet", "plugin",
     )
 
     @Test fun kebabCaseNamesInCanonicalOrder() {
-        assertEquals(106, flareIconNames.size)
+        assertEquals(107, flareIconNames.size)
         assertEquals(canonical, flareIconNames)
         assertEquals(flareIconNames.size, flareIconNames.toSet().size, "names are unique")
         for (name in flareIconNames) assertTrue(Regex("^[a-z]+(-[a-z]+)*$").matches(name), "$name is kebab-case")
@@ -94,6 +96,37 @@ class IconLibraryTest {
         assertEquals(24f, glyph.viewportHeight)
     }
 
+    /**
+     * `rich-text` is the kit's own "T", Lucide `Type` on the 24 grid: a bar from 4 to 20 whose ends turn down to 7, a
+     * stem from 4 to 20 and a foot from 9 to 15 — not Material's TextFormat, an underlined A.
+     */
+    @Test fun richTextIsTheKitsOwnT() {
+        val glyph = flareIconVector("rich-text")
+        assertEquals(FlareRichTextGlyph, glyph)
+        assertTrue(glyph != Icons.Outlined.TextFormat)
+        assertEquals(24f, glyph.viewportWidth)
+        val path = glyph.root.iterator().asSequence().filterIsInstance<androidx.compose.ui.graphics.vector.VectorPath>().single()
+        assertEquals(2f, path.strokeLineWidth)
+        assertNull(path.fill, "a line glyph, tinted by its stroke")
+        val nodes = path.pathData
+        assertEquals(
+            listOf(
+                PathNode.MoveTo(12f, 4f), PathNode.VerticalTo(20f),
+                PathNode.MoveTo(4f, 7f), PathNode.VerticalTo(5f),
+                PathNode.ArcTo(1f, 1f, 0f, false, true, 5f, 4f), PathNode.HorizontalTo(19f),
+                PathNode.ArcTo(1f, 1f, 0f, false, true, 20f, 5f), PathNode.VerticalTo(7f),
+                PathNode.MoveTo(9f, 20f), PathNode.HorizontalTo(15f),
+            ),
+            nodes,
+        )
+    }
+
+    /** `plugin` is the last name: the generic plugin glyph a plugin's "+" tile draws when its icon is not a registry name. */
+    @Test fun pluginIsTheLastNameAndAPuzzlePiece() {
+        assertEquals("plugin", flareIconNames.last())
+        assertEquals(Icons.Outlined.Extension, flareIconVector("plugin"))
+    }
+
     @Test fun errorIsTheExclamationCircleNotCancel() {
         assertEquals(Icons.Outlined.ErrorOutline, flareIconVector("error"))
     }
@@ -110,7 +143,7 @@ class IconLibraryTest {
             "mention" to Icons.Outlined.AlternateEmail,
             "read" to Icons.Outlined.DoneAll,
             "mark" to Icons.Outlined.Flag,
-            "rich-text" to Icons.Outlined.TextFormat,
+            "rich-text" to FlareRichTextGlyph,
             "attachment" to Icons.Outlined.AttachFile,
             "mark-unread" to Icons.Outlined.MarkChatUnread,
             "archive" to Icons.Outlined.Archive,

@@ -109,6 +109,7 @@ import {
   HashOutline,
   FileTrayOutline,
   ServerOutline,
+  ExtensionPuzzleOutline,
 } from "./icon-glyphs";
 import { RedPacketOutline } from "./icon-custom";
 
@@ -222,6 +223,8 @@ export const flareIcons = {
   storage: ServerOutline,
   // Kit-drawn glyphs (icon-custom.ts): concepts no icon library has.
   "red-packet": RedPacketOutline,
+  // The generic plugin glyph: a plugin's "+" tile whose icon is not a registry name falls back to it.
+  plugin: ExtensionPuzzleOutline,
 } satisfies Record<string, Component>;
 
 export type FlareIconName = keyof typeof flareIcons;

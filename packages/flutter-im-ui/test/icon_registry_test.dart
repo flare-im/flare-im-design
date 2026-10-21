@@ -6,9 +6,9 @@ import 'package:flutter_test/flutter_test.dart';
 // The semantic icon registry: one fixed vocabulary, the same names in the same
 // order on Vue / Flutter / SwiftUI / Compose, each name drawn by one glyph.
 void main() {
-  test('the registry holds 106 unique names, each with a glyph, in order', () {
-    expect(flareIconNames, hasLength(106));
-    expect(flareIconNames.toSet(), hasLength(106));
+  test('the registry holds 107 unique names, each with a glyph, in order', () {
+    expect(flareIconNames, hasLength(107));
+    expect(flareIconNames.toSet(), hasLength(107));
     expect(flareIconMap.keys.toList(), flareIconNames);
     // The shared prefix of the contract order: chats and moments follow comment.
     expect(flareIconNames.sublist(0, 15), [
@@ -56,7 +56,7 @@ void main() {
       'mention': Icons.alternate_email_outlined,
       'read': Icons.done_all_outlined,
       'mark': Icons.flag_outlined,
-      'rich-text': Icons.title,
+      'rich-text': flareKitRichText,
       'attachment': Icons.attach_file_outlined,
       'mark-unread': Icons.mark_chat_unread_outlined,
       'archive': Icons.archive_outlined,
@@ -110,12 +110,27 @@ void main() {
   });
 
   test("red-packet is the kit's own glyph, from its icon font", () {
-    expect(flareIconNames.last, 'red-packet');
+    expect(flareIconNames[105], 'red-packet');
     final glyph = flareIconMap['red-packet']!;
     expect(glyph, flareKitRedPacket);
     expect(glyph.fontFamily, 'FlareKitIcons');
     expect(glyph.fontPackage, 'flare_im_ui');
     expect(flareIconGlyph('red-packet'), glyph);
+  });
+
+  test("rich-text is Lucide Type from the kit's icon font, not Material title", () {
+    final glyph = flareIconMap['rich-text']!;
+    expect(glyph, flareKitRichText);
+    expect(glyph, isNot(Icons.title));
+    expect(glyph.codePoint, 0xE001);
+    expect(glyph.fontFamily, 'FlareKitIcons');
+    expect(glyph.fontPackage, 'flare_im_ui');
+  });
+
+  test('plugin, the generic plugin glyph, closes the registry', () {
+    expect(flareIconNames.last, 'plugin');
+    expect(flareIconMap['plugin'], Icons.extension_outlined);
+    expect(flareIconGlyph('plugin'), Icons.extension_outlined);
   });
 
   test('names that used to share a glyph now draw different ones', () {

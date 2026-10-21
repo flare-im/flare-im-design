@@ -14,8 +14,8 @@ final class IconRegistryTests: XCTestCase {
         "mini-app",
     ]
 
-    func testTheRegistryHas106NamesAndEveryNameResolves() {
-        XCTAssertEqual(flareIconNames.count, 106)
+    func testTheRegistryHas107NamesAndEveryNameResolves() {
+        XCTAssertEqual(flareIconNames.count, 107)
         XCTAssertEqual(Set(flareIconNames).count, flareIconNames.count, "names are unique")
         XCTAssertEqual(Set(flareIconMap.keys), Set(flareIconNames), "every name has exactly one symbol")
         XCTAssertEqual(added.count, 40)
@@ -53,7 +53,7 @@ final class IconRegistryTests: XCTestCase {
     func testConceptsDrawnUnderAnotherNameGotTheirOwn() {
         let expected = ["pin-self": "bookmark", "diagnostics": "ladybug", "card": "person.crop.rectangle",
                         "id": "number", "join-request": "tray.and.arrow.down", "storage": "internaldrive"]
-        XCTAssertEqual(Array(flareIconNames.suffix(7).dropLast()),
+        XCTAssertEqual(Array(flareIconNames.suffix(8).dropLast(2)),
                        ["pin-self", "diagnostics", "card", "id", "join-request", "storage"])
         for (name, symbol) in expected { XCTAssertEqual(flareIconMap[name], symbol, name) }
         for (name, before) in [("pin-self", "pin"), ("card", "person"), ("id", "info"), ("id", "tag"),
@@ -158,11 +158,11 @@ final class IconRegistryTests: XCTestCase {
         XCTAssertEqual(symbols["save"], flareIconMap["download"])
     }
 
-    /// `red-packet` is the last name and the kit draws it: SF Symbols has no red packet. A raw symbol of the name
-    /// falls back to the envelope.
+    /// `red-packet` follows the concept names and the kit draws it: SF Symbols has no red packet. A raw symbol of
+    /// the name falls back to the envelope.
     @MainActor
     func testRedPacketIsTheKitsOwnGlyph() throws {
-        XCTAssertEqual(flareIconNames.last, "red-packet")
+        XCTAssertEqual(flareIconNames.suffix(2), ["red-packet", "plugin"])
         XCTAssertEqual(flareIconMap["red-packet"], "envelope")
         XCTAssertTrue(flareKitGlyphNames.contains("red-packet"))
         XCTAssertNoThrow(try IconView("red-packet").inspect().find(FlareRedPacketIcon.self))
@@ -170,5 +170,14 @@ final class IconRegistryTests: XCTestCase {
         XCTAssertNoThrow(try ButtonView(label: "Packet", icon: "red-packet", action: {}).inspect().find(FlareRedPacketIcon.self))
         XCTAssertNoThrow(try IconButtonView(icon: "red-packet", accessibilityLabel: "Packet", action: {}).inspect()
             .find(FlareRedPacketIcon.self))
+    }
+
+    /// `plugin` is the last name: the generic plugin glyph, a single-colour puzzle piece, which a plugin's "+" tile
+    /// draws when its icon is not a registry name.
+    func testPluginIsTheLastNameAndAPuzzlePiece() throws {
+        XCTAssertEqual(flareIconNames.last, "plugin")
+        XCTAssertEqual(flareIconMap["plugin"], "puzzlepiece.extension")
+        XCTAssertFalse(flareKitGlyphNames.contains("plugin"), "SF Symbols has the concept")
+        XCTAssertEqual(try IconView("plugin").inspect().image().actualImage().name(), "puzzlepiece.extension")
     }
 }

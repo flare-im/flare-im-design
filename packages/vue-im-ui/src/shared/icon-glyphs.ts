@@ -111,6 +111,7 @@ import {
   PinOff as LuPinOff,
   Play as LuPlay,
   Plus as LuPlus,
+  Puzzle as LuPuzzle,
   QrCode as LuQrCode,
   Quote as LuQuote,
   RefreshCw as LuRefreshCw,
@@ -254,6 +255,7 @@ const REGISTRY: Record<string, Component> = {
   PinOff: LuPinOff,
   Play: LuPlay,
   Plus: LuPlus,
+  Puzzle: LuPuzzle,
   QrCode: LuQrCode,
   Quote: LuQuote,
   RefreshCw: LuRefreshCw,
@@ -455,3 +457,4 @@ export const BugOutline = /*#__PURE__*/ glyph("Bug");
 export const HashOutline = /*#__PURE__*/ glyph("Hash");
 export const IdCardOutline = /*#__PURE__*/ glyph("Contact");
 export const ServerOutline = /*#__PURE__*/ glyph("HardDrive");
+export const ExtensionPuzzleOutline = /*#__PURE__*/ glyph("Puzzle");

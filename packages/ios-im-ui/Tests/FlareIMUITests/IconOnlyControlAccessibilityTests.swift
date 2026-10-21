@@ -66,7 +66,8 @@ final class IconOnlyControlAccessibilityTests: XCTestCase {
                                          s.composerImage, s.composerRichText, s.composerMore])
         XCTAssertEqual(try symbol(control(composer, s.composerEmoji)), flareIconMap["emoji"])
         XCTAssertEqual(try symbol(control(composer, s.composerMention)), flareIconMap["mention"])
-        XCTAssertEqual(try symbol(control(composer, s.composerRichText)), flareIconMap["rich-text"])
+        // The format key is the kit's own "T" (ComposerToolsTests), not a symbol.
+        XCTAssertNoThrow(try control(composer, s.composerRichText).labelView().find(FlareRichTextIcon.self))
         XCTAssertEqual(try symbol(control(composer, s.composerExpandInput)), flareIconMap["expand"])
         XCTAssertEqual(try symbol(control(composer, s.composerMore)), flareIconMap["add"])
         try control(composer, s.composerEmoji).tap()

@@ -1,10 +1,13 @@
 #!/usr/bin/env node
-// Builds fonts/FlareKitIcons.ttf: the kit's own glyphs that Material Icons has no shape for, as a TrueType
-// font so they are ordinary IconData — every call site that resolves a name through flareIconGlyph (the
-// composer's "+" panel, menus, buttons) draws them and tints them like any other icon.
+// Builds fonts/FlareKitIcons.ttf: the kit's own glyphs — concepts Material Icons has no shape for, and
+// shapes that have to match the other kits where Material draws something else — as a TrueType font so
+// they are ordinary IconData: every call site that resolves a name through flareIconGlyph (the composer's
+// "+" panel and toolbar, menus, buttons) draws them and tints them like any other icon.
 //
-// The geometry is the same as Vue's icon-custom.ts (24-unit box); here each stroke is outlined at the
-// Material weight (2 units) because a font only fills. Zero dependencies: the tables are written by hand.
+// The geometry is the same as the Vue glyph (icon-custom.ts, or the Lucide icon itself; 24-unit box);
+// here each stroke is outlined at the Material weight (2 units) because a font only fills. Contours of
+// one glyph may overlap: all of them wind clockwise, so the non-zero fill paints their union. Zero
+// dependencies: the tables are written by hand.
 //
 //   node scripts/build-icon-font.mjs           write the font
 //   node scripts/build-icon-font.mjs --check   fail if the committed font is out of date
@@ -49,6 +52,20 @@ function roundedRect(x0, y0, x1, y1, r) {
 
 const circle = (cx, cy, r) => arc(cx, cy, r, 0, 2 * Math.PI, 8).slice(0, -1);
 
+/** The band a stroke of half-width `h` paints along the segment p0 → p1, round caps included. */
+function capsule([x0, y0], [x1, y1], h) {
+  const a = Math.atan2(y1 - y0, x1 - x0);
+  const q = Math.PI / 2;
+  return [...arc(x1, y1, h, a - q, a + q, 4), ...arc(x0, y0, h, a + q, a + 3 * q, 4)];
+}
+
+/** The band a stroke of half-width `h` paints along a circular arc (y down, angles from +x). */
+function strokedArc(cx, cy, r, from, to, h) {
+  const outer = arc(cx, cy, r + h, from, to, 2);
+  if (r - h <= 0) return [[cx, cy, true], ...outer];
+  return [...outer, ...arc(cx, cy, r - h, to, from, 2)];
+}
+
 /** The band a stroke of half-width `h` paints along the quadratic curve p0 → c → p1 (butt ends). */
 function strokedQuad(p0, c, p1, h, samples = 24) {
   const at = (t) => [
@@ -89,7 +106,23 @@ const RED_PACKET = [
   { points: circle(12, flap, 2.6), hole: false },
 ];
 
-const GLYPHS = [{ name: "redPacket", code: 0xe000, contours: RED_PACKET }];
+// The rich-text key's "T", Lucide `Type` as the other kits draw it: a top bar from 4 to 20 whose ends
+// turn down to 7 over corners of radius 1, a stem from 4 to 20 and a foot from 9 to 15, with Lucide's
+// round caps and joins. Material's `title` is a different letterform.
+const RICH_TEXT = [
+  capsule([12, 4], [12, 20], h),
+  capsule([9, 20], [15, 20], h),
+  capsule([4, 7], [4, 5], h),
+  strokedArc(5, 5, 1, Math.PI, 1.5 * Math.PI, h),
+  capsule([5, 4], [19, 4], h),
+  strokedArc(19, 5, 1, 1.5 * Math.PI, 2 * Math.PI, h),
+  capsule([20, 5], [20, 7], h),
+].map((points) => ({ points, hole: false }));
+
+const GLYPHS = [
+  { name: "redPacket", code: 0xe000, contours: RED_PACKET },
+  { name: "richText", code: 0xe001, contours: RICH_TEXT },
+];
 
 // ── outline → font units ──────────────────────────────────────────────────────────────────────
 const toFont = ([x, y, on]) => [Math.round(x * UNIT), Math.round((24 - y) * UNIT), on];

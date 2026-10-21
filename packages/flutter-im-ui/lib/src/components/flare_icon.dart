@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../tokens/flare_tokens.dart';
 import 'action_icon.dart';
 
-/// The 106 semantic icon names exposed by [FlareIcon], in canonical order.
+/// The 107 semantic icon names exposed by [FlareIcon], in canonical order.
 ///
 /// Kept in lock-step with the cross-platform icon-library contract so every
 /// platform ships the same fixed vocabulary of glyphs.
@@ -115,6 +115,9 @@ const List<String> flareIconNames = <String>[
   'storage',
   // Kit-drawn glyphs (fonts/FlareKitIcons.ttf): concepts no icon library has.
   'red-packet',
+  // The generic plugin glyph: a plugin's "+" tile whose icon is not a registry
+  // name falls back to it.
+  'plugin',
 ];
 
 /// Maps each semantic name in [flareIconNames] to the closest Material glyph.
@@ -196,7 +199,7 @@ const Map<String, IconData> flareIconMap = <String, IconData>{
   // Web uses a single T glyph for the rich-composer toggle. `text_format`
   // renders as an underlined A, which made the Flutter footer look like a
   // font-color action instead of the same rich-text entry point.
-  'rich-text': Icons.title,
+  'rich-text': flareKitRichText,
   'attachment': Icons.attach_file_outlined,
   'mark-unread': Icons.mark_chat_unread_outlined,
   'archive': Icons.archive_outlined,
@@ -234,6 +237,7 @@ const Map<String, IconData> flareIconMap = <String, IconData>{
   'join-request': Icons.move_to_inbox_outlined,
   'storage': Icons.storage_outlined,
   'red-packet': flareKitRedPacket,
+  'plugin': Icons.extension_outlined,
 };
 
 /// The red packet as a line glyph — the card's small envelope (rounded body,
@@ -242,6 +246,16 @@ const Map<String, IconData> flareIconMap = <String, IconData>{
 /// [IconData], so it takes the tint wherever a name resolves to a glyph.
 const IconData flareKitRedPacket = IconData(
   0xE000,
+  fontFamily: 'FlareKitIcons',
+  fontPackage: 'flare_im_ui',
+);
+
+/// The rich-text key's "T" — Lucide `Type`, the same geometry the Vue,
+/// SwiftUI and Compose kits draw (top bar 4 to 20 turning down to 7, stem
+/// 4 to 20, foot 9 to 15) — from the kit's icon font. Material's `title` is a
+/// different letterform, so the format key would look unlike the other kits.
+const IconData flareKitRichText = IconData(
+  0xE001,
   fontFamily: 'FlareKitIcons',
   fontPackage: 'flare_im_ui',
 );

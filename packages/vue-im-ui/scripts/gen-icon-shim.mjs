@@ -75,6 +75,8 @@ const MAP = {
   ScreenShareOutline: ["ScreenShare"], UndoOutline: ["Undo2"], ZoomInOutline: ["ZoomIn"], ZoomOutOutline: ["ZoomOut"],
   // Semantic registry additions (Round 9): concepts that were drawn under a name meaning something else.
   BugOutline: ["Bug"], HashOutline: ["Hash"], IdCardOutline: ["Contact"], ServerOutline: ["HardDrive"],
+  // The generic plugin glyph: a plugin's "+" tile whose icon is not a registry name draws it.
+  ExtensionPuzzleOutline: ["Puzzle"],
 };
 
 function walk(dir) {

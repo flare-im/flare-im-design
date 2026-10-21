@@ -194,13 +194,13 @@ void main() {
         ),
       );
 
-      expect(flareIconMap['rich-text'], Icons.title);
+      expect(flareIconMap['rich-text'], flareKitRichText);
       expect(
         find.byKey(const ValueKey('composer-resize-action')),
         findsOneWidget,
       );
       expect(find.byType(FlareComposerResizeIcon), findsOneWidget);
-      await tester.tap(find.byIcon(Icons.title));
+      await tester.tap(find.byIcon(flareKitRichText));
       await tester.pump();
 
       final composerLeft = tester.getTopLeft(find.byType(FlareComposer)).dx;

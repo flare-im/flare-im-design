@@ -1,5 +1,6 @@
 ## 未发布
 
+- 「格式」键改为 Kit 自绘的「T」（Lucide `Type` 几何，`FlareRichTextGlyph`），不再是 Material `TextFormat` 的带下划线 A。
 - 修复：控件从不可用变为可用时底色消失（如表单填好后「塞钱进红包」只剩白字）。`Modifier.alpha(1f)` 会去掉自己的图层，图层去掉后排在它前面的底色不再绘制；`Button`、`IconButton` 及其余 24 处按状态变暗的控件改用常驻图层 `flareDimmed`。`Button` 的纯色底不再用同色两段渐变。
 - 自定义内容渲染器：`FlareContentScope(builders, bareTypes)` 列出的类型不画气泡（保留头像、昵称、时间、多选和长按菜单）；`FlareContentContext` 新增 `messageId`（服务端 ID，没有时用 client ID）与 `conversationId`（来自 `MessageList` 的 `conversationId`）；`MessageContentView` 同名参数可选。
 - 图标 `red-packet`（注册表最后一项，共 106 个），Kit 自绘的线性小信封。
