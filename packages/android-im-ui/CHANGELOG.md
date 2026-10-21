@@ -1,5 +1,13 @@
 ## 未发布
 
+- 修复：控件从不可用变为可用时底色消失（如表单填好后「塞钱进红包」只剩白字）。`Modifier.alpha(1f)` 会去掉自己的图层，图层去掉后排在它前面的底色不再绘制；`Button`、`IconButton` 及其余 24 处按状态变暗的控件改用常驻图层 `flareDimmed`。`Button` 的纯色底不再用同色两段渐变。
+- 自定义内容渲染器：`FlareContentScope(builders, bareTypes)` 列出的类型不画气泡（保留头像、昵称、时间、多选和长按菜单）；`FlareContentContext` 新增 `messageId`（服务端 ID，没有时用 client ID）与 `conversationId`（来自 `MessageList` 的 `conversationId`）；`MessageContentView` 同名参数可选。
+- 图标 `red-packet`（注册表最后一项，共 106 个），Kit 自绘的线性小信封。
+- `RedPacketDetail` 新增可选 `title`、`onBack`（自带红色标题栏，系统返回同样回调）；`RedPacketComposer` 新增 `locked`；`SegmentedControl` 新增可选 `accent`。
+- 红包组件族：新增 `RedPacketOpenSheet`、`RedPacketDetail`、`RedPacketComposer`、`RedPacketPayConfirm`，四端合同见 `docs/plugin-components.md`。
+- **破坏性**：`RedPacketCard` 去掉 `opened` / `finished`，改为 `state`（`FlareRedPacketState`：unopened / claimed / finished / expired）并新增 `kindLabel`；已领完、已过期的卡片仍可点击（查看详情），只有 `busy` / `disabled` 不可点。
+- `SegmentedControl` 的命中区覆盖整条轨道高度，轨道高度提到触控目标（48）。
+- `Button(block = true)` 的文字与图标在整宽内居中，与 iOS、Web 一致。
 - 图片、视频、文件保存后，下载键变成「在文件夹中显示」；宿主发现文件被删后传回 idle，键回到下载。收发两侧的消息时间都在右侧。详见仓库根 CHANGELOG。
 - `FileMessage` 新增 `downloadState` / `onReveal`，没有 `onDownload` 时不再画装饰性的下载图标；`ImagePreview` / `VideoPlayer` 新增 `saved` / `onReveal`；列表、气泡、分发器新增 `onMediaReveal`；`VideoMessage.duration` 默认空串（不画角标）。
 - `ForwardPicker` 在有界高度的宿主里（`BottomSheet`、`Modal`、`FlareScreen(scroll = false)`）让目标列表让出高度，标题、搜索框与「发送」栏始终完整可见——小屏竖屏、横屏、搜索框弹出键盘时不再丢失发送键；无界宿主里列表仍是 300dp。放在 kit 浮层上时去掉自带的 340dp 卡片与关闭键，由浮层提供表面、遮罩与返回关闭。

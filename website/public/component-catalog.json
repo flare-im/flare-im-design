@@ -9522,7 +9522,7 @@
         "desktop"
       ],
       "previewPresentation": "isolated",
-      "previewOpener": null,
+      "previewOpener": "可领取",
       "docsSections": {
         "configuration": true,
         "variants": false,
@@ -9609,7 +9609,7 @@
         "en": "website/en/components/red-packet-open-sheet.md"
       },
       "examples": {
-        "live": false,
+        "live": true,
         "code": true,
         "gallery": false
       },
@@ -9711,7 +9711,7 @@
         "en": "website/en/components/red-packet-detail.md"
       },
       "examples": {
-        "live": false,
+        "live": true,
         "code": true,
         "gallery": false
       },
@@ -9830,7 +9830,7 @@
         "en": "website/en/components/red-packet-composer.md"
       },
       "examples": {
-        "live": false,
+        "live": true,
         "code": true,
         "gallery": false
       },
@@ -9858,7 +9858,7 @@
         "desktop"
       ],
       "previewPresentation": "isolated",
-      "previewOpener": null,
+      "previewOpener": "余额充足",
       "docsSections": {
         "configuration": true,
         "variants": false,
@@ -9934,7 +9934,7 @@
         "en": "website/en/components/red-packet-pay-confirm.md"
       },
       "examples": {
-        "live": false,
+        "live": true,
         "code": true,
         "gallery": false
       },

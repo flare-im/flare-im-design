@@ -362,7 +362,9 @@
       "CommandPalette": "打开命令面板",
       "ImagePreviewModal": "打开图片预览",
       "VideoPlayerModal": "打开视频播放",
-      "StartConversationDialog": "发起会话"
+      "StartConversationDialog": "发起会话",
+      "RedPacketOpenSheet": "可领取",
+      "RedPacketPayConfirm": "余额充足"
     },
     "openersNote": "Demos whose surface only exists after a click, and the accessible name of the control that opens it. The accessibility sweep scans the preview as it renders and then again with this control activated, because a dialog, a sheet or a menu is a surface of its own — until Round 6 it was scanning these components' trigger buttons and reporting that as coverage (FR-124). A component listed here must actually open something: the sweep fails when the click produces no overlay."
   },
