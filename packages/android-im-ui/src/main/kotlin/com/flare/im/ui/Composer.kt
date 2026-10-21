@@ -38,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -92,6 +93,8 @@ private data class ComposerMetrics(
  * The icon keys of the composer's tool row, in order: registry glyph, the name TalkBack reads, and
  * whether each is enabled. Rich text is a toggle that is checked while rich mode is on; more opens and
  * closes the action panel and draws `close` while the panel is open. The send key follows them.
+ * [capabilities] leaves out each key the host does not offer ([FlareComposerCapabilities.availableToolIds];
+ * the more key is the `attachments` tool).
  */
 internal fun composerToolKeys(
     strings: FlareStrings,
@@ -104,14 +107,24 @@ internal fun composerToolKeys(
     panelOpen: Boolean,
     /** Null where the host owns the panel: the key is then a plain button with no state to report. */
     emojiOpen: Boolean? = null,
+    capabilities: FlareComposerCapabilities = FlareComposerCapabilities(),
 ): List<FlareIconControlSpec> = buildList {
-    add(FlareIconControlSpec("emoji", "emoji", strings.composerEmoji, !disabled && canEmoji, checked = emojiOpen))
-    add(FlareIconControlSpec("mention", "mention", strings.composerMention, !disabled))
-    if (canVoice) add(FlareIconControlSpec("voice", "mic", strings.composerVoice, !disabled))
-    add(FlareIconControlSpec("image", "image", strings.composerImage, !disabled && canImage))
-    add(FlareIconControlSpec("richText", "rich-text", strings.composerRichText, !disabled, checked = richMode))
-    add(FlareIconControlSpec("more", if (panelOpen) "close" else "add", strings.composerMore, !disabled && canMore))
+    val allows = capabilities::allowsTool
+    if (allows("emoji")) add(FlareIconControlSpec("emoji", "emoji", strings.composerEmoji, !disabled && canEmoji, checked = emojiOpen))
+    if (allows("mention")) add(FlareIconControlSpec("mention", "mention", strings.composerMention, !disabled))
+    if (canVoice && allows("voice")) add(FlareIconControlSpec("voice", "mic", strings.composerVoice, !disabled))
+    if (allows("image")) add(FlareIconControlSpec("image", "image", strings.composerImage, !disabled && canImage))
+    if (allows("richText")) add(FlareIconControlSpec("richText", "rich-text", strings.composerRichText, !disabled, checked = richMode))
+    if (allows("attachments")) add(FlareIconControlSpec("more", if (panelOpen) "close" else "add", strings.composerMore, !disabled && canMore))
 }
+
+/**
+ * Whether a "+" tile opens the composer's own recorder: the voice tile does whenever the voice key could, so both reach
+ * the same recorder (as on Flutter) and a host never has to recreate the composer's voice mode. The host still gets the
+ * recording through `onVoiceSend`; without a recorder the tile goes to the host's `onAction`.
+ */
+internal fun composerPanelTileOpensRecorder(action: FlareComposerAction, offersVoice: Boolean): Boolean =
+    action.id == "voice" && offersVoice
 
 /** The key beside the text field that grows the input and shrinks it back, named for what it does next. */
 internal fun composerExpandKey(strings: FlareStrings, disabled: Boolean, expanded: Boolean): FlareIconControlSpec =
@@ -213,6 +226,20 @@ fun Composer(
     var formats by remember(conversationKey) { mutableStateOf(setOf<String>()) }
     // The open mention picker and where its "@" was typed (null: opened from the mention key).
     var mentionTrigger by remember(conversationKey) { mutableStateOf<ComposerMentionTrigger?>(null) }
+    // Each toolbar key the host offers. A key taken away closes what it opened at once — the effective flags below
+    // hide it in the same frame, the effect clears the state — and the draft stays.
+    val allows = capabilities::allowsTool
+    val offersVoice = enableVoice && onVoiceSend != null && allows("voice")
+    val richOn = richMode && allows("richText")
+    val panelShown = panelOpen && allows("attachments")
+    val emojiShown = emojiOpen && allows("emoji")
+    LaunchedEffect(capabilities) {
+        if (!allows("emoji")) emojiOpen = false
+        if (!allows("attachments")) panelOpen = false
+        if (!offersVoice) voiceMode = false
+        if (!allows("richText")) { richMode = false; formats = emptySet() }
+        if (!allows("mention")) mentionTrigger = null
+    }
     // A pick writes the candidate's label, as Vue does: the core resolves "@label" against the conversation roster when the text is sent.
     fun insertMention(candidate: MentionCandidate, typedAt: Int?) {
         updateText(composerTextWithinLimit(composerTextWithMention(text, candidate.name, typedAt), maxLength))
@@ -221,7 +248,7 @@ fun Composer(
     fun send() {
         if (!canSend) return
         var orderedIndex = 0
-        if (richMode && onSendRich != null) onSendRich(text.trim().lines().mapIndexed { _, line ->
+        if (richOn && onSendRich != null) onSendRich(text.trim().lines().mapIndexed { _, line ->
             if (line.isBlank()) return@mapIndexed ""
             orderedIndex++
             var value = line
@@ -260,13 +287,14 @@ fun Composer(
                 canVoice = enableVoice && onVoiceSend != null,
                 canImage = onImage != null || onAttach != null,
                 canMore = hasActionPanel || onAttach != null,
-                richMode = richMode,
-                panelOpen = panelOpen,
-                emojiOpen = if (onEmoji == null) emojiOpen else null,
+                richMode = richOn,
+                panelOpen = panelShown,
+                emojiOpen = if (onEmoji == null) emojiShown else null,
+                capabilities = capabilities,
             ).forEach { key ->
                 when (key.id) {
                     // A host that handles the key keeps its own panel; otherwise the composer opens its own.
-                    "emoji" -> tool(key, active = emojiOpen) {
+                    "emoji" -> tool(key, active = emojiShown) {
                         if (onEmoji != null) onEmoji.invoke() else emojiOpen = !emojiOpen
                         panelOpen = false
                     }
@@ -276,35 +304,40 @@ fun Composer(
                     }
                     "voice" -> tool(key) { voiceMode = true; panelOpen = false }
                     "image" -> tool(key) { (onImage ?: onAttach)?.invoke() }
-                    "richText" -> tool(key, active = richMode) { richMode = !richMode; if (!richMode) formats = emptySet(); panelOpen = false }
-                    "more" -> tool(key, active = panelOpen) { if (hasActionPanel) panelOpen = !panelOpen else onAttach?.invoke() }
+                    "richText" -> tool(key, active = richOn) { richMode = !richMode; if (!richMode) formats = emptySet(); panelOpen = false }
+                    "more" -> tool(key, active = panelShown) { if (hasActionPanel) panelOpen = !panelOpen else onAttach?.invoke() }
                 }
             }
             FlareComposerSendButton(active = canSend) { send() }
         }
     }
     BoxWithConstraints(modifier.fillMaxWidth()) {
-        val m = ComposerMetrics.of(maxWidth, keys = 6 + if (enableVoice && onVoiceSend != null) 1 else 0)
+        // The keys in the row, the send key included: the band's tool inset is what they leave of the width.
+        val keys = 1 + listOf("emoji", "mention", "image", "richText", "attachments").count(allows) + if (offersVoice) 1 else 0
+        val m = ComposerMetrics.of(maxWidth, keys = keys)
         Column(
             Modifier.fillMaxWidth().background(if (m.band) colors.bgSecondary else colors.bgPrimary)
                 .then(if (m.band) Modifier.padding(bottom = FlareSizes.spacingXs) else Modifier.padding(horizontal = FlareSizes.spacingXs, vertical = FlareSizes.spacingSm))
         ) {
             replyTo?.let { ReplyStrip(it, replyLabel, strings.cancelReply, colors, onCancelReply, m.band) }
-            if (voiceMode && onVoiceSend != null) {
-                InlineVoiceComposer(conversationKey, disabled, onKeyboard = { voiceMode = false }, onSend = onVoiceSend)
+            if (voiceMode && offersVoice) {
+                // The band runs edge to edge; the recorder is a framed row, so it keeps the band's side inset.
+                Box(if (m.band) Modifier.padding(start = FlareSizes.spacingSm, end = FlareSizes.spacingSm, top = FlareSizes.spacingXs) else Modifier) {
+                    InlineVoiceComposer(conversationKey, disabled, onKeyboard = { voiceMode = false }, onSend = onVoiceSend)
+                }
             } else {
                 Column(
                     Modifier.fillMaxWidth().background(colors.bgPrimary)
                         .then(if (m.band) Modifier else Modifier.border(1.dp, colors.borderPrimary, RoundedCornerShape(FlareSizes.radiusCard)))
                 ) {
-                    if (!panelOpen) {
-                        if (richMode) Row(Modifier.fillMaxWidth().height(m.stripKeyHeight).horizontalScroll(rememberScrollState()).padding(horizontal = m.stripInset)) {
+                    if (!panelShown) {
+                        if (richOn) Row(Modifier.fillMaxWidth().height(m.stripKeyHeight).horizontalScroll(rememberScrollState()).padding(horizontal = m.stripInset)) {
                             val styles = listOf("bold" to Icons.Outlined.FormatBold, "italic" to Icons.Outlined.FormatItalic, "strike" to Icons.Outlined.FormatStrikethrough, "code" to Icons.Outlined.Code, "link" to Icons.Outlined.Link, "heading" to Icons.Outlined.Title, "quote" to Icons.Outlined.FormatQuote, "bullet" to Icons.AutoMirrored.Outlined.FormatListBulleted, "ordered" to Icons.Outlined.FormatListNumbered)
                             styles.forEach { (id, icon) -> val name = composerFormatName(id, strings); IconButton(onClick = { val blocks = setOf("heading", "quote", "bullet", "ordered"); formats = if (id in formats) formats - id else (if (id in blocks) formats - blocks else formats) + id }, enabled = !disabled, modifier = Modifier.size(m.stripKeyWidth, m.stripKeyHeight)) { Icon(icon, name, Modifier.size(FlareSizes.spacing2md), tint = if (id in formats) colors.primaryText else colors.textSecondary) } }
                         }
                         // The row is the top of the same band; a hairline is all
                         // that separates it from the text it formats.
-                        if (richMode) HorizontalDivider(color = colors.borderPrimary)
+                        if (richOn) HorizontalDivider(color = colors.borderPrimary)
                         Row(verticalAlignment = Alignment.Top) {
                             // 11 above and below a 24dp line is a 46dp band: the
                             // text sits in the middle of it without the field
@@ -312,7 +345,7 @@ fun Composer(
                             Box(Modifier.weight(1f).padding(start = m.textStart, top = m.textTop, bottom = m.textBottom)) {
                                 FlareComposerEmojiEditText(value = text, onValueChange = {
                                     val next = composerTextWithinLimit(it, maxLength)
-                                    val typedAt = if (mentionCandidates.isEmpty() || richMode) null else composerTypedMentionAt(text, next)
+                                    val typedAt = if (mentionCandidates.isEmpty() || richOn || !allows("mention")) null else composerTypedMentionAt(text, next)
                                     updateText(next)
                                     if (typedAt != null) mentionTrigger = ComposerMentionTrigger(typedAt)
                                 }, enabled = !disabled,
@@ -333,7 +366,7 @@ fun Composer(
                 // The tools leave the band and rest on the ground, taking back
                 // the inset the band gave up.
                 if (m.band) tools(m)
-                if (emojiOpen && onEmoji == null) {
+                if (emojiShown && onEmoji == null) {
                     FlareEmojiStickerPicker(
                         onInsertEmoji = { key -> updateText(composerTextWithinLimit("$text[$key]", maxLength)) },
                         onSendSticker = { packageId, stickerId ->
@@ -343,11 +376,25 @@ fun Composer(
                         modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp),
                     )
                 }
-                if (panelOpen && hasActionPanel) Column(Modifier.fillMaxWidth().background(colors.bgPrimary).heightIn(max = 240.dp).verticalScroll(rememberScrollState())) { FlareComposerActionPanel(resolvedActions, onAction = { onAction?.invoke(it); panelOpen = false }) }
+                if (panelShown && hasActionPanel) Column(Modifier.fillMaxWidth().background(colors.bgPrimary).heightIn(max = 240.dp).verticalScroll(rememberScrollState())) {
+                    FlareComposerActionPanel(resolvedActions, onAction = { action ->
+                        if (disabled || !allows("attachments") || !action.enabled) return@FlareComposerActionPanel
+                        panelOpen = false
+                        // Voice is the composer's own mode: the tile reaches the recorder the voice key opens.
+                        if (composerPanelTileOpensRecorder(action, offersVoice)) {
+                            voiceMode = true
+                            expanded = false
+                            emojiOpen = false
+                            mentionTrigger = null
+                        } else {
+                            onAction?.invoke(action)
+                        }
+                    })
+                }
             }
         }
     }
-    mentionTrigger?.let { trigger ->
+    mentionTrigger?.takeIf { allows("mention") }?.let { trigger ->
         BottomSheet(onClose = { mentionTrigger = null }, title = strings.composerMention) {
             MentionPicker(
                 candidates = mentionCandidates,

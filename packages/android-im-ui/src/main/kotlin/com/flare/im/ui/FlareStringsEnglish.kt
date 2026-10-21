@@ -22,6 +22,7 @@ fun flareStringsEnglish(): FlareStrings = FlareStrings {
     actionMenuLabel = "Actions"
     actionSchedule = "Event"
     actionTask = "Task"
+    actionVideo = "Video"
     actionVote = "Poll"
     addImage = "Add photo"
     addMember = "Add member"

@@ -59,9 +59,10 @@ class IconControlAccessibilityTest {
         canVoice: Boolean = true,
         richMode: Boolean = false,
         panelOpen: Boolean = false,
+        tools: Set<String>? = null,
     ) = composerToolKeys(
         strings, disabled = disabled, canEmoji = true, canVoice = canVoice, canImage = true, canMore = true,
-        richMode = richMode, panelOpen = panelOpen,
+        richMode = richMode, panelOpen = panelOpen, capabilities = FlareComposerCapabilities(availableToolIds = tools),
     )
 
     @Test fun composerToolbarKeysAreNamedLocalizedAndStateful() {
@@ -83,6 +84,26 @@ class IconControlAccessibilityTest {
         assertTrue(composer(canVoice = false).none { it.id == "voice" })
         // A disabled composer keeps every key, each announced as disabled.
         assertTrue(composer(disabled = true).none { it.enabled })
+    }
+
+    @Test fun eachComposerToolCanBeHiddenOnItsOwn() {
+        // Tool id -> the key it names; the "+" key is the attachments tool.
+        val keyOf = mapOf("emoji" to "emoji", "mention" to "mention", "voice" to "voice", "image" to "image", "richText" to "richText", "attachments" to "more")
+        assertEquals(keyOf.values.toList(), composer(tools = null).map { it.id }, "every tool is offered by default")
+        for ((tool, key) in keyOf) {
+            val ids = composer(tools = keyOf.keys - tool).map { it.id }
+            assertFalse(key in ids, "$tool is hidden")
+            assertEquals(keyOf.values.filter { it != key }, ids, "hiding $tool keeps the others in order")
+        }
+        assertTrue(composer(tools = emptySet()).isEmpty())
+        // Voice still needs a host that can take a recording.
+        assertTrue(composer(canVoice = false, tools = setOf("voice")).isEmpty())
+    }
+
+    @Test fun theFormatKeyIsTheKitsT() {
+        val key = composer().single { it.id == "richText" }
+        assertEquals("rich-text", key.icon)
+        assertEquals(FlareRichTextGlyph, flareIconVector(key.icon))
     }
 
     @Test fun composerExpandKeySaysWhatHappensNext() {

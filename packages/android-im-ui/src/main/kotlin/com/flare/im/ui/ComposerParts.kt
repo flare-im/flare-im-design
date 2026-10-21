@@ -111,6 +111,7 @@ fun FlareComposerActionPanel(
     onAction: ((FlareComposerAction) -> Unit)? = null,
 ) {
     val colors = flareColors()
+    val strings = flareStrings()
     val resolvedActions = resolveComposerActions(defaultComposerActions(), capabilities, actions)
     Column(Modifier.fillMaxWidth().background(colors.bgPrimary).padding(FlareSizes.spacingLg)) {
         resolvedActions.chunked(columns).forEach { row ->
@@ -119,6 +120,7 @@ fun FlareComposerActionPanel(
                 horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingLg),
             ) {
                 row.forEach { action ->
+                    val label = action.resolvedLabel(strings)
                     Column(
                         Modifier.weight(1f).flareDimmed(if (action.enabled) 1f else FlareOpacity.disabled)
                             .clickable(enabled = action.enabled) { onAction?.invoke(action) },
@@ -128,9 +130,9 @@ fun FlareComposerActionPanel(
                             Modifier.size(FlareSizes.componentComposerActionWidth).clip(RoundedCornerShape(FlareSizes.radiusLg))
                                 .background(Color.Transparent),
                             contentAlignment = Alignment.Center,
-                        ) { FlareIcon(name = action.icon, size = 20.dp, tint = colors.textPrimary, contentDescription = action.accessibilityLabel ?: action.label) }
+                        ) { FlareIcon(name = action.resolvedIcon, size = 20.dp, tint = colors.textPrimary, contentDescription = action.accessibilityLabel ?: label) }
                         Spacer(Modifier.size(FlareSizes.spacingXs))
-                        Text(action.label, color = colors.textSecondary, fontSize = FlareSizes.fontSizeXs.value.sp)
+                        Text(label, color = colors.textSecondary, fontSize = FlareSizes.fontSizeXs.value.sp)
                     }
                 }
                 repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }

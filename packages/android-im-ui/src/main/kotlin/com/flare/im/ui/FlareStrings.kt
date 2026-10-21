@@ -362,6 +362,8 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
     // 加号面板
     val actionImage: String
         get() = (overrides["actionImage"] as? (String)) ?: "图片"
+    val actionVideo: String
+        get() = (overrides["actionVideo"] as? (String)) ?: "视频"
     val actionCamera: String
         get() = (overrides["actionCamera"] as? (String)) ?: "拍摄"
     val actionFile: String
@@ -1968,6 +1970,10 @@ class FlareStringsBuilder internal constructor() {
     var actionImage: String
         get() = (values["actionImage"] as? (String)) ?: "图片"
         set(value) { values["actionImage"] = value }
+
+    var actionVideo: String
+        get() = (values["actionVideo"] as? (String)) ?: "视频"
+        set(value) { values["actionVideo"] = value }
 
     var actionCamera: String
         get() = (values["actionCamera"] as? (String)) ?: "拍摄"

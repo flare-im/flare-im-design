@@ -116,6 +116,7 @@
   "actionVideo": {
     "en": "Video",
     "kits": [
+      "android",
       "flutter",
       "ios"
     ],

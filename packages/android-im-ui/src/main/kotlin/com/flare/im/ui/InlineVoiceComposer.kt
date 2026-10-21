@@ -142,7 +142,9 @@ fun InlineVoiceComposer(
                 var x = 2f
                 while (x < size.width) { val h = 4 + x.toInt() % 20; drawLine(if (recording || paused) colors.primary.copy(alpha = .45f) else colors.borderPrimary, Offset(x, (size.height-h)/2), Offset(x, (size.height+h)/2), 2f); x += 6f }
             }
-            Text("%02d:%02d".format(elapsed / 60000, elapsed / 1000 % 60), fontSize = 11.sp, color = colors.textSecondary)
+            // Last in the row until the paused controls follow it: keep it off the frame.
+            Text("%02d:%02d".format(elapsed / 60000, elapsed / 1000 % 60), fontSize = 11.sp, color = colors.textSecondary,
+                modifier = Modifier.padding(start = FlareSizes.spacingXs, end = if (paused) 0.dp else FlareSizes.spacingSm))
             if (paused) {
                 control(flareIconVector("mic"), strings.inlineVoiceComposerResume, !sending && elapsed < 65000, true) { start() }
                 control(flareIconVector("delete"), strings.inlineVoiceComposerDiscard) { capture.clear(); paused = false; elapsed = 0; playing = false }
