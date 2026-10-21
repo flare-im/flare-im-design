@@ -46,8 +46,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
@@ -99,24 +99,29 @@ fun Button(
     // ghost / text 的**文字**取 primaryText 而不是 primary:两者是一对的两半,浅色下同为
     // #7047D6 所以看不出来,暗色下 primary 不变(在 #20232B 上 2.66:1,AA 正文要 4.5)而
     // primaryText 提亮成 #A78BFA(5.77:1)。ghost 的描边仍用 primary —— 描边是填充不是文字。
-    val (bgBrush, fg, borderColor) = when (variant) {
-        FlareButtonVariant.Primary -> Triple(Brush.linearGradient(listOf(colors.primary, colors.primary)), Color.White, Color.Transparent)
-        FlareButtonVariant.Secondary -> Triple(Brush.linearGradient(listOf(colors.bgSecondary, colors.bgSecondary)), colors.textPrimary, colors.borderPrimary)
-        FlareButtonVariant.Ghost -> Triple(Brush.linearGradient(listOf(Color.Transparent, Color.Transparent)), colors.primaryText, colors.primary.copy(alpha = 0.4f))
-        FlareButtonVariant.Danger -> Triple(Brush.linearGradient(listOf(colors.error, colors.error)), Color.White, Color.Transparent)
-        FlareButtonVariant.Text -> Triple(Brush.linearGradient(listOf(Color.Transparent, Color.Transparent)), colors.primaryText, Color.Transparent)
-        FlareButtonVariant.Quiet -> Triple(Brush.linearGradient(listOf(Color.Transparent, Color.Transparent)), colors.textSecondary, Color.Transparent)
+    val (fill, fg, borderColor) = when (variant) {
+        FlareButtonVariant.Primary -> Triple(colors.primary, Color.White, Color.Transparent)
+        FlareButtonVariant.Secondary -> Triple(colors.bgSecondary, colors.textPrimary, colors.borderPrimary)
+        FlareButtonVariant.Ghost -> Triple(Color.Transparent, colors.primaryText, colors.primary.copy(alpha = 0.4f))
+        FlareButtonVariant.Danger -> Triple(colors.error, Color.White, Color.Transparent)
+        FlareButtonVariant.Text -> Triple(Color.Transparent, colors.primaryText, Color.Transparent)
+        FlareButtonVariant.Quiet -> Triple(Color.Transparent, colors.textSecondary, Color.Transparent)
     }
 
     var m = Modifier
         .then(if (block) Modifier.fillMaxWidth() else Modifier)
-        .defaultMinSize(minHeight = spec.height.dp).clip(shape).background(bgBrush)
+        .defaultMinSize(minHeight = spec.height.dp).clip(shape).background(fill)
         .border(1.dp, borderColor, shape)
-        .alpha(if (disabled || onClick == null) 0.5f else 1f)
+        .flareDimmed(if (disabled || onClick == null) 0.5f else 1f)
     m = m.clickable(enabled = !off, role = androidx.compose.ui.semantics.Role.Button) { onClick?.invoke() }
     m = m.padding(horizontal = spec.hPad.dp, vertical = FlareSizes.spacingSm)
 
-    Row(m, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs)) {
+    // A block button centres its label across the width, as on iOS and the web; a hugging one has no slack to place.
+    Row(
+        m,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs, Alignment.CenterHorizontally),
+    ) {
         if (loading) {
             CircularProgressIndicator(Modifier.size(15.dp), color = fg, strokeWidth = 2.dp)
         } else if (icon != null) {
@@ -135,6 +140,13 @@ fun Button(
         }
     }
 }
+
+/**
+ * Dims what follows in the chain to [alpha], keeping one layer whatever the value. `Modifier.alpha(1f)` drops its layer,
+ * and dropping a layer below a fill as a control becomes enabled left the fill undrawn — a submit lost its colour as its
+ * form became valid, only its label staying on the page.
+ */
+internal fun Modifier.flareDimmed(alpha: Float): Modifier = graphicsLayer { this.alpha = alpha }
 
 // MARK: - IconButton
 
@@ -180,7 +192,7 @@ fun IconButton(
         contentAlignment = Alignment.Center,
     ) {
         Box(
-            Modifier.size(dimDp).clip(shape).background(bg).alpha(if (disabled) 0.45f else 1f),
+            Modifier.size(dimDp).clip(shape).background(bg).flareDimmed(if (disabled) 0.45f else 1f),
             contentAlignment = Alignment.Center,
         ) { FlareIcon(name = icon, size = glyphDp, tint = fg, contentDescription = contentDescription) }
     }
@@ -223,7 +235,7 @@ fun Switch(value: Boolean, disabled: Boolean = false, onChange: ((Boolean) -> Un
     Box(
         Modifier.width(44.dp).height(26.dp).clip(RoundedCornerShape(999.dp))
             .background(if (value) colors.primary else colors.borderHover)
-            .alpha(if (disabled) 0.5f else 1f)
+            .flareDimmed(if (disabled) 0.5f else 1f)
             .toggleable(value = value, enabled = !disabled && onChange != null, role = Role.Switch) { onChange?.invoke(it) },
     ) {
         // Knob — white disc with a soft drop shadow (parity with iOS/Flutter rgba(21,18,32,.28) blur 3 / y 1).
@@ -249,7 +261,7 @@ fun Checkbox(
     val colors = flareColors()
     val on = value || indeterminate
     Row(
-        Modifier.alpha(if (disabled) 0.5f else 1f)
+        Modifier.flareDimmed(if (disabled) 0.5f else 1f)
             .triStateToggleable(
                 state = when { indeterminate -> ToggleableState.Indeterminate; value -> ToggleableState.On; else -> ToggleableState.Off },
                 enabled = !disabled && onChange != null,
@@ -284,7 +296,7 @@ fun RadioGroup(
     val row: @Composable (FlareSelectOption) -> Unit = { o ->
         val on = o.value == value
         Row(
-            Modifier.alpha(if (o.disabled) 0.5f else 1f)
+            Modifier.flareDimmed(if (o.disabled) 0.5f else 1f)
                 .selectable(selected = on, enabled = !o.disabled && onSelect != null, role = Role.RadioButton) { onSelect?.invoke(o.value) },
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
         ) {
@@ -328,7 +340,7 @@ fun Select(
     Row(
         Modifier.height(spec.height.dp).defaultMinSize(minWidth = 160.dp).clip(shape).background(colors.bgSecondary)
             .border(1.dp, if (open) colors.primary else colors.borderPrimary, shape)
-            .alpha(if (disabled) 0.55f else 1f)
+            .flareDimmed(if (disabled) 0.55f else 1f)
             // 停用要写进 clickable 里,而不是把整条 clickable 换掉 —— 换掉就连
             // Role.Button 和 disabled 状态一起丢了,读屏会把它念成普通一行文字。
             .clickable(enabled = !disabled, role = Role.Button) { open = true }
@@ -365,7 +377,7 @@ fun Select(
                     val selected = o.value == value
                     Row(
                         Modifier.fillMaxWidth().height(52.dp).clip(RoundedCornerShape(FlareSizes.radiusLg))
-                            .alpha(if (o.disabled) 0.4f else 1f)
+                            .flareDimmed(if (o.disabled) 0.4f else 1f)
                             .clickable(enabled = !o.disabled, role = Role.Button) { onChange?.invoke(o.value); open = false }
                             .padding(horizontal = FlareSizes.spacingLg),
                         verticalAlignment = Alignment.CenterVertically,

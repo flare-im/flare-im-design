@@ -25,7 +25,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -301,7 +300,7 @@ fun MemberRoleSheet(
                                             colors.borderPrimary,
                                             RoundedCornerShape(FlareSizes.radiusMd),
                                         )
-                                        .alpha(if (enabled) 1f else 0.5f)
+                                        .flareDimmed(if (enabled) 1f else 0.5f)
                                         .clickable(
                                             enabled = enabled,
                                             role = Role.Button,

@@ -39,7 +39,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -377,7 +376,7 @@ private fun BatchButton(
             .clip(RoundedCornerShape(FlareSizes.radiusMd))
             .background(bg)
             .then(if (enabled) Modifier.clickable(onClick = onTap) else Modifier)
-            .alpha(if (enabled) 1f else if (pending) 0.85f else 0.45f)
+            .flareDimmed(if (enabled) 1f else if (pending) 0.85f else 0.45f)
             .padding(horizontal = FlareSizes.spacing2sm)
             .semantics(mergeDescendants = true) { contentDescription = description },
         verticalAlignment = Alignment.CenterVertically,
@@ -396,7 +395,7 @@ private fun BatchIconButton(colors: FlareColors, icon: ImageVector, label: Strin
             .clip(RoundedCornerShape(FlareSizes.radiusMd))
             .background(colors.bgSecondary)
             .then(if (enabled) Modifier.clickable(onClick = onTap) else Modifier)
-            .alpha(if (enabled) 1f else 0.45f),
+            .flareDimmed(if (enabled) 1f else 0.45f),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
     ) {

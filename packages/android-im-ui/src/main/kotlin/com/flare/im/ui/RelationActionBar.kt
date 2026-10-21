@@ -36,7 +36,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -225,7 +224,7 @@ fun RelationActionBar(
                         Modifier.size(FlareSizes.touchTarget)
                             .clip(RoundedCornerShape(FlareSizes.radiusMd))
                             .then(if (enabled) Modifier.clickable(onClick = onDismissError) else Modifier)
-                            .alpha(if (enabled) 1f else 0.45f)
+                            .flareDimmed(if (enabled) 1f else 0.45f)
                             .semantics(mergeDescendants = true) { contentDescription = dismissErrorText },
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
@@ -333,7 +332,7 @@ private fun RelationButton(
             .clip(RoundedCornerShape(FlareSizes.radiusMd))
             .background(bg)
             .then(if (enabled) Modifier.clickable(onClick = onTap) else Modifier)
-            .alpha(if (enabled) 1f else if (inProgress) 0.85f else 0.45f)
+            .flareDimmed(if (enabled) 1f else if (inProgress) 0.85f else 0.45f)
             .padding(horizontal = FlareSizes.spacingMd)
             .semantics(mergeDescendants = true) { contentDescription = description },
         verticalAlignment = Alignment.CenterVertically,

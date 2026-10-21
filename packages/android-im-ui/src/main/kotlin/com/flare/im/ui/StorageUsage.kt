@@ -30,7 +30,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
@@ -515,7 +514,7 @@ private fun TextAction(
 ) {
     Row(
         Modifier.clip(RoundedCornerShape(FlareSizes.radiusSm))
-            .alpha(if (enabled) 1f else 0.5f)
+            .flareDimmed(if (enabled) 1f else 0.5f)
             .clickable(enabled = enabled, role = Role.Button, onClickLabel = label) { onClick() }
             .padding(horizontal = FlareSizes.spacingSm, vertical = FlareSizes.spacing2xs),
         verticalAlignment = Alignment.CenterVertically,

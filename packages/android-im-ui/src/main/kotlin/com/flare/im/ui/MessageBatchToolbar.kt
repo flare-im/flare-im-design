@@ -20,7 +20,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -186,7 +185,7 @@ private fun MessageBatchButton(
             .clip(RoundedCornerShape(FlareSizes.radiusMd))
             .background(colors.bgSecondary)
             .then(if (control.enabled && onTap != null) Modifier.clickable(role = Role.Button) { onTap() } else Modifier)
-            .alpha(if (control.enabled) 1f else 0.45f)
+            .flareDimmed(if (control.enabled) 1f else 0.45f)
             .padding(horizontal = FlareSizes.spacing2sm),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs),
@@ -204,7 +203,7 @@ private fun MessageBatchExitButton(colors: FlareColors, control: FlareIconContro
         onClick = onTap,
         enabled = control.enabled,
         shape = RoundedCornerShape(FlareSizes.radiusMd),
-        modifier = Modifier.alpha(if (control.enabled) 1f else 0.45f),
+        modifier = Modifier.flareDimmed(if (control.enabled) 1f else 0.45f),
     ) {
         Box(
             Modifier.size(width = FlareSizes.touchTarget, height = FlareSizes.controlHeightSm)

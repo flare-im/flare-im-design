@@ -37,7 +37,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -323,7 +322,7 @@ private fun PagingButton(control: FlareIconControlSpec, onClick: (() -> Unit)?) 
         label = control.label,
         onClick = onClick ?: {},
         enabled = onClick != null,
-        modifier = Modifier.alpha(if (onClick != null) 1f else FlareOpacity.disabled),
+        modifier = Modifier.flareDimmed(if (onClick != null) 1f else FlareOpacity.disabled),
     ) {
         Box(Modifier.matchParentSize().clip(CircleShape).background(Color.White.copy(alpha = 0.25f)))
         Icon(flareIconVector(control.icon), null, tint = Color.White)

@@ -28,7 +28,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -121,7 +120,7 @@ fun FlareComposerActionPanel(
             ) {
                 row.forEach { action ->
                     Column(
-                        Modifier.weight(1f).alpha(if (action.enabled) 1f else FlareOpacity.disabled)
+                        Modifier.weight(1f).flareDimmed(if (action.enabled) 1f else FlareOpacity.disabled)
                             .clickable(enabled = action.enabled) { onAction?.invoke(action) },
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {

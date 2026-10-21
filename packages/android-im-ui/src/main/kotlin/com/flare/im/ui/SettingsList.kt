@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.draw.alpha
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -159,7 +158,7 @@ fun SettingsRow(
     Row(
         Modifier.fillMaxWidth()
             .heightIn(min = FlareSizes.touchTarget)
-            .alpha(if (item.disabled) 0.45f else 1f)
+            .flareDimmed(if (item.disabled) 0.45f else 1f)
             .then(behaviour)
             .padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingMd),
         verticalAlignment = if (stacked) Alignment.Top else Alignment.CenterVertically,

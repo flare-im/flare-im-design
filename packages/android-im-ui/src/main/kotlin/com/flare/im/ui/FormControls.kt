@@ -49,7 +49,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
@@ -123,7 +122,7 @@ fun Textarea(
             .clip(shape)
             .background(if (focused) colors.bgPrimary else colors.bgSecondary)
             .border(1.dp, if (focused) colors.borderSelected else colors.borderPrimary, shape)
-            .alpha(if (disabled) 0.55f else 1f)
+            .flareDimmed(if (disabled) 0.55f else 1f)
             .padding(pad.dp),
     ) {
         BasicTextField(
@@ -180,11 +179,11 @@ fun Stepper(
 
     Row(
         Modifier.height(h.dp).clip(shape).background(colors.bgSecondary)
-            .border(1.dp, colors.borderPrimary, shape).alpha(if (disabled) 0.55f else 1f),
+            .border(1.dp, colors.borderPrimary, shape).flareDimmed(if (disabled) 0.55f else 1f),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
-            Modifier.size(btn.dp).alpha(if (canDec) 1f else 0.4f)
+            Modifier.size(btn.dp).flareDimmed(if (canDec) 1f else 0.4f)
                 .then(if (canDec) Modifier.clickable(role = Role.Button, onClickLabel = flareStrings().decrease) { set(value - step) } else Modifier),
             contentAlignment = Alignment.Center,
         ) { Icon(Icons.Outlined.Remove, contentDescription = flareStrings().decrease, tint = colors.textSecondary, modifier = Modifier.size(glyph.dp)) }
@@ -193,7 +192,7 @@ fun Stepper(
             modifier = Modifier.width(fieldW.dp),
         )
         Box(
-            Modifier.size(btn.dp).alpha(if (canInc) 1f else 0.4f)
+            Modifier.size(btn.dp).flareDimmed(if (canInc) 1f else 0.4f)
                 .then(if (canInc) Modifier.clickable(role = Role.Button, onClickLabel = flareStrings().increase) { set(value + step) } else Modifier),
             contentAlignment = Alignment.Center,
         ) { Icon(Icons.Outlined.Add, contentDescription = flareStrings().increase, tint = colors.textSecondary, modifier = Modifier.size(glyph.dp)) }
@@ -229,7 +228,7 @@ fun Slider(
     }
 
     BoxWithConstraints(
-        Modifier.fillMaxWidth().height(48.dp).alpha(if (disabled) 0.5f else 1f)
+        Modifier.fillMaxWidth().height(48.dp).flareDimmed(if (disabled) 0.5f else 1f)
             .semantics {
                 progressBarRangeInfo = ProgressBarRangeInfo(value, min..max, if (step > 0f) ((max - min) / step).toInt() else 0)
             },
@@ -292,7 +291,7 @@ fun Rating(
     val colors = flareColors()
     val interactive = !readonly && !disabled
     Row(
-        Modifier.alpha(if (disabled) 0.5f else 1f).then(if (interactive) Modifier.selectableGroup() else Modifier),
+        Modifier.flareDimmed(if (disabled) 0.5f else 1f).then(if (interactive) Modifier.selectableGroup() else Modifier),
         horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -362,7 +361,7 @@ fun TimePicker(
     Row(
         Modifier.height(trigH.dp).clip(shape).background(colors.bgSecondary)
             .border(1.dp, if (open) colors.primary else colors.borderPrimary, shape)
-            .alpha(if (disabled) 0.55f else 1f)
+            .flareDimmed(if (disabled) 0.55f else 1f)
             .then(if (!disabled) Modifier.clickable { open = true } else Modifier)
             .padding(horizontal = trigPad.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -496,7 +495,7 @@ fun DatePicker(
     Row(
         Modifier.height(trigH.dp).clip(shape).background(colors.bgSecondary)
             .border(1.dp, if (open) colors.primary else colors.borderPrimary, shape)
-            .alpha(if (disabled) 0.55f else 1f)
+            .flareDimmed(if (disabled) 0.55f else 1f)
             .then(if (!disabled) Modifier.clickable { open = true } else Modifier)
             .padding(horizontal = trigPad.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -562,7 +561,7 @@ fun DatePicker(
                                         .clip(RoundedCornerShape(FlareSizes.radiusMd))
                                         .then(if (selected) Modifier.background(Brush.linearGradient(listOf(colors.primary, colors.primaryActive))) else Modifier)
                                         .then(if (isToday && !selected) Modifier.border(1.dp, colors.primary, RoundedCornerShape(FlareSizes.radiusMd)) else Modifier)
-                                        .alpha(if (dis) 0.32f else 1f)
+                                        .flareDimmed(if (dis) 0.32f else 1f)
                                         .then(if (!dis) Modifier.clickable { onChange?.invoke(ds); open = false } else Modifier),
                                     contentAlignment = Alignment.Center,
                                 ) {
