@@ -20,3 +20,5 @@ export { default as FlareDangerConfirm } from "./components/scenes/FlareDangerCo
 export { default as FlareInput } from "./components/general/FlareInput.vue";
 export { default as FlareFormField } from "./components/form/FlareFormField.vue";
 export { default as FlareCheckbox } from "./components/form/FlareCheckbox.vue";
+
+export { default as FlareSchemaForm } from "./components/form/FlareSchemaForm.vue";
