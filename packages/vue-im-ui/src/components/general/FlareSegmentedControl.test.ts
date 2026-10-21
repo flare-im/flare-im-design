@@ -41,4 +41,10 @@ describe("FlareSegmentedControl", () => {
     expect(wrapper.findAll('[role="tab"]')).toHaveLength(0);
     expect(wrapper.attributes("role")).toBe("tablist");
   });
+
+  it("takes an optional accent for the selected label and otherwise keeps the brand", () => {
+    expect(mount(FlareSegmentedControl, { props: { options } }).attributes("style")).toBeUndefined();
+    const tinted = mount(FlareSegmentedControl, { props: { options, accent: "var(--flare-color-red-packet-accent)" } });
+    expect(tinted.attributes("style")).toContain("--flare-segmented-accent: var(--flare-color-red-packet-accent)");
+  });
 });

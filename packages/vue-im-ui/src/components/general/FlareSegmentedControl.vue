@@ -2,7 +2,11 @@
 // Compact equal-width segmented selector (分段选择器) — mutually-exclusive options.
 // Distinct from FlareFilterTabs (scrollable pills w/ badges); this is a bordered
 // iOS-style segmented control for a small in-page filter.
-defineProps<{ options: string[] }>();
+defineProps<{
+  options: string[];
+  /** Colour of the selected segment's label (a CSS colour); the brand text colour when omitted. */
+  accent?: string;
+}>();
 const active = defineModel<number>({ default: 0 });
 const emit = defineEmits<{ (e: "change", index: number): void }>();
 
@@ -13,7 +17,7 @@ function select(i: number): void {
 </script>
 
 <template>
-  <div class="flare-segmented" role="tablist">
+  <div class="flare-segmented" role="tablist" :style="accent ? { '--flare-segmented-accent': accent } : undefined">
     <button
       v-for="(label, i) in options"
       :key="i"
@@ -51,7 +55,7 @@ function select(i: number): void {
 }
 .flare-segmented__seg.is-active {
   background: var(--flare-color-bg-primary);
-  color: var(--flare-color-primary-text);
+  color: var(--flare-segmented-accent, var(--flare-color-primary-text));
   box-shadow: var(--flare-shadow-sm);
 }
 </style>

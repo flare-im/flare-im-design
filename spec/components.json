@@ -13813,6 +13813,15 @@
             "zh": "v-model 绑定当前选中索引。",
             "en": "v-model bound selected index."
           }
+        },
+        {
+          "name": "accent",
+          "type": "Color",
+          "required": false,
+          "description": {
+            "zh": "选中项文字的颜色；不传时为品牌色。用于需要主题色的场景，如发红包表单的 redPacket.accent。",
+            "en": "Colour of the selected segment's label; the brand colour when omitted. For surfaces with their own theme colour, e.g. redPacket.accent in the red packet composer."
+          }
         }
       ],
       "states": [],

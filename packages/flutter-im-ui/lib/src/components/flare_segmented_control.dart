@@ -11,11 +11,15 @@ class FlareSegmentedControl extends StatelessWidget {
     required this.options,
     required this.selectedIndex,
     this.onSelect,
+    this.accent,
   });
 
   final List<String> options;
   final int selectedIndex;
   final void Function(int index)? onSelect;
+
+  /// Colour of the selected segment's label; the brand colour when null.
+  final Color? accent;
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +58,9 @@ class FlareSegmentedControl extends StatelessWidget {
                   options[i],
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: active ? colors.primary : colors.textSecondary,
+                    color: active
+                        ? accent ?? colors.primary
+                        : colors.textSecondary,
                     fontSize: 14,
                     fontWeight: active ? FontWeight.w600 : FontWeight.w500,
                   ),

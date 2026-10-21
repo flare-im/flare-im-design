@@ -216,17 +216,23 @@ public struct InputView: View {
 }
 
 /// Compact equal-width segmented selector (分段选择器). Spec: General/SegmentedControl.
-/// Mutually-exclusive `options`; the selected segment is surfaced on a raised chip.
+/// Mutually-exclusive `options`; the selected segment is surfaced on a raised chip. The rail is a 44pt touch
+/// target tall and each segment takes taps across the rail's full height, its inset included. `accent` colours the
+/// selected segment's label (a text colour, readable on the raised chip); nil keeps the brand's `primaryText`.
 public struct SegmentedControlView: View {
     private let options: [String]
     private let selectedIndex: Int
     private let onSelect: ((Int) -> Void)?
+    private let accent: Color?
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
 
-    public init(options: [String], selectedIndex: Int, onSelect: ((Int) -> Void)? = nil) {
-        self.options = options; self.selectedIndex = selectedIndex; self.onSelect = onSelect
+    public init(options: [String], selectedIndex: Int, onSelect: ((Int) -> Void)? = nil, accent: Color? = nil) {
+        self.options = options; self.selectedIndex = selectedIndex; self.onSelect = onSelect; self.accent = accent
     }
+
+    /// The gap between the rail and the selected chip.
+    static let inset: CGFloat = 3
 
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
@@ -236,19 +242,22 @@ public struct SegmentedControlView: View {
                 Button { onSelect?(i) } label: {
                     Text(label)
                         .font(.system(size: 14, weight: active ? .semibold : .medium))
-                        .foregroundColor(active ? colors.primaryText : colors.textSecondary)
-                        .frame(maxWidth: .infinity).padding(.vertical, 8)
+                        .foregroundColor(active ? accent ?? colors.primaryText : colors.textSecondary)
+                        .frame(maxWidth: .infinity, minHeight: FlareSizes.touchTargetMin - 2 * Self.inset)
                         .background(
                             RoundedRectangle(cornerRadius: FlareSizes.radiusMd)
                                 .fill(active ? colors.bgPrimary : Color.clear)
                                 .shadow(color: active ? Color.black.opacity(0.12) : .clear, radius: 4, y: 1)
                         )
+                        // The rail's inset is part of the label, so the whole rail height takes the tap.
+                        .padding(.vertical, Self.inset)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityAddTraits(active ? .isSelected : [])
             }
         }
-        .padding(3)
+        .padding(.horizontal, Self.inset)
         .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.bgSecondary))
         .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).stroke(colors.borderPrimary, lineWidth: 1))
         .animation(.easeOut(duration: 0.15), value: selectedIndex)

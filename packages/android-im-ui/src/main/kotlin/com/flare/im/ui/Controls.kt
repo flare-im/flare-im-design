@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.semantics.Role
@@ -67,6 +69,9 @@ fun ScreenHeader(
  * selected segment surfaced on a [FlareColors.bgPrimary] chip ([FlareSizes.radiusMd] + soft shadow,
  * [FlareColors.primary] label); unselected segments read [FlareColors.textSecondary]. Emits the
  * chosen index via [onSelect]. Use for a small, flat in-page filter (联系人 / 群组 / 新的联系人 …).
+ * The rail is a touch target tall and each segment takes taps across the rail's full height, its inset included.
+ * [accent] colours the selected segment's label (a text colour, readable on the raised chip); null keeps the brand's
+ * `primaryText`.
  */
 @Composable
 fun SegmentedControl(
@@ -74,15 +79,17 @@ fun SegmentedControl(
     selectedIndex: Int,
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    accent: Color? = null,
 ) {
     val colors = flareColors()
     val trackShape = RoundedCornerShape(FlareSizes.radiusLg)
+    val inset = 3.dp
     Row(
         modifier
             .clip(trackShape)
             .background(colors.bgSecondary)
             .border(1.dp, colors.borderPrimary, trackShape)
-            .padding(3.dp),
+            .padding(horizontal = inset),
         horizontalArrangement = Arrangement.spacedBy(0.dp),
     ) {
         val chipShape = RoundedCornerShape(FlareSizes.radiusMd)
@@ -91,22 +98,26 @@ fun SegmentedControl(
             Box(
                 Modifier
                     .weight(1f)
+                    .heightIn(min = FlareSizes.touchTarget)
+                    .clip(chipShape)
+                    .semantics { selected = active }
+                    .clickable(role = Role.Tab, onClickLabel = label) { onSelect(i) }
+                    // The rail's inset is inside the segment, so the whole rail height takes the tap.
+                    .padding(vertical = inset)
                     .then(
                         if (active)
                             Modifier
                                 .shadow(4.dp, chipShape)
                                 .clip(chipShape)
                                 .background(colors.bgPrimary)
-                        else Modifier.clip(chipShape),
+                        else Modifier,
                     )
-                    .semantics { selected = active }
-                    .clickable(role = Role.Tab, onClickLabel = label) { onSelect(i) }
                     .padding(vertical = FlareSizes.spacingSm),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
                     label,
-                    color = if (active) colors.primaryText else colors.textSecondary,
+                    color = if (active) accent ?: colors.primaryText else colors.textSecondary,
                     fontSize = FlareSizes.fontSizeLg.value.sp,
                     fontWeight = if (active) FontWeight.SemiBold else FontWeight.Medium,
                 )
