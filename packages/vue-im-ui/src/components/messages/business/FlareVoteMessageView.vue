@@ -51,7 +51,10 @@ const options = computed<VoteOptionView[]>(() =>
     .filter((item): item is VoteOptionView => Boolean(item)),
 );
 const hasResults = computed(() => countLookup.value.size > 0 || readNumber(payload.value, -1, "totalVotes", "total_votes", "voteCount", "vote_count") >= 0 || participantCount.value > 0);
-const voteMeta = computed(() => hasResults.value ? `${options.value.length} options · ${totalVotes.value} votes` : `${options.value.length} options`);
+const voteMeta = computed(() => {
+  const optionCount = t("business.optionCount", { count: options.value.length });
+  return hasResults.value ? `${optionCount} · ${t("business.voteCount", { count: totalVotes.value })}` : optionCount;
+});
 
 function optionView(
   item: unknown,

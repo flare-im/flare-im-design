@@ -74,8 +74,10 @@
 
 .im-rich-message-card,
 .business-message-view {
-  width: min(var(--flare-component-rich-card-width), 100%);
-  min-width: min(252px, 100%);
+  /* A fixed card width, not a share of the bubble: a chromeless bubble sizes to its content, so a
+     percentage here would shrink the card to its text. The token already narrows with the list. */
+  width: var(--flare-component-rich-card-width);
+  min-width: 0;
   max-width: 100%;
   box-sizing: border-box;
   overflow: hidden;
@@ -328,6 +330,11 @@ a.im-rich-message-card:focus-visible {
 .business-message-view {
   display: flex;
   flex-direction: column;
+}
+
+/* The poll body has no frame of its own: the card supplies the inset. */
+.business-message-view--vote {
+  padding: var(--flare-size-spacing-2md);
 }
 
 .business-message-view__options {

@@ -142,9 +142,7 @@
   .message-content-view .message-rich-text,
   .message-content-view .message-file-card,
   .message-content-view .message-quote-card,
-  .message-content-view .message-placeholder-card,
-  .im-rich-message-card,
-  .business-message-view {
+  .message-content-view .message-placeholder-card {
     width: min(100%, var(--flare-component-rich-card-width));
     min-width: 0;
   }

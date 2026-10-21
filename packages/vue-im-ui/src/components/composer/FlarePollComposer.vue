@@ -4,7 +4,12 @@ import { NIcon } from "naive-ui";
 import { AddOutline, CloseOutline, CheckboxOutline } from "../../shared/icon-glyphs";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 
-const props = withDefaults(defineProps<{ maxOptions?: number }>(), { maxOptions: 10 });
+// `embedded` drops the card chrome and the title row when a host sheet or dialog already
+// supplies both (title and close), so the editor is not framed twice.
+const props = withDefaults(defineProps<{ maxOptions?: number; embedded?: boolean }>(), {
+  maxOptions: 10,
+  embedded: false,
+});
 const emit = defineEmits<{
   (e: "submit", payload: { question: string; options: string[]; multiple: boolean }): void;
   (e: "cancel"): void;
@@ -32,8 +37,8 @@ function submit(): void {
 </script>
 
 <template>
-  <div class="flare-poll-composer">
-    <header class="flare-poll-composer__head">
+  <div class="flare-poll-composer" :class="{ 'flare-poll-composer--embedded': embedded }">
+    <header v-if="!embedded" class="flare-poll-composer__head">
       <span class="flare-poll-composer__title">{{ t("poll.create") }}</span>
       <button type="button" class="flare-poll-composer__close" :aria-label="t('poll.cancel')" @click="emit('cancel')">
         <n-icon aria-hidden="true" :size="18" :component="CloseOutline" />
@@ -73,7 +78,8 @@ function submit(): void {
 
     <label class="flare-poll-composer__multi">
       <input v-model="multiple" type="checkbox" />
-      <n-icon aria-hidden="true" :size="16" :component="CheckboxOutline" />
+      <n-icon v-if="multiple" class="flare-poll-composer__check" aria-hidden="true" :size="16" :component="CheckboxOutline" />
+      <span v-else class="flare-poll-composer__box" aria-hidden="true" />
       {{ t("poll.allowMultiple") }}
     </label>
 
@@ -95,6 +101,14 @@ function submit(): void {
   background: var(--flare-color-bg-primary);
   border: 1px solid var(--flare-color-border-primary);
   box-shadow: var(--flare-shadow-lg);
+}
+.flare-poll-composer--embedded {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 .flare-poll-composer__head {
   display: flex;
@@ -174,6 +188,14 @@ function submit(): void {
   cursor: pointer;
 }
 .flare-poll-composer__multi input { display: none; }
+.flare-poll-composer__check { color: var(--flare-color-primary-text); }
+.flare-poll-composer__box {
+  width: 13px;
+  height: 13px;
+  margin: 1.5px;
+  border: 1.5px solid var(--flare-color-text-tertiary);
+  border-radius: 3px;
+}
 .flare-poll-composer__submit {
   margin-top: 2px;
   height: 40px;
