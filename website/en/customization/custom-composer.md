@@ -2,7 +2,7 @@
 
 # Custom Composer
 
-Composer defaults to Image, File, Voice, Location, and Contact. Camera is optional; Poll, Task, Event, and MiniApp are advanced capabilities.
+Composer defaults to the built-in features Image, Video, File, Voice, Card, and Poll, in the same order and with the same icons on every platform; Camera, Location, Task, Event, and MiniApp are advanced capabilities. Plugin entries (kind plugin) follow the built-in ones; an icon name outside the registry draws the generic plugin glyph. capabilities.availableToolIds picks the toolbar tools.
 
 ## Principle
 

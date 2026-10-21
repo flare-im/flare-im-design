@@ -297,6 +297,20 @@ title: Data Types
 | `mimeType` | `string` |  | MIME type hint. |
 | `fileName` | `string` |  | Original file name. |
 
+### ComposerCapabilities {#composer-capabilities}
+
+`FlareComposerCapabilities`
+
+> Host-owned availability of the composer's "+" actions and toolbar tools; presentation only, the server still decides what may be sent.
+
+**Used by: **[Composer](/en/components/composer) · [ComposerActionPanel](/en/components/composer-action-panel)
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `availableActionIds` | `string[]` |  | "+" panel ids to keep; omitted keeps every action. |
+| `availableToolIds` | [`ComposerToolId[]`](/en/reference/data-types#composer-tool-id) |  | Toolbar tools to show (emoji, mention, voice, image, richText, attachments — the "+" button); omitted shows every tool, a list shows only the tools it names. SwiftUI spells it availableToolIDs. |
+| `mentions` | `boolean` |  | Whether the conversation supports @ at all (false for a direct chat); Flutter, SwiftUI and Compose take the composer's own mention switch. |
+
 ### InviteCodeCheckResult {#invite-code-check-result}
 
 `FlareInviteCodeCheckResult`
@@ -511,6 +525,22 @@ title: Data Types
 > Composer status driving hints and disabled state.
 
 `idle` · `typing` · `sending` · `failed` · `disabled` · `offline` · `permissionDenied` · `capabilityUnavailable` · `runtimeUnavailable`
+
+### ComposerActionKind {#composer-action-kind}
+
+`FlareComposerActionKind`
+
+> Where a "+" tile comes from: a built-in feature or an authorised plugin's composer-action; hosts may leave it out for a tile of their own.
+
+`feature` · `plugin`
+
+### ComposerToolId {#composer-tool-id}
+
+`FlareComposerToolId`
+
+> Composer toolbar tool ids, the same on all four platforms; attachments is the "+" button.
+
+`emoji` · `mention` · `voice` · `image` · `richText` · `attachments`
 
 ### MediaKind {#media-kind}
 

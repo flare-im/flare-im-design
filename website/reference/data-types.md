@@ -297,6 +297,20 @@ title: 数据类型
 | `mimeType` | `string` |  | MIME 类型提示。 |
 | `fileName` | `string` |  | 原始文件名。 |
 
+### ComposerCapabilities {#composer-capabilities}
+
+`FlareComposerCapabilities`
+
+> 宿主持有的输入栏「+」动作与工具条工具可用性；只管展示，能否发送仍以服务端为准。
+
+**被使用于：**[Composer](/components/composer) · [ComposerActionPanel](/components/composer-action-panel)
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `availableActionIds` | `string[]` |  | 保留的「+」面板 id；不传时全部保留。 |
+| `availableToolIds` | [`ComposerToolId[]`](/reference/data-types#composer-tool-id) |  | 要显示的工具条工具（emoji、mention、voice、image、richText、attachments 即「+」按钮）；不传时全部显示，传了只显示列出的工具。SwiftUI 写作 availableToolIDs。 |
+| `mentions` | `boolean` |  | 会话是否支持 @（单聊为 false）；Flutter、SwiftUI、Compose 用输入框自己的提及开关。 |
+
 ### InviteCodeCheckResult {#invite-code-check-result}
 
 `FlareInviteCodeCheckResult`
@@ -511,6 +525,22 @@ title: 数据类型
 > 输入框状态，驱动提示与禁用。
 
 `idle` · `typing` · `sending` · `failed` · `disabled` · `offline` · `permissionDenied` · `capabilityUnavailable` · `runtimeUnavailable`
+
+### ComposerActionKind {#composer-action-kind}
+
+`FlareComposerActionKind`
+
+> 「+」项的来源：内置功能，或已授权插件声明的输入栏入口；宿主自己的项可以不传。
+
+`feature` · `plugin`
+
+### ComposerToolId {#composer-tool-id}
+
+`FlareComposerToolId`
+
+> 输入栏工具条工具 id，四端相同；attachments 即「+」按钮。
+
+`emoji` · `mention` · `voice` · `image` · `richText` · `attachments`
 
 ### MediaKind {#media-kind}
 

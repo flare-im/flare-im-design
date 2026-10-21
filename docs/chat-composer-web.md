@@ -46,7 +46,9 @@
 
 ## 可扩展配置
 
-- `actions: undefined` 使用图片、文件、语音、位置、联系人默认项；`[]` 明确表示空列表。宿主数组决定排序和可见性，每页 8 项。`id/label/icon/enabled/disabledReason/intent` 支持自定义功能、能力限制及本地化提示。
+- `actions: undefined` 使用内置功能默认集：图片、视频、文件、语音、名片、投票，四端顺序与图标相同；`[]` 明确表示空列表。宿主数组整份替换默认集，决定排序和可见性，每页 8 项。`id/label/icon/enabled/disabledReason/intent` 支持自定义功能、能力限制及本地化提示。统一 id 可以不带 `label`，文案由组件库语言包按 id 提供。
+- `kind` 标记内置功能（`feature`）或插件入口（`plugin`），宿主自己的项可以不传。`icon` 不是注册表名时画通用插件图标 `plugin`，四端同一条规则；Vue 另外接受图标组件，emoji 照文字画。
+- `capabilities.availableToolIds` 选择工具条工具（`emoji / mention / voice / image / richText / attachments`，`attachments` 即「+」按钮）：不传时全部显示，传了只显示列出的工具。工具被收走时，它打开的面板随即关闭，草稿保留。
 - `moreSearchVisible / moreTitleVisible / moreCloseVisible` 默认 false，各自独立控制。关闭搜索配置时同时清理过滤词。
 - 面板互斥；点外部或 Escape 关闭面板，下一次 Escape 收起展开编辑器。文字内容保持。
 - `conversationKey` 改变时取消待授权/进行中的录音、清理录音预览并关闭临时面板，防止跨会话误发。

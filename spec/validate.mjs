@@ -349,6 +349,90 @@ for (const c of spec.components) {
       if (missing.length) errors.push(`enum "${name}" [${p}]: missing member(s) ${missing.join(", ")} that vue declares`);
     }
   }
+
+  // ── 输入栏「+」面板与工具条：一份契约，四份实现 ──────────────────────
+  // 签名关只比组件 props 的名字。composerActions 的内置默认集（id、顺序、图标）、
+  // FlareComposerActionKind 的成员、capabilities 上的 availableToolIds 都落在数据
+  // 类型和默认集里，签名关看不见：某一端还停在旧默认集（位置、联系人）或者少了
+  // 工具名单，契约照样是绿的。这里逐端读出来与 composerActions 比对。
+  {
+    const composer = spec.composerActions ?? {};
+    const read = (rel) => {
+      const path = join(here, "..", rel);
+      return existsSync(path) ? readFileSync(path, "utf8") : null;
+    };
+    const vueIcons = read("packages/vue-im-ui/src/shared/icons.ts") ?? "";
+    const registry = new Set([...vueIcons.slice(vueIcons.indexOf("export const flareIcons")).matchAll(/^\s*["']?([a-z][a-z0-9-]*)["']?\s*:\s*\w+,?\s*$/gm)].map((m) => m[1]));
+    const defaults = composer.defaults ?? [];
+    for (const id of defaults) if (!composer.ids?.includes(id)) errors.push(`composerActions.defaults: "${id}" is not in composerActions.ids`);
+    if (Object.keys(composer.defaultIcons ?? {}).join() !== defaults.join()) errors.push("composerActions.defaultIcons must name the defaults, in their order");
+    if (Object.keys(composer.defaultLabels ?? {}).join() !== defaults.join()) errors.push("composerActions.defaultLabels must name the defaults, in their order");
+    for (const icon of [...Object.values(composer.defaultIcons ?? {}), composer.pluginFallbackIcon]) {
+      if (!registry.has(icon)) errors.push(`composerActions: icon "${icon}" is not a registry name (packages/vue-im-ui/src/shared/icons.ts)`);
+    }
+    // 原生三端的文案字段来自 strings/en.json：每个内置 id 的字段要在三个 kit 里都声明。
+    const nativeStrings = JSON.parse(read("strings/en.json") ?? "{}");
+    // Flutter 有自己的字段名时记在 `flutter`（语音：composerVoice 在 Flutter 是「按住 说话」）。
+    const kits = { flutter: "flutter", ios: "ios", compose: "android" };
+    for (const [id, label] of Object.entries(composer.defaultLabels ?? {})) {
+      for (const [platform, kit] of Object.entries(kits)) {
+        const field = label[platform] ?? label.native;
+        const entry = nativeStrings[field];
+        if (!entry) errors.push(`composerActions.defaultLabels.${id}: strings/en.json has no field "${field}" (${platform})`);
+        else if (!entry.kits?.includes(kit)) errors.push(`composerActions.defaultLabels.${id}: "${field}" is not declared by ${platform} (strings/en.json kits)`);
+      }
+    }
+
+    // 默认集：每端一段源码，读出 (id, icon) 对，比顺序与图标。
+    const DEFAULT_SETS = {
+      vue: {
+        file: "packages/vue-im-ui/src/shared/contracts/composer.ts",
+        pairs(text) {
+          const ids = text.match(/FLARE_DEFAULT_COMPOSER_ACTION_IDS[^=]*=\s*\[([^\]]*)\]/);
+          const icons = text.match(/FLARE_COMPOSER_ACTION_ICONS[^=]*=\s*\{([^}]*)\}/);
+          if (!ids || !icons) return null;
+          const iconOf = new Map([...icons[1].matchAll(/(\w+):\s*["']([\w-]+)["']/g)].map((m) => [m[1], m[2]]));
+          return [...ids[1].matchAll(/["'](\w+)["']/g)].map((m) => [m[1], iconOf.get(m[1])]);
+        },
+      },
+      flutter: { file: "packages/flutter-im-ui/lib/src/components/composer/flare_composer_action_panel.dart", anchor: /static const List<FlareComposerAction> defaultActions\s*=\s*\[/ },
+      ios: { file: "packages/ios-im-ui/Sources/FlareIMUI/Components/ComposerParts.swift", anchor: /static func actions\(for strings: FlareStrings\)[^{]*\{/ },
+      compose: { file: "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/ComposerActions.kt", anchor: /fun defaultComposerActions\([^)]*\)[^=]*=\s*listOf\(/ },
+    };
+    /** The (id, icon) pairs of the constructor calls in the bracket block the anchor opens. */
+    const constructorPairs = (text, anchor) => {
+      const m = anchor.exec(text);
+      if (!m) return null;
+      const open = text[m.index + m[0].length - 1];
+      const close = { "[": "]", "{": "}", "(": ")" }[open];
+      let depth = 0;
+      let end = m.index + m[0].length - 1;
+      for (; end < text.length; end += 1) {
+        if (text[end] === open) depth += 1;
+        else if (text[end] === close && --depth === 0) break;
+      }
+      const body = text.slice(m.index + m[0].length, end);
+      const named = [...body.matchAll(/\bid\s*[:=]\s*["'](\w+)["'][^)]*?\bicon\s*[:=]\s*["']([\w-]+)["']/g)].map((x) => [x[1], x[2]]);
+      if (named.length) return named;
+      return [...body.matchAll(/FlareComposerAction\(\s*["'](\w+)["']\s*,\s*[^,]+?,\s*["']([\w-]+)["']/g)].map((x) => [x[1], x[2]]);
+    };
+    const expected = defaults.map((id) => `${id}:${composer.defaultIcons?.[id]}`).join(", ");
+    for (const [platform, site] of Object.entries(DEFAULT_SETS)) {
+      const text = read(site.file);
+      const pairs = text === null ? null : site.pairs ? site.pairs(text) : constructorPairs(text, site.anchor);
+      if (!pairs?.length) { errors.push(`composerActions [${platform}]: cannot read the default action set in ${site.file}`); continue; }
+      const got = pairs.map(([id, icon]) => `${id}:${icon}`).join(", ");
+      if (got !== expected) errors.push(`composerActions [${platform}]: default set is ${got}; the contract is ${expected}`);
+    }
+
+    // 「+」项的来源：feature / plugin，四端同一个枚举。
+    const kinds = Object.fromEntries(Object.keys(ENUM_ROOTS).map((p) => [p, membersOf(p, "FlareComposerActionKind")]));
+    const wantKinds = [...(composer.kinds ?? [])].map((k) => k.toLowerCase()).sort().join();
+    for (const [platform, members] of Object.entries(kinds)) {
+      if (!members) errors.push(`composerActions [${platform}]: no FlareComposerActionKind enum (${composer.kinds?.join(" | ")})`);
+      else if ([...new Set(members)].sort().join() !== wantKinds) errors.push(`composerActions [${platform}]: FlareComposerActionKind is ${members.join(", ")}; the contract is ${composer.kinds?.join(", ")}`);
+    }
+  }
 }
 
 // 每个组件每个端：契约声明的 props/事件必须能在实现签名里找到（允许 lexicon /

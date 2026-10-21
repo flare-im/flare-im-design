@@ -1301,6 +1301,77 @@
       ]
     },
     {
+      "name": "ComposerCapabilities",
+      "symbol": "FlareComposerCapabilities",
+      "kind": "interface",
+      "summary": {
+        "en": "Host-owned availability of the composer's \"+\" actions and toolbar tools; presentation only, the server still decides what may be sent.",
+        "zh": "宿主持有的输入栏「+」动作与工具条工具可用性；只管展示，能否发送仍以服务端为准。"
+      },
+      "fields": [
+        {
+          "name": "availableActionIds",
+          "type": "string[]",
+          "required": false,
+          "description": {
+            "en": "\"+\" panel ids to keep; omitted keeps every action.",
+            "zh": "保留的「+」面板 id；不传时全部保留。"
+          }
+        },
+        {
+          "name": "availableToolIds",
+          "type": "ComposerToolId[]",
+          "required": false,
+          "description": {
+            "en": "Toolbar tools to show (emoji, mention, voice, image, richText, attachments — the \"+\" button); omitted shows every tool, a list shows only the tools it names. SwiftUI spells it availableToolIDs.",
+            "zh": "要显示的工具条工具（emoji、mention、voice、image、richText、attachments 即「+」按钮）；不传时全部显示，传了只显示列出的工具。SwiftUI 写作 availableToolIDs。"
+          }
+        },
+        {
+          "name": "mentions",
+          "type": "boolean",
+          "required": false,
+          "platforms": [
+            "vue"
+          ],
+          "description": {
+            "en": "Whether the conversation supports @ at all (false for a direct chat); Flutter, SwiftUI and Compose take the composer's own mention switch.",
+            "zh": "会话是否支持 @（单聊为 false）；Flutter、SwiftUI、Compose 用输入框自己的提及开关。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ComposerActionKind",
+      "symbol": "FlareComposerActionKind",
+      "kind": "enum",
+      "summary": {
+        "en": "Where a \"+\" tile comes from: a built-in feature or an authorised plugin's composer-action; hosts may leave it out for a tile of their own.",
+        "zh": "「+」项的来源：内置功能，或已授权插件声明的输入栏入口；宿主自己的项可以不传。"
+      },
+      "values": [
+        "feature",
+        "plugin"
+      ]
+    },
+    {
+      "name": "ComposerToolId",
+      "symbol": "FlareComposerToolId",
+      "kind": "enum",
+      "summary": {
+        "en": "Composer toolbar tool ids, the same on all four platforms; attachments is the \"+\" button.",
+        "zh": "输入栏工具条工具 id，四端相同；attachments 即「+」按钮。"
+      },
+      "values": [
+        "emoji",
+        "mention",
+        "voice",
+        "image",
+        "richText",
+        "attachments"
+      ]
+    },
+    {
       "name": "MediaKind",
       "symbol": "FlareMediaKind",
       "kind": "enum",
@@ -6558,16 +6629,16 @@
           "name": "actions",
           "type": "FlareComposerAction[]",
           "description": {
-            "en": "Attachment actions for the \"+\" panel; ids from composerActions. A host list replaces the default set (use capabilities to keep defaults and pick ids). An action without an icon keeps the kit glyph of its unified id (Vue also accepts a semantic icon name). Omit for the platform default set.",
-            "zh": "“+”面板的附件动作，id 取 composerActions。宿主列表会替换默认集（要保留默认项只挑 id，请用 capabilities）。没有图标的动作沿用其统一 id 的组件库图标（Vue 也接受语义图标名）。不传用平台默认集。"
+            "en": "Attachment actions for the \"+\" panel; ids from composerActions. A host list replaces the default set of built-in features (image, video, file, voice, card, poll; use capabilities to keep defaults and pick ids). A unified id may leave its label out and the kit labels it; kind marks a feature or a plugin entry. An icon that is not a registry name draws the plugin glyph (Vue also accepts an icon component, and an action without an icon keeps the kit glyph of its unified id). Omit for the platform default set.",
+            "zh": "“+”面板的附件动作，id 取 composerActions。宿主列表会替换内置功能默认集（图片、视频、文件、语音、名片、投票；要保留默认项只挑 id，请用 capabilities）。统一 id 可以不带 label，由组件库按 id 提供文案；kind 标记内置功能或插件入口。图标不是注册表名时画通用插件图标（Vue 也接受图标组件，没有图标的动作沿用其统一 id 的组件库图标）。不传用平台默认集。"
           }
         },
         {
           "name": "capabilities",
           "type": "FlareComposerCapabilities",
           "description": {
-            "en": "Host-owned action availability applied before the configured action list is rendered.",
-            "zh": "宿主持有的动作可用性；在渲染配置动作列表前应用。"
+            "en": "Host-owned availability applied before rendering: availableActionIds filters the \"+\" actions, availableToolIds picks the toolbar tools (omitted shows all).",
+            "zh": "宿主持有的可用性，在渲染前应用：availableActionIds 过滤“+”动作，availableToolIds 选择工具条工具（不传时全部显示）。"
           }
         },
         {
@@ -6911,8 +6982,8 @@
         }
       },
       "notes": {
-        "en": "Responsibility boundary (2.0.0-rc.1): the composer owns the draft, panels and keyboard and composes the parts — ComposerReplyStrip, ComposerSendButton, MentionPicker and ComposerActionPanel are public, the upload strip / format strip / voice panel are private. Uploads stay host-owned (`uploadItems` in, `retryUpload` / `removeUpload` out); the mention roster is host-provided; microphone access goes through the injectable voice-recorder adapter (`provideFlareVoiceRecorder`, default = web MediaRecorder), never through the browser directly; file drops hand `File[]` to the host. Send results: Flutter `onSend` returns `FutureOr<bool>` (busy while pending, clears only on true); Compose hoists the text with `value` / `onValueChange` and iOS with the `text` binding, so hosts restore a failed send themselves. Vue offers voice only with `sendVoiceHandler` or a send-voice listener, and then shows the microphone in both toolbar presets.",
-        "zh": "职责边界（2.0.0-rc.1）：Composer 只持有草稿、面板与键盘，其余组合部件——ComposerReplyStrip、ComposerSendButton、MentionPicker、ComposerActionPanel 为公开部件，上传条 / 格式条 / 语音面板为私有部件。上传由宿主持有（传入 `uploadItems`，回传 `retryUpload` / `removeUpload`）；@ 名册由宿主提供；麦克风经可注入的录音适配器（`provideFlareVoiceRecorder`，默认 Web MediaRecorder），组件不直接碰浏览器；文件拖入把 `File[]` 交给宿主。 发送结果：Flutter `onSend` 返回 `FutureOr<bool>`（等待中显示忙碌，仅为 true 时清空）；Compose 用 `value` / `onValueChange`、iOS 用 `text` 绑定托管文本，失败时由宿主恢复。Vue 只有提供 `sendVoiceHandler` 或监听 send-voice 时才提供语音，此时两种工具栏预设都显示麦克风。"
+        "en": "Responsibility boundary (2.0.0-rc.1): the composer owns the draft, panels and keyboard and composes the parts — ComposerReplyStrip, ComposerSendButton, MentionPicker and ComposerActionPanel are public, the upload strip / format strip / voice panel are private. Uploads stay host-owned (`uploadItems` in, `retryUpload` / `removeUpload` out); the mention roster is host-provided; microphone access goes through the injectable voice-recorder adapter (`provideFlareVoiceRecorder`, default = web MediaRecorder), never through the browser directly; file drops hand `File[]` to the host. Send results: Flutter `onSend` returns `FutureOr<bool>` (busy while pending, clears only on true); Compose hoists the text with `value` / `onValueChange` and iOS with the `text` binding, so hosts restore a failed send themselves. Vue offers voice only with `sendVoiceHandler` or a send-voice listener, and then shows the microphone in both toolbar presets. On Flutter, SwiftUI and Compose the \"+\" voice tile is the composer's own: it closes the panel and opens the recorder the voice key opens (when voice is enabled, a voice-send callback exists and the voice tool is offered), and the host gets the recording through the voice-send callback; otherwise the tile goes to the host's action callback.",
+        "zh": "职责边界（2.0.0-rc.1）：Composer 只持有草稿、面板与键盘，其余组合部件——ComposerReplyStrip、ComposerSendButton、MentionPicker、ComposerActionPanel 为公开部件，上传条 / 格式条 / 语音面板为私有部件。上传由宿主持有（传入 `uploadItems`，回传 `retryUpload` / `removeUpload`）；@ 名册由宿主提供；麦克风经可注入的录音适配器（`provideFlareVoiceRecorder`，默认 Web MediaRecorder），组件不直接碰浏览器；文件拖入把 `File[]` 交给宿主。 发送结果：Flutter `onSend` 返回 `FutureOr<bool>`（等待中显示忙碌，仅为 true 时清空）；Compose 用 `value` / `onValueChange`、iOS 用 `text` 绑定托管文本，失败时由宿主恢复。Vue 只有提供 `sendVoiceHandler` 或监听 send-voice 时才提供语音，此时两种工具栏预设都显示麦克风。Flutter、SwiftUI、Compose 的「+」面板 voice 项由输入框自己处理：收起面板，打开与语音键同一个录音器（需开启语音、有语音发送回调且提供 voice 工具），录音经语音发送回调交给宿主；否则交给宿主的动作回调。"
       },
       "model": {
         "prop": "modelValue",
@@ -7148,16 +7219,16 @@
           "name": "actions",
           "type": "FlareComposerAction[]",
           "description": {
-            "en": "Host action list; omit for Image, File, Voice, Location, and Contact defaults.",
-            "zh": "宿主动作用表；不传时默认图片、文件、语音、位置和联系人。"
+            "en": "Host action list; omit for the built-in features Image, Video, File, Voice, Contact card and Poll. Plugin items (kind plugin) follow them; an icon that is not a registry name draws the plugin glyph.",
+            "zh": "宿主动作列表；不传时为内置功能：图片、视频、文件、语音、名片、投票。插件项（kind 为 plugin）排在其后；图标不是注册表名时画通用插件图标。"
           }
         },
         {
           "name": "capabilities",
           "type": "FlareComposerCapabilities",
           "description": {
-            "en": "Host-owned action availability.",
-            "zh": "宿主持有的动作可用性。"
+            "en": "Host-owned action availability (availableActionIds).",
+            "zh": "宿主持有的动作可用性（availableActionIds）。"
           }
         },
         {
@@ -22740,13 +22811,74 @@
     ]
   },
   "composerActions": {
-    "_note": "Composer 与附件动作面板统一 id（四端同名、无前缀）。默认集固定为 image、file、voice、location、contact；其余为高级能力。",
+    "_note": "Composer 与附件动作面板统一 id（四端同名、无前缀）。默认集是「功能管理」里的内置功能，固定为 image、video、file、voice、card、poll，四端顺序与图标相同（defaultIcons），文案由各端 Kit 语言包按 id 提供（defaultLabels：Vue 为 i18n 键，原生为 FlareStrings 字段，Flutter 另有写法时记在 flutter），宿主可以不传 label；宿主列表整份替换默认集。kind 区分内置功能（feature）与插件入口（plugin），宿主可以不传。「+」项的 icon 不是注册表名时，四端都画 pluginFallbackIcon（Vue 另外：不带图标的统一 id 用 defaultIcons/各 id 的 Kit 图标，emoji 照文字画）。toolIds 是工具条工具 id，capabilities.availableToolIds 不传时全部显示，传了只显示列出的工具，attachments 即「+」按钮。",
     "defaults": [
       "image",
+      "video",
       "file",
       "voice",
-      "location",
-      "contact"
+      "card",
+      "poll"
+    ],
+    "defaultIcons": {
+      "image": "image",
+      "video": "video",
+      "file": "file",
+      "voice": "mic",
+      "card": "card",
+      "poll": "poll"
+    },
+    "defaultLabels": {
+      "image": {
+        "vue": "composer.image",
+        "native": "actionImage",
+        "zh": "图片",
+        "en": "Image / Photo"
+      },
+      "video": {
+        "vue": "composer.video",
+        "native": "actionVideo",
+        "zh": "视频",
+        "en": "Video"
+      },
+      "file": {
+        "vue": "composer.file",
+        "native": "actionFile",
+        "zh": "文件",
+        "en": "File"
+      },
+      "voice": {
+        "vue": "composer.voice",
+        "native": "composerVoice",
+        "flutter": "composerVoiceInput",
+        "zh": "语音",
+        "en": "Voice"
+      },
+      "card": {
+        "vue": "composer.card",
+        "native": "actionCard",
+        "zh": "名片",
+        "en": "Contact card"
+      },
+      "poll": {
+        "vue": "composer.poll",
+        "native": "actionVote",
+        "zh": "投票",
+        "en": "Poll"
+      }
+    },
+    "kinds": [
+      "feature",
+      "plugin"
+    ],
+    "pluginFallbackIcon": "plugin",
+    "toolIds": [
+      "emoji",
+      "mention",
+      "voice",
+      "image",
+      "richText",
+      "attachments"
     ],
     "ids": [
       "image",
