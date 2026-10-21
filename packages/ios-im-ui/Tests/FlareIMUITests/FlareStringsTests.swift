@@ -46,15 +46,15 @@ final class FlareStringsTests: XCTestCase {
     }
 
     func testComponentsResolveCopyFromSuppliedStrings() {
-        let english = FlareStrings(actionImage: "Photo", actionCamera: "Camera", actionFile: "File",
+        let english = FlareStrings(actionImage: "Photo", actionVideo: "Video", actionCamera: "Camera", actionFile: "File",
                                    actionLocation: "Location", actionCard: "Card", actionVote: "Poll",
                                    actionTask: "Task", actionSchedule: "Event",
                                    favorites: "Favorites", moments: "Moments", settings: "Settings")
 
         let tiles = FlareComposerActionPanel.actions(for: english)
-        XCTAssertEqual(tiles.map(\.id), ["image", "file", "voice", "location", "contact"])
+        XCTAssertEqual(tiles.map(\.id), ["image", "video", "file", "voice", "card", "poll"])
         XCTAssertEqual(tiles.map(\.label),
-                       ["Photo", "File", english.voiceHoldButtonLabel, "Location", "Card"])
+                       ["Photo", "Video", "File", english.composerVoice, "Card", "Poll"])
         XCTAssertEqual(FlareComposerActionPanel.defaultActions.map(\.label).first, "图片")
 
         let entries = ProfilePanelView.entries(for: english)

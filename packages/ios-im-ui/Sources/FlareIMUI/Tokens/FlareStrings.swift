@@ -203,6 +203,7 @@ public struct FlareStrings: Sendable {
     public var sticker: String
     // Plus panel
     public var actionImage: String
+    public var actionVideo: String
     public var actionCamera: String
     public var actionFile: String
     public var actionLocation: String
@@ -997,6 +998,7 @@ public struct FlareStrings: Sendable {
         emptyStickerPack: String = "该表情包暂无贴纸",
         sticker: String = "贴纸",
         actionImage: String = "图片",
+        actionVideo: String = "视频",
         actionCamera: String = "拍摄",
         actionFile: String = "文件",
         actionLocation: String = "位置",
@@ -1649,6 +1651,7 @@ public struct FlareStrings: Sendable {
         self.emptyStickerPack = emptyStickerPack
         self.sticker = sticker
         self.actionImage = actionImage
+        self.actionVideo = actionVideo
         self.actionCamera = actionCamera
         self.actionFile = actionFile
         self.actionLocation = actionLocation

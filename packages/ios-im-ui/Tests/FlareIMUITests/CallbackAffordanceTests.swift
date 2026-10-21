@@ -39,10 +39,12 @@ final class CallbackAffordanceTests: XCTestCase {
 
     func testActionSheetDefaultsMatchUnifiedSet() {
         let ids = FlareComposerActionPanel.defaultActions.map(\.id)
-        XCTAssertEqual(ids, ["image", "file", "voice", "location", "contact"])
+        XCTAssertEqual(ids, ["image", "video", "file", "voice", "card", "poll"])
         XCTAssertEqual(FlareComposerActionPanel.actions(for: FlareStrings()).map(\.id), ids)
         XCTAssertEqual(Set(ids).count, ids.count, "ids are unique")
-        XCTAssertTrue(FlareComposerActionPanel.defaultActions.allSatisfy { !$0.label.isEmpty && flareIconNames.contains($0.icon) })
+        XCTAssertTrue(FlareComposerActionPanel.defaultActions.allSatisfy {
+            !($0.label ?? "").isEmpty && flareIconNames.contains($0.icon)
+        })
     }
 
     func testComposerActionsResolveHostConfigurationAndCapabilities() {

@@ -116,7 +116,8 @@
   "actionVideo": {
     "en": "Video",
     "kits": [
-      "flutter"
+      "flutter",
+      "ios"
     ],
     "zh": "视频"
   },

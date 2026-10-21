@@ -158,6 +158,7 @@ public extension FlareStrings {
             emptyStickerPack: "This pack has no stickers",
             sticker: "Sticker",
             actionImage: "Photo",
+            actionVideo: "Video",
             actionCamera: "Camera",
             actionFile: "File",
             actionLocation: "Location",

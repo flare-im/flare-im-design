@@ -55,12 +55,24 @@ public struct FlareVoiceHoldButton: View {
     }
 }
 
+/// Where a "+" panel tile comes from: a built-in feature the tenant's feature switches govern, or an entry an
+/// authorized plugin declares (a `composer-action` contribution).
+public enum FlareComposerActionKind: String, Sendable, Equatable {
+    case feature
+    case plugin
+}
+
 /// One attachment/action tile in ``FlareComposerActionPanel``.
 public struct FlareComposerAction: Identifiable {
     public let id: String
-    public let label: String
-    /// Semantic kit icon name (``flareIconNames``) on the tile.
+    /// The host's label. Nil takes the kit's copy for a built-in id (``resolvedLabel(_:)``), so a host passing the
+    /// built-in items through never writes their text.
+    public let label: String?
+    /// Semantic kit icon name (``flareIconNames``) on the tile. A name the registry does not know draws the generic
+    /// `plugin` glyph (``resolvedIcon``).
     public let icon: String
+    /// Built-in feature or plugin entry; nil for a host's own tile.
+    public let kind: FlareComposerActionKind?
     public let group: String?
     public let order: Int?
     public let visible: Bool
@@ -71,8 +83,9 @@ public struct FlareComposerAction: Identifiable {
     public let disabledReason: String?
     public init(
         id: String,
-        label: String,
+        label: String? = nil,
         icon: String,
+        kind: FlareComposerActionKind? = nil,
         group: String? = nil,
         order: Int? = nil,
         visible: Bool = true,
@@ -82,16 +95,58 @@ public struct FlareComposerAction: Identifiable {
         accessibilityLabel: String? = nil,
         disabledReason: String? = nil
     ) {
-        self.id = id; self.label = label; self.icon = icon
+        self.id = id; self.label = label; self.icon = icon; self.kind = kind
         self.group = group; self.order = order; self.visible = visible; self.enabled = enabled
         self.badge = badge; self.intent = intent; self.accessibilityLabel = accessibilityLabel
         self.disabledReason = disabledReason
     }
+
+    /// The label the tile shows: the host's, else the kit's copy for a built-in id, else the id itself so a tile
+    /// never renders blank.
+    public func resolvedLabel(_ strings: FlareStrings) -> String {
+        if let label { return label }
+        return Self.kitLabel(id, strings) ?? id
+    }
+
+    /// The kit's copy for the ids the panel knows, the six built-in items first (`composerActions`).
+    static func kitLabel(_ id: String, _ strings: FlareStrings) -> String? {
+        switch id {
+        case "image": return strings.actionImage
+        case "video": return strings.actionVideo
+        case "file": return strings.actionFile
+        case "voice": return strings.composerVoice
+        case "card", "contact": return strings.actionCard
+        case "poll", "vote": return strings.actionVote
+        case "camera": return strings.actionCamera
+        case "location": return strings.actionLocation
+        case "task": return strings.actionTask
+        case "schedule", "event": return strings.actionSchedule
+        default: return nil
+        }
+    }
+
+    /// The icon the tile draws: its own name, or for a name not in the registry (a plugin's old manifest, a name
+    /// from a newer kit or menu) the generic `plugin` glyph — a tile never draws the unknown-name question mark.
+    public var resolvedIcon: String {
+        flareIconMap[icon] == nil ? "plugin" : icon
+    }
 }
 
+/// Business availability supplied by the host. Host-owned presentation, not an authorization decision: the
+/// server still decides what may be sent.
 public struct FlareComposerCapabilities: Sendable, Equatable {
+    /// The "+" panel ids to keep; nil keeps every tile.
     public let availableActionIDs: Set<String>?
-    public init(availableActionIDs: Set<String>? = nil) { self.availableActionIDs = availableActionIDs }
+    /// The toolbar keys to offer: `emoji`, `mention`, `voice`, `image`, `richText` and `attachments` (the "+" key).
+    /// Nil offers every key.
+    public let availableToolIDs: Set<String>?
+    public init(availableActionIDs: Set<String>? = nil, availableToolIDs: Set<String>? = nil) {
+        self.availableActionIDs = availableActionIDs
+        self.availableToolIDs = availableToolIDs
+    }
+
+    /// Whether the toolbar offers the key `id`.
+    public func allowsTool(_ id: String) -> Bool { availableToolIDs?.contains(id) ?? true }
 }
 
 /// Defaults -> capabilities -> host list. A host list is a full replacement.
@@ -133,15 +188,19 @@ public struct FlareComposerActionPanel: View {
         self.columns = columns; self.onAction = onAction
     }
 
+    /// The built-in feature ids in panel order, the same on every platform (`composerActions.defaults`).
+    public static let defaultActionIDs = ["image", "video", "file", "voice", "card", "poll"]
+
     /// Attachment tiles built from host-overridable copy. Pass a different
     /// ``FlareStrings`` (or the environment value) to relabel them.
     public static func actions(for strings: FlareStrings) -> [FlareComposerAction] {
         [
-            .init(id: "image", label: strings.actionImage, icon: "image"),
-            .init(id: "file", label: strings.actionFile, icon: "folder"),
-            .init(id: "voice", label: strings.voiceHoldButtonLabel, icon: "mic"),
-            .init(id: "location", label: strings.actionLocation, icon: "location"),
-            .init(id: "contact", label: strings.actionCard, icon: "card"),
+            .init(id: "image", label: strings.actionImage, icon: "image", kind: .feature),
+            .init(id: "video", label: strings.actionVideo, icon: "video", kind: .feature),
+            .init(id: "file", label: strings.actionFile, icon: "file", kind: .feature),
+            .init(id: "voice", label: strings.composerVoice, icon: "mic", kind: .feature),
+            .init(id: "card", label: strings.actionCard, icon: "card", kind: .feature),
+            .init(id: "poll", label: strings.actionVote, icon: "poll", kind: .feature),
         ]
     }
 
@@ -159,21 +218,22 @@ public struct FlareComposerActionPanel: View {
         LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: columns),
                   spacing: FlareSizes.spacingLg) {
             ForEach(actions) { action in
+                let label = action.resolvedLabel(strings)
                 Button { onAction?(action) } label: {
                     VStack(spacing: FlareSizes.spacingXs) {
                         ZStack {
                             Color.clear.frame(width: FlareSizes.componentComposerActionWidth, height: FlareSizes.componentComposerActionWidth)
-                            FlareIconImage(name: action.icon, size: FlareSizes.iconSizeMd)
+                            FlareIconImage(name: action.resolvedIcon, size: FlareSizes.iconSizeMd)
                                 .foregroundColor(colors.textPrimary)
                         }
-                        Text(action.label).font(.system(size: FlareSizes.fontSizeXs))
+                        Text(label).font(.system(size: FlareSizes.fontSizeXs))
                             .foregroundColor(colors.textSecondary)
                     }
                 }
                 .buttonStyle(.plain)
                 .disabled(!action.enabled)
                 .opacity(action.enabled ? 1 : FlareOpacity.disabled)
-                .accessibilityLabel(action.accessibilityLabel ?? action.label)
+                .accessibilityLabel(action.accessibilityLabel ?? label)
                 .accessibilityHint(action.enabled ? "" : (action.disabledReason ?? ""))
             }
         }

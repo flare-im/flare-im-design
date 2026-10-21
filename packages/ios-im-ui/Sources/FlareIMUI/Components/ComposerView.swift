@@ -208,7 +208,17 @@ public struct ComposerView: View {
         )
     }
     private var hasActionPanel: Bool { onAction != nil && !resolvedActions.isEmpty }
-    private var hasMentionPicker: Bool { !mentionCandidates.isEmpty }
+    private var hasMentionPicker: Bool { capabilities.allowsTool("mention") && !mentionCandidates.isEmpty }
+    /// Each toolbar key the host offers (``FlareComposerCapabilities/availableToolIDs``). A key taken away also
+    /// closes what it opened; the draft stays.
+    private func allows(_ tool: String) -> Bool { capabilities.allowsTool(tool) }
+    private var offersVoice: Bool { enableVoice && onVoiceSend != nil && allows("voice") }
+    /// Rich mode is on only while the host offers the rich-text key.
+    private var richOn: Bool { allows("richText") && (rich || formatMode) }
+    /// The keys in the row, the send key included: the band's tool inset is what they leave of the width.
+    private var toolKeyCount: Int {
+        1 + ["emoji", "mention", "image", "richText", "attachments"].filter(allows).count + (offersVoice ? 1 : 0)
+    }
 
     /// Copy in effect: an explicit parameter wins, otherwise the `flareStrings` provider.
     struct Copy {
@@ -228,7 +238,7 @@ public struct ComposerView: View {
 
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        let m = ComposerMetrics.of(width: width, keys: 6 + ((enableVoice && onVoiceSend != nil) ? 1 : 0))
+        let m = ComposerMetrics.of(width: width, keys: toolKeyCount)
         VStack(spacing: 0) {
             if let replyTo { replyStrip(replyTo, colors, m) }
             if mentionFlow.open, hasMentionPicker, !voiceMode {
@@ -238,12 +248,15 @@ public struct ComposerView: View {
                     .padding(.vertical, FlareSizes.spacingXs)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-            if voiceMode, let onVoiceSend {
+            if voiceMode, offersVoice, let onVoiceSend {
+                // The band runs edge to edge; the recorder is a framed row, so it keeps the band's side inset.
                 InlineVoiceComposerView(disabled: disabled, onKeyboard: { voiceMode = false }, onSend: onVoiceSend)
+                    .padding(.horizontal, m.band ? FlareSizes.spacingSm : 0)
+                    .padding(.top, m.band ? FlareSizes.spacingXs : 0)
             } else {
                 VStack(spacing: 0) {
                     if !panelOpen {
-                        if rich || formatMode { formatStrip(colors, m) }
+                        if richOn { formatStrip(colors, m) }
                         HStack(alignment: .top, spacing: 0) {
                             Group {
                                 FlareComposerEmojiTextEditor(
@@ -272,13 +285,13 @@ public struct ComposerView: View {
                 // The tools leave the band and rest on the ground, taking back
                 // the inset the band gave up.
                 if m.band { toolbar(colors, distributed: true).padding(.horizontal, m.toolInset) }
-                if emojiOpen, onEmoji == nil {
+                if emojiOpen, onEmoji == nil, allows("emoji") {
                     FlareEmojiStickerPicker(emojiLabel: strings.composerEmoji, height: 240,
                                             onInsertEmoji: { key in text = (maxLength.map { String((text + "[\(key)]").prefix(max(0, $0))) } ?? text + "[\(key)]") },
                                             onSendSticker: { package, sticker in emojiOpen = false; onSendSticker?(package, sticker) })
                 }
-                if panelOpen, hasActionPanel {
-                    ScrollView(showsIndicators: false) { FlareComposerActionPanel(actions: resolvedActions) { a in onAction?(a); panelOpen = false } }
+                if panelOpen, hasActionPanel, allows("attachments") {
+                    ScrollView(showsIndicators: false) { FlareComposerActionPanel(actions: resolvedActions, onAction: activatePanelAction) }
                         .frame(height: min(240, CGFloat((resolvedActions.count + 3) / 4) * 84 + 24))
                         .background(colors.bgPrimary)
                 }
@@ -286,35 +299,77 @@ public struct ComposerView: View {
         }.padding(.horizontal, m.band ? 0 : 4).padding(.top, m.band ? 0 : 8).padding(.bottom, m.band ? 4 : 8)
         .background(m.band ? colors.bgSecondary : colors.bgPrimary)
         .background(GeometryReader { proxy in Color.clear.onAppear { width = proxy.size.width }.onChange(of: proxy.size.width) { width = $0 } })
+        .onChange(of: capabilities) { _ in closeRevokedTools() }
+    }
+
+    /// A "+" tile: the panel closes, and the tile goes to the host — except voice, which is the composer's own.
+    private func activatePanelAction(_ action: FlareComposerAction) {
+        guard !disabled, allows("attachments"), action.enabled else { return }
+        panelOpen = false
+        if Self.panelTileOpensRecorder(action, offersVoice: offersVoice) {
+            voiceMode = true
+            expanded = false
+            emojiOpen = false
+            mentionFlow.close()
+            return
+        }
+        onAction?(action)
+    }
+
+    /// Whether a "+" tile opens the composer's own recorder: the voice tile does whenever the voice key could, so
+    /// both reach the same recorder (as on Flutter) and a host never has to recreate the composer's voice mode. The
+    /// host still gets the recording through `onVoiceSend`; without a recorder the tile goes to the host.
+    static func panelTileOpensRecorder(_ action: FlareComposerAction, offersVoice: Bool) -> Bool {
+        action.id == "voice" && offersVoice
+    }
+
+    /// A key the host stops offering closes its panel or mode at once, so nothing it opened is left without
+    /// the key that closes it. The draft is kept.
+    private func closeRevokedTools() {
+        if !allows("emoji") { emojiOpen = false }
+        if !allows("attachments") { panelOpen = false }
+        if !offersVoice { voiceMode = false }
+        if !allows("richText") { formatMode = false; formats = [] }
+        if !hasMentionPicker { mentionFlow.close() }
     }
 
     private func toolbar(_ colors: FlareColors, distributed: Bool) -> some View {
         HStack(spacing: 0) {
             if !distributed { Spacer(minLength: 0) }
             // A host that handles the key keeps its own panel; otherwise the composer opens its own.
-            iconButton("emoji", label: strings.composerEmoji,
-                       onEmoji ?? { emojiOpen.toggle(); panelOpen = false }, colors, active: emojiOpen)
-            if distributed { Spacer(minLength: 0) }
-            iconButton("mention", label: strings.composerMention, mentionKey, colors, active: mentionFlow.open)
-            if distributed { Spacer(minLength: 0) }
-            if enableVoice && onVoiceSend != nil {
+            if allows("emoji") {
+                iconButton("emoji", label: strings.composerEmoji,
+                           onEmoji ?? { emojiOpen.toggle(); panelOpen = false }, colors, active: emojiOpen)
+                if distributed { Spacer(minLength: 0) }
+            }
+            if allows("mention") {
+                iconButton("mention", label: strings.composerMention, mentionKey, colors, active: mentionFlow.open)
+                if distributed { Spacer(minLength: 0) }
+            }
+            if offersVoice {
                 iconButton("mic", label: strings.composerVoice, { voiceMode = true; panelOpen = false }, colors)
                 if distributed { Spacer(minLength: 0) }
             }
-            iconButton("image", label: strings.composerImage, onImage ?? onAttach, colors)
-            if distributed { Spacer(minLength: 0) }
-            iconButton("rich-text", label: strings.composerRichText,
-                       { formatMode.toggle(); if !formatMode { formats = [] }; panelOpen = false }, colors,
-                       active: rich || formatMode)
-            if distributed { Spacer(minLength: 0) }
-            iconButton(
-                panelOpen ? "close" : "add",
-                label: strings.composerMore,
-                hasActionPanel ? { panelOpen.toggle() } : onAttach,
-                colors,
-                active: panelOpen
-            )
-            if distributed { Spacer(minLength: 0) }
+            if allows("image") {
+                iconButton("image", label: strings.composerImage, onImage ?? onAttach, colors)
+                if distributed { Spacer(minLength: 0) }
+            }
+            if allows("richText") {
+                iconButton("rich-text", label: strings.composerRichText,
+                           { formatMode.toggle(); if !formatMode { formats = [] }; panelOpen = false }, colors,
+                           active: richOn)
+                if distributed { Spacer(minLength: 0) }
+            }
+            if allows("attachments") {
+                iconButton(
+                    panelOpen ? "close" : "add",
+                    label: strings.composerMore,
+                    hasActionPanel ? { panelOpen.toggle() } : onAttach,
+                    colors,
+                    active: panelOpen
+                )
+                if distributed { Spacer(minLength: 0) }
+            }
             FlareComposerSendButton(active: canSend, onSend: send)
         }
     }
@@ -425,7 +480,7 @@ public struct ComposerView: View {
     private func send() {
         let t = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !disabled, !t.isEmpty, onSend != nil || onSendRich != nil else { return }
-        if (rich || formatMode), let onSendRich { onSendRich(formatted(t)) } else { onSend?(t) }
+        if richOn, let onSendRich { onSendRich(formatted(t)) } else { onSend?(t) }
         text = ""
         mentionFlow.close()
     }
@@ -444,7 +499,7 @@ public struct ComposerView: View {
     }
 
     private func openMentionPickerIfTyped(previous: String, next: String) {
-        guard hasMentionPicker, !(rich || formatMode) else { return }
+        guard hasMentionPicker, !richOn else { return }
         if mentionFlow.textChanged(previous: previous, next: next) { panelOpen = false }
     }
 

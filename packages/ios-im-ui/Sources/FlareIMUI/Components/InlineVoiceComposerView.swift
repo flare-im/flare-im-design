@@ -136,7 +136,10 @@ public struct InlineVoiceComposerView: View {
                         context.fill(Path(roundedRect: rect, cornerRadius: 1), with: .color(capture.recording || capture.paused ? colors.primary.opacity(0.45) : colors.borderPrimary))
                     }
                 }.frame(height: 28).accessibilityHidden(true)
+                // Last in the row until the paused controls follow it: keep it off the frame.
                 Text(String(format: "%02d:%02d", Int(capture.elapsed)/60, Int(capture.elapsed)%60)).font(.system(size: 11, design: .monospaced)).foregroundColor(colors.textSecondary)
+                    .padding(.leading, FlareSizes.spacingXs)
+                    .padding(.trailing, capture.paused ? 0 : FlareSizes.spacingSm)
                 if capture.paused {
                     control("mic", strings.inlineVoiceComposerResume, accent: true, enabled: !capture.busy && capture.elapsed < 65) { Task { await capture.start() } }
                     control("delete", strings.inlineVoiceComposerDiscard, enabled: !capture.busy) { capture.cancel() }
