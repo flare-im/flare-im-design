@@ -184,6 +184,10 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["packetTapToClaim"] as? (String)) ?: "点击领取"
     val packetBrand: String
         get() = (overrides["packetBrand"] as? (String)) ?: "闪包"
+    val packetBusy: String
+        get() = (overrides["packetBusy"] as? String) ?: "处理中…"
+    val packetUnavailable: String
+        get() = (overrides["packetUnavailable"] as? String) ?: "暂不可用"
 
     // 命令 / 翻译 / 名片码
     val commands: String
@@ -1618,6 +1622,12 @@ class FlareStringsBuilder internal constructor() {
     var packetBrand: String
         get() = (values["packetBrand"] as? (String)) ?: "闪包"
         set(value) { values["packetBrand"] = value }
+    var packetBusy: String
+        get() = (values["packetBusy"] as? String) ?: "处理中…"
+        set(value) { values["packetBusy"] = value }
+    var packetUnavailable: String
+        get() = (values["packetUnavailable"] as? String) ?: "暂不可用"
+        set(value) { values["packetUnavailable"] = value }
 
     var commands: String
         get() = (values["commands"] as? (String)) ?: "命令"

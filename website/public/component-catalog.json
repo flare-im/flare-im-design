@@ -9427,7 +9427,9 @@
         "variants": [],
         "states": [
           "opened",
-          "finished"
+          "finished",
+          "disabled",
+          "busy"
         ]
       },
       "summary": {
@@ -9438,11 +9440,15 @@
         "Message",
         "opened",
         "finished",
+        "disabled",
+        "busy",
         "open"
       ],
       "states": [
         "opened",
-        "finished"
+        "finished",
+        "disabled",
+        "busy"
       ],
       "interactions": [
         "open"
@@ -9487,7 +9493,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#RedPacketCard",
-      "searchText": "redpacketcard message im-ui stable message opened finished open supportsconfiguration red packet — gradient + blessing + claim state. 红包卡片 —— 红金渐变 + 祝福 + 领取态。"
+      "searchText": "redpacketcard message im-ui stable message opened finished disabled busy open supportsconfiguration red packet — gradient + blessing + claim state. 红包卡片 —— 红金渐变 + 祝福 + 领取态。"
     },
     {
       "name": "SlashCommandMenu",

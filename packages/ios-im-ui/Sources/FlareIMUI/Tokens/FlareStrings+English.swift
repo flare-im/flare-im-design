@@ -86,6 +86,8 @@ public extension FlareStrings {
             packetFinished: "All claimed",
             packetTapToClaim: "Tap to open",
             packetBrand: "Flare red packet",
+            packetBusy: "Processing…",
+            packetUnavailable: "Unavailable",
             commands: "Commands",
             noMatchingCommands: "No matching commands",
             translating: "Translating…",

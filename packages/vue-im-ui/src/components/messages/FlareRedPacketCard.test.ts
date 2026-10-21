@@ -5,10 +5,10 @@ import { describe, expect, it } from "vitest";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
 import FlareRedPacketCard from "./FlareRedPacketCard.vue";
 
-function render(props: InstanceType<typeof FlareRedPacketCard>["$props"]) {
+function render(props: InstanceType<typeof FlareRedPacketCard>["$props"], locale: "zh-CN" | "en-US" = "zh-CN") {
   return mount(defineComponent({
     setup() {
-      useFlareI18nProvider("zh-CN");
+      useFlareI18nProvider(locale);
       return () => h(FlareRedPacketCard, props);
     },
   }));
@@ -54,5 +54,27 @@ describe("FlareRedPacketCard", () => {
   it("still invites a tap when it is opened but the host gave no amount", () => {
     const wrapper = render({ blessing: "恭喜发财", opened: true });
     expect(wrapper.find(".flare-red-packet__status").text()).toBe("点击领取");
+  });
+
+  it.each(["disabled", "busy"] as const)("blocks %s packets without claiming they are finished", async (state) => {
+    const wrapper = render({ blessing: "Hello", [state]: true });
+    const card = wrapper.findComponent(FlareRedPacketCard);
+    expect(card.get("button").attributes("disabled")).toBeDefined();
+    expect(card.get("button").classes()).not.toContain("is-finished");
+    await card.get("button").trigger("click");
+    expect(card.emitted("open")).toBeUndefined();
+    expect(card.text()).toContain(state === "busy" ? "处理中" : "暂不可用");
+  });
+
+  it("uses the library locale for progress and unavailable states", () => {
+    expect(render({ blessing: "Hello", busy: true }, "en-US").text()).toContain("Processing");
+    expect(render({ blessing: "Hello", disabled: true }, "en-US").text()).toContain("Unavailable");
+  });
+
+  it("renders host status as inert text; progress wins while an original command is pending", () => {
+    const wrapper = render({ blessing: "Hello", disabled: true, statusLabel: "<b>Created</b>" });
+    expect(wrapper.text()).toContain("<b>Created</b>");
+    expect(wrapper.find("b").exists()).toBe(false);
+    expect(render({ blessing: "Hello", busy: true, statusLabel: "Created" }).text()).toContain("处理中");
   });
 });

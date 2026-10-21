@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../tokens/flare_tokens.dart';
+import '../tokens/flare_strings.dart';
 
 /// Red-packet (lucky-money) message card — a tappable envelope with a gold
 /// wax seal, blessing text and a claim status line.
@@ -11,22 +12,28 @@ class FlareRedPacketCard extends StatelessWidget {
     this.amount,
     this.opened = false,
     this.finished = false,
+    this.disabled = false,
+    this.busy = false,
+    this.statusLabel,
     this.onOpen,
-    this.brandLabel = 'Flare 红包',
-    this.receivedLabel = '已领取 · ',
-    this.finishedLabel = '已被领完',
-    this.openLabel = '点击领取',
+    this.brandLabel,
+    this.receivedLabel,
+    this.finishedLabel,
+    this.openLabel,
   });
 
   final String blessing;
   final String? amount;
   final bool opened;
   final bool finished;
+  final bool disabled;
+  final bool busy;
+  final String? statusLabel;
   final VoidCallback? onOpen;
-  final String brandLabel;
-  final String receivedLabel;
-  final String finishedLabel;
-  final String openLabel;
+  final String? brandLabel;
+  final String? receivedLabel;
+  final String? finishedLabel;
+  final String? openLabel;
 
   static const Color _foreground = Color(0xFFFFF5E6);
   static const Color _gold = Color(0xFFFFE9B8);
@@ -34,6 +41,20 @@ class FlareRedPacketCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = FlareStrings.of(context);
+    final status = busy
+        ? strings.packetBusy
+        : statusLabel ??
+              (opened && amount != null
+                  ? (receivedLabel != null
+                        ? '$receivedLabel$amount'
+                        : strings.packetClaimed(amount!))
+                  : finished
+                  ? finishedLabel ?? strings.packetFinished
+                  : disabled
+                  ? strings.packetUnavailable
+                  : openLabel ?? strings.packetTapToClaim);
+    final canOpen = !finished && !disabled && !busy && onOpen != null;
     final card = Container(
       width: 248,
       decoration: BoxDecoration(
@@ -81,7 +102,22 @@ class FlareRedPacketCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 3),
-                      _status(),
+                      Text.rich(
+                        TextSpan(
+                          text: status,
+                          style: TextStyle(
+                            color:
+                                !busy &&
+                                    statusLabel == null &&
+                                    opened &&
+                                    amount != null
+                                ? _gold
+                                : _foreground,
+                            fontSize: 12,
+                          ),
+                        ),
+                        softWrap: true,
+                      ),
                     ],
                   ),
                 ),
@@ -93,7 +129,7 @@ class FlareRedPacketCard extends StatelessWidget {
             Align(
               alignment: Alignment.centerRight,
               child: Text(
-                brandLabel,
+                brandLabel ?? strings.packetBrand,
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.5),
                   fontSize: FlareSizes.fontSize2xs,
@@ -118,10 +154,23 @@ class FlareRedPacketCard extends StatelessWidget {
           )
         : card;
 
-    return GestureDetector(
-      onTap: finished ? null : onOpen,
-      behavior: HitTestBehavior.opaque,
-      child: content,
+    return Semantics(
+      button: true,
+      enabled: canOpen,
+      label: blessing,
+      value: status,
+      liveRegion: busy,
+      onTap: canOpen ? onOpen : null,
+      child: ExcludeSemantics(
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: canOpen ? onOpen : null,
+            borderRadius: BorderRadius.circular(14),
+            child: content,
+          ),
+        ),
+      ),
     );
   }
 
@@ -135,37 +184,6 @@ class FlareRedPacketCard extends StatelessWidget {
       ),
       alignment: Alignment.center,
       child: const Icon(Icons.card_giftcard, size: 22, color: _sealInk),
-    );
-  }
-
-  Widget _status() {
-    late final String text;
-    Color color = _foreground.withValues(alpha: 0.9);
-    if (opened && amount != null) {
-      return Text.rich(
-        TextSpan(
-          style: TextStyle(color: color, fontSize: 12),
-          children: [
-            TextSpan(text: receivedLabel),
-            TextSpan(
-              text: amount,
-              style: const TextStyle(color: _gold, fontWeight: FontWeight.w600),
-            ),
-          ],
-        ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      );
-    } else if (finished) {
-      text = finishedLabel;
-    } else {
-      text = openLabel;
-    }
-    return Text(
-      text,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: TextStyle(color: color, fontSize: 12),
     );
   }
 }

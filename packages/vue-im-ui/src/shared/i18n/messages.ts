@@ -375,6 +375,8 @@ export const flareMessages: Record<string, FlareMessageTree> = {
     },
     redPacket: {
       brand: "Flare 红包",
+      busy: "处理中…",
+      unavailable: "暂不可用",
       tapToOpen: "点击领取",
       received: "已领取",
       finished: "已被领完",
@@ -1654,6 +1656,8 @@ export const flareMessages: Record<string, FlareMessageTree> = {
     },
     redPacket: {
       brand: "Flare Packet",
+      busy: "Processing…",
+      unavailable: "Unavailable",
       tapToOpen: "Tap to open",
       received: "Received",
       finished: "All claimed",

@@ -9,25 +9,43 @@ public struct RedPacketCardView: View {
     private let amount: String?
     private let opened: Bool
     private let finished: Bool
+    private let disabled: Bool
+    private let busy: Bool
+    private let statusLabel: String?
     private let onOpen: (() -> Void)?
     @Environment(\.flareStrings) private var strings
 
     public init(blessing: String, amount: String? = nil, opened: Bool = false,
-                finished: Bool = false, onOpen: (() -> Void)? = nil) {
+                finished: Bool = false, disabled: Bool = false, busy: Bool = false,
+                statusLabel: String? = nil, onOpen: (() -> Void)? = nil) {
         self.blessing = blessing; self.amount = amount; self.opened = opened
-        self.finished = finished; self.onOpen = onOpen
+        self.finished = finished; self.disabled = disabled; self.busy = busy
+        self.statusLabel = statusLabel; self.onOpen = onOpen
     }
 
     private let gold = Color(.sRGB, red: 1.0, green: 0.831, blue: 0.463, opacity: 1)
 
     public var body: some View {
-        Button { onOpen?() } label: { card }
+        Button { if canOpen { onOpen?() } } label: { card }
             .buttonStyle(.plain)
-            .disabled(finished)
+            .disabled(!canOpen)
+            .accessibilityLabel(blessing)
+            .accessibilityValue(statusText)
+    }
+
+    private var canOpen: Bool { !finished && !disabled && !busy && onOpen != nil }
+    private var statusText: String {
+        if busy { return strings.packetBusy }
+        if let statusLabel { return statusLabel }
+        if opened, let amount { return strings.packetClaimed + amount }
+        if finished { return strings.packetFinished }
+        if disabled { return strings.packetUnavailable }
+        return strings.packetTapToClaim
     }
 
     private var card: some View {
-        HStack(spacing: FlareSizes.spacingMd) {
+        VStack(alignment: .leading, spacing: FlareSizes.spacingSm) {
+          HStack(spacing: FlareSizes.spacingMd) {
             ZStack {
                 Circle().fill(
                     RadialGradient(colors: [Color(.sRGB, red: 1.0, green: 0.914, blue: 0.722, opacity: 1),
@@ -42,20 +60,21 @@ public struct RedPacketCardView: View {
                 status
             }
             Spacer(minLength: 0)
+          }
+          Divider().overlay(Color.white.opacity(0.28))
+          HStack {
+            Spacer(minLength: 0)
+            Text(strings.packetBrand).font(.system(size: FlareSizes.fontSize2xs)).foregroundColor(.white.opacity(0.7))
+          }
         }
         .padding(FlareSizes.spacing2md)
-        .frame(width: 248)
+        .frame(maxWidth: 248, minHeight: 48, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 14).fill(
                 LinearGradient(colors: [Color(.sRGB, red: 0.941, green: 0.314, blue: 0.235, opacity: 1),
                                         Color(.sRGB, red: 0.886, green: 0.231, blue: 0.180, opacity: 1),
                                         Color(.sRGB, red: 0.784, green: 0.161, blue: 0.122, opacity: 1)],
                                startPoint: .topLeading, endPoint: .bottomTrailing))
-        )
-        .overlay(
-            Text(strings.packetBrand).font(.system(size: FlareSizes.fontSize2xs)).foregroundColor(.white.opacity(0.5))
-                .padding(FlareSizes.spacing2sm),
-            alignment: .bottomTrailing
         )
         .saturation(finished ? 0.55 : 1)
         .brightness(finished ? -0.03 : 0)
@@ -64,15 +83,13 @@ public struct RedPacketCardView: View {
 
     @ViewBuilder
     private var status: some View {
-        if opened, let amount {
+        if !busy, statusLabel == nil, opened, let amount {
             HStack(spacing: 4) {
                 Text(strings.packetClaimed).font(.system(size: 12)).foregroundColor(.white.opacity(0.85))
                     + Text(amount).font(.system(size: 12, weight: .semibold)).foregroundColor(gold)
             }
-        } else if finished {
-            Text(strings.packetFinished).font(.system(size: 12)).foregroundColor(.white.opacity(0.85))
         } else {
-            Text(strings.packetTapToClaim).font(.system(size: 12)).foregroundColor(.white.opacity(0.85))
+            Text(statusText).font(.system(size: 12)).foregroundColor(.white.opacity(0.85))
         }
     }
 }

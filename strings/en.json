@@ -3913,9 +3913,15 @@
   "packetClaimed": {
     "en": "Opened · ",
     "kits": [
+      "android",
+      "flutter",
       "ios"
     ],
-    "zh": "已领取 · "
+    "zh": "已领取 · ",
+    "appendArgumentKits": [
+      "android",
+      "flutter"
+    ]
   },
   "packetFinished": {
     "en": "All claimed",
@@ -5506,5 +5512,23 @@
       "ios"
     ],
     "zh": "昨天"
+  },
+  "packetBusy": {
+    "en": "Processing…",
+    "zh": "处理中…",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetUnavailable": {
+    "en": "Unavailable",
+    "zh": "暂不可用",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
   }
 }

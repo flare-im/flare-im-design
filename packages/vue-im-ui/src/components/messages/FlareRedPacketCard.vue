@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { NIcon } from "naive-ui";
+import { computed } from "vue";
 import { GiftOutline } from "../../shared/icon-glyphs";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 
@@ -13,12 +14,19 @@ const props = withDefaults(
     opened?: boolean;
     /** Whether the packet is fully claimed / expired (dimmed, not tappable). */
     finished?: boolean;
+    disabled?: boolean;
+    busy?: boolean;
+    statusLabel?: string;
   }>(),
-  { opened: false, finished: false },
+  { opened: false, finished: false, disabled: false, busy: false },
 );
 const emit = defineEmits<{ (e: "open"): void }>();
 
 const { t } = useFlareI18n();
+const blocked = computed(() => props.finished || props.disabled || props.busy);
+const status = computed(() => props.busy ? t("redPacket.busy") : props.statusLabel
+  ?? (props.opened && props.amount ? `${t("redPacket.received")} · ${props.amount}`
+    : props.finished ? t("redPacket.finished") : props.disabled ? t("redPacket.unavailable") : t("redPacket.tapToOpen")));
 </script>
 
 <template>
@@ -26,18 +34,18 @@ const { t } = useFlareI18n();
     type="button"
     class="flare-red-packet"
     :class="{ 'is-opened': opened, 'is-finished': finished }"
-    :disabled="finished"
-    @click="emit('open')"
+    :disabled="blocked"
+    :aria-busy="busy"
+    @click="!blocked && emit('open')"
   >
     <span class="flare-red-packet__seal">
       <n-icon aria-hidden="true" :size="22" :component="GiftOutline" />
     </span>
     <span class="flare-red-packet__body">
       <span class="flare-red-packet__blessing">{{ blessing }}</span>
-      <span class="flare-red-packet__status">
-        <template v-if="opened && amount">{{ t("redPacket.received") }} · <b>{{ amount }}</b></template>
-        <template v-else-if="finished">{{ t("redPacket.finished") }}</template>
-        <template v-else>{{ t("redPacket.tapToOpen") }}</template>
+      <span class="flare-red-packet__status" :aria-live="busy ? 'polite' : 'off'">
+        <template v-if="!busy && statusLabel == null && opened && amount">{{ t("redPacket.received") }} · <b>{{ amount }}</b></template>
+        <template v-else>{{ status }}</template>
       </span>
     </span>
     <span class="flare-red-packet__brand">{{ t("redPacket.brand") }}</span>
@@ -46,11 +54,15 @@ const { t } = useFlareI18n();
 
 <style scoped>
 .flare-red-packet {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 12px;
   width: 248px;
   max-width: 100%;
+  min-height: 48px;
+  min-width: 0;
+  box-sizing: border-box;
   padding: var(--flare-size-spacing-2md);
   border: none;
   border-radius: 14px;
@@ -63,17 +75,10 @@ const { t } = useFlareI18n();
   overflow: hidden;
   transition: transform var(--flare-transition-fast), filter var(--flare-transition-fast);
 }
-.flare-red-packet::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: 1px;
-  background: rgba(255, 240, 210, 0.28);
-}
 .flare-red-packet:hover:not(:disabled) { filter: brightness(1.03); }
 .flare-red-packet:active:not(:disabled) { transform: scale(0.98); }
+.flare-red-packet:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: 3px; }
+.flare-red-packet:disabled { cursor: default; }
 .flare-red-packet.is-finished { filter: saturate(0.55) brightness(0.92); cursor: default; }
 .flare-red-packet__seal {
   flex: 0 0 auto;
@@ -103,12 +108,15 @@ const { t } = useFlareI18n();
   margin-top: 3px;
   font-size: 12px;
   color: rgba(255, 236, 210, 0.85);
+  overflow-wrap: anywhere;
 }
 .flare-red-packet__status b { color: #ffe9b8; font-variant-numeric: tabular-nums; }
 .flare-red-packet__brand {
-  position: absolute;
-  right: 12px;
-  bottom: 8px;
+  grid-column: 1 / -1;
+  width: 100%;
+  padding-top: var(--flare-size-spacing-sm);
+  border-top: 1px solid rgba(255, 240, 210, 0.28);
+  text-align: right;
   font-size: var(--flare-size-font-size-2xs);
   letter-spacing: 0.04em;
   color: rgba(255, 236, 210, 0.5);

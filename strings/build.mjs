@@ -92,7 +92,9 @@ ${args}
     kit: "android",
     path: join(root, "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/FlareStringsEnglish.kt"),
     render(fields) {
-      const body = fields.map((f) => `    ${f} = ${kotlinLiteral(source[f].en)}`).join("\n");
+      const body = fields.map((f) => source[f].appendArgumentKits?.includes("android")
+        ? `    ${f} = { value -> ${kotlinLiteral(source[f].en)} + value }`
+        : `    ${f} = ${kotlinLiteral(source[f].en)}`).join("\n");
       return `${BANNER}
 
 package com.flare.im.ui
@@ -117,7 +119,9 @@ ${body}
     kit: "flutter",
     path: join(root, "packages/flutter-im-ui/lib/src/tokens/flare_strings_english.dart"),
     render(fields) {
-      const body = fields.map((f) => `  ${f}: ${dartLiteral(source[f].en)},`).join("\n");
+      const appends = fields.filter((f) => source[f].appendArgumentKits?.includes("flutter"));
+      const body = fields.map((f) => `  ${f}: ${appends.includes(f) ? `_${f}English` : dartLiteral(source[f].en)},`).join("\n");
+      const functions = appends.map((f) => `String _${f}English(String value) => ${dartLiteral(source[f].en)} + value;`).join("\n");
       return `${BANNER}
 
 import 'flare_strings.dart';
@@ -133,6 +137,7 @@ import 'flare_strings.dart';
 const FlareStrings flareStringsEnglish = FlareStrings(
 ${body}
 );
+${functions ? `\n${functions}` : ""}
 `;
     },
   },

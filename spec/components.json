@@ -12194,11 +12194,42 @@
             "zh": "红包是否已领完/过期（置灰不可点）",
             "en": "Whether the packet is fully claimed or expired (dimmed, not tappable)"
           }
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "zh": "禁用领取（如插件不可用或只读预览），不等同已领完。",
+            "en": "Disable opening for unavailable plugins or read-only previews; distinct from finished."
+          },
+          "default": "false"
+        },
+        {
+          "name": "busy",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "zh": "原命令处理中，不再触发领取，并展示进度文案。",
+            "en": "Original command is unresolved; block another open and expose progress."
+          },
+          "default": "false"
+        },
+        {
+          "name": "statusLabel",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "宿主提供的状态文案（如已创建或待核对），仅显示，不改变授权。",
+            "en": "Host-owned status copy, e.g. created or reconciliation pending; presentation only."
+          }
         }
       ],
       "states": [
         "opened",
-        "finished"
+        "finished",
+        "disabled",
+        "busy"
       ],
       "events": [
         "open"
@@ -12237,6 +12268,10 @@
         },
         "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
         "screenReaderSemantics": "Expose localized name, role, value/state, availability, and progress. Decorative imagery is hidden."
+      },
+      "notes": {
+        "zh": "状态文案顺序：busy、statusLabel、已领取金额、finished、disabled、待领取。禁用/忙碌/领完均不触发 open；原生端缺少 onOpen 也不可交互。宽度最多 248，服从父约束。余额、领取与权限由插件/SDK 持有。",
+        "en": "Status precedence: busy, statusLabel, received amount, finished, disabled, unopened. Disabled/busy/finished never emit open; native cards without onOpen are inert. Maximum width 248, constrained by parent. Wallet, claiming and authorization stay in plugin/SDK."
       }
     },
     {

@@ -391,8 +391,11 @@ const FlareStrings flareStringsEnglish = FlareStrings(
   notificationSettings: 'Notifications',
   notifyEveryone: 'Notify everyone',
   packetBrand: 'Flare red packet',
+  packetBusy: 'Processing…',
+  packetClaimed: _packetClaimedEnglish,
   packetFinished: 'All claimed',
   packetTapToClaim: 'Tap to open',
+  packetUnavailable: 'Unavailable',
   pause: 'Pause',
   permissionAllow: 'Allow',
   permissionContacts: 'Contacts',
@@ -558,3 +561,5 @@ const FlareStrings flareStringsEnglish = FlareStrings(
   workspaceFrameRetry: 'Try again',
   yesterday: 'Yesterday',
 );
+
+String _packetClaimedEnglish(String value) => 'Opened · ' + value;

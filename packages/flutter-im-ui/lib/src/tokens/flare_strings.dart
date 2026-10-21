@@ -117,6 +117,8 @@ class FlareStrings {
     this.packetFinished = '已被领完',
     this.packetTapToClaim = '点击领取',
     this.packetBrand = 'Flare 红包',
+    this.packetBusy = '处理中…',
+    this.packetUnavailable = '暂不可用',
     // 命令 / 翻译 / 名片码
     this.commands = '命令',
     this.noMatchingCommands = '没有匹配的命令',
@@ -800,6 +802,8 @@ class FlareStrings {
   final String packetFinished;
   final String packetTapToClaim;
   final String packetBrand;
+  final String packetBusy;
+  final String packetUnavailable;
   // 命令 / 翻译 / 名片码
   final String commands;
   final String noMatchingCommands;
@@ -1494,6 +1498,8 @@ class FlareStrings {
     String? packetFinished,
     String? packetTapToClaim,
     String? packetBrand,
+    String? packetBusy,
+    String? packetUnavailable,
     String? commands,
     String? noMatchingCommands,
     String? translating,
@@ -2098,6 +2104,8 @@ class FlareStrings {
       packetFinished: packetFinished ?? this.packetFinished,
       packetTapToClaim: packetTapToClaim ?? this.packetTapToClaim,
       packetBrand: packetBrand ?? this.packetBrand,
+      packetBusy: packetBusy ?? this.packetBusy,
+      packetUnavailable: packetUnavailable ?? this.packetUnavailable,
       commands: commands ?? this.commands,
       noMatchingCommands: noMatchingCommands ?? this.noMatchingCommands,
       translating: translating ?? this.translating,

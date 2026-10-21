@@ -113,6 +113,8 @@ public struct FlareStrings: Sendable {
     public var packetFinished: String
     public var packetTapToClaim: String
     public var packetBrand: String
+    public var packetBusy: String
+    public var packetUnavailable: String
     // Commands / translation / QR
     public var commands: String
     public var noMatchingCommands: String
@@ -883,6 +885,8 @@ public struct FlareStrings: Sendable {
         packetFinished: String = "已被抢光",
         packetTapToClaim: String = "点击拆开",
         packetBrand: String = "Flare 红包",
+        packetBusy: String = "处理中…",
+        packetUnavailable: String = "暂不可用",
         commands: String = "命令",
         noMatchingCommands: String = "没有匹配的命令",
         translating: String = "翻译中…",
@@ -1503,6 +1507,8 @@ public struct FlareStrings: Sendable {
         self.packetFinished = packetFinished
         self.packetTapToClaim = packetTapToClaim
         self.packetBrand = packetBrand
+        self.packetBusy = packetBusy
+        self.packetUnavailable = packetUnavailable
         self.commands = commands
         self.noMatchingCommands = noMatchingCommands
         self.translating = translating
