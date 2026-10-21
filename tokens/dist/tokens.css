@@ -69,6 +69,15 @@
   --flare-color-avatar-tint-amber-fg: #B45309;
   --flare-color-avatar-tint-slate-bg: #E5E7EB;
   --flare-color-avatar-tint-slate-fg: #374151;
+  --flare-color-red-packet-start: #F0503C;
+  --flare-color-red-packet-middle: #E23B2E;
+  --flare-color-red-packet-end: #C8291F;
+  --flare-color-red-packet-gold: #FFE9B8;
+  --flare-color-red-packet-gold-deep: #F6C453;
+  --flare-color-red-packet-on-surface: #FFF5E6;
+  --flare-color-red-packet-faded-ink: #5C140E;
+  --flare-color-red-packet-faded-mix-target: #FFFFFF;
+  --flare-color-red-packet-accent: #C8291F;
   --flare-size-font-size-2xs: 10px;
   --flare-size-font-size-xs: 11px;
   --flare-size-font-size-sm: 12px;
@@ -155,6 +164,13 @@
   --flare-size-component-conversation-row-meta-width: 60px;
   --flare-size-component-bubble-max-width-ratio-compact: 0.88;
   --flare-size-component-bubble-max-width-ratio-regular: 0.62;
+  --flare-size-component-red-packet-card-width: 248px;
+  --flare-size-component-red-packet-envelope-width: 300px;
+  --flare-size-component-red-packet-envelope-min-height: 440px;
+  --flare-size-component-red-packet-open-button-size: 96px;
+  --flare-size-component-red-packet-amount-font-size: 44px;
+  --flare-size-component-red-packet-detail-header-height: 72px;
+  --flare-size-component-red-packet-faded-mix: 0.4;
   --flare-text-title-font-size: 20px;
   --flare-text-title-line-height: 1.2;
   --flare-text-title-weight: 700;
@@ -273,6 +289,9 @@
   --flare-color-avatar-tint-amber-fg: #FDE68A;
   --flare-color-avatar-tint-slate-bg: #282D38;
   --flare-color-avatar-tint-slate-fg: #E5E7EB;
+  --flare-color-red-packet-faded-ink: #FBE3DE;
+  --flare-color-red-packet-faded-mix-target: #2A1513;
+  --flare-color-red-packet-accent: #FF7B6B;
   --flare-shadow-card: 0 8px 28px rgba(0, 0, 0, 0.32);
   --flare-shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.32);
   --flare-shadow-md: 0 8px 28px rgba(0, 0, 0, 0.32);
@@ -351,6 +370,15 @@
   --flare-color-avatar-tint-amber-fg: #B45309;
   --flare-color-avatar-tint-slate-bg: #E5E7EB;
   --flare-color-avatar-tint-slate-fg: #374151;
+  --flare-color-red-packet-start: #F0503C;
+  --flare-color-red-packet-middle: #E23B2E;
+  --flare-color-red-packet-end: #C8291F;
+  --flare-color-red-packet-gold: #FFE9B8;
+  --flare-color-red-packet-gold-deep: #F6C453;
+  --flare-color-red-packet-on-surface: #FFF5E6;
+  --flare-color-red-packet-faded-ink: #5C140E;
+  --flare-color-red-packet-faded-mix-target: #FFFFFF;
+  --flare-color-red-packet-accent: #C8291F;
 }
 
 [data-flare-brand="ocean"] {
@@ -423,6 +451,15 @@
   --flare-color-avatar-tint-amber-fg: #B45309;
   --flare-color-avatar-tint-slate-bg: #E5E7EB;
   --flare-color-avatar-tint-slate-fg: #374151;
+  --flare-color-red-packet-start: #F0503C;
+  --flare-color-red-packet-middle: #E23B2E;
+  --flare-color-red-packet-end: #C8291F;
+  --flare-color-red-packet-gold: #FFE9B8;
+  --flare-color-red-packet-gold-deep: #F6C453;
+  --flare-color-red-packet-on-surface: #FFF5E6;
+  --flare-color-red-packet-faded-ink: #5C140E;
+  --flare-color-red-packet-faded-mix-target: #FFFFFF;
+  --flare-color-red-packet-accent: #C8291F;
 }
 
 [data-flare-brand="forest"] {
@@ -495,6 +532,15 @@
   --flare-color-avatar-tint-amber-fg: #B45309;
   --flare-color-avatar-tint-slate-bg: #E5E7EB;
   --flare-color-avatar-tint-slate-fg: #374151;
+  --flare-color-red-packet-start: #F0503C;
+  --flare-color-red-packet-middle: #E23B2E;
+  --flare-color-red-packet-end: #C8291F;
+  --flare-color-red-packet-gold: #FFE9B8;
+  --flare-color-red-packet-gold-deep: #F6C453;
+  --flare-color-red-packet-on-surface: #FFF5E6;
+  --flare-color-red-packet-faded-ink: #5C140E;
+  --flare-color-red-packet-faded-mix-target: #FFFFFF;
+  --flare-color-red-packet-accent: #C8291F;
 }
 
 [data-flare-brand="sunset"] {
@@ -567,6 +613,15 @@
   --flare-color-avatar-tint-amber-fg: #B45309;
   --flare-color-avatar-tint-slate-bg: #E5E7EB;
   --flare-color-avatar-tint-slate-fg: #374151;
+  --flare-color-red-packet-start: #F0503C;
+  --flare-color-red-packet-middle: #E23B2E;
+  --flare-color-red-packet-end: #C8291F;
+  --flare-color-red-packet-gold: #FFE9B8;
+  --flare-color-red-packet-gold-deep: #F6C453;
+  --flare-color-red-packet-on-surface: #FFF5E6;
+  --flare-color-red-packet-faded-ink: #5C140E;
+  --flare-color-red-packet-faded-mix-target: #FFFFFF;
+  --flare-color-red-packet-accent: #C8291F;
 }
 
 [data-flare-brand="rose"] {
@@ -639,6 +694,15 @@
   --flare-color-avatar-tint-amber-fg: #B45309;
   --flare-color-avatar-tint-slate-bg: #E5E7EB;
   --flare-color-avatar-tint-slate-fg: #374151;
+  --flare-color-red-packet-start: #F0503C;
+  --flare-color-red-packet-middle: #E23B2E;
+  --flare-color-red-packet-end: #C8291F;
+  --flare-color-red-packet-gold: #FFE9B8;
+  --flare-color-red-packet-gold-deep: #F6C453;
+  --flare-color-red-packet-on-surface: #FFF5E6;
+  --flare-color-red-packet-faded-ink: #5C140E;
+  --flare-color-red-packet-faded-mix-target: #FFFFFF;
+  --flare-color-red-packet-accent: #C8291F;
 }
 
 [data-flare-brand="graphite"] {
@@ -711,6 +775,15 @@
   --flare-color-avatar-tint-amber-fg: #B45309;
   --flare-color-avatar-tint-slate-bg: #E5E7EB;
   --flare-color-avatar-tint-slate-fg: #374151;
+  --flare-color-red-packet-start: #F0503C;
+  --flare-color-red-packet-middle: #E23B2E;
+  --flare-color-red-packet-end: #C8291F;
+  --flare-color-red-packet-gold: #FFE9B8;
+  --flare-color-red-packet-gold-deep: #F6C453;
+  --flare-color-red-packet-on-surface: #FFF5E6;
+  --flare-color-red-packet-faded-ink: #5C140E;
+  --flare-color-red-packet-faded-mix-target: #FFFFFF;
+  --flare-color-red-packet-accent: #C8291F;
 }
 
 [data-flare-brand="violet"][data-flare-theme="dark"] {
@@ -783,6 +856,15 @@
   --flare-color-avatar-tint-amber-fg: #FDE68A;
   --flare-color-avatar-tint-slate-bg: #282D38;
   --flare-color-avatar-tint-slate-fg: #E5E7EB;
+  --flare-color-red-packet-start: #F0503C;
+  --flare-color-red-packet-middle: #E23B2E;
+  --flare-color-red-packet-end: #C8291F;
+  --flare-color-red-packet-gold: #FFE9B8;
+  --flare-color-red-packet-gold-deep: #F6C453;
+  --flare-color-red-packet-on-surface: #FFF5E6;
+  --flare-color-red-packet-faded-ink: #FBE3DE;
+  --flare-color-red-packet-faded-mix-target: #2A1513;
+  --flare-color-red-packet-accent: #FF7B6B;
 }
 
 [data-flare-brand="ocean"][data-flare-theme="dark"] {
@@ -855,6 +937,15 @@
   --flare-color-avatar-tint-amber-fg: #FDE68A;
   --flare-color-avatar-tint-slate-bg: #282D38;
   --flare-color-avatar-tint-slate-fg: #E5E7EB;
+  --flare-color-red-packet-start: #F0503C;
+  --flare-color-red-packet-middle: #E23B2E;
+  --flare-color-red-packet-end: #C8291F;
+  --flare-color-red-packet-gold: #FFE9B8;
+  --flare-color-red-packet-gold-deep: #F6C453;
+  --flare-color-red-packet-on-surface: #FFF5E6;
+  --flare-color-red-packet-faded-ink: #FBE3DE;
+  --flare-color-red-packet-faded-mix-target: #2A1513;
+  --flare-color-red-packet-accent: #FF7B6B;
 }
 
 [data-flare-brand="forest"][data-flare-theme="dark"] {
@@ -927,6 +1018,15 @@
   --flare-color-avatar-tint-amber-fg: #FDE68A;
   --flare-color-avatar-tint-slate-bg: #282D38;
   --flare-color-avatar-tint-slate-fg: #E5E7EB;
+  --flare-color-red-packet-start: #F0503C;
+  --flare-color-red-packet-middle: #E23B2E;
+  --flare-color-red-packet-end: #C8291F;
+  --flare-color-red-packet-gold: #FFE9B8;
+  --flare-color-red-packet-gold-deep: #F6C453;
+  --flare-color-red-packet-on-surface: #FFF5E6;
+  --flare-color-red-packet-faded-ink: #FBE3DE;
+  --flare-color-red-packet-faded-mix-target: #2A1513;
+  --flare-color-red-packet-accent: #FF7B6B;
 }
 
 [data-flare-brand="sunset"][data-flare-theme="dark"] {
@@ -999,6 +1099,15 @@
   --flare-color-avatar-tint-amber-fg: #FDE68A;
   --flare-color-avatar-tint-slate-bg: #282D38;
   --flare-color-avatar-tint-slate-fg: #E5E7EB;
+  --flare-color-red-packet-start: #F0503C;
+  --flare-color-red-packet-middle: #E23B2E;
+  --flare-color-red-packet-end: #C8291F;
+  --flare-color-red-packet-gold: #FFE9B8;
+  --flare-color-red-packet-gold-deep: #F6C453;
+  --flare-color-red-packet-on-surface: #FFF5E6;
+  --flare-color-red-packet-faded-ink: #FBE3DE;
+  --flare-color-red-packet-faded-mix-target: #2A1513;
+  --flare-color-red-packet-accent: #FF7B6B;
 }
 
 [data-flare-brand="rose"][data-flare-theme="dark"] {
@@ -1071,6 +1180,15 @@
   --flare-color-avatar-tint-amber-fg: #FDE68A;
   --flare-color-avatar-tint-slate-bg: #282D38;
   --flare-color-avatar-tint-slate-fg: #E5E7EB;
+  --flare-color-red-packet-start: #F0503C;
+  --flare-color-red-packet-middle: #E23B2E;
+  --flare-color-red-packet-end: #C8291F;
+  --flare-color-red-packet-gold: #FFE9B8;
+  --flare-color-red-packet-gold-deep: #F6C453;
+  --flare-color-red-packet-on-surface: #FFF5E6;
+  --flare-color-red-packet-faded-ink: #FBE3DE;
+  --flare-color-red-packet-faded-mix-target: #2A1513;
+  --flare-color-red-packet-accent: #FF7B6B;
 }
 
 [data-flare-brand="graphite"][data-flare-theme="dark"] {
@@ -1143,4 +1261,13 @@
   --flare-color-avatar-tint-amber-fg: #FDE68A;
   --flare-color-avatar-tint-slate-bg: #282D38;
   --flare-color-avatar-tint-slate-fg: #E5E7EB;
+  --flare-color-red-packet-start: #F0503C;
+  --flare-color-red-packet-middle: #E23B2E;
+  --flare-color-red-packet-end: #C8291F;
+  --flare-color-red-packet-gold: #FFE9B8;
+  --flare-color-red-packet-gold-deep: #F6C453;
+  --flare-color-red-packet-on-surface: #FFF5E6;
+  --flare-color-red-packet-faded-ink: #FBE3DE;
+  --flare-color-red-packet-faded-mix-target: #2A1513;
+  --flare-color-red-packet-accent: #FF7B6B;
 }

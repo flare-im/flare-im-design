@@ -119,6 +119,36 @@ class FlareStrings {
     this.packetBrand = 'Flare 红包',
     this.packetBusy = '处理中…',
     this.packetUnavailable = '暂不可用',
+    this.packetStateClaimed = '已领取',
+    this.packetStateExpired = '已过期',
+    this.packetKindLucky = '拼手气红包',
+    this.packetKindNormal = '普通红包',
+    this.packetKindExclusive = '专属红包',
+    this.packetKindPicker = '红包类型',
+    this.packetFromSender = _packetFromSender,
+    this.packetOpenAction = '開',
+    this.packetMissed = '手慢了，红包派完了',
+    this.packetExpiredNotice = '该红包已超过 24 小时',
+    this.packetNotEligible = '你不能领取这个红包',
+    this.packetOpenFailed = '领取失败，请重试',
+    this.packetViewDetails = '查看领取详情',
+    this.packetBestLuck = '手气最佳',
+    this.packetNoClaims = '暂无人领取',
+    this.packetClaims = '领取记录',
+    this.packetDetailTitle = '红包详情',
+    this.packetFieldTotal = '总金额',
+    this.packetFieldEach = '单个金额',
+    this.packetFieldAmount = '金额',
+    this.packetFieldCount = '红包个数',
+    this.packetCountPlaceholder = '填写个数',
+    this.packetFieldRecipient = '发给谁',
+    this.packetGreetingLabel = '祝福语',
+    this.packetDefaultGreeting = '恭喜发财，大吉大利',
+    this.packetSubmit = '塞钱进红包',
+    this.packetPayTitle = '确认付款',
+    this.packetPayMethod = '支付方式',
+    this.packetPayConfirm = '确认支付',
+    this.packetInsufficient = '余额不足',
     // 命令 / 翻译 / 名片码
     this.commands = '命令',
     this.noMatchingCommands = '没有匹配的命令',
@@ -804,6 +834,36 @@ class FlareStrings {
   final String packetBrand;
   final String packetBusy;
   final String packetUnavailable;
+  final String packetStateClaimed;
+  final String packetStateExpired;
+  final String packetKindLucky;
+  final String packetKindNormal;
+  final String packetKindExclusive;
+  final String packetKindPicker;
+  final String Function(String name) packetFromSender;
+  final String packetOpenAction;
+  final String packetMissed;
+  final String packetExpiredNotice;
+  final String packetNotEligible;
+  final String packetOpenFailed;
+  final String packetViewDetails;
+  final String packetBestLuck;
+  final String packetNoClaims;
+  final String packetClaims;
+  final String packetDetailTitle;
+  final String packetFieldTotal;
+  final String packetFieldEach;
+  final String packetFieldAmount;
+  final String packetFieldCount;
+  final String packetCountPlaceholder;
+  final String packetFieldRecipient;
+  final String packetGreetingLabel;
+  final String packetDefaultGreeting;
+  final String packetSubmit;
+  final String packetPayTitle;
+  final String packetPayMethod;
+  final String packetPayConfirm;
+  final String packetInsufficient;
   // 命令 / 翻译 / 名片码
   final String commands;
   final String noMatchingCommands;
@@ -1500,6 +1560,36 @@ class FlareStrings {
     String? packetBrand,
     String? packetBusy,
     String? packetUnavailable,
+    String? packetStateClaimed,
+    String? packetStateExpired,
+    String? packetKindLucky,
+    String? packetKindNormal,
+    String? packetKindExclusive,
+    String? packetKindPicker,
+    String Function(String name)? packetFromSender,
+    String? packetOpenAction,
+    String? packetMissed,
+    String? packetExpiredNotice,
+    String? packetNotEligible,
+    String? packetOpenFailed,
+    String? packetViewDetails,
+    String? packetBestLuck,
+    String? packetNoClaims,
+    String? packetClaims,
+    String? packetDetailTitle,
+    String? packetFieldTotal,
+    String? packetFieldEach,
+    String? packetFieldAmount,
+    String? packetFieldCount,
+    String? packetCountPlaceholder,
+    String? packetFieldRecipient,
+    String? packetGreetingLabel,
+    String? packetDefaultGreeting,
+    String? packetSubmit,
+    String? packetPayTitle,
+    String? packetPayMethod,
+    String? packetPayConfirm,
+    String? packetInsufficient,
     String? commands,
     String? noMatchingCommands,
     String? translating,
@@ -2106,6 +2196,38 @@ class FlareStrings {
       packetBrand: packetBrand ?? this.packetBrand,
       packetBusy: packetBusy ?? this.packetBusy,
       packetUnavailable: packetUnavailable ?? this.packetUnavailable,
+      packetStateClaimed: packetStateClaimed ?? this.packetStateClaimed,
+      packetStateExpired: packetStateExpired ?? this.packetStateExpired,
+      packetKindLucky: packetKindLucky ?? this.packetKindLucky,
+      packetKindNormal: packetKindNormal ?? this.packetKindNormal,
+      packetKindExclusive: packetKindExclusive ?? this.packetKindExclusive,
+      packetKindPicker: packetKindPicker ?? this.packetKindPicker,
+      packetFromSender: packetFromSender ?? this.packetFromSender,
+      packetOpenAction: packetOpenAction ?? this.packetOpenAction,
+      packetMissed: packetMissed ?? this.packetMissed,
+      packetExpiredNotice: packetExpiredNotice ?? this.packetExpiredNotice,
+      packetNotEligible: packetNotEligible ?? this.packetNotEligible,
+      packetOpenFailed: packetOpenFailed ?? this.packetOpenFailed,
+      packetViewDetails: packetViewDetails ?? this.packetViewDetails,
+      packetBestLuck: packetBestLuck ?? this.packetBestLuck,
+      packetNoClaims: packetNoClaims ?? this.packetNoClaims,
+      packetClaims: packetClaims ?? this.packetClaims,
+      packetDetailTitle: packetDetailTitle ?? this.packetDetailTitle,
+      packetFieldTotal: packetFieldTotal ?? this.packetFieldTotal,
+      packetFieldEach: packetFieldEach ?? this.packetFieldEach,
+      packetFieldAmount: packetFieldAmount ?? this.packetFieldAmount,
+      packetFieldCount: packetFieldCount ?? this.packetFieldCount,
+      packetCountPlaceholder:
+          packetCountPlaceholder ?? this.packetCountPlaceholder,
+      packetFieldRecipient: packetFieldRecipient ?? this.packetFieldRecipient,
+      packetGreetingLabel: packetGreetingLabel ?? this.packetGreetingLabel,
+      packetDefaultGreeting:
+          packetDefaultGreeting ?? this.packetDefaultGreeting,
+      packetSubmit: packetSubmit ?? this.packetSubmit,
+      packetPayTitle: packetPayTitle ?? this.packetPayTitle,
+      packetPayMethod: packetPayMethod ?? this.packetPayMethod,
+      packetPayConfirm: packetPayConfirm ?? this.packetPayConfirm,
+      packetInsufficient: packetInsufficient ?? this.packetInsufficient,
       commands: commands ?? this.commands,
       noMatchingCommands: noMatchingCommands ?? this.noMatchingCommands,
       translating: translating ?? this.translating,
@@ -2890,6 +3012,7 @@ class FlareStrings {
   static String _selfSuffix(String name) => '$name（我）';
   static String _selectedCount(int count) => '已选 $count';
   static String _packetClaimed(String amount) => '已领取 · $amount';
+  static String _packetFromSender(String name) => '$name的红包';
   static String _translatedBy(String provider) => '由 $provider 翻译';
   static String _pollOptionHint(int index) => '选项 $index';
   static String _yearMonth(int year, int month) => '${year}年${month}月';

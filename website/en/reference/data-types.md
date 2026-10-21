@@ -443,6 +443,23 @@ title: Data Types
 | `maxBytes` | `number` |  | UTF-8 bytes the trimmed reason may take; more marks the field and holds the confirm key. |
 | `optional` | `boolean` |  | The reason may be left empty. Default false. |
 
+### RedPacketClaim {#red-packet-claim}
+
+`FlareRedPacketClaim`
+
+> One row of the red packet claim list; time and amount are host-formatted.
+
+**Used by: **[RedPacketDetail](/en/components/red-packet-detail)
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `id` | `string` | ✓ | Stable claimant id; seeds the avatar. |
+| `name` | `string` | ✓ | Display name. |
+| `avatar` | `string` |  | Avatar URL or media id. |
+| `time` | `string` | ✓ | Claim time, formatted. |
+| `amount` | `string` | ✓ | Claimed amount, formatted. |
+| `best` | `boolean` | ✓ | The largest share of a finished lucky packet, as the server decided. |
+
 ## Enums / unions
 
 ### MessageGroupPosition {#message-group-position}
@@ -520,3 +537,33 @@ title: Data Types
 **Used by: **[ConfigProvider](/en/components/config-provider)
 
 `auto` · `pc` · `ipad` · `h5`
+
+### RedPacketState {#red-packet-state}
+
+`FlareRedPacketState`
+
+> What the current viewer sees on a red packet card.
+
+**Used by: **[RedPacketCard](/en/components/red-packet-card)
+
+`unopened` · `claimed` · `finished` · `expired`
+
+### RedPacketOpenState {#red-packet-open-state}
+
+`FlareRedPacketOpenState`
+
+> Phase of the open-a-packet sheet.
+
+**Used by: **[RedPacketOpenSheet](/en/components/red-packet-open-sheet)
+
+`ready` · `opening` · `finished` · `expired` · `notEligible` · `error`
+
+### RedPacketKind {#red-packet-kind}
+
+`FlareRedPacketKind`
+
+> Packet kinds a composer can offer.
+
+**Used by: **[RedPacketComposer](/en/components/red-packet-composer)
+
+`lucky` · `normal` · `exclusive`

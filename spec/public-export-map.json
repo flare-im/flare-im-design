@@ -2225,6 +2225,110 @@
       }
     },
     {
+      "name": "RedPacketOpenSheet",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareRedPacketOpenSheet",
+          "sourcePath": "packages/vue-im-ui/src/components/messages/FlareRedPacketOpenSheet.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareRedPacketOpenSheet",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_red_packet_open_sheet.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "RedPacketOpenSheet",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/RedPacketOpenSheet.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "RedPacketOpenSheet",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/RedPacketOpenSheet.swift"
+        }
+      }
+    },
+    {
+      "name": "RedPacketDetail",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareRedPacketDetail",
+          "sourcePath": "packages/vue-im-ui/src/components/messages/FlareRedPacketDetail.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareRedPacketDetail",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_red_packet_detail.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "RedPacketDetail",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/RedPacketDetail.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "RedPacketDetailView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/RedPacketDetailView.swift"
+        }
+      }
+    },
+    {
+      "name": "RedPacketComposer",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareRedPacketComposer",
+          "sourcePath": "packages/vue-im-ui/src/components/messages/FlareRedPacketComposer.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareRedPacketComposer",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_red_packet_composer.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "RedPacketComposer",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/RedPacketComposer.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "RedPacketComposerView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/RedPacketComposerView.swift"
+        }
+      }
+    },
+    {
+      "name": "RedPacketPayConfirm",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareRedPacketPayConfirm",
+          "sourcePath": "packages/vue-im-ui/src/components/messages/FlareRedPacketPayConfirm.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareRedPacketPayConfirm",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_red_packet_pay_confirm.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "RedPacketPayConfirm",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/RedPacketPayConfirm.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "RedPacketPayConfirmView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/RedPacketPayConfirmView.swift"
+        }
+      }
+    },
+    {
       "name": "SlashCommandMenu",
       "status": "stable",
       "platforms": {

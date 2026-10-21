@@ -115,6 +115,43 @@ public struct FlareStrings: Sendable {
     public var packetBrand: String
     public var packetBusy: String
     public var packetUnavailable: String
+    /// The card's status once the viewer has opened it and no amount is given (en: "Opened").
+    public var packetStateClaimed: String
+    public var packetStateExpired: String
+    public var packetKindLucky: String
+    public var packetKindNormal: String
+    public var packetKindExclusive: String
+    /// VoiceOver's name for the composer's kind switch.
+    public var packetKindPicker: String
+    /// VoiceOver's name for the details page's claim list.
+    public var packetClaims: String
+    /// "X's red packet" over the envelope and the details header.
+    public var packetFromSender: @Sendable (String) -> String
+    /// The gold button on the envelope.
+    public var packetOpenAction: String
+    public var packetMissed: String
+    public var packetExpiredNotice: String
+    public var packetNotEligible: String
+    public var packetOpenFailed: String
+    public var packetViewDetails: String
+    public var packetBestLuck: String
+    public var packetNoClaims: String
+    /// The details page's title in its red bar.
+    public var packetDetailTitle: String
+    public var packetFieldTotal: String
+    public var packetFieldEach: String
+    public var packetFieldAmount: String
+    public var packetFieldCount: String
+    public var packetCountPlaceholder: String
+    public var packetFieldRecipient: String
+    public var packetGreetingLabel: String
+    /// The greeting field's placeholder: what the packet says when the sender writes nothing.
+    public var packetDefaultGreeting: String
+    public var packetSubmit: String
+    public var packetPayTitle: String
+    public var packetPayMethod: String
+    public var packetPayConfirm: String
+    public var packetInsufficient: String
     // Commands / translation / QR
     public var commands: String
     public var noMatchingCommands: String
@@ -882,11 +919,41 @@ public struct FlareStrings: Sendable {
         collapse: String = "收起",
         expand: String = "展开",
         packetClaimed: String = "已领取 · ",
-        packetFinished: String = "已被抢光",
-        packetTapToClaim: String = "点击拆开",
+        packetFinished: String = "已被领完",
+        packetTapToClaim: String = "点击领取",
         packetBrand: String = "Flare 红包",
         packetBusy: String = "处理中…",
         packetUnavailable: String = "暂不可用",
+        packetStateClaimed: String = "已领取",
+        packetStateExpired: String = "已过期",
+        packetKindLucky: String = "拼手气红包",
+        packetKindNormal: String = "普通红包",
+        packetKindExclusive: String = "专属红包",
+        packetKindPicker: String = "红包类型",
+        packetClaims: String = "领取记录",
+        packetFromSender: @escaping @Sendable (String) -> String = { "\($0)的红包" },
+        packetOpenAction: String = "開",
+        packetMissed: String = "手慢了，红包派完了",
+        packetExpiredNotice: String = "该红包已超过 24 小时",
+        packetNotEligible: String = "你不能领取这个红包",
+        packetOpenFailed: String = "领取失败，请重试",
+        packetViewDetails: String = "查看领取详情",
+        packetBestLuck: String = "手气最佳",
+        packetNoClaims: String = "暂无人领取",
+        packetDetailTitle: String = "红包详情",
+        packetFieldTotal: String = "总金额",
+        packetFieldEach: String = "单个金额",
+        packetFieldAmount: String = "金额",
+        packetFieldCount: String = "红包个数",
+        packetCountPlaceholder: String = "填写个数",
+        packetFieldRecipient: String = "发给谁",
+        packetGreetingLabel: String = "祝福语",
+        packetDefaultGreeting: String = "恭喜发财，大吉大利",
+        packetSubmit: String = "塞钱进红包",
+        packetPayTitle: String = "确认付款",
+        packetPayMethod: String = "支付方式",
+        packetPayConfirm: String = "确认支付",
+        packetInsufficient: String = "余额不足",
         commands: String = "命令",
         noMatchingCommands: String = "没有匹配的命令",
         translating: String = "翻译中…",
@@ -1509,6 +1576,36 @@ public struct FlareStrings: Sendable {
         self.packetBrand = packetBrand
         self.packetBusy = packetBusy
         self.packetUnavailable = packetUnavailable
+        self.packetStateClaimed = packetStateClaimed
+        self.packetStateExpired = packetStateExpired
+        self.packetKindLucky = packetKindLucky
+        self.packetKindNormal = packetKindNormal
+        self.packetKindExclusive = packetKindExclusive
+        self.packetKindPicker = packetKindPicker
+        self.packetClaims = packetClaims
+        self.packetFromSender = packetFromSender
+        self.packetOpenAction = packetOpenAction
+        self.packetMissed = packetMissed
+        self.packetExpiredNotice = packetExpiredNotice
+        self.packetNotEligible = packetNotEligible
+        self.packetOpenFailed = packetOpenFailed
+        self.packetViewDetails = packetViewDetails
+        self.packetBestLuck = packetBestLuck
+        self.packetNoClaims = packetNoClaims
+        self.packetDetailTitle = packetDetailTitle
+        self.packetFieldTotal = packetFieldTotal
+        self.packetFieldEach = packetFieldEach
+        self.packetFieldAmount = packetFieldAmount
+        self.packetFieldCount = packetFieldCount
+        self.packetCountPlaceholder = packetCountPlaceholder
+        self.packetFieldRecipient = packetFieldRecipient
+        self.packetGreetingLabel = packetGreetingLabel
+        self.packetDefaultGreeting = packetDefaultGreeting
+        self.packetSubmit = packetSubmit
+        self.packetPayTitle = packetPayTitle
+        self.packetPayMethod = packetPayMethod
+        self.packetPayConfirm = packetPayConfirm
+        self.packetInsufficient = packetInsufficient
         self.commands = commands
         self.noMatchingCommands = noMatchingCommands
         self.translating = translating

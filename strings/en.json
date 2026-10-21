@@ -3930,7 +3930,7 @@
       "flutter",
       "ios"
     ],
-    "zh": "已被抢光"
+    "zh": "已被领完"
   },
   "packetTapToClaim": {
     "en": "Tap to open",
@@ -3939,7 +3939,7 @@
       "flutter",
       "ios"
     ],
-    "zh": "点击拆开"
+    "zh": "点击领取"
   },
   "pause": {
     "en": "Pause",
@@ -5525,6 +5525,281 @@
   "packetUnavailable": {
     "en": "Unavailable",
     "zh": "暂不可用",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetStateClaimed": {
+    "en": "Opened",
+    "zh": "已领取",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetStateExpired": {
+    "en": "Expired",
+    "zh": "已过期",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetKindLucky": {
+    "en": "Lucky packet",
+    "zh": "拼手气红包",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetKindNormal": {
+    "en": "Red packet",
+    "zh": "普通红包",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetKindExclusive": {
+    "en": "Exclusive packet",
+    "zh": "专属红包",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetKindPicker": {
+    "en": "Packet type",
+    "zh": "红包类型",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetFromSender": {
+    "en": "Red packet from ",
+    "zh": "{name}的红包",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "appendArgumentKits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetOpenAction": {
+    "en": "Open",
+    "zh": "開",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetMissed": {
+    "en": "Too late, all claimed",
+    "zh": "手慢了，红包派完了",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetExpiredNotice": {
+    "en": "This packet expired after 24 hours",
+    "zh": "该红包已超过 24 小时",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetNotEligible": {
+    "en": "You can't open this packet",
+    "zh": "你不能领取这个红包",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetOpenFailed": {
+    "en": "Couldn't open it. Try again.",
+    "zh": "领取失败，请重试",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetViewDetails": {
+    "en": "View claim details",
+    "zh": "查看领取详情",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetBestLuck": {
+    "en": "Best luck",
+    "zh": "手气最佳",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetNoClaims": {
+    "en": "No one has opened it yet",
+    "zh": "暂无人领取",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetClaims": {
+    "en": "Claims",
+    "zh": "领取记录",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetFieldTotal": {
+    "en": "Total",
+    "zh": "总金额",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetFieldEach": {
+    "en": "Amount each",
+    "zh": "单个金额",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetFieldAmount": {
+    "en": "Amount",
+    "zh": "金额",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetFieldCount": {
+    "en": "Quantity",
+    "zh": "红包个数",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetCountPlaceholder": {
+    "en": "Enter quantity",
+    "zh": "填写个数",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetFieldRecipient": {
+    "en": "Send to",
+    "zh": "发给谁",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetGreetingLabel": {
+    "en": "Greeting",
+    "zh": "祝福语",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetDefaultGreeting": {
+    "en": "Best wishes",
+    "zh": "恭喜发财，大吉大利",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetSubmit": {
+    "en": "Put money in",
+    "zh": "塞钱进红包",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetPayTitle": {
+    "en": "Confirm payment",
+    "zh": "确认付款",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetPayMethod": {
+    "en": "Pay with",
+    "zh": "支付方式",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetPayConfirm": {
+    "en": "Pay",
+    "zh": "确认支付",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetInsufficient": {
+    "en": "Insufficient balance",
+    "zh": "余额不足",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "packetDetailTitle": {
+    "en": "Red packet details",
+    "zh": "红包详情",
     "kits": [
       "android",
       "flutter",

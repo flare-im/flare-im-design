@@ -88,6 +88,15 @@ data class FlareColors(
     val avatarTintAmberFg: Color,
     val avatarTintSlateBg: Color,
     val avatarTintSlateFg: Color,
+    val redPacketStart: Color,
+    val redPacketMiddle: Color,
+    val redPacketEnd: Color,
+    val redPacketGold: Color,
+    val redPacketGoldDeep: Color,
+    val redPacketOnSurface: Color,
+    val redPacketFadedInk: Color,
+    val redPacketFadedMixTarget: Color,
+    val redPacketAccent: Color,
 ) {
     companion object {
         val VioletLight = FlareColors(
@@ -160,6 +169,15 @@ data class FlareColors(
             avatarTintAmberFg = Color(0xFFB45309),
             avatarTintSlateBg = Color(0xFFE5E7EB),
             avatarTintSlateFg = Color(0xFF374151),
+            redPacketStart = Color(0xFFF0503C),
+            redPacketMiddle = Color(0xFFE23B2E),
+            redPacketEnd = Color(0xFFC8291F),
+            redPacketGold = Color(0xFFFFE9B8),
+            redPacketGoldDeep = Color(0xFFF6C453),
+            redPacketOnSurface = Color(0xFFFFF5E6),
+            redPacketFadedInk = Color(0xFF5C140E),
+            redPacketFadedMixTarget = Color(0xFFFFFFFF),
+            redPacketAccent = Color(0xFFC8291F),
         )
 
         val VioletDark = FlareColors(
@@ -232,6 +250,15 @@ data class FlareColors(
             avatarTintAmberFg = Color(0xFFFDE68A),
             avatarTintSlateBg = Color(0xFF282D38),
             avatarTintSlateFg = Color(0xFFE5E7EB),
+            redPacketStart = Color(0xFFF0503C),
+            redPacketMiddle = Color(0xFFE23B2E),
+            redPacketEnd = Color(0xFFC8291F),
+            redPacketGold = Color(0xFFFFE9B8),
+            redPacketGoldDeep = Color(0xFFF6C453),
+            redPacketOnSurface = Color(0xFFFFF5E6),
+            redPacketFadedInk = Color(0xFFFBE3DE),
+            redPacketFadedMixTarget = Color(0xFF2A1513),
+            redPacketAccent = Color(0xFFFF7B6B),
         )
 
         val OceanLight = FlareColors(
@@ -304,6 +331,15 @@ data class FlareColors(
             avatarTintAmberFg = Color(0xFFB45309),
             avatarTintSlateBg = Color(0xFFE5E7EB),
             avatarTintSlateFg = Color(0xFF374151),
+            redPacketStart = Color(0xFFF0503C),
+            redPacketMiddle = Color(0xFFE23B2E),
+            redPacketEnd = Color(0xFFC8291F),
+            redPacketGold = Color(0xFFFFE9B8),
+            redPacketGoldDeep = Color(0xFFF6C453),
+            redPacketOnSurface = Color(0xFFFFF5E6),
+            redPacketFadedInk = Color(0xFF5C140E),
+            redPacketFadedMixTarget = Color(0xFFFFFFFF),
+            redPacketAccent = Color(0xFFC8291F),
         )
 
         val OceanDark = FlareColors(
@@ -376,6 +412,15 @@ data class FlareColors(
             avatarTintAmberFg = Color(0xFFFDE68A),
             avatarTintSlateBg = Color(0xFF282D38),
             avatarTintSlateFg = Color(0xFFE5E7EB),
+            redPacketStart = Color(0xFFF0503C),
+            redPacketMiddle = Color(0xFFE23B2E),
+            redPacketEnd = Color(0xFFC8291F),
+            redPacketGold = Color(0xFFFFE9B8),
+            redPacketGoldDeep = Color(0xFFF6C453),
+            redPacketOnSurface = Color(0xFFFFF5E6),
+            redPacketFadedInk = Color(0xFFFBE3DE),
+            redPacketFadedMixTarget = Color(0xFF2A1513),
+            redPacketAccent = Color(0xFFFF7B6B),
         )
 
         val ForestLight = FlareColors(
@@ -448,6 +493,15 @@ data class FlareColors(
             avatarTintAmberFg = Color(0xFFB45309),
             avatarTintSlateBg = Color(0xFFE5E7EB),
             avatarTintSlateFg = Color(0xFF374151),
+            redPacketStart = Color(0xFFF0503C),
+            redPacketMiddle = Color(0xFFE23B2E),
+            redPacketEnd = Color(0xFFC8291F),
+            redPacketGold = Color(0xFFFFE9B8),
+            redPacketGoldDeep = Color(0xFFF6C453),
+            redPacketOnSurface = Color(0xFFFFF5E6),
+            redPacketFadedInk = Color(0xFF5C140E),
+            redPacketFadedMixTarget = Color(0xFFFFFFFF),
+            redPacketAccent = Color(0xFFC8291F),
         )
 
         val ForestDark = FlareColors(
@@ -520,6 +574,15 @@ data class FlareColors(
             avatarTintAmberFg = Color(0xFFFDE68A),
             avatarTintSlateBg = Color(0xFF282D38),
             avatarTintSlateFg = Color(0xFFE5E7EB),
+            redPacketStart = Color(0xFFF0503C),
+            redPacketMiddle = Color(0xFFE23B2E),
+            redPacketEnd = Color(0xFFC8291F),
+            redPacketGold = Color(0xFFFFE9B8),
+            redPacketGoldDeep = Color(0xFFF6C453),
+            redPacketOnSurface = Color(0xFFFFF5E6),
+            redPacketFadedInk = Color(0xFFFBE3DE),
+            redPacketFadedMixTarget = Color(0xFF2A1513),
+            redPacketAccent = Color(0xFFFF7B6B),
         )
 
         val SunsetLight = FlareColors(
@@ -592,6 +655,15 @@ data class FlareColors(
             avatarTintAmberFg = Color(0xFFB45309),
             avatarTintSlateBg = Color(0xFFE5E7EB),
             avatarTintSlateFg = Color(0xFF374151),
+            redPacketStart = Color(0xFFF0503C),
+            redPacketMiddle = Color(0xFFE23B2E),
+            redPacketEnd = Color(0xFFC8291F),
+            redPacketGold = Color(0xFFFFE9B8),
+            redPacketGoldDeep = Color(0xFFF6C453),
+            redPacketOnSurface = Color(0xFFFFF5E6),
+            redPacketFadedInk = Color(0xFF5C140E),
+            redPacketFadedMixTarget = Color(0xFFFFFFFF),
+            redPacketAccent = Color(0xFFC8291F),
         )
 
         val SunsetDark = FlareColors(
@@ -664,6 +736,15 @@ data class FlareColors(
             avatarTintAmberFg = Color(0xFFFDE68A),
             avatarTintSlateBg = Color(0xFF282D38),
             avatarTintSlateFg = Color(0xFFE5E7EB),
+            redPacketStart = Color(0xFFF0503C),
+            redPacketMiddle = Color(0xFFE23B2E),
+            redPacketEnd = Color(0xFFC8291F),
+            redPacketGold = Color(0xFFFFE9B8),
+            redPacketGoldDeep = Color(0xFFF6C453),
+            redPacketOnSurface = Color(0xFFFFF5E6),
+            redPacketFadedInk = Color(0xFFFBE3DE),
+            redPacketFadedMixTarget = Color(0xFF2A1513),
+            redPacketAccent = Color(0xFFFF7B6B),
         )
 
         val RoseLight = FlareColors(
@@ -736,6 +817,15 @@ data class FlareColors(
             avatarTintAmberFg = Color(0xFFB45309),
             avatarTintSlateBg = Color(0xFFE5E7EB),
             avatarTintSlateFg = Color(0xFF374151),
+            redPacketStart = Color(0xFFF0503C),
+            redPacketMiddle = Color(0xFFE23B2E),
+            redPacketEnd = Color(0xFFC8291F),
+            redPacketGold = Color(0xFFFFE9B8),
+            redPacketGoldDeep = Color(0xFFF6C453),
+            redPacketOnSurface = Color(0xFFFFF5E6),
+            redPacketFadedInk = Color(0xFF5C140E),
+            redPacketFadedMixTarget = Color(0xFFFFFFFF),
+            redPacketAccent = Color(0xFFC8291F),
         )
 
         val RoseDark = FlareColors(
@@ -808,6 +898,15 @@ data class FlareColors(
             avatarTintAmberFg = Color(0xFFFDE68A),
             avatarTintSlateBg = Color(0xFF282D38),
             avatarTintSlateFg = Color(0xFFE5E7EB),
+            redPacketStart = Color(0xFFF0503C),
+            redPacketMiddle = Color(0xFFE23B2E),
+            redPacketEnd = Color(0xFFC8291F),
+            redPacketGold = Color(0xFFFFE9B8),
+            redPacketGoldDeep = Color(0xFFF6C453),
+            redPacketOnSurface = Color(0xFFFFF5E6),
+            redPacketFadedInk = Color(0xFFFBE3DE),
+            redPacketFadedMixTarget = Color(0xFF2A1513),
+            redPacketAccent = Color(0xFFFF7B6B),
         )
 
         val GraphiteLight = FlareColors(
@@ -880,6 +979,15 @@ data class FlareColors(
             avatarTintAmberFg = Color(0xFFB45309),
             avatarTintSlateBg = Color(0xFFE5E7EB),
             avatarTintSlateFg = Color(0xFF374151),
+            redPacketStart = Color(0xFFF0503C),
+            redPacketMiddle = Color(0xFFE23B2E),
+            redPacketEnd = Color(0xFFC8291F),
+            redPacketGold = Color(0xFFFFE9B8),
+            redPacketGoldDeep = Color(0xFFF6C453),
+            redPacketOnSurface = Color(0xFFFFF5E6),
+            redPacketFadedInk = Color(0xFF5C140E),
+            redPacketFadedMixTarget = Color(0xFFFFFFFF),
+            redPacketAccent = Color(0xFFC8291F),
         )
 
         val GraphiteDark = FlareColors(
@@ -952,6 +1060,15 @@ data class FlareColors(
             avatarTintAmberFg = Color(0xFFFDE68A),
             avatarTintSlateBg = Color(0xFF282D38),
             avatarTintSlateFg = Color(0xFFE5E7EB),
+            redPacketStart = Color(0xFFF0503C),
+            redPacketMiddle = Color(0xFFE23B2E),
+            redPacketEnd = Color(0xFFC8291F),
+            redPacketGold = Color(0xFFFFE9B8),
+            redPacketGoldDeep = Color(0xFFF6C453),
+            redPacketOnSurface = Color(0xFFFFF5E6),
+            redPacketFadedInk = Color(0xFFFBE3DE),
+            redPacketFadedMixTarget = Color(0xFF2A1513),
+            redPacketAccent = Color(0xFFFF7B6B),
         )
 
         val Light = VioletLight
@@ -1108,6 +1225,13 @@ object FlareSizes {
     val componentConversationRowMetaWidth: Dp = 60.dp
     const val componentBubbleMaxWidthRatioCompact: Float = 0.88f
     const val componentBubbleMaxWidthRatioRegular: Float = 0.62f
+    val componentRedPacketCardWidth: Dp = 248.dp
+    val componentRedPacketEnvelopeWidth: Dp = 300.dp
+    val componentRedPacketEnvelopeMinHeight: Dp = 440.dp
+    val componentRedPacketOpenButtonSize: Dp = 96.dp
+    val componentRedPacketAmountFontSize: Dp = 44.dp
+    val componentRedPacketDetailHeaderHeight: Dp = 72.dp
+    const val componentRedPacketFadedMix: Float = 0.4f
 }
 
 /** Opacity tokens (disabled / muted / tint overlays). */

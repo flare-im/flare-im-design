@@ -108,6 +108,17 @@ export const flareDesignTokens = {
         "bg": "#E5E7EB",
         "fg": "#374151"
       }
+    },
+    "redPacket": {
+      "start": "#F0503C",
+      "middle": "#E23B2E",
+      "end": "#C8291F",
+      "gold": "#FFE9B8",
+      "goldDeep": "#F6C453",
+      "onSurface": "#FFF5E6",
+      "fadedInk": "#5C140E",
+      "fadedMixTarget": "#FFFFFF",
+      "accent": "#C8291F"
     }
   },
   "dark": {
@@ -218,6 +229,11 @@ export const flareDesignTokens = {
           "bg": "#282D38",
           "fg": "#E5E7EB"
         }
+      },
+      "redPacket": {
+        "fadedInk": "#FBE3DE",
+        "fadedMixTarget": "#2A1513",
+        "accent": "#FF7B6B"
       }
     },
     "shadows": {
@@ -336,7 +352,14 @@ export const flareDesignTokens = {
       "sheetDialogWidth": "480px",
       "conversationRowMetaWidth": "60px",
       "bubbleMaxWidthRatioCompact": "0.88",
-      "bubbleMaxWidthRatioRegular": "0.62"
+      "bubbleMaxWidthRatioRegular": "0.62",
+      "redPacketCardWidth": "248px",
+      "redPacketEnvelopeWidth": "300px",
+      "redPacketEnvelopeMinHeight": "440px",
+      "redPacketOpenButtonSize": "96px",
+      "redPacketAmountFontSize": "44px",
+      "redPacketDetailHeaderHeight": "72px",
+      "redPacketFadedMix": "0.4"
     },
     "textRole": {
       "title": {
@@ -520,6 +543,17 @@ export const flareDesignTokens = {
               "bg": "#E5E7EB",
               "fg": "#374151"
             }
+          },
+          "redPacket": {
+            "start": "#F0503C",
+            "middle": "#E23B2E",
+            "end": "#C8291F",
+            "gold": "#FFE9B8",
+            "goldDeep": "#F6C453",
+            "onSurface": "#FFF5E6",
+            "fadedInk": "#5C140E",
+            "fadedMixTarget": "#FFFFFF",
+            "accent": "#C8291F"
           }
         }
       },
@@ -631,6 +665,17 @@ export const flareDesignTokens = {
               "bg": "#282D38",
               "fg": "#E5E7EB"
             }
+          },
+          "redPacket": {
+            "start": "#F0503C",
+            "middle": "#E23B2E",
+            "end": "#C8291F",
+            "gold": "#FFE9B8",
+            "goldDeep": "#F6C453",
+            "onSurface": "#FFF5E6",
+            "fadedInk": "#FBE3DE",
+            "fadedMixTarget": "#2A1513",
+            "accent": "#FF7B6B"
           }
         }
       }
@@ -745,6 +790,17 @@ export const flareDesignTokens = {
               "bg": "#E5E7EB",
               "fg": "#374151"
             }
+          },
+          "redPacket": {
+            "start": "#F0503C",
+            "middle": "#E23B2E",
+            "end": "#C8291F",
+            "gold": "#FFE9B8",
+            "goldDeep": "#F6C453",
+            "onSurface": "#FFF5E6",
+            "fadedInk": "#5C140E",
+            "fadedMixTarget": "#FFFFFF",
+            "accent": "#C8291F"
           }
         }
       },
@@ -856,6 +912,17 @@ export const flareDesignTokens = {
               "bg": "#282D38",
               "fg": "#E5E7EB"
             }
+          },
+          "redPacket": {
+            "start": "#F0503C",
+            "middle": "#E23B2E",
+            "end": "#C8291F",
+            "gold": "#FFE9B8",
+            "goldDeep": "#F6C453",
+            "onSurface": "#FFF5E6",
+            "fadedInk": "#FBE3DE",
+            "fadedMixTarget": "#2A1513",
+            "accent": "#FF7B6B"
           }
         }
       }
@@ -970,6 +1037,17 @@ export const flareDesignTokens = {
               "bg": "#E5E7EB",
               "fg": "#374151"
             }
+          },
+          "redPacket": {
+            "start": "#F0503C",
+            "middle": "#E23B2E",
+            "end": "#C8291F",
+            "gold": "#FFE9B8",
+            "goldDeep": "#F6C453",
+            "onSurface": "#FFF5E6",
+            "fadedInk": "#5C140E",
+            "fadedMixTarget": "#FFFFFF",
+            "accent": "#C8291F"
           }
         }
       },
@@ -1081,6 +1159,17 @@ export const flareDesignTokens = {
               "bg": "#282D38",
               "fg": "#E5E7EB"
             }
+          },
+          "redPacket": {
+            "start": "#F0503C",
+            "middle": "#E23B2E",
+            "end": "#C8291F",
+            "gold": "#FFE9B8",
+            "goldDeep": "#F6C453",
+            "onSurface": "#FFF5E6",
+            "fadedInk": "#FBE3DE",
+            "fadedMixTarget": "#2A1513",
+            "accent": "#FF7B6B"
           }
         }
       }
@@ -1195,6 +1284,17 @@ export const flareDesignTokens = {
               "bg": "#E5E7EB",
               "fg": "#374151"
             }
+          },
+          "redPacket": {
+            "start": "#F0503C",
+            "middle": "#E23B2E",
+            "end": "#C8291F",
+            "gold": "#FFE9B8",
+            "goldDeep": "#F6C453",
+            "onSurface": "#FFF5E6",
+            "fadedInk": "#5C140E",
+            "fadedMixTarget": "#FFFFFF",
+            "accent": "#C8291F"
           }
         }
       },
@@ -1306,6 +1406,17 @@ export const flareDesignTokens = {
               "bg": "#282D38",
               "fg": "#E5E7EB"
             }
+          },
+          "redPacket": {
+            "start": "#F0503C",
+            "middle": "#E23B2E",
+            "end": "#C8291F",
+            "gold": "#FFE9B8",
+            "goldDeep": "#F6C453",
+            "onSurface": "#FFF5E6",
+            "fadedInk": "#FBE3DE",
+            "fadedMixTarget": "#2A1513",
+            "accent": "#FF7B6B"
           }
         }
       }
@@ -1420,6 +1531,17 @@ export const flareDesignTokens = {
               "bg": "#E5E7EB",
               "fg": "#374151"
             }
+          },
+          "redPacket": {
+            "start": "#F0503C",
+            "middle": "#E23B2E",
+            "end": "#C8291F",
+            "gold": "#FFE9B8",
+            "goldDeep": "#F6C453",
+            "onSurface": "#FFF5E6",
+            "fadedInk": "#5C140E",
+            "fadedMixTarget": "#FFFFFF",
+            "accent": "#C8291F"
           }
         }
       },
@@ -1531,6 +1653,17 @@ export const flareDesignTokens = {
               "bg": "#282D38",
               "fg": "#E5E7EB"
             }
+          },
+          "redPacket": {
+            "start": "#F0503C",
+            "middle": "#E23B2E",
+            "end": "#C8291F",
+            "gold": "#FFE9B8",
+            "goldDeep": "#F6C453",
+            "onSurface": "#FFF5E6",
+            "fadedInk": "#FBE3DE",
+            "fadedMixTarget": "#2A1513",
+            "accent": "#FF7B6B"
           }
         }
       }
@@ -1645,6 +1778,17 @@ export const flareDesignTokens = {
               "bg": "#E5E7EB",
               "fg": "#374151"
             }
+          },
+          "redPacket": {
+            "start": "#F0503C",
+            "middle": "#E23B2E",
+            "end": "#C8291F",
+            "gold": "#FFE9B8",
+            "goldDeep": "#F6C453",
+            "onSurface": "#FFF5E6",
+            "fadedInk": "#5C140E",
+            "fadedMixTarget": "#FFFFFF",
+            "accent": "#C8291F"
           }
         }
       },
@@ -1756,6 +1900,17 @@ export const flareDesignTokens = {
               "bg": "#282D38",
               "fg": "#E5E7EB"
             }
+          },
+          "redPacket": {
+            "start": "#F0503C",
+            "middle": "#E23B2E",
+            "end": "#C8291F",
+            "gold": "#FFE9B8",
+            "goldDeep": "#F6C453",
+            "onSurface": "#FFF5E6",
+            "fadedInk": "#FBE3DE",
+            "fadedMixTarget": "#2A1513",
+            "accent": "#FF7B6B"
           }
         }
       }

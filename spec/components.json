@@ -1853,6 +1853,117 @@
           }
         }
       ]
+    },
+    {
+      "name": "RedPacketState",
+      "symbol": "FlareRedPacketState",
+      "kind": "enum",
+      "summary": {
+        "en": "What the current viewer sees on a red packet card.",
+        "zh": "当前查看者在红包卡片上看到的状态。"
+      },
+      "values": [
+        "unopened",
+        "claimed",
+        "finished",
+        "expired"
+      ]
+    },
+    {
+      "name": "RedPacketOpenState",
+      "symbol": "FlareRedPacketOpenState",
+      "kind": "enum",
+      "summary": {
+        "en": "Phase of the open-a-packet sheet.",
+        "zh": "开红包浮层的阶段。"
+      },
+      "values": [
+        "ready",
+        "opening",
+        "finished",
+        "expired",
+        "notEligible",
+        "error"
+      ]
+    },
+    {
+      "name": "RedPacketKind",
+      "symbol": "FlareRedPacketKind",
+      "kind": "enum",
+      "summary": {
+        "en": "Packet kinds a composer can offer.",
+        "zh": "发红包表单可提供的种类。"
+      },
+      "values": [
+        "lucky",
+        "normal",
+        "exclusive"
+      ]
+    },
+    {
+      "name": "RedPacketClaim",
+      "symbol": "FlareRedPacketClaim",
+      "kind": "interface",
+      "summary": {
+        "en": "One row of the red packet claim list; time and amount are host-formatted.",
+        "zh": "红包领取列表的一行；时间和金额由宿主格式化。"
+      },
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Stable claimant id; seeds the avatar.",
+            "zh": "稳定的领取人标识，也是头像种子。"
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Display name.",
+            "zh": "显示名。"
+          }
+        },
+        {
+          "name": "avatar",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Avatar URL or media id.",
+            "zh": "头像 URL 或媒体 id。"
+          }
+        },
+        {
+          "name": "time",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Claim time, formatted.",
+            "zh": "领取时间（已格式化）。"
+          }
+        },
+        {
+          "name": "amount",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Claimed amount, formatted.",
+            "zh": "领取金额（已格式化）。"
+          }
+        },
+        {
+          "name": "best",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "The largest share of a finished lucky packet, as the server decided.",
+            "zh": "拼手气红包领完后的最大一份，由服务端判定。"
+          }
+        }
+      ]
     }
   ],
   "components": [
@@ -12149,8 +12260,8 @@
       "name": "RedPacketCard",
       "category": "Message",
       "summary": {
-        "zh": "红包卡片 —— 红金渐变 + 祝福 + 领取态。",
-        "en": "Red packet — gradient + blessing + claim state."
+        "zh": "红包卡片 —— 橙红渐变封面、祝福语、当前查看者的领取状态和品牌行。",
+        "en": "Red packet card — orange-red cover, blessing, the viewer's claim state and a brand line."
       },
       "dataSource": {
         "zh": "由你传入",
@@ -12162,37 +12273,36 @@
           "type": "string",
           "required": true,
           "description": {
-            "zh": "红包封面的祝福语",
-            "en": "Greeting shown on the packet"
+            "zh": "红包封面的祝福语（一行，超出省略）",
+            "en": "Greeting on the packet (one line, ellipsized)"
           }
+        },
+        {
+          "name": "kindLabel",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "品牌行左侧的种类，如「拼手气红包」",
+            "en": "Packet kind on the brand line, e.g. \"Lucky packet\""
+          }
+        },
+        {
+          "name": "state",
+          "type": "FlareRedPacketState",
+          "required": false,
+          "description": {
+            "zh": "当前查看者看到的状态：unopened 饱和；claimed / finished / expired 变淡（与 fadedMixTarget 混合）且仍可点击",
+            "en": "What the current viewer sees: unopened is saturated; claimed / finished / expired are faded (mixed toward fadedMixTarget) and still tappable"
+          },
+          "default": "\"unopened\""
         },
         {
           "name": "amount",
           "type": "string",
           "required": false,
           "description": {
-            "zh": "开启后展示的金额（由业务格式化）",
-            "en": "Revealed amount once opened (host formats it)"
-          }
-        },
-        {
-          "name": "opened",
-          "type": "boolean",
-          "required": false,
-          "default": "false",
-          "description": {
-            "zh": "当前用户是否已领取该红包",
-            "en": "Whether this packet has been claimed by the current user"
-          }
-        },
-        {
-          "name": "finished",
-          "type": "boolean",
-          "required": false,
-          "default": "false",
-          "description": {
-            "zh": "红包是否已领完/过期（置灰不可点）",
-            "en": "Whether the packet is fully claimed or expired (dimmed, not tappable)"
+            "zh": "查看者领到的金额（由业务格式化），claimed 时显示",
+            "en": "What the viewer received (host formats it); shown when claimed"
           }
         },
         {
@@ -12200,8 +12310,8 @@
           "type": "boolean",
           "required": false,
           "description": {
-            "zh": "禁用领取（如插件不可用或只读预览），不等同已领完。",
-            "en": "Disable opening for unavailable plugins or read-only previews; distinct from finished."
+            "zh": "禁用（如插件不可用或只读预览）：保持未领取的外观，状态行为「暂不可用」，不可点；不等同已领完。",
+            "en": "Disabled (unavailable plugin or read-only preview): keeps the unopened face, status reads unavailable, not tappable; distinct from finished."
           },
           "default": "false"
         },
@@ -12210,8 +12320,8 @@
           "type": "boolean",
           "required": false,
           "description": {
-            "zh": "原命令处理中，不再触发领取，并展示进度文案。",
-            "en": "Original command is unresolved; block another open and expose progress."
+            "zh": "原命令处理中：保持未领取的外观和白字，只把状态行换成进度文案，不可点。",
+            "en": "Original command is unresolved: keeps the unopened face and white text, only the status line shows progress; not tappable."
           },
           "default": "false"
         },
@@ -12220,14 +12330,16 @@
           "type": "string",
           "required": false,
           "description": {
-            "zh": "宿主提供的状态文案（如已创建或待核对），仅显示，不改变授权。",
-            "en": "Host-owned status copy, e.g. created or reconciliation pending; presentation only."
+            "zh": "宿主提供的状态文案（如单聊发送人的「待领取」），仅显示，不改变授权。",
+            "en": "Host-owned status copy, e.g. a 1:1 sender's \"waiting\"; presentation only."
           }
         }
       ],
       "states": [
-        "opened",
+        "unopened",
+        "claimed",
         "finished",
+        "expired",
         "disabled",
         "busy"
       ],
@@ -12270,8 +12382,602 @@
         "screenReaderSemantics": "Expose localized name, role, value/state, availability, and progress. Decorative imagery is hidden."
       },
       "notes": {
-        "zh": "状态文案顺序：busy、statusLabel、已领取金额、finished、disabled、待领取。禁用/忙碌/领完均不触发 open；原生端缺少 onOpen 也不可交互。宽度最多 248，服从父约束。余额、领取与权限由插件/SDK 持有。",
-        "en": "Status precedence: busy, statusLabel, received amount, finished, disabled, unopened. Disabled/busy/finished never emit open; native cards without onOpen are inert. Maximum width 248, constrained by parent. Wallet, claiming and authorization stay in plugin/SDK."
+        "zh": "状态行优先级（spec/red-packet-vectors.json → card）：busy、statusLabel、已领取金额、已领取、已被领完、已过期、暂不可用、点击领取。finished / expired 仍触发 open（查看领取详情）；只有 disabled、busy 和原生端缺少 onOpen 时不可交互，二者保持未领取的外观和白字，不变暗不变灰。变淡（spec/red-packet-vectors.json → faded）：claimed / finished / expired 时卡面五个色各自在 sRGB 里向 colors.redPacket.fadedMixTarget 混合 sizes.component.redPacketFadedMix（0.4）；目标色浅色为白、深色为偏红深底，色相不变；文字改用 colors.redPacket.fadedInk，在每一档上对比度 ≥ 4.5；不用滤镜、不降透明度。左侧标识是四端同一几何的小信封：宽 30、高为宽的 1.3 倍、圆角为宽的 0.18，封盖高为整高的 0.42、弧线比两侧下垂封盖高的 0.3，红色封印直径为宽的 0.36、圆心在弧线最低点；身为 gold→goldDeep 渐变，封盖 goldDeep，封印 end，变淡时同样混合。宽度最多 redPacketCardWidth（248），服从父约束；交互区至少 48；品牌行在底部。领取、余额与权限由插件/SDK 持有。",
+        "en": "Status precedence (spec/red-packet-vectors.json → card): busy, statusLabel, received amount, claimed, finished, expired, unavailable, tap to open. Finished / expired still emit open (to show the details); only disabled, busy, or a native card without onOpen are inert, and those two keep the unopened face and white text — never darkened or greyed. Fading (spec/red-packet-vectors.json → faded): for claimed / finished / expired each of the five card colours is mixed in sRGB toward colors.redPacket.fadedMixTarget by sizes.component.redPacketFadedMix (0.4); the target is white in light mode and a deep red in dark mode, so the hue stays; text switches to colors.redPacket.fadedInk at 4.5:1 or better on every stop; no filters, no opacity. The leading mark is the same small envelope on every kit: 30 wide, 1.3 times as tall, corners 0.18 of the width, a flap 0.42 of the height whose curve dips 0.3 of the flap below its sides, and a red seal 0.36 of the width centred on the curve's lowest point; body gold to goldDeep, flap goldDeep, seal end, mixed like the rest when faded. Width at most redPacketCardWidth (248), constrained by the parent; touch target at least 48; brand line at the bottom. Claiming, balance and authorization stay in the plugin/SDK."
+      }
+    },
+    {
+      "name": "RedPacketOpenSheet",
+      "category": "Message",
+      "summary": {
+        "zh": "开红包浮层 —— 遮罩上的红色信封：弧形封盖、发送人、祝福语和接缝上的金色「開」。",
+        "en": "Open-a-packet layer — a red envelope over the scrim: arched flap, sender, blessing and the gold 開 coin on the seam."
+      },
+      "dataSource": {
+        "zh": "由你传入；金额、时间、名字由宿主格式化，组件不做资金计算也不请求网络",
+        "en": "passed in by you; amounts, times and names arrive formatted, the component never computes money or fetches"
+      },
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "zh": "是否显示（Vue；原生由宿主呈现）",
+            "en": "Whether the sheet is shown (Vue; native hosts present it)"
+          },
+          "platforms": [
+            "vue"
+          ]
+        },
+        {
+          "name": "senderName",
+          "type": "string",
+          "required": true,
+          "description": {
+            "zh": "发送人名字，标题为「X的红包」",
+            "en": "Sender name; the title reads \"Red packet from X\""
+          }
+        },
+        {
+          "name": "senderAvatar",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "发送人头像",
+            "en": "Sender avatar"
+          }
+        },
+        {
+          "name": "blessing",
+          "type": "string",
+          "required": true,
+          "description": {
+            "zh": "祝福语（大字）",
+            "en": "Blessing, drawn large"
+          }
+        },
+        {
+          "name": "kindLabel",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "发送人下方的种类，如「拼手气红包」",
+            "en": "Packet kind under the sender, e.g. \"Lucky packet\""
+          }
+        },
+        {
+          "name": "state",
+          "type": "FlareRedPacketOpenState",
+          "required": false,
+          "description": {
+            "zh": "ready 显示「開」；opening 翻转且不可重复点；finished / expired / notEligible 说明原因并给出「查看领取详情」；error 保留「開」供重试",
+            "en": "ready offers 開; opening flips it and blocks a repeat; finished / expired / notEligible say why and offer the details; error keeps 開 for a retry"
+          },
+          "default": "\"ready\""
+        },
+        {
+          "name": "message",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "宿主提示，替换非 ready 状态的默认文案，如「仅 TA 可领取」",
+            "en": "Host notice replacing the default copy of a non-ready state, e.g. \"Only they can open it\""
+          }
+        }
+      ],
+      "states": [
+        "ready",
+        "opening",
+        "finished",
+        "expired",
+        "notEligible",
+        "error"
+      ],
+      "events": [
+        "open",
+        "viewDetails",
+        "close"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareRedPacketOpenSheet"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareRedPacketOpenSheet"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "RedPacketOpenSheet"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "RedPacketOpenSheet"
+        }
+      },
+      "accessibility": {
+        "role": "dialog",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Focus moves to 開 on open",
+          "Enter or Space activates 開 and the details link",
+          "Tab is trapped inside the envelope and its close control",
+          "Escape and the platform back close"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "No coin flip and no pop-in; while opening the coin shows a progress label instead.",
+        "screenReaderSemantics": "Dialog named \"Red packet from X\"; the headline is a polite live region; the coin is a button named 開 and busy while opening; the avatar is hidden."
+      },
+      "notes": {
+        "zh": "只画，不判断资格：宿主调 details 预取后按 canClaim 给出 state，点「開」时置为 opening 并调 claim。遮罩点击、关闭键（信封下方）、Escape 和返回键都触发 close。Flutter 组件自绘遮罩，可放进 Stack，也可用 FlareRedPacketOpenSheet.show 推一条路由。 notEligible 的提示和 error 的说明用正文行高（lineHeight.normal），最多 3 行，超出省略。",
+        "en": "Draws only, never decides eligibility: the host prefetches details, maps canClaim to state, sets opening on 開 and calls claim. Scrim tap, the close control under the envelope, Escape and the platform back all emit close. Flutter paints its own scrim: lay it in a Stack or present it with FlareRedPacketOpenSheet.show. The notEligible notice and the error line use the body line height (lineHeight.normal) and stop at three lines."
+      }
+    },
+    {
+      "name": "RedPacketDetail",
+      "category": "Message",
+      "summary": {
+        "zh": "红包详情 —— 红色弧形头图、发送人与种类、本人金额（大字）、汇总和领取列表。",
+        "en": "Red packet details — red arched header, sender and kind, the viewer's amount drawn large, summary and claim list."
+      },
+      "dataSource": {
+        "zh": "由你传入；金额、时间、名字由宿主格式化，组件不做资金计算也不请求网络",
+        "en": "passed in by you; amounts, times and names arrive formatted, the component never computes money or fetches"
+      },
+      "props": [
+        {
+          "name": "senderName",
+          "type": "string",
+          "required": true,
+          "description": {
+            "zh": "发送人名字",
+            "en": "Sender name"
+          }
+        },
+        {
+          "name": "senderAvatar",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "发送人头像",
+            "en": "Sender avatar"
+          }
+        },
+        {
+          "name": "blessing",
+          "type": "string",
+          "required": true,
+          "description": {
+            "zh": "祝福语",
+            "en": "Blessing"
+          }
+        },
+        {
+          "name": "kindLabel",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "发送人旁的种类标签，如「拼」",
+            "en": "Kind badge beside the sender, e.g. \"拼\""
+          }
+        },
+        {
+          "name": "amount",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "本人领取金额（大字），如「0.88 元」",
+            "en": "The viewer's own amount, drawn large, e.g. \"0.88\""
+          }
+        },
+        {
+          "name": "amountNote",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "金额下方说明，如「已存入钱包」",
+            "en": "Line under the amount, e.g. \"Saved to wallet\""
+          }
+        },
+        {
+          "name": "summary",
+          "type": "string",
+          "required": true,
+          "description": {
+            "zh": "汇总行，如「已领取 3/5 个，共 2.10/5.00 元」",
+            "en": "Progress line, e.g. \"3/5 opened, 2.10/5.00\""
+          }
+        },
+        {
+          "name": "claims",
+          "type": "FlareRedPacketClaim[]",
+          "required": false,
+          "description": {
+            "zh": "领取列表；best=true 的行带「手气最佳」；为空时显示「暂无人领取」",
+            "en": "Claim rows; best=true carries \"Best luck\"; empty shows \"No one has opened it yet\""
+          },
+          "default": "[]"
+        },
+        {
+          "name": "note",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "底部说明，如过期退回",
+            "en": "Closing explanation, e.g. a refund after expiry"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "红色标题栏的标题（传了 back 时显示），默认「红包详情」（packetDetailTitle）",
+            "en": "Title of the red bar shown with back; defaults to \"Red packet details\" (packetDetailTitle)"
+          }
+        }
+      ],
+      "states": [
+        "claimed",
+        "notClaimed",
+        "empty"
+      ],
+      "events": [
+        "back"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareRedPacketDetail"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareRedPacketDetail"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "RedPacketDetailView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "RedPacketDetail"
+        }
+      },
+      "accessibility": {
+        "role": "region",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab reaches the back key when the title bar is drawn",
+          "Enter or Space activates it"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "No motion.",
+        "screenReaderSemantics": "Region named \"Red packet from X\"; with back, a heading title bar and a back button named by the kit; each claim row reads as one item; avatars and the header art are hidden."
+      },
+      "notes": {
+        "zh": "普通页面，不是浮层：宿主放进导航栈，用 Kit 的 Screen 容器包起来（滚动归 Screen）。传了 back（原生 onBack）时组件自己画红色标题栏：redPacket.end 底、浅色返回键和标题（默认「红包详情」），延伸进状态栏或安全区，下方弧形头图从同一红色开始；宿主这时隐藏自己的导航栏。不传时行为不变。「手气最佳」由服务端判定。",
+        "en": "An ordinary page, not an overlay: the host pushes it inside the kit Screen container, which owns scrolling. With back (native onBack) the page draws its own red title bar — redPacket.end, light back key and title (\"Red packet details\" by default) — reaching up under the status bar or safe area, with the arched header starting from the same red; the host then hides its own navigation bar. Without it nothing changes. Best luck is decided by the server."
+      }
+    },
+    {
+      "name": "RedPacketComposer",
+      "category": "Message",
+      "summary": {
+        "zh": "发红包表单 —— 种类分段、金额、个数、专属收款人插槽、祝福语、大字总额和「塞钱进红包」。",
+        "en": "Send-a-packet form — kind switch, amount, quantity, exclusive recipient slot, greeting, the total drawn large and the submit button."
+      },
+      "dataSource": {
+        "zh": "由你传入；种类、金额、个数、祝福语双向绑定，总额与校验由宿主计算",
+        "en": "passed in by you; kind, amount, count and greeting are two-way bound, the total and validation are the host's"
+      },
+      "props": [
+        {
+          "name": "kinds",
+          "type": "FlareRedPacketKind[]",
+          "required": true,
+          "description": {
+            "zh": "宿主允许的种类（分段顺序）。恰为 [normal] 表示单聊：不显示分段和个数，金额标签为「金额」；群聊的普通红包仍显示个数，标签为「单个金额」",
+            "en": "Kinds the host offers, in segment order. Exactly [normal] means a 1:1 chat: no switch, no count, the amount is labelled plainly; a group's normal packet keeps the count and reads \"amount each\""
+          }
+        },
+        {
+          "name": "kind",
+          "type": "FlareRedPacketKind",
+          "required": false,
+          "description": {
+            "zh": "当前种类（双向绑定）；不在 kinds 中时取第一个",
+            "en": "Current kind (two-way); one outside kinds snaps to the first"
+          },
+          "default": "\"lucky\""
+        },
+        {
+          "name": "amount",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "金额文本（双向绑定）：拼手气为总金额、群聊普通为单个金额、专属和单聊为金额；只收数字和最多两位小数",
+            "en": "Amount text (two-way): total for lucky, each for a group's normal, amount for exclusive and 1:1; digits with at most two decimals"
+          },
+          "default": "\"\""
+        },
+        {
+          "name": "count",
+          "type": "number",
+          "required": false,
+          "description": {
+            "zh": "个数（双向绑定），只在群聊的 lucky / normal 显示；0 表示未填",
+            "en": "Share count (two-way), shown only for a group's lucky / normal; 0 while empty"
+          },
+          "default": "0"
+        },
+        {
+          "name": "greeting",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "祝福语（双向绑定），占位符为默认祝福语",
+            "en": "Greeting (two-way); the placeholder is the default greeting"
+          },
+          "default": "\"\""
+        },
+        {
+          "name": "total",
+          "type": "string",
+          "required": true,
+          "description": {
+            "zh": "宿主格式化的总额，大字显示，如「¥0.00」",
+            "en": "Host-formatted total drawn large, e.g. \"¥0.00\""
+          }
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "宿主校验错误",
+            "en": "Host validation error"
+          }
+        },
+        {
+          "name": "busy",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "zh": "创建命令进行中：锁定所有字段和按钮",
+            "en": "Create command in flight: every field and the button are locked"
+          },
+          "default": "false"
+        },
+        {
+          "name": "submitLabel",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "提交按钮文案，默认「塞钱进红包」",
+            "en": "Submit label; defaults to \"Put money in\""
+          }
+        },
+        {
+          "name": "locked",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "zh": "原命令结果未知、等待核对：所有输入和种类切换只读，提交按钮不可点，不显示加载动画（与 busy 不同）；读屏标为只读。宿主通常在表单上方用 StatusBanner 说明原因。",
+            "en": "The original command's outcome is unknown and awaits reconciliation: fields and the kind switch are read-only and the button is inert, without progress (unlike busy); assistive technology reads them as read-only. The host usually explains why in a StatusBanner above."
+          },
+          "default": "false"
+        }
+      ],
+      "slots": [
+        "recipient"
+      ],
+      "states": [
+        "lucky",
+        "normal",
+        "exclusive",
+        "error",
+        "busy",
+        "locked"
+      ],
+      "events": [
+        "submit",
+        "update:kind",
+        "update:amount",
+        "update:count",
+        "update:greeting"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareRedPacketComposer"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareRedPacketComposer"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "RedPacketComposerView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "RedPacketComposer"
+        }
+      },
+      "platformAliases": {
+        "flutter": {
+          "events": {
+            "update:kind": "onKindChange",
+            "update:amount": "onAmountChange",
+            "update:count": "onCountChange",
+            "update:greeting": "onGreetingChange"
+          }
+        },
+        "ios": {
+          "events": {
+            "update:kind": "onKindChange",
+            "update:amount": "onAmountChange",
+            "update:count": "onCountChange",
+            "update:greeting": "onGreetingChange"
+          }
+        },
+        "compose": {
+          "events": {
+            "update:kind": "onKindChange",
+            "update:amount": "onAmountChange",
+            "update:count": "onCountChange",
+            "update:greeting": "onGreetingChange"
+          }
+        }
+      },
+      "accessibility": {
+        "role": "group",
+        "labelRequired": false,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab moves through the kind switch, the fields and the submit button",
+          "Enter or Space activates a kind segment and the submit button",
+          "Enter in a field does not submit (no accidental payment)"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "No motion beyond the kit button and segment transitions, which follow their own reduced-motion rules.",
+        "screenReaderSemantics": "Each field is named by its visible label (the greeting by its own name, since its placeholder is the default greeting); the kind switch is named; the error is an alert; the total is a polite live region."
+      },
+      "notes": {
+        "zh": "组件只做格式限制（spec/red-packet-vectors.json → amountInput / countInput），上下限、余额和总额由宿主完成。哪些行显示、金额标签叫什么见 spec/red-packet-vectors.json → composer：kinds 恰为 [normal]（单聊）时不显示分段和个数，金额标签为 packetFieldAmount。专属红包的收款人由宿主用 Kit 成员选择组件填入 recipient。提交按钮复用 Kit Button，只把 primary 改为 redPacket.end；种类切换的选中项用 SegmentedControl 的 accent 着色为 redPacket.accent（浅色 #C8291F、深色 #FF7B6B）。",
+        "en": "The form only restricts the format (spec/red-packet-vectors.json → amountInput / countInput); ranges, balance and the total are the host's. Which rows show and what the amount is called follow spec/red-packet-vectors.json → composer: with kinds exactly [normal] (a 1:1 chat) there is no switch and no count, and the amount label is packetFieldAmount. The host fills recipient with the kit member picker for an exclusive packet. The submit button is the kit Button with primary re-tinted to redPacket.end; the selected kind is tinted through SegmentedControl accent with redPacket.accent (#C8291F light, #FF7B6B dark)."
+      }
+    },
+    {
+      "name": "RedPacketPayConfirm",
+      "category": "Message",
+      "summary": {
+        "zh": "支付确认 —— 底部面板：大字金额、支付方式行、确认 / 取消；余额不足时不能确认。",
+        "en": "Payment confirmation — bottom panel with the amount drawn large, the method row, confirm and cancel; no confirm on an insufficient balance."
+      },
+      "dataSource": {
+        "zh": "由你传入；金额、时间、名字由宿主格式化，组件不做资金计算也不请求网络",
+        "en": "passed in by you; amounts, times and names arrive formatted, the component never computes money or fetches"
+      },
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "zh": "是否显示（Vue；原生用 show 或宿主呈现）",
+            "en": "Whether the panel is shown (Vue; native uses show or host presentation)"
+          },
+          "platforms": [
+            "vue"
+          ]
+        },
+        {
+          "name": "amount",
+          "type": "string",
+          "required": true,
+          "description": {
+            "zh": "支付金额（大字），如「¥5.00」",
+            "en": "Amount to pay, drawn large, e.g. \"¥5.00\""
+          }
+        },
+        {
+          "name": "methodLabel",
+          "type": "string",
+          "required": true,
+          "description": {
+            "zh": "支付方式，如「钱包（余额 ¥12.00）」",
+            "en": "Paying account, e.g. \"Wallet (balance ¥12.00)\""
+          }
+        },
+        {
+          "name": "insufficient",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "zh": "余额不足：确认不可用并显示「余额不足」",
+            "en": "Insufficient balance: confirm is disabled and says why"
+          },
+          "default": "false"
+        },
+        {
+          "name": "busy",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "zh": "支付进行中：两个按钮和所有关闭方式都锁定",
+            "en": "Payment in flight: both buttons and every way out are locked"
+          },
+          "default": "false"
+        }
+      ],
+      "states": [
+        "ready",
+        "insufficient",
+        "busy"
+      ],
+      "events": [
+        "confirm",
+        "cancel"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareRedPacketPayConfirm"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareRedPacketPayConfirm"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "RedPacketPayConfirmView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "RedPacketPayConfirm"
+        }
+      },
+      "accessibility": {
+        "role": "dialog",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab is trapped inside the panel",
+          "Enter or Space activates confirm and cancel",
+          "Escape and the platform back cancel unless busy"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "The panel appears without the slide; the scrim appears instantly.",
+        "screenReaderSemantics": "Dialog named \"Confirm payment\"; the method row reads as one line; the insufficient notice is an alert; confirm is busy while paying."
+      },
+      "notes": {
+        "zh": "沙箱钱包，不做支付密码。手机形态是底部面板，其余形态交给 Modal（复用 Kit BottomSheet）。确认按钮复用 Kit Button，primary 改为 redPacket.end。",
+        "en": "Sandbox wallet, no payment password. A bottom sheet on the phone form factor, a centered modal elsewhere (the kit BottomSheet). Confirm is the kit Button with primary re-tinted to redPacket.end."
       }
     },
     {

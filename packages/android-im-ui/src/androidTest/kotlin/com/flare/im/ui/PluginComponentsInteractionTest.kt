@@ -14,26 +14,31 @@ import org.junit.Test
 class PluginComponentsInteractionTest {
     @get:Rule val compose = createComposeRule()
 
-    @Test fun packetBusyDisabledFinishedAndMissingHandlerAreInert() {
+    @Test fun packetBusyDisabledAndMissingHandlerAreInertButFinishedOpens() {
         val mode = mutableStateOf(0)
         var calls = 0
         compose.setContent {
             FlareThemeProvider {
                 CompositionLocalProvider(LocalFlareStrings provides flareStringsEnglish()) {
                     RedPacketCard(blessing = "Hello", disabled = mode.value == 1, busy = mode.value == 2,
-                        finished = mode.value == 3, onOpen = if (mode.value == 4) null else ({ calls++ }))
+                        state = if (mode.value == 3) FlareRedPacketState.Finished else FlareRedPacketState.Unopened,
+                        onOpen = if (mode.value == 4) null else ({ calls++ }))
                 }
             }
         }
         compose.onNodeWithText("Hello").assertIsEnabled().performClick()
         assertEquals(1, calls)
-        for (next in 1..4) {
+        // A finished packet still opens: the viewer goes on to its details.
+        compose.runOnIdle { mode.value = 3 }
+        compose.onNodeWithText("Hello").assertIsEnabled().performClick()
+        assertEquals(2, calls)
+        for (next in listOf(1, 2, 4)) {
             compose.runOnIdle { mode.value = next }
             compose.onNodeWithText("Hello").assertIsNotEnabled()
             if (next == 1) compose.onNodeWithText("Unavailable", substring = true).assertExists()
             if (next == 2) compose.onNodeWithText("Processing", substring = true).assertExists()
         }
-        assertEquals(1, calls)
+        assertEquals(2, calls)
     }
 
     @Test fun unavailableGenericPluginDoesNotExposeFieldsOrActions() {

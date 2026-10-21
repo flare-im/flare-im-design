@@ -443,6 +443,23 @@ title: 数据类型
 | `maxBytes` | `number` |  | 去掉首尾空白后的原因最多占用的 UTF-8 字节数；超出时标记字段并锁住确认键。 |
 | `optional` | `boolean` |  | 原因可以不填。默认 false。 |
 
+### RedPacketClaim {#red-packet-claim}
+
+`FlareRedPacketClaim`
+
+> 红包领取列表的一行；时间和金额由宿主格式化。
+
+**被使用于：**[RedPacketDetail](/components/red-packet-detail)
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `id` | `string` | ✓ | 稳定的领取人标识，也是头像种子。 |
+| `name` | `string` | ✓ | 显示名。 |
+| `avatar` | `string` |  | 头像 URL 或媒体 id。 |
+| `time` | `string` | ✓ | 领取时间（已格式化）。 |
+| `amount` | `string` | ✓ | 领取金额（已格式化）。 |
+| `best` | `boolean` | ✓ | 拼手气红包领完后的最大一份，由服务端判定。 |
+
 ## 枚举 / 联合类型
 
 ### MessageGroupPosition {#message-group-position}
@@ -520,3 +537,33 @@ title: 数据类型
 **被使用于：**[ConfigProvider](/components/config-provider)
 
 `auto` · `pc` · `ipad` · `h5`
+
+### RedPacketState {#red-packet-state}
+
+`FlareRedPacketState`
+
+> 当前查看者在红包卡片上看到的状态。
+
+**被使用于：**[RedPacketCard](/components/red-packet-card)
+
+`unopened` · `claimed` · `finished` · `expired`
+
+### RedPacketOpenState {#red-packet-open-state}
+
+`FlareRedPacketOpenState`
+
+> 开红包浮层的阶段。
+
+**被使用于：**[RedPacketOpenSheet](/components/red-packet-open-sheet)
+
+`ready` · `opening` · `finished` · `expired` · `notEligible` · `error`
+
+### RedPacketKind {#red-packet-kind}
+
+`FlareRedPacketKind`
+
+> 发红包表单可提供的种类。
+
+**被使用于：**[RedPacketComposer](/components/red-packet-composer)
+
+`lucky` · `normal` · `exclusive`

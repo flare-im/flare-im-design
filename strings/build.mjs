@@ -45,7 +45,9 @@ function fieldsFor(kit) {
     "utf8",
   );
   const init = swift.slice(swift.indexOf("public init("));
-  const order = [...init.matchAll(/^        (\w+): String = /gm)].map((m) => m[1]);
+  // A field that appends its argument (`appendArgumentKits`) is a `(String) -> String` closure on iOS.
+  const order = [...init.matchAll(/^        (\w+): (?:String|@escaping @Sendable \(String\) -> String) = /gm)]
+    .map((m) => m[1]);
   const known = new Set(declared);
   const ordered = order.filter((f) => known.has(f));
   const missing = declared.filter((f) => !order.includes(f));
@@ -65,7 +67,9 @@ const targets = [
     kit: "ios",
     path: join(root, "packages/ios-im-ui/Sources/FlareIMUI/Tokens/FlareStrings+English.swift"),
     render(fields) {
-      const args = fields.map((f) => `            ${f}: ${swiftLiteral(source[f].en)}`).join(",\n");
+      const args = fields.map((f) => source[f].appendArgumentKits?.includes("ios")
+        ? `            ${f}: { ${swiftLiteral(source[f].en)} + $0 }`
+        : `            ${f}: ${swiftLiteral(source[f].en)}`).join(",\n");
       return `${BANNER}
 
 import Foundation

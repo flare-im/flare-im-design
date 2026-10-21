@@ -42,10 +42,10 @@
     "supportsDensity": "The component takes a density of its own (its prop says what the values mean); the kit has no global density scale."
   },
   "counts": {
-    "total": 164,
-    "stable": 164,
+    "total": 168,
+    "stable": 168,
     "general": 54,
-    "im": 105
+    "im": 109
   },
   "specializedMessageGroups": {
     "Text": [
@@ -9426,27 +9426,33 @@
       "docExamples": {
         "variants": [],
         "states": [
-          "opened",
+          "unopened",
+          "claimed",
           "finished",
+          "expired",
           "disabled",
           "busy"
         ]
       },
       "summary": {
-        "zh": "红包卡片 —— 红金渐变 + 祝福 + 领取态。",
-        "en": "Red packet — gradient + blessing + claim state."
+        "zh": "红包卡片 —— 橙红渐变封面、祝福语、当前查看者的领取状态和品牌行。",
+        "en": "Red packet card — orange-red cover, blessing, the viewer's claim state and a brand line."
       },
       "aliases": [
         "Message",
-        "opened",
+        "unopened",
+        "claimed",
         "finished",
+        "expired",
         "disabled",
         "busy",
         "open"
       ],
       "states": [
-        "opened",
+        "unopened",
+        "claimed",
         "finished",
+        "expired",
         "disabled",
         "busy"
       ],
@@ -9493,7 +9499,447 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#RedPacketCard",
-      "searchText": "redpacketcard message im-ui stable message opened finished disabled busy open supportsconfiguration red packet — gradient + blessing + claim state. 红包卡片 —— 红金渐变 + 祝福 + 领取态。"
+      "searchText": "redpacketcard message im-ui stable message unopened claimed finished expired disabled busy open supportsconfiguration red packet card — orange-red cover, blessing, the viewer's claim state and a brand line. 红包卡片 —— 橙红渐变封面、祝福语、当前查看者的领取状态和品牌行。"
+    },
+    {
+      "name": "RedPacketOpenSheet",
+      "slug": "red-packet-open-sheet",
+      "category": "Message",
+      "layer": "im-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": false,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [],
+        "states": [
+          "ready",
+          "opening",
+          "finished",
+          "expired",
+          "notEligible",
+          "error"
+        ]
+      },
+      "summary": {
+        "zh": "开红包浮层 —— 遮罩上的红色信封：弧形封盖、发送人、祝福语和接缝上的金色「開」。",
+        "en": "Open-a-packet layer — a red envelope over the scrim: arched flap, sender, blessing and the gold 開 coin on the seam."
+      },
+      "aliases": [
+        "Message",
+        "ready",
+        "opening",
+        "finished",
+        "expired",
+        "notEligible",
+        "error",
+        "open",
+        "viewDetails",
+        "close"
+      ],
+      "states": [
+        "ready",
+        "opening",
+        "finished",
+        "expired",
+        "notEligible",
+        "error"
+      ],
+      "interactions": [
+        "open",
+        "viewDetails",
+        "close"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareRedPacketOpenSheet"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareRedPacketOpenSheet"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "RedPacketOpenSheet"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "RedPacketOpenSheet"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/messages/FlareRedPacketOpenSheet.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_red_packet_open_sheet.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/RedPacketOpenSheet.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/RedPacketOpenSheet.swift"
+      },
+      "docs": {
+        "zh": "website/components/red-packet-open-sheet.md",
+        "en": "website/en/components/red-packet-open-sheet.md"
+      },
+      "examples": {
+        "live": false,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#RedPacketOpenSheet",
+      "searchText": "redpacketopensheet message im-ui stable message ready opening finished expired noteligible error open viewdetails close supportsconfiguration open-a-packet layer — a red envelope over the scrim: arched flap, sender, blessing and the gold 開 coin on the seam. 开红包浮层 —— 遮罩上的红色信封：弧形封盖、发送人、祝福语和接缝上的金色「開」。"
+    },
+    {
+      "name": "RedPacketDetail",
+      "slug": "red-packet-detail",
+      "category": "Message",
+      "layer": "im-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": false,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [],
+        "states": [
+          "claimed",
+          "notClaimed",
+          "empty"
+        ]
+      },
+      "summary": {
+        "zh": "红包详情 —— 红色弧形头图、发送人与种类、本人金额（大字）、汇总和领取列表。",
+        "en": "Red packet details — red arched header, sender and kind, the viewer's amount drawn large, summary and claim list."
+      },
+      "aliases": [
+        "Message",
+        "claimed",
+        "notClaimed",
+        "empty",
+        "back"
+      ],
+      "states": [
+        "claimed",
+        "notClaimed",
+        "empty"
+      ],
+      "interactions": [
+        "back"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareRedPacketDetail"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareRedPacketDetail"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "RedPacketDetail"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "RedPacketDetailView"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/messages/FlareRedPacketDetail.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_red_packet_detail.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/RedPacketDetail.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/RedPacketDetailView.swift"
+      },
+      "docs": {
+        "zh": "website/components/red-packet-detail.md",
+        "en": "website/en/components/red-packet-detail.md"
+      },
+      "examples": {
+        "live": false,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#RedPacketDetail",
+      "searchText": "redpacketdetail message im-ui stable message claimed notclaimed empty back supportsconfiguration red packet details — red arched header, sender and kind, the viewer's amount drawn large, summary and claim list. 红包详情 —— 红色弧形头图、发送人与种类、本人金额（大字）、汇总和领取列表。"
+    },
+    {
+      "name": "RedPacketComposer",
+      "slug": "red-packet-composer",
+      "category": "Message",
+      "layer": "im-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": false,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [],
+        "states": [
+          "lucky",
+          "normal",
+          "exclusive",
+          "error",
+          "busy",
+          "locked"
+        ]
+      },
+      "summary": {
+        "zh": "发红包表单 —— 种类分段、金额、个数、专属收款人插槽、祝福语、大字总额和「塞钱进红包」。",
+        "en": "Send-a-packet form — kind switch, amount, quantity, exclusive recipient slot, greeting, the total drawn large and the submit button."
+      },
+      "aliases": [
+        "Message",
+        "lucky",
+        "normal",
+        "exclusive",
+        "error",
+        "busy",
+        "locked",
+        "submit",
+        "update:kind",
+        "update:amount",
+        "update:count",
+        "update:greeting"
+      ],
+      "states": [
+        "lucky",
+        "normal",
+        "exclusive",
+        "error",
+        "busy",
+        "locked"
+      ],
+      "interactions": [
+        "submit",
+        "update:kind",
+        "update:amount",
+        "update:count",
+        "update:greeting"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareRedPacketComposer"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareRedPacketComposer"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "RedPacketComposer"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "RedPacketComposerView"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/messages/FlareRedPacketComposer.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_red_packet_composer.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/RedPacketComposer.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/RedPacketComposerView.swift"
+      },
+      "docs": {
+        "zh": "website/components/red-packet-composer.md",
+        "en": "website/en/components/red-packet-composer.md"
+      },
+      "examples": {
+        "live": false,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#RedPacketComposer",
+      "searchText": "redpacketcomposer message im-ui stable message lucky normal exclusive error busy locked submit update:kind update:amount update:count update:greeting supportsconfiguration send-a-packet form — kind switch, amount, quantity, exclusive recipient slot, greeting, the total drawn large and the submit button. 发红包表单 —— 种类分段、金额、个数、专属收款人插槽、祝福语、大字总额和「塞钱进红包」。"
+    },
+    {
+      "name": "RedPacketPayConfirm",
+      "slug": "red-packet-pay-confirm",
+      "category": "Message",
+      "layer": "im-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": false,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [],
+        "states": [
+          "ready",
+          "insufficient",
+          "busy"
+        ]
+      },
+      "summary": {
+        "zh": "支付确认 —— 底部面板：大字金额、支付方式行、确认 / 取消；余额不足时不能确认。",
+        "en": "Payment confirmation — bottom panel with the amount drawn large, the method row, confirm and cancel; no confirm on an insufficient balance."
+      },
+      "aliases": [
+        "Message",
+        "ready",
+        "insufficient",
+        "busy",
+        "confirm",
+        "cancel"
+      ],
+      "states": [
+        "ready",
+        "insufficient",
+        "busy"
+      ],
+      "interactions": [
+        "confirm",
+        "cancel"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareRedPacketPayConfirm"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareRedPacketPayConfirm"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "RedPacketPayConfirm"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "RedPacketPayConfirmView"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/messages/FlareRedPacketPayConfirm.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_red_packet_pay_confirm.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/RedPacketPayConfirm.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/RedPacketPayConfirmView.swift"
+      },
+      "docs": {
+        "zh": "website/components/red-packet-pay-confirm.md",
+        "en": "website/en/components/red-packet-pay-confirm.md"
+      },
+      "examples": {
+        "live": false,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#RedPacketPayConfirm",
+      "searchText": "redpacketpayconfirm message im-ui stable message ready insufficient busy confirm cancel supportsconfiguration payment confirmation — bottom panel with the amount drawn large, the method row, confirm and cancel; no confirm on an insufficient balance. 支付确认 —— 底部面板：大字金额、支付方式行、确认 / 取消；余额不足时不能确认。"
     },
     {
       "name": "SlashCommandMenu",

@@ -26,13 +26,13 @@ void main() {
       Widget card({
         bool disabled = false,
         bool busy = false,
-        bool finished = false,
+        FlareRedPacketState state = FlareRedPacketState.unopened,
         bool handler = true,
       }) => FlareRedPacketCard(
         blessing: 'Hello',
         disabled: disabled,
         busy: busy,
-        finished: finished,
+        state: state,
         onOpen: handler ? () => calls++ : null,
       );
       await tester.pumpWidget(host(card()));
@@ -42,20 +42,17 @@ void main() {
       await tester.pump();
       await tester.sendKeyEvent(LogicalKeyboardKey.enter);
       expect(calls, 2);
-      for (final mode in [0, 1, 2, 3]) {
+      // A spent packet still opens: that is how the viewer reaches the details.
+      await tester.pumpWidget(host(card(state: FlareRedPacketState.finished)));
+      await tester.tap(find.byType(FlareRedPacketCard));
+      expect(calls, 3);
+      for (final mode in [0, 1, 2]) {
         await tester.pumpWidget(
-          host(
-            card(
-              disabled: mode == 0,
-              busy: mode == 1,
-              finished: mode == 2,
-              handler: mode != 3,
-            ),
-          ),
+          host(card(disabled: mode == 0, busy: mode == 1, handler: mode != 2)),
         );
         await tester.tap(find.byType(FlareRedPacketCard));
         await tester.sendKeyEvent(LogicalKeyboardKey.enter);
-        expect(calls, 2);
+        expect(calls, 3);
       }
     },
   );
@@ -74,13 +71,16 @@ void main() {
             'Unavailable',
           ),
           (
-            const FlareRedPacketCard(blessing: 'Hello', finished: true),
+            const FlareRedPacketCard(
+              blessing: 'Hello',
+              state: FlareRedPacketState.finished,
+            ),
             'All claimed',
           ),
           (
             const FlareRedPacketCard(
               blessing: 'Hello',
-              opened: true,
+              state: FlareRedPacketState.claimed,
               amount: '1.00 CNY',
             ),
             'Opened · 1.00 CNY',

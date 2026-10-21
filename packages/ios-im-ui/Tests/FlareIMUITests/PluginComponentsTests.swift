@@ -17,17 +17,20 @@ final class PluginComponentsTests: XCTestCase {
         let active = RedPacketCardView(blessing: "Hello", onOpen: { calls += 1 })
         try active.inspect().find(ViewType.Button.self).tap()
         XCTAssertEqual(calls, 1)
+        // A finished packet still opens: the viewer goes on to its details.
+        try RedPacketCardView(blessing: "Hello", state: .finished, onOpen: { calls += 1 })
+            .inspect().find(ViewType.Button.self).tap()
+        XCTAssertEqual(calls, 2)
         for card in [
             RedPacketCardView(blessing: "Hello", disabled: true, onOpen: { calls += 1 }),
             RedPacketCardView(blessing: "Hello", busy: true, onOpen: { calls += 1 }),
-            RedPacketCardView(blessing: "Hello", finished: true, onOpen: { calls += 1 }),
             RedPacketCardView(blessing: "Hello")
         ] {
             let button = try card.inspect().find(ViewType.Button.self)
             XCTAssertTrue(button.isDisabled())
             XCTAssertThrowsError(try button.tap())
         }
-        XCTAssertEqual(calls, 1)
+        XCTAssertEqual(calls, 2)
     }
 
     @MainActor

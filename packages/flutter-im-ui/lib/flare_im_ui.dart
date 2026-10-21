@@ -41,6 +41,7 @@ export 'src/models/form_behavior.dart';
 export 'src/models/pinned_message_data.dart';
 export 'src/models/conversation_summary.dart';
 export 'src/models/contact_option.dart';
+export 'src/models/red_packet.dart';
 export 'src/models/directory_data.dart';
 export 'src/application/application_composition.dart';
 
@@ -128,6 +129,10 @@ export 'src/components/flare_rating.dart';
 export 'src/components/flare_reaction_summary.dart';
 export 'src/components/flare_read_receipt_sheet.dart';
 export 'src/components/flare_red_packet_card.dart';
+export 'src/components/flare_red_packet_composer.dart';
+export 'src/components/flare_red_packet_detail.dart';
+export 'src/components/flare_red_packet_open_sheet.dart';
+export 'src/components/flare_red_packet_pay_confirm.dart';
 export 'src/components/flare_responsive_layout.dart';
 export 'src/components/flare_shell_scope.dart'
     show FlareShellScope, FlareDestinationDepth;

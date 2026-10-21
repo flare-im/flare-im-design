@@ -101,6 +101,16 @@ export type { FlareForwardTarget } from "../shared/contracts";
 
 // Batch 3 — red packet, slash-command menu, inline translation, QR name card
 export { default as FlareRedPacketCard } from "./messages/FlareRedPacketCard.vue";
+export { default as FlareRedPacketOpenSheet } from "./messages/FlareRedPacketOpenSheet.vue";
+export { default as FlareRedPacketDetail } from "./messages/FlareRedPacketDetail.vue";
+export { default as FlareRedPacketComposer } from "./messages/FlareRedPacketComposer.vue";
+export { default as FlareRedPacketPayConfirm } from "./messages/FlareRedPacketPayConfirm.vue";
+export type {
+  FlareRedPacketState,
+  FlareRedPacketOpenState,
+  FlareRedPacketKind,
+  FlareRedPacketClaim,
+} from "../shared/contracts";
 export { default as FlareTranslationView } from "./messages/FlareTranslationView.vue";
 export { default as FlareSlashCommandMenu } from "./composer/FlareSlashCommandMenu.vue";
 export { default as FlareQRCard } from "./profile/FlareQRCard.vue";

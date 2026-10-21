@@ -80,6 +80,15 @@ class FlareColors {
     required this.avatarTintAmberFg,
     required this.avatarTintSlateBg,
     required this.avatarTintSlateFg,
+    required this.redPacketStart,
+    required this.redPacketMiddle,
+    required this.redPacketEnd,
+    required this.redPacketGold,
+    required this.redPacketGoldDeep,
+    required this.redPacketOnSurface,
+    required this.redPacketFadedInk,
+    required this.redPacketFadedMixTarget,
+    required this.redPacketAccent,
   });
 
   final Color bgDisabled;
@@ -151,6 +160,15 @@ class FlareColors {
   final Color avatarTintAmberFg;
   final Color avatarTintSlateBg;
   final Color avatarTintSlateFg;
+  final Color redPacketStart;
+  final Color redPacketMiddle;
+  final Color redPacketEnd;
+  final Color redPacketGold;
+  final Color redPacketGoldDeep;
+  final Color redPacketOnSurface;
+  final Color redPacketFadedInk;
+  final Color redPacketFadedMixTarget;
+  final Color redPacketAccent;
 
   FlareColors copyWith({
     Color? bgDisabled,
@@ -222,6 +240,15 @@ class FlareColors {
     Color? avatarTintAmberFg,
     Color? avatarTintSlateBg,
     Color? avatarTintSlateFg,
+    Color? redPacketStart,
+    Color? redPacketMiddle,
+    Color? redPacketEnd,
+    Color? redPacketGold,
+    Color? redPacketGoldDeep,
+    Color? redPacketOnSurface,
+    Color? redPacketFadedInk,
+    Color? redPacketFadedMixTarget,
+    Color? redPacketAccent,
   }) => FlareColors(
     bgDisabled: bgDisabled ?? this.bgDisabled,
     bgElevated: bgElevated ?? this.bgElevated,
@@ -292,6 +319,15 @@ class FlareColors {
     avatarTintAmberFg: avatarTintAmberFg ?? this.avatarTintAmberFg,
     avatarTintSlateBg: avatarTintSlateBg ?? this.avatarTintSlateBg,
     avatarTintSlateFg: avatarTintSlateFg ?? this.avatarTintSlateFg,
+    redPacketStart: redPacketStart ?? this.redPacketStart,
+    redPacketMiddle: redPacketMiddle ?? this.redPacketMiddle,
+    redPacketEnd: redPacketEnd ?? this.redPacketEnd,
+    redPacketGold: redPacketGold ?? this.redPacketGold,
+    redPacketGoldDeep: redPacketGoldDeep ?? this.redPacketGoldDeep,
+    redPacketOnSurface: redPacketOnSurface ?? this.redPacketOnSurface,
+    redPacketFadedInk: redPacketFadedInk ?? this.redPacketFadedInk,
+    redPacketFadedMixTarget: redPacketFadedMixTarget ?? this.redPacketFadedMixTarget,
+    redPacketAccent: redPacketAccent ?? this.redPacketAccent,
   );
 
   static const FlareColors violetLight = FlareColors(
@@ -364,6 +400,15 @@ class FlareColors {
     avatarTintAmberFg: Color(0xFFB45309),
     avatarTintSlateBg: Color(0xFFE5E7EB),
     avatarTintSlateFg: Color(0xFF374151),
+    redPacketStart: Color(0xFFF0503C),
+    redPacketMiddle: Color(0xFFE23B2E),
+    redPacketEnd: Color(0xFFC8291F),
+    redPacketGold: Color(0xFFFFE9B8),
+    redPacketGoldDeep: Color(0xFFF6C453),
+    redPacketOnSurface: Color(0xFFFFF5E6),
+    redPacketFadedInk: Color(0xFF5C140E),
+    redPacketFadedMixTarget: Color(0xFFFFFFFF),
+    redPacketAccent: Color(0xFFC8291F),
   );
 
   static const FlareColors violetDark = FlareColors(
@@ -436,6 +481,15 @@ class FlareColors {
     avatarTintAmberFg: Color(0xFFFDE68A),
     avatarTintSlateBg: Color(0xFF282D38),
     avatarTintSlateFg: Color(0xFFE5E7EB),
+    redPacketStart: Color(0xFFF0503C),
+    redPacketMiddle: Color(0xFFE23B2E),
+    redPacketEnd: Color(0xFFC8291F),
+    redPacketGold: Color(0xFFFFE9B8),
+    redPacketGoldDeep: Color(0xFFF6C453),
+    redPacketOnSurface: Color(0xFFFFF5E6),
+    redPacketFadedInk: Color(0xFFFBE3DE),
+    redPacketFadedMixTarget: Color(0xFF2A1513),
+    redPacketAccent: Color(0xFFFF7B6B),
   );
 
   static const FlareColors oceanLight = FlareColors(
@@ -508,6 +562,15 @@ class FlareColors {
     avatarTintAmberFg: Color(0xFFB45309),
     avatarTintSlateBg: Color(0xFFE5E7EB),
     avatarTintSlateFg: Color(0xFF374151),
+    redPacketStart: Color(0xFFF0503C),
+    redPacketMiddle: Color(0xFFE23B2E),
+    redPacketEnd: Color(0xFFC8291F),
+    redPacketGold: Color(0xFFFFE9B8),
+    redPacketGoldDeep: Color(0xFFF6C453),
+    redPacketOnSurface: Color(0xFFFFF5E6),
+    redPacketFadedInk: Color(0xFF5C140E),
+    redPacketFadedMixTarget: Color(0xFFFFFFFF),
+    redPacketAccent: Color(0xFFC8291F),
   );
 
   static const FlareColors oceanDark = FlareColors(
@@ -580,6 +643,15 @@ class FlareColors {
     avatarTintAmberFg: Color(0xFFFDE68A),
     avatarTintSlateBg: Color(0xFF282D38),
     avatarTintSlateFg: Color(0xFFE5E7EB),
+    redPacketStart: Color(0xFFF0503C),
+    redPacketMiddle: Color(0xFFE23B2E),
+    redPacketEnd: Color(0xFFC8291F),
+    redPacketGold: Color(0xFFFFE9B8),
+    redPacketGoldDeep: Color(0xFFF6C453),
+    redPacketOnSurface: Color(0xFFFFF5E6),
+    redPacketFadedInk: Color(0xFFFBE3DE),
+    redPacketFadedMixTarget: Color(0xFF2A1513),
+    redPacketAccent: Color(0xFFFF7B6B),
   );
 
   static const FlareColors forestLight = FlareColors(
@@ -652,6 +724,15 @@ class FlareColors {
     avatarTintAmberFg: Color(0xFFB45309),
     avatarTintSlateBg: Color(0xFFE5E7EB),
     avatarTintSlateFg: Color(0xFF374151),
+    redPacketStart: Color(0xFFF0503C),
+    redPacketMiddle: Color(0xFFE23B2E),
+    redPacketEnd: Color(0xFFC8291F),
+    redPacketGold: Color(0xFFFFE9B8),
+    redPacketGoldDeep: Color(0xFFF6C453),
+    redPacketOnSurface: Color(0xFFFFF5E6),
+    redPacketFadedInk: Color(0xFF5C140E),
+    redPacketFadedMixTarget: Color(0xFFFFFFFF),
+    redPacketAccent: Color(0xFFC8291F),
   );
 
   static const FlareColors forestDark = FlareColors(
@@ -724,6 +805,15 @@ class FlareColors {
     avatarTintAmberFg: Color(0xFFFDE68A),
     avatarTintSlateBg: Color(0xFF282D38),
     avatarTintSlateFg: Color(0xFFE5E7EB),
+    redPacketStart: Color(0xFFF0503C),
+    redPacketMiddle: Color(0xFFE23B2E),
+    redPacketEnd: Color(0xFFC8291F),
+    redPacketGold: Color(0xFFFFE9B8),
+    redPacketGoldDeep: Color(0xFFF6C453),
+    redPacketOnSurface: Color(0xFFFFF5E6),
+    redPacketFadedInk: Color(0xFFFBE3DE),
+    redPacketFadedMixTarget: Color(0xFF2A1513),
+    redPacketAccent: Color(0xFFFF7B6B),
   );
 
   static const FlareColors sunsetLight = FlareColors(
@@ -796,6 +886,15 @@ class FlareColors {
     avatarTintAmberFg: Color(0xFFB45309),
     avatarTintSlateBg: Color(0xFFE5E7EB),
     avatarTintSlateFg: Color(0xFF374151),
+    redPacketStart: Color(0xFFF0503C),
+    redPacketMiddle: Color(0xFFE23B2E),
+    redPacketEnd: Color(0xFFC8291F),
+    redPacketGold: Color(0xFFFFE9B8),
+    redPacketGoldDeep: Color(0xFFF6C453),
+    redPacketOnSurface: Color(0xFFFFF5E6),
+    redPacketFadedInk: Color(0xFF5C140E),
+    redPacketFadedMixTarget: Color(0xFFFFFFFF),
+    redPacketAccent: Color(0xFFC8291F),
   );
 
   static const FlareColors sunsetDark = FlareColors(
@@ -868,6 +967,15 @@ class FlareColors {
     avatarTintAmberFg: Color(0xFFFDE68A),
     avatarTintSlateBg: Color(0xFF282D38),
     avatarTintSlateFg: Color(0xFFE5E7EB),
+    redPacketStart: Color(0xFFF0503C),
+    redPacketMiddle: Color(0xFFE23B2E),
+    redPacketEnd: Color(0xFFC8291F),
+    redPacketGold: Color(0xFFFFE9B8),
+    redPacketGoldDeep: Color(0xFFF6C453),
+    redPacketOnSurface: Color(0xFFFFF5E6),
+    redPacketFadedInk: Color(0xFFFBE3DE),
+    redPacketFadedMixTarget: Color(0xFF2A1513),
+    redPacketAccent: Color(0xFFFF7B6B),
   );
 
   static const FlareColors roseLight = FlareColors(
@@ -940,6 +1048,15 @@ class FlareColors {
     avatarTintAmberFg: Color(0xFFB45309),
     avatarTintSlateBg: Color(0xFFE5E7EB),
     avatarTintSlateFg: Color(0xFF374151),
+    redPacketStart: Color(0xFFF0503C),
+    redPacketMiddle: Color(0xFFE23B2E),
+    redPacketEnd: Color(0xFFC8291F),
+    redPacketGold: Color(0xFFFFE9B8),
+    redPacketGoldDeep: Color(0xFFF6C453),
+    redPacketOnSurface: Color(0xFFFFF5E6),
+    redPacketFadedInk: Color(0xFF5C140E),
+    redPacketFadedMixTarget: Color(0xFFFFFFFF),
+    redPacketAccent: Color(0xFFC8291F),
   );
 
   static const FlareColors roseDark = FlareColors(
@@ -1012,6 +1129,15 @@ class FlareColors {
     avatarTintAmberFg: Color(0xFFFDE68A),
     avatarTintSlateBg: Color(0xFF282D38),
     avatarTintSlateFg: Color(0xFFE5E7EB),
+    redPacketStart: Color(0xFFF0503C),
+    redPacketMiddle: Color(0xFFE23B2E),
+    redPacketEnd: Color(0xFFC8291F),
+    redPacketGold: Color(0xFFFFE9B8),
+    redPacketGoldDeep: Color(0xFFF6C453),
+    redPacketOnSurface: Color(0xFFFFF5E6),
+    redPacketFadedInk: Color(0xFFFBE3DE),
+    redPacketFadedMixTarget: Color(0xFF2A1513),
+    redPacketAccent: Color(0xFFFF7B6B),
   );
 
   static const FlareColors graphiteLight = FlareColors(
@@ -1084,6 +1210,15 @@ class FlareColors {
     avatarTintAmberFg: Color(0xFFB45309),
     avatarTintSlateBg: Color(0xFFE5E7EB),
     avatarTintSlateFg: Color(0xFF374151),
+    redPacketStart: Color(0xFFF0503C),
+    redPacketMiddle: Color(0xFFE23B2E),
+    redPacketEnd: Color(0xFFC8291F),
+    redPacketGold: Color(0xFFFFE9B8),
+    redPacketGoldDeep: Color(0xFFF6C453),
+    redPacketOnSurface: Color(0xFFFFF5E6),
+    redPacketFadedInk: Color(0xFF5C140E),
+    redPacketFadedMixTarget: Color(0xFFFFFFFF),
+    redPacketAccent: Color(0xFFC8291F),
   );
 
   static const FlareColors graphiteDark = FlareColors(
@@ -1156,6 +1291,15 @@ class FlareColors {
     avatarTintAmberFg: Color(0xFFFDE68A),
     avatarTintSlateBg: Color(0xFF282D38),
     avatarTintSlateFg: Color(0xFFE5E7EB),
+    redPacketStart: Color(0xFFF0503C),
+    redPacketMiddle: Color(0xFFE23B2E),
+    redPacketEnd: Color(0xFFC8291F),
+    redPacketGold: Color(0xFFFFE9B8),
+    redPacketGoldDeep: Color(0xFFF6C453),
+    redPacketOnSurface: Color(0xFFFFF5E6),
+    redPacketFadedInk: Color(0xFFFBE3DE),
+    redPacketFadedMixTarget: Color(0xFF2A1513),
+    redPacketAccent: Color(0xFFFF7B6B),
   );
 
   static const FlareColors light = violetLight;
@@ -1317,6 +1461,13 @@ abstract final class FlareSizes {
   static const double componentConversationRowMetaWidth = 60.0;
   static const double componentBubbleMaxWidthRatioCompact = 0.88;
   static const double componentBubbleMaxWidthRatioRegular = 0.62;
+  static const double componentRedPacketCardWidth = 248.0;
+  static const double componentRedPacketEnvelopeWidth = 300.0;
+  static const double componentRedPacketEnvelopeMinHeight = 440.0;
+  static const double componentRedPacketOpenButtonSize = 96.0;
+  static const double componentRedPacketAmountFontSize = 44.0;
+  static const double componentRedPacketDetailHeaderHeight = 72.0;
+  static const double componentRedPacketFadedMix = 0.4;
 }
 
 /// Const palette for const widget and ThemeData declarations.
@@ -1459,6 +1610,24 @@ abstract final class FlarePalette {
   static const Color darkAvatarTintSlateBg = Color(0xFF282D38);
   static const Color lightAvatarTintSlateFg = Color(0xFF374151);
   static const Color darkAvatarTintSlateFg = Color(0xFFE5E7EB);
+  static const Color lightRedPacketStart = Color(0xFFF0503C);
+  static const Color darkRedPacketStart = Color(0xFFF0503C);
+  static const Color lightRedPacketMiddle = Color(0xFFE23B2E);
+  static const Color darkRedPacketMiddle = Color(0xFFE23B2E);
+  static const Color lightRedPacketEnd = Color(0xFFC8291F);
+  static const Color darkRedPacketEnd = Color(0xFFC8291F);
+  static const Color lightRedPacketGold = Color(0xFFFFE9B8);
+  static const Color darkRedPacketGold = Color(0xFFFFE9B8);
+  static const Color lightRedPacketGoldDeep = Color(0xFFF6C453);
+  static const Color darkRedPacketGoldDeep = Color(0xFFF6C453);
+  static const Color lightRedPacketOnSurface = Color(0xFFFFF5E6);
+  static const Color darkRedPacketOnSurface = Color(0xFFFFF5E6);
+  static const Color lightRedPacketFadedInk = Color(0xFF5C140E);
+  static const Color darkRedPacketFadedInk = Color(0xFFFBE3DE);
+  static const Color lightRedPacketFadedMixTarget = Color(0xFFFFFFFF);
+  static const Color darkRedPacketFadedMixTarget = Color(0xFF2A1513);
+  static const Color lightRedPacketAccent = Color(0xFFC8291F);
+  static const Color darkRedPacketAccent = Color(0xFFFF7B6B);
 }
 
 /// Opacity tokens (disabled / muted / tint overlays).

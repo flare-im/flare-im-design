@@ -203,3 +203,10 @@ export {
 } from "./invite";
 
 export type { FlarePluginViewModel } from "./plugin-ui";
+export type {
+  FlareRedPacketState,
+  FlareRedPacketOpenState,
+  FlareRedPacketKind,
+  FlareRedPacketClaim,
+} from "./red-packet";
+export { sanitizeRedPacketAmount, sanitizeRedPacketCount } from "./red-packet";

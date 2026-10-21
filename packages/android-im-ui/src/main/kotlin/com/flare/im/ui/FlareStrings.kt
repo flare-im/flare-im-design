@@ -183,11 +183,71 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
     val packetTapToClaim: String
         get() = (overrides["packetTapToClaim"] as? (String)) ?: "点击领取"
     val packetBrand: String
-        get() = (overrides["packetBrand"] as? (String)) ?: "闪包"
+        get() = (overrides["packetBrand"] as? (String)) ?: "Flare 红包"
     val packetBusy: String
         get() = (overrides["packetBusy"] as? String) ?: "处理中…"
     val packetUnavailable: String
         get() = (overrides["packetUnavailable"] as? String) ?: "暂不可用"
+    val packetStateClaimed: String
+        get() = (overrides["packetStateClaimed"] as? String) ?: "已领取"
+    val packetStateExpired: String
+        get() = (overrides["packetStateExpired"] as? String) ?: "已过期"
+    val packetKindLucky: String
+        get() = (overrides["packetKindLucky"] as? String) ?: "拼手气红包"
+    val packetKindNormal: String
+        get() = (overrides["packetKindNormal"] as? String) ?: "普通红包"
+    val packetKindExclusive: String
+        get() = (overrides["packetKindExclusive"] as? String) ?: "专属红包"
+    val packetKindPicker: String
+        get() = (overrides["packetKindPicker"] as? String) ?: "红包类型"
+    val packetClaims: String
+        get() = (overrides["packetClaims"] as? String) ?: "领取记录"
+    val packetFromSender: (String) -> String
+        get() = (overrides["packetFromSender"] as? ((String) -> String)) ?: { "${it}的红包" }
+    val packetOpenAction: String
+        get() = (overrides["packetOpenAction"] as? String) ?: "開"
+    val packetMissed: String
+        get() = (overrides["packetMissed"] as? String) ?: "手慢了，红包派完了"
+    val packetExpiredNotice: String
+        get() = (overrides["packetExpiredNotice"] as? String) ?: "该红包已超过 24 小时"
+    val packetNotEligible: String
+        get() = (overrides["packetNotEligible"] as? String) ?: "你不能领取这个红包"
+    val packetOpenFailed: String
+        get() = (overrides["packetOpenFailed"] as? String) ?: "领取失败，请重试"
+    val packetViewDetails: String
+        get() = (overrides["packetViewDetails"] as? String) ?: "查看领取详情"
+    val packetBestLuck: String
+        get() = (overrides["packetBestLuck"] as? String) ?: "手气最佳"
+    val packetNoClaims: String
+        get() = (overrides["packetNoClaims"] as? String) ?: "暂无人领取"
+    val packetDetailTitle: String
+        get() = (overrides["packetDetailTitle"] as? String) ?: "红包详情"
+    val packetFieldTotal: String
+        get() = (overrides["packetFieldTotal"] as? String) ?: "总金额"
+    val packetFieldEach: String
+        get() = (overrides["packetFieldEach"] as? String) ?: "单个金额"
+    val packetFieldAmount: String
+        get() = (overrides["packetFieldAmount"] as? String) ?: "金额"
+    val packetFieldCount: String
+        get() = (overrides["packetFieldCount"] as? String) ?: "红包个数"
+    val packetCountPlaceholder: String
+        get() = (overrides["packetCountPlaceholder"] as? String) ?: "填写个数"
+    val packetFieldRecipient: String
+        get() = (overrides["packetFieldRecipient"] as? String) ?: "发给谁"
+    val packetGreetingLabel: String
+        get() = (overrides["packetGreetingLabel"] as? String) ?: "祝福语"
+    val packetDefaultGreeting: String
+        get() = (overrides["packetDefaultGreeting"] as? String) ?: "恭喜发财，大吉大利"
+    val packetSubmit: String
+        get() = (overrides["packetSubmit"] as? String) ?: "塞钱进红包"
+    val packetPayTitle: String
+        get() = (overrides["packetPayTitle"] as? String) ?: "确认付款"
+    val packetPayMethod: String
+        get() = (overrides["packetPayMethod"] as? String) ?: "支付方式"
+    val packetPayConfirm: String
+        get() = (overrides["packetPayConfirm"] as? String) ?: "确认支付"
+    val packetInsufficient: String
+        get() = (overrides["packetInsufficient"] as? String) ?: "余额不足"
 
     // 命令 / 翻译 / 名片码
     val commands: String
@@ -1620,7 +1680,7 @@ class FlareStringsBuilder internal constructor() {
         set(value) { values["packetTapToClaim"] = value }
 
     var packetBrand: String
-        get() = (values["packetBrand"] as? (String)) ?: "闪包"
+        get() = (values["packetBrand"] as? (String)) ?: "Flare 红包"
         set(value) { values["packetBrand"] = value }
     var packetBusy: String
         get() = (values["packetBusy"] as? String) ?: "处理中…"
@@ -1628,6 +1688,96 @@ class FlareStringsBuilder internal constructor() {
     var packetUnavailable: String
         get() = (values["packetUnavailable"] as? String) ?: "暂不可用"
         set(value) { values["packetUnavailable"] = value }
+    var packetStateClaimed: String
+        get() = (values["packetStateClaimed"] as? String) ?: "已领取"
+        set(value) { values["packetStateClaimed"] = value }
+    var packetStateExpired: String
+        get() = (values["packetStateExpired"] as? String) ?: "已过期"
+        set(value) { values["packetStateExpired"] = value }
+    var packetKindLucky: String
+        get() = (values["packetKindLucky"] as? String) ?: "拼手气红包"
+        set(value) { values["packetKindLucky"] = value }
+    var packetKindNormal: String
+        get() = (values["packetKindNormal"] as? String) ?: "普通红包"
+        set(value) { values["packetKindNormal"] = value }
+    var packetKindExclusive: String
+        get() = (values["packetKindExclusive"] as? String) ?: "专属红包"
+        set(value) { values["packetKindExclusive"] = value }
+    var packetKindPicker: String
+        get() = (values["packetKindPicker"] as? String) ?: "红包类型"
+        set(value) { values["packetKindPicker"] = value }
+    var packetClaims: String
+        get() = (values["packetClaims"] as? String) ?: "领取记录"
+        set(value) { values["packetClaims"] = value }
+    var packetFromSender: (String) -> String
+        get() = (values["packetFromSender"] as? ((String) -> String)) ?: { "${it}的红包" }
+        set(value) { values["packetFromSender"] = value }
+    var packetOpenAction: String
+        get() = (values["packetOpenAction"] as? String) ?: "開"
+        set(value) { values["packetOpenAction"] = value }
+    var packetMissed: String
+        get() = (values["packetMissed"] as? String) ?: "手慢了，红包派完了"
+        set(value) { values["packetMissed"] = value }
+    var packetExpiredNotice: String
+        get() = (values["packetExpiredNotice"] as? String) ?: "该红包已超过 24 小时"
+        set(value) { values["packetExpiredNotice"] = value }
+    var packetNotEligible: String
+        get() = (values["packetNotEligible"] as? String) ?: "你不能领取这个红包"
+        set(value) { values["packetNotEligible"] = value }
+    var packetOpenFailed: String
+        get() = (values["packetOpenFailed"] as? String) ?: "领取失败，请重试"
+        set(value) { values["packetOpenFailed"] = value }
+    var packetViewDetails: String
+        get() = (values["packetViewDetails"] as? String) ?: "查看领取详情"
+        set(value) { values["packetViewDetails"] = value }
+    var packetBestLuck: String
+        get() = (values["packetBestLuck"] as? String) ?: "手气最佳"
+        set(value) { values["packetBestLuck"] = value }
+    var packetNoClaims: String
+        get() = (values["packetNoClaims"] as? String) ?: "暂无人领取"
+        set(value) { values["packetNoClaims"] = value }
+    var packetDetailTitle: String
+        get() = (values["packetDetailTitle"] as? String) ?: "红包详情"
+        set(value) { values["packetDetailTitle"] = value }
+    var packetFieldTotal: String
+        get() = (values["packetFieldTotal"] as? String) ?: "总金额"
+        set(value) { values["packetFieldTotal"] = value }
+    var packetFieldEach: String
+        get() = (values["packetFieldEach"] as? String) ?: "单个金额"
+        set(value) { values["packetFieldEach"] = value }
+    var packetFieldAmount: String
+        get() = (values["packetFieldAmount"] as? String) ?: "金额"
+        set(value) { values["packetFieldAmount"] = value }
+    var packetFieldCount: String
+        get() = (values["packetFieldCount"] as? String) ?: "红包个数"
+        set(value) { values["packetFieldCount"] = value }
+    var packetCountPlaceholder: String
+        get() = (values["packetCountPlaceholder"] as? String) ?: "填写个数"
+        set(value) { values["packetCountPlaceholder"] = value }
+    var packetFieldRecipient: String
+        get() = (values["packetFieldRecipient"] as? String) ?: "发给谁"
+        set(value) { values["packetFieldRecipient"] = value }
+    var packetGreetingLabel: String
+        get() = (values["packetGreetingLabel"] as? String) ?: "祝福语"
+        set(value) { values["packetGreetingLabel"] = value }
+    var packetDefaultGreeting: String
+        get() = (values["packetDefaultGreeting"] as? String) ?: "恭喜发财，大吉大利"
+        set(value) { values["packetDefaultGreeting"] = value }
+    var packetSubmit: String
+        get() = (values["packetSubmit"] as? String) ?: "塞钱进红包"
+        set(value) { values["packetSubmit"] = value }
+    var packetPayTitle: String
+        get() = (values["packetPayTitle"] as? String) ?: "确认付款"
+        set(value) { values["packetPayTitle"] = value }
+    var packetPayMethod: String
+        get() = (values["packetPayMethod"] as? String) ?: "支付方式"
+        set(value) { values["packetPayMethod"] = value }
+    var packetPayConfirm: String
+        get() = (values["packetPayConfirm"] as? String) ?: "确认支付"
+        set(value) { values["packetPayConfirm"] = value }
+    var packetInsufficient: String
+        get() = (values["packetInsufficient"] as? String) ?: "余额不足"
+        set(value) { values["packetInsufficient"] = value }
 
     var commands: String
         get() = (values["commands"] as? (String)) ?: "命令"

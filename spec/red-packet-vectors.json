@@ -1,0 +1,329 @@
+{
+  "schemaVersion": 1,
+  "note": "Shared red packet presentation rules for the four kits. `amountInput` / `countInput` are the composer's format-only filters (range checks stay with the host). `card` is the status line precedence and tap rule of RedPacketCard; `status` names the copy, which each kit resolves from its own strings: busy, statusLabel (the host text as given), claimedAmount (received prefix + amount), claimed, finished, expired, unavailable, tapToOpen. `faded` is how a claimed / finished / expired card fades: each colour of the card mixed in sRGB with `targetToken` (white in light mode, a deep red in dark mode), the target taking `mixToken` (lerp(colour, target, mix)); the text on it is `inkToken`, which must keep `minTextContrast` on every faded stop the text sits on. Top-level `target` / `ink` / `stops` are light mode; `dark` holds the dark-mode values. Busy and disabled cards are never faded: they keep the unopened face and white text and change only the status line. `composer` is which amount label and rows the composer shows for the kinds a host offers: amountLabel names the copy (total, each, amount).",
+  "amountInput": [
+    {
+      "id": "amount-empty",
+      "input": "",
+      "output": ""
+    },
+    {
+      "id": "amount-integer",
+      "input": "88",
+      "output": "88"
+    },
+    {
+      "id": "amount-two-decimals",
+      "input": "8.88",
+      "output": "8.88"
+    },
+    {
+      "id": "amount-third-decimal-dropped",
+      "input": "8.888",
+      "output": "8.88"
+    },
+    {
+      "id": "amount-second-point-dropped",
+      "input": "1.2.3",
+      "output": "1.23"
+    },
+    {
+      "id": "amount-leading-point",
+      "input": ".5",
+      "output": "0.5"
+    },
+    {
+      "id": "amount-leading-zeros",
+      "input": "007",
+      "output": "7"
+    },
+    {
+      "id": "amount-zero-point",
+      "input": "00.50",
+      "output": "0.50"
+    },
+    {
+      "id": "amount-letters-dropped",
+      "input": "1a2b",
+      "output": "12"
+    },
+    {
+      "id": "amount-sign-dropped",
+      "input": "-5",
+      "output": "5"
+    },
+    {
+      "id": "amount-full-width",
+      "input": "１２．３",
+      "output": "12.3"
+    },
+    {
+      "id": "amount-ideographic-point",
+      "input": "3。5",
+      "output": "3.5"
+    },
+    {
+      "id": "amount-trailing-point-kept",
+      "input": "6.",
+      "output": "6."
+    }
+  ],
+  "countInput": [
+    {
+      "id": "count-empty",
+      "input": "",
+      "output": 0
+    },
+    {
+      "id": "count-digits",
+      "input": "5",
+      "output": 5
+    },
+    {
+      "id": "count-letters-dropped",
+      "input": "1x0",
+      "output": 10
+    },
+    {
+      "id": "count-leading-zeros",
+      "input": "007",
+      "output": 7
+    },
+    {
+      "id": "count-decimal-dropped",
+      "input": "3.5",
+      "output": 35
+    },
+    {
+      "id": "count-three-digits-max",
+      "input": "12345",
+      "output": 123
+    },
+    {
+      "id": "count-full-width",
+      "input": "２０",
+      "output": 20
+    }
+  ],
+  "card": [
+    {
+      "id": "card-unopened",
+      "state": "unopened",
+      "status": "tapToOpen",
+      "tappable": true,
+      "dimmed": false
+    },
+    {
+      "id": "card-claimed-amount",
+      "state": "claimed",
+      "amount": "0.88",
+      "status": "claimedAmount",
+      "tappable": true,
+      "dimmed": true
+    },
+    {
+      "id": "card-claimed-no-amount",
+      "state": "claimed",
+      "status": "claimed",
+      "tappable": true,
+      "dimmed": true
+    },
+    {
+      "id": "card-finished",
+      "state": "finished",
+      "status": "finished",
+      "tappable": true,
+      "dimmed": true
+    },
+    {
+      "id": "card-expired",
+      "state": "expired",
+      "status": "expired",
+      "tappable": true,
+      "dimmed": true
+    },
+    {
+      "id": "card-disabled",
+      "state": "unopened",
+      "disabled": true,
+      "status": "unavailable",
+      "tappable": false,
+      "dimmed": false
+    },
+    {
+      "id": "card-busy",
+      "state": "unopened",
+      "busy": true,
+      "status": "busy",
+      "tappable": false,
+      "dimmed": false
+    },
+    {
+      "id": "card-busy-wins",
+      "state": "finished",
+      "busy": true,
+      "statusLabel": "Created",
+      "status": "busy",
+      "tappable": false,
+      "dimmed": true
+    },
+    {
+      "id": "card-host-status-wins",
+      "state": "claimed",
+      "amount": "0.88",
+      "statusLabel": "Created",
+      "status": "statusLabel",
+      "tappable": true,
+      "dimmed": true
+    },
+    {
+      "id": "card-finished-before-disabled",
+      "state": "finished",
+      "disabled": true,
+      "status": "finished",
+      "tappable": false,
+      "dimmed": true
+    }
+  ],
+  "faded": {
+    "mixToken": "sizes.component.redPacketFadedMix",
+    "mix": 0.4,
+    "targetToken": "colors.redPacket.fadedMixTarget",
+    "target": "#FFFFFF",
+    "inkToken": "colors.redPacket.fadedInk",
+    "ink": "#5C140E",
+    "minTextContrast": 4.5,
+    "textStops": [
+      "colors.redPacket.start",
+      "colors.redPacket.middle",
+      "colors.redPacket.end"
+    ],
+    "stops": [
+      {
+        "token": "colors.redPacket.start",
+        "base": "#F0503C",
+        "faded": "#F6968A"
+      },
+      {
+        "token": "colors.redPacket.middle",
+        "base": "#E23B2E",
+        "faded": "#EE8982"
+      },
+      {
+        "token": "colors.redPacket.end",
+        "base": "#C8291F",
+        "faded": "#DE7F79"
+      },
+      {
+        "token": "colors.redPacket.gold",
+        "base": "#FFE9B8",
+        "faded": "#FFF2D4"
+      },
+      {
+        "token": "colors.redPacket.goldDeep",
+        "base": "#F6C453",
+        "faded": "#FADC98"
+      }
+    ],
+    "dark": {
+      "target": "#2A1513",
+      "ink": "#FBE3DE",
+      "stops": [
+        {
+          "token": "colors.redPacket.start",
+          "base": "#F0503C",
+          "faded": "#A1382C"
+        },
+        {
+          "token": "colors.redPacket.middle",
+          "base": "#E23B2E",
+          "faded": "#982C23"
+        },
+        {
+          "token": "colors.redPacket.end",
+          "base": "#C8291F",
+          "faded": "#89211A"
+        },
+        {
+          "token": "colors.redPacket.gold",
+          "base": "#FFE9B8",
+          "faded": "#AA9476"
+        },
+        {
+          "token": "colors.redPacket.goldDeep",
+          "base": "#F6C453",
+          "faded": "#A47E39"
+        }
+      ]
+    }
+  },
+  "composer": [
+    {
+      "id": "composer-group-lucky",
+      "kinds": [
+        "lucky",
+        "normal",
+        "exclusive"
+      ],
+      "kind": "lucky",
+      "amountLabel": "total",
+      "showsCount": true,
+      "showsRecipient": false
+    },
+    {
+      "id": "composer-group-normal",
+      "kinds": [
+        "lucky",
+        "normal",
+        "exclusive"
+      ],
+      "kind": "normal",
+      "amountLabel": "each",
+      "showsCount": true,
+      "showsRecipient": false
+    },
+    {
+      "id": "composer-group-exclusive",
+      "kinds": [
+        "lucky",
+        "normal",
+        "exclusive"
+      ],
+      "kind": "exclusive",
+      "amountLabel": "amount",
+      "showsCount": false,
+      "showsRecipient": true
+    },
+    {
+      "id": "composer-group-without-exclusive",
+      "kinds": [
+        "lucky",
+        "normal"
+      ],
+      "kind": "normal",
+      "amountLabel": "each",
+      "showsCount": true,
+      "showsRecipient": false
+    },
+    {
+      "id": "composer-direct",
+      "kinds": [
+        "normal"
+      ],
+      "kind": "normal",
+      "amountLabel": "amount",
+      "showsCount": false,
+      "showsRecipient": false
+    },
+    {
+      "id": "composer-direct-stale-kind",
+      "kinds": [
+        "normal"
+      ],
+      "kind": "lucky",
+      "amountLabel": "amount",
+      "showsCount": false,
+      "showsRecipient": false
+    }
+  ]
+}

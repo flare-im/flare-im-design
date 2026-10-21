@@ -144,6 +144,15 @@ public struct FlareColors: Sendable {
     public let avatarTintAmberFg: Color
     public let avatarTintSlateBg: Color
     public let avatarTintSlateFg: Color
+    public let redPacketStart: Color
+    public let redPacketMiddle: Color
+    public let redPacketEnd: Color
+    public let redPacketGold: Color
+    public let redPacketGoldDeep: Color
+    public let redPacketOnSurface: Color
+    public let redPacketFadedInk: Color
+    public let redPacketFadedMixTarget: Color
+    public let redPacketAccent: Color
 
     public init(
         bgDisabled: Color,
@@ -214,7 +223,16 @@ public struct FlareColors: Sendable {
         avatarTintAmberBg: Color,
         avatarTintAmberFg: Color,
         avatarTintSlateBg: Color,
-        avatarTintSlateFg: Color
+        avatarTintSlateFg: Color,
+        redPacketStart: Color,
+        redPacketMiddle: Color,
+        redPacketEnd: Color,
+        redPacketGold: Color,
+        redPacketGoldDeep: Color,
+        redPacketOnSurface: Color,
+        redPacketFadedInk: Color,
+        redPacketFadedMixTarget: Color,
+        redPacketAccent: Color
     ) {
         self.bgDisabled = bgDisabled
         self.bgElevated = bgElevated
@@ -285,6 +303,15 @@ public struct FlareColors: Sendable {
         self.avatarTintAmberFg = avatarTintAmberFg
         self.avatarTintSlateBg = avatarTintSlateBg
         self.avatarTintSlateFg = avatarTintSlateFg
+        self.redPacketStart = redPacketStart
+        self.redPacketMiddle = redPacketMiddle
+        self.redPacketEnd = redPacketEnd
+        self.redPacketGold = redPacketGold
+        self.redPacketGoldDeep = redPacketGoldDeep
+        self.redPacketOnSurface = redPacketOnSurface
+        self.redPacketFadedInk = redPacketFadedInk
+        self.redPacketFadedMixTarget = redPacketFadedMixTarget
+        self.redPacketAccent = redPacketAccent
     }
 
     public func copy(
@@ -356,7 +383,16 @@ public struct FlareColors: Sendable {
         avatarTintAmberBg: Color? = nil,
         avatarTintAmberFg: Color? = nil,
         avatarTintSlateBg: Color? = nil,
-        avatarTintSlateFg: Color? = nil
+        avatarTintSlateFg: Color? = nil,
+        redPacketStart: Color? = nil,
+        redPacketMiddle: Color? = nil,
+        redPacketEnd: Color? = nil,
+        redPacketGold: Color? = nil,
+        redPacketGoldDeep: Color? = nil,
+        redPacketOnSurface: Color? = nil,
+        redPacketFadedInk: Color? = nil,
+        redPacketFadedMixTarget: Color? = nil,
+        redPacketAccent: Color? = nil
     ) -> FlareColors {
         FlareColors(
             bgDisabled: bgDisabled ?? self.bgDisabled,
@@ -427,7 +463,16 @@ public struct FlareColors: Sendable {
             avatarTintAmberBg: avatarTintAmberBg ?? self.avatarTintAmberBg,
             avatarTintAmberFg: avatarTintAmberFg ?? self.avatarTintAmberFg,
             avatarTintSlateBg: avatarTintSlateBg ?? self.avatarTintSlateBg,
-            avatarTintSlateFg: avatarTintSlateFg ?? self.avatarTintSlateFg
+            avatarTintSlateFg: avatarTintSlateFg ?? self.avatarTintSlateFg,
+            redPacketStart: redPacketStart ?? self.redPacketStart,
+            redPacketMiddle: redPacketMiddle ?? self.redPacketMiddle,
+            redPacketEnd: redPacketEnd ?? self.redPacketEnd,
+            redPacketGold: redPacketGold ?? self.redPacketGold,
+            redPacketGoldDeep: redPacketGoldDeep ?? self.redPacketGoldDeep,
+            redPacketOnSurface: redPacketOnSurface ?? self.redPacketOnSurface,
+            redPacketFadedInk: redPacketFadedInk ?? self.redPacketFadedInk,
+            redPacketFadedMixTarget: redPacketFadedMixTarget ?? self.redPacketFadedMixTarget,
+            redPacketAccent: redPacketAccent ?? self.redPacketAccent
         )
     }
 
@@ -500,7 +545,16 @@ public struct FlareColors: Sendable {
         avatarTintAmberBg: Color(.sRGB, red: 0.9961, green: 0.9529, blue: 0.7804, opacity: 1.0),
         avatarTintAmberFg: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         avatarTintSlateBg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0),
-        avatarTintSlateFg: Color(.sRGB, red: 0.2157, green: 0.2549, blue: 0.3176, opacity: 1.0)
+        avatarTintSlateFg: Color(.sRGB, red: 0.2157, green: 0.2549, blue: 0.3176, opacity: 1.0),
+        redPacketStart: Color(.sRGB, red: 0.9412, green: 0.3137, blue: 0.2353, opacity: 1.0),
+        redPacketMiddle: Color(.sRGB, red: 0.8863, green: 0.2314, blue: 0.1804, opacity: 1.0),
+        redPacketEnd: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0),
+        redPacketGold: Color(.sRGB, red: 1.0000, green: 0.9137, blue: 0.7216, opacity: 1.0),
+        redPacketGoldDeep: Color(.sRGB, red: 0.9647, green: 0.7686, blue: 0.3255, opacity: 1.0),
+        redPacketOnSurface: Color(.sRGB, red: 1.0000, green: 0.9608, blue: 0.9020, opacity: 1.0),
+        redPacketFadedInk: Color(.sRGB, red: 0.3608, green: 0.0784, blue: 0.0549, opacity: 1.0),
+        redPacketFadedMixTarget: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        redPacketAccent: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0)
     )
 
     public static let violetDark = FlareColors(
@@ -572,7 +626,16 @@ public struct FlareColors: Sendable {
         avatarTintAmberBg: Color(.sRGB, red: 0.3451, green: 0.2078, blue: 0.1176, opacity: 1.0),
         avatarTintAmberFg: Color(.sRGB, red: 0.9922, green: 0.9020, blue: 0.5412, opacity: 1.0),
         avatarTintSlateBg: Color(.sRGB, red: 0.1569, green: 0.1765, blue: 0.2196, opacity: 1.0),
-        avatarTintSlateFg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0)
+        avatarTintSlateFg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0),
+        redPacketStart: Color(.sRGB, red: 0.9412, green: 0.3137, blue: 0.2353, opacity: 1.0),
+        redPacketMiddle: Color(.sRGB, red: 0.8863, green: 0.2314, blue: 0.1804, opacity: 1.0),
+        redPacketEnd: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0),
+        redPacketGold: Color(.sRGB, red: 1.0000, green: 0.9137, blue: 0.7216, opacity: 1.0),
+        redPacketGoldDeep: Color(.sRGB, red: 0.9647, green: 0.7686, blue: 0.3255, opacity: 1.0),
+        redPacketOnSurface: Color(.sRGB, red: 1.0000, green: 0.9608, blue: 0.9020, opacity: 1.0),
+        redPacketFadedInk: Color(.sRGB, red: 0.9843, green: 0.8902, blue: 0.8706, opacity: 1.0),
+        redPacketFadedMixTarget: Color(.sRGB, red: 0.1647, green: 0.0824, blue: 0.0745, opacity: 1.0),
+        redPacketAccent: Color(.sRGB, red: 1.0000, green: 0.4824, blue: 0.4196, opacity: 1.0)
     )
 
     public static let oceanLight = FlareColors(
@@ -644,7 +707,16 @@ public struct FlareColors: Sendable {
         avatarTintAmberBg: Color(.sRGB, red: 0.9961, green: 0.9529, blue: 0.7804, opacity: 1.0),
         avatarTintAmberFg: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         avatarTintSlateBg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0),
-        avatarTintSlateFg: Color(.sRGB, red: 0.2157, green: 0.2549, blue: 0.3176, opacity: 1.0)
+        avatarTintSlateFg: Color(.sRGB, red: 0.2157, green: 0.2549, blue: 0.3176, opacity: 1.0),
+        redPacketStart: Color(.sRGB, red: 0.9412, green: 0.3137, blue: 0.2353, opacity: 1.0),
+        redPacketMiddle: Color(.sRGB, red: 0.8863, green: 0.2314, blue: 0.1804, opacity: 1.0),
+        redPacketEnd: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0),
+        redPacketGold: Color(.sRGB, red: 1.0000, green: 0.9137, blue: 0.7216, opacity: 1.0),
+        redPacketGoldDeep: Color(.sRGB, red: 0.9647, green: 0.7686, blue: 0.3255, opacity: 1.0),
+        redPacketOnSurface: Color(.sRGB, red: 1.0000, green: 0.9608, blue: 0.9020, opacity: 1.0),
+        redPacketFadedInk: Color(.sRGB, red: 0.3608, green: 0.0784, blue: 0.0549, opacity: 1.0),
+        redPacketFadedMixTarget: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        redPacketAccent: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0)
     )
 
     public static let oceanDark = FlareColors(
@@ -716,7 +788,16 @@ public struct FlareColors: Sendable {
         avatarTintAmberBg: Color(.sRGB, red: 0.3451, green: 0.2078, blue: 0.1176, opacity: 1.0),
         avatarTintAmberFg: Color(.sRGB, red: 0.9922, green: 0.9020, blue: 0.5412, opacity: 1.0),
         avatarTintSlateBg: Color(.sRGB, red: 0.1569, green: 0.1765, blue: 0.2196, opacity: 1.0),
-        avatarTintSlateFg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0)
+        avatarTintSlateFg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0),
+        redPacketStart: Color(.sRGB, red: 0.9412, green: 0.3137, blue: 0.2353, opacity: 1.0),
+        redPacketMiddle: Color(.sRGB, red: 0.8863, green: 0.2314, blue: 0.1804, opacity: 1.0),
+        redPacketEnd: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0),
+        redPacketGold: Color(.sRGB, red: 1.0000, green: 0.9137, blue: 0.7216, opacity: 1.0),
+        redPacketGoldDeep: Color(.sRGB, red: 0.9647, green: 0.7686, blue: 0.3255, opacity: 1.0),
+        redPacketOnSurface: Color(.sRGB, red: 1.0000, green: 0.9608, blue: 0.9020, opacity: 1.0),
+        redPacketFadedInk: Color(.sRGB, red: 0.9843, green: 0.8902, blue: 0.8706, opacity: 1.0),
+        redPacketFadedMixTarget: Color(.sRGB, red: 0.1647, green: 0.0824, blue: 0.0745, opacity: 1.0),
+        redPacketAccent: Color(.sRGB, red: 1.0000, green: 0.4824, blue: 0.4196, opacity: 1.0)
     )
 
     public static let forestLight = FlareColors(
@@ -788,7 +869,16 @@ public struct FlareColors: Sendable {
         avatarTintAmberBg: Color(.sRGB, red: 0.9961, green: 0.9529, blue: 0.7804, opacity: 1.0),
         avatarTintAmberFg: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         avatarTintSlateBg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0),
-        avatarTintSlateFg: Color(.sRGB, red: 0.2157, green: 0.2549, blue: 0.3176, opacity: 1.0)
+        avatarTintSlateFg: Color(.sRGB, red: 0.2157, green: 0.2549, blue: 0.3176, opacity: 1.0),
+        redPacketStart: Color(.sRGB, red: 0.9412, green: 0.3137, blue: 0.2353, opacity: 1.0),
+        redPacketMiddle: Color(.sRGB, red: 0.8863, green: 0.2314, blue: 0.1804, opacity: 1.0),
+        redPacketEnd: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0),
+        redPacketGold: Color(.sRGB, red: 1.0000, green: 0.9137, blue: 0.7216, opacity: 1.0),
+        redPacketGoldDeep: Color(.sRGB, red: 0.9647, green: 0.7686, blue: 0.3255, opacity: 1.0),
+        redPacketOnSurface: Color(.sRGB, red: 1.0000, green: 0.9608, blue: 0.9020, opacity: 1.0),
+        redPacketFadedInk: Color(.sRGB, red: 0.3608, green: 0.0784, blue: 0.0549, opacity: 1.0),
+        redPacketFadedMixTarget: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        redPacketAccent: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0)
     )
 
     public static let forestDark = FlareColors(
@@ -860,7 +950,16 @@ public struct FlareColors: Sendable {
         avatarTintAmberBg: Color(.sRGB, red: 0.3451, green: 0.2078, blue: 0.1176, opacity: 1.0),
         avatarTintAmberFg: Color(.sRGB, red: 0.9922, green: 0.9020, blue: 0.5412, opacity: 1.0),
         avatarTintSlateBg: Color(.sRGB, red: 0.1569, green: 0.1765, blue: 0.2196, opacity: 1.0),
-        avatarTintSlateFg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0)
+        avatarTintSlateFg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0),
+        redPacketStart: Color(.sRGB, red: 0.9412, green: 0.3137, blue: 0.2353, opacity: 1.0),
+        redPacketMiddle: Color(.sRGB, red: 0.8863, green: 0.2314, blue: 0.1804, opacity: 1.0),
+        redPacketEnd: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0),
+        redPacketGold: Color(.sRGB, red: 1.0000, green: 0.9137, blue: 0.7216, opacity: 1.0),
+        redPacketGoldDeep: Color(.sRGB, red: 0.9647, green: 0.7686, blue: 0.3255, opacity: 1.0),
+        redPacketOnSurface: Color(.sRGB, red: 1.0000, green: 0.9608, blue: 0.9020, opacity: 1.0),
+        redPacketFadedInk: Color(.sRGB, red: 0.9843, green: 0.8902, blue: 0.8706, opacity: 1.0),
+        redPacketFadedMixTarget: Color(.sRGB, red: 0.1647, green: 0.0824, blue: 0.0745, opacity: 1.0),
+        redPacketAccent: Color(.sRGB, red: 1.0000, green: 0.4824, blue: 0.4196, opacity: 1.0)
     )
 
     public static let sunsetLight = FlareColors(
@@ -932,7 +1031,16 @@ public struct FlareColors: Sendable {
         avatarTintAmberBg: Color(.sRGB, red: 0.9961, green: 0.9529, blue: 0.7804, opacity: 1.0),
         avatarTintAmberFg: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         avatarTintSlateBg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0),
-        avatarTintSlateFg: Color(.sRGB, red: 0.2157, green: 0.2549, blue: 0.3176, opacity: 1.0)
+        avatarTintSlateFg: Color(.sRGB, red: 0.2157, green: 0.2549, blue: 0.3176, opacity: 1.0),
+        redPacketStart: Color(.sRGB, red: 0.9412, green: 0.3137, blue: 0.2353, opacity: 1.0),
+        redPacketMiddle: Color(.sRGB, red: 0.8863, green: 0.2314, blue: 0.1804, opacity: 1.0),
+        redPacketEnd: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0),
+        redPacketGold: Color(.sRGB, red: 1.0000, green: 0.9137, blue: 0.7216, opacity: 1.0),
+        redPacketGoldDeep: Color(.sRGB, red: 0.9647, green: 0.7686, blue: 0.3255, opacity: 1.0),
+        redPacketOnSurface: Color(.sRGB, red: 1.0000, green: 0.9608, blue: 0.9020, opacity: 1.0),
+        redPacketFadedInk: Color(.sRGB, red: 0.3608, green: 0.0784, blue: 0.0549, opacity: 1.0),
+        redPacketFadedMixTarget: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        redPacketAccent: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0)
     )
 
     public static let sunsetDark = FlareColors(
@@ -1004,7 +1112,16 @@ public struct FlareColors: Sendable {
         avatarTintAmberBg: Color(.sRGB, red: 0.3451, green: 0.2078, blue: 0.1176, opacity: 1.0),
         avatarTintAmberFg: Color(.sRGB, red: 0.9922, green: 0.9020, blue: 0.5412, opacity: 1.0),
         avatarTintSlateBg: Color(.sRGB, red: 0.1569, green: 0.1765, blue: 0.2196, opacity: 1.0),
-        avatarTintSlateFg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0)
+        avatarTintSlateFg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0),
+        redPacketStart: Color(.sRGB, red: 0.9412, green: 0.3137, blue: 0.2353, opacity: 1.0),
+        redPacketMiddle: Color(.sRGB, red: 0.8863, green: 0.2314, blue: 0.1804, opacity: 1.0),
+        redPacketEnd: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0),
+        redPacketGold: Color(.sRGB, red: 1.0000, green: 0.9137, blue: 0.7216, opacity: 1.0),
+        redPacketGoldDeep: Color(.sRGB, red: 0.9647, green: 0.7686, blue: 0.3255, opacity: 1.0),
+        redPacketOnSurface: Color(.sRGB, red: 1.0000, green: 0.9608, blue: 0.9020, opacity: 1.0),
+        redPacketFadedInk: Color(.sRGB, red: 0.9843, green: 0.8902, blue: 0.8706, opacity: 1.0),
+        redPacketFadedMixTarget: Color(.sRGB, red: 0.1647, green: 0.0824, blue: 0.0745, opacity: 1.0),
+        redPacketAccent: Color(.sRGB, red: 1.0000, green: 0.4824, blue: 0.4196, opacity: 1.0)
     )
 
     public static let roseLight = FlareColors(
@@ -1076,7 +1193,16 @@ public struct FlareColors: Sendable {
         avatarTintAmberBg: Color(.sRGB, red: 0.9961, green: 0.9529, blue: 0.7804, opacity: 1.0),
         avatarTintAmberFg: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         avatarTintSlateBg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0),
-        avatarTintSlateFg: Color(.sRGB, red: 0.2157, green: 0.2549, blue: 0.3176, opacity: 1.0)
+        avatarTintSlateFg: Color(.sRGB, red: 0.2157, green: 0.2549, blue: 0.3176, opacity: 1.0),
+        redPacketStart: Color(.sRGB, red: 0.9412, green: 0.3137, blue: 0.2353, opacity: 1.0),
+        redPacketMiddle: Color(.sRGB, red: 0.8863, green: 0.2314, blue: 0.1804, opacity: 1.0),
+        redPacketEnd: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0),
+        redPacketGold: Color(.sRGB, red: 1.0000, green: 0.9137, blue: 0.7216, opacity: 1.0),
+        redPacketGoldDeep: Color(.sRGB, red: 0.9647, green: 0.7686, blue: 0.3255, opacity: 1.0),
+        redPacketOnSurface: Color(.sRGB, red: 1.0000, green: 0.9608, blue: 0.9020, opacity: 1.0),
+        redPacketFadedInk: Color(.sRGB, red: 0.3608, green: 0.0784, blue: 0.0549, opacity: 1.0),
+        redPacketFadedMixTarget: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        redPacketAccent: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0)
     )
 
     public static let roseDark = FlareColors(
@@ -1148,7 +1274,16 @@ public struct FlareColors: Sendable {
         avatarTintAmberBg: Color(.sRGB, red: 0.3451, green: 0.2078, blue: 0.1176, opacity: 1.0),
         avatarTintAmberFg: Color(.sRGB, red: 0.9922, green: 0.9020, blue: 0.5412, opacity: 1.0),
         avatarTintSlateBg: Color(.sRGB, red: 0.1569, green: 0.1765, blue: 0.2196, opacity: 1.0),
-        avatarTintSlateFg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0)
+        avatarTintSlateFg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0),
+        redPacketStart: Color(.sRGB, red: 0.9412, green: 0.3137, blue: 0.2353, opacity: 1.0),
+        redPacketMiddle: Color(.sRGB, red: 0.8863, green: 0.2314, blue: 0.1804, opacity: 1.0),
+        redPacketEnd: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0),
+        redPacketGold: Color(.sRGB, red: 1.0000, green: 0.9137, blue: 0.7216, opacity: 1.0),
+        redPacketGoldDeep: Color(.sRGB, red: 0.9647, green: 0.7686, blue: 0.3255, opacity: 1.0),
+        redPacketOnSurface: Color(.sRGB, red: 1.0000, green: 0.9608, blue: 0.9020, opacity: 1.0),
+        redPacketFadedInk: Color(.sRGB, red: 0.9843, green: 0.8902, blue: 0.8706, opacity: 1.0),
+        redPacketFadedMixTarget: Color(.sRGB, red: 0.1647, green: 0.0824, blue: 0.0745, opacity: 1.0),
+        redPacketAccent: Color(.sRGB, red: 1.0000, green: 0.4824, blue: 0.4196, opacity: 1.0)
     )
 
     public static let graphiteLight = FlareColors(
@@ -1220,7 +1355,16 @@ public struct FlareColors: Sendable {
         avatarTintAmberBg: Color(.sRGB, red: 0.9961, green: 0.9529, blue: 0.7804, opacity: 1.0),
         avatarTintAmberFg: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         avatarTintSlateBg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0),
-        avatarTintSlateFg: Color(.sRGB, red: 0.2157, green: 0.2549, blue: 0.3176, opacity: 1.0)
+        avatarTintSlateFg: Color(.sRGB, red: 0.2157, green: 0.2549, blue: 0.3176, opacity: 1.0),
+        redPacketStart: Color(.sRGB, red: 0.9412, green: 0.3137, blue: 0.2353, opacity: 1.0),
+        redPacketMiddle: Color(.sRGB, red: 0.8863, green: 0.2314, blue: 0.1804, opacity: 1.0),
+        redPacketEnd: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0),
+        redPacketGold: Color(.sRGB, red: 1.0000, green: 0.9137, blue: 0.7216, opacity: 1.0),
+        redPacketGoldDeep: Color(.sRGB, red: 0.9647, green: 0.7686, blue: 0.3255, opacity: 1.0),
+        redPacketOnSurface: Color(.sRGB, red: 1.0000, green: 0.9608, blue: 0.9020, opacity: 1.0),
+        redPacketFadedInk: Color(.sRGB, red: 0.3608, green: 0.0784, blue: 0.0549, opacity: 1.0),
+        redPacketFadedMixTarget: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        redPacketAccent: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0)
     )
 
     public static let graphiteDark = FlareColors(
@@ -1292,7 +1436,16 @@ public struct FlareColors: Sendable {
         avatarTintAmberBg: Color(.sRGB, red: 0.3451, green: 0.2078, blue: 0.1176, opacity: 1.0),
         avatarTintAmberFg: Color(.sRGB, red: 0.9922, green: 0.9020, blue: 0.5412, opacity: 1.0),
         avatarTintSlateBg: Color(.sRGB, red: 0.1569, green: 0.1765, blue: 0.2196, opacity: 1.0),
-        avatarTintSlateFg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0)
+        avatarTintSlateFg: Color(.sRGB, red: 0.8980, green: 0.9059, blue: 0.9216, opacity: 1.0),
+        redPacketStart: Color(.sRGB, red: 0.9412, green: 0.3137, blue: 0.2353, opacity: 1.0),
+        redPacketMiddle: Color(.sRGB, red: 0.8863, green: 0.2314, blue: 0.1804, opacity: 1.0),
+        redPacketEnd: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0),
+        redPacketGold: Color(.sRGB, red: 1.0000, green: 0.9137, blue: 0.7216, opacity: 1.0),
+        redPacketGoldDeep: Color(.sRGB, red: 0.9647, green: 0.7686, blue: 0.3255, opacity: 1.0),
+        redPacketOnSurface: Color(.sRGB, red: 1.0000, green: 0.9608, blue: 0.9020, opacity: 1.0),
+        redPacketFadedInk: Color(.sRGB, red: 0.9843, green: 0.8902, blue: 0.8706, opacity: 1.0),
+        redPacketFadedMixTarget: Color(.sRGB, red: 0.1647, green: 0.0824, blue: 0.0745, opacity: 1.0),
+        redPacketAccent: Color(.sRGB, red: 1.0000, green: 0.4824, blue: 0.4196, opacity: 1.0)
     )
 
     public static let light = violetLight
@@ -1409,6 +1562,13 @@ public enum FlareSizes {
     public static let componentConversationRowMetaWidth: CGFloat = 60.0
     public static let componentBubbleMaxWidthRatioCompact: CGFloat = 0.88
     public static let componentBubbleMaxWidthRatioRegular: CGFloat = 0.62
+    public static let componentRedPacketCardWidth: CGFloat = 248.0
+    public static let componentRedPacketEnvelopeWidth: CGFloat = 300.0
+    public static let componentRedPacketEnvelopeMinHeight: CGFloat = 440.0
+    public static let componentRedPacketOpenButtonSize: CGFloat = 96.0
+    public static let componentRedPacketAmountFontSize: CGFloat = 44.0
+    public static let componentRedPacketDetailHeaderHeight: CGFloat = 72.0
+    public static let componentRedPacketFadedMix: CGFloat = 0.4
 }
 
 /// Opacity tokens (disabled / muted / tint overlays).
