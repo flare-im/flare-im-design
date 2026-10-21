@@ -89,7 +89,8 @@ const viewType = computed(() => {
 });
 const customRenderer = computed(() => {
   const wireType = String(decoded.value?.contentType ?? "");
-  return customRenderers[wireType] ?? customRenderers[viewType.value];
+  const subtype = typeof decoded.value?.type === "string" ? decoded.value.type : "";
+  return customRenderers[`${wireType}:${subtype}`] ?? customRenderers[wireType] ?? customRenderers[viewType.value];
 });
 
 const extraStrings = computed(() => messageExtraAsStrings(props.messageExtra));

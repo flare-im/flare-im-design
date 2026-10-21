@@ -25,6 +25,23 @@ public struct FlareContentContext {
 
 public typealias FlareContentBuilder = (FlareMessageContent, FlareContentContext) -> AnyView
 
+private struct ContentRenderersKey: EnvironmentKey {
+    static let defaultValue: [String: FlareContentBuilder] = [:]
+}
+public extension EnvironmentValues {
+    var flareContentRenderers: [String: FlareContentBuilder] {
+        get { self[ContentRenderersKey.self] }
+        set { self[ContentRenderersKey.self] = newValue }
+    }
+}
+public extension View {
+    /// Renderer lifetime is scoped to this view tree, so two sessions never
+    /// overwrite one another's callbacks in a process-global registry.
+    func flareContentRenderers(_ builders: [String: FlareContentBuilder]) -> some View {
+        environment(\.flareContentRenderers, builders)
+    }
+}
+
 /// Registry for product content types (`vote`, `task`…). Built-in types are
 /// rendered directly by ``MessageContentView``; register a builder to add or
 /// override a type.
@@ -64,6 +81,7 @@ public enum FlareContentRegistry {
 /// address with the platform opener after ``safeExternalURL(_:)``, and opens nothing for any other
 /// scheme. A link card whose URL is not a web address has no tap at all.
 public struct MessageContentView: View {
+    @Environment(\.flareContentRenderers) private var renderers
     private let content: FlareMessageContent
     private let ctx: FlareContentContext
     private let onMediaDownload: ((FlareMessageContent) -> Void)?
@@ -131,7 +149,7 @@ public struct MessageContentView: View {
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         let foreground = ctx.isSelf ? colors.messageOutgoingForeground : colors.messageIncomingForeground
-        if let custom = FlareContentRegistry.lookup(content.type) {
+        if let custom = renderers[content.type] ?? FlareContentRegistry.lookup(content.type) {
             custom(content, ctx)
         } else if mediaSession == nil, Self.usesMediaDefaults(content, hostHandles: ctx.onMediaAction != nil) {
             // Outside a list the body owns its viewer, which follows this body's state.

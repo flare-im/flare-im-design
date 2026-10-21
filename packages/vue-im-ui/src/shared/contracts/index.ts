@@ -201,3 +201,5 @@ export {
   formatInviteJoinedDate,
   inviteJoinedDateLabel,
 } from "./invite";
+
+export type { FlarePluginViewModel } from "./plugin-ui";

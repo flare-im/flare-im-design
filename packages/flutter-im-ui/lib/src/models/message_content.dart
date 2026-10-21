@@ -490,9 +490,12 @@ class FlareGenericContent extends FlareMessageContent {
     required this.contentType,
     required this.label,
     this.itemCount = 0,
+    this.payloadJson,
   });
   final String contentType;
   final String label;
+  /// Opaque data for a scoped renderer. The kit never evaluates it.
+  final String? payloadJson;
 
   /// How many things this content carries, for the types whose one-line
   /// summary is a count rather than a name — forwarded messages, an album.

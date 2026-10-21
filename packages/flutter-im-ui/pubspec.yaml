@@ -26,6 +26,7 @@ dev_dependencies:
     sdk: flutter
 
 flutter:
+  uses-material-design: true
   # Emoji-pack + sticker resources. `assets/emoji-sticker` is a symlink to the
   # cross-platform source of truth at flare-im-design/assets/emoji-sticker, so
   # this package ships the same webp + manifest every platform uses.

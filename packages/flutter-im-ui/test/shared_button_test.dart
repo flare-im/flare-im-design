@@ -5,6 +5,34 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets(
+    'a long inline label wraps inside a narrow parent at large text size',
+    (tester) async {
+      const label = 'Confirm debit and create packet';
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: MediaQuery(
+              data: const MediaQueryData(textScaler: TextScaler.linear(1.5)),
+              child: SizedBox(
+                width: 180,
+                child: FlareButton(
+                  label: label,
+                  icon: 'check',
+                  onPressed: () {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(tester.takeException(), isNull);
+      final control = tester.getRect(find.byType(FlareButton));
+      final text = tester.getRect(find.text(label));
+      expect(text.right, lessThanOrEqualTo(control.right));
+      expect(text.height, greaterThan(20));
+    },
+  );
+  testWidgets(
     'shared button supports keyboard activation and respects unavailable states',
     (tester) async {
       var count = 0;

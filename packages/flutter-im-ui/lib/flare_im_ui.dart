@@ -188,3 +188,5 @@ export 'src/components/flare_storage_usage.dart';
 export 'src/components/flare_conversation_workspace.dart';
 
 export 'src/components/flare_inline_voice.dart';
+
+export 'src/components/flare_plugin_view.dart';

@@ -26,6 +26,8 @@ import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,6 +47,13 @@ data class FlareContentContext(
 )
 
 typealias FlareContentBuilder = @Composable (FlareMessageContent, FlareContentContext) -> Unit
+
+private val LocalFlareContentBuilders = staticCompositionLocalOf<Map<String, FlareContentBuilder>> { emptyMap() }
+/** Scope extension callbacks to one session/view tree, never a global tenant. */
+@Composable
+fun FlareContentScope(builders: Map<String, FlareContentBuilder>, content: @Composable () -> Unit) {
+    CompositionLocalProvider(LocalFlareContentBuilders provides builders, content = content)
+}
 
 /**
  * Registry for product content types (`vote`, `task`…). Built-in types are
@@ -101,7 +110,7 @@ fun MessageContentView(
     onMediaReveal: ((FlareMessageContent) -> Unit)? = null,
 ) {
     val ctx = FlareContentContext(isSelf, senderName = senderName, mediaState = mediaState, onMediaAction = onMediaAction)
-    val custom = FlareContentRegistry.lookup(content.type)
+    val custom = LocalFlareContentBuilders.current[content.type] ?: FlareContentRegistry.lookup(content.type)
     if (custom != null) { custom(content, ctx); return }
 
     val openLink = rememberFlareLinkOpener(onOpenLink)

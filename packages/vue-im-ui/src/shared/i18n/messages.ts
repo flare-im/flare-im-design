@@ -373,6 +373,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       confirmRead: "已读",
       viewUnread: "查看未读",
     },
+    pluginRuntime: { rejected: "插件操作未完成，请检查权限及当前业务状态。", unavailable: "插件暂时不可用，请重新打开核对当前结果。" },
     redPacket: {
       brand: "Flare 红包",
       busy: "处理中…",
@@ -1654,6 +1655,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       confirmRead: "Mark as read",
       viewUnread: "View unread",
     },
+    pluginRuntime: { rejected: "Plugin command rejected. Check permission and business state.", unavailable: "Plugin unavailable. Reopen to check the current result." },
     redPacket: {
       brand: "Flare Packet",
       busy: "Processing…",

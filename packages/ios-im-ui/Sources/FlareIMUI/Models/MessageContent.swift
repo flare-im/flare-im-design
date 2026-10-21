@@ -264,8 +264,11 @@ public struct FlareGenericContent: FlareMessageContent {
     /// carries none. Its one-line summary counts them (`[多图] 4 张`). Same name and meaning as
     /// Compose's `FlareGenericContent.itemCount`.
     public let itemCount: Int
-    public init(contentType: String, label: String, itemCount: Int = 0) {
+    /// Opaque data for a registered renderer. The kit never evaluates it.
+    public let payloadJson: String?
+    public init(contentType: String, label: String, itemCount: Int = 0, payloadJson: String? = nil) {
         self.contentType = contentType; self.label = label; self.itemCount = itemCount
+        self.payloadJson = payloadJson
     }
     public var type: String { contentType }
 }

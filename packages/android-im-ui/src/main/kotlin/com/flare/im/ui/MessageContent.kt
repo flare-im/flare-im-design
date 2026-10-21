@@ -158,6 +158,8 @@ data class FlareGenericContent(
     val contentType: String,
     val label: String,
     val itemCount: Int = 0,
+    /** Opaque data for a scoped renderer; never evaluated by the kit. */
+    val payloadJson: String? = null,
 ) : FlareMessageContent {
     override val type get() = contentType
 }

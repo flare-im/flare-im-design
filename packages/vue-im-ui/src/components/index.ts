@@ -260,3 +260,6 @@ export { default as FlareFriendListContainer } from "./contacts/FlareFriendListC
 export { default as FlareFormSheet } from "./general/FlareFormSheet.vue";
 export { default as FlareComposerMediaPreview } from "./composer/FlareComposerMediaPreview.vue";
 export type { FlareComposerMediaPreviewItem } from "./composer/FlareComposerMediaPreview.vue";
+
+export { default as FlarePluginView } from "./messages/FlarePluginView.vue";
+export { default as FlareSchemaForm } from "./form/FlareSchemaForm.vue";

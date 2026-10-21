@@ -54,6 +54,16 @@ typedef FlareContentBuilder =
       FlareContentContext ctx,
     );
 
+/// Extension callback ownership follows the widget tree and its session.
+class FlareContentScope extends InheritedWidget {
+  const FlareContentScope({super.key, required this.builders, required super.child});
+  final Map<String, FlareContentBuilder> builders;
+  static FlareContentBuilder? lookup(BuildContext context, String type) =>
+      context.dependOnInheritedWidgetOfExactType<FlareContentScope>()?.builders[type];
+  @override
+  bool updateShouldNotify(FlareContentScope oldWidget) => builders != oldWidget.builders;
+}
+
 /// Registry for product content types (`vote`, `task`, …). Built-in types are
 /// rendered directly by [FlareMessageContentView]; register a builder to add or
 /// override a type.
@@ -160,7 +170,7 @@ class FlareMessageContentView extends StatelessWidget {
       onLocate: onLocate,
     );
 
-    final custom = FlareContentRegistry.lookup(content.type);
+    final custom = FlareContentScope.lookup(context, content.type) ?? FlareContentRegistry.lookup(content.type);
     if (custom != null) return custom(context, content, ctx);
 
     final colors = FlareColors.of(context);
