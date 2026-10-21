@@ -776,6 +776,7 @@ class _FlareMessageListState extends State<FlareMessageList>
       message: msg,
       currentUserId: widget.currentUserId,
       conversationKind: widget.conversationKind,
+      conversationId: widget.conversationId,
       groupPosition: groupPosition,
       rowPresentation: presentation,
       multiSelectMode: widget.multiSelectMode,

@@ -1,25 +1,33 @@
 import SwiftUI
 
-/// Context passed to every content renderer.
+/// Context passed to every content renderer. `messageId` is the message's id in the core (its server id, else the
+/// client id it was sent with) and `conversationId` the conversation the list shows; both are nil where the body is
+/// drawn outside a message (a preview, a standalone body without them).
 public struct FlareContentContext {
     public let isSelf: Bool
     public let previewMode: Bool
     public let senderName: String?
     public let mediaState: FlareMediaDownloadState?
     public let onMediaAction: ((FlareMessageContent) -> Void)?
+    public let messageId: String?
+    public let conversationId: String?
 
     public init(
         isSelf: Bool,
         previewMode: Bool = false,
         senderName: String? = nil,
         mediaState: FlareMediaDownloadState? = nil,
-        onMediaAction: ((FlareMessageContent) -> Void)? = nil
+        onMediaAction: ((FlareMessageContent) -> Void)? = nil,
+        messageId: String? = nil,
+        conversationId: String? = nil
     ) {
         self.isSelf = isSelf
         self.previewMode = previewMode
         self.senderName = senderName
         self.mediaState = mediaState
         self.onMediaAction = onMediaAction
+        self.messageId = messageId
+        self.conversationId = conversationId
     }
 }
 
@@ -28,10 +36,30 @@ public typealias FlareContentBuilder = (FlareMessageContent, FlareContentContext
 private struct ContentRenderersKey: EnvironmentKey {
     static let defaultValue: [String: FlareContentBuilder] = [:]
 }
+private struct BareContentTypesKey: EnvironmentKey {
+    static let defaultValue: Set<String> = []
+}
 public extension EnvironmentValues {
     var flareContentRenderers: [String: FlareContentBuilder] {
         get { self[ContentRenderersKey.self] }
         set { self[ContentRenderersKey.self] = newValue }
+    }
+
+    /// The custom content types here whose renderer is bare (drawn without a bubble).
+    var flareBareContentTypes: Set<String> {
+        get { self[BareContentTypesKey.self] }
+        set { self[BareContentTypesKey.self] = newValue }
+    }
+}
+
+private struct MessageConversationIdKey: EnvironmentKey {
+    static let defaultValue: String? = nil
+}
+extension EnvironmentValues {
+    /// The conversation a ``MessageListView`` shows, for the context of its custom content renderers.
+    var flareMessageConversationId: String? {
+        get { self[MessageConversationIdKey.self] }
+        set { self[MessageConversationIdKey.self] = newValue }
     }
 }
 public extension View {
@@ -39,6 +67,13 @@ public extension View {
     /// overwrite one another's callbacks in a process-global registry.
     func flareContentRenderers(_ builders: [String: FlareContentBuilder]) -> some View {
         environment(\.flareContentRenderers, builders)
+    }
+
+    /// The same, where the types in `bare` are drawn by the message row as it draws a picture — no bubble surface
+    /// and no bubble padding — while the row keeps the avatar, the sender's name, the time, multi-select and the
+    /// long-press menu.
+    func flareContentRenderers(_ builders: [String: FlareContentBuilder], bare: Set<String>) -> some View {
+        environment(\.flareContentRenderers, builders).environment(\.flareBareContentTypes, bare)
     }
 }
 
@@ -83,7 +118,7 @@ public enum FlareContentRegistry {
 public struct MessageContentView: View {
     @Environment(\.flareContentRenderers) private var renderers
     private let content: FlareMessageContent
-    private let ctx: FlareContentContext
+    private var ctx: FlareContentContext
     private let onMediaDownload: ((FlareMessageContent) -> Void)?
     private let onMediaReveal: ((FlareMessageContent) -> Void)?
     private let onOpenFile: ((FlareFileContent) -> Void)?
@@ -114,18 +149,31 @@ public struct MessageContentView: View {
         onOpenFile: ((FlareFileContent) -> Void)? = nil,
         onOpenLink: ((String) -> Void)? = nil,
         onVote: ((Int) -> Void)? = nil,
-        onTaskToggle: ((Bool) -> Void)? = nil
+        onTaskToggle: ((Bool) -> Void)? = nil,
+        messageId: String? = nil,
+        conversationId: String? = nil
     ) {
         self.content = content
         self.ctx = FlareContentContext(
             isSelf: isSelf, previewMode: previewMode, senderName: senderName,
-            mediaState: mediaState, onMediaAction: onMediaAction)
+            mediaState: mediaState, onMediaAction: onMediaAction,
+            messageId: messageId, conversationId: conversationId)
         self.onMediaDownload = onMediaDownload
         self.onMediaReveal = onMediaReveal
         self.onOpenFile = onOpenFile
         self.onOpenLink = onOpenLink
         self.onVote = onVote
         self.onTaskToggle = onTaskToggle
+    }
+
+    /// The message this body draws, for a custom renderer's context: the core's id and the conversation.
+    func messageIdentity(messageId: String?, conversationId: String?) -> MessageContentView {
+        var copy = self
+        copy.ctx = FlareContentContext(
+            isSelf: ctx.isSelf, previewMode: ctx.previewMode, senderName: ctx.senderName,
+            mediaState: ctx.mediaState, onMediaAction: ctx.onMediaAction,
+            messageId: messageId, conversationId: conversationId)
+        return copy
     }
 
     /// This body inside a timeline: `session` is the list's media defaults, `messageId` the message, `gallery` the

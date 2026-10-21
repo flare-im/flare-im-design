@@ -606,7 +606,10 @@ fun MessageList(
             }),
         )
     }
-    CompositionLocalProvider(LocalFlareMediaHost provides media, LocalLocateHighlight provides locateHost, LocalFlareImageGallery provides gallery) {
+    CompositionLocalProvider(
+        LocalFlareMediaHost provides media, LocalLocateHighlight provides locateHost, LocalFlareImageGallery provides gallery,
+        LocalFlareConversationId provides conversationId,
+    ) {
         Column(Modifier.fillMaxSize().background(colors.bgSecondary)) {
             if (hasOlder || loadingOlder || olderError != null) {
                 if (olderError != null) Text(olderError, color = colors.textPrimary, modifier = Modifier.padding(horizontal = FlareSizes.spacingMd))

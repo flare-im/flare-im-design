@@ -31,14 +31,12 @@ import VoteView from "../business/FlareVoteMessageView.vue";
 import AnnouncementView from "../business/FlareAnnouncementMessageView.vue";
 import MiniProgramView from "../business/FlareMiniProgramMessageView.vue";
 import PlaceholderView from "./views/PlaceholderView.vue";
-import { useFlareMessageRenderers } from "../../../shared/message-renderers";
-
-const CONTENT_TYPE_VIEW_KEYS: Record<string, string> = {
-  image_group: "imageGroup",
-  link_card: "linkCard",
-  mini_program: "miniProgram",
-  rich_text: "richText",
-};
+import {
+  resolveFlareMessageRenderer,
+  useFlareMessageRenderers,
+  useFlareRenderConversation,
+} from "../../../shared/message-renderers";
+import { contentViewKey, messageRendererKeys } from "../../../utils/messageRendererKeys";
 
 const props = withDefaults(
   defineProps<{
@@ -46,6 +44,10 @@ const props = withDefaults(
     isSelf?: boolean;
     previewMode?: boolean;
     messageId?: string;
+    /** The id a custom renderer receives as `messageId`: the server id, else the client id. Defaults to `messageId`. */
+    rendererMessageId?: string;
+    /** The conversation the message is in, for custom renderers; the message list provides it when omitted. */
+    conversationId?: string;
     messageExtra?: Record<string, unknown>;
     senderName?: string;
     mediaAction?: "download" | "openFolder" | null;
@@ -81,16 +83,18 @@ const taskListeners = computed(() =>
 const decoded = computed(() => normalizeToContentElem(props.content));
 const customRenderers = useFlareMessageRenderers();
 
-const viewType = computed(() => {
-  const content = decoded.value;
-  const type = content?.contentType;
-  if (!type) return "";
-  return CONTENT_TYPE_VIEW_KEYS[type] ?? type;
-});
-const customRenderer = computed(() => {
-  const wireType = String(decoded.value?.contentType ?? "");
-  const subtype = typeof decoded.value?.type === "string" ? decoded.value.type : "";
-  return customRenderers[`${wireType}:${subtype}`] ?? customRenderers[wireType] ?? customRenderers[viewType.value];
+const listConversationId = useFlareRenderConversation();
+
+const viewType = computed(() => contentViewKey(decoded.value));
+const customRenderer = computed(
+  () => resolveFlareMessageRenderer(customRenderers, messageRendererKeys(decoded.value))?.component,
+);
+// What a custom renderer is told about the message it draws: the server id when there is one (what the
+// SDK and plugins key by), and the conversation — so a host need not smuggle either into the payload.
+const customRendererProps = computed(() => {
+  const messageId = props.rendererMessageId || props.messageId || undefined;
+  const conversationId = props.conversationId || listConversationId() || undefined;
+  return { ...viewProps.value, messageId, conversationId };
 });
 
 const extraStrings = computed(() => messageExtraAsStrings(props.messageExtra));
@@ -151,7 +155,7 @@ const fallbackType = computed(() => String(decoded.value?.contentType ?? ""));
     <component
       :is="customRenderer"
       v-if="customRenderer && viewProps"
-      v-bind="viewProps"
+      v-bind="customRendererProps"
       @locate-message="emit('locate-message', $event)"
       @media-action="emit('media-action', $event)"
     />

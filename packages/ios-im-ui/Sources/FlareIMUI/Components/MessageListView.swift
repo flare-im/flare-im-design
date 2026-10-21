@@ -618,6 +618,7 @@ public struct MessageListView: View {
                         onVote: onVote, onTaskToggle: onTaskToggle)
                         .mediaDefaults(mediaSession, gallery: FlareImageGallerySource(messages: messages, download: onMediaDownload,
                                                                                       reveal: onMediaReveal))
+                        .environment(\.flareMessageConversationId, conversationId)
                         .accessibilityFocused($readingCursor, equals: msg.id)
                         .contentShape(Rectangle())
                         .modifier(RowLongPress(enabled: actionable && Self.longPressEnabled(multiSelectMode: multiSelectMode, onMessageLongPress: onMessageLongPress)) {

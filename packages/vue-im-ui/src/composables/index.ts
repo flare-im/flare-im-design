@@ -72,6 +72,7 @@ export {
   provideFlareMessageRenderers,
   useFlareMessageRenderers,
   type FlareMessageRendererRegistry,
+  type FlareMessageRendererEntry,
 } from "../shared/message-renderers";
 export {
   createWebVoiceRecorderAdapter,

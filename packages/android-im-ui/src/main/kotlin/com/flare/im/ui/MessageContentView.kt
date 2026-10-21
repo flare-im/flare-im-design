@@ -37,22 +37,42 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-/** Context passed to every content renderer. */
+/**
+ * Context passed to every content renderer. [messageId] is the message's id in the core (its server id, else the
+ * client id it was sent with) and [conversationId] the conversation the list shows; both are null where the body is
+ * drawn outside a message (a preview, a standalone body without them).
+ */
 data class FlareContentContext(
     val isSelf: Boolean,
     val previewMode: Boolean = false,
     val senderName: String? = null,
     val mediaState: FlareMediaDownloadState? = null,
     val onMediaAction: ((FlareMessageContent) -> Unit)? = null,
+    val messageId: String? = null,
+    val conversationId: String? = null,
 )
 
 typealias FlareContentBuilder = @Composable (FlareMessageContent, FlareContentContext) -> Unit
 
 private val LocalFlareContentBuilders = staticCompositionLocalOf<Map<String, FlareContentBuilder>> { emptyMap() }
-/** Scope extension callbacks to one session/view tree, never a global tenant. */
+private val LocalFlareBareContentTypes = staticCompositionLocalOf<Set<String>> { emptySet() }
+
+/**
+ * Scope extension callbacks to one session/view tree, never a global tenant. A type in [bareTypes] is drawn by the
+ * message row as it draws a picture — no bubble surface and no bubble padding — while the row keeps the avatar, the
+ * sender's name, the time, multi-select and the long-press menu.
+ */
 @Composable
-fun FlareContentScope(builders: Map<String, FlareContentBuilder>, content: @Composable () -> Unit) {
-    CompositionLocalProvider(LocalFlareContentBuilders provides builders, content = content)
+fun FlareContentScope(
+    builders: Map<String, FlareContentBuilder>,
+    bareTypes: Set<String> = emptySet(),
+    content: @Composable () -> Unit,
+) {
+    CompositionLocalProvider(
+        LocalFlareContentBuilders provides builders,
+        LocalFlareBareContentTypes provides bareTypes,
+        content = content,
+    )
 }
 
 /**
@@ -65,6 +85,10 @@ object FlareContentRegistry {
     fun unregister(type: String) { builders.remove(type) }
     fun lookup(type: String): FlareContentBuilder? = builders[type]
 }
+
+/** Whether the scope draws [type] without a bubble ([FlareContentScope]'s `bareTypes`). */
+@Composable
+internal fun flareContentBare(type: String): Boolean = type in LocalFlareBareContentTypes.current
 
 /**
  * Content-type dispatcher — renders a message body by type. Spec:
@@ -108,8 +132,15 @@ fun MessageContentView(
     onMediaDownload: ((FlareMessageContent) -> Unit)? = null,
     /** The folder key those keys become once [mediaState] says the media is saved: the host shows the file in its folder. */
     onMediaReveal: ((FlareMessageContent) -> Unit)? = null,
+    /** The message's id in the core, for a custom renderer ([FlareContentContext.messageId]); a list fills it. */
+    messageId: String? = null,
+    /** The conversation, for a custom renderer ([FlareContentContext.conversationId]); a list fills it. */
+    conversationId: String? = null,
 ) {
-    val ctx = FlareContentContext(isSelf, senderName = senderName, mediaState = mediaState, onMediaAction = onMediaAction)
+    val ctx = FlareContentContext(
+        isSelf, senderName = senderName, mediaState = mediaState, onMediaAction = onMediaAction,
+        messageId = messageId, conversationId = conversationId,
+    )
     val custom = LocalFlareContentBuilders.current[content.type] ?: FlareContentRegistry.lookup(content.type)
     if (custom != null) { custom(content, ctx); return }
 

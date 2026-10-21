@@ -111,6 +111,8 @@ public struct MessageBubbleView: View {
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
     @Environment(\.flareLocateMark) private var locateMark
+    @Environment(\.flareBareContentTypes) private var bareContentTypes
+    @Environment(\.flareMessageConversationId) private var conversationId
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @ScaledMetric(relativeTo: .footnote) private var quoteTextSize: CGFloat = FlareSizes.fontSizeSm
 
@@ -205,6 +207,8 @@ public struct MessageBubbleView: View {
             onVote: onVote == nil || multiSelectMode ? nil : { onVote?(message, $0) },
             onTaskToggle: onTaskToggle == nil || multiSelectMode ? nil : { onTaskToggle?(message, $0) })
         .mediaDefaults(mediaSession, messageId: message.id, gallery: gallery)
+        // The core's id: the server's once it has one, else the client id the message was sent with.
+        .messageIdentity(messageId: message.serverId ?? message.id, conversationId: conversationId)
     }
 
     /// Check-control glyph: filled when selected, hollow ring otherwise, so the
@@ -255,8 +259,9 @@ public struct MessageBubbleView: View {
 
     /// Bare media draws without bubble chrome — unless it carries a quote, which always
     /// sits inside the bubble.
-    static func isChromeless(_ message: FlareMessageData) -> Bool {
-        isBareMedia(message.content) && quote(message) == nil
+    /// `bareTypes` are the custom content types drawn without a bubble (`flareContentRenderers(_:bare:)`).
+    static func isChromeless(_ message: FlareMessageData, bareTypes: Set<String> = []) -> Bool {
+        isBareMedia(message.content, bareTypes: bareTypes) && quote(message) == nil
     }
 
     private var isSelf: Bool { message.senderId == currentUserId }
@@ -442,7 +447,7 @@ public struct MessageBubbleView: View {
     // Quiet, directional message surfaces; bare media retains its own frame.
     @ViewBuilder
     private func bubble(_ colors: FlareColors) -> some View {
-        if Self.isChromeless(message) {
+        if Self.isChromeless(message, bareTypes: bareContentTypes) {
             // The meta row under bare media ends at the media's right edge, whoever sent it.
             FlareMessageMetaStack(bodyTrailing: isSelf, hasMeta: showsMeta, spacing: FlareSizes.spacingXs) {
                 content
@@ -481,8 +486,10 @@ public struct MessageBubbleView: View {
         }
     }
 
-    static func isBareMedia(_ content: FlareMessageContent) -> Bool {
+    /// Pictures, videos, stickers and emoji, and a custom type listed as bare.
+    static func isBareMedia(_ content: FlareMessageContent, bareTypes: Set<String> = []) -> Bool {
         content is FlareImageContent || content is FlareVideoContent
             || content is FlareStickerContent || content is FlareEmojiContent
+            || bareTypes.contains(content.type)
     }
 }

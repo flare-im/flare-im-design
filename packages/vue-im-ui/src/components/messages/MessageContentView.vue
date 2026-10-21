@@ -9,6 +9,9 @@ defineProps<{
   self?: boolean;
   previewMode?: boolean;
   messageId?: string;
+  /** The id a custom renderer receives as `messageId` (server id, else client id). */
+  rendererMessageId?: string;
+  conversationId?: string;
   messageExtra?: Record<string, unknown>;
   senderName?: string;
   mediaAction?: "download" | "openFolder" | null;
@@ -36,6 +39,8 @@ const intentListeners = computed(() => ({
     :is-self="self"
     :preview-mode="previewMode"
     :message-id="messageId"
+    :renderer-message-id="rendererMessageId"
+    :conversation-id="conversationId"
     :message-extra="messageExtra"
     :sender-name="senderName"
     :media-action="mediaAction"

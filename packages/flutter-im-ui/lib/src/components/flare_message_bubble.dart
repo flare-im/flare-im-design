@@ -37,6 +37,7 @@ class FlareMessageBubble extends StatelessWidget {
     required this.message,
     required this.currentUserId,
     this.conversationKind = FlareConversationKind.single,
+    this.conversationId,
     this.groupPosition = FlareMessageGroupPosition.single,
     this.rowPresentation = const FlareMessageRowPresentation(),
     this.selected = false,
@@ -60,6 +61,10 @@ class FlareMessageBubble extends StatelessWidget {
   final FlareMessageData message;
   final String currentUserId;
   final FlareConversationKind conversationKind;
+
+  /// The conversation the message is in; custom content builders receive it
+  /// in `FlareContentContext.conversationId`. [FlareMessageList] fills it in.
+  final String? conversationId;
   final FlareMessageGroupPosition groupPosition;
   final FlareMessageRowPresentation rowPresentation;
   final bool selected;
@@ -278,7 +283,12 @@ class FlareMessageBubble extends StatelessWidget {
     final quote = message.replyTo;
     // A quote keeps the bubble frame even around media: it needs an edge to
     // sit in.
-    final bare = quote == null && _isBareMedia(message.content);
+    // So does a custom type its builder registered as bare: it brings its
+    // own surface (a red packet card), and the row keeps everything else.
+    final bare =
+        quote == null &&
+        (_isBareMedia(message.content) ||
+            FlareContentScope.isBare(context, message.content.type));
 
     // While selecting, a tap anywhere on the row selects it: media do not
     // open and voice does not play.
@@ -290,6 +300,8 @@ class FlareMessageBubble extends StatelessWidget {
         uploading: message.uploadProgress != null,
         senderName: message.senderName,
         messageId: message.id,
+        rendererMessageId: message.serverId ?? message.id,
+        conversationId: conversationId,
         mediaState: mediaState,
         onMediaAction: onMediaAction == null
             ? null

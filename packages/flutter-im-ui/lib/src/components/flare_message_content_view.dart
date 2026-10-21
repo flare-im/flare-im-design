@@ -20,6 +20,8 @@ class FlareContentContext {
     required this.self,
     this.previewMode = false,
     this.senderName,
+    this.messageId,
+    this.conversationId,
     this.mediaState,
     this.onMediaAction,
     this.onOpenLink,
@@ -29,6 +31,13 @@ class FlareContentContext {
   final bool self;
   final bool previewMode;
   final String? senderName;
+
+  /// The message being drawn: its server id when it has one (what the SDK and
+  /// plugins key by), else its client id. Null outside a message row.
+  final String? messageId;
+
+  /// The conversation the message is in, when the host or list knows it.
+  final String? conversationId;
   final FlareMediaDownloadState? mediaState;
 
   /// Host handles every media tap (image, video, voice, file…). Without it the
@@ -55,27 +64,72 @@ typedef FlareContentBuilder =
     );
 
 /// Extension callback ownership follows the widget tree and its session.
+///
+/// A type in [bareTypes] is drawn without a bubble — no bubble surface and no
+/// bubble padding, the way a lone picture is — while its row keeps the avatar,
+/// name, time, selection and menu. Use it for content that brings its own
+/// surface (a red packet card).
 class FlareContentScope extends InheritedWidget {
-  const FlareContentScope({super.key, required this.builders, required super.child});
+  const FlareContentScope({
+    super.key,
+    required this.builders,
+    this.bareTypes = const <String>{},
+    required super.child,
+  });
   final Map<String, FlareContentBuilder> builders;
+  final Set<String> bareTypes;
   static FlareContentBuilder? lookup(BuildContext context, String type) =>
-      context.dependOnInheritedWidgetOfExactType<FlareContentScope>()?.builders[type];
+      context
+          .dependOnInheritedWidgetOfExactType<FlareContentScope>()
+          ?.builders[type];
+
+  /// Whether the builder that draws [type] — from the nearest scope, else the
+  /// global [FlareContentRegistry] — asked to be drawn without a bubble.
+  static bool isBare(BuildContext context, String type) {
+    final scope = context
+        .dependOnInheritedWidgetOfExactType<FlareContentScope>();
+    if (scope != null && scope.builders.containsKey(type)) {
+      return scope.bareTypes.contains(type);
+    }
+    return FlareContentRegistry.isBare(type);
+  }
+
   @override
-  bool updateShouldNotify(FlareContentScope oldWidget) => builders != oldWidget.builders;
+  bool updateShouldNotify(FlareContentScope oldWidget) =>
+      builders != oldWidget.builders ||
+      !setEquals(bareTypes, oldWidget.bareTypes);
 }
 
 /// Registry for product content types (`vote`, `task`, …). Built-in types are
 /// rendered directly by [FlareMessageContentView]; register a builder to add or
-/// override a type.
+/// override a type, with [bare] to draw it without a bubble.
 abstract final class FlareContentRegistry {
   static final Map<String, FlareContentBuilder> _builders = {};
+  static final Set<String> _bare = {};
 
-  static void register(String type, FlareContentBuilder builder) =>
-      _builders[type] = builder;
+  static void register(
+    String type,
+    FlareContentBuilder builder, {
+    bool bare = false,
+  }) {
+    _builders[type] = builder;
+    if (bare) {
+      _bare.add(type);
+    } else {
+      _bare.remove(type);
+    }
+  }
 
-  static void unregister(String type) => _builders.remove(type);
+  static void unregister(String type) {
+    _builders.remove(type);
+    _bare.remove(type);
+  }
 
   static FlareContentBuilder? lookup(String type) => _builders[type];
+
+  /// Whether a builder is registered for [type] with `bare: true`.
+  static bool isBare(String type) =>
+      _builders.containsKey(type) && _bare.contains(type);
 }
 
 /// Content-type dispatcher — renders a message body by type. Spec:
@@ -99,6 +153,8 @@ class FlareMessageContentView extends StatelessWidget {
     this.previewMode = false,
     this.senderName,
     this.messageId,
+    this.rendererMessageId,
+    this.conversationId,
     this.mediaState,
     this.onMediaAction,
     this.onOpenFile,
@@ -125,6 +181,13 @@ class FlareMessageContentView extends StatelessWidget {
   /// The message [content] belongs to; keeps a voice message's playback
   /// state across list refreshes.
   final String? messageId;
+
+  /// The id custom builders receive as `FlareContentContext.messageId`: the
+  /// server id when the row has one. Defaults to [messageId].
+  final String? rendererMessageId;
+
+  /// The conversation the message is in, for custom builders.
+  final String? conversationId;
   final FlareMediaDownloadState? mediaState;
   final void Function(FlareMessageContent content)? onMediaAction;
 
@@ -164,13 +227,17 @@ class FlareMessageContentView extends StatelessWidget {
       self: self,
       previewMode: previewMode,
       senderName: senderName,
+      messageId: rendererMessageId ?? messageId,
+      conversationId: conversationId,
       mediaState: mediaState,
       onMediaAction: onMediaAction,
       onOpenLink: onOpenLink,
       onLocate: onLocate,
     );
 
-    final custom = FlareContentScope.lookup(context, content.type) ?? FlareContentRegistry.lookup(content.type);
+    final custom =
+        FlareContentScope.lookup(context, content.type) ??
+        FlareContentRegistry.lookup(content.type);
     if (custom != null) return custom(context, content, ctx);
 
     final colors = FlareColors.of(context);

@@ -255,12 +255,16 @@ private fun bubble(
     intents: MessageBodyIntents,
 ) {
     val quote = message.replyTo
-    val bare = messageBubbleChromeless(message)
+    val bare = messageBubbleChromeless(message, customBare = flareContentBare(message.content.type))
+    val conversationId = LocalFlareConversationId.current
     val body: @Composable () -> Unit = {
         // The message id keys this body's voice playback in the list.
         CompositionLocalProvider(LocalFlareMessageKey provides message.id) {
             MessageContentView(
                 content = message.content, isSelf = self, senderName = message.senderName, mediaState = mediaState,
+                // The core's id: the server's once it has one, else the client id the message was sent with.
+                messageId = message.serverId ?: message.id,
+                conversationId = conversationId,
                 onMediaAction = onMediaAction?.let { cb -> { c -> cb(message, c) } },
                 onOpenFile = onOpenFile?.let { cb -> { file -> cb(message, file) } },
                 onOpenLink = onOpenLink,
@@ -429,13 +433,17 @@ private fun MessageQuote(quote: FlareReplyTarget, colors: FlareColors, onLocate:
     }
 }
 
-/** Media draws without a bubble — except when it quotes a message: the quote needs the bubble around it. */
-internal fun messageBubbleChromeless(message: FlareMessageData): Boolean =
-    message.replyTo == null && isBareMedia(message.content)
+/**
+ * Media, and a custom body registered as bare, draws without a bubble — except when it quotes a message: the quote
+ * needs the bubble around it.
+ */
+internal fun messageBubbleChromeless(message: FlareMessageData, customBare: Boolean = false): Boolean =
+    message.replyTo == null && isBareMedia(message.content, customBare)
 
-internal fun isBareMedia(content: FlareMessageContent): Boolean =
+/** Pictures, videos, stickers and emoji, and a custom type the scope lists in `bareTypes` ([FlareContentScope]). */
+internal fun isBareMedia(content: FlareMessageContent, customBare: Boolean = false): Boolean =
     content is FlareImageContent || content is FlareVideoContent ||
-        content is FlareStickerContent || content is FlareEmojiContent
+        content is FlareStickerContent || content is FlareEmojiContent || customBare
 
 /**
  * 气泡最大宽 = 可用宽 × 比例，再被 `layout.bubbleMaxWidth` 封顶 —— 四端同一条规则。

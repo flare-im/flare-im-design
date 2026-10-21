@@ -16,6 +16,7 @@ import FlareUnreadDivider from "./FlareUnreadDivider.vue";
 import TimelineGalleryPreview from "./TimelineGalleryPreview.vue";
 import { provideTimelineImageGallery } from "./timelineImageGallery";
 import { TIMELINE_FOCUS_KEYS, messageTakesFocus, provideTimelineFocus } from "./timelineFocus";
+import { provideFlareRenderConversation } from "../../shared/message-renderers";
 import type { MessageLike, MessageMediaDownloadUiState } from "./MessageBubble.vue";
 import { mergeMessageMenuConfig, unhandledMessageMenuActions, type MessageMenuConfig } from "../../shared/config/messageMenu";
 import { messageMatchesId, resolveMessageId } from "../../shared/contracts/messageRow";
@@ -195,6 +196,8 @@ const keyboardTargetId = computed(() => {
 });
 // A picture tapped in the timeline opens the conversation's gallery (spec/image-gallery-vectors.json).
 const imageGallery = provideTimelineImageGallery(() => props.messages);
+// Custom content renderers learn which conversation they draw in without each row carrying it.
+provideFlareRenderConversation(() => props.conversationId);
 
 provideTimelineFocus({
   target: keyboardTargetId,

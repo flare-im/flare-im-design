@@ -5,6 +5,8 @@ import type { MessageLifecycle, MessageStatusState } from "./message-lifecycle";
 export type MessageLike = {
   serverId: string;
   clientMsgId: string;
+  /** The conversation the row belongs to; custom content renderers receive it (the message list provides its own otherwise). */
+  conversationId?: string;
   senderId: string;
   senderDisplayName: string;
   senderAvatar?: string;

@@ -33,6 +33,9 @@ import {
   isChromelessCardBubble,
   isChromelessMediaBubble,
 } from "../../utils/messageBubbleChromeless";
+import { normalizeToContentElem } from "../../utils/contentElem";
+import { messageRendererKeys } from "../../utils/messageRendererKeys";
+import { resolveFlareMessageRenderer, useFlareMessageRenderers } from "../../shared/message-renderers";
 import { resolveMessageStatus } from "../../utils/messageStatus";
 import { formatMessageTime } from "../../shared/timeline-label";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
@@ -130,12 +133,22 @@ const systemText = computed(() => {
 const isRecalled = computed(() => props.message.isRecalled);
 const deliveryStatus = computed(() => resolveMessageStatus(props.message));
 const reactions = computed(() => (isRecalled.value ? [] : props.message.reactions ?? []));
+const messageRenderers = useFlareMessageRenderers();
+// A custom renderer registered `bare` draws its own surface: the row drops the bubble the way it does for a
+// lone picture, and keeps avatar, name, time, selection and menu. A quote or a recall still needs the bubble.
+const isBareRenderer = computed(() => {
+  if (props.message.isRecalled || props.message.replyTo?.trim() || props.message.quotePreview?.trim()) return false;
+  const keys = messageRendererKeys(normalizeToContentElem(props.message.content));
+  return resolveFlareMessageRenderer(messageRenderers, keys)?.bare === true;
+});
 const isChromelessMedia = computed(() =>
-  isChromelessMediaBubble(props.message),
+  isBareRenderer.value || isChromelessMediaBubble(props.message),
 );
 const isChromelessCard = computed(() =>
-  isChromelessCardBubble(props.message),
+  !isBareRenderer.value && isChromelessCardBubble(props.message),
 );
+// The id a custom renderer is handed: the server id the SDK and plugins key by, else the client id.
+const rendererMessageId = computed(() => props.message.serverId || props.message.clientMsgId);
 const isFailed = computed(() => deliveryStatus.value === "failed");
 const messagePinned = computed(() => isPinned(props.message));
 const isEdited = computed(() =>
@@ -554,6 +567,8 @@ function bubbleA11yLabel(): string {
                 :content="message.content"
                 :self="self"
                 :message-id="messageId()"
+                :renderer-message-id="rendererMessageId"
+                :conversation-id="message.conversationId"
                 :message-extra="messageExtraForContent"
                 :sender-name="senderLabel"
                 :media-action="fileInlineMediaAction?.action"
@@ -683,6 +698,8 @@ function bubbleA11yLabel(): string {
                 :content="message.content"
                 :self="self"
                 :message-id="messageId()"
+                :renderer-message-id="rendererMessageId"
+                :conversation-id="message.conversationId"
                 :message-extra="messageExtraForContent"
                 :sender-name="senderLabel"
                 :media-action="fileInlineMediaAction?.action"

@@ -373,6 +373,9 @@ internal val LocalFlareMediaHost = staticCompositionLocalOf<FlareMediaHost?> { n
 /** The id of the message whose body is composing, so its voice keeps its own playback state. */
 internal val LocalFlareMessageKey = staticCompositionLocalOf<String?> { null }
 
+/** The conversation a [MessageList] shows, for the context of its custom content renderers. */
+internal val LocalFlareConversationId = staticCompositionLocalOf<String?> { null }
+
 private const val VOICE_TICK_MS = 250L
 
 /**
