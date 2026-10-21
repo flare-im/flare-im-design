@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../tokens/flare_tokens.dart';
 import 'action_icon.dart';
 
-/// The 105 semantic icon names exposed by [FlareIcon], in canonical order.
+/// The 106 semantic icon names exposed by [FlareIcon], in canonical order.
 ///
 /// Kept in lock-step with the cross-platform icon-library contract so every
 /// platform ships the same fixed vocabulary of glyphs.
@@ -113,6 +113,8 @@ const List<String> flareIconNames = <String>[
   'id',
   'join-request',
   'storage',
+  // Kit-drawn glyphs (fonts/FlareKitIcons.ttf): concepts no icon library has.
+  'red-packet',
 ];
 
 /// Maps each semantic name in [flareIconNames] to the closest Material glyph.
@@ -231,7 +233,18 @@ const Map<String, IconData> flareIconMap = <String, IconData>{
   'id': Icons.tag,
   'join-request': Icons.move_to_inbox_outlined,
   'storage': Icons.storage_outlined,
+  'red-packet': flareKitRedPacket,
 };
+
+/// The red packet as a line glyph — the card's small envelope (rounded body,
+/// flap curve, solid seal) — from the kit's own icon font,
+/// `fonts/FlareKitIcons.ttf` (`scripts/build-icon-font.mjs`). It is ordinary
+/// [IconData], so it takes the tint wherever a name resolves to a glyph.
+const IconData flareKitRedPacket = IconData(
+  0xE000,
+  fontFamily: 'FlareKitIcons',
+  fontPackage: 'flare_im_ui',
+);
 
 /// A cross-platform icon rendered from a fixed semantic [name].
 ///

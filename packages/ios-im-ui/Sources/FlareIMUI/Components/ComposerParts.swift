@@ -163,7 +163,7 @@ public struct FlareComposerActionPanel: View {
                     VStack(spacing: FlareSizes.spacingXs) {
                         ZStack {
                             Color.clear.frame(width: FlareSizes.componentComposerActionWidth, height: FlareSizes.componentComposerActionWidth)
-                            Image(systemName: flareIconSymbol(action.icon)).font(.system(size: FlareSizes.iconSizeMd))
+                            FlareIconImage(name: action.icon, size: FlareSizes.iconSizeMd)
                                 .foregroundColor(colors.textPrimary)
                         }
                         Text(action.label).font(.system(size: FlareSizes.fontSizeXs))

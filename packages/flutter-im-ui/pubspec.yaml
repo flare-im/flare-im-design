@@ -27,6 +27,12 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # The kit's own glyphs Material Icons has no shape for (`red-packet`), built by
+  # scripts/build-icon-font.mjs so they resolve as ordinary IconData.
+  fonts:
+    - family: FlareKitIcons
+      fonts:
+        - asset: fonts/FlareKitIcons.ttf
   # Emoji-pack + sticker resources. `assets/emoji-sticker` is a symlink to the
   # cross-platform source of truth at flare-im-design/assets/emoji-sticker, so
   # this package ships the same webp + manifest every platform uses.

@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Ordered list of the 105 semantic icon names supported by `IconView`.
+/// Ordered list of the 106 semantic icon names supported by `IconView`.
 public let flareIconNames: [String] = [
     "search", "send", "more", "back", "close",
     "check", "add", "remove", "edit", "delete",
@@ -31,6 +31,7 @@ public let flareIconNames: [String] = [
     // General
     "chevron-up", "chevron-left", "keyboard", "mini-app",
     "pin-self", "diagnostics", "card", "id", "join-request", "storage",
+    "red-packet",
 ]
 
 /// Maps each semantic icon name to the closest SF Symbol name. Every symbol is in the SF Symbols
@@ -151,7 +152,82 @@ public let flareIconMap: [String: String] = [
     "id": "number",
     "join-request": "tray.and.arrow.down",
     "storage": "internaldrive",
+    // SF Symbols has no red packet: the kit draws its own glyph (``FlareIconImage``); the envelope is what a raw
+    // `Image(systemName:)` of this name shows.
+    "red-packet": "envelope",
 ]
+
+/// The names the kit draws itself rather than with an SF Symbol: ``FlareIconImage`` draws them, and the symbol in
+/// ``flareIconMap`` is only the stand-in for a raw `Image(systemName:)`.
+let flareKitGlyphNames: Set<String> = ["red-packet"]
+
+/// A semantic icon at `size`: the registry's SF Symbol, or for a kit-drawn name (``flareKitGlyphNames``) the kit's
+/// own line glyph in a `size` square. Either takes the foreground colour, as a symbol does. Controls that draw a
+/// host's icon name (``IconView``, buttons, the composer's action panel, menus) draw through this.
+struct FlareIconImage: View {
+    let name: String
+    let size: CGFloat
+    var weight: Font.Weight = .regular
+
+    var body: some View {
+        if name == "red-packet" {
+            FlareRedPacketIcon().frame(width: size, height: size)
+        } else {
+            Image(systemName: flareIconSymbol(name)).font(.system(size: size, weight: weight))
+        }
+    }
+}
+
+/// `red-packet`: the card's small envelope as a single-colour line glyph on the 24 grid — a 15 x 19.5 body with 2.7
+/// corners, a flap curve hanging from the sides (at 0.7 of the flap) to the flap's depth (0.42 of the height) in
+/// the middle, and a solid seal of radius 2.6 on its lowest point. Lines follow SF Symbols' regular weight.
+struct FlareRedPacketIcon: View {
+    var body: some View {
+        ZStack {
+            FlareRedPacketIconLines().fill()
+            FlareRedPacketIconSeal().fill()
+        }
+        .aspectRatio(1, contentMode: .fit)
+        .accessibilityHidden(true)
+    }
+
+    /// The glyph's geometry on the 24 grid.
+    enum Grid {
+        static let left: CGFloat = 4.5, right: CGFloat = 19.5, top: CGFloat = 2.25, bottom: CGFloat = 21.75
+        static let corner: CGFloat = 2.7
+        static let flap: CGFloat = (bottom - top) * 0.42
+        static let side: CGFloat = flap * 0.7
+        static let seal: CGFloat = 2.6
+        /// The line, in grid units: SF Symbols' regular weight at this size.
+        static let line: CGFloat = 1.8
+    }
+}
+
+private struct FlareRedPacketIconLines: Shape {
+    func path(in rect: CGRect) -> Path {
+        typealias G = FlareRedPacketIcon.Grid
+        let u = min(rect.width, rect.height) / 24
+        func p(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: rect.minX + x * u, y: rect.minY + y * u) }
+        var path = Path(roundedRect: CGRect(origin: p(G.left, G.top), size: CGSize(width: (G.right - G.left) * u,
+                                                                                    height: (G.bottom - G.top) * u)),
+                        cornerRadius: G.corner * u)
+        // The flap: a quadratic through (12, top + flap), its control as far below that point as the sides are above.
+        path.move(to: p(G.left, G.top + G.side))
+        path.addQuadCurve(to: p(G.right, G.top + G.side), control: p(12, G.top + G.flap + (G.flap - G.side)))
+        // Stroked here, so the line scales with the glyph as a symbol's does.
+        return path.strokedPath(StrokeStyle(lineWidth: G.line * u, lineCap: .round, lineJoin: .round))
+    }
+}
+
+private struct FlareRedPacketIconSeal: Shape {
+    func path(in rect: CGRect) -> Path {
+        typealias G = FlareRedPacketIcon.Grid
+        let u = min(rect.width, rect.height) / 24
+        let centre = CGPoint(x: rect.minX + 12 * u, y: rect.minY + (G.top + G.flap) * u)
+        return Path(ellipseIn: CGRect(x: centre.x - G.seal * u, y: centre.y - G.seal * u,
+                                      width: G.seal * 2 * u, height: G.seal * 2 * u))
+    }
+}
 
 /// The SF Symbol drawn for a semantic icon name; an unknown name draws `questionmark`. The one
 /// resolution every kit icon name goes through (``IconView``, header actions, ``ActionMenuView`` items,
@@ -226,10 +302,18 @@ public struct IconView: View {
     }
 
     public var body: some View {
-        Image(systemName: flareIconSymbol(name))
-            .font(.system(size: size))
-            .foregroundColor(color ?? FlareColors.of(scheme, brand: flareBrandTheme).textSecondary)
-            .accessibilityLabel(accessibilityLabel ?? "")
-            .accessibilityHidden(accessibilityLabel == nil)
+        let tint = color ?? FlareColors.of(scheme, brand: flareBrandTheme).textSecondary
+        if flareKitGlyphNames.contains(name) {
+            FlareIconImage(name: name, size: size)
+                .foregroundColor(tint)
+                .accessibilityLabel(accessibilityLabel ?? "")
+                .accessibilityHidden(accessibilityLabel == nil)
+        } else {
+            Image(systemName: flareIconSymbol(name))
+                .font(.system(size: size))
+                .foregroundColor(tint)
+                .accessibilityLabel(accessibilityLabel ?? "")
+                .accessibilityHidden(accessibilityLabel == nil)
+        }
     }
 }

@@ -192,7 +192,7 @@ public struct MessageActionSheetView: View {
                         let foreground = !entry.enabled ? colors.textTertiary : (destructive ? colors.errorText : colors.textPrimary)
                         Button { onAction?(entry.id) } label: {
                             HStack(spacing: FlareSizes.spacingMd) {
-                                Image(systemName: flareIconSymbol(entry.icon)).font(.system(size: FlareSizes.iconSizeMd * textScale))
+                                FlareIconImage(name: entry.icon, size: FlareSizes.iconSizeMd * textScale)
                                 Text(entry.label).font(.system(size: FlareSizes.fontSizeXl * textScale))
                                 Spacer(minLength: 0)
                             }

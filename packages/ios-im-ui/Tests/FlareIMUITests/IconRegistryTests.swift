@@ -14,8 +14,8 @@ final class IconRegistryTests: XCTestCase {
         "mini-app",
     ]
 
-    func testTheRegistryHas105NamesAndEveryNameResolves() {
-        XCTAssertEqual(flareIconNames.count, 105)
+    func testTheRegistryHas106NamesAndEveryNameResolves() {
+        XCTAssertEqual(flareIconNames.count, 106)
         XCTAssertEqual(Set(flareIconNames).count, flareIconNames.count, "names are unique")
         XCTAssertEqual(Set(flareIconMap.keys), Set(flareIconNames), "every name has exactly one symbol")
         XCTAssertEqual(added.count, 40)
@@ -53,7 +53,8 @@ final class IconRegistryTests: XCTestCase {
     func testConceptsDrawnUnderAnotherNameGotTheirOwn() {
         let expected = ["pin-self": "bookmark", "diagnostics": "ladybug", "card": "person.crop.rectangle",
                         "id": "number", "join-request": "tray.and.arrow.down", "storage": "internaldrive"]
-        XCTAssertEqual(Array(flareIconNames.suffix(6)), ["pin-self", "diagnostics", "card", "id", "join-request", "storage"])
+        XCTAssertEqual(Array(flareIconNames.suffix(7).dropLast()),
+                       ["pin-self", "diagnostics", "card", "id", "join-request", "storage"])
         for (name, symbol) in expected { XCTAssertEqual(flareIconMap[name], symbol, name) }
         for (name, before) in [("pin-self", "pin"), ("card", "person"), ("id", "info"), ("id", "tag"),
                                ("join-request", "person-add"), ("join-request", "notification"),
@@ -155,5 +156,19 @@ final class IconRegistryTests: XCTestCase {
         XCTAssertEqual(symbols["multiSelect"], flareIconMap["multi-select"])
         XCTAssertEqual(symbols["mark"], flareIconMap["mark"])
         XCTAssertEqual(symbols["save"], flareIconMap["download"])
+    }
+
+    /// `red-packet` is the last name and the kit draws it: SF Symbols has no red packet. A raw symbol of the name
+    /// falls back to the envelope.
+    @MainActor
+    func testRedPacketIsTheKitsOwnGlyph() throws {
+        XCTAssertEqual(flareIconNames.last, "red-packet")
+        XCTAssertEqual(flareIconMap["red-packet"], "envelope")
+        XCTAssertTrue(flareKitGlyphNames.contains("red-packet"))
+        XCTAssertNoThrow(try IconView("red-packet").inspect().find(FlareRedPacketIcon.self))
+        XCTAssertThrowsError(try IconView("star").inspect().find(FlareRedPacketIcon.self))
+        XCTAssertNoThrow(try ButtonView(label: "Packet", icon: "red-packet", action: {}).inspect().find(FlareRedPacketIcon.self))
+        XCTAssertNoThrow(try IconButtonView(icon: "red-packet", accessibilityLabel: "Packet", action: {}).inspect()
+            .find(FlareRedPacketIcon.self))
     }
 }

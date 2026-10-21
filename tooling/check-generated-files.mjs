@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const checks = [
   ["icon shim", "packages/vue-im-ui/scripts/gen-icon-shim.mjs", "--check"],
+  ["Flutter kit icon font", "packages/flutter-im-ui/scripts/build-icon-font.mjs", "--check"],
   ["tokens", "tokens/build.mjs", "--check"],
   ["pinyin initials", "tooling/build-pinyin-initials.mjs", "--check"],
   ["maturity model", "spec/build-maturity-model.mjs", "--check"],

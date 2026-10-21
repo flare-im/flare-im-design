@@ -112,12 +112,57 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * Cross-platform icon-library composable. Maps a fixed set of 105 semantic
+ * `red-packet`: the card's small envelope as a single-colour line glyph on the 24 grid — a 15 x 19.5 body with 2.7
+ * corners, a flap curve hanging from the sides (at 0.7 of the flap) to the flap's depth (0.42 of the height) in the
+ * middle, and a solid seal of radius 2.6 on its lowest point. Lines are Material's 2 units; the tint colours all of it.
+ * Declared before the registry, which reads it while the file initialises.
+ */
+internal val FlareRedPacketGlyph: ImageVector = run {
+    val left = 4.5f
+    val right = 19.5f
+    val top = 2.25f
+    val bottom = 21.75f
+    val corner = 2.7f
+    val flap = (bottom - top) * 0.42f
+    val side = flap * 0.7f
+    val sealY = top + flap
+    val seal = 2.6f
+    ImageVector.Builder(name = "FlareRedPacket", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 24f, viewportHeight = 24f)
+        .path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round) {
+            moveTo(left + corner, top)
+            lineTo(right - corner, top)
+            arcTo(corner, corner, 0f, false, true, right, top + corner)
+            lineTo(right, bottom - corner)
+            arcTo(corner, corner, 0f, false, true, right - corner, bottom)
+            lineTo(left + corner, bottom)
+            arcTo(corner, corner, 0f, false, true, left, bottom - corner)
+            lineTo(left, top + corner)
+            arcTo(corner, corner, 0f, false, true, left + corner, top)
+            close()
+            // The flap: a quadratic through (12, sealY), its control as far below that point as the sides are above.
+            moveTo(left, top + side)
+            quadTo(12f, sealY + (flap - side), right, top + side)
+        }
+        .path(fill = SolidColor(Color.Black)) {
+            moveTo(12f - seal, sealY)
+            arcTo(seal, seal, 0f, true, true, 12f + seal, sealY)
+            arcTo(seal, seal, 0f, true, true, 12f - seal, sealY)
+            close()
+        }
+        .build()
+}
+
+/**
+ * Cross-platform icon-library composable. Maps a fixed set of 106 semantic
  * names to the closest Material [ImageVector]s so every Flare platform can
  * share one naming contract. Outlined where Material has an outlined glyph;
  * the auto-mirrored variant wherever Material ships one, so the glyph follows
@@ -231,9 +276,11 @@ private val flareIconMap: Map<String, ImageVector> = mapOf(
     "id" to Icons.Outlined.Tag,
     "join-request" to Icons.Outlined.MoveToInbox,
     "storage" to Icons.Outlined.Storage,
+    // Material has no red packet; the kit draws its own line glyph.
+    "red-packet" to FlareRedPacketGlyph,
 )
 
-/** The 105 semantic icon names, in canonical order (the order of the Vue registry). */
+/** The 106 semantic icon names, in canonical order (the order of the Vue registry). */
 val flareIconNames: List<String> = listOf(
     "search", "send", "more", "back", "close", "check", "add", "remove",
     "edit", "delete", "heart", "comment", "chats", "moments", "share", "camera",
@@ -254,6 +301,7 @@ val flareIconNames: List<String> = listOf(
     "group", "admin", "remove-member", "transfer-owner", "silence", "report",
     "chevron-up", "chevron-left", "keyboard", "mini-app",
     "pin-self", "diagnostics", "card", "id", "join-request", "storage",
+    "red-packet",
 )
 
 /**
@@ -276,7 +324,7 @@ private fun warnUnknownIconName(name: String) {
     }
 }
 
-private const val ICON_NAME_COUNT = 105
+private const val ICON_NAME_COUNT = 106
 
 /** The glyph for a semantic icon [name], or null when the library does not know the name. */
 internal fun flareIconVectorOrNull(name: String): ImageVector? = flareIconMap[name]

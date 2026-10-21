@@ -110,6 +110,7 @@ import {
   FileTrayOutline,
   ServerOutline,
 } from "./icon-glyphs";
+import { RedPacketOutline } from "./icon-custom";
 
 /** The canonical Flare icon name set (single source; native maps the same keys). */
 export const flareIcons = {
@@ -219,6 +220,8 @@ export const flareIcons = {
   id: HashOutline,
   "join-request": FileTrayOutline,
   storage: ServerOutline,
+  // Kit-drawn glyphs (icon-custom.ts): concepts no icon library has.
+  "red-packet": RedPacketOutline,
 } satisfies Record<string, Component>;
 
 export type FlareIconName = keyof typeof flareIcons;

@@ -55,7 +55,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/** The icon registry contract: the same 105 kebab-case names, in the same order, as the other three kits. */
+/** The icon registry contract: the same 106 kebab-case names, in the same order, as the other three kits. */
 class IconLibraryTest {
     private val canonical = listOf(
         "search", "send", "more", "back", "close", "check", "add", "remove", "edit", "delete",
@@ -69,10 +69,11 @@ class IconLibraryTest {
         "end-call", "switch-camera", "screen-share", "play", "pause", "expand", "collapse", "zoom-in", "zoom-out", "rotate",
         "group", "admin", "remove-member", "transfer-owner", "silence", "report", "chevron-up", "chevron-left", "keyboard", "mini-app",
         "pin-self", "diagnostics", "card", "id", "join-request", "storage",
+        "red-packet",
     )
 
     @Test fun kebabCaseNamesInCanonicalOrder() {
-        assertEquals(105, flareIconNames.size)
+        assertEquals(106, flareIconNames.size)
         assertEquals(canonical, flareIconNames)
         assertEquals(flareIconNames.size, flareIconNames.toSet().size, "names are unique")
         for (name in flareIconNames) assertTrue(Regex("^[a-z]+(-[a-z]+)*$").matches(name), "$name is kebab-case")
@@ -84,6 +85,13 @@ class IconLibraryTest {
         assertNull(flareIconVectorOrNull("bookmark"), "bookmark was removed")
         assertNull(flareIconVectorOrNull("videoCall"), "header aliases are not registry names")
         assertEquals(Icons.AutoMirrored.Outlined.HelpOutline, flareIconVector("no-such-icon"))
+    }
+
+    @Test fun redPacketIsTheKitsOwnLineGlyph() {
+        val glyph = flareIconVector("red-packet")
+        assertEquals(FlareRedPacketGlyph, glyph)
+        assertEquals(24f, glyph.viewportWidth)
+        assertEquals(24f, glyph.viewportHeight)
     }
 
     @Test fun errorIsTheExclamationCircleNotCancel() {
@@ -147,7 +155,7 @@ class IconLibraryTest {
             "join-request" to Icons.Outlined.MoveToInbox,
             "storage" to Icons.Outlined.Storage,
         )
-        assertEquals(canonical.drop(99), expected.keys.toList(), "the 6 names follow the 99 before them")
+        assertEquals(canonical.drop(99).take(6), expected.keys.toList(), "the 6 names follow the 99 before them")
         for ((name, glyph) in expected) assertEquals(glyph, flareIconVector(name), name)
     }
 

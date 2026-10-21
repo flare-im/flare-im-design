@@ -129,7 +129,10 @@ public struct ActionMenuView<Label: View>: View {
             onSelect(item.id)
         } label: {
             HStack(spacing: FlareSizes.spacingSm) {
-                if let symbol = ActionMenuRules.symbol(item) {
+                if let glyph = ActionMenuRules.kitGlyph(item) {
+                    FlareIconImage(name: glyph, size: FlareSizes.fontSize4xl).foregroundColor(tint)
+                        .accessibilityHidden(true)
+                } else if let symbol = ActionMenuRules.symbol(item) {
                     // 装饰性:紧挨着的就是同义文字,读屏再念一遍图标名是噪音。
                     Image(systemName: symbol).font(.system(size: FlareSizes.fontSize4xl)).foregroundColor(tint)
                         .accessibilityHidden(true)
@@ -220,6 +223,12 @@ enum ActionMenuRules {
     static func symbol(_ item: FlareActionItem) -> String? {
         if item.pressed == true { return flareIconSymbol("check") }
         return item.icon.map(flareActionSymbol)
+    }
+
+    /// The kit-drawn glyph an item names (``flareKitGlyphNames``), unless it is pressed and shows the check.
+    static func kitGlyph(_ item: FlareActionItem) -> String? {
+        guard item.pressed != true, let icon = item.icon, flareKitGlyphNames.contains(icon) else { return nil }
+        return icon
     }
 
     /// A pressed item is selected for assistive technology; any other item adds nothing.

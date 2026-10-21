@@ -6,9 +6,9 @@ import 'package:flutter_test/flutter_test.dart';
 // The semantic icon registry: one fixed vocabulary, the same names in the same
 // order on Vue / Flutter / SwiftUI / Compose, each name drawn by one glyph.
 void main() {
-  test('the registry holds 105 unique names, each with a glyph, in order', () {
-    expect(flareIconNames, hasLength(105));
-    expect(flareIconNames.toSet(), hasLength(105));
+  test('the registry holds 106 unique names, each with a glyph, in order', () {
+    expect(flareIconNames, hasLength(106));
+    expect(flareIconNames.toSet(), hasLength(106));
     expect(flareIconMap.keys.toList(), flareIconNames);
     // The shared prefix of the contract order: chats and moments follow comment.
     expect(flareIconNames.sublist(0, 15), [
@@ -103,10 +103,19 @@ void main() {
       'join-request': Icons.move_to_inbox_outlined,
       'storage': Icons.storage_outlined,
     };
-    expect(flareIconNames.sublist(99), added.keys.toList());
+    expect(flareIconNames.sublist(99, 105), added.keys.toList());
     added.forEach(
       (name, glyph) => expect(flareIconMap[name], glyph, reason: name),
     );
+  });
+
+  test("red-packet is the kit's own glyph, from its icon font", () {
+    expect(flareIconNames.last, 'red-packet');
+    final glyph = flareIconMap['red-packet']!;
+    expect(glyph, flareKitRedPacket);
+    expect(glyph.fontFamily, 'FlareKitIcons');
+    expect(glyph.fontPackage, 'flare_im_ui');
+    expect(flareIconGlyph('red-packet'), glyph);
   });
 
   test('names that used to share a glyph now draw different ones', () {

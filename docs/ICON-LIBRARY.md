@@ -13,7 +13,7 @@
 
 ---
 
-## 一、语义名（105 个，四端一致）
+## 一、语义名（106 个，四端一致）
 
 ```
 通用      search send more back close check add remove edit delete
@@ -30,6 +30,7 @@
 成员与群  group admin remove-member transfer-owner silence report
 通用补充  chevron-up chevron-left keyboard mini-app
 概念补充  pin-self diagnostics card id join-request storage
+自绘      red-packet
 ```
 
 - 这份清单是跨端契约：四端的 `flareIconNames`（Vue 为 `flareIcons` 的键）**名字、数量、顺序**完全一致，每个名字在每端都有字形。`npm run check` 的 `icon registry parity` 一项（`node tooling/check-icon-registry.mjs`）检查这一点，改动必须四端同一次提交。
@@ -272,6 +273,7 @@ packages/vue-im-ui/src/shared/icon-glyphs.ts   （由 scripts/gen-icon-shim.mjs 
 | `id` | `Hash` | `tag` | `number` | `Outlined.Tag` |
 | `join-request` | `Inbox` | `move_to_inbox_outlined` | `tray.and.arrow.down` | `Outlined.MoveToInbox` |
 | `storage` | `HardDrive` | `storage_outlined` | `internaldrive` | `Outlined.Storage` |
+| `red-packet` | Kit 自绘 `RedPacketOutline`（`icon-custom.ts`） | Kit 图标字体 `FlareKitIcons` U+E000 | Kit 自绘 | Kit 自绘 |
 
 ### 已接受的平台差异
 
@@ -311,6 +313,7 @@ packages/vue-im-ui/src/shared/icon-glyphs.ts   （由 scripts/gen-icon-shim.mjs 
 - **Lucide 改名频繁**：如 `PlusCircle→CirclePlus`、`AlertCircle→CircleAlert`、`MoreHorizontal→Ellipsis`、`SmilePlus` 在 1.x 叫 `FaceSlightlySmilingPlus`。加映射时对着实际导出集验名（`node_modules/@lucide/vue/dist/*.d.ts` 的 `declare const`），当前锁定 `@lucide/vue@1.44.0`。
 - **1em 尺寸**：shim 组件必须以 `size: "1em"` 渲染，`<n-icon>` 才能用 `font-size` 控制大小；直接用 Lucide 组件会固定 24px。
 - **SF Symbol 名在运行时解析**：iOS 端名字写错不会编译报错，只会渲染 `questionmark`。`IconRegistryTests` 检查每个符号在 CoreGlyphs 里存在。
+- **图标库没有的概念由 Kit 自绘**：`red-packet`（红包卡片小信封的单色轮廓：圆角信封身、封盖弧线、实心封印）。Vue 是 `src/shared/icon-custom.ts` 里的内联 SVG 组件，沿用 Lucide 的 24 网格与描边；Flutter 是 `fonts/FlareKitIcons.ttf` 里的字形（`scripts/build-icon-font.mjs` 生成，`--check` 校验），所以在所有经 `flareIconGlyph` 解析名字的地方都是普通 `IconData`，跟随 tint 着色；iOS 与 Compose 各用本端矢量绘制同一几何。
 - **Android 需要 material-icons-extended**：注册表 105 个字形里 85 个来自扩展包，`build.gradle.kts` 已含该依赖。
 - **SwiftUI 命中区**：按钮外层的 background、overlay、负 padding、contentShape 或外部 frame 都不会扩大可点区域，只有 label 自身的最小 frame 有效。kit 用 `flareTouchTarget` 扩到 44pt，`TouchTargetHitTests` 用真实点击锁定。
 
@@ -344,6 +347,6 @@ const navigation: FlareNavigationGroup[] = [
 
 ## 参考
 
-- 在线画廊（全部 105 个图标）：文档站 `Components → Icon`。
+- 在线画廊（全部 106 个图标）：文档站 `Components → Icon`。
 - 注册表对齐门禁与映射表：`tooling/check-icon-registry.mjs`（`--table`）。
 - 规则：`docs/design/icon-guidelines.md`；审计与决策：`docs/design/icon-inventory.md`、`docs/design/icon-coverage.md`。

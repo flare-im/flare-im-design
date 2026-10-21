@@ -78,7 +78,7 @@ public struct ButtonView: View {
                 if loading {
                     ProgressView().controlSize(.small).tint(solid ? .white : colors.primaryText)
                 } else if let icon {
-                    Image(systemName: flareIconSymbol(icon)).font(.system(size: size.font + 4, weight: .semibold))
+                    FlareIconImage(name: icon, size: size.font + 4, weight: .semibold)
                 }
                 if let label {
                     Text(label).font(.system(size: size.font * textScale, weight: .semibold))
@@ -142,8 +142,7 @@ public struct IconButtonView: View {
             : colors.textSecondary)
         let iconSize = customSize.map { (($0 * 0.46).rounded()) } ?? size.glyph
         Button { action?() } label: {
-            Image(systemName: flareIconSymbol(icon))
-                .font(.system(size: iconSize, weight: .medium))
+            FlareIconImage(name: icon, size: iconSize, weight: .medium)
                 .foregroundColor(fg)
                 .frame(width: side, height: side)
                 .background(shape.fill(bg))
