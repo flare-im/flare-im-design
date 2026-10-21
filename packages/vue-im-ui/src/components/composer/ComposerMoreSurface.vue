@@ -9,9 +9,11 @@ import FlareComposerActionPanel from "./FlareComposerActionPanel.vue";
 const PAGE_SIZE = 8;
 
 // The "+" surface of the composer: the shared ComposerActionPanel grid plus the
-// desktop niceties around it (search, paging, an explicit close).
+// desktop niceties around it (search, paging, an explicit close). The composer
+// hands over labelled actions, so the search reads the label the tile shows.
+type LabelledAction = FlareComposerAction<string | Component> & { label: string };
 const props = defineProps<{
-  actions: ReadonlyArray<FlareComposerAction<string | Component>>;
+  actions: ReadonlyArray<LabelledAction>;
   searchVisible?: boolean;
   titleVisible?: boolean;
   closeVisible?: boolean;

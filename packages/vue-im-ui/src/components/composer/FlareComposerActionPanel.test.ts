@@ -4,6 +4,7 @@ import { mount } from "@vue/test-utils";
 import { defineComponent, h, type Component } from "vue";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
 import FlareComposerActionPanel from "./FlareComposerActionPanel.vue";
+import FlareGlyph from "../general/FlareGlyph.vue";
 import { FLARE_DEFAULT_COMPOSER_ACTION_IDS, type FlareComposerAction } from "../../shared/contracts/composer";
 
 let host: ReturnType<typeof mount>;
@@ -18,19 +19,37 @@ function mountSheet(props: Record<string, unknown> = {}, locale: "zh-CN" | "en-U
 }
 
 describe("FlareComposerActionPanel", () => {
-  it("defaults to the restrained unified action set with t() labels", () => {
+  it("defaults to the built-in features in panel order, each with its glyph and t() label", () => {
     const sheet = mountSheet();
     const ids = sheet.findAll("button").map((b) => b.attributes("data-action-id"));
     expect(ids).toEqual([...FLARE_DEFAULT_COMPOSER_ACTION_IDS]);
-    expect(sheet.find('[data-action-id="file"]').text()).toBe("File");
-    expect(sheet.find('[data-action-id="contact"]').text()).toBe("Contact card");
+    expect(ids).toEqual(["image", "video", "file", "voice", "card", "poll"]);
+    expect(sheet.findAllComponents(FlareGlyph).map((glyph) => glyph.props("icon"))).toEqual(["image", "video", "file", "mic", "card", "poll"]);
+    expect(sheet.findAll(".flare-action-panel__label").map((label) => label.text()))
+      .toEqual(["Image", "Video", "File", "Voice", "Contact card", "Poll"]);
+    expect(sheet.find('[data-action-id="location"]').exists()).toBe(false);
     expect(sheet.attributes("aria-label")).toBe("Message features");
   });
 
   it("localizes default labels through the strings provider", () => {
     const sheet = mountSheet({}, "zh-CN");
-    expect(sheet.find('[data-action-id="file"]').text()).toBe("文件");
-    expect(sheet.find('[data-action-id="voice"]').text()).toBe("语音");
+    expect(sheet.findAll(".flare-action-panel__label").map((label) => label.text()))
+      .toEqual(["图片", "视频", "文件", "语音", "名片", "投票"]);
+  });
+
+  it("labels built-in items a host passes without a label, and draws plugin items after them", () => {
+    const actions: FlareComposerAction[] = [
+      { id: "image", kind: "feature", icon: "image", order: 10 },
+      { id: "poll", kind: "feature", icon: "poll", order: 60 },
+      { id: "plugin:flare.redpacket.send", kind: "plugin", label: "红包", icon: "red-packet", order: 100 },
+      { id: "plugin:acme.form", kind: "plugin", label: "表单", icon: "clipboard-form", order: 110 },
+      { id: "plugin:acme.vote", kind: "plugin", label: "投票插件", order: 120 },
+    ];
+    const sheet = mountSheet({ actions }, "zh-CN");
+    expect(sheet.findAll(".flare-action-panel__label").map((label) => label.text())).toEqual(["图片", "投票", "红包", "表单", "投票插件"]);
+    // 注册表里没有的插件图标名回退到通用插件图标；认识的（red-packet）照用。
+    expect(sheet.findAllComponents(FlareGlyph).map((glyph) => glyph.props("icon"))).toEqual(["image", "poll", "red-packet", "plugin", "plugin"]);
+    expect(sheet.find('[data-action-id="plugin:acme.form"] [data-flare-glyph="Puzzle"]').exists()).toBe(true);
   });
 
   it("emits the selected action object", async () => {

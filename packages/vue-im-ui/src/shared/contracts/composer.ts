@@ -94,20 +94,72 @@ export const FLARE_COMPOSER_ACTION_IDS: readonly FlareComposerActionId[] = [
   "notification", "miniApp", "miniProgram", "translate",
 ];
 
-/** Default attachment set shown when the host does not supply one. */
+/**
+ * The built-in features of the "+" panel (功能管理), in panel order — the same set and order on all
+ * four platforms (contract `composerActions.defaults`). Shown when the host does not supply a list;
+ * a host list replaces it whole.
+ */
 export const FLARE_DEFAULT_COMPOSER_ACTION_IDS: readonly FlareComposerActionId[] = [
-  "image", "video", "file", "voice", "location", "contact",
+  "image", "video", "file", "voice", "card", "poll",
 ];
 
-/** One action tile in MessageActionSheet / composer action panels. */
-export interface FlareComposerAction<TIcon = string> extends FlareActionItem<TIcon> {
+/** The registry glyph of each unified action id; an action without its own icon draws it. */
+export const FLARE_COMPOSER_ACTION_ICONS: Readonly<Record<FlareComposerActionId, string>> = {
+  image: "image", camera: "camera", voice: "mic", video: "video", file: "file", location: "location",
+  contact: "card", card: "card", poll: "poll", vote: "poll", task: "check", event: "calendar",
+  schedule: "calendar", link: "link", announcement: "announcement", notification: "notification",
+  miniApp: "mini-app", miniProgram: "mini-app", translate: "translate",
+};
+
+/** The kit string key of the unified action ids it can label; a host may leave `label` out for these. */
+export const FLARE_COMPOSER_ACTION_LABEL_KEYS: Readonly<Partial<Record<FlareComposerActionId, string>>> = {
+  image: "composer.image", camera: "composer.camera", voice: "composer.voice", video: "composer.video",
+  file: "composer.file", location: "composer.location", contact: "composer.card", card: "composer.card",
+  poll: "composer.poll", vote: "composer.vote", task: "composer.task", event: "composer.schedule",
+  schedule: "composer.schedule", link: "composer.link", notification: "composer.notification",
+  translate: "composer.translation",
+};
+
+/**
+ * Where a "+" tile comes from: a built-in `feature` the tenant's feature switches control, or a
+ * `plugin` — the composer-action an authorised plugin declares. Hosts may leave it out.
+ */
+export type FlareComposerActionKind = "feature" | "plugin";
+export const FLARE_COMPOSER_ACTION_KINDS: readonly FlareComposerActionKind[] = ["feature", "plugin"];
+
+/** The generic plugin glyph: a "+" tile whose icon is not a registry name draws this instead. */
+export const FLARE_COMPOSER_PLUGIN_ICON = "plugin";
+
+/**
+ * The composer toolbar's tools, the same ids on all four platforms. `attachments` is the "+" button
+ * that opens the action panel.
+ */
+export type FlareComposerToolId = "emoji" | "mention" | "voice" | "image" | "richText" | "attachments";
+export const FLARE_COMPOSER_TOOL_IDS: readonly FlareComposerToolId[] = [
+  "emoji", "mention", "voice", "image", "richText", "attachments",
+];
+
+/**
+ * One action tile in MessageActionSheet / composer action panels. `label` may be left out for a
+ * unified id the kit labels itself (`FLARE_COMPOSER_ACTION_LABEL_KEYS`), so a host can pass the
+ * built-in items of a composer menu through as they come.
+ */
+export interface FlareComposerAction<TIcon = string> extends Omit<FlareActionItem<TIcon>, "label"> {
+  label?: string;
   /** Optional secondary line under the label. */
   hint?: string;
+  /** `feature`, `plugin`, or omitted for a host's own tile. An unknown icon name draws `plugin`. */
+  kind?: FlareComposerActionKind;
 }
 
 /** Business availability supplied by the host; omitted means all actions are available. */
 export interface FlareComposerCapabilities {
   availableActionIds?: readonly string[];
+  /**
+   * The toolbar tools to show (`FlareComposerToolId`). Omitted shows every tool; a list shows only
+   * the tools it names. Host-owned presentation, not an authorization decision.
+   */
+  availableToolIds?: readonly string[];
   /**
    * 这个会话**支持不支持** @ 某个人。缺省 = 支持;单聊传 false。
    *
@@ -152,4 +204,47 @@ export function resolveComposerActions<TIcon = string>({
       (left.action.order ?? left.index) - (right.action.order ?? right.index)
       || left.index - right.index)
     .map(({ action }) => action);
+}
+
+/**
+ * Fills each missing label from the kit strings by unified id (`translate` resolves a string key);
+ * an id the kit cannot label keeps the id itself so a tile never renders blank.
+ */
+export function labelComposerActions<TAction extends FlareComposerAction<unknown>>(
+  actions: readonly TAction[],
+  translate: (key: string) => string,
+): Array<TAction & { label: string }> {
+  return actions.map((action) => {
+    const own = action.label?.trim();
+    if (own) return action as TAction & { label: string };
+    const key = FLARE_COMPOSER_ACTION_LABEL_KEYS[action.id as FlareComposerActionId];
+    return { ...action, label: key ? translate(key) : action.id };
+  });
+}
+
+/** Whether the toolbar shows `tool`: every tool when the host names none, otherwise only the named ones. */
+export function composerToolAvailable(
+  capabilities: FlareComposerCapabilities | undefined,
+  tool: FlareComposerToolId,
+): boolean {
+  return capabilities?.availableToolIds?.includes(tool) ?? true;
+}
+
+/**
+ * The glyph name a "+" tile draws, the same rule on all four platforms: a registry name
+ * (`isIconName`) draws itself, any other name draws the generic `plugin` glyph. Vue additions: a
+ * non-plugin tile without an icon draws its unified id's kit glyph, and one whose icon is an emoji or
+ * a single character keeps it for FlareGlyph to draw as text.
+ */
+export function resolveComposerActionIcon(
+  action: { id: string; icon?: unknown; kind?: FlareComposerActionKind },
+  isIconName: (name: string) => boolean,
+): string {
+  const icon = typeof action.icon === "string" ? action.icon.trim() : "";
+  if (icon && isIconName(icon)) return icon;
+  if (action.kind !== "plugin") {
+    if (!icon) return FLARE_COMPOSER_ACTION_ICONS[action.id as FlareComposerActionId] ?? FLARE_COMPOSER_PLUGIN_ICON;
+    if (!/^[A-Za-z][A-Za-z0-9-]*$/.test(icon)) return icon;
+  }
+  return FLARE_COMPOSER_PLUGIN_ICON;
 }

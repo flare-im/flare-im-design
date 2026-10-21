@@ -59,9 +59,67 @@ describe("FlareComposer interaction boundaries", () => {
     const silent = setup();
     expect(silent.find('.composer-toolbar [aria-label="语音"]').exists()).toBe(false);
     await silent.get('[aria-label="更多"]').trigger("click");
-    expect(silent.findAll(".flare-action-panel__tile").map((tile) => tile.attributes("data-action-id"))).toEqual(["image", "video", "file", "location", "contact"]);
+    expect(silent.findAll(".flare-action-panel__tile").map((tile) => tile.attributes("data-action-id"))).toEqual(["image", "video", "file", "card", "poll"]);
     const listening = setup({ onSendVoice: vi.fn() });
     expect(listening.find('.composer-toolbar [aria-label="语音"]').exists()).toBe(true);
+  });
+  it("opens the built-in features in panel order with the kit glyphs", async () => {
+    const wrapper = setup({ sendVoiceHandler: vi.fn() });
+    await wrapper.get('[aria-label="更多"]').trigger("click");
+    expect(wrapper.findAll(".flare-action-panel__tile").map((tile) => tile.attributes("data-action-id")))
+      .toEqual(["image", "video", "file", "voice", "card", "poll"]);
+    expect(wrapper.findAllComponents(FlareGlyph).map((glyph) => glyph.props("icon"))).toEqual(["image", "video", "file", "mic", "card", "poll"]);
+    expect(wrapper.findAll(".flare-action-panel__label").map((label) => label.text())).toEqual(["图片", "视频", "文件", "语音", "名片", "投票"]);
+  });
+  it("shows only the toolbar tools the host makes available", () => {
+    const all = ["表情", "@", "语音", "图片", "富文本", "更多", "发送"];
+    const tools = [
+      ["emoji", "表情"], ["mention", "@"], ["voice", "语音"], ["image", "图片"], ["richText", "富文本"], ["attachments", "更多"],
+    ] as const;
+    const labels = (wrapper: ReturnType<typeof setup>) =>
+      wrapper.findAll(".composer-toolbar button").map((button) => button.attributes("aria-label"));
+    expect(labels(setup({ sendVoiceHandler: vi.fn(), capabilities: {} }))).toEqual(all);
+    for (const [hidden, label] of tools) {
+      const availableToolIds = tools.map(([tool]) => tool).filter((tool) => tool !== hidden);
+      const wrapper = setup({ sendVoiceHandler: vi.fn(), capabilities: { availableToolIds } });
+      expect(labels(wrapper)).toEqual(all.filter((entry) => entry !== label));
+    }
+    // 一个都不给：只剩发送；单聊的 mentions:false 与工具名单同时生效。
+    expect(labels(setup({ sendVoiceHandler: vi.fn(), capabilities: { availableToolIds: [] } }))).toEqual(["发送"]);
+    expect(labels(setup({ sendVoiceHandler: vi.fn(), capabilities: { mentions: false, availableToolIds: ["mention", "emoji"] } }))).toEqual(["表情", "发送"]);
+  });
+  it("closes what a revoked tool opened and keeps the draft", async () => {
+    const props = reactive<Record<string, unknown>>({
+      modelValue: "保留的草稿",
+      richMode: true,
+      capabilities: {},
+      "onUpdate:modelValue": (next: string) => { props.modelValue = next; },
+    });
+    const wrapper = setup(props);
+    await wrapper.get('[aria-label="更多"]').trigger("click");
+    expect(wrapper.find(".composer-more-surface").exists()).toBe(true);
+    expect(wrapper.find(".composer-heading-select").exists()).toBe(true);
+    props.capabilities = { availableToolIds: ["emoji"] };
+    await nextTick();
+    await nextTick();
+    expect(wrapper.find(".composer-more-surface").exists()).toBe(false);
+    expect(wrapper.emitted("toggle-panel")?.at(-1)).toEqual([null]);
+    // 富文本工具收走后，格式条也不再出现；宿主的 richMode 与草稿原样不动。
+    expect(wrapper.find(".composer-heading-select").exists()).toBe(false);
+    expect(wrapper.find(".composer--format").exists()).toBe(false);
+    expect(props.modelValue).toBe("保留的草稿");
+  });
+  it("does not open the member picker on a typed @ without the mention tool", async () => {
+    const props = reactive({
+      modelValue: "",
+      mentionCandidates: [{ userId: "u1", label: "Ivy" }],
+      capabilities: { availableToolIds: ["emoji", "attachments"] },
+      "onUpdate:modelValue": (next: string) => { props.modelValue = next; },
+    });
+    const wrapper = setup(props);
+    await wrapper.get("textarea").setValue("@");
+    await nextTick();
+    expect(wrapper.find(".composer-mention-menu").exists()).toBe(false);
   });
   it("keeps kit glyphs on host actions that bring no icon", async () => {
     const wrapper = setup({ activePanel: "more", actions: [{ id: "file", label: "文件" }, { id: "video", label: "视频" }] });

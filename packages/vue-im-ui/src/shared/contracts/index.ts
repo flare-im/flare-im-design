@@ -39,7 +39,9 @@ export {
 export type {
   FlareComposerAction,
   FlareComposerActionId,
+  FlareComposerActionKind,
   FlareComposerCapabilities,
+  FlareComposerToolId,
   ResolveComposerActionsOptions,
   FlareComposerState,
   FlareQuickPhrase,
@@ -49,7 +51,19 @@ export type {
   FlareStickerItem,
   FlareStickerPack,
 } from "./composer";
-export { FLARE_COMPOSER_ACTION_IDS, FLARE_DEFAULT_COMPOSER_ACTION_IDS, resolveComposerActions } from "./composer";
+export {
+  FLARE_COMPOSER_ACTION_IDS,
+  FLARE_COMPOSER_ACTION_ICONS,
+  FLARE_COMPOSER_ACTION_KINDS,
+  FLARE_COMPOSER_ACTION_LABEL_KEYS,
+  FLARE_COMPOSER_PLUGIN_ICON,
+  FLARE_COMPOSER_TOOL_IDS,
+  FLARE_DEFAULT_COMPOSER_ACTION_IDS,
+  composerToolAvailable,
+  labelComposerActions,
+  resolveComposerActionIcon,
+  resolveComposerActions,
+} from "./composer";
 export type { FlareTone, FlareToastVariant } from "./tone";
 export {
   FLARE_TONES,

@@ -10,9 +10,7 @@ import {
   ImageOutline,
   MicOutline,
   TextOutline,
-  LocationOutline as MoreLocationOutline,
 } from "../../shared/icon-glyphs";
-import { flareIcons } from "../../shared/icons";
 import { NButton, NIcon, NInput } from "naive-ui";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 import { FLARE_BREAKPOINT_TABLET_MIN } from "../../shared/contracts/layout";
@@ -24,9 +22,14 @@ import { useVoiceRecorder, type VoiceRecordingPayload as RecorderPayload } from 
 import { useFlareVoiceRecorderAdapter } from "../../composables/composer/voiceRecorder";
 import type { FlareMentionCandidate } from "../../shared/contracts/directory";
 import {
+  FLARE_COMPOSER_ACTION_ICONS,
+  FLARE_DEFAULT_COMPOSER_ACTION_IDS,
+  composerToolAvailable,
+  labelComposerActions,
   resolveComposerActions,
   type FlareComposerAction,
   type FlareComposerCapabilities,
+  type FlareComposerToolId,
 } from "../../shared/contracts/composer";
 import ComposerResizeIcon from "./ComposerResizeIcon.vue";
 import ComposerRichMarkdownInput, {
@@ -204,7 +207,7 @@ const userText = computed({ get: () => value.value, set: setUserText });
 const editingBlocked = computed(() => props.disabled || props.readOnly);
 const canSend = computed(() => !editingBlocked.value && !props.sendBlocked && !props.sending && value.value.trim().length > 0);
 const hasInlineEmoji = computed(() => /\[[a-z][a-z0-9_]*\]/.test(value.value));
-const useRichEditor = computed(() => props.richMode || sendAsRichDoc.value || hasInlineEmoji.value);
+const useRichEditor = computed(() => richActive.value || sendAsRichDoc.value || hasInlineEmoji.value);
 const showReply = computed(() => Boolean(props.replySender?.trim() || props.replyPreview?.trim()));
 const showEdit = computed(() => props.editing);
 const showContext = computed(() => Boolean(props.statusHint) || showEdit.value || showReply.value || props.uploadItems.length > 0);
@@ -270,23 +273,31 @@ const pickerCandidates = computed<FlareMentionCandidate[]>(() =>
   mentionCandidates.value.map((candidate) => ({ id: candidate.userId, name: candidate.label, avatarUrl: candidate.avatarUrl || undefined })),
 );
 
-// ── "+" actions (the default is intentionally useful but restrained; business actions are host additions) ──
-const defaultAttachActions = computed<FlareComposerAttachAction[]>(() => [
-  { id: "image", label: t("composer.image"), icon: ImageOutline },
-  // 视频 composer 自己就能拾取(PICKER_INTENTS.video,accept video/*),却一直没出现在「+」里 ——
-  // 宿主要么自己再造一个文件框,要么这个能力等于不存在。
-  { id: "video", label: t("composer.video"), icon: flareIcons.video },
-  { id: "file", label: t("composer.file"), icon: flareIcons.file },
-  { id: "voice", label: t("composer.voice"), icon: MicOutline },
-  { id: "location", label: t("composer.location"), icon: MoreLocationOutline },
-  { id: "contact", label: t("composer.card"), icon: flareIcons.card },
-]);
-const moreActions = computed<FlareComposerAttachAction[]>(() =>
-  resolveComposerActions<Component | string>({
-    defaults: defaultAttachActions.value,
+// ── Toolbar tools (host availability; omitted shows every tool) ─────────────
+function toolAvailable(tool: FlareComposerToolId): boolean {
+  return composerToolAvailable(props.capabilities, tool);
+}
+const emojiToolAvailable = computed(() => toolAvailable("emoji"));
+/** 单聊不摆 @:由会话的能力位决定,不看名册空不空(群聊名册加载中也是空的)。 */
+const mentionToolAvailable = computed(() => props.capabilities?.mentions !== false && toolAvailable("mention"));
+const voiceToolAvailable = computed(() => voiceAvailable.value && toolAvailable("voice"));
+const imageToolAvailable = computed(() => toolAvailable("image"));
+const richTextToolAvailable = computed(() => toolAvailable("richText"));
+const attachmentsToolAvailable = computed(() => toolAvailable("attachments"));
+/** Rich mode is the host's, but a composer without the rich-text tool does not present it. */
+const richActive = computed(() => props.richMode && richTextToolAvailable.value);
+
+// ── "+" actions: the built-in features of the panel, the same set and order on every platform ──
+// 视频 composer 自己就能拾取(PICKER_INTENTS.video,accept video/*),所以默认集里给得出这一格。
+const defaultAttachActions: FlareComposerAttachAction[] = FLARE_DEFAULT_COMPOSER_ACTION_IDS.map((id) => ({
+  id, icon: FLARE_COMPOSER_ACTION_ICONS[id], kind: "feature",
+}));
+const moreActions = computed(() =>
+  labelComposerActions<FlareComposerAttachAction>(resolveComposerActions<Component | string>({
+    defaults: defaultAttachActions,
     capabilities: props.capabilities,
     actions: props.actions,
-  }).filter((action) => voiceAvailable.value || (action.intent ?? action.id) !== "voice"),
+  }), t).filter((action) => voiceAvailable.value || (action.intent ?? action.id) !== "voice"),
 );
 
 // ── Voice (capture through the injected adapter; preview / confirm in the panel) ──
@@ -352,7 +363,7 @@ function closePanels(): void {
   if (resolvedActivePanel.value) setActivePanel(null);
 }
 function openVoicePanel(): void {
-  if (editingBlocked.value) return;
+  if (editingBlocked.value || !voiceToolAvailable.value) return;
   const next = !voicePanelOpen.value;
   closePanels();
   voicePanelOpen.value = next;
@@ -377,6 +388,21 @@ function onPanelEscape(event: KeyboardEvent): void {
 watch(() => props.activePanel, panel => {
   if (panel) { mentionMenuOpen.value = false; voicePanelOpen.value = false; cancelVoiceRecording(); }
 });
+/** The tool behind each composer-owned panel: emoji and stickers share the emoji tool, "+" is attachments. */
+function panelToolAvailable(panel: Exclude<ComposerPanel, null>): boolean {
+  return panel === "more" ? attachmentsToolAvailable.value : emojiToolAvailable.value;
+}
+// Taking a tool away closes what it opened, at once; the draft stays as it is.
+watch([emojiToolAvailable, attachmentsToolAvailable], () => {
+  const panel = resolvedActivePanel.value;
+  if (panel && !panelToolAvailable(panel)) setActivePanel(null);
+});
+watch(mentionToolAvailable, (available) => {
+  if (!available) { mentionMenuOpen.value = false; mentionTriggerIndex.value = -1; }
+});
+watch(voiceToolAvailable, (available) => {
+  if (!available && voicePanelOpen.value) { voicePanelOpen.value = false; cancelVoiceRecording(); }
+});
 watch(() => props.conversationKey, () => { closePanels(); recorder.clearPreview(); inputExpanded.value = false; drop.reset(); });
 watch(editingBlocked, blocked => { if (blocked) closePanels(); });
 watch(() => props.sendBlocked, blocked => { if (blocked && voicePanelOpen.value) cancelVoiceRecording(); });
@@ -394,7 +420,7 @@ const inputExpandTitle = computed(() => (inputExpanded.value ? t("composer.colla
 const isMultiline = computed(
   () =>
     inputExpanded.value
-    || props.richMode
+    || richActive.value
     || value.value.includes("\n")
     || value.value.length > 56,
 );
@@ -437,7 +463,7 @@ function onInputRowMousedown(event: MouseEvent): void {
 }
 
 function toggle(panel: Exclude<ComposerPanel, null>): void {
-  if (editingBlocked.value) return;
+  if (editingBlocked.value || !panelToolAvailable(panel)) return;
   const nextPanel = resolvedActivePanel.value === panel ? null : panel;
   mentionMenuOpen.value = false;
   voicePanelOpen.value = false;
@@ -455,7 +481,7 @@ function toggleInputExpanded(): void {
 }
 
 function toggleRichMode(): void {
-  if (editingBlocked.value) return;
+  if (editingBlocked.value || !richTextToolAvailable.value) return;
   closePanels();
   emit("toggle-rich-mode", !props.richMode);
   setActivePanel(null);
@@ -463,7 +489,7 @@ function toggleRichMode(): void {
 }
 
 function openMentionPicker(): void {
-  if (editingBlocked.value) return;
+  if (editingBlocked.value || !mentionToolAvailable.value) return;
   setActivePanel(null);
   voicePanelOpen.value = false;
   cancelVoiceRecording();
@@ -477,7 +503,7 @@ function openMentionPicker(): void {
 watch(value, (next, previous = "") => {
   if (!userEditPending || useRichEditor.value || editingBlocked.value || mentionMenuOpen.value) return;
   // 名册还没到 → 这次不弹(下次输入会再试);这个会话根本不支持 @ → 永远不弹。
-  if (!mentionCandidates.value.length || props.capabilities?.mentions === false) return;
+  if (!mentionCandidates.value.length || !mentionToolAvailable.value) return;
   const inserted = next.length - previous.length;
   if (inserted < 1) return;
   // A pure insertion (a keystroke, an IME commit or a paste) starts where the strings first differ.
@@ -596,7 +622,8 @@ function build(id: string): void {
   const action = moreActions.value.find(item => item.id === id);
   if (editingBlocked.value || action?.enabled === false) return;
   const intent = action?.intent ?? id;
-  if (intent === "voice") {
+  // Without the voice tool the recorder is not offered here either; the intent goes to the host.
+  if (intent === "voice" && voiceToolAvailable.value) {
     closePanels();
     voicePanelOpen.value = true;
     return;
@@ -622,7 +649,7 @@ const markdown = useMarkdownShortcuts({
 });
 function applyFormat(key: MarkdownShortcutKey): void {
   if (editingBlocked.value) return;
-  if (props.richMode) {
+  if (richActive.value) {
     richInputRef.value?.applyFormat(key);
     return;
   }
@@ -630,7 +657,7 @@ function applyFormat(key: MarkdownShortcutKey): void {
 }
 function applyHeadingLevel(level: RichHeadingLevel | null): void {
   if (editingBlocked.value) return;
-  if (props.richMode) {
+  if (richActive.value) {
     richInputRef.value?.applyHeadingLevel(level);
     return;
   }
@@ -762,7 +789,7 @@ onBeforeUnmount(() => {
     @drop="drop.onDrop"
     :class="{
       'composer--expanded': Boolean(resolvedActivePanel),
-      'composer--format': richMode,
+      'composer--format': richActive,
       'composer--input-expanded': inputExpanded,
       // The root says it too, so the rule that needs it does not have to ask `:has()` — an engine
       // without `:has()` drops the whole selector list, taking the class-based half with it.
@@ -830,7 +857,7 @@ onBeforeUnmount(() => {
 
       <div class="composer-editor-area">
       <ComposerFormatStrip
-        v-if="richMode"
+        v-if="richActive"
         :state="richFormatState"
         :disabled="editingBlocked"
         @apply="applyFormat"
@@ -862,7 +889,7 @@ onBeforeUnmount(() => {
             :model-value="value"
             class="composer-input composer-rich-input"
             :disabled="editingBlocked"
-            :formatting-preview="richMode"
+            :formatting-preview="richActive"
             :max-length="maxLength"
             :placeholder="inputPlaceholder"
             @focus="inputFocused = true"
@@ -920,17 +947,16 @@ onBeforeUnmount(() => {
             <ComposerResizeIcon :expanded="inputExpanded" />
           </template>
         </n-button>
-        <n-button circle quaternary :title="t('composer.emoji')" :aria-label="t('composer.emoji')" :class="{ 'is-selected': resolvedActivePanel === 'emoji' }" :disabled="editingBlocked" @click="toggle('emoji')">
+        <n-button v-if="emojiToolAvailable" circle quaternary :title="t('composer.emoji')" :aria-label="t('composer.emoji')" :class="{ 'is-selected': resolvedActivePanel === 'emoji' }" :disabled="editingBlocked" @click="toggle('emoji')">
           <template #icon><n-icon aria-hidden="true" :size="20" :component="HappyOutline" /></template>
         </n-button>
-        <!-- 单聊不摆 @:由会话的能力位决定,不看名册空不空(群聊名册加载中也是空的)。 -->
-        <div v-if="capabilities?.mentions !== false" class="composer-mention-anchor">
+        <div v-if="mentionToolAvailable" class="composer-mention-anchor">
           <n-button circle quaternary :title="t('composer.mention')" :aria-label="t('composer.mention')" :class="{ 'is-selected': mentionMenuOpen }" :aria-expanded="mentionMenuOpen" :disabled="editingBlocked" @click="openMentionPicker">
             <template #icon><n-icon aria-hidden="true" :size="20" :component="AtOutline" /></template>
           </n-button>
         </div>
         <n-button
-          v-if="voiceAvailable"
+          v-if="voiceToolAvailable"
           circle
           quaternary
           class="composer-toolbar__voice"
@@ -942,13 +968,13 @@ onBeforeUnmount(() => {
         >
           <template #icon><n-icon aria-hidden="true" :size="20" :component="MicOutline" /></template>
         </n-button>
-        <n-button circle quaternary class="composer-toolbar__image" :title="t('composer.image')" :aria-label="t('composer.image')" :disabled="editingBlocked" @click="build('image')">
+        <n-button v-if="imageToolAvailable" circle quaternary class="composer-toolbar__image" :title="t('composer.image')" :aria-label="t('composer.image')" :disabled="editingBlocked" @click="build('image')">
           <template #icon><n-icon aria-hidden="true" :size="20" :component="ImageOutline" /></template>
         </n-button>
-        <n-button circle quaternary class="composer-toolbar__rich" :title="t('composer.richText')" :aria-label="t('composer.richText')" :class="{ 'is-selected': richMode }" :disabled="editingBlocked" @click="toggleRichMode">
+        <n-button v-if="richTextToolAvailable" circle quaternary class="composer-toolbar__rich" :title="t('composer.richText')" :aria-label="t('composer.richText')" :class="{ 'is-selected': richActive }" :disabled="editingBlocked" @click="toggleRichMode">
           <template #icon><n-icon aria-hidden="true" :size="20" :component="TextOutline" /></template>
         </n-button>
-        <n-button circle quaternary :title="t('composer.more')" :aria-label="t('composer.more')" :class="{ 'is-selected': resolvedActivePanel === 'more' }" :aria-expanded="resolvedActivePanel === 'more'" :disabled="editingBlocked" @click="toggle('more')">
+        <n-button v-if="attachmentsToolAvailable" circle quaternary :title="t('composer.more')" :aria-label="t('composer.more')" :class="{ 'is-selected': resolvedActivePanel === 'more' }" :aria-expanded="resolvedActivePanel === 'more'" :disabled="editingBlocked" @click="toggle('more')">
           <template #icon>
             <n-icon aria-hidden="true" :size="20" :component="resolvedActivePanel === 'more' ? CloseOutline : AddOutline" />
           </template>
@@ -964,10 +990,10 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <section v-if="mediaPanelActive && !editingBlocked && $slots['media-panel']" class="composer-surface composer-media-surface" :aria-label="t('composer.emoji')">
+    <section v-if="mediaPanelActive && emojiToolAvailable && !editingBlocked && $slots['media-panel']" class="composer-surface composer-media-surface" :aria-label="t('composer.emoji')">
       <slot name="media-panel" />
     </section>
-    <section v-if="mentionMenuOpen" class="composer-surface" :aria-label="t('composer.mention')">
+    <section v-if="mentionMenuOpen && mentionToolAvailable" class="composer-surface" :aria-label="t('composer.mention')">
       <div class="composer-mention-menu">
         <FlareMentionPicker
           :candidates="pickerCandidates"
@@ -981,7 +1007,7 @@ onBeforeUnmount(() => {
       </div>
     </section>
     <ComposerVoicePanel
-      v-if="voicePanelOpen"
+      v-if="voicePanelOpen && voiceToolAvailable"
       :recorder="recorder"
       :submitting="voiceSubmitting"
       :send-blocked="sendBlocked || sending"
@@ -995,7 +1021,7 @@ onBeforeUnmount(() => {
       @preview-failed="showVoiceError(t('composer.voicePreviewFailed'))"
     />
     <ComposerMoreSurface
-      v-if="resolvedActivePanel === 'more' && !editingBlocked"
+      v-if="resolvedActivePanel === 'more' && attachmentsToolAvailable && !editingBlocked"
       :actions="moreActions"
       :search-visible="moreSearchVisible"
       :title-visible="moreTitleVisible"
