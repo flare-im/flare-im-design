@@ -1,5 +1,6 @@
 package com.flare.im.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,18 +9,24 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -77,6 +84,10 @@ internal fun contactPickerPicked(ids: List<String>, groups: List<FlareContactPic
 internal fun contactPickerToggled(ids: List<String>, userId: String): List<String> =
     if (userId in ids) ids - userId else ids + userId
 
+/** Whether [userId]'s row spins: the host is [sending] and a single-mode tap answered with it ([pending]). */
+internal fun contactPickerRowPending(userId: String, pending: String?, sending: Boolean, multiple: Boolean): Boolean =
+    sending && !multiple && pending == userId
+
 /** The list's tallest, so it stays bounded in a host that does not bound it. */
 private val CONTACT_PICKER_LIST_MAX_HEIGHT = 420.dp
 
@@ -93,6 +104,10 @@ private val CONTACT_PICKER_LIST_MAX_HEIGHT = 420.dp
  * It draws its own header (Cancel, the title) and declares it ([FlareSheetOwnHeader]): put it in
  * `BottomSheet(fill = true)` and the sheet keeps its title as the accessible name only, while the list fills the
  * sheet's height.
+ *
+ * While the host sends the card ([sending], the same meaning as [LocationPicker]'s), the tapped row — in [multiple] mode
+ * the confirm key — spins and the rows take no clicks; once it is cleared, single mode forgets that row and multiple mode
+ * keeps its choice for a retry.
  */
 @Composable
 fun ContactPicker(
@@ -102,12 +117,17 @@ fun ContactPicker(
     title: String? = null,
     onSelect: ((List<FlareContactPickerEntry>) -> Unit)? = null,
     onCancel: (() -> Unit)? = null,
+    /** The host is sending the card for the chosen person: the tapped row (multiple mode: the confirm key) spins. */
+    sending: Boolean = false,
 ) {
     val colors = flareColors()
     val strings = flareStrings()
     var activeGroup by remember { mutableStateOf(groups.firstOrNull()?.id.orEmpty()) }
     var query by remember { mutableStateOf("") }
     var picked by remember { mutableStateOf(emptyList<String>()) }
+    // The row a single-mode tap answered with: it spins while the host sends, and is forgotten once the send settles.
+    var pending by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(sending) { if (!sending) pending = null }
     val open = groups.firstOrNull { it.id == activeGroup } ?: groups.firstOrNull()
     val entries = filterContactPickerEntries(open?.entries.orEmpty(), if (searchable) query else "")
     val fills = flareSheetFills()
@@ -146,12 +166,24 @@ fun ContactPicker(
                 items(entries, key = { it.userId }) { entry ->
                     val contact = Contact(id = entry.userId, name = contactPickerDisplayName(entry, strings),
                         avatarUrl = entry.avatarUrl, signature = entry.subtitle)
-                    ContactItem(
-                        item = contact, showPresence = false,
-                        onSelect = if (multiple) null else { { onSelect?.invoke(listOf(entry)) } },
-                        selectable = multiple, selected = entry.userId in picked,
-                        onToggleSelect = if (multiple) { { picked = contactPickerToggled(picked, entry.userId) } } else null,
-                    )
+                    val spins = contactPickerRowPending(entry.userId, pending, sending, multiple)
+                    // While sending the rows take no clicks: no handler, and read as unavailable.
+                    Box(
+                        Modifier.fillMaxWidth()
+                            .background(if (spins) colors.bgSelected else Color.Transparent)
+                            .semantics(mergeDescendants = sending) {
+                                if (sending) disabled()
+                                if (spins) selected = true
+                            },
+                    ) {
+                        ContactItem(
+                            item = contact, showPresence = false,
+                            onSelect = if (multiple || sending) null else { { pending = entry.userId; onSelect?.invoke(listOf(entry)) } },
+                            selectable = multiple, selected = entry.userId in picked,
+                            onToggleSelect = if (multiple && !sending) { { picked = contactPickerToggled(picked, entry.userId) } } else null,
+                            trailing = if (spins) { { CircularProgressIndicator(Modifier.size(FlareSizes.iconSizeSm), color = colors.primaryText, strokeWidth = 2.dp) } } else null,
+                        )
+                    }
                 }
             }
         }
@@ -165,8 +197,8 @@ fun ContactPicker(
                 Text(strings.selectedCount(picked.size), color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd)
                 Spacer(Modifier.weight(1f))
                 Button(
-                    label = strings.confirm, disabled = picked.isEmpty(),
-                    onClick = { onSelect?.invoke(contactPickerPicked(picked, groups)) },
+                    label = strings.confirm, disabled = picked.isEmpty(), loading = sending,
+                    onClick = { if (!sending) onSelect?.invoke(contactPickerPicked(picked, groups)) },
                 )
             }
         }

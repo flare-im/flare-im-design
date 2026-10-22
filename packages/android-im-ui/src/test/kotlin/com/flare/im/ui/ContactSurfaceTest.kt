@@ -53,4 +53,12 @@ class ContactSurfaceTest {
         assertFalse(contactDetailHasPrimaryAction(null, handled = true))
         assertTrue(flareIconVectorOrNull("person-add") != null, "the key's icon is a registry name")
     }
+
+    @Test fun primaryActionBusyLocksThePrimaryKeyAlone() {
+        val row = contactDetailRow(hasPrimary = true, intents = contactDetailActions(true, true, true))
+        assertEquals(listOf(true, false, false, false), row.map { contactDetailKeyBusy(it, primaryActionBusy = true) })
+        assertEquals(listOf(false, false, false, false), row.map { contactDetailKeyBusy(it, primaryActionBusy = false) })
+        val friend = contactDetailRow(hasPrimary = false, intents = contactDetailActions(true, false, false))
+        assertFalse(contactDetailKeyBusy(friend.single(), primaryActionBusy = true), "Message is never the busy key")
+    }
 }

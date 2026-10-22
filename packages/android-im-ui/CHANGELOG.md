@@ -1,5 +1,9 @@
 ## 未发布
 
+- 第七轮 Kit 小缺口（app 接线反馈）：
+  - `ContactDetail` 新增 `primaryActionBusy`（参数末尾）：主按钮以 `CircularProgressIndicator` 代替图标并禁用，禁用色沿用原色；其他操作照常。纯函数 `contactDetailKeyBusy`。
+  - `ContactPicker` 新增 `sending`（参数末尾）：单选时被点的那一行高亮转圈（semantics selected），多选时确认键转圈（`Button` loading）；各行与确认键不接受点击（semantics disabled），取消、搜索和标签照常。清掉后单选忘掉那一行，多选保留已选供重发。纯函数 `contactPickerRowPending`；androidTest `ContactSendingInteractionTest`。
+  - 新增顶层函数 `flareLocationWebMapUrl(location, provider)`（宿主自己打开地点时的网页地图地址：参数优先、其次内容的 provider；缺坐标、超范围或线上的 0, 0 返回 null）和 `flareLocationProviderFrom(value)`（`chat.location` 配置值转服务商，未知回落 Osm；`FlareLocationProvider.fromWire` 仍是精确、可空的读法）。规则见 `spec/location-vectors.json` 的 `webMapUrl`、`providerFrom`。
 - 第六轮验收修复（插件卡片详情入口、inset）：
   - `PluginView` 卡片级「查看详情」：`view.detail` 为真、没有 entries 块在显示「查看全部」、可用、非 embedded，并且传了 `onOpenDetail` 时，在动作区下方画整宽的 Quiet 文字按钮（Sm，`pluginViewDetail`），点击调用 `onOpenDetail`；`busy` / `busyActionId` 时禁用。
   - `PluginViewInset` 新增 `SheetTop`（上 md、左右 lg、下不留），用于 PluginForm 上方的前言。`inset` 现在作用于所有状态：embedded 的内容（含不可用态）和宿主留在面板里的卡片外壳（外壳之外）。不可用的 embedded 视图把标题显示为一行次要文字。

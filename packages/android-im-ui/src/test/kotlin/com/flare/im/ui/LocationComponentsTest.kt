@@ -82,6 +82,32 @@ class LocationComponentsTest {
         }
     }
 
+    @Test fun providerValuesFollowTheSharedTable() {
+        val rows = vectors()["providerFrom"] as List<*>
+        assertTrue(rows.size >= 8, "the shared table lost cases: ${rows.size}")
+        for (raw in rows) {
+            val row = raw as Map<*, *>
+            assertEquals(row["output"], flareLocationProviderFrom(row["input"]).wire, row["id"] as String)
+        }
+    }
+
+    @Test fun webMapUrlsFollowTheSharedTable() {
+        val rows = vectors()["webMapUrl"] as List<*>
+        assertTrue(rows.size >= 10, "the shared table lost cases: ${rows.size}")
+        for (raw in rows) {
+            val row = raw as Map<*, *>
+            val input = row["input"] as Map<*, *>
+            val location = FlareLocationContent(
+                name = input["title"] as String? ?: "",
+                latitude = (input["latitude"] as Number?)?.toDouble(),
+                longitude = (input["longitude"] as Number?)?.toDouble(),
+                provider = flareLocationProviderFrom(input["provider"]),
+            )
+            val provider = row["provider"]?.let { flareLocationProviderFrom(it) }
+            assertEquals(row["output"], flareLocationWebMapUrl(location, provider), row["id"] as String)
+        }
+    }
+
     @Test fun providersReadTheirWireNames() {
         assertEquals(FlareLocationProvider.Amap, FlareLocationProvider.fromWire("amap"))
         assertEquals(FlareLocationProvider.Osm, FlareLocationProvider.fromWire("osm"))

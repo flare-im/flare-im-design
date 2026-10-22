@@ -2,6 +2,7 @@ package com.flare.im.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -93,6 +95,10 @@ internal fun contactDetailRow(hasPrimary: Boolean, intents: List<ContactDetailAc
     for (intent in intents) add(ContactDetailRowKey(intent, primary = intent == ContactDetailAction.Message && !hasPrimary))
 }
 
+/** Whether [key] spins and takes no clicks: only the host's primary action, and only while [primaryActionBusy]. */
+internal fun contactDetailKeyBusy(key: ContactDetailRowKey, primaryActionBusy: Boolean): Boolean =
+    primaryActionBusy && key.intent == null
+
 /**
  * The 资料 card rows (Vue `FlareContactDetail`): the Flare ID only when the host passes the contact's public handle
  * ([Contact.flareId]; the account id is internal and never shown); 备注 and 描述 are rows that open their editor (with
@@ -133,7 +139,9 @@ internal fun contactDetailInfoItems(
  *
  * A stranger's page gets its main step from [primaryActionLabel] with [onPrimaryAction] ("Add to contacts"): with both,
  * that key leads the action row as the primary key (person-add), where a friend's page has 发消息, and 发消息, when
- * handled, follows as a secondary key. It is not one of the footer's [extraActions].
+ * handled, follows as a secondary key. It is not one of the footer's [extraActions]. While the host runs it,
+ * [primaryActionBusy] puts a spinner in place of its icon and takes that key's clicks away; the rest of the page stays
+ * usable.
  *
  * Purely presentational — it renders [contact] + [starred] / [description] and emits
  * intents; the host owns edit sheets, confirmations, and persistence. Mirrors the Vue
@@ -164,6 +172,8 @@ fun ContactDetail(
     /** The page's primary action for someone who is not a contact yet ("Add to contacts"), first in the action row. */
     primaryActionLabel: String? = null,
     onPrimaryAction: (() -> Unit)? = null,
+    /** The host is carrying out the primary action: that key spins and takes no clicks; the others stay usable. */
+    primaryActionBusy: Boolean = false,
 ) {
     val colors = flareColors()
     Column(
@@ -206,7 +216,7 @@ fun ContactDetail(
         ) {
             row.forEach { key ->
                 when (key.intent) {
-                    null -> action(primaryActionLabel.orEmpty(), flareIconVector("person-add"), onPrimaryAction ?: {}, colors, Modifier.weight(1f), primary = true)
+                    null -> action(primaryActionLabel.orEmpty(), flareIconVector("person-add"), onPrimaryAction ?: {}, colors, Modifier.weight(1f), primary = true, busy = contactDetailKeyBusy(key, primaryActionBusy))
                     ContactDetailAction.Message -> action(labels.message, Icons.AutoMirrored.Outlined.Message, onMessage ?: {}, colors, Modifier.weight(1f), primary = key.primary)
                     ContactDetailAction.Call -> action(labels.voice, Icons.Outlined.Phone, onCall ?: {}, colors, Modifier.weight(1f))
                     ContactDetailAction.Video -> action(labels.video, Icons.Outlined.Videocam, onVideo ?: {}, colors, Modifier.weight(1f))
@@ -264,11 +274,28 @@ fun ContactDetail(
 }
 
 @Composable
-private fun action(label: String, icon: ImageVector, onClick: () -> Unit, colors: FlareColors, modifier: Modifier, primary: Boolean = false) {
+private fun action(
+    label: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    colors: FlareColors,
+    modifier: Modifier,
+    primary: Boolean = false,
+    busy: Boolean = false,
+) {
+    val container = if (primary) colors.primary else colors.bgSecondary
+    val content = if (primary) Color.White else colors.textPrimary
     Button(
         onClick = onClick,
-        colors = if (primary) ButtonDefaults.buttonColors(containerColor = colors.primary)
-        else ButtonDefaults.buttonColors(containerColor = colors.bgSecondary, contentColor = colors.textPrimary),
+        // The key the host is running keeps its colour (the spinner says why it takes no click), so its disabled
+        // colours are its own.
+        enabled = !busy,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = container,
+            contentColor = content,
+            disabledContainerColor = container,
+            disabledContentColor = content,
+        ),
         shape = RoundedCornerShape(FlareSizes.radiusLg),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = FlareSizes.spacingXs, vertical = FlareSizes.spacing2sm),
         // Parity with iOS/Flutter: action tiles float — brand-tinted glow on primary, soft neutral on the rest.
@@ -281,8 +308,14 @@ private fun action(label: String, icon: ImageVector, onClick: () -> Unit, colors
         ),
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
-            Icon(icon, null, tint = if (primary) Color.White else colors.textPrimary)
-            Text(label, fontSize = FlareSizes.fontSizeSm.value.sp, color = if (primary) Color.White else colors.textPrimary)
+            if (busy) {
+                Box(Modifier.size(24.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(Modifier.size(20.dp), color = content, strokeWidth = 2.dp)
+                }
+            } else {
+                Icon(icon, null, tint = content)
+            }
+            Text(label, fontSize = FlareSizes.fontSizeSm.value.sp, color = content)
         }
     }
 }

@@ -154,3 +154,25 @@ object FlareLocationFormat {
         return pixels(width) to pixels(height)
     }
 }
+
+/**
+ * The map service a `chat.location` config value names: the string `amap` (trimmed, any case) is AMap, anything else —
+ * `osm`, an unknown name, blank, null, not a string — is OpenStreetMap (`spec/location-vectors.json` providerFrom; the
+ * same on all four kits). [FlareLocationProvider.fromWire] stays the exact, nullable reading of a wire value.
+ */
+fun flareLocationProviderFrom(value: Any?): FlareLocationProvider =
+    if ((value as? String)?.trim()?.lowercase(Locale.ROOT) == FlareLocationProvider.Amap.wire) FlareLocationProvider.Amap
+    else FlareLocationProvider.Osm
+
+/**
+ * The web map a host opens for a location message: [FlareLocationFormat.webLink] for [provider] when given, else the
+ * location's own, named by its place. Null without a coordinate to open — one of the pair missing, out of range, or
+ * exactly 0, 0, which the wire writes for "none" (`spec/location-vectors.json` webMapUrl). The kit card opens the
+ * `geo:` link; this is for a host that opens the tenant's web map itself.
+ */
+fun flareLocationWebMapUrl(location: FlareLocationContent, provider: FlareLocationProvider? = null): String? {
+    val latitude = location.latitude ?: return null
+    val longitude = location.longitude ?: return null
+    if (latitude == 0.0 && longitude == 0.0) return null
+    return FlareLocationFormat.webLink(latitude, longitude, location.name, provider ?: location.provider)
+}
