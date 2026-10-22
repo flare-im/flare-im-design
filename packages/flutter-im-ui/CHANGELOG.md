@@ -1,5 +1,40 @@
 ## 未发布
 
+- 第六轮验收修复（插件卡片详情入口、inset）：
+  - `FlarePluginView` 卡片级「查看详情」：`view.detail` 为真、没有 entries 块在显示「查看全部」、可用、非 embedded，并且传了 `onOpenDetail` 时，在动作区下方画整宽的 quiet 文字按钮（size sm，`pluginViewDetail`，key `FlarePluginView.detailKey`），点击回调 `onOpenDetail`；`busy` / `busyActionId` 时禁用。新增纯函数 `flarePluginShowsDetailKey`。
+  - `FlarePluginViewInset` 新增 `sheetTop`（上 md、左右 lg、下不留），用于 PluginForm 上方的前言。新增 `flarePluginViewInsetPadding(inset)`。
+  - `inset` 现在作用于所有状态：embedded 的内容（含不可用态），以及宿主留在面板里的卡片外壳（外壳之外）。不可用的 embedded 视图把标题显示为一行次要文字。
+  - `FlareStrings` 新增 `pluginViewDetail`（「查看详情」/ "View details"）。
+- 插件卡片结算信号：`FlarePluginView` 新增 `settleToken`（int，宿主每完成一次动作加 1，并且先设好这次结果的 `error` / `formErrors`）。每次变化都结算：
+  - 没有错误：关闭已提交的表单面板，乐观选中保留到新视图到达。
+  - 有 `error`：撤回乐观选中，表单留着并显示它。
+  - 有 `formErrors`：表单留着，表单携带的选中一并撤回。
+  - `busyActionId` 离开该动作仍作为兜底；宿主在同一帧里设上又清掉 `busyActionId` 时，只能靠 `settleToken` 结算。
+  - 带表单的 choices 动作现在把选中和表单值一起提交（`{selection, formValues}`），与 Vue 一致。
+- `FlarePluginView` 新增 `inset`（`FlarePluginViewInset.none` / `sheet`）：embedded 加 sheet 时按底部面板留白（上 md、左右 lg、下 xl，与 `FlarePluginForm` 一致）。
+- `FlarePluginDetailSheet` 新增 `actionError`、`formErrors`、`members`、`settleToken`，原样交给内嵌 PluginView。已有的 `error` 仍表示加载失败。
+- `FlarePluginDetailSheet` 支持 detail 分页：
+  - 视图带 `nextCursor` 时，在内嵌视图下方显示「加载更多」（复用 `myInviteLoadMore`），点击回调 `onLoadMore(cursor)`。新增 `loadingMore`。
+  - 已请求的页在游标换掉之前不会再请求；`loadingMore` 由真变假、`settleToken` 变化或 `actionError` 变为非空后允许重试。
+  - `FlarePluginDetailSheet` 改为 StatefulWidget。
+  - `FlarePluginViewModel` 新增 `nextCursor` 与 `nextPageCursor`（空白视为最后一页）。
+- `FlareBottomSheet` 与 `FlareBottomSheet.show` 新增 `fill`：定高模式，面板占满上限，内容撑满剩余高度，交给 Modal 时就是 Modal 的 fill。
+  - 新增标记接口 `FlareSheetOwnHeader`：fill 时，内容（或 `show` 的 builder 返回的组件）实现了它，面板就只把 title 当可及名称，不画第二个标题。
+  - `FlareLocationPicker`、`FlareContactPicker` 已实现该接口；`FlarePluginForm` 的成员选择改用 fill。
+- `FlareLocationPicker` 新增：
+  - `sending`：发送键转圈并禁用。
+  - `ensurePermission`：`Future<bool> Function()`，每次定位前先等它；权限弹框的等待不计入 `locateTimeoutMs`，返回 false 时直接进入 denied。
+  - previewUrl 的宽高按新增的 `flareLocationPreviewSize` 计算（设备像素，屏幕倍率限制在 1 到 2 之间，见 `spec/location-vectors.json` 的 `previewSize`）。
+- `FlareFriendRequest` 新增 `source`，`FlareNewFriendRequests` 把它画在验证消息下方单独一行。
+- `FlareContactDetail` 新增 `primaryActionLabel` 与 `onPrimaryAction`：给陌生人的主操作排在操作行首位，作为主按钮；此时「发消息」改为次要键。它不放进页脚的 `extraActions`。
+- 「+」面板默认集（`FlareComposerActionPanel.defaultActions`）去掉 poll，改为 image、camera、video、file、voice、location、card。投票改由插件提供；`FlarePollComposer`、`FlareVoteMessage` 保留。
+- 插件卡片 v2：**破坏性**：`FlarePluginView` 改为接收 `view: FlarePluginViewModel`（`FlarePluginViewModel.fromJson` 解析核心 SDK 的 ResolvedPluginView；同一份 JSON 解析出的视图相等），`onAction` 改为 `(actionId, FlarePluginActionPayload)`。新增 `icon`、`busyActionId`、`error`、`embedded`、`resolveUser`、`members`、`formErrors`、`onOpenDetail`，以及块 text、fields、choices、entries、people、status、progress、time、divider、note（rows 只在 Vue），动作的 `style`、`confirm`（`FlareDangerConfirm.show`）与 `form`（Kit 面板里的 `FlarePluginForm`）。
+- 新增 `FlarePluginForm`、`FlarePluginDetailSheet`（`show` 在 Kit 面板上呈现）与 `models/plugin_view.dart` 的类型和纯函数（`flarePluginTimeText`、`flarePluginCountdown`、`flarePluginCheckForm`、`flarePluginFormValues`、`flarePluginIssueText`、`flarePluginFallbackName`，时间块读 `flarePluginNowMs`），规则见 `spec/plugin-view-vectors.json`。`FlareStrings` 新增 `pluginView*`、`pluginForm*`、`locationOsmAttribution` 与 `select`、`selectDate`、`selectTime`。
+- 位置：provider 为 osm 时，`FlareLocationMessage` 与 `FlareLocationPicker` 在静态图右下角显示 OpenStreetMap 署名（`FlareLocationMapSurface.attribution`），amap 时不显示；`FlareLocationPicker` 新增 `provider`（默认 osm）。
+- 位置：新增 `FlareLocationPicker`（选点面板内容，宿主回调 `requestCurrentLocation`、`searchNearby`、`reverseGeocode`、`previewUrl`，`initialLocation` 与 `locateTimeoutMs`；状态 `FlareLocationPickerState`，根节点以 `ValueKey(state)` 标出）。
+- **破坏性**：`FlareLocationMessage` 新增 `latitude`、`longitude`、`snapshotUrl`、`provider`，去掉 `mapImage`；没有静态图或加载失败时画地图底纹加中心点。`FlareLocationContent` 新增 `snapshotUrl`、`provider`。`FlareMessageContentView` / `FlareMessageBubble` / `FlareMessageList` 新增 `onLocationOpen`；没有时把按运行平台选出的地图链接（iOS、macOS 为 Apple 地图，Android 为 `geo:`，其余为服务商网页地图，`spec/location-vectors.json`）交给 `onOpenLink`。新增 `flareLocationMapLinks`、`flareLocationCoordinateLabel`、`flareLocationDistanceLabel` 与 `FlareLocationProvider` / `FlareLocationCoordinate` / `FlareLocationAddress` / `FlareLocationPlace`。
+- 名片：新增 `FlareContactPicker`（分组标签、搜索、懒加载列表、空态、「（我）」，单选点一行即 `onSelect`，多选由「确定」回传）与 `FlareContactPickerEntry`、`FlareContactPickerGroup`。**破坏性**：`FlareContactMessage.onOpen` 改为 `ValueChanged<String>`，回传新增的 `userId`；没有回调时不画箭头。`FlareCardContent` 新增 `userId`，列表、气泡、分发器新增 `onCardOpen`。
+- 「+」面板默认集改为 image、camera、video、file、voice、location、card、poll。图标 `locate`（注册表最后一项，共 108 个，`Icons.my_location_outlined`）。`FlareStrings` 新增 16 个位置与选择联系人字段。
 - 「+」面板默认集改为内置功能 image、video、file、voice、card、poll（图标 image / video / file / mic / card / poll），去掉 location 与 contact；`poll` 的文案取 `actionVote`。`FlareComposerAction` 新增可选 `kind`（`FlareComposerActionKind`：feature / plugin）与 `resolvedIcon`。
 - 图标 `plugin`（注册表最后一项，共 107 个，`Icons.extension_outlined`）：「+」面板里图标名不在注册表里的项画它（`flareComposerPluginIcon`），不再画兜底问号。
 - 图片、视频、文件保存后，下载键变成「在文件夹中显示」；宿主发现文件被删后传回 idle，键回到下载。收发两侧的消息时间都在右侧。详见仓库根 CHANGELOG。

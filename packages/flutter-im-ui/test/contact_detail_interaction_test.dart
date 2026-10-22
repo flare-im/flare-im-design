@@ -62,6 +62,59 @@ void main() {
     expect(opens, 1);
   });
 
+  testWidgets(
+    'a stranger page leads with the host primary action, Message following as secondary',
+    (tester) async {
+      final events = <String>[];
+      await _pump(
+        tester,
+        FlareContactDetail(
+          contact: const FlareContact(id: 'u_lin', name: '林夏'),
+          primaryActionLabel: '添加到通讯录',
+          onPrimaryAction: () => events.add('primary'),
+          onMessage: () => events.add('message'),
+          extraActions: const [
+            FlareDetailExtraAction(id: 'report', label: '举报'),
+          ],
+          onExtraAction: events.add,
+        ),
+      );
+      final primary = tester.widget<FlareButton>(
+        find.byKey(const ValueKey('flare-contact-primary-action')),
+      );
+      expect(primary.variant, FlareButtonVariant.primary);
+      final message = tester.widget<FlareButton>(_button(_labels.message));
+      expect(message.variant, FlareButtonVariant.secondary);
+      // It leads the action row, ahead of Message.
+      expect(
+        tester.getTopLeft(find.text('添加到通讯录')).dx,
+        lessThan(tester.getTopLeft(find.text(_labels.message)).dx),
+      );
+      // Not a footer key: the footer keeps only the host's extra actions.
+      expect(_button('举报'), findsOneWidget);
+      await _tap(tester, find.text('添加到通讯录'));
+      expect(events, ['primary']);
+    },
+  );
+
+  testWidgets('no primary action without both the label and the callback', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      FlareContactDetail(
+        contact: const FlareContact(id: 'u_lin', name: '林夏'),
+        primaryActionLabel: '添加到通讯录',
+        onMessage: () {},
+      ),
+    );
+    expect(find.text('添加到通讯录'), findsNothing);
+    expect(
+      tester.widget<FlareButton>(_button(_labels.message)).variant,
+      FlareButtonVariant.primary,
+    );
+  });
+
   testWidgets('without edit callbacks set values stay as read-only rows', (
     tester,
   ) async {

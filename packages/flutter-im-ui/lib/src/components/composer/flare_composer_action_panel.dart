@@ -150,11 +150,18 @@ class FlareComposerActionPanel extends StatelessWidget {
 
   /// The built-in features of the panel, in the order every platform shows
   /// them (contract `composerActions.defaults`). Labels come from
-  /// [FlareStrings]; a host list replaces the set whole.
+  /// [FlareStrings]; a host list replaces the set whole. Polls come from the
+  /// poll plugin, not from this set (PollComposer and VoteMessage stay for
+  /// history).
   static const List<FlareComposerAction> defaultActions = [
     FlareComposerAction(
       id: 'image',
       icon: 'image',
+      kind: FlareComposerActionKind.feature,
+    ),
+    FlareComposerAction(
+      id: 'camera',
+      icon: 'camera',
       kind: FlareComposerActionKind.feature,
     ),
     FlareComposerAction(
@@ -173,13 +180,13 @@ class FlareComposerActionPanel extends StatelessWidget {
       kind: FlareComposerActionKind.feature,
     ),
     FlareComposerAction(
-      id: 'card',
-      icon: 'card',
+      id: 'location',
+      icon: 'location',
       kind: FlareComposerActionKind.feature,
     ),
     FlareComposerAction(
-      id: 'poll',
-      icon: 'poll',
+      id: 'card',
+      icon: 'card',
       kind: FlareComposerActionKind.feature,
     ),
   ];

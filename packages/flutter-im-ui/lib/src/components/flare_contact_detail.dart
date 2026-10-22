@@ -22,10 +22,17 @@ import 'flare_settings_list.dart';
 /// shown only when set, the star toggle needs [onToggleStar], and the danger
 /// zone holds only the handled [onBlock] / [onRemove] (none without either). A
 /// stranger's profile therefore gets no friend-only controls.
+///
+/// Someone who is not a contact yet gets the page's main step from the host:
+/// [primaryActionLabel] with [onPrimaryAction] leads the action row as the
+/// primary key ("添加到通讯录"), and Message, when handled, follows as a
+/// secondary key. It is not one of the footer's [extraActions].
 class FlareContactDetail extends StatelessWidget {
   const FlareContactDetail({
     super.key,
     required this.contact,
+    this.primaryActionLabel,
+    this.onPrimaryAction,
     this.starred = false,
     this.description,
     this.labels = const FlareContactDetailLabels(),
@@ -42,6 +49,11 @@ class FlareContactDetail extends StatelessWidget {
   });
 
   final FlareContact contact;
+
+  /// Label of the page's primary action for someone who is not a contact yet;
+  /// drawn with [onPrimaryAction].
+  final String? primaryActionLabel;
+  final VoidCallback? onPrimaryAction;
 
   /// Whether the viewer has starred (favorited) this contact.
   final bool starred;
@@ -114,13 +126,25 @@ class FlareContactDetail extends StatelessWidget {
           value: starred,
         ),
     ];
+    final primaryLabel = primaryActionLabel ?? '';
+    // The host's primary action leads the row; Message is then a secondary
+    // key, so the row has one primary.
+    final lead = primaryLabel.isNotEmpty && onPrimaryAction != null;
     final actions = [
+      if (lead)
+        _action(
+          primaryLabel,
+          Icons.person_add_alt_1_outlined,
+          onPrimaryAction!,
+          primary: true,
+          key: const ValueKey('flare-contact-primary-action'),
+        ),
       if (onMessage != null)
         _action(
           labels.message,
           Icons.chat_bubble_outline_rounded,
           onMessage!,
-          primary: true,
+          primary: !lead,
         ),
       if (onCall != null) _action(labels.voice, Icons.call_outlined, onCall!),
       if (onVideo != null)
@@ -283,8 +307,10 @@ class FlareContactDetail extends StatelessWidget {
     IconData icon,
     VoidCallback onTap, {
     bool primary = false,
+    Key? key,
   }) {
     return FlareButton(
+      key: key,
       variant: primary
           ? FlareButtonVariant.primary
           : FlareButtonVariant.secondary,

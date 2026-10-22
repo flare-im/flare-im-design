@@ -21,6 +21,15 @@ enum FlareSheetPresentation {
   sheet,
 }
 
+/// Sheet content that draws its own header row (a title with Cancel, say).
+///
+/// On a [FlareBottomSheet] with `fill` whose child — or what
+/// [FlareBottomSheet.show]'s builder returns — implements this, the sheet
+/// keeps its title as the accessible name only, so the heading is not drawn
+/// twice. `FlareLocationPicker` and `FlareContactPicker` implement it. Without
+/// `fill` it changes nothing. Spec: BottomSheet notes ("Fill mode").
+abstract interface class FlareSheetOwnHeader {}
+
 /// The kit's surface for short, focused tasks — a confirm, a form, a picker,
 /// a prompt. Spec: Overlay/BottomSheet (`FlareBottomSheet`).
 ///
@@ -36,6 +45,12 @@ enum FlareSheetPresentation {
 /// Present it with [FlareBottomSheet.show], which owns the route, the scrim,
 /// drag and dismissal, so hosts never build a sheet route of their own.
 /// Long-lived secondary content belongs in FlareDrawer, not here.
+///
+/// With [fill] the surface takes its whole height cap and [child] fills what
+/// is left under the handle (and the title) — content with its own header
+/// that needs a definite height (a location or contact picker) goes straight
+/// in, with no fixed-height wrapper; a child that is a [FlareSheetOwnHeader]
+/// then keeps [title] as the accessible name only.
 class FlareBottomSheet extends StatelessWidget {
   const FlareBottomSheet({
     super.key,
@@ -43,6 +58,7 @@ class FlareBottomSheet extends StatelessWidget {
     this.titleHidden = false,
     this.maxHeight,
     this.presentation = FlareSheetPresentation.auto,
+    this.fill = false,
     required this.child,
   });
 
@@ -62,7 +78,16 @@ class FlareBottomSheet extends StatelessWidget {
   /// always a sheet. A FlareBottomSheet that [show] built keeps what [show]
   /// resolved when it opened.
   final FlareSheetPresentation presentation;
+
+  /// Fixed-height mode: the surface takes its whole cap ([maxHeight], else
+  /// 72% of the available height) and [child] fills the rest and owns its
+  /// scrolling. Handed to a FlareModal it is the modal's `fill`.
+  final bool fill;
   final Widget child;
+
+  /// The child draws its own header: in fill mode the title is not drawn.
+  bool get _contentOwnsHeader => fill && child is FlareSheetOwnHeader;
+  bool get _headingHidden => titleHidden || _contentOwnsHeader;
 
   /// Shows what [builder] returns in a kit sheet and resolves with the value
   /// the sheet pops (null when dismissed).
@@ -80,6 +105,10 @@ class FlareBottomSheet extends StatelessWidget {
   /// The route sits on the root navigator, so a sheet opened from a page
   /// inside a FlareDrawer covers the window. Motion is skipped when the
   /// platform asks for reduced motion.
+  ///
+  /// [fill] makes the surface take its whole cap and hands what [builder]
+  /// returns the rest of the height; when that widget is a
+  /// [FlareSheetOwnHeader] the title is the accessible name only.
   static Future<T?> show<T>(
     BuildContext context, {
     String? title,
@@ -88,24 +117,32 @@ class FlareBottomSheet extends StatelessWidget {
     ValueListenable<bool>? busy,
     double? maxHeight,
     FlareSheetPresentation presentation = FlareSheetPresentation.auto,
+    bool fill = false,
     required WidgetBuilder builder,
   }) {
     final asModal =
         presentation == FlareSheetPresentation.auto &&
         !flareCapabilitiesOf(context).bottomSheet;
+    final resolved = asModal
+        ? FlareSheetPresentation.auto
+        : FlareSheetPresentation.sheet;
+    Widget sheet(Widget child) => FlareBottomSheet(
+      title: title,
+      titleHidden: titleHidden,
+      maxHeight: maxHeight,
+      presentation: resolved,
+      fill: fill,
+      child: child,
+    );
     Widget frame(BuildContext routeContext) => FlareSheetResolution(
       asModal: asModal,
       dismissible: dismissible,
       busy: busy,
-      child: FlareBottomSheet(
-        title: title,
-        titleHidden: titleHidden,
-        maxHeight: maxHeight,
-        presentation: asModal
-            ? FlareSheetPresentation.auto
-            : FlareSheetPresentation.sheet,
-        child: Builder(builder: builder),
-      ),
+      // In fill mode the sheet has to see the content itself to know whether
+      // it brings its own header, so the builder runs just above the sheet.
+      child: fill
+          ? Builder(builder: (inner) => sheet(builder(inner)))
+          : sheet(Builder(builder: builder)),
     );
     if (asModal) {
       return FlareModal.show<T>(
@@ -201,7 +238,7 @@ class FlareBottomSheet extends StatelessWidget {
     final busy = resolution?.busy;
     final dismissible = resolution?.dismissible ?? true;
     final title = this.title;
-    final headed = title != null && title.isNotEmpty && !titleHidden;
+    final headed = title != null && title.isNotEmpty && !_headingHidden;
     // Without a header row the content would start at the box's edge; the
     // sheet's handle gives it that room, so the Modal form keeps it.
     final body = headed
@@ -212,8 +249,9 @@ class FlareBottomSheet extends StatelessWidget {
           );
     Widget modal(bool isBusy) => FlareModal(
       title: title,
-      titleHidden: titleHidden,
+      titleHidden: _headingHidden,
       maxHeight: maxHeight,
+      fill: fill,
       dismissible: dismissible,
       busy: isBusy,
       showClose: false,
@@ -232,6 +270,7 @@ class FlareBottomSheet extends StatelessWidget {
     final title = this.title;
     final named = title != null && title.isNotEmpty;
     final cap = maxHeight ?? flareOverlayDefaultMaxHeight(context);
+    final headingHidden = _headingHidden;
     Widget frame = DecoratedBox(
       decoration: BoxDecoration(
         color: colors.bgPrimary,
@@ -242,11 +281,14 @@ class FlareBottomSheet extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: cap),
+          // Fill mode takes the whole cap (never more than the route allows).
+          constraints: fill
+              ? BoxConstraints.tightFor(height: cap)
+              : BoxConstraints(maxHeight: cap),
           child: FlareOverlaySurface(
             kind: FlareOverlayKind.sheet,
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize: fill ? MainAxisSize.max : MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Center(
@@ -264,7 +306,7 @@ class FlareBottomSheet extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (named && !titleHidden)
+                if (named && !headingHidden)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(
                       FlareSizes.spacingLg,
@@ -289,14 +331,14 @@ class FlareBottomSheet extends StatelessWidget {
                       ),
                     ),
                   ),
-                Flexible(child: child),
+                if (fill) Expanded(child: child) else Flexible(child: child),
               ],
             ),
           ),
         ),
       ),
     );
-    if (named && titleHidden) {
+    if (named && headingHidden) {
       frame = Semantics(
         container: true,
         explicitChildNodes: true,

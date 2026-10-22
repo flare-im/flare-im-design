@@ -88,6 +88,18 @@ class FlareNewFriendRequests extends StatelessWidget {
                             fontSize: FlareSizes.fontSizeSm,
                           ),
                         ),
+                      // 来源是另一件事:自己一行,不和验证消息挤在一行。
+                      if (r.source != null && r.source!.isNotEmpty)
+                        Text(
+                          r.source!,
+                          key: ValueKey('flare-friend-request-source-${r.id}'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: colors.textTertiary,
+                            fontSize: FlareSizes.fontSizeSm,
+                          ),
+                        ),
                     ],
                   ),
                 ),

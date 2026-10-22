@@ -153,7 +153,15 @@ void main() {
       final ids = FlareComposerActionPanel.defaultActions
           .map((a) => a.id)
           .toList();
-      expect(ids, ['image', 'video', 'file', 'voice', 'card', 'poll']);
+      expect(ids, [
+        'image',
+        'camera',
+        'video',
+        'file',
+        'voice',
+        'location',
+        'card',
+      ]);
       // Default tiles carry no baked-in label; it is resolved from strings.
       for (final a in FlareComposerActionPanel.defaultActions) {
         expect(a.label, isNull);

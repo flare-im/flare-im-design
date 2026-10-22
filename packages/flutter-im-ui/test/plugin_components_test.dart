@@ -120,10 +120,12 @@ void main() {
       await tester.pumpWidget(
         host(
           const FlarePluginView(
-            available: false,
-            title: 'History',
-            fields: [FlarePluginField(label: 'Private', value: 'secret')],
-            actions: [FlarePluginAction(id: 'claim', label: 'Claim')],
+            view: FlarePluginViewModel(
+              available: false,
+              title: 'History',
+              fields: [FlarePluginField(label: 'Private', value: 'secret')],
+              actions: [FlarePluginAction(id: 'claim', label: 'Claim')],
+            ),
           ),
         ),
       );
@@ -137,11 +139,13 @@ void main() {
     (tester) async {
       final calls = <String>[];
       Widget card(bool busy) => FlarePluginView(
-        available: true,
-        title: 'AI',
+        view: const FlarePluginViewModel(
+          available: true,
+          title: 'AI',
+          actions: [FlarePluginAction(id: 'draft', label: 'Generate')],
+        ),
         busy: busy,
-        actions: const [FlarePluginAction(id: 'draft', label: 'Generate')],
-        onAction: calls.add,
+        onAction: (id, _) => calls.add(id),
       );
       await tester.pumpWidget(host(card(false)));
       await tester.tap(find.text('Generate'));
@@ -225,22 +229,24 @@ void main() {
                           ),
                           const SizedBox(height: 24),
                           FlarePluginView(
-                            available: true,
-                            title: 'AI 插件 · AI draft',
-                            fields: const [
-                              FlarePluginField(
-                                label: '结果 / Result',
-                                value:
-                                    'All components come from Flare IM Design.',
-                              ),
-                            ],
-                            actions: const [
-                              FlarePluginAction(
-                                id: 'draft',
-                                label: '生成 / Generate',
-                              ),
-                            ],
-                            onAction: (_) {},
+                            view: const FlarePluginViewModel(
+                              available: true,
+                              title: 'AI 插件 · AI draft',
+                              fields: [
+                                FlarePluginField(
+                                  label: '结果 / Result',
+                                  value:
+                                      'All components come from Flare IM Design.',
+                                ),
+                              ],
+                              actions: [
+                                FlarePluginAction(
+                                  id: 'draft',
+                                  label: '生成 / Generate',
+                                ),
+                              ],
+                            ),
+                            onAction: (_, _) {},
                           ),
                         ],
                       ),

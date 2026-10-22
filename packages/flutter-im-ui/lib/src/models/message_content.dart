@@ -7,6 +7,8 @@
 /// labelled chip unless a custom builder is registered.
 library;
 
+import 'location.dart' show FlareLocationProvider;
+
 abstract class FlareMessageContent {
   const FlareMessageContent();
 
@@ -327,11 +329,22 @@ class FlareLocationContent extends FlareMessageContent {
     this.address = '',
     this.latitude,
     this.longitude,
+    this.snapshotUrl,
+    this.provider = FlareLocationProvider.osm,
   });
   final String name;
   final String address;
+
+  /// WGS-84. Without both coordinates the card opens nothing.
   final double? latitude;
   final double? longitude;
+
+  /// The signed static map (`LocationContent.snapshot_url`); without it the
+  /// card draws the map texture with a centre pin.
+  final String? snapshotUrl;
+
+  /// The tenant's map service: which web map the card opens by default.
+  final FlareLocationProvider provider;
   @override
   String get type => 'location';
 }
@@ -372,7 +385,12 @@ class FlareCardContent extends FlareMessageContent {
     this.subtitle,
     this.imageUrl,
     this.sourceLabel,
+    this.userId,
   });
+
+  /// The person a contact card names (`CardContent.id` of a `cardType`
+  /// "user" card). A card with one reports it to the host on a tap.
+  final String? userId;
   final String title;
   final String? subtitle;
   final String? imageUrl;

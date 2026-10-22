@@ -27,26 +27,30 @@ void main() {
     const defaults = FlareComposerActionPanel.defaultActions;
     expect(defaults.map((a) => a.id), [
       'image',
+      'camera',
       'video',
       'file',
       'voice',
+      'location',
       'card',
-      'poll',
     ]);
     expect(defaults.map((a) => a.icon), [
       'image',
+      'camera',
       'video',
       'file',
       'mic',
+      'location',
       'card',
-      'poll',
     ]);
+    // Polls come from the poll plugin now.
+    expect(defaults.any((a) => a.id == 'poll'), isFalse);
     for (final action in defaults) {
       expect(action.kind, FlareComposerActionKind.feature);
       expect(action.label, isNull, reason: action.id);
       expect(flareIconNames, contains(action.icon));
     }
-    expect(defaults.any((a) => a.id == 'location'), isFalse);
+    expect(defaults.any((a) => a.id == 'contact'), isFalse);
   });
 
   test('every built-in id is labelled by the kit in Chinese and English', () {
@@ -54,10 +58,10 @@ void main() {
         .defaultActions
         .map((a) => a.resolveLabel(strings))
         .join(',');
-    expect(labels(const FlareStrings()), '图片,视频,文件,语音,名片,投票');
+    expect(labels(const FlareStrings()), '图片,拍摄,视频,文件,语音,位置,名片');
     expect(
       labels(flareStringsEnglish),
-      'Photo,Video,File,Voice,Contact card,Poll',
+      'Photo,Camera,Video,File,Voice,Location,Contact card',
     );
   });
 
@@ -98,13 +102,15 @@ void main() {
     await tester.pumpWidget(_host(const FlareComposerActionPanel()));
     expect(_glyphs(tester), [
       flareIconMap['image'],
+      flareIconMap['camera'],
       flareIconMap['video'],
       flareIconMap['file'],
       flareIconMap['mic'],
+      flareIconMap['location'],
       flareIconMap['card'],
-      flareIconMap['poll'],
     ]);
-    for (final label in ['图片', '视频', '文件', '语音', '名片', '投票']) {
+    expect(find.text('投票'), findsNothing);
+    for (final label in ['图片', '拍摄', '视频', '文件', '语音', '位置', '名片']) {
       expect(find.text(label), findsOneWidget);
     }
   });

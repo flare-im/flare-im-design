@@ -8,6 +8,7 @@ import 'flare_media_controller.dart';
 import 'flare_message_bodies.dart';
 import 'flare_image_group_message.dart';
 import 'flare_rich_text_message.dart';
+import '../models/location.dart';
 import '../models/message_content.dart';
 import 'flare_media_image.dart';
 import '../models/url_safety.dart';
@@ -43,7 +44,8 @@ class FlareContentContext {
   /// Host handles every media tap (image, video, voice, file…). Without it the
   /// kit opens images and videos in its own viewer and plays voice messages in
   /// place; files go to `FlareMessageContentView.onOpenFile`, links to
-  /// `onOpenLink`, and locations do nothing.
+  /// `onOpenLink`, and locations to `onLocationOpen` (else their map link to
+  /// `onOpenLink`).
   final void Function(FlareMessageContent content)? onMediaAction;
 
   /// Host opens a link tapped in a text body or on a link card. The kit never
@@ -140,8 +142,12 @@ abstract final class FlareContentRegistry {
 /// [FlareVideoPlayer], and a voice message plays in place through the nearest
 /// [FlareMediaController] — the one `FlareMessageList` provides, so one voice
 /// message plays at a time. A file tap then goes to [onOpenFile] and a link
-/// (in a text body or on a link card) to [onOpenLink]; locations stay host
-/// actions. The kit never leaves the app itself.
+/// (in a text body or on a link card) to [onOpenLink]. A location goes to
+/// [onLocationOpen]; without it the kit hands the platform's default map link
+/// (Apple Maps on iOS and macOS, a `geo:` URI on Android, the provider's web
+/// map elsewhere — `spec/location-vectors.json`) to [onOpenLink]. A person's
+/// card reports its user id to [onCardOpen]. The kit never leaves the app
+/// itself.
 ///
 /// A poll's options and a task's checkbox are controls only with [onVote] and
 /// [onTaskToggle]; without them the bodies are read-only.
@@ -162,6 +168,8 @@ class FlareMessageContentView extends StatelessWidget {
     this.onLocate,
     this.onVote,
     this.onTaskToggle,
+    this.onCardOpen,
+    this.onLocationOpen,
     this.onMediaDownload,
     this.onMediaReveal,
     this.uploading = false,
@@ -198,7 +206,9 @@ class FlareMessageContentView extends StatelessWidget {
 
   /// A link tapped in a text body or on a link card. The kit checks the
   /// address with `safeExternalUrl` first: only `http` and `https` reach the
-  /// host, which opens it (the kit never leaves the app itself).
+  /// host, which opens it (the kit never leaves the app itself). A location
+  /// card without [onLocationOpen] hands over the map link the kit built from
+  /// its coordinate, which on Android is a `geo:` URI.
   final ValueChanged<String>? onOpenLink;
   final VoidCallback? onLocate;
 
@@ -207,6 +217,14 @@ class FlareMessageContentView extends StatelessWidget {
 
   /// A tapped task checkbox, with the done state the user asks for.
   final ValueChanged<bool>? onTaskToggle;
+
+  /// A tapped person's card, with its user id: the host opens the profile.
+  /// A card without a user id, or without this, only displays.
+  final ValueChanged<String>? onCardOpen;
+
+  /// A tapped location card. Without it the default map link of the platform
+  /// goes to [onOpenLink]; without either the card only displays.
+  final ValueChanged<FlareLocationContent>? onLocationOpen;
 
   /// The download key of a file card, of the kit's image preview (with the
   /// picture on screen) and of its video player; without it none of them has
@@ -433,13 +451,20 @@ class FlareMessageContentView extends StatelessWidget {
       FlareLocationContent c => FlareLocationMessage(
         title: c.name,
         address: c.address,
-        onOpen: action(c),
+        latitude: _coordinate(c).$1,
+        longitude: _coordinate(c).$2,
+        snapshotUrl: c.snapshotUrl,
+        provider: c.provider,
+        onOpen: _locationOpener(c, action(c)),
       ),
       FlareCardContent c => FlareContactMessage(
         name: c.title,
         subtitle: c.subtitle,
         avatarUrl: c.imageUrl,
-        onOpen: action(c),
+        userId: c.userId ?? '',
+        onOpen: (c.userId?.isNotEmpty ?? false) && onCardOpen != null
+            ? (id) => onCardOpen!(id)
+            : (action(c) == null ? null : (_) => onMediaAction!(c)),
       ),
       FlareLinkCardContent c => FlareLinkCardMessage(
         title: c.title,
@@ -503,6 +528,28 @@ class FlareMessageContentView extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  /// The coordinate a location card draws. The wire writes an absent
+  /// coordinate as 0, 0: that pair is "no coordinate", not a place to open.
+  static (double?, double?) _coordinate(FlareLocationContent c) =>
+      c.latitude == 0 && c.longitude == 0 ? (null, null) : (c.latitude, c.longitude);
+
+  /// What a location tap does: the host's [onLocationOpen], then the media
+  /// handler, then the platform's default map link through [onOpenLink].
+  VoidCallback? _locationOpener(FlareLocationContent c, VoidCallback? media) {
+    if (onLocationOpen != null) return () => onLocationOpen!(c);
+    if (media != null) return media;
+    final (lat, lng) = _coordinate(c);
+    final links = flareLocationMapLinks(
+      latitude: lat ?? double.nan,
+      longitude: lng ?? double.nan,
+      title: c.name,
+      provider: c.provider,
+    );
+    final open = onOpenLink;
+    if (links == null || open == null) return null;
+    return () => open(links.forPlatform(defaultTargetPlatform));
   }
 
   /// A video's length as its badge shows it; null when it is unknown, so the

@@ -9,7 +9,9 @@ import '../emoji_sticker/emoji_sticker.dart';
 import 'action_icon.dart';
 import 'flare_media_image.dart';
 import 'flare_icon.dart';
+import 'flare_location_map.dart';
 import 'icon_control.dart';
+import '../models/location.dart';
 
 /// Canonical content-only message bodies. MessageBubble owns chrome and metadata.
 /// Standalone, presentational per-type message bodies (clean params, no SDK /
@@ -737,103 +739,172 @@ class FlareFileMessage extends StatelessWidget {
   }
 }
 
-/// location — a map image (or placeholder) over title / address; emits `onOpen`.
+/// location — the static map (or a drawn map with a centre pin), then the
+/// place and its address. The card is a control only with [onOpen]; inside
+/// [FlareMessageContentView] a host without its own handler gets the default
+/// map link of the platform (`spec/location-vectors.json`) through `onOpenLink`.
+/// Without an address the coordinate line stands in, so the second line is
+/// never blank. Spec: Message/LocationMessage.
 class FlareLocationMessage extends StatelessWidget {
   const FlareLocationMessage({
     super.key,
     required this.title,
     this.address = '',
-    this.mapImage,
+    this.latitude,
+    this.longitude,
+    this.snapshotUrl,
+    this.provider = FlareLocationProvider.osm,
     this.onOpen,
   });
 
   final String title;
   final String address;
-  final String? mapImage;
+
+  /// WGS-84 latitude, -90..90.
+  final double? latitude;
+
+  /// WGS-84 longitude, -180..180.
+  final double? longitude;
+
+  /// Signed static map from the host (the geo proxy); without it, or when it
+  /// fails, the drawn map shows.
+  final String? snapshotUrl;
+
+  /// The tenant's map service: which web map the default link opens.
+  final FlareLocationProvider provider;
   final VoidCallback? onOpen;
+
+  /// The card's width and its map's height; request the snapshot at twice
+  /// that.
+  static const Size mapSize = Size(264, 132);
+
+  /// The default links of this card, or null without a valid coordinate.
+  FlareLocationMapLinks? get links => flareLocationMapLinks(
+    latitude: latitude ?? double.nan,
+    longitude: longitude ?? double.nan,
+    title: title,
+    provider: provider,
+  );
 
   @override
   Widget build(BuildContext context) {
     final c = FlareColors.of(context);
-    return _tap(
-      onOpen,
-      ClipRRect(
-        borderRadius: _bubbleRadius(),
-        child: Container(
-          width: 264,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                height: 84,
-                child: _netImage(
-                  mapImage,
-                  placeholder: Container(
-                    color: Color.alphaBlend(
-                      c.primary.withValues(alpha: 0.08),
-                      c.bgTertiary,
-                    ),
-                    child: Icon(
-                      Icons.location_on_outlined,
-                      color: c.primary,
-                      size: 22,
+    final strings = FlareStrings.of(context);
+    final detail = address.trim().isNotEmpty
+        ? address.trim()
+        : (flareLocationCoordinateLabel(
+                latitude ?? double.nan,
+                longitude ?? double.nan,
+              ) ??
+              '');
+    final card = ClipRRect(
+      borderRadius: _bubbleRadius(),
+      child: Container(
+        width: mapSize.width,
+        decoration: BoxDecoration(
+          color: c.bgPrimary,
+          border: Border.all(color: c.borderSecondary),
+          borderRadius: _bubbleRadius(),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              height: mapSize.height,
+              child: FlareLocationMapSurface(
+                src: snapshotUrl,
+                // OpenStreetMap's licence (ODbL) asks for its credit wherever
+                // its map shows; AMap's static map carries its own.
+                attribution: provider == FlareLocationProvider.osm
+                    ? strings.locationOsmAttribution
+                    : null,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: FlareSizes.spacingMd,
+                vertical: FlareSizes.spacingSm,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: FlareSizes.fontSizeLg,
+                      fontWeight: FontWeight.w500,
+                      color: c.textPrimary,
                     ),
                   ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
+                  if (detail.isNotEmpty)
                     Text(
-                      title,
+                      detail,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: FlareSizes.fontSizeLg,
-                        fontWeight: FontWeight.w500,
-                        color: c.textPrimary,
+                        fontSize: FlareSizes.fontSizeSm,
+                        color: c.textTertiary,
                       ),
                     ),
-                    Text(
-                      address,
-                      style: TextStyle(fontSize: 11, color: c.textTertiary),
-                    ),
-                  ],
-                ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
+    );
+    final label = [title, detail].where((part) => part.isNotEmpty).join(', ');
+    return Semantics(
+      container: true,
+      button: onOpen != null,
+      label: label,
+      hint: onOpen == null ? null : strings.locationOpenInMaps,
+      excludeSemantics: true,
+      child: onOpen == null
+          ? card
+          : Material(
+              type: MaterialType.transparency,
+              child: InkWell(
+                onTap: onOpen,
+                borderRadius: _bubbleRadius(),
+                child: card,
+              ),
+            ),
     );
   }
 }
 
 /// contact / business card — avatar (image or pastel initials) + name /
-/// subtitle; emits `onOpen`.
+/// subtitle. With [onOpen] the card is a control that reports [userId], so the
+/// host opens the person's profile; without it the card only displays (and
+/// draws no chevron). Spec: Message/ContactMessage.
 class FlareContactMessage extends StatelessWidget {
   const FlareContactMessage({
     super.key,
     required this.name,
     this.subtitle,
     this.avatarUrl,
+    this.userId = '',
     this.onOpen,
   });
 
   final String name;
   final String? subtitle;
   final String? avatarUrl;
-  final VoidCallback? onOpen;
+
+  /// The person the card names; [onOpen] receives it.
+  final String userId;
+  final ValueChanged<String>? onOpen;
 
   @override
   Widget build(BuildContext context) {
     final c = FlareColors.of(context);
     final tint = FlareAvatar.seedTint(name, c);
+    final open = onOpen;
     final avatar = ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: SizedBox(
@@ -857,7 +928,7 @@ class FlareContactMessage extends StatelessWidget {
       ),
     );
     return _tap(
-      onOpen,
+      open == null ? null : () => open(userId),
       Container(
         constraints: const BoxConstraints(minWidth: 240),
         padding: EdgeInsets.zero,
@@ -889,8 +960,10 @@ class FlareContactMessage extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 8),
-            Icon(Icons.chevron_right, size: 16, color: c.textTertiary),
+            if (open != null) ...[
+              const SizedBox(width: 8),
+              Icon(Icons.chevron_right, size: 16, color: c.textTertiary),
+            ],
           ],
         ),
       ),

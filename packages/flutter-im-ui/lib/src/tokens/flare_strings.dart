@@ -136,6 +136,44 @@ class FlareStrings {
     this.packetNoClaims = '暂无人领取',
     this.packetClaims = '领取记录',
     this.packetDetailTitle = '红包详情',
+    // 位置选点与名片选择
+    this.locationTitle = '位置',
+    this.locationSend = '发送',
+    this.locationLocateMe = '定位到当前位置',
+    this.locationLocating = '正在定位…',
+    this.locationDenied = '无法获取定位，可以搜索地点',
+    this.locationSearchPlaceholder = '搜索地点',
+    this.locationNoResults = '附近没有找到地点',
+    this.locationMapUnavailable = '地图暂不可用',
+    this.locationOpenInMaps = '在地图中打开',
+    this.locationCurrent = '当前位置',
+    this.contactPickerTitle = '选择联系人',
+    this.contactPickerFriends = '好友',
+    this.contactPickerGroupMembers = '群成员',
+    this.contactPickerSearch = '搜索',
+    this.contactPickerEmpty = '没有联系人',
+    this.contactPickerSelfSuffix = '（我）',
+    // 插件卡片 v2、位置署名
+    this.locationOsmAttribution = '© OpenStreetMap contributors',
+    this.pluginViewSubmit = '提交',
+    this.pluginViewEnded = '已结束',
+    this.pluginViewDeadlinePassed = '已截止',
+    this.pluginViewSeeAll = '查看全部（{count}）',
+    this.pluginViewDetail = '查看详情',
+    this.pluginViewVotes = '{count} 票',
+    this.pluginViewRemaining = '剩余 {time}',
+    this.pluginViewDateTimeFormat = 'M月d日 HH:mm',
+    this.pluginViewDateTimeYearFormat = 'y年M月d日 HH:mm',
+    this.pluginFormRequired = '必填',
+    this.pluginFormTooLong = '超出长度',
+    this.pluginFormOutOfRange = '超出范围',
+    this.pluginFormTooFewItems = '至少 {n} 项',
+    this.pluginFormTooManyItems = '最多 {n} 项',
+    this.pluginFormDuplicateItem = '不能重复',
+    this.pluginFormInvalid = '格式不正确',
+    this.select = '选择',
+    this.selectDate = '选择日期',
+    this.selectTime = '选择时间',
     this.packetFieldTotal = '总金额',
     this.packetFieldEach = '单个金额',
     this.packetFieldAmount = '金额',
@@ -851,6 +889,53 @@ class FlareStrings {
   final String packetNoClaims;
   final String packetClaims;
   final String packetDetailTitle;
+
+  // 位置选点（FlareLocationPicker、FlareLocationMessage）与名片选择（FlareContactPicker）
+  final String locationTitle;
+  final String locationSend;
+  final String locationLocateMe;
+  final String locationLocating;
+  final String locationDenied;
+  final String locationSearchPlaceholder;
+  final String locationNoResults;
+  final String locationMapUnavailable;
+  final String locationOpenInMaps;
+  final String locationCurrent;
+  final String contactPickerTitle;
+  final String contactPickerFriends;
+  final String contactPickerGroupMembers;
+  final String contactPickerSearch;
+  final String contactPickerEmpty;
+  final String contactPickerSelfSuffix;
+
+  /// OpenStreetMap's data credit (ODbL), drawn on its static maps; not translated.
+  final String locationOsmAttribution;
+  final String pluginViewSubmit;
+  final String pluginViewEnded;
+  final String pluginViewDeadlinePassed;
+  final String pluginViewSeeAll;
+
+  /// The card's key to the detail view when no entries block offers "see all".
+  final String pluginViewDetail;
+  final String pluginViewVotes;
+  final String pluginViewRemaining;
+
+  /// Date-time pattern of plugin time blocks: y year, M month, MMM Jan..Dec, d day, HH hour, mm minute; other characters are literal.
+  final String pluginViewDateTimeFormat;
+
+  /// The same, for an instant outside the current year.
+  final String pluginViewDateTimeYearFormat;
+  final String pluginFormRequired;
+  final String pluginFormTooLong;
+  final String pluginFormOutOfRange;
+  final String pluginFormTooFewItems;
+  final String pluginFormTooManyItems;
+  final String pluginFormDuplicateItem;
+  final String pluginFormInvalid;
+  final String select;
+  final String selectDate;
+  final String selectTime;
+
   final String packetFieldTotal;
   final String packetFieldEach;
   final String packetFieldAmount;
@@ -1577,6 +1662,42 @@ class FlareStrings {
     String? packetNoClaims,
     String? packetClaims,
     String? packetDetailTitle,
+    String? locationTitle,
+    String? locationSend,
+    String? locationLocateMe,
+    String? locationLocating,
+    String? locationDenied,
+    String? locationSearchPlaceholder,
+    String? locationNoResults,
+    String? locationMapUnavailable,
+    String? locationOpenInMaps,
+    String? locationCurrent,
+    String? contactPickerTitle,
+    String? contactPickerFriends,
+    String? contactPickerGroupMembers,
+    String? contactPickerSearch,
+    String? contactPickerEmpty,
+    String? contactPickerSelfSuffix,
+    String? locationOsmAttribution,
+    String? pluginViewSubmit,
+    String? pluginViewEnded,
+    String? pluginViewDeadlinePassed,
+    String? pluginViewSeeAll,
+    String? pluginViewDetail,
+    String? pluginViewVotes,
+    String? pluginViewRemaining,
+    String? pluginViewDateTimeFormat,
+    String? pluginViewDateTimeYearFormat,
+    String? pluginFormRequired,
+    String? pluginFormTooLong,
+    String? pluginFormOutOfRange,
+    String? pluginFormTooFewItems,
+    String? pluginFormTooManyItems,
+    String? pluginFormDuplicateItem,
+    String? pluginFormInvalid,
+    String? select,
+    String? selectDate,
+    String? selectTime,
     String? packetFieldTotal,
     String? packetFieldEach,
     String? packetFieldAmount,
@@ -2213,6 +2334,42 @@ class FlareStrings {
       packetNoClaims: packetNoClaims ?? this.packetNoClaims,
       packetClaims: packetClaims ?? this.packetClaims,
       packetDetailTitle: packetDetailTitle ?? this.packetDetailTitle,
+      locationTitle: locationTitle ?? this.locationTitle,
+      locationSend: locationSend ?? this.locationSend,
+      locationLocateMe: locationLocateMe ?? this.locationLocateMe,
+      locationLocating: locationLocating ?? this.locationLocating,
+      locationDenied: locationDenied ?? this.locationDenied,
+      locationSearchPlaceholder: locationSearchPlaceholder ?? this.locationSearchPlaceholder,
+      locationNoResults: locationNoResults ?? this.locationNoResults,
+      locationMapUnavailable: locationMapUnavailable ?? this.locationMapUnavailable,
+      locationOpenInMaps: locationOpenInMaps ?? this.locationOpenInMaps,
+      locationCurrent: locationCurrent ?? this.locationCurrent,
+      contactPickerTitle: contactPickerTitle ?? this.contactPickerTitle,
+      contactPickerFriends: contactPickerFriends ?? this.contactPickerFriends,
+      contactPickerGroupMembers: contactPickerGroupMembers ?? this.contactPickerGroupMembers,
+      contactPickerSearch: contactPickerSearch ?? this.contactPickerSearch,
+      contactPickerEmpty: contactPickerEmpty ?? this.contactPickerEmpty,
+      contactPickerSelfSuffix: contactPickerSelfSuffix ?? this.contactPickerSelfSuffix,
+      locationOsmAttribution: locationOsmAttribution ?? this.locationOsmAttribution,
+      pluginViewSubmit: pluginViewSubmit ?? this.pluginViewSubmit,
+      pluginViewEnded: pluginViewEnded ?? this.pluginViewEnded,
+      pluginViewDeadlinePassed: pluginViewDeadlinePassed ?? this.pluginViewDeadlinePassed,
+      pluginViewSeeAll: pluginViewSeeAll ?? this.pluginViewSeeAll,
+      pluginViewDetail: pluginViewDetail ?? this.pluginViewDetail,
+      pluginViewVotes: pluginViewVotes ?? this.pluginViewVotes,
+      pluginViewRemaining: pluginViewRemaining ?? this.pluginViewRemaining,
+      pluginViewDateTimeFormat: pluginViewDateTimeFormat ?? this.pluginViewDateTimeFormat,
+      pluginViewDateTimeYearFormat: pluginViewDateTimeYearFormat ?? this.pluginViewDateTimeYearFormat,
+      pluginFormRequired: pluginFormRequired ?? this.pluginFormRequired,
+      pluginFormTooLong: pluginFormTooLong ?? this.pluginFormTooLong,
+      pluginFormOutOfRange: pluginFormOutOfRange ?? this.pluginFormOutOfRange,
+      pluginFormTooFewItems: pluginFormTooFewItems ?? this.pluginFormTooFewItems,
+      pluginFormTooManyItems: pluginFormTooManyItems ?? this.pluginFormTooManyItems,
+      pluginFormDuplicateItem: pluginFormDuplicateItem ?? this.pluginFormDuplicateItem,
+      pluginFormInvalid: pluginFormInvalid ?? this.pluginFormInvalid,
+      select: select ?? this.select,
+      selectDate: selectDate ?? this.selectDate,
+      selectTime: selectTime ?? this.selectTime,
       packetFieldTotal: packetFieldTotal ?? this.packetFieldTotal,
       packetFieldEach: packetFieldEach ?? this.packetFieldEach,
       packetFieldAmount: packetFieldAmount ?? this.packetFieldAmount,

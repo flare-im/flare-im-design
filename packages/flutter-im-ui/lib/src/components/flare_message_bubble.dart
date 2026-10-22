@@ -54,6 +54,8 @@ class FlareMessageBubble extends StatelessWidget {
     this.onLocateMessage,
     this.onVote,
     this.onTaskToggle,
+    this.onCardOpen,
+    this.onLocationOpen,
     this.onMediaDownload,
     this.onMediaReveal,
   });
@@ -103,6 +105,15 @@ class FlareMessageBubble extends StatelessWidget {
   /// A tapped task checkbox, with the done state asked for; without it, or in
   /// multi-select mode (the body ignores taps then), the task is read-only.
   final void Function(FlareMessageData message, bool done)? onTaskToggle;
+
+  /// A tapped person's card, with its user id; without it, or in multi-select
+  /// mode, the card only displays.
+  final void Function(FlareMessageData message, String userId)? onCardOpen;
+
+  /// A tapped location card; without it the platform's default map link goes
+  /// to [onOpenLink].
+  final void Function(FlareMessageData message, FlareLocationContent location)?
+  onLocationOpen;
 
   /// The download key of a file card, the kit's image preview and its video
   /// player; without it none of them has a download key.
@@ -316,6 +327,12 @@ class FlareMessageBubble extends StatelessWidget {
         onTaskToggle: onTaskToggle == null
             ? null
             : (done) => onTaskToggle!(message, done),
+        onCardOpen: onCardOpen == null
+            ? null
+            : (userId) => onCardOpen!(message, userId),
+        onLocationOpen: onLocationOpen == null
+            ? null
+            : (location) => onLocationOpen!(message, location),
         onMediaDownload: onMediaDownload == null
             ? null
             : (content) => onMediaDownload!(message, content),

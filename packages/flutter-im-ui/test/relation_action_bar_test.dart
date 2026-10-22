@@ -170,6 +170,31 @@ void main() {
     expect(received, ['remove']);
   });
 
+  testWidgets('addText words the add key for where the person goes', (
+    tester,
+  ) async {
+    final received = <String>[];
+    Widget build({String? addText}) => MaterialApp(
+      home: Scaffold(
+        body: FlareRelationActionBar(
+          relation: FlareRelationState.none,
+          capabilities: const FlareRelationCapabilities(add: true),
+          addText: addText,
+          onAction: (a) => received.add(a.name),
+        ),
+      ),
+    );
+    await tester.pumpWidget(build(addText: '添加到通讯录'));
+    expect(find.text('添加到通讯录'), findsOneWidget);
+    expect(find.text('添加好友'), findsNothing);
+    await tester.tap(find.text('添加到通讯录'));
+    await tester.pump();
+    expect(received, ['add']);
+    // Without it the kit's label stands.
+    await tester.pumpWidget(build());
+    expect(find.text('添加好友'), findsOneWidget);
+  });
+
   testWidgets('pendingOut shows the waiting notice instead of an add button', (
     tester,
   ) async {

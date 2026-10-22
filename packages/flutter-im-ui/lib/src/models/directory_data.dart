@@ -69,12 +69,17 @@ class FlareFriendRequest {
     required this.name,
     this.avatarUrl,
     this.message,
+    this.source,
     this.direction = FlareFriendRequestDirection.incoming,
   });
   final String id;
   final String name;
   final String? avatarUrl;
   final String? message;
+
+  /// Where the request came from, worded by the host ("通过名片添加，由 X
+  /// 推荐"): its own secondary line under [message], never sharing its line.
+  final String? source;
   final FlareFriendRequestDirection direction;
 }
 

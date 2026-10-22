@@ -81,6 +81,8 @@ class FlareMessageList extends StatefulWidget {
     this.onMediaReveal,
     this.onVote,
     this.onTaskToggle,
+    this.onCardOpen,
+    this.onLocationOpen,
     this.onResend,
     this.onToggleSelect,
     this.onSwipeReply,
@@ -133,8 +135,8 @@ class FlareMessageList extends StatefulWidget {
 
   /// Host takes every media tap; without it the kit opens images and videos
   /// and plays voice messages ([mediaController]), a file tap goes to
-  /// [onOpenFile] and a link to [onOpenLink]. Locations are host actions
-  /// either way.
+  /// [onOpenFile] and a link to [onOpenLink]. A location goes to
+  /// [onLocationOpen], else its map link to [onOpenLink].
   final void Function(FlareMessageData message, FlareMessageContent content)?
   onMediaAction;
 
@@ -171,6 +173,15 @@ class FlareMessageList extends StatefulWidget {
   /// A tapped task checkbox, with the done state asked for; without it tasks
   /// are read-only.
   final void Function(FlareMessageData message, bool done)? onTaskToggle;
+
+  /// A tapped person's card, with its user id: the host opens the profile.
+  /// Without it cards only display.
+  final void Function(FlareMessageData message, String userId)? onCardOpen;
+
+  /// A tapped location card. Without it the platform's default map link goes
+  /// to [onOpenLink]; without either the card only displays.
+  final void Function(FlareMessageData message, FlareLocationContent location)?
+  onLocationOpen;
   final void Function(FlareMessageData message)? onResend;
   final void Function(FlareMessageData message)? onToggleSelect;
   final void Function(FlareMessageData message)? onSwipeReply;
@@ -791,6 +802,8 @@ class _FlareMessageListState extends State<FlareMessageList>
       onMediaReveal: widget.onMediaReveal,
       onVote: widget.onVote,
       onTaskToggle: widget.onTaskToggle,
+      onCardOpen: widget.onCardOpen,
+      onLocationOpen: widget.onLocationOpen,
       onResend: widget.onResend,
       onToggleSelect: widget.onToggleSelect,
       onReact: widget.onReact,
