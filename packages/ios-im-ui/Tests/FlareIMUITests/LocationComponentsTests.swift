@@ -75,6 +75,39 @@ final class LocationComponentsTests: XCTestCase {
         XCTAssertNil(FlareLocationFormat.label(latitude: .nan, longitude: 0))
     }
 
+    /// The rows whose inputs JSON types loosely (`providerFrom` takes any value), read without a fixed shape.
+    private func looseVectors(_ key: String) throws -> [[String: Any]] {
+        var root = URL(fileURLWithPath: #filePath)
+        for _ in 0..<5 { root.deleteLastPathComponent() }
+        let data = try Data(contentsOf: root.appendingPathComponent("spec/location-vectors.json"))
+        let table = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        return try XCTUnwrap(table[key] as? [[String: Any]], "spec/location-vectors.json has no \(key)")
+    }
+
+    func testProviderValuesFollowTheSharedTable() throws {
+        let rows = try looseVectors("providerFrom")
+        XCTAssertGreaterThanOrEqual(rows.count, 8)
+        for row in rows {
+            let input = row["input"].flatMap { $0 is NSNull ? nil : $0 }
+            XCTAssertEqual(flareLocationProviderFrom(input).rawValue, row["output"] as? String, "\(row["id"] ?? "")")
+        }
+    }
+
+    func testWebMapUrlsFollowTheSharedTable() throws {
+        let rows = try looseVectors("webMapUrl")
+        XCTAssertGreaterThanOrEqual(rows.count, 10)
+        for row in rows {
+            let input = try XCTUnwrap(row["input"] as? [String: Any])
+            let content = FlareLocationContent(name: input["title"] as? String ?? "",
+                                               latitude: (input["latitude"] as? NSNumber)?.doubleValue,
+                                               longitude: (input["longitude"] as? NSNumber)?.doubleValue,
+                                               provider: flareLocationProviderFrom(input["provider"]))
+            let provider = (row["provider"] as? String).map { flareLocationProviderFrom($0) }
+            XCTAssertEqual(flareLocationWebMapUrl(content, provider: provider), row["output"] as? String,
+                           "\(row["id"] ?? "")")
+        }
+    }
+
     // MARK: Message card
 
     @MainActor

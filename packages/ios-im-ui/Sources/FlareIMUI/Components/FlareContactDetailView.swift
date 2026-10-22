@@ -72,7 +72,9 @@ public extension FlareContactDetailLabels {
 ///
 /// A stranger's page gets its main step from `primaryActionLabel` with `onPrimaryAction` ("Add to contacts"): with
 /// both, that key leads the action row as the primary key (person-add), where a friend's page has Message, and
-/// Message, when handled, follows as a secondary key. It is not one of the footer's `extraActions`.
+/// Message, when handled, follows as a secondary key. It is not one of the footer's `extraActions`. While the host runs
+/// it, `primaryActionBusy` puts a spinner in place of its icon and takes that key's taps away; the rest of the page
+/// stays usable.
 public struct FlareContactDetail: View {
     private let contact: Contact
     private let starred: Bool
@@ -92,6 +94,8 @@ public struct FlareContactDetail: View {
     /// The page's primary action for someone who is not a contact yet, drawn first in the action row.
     private let primaryActionLabel: String?
     private let onPrimaryAction: (() -> Void)?
+    /// The host is carrying out the primary action: that key spins and takes no taps; the others stay usable.
+    private let primaryActionBusy: Bool
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
@@ -102,13 +106,15 @@ public struct FlareContactDetail: View {
                 onEditRemark: (() -> Void)? = nil, onEditDescription: (() -> Void)? = nil,
                 onToggleStar: ((Bool) -> Void)? = nil, onBlock: (() -> Void)? = nil, onRemove: (() -> Void)? = nil,
                 extraActions: [FlareDetailExtraAction] = [], onExtraAction: ((String) -> Void)? = nil,
-                primaryActionLabel: String? = nil, onPrimaryAction: (() -> Void)? = nil) {
+                primaryActionLabel: String? = nil, onPrimaryAction: (() -> Void)? = nil,
+                primaryActionBusy: Bool = false) {
         self.contact = contact; self.starred = starred; self.description = description; self.labels = labels
         self.onMessage = onMessage; self.onCall = onCall; self.onVideo = onVideo
         self.onEditRemark = onEditRemark; self.onEditDescription = onEditDescription
         self.onToggleStar = onToggleStar; self.onBlock = onBlock; self.onRemove = onRemove
         self.extraActions = extraActions; self.onExtraAction = onExtraAction
         self.primaryActionLabel = primaryActionLabel; self.onPrimaryAction = onPrimaryAction
+        self.primaryActionBusy = primaryActionBusy
     }
 
     private var copy: FlareContactDetailLabels.Resolved { labels.resolve(strings) }
@@ -220,7 +226,7 @@ public struct FlareContactDetail: View {
                 switch intent {
                 case .primary:
                     actionButton(primaryActionLabel ?? "", flareIconSymbol("person-add"), onPrimaryAction, colors,
-                                 primary: true)
+                                 primary: true, busy: primaryActionBusy)
                 case .message: actionButton(copy.message, "message", onMessage, colors, primary: lead == .message)
                 case .call: actionButton(copy.voice, "phone", onCall, colors)
                 case .video: actionButton(copy.video, "video", onVideo, colors)
@@ -230,10 +236,17 @@ public struct FlareContactDetail: View {
         .padding(.horizontal, FlareSizes.spacingLg)
     }
 
-    private func actionButton(_ label: String, _ icon: String, _ action: (() -> Void)?, _ colors: FlareColors, primary: Bool = false) -> some View {
-        Button { action?() } label: {
+    private func actionButton(_ label: String, _ icon: String, _ action: (() -> Void)?, _ colors: FlareColors,
+                              primary: Bool = false, busy: Bool = false) -> some View {
+        Button { if !busy { action?() } } label: {
             VStack(spacing: 6) {
-                Image(systemName: icon).font(.system(size: FlareSizes.iconSizeMd))
+                // The key the host is running keeps its colour: the spinner says why it takes no tap.
+                if busy {
+                    ProgressView().controlSize(.small).tint(primary ? .white : colors.textSecondary)
+                        .frame(height: FlareSizes.iconSizeMd)
+                } else {
+                    Image(systemName: icon).font(.system(size: FlareSizes.iconSizeMd))
+                }
                 Text(label).font(.system(size: FlareSizes.fontSizeSm, weight: .medium))
             }
             .foregroundColor(primary ? .white : colors.textSecondary)
@@ -242,6 +255,7 @@ public struct FlareContactDetail: View {
                 .fill(primary ? colors.primary : colors.bgElevated))
         }
         .buttonStyle(.plain)
+        .disabled(busy)
     }
 
     /// The 资料 card; nothing at all when it has no rows.

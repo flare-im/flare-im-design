@@ -80,4 +80,46 @@ final class ContactPickerTests: XCTestCase {
         try view.find(ViewType.Button.self, where: { (try? $0.labelView().find(text: self.s.cancel)) != nil }).tap()
         XCTAssertEqual(cancelled, 1)
     }
+
+    // MARK: Sending
+
+    func testOnlyTheTappedRowSpinsAndOnlyWhileTheHostSends() {
+        XCTAssertTrue(ContactPickerView.isPending("u-bob", pending: "u-bob", sending: true, multiple: false))
+        XCTAssertFalse(ContactPickerView.isPending("u-ada", pending: "u-bob", sending: true, multiple: false))
+        XCTAssertFalse(ContactPickerView.isPending("u-bob", pending: "u-bob", sending: false, multiple: false),
+                       "cleared: the row is forgotten")
+        XCTAssertFalse(ContactPickerView.isPending("u-bob", pending: "u-bob", sending: true, multiple: true),
+                       "multiple mode spins the confirm key instead")
+        XCTAssertFalse(ContactPickerView.isPending("u-bob", pending: nil, sending: true, multiple: false))
+    }
+
+    @MainActor
+    func testWhileSendingTheRowsTakeNoTapAndCancelStaysWithTheHost() throws {
+        var picked: [[FlareContactPickerEntry]] = []
+        var cancelled = 0
+        let view = try ContactPickerView(groups: groups, sending: true, onSelect: { picked.append($0) },
+                                         onCancel: { cancelled += 1 }).inspect()
+        let row = try view.find(ViewType.Button.self, where: { (try? $0.labelView().find(text: "Bob")) != nil })
+        XCTAssertTrue(row.isDisabled())
+        XCTAssertThrowsError(try row.tap())
+        XCTAssertEqual(picked, [])
+        try view.find(ViewType.Button.self, where: { (try? $0.labelView().find(text: self.s.cancel)) != nil }).tap()
+        XCTAssertEqual(cancelled, 1)
+
+        let idle = try ContactPickerView(groups: groups, onSelect: { picked.append($0) }).inspect()
+        let again = try idle.find(ViewType.Button.self, where: { (try? $0.labelView().find(text: "Bob")) != nil })
+        XCTAssertFalse(again.isDisabled())
+        try again.tap()
+        XCTAssertEqual(picked, [[bob]])
+    }
+
+    @MainActor
+    func testWhileSendingSeveralTheConfirmKeySpins() throws {
+        let view = try ContactPickerView(groups: groups, multiple: true, sending: true).inspect()
+        let confirm = try view.find(ViewType.Button.self, where: { (try? $0.labelView().find(text: self.s.confirm)) != nil })
+        XCTAssertTrue(confirm.isDisabled())
+        XCTAssertNoThrow(try confirm.labelView().find(ViewType.ProgressView.self), "the confirm key spins")
+        let rowToggle = try view.find(ViewType.Button.self, where: { (try? $0.labelView().find(text: "Ada")) != nil })
+        XCTAssertTrue(rowToggle.isDisabled())
+    }
 }

@@ -80,4 +80,33 @@ final class ContactSurfaceTests: XCTestCase {
         let without = try FlareContactDetail(contact: stranger, onMessage: {}, primaryActionLabel: "添加到通讯录").inspect()
         XCTAssertThrowsError(try without.find(button: "添加到通讯录"), "no handler, no key")
     }
+
+    @MainActor
+    func testABusyPrimaryActionSpinsAndTakesNoTapWhileTheRestStayUsable() throws {
+        var events: [String] = []
+        let copy = FlareContactDetailLabels().resolve(s)
+        func page(_ busy: Bool) -> FlareContactDetail {
+            FlareContactDetail(contact: stranger, onMessage: { events.append("message") },
+                               extraActions: [FlareDetailExtraAction(id: "report", label: "举报")],
+                               onExtraAction: { events.append($0) },
+                               primaryActionLabel: "添加到通讯录", onPrimaryAction: { events.append("primary") },
+                               primaryActionBusy: busy)
+        }
+        let busy = try page(true).inspect()
+        let primary = try busy.find(button: "添加到通讯录")
+        XCTAssertTrue(primary.isDisabled(), "the running key takes no tap")
+        XCTAssertNoThrow(try primary.find(ViewType.ProgressView.self), "a spinner in place of its icon")
+        XCTAssertThrowsError(try primary.find(ViewType.Image.self), "no person-add icon while it runs")
+        XCTAssertThrowsError(try primary.tap())
+        try busy.find(button: copy.message).tap()
+        try busy.find(button: "举报").tap()
+        XCTAssertEqual(events, ["message", "report"])
+
+        let idle = try page(false).inspect()
+        let key = try idle.find(button: "添加到通讯录")
+        XCTAssertFalse(key.isDisabled())
+        XCTAssertThrowsError(try key.find(ViewType.ProgressView.self))
+        try key.tap()
+        XCTAssertEqual(events, ["message", "report", "primary"])
+    }
 }

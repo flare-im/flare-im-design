@@ -49,25 +49,33 @@ public struct FlareContactPickerGroup: Identifiable, Sendable, Equatable {
 ///
 /// It draws its own header (Cancel, the title) and declares it (``SwiftUI/View/flareSheetOwnHeader(_:)``): present it
 /// with `flareBottomSheet(…, fill: true)` and the sheet keeps its title as the accessible name only.
+///
+/// While the host sends the card (`sending`, the same meaning as ``LocationPickerView``'s), the tapped row — in multiple
+/// mode the confirm key — spins and the rows take no taps; once it is cleared, single mode forgets that row and multiple
+/// mode keeps its choice for a retry.
 public struct ContactPickerView: View {
     private let groups: [FlareContactPickerGroup]
     private let searchable: Bool
     private let multiple: Bool
     private let title: String?
+    /// The host is sending the card for the chosen person.
+    private let sending: Bool
     private let onSelect: (([FlareContactPickerEntry]) -> Void)?
     private let onCancel: (() -> Void)?
     @State private var activeGroup: String
     @State private var query = ""
     @State private var picked: [String] = []
+    /// The row a single-mode tap answered with: it spins while the host sends, and is forgotten once the send settles.
+    @State private var pending: String?
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
 
     public init(groups: [FlareContactPickerGroup], searchable: Bool = true, multiple: Bool = false,
-                title: String? = nil, onSelect: (([FlareContactPickerEntry]) -> Void)? = nil,
-                onCancel: (() -> Void)? = nil) {
+                title: String? = nil, sending: Bool = false,
+                onSelect: (([FlareContactPickerEntry]) -> Void)? = nil, onCancel: (() -> Void)? = nil) {
         self.groups = groups; self.searchable = searchable; self.multiple = multiple; self.title = title
-        self.onSelect = onSelect; self.onCancel = onCancel
+        self.sending = sending; self.onSelect = onSelect; self.onCancel = onCancel
         self._activeGroup = State(initialValue: groups.first?.id ?? "")
     }
 
@@ -97,6 +105,11 @@ public struct ContactPickerView: View {
     /// `ids` with `userId` added at the end, or taken out.
     static func toggled(_ ids: [String], _ userId: String) -> [String] {
         ids.contains(userId) ? ids.filter { $0 != userId } : ids + [userId]
+    }
+
+    /// Whether `userId`'s row spins: the host is sending and a single-mode tap answered with it.
+    static func isPending(_ userId: String, pending: String?, sending: Bool, multiple: Bool) -> Bool {
+        sending && !multiple && pending == userId
     }
 
     private var openGroup: FlareContactPickerGroup? {
@@ -148,7 +161,8 @@ public struct ContactPickerView: View {
                     Text(strings.selectedCount(picked.count))
                         .font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textSecondary)
                     Spacer()
-                    ButtonView(label: strings.confirm, disabled: picked.isEmpty) {
+                    ButtonView(label: strings.confirm, loading: sending, disabled: picked.isEmpty) {
+                        guard !sending else { return }
                         onSelect?(Self.pickedEntries(picked, in: groups))
                     }
                 }
@@ -158,17 +172,31 @@ public struct ContactPickerView: View {
         .frame(maxWidth: .infinity)
         .background(colors.bgPrimary)
         .flareSheetOwnHeader()
+        .onChange(of: sending) { if !$0 { pending = nil } }
     }
 
     private func row(_ entry: FlareContactPickerEntry) -> some View {
+        let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         let contact = Contact(id: entry.userId, name: Self.displayName(entry, strings), avatarURL: entry.avatarUrl,
                               signature: entry.subtitle)
+        let spins = Self.isPending(entry.userId, pending: pending, sending: sending, multiple: multiple)
         return ContactItemView(
             item: contact, showPresence: false,
             selectable: multiple, selected: picked.contains(entry.userId),
-            onSelect: multiple ? nil : { onSelect?([entry]) },
-            onToggleSelect: multiple ? { picked = Self.toggled(picked, entry.userId) } : nil
+            trailing: spins ? AnyView(ProgressView().controlSize(.small).tint(colors.primaryText)) : nil,
+            onSelect: multiple ? nil : {
+                guard !sending else { return }
+                pending = entry.userId
+                onSelect?([entry])
+            },
+            onToggleSelect: multiple ? {
+                guard !sending else { return }
+                picked = Self.toggled(picked, entry.userId)
+            } : nil
         )
+        .disabled(sending)
+        .accessibilityAddTraits(spins ? .isSelected : [])
         .padding(.horizontal, FlareSizes.spacingLg).padding(.vertical, FlareSizes.spacingSm)
+        .background(spins ? colors.bgSelected : Color.clear)
     }
 }

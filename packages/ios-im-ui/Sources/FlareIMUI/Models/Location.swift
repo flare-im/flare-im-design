@@ -147,3 +147,25 @@ public enum FlareLocationFormat {
         return (pixels(width), pixels(height))
     }
 }
+
+/// The map service a `chat.location` config value names: the string `amap` (trimmed, any case) is AMap, anything else —
+/// `osm`, an unknown name, blank, nil, not a string — is OpenStreetMap (`spec/location-vectors.json` providerFrom; the
+/// same on all four kits).
+public func flareLocationProviderFrom(_ value: Any?) -> FlareLocationProvider {
+    guard let text = value as? String,
+          text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == FlareLocationProvider.amap.rawValue
+    else { return .osm }
+    return .amap
+}
+
+/// The web map a host opens for a location message: ``FlareLocationFormat/webLink(latitude:longitude:title:provider:)``
+/// for `provider` when given, else the content's own, named by its place. Nil without a coordinate to open — one of the
+/// pair missing, out of range, or exactly 0, 0, which the wire writes for "none" (`spec/location-vectors.json`
+/// webMapUrl). SwiftUI's own card opens Apple Maps; this is for a host that opens the tenant's web map itself.
+public func flareLocationWebMapUrl(_ location: FlareLocationContent, provider: FlareLocationProvider? = nil) -> String? {
+    guard let latitude = location.latitude, let longitude = location.longitude,
+          !(latitude == 0 && longitude == 0)
+    else { return nil }
+    return FlareLocationFormat.webLink(latitude: latitude, longitude: longitude, title: location.name,
+                                       provider: provider ?? location.provider)
+}
