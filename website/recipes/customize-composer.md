@@ -2,7 +2,7 @@
 
 # Customize Composer
 
-从默认 Image、Video、File、Voice、Card、Poll 裁剪为 Image、Order、File。Order 完全由宿主定义。
+从默认 Image、Camera、Video、File、Voice、Location、Card、Poll 裁剪为 Image、Order、File。Order 完全由宿主定义。
 
 ## Vue Preview
 
@@ -10,7 +10,7 @@
 
 ## Resolution
 
-省略 actions 使用默认值；显式列表去掉 Video、Voice、Card、Poll，并通过 order 插入 Order。capabilities 可以在会话策略变化时动态过滤。
+省略 actions 使用默认值；显式列表去掉 Camera、Video、Voice、Location、Card、Poll，并通过 order 插入 Order。capabilities 可以在会话策略变化时动态过滤。
 
 ## Four Platforms
 

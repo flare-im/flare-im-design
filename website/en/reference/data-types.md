@@ -163,6 +163,7 @@ title: Data Types
 | `name` | `string` | ✓ | Requester display name. |
 | `avatarUrl` | `string` |  | Requester avatar URL. |
 | `message` | `string` |  | Optional greeting attached to the request. |
+| `source` | `string` |  | Where the request came from, already worded by the host ("Added from a contact card, shared by X"); drawn as its own secondary line under the message. |
 | `direction` | `'incoming' \| 'outgoing'` |  | Whether the viewer received or sent the request; defaults to incoming. |
 
 ### GroupSummary {#group-summary}
@@ -474,6 +475,226 @@ title: Data Types
 | `amount` | `string` | ✓ | Claimed amount, formatted. |
 | `best` | `boolean` | ✓ | The largest share of a finished lucky packet, as the server decided. |
 
+### LocationCoordinate {#location-coordinate}
+
+`FlareLocationCoordinate`
+
+> A WGS-84 coordinate (what requestCurrentLocation answers).
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `latitude` | `number` | ✓ | Latitude, -90..90. |
+| `longitude` | `number` | ✓ | Longitude, -180..180. |
+
+### LocationAddress {#location-address}
+
+`FlareLocationAddress`
+
+> What a reverse geocode answers for a coordinate.
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `title` | `string` | ✓ | Place name. |
+| `address` | `string` | ✓ | Address line. |
+
+### LocationPlace {#location-place}
+
+`FlareLocationPlace`
+
+> A place the location picker lists and sends: a nearby POI, a search result or the current location (id "current").
+
+**Used by: **[LocationPicker](/en/components/location-picker)
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `id` | `string` | ✓ | Stable place id; "current" is the device position. |
+| `title` | `string` | ✓ | Place name. |
+| `address` | `string` | ✓ | Address line. |
+| `latitude` | `number` | ✓ | WGS-84 latitude. |
+| `longitude` | `number` | ✓ | WGS-84 longitude. |
+| `distanceM` | `number` |  | Distance from the search centre in metres, when the host knows it; drawn as "120m" / "1.2km". |
+
+### LocationValue {#location-value}
+
+`FlareLocationValue`
+
+> A location message as the Vue timeline reports it in locationOpen; Flutter, SwiftUI and Compose pass their location content.
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `latitude` | `number` | ✓ | WGS-84 latitude (NaN without one). |
+| `longitude` | `number` | ✓ | WGS-84 longitude. |
+| `title` | `string` | ✓ | Place name. |
+| `address` | `string` | ✓ | Address line. |
+| `snapshotUrl` | `string` |  | Static map URL. |
+| `provider` | [`LocationProvider`](/en/reference/data-types#location-provider) |  | Map service named by the payload, osm when it names none. |
+
+### ContactPickerEntry {#contact-picker-entry}
+
+`FlareContactPickerEntry`
+
+> One person the contact picker can return.
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `userId` | `string` | ✓ | The person's user id; a contact card carries it. |
+| `name` | `string` | ✓ | Display name; searched. |
+| `avatarUrl` | `string` |  | Avatar URL. |
+| `subtitle` | `string` |  | Secondary line (department, handle); searched. |
+| `isSelf` | `boolean` |  | The signed-in user: drawn with "(me)" and still selectable. |
+
+### ContactPickerGroup {#contact-picker-group}
+
+`FlareContactPickerGroup`
+
+> One tab of the contact picker.
+
+**Used by: **[ContactPicker](/en/components/contact-picker)
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `id` | `string` | ✓ | friends, groupMembers or the host's own id. |
+| `label` | `string` |  | Tab label; the kit labels friends and groupMembers itself. |
+| `entries` | [`ContactPickerEntry[]`](/en/reference/data-types#contact-picker-entry) | ✓ | The people in the tab, in display order. |
+
+### PluginViewModel {#plugin-view-model}
+
+`FlarePluginViewModel`
+
+> A resolved plugin view (core SDK ResolvedPluginView).
+
+**Used by: **[PluginView](/en/components/plugin-view) · [PluginDetailSheet](/en/components/plugin-detail-sheet)
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `available` | `boolean` | ✓ | False: only the title shows (disabled plugin, history). |
+| `title` | `string` | ✓ | Card title. |
+| `fields` | `{label, value}[]` | ✓ | Label/value rows (v1). |
+| `actions` | [`PluginAction[]`](/en/reference/data-types#plugin-action) | ✓ | Footer actions, labels translated; block-owned actions are not here. |
+| `blocks` | [`PluginBlock[]`](/en/reference/data-types#plugin-block) |  | Display blocks, in order; unknown kinds are skipped. |
+| `inputs` | [`PluginInput[]`](/en/reference/data-types#plugin-input) |  | Every input of the document; an action's form names the ones it collects. |
+| `detail` | `boolean` |  | The contribution has a detail view ("see all"). |
+| `nextCursor` | `string` |  | Detail views only: the cursor of the next page (core SDK detail paging, a non-blank scalar of at most 256 bytes). While it is set PluginDetailSheet offers load more; the host fetches that page and passes back the merged view. |
+
+### PluginAction {#plugin-action}
+
+`FlarePluginAction`
+
+> A resolved action; target and input are opaque to the kit.
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `id` | `string` | ✓ | Opaque id handed back in action(id, payload). |
+| `label` | `string` | ✓ | Key label. |
+| `style` | [`PluginActionStyle`](/en/reference/data-types#plugin-action-style) |  | primary or danger; secondary when absent. |
+| `confirm` | `string` |  | Asked first in the kit DangerConfirm. |
+| `form` | `string[]` |  | Input ids collected first in PluginForm. |
+
+### PluginBlock {#plugin-block}
+
+`FlarePluginBlock`
+
+> One display block, tagged by kind (see spec/plugin-view-vectors.json for each shape).
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `kind` | `'text' \| 'fields' \| 'choices' \| 'entries' \| 'people' \| 'status' \| 'progress' \| 'time' \| 'divider' \| 'note' \| 'rows'` | ✓ | Block kind; rows only on admin pages (Vue). |
+| `text` | `{text, maxLines?, style: 'body' \| 'title' \| 'secondary'}` |  | Collapsible text with expand. |
+| `fields` | `{fields: {label, value}[]}` |  | Label/value rows. |
+| `choices` | `{options: PluginChoice[], multiple, voted, closed, showResults, total?, inputName, action?: PluginAction}` |  | Options; action is the block's submit action. |
+| `entries` | `{items: {index, text, name?, userId?}[], numbered, total, more, emptyText?}` |  | Numbered entries with see all. |
+| `people` | `{groups: {label, userIds, count, tone?}[]}` |  | Avatar stacks with a count per group. |
+| `status` | `{label?, text, tone}` |  | A badge. |
+| `progress` | `{label?, value, total, percent}` |  | A bar with value/total. |
+| `time` | `{label?, atMs, endMs?, countdown}` |  | An instant or range, optionally counting down. |
+| `note` | `{text, tone?}` |  | A tinted note. |
+| `rows` | `{source, columns: {label, format}[], rows: {key, cells: {text, timeMs?}[], actions: {id, input}[], detailInput?}[], nextCursor?, actions: PluginAction[], emptyText?, filters?: string[]}` |  | Admin table (Vue only). filters lists the ids of the view's inputs shown as the page's filters (absent: every input); the other inputs belong to row action forms (flarePluginFilterInputs). |
+
+### PluginChoice {#plugin-choice}
+
+`FlarePluginChoice`
+
+> One option of a choices block.
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `index` | `number` | ✓ | Position, submitted in selection. |
+| `label` | `string` | ✓ | Option text. |
+| `selected` | `boolean` | ✓ | The viewer chose it. |
+| `count` | `number` |  | Votes, when results show. |
+| `percent` | `number` |  | 0..100, when results show. |
+
+### PluginInput {#plugin-input}
+
+`FlarePluginInput`
+
+> A resolved form input (UiInput).
+
+**Used by: **[PluginForm](/en/components/plugin-form)
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `id` | `string` | ✓ | Key of the value in formValues. |
+| `kind` | [`PluginInputKind`](/en/reference/data-types#plugin-input-kind) | ✓ | Control kind. |
+| `label` | `string` | ✓ | Field label. |
+| `required` | `boolean` |  | A value is required. |
+| `placeholder` | `string` |  | Placeholder. |
+| `maxLength` | `number` |  | Characters (text 256, textarea 2000, options item 100 by default). |
+| `min` | `number` |  | number: smallest value; options, members: fewest items. |
+| `max` | `number` |  | number: largest value; options, members: most items (members max 1 = single pick). |
+| `default` | `unknown` |  | Initial value. |
+| `choices` | `{value, label}[]` |  | select only. |
+
+### PluginFormError {#plugin-form-error}
+
+`FlarePluginFormError`
+
+> One problem with a submitted value (UiFormError).
+
+**Used by: **[PluginView](/en/components/plugin-view) · [PluginForm](/en/components/plugin-form) · [PluginDetailSheet](/en/components/plugin-detail-sheet)
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `input` | `string` | ✓ | Input id. |
+| `issue` | [`PluginFormIssue`](/en/reference/data-types#plugin-form-issue) | ✓ | What is wrong. |
+
+### PluginUser {#plugin-user}
+
+`FlarePluginUser`
+
+> What resolveUser answers for a user id.
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `name` | `string` | ✓ | Display name. |
+| `avatarUrl` | `string` |  | Avatar; initials when absent or failing. |
+
+### PluginMember {#plugin-member}
+
+`FlarePluginMember`
+
+> A candidate for a members input.
+
+**Used by: **[PluginView](/en/components/plugin-view) · [PluginForm](/en/components/plugin-form) · [PluginDetailSheet](/en/components/plugin-detail-sheet)
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `userId` | `string` | ✓ | Submitted id. |
+| `name` | `string` | ✓ | Display name. |
+| `avatarUrl` | `string` |  | Avatar. |
+
+### PluginActionPayload {#plugin-action-payload}
+
+`FlarePluginActionPayload`
+
+> What action(id, payload) carries.
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `selection` | `number[]` |  | Chosen option indices (choices), ascending. |
+| `formValues` | `Record<string, unknown>` |  | Submitted form values by input id. |
+| `row` | `{key, input}` |  | The row of a rows action (Vue). |
+
 ## Enums / unions
 
 ### MessageGroupPosition {#message-group-position}
@@ -597,3 +818,55 @@ title: Data Types
 **Used by: **[RedPacketComposer](/en/components/red-packet-composer)
 
 `lucky` · `normal` · `exclusive`
+
+### LocationProvider {#location-provider}
+
+`FlareLocationProvider`
+
+> The tenant's map service; it decides which web map a location card opens.
+
+**Used by: **[LocationMessage](/en/components/location-message) · [LocationPicker](/en/components/location-picker)
+
+`osm` · `amap`
+
+### PluginActionStyle {#plugin-action-style}
+
+`FlarePluginActionStyle`
+
+> How an action key is drawn.
+
+`primary` · `danger`
+
+### PluginTone {#plugin-tone}
+
+`FlarePluginTone`
+
+> Semantic colour of a status, note or people group; drawn with the *Text tokens.
+
+`neutral` · `info` · `success` · `warning` · `danger`
+
+### PluginInputKind {#plugin-input-kind}
+
+`FlarePluginInputKind`
+
+> Form input kinds.
+
+`text` · `textarea` · `number` · `toggle` · `select` · `datetime` · `options` · `members`
+
+### PluginFormIssue {#plugin-form-issue}
+
+`FlarePluginFormIssue`
+
+> Form error kinds (UiFormIssue).
+
+`required` · `unknown` · `invalidType` · `tooLong` · `outOfRange` · `notAChoice` · `tooFewItems` · `tooManyItems` · `invalidItem` · `duplicateItem`
+
+### PluginViewInset {#plugin-view-inset}
+
+`FlarePluginViewInset`
+
+> Where a PluginView sits: none; sheet — straight in a kit sheet (md / lg / xl); sheetTop — at the top of a sheet with more under it, e.g. a preface above PluginForm (md / lg / 0).
+
+**Used by: **[PluginView](/en/components/plugin-view)
+
+`none` · `sheet` · `sheetTop`

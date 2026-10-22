@@ -2329,6 +2329,84 @@
       }
     },
     {
+      "name": "PluginView",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlarePluginView",
+          "sourcePath": "packages/vue-im-ui/src/components/messages/FlarePluginView.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlarePluginView",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_plugin_view.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "PluginView",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/PluginView.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "PluginView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/PluginView.swift"
+        }
+      }
+    },
+    {
+      "name": "PluginForm",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlarePluginForm",
+          "sourcePath": "packages/vue-im-ui/src/components/form/FlarePluginForm.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlarePluginForm",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_plugin_form.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "PluginForm",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/PluginForm.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "PluginFormView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/PluginFormView.swift"
+        }
+      }
+    },
+    {
+      "name": "PluginDetailSheet",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlarePluginDetailSheet",
+          "sourcePath": "packages/vue-im-ui/src/components/messages/FlarePluginDetailSheet.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlarePluginDetailSheet",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_plugin_detail_sheet.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "PluginDetailSheet",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/PluginDetailSheet.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "PluginDetailSheetView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/PluginDetailSheetView.swift"
+        }
+      }
+    },
+    {
       "name": "SlashCommandMenu",
       "status": "stable",
       "platforms": {
@@ -2507,6 +2585,58 @@
           "package": "FlareIMUI",
           "symbol": "PollComposerView",
           "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/PollComposerView.swift"
+        }
+      }
+    },
+    {
+      "name": "LocationPicker",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareLocationPicker",
+          "sourcePath": "packages/vue-im-ui/src/components/composer/FlareLocationPicker.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareLocationPicker",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_location_picker.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "LocationPicker",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/LocationPicker.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "LocationPickerView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/LocationPickerView.swift"
+        }
+      }
+    },
+    {
+      "name": "ContactPicker",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareContactPicker",
+          "sourcePath": "packages/vue-im-ui/src/components/composer/FlareContactPicker.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareContactPicker",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_contact_picker.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ContactPicker",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/ContactPicker.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ContactPickerView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/ContactPickerView.swift"
         }
       }
     },

@@ -2,7 +2,7 @@
 
 # Customize Composer
 
-Trim the Image, Video, File, Voice, Card, Poll defaults to Image, Order, File. Order is entirely host-owned.
+Trim the Image, Camera, Video, File, Voice, Location, Card, Poll defaults to Image, Order, File. Order is entirely host-owned.
 
 ## Vue Preview
 
@@ -10,7 +10,7 @@ Trim the Image, Video, File, Voice, Card, Poll defaults to Image, Order, File. O
 
 ## Resolution
 
-Omitting actions uses defaults. The explicit list drops Video, Voice, Card, and Poll and inserts Order by order. Capabilities can filter as conversation policy changes.
+Omitting actions uses defaults. The explicit list drops Camera, Video, Voice, Location, Card, and Poll and inserts Order by order. Capabilities can filter as conversation policy changes.
 
 ## Four Platforms
 

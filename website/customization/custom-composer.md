@@ -2,7 +2,7 @@
 
 # Custom Composer
 
-Composer 默认展示内置功能 Image、Video、File、Voice、Card、Poll，四端顺序与图标相同；Camera、Location、Task、Event、MiniApp 属于高级能力。插件入口（kind 为 plugin）排在内置项之后；图标名不在注册表里时画通用插件图标。工具条工具由 capabilities.availableToolIds 选择。
+Composer 默认展示内置功能 Image、Camera、Video、File、Voice、Location、Card、Poll，四端顺序与图标相同；Task、Event、MiniApp 属于高级能力。插件入口（kind 为 plugin）排在内置项之后；图标名不在注册表里时画通用插件图标。工具条工具由 capabilities.availableToolIds 选择。
 
 ## 原则
 

@@ -11,7 +11,9 @@
 | 红包详情 | `FlareRedPacketDetail` | `RedPacketDetailView` | `RedPacketDetail` | `FlareRedPacketDetail` |
 | 发红包表单 | `FlareRedPacketComposer` | `RedPacketComposerView` | `RedPacketComposer` | `FlareRedPacketComposer` |
 | 支付确认 | `FlareRedPacketPayConfirm` | `RedPacketPayConfirmView` | `RedPacketPayConfirm` | `FlareRedPacketPayConfirm` |
-| 通用插件结果/字段/动作 | `FlarePluginView` | `PluginView` | `PluginView` | `FlarePluginView` |
+| 通用插件卡片（v1 字段与动作，v2 展示块） | `FlarePluginView` | `PluginView` | `PluginView` | `FlarePluginView` |
+| 插件表单 | `FlarePluginForm` | `PluginFormView` | `PluginForm` | `FlarePluginForm` |
+| 插件详情（查看全部） | `FlarePluginDetailSheet` | `PluginDetailSheetView` | `PluginDetailSheet` | `FlarePluginDetailSheet` |
 | 加载/错误/权限说明 | `FlareStatusBanner` | `StatusBannerView` | `StatusBanner` | `FlareStatusBanner` |
 | 页面与表单 | `FlareScreen`、`FlareSchemaForm` | Kit Screen/Drawer/Form 组件 | Kit Screen/Drawer/Form 组件 | Kit Screen/Drawer/Form 组件 |
 
@@ -77,6 +79,57 @@
 - 测试：iOS `RedPacketComponentsTests`（ViewInspector 状态矩阵，macOS 上另有宿主窗口真实点击），Android JVM `RedPacketComponentsTest` 与设备上的 `RedPacketComponentsInteractionTest`，两端都读 `spec/red-packet-vectors.json`。
 
 默认文案读取 Kit 语言环境。原生英文预设来自 `strings/en.json` 与 `strings/build.mjs`；`appendArgumentKits` 支持把动态金额追加到相应平台的函数字段，不能手改生成预设。Flutter Kit 声明 Material 图标资源；截图测试显式加载字体，避免把缺失字形当成有效视觉证据。
+
+## 通用插件卡片 v2
+
+投票、接龙、任务、日程、群公告不写客户端代码：核心 SDK 把插件的 UiDocument 和两层状态解析成 ResolvedPluginView，Kit 只渲染这个形状，不读路径、不求值。四端接口以 `spec/components.json` 的 PluginView、PluginForm、PluginDetailSheet 为准，渲染事实以 `spec/plugin-view-vectors.json` 为准（views、optimistic、time、countdown、form），四端测试读同一份。
+
+- **卡片**：外壳与 Kit 业务卡片一致，宽度 `sizes.component.richCardWidth`（服从父约束）、圆角 lg、细边框、卡片阴影；标题行有图标位（`icon`，Kit 图标名）。`embedded` 去掉外壳和标题行，详情面板和控制台管理页用它。`available` 为假时只显示标题；embedded 没有标题行，就把标题显示为一行次要文字，仍说明它是什么。
+- **块**：
+  - text：按 `maxLines` 截断，溢出时显示「展开」。
+  - fields：键值对。
+  - choices：单选点一项立即提交；多选勾选后点提交键，键名取块持有的动作 label。显示结果时每项有票数条、百分比和「{count} 票」，选中项打勾；`closed` 时只读，底部显示「已结束」。
+  - entries：带序号；`more` 时显示「查看全部（total）」，触发 `openDetail`。
+  - people：每组一行，头像叠加计数，颜色用 tone 对应的 *Text 令牌。
+  - status：徽标。
+  - progress：进度条加「value/total」。
+  - time：按设备时区，用 `pluginViewDateTimeFormat` 格式化；`countdown` 时剩余不到 1 小时每秒刷新，否则每分钟刷新，到点显示「已截止」。
+  - divider、note。
+  - rows：只在 Vue，用于控制台管理页，基于 Kit DataTable，有行动作、点行打开详情、「加载更多」和空态。
+- **动作**：
+  - `style` 为 danger 用危险键，primary 用主键，其余为次要键。
+  - 有 `confirm` 先弹 Kit DangerConfirm；有 `form` 在 Kit 底部面板里打开 PluginForm。
+  - 回调是 `action(actionId, {selection?, formValues?})`（Vue 的 rows 另有 `row`）。
+  - 状态：`busyActionId` 让对应按钮转圈、其他控件等待；`error` 显示在卡片底部。
+- **查看详情**：`view.detail` 为真、但没有 entries 块在显示「查看全部」时（投票、日程、任务、公告这类没有 entries 或 entries 没超出的卡片），卡片在动作区下方画一个整宽的 quiet 文字按钮「查看详情」（`pluginViewDetail`，Vue 为 `pluginView.detail`，size sm），点击发出不带 row 的 `openDetail`，与「查看全部」相同。
+  - 不显示的情况：视图不可用、`embedded`（详情面板、管理页、面板里的前言）、有 rows 块（管理页从行打开详情）、宿主没处理 `openDetail`（原生没传 `onOpenDetail`，Vue 没监听）。
+  - `busy` 或 `busyActionId` 时禁用。规则与样例见向量的 `rules.detailKey` 和 `detailKey`。
+- **乐观选中**：提交后 Kit 立刻标记选中，新的 view 到达即结算，`error` 变为非空就撤回。
+- **结算信号 `settleToken`**：宿主每完成一次动作加 1，先设好这次结果的 `error` / `formErrors` 再加。每次变化都结算：
+  - 没有错误：已提交的表单面板关闭，乐观选中保留到新视图到达。
+  - 有 `error`：撤回乐观选中，打开的表单留着并显示它。错误在变化那一刻读取，文案和上次相同也会撤回。
+  - 有 `formErrors`：表单留着显示错误，表单携带的选中一并撤回。
+  - `busyActionId` 离开该动作仍作为兜底；宿主在同一帧里设上又清掉 `busyActionId` 时，只能靠 `settleToken`。
+  - 宿主约定：调用期间设 `busyActionId`，开始新一次调用时清掉 `error`，结果出来后加 `settleToken`。规则见 `spec/plugin-view-vectors.json` 的 `rules.settle`。
+- **内边距 `inset`**：说明视图放在哪里。
+  - `sheet`：直接放进 Kit BottomSheet，上 md、左右 lg、下 xl，与 PluginForm 一致，不用再包一层（如 composer 面板里的插件视图）。
+  - `sheetTop`：放在面板顶部、下面还有内容，上 md、左右 lg、下不留。「+」插件入口里 PluginForm 上方的前言用它，前言和表单之间只剩表单自己的 md，不再是 xl + md。
+  - 作用于视图画出的一切、任何状态：embedded 的内容（可用或不可用、有没有 error），以及宿主留在面板里的卡片外壳（加在外壳外面，外壳自己的 md 内边距不变）。规则见向量的 `rules.inset` 和 `insets`。
+- **用户**：people 和 entries 只有 userId，名字和头像经宿主的 `resolveUser(userId)` 取得，可同步也可异步；取不到时显示首字母头像，名字取 userId 的末 4 位。
+- **表单 PluginForm**：
+  - 控件：text、textarea 带计数；number；toggle；select 为单选列表；datetime（Vue 用 Kit 的 DatePicker 和 TimePicker，原生用平台选择器）；options 为可增删的行，条数受 min、max 约束；members 用 ContactPicker，候选成员由宿主经 `members` 传入，`max` 为 1 时单选。
+  - 校验：客户端只查必填和长度（按 Unicode 码点）；最终以核心 SDK `validate_form` 返回的 `errors` 为准，显示在对应输入下方，直到该输入被修改。
+  - 卡片动作的表单在结算（`settleToken` 变化，或兜底的 `busyActionId` 清空）且没有 `formErrors` 和 `error` 时关闭。
+- **详情 PluginDetailSheet**：
+  - Kit 底部面板，分 loading（转圈）、error（宿主文案加重试）和 embedded PluginView 三种状态；标题取视图标题，没有视图时取卡片标题。
+  - 详情里的动作：`busyActionId`、`actionError`（作为视图的 error）、`formErrors`、`members`、`settleToken` 原样交给内嵌视图，转圈、出错、收表单和结算都在面板内。
+  - 宿主要把这些和卡片自己的 busy、error 分开，详情里的失败不落到面板下面的卡片上。已有的 `error` 仍表示加载失败。
+  - 分页：视图带非空的 `nextCursor` 时，内嵌视图下方显示一行整宽的「加载更多」。
+    - 点击发出 `loadMore(cursor)`，宿主取下一页，把合并好的视图传回。合并由核心 SDK 做，Kit 不合并。
+    - `loadingMore` 为真，或 Kit 记下的已请求游标仍等于当前 `nextCursor` 时，按钮转圈并禁用，同一页不会被请求两次。
+    - 以下情况允许重试：`loadingMore` 由真变假、`settleToken` 变化、`actionError` 变为非空。
+    - 规则与样例见向量的 `detailPaging`。
+- **管理页筛选（Vue）**：rows 块的 `filters` 列出筛选栏要显示的输入，不带时为全部输入；其余输入归行动作的表单。控制台用 `flarePluginFilterInputs(view)` 取筛选输入，也可以从 `@flare-im/vue-ui/admin` 导入。
 
 ## 自定义内容渲染器
 

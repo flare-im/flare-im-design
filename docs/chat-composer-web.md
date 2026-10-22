@@ -46,7 +46,7 @@
 
 ## 可扩展配置
 
-- `actions: undefined` 使用内置功能默认集：图片、视频、文件、语音、名片、投票，四端顺序与图标相同；`[]` 明确表示空列表。宿主数组整份替换默认集，决定排序和可见性，每页 8 项。`id/label/icon/enabled/disabledReason/intent` 支持自定义功能、能力限制及本地化提示。统一 id 可以不带 `label`，文案由组件库语言包按 id 提供。
+- `actions: undefined` 使用内置功能默认集：图片、拍摄、视频、文件、语音、位置、名片，四端顺序与图标相同（位置项由宿主打开 `FlareLocationPicker`；投票改由插件提供）；`[]` 明确表示空列表。宿主数组整份替换默认集，决定排序和可见性，每页 8 项。`id/label/icon/enabled/disabledReason/intent` 支持自定义功能、能力限制及本地化提示。统一 id 可以不带 `label`，文案由组件库语言包按 id 提供。
 - `kind` 标记内置功能（`feature`）或插件入口（`plugin`），宿主自己的项可以不传。`icon` 不是注册表名时画通用插件图标 `plugin`，四端同一条规则；Vue 另外接受图标组件，emoji 照文字画。
 - `capabilities.availableToolIds` 选择工具条工具（`emoji / mention / voice / image / richText / attachments`，`attachments` 即「+」按钮）：不传时全部显示，传了只显示列出的工具。工具被收走时，它打开的面板随即关闭，草稿保留。
 - `moreSearchVisible / moreTitleVisible / moreCloseVisible` 默认 false，各自独立控制。关闭搜索配置时同时清理过滤词。

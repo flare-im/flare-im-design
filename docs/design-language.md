@@ -107,7 +107,7 @@ Motion is functional: it preserves spatial continuity, confirms state change, or
 
 - Incoming and outgoing messages share typography and spacing; direction changes alignment and semantic surface.
 - Delivery state is secondary metadata. Read state uses the current brand semantic token and remains distinguishable without color alone.
-- Composer defaults are the built-in features Image, Video, File, Voice, Contact card, and Poll, in that order on every platform. Camera, Location, Task, Event, and MiniApp are advanced host capabilities. Plugin entries follow the built-in ones; an icon name outside the registry draws the generic plugin glyph.
+- Composer defaults are the built-in features Image, Camera, Video, File, Voice, Location, Contact card, and Poll, in that order on every platform; the tenant's feature switches decide which of them a conversation offers. Task, Event, and MiniApp are advanced host capabilities. Plugin entries follow the built-in ones; an icon name outside the registry draws the generic plugin glyph.
 - Message, conversation, navigation, contact, and composer actions use stable IDs, visible/enabled state, order, intent, accessibility label, and targeted domain fields.
 - Business availability comes from capabilities. UI components do not infer permissions from current-user role, sender identity, or SDK models.
 - Built-in message renderers cover common IM content. A renderer registry accepts host types such as OrderCard, PaymentCard, ProductCard, RobotCard, and ApprovalCard without expanding MessageBubble switches.

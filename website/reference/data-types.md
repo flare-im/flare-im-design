@@ -163,6 +163,7 @@ title: 数据类型
 | `name` | `string` | ✓ | 申请人显示名。 |
 | `avatarUrl` | `string` |  | 申请人头像 URL。 |
 | `message` | `string` |  | 申请附言（可选）。 |
+| `source` | `string` |  | 申请来源，宿主已组织好文案（如「通过名片添加，由 X 推荐」）；在验证消息下方单独一行，用次要文本显示。 |
 | `direction` | `'incoming' \| 'outgoing'` |  | 申请是收到的还是发出的；默认收到。 |
 
 ### GroupSummary {#group-summary}
@@ -474,6 +475,226 @@ title: 数据类型
 | `amount` | `string` | ✓ | 领取金额（已格式化）。 |
 | `best` | `boolean` | ✓ | 拼手气红包领完后的最大一份，由服务端判定。 |
 
+### LocationCoordinate {#location-coordinate}
+
+`FlareLocationCoordinate`
+
+> WGS-84 坐标（requestCurrentLocation 的返回）。
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `latitude` | `number` | ✓ | 纬度，-90..90。 |
+| `longitude` | `number` | ✓ | 经度，-180..180。 |
+
+### LocationAddress {#location-address}
+
+`FlareLocationAddress`
+
+> 逆地址解析的结果。
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `title` | `string` | ✓ | 地点名。 |
+| `address` | `string` | ✓ | 地址。 |
+
+### LocationPlace {#location-place}
+
+`FlareLocationPlace`
+
+> 选点页列出并发送的地点：附近 POI、搜索结果或当前位置（id 为 "current"）。
+
+**被使用于：**[LocationPicker](/components/location-picker)
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `id` | `string` | ✓ | 稳定的地点 id；"current" 表示设备位置。 |
+| `title` | `string` | ✓ | 地点名。 |
+| `address` | `string` | ✓ | 地址。 |
+| `latitude` | `number` | ✓ | WGS-84 纬度。 |
+| `longitude` | `number` | ✓ | WGS-84 经度。 |
+| `distanceM` | `number` |  | 距搜索中心的米数（宿主知道时）；显示为「120m」/「1.2km」。 |
+
+### LocationValue {#location-value}
+
+`FlareLocationValue`
+
+> Vue 时间线在 locationOpen 里回传的位置消息；Flutter、SwiftUI、Compose 回传各自的位置内容。
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `latitude` | `number` | ✓ | WGS-84 纬度（没有时为 NaN）。 |
+| `longitude` | `number` | ✓ | WGS-84 经度。 |
+| `title` | `string` | ✓ | 地点名。 |
+| `address` | `string` | ✓ | 地址。 |
+| `snapshotUrl` | `string` |  | 静态图地址。 |
+| `provider` | [`LocationProvider`](/reference/data-types#location-provider) |  | 载荷里的地图服务，没有时为 osm。 |
+
+### ContactPickerEntry {#contact-picker-entry}
+
+`FlareContactPickerEntry`
+
+> 联系人选择器可以返回的一个人。
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `userId` | `string` | ✓ | 用户 id；名片里带的就是它。 |
+| `name` | `string` | ✓ | 显示名；参与搜索。 |
+| `avatarUrl` | `string` |  | 头像地址。 |
+| `subtitle` | `string` |  | 副标题（部门、用户名）；参与搜索。 |
+| `isSelf` | `boolean` |  | 当前登录用户：显示「（我）」，仍可选择。 |
+
+### ContactPickerGroup {#contact-picker-group}
+
+`FlareContactPickerGroup`
+
+> 联系人选择器的一个标签页。
+
+**被使用于：**[ContactPicker](/components/contact-picker)
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `id` | `string` | ✓ | friends、groupMembers 或宿主自己的 id。 |
+| `label` | `string` |  | 标签文案；friends、groupMembers 由 Kit 提供。 |
+| `entries` | [`ContactPickerEntry[]`](/reference/data-types#contact-picker-entry) | ✓ | 该标签下的人，按显示顺序。 |
+
+### PluginViewModel {#plugin-view-model}
+
+`FlarePluginViewModel`
+
+> 解析后的插件视图（核心 SDK 的 ResolvedPluginView）。
+
+**被使用于：**[PluginView](/components/plugin-view) · [PluginDetailSheet](/components/plugin-detail-sheet)
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `available` | `boolean` | ✓ | 为假时只显示标题（插件停用、历史卡片）。 |
+| `title` | `string` | ✓ | 卡片标题。 |
+| `fields` | `{label, value}[]` | ✓ | 键值行（v1）。 |
+| `actions` | [`PluginAction[]`](/reference/data-types#plugin-action) | ✓ | 底部动作，文案已翻译；块持有的动作不在这里。 |
+| `blocks` | [`PluginBlock[]`](/reference/data-types#plugin-block) |  | 展示块，按顺序；不认识的 kind 跳过。 |
+| `inputs` | [`PluginInput[]`](/reference/data-types#plugin-input) |  | 文档的全部输入；动作的 form 列出它要收集的。 |
+| `detail` | `boolean` |  | 贡献声明了 detail 视图（「查看全部」）。 |
+| `nextCursor` | `string` |  | 只用于 detail 视图：下一页的游标（核心 SDK 的 detail 分页，非空、不超过 256 字节）。有值时 PluginDetailSheet 显示「加载更多」，宿主取下一页后把合并好的视图传回。 |
+
+### PluginAction {#plugin-action}
+
+`FlarePluginAction`
+
+> 解析后的动作；target 和 input 对 Kit 不透明。
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `id` | `string` | ✓ | 不透明 id，在 action(id, payload) 里回传。 |
+| `label` | `string` | ✓ | 按钮文案。 |
+| `style` | [`PluginActionStyle`](/reference/data-types#plugin-action-style) |  | primary 或 danger；不传为次要。 |
+| `confirm` | `string` |  | 先在 Kit 的 DangerConfirm 里确认的文案。 |
+| `form` | `string[]` |  | 先用 PluginForm 收集的输入 id。 |
+
+### PluginBlock {#plugin-block}
+
+`FlarePluginBlock`
+
+> 一个展示块，按 kind 区分（各自形状见 spec/plugin-view-vectors.json）。
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `kind` | `'text' \| 'fields' \| 'choices' \| 'entries' \| 'people' \| 'status' \| 'progress' \| 'time' \| 'divider' \| 'note' \| 'rows'` | ✓ | 块类型；rows 只用于管理页（Vue）。 |
+| `text` | `{text, maxLines?, style: 'body' \| 'title' \| 'secondary'}` |  | 可折叠文本，带「展开」。 |
+| `fields` | `{fields: {label, value}[]}` |  | 键值行。 |
+| `choices` | `{options: PluginChoice[], multiple, voted, closed, showResults, total?, inputName, action?: PluginAction}` |  | 选项列表；action 是块持有的提交动作。 |
+| `entries` | `{items: {index, text, name?, userId?}[], numbered, total, more, emptyText?}` |  | 带序号的条目，可「查看全部」。 |
+| `people` | `{groups: {label, userIds, count, tone?}[]}` |  | 每组一行头像叠加计数。 |
+| `status` | `{label?, text, tone}` |  | 徽标。 |
+| `progress` | `{label?, value, total, percent}` |  | 进度条加 value/total。 |
+| `time` | `{label?, atMs, endMs?, countdown}` |  | 时间点或区间，可倒计时。 |
+| `note` | `{text, tone?}` |  | 带色调的提示。 |
+| `rows` | `{source, columns: {label, format}[], rows: {key, cells: {text, timeMs?}[], actions: {id, input}[], detailInput?}[], nextCursor?, actions: PluginAction[], emptyText?, filters?: string[]}` |  | 管理表格（只在 Vue）。filters 列出作为页面筛选项的输入 id（不带时为全部输入）；其余输入归行动作的表单（flarePluginFilterInputs）。 |
+
+### PluginChoice {#plugin-choice}
+
+`FlarePluginChoice`
+
+> choices 块的一个选项。
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `index` | `number` | ✓ | 下标，作为 selection 提交。 |
+| `label` | `string` | ✓ | 选项文字。 |
+| `selected` | `boolean` | ✓ | 当前用户选了它。 |
+| `count` | `number` |  | 票数（显示结果时）。 |
+| `percent` | `number` |  | 0..100（显示结果时）。 |
+
+### PluginInput {#plugin-input}
+
+`FlarePluginInput`
+
+> 解析后的表单输入（UiInput）。
+
+**被使用于：**[PluginForm](/components/plugin-form)
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `id` | `string` | ✓ | formValues 里的键。 |
+| `kind` | [`PluginInputKind`](/reference/data-types#plugin-input-kind) | ✓ | 控件类型。 |
+| `label` | `string` | ✓ | 字段名。 |
+| `required` | `boolean` |  | 必填。 |
+| `placeholder` | `string` |  | 占位文字。 |
+| `maxLength` | `number` |  | 字数上限（默认 text 256、textarea 2000、options 每项 100）。 |
+| `min` | `number` |  | number 的最小值；options、members 的最少条数。 |
+| `max` | `number` |  | number 的最大值；options、members 的最多条数（members 为 1 时单选）。 |
+| `default` | `unknown` |  | 初值。 |
+| `choices` | `{value, label}[]` |  | 仅 select。 |
+
+### PluginFormError {#plugin-form-error}
+
+`FlarePluginFormError`
+
+> 提交值的一个问题（UiFormError）。
+
+**被使用于：**[PluginView](/components/plugin-view) · [PluginForm](/components/plugin-form) · [PluginDetailSheet](/components/plugin-detail-sheet)
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `input` | `string` | ✓ | 输入 id。 |
+| `issue` | [`PluginFormIssue`](/reference/data-types#plugin-form-issue) | ✓ | 问题类型。 |
+
+### PluginUser {#plugin-user}
+
+`FlarePluginUser`
+
+> resolveUser 对一个 userId 的回答。
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `name` | `string` | ✓ | 显示名。 |
+| `avatarUrl` | `string` |  | 头像；没有或加载失败时显示首字母。 |
+
+### PluginMember {#plugin-member}
+
+`FlarePluginMember`
+
+> members 输入的候选成员。
+
+**被使用于：**[PluginView](/components/plugin-view) · [PluginForm](/components/plugin-form) · [PluginDetailSheet](/components/plugin-detail-sheet)
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `userId` | `string` | ✓ | 提交的 id。 |
+| `name` | `string` | ✓ | 显示名。 |
+| `avatarUrl` | `string` |  | 头像。 |
+
+### PluginActionPayload {#plugin-action-payload}
+
+`FlarePluginActionPayload`
+
+> action(id, payload) 携带的内容。
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `selection` | `number[]` |  | 选中的选项下标（choices），升序。 |
+| `formValues` | `Record<string, unknown>` |  | 按输入 id 的表单提交值。 |
+| `row` | `{key, input}` |  | rows 行动作所在的行（Vue）。 |
+
 ## 枚举 / 联合类型
 
 ### MessageGroupPosition {#message-group-position}
@@ -597,3 +818,55 @@ title: 数据类型
 **被使用于：**[RedPacketComposer](/components/red-packet-composer)
 
 `lucky` · `normal` · `exclusive`
+
+### LocationProvider {#location-provider}
+
+`FlareLocationProvider`
+
+> 租户配置的地图服务，决定位置卡片打开哪个网页地图。
+
+**被使用于：**[LocationMessage](/components/location-message) · [LocationPicker](/components/location-picker)
+
+`osm` · `amap`
+
+### PluginActionStyle {#plugin-action-style}
+
+`FlarePluginActionStyle`
+
+> 动作按钮的样式。
+
+`primary` · `danger`
+
+### PluginTone {#plugin-tone}
+
+`FlarePluginTone`
+
+> 状态、提示和人员分组的语义色，用 *Text 系列令牌着色。
+
+`neutral` · `info` · `success` · `warning` · `danger`
+
+### PluginInputKind {#plugin-input-kind}
+
+`FlarePluginInputKind`
+
+> 表单输入类型。
+
+`text` · `textarea` · `number` · `toggle` · `select` · `datetime` · `options` · `members`
+
+### PluginFormIssue {#plugin-form-issue}
+
+`FlarePluginFormIssue`
+
+> 表单错误类型（UiFormIssue）。
+
+`required` · `unknown` · `invalidType` · `tooLong` · `outOfRange` · `notAChoice` · `tooFewItems` · `tooManyItems` · `invalidItem` · `duplicateItem`
+
+### PluginViewInset {#plugin-view-inset}
+
+`FlarePluginViewInset`
+
+> PluginView 所在位置的内边距：none；sheet —— 直接放进 Kit 面板（md / lg / xl）；sheetTop —— 放在面板顶部、下面还有内容（如 PluginForm 上方的前言）（md / lg / 0）。
+
+**被使用于：**[PluginView](/components/plugin-view)
+
+`none` · `sheet` · `sheetTop`

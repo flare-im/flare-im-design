@@ -42,10 +42,10 @@
     "supportsDensity": "The component takes a density of its own (its prop says what the values mean); the kit has no global density scale."
   },
   "counts": {
-    "total": 168,
-    "stable": 168,
+    "total": 173,
+    "stable": 173,
     "general": 54,
-    "im": 109
+    "im": 114
   },
   "specializedMessageGroups": {
     "Text": [
@@ -1934,7 +1934,9 @@
         "mediaReveal",
         "openLink",
         "vote",
-        "taskToggle"
+        "taskToggle",
+        "cardOpen",
+        "locationOpen"
       ],
       "states": [
         "pending",
@@ -1966,7 +1968,9 @@
         "mediaReveal",
         "openLink",
         "vote",
-        "taskToggle"
+        "taskToggle",
+        "cardOpen",
+        "locationOpen"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -2008,7 +2012,7 @@
         "gallery": true
       },
       "sourceOfTruth": "spec/components.json#MessageBubble",
-      "searchText": "messagebubble message im-ui stable message pending sent read failed react reply edit delete pin mark preview mediaaction resend toggleselect longpress avatartap forward multiselect recall locatemessage action copy openfile mediadownload mediareveal openlink vote tasktoggle supportsconfiguration supportscustomcontent supportsslots supportsresponsive one message in a thread — content, sender, grouping, delivery status. delegates body to a per-content-type view. 线程里的一条消息 —— 内容、发送者、分组、送达状态。正文按内容类型委派给对应视图。"
+      "searchText": "messagebubble message im-ui stable message pending sent read failed react reply edit delete pin mark preview mediaaction resend toggleselect longpress avatartap forward multiselect recall locatemessage action copy openfile mediadownload mediareveal openlink vote tasktoggle cardopen locationopen supportsconfiguration supportscustomcontent supportsslots supportsresponsive one message in a thread — content, sender, grouping, delivery status. delegates body to a per-content-type view. 线程里的一条消息 —— 内容、发送者、分组、送达状态。正文按内容类型委派给对应视图。"
     },
     {
       "name": "MessageList",
@@ -2100,7 +2104,9 @@
         "mediaReveal",
         "openLink",
         "vote",
-        "taskToggle"
+        "taskToggle",
+        "cardOpen",
+        "locationOpen"
       ],
       "states": [
         "loading",
@@ -2137,7 +2143,9 @@
         "mediaReveal",
         "openLink",
         "vote",
-        "taskToggle"
+        "taskToggle",
+        "cardOpen",
+        "locationOpen"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -2179,7 +2187,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#MessageList",
-      "searchText": "messagelist message im-ui stable message loading empty loadingolder atbottom multiselect oldererror atbottomchange react reply edit delete recall forward pin mark preview resend mediaaction multiselect loadolder toggleselect messagelongpress avatartap locatemessage swipereply action copy openfile mediadownload mediareveal openlink vote tasktoggle supportsconfiguration supportscustomcontent supportsslots supportsresponsive the virtualised message thread — grouping, load-older, multi-select, per-message actions, media state. 虚拟化消息线程 —— 分组、加载更早、多选、逐条操作、媒体状态。"
+      "searchText": "messagelist message im-ui stable message loading empty loadingolder atbottom multiselect oldererror atbottomchange react reply edit delete recall forward pin mark preview resend mediaaction multiselect loadolder toggleselect messagelongpress avatartap locatemessage swipereply action copy openfile mediadownload mediareveal openlink vote tasktoggle cardopen locationopen supportsconfiguration supportscustomcontent supportsslots supportsresponsive the virtualised message thread — grouping, load-older, multi-select, per-message actions, media state. 虚拟化消息线程 —— 分组、加载更早、多选、逐条操作、媒体状态。"
     },
     {
       "name": "ConversationHeader",
@@ -2599,7 +2607,9 @@
         "mediaReveal",
         "openLink",
         "vote",
-        "taskToggle"
+        "taskToggle",
+        "cardOpen",
+        "locationOpen"
       ],
       "states": [
         "ready",
@@ -2614,7 +2624,9 @@
         "mediaReveal",
         "openLink",
         "vote",
-        "taskToggle"
+        "taskToggle",
+        "cardOpen",
+        "locationOpen"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -2656,7 +2668,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#MessageContentView",
-      "searchText": "messagecontentview message im-ui stable message ready downloading unsupported locatemessage mediaaction openfile mediadownload mediareveal openlink vote tasktoggle supportsconfiguration supportscustomcontent supportsslots content-type dispatcher — renders a message body by type via the content-type registry (text/image/video/card/vote/task/…). extension point for products. 内容类型分发器 —— 经内容类型注册表按类型渲染消息正文（文本 / 图片 / 视频 / 名片 / 投票 / 任务 / …）。产品扩展点。"
+      "searchText": "messagecontentview message im-ui stable message ready downloading unsupported locatemessage mediaaction openfile mediadownload mediareveal openlink vote tasktoggle cardopen locationopen supportsconfiguration supportscustomcontent supportsslots content-type dispatcher — renders a message body by type via the content-type registry (text/image/video/card/vote/task/…). extension point for products. 内容类型分发器 —— 经内容类型注册表按类型渲染消息正文（文本 / 图片 / 视频 / 名片 / 投票 / 任务 / …）。产品扩展点。"
     },
     {
       "name": "TextMessage",
@@ -3373,7 +3385,7 @@
       "docsSections": {
         "configuration": true,
         "variants": false,
-        "states": false,
+        "states": true,
         "interaction": true,
         "responsive": false,
         "keyboard": true,
@@ -3383,17 +3395,25 @@
       },
       "docExamples": {
         "variants": [],
-        "states": []
+        "states": [
+          "snapshot",
+          "placeholder"
+        ]
       },
       "summary": {
-        "en": "Location message body — a map placeholder over title / address.",
-        "zh": "位置消息体 —— 地图占位 + 标题 / 地址。"
+        "en": "Location message body — the static map (or a drawn map with a centre pin), the place and its address; opens the platform's map.",
+        "zh": "位置消息体 —— 静态地图（无图时为地图底纹加中心点）、地点名和地址；点击打开系统或网页地图。"
       },
       "aliases": [
         "Message",
+        "snapshot",
+        "placeholder",
         "open"
       ],
-      "states": [],
+      "states": [
+        "snapshot",
+        "placeholder"
+      ],
       "interactions": [
         "open"
       ],
@@ -3437,7 +3457,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#LocationMessage",
-      "searchText": "locationmessage message im-ui stable message open supportsconfiguration location message body — a map placeholder over title / address. 位置消息体 —— 地图占位 + 标题 / 地址。"
+      "searchText": "locationmessage message im-ui stable message snapshot placeholder open supportsconfiguration location message body — the static map (or a drawn map with a centre pin), the place and its address; opens the platform's map. 位置消息体 —— 静态地图（无图时为地图底纹加中心点）、地点名和地址；点击打开系统或网页地图。"
     },
     {
       "name": "ContactMessage",
@@ -6414,7 +6434,8 @@
         "toggleStar",
         "block",
         "remove",
-        "extraAction"
+        "extraAction",
+        "primaryAction"
       ],
       "states": [
         "default"
@@ -6428,7 +6449,8 @@
         "toggleStar",
         "block",
         "remove",
-        "extraAction"
+        "extraAction",
+        "primaryAction"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -6470,7 +6492,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#ContactDetail",
-      "searchText": "contactdetail contacts im-ui stable contacts default message call video edit editdescription togglestar block remove extraaction supportsconfiguration supportsresponsive contact card — avatar/name/signature + profile fields + message/voice/video/more actions. 联系人名片 —— 头像 / 名称 / 签名 + 资料字段 + 发消息 / 语音 / 视频 / 更多操作。"
+      "searchText": "contactdetail contacts im-ui stable contacts default message call video edit editdescription togglestar block remove extraaction primaryaction supportsconfiguration supportsresponsive contact card — avatar/name/signature + profile fields + message/voice/video/more actions. 联系人名片 —— 头像 / 名称 / 签名 + 资料字段 + 发消息 / 语音 / 视频 / 更多操作。"
     },
     {
       "name": "GroupDetail",
@@ -9942,6 +9964,356 @@
       "searchText": "redpacketpayconfirm message im-ui stable message ready insufficient busy confirm cancel supportsconfiguration payment confirmation — bottom panel with the amount drawn large, the method row, confirm and cancel; no confirm on an insufficient balance. 支付确认 —— 底部面板：大字金额、支付方式行、确认 / 取消；余额不足时不能确认。"
     },
     {
+      "name": "PluginView",
+      "slug": "plugin-view",
+      "category": "Message",
+      "layer": "im-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": true,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [
+          {
+            "name": "resolveUser",
+            "values": [
+              "(userId: string) => FlarePluginUser",
+              "Promise<FlarePluginUser",
+              "undefined>",
+              "undefined"
+            ]
+          }
+        ],
+        "states": [
+          "unavailable",
+          "busy",
+          "error",
+          "voted",
+          "closed",
+          "embedded"
+        ]
+      },
+      "summary": {
+        "en": "Generic plugin card — the core SDK's resolved view drawn as a kit business card: blocks (text, fields, choices, entries, people, status, progress, time, divider, note; rows on Vue admin pages), then the action keys.",
+        "zh": "通用插件卡片 —— 把核心 SDK 解析好的视图画成 Kit 业务卡片：展示块（文本、键值、选项、条目、人员、状态、进度、时间、分隔、提示；Vue 管理页另有 rows），再是底部动作。"
+      },
+      "aliases": [
+        "Message",
+        "unavailable",
+        "busy",
+        "error",
+        "voted",
+        "closed",
+        "embedded",
+        "action",
+        "openDetail",
+        "loadMore"
+      ],
+      "states": [
+        "unavailable",
+        "busy",
+        "error",
+        "voted",
+        "closed",
+        "embedded"
+      ],
+      "interactions": [
+        "action",
+        "openDetail",
+        "loadMore"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlarePluginView"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlarePluginView"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "PluginView"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "PluginView"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/messages/FlarePluginView.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_plugin_view.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/PluginView.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/PluginView.swift"
+      },
+      "docs": {
+        "zh": "website/components/plugin-view.md",
+        "en": "website/en/components/plugin-view.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#PluginView",
+      "searchText": "pluginview message im-ui stable message unavailable busy error voted closed embedded action opendetail loadmore supportsconfiguration generic plugin card — the core sdk's resolved view drawn as a kit business card: blocks (text, fields, choices, entries, people, status, progress, time, divider, note; rows on vue admin pages), then the action keys. 通用插件卡片 —— 把核心 sdk 解析好的视图画成 kit 业务卡片：展示块（文本、键值、选项、条目、人员、状态、进度、时间、分隔、提示；vue 管理页另有 rows），再是底部动作。"
+    },
+    {
+      "name": "PluginForm",
+      "slug": "plugin-form",
+      "category": "Message",
+      "layer": "im-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": false,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [],
+        "states": [
+          "editing",
+          "invalid",
+          "busy",
+          "error"
+        ]
+      },
+      "summary": {
+        "en": "Plugin form — the resolved inputs of a plugin action (text, textarea, number, toggle, select, datetime, options, members) with light client checks and the host's errors; put it in the kit bottom sheet.",
+        "zh": "插件表单 —— 插件动作的解析后输入（文本、多行、数字、开关、单选、日期时间、选项列表、成员），客户端轻校验加宿主错误；放进 Kit 底部面板。"
+      },
+      "aliases": [
+        "Message",
+        "editing",
+        "invalid",
+        "busy",
+        "error",
+        "submit",
+        "cancel"
+      ],
+      "states": [
+        "editing",
+        "invalid",
+        "busy",
+        "error"
+      ],
+      "interactions": [
+        "submit",
+        "cancel"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlarePluginForm"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlarePluginForm"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "PluginForm"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "PluginFormView"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/form/FlarePluginForm.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_plugin_form.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/PluginForm.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/PluginFormView.swift"
+      },
+      "docs": {
+        "zh": "website/components/plugin-form.md",
+        "en": "website/en/components/plugin-form.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#PluginForm",
+      "searchText": "pluginform message im-ui stable message editing invalid busy error submit cancel supportsconfiguration plugin form — the resolved inputs of a plugin action (text, textarea, number, toggle, select, datetime, options, members) with light client checks and the host's errors; put it in the kit bottom sheet. 插件表单 —— 插件动作的解析后输入（文本、多行、数字、开关、单选、日期时间、选项列表、成员），客户端轻校验加宿主错误；放进 kit 底部面板。"
+    },
+    {
+      "name": "PluginDetailSheet",
+      "slug": "plugin-detail-sheet",
+      "category": "Message",
+      "layer": "im-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": "查看全部（4）",
+      "docsSections": {
+        "configuration": true,
+        "variants": true,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [
+          {
+            "name": "resolveUser",
+            "values": [
+              "(userId: string) => FlarePluginUser",
+              "Promise<FlarePluginUser",
+              "undefined>",
+              "undefined"
+            ]
+          }
+        ],
+        "states": [
+          "loading",
+          "error",
+          "loaded"
+        ]
+      },
+      "summary": {
+        "en": "Plugin detail — the \"see all\" view of a plugin card in the kit bottom sheet: loading, an error with retry, then the detail view as an embedded PluginView.",
+        "zh": "插件详情 —— 插件卡片「查看全部」的视图，放在 Kit 底部面板：加载中、出错可重试，然后以内嵌 PluginView 渲染 detail 视图。"
+      },
+      "aliases": [
+        "Message",
+        "loading",
+        "error",
+        "loaded",
+        "retry",
+        "close",
+        "action",
+        "loadMore"
+      ],
+      "states": [
+        "loading",
+        "error",
+        "loaded"
+      ],
+      "interactions": [
+        "retry",
+        "close",
+        "action",
+        "loadMore"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlarePluginDetailSheet"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlarePluginDetailSheet"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "PluginDetailSheet"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "PluginDetailSheetView"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/messages/FlarePluginDetailSheet.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_plugin_detail_sheet.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/PluginDetailSheet.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/PluginDetailSheetView.swift"
+      },
+      "docs": {
+        "zh": "website/components/plugin-detail-sheet.md",
+        "en": "website/en/components/plugin-detail-sheet.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#PluginDetailSheet",
+      "searchText": "plugindetailsheet message im-ui stable message loading error loaded retry close action loadmore supportsconfiguration plugin detail — the \"see all\" view of a plugin card in the kit bottom sheet: loading, an error with retry, then the detail view as an embedded pluginview. 插件详情 —— 插件卡片「查看全部」的视图，放在 kit 底部面板：加载中、出错可重试，然后以内嵌 pluginview 渲染 detail 视图。"
+    },
+    {
       "name": "SlashCommandMenu",
       "slug": "slash-command-menu",
       "category": "Composer",
@@ -10633,6 +11005,236 @@
       },
       "sourceOfTruth": "spec/components.json#PollComposer",
       "searchText": "pollcomposer composer im-ui stable composer submit cancel supportsconfiguration poll composer — question+options+multi. 投票创建器 —— 问题+选项+多选。"
+    },
+    {
+      "name": "LocationPicker",
+      "slug": "location-picker",
+      "category": "Composer",
+      "layer": "im-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": true,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [
+          {
+            "name": "searchNearby",
+            "values": [
+              "(latitude: number",
+              "null, longitude: number",
+              "null, query: string) => Promise<FlareLocationPlace[]>"
+            ]
+          },
+          {
+            "name": "previewUrl",
+            "values": [
+              "(latitude: number, longitude: number, zoom: number, width: number, height: number) => Promise<string",
+              "null>"
+            ]
+          }
+        ],
+        "states": [
+          "locating",
+          "located",
+          "denied",
+          "searching",
+          "noResults",
+          "mapUnavailable",
+          "sending"
+        ]
+      },
+      "summary": {
+        "en": "Location picker — the sheet content for sending a location: static map with a centre pin and a locate key, place search, nearby places with the current location first, and Send.",
+        "zh": "位置选点 —— 发送位置的底部面板内容：静态地图加中心点与「定位到当前」键、地点搜索、附近地点列表（第一项是当前位置）和「发送」。"
+      },
+      "aliases": [
+        "Composer",
+        "locating",
+        "located",
+        "denied",
+        "searching",
+        "noResults",
+        "mapUnavailable",
+        "sending",
+        "send",
+        "cancel"
+      ],
+      "states": [
+        "locating",
+        "located",
+        "denied",
+        "searching",
+        "noResults",
+        "mapUnavailable",
+        "sending"
+      ],
+      "interactions": [
+        "send",
+        "cancel"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareLocationPicker"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareLocationPicker"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "LocationPicker"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "LocationPickerView"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/composer/FlareLocationPicker.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_location_picker.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/LocationPicker.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/LocationPickerView.swift"
+      },
+      "docs": {
+        "zh": "website/components/location-picker.md",
+        "en": "website/en/components/location-picker.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#LocationPicker",
+      "searchText": "locationpicker composer im-ui stable composer locating located denied searching noresults mapunavailable sending send cancel supportsconfiguration location picker — the sheet content for sending a location: static map with a centre pin and a locate key, place search, nearby places with the current location first, and send. 位置选点 —— 发送位置的底部面板内容：静态地图加中心点与「定位到当前」键、地点搜索、附近地点列表（第一项是当前位置）和「发送」。"
+    },
+    {
+      "name": "ContactPicker",
+      "slug": "contact-picker",
+      "category": "Composer",
+      "layer": "im-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": false,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [],
+        "states": [
+          "empty"
+        ]
+      },
+      "summary": {
+        "en": "Contact picker — choose the person a contact card names: group tabs (friends, group members), search, a windowed list, \"(me)\" on the signed-in user.",
+        "zh": "联系人选择 —— 选择名片里的人：分组标签（好友、群成员）、搜索、虚拟列表，自己显示「（我）」。"
+      },
+      "aliases": [
+        "Composer",
+        "empty",
+        "select",
+        "cancel"
+      ],
+      "states": [
+        "empty"
+      ],
+      "interactions": [
+        "select",
+        "cancel"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareContactPicker"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareContactPicker"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ContactPicker"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "ContactPickerView"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/composer/FlareContactPicker.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_contact_picker.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/ContactPicker.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/ContactPickerView.swift"
+      },
+      "docs": {
+        "zh": "website/components/contact-picker.md",
+        "en": "website/en/components/contact-picker.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#ContactPicker",
+      "searchText": "contactpicker composer im-ui stable composer empty select cancel supportsconfiguration contact picker — choose the person a contact card names: group tabs (friends, group members), search, a windowed list, \"(me)\" on the signed-in user. 联系人选择 —— 选择名片里的人：分组标签（好友、群成员）、搜索、虚拟列表，自己显示「（我）」。"
     },
     {
       "name": "ChatWallpaperPicker",
