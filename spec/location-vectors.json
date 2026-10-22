@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "note": "Shared location rules for the four kits. `links` is the default place a LocationMessage opens when the host takes no `open`: `web` (Vue and the Flutter web/desktop target) by `provider` (osm when omitted), `apple` (SwiftUI, and Flutter on iOS and macOS) and `geo` (Compose, and Flutter on Android); `flutterTargets` maps Flutter's TargetPlatform to the column it uses (kIsWeb uses web). All three are null when a coordinate is not finite or out of range (latitude -90..90, longitude -180..180): the card then opens nothing. Coordinates are WGS-84 as stored in the message; Amap is told so (coordinate=wgs84). `coordinateFormat`: each number fixed to 6 decimals, then trailing zeros and a trailing point dropped, and a negative zero written 0. `titleEncoding`: the title is trimmed (blank = no title) and percent-encoded as UTF-8 bytes, every byte except A-Z a-z 0-9 - . _ ~ written %XX in capitals (space is %20, never +). Without a title the Amap link has no name, the Apple link's q is the coordinate pair and the geo link has no parenthesised label. `label` is the coordinate line the picker and the card show when there is no map: each number fixed to 5 decimals (a negative zero written 0.00000), joined by \", \"; null for an invalid coordinate. `distance` is a POI row's distance: metres rounded half up below 1000, else kilometres fixed to 1 decimal; null for a missing, negative or non-finite value. `previewSize` is what LocationPicker passes to previewUrl: the map area's logical width and height times the screen scale clamped to 1..2, each rounded half up — device pixels on every platform (Compose converts dp with the density, never passes dp). Inputs avoid exact rounding ties so every platform's formatter agrees.",
+  "note": "Shared location rules for the four kits. `links` is the default place a LocationMessage opens when the host takes no `open`: `web` (Vue and the Flutter web/desktop target) by `provider` (osm when omitted), `apple` (SwiftUI, and Flutter on iOS and macOS) and `geo` (Compose, and Flutter on Android); `flutterTargets` maps Flutter's TargetPlatform to the column it uses (kIsWeb uses web). All three are null when a coordinate is not finite or out of range (latitude -90..90, longitude -180..180): the card then opens nothing. Coordinates are WGS-84 as stored in the message; Amap is told so (coordinate=wgs84). `coordinateFormat`: each number fixed to 6 decimals, then trailing zeros and a trailing point dropped, and a negative zero written 0. `titleEncoding`: the title is trimmed (blank = no title) and percent-encoded as UTF-8 bytes, every byte except A-Z a-z 0-9 - . _ ~ written %XX in capitals (space is %20, never +). Without a title the Amap link has no name, the Apple link's q is the coordinate pair and the geo link has no parenthesised label. `label` is the coordinate line the picker and the card show when there is no map: each number fixed to 5 decimals (a negative zero written 0.00000), joined by \", \"; null for an invalid coordinate. `distance` is a POI row's distance: metres rounded half up below 1000, else kilometres fixed to 1 decimal; null for a missing, negative or non-finite value. `previewSize` is what LocationPicker passes to previewUrl: the map area's logical width and height times the screen scale clamped to 1..2, each rounded half up — device pixels on every platform (Compose converts dp with the density, never passes dp). Inputs avoid exact rounding ties so every platform's formatter agrees. `providerFrom` is flareLocationProviderFrom: a `chat.location` config value as a provider — the string amap (trimmed, any case) is amap, anything else (osm, an unknown name, blank, null, not a string) is osm. `webMapUrl` is flareLocationWebMapUrl: the web map a host opens for a location message — `input` is the message's content (the title is its name; its provider is osm when it names none) and `provider`, when the row has one, the argument that wins over the content's; the `web` link of `links` for that provider, or null when the content has no coordinate: one of the pair missing, out of range, or exactly 0, 0 (the wire writes an absent coordinate as 0, 0).",
   "coordinateFormat": {
     "decimals": 6,
     "trimTrailingZeros": true,
@@ -390,6 +390,184 @@
         "width": 723,
         "height": 336
       }
+    }
+  ],
+  "providerFrom": [
+    {
+      "id": "amap",
+      "input": "amap",
+      "output": "amap"
+    },
+    {
+      "id": "amap-trimmed-any-case",
+      "input": " AMap ",
+      "output": "amap"
+    },
+    {
+      "id": "amap-capitals",
+      "input": "AMAP",
+      "output": "amap"
+    },
+    {
+      "id": "osm",
+      "input": "osm",
+      "output": "osm"
+    },
+    {
+      "id": "osm-capitals",
+      "input": "OSM",
+      "output": "osm"
+    },
+    {
+      "id": "unknown-name",
+      "input": "google",
+      "output": "osm"
+    },
+    {
+      "id": "blank",
+      "input": "  ",
+      "output": "osm"
+    },
+    {
+      "id": "missing",
+      "input": null,
+      "output": "osm"
+    },
+    {
+      "id": "not-a-string",
+      "input": 1,
+      "output": "osm"
+    },
+    {
+      "id": "an-object",
+      "input": {
+        "provider": "amap"
+      },
+      "output": "osm"
+    }
+  ],
+  "webMapUrl": [
+    {
+      "id": "content-osm",
+      "input": {
+        "latitude": 39.9087,
+        "longitude": 116.3975,
+        "title": "天安门广场",
+        "provider": "osm"
+      },
+      "output": "https://www.openstreetmap.org/?mlat=39.9087&mlon=116.3975#map=17/39.9087/116.3975"
+    },
+    {
+      "id": "content-amap",
+      "input": {
+        "latitude": 31.2304167,
+        "longitude": 121.4737,
+        "title": "人民广场 (地铁站)",
+        "provider": "amap"
+      },
+      "output": "https://uri.amap.com/marker?position=121.4737,31.230417&name=%E4%BA%BA%E6%B0%91%E5%B9%BF%E5%9C%BA%20%28%E5%9C%B0%E9%93%81%E7%AB%99%29&coordinate=wgs84&callnative=0"
+    },
+    {
+      "id": "argument-amap-wins",
+      "input": {
+        "latitude": 22.5431,
+        "longitude": 114.0579,
+        "title": "深圳湾公园",
+        "provider": "osm"
+      },
+      "provider": "amap",
+      "output": "https://uri.amap.com/marker?position=114.0579,22.5431&name=%E6%B7%B1%E5%9C%B3%E6%B9%BE%E5%85%AC%E5%9B%AD&coordinate=wgs84&callnative=0"
+    },
+    {
+      "id": "argument-osm-wins",
+      "input": {
+        "latitude": 22.5431,
+        "longitude": 114.0579,
+        "title": "Shenzhen Bay",
+        "provider": "amap"
+      },
+      "provider": "osm",
+      "output": "https://www.openstreetmap.org/?mlat=22.5431&mlon=114.0579#map=17/22.5431/114.0579"
+    },
+    {
+      "id": "content-names-none",
+      "input": {
+        "latitude": -33.8568,
+        "longitude": 151.2153,
+        "title": "Sydney Opera House"
+      },
+      "output": "https://www.openstreetmap.org/?mlat=-33.8568&mlon=151.2153#map=17/-33.8568/151.2153"
+    },
+    {
+      "id": "untitled-amap",
+      "input": {
+        "latitude": 23.1291,
+        "longitude": 113.2644,
+        "title": "",
+        "provider": "amap"
+      },
+      "output": "https://uri.amap.com/marker?position=113.2644,23.1291&coordinate=wgs84&callnative=0"
+    },
+    {
+      "id": "zero-latitude-is-a-place",
+      "input": {
+        "latitude": 0,
+        "longitude": 100,
+        "title": "Equator"
+      },
+      "output": "https://www.openstreetmap.org/?mlat=0&mlon=100#map=17/0/100"
+    },
+    {
+      "id": "wire-zero-zero-is-none",
+      "input": {
+        "latitude": 0,
+        "longitude": 0,
+        "title": "Null Island",
+        "provider": "amap"
+      },
+      "output": null
+    },
+    {
+      "id": "no-latitude",
+      "input": {
+        "longitude": 116.3975,
+        "title": "天安门广场"
+      },
+      "output": null
+    },
+    {
+      "id": "no-longitude",
+      "input": {
+        "latitude": 39.9087,
+        "title": "天安门广场"
+      },
+      "output": null
+    },
+    {
+      "id": "no-coordinate",
+      "input": {
+        "title": "Somewhere"
+      },
+      "provider": "amap",
+      "output": null
+    },
+    {
+      "id": "latitude-out-of-range",
+      "input": {
+        "latitude": 91,
+        "longitude": 10,
+        "title": "Nowhere"
+      },
+      "output": null
+    },
+    {
+      "id": "longitude-out-of-range",
+      "input": {
+        "latitude": 10,
+        "longitude": -181,
+        "provider": "amap"
+      },
+      "output": null
     }
   ]
 }
