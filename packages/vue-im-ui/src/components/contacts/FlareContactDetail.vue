@@ -13,7 +13,8 @@
  *
  * Someone who is not a contact yet gets the page's main step from the host: `primaryActionLabel` with a
  * `primaryAction` listener leads the action row as the primary key ("添加到通讯录"), and Message, when
- * handled, follows as a secondary key. It is not one of the footer's `extraActions`.
+ * handled, follows as a secondary key. It is not one of the footer's `extraActions`. While the host runs it,
+ * `primaryActionBusy` puts a spinner in place of its icon and locks that key alone; `busy` still locks everything.
  */
 import { computed, getCurrentInstance } from "vue";
 import { NIcon } from "naive-ui";
@@ -38,6 +39,8 @@ const props = defineProps<{
   contact: FlareContact;
   /** Label of the page's primary action for someone who is not a contact yet; drawn with a `primaryAction` listener. */
   primaryActionLabel?: string;
+  /** The host is carrying out the primary action: that key spins and takes no taps; the rest stay usable. */
+  primaryActionBusy?: boolean;
   disabledActions?: ("message" | "call" | "video")[];
   busy?: boolean;
   /** Whether the viewer has starred (favorited) this contact. */
@@ -117,8 +120,11 @@ function actions(): ContactAction[] {
   ];
   return all.filter((action) => handles(action.listener));
 }
+function pending(action: ContactAction): boolean {
+  return action.id === "primary" && Boolean(props.primaryActionBusy);
+}
 function disabled(action: ContactAction): boolean {
-  if (props.busy) return true;
+  if (props.busy || pending(action)) return true;
   return action.id !== "primary" && Boolean(props.disabledActions?.includes(action.id));
 }
 
@@ -167,9 +173,11 @@ function onToggle(item: FlareSettingsItem, value: boolean) {
         :class="{ 'is-primary': action.primary }"
         :disabled="disabled(action)"
         :data-contact-action="action.id"
+        :aria-busy="pending(action) ? 'true' : undefined"
         @click="runAction(action.id)"
       >
-        <n-icon aria-hidden="true" :size="20" :component="action.icon" /><span>{{ action.label }}</span>
+        <span v-if="pending(action)" class="flare-contact-detail__spinner" aria-hidden="true" />
+        <n-icon v-else aria-hidden="true" :size="20" :component="action.icon" /><span>{{ action.label }}</span>
       </button>
     </div>
 
@@ -231,6 +239,22 @@ function onToggle(item: FlareSettingsItem, value: boolean) {
   font-size: var(--flare-size-font-size-lg);
 }
 .flare-contact-detail__actions button:disabled { opacity: 0.45; cursor: default; }
+/* The key the host is running stays at full strength: the spinner says why it takes no tap. */
+.flare-contact-detail__actions button[aria-busy="true"] { opacity: 1; cursor: progress; }
+.flare-contact-detail__actions button[aria-busy="true"]:active { transform: none; }
+.flare-contact-detail__spinner {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: flare-contact-detail-spin 0.8s linear infinite;
+}
+@keyframes flare-contact-detail-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .flare-contact-detail__spinner { animation-duration: 2s; }
+}
 .flare-contact-detail__actions button:active { transform: scale(0.97); }
 .flare-contact-detail__actions button.is-primary {
   color: #fff; background: var(--flare-component-brand-primary);

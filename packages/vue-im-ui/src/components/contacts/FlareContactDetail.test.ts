@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it } from "vitest";
 import { mount } from "@vue/test-utils";
-import { defineComponent, h, type Component } from "vue";
+import { defineComponent, h, nextTick, ref, type Component } from "vue";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
 import FlareContactDetail from "./FlareContactDetail.vue";
 
@@ -82,5 +82,45 @@ describe("FlareContactDetail primary action", () => {
     const only = busy.get('[data-contact-action="primary"]');
     expect(only.attributes("disabled")).toBeDefined();
     expect(only.classes()).toContain("is-primary");
+  });
+
+  it("primaryActionBusy spins and locks the primary key alone, and lets go when the host clears it", async () => {
+    const events: string[] = [];
+    const busy = ref(true);
+    host = mount(defineComponent({
+      setup() {
+        useFlareI18nProvider("zh-CN");
+        return () => h(FlareContactDetail as Component, {
+          contact,
+          primaryActionLabel: "添加到通讯录",
+          primaryActionBusy: busy.value,
+          onPrimaryAction: () => events.push("primary"),
+          onMessage: () => events.push("message"),
+          extraActions: [{ id: "report", label: "举报" }],
+        });
+      },
+    }));
+    const view = host;
+    const primary = view.get('[data-contact-action="primary"]');
+    expect(primary.attributes("disabled")).toBeDefined();
+    expect(primary.attributes("aria-busy")).toBe("true");
+    expect(primary.find(".flare-contact-detail__spinner").exists()).toBe(true);
+    expect(primary.text()).toBe("添加到通讯录");
+    await primary.trigger("click");
+    const message = view.get('[data-contact-action="message"]');
+    expect(message.attributes("disabled")).toBeUndefined();
+    expect(message.attributes("aria-busy")).toBeUndefined();
+    await message.trigger("click");
+    const extra = view.get(".flare-contact-detail__extra button");
+    expect(extra.attributes("disabled")).toBeUndefined();
+    expect(events).toEqual(["message"]);
+
+    busy.value = false;
+    await nextTick();
+    expect(primary.attributes("disabled")).toBeUndefined();
+    expect(primary.attributes("aria-busy")).toBeUndefined();
+    expect(primary.find(".flare-contact-detail__spinner").exists()).toBe(false);
+    await primary.trigger("click");
+    expect(events).toEqual(["message", "primary"]);
   });
 });

@@ -1,5 +1,6 @@
 export * from "./businessMessage";
 export * from "./browserDownload";
+export * from "./browserLocation";
 export * from "./asyncTimeout";
 export { flareErrorText } from "../shared/errors";
 export { configureMediaProxy, mediaProxyFields } from "../shared/config/mediaProxy";

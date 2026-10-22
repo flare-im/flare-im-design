@@ -92,6 +92,40 @@ export function flareLocationMapLinks(input: {
   };
 }
 
+/**
+ * The map service a `chat.location` config value names: the string `amap` (trimmed, any case) is AMap, anything
+ * else — `osm`, an unknown name, blank, null, not a string — is OpenStreetMap (spec/location-vectors.json
+ * `providerFrom`; the same on all four kits).
+ */
+export function flareLocationProviderFrom(value: unknown): FlareLocationProvider {
+  return typeof value === "string" && value.trim().toLowerCase() === "amap" ? "amap" : "osm";
+}
+
+/**
+ * The web map a host opens for a location message: the `web` link of {@link flareLocationMapLinks} for `provider`
+ * when given, else the location's own, else osm. Null without a coordinate to open — one of the pair missing or not
+ * finite, out of range, or exactly 0, 0, which the wire writes for "none" (spec/location-vectors.json `webMapUrl`).
+ */
+export function flareLocationWebMapUrl(
+  location: {
+    latitude?: number | null;
+    longitude?: number | null;
+    title?: string;
+    provider?: FlareLocationProvider;
+  },
+  provider?: FlareLocationProvider,
+): string | null {
+  const { latitude, longitude } = location;
+  if (latitude === null || latitude === undefined || longitude === null || longitude === undefined) return null;
+  if (latitude === 0 && longitude === 0) return null;
+  return flareLocationMapLinks({
+    latitude,
+    longitude,
+    title: location.title,
+    provider: provider ?? location.provider ?? "osm",
+  })?.web ?? null;
+}
+
 function fixed5(value: number): string {
   const text = value.toFixed(5);
   return text === "-0.00000" ? "0.00000" : text;

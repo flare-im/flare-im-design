@@ -1,5 +1,10 @@
 ## 未发布
 
+- 第七轮 Kit 小缺口（app 接线反馈）：
+  - `FlareContactDetail` 新增 `primaryActionBusy`：宿主执行主操作（如发送好友申请）期间，主按钮以转圈代替图标、禁用并带 `aria-busy`，颜色不变；发消息、通话、资料行和页脚照常可用。`busy` 仍禁用全部。
+  - `FlareContactPicker` 新增 `sending`（与 `FlareLocationPicker` 的 `sending` 同义）：单选时被点的那一行高亮转圈（`aria-busy`、`aria-selected`），多选时确认键转圈；各行与确认键禁用，取消、搜索和标签照常。清掉后单选忘掉那一行，多选保留已选供重发。
+  - `./contracts` 新增 `flareLocationWebMapUrl(location, provider?)`（宿主自己打开地点时的网页地图地址：参数优先、其次内容、默认 osm；缺坐标、超范围或线上的 0, 0 返回 null）和 `flareLocationProviderFrom(value)`（`chat.location` 配置值转服务商：`amap` 去空白不区分大小写为高德，其余为 osm）。规则见 `spec/location-vectors.json` 的 `webMapUrl`、`providerFrom`。时间线的位置适配层改用后者读载荷的 provider。
+  - `./utils` 新增 `createFlareBrowserLocationHost(options?)`：浏览器 / webview 的 `ensurePermission` 与 `requestCurrentLocation`。Permissions API 能答就照答；prompt 或答不上来时发起一次定位弹出授权框，只有拒绝算 false；非安全上下文或没有 geolocation 直接 false；授权那一步拿到的定位留给下一次定位。导入时不读 `navigator`。
 - 第六轮验收修复（插件卡片详情入口、inset）：
   - `FlarePluginView` 卡片级「查看详情」：`view.detail` 为真、没有 entries 块在显示「查看全部」、可用、非 embedded、没有 rows 块，并且宿主监听了 `openDetail` 时，在动作区下方画整宽的 quiet 文字按钮（size sm，文案 `pluginView.detail`），点击发出不带 row 的 `openDetail`；`busy` / `busyActionId` 时禁用。投票、日程、任务、公告卡片因此能打开详情。
   - `FlarePluginViewInset` 新增 `sheetTop`（上 md、左右 lg、下不留），用于 PluginForm 上方的前言，两者之间只剩表单自己的 md。

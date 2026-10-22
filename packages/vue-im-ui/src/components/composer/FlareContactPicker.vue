@@ -17,7 +17,9 @@ import {
 // Choose the person a contact card names: tabs for the groups the host passes (friends, group members —
 // one group shows no tabs), a search over names and subtitles, and a list that only renders the rows on
 // screen once it grows long. One tap answers in single mode; multiple mode toggles rows and answers
-// from the confirm key. The signed-in user stays selectable and reads "(me)".
+// from the confirm key. The signed-in user stays selectable and reads "(me)". While the host sends the card
+// (`sending`, the same meaning as LocationPicker's), the tapped row — or, in multiple mode, the confirm key — spins and
+// the rows take no taps; cleared, single mode forgets that row and multiple mode keeps its choice for a retry.
 const props = withDefaults(
   defineProps<{
     groups: FlareContactPickerGroup[];
@@ -25,8 +27,10 @@ const props = withDefaults(
     multiple?: boolean;
     /** Header title; the kit's "Choose a contact" when omitted. */
     title?: string;
+    /** The host is sending the card: the tapped row (multiple mode: the confirm key) spins; rows take no taps. */
+    sending?: boolean;
   }>(),
-  { searchable: true, multiple: false, title: undefined },
+  { searchable: true, multiple: false, title: undefined, sending: false },
 );
 const emit = defineEmits<{
   (e: "select", entries: FlareContactPickerEntry[]): void;
@@ -48,6 +52,11 @@ watch(() => props.groups, (groups) => {
 });
 const query = ref("");
 const chosen = ref<string[]>([]);
+// The row a single-mode tap answered with: it spins while the host sends, and is forgotten once the send settles.
+const pendingId = ref<string | null>(null);
+watch(() => props.sending, (now, before) => {
+  if (before && !now) pendingId.value = null;
+});
 
 const groupLabel = (group: FlareContactPickerGroup): string => {
   if (group.label) return group.label;
@@ -109,14 +118,19 @@ watch([activeGroupId, query], () => {
 
 // ── choosing ──────────────────────────────────────────────────────────────
 const isChosen = (entry: FlareContactPickerEntry): boolean => chosen.value.includes(entry.userId);
+const isPending = (entry: FlareContactPickerEntry): boolean =>
+  props.sending && !props.multiple && pendingId.value === entry.userId;
 function tap(entry: FlareContactPickerEntry): void {
+  if (props.sending) return;
   if (!props.multiple) {
+    pendingId.value = entry.userId;
     emit("select", [entry]);
     return;
   }
   chosen.value = isChosen(entry) ? chosen.value.filter((id) => id !== entry.userId) : [...chosen.value, entry.userId];
 }
 function confirm(): void {
+  if (props.sending) return;
   const everyone = props.groups.flatMap((group) => group.entries);
   const picked = chosen.value
     .map((id) => everyone.find((entry) => entry.userId === id))
@@ -136,6 +150,7 @@ function confirm(): void {
           size="sm"
           :label="chosen.length ? `${t('contactPicker.confirm')} (${chosen.length})` : t('contactPicker.confirm')"
           :disabled="!chosen.length"
+          :loading="sending"
           @click="confirm"
         />
       </span>
@@ -169,10 +184,12 @@ function confirm(): void {
           :key="entry.userId"
           type="button"
           class="flare-contact-picker__row"
-          :class="{ 'is-chosen': multiple && isChosen(entry) }"
+          :class="{ 'is-chosen': multiple && isChosen(entry), 'is-pending': isPending(entry) }"
           :role="multiple ? 'checkbox' : 'option'"
           :aria-checked="multiple ? isChosen(entry) : undefined"
-          :aria-selected="multiple ? undefined : false"
+          :aria-selected="multiple ? undefined : isPending(entry)"
+          :aria-busy="isPending(entry) ? 'true' : undefined"
+          :disabled="sending"
           :data-user-id="entry.userId"
           @click="tap(entry)"
         >
@@ -187,6 +204,7 @@ function confirm(): void {
             </span>
             <span v-if="entry.subtitle" class="flare-contact-picker__sub">{{ entry.subtitle }}</span>
           </span>
+          <span v-if="isPending(entry)" class="flare-contact-picker__spinner" aria-hidden="true" />
         </button>
         <div v-if="bottomSpacer" :style="{ height: `${bottomSpacer}px` }" aria-hidden="true" />
       </template>
@@ -257,6 +275,25 @@ function confirm(): void {
 .flare-contact-picker__row:hover { background: var(--flare-color-bg-hover); }
 .flare-contact-picker__row:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: -2px; }
 .flare-contact-picker__row.is-chosen { background: var(--flare-color-bg-selected); }
+/* Sending: the rows take no taps; the one being sent keeps its highlight and spins at its end. */
+.flare-contact-picker__row:disabled { cursor: default; }
+.flare-contact-picker__row:disabled:hover { background: transparent; }
+.flare-contact-picker__row.is-chosen:disabled:hover,
+.flare-contact-picker__row.is-pending,
+.flare-contact-picker__row.is-pending:hover { background: var(--flare-color-bg-selected); cursor: progress; }
+.flare-contact-picker__spinner {
+  flex: none;
+  width: var(--flare-size-icon-size-sm);
+  height: var(--flare-size-icon-size-sm);
+  border-radius: 50%;
+  border: 2px solid var(--flare-color-primary-text);
+  border-right-color: transparent;
+  animation: flare-contact-picker-spin 0.8s linear infinite;
+}
+@keyframes flare-contact-picker-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .flare-contact-picker__spinner { animation-duration: 2s; }
+}
 .flare-contact-picker__check {
   flex: none;
   display: inline-grid;

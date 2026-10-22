@@ -285,6 +285,8 @@ export {
   formatFlareLocationCoordinate,
   encodeFlareLocationTitle,
   flareLocationMapLinks,
+  flareLocationProviderFrom,
+  flareLocationWebMapUrl,
   flareLocationCoordinateLabel,
   flareLocationDistanceLabel,
   flareLocationPreviewSize,

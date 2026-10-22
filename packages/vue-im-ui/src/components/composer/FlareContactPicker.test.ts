@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { enableAutoUnmount, mount } from "@vue/test-utils";
-import { defineComponent, h } from "vue";
+import { defineComponent, h, nextTick, ref } from "vue";
 import { afterEach, describe, expect, it } from "vitest";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
 import type { FlareContactPickerEntry, FlareContactPickerGroup } from "../../shared/contracts/contact-picker";
@@ -90,6 +90,78 @@ describe("FlareContactPicker", () => {
     expect(confirm().text()).toBe("确定 (1)");
     await confirm().trigger("click");
     expect(picker.selections).toEqual([[ZHOU]]);
+  });
+
+  it("spins the tapped row while the host sends and takes no other tap, then forgets it", async () => {
+    const sending = ref(false);
+    const selections: FlareContactPickerEntry[][] = [];
+    // The host sets sending from select, as a chat does while it sends the card.
+    const live = mount(defineComponent({
+      setup() {
+        useFlareI18nProvider("zh-CN");
+        return () => h(FlareContactPicker, {
+          groups: GROUPS,
+          sending: sending.value,
+          onSelect: (entries: FlareContactPickerEntry[]) => {
+            selections.push(entries);
+            sending.value = true;
+          },
+        });
+      },
+    }), { attachTo: document.body });
+    const row = (id: string) => live.get(`[data-user-id="${id}"]`);
+    await row("u2").trigger("click");
+    await nextTick();
+    expect(selections).toEqual([[ZHOU]]);
+    expect(row("u2").attributes("aria-busy")).toBe("true");
+    expect(row("u2").attributes("aria-selected")).toBe("true");
+    expect(row("u2").find(".flare-contact-picker__spinner").exists()).toBe(true);
+    expect(row("u1").attributes("disabled")).toBeDefined();
+    expect(row("u1").find(".flare-contact-picker__spinner").exists()).toBe(false);
+    await row("u1").trigger("click");
+    expect(selections).toEqual([[ZHOU]]);
+    // Cancel and the search stay with the host's sheet.
+    expect(live.get(".flare-contact-picker__cancel").attributes("disabled")).toBeUndefined();
+
+    sending.value = false;
+    await nextTick();
+    expect(row("u2").attributes("aria-busy")).toBeUndefined();
+    expect(row("u2").find(".flare-contact-picker__spinner").exists()).toBe(false);
+    expect(row("u1").attributes("disabled")).toBeUndefined();
+    await row("u1").trigger("click");
+    expect(selections).toEqual([[ZHOU], [IVY]]);
+    live.unmount();
+  });
+
+  it("spins the confirm key in multiple mode and keeps the choice for a retry", async () => {
+    const sending = ref(false);
+    const selections: FlareContactPickerEntry[][] = [];
+    const live = mount(defineComponent({
+      setup() {
+        useFlareI18nProvider("zh-CN");
+        return () => h(FlareContactPicker, {
+          groups: GROUPS,
+          multiple: true,
+          sending: sending.value,
+          onSelect: (entries: FlareContactPickerEntry[]) => selections.push(entries),
+        });
+      },
+    }), { attachTo: document.body });
+    const confirm = () => live.get(".flare-contact-picker__head-end button");
+    await live.get('[data-user-id="u1"]').trigger("click");
+    sending.value = true;
+    await nextTick();
+    expect(confirm().attributes("aria-busy")).toBe("true");
+    expect(confirm().attributes("disabled")).toBeDefined();
+    expect(live.find(".flare-contact-picker__spinner").exists()).toBe(false);
+    await live.get('[data-user-id="u2"]').trigger("click");
+    expect(live.get('[data-user-id="u2"]').attributes("aria-checked")).toBe("false");
+    sending.value = false;
+    await nextTick();
+    expect(live.get('[data-user-id="u1"]').attributes("aria-checked")).toBe("true");
+    await confirm().trigger("click");
+    expect(selections).toEqual([[IVY]]);
+    live.unmount();
   });
 
   it("renders only the rows in view for a long list", () => {

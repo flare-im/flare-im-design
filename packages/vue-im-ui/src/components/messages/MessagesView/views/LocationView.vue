@@ -4,7 +4,11 @@ import type { ContentElem } from "../../../../utils/contentElem";
 import { pickNestedPayload } from "../../../../utils/contentElem";
 import { readNumber, readString } from "../../../../utils/contentData";
 import { useFlareI18n } from "../../../../shared/i18n/useFlareI18n";
-import type { FlareLocationProvider, FlareLocationValue } from "../../../../shared/contracts/location";
+import {
+  flareLocationProviderFrom,
+  type FlareLocationProvider,
+  type FlareLocationValue,
+} from "../../../../shared/contracts/location";
 import FlareLocationMessage from "../../standalone/FlareLocationMessage.vue";
 
 // Timeline adapter: location payload → the card. A host that listens to `locationOpen` opens the place
@@ -29,7 +33,7 @@ const longitude = computed(() => (unset.value ? Number.NaN : rawLongitude.value)
 const address = computed(() => readString(payload.value, "address", "subtitle"));
 const title = computed(() => readString(payload.value, "title", "name") || address.value || t("composer.location"));
 const snapshotUrl = computed(() => readString(payload.value, "snapshotUrl", "snapshot_url"));
-const provider = computed((): FlareLocationProvider => (readString(payload.value, "provider") === "amap" ? "amap" : "osm"));
+const provider = computed((): FlareLocationProvider => flareLocationProviderFrom(payload.value.provider));
 
 const location = computed((): FlareLocationValue => ({
   latitude: latitude.value,
