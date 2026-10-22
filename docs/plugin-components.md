@@ -25,32 +25,32 @@
 
 ### 卡片 `RedPacketCard`
 
-`blessing`、`kindLabel?`、`state`（`unopened` / `claimed` / `finished` / `expired`）、`amount?`、`statusLabel?`、`busy`、`disabled`；回调 `open` / `onOpen`。
+红包第五版（`docs/design/red-packet-v5-roles-and-wallet.md` §1）：`blessing`、`kind`（`lucky` / `normal` / `exclusive`）、`recipientName?`、`state`（`unopened` / `viewable` / `claimed` / `finished` / `expired` / `refunded`）、`statusLabel?`、`busy`、`disabled`；回调 `open` / `onOpen`。**卡片永不显示金额**，包括本人领到的。
 
-- `unopened` 是饱和的橙红色；其余三种变淡，状态行显示「已领取（· 金额）」「已被领完」「已过期」。
-- 变淡（vectors → `faded`）：卡面五个色各自在 sRGB 里向 `fadedMixTarget` 混合 `redPacketFadedMix`（0.4）。目标色浅色为 #FFFFFF，深色为偏红深底 #2A1513，所以色相不变，深色页上也不会发亮。文字改用 `fadedInk`（浅色 #5C140E、深色 #FBE3DE），每一档对比度 ≥ 4.5；白字在浅色变淡面上不到 3:1。不用滤镜，不降透明度。
-- `finished`、`expired` 仍可点击，用来查看领取详情。只有 `busy`、`disabled` 和原生端缺少回调时不可交互；这两种保持未领取的外观和白字，只换状态行（「处理中…」「暂不可用」），不变暗、不变灰，`disabled` 也不应伪装成已领完。
-- 状态行优先级：忙碌、`statusLabel`、已领取金额、已领取、已被领完、已过期、暂不可用、点击领取。`statusLabel` 是纯文本（如单聊发送人的「待领取」），不授予权限。
-- 左侧是四端同一几何的小信封：宽 30、高为宽的 1.3 倍、圆角为宽的 0.18；封盖高为整高的 0.42，弧线比两侧下垂封盖高的 0.3；红色封印直径为宽的 0.36，圆心在弧线最低点。配色为 gold→goldDeep 的信封身、goldDeep 封盖、end 封印，变淡时同样混合。Vue 用内联 SVG，Flutter 用 CustomPainter，不用位图。
-- 宽度最多 248，服从父约束；交互区至少 48；`kindLabel` 在底部品牌行左侧，品牌名靠右。
+- 状态由插件公开层（`status`）与本人层（`claimedByMe`、`tapAction`）得出：`flareRedPacketCardState`（vectors → `cardState`）。本人已领 → claimed；completed → finished；expired → expired；refunded → refunded；进行中且 `tapAction` 为 open（或本人层还没到）→ unopened「领取红包」；进行中但发送人或非指定人（`tapAction` 为 details / notEligible）→ viewable「查看红包」。
+- 类型角标在品牌行：拼手气「拼手气」、专属「专属」，普通不标；专属红包在角标后写「给 某某」（`recipientName`，宿主从 IM 目录取；vectors → `cardBadge`）。发送人取 IM 消息的发送者，不取载荷。
+- `unopened`、`viewable` 是饱和的橙红色；claimed / finished / expired / refunded 变淡（vectors → `faded`）：卡面五个色各自在 sRGB 里向 `fadedMixTarget` 混合 `redPacketFadedMix`（0.4），文字改用 `fadedInk`，每一档对比度 ≥ 4.5。不用滤镜，不降透明度。
+- 除 `busy`、`disabled` 外都可点击，点后由宿主按本人层 `tapAction` 决定去向（开红包浮层、详情或「仅 某某 可领取」）。`busy`、`disabled` 保持未领取的外观，只换状态行（「处理中…」「暂不可用」）。
+- 状态行优先级（vectors → `card`）：忙碌、`statusLabel`、再按 state。`statusLabel` 是纯文本，不授予权限。
+- 卡片就是消息的 card 表面（`spec/message-surface-vectors.json`），时间线不再在外面套气泡。
+- 左侧是四端同一几何的小信封：宽 30、高为宽的 1.3 倍、圆角为宽的 0.18；封盖高为整高的 0.42，弧线比两侧下垂封盖高的 0.3；红色封印直径为宽的 0.36，圆心在弧线最低点。配色为 gold→goldDeep 的信封身、goldDeep 封盖、end 封印，变淡时同样混合。宽度最多 248，服从父约束；交互区至少 48。
 
 ### 开红包浮层 `RedPacketOpenSheet`
 
-`senderName`、`senderAvatar?`、`blessing`、`kindLabel?`、`state`（`ready` / `opening` / `finished` / `expired` / `notEligible` / `error`）、`message?`；回调 `open`、`viewDetails`、`close`。Vue 另有可见性 `open`（与 FlareModal 一致），`@open` 是点了「開」。
+`senderName`、`senderAvatar?`、`blessing`、`kindLabel?`、`state`（`ready` / `opening` / `finished` / `expired` / `notEligible` / `error`）、`message?`、`canViewDetails?`（默认真）；回调 `open`、`viewDetails`、`close`。Vue 另有可见性 `open`（与 FlareModal 一致），`@open` 是点了「開」。
 
 - 居中红色信封：弧形封盖上是发送人头像、「X的红包」、种类和大字祝福语，金色「開」压在封盖接缝上，关闭键在信封下方（仍在焦点陷阱内）。
 - `opening` 时「開」绕 Y 轴翻转循环且不可重复点；系统减少动态效果时不翻转，「開」换成进度文案。
-- `finished` 显示「手慢了，红包派完了」，`expired` 显示「该红包已超过 24 小时」，`notEligible` 显示宿主的 `message`（如「仅 TA 可领取」）；三者都有「查看领取详情」。`message` 也可替换前两者的默认文案。`error` 保留「開」供重试，并显示 `message` 或「领取失败，请重试」。
-- `notEligible` 的提示和 `error` 的说明用正文行高（`lineHeight.normal`），最多 3 行，超出省略。
-- 遮罩点击、关闭键、Escape 和平台返回键都触发 `close`。Flutter 组件自绘遮罩，可放进 Stack，也可用 `FlareRedPacketOpenSheet.show` 推一条路由；没有 `onClose` 时这些操作直接出栈。
+- `finished` 显示「手慢了，红包派完了」，`expired` 显示「红包已过期」；二者在 `canViewDetails`（本人层）为真时给「查看领取详情」。`notEligible` 显示宿主的 `message`（如「仅 某某 可领取」），**永远不给**详情入口：服务端对非指定人不返回金额和记录（vectors → `openSheet`）。`error` 保留「開」供重试。
+- 遮罩点击、关闭键、Escape 和平台返回键都触发 `close`。
 
 ### 红包详情 `RedPacketDetail`
 
-`senderName`、`senderAvatar?`、`blessing`、`kindLabel?`（如「拼」）、`amount?`（大字）、`amountNote?`（如「已存入钱包」）、`summary`、`claims`（`{id, name, avatar?, time, amount, best}`）、`note?`、`title?`；回调 `back` / `onBack`（可选）。
+`senderName`、`senderAvatar?`、`details`（插件 details 对当前查看者的结果：`viewerRole`、`status`、`kind`、`greeting`、`currency`、`currencyExponent`、服务端给出的 `totalMinor` / `claimedMinor` / `refundedMinor` / `myAmountMinor`、份数、时间、`claimsListed`）、`designatedName?`、`claims`（`{id, name, avatar?, amountMinor, claimedAtMs, best}`）、`title?`；回调 `back` / `onBack`（可选）。
 
-- 普通页面，不是浮层：宿主放进导航栈，外面套 Kit 的 Screen 容器（滚动归 Screen）。
-- 传了 `onBack`（Vue 监听 `back`）时，组件自己画红色标题栏：`redPacket.end` 底、浅色返回键和标题（`title`，默认「红包详情」，文案键 `packetDetailTitle`），延伸进状态栏或安全区，下方弧形头图从同一红色开始，连成一片；宿主这时隐藏自己的导航栏。不传时行为不变。
-- 列表行显示头像、名字、时间、金额；`best` 的行在金额下带金色星标和「手气最佳」。`claims` 为空时显示「暂无人领取」。
+- 按 `viewerRole` 画服务端给的字段（vectors → `detail`，`flareRedPacketDetailTexts`）：有 `myAmountMinor` 时大字金额加「已存入钱包」；可领未领者在已领完时显示「手慢了，红包派完了」，已过期 / 已退回时显示「红包已过期」；非指定人显示「仅 某某 可领取」。摘要行：发送人有总额时「已领取 a/b 个，共 x/y」或「b 个红包共 y，n 秒被抢光」，其他人只有「已领取 a/b 个」。`claimsListed` 为真才画领取记录。发送人的说明：进行中「未领取部分将于 HH:mm 退回」，过期 / 退回「已退回 ¥x · 时间」。**没有的金额绝不显示**。
+- 金额从最小单位字符串按 `currencyExponent` 用整数运算格式化（`flareRedPacketMoney`，vectors → `amount`），符号按币种表；时间当天写 HH:mm，否则用插件视图的日期格式。
+- 普通页面，不是浮层：宿主放进导航栈，外面套 Kit 的 Screen 容器。传了 `onBack` 时组件自己画红色标题栏。
 
 ### 发红包表单 `RedPacketComposer`
 
@@ -84,12 +84,14 @@
 
 投票、接龙、任务、日程、群公告不写客户端代码：核心 SDK 把插件的 UiDocument 和两层状态解析成 ResolvedPluginView，Kit 只渲染这个形状，不读路径、不求值。四端接口以 `spec/components.json` 的 PluginView、PluginForm、PluginDetailSheet 为准，渲染事实以 `spec/plugin-view-vectors.json` 为准（views、optimistic、time、countdown、form），四端测试读同一份。
 
-- **卡片**：外壳与 Kit 业务卡片一致，宽度 `sizes.component.richCardWidth`（服从父约束）、圆角 lg、细边框、卡片阴影；标题行有图标位（`icon`，Kit 图标名）。`embedded` 去掉外壳和标题行，详情面板和控制台管理页用它。`available` 为假时只显示标题；embedded 没有标题行，就把标题显示为一行次要文字，仍说明它是什么。
+- **卡片**：外壳与 Kit 业务卡片一致，宽度 `sizes.component.richCardWidth`（服从父约束）、圆角 lg、细边框、卡片阴影；标题行有图标位（`icon`，Kit 图标名）。外壳就是消息的 card 表面：时间线不在外面再套气泡，引用回复画在外壳的 `quote` 插槽里（Vue）。`embedded` 去掉外壳和标题行，详情面板、插件页面和控制台管理页用它。`available` 为假时只显示标题；embedded 没有标题行，就把标题显示为一行次要文字，仍说明它是什么。
+- **⋯ 菜单 `menuActions`**：插件把动作标成 `placement: "menu"`（结束投票、取消投票）时，它们在 `view.menuActions` 里，卡片标题行末尾出现 Kit ⋯ 键（读屏名「更多操作」），用 Kit ActionMenu 列出，danger 用危险色；选中后与按钮相同：先确认、再表单、再 `action(id, {})`。`busy` 或 `busyActionId` 时禁用。embedded 没有标题行，这些动作作为按钮排在 `actions` 之后。规则见 `rules.menuActions`。
+- **不可用原因 `unavailableReason`**：disabled「插件已停用」、not_installed「插件未安装」、no_permission「没有使用该插件的权限」、unsupported_platform「该插件不支持此设备」、incompatible_version「请更新应用后查看」、catalog_unreachable「暂时无法加载，请稍后再试」、unbound_copy「副本，仅供查看」。不可用时标题下加一行原因，宿主传了信封的 `displayName` 时写成「投票 · 插件已停用」。unbound_copy（转发或伪造的副本）仍可读：核心 SDK 已去掉动作、菜单、输入、详情与选项提交，卡片只读，末尾一行「副本，仅供查看」。规则见 `rules.unavailableReason` 与 `unavailableReasons`。
 - **块**：
   - text：按 `maxLines` 截断，溢出时显示「展开」。
   - fields：键值对。
   - choices：单选点一项立即提交；多选勾选后点提交键，键名取块持有的动作 label。显示结果时每项有票数条、百分比和「{count} 票」，选中项打勾；`closed` 时只读，底部显示「已结束」。
-  - entries：带序号；`more` 时显示「查看全部（total）」，触发 `openDetail`。
+  - entries：带序号；`more` 时显示「查看全部（total）」，触发 `openDetail`。`grouped` 时是一个扁平列表：带 `group` 的条目前插一行组头「选项 · N 票 · P%」（缺的段省略），组内从 1 编号，`numbered: false` 不编号；`viewerId`（宿主传入的当前用户）那一行带「我」。规则见 `rules.entriesGrouped` 与 `entryGroupHeaders`。
   - people：每组一行，头像叠加计数，颜色用 tone 对应的 *Text 令牌。
   - status：徽标。
   - progress：进度条加「value/total」。
@@ -135,9 +137,14 @@
 
 插件卡片通过 Kit 的内容渲染器注册进消息列表，四端同一套语义：
 
-- **无气泡**：注册时标 `bare`，消息列表就像渲染单图那样直接画内容，不套气泡底和内边距，保留头像、昵称、时间、多选和长按菜单；引用或撤回时仍画气泡。Vue 的注册值可以是组件本身或 `{ component, bare: true }`；Flutter 与 Compose 是 `FlareContentScope` 的 `bareTypes`（Flutter 另有 `FlareContentRegistry.register(type, builder, bare: true)`）；SwiftUI 是 `flareContentRenderers(_:bare:)`。Kit 内部原有的「裸媒体」判断同时认这个标记。
+- **表面**：消息画在哪种表面上由 Kit 按内容类型决定（`spec/message-surface-vectors.json`）：一切 custom / 插件内容（含红包、投票、`custom:flare.plugin.message.v1`）默认是 card —— 渲染器自己的外壳就是表面，消息列表不套气泡底、边框和内边距，保留头像、昵称、时间（在卡片下方）、多选和长按菜单。宿主只在注册 Kit 不认识的内容类型时登记表面：Vue 的注册值可以是组件本身或 `{ component, surface: "card" | "bareMedia" }`。旧的 `bare` 选项已删除，四端同一套 `surface` 登记：Flutter 与 Compose 是 `FlareContentScope(surfaces: {...})`（键为 `contentType:subtype` 或内容类型），SwiftUI 是 `flareContentRenderers(_:surfaces:)`。
+- **多选**：行处于多选时渲染器收到 `selectionMode: true`（Vue 另经 `useFlareContentSelection()` 注入），其控件必须不响应，点整行切换选中。
 - **消息标识**：渲染器拿到 `messageId`（服务端 ID，没有时用 clientMsgId）和 `conversationId`（可空，消息列表会补上自己的会话）。Vue 是渲染组件的 props，Flutter / Compose 是 `FlareContentContext` 的字段，SwiftUI 是渲染闭包的上下文参数。宿主不必再把它们塞进 payloadJson。
 - **单色图标**：「+」面板、菜单等用图标名 `red-packet`（四端注册表最后一项）。Vue 为 Kit 自绘 SVG，Flutter 为 Kit 图标字体 `FlareKitIcons`，Compose 为 Kit 自绘的 `ImageVector`，SwiftUI 由 `IconView`、按钮、「+」面板、菜单和消息操作面板画 Kit 自绘图形（SF Symbols 没有红包；直接写 `Image(systemName:)` 的地方退为 `envelope`），都跟随 tint 着色。
+
+## 插件页面 `PluginPage`
+
+插件的 `page` 贡献（钱包等）用 Kit 的通用页面宿主渲染（`docs/design/red-packet-v5-roles-and-wallet.md` §3.2），五个 app 不再自写钱包页：Kit Screen（标题、返回键），视图由内嵌 PluginView 画（与详情面板同一套文档渲染器），触屏下拉刷新、指针设备页头有刷新键，`view.nextCursor` 非空时视图下方有「加载更多」（同一游标只请求一次）。首次加载转圈；首次失败显示文案和重试键；刷新失败时在视图上方显示横幅。取数由宿主负责：`refresh`、`retry`、`loadMore` 都是请求，Kit 不调用接口；视图没声明的东西不画，不放占位按钮。Vue 为 `FlarePluginPage`，原生三端按 `spec/components.json` 的 PluginPage 契约实现。
 
 ## 业务与生命周期
 

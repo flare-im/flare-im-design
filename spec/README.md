@@ -48,13 +48,13 @@ Top-level tables shared by every component:
 <!-- CATALOG:START -->
 ## Component catalog
 
-**175 components / 17 categories** (source in [`components.json`](./components.json);
+**176 components / 17 categories** (source in [`components.json`](./components.json);
 props/events extracted and calibrated from the `@flare-im/vue-ui` source).
 
 > This section is generated from the contract by `gen-readme-catalog.mjs`; do not edit by hand — a hand-written catalog rots as the contract grows.
 
-- **Message** — 43
-  `AnnouncementBanner` · `ContactMessage` · `ConversationHeader` · `DatePill` · `EmojiMessage` · `FileMessage` · `ImageGrid` · `ImageGroupMessage` · `ImageMessage` · `LinkCardMessage` · `LocationMessage` · `MessageActionSheet` · `MessageBatchToolbar` · `MessageBubble` · `MessageContentView` · `MessageList` · `MessageMeta` · `MessageStatus` · `PinnedMessageBar` · `PluginDetailSheet` · `PluginForm` · `PluginView` · `ReactionSummary` · `ReadReceiptSheet` · `RedPacketCard` · `RedPacketComposer` · `RedPacketDetail` · `RedPacketOpenSheet` · `RedPacketPayConfirm` · `RichTextMessage` · `ScrollToLatest` · `StickerMessage` · `SystemMessage` · `TaskMessage` · `TextMessage` · `TranslationView` · `TypingIndicator` · `UnknownMessage` · `UnreadDivider` · `VideoMessage` · `VoiceMessage` · `VoicePlayer` · `VoteMessage`
+- **Message** — 44
+  `AnnouncementBanner` · `ContactMessage` · `ConversationHeader` · `DatePill` · `EmojiMessage` · `FileMessage` · `ImageGrid` · `ImageGroupMessage` · `ImageMessage` · `LinkCardMessage` · `LocationMessage` · `MessageActionSheet` · `MessageBatchToolbar` · `MessageBubble` · `MessageContentView` · `MessageList` · `MessageMeta` · `MessageStatus` · `PinnedMessageBar` · `PluginDetailSheet` · `PluginForm` · `PluginPage` · `PluginView` · `ReactionSummary` · `ReadReceiptSheet` · `RedPacketCard` · `RedPacketComposer` · `RedPacketDetail` · `RedPacketOpenSheet` · `RedPacketPayConfirm` · `RichTextMessage` · `ScrollToLatest` · `StickerMessage` · `SystemMessage` · `TaskMessage` · `TextMessage` · `TranslationView` · `TypingIndicator` · `UnknownMessage` · `UnreadDivider` · `VideoMessage` · `VoiceMessage` · `VoicePlayer` · `VoteMessage`
 - **Composer** — 17
   `Composer` · `ComposerActionPanel` · `ComposerMediaPreview` · `ComposerReplyStrip` · `ComposerSendButton` · `ContactPicker` · `EmojiPicker` · `EmojiStickerPicker` · `LocationPicker` · `MentionPicker` · `PollComposer` · `QuickPhrases` · `RichMarkdownInput` · `SlashCommandMenu` · `StickerPanel` · `VoiceHoldButton` · `VoiceRecordingBar`
 - **Form** — 16

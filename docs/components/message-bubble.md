@@ -12,6 +12,9 @@ Do not embed authoritative send or mutation rules in the bubble.
 ## Anatomy
 sender, content, metadata, lifecycle, reactions, action affordance. Regions use semantic tokens and host-owned content.
 
+## Surface
+The kit picks the surface from the content (`spec/message-surface-vectors.json`, `surface` prop to override): `bubble` (text, rich text, voice, file, album, captioned video, quoted content), `bareMedia` (picture, uncaptioned video, sticker, emoji, a lone emoji), `card` (every plugin card including red packets and polls, location, contact card, link card, task, schedule, announcement, mini program, merged forward, thread) and `centered` (system notices, recall and delete notices). A card is never put inside a bubble: the card's own shell is the surface and the bubble draws no background, border, padding, tail or shadow around it. Outgoing and incoming cards differ by alignment only. Hosts register a surface (`card` or `bareMedia`) only for a content type the kit does not know.
+
 ## Variants
 self, other, system, content-type. Choose one variant from task priority, not decoration.
 
@@ -19,7 +22,10 @@ self, other, system, content-type. Choose one variant from task priority, not de
 content-driven. Minimum interactive targets remain 48 logical pixels.
 
 ## States
-sending, delivered, read, failed, selected, edited, recalled, ephemeral. Loading preserves geometry; errors keep a recovery path.
+pending, sending, sent, read (single chats: double check; groups: the read summary), failed, selected, edited, recalled, deleted, ephemeral. Loading preserves geometry; errors keep a recovery path.
+
+## Multi-select
+While the list is in multi-select every control inside the content is inert (poll options, task boxes, plugin keys and menus, links, media) and a tap anywhere on the row toggles its selection.
 
 ## Interactions
 Components emit intent callbacks. The host owns data, permissions, persistence, and side effects.

@@ -131,6 +131,7 @@ title: Data Types
 | `reserveAvatarSpace` | `boolean` | ✓ | Keep the group gutter stable when the avatar is hidden. |
 | `showSenderName` | `boolean` | ✓ | Render the group sender name for this row. |
 | `avatarPlacement` | `'leading' \| 'trailing'` | ✓ | Logical avatar side for incoming or optional self avatars. |
+| `tail` | `boolean` | ✓ | Draw the bubble tail: a bubble surface ending its run (spec/message-grouping-vectors.json). |
 
 ### Contact {#contact}
 
@@ -462,18 +463,18 @@ title: Data Types
 
 `FlareRedPacketClaim`
 
-> One row of the red packet claim list; time and amount are host-formatted.
+> One row of the red packet claim list: the host resolves name and avatar, the kit formats amount and time.
 
 **Used by: **[RedPacketDetail](/en/components/red-packet-detail)
 
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
-| `id` | `string` | ✓ | Stable claimant id; seeds the avatar. |
+| `id` | `string` | ✓ | Claimant user id; seeds the avatar. |
 | `name` | `string` | ✓ | Display name. |
 | `avatar` | `string` |  | Avatar URL or media id. |
-| `time` | `string` | ✓ | Claim time, formatted. |
-| `amount` | `string` | ✓ | Claimed amount, formatted. |
-| `best` | `boolean` | ✓ | The largest share of a finished lucky packet, as the server decided. |
+| `amountMinor` | `string` | ✓ | Claimed amount, minor units. |
+| `claimedAtMs` | `number` | ✓ | Claim time. |
+| `best` | `boolean` | ✓ | The server's best-luck mark. |
 
 ### LocationCoordinate {#location-coordinate}
 
@@ -563,7 +564,7 @@ title: Data Types
 
 > A resolved plugin view (core SDK ResolvedPluginView).
 
-**Used by: **[PluginView](/en/components/plugin-view) · [PluginDetailSheet](/en/components/plugin-detail-sheet)
+**Used by: **[PluginView](/en/components/plugin-view) · [PluginDetailSheet](/en/components/plugin-detail-sheet) · [PluginPage](/en/components/plugin-page)
 
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
@@ -575,6 +576,8 @@ title: Data Types
 | `inputs` | [`PluginInput[]`](/en/reference/data-types#plugin-input) |  | Every input of the document; an action's form names the ones it collects. |
 | `detail` | `boolean` |  | The contribution has a detail view ("see all"). |
 | `nextCursor` | `string` |  | Detail views only: the cursor of the next page (core SDK detail paging, a non-blank scalar of at most 256 bytes). While it is set PluginDetailSheet offers load more; the host fetches that page and passes back the merged view. |
+| `menuActions` | [`PluginAction[]`](/en/reference/data-types#plugin-action) |  | Actions in the card's ⋯ menu (placement menu), in order; absent when empty. |
+| `unavailableReason` | `'disabled' \| 'not_installed' \| 'no_permission' \| 'unsupported_platform' \| 'incompatible_version' \| 'catalog_unreachable' \| 'unbound_copy'` |  | Why the view is unavailable or read-only. |
 
 ### PluginAction {#plugin-action}
 
@@ -602,7 +605,7 @@ title: Data Types
 | `text` | `{text, maxLines?, style: 'body' \| 'title' \| 'secondary'}` |  | Collapsible text with expand. |
 | `fields` | `{fields: {label, value}[]}` |  | Label/value rows. |
 | `choices` | `{options: PluginChoice[], multiple, voted, closed, showResults, total?, inputName, action?: PluginAction}` |  | Options; action is the block's submit action. |
-| `entries` | `{items: {index, text, name?, userId?}[], numbered, total, more, emptyText?}` |  | Numbered entries with see all. |
+| `entries` | `{items: {index, text, name?, userId?, group?: {key, label, count?, total?, percent?}}[], numbered, grouped?, total, more, emptyText?}` |  | A list (sign-ups, voters); grouped lists put a header before each item with group. |
 | `people` | `{groups: {label, userIds, count, tone?}[]}` |  | Avatar stacks with a count per group. |
 | `status` | `{label?, text, tone}` |  | A badge. |
 | `progress` | `{label?, value, total, percent}` |  | A bar with value/total. |
@@ -651,7 +654,7 @@ title: Data Types
 
 > One problem with a submitted value (UiFormError).
 
-**Used by: **[PluginView](/en/components/plugin-view) · [PluginForm](/en/components/plugin-form) · [PluginDetailSheet](/en/components/plugin-detail-sheet)
+**Used by: **[PluginView](/en/components/plugin-view) · [PluginForm](/en/components/plugin-form) · [PluginDetailSheet](/en/components/plugin-detail-sheet) · [PluginPage](/en/components/plugin-page)
 
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
@@ -675,7 +678,7 @@ title: Data Types
 
 > A candidate for a members input.
 
-**Used by: **[PluginView](/en/components/plugin-view) · [PluginForm](/en/components/plugin-form) · [PluginDetailSheet](/en/components/plugin-detail-sheet)
+**Used by: **[PluginView](/en/components/plugin-view) · [PluginForm](/en/components/plugin-form) · [PluginDetailSheet](/en/components/plugin-detail-sheet) · [PluginPage](/en/components/plugin-page)
 
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
@@ -694,6 +697,48 @@ title: Data Types
 | `selection` | `number[]` |  | Chosen option indices (choices), ascending. |
 | `formValues` | `Record<string, unknown>` |  | Submitted form values by input id. |
 | `row` | `{key, input}` |  | The row of a rows action (Vue). |
+
+### MessageReadSummary {#message-read-summary}
+
+`FlareMessageReadSummary`
+
+> The SDK's group read summary of the viewer's own message (MessageReceiptView.readSummary).
+
+**Used by: **[MessageMeta](/en/components/message-meta)
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `readCount` | `number` | ✓ | Members who read it. |
+| `unreadCount` | `number` | ✓ | Members who have not. |
+| `total` | `number` | ✓ | Members it was sent to. |
+
+### RedPacketDetailsView {#red-packet-details-view}
+
+`FlareRedPacketDetailsView`
+
+> The plugin's details result for one viewer; amounts the viewer may not see are absent.
+
+**Used by: **[RedPacketDetail](/en/components/red-packet-detail)
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `viewerRole` | [`RedPacketViewerRole`](/en/reference/data-types#red-packet-viewer-role) | ✓ | Who is looking. |
+| `status` | [`RedPacketStatus`](/en/reference/data-types#red-packet-status) | ✓ | Packet status. |
+| `kind` | [`RedPacketKind`](/en/reference/data-types#red-packet-kind) | ✓ | Packet kind. |
+| `greeting` | `string` | ✓ | The greeting. |
+| `currency` | `string` | ✓ | ISO 4217 code. |
+| `currencyExponent` | `number` | ✓ | Fraction digits of the currency. |
+| `totalMinor` | `string` |  | Total, minor units (sender only). |
+| `claimedMinor` | `string` |  | Claimed so far, minor units (sender only). |
+| `refundedMinor` | `string` |  | Returned to the sender, minor units (sender only). |
+| `myAmountMinor` | `string` |  | What the viewer received, minor units. |
+| `claimedCount` | `number` | ✓ | Shares claimed. |
+| `shareCount` | `number` | ✓ | Shares in total. |
+| `createdAtMs` | `number` | ✓ | Created at. |
+| `completedAtMs` | `number` |  | All shares taken at. |
+| `expiresAtMs` | `number` | ✓ | Expires at. |
+| `refundedAtMs` | `number` |  | Returned at. |
+| `claimsListed` | `boolean` | ✓ | The viewer may see the claim list. |
 
 ## Enums / unions
 
@@ -789,16 +834,6 @@ title: Data Types
 
 `auto` · `pc` · `ipad` · `h5`
 
-### RedPacketState {#red-packet-state}
-
-`FlareRedPacketState`
-
-> What the current viewer sees on a red packet card.
-
-**Used by: **[RedPacketCard](/en/components/red-packet-card)
-
-`unopened` · `claimed` · `finished` · `expired`
-
 ### RedPacketOpenState {#red-packet-open-state}
 
 `FlareRedPacketOpenState`
@@ -815,7 +850,7 @@ title: Data Types
 
 > Packet kinds a composer can offer.
 
-**Used by: **[RedPacketComposer](/en/components/red-packet-composer)
+**Used by: **[RedPacketCard](/en/components/red-packet-card) · [RedPacketComposer](/en/components/red-packet-composer)
 
 `lucky` · `normal` · `exclusive`
 
@@ -870,3 +905,49 @@ title: Data Types
 **Used by: **[PluginView](/en/components/plugin-view)
 
 `none` · `sheet` · `sheetTop`
+
+### MessageSurface {#message-surface}
+
+`FlareMessageSurface`
+
+> The surface a message row draws its content on (spec/message-surface-vectors.json).
+
+**Used by: **[MessageBubble](/en/components/message-bubble)
+
+`bubble` · `bareMedia` · `card` · `centered`
+
+### MessageMetaPlacement {#message-meta-placement}
+
+`FlareMessageMetaPlacement`
+
+> Where a message's time and receipt sit (spec/message-meta-placement-vectors.json).
+
+**Used by: **[MessageMeta](/en/components/message-meta)
+
+`inline` · `bubbleFooter` · `below` · `none`
+
+### RedPacketCardState {#red-packet-card-state}
+
+`FlareRedPacketCardState`
+
+> What a red packet card shows (spec/red-packet-vectors.json cardState).
+
+**Used by: **[RedPacketCard](/en/components/red-packet-card)
+
+`unopened` · `viewable` · `claimed` · `finished` · `expired` · `refunded`
+
+### RedPacketStatus {#red-packet-status}
+
+`FlareRedPacketStatus`
+
+> The plugin's packet status (public layer).
+
+`open` · `completed` · `expired` · `refunded`
+
+### RedPacketViewerRole {#red-packet-viewer-role}
+
+`FlareRedPacketViewerRole`
+
+> Who is looking at the details, as the server decided.
+
+`sender` · `claimer` · `eligible` · `ineligible`

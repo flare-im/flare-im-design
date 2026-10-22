@@ -42,10 +42,10 @@
     "supportsDensity": "The component takes a density of its own (its prop says what the values mean); the kit has no global density scale."
   },
   "counts": {
-    "total": 175,
-    "stable": 175,
+    "total": 176,
+    "stable": 176,
     "general": 56,
-    "im": 114
+    "im": 115
   },
   "specializedMessageGroups": {
     "Text": [
@@ -1165,10 +1165,8 @@
               "pending",
               "sending",
               "sent",
-              "delivered",
               "read",
-              "failed",
-              "retrying"
+              "failed"
             ]
           },
           {
@@ -1183,10 +1181,8 @@
           "pending",
           "sending",
           "sent",
-          "delivered",
           "read",
-          "failed",
-          "retrying"
+          "failed"
         ]
       },
       "summary": {
@@ -1203,20 +1199,16 @@
         "pending",
         "sending",
         "sent",
-        "delivered",
         "read",
         "failed",
-        "retrying",
         "resend"
       ],
       "states": [
         "pending",
         "sending",
         "sent",
-        "delivered",
         "read",
-        "failed",
-        "retrying"
+        "failed"
       ],
       "interactions": [
         "resend"
@@ -1261,7 +1253,7 @@
         "gallery": true
       },
       "sourceOfTruth": "spec/components.json#MessageStatus",
-      "searchText": "messagestatus message im-ui stable read receipt delivery status double check 已读回执 双勾 message pending sending sent delivered read failed retrying resend supportsconfiguration lifecycle projection — pending/sending progress, sent check, compact delivered/read double-check, and retryable failure. 生命周期视觉投影 —— 等待/发送进度、已发送单勾、已送达/已读紧凑双勾与可重试失败。"
+      "searchText": "messagestatus message im-ui stable read receipt delivery status double check 已读回执 双勾 message pending sending sent read failed resend supportsconfiguration lifecycle projection — pending/sending progress, sent check, compact delivered/read double-check, and retryable failure. 生命周期视觉投影 —— 等待/发送进度、已发送单勾、已送达/已读紧凑双勾与可重试失败。"
     },
     {
       "name": "MessageMeta",
@@ -1311,7 +1303,7 @@
           "edited",
           "ephemeral",
           "failed",
-          "retrying"
+          "readSummary"
         ]
       },
       "summary": {
@@ -1330,18 +1322,20 @@
         "edited",
         "ephemeral",
         "failed",
-        "retrying",
-        "resend"
+        "readSummary",
+        "resend",
+        "readReceiptOpen"
       ],
       "states": [
         "default",
         "edited",
         "ephemeral",
         "failed",
-        "retrying"
+        "readSummary"
       ],
       "interactions": [
-        "resend"
+        "resend",
+        "readReceiptOpen"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -1383,7 +1377,7 @@
         "gallery": true
       },
       "sourceOfTruth": "spec/components.json#MessageMeta",
-      "searchText": "messagemeta message im-ui stable message metadata timestamp delivery metadata read receipt 消息元数据 已读回执 message default edited ephemeral failed retrying resend supportsconfiguration supportsdensity stable metadata row composing timestamp, edited and ephemeral labels, delivery status, and retry. 稳定的消息元数据行，组合时间、编辑/临时状态、送达状态与重试入口。"
+      "searchText": "messagemeta message im-ui stable message metadata timestamp delivery metadata read receipt 消息元数据 已读回执 message default edited ephemeral failed readsummary resend readreceiptopen supportsconfiguration supportsdensity stable metadata row composing timestamp, edited and ephemeral labels, delivery status, and retry. 稳定的消息元数据行，组合时间、编辑/临时状态、送达状态与重试入口。"
     },
     {
       "name": "ConversationList",
@@ -1896,9 +1890,12 @@
         "variants": [],
         "states": [
           "pending",
+          "sending",
           "sent",
           "read",
-          "failed"
+          "failed",
+          "readSummary",
+          "selecting"
         ]
       },
       "summary": {
@@ -1908,9 +1905,12 @@
       "aliases": [
         "Message",
         "pending",
+        "sending",
         "sent",
         "read",
         "failed",
+        "readSummary",
+        "selecting",
         "react",
         "reply",
         "edit",
@@ -1936,13 +1936,18 @@
         "vote",
         "taskToggle",
         "cardOpen",
-        "locationOpen"
+        "locationOpen",
+        "readReceiptOpen",
+        "contextMenu"
       ],
       "states": [
         "pending",
+        "sending",
         "sent",
         "read",
-        "failed"
+        "failed",
+        "readSummary",
+        "selecting"
       ],
       "interactions": [
         "react",
@@ -1970,7 +1975,9 @@
         "vote",
         "taskToggle",
         "cardOpen",
-        "locationOpen"
+        "locationOpen",
+        "readReceiptOpen",
+        "contextMenu"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -2012,7 +2019,7 @@
         "gallery": true
       },
       "sourceOfTruth": "spec/components.json#MessageBubble",
-      "searchText": "messagebubble message im-ui stable message pending sent read failed react reply edit delete pin mark preview mediaaction resend toggleselect longpress avatartap forward multiselect recall locatemessage action copy openfile mediadownload mediareveal openlink vote tasktoggle cardopen locationopen supportsconfiguration supportscustomcontent supportsslots supportsresponsive one message in a thread — content, sender, grouping, delivery status. delegates body to a per-content-type view. 线程里的一条消息 —— 内容、发送者、分组、送达状态。正文按内容类型委派给对应视图。"
+      "searchText": "messagebubble message im-ui stable message pending sending sent read failed readsummary selecting react reply edit delete pin mark preview mediaaction resend toggleselect longpress avatartap forward multiselect recall locatemessage action copy openfile mediadownload mediareveal openlink vote tasktoggle cardopen locationopen readreceiptopen contextmenu supportsconfiguration supportscustomcontent supportsslots supportsresponsive one message in a thread — content, sender, grouping, delivery status. delegates body to a per-content-type view. 线程里的一条消息 —— 内容、发送者、分组、送达状态。正文按内容类型委派给对应视图。"
     },
     {
       "name": "MessageList",
@@ -2106,7 +2113,9 @@
         "vote",
         "taskToggle",
         "cardOpen",
-        "locationOpen"
+        "locationOpen",
+        "readReceiptOpen",
+        "contextMenu"
       ],
       "states": [
         "loading",
@@ -2145,7 +2154,9 @@
         "vote",
         "taskToggle",
         "cardOpen",
-        "locationOpen"
+        "locationOpen",
+        "readReceiptOpen",
+        "contextMenu"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -2187,7 +2198,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#MessageList",
-      "searchText": "messagelist message im-ui stable message loading empty loadingolder atbottom multiselect oldererror atbottomchange react reply edit delete recall forward pin mark preview resend mediaaction multiselect loadolder toggleselect messagelongpress avatartap locatemessage swipereply action copy openfile mediadownload mediareveal openlink vote tasktoggle cardopen locationopen supportsconfiguration supportscustomcontent supportsslots supportsresponsive the virtualised message thread — grouping, load-older, multi-select, per-message actions, media state. 虚拟化消息线程 —— 分组、加载更早、多选、逐条操作、媒体状态。"
+      "searchText": "messagelist message im-ui stable message loading empty loadingolder atbottom multiselect oldererror atbottomchange react reply edit delete recall forward pin mark preview resend mediaaction multiselect loadolder toggleselect messagelongpress avatartap locatemessage swipereply action copy openfile mediadownload mediareveal openlink vote tasktoggle cardopen locationopen readreceiptopen contextmenu supportsconfiguration supportscustomcontent supportsslots supportsresponsive the virtualised message thread — grouping, load-older, multi-select, per-message actions, media state. 虚拟化消息线程 —— 分组、加载更早、多选、逐条操作、媒体状态。"
     },
     {
       "name": "ConversationHeader",
@@ -9449,9 +9460,11 @@
         "variants": [],
         "states": [
           "unopened",
+          "viewable",
           "claimed",
           "finished",
           "expired",
+          "refunded",
           "disabled",
           "busy"
         ]
@@ -9463,18 +9476,22 @@
       "aliases": [
         "Message",
         "unopened",
+        "viewable",
         "claimed",
         "finished",
         "expired",
+        "refunded",
         "disabled",
         "busy",
         "open"
       ],
       "states": [
         "unopened",
+        "viewable",
         "claimed",
         "finished",
         "expired",
+        "refunded",
         "disabled",
         "busy"
       ],
@@ -9521,7 +9538,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#RedPacketCard",
-      "searchText": "redpacketcard message im-ui stable message unopened claimed finished expired disabled busy open supportsconfiguration red packet card — orange-red cover, blessing, the viewer's claim state and a brand line. 红包卡片 —— 橙红渐变封面、祝福语、当前查看者的领取状态和品牌行。"
+      "searchText": "redpacketcard message im-ui stable message unopened viewable claimed finished expired refunded disabled busy open supportsconfiguration red packet card — orange-red cover, blessing, the viewer's claim state and a brand line. 红包卡片 —— 橙红渐变封面、祝福语、当前查看者的领取状态和品牌行。"
     },
     {
       "name": "RedPacketOpenSheet",
@@ -9674,8 +9691,10 @@
       "docExamples": {
         "variants": [],
         "states": [
-          "claimed",
-          "notClaimed",
+          "sender",
+          "claimer",
+          "eligible",
+          "ineligible",
           "empty"
         ]
       },
@@ -9685,14 +9704,18 @@
       },
       "aliases": [
         "Message",
-        "claimed",
-        "notClaimed",
+        "sender",
+        "claimer",
+        "eligible",
+        "ineligible",
         "empty",
         "back"
       ],
       "states": [
-        "claimed",
-        "notClaimed",
+        "sender",
+        "claimer",
+        "eligible",
+        "ineligible",
         "empty"
       ],
       "interactions": [
@@ -9738,7 +9761,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#RedPacketDetail",
-      "searchText": "redpacketdetail message im-ui stable message claimed notclaimed empty back supportsconfiguration red packet details — red arched header, sender and kind, the viewer's amount drawn large, summary and claim list. 红包详情 —— 红色弧形头图、发送人与种类、本人金额（大字）、汇总和领取列表。"
+      "searchText": "redpacketdetail message im-ui stable message sender claimer eligible ineligible empty back supportsconfiguration red packet details — red arched header, sender and kind, the viewer's amount drawn large, summary and claim list. 红包详情 —— 红色弧形头图、发送人与种类、本人金额（大字）、汇总和领取列表。"
     },
     {
       "name": "RedPacketComposer",
@@ -10010,11 +10033,13 @@
         ],
         "states": [
           "unavailable",
+          "readOnly",
           "busy",
           "error",
           "voted",
           "closed",
-          "embedded"
+          "embedded",
+          "menu"
         ]
       },
       "summary": {
@@ -10024,22 +10049,26 @@
       "aliases": [
         "Message",
         "unavailable",
+        "readOnly",
         "busy",
         "error",
         "voted",
         "closed",
         "embedded",
+        "menu",
         "action",
         "openDetail",
         "loadMore"
       ],
       "states": [
         "unavailable",
+        "readOnly",
         "busy",
         "error",
         "voted",
         "closed",
-        "embedded"
+        "embedded",
+        "menu"
       ],
       "interactions": [
         "action",
@@ -10086,7 +10115,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#PluginView",
-      "searchText": "pluginview message im-ui stable message unavailable busy error voted closed embedded action opendetail loadmore supportsconfiguration generic plugin card — the core sdk's resolved view drawn as a kit business card: blocks (text, fields, choices, entries, people, status, progress, time, divider, note; rows on vue admin pages), then the action keys. 通用插件卡片 —— 把核心 sdk 解析好的视图画成 kit 业务卡片：展示块（文本、键值、选项、条目、人员、状态、进度、时间、分隔、提示；vue 管理页另有 rows），再是底部动作。"
+      "searchText": "pluginview message im-ui stable message unavailable readonly busy error voted closed embedded menu action opendetail loadmore supportsconfiguration generic plugin card — the core sdk's resolved view drawn as a kit business card: blocks (text, fields, choices, entries, people, status, progress, time, divider, note; rows on vue admin pages), then the action keys. 通用插件卡片 —— 把核心 sdk 解析好的视图画成 kit 业务卡片：展示块（文本、键值、选项、条目、人员、状态、进度、时间、分隔、提示；vue 管理页另有 rows），再是底部动作。"
     },
     {
       "name": "PluginForm",
@@ -10312,6 +10341,140 @@
       },
       "sourceOfTruth": "spec/components.json#PluginDetailSheet",
       "searchText": "plugindetailsheet message im-ui stable message loading error loaded retry close action loadmore supportsconfiguration plugin detail — the \"see all\" view of a plugin card in the kit bottom sheet: loading, an error with retry, then the detail view as an embedded pluginview. 插件详情 —— 插件卡片「查看全部」的视图，放在 kit 底部面板：加载中、出错可重试，然后以内嵌 pluginview 渲染 detail 视图。"
+    },
+    {
+      "name": "PluginPage",
+      "slug": "plugin-page",
+      "category": "Message",
+      "layer": "im-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": true,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [
+          {
+            "name": "resolveUser",
+            "values": [
+              "(userId: string) => FlarePluginUser",
+              "Promise<FlarePluginUser",
+              "undefined>",
+              "undefined"
+            ]
+          }
+        ],
+        "states": [
+          "loading",
+          "error",
+          "loaded",
+          "refreshing",
+          "loadingMore"
+        ]
+      },
+      "summary": {
+        "en": "Plugin page host — a full-screen page for a plugin's page contribution (a wallet, a list): header with back, pull to refresh, the resolved view drawn by the PluginView document renderer, load more.",
+        "zh": "插件页面宿主 —— 插件 page 贡献（钱包、列表）的全屏页面：带返回的页头、下拉刷新、由 PluginView 文档渲染器画出的解析视图、加载更多。"
+      },
+      "aliases": [
+        "plugin page",
+        "wallet",
+        "plugin screen",
+        "钱包",
+        "插件页面",
+        "钱包页",
+        "Message",
+        "loading",
+        "error",
+        "loaded",
+        "refreshing",
+        "loadingMore",
+        "back",
+        "refresh",
+        "retry",
+        "loadMore",
+        "action",
+        "openDetail"
+      ],
+      "states": [
+        "loading",
+        "error",
+        "loaded",
+        "refreshing",
+        "loadingMore"
+      ],
+      "interactions": [
+        "back",
+        "refresh",
+        "retry",
+        "loadMore",
+        "action",
+        "openDetail"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlarePluginPage"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlarePluginPage"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlarePluginPage"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "FlarePluginPage"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/messages/FlarePluginPage.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_plugin_page.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/PluginPage.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/FlarePluginPage.swift"
+      },
+      "docs": {
+        "zh": "website/components/plugin-page.md",
+        "en": "website/en/components/plugin-page.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#PluginPage",
+      "searchText": "pluginpage message im-ui stable plugin page wallet plugin screen 钱包 插件页面 钱包页 message loading error loaded refreshing loadingmore back refresh retry loadmore action opendetail supportsconfiguration plugin page host — a full-screen page for a plugin's page contribution (a wallet, a list): header with back, pull to refresh, the resolved view drawn by the pluginview document renderer, load more. 插件页面宿主 —— 插件 page 贡献（钱包、列表）的全屏页面：带返回的页头、下拉刷新、由 pluginview 文档渲染器画出的解析视图、加载更多。"
     },
     {
       "name": "SlashCommandMenu",

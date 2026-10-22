@@ -2407,6 +2407,32 @@
       }
     },
     {
+      "name": "PluginPage",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlarePluginPage",
+          "sourcePath": "packages/vue-im-ui/src/components/messages/FlarePluginPage.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlarePluginPage",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_plugin_page.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlarePluginPage",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/PluginPage.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "FlarePluginPage",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/FlarePluginPage.swift"
+        }
+      }
+    },
+    {
       "name": "SlashCommandMenu",
       "status": "stable",
       "platforms": {

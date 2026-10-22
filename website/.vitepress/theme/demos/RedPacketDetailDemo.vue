@@ -1,28 +1,30 @@
 <script setup>
+import { computed } from "vue";
 import { FlareRedPacketDetail } from "@flare-im/vue-ui/components";
 import DemoStage from "./DemoStage.vue";
-// 详情是普通页面的正文；宿主把它放进 FlareScreen。金额、时间、名字都由宿主格式化。
-// 监听 back 时组件自己画红色标题栏，宿主隐藏自己的导航栏。
-const claims = [
-  { id: "u1", name: "阿花", time: "10:02", amount: "0.62 元", best: false },
-  { id: "u2", name: "大壮", time: "10:03", amount: "0.88 元", best: true },
-  { id: "u3", name: "小红", time: "10:05", amount: "0.60 元", best: false },
-];
+// 详情是普通页面的正文；宿主把它放进 FlareScreen。服务端按查看者裁剪：只有发送人拿到总额，本人金额只给本人，
+// 非指定人什么金额都没有。Kit 只画给到的字段，金额按 currencyExponent 格式化。
+const props = defineProps({ previewState: { type: String, default: "sender" } });
+const now = Date.now();
+const base = { kind: "lucky", greeting: "恭喜发财，大吉大利", currency: "CNY", currencyExponent: 2, shareCount: 3, createdAtMs: now - 60_000, expiresAtMs: now + 86_400_000 };
+const views = {
+  sender: { ...base, viewerRole: "sender", status: "completed", totalMinor: "210", claimedMinor: "210", claimedCount: 3, completedAtMs: now - 15_000, claimsListed: true },
+  claimer: { ...base, viewerRole: "claimer", status: "open", myAmountMinor: "88", claimedCount: 2, claimsListed: true },
+  eligible: { ...base, viewerRole: "eligible", status: "completed", claimedCount: 3, completedAtMs: now - 15_000, claimsListed: true },
+  ineligible: { ...base, kind: "exclusive", shareCount: 1, viewerRole: "ineligible", status: "open", claimedCount: 0, claimsListed: false },
+  empty: { ...base, viewerRole: "sender", status: "open", totalMinor: "210", claimedMinor: "0", claimedCount: 0, claimsListed: true },
+};
+const details = computed(() => views[props.previewState] ?? views.sender);
+const claims = computed(() => (props.previewState === "empty" ? [] : [
+  { id: "u1", name: "阿花", amountMinor: "62", claimedAtMs: now - 50_000, best: false },
+  { id: "u2", name: "大壮", amountMinor: "88", claimedAtMs: now - 40_000, best: true },
+  { id: "u3", name: "小红", amountMinor: "60", claimedAtMs: now - 20_000, best: false },
+]));
 </script>
 <template>
   <DemoStage>
     <div class="frame">
-      <FlareRedPacketDetail
-        sender-name="小明"
-        blessing="恭喜发财，大吉大利"
-        kind-label="拼"
-        amount="0.88 元"
-        amount-note="已存入钱包"
-        summary="已领取 3/3 个，共 2.10/2.10 元"
-        :claims="claims"
-        note="未领取的金额将在 24 小时后退回"
-        @back="() => {}"
-      />
+      <FlareRedPacketDetail sender-name="小明" :details="details" designated-name="Bob" :claims="claims" @back="() => {}" />
     </div>
   </DemoStage>
 </template>

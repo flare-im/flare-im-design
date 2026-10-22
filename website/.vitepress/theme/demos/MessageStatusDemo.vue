@@ -9,10 +9,8 @@ const items = [
   { status: "pending", label: "等待" },
   { status: "sending", label: "发送中" },
   { status: "sent", label: "已发送" },
-  { status: "delivered", label: "已送达" },
   { status: "read", label: "已读" },
   { status: "failed", label: "失败" },
-  { status: "retrying", label: "重试中" },
 ];
 const visibleItems = computed(() => props.previewState === "all"
   ? items

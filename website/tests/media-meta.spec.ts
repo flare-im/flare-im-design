@@ -86,7 +86,7 @@ for (const mode of ["light", "dark"] as const) {
       const target = fixture.locator('[data-media-case="sticker"] .message-row--self');
       const initialHeight = (await target.boundingBox())!.height;
       const picker = fixture.getByLabel("Delivery state");
-      for (const state of ["pending", "sending", "sent", "delivered", "read", "retrying", "failed"]) {
+      for (const state of ["pending", "sending", "sent", "read", "failed"]) {
         await picker.selectOption(state);
         await expect(target.locator(`.message-status--${state}`)).toBeVisible();
         expect((await target.boundingBox())!.height).toBeCloseTo(initialHeight, 1);

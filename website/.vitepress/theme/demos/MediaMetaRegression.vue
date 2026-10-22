@@ -7,7 +7,7 @@ import artwork from "../../../../packages/vue-im-ui/src/assets/brand/auth-techno
 
 const status = ref<MessageStatusState>("read");
 const retries = ref(0);
-const states: MessageStatusState[] = ["pending", "sending", "sent", "delivered", "read", "failed", "retrying"];
+const states: MessageStatusState[] = ["pending", "sending", "sent", "read", "failed"];
 const cases = [
   { id: "sticker", content: { contentType: "sticker", sticker: { url: "/flare-im-ui-assets/stickers/classic/001.webp" } } },
   { id: "emoji", content: { contentType: "emoji", emoji: { key: "grinning_face" } } },

@@ -15,13 +15,14 @@ The dimensions remain orthogonal. A message can be uploaded, server accepted, pa
 
 ## Visual Projection
 
-`MessageStatus` derives a receipt glyph from lifecycle with this precedence:
+`MessageStatus` derives a receipt glyph from lifecycle with this precedence (five visual states, `spec/message-receipt-vectors.json`):
 
 1. Failed send or transfer renders `failed`.
 2. Draft, queued, sending, transferring, or paused renders `pending` or `sending`.
 3. Read renders `read`.
-4. Delivered or partially delivered renders `delivered`.
-5. Otherwise it renders `sent`.
+4. Otherwise it renders `sent`. Delivered and partially delivered stay `sent`: there is no delivered glyph (it had no real delivery data behind it and differed from read only by colour, which fails WCAG 1.4.1).
+
+The core SDK projects the receipt for every message (`MessageReceiptView {status, readSummary?}`); hosts pass `status` and, for their own group messages, `readSummary {readCount, unreadCount, total}`, which MessageMeta draws as "N unread" / "Read by all" in place of the check glyph.
 
 Mutation and ephemeral terminal states are rendered by message content or placeholders, not overloaded onto delivery ticks. Vue's `MessageLike.status` is a semantic `MessageStatusState`; numeric transport status adapters are intentionally outside the package.
 

@@ -64,6 +64,10 @@ const samples = {
     ],
   },
 };
+// Protocol v2: end and cancel live in the card's ⋯ menu; a stopped plugin says why; a forwarded copy is read-only.
+samples["菜单"] = { ...poll(false), actions: [], menuActions: [op("close", "结束投票", { style: "danger", confirm: "结束后不能再投票，确定结束吗？", placement: "menu" }), op("cancel", "取消投票", { style: "danger", confirm: "取消后投票作废，确定取消吗？", placement: "menu" })] };
+samples["已停用"] = { available: false, unavailableReason: "disabled", title: "周五团建去哪儿？", fields: [], actions: [] };
+samples["副本"] = { ...poll(true), actions: [], unavailableReason: "unbound_copy", blocks: poll(true).blocks.map((block) => (block.kind === "choices" ? { ...block, action: undefined } : block)) };
 const names = Object.keys(samples);
 const pick = ref(0);
 const voted = ref(false);
@@ -85,6 +89,8 @@ function onAction(id, payload) {
     <FlarePluginView
       :view="view"
       icon="plugin"
+      display-name="投票"
+      viewer-id="u2"
       :busy-action-id="busyActionId"
       :resolve-user="(id) => users[id]"
       @action="onAction"

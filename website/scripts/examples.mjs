@@ -815,4 +815,26 @@ await confirm({
 </FlareChartCard>`,
     },
   ],
+  PluginPage: [
+    {
+      title: { en: "A plugin's page (the wallet)", zh: "插件页面（钱包）" },
+      description: { en: "The host resolves the plugin's page contribution to a view and fetches again on refresh and loadMore; the kit draws the view with the same renderer as the detail sheet and calls nothing.", zh: "宿主把插件的 page 贡献解析成视图，在 refresh 与 loadMore 时重新取数；Kit 用与详情面板相同的渲染器画视图，自己不调用任何接口。" },
+      vue: `<FlarePluginPage
+  :title="t('me.wallet')"
+  back
+  :view="page.view"
+  :loading="page.loading"
+  :error="page.error"
+  :refreshing="page.refreshing"
+  :loading-more="page.loadingMore"
+  :resolve-user="directory.user"
+  :viewer-id="me.id"
+  @back="router.back()"
+  @refresh="page.reload()"
+  @retry="page.reload()"
+  @load-more="(cursor) => page.next(cursor)"
+  @action="(id, payload) => page.invoke(id, payload)"
+/>`,
+    },
+  ],
 };

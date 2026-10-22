@@ -139,6 +139,7 @@
     "PluginView": "im-ui",
     "PluginForm": "im-ui",
     "PluginDetailSheet": "im-ui",
+    "PluginPage": "im-ui",
     "SlashCommandMenu": "im-ui",
     "TranslationView": "im-ui",
     "QRCard": "im-ui",

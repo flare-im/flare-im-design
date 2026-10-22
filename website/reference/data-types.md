@@ -131,6 +131,7 @@ title: 数据类型
 | `reserveAvatarSpace` | `boolean` | ✓ | 头像隐藏时仍保持消息组边槽稳定。 |
 | `showSenderName` | `boolean` | ✓ | 为当前行渲染群聊发送者名称。 |
 | `avatarPlacement` | `'leading' \| 'trailing'` | ✓ | 接收方或可选本人头像的逻辑侧。 |
+| `tail` | `boolean` | ✓ | 画气泡尾角：bubble 表面且是本组最后一条（spec/message-grouping-vectors.json）。 |
 
 ### Contact {#contact}
 
@@ -462,18 +463,18 @@ title: 数据类型
 
 `FlareRedPacketClaim`
 
-> 红包领取列表的一行；时间和金额由宿主格式化。
+> 红包领取列表的一行：名字和头像由宿主解析，金额与时间由 Kit 格式化。
 
 **被使用于：**[RedPacketDetail](/components/red-packet-detail)
 
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
-| `id` | `string` | ✓ | 稳定的领取人标识，也是头像种子。 |
+| `id` | `string` | ✓ | 领取人 id，也是头像种子。 |
 | `name` | `string` | ✓ | 显示名。 |
 | `avatar` | `string` |  | 头像 URL 或媒体 id。 |
-| `time` | `string` | ✓ | 领取时间（已格式化）。 |
-| `amount` | `string` | ✓ | 领取金额（已格式化）。 |
-| `best` | `boolean` | ✓ | 拼手气红包领完后的最大一份，由服务端判定。 |
+| `amountMinor` | `string` | ✓ | 领取金额，最小单位。 |
+| `claimedAtMs` | `number` | ✓ | 领取时间。 |
+| `best` | `boolean` | ✓ | 服务端判定的手气最佳。 |
 
 ### LocationCoordinate {#location-coordinate}
 
@@ -563,7 +564,7 @@ title: 数据类型
 
 > 解析后的插件视图（核心 SDK 的 ResolvedPluginView）。
 
-**被使用于：**[PluginView](/components/plugin-view) · [PluginDetailSheet](/components/plugin-detail-sheet)
+**被使用于：**[PluginView](/components/plugin-view) · [PluginDetailSheet](/components/plugin-detail-sheet) · [PluginPage](/components/plugin-page)
 
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
@@ -575,6 +576,8 @@ title: 数据类型
 | `inputs` | [`PluginInput[]`](/reference/data-types#plugin-input) |  | 文档的全部输入；动作的 form 列出它要收集的。 |
 | `detail` | `boolean` |  | 贡献声明了 detail 视图（「查看全部」）。 |
 | `nextCursor` | `string` |  | 只用于 detail 视图：下一页的游标（核心 SDK 的 detail 分页，非空、不超过 256 字节）。有值时 PluginDetailSheet 显示「加载更多」，宿主取下一页后把合并好的视图传回。 |
+| `menuActions` | [`PluginAction[]`](/reference/data-types#plugin-action) |  | 卡片 ⋯ 菜单里的动作（placement menu），按顺序；为空时不出现。 |
+| `unavailableReason` | `'disabled' \| 'not_installed' \| 'no_permission' \| 'unsupported_platform' \| 'incompatible_version' \| 'catalog_unreachable' \| 'unbound_copy'` |  | 视图不可用或只读的原因。 |
 
 ### PluginAction {#plugin-action}
 
@@ -602,7 +605,7 @@ title: 数据类型
 | `text` | `{text, maxLines?, style: 'body' \| 'title' \| 'secondary'}` |  | 可折叠文本，带「展开」。 |
 | `fields` | `{fields: {label, value}[]}` |  | 键值行。 |
 | `choices` | `{options: PluginChoice[], multiple, voted, closed, showResults, total?, inputName, action?: PluginAction}` |  | 选项列表；action 是块持有的提交动作。 |
-| `entries` | `{items: {index, text, name?, userId?}[], numbered, total, more, emptyText?}` |  | 带序号的条目，可「查看全部」。 |
+| `entries` | `{items: {index, text, name?, userId?, group?: {key, label, count?, total?, percent?}}[], numbered, grouped?, total, more, emptyText?}` |  | 名单（接龙、投票人）；分组名单在带 group 的条目前插组头。 |
 | `people` | `{groups: {label, userIds, count, tone?}[]}` |  | 每组一行头像叠加计数。 |
 | `status` | `{label?, text, tone}` |  | 徽标。 |
 | `progress` | `{label?, value, total, percent}` |  | 进度条加 value/total。 |
@@ -651,7 +654,7 @@ title: 数据类型
 
 > 提交值的一个问题（UiFormError）。
 
-**被使用于：**[PluginView](/components/plugin-view) · [PluginForm](/components/plugin-form) · [PluginDetailSheet](/components/plugin-detail-sheet)
+**被使用于：**[PluginView](/components/plugin-view) · [PluginForm](/components/plugin-form) · [PluginDetailSheet](/components/plugin-detail-sheet) · [PluginPage](/components/plugin-page)
 
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
@@ -675,7 +678,7 @@ title: 数据类型
 
 > members 输入的候选成员。
 
-**被使用于：**[PluginView](/components/plugin-view) · [PluginForm](/components/plugin-form) · [PluginDetailSheet](/components/plugin-detail-sheet)
+**被使用于：**[PluginView](/components/plugin-view) · [PluginForm](/components/plugin-form) · [PluginDetailSheet](/components/plugin-detail-sheet) · [PluginPage](/components/plugin-page)
 
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
@@ -694,6 +697,48 @@ title: 数据类型
 | `selection` | `number[]` |  | 选中的选项下标（choices），升序。 |
 | `formValues` | `Record<string, unknown>` |  | 按输入 id 的表单提交值。 |
 | `row` | `{key, input}` |  | rows 行动作所在的行（Vue）。 |
+
+### MessageReadSummary {#message-read-summary}
+
+`FlareMessageReadSummary`
+
+> SDK 给出的本人群消息已读摘要（MessageReceiptView.readSummary）。
+
+**被使用于：**[MessageMeta](/components/message-meta)
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `readCount` | `number` | ✓ | 已读人数。 |
+| `unreadCount` | `number` | ✓ | 未读人数。 |
+| `total` | `number` | ✓ | 发送对象人数。 |
+
+### RedPacketDetailsView {#red-packet-details-view}
+
+`FlareRedPacketDetailsView`
+
+> 插件 details 对某个查看者的结果；无权看的金额不出现。
+
+**被使用于：**[RedPacketDetail](/components/red-packet-detail)
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `viewerRole` | [`RedPacketViewerRole`](/reference/data-types#red-packet-viewer-role) | ✓ | 查看者角色。 |
+| `status` | [`RedPacketStatus`](/reference/data-types#red-packet-status) | ✓ | 红包状态。 |
+| `kind` | [`RedPacketKind`](/reference/data-types#red-packet-kind) | ✓ | 红包种类。 |
+| `greeting` | `string` | ✓ | 祝福语。 |
+| `currency` | `string` | ✓ | ISO 4217 币种代码。 |
+| `currencyExponent` | `number` | ✓ | 币种小数位。 |
+| `totalMinor` | `string` |  | 总额，最小单位（仅发送人）。 |
+| `claimedMinor` | `string` |  | 已领额，最小单位（仅发送人）。 |
+| `refundedMinor` | `string` |  | 退回额，最小单位（仅发送人）。 |
+| `myAmountMinor` | `string` |  | 本人领到的金额，最小单位。 |
+| `claimedCount` | `number` | ✓ | 已领份数。 |
+| `shareCount` | `number` | ✓ | 总份数。 |
+| `createdAtMs` | `number` | ✓ | 创建时间。 |
+| `completedAtMs` | `number` |  | 领完时间。 |
+| `expiresAtMs` | `number` | ✓ | 过期时间。 |
+| `refundedAtMs` | `number` |  | 退回时间。 |
+| `claimsListed` | `boolean` | ✓ | 查看者可以看领取记录。 |
 
 ## 枚举 / 联合类型
 
@@ -789,16 +834,6 @@ title: 数据类型
 
 `auto` · `pc` · `ipad` · `h5`
 
-### RedPacketState {#red-packet-state}
-
-`FlareRedPacketState`
-
-> 当前查看者在红包卡片上看到的状态。
-
-**被使用于：**[RedPacketCard](/components/red-packet-card)
-
-`unopened` · `claimed` · `finished` · `expired`
-
 ### RedPacketOpenState {#red-packet-open-state}
 
 `FlareRedPacketOpenState`
@@ -815,7 +850,7 @@ title: 数据类型
 
 > 发红包表单可提供的种类。
 
-**被使用于：**[RedPacketComposer](/components/red-packet-composer)
+**被使用于：**[RedPacketCard](/components/red-packet-card) · [RedPacketComposer](/components/red-packet-composer)
 
 `lucky` · `normal` · `exclusive`
 
@@ -870,3 +905,49 @@ title: 数据类型
 **被使用于：**[PluginView](/components/plugin-view)
 
 `none` · `sheet` · `sheetTop`
+
+### MessageSurface {#message-surface}
+
+`FlareMessageSurface`
+
+> 消息行内容所在的表面（spec/message-surface-vectors.json）。
+
+**被使用于：**[MessageBubble](/components/message-bubble)
+
+`bubble` · `bareMedia` · `card` · `centered`
+
+### MessageMetaPlacement {#message-meta-placement}
+
+`FlareMessageMetaPlacement`
+
+> 消息时间与回执所在的位置（spec/message-meta-placement-vectors.json）。
+
+**被使用于：**[MessageMeta](/components/message-meta)
+
+`inline` · `bubbleFooter` · `below` · `none`
+
+### RedPacketCardState {#red-packet-card-state}
+
+`FlareRedPacketCardState`
+
+> 红包卡片显示的状态（spec/red-packet-vectors.json cardState）。
+
+**被使用于：**[RedPacketCard](/components/red-packet-card)
+
+`unopened` · `viewable` · `claimed` · `finished` · `expired` · `refunded`
+
+### RedPacketStatus {#red-packet-status}
+
+`FlareRedPacketStatus`
+
+> 插件给出的红包状态（公开层）。
+
+`open` · `completed` · `expired` · `refunded`
+
+### RedPacketViewerRole {#red-packet-viewer-role}
+
+`FlareRedPacketViewerRole`
+
+> 服务端判定的详情查看者角色。
+
+`sender` · `claimer` · `eligible` · `ineligible`

@@ -26,6 +26,15 @@ function msg({ id, self, senderId, name, text, ts, status = "sent" }) {
   };
 }
 
+// Surfaces (spec/message-surface-vectors.json): a card is never put inside a bubble, and its time sits below it.
+// In a group the viewer's own message shows the SDK's read summary in place of the ticks.
+const location = {
+  ...msg({ id: 5, self: true, text: "", ts: base + 3000, status: "read" }),
+  content: { contentType: "location", location: { latitude: 31.2304, longitude: 121.4737, name: "人民广场", address: "上海市黄浦区人民大道" } },
+};
+const summarised = { ...msg({ id: 6, self: true, text: "周五下午三点评审，记得带上数据", ts: base + 4000, status: "sent" }), readSummary: { readCount: 4, unreadCount: 2, total: 6 } };
+const failedCard = { ...location, serverId: "7", clientMsgId: "7", status: "failed" };
+
 const thread = [
   { m: msg({ id: 2, senderId: "ivy", name: "Ivy", text: "新版设计稿已经上传啦，帮忙看下～", ts: base }), self: false, gs: true, ge: true },
   { m: msg({ id: 3, self: true, text: "收到，我下午过一遍给你反馈 👍", ts: base + 1000, status: "read" }), self: true, gs: true, ge: false },
@@ -57,8 +66,13 @@ const thread = [
         :self="row.self"
         conversation-kind="single"
         :group-position="row.gs && row.ge ? 'single' : row.gs ? 'first' : row.ge ? 'last' : 'middle'"
-        :row-presentation="{ showAvatar: !row.self && row.gs, reserveAvatarSpace: !row.self, showSenderName: false, avatarPlacement: 'leading' }"
+        :row-presentation="{ showAvatar: !row.self && row.gs, reserveAvatarSpace: !row.self, showSenderName: false, avatarPlacement: 'leading', tail: row.ge }"
       />
+    </div>
+    <div class="canvas" aria-label="卡片与已读摘要">
+      <FlareMessageBubble :message="location" current-user-id="me" self conversation-kind="group" />
+      <FlareMessageBubble :message="summarised" current-user-id="me" self conversation-kind="group" @read-receipt-open="() => {}" />
+      <FlareMessageBubble :message="failedCard" current-user-id="me" self conversation-kind="group" @resend="() => {}" />
     </div>
   </DemoStage>
 </template>
