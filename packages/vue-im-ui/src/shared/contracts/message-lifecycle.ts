@@ -16,15 +16,17 @@ export interface MessageLifecycle {
   ephemeral: MessageEphemeralState;
 }
 
-/** Visual projection only. The orthogonal lifecycle remains the source model. */
+/**
+ * Visual projection only (the core SDK's MessageReceiptView.status, spec/message-receipt-vectors.json). There is no
+ * delivered state: a single check means the server has it, a double check that it was read. The orthogonal lifecycle
+ * remains the source model.
+ */
 export type MessageStatusState =
   | "pending"
   | "sending"
   | "sent"
-  | "delivered"
   | "read"
-  | "failed"
-  | "retrying";
+  | "failed";
 
 export const defaultMessageLifecycle: MessageLifecycle = {
   transfer: "idle",
@@ -45,9 +47,5 @@ export function lifecycleToMessageStatus(lifecycle: MessageLifecycle): MessageSt
     lifecycle.transfer === "paused"
   ) return "sending";
   if (lifecycle.read === "read") return "read";
-  if (
-    lifecycle.delivery === "delivered" ||
-    lifecycle.delivery === "partiallyDelivered"
-  ) return "delivered";
   return "sent";
 }

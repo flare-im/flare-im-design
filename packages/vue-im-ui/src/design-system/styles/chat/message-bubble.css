@@ -759,6 +759,25 @@
   display: none !important;
 }
 
+/* A card is its own surface (spec/message-surface-vectors.json): the time and the receipt go under it, at the
+   trailing edge in the timeline's palette, the same place as under a picture — never over the card's controls.
+   A failure shows the "Failed to send. Retry" key here instead of painting a red bubble around the card. */
+.message-bubble.message-bubble--chromeless-card > .message-meta-row {
+  margin-block-start: var(--flare-size-spacing-xs);
+  color: var(--flare-color-message-meta-foreground);
+  flex-wrap: wrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Multi-select: the content does not respond; a tap falls through to the row, which toggles the selection. */
+.message-bubble-body--inert {
+  pointer-events: none;
+}
+
+.message-row--selectable {
+  cursor: pointer;
+}
+
 .message-bubble.message-bubble-self.message-bubble--chromeless-card:not(.message-bubble--chromeless-media) {
   color: var(--flare-color-text-primary);
   background: transparent !important;

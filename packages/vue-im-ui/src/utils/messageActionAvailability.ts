@@ -107,6 +107,6 @@ export function messageDeliveryState(
     return "none";
   }
   if (ctx.isFailed || status === "failed") return "failed";
-  if (ctx.isPending || status === "pending" || status === "sending" || status === "retrying") return "sending";
+  if (ctx.isPending || status === "pending" || status === "sending") return "sending";
   return status === "read" || message.isRead === true ? "read" : "delivered";
 }

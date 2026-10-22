@@ -1,35 +1,41 @@
 <script setup lang="ts">
 // 红包详情 —— 普通页面的正文,不是浮层:宿主把它放进导航栈,外面套 FlareScreen。
-// 顶部红色弧形头图、发送人与种类标签、祝福语、本人领取金额(大字)、汇总行和领取列表。
-// 金额、时间、名字都由宿主格式化;「手气最佳」由服务端判定,这里只画标记。
+// 顶部红色弧形头图、发送人与种类角标、祝福语,然后按查看者角色(viewerRole)画服务端给出的东西
+// (spec/red-packet-vectors.json → detail):本人金额(大字)与「已存入钱包」、来晚或非指定人的标题、
+// 摘要行(只有发送人拿得到总额)、领取记录(claimsListed 时)、发送人的退回说明。没有的金额绝不显示;
+// 金额按 currencyExponent 用整数运算格式化;「手气最佳」由服务端判定,这里只画标记。
 import { NIcon } from "naive-ui";
 import { computed, getCurrentInstance } from "vue";
 import FlareAvatar from "../conversation/FlareAvatar.vue";
 import FlareIconButton from "../general/FlareIconButton.vue";
-import type { FlareRedPacketClaim } from "../../shared/contracts/red-packet";
+import {
+  flareRedPacketCardBadge,
+  flareRedPacketClaimTexts,
+  flareRedPacketDetailTexts,
+  type FlareRedPacketClaim,
+  type FlareRedPacketDetailStrings,
+  type FlareRedPacketDetailsView,
+} from "../../shared/contracts/red-packet";
 import { flareIcons } from "../../shared/icons";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 
 const props = withDefaults(
   defineProps<{
+    /** The IM message's sender (never the payload's). */
     senderName: string;
     senderAvatar?: string;
-    blessing: string;
-    /** Short kind badge beside the sender, e.g. "拼". */
-    kindLabel?: string;
-    /** What the viewer received, drawn large (host formats it, e.g. "0.88 元"). */
-    amount?: string;
-    /** Line under the amount, e.g. "已存入钱包". */
-    amountNote?: string;
-    /** Progress line above the list, e.g. "已领取 3/5 个，共 2.10/5.00 元". */
-    summary: string;
+    /** The plugin's details result for this viewer; absent amounts are never drawn. */
+    details: FlareRedPacketDetailsView;
+    /** Exclusive packets: the designated member's name for "仅 某某 可领取". */
+    designatedName?: string;
+    /** Claim rows (names and avatars from the host's directory); drawn only when details.claimsListed. */
     claims?: ReadonlyArray<FlareRedPacketClaim>;
-    /** Closing explanation, e.g. a refund notice after expiry. */
-    note?: string;
     /** Title of the red bar drawn when the host listens to `back`; defaults to "红包详情". */
     title?: string;
+    /** The clock the times are written against; defaults to now. */
+    nowMs?: number;
   }>(),
-  { claims: () => [] },
+  { senderAvatar: undefined, designatedName: undefined, claims: () => [], title: undefined, nowMs: undefined },
 );
 // With a `back` listener the page draws its own red title bar (back key and title), running into the
 // arched header and up under the status bar; the host then hides its own navigation bar.
@@ -40,10 +46,34 @@ const instance = getCurrentInstance();
 const showsBar = computed(() => Boolean(instance?.vnode.props?.onBack));
 const barTitle = computed(() => props.title || t("redPacket.detailTitle"));
 const heading = computed(() => t("redPacket.fromSender", { name: props.senderName }));
+const badge = computed(() => flareRedPacketCardBadge(props.details.kind));
+const strings = computed<FlareRedPacketDetailStrings>(() => ({
+  summarySender: t("redPacket.summarySender"),
+  summaryCompleted: t("redPacket.summaryCompleted"),
+  summaryCount: t("redPacket.summaryCount"),
+  refundAt: t("redPacket.refundAt"),
+  refundedNote: t("redPacket.refundedNote"),
+  missed: t("redPacket.missed"),
+  expired: t("redPacket.expiredNotice"),
+  notEligible: t("redPacket.notEligible"),
+  notEligibleName: t("redPacket.notEligibleName"),
+  durationSeconds: t("redPacket.duration.seconds"),
+  durationMinutes: t("redPacket.duration.minutes"),
+  durationHours: t("redPacket.duration.hours"),
+  durationDays: t("redPacket.duration.days"),
+  dateTime: t("pluginView.dateTime"),
+  dateTimeYear: t("pluginView.dateTimeYear"),
+}));
+const now = computed(() => props.nowMs ?? Date.now());
+const texts = computed(() => flareRedPacketDetailTexts(props.details, { designatedName: props.designatedName, nowMs: now.value }, strings.value));
+const rows = computed(() => (texts.value.claims ? props.claims : []).map((claim) => ({
+  claim,
+  ...flareRedPacketClaimTexts(claim, props.details.currency, props.details.currencyExponent, now.value, strings.value),
+})));
 </script>
 
 <template>
-  <section class="flare-rp-detail" :class="{ 'has-bar': showsBar }" :aria-label="heading">
+  <section class="flare-rp-detail" :class="{ 'has-bar': showsBar }" :aria-label="heading" :data-viewer-role="details.viewerRole">
     <header v-if="showsBar" class="flare-rp-detail__bar">
       <FlareIconButton
         class="flare-rp-detail__back"
@@ -61,35 +91,40 @@ const heading = computed(() => t("redPacket.fromSender", { name: props.senderNam
       <div class="flare-rp-detail__sender">
         <FlareAvatar :name="senderName" :avatar-url="senderAvatar" :size="28" />
         <h2 class="flare-rp-detail__title">{{ heading }}</h2>
-        <span v-if="kindLabel" class="flare-rp-detail__kind">{{ kindLabel }}</span>
+        <span v-if="badge.badge" class="flare-rp-detail__kind" data-detail-badge="true">{{ t(`redPacket.badge.${badge.badge}`) }}</span>
       </div>
-      <p class="flare-rp-detail__blessing">{{ blessing }}</p>
-      <p v-if="amount" class="flare-rp-detail__amount">{{ amount }}</p>
-      <p v-if="amountNote" class="flare-rp-detail__amount-note">{{ amountNote }}</p>
+      <p class="flare-rp-detail__blessing">{{ details.greeting }}</p>
+      <p v-if="texts.headline" class="flare-rp-detail__headline" data-detail-headline="true">{{ texts.headline }}</p>
+      <template v-if="texts.amount">
+        <p class="flare-rp-detail__amount" data-detail-amount="true">{{ texts.amount }}</p>
+        <p class="flare-rp-detail__amount-note">{{ t("redPacket.deposited") }}</p>
+      </template>
     </header>
 
-    <div class="flare-rp-detail__claims">
-      <p class="flare-rp-detail__summary">{{ summary }}</p>
-      <ul v-if="claims.length" class="flare-rp-detail__list" :aria-label="t('redPacket.claims')">
-        <li v-for="claim in claims" :key="claim.id" class="flare-rp-detail__row" :class="{ 'is-best': claim.best }">
-          <FlareAvatar :user-id="claim.id" :name="claim.name" :avatar-url="claim.avatar" :size="40" />
-          <span class="flare-rp-detail__who">
-            <span class="flare-rp-detail__name">{{ claim.name }}</span>
-            <span class="flare-rp-detail__time">{{ claim.time }}</span>
-          </span>
-          <span class="flare-rp-detail__share">
-            <span class="flare-rp-detail__share-amount">{{ claim.amount }}</span>
-            <span v-if="claim.best" class="flare-rp-detail__best">
-              <n-icon aria-hidden="true" :component="flareIcons.star" />
-              <span>{{ t("redPacket.bestLuck") }}</span>
+    <div v-if="texts.summary || texts.claims" class="flare-rp-detail__claims">
+      <p v-if="texts.summary" class="flare-rp-detail__summary" data-detail-summary="true">{{ texts.summary }}</p>
+      <template v-if="texts.claims">
+        <ul v-if="rows.length" class="flare-rp-detail__list" :aria-label="t('redPacket.claims')">
+          <li v-for="row in rows" :key="row.claim.id" class="flare-rp-detail__row" :class="{ 'is-best': row.claim.best }" data-detail-claim="true">
+            <FlareAvatar :user-id="row.claim.id" :name="row.claim.name" :avatar-url="row.claim.avatar" :size="40" />
+            <span class="flare-rp-detail__who">
+              <span class="flare-rp-detail__name">{{ row.claim.name }}</span>
+              <span class="flare-rp-detail__time">{{ row.time }}</span>
             </span>
-          </span>
-        </li>
-      </ul>
-      <p v-else class="flare-rp-detail__empty">{{ t("redPacket.noClaims") }}</p>
+            <span class="flare-rp-detail__share">
+              <span v-if="row.amount" class="flare-rp-detail__share-amount">{{ row.amount }}</span>
+              <span v-if="row.claim.best" class="flare-rp-detail__best">
+                <n-icon aria-hidden="true" :component="flareIcons.star" />
+                <span>{{ t("redPacket.bestLuck") }}</span>
+              </span>
+            </span>
+          </li>
+        </ul>
+        <p v-else class="flare-rp-detail__empty">{{ t("redPacket.noClaims") }}</p>
+      </template>
     </div>
 
-    <p v-if="note" class="flare-rp-detail__note">{{ note }}</p>
+    <p v-if="texts.note" class="flare-rp-detail__note" data-detail-note="true">{{ texts.note }}</p>
   </section>
 </template>
 
@@ -179,6 +214,13 @@ const heading = computed(() => t("redPacket.fromSender", { name: props.senderNam
   margin: 0;
   font-size: var(--flare-size-font-size-lg);
   color: var(--flare-color-text-secondary);
+  overflow-wrap: anywhere;
+}
+.flare-rp-detail__headline {
+  margin: var(--flare-size-spacing-md) 0 0;
+  font-size: var(--flare-size-font-size-xl);
+  font-weight: var(--flare-size-font-weight-medium);
+  color: var(--flare-color-text-primary);
   overflow-wrap: anywhere;
 }
 .flare-rp-detail__amount {

@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed } from "vue";
 import FlareBottomSheet from "../general/FlareBottomSheet.vue";
 import FlareButton from "../general/FlareButton.vue";
 import FlareEmptyState from "../general/FlareEmptyState.vue";
 import FlarePluginView from "./FlarePluginView.vue";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
+import { usePluginPaging } from "./plugin/pluginPaging";
 import {
-  flarePluginNextCursor,
   type FlarePluginActionPayload,
   type FlarePluginFormError,
   type FlarePluginMember,
@@ -29,6 +29,8 @@ const props = withDefaults(
     /** Loading failed: the host's text with a retry key. */
     error?: string;
     resolveUser?: FlarePluginResolveUser;
+    /** The viewer's user id: their rows in grouped entries carry the "me" tag. */
+    viewerId?: string;
     busyActionId?: string;
     /** Failure of an action run from the detail, shown inside the sheet (the view's error), never on the card. */
     actionError?: string;
@@ -42,7 +44,7 @@ const props = withDefaults(
     loadingMore?: boolean;
   }>(),
   {
-    title: "", view: undefined, loading: false, error: undefined, resolveUser: undefined, busyActionId: undefined,
+    title: "", view: undefined, loading: false, error: undefined, resolveUser: undefined, viewerId: undefined, busyActionId: undefined,
     actionError: undefined, formErrors: () => [], members: () => [], settleToken: 0, loadingMore: false,
   },
 );
@@ -58,20 +60,13 @@ const heading = computed(() => props.view?.title || props.title);
 const state = computed(() => (props.loading ? "loading" : props.error ? "error" : props.view ? "loaded" : "loading"));
 
 // ── paging ───────────────────────────────────────────────────────────────
-const nextCursor = computed(() => flarePluginNextCursor(props.view));
-/** The cursor the kit last asked for: while it is still the view's, that page is on its way (never asked twice). */
-const asked = ref<string | null>(null);
-const pageBusy = computed(() => props.loadingMore || (asked.value !== null && asked.value === nextCursor.value));
-function loadMore(): void {
-  const cursor = nextCursor.value;
-  if (!cursor || pageBusy.value) return;
-  asked.value = cursor;
-  emit("loadMore", cursor);
-}
-// A retry is allowed once the host is done with the page, settles, or reports a failure.
-watch(() => props.loadingMore, (now, before) => { if (before && !now) asked.value = null; });
-watch(() => props.settleToken, (now, before) => { if (now !== before) asked.value = null; });
-watch(() => props.actionError, (now, before) => { if (now && now !== before) asked.value = null; });
+const { nextCursor, pageBusy, loadMore } = usePluginPaging({
+  view: () => props.view,
+  loadingMore: () => props.loadingMore,
+  settleToken: () => props.settleToken,
+  actionError: () => props.actionError,
+  request: (cursor) => emit("loadMore", cursor),
+});
 </script>
 
 <template>
@@ -87,6 +82,7 @@ watch(() => props.actionError, (now, before) => { if (now && now !== before) ask
         :view="view"
         embedded
         :resolve-user="resolveUser"
+        :viewer-id="viewerId"
         :busy-action-id="busyActionId"
         :error="actionError"
         :form-errors="formErrors"

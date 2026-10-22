@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, getCurrentInstance, reactive, ref, shallowReactive, watch } from "vue";
+import FlareActionMenu from "../general/FlareActionMenu.vue";
 import FlareButton from "../general/FlareButton.vue";
 import FlareBottomSheet from "../general/FlareBottomSheet.vue";
 import FlareIcon from "../general/FlareIcon.vue";
@@ -15,9 +16,14 @@ import PluginTextBlock from "./plugin/PluginTextBlock.vue";
 import PluginTimeBlock from "./plugin/PluginTimeBlock.vue";
 import { flareIcons, type FlareIconName } from "../../shared/icons";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
+import { useFlareContentSelection, useFlareMessageQuote } from "../../shared/message-renderers";
+import MessageCardQuote from "./MessageCardQuote.vue";
+import type { FlareActionItem } from "../../shared/contracts/action-menu";
 import {
   flarePluginFallbackName,
+  flarePluginReasonLine,
   flarePluginShowsDetailKey,
+  flarePluginUnavailableKey,
   type FlarePluginAction,
   type FlarePluginActionPayload,
   type FlarePluginBlock,
@@ -36,11 +42,17 @@ import {
 // A plugin card: the core SDK's resolved view drawn as a kit business card (spec PluginView,
 // spec/plugin-view-vectors.json). Inert: nothing here reads paths, evaluates or calls the network;
 // actions go out as opaque ids with the viewer's selection or form values, and the host invokes.
+// The shell is the message's card surface (the timeline draws no bubble around it); menu actions open
+// from the title row's ⋯ key; an unavailable reason adds its line, led by the envelope's displayName.
 const props = withDefaults(
   defineProps<{
     view: FlarePluginViewModel;
     /** Kit icon name before the title. */
     icon?: string;
+    /** The envelope's displayName (the plugin's name): leads the unavailable reason line. */
+    displayName?: string;
+    /** The viewer's user id: their entries rows carry the "me" tag. */
+    viewerId?: string;
     /** The whole card is busy: every action, choice and submit is disabled. */
     busy?: boolean;
     /** The action in flight: its key spins; leaving the action settles it as a fallback for `settleToken`. */
@@ -67,7 +79,7 @@ const props = withDefaults(
     settleToken?: number;
   }>(),
   {
-    icon: undefined, busy: false, busyActionId: undefined, error: undefined, embedded: false, inset: "none",
+    icon: undefined, displayName: undefined, viewerId: undefined, busy: false, busyActionId: undefined, error: undefined, embedded: false, inset: "none",
     resolveUser: undefined, members: () => [], formErrors: () => [], settleToken: 0,
   },
 );
@@ -101,7 +113,32 @@ const KNOWN = new Set<string>(["text", "fields", "choices", "entries", "people",
 /** Blocks the kit knows, in order; a kind from a newer protocol is skipped. */
 const blocks = computed<FlarePluginBlock[]>(() => (props.view.blocks ?? []).filter((block) => KNOWN.has((block as { kind: string }).kind)));
 const titleIcon = computed(() => (props.icon && props.icon in flareIcons ? (props.icon as FlareIconName) : undefined));
-const locked = computed(() => props.busy || Boolean(props.busyActionId));
+// A timeline row that replies: the quote goes inside this shell, at the top (the row then draws none).
+const rowQuote = useFlareMessageQuote();
+if (rowQuote && !props.embedded) rowQuote.claim();
+const quoteShown = computed(() => (!props.embedded && rowQuote?.active() ? rowQuote : null));
+// In a selecting timeline row the card is inert: a tap selects the row.
+const selecting = useFlareContentSelection();
+const locked = computed(() => props.busy || Boolean(props.busyActionId) || selecting());
+// The reason line (spec rules.unavailableReason): the reason's copy, led by the envelope's displayName.
+const reasonLine = computed(() => {
+  const reason = props.view.unavailableReason;
+  if (!reason) return "";
+  return flarePluginReasonLine(t(flarePluginUnavailableKey(reason)), props.displayName);
+});
+// Menu actions (spec rules.menuActions): the title row's ⋯ key on a card, keys after the actions when embedded.
+const menuActions = computed<FlarePluginAction[]>(() => (props.view.available ? [...(props.view.menuActions ?? [])] : []));
+const menuItems = computed<FlareActionItem[]>(() => menuActions.value.map((action) => ({
+  id: action.id,
+  label: action.label,
+  danger: action.style === "danger",
+  enabled: !locked.value,
+})));
+function runMenu(id: string): void {
+  const action = menuActions.value.find((candidate) => candidate.id === id);
+  if (action) run(action, {});
+}
+const footerActions = computed<FlarePluginAction[]>(() => (props.embedded ? [...props.view.actions, ...menuActions.value] : [...props.view.actions]));
 // The card's view details key (spec rules.detailKey): a detail no entries block offers, and a host that listens
 // for openDetail (read at render: listeners are not reactive props).
 const instance = getCurrentInstance();
@@ -268,12 +305,35 @@ const variantOf = (action: FlarePluginAction) => (action.style === "danger" ? "d
     :aria-label="view.title || undefined"
     :aria-busy="busy || Boolean(busyActionId)"
   >
+    <!-- A quoted reply sits inside the card shell, above the title row. -->
+    <div v-if="($slots.quote || quoteShown) && !embedded" class="flare-plugin-view__quote" data-plugin-quote="true">
+      <slot name="quote"><MessageCardQuote v-if="quoteShown" :preview="quoteShown.preview()" :locate="quoteShown.locate()" /></slot>
+    </div>
     <header v-if="!embedded" class="flare-plugin-view__head">
       <FlareIcon v-if="titleIcon" class="flare-plugin-view__icon" :name="titleIcon" :size="18" />
       <strong class="flare-plugin-view__title">{{ view.title }}</strong>
+      <FlareActionMenu
+        v-if="menuItems.length"
+        :items="menuItems"
+        :label="t('pluginView.more')"
+        placement="bottom-end"
+        @select="runMenu"
+      >
+        <button
+          type="button"
+          class="flare-plugin-view__more"
+          :aria-label="t('pluginView.more')"
+          :title="t('pluginView.more')"
+          :disabled="locked"
+          data-plugin-menu="true"
+        >
+          <FlareIcon name="more" :size="18" />
+        </button>
+      </FlareActionMenu>
     </header>
     <!-- Embedded there is no title row: an unavailable view still says what it was. -->
     <p v-else-if="!view.available && view.title" class="flare-plugin-view__unavailable" data-unavailable-title="true">{{ view.title }}</p>
+    <p v-if="!view.available && reasonLine" class="flare-plugin-view__reason" data-unavailable-reason="true">{{ reasonLine }}</p>
     <template v-if="view.available">
       <dl v-if="view.fields.length" class="flare-plugin-view__fields">
         <div v-for="(field, index) in view.fields" :key="index"><dt>{{ field.label }}</dt><dd>{{ field.value }}</dd></div>
@@ -291,7 +351,7 @@ const variantOf = (action: FlarePluginAction) => (action.style === "danger" ? "d
           @pick="(option: number) => pick(block, index, option)"
           @submit="submitChoices(block, index, drafts.get(index) ?? [])"
         />
-        <PluginEntriesBlock v-else-if="block.kind === 'entries'" :block="block" :user-of="userOf" data-block="entries" @see-all="emit('openDetail')" />
+        <PluginEntriesBlock v-else-if="block.kind === 'entries'" :block="block" :user-of="userOf" :viewer-id="viewerId" data-block="entries" @see-all="emit('openDetail')" />
         <PluginPeopleBlock v-else-if="block.kind === 'people'" :block="block" :user-of="userOf" data-block="people" />
         <PluginTimeBlock v-else-if="block.kind === 'time'" :block="block" :strings="strings" data-block="time" />
         <PluginRowsBlock
@@ -311,9 +371,9 @@ const variantOf = (action: FlarePluginAction) => (action.style === "danger" ? "d
           :data-block="block.kind"
         />
       </template>
-      <div v-if="view.actions.length" class="flare-plugin-view__actions">
+      <div v-if="footerActions.length" class="flare-plugin-view__actions">
         <FlareButton
-          v-for="action in view.actions"
+          v-for="action in footerActions"
           :key="action.id"
           :label="action.label"
           :variant="variantOf(action)"
@@ -334,6 +394,8 @@ const variantOf = (action: FlarePluginAction) => (action.style === "danger" ? "d
         data-detail-key="true"
         @click="emit('openDetail')"
       />
+      <!-- A forwarded or forged copy (unbound_copy): readable, read-only, and it says so. -->
+      <p v-if="reasonLine" class="flare-plugin-view__reason flare-plugin-view__reason--copy" data-unavailable-reason="true">{{ reasonLine }}</p>
     </template>
     <FlareStatusBanner v-if="error" :text="error" tone="danger" />
     <FlareDangerConfirm
@@ -389,6 +451,39 @@ const variantOf = (action: FlarePluginAction) => (action.style === "danger" ? "d
 .flare-plugin-view.is-inset-sheet-top:not(.is-embedded) { margin-bottom: 0; }
 .flare-plugin-view__unavailable { margin: 0; font-size: var(--flare-size-font-size-md); color: var(--flare-color-text-secondary); }
 .flare-plugin-view__head { display: flex; align-items: center; gap: var(--flare-size-spacing-xs); min-width: 0; }
+.flare-plugin-view__head .flare-plugin-view__title { flex: 1 1 auto; }
+/* The ⋯ key: an icon-sized glyph whose target reaches the touch target around it. */
+.flare-plugin-view__more {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-inline-end: calc(var(--flare-size-spacing-xs) * -1);
+  padding: var(--flare-size-spacing-2xs);
+  border: 0;
+  border-radius: var(--flare-size-radius-sm);
+  background: transparent;
+  color: var(--flare-color-text-secondary);
+  cursor: pointer;
+}
+.flare-plugin-view__more::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--flare-size-layout-touch-target);
+  height: var(--flare-size-layout-touch-target);
+  transform: translate(-50%, -50%);
+}
+.flare-plugin-view__more:disabled { cursor: default; opacity: 0.5; }
+@media (hover: hover) {
+  .flare-plugin-view__more:not(:disabled):hover { background: var(--flare-color-bg-hover); color: var(--flare-color-text-primary); }
+}
+.flare-plugin-view__more:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: 2px; }
+.flare-plugin-view__reason { margin: 0; font-size: var(--flare-size-font-size-sm); color: var(--flare-color-text-secondary); }
+.flare-plugin-view__reason--copy { color: var(--flare-color-text-tertiary); }
+.flare-plugin-view__quote { min-width: 0; }
 .flare-plugin-view__icon { flex: none; color: var(--flare-color-primary-text); }
 .flare-plugin-view__title { min-width: 0; font-size: var(--flare-size-font-size-xl); font-weight: var(--flare-size-font-weight-semibold); line-height: var(--flare-size-line-height-snug); }
 .flare-plugin-view__fields { display: grid; gap: var(--flare-size-spacing-xs); margin: 0; font-size: var(--flare-size-font-size-md); }

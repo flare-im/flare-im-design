@@ -16,12 +16,12 @@ import FlareUnreadDivider from "./FlareUnreadDivider.vue";
 import TimelineGalleryPreview from "./TimelineGalleryPreview.vue";
 import { provideTimelineImageGallery } from "./timelineImageGallery";
 import { TIMELINE_FOCUS_KEYS, messageTakesFocus, provideTimelineFocus } from "./timelineFocus";
-import { provideFlareRenderConversation } from "../../shared/message-renderers";
+import { provideFlareRenderConversation, useFlareMessageRenderers } from "../../shared/message-renderers";
 import type { MessageLike, MessageMediaDownloadUiState } from "./MessageBubble.vue";
 import { mergeMessageMenuConfig, unhandledMessageMenuActions, type MessageMenuConfig } from "../../shared/config/messageMenu";
 import { messageMatchesId, resolveMessageId } from "../../shared/contracts/messageRow";
 import type { MessageMenuExtension } from "../../utils/buildMessageMenuOptions";
-import { startsTimelineDay, timelineDateLabel } from "../../shared/timeline-label";
+import { timelineDateLabel } from "../../shared/timeline-label";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 import type { FlareLocationValue } from "../../shared/contracts/location";
 import { previewTextFromMessageContent } from "../../utils/messagePreview";
@@ -33,11 +33,12 @@ import {
   type ScrollAnchorSnapshot,
 } from "../../utils";
 import {
-  messageGroupPosition,
-  messageRowPresentation,
+  flareTimelineRows,
   type FlareMessageGroupPosition,
   type FlareMessageRowPresentation,
 } from "../../shared/contracts/message-grouping";
+import type { FlareMessageSurface } from "../../shared/contracts/message-surface";
+import { messageSurfaceOf } from "../../utils/messageSurface";
 
 const BOTTOM_STICKY_PX = 80;
 const RESIZE_STICKY_PX = 420;
@@ -118,6 +119,8 @@ const emit = defineEmits<{
   (event: "cardOpen", messageId: string, userId: string): void;
   /** A tapped location card. Without a listener the card links to the web map of its provider. */
   (event: "locationOpen", messageId: string, location: FlareLocationValue): void;
+  /** A tapped group read summary ("3 unread"): the host fills ReadReceiptSheet. Without a listener it is text. */
+  (event: "readReceiptOpen", messageId: string): void;
 }>();
 
 const instance = getCurrentInstance();
@@ -139,6 +142,11 @@ const bodyIntentListeners = computed(() => ({
     : {}),
   ...(instance?.vnode.props?.onLocationOpen
     ? { locationOpen: (id: string, location: FlareLocationValue) => emit("locationOpen", id, location) }
+    : {}),
+  // Retry and the read summary are keys only while the host takes them.
+  ...(instance?.vnode.props?.onResend ? { resend: (clientMsgId: string) => emit("resend", clientMsgId) } : {}),
+  ...(instance?.vnode.props?.onReadReceiptOpen
+    ? { readReceiptOpen: (id: string) => emit("readReceiptOpen", id) }
     : {}),
 }));
 
@@ -172,6 +180,7 @@ type TimelineRow =
       kind: "message";
       key: string;
       message: MessageLike;
+      surface: FlareMessageSurface;
       groupPosition: FlareMessageGroupPosition;
       presentation: FlareMessageRowPresentation;
     };
@@ -263,70 +272,54 @@ watch(
   },
 );
 
+const messageRenderers = useFlareMessageRenderers();
+// The rows (spec/message-grouping-vectors.json): date pills at each local day, the unread divider, and every message
+// with its surface (C1), run position and presentation. The surface is decided here once so grouping and the bubble
+// agree on it.
 const timelineRows = computed<TimelineRow[]>(() => {
-  const rows: TimelineRow[] = [];
   const messages = displayMessages.value;
-  const unreadIndex = props.unreadFromId
-    ? messages.findIndex((message) => resolveMessageId(message) === props.unreadFromId)
-    : -1;
-  // Where a date separator goes: before the first message and wherever the day changes.
-  const startsDay: boolean[] = [];
-  let previousTs = 0;
-  for (const message of messages) {
-    const ts = Number(message.createdAt || message.clientCreatedAt || 0);
-    startsDay.push(startsTimelineDay(previousTs, ts));
-    previousTs = ts || previousTs;
-  }
-  // A sender run ends at a date separator and at the unread divider.
-  const dividerBefore = (index: number) => index === unreadIndex || (index > 0 && startsDay[index] === true);
-  for (let index = 0; index < messages.length; index += 1) {
-    const message = messages[index];
-    const ts = Number(message.createdAt || message.clientCreatedAt || 0);
-    // The day comes first, then where the unread messages start inside it.
-    if (startsDay[index]) {
+  const surfaces = messages.map((message) => messageSurfaceOf(message, messageRenderers));
+  const layout = flareTimelineRows(
+    messages.map((message, index) => ({
+      id: resolveMessageId(message),
+      senderId: message.senderId,
+      atMs: Number(message.createdAt || message.clientCreatedAt || 0),
+      surface: surfaces[index],
+    })),
+    {
+      currentUserId: props.currentUserId,
+      conversationKind: props.conversationKind,
+      unreadFromId: props.unreadFromId,
+      options: {
+        showIncomingAvatar: props.showIncomingAvatar,
+        showSelfAvatar: props.showSelfAvatar,
+        showGroupSenderName: props.showGroupSenderName,
+      },
+    },
+  );
+  const rows: TimelineRow[] = [];
+  let next = 0;
+  for (const row of layout) {
+    if (row.kind === "date") {
+      const message = messages[next];
+      rows.push({ kind: "time", key: `time-${timelineKey(message)}`, label: timeLabel(row.atMs) });
+    } else if (row.kind === "unread") {
+      rows.push({ kind: "unread", key: `unread-${timelineKey(messages[next])}`, count: row.count });
+    } else {
+      const message = messages[row.index];
+      next = row.index + 1;
       rows.push({
-        kind: "time",
-        key: `time-${timelineKey(message)}`,
-        label: timeLabel(ts),
-      });
-    }
-    if (index === unreadIndex) {
-      rows.push({
-        kind: "unread",
-        key: `unread-${timelineKey(message)}`,
-        count: messages.slice(index).filter((item) => item.senderId !== props.currentUserId).length,
-      });
-    }
-    const groupPosition = breakRunAtDividers(messageGroupPosition(messages, index), dividerBefore(index), dividerBefore(index + 1));
-    rows.push({
-      kind: "message",
-      key: timelineKey(message),
-      message,
-      groupPosition,
-      presentation: messageRowPresentation(
+        kind: "message",
+        key: timelineKey(message),
         message,
-        groupPosition,
-        props.currentUserId,
-        props.conversationKind,
-        {
-          showIncomingAvatar: props.showIncomingAvatar,
-          showSelfAvatar: props.showSelfAvatar,
-          showGroupSenderName: props.showGroupSenderName,
-        },
-      ),
-    });
+        surface: surfaces[row.index],
+        groupPosition: row.position,
+        presentation: row.presentation,
+      });
+    }
   }
   return rows;
 });
-
-/** The unread divider ends a sender run: the row above closes it and the first unread row opens a new one. */
-/** A divider right before a message starts a new run there; one right after ends the run. */
-function breakRunAtDividers(position: FlareMessageGroupPosition, dividerBefore: boolean, dividerAfter: boolean): FlareMessageGroupPosition {
-  let next = position;
-  if (dividerBefore) next = next === "middle" ? "first" : next === "last" ? "single" : next;
-  if (dividerAfter) next = next === "middle" ? "last" : next === "first" ? "single" : next;
-  return next;
-}
 
 function estimatedRowHeight(row: TimelineRow): number {
   if (row.kind === "time") return ESTIMATED_TIME_ROW_PX;
@@ -1078,6 +1071,7 @@ defineExpose({
             :conversation-kind="conversationKind"
             :group-position="item.groupPosition"
             :row-presentation="item.presentation"
+            :surface="item.surface"
             :fresh="freshIds.has(resolveMessageId(item.message))"
             :quote-locatable="quoteLocatable(item.message)"
             @react="(id: string, emoji: string) => $emit('react', id, emoji)"
@@ -1090,7 +1084,6 @@ defineExpose({
             @reply="$emit('reply', $event)"
             @forward="$emit('forward', $event)"
             @recall="$emit('recall', $event)"
-            @resend="$emit('resend', $event)"
             @multi-select="$emit('multiSelect', $event)"
             @toggle-select="$emit('toggle-select', $event)"
             @locate-message="onLocateMessage"

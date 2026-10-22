@@ -14,6 +14,7 @@ import {
   type FlarePluginViewModel,
 } from "../../shared/contracts/plugin-ui";
 import FlarePluginView from "./FlarePluginView.vue";
+import FlareActionMenu from "../general/FlareActionMenu.vue";
 
 enableAutoUnmount(afterEach);
 afterEach(() => {
@@ -22,16 +23,23 @@ afterEach(() => {
 });
 
 type Fact = Record<string, unknown> & { kind: string };
+type ActionFact = { id: string; label: string; variant: string; confirm: string | null; form: boolean };
 type ViewVector = {
   id: string;
   platforms: string[];
   view: FlarePluginViewModel;
+  embedded?: boolean;
+  viewerId?: string;
+  displayName?: string;
   expect: {
     title: string;
     bodyHidden: boolean;
     fields: Array<{ label: string; value: string }>;
     blocks: Fact[];
-    actions: Array<{ id: string; label: string; variant: string; confirm: string | null; form: boolean }>;
+    actions: ActionFact[];
+    menu: ActionFact[];
+    menuPresentation?: "keys";
+    reason: string | null;
   };
 };
 type Step = {
@@ -127,7 +135,19 @@ function expectBlock(_wrapper: VueWrapper, node: ReturnType<VueWrapper["find"]>,
       break;
     }
     case "entries": {
-      const rows = fact.rows as Array<{ number: string | null; name: string | null; text: string }>;
+      const rows = fact.rows as Array<{ number: string | null; name: string | null; text: string; group?: string | null; me?: boolean }>;
+      if (rows.some((r) => r.group !== undefined)) {
+        // Grouped: a header row precedes each item that opens a group; the viewer's row carries the me tag.
+        const items = node.findAll("li");
+        const seen: Array<{ group: string | null; me: boolean }> = [];
+        let header: string | null = null;
+        for (const li of items) {
+          if (li.attributes("data-entry-group")) { header = li.text(); continue; }
+          seen.push({ group: header, me: li.find("[data-entry-me]").exists() });
+          header = null;
+        }
+        expect(seen).toEqual(rows.map((r) => ({ group: r.group ?? null, me: Boolean(r.me) })));
+      }
       expect(node.findAll("[data-entry-index]")).toHaveLength(rows.length);
       expect(text(node as never, "[data-entry-number]")).toEqual(rows.filter((r) => r.number).map((r) => `${r.number}.`));
       expect(text(node as never, "[data-entry-name]")).toEqual(rows.filter((r) => r.name).map((r) => r.name));
@@ -205,21 +225,77 @@ function expectBlock(_wrapper: VueWrapper, node: ReturnType<VueWrapper["find"]>,
 describe("FlarePluginView v2 (spec/plugin-view-vectors.json)", () => {
   it.each(vectors.views.map((v) => [v.id, v] as const))("renders %s", async (_, vector) => {
     vi.useFakeTimers({ now: vectors.nowMs });
-    const { wrapper } = render({ view: vector.view });
+    const { wrapper } = render({
+      view: vector.view,
+      embedded: Boolean(vector.embedded),
+      viewerId: vector.viewerId,
+      displayName: vector.displayName,
+    });
     await flushPromises();
     const facts = vector.expect;
-    expect(wrapper.get(".flare-plugin-view__title").text()).toBe(facts.title);
+    if (!vector.embedded) expect(wrapper.get(".flare-plugin-view__title").text()).toBe(facts.title);
+    const reason = wrapper.find("[data-unavailable-reason]");
+    expect(reason.exists() ? reason.text() : null).toBe(facts.reason);
     expect(wrapper.findAll("dl.flare-plugin-view__fields dt").map((n) => n.text())).toEqual(facts.fields.map((f) => f.label));
     expect(wrapper.findAll("dl.flare-plugin-view__fields dd").map((n) => n.text())).toEqual(facts.fields.map((f) => f.value));
     const nodes = wrapper.findAll("[data-block]");
     expect(nodes.map((n) => n.attributes("data-block"))).toEqual(facts.blocks.map((b) => b.kind));
     facts.blocks.forEach((fact, i) => expectBlock(wrapper, nodes[i] as never, fact, vector.view.blocks![i] as never));
+    // Embedded views draw their menu actions as keys after the actions; cards open them from the ⋯ key.
+    const keyFacts = facts.menuPresentation === "keys" ? [...facts.actions, ...facts.menu] : facts.actions;
     const keys = wrapper.findAll("[data-action-id]");
-    expect(keys.map((k) => k.attributes("data-action-id"))).toEqual(facts.actions.map((a) => a.id));
-    facts.actions.forEach((a, i) => {
+    expect(keys.map((k) => k.attributes("data-action-id"))).toEqual(keyFacts.map((a) => a.id));
+    keyFacts.forEach((a, i) => {
       expect(keys[i].text()).toBe(a.label);
       expect(keys[i].classes()).toContain(`flare-button--${a.variant}`);
     });
+    const menu = wrapper.findComponent(FlareActionMenu);
+    const cardMenu = facts.menuPresentation === "keys" ? [] : facts.menu;
+    expect(wrapper.find("[data-plugin-menu]").exists()).toBe(cardMenu.length > 0);
+    if (cardMenu.length) {
+      expect(wrapper.get("[data-plugin-menu]").attributes("aria-label")).toBe("更多操作");
+      const items = menu.props("items") as Array<{ id: string; label: string; danger?: boolean }>;
+      expect(items.map((item) => [item.id, item.label, Boolean(item.danger)])).toEqual(cardMenu.map((a) => [a.id, a.label, a.variant === "danger"]));
+    }
+  });
+
+  it("runs a ⋯ menu action like a button: confirm first, then the action", async () => {
+    const { wrapper, actions } = render({ view: viewOf("poll-v2-menu") });
+    await flushPromises();
+    wrapper.findComponent(FlareActionMenu).vm.$emit("select", "cancel");
+    await flushPromises();
+    expect(actions).toEqual([]);
+    const confirm = bodyButton("取消投票");
+    expect(document.body.textContent).toContain("取消后投票作废，确定取消吗？");
+    confirm?.click();
+    await flushPromises();
+    expect(actions).toEqual([["cancel", {}]]);
+  });
+
+  it("disables the ⋯ key while busy and has none without menu actions", async () => {
+    const { wrapper, state } = render({ view: viewOf("poll-v2-menu") });
+    await flushPromises();
+    expect(wrapper.get("[data-plugin-menu]").attributes("disabled")).toBeUndefined();
+    state.busyActionId = "vote";
+    await flushPromises();
+    expect(wrapper.get("[data-plugin-menu]").attributes("disabled")).toBeDefined();
+    state.view = viewOf("poll-open-single");
+    await flushPromises();
+    expect(wrapper.find("[data-plugin-menu]").exists()).toBe(false);
+  });
+
+  it("names every unavailable reason in both locales (spec unavailableReasons)", async () => {
+    const reasons = (JSON.parse(readFileSync(resolve(__dirname, "../../../../../spec/plugin-view-vectors.json"), "utf8")) as {
+      unavailableReasons: Array<{ reason: string; zh: string; en: string }>;
+    }).unavailableReasons;
+    expect(reasons).toHaveLength(7);
+    const zhTree = (flareMessages["zh-CN"] as unknown as { pluginView: { unavailable: Record<string, string> } }).pluginView.unavailable;
+    const enTree = (flareMessages["en-US"] as unknown as { pluginView: { unavailable: Record<string, string> } }).pluginView.unavailable;
+    for (const r of reasons) {
+      const key = r.reason.replace(/_(\w)/g, (_, c: string) => c.toUpperCase());
+      expect(zhTree[key], r.reason).toBe(r.zh);
+      expect(enTree[key], r.reason).toBe(r.en);
+    }
   });
 
   it("names entries and people from resolveUser, a late answer, or the id's last 4 characters", async () => {

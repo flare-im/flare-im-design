@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { mount } from "@vue/test-utils";
-import { defineComponent, h } from "vue";
+import { defineComponent, h, nextTick } from "vue";
 import { afterEach, describe, expect, it } from "vitest";
 import FlareUiProvider from "../../design-system/provider/FlareUiProvider.vue";
 import type { MessageLike } from "../../shared/contracts/messageRow";
@@ -11,6 +11,7 @@ import {
 } from "../../shared/message-renderers";
 import MessageBubble from "./MessageBubble.vue";
 import MessageMeta from "./MessageMeta.vue";
+import FlarePluginView from "./FlarePluginView.vue";
 
 /** A custom renderer that writes what it was told about its message into the DOM. */
 const Probe = defineComponent({
@@ -50,29 +51,77 @@ function setup(
 }
 
 describe("custom content renderers", () => {
-  it("draws a renderer registered bare without the bubble, keeping the row's meta below it", () => {
-    const bubble = setup({ "custom:packet": { component: Probe, bare: true } });
+  it("draws a renderer registered as bare media without the bubble, keeping the row's meta below it", () => {
+    const bubble = setup({ "custom:packet": { component: Probe, surface: "bareMedia" } });
     expect(bubble.find(".probe").exists()).toBe(true);
+    expect(bubble.attributes("data-surface")).toBe("bareMedia");
     expect(bubble.find(".message-bubble--chromeless-media").exists()).toBe(true);
     expect(bubble.find(".message-bubble--chromeless-card").exists()).toBe(false);
     const meta = bubble.findComponent(MessageMeta);
-    expect(meta.props("overlay")).toBe(false);
+    expect(meta.props("placement")).toBe("below");
     expect(meta.props("tone")).toBe("default");
   });
 
-  it("keeps the bubble for a renderer registered without bare, as a plain component or an entry", () => {
-    for (const registry of [{ "custom:packet": Probe }, { "custom:packet": { component: Probe } }]) {
+  it("draws every custom content as a card by default, as a plain component or an entry", () => {
+    for (const registry of [{ "custom:packet": Probe }, { "custom:packet": { component: Probe } }, { "custom:packet": { component: Probe, surface: "card" as const } }]) {
       const bubble = setup(registry);
       expect(bubble.find(".probe").exists()).toBe(true);
-      expect(bubble.find(".message-bubble--chromeless-media").exists()).toBe(false);
-      // A custom card keeps the kit's card framing (meta laid over the card) unless it asked to be bare.
+      expect(bubble.attributes("data-surface")).toBe("card");
       expect(bubble.find(".message-bubble--chromeless-card").exists()).toBe(true);
+      expect(bubble.findComponent(MessageMeta).props("placement")).toBe("below");
     }
   });
 
-  it("keeps the bubble around a bare renderer when the message quotes another", () => {
-    const bubble = setup({ "custom:packet": { component: Probe, bare: true } }, { quotePreview: "Earlier" });
-    expect(bubble.find(".message-bubble--chromeless-media").exists()).toBe(false);
+  it("keeps a quoted card a card, and puts quoted bare media back in a bubble", () => {
+    expect(setup({ "custom:packet": Probe }, { quotePreview: "Earlier" }).attributes("data-surface")).toBe("card");
+    const media = setup({ "custom:packet": { component: Probe, surface: "bareMedia" } }, { quotePreview: "Earlier" });
+    expect(media.attributes("data-surface")).toBe("bubble");
+    expect(media.find(".message-bubble--chromeless-media").exists()).toBe(false);
+  });
+
+  it("draws a card's quote inside the plugin card shell, not as a bubble", async () => {
+    const Card = defineComponent({
+      setup: () => () => h(FlarePluginView, { view: { available: true, title: "周五团建去哪儿？", fields: [], actions: [] } }),
+    });
+    const bubble = setup({ "custom:packet": Card }, { quotePreview: "Earlier", replyTo: "m-0" });
+    await nextTick();
+    expect(bubble.attributes("data-surface")).toBe("card");
+    const quote = bubble.get("[data-card-quote]");
+    expect(quote.text()).toBe("Earlier");
+    expect(quote.element.closest(".flare-plugin-view")).not.toBeNull();
+    expect(bubble.findAll("[data-card-quote]")).toHaveLength(1);
+  });
+
+  it("draws the quote on top of a card that has no quote slot", () => {
+    const bubble = setup({ "custom:packet": Probe }, { quotePreview: "Earlier" });
+    const quote = bubble.get("[data-card-quote]");
+    expect(quote.text()).toBe("Earlier");
+    expect(quote.element.tagName).toBe("DIV");
+    expect(quote.element.nextElementSibling?.classList.contains("message-content-view") || bubble.find(".probe").exists()).toBe(true);
+  });
+
+  it("tells a renderer that its row is selecting", () => {
+    const Selecting = defineComponent({
+      props: { selectionMode: Boolean },
+      setup: (props) => () => h("div", { class: "selecting", "data-selecting": String(props.selectionMode) }),
+    });
+    const Host = defineComponent({
+      setup() {
+        provideFlareMessageRenderers({ "custom:packet": Selecting });
+        return () => h(MessageBubble, {
+          message: {
+            serverId: "s", clientMsgId: "c", senderId: "ivy", senderDisplayName: "Ivy", conversationSeq: 1, createdAt: 1, clientCreatedAt: 1,
+            messageType: 1, content: { contentType: "custom", type: "packet" }, status: "read", isRecalled: false, isRead: true,
+            timelineKey: "c", timelineSortTs: 1, attributes: {},
+          } satisfies MessageLike,
+          currentUserId: "me",
+          multiSelectMode: true,
+        });
+      },
+    });
+    const host = mount(FlareUiProvider, { props: { layoutMode: "pc", themeMode: "light", locale: "zh-CN" }, slots: { default: () => h(Host) } });
+    hosts.push(host);
+    expect(host.get(".selecting").attributes("data-selecting")).toBe("true");
   });
 
   it("tells the renderer the server id and the row's conversation", () => {
@@ -90,7 +139,7 @@ describe("custom content renderers", () => {
   it("resolves the most specific key first, the same way for the view and the bubble", () => {
     const Other = defineComponent({ setup: () => () => h("div", { class: "other" }) });
     const bubble = setup(
-      { "custom:lucky": { component: Probe, bare: true }, custom: Other },
+      { "custom:lucky": { component: Probe, surface: "bareMedia" }, custom: Other },
       { content: { contentType: "custom", type: "lucky" } },
     );
     expect(bubble.find(".probe").exists()).toBe(true);

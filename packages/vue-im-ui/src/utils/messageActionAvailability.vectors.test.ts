@@ -51,7 +51,7 @@ function messageFrom(input: Vector["input"]): MessageLike {
     lifecycle: {
       transfer: "idle",
       send: input.status === "failed" ? "failed" : input.status === "sending" ? "sending" : "sent",
-      delivery: input.status === "delivered" ? "delivered" : "serverAccepted",
+      delivery: "serverAccepted",
       read: input.status === "read" ? "read" : "unread",
       mutation: input.mutation ?? "normal",
       ephemeral: "none",

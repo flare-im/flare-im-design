@@ -1,14 +1,23 @@
 <script setup lang="ts">
 import FlareAvatar from "../../conversation/FlareAvatar.vue";
 import { useFlareI18nOptional } from "../../../shared/i18n/useFlareI18n";
-import type { FlarePluginEntriesBlock, FlarePluginEntry, FlarePluginUser } from "../../../shared/contracts/plugin-ui";
+import {
+  flarePluginEntryGroupHeader,
+  type FlarePluginEntriesBlock,
+  type FlarePluginEntry,
+  type FlarePluginUser,
+} from "../../../shared/contracts/plugin-ui";
 
-// Numbered entries (a sign-up list): number, avatar, name and text per row; "see all (total)" when the
-// card shows fewer than there are, which hands over to the detail view.
+// Entries (a sign-up list, a poll's voters): number, avatar, name and text per row; "see all (total)" when the
+// card shows fewer than there are, which hands over to the detail view. A grouped list is one flat list with a
+// header row ("火锅 · 3 票 · 60%") before the first item of each group (spec rules.entriesGrouped); the viewer's
+// own row carries the "me" tag.
 const props = defineProps<{
   block: FlarePluginEntriesBlock;
   /** The resolved (or fallback) user of an id. */
   userOf: (userId: string) => FlarePluginUser;
+  /** The viewer's user id. */
+  viewerId?: string;
 }>();
 const emit = defineEmits<{ (e: "seeAll"): void }>();
 const { t } = useFlareI18nOptional();
@@ -23,7 +32,14 @@ function nameOf(entry: FlarePluginEntry): string | undefined {
 <template>
   <div class="flare-plugin-entries">
     <ol v-if="block.items.length" class="flare-plugin-entries__list">
-      <li v-for="entry in block.items" :key="entry.index" class="flare-plugin-entries__row" :data-entry-index="entry.index">
+      <template v-for="(entry, position) in block.items" :key="`${position}-${entry.index}`">
+      <li
+        v-if="entry.group"
+        class="flare-plugin-entries__group"
+        role="presentation"
+        data-entry-group="true"
+      >{{ flarePluginEntryGroupHeader(entry.group, t("pluginView.votes")) }}</li>
+      <li class="flare-plugin-entries__row" :data-entry-index="entry.index">
         <span v-if="block.numbered" class="flare-plugin-entries__number" data-entry-number="true">{{ entry.index }}.</span>
         <FlareAvatar
           v-if="entry.userId"
@@ -35,9 +51,11 @@ function nameOf(entry: FlarePluginEntry): string | undefined {
         />
         <span class="flare-plugin-entries__line">
           <b v-if="nameOf(entry)" class="flare-plugin-entries__name" data-entry-name="true">{{ nameOf(entry) }}</b>
+          <span v-if="viewerId && entry.userId === viewerId" class="flare-plugin-entries__me" data-entry-me="true">{{ t("pluginView.me") }}</span>
           <span class="flare-plugin-entries__text" data-entry-text="true">{{ entry.text }}</span>
         </span>
       </li>
+      </template>
     </ol>
     <p v-else-if="block.emptyText" class="flare-plugin-entries__empty" data-entries-empty="true">{{ block.emptyText }}</p>
     <button v-if="block.more" type="button" class="flare-plugin-entries__all" data-entries-see-all="true" @click="emit('seeAll')">
@@ -55,6 +73,22 @@ function nameOf(entry: FlarePluginEntry): string | undefined {
 .flare-plugin-entries__line { flex: 1; display: flex; gap: var(--flare-size-spacing-xs); min-width: 0; }
 .flare-plugin-entries__name { flex: none; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: var(--flare-size-font-weight-medium); color: var(--flare-color-text-primary); }
 .flare-plugin-entries__text { min-width: 0; overflow-wrap: anywhere; color: var(--flare-color-text-primary); }
+.flare-plugin-entries__group {
+  padding-block-start: var(--flare-size-spacing-xs);
+  font-size: var(--flare-size-font-size-sm);
+  font-weight: var(--flare-size-font-weight-semibold);
+  color: var(--flare-color-text-secondary);
+}
+.flare-plugin-entries__group:first-child { padding-block-start: 0; }
+.flare-plugin-entries__me {
+  flex: none;
+  padding: 0 var(--flare-size-spacing-xs);
+  border-radius: var(--flare-size-radius-xs);
+  background: var(--flare-color-bg-selected);
+  font-size: var(--flare-size-font-size-xs);
+  line-height: var(--flare-size-line-height-snug);
+  color: var(--flare-color-primary-text);
+}
 .flare-plugin-entries__empty { margin: 0; font-size: var(--flare-size-font-size-md); color: var(--flare-color-text-tertiary); }
 .flare-plugin-entries__all {
   position: relative;

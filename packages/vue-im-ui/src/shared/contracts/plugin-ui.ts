@@ -18,6 +18,8 @@ export interface FlarePluginAction {
   confirm?: string;
   /** Input ids collected first in PluginForm. */
   form?: ReadonlyArray<string>;
+  /** `menu`: the action lives in the card's ⋯ menu (it arrives in view.menuActions). */
+  placement?: "menu";
 }
 
 export interface FlarePluginField { label: string; value: string }
@@ -37,11 +39,15 @@ export interface FlarePluginChoicesBlock {
   /** The block's submit action, present while the viewer can choose. */
   action?: FlarePluginAction;
 }
-export interface FlarePluginEntry { index: number; text: string; name?: string; userId?: string }
+/** The group an entry opens in a grouped list (the first item of each group carries it). */
+export interface FlarePluginEntryGroup { key: string; label: string; count?: number; total?: number; percent?: number }
+export interface FlarePluginEntry { index: number; text: string; name?: string; userId?: string; group?: FlarePluginEntryGroup }
 export interface FlarePluginEntriesBlock {
   kind: "entries";
   items: ReadonlyArray<FlarePluginEntry>;
   numbered: boolean;
+  /** One flat list in groups: an item with `group` is preceded by its group header. */
+  grouped?: boolean;
   total: number;
   more: boolean;
   emptyText?: string;
@@ -123,11 +129,25 @@ export interface FlarePluginActionPayload {
   row?: { key: string; input: unknown };
 }
 
+/** Why a view is unavailable, or (unbound_copy) read-only (ResolvedPluginView.unavailableReason). */
+export type FlarePluginUnavailableReason =
+  | "disabled"
+  | "not_installed"
+  | "no_permission"
+  | "unsupported_platform"
+  | "incompatible_version"
+  | "catalog_unreachable"
+  | "unbound_copy";
+
 export interface FlarePluginViewModel {
   available: boolean;
+  /** Why it is unavailable; unbound_copy keeps it available but read-only (a forwarded or forged copy). */
+  unavailableReason?: FlarePluginUnavailableReason;
   title: string;
   fields: ReadonlyArray<FlarePluginField>;
   actions: ReadonlyArray<FlarePluginAction>;
+  /** Actions of the card's ⋯ menu, in order (spec rules.menuActions); absent when there are none. */
+  menuActions?: ReadonlyArray<FlarePluginAction>;
   blocks?: ReadonlyArray<FlarePluginBlock>;
   inputs?: ReadonlyArray<FlarePluginInput>;
   /** The contribution has a detail view ("see all"). */
@@ -268,6 +288,28 @@ export function flarePluginShowsDetailKey(view: FlarePluginViewModel, embedded: 
 export function flarePluginNextCursor(view: FlarePluginViewModel | undefined): string | undefined {
   const cursor = view?.nextCursor;
   return typeof cursor === "string" && cursor.trim() ? cursor : undefined;
+}
+
+/**
+ * A grouped list's header row (spec rules.entriesGrouped, entryGroupHeaders): the label, then "{count} votes" and
+ * "{percent}%" when present, joined with " · ".
+ */
+export function flarePluginEntryGroupHeader(group: FlarePluginEntryGroup, votes: string): string {
+  const parts = [group.label];
+  if (typeof group.count === "number") parts.push(votes.replace("{count}", String(group.count)));
+  if (typeof group.percent === "number") parts.push(`${group.percent}%`);
+  return parts.join(" · ");
+}
+
+/** The kit copy key of an unavailable reason: `pluginView.unavailable.<reason in camel case>`. */
+export function flarePluginUnavailableKey(reason: FlarePluginUnavailableReason): string {
+  return `pluginView.unavailable.${reason.replace(/_(\w)/g, (_, c: string) => c.toUpperCase())}`;
+}
+
+/** The reason line: the reason's copy, led by the envelope's displayName when the host has one. */
+export function flarePluginReasonLine(reasonText: string, displayName?: string): string {
+  const name = displayName?.trim();
+  return name ? `${name} · ${reasonText}` : reasonText;
 }
 
 /** The name drawn for a user id the host could not resolve: its last 4 characters. */

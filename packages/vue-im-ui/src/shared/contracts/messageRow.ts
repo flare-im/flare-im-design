@@ -1,5 +1,6 @@
 import type { FlareMessageContentLike } from "./message";
 import type { MessageLifecycle, MessageStatusState } from "./message-lifecycle";
+import type { FlareMessageReadSummary } from "./message-receipt";
 
 /** Framework-neutral message row consumed by the presentation package. */
 export type MessageLike = {
@@ -15,7 +16,13 @@ export type MessageLike = {
   clientCreatedAt: number;
   messageType: number;
   content?: FlareMessageContentLike & Record<string, unknown>;
+  /** The SDK's receipt status (MessageReceiptView.status). */
   status: MessageStatusState;
+  /**
+   * The SDK's group read summary of the viewer's own message (MessageReceiptView.readSummary); absent in single chats,
+   * for incoming messages, above the large-group threshold and while there is no data.
+   */
+  readSummary?: FlareMessageReadSummary;
   lifecycle?: MessageLifecycle;
   isRecalled: boolean;
   isEdited?: boolean;

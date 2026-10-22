@@ -4,7 +4,14 @@ import { resolve } from "node:path";
 import { mount } from "@vue/test-utils";
 import { defineComponent, h } from "vue";
 import { describe, expect, it } from "vitest";
-import type { FlareRedPacketState } from "../../shared/contracts/red-packet";
+import {
+  flareRedPacketCardBadge,
+  flareRedPacketCardState,
+  type FlareRedPacketCardState,
+  type FlareRedPacketKind,
+  type FlareRedPacketStatus,
+  type FlareRedPacketTapAction,
+} from "../../shared/contracts/red-packet";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
 import FlareRedPacketCard from "./FlareRedPacketCard.vue";
 
@@ -17,14 +24,14 @@ function render(props: InstanceType<typeof FlareRedPacketCard>["$props"], locale
   }));
 }
 
+type StatusKey = "busy" | "statusLabel" | "tapToOpen" | "view" | "claimed" | "finished" | "expired" | "refunded" | "unavailable";
 interface CardVector {
   id: string;
-  state: FlareRedPacketState;
-  amount?: string;
+  state: FlareRedPacketCardState;
   busy?: boolean;
   disabled?: boolean;
   statusLabel?: string;
-  status: "busy" | "statusLabel" | "claimedAmount" | "claimed" | "finished" | "expired" | "unavailable" | "tapToOpen";
+  status: StatusKey;
   tappable: boolean;
   dimmed: boolean;
 }
@@ -46,7 +53,10 @@ interface FadedTable {
   dark: { target: string; ink: string; stops: FadedStop[] };
 }
 const vectors = JSON.parse(readFileSync(resolve(__dirname, "../../../../../spec/red-packet-vectors.json"), "utf8")) as {
+  cardState: Array<{ id: string; view: { status: FlareRedPacketStatus; claimedByMe?: boolean; tapAction?: FlareRedPacketTapAction }; state: FlareRedPacketCardState }>;
   card: CardVector[];
+  cardCopy: Record<"zh" | "en", Record<Exclude<StatusKey, "statusLabel">, string>>;
+  cardBadge: Array<{ id: string; kind: FlareRedPacketKind; recipientName?: string; badge: string | null; zh: string | null; en: string | null; recipient: { zh: string; en: string } | null }>;
   faded: FadedTable;
 };
 const tokens = JSON.parse(readFileSync(resolve(__dirname, "../../../../../tokens/tokens.json"), "utf8"));
@@ -74,59 +84,63 @@ const contrast = (a: number[], b: number[]) => {
   return (hi + 0.05) / (lo + 0.05);
 };
 
-const ENGLISH: Record<CardVector["status"], (v: CardVector) => string> = {
-  busy: () => "Processing…",
-  statusLabel: (v) => v.statusLabel!,
-  claimedAmount: (v) => `Received · ${v.amount}`,
-  claimed: () => "Received",
-  finished: () => "All claimed",
-  expired: () => "Expired",
-  unavailable: () => "Unavailable",
-  tapToOpen: () => "Tap to open",
-};
+const copyOf = (vector: CardVector, locale: "zh" | "en") =>
+  vector.status === "statusLabel" ? vector.statusLabel! : vectors.cardCopy[locale][vector.status];
 
 /**
- * Four states a person must tell apart at a glance: unopened (saturated, tap me), and claimed /
- * finished / expired (faded, still tappable for the details). Only busy and disabled block the tap.
+ * A card never shows an amount: greeting, kind badge, "For {name}" and one status line. Unopened and viewable are
+ * saturated; claimed, finished, expired and refunded fade and stay tappable. Only busy and disabled block the tap.
  */
 describe("FlareRedPacketCard", () => {
+  it.each(vectors.cardState.map((v) => [v.id, v] as const))("maps the public and personal layers: %s", (_id, vector) => {
+    expect(flareRedPacketCardState(vector.view)).toBe(vector.state);
+  });
+
   it.each(vectors.card.map((v) => [v.id, v] as const))("follows the shared card vector %s", async (_id, vector) => {
-    const wrapper = render({
-      blessing: "Hello",
-      state: vector.state,
-      amount: vector.amount,
-      busy: vector.busy,
-      disabled: vector.disabled,
-      statusLabel: vector.statusLabel,
-    }, "en-US");
-    const card = wrapper.findComponent(FlareRedPacketCard);
-    const button = card.get("button");
-    expect(card.get(".flare-red-packet__status").text()).toBe(ENGLISH[vector.status](vector));
-    expect(button.classes().includes("is-dimmed")).toBe(vector.dimmed);
-    expect(button.attributes("disabled") === undefined).toBe(vector.tappable);
-    await button.trigger("click");
-    expect(card.emitted("open")?.length ?? 0).toBe(vector.tappable ? 1 : 0);
+    for (const locale of ["zh", "en"] as const) {
+      const wrapper = render({
+        blessing: "Hello",
+        state: vector.state,
+        busy: vector.busy,
+        disabled: vector.disabled,
+        statusLabel: vector.statusLabel,
+      }, locale === "zh" ? "zh-CN" : "en-US");
+      const card = wrapper.findComponent(FlareRedPacketCard);
+      const button = card.get("button");
+      expect(card.get("[data-red-packet-status]").text()).toBe(copyOf(vector, locale));
+      expect(button.classes().includes("is-dimmed")).toBe(vector.dimmed);
+      expect(button.attributes("disabled") === undefined).toBe(vector.tappable);
+      await button.trigger("click");
+      expect(card.emitted("open")?.length ?? 0).toBe(vector.tappable ? 1 : 0);
+    }
+  });
+
+  it.each(vectors.cardBadge.map((v) => [v.id, v] as const))("draws the kind badge and recipient: %s", (_id, vector) => {
+    expect(flareRedPacketCardBadge(vector.kind, vector.recipientName).badge).toBe(vector.badge);
+    for (const locale of ["zh", "en"] as const) {
+      const wrapper = render({ blessing: "恭喜发财", kind: vector.kind, recipientName: vector.recipientName }, locale === "zh" ? "zh-CN" : "en-US");
+      const badge = wrapper.find("[data-red-packet-badge]");
+      expect(badge.exists() ? badge.text() : null).toBe(vector[locale]);
+      const recipient = wrapper.find("[data-red-packet-recipient]");
+      expect(recipient.exists() ? recipient.text() : null).toBe(vector.recipient?.[locale] ?? null);
+      expect(wrapper.find(".flare-red-packet__brand-name").exists()).toBe(true);
+    }
+  });
+
+  it("never draws an amount, whatever the host passes", () => {
+    const wrapper = render({ blessing: "恭喜发财", state: "claimed", ...({ amount: "￥8.88" } as Record<string, unknown>) });
+    expect(wrapper.text()).not.toContain("8.88");
+    expect(wrapper.find(".flare-red-packet__status b").exists()).toBe(false);
   });
 
   it("names the button by its blessing and status, in the library locale", () => {
-    expect(render({ blessing: "恭喜发财，大吉大利" }).get("button").attributes("aria-label")).toBe("恭喜发财，大吉大利，点击领取");
-    expect(render({ blessing: "恭喜发财", state: "claimed", amount: "0.88 元" }).get("button").attributes("aria-label"))
-      .toBe("恭喜发财，已领取 · 0.88 元");
+    expect(render({ blessing: "恭喜发财，大吉大利" }).get("button").attributes("aria-label")).toBe("恭喜发财，大吉大利，领取红包");
+    expect(render({ blessing: "恭喜发财", state: "refunded" }).get("button").attributes("aria-label")).toBe("恭喜发财，已退回");
     expect(render({ blessing: "Best wishes", busy: true }, "en-US").get("button").attributes("aria-label")).toBe("Best wishes, Processing…");
   });
 
-  it("names every viewer state in the default locale", () => {
-    const status = (state: FlareRedPacketState, amount?: string) =>
-      render({ blessing: "恭喜发财", state, amount }).get(".flare-red-packet__status").text();
-    expect(status("unopened")).toBe("点击领取");
-    expect(status("claimed", "￥8.88")).toBe("已领取 · ￥8.88");
-    expect(status("claimed")).toBe("已领取");
-    expect(status("finished")).toBe("已被领完");
-    expect(status("expired")).toBe("已过期");
-  });
-
-  it("keeps finished and expired packets tappable so the viewer can open the details", async () => {
-    for (const state of ["finished", "expired"] as const) {
+  it("keeps spent packets tappable so the host can route to the details", async () => {
+    for (const state of ["finished", "expired", "refunded", "viewable"] as const) {
       const card = render({ blessing: "恭喜发财", state }).findComponent(FlareRedPacketCard);
       expect(card.get("button").attributes("disabled")).toBeUndefined();
       expect(card.get("button").attributes("data-state")).toBe(state);
@@ -135,24 +149,10 @@ describe("FlareRedPacketCard", () => {
     }
   });
 
-  it("puts the kind on the brand line without pushing the brand off it", () => {
-    const wrapper = render({ blessing: "恭喜发财", kindLabel: "拼手气红包" });
-    const brand = wrapper.get(".flare-red-packet__brand");
-    expect(brand.get(".flare-red-packet__kind").text()).toBe("拼手气红包");
-    expect(brand.get(".flare-red-packet__brand-name").text()).toBe("Flare 红包");
-    expect(render({ blessing: "恭喜发财" }).find(".flare-red-packet__kind").exists()).toBe(false);
-  });
-
-  it("highlights the received amount only when the host gave one", () => {
-    const wrapper = render({ blessing: "恭喜发财", state: "claimed", amount: "￥8.88" });
-    expect(wrapper.get(".flare-red-packet__status b").text()).toBe("￥8.88");
-    expect(render({ blessing: "恭喜发财", state: "claimed" }).find(".flare-red-packet__status b").exists()).toBe(false);
-  });
-
   it("renders host status as inert text; progress wins while an original command is pending", () => {
     const wrapper = render({ blessing: "Hello", disabled: true, statusLabel: "<b>Created</b>" });
     expect(wrapper.text()).toContain("<b>Created</b>");
-    expect(wrapper.find(".flare-red-packet__status b").exists()).toBe(false);
+    expect(wrapper.find("[data-red-packet-status] b").exists()).toBe(false);
     expect(render({ blessing: "Hello", busy: true, statusLabel: "Created" }).text()).toContain("处理中");
   });
 

@@ -11,7 +11,7 @@ import { NIcon } from "naive-ui";
 import { computed, getCurrentInstance, ref } from "vue";
 import FlareAvatar from "../conversation/FlareAvatar.vue";
 import FlareIconButton from "../general/FlareIconButton.vue";
-import type { FlareRedPacketOpenState } from "../../shared/contracts/red-packet";
+import { flareRedPacketOpenSheetKeys, type FlareRedPacketOpenState } from "../../shared/contracts/red-packet";
 import { flareIcons } from "../../shared/icons";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 import { useFlareModalSurface } from "../../shared/useModalSurface";
@@ -29,8 +29,13 @@ const props = withDefaults(
     state?: FlareRedPacketOpenState;
     /** Host notice that replaces the default copy of a non-ready state, e.g. "仅 TA 可领取". */
     message?: string;
+    /**
+     * From the viewer's personal layer: a finished or expired sheet offers the details key only when true. A
+     * notEligible sheet never offers it — the server returns nothing to a non-designated viewer.
+     */
+    canViewDetails?: boolean;
   }>(),
-  { state: "ready" },
+  { state: "ready", canViewDetails: true },
 );
 const emit = defineEmits<{
   (e: "open"): void;
@@ -46,8 +51,9 @@ const title = computed(() => t("redPacket.fromSender", { name: props.senderName 
 const opening = computed(() => props.state === "opening");
 // 開 stays on the face while it can still be pressed (ready), is being pressed (opening) or can be
 // pressed again after a failed attempt (error).
-const showsCoin = computed(() => props.state === "ready" || props.state === "opening" || props.state === "error");
-const showsDetails = computed(() => props.state === "finished" || props.state === "expired" || props.state === "notEligible");
+const keys = computed(() => flareRedPacketOpenSheetKeys(props.state, props.canViewDetails));
+const showsCoin = computed(() => keys.value.coin);
+const showsDetails = computed(() => keys.value.details);
 const headline = computed(() => {
   switch (props.state) {
     case "finished":

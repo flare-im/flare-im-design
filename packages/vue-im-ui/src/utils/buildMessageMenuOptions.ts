@@ -177,7 +177,7 @@ export function buildMessageContextSheetModel(
   const can = messageActionAvailability(message, {
     currentUserId,
     isConnected: true,
-    isPending: ["pending", "sending", "retrying"].includes(resolveMessageStatus(message)),
+    isPending: ["pending", "sending"].includes(resolveMessageStatus(message)),
     isPinned: ctx.isPinned,
     isFailed: ctx.isFailed,
     multiSelectMode: false,

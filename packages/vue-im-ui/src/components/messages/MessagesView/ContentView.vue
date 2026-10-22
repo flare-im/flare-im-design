@@ -32,7 +32,9 @@ import AnnouncementView from "../business/FlareAnnouncementMessageView.vue";
 import MiniProgramView from "../business/FlareMiniProgramMessageView.vue";
 import PlaceholderView from "./views/PlaceholderView.vue";
 import {
+  provideFlareContentSelection,
   resolveFlareMessageRenderer,
+  useFlareContentSelection,
   useFlareMessageRenderers,
   useFlareRenderConversation,
 } from "../../../shared/message-renderers";
@@ -53,6 +55,8 @@ const props = withDefaults(
     senderName?: string;
     mediaAction?: "download" | "openFolder" | null;
     mediaState?: MessageMediaDownloadUiState | null;
+    /** The row is in multi-select: the content's controls do not respond. */
+    selectionMode?: boolean;
   }>(),
   {
     isSelf: false,
@@ -62,6 +66,7 @@ const props = withDefaults(
     senderName: "",
     mediaAction: null,
     mediaState: null,
+    selectionMode: false,
   },
 );
 
@@ -98,6 +103,9 @@ const decoded = computed(() => normalizeToContentElem(props.content));
 const customRenderers = useFlareMessageRenderers();
 
 const listConversationId = useFlareRenderConversation();
+// The selection state reaches nested kit content (plugin cards, red packets) whatever renderer sits between.
+const outerSelection = useFlareContentSelection();
+provideFlareContentSelection(() => props.selectionMode || outerSelection());
 
 const viewType = computed(() => contentViewKey(decoded.value));
 const customRenderer = computed(
@@ -108,7 +116,7 @@ const customRenderer = computed(
 const customRendererProps = computed(() => {
   const messageId = props.rendererMessageId || props.messageId || undefined;
   const conversationId = props.conversationId || listConversationId() || undefined;
-  return { ...viewProps.value, messageId, conversationId };
+  return { ...viewProps.value, messageId, conversationId, ...(props.selectionMode ? { selectionMode: true } : {}) };
 });
 
 const extraStrings = computed(() => messageExtraAsStrings(props.messageExtra));

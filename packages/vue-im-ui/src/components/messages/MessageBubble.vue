@@ -30,14 +30,20 @@ import {
 } from "../../shared/config/messageMenu";
 import { buildMessageMenuContext, type MessageMenuExtension } from "../../utils/buildMessageMenuOptions";
 import { MESSAGE_QUICK_REACTIONS } from "../../shared/constants/messageReactions";
-import {
-  isChromelessCardBubble,
-  isChromelessMediaBubble,
-} from "../../utils/messageBubbleChromeless";
-import { normalizeToContentElem } from "../../utils/contentElem";
-import { messageRendererKeys } from "../../utils/messageRendererKeys";
-import { resolveFlareMessageRenderer, useFlareMessageRenderers } from "../../shared/message-renderers";
+import { messageSurfaceOf } from "../../utils/messageSurface";
+import { previewTextFromMessageContent } from "../../utils/messagePreview";
+import { provideFlareMessageQuote, useFlareMessageRenderers } from "../../shared/message-renderers";
+import MessageCardQuote from "./MessageCardQuote.vue";
 import { resolveMessageStatus } from "../../utils/messageStatus";
+import {
+  flareMessageMetaPlacement,
+  flareMessageMetaTone,
+  type FlareMessageSurface,
+} from "../../shared/contracts/message-surface";
+import {
+  flareMessageAccessibilityLabel,
+  flareMessageReceiptPresentation,
+} from "../../shared/contracts/message-receipt";
 import { formatMessageTime } from "../../shared/timeline-label";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 import type {
@@ -61,6 +67,11 @@ const props = defineProps<{
   conversationKind?: FlareConversationKind;
   groupPosition?: FlareMessageGroupPosition;
   rowPresentation?: FlareMessageRowPresentation;
+  /**
+   * The surface the content is drawn on (spec/message-surface-vectors.json). Absent: derived from the content, the
+   * quote, the recall / delete state and the renderer registry. MessageList passes the one it grouped by.
+   */
+  surface?: FlareMessageSurface;
   mediaDownloadState?: MessageMediaDownloadUiState;
   /** Just-arrived (appended at the tail) — plays a one-shot entrance animation. */
   fresh?: boolean;
@@ -97,6 +108,8 @@ const emit = defineEmits<{
   (event: "cardOpen", messageId: string, userId: string): void;
   /** A tapped location card. Without a listener the card links to the web map; while selecting it does nothing. */
   (event: "locationOpen", messageId: string, location: FlareLocationValue): void;
+  /** The group read summary was tapped ("3 unread"); the host opens ReadReceiptSheet. Without a listener it is text. */
+  (event: "readReceiptOpen", messageId: string): void;
 }>();
 
 const { profile } = useMessageMenuInteraction();
@@ -133,29 +146,40 @@ const contentType = computed(() =>
 const isSystemLike = computed(() =>
   ["system", "notification"].includes(contentType.value),
 );
+// A deleted message is a centred notice in place of its content, like a recall.
+const isDeleted = computed(() => props.message.lifecycle?.mutation === "deleted" && !props.message.isRecalled);
 // System notices ("群聊 X 已创建", "Y 加入群聊") carry a human-readable `body`; show
 // it as centered muted text rather than a chat bubble with a placeholder.
 const systemText = computed(() => {
   const c = props.message.content as Record<string, unknown> | undefined;
   return String(c?.body ?? c?.text ?? "").trim();
 });
-const isRecalled = computed(() => props.message.isRecalled);
+const isRecalled = computed(() => props.message.isRecalled || isDeleted.value);
 const deliveryStatus = computed(() => resolveMessageStatus(props.message));
 const reactions = computed(() => (isRecalled.value ? [] : props.message.reactions ?? []));
 const messageRenderers = useFlareMessageRenderers();
-// A custom renderer registered `bare` draws its own surface: the row drops the bubble the way it does for a
-// lone picture, and keeps avatar, name, time, selection and menu. A quote or a recall still needs the bubble.
-const isBareRenderer = computed(() => {
-  if (props.message.isRecalled || props.message.replyTo?.trim() || props.message.quotePreview?.trim()) return false;
-  const keys = messageRendererKeys(normalizeToContentElem(props.message.content));
-  return resolveFlareMessageRenderer(messageRenderers, keys)?.bare === true;
+// The surface (C1): bubble, bareMedia (the media is the surface), card (the content's own shell is the surface: no
+// bubble background, border, padding or tail around it) or centered (a notice line).
+const surface = computed<FlareMessageSurface>(() => props.surface ?? messageSurfaceOf(props.message, messageRenderers));
+const isChromelessMedia = computed(() => surface.value === "bareMedia");
+const isChromelessCard = computed(() => surface.value === "card");
+// A card that replies keeps its surface and draws the quote inside its shell, at the top: a shell that knows how
+// (PluginView) claims it; for the others the row draws the same strip on top of the card.
+const cardQuoteClaimed = ref(false);
+const hasCardQuote = computed(() =>
+  isChromelessCard.value && Boolean(props.message.replyTo?.trim() || props.message.quotePreview?.trim()),
+);
+function locateCardQuote(): (() => void) | undefined {
+  const target = props.message.replyTo?.trim();
+  if (!target || props.quoteLocatable === false || props.multiSelectMode) return undefined;
+  return () => emit("locate-message", target);
+}
+provideFlareMessageQuote({
+  active: () => hasCardQuote.value,
+  preview: () => props.message.quotePreview?.trim() ?? "",
+  locate: locateCardQuote,
+  claim: () => { cardQuoteClaimed.value = true; },
 });
-const isChromelessMedia = computed(() =>
-  isBareRenderer.value || isChromelessMediaBubble(props.message),
-);
-const isChromelessCard = computed(() =>
-  !isBareRenderer.value && isChromelessCardBubble(props.message),
-);
 // The id a custom renderer is handed: the server id the SDK and plugins key by, else the client id.
 const rendererMessageId = computed(() => props.message.serverId || props.message.clientMsgId);
 const isFailed = computed(() => deliveryStatus.value === "failed");
@@ -194,6 +218,7 @@ const senderTint = computed(() =>
   avatarTint(props.message.senderDisplayName || props.message.senderId),
 );
 const recalledHint = computed(() => {
+  if (isDeleted.value) return t("message.deleted");
   if (props.self) return t("message.recalledSelf");
   if (props.conversationKind === "group") {
     return t("message.recalledGroupOther", { name: senderLabel.value });
@@ -211,6 +236,7 @@ const rowPresentation = computed<FlareMessageRowPresentation>(() => props.rowPre
   reserveAvatarSpace: false,
   showSenderName: false,
   avatarPlacement: props.self ? "trailing" : "leading",
+  tail: surface.value === "bubble" && isGroupEnd.value,
 }));
 const showSenderMeta = computed(
   () =>
@@ -238,6 +264,21 @@ const messageEphemeral = computed(() => {
   return value === "readOnce" || value === "burnAfterRead" || value === "expired" ? value : "none";
 });
 const showMessageMeta = computed(() => Boolean(messageTimeText.value || isEdited.value || messageEphemeral.value !== "none" || showMessageStatus.value));
+// Where the time and receipt sit (C2): inline after a text, inside other bubbles, below a picture or a card.
+const metaPlacement = computed(() => flareMessageMetaPlacement(surface.value, contentType.value));
+const metaTone = computed(() => flareMessageMetaTone(metaPlacement.value, Boolean(props.self), deliveryStatus.value));
+// The SDK's read summary belongs to the viewer's own group messages only (C3).
+const readSummary = computed(() =>
+  props.self && props.conversationKind === "group" ? props.message.readSummary : undefined,
+);
+// Retry and the read summary are keys only while the host listens for them (listeners are read at render).
+const metaListeners = computed(() => {
+  const listeners = bubbleInstance?.vnode.props;
+  return {
+    ...(listeners?.onResend ? { onResend: () => emit("resend", props.message.clientMsgId) } : {}),
+    ...(listeners?.onReadReceiptOpen ? { onReadReceiptOpen: () => emit("readReceiptOpen", messageId()) } : {}),
+  };
+});
 const uploadProgress = computed(() => {
   const n = Number(props.message.localState?.uploadProgress) || 0;
   return Math.max(0, Math.min(100, Math.round(n)));
@@ -386,7 +427,7 @@ const fileInlineMediaAction = computed<MediaHoverActionModel | null>(() => {
  *
  * 只对纯文本开：媒体、卡片、富文本各有自己的排版，把 meta 塞进它们的行尾会挤坏。
  */
-const inlineMeta = computed(() => showMessageMeta.value && contentType.value === "text" && !isChromelessMedia.value && !isChromelessCard.value);
+const inlineMeta = computed(() => showMessageMeta.value && metaPlacement.value === "inline");
 
 const bubbleClassNames = computed(() => [
   `message-bubble--${contentType.value}`,
@@ -452,8 +493,36 @@ function onBubbleKeydown(event: KeyboardEvent): void {
   }
 }
 
+/** The row's reading unit (spec/message-receipt-vectors.json accessibility): sender, summary, time, status. */
 function bubbleA11yLabel(): string {
-  return `${senderLabel.value}, ${timeText(props.message.createdAt || props.message.clientCreatedAt)}`;
+  let status = "";
+  if (showMessageStatus.value) {
+    const receipt = flareMessageReceiptPresentation({
+      conversationKind: props.conversationKind,
+      self: true,
+      status: deliveryStatus.value,
+      readSummary: readSummary.value,
+    });
+    if (receipt.summary) {
+      status = receipt.summary.allRead
+        ? t("message.readSummaryAllRead")
+        : t("message.readSummaryUnread", { count: receipt.summary.count ?? 0 });
+    } else {
+      status = deliveryStatus.value === "failed" ? t("message.sendFailedRetry") : t(`message.${deliveryStatus.value}`);
+    }
+  }
+  const summary = previewTextFromMessageContent(props.message.content, locale.value) || props.message.textPreview || "";
+  return flareMessageAccessibilityLabel(
+    [senderLabel.value, summary, timeText(props.message.createdAt || props.message.clientCreatedAt), status],
+    locale.value,
+  );
+}
+
+// In multi-select the content is inert and the whole row is the target: a tap anywhere toggles the selection.
+function onRowClick(event: MouseEvent): void {
+  if (!showSelectControl.value) return;
+  if ((event.target as HTMLElement | null)?.closest?.(".message-select")) return;
+  emit("toggle-select", messageId());
 }
 </script>
 
@@ -478,8 +547,10 @@ function bubbleA11yLabel(): string {
     }"
     :data-menu-surface="profile.mode"
     :data-message-id="messageId()"
+    :data-surface="surface"
     @focusin="onRowFocusin"
     @focusout="onRowFocusout"
+    @click="onRowClick"
   >
     <button
       v-if="showSelectControl"
@@ -518,7 +589,7 @@ function bubbleA11yLabel(): string {
       {{ systemText }}
     </div>
 
-    <div v-else-if="isRecalled" class="message-recalled-hint">
+    <div v-else-if="isRecalled" class="message-recalled-hint" :data-deleted="isDeleted || undefined">
       {{ recalledHint }}
     </div>
 
@@ -568,10 +639,21 @@ function bubbleA11yLabel(): string {
             :role="bubbleKeyboardEnabled ? 'group' : undefined"
             :aria-label="bubbleKeyboardEnabled ? bubbleA11yLabel() : undefined"
             :aria-describedby="bubbleKeyboardEnabled ? bubbleBodyId : undefined"
-            @dblclick="emit('preview', messageId())"
+            @dblclick="!multiSelectMode && emit('preview', messageId())"
             @keydown="onBubbleKeydown"
           >
-            <div :id="bubbleBodyId" class="message-bubble-body">
+            <div
+              :id="bubbleBodyId"
+              class="message-bubble-body"
+              :class="{ 'message-bubble-body--inert': multiSelectMode }"
+              :inert="multiSelectMode ? true : undefined"
+            >
+              <MessageCardQuote
+                v-if="hasCardQuote && !cardQuoteClaimed"
+                class="message-bubble-card-quote"
+                :preview="message.quotePreview ?? ''"
+                :locate="locateCardQuote()"
+              />
               <MessageContentView
                 :content="message.content"
                 :self="self"
@@ -582,6 +664,7 @@ function bubbleA11yLabel(): string {
                 :sender-name="senderLabel"
                 :media-action="fileInlineMediaAction?.action"
                 :media-state="fileInlineMediaAction?.state"
+                :selection-mode="Boolean(multiSelectMode)"
                 @locate-message="emit('locate-message', $event)"
                 v-on="bodyIntentListeners"
                 @media-action="(action: 'download' | 'openFolder') => emit('mediaAction', messageId(), action)"
@@ -609,9 +692,10 @@ function bubbleA11yLabel(): string {
               :edited="isEdited"
               :ephemeral="messageEphemeral"
               :status="showMessageStatus ? deliveryStatus : undefined"
-              :tone="self && !isChromelessMedia && !isFailed ? 'onOutgoing' : 'default'"
-              :overlay="isChromelessCard"
-              @resend="emit('resend', message.clientMsgId)"
+              :tone="metaTone"
+              :placement="metaPlacement"
+              :read-summary="readSummary"
+              v-bind="metaListeners"
             />
             <div
               v-if="showUploadProgress"
@@ -699,10 +783,21 @@ function bubbleA11yLabel(): string {
             :role="bubbleKeyboardEnabled ? 'group' : undefined"
             :aria-label="bubbleKeyboardEnabled ? bubbleA11yLabel() : undefined"
             :aria-describedby="bubbleKeyboardEnabled ? bubbleBodyId : undefined"
-            @dblclick="emit('preview', messageId())"
+            @dblclick="!multiSelectMode && emit('preview', messageId())"
             @keydown="onBubbleKeydown"
           >
-            <div :id="bubbleBodyId" class="message-bubble-body">
+            <div
+              :id="bubbleBodyId"
+              class="message-bubble-body"
+              :class="{ 'message-bubble-body--inert': multiSelectMode }"
+              :inert="multiSelectMode ? true : undefined"
+            >
+              <MessageCardQuote
+                v-if="hasCardQuote && !cardQuoteClaimed"
+                class="message-bubble-card-quote"
+                :preview="message.quotePreview ?? ''"
+                :locate="locateCardQuote()"
+              />
               <MessageContentView
                 :content="message.content"
                 :self="self"
@@ -713,6 +808,7 @@ function bubbleA11yLabel(): string {
                 :sender-name="senderLabel"
                 :media-action="fileInlineMediaAction?.action"
                 :media-state="fileInlineMediaAction?.state"
+                :selection-mode="Boolean(multiSelectMode)"
                 @locate-message="emit('locate-message', $event)"
                 v-on="bodyIntentListeners"
                 @media-action="(action: 'download' | 'openFolder') => emit('mediaAction', messageId(), action)"
@@ -740,9 +836,10 @@ function bubbleA11yLabel(): string {
               :edited="isEdited"
               :ephemeral="messageEphemeral"
               :status="showMessageStatus ? deliveryStatus : undefined"
-              :tone="self && !isChromelessMedia && !isFailed ? 'onOutgoing' : 'default'"
-              :overlay="isChromelessCard"
-              @resend="emit('resend', message.clientMsgId)"
+              :tone="metaTone"
+              :placement="metaPlacement"
+              :read-summary="readSummary"
+              v-bind="metaListeners"
             />
             <div
               v-if="showUploadProgress"

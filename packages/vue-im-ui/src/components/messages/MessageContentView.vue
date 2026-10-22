@@ -5,7 +5,7 @@ import { ContentView } from "./MessagesView";
 import type { MessageMediaDownloadUiState } from "./MessageBubble.vue";
 import type { FlareLocationValue } from "../../shared/contracts/location";
 
-defineProps<{
+const props = defineProps<{
   content?: MessageContentLike;
   self?: boolean;
   previewMode?: boolean;
@@ -17,6 +17,8 @@ defineProps<{
   senderName?: string;
   mediaAction?: "download" | "openFolder" | null;
   mediaState?: MessageMediaDownloadUiState | null;
+  /** The row is in multi-select: every control in the content is inert and a tap selects the row. */
+  selectionMode?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -30,7 +32,7 @@ const emit = defineEmits<{
 
 // A poll's options and a task's checkbox are controls only while the host takes them.
 const instance = getCurrentInstance();
-const intentListeners = computed(() => ({
+const intentListeners = computed(() => (props.selectionMode ? {} : {
   ...(instance?.vnode.props?.onVote ? { vote: (optionIndex: number) => emit("vote", optionIndex) } : {}),
   ...(instance?.vnode.props?.onTaskToggle ? { taskToggle: (done: boolean) => emit("taskToggle", done) } : {}),
   ...(instance?.vnode.props?.onCardOpen ? { cardOpen: (userId: string) => emit("cardOpen", userId) } : {}),
@@ -52,6 +54,7 @@ const intentListeners = computed(() => ({
     :sender-name="senderName"
     :media-action="mediaAction"
     :media-state="mediaState"
+    :selection-mode="selectionMode"
     v-on="intentListeners"
     @locate-message="emit('locate-message', $event)"
     @media-action="emit('media-action', $event)"

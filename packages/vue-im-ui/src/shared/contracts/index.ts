@@ -160,6 +160,8 @@ export { formatBytes, storageTotals, storageShare, canClearStorage, type Storage
 export * from "./conversation-workspace";
 export * from "./conversation-header";
 export * from "./message-grouping";
+export * from "./message-surface";
+export * from "./message-receipt";
 export * from "./desktop-workbench";
 export * from "./command-palette";
 export * from "./interaction-state";
@@ -226,6 +228,7 @@ export type {
   FlarePluginDividerBlock,
   FlarePluginEntriesBlock,
   FlarePluginEntry,
+  FlarePluginEntryGroup,
   FlarePluginField,
   FlarePluginFieldsBlock,
   FlarePluginFormError,
@@ -246,6 +249,7 @@ export type {
   FlarePluginTextBlock,
   FlarePluginTimeBlock,
   FlarePluginTone,
+  FlarePluginUnavailableReason,
   FlarePluginUser,
   FlarePluginViewInset,
   FlarePluginViewModel,
@@ -256,20 +260,44 @@ export {
   flarePluginCountdown,
   flarePluginDateTime,
   flarePluginDraft,
+  flarePluginEntryGroupHeader,
   flarePluginFallbackName,
   flarePluginFilterInputs,
   flarePluginFormValues,
   flarePluginNextCursor,
   flarePluginIssueText,
+  flarePluginReasonLine,
   flarePluginTimeText,
+  flarePluginUnavailableKey,
 } from "./plugin-ui";
 export type {
-  FlareRedPacketState,
-  FlareRedPacketOpenState,
-  FlareRedPacketKind,
+  FlareRedPacketCardState,
+  FlareRedPacketCardStatus,
   FlareRedPacketClaim,
+  FlareRedPacketDetailStrings,
+  FlareRedPacketDetailTexts,
+  FlareRedPacketDetailsView,
+  FlareRedPacketKind,
+  FlareRedPacketOpenState,
+  FlareRedPacketStatus,
+  FlareRedPacketTapAction,
+  FlareRedPacketViewerRole,
 } from "./red-packet";
-export { sanitizeRedPacketAmount, sanitizeRedPacketCount } from "./red-packet";
+export {
+  flareRedPacketAmountText,
+  flareRedPacketCardBadge,
+  flareRedPacketCardDimmed,
+  flareRedPacketCardState,
+  flareRedPacketCardStatus,
+  flareRedPacketClaimTexts,
+  flareRedPacketDetailTexts,
+  flareRedPacketDuration,
+  flareRedPacketMoney,
+  flareRedPacketOpenSheetKeys,
+  flareRedPacketTime,
+  sanitizeRedPacketAmount,
+  sanitizeRedPacketCount,
+} from "./red-packet";
 export type {
   FlareLocationProvider,
   FlareLocationCoordinate,

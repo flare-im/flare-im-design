@@ -5,6 +5,12 @@ import { defineComponent, h, nextTick, reactive, type Component } from "vue";
 import type { FlareRedPacketOpenState } from "../../shared/contracts/red-packet";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
 import FlareRedPacketOpenSheet from "./FlareRedPacketOpenSheet.vue";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+const vectors = JSON.parse(readFileSync(resolve(__dirname, "../../../../../spec/red-packet-vectors.json"), "utf8")) as {
+  openSheet: Array<{ id: string; state: FlareRedPacketOpenState; canViewDetails?: boolean; coin: boolean; details: boolean }>;
+};
 
 let host: ReturnType<typeof mount> | undefined;
 afterEach(() => {
@@ -81,8 +87,7 @@ describe("FlareRedPacketOpenSheet", () => {
 
   it.each([
     ["finished", "手慢了，红包派完了"],
-    ["expired", "该红包已超过 24 小时"],
-    ["notEligible", "你不能领取这个红包"],
+    ["expired", "红包已过期"],
   ] as const)("says why a %s packet does not open and links to the details", async (state, copy) => {
     const { events } = mountSheet({ state });
     await nextTick();
@@ -90,6 +95,21 @@ describe("FlareRedPacketOpenSheet", () => {
     expect(headline()).toBe(copy);
     details()!.click();
     expect(events).toEqual(["viewDetails"]);
+  });
+
+  it("never offers the details to a viewer who may not open the packet", async () => {
+    mountSheet({ state: "notEligible", canViewDetails: true });
+    await nextTick();
+    expect(coin()).toBeNull();
+    expect(headline()).toBe("你不能领取这个红包");
+    expect(details()).toBeNull();
+  });
+
+  it.each(vectors.openSheet.map((v) => [v.id, v] as const))("follows the shared open sheet vector %s", async (_id, vector) => {
+    mountSheet({ state: vector.state, ...(vector.canViewDetails === undefined ? {} : { canViewDetails: vector.canViewDetails }) });
+    await nextTick();
+    expect(coin() !== null).toBe(vector.coin);
+    expect(details() !== null).toBe(vector.details);
   });
 
   it("lets the host notice replace the default copy, spaced like body text and capped at three lines", async () => {

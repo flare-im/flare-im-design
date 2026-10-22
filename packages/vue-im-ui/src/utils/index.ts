@@ -18,7 +18,7 @@ export * from "./typingSignal";
 export * from "./draftAutosave";
 export * from "./connectionRefresh";
 export * from "./messageStatus";
-export * from "./messageBubbleChromeless";
+export * from "./messageSurface";
 export * from "./proxiedMediaUrl";
 export * from "./messageContent";
 export * from "./buildMessageMenuOptions";

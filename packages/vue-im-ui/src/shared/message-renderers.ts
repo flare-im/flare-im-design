@@ -1,19 +1,21 @@
 import { inject, provide, type Component, type InjectionKey } from "vue";
+import type { FlareMessageRegisteredSurface } from "./contracts/message-surface";
 
 /**
- * A registered content renderer with options. `bare` draws the content the way the timeline draws a
- * lone picture: no bubble surface and no bubble padding, while the row keeps its avatar, name, time,
- * selection and menu. Use it for content that brings its own surface (a red packet card).
+ * A registered content renderer with options. `surface` names the surface of a content type the kit does not know
+ * (spec/message-surface-vectors.json): `card` when the renderer draws its own shell, `bareMedia` when the media is the
+ * surface. The kit already treats every custom and plugin content as a card, so a renderer for those needs none.
  */
 export interface FlareMessageRendererEntry {
   component: Component;
-  bare?: boolean;
+  surface?: FlareMessageRegisteredSurface;
 }
 
 /**
  * Renderers by content key (`contentType:subtype`, `contentType`, or the view key). A value is the
  * component itself or a {@link FlareMessageRendererEntry}. The renderer receives the content view's
- * props plus `messageId` (the server id, else the client id) and `conversationId` when known.
+ * props plus `messageId` (the server id, else the client id), `conversationId` when known, and
+ * `selectionMode: true` while its row is in multi-select (its controls must not respond then).
  */
 export type FlareMessageRendererRegistry = Readonly<Record<string, Component | FlareMessageRendererEntry>>;
 
@@ -41,6 +43,44 @@ export function resolveFlareMessageRenderer(
     if (value) return isEntry(value) ? value : { component: value };
   }
   return undefined;
+}
+
+/**
+ * Whether the content being drawn sits in a row that is in multi-select. Kit content components (plugin cards,
+ * red packets, polls) read it to stay inert, so a tap goes to the row and toggles its selection.
+ */
+const flareContentSelectionKey: InjectionKey<() => boolean> = Symbol("flare-content-selection");
+
+export function provideFlareContentSelection(selecting: () => boolean): void {
+  provide(flareContentSelectionKey, selecting);
+}
+
+export function useFlareContentSelection(): () => boolean {
+  return inject(flareContentSelectionKey, () => false);
+}
+
+/**
+ * The quoted reply of a card message (C1: a card keeps its surface and draws the quote inside its shell, at the top).
+ * The bubble provides it; a card shell that draws it (PluginView) claims it, so the bubble does not draw it again.
+ */
+export interface FlareMessageQuoteContext {
+  /** The row's message is a card that replies to another message. */
+  active: () => boolean;
+  /** One-line summary of the quoted message. */
+  preview: () => string;
+  /** What a tap on the quote does, when it can reach the quoted message. */
+  locate: () => (() => void) | undefined;
+  /** A shell drew the quote. */
+  claim: () => void;
+}
+const flareMessageQuoteKey: InjectionKey<FlareMessageQuoteContext | null> = Symbol("flare-message-quote");
+
+export function provideFlareMessageQuote(context: FlareMessageQuoteContext | null): void {
+  provide(flareMessageQuoteKey, context);
+}
+
+export function useFlareMessageQuote(): FlareMessageQuoteContext | null {
+  return inject(flareMessageQuoteKey, null);
 }
 
 /**

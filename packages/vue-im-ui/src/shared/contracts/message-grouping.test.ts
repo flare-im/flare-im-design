@@ -1,64 +1,50 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import type { MessageLike } from "./messageRow";
-import { messageGroupPosition, messageRowPresentation } from "./message-grouping";
+import type { FlareConversationKind } from "./conversation";
+import type { FlareMessageSurface } from "./message-surface";
+import { flareTimelineRows, messagesShareGroup, type FlareMessageGroupingOptions } from "./message-grouping";
 
-function message(id: string, senderId: string, createdAt: number, type = "text"): MessageLike {
-  return {
-    serverId: id,
-    clientMsgId: id,
-    senderId,
-    senderDisplayName: senderId,
-    conversationSeq: Number(id),
-    createdAt,
-    clientCreatedAt: createdAt,
-    messageType: 1,
-    content: { contentType: type },
-    status: "sent",
-    isRecalled: false,
-    isRead: true,
-    timelineKey: id,
-    timelineSortTs: createdAt,
-    attributes: {},
-  };
-}
+type Row =
+  | { kind: "date"; label: string }
+  | { kind: "unread"; count: number }
+  | { kind: "message"; id: string; position: string; showAvatar: boolean; showSenderName: boolean; reserveAvatarSpace: boolean; avatarPlacement: string; tail: boolean };
+const vectors = JSON.parse(readFileSync(resolve(__dirname, "../../../../../spec/message-grouping-vectors.json"), "utf8")) as {
+  timeGapMs: number;
+  nowMs: number;
+  utcOffsetMinutes: number;
+  cases: Array<{
+    name: string;
+    conversationKind: FlareConversationKind;
+    currentUserId: string;
+    unreadFromId?: string;
+    options?: FlareMessageGroupingOptions;
+    messages: Array<{ id: string; senderId: string; atMs: number; surface: FlareMessageSurface }>;
+    rows: Row[];
+  }>;
+};
 
-describe("message grouping", () => {
-  it("returns first/middle/last for a same-sender run", () => {
-    const rows = [message("1", "ivy", 1_000), message("2", "ivy", 2_000), message("3", "ivy", 3_000)];
-    expect(rows.map((_, index) => messageGroupPosition(rows, index))).toEqual(["first", "middle", "last"]);
+describe("message grouping vectors (C4)", () => {
+  it("covers the breaking rules", () => {
+    expect(vectors.cases.length).toBeGreaterThanOrEqual(12);
+    expect(vectors.timeGapMs).toBe(300_000);
   });
-
-  it("breaks on sender, time gap, and system boundaries", () => {
-    const rows = [
-      message("1", "ivy", 1_000),
-      message("2", "lin", 2_000),
-      message("3", "lin", 400_000),
-      message("4", "lin", 401_000, "system"),
-      message("5", "lin", 402_000),
-    ];
-    expect(rows.map((_, index) => messageGroupPosition(rows, index))).toEqual([
-      "single", "single", "single", "single", "single",
-    ]);
+  it.each(vectors.cases)("$name", (c) => {
+    const rows = flareTimelineRows(c.messages, {
+      currentUserId: c.currentUserId,
+      conversationKind: c.conversationKind,
+      unreadFromId: c.unreadFromId,
+      options: c.options,
+      nowMs: vectors.nowMs,
+      utcOffsetMinutes: vectors.utcOffsetMinutes,
+    });
+    expect(rows.map((row): Row => {
+      if (row.kind === "date") return { kind: "date", label: row.label };
+      if (row.kind === "unread") return { kind: "unread", count: row.count };
+      return { kind: "message", id: c.messages[row.index].id, position: row.position, ...row.presentation };
+    })).toEqual(c.rows);
   });
-
-  it("derives avatar and sender-name presentation from conversation context", () => {
-    const incoming = message("1", "ivy", 1_000);
-    expect(messageRowPresentation(incoming, "first", "me", "group")).toMatchObject({
-      showAvatar: true,
-      reserveAvatarSpace: true,
-      showSenderName: true,
-      avatarPlacement: "leading",
-    });
-    expect(messageRowPresentation(incoming, "middle", "me", "group")).toMatchObject({
-      showAvatar: false,
-      reserveAvatarSpace: true,
-      showSenderName: false,
-    });
-    expect(messageRowPresentation(message("2", "me", 2_000), "single", "me", "single")).toMatchObject({
-      showAvatar: false,
-      reserveAvatarSpace: false,
-      showSenderName: false,
-      avatarPlacement: "trailing",
-    });
+  it("joins neighbours with a missing time, as an unsent draft does", () => {
+    expect(messagesShareGroup({ id: "a", senderId: "u", atMs: 0, surface: "bubble" }, { id: "b", senderId: "u", atMs: 10, surface: "bubble" })).toBe(true);
   });
 });

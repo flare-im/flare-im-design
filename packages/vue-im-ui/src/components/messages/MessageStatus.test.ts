@@ -17,10 +17,11 @@ function mountWithI18n(component: Component, props: Record<string, unknown>) {
 }
 
 describe("MessageStatus", () => {
-  it("uses one shared compact geometry for delivered and read", () => {
-    const delivered = mountWithI18n(MessageStatus, { status: "delivered" });
+  it("draws sent as one check and read as the double check: no delivered glyph", () => {
+    const sent = mountWithI18n(MessageStatus, { status: "sent" });
     const read = mountWithI18n(MessageStatus, { status: "read" });
-    expect(delivered.find("svg.message-double-check").exists()).toBe(true);
+    expect(sent.find("svg.message-double-check").exists()).toBe(false);
+    expect(sent.find("svg.status-one-check").exists()).toBe(true);
     expect(read.find("svg.message-double-check").exists()).toBe(true);
     expect(read.attributes("aria-label")).toBe("已读");
   });

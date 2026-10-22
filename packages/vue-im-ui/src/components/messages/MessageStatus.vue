@@ -12,7 +12,8 @@ const props = withDefaults(
   defineProps<{
     status: MessageStatusState;
     lifecycle?: MessageLifecycle;
-    variant?: "inline" | "bubbleOverlay";
+    /** The one compact glyph row (the old over-media pill is gone: nothing is drawn over content). */
+    variant?: "inline";
     tone?: "default" | "onOutgoing";
   }>(),
   { variant: "inline", tone: "default" },
@@ -38,7 +39,7 @@ const toneClass = computed(() => props.tone === "onOutgoing" ? "on-outgoing" : "
 <template>
   <div
     class="message-status"
-    :class="[`message-status--${effectiveStatus}`, `message-status--${toneClass}`, { 'message-status--bubble-overlay': variant === 'bubbleOverlay' }]"
+    :class="[`message-status--${effectiveStatus}`, `message-status--${toneClass}`]"
     role="status"
     :aria-label="stateLabel"
   >
@@ -49,7 +50,7 @@ const toneClass = computed(() => props.tone === "onOutgoing" ? "on-outgoing" : "
       </svg>
     </div>
 
-    <div v-else-if="effectiveStatus === 'sending' || effectiveStatus === 'retrying'" class="status-progress" :title="stateLabel" aria-hidden="true">
+    <div v-else-if="effectiveStatus === 'sending'" class="status-progress" :title="stateLabel" aria-hidden="true">
       <svg class="status-icon rotating" viewBox="0 0 16 16" fill="none" aria-hidden="true">
         <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 3" />
       </svg>
@@ -65,10 +66,6 @@ const toneClass = computed(() => props.tone === "onOutgoing" ? "on-outgoing" : "
           stroke-linejoin="round"
         />
       </svg>
-    </div>
-
-    <div v-else-if="effectiveStatus === 'delivered'" class="status-delivered" :title="stateLabel" aria-hidden="true">
-      <MessageDoubleCheckIcon class="status-icon" />
     </div>
 
     <div v-else-if="effectiveStatus === 'read'" class="status-read" :title="stateLabel" aria-hidden="true">
@@ -104,14 +101,6 @@ const toneClass = computed(() => props.tone === "onOutgoing" ? "on-outgoing" : "
   align-items: center;
   flex-shrink: 0;
   font-size: 0;
-}
-
-.message-status.message-status--bubble-overlay {
-  padding: var(--flare-size-spacing-xs) var(--flare-size-spacing-sm);
-  border-radius: var(--flare-size-radius-full);
-  background: rgba(0, 0, 0, 0.48);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
 }
 
 .status-icon {
@@ -158,8 +147,7 @@ const toneClass = computed(() => props.tone === "onOutgoing" ? "on-outgoing" : "
 }
 
 .message-status--pending .status-icon,
-.message-status--sending .status-icon,
-.message-status--retrying .status-icon {
+.message-status--sending .status-icon {
   opacity: 0.72;
   color: var(--flare-color-message-status-pending);
 }
@@ -167,10 +155,6 @@ const toneClass = computed(() => props.tone === "onOutgoing" ? "on-outgoing" : "
 .status-sent .status-icon {
   color: var(--flare-color-message-status-sent);
   opacity: 0.92;
-}
-
-.status-delivered .status-icon {
-  color: var(--flare-color-message-status-delivered);
 }
 
 .status-read .status-icon {
@@ -182,11 +166,6 @@ const toneClass = computed(() => props.tone === "onOutgoing" ? "on-outgoing" : "
   stroke: currentColor;
 }
 
-.message-status--bubble-overlay .status-icon {
-  color: var(--flare-color-message-status-on-outgoing);
-  opacity: 1;
-}
-
 .message-status--on-outgoing .status-icon {
   color: var(--flare-color-message-status-on-outgoing);
 }
@@ -196,10 +175,6 @@ const toneClass = computed(() => props.tone === "onOutgoing" ? "on-outgoing" : "
 }
 
 .message-status--on-outgoing.message-status--failed .status-icon {
-  color: var(--flare-color-message-status-failed);
-}
-
-.message-status--bubble-overlay .status-failed .status-icon {
   color: var(--flare-color-message-status-failed);
 }
 

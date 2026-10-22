@@ -1,31 +1,50 @@
 <script setup lang="ts">
 import { computed, useId } from "vue";
-import type { FlareRedPacketState } from "../../shared/contracts/red-packet";
+import {
+  flareRedPacketCardBadge,
+  flareRedPacketCardDimmed,
+  flareRedPacketCardStatus,
+  type FlareRedPacketCardState,
+  type FlareRedPacketKind,
+} from "../../shared/contracts/red-packet";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 
+// A red packet card (red packet v5, spec/red-packet-vectors.json card / cardBadge): the greeting, the kind badge,
+// "For {name}" on exclusive packets and one status line — never an amount, not even the viewer's own. The card is
+// the message's card surface; the timeline draws no bubble around it.
 const props = withDefaults(
   defineProps<{
     /** Greeting on the packet, e.g. "恭喜发财，大吉大利". */
     blessing: string;
-    /** Packet kind shown on the brand line, e.g. "拼手气红包". */
-    kindLabel?: string;
-    /** What the current viewer sees: saturated while unopened, dimmed once claimed, finished or expired. */
-    state?: FlareRedPacketState;
-    /** What the viewer received (host formats the number); shown on a claimed card. */
-    amount?: string;
+    /** Packet kind: lucky and exclusive draw a badge, normal none. */
+    kind?: FlareRedPacketKind;
+    /** Exclusive packets: the designated member's name ("给 某某"). */
+    recipientName?: string;
+    /** What the card shows (flareRedPacketCardState of the public and personal layers). */
+    state?: FlareRedPacketCardState;
     disabled?: boolean;
     busy?: boolean;
     statusLabel?: string;
   }>(),
-  { state: "unopened", disabled: false, busy: false },
+  { kind: "normal", recipientName: undefined, state: "unopened", disabled: false, busy: false, statusLabel: undefined },
 );
 const emit = defineEmits<{ (e: "open"): void }>();
 
 const { t } = useFlareI18n();
-// Finished and expired cards stay tappable: that is how the viewer reaches the claim details.
+// Every state but busy and disabled stays tappable: the host routes by the viewer's tapAction.
 const blocked = computed(() => props.disabled || props.busy);
-const dimmed = computed(() => props.state !== "unopened");
-const claimedAmount = computed(() => !props.busy && props.statusLabel == null && props.state === "claimed" && Boolean(props.amount));
+const dimmed = computed(() => flareRedPacketCardDimmed(props.state));
+const badge = computed(() => flareRedPacketCardBadge(props.kind, props.recipientName));
+const STATUS_KEYS = {
+  busy: "redPacket.busy",
+  tapToOpen: "redPacket.tapToOpen",
+  view: "redPacket.view",
+  claimed: "redPacket.received",
+  finished: "redPacket.finished",
+  expired: "redPacket.expired",
+  refunded: "redPacket.refunded",
+  unavailable: "redPacket.unavailable",
+} as const;
 // The small gold envelope — the same geometry as iOS `RedPacketGlyph` and Compose `RedPacketGlyph`: 30 wide,
 // 1.3 times as tall, corners 0.18 of the width, a flap 0.42 of the height whose curved edge dips 0.3 of the
 // flap below its straight sides, and a seal 0.36 of the width centred on the lowest point of that edge.
@@ -41,12 +60,8 @@ const glyphSealRadius = round((GLYPH_WIDTH * 0.36) / 2);
 const glyphId = `flare-red-packet-glyph-${useId()}`;
 
 const status = computed(() => {
-  if (props.busy) return t("redPacket.busy");
-  if (props.statusLabel != null) return props.statusLabel;
-  if (props.state === "claimed") return props.amount ? `${t("redPacket.received")} · ${props.amount}` : t("redPacket.received");
-  if (props.state === "finished") return t("redPacket.finished");
-  if (props.state === "expired") return t("redPacket.expired");
-  return props.disabled ? t("redPacket.unavailable") : t("redPacket.tapToOpen");
+  const key = flareRedPacketCardStatus(props);
+  return key === "statusLabel" ? props.statusLabel ?? "" : t(STATUS_KEYS[key]);
 });
 // The button's name: the blessing and the status line, so a screen reader says what the packet is and
 // what tapping it does, not just "button" (the glyph is decorative, the brand line is not news).
@@ -90,13 +105,11 @@ const accessibleName = computed(() => t("redPacket.cardLabel", { blessing: props
     </svg>
     <span class="flare-red-packet__body">
       <span class="flare-red-packet__blessing">{{ blessing }}</span>
-      <span class="flare-red-packet__status" :aria-live="busy ? 'polite' : 'off'">
-        <template v-if="claimedAmount">{{ t("redPacket.received") }} · <b>{{ amount }}</b></template>
-        <template v-else>{{ status }}</template>
-      </span>
+      <span class="flare-red-packet__status" :aria-live="busy ? 'polite' : 'off'" data-red-packet-status="true">{{ status }}</span>
     </span>
     <span class="flare-red-packet__brand">
-      <span v-if="kindLabel" class="flare-red-packet__kind">{{ kindLabel }}</span>
+      <span v-if="badge.badge" class="flare-red-packet__kind" data-red-packet-badge="true">{{ t(`redPacket.badge.${badge.badge}`) }}</span>
+      <span v-if="badge.recipient" class="flare-red-packet__recipient" data-red-packet-recipient="true">{{ t("redPacket.forRecipient", { name: badge.recipient }) }}</span>
       <span class="flare-red-packet__brand-name">{{ t("redPacket.brand") }}</span>
     </span>
   </button>
@@ -113,7 +126,6 @@ const accessibleName = computed(() => t("redPacket.cardLabel", { blessing: props
   --rp-gold-deep: var(--flare-color-red-packet-gold-deep);
   --rp-text: #fff;
   --rp-status: color-mix(in srgb, var(--flare-color-red-packet-on-surface) 85%, transparent);
-  --rp-amount: var(--flare-color-red-packet-gold);
   --rp-soft: color-mix(in srgb, var(--flare-color-red-packet-on-surface) 60%, transparent);
   --rp-rule: color-mix(in srgb, var(--flare-color-red-packet-on-surface) 28%, transparent);
   display: grid;
@@ -156,7 +168,6 @@ const accessibleName = computed(() => t("redPacket.cardLabel", { blessing: props
   --rp-gold-deep: color-mix(in srgb, var(--flare-color-red-packet-gold-deep), var(--flare-color-red-packet-faded-mix-target) var(--rp-mix));
   --rp-text: var(--flare-color-red-packet-faded-ink);
   --rp-status: var(--flare-color-red-packet-faded-ink);
-  --rp-amount: var(--flare-color-red-packet-faded-ink);
   --rp-soft: color-mix(in srgb, var(--flare-color-red-packet-faded-ink) 72%, transparent);
   --rp-rule: color-mix(in srgb, var(--flare-color-red-packet-faded-ink) 18%, transparent);
   box-shadow: none;
@@ -186,7 +197,7 @@ const accessibleName = computed(() => t("redPacket.cardLabel", { blessing: props
   color: var(--rp-status);
   overflow-wrap: anywhere;
 }
-.flare-red-packet__status b { color: var(--rp-amount); font-variant-numeric: tabular-nums; }
+
 .flare-red-packet__brand {
   grid-column: 1 / -1;
   display: flex;
@@ -201,6 +212,12 @@ const accessibleName = computed(() => t("redPacket.cardLabel", { blessing: props
   z-index: 1;
 }
 .flare-red-packet__kind {
+  flex: none;
+  padding: 0 var(--flare-size-spacing-xs);
+  border: 1px solid var(--rp-rule);
+  border-radius: var(--flare-size-radius-xs);
+}
+.flare-red-packet__recipient {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;

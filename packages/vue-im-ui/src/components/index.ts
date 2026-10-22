@@ -106,10 +106,11 @@ export { default as FlareRedPacketDetail } from "./messages/FlareRedPacketDetail
 export { default as FlareRedPacketComposer } from "./messages/FlareRedPacketComposer.vue";
 export { default as FlareRedPacketPayConfirm } from "./messages/FlareRedPacketPayConfirm.vue";
 export type {
-  FlareRedPacketState,
+  FlareRedPacketCardState,
   FlareRedPacketOpenState,
   FlareRedPacketKind,
   FlareRedPacketClaim,
+  FlareRedPacketDetailsView,
 } from "../shared/contracts";
 export { default as FlareTranslationView } from "./messages/FlareTranslationView.vue";
 export { default as FlareSlashCommandMenu } from "./composer/FlareSlashCommandMenu.vue";
@@ -275,5 +276,6 @@ export type { FlareComposerMediaPreviewItem } from "./composer/FlareComposerMedi
 
 export { default as FlarePluginView } from "./messages/FlarePluginView.vue";
 export { default as FlarePluginDetailSheet } from "./messages/FlarePluginDetailSheet.vue";
+export { default as FlarePluginPage } from "./messages/FlarePluginPage.vue";
 export { default as FlarePluginForm } from "./form/FlarePluginForm.vue";
 export { default as FlareSchemaForm } from "./form/FlareSchemaForm.vue";
