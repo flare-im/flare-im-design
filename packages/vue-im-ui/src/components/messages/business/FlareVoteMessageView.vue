@@ -3,7 +3,6 @@ import { computed, getCurrentInstance } from "vue";
 import FlareVoteMessage from "../standalone/FlareVoteMessage.vue";
 import type { FlareContentElem } from "../../../shared/contracts/message";
 import { useFlareI18n } from "../../../shared/i18n/useFlareI18n";
-import FlareBusinessDetailBlock from "../FlareBusinessDetailBlock.vue";
 import {
   businessPayload,
   businessStatus,

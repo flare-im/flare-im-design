@@ -905,15 +905,6 @@ function linesWithPrefix(text: string, prefix: (index: number) => string, fallba
   return source.split("\n").map((line, index) => `${prefix(index)}${line || fallback}`).join("\n");
 }
 
-function applyHeadingToLines(text: string, level: RichHeadingLevel | null, fallback = "Heading"): string {
-  const prefix = level ? `${"#".repeat(level)} ` : "";
-  const source = text || fallback;
-  return source
-    .split("\n")
-    .map((line) => `${prefix}${line.replace(/^#{1,6}\s+/, "") || fallback}`)
-    .join("\n");
-}
-
 function toggleInlineMark(mark: InlineMark, range: Range, selected: string): void {
   const hasSelection = selected.trim().length > 0;
   const current = hasSelection

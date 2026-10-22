@@ -341,12 +341,6 @@ export function getMessageText(message: MessageTextSource): string {
   return "";
 }
 
-function emojiPreviewText(args: Record<string, unknown>, locale?: string): string {
-  const visual = emojiPreviewVisual(args, locale);
-  if (!visual) return resolveFlareMessage(locale, "preview.emoji");
-  return visual.kind === "emoji" ? visual.label : visual.text;
-}
-
 function emojiPreviewVisual(
   args: Record<string, unknown>,
   locale?: string,

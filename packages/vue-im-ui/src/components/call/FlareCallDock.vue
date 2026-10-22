@@ -5,7 +5,7 @@ import FlareAvatar from "../conversation/FlareAvatar.vue";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 import type { FlareCallMode } from "../../shared/contracts";
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     /** Peer / group name shown in the dock. */
     title: string;

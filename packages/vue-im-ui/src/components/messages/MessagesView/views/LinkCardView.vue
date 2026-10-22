@@ -33,7 +33,6 @@ const parsedUrl = computed(() => {
 });
 // One rule for "may this open", shared with the host's own link handler.
 const safeHref = computed(() => safeExternalUrl(rawUrl.value));
-const canOpen = computed(() => safeHref.value !== null);
 const host = computed(() => parsedUrl.value?.hostname.replace(/^www\./i, "") ?? "");
 const title = computed(() => readString(payload.value, "title") || siteName.value || host.value || rawUrl.value || t("composer.link"));
 const subtitle = computed(() => description.value || (siteName.value && siteName.value !== title.value ? siteName.value : ""));

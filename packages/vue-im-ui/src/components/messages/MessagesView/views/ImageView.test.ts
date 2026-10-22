@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
-import { defineComponent, h, type Component } from "vue";
+import { h, type Component } from "vue";
 import FlareUiProvider from "../../../../design-system/provider/FlareUiProvider.vue";
 import ImageView from "./ImageView.vue";
 

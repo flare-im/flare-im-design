@@ -4,7 +4,6 @@ import { resolveFormKeyboardIntent } from "../../shared/contracts/form-behavior"
 import {
   AddOutline,
   AtOutline,
-  ChevronUpOutline,
   CloseOutline,
   HappyOutline,
   ImageOutline,
@@ -81,7 +80,7 @@ type VoiceRecordingPayload = RecorderPayload;
 const value = defineModel<string>({ default: "" });
 // Optional controlled rich-doc state — a host with its own rich-doc send flow can
 // v-model these alongside the text model (universal API; unused by hosts that don't).
-const richTitle = defineModel<string>("richTitle", { default: "" });
+defineModel<string>("richTitle", { default: "" });
 const sendAsRichDoc = defineModel<boolean>("sendAsRichDoc", { default: false });
 const props = withDefaults(defineProps<{
   sending?: boolean;

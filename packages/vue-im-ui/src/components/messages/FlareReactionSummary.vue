@@ -4,7 +4,7 @@ import { HappyOutline } from "../../shared/icon-glyphs";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 import type { FlareReactionGroup } from "../../shared/contracts";
 
-const props = defineProps<{
+defineProps<{
   reactions: FlareReactionGroup[];
   /** Hide the trailing "add reaction" affordance. */
   hideAdd?: boolean;

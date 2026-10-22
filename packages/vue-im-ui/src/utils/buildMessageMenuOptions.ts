@@ -1,5 +1,4 @@
 import type { Component } from "vue";
-import { messageContentTypeForUi } from "./messageContent";
 import {
   DEFAULT_MESSAGE_MENU_ACTIONS,
   isMessageMenuActionEnabled,
@@ -54,8 +53,6 @@ export type MessageContextSheetModel = {
   quickActions: MessageMenuSheetItem[];
   listActions: MessageMenuSheetItem[];
 };
-
-const EDITABLE_TYPES = new Set([1, 30, 31]);
 
 export type MessageMenuTranslator = (
   key: string,

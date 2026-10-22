@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FlareSelectOption } from "../../shared/contracts";
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     options: FlareSelectOption[];
     /** Stack vertically instead of inline. */

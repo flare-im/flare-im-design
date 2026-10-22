@@ -4,7 +4,7 @@ import { NIcon } from "naive-ui";
 import { flareIcons } from "../../shared/icons";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     /** The translated result shown prominently. */
     translated: string;
