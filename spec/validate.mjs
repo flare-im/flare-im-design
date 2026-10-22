@@ -291,6 +291,14 @@ for (const c of spec.components) {
   };
   const sources = Object.fromEntries(Object.entries(ENUM_ROOTS)
     .map(([p, c]) => [p, walkFiles(join(here, c.dir), c.ext).map((f) => readFileSync(f, "utf8"))]));
+  // The entries of a Kotlin / Dart enum body: doc comments dropped (KDoc on an entry is not a member) and
+  // everything after the `;` that ends the entry list (an enum with a constructor has members after it) cut off.
+  const enumEntries = (body) => body
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/\/\/[^\n]*/g, "")
+    .split(";")[0]
+    .split(",")
+    .map((s) => s.trim());
   const parsers = {
     vue: (text, name) => {
       const m = text.match(new RegExp(`export type ${name}\\s*=\\s*([^;]+);`));
@@ -307,13 +315,13 @@ for (const c of spec.components) {
     compose: (text, name) => {
       const m = text.match(new RegExp(`enum class ${name}\\b[^{]*\\{([^}]*)\\}`));
       if (!m) return null;
-      const v = m[1].split(",").map((s) => s.trim().split(/[({\s]/)[0]).filter(Boolean);
+      const v = enumEntries(m[1]).map((s) => s.split(/[({\s]/)[0]).filter(Boolean);
       return v.length ? v.map((s) => s.toLowerCase()) : null;
     },
     flutter: (text, name) => {
       const m = text.match(new RegExp(`enum ${name}\\b[^{]*\\{([^}]*)\\}`));
       if (!m) return null;
-      const v = m[1].split(",").map((s) => s.trim().split(/[({\s;]/)[0]).filter(Boolean);
+      const v = enumEntries(m[1]).map((s) => s.split(/[({\s;]/)[0]).filter(Boolean);
       return v.length ? v.map((s) => s.toLowerCase()) : null;
     },
   };

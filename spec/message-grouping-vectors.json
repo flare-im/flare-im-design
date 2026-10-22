@@ -1,0 +1,881 @@
+{
+  "$comment": "Message grouping, row presentation and date pills (docs/design/message-surface-and-meta.md C4). Read by the four kit tests through each kit's messageGroupPosition / messageRowPresentation (and Vue's flareTimelineRows) pure functions. Messages carry their surface (spec/message-surface-vectors.json): recall, delete and system notices are centered. Times are UTC instants; tests pin utcOffsetMinutes and nowMs. Change the rules and the cases together.",
+  "version": 1,
+  "timeGapMs": 300000,
+  "nowMs": 1792634400000,
+  "utcOffsetMinutes": 480,
+  "rules": {
+    "shareGroup": "Two neighbouring messages share a run when both have the same non-empty senderId, |atMs difference| <= timeGapMs, neither is centered, and both are cards or neither is (bubble and bareMedia mix; a switch between card and the others breaks the run).",
+    "breaks": "A date pill or the unread divider between two messages also ends the run: the message before it closes its run, the one after it opens a new run.",
+    "position": "single (no neighbour in its run), first, middle, last. Centered rows are always single.",
+    "presentation": "edge = position single or first. Incoming: showAvatar = showIncomingAvatar (default true) and edge; reserveAvatarSpace = showIncomingAvatar; showSenderName = group conversation and showGroupSenderName (default true) and edge; avatarPlacement leading. Own messages: showAvatar = showSelfAvatar (default false) and edge; reserveAvatarSpace = showSelfAvatar; showSenderName false; avatarPlacement trailing. Single chats keep showing the peer's avatar. Centered rows: no avatar, no name, no gutter, no tail.",
+    "tail": "Only a bubble surface draws a tail, on the last message of its run (single or last). bareMedia and card never do; a card uses radius.lg corners.",
+    "datePill": "Before the first message and wherever the local calendar day changes. Labels: today and yesterday (the kit's own today / yesterday strings), monthDay (month and day in the locale's form, same year as now), yearMonthDay (with the year). No time-of-day separators: every message carries its own clock. The pill's background must differ from the timeline canvas.",
+    "unread": "The unread divider sits right before unreadFromId (after that day's date pill when both fall there). Its count is the number of messages from it to the end not sent by the viewer.",
+    "clock": "The time on a message is the clock only (no date prefix), in the kit / app locale (never the device's): HH:mm in 24-hour locales, h:mm a in 12-hour ones."
+  },
+  "cases": [
+    {
+      "name": "a group run of three bubbles: avatar and name on the first, tail on the last",
+      "conversationKind": "group",
+      "currentUserId": "me",
+      "messages": [
+        {
+          "id": "a1",
+          "senderId": "u1",
+          "atMs": 1792632600000,
+          "surface": "bubble"
+        },
+        {
+          "id": "a2",
+          "senderId": "u1",
+          "atMs": 1792632660000,
+          "surface": "bubble"
+        },
+        {
+          "id": "a3",
+          "senderId": "u1",
+          "atMs": 1792632840000,
+          "surface": "bubble"
+        }
+      ],
+      "rows": [
+        {
+          "kind": "date",
+          "label": "today"
+        },
+        {
+          "kind": "message",
+          "id": "a1",
+          "position": "first",
+          "showAvatar": true,
+          "showSenderName": true,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": false
+        },
+        {
+          "kind": "message",
+          "id": "a2",
+          "position": "middle",
+          "showAvatar": false,
+          "showSenderName": false,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": false
+        },
+        {
+          "kind": "message",
+          "id": "a3",
+          "position": "last",
+          "showAvatar": false,
+          "showSenderName": false,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": true
+        }
+      ]
+    },
+    {
+      "name": "exactly five minutes apart still groups",
+      "conversationKind": "group",
+      "currentUserId": "me",
+      "messages": [
+        {
+          "id": "b1",
+          "senderId": "u1",
+          "atMs": 1792632600000,
+          "surface": "bubble"
+        },
+        {
+          "id": "b2",
+          "senderId": "u1",
+          "atMs": 1792632900000,
+          "surface": "bubble"
+        }
+      ],
+      "rows": [
+        {
+          "kind": "date",
+          "label": "today"
+        },
+        {
+          "kind": "message",
+          "id": "b1",
+          "position": "first",
+          "showAvatar": true,
+          "showSenderName": true,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": false
+        },
+        {
+          "kind": "message",
+          "id": "b2",
+          "position": "last",
+          "showAvatar": false,
+          "showSenderName": false,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": true
+        }
+      ]
+    },
+    {
+      "name": "more than five minutes apart splits",
+      "conversationKind": "group",
+      "currentUserId": "me",
+      "messages": [
+        {
+          "id": "c1",
+          "senderId": "u1",
+          "atMs": 1792632600000,
+          "surface": "bubble"
+        },
+        {
+          "id": "c2",
+          "senderId": "u1",
+          "atMs": 1792632900001,
+          "surface": "bubble"
+        }
+      ],
+      "rows": [
+        {
+          "kind": "date",
+          "label": "today"
+        },
+        {
+          "kind": "message",
+          "id": "c1",
+          "position": "single",
+          "showAvatar": true,
+          "showSenderName": true,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": true
+        },
+        {
+          "kind": "message",
+          "id": "c2",
+          "position": "single",
+          "showAvatar": true,
+          "showSenderName": true,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": true
+        }
+      ]
+    },
+    {
+      "name": "the viewer's own run: no avatar, no name, trailing side",
+      "conversationKind": "group",
+      "currentUserId": "me",
+      "messages": [
+        {
+          "id": "d1",
+          "senderId": "me",
+          "atMs": 1792632600000,
+          "surface": "bubble"
+        },
+        {
+          "id": "d2",
+          "senderId": "me",
+          "atMs": 1792632660000,
+          "surface": "bubble"
+        }
+      ],
+      "rows": [
+        {
+          "kind": "date",
+          "label": "today"
+        },
+        {
+          "kind": "message",
+          "id": "d1",
+          "position": "first",
+          "showAvatar": false,
+          "showSenderName": false,
+          "reserveAvatarSpace": false,
+          "avatarPlacement": "trailing",
+          "tail": false
+        },
+        {
+          "kind": "message",
+          "id": "d2",
+          "position": "last",
+          "showAvatar": false,
+          "showSenderName": false,
+          "reserveAvatarSpace": false,
+          "avatarPlacement": "trailing",
+          "tail": true
+        }
+      ]
+    },
+    {
+      "name": "another sender starts a new run",
+      "conversationKind": "group",
+      "currentUserId": "me",
+      "messages": [
+        {
+          "id": "e1",
+          "senderId": "u1",
+          "atMs": 1792632600000,
+          "surface": "bubble"
+        },
+        {
+          "id": "e2",
+          "senderId": "u2",
+          "atMs": 1792632660000,
+          "surface": "bubble"
+        }
+      ],
+      "rows": [
+        {
+          "kind": "date",
+          "label": "today"
+        },
+        {
+          "kind": "message",
+          "id": "e1",
+          "position": "single",
+          "showAvatar": true,
+          "showSenderName": true,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": true
+        },
+        {
+          "kind": "message",
+          "id": "e2",
+          "position": "single",
+          "showAvatar": true,
+          "showSenderName": true,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": true
+        }
+      ]
+    },
+    {
+      "name": "a system notice breaks the run",
+      "conversationKind": "group",
+      "currentUserId": "me",
+      "messages": [
+        {
+          "id": "f1",
+          "senderId": "u1",
+          "atMs": 1792632600000,
+          "surface": "bubble"
+        },
+        {
+          "id": "f2",
+          "senderId": "u1",
+          "atMs": 1792632660000,
+          "surface": "centered"
+        },
+        {
+          "id": "f3",
+          "senderId": "u1",
+          "atMs": 1792632720000,
+          "surface": "bubble"
+        }
+      ],
+      "rows": [
+        {
+          "kind": "date",
+          "label": "today"
+        },
+        {
+          "kind": "message",
+          "id": "f1",
+          "position": "single",
+          "showAvatar": true,
+          "showSenderName": true,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": true
+        },
+        {
+          "kind": "message",
+          "id": "f2",
+          "position": "single",
+          "showAvatar": false,
+          "showSenderName": false,
+          "reserveAvatarSpace": false,
+          "avatarPlacement": "leading",
+          "tail": false
+        },
+        {
+          "kind": "message",
+          "id": "f3",
+          "position": "single",
+          "showAvatar": true,
+          "showSenderName": true,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": true
+        }
+      ]
+    },
+    {
+      "name": "a recall notice breaks the run",
+      "conversationKind": "group",
+      "currentUserId": "me",
+      "messages": [
+        {
+          "id": "g1",
+          "senderId": "u1",
+          "atMs": 1792632600000,
+          "surface": "bubble"
+        },
+        {
+          "id": "g2",
+          "senderId": "u1",
+          "atMs": 1792632660000,
+          "surface": "centered"
+        },
+        {
+          "id": "g3",
+          "senderId": "u1",
+          "atMs": 1792632720000,
+          "surface": "bubble"
+        }
+      ],
+      "rows": [
+        {
+          "kind": "date",
+          "label": "today"
+        },
+        {
+          "kind": "message",
+          "id": "g1",
+          "position": "single",
+          "showAvatar": true,
+          "showSenderName": true,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": true
+        },
+        {
+          "kind": "message",
+          "id": "g2",
+          "position": "single",
+          "showAvatar": false,
+          "showSenderName": false,
+          "reserveAvatarSpace": false,
+          "avatarPlacement": "leading",
+          "tail": false
+        },
+        {
+          "kind": "message",
+          "id": "g3",
+          "position": "single",
+          "showAvatar": true,
+          "showSenderName": true,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": true
+        }
+      ]
+    },
+    {
+      "name": "bubble to card and back breaks the run; cards never have a tail",
+      "conversationKind": "group",
+      "currentUserId": "me",
+      "messages": [
+        {
+          "id": "h1",
+          "senderId": "u1",
+          "atMs": 1792632600000,
+          "surface": "bubble"
+        },
+        {
+          "id": "h2",
+          "senderId": "u1",
+          "atMs": 1792632660000,
+          "surface": "card"
+        },
+        {
+          "id": "h3",
+          "senderId": "u1",
+          "atMs": 1792632720000,
+          "surface": "card"
+        },
+        {
+          "id": "h4",
+          "senderId": "u1",
+          "atMs": 1792632780000,
+          "surface": "bubble"
+        }
+      ],
+      "rows": [
+        {
+          "kind": "date",
+          "label": "today"
+        },
+        {
+          "kind": "message",
+          "id": "h1",
+          "position": "single",
+          "showAvatar": true,
+          "showSenderName": true,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": true
+        },
+        {
+          "kind": "message",
+          "id": "h2",
+          "position": "first",
+          "showAvatar": true,
+          "showSenderName": true,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": false
+        },
+        {
+          "kind": "message",
+          "id": "h3",
+          "position": "last",
+          "showAvatar": false,
+          "showSenderName": false,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": false
+        },
+        {
+          "kind": "message",
+          "id": "h4",
+          "position": "single",
+          "showAvatar": true,
+          "showSenderName": true,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": true
+        }
+      ]
+    },
+    {
+      "name": "bare media groups with bubbles but draws no tail",
+      "conversationKind": "group",
+      "currentUserId": "me",
+      "messages": [
+        {
+          "id": "i1",
+          "senderId": "u1",
+          "atMs": 1792632600000,
+          "surface": "bubble"
+        },
+        {
+          "id": "i2",
+          "senderId": "u1",
+          "atMs": 1792632660000,
+          "surface": "bareMedia"
+        },
+        {
+          "id": "i3",
+          "senderId": "u1",
+          "atMs": 1792632720000,
+          "surface": "bareMedia"
+        }
+      ],
+      "rows": [
+        {
+          "kind": "date",
+          "label": "today"
+        },
+        {
+          "kind": "message",
+          "id": "i1",
+          "position": "first",
+          "showAvatar": true,
+          "showSenderName": true,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": false
+        },
+        {
+          "kind": "message",
+          "id": "i2",
+          "position": "middle",
+          "showAvatar": false,
+          "showSenderName": false,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": false
+        },
+        {
+          "kind": "message",
+          "id": "i3",
+          "position": "last",
+          "showAvatar": false,
+          "showSenderName": false,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": false
+        }
+      ]
+    },
+    {
+      "name": "a new local day inserts a date pill and breaks the run",
+      "conversationKind": "group",
+      "currentUserId": "me",
+      "messages": [
+        {
+          "id": "j1",
+          "senderId": "u1",
+          "atMs": 1792598340000,
+          "surface": "bubble"
+        },
+        {
+          "id": "j2",
+          "senderId": "u1",
+          "atMs": 1792598460000,
+          "surface": "bubble"
+        }
+      ],
+      "rows": [
+        {
+          "kind": "date",
+          "label": "yesterday"
+        },
+        {
+          "kind": "message",
+          "id": "j1",
+          "position": "single",
+          "showAvatar": true,
+          "showSenderName": true,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": true
+        },
+        {
+          "kind": "date",
+          "label": "today"
+        },
+        {
+          "kind": "message",
+          "id": "j2",
+          "position": "single",
+          "showAvatar": true,
+          "showSenderName": true,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": true
+        }
+      ]
+    },
+    {
+      "name": "the unread divider breaks the run and counts the others' messages from it on",
+      "conversationKind": "group",
+      "currentUserId": "me",
+      "messages": [
+        {
+          "id": "k1",
+          "senderId": "u1",
+          "atMs": 1792632600000,
+          "surface": "bubble"
+        },
+        {
+          "id": "k2",
+          "senderId": "u1",
+          "atMs": 1792632660000,
+          "surface": "bubble"
+        },
+        {
+          "id": "k3",
+          "senderId": "me",
+          "atMs": 1792632720000,
+          "surface": "bubble"
+        },
+        {
+          "id": "k4",
+          "senderId": "u2",
+          "atMs": 1792632780000,
+          "surface": "bubble"
+        }
+      ],
+      "rows": [
+        {
+          "kind": "date",
+          "label": "today"
+        },
+        {
+          "kind": "message",
+          "id": "k1",
+          "position": "single",
+          "showAvatar": true,
+          "showSenderName": true,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": true
+        },
+        {
+          "kind": "unread",
+          "count": 2
+        },
+        {
+          "kind": "message",
+          "id": "k2",
+          "position": "single",
+          "showAvatar": true,
+          "showSenderName": true,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": true
+        },
+        {
+          "kind": "message",
+          "id": "k3",
+          "position": "single",
+          "showAvatar": false,
+          "showSenderName": false,
+          "reserveAvatarSpace": false,
+          "avatarPlacement": "trailing",
+          "tail": true
+        },
+        {
+          "kind": "message",
+          "id": "k4",
+          "position": "single",
+          "showAvatar": true,
+          "showSenderName": true,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": true
+        }
+      ],
+      "unreadFromId": "k2"
+    },
+    {
+      "name": "a single chat shows the peer's avatar but never a name",
+      "conversationKind": "single",
+      "currentUserId": "me",
+      "messages": [
+        {
+          "id": "l1",
+          "senderId": "u1",
+          "atMs": 1792632600000,
+          "surface": "bubble"
+        },
+        {
+          "id": "l2",
+          "senderId": "u1",
+          "atMs": 1792632660000,
+          "surface": "bubble"
+        }
+      ],
+      "rows": [
+        {
+          "kind": "date",
+          "label": "today"
+        },
+        {
+          "kind": "message",
+          "id": "l1",
+          "position": "first",
+          "showAvatar": true,
+          "showSenderName": false,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": false
+        },
+        {
+          "kind": "message",
+          "id": "l2",
+          "position": "last",
+          "showAvatar": false,
+          "showSenderName": false,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": true
+        }
+      ]
+    },
+    {
+      "name": "showIncomingAvatar false: no avatar and no gutter",
+      "conversationKind": "group",
+      "currentUserId": "me",
+      "messages": [
+        {
+          "id": "n1",
+          "senderId": "u1",
+          "atMs": 1792632600000,
+          "surface": "bubble"
+        },
+        {
+          "id": "n2",
+          "senderId": "u1",
+          "atMs": 1792632660000,
+          "surface": "bubble"
+        }
+      ],
+      "rows": [
+        {
+          "kind": "date",
+          "label": "today"
+        },
+        {
+          "kind": "message",
+          "id": "n1",
+          "position": "first",
+          "showAvatar": false,
+          "showSenderName": true,
+          "reserveAvatarSpace": false,
+          "avatarPlacement": "leading",
+          "tail": false
+        },
+        {
+          "kind": "message",
+          "id": "n2",
+          "position": "last",
+          "showAvatar": false,
+          "showSenderName": false,
+          "reserveAvatarSpace": false,
+          "avatarPlacement": "leading",
+          "tail": true
+        }
+      ],
+      "options": {
+        "showIncomingAvatar": false
+      }
+    },
+    {
+      "name": "showSelfAvatar true: the viewer's avatar on the first of a run, trailing",
+      "conversationKind": "group",
+      "currentUserId": "me",
+      "messages": [
+        {
+          "id": "o1",
+          "senderId": "me",
+          "atMs": 1792632600000,
+          "surface": "bubble"
+        },
+        {
+          "id": "o2",
+          "senderId": "me",
+          "atMs": 1792632660000,
+          "surface": "bubble"
+        }
+      ],
+      "rows": [
+        {
+          "kind": "date",
+          "label": "today"
+        },
+        {
+          "kind": "message",
+          "id": "o1",
+          "position": "first",
+          "showAvatar": true,
+          "showSenderName": false,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "trailing",
+          "tail": false
+        },
+        {
+          "kind": "message",
+          "id": "o2",
+          "position": "last",
+          "showAvatar": false,
+          "showSenderName": false,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "trailing",
+          "tail": true
+        }
+      ],
+      "options": {
+        "showSelfAvatar": true
+      }
+    },
+    {
+      "name": "date pill tiers: earlier this year, earlier years, yesterday, today",
+      "conversationKind": "group",
+      "currentUserId": "me",
+      "messages": [
+        {
+          "id": "p1",
+          "senderId": "u1",
+          "atMs": 1767193200000,
+          "surface": "bubble"
+        },
+        {
+          "id": "p2",
+          "senderId": "u1",
+          "atMs": 1788224400000,
+          "surface": "bubble"
+        },
+        {
+          "id": "p3",
+          "senderId": "u1",
+          "atMs": 1792584000000,
+          "surface": "bubble"
+        },
+        {
+          "id": "p4",
+          "senderId": "u1",
+          "atMs": 1792632600000,
+          "surface": "bubble"
+        }
+      ],
+      "rows": [
+        {
+          "kind": "date",
+          "label": "yearMonthDay"
+        },
+        {
+          "kind": "message",
+          "id": "p1",
+          "position": "single",
+          "showAvatar": true,
+          "showSenderName": true,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": true
+        },
+        {
+          "kind": "date",
+          "label": "monthDay"
+        },
+        {
+          "kind": "message",
+          "id": "p2",
+          "position": "single",
+          "showAvatar": true,
+          "showSenderName": true,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": true
+        },
+        {
+          "kind": "date",
+          "label": "yesterday"
+        },
+        {
+          "kind": "message",
+          "id": "p3",
+          "position": "single",
+          "showAvatar": true,
+          "showSenderName": true,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": true
+        },
+        {
+          "kind": "date",
+          "label": "today"
+        },
+        {
+          "kind": "message",
+          "id": "p4",
+          "position": "single",
+          "showAvatar": true,
+          "showSenderName": true,
+          "reserveAvatarSpace": true,
+          "avatarPlacement": "leading",
+          "tail": true
+        }
+      ]
+    }
+  ]
+}

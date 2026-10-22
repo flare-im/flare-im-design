@@ -1,0 +1,33 @@
+{
+  "$comment": "Message meta placement (docs/design/message-surface-and-meta.md C2): where the time, edited / ephemeral labels, receipt glyph or read summary and the failed retry sit for each surface, and which palette they use. Read by the four kit tests through each kit's messageMetaPlacement pure function (surface + content type) and their MessageMeta / MessageBubble rendering. Change the rules and the cases together.",
+  "version": 1,
+  "placements": ["inline", "bubbleFooter", "below", "none"],
+  "rules": {
+    "placement": "bubble with text content: inline. bubble with any other content: bubbleFooter. bareMedia and card: below. centered: none (no time, no status).",
+    "inline": "Inside the bubble at the trailing end of the text's last line, bottom-aligned, never over the text. When the bubble cannot fit the meta beside the text (a line already at the bubble's maximum width) the meta drops to its own trailing row inside the bubble, which is bubbleFooter.",
+    "bubbleFooter": "Inside the bubble, its own row under the content, at the trailing edge.",
+    "below": "Under the surface with a gap of spacing.xs, at the trailing edge (inline-end) for incoming and outgoing messages alike. Nothing of the meta is drawn over the media or the card (the old Vue overlay pill is gone).",
+    "tone": "onOutgoing (status.onOutgoing, read uses status.readOnOutgoing) only for inline or bubbleFooter on an outgoing bubble that has not failed. Every other case is default: message.metaForeground for the text, the default receipt palette (read uses status.read, the brand colour), status.failed for the failure.",
+    "failed": "Outgoing, failed. inline / bubbleFooter: the failed glyph is the retry control (accessible name messageResendAria) and the bubble keeps its red failed edge. below: the text key messageSendFailedRetry (\"发送失败，重试\" / \"Failed to send. Retry\") in status.failed replaces the receipt glyph, before the time. Either way the control's hit area is at least layout.touchTarget square (44 / 48) and it emits resend; without a resend listener the glyph is shown and nothing is tappable.",
+    "incoming": "Incoming messages show the time (and edited / ephemeral labels) only: no receipt glyph, no read summary, no retry."
+  },
+  "cases": [
+    { "id": "text-incoming", "surface": "bubble", "contentType": "text", "self": false, "status": "sent", "expect": { "placement": "inline", "tone": "default", "retry": null } },
+    { "id": "text-outgoing", "surface": "bubble", "contentType": "text", "self": true, "status": "read", "expect": { "placement": "inline", "tone": "onOutgoing", "retry": null } },
+    { "id": "text-outgoing-failed", "surface": "bubble", "contentType": "text", "self": true, "status": "failed", "expect": { "placement": "inline", "tone": "default", "retry": "glyph" } },
+    { "id": "rich-text-outgoing", "surface": "bubble", "contentType": "richText", "self": true, "status": "sent", "expect": { "placement": "bubbleFooter", "tone": "onOutgoing", "retry": null } },
+    { "id": "file-incoming", "surface": "bubble", "contentType": "file", "self": false, "status": "sent", "expect": { "placement": "bubbleFooter", "tone": "default", "retry": null } },
+    { "id": "audio-outgoing-failed", "surface": "bubble", "contentType": "audio", "self": true, "status": "failed", "expect": { "placement": "bubbleFooter", "tone": "default", "retry": "glyph" } },
+    { "id": "quoted-image-outgoing", "surface": "bubble", "contentType": "image", "self": true, "status": "sent", "expect": { "placement": "bubbleFooter", "tone": "onOutgoing", "retry": null } },
+    { "id": "image-outgoing", "surface": "bareMedia", "contentType": "image", "self": true, "status": "read", "expect": { "placement": "below", "tone": "default", "retry": null } },
+    { "id": "image-outgoing-failed", "surface": "bareMedia", "contentType": "image", "self": true, "status": "failed", "expect": { "placement": "below", "tone": "default", "retry": "text" } },
+    { "id": "sticker-incoming", "surface": "bareMedia", "contentType": "sticker", "self": false, "status": "sent", "expect": { "placement": "below", "tone": "default", "retry": null } },
+    { "id": "lone-emoji-outgoing", "surface": "bareMedia", "contentType": "text", "self": true, "status": "sent", "expect": { "placement": "below", "tone": "default", "retry": null } },
+    { "id": "plugin-card-outgoing", "surface": "card", "contentType": "custom", "self": true, "status": "sent", "expect": { "placement": "below", "tone": "default", "retry": null } },
+    { "id": "plugin-card-outgoing-failed", "surface": "card", "contentType": "custom", "self": true, "status": "failed", "expect": { "placement": "below", "tone": "default", "retry": "text" } },
+    { "id": "location-incoming", "surface": "card", "contentType": "location", "self": false, "status": "sent", "expect": { "placement": "below", "tone": "default", "retry": null } },
+    { "id": "contact-card-outgoing", "surface": "card", "contentType": "card", "self": true, "status": "read", "expect": { "placement": "below", "tone": "default", "retry": null } },
+    { "id": "system", "surface": "centered", "contentType": "system", "self": false, "status": "sent", "expect": { "placement": "none", "tone": "default", "retry": null } },
+    { "id": "recalled-outgoing", "surface": "centered", "contentType": "text", "self": true, "status": "sent", "expect": { "placement": "none", "tone": "default", "retry": null } }
+  ]
+}

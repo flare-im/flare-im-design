@@ -585,6 +585,15 @@
             "en": "Logical avatar side for incoming or optional self avatars.",
             "zh": "接收方或可选本人头像的逻辑侧。"
           }
+        },
+        {
+          "name": "tail",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "Draw the bubble tail: a bubble surface ending its run (spec/message-grouping-vectors.json).",
+            "zh": "画气泡尾角：bubble 表面且是本组最后一条（spec/message-grouping-vectors.json）。"
+          }
         }
       ]
     },
@@ -1935,21 +1944,6 @@
       ]
     },
     {
-      "name": "RedPacketState",
-      "symbol": "FlareRedPacketState",
-      "kind": "enum",
-      "summary": {
-        "en": "What the current viewer sees on a red packet card.",
-        "zh": "当前查看者在红包卡片上看到的状态。"
-      },
-      "values": [
-        "unopened",
-        "claimed",
-        "finished",
-        "expired"
-      ]
-    },
-    {
       "name": "RedPacketOpenState",
       "symbol": "FlareRedPacketOpenState",
       "kind": "enum",
@@ -1985,8 +1979,8 @@
       "symbol": "FlareRedPacketClaim",
       "kind": "interface",
       "summary": {
-        "en": "One row of the red packet claim list; time and amount are host-formatted.",
-        "zh": "红包领取列表的一行；时间和金额由宿主格式化。"
+        "en": "One row of the red packet claim list: the host resolves name and avatar, the kit formats amount and time.",
+        "zh": "红包领取列表的一行：名字和头像由宿主解析，金额与时间由 Kit 格式化。"
       },
       "fields": [
         {
@@ -1994,8 +1988,8 @@
           "type": "string",
           "required": true,
           "description": {
-            "en": "Stable claimant id; seeds the avatar.",
-            "zh": "稳定的领取人标识，也是头像种子。"
+            "en": "Claimant user id; seeds the avatar.",
+            "zh": "领取人 id，也是头像种子。"
           }
         },
         {
@@ -2017,21 +2011,21 @@
           }
         },
         {
-          "name": "time",
+          "name": "amountMinor",
           "type": "string",
           "required": true,
           "description": {
-            "en": "Claim time, formatted.",
-            "zh": "领取时间（已格式化）。"
+            "en": "Claimed amount, minor units.",
+            "zh": "领取金额，最小单位。"
           }
         },
         {
-          "name": "amount",
-          "type": "string",
+          "name": "claimedAtMs",
+          "type": "number",
           "required": true,
           "description": {
-            "en": "Claimed amount, formatted.",
-            "zh": "领取金额（已格式化）。"
+            "en": "Claim time.",
+            "zh": "领取时间。"
           }
         },
         {
@@ -2039,8 +2033,8 @@
           "type": "boolean",
           "required": true,
           "description": {
-            "en": "The largest share of a finished lucky packet, as the server decided.",
-            "zh": "拼手气红包领完后的最大一份，由服务端判定。"
+            "en": "The server's best-luck mark.",
+            "zh": "服务端判定的手气最佳。"
           }
         }
       ]
@@ -2420,6 +2414,24 @@
             "en": "Detail views only: the cursor of the next page (core SDK detail paging, a non-blank scalar of at most 256 bytes). While it is set PluginDetailSheet offers load more; the host fetches that page and passes back the merged view.",
             "zh": "只用于 detail 视图：下一页的游标（核心 SDK 的 detail 分页，非空、不超过 256 字节）。有值时 PluginDetailSheet 显示「加载更多」，宿主取下一页后把合并好的视图传回。"
           }
+        },
+        {
+          "name": "menuActions",
+          "type": "PluginAction[]",
+          "required": false,
+          "description": {
+            "en": "Actions in the card's ⋯ menu (placement menu), in order; absent when empty.",
+            "zh": "卡片 ⋯ 菜单里的动作（placement menu），按顺序；为空时不出现。"
+          }
+        },
+        {
+          "name": "unavailableReason",
+          "type": "'disabled' | 'not_installed' | 'no_permission' | 'unsupported_platform' | 'incompatible_version' | 'catalog_unreachable' | 'unbound_copy'",
+          "required": false,
+          "description": {
+            "en": "Why the view is unavailable or read-only.",
+            "zh": "视图不可用或只读的原因。"
+          }
         }
       ]
     },
@@ -2555,11 +2567,11 @@
         },
         {
           "name": "entries",
-          "type": "{items: {index, text, name?, userId?}[], numbered, total, more, emptyText?}",
+          "type": "{items: {index, text, name?, userId?, group?: {key, label, count?, total?, percent?}}[], numbered, grouped?, total, more, emptyText?}",
           "required": false,
           "description": {
-            "en": "Numbered entries with see all.",
-            "zh": "带序号的条目，可「查看全部」。"
+            "en": "A list (sign-ups, voters); grouped lists put a header before each item with group.",
+            "zh": "名单（接龙、投票人）；分组名单在带 group 的条目前插组头。"
           }
         },
         {
@@ -2961,6 +2973,285 @@
         "none",
         "sheet",
         "sheetTop"
+      ]
+    },
+    {
+      "name": "MessageSurface",
+      "symbol": "FlareMessageSurface",
+      "kind": "enum",
+      "summary": {
+        "en": "The surface a message row draws its content on (spec/message-surface-vectors.json).",
+        "zh": "消息行内容所在的表面（spec/message-surface-vectors.json）。"
+      },
+      "values": [
+        "bubble",
+        "bareMedia",
+        "card",
+        "centered"
+      ]
+    },
+    {
+      "name": "MessageMetaPlacement",
+      "symbol": "FlareMessageMetaPlacement",
+      "kind": "enum",
+      "summary": {
+        "en": "Where a message's time and receipt sit (spec/message-meta-placement-vectors.json).",
+        "zh": "消息时间与回执所在的位置（spec/message-meta-placement-vectors.json）。"
+      },
+      "values": [
+        "inline",
+        "bubbleFooter",
+        "below",
+        "none"
+      ]
+    },
+    {
+      "name": "MessageReadSummary",
+      "symbol": "FlareMessageReadSummary",
+      "kind": "interface",
+      "summary": {
+        "en": "The SDK's group read summary of the viewer's own message (MessageReceiptView.readSummary).",
+        "zh": "SDK 给出的本人群消息已读摘要（MessageReceiptView.readSummary）。"
+      },
+      "fields": [
+        {
+          "name": "readCount",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "Members who read it.",
+            "zh": "已读人数。"
+          }
+        },
+        {
+          "name": "unreadCount",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "Members who have not.",
+            "zh": "未读人数。"
+          }
+        },
+        {
+          "name": "total",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "Members it was sent to.",
+            "zh": "发送对象人数。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "RedPacketCardState",
+      "symbol": "FlareRedPacketCardState",
+      "kind": "enum",
+      "summary": {
+        "en": "What a red packet card shows (spec/red-packet-vectors.json cardState).",
+        "zh": "红包卡片显示的状态（spec/red-packet-vectors.json cardState）。"
+      },
+      "values": [
+        "unopened",
+        "viewable",
+        "claimed",
+        "finished",
+        "expired",
+        "refunded"
+      ]
+    },
+    {
+      "name": "RedPacketStatus",
+      "symbol": "FlareRedPacketStatus",
+      "kind": "enum",
+      "summary": {
+        "en": "The plugin's packet status (public layer).",
+        "zh": "插件给出的红包状态（公开层）。"
+      },
+      "values": [
+        "open",
+        "completed",
+        "expired",
+        "refunded"
+      ]
+    },
+    {
+      "name": "RedPacketViewerRole",
+      "symbol": "FlareRedPacketViewerRole",
+      "kind": "enum",
+      "summary": {
+        "en": "Who is looking at the details, as the server decided.",
+        "zh": "服务端判定的详情查看者角色。"
+      },
+      "values": [
+        "sender",
+        "claimer",
+        "eligible",
+        "ineligible"
+      ]
+    },
+    {
+      "name": "RedPacketDetailsView",
+      "symbol": "FlareRedPacketDetailsView",
+      "kind": "interface",
+      "summary": {
+        "en": "The plugin's details result for one viewer; amounts the viewer may not see are absent.",
+        "zh": "插件 details 对某个查看者的结果；无权看的金额不出现。"
+      },
+      "fields": [
+        {
+          "name": "viewerRole",
+          "type": "RedPacketViewerRole",
+          "required": true,
+          "description": {
+            "en": "Who is looking.",
+            "zh": "查看者角色。"
+          }
+        },
+        {
+          "name": "status",
+          "type": "RedPacketStatus",
+          "required": true,
+          "description": {
+            "en": "Packet status.",
+            "zh": "红包状态。"
+          }
+        },
+        {
+          "name": "kind",
+          "type": "RedPacketKind",
+          "required": true,
+          "description": {
+            "en": "Packet kind.",
+            "zh": "红包种类。"
+          }
+        },
+        {
+          "name": "greeting",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "The greeting.",
+            "zh": "祝福语。"
+          }
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "ISO 4217 code.",
+            "zh": "ISO 4217 币种代码。"
+          }
+        },
+        {
+          "name": "currencyExponent",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "Fraction digits of the currency.",
+            "zh": "币种小数位。"
+          }
+        },
+        {
+          "name": "totalMinor",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Total, minor units (sender only).",
+            "zh": "总额，最小单位（仅发送人）。"
+          }
+        },
+        {
+          "name": "claimedMinor",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Claimed so far, minor units (sender only).",
+            "zh": "已领额，最小单位（仅发送人）。"
+          }
+        },
+        {
+          "name": "refundedMinor",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Returned to the sender, minor units (sender only).",
+            "zh": "退回额，最小单位（仅发送人）。"
+          }
+        },
+        {
+          "name": "myAmountMinor",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "What the viewer received, minor units.",
+            "zh": "本人领到的金额，最小单位。"
+          }
+        },
+        {
+          "name": "claimedCount",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "Shares claimed.",
+            "zh": "已领份数。"
+          }
+        },
+        {
+          "name": "shareCount",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "Shares in total.",
+            "zh": "总份数。"
+          }
+        },
+        {
+          "name": "createdAtMs",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "Created at.",
+            "zh": "创建时间。"
+          }
+        },
+        {
+          "name": "completedAtMs",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "All shares taken at.",
+            "zh": "领完时间。"
+          }
+        },
+        {
+          "name": "expiresAtMs",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "Expires at.",
+            "zh": "过期时间。"
+          }
+        },
+        {
+          "name": "refundedAtMs",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "Returned at.",
+            "zh": "退回时间。"
+          }
+        },
+        {
+          "name": "claimsListed",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "The viewer may see the claim list.",
+            "zh": "查看者可以看领取记录。"
+          }
+        }
       ]
     }
   ],
@@ -3982,11 +4273,11 @@
       "props": [
         {
           "name": "status",
-          "type": "'pending' | 'sending' | 'sent' | 'delivered' | 'read' | 'failed' | 'retrying'",
+          "type": "'pending' | 'sending' | 'sent' | 'read' | 'failed'",
           "required": true,
           "description": {
-            "en": "Current delivery state; drives icon and color.",
-            "zh": "当前送达态；决定图标与颜色。"
+            "en": "The SDK's receipt status (MessageReceiptView.status). There is no delivered state (spec/message-receipt-vectors.json).",
+            "zh": "SDK 给出的回执状态（MessageReceiptView.status）。没有「已送达」（spec/message-receipt-vectors.json）。"
           }
         },
         {
@@ -4011,10 +4302,8 @@
         "pending",
         "sending",
         "sent",
-        "delivered",
         "read",
-        "failed",
-        "retrying"
+        "failed"
       ],
       "events": [
         "resend"
@@ -4120,6 +4409,25 @@
             "en": "Metadata spacing density; semantic order and icon geometry stay fixed.",
             "zh": "元数据间距密度；语义顺序和图标几何保持不变。"
           }
+        },
+        {
+          "name": "placement",
+          "type": "FlareMessageMetaPlacement",
+          "required": false,
+          "description": {
+            "en": "Where the meta sits (spec/message-meta-placement-vectors.json): inline, bubbleFooter, below or none. below uses the default palette at the trailing edge and turns a failure into the text key messageSendFailedRetry.",
+            "zh": "元信息的位置（spec/message-meta-placement-vectors.json）：inline、bubbleFooter、below 或 none。below 用默认色板、靠尾侧，失败时显示文字键「发送失败，重试」。"
+          },
+          "default": "\"bubbleFooter\""
+        },
+        {
+          "name": "readSummary",
+          "type": "FlareMessageReadSummary",
+          "required": false,
+          "description": {
+            "en": "The SDK's group read summary {readCount, unreadCount, total} for the viewer's own message; with status sent or read it replaces the check glyph with \"N unread\" / \"Read by all\" (spec/message-receipt-vectors.json).",
+            "zh": "SDK 给出的群已读摘要 {readCount, unreadCount, total}（仅本人消息）；状态为 sent 或 read 时以「N 人未读 / 全部已读」替代勾形（spec/message-receipt-vectors.json）。"
+          }
         }
       ],
       "states": [
@@ -4127,10 +4435,11 @@
         "edited",
         "ephemeral",
         "failed",
-        "retrying"
+        "readSummary"
       ],
       "events": [
-        "resend"
+        "resend",
+        "readReceiptOpen"
       ],
       "platforms": {
         "vue": {
@@ -4767,6 +5076,15 @@
           }
         },
         {
+          "name": "surface",
+          "type": "FlareMessageSurface",
+          "required": false,
+          "description": {
+            "en": "The surface the row draws its content on: bubble, bareMedia, card or centered (spec/message-surface-vectors.json). Absent: the kit derives it from the content type, the quote, the caption, the recall / delete state and the content renderer registry; MessageList passes the one it grouped by. card draws no bubble background, border, padding, tail or shadow: the content's own shell is the surface.",
+            "zh": "这一行内容画在哪种表面上：bubble、bareMedia、card 或 centered（spec/message-surface-vectors.json）。不传时由 Kit 按内容类型、引用、说明、撤回 / 删除状态和内容渲染器登记推导；MessageList 传入它分组时用的表面。card 不画任何气泡底色、边框、内边距、尾角和阴影：内容组件自己的外壳就是表面。"
+          }
+        },
+        {
           "name": "multiSelectMode",
           "type": "boolean",
           "description": {
@@ -4815,9 +5133,12 @@
       ],
       "states": [
         "pending",
+        "sending",
         "sent",
         "read",
-        "failed"
+        "failed",
+        "readSummary",
+        "selecting"
       ],
       "events": [
         "react",
@@ -4845,11 +5166,13 @@
         "vote",
         "taskToggle",
         "cardOpen",
-        "locationOpen"
+        "locationOpen",
+        "readReceiptOpen",
+        "contextMenu"
       ],
       "notes": {
-        "en": "Optimistic: semantic status comes from host-owned lifecycle state, never a network wait. A recalled message (lifecycle mutation recalled) renders a notice in place of its content on every platform, with no status, avatar, actions or selection. Reactions render under the bubble; a pill toggles the viewer's reaction through react only when the host handles it, and never in multi-select mode. A reply renders its quote (sender and one-line summary) at the top of the bubble on every platform; the quote is a button that raises locateMessage only when the host handles it and multi-select is off, and a quoting message keeps its bubble chrome. toggle-select exists only on Vue and Flutter (onToggleSelect); iOS and Compose do not offer it yet. forward / multiSelect / recall are Vue-only on the bubble: native bubbles raise onLongPress and the host opens MessageActionSheet, whose onAction dispatches those. Vue host actions (`actions`) join the menu and raise action; copy reports whether the clipboard took the text.",
-        "zh": "乐观：语义状态来自宿主持有的生命周期，绝不等待网络。已撤回消息（生命周期 mutation 为 recalled）在各端都以提示行替代原内容，不显示状态、头像、操作与选择。表情回应显示在气泡下方；只有宿主处理 react 时，点击回应才切换当前用户的回应，多选模式下不切换。回复消息在各端气泡顶部显示引用（发送者与一行摘要）；只有宿主处理 locateMessage 且不在多选模式时引用才是按钮，带引用的消息保留气泡外框。toggle-select 目前只有 Vue 与 Flutter(onToggleSelect),iOS/Compose 尚未提供。forward / multiSelect / recall 在气泡上是 Vue 专有:原生端气泡只抛 onLongPress,由宿主打开 MessageActionSheet 后经其 onAction 分发。Vue 宿主操作(`actions`)进入菜单并抛出 action;copy 回报剪贴板是否写入成功。"
+        "en": "Optimistic: semantic status comes from host-owned lifecycle state, never a network wait. A recalled message (lifecycle mutation recalled) renders a notice in place of its content on every platform, with no status, avatar, actions or selection. Reactions render under the bubble; a pill toggles the viewer's reaction through react only when the host handles it, and never in multi-select mode. A reply renders its quote (sender and one-line summary) at the top of the bubble on every platform; the quote is a button that raises locateMessage only when the host handles it and multi-select is off, and a quoting message keeps its bubble chrome. toggle-select exists only on Vue and Flutter (onToggleSelect); iOS and Compose do not offer it yet. forward / multiSelect / recall are Vue-only on the bubble: native bubbles raise onLongPress and the host opens MessageActionSheet, whose onAction dispatches those. Vue host actions (`actions`) join the menu and raise action; copy reports whether the clipboard took the text. Surface and meta (docs/design/message-surface-and-meta.md): the surface comes from spec/message-surface-vectors.json and the time / receipt placement from spec/message-meta-placement-vectors.json — inline after a text's last line, bubbleFooter inside other bubbles, below (spacing.xs, trailing edge, default palette) for bareMedia and card, none for centered rows; nothing is drawn over media or cards. A failed outgoing card or picture shows the text key \"Failed to send. Retry\" below it, a failed bubble keeps its red edge and its glyph is the retry key; both hit areas are at least layout.touchTarget. The receipt is the SDK's MessageReceiptView (spec/message-receipt-vectors.json): five states with no delivered glyph, and in groups the viewer's own messages show \"N unread\" / \"Read by all\" from message.readSummary, a key that emits readReceiptOpen(messageId) when the host listens. In multi-select the content is inert and a tap anywhere on the row toggles its selection. The row's accessible name is sender, content summary, time and status / read summary in that order. Desktop context menu (C5): one menu model on every kit, opened where the pointer is. Vue draws it itself — on pointer devices (`useMessageMenuInteraction` profile `enableContextMenu`) a right click on a message opens MessageMenu's dropdown at the pointer and each entry raises its own event (reply, forward, recall, …), so Vue has no contextMenu event. Flutter (macOS, Windows, Linux, web) raises contextMenu(message, position) and the host opens its menu there. SwiftUI's MessageList takes the menu model (`contextMenu: FlareMessageContextMenu`) and draws the system context menu on macOS and on an iPad with a pointer. Compose has none yet.",
+        "zh": "乐观：语义状态来自宿主持有的生命周期，绝不等待网络。已撤回消息（生命周期 mutation 为 recalled）在各端都以提示行替代原内容，不显示状态、头像、操作与选择。表情回应显示在气泡下方；只有宿主处理 react 时，点击回应才切换当前用户的回应，多选模式下不切换。回复消息在各端气泡顶部显示引用（发送者与一行摘要）；只有宿主处理 locateMessage 且不在多选模式时引用才是按钮，带引用的消息保留气泡外框。toggle-select 目前只有 Vue 与 Flutter(onToggleSelect),iOS/Compose 尚未提供。forward / multiSelect / recall 在气泡上是 Vue 专有:原生端气泡只抛 onLongPress,由宿主打开 MessageActionSheet 后经其 onAction 分发。Vue 宿主操作(`actions`)进入菜单并抛出 action;copy 回报剪贴板是否写入成功。表面与元信息（docs/design/message-surface-and-meta.md）：表面取自 spec/message-surface-vectors.json，时间与回执的位置取自 spec/message-meta-placement-vectors.json —— 文本跟在最后一行行尾（inline），其他气泡在气泡内右下（bubbleFooter），bareMedia 与 card 在表面下方（spacing.xs、尾侧、默认色板），centered 不显示；不在媒体或卡片上叠任何东西。发送失败的卡片或图片在下方显示「发送失败，重试」文字键，失败的气泡保留红边、图标即重试键；两者命中区都不小于 layout.touchTarget。回执是 SDK 给出的 MessageReceiptView（spec/message-receipt-vectors.json）：五态，没有「已送达」图形；群聊里本人消息按 message.readSummary 显示「N 人未读 / 全部已读」，宿主监听时它是按钮，点按发出 readReceiptOpen(messageId)。多选态下内容不响应，点整行任意处切换选中。行的读屏名依次是发送者、内容摘要、时间、状态或已读摘要。桌面右键菜单（C5）：各端同一份菜单模型，在指针处打开。Vue 自己画——指针设备上（`useMessageMenuInteraction` 的 `enableContextMenu`）右键消息在指针处打开 MessageMenu 下拉，每一项各自发出事件（reply、forward、recall…），所以 Vue 没有 contextMenu 事件。Flutter（macOS、Windows、Linux、Web）发出 contextMenu(message, position)，由宿主在该处打开菜单。SwiftUI 的 MessageList 接收菜单模型（`contextMenu: FlareMessageContextMenu`），在 macOS 与带指针的 iPad 上画系统右键菜单。Compose 暂无。"
       },
       "platforms": {
         "vue": {
@@ -4877,7 +5200,8 @@
           "compose"
         ],
         "reply": [
-          "vue"
+          "vue",
+          "flutter"
         ],
         "edit": [
           "vue"
@@ -4898,7 +5222,8 @@
           "flutter"
         ],
         "avatarTap": [
-          "flutter"
+          "flutter",
+          "compose"
         ],
         "forward": [
           "vue"
@@ -4940,6 +5265,9 @@
           "flutter",
           "ios",
           "compose"
+        ],
+        "contextMenu": [
+          "flutter"
         ]
       },
       "accessibility": {
@@ -5166,6 +5494,18 @@
           "platforms": [
             "flutter"
           ]
+        },
+        {
+          "name": "contextMenu",
+          "type": "FlareMessageContextMenu",
+          "required": false,
+          "description": {
+            "en": "SwiftUI: the menu model (the same entries as MessageActionSheet) the list draws as the system context menu on a pointer (macOS, iPad with a pointer); iPhone keeps the long-press sheet.",
+            "zh": "SwiftUI：列表在指针设备（macOS、带指针的 iPad）上画成系统右键菜单的菜单模型（条目与 MessageActionSheet 相同）；iPhone 仍用长按面板。"
+          },
+          "platforms": [
+            "ios"
+          ]
         }
       ],
       "slots": [
@@ -5211,11 +5551,13 @@
         "vote",
         "taskToggle",
         "cardOpen",
-        "locationOpen"
+        "locationOpen",
+        "readReceiptOpen",
+        "contextMenu"
       ],
       "notes": {
-        "en": "60fps virtualised; O(visible); scroll anchoring on append/prepend. toggle-select exists only on Vue and Flutter (onToggleSelect); iOS and Compose do not offer it yet. locateMessage: every list scrolls to a loaded quoted message itself and raises onLocateMessage only for one that is not loaded; the host pages it in and then asks the list to show it — `scrollToMessage(id)`, which answers whether the list had that message. Vue exposes that method on the component instance; the three native kits take a host-held handle (`controller`, Compose `state`). Two rules the handle carries: a row answers to two ids — the one it is drawn with and the core's id for it (`serverId`) — so the host hands `scrollToMessage` exactly what `onLocateMessage` gave it and translates nothing; and the handle answers for the pass the list last drew, so the host yields one of its own builds before asking. A quote always names the quoted message by the core's id for it, which is the id every other client knows it by. The trip itself is the kit's too: `flareLocateMessage` / `FlareLocate.run` asks the list, reads a page of older history through the host's callback, lets the list draw and asks again — 24 pages at most, then six more asks — and ends as shown, notInHistory or cancelled (`spec/locate-orchestration-vectors.json`). A host supplies how a page is read and the words for a miss, not the loop. The row a jump lands on is then marked for one window so the reader can see which row it was: `spec/locate-highlight-vectors.json` holds the window (1600 ms) and the three stops of the ring the four kits draw behind the bubble, one row marked at a time, and a second jump moves the mark rather than adding one. Reduce Motion holds the ring still instead of removing it — a reader who asked for less motion still has to be told where the jump landed. The mark is the sighted half of the answer; the other half is spoken. When a jump lands, the list announces which row it reached — the sender and the same one line a reply strip would show (`flareLocatedAnnouncement`) — through each platform's own announcement channel. Where a platform can move the reading cursor without changing how everyone else navigates, the jump takes the reader there too — Vue through the timeline's roving tabindex, SwiftUI through `@AccessibilityFocusState`; Flutter and Compose announce only, because moving the cursor there would mean making every row focusable. The return is each platform's idiom for the same answer: sync on Flutter and SwiftUI, `Promise<boolean>` on Vue, `suspend` on Compose. swipeReply: dragging a row towards the trailing edge starts a reply to it (leading edge under RTL). One rule on the three native kits, shared as `spec/swipe-reply-vectors.json`: only that direction counts, the list's own vertical scrolling wins any drag whose horizontal travel is under 1.25 times its vertical travel, the row follows the finger to 56 and then resists at 0.35 and stops at 72, and 56 is where the gesture arms — the reply affordance reaches full strength exactly there, so the reader knows before letting go, and dragging back below it cancels. A notice, a recalled message and multi-select mode carry no swipe. The gesture is never the only way to reply: the message menu raises the same intent, and the host builds the same quote for both. Vue has no swipe — the web timeline is pointer-first and a horizontal touch drag there fights the list's own scrolling. Vue: `unreadFromId` draws UnreadDivider (which also starts a new sender run), and the header, footer, empty and unread-divider slots keep typing rows and states inside the timeline.",
-        "zh": "60fps 虚拟化；O(visible)；追加 / 前插时锚定滚动位。toggle-select 目前只有 Vue 与 Flutter(onToggleSelect),iOS/Compose 尚未提供。locateMessage:四端列表都自己滚到已加载的被引用消息,只有未加载时才抛 onLocateMessage;宿主翻到那条之后请列表把它显示出来——`scrollToMessage(id)`,按列表画出来的行 id 回答有没有这条。Vue 把这个方法暴露在组件实例上,三个原生 kit 用宿主持有的句柄(`controller`,Compose 为 `state`)。两条规则:一行认两个 id——它被画出来时用的那个,和核心给它的那个(`serverId`),所以宿主把 `onLocateMessage` 给的 id 原样传回 `scrollToMessage`,不做任何换算;句柄按列表最近画的那一遍回答,所以宿主要先让自己的一次构建过去再问。引用永远用核心 id 指向被引用消息——那是别的客户端唯一认得的 id。这趟路本身也归 kit:`flareLocateMessage` / `FlareLocate.run` 先问列表,再经宿主回调翻一页历史,让列表画一遍再问——最多 24 页,之后再问六次——结局是 shown / notInHistory / cancelled(`spec/locate-orchestration-vectors.json`)。宿主提供「怎么翻一页」和「找不到时说什么」,不提供循环。落点那一行随后会被标记一个窗口,让读者看见跳到的是哪一条:`spec/locate-highlight-vectors.json` 规定窗口(1600 ms)与四端在气泡后面画的那一圈的三个停靠点;同一时刻只标记一行,再跳一次是把标记挪过去,不是多亮一行。Reduce Motion 下这一圈静止而不是消失——要求减少动效的读者同样需要知道跳到了哪里。标记是这个答案看得见的那一半,另一半是说出来的:落地时列表会播报跳到了哪一行——发送者,加上回复条会显示的那一句摘要(`flareLocatedAnnouncement`),各端走自己的播报通道。在能够「移动读屏光标又不改变其他人导航方式」的平台上,跳转还会把读者带过去——Vue 借时间线已有的 roving tabindex,SwiftUI 用 `@AccessibilityFocusState`;Flutter 与 Compose 只播报,因为在那两端移动光标意味着把每一行都变成可聚焦的。返回值按各端习惯:Flutter 与 SwiftUI 同步,Vue 是 Promise,Compose 是挂起函数。swipeReply:把一行往尾边方向拖动开始回复它(RTL 下是前边)。三个原生 kit 同一条规则,共享表是 `spec/swipe-reply-vectors.json`:只认这一个方向;横向位移不足竖向 1.25 倍时让位给列表自己的滚动;行跟手到 56,之后按 0.35 阻尼、最多 72;56 是上膛点——回复图标正好在这里到达满强度,所以松手前读者就知道会触发,拖回去则取消。系统提示行、已撤回消息、多选模式都没有侧滑。侧滑永远不是唯一的回复入口:消息菜单抛的是同一个意图,宿主为两者构造同一条引用。Vue 没有侧滑——网页时间线以指针为先,横向触摸拖拽会和列表自身的滚动打架。Vue:`unreadFromId` 画出 UnreadDivider(同时开启新的发送者分组),header、footer、empty、unread-divider 插槽让输入中行与各状态留在时间线里。"
+        "en": "60fps virtualised; O(visible); scroll anchoring on append/prepend. toggle-select exists only on Vue and Flutter (onToggleSelect); iOS and Compose do not offer it yet. locateMessage: every list scrolls to a loaded quoted message itself and raises onLocateMessage only for one that is not loaded; the host pages it in and then asks the list to show it — `scrollToMessage(id)`, which answers whether the list had that message. Vue exposes that method on the component instance; the three native kits take a host-held handle (`controller`, Compose `state`). Two rules the handle carries: a row answers to two ids — the one it is drawn with and the core's id for it (`serverId`) — so the host hands `scrollToMessage` exactly what `onLocateMessage` gave it and translates nothing; and the handle answers for the pass the list last drew, so the host yields one of its own builds before asking. A quote always names the quoted message by the core's id for it, which is the id every other client knows it by. The trip itself is the kit's too: `flareLocateMessage` / `FlareLocate.run` asks the list, reads a page of older history through the host's callback, lets the list draw and asks again — 24 pages at most, then six more asks — and ends as shown, notInHistory or cancelled (`spec/locate-orchestration-vectors.json`). A host supplies how a page is read and the words for a miss, not the loop. The row a jump lands on is then marked for one window so the reader can see which row it was: `spec/locate-highlight-vectors.json` holds the window (1600 ms) and the three stops of the ring the four kits draw behind the bubble, one row marked at a time, and a second jump moves the mark rather than adding one. Reduce Motion holds the ring still instead of removing it — a reader who asked for less motion still has to be told where the jump landed. The mark is the sighted half of the answer; the other half is spoken. When a jump lands, the list announces which row it reached — the sender and the same one line a reply strip would show (`flareLocatedAnnouncement`) — through each platform's own announcement channel. Where a platform can move the reading cursor without changing how everyone else navigates, the jump takes the reader there too — Vue through the timeline's roving tabindex, SwiftUI through `@AccessibilityFocusState`; Flutter and Compose announce only, because moving the cursor there would mean making every row focusable. The return is each platform's idiom for the same answer: sync on Flutter and SwiftUI, `Promise<boolean>` on Vue, `suspend` on Compose. swipeReply: dragging a row towards the trailing edge starts a reply to it (leading edge under RTL). One rule on the three native kits, shared as `spec/swipe-reply-vectors.json`: only that direction counts, the list's own vertical scrolling wins any drag whose horizontal travel is under 1.25 times its vertical travel, the row follows the finger to 56 and then resists at 0.35 and stops at 72, and 56 is where the gesture arms — the reply affordance reaches full strength exactly there, so the reader knows before letting go, and dragging back below it cancels. A notice, a recalled message and multi-select mode carry no swipe. The gesture is never the only way to reply: the message menu raises the same intent, and the host builds the same quote for both. Vue has no swipe — the web timeline is pointer-first and a horizontal touch drag there fights the list's own scrolling. Vue: `unreadFromId` draws UnreadDivider (which also starts a new sender run), and the header, footer, empty and unread-divider slots keep typing rows and states inside the timeline. Grouping, row presentation and date pills follow spec/message-grouping-vectors.json: a run is one sender within 5 minutes, broken by centered rows (system, recall, delete), a switch between card and the other surfaces, date pills and the unread divider; only bubbles draw a tail; date pills mark local days only (today / yesterday / date). Desktop context menu (C5): one menu model on every kit, opened where the pointer is. Vue draws it itself — on pointer devices (`useMessageMenuInteraction` profile `enableContextMenu`) a right click on a message opens MessageMenu's dropdown at the pointer and each entry raises its own event (reply, forward, recall, …), so Vue has no contextMenu event. Flutter (macOS, Windows, Linux, web) raises contextMenu(message, position) and the host opens its menu there. SwiftUI's MessageList takes the menu model (`contextMenu: FlareMessageContextMenu`) and draws the system context menu on macOS and on an iPad with a pointer. Compose has none yet.",
+        "zh": "60fps 虚拟化；O(visible)；追加 / 前插时锚定滚动位。toggle-select 目前只有 Vue 与 Flutter(onToggleSelect),iOS/Compose 尚未提供。locateMessage:四端列表都自己滚到已加载的被引用消息,只有未加载时才抛 onLocateMessage;宿主翻到那条之后请列表把它显示出来——`scrollToMessage(id)`,按列表画出来的行 id 回答有没有这条。Vue 把这个方法暴露在组件实例上,三个原生 kit 用宿主持有的句柄(`controller`,Compose 为 `state`)。两条规则:一行认两个 id——它被画出来时用的那个,和核心给它的那个(`serverId`),所以宿主把 `onLocateMessage` 给的 id 原样传回 `scrollToMessage`,不做任何换算;句柄按列表最近画的那一遍回答,所以宿主要先让自己的一次构建过去再问。引用永远用核心 id 指向被引用消息——那是别的客户端唯一认得的 id。这趟路本身也归 kit:`flareLocateMessage` / `FlareLocate.run` 先问列表,再经宿主回调翻一页历史,让列表画一遍再问——最多 24 页,之后再问六次——结局是 shown / notInHistory / cancelled(`spec/locate-orchestration-vectors.json`)。宿主提供「怎么翻一页」和「找不到时说什么」,不提供循环。落点那一行随后会被标记一个窗口,让读者看见跳到的是哪一条:`spec/locate-highlight-vectors.json` 规定窗口(1600 ms)与四端在气泡后面画的那一圈的三个停靠点;同一时刻只标记一行,再跳一次是把标记挪过去,不是多亮一行。Reduce Motion 下这一圈静止而不是消失——要求减少动效的读者同样需要知道跳到了哪里。标记是这个答案看得见的那一半,另一半是说出来的:落地时列表会播报跳到了哪一行——发送者,加上回复条会显示的那一句摘要(`flareLocatedAnnouncement`),各端走自己的播报通道。在能够「移动读屏光标又不改变其他人导航方式」的平台上,跳转还会把读者带过去——Vue 借时间线已有的 roving tabindex,SwiftUI 用 `@AccessibilityFocusState`;Flutter 与 Compose 只播报,因为在那两端移动光标意味着把每一行都变成可聚焦的。返回值按各端习惯:Flutter 与 SwiftUI 同步,Vue 是 Promise,Compose 是挂起函数。swipeReply:把一行往尾边方向拖动开始回复它(RTL 下是前边)。三个原生 kit 同一条规则,共享表是 `spec/swipe-reply-vectors.json`:只认这一个方向;横向位移不足竖向 1.25 倍时让位给列表自己的滚动;行跟手到 56,之后按 0.35 阻尼、最多 72;56 是上膛点——回复图标正好在这里到达满强度,所以松手前读者就知道会触发,拖回去则取消。系统提示行、已撤回消息、多选模式都没有侧滑。侧滑永远不是唯一的回复入口:消息菜单抛的是同一个意图,宿主为两者构造同一条引用。Vue 没有侧滑——网页时间线以指针为先,横向触摸拖拽会和列表自身的滚动打架。Vue:`unreadFromId` 画出 UnreadDivider(同时开启新的发送者分组),header、footer、empty、unread-divider 插槽让输入中行与各状态留在时间线里。分组、行呈现和日期胶囊按 spec/message-grouping-vectors.json：同一发送者 5 分钟内为一组，居中行（系统、撤回、删除）、卡片与其他表面之间的切换、日期胶囊和未读分隔线都会断开；只有气泡画尾角；日期胶囊只标本地自然日（今天 / 昨天 / 日期）。桌面右键菜单（C5）：各端同一份菜单模型，在指针处打开。Vue 自己画——指针设备上（`useMessageMenuInteraction` 的 `enableContextMenu`）右键消息在指针处打开 MessageMenu 下拉，每一项各自发出事件（reply、forward、recall…），所以 Vue 没有 contextMenu 事件。Flutter（macOS、Windows、Linux、Web）发出 contextMenu(message, position)，由宿主在该处打开菜单。SwiftUI 的 MessageList 接收菜单模型（`contextMenu: FlareMessageContextMenu`），在 macOS 与带指针的 iPad 上画系统右键菜单。Compose 暂无。"
       },
       "platforms": {
         "vue": {
@@ -5243,7 +5585,8 @@
           "compose"
         ],
         "reply": [
-          "vue"
+          "vue",
+          "flutter"
         ],
         "edit": [
           "vue"
@@ -5278,7 +5621,8 @@
           "compose"
         ],
         "avatarTap": [
-          "flutter"
+          "flutter",
+          "compose"
         ],
         "locateMessage": [
           "vue",
@@ -5316,6 +5660,9 @@
           "flutter",
           "ios",
           "compose"
+        ],
+        "contextMenu": [
+          "flutter"
         ]
       },
       "accessibility": {
@@ -5822,6 +6169,16 @@
             "en": "Download/progress state for media bodies.",
             "zh": "媒体正文的下载 / 进度状态。"
           }
+        },
+        {
+          "name": "selectionMode",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "The row is in multi-select: every control inside the content (poll options, task box, card and location taps, plugin card keys and menus, links, media) is inert and the tap goes to the row, which toggles its selection.",
+            "zh": "所在行处于多选：内容里的所有控件（投票选项、任务勾选、名片与位置点按、插件卡片的按钮和菜单、链接、媒体）都不响应，点按交给整行切换选中。"
+          },
+          "default": "false"
         }
       ],
       "states": [
@@ -13348,32 +13705,33 @@
           }
         },
         {
-          "name": "kindLabel",
+          "name": "kind",
+          "type": "FlareRedPacketKind",
+          "required": false,
+          "description": {
+            "en": "Packet kind: lucky and exclusive draw their badge on the brand line, normal draws none (spec/red-packet-vectors.json cardBadge).",
+            "zh": "红包种类：拼手气和专属在品牌行显示角标，普通不标（spec/red-packet-vectors.json cardBadge）。"
+          },
+          "default": "\"normal\""
+        },
+        {
+          "name": "recipientName",
           "type": "string",
           "required": false,
           "description": {
-            "zh": "品牌行左侧的种类，如「拼手气红包」",
-            "en": "Packet kind on the brand line, e.g. \"Lucky packet\""
+            "en": "Exclusive packets: the designated member's name, drawn as \"For {name}\" (the host reads it from the IM directory).",
+            "zh": "专属红包：指定成员的名字，显示为「给 某某」（宿主从 IM 目录取）。"
           }
         },
         {
           "name": "state",
-          "type": "FlareRedPacketState",
+          "type": "FlareRedPacketCardState",
           "required": false,
           "description": {
-            "zh": "当前查看者看到的状态：unopened 饱和；claimed / finished / expired 变淡（与 fadedMixTarget 混合）且仍可点击",
-            "en": "What the current viewer sees: unopened is saturated; claimed / finished / expired are faded (mixed toward fadedMixTarget) and still tappable"
+            "en": "The card state from the plugin's public layer and the viewer's personal layer (flareRedPacketCardState, spec/red-packet-vectors.json cardState): unopened, viewable (the sender's or a non-designated viewer's open packet), claimed, finished, expired, refunded. Never an amount.",
+            "zh": "由插件公开层与本人层得出的卡片状态（flareRedPacketCardState，spec/red-packet-vectors.json cardState）：unopened、viewable（发送人或非指定人看到的进行中红包）、claimed、finished、expired、refunded。卡片从不显示金额。"
           },
           "default": "\"unopened\""
-        },
-        {
-          "name": "amount",
-          "type": "string",
-          "required": false,
-          "description": {
-            "zh": "查看者领到的金额（由业务格式化），claimed 时显示",
-            "en": "What the viewer received (host formats it); shown when claimed"
-          }
         },
         {
           "name": "disabled",
@@ -13407,9 +13765,11 @@
       ],
       "states": [
         "unopened",
+        "viewable",
         "claimed",
         "finished",
         "expired",
+        "refunded",
         "disabled",
         "busy"
       ],
@@ -13452,8 +13812,8 @@
         "screenReaderSemantics": "Expose localized name, role, value/state, availability, and progress. Decorative imagery is hidden."
       },
       "notes": {
-        "zh": "状态行优先级（spec/red-packet-vectors.json → card）：busy、statusLabel、已领取金额、已领取、已被领完、已过期、暂不可用、点击领取。finished / expired 仍触发 open（查看领取详情）；只有 disabled、busy 和原生端缺少 onOpen 时不可交互，二者保持未领取的外观和白字，不变暗不变灰。变淡（spec/red-packet-vectors.json → faded）：claimed / finished / expired 时卡面五个色各自在 sRGB 里向 colors.redPacket.fadedMixTarget 混合 sizes.component.redPacketFadedMix（0.4）；目标色浅色为白、深色为偏红深底，色相不变；文字改用 colors.redPacket.fadedInk，在每一档上对比度 ≥ 4.5；不用滤镜、不降透明度。左侧标识是四端同一几何的小信封：宽 30、高为宽的 1.3 倍、圆角为宽的 0.18，封盖高为整高的 0.42、弧线比两侧下垂封盖高的 0.3，红色封印直径为宽的 0.36、圆心在弧线最低点；身为 gold→goldDeep 渐变，封盖 goldDeep，封印 end，变淡时同样混合。宽度最多 redPacketCardWidth（248），服从父约束；交互区至少 48；品牌行在底部。领取、余额与权限由插件/SDK 持有。",
-        "en": "Status precedence (spec/red-packet-vectors.json → card): busy, statusLabel, received amount, claimed, finished, expired, unavailable, tap to open. Finished / expired still emit open (to show the details); only disabled, busy, or a native card without onOpen are inert, and those two keep the unopened face and white text — never darkened or greyed. Fading (spec/red-packet-vectors.json → faded): for claimed / finished / expired each of the five card colours is mixed in sRGB toward colors.redPacket.fadedMixTarget by sizes.component.redPacketFadedMix (0.4); the target is white in light mode and a deep red in dark mode, so the hue stays; text switches to colors.redPacket.fadedInk at 4.5:1 or better on every stop; no filters, no opacity. The leading mark is the same small envelope on every kit: 30 wide, 1.3 times as tall, corners 0.18 of the width, a flap 0.42 of the height whose curve dips 0.3 of the flap below its sides, and a red seal 0.36 of the width centred on the curve's lowest point; body gold to goldDeep, flap goldDeep, seal end, mixed like the rest when faded. Width at most redPacketCardWidth (248), constrained by the parent; touch target at least 48; brand line at the bottom. Claiming, balance and authorization stay in the plugin/SDK."
+        "en": "Red packet v5 (docs/design/red-packet-v5-roles-and-wallet.md §1): the card shows the greeting, the kind badge (lucky, exclusive; normal has none), \"For {name}\" on exclusive packets and one status line — and never an amount. Status precedence (spec/red-packet-vectors.json → card): busy, statusLabel, then by state: tapToOpen (\"Open\"), view, claimed, finished, expired, refunded; disabled shows unavailable. Every state but busy / disabled emits open; the host routes by the personal layer's tapAction (open sheet, details, or the not-eligible notice). Fading (→ faded) applies to claimed, finished, expired and refunded: each card colour is mixed in sRGB toward colors.redPacket.fadedMixTarget by sizes.component.redPacketFadedMix (0.4), text switches to colors.redPacket.fadedInk at 4.5:1 or better; busy and disabled keep the unopened face. The leading mark is the shared 30-wide envelope glyph. The card is the message's card surface: no bubble around it.",
+        "zh": "红包第五版（docs/design/red-packet-v5-roles-and-wallet.md §1）：卡片只有祝福语、类型角标（拼手气、专属；普通不标）、专属红包的「给 某某」和一行状态，从不显示金额。状态行优先级（spec/red-packet-vectors.json → card）：busy、statusLabel，然后按 state：领取红包、查看红包、已领取、已被领完、已过期、已退回；disabled 显示暂不可用。除 busy / disabled 外都会发 open，宿主按本人层的 tapAction 决定去向（开红包浮层、详情或「仅 某某 可领取」）。变淡（→ faded）用于已领取、已被领完、已过期、已退回：卡面各色在 sRGB 中向 colors.redPacket.fadedMixTarget 混合 sizes.component.redPacketFadedMix（0.4），文字改用 colors.redPacket.fadedInk，对比度 ≥ 4.5；busy 与 disabled 保持未领取的外观。左侧是四端共用的 30 宽小信封。卡片就是消息的 card 表面，外面不再套气泡。"
       }
     },
     {
@@ -13534,6 +13894,16 @@
             "zh": "宿主提示，替换非 ready 状态的默认文案，如「仅 TA 可领取」",
             "en": "Host notice replacing the default copy of a non-ready state, e.g. \"Only they can open it\""
           }
+        },
+        {
+          "name": "canViewDetails",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "From the personal layer: a finished or expired sheet offers the details key only when true. notEligible never offers it.",
+            "zh": "取自本人层：已领完或已过期时，为真才给「查看领取详情」。notEligible 永远不给。"
+          },
+          "default": "true"
         }
       ],
       "states": [
@@ -13587,8 +13957,8 @@
         "screenReaderSemantics": "Dialog named \"Red packet from X\"; the headline is a polite live region; the coin is a button named 開 and busy while opening; the avatar is hidden."
       },
       "notes": {
-        "zh": "只画，不判断资格：宿主调 details 预取后按 canClaim 给出 state，点「開」时置为 opening 并调 claim。遮罩点击、关闭键（信封下方）、Escape 和返回键都触发 close。Flutter 组件自绘遮罩，可放进 Stack，也可用 FlareRedPacketOpenSheet.show 推一条路由。 notEligible 的提示和 error 的说明用正文行高（lineHeight.normal），最多 3 行，超出省略。",
-        "en": "Draws only, never decides eligibility: the host prefetches details, maps canClaim to state, sets opening on 開 and calls claim. Scrim tap, the close control under the envelope, Escape and the platform back all emit close. Flutter paints its own scrim: lay it in a Stack or present it with FlareRedPacketOpenSheet.show. The notEligible notice and the error line use the body line height (lineHeight.normal) and stop at three lines."
+        "en": "Draws only, never decides eligibility: the host prefetches details, maps canClaim to state, sets opening on 開 and calls claim. Scrim tap, the close control under the envelope, Escape and the platform back all emit close. Flutter paints its own scrim: lay it in a Stack or present it with FlareRedPacketOpenSheet.show. The notEligible notice and the error line use the body line height (lineHeight.normal) and stop at three lines. Keys per state in spec/red-packet-vectors.json → openSheet: 開 while ready, opening or error; the details key only for finished / expired with canViewDetails; never for notEligible (the server returns no amount or records to a non-designated viewer).",
+        "zh": "只画，不判断资格：宿主调 details 预取后按 canClaim 给出 state，点「開」时置为 opening 并调 claim。遮罩点击、关闭键（信封下方）、Escape 和返回键都触发 close。Flutter 组件自绘遮罩，可放进 Stack，也可用 FlareRedPacketOpenSheet.show 推一条路由。 notEligible 的提示和 error 的说明用正文行高（lineHeight.normal），最多 3 行，超出省略。各状态给哪些键见 spec/red-packet-vectors.json → openSheet：ready、opening、error 显示「開」；只有 finished / expired 且 canViewDetails 时给「查看领取详情」；notEligible 永远不给（服务端对非指定人不返回金额和记录）。"
       }
     },
     {
@@ -13622,48 +13992,21 @@
           }
         },
         {
-          "name": "blessing",
-          "type": "string",
+          "name": "details",
+          "type": "FlareRedPacketDetailsView",
           "required": true,
           "description": {
-            "zh": "祝福语",
-            "en": "Blessing"
+            "en": "The plugin's details result for this viewer (viewerRole, status, kind, greeting, currency, currencyExponent, the amounts the server chose to return, counts, times, claimsListed). The page draws only what is there: an absent amount is never drawn (spec/red-packet-vectors.json → detail).",
+            "zh": "插件 details 对当前查看者的结果（viewerRole、status、kind、greeting、currency、currencyExponent、服务端给出的金额、份数、时间、claimsListed）。页面只画有的字段：没有的金额绝不显示（spec/red-packet-vectors.json → detail）。"
           }
         },
         {
-          "name": "kindLabel",
+          "name": "designatedName",
           "type": "string",
           "required": false,
           "description": {
-            "zh": "发送人旁的种类标签，如「拼」",
-            "en": "Kind badge beside the sender, e.g. \"拼\""
-          }
-        },
-        {
-          "name": "amount",
-          "type": "string",
-          "required": false,
-          "description": {
-            "zh": "本人领取金额（大字），如「0.88 元」",
-            "en": "The viewer's own amount, drawn large, e.g. \"0.88\""
-          }
-        },
-        {
-          "name": "amountNote",
-          "type": "string",
-          "required": false,
-          "description": {
-            "zh": "金额下方说明，如「已存入钱包」",
-            "en": "Line under the amount, e.g. \"Saved to wallet\""
-          }
-        },
-        {
-          "name": "summary",
-          "type": "string",
-          "required": true,
-          "description": {
-            "zh": "汇总行，如「已领取 3/5 个，共 2.10/5.00 元」",
-            "en": "Progress line, e.g. \"3/5 opened, 2.10/5.00\""
+            "en": "Exclusive packets: the designated member's name for \"Only {name} can open this\".",
+            "zh": "专属红包：指定成员的名字，用于「仅 某某 可领取」。"
           }
         },
         {
@@ -13671,19 +14014,10 @@
           "type": "FlareRedPacketClaim[]",
           "required": false,
           "description": {
-            "zh": "领取列表；best=true 的行带「手气最佳」；为空时显示「暂无人领取」",
-            "en": "Claim rows; best=true carries \"Best luck\"; empty shows \"No one has opened it yet\""
+            "en": "Claim rows (name and avatar from the host's directory, amountMinor, claimedAtMs, best); drawn only when details.claimsListed.",
+            "zh": "领取记录（名字、头像由宿主从目录取，amountMinor、claimedAtMs、best）；只在 details.claimsListed 时显示。"
           },
           "default": "[]"
-        },
-        {
-          "name": "note",
-          "type": "string",
-          "required": false,
-          "description": {
-            "zh": "底部说明，如过期退回",
-            "en": "Closing explanation, e.g. a refund after expiry"
-          }
         },
         {
           "name": "title",
@@ -13696,8 +14030,10 @@
         }
       ],
       "states": [
-        "claimed",
-        "notClaimed",
+        "sender",
+        "claimer",
+        "eligible",
+        "ineligible",
         "empty"
       ],
       "events": [
@@ -13739,8 +14075,8 @@
         "screenReaderSemantics": "Region named \"Red packet from X\"; with back, a heading title bar and a back button named by the kit; each claim row reads as one item; avatars and the header art are hidden."
       },
       "notes": {
-        "zh": "普通页面，不是浮层：宿主放进导航栈，用 Kit 的 Screen 容器包起来（滚动归 Screen）。传了 back（原生 onBack）时组件自己画红色标题栏：redPacket.end 底、浅色返回键和标题（默认「红包详情」），延伸进状态栏或安全区，下方弧形头图从同一红色开始；宿主这时隐藏自己的导航栏。不传时行为不变。「手气最佳」由服务端判定。",
-        "en": "An ordinary page, not an overlay: the host pushes it inside the kit Screen container, which owns scrolling. With back (native onBack) the page draws its own red title bar — redPacket.end, light back key and title (\"Red packet details\" by default) — reaching up under the status bar or safe area, with the arched header starting from the same red; the host then hides its own navigation bar. Without it nothing changes. Best luck is decided by the server."
+        "en": "An ordinary page, not an overlay: the host pushes it inside the kit Screen container. With back (native onBack) the page draws its own red title bar. What it draws per viewerRole and status is spec/red-packet-vectors.json → detail: the viewer's own amount large with \"Saved to your wallet\" when myAmountMinor is there; a headline for the eligible who came too late (\"Too late, all claimed\" / \"This red packet has expired\") and for the non-designated (\"Only {name} can open this\"); the summary line (totals only when the server returned them, i.e. to the sender); the claim list only when claimsListed; the sender's refund note. Amounts are formatted from minor units with currencyExponent by integer arithmetic (flareRedPacketMoney); best luck is decided by the server.",
+        "zh": "普通页面，不是浮层：宿主放进导航栈，用 Kit 的 Screen 容器包起来。传了 back（原生 onBack）时组件自己画红色标题栏。各 viewerRole 与状态画什么见 spec/red-packet-vectors.json → detail：有 myAmountMinor 时大字显示本人金额并写「已存入钱包」；来晚的可领成员显示标题（「手慢了，红包派完了」/「红包已过期」），非指定人显示「仅 某某 可领取」；摘要行（只有服务端返回总额时，即发送人，才带总额）；只有 claimsListed 时显示领取记录；发送人的退回说明。金额按 currencyExponent 用整数运算从最小单位格式化（flareRedPacketMoney）；手气最佳由服务端判定。"
       }
     },
     {
@@ -14081,6 +14417,24 @@
           }
         },
         {
+          "name": "displayName",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "The card envelope's displayName (PluginMessage.displayName, the plugin's name): leads the unavailable reason line (\"Poll · This plugin is turned off\").",
+            "zh": "卡片信封里的 displayName（PluginMessage.displayName，插件名）：不可用时放在原因行前面（「投票 · 插件已停用」）。"
+          }
+        },
+        {
+          "name": "viewerId",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "The viewer's user id: entries rows of that user carry the me tag.",
+            "zh": "当前用户 id：entries 里属于该用户的行带「我」标识。"
+          }
+        },
+        {
           "name": "busy",
           "type": "boolean",
           "required": false,
@@ -14168,11 +14522,13 @@
       ],
       "states": [
         "unavailable",
+        "readOnly",
         "busy",
         "error",
         "voted",
         "closed",
-        "embedded"
+        "embedded",
+        "menu"
       ],
       "events": [
         "action",
@@ -14220,8 +14576,20 @@
         "screenReaderSemantics": "A group named by the title. Options are buttons (single) or checkboxes (multiple) that read their label, selected state, percentage and votes; progress reads value of total; the countdown is not a live region (it is read on focus); the error is an alert."
       },
       "notes": {
-        "en": "Render facts follow spec/plugin-view-vectors.json (views, optimistic, time, countdown). Shell: the business card of the kit — width sizes.component.richCardWidth (constrained by the parent), radius lg, a hairline border and the card shadow; the title row carries the icon. Actions: style danger → danger key, primary → primary key, otherwise secondary; confirm → the kit DangerConfirm first; form → the kit bottom sheet with PluginForm, whose submit emits action(id, {formValues}). Choices: single submits on tap; multiple toggles a draft and submits from a key labelled with the block's action. The kit marks the submitted options at once and reverts when error becomes non-empty (or busyActionId clears with an error); a new view settles it. Payload: {selection?, formValues?} (Vue rows add row: {key, input}). openDetail comes from \"see all\" (Vue rows: from a row, with {key, input}) or from the card's view details key, and the host opens PluginDetailSheet. View details: when view.detail is true and no entries block shows its see all, an available card that is not embedded and has no rows block draws a full-width quiet text key (size sm, pluginViewDetail / Vue pluginView.detail) under the action keys; it emits openDetail with no row, waits while busy or busyActionId is set, and needs a host that handles openDetail (spec/plugin-view-vectors.json rules.detailKey, detailKey). Time is formatted in the device zone with pluginViewDateTimeFormat; countdown refreshes every second under an hour and every minute otherwise. Rows (admin pages) are Vue only: FlareDataTable with row actions, a row click for the detail, load more (loadMore(cursor, source)) and the empty text. Settling: the explicit signal is settleToken (the host increments it once per finished action, after setting that result's error / formErrors); busyActionId leaving the action is the fallback, and a host that sets and clears busyActionId within one frame settles only through the token (spec/plugin-view-vectors.json optimistic, rules.settle). Inset: sheet pads the view with spacing md / lg / xl (top / sides / bottom) like PluginForm, for a view placed straight into the kit BottomSheet; sheetTop pads md / lg / 0 for a view with more of the sheet under it (a preface above PluginForm), so the two meet at the form's own md and not at xl + md. Both pad every state — the embedded body, available or not (an unavailable embedded view shows its title as one secondary line), and a card shell a host keeps in a sheet (spec/plugin-view-vectors.json rules.inset, insets). Admin filters (Vue): a rows block's filters names the view inputs the page shows as its filter bar, every input when absent; the other inputs are only collected by row actions' forms. flarePluginFilterInputs(view) returns them in document order (spec/plugin-view-vectors.json filterInputs).",
-        "zh": "渲染事实以 spec/plugin-view-vectors.json 为准（views、optimistic、time、countdown）。外壳与 Kit 业务卡片一致：宽度 sizes.component.richCardWidth（服从父约束）、圆角 lg、细边框和卡片阴影，标题行带图标位。动作：style 为 danger 用危险键，primary 用主键，其余为次要键；有 confirm 先弹 Kit 的 DangerConfirm；有 form 打开 Kit 底部面板里的 PluginForm，提交时发出 action(id, {formValues})。choices：单选点一项立即提交；多选勾选后点提交键，键名取块持有的动作 label。Kit 先乐观标记提交的选项，error 变为非空（或 busyActionId 清空时带着 error）时撤回，新视图到达即结算。payload 为 {selection?, formValues?}（Vue 的 rows 另有 row: {key, input}）。「查看全部」或卡片的「查看详情」发出 openDetail（Vue 的 rows 点行时带 {key, input}），宿主打开 PluginDetailSheet。查看详情：view.detail 为真且没有 entries 块在显示「查看全部」时，可用、非 embedded、没有 rows 块的卡片在动作区下方画一个整宽的 quiet 文字按钮（size sm，pluginViewDetail / Vue 的 pluginView.detail），点击发出不带 row 的 openDetail；busy 或 busyActionId 时禁用；宿主要处理 openDetail 才显示（spec/plugin-view-vectors.json 的 rules.detailKey 与 detailKey）。时间按设备时区用 pluginViewDateTimeFormat 格式化；倒计时剩余不到 1 小时每秒刷新，否则每分钟刷新。rows（管理页）只在 Vue：FlareDataTable 加行动作、点行打开详情、加载更多（loadMore(cursor, source)）和空态。结算：显式信号是 settleToken（宿主每完成一次动作加 1，并且先设好这次结果的 error / formErrors）；busyActionId 离开该动作是兜底；宿主在同一帧里设上又清掉 busyActionId 时，只能靠令牌结算（spec/plugin-view-vectors.json 的 optimistic 与 rules.settle）。内边距：inset 为 sheet 时按 PluginForm 的 md / lg / xl（上 / 左右 / 下）留白，供直接放进 Kit BottomSheet 的视图使用；sheetTop 留 md / lg / 0，供下面还有面板内容的视图（PluginForm 上方的前言），两者之间只剩表单自己的 md，不再是 xl + md。两者作用于所有状态 —— embedded 的内容，可用或不可用（不可用的 embedded 视图把标题显示为一行次要文字），以及宿主留在面板里的卡片外壳（spec/plugin-view-vectors.json 的 rules.inset 与 insets）。管理页筛选（Vue）：rows 块的 filters 列出页面筛选栏要显示的视图输入，不带时为全部输入；其余输入只由行动作的表单收集。flarePluginFilterInputs(view) 按文档顺序返回它们（spec/plugin-view-vectors.json 的 filterInputs）。"
+        "en": "Render facts follow spec/plugin-view-vectors.json (views, optimistic, time, countdown). Shell: the business card of the kit — width sizes.component.richCardWidth (constrained by the parent), radius lg, a hairline border and the card shadow; the title row carries the icon. Actions: style danger → danger key, primary → primary key, otherwise secondary; confirm → the kit DangerConfirm first; form → the kit bottom sheet with PluginForm, whose submit emits action(id, {formValues}). Choices: single submits on tap; multiple toggles a draft and submits from a key labelled with the block's action. The kit marks the submitted options at once and reverts when error becomes non-empty (or busyActionId clears with an error); a new view settles it. Payload: {selection?, formValues?} (Vue rows add row: {key, input}). openDetail comes from \"see all\" (Vue rows: from a row, with {key, input}) or from the card's view details key, and the host opens PluginDetailSheet. View details: when view.detail is true and no entries block shows its see all, an available card that is not embedded and has no rows block draws a full-width quiet text key (size sm, pluginViewDetail / Vue pluginView.detail) under the action keys; it emits openDetail with no row, waits while busy or busyActionId is set, and needs a host that handles openDetail (spec/plugin-view-vectors.json rules.detailKey, detailKey). Time is formatted in the device zone with pluginViewDateTimeFormat; countdown refreshes every second under an hour and every minute otherwise. Rows (admin pages) are Vue only: FlareDataTable with row actions, a row click for the detail, load more (loadMore(cursor, source)) and the empty text. Settling: the explicit signal is settleToken (the host increments it once per finished action, after setting that result's error / formErrors); busyActionId leaving the action is the fallback, and a host that sets and clears busyActionId within one frame settles only through the token (spec/plugin-view-vectors.json optimistic, rules.settle). Inset: sheet pads the view with spacing md / lg / xl (top / sides / bottom) like PluginForm, for a view placed straight into the kit BottomSheet; sheetTop pads md / lg / 0 for a view with more of the sheet under it (a preface above PluginForm), so the two meet at the form's own md and not at xl + md. Both pad every state — the embedded body, available or not (an unavailable embedded view shows its title as one secondary line), and a card shell a host keeps in a sheet (spec/plugin-view-vectors.json rules.inset, insets). Admin filters (Vue): a rows block's filters names the view inputs the page shows as its filter bar, every input when absent; the other inputs are only collected by row actions' forms. flarePluginFilterInputs(view) returns them in document order (spec/plugin-view-vectors.json filterInputs). Protocol v2 shape (W1-PROTO-SDK §2): view.menuActions open from a kit ⋯ key at the end of the title row (embedded: keys after view.actions) and run like buttons; grouped entries draw a header row \"label · N votes · P%\" before the first item of each group, number within the group and tag the viewer's row \"me\"; view.unavailableReason (disabled, not_installed, no_permission, unsupported_platform, incompatible_version, catalog_unreachable, unbound_copy) adds its localized line after the title, led by displayName; unbound_copy stays readable and read-only. The card shell is the message's card surface: the timeline draws no bubble around it, and a quoted reply goes in the shell's quote slot. Facts in spec/plugin-view-vectors.json (menuActions, entriesGrouped, unavailableReason, shell).",
+        "zh": "渲染事实以 spec/plugin-view-vectors.json 为准（views、optimistic、time、countdown）。外壳与 Kit 业务卡片一致：宽度 sizes.component.richCardWidth（服从父约束）、圆角 lg、细边框和卡片阴影，标题行带图标位。动作：style 为 danger 用危险键，primary 用主键，其余为次要键；有 confirm 先弹 Kit 的 DangerConfirm；有 form 打开 Kit 底部面板里的 PluginForm，提交时发出 action(id, {formValues})。choices：单选点一项立即提交；多选勾选后点提交键，键名取块持有的动作 label。Kit 先乐观标记提交的选项，error 变为非空（或 busyActionId 清空时带着 error）时撤回，新视图到达即结算。payload 为 {selection?, formValues?}（Vue 的 rows 另有 row: {key, input}）。「查看全部」或卡片的「查看详情」发出 openDetail（Vue 的 rows 点行时带 {key, input}），宿主打开 PluginDetailSheet。查看详情：view.detail 为真且没有 entries 块在显示「查看全部」时，可用、非 embedded、没有 rows 块的卡片在动作区下方画一个整宽的 quiet 文字按钮（size sm，pluginViewDetail / Vue 的 pluginView.detail），点击发出不带 row 的 openDetail；busy 或 busyActionId 时禁用；宿主要处理 openDetail 才显示（spec/plugin-view-vectors.json 的 rules.detailKey 与 detailKey）。时间按设备时区用 pluginViewDateTimeFormat 格式化；倒计时剩余不到 1 小时每秒刷新，否则每分钟刷新。rows（管理页）只在 Vue：FlareDataTable 加行动作、点行打开详情、加载更多（loadMore(cursor, source)）和空态。结算：显式信号是 settleToken（宿主每完成一次动作加 1，并且先设好这次结果的 error / formErrors）；busyActionId 离开该动作是兜底；宿主在同一帧里设上又清掉 busyActionId 时，只能靠令牌结算（spec/plugin-view-vectors.json 的 optimistic 与 rules.settle）。内边距：inset 为 sheet 时按 PluginForm 的 md / lg / xl（上 / 左右 / 下）留白，供直接放进 Kit BottomSheet 的视图使用；sheetTop 留 md / lg / 0，供下面还有面板内容的视图（PluginForm 上方的前言），两者之间只剩表单自己的 md，不再是 xl + md。两者作用于所有状态 —— embedded 的内容，可用或不可用（不可用的 embedded 视图把标题显示为一行次要文字），以及宿主留在面板里的卡片外壳（spec/plugin-view-vectors.json 的 rules.inset 与 insets）。管理页筛选（Vue）：rows 块的 filters 列出页面筛选栏要显示的视图输入，不带时为全部输入；其余输入只由行动作的表单收集。flarePluginFilterInputs(view) 按文档顺序返回它们（spec/plugin-view-vectors.json 的 filterInputs）。协议 v2 形状（W1-PROTO-SDK §2）：view.menuActions 由标题行末尾的 Kit ⋯ 键打开（内嵌时排在 view.actions 之后作为按钮），执行方式与按钮相同；分组 entries 在每组第一条前插组头行「选项 · N 票 · P%」，组内编号，当前用户那行带「我」；view.unavailableReason（disabled、not_installed、no_permission、unsupported_platform、incompatible_version、catalog_unreachable、unbound_copy）在标题后加一行本地化原因，前面是 displayName；unbound_copy 照常显示但只读。卡片外壳就是消息的 card 表面：时间线不在外面再套气泡，引用回复画在外壳的 quote 插槽里。事实见 spec/plugin-view-vectors.json（menuActions、entriesGrouped、unavailableReason、shell）。"
+      },
+      "slots": [
+        "quote"
+      ],
+      "slotPlatforms": {
+        "quote": [
+          "vue",
+          "compose"
+        ]
+      },
+      "slotReasons": {
+        "quote": "Flutter and SwiftUI have no quote parameter: the timeline hands the row's quote to the card through the ambient FlareCardQuote (Flutter) / flareMessageCardQuote environment (SwiftUI), and PluginView draws it inside its shell above the title row, so a host renderer gets it without passing anything."
       }
     },
     {
@@ -14422,6 +14790,15 @@
           }
         },
         {
+          "name": "viewerId",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "The viewer's user id, passed to the embedded PluginView (the me tag in grouped entries).",
+            "zh": "当前用户 id，交给内嵌 PluginView（分组名单里的「我」）。"
+          }
+        },
+        {
           "name": "busyActionId",
           "type": "string",
           "required": false,
@@ -14533,6 +14910,209 @@
       "notes": {
         "en": "The detail view is rendered by PluginView with embedded true (no card shell, no title row), so blocks, actions and their forms behave as on the card. Flutter: FlarePluginDetailSheet is the content and FlarePluginDetailSheet.show presents it on the kit sheet under a title; SwiftUI: PluginDetailSheetView inside flareBottomSheet(isPresented:title:); Compose: PluginDetailSheet composes the kit BottomSheet and reports onClose. Detail actions: busyActionId, actionError (as the view's error), formErrors, members and settleToken go to the embedded PluginView unchanged, so an action run from the detail spins, fails, collects its form and settles inside the sheet. The host keeps them apart from the card's own busy and error, so a failure in the detail never lands on the card below. Paging: a detail view with a non-blank nextCursor shows a full-width load-more key under the embedded view (Vue pluginView.loadMore, natives myInviteLoadMore); a tap emits loadMore(cursor), the host fetches that page and passes back the merged view (the core SDK appends pages: entries pair up and number on; the kit merges nothing), and the key goes away with the last page (absent or blank nextCursor). The key spins and is disabled while loadingMore is true or while the cursor the kit last asked for is still the view's nextCursor, so one page is never asked for twice; a merged view with a new cursor makes it tappable again, and the kit forgets the asked cursor (allowing a retry) when loadingMore goes from true to false, when settleToken changes or when actionError becomes non-empty. A failure is shown through actionError. Rules and samples: spec/plugin-view-vectors.json detailPaging.",
         "zh": "detail 视图由 embedded 为真的 PluginView 渲染（无卡片外壳、无标题行），块、动作和表单的行为与卡片一致。Flutter：FlarePluginDetailSheet 是内容，FlarePluginDetailSheet.show 在 Kit 面板上带标题呈现；SwiftUI：PluginDetailSheetView 放进 flareBottomSheet(isPresented:title:)；Compose：PluginDetailSheet 组合 Kit BottomSheet 并回调 onClose。详情里的动作：busyActionId、actionError（作为视图的 error）、formErrors、members、settleToken 原样交给内嵌 PluginView，详情里的动作在面板内转圈、出错、收表单、结算。宿主要把它们和卡片自己的 busy、error 分开，详情里的失败不会落到面板下面的卡片上。分页：detail 视图带非空的 nextCursor 时，在内嵌视图下方画一行整宽的「加载更多」（Vue 为 pluginView.loadMore，原生为 myInviteLoadMore）；点击发出 loadMore(cursor)，宿主取下一页后把合并好的视图传回（合并由核心 SDK 做：entries 依次接上、序号续排；Kit 不合并），最后一页（nextCursor 不存在或为空白）时按钮消失。loadingMore 为真，或 Kit 记下的已请求游标仍等于当前 nextCursor 时，按钮转圈并禁用，同一页不会被请求两次；合并后的视图换了游标即恢复可点；loadingMore 由真变假、settleToken 变化或 actionError 变为非空时，Kit 清掉已请求的游标，允许重试。失败经 actionError 显示。规则与样例见 spec/plugin-view-vectors.json 的 detailPaging。"
+      }
+    },
+    {
+      "name": "PluginPage",
+      "category": "Message",
+      "summary": {
+        "en": "Plugin page host — a full-screen page for a plugin's page contribution (a wallet, a list): header with back, pull to refresh, the resolved view drawn by the PluginView document renderer, load more.",
+        "zh": "插件页面宿主 —— 插件 page 贡献（钱包、列表）的全屏页面：带返回的页头、下拉刷新、由 PluginView 文档渲染器画出的解析视图、加载更多。"
+      },
+      "dataSource": {
+        "en": "a resolved page view from the core SDK (ResolvedPluginView of the page contribution)",
+        "zh": "核心 SDK 给出的页面解析视图（page 贡献的 ResolvedPluginView）"
+      },
+      "props": [
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Page title while there is no view; the view's title wins.",
+            "zh": "还没有视图时的页面标题；有视图时取视图标题。"
+          }
+        },
+        {
+          "name": "view",
+          "type": "FlarePluginViewModel",
+          "required": false,
+          "description": {
+            "en": "The resolved page view; absent while the first load runs.",
+            "zh": "解析后的页面视图；首次加载时没有。"
+          }
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "The first load runs: a spinner in place of the view.",
+            "zh": "首次加载中：用转圈代替视图。"
+          },
+          "default": "false"
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Loading failed with no view to show: the host's text and a retry key.",
+            "zh": "加载失败且没有可显示的视图：宿主文案和重试键。"
+          }
+        },
+        {
+          "name": "refreshing",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "A pull to refresh (or the header refresh key) is running: the refresh indicator stays until it clears.",
+            "zh": "下拉刷新（或页头刷新键）进行中：刷新指示一直显示到它变假。"
+          },
+          "default": "false"
+        },
+        {
+          "name": "loadingMore",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "The next page is loading (after loadMore): the load-more key spins and is disabled.",
+            "zh": "正在加载下一页（loadMore 之后）：「加载更多」键转圈并禁用。"
+          },
+          "default": "false"
+        },
+        {
+          "name": "back",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "Draw the page's back key (emits back); the platform back does the same.",
+            "zh": "显示返回键（发出 back）；平台返回键效果相同。"
+          },
+          "default": "false",
+          "platforms": [
+            "vue"
+          ]
+        },
+        {
+          "name": "resolveUser",
+          "type": "(userId: string) => FlarePluginUser | Promise<FlarePluginUser | undefined> | undefined",
+          "required": false,
+          "description": {
+            "en": "Name and avatar of a user id in people and entries, as in PluginView.",
+            "zh": "people 与 entries 里 userId 的名字和头像，同 PluginView。"
+          }
+        },
+        {
+          "name": "viewerId",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "The viewer's user id (the me tag in entries).",
+            "zh": "当前用户 id（entries 里的「我」）。"
+          }
+        },
+        {
+          "name": "busyActionId",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "The action in flight, passed to the view.",
+            "zh": "执行中的动作，交给视图。"
+          }
+        },
+        {
+          "name": "actionError",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Failure text of an action run on the page (the view's error).",
+            "zh": "页面里执行的动作出错时的文案（视图的 error）。"
+          }
+        },
+        {
+          "name": "formErrors",
+          "type": "FlarePluginFormError[]",
+          "required": false,
+          "description": {
+            "en": "The host's validation errors for an action form opened on the page.",
+            "zh": "页面里打开的动作表单的宿主校验错误。"
+          }
+        },
+        {
+          "name": "members",
+          "type": "FlarePluginMember[]",
+          "required": false,
+          "description": {
+            "en": "Candidates for members inputs in the page's action forms.",
+            "zh": "页面动作表单里 members 输入的候选。"
+          }
+        },
+        {
+          "name": "settleToken",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "The host's settle signal for actions run on the page (PluginView settleToken).",
+            "zh": "页面里执行的动作的结算信号（同 PluginView settleToken）。"
+          },
+          "default": "0"
+        }
+      ],
+      "states": [
+        "loading",
+        "error",
+        "loaded",
+        "refreshing",
+        "loadingMore"
+      ],
+      "events": [
+        "back",
+        "refresh",
+        "retry",
+        "loadMore",
+        "action",
+        "openDetail"
+      ],
+      "notes": {
+        "en": "The page host for red packet v5's wallet and any plugin `page` contribution (docs/design/red-packet-v5-roles-and-wallet.md §3.2): the kit Screen with the title and back key, the view drawn by PluginView embedded (same document renderer as the detail sheet, so blocks, menu actions, forms and settling behave the same), pull to refresh on touch and a refresh key in the header on pointer devices, and a full-width load-more key under the view while view.nextCursor is non-blank (asked once per cursor, as in PluginDetailSheet). The host fetches: refresh, retry and loadMore are requests; the kit calls nothing. No placeholder buttons: whatever the view does not declare is not drawn.",
+        "zh": "红包第五版钱包页和任何插件 page 贡献的页面宿主（docs/design/red-packet-v5-roles-and-wallet.md §3.2）：Kit 的 Screen（标题、返回键），视图由内嵌 PluginView 绘制（与详情面板同一套文档渲染器，块、菜单动作、表单与结算行为一致），触屏下拉刷新、指针设备页头有刷新键，view.nextCursor 非空时视图下方有整宽的「加载更多」（同一游标只请求一次，同 PluginDetailSheet）。取数由宿主负责：refresh、retry、loadMore 都是请求，Kit 不调用任何接口。不放占位按钮：视图没声明的东西不画。"
+      },
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlarePluginPage"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlarePluginPage"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "FlarePluginPage"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlarePluginPage"
+        }
+      },
+      "accessibility": {
+        "role": "region",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab reaches the back key, the refresh key and the view's controls",
+          "Enter or Space activates them",
+          "The platform back acts as the back key"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "The pull indicator follows the finger without easing; the spinner is static under reduced motion.",
+        "screenReaderSemantics": "Region named by the title; the refresh indicator is a status that announces refreshing; load more is a button named by its label."
       }
     },
     {

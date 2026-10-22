@@ -1,0 +1,280 @@
+{
+  "$comment": "Receipt projection (docs/design/message-surface-and-meta.md C3) and the row's accessible name (C6 / §6). The core SDK hands every message a MessageReceiptView {status, readSummary?}; the kit only draws it, apps map nothing. Read by the four kit tests through each kit's messageReceiptPresentation and messageAccessibilityLabel pure functions and their MessageMeta / MessageStatus rendering. Copy keys name strings/*.json fields (Vue: message.<key without the message prefix>). Change the rules and the cases together.",
+  "version": 1,
+  "statuses": [
+    "pending",
+    "sending",
+    "sent",
+    "read",
+    "failed"
+  ],
+  "glyphs": {
+    "pending": "clock",
+    "sending": "spinner",
+    "sent": "check",
+    "read": "doubleCheck",
+    "failed": "alert"
+  },
+  "rules": {
+    "status": "Five visual states. There is no delivered state: a single check means the server has the message, a double check means it was read (single chats). A host never maps a delivered state; the SDK projection does not have one.",
+    "glyph": "pending clock, sending spinner (reduced motion: static), sent single check, read double check in status.read (never the same shape as sent), failed alert. Glyph accessible names: messagePending, messageSending, messageSent, messageRead, messageFailed.",
+    "readSummary": "readSummary {readCount, unreadCount, total} exists only on the viewer's own messages in group conversations and only when the SDK has the data (empty for conversations above the large-group threshold). With a summary and status sent or read, the summary text replaces the check glyph: unreadCount > 0 → messageReadSummaryUnread with {count: unreadCount} (\"{count} 人未读\" / \"{count} unread\"); unreadCount == 0 → messageReadSummaryAllRead (\"全部已读\" / \"Read by all\"). pending, sending and failed keep their glyph and show no summary. No summary (single chats, big groups, no data yet): the glyph only; never a made-up number.",
+    "readSummaryTap": "When the host listens for readReceiptOpen the summary is a text button (hit area at least layout.touchTarget) that emits readReceiptOpen(messageId); otherwise it is plain text. Its accessible name is its text.",
+    "summaryColour": "unreadCount > 0: the meta text colour of its placement (onOutgoing tone inside an outgoing bubble, message.metaForeground elsewhere). All read: status.read (status.readOnOutgoing inside an outgoing bubble).",
+    "incoming": "Incoming messages never show a status glyph or a read summary.",
+    "accessibilityLabel": "One reading unit per message row, parts in this order, empty parts skipped: sender display name; content summary (the message preview, spec/message-preview-vectors.json); time (the bubble's clock text); for the viewer's own messages the status text (the glyph name above, or messageSendFailedRetry when failed) or, when a read summary replaces the glyph, the summary text. Parts are joined with the locale's list separator: \"，\" in zh, \", \" elsewhere. Custom accessibility actions on the row: reply, open menu, and retry while failed."
+  },
+  "cases": [
+    {
+      "id": "single-pending",
+      "conversationKind": "single",
+      "self": true,
+      "status": "pending",
+      "expect": {
+        "glyph": "clock",
+        "summary": null
+      }
+    },
+    {
+      "id": "single-sending",
+      "conversationKind": "single",
+      "self": true,
+      "status": "sending",
+      "expect": {
+        "glyph": "spinner",
+        "summary": null
+      }
+    },
+    {
+      "id": "single-sent",
+      "conversationKind": "single",
+      "self": true,
+      "status": "sent",
+      "expect": {
+        "glyph": "check",
+        "summary": null
+      }
+    },
+    {
+      "id": "single-read",
+      "conversationKind": "single",
+      "self": true,
+      "status": "read",
+      "expect": {
+        "glyph": "doubleCheck",
+        "summary": null
+      }
+    },
+    {
+      "id": "single-failed",
+      "conversationKind": "single",
+      "self": true,
+      "status": "failed",
+      "expect": {
+        "glyph": "alert",
+        "summary": null
+      }
+    },
+    {
+      "id": "single-ignores-summary",
+      "conversationKind": "single",
+      "self": true,
+      "status": "sent",
+      "readSummary": {
+        "readCount": 0,
+        "unreadCount": 1,
+        "total": 1
+      },
+      "expect": {
+        "glyph": "check",
+        "summary": null
+      }
+    },
+    {
+      "id": "incoming-no-status",
+      "conversationKind": "single",
+      "self": false,
+      "status": "read",
+      "expect": {
+        "glyph": null,
+        "summary": null
+      }
+    },
+    {
+      "id": "group-incoming-no-summary",
+      "conversationKind": "group",
+      "self": false,
+      "status": "sent",
+      "readSummary": {
+        "readCount": 2,
+        "unreadCount": 3,
+        "total": 5
+      },
+      "expect": {
+        "glyph": null,
+        "summary": null
+      }
+    },
+    {
+      "id": "group-no-summary",
+      "conversationKind": "group",
+      "self": true,
+      "status": "sent",
+      "expect": {
+        "glyph": "check",
+        "summary": null
+      }
+    },
+    {
+      "id": "group-unread",
+      "conversationKind": "group",
+      "self": true,
+      "status": "sent",
+      "readSummary": {
+        "readCount": 2,
+        "unreadCount": 3,
+        "total": 5
+      },
+      "expect": {
+        "glyph": null,
+        "summary": {
+          "key": "messageReadSummaryUnread",
+          "count": 3,
+          "zh": "3 人未读",
+          "en": "3 unread",
+          "allRead": false
+        }
+      }
+    },
+    {
+      "id": "group-all-read",
+      "conversationKind": "group",
+      "self": true,
+      "status": "read",
+      "readSummary": {
+        "readCount": 5,
+        "unreadCount": 0,
+        "total": 5
+      },
+      "expect": {
+        "glyph": null,
+        "summary": {
+          "key": "messageReadSummaryAllRead",
+          "count": null,
+          "zh": "全部已读",
+          "en": "Read by all",
+          "allRead": true
+        }
+      }
+    },
+    {
+      "id": "group-all-read-while-sent",
+      "conversationKind": "group",
+      "self": true,
+      "status": "sent",
+      "readSummary": {
+        "readCount": 4,
+        "unreadCount": 0,
+        "total": 4
+      },
+      "expect": {
+        "glyph": null,
+        "summary": {
+          "key": "messageReadSummaryAllRead",
+          "count": null,
+          "zh": "全部已读",
+          "en": "Read by all",
+          "allRead": true
+        }
+      }
+    },
+    {
+      "id": "group-sending-keeps-glyph",
+      "conversationKind": "group",
+      "self": true,
+      "status": "sending",
+      "readSummary": {
+        "readCount": 0,
+        "unreadCount": 4,
+        "total": 4
+      },
+      "expect": {
+        "glyph": "spinner",
+        "summary": null
+      }
+    },
+    {
+      "id": "group-failed-keeps-glyph",
+      "conversationKind": "group",
+      "self": true,
+      "status": "failed",
+      "readSummary": {
+        "readCount": 0,
+        "unreadCount": 4,
+        "total": 4
+      },
+      "expect": {
+        "glyph": "alert",
+        "summary": null
+      }
+    }
+  ],
+  "accessibility": [
+    {
+      "id": "incoming-text",
+      "locale": "zh-CN",
+      "sender": "Alice",
+      "preview": "明天见",
+      "time": "09:05",
+      "self": false,
+      "status": "sent",
+      "expect": "Alice，明天见，09:05"
+    },
+    {
+      "id": "outgoing-read",
+      "locale": "zh-CN",
+      "sender": "我",
+      "preview": "好的",
+      "time": "09:06",
+      "self": true,
+      "status": "read",
+      "expect": "我，好的，09:06，已读"
+    },
+    {
+      "id": "outgoing-failed",
+      "locale": "zh-CN",
+      "sender": "我",
+      "preview": "[图片]",
+      "time": "09:07",
+      "self": true,
+      "status": "failed",
+      "expect": "我，[图片]，09:07，发送失败，重试"
+    },
+    {
+      "id": "outgoing-group-summary",
+      "locale": "zh-CN",
+      "sender": "我",
+      "preview": "开会了",
+      "time": "10:00",
+      "self": true,
+      "status": "sent",
+      "conversationKind": "group",
+      "readSummary": {
+        "readCount": 2,
+        "unreadCount": 3,
+        "total": 5
+      },
+      "expect": "我，开会了，10:00，3 人未读"
+    },
+    {
+      "id": "outgoing-en",
+      "locale": "en",
+      "sender": "Me",
+      "preview": "See you",
+      "time": "9:06 AM",
+      "self": true,
+      "status": "sent",
+      "expect": "Me, See you, 9:06 AM, Sent"
+    }
+  ]
+}

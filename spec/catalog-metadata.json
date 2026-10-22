@@ -213,6 +213,14 @@
       "插件配置",
       "配置表单",
       "表单生成"
+    ],
+    "PluginPage": [
+      "plugin page",
+      "wallet",
+      "plugin screen",
+      "钱包",
+      "插件页面",
+      "钱包页"
     ]
   },
   "overrides": {

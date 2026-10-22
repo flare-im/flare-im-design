@@ -23,7 +23,11 @@
     "detail": "PluginDetailSheet: loading → a spinner (accessible name: loading); error → the host's text and the retry key (retry); otherwise an embedded PluginView of the detail view. Title: view.title, else the host's title. Actions run from the detail: busyActionId, actionError (the view's error), formErrors, members and settleToken go to the embedded view unchanged, so their failure shows inside the sheet. Paging: a non-blank view.nextCursor shows a full-width load-more key under the embedded view (Vue pluginView.loadMore, natives myInviteLoadMore), which emits loadMore(nextCursor); a blank or absent nextCursor is the last page (no key). The key spins and is disabled while loadingMore is true or while the cursor the kit last asked for equals view.nextCursor (no page is asked for twice); a view with another cursor is tappable again. The asked cursor is forgotten (a retry allowed) when loadingMore goes from true to false, settleToken changes or actionError becomes non-empty. The host passes back the merged view (the core SDK appends pages; the kit merges nothing).",
     "settle": "settleToken: an integer the host increments once per finished action, after setting that result's error and formErrors. Every change settles: no error and no formErrors → a submitted form closes and an optimistic choice stays marked (interaction still paused) until the new view; error → the optimistic choice reverts and an open form stays with the error; formErrors → the form stays open with them and a choice it carries reverts. The error is read at the change, so the same text as before still reverts. busyActionId leaving the action settles the same way as a fallback; a host that sets and clears busyActionId within one frame settles only through the token. Settling twice (token and busyActionId together) is the same as once.",
     "inset": "Where the view sits. none (default) adds nothing. sheet: straight in a kit sheet — spacing md on top, lg at the sides and xl at the bottom (PluginForm's insets). sheetTop: at the top of a sheet with more under it (a preface above PluginForm) — md on top, lg at the sides and nothing at the bottom, so the next part's own top inset is the gap (no xl + md). The inset pads whatever the view draws, in every state: the embedded body (available or not, with or without the error) and a card shell a host keeps in a sheet (outside the shell, which keeps its own md padding). Values by side in `insets` (spacing token names; null is 0).",
-    "detailKey": "The card's own way into the detail view: a full-width quiet text key (size sm) under the action keys, label pluginViewDetail (Vue pluginView.detail), emitting openDetail with no row — the same as see all. Shown when view.detail is true, the view is available, it is not embedded (the detail sheet, admin pages and a sheet's preface draw none), no entries block shows its see all (more), the view has no rows block (an admin page opens the detail from its rows; Vue only) and the host handles openDetail (natives: onOpenDetail set; Vue: an openDetail listener). busy or busyActionId disables it. Cases in `detailKey`."
+    "detailKey": "The card's own way into the detail view: a full-width quiet text key (size sm) under the action keys, label pluginViewDetail (Vue pluginView.detail), emitting openDetail with no row — the same as see all. Shown when view.detail is true, the view is available, it is not embedded (the detail sheet, admin pages and a sheet's preface draw none), no entries block shows its see all (more), the view has no rows block (an admin page opens the detail from its rows; Vue only) and the host handles openDetail (natives: onOpenDetail set; Vue: an openDetail listener). busy or busyActionId disables it. Cases in `detailKey`.",
+    "menuActions": "view.menuActions (actions the plugin placed in the card's overflow menu): when non-empty the card's title row ends with a kit icon key (ellipsis, accessible name pluginViewMore) that opens the kit action menu (Vue FlareActionMenu; natives their ActionMenu / action sheet) with one item per menu action in order, label = action label, danger tone for style danger. Choosing an item runs the action exactly like a button (confirm, then form, then action(id, {})); busy or busyActionId disables the key. Embedded views (detail sheet, plugin page) have no title row: there the menu actions are drawn as keys after view.actions, in the same action row. No menuActions or an empty list: no key.",
+    "entriesGrouped": "entries with grouped true: one flat list; an item that carries `group` is preceded by a group header row reading groupHeader = [group.label, pluginViewVotes(count) when count is present, \"{percent}%\" when percent is present] joined with \" · \" (\"火锅 · 3 票 · 38%\"). Items keep their order; index restarts at 1 in each group; numbered false shows no numbers. A row whose userId equals the host's viewerId carries the \"me\" tag (pluginViewMe, \"我\" / \"Me\") after its name. Header facts in `entryGroupHeaders`.",
+    "unavailableReason": "view.unavailableReason, one of disabled, not_installed, no_permission, unsupported_platform, incompatible_version, catalog_unreachable, unbound_copy. available false: the title row (view.title) and one reason line in secondary text: the reason's copy (`unavailableReasons`), prefixed by the envelope's displayName and \" · \" when the host passes displayName (\"投票 · 插件已停用\"). No reason: no reason line (the old unavailable card). unbound_copy keeps available true (the core SDK has already stripped actions, menuActions, inputs, detail, the choices submit and entries' more): the content draws read-only and the reason line (pluginViewUnavailableUnboundCopy) closes the card in tertiary text.",
+    "shell": "The card shell (title row, padding md, radius lg, primary background, secondary border) is the message's card surface (spec/message-surface-vectors.json): the timeline draws no bubble around it, so there is one container. An embedded view draws no shell. The quote slot of a card shell sits inside it, above the title row."
   },
   "users": {
     "u_alice01": {
@@ -177,7 +181,9 @@
             "form": false
           }
         ],
-        "seeAllOpensDetail": false
+        "seeAllOpensDetail": false,
+        "menu": [],
+        "reason": null
       }
     },
     {
@@ -303,7 +309,9 @@
             "form": false
           }
         ],
-        "seeAllOpensDetail": false
+        "seeAllOpensDetail": false,
+        "menu": [],
+        "reason": null
       }
     },
     {
@@ -433,7 +441,9 @@
             "form": false
           }
         ],
-        "seeAllOpensDetail": false
+        "seeAllOpensDetail": false,
+        "menu": [],
+        "reason": null
       }
     },
     {
@@ -553,7 +563,9 @@
             "form": false
           }
         ],
-        "seeAllOpensDetail": false
+        "seeAllOpensDetail": false,
+        "menu": [],
+        "reason": null
       }
     },
     {
@@ -654,7 +666,9 @@
           }
         ],
         "actions": [],
-        "seeAllOpensDetail": false
+        "seeAllOpensDetail": false,
+        "menu": [],
+        "reason": null
       }
     },
     {
@@ -851,7 +865,9 @@
             "form": true
           }
         ],
-        "seeAllOpensDetail": true
+        "seeAllOpensDetail": true,
+        "menu": [],
+        "reason": null
       }
     },
     {
@@ -968,7 +984,9 @@
             "form": false
           }
         ],
-        "seeAllOpensDetail": false
+        "seeAllOpensDetail": false,
+        "menu": [],
+        "reason": null
       }
     },
     {
@@ -1117,7 +1135,9 @@
             "form": false
           }
         ],
-        "seeAllOpensDetail": false
+        "seeAllOpensDetail": false,
+        "menu": [],
+        "reason": null
       }
     },
     {
@@ -1241,7 +1261,9 @@
             "form": false
           }
         ],
-        "seeAllOpensDetail": false
+        "seeAllOpensDetail": false,
+        "menu": [],
+        "reason": null
       }
     },
     {
@@ -1367,7 +1389,9 @@
           }
         ],
         "actions": [],
-        "seeAllOpensDetail": false
+        "seeAllOpensDetail": false,
+        "menu": [],
+        "reason": null
       }
     },
     {
@@ -1418,7 +1442,9 @@
             "form": false
           }
         ],
-        "seeAllOpensDetail": false
+        "seeAllOpensDetail": false,
+        "menu": [],
+        "reason": null
       }
     },
     {
@@ -1462,7 +1488,9 @@
         "bodyHidden": true,
         "fields": [],
         "blocks": [],
-        "actions": []
+        "actions": [],
+        "menu": [],
+        "reason": null
       }
     },
     {
@@ -1652,7 +1680,9 @@
           }
         ],
         "actions": [],
-        "seeAllOpensDetail": false
+        "seeAllOpensDetail": false,
+        "menu": [],
+        "reason": null
       }
     },
     {
@@ -1697,7 +1727,460 @@
           }
         ],
         "actions": [],
-        "seeAllOpensDetail": false
+        "seeAllOpensDetail": false,
+        "menu": [],
+        "reason": null
+      }
+    },
+    {
+      "id": "poll-v2-menu",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "available": true,
+        "title": "周五团建去哪儿？",
+        "fields": [],
+        "actions": [],
+        "blocks": [
+          {
+            "kind": "choices",
+            "options": [
+              {
+                "index": 0,
+                "label": "爬山",
+                "selected": false
+              },
+              {
+                "index": 1,
+                "label": "桌游",
+                "selected": false
+              },
+              {
+                "index": 2,
+                "label": "烧烤",
+                "selected": false
+              }
+            ],
+            "multiple": false,
+            "voted": false,
+            "closed": false,
+            "showResults": false,
+            "inputName": "selection",
+            "action": {
+              "id": "vote",
+              "label": "投票",
+              "target": {
+                "kind": "operation",
+                "operation": "vote"
+              },
+              "input": {}
+            }
+          },
+          {
+            "kind": "time",
+            "label": "截止",
+            "atMs": 1792663200000,
+            "countdown": true
+          }
+        ],
+        "menuActions": [
+          {
+            "id": "close",
+            "label": "结束投票",
+            "target": {
+              "kind": "operation",
+              "operation": "close"
+            },
+            "input": {},
+            "style": "danger",
+            "confirm": "结束后不能再投票，确定结束吗？",
+            "placement": "menu"
+          },
+          {
+            "id": "cancel",
+            "label": "取消投票",
+            "target": {
+              "kind": "operation",
+              "operation": "cancel"
+            },
+            "input": {},
+            "style": "danger",
+            "confirm": "取消后投票作废，确定取消吗？",
+            "placement": "menu"
+          }
+        ],
+        "detail": true
+      },
+      "expect": {
+        "title": "周五团建去哪儿？",
+        "bodyHidden": false,
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "choices",
+            "interactive": true,
+            "multiple": false,
+            "submit": null,
+            "options": [
+              {
+                "label": "爬山",
+                "selected": false,
+                "percentText": null,
+                "votesText": null,
+                "bar": null
+              },
+              {
+                "label": "桌游",
+                "selected": false,
+                "percentText": null,
+                "votesText": null,
+                "bar": null
+              },
+              {
+                "label": "烧烤",
+                "selected": false,
+                "percentText": null,
+                "votesText": null,
+                "bar": null
+              }
+            ],
+            "footer": null
+          },
+          {
+            "kind": "time",
+            "label": "截止",
+            "text": "10月22日 18:00",
+            "countdown": "剩余 8 小时",
+            "refreshMs": 60000
+          }
+        ],
+        "actions": [],
+        "seeAllOpensDetail": false,
+        "menu": [
+          {
+            "id": "close",
+            "label": "结束投票",
+            "variant": "danger",
+            "confirm": "结束后不能再投票，确定结束吗？",
+            "form": false
+          },
+          {
+            "id": "cancel",
+            "label": "取消投票",
+            "variant": "danger",
+            "confirm": "取消后投票作废，确定取消吗？",
+            "form": false
+          }
+        ],
+        "reason": null
+      }
+    },
+    {
+      "id": "poll-v2-detail-grouped",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "viewerId": "u_bob0002",
+      "view": {
+        "available": true,
+        "title": "周五团建去哪儿？",
+        "fields": [],
+        "actions": [],
+        "menuActions": [
+          {
+            "id": "close",
+            "label": "结束投票",
+            "target": {
+              "kind": "operation",
+              "operation": "close"
+            },
+            "input": {},
+            "style": "danger",
+            "confirm": "结束后不能再投票，确定结束吗？",
+            "placement": "menu"
+          }
+        ],
+        "blocks": [
+          {
+            "kind": "entries",
+            "grouped": true,
+            "numbered": false,
+            "total": 5,
+            "more": false,
+            "items": [
+              {
+                "index": 1,
+                "text": "",
+                "userId": "u_alice01",
+                "group": {
+                  "key": "0",
+                  "label": "火锅",
+                  "count": 3,
+                  "total": 5,
+                  "percent": 60
+                }
+              },
+              {
+                "index": 2,
+                "text": "",
+                "userId": "u_bob0002"
+              },
+              {
+                "index": 3,
+                "text": "",
+                "userId": "u_dave9876"
+              },
+              {
+                "index": 1,
+                "text": "",
+                "userId": "u_carol003",
+                "group": {
+                  "key": "1",
+                  "label": "烧烤",
+                  "count": 2,
+                  "total": 5,
+                  "percent": 40
+                }
+              },
+              {
+                "index": 2,
+                "text": "",
+                "userId": "u_alice01",
+                "name": "小周"
+              }
+            ]
+          }
+        ]
+      },
+      "embedded": true,
+      "expect": {
+        "title": "周五团建去哪儿？",
+        "bodyHidden": false,
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "entries",
+            "seeAll": null,
+            "empty": null,
+            "rows": [
+              {
+                "number": null,
+                "name": "Alice",
+                "text": "",
+                "userId": "u_alice01",
+                "group": "火锅 · 3 票 · 60%",
+                "me": false
+              },
+              {
+                "number": null,
+                "name": "Bob",
+                "text": "",
+                "userId": "u_bob0002",
+                "group": null,
+                "me": true
+              },
+              {
+                "number": null,
+                "name": "9876",
+                "text": "",
+                "userId": "u_dave9876",
+                "group": null,
+                "me": false
+              },
+              {
+                "number": null,
+                "name": "Carol",
+                "text": "",
+                "userId": "u_carol003",
+                "group": "烧烤 · 2 票 · 40%",
+                "me": false
+              },
+              {
+                "number": null,
+                "name": "小周",
+                "text": "",
+                "userId": "u_alice01",
+                "group": null,
+                "me": false
+              }
+            ]
+          }
+        ],
+        "actions": [],
+        "menu": [
+          {
+            "id": "close",
+            "label": "结束投票",
+            "variant": "danger",
+            "confirm": "结束后不能再投票，确定结束吗？",
+            "form": false
+          }
+        ],
+        "menuPresentation": "keys",
+        "seeAllOpensDetail": false,
+        "reason": null
+      }
+    },
+    {
+      "id": "unbound-copy",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "available": true,
+        "title": "周五团建去哪儿？",
+        "fields": [],
+        "actions": [],
+        "blocks": [
+          {
+            "kind": "choices",
+            "options": [
+              {
+                "index": 0,
+                "label": "爬山",
+                "selected": false,
+                "count": 3,
+                "percent": 30
+              },
+              {
+                "index": 1,
+                "label": "桌游",
+                "selected": true,
+                "count": 6,
+                "percent": 60
+              },
+              {
+                "index": 2,
+                "label": "烧烤",
+                "selected": false,
+                "count": 1,
+                "percent": 10
+              }
+            ],
+            "multiple": false,
+            "voted": true,
+            "closed": false,
+            "showResults": true,
+            "total": 10,
+            "inputName": "selection"
+          },
+          {
+            "kind": "time",
+            "label": "截止",
+            "atMs": 1792637109000,
+            "countdown": true
+          }
+        ],
+        "unavailableReason": "unbound_copy"
+      },
+      "expect": {
+        "title": "周五团建去哪儿？",
+        "bodyHidden": false,
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "choices",
+            "interactive": false,
+            "multiple": false,
+            "submit": null,
+            "options": [
+              {
+                "label": "爬山",
+                "selected": false,
+                "percentText": "30%",
+                "votesText": "3 票",
+                "bar": 30
+              },
+              {
+                "label": "桌游",
+                "selected": true,
+                "percentText": "60%",
+                "votesText": "6 票",
+                "bar": 60
+              },
+              {
+                "label": "烧烤",
+                "selected": false,
+                "percentText": "10%",
+                "votesText": "1 票",
+                "bar": 10
+              }
+            ],
+            "footer": "10 票"
+          },
+          {
+            "kind": "time",
+            "label": "截止",
+            "text": "10月22日 10:45",
+            "countdown": "剩余 45:09",
+            "refreshMs": 1000
+          }
+        ],
+        "actions": [],
+        "seeAllOpensDetail": false,
+        "reason": "副本，仅供查看",
+        "menu": []
+      }
+    },
+    {
+      "id": "unavailable-disabled",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "displayName": "投票",
+      "view": {
+        "available": false,
+        "unavailableReason": "disabled",
+        "title": "周五团建去哪儿？",
+        "fields": [],
+        "actions": []
+      },
+      "expect": {
+        "title": "周五团建去哪儿？",
+        "bodyHidden": true,
+        "fields": [],
+        "blocks": [],
+        "actions": [],
+        "reason": "投票 · 插件已停用",
+        "menu": []
+      }
+    },
+    {
+      "id": "unavailable-no-display-name",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "available": false,
+        "unavailableReason": "unsupported_platform",
+        "title": "周五团建去哪儿？",
+        "fields": [],
+        "actions": []
+      },
+      "expect": {
+        "title": "周五团建去哪儿？",
+        "bodyHidden": true,
+        "fields": [],
+        "blocks": [],
+        "actions": [],
+        "reason": "该插件不支持此设备",
+        "menu": []
       }
     }
   ],
@@ -2852,5 +3335,99 @@
         "expect": []
       }
     ]
-  }
+  },
+  "unavailableReasons": [
+    {
+      "reason": "disabled",
+      "key": "pluginViewUnavailableDisabled",
+      "zh": "插件已停用",
+      "en": "This plugin is turned off"
+    },
+    {
+      "reason": "not_installed",
+      "key": "pluginViewUnavailableNotInstalled",
+      "zh": "插件未安装",
+      "en": "This plugin is not installed"
+    },
+    {
+      "reason": "no_permission",
+      "key": "pluginViewUnavailableNoPermission",
+      "zh": "没有使用该插件的权限",
+      "en": "You don't have access to this plugin"
+    },
+    {
+      "reason": "unsupported_platform",
+      "key": "pluginViewUnavailableUnsupportedPlatform",
+      "zh": "该插件不支持此设备",
+      "en": "This plugin isn't available on this device"
+    },
+    {
+      "reason": "incompatible_version",
+      "key": "pluginViewUnavailableIncompatibleVersion",
+      "zh": "请更新应用后查看",
+      "en": "Update the app to view this"
+    },
+    {
+      "reason": "catalog_unreachable",
+      "key": "pluginViewUnavailableCatalogUnreachable",
+      "zh": "暂时无法加载，请稍后再试",
+      "en": "Can't load this right now"
+    },
+    {
+      "reason": "unbound_copy",
+      "key": "pluginViewUnavailableUnboundCopy",
+      "zh": "副本，仅供查看",
+      "en": "Copy, view only"
+    }
+  ],
+  "entryGroupHeaders": [
+    {
+      "group": {
+        "key": "0",
+        "label": "火锅",
+        "count": 3,
+        "total": 8,
+        "percent": 38
+      },
+      "zh": "火锅 · 3 票 · 38%",
+      "en": "火锅 · 3 votes · 38%"
+    },
+    {
+      "group": {
+        "key": "1",
+        "label": "烧烤",
+        "count": 5
+      },
+      "zh": "烧烤 · 5 票",
+      "en": "烧烤 · 5 votes"
+    },
+    {
+      "group": {
+        "key": "2",
+        "label": "其他",
+        "percent": 13
+      },
+      "zh": "其他 · 13%",
+      "en": "其他 · 13%"
+    },
+    {
+      "group": {
+        "key": "3",
+        "label": "爬山"
+      },
+      "zh": "爬山",
+      "en": "爬山"
+    },
+    {
+      "group": {
+        "key": "4",
+        "label": "桌游",
+        "count": 0,
+        "total": 0,
+        "percent": 0
+      },
+      "zh": "桌游 · 0 票 · 0%",
+      "en": "桌游 · 0 votes · 0%"
+    }
+  ]
 }
