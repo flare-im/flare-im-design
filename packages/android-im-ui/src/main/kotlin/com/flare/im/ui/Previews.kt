@@ -42,10 +42,8 @@ private fun MessageStatusPreview() = Row(Modifier.padding(12.dp), horizontalArra
     MessageStatus(FlareMessageDeliveryStatus.Pending)
     MessageStatus(FlareMessageDeliveryStatus.Sending)
     MessageStatus(FlareMessageDeliveryStatus.Sent)
-    MessageStatus(FlareMessageDeliveryStatus.Delivered)
     MessageStatus(FlareMessageDeliveryStatus.Read)
     MessageStatus(FlareMessageDeliveryStatus.Failed)
-    MessageStatus(FlareMessageDeliveryStatus.Retrying)
 }
 
 @Preview(showBackground = true)

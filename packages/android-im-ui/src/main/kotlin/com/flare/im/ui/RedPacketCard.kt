@@ -3,6 +3,7 @@ package com.flare.im.ui
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -45,20 +46,63 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 
 /**
- * What a red packet card shows for the person looking at it. Spec: Message/RedPacketCard `state`.
+ * What a red packet card shows. Spec: dataTypes `RedPacketCardState` (spec/red-packet-vectors.json `cardState`), derived
+ * by [flareRedPacketCardState] from the plugin's public layer and the viewer's personal layer — never from an amount.
  *
- * The host derives it from the plugin's state values; the kit only draws it. Every state but [Unopened] fades the
- * card. [Finished] and [Expired] stay tappable so the viewer can open the details.
+ * [Viewable] is an open packet the viewer will not open from here (the sender's own, or someone else's exclusive one).
+ * Every state but [Unopened] and [Viewable] fades the card; every state stays tappable.
  */
-enum class FlareRedPacketState { Unopened, Claimed, Finished, Expired }
+enum class FlareRedPacketCardState { Unopened, Viewable, Claimed, Finished, Expired, Refunded }
+
+/** The plugin's packet status (public layer). Spec: dataTypes `RedPacketStatus`. */
+enum class FlareRedPacketStatus(val wire: String) {
+    Open("open"), Completed("completed"), Expired("expired"), Refunded("refunded");
+
+    companion object {
+        fun fromWire(value: String?): FlareRedPacketStatus? = entries.firstOrNull { it.wire == value }
+    }
+}
+
+/** Where a tap on the card goes, as the viewer's personal layer says (`tapAction`). */
+enum class FlareRedPacketTapAction(val wire: String) {
+    /** The open sheet with its coin. */
+    Open("open"),
+    /** The details page. */
+    Details("details"),
+    /** The open sheet saying who may open it. */
+    NotEligible("notEligible");
+
+    companion object {
+        fun fromWire(value: String?): FlareRedPacketTapAction? = entries.firstOrNull { it.wire == value }
+    }
+}
 
 /**
- * The status line, in the contract's order: [busy], the host's [statusLabel], then the state ([claimed][FlareRedPacketState.Claimed]
- * with or without the host-formatted [amount], finished, expired), [disabled], and the default call to open.
+ * The card state from the public layer's [status] and the personal layer's [claimedByMe] and [tapAction]
+ * (spec/red-packet-vectors.json `cardState`): what the viewer took wins, then the packet's end (completed, expired,
+ * refunded); an open packet is unopened unless the personal layer sends the tap elsewhere (the sender's details, the
+ * not-eligible notice). Before the personal layer arrives an open packet is unopened.
+ */
+fun flareRedPacketCardState(
+    status: FlareRedPacketStatus,
+    claimedByMe: Boolean = false,
+    tapAction: FlareRedPacketTapAction? = null,
+): FlareRedPacketCardState = when {
+    claimedByMe -> FlareRedPacketCardState.Claimed
+    status == FlareRedPacketStatus.Completed -> FlareRedPacketCardState.Finished
+    status == FlareRedPacketStatus.Expired -> FlareRedPacketCardState.Expired
+    status == FlareRedPacketStatus.Refunded -> FlareRedPacketCardState.Refunded
+    tapAction == FlareRedPacketTapAction.Details || tapAction == FlareRedPacketTapAction.NotEligible -> FlareRedPacketCardState.Viewable
+    else -> FlareRedPacketCardState.Unopened
+}
+
+/**
+ * The status line, in the contract's order (spec/red-packet-vectors.json `card`): [busy], the host's [statusLabel], then
+ * the state — a spent card says what happened (claimed, finished, expired, refunded) even when [disabled]; an unopened or
+ * viewable card says "unavailable" when [disabled], else its call (open, view). Never an amount.
  */
 internal fun redPacketCardStatus(
-    state: FlareRedPacketState,
-    amount: String?,
+    state: FlareRedPacketCardState,
     statusLabel: String?,
     busy: Boolean,
     disabled: Boolean,
@@ -66,36 +110,53 @@ internal fun redPacketCardStatus(
 ): String = when {
     busy -> strings.packetBusy
     statusLabel != null -> statusLabel
-    state == FlareRedPacketState.Claimed -> amount?.let(strings.packetClaimed) ?: strings.packetStateClaimed
-    state == FlareRedPacketState.Finished -> strings.packetFinished
-    state == FlareRedPacketState.Expired -> strings.packetStateExpired
+    state == FlareRedPacketCardState.Claimed -> strings.packetStateClaimed
+    state == FlareRedPacketCardState.Finished -> strings.packetFinished
+    state == FlareRedPacketCardState.Expired -> strings.packetStateExpired
+    state == FlareRedPacketCardState.Refunded -> strings.packetRefunded
     disabled -> strings.packetUnavailable
+    state == FlareRedPacketCardState.Viewable -> strings.packetView
     else -> strings.packetTapToClaim
 }
 
-/** Only [busy], [disabled] or a missing handler make the card inert; finished and expired cards still open. */
+/** Only [busy], [disabled] or a missing handler make the card inert; every state opens (the host routes by `tapAction`). */
 internal fun redPacketCardInteractive(busy: Boolean, disabled: Boolean, hasHandler: Boolean): Boolean =
     !busy && !disabled && hasHandler
 
-/** Every state the viewer has moved past fades the card. */
-internal fun redPacketCardFaded(state: FlareRedPacketState): Boolean = state != FlareRedPacketState.Unopened
+/** A spent card fades: claimed, finished, expired and refunded. */
+internal fun redPacketCardFaded(state: FlareRedPacketCardState): Boolean =
+    state != FlareRedPacketCardState.Unopened && state != FlareRedPacketCardState.Viewable
+
+/** The kind badge and the exclusive recipient line (spec/red-packet-vectors.json `cardBadge`). */
+internal data class RedPacketCardBadge(val badge: String?, val recipient: String?)
+
+/** Lucky and exclusive packets carry their badge, a normal one none; only an exclusive packet names its recipient. */
+internal fun redPacketCardBadge(kind: FlareRedPacketKind, recipientName: String?, strings: FlareStrings): RedPacketCardBadge = when (kind) {
+    FlareRedPacketKind.Lucky -> RedPacketCardBadge(strings.packetBadgeLucky, null)
+    FlareRedPacketKind.Normal -> RedPacketCardBadge(null, null)
+    FlareRedPacketKind.Exclusive -> RedPacketCardBadge(
+        strings.packetBadgeExclusive,
+        recipientName?.trim()?.takeIf { it.isNotEmpty() }?.let { strings.packetForRecipient.replace("{name}", it) },
+    )
+}
 
 /**
- * Red packet card — the festive envelope in the timeline. Spec: Message/RedPacketCard (`RedPacketCard`).
+ * Red packet card — the festive envelope in the timeline, and the message's card surface (no bubble around it). Spec:
+ * Message/RedPacketCard (`RedPacketCard`).
  *
- * The status line follows [redPacketCardStatus]. [kindLabel] (for example the lucky-draw kind) sits on the brand
- * row, leading; the brand stays trailing. At most `componentRedPacketCardWidth` wide inside its parent and never
- * under the touch target tall. A spent card (every state but unopened) keeps its hue and recedes: each colour is
- * mixed toward `redPacketFadedMixTarget` ([redPacketFade]; white in light mode, a red-tinted dark ground in dark
- * mode), the text takes `redPacketFadedInk` (the small print at 72%, the rule at 18%) and the card lies flat. A busy
- * or unavailable card keeps its colours; only its status line says why it does not open.
+ * Red packet v5: the greeting, the [kind] badge on the brand row (lucky, exclusive; normal has none), "For {name}" with
+ * [recipientName] on an exclusive packet, and one status line ([redPacketCardStatus]) — never an amount, not even the
+ * viewer's own. At most `componentRedPacketCardWidth` wide inside its parent and never under the touch target tall. A
+ * spent card keeps its hue and recedes: each colour is mixed toward `redPacketFadedMixTarget` ([redPacketFade]), the
+ * text takes `redPacketFadedInk` and the card lies flat. A busy or unavailable card keeps its colours; only its status
+ * line says why it does not open. Every other state calls [onOpen]; the host routes by the personal layer's tapAction.
  */
 @Composable
 fun RedPacketCard(
     blessing: String,
-    kindLabel: String? = null,
-    state: FlareRedPacketState = FlareRedPacketState.Unopened,
-    amount: String? = null,
+    kind: FlareRedPacketKind = FlareRedPacketKind.Normal,
+    recipientName: String? = null,
+    state: FlareRedPacketCardState = FlareRedPacketCardState.Unopened,
     statusLabel: String? = null,
     busy: Boolean = false,
     disabled: Boolean = false,
@@ -103,11 +164,11 @@ fun RedPacketCard(
 ) {
     val colors = flareColors()
     val strings = flareStrings()
-    val status = redPacketCardStatus(state, amount, statusLabel, busy, disabled, strings)
+    val status = redPacketCardStatus(state, statusLabel, busy, disabled, strings)
     val canOpen = redPacketCardInteractive(busy, disabled, onOpen != null)
     val faded = redPacketCardFaded(state)
+    val badge = redPacketCardBadge(kind, recipientName, strings)
     val shape = RoundedCornerShape(FlareSizes.radiusXl)
-    val claimedAmount = !busy && statusLabel == null && state == FlareRedPacketState.Claimed && amount != null
     val ink = if (faded) colors.redPacketFadedInk else colors.redPacketOnSurface
     Column(
         Modifier.widthIn(max = FlareSizes.componentRedPacketCardWidth).fillMaxWidth()
@@ -135,12 +196,7 @@ fun RedPacketCard(
                 )
                 Text(
                     status,
-                    color = when {
-                        faded -> ink
-                        claimedAmount -> colors.redPacketGold
-                        else -> ink.copy(alpha = 0.85f)
-                    },
-                    fontWeight = if (claimedAmount) FontWeight.SemiBold else FontWeight.Normal,
+                    color = if (faded) ink else ink.copy(alpha = 0.85f),
                     fontSize = FlareSizes.fontSizeSm, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(top = FlareSizes.spacing3xs),
                 )
@@ -154,10 +210,13 @@ fun RedPacketCard(
         Row(
             Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacing2md, vertical = FlareSizes.spacingXs),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs),
         ) {
             val footer = ink.copy(alpha = if (faded) 0.72f else 0.75f)
-            if (!kindLabel.isNullOrEmpty()) {
-                Text(kindLabel, color = footer, fontSize = FlareSizes.fontSize2xs, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            badge.badge?.let { Text(it, color = footer, fontSize = FlareSizes.fontSize2xs, fontWeight = FontWeight.SemiBold, maxLines = 1) }
+            badge.recipient?.let {
+                Text(it, color = footer, fontSize = FlareSizes.fontSize2xs, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false))
             }
             Spacer(Modifier.weight(1f))
             Text(strings.packetBrand, color = footer, fontSize = FlareSizes.fontSize2xs, maxLines = 1)

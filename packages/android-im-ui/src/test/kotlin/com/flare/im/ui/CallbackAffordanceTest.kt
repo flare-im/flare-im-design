@@ -37,6 +37,6 @@ class CallbackAffordanceTest {
         assertEquals("Send", localized.send)
         assertEquals("Retry now", localized.retry)
         assertEquals("Read (3)", localized.readTab(3))
-        assertEquals("已送达", localized.messageDelivered)
+        assertEquals("已读", localized.messageRead)
     }
 }

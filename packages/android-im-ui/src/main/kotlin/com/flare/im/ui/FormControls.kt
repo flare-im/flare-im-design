@@ -76,7 +76,6 @@ import kotlin.math.max
 import kotlin.math.round
 import java.time.LocalDate
 import java.time.YearMonth
-import java.util.Locale
 import java.time.DayOfWeek
 
 // MARK: - Textarea
@@ -529,11 +528,12 @@ fun DatePicker(
                 }
                 // weekday row
                 // 星期名取自 JDK 的区域数据（周日起，与下方 `lead` 的 dayOfWeek % 7 排布一致），
-                // 随宿主 locale 自动切换，无需组件自备中文常量。
-                val weekdayNames = remember(Locale.getDefault()) {
+                // 随 Kit / app locale（flareLocale）切换，不跟设备，无需组件自备中文常量。
+                val locale = flareLocale()
+                val weekdayNames = remember(locale) {
                     (0..6).map {
                         DayOfWeek.of(if (it == 0) 7 else it)
-                            .getDisplayName(java.time.format.TextStyle.NARROW, Locale.getDefault())
+                            .getDisplayName(java.time.format.TextStyle.NARROW, locale)
                     }
                 }
                 Row(Modifier.fillMaxWidth().padding(vertical = FlareSizes.spacingXs)) {

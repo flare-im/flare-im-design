@@ -90,16 +90,41 @@ data class PluginChoicesBlock(
     val selection: List<Int> get() = options.filter { it.selected }.map { it.index }.sorted()
 }
 
-/** One entry of an entries block; [index] is its position in the data, from 1. */
-data class PluginEntry(val index: Int, val text: String, val name: String? = null, val userId: String? = null)
+/**
+ * The group an entry opens in a grouped entries block (a poll option's voters): [label] is data, not translated;
+ * [count], [total] and [percent] are drawn when present ("火锅 · 3 票 · 38%").
+ */
+data class PluginEntryGroup(
+    val key: String,
+    val label: String,
+    val count: Int? = null,
+    val total: Int? = null,
+    val percent: Int? = null,
+)
 
-/** `entries`: a numbered list (a sign-up chain); [more] offers "see all" (the detail view). */
+/**
+ * One entry of an entries block; [index] is its position in the data, from 1 (from 1 in each group of a grouped
+ * block). [group] is set on the first entry of each group.
+ */
+data class PluginEntry(
+    val index: Int,
+    val text: String,
+    val name: String? = null,
+    val userId: String? = null,
+    val group: PluginEntryGroup? = null,
+)
+
+/**
+ * `entries`: a list (a sign-up chain, a poll's voters); [more] offers "see all" (the detail view). [grouped]: a group
+ * header row goes before every entry that carries a [PluginEntry.group]. [numbered] false shows no numbers.
+ */
 data class PluginEntriesBlock(
     val items: List<PluginEntry>,
     val numbered: Boolean = true,
     val total: Int = items.size,
     val more: Boolean = false,
     val emptyText: String? = null,
+    val grouped: Boolean = false,
 ) : PluginBlock {
     override val kind: String get() = "entries"
 }
@@ -211,6 +236,24 @@ data class PluginActionPayload(val selection: List<Int>? = null, val formValues:
     }
 }
 
+/**
+ * Why a view is unavailable or read-only (`ResolvedPluginView.unavailableReason`, docs/design/plugin-platform-v2 §4).
+ * [UnboundCopy] keeps the view available but read-only: a forwarded or forged copy of a card.
+ */
+enum class PluginUnavailableReason(val wire: String) {
+    Disabled("disabled"),
+    NotInstalled("not_installed"),
+    NoPermission("no_permission"),
+    UnsupportedPlatform("unsupported_platform"),
+    IncompatibleVersion("incompatible_version"),
+    CatalogUnreachable("catalog_unreachable"),
+    UnboundCopy("unbound_copy");
+
+    companion object {
+        fun fromWire(value: String?): PluginUnavailableReason? = entries.firstOrNull { it.wire == value }
+    }
+}
+
 /** A resolved plugin view (core SDK `ResolvedPluginView`). v1 cards (title, fields, actions) read unchanged. */
 data class PluginViewModel(
     /** False: only the title shows (a disabled plugin, history). */
@@ -230,6 +273,10 @@ data class PluginViewModel(
      * it); null (or blank) on the last page and on cards.
      */
     val nextCursor: String? = null,
+    /** The actions the plugin placed in the card's ⋯ menu (`placement: "menu"`), in order; run like [actions]. */
+    val menuActions: List<PluginViewAction> = emptyList(),
+    /** Why the view is unavailable, or read-only ([PluginUnavailableReason.UnboundCopy]); null otherwise. */
+    val unavailableReason: PluginUnavailableReason? = null,
 ) {
     /** The inputs an action's form collects, in the order of `action.form`; ids the view does not hold are dropped. */
     fun formInputs(action: PluginViewAction): List<PluginInput> =
@@ -253,6 +300,8 @@ data class PluginViewModel(
             detail = map["detail"] as? Boolean ?: false,
             // A blank cursor is the last page.
             nextCursor = (map["nextCursor"] as? String)?.takeIf { it.isNotBlank() },
+            menuActions = map.list("menuActions").mapNotNull { (it as? Map<*, *>)?.action() },
+            unavailableReason = PluginUnavailableReason.fromWire(map["unavailableReason"] as? String),
         )
     }
 }
@@ -293,9 +342,14 @@ private fun Map<*, *>.block(): PluginBlock? = when (string("kind")) {
     "entries" -> {
         val items = list("items").mapNotNull { raw ->
             val e = raw as? Map<*, *> ?: return@mapNotNull null
-            PluginEntry(e.int("index") ?: 0, e.string("text") ?: "", e.string("name"), e.string("userId"))
+            val group = (e["group"] as? Map<*, *>)?.let { g ->
+                val key = g.string("key") ?: return@let null
+                PluginEntryGroup(key, g.string("label") ?: "", g.int("count"), g.int("total"), g.int("percent"))
+            }
+            PluginEntry(e.int("index") ?: 0, e.string("text") ?: "", e.string("name"), e.string("userId"), group)
         }
-        PluginEntriesBlock(items, bool("numbered") ?: true, int("total") ?: items.size, bool("more") ?: false, string("emptyText"))
+        PluginEntriesBlock(items, bool("numbered") ?: true, int("total") ?: items.size, bool("more") ?: false, string("emptyText"),
+            bool("grouped") ?: false)
     }
     "people" -> PluginPeopleBlock(list("groups").mapNotNull { raw ->
         val g = raw as? Map<*, *> ?: return@mapNotNull null
@@ -408,6 +462,56 @@ internal object PluginViewFormat {
     }
 
     fun votes(count: Int, strings: FlareStrings): String = strings.pluginViewVotes.replace("{count}", count.toString())
+
+    /** An entry's number: its index in a numbered block, none in a block with `numbered` false. */
+    fun entryNumber(block: PluginEntriesBlock, entry: PluginEntry): String? = if (block.numbered) entry.index.toString() else null
+
+    /**
+     * The header a group opens with (spec/plugin-view-vectors.json `entryGroupHeaders`): the label, the votes when the
+     * count is there, the percent when it is there, joined by " · ".
+     */
+    fun groupHeader(group: PluginEntryGroup, strings: FlareStrings): String = buildList {
+        add(group.label)
+        group.count?.let { add(votes(it, strings)) }
+        group.percent?.let { add("$it%") }
+    }.joinToString(" · ")
+
+    /** The header drawn before [entry] in [block]: only grouped blocks have them, on the entries that open a group. */
+    fun entryGroupHeader(block: PluginEntriesBlock, entry: PluginEntry, strings: FlareStrings): String? =
+        entry.group?.takeIf { block.grouped }?.let { groupHeader(it, strings) }
+
+    /** The viewer's own row carries the "me" tag. */
+    fun isMe(entry: PluginEntry, viewerId: String?): Boolean = !viewerId.isNullOrEmpty() && entry.userId == viewerId
+
+    /** The words for an unavailable reason (spec/plugin-view-vectors.json `unavailableReasons`). */
+    fun reasonText(reason: PluginUnavailableReason, strings: FlareStrings): String = when (reason) {
+        PluginUnavailableReason.Disabled -> strings.pluginViewUnavailableDisabled
+        PluginUnavailableReason.NotInstalled -> strings.pluginViewUnavailableNotInstalled
+        PluginUnavailableReason.NoPermission -> strings.pluginViewUnavailableNoPermission
+        PluginUnavailableReason.UnsupportedPlatform -> strings.pluginViewUnavailableUnsupportedPlatform
+        PluginUnavailableReason.IncompatibleVersion -> strings.pluginViewUnavailableIncompatibleVersion
+        PluginUnavailableReason.CatalogUnreachable -> strings.pluginViewUnavailableCatalogUnreachable
+        PluginUnavailableReason.UnboundCopy -> strings.pluginViewUnavailableUnboundCopy
+    }
+
+    /**
+     * The reason line of a view (spec rules.unavailableReason): an unavailable view says why, led by the envelope's
+     * [displayName] ("投票 · 插件已停用"); a read-only copy closes with its own line; no reason, no line.
+     */
+    fun reasonLine(view: PluginViewModel, displayName: String?, strings: FlareStrings): String? {
+        val reason = view.unavailableReason ?: return null
+        val text = reasonText(reason, strings)
+        if (reason == PluginUnavailableReason.UnboundCopy) return text
+        if (view.available) return null
+        return displayName?.trim()?.takeIf { it.isNotEmpty() }?.let { "$it · $text" } ?: text
+    }
+
+    /** A view the viewer may look at but not act on: a read-only copy. */
+    fun readOnly(view: PluginViewModel): Boolean = view.unavailableReason == PluginUnavailableReason.UnboundCopy
+
+    /** The card's ⋯ menu: its menu actions, none on an unavailable view or a read-only copy. */
+    fun menuActions(view: PluginViewModel): List<PluginViewAction> =
+        if (!view.available || readOnly(view)) emptyList() else view.menuActions
 
     fun seeAll(total: Int, strings: FlareStrings): String = strings.pluginViewSeeAll.replace("{count}", total.toString())
 

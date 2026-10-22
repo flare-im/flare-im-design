@@ -2,14 +2,19 @@ package com.flare.im.ui
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -22,16 +27,14 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-/** Final visual projection of the orthogonal message lifecycle. */
-enum class FlareMessageDeliveryStatus { Pending, Sending, Sent, Delivered, Read, Failed, Retrying }
+/**
+ * The receipt status the core SDK projects for a message (`MessageReceiptView.status`): five visual states. There is no
+ * delivered state — a single check means the server has the message, a double check that it was read
+ * (spec/message-receipt-vectors.json).
+ */
+enum class FlareMessageDeliveryStatus { Pending, Sending, Sent, Read, Failed }
 
 enum class FlareMessageStatusVariant { Tick, Compact }
-
-/** One compact double-check silhouette shared by delivered and read receipts. */
-@Composable
-private fun MessageDoubleCheck(color: Color, size: Dp = 16.dp, modifier: Modifier = Modifier) {
-    MessageCheckCanvas(doubleCheck = true, color = color, size = size, modifier = modifier)
-}
 
 @Composable
 private fun MessageCheckCanvas(doubleCheck: Boolean, color: Color, size: Dp, modifier: Modifier = Modifier) {
@@ -52,6 +55,15 @@ private fun MessageCheckCanvas(doubleCheck: Boolean, color: Color, size: Dp, mod
     }
 }
 
+/**
+ * The receipt glyph of a message: a clock while pending, a spinner while sending (still under reduced motion), one
+ * check once the server has it, a double check in the read colour once it is read (never the same shape as sent), and
+ * the alert when it failed. Spec: Message/MessageStatus (`MessageStatus`).
+ *
+ * A failed glyph with [onResend] is the retry: a button (role Button, click label "retry") named "{failed}, {retry}"
+ * whose hit area is the full touch target around the glyph, while the glyph keeps its own place in the row
+ * ([flareTouchTargetBeyond]).
+ */
 @Composable
 fun MessageStatus(
     status: FlareMessageDeliveryStatus,
@@ -62,36 +74,40 @@ fun MessageStatus(
 ) {
     val colors = flareColors()
     val strings = flareStrings()
-    val retry = strings.retry
     val effectiveStatus = lifecycle?.visualStatus ?: status
     val dim = if (variant == FlareMessageStatusVariant.Compact) 12.dp else 16.dp
-    val label = when (effectiveStatus) {
-        FlareMessageDeliveryStatus.Pending -> strings.messagePending
-        FlareMessageDeliveryStatus.Sending -> strings.messageSending
-        FlareMessageDeliveryStatus.Sent -> strings.messageSent
-        FlareMessageDeliveryStatus.Delivered -> strings.messageDelivered
-        FlareMessageDeliveryStatus.Read -> strings.messageRead
-        FlareMessageDeliveryStatus.Failed -> strings.messageFailed
-        FlareMessageDeliveryStatus.Retrying -> strings.messageRetrying
+    val label = flareMessageStatusLabel(effectiveStatus, strings)
+    if (messageStatusResendable(effectiveStatus, onResend != null)) {
+        val retry = strings.retry
+        // The glyph keeps its place in the row; the button around it is the full touch target.
+        Box(
+            Modifier.flareTouchTargetBeyond(dim)
+                .sizeIn(minWidth = FlareSizes.touchTarget, minHeight = FlareSizes.touchTarget)
+                .clip(CircleShape)
+                .clickable(role = Role.Button, onClickLabel = retry) { onResend?.invoke() }
+                .semantics { contentDescription = "$label, $retry" },
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(Icons.Rounded.ErrorOutline, contentDescription = null, modifier = Modifier.size(dim), tint = colors.messageStatusFailed)
+        }
+        return
     }
-    val semantics = if (messageStatusResendable(effectiveStatus, onResend != null)) {
-        Modifier.semantics { contentDescription = "$label, $retry" }
-            .clickable(role = Role.Button, onClickLabel = retry) { onResend?.invoke() }
-    } else Modifier.semantics { contentDescription = label }
-
-    when (effectiveStatus) {
-        FlareMessageDeliveryStatus.Pending ->
-            Icon(Icons.Rounded.Schedule, contentDescription = null, modifier = semantics.size(dim), tint = tint ?: colors.messageStatusPending)
-        FlareMessageDeliveryStatus.Sending, FlareMessageDeliveryStatus.Retrying ->
-            CircularProgressIndicator(modifier = semantics.size(dim), strokeWidth = 1.5.dp, color = tint ?: colors.messageStatusPending)
-        FlareMessageDeliveryStatus.Sent ->
-            MessageCheckCanvas(false, tint ?: colors.messageStatusSent, dim, semantics)
-        FlareMessageDeliveryStatus.Delivered ->
-            MessageDoubleCheck(tint ?: colors.messageStatusDelivered, dim, semantics)
-        FlareMessageDeliveryStatus.Read ->
-            MessageDoubleCheck(tint ?: colors.messageStatusRead, dim, semantics)
-        FlareMessageDeliveryStatus.Failed ->
-            Icon(Icons.Rounded.ErrorOutline, contentDescription = null, modifier = semantics.size(dim), tint = colors.messageStatusFailed)
+    val named = Modifier.semantics { contentDescription = label }
+    when (flareMessageReceiptGlyph(effectiveStatus)) {
+        FlareMessageReceiptGlyph.Clock ->
+            Icon(Icons.Rounded.Schedule, contentDescription = null, modifier = named.size(dim), tint = tint ?: colors.messageStatusPending)
+        FlareMessageReceiptGlyph.Spinner ->
+            if (flareReducedMotion()) {
+                // Reduced motion: the same ring, standing still.
+                CircularProgressIndicator(progress = { 0.7f }, modifier = named.size(dim), strokeWidth = 1.5.dp,
+                    color = tint ?: colors.messageStatusPending, trackColor = Color.Transparent)
+            } else {
+                CircularProgressIndicator(modifier = named.size(dim), strokeWidth = 1.5.dp, color = tint ?: colors.messageStatusPending)
+            }
+        FlareMessageReceiptGlyph.Check -> MessageCheckCanvas(false, tint ?: colors.messageStatusSent, dim, named)
+        FlareMessageReceiptGlyph.DoubleCheck -> MessageCheckCanvas(true, tint ?: colors.messageStatusRead, dim, named)
+        FlareMessageReceiptGlyph.Alert ->
+            Icon(Icons.Rounded.ErrorOutline, contentDescription = null, modifier = named.size(dim), tint = colors.messageStatusFailed)
     }
 }
 

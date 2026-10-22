@@ -14,6 +14,16 @@ class InteractionStateTest {
     @Test fun `message lifecycle outranks hover`() {
         assertEquals(FlareMessageInteractionMode.Recalled, resolveMessageMode(FlareMessageLifecycle(mutation = FlareMessageMutationState.Recalled), hovered = true))
         assertEquals(FlareMessageInteractionMode.Read, resolveMessageMode(FlareMessageLifecycle(read = FlareMessageReadState.Read)))
+        assertEquals(FlareMessageInteractionMode.Deleted, resolveMessageMode(FlareMessageLifecycle(mutation = FlareMessageMutationState.Deleted), selected = true))
+        assertEquals(FlareMessageInteractionMode.Failed, resolveMessageMode(FlareMessageLifecycle(send = FlareMessageSendState.Failed), hovered = true))
+        assertEquals(FlareMessageInteractionMode.MultiSelected, resolveMessageMode(FlareMessageLifecycle(), selected = true, multiSelect = true))
+        assertEquals(FlareMessageInteractionMode.Delivered, resolveMessageMode(FlareMessageLifecycle(delivery = FlareMessageLifecycleDeliveryState.Delivered)))
+    }
+
+    /** The modes are the contract's MessageBubble states, in its order. */
+    @Test fun `message modes are the contract's states`() {
+        val contract = SpecTables.table("interaction-contracts.json").obj("stateMachines")!!.obj("MessageBubble")!!
+        assertEquals(contract["states"], FlareMessageInteractionMode.entries.map { it.name.replaceFirstChar(Char::lowercase) })
     }
 
     @Test fun `selection shortcuts and gestures are stable`() {

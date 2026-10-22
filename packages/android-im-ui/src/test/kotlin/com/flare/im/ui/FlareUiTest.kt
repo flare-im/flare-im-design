@@ -30,7 +30,7 @@ class FlareUiTest {
     }
 
     @Test fun byteAndDurationFormat() {
-        assertEquals("2.0 KB", bytes(2048))
+        assertEquals("2.0 KB", flareFileSize(2048, FlareStrings(), java.util.Locale.US))
         assertEquals("01:15", duration(75))
     }
 
@@ -43,8 +43,8 @@ class FlareUiTest {
     @Test fun contentTypeKeysAndBareMedia() {
         assertEquals("text", FlareTextContent("x").type)
         assertEquals("vote", FlareGenericContent("vote", "l").type)
-        assertTrue(isBareMedia(FlareImageContent("u")))
-        assertFalse(isBareMedia(FlareTextContent("x")))
+        assertEquals(FlareMessageSurface.BareMedia, flareMessageSurface(FlareMessageData("m", "s", "s", FlareImageContent("u"))))
+        assertEquals(FlareMessageSurface.Bubble, flareMessageSurface(FlareMessageData("m", "s", "s", FlareTextContent("x"))))
         assertTrue(FlareMessageData("m", "s", "s", FlareNotificationContent("j")).isSystem)
     }
 

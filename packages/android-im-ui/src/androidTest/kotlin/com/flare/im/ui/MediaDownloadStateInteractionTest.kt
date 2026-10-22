@@ -53,6 +53,14 @@ class MediaDownloadStateInteractionTest {
 
     private fun bounds(node: SemanticsNodeInteraction): DpRect = node.assertIsDisplayed().getBoundsInRoot()
 
+    /** A small picture on this device, so the timeline draws it rather than its failure. */
+    private fun localPicture(name: String): java.io.File {
+        val file = java.io.File(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().targetContext.cacheDir, name)
+        val bitmap = android.graphics.Bitmap.createBitmap(64, 64, android.graphics.Bitmap.Config.ARGB_8888).apply { eraseColor(android.graphics.Color.BLUE) }
+        file.outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+        return file
+    }
+
     private fun assertSameEdge(expected: Dp, actual: Dp, what: String) =
         assertTrue("$what: $expected vs $actual", abs(expected.value - actual.value) <= 1f)
 
@@ -166,8 +174,9 @@ class MediaDownloadStateInteractionTest {
             FlareThemeProvider {
                 MessageList(
                     messages = listOf(
-                        message("i1", FlareImageContent("https://example.invalid/1.jpg", alt = "海边")),
-                        message("i2", FlareImageContent("https://example.invalid/2.jpg", alt = "山顶")),
+                        // Pictures that load (a failed one retries on a tap instead of opening the preview).
+                        message("i1", FlareImageContent("https://example.invalid/1.jpg", alt = "海边", localPath = localPicture("flare-sea.png").absolutePath)),
+                        message("i2", FlareImageContent("https://example.invalid/2.jpg", alt = "山顶", localPath = localPicture("flare-peak.png").absolutePath)),
                     ),
                     currentUserId = "me",
                     mediaDownloadStates = states,
@@ -204,18 +213,18 @@ class MediaDownloadStateInteractionTest {
             }
         }
         // Body wider than the time: the time ends where the body ends, and does not start where the body starts.
-        val wide = bounds(compose.onNodeWithText("这是一条", substring = true))
-        val wideTime = bounds(compose.onNodeWithText("09:41"))
+        val wide = bounds(compose.onNodeWithText("这是一条", substring = true, useUnmergedTree = true))
+        val wideTime = bounds(compose.onNodeWithText("09:41", useUnmergedTree = true))
         assertSameEdge(wide.right, wideTime.right, "wide body: time at the trailing edge")
         assertTrue("wide body: the text keeps its own start", wideTime.left > wide.left + 8.dp)
-        // Body narrower than the time: the bubble is as wide as the time, which reaches its trailing edge.
-        val narrow = bounds(compose.onNodeWithText("嗯"))
-        val narrowTime = bounds(compose.onNodeWithText("09:42"))
-        assertTrue("narrow body: time reaches past the body", narrowTime.right >= narrow.right)
-        assertSameEdge(narrow.left, narrowTime.left, "narrow body: bubble hugs the time")
+        // A short text: the time follows its last line, on that line, at the bubble's trailing edge (inline meta).
+        val narrow = bounds(compose.onNodeWithText("嗯", useUnmergedTree = true))
+        val narrowTime = bounds(compose.onNodeWithText("09:42", useUnmergedTree = true))
+        assertTrue("narrow body: the time comes after the text", narrowTime.left >= narrow.right)
+        assertTrue("narrow body: on the text's line", narrowTime.top < narrow.bottom)
         // A quote wider than body and time: the time sits under the quote's trailing edge, not under the short body.
         val quote = bounds(compose.onNodeWithText("一条比回复", substring = true))
-        val quotedTime = bounds(compose.onNodeWithText("09:43"))
+        val quotedTime = bounds(compose.onNodeWithText("09:43", useUnmergedTree = true))
         assertSameEdge(quote.right, quotedTime.right, "quoted: time at the bubble's trailing edge")
     }
 
@@ -234,13 +243,13 @@ class MediaDownloadStateInteractionTest {
         }
         // The file card: its key is its trailing edge, and the time sits under it at the bubble's bottom right.
         val key = bounds(compose.onNodeWithContentDescription(strings.download))
-        val name = bounds(compose.onNodeWithText("连调测试.txt"))
-        val fileTime = bounds(compose.onNodeWithText("00:11"))
+        val name = bounds(compose.onNodeWithText("连调测试.txt", useUnmergedTree = true))
+        val fileTime = bounds(compose.onNodeWithText("00:11", useUnmergedTree = true))
         assertSameEdge(key.right, fileTime.right, "file card: time at the card's trailing edge")
         assertTrue("file card: time is not at the card's start", fileTime.left > name.left + 8.dp)
         // A bare picture: the time under it at its trailing edge.
-        val picture = bounds(compose.onNodeWithContentDescription("照片"))
-        val pictureTime = bounds(compose.onNodeWithText("00:12"))
+        val picture = bounds(compose.onNodeWithContentDescription("照片", useUnmergedTree = true))
+        val pictureTime = bounds(compose.onNodeWithText("00:12", useUnmergedTree = true))
         assertSameEdge(picture.right, pictureTime.right, "picture: time at the picture's trailing edge")
         assertTrue("picture: time is not at the picture's start", pictureTime.left > picture.left + 8.dp)
     }

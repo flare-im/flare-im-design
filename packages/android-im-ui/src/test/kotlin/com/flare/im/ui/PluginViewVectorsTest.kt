@@ -44,10 +44,14 @@ class PluginViewVectorsTest {
         id as String to PluginUser(user.str("name")!!, user.str("avatarUrl"))
     }
 
-    private fun views(table: Map<*, *>): Map<String, Pair<PluginViewModel, Map<*, *>>> = table.list("views")
+    private fun views(table: Map<*, *>): Map<String, Pair<PluginViewModel, Map<*, *>>> = cases(table)
+        .mapValues { (_, case) -> PluginViewModel.fromMap(case.map("view")) to case.map("expect") }
+
+    /** The view cases this kit runs, whole (viewerId, displayName and embedded beside the view and its facts). */
+    private fun cases(table: Map<*, *>): Map<String, Map<*, *>> = table.list("views")
         .map { it as Map<*, *> }
         .filter { "compose" in it.list("platforms") }
-        .associate { it.str("id")!! to (PluginViewModel.fromMap(it.map("view")) to it.map("expect")) }
+        .associateBy { it.str("id")!! }
 
     // ── view details key (detailKey) and insets ──
 
@@ -116,15 +120,18 @@ class PluginViewVectorsTest {
         val users = users(table)
         val now = table.long("nowMs")!!
         val zone = table.int("utcOffsetMinutes")!!
-        for ((id, pair) in views(table)) {
-            val (view, expect) = pair
+        for ((id, case) in cases(table)) {
+            val view = PluginViewModel.fromMap(case.map("view"))
+            val expect = case.map("expect")
+            val viewerId = case.str("viewerId")
+            val embedded = case.bool("embedded") ?: false
             assertEquals(expect.str("title"), view.title, id)
             val hidden = expect.bool("bodyHidden") ?: false
             assertEquals(hidden, !view.available, id)
             val blocks = if (hidden) emptyList() else view.blocks
             val facts = expect.list("blocks").map { it as Map<*, *> }
             assertEquals(facts.map { it.str("kind") }, blocks.map { it.kind }, "$id blocks")
-            blocks.zip(facts).forEachIndexed { index, (block, fact) -> check(block, index, fact, users, now, zone, "$id#$index") }
+            blocks.zip(facts).forEachIndexed { index, (block, fact) -> check(block, index, fact, users, now, zone, "$id#$index", viewerId) }
             val fields = if (hidden) emptyList() else view.fields
             assertEquals(expect.list("fields").map { (it as Map<*, *>).let { f -> PluginViewField(f.str("label")!!, f.str("value")!!) } }, fields, "$id fields")
             val actions = if (hidden) emptyList() else view.actions
@@ -144,10 +151,56 @@ class PluginViewVectorsTest {
             expect.bool("seeAllOpensDetail")?.let { opens ->
                 assertEquals(opens, blocks.any { it is PluginEntriesBlock && it.more }, "$id see all")
             }
+            // Protocol v2: the ⋯ menu (keys when embedded) and the reason line.
+            if (expect.containsKey("menu")) {
+                val menu = PluginViewFormat.menuActions(view)
+                val menuFacts = expect.list("menu").map { it as Map<*, *> }
+                assertEquals(menuFacts.map { it.str("id") }, menu.map { it.id }, "$id menu")
+                for ((action, fact) in menu.zip(menuFacts)) {
+                    assertEquals(fact.str("label"), action.label, "$id menu ${action.id}")
+                    assertEquals(fact.str("variant"), if (PluginViewFormat.variant(action) == FlareButtonVariant.Danger) "danger" else
+                        if (PluginViewFormat.variant(action) == FlareButtonVariant.Primary) "primary" else "secondary", "$id menu ${action.id} variant")
+                    assertEquals(fact.str("confirm"), action.confirm, "$id menu ${action.id} confirm")
+                    assertEquals(fact.bool("form"), !action.form.isNullOrEmpty(), "$id menu ${action.id} form")
+                }
+                expect.str("menuPresentation")?.let { assertEquals("keys", it); assertTrue(embedded, "$id: keys only when embedded") }
+            }
+            if (expect.containsKey("reason")) {
+                assertEquals(expect.str("reason"), PluginViewFormat.reasonLine(view, case.str("displayName"), s), "$id reason")
+            }
         }
     }
 
-    private fun check(block: PluginBlock, index: Int, fact: Map<*, *>, users: Map<String, PluginUser>, now: Long, zone: Int, id: String) {
+    @Test fun theUnavailableReasonsReadAsTheTableSays() {
+        val table = table()
+        val reasons = table.list("unavailableReasons").map { it as Map<*, *> }
+        assertEquals(PluginUnavailableReason.entries.map { it.wire }, reasons.map { it.str("reason") })
+        for (row in reasons) {
+            val reason = PluginUnavailableReason.fromWire(row.str("reason"))!!
+            assertEquals(row.str("zh"), PluginViewFormat.reasonText(reason, s), reason.wire)
+            assertEquals(row.str("zh"), SpecTables.copy(row.str("key")!!, "zh"), "${reason.wire} is the shared copy")
+            assertEquals(row.str("en"), SpecTables.copy(row.str("key")!!, "en"), "${reason.wire} en")
+        }
+        // A read-only copy keeps its content, acts on nothing and draws no menu.
+        val copy = views(table).getValue("unbound-copy").first
+        assertTrue(copy.available && PluginViewFormat.readOnly(copy))
+        assertTrue(PluginViewFormat.menuActions(copy.copy(menuActions = listOf(PluginViewAction("close", "End")))).isEmpty())
+        assertNull(PluginViewFormat.reasonLine(copy.copy(unavailableReason = null), "投票", s), "no reason, no line")
+    }
+
+    @Test fun groupHeadersReadAsTheTableSays() {
+        for (raw in table().list("entryGroupHeaders")) {
+            val row = raw as Map<*, *>
+            val g = row.map("group")
+            val group = PluginEntryGroup(g.str("key")!!, g.str("label")!!, g.int("count"), g.int("total"), g.int("percent"))
+            assertEquals(row.str("zh"), PluginViewFormat.groupHeader(group, s), group.label)
+            assertEquals(row.str("en"), PluginViewFormat.groupHeader(group, en), "${group.label} en")
+        }
+        assertEquals("我", s.pluginViewMe)
+        assertEquals(SpecTables.copy("pluginViewMore", "zh"), s.pluginViewMore)
+    }
+
+    private fun check(block: PluginBlock, index: Int, fact: Map<*, *>, users: Map<String, PluginUser>, now: Long, zone: Int, id: String, viewerId: String? = null) {
         when (block) {
             is PluginTextBlock -> {
                 assertEquals(fact.str("text"), block.text, id)
@@ -182,7 +235,9 @@ class PluginViewVectorsTest {
                 val rows = fact.list("rows").map { it as Map<*, *> }
                 assertEquals(rows.size, block.items.size, id)
                 for ((entry, row) in block.items.zip(rows)) {
-                    assertEquals(row.str("number"), entry.index.toString(), id)
+                    assertEquals(row.str("number"), PluginViewFormat.entryNumber(block, entry), "$id number")
+                    if (row.containsKey("group")) assertEquals(row.str("group"), PluginViewFormat.entryGroupHeader(block, entry, s), "$id group")
+                    if (row.containsKey("me")) assertEquals(row.bool("me"), PluginViewFormat.isMe(entry, viewerId), "$id me")
                     assertEquals(row.str("name"), PluginViewFormat.entryName(entry, users), "$id entry ${entry.index} name")
                     assertEquals(row.str("text"), entry.text, id)
                     assertEquals(row.str("userId"), entry.userId, id)

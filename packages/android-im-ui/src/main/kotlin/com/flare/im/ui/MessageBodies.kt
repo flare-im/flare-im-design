@@ -35,10 +35,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,6 +60,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
@@ -66,6 +72,7 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.ResolvedTextDirection
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
@@ -234,6 +241,8 @@ fun TextMessage(
         withInlineEmoji(withMentionStyles(linkify(text, linkColor, onLinkTap, spans), spans, self, colors.primaryText), emojiRuns)
     }
     val grounded = remember(spans, self) { mentionGrounds(spans, self) }
+    // A bubble that sets its time after the last line reads where that line ends.
+    val probe = LocalFlareTextLastLine.current
     var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
     val ground = colors.bgSelected
     // 消息正文取 message 角色 —— 四端同一个出处(15/1.45)。
@@ -255,7 +264,10 @@ fun TextMessage(
                         onDrawBehind { rects.forEach { drawRoundRect(ground, it.topLeft, it.size, radius) } }
                     },
                 ),
-                onTextLayout = { if (grounded.isNotEmpty()) layout = it },
+                onTextLayout = {
+                    if (grounded.isNotEmpty()) layout = it
+                    probe?.report(it)
+                },
             )
         }
     }
@@ -265,6 +277,29 @@ fun TextMessage(
 /** The mentions that get the selected ground: the reader's and everyone's, and only in an incoming bubble. */
 internal fun mentionGrounds(mentions: List<FlareTextMentionSpan>, self: Boolean): List<FlareTextMentionSpan> =
     if (self) emptyList() else mentions.filter { it.self || it.all }
+
+/**
+ * Where a text's last line ends, as its [TextMessage] last laid it out: the bubble's inline meta reads it to sit after
+ * that line, or to drop to its own row when it does not fit there. Written during the text's measure, read by the
+ * bubble's measure right after; never state, so it causes no recomposition.
+ */
+internal class FlareTextLastLineProbe {
+    /** The end of the last line from the text's start edge, in pixels; -1 before a layout or for right-to-left text. */
+    var lastLineEnd: Int = -1
+        private set
+    /** The text's own width, in pixels. */
+    var textWidth: Int = 0
+        private set
+
+    fun report(layout: TextLayoutResult) {
+        textWidth = layout.size.width
+        val last = layout.lineCount - 1
+        lastLineEnd = if (last < 0 || layout.getParagraphDirection(layout.getLineStart(last)) == ResolvedTextDirection.Rtl) -1
+        else kotlin.math.ceil(layout.getLineRight(last)).toInt()
+    }
+}
+
+internal val LocalFlareTextLastLine = staticCompositionLocalOf<FlareTextLastLineProbe?> { null }
 
 /** image — a rounded thumbnail; emits [onTap]. */
 @Composable
@@ -299,16 +334,43 @@ internal fun ImageMessageBody(
     val sizeMod = if (flexible)
         Modifier.sizeIn(maxWidth = (maxWidth ?: 10_000).dp, maxHeight = (maxHeight ?: 10_000).dp)
     else Modifier.size(width.dp, height.dp)
-    val mod = sizeMod.clip(RoundedCornerShape(FlareSizes.radiusCard)).background(colors.bgTertiary).onClickIf(onTap, flareStrings().imagePreviewOpen)
-    if (model != null) {
-        AsyncImage(
-            model = model,
-            contentDescription = alt,
-            modifier = mod,
-            contentScale = if (flexible) ContentScale.Fit else ContentScale.Crop,
-        )
+    val strings = flareStrings()
+    // A picture that failed to load is a placeholder that loads it again on a tap (Vue FlareImageMessage).
+    var attempt by remember(model) { mutableIntStateOf(0) }
+    var failed by remember(model) { mutableStateOf(false) }
+    val ground = sizeMod.clip(RoundedCornerShape(FlareSizes.radiusCard)).background(colors.bgTertiary)
+    if (model != null && !failed) {
+        key(attempt) {
+            AsyncImage(
+                model = model,
+                contentDescription = alt,
+                modifier = ground.onClickIf(onTap, strings.imagePreviewOpen),
+                contentScale = if (flexible) ContentScale.Fit else ContentScale.Crop,
+                onError = { failed = true },
+            )
+        }
+    } else if (model != null) {
+        Column(
+            // The failed picture keeps a thumbnail's size, so the row does not jump when it loads.
+            (if (flexible) Modifier.size(132.dp, 92.dp) else sizeMod).clip(RoundedCornerShape(FlareSizes.radiusCard))
+                .background(colors.bgTertiary)
+                .clickable(onClickLabel = strings.retry) { failed = false; attempt++ }
+                // Named as the picture it stands for, and why it is not there; a tap loads it again.
+                .clearAndSetSemantics {
+                    contentDescription = alt?.takeIf { it.isNotEmpty() } ?: strings.imageLoadFailed
+                    stateDescription = strings.imageLoadFailed
+                    role = Role.Button
+                    onClick(label = strings.retry) { failed = false; attempt++; true }
+                },
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs, Alignment.CenterVertically),
+        ) {
+            Icon(Icons.Outlined.Image, null, Modifier.size(FlareSizes.iconSizeMd), tint = colors.textTertiary)
+            Text(strings.imageLoadFailed, color = colors.textTertiary, fontSize = FlareSizes.fontSizeXs, maxLines = 1)
+            Text(strings.retry, color = colors.primaryText, fontSize = FlareSizes.fontSizeXs, fontWeight = FontWeight.Medium, maxLines = 1)
+        }
     } else {
-        Box(mod, contentAlignment = Alignment.Center) {
+        Box(ground.onClickIf(onTap, strings.imagePreviewOpen), contentAlignment = Alignment.Center) {
             Icon(Icons.Outlined.Image, null, Modifier.size(26.dp), tint = colors.textTertiary)
         }
     }
@@ -549,16 +611,32 @@ fun LocationMessage(
     snapshotUrl: String? = null,
     provider: FlareLocationProvider = FlareLocationProvider.Osm,
     onOpen: (() -> Unit)? = null,
+    /** Sizes the card; without it the card is `LOCATION_CARD_WIDTH` wide. A card surface passes its shell's fill. */
+    modifier: Modifier = Modifier,
+) = LocationMessageBody(title, address, latitude, longitude, snapshotUrl, provider, onOpen, openMaps = true, modifier = modifier)
+
+/** [LocationMessage]; without [openMaps] a card with no [onOpen] has no tap at all (a row in multi-select). */
+@Composable
+internal fun LocationMessageBody(
+    title: String,
+    address: String,
+    latitude: Double?,
+    longitude: Double?,
+    snapshotUrl: String?,
+    provider: FlareLocationProvider,
+    onOpen: (() -> Unit)?,
+    openMaps: Boolean,
+    modifier: Modifier = Modifier,
 ) {
     val colors = flareColors()
     val strings = flareStrings()
     val uriHandler = LocalUriHandler.current
     val detail = locationMessageDetail(address, latitude, longitude)
-    val tap: (() -> Unit)? = onOpen ?: FlareLocationFormat.links(latitude, longitude, title, provider)?.let { links ->
+    val tap: (() -> Unit)? = onOpen ?: FlareLocationFormat.links(latitude, longitude, title, provider)?.takeIf { openMaps }?.let { links ->
         { openLocationLinks(links) { uriHandler.openUri(it) } }
     }
     Column(
-        Modifier.width(LOCATION_CARD_WIDTH)
+        (if (modifier == Modifier) Modifier.width(LOCATION_CARD_WIDTH) else modifier)
             .then(if (tap != null) Modifier.clickable(onClickLabel = strings.locationOpenInMaps) { tap() } else Modifier)
             .semantics(mergeDescendants = true) {},
     ) {
@@ -646,18 +724,19 @@ fun ContactMessage(
     avatarUrl: String? = null,
     userId: String? = null,
     onOpen: ((String) -> Unit)? = null,
+    modifier: Modifier = Modifier,
 ) {
     val colors = flareColors()
     val tint = seedTint(name)
     Row(
-        Modifier.widthIn(min = 240.dp).onClickIf(onOpen?.let { open -> { open(userId.orEmpty()) } }),
+        modifier.widthIn(min = 240.dp).onClickIf(onOpen?.let { open -> { open(userId.orEmpty()) } }),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd),
     ) {
         NetImage(avatarUrl, Modifier.size(FlareSizes.avatarSize).clip(RoundedCornerShape(FlareSizes.radiusLg)).background(tint.first)) {
             Text(initials(name), color = tint.second, fontWeight = FontWeight.SemiBold, fontSize = FlareSizes.fontSizeLg)
         }
-        Column(Modifier.weight(1f, fill = false)) {
+        Column(Modifier.weight(1f, fill = modifier != Modifier)) {
             Text(name, color = colors.textPrimary, fontSize = FlareSizes.fontSizeXl, fontWeight = FontWeight.SemiBold)
             if (!subtitle.isNullOrEmpty()) {
                 Text(subtitle, color = colors.textTertiary, fontSize = FlareSizes.fontSizeXs, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -670,10 +749,10 @@ fun ContactMessage(
 /** link card — thumbnail + title + optional description + domain; emits [onOpen]. */
 @Composable
 fun LinkCardMessage(title: String, domain: String = "", thumb: String? = null, description: String? = null, onOpen: (() -> Unit)? = null,
-    icon: (@Composable () -> Unit)? = null, descriptionMaxLines: Int = 2) {
+    icon: (@Composable () -> Unit)? = null, descriptionMaxLines: Int = 2, modifier: Modifier = Modifier) {
     val colors = flareColors()
     Row(
-        Modifier.widthIn(max = 300.dp).onClickIf(onOpen).padding(horizontal = FlareSizes.spacing2sm, vertical = FlareSizes.spacingSm),
+        (if (modifier == Modifier) Modifier.widthIn(max = 300.dp) else modifier).onClickIf(onOpen).padding(horizontal = FlareSizes.spacing2sm, vertical = FlareSizes.spacingSm),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2sm),
     ) {
@@ -704,10 +783,11 @@ fun VoteMessage(
     options: List<FlareVoteOption> = emptyList(),
     total: String? = null,
     onSelect: ((FlareVoteOption, Int) -> Unit)? = null,
+    modifier: Modifier = Modifier,
 ) {
     val colors = flareColors()
     Column(
-        Modifier.widthIn(min = 220.dp).padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacing2sm),
+        modifier.widthIn(min = 220.dp).padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacing2sm),
         verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs)) {
@@ -733,14 +813,14 @@ fun VoteMessage(
 
 /** task — checkbox + title (struck through when done) + meta; emits [onToggle]. */
 @Composable
-fun TaskMessage(title: String, meta: String? = null, done: Boolean = false, onToggle: (() -> Unit)? = null) {
+fun TaskMessage(title: String, meta: String? = null, done: Boolean = false, onToggle: (() -> Unit)? = null, modifier: Modifier = Modifier) {
     val colors = flareColors()
     // With [onToggle] the box is a checkbox named by the task title, holding the done state, in a
     // 48 dp target. The target adds 14 dp around the 20 dp box; a negative gap takes that margin back
     // on the title side so the title keeps its 10 dp distance from the box.
     val toggles = onToggle != null
     Row(
-        Modifier.widthIn(min = 220.dp),
+        modifier.widthIn(min = 220.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(if (toggles) (10 - 14).dp else FlareSizes.spacing2sm),
     ) {

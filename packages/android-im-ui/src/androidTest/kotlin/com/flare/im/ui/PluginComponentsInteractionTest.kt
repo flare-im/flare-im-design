@@ -21,7 +21,7 @@ class PluginComponentsInteractionTest {
             FlareThemeProvider {
                 CompositionLocalProvider(LocalFlareStrings provides flareStringsEnglish()) {
                     RedPacketCard(blessing = "Hello", disabled = mode.value == 1, busy = mode.value == 2,
-                        state = if (mode.value == 3) FlareRedPacketState.Finished else FlareRedPacketState.Unopened,
+                        state = if (mode.value == 3) FlareRedPacketCardState.Finished else FlareRedPacketCardState.Unopened,
                         onOpen = if (mode.value == 4) null else ({ calls++ }))
                 }
             }

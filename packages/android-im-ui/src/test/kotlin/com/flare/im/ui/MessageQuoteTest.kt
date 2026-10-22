@@ -72,9 +72,11 @@ class MessageQuoteTest {
 
     @Test fun aQuotingMessageKeepsItsBubble() {
         val image = FlareMessageData("m2", "ann", "Ann", FlareImageContent("https://example.com/a.png"))
-        assertTrue(messageBubbleChromeless(image))
-        assertFalse(messageBubbleChromeless(image.copy(replyTo = quote)))
-        assertFalse(messageBubbleChromeless(image.copy(content = FlareTextContent("hi"))))
+        assertEquals(FlareMessageSurface.BareMedia, flareMessageSurface(image))
+        assertEquals(FlareMessageSurface.Bubble, flareMessageSurface(image.copy(replyTo = quote)), "quoted media needs the bubble")
+        assertEquals(FlareMessageSurface.Bubble, flareMessageSurface(image.copy(content = FlareTextContent("hi"))))
+        // A quoted card keeps its card shell and carries the quote inside it.
+        assertEquals(FlareMessageSurface.Card, flareMessageSurface(image.copy(content = FlareLocationContent("Here"), replyTo = quote)))
     }
 
     @Test fun modelsDefaultToNoQuote() {

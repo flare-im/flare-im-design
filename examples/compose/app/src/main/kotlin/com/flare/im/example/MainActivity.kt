@@ -108,7 +108,7 @@ private fun ExampleApp() {
                             senderName = "Ivy",
                             content = FlareTextContent("Incoming messages stay neutral."),
                             timeLabel = "14:33",
-                            status = FlareMessageDeliveryStatus.Delivered,
+                            status = FlareMessageDeliveryStatus.Sent,
                         ),
                         currentUserId = "me",
                         conversationKind = FlareConversationKind.Group,

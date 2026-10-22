@@ -19,9 +19,14 @@ class MessageLifecycleTest {
             FlareMessageDeliveryStatus.Sending,
             FlareMessageLifecycle(send = FlareMessageSendState.Sending).visualStatus,
         )
+        // No delivered glyph: delivery without a read is the single check (spec/message-receipt-vectors.json).
         assertEquals(
-            FlareMessageDeliveryStatus.Delivered,
+            FlareMessageDeliveryStatus.Sent,
             FlareMessageLifecycle(delivery = FlareMessageLifecycleDeliveryState.Delivered).visualStatus,
+        )
+        assertEquals(
+            listOf("Pending", "Sending", "Sent", "Read", "Failed"),
+            FlareMessageDeliveryStatus.entries.map { it.name },
         )
     }
 }

@@ -15,6 +15,7 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 
 /**
@@ -47,6 +48,27 @@ internal fun Modifier.flareTouchTargetBeyond(visual: Dp): Modifier = layout { me
     val target = measurable.measure(constraints.copy(minWidth = 0, minHeight = 0))
     val size = visual.roundToPx()
     layout(size, size) { target.place((size - target.width) / 2, (size - target.height) / 2) }
+}
+
+/**
+ * A text control whose hit area is at least [min] square while it keeps its own size in the layout: the row reserves
+ * the text, the node that takes the tap (and that TalkBack outlines) reaches past it on every side it is shorter than
+ * [min]. Put it first in the control's chain, before the click; the content is centred in the larger node. The room it
+ * reaches into must hold no other target.
+ */
+internal fun Modifier.flareTouchTargetAround(min: Dp = FlareSizes.touchTarget): Modifier = layout { measurable, constraints ->
+    val minPx = min.roundToPx()
+    val naturalWidth = measurable.maxIntrinsicWidth(constraints.maxHeight).coerceAtMost(constraints.maxWidth)
+    val naturalHeight = measurable.minIntrinsicHeight(naturalWidth)
+    val target = measurable.measure(
+        Constraints(
+            minWidth = maxOf(naturalWidth, minPx), maxWidth = maxOf(naturalWidth, minPx),
+            minHeight = maxOf(naturalHeight, minPx), maxHeight = maxOf(naturalHeight, minPx),
+        ),
+    )
+    layout(naturalWidth, naturalHeight) {
+        target.place((naturalWidth - target.width) / 2, (naturalHeight - target.height) / 2)
+    }
 }
 
 @Composable

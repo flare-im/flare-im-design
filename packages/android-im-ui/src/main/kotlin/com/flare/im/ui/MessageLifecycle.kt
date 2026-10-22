@@ -24,8 +24,7 @@ data class FlareMessageLifecycle(
             send == FlareMessageSendState.Sending || transfer == FlareTransferState.Transferring ||
                 transfer == FlareTransferState.Paused -> FlareMessageDeliveryStatus.Sending
             read == FlareMessageReadState.Read -> FlareMessageDeliveryStatus.Read
-            delivery == FlareMessageLifecycleDeliveryState.Delivered ||
-                delivery == FlareMessageLifecycleDeliveryState.PartiallyDelivered -> FlareMessageDeliveryStatus.Delivered
+            // No delivered glyph: delivery without a read is the single check (spec/message-receipt-vectors.json).
             else -> FlareMessageDeliveryStatus.Sent
         }
 }

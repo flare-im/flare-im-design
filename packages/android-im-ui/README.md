@@ -54,6 +54,27 @@ token-based typography. Page composition can read `MaterialTheme.typography`
 without maintaining another app type scale. Pass the matching `dark` value for
 custom color sets; the provider remains the theme owner.
 
+## Locale
+
+Times, date pills and file sizes the kit formats follow the kit's locale, never the device's. Provide the locale of
+the app's language next to its strings:
+
+```kotlin
+CompositionLocalProvider(
+    LocalFlareStrings provides flareStringsEnglish(),
+    LocalFlareLocale provides Locale.forLanguageTag("en-US"),
+) { App() }
+```
+
+Without `LocalFlareLocale` the kit reads the app configuration's locale (the per-app language when one is set).
+
+## Message surfaces
+
+A timeline row draws its content on one surface (`FlareMessageSurface`): a bubble, bare media, a card (plugin cards,
+red packets, locations, contact and link cards: the component's own shell, no bubble around it) or a centred notice.
+Every custom and plugin body is a card by default; register a surface in `FlareContentScope(surfaces = ...)` only for
+a new content type.
+
 ## Ownership
 
 The package owns native rendering, focus, semantics, adaptive composition, and deterministic UI state projection. The host maps authoritative conversation/message data into package models and owns commands, media loading, permissions, and side effects.

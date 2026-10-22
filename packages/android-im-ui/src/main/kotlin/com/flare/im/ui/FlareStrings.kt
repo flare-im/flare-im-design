@@ -176,12 +176,10 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["expand"] as? (String)) ?: "展开"
 
     // 红包
-    val packetClaimed: (String) -> String
-        get() = (overrides["packetClaimed"] as? ((String) -> String)) ?: { "已领取 · $it" }
     val packetFinished: String
         get() = (overrides["packetFinished"] as? (String)) ?: "已被领完"
     val packetTapToClaim: String
-        get() = (overrides["packetTapToClaim"] as? (String)) ?: "点击领取"
+        get() = (overrides["packetTapToClaim"] as? (String)) ?: "领取红包"
     val packetBrand: String
         get() = (overrides["packetBrand"] as? (String)) ?: "Flare 红包"
     val packetBusy: String
@@ -209,7 +207,7 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
     val packetMissed: String
         get() = (overrides["packetMissed"] as? String) ?: "手慢了，红包派完了"
     val packetExpiredNotice: String
-        get() = (overrides["packetExpiredNotice"] as? String) ?: "该红包已超过 24 小时"
+        get() = (overrides["packetExpiredNotice"] as? String) ?: "红包已过期"
     val packetNotEligible: String
         get() = (overrides["packetNotEligible"] as? String) ?: "你不能领取这个红包"
     val packetOpenFailed: String
@@ -444,14 +442,10 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["messageSending"] as? String) ?: "发送中"
     val messageSent: String
         get() = (overrides["messageSent"] as? String) ?: "已发送"
-    val messageDelivered: String
-        get() = (overrides["messageDelivered"] as? String) ?: "已送达"
     val messageRead: String
         get() = (overrides["messageRead"] as? String) ?: "已读"
     val messageFailed: String
         get() = (overrides["messageFailed"] as? String) ?: "发送失败"
-    val messageRetrying: String
-        get() = (overrides["messageRetrying"] as? String) ?: "正在重试"
     val messageEdited: String
         get() = (overrides["messageEdited"] as? String) ?: "已编辑"
     val messageReadOnce: String
@@ -1508,6 +1502,85 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["selectDate"] as? (String)) ?: "选择日期"
     val selectTime: String
         get() = (overrides["selectTime"] as? (String)) ?: "选择时间"
+
+    // 消息表面、元信息、回执；插件视图 v2；红包第五版（2026-10-22）
+    // 群聊本人消息的已读摘要：{count} 为未读人数（spec/message-receipt-vectors.json）
+    val messageReadSummaryUnread: String
+        get() = (overrides["messageReadSummaryUnread"] as? String) ?: "{count} 人未读"
+    val messageReadSummaryAllRead: String
+        get() = (overrides["messageReadSummaryAllRead"] as? String) ?: "全部已读"
+    // 卡片与裸媒体下方的失败重试键（spec/message-meta-placement-vectors.json）
+    val messageSendFailedRetry: String
+        get() = (overrides["messageSendFailedRetry"] as? String) ?: "发送失败，重试"
+    // 已删除消息的居中提示行
+    val messageDeleted: String
+        get() = (overrides["messageDeleted"] as? String) ?: "消息已删除"
+    // 文件大小；{n} 按 Kit locale 格式化
+    val fileSizeBytes: String
+        get() = (overrides["fileSizeBytes"] as? String) ?: "{n} B"
+    val fileSizeKilobytes: String
+        get() = (overrides["fileSizeKilobytes"] as? String) ?: "{n} KB"
+    val fileSizeMegabytes: String
+        get() = (overrides["fileSizeMegabytes"] as? String) ?: "{n} MB"
+    val fileSizeGigabytes: String
+        get() = (overrides["fileSizeGigabytes"] as? String) ?: "{n} GB"
+    // 插件卡片 ⋯ 菜单键的读屏名
+    val pluginViewMore: String
+        get() = (overrides["pluginViewMore"] as? String) ?: "更多操作"
+    // 插件页面宿主（FlarePluginPage）页头的刷新键，指针设备上代替下拉刷新
+    val pluginPageRefresh: String
+        get() = (overrides["pluginPageRefresh"] as? String) ?: "刷新"
+    // 分组名单里当前用户的标识
+    val pluginViewMe: String
+        get() = (overrides["pluginViewMe"] as? String) ?: "我"
+    // ResolvedPluginView.unavailableReason 的文案（spec/plugin-view-vectors.json unavailableReasons）
+    val pluginViewUnavailableDisabled: String
+        get() = (overrides["pluginViewUnavailableDisabled"] as? String) ?: "插件已停用"
+    val pluginViewUnavailableNotInstalled: String
+        get() = (overrides["pluginViewUnavailableNotInstalled"] as? String) ?: "插件未安装"
+    val pluginViewUnavailableNoPermission: String
+        get() = (overrides["pluginViewUnavailableNoPermission"] as? String) ?: "没有使用该插件的权限"
+    val pluginViewUnavailableUnsupportedPlatform: String
+        get() = (overrides["pluginViewUnavailableUnsupportedPlatform"] as? String) ?: "该插件不支持此设备"
+    val pluginViewUnavailableIncompatibleVersion: String
+        get() = (overrides["pluginViewUnavailableIncompatibleVersion"] as? String) ?: "请更新应用后查看"
+    val pluginViewUnavailableCatalogUnreachable: String
+        get() = (overrides["pluginViewUnavailableCatalogUnreachable"] as? String) ?: "暂时无法加载，请稍后再试"
+    val pluginViewUnavailableUnboundCopy: String
+        get() = (overrides["pluginViewUnavailableUnboundCopy"] as? String) ?: "副本，仅供查看"
+    // 红包第五版卡片与详情（spec/red-packet-vectors.json）
+    val packetView: String
+        get() = (overrides["packetView"] as? String) ?: "查看红包"
+    val packetRefunded: String
+        get() = (overrides["packetRefunded"] as? String) ?: "已退回"
+    val packetBadgeLucky: String
+        get() = (overrides["packetBadgeLucky"] as? String) ?: "拼手气"
+    val packetBadgeExclusive: String
+        get() = (overrides["packetBadgeExclusive"] as? String) ?: "专属"
+    val packetForRecipient: String
+        get() = (overrides["packetForRecipient"] as? String) ?: "给 {name}"
+    val packetNotEligibleName: String
+        get() = (overrides["packetNotEligibleName"] as? String) ?: "仅 {name} 可领取"
+    val packetDeposited: String
+        get() = (overrides["packetDeposited"] as? String) ?: "已存入钱包"
+    val packetSummarySender: String
+        get() = (overrides["packetSummarySender"] as? String) ?: "已领取 {claimed}/{shares} 个，共 {claimedMoney}/{totalMoney}"
+    val packetSummaryCompleted: String
+        get() = (overrides["packetSummaryCompleted"] as? String) ?: "{shares} 个红包共 {totalMoney}，{duration}被抢光"
+    val packetSummaryCount: String
+        get() = (overrides["packetSummaryCount"] as? String) ?: "已领取 {claimed}/{shares} 个"
+    val packetRefundAt: String
+        get() = (overrides["packetRefundAt"] as? String) ?: "未领取部分将于 {time} 退回"
+    val packetRefundedNote: String
+        get() = (overrides["packetRefundedNote"] as? String) ?: "已退回 {money} · {time}"
+    val packetDurationSeconds: String
+        get() = (overrides["packetDurationSeconds"] as? String) ?: "{n} 秒"
+    val packetDurationMinutes: String
+        get() = (overrides["packetDurationMinutes"] as? String) ?: "{n} 分钟"
+    val packetDurationHours: String
+        get() = (overrides["packetDurationHours"] as? String) ?: "{n} 小时"
+    val packetDurationDays: String
+        get() = (overrides["packetDurationDays"] as? String) ?: "{n} 天"
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -1749,16 +1822,13 @@ class FlareStringsBuilder internal constructor() {
         get() = (values["expand"] as? (String)) ?: "展开"
         set(value) { values["expand"] = value }
 
-    var packetClaimed: (String) -> String
-        get() = (values["packetClaimed"] as? ((String) -> String)) ?: { "已领取 · $it" }
-        set(value) { values["packetClaimed"] = value }
 
     var packetFinished: String
         get() = (values["packetFinished"] as? (String)) ?: "已被领完"
         set(value) { values["packetFinished"] = value }
 
     var packetTapToClaim: String
-        get() = (values["packetTapToClaim"] as? (String)) ?: "点击领取"
+        get() = (values["packetTapToClaim"] as? (String)) ?: "领取红包"
         set(value) { values["packetTapToClaim"] = value }
 
     var packetBrand: String
@@ -1801,7 +1871,7 @@ class FlareStringsBuilder internal constructor() {
         get() = (values["packetMissed"] as? String) ?: "手慢了，红包派完了"
         set(value) { values["packetMissed"] = value }
     var packetExpiredNotice: String
-        get() = (values["packetExpiredNotice"] as? String) ?: "该红包已超过 24 小时"
+        get() = (values["packetExpiredNotice"] as? String) ?: "红包已过期"
         set(value) { values["packetExpiredNotice"] = value }
     var packetNotEligible: String
         get() = (values["packetNotEligible"] as? String) ?: "你不能领取这个红包"
@@ -2196,18 +2266,12 @@ class FlareStringsBuilder internal constructor() {
     var messageSent: String
         get() = (values["messageSent"] as? String) ?: "已发送"
         set(value) { values["messageSent"] = value }
-    var messageDelivered: String
-        get() = (values["messageDelivered"] as? String) ?: "已送达"
-        set(value) { values["messageDelivered"] = value }
     var messageRead: String
         get() = (values["messageRead"] as? String) ?: "已读"
         set(value) { values["messageRead"] = value }
     var messageFailed: String
         get() = (values["messageFailed"] as? String) ?: "发送失败"
         set(value) { values["messageFailed"] = value }
-    var messageRetrying: String
-        get() = (values["messageRetrying"] as? String) ?: "正在重试"
-        set(value) { values["messageRetrying"] = value }
     var messageEdited: String
         get() = (values["messageEdited"] as? String) ?: "已编辑"
         set(value) { values["messageEdited"] = value }
@@ -4081,6 +4145,118 @@ class FlareStringsBuilder internal constructor() {
     var selectTime: String
         get() = (values["selectTime"] as? (String)) ?: "选择时间"
         set(value) { values["selectTime"] = value }
+
+    // 消息表面、元信息、回执；插件视图 v2；红包第五版（2026-10-22）
+    // 群聊本人消息的已读摘要：{count} 为未读人数（spec/message-receipt-vectors.json）
+    var messageReadSummaryUnread: String
+        get() = (values["messageReadSummaryUnread"] as? String) ?: "{count} 人未读"
+        set(value) { values["messageReadSummaryUnread"] = value }
+    var messageReadSummaryAllRead: String
+        get() = (values["messageReadSummaryAllRead"] as? String) ?: "全部已读"
+        set(value) { values["messageReadSummaryAllRead"] = value }
+    // 卡片与裸媒体下方的失败重试键（spec/message-meta-placement-vectors.json）
+    var messageSendFailedRetry: String
+        get() = (values["messageSendFailedRetry"] as? String) ?: "发送失败，重试"
+        set(value) { values["messageSendFailedRetry"] = value }
+    // 已删除消息的居中提示行
+    var messageDeleted: String
+        get() = (values["messageDeleted"] as? String) ?: "消息已删除"
+        set(value) { values["messageDeleted"] = value }
+    // 文件大小；{n} 按 Kit locale 格式化
+    var fileSizeBytes: String
+        get() = (values["fileSizeBytes"] as? String) ?: "{n} B"
+        set(value) { values["fileSizeBytes"] = value }
+    var fileSizeKilobytes: String
+        get() = (values["fileSizeKilobytes"] as? String) ?: "{n} KB"
+        set(value) { values["fileSizeKilobytes"] = value }
+    var fileSizeMegabytes: String
+        get() = (values["fileSizeMegabytes"] as? String) ?: "{n} MB"
+        set(value) { values["fileSizeMegabytes"] = value }
+    var fileSizeGigabytes: String
+        get() = (values["fileSizeGigabytes"] as? String) ?: "{n} GB"
+        set(value) { values["fileSizeGigabytes"] = value }
+    // 插件卡片 ⋯ 菜单键的读屏名
+    var pluginViewMore: String
+        get() = (values["pluginViewMore"] as? String) ?: "更多操作"
+        set(value) { values["pluginViewMore"] = value }
+    var pluginPageRefresh: String
+        get() = (values["pluginPageRefresh"] as? String) ?: "刷新"
+        set(value) { values["pluginPageRefresh"] = value }
+    // 分组名单里当前用户的标识
+    var pluginViewMe: String
+        get() = (values["pluginViewMe"] as? String) ?: "我"
+        set(value) { values["pluginViewMe"] = value }
+    // ResolvedPluginView.unavailableReason 的文案（spec/plugin-view-vectors.json unavailableReasons）
+    var pluginViewUnavailableDisabled: String
+        get() = (values["pluginViewUnavailableDisabled"] as? String) ?: "插件已停用"
+        set(value) { values["pluginViewUnavailableDisabled"] = value }
+    var pluginViewUnavailableNotInstalled: String
+        get() = (values["pluginViewUnavailableNotInstalled"] as? String) ?: "插件未安装"
+        set(value) { values["pluginViewUnavailableNotInstalled"] = value }
+    var pluginViewUnavailableNoPermission: String
+        get() = (values["pluginViewUnavailableNoPermission"] as? String) ?: "没有使用该插件的权限"
+        set(value) { values["pluginViewUnavailableNoPermission"] = value }
+    var pluginViewUnavailableUnsupportedPlatform: String
+        get() = (values["pluginViewUnavailableUnsupportedPlatform"] as? String) ?: "该插件不支持此设备"
+        set(value) { values["pluginViewUnavailableUnsupportedPlatform"] = value }
+    var pluginViewUnavailableIncompatibleVersion: String
+        get() = (values["pluginViewUnavailableIncompatibleVersion"] as? String) ?: "请更新应用后查看"
+        set(value) { values["pluginViewUnavailableIncompatibleVersion"] = value }
+    var pluginViewUnavailableCatalogUnreachable: String
+        get() = (values["pluginViewUnavailableCatalogUnreachable"] as? String) ?: "暂时无法加载，请稍后再试"
+        set(value) { values["pluginViewUnavailableCatalogUnreachable"] = value }
+    var pluginViewUnavailableUnboundCopy: String
+        get() = (values["pluginViewUnavailableUnboundCopy"] as? String) ?: "副本，仅供查看"
+        set(value) { values["pluginViewUnavailableUnboundCopy"] = value }
+    // 红包第五版卡片与详情（spec/red-packet-vectors.json）
+    var packetView: String
+        get() = (values["packetView"] as? String) ?: "查看红包"
+        set(value) { values["packetView"] = value }
+    var packetRefunded: String
+        get() = (values["packetRefunded"] as? String) ?: "已退回"
+        set(value) { values["packetRefunded"] = value }
+    var packetBadgeLucky: String
+        get() = (values["packetBadgeLucky"] as? String) ?: "拼手气"
+        set(value) { values["packetBadgeLucky"] = value }
+    var packetBadgeExclusive: String
+        get() = (values["packetBadgeExclusive"] as? String) ?: "专属"
+        set(value) { values["packetBadgeExclusive"] = value }
+    var packetForRecipient: String
+        get() = (values["packetForRecipient"] as? String) ?: "给 {name}"
+        set(value) { values["packetForRecipient"] = value }
+    var packetNotEligibleName: String
+        get() = (values["packetNotEligibleName"] as? String) ?: "仅 {name} 可领取"
+        set(value) { values["packetNotEligibleName"] = value }
+    var packetDeposited: String
+        get() = (values["packetDeposited"] as? String) ?: "已存入钱包"
+        set(value) { values["packetDeposited"] = value }
+    var packetSummarySender: String
+        get() = (values["packetSummarySender"] as? String) ?: "已领取 {claimed}/{shares} 个，共 {claimedMoney}/{totalMoney}"
+        set(value) { values["packetSummarySender"] = value }
+    var packetSummaryCompleted: String
+        get() = (values["packetSummaryCompleted"] as? String) ?: "{shares} 个红包共 {totalMoney}，{duration}被抢光"
+        set(value) { values["packetSummaryCompleted"] = value }
+    var packetSummaryCount: String
+        get() = (values["packetSummaryCount"] as? String) ?: "已领取 {claimed}/{shares} 个"
+        set(value) { values["packetSummaryCount"] = value }
+    var packetRefundAt: String
+        get() = (values["packetRefundAt"] as? String) ?: "未领取部分将于 {time} 退回"
+        set(value) { values["packetRefundAt"] = value }
+    var packetRefundedNote: String
+        get() = (values["packetRefundedNote"] as? String) ?: "已退回 {money} · {time}"
+        set(value) { values["packetRefundedNote"] = value }
+    var packetDurationSeconds: String
+        get() = (values["packetDurationSeconds"] as? String) ?: "{n} 秒"
+        set(value) { values["packetDurationSeconds"] = value }
+    var packetDurationMinutes: String
+        get() = (values["packetDurationMinutes"] as? String) ?: "{n} 分钟"
+        set(value) { values["packetDurationMinutes"] = value }
+    var packetDurationHours: String
+        get() = (values["packetDurationHours"] as? String) ?: "{n} 小时"
+        set(value) { values["packetDurationHours"] = value }
+    var packetDurationDays: String
+        get() = (values["packetDurationDays"] as? String) ?: "{n} 天"
+        set(value) { values["packetDurationDays"] = value }
 }
 
 

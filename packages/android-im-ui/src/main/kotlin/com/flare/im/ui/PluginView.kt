@@ -78,6 +78,14 @@ import kotlinx.coroutines.delay
  *   (not embedded, and only with [onOpenDetail]), disabled while busy.
  * - Time is formatted in the device zone (`pluginViewDateTimeFormat`); a countdown redraws every second under an hour and
  *   every minute otherwise.
+ * - Protocol v2 (spec/plugin-view-vectors.json rules.menuActions, entriesGrouped, unavailableReason, shell): the view's
+ *   `menuActions` open from a ⋯ key at the end of the title row (an embedded view draws them as keys after its
+ *   actions) and run exactly like a key — confirm, then form, then the action. A grouped entries block puts a header row
+ *   ("火锅 · 3 票 · 38%") before each group and tags the [viewerId]'s row "me". `unavailableReason` adds its line under
+ *   the title, led by [displayName]; a read-only copy (`unbound_copy`) keeps its content, acts on nothing and closes with
+ *   its own line.
+ * - The shell is the message's card surface: the timeline draws no bubble around it. A quoted reply goes in the shell's
+ *   [quote] slot, above the title row (a card message row passes its quote by itself).
  */
 @Composable
 fun PluginView(
@@ -94,10 +102,23 @@ fun PluginView(
     formErrors: List<PluginFormError> = emptyList(),
     /** The host's settle signal: incremented once per finished action, after that result's [error] / [formErrors]. */
     settleToken: Int = 0,
+    /** The card envelope's displayName (the plugin's name), leading the unavailable reason line. */
+    displayName: String? = null,
+    /** The viewer's user id: entries of that user carry the "me" tag. */
+    viewerId: String? = null,
+    /** A quoted reply drawn inside the shell, above the title row; a card message row passes its own. */
+    quote: (@Composable () -> Unit)? = LocalFlareCardQuote.current,
     onAction: ((String, PluginActionPayload) -> Unit)? = null,
     onOpenDetail: (() -> Unit)? = null,
 ) {
+    // A read-only copy acts on nothing, whatever the host passed.
+    val onAction = onAction.takeUnless { PluginViewFormat.readOnly(view) }
+    val onOpenDetail = onOpenDetail.takeUnless { PluginViewFormat.readOnly(view) }
     val colors = flareColors()
+    val strings = flareStrings()
+    var menuOpen by remember { mutableStateOf(false) }
+    val menuActions = PluginViewFormat.menuActions(view)
+    val reasonLine = PluginViewFormat.reasonLine(view, displayName, strings)
     var interaction by remember { mutableStateOf(PluginChoicesInteraction()) }
     var users by remember { mutableStateOf<Map<String, PluginUser>>(emptyMap()) }
     var confirming by remember { mutableStateOf<PluginActionRun?>(null) }
@@ -167,15 +188,39 @@ fun PluginView(
         shell,
         verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd),
     ) {
+        // The quote slot: a reply's quote sits inside the shell, above the title row; nothing nested inherits it.
+        if (!embedded && quote != null) quote()
         if (!embedded) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
                 if (icon != null && icon in flareIconNames) FlareIcon(icon, size = FlareSizes.iconSizeSm, tint = colors.primaryText)
                 Text(view.title, color = colors.textPrimary, fontSize = FlareSizes.fontSizeXl, fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.semantics { heading() })
+                    modifier = Modifier.weight(1f, fill = false).semantics { heading() })
+                if (menuActions.isNotEmpty()) {
+                    Spacer(Modifier.weight(1f))
+                    // The ⋯ key keeps the title row's height; its touch target reaches past the glyph.
+                    Box(Modifier.flareTouchTargetBeyond(FlareSizes.iconSizeMd)) {
+                        FlareIconControl(
+                            label = strings.pluginViewMore,
+                            onClick = { menuOpen = true },
+                            enabled = !locked && onAction != null,
+                        ) { FlareIcon("more", size = FlareSizes.iconSizeMd, tint = colors.textSecondary) }
+                        ActionMenu(
+                            expanded = menuOpen,
+                            items = menuActions.map { action ->
+                                FlareActionItem(id = action.id, label = action.label, danger = action.style == PluginActionStyle.Danger)
+                            },
+                            onDismiss = { menuOpen = false },
+                            onSelect = { id -> menuActions.firstOrNull { it.id == id }?.let { run(it, PluginActionPayload.Empty) } },
+                            label = strings.pluginViewMore,
+                        )
+                    }
+                }
             }
         }
         // No title row: an unavailable embedded view still says what it was.
         PluginViewFormat.unavailableLine(view, embedded)?.let { Text(it, color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd) }
+        // Why it is unavailable, under the title.
+        if (!view.available && reasonLine != null) Text(reasonLine, color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd)
         if (view.available) {
             if (view.fields.isNotEmpty()) PluginFieldRows(view.fields)
             view.blocks.forEachIndexed { index, block ->
@@ -202,7 +247,7 @@ fun PluginView(
                             if (action != null && selection != null) run(action, PluginActionPayload(selection = selection), index)
                         },
                     )
-                    is PluginEntriesBlock -> PluginEntriesBlockView(block, users, onOpenDetail)
+                    is PluginEntriesBlock -> PluginEntriesBlockView(block, users, viewerId, onOpenDetail)
                     is PluginPeopleBlock -> PluginPeopleBlockView(block, users)
                     is PluginStatusBlock -> PluginStatusBlockView(block)
                     is PluginProgressBlock -> PluginProgressBlockView(block)
@@ -211,7 +256,9 @@ fun PluginView(
                     is PluginNoteBlock -> PluginNoteBlockView(block)
                 }
             }
-            if (view.actions.isNotEmpty()) {
+            // Embedded (the detail sheet, a plugin page): no title row, so the menu actions are keys after the others.
+            val keys = if (embedded) view.actions + menuActions else view.actions
+            if (keys.isNotEmpty()) {
                 val key: @Composable (PluginViewAction, Modifier) -> Unit = { action, modifier ->
                     Box(modifier) {
                         Button(
@@ -221,13 +268,13 @@ fun PluginView(
                         )
                     }
                 }
-                if (view.actions.size > 2) {
+                if (keys.size > 2) {
                     Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
-                        view.actions.forEach { key(it, Modifier.fillMaxWidth()) }
+                        keys.forEach { key(it, Modifier.fillMaxWidth()) }
                     }
                 } else {
                     Row(horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
-                        view.actions.forEach { key(it, Modifier.weight(1f)) }
+                        keys.forEach { key(it, Modifier.weight(1f)) }
                     }
                 }
             }
@@ -239,6 +286,8 @@ fun PluginView(
                 )
             }
         }
+        // A read-only copy closes with why nothing on it acts.
+        if (view.available && reasonLine != null) Text(reasonLine, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm)
         if (failure != null) StatusBanner(text = failure, tone = FlareStatusTone.Danger)
     }
 
@@ -469,27 +518,42 @@ private fun PluginCheckBox(on: Boolean) {
 }
 
 @Composable
-private fun PluginEntriesBlockView(block: PluginEntriesBlock, users: Map<String, PluginUser>, onSeeAll: (() -> Unit)?) {
+private fun PluginEntriesBlockView(block: PluginEntriesBlock, users: Map<String, PluginUser>, viewerId: String?, onSeeAll: (() -> Unit)?) {
     val colors = flareColors()
     val strings = flareStrings()
     Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
         if (block.items.isEmpty()) {
             block.emptyText?.takeIf { it.isNotEmpty() }?.let { Text(it, color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd) }
         }
-        block.items.forEach { entry ->
+        block.items.forEachIndexed { position, entry ->
+            // A grouped block opens each group with its header row.
+            PluginViewFormat.entryGroupHeader(block, entry, strings)?.let { header ->
+                Text(
+                    header, color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd, fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.fillMaxWidth().padding(top = if (position > 0) FlareSizes.spacingXs else 0.dp).semantics { heading() },
+                )
+            }
             val name = PluginViewFormat.entryName(entry, users)
+            val me = PluginViewFormat.isMe(entry, viewerId)
             Row(
                 Modifier.fillMaxWidth().semantics(mergeDescendants = true) {},
                 verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
             ) {
-                if (block.numbered) {
-                    Text("${entry.index}.", color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd, modifier = Modifier.widthIn(min = 20.dp))
+                PluginViewFormat.entryNumber(block, entry)?.let { number ->
+                    Text("$number.", color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd, modifier = Modifier.widthIn(min = 20.dp))
                 }
                 val userId = entry.userId
                 if (!userId.isNullOrEmpty()) Avatar(userId = userId, displayName = name.orEmpty(), size = 20.dp, avatarUrl = users[userId]?.avatarUrl)
                 if (name != null) {
                     Text(name, color = colors.textSecondary, fontSize = FlareSizes.fontSizeLg, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                }
+                if (me) {
+                    Text(
+                        strings.pluginViewMe, color = colors.primaryText, fontSize = FlareSizes.fontSizeXs, fontWeight = FontWeight.Medium,
+                        modifier = Modifier.clip(RoundedCornerShape(FlareSizes.radiusXs)).background(colors.primary.copy(alpha = FlareOpacity.tintWeak))
+                            .padding(horizontal = FlareSizes.spacingXs),
+                    )
                 }
                 Text(entry.text, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg, modifier = Modifier.weight(1f))
             }

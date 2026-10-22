@@ -3,7 +3,6 @@ package com.flare.im.ui
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.dp
-import java.io.File
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.test.Test
@@ -24,61 +23,149 @@ class RedPacketComponentsTest {
 
     @Test fun cardStatusFollowsTheContractOrder() {
         fun status(
-            state: FlareRedPacketState,
-            amount: String? = null,
+            state: FlareRedPacketCardState,
             label: String? = null,
             busy: Boolean = false,
             disabled: Boolean = false,
-        ) = redPacketCardStatus(state, amount, label, busy, disabled, zh)
+        ) = redPacketCardStatus(state, label, busy, disabled, zh)
 
-        assertEquals(zh.packetBusy, status(FlareRedPacketState.Claimed, "¥1", "Created", busy = true))
-        assertEquals("Created", status(FlareRedPacketState.Claimed, "¥1", "Created"))
-        assertEquals(zh.packetClaimed("¥1"), status(FlareRedPacketState.Claimed, "¥1"))
-        assertEquals(zh.packetStateClaimed, status(FlareRedPacketState.Claimed))
-        assertEquals(zh.packetFinished, status(FlareRedPacketState.Finished, disabled = true))
-        assertEquals(zh.packetStateExpired, status(FlareRedPacketState.Expired, disabled = true))
-        assertEquals(zh.packetUnavailable, status(FlareRedPacketState.Unopened, disabled = true))
-        assertEquals(zh.packetTapToClaim, status(FlareRedPacketState.Unopened))
+        assertEquals(zh.packetBusy, status(FlareRedPacketCardState.Claimed, "Created", busy = true))
+        assertEquals("Created", status(FlareRedPacketCardState.Claimed, "Created"))
+        assertEquals(zh.packetStateClaimed, status(FlareRedPacketCardState.Claimed))
+        assertEquals(zh.packetFinished, status(FlareRedPacketCardState.Finished, disabled = true))
+        assertEquals(zh.packetStateExpired, status(FlareRedPacketCardState.Expired, disabled = true))
+        assertEquals(zh.packetRefunded, status(FlareRedPacketCardState.Refunded))
+        assertEquals(zh.packetUnavailable, status(FlareRedPacketCardState.Unopened, disabled = true))
+        assertEquals(zh.packetView, status(FlareRedPacketCardState.Viewable))
+        assertEquals(zh.packetTapToClaim, status(FlareRedPacketCardState.Unopened))
         assertEquals("已被领完", zh.packetFinished)
         assertEquals("Flare 红包", zh.packetBrand)
     }
 
     /** `spec/red-packet-vectors.json`, the table the four kits run. */
-    private fun vectors(): Map<*, *> {
-        var dir: File? = File(".").absoluteFile
-        while (dir != null) {
-            val candidate = File(dir, "spec/red-packet-vectors.json")
-            if (candidate.isFile) return FlareJson.parse(candidate.readText()) as Map<*, *>
-            dir = dir.parentFile
+    private fun vectors(): Map<*, *> = SpecTables.table("red-packet-vectors.json")
+
+    private val copy: Map<*, *> by lazy { vectors().obj("cardCopy")!!.obj("zh")!! }
+
+    private fun cardState(name: String?) = FlareRedPacketCardState.entries.first { it.name.equals(name, ignoreCase = true) }
+
+    @Test fun cardStateComesFromTheTwoLayers() {
+        val cases = vectors().items("cardState")
+        assertTrue(cases.size >= 11, "the shared table lost cases: ${cases.size}")
+        for (case in cases) {
+            val view = case.obj("view")!!
+            val got = flareRedPacketCardState(
+                status = FlareRedPacketStatus.fromWire(view.str("status"))!!,
+                claimedByMe = view.bool("claimedByMe") ?: false,
+                tapAction = FlareRedPacketTapAction.fromWire(view.str("tapAction")),
+            )
+            assertEquals(cardState(case.str("state")), got, case.str("id"))
         }
-        error("spec/red-packet-vectors.json not found above ${File(".").absolutePath}")
     }
 
     @Test fun cardFollowsTheSharedTable() {
-        val cases = vectors()["card"] as List<*>
-        assertTrue(cases.size >= 10, "the shared table lost cases: ${cases.size}")
-        for (raw in cases) {
-            val case = raw as Map<*, *>
-            val id = case["id"] as String
-            val state = FlareRedPacketState.entries.first { it.name.equals(case["state"] as String, ignoreCase = true) }
-            val amount = case["amount"] as String?
-            val label = case["statusLabel"] as String?
-            val busy = case["busy"] as Boolean? ?: false
-            val disabled = case["disabled"] as Boolean? ?: false
-            val expected = when (case["status"]) {
-                "busy" -> zh.packetBusy
+        val cases = vectors().items("card")
+        assertTrue(cases.size >= 11, "the shared table lost cases: ${cases.size}")
+        for (case in cases) {
+            val id = case.str("id")!!
+            val state = cardState(case.str("state"))
+            val label = case.str("statusLabel")
+            val busy = case.bool("busy") ?: false
+            val disabled = case.bool("disabled") ?: false
+            val expected = when (val status = case.str("status")) {
                 "statusLabel" -> label
-                "claimedAmount" -> zh.packetClaimed(amount!!)
-                "claimed" -> zh.packetStateClaimed
-                "finished" -> zh.packetFinished
-                "expired" -> zh.packetStateExpired
-                "unavailable" -> zh.packetUnavailable
-                "tapToOpen" -> zh.packetTapToClaim
-                else -> error("unknown status ${case["status"]} in $id")
+                "busy", "tapToOpen", "view", "claimed", "finished", "expired", "refunded", "unavailable" -> copy.str(status)
+                else -> error("unknown status $status in $id")
             }
-            assertEquals(expected, redPacketCardStatus(state, amount, label, busy, disabled, zh), id)
+            val got = redPacketCardStatus(state, label, busy, disabled, zh)
+            assertEquals(expected, got, id)
             assertEquals(case["tappable"], redPacketCardInteractive(busy, disabled, hasHandler = true), id)
             assertEquals(case["dimmed"], redPacketCardFaded(state), id)
+        }
+        // The card's copy is the shared copy: zh from the table, and no amount anywhere on it.
+        assertEquals(copy.str("tapToOpen"), zh.packetTapToClaim)
+        assertEquals(copy.str("view"), zh.packetView)
+        assertEquals(copy.str("refunded"), zh.packetRefunded)
+    }
+
+    @Test fun kindBadgeAndRecipientFollowTheTable() {
+        for (case in vectors().items("cardBadge")) {
+            val id = case.str("id")!!
+            val kind = FlareRedPacketKind.entries.first { it.name.equals(case.str("kind"), ignoreCase = true) }
+            val badge = redPacketCardBadge(kind, case.str("recipientName"), zh)
+            assertEquals(case.str("zh"), badge.badge, "$id badge")
+            assertEquals(case.obj("recipient")?.str("zh"), badge.recipient, "$id recipient")
+        }
+    }
+
+    @Test fun theOpenSheetOffersTheTablesKeys() {
+        for (case in vectors().items("openSheet")) {
+            val id = case.str("id")!!
+            val state = FlareRedPacketOpenState.entries.first { it.name.equals(case.str("state"), ignoreCase = true) }
+            assertEquals(case.bool("coin"), redPacketOpenShowsButton(state), "$id coin")
+            assertEquals(case.bool("details"), redPacketOpenShowsDetails(state, case.bool("canViewDetails") ?: true), "$id details")
+        }
+    }
+
+    @Test fun amountsFormatFromMinorUnits() {
+        val table = vectors().obj("amount")!!
+        val symbols = table.obj("symbols")!!
+        for ((code, symbol) in symbols) assertEquals("${symbol}1.00", flareRedPacketMoney("100", 2, code as String), code)
+        val cases = table.items("cases")
+        assertTrue(cases.size >= 12)
+        for (case in cases) {
+            val minor = case.str("minor")
+            val exponent = case.int("exponent")!!
+            val currency = case.str("currency")!!
+            assertEquals(case.str("text"), flareRedPacketAmountText(minor, exponent), "$minor/$exponent")
+            assertEquals(case.str("money"), flareRedPacketMoney(minor, exponent, currency), "$minor $currency")
+        }
+    }
+
+    @Test fun theDetailsDrawWhatTheServerReturned() {
+        val detail = vectors().obj("detail")!!
+        val now = detail.long("nowMs")!!
+        val zone = detail.int("utcOffsetMinutes")!!
+        val words = detail.obj("copy")!!.obj("zh")!!
+        // The kit's copy is the table's copy.
+        for ((key, field) in listOf(
+            "summarySender" to zh.packetSummarySender, "summaryCompleted" to zh.packetSummaryCompleted,
+            "summaryCount" to zh.packetSummaryCount, "refundAt" to zh.packetRefundAt, "refundedNote" to zh.packetRefundedNote,
+            "deposited" to zh.packetDeposited, "missed" to zh.packetMissed, "expired" to zh.packetExpiredNotice,
+            "notEligibleName" to zh.packetNotEligibleName, "notEligible" to zh.packetNotEligible,
+        )) assertEquals(words.str(key), field, key)
+        val cases = detail.items("cases")
+        assertTrue(cases.size >= 15)
+        for (case in cases) {
+            val id = case.str("id")!!
+            val d = case.obj("details")!!
+            val view = FlareRedPacketDetailsView(
+                viewerRole = FlareRedPacketViewerRole.fromWire(d.str("viewerRole"))!!,
+                status = FlareRedPacketStatus.fromWire(d.str("status"))!!,
+                kind = FlareRedPacketKind.entries.first { it.name.equals(d.str("kind"), ignoreCase = true) },
+                greeting = d.str("greeting")!!,
+                currency = d.str("currency")!!,
+                currencyExponent = d.int("currencyExponent")!!,
+                claimedCount = d.int("claimedCount")!!,
+                shareCount = d.int("shareCount")!!,
+                createdAtMs = d.long("createdAtMs")!!,
+                expiresAtMs = d.long("expiresAtMs")!!,
+                claimsListed = d.bool("claimsListed")!!,
+                totalMinor = d.str("totalMinor"),
+                claimedMinor = d.str("claimedMinor"),
+                refundedMinor = d.str("refundedMinor"),
+                myAmountMinor = d.str("myAmountMinor"),
+                completedAtMs = d.long("completedAtMs"),
+                refundedAtMs = d.long("refundedAtMs"),
+            )
+            val shown = RedPacketDetailFormat.presentation(view, case.str("designatedName"), now, zh, zone)
+            val expect = case.obj("expect")!!
+            assertEquals(expect.str("amount"), shown.amount, "$id amount")
+            assertEquals(expect.bool("deposited"), shown.deposited, "$id deposited")
+            assertEquals(expect.str("headline"), shown.headline, "$id headline")
+            assertEquals(expect.str("summary"), shown.summary, "$id summary")
+            assertEquals(expect.bool("claims"), shown.claims, "$id claims")
+            assertEquals(expect.str("note"), shown.note, "$id note")
         }
     }
 
@@ -166,16 +253,16 @@ class RedPacketComponentsTest {
         }
     }
 
-    @Test fun aCustomTypeListedAsBareDrawsWithoutABubbleUnlessItQuotes() {
-        val packet = FlareGenericContent(contentType = "redpacket", label = "Red packet")
+    /** Red packets and every other custom card are the card surface: no bubble around them, quoted or not (P0-1). */
+    @Test fun aCustomCardIsACardSurfaceWithoutABubble() {
+        val packet = FlareGenericContent(contentType = "custom.flare.redpacket.card", label = "Red packet")
         val plain = FlareMessageData(id = "m1", senderId = "u1", senderName = "Ann", content = packet)
-        assertFalse(isBareMedia(packet), "a custom body has a bubble by default")
-        assertTrue(isBareMedia(packet, customBare = true))
-        assertFalse(messageBubbleChromeless(plain))
-        assertTrue(messageBubbleChromeless(plain, customBare = true))
+        assertEquals(FlareMessageSurface.Card, flareMessageSurface(plain), "a custom body is a card by default")
+        val chrome = messageSurfaceChrome(flareMessageSurface(plain), tail = true)
+        assertFalse(chrome.background || chrome.padding || chrome.tail || chrome.shadow)
         val quoting = plain.copy(replyTo = FlareReplyTarget(messageId = "m0", senderName = "Bo", summary = "hi"))
-        assertFalse(messageBubbleChromeless(quoting, customBare = true), "a quote needs the bubble around it")
-        assertTrue(isBareMedia(FlareImageContent(url = "https://example.com/a.png")), "pictures stay bare")
+        assertEquals(FlareMessageSurface.Card, flareMessageSurface(quoting), "the quote goes inside the card's shell")
+        assertEquals(FlareMessageSurface.BareMedia, flareMessageSurface(plain.copy(content = FlareImageContent(url = "https://example.com/a.png"))), "pictures stay bare")
     }
 
     @Test fun onlyBusyDisabledOrUnhandledCardsAreInert() {
@@ -183,8 +270,10 @@ class RedPacketComponentsTest {
         assertFalse(redPacketCardInteractive(busy = true, disabled = false, hasHandler = true))
         assertFalse(redPacketCardInteractive(busy = false, disabled = true, hasHandler = true))
         assertFalse(redPacketCardInteractive(busy = false, disabled = false, hasHandler = false))
-        assertFalse(redPacketCardFaded(FlareRedPacketState.Unopened))
-        for (state in listOf(FlareRedPacketState.Claimed, FlareRedPacketState.Finished, FlareRedPacketState.Expired)) {
+        assertFalse(redPacketCardFaded(FlareRedPacketCardState.Unopened))
+        assertFalse(redPacketCardFaded(FlareRedPacketCardState.Viewable))
+        for (state in listOf(FlareRedPacketCardState.Claimed, FlareRedPacketCardState.Finished, FlareRedPacketCardState.Expired,
+            FlareRedPacketCardState.Refunded)) {
             assertTrue(redPacketCardFaded(state), state.name)
         }
     }
@@ -217,9 +306,11 @@ class RedPacketComponentsTest {
             FlareRedPacketOpenState.entries.filter(::redPacketOpenShowsButton),
         )
         assertEquals(
-            listOf(FlareRedPacketOpenState.Finished, FlareRedPacketOpenState.Expired, FlareRedPacketOpenState.NotEligible),
-            FlareRedPacketOpenState.entries.filter(::redPacketOpenShowsDetails),
+            listOf(FlareRedPacketOpenState.Finished, FlareRedPacketOpenState.Expired),
+            FlareRedPacketOpenState.entries.filter { redPacketOpenShowsDetails(it) },
+            "a not-eligible viewer never gets the details",
         )
+        assertTrue(FlareRedPacketOpenState.entries.none { redPacketOpenShowsDetails(it, canViewDetails = false) })
     }
 
     @Test fun envelopeKeepsAGutterOnNarrowWindows() {

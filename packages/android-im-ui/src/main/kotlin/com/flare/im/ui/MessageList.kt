@@ -7,8 +7,8 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,7 +33,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.IntOffset
@@ -151,50 +150,68 @@ internal sealed interface MessageTimelineRow {
         override val contentType get() = "unread"
     }
 
-    data class Message(override val key: String, val index: Int, val groupPosition: MessageGroupPosition) : MessageTimelineRow {
+    data class Message(
+        override val key: String,
+        val index: Int,
+        val groupPosition: MessageGroupPosition,
+        val surface: FlareMessageSurface = FlareMessageSurface.Bubble,
+    ) : MessageTimelineRow {
         override val contentType get() = "message"
     }
 }
 
 /**
- * The rows of a timeline (Vue `timelineRows`). A date pill goes before the first dated message and
- * before each message on another local calendar day than the dated message before it ([dayLabel] names
- * the day); time gaps within a day get none, since every bubble shows its time. The unread divider goes
- * before [unreadFromId], after that message's date pill, and counts the messages from others from there on.
- * A sender run ends at a date pill and at the unread divider. Days are compared as numbers; only the
- * pills are labelled.
+ * The rows of a timeline (Vue `timelineRows`, spec/message-grouping-vectors.json). A date pill goes before the first
+ * dated message and before each message on another local calendar day than the dated message before it ([dayLabel]
+ * names the day); time gaps within a day get none, since every bubble shows its time. The unread divider goes before
+ * [unreadFromId], after that message's date pill, and counts the messages from others from there on. A sender run ends
+ * at a date pill, at the unread divider, at a centred row and where the surface switches between a card and the others
+ * ([messagesShareGroup]). Days are compared as numbers; only the pills are labelled.
  */
-internal fun messageTimelineRows(
-    messages: List<FlareMessageData>,
+internal fun messageTimelineRowsOf(
+    items: List<FlareMessageGroupingItem>,
     currentUserId: String,
     unreadFromId: String?,
     zone: ZoneId,
     dayLabel: (epochMs: Long) -> String,
 ): List<MessageTimelineRow> {
-    val unreadIndex = unreadFromId?.let { id -> messages.indexOfFirst { it.id == id } } ?: -1
+    val unreadIndex = unreadFromId?.let { id -> items.indexOfFirst { it.id == id } } ?: -1
     // Where a date pill goes: before the first dated message and wherever the local day changes.
-    val startsDay = BooleanArray(messages.size)
+    val startsDay = BooleanArray(items.size)
     var previousDay: Long? = null
-    messages.forEachIndexed { index, message ->
-        if (message.sentAtMs > 0) {
-            val day = flareLocalEpochDay(message.sentAtMs, zone)
+    items.forEachIndexed { index, item ->
+        if (item.atMs > 0) {
+            val day = flareLocalEpochDay(item.atMs, zone)
             startsDay[index] = day != previousDay
             previousDay = day
         }
     }
-    fun dividerBefore(index: Int) = index == unreadIndex || (index in 1 until messages.size && startsDay[index])
-    val rows = ArrayList<MessageTimelineRow>(messages.size + 2)
-    messages.forEachIndexed { index, message ->
-        if (startsDay[index]) rows += MessageTimelineRow.Day("day:${message.id}", dayLabel(message.sentAtMs))
+    fun dividerBefore(index: Int) = index == unreadIndex || (index in 1 until items.size && startsDay[index])
+    val rows = ArrayList<MessageTimelineRow>(items.size + 2)
+    items.forEachIndexed { index, item ->
+        if (startsDay[index]) rows += MessageTimelineRow.Day("day:${item.id}", dayLabel(item.atMs))
         if (index == unreadIndex) {
-            val fromOthers = (index until messages.size).count { messages[it].senderId != currentUserId }
-            rows += MessageTimelineRow.Unread("unread:${message.id}", fromOthers)
+            val fromOthers = (index until items.size).count { items[it].senderId != currentUserId }
+            rows += MessageTimelineRow.Unread("unread:${item.id}", fromOthers)
         }
-        val position = messageRunAtDividers(messageGroupPosition(messages, index), dividerBefore(index), dividerBefore(index + 1))
-        rows += MessageTimelineRow.Message(message.id, index, position)
+        val position = messageRunAtDividers(messageGroupPosition(items, index), dividerBefore(index), dividerBefore(index + 1))
+        rows += MessageTimelineRow.Message(item.id, index, position, item.surface)
     }
     return rows
 }
+
+/** [messageTimelineRowsOf] for [messages] on their [surfaces] (derived without host registrations when null). */
+internal fun messageTimelineRows(
+    messages: List<FlareMessageData>,
+    currentUserId: String,
+    unreadFromId: String?,
+    zone: ZoneId,
+    surfaces: List<FlareMessageSurface>? = null,
+    dayLabel: (epochMs: Long) -> String,
+): List<MessageTimelineRow> = messageTimelineRowsOf(
+    messages.mapIndexed { index, message -> message.groupingItem(surfaces?.getOrNull(index) ?: flareMessageSurface(message)) },
+    currentUserId, unreadFromId, zone, dayLabel,
+)
 
 /**
  * A divider (date pill or unread divider) ends a sender run (Vue `breakRunAtDividers`): one right
@@ -474,6 +491,10 @@ fun MessageList(
      * a reader scrolled up must not be told someone is typing at a row they are not looking at.
      */
     footer: (@Composable () -> Unit)? = null,
+    /** The read summary key of an own group message: the message's core id, for the host to open its read list. */
+    onReadReceiptOpen: ((String) -> Unit)? = null,
+    /** A tapped avatar: the host opens the sender's profile. */
+    onAvatarTap: ((FlareMessageData) -> Unit)? = null,
 ) {
     val listState = state.listState
     // The `footer` slot is an item of its own, so every count that means "how many items does the list
@@ -489,11 +510,20 @@ fun MessageList(
     val haptics = LocalHapticFeedback.current
     val view = LocalView.current
     val scope = rememberCoroutineScope()
-    val locale = LocalConfiguration.current.locales[0]
-    val rows = remember(messages, currentUserId, unreadFromId, strings.today, strings.yesterday, locale) {
+    // Date pills speak the kit's language, not the device's.
+    val locale = flareLocale()
+    // Every row's surface, once: grouping breaks where it switches between a card and the others.
+    val registered = flareContentSurfaces()
+    val mayHoldEmoji = remember(messages) { messages.any { (it.content as? FlareTextContent)?.text?.let(::flareMayHoldEmojiTokens) == true } }
+    val catalogLoaded = if (mayHoldEmoji) rememberCatalogLoaded() else false
+    val surfaces = remember(messages, registered, catalogLoaded) {
+        val known: (String) -> Boolean = if (catalogLoaded) FlareEmojiStickerCatalog::hasEmojiKey else { _ -> false }
+        messages.map { flareMessageSurface(it, registered, known) }
+    }
+    val rows = remember(messages, surfaces, currentUserId, unreadFromId, strings.today, strings.yesterday, locale) {
         val zone = ZoneId.systemDefault()
         val now = System.currentTimeMillis()
-        messageTimelineRows(messages, currentUserId, unreadFromId, zone) { epochMs ->
+        messageTimelineRows(messages, currentUserId, unreadFromId, zone, surfaces) { epochMs ->
             FlareTimeFormat.timelineDateLabel(epochMs, strings.today, strings.yesterday, locale, now, zone)
         }
     }
@@ -629,9 +659,11 @@ fun MessageList(
                     else if (empty != null) empty()
                     else EmptyState(title = emptyText)
                 }
-            } else Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+            } else BoxWithConstraints(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+                // Bubbles size against this pane (the timeline column), not the screen.
+                val pane = minOf(maxWidth, FlareSizes.messageTimelineContentMaxWidth)
                 // Bottom arrangement: a conversation shorter than the screen sits at the bottom, by the composer.
-                LazyColumn(
+                CompositionLocalProvider(LocalFlareTimelinePaneWidth provides pane) { LazyColumn(
                     Modifier.fillMaxHeight().widthIn(max = FlareSizes.messageTimelineContentMaxWidth),
                     state = listState,
                     verticalArrangement = Arrangement.Bottom,
@@ -645,7 +677,8 @@ fun MessageList(
                                 val msg = messages[row.index]
                                 val groupPosition = row.groupPosition
                                 val presentation = messageRowPresentation(
-                                    message = msg,
+                                    senderId = msg.senderId,
+                                    surface = row.surface,
                                     position = groupPosition,
                                     currentUserId = currentUserId,
                                     groupConversation = conversationKind == FlareConversationKind.Group,
@@ -654,8 +687,8 @@ fun MessageList(
                                     showGroupSenderName = showGroupSenderName,
                                 )
                                 val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-                                // Notices (system lines, recalled messages) carry no message actions.
-                                val actionable = !msg.isSystem && !msg.isRecalled
+                                // Notices (system lines, recalled and deleted messages) carry no message actions.
+                                val actionable = row.surface != FlareMessageSurface.Centered
                                 val swipeable = onSwipeReply != null && !multiSelectMode && actionable
                                 var dragging by remember(msg.id) { mutableStateOf(false) }
                                 var gesture by remember(msg.id) { mutableStateOf(SwipeReplyGesture.None) }
@@ -708,7 +741,7 @@ fun MessageList(
                                             Unit
                                         }
                                     }
-                                Box(swipe.then(if (longPress && actionable) Modifier.combinedClickable(onClick = {}, onLongClick = { onMessageLongPress?.invoke(msg) }) else Modifier)) {
+                                Box(swipe) {
                                     if (swipeable) Box(
                                         Modifier.align(Alignment.CenterStart)
                                             .padding(horizontal = FlareSizes.spacingMd)
@@ -717,13 +750,17 @@ fun MessageList(
                                             .alpha((travel / SWIPE_REPLY_ARM_DISTANCE).coerceIn(0f, 1f)),
                                     ) { FlareIcon("reply", tint = colors.textTertiary) }
                                     Box(Modifier.offset { IntOffset(with(density) { (if (rtl) -travel else travel).dp.roundToPx() }, 0) }) {
-                                        MessageBubble(message = msg, currentUserId = currentUserId, conversationKind = conversationKind,
-                                            groupPosition = groupPosition, rowPresentation = presentation,
+                                        MessageBubbleRow(message = msg, currentUserId = currentUserId, conversationKind = conversationKind,
+                                            groupPosition = groupPosition, rowPresentation = presentation, surface = row.surface,
                                             mediaState = mediaDownloadStates[msg.id], onMediaAction = onMediaAction, onResend = onResend,
                                             multiSelectMode = multiSelectMode, selected = msg.id in selectedIds, onToggleSelect = onToggleSelect,
                                             onReact = onReact, onLocateMessage = locate, onOpenFile = onOpenFile, onOpenLink = onOpenLink,
                                             onVote = onVote, onTaskToggle = onTaskToggle, onMediaDownload = onMediaDownload,
-                                            onMediaReveal = onMediaReveal, onCardOpen = onCardOpen, onLocationOpen = onLocationOpen)
+                                            onMediaReveal = onMediaReveal, onCardOpen = onCardOpen, onLocationOpen = onLocationOpen,
+                                            onReadReceiptOpen = onReadReceiptOpen, onAvatarTap = onAvatarTap,
+                                            // The menu and the reply are row actions too, for a reader who cannot long-press or swipe.
+                                            onLongPress = if (longPress && actionable) ({ onMessageLongPress?.invoke(msg); Unit }) else null,
+                                            onReply = if (swipeable) ({ onSwipeReply?.invoke(msg); Unit }) else null)
                                     }
                                 }
                             }
@@ -731,7 +768,7 @@ fun MessageList(
                     }
                     // The `footer` slot: its own item so it stays under the newest row and scrolls with it.
                     if (footer != null) item(key = "flare-timeline-footer", contentType = "footer") { footer() }
-                }
+                } }
                 if (below > 0) {
                     Box(Modifier.align(Alignment.BottomEnd).padding(FlareSizes.spacingMd)) {
                         ScrollToLatest(count = below, onTap = { tail.follow(); scope.launch { listState.scrollToMessageListEnd(rows.size + footerRows) } })

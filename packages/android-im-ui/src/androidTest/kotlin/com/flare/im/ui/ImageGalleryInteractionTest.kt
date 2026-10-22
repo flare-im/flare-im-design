@@ -69,11 +69,20 @@ class ImageGalleryInteractionTest {
         compose.runOnIdle { assertEquals(listOf("m2:https://example.invalid/3.jpg", "m1:https://example.invalid/1.jpg"), saved) }
     }
 
+    /** A small picture on this device, so the body draws it rather than its failure. */
+    private fun localPicture(name: String): java.io.File {
+        val file = java.io.File(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().targetContext.cacheDir, name)
+        val bitmap = android.graphics.Bitmap.createBitmap(64, 64, android.graphics.Bitmap.Config.ARGB_8888).apply { eraseColor(android.graphics.Color.BLUE) }
+        file.outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+        return file
+    }
+
     /** Outside a timeline a picture opens alone, with the key its body was given — and without one, no key. */
     @Test fun aPictureAloneOffersTheDownloadItsBodyWasGivenAndNoneWithoutOne() {
         val saved = mutableListOf<String>()
         var offered by mutableStateOf(true)
-        val picture = FlareImageContent("https://example.invalid/solo.jpg", alt = "海边")
+        // A picture that draws: a failed one retries on a tap instead of opening the preview.
+        val picture = FlareImageContent("https://example.invalid/solo.jpg", alt = "海边", localPath = localPicture("flare-solo.png").absolutePath)
         compose.setContent {
             FlareThemeProvider {
                 MessageContentView(

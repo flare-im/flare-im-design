@@ -176,6 +176,11 @@ data class FlareGenericContent(
     val itemCount: Int = 0,
     /** Opaque data for a scoped renderer; never evaluated by the kit. */
     val payloadJson: String? = null,
+    /**
+     * The custom content's subtype (`flare.plugin.message.v1`, `acme.weather`…): with it a host registers a surface for
+     * `custom:<subtype>` ([FlareContentScope] `surfaces`). A wire type `custom.<subtype>` carries it in its name.
+     */
+    val subtype: String? = null,
 ) : FlareMessageContent {
     override val type get() = contentType
 }
@@ -224,9 +229,18 @@ data class FlareMessageData(
     val reactions: List<ReactionGroup> = emptyList(),
     /** The message this one replies to, quoted at the top of the bubble. */
     val replyTo: FlareReplyTarget? = null,
+    /**
+     * The core SDK's group read summary of the viewer's own message (`MessageReceiptView.readSummary`): with [status] sent
+     * or read it replaces the check with "N unread" / "Read by all". Null in single chats, in groups above the
+     * large-group threshold and before the SDK has data — the kit never makes a number up.
+     */
+    val readSummary: FlareMessageReadSummary? = null,
 ) {
     val isSystem: Boolean get() = content is FlareNotificationContent
 
     /** A recalled message renders as a notice in place of its content (lifecycle mutation outranks everything). */
     val isRecalled: Boolean get() = lifecycle?.mutation == FlareMessageMutationState.Recalled
+
+    /** A deleted message renders as the centred "Message deleted" notice. */
+    val isDeleted: Boolean get() = lifecycle?.mutation == FlareMessageMutationState.Deleted
 }

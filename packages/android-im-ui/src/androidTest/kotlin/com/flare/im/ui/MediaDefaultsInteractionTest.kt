@@ -66,7 +66,9 @@ class MediaDefaultsInteractionTest {
         compose.setContent {
             FlareThemeProvider {
                 MessageList(
-                    messages = listOf(message("i1", FlareImageContent("https://example.invalid/full.jpg", thumbnailUrl = "https://example.invalid/thumb.jpg", alt = "照片"))),
+                    // A picture that draws (a failed one retries on a tap instead: see the local-copy test).
+                    messages = listOf(message("i1", FlareImageContent("https://example.invalid/full.jpg", thumbnailUrl = "https://example.invalid/thumb.jpg", alt = "照片",
+                        localPath = localPicture("flare-preview.png", android.graphics.Color.BLUE).absolutePath))),
                     currentUserId = "me",
                 )
             }
@@ -163,11 +165,14 @@ class MediaDefaultsInteractionTest {
         compose.onNodeWithText(strings.imageLoadFailed).assertDoesNotExist()
         compose.onNodeWithContentDescription(strings.imagePreviewClose).performClick()
 
-        // The address alone does not load here: the preview says so.
+        // The address alone does not load here: the bubble says so, and a tap loads it again instead of opening the
+        // preview (Vue FlareImageMessage).
         localPath = null
+        compose.waitUntil(timeoutMillis = 15_000) {
+            compose.onAllNodesWithText(strings.imageLoadFailed, useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty()
+        }
         compose.onNodeWithContentDescription("照片").performClick()
-        waitForImageLoads()
-        compose.onAllNodesWithText(strings.imageLoadFailed).assertCountEquals(1)
+        compose.onNodeWithContentDescription(strings.imagePreviewClose).assertDoesNotExist()
     }
 
     @Test fun anUnplayableVideoShowsTheFailureAndCloseInsteadOfABlankScreen() {
@@ -222,7 +227,8 @@ class MediaDefaultsInteractionTest {
         compose.setContent {
             FlareThemeProvider {
                 MessageList(
-                    messages = listOf(message("i1", FlareImageContent("https://example.invalid/i.jpg", alt = "照片"))),
+                    messages = listOf(message("i1", FlareImageContent("https://example.invalid/i.jpg", alt = "照片",
+                        localPath = localPicture("flare-host-tap.png", android.graphics.Color.GREEN).absolutePath))),
                     currentUserId = "me",
                     onMediaAction = { msg, _ -> taps += msg.id },
                 )

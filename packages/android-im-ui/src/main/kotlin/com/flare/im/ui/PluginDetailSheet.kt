@@ -51,6 +51,8 @@ fun PluginDetailSheet(
     loading: Boolean = false,
     error: String? = null,
     resolveUser: (suspend (String) -> PluginUser?)? = null,
+    /** The viewer's user id, for the "me" tag in grouped entries. */
+    viewerId: String? = null,
     busyActionId: String? = null,
     actionError: String? = null,
     formErrors: List<PluginFormError> = emptyList(),
@@ -98,28 +100,36 @@ fun PluginDetailSheet(
                     PluginView(
                         view = it, busyActionId = actions.busyActionId, error = actions.error, embedded = true,
                         resolveUser = resolveUser, members = actions.members, formErrors = actions.formErrors,
-                        settleToken = actions.settleToken, onAction = onAction,
+                        settleToken = actions.settleToken, viewerId = viewerId, quote = null, onAction = onAction,
                     )
-                    when (val more = paging.key(it.nextCursor, loadingMore)) {
-                        PluginDetailLoadMore.Hidden -> Unit
-                        PluginDetailLoadMore.Loading -> Box(Modifier.fillMaxWidth().padding(top = FlareSizes.spacingMd)) {
-                            Button(label = strings.myInviteLoadMore, variant = FlareButtonVariant.Text, loading = true, block = true,
-                                onClick = {})
-                        }
-                        is PluginDetailLoadMore.Ready -> Box(Modifier.fillMaxWidth().padding(top = FlareSizes.spacingMd)) {
-                            Button(
-                                label = strings.myInviteLoadMore, variant = FlareButtonVariant.Text, disabled = onLoadMore == null,
-                                block = true,
-                                onClick = {
-                                    val (next, asked) = paging.tap(more.cursor, loadingMore)
-                                    paging = next
-                                    if (asked != null) onLoadMore?.invoke(asked)
-                                },
-                            )
-                        }
+                    PluginLoadMoreKey(paging.key(it.nextCursor, loadingMore), onLoadMore) { cursor ->
+                        val (next, asked) = paging.tap(cursor, loadingMore)
+                        paging = next
+                        asked
                     }
                 }
             }
+        }
+    }
+}
+
+/**
+ * The full-width "load more" key under a paged view: spinning while the page loads, tappable with a cursor, gone on the
+ * last page. [ask] turns a tap into the cursor to request (null while the same page is already asked for).
+ */
+@Composable
+internal fun PluginLoadMoreKey(key: PluginDetailLoadMore, onLoadMore: ((String) -> Unit)?, ask: (String) -> String?) {
+    val strings = flareStrings()
+    when (key) {
+        PluginDetailLoadMore.Hidden -> Unit
+        PluginDetailLoadMore.Loading -> Box(Modifier.fillMaxWidth().padding(top = FlareSizes.spacingMd)) {
+            Button(label = strings.myInviteLoadMore, variant = FlareButtonVariant.Text, loading = true, block = true, onClick = {})
+        }
+        is PluginDetailLoadMore.Ready -> Box(Modifier.fillMaxWidth().padding(top = FlareSizes.spacingMd)) {
+            Button(
+                label = strings.myInviteLoadMore, variant = FlareButtonVariant.Text, disabled = onLoadMore == null, block = true,
+                onClick = { ask(key.cursor)?.let { onLoadMore?.invoke(it) } },
+            )
         }
     }
 }

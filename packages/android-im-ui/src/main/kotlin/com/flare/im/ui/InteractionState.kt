@@ -50,6 +50,12 @@ fun composerAllowedActions(mode: FlareComposerInteractionMode): Set<FlareCompose
     else -> setOf(FlareComposerInteractionAction.Type, FlareComposerInteractionAction.Send, FlareComposerInteractionAction.Newline, FlareComposerInteractionAction.Attach, FlareComposerInteractionAction.Mention, FlareComposerInteractionAction.Reply, FlareComposerInteractionAction.Edit, FlareComposerInteractionAction.Record)
 }
 
+/**
+ * The interaction state of a message row (spec/interaction-contracts.json `stateMachines.MessageBubble`, the pure
+ * function the four kits share): the lifecycle's terminal and failure states outrank selection and hover, which outrank
+ * the transfer states. It is the interaction state machine, not the receipt glyph: `Delivered` here is the lifecycle's
+ * delivery fact, while the receipt draws no delivered glyph ([flareMessageReceiptPresentation]).
+ */
 enum class FlareMessageInteractionMode { Normal, Hover, Selected, MultiSelected, Sending, Sent, Delivered, Read, Failed, Retrying, Edited, Recalled, Deleted, Ephemeral, Expired }
 
 fun resolveMessageMode(

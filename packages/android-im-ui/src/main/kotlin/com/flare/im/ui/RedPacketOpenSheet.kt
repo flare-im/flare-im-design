@@ -54,8 +54,8 @@ import androidx.compose.ui.unit.sp
  * What the open-packet layer shows. Spec: RedPacketOpenSheet `state`.
  *
  * [Ready] offers the gold open button; [Opening] flips it while the claim runs and takes no second tap; [Finished],
- * [Expired] and [NotEligible] say why there is nothing to open and offer the details; [Error] keeps the button for
- * another try.
+ * [Expired] and [NotEligible] say why there is nothing to open — the first two offer the details when the viewer may
+ * see them, [NotEligible] never does; [Error] keeps the button for another try.
  */
 enum class FlareRedPacketOpenState { Ready, Opening, Finished, Expired, NotEligible, Error }
 
@@ -87,10 +87,13 @@ internal fun redPacketOpenShowsButton(state: FlareRedPacketOpenState): Boolean =
     state == FlareRedPacketOpenState.Ready || state == FlareRedPacketOpenState.Opening ||
         state == FlareRedPacketOpenState.Error
 
-/** The states that explain why nothing can be opened lead to the details. */
-internal fun redPacketOpenShowsDetails(state: FlareRedPacketOpenState): Boolean =
-    state == FlareRedPacketOpenState.Finished || state == FlareRedPacketOpenState.Expired ||
-        state == FlareRedPacketOpenState.NotEligible
+/**
+ * The details key (spec/red-packet-vectors.json `openSheet`): a finished or expired packet leads to its details when the
+ * personal layer says the viewer may see them ([canViewDetails]); a not-eligible viewer never gets one — the server
+ * returns them no amounts or records.
+ */
+internal fun redPacketOpenShowsDetails(state: FlareRedPacketOpenState, canViewDetails: Boolean = true): Boolean =
+    canViewDetails && (state == FlareRedPacketOpenState.Finished || state == FlareRedPacketOpenState.Expired)
 
 /** The envelope's width: the token, never closer than an extra-large gutter to the window's sides. */
 internal fun redPacketEnvelopeWidth(window: Dp): Dp =
@@ -123,6 +126,8 @@ fun RedPacketOpenSheet(
     message: String? = null,
     onOpen: (() -> Unit)? = null,
     onViewDetails: (() -> Unit)? = null,
+    /** From the personal layer: a finished or expired sheet offers the details key only when true. */
+    canViewDetails: Boolean = true,
 ) {
     val colors = flareColors()
     val strings = flareStrings()
@@ -157,7 +162,7 @@ fun RedPacketOpenSheet(
                 message = message,
                 reducedMotion = reducedMotion,
                 onOpen = onOpen,
-                onViewDetails = onViewDetails,
+                onViewDetails = onViewDetails.takeIf { redPacketOpenShowsDetails(state, canViewDetails) },
             )
             FlareIconControl(label = strings.close, onClick = close) {
                 Box(
@@ -251,7 +256,7 @@ private fun RedPacketEnvelope(
                     .padding(top = if (showsCoin) coin / 2 else 0.dp, bottom = FlareSizes.spacingLg),
                 contentAlignment = Alignment.BottomCenter,
             ) {
-                if (redPacketOpenShowsDetails(state) && onViewDetails != null) {
+                if (onViewDetails != null) {
                     Row(
                         Modifier.heightIn(min = FlareSizes.touchTarget).clip(RoundedCornerShape(FlareSizes.radiusMd))
                             .clickable(role = Role.Button) { onViewDetails() }

@@ -87,17 +87,23 @@ class RedPacketComponentsInteractionTest {
     // MARK: Card
 
     @Test fun everyCardStateOpensAndShowsItsStatus() {
-        val state = mutableStateOf(FlareRedPacketState.Unopened)
-        val opened = mutableListOf<FlareRedPacketState>()
-        content { RedPacketCard(blessing = "Hello", kindLabel = "Lucky", state = state.value, onOpen = { opened += state.value }) }
-        compose.onNodeWithText("Lucky").assertExists()
+        val state = mutableStateOf(FlareRedPacketCardState.Unopened)
+        val opened = mutableListOf<FlareRedPacketCardState>()
+        content {
+            RedPacketCard(blessing = "Hello", kind = FlareRedPacketKind.Exclusive, recipientName = "Bob", state = state.value,
+                onOpen = { opened += state.value })
+        }
+        compose.onNodeWithText(zh.packetBadgeExclusive, useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("给 Bob", useUnmergedTree = true).assertExists()
         compose.onNodeWithText(zh.packetBrand).assertExists()
         compose.onNodeWithText("Hello").assertHeightIsAtLeast(FlareSizes.touchTarget)
         val statuses = mapOf(
-            FlareRedPacketState.Unopened to zh.packetTapToClaim,
-            FlareRedPacketState.Claimed to zh.packetStateClaimed,
-            FlareRedPacketState.Finished to zh.packetFinished,
-            FlareRedPacketState.Expired to zh.packetStateExpired,
+            FlareRedPacketCardState.Unopened to zh.packetTapToClaim,
+            FlareRedPacketCardState.Viewable to zh.packetView,
+            FlareRedPacketCardState.Claimed to zh.packetStateClaimed,
+            FlareRedPacketCardState.Finished to zh.packetFinished,
+            FlareRedPacketCardState.Expired to zh.packetStateExpired,
+            FlareRedPacketCardState.Refunded to zh.packetRefunded,
         )
         for ((next, status) in statuses) {
             compose.runOnIdle { state.value = next }
@@ -106,7 +112,7 @@ class RedPacketComponentsInteractionTest {
                 .assertIsEnabled()
                 .performClick()
         }
-        assertEquals(FlareRedPacketState.entries, opened)
+        assertEquals(FlareRedPacketCardState.entries, opened)
     }
 
     /** A busy or unavailable card is drawn exactly like an open one showing the same status: nothing dims it. */
@@ -149,7 +155,7 @@ class RedPacketComponentsInteractionTest {
 
     // MARK: Custom bodies in the timeline
 
-    /** A type listed in `bareTypes` is drawn without the bubble's padding (or surface); an unlisted one keeps it. */
+    /** A type registered as bare media is drawn without the bubble's padding (or surface); an unregistered unknown type keeps it. */
     @Test fun aBareCustomBodyLosesTheBubbleAndAFramedOneKeepsIt() {
         val body: FlareContentBuilder = { content, _ ->
             Box(Modifier.size(120.dp, 60.dp).testTag((content as FlareGenericContent).label))
@@ -160,7 +166,7 @@ class RedPacketComponentsInteractionTest {
         )
         content {
             Column {
-                FlareContentScope(builders = mapOf("redpacket" to body), bareTypes = setOf("redpacket")) {
+                FlareContentScope(builders = mapOf("redpacket" to body), surfaces = mapOf("redpacket" to FlareMessageSurface.BareMedia)) {
                     MessageBubble(message = message("bare"), currentUserId = "me")
                 }
                 FlareContentScope(builders = mapOf("redpacket" to body)) {
@@ -168,8 +174,9 @@ class RedPacketComponentsInteractionTest {
                 }
             }
         }
-        val bare = compose.onNodeWithTag("bare").getUnclippedBoundsInRoot()
-        val framed = compose.onNodeWithTag("framed").getUnclippedBoundsInRoot()
+        // The row is one reading unit, so its body sits in the unmerged tree.
+        val bare = compose.onNodeWithTag("bare", useUnmergedTree = true).getUnclippedBoundsInRoot()
+        val framed = compose.onNodeWithTag("framed", useUnmergedTree = true).getUnclippedBoundsInRoot()
         assertEquals(FlareSizes.componentBubblePaddingX.value, (framed.left - bare.left).value, 0.5f)
     }
 
@@ -253,9 +260,11 @@ class RedPacketComponentsInteractionTest {
             compose.onNodeWithText(copy).assertIsDisplayed()
             compose.onNodeWithText("Wish").assertDoesNotExist()
             compose.onNodeWithContentDescription(zh.packetOpenAction).assertDoesNotExist()
-            compose.onNodeWithText(zh.packetViewDetails).assertHeightIsAtLeast(FlareSizes.touchTarget).performClick()
+            // Red packet v5: a not-eligible viewer never gets the details (the server returns them nothing to show).
+            if (next == FlareRedPacketOpenState.NotEligible) compose.onNodeWithText(zh.packetViewDetails).assertDoesNotExist()
+            else compose.onNodeWithText(zh.packetViewDetails).assertHeightIsAtLeast(FlareSizes.touchTarget).performClick()
         }
-        assertEquals(3, details)
+        assertEquals(2, details)
     }
 
     @Test fun errorSheetKeepsTheButtonForAnotherTry() {
@@ -289,19 +298,29 @@ class RedPacketComponentsInteractionTest {
 
     // MARK: Details
 
+    private val now = System.currentTimeMillis()
+
+    private fun details(role: FlareRedPacketViewerRole, status: FlareRedPacketStatus = FlareRedPacketStatus.Completed) = FlareRedPacketDetailsView(
+        viewerRole = role, status = status, kind = FlareRedPacketKind.Lucky, greeting = "Wish", currency = "CNY", currencyExponent = 2,
+        claimedCount = 2, shareCount = 2, createdAtMs = now - 60_000, expiresAtMs = now + 86_400_000, claimsListed = true,
+        totalMinor = if (role == FlareRedPacketViewerRole.Sender) "208" else null,
+        claimedMinor = if (role == FlareRedPacketViewerRole.Sender) "208" else null,
+        myAmountMinor = if (role == FlareRedPacketViewerRole.Claimer) "88" else null,
+        completedAtMs = now - 15_000,
+    )
+
     @Test fun detailsMarkTheBestClaimAndSayWhenNoOneClaimed() {
         val claims = mutableStateOf(listOf(
-            FlareRedPacketClaim("u1", "Ann", "10:01", "0.88"),
-            FlareRedPacketClaim("u2", "Bo", "10:02", "1.20", best = true),
+            FlareRedPacketClaim("u1", "Ann", amountMinor = "88", claimedAtMs = now - 50_000),
+            FlareRedPacketClaim("u2", "Bo", amountMinor = "120", claimedAtMs = now - 20_000, best = true),
         ))
         content {
             Column(Modifier.verticalScroll(rememberScrollState())) {
-                RedPacketDetail(senderName = "Cy", blessing = "Wish", summary = "2/2 opened", kindLabel = "Lucky",
-                    amount = "0.88", amountNote = "In wallet", claims = claims.value, note = "Refunds after 24 hours")
+                RedPacketDetail(senderName = "Cy", details = details(FlareRedPacketViewerRole.Claimer), claims = claims.value)
             }
         }
-        for (text in listOf(zh.packetFromSender("Cy"), "Lucky", "Wish", "In wallet", "2/2 opened", "Refunds after 24 hours")) {
-            compose.onNodeWithText(text).assertExists()
+        for (text in listOf(zh.packetFromSender("Cy"), zh.packetBadgeLucky, "Wish", "¥0.88", zh.packetDeposited, "¥1.20", "已领取 2/2 个")) {
+            compose.onAllNodesWithText(text)[0].assertExists()
         }
         compose.onNodeWithText("Bo").assert(hasText(zh.packetBestLuck)).assertHeightIsAtLeast(FlareSizes.touchTarget)
         compose.onAllNodesWithText(zh.packetBestLuck).assertCountEquals(1)
@@ -316,7 +335,7 @@ class RedPacketComponentsInteractionTest {
         var backs = 0
         content {
             Column(Modifier.verticalScroll(rememberScrollState())) {
-                RedPacketDetail(senderName = "Cy", blessing = "Wish", summary = "0/1 opened", onBack = back.value)
+                RedPacketDetail(senderName = "Cy", details = details(FlareRedPacketViewerRole.Eligible, FlareRedPacketStatus.Open), onBack = back.value)
             }
         }
         compose.onNodeWithText(zh.packetDetailTitle).assertDoesNotExist()

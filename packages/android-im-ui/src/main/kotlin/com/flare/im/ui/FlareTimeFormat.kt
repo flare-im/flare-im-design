@@ -1,5 +1,9 @@
 package com.flare.im.ui
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.platform.LocalConfiguration
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -27,13 +31,17 @@ import java.util.concurrent.ConcurrentHashMap
  * per locale and shape, never per row.
  */
 object FlareTimeFormat {
-    fun messageTime(epochMs: Long, locale: Locale = Locale.getDefault()): String =
-        formatIn(cachedFormat(locale, FlareDateShape.Clock), epochMs, ZoneId.systemDefault())
+    /**
+     * The clock of a message in [locale] — the kit's, from [flareLocale], never the device's: the bubble shows the time
+     * in the language the rest of the app speaks (spec/message-grouping-vectors.json `rules.clock`).
+     */
+    fun messageTime(epochMs: Long, locale: Locale, zone: ZoneId = ZoneId.systemDefault()): String =
+        formatIn(cachedFormat(locale, FlareDateShape.Clock), epochMs, zone)
 
     fun conversationTime(
         epochMs: Long,
         yesterday: String,
-        locale: Locale = Locale.getDefault(),
+        locale: Locale,
         nowMs: Long = System.currentTimeMillis(),
     ): String {
         val zone = ZoneId.systemDefault()
@@ -55,16 +63,24 @@ object FlareTimeFormat {
         epochMs: Long,
         today: String,
         yesterday: String,
-        locale: Locale = Locale.getDefault(),
+        locale: Locale,
         nowMs: Long = System.currentTimeMillis(),
         zone: ZoneId = ZoneId.systemDefault(),
-    ): String {
+    ): String = when (timelineDayKind(epochMs, nowMs, zone)) {
+        FlareTimelineDayKind.Today -> today
+        FlareTimelineDayKind.Yesterday -> yesterday
+        FlareTimelineDayKind.MonthDay, FlareTimelineDayKind.YearMonthDay -> dayLabel(epochMs, nowMs, locale, zone)
+    }
+
+    /** Which label a date pill takes (spec/message-grouping-vectors.json `rules.datePill`). */
+    fun timelineDayKind(epochMs: Long, nowMs: Long, zone: ZoneId = ZoneId.systemDefault()): FlareTimelineDayKind {
         val day = flareLocalEpochDay(epochMs, zone)
         val current = flareLocalEpochDay(nowMs, zone)
-        return when (day) {
-            current -> today
-            current - 1 -> yesterday
-            else -> dayLabel(epochMs, nowMs, locale, zone)
+        return when {
+            day == current -> FlareTimelineDayKind.Today
+            day == current - 1 -> FlareTimelineDayKind.Yesterday
+            Instant.ofEpochMilli(epochMs).atZone(zone).year == Instant.ofEpochMilli(nowMs).atZone(zone).year -> FlareTimelineDayKind.MonthDay
+            else -> FlareTimelineDayKind.YearMonthDay
         }
     }
 
@@ -115,6 +131,22 @@ object FlareTimeFormat {
         format.format(Date(epochMs))
     }
 }
+
+/** The label tiers of a timeline date pill: the kit's today and yesterday words, then month and day, then with the year. */
+enum class FlareTimelineDayKind(val wire: String) { Today("today"), Yesterday("yesterday"), MonthDay("monthDay"), YearMonthDay("yearMonthDay") }
+
+/**
+ * The kit's locale for the times and numbers it formats itself (a bubble's clock, date pills, file sizes). A host that
+ * runs its own language setting provides the locale of that language here, next to the strings it provides
+ * ([LocalFlareStrings]); without it the kit reads the app's configuration ([LocalConfiguration]) — the per-app language
+ * when one is set — and never the JVM default.
+ */
+val LocalFlareLocale = staticCompositionLocalOf<Locale?> { null }
+
+/** The locale the kit formats in: [LocalFlareLocale], else the app configuration's first locale. */
+@Composable
+@ReadOnlyComposable
+fun flareLocale(): Locale = LocalFlareLocale.current ?: LocalConfiguration.current.locales[0]
 
 /** The local calendar day of [epochMs] in [zone], as days since the epoch: numeric, no formatter. */
 internal fun flareLocalEpochDay(epochMs: Long, zone: ZoneId): Long {

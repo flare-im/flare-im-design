@@ -8,6 +8,7 @@ class PluginLabelsTest {
         val labels = flareStringsEnglish()
         assertEquals("Processing…", labels.packetBusy)
         assertEquals("Unavailable", labels.packetUnavailable)
-        assertEquals("Opened · 1.00 CNY", labels.packetClaimed("1.00 CNY"))
+        // Red packet v5: the card never shows an amount, so there is no "opened · amount" line any more.
+        assertEquals("Opened", labels.packetStateClaimed)
     }
 }
