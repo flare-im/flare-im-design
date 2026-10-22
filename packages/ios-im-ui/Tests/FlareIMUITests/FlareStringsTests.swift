@@ -52,9 +52,9 @@ final class FlareStringsTests: XCTestCase {
                                    favorites: "Favorites", moments: "Moments", settings: "Settings")
 
         let tiles = FlareComposerActionPanel.actions(for: english)
-        XCTAssertEqual(tiles.map(\.id), ["image", "video", "file", "voice", "card", "poll"])
+        XCTAssertEqual(tiles.map(\.id), ["image", "camera", "video", "file", "voice", "location", "card"])
         XCTAssertEqual(tiles.map(\.label),
-                       ["Photo", "Video", "File", english.composerVoice, "Card", "Poll"])
+                       ["Photo", "Camera", "Video", "File", english.composerVoice, "Location", "Card"])
         XCTAssertEqual(FlareComposerActionPanel.defaultActions.map(\.label).first, "图片")
 
         let entries = ProfilePanelView.entries(for: english)

@@ -211,6 +211,24 @@ public struct FlareStrings: Sendable {
     public var actionVote: String
     public var actionTask: String
     public var actionSchedule: String
+    // Location picker and message
+    public var locationTitle: String
+    public var locationSend: String
+    public var locationLocateMe: String
+    public var locationLocating: String
+    public var locationDenied: String
+    public var locationSearchPlaceholder: String
+    public var locationNoResults: String
+    public var locationMapUnavailable: String
+    public var locationOpenInMaps: String
+    public var locationCurrent: String
+    // Contact picker
+    public var contactPickerTitle: String
+    public var contactPickerFriends: String
+    public var contactPickerGroupMembers: String
+    public var contactPickerSearch: String
+    public var contactPickerEmpty: String
+    public var contactPickerSelfSuffix: String
     // Incoming call
     public var incomingVideoCall: String
     public var incomingVoiceCall: String
@@ -839,6 +857,31 @@ public struct FlareStrings: Sendable {
     public var previewPlaceholder: String
     /// en: "[Unknown]"
     public var previewUnknown: String
+    // Plugin views, forms and their detail sheet (`PluginView`, `PluginFormView`, `PluginDetailSheetView`).
+    // `{count}`, `{time}` and `{n}` are replaced by the component.
+    public var pluginViewSubmit: String
+    public var pluginViewEnded: String
+    public var pluginViewDeadlinePassed: String
+    public var pluginViewSeeAll: String
+    /// The card's key to the detail view when no entries block offers "see all".
+    public var pluginViewDetail: String
+    public var pluginViewVotes: String
+    public var pluginViewRemaining: String
+    /// Date-time patterns of the time blocks: y year, M month, MMM Jan..Dec, d day, HH hour, mm minute; the rest is
+    /// literal. The Year form is for an instant outside the current year.
+    public var pluginViewDateTimeFormat: String
+    public var pluginViewDateTimeYearFormat: String
+    public var pluginFormRequired: String
+    public var pluginFormTooLong: String
+    public var pluginFormOutOfRange: String
+    public var pluginFormTooFewItems: String
+    public var pluginFormTooManyItems: String
+    public var pluginFormDuplicateItem: String
+    public var pluginFormInvalid: String
+    /// OpenStreetMap's credit on a static map (ODbL); the same in every language.
+    public var locationOsmAttribution: String
+    /// A spinner's accessible name (en: "Loading…").
+    public var loading: String
 
     public init(
         microphone: String = "麦克风",
@@ -1006,6 +1049,22 @@ public struct FlareStrings: Sendable {
         actionVote: String = "投票",
         actionTask: String = "任务",
         actionSchedule: String = "日程",
+        locationTitle: String = "位置",
+        locationSend: String = "发送",
+        locationLocateMe: String = "定位到当前位置",
+        locationLocating: String = "正在定位…",
+        locationDenied: String = "无法获取定位，可以搜索地点",
+        locationSearchPlaceholder: String = "搜索地点",
+        locationNoResults: String = "附近没有找到地点",
+        locationMapUnavailable: String = "地图暂不可用",
+        locationOpenInMaps: String = "在地图中打开",
+        locationCurrent: String = "当前位置",
+        contactPickerTitle: String = "选择联系人",
+        contactPickerFriends: String = "好友",
+        contactPickerGroupMembers: String = "群成员",
+        contactPickerSearch: String = "搜索",
+        contactPickerEmpty: String = "没有联系人",
+        contactPickerSelfSuffix: String = "（我）",
         incomingVideoCall: String = "邀请你进行视频通话",
         incomingVoiceCall: String = "邀请你进行语音通话",
         reject: String = "拒绝",
@@ -1492,7 +1551,25 @@ public struct FlareStrings: Sendable {
         previewAnnouncement: String = "[公告]",
         previewCustom: String = "[自定义]",
         previewPlaceholder: String = "[占位]",
-        previewUnknown: String = "[未知]"
+        previewUnknown: String = "[未知]",
+        pluginViewSubmit: String = "提交",
+        pluginViewEnded: String = "已结束",
+        pluginViewDeadlinePassed: String = "已截止",
+        pluginViewSeeAll: String = "查看全部（{count}）",
+        pluginViewDetail: String = "查看详情",
+        pluginViewVotes: String = "{count} 票",
+        pluginViewRemaining: String = "剩余 {time}",
+        pluginViewDateTimeFormat: String = "M月d日 HH:mm",
+        pluginViewDateTimeYearFormat: String = "y年M月d日 HH:mm",
+        pluginFormRequired: String = "必填",
+        pluginFormTooLong: String = "超出长度",
+        pluginFormOutOfRange: String = "超出范围",
+        pluginFormTooFewItems: String = "至少 {n} 项",
+        pluginFormTooManyItems: String = "最多 {n} 项",
+        pluginFormDuplicateItem: String = "不能重复",
+        pluginFormInvalid: String = "格式不正确",
+        locationOsmAttribution: String = "© OpenStreetMap contributors",
+        loading: String = "加载中"
     ) {
         self.microphone = microphone
         self.camera = camera
@@ -1659,6 +1736,22 @@ public struct FlareStrings: Sendable {
         self.actionVote = actionVote
         self.actionTask = actionTask
         self.actionSchedule = actionSchedule
+        self.locationTitle = locationTitle
+        self.locationSend = locationSend
+        self.locationLocateMe = locationLocateMe
+        self.locationLocating = locationLocating
+        self.locationDenied = locationDenied
+        self.locationSearchPlaceholder = locationSearchPlaceholder
+        self.locationNoResults = locationNoResults
+        self.locationMapUnavailable = locationMapUnavailable
+        self.locationOpenInMaps = locationOpenInMaps
+        self.locationCurrent = locationCurrent
+        self.contactPickerTitle = contactPickerTitle
+        self.contactPickerFriends = contactPickerFriends
+        self.contactPickerGroupMembers = contactPickerGroupMembers
+        self.contactPickerSearch = contactPickerSearch
+        self.contactPickerEmpty = contactPickerEmpty
+        self.contactPickerSelfSuffix = contactPickerSelfSuffix
         self.incomingVideoCall = incomingVideoCall
         self.incomingVoiceCall = incomingVoiceCall
         self.reject = reject
@@ -2108,6 +2201,24 @@ public struct FlareStrings: Sendable {
         self.previewCustom = previewCustom
         self.previewPlaceholder = previewPlaceholder
         self.previewUnknown = previewUnknown
+        self.pluginViewSubmit = pluginViewSubmit
+        self.pluginViewEnded = pluginViewEnded
+        self.pluginViewDeadlinePassed = pluginViewDeadlinePassed
+        self.pluginViewSeeAll = pluginViewSeeAll
+        self.pluginViewDetail = pluginViewDetail
+        self.pluginViewVotes = pluginViewVotes
+        self.pluginViewRemaining = pluginViewRemaining
+        self.pluginViewDateTimeFormat = pluginViewDateTimeFormat
+        self.pluginViewDateTimeYearFormat = pluginViewDateTimeYearFormat
+        self.pluginFormRequired = pluginFormRequired
+        self.pluginFormTooLong = pluginFormTooLong
+        self.pluginFormOutOfRange = pluginFormOutOfRange
+        self.pluginFormTooFewItems = pluginFormTooFewItems
+        self.pluginFormTooManyItems = pluginFormTooManyItems
+        self.pluginFormDuplicateItem = pluginFormDuplicateItem
+        self.pluginFormInvalid = pluginFormInvalid
+        self.locationOsmAttribution = locationOsmAttribution
+        self.loading = loading
     }
 }
 

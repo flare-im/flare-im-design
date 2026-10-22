@@ -666,73 +666,169 @@ private struct FlareFileKeyDisc<Content: View>: View {
     }
 }
 
-/// location — a map image (or placeholder) over title / address; emits `onOpen`.
+/// location — the static map over title / address. Spec: Message/LocationMessage (`LocationMessageView`).
+///
+/// Without `snapshotUrl`, and while it loads or when it fails, the card draws a map ground with a centre pin, never a
+/// blank. Without an address the line under the title is the coordinate (``FlareLocationFormat/label``).
+///
+/// A tap goes to `onOpen`. Without it the card opens Apple Maps at the point (``FlareLocationFormat/appleLink``, the
+/// `apple` column of `spec/location-vectors.json`); a card with no valid coordinate and no `onOpen` has no tap.
+/// `provider` is the tenant's map service; the web kit opens its map, SwiftUI always opens Apple Maps. With osm the
+/// static map carries OpenStreetMap's credit (`locationOsmAttribution`) in its bottom-right corner once it shows.
 public struct LocationMessageView: View {
     private let title: String
     private let address: String
-    private let mapImage: String?
+    private let latitude: Double?
+    private let longitude: Double?
+    private let snapshotUrl: String?
+    private let provider: FlareLocationProvider
     private let onOpen: (() -> Void)?
     @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareMessageBodyForeground) private var bodyForeground
-    public init(title: String, address: String = "", mapImage: String? = nil, onOpen: (() -> Void)? = nil) {
-        self.title = title; self.address = address; self.mapImage = mapImage; self.onOpen = onOpen
+    @Environment(\.flareStrings) private var strings
+    @Environment(\.openURL) private var openURL
+
+    /// The card's width and its map's height.
+    static let width: CGFloat = 264
+    static let mapHeight: CGFloat = 120
+
+    public init(title: String, address: String = "", latitude: Double? = nil, longitude: Double? = nil,
+                snapshotUrl: String? = nil, provider: FlareLocationProvider = .osm, onOpen: (() -> Void)? = nil) {
+        self.title = title; self.address = address; self.latitude = latitude; self.longitude = longitude
+        self.snapshotUrl = snapshotUrl; self.provider = provider; self.onOpen = onOpen
     }
+
+    /// The link a tap opens when the host takes none: Apple Maps at the point, nil without a valid coordinate.
+    static func defaultLink(latitude: Double?, longitude: Double?, title: String) -> URL? {
+        guard let latitude, let longitude,
+              let link = FlareLocationFormat.appleLink(latitude: latitude, longitude: longitude, title: title)
+        else { return nil }
+        return URL(string: link)
+    }
+
+    /// The line under the title: the address, else the coordinate, else nothing.
+    static func detail(address: String, latitude: Double?, longitude: Double?) -> String {
+        let trimmed = address.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.isEmpty { return trimmed }
+        guard let latitude, let longitude else { return "" }
+        return FlareLocationFormat.label(latitude: latitude, longitude: longitude) ?? ""
+    }
+
+    private var tap: (() -> Void)? {
+        if let onOpen { return onOpen }
+        guard let url = Self.defaultLink(latitude: latitude, longitude: longitude, title: title) else { return nil }
+        return { openURL(url) }
+    }
+
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        VStack(spacing: 0) {
-            NetImage(url: mapImage) {
-                colors.bgTertiary.overlay(colors.primary.opacity(0.08)).overlay(
-                    Image(systemName: "mappin.and.ellipse").font(.system(size: 22 * textScale)).foregroundColor(bodyForeground ?? colors.primaryText))
-            }
-            .frame(height: 84).clipped()
-            VStack(alignment: .leading, spacing: 1) {
-                Text(title).font(.system(size: FlareSizes.fontSizeLg * textScale, weight: .medium)).foregroundColor(bodyForeground ?? colors.textPrimary)
-                Text(address).font(.system(size: 11 * textScale)).foregroundColor(bodyForeground ?? colors.textTertiary)
+        let detail = Self.detail(address: address, latitude: latitude, longitude: longitude)
+        let card = VStack(spacing: 0) {
+            FlareMapSnapshot(url: snapshotUrl, attribution: FlareMapSnapshot.attribution(provider, strings))
+                .frame(height: Self.mapHeight).frame(maxWidth: .infinity).clipped()
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: FlareSizes.spacing3xs) {
+                Text(title).font(.system(size: FlareSizes.fontSizeLg * textScale, weight: .medium))
+                    .foregroundColor(bodyForeground ?? colors.textPrimary).lineLimit(2)
+                if !detail.isEmpty {
+                    Text(detail).font(.system(size: FlareSizes.fontSizeXs * textScale))
+                        .foregroundColor(bodyForeground ?? colors.textTertiary).lineLimit(2)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 12).padding(.vertical, 8)
+            .padding(.horizontal, FlareSizes.spacingMd).padding(.vertical, FlareSizes.spacingSm)
         }
-        .frame(maxWidth: 264)
-        .onTapIf(onOpen)
+        .frame(width: Self.width)
+        .contentShape(Rectangle())
+        if let tap {
+            Button(action: tap) { card }
+                .buttonStyle(.plain)
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(detail.isEmpty ? title : "\(title), \(detail)")
+                .accessibilityHint(strings.locationOpenInMaps)
+        } else {
+            card.accessibilityElement(children: .combine)
+        }
     }
 }
 
-/// contact / business card — avatar (image or pastel initials) + name /
-/// subtitle; emits `onOpen`.
+/// The map ground a location draws without a map image: a wash of the brand over the tertiary ground, a few streets
+/// and, unless `pin` is off, the kit's location pin at the centre.
+struct FlareMapPlaceholder: View {
+    var pin: Bool = true
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareBrandTheme) private var flareBrandTheme
+
+    var body: some View {
+        let colors = FlareColors.of(scheme, brand: flareBrandTheme)
+        ZStack {
+            colors.bgTertiary.overlay(colors.primary.opacity(0.08))
+            FlareMapStreets().stroke(colors.borderPrimary, lineWidth: 1.5)
+            if pin {
+                FlareIconImage(name: "location", size: FlareSizes.iconSizeLg, weight: .semibold)
+                    .foregroundColor(colors.primaryText)
+                    // The pin's tip, not its middle, marks the point.
+                    .offset(y: -FlareSizes.iconSizeLg / 2)
+            }
+        }
+    }
+}
+
+/// A few streets across the map ground, laid out as fractions of the frame so every size draws the same plan.
+struct FlareMapStreets: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        func point(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: rect.minX + rect.width * x, y: rect.minY + rect.height * y) }
+        for (from, to) in [((0.0, 0.32), (1.0, 0.22)), ((0.0, 0.74), (1.0, 0.82)), ((0.22, 0.0), (0.3, 1.0)),
+                           ((0.7, 0.0), (0.62, 1.0)), ((0.0, 1.0), (0.46, 0.0))] {
+            path.move(to: point(from.0, from.1))
+            path.addLine(to: point(to.0, to.1))
+        }
+        return path
+    }
+}
+
+/// contact / business card — avatar (image or pastel initials) + name / subtitle. Spec: Message/ContactMessage
+/// (`ContactMessageView`).
+///
+/// A tap calls `onOpen` with `userId`, the person the card shares, for the host to open their profile; without
+/// `onOpen` the card has no tap. A card that names no one passes an empty id.
 public struct ContactMessageView: View {
     private let name: String
     private let subtitle: String?
     private let avatarUrl: String?
-    private let onOpen: (() -> Void)?
+    private let userId: String?
+    private let onOpen: ((String) -> Void)?
     @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareMessageBodyForeground) private var bodyForeground
-    public init(name: String, subtitle: String? = nil, avatarUrl: String? = nil, onOpen: (() -> Void)? = nil) {
-        self.name = name; self.subtitle = subtitle; self.avatarUrl = avatarUrl; self.onOpen = onOpen
+    public init(name: String, subtitle: String? = nil, avatarUrl: String? = nil, userId: String? = nil,
+                onOpen: ((String) -> Void)? = nil) {
+        self.name = name; self.subtitle = subtitle; self.avatarUrl = avatarUrl; self.userId = userId; self.onOpen = onOpen
     }
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         let tint = AvatarView.seedTint(name, colors)
-        HStack(spacing: 12) {
+        HStack(spacing: FlareSizes.spacingMd) {
             NetImage(url: avatarUrl) {
-                Text(AvatarView.initials(name)).font(.system(size: 14 * textScale, weight: .semibold))
+                Text(AvatarView.initials(name)).font(.system(size: FlareSizes.fontSizeLg * textScale, weight: .semibold))
                     .foregroundColor(tint.fg).frame(maxWidth: .infinity, maxHeight: .infinity).background(tint.bg)
             }
-            .frame(width: 44, height: 44).clipped()
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .frame(width: FlareSizes.avatarSize, height: FlareSizes.avatarSize).clipped()
+            .clipShape(RoundedRectangle(cornerRadius: FlareSizes.radiusLg, style: .continuous))
             VStack(alignment: .leading, spacing: 1) {
                 Text(name).font(.system(size: FlareSizes.fontSizeXl * textScale, weight: .semibold)).foregroundColor(bodyForeground ?? colors.textPrimary)
                 if let s = subtitle, !s.isEmpty {
-                    Text(s).font(.system(size: 11 * textScale)).foregroundColor(bodyForeground ?? colors.textTertiary).lineLimit(1)
+                    Text(s).font(.system(size: FlareSizes.fontSizeXs * textScale)).foregroundColor(bodyForeground ?? colors.textTertiary).lineLimit(1)
                 }
             }
-            Image(systemName: "chevron.right").font(.system(size: 16 * textScale)).foregroundColor(bodyForeground ?? colors.textTertiary)
+            Image(systemName: flareIconSymbol("chevron-right")).font(.system(size: FlareSizes.iconSizeSm * textScale)).foregroundColor(bodyForeground ?? colors.textTertiary)
         }
         .frame(maxWidth: 300, alignment: .leading)
-        .onTapIf(onOpen)
+        .onTapIf(onOpen.map { open in { open(userId ?? "") } })
     }
 }
 

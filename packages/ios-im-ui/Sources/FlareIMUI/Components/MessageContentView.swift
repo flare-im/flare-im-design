@@ -97,8 +97,12 @@ public enum FlareContentRegistry {
 /// video opens the kit ``VideoPlayerView`` full screen and plays — each with a download key only when
 /// `onMediaDownload` is given, which it calls with the image or the video — and a voice message plays inside
 /// its body, one at a time in a ``MessageListView``. With `onMediaAction` every media tap goes to the host, as
-/// before. Files and locations always go to the host — a file tap goes to `onMediaAction`, else to `onOpenFile`
-/// (which leaves the image, video and voice defaults on).
+/// before. Files always go to the host — a file tap goes to `onMediaAction`, else to `onOpenFile` (which leaves the
+/// image, video and voice defaults on).
+///
+/// A location tap goes to `onLocationOpen` with the location, else to `onMediaAction`; without either the card opens
+/// Apple Maps at the point (``LocationMessageView``). A contact card's tap goes to `onCardOpen` with the person it
+/// shares, else to `onMediaAction`; without either the card has no tap.
 ///
 /// A file card carries its key at the trailing edge whenever `onMediaDownload` is given. The key, and the one in the
 /// preview and the player, follow `mediaState`, the host's view of the media on this device: a download, the save's
@@ -125,6 +129,8 @@ public struct MessageContentView: View {
     private let onOpenLink: ((String) -> Void)?
     private let onVote: ((Int) -> Void)?
     private let onTaskToggle: ((Bool) -> Void)?
+    private let onCardOpen: ((String) -> Void)?
+    private let onLocationOpen: ((FlareLocationContent) -> Void)?
     /// The list's media defaults; nil outside a list, where a media body owns its own.
     private var mediaSession: FlareMediaSession?
     /// The message this body belongs to: a voice message's playback identity, and where its pictures are in
@@ -150,6 +156,8 @@ public struct MessageContentView: View {
         onOpenLink: ((String) -> Void)? = nil,
         onVote: ((Int) -> Void)? = nil,
         onTaskToggle: ((Bool) -> Void)? = nil,
+        onCardOpen: ((String) -> Void)? = nil,
+        onLocationOpen: ((FlareLocationContent) -> Void)? = nil,
         messageId: String? = nil,
         conversationId: String? = nil
     ) {
@@ -164,6 +172,8 @@ public struct MessageContentView: View {
         self.onOpenLink = onOpenLink
         self.onVote = onVote
         self.onTaskToggle = onTaskToggle
+        self.onCardOpen = onCardOpen
+        self.onLocationOpen = onLocationOpen
     }
 
     /// The message this body draws, for a custom renderer's context: the core's id and the conversation.
@@ -307,9 +317,12 @@ public struct MessageContentView: View {
                             onOpen: action ?? onOpenFile.map { open in { open(c) } },
                             onDownload: download, downloadState: ctx.mediaState, onReveal: reveal)
         case let c as FlareLocationContent:
-            LocationMessageView(title: c.name, address: c.address, onOpen: action)
+            LocationMessageView(title: c.name, address: c.address, latitude: c.latitude, longitude: c.longitude,
+                                snapshotUrl: c.snapshotUrl, provider: c.provider,
+                                onOpen: onLocationOpen.map { open in { open(c) } } ?? action)
         case let c as FlareCardContent:
-            ContactMessageView(name: c.title, subtitle: c.subtitle, avatarUrl: c.imageURL, onOpen: action)
+            ContactMessageView(name: c.title, subtitle: c.subtitle, avatarUrl: c.imageURL, userId: c.userId,
+                               onOpen: Self.cardOpener(c, onCardOpen: onCardOpen, onMediaAction: ctx.onMediaAction))
         case let c as FlareLinkCardContent:
             LinkCardMessageView(title: c.title, domain: c.url, thumb: c.imageURL, description: c.description,
                                 onOpen: action ?? openCard(c.url))
@@ -339,6 +352,15 @@ public struct MessageContentView: View {
         default:
             UnknownMessageView(contentType: content.type, isSelf: ctx.isSelf)
         }
+    }
+
+    /// A contact card's tap: `onCardOpen` with the person the card shares, else the host's media handler with the
+    /// card; nil without either, and `onCardOpen` alone does not make a card that names no one tappable.
+    static func cardOpener(_ card: FlareCardContent, onCardOpen: ((String) -> Void)?,
+                           onMediaAction: ((FlareMessageContent) -> Void)?) -> ((String) -> Void)? {
+        if let onCardOpen, let userId = card.userId, !userId.isEmpty { return { _ in onCardOpen(userId) } }
+        guard let onMediaAction else { return nil }
+        return { _ in onMediaAction(card) }
     }
 
     /// The timeline's picture frame: the image width, and the height its aspect gives when the host knows its size —

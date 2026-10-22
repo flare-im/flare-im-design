@@ -69,6 +69,10 @@ public extension FlareContactDetailLabels {
 /// only with their edit handlers, and otherwise read-only values shown only when set; the favorite
 /// toggle needs `onToggleStar`; block and remove need their handlers, and without either there is no
 /// danger zone. A stranger's profile — no friend-only handlers — shows none of those.
+///
+/// A stranger's page gets its main step from `primaryActionLabel` with `onPrimaryAction` ("Add to contacts"): with
+/// both, that key leads the action row as the primary key (person-add), where a friend's page has Message, and
+/// Message, when handled, follows as a secondary key. It is not one of the footer's `extraActions`.
 public struct FlareContactDetail: View {
     private let contact: Contact
     private let starred: Bool
@@ -85,6 +89,9 @@ public struct FlareContactDetail: View {
     /// Host actions the kit cannot know about, drawn with the kit's own footer buttons (FR-046).
     private let extraActions: [FlareDetailExtraAction]
     private let onExtraAction: ((String) -> Void)?
+    /// The page's primary action for someone who is not a contact yet, drawn first in the action row.
+    private let primaryActionLabel: String?
+    private let onPrimaryAction: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
@@ -94,30 +101,43 @@ public struct FlareContactDetail: View {
                 onMessage: (() -> Void)? = nil, onCall: (() -> Void)? = nil, onVideo: (() -> Void)? = nil,
                 onEditRemark: (() -> Void)? = nil, onEditDescription: (() -> Void)? = nil,
                 onToggleStar: ((Bool) -> Void)? = nil, onBlock: (() -> Void)? = nil, onRemove: (() -> Void)? = nil,
-                extraActions: [FlareDetailExtraAction] = [], onExtraAction: ((String) -> Void)? = nil) {
+                extraActions: [FlareDetailExtraAction] = [], onExtraAction: ((String) -> Void)? = nil,
+                primaryActionLabel: String? = nil, onPrimaryAction: (() -> Void)? = nil) {
         self.contact = contact; self.starred = starred; self.description = description; self.labels = labels
         self.onMessage = onMessage; self.onCall = onCall; self.onVideo = onVideo
         self.onEditRemark = onEditRemark; self.onEditDescription = onEditDescription
         self.onToggleStar = onToggleStar; self.onBlock = onBlock; self.onRemove = onRemove
         self.extraActions = extraActions; self.onExtraAction = onExtraAction
+        self.primaryActionLabel = primaryActionLabel; self.onPrimaryAction = onPrimaryAction
     }
 
     private var copy: FlareContactDetailLabels.Resolved { labels.resolve(strings) }
 
-    /// An action the row offers: message, voice or video.
+    /// An action the row offers: the host's primary action, message, voice or video.
     enum Intent: String, CaseIterable {
-        case message, call, video
+        case primary, message, call, video
     }
 
-    /// The actions the row draws, in order: only those with a handler.
-    static func intents(message: Bool, call: Bool, video: Bool) -> [Intent] {
+    /// The actions the row draws, in order: only those with a handler (the primary one also needs its label).
+    static func intents(primary: Bool = false, message: Bool, call: Bool, video: Bool) -> [Intent] {
         Intent.allCases.filter { intent in
             switch intent {
+            case .primary: return primary
             case .message: return message
             case .call: return call
             case .video: return video
             }
         }
+    }
+
+    /// The host's primary action is drawn: a label and a handler.
+    static func hasPrimaryAction(label: String?, handled: Bool) -> Bool {
+        handled && !(label ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    /// The key the row draws in the primary style: the host's primary action when there is one, else Message.
+    static func primaryIntent(in intents: [Intent]) -> Intent? {
+        intents.contains(.primary) ? .primary : intents.contains(.message) ? .message : nil
     }
 
     /// The 资料 card's rows: the public Flare ID only when the contact has one (the account id is internal and
@@ -148,7 +168,8 @@ public struct FlareContactDetail: View {
 
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        let intents = Self.intents(message: onMessage != nil, call: onCall != nil, video: onVideo != nil)
+        let intents = Self.intents(primary: Self.hasPrimaryAction(label: primaryActionLabel, handled: onPrimaryAction != nil),
+                                   message: onMessage != nil, call: onCall != nil, video: onVideo != nil)
         ScrollView {
             VStack(spacing: FlareSizes.spacingLg) {
                 hero(colors)
@@ -193,10 +214,14 @@ public struct FlareContactDetail: View {
     }
 
     private func actions(_ intents: [Intent], _ colors: FlareColors) -> some View {
-        HStack(spacing: FlareSizes.spacingMd) {
+        let lead = Self.primaryIntent(in: intents)
+        return HStack(spacing: FlareSizes.spacingMd) {
             ForEach(intents, id: \.self) { intent in
                 switch intent {
-                case .message: actionButton(copy.message, "message", onMessage, colors, primary: true)
+                case .primary:
+                    actionButton(primaryActionLabel ?? "", flareIconSymbol("person-add"), onPrimaryAction, colors,
+                                 primary: true)
+                case .message: actionButton(copy.message, "message", onMessage, colors, primary: lead == .message)
                 case .call: actionButton(copy.voice, "phone", onCall, colors)
                 case .video: actionButton(copy.video, "video", onVideo, colors)
                 }

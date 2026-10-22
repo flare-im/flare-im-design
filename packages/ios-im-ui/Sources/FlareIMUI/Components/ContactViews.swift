@@ -240,7 +240,7 @@ public struct ContactListView: View {
 }
 
 /// New friends — requests to the user and requests the user sent. Spec: Contacts/NewFriendRequests
-/// (`NewFriendRequestsView`).
+/// (`NewFriendRequestsView`). A request's `source` is its own line under the message (one line, truncated).
 public struct NewFriendRequestsView: View {
     private let items: [FriendRequest]
     private let onAccept: ((FriendRequest) -> Void)?
@@ -312,6 +312,11 @@ public struct NewFriendRequestsView: View {
                                 Text(req.name).font(.system(size: FlareSizes.fontSizeLg, weight: .medium)).foregroundColor(colors.textPrimary)
                                 if let m = req.message, !m.isEmpty {
                                     Text(m).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary).lineLimit(1)
+                                }
+                                // The source is a line of its own, in the same quiet style, never beside the message.
+                                if let source = req.source, !source.isEmpty {
+                                    Text(source).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
+                                        .lineLimit(1).truncationMode(.tail)
                                 }
                             }
                             Spacer()

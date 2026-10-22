@@ -11,6 +11,11 @@ public extension View {
     /// - `size`: `.fitted` fits the content (taller content scrolls) up to `maxHeight` (default 72% of the
     ///   feedback host's height; the large detent without a host); `.large` takes the large detent and lets the
     ///   content fill it and own its scrolling (search, pickers, flows with their own `NavigationStack`).
+    /// - `fill`: the sheet takes its whole cap (`maxHeight`, default 72% of the feedback host's height; the large
+    ///   detent without a host) and the content fills what the title leaves, owning its scrolling — pickers with
+    ///   their own header (``LocationPickerView``, ``ContactPickerView``), so hosts write no fixed-height wrapper.
+    ///   Content that declares ``SwiftUI/View/flareSheetOwnHeader(_:)`` then gets no visible title (`title` stays
+    ///   the accessible name). Handed to ``ModalView``, it is the modal's `fill`.
     /// - `dismissible` false blocks the swipe, the scrim, Escape and the close button; content can also block
     ///   them live with ``SwiftUI/View/flareLayerDismissDisabled(_:)``.
     ///
@@ -24,13 +29,14 @@ public extension View {
         presentation: FlareSheetPresentation = .auto,
         dismissible: Bool = true,
         size: FlareSheetSize = .fitted,
+        fill: Bool = false,
         maxHeight: CGFloat? = nil,
         onDismiss: (() -> Void)? = nil,
         @ViewBuilder content: @escaping () -> Content
     ) -> some View {
         modifier(FlareSheetLayerPresenter(
             isPresented: isPresented, title: title, titleHidden: titleHidden, presentation: presentation,
-            dismissible: dismissible, size: size, maxHeight: maxHeight, registers: true, compact: nil,
+            dismissible: dismissible, size: size, fill: fill, maxHeight: maxHeight, registers: true, compact: nil,
             onDismiss: onDismiss, sheetContent: content
         ))
     }
@@ -45,6 +51,7 @@ public extension View {
         presentation: FlareSheetPresentation = .auto,
         dismissible: Bool = true,
         size: FlareSheetSize = .fitted,
+        fill: Bool = false,
         maxHeight: CGFloat? = nil,
         onDismiss: (() -> Void)? = nil,
         @ViewBuilder content: @escaping (Item) -> Content
@@ -52,7 +59,7 @@ public extension View {
         modifier(FlareItemLayer(item: item) { presented, shown in
             FlareSheetLayerPresenter(
                 isPresented: presented, title: title, titleHidden: titleHidden, presentation: presentation,
-                dismissible: dismissible, size: size, maxHeight: maxHeight, registers: true, compact: nil,
+                dismissible: dismissible, size: size, fill: fill, maxHeight: maxHeight, registers: true, compact: nil,
                 onDismiss: onDismiss
             ) {
                 if let value = shown() { content(value).id(value.id) }
@@ -89,6 +96,7 @@ struct FlareSheetLayerPresenter<SheetContent: View>: ViewModifier {
     let presentation: FlareSheetPresentation
     let dismissible: Bool
     let size: FlareSheetSize
+    let fill: Bool
     let maxHeight: CGFloat?
     let registers: Bool
     let compact: Bool?
@@ -97,11 +105,11 @@ struct FlareSheetLayerPresenter<SheetContent: View>: ViewModifier {
     @State private var presence = UUID()
 
     init(isPresented: Binding<Bool>, title: String?, titleHidden: Bool, presentation: FlareSheetPresentation,
-         dismissible: Bool, size: FlareSheetSize, maxHeight: CGFloat?, registers: Bool, compact: Bool?,
-         onDismiss: (() -> Void)?, @ViewBuilder sheetContent: @escaping () -> SheetContent) {
+         dismissible: Bool, size: FlareSheetSize, fill: Bool = false, maxHeight: CGFloat?, registers: Bool,
+         compact: Bool?, onDismiss: (() -> Void)?, @ViewBuilder sheetContent: @escaping () -> SheetContent) {
         _isPresented = isPresented
         self.title = title; self.titleHidden = titleHidden; self.presentation = presentation
-        self.dismissible = dismissible; self.size = size; self.maxHeight = maxHeight
+        self.dismissible = dismissible; self.size = size; self.fill = fill; self.maxHeight = maxHeight
         self.registers = registers; self.compact = compact; self.onDismiss = onDismiss
         self.sheetContent = sheetContent
     }
@@ -114,14 +122,15 @@ struct FlareSheetLayerPresenter<SheetContent: View>: ViewModifier {
             resolve: { compact in FlareOverlayRules.sheetForm(presentation, compact: compact) },
             onDismiss: onDismiss,
             sheetLayer: {
-                FlareBottomSheetFrame(title: title, titleHidden: titleHidden, size: size, maxHeight: maxHeight,
-                                      presence: registers ? presence : nil) { sheetContent() }
+                FlareBottomSheetFrame(title: title, titleHidden: titleHidden, size: size, fill: fill,
+                                      maxHeight: maxHeight, presence: registers ? presence : nil) { sheetContent() }
             },
             coverLayer: {
                 // The sheet's own chrome: no close button (the scrim and Escape close it), the slim body padding.
-                ModalView(title: title, titleHidden: titleHidden, maxHeight: maxHeight, fill: size == .large,
-                          dismissible: dismissible, showClose: false, scrollable: size == .fitted,
-                          onClose: { isPresented = false }) {
+                FlareSheetModalCover(title: title, titleHidden: titleHidden, maxHeight: maxHeight,
+                                     fill: size == .large || fill, ownHeaderHidesTitle: fill,
+                                     dismissible: dismissible, scrollable: size == .fitted && !fill,
+                                     onClose: { isPresented = false }) {
                     sheetContent().environment(\.flareBottomSheetHosted, true)
                 }
                 .environment(\.flareModalSheetBody, true)
@@ -131,12 +140,45 @@ struct FlareSheetLayerPresenter<SheetContent: View>: ViewModifier {
     }
 }
 
+/// The sheet's content in ``ModalView`` (the cover form): a filled sheet whose content declares its own header
+/// (``SwiftUI/View/flareSheetOwnHeader(_:)``) keeps the title as the modal's accessible name only.
+struct FlareSheetModalCover<Content: View>: View {
+    let title: String?
+    let titleHidden: Bool
+    let maxHeight: CGFloat?
+    let fill: Bool
+    /// Whether the content's own header hides the title (the sheet's `fill`).
+    let ownHeaderHidesTitle: Bool
+    let dismissible: Bool
+    let scrollable: Bool
+    let onClose: () -> Void
+    let content: Content
+    @State private var ownHeader = false
+
+    init(title: String?, titleHidden: Bool, maxHeight: CGFloat?, fill: Bool, ownHeaderHidesTitle: Bool,
+         dismissible: Bool, scrollable: Bool, onClose: @escaping () -> Void, @ViewBuilder content: () -> Content) {
+        self.title = title; self.titleHidden = titleHidden; self.maxHeight = maxHeight; self.fill = fill
+        self.ownHeaderHidesTitle = ownHeaderHidesTitle; self.dismissible = dismissible; self.scrollable = scrollable
+        self.onClose = onClose; self.content = content()
+    }
+
+    var body: some View {
+        ModalView(title: title, titleHidden: titleHidden || (ownHeaderHidesTitle && ownHeader), maxHeight: maxHeight,
+                  fill: fill, dismissible: dismissible, showClose: false, scrollable: scrollable, onClose: onClose) {
+            content
+        }
+        .onPreferenceChange(FlareSheetOwnHeaderKey.self) { ownHeader = $0 }
+        .transformPreference(FlareSheetOwnHeaderKey.self) { $0 = false }
+    }
+}
+
 /// The sheet's content: the frame, measured for the detent (fitted), scrolling when it outgrows the sheet — or
-/// the large detent filled by content that owns its scrolling.
+/// the large detent filled by content that owns its scrolling, or (`fill`) the cap's height filled the same way.
 struct FlareBottomSheetFrame<Content: View>: View {
     let title: String?
     let titleHidden: Bool
     let size: FlareSheetSize
+    let fill: Bool
     let maxHeight: CGFloat?
     /// This sheet's entry in the feedback's layer stack; nil when it does not register.
     let presence: UUID?
@@ -147,10 +189,10 @@ struct FlareBottomSheetFrame<Content: View>: View {
     @Environment(\.flareFeedback) private var feedback
     @Environment(\.flareOverlayHostSize) private var hostSize
 
-    init(title: String?, titleHidden: Bool = false, size: FlareSheetSize = .fitted, maxHeight: CGFloat? = nil,
-         presence: UUID?, @ViewBuilder content: () -> Content) {
-        self.title = title; self.titleHidden = titleHidden; self.size = size; self.maxHeight = maxHeight
-        self.presence = presence; self.content = content()
+    init(title: String?, titleHidden: Bool = false, size: FlareSheetSize = .fitted, fill: Bool = false,
+         maxHeight: CGFloat? = nil, presence: UUID?, @ViewBuilder content: () -> Content) {
+        self.title = title; self.titleHidden = titleHidden; self.size = size; self.fill = fill
+        self.maxHeight = maxHeight; self.presence = presence; self.content = content()
     }
 
     var body: some View {
@@ -161,6 +203,19 @@ struct FlareBottomSheetFrame<Content: View>: View {
 
     @ViewBuilder
     private func framed(_ ground: Color) -> some View {
+        if fill {
+            // The detent is the cap; the frame fills it and the content owns its scrolling.
+            BottomSheetView(title: title, titleHidden: titleHidden, fill: true) { content }
+                .environment(\.flareBottomSheetHosted, true)
+                .frame(maxHeight: .infinity, alignment: .top)
+                .modifier(FlareSheetDetentChrome(detents: Self.fillDetents(cap: cap), ground: ground))
+        } else {
+            sized(ground)
+        }
+    }
+
+    @ViewBuilder
+    private func sized(_ ground: Color) -> some View {
         switch size {
         case .fitted:
             ScrollView {
@@ -194,6 +249,12 @@ struct FlareBottomSheetFrame<Content: View>: View {
     static func detents(forHeight height: CGFloat, cap: CGFloat? = nil) -> Set<PresentationDetent> {
         guard height > 0 else { return [.medium] }
         return [.height(cap.map { min(height, $0) } ?? height)]
+    }
+
+    /// A filled sheet's detent: the whole cap, or the large detent while there is no cap to take.
+    static func fillDetents(cap: CGFloat?) -> Set<PresentationDetent> {
+        guard let cap, cap > 0 else { return [.large] }
+        return [.height(cap)]
     }
 }
 

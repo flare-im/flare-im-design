@@ -121,11 +121,19 @@ public struct FlareFileContent: FlareMessageContent {
     public var type: String { "file" }
 }
 
+/// A shared location. `latitude` / `longitude` are WGS-84 and nil when the message carries none; `snapshotUrl` is the
+/// static map the sender's server signed; `provider` is the tenant's map service, which the web kit opens.
 public struct FlareLocationContent: FlareMessageContent {
     public let name: String
     public let address: String
-    public init(name: String, address: String = "") {
-        self.name = name; self.address = address
+    public let latitude: Double?
+    public let longitude: Double?
+    public let snapshotUrl: String?
+    public let provider: FlareLocationProvider
+    public init(name: String, address: String = "", latitude: Double? = nil, longitude: Double? = nil,
+                snapshotUrl: String? = nil, provider: FlareLocationProvider = .osm) {
+        self.name = name; self.address = address; self.latitude = latitude; self.longitude = longitude
+        self.snapshotUrl = snapshotUrl; self.provider = provider
     }
     public var type: String { "location" }
 }
@@ -154,13 +162,18 @@ public struct FlareEmojiContent: FlareMessageContent {
     public var type: String { "emoji" }
 }
 
+/// A contact card. `userId` is the person the card shares (the card's `id` when its type is `user`); a tap on the card
+/// hands it to the host, which opens that person's profile.
 public struct FlareCardContent: FlareMessageContent {
     public let title: String
     public let subtitle: String?
     public let imageURL: String?
     public let sourceLabel: String?
-    public init(title: String, subtitle: String? = nil, imageURL: String? = nil, sourceLabel: String? = nil) {
+    public let userId: String?
+    public init(title: String, subtitle: String? = nil, imageURL: String? = nil, sourceLabel: String? = nil,
+                userId: String? = nil) {
         self.title = title; self.subtitle = subtitle; self.imageURL = imageURL; self.sourceLabel = sourceLabel
+        self.userId = userId
     }
     public var type: String { "card" }
 }

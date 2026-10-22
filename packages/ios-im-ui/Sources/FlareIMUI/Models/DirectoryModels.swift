@@ -55,10 +55,13 @@ public struct FriendRequest: Identifiable, Sendable {
     public let message: String?
     /// Incoming requests are accepted or declined; outgoing ones wait (and can be withdrawn).
     public let direction: FriendRequestDirection
+    /// Where the request came from, worded by the host ("Added from a contact card, shared by X"): its own line under
+    /// the message, never on the message's line.
+    public let source: String?
     public init(id: String, name: String, avatarURL: String? = nil, message: String? = nil,
-                direction: FriendRequestDirection = .incoming) {
+                direction: FriendRequestDirection = .incoming, source: String? = nil) {
         self.id = id; self.name = name; self.avatarURL = avatarURL; self.message = message
-        self.direction = direction
+        self.direction = direction; self.source = source
     }
 }
 

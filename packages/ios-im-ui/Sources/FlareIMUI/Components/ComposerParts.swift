@@ -108,17 +108,17 @@ public struct FlareComposerAction: Identifiable {
         return Self.kitLabel(id, strings) ?? id
     }
 
-    /// The kit's copy for the ids the panel knows, the six built-in items first (`composerActions`).
+    /// The kit's copy for the ids the panel knows, the eight built-in items first (`composerActions`).
     static func kitLabel(_ id: String, _ strings: FlareStrings) -> String? {
         switch id {
         case "image": return strings.actionImage
+        case "camera": return strings.actionCamera
         case "video": return strings.actionVideo
         case "file": return strings.actionFile
         case "voice": return strings.composerVoice
+        case "location": return strings.actionLocation
         case "card", "contact": return strings.actionCard
         case "poll", "vote": return strings.actionVote
-        case "camera": return strings.actionCamera
-        case "location": return strings.actionLocation
         case "task": return strings.actionTask
         case "schedule", "event": return strings.actionSchedule
         default: return nil
@@ -188,19 +188,21 @@ public struct FlareComposerActionPanel: View {
         self.columns = columns; self.onAction = onAction
     }
 
-    /// The built-in feature ids in panel order, the same on every platform (`composerActions.defaults`).
-    public static let defaultActionIDs = ["image", "video", "file", "voice", "card", "poll"]
+    /// The built-in feature ids in panel order, the same on every platform (`composerActions.defaults`). Polls come
+    /// from a plugin, not the built-in set.
+    public static let defaultActionIDs = ["image", "camera", "video", "file", "voice", "location", "card"]
 
     /// Attachment tiles built from host-overridable copy. Pass a different
     /// ``FlareStrings`` (or the environment value) to relabel them.
     public static func actions(for strings: FlareStrings) -> [FlareComposerAction] {
         [
             .init(id: "image", label: strings.actionImage, icon: "image", kind: .feature),
+            .init(id: "camera", label: strings.actionCamera, icon: "camera", kind: .feature),
             .init(id: "video", label: strings.actionVideo, icon: "video", kind: .feature),
             .init(id: "file", label: strings.actionFile, icon: "file", kind: .feature),
             .init(id: "voice", label: strings.composerVoice, icon: "mic", kind: .feature),
+            .init(id: "location", label: strings.actionLocation, icon: "location", kind: .feature),
             .init(id: "card", label: strings.actionCard, icon: "card", kind: .feature),
-            .init(id: "poll", label: strings.actionVote, icon: "poll", kind: .feature),
         ]
     }
 

@@ -106,11 +106,11 @@ final class ComposerToolsTests: XCTestCase {
 
     func testTheBuiltInItemsComeInOneOrderWithOneSetOfIcons() {
         let defaults = FlareComposerActionPanel.defaultActions
-        XCTAssertEqual(defaults.map(\.id), ["image", "video", "file", "voice", "card", "poll"])
+        XCTAssertEqual(defaults.map(\.id), ["image", "camera", "video", "file", "voice", "location", "card"])
+        XCTAssertFalse(defaults.map(\.id).contains("poll"), "polls come from a plugin")
         XCTAssertEqual(defaults.map(\.id), FlareComposerActionPanel.defaultActionIDs)
-        XCTAssertEqual(defaults.map(\.icon), ["image", "video", "file", "mic", "card", "poll"])
+        XCTAssertEqual(defaults.map(\.icon), ["image", "camera", "video", "file", "mic", "location", "card"])
         XCTAssertTrue(defaults.allSatisfy { $0.kind == .feature })
-        XCTAssertFalse(defaults.map(\.id).contains("location"), "no location source yet")
         for icon in defaults.map(\.icon) { XCTAssertNotNil(flareIconMap[icon], "\(icon) is a registry name") }
         XCTAssertEqual(resolveComposerActions(defaults: defaults).map(\.id), defaults.map(\.id))
     }
@@ -120,8 +120,8 @@ final class ComposerToolsTests: XCTestCase {
         func labels(_ strings: FlareStrings) -> [String] {
             ids.map { FlareComposerAction(id: $0, icon: "image", kind: .feature).resolvedLabel(strings) }
         }
-        XCTAssertEqual(labels(FlareStrings()), ["图片", "视频", "文件", "语音", "名片", "投票"])
-        XCTAssertEqual(labels(.english), ["Photo", "Video", "File", "Voice", "Contact card", "Poll"])
+        XCTAssertEqual(labels(FlareStrings()), ["图片", "拍摄", "视频", "文件", "语音", "位置", "名片"])
+        XCTAssertEqual(labels(.english), ["Photo", "Camera", "Video", "File", "Voice", "Location", "Contact card"])
         XCTAssertEqual(FlareComposerActionPanel.actions(for: .english).map(\.label), labels(.english))
         XCTAssertEqual(FlareComposerAction(id: "image", label: "Album", icon: "image").resolvedLabel(s), "Album",
                        "the host's label wins")
@@ -152,7 +152,7 @@ final class ComposerToolsTests: XCTestCase {
         let voice = FlareComposerAction(id: "voice", icon: "mic", kind: .feature)
         XCTAssertTrue(ComposerView.panelTileOpensRecorder(voice, offersVoice: true))
         XCTAssertFalse(ComposerView.panelTileOpensRecorder(voice, offersVoice: false), "no recorder: the host handles it")
-        for id in ["image", "video", "file", "card", "poll", "plugin:flare.redpacket.send"] {
+        for id in ["image", "camera", "video", "file", "location", "card", "poll", "plugin:flare.redpacket.send"] {
             XCTAssertFalse(ComposerView.panelTileOpensRecorder(FlareComposerAction(id: id, icon: "image"), offersVoice: true), id)
         }
     }

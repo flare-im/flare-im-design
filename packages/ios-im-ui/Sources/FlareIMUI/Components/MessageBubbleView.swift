@@ -101,6 +101,8 @@ public struct MessageBubbleView: View {
     private let onLocateMessage: ((String) -> Void)?
     private let onVote: ((FlareMessageData, Int) -> Void)?
     private let onTaskToggle: ((FlareMessageData, Bool) -> Void)?
+    private let onCardOpen: ((FlareMessageData, String) -> Void)?
+    private let onLocationOpen: ((FlareMessageData, FlareLocationContent) -> Void)?
     /// The list's media defaults; nil outside a list, where a media body owns its own.
     private var mediaSession: FlareMediaSession?
     /// The list's gallery; nil outside a list, where a picture opens alone.
@@ -143,6 +145,10 @@ public struct MessageBubbleView: View {
     ///     poll is read-only.
     ///   - onTaskToggle: A tapped task checkbox (message, the done state asked for); without it, or in
     ///     multi-select mode, the task is read-only.
+    ///   - onCardOpen: A tapped contact card (message, the user id it shares), for the host to open the profile;
+    ///     before `onMediaAction`.
+    ///   - onLocationOpen: A tapped location (message, the location); before `onMediaAction`. Without either the
+    ///     card opens Apple Maps at the point.
     public init(
         message: FlareMessageData,
         currentUserId: String,
@@ -162,7 +168,9 @@ public struct MessageBubbleView: View {
         onReact: ((FlareMessageData, String) -> Void)? = nil,
         onLocateMessage: ((String) -> Void)? = nil,
         onVote: ((FlareMessageData, Int) -> Void)? = nil,
-        onTaskToggle: ((FlareMessageData, Bool) -> Void)? = nil
+        onTaskToggle: ((FlareMessageData, Bool) -> Void)? = nil,
+        onCardOpen: ((FlareMessageData, String) -> Void)? = nil,
+        onLocationOpen: ((FlareMessageData, FlareLocationContent) -> Void)? = nil
     ) {
         self.message = message
         self.currentUserId = currentUserId
@@ -182,6 +190,8 @@ public struct MessageBubbleView: View {
         self.onReact = onReact
         self.onVote = onVote
         self.onTaskToggle = onTaskToggle
+        self.onCardOpen = onCardOpen
+        self.onLocationOpen = onLocationOpen
         self.onLocateMessage = onLocateMessage
     }
 
@@ -205,7 +215,9 @@ public struct MessageBubbleView: View {
             onOpenLink: onOpenLink == nil ? nil : { onOpenLink?(message, $0) },
             // Multi-select taps select the row: a poll or a task is not a control then.
             onVote: onVote == nil || multiSelectMode ? nil : { onVote?(message, $0) },
-            onTaskToggle: onTaskToggle == nil || multiSelectMode ? nil : { onTaskToggle?(message, $0) })
+            onTaskToggle: onTaskToggle == nil || multiSelectMode ? nil : { onTaskToggle?(message, $0) },
+            onCardOpen: onCardOpen == nil ? nil : { onCardOpen?(message, $0) },
+            onLocationOpen: onLocationOpen == nil ? nil : { onLocationOpen?(message, $0) })
         .mediaDefaults(mediaSession, messageId: message.id, gallery: gallery)
         // The core's id: the server's once it has one, else the client id the message was sent with.
         .messageIdentity(messageId: message.serverId ?? message.id, conversationId: conversationId)

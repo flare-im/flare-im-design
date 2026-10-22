@@ -65,6 +65,8 @@ public struct MessageListView: View {
     private let onOpenLink: ((FlareMessageData, String) -> Void)?
     private let onVote: ((FlareMessageData, Int) -> Void)?
     private let onTaskToggle: ((FlareMessageData, Bool) -> Void)?
+    private let onCardOpen: ((FlareMessageData, String) -> Void)?
+    private let onLocationOpen: ((FlareMessageData, FlareLocationContent) -> Void)?
     private let onResend: ((FlareMessageData) -> Void)?
     private let multiSelectMode: Bool
     private let selectedIds: Set<String>
@@ -109,6 +111,10 @@ public struct MessageListView: View {
     ///   - onVote: A tapped poll option (message, option index). Without it polls are read-only.
     ///   - onTaskToggle: A tapped task checkbox (message, the done state asked for). Without it tasks
     ///     are read-only.
+    ///   - onCardOpen: A tapped contact card (message, the user id it shares), for the host to open the profile;
+    ///     before `onMediaAction`.
+    ///   - onLocationOpen: A tapped location (message, the location); before `onMediaAction`. Without either the
+    ///     card opens Apple Maps at the point.
     ///   - multiSelectMode: Batch-selection mode (same name as Flutter/Compose).
     ///     Rows show a check control, row taps toggle, long-press is suspended.
     ///   - selectedIds: The host-owned selection; rows whose id is contained render selected.
@@ -143,6 +149,8 @@ public struct MessageListView: View {
         onOpenLink: ((FlareMessageData, String) -> Void)? = nil,
         onVote: ((FlareMessageData, Int) -> Void)? = nil,
         onTaskToggle: ((FlareMessageData, Bool) -> Void)? = nil,
+        onCardOpen: ((FlareMessageData, String) -> Void)? = nil,
+        onLocationOpen: ((FlareMessageData, FlareLocationContent) -> Void)? = nil,
         onResend: ((FlareMessageData) -> Void)? = nil,
         hasOlder: Bool = false, olderError: String? = nil, loadOlderText: String? = nil,
         onLoadOlder: (() -> Void)? = nil, conversationId: String? = nil,
@@ -181,6 +189,8 @@ public struct MessageListView: View {
         self.onOpenLink = onOpenLink
         self.onVote = onVote
         self.onTaskToggle = onTaskToggle
+        self.onCardOpen = onCardOpen
+        self.onLocationOpen = onLocationOpen
         self.onResend = onResend
         self.multiSelectMode = multiSelectMode
         self.selectedIds = selectedIds
@@ -615,7 +625,8 @@ public struct MessageListView: View {
                         onToggleSelect: onToggleSelect,
                         onReact: onReact,
                         onLocateMessage: locateCallback(msg, rows: rowIndex),
-                        onVote: onVote, onTaskToggle: onTaskToggle)
+                        onVote: onVote, onTaskToggle: onTaskToggle,
+                        onCardOpen: onCardOpen, onLocationOpen: onLocationOpen)
                         .mediaDefaults(mediaSession, gallery: FlareImageGallerySource(messages: messages, download: onMediaDownload,
                                                                                       reveal: onMediaReveal))
                         .environment(\.flareMessageConversationId, conversationId)

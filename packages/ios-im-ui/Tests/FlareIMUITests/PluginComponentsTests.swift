@@ -62,10 +62,12 @@ final class PluginComponentsTests: XCTestCase {
         let data = Data(#"{"available":true,"title":"AI","fields":[],"actions":[{"id":"draft","label":"Generate"}]}"#.utf8)
         let model = try JSONDecoder().decode(PluginViewModel.self, from: data)
         var calls: [String] = []
-        let view = PluginView(view: model, onAction: { calls.append($0) })
+        var payloads: [PluginActionPayload] = []
+        let view = PluginView(view: model, onAction: { calls.append($0); payloads.append($1) })
         try view.inspect().find(ButtonView.self).find(ViewType.Button.self).tap()
         XCTAssertEqual(calls, ["draft"])
-        let busy = PluginView(view: model, busy: true, onAction: { calls.append($0) })
+        XCTAssertEqual(payloads, [.empty], "a footer action without a form carries nothing")
+        let busy = PluginView(view: model, busy: true, onAction: { id, _ in calls.append(id) })
         XCTAssertTrue(try busy.inspect().find(ButtonView.self).find(ViewType.Button.self).isDisabled())
     }
 
