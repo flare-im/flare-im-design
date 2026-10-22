@@ -17,8 +17,7 @@ final Map<String, dynamic> _vectors =
 List<Map<String, dynamic>> _rows(String key) =>
     (_vectors[key] as List).cast<Map<String, dynamic>>();
 
-FlareLocationProvider _provider(Object? value) =>
-    value == 'amap' ? FlareLocationProvider.amap : FlareLocationProvider.osm;
+FlareLocationProvider _provider(Object? value) => flareLocationProviderFrom(value);
 
 Widget _host(Widget child) => MaterialApp(
   home: Scaffold(body: Center(child: child)),
@@ -74,6 +73,32 @@ void main() {
         );
         expect(size.width, output['width']);
         expect(size.height, output['height']);
+      });
+    }
+
+    for (final row in _rows('providerFrom')) {
+      test('providerFrom: ${row['id']}', () {
+        expect(flareLocationProviderFrom(row['input']).name, row['output']);
+      });
+    }
+
+    for (final row in _rows('webMapUrl')) {
+      test('webMapUrl: ${row['id']}', () {
+        final input = row['input'] as Map<String, dynamic>;
+        final location = FlareLocationContent(
+          name: input['title'] as String? ?? '',
+          latitude: (input['latitude'] as num?)?.toDouble(),
+          longitude: (input['longitude'] as num?)?.toDouble(),
+          provider: _provider(input['provider']),
+        );
+        final provider = row['provider'];
+        expect(
+          flareLocationWebMapUrl(
+            location,
+            provider: provider == null ? null : _provider(provider),
+          ),
+          row['output'],
+        );
       });
     }
 

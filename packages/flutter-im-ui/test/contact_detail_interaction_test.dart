@@ -97,6 +97,55 @@ void main() {
     },
   );
 
+  testWidgets(
+    'primaryActionBusy spins the primary key and takes its taps away, the rest stay usable',
+    (tester) async {
+      final semantics = tester.ensureSemantics();
+      final events = <String>[];
+      FlareContactDetail page(bool busy) => FlareContactDetail(
+        contact: const FlareContact(id: 'u_lin', name: '林夏'),
+        primaryActionLabel: '添加到通讯录',
+        primaryActionBusy: busy,
+        onPrimaryAction: () => events.add('primary'),
+        onMessage: () => events.add('message'),
+        extraActions: const [
+          FlareDetailExtraAction(id: 'report', label: '举报'),
+        ],
+        onExtraAction: events.add,
+      );
+      await _pump(tester, page(true));
+      final primary = find.byKey(const ValueKey('flare-contact-primary-action'));
+      expect(
+        find.descendant(of: primary, matching: find.byType(CircularProgressIndicator)),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: primary, matching: find.byIcon(Icons.person_add_alt_1_outlined)),
+        findsNothing,
+      );
+      // Full strength, read as an unavailable button.
+      expect(
+        find.descendant(of: primary, matching: find.byWidgetPredicate((w) => w is Opacity && w.opacity < 1)),
+        findsNothing,
+      );
+      expect(
+        tester.getSemantics(find.bySemanticsLabel('添加到通讯录')),
+        matchesSemantics(isButton: true, hasEnabledState: true, isEnabled: false, label: '添加到通讯录'),
+      );
+      await tester.tap(find.text('添加到通讯录'), warnIfMissed: false);
+      await tester.pump();
+      await _tap(tester, _button(_labels.message));
+      await _tap(tester, _button('举报'));
+      expect(events, ['message', 'report']);
+
+      await tester.pumpWidget(MaterialApp(home: Scaffold(body: page(false))));
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      await _tap(tester, find.text('添加到通讯录'));
+      expect(events, ['message', 'report', 'primary']);
+      semantics.dispose();
+    },
+  );
+
   testWidgets('no primary action without both the label and the callback', (
     tester,
   ) async {

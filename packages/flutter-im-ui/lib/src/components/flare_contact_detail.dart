@@ -26,13 +26,16 @@ import 'flare_settings_list.dart';
 /// Someone who is not a contact yet gets the page's main step from the host:
 /// [primaryActionLabel] with [onPrimaryAction] leads the action row as the
 /// primary key ("添加到通讯录"), and Message, when handled, follows as a
-/// secondary key. It is not one of the footer's [extraActions].
+/// secondary key. It is not one of the footer's [extraActions]. While the
+/// host runs it, [primaryActionBusy] puts a spinner in place of its icon and
+/// takes that key's taps away; the rest of the page stays usable.
 class FlareContactDetail extends StatelessWidget {
   const FlareContactDetail({
     super.key,
     required this.contact,
     this.primaryActionLabel,
     this.onPrimaryAction,
+    this.primaryActionBusy = false,
     this.starred = false,
     this.description,
     this.labels = const FlareContactDetailLabels(),
@@ -54,6 +57,11 @@ class FlareContactDetail extends StatelessWidget {
   /// drawn with [onPrimaryAction].
   final String? primaryActionLabel;
   final VoidCallback? onPrimaryAction;
+
+  /// The host is carrying out the primary action (sending the friend
+  /// request): that key shows a spinner and takes no taps, keys or focus,
+  /// and reads as an unavailable button; the other actions stay usable.
+  final bool primaryActionBusy;
 
   /// Whether the viewer has starred (favorited) this contact.
   final bool starred;
@@ -137,6 +145,7 @@ class FlareContactDetail extends StatelessWidget {
           Icons.person_add_alt_1_outlined,
           onPrimaryAction!,
           primary: true,
+          busy: primaryActionBusy,
           key: const ValueKey('flare-contact-primary-action'),
         ),
       if (onMessage != null)
@@ -307,9 +316,10 @@ class FlareContactDetail extends StatelessWidget {
     IconData icon,
     VoidCallback onTap, {
     bool primary = false,
+    bool busy = false,
     Key? key,
   }) {
-    return FlareButton(
+    final button = FlareButton(
       key: key,
       variant: primary
           ? FlareButtonVariant.primary
@@ -322,11 +332,34 @@ class FlareContactDetail extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 20),
+          if (busy)
+            Builder(
+              builder: (context) => SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: IconTheme.of(context).color,
+                ),
+              ),
+            )
+          else
+            Icon(icon, size: 20),
           const SizedBox(height: 4),
           Text(label, style: const TextStyle(fontSize: FlareSizes.fontSizeSm)),
         ],
       ),
+    );
+    if (!busy) return button;
+    // The key the host is running keeps its full colour (the spinner says why
+    // it does not answer), but takes no tap, key or focus, and reads as an
+    // unavailable button.
+    return Semantics(
+      button: true,
+      enabled: false,
+      label: label,
+      excludeSemantics: true,
+      child: IgnorePointer(child: ExcludeFocus(child: button)),
     );
   }
 

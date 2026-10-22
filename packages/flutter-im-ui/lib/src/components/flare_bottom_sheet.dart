@@ -109,6 +109,14 @@ class FlareBottomSheet extends StatelessWidget {
   /// [fill] makes the surface take its whole cap and hands what [builder]
   /// returns the rest of the height; when that widget is a
   /// [FlareSheetOwnHeader] the title is the accessible name only.
+  ///
+  /// [builder] runs once unless [listenable] is given: then it runs again
+  /// every time [listenable] notifies, so content that takes changing host
+  /// state — a picker's `sending` read from a `ValueNotifier` — stays current
+  /// without a builder of the host's own around it. In fill mode the sheet
+  /// looks at what each rebuild returns, so a [FlareSheetOwnHeader] keeps the
+  /// title as the accessible name only. Pass the same notifier as [busy] to
+  /// lock the sheet while it is true.
   static Future<T?> show<T>(
     BuildContext context, {
     String? title,
@@ -118,6 +126,7 @@ class FlareBottomSheet extends StatelessWidget {
     double? maxHeight,
     FlareSheetPresentation presentation = FlareSheetPresentation.auto,
     bool fill = false,
+    Listenable? listenable,
     required WidgetBuilder builder,
   }) {
     final asModal =
@@ -134,15 +143,20 @@ class FlareBottomSheet extends StatelessWidget {
       fill: fill,
       child: child,
     );
+    // In fill mode the sheet has to see the content itself to know whether
+    // it brings its own header, so the builder runs just above the sheet.
+    Widget content(BuildContext inner) =>
+        fill ? sheet(builder(inner)) : sheet(Builder(builder: builder));
     Widget frame(BuildContext routeContext) => FlareSheetResolution(
       asModal: asModal,
       dismissible: dismissible,
       busy: busy,
-      // In fill mode the sheet has to see the content itself to know whether
-      // it brings its own header, so the builder runs just above the sheet.
-      child: fill
-          ? Builder(builder: (inner) => sheet(builder(inner)))
-          : sheet(Builder(builder: builder)),
+      child: listenable == null
+          ? Builder(builder: content)
+          : ListenableBuilder(
+              listenable: listenable,
+              builder: (inner, _) => content(inner),
+            ),
     );
     if (asModal) {
       return FlareModal.show<T>(

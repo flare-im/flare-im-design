@@ -1,5 +1,10 @@
 ## 未发布
 
+- 第七轮 Kit 小缺口（app 接线反馈）：
+  - `FlareBottomSheet.show` 新增 `listenable`：每次通知都重新运行 `builder`，内容里随宿主状态变化的参数（如选择器的 `sending`）随之更新，宿主不必再自己包 `ValueListenableBuilder`；fill 模式下每次重建都重新判断内容是否 `FlareSheetOwnHeader`，Modal 形态同样生效。同一个 notifier 传给 `busy` 即可在发送期间锁住面板。
+  - `FlareContactDetail` 新增 `primaryActionBusy`：主按钮以转圈代替图标、不接受点击 / 按键 / 焦点，读作不可用的按钮，颜色不变；其他操作照常。
+  - `FlareContactPicker` 新增 `sending`（与 `FlareLocationPicker.sending` 同义）：单选时被点的那一行高亮转圈（semantics selected），多选时确认键转圈；各行与确认键不接受点击，取消、搜索和标签照常。清掉后单选忘掉那一行，多选保留已选供重发。
+  - 新增 `flareLocationWebMapUrl(content, provider:)`（宿主自己打开地点时的网页地图地址：参数优先、其次内容的 provider；缺坐标、超范围或线上的 0, 0 返回 null）和 `flareLocationProviderFrom(value)`（`chat.location` 配置值转服务商，未知回落 osm）。规则见 `spec/location-vectors.json` 的 `webMapUrl`、`providerFrom`。**app 自带的同名 `flareLocationProviderFrom` 要删掉**，否则同时导入时名字冲突。
 - 第六轮验收修复（插件卡片详情入口、inset）：
   - `FlarePluginView` 卡片级「查看详情」：`view.detail` 为真、没有 entries 块在显示「查看全部」、可用、非 embedded，并且传了 `onOpenDetail` 时，在动作区下方画整宽的 quiet 文字按钮（size sm，`pluginViewDetail`，key `FlarePluginView.detailKey`），点击回调 `onOpenDetail`；`busy` / `busyActionId` 时禁用。新增纯函数 `flarePluginShowsDetailKey`。
   - `FlarePluginViewInset` 新增 `sheetTop`（上 md、左右 lg、下不留），用于 PluginForm 上方的前言。新增 `flarePluginViewInsetPadding(inset)`。

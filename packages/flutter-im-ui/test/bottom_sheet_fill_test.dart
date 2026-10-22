@@ -47,6 +47,21 @@ class _OwnHeader extends StatelessWidget implements FlareSheetOwnHeader {
   );
 }
 
+/// Own-header content that shows a host flag, like a picker's `sending`.
+class _Sending extends StatelessWidget implements FlareSheetOwnHeader {
+  const _Sending({required this.sending});
+
+  final bool sending;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    children: [
+      Text(sending ? 'sending' : 'idle'),
+      const Expanded(child: SizedBox()),
+    ],
+  );
+}
+
 void main() {
   testWidgets('fill takes the whole cap and hands the content the rest', (
     tester,
@@ -127,6 +142,99 @@ void main() {
       );
     },
   );
+
+  testWidgets(
+    'listenable runs the builder again, and fill keeps the own header after each rebuild',
+    (tester) async {
+      final semantics = tester.ensureSemantics();
+      final sending = ValueNotifier<bool>(false);
+      addTearDown(sending.dispose);
+      var builds = 0;
+      final context = await _pumpHost(tester, _phone);
+      FlareBottomSheet.show<void>(
+        context,
+        title: 'Location',
+        fill: true,
+        busy: sending,
+        listenable: sending,
+        builder: (_) {
+          builds++;
+          return _Sending(sending: sending.value);
+        },
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('idle'), findsOneWidget);
+      final first = builds;
+
+      sending.value = true;
+      await tester.pump();
+      expect(find.text('sending'), findsOneWidget);
+      expect(builds, greaterThan(first));
+      // Still the content's own header: the sheet draws no second title.
+      expect(find.text('Location'), findsNothing);
+      expect(find.bySemanticsLabel('Location'), findsOneWidget);
+      // busy is the same notifier: the scrim does not close the sheet now.
+      await tester.tapAt(const Offset(8, 8));
+      await tester.pumpAndSettle();
+      expect(find.text('sending'), findsOneWidget);
+
+      sending.value = false;
+      await tester.pump();
+      expect(find.text('idle'), findsOneWidget);
+      semantics.dispose();
+    },
+  );
+
+  testWidgets('without listenable the builder runs once; with it a plain sheet rebuilds too', (
+    tester,
+  ) async {
+    final label = ValueNotifier<String>('one');
+    addTearDown(label.dispose);
+    final context = await _pumpHost(tester, _phone);
+    FlareBottomSheet.show<void>(
+      context,
+      title: 'Plain',
+      builder: (_) => Text('once ${label.value}'),
+    );
+    await tester.pumpAndSettle();
+    label.value = 'two';
+    await tester.pump();
+    expect(find.text('once one'), findsOneWidget);
+    Navigator.of(context, rootNavigator: true).pop();
+    await tester.pumpAndSettle();
+
+    FlareBottomSheet.show<void>(
+      context,
+      title: 'Plain',
+      listenable: label,
+      builder: (_) => Text('live ${label.value}'),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('live two'), findsOneWidget);
+    label.value = 'three';
+    await tester.pump();
+    expect(find.text('live three'), findsOneWidget);
+    expect(find.text('Plain'), findsOneWidget);
+  });
+
+  testWidgets('off the phone the modal rebuilds from listenable as well', (tester) async {
+    final sending = ValueNotifier<bool>(false);
+    addTearDown(sending.dispose);
+    final context = await _pumpHost(tester, _desktop);
+    FlareBottomSheet.show<void>(
+      context,
+      title: 'Location',
+      fill: true,
+      listenable: sending,
+      builder: (_) => _Sending(sending: sending.value),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('idle'), findsOneWidget);
+    sending.value = true;
+    await tester.pump();
+    expect(find.text('sending'), findsOneWidget);
+    expect(tester.widget<FlareModal>(find.byType(FlareModal)).titleHidden, isTrue);
+  });
 
   testWidgets('the kit pickers declare their own header', (tester) async {
     expect(const FlareContactPicker(groups: []), isA<FlareSheetOwnHeader>());

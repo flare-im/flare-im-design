@@ -20,6 +20,12 @@ import 'flare_search_bar.dart';
 /// selectable and reads "(me)". Present it with
 /// `FlareBottomSheet.show(fill: true, ...)`: it brings its own header
 /// ([FlareSheetOwnHeader]), so the sheet draws no second title.
+///
+/// While the host sends the card ([sending], the same meaning as
+/// `FlareLocationPicker.sending`) the tapped row — in [multiple] mode the
+/// confirm key — spins and the rows take no taps; once it is cleared, single
+/// mode forgets that row and multiple mode keeps its choice for a retry. Pass
+/// a changing `sending` through `FlareBottomSheet.show(listenable:)`.
 /// Spec: Composer/ContactPicker.
 class FlareContactPicker extends StatefulWidget implements FlareSheetOwnHeader {
   const FlareContactPicker({
@@ -28,6 +34,7 @@ class FlareContactPicker extends StatefulWidget implements FlareSheetOwnHeader {
     this.searchable = true,
     this.multiple = false,
     this.title,
+    this.sending = false,
     this.onSelect,
     this.onCancel,
   });
@@ -38,6 +45,10 @@ class FlareContactPicker extends StatefulWidget implements FlareSheetOwnHeader {
 
   /// Header title; the kit's "Choose a contact" when null.
   final String? title;
+
+  /// The host is sending the card for the chosen person: the tapped row (in
+  /// [multiple] mode the confirm key) spins, and the rows take no taps.
+  final bool sending;
 
   /// The chosen people: one on a tap in single mode, the toggled ones from the
   /// confirm key in [multiple] mode.
@@ -54,12 +65,17 @@ class _FlareContactPickerState extends State<FlareContactPicker> {
   late String _groupId = widget.groups.isEmpty ? '' : widget.groups.first.id;
   final List<String> _chosen = <String>[];
 
+  /// The row a single-mode tap answered with: it spins while the host sends,
+  /// and is forgotten once the send settles.
+  String? _pending;
+
   @override
   void didUpdateWidget(FlareContactPicker oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!widget.groups.any((group) => group.id == _groupId)) {
       _groupId = widget.groups.isEmpty ? '' : widget.groups.first.id;
     }
+    if (oldWidget.sending && !widget.sending) _pending = null;
   }
 
   @override
@@ -96,7 +112,9 @@ class _FlareContactPickerState extends State<FlareContactPicker> {
   }
 
   void _tap(FlareContactPickerEntry entry) {
+    if (widget.sending) return;
     if (!widget.multiple) {
+      setState(() => _pending = entry.userId);
       widget.onSelect?.call([entry]);
       return;
     }
@@ -106,6 +124,7 @@ class _FlareContactPickerState extends State<FlareContactPicker> {
   }
 
   void _confirm() {
+    if (widget.sending) return;
     final everyone = [for (final group in widget.groups) ...group.entries];
     final picked = <FlareContactPickerEntry>[];
     for (final id in _chosen) {
@@ -176,6 +195,7 @@ class _FlareContactPickerState extends State<FlareContactPicker> {
                                     ? strings.confirm
                                     : '${strings.confirm} (${_chosen.length})',
                                 disabled: _chosen.isEmpty,
+                                loading: widget.sending,
                                 onPressed: _chosen.isEmpty ? null : _confirm,
                               )
                             : const SizedBox.shrink(),
@@ -236,8 +256,12 @@ class _FlareContactPickerState extends State<FlareContactPicker> {
                             entry: entry,
                             multiple: widget.multiple,
                             chosen: _chosen.contains(entry.userId),
+                            pending:
+                                widget.sending &&
+                                !widget.multiple &&
+                                _pending == entry.userId,
                             selfSuffix: strings.contactPickerSelfSuffix,
-                            onTap: () => _tap(entry),
+                            onTap: widget.sending ? null : () => _tap(entry),
                           );
                         },
                       ),
@@ -255,6 +279,7 @@ class _ContactRow extends StatelessWidget {
     required this.entry,
     required this.multiple,
     required this.chosen,
+    required this.pending,
     required this.selfSuffix,
     required this.onTap,
   });
@@ -264,8 +289,13 @@ class _ContactRow extends StatelessWidget {
   final FlareContactPickerEntry entry;
   final bool multiple;
   final bool chosen;
+
+  /// The host is sending this row's card: highlighted, with a spinner.
+  final bool pending;
   final String selfSuffix;
-  final VoidCallback onTap;
+
+  /// Null while the host sends: the row takes no tap.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -275,8 +305,12 @@ class _ContactRow extends StatelessWidget {
       key: ValueKey('flare-contact-picker-${entry.userId}'),
       button: !multiple,
       checked: multiple ? chosen : null,
+      selected: pending ? true : null,
+      enabled: onTap != null,
       child: Material(
-        color: multiple && chosen ? colors.bgSelected : Colors.transparent,
+        color: (multiple && chosen) || pending
+            ? colors.bgSelected
+            : Colors.transparent,
         child: InkWell(
           onTap: onTap,
           child: Padding(
@@ -330,6 +364,18 @@ class _ContactRow extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (pending) ...[
+                  const SizedBox(width: FlareSizes.spacingSm),
+                  SizedBox(
+                    key: const ValueKey('flare-contact-picker-sending'),
+                    width: FlareSizes.iconSizeSm,
+                    height: FlareSizes.iconSizeSm,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: colors.primaryText,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

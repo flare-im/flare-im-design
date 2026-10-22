@@ -18,12 +18,14 @@ class _Harness {
     List<FlareContactPickerGroup> groups = _groups,
     bool searchable = true,
     bool multiple = false,
+    bool sending = false,
     FlareStrings? strings,
   }) {
     final picker = FlareContactPicker(
       groups: groups,
       searchable: searchable,
       multiple: multiple,
+      sending: sending,
       onSelect: selections.add,
       onCancel: () => cancels += 1,
     );
@@ -110,6 +112,62 @@ void main() {
     await tester.tap(find.text('确定 (1)'));
     expect(harness.selections, [
       [_zhou],
+    ]);
+  });
+
+  testWidgets('spins the tapped row while the host sends, takes no other tap, then forgets it', (tester) async {
+    final semantics = tester.ensureSemantics();
+    final harness = _Harness();
+    await tester.pumpWidget(harness.build());
+    await tester.tap(_row('u2'));
+    // The host sets sending from select.
+    await tester.pumpWidget(harness.build(sending: true));
+    expect(harness.selections, [
+      [_zhou],
+    ]);
+    final spinner = find.byKey(const ValueKey('flare-contact-picker-sending'));
+    expect(find.descendant(of: _row('u2'), matching: spinner), findsOneWidget);
+    expect(spinner, findsOneWidget);
+    expect(tester.getSemantics(_row('u2')), isSemantics(isSelected: true, hasEnabledState: true, isEnabled: false));
+    expect(tester.getSemantics(_row('u1')), isSemantics(hasEnabledState: true, isEnabled: false));
+    await tester.tap(_row('u1'), warnIfMissed: false);
+    expect(harness.selections, hasLength(1));
+    // Cancel stays with the host's sheet.
+    await tester.tap(find.text('取消'));
+    expect(harness.cancels, 1);
+
+    await tester.pumpWidget(harness.build());
+    expect(spinner, findsNothing);
+    await tester.tap(_row('u1'));
+    expect(harness.selections, [
+      [_zhou],
+      [_ivy],
+    ]);
+    // A later send spins the row tapped last, not the first one.
+    await tester.pumpWidget(harness.build(sending: true));
+    expect(find.descendant(of: _row('u1'), matching: spinner), findsOneWidget);
+    expect(find.descendant(of: _row('u2'), matching: spinner), findsNothing);
+    semantics.dispose();
+  });
+
+  testWidgets('spins the confirm key in multiple mode and keeps the choice for a retry', (tester) async {
+    final harness = _Harness();
+    await tester.pumpWidget(harness.build(multiple: true));
+    await tester.tap(_row('u1'));
+    await tester.pump();
+    await tester.pumpWidget(harness.build(multiple: true, sending: true));
+    final confirm = find.byKey(const ValueKey('flare-contact-picker-confirm'));
+    expect(tester.widget<FlareButton>(confirm).loading, isTrue);
+    expect(find.byKey(const ValueKey('flare-contact-picker-sending')), findsNothing);
+    await tester.tap(_row('u2'), warnIfMissed: false);
+    await tester.tap(confirm, warnIfMissed: false);
+    await tester.pump();
+    expect(harness.selections, isEmpty);
+    await tester.pumpWidget(harness.build(multiple: true));
+    expect(tester.widget<FlareButton>(confirm).loading, isFalse);
+    await tester.tap(find.text('确定 (1)'));
+    expect(harness.selections, [
+      [_ivy],
     ]);
   });
 

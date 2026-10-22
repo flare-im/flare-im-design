@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
+import 'message_content.dart' show FlareLocationContent;
+
 /// Location presentation contracts (spec LocationMessage / LocationPicker).
 ///
 /// Coordinates are WGS-84 as the message stores them. Geocoding, nearby
@@ -181,6 +183,35 @@ FlareLocationMapLinks? flareLocationMapLinks({
     apple: 'http://maps.apple.com/?ll=$lat,$lng&q=${name.isEmpty ? '$lat,$lng' : name}',
     geo: 'geo:$lat,$lng?q=$lat,$lng${name.isEmpty ? '' : '($name)'}',
   );
+}
+
+/// The map service a `chat.location` config value names: the string `amap`
+/// (trimmed, any case) is AMap, anything else — `osm`, an unknown name,
+/// blank, null, not a string — is OpenStreetMap
+/// (spec/location-vectors.json `providerFrom`; the same on all four kits).
+FlareLocationProvider flareLocationProviderFrom(Object? value) =>
+    value is String && value.trim().toLowerCase() == 'amap'
+    ? FlareLocationProvider.amap
+    : FlareLocationProvider.osm;
+
+/// The web map a host opens for a location message: the `web` link of
+/// [flareLocationMapLinks] for [provider] when given, else the location's own,
+/// named by its place. Null without a coordinate to open — one of the pair
+/// missing, out of range, or exactly 0, 0, which the wire writes for "none"
+/// (spec/location-vectors.json `webMapUrl`).
+String? flareLocationWebMapUrl(
+  FlareLocationContent location, {
+  FlareLocationProvider? provider,
+}) {
+  final latitude = location.latitude, longitude = location.longitude;
+  if (latitude == null || longitude == null) return null;
+  if (latitude == 0 && longitude == 0) return null;
+  return flareLocationMapLinks(
+    latitude: latitude,
+    longitude: longitude,
+    title: location.name,
+    provider: provider ?? location.provider,
+  )?.web;
 }
 
 String _fixed5(double value) {
