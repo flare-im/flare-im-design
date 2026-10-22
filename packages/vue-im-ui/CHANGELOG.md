@@ -1,5 +1,36 @@
 ## 未发布
 
+- 第六轮验收修复（插件卡片详情入口、inset）：
+  - `FlarePluginView` 卡片级「查看详情」：`view.detail` 为真、没有 entries 块在显示「查看全部」、可用、非 embedded、没有 rows 块，并且宿主监听了 `openDetail` 时，在动作区下方画整宽的 quiet 文字按钮（size sm，文案 `pluginView.detail`），点击发出不带 row 的 `openDetail`；`busy` / `busyActionId` 时禁用。投票、日程、任务、公告卡片因此能打开详情。
+  - `FlarePluginViewInset` 新增 `sheetTop`（上 md、左右 lg、下不留），用于 PluginForm 上方的前言，两者之间只剩表单自己的 md。
+  - `inset` 现在作用于所有状态：embedded 的内容（含不可用态），以及宿主留在面板里的卡片外壳（加在外壳外面）。不可用的 embedded 视图把标题显示为一行次要文字。
+- 插件卡片结算信号：`FlarePluginView` 新增 `settleToken`（整数，宿主每完成一次动作加 1，并且先设好这次结果的 `error` / `formErrors`）。每次变化都结算：没有错误时关闭已提交的表单面板，乐观选中保留到新视图；有 `error` 时撤回乐观选中，表单留着并显示它；有 `formErrors` 时表单留着，表单携带的选中一并撤回。`busyActionId` 离开该动作仍作为兜底。宿主在同一帧里设上又清掉 `busyActionId` 时，只能靠 `settleToken` 结算。规则见 `spec/plugin-view-vectors.json` 的 `rules.settle` 和新增的 optimistic 场景。
+- `FlarePluginView` 新增 `inset`（`FlarePluginViewInset`：`none` / `sheet`）：embedded 加 `inset="sheet"` 时，按底部面板留白（上 md、左右 lg、下 xl，与 `FlarePluginForm` 一致），直接放进 `FlareBottomSheet` 时不用再包一层。
+- `FlarePluginDetailSheet` 新增 `actionError`、`formErrors`、`members`、`settleToken`，原样交给内嵌 PluginView。详情里的动作在面板内转圈、出错、收表单、结算，失败不会落到面板下面的卡片上。已有的 `error` 仍表示加载失败。
+- `FlarePluginDetailSheet` 支持 detail 分页：
+  - 视图带 `nextCursor` 时，在内嵌视图下方显示「加载更多」，点击发出 `loadMore(cursor)`。新增 prop `loadingMore`。
+  - 已请求的页在游标换掉之前不会再请求；`loadingMore` 由真变假、`settleToken` 变化或 `actionError` 变为非空后允许重试。
+  - `FlarePluginViewModel` 新增 `nextCursor`，rows 块新增 `filters`。
+  - 新增纯函数 `flarePluginNextCursor`、`flarePluginFilterInputs`（`./contracts`，后者也从 `./admin` 导出）。管理页筛选栏只显示 `filters` 列出的输入，不带 filters 时显示全部输入。
+- `FlareBottomSheet` 新增 `fill`（定高模式，同 `FlareModal` 的 `fill`）：面板占满整个 `maxHeight`，内容撑满剩余高度并自己滚动。新增 `useFlareSheetOwnHeader()`（`./composables`）：自带标题栏的内容在 setup 里声明后，fill 面板只把 `title` 当可及名称，不画第二个标题。`FlareLocationPicker`、`FlareContactPicker` 已声明。`FlarePluginForm` 的成员选择改用 fill。
+- `FlareLocationPicker` 新增：
+  - `sending`：发送键转圈并禁用，不会重复发送。
+  - `ensurePermission`：返回 `Promise<boolean>`，每次定位前先等它；系统权限弹框的等待不计入 `locateTimeoutMs`，返回 false 时直接进入 denied。
+  - previewUrl 的宽高按 `flareLocationPreviewSize`（新导出，`./contracts`）计算：逻辑尺寸乘屏幕倍率（限制在 1 到 2 之间）后取整，见 `spec/location-vectors.json` 的 `previewSize`。
+- `FlareFriendRequest` 新增 `source`，`FlareNewFriendRequests` 把它画在验证消息下方单独一行（次要文本、单行省略）。
+- `FlareContactDetail` 新增 `primaryActionLabel` 与 `primaryAction` 事件：给陌生人的主操作（如「添加到通讯录」）排在操作行首位，作为主按钮；此时「发消息」改为次要键。它不放进页脚的 `extraActions`。
+- 「+」面板默认集去掉 poll，改为 image、camera、video、file、voice、location、card。投票改由插件提供；`FlarePollComposer`、`FlareVoteMessage` 保留，用于显示历史消息。
+- `registerFlareMessages` 合并时复制子树，Kit 的文案树不再引用宿主的对象。
+- `@flare-im/vue-ui/admin` 新增导出 `FlarePluginView`、`FlarePluginForm`、`FlarePluginDetailSheet` 和插件视图类型。
+- 插件卡片 v2：`FlarePluginView` 渲染核心 SDK 的 ResolvedPluginView v2——外壳与 Kit 业务卡片一致（宽 richCardWidth，标题行图标位 `icon`），块 text（`maxLines` 加「展开」）、fields、choices（单选点即提交、多选键名取块动作的 label、结果条 / 百分比 / 票数、打勾、「已结束」、乐观选中与失败撤回）、entries（「查看全部（total）」发 `openDetail`）、people、status、progress、time（本地时区格式化与倒计时）、divider、note、rows（控制台管理页：FlareDataTable、行动作、点行打开详情、`loadMore(cursor, source)`）；动作 `style`、`confirm`（Kit DangerConfirm）、`form`（底部面板里的 `FlarePluginForm`）。新增 prop `busyActionId`、`embedded`、`resolveUser`、`members`、`formErrors`；**破坏性**：`action` 改为 `(actionId, payload)`，payload 为 `{selection?, formValues?, row?}`。v1 视图照旧显示。
+- 新增 `FlarePluginForm`（text、textarea 带计数，number，toggle，select 单选列表，datetime 用 Kit DatePicker 与 TimePicker，options 可增删的行，members 用 `FlareContactPicker`；客户端只查必填和长度，宿主 `errors` 优先）与 `FlarePluginDetailSheet`（加载中、出错重试、内嵌 PluginView）。新增 `FlarePluginViewModel` 等 v2 类型与 `flarePluginTimeText`、`flarePluginCountdown`、`flarePluginCheckForm`、`flarePluginFormValues`、`flarePluginIssueText`、`flarePluginFallbackName` 等纯函数（`./contracts`），规则见 `spec/plugin-view-vectors.json`。新增文案 `pluginView.*`、`pluginForm.*`。
+- 位置：provider 为 osm 时，`FlareLocationMessage` 与 `FlareLocationPicker` 在静态图右下角显示「© OpenStreetMap contributors」（`location.osmAttribution`），amap 时不显示；`FlareLocationPicker` 新增 `provider`（默认 osm）。
+- 位置：新增 `FlareLocationPicker`（选点面板内容：静态地图加中心点与「定位到当前位置」键、搜索框、首行为当前位置的地点列表、发送键）。定位、逆地址、周边搜索和静态图都由宿主回调提供（`requestCurrentLocation`、`reverseGeocode`、`searchNearby`、`previewUrl`），`initialLocation` 立即显示上次位置，`locateTimeoutMs`（默认 5000）后先用它；状态 locating / located / denied / searching / noResults / mapUnavailable。
+- **破坏性**：`FlareLocationMessage` 的 `mapImage` 改名为 `snapshotUrl`，新增 `latitude`、`longitude`、`provider`（osm / amap）；没有静态图或加载失败时画地图底纹加中心点；不监听 `open` 时按服务商链接到 OpenStreetMap 或高德网页地图（`spec/location-vectors.json`），不再链接 Google 地图。新增 `flareLocationMapLinks`、`flareLocationCoordinateLabel`、`flareLocationDistanceLabel` 与类型 `FlareLocationProvider` / `FlareLocationCoordinate` / `FlareLocationAddress` / `FlareLocationPlace` / `FlareLocationValue`（`./contracts`）。
+- 名片：新增 `FlareContactPicker`（分组标签、搜索、超过 60 行开窗的列表、空态，自己的行带「（我）」；单选点一行即 `select`，多选由「确定」回传，按勾选顺序）与 `FlareContactPickerEntry`、`FlareContactPickerGroup`、`matchesFlareContactPickerEntry`。`FlareContactMessage` 新增 `userId`，`open` 回传它；不监听时只展示，不画箭头。
+- `MessageList`、`MessageBubble`、`MessageContentView` 新增 `cardOpen`（消息 ID、用户 ID）与 `locationOpen`（消息 ID、`FlareLocationValue`）；时间线把线上的 0, 0 当作没有坐标。
+- 「+」面板默认集改为 image、camera、video、file、voice、location、card、poll（`FLARE_DEFAULT_COMPOSER_ACTION_IDS`）。
+- 图标 `locate`（注册表最后一项，共 108 个，Lucide `LocateFixed`）：选点面板「定位到当前位置」键的准星，与地图钉 `location` 区分。新增文案 `location.*`、`contactPicker.*`。
 - 输入栏：`FlareComposerCapabilities` 新增 `availableToolIds`（`FlareComposerToolId`：`emoji` / `mention` / `voice` / `image` / `richText` / `attachments`，`attachments` 即「+」按钮），不传时全部显示，传了只显示列出的工具，语义与 Flutter 一致；收回某个工具时同时关掉它打开的面板，草稿保留，`richMode` 也不再呈现。新增 `composerToolAvailable`、`FLARE_COMPOSER_TOOL_IDS`（`./contracts`）。
 - 「+」面板默认集改为内置功能 image、video、file、voice、card、poll（图标 image / video / file / mic / card / poll），去掉 location 与 contact；`FlareComposer` 与 `FlareComposerActionPanel` 共用 `FLARE_DEFAULT_COMPOSER_ACTION_IDS` / `FLARE_COMPOSER_ACTION_ICONS`。**破坏性**：`FlareComposerAction.label` 改为可选，不传时按 id 取 Kit 文案（`labelComposerActions`、`FLARE_COMPOSER_ACTION_LABEL_KEYS`，新增 `composer.poll`）；新增可选 `kind`（`FlareComposerActionKind`：feature / plugin）。
 - 图标 `plugin`（注册表最后一项，共 107 个，Lucide `Puzzle`）：「+」面板里图标名不在注册表里的项画它（`resolveComposerActionIcon`）。

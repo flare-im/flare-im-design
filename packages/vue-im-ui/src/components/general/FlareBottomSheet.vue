@@ -11,6 +11,7 @@ import { computed, getCurrentInstance, ref, watch } from "vue";
 import FlareModal from "./FlareModal.vue";
 import { useFlareModalSurface } from "../../shared/useModalSurface";
 import { useFlarePlatformSafe } from "../../shared/platform/useFlarePlatform";
+import { provideFlareSheetHeader } from "../../shared/sheetHeader";
 
 /** How the surface appears: `auto` is a bottom sheet on phones and a FlareModal elsewhere; `sheet` always a sheet. */
 export type FlareSheetPresentation = "auto" | "sheet";
@@ -31,6 +32,12 @@ const props = withDefaults(
     /** Cap the surface height (e.g. "72vh"). */
     maxHeight?: string;
     /**
+     * 定高模式：面占满整个 `maxHeight`,内容撑满把手(和标题)下方的剩余高度并自己负责滚动 ——
+     * 自带标题栏、需要定高的内容(位置选点、联系人选择)直接放进来,宿主不再写定高容器。
+     * 这时内容若用 `useFlareSheetOwnHeader()` 声明了自带标题,面就只把 `title` 当可及名称。
+     */
+    fill?: boolean;
+    /**
      * 交给 FlareModal 时这张面有多宽(转成 FlareModal 的 `width`)。
      *
      * 为什么要给个 prop:这个组件的根是 `<Teleport>`,Vue 无处安放透传属性,宿主写
@@ -40,7 +47,7 @@ const props = withDefaults(
     dialogWidth?: string;
     presentation?: FlareSheetPresentation;
   }>(),
-  { maxHeight: "72vh", dismissible: true, presentation: "auto", titleHidden: false },
+  { maxHeight: "72vh", dismissible: true, presentation: "auto", titleHidden: false, fill: false },
 );
 const emit = defineEmits<{ (e: "close"): void }>();
 const instance = getCurrentInstance();
@@ -63,7 +70,10 @@ watch(
   { flush: "sync" },
 );
 
-const sheetStyle = computed(() => ({ maxHeight: props.maxHeight }));
+const sheetStyle = computed(() => (props.fill ? { maxHeight: props.maxHeight, height: props.maxHeight } : { maxHeight: props.maxHeight }));
+// 内容声明了自带标题栏:定高模式下不再画第二个标题,title 只作可及名称。
+const contentOwnsHeader = provideFlareSheetHeader();
+const headingHidden = computed(() => props.titleHidden || (props.fill && contentOwnsHeader.value));
 
 // 平台返回键只在宿主真的接了 close 时才接管:会话行各自挂着一张关着的面板,
 // 没人听 close 的那些不该把返回键吞掉。交给 FlareModal 时也一样:只有宿主听了 close,
@@ -89,14 +99,17 @@ const { overlayContainer } = useFlareModalSurface({
     v-if="resolvedPresentation === 'dialog'"
     :open="open"
     :title="title"
-    :title-hidden="titleHidden"
+    :title-hidden="headingHidden"
     :dismissible="dismissible"
     :max-height="maxHeight"
     :width="dialogWidth"
+    :fill="fill"
+    :scrollable="!fill"
     :show-close="false"
     v-bind="modalListeners()"
   >
-    <slot />
+    <div v-if="fill" class="flare-sheet__fill"><slot /></div>
+    <slot v-else />
   </FlareModal>
   <Teleport v-else :to="overlayContainer">
     <transition name="flare-sheet-fade">
@@ -104,6 +117,7 @@ const { overlayContainer } = useFlareModalSurface({
         <div
           ref="sheetEl"
           class="flare-sheet"
+          :class="{ 'flare-sheet--fill': fill }"
           :style="sheetStyle"
           role="dialog"
           :aria-label="title"
@@ -113,8 +127,9 @@ const { overlayContainer } = useFlareModalSurface({
           @click.stop
         >
           <div class="flare-sheet__grip" aria-hidden="true" />
-          <div v-if="title && !titleHidden" class="flare-sheet__title">{{ title }}</div>
-          <slot />
+          <div v-if="title && !headingHidden" class="flare-sheet__title">{{ title }}</div>
+          <div v-if="fill" class="flare-sheet__fill"><slot /></div>
+          <slot v-else />
         </div>
       </div>
     </transition>
@@ -149,6 +164,10 @@ const { overlayContainer } = useFlareModalSurface({
   overflow-y: auto;
   overscroll-behavior: contain;
 }
+/* 定高模式:内容自己滚,这一层不再滚;内容撑满剩下的高度。 */
+.flare-sheet--fill { overflow: hidden; }
+.flare-sheet__fill { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; }
+.flare-sheet__fill > :deep(*) { flex: 1 1 auto; min-height: 0; }
 .flare-sheet__grip { width: 36px; height: 4px; border-radius: 999px; background: var(--flare-color-border-primary); margin: 6px auto 8px; flex: 0 0 auto; }
 .flare-sheet__title { padding: var(--flare-size-spacing-xs) var(--flare-size-spacing-md) var(--flare-size-spacing-sm); font-size: var(--flare-size-font-size-md); font-weight: 500; color: var(--flare-color-text-tertiary); text-align: center; }
 

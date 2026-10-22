@@ -23,18 +23,20 @@ describe("FlareComposerActionPanel", () => {
     const sheet = mountSheet();
     const ids = sheet.findAll("button").map((b) => b.attributes("data-action-id"));
     expect(ids).toEqual([...FLARE_DEFAULT_COMPOSER_ACTION_IDS]);
-    expect(ids).toEqual(["image", "video", "file", "voice", "card", "poll"]);
-    expect(sheet.findAllComponents(FlareGlyph).map((glyph) => glyph.props("icon"))).toEqual(["image", "video", "file", "mic", "card", "poll"]);
+    expect(ids).toEqual(["image", "camera", "video", "file", "voice", "location", "card"]);
+    expect(sheet.findAllComponents(FlareGlyph).map((glyph) => glyph.props("icon"))).toEqual(["image", "camera", "video", "file", "mic", "location", "card"]);
     expect(sheet.findAll(".flare-action-panel__label").map((label) => label.text()))
-      .toEqual(["Image", "Video", "File", "Voice", "Contact card", "Poll"]);
-    expect(sheet.find('[data-action-id="location"]').exists()).toBe(false);
+      .toEqual(["Image", "Camera", "Video", "File", "Voice", "Location", "Contact card"]);
+    // Polls come from the poll plugin now.
+    expect(sheet.find('[data-action-id="poll"]').exists()).toBe(false);
+    expect(sheet.find('[data-action-id="contact"]').exists()).toBe(false);
     expect(sheet.attributes("aria-label")).toBe("Message features");
   });
 
   it("localizes default labels through the strings provider", () => {
     const sheet = mountSheet({}, "zh-CN");
     expect(sheet.findAll(".flare-action-panel__label").map((label) => label.text()))
-      .toEqual(["图片", "视频", "文件", "语音", "名片", "投票"]);
+      .toEqual(["图片", "拍摄", "视频", "文件", "语音", "位置", "名片"]);
   });
 
   it("labels built-in items a host passes without a label, and draws plugin items after them", () => {

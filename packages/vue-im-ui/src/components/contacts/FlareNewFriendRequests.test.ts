@@ -53,3 +53,18 @@ describe("FlareNewFriendRequests direction", () => {
     expect(labelled.get("button").text()).toBe("Cancel request");
   });
 });
+
+describe("FlareNewFriendRequests source line", () => {
+  it("draws the source on its own secondary line under the message", () => {
+    const fromCard: FlareFriendRequest = { id: "r3", name: "Cleo", message: "我是 Cleo", source: "通过名片添加，由 Ann 推荐" };
+    const wrapper = mountRequests({ items: [fromCard, incoming], onAccept: () => {}, onReject: () => {} });
+    const [first, second] = wrapper.findAll(".flare-new-friends__row");
+    const body = first.get(".flare-new-friends__body");
+    const lines = body.findAll(":scope > div").map((line) => line.classes()[0]);
+    expect(lines).toEqual(["flare-new-friends__name", "flare-new-friends__msg", "flare-new-friends__source"]);
+    expect(first.get(".flare-new-friends__msg").text()).toBe("我是 Cleo");
+    expect(first.get("[data-request-source]").text()).toBe("通过名片添加，由 Ann 推荐");
+    // A request without a source keeps the two lines it always had.
+    expect(second.find("[data-request-source]").exists()).toBe(false);
+  });
+});

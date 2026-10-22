@@ -37,6 +37,7 @@ import {
   useFlareRenderConversation,
 } from "../../../shared/message-renderers";
 import { contentViewKey, messageRendererKeys } from "../../../utils/messageRendererKeys";
+import type { FlareLocationValue } from "../../../shared/contracts/location";
 
 const props = withDefaults(
   defineProps<{
@@ -69,6 +70,10 @@ const emit = defineEmits<{
   (event: "media-action", action: "download" | "openFolder"): void;
   (event: "vote", optionIndex: number): void;
   (event: "taskToggle", done: boolean): void;
+  /** A tapped person's card, with the card's user id. Without a listener a card only displays. */
+  (event: "cardOpen", userId: string): void;
+  /** A tapped location card. Without a listener the card links to the web map itself. */
+  (event: "locationOpen", location: FlareLocationValue): void;
 }>();
 
 // A poll or a task is a control only while the host takes its intent: forward a listener only when this view has one.
@@ -78,6 +83,15 @@ const voteListeners = computed(() =>
 );
 const taskListeners = computed(() =>
   instance?.vnode.props?.onTaskToggle ? { taskToggle: (done: boolean) => emit("taskToggle", done) } : {},
+);
+// A card opens a profile, and a location card the host's map, only while the host takes the intent.
+const cardListeners = computed(() =>
+  instance?.vnode.props?.onCardOpen ? { cardOpen: (userId: string) => emit("cardOpen", userId) } : {},
+);
+const locationListeners = computed(() =>
+  instance?.vnode.props?.onLocationOpen
+    ? { locationOpen: (location: FlareLocationValue) => emit("locationOpen", location) }
+    : {},
 );
 
 const decoded = computed(() => normalizeToContentElem(props.content));
@@ -182,8 +196,8 @@ const fallbackType = computed(() => String(decoded.value?.contentType ?? ""));
       :media-state="mediaState"
       @media-action="emit('media-action', $event)"
     />
-    <LocationView v-else-if="viewType === 'location' && viewProps" v-bind="viewProps" />
-    <CardView v-else-if="viewType === 'card' && viewProps" v-bind="viewProps" />
+    <LocationView v-else-if="viewType === 'location' && viewProps" v-bind="viewProps" v-on="locationListeners" />
+    <CardView v-else-if="viewType === 'card' && viewProps" v-bind="viewProps" v-on="cardListeners" />
     <StickerView v-else-if="viewType === 'sticker' && viewProps" v-bind="viewProps" />
     <EmojiView v-else-if="viewType === 'emoji' && viewProps" v-bind="viewProps" />
     <QuoteView

@@ -34,6 +34,7 @@ const canWithdraw = computed(() => Boolean(instance?.vnode.props?.onWithdraw));
       <div class="flare-new-friends__body" @click="emit('view', r)">
         <div class="flare-new-friends__name">{{ r.name }}</div>
         <div v-if="r.message" class="flare-new-friends__msg">{{ r.message }}</div>
+        <div v-if="r.source" class="flare-new-friends__source" data-request-source="true">{{ r.source }}</div>
       </div>
       <div class="flare-new-friends__actions">
         <template v-if="r.direction === 'outgoing'">
@@ -74,6 +75,11 @@ const canWithdraw = computed(() => Boolean(instance?.vnode.props?.onWithdraw));
   white-space: nowrap;
 }
 .flare-new-friends__msg {
+  font-size: var(--flare-size-font-size-sm); color: var(--flare-color-text-tertiary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* 来源(「通过名片添加，由 X 推荐」)是另一件事:自己一行,不和验证消息挤在一行。 */
+.flare-new-friends__source {
   font-size: var(--flare-size-font-size-sm); color: var(--flare-color-text-tertiary);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }

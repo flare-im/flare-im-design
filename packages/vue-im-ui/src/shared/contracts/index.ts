@@ -216,7 +216,53 @@ export {
   inviteJoinedDateLabel,
 } from "./invite";
 
-export type { FlarePluginViewModel } from "./plugin-ui";
+export type {
+  FlarePluginAction,
+  FlarePluginActionPayload,
+  FlarePluginActionStyle,
+  FlarePluginBlock,
+  FlarePluginChoice,
+  FlarePluginChoicesBlock,
+  FlarePluginDividerBlock,
+  FlarePluginEntriesBlock,
+  FlarePluginEntry,
+  FlarePluginField,
+  FlarePluginFieldsBlock,
+  FlarePluginFormError,
+  FlarePluginFormIssue,
+  FlarePluginInput,
+  FlarePluginInputKind,
+  FlarePluginMember,
+  FlarePluginNoteBlock,
+  FlarePluginPeopleBlock,
+  FlarePluginPeopleGroup,
+  FlarePluginProgressBlock,
+  FlarePluginResolveUser,
+  FlarePluginRow,
+  FlarePluginRowCell,
+  FlarePluginRowsBlock,
+  FlarePluginStatusBlock,
+  FlarePluginStrings,
+  FlarePluginTextBlock,
+  FlarePluginTimeBlock,
+  FlarePluginTone,
+  FlarePluginUser,
+  FlarePluginViewInset,
+  FlarePluginViewModel,
+} from "./plugin-ui";
+export {
+  flarePluginCheckForm,
+  flarePluginCheckInput,
+  flarePluginCountdown,
+  flarePluginDateTime,
+  flarePluginDraft,
+  flarePluginFallbackName,
+  flarePluginFilterInputs,
+  flarePluginFormValues,
+  flarePluginNextCursor,
+  flarePluginIssueText,
+  flarePluginTimeText,
+} from "./plugin-ui";
 export type {
   FlareRedPacketState,
   FlareRedPacketOpenState,
@@ -224,3 +270,28 @@ export type {
   FlareRedPacketClaim,
 } from "./red-packet";
 export { sanitizeRedPacketAmount, sanitizeRedPacketCount } from "./red-packet";
+export type {
+  FlareLocationProvider,
+  FlareLocationCoordinate,
+  FlareLocationAddress,
+  FlareLocationPlace,
+  FlareLocationValue,
+  FlareLocationMapLinks,
+} from "./location";
+export {
+  FLARE_LOCATION_CURRENT_ID,
+  FLARE_LOCATION_OSM_ZOOM,
+  isValidFlareLocation,
+  formatFlareLocationCoordinate,
+  encodeFlareLocationTitle,
+  flareLocationMapLinks,
+  flareLocationCoordinateLabel,
+  flareLocationDistanceLabel,
+  flareLocationPreviewSize,
+} from "./location";
+export type {
+  FlareContactPickerEntry,
+  FlareContactPickerGroup,
+  FlareContactPickerGroupId,
+} from "./contact-picker";
+export { matchesFlareContactPickerEntry } from "./contact-picker";

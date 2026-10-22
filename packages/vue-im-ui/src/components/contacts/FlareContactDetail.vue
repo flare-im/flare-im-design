@@ -10,12 +10,17 @@
  * voice or video button, and a stranger's profile (no remark, star or remove
  * handlers) shows remark and description as read-only values and no friend-only
  * actions. `disabledActions` is for actions that exist but are unavailable now.
+ *
+ * Someone who is not a contact yet gets the page's main step from the host: `primaryActionLabel` with a
+ * `primaryAction` listener leads the action row as the primary key ("添加到通讯录"), and Message, when
+ * handled, follows as a secondary key. It is not one of the footer's `extraActions`.
  */
 import { computed, getCurrentInstance } from "vue";
 import { NIcon } from "naive-ui";
 import {
   CallOutline,
   ChatbubbleEllipsesOutline,
+  PersonAddOutline,
   VideocamOutline,
 } from "../../shared/icon-glyphs";
 import { flareIcons } from "../../shared/icons";
@@ -31,6 +36,8 @@ import type {
 
 const props = defineProps<{
   contact: FlareContact;
+  /** Label of the page's primary action for someone who is not a contact yet; drawn with a `primaryAction` listener. */
+  primaryActionLabel?: string;
   disabledActions?: ("message" | "call" | "video")[];
   busy?: boolean;
   /** Whether the viewer has starred (favorited) this contact. */
@@ -41,6 +48,8 @@ const props = defineProps<{
   extraActions?: FlareDetailExtraAction[];
 }>();
 const emit = defineEmits<{
+  /** The primary action (primaryActionLabel) was chosen. */
+  (e: "primaryAction"): void;
   (e: "message"): void;
   (e: "call"): void;
   (e: "video"): void;
@@ -58,7 +67,7 @@ const emit = defineEmits<{
 const { t } = useFlareI18n();
 const instance = getCurrentInstance();
 // Read at render time, not cached: a host may bind different handlers once the relationship changes.
-function handles(listener: "onMessage" | "onCall" | "onVideo" | "onEdit" | "onEditDescription" | "onToggleStar" | "onBlock" | "onRemove"): boolean {
+function handles(listener: "onPrimaryAction" | "onMessage" | "onCall" | "onVideo" | "onEdit" | "onEditDescription" | "onToggleStar" | "onBlock" | "onRemove"): boolean {
   return Boolean(instance?.vnode.props?.[listener]);
 }
 
@@ -90,18 +99,32 @@ function sections(): FlareSettingsSection[] {
   return items.length ? [{ title: t("contact.info"), items }] : [];
 }
 
-type ContactAction = { id: "message" | "call" | "video"; listener: "onMessage" | "onCall" | "onVideo"; label: string; icon: typeof CallOutline; primary?: boolean };
+type ContactAction = {
+  id: "primary" | "message" | "call" | "video";
+  listener: "onPrimaryAction" | "onMessage" | "onCall" | "onVideo";
+  label: string;
+  icon: typeof CallOutline;
+  primary?: boolean;
+};
 function actions(): ContactAction[] {
+  // The host's primary action leads the row; Message is then a secondary key, so the row has one primary.
+  const lead = Boolean(props.primaryActionLabel) && handles("onPrimaryAction");
   const all: ContactAction[] = [
-    { id: "message", listener: "onMessage", label: t("contact.message"), icon: ChatbubbleEllipsesOutline, primary: true },
+    ...(lead ? [{ id: "primary", listener: "onPrimaryAction", label: props.primaryActionLabel!, icon: PersonAddOutline, primary: true } as ContactAction] : []),
+    { id: "message", listener: "onMessage", label: t("contact.message"), icon: ChatbubbleEllipsesOutline, primary: !lead },
     { id: "call", listener: "onCall", label: t("contact.voice"), icon: CallOutline },
     { id: "video", listener: "onVideo", label: t("contact.video"), icon: VideocamOutline },
   ];
   return all.filter((action) => handles(action.listener));
 }
+function disabled(action: ContactAction): boolean {
+  if (props.busy) return true;
+  return action.id !== "primary" && Boolean(props.disabledActions?.includes(action.id));
+}
 
 function runAction(id: ContactAction["id"]): void {
-  if (id === "message") emit("message");
+  if (id === "primary") emit("primaryAction");
+  else if (id === "message") emit("message");
   else if (id === "call") emit("call");
   else emit("video");
 }
@@ -142,7 +165,8 @@ function onToggle(item: FlareSettingsItem, value: boolean) {
         :key="action.id"
         type="button"
         :class="{ 'is-primary': action.primary }"
-        :disabled="busy || disabledActions?.includes(action.id)"
+        :disabled="disabled(action)"
+        :data-contact-action="action.id"
         @click="runAction(action.id)"
       >
         <n-icon aria-hidden="true" :size="20" :component="action.icon" /><span>{{ action.label }}</span>

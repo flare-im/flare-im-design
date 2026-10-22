@@ -22,3 +22,27 @@ export { default as FlareFormField } from "./components/form/FlareFormField.vue"
 export { default as FlareCheckbox } from "./components/form/FlareCheckbox.vue";
 
 export { default as FlareSchemaForm } from "./components/form/FlareSchemaForm.vue";
+
+// Plugin admin pages (core SDK dispatch_admin views): the same PluginView, PluginForm and detail sheet the
+// chat cards use, so a console draws plugin pages without importing the whole component index.
+export { default as FlarePluginView } from "./components/messages/FlarePluginView.vue";
+export { default as FlarePluginForm } from "./components/form/FlarePluginForm.vue";
+export { default as FlarePluginDetailSheet } from "./components/messages/FlarePluginDetailSheet.vue";
+export type {
+  FlarePluginAction,
+  FlarePluginActionPayload,
+  FlarePluginActionStyle,
+  FlarePluginBlock,
+  FlarePluginFormError,
+  FlarePluginFormIssue,
+  FlarePluginInput,
+  FlarePluginInputKind,
+  FlarePluginMember,
+  FlarePluginResolveUser,
+  FlarePluginRow,
+  FlarePluginRowsBlock,
+  FlarePluginUser,
+  FlarePluginViewInset,
+  FlarePluginViewModel,
+} from "./shared/contracts/plugin-ui";
+export { flarePluginFilterInputs } from "./shared/contracts/plugin-ui";

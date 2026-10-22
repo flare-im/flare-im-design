@@ -49,7 +49,7 @@ describe("FlareComposer interaction boundaries", () => {
   it("opens the default more actions in uncontrolled simple mode", async () => {
     const wrapper = setup({ sendVoiceHandler: vi.fn() });
     await wrapper.get('[aria-label="更多"]').trigger("click");
-    expect(wrapper.findAll(".flare-action-panel__tile")).toHaveLength(6);
+    expect(wrapper.findAll(".flare-action-panel__tile")).toHaveLength(7);
     expect(wrapper.text()).toContain("图片");
     expect(wrapper.text()).toContain("文件");
     // composer 自己就能拾取视频,所以「+」里给得出这一格。
@@ -59,7 +59,7 @@ describe("FlareComposer interaction boundaries", () => {
     const silent = setup();
     expect(silent.find('.composer-toolbar [aria-label="语音"]').exists()).toBe(false);
     await silent.get('[aria-label="更多"]').trigger("click");
-    expect(silent.findAll(".flare-action-panel__tile").map((tile) => tile.attributes("data-action-id"))).toEqual(["image", "video", "file", "card", "poll"]);
+    expect(silent.findAll(".flare-action-panel__tile").map((tile) => tile.attributes("data-action-id"))).toEqual(["image", "camera", "video", "file", "location", "card"]);
     const listening = setup({ onSendVoice: vi.fn() });
     expect(listening.find('.composer-toolbar [aria-label="语音"]').exists()).toBe(true);
   });
@@ -67,9 +67,9 @@ describe("FlareComposer interaction boundaries", () => {
     const wrapper = setup({ sendVoiceHandler: vi.fn() });
     await wrapper.get('[aria-label="更多"]').trigger("click");
     expect(wrapper.findAll(".flare-action-panel__tile").map((tile) => tile.attributes("data-action-id")))
-      .toEqual(["image", "video", "file", "voice", "card", "poll"]);
-    expect(wrapper.findAllComponents(FlareGlyph).map((glyph) => glyph.props("icon"))).toEqual(["image", "video", "file", "mic", "card", "poll"]);
-    expect(wrapper.findAll(".flare-action-panel__label").map((label) => label.text())).toEqual(["图片", "视频", "文件", "语音", "名片", "投票"]);
+      .toEqual(["image", "camera", "video", "file", "voice", "location", "card"]);
+    expect(wrapper.findAllComponents(FlareGlyph).map((glyph) => glyph.props("icon"))).toEqual(["image", "camera", "video", "file", "mic", "location", "card"]);
+    expect(wrapper.findAll(".flare-action-panel__label").map((label) => label.text())).toEqual(["图片", "拍摄", "视频", "文件", "语音", "位置", "名片"]);
   });
   it("shows only the toolbar tools the host makes available", () => {
     const all = ["表情", "@", "语音", "图片", "富文本", "更多", "发送"];

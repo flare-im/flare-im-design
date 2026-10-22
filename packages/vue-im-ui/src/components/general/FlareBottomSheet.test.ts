@@ -6,6 +6,7 @@ import { useFlarePlatformProvider } from "../../shared/platform/useFlarePlatform
 import type { FlareAdaptiveContext } from "../../composables/useAdaptiveMode";
 import FlareBottomSheet from "./FlareBottomSheet.vue";
 import FlareModal from "./FlareModal.vue";
+import { useFlareSheetOwnHeader } from "../../shared/sheetHeader";
 
 let host: ReturnType<typeof mount> | undefined;
 afterEach(() => {
@@ -143,6 +144,65 @@ describe("FlareBottomSheet presentation", () => {
       expect(closed, bottomSheet ? "sheet" : "dialog").toEqual([]);
       reset();
     }
+  });
+});
+
+describe("FlareBottomSheet fill", () => {
+  // Sheet content with its own header row, like the kit LocationPicker and ContactPicker.
+  const OwnHeader = defineComponent({
+    setup() {
+      useFlareSheetOwnHeader();
+      return () => h("section", { class: "own-header" }, [h("header", "Location"), h("ul", "rows")]);
+    },
+  });
+  function mountFill(props: Record<string, unknown>, bottomSheet: boolean, content: Component = OwnHeader) {
+    host = mount(defineComponent({
+      setup() {
+        useFlarePlatformProvider({ capabilities: { bottomSheet } });
+        return () => h(FlareBottomSheet as Component, { open: true, title: "Location", ...props }, { default: () => h(content) });
+      },
+    }), { attachTo: document.body });
+  }
+
+  it("takes its whole height cap and hands the content the rest, without a second title", async () => {
+    mountFill({ fill: true, maxHeight: "90vh" }, true);
+    await nextTick();
+    expect(surface().classList).toContain("flare-sheet--fill");
+    expect(surface().style.height).toBe("90vh");
+    expect(surface().style.maxHeight).toBe("90vh");
+    expect(surface().querySelector(".flare-sheet__fill > .own-header")).not.toBeNull();
+    // The content brings its own header: the sheet's title stays the accessible name only.
+    expect(surface().querySelector(".flare-sheet__title")).toBeNull();
+    expect(surface().getAttribute("aria-label")).toBe("Location");
+  });
+
+  it("keeps its title for fill content without its own header", async () => {
+    mountFill({ fill: true }, true, defineComponent({ setup: () => () => h("div", { class: "plain" }, "rows") }));
+    await nextTick();
+    expect(surface().querySelector(".flare-sheet__title")?.textContent).toBe("Location");
+    expect(surface().style.height).toBe("72vh");
+  });
+
+  it("changes nothing without fill, even for content with its own header", async () => {
+    mountFill({}, true);
+    await nextTick();
+    expect(surface().classList).not.toContain("flare-sheet--fill");
+    expect(surface().style.height).toBe("");
+    expect(surface().querySelector(".flare-sheet__fill")).toBeNull();
+    expect(surface().querySelector(".flare-sheet__title")?.textContent).toBe("Location");
+  });
+
+  it("hands fill to FlareModal off the phone, with the heading hidden for own-header content", async () => {
+    mountFill({ fill: true, maxHeight: "80vh" }, false);
+    await nextTick();
+    const modal = host!.findComponent(FlareModal);
+    expect(modal.props("fill")).toBe(true);
+    expect(modal.props("scrollable")).toBe(false);
+    expect(modal.props("titleHidden")).toBe(true);
+    expect(surface().style.height).toBe("80vh");
+    expect(surface().querySelector(".flare-modal__title")).toBeNull();
+    expect(surface().getAttribute("aria-label")).toBe("Location");
+    expect(surface().querySelector(".flare-sheet__fill > .own-header")).not.toBeNull();
   });
 });
 

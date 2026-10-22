@@ -63,6 +63,7 @@ export {
   type FlareShowToast,
   type FlareToastOptions,
 } from "./useFlareFeedback";
+export { useFlareSheetOwnHeader } from "../shared/sheetHeader";
 export {
   provideFlareOverlayContainer,
   useFlareOverlayContainer,

@@ -145,7 +145,7 @@
   "anchors": {
     "note": "Components that navigate on their own rather than reporting the URL to the host. Each must resolve its href through safeExternalUrl or build it from parts it controls. The list is the Vue package, which the gate reads; the SwiftUI and Compose kits also open http/https themselves when the host handles no openLink, through the same vector table (docs/release/security-boundary.md section 4c).",
     "packages/vue-im-ui/src/components/messages/MessagesView/views/LinkCardView.vue": "safeExternalUrl",
-    "packages/vue-im-ui/src/components/messages/MessagesView/views/LocationView.vue": "built from latitude and longitude",
+    "packages/vue-im-ui/src/components/messages/standalone/FlareLocationMessage.vue": "flareLocationMapLinks: built from a range-checked latitude and longitude and a percent-encoded title (spec/location-vectors.json)",
     "packages/vue-im-ui/src/components/messages/standalone/FlareRichDocRuns.vue": "safeExternalUrl",
     "packages/vue-im-ui/src/components/layout/FlareAdaptiveNavigation.vue": "safeNavigationHref — the host's own navigation: a same-origin path, a hash route or a query as written, otherwise an http/https URL through safeExternalUrl; a refused href draws a button"
   },

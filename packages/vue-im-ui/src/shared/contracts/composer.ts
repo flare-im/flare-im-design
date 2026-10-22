@@ -97,10 +97,11 @@ export const FLARE_COMPOSER_ACTION_IDS: readonly FlareComposerActionId[] = [
 /**
  * The built-in features of the "+" panel (功能管理), in panel order — the same set and order on all
  * four platforms (contract `composerActions.defaults`). Shown when the host does not supply a list;
- * a host list replaces it whole.
+ * a host list replaces it whole. Polls come from the poll plugin, not from this set (the kit keeps
+ * PollComposer and VoteMessage for history).
  */
 export const FLARE_DEFAULT_COMPOSER_ACTION_IDS: readonly FlareComposerActionId[] = [
-  "image", "video", "file", "voice", "card", "poll",
+  "image", "camera", "video", "file", "voice", "location", "card",
 ];
 
 /** The registry glyph of each unified action id; an action without its own icon draws it. */

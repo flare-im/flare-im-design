@@ -23,6 +23,7 @@ import { messageMatchesId, resolveMessageId } from "../../shared/contracts/messa
 import type { MessageMenuExtension } from "../../utils/buildMessageMenuOptions";
 import { startsTimelineDay, timelineDateLabel } from "../../shared/timeline-label";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
+import type { FlareLocationValue } from "../../shared/contracts/location";
 import { previewTextFromMessageContent } from "../../utils/messagePreview";
 import {
   countAppendedItems,
@@ -113,6 +114,10 @@ const emit = defineEmits<{
   (event: "vote", messageId: string, optionIndex: number): void;
   /** A tapped task checkbox, with the done state asked for. Without a listener tasks are read-only. */
   (event: "taskToggle", messageId: string, done: boolean): void;
+  /** A tapped person's card, with its user id: the host opens the profile. Without a listener cards only display. */
+  (event: "cardOpen", messageId: string, userId: string): void;
+  /** A tapped location card. Without a listener the card links to the web map of its provider. */
+  (event: "locationOpen", messageId: string, location: FlareLocationValue): void;
 }>();
 
 const instance = getCurrentInstance();
@@ -128,6 +133,12 @@ const bodyIntentListeners = computed(() => ({
     : {}),
   ...(instance?.vnode.props?.onTaskToggle
     ? { taskToggle: (id: string, done: boolean) => emit("taskToggle", id, done) }
+    : {}),
+  ...(instance?.vnode.props?.onCardOpen
+    ? { cardOpen: (id: string, userId: string) => emit("cardOpen", id, userId) }
+    : {}),
+  ...(instance?.vnode.props?.onLocationOpen
+    ? { locationOpen: (id: string, location: FlareLocationValue) => emit("locationOpen", id, location) }
     : {}),
 }));
 

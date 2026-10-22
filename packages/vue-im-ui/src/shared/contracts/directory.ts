@@ -39,6 +39,11 @@ export interface FlareFriendRequest {
   name: string;
   avatarUrl?: string;
   message?: string;
+  /**
+   * Where the request came from, worded by the host ("通过名片添加，由 X 推荐"): its own secondary line under
+   * the message, never sharing the message's line.
+   */
+  source?: string;
   /** "incoming" (default): someone asked the viewer; "outgoing": the viewer asked and waits. */
   direction?: "incoming" | "outgoing";
 }

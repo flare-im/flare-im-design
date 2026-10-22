@@ -24,10 +24,11 @@ describe("composer action table", () => {
   });
 
   it("defaults to the built-in features, in the order and with the glyphs every platform shows", () => {
-    // 位置不在默认集里：没有真实的位置来源。名片是 card，图标是注册表的 card（Lucide Contact）。
-    expect(FLARE_DEFAULT_COMPOSER_ACTION_IDS).toEqual(["image", "video", "file", "voice", "card", "poll"]);
+    // 拍摄与位置回到默认集（选点页 FlareLocationPicker）。名片是 card，图标是注册表的 card（Lucide Contact）。
+    // 投票改由插件提供，不在内置默认集里。
+    expect(FLARE_DEFAULT_COMPOSER_ACTION_IDS).toEqual(["image", "camera", "video", "file", "voice", "location", "card"]);
     expect(FLARE_DEFAULT_COMPOSER_ACTION_IDS.map((id) => FLARE_COMPOSER_ACTION_ICONS[id]))
-      .toEqual(["image", "video", "file", "mic", "card", "poll"]);
+      .toEqual(["image", "camera", "video", "file", "mic", "location", "card"]);
     for (const id of FLARE_DEFAULT_COMPOSER_ACTION_IDS) expect(FLARE_COMPOSER_ACTION_IDS).toContain(id);
     for (const icon of Object.values(FLARE_COMPOSER_ACTION_ICONS)) expect(Object.keys(flareIcons)).toContain(icon);
   });

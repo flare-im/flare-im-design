@@ -3,6 +3,7 @@ import { computed, getCurrentInstance } from "vue";
 import type { MessageContentLike } from "../../utils/contentElem";
 import { ContentView } from "./MessagesView";
 import type { MessageMediaDownloadUiState } from "./MessageBubble.vue";
+import type { FlareLocationValue } from "../../shared/contracts/location";
 
 defineProps<{
   content?: MessageContentLike;
@@ -23,6 +24,8 @@ const emit = defineEmits<{
   (event: "media-action", action: "download" | "openFolder"): void;
   (event: "vote", optionIndex: number): void;
   (event: "taskToggle", done: boolean): void;
+  (event: "cardOpen", userId: string): void;
+  (event: "locationOpen", location: FlareLocationValue): void;
 }>();
 
 // A poll's options and a task's checkbox are controls only while the host takes them.
@@ -30,6 +33,10 @@ const instance = getCurrentInstance();
 const intentListeners = computed(() => ({
   ...(instance?.vnode.props?.onVote ? { vote: (optionIndex: number) => emit("vote", optionIndex) } : {}),
   ...(instance?.vnode.props?.onTaskToggle ? { taskToggle: (done: boolean) => emit("taskToggle", done) } : {}),
+  ...(instance?.vnode.props?.onCardOpen ? { cardOpen: (userId: string) => emit("cardOpen", userId) } : {}),
+  ...(instance?.vnode.props?.onLocationOpen
+    ? { locationOpen: (location: FlareLocationValue) => emit("locationOpen", location) }
+    : {}),
 }));
 </script>
 

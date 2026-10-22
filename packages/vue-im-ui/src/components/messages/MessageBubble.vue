@@ -9,13 +9,14 @@ import {
   PinOutline,
   RefreshOutline,
 } from "../../shared/icon-glyphs";
-import { NButton, NIcon } from "naive-ui";
+import { NIcon } from "naive-ui";
 import type { DropdownOption } from "naive-ui";
 import { messageContentTypeForUi } from "../../utils/messageContent";
 import { avatarTint } from "../../shared/avatar-tint";
 import { useLongPress } from "../../composables/useLongPress";
 import { useMessageMenuInteraction } from "../../composables/chat/useMessageMenuInteraction";
 import MessageContentView from "./MessageContentView.vue";
+import type { FlareLocationValue } from "../../shared/contracts/location";
 import MessageBubbleHoverToolbar from "./MessageBubbleHoverToolbar.vue";
 import MessageMenu from "./MessageMenu.vue";
 import MessageMeta from "./MessageMeta.vue";
@@ -92,6 +93,10 @@ const emit = defineEmits<{
   (event: "vote", messageId: string, optionIndex: number): void;
   /** A tapped task checkbox, with the done state asked for. Without a listener, or while selecting, tasks are read-only. */
   (event: "taskToggle", messageId: string, done: boolean): void;
+  /** A tapped person's card, with its user id. Without a listener, or while selecting, cards only display. */
+  (event: "cardOpen", messageId: string, userId: string): void;
+  /** A tapped location card. Without a listener the card links to the web map; while selecting it does nothing. */
+  (event: "locationOpen", messageId: string, location: FlareLocationValue): void;
 }>();
 
 const { profile } = useMessageMenuInteraction();
@@ -111,6 +116,10 @@ const bodyIntentListeners = computed(() => {
   return {
     ...(listeners?.onVote ? { vote: (optionIndex: number) => emit("vote", messageId(), optionIndex) } : {}),
     ...(listeners?.onTaskToggle ? { taskToggle: (done: boolean) => emit("taskToggle", messageId(), done) } : {}),
+    ...(listeners?.onCardOpen ? { cardOpen: (userId: string) => emit("cardOpen", messageId(), userId) } : {}),
+    ...(listeners?.onLocationOpen
+      ? { locationOpen: (location: FlareLocationValue) => emit("locationOpen", messageId(), location) }
+      : {}),
   };
 });
 

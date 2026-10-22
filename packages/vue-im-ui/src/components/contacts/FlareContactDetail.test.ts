@@ -55,3 +55,32 @@ describe("FlareContactDetail", () => {
     expect(events).toEqual(["edit", "star", "remove"]);
   });
 });
+
+describe("FlareContactDetail primary action", () => {
+  it("leads the action row with the host's primary action for a stranger, Message following as a secondary key", async () => {
+    const events: string[] = [];
+    const view = mountDetail({
+      primaryActionLabel: "添加到通讯录",
+      onPrimaryAction: () => events.push("primary"),
+      onMessage: () => events.push("message"),
+      extraActions: [{ id: "report", label: "举报" }],
+    });
+    const actions = view.findAll(".flare-contact-detail__actions button");
+    expect(actions.map((button) => button.text())).toEqual(["添加到通讯录", "发消息"]);
+    expect(actions[0].classes()).toContain("is-primary");
+    expect(actions[1].classes()).not.toContain("is-primary");
+    // Not a footer action: the footer keeps only the host's extra actions.
+    expect(view.findAll(".flare-contact-detail__extra button").map((button) => button.text())).toEqual(["举报"]);
+    await actions[0].trigger("click");
+    expect(events).toEqual(["primary"]);
+  });
+
+  it("draws nothing without both the label and the listener, and busy disables it", () => {
+    expect(mountDetail({ primaryActionLabel: "添加到通讯录" }).find(".flare-contact-detail__actions").exists()).toBe(false);
+    expect(mountDetail({ onPrimaryAction: () => {} }).find(".flare-contact-detail__actions").exists()).toBe(false);
+    const busy = mountDetail({ primaryActionLabel: "添加到通讯录", onPrimaryAction: () => {}, busy: true });
+    const only = busy.get('[data-contact-action="primary"]');
+    expect(only.attributes("disabled")).toBeDefined();
+    expect(only.classes()).toContain("is-primary");
+  });
+});

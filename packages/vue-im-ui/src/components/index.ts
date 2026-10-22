@@ -121,6 +121,8 @@ export type { FlareSlashCommand } from "../shared/contracts";
 export { default as FlareImageGrid } from "./messages/FlareImageGrid.vue";
 export { default as FlareVoiceRecordingBar } from "./composer/FlareVoiceRecordingBar.vue";
 export { default as FlarePollComposer } from "./composer/FlarePollComposer.vue";
+export { default as FlareLocationPicker } from "./composer/FlareLocationPicker.vue";
+export { default as FlareContactPicker } from "./composer/FlareContactPicker.vue";
 export { default as FlareChatWallpaperPicker } from "./conversation/FlareChatWallpaperPicker.vue";
 export type { FlareGridImage, FlareWallpaperOption } from "../shared/contracts";
 
@@ -272,4 +274,6 @@ export { default as FlareComposerMediaPreview } from "./composer/FlareComposerMe
 export type { FlareComposerMediaPreviewItem } from "./composer/FlareComposerMediaPreview.vue";
 
 export { default as FlarePluginView } from "./messages/FlarePluginView.vue";
+export { default as FlarePluginDetailSheet } from "./messages/FlarePluginDetailSheet.vue";
+export { default as FlarePluginForm } from "./form/FlarePluginForm.vue";
 export { default as FlareSchemaForm } from "./form/FlareSchemaForm.vue";

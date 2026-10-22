@@ -28,13 +28,36 @@ describe("timeline content bodies are the contract bodies", () => {
     const w = mountContent({ contentType: "system", data: { body: "张三 加入了群聊" } });
     expect(w.find(".fm-sys").text()).toBe("张三 加入了群聊");
   });
-  it("location → FlareLocationMessage, coordinates link out with a safe rel", () => {
+  it("location → FlareLocationMessage, coordinates link out to the web map with a safe rel", () => {
     const w = mountContent({ contentType: "location", data: { title: "望京 SOHO", address: "北京市朝阳区", latitude: 39.9968, longitude: 116.4809 } });
-    expect(w.find(".fm-loc").exists()).toBe(true);
-    const a = w.get("a.im-location");
-    expect(a.attributes("href")).toContain("maps.google.com");
+    const a = w.get("a.fm-loc");
+    expect(a.attributes("href")).toBe("https://www.openstreetmap.org/?mlat=39.9968&mlon=116.4809#map=17/39.9968/116.4809");
     expect(a.attributes("rel")).toBe("noopener noreferrer");
     expect(w.text()).toContain("望京 SOHO");
+    expect(w.find("[data-placeholder]").exists()).toBe(true);
+  });
+  it("location → the host takes the tap when it listens, and a 0,0 wire coordinate opens nothing", async () => {
+    const opened: unknown[] = [];
+    const w = mountContent(
+      { contentType: "location", data: { title: "望京 SOHO", address: "北京市朝阳区", latitude: 39.9968, longitude: 116.4809, snapshot_url: "https://geo.example/s.png" } },
+      { onLocationOpen: (location: unknown) => opened.push(location) },
+    );
+    await w.get("button.fm-loc").trigger("click");
+    expect(opened).toEqual([{ latitude: 39.9968, longitude: 116.4809, title: "望京 SOHO", address: "北京市朝阳区", snapshotUrl: "https://geo.example/s.png", provider: "osm" }]);
+    expect(w.get(".fm-loc img").attributes("src")).toBe("https://geo.example/s.png");
+    const unset = mountContent({ contentType: "location", data: { title: "某处", latitude: 0, longitude: 0 } });
+    expect(unset.find("a.fm-loc").exists()).toBe(false);
+    expect(unset.find("div.fm-loc").exists()).toBe(true);
+  });
+  it("card → a person's card reports its user id to a host that listens", async () => {
+    const opened: string[] = [];
+    const w = mountContent({ contentType: "card", data: { title: "Ivy Chen", cardType: "user", id: "u2" } }, { onCardOpen: (id: string) => opened.push(id) });
+    await w.get("button.fm-contact").trigger("click");
+    expect(opened).toEqual(["u2"]);
+    const group = mountContent({ contentType: "card", data: { title: "设计组", cardType: "group", id: "g1" } }, { onCardOpen: (id: string) => opened.push(id) });
+    expect(group.find("button.fm-contact").exists()).toBe(false);
+    const plain = mountContent({ contentType: "card", data: { title: "Ivy Chen", cardType: "user", id: "u2" } });
+    expect(plain.find("button.fm-contact").exists()).toBe(false);
   });
   it("card → FlareContactMessage with the payload subtitle", () => {
     const w = mountContent({ contentType: "card", data: { title: "Ivy Chen", subtitle: "设计", cardType: "user", id: "u2" } });
