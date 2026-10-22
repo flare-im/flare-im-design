@@ -379,6 +379,42 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
     val actionSchedule: String
         get() = (overrides["actionSchedule"] as? (String)) ?: "日程"
 
+    // 位置选点与位置消息
+    val locationTitle: String
+        get() = (overrides["locationTitle"] as? (String)) ?: "位置"
+    val locationSend: String
+        get() = (overrides["locationSend"] as? (String)) ?: "发送"
+    val locationLocateMe: String
+        get() = (overrides["locationLocateMe"] as? (String)) ?: "定位到当前位置"
+    val locationLocating: String
+        get() = (overrides["locationLocating"] as? (String)) ?: "正在定位…"
+    val locationDenied: String
+        get() = (overrides["locationDenied"] as? (String)) ?: "无法获取定位，可以搜索地点"
+    val locationSearchPlaceholder: String
+        get() = (overrides["locationSearchPlaceholder"] as? (String)) ?: "搜索地点"
+    val locationNoResults: String
+        get() = (overrides["locationNoResults"] as? (String)) ?: "附近没有找到地点"
+    val locationMapUnavailable: String
+        get() = (overrides["locationMapUnavailable"] as? (String)) ?: "地图暂不可用"
+    val locationOpenInMaps: String
+        get() = (overrides["locationOpenInMaps"] as? (String)) ?: "在地图中打开"
+    val locationCurrent: String
+        get() = (overrides["locationCurrent"] as? (String)) ?: "当前位置"
+
+    // 选择联系人
+    val contactPickerTitle: String
+        get() = (overrides["contactPickerTitle"] as? (String)) ?: "选择联系人"
+    val contactPickerFriends: String
+        get() = (overrides["contactPickerFriends"] as? (String)) ?: "好友"
+    val contactPickerGroupMembers: String
+        get() = (overrides["contactPickerGroupMembers"] as? (String)) ?: "群成员"
+    val contactPickerSearch: String
+        get() = (overrides["contactPickerSearch"] as? (String)) ?: "搜索"
+    val contactPickerEmpty: String
+        get() = (overrides["contactPickerEmpty"] as? (String)) ?: "没有联系人"
+    val contactPickerSelfSuffix: String
+        get() = (overrides["contactPickerSelfSuffix"] as? (String)) ?: "（我）"
+
     // 来电
     val incomingVideoCall: String
         get() = (overrides["incomingVideoCall"] as? (String)) ?: "邀请你进行视频通话"
@@ -1428,6 +1464,50 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["navigationGroups"] as? (String)) ?: "群聊"
     val navigationNewFriends: String
         get() = (overrides["navigationNewFriends"] as? (String)) ?: "新的朋友"
+
+    // 插件视图、表单与详情面板（PluginView / PluginForm / PluginDetailSheet）。{count}、{time}、{n} 由组件替换；
+    // 时间格式的令牌：y 年、M 月、MMM 英文月份缩写、d 日、HH 时、mm 分，其余原样输出，Year 版用于非今年的时间。
+    // locationOsmAttribution 是静态地图上 OpenStreetMap 的署名（ODbL），各语言相同。loading 是转圈的读屏名。
+    val pluginViewSubmit: String
+        get() = (overrides["pluginViewSubmit"] as? (String)) ?: "提交"
+    val pluginViewEnded: String
+        get() = (overrides["pluginViewEnded"] as? (String)) ?: "已结束"
+    val pluginViewDeadlinePassed: String
+        get() = (overrides["pluginViewDeadlinePassed"] as? (String)) ?: "已截止"
+    val pluginViewSeeAll: String
+        get() = (overrides["pluginViewSeeAll"] as? (String)) ?: "查看全部（{count}）"
+    val pluginViewDetail: String
+        get() = (overrides["pluginViewDetail"] as? (String)) ?: "查看详情"
+    val pluginViewVotes: String
+        get() = (overrides["pluginViewVotes"] as? (String)) ?: "{count} 票"
+    val pluginViewRemaining: String
+        get() = (overrides["pluginViewRemaining"] as? (String)) ?: "剩余 {time}"
+    val pluginViewDateTimeFormat: String
+        get() = (overrides["pluginViewDateTimeFormat"] as? (String)) ?: "M月d日 HH:mm"
+    val pluginViewDateTimeYearFormat: String
+        get() = (overrides["pluginViewDateTimeYearFormat"] as? (String)) ?: "y年M月d日 HH:mm"
+    val pluginFormRequired: String
+        get() = (overrides["pluginFormRequired"] as? (String)) ?: "必填"
+    val pluginFormTooLong: String
+        get() = (overrides["pluginFormTooLong"] as? (String)) ?: "超出长度"
+    val pluginFormOutOfRange: String
+        get() = (overrides["pluginFormOutOfRange"] as? (String)) ?: "超出范围"
+    val pluginFormTooFewItems: String
+        get() = (overrides["pluginFormTooFewItems"] as? (String)) ?: "至少 {n} 项"
+    val pluginFormTooManyItems: String
+        get() = (overrides["pluginFormTooManyItems"] as? (String)) ?: "最多 {n} 项"
+    val pluginFormDuplicateItem: String
+        get() = (overrides["pluginFormDuplicateItem"] as? (String)) ?: "不能重复"
+    val pluginFormInvalid: String
+        get() = (overrides["pluginFormInvalid"] as? (String)) ?: "格式不正确"
+    val locationOsmAttribution: String
+        get() = (overrides["locationOsmAttribution"] as? (String)) ?: "© OpenStreetMap contributors"
+    val loading: String
+        get() = (overrides["loading"] as? (String)) ?: "加载中"
+    val selectDate: String
+        get() = (overrides["selectDate"] as? (String)) ?: "选择日期"
+    val selectTime: String
+        get() = (overrides["selectTime"] as? (String)) ?: "选择时间"
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -2002,6 +2082,70 @@ class FlareStringsBuilder internal constructor() {
     var actionSchedule: String
         get() = (values["actionSchedule"] as? (String)) ?: "日程"
         set(value) { values["actionSchedule"] = value }
+
+    var locationTitle: String
+        get() = (values["locationTitle"] as? (String)) ?: "位置"
+        set(value) { values["locationTitle"] = value }
+
+    var locationSend: String
+        get() = (values["locationSend"] as? (String)) ?: "发送"
+        set(value) { values["locationSend"] = value }
+
+    var locationLocateMe: String
+        get() = (values["locationLocateMe"] as? (String)) ?: "定位到当前位置"
+        set(value) { values["locationLocateMe"] = value }
+
+    var locationLocating: String
+        get() = (values["locationLocating"] as? (String)) ?: "正在定位…"
+        set(value) { values["locationLocating"] = value }
+
+    var locationDenied: String
+        get() = (values["locationDenied"] as? (String)) ?: "无法获取定位，可以搜索地点"
+        set(value) { values["locationDenied"] = value }
+
+    var locationSearchPlaceholder: String
+        get() = (values["locationSearchPlaceholder"] as? (String)) ?: "搜索地点"
+        set(value) { values["locationSearchPlaceholder"] = value }
+
+    var locationNoResults: String
+        get() = (values["locationNoResults"] as? (String)) ?: "附近没有找到地点"
+        set(value) { values["locationNoResults"] = value }
+
+    var locationMapUnavailable: String
+        get() = (values["locationMapUnavailable"] as? (String)) ?: "地图暂不可用"
+        set(value) { values["locationMapUnavailable"] = value }
+
+    var locationOpenInMaps: String
+        get() = (values["locationOpenInMaps"] as? (String)) ?: "在地图中打开"
+        set(value) { values["locationOpenInMaps"] = value }
+
+    var locationCurrent: String
+        get() = (values["locationCurrent"] as? (String)) ?: "当前位置"
+        set(value) { values["locationCurrent"] = value }
+
+    var contactPickerTitle: String
+        get() = (values["contactPickerTitle"] as? (String)) ?: "选择联系人"
+        set(value) { values["contactPickerTitle"] = value }
+
+    var contactPickerFriends: String
+        get() = (values["contactPickerFriends"] as? (String)) ?: "好友"
+        set(value) { values["contactPickerFriends"] = value }
+
+    var contactPickerGroupMembers: String
+        get() = (values["contactPickerGroupMembers"] as? (String)) ?: "群成员"
+        set(value) { values["contactPickerGroupMembers"] = value }
+
+    var contactPickerSearch: String
+        get() = (values["contactPickerSearch"] as? (String)) ?: "搜索"
+        set(value) { values["contactPickerSearch"] = value }
+
+    var contactPickerEmpty: String
+        get() = (values["contactPickerEmpty"] as? (String)) ?: "没有联系人"
+        set(value) { values["contactPickerEmpty"] = value }
+
+    var contactPickerSelfSuffix: String
+        get() = (values["contactPickerSelfSuffix"] as? (String)) ?: "（我）"
+        set(value) { values["contactPickerSelfSuffix"] = value }
 
     var incomingVideoCall: String
         get() = (values["incomingVideoCall"] as? (String)) ?: "邀请你进行视频通话"
@@ -3857,6 +4001,86 @@ class FlareStringsBuilder internal constructor() {
     var navigationNewFriends: String
         get() = (values["navigationNewFriends"] as? (String)) ?: "新的朋友"
         set(value) { values["navigationNewFriends"] = value }
+
+    var pluginViewSubmit: String
+        get() = (values["pluginViewSubmit"] as? (String)) ?: "提交"
+        set(value) { values["pluginViewSubmit"] = value }
+
+    var pluginViewEnded: String
+        get() = (values["pluginViewEnded"] as? (String)) ?: "已结束"
+        set(value) { values["pluginViewEnded"] = value }
+
+    var pluginViewDeadlinePassed: String
+        get() = (values["pluginViewDeadlinePassed"] as? (String)) ?: "已截止"
+        set(value) { values["pluginViewDeadlinePassed"] = value }
+
+    var pluginViewSeeAll: String
+        get() = (values["pluginViewSeeAll"] as? (String)) ?: "查看全部（{count}）"
+        set(value) { values["pluginViewSeeAll"] = value }
+
+    var pluginViewDetail: String
+        get() = (values["pluginViewDetail"] as? (String)) ?: "查看详情"
+        set(value) { values["pluginViewDetail"] = value }
+
+    var pluginViewVotes: String
+        get() = (values["pluginViewVotes"] as? (String)) ?: "{count} 票"
+        set(value) { values["pluginViewVotes"] = value }
+
+    var pluginViewRemaining: String
+        get() = (values["pluginViewRemaining"] as? (String)) ?: "剩余 {time}"
+        set(value) { values["pluginViewRemaining"] = value }
+
+    var pluginViewDateTimeFormat: String
+        get() = (values["pluginViewDateTimeFormat"] as? (String)) ?: "M月d日 HH:mm"
+        set(value) { values["pluginViewDateTimeFormat"] = value }
+
+    var pluginViewDateTimeYearFormat: String
+        get() = (values["pluginViewDateTimeYearFormat"] as? (String)) ?: "y年M月d日 HH:mm"
+        set(value) { values["pluginViewDateTimeYearFormat"] = value }
+
+    var pluginFormRequired: String
+        get() = (values["pluginFormRequired"] as? (String)) ?: "必填"
+        set(value) { values["pluginFormRequired"] = value }
+
+    var pluginFormTooLong: String
+        get() = (values["pluginFormTooLong"] as? (String)) ?: "超出长度"
+        set(value) { values["pluginFormTooLong"] = value }
+
+    var pluginFormOutOfRange: String
+        get() = (values["pluginFormOutOfRange"] as? (String)) ?: "超出范围"
+        set(value) { values["pluginFormOutOfRange"] = value }
+
+    var pluginFormTooFewItems: String
+        get() = (values["pluginFormTooFewItems"] as? (String)) ?: "至少 {n} 项"
+        set(value) { values["pluginFormTooFewItems"] = value }
+
+    var pluginFormTooManyItems: String
+        get() = (values["pluginFormTooManyItems"] as? (String)) ?: "最多 {n} 项"
+        set(value) { values["pluginFormTooManyItems"] = value }
+
+    var pluginFormDuplicateItem: String
+        get() = (values["pluginFormDuplicateItem"] as? (String)) ?: "不能重复"
+        set(value) { values["pluginFormDuplicateItem"] = value }
+
+    var pluginFormInvalid: String
+        get() = (values["pluginFormInvalid"] as? (String)) ?: "格式不正确"
+        set(value) { values["pluginFormInvalid"] = value }
+
+    var locationOsmAttribution: String
+        get() = (values["locationOsmAttribution"] as? (String)) ?: "© OpenStreetMap contributors"
+        set(value) { values["locationOsmAttribution"] = value }
+
+    var loading: String
+        get() = (values["loading"] as? (String)) ?: "加载中"
+        set(value) { values["loading"] = value }
+
+    var selectDate: String
+        get() = (values["selectDate"] as? (String)) ?: "选择日期"
+        set(value) { values["selectDate"] = value }
+
+    var selectTime: String
+        get() = (values["selectTime"] as? (String)) ?: "选择时间"
+        set(value) { values["selectTime"] = value }
 }
 
 

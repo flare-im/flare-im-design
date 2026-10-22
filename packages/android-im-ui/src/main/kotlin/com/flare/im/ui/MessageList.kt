@@ -454,6 +454,10 @@ fun MessageList(
     onVote: ((FlareMessageData, Int) -> Unit)? = null,
     /** A tapped task checkbox (message, the done state asked for); without it tasks are read-only. */
     onTaskToggle: ((FlareMessageData, Boolean) -> Unit)? = null,
+    /** A tapped contact card (message, the user id it shares), for the host to open the profile; before [onMediaAction]. */
+    onCardOpen: ((FlareMessageData, String) -> Unit)? = null,
+    /** A tapped location (message, the location); before [onMediaAction]. Without either the card opens the map app. */
+    onLocationOpen: ((FlareMessageData, FlareLocationContent) -> Unit)? = null,
     /**
      * The download key of the image preview (the message a picture belongs to, and the picture), of the video player
      * (the message, and the video) and of a file card (the message, and the file); without it none has one.
@@ -719,7 +723,7 @@ fun MessageList(
                                             multiSelectMode = multiSelectMode, selected = msg.id in selectedIds, onToggleSelect = onToggleSelect,
                                             onReact = onReact, onLocateMessage = locate, onOpenFile = onOpenFile, onOpenLink = onOpenLink,
                                             onVote = onVote, onTaskToggle = onTaskToggle, onMediaDownload = onMediaDownload,
-                                            onMediaReveal = onMediaReveal)
+                                            onMediaReveal = onMediaReveal, onCardOpen = onCardOpen, onLocationOpen = onLocationOpen)
                                     }
                                 }
                             }

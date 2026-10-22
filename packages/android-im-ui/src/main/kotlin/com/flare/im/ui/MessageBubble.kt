@@ -136,6 +136,10 @@ fun MessageBubble(
     onMediaDownload: ((FlareMessageData, FlareMessageContent) -> Unit)? = null,
     /** The folder key those keys become once [mediaState] says the media is saved: the host shows the file in its folder. */
     onMediaReveal: ((FlareMessageData, FlareMessageContent) -> Unit)? = null,
+    /** A tapped contact card (message, the user id it shares), for the host to open the profile; before [onMediaAction]. */
+    onCardOpen: ((FlareMessageData, String) -> Unit)? = null,
+    /** A tapped location (message, the location); before [onMediaAction]. Without either the card opens the map app. */
+    onLocationOpen: ((FlareMessageData, FlareLocationContent) -> Unit)? = null,
 ) {
     val colors = flareColors()
     val self = message.senderId == currentUserId
@@ -203,6 +207,8 @@ fun MessageBubble(
             val intents = MessageBodyIntents(
                 vote = onVote?.takeIf { !multiSelectMode }?.let { cb -> { index -> cb(message, index) } },
                 taskToggle = onTaskToggle?.takeIf { !multiSelectMode }?.let { cb -> { done -> cb(message, done) } },
+                cardOpen = onCardOpen?.let { cb -> { userId -> cb(message, userId) } },
+                locationOpen = onLocationOpen?.let { cb -> { location -> cb(message, location) } },
             )
             bubble(message, self, groupEnd, colors, mediaState, onResend, onMediaAction, onMediaDownload, onMediaReveal, onOpenFile, onOpenLink, onLocateQuote, intents)
             if (message.reactions.isNotEmpty()) {
@@ -224,8 +230,13 @@ fun MessageBubble(
     }
 }
 
-/** A poll's and a task's intents for one bubble's body; null where the body is read-only. */
-private class MessageBodyIntents(val vote: ((Int) -> Unit)?, val taskToggle: ((Boolean) -> Unit)?)
+/** A poll's, a task's, a contact card's and a location's intents for one bubble's body; null where the host takes none. */
+private class MessageBodyIntents(
+    val vote: ((Int) -> Unit)?,
+    val taskToggle: ((Boolean) -> Unit)?,
+    val cardOpen: ((String) -> Unit)? = null,
+    val locationOpen: ((FlareLocationContent) -> Unit)? = null,
+)
 
 /** Centred notice pill for system lines and recalled messages. */
 @Composable
@@ -272,6 +283,8 @@ private fun bubble(
                 onTaskToggle = intents.taskToggle,
                 onMediaDownload = onMediaDownload?.let { cb -> { c -> cb(message, c) } },
                 onMediaReveal = onMediaReveal?.let { cb -> { c -> cb(message, c) } },
+                onCardOpen = intents.cardOpen,
+                onLocationOpen = intents.locationOpen,
             )
         }
     }

@@ -26,7 +26,8 @@ import androidx.compose.ui.unit.sp
  * [onView] receives the request id when the row itself is tapped (open the
  * applicant's detail). Without it the row is inert — no dead affordance. Each
  * action button likewise exists only with its callback ([onAccept], [onReject],
- * [onWithdraw]).
+ * [onWithdraw]). A request's [FriendRequest.source] is its own line under the message
+ * (the same quiet style, one line with an ellipsis), never on the message's line.
  */
 @Suppress("NAME_SHADOWING")
 @Composable
@@ -63,8 +64,9 @@ fun NewFriendRequests(
                 Spacer(Modifier.width(FlareSizes.spacingMd))
                 Column(Modifier.weight(1f)) {
                     Text(req.name, color = colors.textPrimary, fontWeight = FontWeight.Medium, fontSize = FlareSizes.fontSizeLg.value.sp)
-                    if (!req.message.isNullOrEmpty()) {
-                        Text(req.message, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp,
+                    // The message, then the source: each on a line of its own.
+                    for (line in newFriendRequestLines(req)) {
+                        Text(line, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp,
                             maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
@@ -101,3 +103,7 @@ fun NewFriendRequests(
 
 /** Row-level tap is only wired when the host supplied [NewFriendRequests]' `onView`. */
 internal fun newFriendRequestRowTappable(hasOnView: Boolean): Boolean = hasOnView
+
+/** The quiet lines under a request's name, in order: its message, then its source; blank ones are left out. */
+internal fun newFriendRequestLines(request: FriendRequest): List<String> =
+    listOfNotNull(request.message, request.source).filter { it.isNotEmpty() }

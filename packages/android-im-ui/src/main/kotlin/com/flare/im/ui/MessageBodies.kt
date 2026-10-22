@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
@@ -25,10 +26,8 @@ import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BarChart
-import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Link
-import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Icon
 import androidx.compose.foundation.layout.Spacer
@@ -55,6 +54,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -529,45 +529,141 @@ fun FileMessage(
     }
 }
 
-/** location — a map image (or placeholder) over title / address; emits [onOpen]. */
+/**
+ * location — the static map over title / address. Spec: Message/LocationMessage (`LocationMessage`).
+ *
+ * Without [snapshotUrl], and while it loads or when it fails, the card draws a map ground with a centre pin, never a
+ * blank. Without an address the line under the title is the coordinate ([FlareLocationFormat.label]).
+ *
+ * A tap goes to [onOpen]. Without it the card opens the device's map app with the `geo:` URI
+ * ([FlareLocationFormat.geoLink], the `geo` column of `spec/location-vectors.json`) through [LocalUriHandler], and the
+ * [provider]'s web map when no app takes it; a card with no valid coordinate and no [onOpen] has no tap. With osm the
+ * static map carries OpenStreetMap's credit (`locationOsmAttribution`) in its bottom-right corner once it shows.
+ */
 @Composable
-fun LocationMessage(title: String, address: String = "", mapImage: String? = null, onOpen: (() -> Unit)? = null) {
+fun LocationMessage(
+    title: String,
+    address: String = "",
+    latitude: Double? = null,
+    longitude: Double? = null,
+    snapshotUrl: String? = null,
+    provider: FlareLocationProvider = FlareLocationProvider.Osm,
+    onOpen: (() -> Unit)? = null,
+) {
     val colors = flareColors()
-    Column(Modifier.width(264.dp).onClickIf(onOpen)) {
-        NetImage(mapImage, Modifier.fillMaxWidth().height(84.dp)) {
-            Box(
-                Modifier.fillMaxWidth().height(84.dp)
-                    .background(colors.primary.copy(alpha = 0.08f).compositeOverColor(colors.bgTertiary)),
-                contentAlignment = Alignment.Center,
-            ) { Icon(Icons.Outlined.LocationOn, null, Modifier.size(22.dp), tint = colors.primaryText) }
-        }
-        Column(Modifier.padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingSm)) {
-            Text(title, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp, fontWeight = FontWeight.Medium)
-            Text(address, color = colors.textTertiary, fontSize = 11.sp)
+    val strings = flareStrings()
+    val uriHandler = LocalUriHandler.current
+    val detail = locationMessageDetail(address, latitude, longitude)
+    val tap: (() -> Unit)? = onOpen ?: FlareLocationFormat.links(latitude, longitude, title, provider)?.let { links ->
+        { openLocationLinks(links) { uriHandler.openUri(it) } }
+    }
+    Column(
+        Modifier.width(LOCATION_CARD_WIDTH)
+            .then(if (tap != null) Modifier.clickable(onClickLabel = strings.locationOpenInMaps) { tap() } else Modifier)
+            .semantics(mergeDescendants = true) {},
+    ) {
+        // The ground sits under the image: a snapshot still loading, or failing, leaves the map, never a hole. With osm
+        // the shown picture carries OpenStreetMap's credit.
+        FlareMapSnapshot(snapshotUrl, provider, Modifier.fillMaxWidth().height(LOCATION_MAP_HEIGHT))
+        Column(
+            Modifier.padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingSm),
+            verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing3xs),
+        ) {
+            Text(title, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg, fontWeight = FontWeight.Medium,
+                maxLines = 2, overflow = TextOverflow.Ellipsis)
+            if (detail.isNotEmpty()) {
+                Text(detail, color = colors.textTertiary, fontSize = FlareSizes.fontSizeXs, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            }
         }
     }
 }
 
-/** contact / business card — avatar (image or pastel initials) + name / subtitle; emits [onOpen]. */
+/** The location card's width and its map's height. */
+internal val LOCATION_CARD_WIDTH = 264.dp
+internal val LOCATION_MAP_HEIGHT = 120.dp
+
+/** The line under a location's title: the address, else the coordinate, else nothing. */
+internal fun locationMessageDetail(address: String, latitude: Double?, longitude: Double?): String {
+    val trimmed = address.trim()
+    if (trimmed.isNotEmpty()) return trimmed
+    if (latitude == null || longitude == null) return ""
+    return FlareLocationFormat.label(latitude, longitude).orEmpty()
+}
+
+/**
+ * Opens a location without a host handler: the `geo:` URI, and the web map when no app takes it (an emulator, a
+ * device without maps). [open] is the platform opener, which throws when nothing can open the URI.
+ */
+internal fun openLocationLinks(links: FlareLocationLinks, open: (String) -> Unit) {
+    runCatching { open(links.geo) }.recoverCatching { open(links.web) }
+}
+
+/**
+ * The map ground a location draws without a map image: a wash of the brand over the tertiary ground, a few streets
+ * and, unless [pin] is off, the kit's location pin at the centre.
+ */
 @Composable
-fun ContactMessage(name: String, subtitle: String? = null, avatarUrl: String? = null, onOpen: (() -> Unit)? = null) {
+internal fun FlareMapPlaceholder(modifier: Modifier = Modifier, pin: Boolean = true) {
+    val colors = flareColors()
+    val street = colors.borderPrimary
+    Box(
+        modifier
+            .background(colors.primary.copy(alpha = 0.08f).compositeOverColor(colors.bgTertiary))
+            .drawWithCache {
+                val lines = MAP_STREETS.map { (from, to) ->
+                    androidx.compose.ui.geometry.Offset(size.width * from.first, size.height * from.second) to
+                        androidx.compose.ui.geometry.Offset(size.width * to.first, size.height * to.second)
+                }
+                onDrawBehind { for ((a, b) in lines) drawLine(street, a, b, strokeWidth = 1.5.dp.toPx()) }
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        // The pin's tip, not its middle, marks the point.
+        if (pin) Box(Modifier.offset(y = -FlareSizes.iconSizeLg / 2)) { FlareIcon("location", size = FlareSizes.iconSizeLg, tint = colors.primaryText) }
+    }
+}
+
+/** A few streets across the map ground, as fractions of the frame, so every size draws the same plan (as on iOS). */
+private val MAP_STREETS = listOf(
+    (0f to 0.32f) to (1f to 0.22f),
+    (0f to 0.74f) to (1f to 0.82f),
+    (0.22f to 0f) to (0.3f to 1f),
+    (0.7f to 0f) to (0.62f to 1f),
+    (0f to 1f) to (0.46f to 0f),
+)
+
+/**
+ * contact / business card — avatar (image or pastel initials) + name / subtitle. Spec: Message/ContactMessage
+ * (`ContactMessage`).
+ *
+ * A tap calls [onOpen] with [userId], the person the card shares, for the host to open their profile; without
+ * [onOpen] the card has no tap. A card that names no one passes an empty id.
+ */
+@Composable
+fun ContactMessage(
+    name: String,
+    subtitle: String? = null,
+    avatarUrl: String? = null,
+    userId: String? = null,
+    onOpen: ((String) -> Unit)? = null,
+) {
     val colors = flareColors()
     val tint = seedTint(name)
     Row(
-        Modifier.widthIn(min = 240.dp).onClickIf(onOpen),
+        Modifier.widthIn(min = 240.dp).onClickIf(onOpen?.let { open -> { open(userId.orEmpty()) } }),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd),
     ) {
-        NetImage(avatarUrl, Modifier.size(44.dp).clip(RoundedCornerShape(FlareSizes.radiusLg)).background(tint.first)) {
-            Text(initials(name), color = tint.second, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+        NetImage(avatarUrl, Modifier.size(FlareSizes.avatarSize).clip(RoundedCornerShape(FlareSizes.radiusLg)).background(tint.first)) {
+            Text(initials(name), color = tint.second, fontWeight = FontWeight.SemiBold, fontSize = FlareSizes.fontSizeLg)
         }
         Column(Modifier.weight(1f, fill = false)) {
-            Text(name, color = colors.textPrimary, fontSize = FlareSizes.fontSizeXl.value.sp, fontWeight = FontWeight.SemiBold)
+            Text(name, color = colors.textPrimary, fontSize = FlareSizes.fontSizeXl, fontWeight = FontWeight.SemiBold)
             if (!subtitle.isNullOrEmpty()) {
-                Text(subtitle, color = colors.textTertiary, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(subtitle, color = colors.textTertiary, fontSize = FlareSizes.fontSizeXs, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
-        Icon(Icons.Outlined.ChevronRight, null, Modifier.size(16.dp), tint = colors.textTertiary)
+        FlareIcon("chevron-right", size = FlareSizes.iconSizeSm, tint = colors.textTertiary)
     }
 }
 

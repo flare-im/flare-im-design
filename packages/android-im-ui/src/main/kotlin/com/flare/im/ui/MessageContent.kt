@@ -63,7 +63,18 @@ data class FlareFileContent(val name: String, val url: String, val sizeBytes: In
     override val type get() = "file"
 }
 
-data class FlareLocationContent(val name: String, val address: String = "") : FlareMessageContent {
+/**
+ * A shared location. [latitude] / [longitude] are WGS-84 and null when the message carries none; [snapshotUrl] is the
+ * static map the sender's server signed; [provider] is the tenant's map service, the web map a tap falls back to.
+ */
+data class FlareLocationContent(
+    val name: String,
+    val address: String = "",
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val snapshotUrl: String? = null,
+    val provider: FlareLocationProvider = FlareLocationProvider.Osm,
+) : FlareMessageContent {
     override val type get() = "location"
 }
 
@@ -82,11 +93,16 @@ data class FlareEmojiContent(val emoji: String) : FlareMessageContent {
     override val type get() = "emoji"
 }
 
+/**
+ * A contact card. [userId] is the person the card shares (the card's `id` when its type is `user`); a tap on the card
+ * hands it to the host, which opens that person's profile.
+ */
 data class FlareCardContent(
     val title: String,
     val subtitle: String? = null,
     val imageUrl: String? = null,
     val sourceLabel: String? = null,
+    val userId: String? = null,
 ) : FlareMessageContent {
     override val type get() = "card"
 }

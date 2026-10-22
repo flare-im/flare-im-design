@@ -36,13 +36,17 @@ data class CallParticipant(
 /** Who sent a [FriendRequest]: someone asking the current user, or the current user asking. */
 enum class FriendRequestDirection { Incoming, Outgoing }
 
-/** A friend/contact request: an incoming one awaits accept/reject, an outgoing one awaits the other side. */
+/**
+ * A friend/contact request: an incoming one awaits accept/reject, an outgoing one awaits the other side. [source] is
+ * where it came from, worded by the host ("Added from a contact card, shared by X"): its own line under the message.
+ */
 data class FriendRequest(
     val id: String,
     val name: String,
     val avatarUrl: String? = null,
     val message: String? = null,
     val direction: FriendRequestDirection = FriendRequestDirection.Incoming,
+    val source: String? = null,
 )
 
 /** A group the current user belongs to. */

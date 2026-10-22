@@ -8,18 +8,18 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ComposerActionsTest {
-    private val defaultActions = listOf("image", "video", "file", "voice", "card", "poll")
+    private val defaultActions = listOf("image", "camera", "video", "file", "voice", "location", "card")
 
     @Test fun defaultIdsMatchUnifiedTable() {
         assertEquals(defaultActions, defaultComposerActionIds)
+        assertFalse("poll" in defaultComposerActionIds, "polls come from a plugin")
         assertEquals(defaultActions, defaultComposerActions(FlareStrings()).map { it.id })
     }
 
     @Test fun builtInItemsComeInOneOrderWithOneSetOfIcons() {
         val defaults = defaultComposerActions(FlareStrings())
-        assertEquals(listOf("image", "video", "file", "mic", "card", "poll"), defaults.map { it.icon })
+        assertEquals(listOf("image", "camera", "video", "file", "mic", "location", "card"), defaults.map { it.icon })
         assertTrue(defaults.all { it.kind == FlareComposerActionKind.Feature })
-        assertFalse(defaults.any { it.id == "location" }, "no location source yet")
         for (icon in defaults.map { it.icon }) assertNotNull(flareIconVectorOrNull(icon), "$icon is a registry name")
         assertEquals(defaultActions, resolveComposerActions(defaults).map { it.id })
     }
@@ -27,22 +27,24 @@ class ComposerActionsTest {
     @Test fun labelsComeFromStringsProvider() {
         val en = FlareStrings {
             actionImage = "Photo"
+            actionCamera = "Camera"
             actionVideo = "Video"
             actionFile = "File"
+            actionLocation = "Location"
             actionCard = "Card"
             actionVote = "Poll"
             composerVoice = "Voice"
         }
         val labels = defaultComposerActions(en).map { it.label }
-        assertEquals(listOf("Photo", "Video", "File", "Voice", "Card", "Poll"), labels)
+        assertEquals(listOf("Photo", "Camera", "Video", "File", "Voice", "Location", "Card"), labels)
         assertEquals(FlareStrings().actionImage, defaultComposerActions(FlareStrings()).first().label)
     }
 
     @Test fun theKitSuppliesTheBuiltInLabelsInBothLanguages() {
         fun labels(strings: FlareStrings) =
             defaultActions.map { FlareComposerAction(it, icon = "image", kind = FlareComposerActionKind.Feature).resolvedLabel(strings) }
-        assertEquals(listOf("图片", "视频", "文件", "语音", "名片", "投票"), labels(FlareStrings()))
-        assertEquals(listOf("Photo", "Video", "File", "Voice", "Contact card", "Poll"), labels(flareStringsEnglish()))
+        assertEquals(listOf("图片", "拍摄", "视频", "文件", "语音", "位置", "名片"), labels(FlareStrings()))
+        assertEquals(listOf("Photo", "Camera", "Video", "File", "Voice", "Location", "Contact card"), labels(flareStringsEnglish()))
         assertEquals("Album", FlareComposerAction("image", "Album", "image").resolvedLabel(FlareStrings()), "the host's label wins")
         assertEquals("order", FlareComposerAction("order", icon = "file").resolvedLabel(FlareStrings()), "an id the kit has no copy for shows itself")
     }
@@ -69,7 +71,7 @@ class ComposerActionsTest {
         val voice = FlareComposerAction("voice", icon = "mic", kind = FlareComposerActionKind.Feature)
         assertTrue(composerPanelTileOpensRecorder(voice, offersVoice = true))
         assertFalse(composerPanelTileOpensRecorder(voice, offersVoice = false), "no recorder: the host handles it")
-        for (id in listOf("image", "video", "file", "card", "poll", "plugin:flare.redpacket.send")) {
+        for (id in listOf("image", "camera", "video", "file", "location", "card", "poll", "plugin:flare.redpacket.send")) {
             assertFalse(composerPanelTileOpensRecorder(FlareComposerAction(id, icon = "image"), offersVoice = true), id)
         }
     }
@@ -85,11 +87,12 @@ class ComposerActionsTest {
 
     @Test fun resolvesHostConfigurationAndCapabilities() {
         val defaults = defaultComposerActions(FlareStrings())
+        fun builtIn(id: String) = defaults.first { it.id == id }
         val actions = listOf(
-            defaults[2].copy(order = 30),
-            defaults[3].copy(visible = false),
-            defaults[0].copy(order = 10, enabled = false),
-            defaults[0].copy(id = "order", label = "Order", order = 20, intent = "open-order"),
+            builtIn("file").copy(order = 30),
+            builtIn("voice").copy(visible = false),
+            builtIn("image").copy(order = 10, enabled = false),
+            builtIn("image").copy(id = "order", label = "Order", order = 20, intent = "open-order"),
         )
         val resolved = resolveComposerActions(
             defaults,

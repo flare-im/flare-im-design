@@ -138,6 +138,50 @@ private fun iconFor(action: FlareRelationAction): ImageVector = when (action) {
     FlareRelationAction.Message -> Icons.Outlined.ChatBubbleOutline
 }
 
+/** The words on the bar's keys: the host's text for each, else the kit's string. */
+internal data class RelationActionBarCopy(
+    val add: String,
+    val accept: String,
+    val reject: String,
+    val remove: String,
+    val block: String,
+    val unblock: String,
+    val message: String,
+) {
+    fun labelFor(action: FlareRelationAction): String = when (action) {
+        FlareRelationAction.Add -> add
+        FlareRelationAction.Accept -> accept
+        FlareRelationAction.Reject -> reject
+        FlareRelationAction.Remove -> remove
+        FlareRelationAction.Block -> block
+        FlareRelationAction.Unblock -> unblock
+        FlareRelationAction.Message -> message
+    }
+}
+
+/**
+ * The bar's key labels: an explicit text wins, else [strings]. The add key reads `relationActionBarAdd` unless the host
+ * words it for where the person goes (`addText`, "Add to contacts" from a contact card).
+ */
+internal fun relationActionBarCopy(
+    strings: FlareStrings,
+    addText: String? = null,
+    acceptText: String? = null,
+    rejectText: String? = null,
+    removeText: String? = null,
+    blockText: String? = null,
+    unblockText: String? = null,
+    messageText: String? = null,
+): RelationActionBarCopy = RelationActionBarCopy(
+    add = addText ?: strings.relationActionBarAdd,
+    accept = acceptText ?: strings.relationActionBarAccept,
+    reject = rejectText ?: strings.reject,
+    remove = removeText ?: strings.relationActionBarRemove,
+    block = blockText ?: strings.relationActionBarBlock,
+    unblock = unblockText ?: strings.relationActionBarUnblock,
+    message = messageText ?: strings.sendMessage,
+)
+
 /**
  * Relation action bar for the bottom of a contact detail page. The host owns the relation
  * state and every command; the bar only decides which buttons exist and emits intent. It
@@ -169,13 +213,7 @@ fun RelationActionBar(
     emptyText: String? = null,
 ) {
     val strings = flareStrings()
-    val addText = addText ?: strings.relationActionBarAdd
-    val acceptText = acceptText ?: strings.relationActionBarAccept
-    val rejectText = rejectText ?: strings.reject
-    val removeText = removeText ?: strings.relationActionBarRemove
-    val blockText = blockText ?: strings.relationActionBarBlock
-    val unblockText = unblockText ?: strings.relationActionBarUnblock
-    val messageText = messageText ?: strings.sendMessage
+    val copy = relationActionBarCopy(strings, addText, acceptText, rejectText, removeText, blockText, unblockText, messageText)
     val pendingText = pendingText ?: strings.relationActionBarPending
     val busyText = busyText ?: strings.relationActionBarBusy
     val dismissErrorText = dismissErrorText ?: strings.relationActionBarDismissError
@@ -191,15 +229,7 @@ fun RelationActionBar(
     val isEmpty = entries.isEmpty() && !pendingNotice
     val reason = (error ?: "").trim()
 
-    fun labelFor(action: FlareRelationAction) = when (action) {
-        FlareRelationAction.Add -> addText
-        FlareRelationAction.Accept -> acceptText
-        FlareRelationAction.Reject -> rejectText
-        FlareRelationAction.Remove -> removeText
-        FlareRelationAction.Block -> blockText
-        FlareRelationAction.Unblock -> unblockText
-        FlareRelationAction.Message -> messageText
-    }
+    fun labelFor(action: FlareRelationAction) = copy.labelFor(action)
 
     Column(Modifier.fillMaxWidth().background(colors.bgPrimary)) {
         HorizontalDivider(color = colors.borderSecondary)

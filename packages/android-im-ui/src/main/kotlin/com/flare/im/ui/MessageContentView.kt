@@ -97,8 +97,11 @@ internal fun flareContentBare(type: String): Boolean = type in LocalFlareBareCon
  * Taps: [onMediaAction], when passed, receives every tap on a media body and the kit opens nothing
  * itself. Without it the kit consumes received media: an image opens the image preview, a video opens
  * the video player, and a voice message plays in its bubble (one at a time inside a [MessageList]); a
- * file goes to [onOpenFile], which opens it outside the app after the host's URL gate. Location and cards
- * stay host actions, reached through [onMediaAction].
+ * file goes to [onOpenFile], which opens it outside the app after the host's URL gate.
+ *
+ * A location tap goes to [onLocationOpen] with the location, else to [onMediaAction]; without either the card opens the
+ * device's map app ([LocationMessage]). A contact card's tap goes to [onCardOpen] with the person it shares, else to
+ * [onMediaAction]; without either the card has no tap.
  *
  * Downloads: [onMediaDownload] is the download key of the kit's image preview, with the picture on screen, of its
  * video player, with the video, and of a file card, with the file; without it none has a download key. Inside a
@@ -136,6 +139,10 @@ fun MessageContentView(
     messageId: String? = null,
     /** The conversation, for a custom renderer ([FlareContentContext.conversationId]); a list fills it. */
     conversationId: String? = null,
+    /** A tapped contact card, with the user id it shares, for the host to open the profile; before [onMediaAction]. */
+    onCardOpen: ((String) -> Unit)? = null,
+    /** A tapped location, with the location; before [onMediaAction]. Without either the card opens the map app. */
+    onLocationOpen: ((FlareLocationContent) -> Unit)? = null,
 ) {
     val ctx = FlareContentContext(
         isSelf, senderName = senderName, mediaState = mediaState, onMediaAction = onMediaAction,
@@ -224,9 +231,14 @@ fun MessageContentView(
                     downloadState = mediaState,
                     onReveal = onMediaReveal?.let { reveal -> { reveal(content) } },
                 )
-                is FlareLocationContent -> LocationMessage(title = content.name, address = content.address, onOpen = action)
+                is FlareLocationContent -> LocationMessage(
+                    title = content.name, address = content.address, latitude = content.latitude, longitude = content.longitude,
+                    snapshotUrl = content.snapshotUrl, provider = content.provider,
+                    onOpen = onLocationOpen?.let { open -> { open(content) } } ?: action,
+                )
                 is FlareCardContent -> ContactMessage(name = content.title, subtitle = content.subtitle,
-                    avatarUrl = content.imageUrl, onOpen = action)
+                    avatarUrl = content.imageUrl, userId = content.userId,
+                    onOpen = contactCardOpener(content, onCardOpen, onMediaAction))
                 is FlareLinkCardContent -> LinkCardMessage(title = content.title, domain = content.url,
                     description = content.description, thumb = content.imageUrl, onOpen = action)
                 is FlarePollContent -> VoteMessage(
@@ -263,6 +275,20 @@ fun MessageContentView(
             }
         }
     }
+}
+
+/**
+ * A contact card's tap: [onCardOpen] with the person the card shares, else the host's media handler with the card; null
+ * without either, and [onCardOpen] alone does not make a card that names no one tappable.
+ */
+internal fun contactCardOpener(
+    card: FlareCardContent,
+    onCardOpen: ((String) -> Unit)?,
+    onMediaAction: ((FlareMessageContent) -> Unit)?,
+): ((String) -> Unit)? {
+    val userId = card.userId?.takeIf { it.isNotEmpty() }
+    if (onCardOpen != null && userId != null) return { _ -> onCardOpen(userId) }
+    return onMediaAction?.let { handler -> { _ -> handler(card) } }
 }
 
 internal fun duration(seconds: Int): String = "%02d:%02d".format(seconds / 60, seconds % 60)

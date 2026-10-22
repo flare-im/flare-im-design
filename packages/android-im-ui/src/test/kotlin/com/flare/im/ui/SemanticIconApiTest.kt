@@ -36,7 +36,7 @@ class SemanticIconApiTest {
     @Test fun actionItemsNameARegistryIcon() {
         // Composer tiles.
         val actions = defaultComposerActions(FlareStrings())
-        assertEquals(listOf("image", "video", "file", "mic", "card", "poll"), actions.map { it.icon })
+        assertEquals(listOf("image", "camera", "video", "file", "mic", "location", "card"), actions.map { it.icon })
         for (action in actions) assertTrue(action.icon in flareIconNames, "`${action.icon}` is a registry name")
         // Message menu entries.
         val menu = messageMenuActions(FlareMessageActionAvailability(canReply = true, canDelete = true), FlareStrings())

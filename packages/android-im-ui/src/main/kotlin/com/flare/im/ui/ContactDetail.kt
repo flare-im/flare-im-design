@@ -78,6 +78,21 @@ internal fun contactDetailActions(handlesMessage: Boolean, handlesCall: Boolean,
     if (handlesVideo) add(ContactDetailAction.Video)
 }
 
+/** The host's primary action is drawn: a label and a handler. */
+internal fun contactDetailHasPrimaryAction(label: String?, handled: Boolean): Boolean = handled && !label.isNullOrBlank()
+
+/** One key of the action row: the host's primary action ([intent] null) or a contact intent, and whether it is the primary key. */
+internal data class ContactDetailRowKey(val intent: ContactDetailAction?, val primary: Boolean)
+
+/**
+ * The action row in order: the host's primary action first when there is one ([hasPrimary]), then the handled intents.
+ * The primary key is the host's action, else Message, which follows it as a secondary key when both are there.
+ */
+internal fun contactDetailRow(hasPrimary: Boolean, intents: List<ContactDetailAction>): List<ContactDetailRowKey> = buildList {
+    if (hasPrimary) add(ContactDetailRowKey(null, primary = true))
+    for (intent in intents) add(ContactDetailRowKey(intent, primary = intent == ContactDetailAction.Message && !hasPrimary))
+}
+
 /**
  * The 资料 card rows (Vue `FlareContactDetail`): the Flare ID only when the host passes the contact's public handle
  * ([Contact.flareId]; the account id is internal and never shown); 备注 and 描述 are rows that open their editor (with
@@ -116,6 +131,10 @@ internal fun contactDetailInfoItems(
  * danger zone holds only [onBlock] / [onRemove] and is left out without both. A stranger's profile, given no
  * friend-only callbacks, shows no friend-only actions.
  *
+ * A stranger's page gets its main step from [primaryActionLabel] with [onPrimaryAction] ("Add to contacts"): with both,
+ * that key leads the action row as the primary key (person-add), where a friend's page has 发消息, and 发消息, when
+ * handled, follows as a secondary key. It is not one of the footer's [extraActions].
+ *
  * Purely presentational — it renders [contact] + [starred] / [description] and emits
  * intents; the host owns edit sheets, confirmations, and persistence. Mirrors the Vue
  * kit's `FlareContactDetail.vue`. Spec: Contacts/ContactDetail.
@@ -142,6 +161,9 @@ fun ContactDetail(
     /** 宿主自己的操作，画在套件自带的底部按钮里（FR-046）。 */
     extraActions: List<FlareDetailExtraAction> = emptyList(),
     onExtraAction: ((String) -> Unit)? = null,
+    /** The page's primary action for someone who is not a contact yet ("Add to contacts"), first in the action row. */
+    primaryActionLabel: String? = null,
+    onPrimaryAction: (() -> Unit)? = null,
 ) {
     val colors = flareColors()
     Column(
@@ -174,14 +196,18 @@ fun ContactDetail(
         }
 
         // Actions: only the intents the host handles.
-        val actions = contactDetailActions(onMessage != null, onCall != null, onVideo != null)
-        if (actions.isNotEmpty()) Row(
+        val row = contactDetailRow(
+            hasPrimary = contactDetailHasPrimaryAction(primaryActionLabel, onPrimaryAction != null),
+            intents = contactDetailActions(onMessage != null, onCall != null, onVideo != null),
+        )
+        if (row.isNotEmpty()) Row(
             Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingXs),
             horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd),
         ) {
-            actions.forEach { id ->
-                when (id) {
-                    ContactDetailAction.Message -> action(labels.message, Icons.AutoMirrored.Outlined.Message, onMessage ?: {}, colors, Modifier.weight(1f), primary = true)
+            row.forEach { key ->
+                when (key.intent) {
+                    null -> action(primaryActionLabel.orEmpty(), flareIconVector("person-add"), onPrimaryAction ?: {}, colors, Modifier.weight(1f), primary = true)
+                    ContactDetailAction.Message -> action(labels.message, Icons.AutoMirrored.Outlined.Message, onMessage ?: {}, colors, Modifier.weight(1f), primary = key.primary)
                     ContactDetailAction.Call -> action(labels.voice, Icons.Outlined.Phone, onCall ?: {}, colors, Modifier.weight(1f))
                     ContactDetailAction.Video -> action(labels.video, Icons.Outlined.Videocam, onVideo ?: {}, colors, Modifier.weight(1f))
                 }

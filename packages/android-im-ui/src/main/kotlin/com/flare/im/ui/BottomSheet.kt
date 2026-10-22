@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -23,7 +24,14 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -63,6 +71,12 @@ enum class FlareSheetPresentation { Auto, Sheet }
  * it in a scroll container. While [dismissible], system back, Escape and a tap on the scrim slide the sheet out
  * and then call [onClose] (immediately under reduced motion); a host that removes the sheet itself closes it
  * without the slide.
+ *
+ * [fill] is the fixed-height mode: the surface takes its whole cap and [content] fills what the handle and the title
+ * leave, owning its scrolling — for pickers with their own header ([LocationPicker], [ContactPicker]), so hosts
+ * write no fixed-height wrapper. Content that calls [FlareSheetOwnHeader] then gets no visible title: [title] stays
+ * the sheet's accessible name. Without [fill] the declaration changes nothing. Handed to [Modal], it is the modal's
+ * fill.
  */
 @Composable
 fun BottomSheet(
@@ -73,23 +87,27 @@ fun BottomSheet(
     maxHeight: Dp? = null,
     dismissible: Boolean = true,
     presentation: FlareSheetPresentation = FlareSheetPresentation.Auto,
+    fill: Boolean = false,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val strings = flareStrings()
     val compact = flareCompactOverlays()
     // Resolved once for the life of this sheet.
     val resolved = remember { resolveOverlayPresentation(presentation, compact) }
+    // What the content declares about itself (its own header); read by the title below.
+    val header = remember(fill) { FlareSheetHeaderSlot(fill) }
+    val titleShown = flareSheetDrawsTitle(title, titleHidden, fill, header.owned)
     if (resolved == FlareResolvedOverlay.Modal) {
         FlareModalLayer(
             onClose = onClose,
             modifier = modifier,
             title = title,
-            titleHidden = titleHidden,
+            titleHidden = !titleShown,
             label = null,
             fallbackLabel = strings.bottomSheetLabel,
             width = FlareSizes.componentSheetDialogWidth,
             maxHeight = maxHeight,
-            fill = false,
+            fill = fill,
             dismissible = dismissible,
             showClose = false,
             busy = false,
@@ -98,7 +116,7 @@ fun BottomSheet(
             actions = null,
             footer = null,
             bodyPadding = PaddingValues(bottom = FlareSizes.spacingSm),
-            content = content,
+            content = { CompositionLocalProvider(LocalFlareSheetHeader provides header) { content() } },
         )
         return
     }
@@ -129,8 +147,9 @@ fun BottomSheet(
         Column(
             // The web sheet's 640 cap, which the bubble width token carries.
             modifier.fillMaxWidth().widthIn(max = FlareSizes.bubbleMaxWidth)
-                // The surface runs under the navigation bar / keyboard, so its cap includes that inset.
-                .heightIn(max = cap + bottom)
+                // The surface runs under the navigation bar / keyboard, so its cap includes that inset; filled, it
+                // takes the whole cap.
+                .then(if (fill) Modifier.height(cap + bottom) else Modifier.heightIn(max = cap + bottom))
                 .clip(RoundedCornerShape(topStart = FlareSizes.radius2xl, topEnd = FlareSizes.radius2xl))
                 .background(colors.bgPrimary)
                 // A tap on the sheet itself never reaches the scrim behind it.
@@ -146,7 +165,7 @@ fun BottomSheet(
                     .clip(RoundedCornerShape(FlareSizes.radiusFull))
                     .background(colors.borderPrimary),
             )
-            if (title != null && !titleHidden) {
+            if (titleShown && title != null) {
                 Text(
                     title,
                     color = colors.textTertiary,
@@ -158,8 +177,44 @@ fun BottomSheet(
                         .semantics { heading() },
                 )
             }
-            // Bounded: whatever the handle and title leave of the cap.
-            Column(Modifier.fillMaxWidth().weight(1f, fill = false)) { content() }
+            // Bounded: whatever the handle and title leave of the cap (all of it when filled).
+            Column(Modifier.fillMaxWidth().weight(1f, fill = fill)) {
+                CompositionLocalProvider(LocalFlareSheetHeader provides header) { content() }
+            }
         }
+    }
+}
+
+/** Whether a sheet draws its title: a title, not hidden, and not a filled sheet whose content brings its own header. */
+internal fun flareSheetDrawsTitle(title: String?, titleHidden: Boolean, fill: Boolean, ownHeader: Boolean): Boolean =
+    !title.isNullOrEmpty() && !titleHidden && !(fill && ownHeader)
+
+/** What the content of one [BottomSheet] declares to it: how many parts of it draw their own header row. */
+@Stable
+internal class FlareSheetHeaderSlot(val fill: Boolean) {
+    var owners by mutableIntStateOf(0)
+    val owned: Boolean get() = owners > 0
+}
+
+/** The enclosing kit sheet's slot; null outside a [BottomSheet]. */
+internal val LocalFlareSheetHeader = staticCompositionLocalOf<FlareSheetHeaderSlot?> { null }
+
+/** Whether the enclosing kit sheet is in its fill mode (the content then fills the height it is given). */
+@Composable
+internal fun flareSheetFills(): Boolean = LocalFlareSheetHeader.current?.fill == true
+
+/**
+ * Declares that the content of the enclosing kit [BottomSheet] draws its own header row (a title with Cancel), as
+ * [LocationPicker] and [ContactPicker] do. With the sheet's `fill` it then draws no visible title and keeps its title
+ * as the accessible name only, so the two never repeat each other; without `fill`, or outside a sheet, it changes
+ * nothing. Call it once from the content's composition; leaving the composition withdraws it. Spec:
+ * Overlay/BottomSheet.
+ */
+@Composable
+fun FlareSheetOwnHeader() {
+    val slot = LocalFlareSheetHeader.current ?: return
+    DisposableEffect(slot) {
+        slot.owners += 1
+        onDispose { slot.owners -= 1 }
     }
 }

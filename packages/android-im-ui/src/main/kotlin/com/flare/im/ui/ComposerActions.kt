@@ -62,16 +62,16 @@ data class FlareComposerAction(
         get() = if (flareIconVectorOrNull(icon) == null) "plugin" else icon
 }
 
-/** The kit's copy for the ids the panel knows, the six built-in items first (`composerActions`). */
+/** The kit's copy for the ids the panel knows, the eight built-in items first (`composerActions`). */
 internal fun composerActionKitLabel(id: String, strings: FlareStrings): String? = when (id) {
     "image" -> strings.actionImage
+    "camera" -> strings.actionCamera
     "video" -> strings.actionVideo
     "file" -> strings.actionFile
     "voice" -> strings.composerVoice
+    "location" -> strings.actionLocation
     "card", "contact" -> strings.actionCard
     "poll", "vote" -> strings.actionVote
-    "camera" -> strings.actionCamera
-    "location" -> strings.actionLocation
     "task" -> strings.actionTask
     "schedule", "event" -> strings.actionSchedule
     else -> null
@@ -93,7 +93,7 @@ data class FlareComposerCapabilities(
 
 /** Ids of the built-in feature set, in panel order, shared across the four platforms (`composerActions.defaults`). */
 val defaultComposerActionIds: List<String> =
-    listOf("image", "video", "file", "voice", "card", "poll")
+    listOf("image", "camera", "video", "file", "voice", "location", "card")
 
 /**
  * Default attachment actions with labels taken from [strings] (the same
@@ -102,11 +102,12 @@ val defaultComposerActionIds: List<String> =
  */
 fun defaultComposerActions(strings: FlareStrings): List<FlareComposerAction> = listOf(
     FlareComposerAction("image", strings.actionImage, "image", kind = FlareComposerActionKind.Feature),
+    FlareComposerAction("camera", strings.actionCamera, "camera", kind = FlareComposerActionKind.Feature),
     FlareComposerAction("video", strings.actionVideo, "video", kind = FlareComposerActionKind.Feature),
     FlareComposerAction("file", strings.actionFile, "file", kind = FlareComposerActionKind.Feature),
     FlareComposerAction("voice", strings.composerVoice, "mic", kind = FlareComposerActionKind.Feature),
+    FlareComposerAction("location", strings.actionLocation, "location", kind = FlareComposerActionKind.Feature),
     FlareComposerAction("card", strings.actionCard, "card", kind = FlareComposerActionKind.Feature),
-    FlareComposerAction("poll", strings.actionVote, "poll", kind = FlareComposerActionKind.Feature),
 )
 
 /** Defaults -> capabilities -> host list. A host list is a full replacement. */
