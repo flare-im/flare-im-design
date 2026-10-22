@@ -3026,14 +3026,6 @@
     ],
     "zh": "阅后即焚"
   },
-  "messageDelivered": {
-    "en": "Delivered",
-    "kits": [
-      "flutter",
-      "ios"
-    ],
-    "zh": "已送达"
-  },
   "messageEdited": {
     "en": "Edited",
     "kits": [
@@ -3053,6 +3045,7 @@
   "messageFailed": {
     "en": "Not sent",
     "kits": [
+      "android",
       "flutter",
       "ios"
     ],
@@ -3085,6 +3078,7 @@
   "messagePending": {
     "en": "Waiting to send",
     "kits": [
+      "android",
       "flutter",
       "ios"
     ],
@@ -3093,6 +3087,7 @@
   "messageRead": {
     "en": "Read",
     "kits": [
+      "android",
       "flutter",
       "ios"
     ],
@@ -3124,17 +3119,10 @@
     ],
     "zh": "你撤回了一条消息"
   },
-  "messageRetrying": {
-    "en": "Retrying",
-    "kits": [
-      "flutter",
-      "ios"
-    ],
-    "zh": "正在重试"
-  },
   "messageSending": {
     "en": "Sending",
     "kits": [
+      "android",
       "flutter",
       "ios"
     ],
@@ -3143,10 +3131,47 @@
   "messageSent": {
     "en": "Sent",
     "kits": [
+      "android",
       "flutter",
       "ios"
     ],
     "zh": "已发送"
+  },
+  "messageReadSummaryUnread": {
+    "en": "{count} unread",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "{count} 人未读"
+  },
+  "messageReadSummaryAllRead": {
+    "en": "Read by all",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "全部已读"
+  },
+  "messageSendFailedRetry": {
+    "en": "Failed to send. Retry",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "发送失败，重试"
+  },
+  "messageDeleted": {
+    "en": "Message deleted",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "消息已删除"
   },
   "messageSpoilerReveal": {
     "en": "Spoiler — tap to show",
@@ -3914,19 +3939,6 @@
     ],
     "zh": "Flare 红包"
   },
-  "packetClaimed": {
-    "en": "Opened · ",
-    "kits": [
-      "android",
-      "flutter",
-      "ios"
-    ],
-    "zh": "已领取 · ",
-    "appendArgumentKits": [
-      "android",
-      "flutter"
-    ]
-  },
   "packetFinished": {
     "en": "All claimed",
     "kits": [
@@ -3937,13 +3949,13 @@
     "zh": "已被领完"
   },
   "packetTapToClaim": {
-    "en": "Tap to open",
+    "en": "Open",
     "kits": [
       "android",
       "flutter",
       "ios"
     ],
-    "zh": "点击领取"
+    "zh": "领取红包"
   },
   "pause": {
     "en": "Pause",
@@ -5627,8 +5639,8 @@
     ]
   },
   "packetExpiredNotice": {
-    "en": "This packet expired after 24 hours",
-    "zh": "该红包已超过 24 小时",
+    "en": "This red packet has expired",
+    "zh": "红包已过期",
     "kits": [
       "android",
       "flutter",
@@ -5814,6 +5826,150 @@
       "flutter",
       "ios"
     ]
+  },
+  "packetView": {
+    "en": "View",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "查看红包"
+  },
+  "packetRefunded": {
+    "en": "Returned",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已退回"
+  },
+  "packetBadgeLucky": {
+    "en": "Lucky",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "拼手气"
+  },
+  "packetBadgeExclusive": {
+    "en": "Exclusive",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "专属"
+  },
+  "packetForRecipient": {
+    "en": "For {name}",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "给 {name}"
+  },
+  "packetNotEligibleName": {
+    "en": "Only {name} can open this",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "仅 {name} 可领取"
+  },
+  "packetDeposited": {
+    "en": "Saved to your wallet",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已存入钱包"
+  },
+  "packetSummarySender": {
+    "en": "{claimed}/{shares} opened, {claimedMoney}/{totalMoney}",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已领取 {claimed}/{shares} 个，共 {claimedMoney}/{totalMoney}"
+  },
+  "packetSummaryCompleted": {
+    "en": "{shares} packets, {totalMoney}, all claimed in {duration}",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "{shares} 个红包共 {totalMoney}，{duration}被抢光"
+  },
+  "packetSummaryCount": {
+    "en": "{claimed}/{shares} opened",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已领取 {claimed}/{shares} 个"
+  },
+  "packetRefundAt": {
+    "en": "The rest returns at {time}",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "未领取部分将于 {time} 退回"
+  },
+  "packetRefundedNote": {
+    "en": "Returned {money} · {time}",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已退回 {money} · {time}"
+  },
+  "packetDurationSeconds": {
+    "en": "{n}s",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "{n} 秒"
+  },
+  "packetDurationMinutes": {
+    "en": "{n} min",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "{n} 分钟"
+  },
+  "packetDurationHours": {
+    "en": "{n} h",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "{n} 小时"
+  },
+  "packetDurationDays": {
+    "en": "{n} d",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "{n} 天"
   },
   "locationTitle": {
     "en": "Location",
@@ -6012,6 +6168,124 @@
       "ios"
     ],
     "zh": "{count} 票"
+  },
+  "pluginViewMore": {
+    "en": "More actions",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "更多操作"
+  },
+  "pluginViewMe": {
+    "en": "Me",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "我"
+  },
+  "pluginViewUnavailableDisabled": {
+    "en": "This plugin is turned off",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "插件已停用"
+  },
+  "pluginViewUnavailableNotInstalled": {
+    "en": "This plugin is not installed",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "插件未安装"
+  },
+  "pluginViewUnavailableNoPermission": {
+    "en": "You don't have access to this plugin",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "没有使用该插件的权限"
+  },
+  "pluginViewUnavailableUnsupportedPlatform": {
+    "en": "This plugin isn't available on this device",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "该插件不支持此设备"
+  },
+  "pluginViewUnavailableIncompatibleVersion": {
+    "en": "Update the app to view this",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "请更新应用后查看"
+  },
+  "pluginViewUnavailableCatalogUnreachable": {
+    "en": "Can't load this right now",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "暂时无法加载，请稍后再试"
+  },
+  "pluginViewUnavailableUnboundCopy": {
+    "en": "Copy, view only",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "副本，仅供查看"
+  },
+  "pluginPageRefresh": {
+    "en": "Refresh",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "刷新"
+  },
+  "fileSizeBytes": {
+    "en": "{n} B",
+    "kits": [
+      "android"
+    ],
+    "zh": "{n} B"
+  },
+  "fileSizeKilobytes": {
+    "en": "{n} KB",
+    "kits": [
+      "android"
+    ],
+    "zh": "{n} KB"
+  },
+  "fileSizeMegabytes": {
+    "en": "{n} MB",
+    "kits": [
+      "android"
+    ],
+    "zh": "{n} MB"
+  },
+  "fileSizeGigabytes": {
+    "en": "{n} GB",
+    "kits": [
+      "android"
+    ],
+    "zh": "{n} GB"
   },
   "pluginViewRemaining": {
     "en": "{time} left",
