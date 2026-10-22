@@ -3,6 +3,7 @@
 - 第六轮验收修复：
   - `PluginView` 卡片级「查看详情」：`view.detail` 为真、没有 entries 块在显示「查看全部」、可用、非 embedded，并且传了 `onOpenDetail` 时，在动作区下方画整宽的 quiet 文字按钮（size sm，`pluginViewDetail`），点击调用 `onOpenDetail`；`busy` / `busyActionId` 时禁用。
   - `PluginViewInset` 新增 `sheetTop`（上 md、左右 lg、下不留），用于 PluginForm 上方的前言。`inset` 现在作用于所有状态：embedded 的内容（含不可用态）和宿主留在面板里的卡片外壳（外壳之外）。不可用的 embedded 视图把标题显示为一行次要文字。
+  - `DangerConfirmView`（`FlareFeedback.confirm` 的确认面板）内容铺满面板宽度、从左侧内边距开始（原来 ScrollView 把较窄的内容居中，整体右偏）；「取消 / 确认」改为 Kit `ButtonView`（secondary、danger，整宽上下排列，busy 时确认键转圈），不再是无样式的系统按钮。
   - `FlareStrings` 新增 `pluginViewDetail`（「查看详情」/ "View details"）。
 - 第六轮 Kit 打磨（app 接线反馈）：
   - `PluginView` 新增 `settleToken`（宿主每完成一次动作加 1：没有 error 和 formErrors 时关闭已提交的表单、乐观选中保留到新视图；有 error 撤回选中；有 formErrors 表单留着；`busyActionId` 离开该动作仍作兜底，两者同时到达只结算一次）和 `inset`（`PluginViewInset`：none / sheet，embedded 时按底部面板留白 md / lg / xl）。宿主信号合成一个值比较，同一次更新里设上 error 并结算也能读到。

@@ -112,6 +112,45 @@ public struct NotificationPreferencesView:View {
 public struct DangerConfirmView:View {
  let title:String;let description:String;let target:String;let busy:Bool;let error:String?;let confirmText:String?;let cancelText:String?;let onConfirm:()->Void;let onCancel:()->Void
  @Environment(\.flareStrings) private var strings
+ @Environment(\.colorScheme) private var scheme
+ @Environment(\.flareBrandTheme) private var flareBrandTheme
+ @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
  public init(title:String,description:String,target:String,busy:Bool=false,error:String?=nil,confirmText:String?=nil,cancelText:String?=nil,onConfirm:@escaping ()->Void,onCancel:@escaping ()->Void){self.title=title;self.description=description;self.target=target;self.busy=busy;self.error=error;self.confirmText=confirmText;self.cancelText=cancelText;self.onConfirm=onConfirm;self.onCancel=onCancel}
- public var body:some View {ScrollView{VStack(alignment:.leading,spacing:FlareSizes.spacingMd){Text(title).font(.headline);Text(description);if !target.isEmpty {Text(target).bold()};if let error {Text(error)};Button(action:onCancel){Text(cancelText ?? strings.cancel).frame(minWidth:FlareSizes.touchTarget,minHeight:FlareSizes.touchTarget)}.disabled(busy);Button(role:.destructive,action:onConfirm){Text(confirmText ?? strings.confirmAction).frame(minWidth:FlareSizes.touchTarget,minHeight:FlareSizes.touchTarget)}.disabled(busy)}.padding(FlareSizes.spacingXl)}.flareLayerDismissDisabled(busy)}
+
+ /// The sheet's insets (md on top, lg at the sides, xl at the bottom), the same as the other kit sheet bodies.
+ static let insets = EdgeInsets(top: FlareSizes.spacingMd, leading: FlareSizes.spacingLg, bottom: FlareSizes.spacingXl,
+                                trailing: FlareSizes.spacingLg)
+
+ public var body: some View {
+  let colors = FlareColors.of(scheme, brand: flareBrandTheme)
+  ScrollView {
+   VStack(alignment: .leading, spacing: FlareSizes.spacingMd) {
+    Text(title)
+     .font(.system(size: FlareSizes.fontSizeXl * textScale, weight: .semibold))
+     .foregroundColor(colors.textPrimary)
+     .accessibilityAddTraits(.isHeader)
+    if !description.isEmpty {
+     Text(description).font(.system(size: FlareSizes.fontSizeLg * textScale)).foregroundColor(colors.textPrimary)
+    }
+    if !target.isEmpty {
+     Text(target).font(.system(size: FlareSizes.fontSizeLg * textScale, weight: .semibold))
+      .foregroundColor(colors.textPrimary)
+    }
+    if let error, !error.isEmpty {
+     Text(error).font(.system(size: FlareSizes.fontSizeMd * textScale)).foregroundColor(colors.errorText)
+    }
+    // The kit keys, stacked full width in the sheet: cancel first, the destructive one under it.
+    VStack(spacing: FlareSizes.spacingSm) {
+     ButtonView(label: cancelText ?? strings.cancel, variant: .secondary, disabled: busy, block: true, action: onCancel)
+     ButtonView(label: confirmText ?? strings.confirmAction, variant: .danger, loading: busy, block: true,
+                action: onConfirm)
+    }
+    .padding(.top, FlareSizes.spacingSm)
+   }
+   // The whole width of the sheet: a ScrollView centres content narrower than itself.
+   .frame(maxWidth: .infinity, alignment: .leading)
+   .padding(Self.insets)
+  }
+  .flareLayerDismissDisabled(busy)
+ }
 }
