@@ -1,9 +1,5 @@
 package com.flare.im.ui
 
-import android.os.Build
-import android.view.View
-import android.view.Window
-import android.view.WindowInsetsController
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
@@ -395,22 +391,6 @@ private fun FlareOverlayWindowChrome(lightStatusBars: Boolean?) {
             if (lightStatusBars != null) window.flareLightStatusBars(lightStatusBars)
         }
         onDispose {}
-    }
-}
-
-private fun Window.flareLightStatusBars(light: Boolean) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-        insetsController?.setSystemBarsAppearance(
-            if (light) WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS else 0,
-            WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
-        )
-    } else {
-        @Suppress("DEPRECATION")
-        decorView.systemUiVisibility = if (light) {
-            decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-        } else {
-            decorView.systemUiVisibility and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
-        }
     }
 }
 

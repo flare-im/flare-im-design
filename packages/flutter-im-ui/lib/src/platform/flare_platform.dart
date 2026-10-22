@@ -431,3 +431,10 @@ FlarePlatformCapabilities flareCapabilitiesOf(BuildContext context) =>
     FlarePlatformCapabilities.detect(
       width: MediaQuery.maybeSizeOf(context)?.width,
     );
+
+/// The platform whose map app a location link opens: Apple Maps on iOS and
+/// macOS, the `geo:` URI on Android, the web map elsewhere
+/// (`spec/location-vectors.json`). Which app opens a link is platform identity
+/// by definition, so components read it here, the one module allowed to
+/// consult [defaultTargetPlatform], instead of sniffing it themselves.
+TargetPlatform get flareTargetPlatform => defaultTargetPlatform;

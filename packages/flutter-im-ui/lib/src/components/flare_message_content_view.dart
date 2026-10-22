@@ -9,6 +9,7 @@ import 'flare_message_bodies.dart';
 import 'flare_image_group_message.dart';
 import 'flare_rich_text_message.dart';
 import '../models/location.dart';
+import '../platform/flare_platform.dart';
 import '../models/message_content.dart';
 import 'flare_media_image.dart';
 import '../models/url_safety.dart';
@@ -549,7 +550,7 @@ class FlareMessageContentView extends StatelessWidget {
     );
     final open = onOpenLink;
     if (links == null || open == null) return null;
-    return () => open(links.forPlatform(defaultTargetPlatform));
+    return () => open(links.forPlatform(flareTargetPlatform));
   }
 
   /// A video's length as its badge shows it; null when it is unknown, so the

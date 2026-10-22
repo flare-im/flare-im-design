@@ -4,6 +4,9 @@ import androidx.annotation.RequiresApi
 import android.content.ActivityNotFoundException
 import android.os.Build
 import android.provider.Settings
+import android.view.View
+import android.view.Window
+import android.view.WindowInsetsController
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
@@ -240,6 +243,27 @@ internal fun FlareEdgeToEdgeDialogWindow() {
             }
         }
         onDispose {}
+    }
+}
+
+/**
+ * Status-bar icons dark (light = true) or light on this window. Android 11 sets the appearance through the
+ * insets controller; earlier releases through the deprecated system UI flags. Reads the API level, so it lives
+ * with the platform module.
+ */
+internal fun Window.flareLightStatusBars(light: Boolean) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        insetsController?.setSystemBarsAppearance(
+            if (light) WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS else 0,
+            WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
+        )
+    } else {
+        @Suppress("DEPRECATION")
+        decorView.systemUiVisibility = if (light) {
+            decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+        } else {
+            decorView.systemUiVisibility and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+        }
     }
 }
 
