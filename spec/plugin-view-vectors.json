@@ -1,0 +1,2856 @@
+{
+  "$comment": "PluginView v2 render facts, read by the Vue, Flutter, SwiftUI and Compose kit tests. Views are core SDK ResolvedPluginView JSON (flare-plugin-protocol ui.rs, blocks.rs, inputs.rs); the kit renders that shape and reads no paths. Facts use the Chinese defaults; `time` and `countdown` also give English. Every fact follows `rules`; change the rules and the facts together.",
+  "version": 1,
+  "nowMs": 1792634400000,
+  "utcOffsetMinutes": 480,
+  "rules": {
+    "fallbackName": "No resolved user: the avatar draws initials and the name is the last 4 characters of the userId (the whole id when it has 4 or fewer).",
+    "displayName": "entries: entry.name, else the resolved user's name, else the fallback name; an entry without a userId has no avatar.",
+    "actionVariant": "style danger → danger key, primary → primary key, none → secondary key. confirm → the kit DangerConfirm first (title = action label, description = confirm, confirm key = action label). form → the kit bottom sheet with PluginForm (title = action label, inputs = view.inputs in the order of action.form, submit key = pluginViewSubmit); its submit emits action(id, {formValues}).",
+    "busy": "busy: every action, choice and form submit is disabled. busyActionId: the same, plus that action's key (or the choices submit key) shows the spinner.",
+    "choices": "interactive = block.action present and not closed and not busy. single: a tap on option i emits action(block.action.id, {selection: [i]}) (a tap on the only selected option is ignored). multiple: taps toggle a draft that starts as the selected indices; the submit key (label = block.action.label) is enabled when the draft is non-empty and differs from the selection, and emits the draft sorted ascending. Results (showResults): a bar at percent, \"{percent}%\" and pluginViewVotes(count); a selected option is checked whether or not results show. footer = [pluginViewEnded if closed, pluginViewVotes(total) if showResults and total] joined with \" · \". closed: read-only.",
+    "optimistic": "After a choices submit the submitted indices show as selected (and interaction pauses) until settled. Settled: a new view arrives (it is the truth); error becomes non-empty (reverts); or the host's settle signal (settleToken changes, or as a fallback busyActionId leaves the action) — with error or formErrors set it reverts to the view's selection, without them the mark stays until the new view.",
+    "entries": "seeAll = pluginViewSeeAll(total) when more, and it emits openDetail. No items: emptyText. While an entries block shows its see all the card draws no view details key (detailKey).",
+    "people": "One row per group: up to the given userIds as overlapping avatars, the label and the count, coloured by tone (neutral when absent) with the *Text tokens.",
+    "progress": "A bar at percent and \"{value}/{total}\".",
+    "time": "pluginViewDateTimeFormat (pluginViewDateTimeYearFormat when the instant's local year differs from now's). Tokens: y year, M month, MMM Jan..Dec, d day, HH hour 00-23, mm minute; anything else is literal. A range on one local day is \"{start}–{HH:mm of end}\" (en dash, no spaces); otherwise \"{start} – {end}\" (spaced en dash), each side formatted on its own. Local time is the device zone; tests pin utcOffsetMinutes.",
+    "countdown": "r = atMs - now. r <= 0: pluginViewDeadlinePassed, no refresh. r < 1 h: pluginViewRemaining with mm:ss, refresh every 1000 ms. r < 1 d: hours plus minutes (minutes omitted when 0), every 60000 ms. Otherwise days plus hours (hours omitted when 0), every 60000 ms. Units are myInviteUnitHours / myInviteUnitMinutes / myInviteUnitDays joined by a space.",
+    "unavailable": "available false: only the title shows — in the title row on the card, and on an embedded view (which has no title row) as one line of secondary text inside the inset; fields, blocks, actions and the view details key are hidden.",
+    "unknownBlocks": "A block kind the kit does not know is skipped.",
+    "rows": "Vue only (admin pages). Columns, then one row per entry: time cells format timeMs as in `time`; a row's actions are the block actions it lists (style, confirm and form apply) and emit action(id, {row: {key, input}}); a row with detailInput opens the detail (openDetail({key, input})); nextCursor shows pluginViewLoadMore, which emits loadMore(nextCursor, source); no rows: emptyText, else the kit's empty text. Filters: the page's filter bar shows the view inputs a rows block lists in filters, in the view's input order (unknown ids are ignored), or every input when filters is absent; the others belong to row action forms (flarePluginFilterInputs). Vue only.",
+    "form": "Draft: values[id], else input.default; options without one start with max(min, 1) empty rows, members empty, toggle false. Client check (shown for an input once it was edited, and for every input after a submit attempt; one issue per input): text/textarea required → trimmed non-empty, tooLong → trimmed length in Unicode code points > maxLength (default 256 / 2000); number/datetime/select/members required → a value; options required → at least one non-empty item, tooLong → an item over maxLength (default 100). Submit runs the check; with no issue it emits submit(values): text and textarea trimmed (omitted when blank), number and datetime when set, toggle always, select when chosen, options trimmed with empty rows removed (omitted when none), members when any. Host errors (UiFormError) win: shown under their input until that input is edited; the first error per input shows. Options rows: add while rows < max (default 50), remove while rows > max(min, 1). Text and textarea show \"{length}/{maxLength}\". members with max 1 picks one; candidates come from the host's members.",
+    "issueText": "required pluginFormRequired, tooLong pluginFormTooLong, outOfRange pluginFormOutOfRange, tooFewItems pluginFormTooFewItems with n = min (1 when absent), tooManyItems pluginFormTooManyItems with n = max (options 50, members 500 when absent), duplicateItem pluginFormDuplicateItem, anything else pluginFormInvalid.",
+    "detail": "PluginDetailSheet: loading → a spinner (accessible name: loading); error → the host's text and the retry key (retry); otherwise an embedded PluginView of the detail view. Title: view.title, else the host's title. Actions run from the detail: busyActionId, actionError (the view's error), formErrors, members and settleToken go to the embedded view unchanged, so their failure shows inside the sheet. Paging: a non-blank view.nextCursor shows a full-width load-more key under the embedded view (Vue pluginView.loadMore, natives myInviteLoadMore), which emits loadMore(nextCursor); a blank or absent nextCursor is the last page (no key). The key spins and is disabled while loadingMore is true or while the cursor the kit last asked for equals view.nextCursor (no page is asked for twice); a view with another cursor is tappable again. The asked cursor is forgotten (a retry allowed) when loadingMore goes from true to false, settleToken changes or actionError becomes non-empty. The host passes back the merged view (the core SDK appends pages; the kit merges nothing).",
+    "settle": "settleToken: an integer the host increments once per finished action, after setting that result's error and formErrors. Every change settles: no error and no formErrors → a submitted form closes and an optimistic choice stays marked (interaction still paused) until the new view; error → the optimistic choice reverts and an open form stays with the error; formErrors → the form stays open with them and a choice it carries reverts. The error is read at the change, so the same text as before still reverts. busyActionId leaving the action settles the same way as a fallback; a host that sets and clears busyActionId within one frame settles only through the token. Settling twice (token and busyActionId together) is the same as once.",
+    "inset": "Where the view sits. none (default) adds nothing. sheet: straight in a kit sheet — spacing md on top, lg at the sides and xl at the bottom (PluginForm's insets). sheetTop: at the top of a sheet with more under it (a preface above PluginForm) — md on top, lg at the sides and nothing at the bottom, so the next part's own top inset is the gap (no xl + md). The inset pads whatever the view draws, in every state: the embedded body (available or not, with or without the error) and a card shell a host keeps in a sheet (outside the shell, which keeps its own md padding). Values by side in `insets` (spacing token names; null is 0).",
+    "detailKey": "The card's own way into the detail view: a full-width quiet text key (size sm) under the action keys, label pluginViewDetail (Vue pluginView.detail), emitting openDetail with no row — the same as see all. Shown when view.detail is true, the view is available, it is not embedded (the detail sheet, admin pages and a sheet's preface draw none), no entries block shows its see all (more), the view has no rows block (an admin page opens the detail from its rows; Vue only) and the host handles openDetail (natives: onOpenDetail set; Vue: an openDetail listener). busy or busyActionId disables it. Cases in `detailKey`."
+  },
+  "users": {
+    "u_alice01": {
+      "name": "Alice",
+      "avatarUrl": "https://example.test/alice.png"
+    },
+    "u_bob0002": {
+      "name": "Bob"
+    },
+    "u_carol003": {
+      "name": "Carol",
+      "avatarUrl": "https://example.test/carol.png"
+    }
+  },
+  "fallbackNames": [
+    {
+      "userId": "u_dave9876",
+      "name": "9876"
+    },
+    {
+      "userId": "abcd",
+      "name": "abcd"
+    },
+    {
+      "userId": "ab",
+      "name": "ab"
+    },
+    {
+      "userId": "x_12345",
+      "name": "2345"
+    }
+  ],
+  "views": [
+    {
+      "id": "poll-open-single",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "available": true,
+        "title": "周五团建去哪儿？",
+        "fields": [],
+        "actions": [
+          {
+            "id": "close",
+            "label": "结束投票",
+            "target": {
+              "kind": "operation",
+              "operation": "close"
+            },
+            "input": {},
+            "style": "danger",
+            "confirm": "结束后不能再投票，确定结束吗？"
+          }
+        ],
+        "blocks": [
+          {
+            "kind": "choices",
+            "options": [
+              {
+                "index": 0,
+                "label": "爬山",
+                "selected": false
+              },
+              {
+                "index": 1,
+                "label": "桌游",
+                "selected": false
+              },
+              {
+                "index": 2,
+                "label": "烧烤",
+                "selected": false
+              }
+            ],
+            "multiple": false,
+            "voted": false,
+            "closed": false,
+            "showResults": false,
+            "inputName": "selection",
+            "action": {
+              "id": "vote",
+              "label": "投票",
+              "target": {
+                "kind": "operation",
+                "operation": "vote"
+              },
+              "input": {}
+            }
+          },
+          {
+            "kind": "time",
+            "label": "截止",
+            "atMs": 1792663200000,
+            "countdown": true
+          }
+        ]
+      },
+      "expect": {
+        "title": "周五团建去哪儿？",
+        "bodyHidden": false,
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "choices",
+            "interactive": true,
+            "multiple": false,
+            "submit": null,
+            "options": [
+              {
+                "label": "爬山",
+                "selected": false,
+                "percentText": null,
+                "votesText": null,
+                "bar": null
+              },
+              {
+                "label": "桌游",
+                "selected": false,
+                "percentText": null,
+                "votesText": null,
+                "bar": null
+              },
+              {
+                "label": "烧烤",
+                "selected": false,
+                "percentText": null,
+                "votesText": null,
+                "bar": null
+              }
+            ],
+            "footer": null
+          },
+          {
+            "kind": "time",
+            "label": "截止",
+            "text": "10月22日 18:00",
+            "countdown": "剩余 8 小时",
+            "refreshMs": 60000
+          }
+        ],
+        "actions": [
+          {
+            "id": "close",
+            "label": "结束投票",
+            "variant": "danger",
+            "confirm": "结束后不能再投票，确定结束吗？",
+            "form": false
+          }
+        ],
+        "seeAllOpensDetail": false
+      }
+    },
+    {
+      "id": "poll-open-multi",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "available": true,
+        "title": "这周想吃什么？（多选）",
+        "fields": [],
+        "actions": [
+          {
+            "id": "close",
+            "label": "结束投票",
+            "target": {
+              "kind": "operation",
+              "operation": "close"
+            },
+            "input": {},
+            "style": "danger",
+            "confirm": "结束后不能再投票，确定结束吗？"
+          }
+        ],
+        "blocks": [
+          {
+            "kind": "choices",
+            "options": [
+              {
+                "index": 0,
+                "label": "火锅",
+                "selected": false
+              },
+              {
+                "index": 1,
+                "label": "烤肉",
+                "selected": false
+              },
+              {
+                "index": 2,
+                "label": "日料",
+                "selected": false
+              }
+            ],
+            "multiple": true,
+            "voted": false,
+            "closed": false,
+            "showResults": false,
+            "inputName": "selection",
+            "action": {
+              "id": "vote",
+              "label": "投票",
+              "target": {
+                "kind": "operation",
+                "operation": "vote"
+              },
+              "input": {}
+            }
+          },
+          {
+            "kind": "time",
+            "label": "截止",
+            "atMs": 1792818300000,
+            "countdown": true
+          }
+        ]
+      },
+      "expect": {
+        "title": "这周想吃什么？（多选）",
+        "bodyHidden": false,
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "choices",
+            "interactive": true,
+            "multiple": true,
+            "submit": {
+              "label": "投票",
+              "enabled": false
+            },
+            "options": [
+              {
+                "label": "火锅",
+                "selected": false,
+                "percentText": null,
+                "votesText": null,
+                "bar": null
+              },
+              {
+                "label": "烤肉",
+                "selected": false,
+                "percentText": null,
+                "votesText": null,
+                "bar": null
+              },
+              {
+                "label": "日料",
+                "selected": false,
+                "percentText": null,
+                "votesText": null,
+                "bar": null
+              }
+            ],
+            "footer": null
+          },
+          {
+            "kind": "time",
+            "label": "截止",
+            "text": "10月24日 13:05",
+            "countdown": "剩余 2 天 3 小时",
+            "refreshMs": 60000
+          }
+        ],
+        "actions": [
+          {
+            "id": "close",
+            "label": "结束投票",
+            "variant": "danger",
+            "confirm": "结束后不能再投票，确定结束吗？",
+            "form": false
+          }
+        ],
+        "seeAllOpensDetail": false
+      }
+    },
+    {
+      "id": "poll-voted-single",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "available": true,
+        "title": "周五团建去哪儿？",
+        "fields": [],
+        "actions": [
+          {
+            "id": "close",
+            "label": "结束投票",
+            "target": {
+              "kind": "operation",
+              "operation": "close"
+            },
+            "input": {},
+            "style": "danger",
+            "confirm": "结束后不能再投票，确定结束吗？"
+          }
+        ],
+        "blocks": [
+          {
+            "kind": "choices",
+            "options": [
+              {
+                "index": 0,
+                "label": "爬山",
+                "selected": false,
+                "count": 3,
+                "percent": 30
+              },
+              {
+                "index": 1,
+                "label": "桌游",
+                "selected": true,
+                "count": 6,
+                "percent": 60
+              },
+              {
+                "index": 2,
+                "label": "烧烤",
+                "selected": false,
+                "count": 1,
+                "percent": 10
+              }
+            ],
+            "multiple": false,
+            "voted": true,
+            "closed": false,
+            "showResults": true,
+            "total": 10,
+            "inputName": "selection",
+            "action": {
+              "id": "vote",
+              "label": "投票",
+              "target": {
+                "kind": "operation",
+                "operation": "vote"
+              },
+              "input": {}
+            }
+          },
+          {
+            "kind": "time",
+            "label": "截止",
+            "atMs": 1792637109000,
+            "countdown": true
+          }
+        ]
+      },
+      "expect": {
+        "title": "周五团建去哪儿？",
+        "bodyHidden": false,
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "choices",
+            "interactive": true,
+            "multiple": false,
+            "submit": null,
+            "options": [
+              {
+                "label": "爬山",
+                "selected": false,
+                "percentText": "30%",
+                "votesText": "3 票",
+                "bar": 30
+              },
+              {
+                "label": "桌游",
+                "selected": true,
+                "percentText": "60%",
+                "votesText": "6 票",
+                "bar": 60
+              },
+              {
+                "label": "烧烤",
+                "selected": false,
+                "percentText": "10%",
+                "votesText": "1 票",
+                "bar": 10
+              }
+            ],
+            "footer": "10 票"
+          },
+          {
+            "kind": "time",
+            "label": "截止",
+            "text": "10月22日 10:45",
+            "countdown": "剩余 45:09",
+            "refreshMs": 1000
+          }
+        ],
+        "actions": [
+          {
+            "id": "close",
+            "label": "结束投票",
+            "variant": "danger",
+            "confirm": "结束后不能再投票，确定结束吗？",
+            "form": false
+          }
+        ],
+        "seeAllOpensDetail": false
+      }
+    },
+    {
+      "id": "poll-voted-multi",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "available": true,
+        "title": "这周想吃什么？（多选）",
+        "fields": [],
+        "actions": [
+          {
+            "id": "close",
+            "label": "结束投票",
+            "target": {
+              "kind": "operation",
+              "operation": "close"
+            },
+            "input": {},
+            "style": "danger",
+            "confirm": "结束后不能再投票，确定结束吗？"
+          }
+        ],
+        "blocks": [
+          {
+            "kind": "choices",
+            "options": [
+              {
+                "index": 0,
+                "label": "火锅",
+                "selected": true,
+                "count": 4,
+                "percent": 50
+              },
+              {
+                "index": 1,
+                "label": "烤肉",
+                "selected": false,
+                "count": 2,
+                "percent": 25
+              },
+              {
+                "index": 2,
+                "label": "日料",
+                "selected": true,
+                "count": 5,
+                "percent": 63
+              }
+            ],
+            "multiple": true,
+            "voted": true,
+            "closed": false,
+            "showResults": true,
+            "total": 8,
+            "inputName": "selection",
+            "action": {
+              "id": "vote",
+              "label": "投票",
+              "target": {
+                "kind": "operation",
+                "operation": "vote"
+              },
+              "input": {}
+            }
+          }
+        ]
+      },
+      "expect": {
+        "title": "这周想吃什么？（多选）",
+        "bodyHidden": false,
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "choices",
+            "interactive": true,
+            "multiple": true,
+            "submit": {
+              "label": "投票",
+              "enabled": false
+            },
+            "options": [
+              {
+                "label": "火锅",
+                "selected": true,
+                "percentText": "50%",
+                "votesText": "4 票",
+                "bar": 50
+              },
+              {
+                "label": "烤肉",
+                "selected": false,
+                "percentText": "25%",
+                "votesText": "2 票",
+                "bar": 25
+              },
+              {
+                "label": "日料",
+                "selected": true,
+                "percentText": "63%",
+                "votesText": "5 票",
+                "bar": 63
+              }
+            ],
+            "footer": "8 票"
+          }
+        ],
+        "actions": [
+          {
+            "id": "close",
+            "label": "结束投票",
+            "variant": "danger",
+            "confirm": "结束后不能再投票，确定结束吗？",
+            "form": false
+          }
+        ],
+        "seeAllOpensDetail": false
+      }
+    },
+    {
+      "id": "poll-closed",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "available": true,
+        "title": "周五团建去哪儿？",
+        "fields": [],
+        "actions": [],
+        "blocks": [
+          {
+            "kind": "choices",
+            "options": [
+              {
+                "index": 0,
+                "label": "爬山",
+                "selected": false,
+                "count": 3,
+                "percent": 30
+              },
+              {
+                "index": 1,
+                "label": "桌游",
+                "selected": true,
+                "count": 6,
+                "percent": 60
+              },
+              {
+                "index": 2,
+                "label": "烧烤",
+                "selected": false,
+                "count": 1,
+                "percent": 10
+              }
+            ],
+            "multiple": false,
+            "voted": true,
+            "closed": true,
+            "showResults": true,
+            "total": 10,
+            "inputName": "selection"
+          },
+          {
+            "kind": "time",
+            "label": "截止",
+            "atMs": 1792630800000,
+            "countdown": true
+          }
+        ]
+      },
+      "expect": {
+        "title": "周五团建去哪儿？",
+        "bodyHidden": false,
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "choices",
+            "interactive": false,
+            "multiple": false,
+            "submit": null,
+            "options": [
+              {
+                "label": "爬山",
+                "selected": false,
+                "percentText": "30%",
+                "votesText": "3 票",
+                "bar": 30
+              },
+              {
+                "label": "桌游",
+                "selected": true,
+                "percentText": "60%",
+                "votesText": "6 票",
+                "bar": 60
+              },
+              {
+                "label": "烧烤",
+                "selected": false,
+                "percentText": "10%",
+                "votesText": "1 票",
+                "bar": 10
+              }
+            ],
+            "footer": "已结束 · 10 票"
+          },
+          {
+            "kind": "time",
+            "label": "截止",
+            "text": "10月22日 09:00",
+            "countdown": "已截止",
+            "refreshMs": null
+          }
+        ],
+        "actions": [],
+        "seeAllOpensDetail": false
+      }
+    },
+    {
+      "id": "solitaire-more",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "available": true,
+        "title": "周末读书会报名",
+        "fields": [],
+        "actions": [
+          {
+            "id": "join",
+            "label": "参与接龙",
+            "target": {
+              "kind": "operation",
+              "operation": "join"
+            },
+            "input": {},
+            "style": "primary",
+            "form": [
+              "line"
+            ]
+          }
+        ],
+        "blocks": [
+          {
+            "kind": "text",
+            "text": "每人写一本想读的书，周日晚上截止。",
+            "maxLines": 3,
+            "style": "body"
+          },
+          {
+            "kind": "entries",
+            "items": [
+              {
+                "index": 1,
+                "text": "《三体》",
+                "userId": "u_alice01"
+              },
+              {
+                "index": 2,
+                "text": "《活着》",
+                "userId": "u_bob0002"
+              },
+              {
+                "index": 3,
+                "text": "《百年孤独》",
+                "userId": "u_carol003"
+              },
+              {
+                "index": 4,
+                "text": "《人类简史》",
+                "userId": "u_dave9876"
+              },
+              {
+                "index": 5,
+                "text": "《围城》",
+                "userId": "u_alice01",
+                "name": "小周"
+              },
+              {
+                "index": 6,
+                "text": "《边城》",
+                "userId": "u_bob0002"
+              },
+              {
+                "index": 7,
+                "text": "《小王子》",
+                "userId": "u_carol003"
+              },
+              {
+                "index": 8,
+                "text": "《平凡的世界》",
+                "userId": "u_dave9876"
+              },
+              {
+                "index": 9,
+                "text": "《红楼梦》",
+                "userId": "u_alice01"
+              },
+              {
+                "index": 10,
+                "text": "《沉默的大多数》",
+                "userId": "u_bob0002"
+              }
+            ],
+            "numbered": true,
+            "total": 12,
+            "more": true
+          }
+        ],
+        "inputs": [
+          {
+            "id": "line",
+            "kind": "textarea",
+            "label": "接龙内容",
+            "required": true,
+            "placeholder": "写下你的内容",
+            "maxLength": 200
+          }
+        ],
+        "detail": true
+      },
+      "expect": {
+        "title": "周末读书会报名",
+        "bodyHidden": false,
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "text",
+            "text": "每人写一本想读的书，周日晚上截止。",
+            "style": "body",
+            "maxLines": 3
+          },
+          {
+            "kind": "entries",
+            "rows": [
+              {
+                "number": "1",
+                "name": "Alice",
+                "text": "《三体》",
+                "userId": "u_alice01"
+              },
+              {
+                "number": "2",
+                "name": "Bob",
+                "text": "《活着》",
+                "userId": "u_bob0002"
+              },
+              {
+                "number": "3",
+                "name": "Carol",
+                "text": "《百年孤独》",
+                "userId": "u_carol003"
+              },
+              {
+                "number": "4",
+                "name": "9876",
+                "text": "《人类简史》",
+                "userId": "u_dave9876"
+              },
+              {
+                "number": "5",
+                "name": "小周",
+                "text": "《围城》",
+                "userId": "u_alice01"
+              },
+              {
+                "number": "6",
+                "name": "Bob",
+                "text": "《边城》",
+                "userId": "u_bob0002"
+              },
+              {
+                "number": "7",
+                "name": "Carol",
+                "text": "《小王子》",
+                "userId": "u_carol003"
+              },
+              {
+                "number": "8",
+                "name": "9876",
+                "text": "《平凡的世界》",
+                "userId": "u_dave9876"
+              },
+              {
+                "number": "9",
+                "name": "Alice",
+                "text": "《红楼梦》",
+                "userId": "u_alice01"
+              },
+              {
+                "number": "10",
+                "name": "Bob",
+                "text": "《沉默的大多数》",
+                "userId": "u_bob0002"
+              }
+            ],
+            "seeAll": "查看全部（12）",
+            "empty": null
+          }
+        ],
+        "actions": [
+          {
+            "id": "join",
+            "label": "参与接龙",
+            "variant": "primary",
+            "confirm": null,
+            "form": true
+          }
+        ],
+        "seeAllOpensDetail": true
+      }
+    },
+    {
+      "id": "task",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "available": true,
+        "title": "整理 Q4 需求文档",
+        "fields": [],
+        "actions": [
+          {
+            "id": "complete",
+            "label": "完成",
+            "target": {
+              "kind": "operation",
+              "operation": "complete"
+            },
+            "input": {},
+            "style": "primary"
+          }
+        ],
+        "blocks": [
+          {
+            "kind": "status",
+            "label": "状态",
+            "text": "进行中",
+            "tone": "info"
+          },
+          {
+            "kind": "people",
+            "groups": [
+              {
+                "label": "负责人",
+                "userIds": [
+                  "u_alice01",
+                  "u_bob0002",
+                  "u_dave9876"
+                ],
+                "count": 3
+              }
+            ]
+          },
+          {
+            "kind": "progress",
+            "label": "完成进度",
+            "value": 1,
+            "total": 3,
+            "percent": 33
+          },
+          {
+            "kind": "time",
+            "label": "截止",
+            "atMs": 1792922400000,
+            "countdown": false
+          }
+        ]
+      },
+      "expect": {
+        "title": "整理 Q4 需求文档",
+        "bodyHidden": false,
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "status",
+            "label": "状态",
+            "text": "进行中",
+            "tone": "info"
+          },
+          {
+            "kind": "people",
+            "groups": [
+              {
+                "label": "负责人",
+                "countText": "3",
+                "avatars": [
+                  "u_alice01",
+                  "u_bob0002",
+                  "u_dave9876"
+                ],
+                "names": [
+                  "Alice",
+                  "Bob",
+                  "9876"
+                ],
+                "tone": "neutral"
+              }
+            ]
+          },
+          {
+            "kind": "progress",
+            "label": "完成进度",
+            "text": "1/3",
+            "percent": 33
+          },
+          {
+            "kind": "time",
+            "label": "截止",
+            "text": "10月25日 18:00",
+            "countdown": null,
+            "refreshMs": null
+          }
+        ],
+        "actions": [
+          {
+            "id": "complete",
+            "label": "完成",
+            "variant": "primary",
+            "confirm": null,
+            "form": false
+          }
+        ],
+        "seeAllOpensDetail": false
+      }
+    },
+    {
+      "id": "schedule",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "available": true,
+        "title": "产品评审会",
+        "fields": [],
+        "actions": [
+          {
+            "id": "cancel",
+            "label": "取消日程",
+            "target": {
+              "kind": "operation",
+              "operation": "cancel"
+            },
+            "input": {},
+            "style": "danger",
+            "confirm": "取消后所有人都会收到通知。"
+          }
+        ],
+        "blocks": [
+          {
+            "kind": "time",
+            "label": "时间",
+            "atMs": 1792648800000,
+            "endMs": 1792652400000,
+            "countdown": false
+          },
+          {
+            "kind": "fields",
+            "fields": [
+              {
+                "label": "地点",
+                "value": "3 楼大会议室"
+              }
+            ]
+          },
+          {
+            "kind": "choices",
+            "options": [
+              {
+                "index": 0,
+                "label": "接受",
+                "selected": false,
+                "count": 5,
+                "percent": 83
+              },
+              {
+                "index": 1,
+                "label": "待定",
+                "selected": false,
+                "count": 1,
+                "percent": 17
+              },
+              {
+                "index": 2,
+                "label": "拒绝",
+                "selected": false,
+                "count": 0,
+                "percent": 0
+              }
+            ],
+            "multiple": false,
+            "voted": false,
+            "closed": false,
+            "showResults": true,
+            "total": 6,
+            "inputName": "response",
+            "action": {
+              "id": "rsvp",
+              "label": "回复",
+              "target": {
+                "kind": "operation",
+                "operation": "rsvp"
+              },
+              "input": {}
+            }
+          }
+        ]
+      },
+      "expect": {
+        "title": "产品评审会",
+        "bodyHidden": false,
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "time",
+            "label": "时间",
+            "text": "10月22日 14:00–15:00",
+            "countdown": null,
+            "refreshMs": null
+          },
+          {
+            "kind": "fields",
+            "fields": [
+              {
+                "label": "地点",
+                "value": "3 楼大会议室"
+              }
+            ]
+          },
+          {
+            "kind": "choices",
+            "interactive": true,
+            "multiple": false,
+            "submit": null,
+            "options": [
+              {
+                "label": "接受",
+                "selected": false,
+                "percentText": "83%",
+                "votesText": "5 票",
+                "bar": 83
+              },
+              {
+                "label": "待定",
+                "selected": false,
+                "percentText": "17%",
+                "votesText": "1 票",
+                "bar": 17
+              },
+              {
+                "label": "拒绝",
+                "selected": false,
+                "percentText": "0%",
+                "votesText": "0 票",
+                "bar": 0
+              }
+            ],
+            "footer": "6 票"
+          }
+        ],
+        "actions": [
+          {
+            "id": "cancel",
+            "label": "取消日程",
+            "variant": "danger",
+            "confirm": "取消后所有人都会收到通知。",
+            "form": false
+          }
+        ],
+        "seeAllOpensDetail": false
+      }
+    },
+    {
+      "id": "announcement",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "available": true,
+        "title": "关于国庆假期安排的通知",
+        "fields": [],
+        "actions": [
+          {
+            "id": "confirm",
+            "label": "确认已读",
+            "target": {
+              "kind": "operation",
+              "operation": "confirm"
+            },
+            "input": {},
+            "style": "primary"
+          }
+        ],
+        "blocks": [
+          {
+            "kind": "text",
+            "text": "各位同事：\n10 月 1 日至 7 日放假，8 日正常上班。\n值班安排见附件，请按时确认。\n如有冲突请联系行政。\n祝大家假期愉快！",
+            "maxLines": 4,
+            "style": "body"
+          },
+          {
+            "kind": "progress",
+            "label": "已确认",
+            "value": 8,
+            "total": 20,
+            "percent": 40
+          },
+          {
+            "kind": "people",
+            "groups": [
+              {
+                "label": "已确认",
+                "userIds": [
+                  "u_alice01",
+                  "u_bob0002"
+                ],
+                "count": 8,
+                "tone": "success"
+              },
+              {
+                "label": "未确认",
+                "userIds": [
+                  "u_carol003",
+                  "u_dave9876"
+                ],
+                "count": 12,
+                "tone": "warning"
+              }
+            ]
+          }
+        ]
+      },
+      "expect": {
+        "title": "关于国庆假期安排的通知",
+        "bodyHidden": false,
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "text",
+            "text": "各位同事：\n10 月 1 日至 7 日放假，8 日正常上班。\n值班安排见附件，请按时确认。\n如有冲突请联系行政。\n祝大家假期愉快！",
+            "style": "body",
+            "maxLines": 4
+          },
+          {
+            "kind": "progress",
+            "label": "已确认",
+            "text": "8/20",
+            "percent": 40
+          },
+          {
+            "kind": "people",
+            "groups": [
+              {
+                "label": "已确认",
+                "countText": "8",
+                "avatars": [
+                  "u_alice01",
+                  "u_bob0002"
+                ],
+                "names": [
+                  "Alice",
+                  "Bob"
+                ],
+                "tone": "success"
+              },
+              {
+                "label": "未确认",
+                "countText": "12",
+                "avatars": [
+                  "u_carol003",
+                  "u_dave9876"
+                ],
+                "names": [
+                  "Carol",
+                  "9876"
+                ],
+                "tone": "warning"
+              }
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "id": "confirm",
+            "label": "确认已读",
+            "variant": "primary",
+            "confirm": null,
+            "form": false
+          }
+        ],
+        "seeAllOpensDetail": false
+      }
+    },
+    {
+      "id": "blocks-misc",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "available": true,
+        "title": "插件卡片",
+        "fields": [
+          {
+            "label": "金额",
+            "value": "100"
+          }
+        ],
+        "actions": [],
+        "blocks": [
+          {
+            "kind": "text",
+            "text": "标题文字",
+            "style": "title"
+          },
+          {
+            "kind": "text",
+            "text": "说明文字",
+            "style": "secondary"
+          },
+          {
+            "kind": "fields",
+            "fields": [
+              {
+                "label": "编号",
+                "value": "A-102"
+              }
+            ]
+          },
+          {
+            "kind": "divider"
+          },
+          {
+            "kind": "status",
+            "text": "已完成",
+            "tone": "success"
+          },
+          {
+            "kind": "note",
+            "text": "仅群主可见",
+            "tone": "warning"
+          },
+          {
+            "kind": "note",
+            "text": "普通备注"
+          },
+          {
+            "kind": "entries",
+            "items": [],
+            "numbered": true,
+            "total": 0,
+            "more": false,
+            "emptyText": "还没有人参与"
+          }
+        ]
+      },
+      "expect": {
+        "title": "插件卡片",
+        "bodyHidden": false,
+        "fields": [
+          {
+            "label": "金额",
+            "value": "100"
+          }
+        ],
+        "blocks": [
+          {
+            "kind": "text",
+            "text": "标题文字",
+            "style": "title",
+            "maxLines": null
+          },
+          {
+            "kind": "text",
+            "text": "说明文字",
+            "style": "secondary",
+            "maxLines": null
+          },
+          {
+            "kind": "fields",
+            "fields": [
+              {
+                "label": "编号",
+                "value": "A-102"
+              }
+            ]
+          },
+          {
+            "kind": "divider"
+          },
+          {
+            "kind": "status",
+            "label": null,
+            "text": "已完成",
+            "tone": "success"
+          },
+          {
+            "kind": "note",
+            "text": "仅群主可见",
+            "tone": "warning"
+          },
+          {
+            "kind": "note",
+            "text": "普通备注",
+            "tone": "neutral"
+          },
+          {
+            "kind": "entries",
+            "rows": [],
+            "seeAll": null,
+            "empty": "还没有人参与"
+          }
+        ],
+        "actions": [],
+        "seeAllOpensDetail": false
+      }
+    },
+    {
+      "id": "v1",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "available": true,
+        "title": "红包",
+        "fields": [
+          {
+            "label": "金额",
+            "value": "¥5.00"
+          }
+        ],
+        "actions": [
+          {
+            "id": "claim",
+            "label": "领取",
+            "target": {
+              "kind": "operation",
+              "operation": "claim"
+            },
+            "input": {}
+          }
+        ]
+      },
+      "expect": {
+        "title": "红包",
+        "bodyHidden": false,
+        "fields": [
+          {
+            "label": "金额",
+            "value": "¥5.00"
+          }
+        ],
+        "blocks": [],
+        "actions": [
+          {
+            "id": "claim",
+            "label": "领取",
+            "variant": "secondary",
+            "confirm": null,
+            "form": false
+          }
+        ],
+        "seeAllOpensDetail": false
+      }
+    },
+    {
+      "id": "unavailable",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "available": false,
+        "title": "投票（已失效）",
+        "fields": [
+          {
+            "label": "选项",
+            "value": "3"
+          }
+        ],
+        "actions": [
+          {
+            "id": "vote",
+            "label": "投票",
+            "target": {
+              "kind": "operation",
+              "operation": "vote"
+            },
+            "input": {}
+          }
+        ],
+        "blocks": [
+          {
+            "kind": "status",
+            "text": "进行中",
+            "tone": "info"
+          }
+        ]
+      },
+      "expect": {
+        "title": "投票（已失效）",
+        "bodyHidden": true,
+        "fields": [],
+        "blocks": [],
+        "actions": []
+      }
+    },
+    {
+      "id": "admin-rows",
+      "platforms": [
+        "vue"
+      ],
+      "view": {
+        "available": true,
+        "title": "投票管理",
+        "fields": [],
+        "actions": [],
+        "blocks": [
+          {
+            "kind": "rows",
+            "source": "list",
+            "columns": [
+              {
+                "label": "标题",
+                "format": "text"
+              },
+              {
+                "label": "发起人",
+                "format": "text"
+              },
+              {
+                "label": "状态",
+                "format": "text"
+              },
+              {
+                "label": "创建时间",
+                "format": "time"
+              }
+            ],
+            "rows": [
+              {
+                "key": "p1",
+                "cells": [
+                  {
+                    "text": "周五团建去哪儿？"
+                  },
+                  {
+                    "text": "Alice"
+                  },
+                  {
+                    "text": "进行中"
+                  },
+                  {
+                    "text": "1792546200000",
+                    "timeMs": 1792546200000
+                  }
+                ],
+                "actions": [
+                  {
+                    "id": "close",
+                    "input": {
+                      "pollId": "p1"
+                    }
+                  }
+                ],
+                "detailInput": {
+                  "pollId": "p1"
+                }
+              },
+              {
+                "key": "p2",
+                "cells": [
+                  {
+                    "text": "年会节目投票"
+                  },
+                  {
+                    "text": "Bob"
+                  },
+                  {
+                    "text": "已结束"
+                  },
+                  {
+                    "text": "1767096300000",
+                    "timeMs": 1767096300000
+                  }
+                ],
+                "actions": [],
+                "detailInput": {
+                  "pollId": "p2"
+                }
+              },
+              {
+                "key": "p3",
+                "cells": [
+                  {
+                    "text": "午餐投票"
+                  },
+                  {
+                    "text": ""
+                  },
+                  {
+                    "text": "进行中"
+                  },
+                  {
+                    "text": ""
+                  }
+                ],
+                "actions": [
+                  {
+                    "id": "close",
+                    "input": {
+                      "pollId": "p3"
+                    }
+                  }
+                ]
+              }
+            ],
+            "nextCursor": "c2",
+            "actions": [
+              {
+                "id": "close",
+                "label": "关闭",
+                "target": {
+                  "kind": "operation",
+                  "operation": "close"
+                },
+                "input": {
+                  "pollId": "/pollId"
+                },
+                "style": "danger",
+                "confirm": "确定关闭这个投票吗？"
+              }
+            ],
+            "emptyText": "还没有投票"
+          }
+        ]
+      },
+      "expect": {
+        "title": "投票管理",
+        "bodyHidden": false,
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "rows",
+            "columns": [
+              "标题",
+              "发起人",
+              "状态",
+              "创建时间"
+            ],
+            "rows": [
+              {
+                "key": "p1",
+                "cells": [
+                  "周五团建去哪儿？",
+                  "Alice",
+                  "进行中",
+                  "10月21日 09:30"
+                ],
+                "actions": [
+                  "关闭"
+                ],
+                "opensDetail": true
+              },
+              {
+                "key": "p2",
+                "cells": [
+                  "年会节目投票",
+                  "Bob",
+                  "已结束",
+                  "2025年12月30日 20:05"
+                ],
+                "actions": [],
+                "opensDetail": true
+              },
+              {
+                "key": "p3",
+                "cells": [
+                  "午餐投票",
+                  "",
+                  "进行中",
+                  ""
+                ],
+                "actions": [
+                  "关闭"
+                ],
+                "opensDetail": false
+              }
+            ],
+            "loadMore": "c2",
+            "empty": null
+          }
+        ],
+        "actions": [],
+        "seeAllOpensDetail": false
+      }
+    },
+    {
+      "id": "admin-rows-empty",
+      "platforms": [
+        "vue"
+      ],
+      "view": {
+        "available": true,
+        "title": "投票管理",
+        "fields": [],
+        "actions": [],
+        "blocks": [
+          {
+            "kind": "rows",
+            "source": "list",
+            "columns": [
+              {
+                "label": "标题",
+                "format": "text"
+              }
+            ],
+            "rows": [],
+            "actions": [],
+            "emptyText": "还没有投票"
+          }
+        ]
+      },
+      "expect": {
+        "title": "投票管理",
+        "bodyHidden": false,
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "rows",
+            "columns": [
+              "标题"
+            ],
+            "rows": [],
+            "loadMore": null,
+            "empty": "还没有投票"
+          }
+        ],
+        "actions": [],
+        "seeAllOpensDetail": false
+      }
+    }
+  ],
+  "optimistic": [
+    {
+      "name": "single vote reverts on failure",
+      "view": "poll-open-single",
+      "steps": [
+        {
+          "tap": 1,
+          "emit": {
+            "actionId": "vote",
+            "payload": {
+              "selection": [
+                1
+              ]
+            }
+          },
+          "selected": [
+            1
+          ],
+          "interactive": false
+        },
+        {
+          "host": {
+            "busyActionId": "vote"
+          },
+          "selected": [
+            1
+          ]
+        },
+        {
+          "host": {
+            "busyActionId": null,
+            "error": "网络异常，请重试"
+          },
+          "selected": [],
+          "interactive": true
+        }
+      ]
+    },
+    {
+      "name": "single vote settles on the new view",
+      "view": "poll-open-single",
+      "steps": [
+        {
+          "tap": 1,
+          "emit": {
+            "actionId": "vote",
+            "payload": {
+              "selection": [
+                1
+              ]
+            }
+          },
+          "selected": [
+            1
+          ]
+        },
+        {
+          "host": {
+            "busyActionId": "vote"
+          },
+          "selected": [
+            1
+          ]
+        },
+        {
+          "host": {
+            "busyActionId": null
+          },
+          "selected": [
+            1
+          ]
+        },
+        {
+          "host": {
+            "view": "poll-voted-single"
+          },
+          "selected": [
+            1
+          ],
+          "interactive": true
+        }
+      ]
+    },
+    {
+      "name": "error without busy reverts",
+      "view": "poll-open-single",
+      "steps": [
+        {
+          "tap": 0,
+          "emit": {
+            "actionId": "vote",
+            "payload": {
+              "selection": [
+                0
+              ]
+            }
+          },
+          "selected": [
+            0
+          ]
+        },
+        {
+          "host": {
+            "error": "投票已结束"
+          },
+          "selected": []
+        }
+      ]
+    },
+    {
+      "name": "multiple submit sends the sorted draft",
+      "view": "poll-open-multi",
+      "steps": [
+        {
+          "toggle": 2,
+          "selected": [
+            2
+          ],
+          "submitEnabled": true
+        },
+        {
+          "toggle": 0,
+          "selected": [
+            0,
+            2
+          ],
+          "submitEnabled": true
+        },
+        {
+          "toggle": 2,
+          "selected": [
+            0
+          ],
+          "submitEnabled": true
+        },
+        {
+          "toggle": 2,
+          "selected": [
+            0,
+            2
+          ],
+          "submitEnabled": true
+        },
+        {
+          "submit": true,
+          "emit": {
+            "actionId": "vote",
+            "payload": {
+              "selection": [
+                0,
+                2
+              ]
+            }
+          },
+          "selected": [
+            0,
+            2
+          ]
+        },
+        {
+          "host": {
+            "busyActionId": null,
+            "error": "网络异常，请重试"
+          },
+          "selected": [],
+          "submitEnabled": false
+        }
+      ]
+    },
+    {
+      "name": "changing a multiple vote",
+      "view": "poll-voted-multi",
+      "steps": [
+        {
+          "toggle": 1,
+          "selected": [
+            0,
+            1,
+            2
+          ],
+          "submitEnabled": true
+        },
+        {
+          "toggle": 1,
+          "selected": [
+            0,
+            2
+          ],
+          "submitEnabled": false
+        },
+        {
+          "toggle": 0,
+          "selected": [
+            2
+          ],
+          "submitEnabled": true
+        },
+        {
+          "submit": true,
+          "emit": {
+            "actionId": "vote",
+            "payload": {
+              "selection": [
+                2
+              ]
+            }
+          },
+          "selected": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "name": "settleToken settles a same-frame success and keeps the mark until the new view",
+      "view": "poll-open-single",
+      "steps": [
+        {
+          "tap": 1,
+          "emit": {
+            "actionId": "vote",
+            "payload": {
+              "selection": [
+                1
+              ]
+            }
+          },
+          "selected": [
+            1
+          ],
+          "interactive": false
+        },
+        {
+          "host": {
+            "settleToken": 1
+          },
+          "selected": [
+            1
+          ],
+          "interactive": false
+        },
+        {
+          "host": {
+            "view": "poll-voted-single"
+          },
+          "selected": [
+            1
+          ],
+          "interactive": true
+        }
+      ]
+    },
+    {
+      "name": "settleToken reverts on an error that did not change",
+      "view": "poll-open-single",
+      "steps": [
+        {
+          "tap": 0,
+          "emit": {
+            "actionId": "vote",
+            "payload": {
+              "selection": [
+                0
+              ]
+            }
+          },
+          "selected": [
+            0
+          ]
+        },
+        {
+          "host": {
+            "error": "网络异常，请重试",
+            "settleToken": 1
+          },
+          "selected": [],
+          "interactive": true
+        },
+        {
+          "tap": 1,
+          "emit": {
+            "actionId": "vote",
+            "payload": {
+              "selection": [
+                1
+              ]
+            }
+          },
+          "selected": [
+            1
+          ],
+          "interactive": false
+        },
+        {
+          "host": {
+            "settleToken": 2
+          },
+          "selected": [],
+          "interactive": true
+        }
+      ]
+    },
+    {
+      "name": "settleToken and busyActionId together settle once",
+      "view": "poll-open-multi",
+      "steps": [
+        {
+          "toggle": 1,
+          "selected": [
+            1
+          ],
+          "submitEnabled": true
+        },
+        {
+          "submit": true,
+          "emit": {
+            "actionId": "vote",
+            "payload": {
+              "selection": [
+                1
+              ]
+            }
+          },
+          "selected": [
+            1
+          ]
+        },
+        {
+          "host": {
+            "busyActionId": "vote"
+          },
+          "selected": [
+            1
+          ]
+        },
+        {
+          "host": {
+            "busyActionId": null,
+            "settleToken": 1
+          },
+          "selected": [
+            1
+          ]
+        },
+        {
+          "host": {
+            "view": "poll-voted-multi"
+          },
+          "selected": [
+            0,
+            2
+          ]
+        }
+      ]
+    }
+  ],
+  "time": [
+    {
+      "name": "point",
+      "atMs": 1792663200000,
+      "endMs": null,
+      "utcOffsetMinutes": 480,
+      "zh": "10月22日 18:00",
+      "en": "Oct 22, 18:00"
+    },
+    {
+      "name": "same-day range",
+      "atMs": 1792648800000,
+      "endMs": 1792652400000,
+      "utcOffsetMinutes": 480,
+      "zh": "10月22日 14:00–15:00",
+      "en": "Oct 22, 14:00–15:00"
+    },
+    {
+      "name": "cross-day range",
+      "atMs": 1792677600000,
+      "endMs": 1792717200000,
+      "utcOffsetMinutes": 480,
+      "zh": "10月22日 22:00 – 10月23日 09:00",
+      "en": "Oct 22, 22:00 – Oct 23, 09:00"
+    },
+    {
+      "name": "other year",
+      "atMs": 1798956300000,
+      "endMs": null,
+      "utcOffsetMinutes": 480,
+      "zh": "2027年1月3日 14:05",
+      "en": "Jan 3, 2027, 14:05"
+    },
+    {
+      "name": "cross-year range",
+      "atMs": 1798725600000,
+      "endMs": 1798740000000,
+      "utcOffsetMinutes": 480,
+      "zh": "12月31日 22:00 – 2027年1月1日 02:00",
+      "en": "Dec 31, 22:00 – Jan 1, 2027, 02:00"
+    },
+    {
+      "name": "midnight",
+      "atMs": 1792684800000,
+      "endMs": null,
+      "utcOffsetMinutes": 480,
+      "zh": "10月23日 00:00",
+      "en": "Oct 23, 00:00"
+    },
+    {
+      "name": "another zone",
+      "atMs": 1792632600000,
+      "endMs": 1792638000000,
+      "utcOffsetMinutes": -300,
+      "zh": "10月21日 20:30–22:00",
+      "en": "Oct 21, 20:30–22:00"
+    }
+  ],
+  "countdown": [
+    {
+      "name": "passed",
+      "atMs": 1792634399999,
+      "nowMs": 1792634400000,
+      "zh": "已截止",
+      "en": "Closed",
+      "refreshMs": null
+    },
+    {
+      "name": "exactly now",
+      "atMs": 1792634400000,
+      "nowMs": 1792634400000,
+      "zh": "已截止",
+      "en": "Closed",
+      "refreshMs": null
+    },
+    {
+      "name": "one second",
+      "atMs": 1792634401000,
+      "nowMs": 1792634400000,
+      "zh": "剩余 00:01",
+      "en": "00:01 left",
+      "refreshMs": 1000
+    },
+    {
+      "name": "under a minute",
+      "atMs": 1792634459999,
+      "nowMs": 1792634400000,
+      "zh": "剩余 00:59",
+      "en": "00:59 left",
+      "refreshMs": 1000
+    },
+    {
+      "name": "minutes and seconds",
+      "atMs": 1792634709000,
+      "nowMs": 1792634400000,
+      "zh": "剩余 05:09",
+      "en": "05:09 left",
+      "refreshMs": 1000
+    },
+    {
+      "name": "just under an hour",
+      "atMs": 1792637999999,
+      "nowMs": 1792634400000,
+      "zh": "剩余 59:59",
+      "en": "59:59 left",
+      "refreshMs": 1000
+    },
+    {
+      "name": "one hour",
+      "atMs": 1792638000000,
+      "nowMs": 1792634400000,
+      "zh": "剩余 1 小时",
+      "en": "1 h left",
+      "refreshMs": 60000
+    },
+    {
+      "name": "hours and minutes",
+      "atMs": 1792653150000,
+      "nowMs": 1792634400000,
+      "zh": "剩余 5 小时 12 分钟",
+      "en": "5 h 12 min left",
+      "refreshMs": 60000
+    },
+    {
+      "name": "whole hours",
+      "atMs": 1792663200000,
+      "nowMs": 1792634400000,
+      "zh": "剩余 8 小时",
+      "en": "8 h left",
+      "refreshMs": 60000
+    },
+    {
+      "name": "days and hours",
+      "atMs": 1792818300000,
+      "nowMs": 1792634400000,
+      "zh": "剩余 2 天 3 小时",
+      "en": "2 d 3 h left",
+      "refreshMs": 60000
+    },
+    {
+      "name": "whole days",
+      "atMs": 1792893600000,
+      "nowMs": 1792634400000,
+      "zh": "剩余 3 天",
+      "en": "3 d left",
+      "refreshMs": 60000
+    }
+  ],
+  "form": {
+    "inputs": [
+      {
+        "id": "title",
+        "kind": "text",
+        "label": "标题",
+        "required": true,
+        "placeholder": "输入标题",
+        "maxLength": 10
+      },
+      {
+        "id": "body",
+        "kind": "textarea",
+        "label": "说明",
+        "maxLength": 20
+      },
+      {
+        "id": "limit",
+        "kind": "number",
+        "label": "人数上限",
+        "min": 1,
+        "max": 50
+      },
+      {
+        "id": "anonymous",
+        "kind": "toggle",
+        "label": "匿名",
+        "default": false
+      },
+      {
+        "id": "visibility",
+        "kind": "select",
+        "label": "可见范围",
+        "required": true,
+        "choices": [
+          {
+            "value": "all",
+            "label": "所有人"
+          },
+          {
+            "value": "admins",
+            "label": "仅管理员"
+          }
+        ]
+      },
+      {
+        "id": "deadline",
+        "kind": "datetime",
+        "label": "截止时间",
+        "required": true
+      },
+      {
+        "id": "options",
+        "kind": "options",
+        "label": "选项",
+        "required": true,
+        "maxLength": 8,
+        "min": 2,
+        "max": 5,
+        "default": [
+          "",
+          ""
+        ]
+      },
+      {
+        "id": "assignees",
+        "kind": "members",
+        "label": "负责人",
+        "max": 3
+      },
+      {
+        "id": "owner",
+        "kind": "members",
+        "label": "主负责人",
+        "required": true,
+        "max": 1
+      }
+    ],
+    "initial": {
+      "options": {
+        "rows": 2,
+        "canAdd": true,
+        "canRemove": false
+      },
+      "owner": {
+        "single": true
+      },
+      "assignees": {
+        "single": false
+      },
+      "counters": {
+        "title": "0/10",
+        "body": "0/20"
+      }
+    },
+    "cases": [
+      {
+        "name": "empty",
+        "values": {},
+        "clientErrors": [
+          {
+            "input": "title",
+            "issue": "required"
+          },
+          {
+            "input": "visibility",
+            "issue": "required"
+          },
+          {
+            "input": "deadline",
+            "issue": "required"
+          },
+          {
+            "input": "options",
+            "issue": "required"
+          },
+          {
+            "input": "owner",
+            "issue": "required"
+          }
+        ],
+        "submitted": null
+      },
+      {
+        "name": "too long",
+        "values": {
+          "title": "一二三四五六七八九十十一",
+          "body": "xxxxxxxxxxxxxxxxxxxxx",
+          "visibility": "all",
+          "deadline": 1792836000000,
+          "options": [
+            "选项一",
+            "这个选项超过了八个字"
+          ],
+          "owner": [
+            "u_alice01"
+          ]
+        },
+        "clientErrors": [
+          {
+            "input": "title",
+            "issue": "tooLong"
+          },
+          {
+            "input": "body",
+            "issue": "tooLong"
+          },
+          {
+            "input": "options",
+            "issue": "tooLong"
+          }
+        ],
+        "submitted": null
+      },
+      {
+        "name": "emoji counts as one character",
+        "values": {
+          "title": "🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉",
+          "visibility": "all",
+          "deadline": 1792836000000,
+          "options": [
+            "👍",
+            "👎"
+          ],
+          "owner": [
+            "u_alice01"
+          ]
+        },
+        "clientErrors": [],
+        "submitted": {
+          "title": "🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉",
+          "anonymous": false,
+          "visibility": "all",
+          "deadline": 1792836000000,
+          "options": [
+            "👍",
+            "👎"
+          ],
+          "owner": [
+            "u_alice01"
+          ]
+        }
+      },
+      {
+        "name": "valid",
+        "values": {
+          "title": " 团建 ",
+          "body": "",
+          "limit": 3,
+          "anonymous": true,
+          "visibility": "admins",
+          "deadline": 1792836000000,
+          "options": [
+            " 爬山 ",
+            "",
+            "桌游"
+          ],
+          "assignees": [
+            "u_alice01",
+            "u_bob0002"
+          ],
+          "owner": [
+            "u_carol003"
+          ]
+        },
+        "clientErrors": [],
+        "submitted": {
+          "title": "团建",
+          "limit": 3,
+          "anonymous": true,
+          "visibility": "admins",
+          "deadline": 1792836000000,
+          "options": [
+            "爬山",
+            "桌游"
+          ],
+          "assignees": [
+            "u_alice01",
+            "u_bob0002"
+          ],
+          "owner": [
+            "u_carol003"
+          ]
+        }
+      }
+    ],
+    "hostErrors": [
+      {
+        "error": {
+          "input": "limit",
+          "issue": "outOfRange"
+        },
+        "zh": "超出范围",
+        "en": "Out of range"
+      },
+      {
+        "error": {
+          "input": "options",
+          "issue": "tooFewItems"
+        },
+        "zh": "至少 2 项",
+        "en": "At least 2"
+      },
+      {
+        "error": {
+          "input": "options",
+          "issue": "duplicateItem"
+        },
+        "zh": "不能重复",
+        "en": "No duplicates"
+      },
+      {
+        "error": {
+          "input": "assignees",
+          "issue": "tooManyItems"
+        },
+        "zh": "最多 3 项",
+        "en": "At most 3"
+      },
+      {
+        "error": {
+          "input": "visibility",
+          "issue": "notAChoice"
+        },
+        "zh": "格式不正确",
+        "en": "Invalid value"
+      },
+      {
+        "error": {
+          "input": "title",
+          "issue": "required"
+        },
+        "zh": "必填",
+        "en": "Required"
+      },
+      {
+        "error": {
+          "input": "body",
+          "issue": "tooLong"
+        },
+        "zh": "超出长度",
+        "en": "Too long"
+      },
+      {
+        "error": {
+          "input": "deadline",
+          "issue": "invalidType"
+        },
+        "zh": "格式不正确",
+        "en": "Invalid value"
+      },
+      {
+        "error": {
+          "input": "owner",
+          "issue": "invalidItem"
+        },
+        "zh": "格式不正确",
+        "en": "Invalid value"
+      }
+    ],
+    "shownPerInput": {
+      "limit": "超出范围",
+      "options": "至少 2 项",
+      "assignees": "最多 3 项",
+      "visibility": "格式不正确",
+      "title": "必填",
+      "body": "超出长度",
+      "deadline": "格式不正确",
+      "owner": "格式不正确"
+    }
+  },
+  "detailPaging": [
+    {
+      "name": "more pages: load more with the cursor",
+      "view": "solitaire-more",
+      "nextCursor": "page-2",
+      "loadingMore": false,
+      "expect": {
+        "loadMore": true,
+        "enabled": true,
+        "spinning": false,
+        "emit": "page-2"
+      }
+    },
+    {
+      "name": "fetching the next page spins the key",
+      "view": "solitaire-more",
+      "nextCursor": "page-2",
+      "loadingMore": true,
+      "expect": {
+        "loadMore": true,
+        "enabled": false,
+        "spinning": true,
+        "emit": null
+      }
+    },
+    {
+      "name": "last page: no key",
+      "view": "solitaire-more",
+      "nextCursor": null,
+      "loadingMore": false,
+      "expect": {
+        "loadMore": false
+      }
+    },
+    {
+      "name": "a blank cursor is the last page",
+      "view": "solitaire-more",
+      "nextCursor": "  ",
+      "loadingMore": false,
+      "expect": {
+        "loadMore": false
+      }
+    },
+    {
+      "name": "an asked page spins until the merged view brings another cursor, and a failure allows a retry",
+      "view": "solitaire-more",
+      "nextCursor": "page-2",
+      "loadingMore": false,
+      "expect": {
+        "loadMore": true,
+        "enabled": true,
+        "spinning": false
+      },
+      "steps": [
+        {
+          "tap": true,
+          "emit": "page-2",
+          "spinning": true,
+          "enabled": false
+        },
+        {
+          "tap": true,
+          "emit": null
+        },
+        {
+          "host": {
+            "nextCursor": "page-3"
+          },
+          "spinning": false,
+          "enabled": true
+        },
+        {
+          "tap": true,
+          "emit": "page-3",
+          "spinning": true,
+          "enabled": false
+        },
+        {
+          "host": {
+            "actionError": "加载失败，请重试"
+          },
+          "spinning": false,
+          "enabled": true
+        },
+        {
+          "tap": true,
+          "emit": "page-3",
+          "spinning": true
+        },
+        {
+          "host": {
+            "loadingMore": true
+          },
+          "spinning": true,
+          "enabled": false
+        },
+        {
+          "host": {
+            "loadingMore": false
+          },
+          "spinning": false,
+          "enabled": true
+        },
+        {
+          "host": {
+            "nextCursor": null
+          },
+          "loadMore": false
+        }
+      ]
+    }
+  ],
+  "insets": {
+    "none": {
+      "top": null,
+      "sides": null,
+      "bottom": null
+    },
+    "sheet": {
+      "top": "md",
+      "sides": "lg",
+      "bottom": "xl"
+    },
+    "sheetTop": {
+      "top": "md",
+      "sides": "lg",
+      "bottom": null
+    }
+  },
+  "detailKey": [
+    {
+      "name": "detail without an entries block: the card's key, which opens the detail",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "task",
+      "detail": true,
+      "expect": {
+        "key": {
+          "label": "查看详情",
+          "enabled": true
+        },
+        "seeAll": null,
+        "opens": true
+      }
+    },
+    {
+      "name": "detail with entries that all fit: the card's key",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "blocks-misc",
+      "detail": true,
+      "expect": {
+        "key": {
+          "label": "查看详情",
+          "enabled": true
+        },
+        "seeAll": null
+      }
+    },
+    {
+      "name": "entries over the shown count: only their see all",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "solitaire-more",
+      "expect": {
+        "key": null,
+        "seeAll": "查看全部（12）"
+      }
+    },
+    {
+      "name": "no detail: no key",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "task",
+      "expect": {
+        "key": null,
+        "seeAll": null
+      }
+    },
+    {
+      "name": "unavailable: no key",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "unavailable",
+      "detail": true,
+      "expect": {
+        "key": null,
+        "seeAll": null
+      }
+    },
+    {
+      "name": "embedded (the detail sheet, an admin page, a sheet's preface): no key",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "task",
+      "detail": true,
+      "embedded": true,
+      "expect": {
+        "key": null
+      }
+    },
+    {
+      "name": "busy: the key waits",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "task",
+      "detail": true,
+      "busy": true,
+      "expect": {
+        "key": {
+          "label": "查看详情",
+          "enabled": false
+        }
+      }
+    },
+    {
+      "name": "an action in flight: the key waits",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "task",
+      "detail": true,
+      "busyActionId": "complete",
+      "expect": {
+        "key": {
+          "label": "查看详情",
+          "enabled": false
+        }
+      }
+    },
+    {
+      "name": "no openDetail handler: no key",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "task",
+      "detail": true,
+      "handler": false,
+      "expect": {
+        "key": null
+      }
+    },
+    {
+      "name": "an admin page opens the detail from its rows: no key",
+      "platforms": [
+        "vue"
+      ],
+      "view": "admin-rows",
+      "detail": true,
+      "expect": {
+        "key": null
+      }
+    }
+  ],
+  "filterInputs": {
+    "platforms": [
+      "vue"
+    ],
+    "inputs": [
+      "status",
+      "keyword",
+      "reason",
+      "note"
+    ],
+    "cases": [
+      {
+        "name": "no filters: every input",
+        "filters": null,
+        "expect": [
+          "status",
+          "keyword",
+          "reason",
+          "note"
+        ]
+      },
+      {
+        "name": "listed filters, in input order",
+        "filters": [
+          "keyword",
+          "status"
+        ],
+        "expect": [
+          "status",
+          "keyword"
+        ]
+      },
+      {
+        "name": "unknown ids are ignored",
+        "filters": [
+          "keyword",
+          "missing"
+        ],
+        "expect": [
+          "keyword"
+        ]
+      },
+      {
+        "name": "an empty list: no filter bar",
+        "filters": [],
+        "expect": []
+      }
+    ]
+  }
+}

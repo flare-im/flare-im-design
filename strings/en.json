@@ -2717,7 +2717,9 @@
   "loading": {
     "en": "Loading…",
     "kits": [
-      "flutter"
+      "android",
+      "flutter",
+      "ios"
     ],
     "zh": "加载中"
   },
@@ -4945,6 +4947,7 @@
     "en": "Select",
     "kits": [
       "android",
+      "flutter",
       "ios"
     ],
     "zh": "选择"
@@ -4961,6 +4964,8 @@
   "selectDate": {
     "en": "Pick a date",
     "kits": [
+      "android",
+      "flutter",
       "ios"
     ],
     "zh": "选择日期"
@@ -4976,6 +4981,8 @@
   "selectTime": {
     "en": "Pick a time",
     "kits": [
+      "android",
+      "flutter",
       "ios"
     ],
     "zh": "选择时间"
@@ -5807,5 +5814,302 @@
       "flutter",
       "ios"
     ]
+  },
+  "locationTitle": {
+    "en": "Location",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "位置"
+  },
+  "locationSend": {
+    "en": "Send",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "发送"
+  },
+  "locationLocateMe": {
+    "en": "Use current location",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "定位到当前位置"
+  },
+  "locationLocating": {
+    "en": "Locating…",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在定位…"
+  },
+  "locationDenied": {
+    "en": "Location unavailable — search for a place",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "无法获取定位，可以搜索地点"
+  },
+  "locationSearchPlaceholder": {
+    "en": "Search places",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "搜索地点"
+  },
+  "locationNoResults": {
+    "en": "No places found nearby",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "附近没有找到地点"
+  },
+  "locationMapUnavailable": {
+    "en": "Map unavailable",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "地图暂不可用"
+  },
+  "locationOpenInMaps": {
+    "en": "Open in Maps",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "在地图中打开"
+  },
+  "locationCurrent": {
+    "en": "Current location",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "当前位置"
+  },
+  "contactPickerTitle": {
+    "en": "Choose a contact",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "选择联系人"
+  },
+  "contactPickerFriends": {
+    "en": "Friends",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "好友"
+  },
+  "contactPickerGroupMembers": {
+    "en": "Group members",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "群成员"
+  },
+  "contactPickerSearch": {
+    "en": "Search",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "搜索"
+  },
+  "contactPickerEmpty": {
+    "en": "No contacts",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "没有联系人"
+  },
+  "contactPickerSelfSuffix": {
+    "en": " (me)",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "（我）"
+  },
+  "pluginViewSubmit": {
+    "en": "Submit",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "提交"
+  },
+  "pluginViewEnded": {
+    "en": "Ended",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已结束"
+  },
+  "pluginViewDeadlinePassed": {
+    "en": "Closed",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已截止"
+  },
+  "pluginViewSeeAll": {
+    "en": "See all ({count})",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "查看全部（{count}）"
+  },
+  "pluginViewDetail": {
+    "en": "View details",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "查看详情"
+  },
+  "pluginViewVotes": {
+    "en": "{count} votes",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "{count} 票"
+  },
+  "pluginViewRemaining": {
+    "en": "{time} left",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "剩余 {time}"
+  },
+  "pluginViewDateTimeFormat": {
+    "en": "MMM d, HH:mm",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "M月d日 HH:mm"
+  },
+  "pluginViewDateTimeYearFormat": {
+    "en": "MMM d, y, HH:mm",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "y年M月d日 HH:mm"
+  },
+  "pluginFormRequired": {
+    "en": "Required",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "必填"
+  },
+  "pluginFormTooLong": {
+    "en": "Too long",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "超出长度"
+  },
+  "pluginFormOutOfRange": {
+    "en": "Out of range",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "超出范围"
+  },
+  "pluginFormTooFewItems": {
+    "en": "At least {n}",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "至少 {n} 项"
+  },
+  "pluginFormTooManyItems": {
+    "en": "At most {n}",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "最多 {n} 项"
+  },
+  "pluginFormDuplicateItem": {
+    "en": "No duplicates",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "不能重复"
+  },
+  "pluginFormInvalid": {
+    "en": "Invalid value",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "格式不正确"
+  },
+  "locationOsmAttribution": {
+    "en": "© OpenStreetMap contributors",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "© OpenStreetMap contributors"
   }
 }

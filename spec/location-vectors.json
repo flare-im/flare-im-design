@@ -1,0 +1,395 @@
+{
+  "schemaVersion": 1,
+  "note": "Shared location rules for the four kits. `links` is the default place a LocationMessage opens when the host takes no `open`: `web` (Vue and the Flutter web/desktop target) by `provider` (osm when omitted), `apple` (SwiftUI, and Flutter on iOS and macOS) and `geo` (Compose, and Flutter on Android); `flutterTargets` maps Flutter's TargetPlatform to the column it uses (kIsWeb uses web). All three are null when a coordinate is not finite or out of range (latitude -90..90, longitude -180..180): the card then opens nothing. Coordinates are WGS-84 as stored in the message; Amap is told so (coordinate=wgs84). `coordinateFormat`: each number fixed to 6 decimals, then trailing zeros and a trailing point dropped, and a negative zero written 0. `titleEncoding`: the title is trimmed (blank = no title) and percent-encoded as UTF-8 bytes, every byte except A-Z a-z 0-9 - . _ ~ written %XX in capitals (space is %20, never +). Without a title the Amap link has no name, the Apple link's q is the coordinate pair and the geo link has no parenthesised label. `label` is the coordinate line the picker and the card show when there is no map: each number fixed to 5 decimals (a negative zero written 0.00000), joined by \", \"; null for an invalid coordinate. `distance` is a POI row's distance: metres rounded half up below 1000, else kilometres fixed to 1 decimal; null for a missing, negative or non-finite value. `previewSize` is what LocationPicker passes to previewUrl: the map area's logical width and height times the screen scale clamped to 1..2, each rounded half up — device pixels on every platform (Compose converts dp with the density, never passes dp). Inputs avoid exact rounding ties so every platform's formatter agrees.",
+  "coordinateFormat": {
+    "decimals": 6,
+    "trimTrailingZeros": true,
+    "negativeZero": "0"
+  },
+  "titleEncoding": {
+    "trim": true,
+    "unreserved": "A-Za-z0-9-._~",
+    "space": "%20",
+    "hexCase": "upper"
+  },
+  "osmZoom": 17,
+  "flutterTargets": {
+    "android": "geo",
+    "iOS": "apple",
+    "macOS": "apple",
+    "fuchsia": "web",
+    "linux": "web",
+    "windows": "web",
+    "web": "web"
+  },
+  "links": [
+    {
+      "id": "osm-titled",
+      "input": {
+        "latitude": 39.9087,
+        "longitude": 116.3975,
+        "title": "天安门广场",
+        "provider": "osm"
+      },
+      "web": "https://www.openstreetmap.org/?mlat=39.9087&mlon=116.3975#map=17/39.9087/116.3975",
+      "apple": "http://maps.apple.com/?ll=39.9087,116.3975&q=%E5%A4%A9%E5%AE%89%E9%97%A8%E5%B9%BF%E5%9C%BA",
+      "geo": "geo:39.9087,116.3975?q=39.9087,116.3975(%E5%A4%A9%E5%AE%89%E9%97%A8%E5%B9%BF%E5%9C%BA)"
+    },
+    {
+      "id": "amap-titled",
+      "input": {
+        "latitude": 31.2304167,
+        "longitude": 121.4737,
+        "title": "人民广场 (地铁站)",
+        "provider": "amap"
+      },
+      "web": "https://uri.amap.com/marker?position=121.4737,31.230417&name=%E4%BA%BA%E6%B0%91%E5%B9%BF%E5%9C%BA%20%28%E5%9C%B0%E9%93%81%E7%AB%99%29&coordinate=wgs84&callnative=0",
+      "apple": "http://maps.apple.com/?ll=31.230417,121.4737&q=%E4%BA%BA%E6%B0%91%E5%B9%BF%E5%9C%BA%20%28%E5%9C%B0%E9%93%81%E7%AB%99%29",
+      "geo": "geo:31.230417,121.4737?q=31.230417,121.4737(%E4%BA%BA%E6%B0%91%E5%B9%BF%E5%9C%BA%20%28%E5%9C%B0%E9%93%81%E7%AB%99%29)"
+    },
+    {
+      "id": "osm-untitled",
+      "input": {
+        "latitude": 22.5431,
+        "longitude": 114.0579,
+        "provider": "osm"
+      },
+      "web": "https://www.openstreetmap.org/?mlat=22.5431&mlon=114.0579#map=17/22.5431/114.0579",
+      "apple": "http://maps.apple.com/?ll=22.5431,114.0579&q=22.5431,114.0579",
+      "geo": "geo:22.5431,114.0579?q=22.5431,114.0579"
+    },
+    {
+      "id": "amap-untitled",
+      "input": {
+        "latitude": 22.5431,
+        "longitude": 114.0579,
+        "provider": "amap"
+      },
+      "web": "https://uri.amap.com/marker?position=114.0579,22.5431&coordinate=wgs84&callnative=0",
+      "apple": "http://maps.apple.com/?ll=22.5431,114.0579&q=22.5431,114.0579",
+      "geo": "geo:22.5431,114.0579?q=22.5431,114.0579"
+    },
+    {
+      "id": "provider-default-osm",
+      "input": {
+        "latitude": -33.8568,
+        "longitude": 151.2153,
+        "title": "Sydney Opera House"
+      },
+      "web": "https://www.openstreetmap.org/?mlat=-33.8568&mlon=151.2153#map=17/-33.8568/151.2153",
+      "apple": "http://maps.apple.com/?ll=-33.8568,151.2153&q=Sydney%20Opera%20House",
+      "geo": "geo:-33.8568,151.2153?q=-33.8568,151.2153(Sydney%20Opera%20House)"
+    },
+    {
+      "id": "western-southern",
+      "input": {
+        "latitude": -22.9519,
+        "longitude": -43.2105,
+        "title": "Cristo Redentor",
+        "provider": "amap"
+      },
+      "web": "https://uri.amap.com/marker?position=-43.2105,-22.9519&name=Cristo%20Redentor&coordinate=wgs84&callnative=0",
+      "apple": "http://maps.apple.com/?ll=-22.9519,-43.2105&q=Cristo%20Redentor",
+      "geo": "geo:-22.9519,-43.2105?q=-22.9519,-43.2105(Cristo%20Redentor)"
+    },
+    {
+      "id": "reserved-characters",
+      "input": {
+        "latitude": 48.85837,
+        "longitude": 2.294481,
+        "title": "Tom's Café & Bar!*",
+        "provider": "osm"
+      },
+      "web": "https://www.openstreetmap.org/?mlat=48.85837&mlon=2.294481#map=17/48.85837/2.294481",
+      "apple": "http://maps.apple.com/?ll=48.85837,2.294481&q=Tom%27s%20Caf%C3%A9%20%26%20Bar%21%2A",
+      "geo": "geo:48.85837,2.294481?q=48.85837,2.294481(Tom%27s%20Caf%C3%A9%20%26%20Bar%21%2A)"
+    },
+    {
+      "id": "integer-zero",
+      "input": {
+        "latitude": 0,
+        "longitude": 0,
+        "title": "Null Island"
+      },
+      "web": "https://www.openstreetmap.org/?mlat=0&mlon=0#map=17/0/0",
+      "apple": "http://maps.apple.com/?ll=0,0&q=Null%20Island",
+      "geo": "geo:0,0?q=0,0(Null%20Island)"
+    },
+    {
+      "id": "negative-zero-after-rounding",
+      "input": {
+        "latitude": -1e-07,
+        "longitude": 100,
+        "title": "Equator"
+      },
+      "web": "https://www.openstreetmap.org/?mlat=0&mlon=100#map=17/0/100",
+      "apple": "http://maps.apple.com/?ll=0,100&q=Equator",
+      "geo": "geo:0,100?q=0,100(Equator)"
+    },
+    {
+      "id": "rounded-to-six",
+      "input": {
+        "latitude": 51.50073509,
+        "longitude": -0.12775829,
+        "title": "Big Ben"
+      },
+      "web": "https://www.openstreetmap.org/?mlat=51.500735&mlon=-0.127758#map=17/51.500735/-0.127758",
+      "apple": "http://maps.apple.com/?ll=51.500735,-0.127758&q=Big%20Ben",
+      "geo": "geo:51.500735,-0.127758?q=51.500735,-0.127758(Big%20Ben)"
+    },
+    {
+      "id": "emoji-title",
+      "input": {
+        "latitude": 30.2741,
+        "longitude": 120.1551,
+        "title": "☕️ 咖啡/馆?#1"
+      },
+      "web": "https://www.openstreetmap.org/?mlat=30.2741&mlon=120.1551#map=17/30.2741/120.1551",
+      "apple": "http://maps.apple.com/?ll=30.2741,120.1551&q=%E2%98%95%EF%B8%8F%20%E5%92%96%E5%95%A1%2F%E9%A6%86%3F%231",
+      "geo": "geo:30.2741,120.1551?q=30.2741,120.1551(%E2%98%95%EF%B8%8F%20%E5%92%96%E5%95%A1%2F%E9%A6%86%3F%231)"
+    },
+    {
+      "id": "whitespace-title",
+      "input": {
+        "latitude": 23.1291,
+        "longitude": 113.2644,
+        "title": "   ",
+        "provider": "amap"
+      },
+      "web": "https://uri.amap.com/marker?position=113.2644,23.1291&coordinate=wgs84&callnative=0",
+      "apple": "http://maps.apple.com/?ll=23.1291,113.2644&q=23.1291,113.2644",
+      "geo": "geo:23.1291,113.2644?q=23.1291,113.2644"
+    },
+    {
+      "id": "trimmed-title",
+      "input": {
+        "latitude": 23.1291,
+        "longitude": 113.2644,
+        "title": "  珠江新城  "
+      },
+      "web": "https://www.openstreetmap.org/?mlat=23.1291&mlon=113.2644#map=17/23.1291/113.2644",
+      "apple": "http://maps.apple.com/?ll=23.1291,113.2644&q=%E7%8F%A0%E6%B1%9F%E6%96%B0%E5%9F%8E",
+      "geo": "geo:23.1291,113.2644?q=23.1291,113.2644(%E7%8F%A0%E6%B1%9F%E6%96%B0%E5%9F%8E)"
+    },
+    {
+      "id": "poles-and-antimeridian",
+      "input": {
+        "latitude": 90,
+        "longitude": -180,
+        "title": "North Pole"
+      },
+      "web": "https://www.openstreetmap.org/?mlat=90&mlon=-180#map=17/90/-180",
+      "apple": "http://maps.apple.com/?ll=90,-180&q=North%20Pole",
+      "geo": "geo:90,-180?q=90,-180(North%20Pole)"
+    },
+    {
+      "id": "latitude-out-of-range",
+      "input": {
+        "latitude": 91,
+        "longitude": 10,
+        "title": "Nowhere"
+      },
+      "web": null,
+      "apple": null,
+      "geo": null
+    },
+    {
+      "id": "longitude-out-of-range",
+      "input": {
+        "latitude": 10,
+        "longitude": -181
+      },
+      "web": null,
+      "apple": null,
+      "geo": null
+    }
+  ],
+  "label": [
+    {
+      "id": "label-basic",
+      "input": {
+        "latitude": 39.9087,
+        "longitude": 116.3975
+      },
+      "output": "39.90870, 116.39750"
+    },
+    {
+      "id": "label-rounded",
+      "input": {
+        "latitude": 31.2304167,
+        "longitude": 121.4737
+      },
+      "output": "31.23042, 121.47370"
+    },
+    {
+      "id": "label-negative",
+      "input": {
+        "latitude": -33.8568,
+        "longitude": -43.2105
+      },
+      "output": "-33.85680, -43.21050"
+    },
+    {
+      "id": "label-negative-zero",
+      "input": {
+        "latitude": -1e-06,
+        "longitude": 0
+      },
+      "output": "0.00000, 0.00000"
+    },
+    {
+      "id": "label-integer",
+      "input": {
+        "latitude": 0,
+        "longitude": 180
+      },
+      "output": "0.00000, 180.00000"
+    },
+    {
+      "id": "label-invalid",
+      "input": {
+        "latitude": 91,
+        "longitude": 0
+      },
+      "output": null
+    }
+  ],
+  "distance": [
+    {
+      "id": "zero",
+      "input": 0,
+      "output": "0m"
+    },
+    {
+      "id": "rounds-down",
+      "input": 12.4,
+      "output": "12m"
+    },
+    {
+      "id": "rounds-up",
+      "input": 87.5,
+      "output": "88m"
+    },
+    {
+      "id": "below-km",
+      "input": 999.4,
+      "output": "999m"
+    },
+    {
+      "id": "rounds-into-km",
+      "input": 999.6,
+      "output": "1.0km"
+    },
+    {
+      "id": "one-km",
+      "input": 1000,
+      "output": "1.0km"
+    },
+    {
+      "id": "km-one-decimal",
+      "input": 1240,
+      "output": "1.2km"
+    },
+    {
+      "id": "km-rounded",
+      "input": 15680,
+      "output": "15.7km"
+    },
+    {
+      "id": "negative",
+      "input": -5,
+      "output": null
+    },
+    {
+      "id": "missing",
+      "input": null,
+      "output": null
+    }
+  ],
+  "previewSize": [
+    {
+      "id": "scale-1",
+      "input": {
+        "width": 360,
+        "height": 168,
+        "scale": 1
+      },
+      "output": {
+        "width": 360,
+        "height": 168
+      }
+    },
+    {
+      "id": "scale-1-5",
+      "input": {
+        "width": 360,
+        "height": 168,
+        "scale": 1.5
+      },
+      "output": {
+        "width": 540,
+        "height": 252
+      }
+    },
+    {
+      "id": "scale-2",
+      "input": {
+        "width": 390,
+        "height": 168,
+        "scale": 2
+      },
+      "output": {
+        "width": 780,
+        "height": 336
+      }
+    },
+    {
+      "id": "scale-2-625-capped",
+      "input": {
+        "width": 412,
+        "height": 168,
+        "scale": 2.625
+      },
+      "output": {
+        "width": 824,
+        "height": 336
+      }
+    },
+    {
+      "id": "scale-3-capped",
+      "input": {
+        "width": 393,
+        "height": 168,
+        "scale": 3
+      },
+      "output": {
+        "width": 786,
+        "height": 336
+      }
+    },
+    {
+      "id": "scale-below-1",
+      "input": {
+        "width": 320,
+        "height": 168,
+        "scale": 0.75
+      },
+      "output": {
+        "width": 320,
+        "height": 168
+      }
+    },
+    {
+      "id": "fractional-width",
+      "input": {
+        "width": 361.3,
+        "height": 168,
+        "scale": 2
+      },
+      "output": {
+        "width": 723,
+        "height": 336
+      }
+    }
+  ]
+}

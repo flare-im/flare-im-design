@@ -699,6 +699,15 @@
           }
         },
         {
+          "name": "source",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Where the request came from, already worded by the host (\"Added from a contact card, shared by X\"); drawn as its own secondary line under the message.",
+            "zh": "申请来源，宿主已组织好文案（如「通过名片添加，由 X 推荐」）；在验证消息下方单独一行，用次要文本显示。"
+          }
+        },
+        {
           "name": "direction",
           "type": "'incoming' | 'outgoing'",
           "required": false,
@@ -2034,6 +2043,924 @@
             "zh": "拼手气红包领完后的最大一份，由服务端判定。"
           }
         }
+      ]
+    },
+    {
+      "name": "LocationProvider",
+      "symbol": "FlareLocationProvider",
+      "kind": "enum",
+      "summary": {
+        "en": "The tenant's map service; it decides which web map a location card opens.",
+        "zh": "租户配置的地图服务，决定位置卡片打开哪个网页地图。"
+      },
+      "values": [
+        "osm",
+        "amap"
+      ]
+    },
+    {
+      "name": "LocationCoordinate",
+      "symbol": "FlareLocationCoordinate",
+      "kind": "interface",
+      "summary": {
+        "en": "A WGS-84 coordinate (what requestCurrentLocation answers).",
+        "zh": "WGS-84 坐标（requestCurrentLocation 的返回）。"
+      },
+      "fields": [
+        {
+          "name": "latitude",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "Latitude, -90..90.",
+            "zh": "纬度，-90..90。"
+          }
+        },
+        {
+          "name": "longitude",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "Longitude, -180..180.",
+            "zh": "经度，-180..180。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "LocationAddress",
+      "symbol": "FlareLocationAddress",
+      "kind": "interface",
+      "summary": {
+        "en": "What a reverse geocode answers for a coordinate.",
+        "zh": "逆地址解析的结果。"
+      },
+      "fields": [
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Place name.",
+            "zh": "地点名。"
+          }
+        },
+        {
+          "name": "address",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Address line.",
+            "zh": "地址。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "LocationPlace",
+      "symbol": "FlareLocationPlace",
+      "kind": "interface",
+      "summary": {
+        "en": "A place the location picker lists and sends: a nearby POI, a search result or the current location (id \"current\").",
+        "zh": "选点页列出并发送的地点：附近 POI、搜索结果或当前位置（id 为 \"current\"）。"
+      },
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Stable place id; \"current\" is the device position.",
+            "zh": "稳定的地点 id；\"current\" 表示设备位置。"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Place name.",
+            "zh": "地点名。"
+          }
+        },
+        {
+          "name": "address",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Address line.",
+            "zh": "地址。"
+          }
+        },
+        {
+          "name": "latitude",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "WGS-84 latitude.",
+            "zh": "WGS-84 纬度。"
+          }
+        },
+        {
+          "name": "longitude",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "WGS-84 longitude.",
+            "zh": "WGS-84 经度。"
+          }
+        },
+        {
+          "name": "distanceM",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "Distance from the search centre in metres, when the host knows it; drawn as \"120m\" / \"1.2km\".",
+            "zh": "距搜索中心的米数（宿主知道时）；显示为「120m」/「1.2km」。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "LocationValue",
+      "symbol": "FlareLocationValue",
+      "kind": "interface",
+      "summary": {
+        "en": "A location message as the Vue timeline reports it in locationOpen; Flutter, SwiftUI and Compose pass their location content.",
+        "zh": "Vue 时间线在 locationOpen 里回传的位置消息；Flutter、SwiftUI、Compose 回传各自的位置内容。"
+      },
+      "fields": [
+        {
+          "name": "latitude",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "WGS-84 latitude (NaN without one).",
+            "zh": "WGS-84 纬度（没有时为 NaN）。"
+          }
+        },
+        {
+          "name": "longitude",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "WGS-84 longitude.",
+            "zh": "WGS-84 经度。"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Place name.",
+            "zh": "地点名。"
+          }
+        },
+        {
+          "name": "address",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Address line.",
+            "zh": "地址。"
+          }
+        },
+        {
+          "name": "snapshotUrl",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Static map URL.",
+            "zh": "静态图地址。"
+          }
+        },
+        {
+          "name": "provider",
+          "type": "LocationProvider",
+          "required": false,
+          "description": {
+            "en": "Map service named by the payload, osm when it names none.",
+            "zh": "载荷里的地图服务，没有时为 osm。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ContactPickerEntry",
+      "symbol": "FlareContactPickerEntry",
+      "kind": "interface",
+      "summary": {
+        "en": "One person the contact picker can return.",
+        "zh": "联系人选择器可以返回的一个人。"
+      },
+      "fields": [
+        {
+          "name": "userId",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "The person's user id; a contact card carries it.",
+            "zh": "用户 id；名片里带的就是它。"
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Display name; searched.",
+            "zh": "显示名；参与搜索。"
+          }
+        },
+        {
+          "name": "avatarUrl",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Avatar URL.",
+            "zh": "头像地址。"
+          }
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Secondary line (department, handle); searched.",
+            "zh": "副标题（部门、用户名）；参与搜索。"
+          }
+        },
+        {
+          "name": "isSelf",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "The signed-in user: drawn with \"(me)\" and still selectable.",
+            "zh": "当前登录用户：显示「（我）」，仍可选择。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ContactPickerGroup",
+      "symbol": "FlareContactPickerGroup",
+      "kind": "interface",
+      "summary": {
+        "en": "One tab of the contact picker.",
+        "zh": "联系人选择器的一个标签页。"
+      },
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "friends, groupMembers or the host's own id.",
+            "zh": "friends、groupMembers 或宿主自己的 id。"
+          }
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Tab label; the kit labels friends and groupMembers itself.",
+            "zh": "标签文案；friends、groupMembers 由 Kit 提供。"
+          }
+        },
+        {
+          "name": "entries",
+          "type": "ContactPickerEntry[]",
+          "required": true,
+          "description": {
+            "en": "The people in the tab, in display order.",
+            "zh": "该标签下的人，按显示顺序。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "PluginViewModel",
+      "symbol": "FlarePluginViewModel",
+      "kind": "interface",
+      "summary": {
+        "en": "A resolved plugin view (core SDK ResolvedPluginView).",
+        "zh": "解析后的插件视图（核心 SDK 的 ResolvedPluginView）。"
+      },
+      "fields": [
+        {
+          "name": "available",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "False: only the title shows (disabled plugin, history).",
+            "zh": "为假时只显示标题（插件停用、历史卡片）。"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Card title.",
+            "zh": "卡片标题。"
+          }
+        },
+        {
+          "name": "fields",
+          "type": "{label, value}[]",
+          "required": true,
+          "description": {
+            "en": "Label/value rows (v1).",
+            "zh": "键值行（v1）。"
+          }
+        },
+        {
+          "name": "actions",
+          "type": "PluginAction[]",
+          "required": true,
+          "description": {
+            "en": "Footer actions, labels translated; block-owned actions are not here.",
+            "zh": "底部动作，文案已翻译；块持有的动作不在这里。"
+          }
+        },
+        {
+          "name": "blocks",
+          "type": "PluginBlock[]",
+          "required": false,
+          "description": {
+            "en": "Display blocks, in order; unknown kinds are skipped.",
+            "zh": "展示块，按顺序；不认识的 kind 跳过。"
+          }
+        },
+        {
+          "name": "inputs",
+          "type": "PluginInput[]",
+          "required": false,
+          "description": {
+            "en": "Every input of the document; an action's form names the ones it collects.",
+            "zh": "文档的全部输入；动作的 form 列出它要收集的。"
+          }
+        },
+        {
+          "name": "detail",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "The contribution has a detail view (\"see all\").",
+            "zh": "贡献声明了 detail 视图（「查看全部」）。"
+          }
+        },
+        {
+          "name": "nextCursor",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Detail views only: the cursor of the next page (core SDK detail paging, a non-blank scalar of at most 256 bytes). While it is set PluginDetailSheet offers load more; the host fetches that page and passes back the merged view.",
+            "zh": "只用于 detail 视图：下一页的游标（核心 SDK 的 detail 分页，非空、不超过 256 字节）。有值时 PluginDetailSheet 显示「加载更多」，宿主取下一页后把合并好的视图传回。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "PluginAction",
+      "symbol": "FlarePluginAction",
+      "kind": "interface",
+      "summary": {
+        "en": "A resolved action; target and input are opaque to the kit.",
+        "zh": "解析后的动作；target 和 input 对 Kit 不透明。"
+      },
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Opaque id handed back in action(id, payload).",
+            "zh": "不透明 id，在 action(id, payload) 里回传。"
+          }
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Key label.",
+            "zh": "按钮文案。"
+          }
+        },
+        {
+          "name": "style",
+          "type": "PluginActionStyle",
+          "required": false,
+          "description": {
+            "en": "primary or danger; secondary when absent.",
+            "zh": "primary 或 danger；不传为次要。"
+          }
+        },
+        {
+          "name": "confirm",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Asked first in the kit DangerConfirm.",
+            "zh": "先在 Kit 的 DangerConfirm 里确认的文案。"
+          }
+        },
+        {
+          "name": "form",
+          "type": "string[]",
+          "required": false,
+          "description": {
+            "en": "Input ids collected first in PluginForm.",
+            "zh": "先用 PluginForm 收集的输入 id。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "PluginActionStyle",
+      "symbol": "FlarePluginActionStyle",
+      "kind": "enum",
+      "summary": {
+        "en": "How an action key is drawn.",
+        "zh": "动作按钮的样式。"
+      },
+      "values": [
+        "primary",
+        "danger"
+      ]
+    },
+    {
+      "name": "PluginTone",
+      "symbol": "FlarePluginTone",
+      "kind": "enum",
+      "summary": {
+        "en": "Semantic colour of a status, note or people group; drawn with the *Text tokens.",
+        "zh": "状态、提示和人员分组的语义色，用 *Text 系列令牌着色。"
+      },
+      "values": [
+        "neutral",
+        "info",
+        "success",
+        "warning",
+        "danger"
+      ]
+    },
+    {
+      "name": "PluginBlock",
+      "symbol": "FlarePluginBlock",
+      "kind": "interface",
+      "summary": {
+        "en": "One display block, tagged by kind (see spec/plugin-view-vectors.json for each shape).",
+        "zh": "一个展示块，按 kind 区分（各自形状见 spec/plugin-view-vectors.json）。"
+      },
+      "fields": [
+        {
+          "name": "kind",
+          "type": "'text' | 'fields' | 'choices' | 'entries' | 'people' | 'status' | 'progress' | 'time' | 'divider' | 'note' | 'rows'",
+          "required": true,
+          "description": {
+            "en": "Block kind; rows only on admin pages (Vue).",
+            "zh": "块类型；rows 只用于管理页（Vue）。"
+          }
+        },
+        {
+          "name": "text",
+          "type": "{text, maxLines?, style: 'body' | 'title' | 'secondary'}",
+          "required": false,
+          "description": {
+            "en": "Collapsible text with expand.",
+            "zh": "可折叠文本，带「展开」。"
+          }
+        },
+        {
+          "name": "fields",
+          "type": "{fields: {label, value}[]}",
+          "required": false,
+          "description": {
+            "en": "Label/value rows.",
+            "zh": "键值行。"
+          }
+        },
+        {
+          "name": "choices",
+          "type": "{options: PluginChoice[], multiple, voted, closed, showResults, total?, inputName, action?: PluginAction}",
+          "required": false,
+          "description": {
+            "en": "Options; action is the block's submit action.",
+            "zh": "选项列表；action 是块持有的提交动作。"
+          }
+        },
+        {
+          "name": "entries",
+          "type": "{items: {index, text, name?, userId?}[], numbered, total, more, emptyText?}",
+          "required": false,
+          "description": {
+            "en": "Numbered entries with see all.",
+            "zh": "带序号的条目，可「查看全部」。"
+          }
+        },
+        {
+          "name": "people",
+          "type": "{groups: {label, userIds, count, tone?}[]}",
+          "required": false,
+          "description": {
+            "en": "Avatar stacks with a count per group.",
+            "zh": "每组一行头像叠加计数。"
+          }
+        },
+        {
+          "name": "status",
+          "type": "{label?, text, tone}",
+          "required": false,
+          "description": {
+            "en": "A badge.",
+            "zh": "徽标。"
+          }
+        },
+        {
+          "name": "progress",
+          "type": "{label?, value, total, percent}",
+          "required": false,
+          "description": {
+            "en": "A bar with value/total.",
+            "zh": "进度条加 value/total。"
+          }
+        },
+        {
+          "name": "time",
+          "type": "{label?, atMs, endMs?, countdown}",
+          "required": false,
+          "description": {
+            "en": "An instant or range, optionally counting down.",
+            "zh": "时间点或区间，可倒计时。"
+          }
+        },
+        {
+          "name": "note",
+          "type": "{text, tone?}",
+          "required": false,
+          "description": {
+            "en": "A tinted note.",
+            "zh": "带色调的提示。"
+          }
+        },
+        {
+          "name": "rows",
+          "type": "{source, columns: {label, format}[], rows: {key, cells: {text, timeMs?}[], actions: {id, input}[], detailInput?}[], nextCursor?, actions: PluginAction[], emptyText?, filters?: string[]}",
+          "required": false,
+          "description": {
+            "en": "Admin table (Vue only). filters lists the ids of the view's inputs shown as the page's filters (absent: every input); the other inputs belong to row action forms (flarePluginFilterInputs).",
+            "zh": "管理表格（只在 Vue）。filters 列出作为页面筛选项的输入 id（不带时为全部输入）；其余输入归行动作的表单（flarePluginFilterInputs）。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "PluginChoice",
+      "symbol": "FlarePluginChoice",
+      "kind": "interface",
+      "summary": {
+        "en": "One option of a choices block.",
+        "zh": "choices 块的一个选项。"
+      },
+      "fields": [
+        {
+          "name": "index",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "Position, submitted in selection.",
+            "zh": "下标，作为 selection 提交。"
+          }
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Option text.",
+            "zh": "选项文字。"
+          }
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "The viewer chose it.",
+            "zh": "当前用户选了它。"
+          }
+        },
+        {
+          "name": "count",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "Votes, when results show.",
+            "zh": "票数（显示结果时）。"
+          }
+        },
+        {
+          "name": "percent",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "0..100, when results show.",
+            "zh": "0..100（显示结果时）。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "PluginInput",
+      "symbol": "FlarePluginInput",
+      "kind": "interface",
+      "summary": {
+        "en": "A resolved form input (UiInput).",
+        "zh": "解析后的表单输入（UiInput）。"
+      },
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Key of the value in formValues.",
+            "zh": "formValues 里的键。"
+          }
+        },
+        {
+          "name": "kind",
+          "type": "PluginInputKind",
+          "required": true,
+          "description": {
+            "en": "Control kind.",
+            "zh": "控件类型。"
+          }
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Field label.",
+            "zh": "字段名。"
+          }
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "A value is required.",
+            "zh": "必填。"
+          }
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Placeholder.",
+            "zh": "占位文字。"
+          }
+        },
+        {
+          "name": "maxLength",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "Characters (text 256, textarea 2000, options item 100 by default).",
+            "zh": "字数上限（默认 text 256、textarea 2000、options 每项 100）。"
+          }
+        },
+        {
+          "name": "min",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "number: smallest value; options, members: fewest items.",
+            "zh": "number 的最小值；options、members 的最少条数。"
+          }
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "number: largest value; options, members: most items (members max 1 = single pick).",
+            "zh": "number 的最大值；options、members 的最多条数（members 为 1 时单选）。"
+          }
+        },
+        {
+          "name": "default",
+          "type": "unknown",
+          "required": false,
+          "description": {
+            "en": "Initial value.",
+            "zh": "初值。"
+          }
+        },
+        {
+          "name": "choices",
+          "type": "{value, label}[]",
+          "required": false,
+          "description": {
+            "en": "select only.",
+            "zh": "仅 select。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "PluginInputKind",
+      "symbol": "FlarePluginInputKind",
+      "kind": "enum",
+      "summary": {
+        "en": "Form input kinds.",
+        "zh": "表单输入类型。"
+      },
+      "values": [
+        "text",
+        "textarea",
+        "number",
+        "toggle",
+        "select",
+        "datetime",
+        "options",
+        "members"
+      ]
+    },
+    {
+      "name": "PluginFormError",
+      "symbol": "FlarePluginFormError",
+      "kind": "interface",
+      "summary": {
+        "en": "One problem with a submitted value (UiFormError).",
+        "zh": "提交值的一个问题（UiFormError）。"
+      },
+      "fields": [
+        {
+          "name": "input",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Input id.",
+            "zh": "输入 id。"
+          }
+        },
+        {
+          "name": "issue",
+          "type": "PluginFormIssue",
+          "required": true,
+          "description": {
+            "en": "What is wrong.",
+            "zh": "问题类型。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "PluginFormIssue",
+      "symbol": "FlarePluginFormIssue",
+      "kind": "enum",
+      "summary": {
+        "en": "Form error kinds (UiFormIssue).",
+        "zh": "表单错误类型（UiFormIssue）。"
+      },
+      "values": [
+        "required",
+        "unknown",
+        "invalidType",
+        "tooLong",
+        "outOfRange",
+        "notAChoice",
+        "tooFewItems",
+        "tooManyItems",
+        "invalidItem",
+        "duplicateItem"
+      ]
+    },
+    {
+      "name": "PluginUser",
+      "symbol": "FlarePluginUser",
+      "kind": "interface",
+      "summary": {
+        "en": "What resolveUser answers for a user id.",
+        "zh": "resolveUser 对一个 userId 的回答。"
+      },
+      "fields": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Display name.",
+            "zh": "显示名。"
+          }
+        },
+        {
+          "name": "avatarUrl",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Avatar; initials when absent or failing.",
+            "zh": "头像；没有或加载失败时显示首字母。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "PluginMember",
+      "symbol": "FlarePluginMember",
+      "kind": "interface",
+      "summary": {
+        "en": "A candidate for a members input.",
+        "zh": "members 输入的候选成员。"
+      },
+      "fields": [
+        {
+          "name": "userId",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Submitted id.",
+            "zh": "提交的 id。"
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Display name.",
+            "zh": "显示名。"
+          }
+        },
+        {
+          "name": "avatarUrl",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Avatar.",
+            "zh": "头像。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "PluginActionPayload",
+      "symbol": "FlarePluginActionPayload",
+      "kind": "interface",
+      "summary": {
+        "en": "What action(id, payload) carries.",
+        "zh": "action(id, payload) 携带的内容。"
+      },
+      "fields": [
+        {
+          "name": "selection",
+          "type": "number[]",
+          "required": false,
+          "description": {
+            "en": "Chosen option indices (choices), ascending.",
+            "zh": "选中的选项下标（choices），升序。"
+          }
+        },
+        {
+          "name": "formValues",
+          "type": "Record<string, unknown>",
+          "required": false,
+          "description": {
+            "en": "Submitted form values by input id.",
+            "zh": "按输入 id 的表单提交值。"
+          }
+        },
+        {
+          "name": "row",
+          "type": "{key, input}",
+          "required": false,
+          "description": {
+            "en": "The row of a rows action (Vue).",
+            "zh": "rows 行动作所在的行（Vue）。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "PluginViewInset",
+      "symbol": "FlarePluginViewInset",
+      "kind": "enum",
+      "summary": {
+        "en": "Where a PluginView sits: none; sheet — straight in a kit sheet (md / lg / xl); sheetTop — at the top of a sheet with more under it, e.g. a preface above PluginForm (md / lg / 0).",
+        "zh": "PluginView 所在位置的内边距：none；sheet —— 直接放进 Kit 面板（md / lg / xl）；sheetTop —— 放在面板顶部、下面还有内容（如 PluginForm 上方的前言）（md / lg / 0）。"
+      },
+      "values": [
+        "none",
+        "sheet",
+        "sheetTop"
       ]
     }
   ],
@@ -3916,7 +4843,9 @@
         "mediaReveal",
         "openLink",
         "vote",
-        "taskToggle"
+        "taskToggle",
+        "cardOpen",
+        "locationOpen"
       ],
       "notes": {
         "en": "Optimistic: semantic status comes from host-owned lifecycle state, never a network wait. A recalled message (lifecycle mutation recalled) renders a notice in place of its content on every platform, with no status, avatar, actions or selection. Reactions render under the bubble; a pill toggles the viewer's reaction through react only when the host handles it, and never in multi-select mode. A reply renders its quote (sender and one-line summary) at the top of the bubble on every platform; the quote is a button that raises locateMessage only when the host handles it and multi-select is off, and a quoting message keeps its bubble chrome. toggle-select exists only on Vue and Flutter (onToggleSelect); iOS and Compose do not offer it yet. forward / multiSelect / recall are Vue-only on the bubble: native bubbles raise onLongPress and the host opens MessageActionSheet, whose onAction dispatches those. Vue host actions (`actions`) join the menu and raise action; copy reports whether the clipboard took the text.",
@@ -4280,7 +5209,9 @@
         "mediaReveal",
         "openLink",
         "vote",
-        "taskToggle"
+        "taskToggle",
+        "cardOpen",
+        "locationOpen"
       ],
       "notes": {
         "en": "60fps virtualised; O(visible); scroll anchoring on append/prepend. toggle-select exists only on Vue and Flutter (onToggleSelect); iOS and Compose do not offer it yet. locateMessage: every list scrolls to a loaded quoted message itself and raises onLocateMessage only for one that is not loaded; the host pages it in and then asks the list to show it — `scrollToMessage(id)`, which answers whether the list had that message. Vue exposes that method on the component instance; the three native kits take a host-held handle (`controller`, Compose `state`). Two rules the handle carries: a row answers to two ids — the one it is drawn with and the core's id for it (`serverId`) — so the host hands `scrollToMessage` exactly what `onLocateMessage` gave it and translates nothing; and the handle answers for the pass the list last drew, so the host yields one of its own builds before asking. A quote always names the quoted message by the core's id for it, which is the id every other client knows it by. The trip itself is the kit's too: `flareLocateMessage` / `FlareLocate.run` asks the list, reads a page of older history through the host's callback, lets the list draw and asks again — 24 pages at most, then six more asks — and ends as shown, notInHistory or cancelled (`spec/locate-orchestration-vectors.json`). A host supplies how a page is read and the words for a miss, not the loop. The row a jump lands on is then marked for one window so the reader can see which row it was: `spec/locate-highlight-vectors.json` holds the window (1600 ms) and the three stops of the ring the four kits draw behind the bubble, one row marked at a time, and a second jump moves the mark rather than adding one. Reduce Motion holds the ring still instead of removing it — a reader who asked for less motion still has to be told where the jump landed. The mark is the sighted half of the answer; the other half is spoken. When a jump lands, the list announces which row it reached — the sender and the same one line a reply strip would show (`flareLocatedAnnouncement`) — through each platform's own announcement channel. Where a platform can move the reading cursor without changing how everyone else navigates, the jump takes the reader there too — Vue through the timeline's roving tabindex, SwiftUI through `@AccessibilityFocusState`; Flutter and Compose announce only, because moving the cursor there would mean making every row focusable. The return is each platform's idiom for the same answer: sync on Flutter and SwiftUI, `Promise<boolean>` on Vue, `suspend` on Compose. swipeReply: dragging a row towards the trailing edge starts a reply to it (leading edge under RTL). One rule on the three native kits, shared as `spec/swipe-reply-vectors.json`: only that direction counts, the list's own vertical scrolling wins any drag whose horizontal travel is under 1.25 times its vertical travel, the row follows the finger to 56 and then resists at 0.35 and stops at 72, and 56 is where the gesture arms — the reply affordance reaches full strength exactly there, so the reader knows before letting go, and dragging back below it cancels. A notice, a recalled message and multi-select mode carry no swipe. The gesture is never the only way to reply: the message menu raises the same intent, and the host builds the same quote for both. Vue has no swipe — the web timeline is pointer-first and a horizontal touch drag there fights the list's own scrolling. Vue: `unreadFromId` draws UnreadDivider (which also starts a new sender run), and the header, footer, empty and unread-divider slots keep typing rows and states inside the timeline.",
@@ -4906,7 +5837,9 @@
         "mediaReveal",
         "openLink",
         "vote",
-        "taskToggle"
+        "taskToggle",
+        "cardOpen",
+        "locationOpen"
       ],
       "notes": {
         "en": "Built-in types live in `contentTypes.registered`; register new ones for product content. Each type is also a standalone component: [TextMessage](/en/components/text-message) · [ImageMessage](/en/components/image-message) · [VideoMessage](/en/components/video-message) · [VoiceMessage](/en/components/voice-message) · [FileMessage](/en/components/file-message) · [LocationMessage](/en/components/location-message) · [ContactMessage](/en/components/contact-message) · [LinkCardMessage](/en/components/link-card-message) · [VoteMessage](/en/components/vote-message) · [TaskMessage](/en/components/task-message) · [StickerMessage](/en/components/sticker-message) · [EmojiMessage](/en/components/emoji-message) · [SystemMessage](/en/components/system-message). Custom renderers: register one as `bare` (Vue: a `{ component, bare: true }` entry; Flutter / Compose: `FlareContentScope` `bareTypes` or `FlareContentRegistry.register(type, builder, bare: true)`; SwiftUI: `flareContentRenderers(_:bare:)`) and the timeline draws it the way it draws a lone picture — no bubble surface or padding — keeping avatar, name, time, selection and menu; a quote or a recall still gets the bubble. Renderers receive `messageId` (the server id, else the client id) and `conversationId` (optional; the message list supplies its own).",
@@ -5822,18 +6755,39 @@
       "name": "LocationMessage",
       "category": "Message",
       "summary": {
-        "en": "Location message body — a map placeholder over title / address.",
-        "zh": "位置消息体 —— 地图占位 + 标题 / 地址。"
+        "en": "Location message body — the static map (or a drawn map with a centre pin), the place and its address; opens the platform's map.",
+        "zh": "位置消息体 —— 静态地图（无图时为地图底纹加中心点）、地点名和地址；点击打开系统或网页地图。"
       },
       "dataSource": {
         "en": "host-provided props — a decoupled presentational body (no transport or media coupling). The dispatcher MessageContentView builds these from message.content.",
         "zh": "宿主直接传入 props —— 解耦的展示型消息体（无传输或媒体耦合）。分发器 MessageContentView 由 message.content 构建它们。"
       },
-      "states": [],
+      "states": [
+        "snapshot",
+        "placeholder"
+      ],
       "events": [
         "open"
       ],
       "props": [
+        {
+          "name": "latitude",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "WGS-84 latitude, -90..90. Without a valid pair the card opens nothing.",
+            "zh": "WGS-84 纬度，-90..90。坐标无效时卡片不可打开。"
+          }
+        },
+        {
+          "name": "longitude",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "WGS-84 longitude, -180..180.",
+            "zh": "WGS-84 经度，-180..180。"
+          }
+        },
         {
           "name": "title",
           "type": "string",
@@ -5846,18 +6800,30 @@
         {
           "name": "address",
           "type": "string",
+          "required": false,
           "description": {
-            "en": "Full address line.",
-            "zh": "详细地址。"
+            "en": "Full address line; without it the coordinate line (spec/location-vectors.json label) stands in.",
+            "zh": "详细地址；没有时显示坐标行（spec/location-vectors.json 的 label），第二行不留空。"
           }
         },
         {
-          "name": "mapImage",
+          "name": "snapshotUrl",
           "type": "string",
+          "required": false,
           "description": {
-            "en": "Static map image URL; falls back to a pin placeholder.",
-            "zh": "静态地图图 URL；无则回退到定位占位。"
+            "en": "Signed static map from the host (LocationContent.snapshot_url); without it, or when it fails, the drawn map texture with a centre pin shows.",
+            "zh": "宿主给的签名静态图（LocationContent.snapshot_url）；没有或加载失败时显示地图底纹加中心点。"
           }
+        },
+        {
+          "name": "provider",
+          "type": "FlareLocationProvider",
+          "required": false,
+          "description": {
+            "en": "The tenant's map service, which decides the default web link (osm or amap).",
+            "zh": "租户配置的地图服务，决定默认的网页地图链接（osm 或 amap）。"
+          },
+          "default": "osm"
         }
       ],
       "platforms": {
@@ -5879,11 +6845,11 @@
         }
       },
       "notes": {
-        "en": "Decoupled & presentational — you pass simple props. For host-driven messages, let [MessageContentView](/en/components/message-content-view) dispatch by `content.type` instead.",
-        "zh": "解耦的展示型组件 —— 由你直接喂 props。宿主驱动的消息请交给 [MessageContentView](/components/message-content-view) 按 `content.type` 自动分派。"
+        "en": "Without a host `open` handler the card opens its default link from spec/location-vectors.json: Vue the `web` link by provider (OpenStreetMap marker or uri.amap.com marker, WGS-84), SwiftUI the `apple` link (maps.apple.com), Compose the `geo:` URI; Flutter has no URL launcher, so MessageContentView hands the platform's link (flutterTargets) to `onOpenLink`. The map area is 264 × 132 logical px: request the snapshot at twice that. The snapshot carries its own centre marker (the geo proxy draws it); the kit draws its pin only on the texture. `mapImage` is gone (breaking): it is `snapshotUrl`. A coordinate of exactly 0, 0 from the wire is treated as no coordinate by the timeline adapters. With provider osm the static map carries OpenStreetMap's credit (ODbL): locationOsmAttribution (\"© OpenStreetMap contributors\", the same in every language) as a small line in the bottom-right corner of the picture, secondary text on a translucent ground, clear of the centre marker; not on the drawn texture, and never for amap.",
+        "zh": "宿主不处理 `open` 时按 spec/location-vectors.json 打开默认链接：Vue 按服务商打开 `web` 链接（OpenStreetMap 标记或 uri.amap.com 标记，WGS-84），SwiftUI 打开 `apple` 链接（maps.apple.com），Compose 打开 `geo:` URI；Flutter 没有 URL 启动器，由 MessageContentView 按运行平台（flutterTargets）把链接交给 `onOpenLink`。地图区 264 × 132 逻辑像素，静态图按两倍请求。静态图自带中心点（地图代理绘制），Kit 只在底纹上画中心点。**破坏性**：`mapImage` 改名为 `snapshotUrl`。时间线适配层把线上的 0, 0 当作没有坐标。provider 为 osm 时，静态图上显示 OpenStreetMap 的署名（ODbL）：文案 locationOsmAttribution（「© OpenStreetMap contributors」，各语言相同），在图片右下角一行小字，secondary 文本色、半透明底，不遮中心点；手绘底图上不显示，amap 时不显示。"
       },
       "accessibility": {
-        "role": "group",
+        "role": "button",
         "labelRequired": true,
         "focusable": "descendants",
         "keyboardBehavior": [
@@ -5897,7 +6863,7 @@
           "appliesTo": "interactiveTargets"
         },
         "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
-        "screenReaderSemantics": "Expose a named group and meaningful descendant roles, values, states, availability, and progress. Decorative imagery is hidden."
+        "screenReaderSemantics": "One control named by the place and its address (or the coordinate line), with the hint \"Open in Maps\" when it opens something; a card that opens nothing is a named group. The map picture is decorative."
       }
     },
     {
@@ -5940,6 +6906,15 @@
             "en": "Free secondary line (handle, id, department…).",
             "zh": "自由副标题（用户名 / ID / 部门…）。"
           }
+        },
+        {
+          "name": "userId",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "The person the card names (CardContent.id of a cardType \"user\" card); `open` reports it so the host opens the profile.",
+            "zh": "名片里的用户（cardType 为 user 的 CardContent.id）；`open` 回传它，宿主据此进入资料页。"
+          }
         }
       ],
       "platforms": {
@@ -5961,8 +6936,8 @@
         }
       },
       "notes": {
-        "en": "Decoupled & presentational — you pass simple props. For host-driven messages, let [MessageContentView](/en/components/message-content-view) dispatch by `content.type` instead.",
-        "zh": "解耦的展示型组件 —— 由你直接喂 props。宿主驱动的消息请交给 [MessageContentView](/components/message-content-view) 按 `content.type` 自动分派。"
+        "en": "Decoupled & presentational — you pass simple props. With an `open` handler the card is a control and reports `userId` (the host opens the profile, recording the card message and the referrer); without one it only displays and draws no chevron. For host-driven messages, let [MessageContentView](/en/components/message-content-view) dispatch by `content.type` and listen to `cardOpen`.",
+        "zh": "解耦的展示型组件 —— 由你直接喂 props。有 `open` 处理时卡片可点，回传 `userId`（宿主进入资料页，并记下名片消息和推荐人）；没有时只展示、不画箭头。宿主驱动的消息请交给 [MessageContentView](/components/message-content-view) 按 `content.type` 分派，并监听 `cardOpen`。"
       },
       "accessibility": {
         "role": "group",
@@ -6629,8 +7604,8 @@
           "name": "actions",
           "type": "FlareComposerAction[]",
           "description": {
-            "en": "Attachment actions for the \"+\" panel; ids from composerActions. A host list replaces the default set of built-in features (image, video, file, voice, card, poll; use capabilities to keep defaults and pick ids). A unified id may leave its label out and the kit labels it; kind marks a feature or a plugin entry. An icon that is not a registry name draws the plugin glyph (Vue also accepts an icon component, and an action without an icon keeps the kit glyph of its unified id). Omit for the platform default set.",
-            "zh": "“+”面板的附件动作，id 取 composerActions。宿主列表会替换内置功能默认集（图片、视频、文件、语音、名片、投票；要保留默认项只挑 id，请用 capabilities）。统一 id 可以不带 label，由组件库按 id 提供文案；kind 标记内置功能或插件入口。图标不是注册表名时画通用插件图标（Vue 也接受图标组件，没有图标的动作沿用其统一 id 的组件库图标）。不传用平台默认集。"
+            "en": "Attachment actions for the \"+\" panel; ids from composerActions. A host list replaces the default set of built-in features (image, camera, video, file, voice, location, card, poll; use capabilities to keep defaults and pick ids). A unified id may leave its label out and the kit labels it; kind marks a feature or a plugin entry. An icon that is not a registry name draws the plugin glyph (Vue also accepts an icon component, and an action without an icon keeps the kit glyph of its unified id). Omit for the platform default set.",
+            "zh": "“+”面板的附件动作，id 取 composerActions。宿主列表会替换内置功能默认集（图片、拍摄、视频、文件、语音、位置、名片、投票；要保留默认项只挑 id，请用 capabilities）。统一 id 可以不带 label，由组件库按 id 提供文案；kind 标记内置功能或插件入口。图标不是注册表名时画通用插件图标（Vue 也接受图标组件，没有图标的动作沿用其统一 id 的组件库图标）。不传用平台默认集。"
           }
         },
         {
@@ -7219,8 +8194,8 @@
           "name": "actions",
           "type": "FlareComposerAction[]",
           "description": {
-            "en": "Host action list; omit for the built-in features Image, Video, File, Voice, Contact card and Poll. Plugin items (kind plugin) follow them; an icon that is not a registry name draws the plugin glyph.",
-            "zh": "宿主动作列表；不传时为内置功能：图片、视频、文件、语音、名片、投票。插件项（kind 为 plugin）排在其后；图标不是注册表名时画通用插件图标。"
+            "en": "Host action list; omit for the built-in features Image, Camera, Video, File, Voice, Location, Contact card and Poll. Plugin items (kind plugin) follow them; an icon that is not a registry name draws the plugin glyph.",
+            "zh": "宿主动作列表；不传时为内置功能：图片、拍摄、视频、文件、语音、位置、名片、投票。插件项（kind 为 plugin）排在其后；图标不是注册表名时画通用插件图标。"
           }
         },
         {
@@ -9658,6 +10633,15 @@
           }
         },
         {
+          "name": "primaryActionLabel",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Label of the page's primary action for someone who is not a contact yet (\"Add to contacts\"). With it and a primaryAction handler, the key leads the action row as the primary button, where a friend's page has Message (which then becomes a secondary key); it is not one of the footer's extraActions.",
+            "zh": "给还不是联系人的人用的主操作文案（如「添加到通讯录」）。同时有 primaryAction 回调时，它作为主按钮排在操作行首位（好友页「发消息」所在的位置，此时「发消息」改为次要键）；不放进页脚的 extraActions。"
+          }
+        },
+        {
           "name": "extraActions",
           "type": "{ id, label, danger? }[]",
           "description": {
@@ -9678,7 +10662,8 @@
         "toggleStar",
         "block",
         "remove",
-        "extraAction"
+        "extraAction",
+        "primaryAction"
       ],
       "platforms": {
         "vue": {
@@ -9731,6 +10716,10 @@
         },
         "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
         "screenReaderSemantics": "Expose a named group and meaningful descendant roles, values, states, availability, and progress. Decorative imagery is hidden."
+      },
+      "notes": {
+        "en": "Every action appears only when the host handles it. A stranger's page gets its primary action from primaryActionLabel plus the primaryAction handler: the key leads the action row (person-add icon, primary style) and Message, when handled, follows as a secondary key; busy disables it with the rest. Host actions that are not the page's main step (report, share) stay in extraActions in the footer.",
+        "zh": "每个动作只在宿主处理时出现。陌生人页面的主操作由 primaryActionLabel 加 primaryAction 回调给出：按钮排在操作行首位（person-add 图标、主按钮样式），宿主处理「发消息」时它跟在后面成为次要键；busy 时与其他按钮一起禁用。不是页面主步骤的宿主动作（举报、分享）仍放在页脚的 extraActions。"
       }
     },
     {
@@ -9994,8 +10983,8 @@
         "screenReaderSemantics": "Expose a named group and meaningful descendant roles, values, states, availability, and progress. Decorative imagery is hidden."
       },
       "notes": {
-        "en": "Each request has a direction. Incoming rows offer accept and reject; outgoing rows show a localized pending status and Withdraw, never accept or reject. Every button appears only when its handler exists. Vue emits the request for accept, reject and withdraw.",
-        "zh": "每条申请带方向。收到的申请提供接受与拒绝；发出的申请显示本地化的“等待验证”和撤回，不出现接受或拒绝。每个按钮只在对应处理函数存在时出现。Vue 的 accept、reject、withdraw 都携带申请对象。"
+        "en": "Each request has a direction. Incoming rows offer accept and reject; outgoing rows show a localized pending status and Withdraw, never accept or reject. Every button appears only when its handler exists. Vue emits the request for accept, reject and withdraw. Source line: a request's source (\"Added from a contact card, shared by X\") is its own line under the message, in the secondary text style and one line with an ellipsis; it never shares the message's line.",
+        "zh": "每条申请带方向。收到的申请提供接受与拒绝；发出的申请显示本地化的“等待验证”和撤回，不出现接受或拒绝。每个按钮只在对应处理函数存在时出现。Vue 的 accept、reject、withdraw 都携带申请对象。来源行：申请的 source（如「通过名片添加，由 X 推荐」）在验证消息下方单独一行，次要文本样式，单行省略；不和验证消息挤在一行。"
       }
     },
     {
@@ -13052,6 +14041,491 @@
       }
     },
     {
+      "name": "PluginView",
+      "category": "Message",
+      "summary": {
+        "en": "Generic plugin card — the core SDK's resolved view drawn as a kit business card: blocks (text, fields, choices, entries, people, status, progress, time, divider, note; rows on Vue admin pages), then the action keys.",
+        "zh": "通用插件卡片 —— 把核心 SDK 解析好的视图画成 Kit 业务卡片：展示块（文本、键值、选项、条目、人员、状态、进度、时间、分隔、提示；Vue 管理页另有 rows），再是底部动作。"
+      },
+      "dataSource": {
+        "en": "the core SDK's plugin present / detail result; user names from the host's resolveUser",
+        "zh": "核心 SDK 的插件 present / detail 结果；用户名字由宿主的 resolveUser 提供"
+      },
+      "props": [
+        {
+          "name": "view",
+          "type": "FlarePluginViewModel",
+          "required": true,
+          "description": {
+            "en": "The core SDK's resolved view (ResolvedPluginView): title, fields and actions (v1), plus blocks, inputs and detail (v2). The kit reads no paths and evaluates nothing.",
+            "zh": "核心 SDK 解析后的视图（ResolvedPluginView）：标题、fields、actions（v1），以及 blocks、inputs、detail（v2）。Kit 不读路径、不求值。"
+          }
+        },
+        {
+          "name": "icon",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Kit icon name drawn before the title (the plugin's icon); no icon when omitted.",
+            "zh": "标题前的 Kit 图标名（插件图标）；不传则不画。"
+          }
+        },
+        {
+          "name": "busy",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "The whole card is busy (an unresolved command): every action, choice and form submit is disabled.",
+            "zh": "整张卡片忙（命令未决）：所有动作、选项和表单提交禁用。"
+          },
+          "default": "false"
+        },
+        {
+          "name": "busyActionId",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "The action in flight: its key (or the choices submit key) shows the spinner and every other control is disabled. Leaving the action settles it as a fallback (settleToken is the explicit signal).",
+            "zh": "执行中的动作：它的按钮（或 choices 的提交键）转圈，其他控件禁用。离开该动作时作为兜底结算（显式信号是 settleToken）。"
+          }
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Failure text from the host, shown at the bottom of the card (and in an open form); a new non-empty value reverts an optimistic choice.",
+            "zh": "宿主传入的失败文案，显示在卡片底部（打开的表单里也显示）；变为非空时撤回乐观选中。"
+          }
+        },
+        {
+          "name": "embedded",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "Drop the card shell and the title row: the detail sheet and admin pages draw the view inside their own surface. An unavailable embedded view still says what it was: its title as one secondary line.",
+            "zh": "去掉卡片外壳和标题行：详情面板和管理页把视图画在自己的容器里。不可用的 embedded 视图仍说明它是什么：标题作为一行次要文字显示。"
+          },
+          "default": "false"
+        },
+        {
+          "name": "inset",
+          "type": "FlarePluginViewInset",
+          "required": false,
+          "default": "\"none\"",
+          "description": {
+            "en": "Where the view sits: none (the host's surface pads it); sheet — straight in the kit BottomSheet: spacing md on top, lg at the sides and xl at the bottom, the same as PluginForm, so it needs no wrapper; sheetTop — at the top of a sheet with more under it (a preface above PluginForm): md on top, lg at the sides and nothing at the bottom, so the next part's own top inset is the gap. It pads whatever the view draws, in every state: the embedded body (available or not) and a card shell a host keeps in a sheet (outside the shell, which keeps its own padding).",
+            "zh": "视图所在位置的内边距：none（由宿主的容器负责）；sheet —— 直接放进 Kit BottomSheet：上 md、左右 lg、下 xl，与 PluginForm 一致，不用再包一层；sheetTop —— 放在面板顶部、下面还有内容（PluginForm 上方的前言）：上 md、左右 lg、下不留，间距由下一部分自己的上边距给出。它作用于视图画出的一切、任何状态：embedded 的内容（可用或不可用），以及宿主留在面板里的卡片外壳（加在外壳外面，外壳自己的内边距不变）。"
+          }
+        },
+        {
+          "name": "resolveUser",
+          "type": "(userId: string) => FlarePluginUser | Promise<FlarePluginUser | undefined> | undefined",
+          "required": false,
+          "description": {
+            "en": "Name and avatar of a user id in people and entries; may answer from a cache or later. Without an answer the avatar draws initials and the name is the id's last 4 characters.",
+            "zh": "people 和 entries 里 userId 的名字和头像；可以同步返回缓存，也可以异步。取不到时显示首字母头像，名字用 userId 的末 4 位。"
+          }
+        },
+        {
+          "name": "members",
+          "type": "FlarePluginMember[]",
+          "required": false,
+          "description": {
+            "en": "Candidates for members inputs in an action's form (the conversation's members).",
+            "zh": "动作表单里 members 输入的候选成员（会话成员）。"
+          }
+        },
+        {
+          "name": "formErrors",
+          "type": "FlarePluginFormError[]",
+          "required": false,
+          "description": {
+            "en": "The host's validation errors (core SDK validate_form) for the open action form, shown under their inputs.",
+            "zh": "宿主（核心 SDK 的 validate_form）返回的表单错误，显示在对应输入下方。"
+          }
+        },
+        {
+          "name": "settleToken",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "description": {
+            "en": "The host's settle signal: an integer it increments once every time an action it ran has finished (after setting error / formErrors for that result). Each change settles the card: no error and no formErrors → a submitted form closes and an optimistic choice stays marked until the new view arrives; error → the optimistic choice reverts (an open form stays and shows it); formErrors → the form stays open with them (a choice it carries reverts). busyActionId leaving the action still settles as a fallback, but a host that sets and clears busyActionId in one frame settles only through this token.",
+            "zh": "宿主的结算信号：一个整数，宿主每完成一次动作（并把这次结果的 error / formErrors 设好之后）就加 1。每次变化都结算卡片：没有 error 和 formErrors → 关闭已提交的表单面板，乐观选中保留到新视图到达；有 error → 撤回乐观选中（打开的表单留着并显示它）；有 formErrors → 表单留着并显示错误（表单携带的选中一并撤回）。busyActionId 离开该动作仍作为兜底结算；宿主在同一帧里设上又清掉 busyActionId 时，只能靠这个令牌结算。"
+          }
+        }
+      ],
+      "states": [
+        "unavailable",
+        "busy",
+        "error",
+        "voted",
+        "closed",
+        "embedded"
+      ],
+      "events": [
+        "action",
+        "openDetail",
+        "loadMore"
+      ],
+      "eventPlatforms": {
+        "loadMore": [
+          "vue"
+        ]
+      },
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlarePluginView"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlarePluginView"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "PluginView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "PluginView"
+        }
+      },
+      "accessibility": {
+        "role": "group",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab moves through the expand key, the options, the submit key, see all and the action keys",
+          "Enter or Space activates an option, a key or a row"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "Result bars and the countdown change without animation when the platform asks for reduced motion.",
+        "screenReaderSemantics": "A group named by the title. Options are buttons (single) or checkboxes (multiple) that read their label, selected state, percentage and votes; progress reads value of total; the countdown is not a live region (it is read on focus); the error is an alert."
+      },
+      "notes": {
+        "en": "Render facts follow spec/plugin-view-vectors.json (views, optimistic, time, countdown). Shell: the business card of the kit — width sizes.component.richCardWidth (constrained by the parent), radius lg, a hairline border and the card shadow; the title row carries the icon. Actions: style danger → danger key, primary → primary key, otherwise secondary; confirm → the kit DangerConfirm first; form → the kit bottom sheet with PluginForm, whose submit emits action(id, {formValues}). Choices: single submits on tap; multiple toggles a draft and submits from a key labelled with the block's action. The kit marks the submitted options at once and reverts when error becomes non-empty (or busyActionId clears with an error); a new view settles it. Payload: {selection?, formValues?} (Vue rows add row: {key, input}). openDetail comes from \"see all\" (Vue rows: from a row, with {key, input}) or from the card's view details key, and the host opens PluginDetailSheet. View details: when view.detail is true and no entries block shows its see all, an available card that is not embedded and has no rows block draws a full-width quiet text key (size sm, pluginViewDetail / Vue pluginView.detail) under the action keys; it emits openDetail with no row, waits while busy or busyActionId is set, and needs a host that handles openDetail (spec/plugin-view-vectors.json rules.detailKey, detailKey). Time is formatted in the device zone with pluginViewDateTimeFormat; countdown refreshes every second under an hour and every minute otherwise. Rows (admin pages) are Vue only: FlareDataTable with row actions, a row click for the detail, load more (loadMore(cursor, source)) and the empty text. Settling: the explicit signal is settleToken (the host increments it once per finished action, after setting that result's error / formErrors); busyActionId leaving the action is the fallback, and a host that sets and clears busyActionId within one frame settles only through the token (spec/plugin-view-vectors.json optimistic, rules.settle). Inset: sheet pads the view with spacing md / lg / xl (top / sides / bottom) like PluginForm, for a view placed straight into the kit BottomSheet; sheetTop pads md / lg / 0 for a view with more of the sheet under it (a preface above PluginForm), so the two meet at the form's own md and not at xl + md. Both pad every state — the embedded body, available or not (an unavailable embedded view shows its title as one secondary line), and a card shell a host keeps in a sheet (spec/plugin-view-vectors.json rules.inset, insets). Admin filters (Vue): a rows block's filters names the view inputs the page shows as its filter bar, every input when absent; the other inputs are only collected by row actions' forms. flarePluginFilterInputs(view) returns them in document order (spec/plugin-view-vectors.json filterInputs).",
+        "zh": "渲染事实以 spec/plugin-view-vectors.json 为准（views、optimistic、time、countdown）。外壳与 Kit 业务卡片一致：宽度 sizes.component.richCardWidth（服从父约束）、圆角 lg、细边框和卡片阴影，标题行带图标位。动作：style 为 danger 用危险键，primary 用主键，其余为次要键；有 confirm 先弹 Kit 的 DangerConfirm；有 form 打开 Kit 底部面板里的 PluginForm，提交时发出 action(id, {formValues})。choices：单选点一项立即提交；多选勾选后点提交键，键名取块持有的动作 label。Kit 先乐观标记提交的选项，error 变为非空（或 busyActionId 清空时带着 error）时撤回，新视图到达即结算。payload 为 {selection?, formValues?}（Vue 的 rows 另有 row: {key, input}）。「查看全部」或卡片的「查看详情」发出 openDetail（Vue 的 rows 点行时带 {key, input}），宿主打开 PluginDetailSheet。查看详情：view.detail 为真且没有 entries 块在显示「查看全部」时，可用、非 embedded、没有 rows 块的卡片在动作区下方画一个整宽的 quiet 文字按钮（size sm，pluginViewDetail / Vue 的 pluginView.detail），点击发出不带 row 的 openDetail；busy 或 busyActionId 时禁用；宿主要处理 openDetail 才显示（spec/plugin-view-vectors.json 的 rules.detailKey 与 detailKey）。时间按设备时区用 pluginViewDateTimeFormat 格式化；倒计时剩余不到 1 小时每秒刷新，否则每分钟刷新。rows（管理页）只在 Vue：FlareDataTable 加行动作、点行打开详情、加载更多（loadMore(cursor, source)）和空态。结算：显式信号是 settleToken（宿主每完成一次动作加 1，并且先设好这次结果的 error / formErrors）；busyActionId 离开该动作是兜底；宿主在同一帧里设上又清掉 busyActionId 时，只能靠令牌结算（spec/plugin-view-vectors.json 的 optimistic 与 rules.settle）。内边距：inset 为 sheet 时按 PluginForm 的 md / lg / xl（上 / 左右 / 下）留白，供直接放进 Kit BottomSheet 的视图使用；sheetTop 留 md / lg / 0，供下面还有面板内容的视图（PluginForm 上方的前言），两者之间只剩表单自己的 md，不再是 xl + md。两者作用于所有状态 —— embedded 的内容，可用或不可用（不可用的 embedded 视图把标题显示为一行次要文字），以及宿主留在面板里的卡片外壳（spec/plugin-view-vectors.json 的 rules.inset 与 insets）。管理页筛选（Vue）：rows 块的 filters 列出页面筛选栏要显示的视图输入，不带时为全部输入；其余输入只由行动作的表单收集。flarePluginFilterInputs(view) 按文档顺序返回它们（spec/plugin-view-vectors.json 的 filterInputs）。"
+      }
+    },
+    {
+      "name": "PluginForm",
+      "category": "Message",
+      "summary": {
+        "en": "Plugin form — the resolved inputs of a plugin action (text, textarea, number, toggle, select, datetime, options, members) with light client checks and the host's errors; put it in the kit bottom sheet.",
+        "zh": "插件表单 —— 插件动作的解析后输入（文本、多行、数字、开关、单选、日期时间、选项列表、成员），客户端轻校验加宿主错误；放进 Kit 底部面板。"
+      },
+      "dataSource": {
+        "en": "the resolved view's inputs (the ones an action's form names, or a composer action's); errors from the core SDK's validate_form",
+        "zh": "解析后视图的 inputs（动作 form 列出的，或 composer 动作的）；错误来自核心 SDK 的 validate_form"
+      },
+      "props": [
+        {
+          "name": "inputs",
+          "type": "FlarePluginInput[]",
+          "required": true,
+          "description": {
+            "en": "The inputs, in order (resolved UiInput: labels translated, initial values in default).",
+            "zh": "要收集的输入，按顺序（解析后的 UiInput：文案已翻译，初值在 default）。"
+          }
+        },
+        {
+          "name": "values",
+          "type": "Record<string, unknown>",
+          "required": false,
+          "description": {
+            "en": "Initial values by input id; an input without one starts from its default.",
+            "zh": "按输入 id 的初值；没有的取 default。"
+          }
+        },
+        {
+          "name": "errors",
+          "type": "FlarePluginFormError[]",
+          "required": false,
+          "description": {
+            "en": "The host's errors (UiFormError), shown under their inputs until that input is edited; they win over the client check.",
+            "zh": "宿主返回的错误（UiFormError），显示在对应输入下方，直到该输入被修改；优先于客户端校验。"
+          }
+        },
+        {
+          "name": "submitLabel",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "The submit key; pluginViewSubmit (\"提交\") when omitted.",
+            "zh": "提交键文案；不传时为 pluginViewSubmit（「提交」）。"
+          }
+        },
+        {
+          "name": "busy",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "Submitting: fields and both keys are locked and the submit key shows the spinner.",
+            "zh": "提交中：输入和两个按钮锁定，提交键转圈。"
+          },
+          "default": "false"
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "A failure line above the keys (the host's text).",
+            "zh": "按钮上方的失败文案（宿主传入）。"
+          }
+        },
+        {
+          "name": "members",
+          "type": "FlarePluginMember[]",
+          "required": false,
+          "description": {
+            "en": "Candidates for members inputs, picked with the kit ContactPicker (max 1 picks one).",
+            "zh": "members 输入的候选成员，用 Kit 的 ContactPicker 选择（max 为 1 时单选）。"
+          }
+        }
+      ],
+      "states": [
+        "editing",
+        "invalid",
+        "busy",
+        "error"
+      ],
+      "events": [
+        "submit",
+        "cancel"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlarePluginForm"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlarePluginForm"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "PluginFormView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "PluginForm"
+        }
+      },
+      "accessibility": {
+        "role": "form",
+        "labelRequired": false,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab moves through the inputs, the option rows' remove keys, add option, Cancel and Submit",
+          "Enter in a single-line field does not submit; Enter or Space activates the keys"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "No motion beyond the kit inputs and sheet.",
+        "screenReaderSemantics": "Each input is named by its label and marked required; its error is described by the field and announced as an alert; the length counter is read as part of the field; the members field reads the chosen names."
+      },
+      "notes": {
+        "en": "Client check and submitted values follow spec/plugin-view-vectors.json → form: required and length only (Unicode code points, trimmed), shown for an input once edited and for all after a submit attempt; the core SDK's errors are final. Controls: text and textarea with a counter, number, toggle (Switch), select as a single-choice list (RadioGroup), datetime (Vue: the kit DatePicker and TimePicker; natives: the platform picker), options as rows with add (addOption) and remove (removeOption) inside [max(min, 1), max], members through ContactPicker. Issue texts: pluginFormRequired, pluginFormTooLong, pluginFormOutOfRange, pluginFormTooFewItems / pluginFormTooManyItems ({n} from min / max), pluginFormDuplicateItem, otherwise pluginFormInvalid.",
+        "zh": "客户端校验和提交值以 spec/plugin-view-vectors.json → form 为准：只查必填和长度（按 Unicode 码点、去首尾空白），输入改过后即时提示、点提交后全部提示；最终以核心 SDK 的错误为准。控件：text、textarea 带计数；number；toggle（Switch）；select 为单选列表（RadioGroup）；datetime（Vue 用 Kit 的 DatePicker 和 TimePicker，原生用平台选择器）；options 为可增删的行（addOption、removeOption），条数在 [max(min, 1), max] 内；members 用 ContactPicker。错误文案：pluginFormRequired、pluginFormTooLong、pluginFormOutOfRange、pluginFormTooFewItems / pluginFormTooManyItems（{n} 取 min / max）、pluginFormDuplicateItem，其余为 pluginFormInvalid。"
+      }
+    },
+    {
+      "name": "PluginDetailSheet",
+      "category": "Message",
+      "summary": {
+        "en": "Plugin detail — the \"see all\" view of a plugin card in the kit bottom sheet: loading, an error with retry, then the detail view as an embedded PluginView.",
+        "zh": "插件详情 —— 插件卡片「查看全部」的视图，放在 Kit 底部面板：加载中、出错可重试，然后以内嵌 PluginView 渲染 detail 视图。"
+      },
+      "dataSource": {
+        "en": "the core SDK's plugin_detail result",
+        "zh": "核心 SDK 的 plugin_detail 结果"
+      },
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "Whether the sheet is shown (Vue; the native kits present it through their sheet presenters).",
+            "zh": "是否显示（Vue；原生用各自的面板呈现方式）。"
+          },
+          "platforms": [
+            "vue"
+          ]
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Fallback title while there is no view (the card's title); the view's title wins.",
+            "zh": "还没有视图时的标题（卡片标题）；有视图时取视图标题。"
+          }
+        },
+        {
+          "name": "view",
+          "type": "FlarePluginViewModel",
+          "required": false,
+          "description": {
+            "en": "The resolved detail view; absent while loading.",
+            "zh": "解析后的 detail 视图；加载中时没有。"
+          }
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "The detail is loading: a spinner instead of the view.",
+            "zh": "加载中：显示转圈，不显示视图。"
+          },
+          "default": "false"
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Loading failed: the host's text and a retry key (an action's failure is actionError).",
+            "zh": "加载失败：显示宿主文案和重试键（动作出错用 actionError）。"
+          }
+        },
+        {
+          "name": "resolveUser",
+          "type": "(userId: string) => FlarePluginUser | Promise<FlarePluginUser | undefined> | undefined",
+          "required": false,
+          "description": {
+            "en": "Name and avatar of a user id in people and entries; may answer from a cache or later. Without an answer the avatar draws initials and the name is the id's last 4 characters.",
+            "zh": "people 和 entries 里 userId 的名字和头像；可以同步返回缓存，也可以异步。取不到时显示首字母头像，名字用 userId 的末 4 位。"
+          }
+        },
+        {
+          "name": "busyActionId",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "The action in flight: its key (or the choices submit key) shows the spinner and every other control is disabled. Settles optimistic choices and closes a submitted form when it clears.",
+            "zh": "执行中的动作：它的按钮（或 choices 的提交键）转圈，其他控件禁用。清空时结算乐观选中、关闭已提交的表单。"
+          }
+        },
+        {
+          "name": "actionError",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Failure text of an action run from the detail, shown inside the sheet under the detail view (the embedded PluginView's error) and never on the card below. A new non-empty value reverts an optimistic choice. Distinct from error, which is the loading failure.",
+            "zh": "在详情里执行的动作出错时的文案，显示在面板内、详情视图下方（内嵌 PluginView 的 error），不落到面板下面的卡片上。变为非空时撤回乐观选中。与表示加载失败的 error 不同。"
+          }
+        },
+        {
+          "name": "formErrors",
+          "type": "FlarePluginFormError[]",
+          "required": false,
+          "description": {
+            "en": "The host's validation errors (core SDK validate_form) for a form opened from the detail; passed to the embedded PluginView unchanged.",
+            "zh": "在详情里打开的表单的宿主校验错误（核心 SDK 的 validate_form），原样交给内嵌 PluginView。"
+          }
+        },
+        {
+          "name": "members",
+          "type": "FlarePluginMember[]",
+          "required": false,
+          "description": {
+            "en": "Candidates for members inputs in the detail's action forms (the conversation's members); passed to the embedded PluginView unchanged.",
+            "zh": "详情里动作表单的 members 输入候选（会话成员），原样交给内嵌 PluginView。"
+          }
+        },
+        {
+          "name": "settleToken",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "description": {
+            "en": "The host's settle signal for actions run from the detail (PluginView settleToken), passed to the embedded PluginView unchanged.",
+            "zh": "详情里执行的动作的结算信号（同 PluginView 的 settleToken），原样交给内嵌 PluginView。"
+          }
+        },
+        {
+          "name": "loadingMore",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "en": "The host is fetching the next page (after loadMore): the load-more key shows the spinner and is disabled (the same name as MyInvitePanel's). Going from true to false lets the same page be asked for again; a failure is shown through actionError.",
+            "zh": "宿主正在取下一页（loadMore 之后）：「加载更多」键转圈并禁用（与 MyInvitePanel 同名 prop 一致）。由真变假后允许再次请求同一页；失败经 actionError 显示。"
+          }
+        }
+      ],
+      "states": [
+        "loading",
+        "error",
+        "loaded"
+      ],
+      "events": [
+        "retry",
+        "close",
+        "action",
+        "loadMore"
+      ],
+      "eventPlatforms": {
+        "close": [
+          "vue",
+          "compose"
+        ]
+      },
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlarePluginDetailSheet"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlarePluginDetailSheet"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "PluginDetailSheetView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "PluginDetailSheet"
+        }
+      },
+      "accessibility": {
+        "role": "dialog",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Escape and the platform back close the sheet",
+          "Tab moves through the retry key or the view's controls"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "Follows the kit bottom sheet.",
+        "screenReaderSemantics": "Named by the title; the spinner is named by the loading string; the error is an alert next to its retry key."
+      },
+      "notes": {
+        "en": "The detail view is rendered by PluginView with embedded true (no card shell, no title row), so blocks, actions and their forms behave as on the card. Flutter: FlarePluginDetailSheet is the content and FlarePluginDetailSheet.show presents it on the kit sheet under a title; SwiftUI: PluginDetailSheetView inside flareBottomSheet(isPresented:title:); Compose: PluginDetailSheet composes the kit BottomSheet and reports onClose. Detail actions: busyActionId, actionError (as the view's error), formErrors, members and settleToken go to the embedded PluginView unchanged, so an action run from the detail spins, fails, collects its form and settles inside the sheet. The host keeps them apart from the card's own busy and error, so a failure in the detail never lands on the card below. Paging: a detail view with a non-blank nextCursor shows a full-width load-more key under the embedded view (Vue pluginView.loadMore, natives myInviteLoadMore); a tap emits loadMore(cursor), the host fetches that page and passes back the merged view (the core SDK appends pages: entries pair up and number on; the kit merges nothing), and the key goes away with the last page (absent or blank nextCursor). The key spins and is disabled while loadingMore is true or while the cursor the kit last asked for is still the view's nextCursor, so one page is never asked for twice; a merged view with a new cursor makes it tappable again, and the kit forgets the asked cursor (allowing a retry) when loadingMore goes from true to false, when settleToken changes or when actionError becomes non-empty. A failure is shown through actionError. Rules and samples: spec/plugin-view-vectors.json detailPaging.",
+        "zh": "detail 视图由 embedded 为真的 PluginView 渲染（无卡片外壳、无标题行），块、动作和表单的行为与卡片一致。Flutter：FlarePluginDetailSheet 是内容，FlarePluginDetailSheet.show 在 Kit 面板上带标题呈现；SwiftUI：PluginDetailSheetView 放进 flareBottomSheet(isPresented:title:)；Compose：PluginDetailSheet 组合 Kit BottomSheet 并回调 onClose。详情里的动作：busyActionId、actionError（作为视图的 error）、formErrors、members、settleToken 原样交给内嵌 PluginView，详情里的动作在面板内转圈、出错、收表单、结算。宿主要把它们和卡片自己的 busy、error 分开，详情里的失败不会落到面板下面的卡片上。分页：detail 视图带非空的 nextCursor 时，在内嵌视图下方画一行整宽的「加载更多」（Vue 为 pluginView.loadMore，原生为 myInviteLoadMore）；点击发出 loadMore(cursor)，宿主取下一页后把合并好的视图传回（合并由核心 SDK 做：entries 依次接上、序号续排；Kit 不合并），最后一页（nextCursor 不存在或为空白）时按钮消失。loadingMore 为真，或 Kit 记下的已请求游标仍等于当前 nextCursor 时，按钮转圈并禁用，同一页不会被请求两次；合并后的视图换了游标即恢复可点；loadingMore 由真变假、settleToken 变化或 actionError 变为非空时，Kit 清掉已请求的游标，允许重试。失败经 actionError 显示。规则与样例见 spec/plugin-view-vectors.json 的 detailPaging。"
+      }
+    },
+    {
       "name": "SlashCommandMenu",
       "category": "Composer",
       "summary": {
@@ -13667,6 +15141,264 @@
         },
         "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
         "screenReaderSemantics": "Expose a named group and meaningful descendant roles, values, states, availability, and progress. Decorative imagery is hidden."
+      }
+    },
+    {
+      "name": "LocationPicker",
+      "category": "Composer",
+      "summary": {
+        "en": "Location picker — the sheet content for sending a location: static map with a centre pin and a locate key, place search, nearby places with the current location first, and Send.",
+        "zh": "位置选点 —— 发送位置的底部面板内容：静态地图加中心点与「定位到当前」键、地点搜索、附近地点列表（第一项是当前位置）和「发送」。"
+      },
+      "dataSource": {
+        "en": "host callbacks: the device position, reverse geocoding, nearby search and the static map come from the host (the Social geo proxy); the kit owns the states between them",
+        "zh": "宿主回调：设备位置、逆地址、周边搜索和静态图由宿主提供（社交地图代理）；中间的状态由 Kit 负责"
+      },
+      "props": [
+        {
+          "name": "requestCurrentLocation",
+          "type": "() => Promise<FlareLocationCoordinate>",
+          "required": true,
+          "description": {
+            "en": "The device position. A rejection (permission denied, no fix) turns the picker to manual search.",
+            "zh": "设备位置。失败（无权限、定位不到）时转为手动搜索。"
+          }
+        },
+        {
+          "name": "ensurePermission",
+          "type": "() => Promise<boolean>",
+          "required": false,
+          "description": {
+            "en": "The host's permission step, awaited before each locate (the first one and the locate key): the system prompt's wait is not counted into locateTimeoutMs, which starts only once it resolves true. false (or a rejection) goes straight to denied without calling requestCurrentLocation.",
+            "zh": "宿主的权限步骤，每次定位前（首次和「定位到当前」）先等它返回：系统权限弹框的等待不计入 locateTimeoutMs，返回 true 后才开始计时。返回 false（或失败）直接进入 denied，不再调用 requestCurrentLocation。"
+          }
+        },
+        {
+          "name": "searchNearby",
+          "type": "(latitude: number | null, longitude: number | null, query: string) => Promise<FlareLocationPlace[]>",
+          "required": true,
+          "description": {
+            "en": "Places around a centre: query \"\" is the nearby list, anything else a search. The coordinate is null when no position is known (denied without a previous place).",
+            "zh": "围绕某点的地点：query 为空是附近列表，否则是搜索。不知道位置（被拒且没有上次位置）时坐标为 null。"
+          }
+        },
+        {
+          "name": "reverseGeocode",
+          "type": "(latitude: number, longitude: number) => Promise<FlareLocationAddress>",
+          "required": false,
+          "description": {
+            "en": "The name and address of a coordinate, for the current-location row; without it the row shows the coordinate.",
+            "zh": "坐标的名称和地址，用于「当前位置」行；不传时该行显示坐标。"
+          }
+        },
+        {
+          "name": "previewUrl",
+          "type": "(latitude: number, longitude: number, zoom: number, width: number, height: number) => Promise<string | null>",
+          "required": false,
+          "description": {
+            "en": "A static map URL for the map area, in device pixels: the area's logical size times the screen scale clamped to 1–2, rounded (spec/location-vectors.json previewSize), the same on all four platforms. Null, a rejection or a picture that fails draws \"map unavailable\" with the coordinate.",
+            "zh": "地图区的静态图地址，尺寸为设备像素：地图区逻辑尺寸乘屏幕倍率（限制在 1 到 2 之间）后取整（spec/location-vectors.json 的 previewSize），四端一致。返回 null、失败或图片加载失败时显示「地图暂不可用」和坐标。"
+          }
+        },
+        {
+          "name": "initialLocation",
+          "type": "FlareLocationPlace",
+          "required": false,
+          "description": {
+            "en": "The last place the host remembers: painted at once (first paint under 200 ms) and used when locating times out.",
+            "zh": "宿主记住的上次位置：立即显示（200 ms 内出首屏），定位超时时先用它。"
+          }
+        },
+        {
+          "name": "zoom",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "Map zoom passed to previewUrl.",
+            "zh": "传给 previewUrl 的缩放级别。"
+          },
+          "default": "16"
+        },
+        {
+          "name": "locateTimeoutMs",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "How long to wait for the device before falling back to initialLocation, or to manual search without one; counted from when ensurePermission resolves true (from the request when there is none). A later fix still lands.",
+            "zh": "等待定位的时长，超时后先用 initialLocation，没有时转手动搜索；从 ensurePermission 返回 true 时开始计时（没有 ensurePermission 时从发起定位开始）。之后到达的定位照样更新。"
+          },
+          "default": "5000"
+        },
+        {
+          "name": "provider",
+          "type": "FlareLocationProvider",
+          "required": false,
+          "description": {
+            "en": "The tenant's map service: with osm the map preview carries OpenStreetMap's credit.",
+            "zh": "租户的地图服务：osm 时地图预览显示 OpenStreetMap 署名。"
+          },
+          "default": "\"osm\""
+        },
+        {
+          "name": "sending",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "en": "The host is sending the chosen place: the Send key shows the spinner and is disabled, so a second tap sends nothing.",
+            "zh": "宿主正在发送选中的位置：发送键转圈并禁用，再点不会重复发送。"
+          }
+        }
+      ],
+      "states": [
+        "locating",
+        "located",
+        "denied",
+        "searching",
+        "noResults",
+        "mapUnavailable",
+        "sending"
+      ],
+      "events": [
+        "send",
+        "cancel"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareLocationPicker"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareLocationPicker"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "LocationPickerView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "LocationPicker"
+        }
+      },
+      "accessibility": {
+        "role": "group",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab moves through Cancel, the locate key, the search field, the place rows and Send",
+          "Enter or Space selects a place row; Enter in the search field searches at once"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "The loading map stops pulsing; states change without motion.",
+        "screenReaderSemantics": "A group named \"Location\"; the place rows are a radio group (one checked); locating, denied and no-result messages are polite live regions; the map is an image named by the chosen place."
+      },
+      "notes": {
+        "en": "Put it in the kit BottomSheet with `fill` (it declares its own header, so the sheet draws no second title). The first row is the current location (id \"current\"): its title comes from reverseGeocode, else \"Current location\", and its address from the reverse geocode, else the coordinate line. Selecting a row moves the map; `send` returns the selected FlareLocationPlace, and the host builds the location message (and its snapshot) from it. The coordinate line and the distance labels follow spec/location-vectors.json (label, distance). Searches are debounced 300 ms; Return searches at once. The picker never asks for permission itself: requestCurrentLocation is the host's platform adapter. With provider osm the map preview carries OpenStreetMap's credit (ODbL): locationOsmAttribution (\"© OpenStreetMap contributors\", the same in every language) as a small line in the bottom-right corner of the picture, secondary text on a translucent ground, clear of the centre marker; not while the map is unavailable, and never for amap. Permission and sending: with ensurePermission the picker shows locating while the host's prompt is up and starts the locateTimeoutMs clock only after it resolves true; false is denied at once. `sending` locks the Send key (spinner, disabled) while the host sends; the host clears it when the send settles. previewUrl's width and height are device pixels on every platform: round(logical × clamp(scale, 1, 2)) (spec/location-vectors.json previewSize).",
+        "zh": "放进带 `fill` 的 Kit BottomSheet（组件声明自带标题，面板不再画第二个标题）。第一行是当前位置（id 为 \"current\"）：标题取逆地址的名称，没有时为「当前位置」；地址取逆地址，没有时为坐标行。选中某行时地图跟着移动；`send` 回传选中的 FlareLocationPlace，宿主据此构造位置消息（和静态图）。坐标行与距离文案按 spec/location-vectors.json（label、distance）。搜索防抖 300 ms，回车立即搜索。组件不自己申请权限：requestCurrentLocation 是宿主的平台适配。provider 为 osm 时，地图预览上显示 OpenStreetMap 的署名（ODbL）：文案 locationOsmAttribution（「© OpenStreetMap contributors」，各语言相同），在图片右下角一行小字，secondary 文本色、半透明底，不遮中心点；地图不可用时不显示，amap 时不显示。权限与发送：有 ensurePermission 时，宿主的权限弹框期间组件显示定位中，返回 true 后才开始 locateTimeoutMs 计时；返回 false 立即进入 denied。`sending` 在宿主发送期间锁住发送键（转圈、禁用），发送结束后由宿主清掉。previewUrl 的宽高在四端都是设备像素：round(逻辑尺寸 × clamp(倍率, 1, 2))（spec/location-vectors.json 的 previewSize）。"
+      }
+    },
+    {
+      "name": "ContactPicker",
+      "category": "Composer",
+      "summary": {
+        "en": "Contact picker — choose the person a contact card names: group tabs (friends, group members), search, a windowed list, \"(me)\" on the signed-in user.",
+        "zh": "联系人选择 —— 选择名片里的人：分组标签（好友、群成员）、搜索、虚拟列表，自己显示「（我）」。"
+      },
+      "dataSource": {
+        "en": "passed in by you; the host decides who may be shared (chat.card scope) and the server checks it",
+        "zh": "由你传入；能分享谁（chat.card 的范围）由宿主决定，服务端校验"
+      },
+      "props": [
+        {
+          "name": "groups",
+          "type": "FlareContactPickerGroup[]",
+          "required": true,
+          "description": {
+            "en": "The tabs, in order; one group shows no tabs. Ids friends and groupMembers get the kit's labels.",
+            "zh": "标签页，按顺序；只有一组时不显示标签。id 为 friends、groupMembers 时用 Kit 文案。"
+          }
+        },
+        {
+          "name": "searchable",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "Show the search field (names and subtitles, case-insensitive).",
+            "zh": "显示搜索框（匹配姓名和副标题，不区分大小写）。"
+          },
+          "default": "true"
+        },
+        {
+          "name": "multiple",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "Toggle rows and answer from the confirm key instead of on the first tap.",
+            "zh": "多选：点行切换选中，由确认键回传，而不是点一下就回传。"
+          },
+          "default": "false"
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Header title; \"Choose a contact\" when omitted.",
+            "zh": "标题；不传时为「选择联系人」。"
+          }
+        }
+      ],
+      "states": [
+        "empty"
+      ],
+      "events": [
+        "select",
+        "cancel"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareContactPicker"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareContactPicker"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ContactPickerView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ContactPicker"
+        }
+      },
+      "accessibility": {
+        "role": "group",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab moves through Cancel, the search field, the tabs and the rows",
+          "Enter or Space picks a row (multiple mode: toggles it)"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "No motion beyond the kit tabs and list scrolling.",
+        "screenReaderSemantics": "A group named by the title; the list is named by the active tab; in multiple mode each row is a checkbox and the confirm key counts the chosen people."
+      },
+      "notes": {
+        "en": "`select` always carries a list: one entry on a tap in single mode, the chosen entries (in the order they were chosen) from the confirm key in multiple mode. The list builds only the rows on screen (Vue windows lists longer than 60 rows; the native kits use their lazy lists). The signed-in user (isSelf) stays selectable. Multiple mode's confirm key reuses the kit's confirm word. Own header: it draws its own header (Cancel, the title, the confirm key in multiple mode) and declares it, so put it in the kit BottomSheet with `fill` and the sheet keeps its title as the accessible name only.",
+        "zh": "`select` 总是列表：单选时点一行回传一项；多选时由确认键按选中顺序回传。列表只构建屏幕上的行（Vue 超过 60 行开始开窗，原生用各自的懒加载列表）。自己（isSelf）也可以选。多选确认键复用 Kit 的「确定」。自带标题：组件自己画标题栏（取消、标题、多选时的确认键）并声明这一点，放进带 `fill` 的 Kit BottomSheet 时，面板的 title 只作可及名称。"
       }
     },
     {
@@ -18866,8 +20598,8 @@
           "name": "addText",
           "type": "string",
           "description": {
-            "en": "Add-friend label.",
-            "zh": "添加好友文案。"
+            "en": "Label of the add key; relationActionBarAdd when omitted. A host words it for where the person goes (\"Add to contacts\" from a contact card).",
+            "zh": "添加键文案；不传时为 relationActionBarAdd。宿主可按去处改写（从名片进入时为「添加到通讯录」）。"
           }
         },
         {
@@ -20653,6 +22385,21 @@
           }
         },
         {
+          "name": "fill",
+          "type": "boolean",
+          "default": false,
+          "platforms": [
+            "vue",
+            "flutter",
+            "ios",
+            "compose"
+          ],
+          "description": {
+            "zh": "定高模式：面板占满自己的高度上限（maxHeight，不传为可用高度的 72%），内容撑满标题下方的剩余高度并自己负责滚动，宿主不再写定高容器。用于自带标题栏、需要定高的内容（LocationPicker、ContactPicker）。fill 时内容可声明「自带标题」，面板就不画可见标题，title 只作可及名称（见 notes）。交给 Modal 呈现时同样是 Modal 的 fill。",
+            "en": "Fixed-height mode: the surface takes its whole height cap (maxHeight; 72% of the available height when omitted), the content fills what is left under the title and owns its scrolling, so hosts write no fixed-height wrapper. For content with its own header that needs a definite height (LocationPicker, ContactPicker). With fill, content can declare that it brings its own header; the sheet then draws no visible title and keeps title as the accessible name only (see notes). Handed to Modal, it is Modal's fill."
+          }
+        },
+        {
           "name": "dialogWidth",
           "type": "string",
           "platforms": [
@@ -20708,8 +22455,8 @@
         "screenReaderSemantics": "Announce the title as the dialog name; the backdrop is inert; the body behind is aria-hidden while open."
       },
       "notes": {
-        "en": "The kit's surface for short, focused tasks on every platform, so hosts never reach for system sheets. `presentation=\"auto\"` (the default on all four platforms) is a bottom sheet on the phone form factor and otherwise shows the content in Modal; long-lived secondary content belongs in Drawer, not here. Vue renders it from `open` (the form factor is `platform.capabilities.value.bottomSheet`). Flutter presents it with `FlareBottomSheet.show(context, title:, titleHidden:, dismissible:, busy:, maxHeight:, presentation:, builder:)` and `FlareBottomSheet.prompt`; the form factor is `flareCapabilitiesOf(context).bottomSheet`. iOS presents it with `flareBottomSheet(isPresented:|item:, title:, titleHidden:, presentation:, dismissible:, size:, maxHeight:, onDismiss:, content:)` around `BottomSheetView` (`size: .large` fills the large detent for search, pickers and flows with their own NavigationStack); presentation and dismissible live on that presenter, not on `BottomSheetView`; the form factor is `@Environment(\\.flareCompactOverlays)`, and content locks dismissal with `.flareLayerDismissDisabled(_:)`. Compose composes `BottomSheet(onClose, title, titleHidden, maxHeight, dismissible, presentation) { }`, a dialog window whose content owns its scrolling; `flareCompactOverlays()` is its form-factor resolver. DangerConfirm, FormSheet and prompts follow the same auto rule on all four platforms.",
-        "zh": "各端统一的短任务承载面，宿主不必再调用系统面板。`presentation=\"auto\"`（四端默认）在手机形态为底部面板，其它形态把内容交给 Modal；长驻的次级内容属于 Drawer，不放这里。Vue 由 `open` 呈现（形态判据是 `platform.capabilities.value.bottomSheet`）。Flutter 用 `FlareBottomSheet.show(context, title:, titleHidden:, dismissible:, busy:, maxHeight:, presentation:, builder:)` 与 `FlareBottomSheet.prompt` 呈现，形态判据是 `flareCapabilitiesOf(context).bottomSheet`。iOS 用包裹 `BottomSheetView` 的 `flareBottomSheet(isPresented:|item:, title:, titleHidden:, presentation:, dismissible:, size:, maxHeight:, onDismiss:, content:)` 呈现（`size: .large` 占满大档位，用于搜索、选择器与自带 NavigationStack 的流程）；presentation 与 dismissible 在这个呈现器上，不在 `BottomSheetView` 上；形态判据是 `@Environment(\\.flareCompactOverlays)`，内容用 `.flareLayerDismissDisabled(_:)` 锁住关闭。Compose 直接组合 `BottomSheet(onClose, title, titleHidden, maxHeight, dismissible, presentation) { }`，它是对话框窗口，内容自己负责滚动；形态判据是 `flareCompactOverlays()`。DangerConfirm、FormSheet 与提示框在四端遵循同一条 auto 规则。"
+        "en": "The kit's surface for short, focused tasks on every platform, so hosts never reach for system sheets. `presentation=\"auto\"` (the default on all four platforms) is a bottom sheet on the phone form factor and otherwise shows the content in Modal; long-lived secondary content belongs in Drawer, not here. Vue renders it from `open` (the form factor is `platform.capabilities.value.bottomSheet`). Flutter presents it with `FlareBottomSheet.show(context, title:, titleHidden:, dismissible:, busy:, maxHeight:, presentation:, builder:)` and `FlareBottomSheet.prompt`; the form factor is `flareCapabilitiesOf(context).bottomSheet`. iOS presents it with `flareBottomSheet(isPresented:|item:, title:, titleHidden:, presentation:, dismissible:, size:, maxHeight:, onDismiss:, content:)` around `BottomSheetView` (`size: .large` fills the large detent for search, pickers and flows with their own NavigationStack); presentation and dismissible live on that presenter, not on `BottomSheetView`; the form factor is `@Environment(\\.flareCompactOverlays)`, and content locks dismissal with `.flareLayerDismissDisabled(_:)`. Compose composes `BottomSheet(onClose, title, titleHidden, maxHeight, dismissible, presentation) { }`, a dialog window whose content owns its scrolling; `flareCompactOverlays()` is its form-factor resolver. DangerConfirm, FormSheet and prompts follow the same auto rule on all four platforms. Fill mode: with `fill` the surface takes its whole cap and hands the content the rest of the height under the grip (and the title), as Modal's `fill` does; the content owns its scrolling. Content that draws its own header row (a title with Cancel) declares it, and with `fill` the sheet then keeps `title` as the accessible name only: Vue — the content calls `useFlareSheetOwnHeader()` in setup (from `@flare-im/vue-ui/composables`; the kit's LocationPicker and ContactPicker do); Flutter — the widget `FlareBottomSheet.show(fill: true, builder:)` returns implements `FlareSheetOwnHeader` (FlareLocationPicker and FlareContactPicker do); iOS — the content calls the public View modifier `.flareSheetOwnHeader()` (`flareSheetOwnHeader(false)` withdraws it), reported up through the PreferenceKey `FlareSheetOwnHeaderKey` and read by `BottomSheetView(title:titleHidden:maxHeight:fill:content:)` and `flareBottomSheet(isPresented:|item:, …, fill:)`; Compose — the content calls the public `@Composable fun FlareSheetOwnHeader()`, which registers with the CompositionLocal `BottomSheet(…, fill = true)` provides (internally `LocalFlareSheetHeader`) and unregisters when it leaves the composition, and the sheet keeps title as its paneTitle and accessible name. The kit's LocationPickerView / LocationPicker and ContactPickerView / ContactPicker declare it on both. Without `fill`, nothing changes: the title is drawn unless titleHidden.",
+        "zh": "各端统一的短任务承载面，宿主不必再调用系统面板。`presentation=\"auto\"`（四端默认）在手机形态为底部面板，其它形态把内容交给 Modal；长驻的次级内容属于 Drawer，不放这里。Vue 由 `open` 呈现（形态判据是 `platform.capabilities.value.bottomSheet`）。Flutter 用 `FlareBottomSheet.show(context, title:, titleHidden:, dismissible:, busy:, maxHeight:, presentation:, builder:)` 与 `FlareBottomSheet.prompt` 呈现，形态判据是 `flareCapabilitiesOf(context).bottomSheet`。iOS 用包裹 `BottomSheetView` 的 `flareBottomSheet(isPresented:|item:, title:, titleHidden:, presentation:, dismissible:, size:, maxHeight:, onDismiss:, content:)` 呈现（`size: .large` 占满大档位，用于搜索、选择器与自带 NavigationStack 的流程）；presentation 与 dismissible 在这个呈现器上，不在 `BottomSheetView` 上；形态判据是 `@Environment(\\.flareCompactOverlays)`，内容用 `.flareLayerDismissDisabled(_:)` 锁住关闭。Compose 直接组合 `BottomSheet(onClose, title, titleHidden, maxHeight, dismissible, presentation) { }`，它是对话框窗口，内容自己负责滚动；形态判据是 `flareCompactOverlays()`。DangerConfirm、FormSheet 与提示框在四端遵循同一条 auto 规则。定高模式：`fill` 时面板占满自己的上限，把把手（和标题）下方的剩余高度交给内容，与 Modal 的 `fill` 相同；内容自己负责滚动。自带标题栏（标题加「取消」）的内容要声明这一点，`fill` 时面板就只把 `title` 当可及名称：Vue 由内容在 setup 里调用 `useFlareSheetOwnHeader()`（从 `@flare-im/vue-ui/composables` 导入，Kit 的 LocationPicker、ContactPicker 已调用）；Flutter 由 `FlareBottomSheet.show(fill: true, builder:)` 返回的组件实现 `FlareSheetOwnHeader`（FlareLocationPicker、FlareContactPicker 已实现）；iOS 由内容调用公开的 View 修饰符 `.flareSheetOwnHeader()`（`flareSheetOwnHeader(false)` 可撤销），经 PreferenceKey `FlareSheetOwnHeaderKey` 往上报，`BottomSheetView(title:titleHidden:maxHeight:fill:content:)` 与 `flareBottomSheet(isPresented:|item:, …, fill:)` 读取；Compose 由内容调用公开的 `@Composable fun FlareSheetOwnHeader()`，向 `BottomSheet(…, fill = true)` 提供的 CompositionLocal（内部名 `LocalFlareSheetHeader`）登记、离开组合时注销，面板把 title 作为 paneTitle 和可及名称。两端 Kit 的 LocationPickerView / LocationPicker、ContactPickerView / ContactPicker 都声明自带标题。不加 `fill` 时行为不变：除非 titleHidden，标题照画。"
       },
       "eventPlatforms": {
         "close": [
@@ -22811,22 +24558,24 @@
     ]
   },
   "composerActions": {
-    "_note": "Composer 与附件动作面板统一 id（四端同名、无前缀）。默认集是「功能管理」里的内置功能，固定为 image、video、file、voice、card、poll，四端顺序与图标相同（defaultIcons），文案由各端 Kit 语言包按 id 提供（defaultLabels：Vue 为 i18n 键，原生为 FlareStrings 字段，Flutter 另有写法时记在 flutter），宿主可以不传 label；宿主列表整份替换默认集。kind 区分内置功能（feature）与插件入口（plugin），宿主可以不传。「+」项的 icon 不是注册表名时，四端都画 pluginFallbackIcon（Vue 另外：不带图标的统一 id 用 defaultIcons/各 id 的 Kit 图标，emoji 照文字画）。toolIds 是工具条工具 id，capabilities.availableToolIds 不传时全部显示，传了只显示列出的工具，attachments 即「+」按钮。",
+    "_note": "Composer 与附件动作面板统一 id（四端同名、无前缀）。默认集是「功能管理」里的内置功能，固定为 image、camera、video、file、voice、location、card（投票改由插件提供，PollComposer 与 VoteMessage 仍保留给历史消息），四端顺序与图标相同（defaultIcons），文案由各端 Kit 语言包按 id 提供（defaultLabels：Vue 为 i18n 键，原生为 FlareStrings 字段，Flutter 另有写法时记在 flutter），宿主可以不传 label；宿主列表整份替换默认集。kind 区分内置功能（feature）与插件入口（plugin），宿主可以不传。「+」项的 icon 不是注册表名时，四端都画 pluginFallbackIcon（Vue 另外：不带图标的统一 id 用 defaultIcons/各 id 的 Kit 图标，emoji 照文字画）。toolIds 是工具条工具 id，capabilities.availableToolIds 不传时全部显示，传了只显示列出的工具，attachments 即「+」按钮。",
     "defaults": [
       "image",
+      "camera",
       "video",
       "file",
       "voice",
-      "card",
-      "poll"
+      "location",
+      "card"
     ],
     "defaultIcons": {
       "image": "image",
+      "camera": "camera",
       "video": "video",
       "file": "file",
       "voice": "mic",
-      "card": "card",
-      "poll": "poll"
+      "location": "location",
+      "card": "card"
     },
     "defaultLabels": {
       "image": {
@@ -22834,6 +24583,12 @@
         "native": "actionImage",
         "zh": "图片",
         "en": "Image / Photo"
+      },
+      "camera": {
+        "vue": "composer.camera",
+        "native": "actionCamera",
+        "zh": "拍摄",
+        "en": "Camera"
       },
       "video": {
         "vue": "composer.video",
@@ -22854,17 +24609,17 @@
         "zh": "语音",
         "en": "Voice"
       },
+      "location": {
+        "vue": "composer.location",
+        "native": "actionLocation",
+        "zh": "位置",
+        "en": "Location"
+      },
       "card": {
         "vue": "composer.card",
         "native": "actionCard",
         "zh": "名片",
         "en": "Contact card"
-      },
-      "poll": {
-        "vue": "composer.poll",
-        "native": "actionVote",
-        "zh": "投票",
-        "en": "Poll"
       }
     },
     "kinds": [
