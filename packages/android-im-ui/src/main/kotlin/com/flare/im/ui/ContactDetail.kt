@@ -309,8 +309,8 @@ private fun action(
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
             if (busy) {
-                Box(Modifier.size(24.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(Modifier.size(20.dp), color = content, strokeWidth = 2.dp)
+                Box(Modifier.size(FlareSizes.iconSizeLg), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(Modifier.size(FlareSizes.iconSizeMd), color = content, strokeWidth = 2.dp)
                 }
             } else {
                 Icon(icon, null, tint = content)

@@ -56,8 +56,10 @@ function collect(path) {
 }
 for (const sourceRoot of sourceRoots) collect(join(root, sourceRoot));
 const gone = [...removed].filter((symbol) => !definedSomewhere.has(symbol));
+// Build and test output is not guidance: a failed Playwright run leaves error-context.md
+// page snapshots under website/test-results (gitignored), which quote whatever the DOM said.
 const guidance = [...walk(join(root, "website")), ...walk(join(root, "docs"))]
-  .filter((path) => !/[\\/](node_modules|\.vitepress[\\/](dist|cache))[\\/]/.test(path))
+  .filter((path) => !/[\\/](node_modules|test-results|playwright-report|\.vitepress[\\/](dist|cache))[\\/]/.test(path))
   .filter((path) => !HISTORICAL_DOCS.some((pattern) => pattern.test(relative(root, path))));
 let staleMentions = 0;
 for (const path of guidance) {

@@ -572,7 +572,7 @@ private fun PluginProgressBlockView(block: PluginProgressBlock) {
             Spacer(Modifier.weight(1f))
             Text(text, color = colors.textPrimary, fontSize = FlareSizes.fontSizeMd, fontWeight = FontWeight.SemiBold)
         }
-        Box(Modifier.fillMaxWidth().height(6.dp).clip(CircleShape).background(colors.bgTertiary)) {
+        Box(Modifier.fillMaxWidth().height(FlareSizes.spacing2xs).clip(CircleShape).background(colors.bgTertiary)) {
             Box(Modifier.fillMaxHeight().fillMaxWidth(fraction).clip(CircleShape).background(colors.primary))
         }
     }
