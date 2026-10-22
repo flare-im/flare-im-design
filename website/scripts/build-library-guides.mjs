@@ -220,8 +220,8 @@ const customizationPages = {
   ],
   "custom-composer": [
     "Custom Composer",
-    "Composer 默认展示内置功能 Image、Camera、Video、File、Voice、Location、Card、Poll，四端顺序与图标相同；Task、Event、MiniApp 属于高级能力。插件入口（kind 为 plugin）排在内置项之后；图标名不在注册表里时画通用插件图标。工具条工具由 capabilities.availableToolIds 选择。",
-    "Composer defaults to the built-in features Image, Camera, Video, File, Voice, Location, Card, and Poll, in the same order and with the same icons on every platform; Task, Event, and MiniApp are advanced capabilities. Plugin entries (kind plugin) follow the built-in ones; an icon name outside the registry draws the generic plugin glyph. capabilities.availableToolIds picks the toolbar tools.",
+    "Composer 默认展示内置功能 Image、Camera、Video、File、Voice、Location、Card，四端顺序与图标相同；Task、Event、MiniApp 属于高级能力。插件入口（kind 为 plugin）排在内置项之后，投票由投票插件的入口提供，不是内置项；图标名不在注册表里时画通用插件图标。工具条工具由 capabilities.availableToolIds 选择。",
+    "Composer defaults to the built-in features Image, Camera, Video, File, Voice, Location, and Card, in the same order and with the same icons on every platform; Task, Event, and MiniApp are advanced capabilities. Plugin entries (kind plugin) follow the built-in ones, and a poll is the poll plugin's entry rather than a built-in item; an icon name outside the registry draws the generic plugin glyph. capabilities.availableToolIds picks the toolbar tools.",
     "省略 actions 即可使用默认值。传入 actions 完整替换；capabilities 在渲染前过滤业务不可用动作。参阅 [Customize Composer](/recipes/customize-composer)。",
     "Omit actions for defaults. Supplying actions fully replaces them; capabilities filter unavailable business actions before presentation. See [Customize Composer](/en/recipes/customize-composer).",
   ],
@@ -508,15 +508,15 @@ const navigationRecipeCode = {
 };
 
 add("recipes/customize-composer.md",
-  doc("Customize Composer", "从默认 Image、Camera、Video、File、Voice、Location、Card、Poll 裁剪为 Image、Order、File。Order 完全由宿主定义。", [
+  doc("Customize Composer", "从默认 Image、Camera、Video、File、Voice、Location、Card 裁剪为 Image、Order、File。Order 完全由宿主定义。", [
     ["Vue Preview", '<ComponentPreview name="Composer" />'],
-    ["Resolution", "省略 actions 使用默认值；显式列表去掉 Camera、Video、Voice、Location、Card、Poll，并通过 order 插入 Order。capabilities 可以在会话策略变化时动态过滤。"],
+    ["Resolution", "省略 actions 使用默认值；显式列表去掉 Camera、Video、Voice、Location、Card，并通过 order 插入 Order。capabilities 可以在会话策略变化时动态过滤。"],
     ["Four Platforms", fourPlatformCode(composerRecipeCode)],
     ["States", "继续覆盖 reply、editing、offline、uploading、disabled action 和 empty action list。"],
   ]),
-  doc("Customize Composer", "Trim the Image, Camera, Video, File, Voice, Location, Card, Poll defaults to Image, Order, File. Order is entirely host-owned.", [
+  doc("Customize Composer", "Trim the Image, Camera, Video, File, Voice, Location, Card defaults to Image, Order, File. Order is entirely host-owned.", [
     ["Vue Preview", '<ComponentPreview name="Composer" />'],
-    ["Resolution", "Omitting actions uses defaults. The explicit list drops Camera, Video, Voice, Location, Card, and Poll and inserts Order by order. Capabilities can filter as conversation policy changes."],
+    ["Resolution", "Omitting actions uses defaults. The explicit list drops Camera, Video, Voice, Location, and Card and inserts Order by order. Capabilities can filter as conversation policy changes."],
     ["Four Platforms", fourPlatformCode(composerRecipeCode)],
     ["States", "Continue covering reply, editing, offline, uploading, disabled action, and an empty action list."],
   ]));

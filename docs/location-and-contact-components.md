@@ -32,6 +32,20 @@
 - 坐标：保留 6 位小数，去掉末尾的 0 和小数点，负零写作 0；坐标不是有限数或超出范围时不生成链接，卡片不可点。标题去掉首尾空白后按 UTF-8 百分号编码，只保留 `A-Z a-z 0-9 - . _ ~`，空格写作 `%20`。消息里一律是 WGS-84，高德链接用 `coordinate=wgs84` 告诉对方。
 - 时间线适配层把线上的 0, 0 当作没有坐标（proto3 不写坐标时就是 0）。
 
+### 宿主自己打开地点：网页地图地址与服务商
+
+宿主处理 `open`（按租户的地图服务打开被点的卡片）时，从 Kit 取地址，不要照抄上面的规则：
+
+| 端 | 网页地图地址 | 配置值 → 服务商 |
+|---|---|---|
+| Vue（`@flare-im/vue-ui/contracts`） | `flareLocationWebMapUrl(location, provider?)` | `flareLocationProviderFrom(value)` |
+| Flutter | `flareLocationWebMapUrl(content, provider:)` | `flareLocationProviderFrom(value)` |
+| SwiftUI | `flareLocationWebMapUrl(_:provider:)` | `flareLocationProviderFrom(_:)` |
+| Compose | `flareLocationWebMapUrl(location, provider)` | `flareLocationProviderFrom(value)` |
+
+- 网页地图地址：传了 `provider` 参数时以它为准，否则用位置内容里的，内容没写时为 osm；就是上表 `web` 列的那条链接。没有坐标时返回空：缺一个、超出范围，或线上的 0, 0（vectors → `webMapUrl`）。
+- 服务商：`chat.location` 配置里的 `provider` 值，`amap`（去掉首尾空白、不区分大小写）为高德，其他一律为 OpenStreetMap，包括空、null 和非字符串（vectors → `providerFrom`）。
+
 ## 位置选点 `LocationPicker`
 
 放进带 `fill` 的 Kit 底部面板（Vue `<FlareBottomSheet fill>`，Flutter `FlareBottomSheet.show(fill: true)`，iOS `flareBottomSheet(..., fill: true)`，Compose `BottomSheet(fill = true)`）。面板占满高度上限，组件声明自带标题栏，面板不再画第二个标题，宿主也不用写定高容器。宿主回调：
@@ -46,6 +60,12 @@
 | `send(place)` / `cancel` | 回传选中的 `LocationPlace`；宿主据此构造位置消息和卡片用的静态图 |
 
 其余参数：`initialLocation`（上次位置，立即显示）、`zoom`（默认 16）、`locateTimeoutMs`（默认 5000）、`sending`（宿主发送中：发送键转圈并禁用，防止重复发送）。
+
+Web 与 Tauri 不用自己写定位适配：Vue 的 `createFlareBrowserLocationHost()`（`@flare-im/vue-ui/utils`）给出 `ensurePermission` 和 `requestCurrentLocation` 两个回调，直接传给 `FlareLocationPicker`。
+
+- `ensurePermission`：先查 Permissions API（granted 为 true，denied 为 false）；结果为 prompt 或浏览器答不上来时，发起一次定位请求弹出浏览器的授权框，只有拒绝算 false，拿到定位、超时或定位不可用都算 true。没有安全上下文（非 HTTPS）或没有 `navigator.geolocation` 时直接为 false，组件进入 `denied`、转手动搜索。
+- `requestCurrentLocation`：读 `navigator.geolocation`（高精度，`timeoutMs` 默认 10000，`maximumAgeMs` 默认 60000）；授权那一步已经拿到的定位先用，不再问第二次。非安全页面、没有该 API、被拒或超时没有定位时失败。
+- 可选参数 `geolocation`、`permissions`、`secureContext` 用来注入（测试或 webview 自带的实现）；不传时每次调用时才读 `navigator`，SSR 下导入安全。
 
 - 布局：标题栏（取消、「位置」）；地图区高 168，右下角「定位到当前位置」键（图标 `locate`，准星）；搜索框；地点列表单选打勾，第一项是当前位置（id `current`）；底部「发送」。
 - 首屏：有 `initialLocation` 时立即显示它和它的地图，否则显示骨架行，不等网络。
@@ -64,6 +84,12 @@
 - 自己（`isSelf`）显示「（我）」，可以选。
 - `select` 总是列表：单选时点一行回传一项；多选时点行切换，标题栏右侧「确定 (n)」按选中顺序回传。
 - 能分享谁（`chat.card` 的 `scope`）由宿主过滤分组、服务端校验，Kit 不判断。
+- `sending`（默认 false，与位置选点的 `sending` 同义）：宿主从 `select` 起设上，发送结束后清掉。期间单选时被点的那一行高亮并转圈，多选时确认键转圈；各行与确认键不接受点击，取消、搜索和分组标签照常可用（发送中能否关面板由面板自己的锁决定）。清掉后单选忘掉那一行，多选保留已选，发送失败可以直接再发；发送成功由宿主关闭面板。
+- Flutter 把会变的 `sending` 传进面板内容：`FlareBottomSheet.show(fill: true, busy: sending, listenable: sending, builder: (_) => FlareContactPicker(sending: sending.value, ...))`。`listenable` 每次通知都重新运行 `builder`，fill 下自带标题的声明在重建后照样生效，宿主不必再自己包 `ValueListenableBuilder`；同一个 notifier 传给 `busy` 时发送期间面板不能被关掉。`FlareLocationPicker` 的 `sending` 同样这么传。
+
+## 资料页主操作 `ContactDetail`
+
+陌生人页面由 `primaryActionLabel` 加 `primaryAction` 回调给出主操作（如「添加到通讯录」，排在操作行首位）。宿主执行期间传 `primaryActionBusy`（默认 false）：主按钮以转圈代替图标、不接受点击，读屏报不可用和进行中，颜色不变；发消息、通话、资料行和页脚照常可用。请求结束后宿主清掉。四端同名（Vue `primary-action-busy`）。
 
 ## 名片消息卡片 `ContactMessage`
 
@@ -71,7 +97,7 @@
 
 ## 「+」面板
 
-内置默认集（`composerActions.defaults`）四端同序：图片 `image`、拍摄 `camera`、视频 `video`、文件 `file`、语音 `voice`（图标 `mic`）、位置 `location`、名片 `card`、投票 `poll`。拍摄与位置由宿主处理（拍摄只在移动端出现，由 Social 的 composerMenu 按平台和功能开关决定）。
+内置默认集（`composerActions.defaults`）四端同序：图片 `image`、拍摄 `camera`、视频 `video`、文件 `file`、语音 `voice`（图标 `mic`）、位置 `location`、名片 `card`。投票不是内置项，由投票插件的入口提供（`kind` 为 plugin，排在内置项之后）。拍摄与位置由宿主处理（拍摄只在移动端出现，由 Social 的 composerMenu 按平台和功能开关决定）。
 
 ## 文案
 

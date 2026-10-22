@@ -11174,7 +11174,8 @@
       "docExamples": {
         "variants": [],
         "states": [
-          "empty"
+          "empty",
+          "sending"
         ]
       },
       "summary": {
@@ -11184,11 +11185,13 @@
       "aliases": [
         "Composer",
         "empty",
+        "sending",
         "select",
         "cancel"
       ],
       "states": [
-        "empty"
+        "empty",
+        "sending"
       ],
       "interactions": [
         "select",
@@ -11234,7 +11237,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#ContactPicker",
-      "searchText": "contactpicker composer im-ui stable composer empty select cancel supportsconfiguration contact picker — choose the person a contact card names: group tabs (friends, group members), search, a windowed list, \"(me)\" on the signed-in user. 联系人选择 —— 选择名片里的人：分组标签（好友、群成员）、搜索、虚拟列表，自己显示「（我）」。"
+      "searchText": "contactpicker composer im-ui stable composer empty sending select cancel supportsconfiguration contact picker — choose the person a contact card names: group tabs (friends, group members), search, a windowed list, \"(me)\" on the signed-in user. 联系人选择 —— 选择名片里的人：分组标签（好友、群成员）、搜索、虚拟列表，自己显示「（我）」。"
     },
     {
       "name": "ChatWallpaperPicker",

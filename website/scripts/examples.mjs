@@ -385,7 +385,7 @@ VoteMessage(title = "周会时间投票", options = options)
   Composer: [
     {
       title: { en: "Default", zh: "默认" },
-      description: { en: "A draft binding and send callback are enough. The calm default toolbar keeps Emoji, Plus, and Send visible; Plus opens Image, Camera, Video, File, Voice, Location, Contact card, and Poll.", zh: "只需草稿绑定和发送回调即可使用；克制的默认工具栏常驻表情、Plus 与发送，Plus 打开图片、拍摄、视频、文件、语音、位置、名片和投票。" },
+      description: { en: "A draft binding and send callback are enough. The calm default toolbar keeps Emoji, Plus, and Send visible; Plus opens Image, Camera, Video, File, Voice, Location, and Contact card, followed by the host's plugin entries (a poll comes from the poll plugin).", zh: "只需草稿绑定和发送回调即可使用；克制的默认工具栏常驻表情、Plus 与发送，Plus 打开图片、拍摄、视频、文件、语音、位置和名片，宿主的插件入口排在后面（投票来自投票插件）。" },
       vue: "<FlareComposer v-model=\"draft\" @send=\"sendMessage\" @build=\"handleAction\" />",
       flutter: "FlareComposer(controller: controller, onSend: sendMessage, onAction: handleAction)",
       compose: "Composer(onSend = ::sendMessage, onAction = ::handleAction)",
