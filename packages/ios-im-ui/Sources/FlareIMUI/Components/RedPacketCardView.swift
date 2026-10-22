@@ -7,31 +7,28 @@ import AppKit
 
 // MARK: - RedPacketCard
 
-/// What a red packet card shows for the person looking at it. Spec: Message/RedPacketCard `state`.
-///
-/// The host derives it from the plugin's state values; the kit only draws it. Every state but `unopened` fades
-/// the card. `finished` and `expired` stay tappable so the viewer can open the details.
-public enum FlareRedPacketState: String, Sendable, CaseIterable {
-    case unopened, claimed, finished, expired
-}
-
 /// Red packet card — the festive envelope in the timeline. Spec: Message/RedPacketCard (`RedPacketCardView`).
 ///
-/// - The status line follows one order: `busy`, the host's `statusLabel`, then the state (`claimed` with or without
-///   the host-formatted `amount`, `finished`, `expired`), `disabled`, and the default call to open.
-/// - `kindLabel` (for example the lucky-draw kind) sits on the brand row, leading; the brand stays trailing.
-/// - A spent card (every state but `unopened`) keeps its hue and recedes: each colour is mixed toward
-///   `redPacketFadedMixTarget` (white in light mode, a red-tinted dark ground in dark mode) by
-///   ``FlareSizes/componentRedPacketFadedMix``, the text takes `redPacketFadedInk` (the small print at 72%, the
-///   rule at 18%) and the card lies flat.
-/// - Only `busy`, `disabled` or a missing `onOpen` make it inert; an inert card keeps its colours and says why on
-///   its status line.
-/// - At most ``FlareSizes/componentRedPacketCardWidth`` wide inside its parent, never under the touch target tall.
+/// Red packet v5 (docs/design/red-packet-v5-roles-and-wallet.md §1): the greeting, the kind badge on the brand line
+/// (拼手气 / 专属; normal has none), "给 某某" on an exclusive packet and one status line — never an amount, not even
+/// the viewer's own.
+///
+/// - `state` comes from the plugin's public layer and the viewer's personal layer
+///   (``flareRedPacketCardState(status:claimedByMe:tapAction:)``); the status line follows
+///   ``FlareRedPacketCardRules/status(state:statusLabel:busy:disabled:)``: busy, the host's `statusLabel`, then the
+///   state (领取红包, 查看红包, 已领取, 已被领完, 已过期, 已退回); an unopened card that is `disabled` says 暂不可用.
+/// - Every state but busy / disabled calls `onOpen`; the host routes by the personal layer's `tapAction` (the open
+///   sheet, the details, or the not-eligible notice).
+/// - A spent card (claimed, finished, expired, refunded) keeps its hue and recedes: each colour is mixed toward
+///   `redPacketFadedMixTarget` by ``FlareSizes/componentRedPacketFadedMix``, the text takes `redPacketFadedInk` and
+///   the card lies flat. Busy and disabled keep their state's face and say why on the status line.
+/// - The card is the message's card surface: the timeline draws no bubble around it. At most
+///   ``FlareSizes/componentRedPacketCardWidth`` wide inside its parent, never under the touch target tall.
 public struct RedPacketCardView: View {
     private let blessing: String
-    private let kindLabel: String?
-    private let state: FlareRedPacketState
-    private let amount: String?
+    private let kind: FlareRedPacketKind?
+    private let recipientName: String?
+    private let state: FlareRedPacketCardState
     private let disabled: Bool
     private let busy: Bool
     private let statusLabel: String?
@@ -40,10 +37,13 @@ public struct RedPacketCardView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
 
-    public init(blessing: String, kindLabel: String? = nil, state: FlareRedPacketState = .unopened,
-                amount: String? = nil, disabled: Bool = false, busy: Bool = false,
+    /// - Parameters:
+    ///   - kind: Lucky and exclusive draw their badge on the brand line; normal (and nil) draws none.
+    ///   - recipientName: An exclusive packet's designated member, from the host's directory ("给 某某").
+    public init(blessing: String, kind: FlareRedPacketKind? = nil, recipientName: String? = nil,
+                state: FlareRedPacketCardState = .unopened, disabled: Bool = false, busy: Bool = false,
                 statusLabel: String? = nil, onOpen: (() -> Void)? = nil) {
-        self.blessing = blessing; self.kindLabel = kindLabel; self.state = state; self.amount = amount
+        self.blessing = blessing; self.kind = kind; self.recipientName = recipientName; self.state = state
         self.disabled = disabled; self.busy = busy; self.statusLabel = statusLabel; self.onOpen = onOpen
     }
 
@@ -53,37 +53,28 @@ public struct RedPacketCardView: View {
             // colours — only its status line says why it does not open.
             .buttonStyle(RedPacketCardPressStyle())
             .disabled(!canOpen)
-            .accessibilityLabel(kindLabel.map { "\(blessing), \($0)" } ?? blessing)
+            .accessibilityLabel(accessibilityName)
             .accessibilityValue(statusText)
     }
 
-    var canOpen: Bool { !disabled && !busy && onOpen != nil }
+    var canOpen: Bool { FlareRedPacketCardRules.tappable(busy: busy, disabled: disabled) && onOpen != nil }
 
     var statusText: String {
-        Self.status(state: state, amount: amount, statusLabel: statusLabel, busy: busy, disabled: disabled,
-                    strings: strings)
+        FlareRedPacketCardRules.status(state: state, statusLabel: statusLabel, busy: busy, disabled: disabled)
+            .text(strings)
     }
 
-    /// The status line's copy, in the contract's order.
-    static func status(state: FlareRedPacketState, amount: String?, statusLabel: String?, busy: Bool,
-                       disabled: Bool, strings: FlareStrings) -> String {
-        if busy { return strings.packetBusy }
-        if let statusLabel { return statusLabel }
-        switch state {
-        case .claimed: return amount.map { strings.packetClaimed + $0 } ?? strings.packetStateClaimed
-        case .finished: return strings.packetFinished
-        case .expired: return strings.packetStateExpired
-        case .unopened: break
-        }
-        return disabled ? strings.packetUnavailable : strings.packetTapToClaim
-    }
+    private var badge: String? { FlareRedPacketCardRules.badge(kind, strings: strings) }
+    private var recipient: String? { FlareRedPacketCardRules.recipient(kind, name: recipientName, strings: strings) }
 
-    /// Every state the viewer has moved past fades the card.
-    static func faded(_ state: FlareRedPacketState) -> Bool { state != .unopened }
+    /// The greeting, then the badge and the recipient.
+    private var accessibilityName: String {
+        ([blessing] + [badge, recipient].compactMap { $0 }).joined(separator: ", ")
+    }
 
     private var card: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        let faded = Self.faded(state)
+        let faded = FlareRedPacketCardRules.faded(state)
         let ink = faded ? colors.redPacketFadedInk : colors.redPacketOnSurface
         return VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: FlareSizes.spacingMd) {
@@ -94,7 +85,10 @@ public struct RedPacketCardView: View {
                         .foregroundColor(ink)
                         .lineLimit(1)
                         .truncationMode(.tail)
-                    status(colors, faded: faded)
+                    Text(statusText)
+                        .font(.system(size: FlareSizes.fontSizeSm))
+                        .foregroundColor(faded ? ink : colors.redPacketOnSurface.opacity(0.85))
+                        .lineLimit(1)
                 }
                 Spacer(minLength: 0)
             }
@@ -103,7 +97,10 @@ public struct RedPacketCardView: View {
             Rectangle().fill(ink.opacity(faded ? 0.18 : 0.24)).frame(height: RedPacketMetrics.hairline)
                 .padding(.horizontal, FlareSizes.spacing2md)
             HStack(spacing: FlareSizes.spacingSm) {
-                if let kindLabel, !kindLabel.isEmpty { Text(kindLabel).lineLimit(1) }
+                if let badge {
+                    Text(badge).fontWeight(.semibold).lineLimit(1)
+                }
+                if let recipient { Text(recipient).lineLimit(1).truncationMode(.tail) }
                 Spacer(minLength: 0)
                 Text(strings.packetBrand).lineLimit(1)
             }
@@ -120,22 +117,6 @@ public struct RedPacketCardView: View {
         .shadow(color: colors.redPacketEnd.opacity(faded ? 0 : 0.3), radius: FlareSizes.spacingSm, y: FlareSizes.spacingXs)
         // Never squeezed below its content by a crowded parent.
         .fixedSize(horizontal: false, vertical: true)
-    }
-
-    @ViewBuilder
-    private func status(_ colors: FlareColors, faded: Bool) -> some View {
-        let ink = faded ? colors.redPacketFadedInk : colors.redPacketOnSurface.opacity(0.85)
-        if !busy, statusLabel == nil, state == .claimed, let amount {
-            (Text(strings.packetClaimed).foregroundColor(ink)
-                + Text(amount).fontWeight(.semibold).foregroundColor(faded ? ink : colors.redPacketGold))
-                .font(.system(size: FlareSizes.fontSizeSm))
-                .lineLimit(1)
-        } else {
-            Text(statusText)
-                .font(.system(size: FlareSizes.fontSizeSm))
-                .foregroundColor(ink)
-                .lineLimit(1)
-        }
     }
 }
 

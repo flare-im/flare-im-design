@@ -30,6 +30,17 @@ import SwiftUI
 ///   details" key under the action keys (not embedded, and only with `onOpenDetail`), disabled while busy.
 /// - Time is formatted in the device zone (`pluginViewDateTimeFormat`); a countdown redraws every second under an hour
 ///   and every minute otherwise.
+/// - Menu actions (`view.menuActions`, the plugin's `placement: "menu"`): the title row ends with a ⋯ key
+///   (`pluginViewMore`) that opens the kit ``ActionMenuView`` with one item per action (danger in the error colour);
+///   an item runs exactly like a key (confirm, then form, then `onAction(id, {})`); busy disables it. An embedded view
+///   has no title row: its menu actions are keys after the footer actions.
+/// - Grouped entries: a header row ("火锅 · 3 票 · 38%") before each entry that opens a group; an entry of the viewer
+///   (`viewerId`) carries the "我" tag.
+/// - Unavailable (`available` false): the title and one reason line, led by the envelope's `displayName`
+///   ("投票 · 插件已停用"). A read-only copy (``PluginUnavailableReason/unboundCopy``) draws its content with nothing
+///   that acts, and closes with "副本，仅供查看".
+/// - The shell is the message's card surface: the timeline draws no bubble around it. A quoting card's quote sits
+///   inside the shell, above the title row (``FlareMessageCardQuoteSlot``).
 /// Where a ``PluginView`` sits: the padding it gives itself, in every state.
 public enum PluginViewInset: String, Sendable, CaseIterable {
     /// None: the host's surface pads it.
@@ -44,6 +55,8 @@ public enum PluginViewInset: String, Sendable, CaseIterable {
 public struct PluginView: View {
     private let view: PluginViewModel
     private let icon: String?
+    private let displayName: String?
+    private let viewerId: String?
     private let busy: Bool
     let busyActionId: String?
     let error: String?
@@ -68,23 +81,30 @@ public struct PluginView: View {
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
 
-    public init(view: PluginViewModel, icon: String? = nil, busy: Bool = false, busyActionId: String? = nil,
+    /// - Parameters:
+    ///   - displayName: The card envelope's `displayName` (the plugin's name): it leads the unavailable reason line.
+    ///   - viewerId: The viewer's user id: entries of that user carry the "我" tag.
+    public init(view: PluginViewModel, icon: String? = nil, displayName: String? = nil, viewerId: String? = nil,
+                busy: Bool = false, busyActionId: String? = nil,
                 error: String? = nil, embedded: Bool = false, inset: PluginViewInset = .none,
                 resolveUser: (@Sendable (String) async -> PluginUser?)? = nil, members: [PluginMember] = [],
                 formErrors: [PluginFormError] = [], settleToken: Int = 0,
                 onAction: ((String, PluginActionPayload) -> Void)? = nil, onOpenDetail: (() -> Void)? = nil) {
-        self.init(view: view, icon: icon, busy: busy, busyActionId: busyActionId, error: error, embedded: embedded,
+        self.init(view: view, icon: icon, displayName: displayName, viewerId: viewerId, busy: busy,
+                  busyActionId: busyActionId, error: error, embedded: embedded,
                   inset: inset, resolveUser: resolveUser, members: members, formErrors: formErrors,
                   settleToken: settleToken, onAction: onAction, onOpenDetail: onOpenDetail, clock: .system, users: [:])
     }
 
     /// The card at a fixed clock and with users already resolved — how the tests pin `now`, the zone and names.
-    init(view: PluginViewModel, icon: String?, busy: Bool, busyActionId: String?, error: String?, embedded: Bool,
+    init(view: PluginViewModel, icon: String?, displayName: String? = nil, viewerId: String? = nil, busy: Bool,
+         busyActionId: String?, error: String?, embedded: Bool,
          inset: PluginViewInset = .none, resolveUser: (@Sendable (String) async -> PluginUser?)?,
          members: [PluginMember], formErrors: [PluginFormError], settleToken: Int = 0,
          onAction: ((String, PluginActionPayload) -> Void)?, onOpenDetail: (() -> Void)?, clock: PluginViewClock,
          users: [String: PluginUser]) {
-        self.view = view; self.icon = icon; self.busy = busy; self.busyActionId = busyActionId; self.error = error
+        self.view = view; self.icon = icon; self.displayName = displayName; self.viewerId = viewerId
+        self.busy = busy; self.busyActionId = busyActionId; self.error = error
         self.embedded = embedded; self.inset = inset; self.resolveUser = resolveUser; self.members = members
         self.formErrors = formErrors; self.settleToken = settleToken
         self.onAction = onAction; self.onOpenDetail = onOpenDetail; self.clock = clock
@@ -113,8 +133,19 @@ public struct PluginView: View {
                          settleToken: settleToken)
     }
 
-    /// Every action, choice and submit waits while the card or one of its actions is busy.
-    private var locked: Bool { busy || busyActionId != nil }
+    /// Every action, choice and submit waits while the card or one of its actions is busy; a read-only copy never acts.
+    private var locked: Bool { busy || busyActionId != nil || view.readOnly }
+
+    /// The keys of the action row: the footer actions, and on an embedded view (no title row) the menu actions.
+    static func actionRow(_ view: PluginViewModel, embedded: Bool) -> [PluginViewAction] {
+        guard !view.readOnly else { return [] }
+        return view.actions + (embedded ? view.menuActions : [])
+    }
+
+    /// The ⋯ key is on the title row: a card (not embedded) with menu actions.
+    static func showsMenuKey(_ view: PluginViewModel, embedded: Bool) -> Bool {
+        !embedded && view.available && !view.readOnly && !view.menuActions.isEmpty
+    }
 
     private var formPending: Bool {
         guard let formRun else { return false }
@@ -125,6 +156,8 @@ public struct PluginView: View {
 
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
+        let reason = PluginViewFormat.reasonLine(view, displayName: displayName, strings)
+        let keys = Self.actionRow(view, embedded: embedded)
         let content = VStack(alignment: .leading, spacing: FlareSizes.spacingMd) {
             if !embedded {
                 header(colors)
@@ -135,15 +168,27 @@ public struct PluginView: View {
                     .foregroundColor(colors.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
+            if !view.available, let reason {
+                Text(reason)
+                    .font(.system(size: FlareSizes.fontSizeMd * textScale))
+                    .foregroundColor(colors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             if view.available {
                 if !view.fields.isEmpty { PluginFieldRows(fields: view.fields) }
                 ForEach(Array(view.blocks.enumerated()), id: \.offset) { index, block in
                     blockView(block, at: index)
                 }
-                if !view.actions.isEmpty { actionKeys }
+                if !keys.isEmpty { actionKeys(keys) }
                 if let onOpenDetail, PluginViewFormat.showsDetailKey(view, embedded: embedded) {
                     ButtonView(label: strings.pluginViewDetail, variant: .quiet, size: .sm, disabled: locked,
                                block: true, action: onOpenDetail)
+                }
+                if view.readOnly, let reason {
+                    Text(reason)
+                        .font(.system(size: FlareSizes.fontSizeSm * textScale))
+                        .foregroundColor(colors.textTertiary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
             if let failure {
@@ -155,13 +200,18 @@ public struct PluginView: View {
             if embedded {
                 content
             } else {
-                content
-                    .padding(FlareSizes.spacingMd)
-                    .frame(maxWidth: FlareSizes.componentRichCardWidth, alignment: .leading)
-                    .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg, style: .continuous).fill(colors.bgPrimary))
-                    .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusLg, style: .continuous)
-                        .stroke(colors.borderSecondary, lineWidth: 1))
-                    .flareShadow(FlareShadows.of(scheme).card)
+                let shape = RoundedRectangle(cornerRadius: FlareSizes.radiusLg, style: .continuous)
+                VStack(alignment: .leading, spacing: FlareSizes.spacingMd) {
+                    // A quoting card's quote, inside the shell above the title row.
+                    FlareMessageCardQuoteSlot()
+                    content
+                }
+                .padding(FlareSizes.spacingMd)
+                .frame(maxWidth: FlareSizes.componentRichCardWidth, alignment: .leading)
+                .background(shape.fill(colors.bgPrimary))
+                // Decoration only: the hairline must not take the taps meant for the card's keys.
+                .overlay(shape.stroke(colors.borderSecondary, lineWidth: 1).allowsHitTesting(false))
+                .flareShadow(FlareShadows.of(scheme).card)
             }
         }
         // Every state takes the inset; a card shell kept in a sheet takes it around the shell.
@@ -199,7 +249,35 @@ public struct PluginView: View {
                 .foregroundColor(colors.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
+            if Self.showsMenuKey(view, embedded: embedded) {
+                Spacer(minLength: FlareSizes.spacingSm)
+                menuKey(colors)
+            }
         }
+    }
+
+    /// The menu actions as kit menu items, in order; style danger in the error colour.
+    static func menuItems(_ view: PluginViewModel) -> [FlareActionItem] {
+        view.menuActions.map { FlareActionItem(id: $0.id, label: $0.label, danger: $0.style == .danger) }
+    }
+
+    /// The ⋯ key at the end of the title row: the kit action menu of the menu actions.
+    private func menuKey(_ colors: FlareColors) -> some View {
+        let side = FlareSizes.iconSizeMd * textScale
+        return ActionMenuView(items: Self.menuItems(view), accessibilityLabel: strings.pluginViewMore,
+                              onSelect: { id in
+                                  guard let action = view.menuActions.first(where: { $0.id == id }) else { return }
+                                  run(action, .empty)
+                              }) {
+            FlareIconImage(name: "more", size: side, weight: .semibold)
+                .foregroundColor(colors.textSecondary)
+                .frame(width: side, height: side)
+                .flareTouchTarget()
+        }
+        .disabled(locked || onAction == nil)
+        .opacity(locked || onAction == nil ? FlareOpacity.disabled : 1)
+        // The title row keeps the glyph's size; the 44pt around it takes the tap.
+        .flareCompactLayout(width: side, height: side)
     }
 
     @ViewBuilder private func blockView(_ block: PluginBlock, at index: Int) -> some View {
@@ -210,14 +288,15 @@ public struct PluginView: View {
             PluginChoicesBlockView(
                 block: choices,
                 shown: interaction.shown(choices, at: index),
-                interactive: onAction != nil && interaction.isInteractive(choices, at: index, locked: locked),
+                interactive: onAction != nil && !view.readOnly && interaction.isInteractive(choices, at: index, locked: locked),
                 submitEnabled: interaction.submitEnabled(choices, at: index),
                 submitLoading: choices.action.map { $0.id == busyActionId } ?? false,
                 onPick: { pick(choices, at: index, option: $0) },
                 onSubmit: { submitDraft(choices, at: index) }
             )
         case .entries(let entries):
-            PluginEntriesBlockView(block: entries, users: users, onSeeAll: onOpenDetail)
+            PluginEntriesBlockView(block: entries, users: users, viewerId: viewerId,
+                                   onSeeAll: view.readOnly ? nil : onOpenDetail)
         case .people(let people): PluginPeopleBlockView(block: people, users: users)
         case .status(let status): PluginStatusBlockView(block: status)
         case .progress(let progress): PluginProgressBlockView(block: progress)
@@ -227,15 +306,15 @@ public struct PluginView: View {
         }
     }
 
-    @ViewBuilder private var actionKeys: some View {
-        let keys = ForEach(view.actions) { action in
+    @ViewBuilder private func actionKeys(_ actions: [PluginViewAction]) -> some View {
+        let keys = ForEach(actions) { action in
             ButtonView(label: action.label, variant: PluginViewFormat.variant(action),
                        loading: busyActionId == action.id,
                        disabled: (locked && busyActionId != action.id) || onAction == nil, block: true) {
                 run(action, .empty)
             }
         }
-        if view.actions.count > 2 {
+        if actions.count > 2 {
             VStack(spacing: FlareSizes.spacingSm) { keys }
         } else {
             HStack(spacing: FlareSizes.spacingSm) { keys }
@@ -525,10 +604,12 @@ struct PluginCheckBox: View {
     }
 }
 
-/// A numbered list of entries, its empty text and "see all".
+/// A numbered list of entries, its empty text and "see all". A grouped list draws a header row before each entry
+/// that opens a group, and an entry of the viewer carries the "我" tag.
 struct PluginEntriesBlockView: View {
     let block: PluginEntriesBlock
     let users: [String: PluginUser]
+    var viewerId: String?
     let onSeeAll: (() -> Void)?
     @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
     @Environment(\.colorScheme) private var scheme
@@ -543,32 +624,16 @@ struct PluginEntriesBlockView: View {
                     Text(empty).font(.system(size: FlareSizes.fontSizeMd * textScale)).foregroundColor(colors.textTertiary)
                 }
             } else {
-                ForEach(block.items, id: \.index) { entry in
-                    let name = PluginViewFormat.entryName(entry, resolved: users)
-                    HStack(alignment: .firstTextBaseline, spacing: FlareSizes.spacingSm) {
-                        if block.numbered {
-                            Text("\(entry.index).")
-                                .font(.system(size: FlareSizes.fontSizeMd * textScale).monospacedDigit())
-                                .foregroundColor(colors.textTertiary)
-                                .frame(minWidth: 20 * textScale, alignment: .trailing)
-                        }
-                        if let userId = entry.userId, !userId.isEmpty {
-                            AvatarView(userId: userId, displayName: name ?? "", avatarURL: users[userId]?.avatarUrl,
-                                       size: 20 * textScale)
-                                .alignmentGuide(.firstTextBaseline) { $0[.bottom] - 4 }
-                                .accessibilityHidden(true)
-                        }
-                        if let name {
-                            Text(name).font(.system(size: FlareSizes.fontSizeLg * textScale, weight: .semibold))
-                                .foregroundColor(colors.textSecondary)
-                                .lineLimit(1)
-                        }
-                        Text(entry.text).font(.system(size: FlareSizes.fontSizeLg * textScale))
-                            .foregroundColor(colors.textPrimary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                // Positions, not indices: a grouped list numbers each group from 1, so an index repeats.
+                ForEach(Array(block.items.enumerated()), id: \.offset) { _, entry in
+                    if let group = entry.group {
+                        Text(PluginViewFormat.groupHeader(group, strings))
+                            .font(.system(size: FlareSizes.fontSizeMd * textScale, weight: .semibold))
+                            .foregroundColor(colors.textSecondary)
+                            .padding(.top, FlareSizes.spacingXs)
+                            .accessibilityAddTraits(.isHeader)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .accessibilityElement(children: .combine)
+                    row(entry, colors)
                 }
             }
             if block.more {
@@ -586,6 +651,43 @@ struct PluginEntriesBlockView: View {
                 .disabled(onSeeAll == nil)
             }
         }
+    }
+
+    private func row(_ entry: PluginEntry, _ colors: FlareColors) -> some View {
+        let name = PluginViewFormat.entryName(entry, resolved: users)
+        let me = PluginViewFormat.isMe(entry, viewerId: viewerId)
+        return HStack(alignment: .firstTextBaseline, spacing: FlareSizes.spacingSm) {
+            if let number = PluginViewFormat.entryNumber(entry, block: block) {
+                Text("\(number).")
+                    .font(.system(size: FlareSizes.fontSizeMd * textScale).monospacedDigit())
+                    .foregroundColor(colors.textTertiary)
+                    .frame(minWidth: 20 * textScale, alignment: .trailing)
+            }
+            if let userId = entry.userId, !userId.isEmpty {
+                AvatarView(userId: userId, displayName: name ?? "", avatarURL: users[userId]?.avatarUrl,
+                           size: 20 * textScale)
+                    .alignmentGuide(.firstTextBaseline) { $0[.bottom] - 4 }
+                    .accessibilityHidden(true)
+            }
+            if let name {
+                Text(name).font(.system(size: FlareSizes.fontSizeLg * textScale, weight: .semibold))
+                    .foregroundColor(colors.textSecondary)
+                    .lineLimit(1)
+            }
+            if me {
+                Text(strings.pluginViewMe)
+                    .font(.system(size: FlareSizes.fontSizeXs * textScale, weight: .semibold))
+                    .foregroundColor(colors.primaryText)
+                    .padding(.horizontal, FlareSizes.spacingXs)
+                    .padding(.vertical, FlareSizes.spacing3xs)
+                    .background(Capsule().fill(colors.bgSelected))
+            }
+            Text(entry.text).font(.system(size: FlareSizes.fontSizeLg * textScale))
+                .foregroundColor(colors.textPrimary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
     }
 }
 

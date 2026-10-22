@@ -16,7 +16,7 @@ final class CallbackAffordanceTests: XCTestCase {
         let handler: () -> Void = {}
         XCTAssertTrue(MessageStatusView.resendEnabled(.failed, handler))
         XCTAssertFalse(MessageStatusView.resendEnabled(.failed, nil))
-        for status: FlareMessageDeliveryStatus in [.pending, .sending, .sent, .delivered, .read, .retrying] {
+        for status: FlareMessageDeliveryStatus in [.pending, .sending, .sent, .read] {
             XCTAssertFalse(MessageStatusView.resendEnabled(status, handler), "\(status) must not offer resend")
         }
         XCTAssertEqual(FlareStrings().resend, "重新发送")

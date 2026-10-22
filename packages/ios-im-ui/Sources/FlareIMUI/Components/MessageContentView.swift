@@ -3,6 +3,10 @@ import SwiftUI
 /// Context passed to every content renderer. `messageId` is the message's id in the core (its server id, else the
 /// client id it was sent with) and `conversationId` the conversation the list shows; both are nil where the body is
 /// drawn outside a message (a preview, a standalone body without them).
+///
+/// `selectionMode` is true while the row is in multi-select: the content is inert (the kit also stops it taking
+/// taps) and a tap anywhere on the row toggles its selection. `surface` is the surface the row draws the body on;
+/// on ``FlareMessageSurface/card`` the renderer's own shell is the surface and nothing is drawn around it.
 public struct FlareContentContext {
     public let isSelf: Bool
     public let previewMode: Bool
@@ -11,6 +15,8 @@ public struct FlareContentContext {
     public let onMediaAction: ((FlareMessageContent) -> Void)?
     public let messageId: String?
     public let conversationId: String?
+    public let selectionMode: Bool
+    public let surface: FlareMessageSurface?
 
     public init(
         isSelf: Bool,
@@ -19,7 +25,9 @@ public struct FlareContentContext {
         mediaState: FlareMediaDownloadState? = nil,
         onMediaAction: ((FlareMessageContent) -> Void)? = nil,
         messageId: String? = nil,
-        conversationId: String? = nil
+        conversationId: String? = nil,
+        selectionMode: Bool = false,
+        surface: FlareMessageSurface? = nil
     ) {
         self.isSelf = isSelf
         self.previewMode = previewMode
@@ -28,6 +36,17 @@ public struct FlareContentContext {
         self.onMediaAction = onMediaAction
         self.messageId = messageId
         self.conversationId = conversationId
+        self.selectionMode = selectionMode
+        self.surface = surface
+    }
+
+    /// The same context with some fields replaced.
+    func with(messageId: String?? = nil, conversationId: String?? = nil, selectionMode: Bool? = nil,
+              surface: FlareMessageSurface?? = nil) -> FlareContentContext {
+        FlareContentContext(isSelf: isSelf, previewMode: previewMode, senderName: senderName, mediaState: mediaState,
+                            onMediaAction: (selectionMode ?? self.selectionMode) ? nil : onMediaAction,
+                            messageId: messageId ?? self.messageId, conversationId: conversationId ?? self.conversationId,
+                            selectionMode: selectionMode ?? self.selectionMode, surface: surface ?? self.surface)
     }
 }
 
@@ -36,8 +55,21 @@ public typealias FlareContentBuilder = (FlareMessageContent, FlareContentContext
 private struct ContentRenderersKey: EnvironmentKey {
     static let defaultValue: [String: FlareContentBuilder] = [:]
 }
-private struct BareContentTypesKey: EnvironmentKey {
-    static let defaultValue: Set<String> = []
+private struct ContentSurfacesKey: EnvironmentKey {
+    static let defaultValue: [String: FlareMessageRegisteredSurface] = [:]
+}
+private struct MessageCardQuoteKey: EnvironmentKey {
+    static let defaultValue: AnyView? = nil
+}
+private struct MessageCardShellKey: EnvironmentKey {
+    static let defaultValue = false
+}
+extension EnvironmentValues {
+    /// The body sits in the kit card shell: it fills the shell's width (a location's map runs edge to edge).
+    var flareInMessageCardShell: Bool {
+        get { self[MessageCardShellKey.self] }
+        set { self[MessageCardShellKey.self] = newValue }
+    }
 }
 public extension EnvironmentValues {
     var flareContentRenderers: [String: FlareContentBuilder] {
@@ -45,10 +77,30 @@ public extension EnvironmentValues {
         set { self[ContentRenderersKey.self] = newValue }
     }
 
-    /// The custom content types here whose renderer is bare (drawn without a bubble).
-    var flareBareContentTypes: Set<String> {
-        get { self[BareContentTypesKey.self] }
-        set { self[BareContentTypesKey.self] = newValue }
+    /// The surfaces the host registered by content key (`type:subtype` or `type`), for content the kit does not
+    /// know: ``FlareMessageRegisteredSurface/card`` or ``FlareMessageRegisteredSurface/bareMedia``. Every custom body
+    /// (plugin cards, red packets) is already a card without registering.
+    var flareContentSurfaces: [String: FlareMessageRegisteredSurface] {
+        get { self[ContentSurfacesKey.self] }
+        set { self[ContentSurfacesKey.self] = newValue }
+    }
+
+    /// The quote of a quoting card message, which the card's shell draws inside itself at its top
+    /// (``FlareMessageCardQuoteSlot``). Nil everywhere else.
+    var flareMessageCardQuote: AnyView? {
+        get { self[MessageCardQuoteKey.self] }
+        set { self[MessageCardQuoteKey.self] = newValue }
+    }
+}
+
+/// The quote slot of a card shell: a quoting card message's quote, drawn inside the shell at its top. The kit's card
+/// shells (``PluginView``, the shell of the built-in card bodies) place it; a custom card renderer places it at the
+/// top of its own shell. Draws nothing outside a quoting card.
+public struct FlareMessageCardQuoteSlot: View {
+    @Environment(\.flareMessageCardQuote) private var quote
+    public init() {}
+    public var body: some View {
+        if let quote { quote }
     }
 }
 
@@ -64,16 +116,19 @@ extension EnvironmentValues {
 }
 public extension View {
     /// Renderer lifetime is scoped to this view tree, so two sessions never
-    /// overwrite one another's callbacks in a process-global registry.
+    /// overwrite one another's callbacks in a process-global registry. A key is a content type, or
+    /// `type:subtype` for one custom body type (``FlareGenericContent/subtype``), which wins over its type.
     func flareContentRenderers(_ builders: [String: FlareContentBuilder]) -> some View {
         environment(\.flareContentRenderers, builders)
     }
 
-    /// The same, where the types in `bare` are drawn by the message row as it draws a picture — no bubble surface
-    /// and no bubble padding — while the row keeps the avatar, the sender's name, the time, multi-select and the
-    /// long-press menu.
-    func flareContentRenderers(_ builders: [String: FlareContentBuilder], bare: Set<String>) -> some View {
-        environment(\.flareContentRenderers, builders).environment(\.flareBareContentTypes, bare)
+    /// The same, registering the surface of content keys the kit does not know (`spec/message-surface-vectors.json`
+    /// rules.registration): `.card` draws the renderer's own shell with nothing around it, `.bareMedia` draws it as
+    /// the row draws a picture. Either way the row keeps the avatar, the sender's name, the time, multi-select and the
+    /// long-press menu. Custom bodies are cards already; register only a new kind of content.
+    func flareContentRenderers(_ builders: [String: FlareContentBuilder],
+                               surfaces: [String: FlareMessageRegisteredSurface]) -> some View {
+        environment(\.flareContentRenderers, builders).environment(\.flareContentSurfaces, surfaces)
     }
 }
 
@@ -119,6 +174,14 @@ public enum FlareContentRegistry {
 /// Links (in a text body and on a link card) go to `onOpenLink`; without it the body opens a web
 /// address with the platform opener after ``safeExternalURL(_:)``, and opens nothing for any other
 /// scheme. A link card whose URL is not a web address has no tap at all.
+///
+/// `selectionMode` (the row is in multi-select) makes every control of the body inert — poll options, the task box,
+/// card and location taps, plugin card keys and menus, links, media — so the row's tap toggles its selection.
+///
+/// On a ``FlareMessageSurface/card`` surface the kit's own card bodies (location, contact card, link card, poll,
+/// task, schedule, announcement, mini program, an unrendered custom body) draw in the kit card shell — the
+/// surface itself, radius lg on the primary background with a hairline — and in the neutral palette whoever sent
+/// them; a quoting card's quote sits inside that shell at its top.
 public struct MessageContentView: View {
     @Environment(\.flareContentRenderers) private var renderers
     private let content: FlareMessageContent
@@ -131,6 +194,11 @@ public struct MessageContentView: View {
     private let onTaskToggle: ((Bool) -> Void)?
     private let onCardOpen: ((String) -> Void)?
     private let onLocationOpen: ((FlareLocationContent) -> Void)?
+    private let selectionMode: Bool
+    /// The surface the row draws this body on; nil outside a row (the body's own look).
+    private var surface: FlareMessageSurface?
+    /// The row is a failed outgoing message: its bubble is the failure surface, so the body takes its foreground.
+    private var failed = false
     /// The list's media defaults; nil outside a list, where a media body owns its own.
     private var mediaSession: FlareMediaSession?
     /// The message this body belongs to: a voice message's playback identity, and where its pictures are in
@@ -159,31 +227,59 @@ public struct MessageContentView: View {
         onCardOpen: ((String) -> Void)? = nil,
         onLocationOpen: ((FlareLocationContent) -> Void)? = nil,
         messageId: String? = nil,
-        conversationId: String? = nil
+        conversationId: String? = nil,
+        selectionMode: Bool = false
     ) {
         self.content = content
+        // In multi-select nothing in the body acts: the row's tap selects it.
         self.ctx = FlareContentContext(
             isSelf: isSelf, previewMode: previewMode, senderName: senderName,
-            mediaState: mediaState, onMediaAction: onMediaAction,
-            messageId: messageId, conversationId: conversationId)
-        self.onMediaDownload = onMediaDownload
-        self.onMediaReveal = onMediaReveal
-        self.onOpenFile = onOpenFile
-        self.onOpenLink = onOpenLink
-        self.onVote = onVote
-        self.onTaskToggle = onTaskToggle
-        self.onCardOpen = onCardOpen
-        self.onLocationOpen = onLocationOpen
+            mediaState: mediaState, onMediaAction: selectionMode ? nil : onMediaAction,
+            messageId: messageId, conversationId: conversationId, selectionMode: selectionMode)
+        self.selectionMode = selectionMode
+        self.onMediaDownload = selectionMode ? nil : onMediaDownload
+        self.onMediaReveal = selectionMode ? nil : onMediaReveal
+        self.onOpenFile = selectionMode ? nil : onOpenFile
+        self.onOpenLink = selectionMode ? nil : onOpenLink
+        self.onVote = selectionMode ? nil : onVote
+        self.onTaskToggle = selectionMode ? nil : onTaskToggle
+        self.onCardOpen = selectionMode ? nil : onCardOpen
+        self.onLocationOpen = selectionMode ? nil : onLocationOpen
     }
 
     /// The message this body draws, for a custom renderer's context: the core's id and the conversation.
     func messageIdentity(messageId: String?, conversationId: String?) -> MessageContentView {
         var copy = self
-        copy.ctx = FlareContentContext(
-            isSelf: ctx.isSelf, previewMode: ctx.previewMode, senderName: ctx.senderName,
-            mediaState: ctx.mediaState, onMediaAction: ctx.onMediaAction,
-            messageId: messageId, conversationId: conversationId)
+        copy.ctx = ctx.with(messageId: .some(messageId), conversationId: .some(conversationId))
         return copy
+    }
+
+    /// This body on `surface`, as the row draws it; `failed` is a failed outgoing bubble (the failure surface).
+    func onSurface(_ surface: FlareMessageSurface?, failed: Bool = false) -> MessageContentView {
+        var copy = self
+        copy.surface = surface
+        copy.failed = failed
+        copy.ctx = ctx.with(surface: .some(surface))
+        return copy
+    }
+
+    /// The renderer the host registered for `content`, most specific key first (`type:subtype`, then `type`).
+    static func renderer(for content: FlareMessageContent,
+                         in renderers: [String: FlareContentBuilder]) -> FlareContentBuilder? {
+        for key in content.rendererKeys {
+            if let builder = renderers[key] ?? FlareContentRegistry.lookup(key) { return builder }
+        }
+        return nil
+    }
+
+    /// Whether the kit draws this body in its card shell: one of its own card bodies on a card surface.
+    static func drawsCardShell(_ content: FlareMessageContent, surface: FlareMessageSurface?, custom: Bool) -> Bool {
+        surface == .card && !custom
+    }
+
+    /// The kit card bodies that have no inner padding of their own.
+    static func cardShellPadded(_ content: FlareMessageContent) -> Bool {
+        content is FlareCardContent || content is FlareTaskContent || content is FlareGenericContent
     }
 
     /// This body inside a timeline: `session` is the list's media defaults, `messageId` the message, `gallery` the
@@ -205,21 +301,49 @@ public struct MessageContentView: View {
     }
 
     public var body: some View {
+        dispatched
+            // Multi-select: the body takes no taps, so the row's own tap selects it.
+            .allowsHitTesting(!selectionMode)
+    }
+
+    @ViewBuilder private var dispatched: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        let foreground = ctx.isSelf ? colors.messageOutgoingForeground : colors.messageIncomingForeground
-        if let custom = renderers[content.type] ?? FlareContentRegistry.lookup(content.type) {
+        // Only a bubble is coloured by its side; a card or a bare picture sits on the canvas in the neutral palette.
+        let onBubble = surface == nil || surface == .bubble
+        let foreground: Color? = !onBubble ? nil
+            : failed ? colors.messageFailedForeground
+            : ctx.isSelf ? colors.messageOutgoingForeground : colors.messageIncomingForeground
+        if let custom = Self.renderer(for: content, in: renderers) {
             custom(content, ctx)
-        } else if mediaSession == nil, Self.usesMediaDefaults(content, hostHandles: ctx.onMediaAction != nil) {
+        } else if mediaSession == nil, Self.usesMediaDefaults(content, hostHandles: ctx.onMediaAction != nil),
+                  !selectionMode {
             // Outside a list the body owns its viewer, which follows this body's state.
             FlareOwnedMediaSession(downloads: ctx.mediaState.map { [downloadId: $0] } ?? [:]) { session in
-                framedBody(session, foreground: foreground)
+                shelled(framedBody(session, foreground: foreground))
             }
         } else {
-            framedBody(mediaSession, foreground: foreground)
+            shelled(framedBody(selectionMode ? nil : mediaSession, foreground: foreground))
         }
     }
 
-    private func framedBody(_ session: FlareMediaSession?, foreground: Color) -> some View {
+    /// The kit's own card bodies on a card surface draw in the kit card shell.
+    @ViewBuilder private func shelled<Body: View>(_ body: Body) -> some View {
+        if Self.drawsCardShell(content, surface: surface, custom: false) {
+            FlareMessageCardShell(padded: Self.cardShellPadded(content)) { body }
+        } else {
+            body
+        }
+    }
+
+    @ViewBuilder private func framedBody(_ session: FlareMediaSession?, foreground: Color?) -> some View {
+        if let foreground {
+            measuredBody(session).environment(\.flareMessageBodyForeground, foreground).foregroundStyle(foreground)
+        } else {
+            measuredBody(session)
+        }
+    }
+
+    private func measuredBody(_ session: FlareMediaSession?) -> some View {
         canonicalBody(session)
             // A picture or a video being saved shows it along its bottom edge, inside the media, so the bubble keeps
             // the media's width; a file card shows it in its own key.
@@ -230,8 +354,6 @@ public struct MessageContentView: View {
                         .padding(FlareSizes.spacingSm)
                 }
             }
-            .environment(\.flareMessageBodyForeground, foreground)
-            .foregroundStyle(foreground)
     }
 
     private var action: (() -> Void)? {
@@ -278,7 +400,13 @@ public struct MessageContentView: View {
     @ViewBuilder private func canonicalBody(_ session: FlareMediaSession?) -> some View {
         switch content {
         case let c as FlareTextContent:
-            TextMessageView(text: c.text, isSelf: ctx.isSelf, mentions: c.mentions, onLinkTap: onOpenLink)
+            if surface == .bareMedia, c.mentions.isEmpty, flareLoneEmojiPackKey(c.text) == nil,
+               let emoji = flareSingleEmoji(c.text) {
+                // One emoji on its own is drawn large, as an emoji message is.
+                EmojiMessageView(emoji: emoji)
+            } else {
+                TextMessageView(text: c.text, isSelf: ctx.isSelf, mentions: c.mentions, onLinkTap: onOpenLink)
+            }
         case let c as FlareRichTextContent:
             RichTextMessageView(docJson: c.docJson, plainText: c.plainText, title: c.title, isSelf: ctx.isSelf,
                                 onLinkTap: onOpenLink)
@@ -403,5 +531,40 @@ struct FlareVoiceMessageBody: View {
                          elapsedSeconds: active ? Int(playback.elapsed) : nil,
                          failed: phase == .failed,
                          onPlay: { playback.toggle(id: id, url: content.url) })
+    }
+}
+
+/// The kit card shell: the card surface of the kit's own card bodies (`spec/message-surface-vectors.json`
+/// rules.cardShell) — radius lg, the primary background and a hairline, at most ``FlareSizes/componentRichCardWidth``
+/// wide — with the quote slot inside it at its top. `padded` gives a body without inner padding the shell's md.
+struct FlareMessageCardShell<Content: View>: View {
+    let padded: Bool
+    @ViewBuilder let content: Content
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareBrandTheme) private var flareBrandTheme
+    @Environment(\.flareMessageCardQuote) private var quote
+
+    var body: some View {
+        let colors = FlareColors.of(scheme, brand: flareBrandTheme)
+        let shape = RoundedRectangle(cornerRadius: FlareSizes.radiusLg, style: .continuous)
+        VStack(alignment: .leading, spacing: 0) {
+            if quote != nil {
+                FlareMessageCardQuoteSlot()
+                    .padding(.horizontal, FlareSizes.spacingMd)
+                    .padding(.top, FlareSizes.spacingMd)
+                    .padding(.bottom, padded ? 0 : FlareSizes.spacingSm)
+            }
+            content
+                .environment(\.flareInMessageCardShell, true)
+                .padding(padded ? FlareSizes.spacingMd : 0)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        // One width for every card: richCardWidth, or the column when that is narrower.
+        .frame(maxWidth: FlareSizes.componentRichCardWidth, alignment: .leading)
+        .background(shape.fill(colors.bgPrimary))
+        .clipShape(shape)
+        // Decoration only: a stroke over the body must not take the taps meant for its controls.
+        .overlay(shape.stroke(colors.borderSecondary, lineWidth: 1).allowsHitTesting(false))
+        .fixedSize(horizontal: false, vertical: true)
     }
 }

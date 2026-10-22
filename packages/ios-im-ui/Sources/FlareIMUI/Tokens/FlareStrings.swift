@@ -56,10 +56,8 @@ public struct FlareStrings: Sendable {
     public var messagePending: String
     public var messageSending: String
     public var messageSent: String
-    public var messageDelivered: String
     public var messageRead: String
     public var messageFailed: String
-    public var messageRetrying: String
     public var messageEdited: String
     public var messageReadOnce: String
     public var messageBurnAfterRead: String
@@ -109,7 +107,6 @@ public struct FlareStrings: Sendable {
     public var collapse: String
     public var expand: String
     // Red packet
-    public var packetClaimed: String
     public var packetFinished: String
     public var packetTapToClaim: String
     public var packetBrand: String
@@ -882,6 +879,44 @@ public struct FlareStrings: Sendable {
     public var locationOsmAttribution: String
     /// A spinner's accessible name (en: "Loading…").
     public var loading: String
+    // Message surface and receipt (docs/design/message-surface-and-meta.md): `{count}` is replaced by the component.
+    /// The viewer's group message with members who have not read it.
+    public var messageReadSummaryUnread: String
+    /// Everyone it was sent to read it.
+    public var messageReadSummaryAllRead: String
+    /// The retry key under a failed picture or card, and a failed row's status text.
+    public var messageSendFailedRetry: String
+    /// The centred notice of a deleted message.
+    public var messageDeleted: String
+    // Plugin view v2: the card's ⋯ menu, the me tag of entries and the reasons a card is unavailable.
+    public var pluginViewMore: String
+    public var pluginViewMe: String
+    public var pluginViewUnavailableDisabled: String
+    public var pluginViewUnavailableNotInstalled: String
+    public var pluginViewUnavailableNoPermission: String
+    public var pluginViewUnavailableUnsupportedPlatform: String
+    public var pluginViewUnavailableIncompatibleVersion: String
+    public var pluginViewUnavailableCatalogUnreachable: String
+    public var pluginViewUnavailableUnboundCopy: String
+    /// The refresh key in a plugin page's header on a pointer device.
+    public var pluginPageRefresh: String
+    // Red packet v5: the card's status, kind badge and recipient, and the details page. `{name}`, `{claimed}`, `{shares}`, `{claimedMoney}`, `{totalMoney}`, `{duration}`, `{time}`, `{money}` and `{n}` are replaced by the component.
+    public var packetView: String
+    public var packetRefunded: String
+    public var packetBadgeLucky: String
+    public var packetBadgeExclusive: String
+    public var packetForRecipient: String
+    public var packetNotEligibleName: String
+    public var packetDeposited: String
+    public var packetSummarySender: String
+    public var packetSummaryCompleted: String
+    public var packetSummaryCount: String
+    public var packetRefundAt: String
+    public var packetRefundedNote: String
+    public var packetDurationSeconds: String
+    public var packetDurationMinutes: String
+    public var packetDurationHours: String
+    public var packetDurationDays: String
 
     public init(
         microphone: String = "麦克风",
@@ -917,10 +952,8 @@ public struct FlareStrings: Sendable {
         messagePending: String = "等待发送",
         messageSending: String = "发送中",
         messageSent: String = "已发送",
-        messageDelivered: String = "已送达",
         messageRead: String = "已读",
         messageFailed: String = "发送失败",
-        messageRetrying: String = "正在重试",
         messageEdited: String = "已编辑",
         messageReadOnce: String = "仅可查看一次",
         messageBurnAfterRead: String = "阅后即焚",
@@ -962,9 +995,8 @@ public struct FlareStrings: Sendable {
         groupAnnouncement: String = "群公告",
         collapse: String = "收起",
         expand: String = "展开",
-        packetClaimed: String = "已领取 · ",
         packetFinished: String = "已被领完",
-        packetTapToClaim: String = "点击领取",
+        packetTapToClaim: String = "领取红包",
         packetBrand: String = "Flare 红包",
         packetBusy: String = "处理中…",
         packetUnavailable: String = "暂不可用",
@@ -978,7 +1010,7 @@ public struct FlareStrings: Sendable {
         packetFromSender: @escaping @Sendable (String) -> String = { "\($0)的红包" },
         packetOpenAction: String = "開",
         packetMissed: String = "手慢了，红包派完了",
-        packetExpiredNotice: String = "该红包已超过 24 小时",
+        packetExpiredNotice: String = "红包已过期",
         packetNotEligible: String = "你不能领取这个红包",
         packetOpenFailed: String = "领取失败，请重试",
         packetViewDetails: String = "查看领取详情",
@@ -1569,7 +1601,37 @@ public struct FlareStrings: Sendable {
         pluginFormDuplicateItem: String = "不能重复",
         pluginFormInvalid: String = "格式不正确",
         locationOsmAttribution: String = "© OpenStreetMap contributors",
-        loading: String = "加载中"
+        loading: String = "加载中",
+        messageReadSummaryUnread: String = "{count} 人未读",
+        messageReadSummaryAllRead: String = "全部已读",
+        messageSendFailedRetry: String = "发送失败，重试",
+        messageDeleted: String = "消息已删除",
+        pluginViewMore: String = "更多操作",
+        pluginViewMe: String = "我",
+        pluginViewUnavailableDisabled: String = "插件已停用",
+        pluginViewUnavailableNotInstalled: String = "插件未安装",
+        pluginViewUnavailableNoPermission: String = "没有使用该插件的权限",
+        pluginViewUnavailableUnsupportedPlatform: String = "该插件不支持此设备",
+        pluginViewUnavailableIncompatibleVersion: String = "请更新应用后查看",
+        pluginViewUnavailableCatalogUnreachable: String = "暂时无法加载，请稍后再试",
+        pluginViewUnavailableUnboundCopy: String = "副本，仅供查看",
+        pluginPageRefresh: String = "刷新",
+        packetView: String = "查看红包",
+        packetRefunded: String = "已退回",
+        packetBadgeLucky: String = "拼手气",
+        packetBadgeExclusive: String = "专属",
+        packetForRecipient: String = "给 {name}",
+        packetNotEligibleName: String = "仅 {name} 可领取",
+        packetDeposited: String = "已存入钱包",
+        packetSummarySender: String = "已领取 {claimed}/{shares} 个，共 {claimedMoney}/{totalMoney}",
+        packetSummaryCompleted: String = "{shares} 个红包共 {totalMoney}，{duration}被抢光",
+        packetSummaryCount: String = "已领取 {claimed}/{shares} 个",
+        packetRefundAt: String = "未领取部分将于 {time} 退回",
+        packetRefundedNote: String = "已退回 {money} · {time}",
+        packetDurationSeconds: String = "{n} 秒",
+        packetDurationMinutes: String = "{n} 分钟",
+        packetDurationHours: String = "{n} 小时",
+        packetDurationDays: String = "{n} 天"
     ) {
         self.microphone = microphone
         self.camera = camera
@@ -1604,10 +1666,8 @@ public struct FlareStrings: Sendable {
         self.messagePending = messagePending
         self.messageSending = messageSending
         self.messageSent = messageSent
-        self.messageDelivered = messageDelivered
         self.messageRead = messageRead
         self.messageFailed = messageFailed
-        self.messageRetrying = messageRetrying
         self.messageEdited = messageEdited
         self.messageReadOnce = messageReadOnce
         self.messageBurnAfterRead = messageBurnAfterRead
@@ -1649,7 +1709,6 @@ public struct FlareStrings: Sendable {
         self.groupAnnouncement = groupAnnouncement
         self.collapse = collapse
         self.expand = expand
-        self.packetClaimed = packetClaimed
         self.packetFinished = packetFinished
         self.packetTapToClaim = packetTapToClaim
         self.packetBrand = packetBrand
@@ -2219,6 +2278,36 @@ public struct FlareStrings: Sendable {
         self.pluginFormInvalid = pluginFormInvalid
         self.locationOsmAttribution = locationOsmAttribution
         self.loading = loading
+        self.messageReadSummaryUnread = messageReadSummaryUnread
+        self.messageReadSummaryAllRead = messageReadSummaryAllRead
+        self.messageSendFailedRetry = messageSendFailedRetry
+        self.messageDeleted = messageDeleted
+        self.pluginViewMore = pluginViewMore
+        self.pluginViewMe = pluginViewMe
+        self.pluginViewUnavailableDisabled = pluginViewUnavailableDisabled
+        self.pluginViewUnavailableNotInstalled = pluginViewUnavailableNotInstalled
+        self.pluginViewUnavailableNoPermission = pluginViewUnavailableNoPermission
+        self.pluginViewUnavailableUnsupportedPlatform = pluginViewUnavailableUnsupportedPlatform
+        self.pluginViewUnavailableIncompatibleVersion = pluginViewUnavailableIncompatibleVersion
+        self.pluginViewUnavailableCatalogUnreachable = pluginViewUnavailableCatalogUnreachable
+        self.pluginViewUnavailableUnboundCopy = pluginViewUnavailableUnboundCopy
+        self.pluginPageRefresh = pluginPageRefresh
+        self.packetView = packetView
+        self.packetRefunded = packetRefunded
+        self.packetBadgeLucky = packetBadgeLucky
+        self.packetBadgeExclusive = packetBadgeExclusive
+        self.packetForRecipient = packetForRecipient
+        self.packetNotEligibleName = packetNotEligibleName
+        self.packetDeposited = packetDeposited
+        self.packetSummarySender = packetSummarySender
+        self.packetSummaryCompleted = packetSummaryCompleted
+        self.packetSummaryCount = packetSummaryCount
+        self.packetRefundAt = packetRefundAt
+        self.packetRefundedNote = packetRefundedNote
+        self.packetDurationSeconds = packetDurationSeconds
+        self.packetDurationMinutes = packetDurationMinutes
+        self.packetDurationHours = packetDurationHours
+        self.packetDurationDays = packetDurationDays
     }
 }
 

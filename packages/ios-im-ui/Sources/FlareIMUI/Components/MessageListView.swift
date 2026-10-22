@@ -80,6 +80,8 @@ public struct MessageListView: View {
     private let unreadFromId: String?
     private let footer: AnyView?
     private let controller: FlareMessageListController?
+    private let onReadReceiptOpen: ((FlareMessageData) -> Void)?
+    private let contextMenu: FlareMessageContextMenu?
     /// The timeline's media defaults: the full-screen viewer and one voice message at a time.
     @StateObject private var mediaSession = FlareMediaSession()
 
@@ -88,6 +90,7 @@ public struct MessageListView: View {
     @Environment(\.flareStrings) private var strings
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.locale) private var locale
+    @Environment(\.flareContentSurfaces) private var contentSurfaces
 
     /// - Parameters:
     ///   - onMediaAction: Takes every media tap. Without it the list opens images and videos in the
@@ -132,6 +135,14 @@ public struct MessageListView: View {
     ///     ``FlareMessageListController/scrollToMessage(_:)``, which answers whether the list had it.
     ///     It is the same locate path a quote tap takes, so the host that paged a quoted message in
     ///     can finish the jump instead of asking for a second tap.
+    ///   - onReadReceiptOpen: A tap on the read summary of the viewer's own group message ("N 人未读"); the host
+    ///     fills its read receipt list from the SDK. Without it the summary is plain text.
+    ///   - contextMenu: The message menu (the same entries the long-press sheet shows) as a context menu on a
+    ///     pointer: a secondary click on macOS, and on iPad, where it also takes the long press. iPhone keeps
+    ///     `onMessageLongPress`.
+    ///
+    /// Each row is one VoiceOver element — sender, content summary, time and status — with the actions reply
+    /// (`onSwipeReply`), the message menu (`onMessageLongPress`) and, while failed, retry (`onResend`).
     public init(
         messages: [FlareMessageData],
         currentUserId: String,
@@ -169,7 +180,9 @@ public struct MessageListView: View {
         /// slot, as on Vue (`AnyView`, as the kit's other slots take: `ContactItemView.trailing`). The
         /// typing indicator lives here: it belongs to the conversation, not to the composer, and a reader
         /// scrolled up must not be told someone is typing at a row they are not looking at.
-        footer: AnyView? = nil
+        footer: AnyView? = nil,
+        onReadReceiptOpen: ((FlareMessageData) -> Void)? = nil,
+        contextMenu: FlareMessageContextMenu? = nil
     ) {
         self.hasOlder = hasOlder; self.olderError = olderError; self.loadOlderText = loadOlderText
         self.onLoadOlder = onLoadOlder; self.conversationId = conversationId
@@ -204,6 +217,8 @@ public struct MessageListView: View {
         self.unreadFromId = unreadFromId
         self.controller = controller
         self.footer = footer
+        self.onReadReceiptOpen = onReadReceiptOpen
+        self.contextMenu = contextMenu
     }
 
     /// Long-press opens the message action sheet only outside multi-select mode
@@ -212,10 +227,10 @@ public struct MessageListView: View {
         !multiSelectMode && onMessageLongPress != nil
     }
 
-    /// Notices (system lines, recalled messages) carry no message actions:
+    /// Notices (system lines, recalled and deleted messages) carry no message actions:
     /// no long-press menu, no swipe-to-reply.
     static func isActionable(_ message: FlareMessageData) -> Bool {
-        !message.isSystem && !message.isRecalled
+        !message.isSystem && !message.isRecalled && !message.isDeleted
     }
 
     /// Per-row selected flag derived from the host's id set.
@@ -255,64 +270,72 @@ public struct MessageListView: View {
         case message(id: String, position: MessageGroupPosition)
     }
 
-    /// Every row of the timeline, as the list draws them: before a message, the date separator when it
-    /// starts a local day, then the unread divider when it is the first unread message.
+    /// Every row of the timeline, as the list draws them (``flareTimelineRows(_:currentUserId:conversationKind:unreadFromId:options:nowMs:timeZone:utcOffsetMinutes:)``
+    /// over the rows' surfaces): before a message, the date separator when it starts a local day, then the unread
+    /// divider when it is the first unread message.
     static func timelineEntries(_ messages: [FlareMessageData], unreadFromId: String?, currentUserId: String,
-                                timeZone: TimeZone = .current) -> [TimelineEntry] {
-        let unread = unreadIndex(messages, unreadFromId: unreadFromId)
-        var entries: [TimelineEntry] = []
-        for index in messages.indices {
-            if startsTimelineDay(messages, at: index, timeZone: timeZone) {
-                entries.append(.date(sentAtMs: messages[index].sentAtMs))
+                                timeZone: TimeZone = .current,
+                                surfaces: [String: FlareMessageRegisteredSurface] = [:]) -> [TimelineEntry] {
+        let items = messages.map { $0.groupingItem(surface: $0.surface(registry: surfaces)) }
+        return flareTimelineRows(items, currentUserId: currentUserId, conversationKind: .single,
+                                 unreadFromId: unreadFromId, timeZone: timeZone).map { row in
+            switch row {
+            case .date(let atMs, _): return .date(sentAtMs: atMs)
+            case .unread(let count): return .unread(count: count)
+            case .message(let index, let position, _): return .message(id: messages[index].id, position: position)
             }
-            if index == unread {
-                entries.append(.unread(count: unreadCount(messages, from: index, currentUserId: currentUserId)))
+        }
+    }
+
+    /// What a message row draws above and of itself: its date pill, the unread divider, its run position and
+    /// presentation, and its surface.
+    struct RowLayout {
+        var date: FlareTimelineDateLabel?
+        var unread: Int?
+        var position: MessageGroupPosition = .single
+        var presentation = MessageRowPresentation()
+        var surface: FlareMessageSurface = .bubble
+    }
+
+    /// The layout of every message row, by index.
+    static func rowLayouts(_ messages: [FlareMessageData], currentUserId: String, conversationKind: FlareConversationKind,
+                           unreadFromId: String?, options: FlareMessageGroupingOptions,
+                           surfaces registry: [String: FlareMessageRegisteredSurface],
+                           timeZone: TimeZone = .current) -> [RowLayout] {
+        let surfaces = messages.map { $0.surface(registry: registry) }
+        let items = zip(messages, surfaces).map { $0.groupingItem(surface: $1) }
+        var layouts = surfaces.map { RowLayout(surface: $0) }
+        var pendingDate: FlareTimelineDateLabel?
+        var pendingUnread: Int?
+        for row in flareTimelineRows(items, currentUserId: currentUserId, conversationKind: conversationKind,
+                                     unreadFromId: unreadFromId, options: options, timeZone: timeZone) {
+            switch row {
+            case .date(_, let label): pendingDate = label
+            case .unread(let count): pendingUnread = count
+            case .message(let index, let position, let presentation):
+                layouts[index].date = pendingDate
+                layouts[index].unread = pendingUnread
+                layouts[index].position = position
+                layouts[index].presentation = presentation
+                pendingDate = nil
+                pendingUnread = nil
             }
-            entries.append(.message(id: messages[index].id,
-                                    position: groupPosition(messages, at: index, unreadIndex: unread, timeZone: timeZone)))
         }
-        return entries
+        return layouts
     }
 
-    /// Whether the message at `index` starts a local day: the first dated message, or the first one on
-    /// another day than the dated message before it (undated rows are skipped, as on Vue).
-    static func startsTimelineDay(_ messages: [FlareMessageData], at index: Int, timeZone: TimeZone) -> Bool {
-        var previous = index - 1
-        while previous >= 0, messages[previous].sentAtMs <= 0 { previous -= 1 }
-        return FlareTimeFormat.startsTimelineDay(previousMs: previous >= 0 ? messages[previous].sentAtMs : 0,
-                                                 currentMs: messages[index].sentAtMs, timeZone: timeZone)
-    }
-
-    /// Index of the first unread message; nil without an id or when the list does not hold it.
-    static func unreadIndex(_ messages: [FlareMessageData], unreadFromId: String?) -> Int? {
-        guard let unreadFromId, !unreadFromId.isEmpty else { return nil }
-        return messages.firstIndex { $0.id == unreadFromId }
-    }
-
-    /// The unread divider's count: messages from others from `index` on.
-    static func unreadCount(_ messages: [FlareMessageData], from index: Int, currentUserId: String) -> Int {
-        messages[index...].reduce(0) { $0 + ($1.senderId == currentUserId ? 0 : 1) }
-    }
-
-    /// The sender-run position, with every divider ending a run (Vue `breakRunAtDividers`): a date
-    /// separator or the unread divider right above a row opens a new run there, and one right above the
-    /// next row closes the run. A run never continues across a date separator.
-    static func groupPosition(_ messages: [FlareMessageData], at index: Int, unreadIndex: Int?,
-                              timeZone: TimeZone) -> MessageGroupPosition {
-        var position = messageGroupPosition(messages, index: index)
-        if dividerAbove(messages, at: index, unreadIndex: unreadIndex, timeZone: timeZone) {
-            position = position == .middle ? .first : position == .last ? .single : position
+    /// A date pill's words: the strings table's today and yesterday, else the locale's month and day (with the year
+    /// outside this one).
+    static func dateLabel(_ label: FlareTimelineDateLabel, atMs: Int64, strings: FlareStrings, locale: Locale,
+                          now: Date) -> String {
+        switch label {
+        case .today: return strings.today
+        case .yesterday: return strings.yesterday
+        case .monthDay, .yearMonthDay:
+            return FlareTimeFormat.timelineDateLabel(Date(timeIntervalSince1970: TimeInterval(atMs) / 1000),
+                                                     today: strings.today, yesterday: strings.yesterday,
+                                                     locale: locale, now: now)
         }
-        if index + 1 < messages.count, dividerAbove(messages, at: index + 1, unreadIndex: unreadIndex, timeZone: timeZone) {
-            position = position == .middle ? .last : position == .first ? .single : position
-        }
-        return position
-    }
-
-    /// Whether a divider sits right above the message at `index`: the unread divider, or a date separator
-    /// on any row but the first (the first row's separator opens the timeline, not a new run).
-    static func dividerAbove(_ messages: [FlareMessageData], at index: Int, unreadIndex: Int?, timeZone: TimeZone) -> Bool {
-        index == unreadIndex || (index > 0 && startsTimelineDay(messages, at: index, timeZone: timeZone))
     }
 
     public var body: some View {
@@ -586,37 +609,32 @@ public struct MessageListView: View {
 
     private func rows(reportsRowFrames: Bool, viewportHeight: CGFloat) -> some View {
         let rowIndex = MessageRowIndex(messages)
-        // One zone, clock and unread position per pass: each row decides its day on numbers, and only a
-        // row that starts a day formats a label (with the cached formatter).
-        let zone = TimeZone.current
+        // One pass over the timeline: each row's date pill, unread divider, run position, presentation and surface.
+        let layouts = Self.rowLayouts(
+            messages, currentUserId: currentUserId, conversationKind: conversationKind, unreadFromId: unreadFromId,
+            options: FlareMessageGroupingOptions(showIncomingAvatar: showIncomingAvatar, showSelfAvatar: showSelfAvatar,
+                                                 showGroupSenderName: showGroupSenderName),
+            surfaces: contentSurfaces)
         let now = Date()
-        let unread = Self.unreadIndex(messages, unreadFromId: unreadFromId)
+        let pointerMenu = contextMenu != nil && FlareMessageContextMenu.pointerIdiom
         return LazyVStack(spacing: 0) {
             ForEach(Array(messages.enumerated()), id: \.element.id) { index, msg in
-                let groupPosition = Self.groupPosition(messages, at: index, unreadIndex: unread, timeZone: zone)
-                let presentation = messageRowPresentation(
-                    message: msg,
-                    position: groupPosition,
-                    currentUserId: currentUserId,
-                    groupConversation: conversationKind == .group,
-                    showIncomingAvatar: showIncomingAvatar,
-                    showSelfAvatar: showSelfAvatar,
-                    showGroupSenderName: showGroupSenderName)
+                let layout = layouts[index]
                 let actionable = Self.isActionable(msg)
                 VStack(spacing: 0) {
                     // The day comes first, then where the unread messages start inside it.
-                    if Self.startsTimelineDay(messages, at: index, timeZone: zone) {
-                        DatePillView(label: FlareTimeFormat.timelineDateLabel(
-                            Date(timeIntervalSince1970: TimeInterval(msg.sentAtMs) / 1000),
-                            today: strings.today, yesterday: strings.yesterday, locale: locale, now: now))
+                    if let date = layout.date {
+                        DatePillView(label: Self.dateLabel(date, atMs: msg.sentAtMs, strings: strings, locale: locale,
+                                                           now: now))
                             .padding(.vertical, FlareSizes.spacingSm)
                             .accessibilityAddTraits(.isHeader)
                     }
-                    if index == unread {
-                        UnreadDividerView(count: Self.unreadCount(messages, from: index, currentUserId: currentUserId))
+                    if let unread = layout.unread {
+                        UnreadDividerView(count: unread)
                     }
                     MessageBubbleView(message: msg, currentUserId: currentUserId, conversationKind: conversationKind,
-                        groupPosition: groupPosition, rowPresentation: presentation, mediaState: mediaDownloadStates[msg.id],
+                        groupPosition: layout.position, rowPresentation: layout.presentation, surface: layout.surface,
+                        mediaState: mediaDownloadStates[msg.id],
                         onMediaAction: onMediaAction, onMediaDownload: onMediaDownload, onMediaReveal: onMediaReveal,
                         onOpenFile: onOpenFile,
                         onOpenLink: onOpenLink, onResend: onResend,
@@ -626,18 +644,26 @@ public struct MessageListView: View {
                         onReact: onReact,
                         onLocateMessage: locateCallback(msg, rows: rowIndex),
                         onVote: onVote, onTaskToggle: onTaskToggle,
-                        onCardOpen: onCardOpen, onLocationOpen: onLocationOpen)
+                        onCardOpen: onCardOpen, onLocationOpen: onLocationOpen,
+                        onReadReceiptOpen: onReadReceiptOpen)
                         .mediaDefaults(mediaSession, gallery: FlareImageGallerySource(messages: messages, download: onMediaDownload,
                                                                                       reveal: onMediaReveal))
                         .environment(\.flareMessageConversationId, conversationId)
                         .accessibilityFocused($readingCursor, equals: msg.id)
                         .contentShape(Rectangle())
-                        .modifier(RowLongPress(enabled: actionable && Self.longPressEnabled(multiSelectMode: multiSelectMode, onMessageLongPress: onMessageLongPress)) {
+                        .modifier(RowLongPress(enabled: actionable && FlareMessageContextMenu.longPressOpensSheet(pointerMenu: pointerMenu)
+                                               && Self.longPressEnabled(multiSelectMode: multiSelectMode, onMessageLongPress: onMessageLongPress)) {
                             onMessageLongPress?(msg)
                         })
+                        .modifier(RowContextMenu(message: msg, menu: actionable && !multiSelectMode && pointerMenu ? contextMenu : nil))
                         .modifier(RowSwipeReply(enabled: actionable && !multiSelectMode && onSwipeReply != nil) {
                             onSwipeReply?(msg)
                         })
+                        .modifier(RowAccessibilityActions(
+                            actions: actionable && !multiSelectMode
+                                ? Self.accessibilityActions(msg, currentUserId: currentUserId, strings: strings,
+                                                            reply: onSwipeReply, menu: onMessageLongPress, resend: onResend)
+                                : []))
                 }
                 .id(msg.id)
                 .background {
@@ -666,6 +692,29 @@ public struct MessageListView: View {
         .modifier(ScrollTargets())
         .frame(maxWidth: FlareSizes.messageTimelineContentMaxWidth)
         .frame(maxWidth: .infinity)
+    }
+
+    /// One custom accessibility action of a message row.
+    struct RowAction: Identifiable {
+        enum Kind: String { case reply, menu, retry }
+        let kind: Kind
+        let name: String
+        let perform: () -> Void
+        var id: String { kind.rawValue }
+    }
+
+    /// The row's custom accessibility actions (`spec/message-receipt-vectors.json` rules.accessibilityLabel): reply,
+    /// open the menu, and retry while the viewer's message has failed — each only when the host handles it.
+    static func accessibilityActions(_ message: FlareMessageData, currentUserId: String, strings: FlareStrings,
+                                     reply: ((FlareMessageData) -> Void)?, menu: ((FlareMessageData) -> Void)?,
+                                     resend: ((FlareMessageData) -> Void)?) -> [RowAction] {
+        var actions: [RowAction] = []
+        if let reply { actions.append(RowAction(kind: .reply, name: strings.messageActionReply) { reply(message) }) }
+        if let menu { actions.append(RowAction(kind: .menu, name: strings.more) { menu(message) }) }
+        if let resend, message.senderId == currentUserId, message.receiptStatus == .failed {
+            actions.append(RowAction(kind: .retry, name: strings.messageSendFailedRetry) { resend(message) })
+        }
+        return actions
     }
 }
 
@@ -794,6 +843,84 @@ private struct RowSwipeReply: ViewModifier {
 
     private static func resolve(_ value: DragGesture.Value, rtl: Bool) -> FlareSwipeReplyGesture {
         FlareSwipeReply.resolve(dx: value.translation.width, dy: value.translation.height, rtl: rtl)
+    }
+}
+
+/// The message menu as a context menu on pointer devices: the same ``FlareMessageMenuEntry`` model the long-press
+/// ``MessageActionSheetView`` draws (``messageMenuActions(_:strings:hidden:content:)``), in its groups and order,
+/// destructive entries in the destructive role. `entries` answers for a message when the menu opens; `perform`
+/// gets the chosen entry's id, as the sheet's `onAction` does.
+public struct FlareMessageContextMenu {
+    public let entries: (FlareMessageData) -> [FlareMessageMenuEntry]
+    public let perform: (FlareMessageData, String) -> Void
+
+    public init(entries: @escaping (FlareMessageData) -> [FlareMessageMenuEntry],
+                perform: @escaping (FlareMessageData, String) -> Void) {
+        self.entries = entries; self.perform = perform
+    }
+
+    /// The menu's sections: the sheet's groups in its order (primary, organize, destructive).
+    static func sections(_ entries: [FlareMessageMenuEntry]) -> [[FlareMessageMenuEntry]] { messageMenuGroups(entries) }
+
+    /// A destructive entry takes the destructive role.
+    static func role(_ entry: FlareMessageMenuEntry) -> ButtonRole? { entry.group == .destructive ? .destructive : nil }
+
+    /// Whether a row's long press opens the host's sheet: not where the pointer menu takes the long press.
+    static func longPressOpensSheet(pointerMenu: Bool) -> Bool { !pointerMenu }
+
+    /// A pointer is the primary way to the menu: macOS, iPad (where the context menu also takes the long press)
+    /// and a Mac running the iPad app. iPhone keeps the long-press sheet.
+    static var pointerIdiom: Bool {
+        #if os(macOS)
+        return true
+        #elseif canImport(UIKit)
+        let idiom = UIDevice.current.userInterfaceIdiom
+        return idiom == .pad || idiom == .mac
+        #else
+        return false
+        #endif
+    }
+}
+
+/// The row's context menu: the message menu entries in their groups, separated by dividers.
+private struct RowContextMenu: ViewModifier {
+    let message: FlareMessageData
+    let menu: FlareMessageContextMenu?
+
+    func body(content: Content) -> some View {
+        if let menu {
+            content.contextMenu {
+                let groups = FlareMessageContextMenu.sections(menu.entries(message))
+                ForEach(Array(groups.enumerated()), id: \.offset) { index, group in
+                    if index > 0 { Divider() }
+                    ForEach(group) { entry in
+                        Button(role: FlareMessageContextMenu.role(entry)) {
+                            menu.perform(message, entry.id)
+                        } label: {
+                            Label(entry.label, systemImage: flareIconSymbol(entry.icon))
+                        }
+                        .disabled(!entry.enabled)
+                    }
+                }
+            }
+        } else {
+            content
+        }
+    }
+}
+
+/// The row's custom accessibility actions (reply, the menu, retry).
+private struct RowAccessibilityActions: ViewModifier {
+    let actions: [MessageListView.RowAction]
+
+    func body(content: Content) -> some View {
+        if actions.isEmpty {
+            content
+        } else {
+            content.accessibilityActions {
+                ForEach(actions) { action in Button(action.name, action: action.perform) }
+            }
+        }
     }
 }
 

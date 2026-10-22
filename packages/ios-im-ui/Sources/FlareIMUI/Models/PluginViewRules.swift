@@ -73,8 +73,51 @@ enum PluginViewFormat {
     /// Whether a card draws its own view details key (spec rules.detailKey): the view has a detail, is available and is
     /// not embedded, and no entries block shows its see all. The card also needs an `onOpenDetail`.
     static func showsDetailKey(_ view: PluginViewModel, embedded: Bool) -> Bool {
-        guard view.detail, view.available, !embedded else { return false }
+        guard view.detail, view.available, !view.readOnly, !embedded else { return false }
         return !view.blocks.contains { if case .entries(let entries) = $0 { return entries.more }; return false }
+    }
+
+    /// A grouped entries block's header row (spec rules.entriesGrouped): the label, "N 票" when the group has a count
+    /// and "P%" when it has a percent, joined with " · ".
+    static func groupHeader(_ group: PluginEntryGroup, _ strings: FlareStrings) -> String {
+        var parts = [group.label]
+        if let count = group.count { parts.append(votes(count, strings)) }
+        if let percent = group.percent { parts.append("\(percent)%") }
+        return parts.joined(separator: " · ")
+    }
+
+    /// The entry's number: none when the block is not numbered (a grouped poll list never is).
+    static func entryNumber(_ entry: PluginEntry, block: PluginEntriesBlock) -> String? {
+        block.numbered ? String(entry.index) : nil
+    }
+
+    /// The entry names the viewer: it carries the "我" tag.
+    static func isMe(_ entry: PluginEntry, viewerId: String?) -> Bool {
+        guard let viewerId, !viewerId.isEmpty, let userId = entry.userId else { return false }
+        return userId == viewerId
+    }
+
+    /// The words of an unavailable reason.
+    static func reasonText(_ reason: PluginUnavailableReason, _ strings: FlareStrings) -> String {
+        switch reason {
+        case .disabled: return strings.pluginViewUnavailableDisabled
+        case .notInstalled: return strings.pluginViewUnavailableNotInstalled
+        case .noPermission: return strings.pluginViewUnavailableNoPermission
+        case .unsupportedPlatform: return strings.pluginViewUnavailableUnsupportedPlatform
+        case .incompatibleVersion: return strings.pluginViewUnavailableIncompatibleVersion
+        case .catalogUnreachable: return strings.pluginViewUnavailableCatalogUnreachable
+        case .unboundCopy: return strings.pluginViewUnavailableUnboundCopy
+        }
+    }
+
+    /// The card's reason line (spec rules.unavailableReason): an unavailable view says why, after the envelope's
+    /// `displayName` ("投票 · 插件已停用"); a read-only copy says so; no reason, no line.
+    static func reasonLine(_ view: PluginViewModel, displayName: String?, _ strings: FlareStrings) -> String? {
+        guard let reason = view.unavailableReason else { return nil }
+        if reason == .unboundCopy { return reasonText(reason, strings) }
+        guard !view.available else { return nil }
+        let name = displayName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return name.isEmpty ? reasonText(reason, strings) : "\(name) · \(reasonText(reason, strings))"
     }
 
     /// The line under a choices block: ended, and the total while results show.

@@ -13,21 +13,21 @@ final class RedPacketComponentsTests: XCTestCase {
     // MARK: Card
 
     func testCardStatusFollowsTheContractOrder() {
-        func status(_ state: FlareRedPacketState, amount: String? = nil, label: String? = nil,
-                    busy: Bool = false, disabled: Bool = false) -> String {
-            RedPacketCardView.status(state: state, amount: amount, statusLabel: label, busy: busy,
-                                     disabled: disabled, strings: zh)
+        func status(_ state: FlareRedPacketCardState, label: String? = nil, busy: Bool = false,
+                    disabled: Bool = false) -> String {
+            FlareRedPacketCardRules.status(state: state, statusLabel: label, busy: busy, disabled: disabled).text(zh)
         }
-        XCTAssertEqual(status(.claimed, amount: "¥1", label: "Created", busy: true), zh.packetBusy)
-        XCTAssertEqual(status(.claimed, amount: "¥1", label: "Created"), "Created")
-        XCTAssertEqual(status(.claimed, amount: "¥1"), zh.packetClaimed + "¥1")
+        XCTAssertEqual(status(.claimed, label: "Created", busy: true), zh.packetBusy)
+        XCTAssertEqual(status(.claimed, label: "Created"), "Created")
         XCTAssertEqual(status(.claimed), zh.packetStateClaimed)
+        XCTAssertEqual(status(.viewable), zh.packetView)
         XCTAssertEqual(status(.finished, disabled: true), zh.packetFinished)
         XCTAssertEqual(status(.expired, disabled: true), zh.packetStateExpired)
+        XCTAssertEqual(status(.refunded), zh.packetRefunded)
         XCTAssertEqual(status(.unopened, disabled: true), zh.packetUnavailable)
         XCTAssertEqual(status(.unopened), zh.packetTapToClaim)
         XCTAssertEqual(zh.packetFinished, "已被领完")
-        XCTAssertEqual(zh.packetTapToClaim, "点击领取")
+        XCTAssertEqual(zh.packetTapToClaim, "领取红包")
     }
 
     // MARK: Shared vectors
@@ -38,7 +38,6 @@ final class RedPacketComponentsTests: XCTestCase {
         struct Card: Decodable {
             let id: String
             let state: String
-            let amount: String?
             let statusLabel: String?
             let busy: Bool?
             let disabled: Bool?
@@ -65,9 +64,68 @@ final class RedPacketComponentsTests: XCTestCase {
             let showsCount: Bool
             let showsRecipient: Bool
         }
+        struct CardState: Decodable {
+            struct View: Decodable { let status: String; let claimedByMe: Bool?; let tapAction: String? }
+            let id: String
+            let view: View
+            let state: String
+        }
+        struct Badge: Decodable {
+            struct Pair: Decodable { let zh: String; let en: String }
+            let id: String
+            let kind: String
+            let recipientName: String?
+            let badge: String?
+            let zh: String?
+            let en: String?
+            let recipient: Pair?
+        }
+        struct OpenSheet: Decodable {
+            let id: String
+            let state: String
+            let canViewDetails: Bool?
+            let coin: Bool
+            let details: Bool
+        }
+        struct Amount: Decodable {
+            struct Case: Decodable { let minor: String; let exponent: Int; let currency: String; let text: String?; let money: String? }
+            let symbols: [String: String]
+            let cases: [Case]
+        }
+        struct Detail: Decodable {
+            struct Expect: Decodable {
+                let amount: String?; let deposited: Bool; let headline: String?; let summary: String?
+                let claims: Bool; let note: String?
+            }
+            struct Case: Decodable {
+                let id: String
+                let designatedName: String?
+                let details: FlareRedPacketDetailsView
+                let expect: Expect
+            }
+            let nowMs: Int64
+            let utcOffsetMinutes: Int
+            let cases: [Case]
+            let claimRows: [ClaimRow]
+        }
+        struct ClaimRow: Decodable {
+            struct Claim: Decodable { let id: String; let name: String; let amountMinor: String; let claimedAtMs: Int64; let best: Bool }
+            struct Expect: Decodable { let amount: String; let time: String; let best: Bool }
+            let claim: Claim
+            let currency: String
+            let currencyExponent: Int
+            let expect: Expect
+        }
         let amountInput: [Text]
         let countInput: [Count]
+        let cardState: [CardState]
         let card: [Card]
+        let cardBadge: [Badge]
+        /// zh / en copy by status, and `keys` (status → FlareStrings field).
+        let cardCopy: [String: [String: String]]
+        let openSheet: [OpenSheet]
+        let amount: Amount
+        let detail: Detail
         let faded: Faded
         let composer: [Composer]
     }
@@ -151,31 +209,93 @@ final class RedPacketComponentsTests: XCTestCase {
             Vectors.self, from: Data(contentsOf: root.appendingPathComponent("spec/red-packet-vectors.json")))
     }
 
+    func testCardStateFollowsTheSharedTable() throws {
+        let table = try vectors().cardState
+        XCTAssertGreaterThanOrEqual(table.count, 11, "the shared table lost cases")
+        for vector in table {
+            let status = try XCTUnwrap(FlareRedPacketStatus(rawValue: vector.view.status), vector.id)
+            let tap = try vector.view.tapAction.map { try XCTUnwrap(FlareRedPacketTapAction(rawValue: $0), vector.id) }
+            XCTAssertEqual(flareRedPacketCardState(status: status, claimedByMe: vector.view.claimedByMe ?? false,
+                                                   tapAction: tap).rawValue, vector.state, vector.id)
+        }
+    }
+
     func testCardFollowsTheSharedTable() throws {
         let table = try vectors().card
-        XCTAssertGreaterThanOrEqual(table.count, 10, "the shared table lost cases")
+        XCTAssertGreaterThanOrEqual(table.count, 11, "the shared table lost cases")
         for vector in table {
-            let state = try XCTUnwrap(FlareRedPacketState(rawValue: vector.state), vector.id)
+            let state = try XCTUnwrap(FlareRedPacketCardState(rawValue: vector.state), vector.id)
             let expected: String
             switch vector.status {
             case "busy": expected = zh.packetBusy
             case "statusLabel": expected = try XCTUnwrap(vector.statusLabel, vector.id)
-            case "claimedAmount": expected = zh.packetClaimed + (try XCTUnwrap(vector.amount, vector.id))
+            case "tapToOpen": expected = zh.packetTapToClaim
+            case "view": expected = zh.packetView
             case "claimed": expected = zh.packetStateClaimed
             case "finished": expected = zh.packetFinished
             case "expired": expected = zh.packetStateExpired
+            case "refunded": expected = zh.packetRefunded
             case "unavailable": expected = zh.packetUnavailable
-            case "tapToOpen": expected = zh.packetTapToClaim
             default: XCTFail("unknown status \(vector.status) in \(vector.id)"); continue
             }
-            XCTAssertEqual(RedPacketCardView.status(state: state, amount: vector.amount, statusLabel: vector.statusLabel,
-                                                    busy: vector.busy ?? false, disabled: vector.disabled ?? false,
-                                                    strings: zh), expected, vector.id)
-            XCTAssertEqual(RedPacketCardView.faded(state), vector.dimmed, vector.id)
-            let card = RedPacketCardView(blessing: "Hello", state: state, amount: vector.amount,
-                                         disabled: vector.disabled ?? false, busy: vector.busy ?? false,
-                                         statusLabel: vector.statusLabel, onOpen: {})
+            XCTAssertEqual(FlareRedPacketCardRules.status(state: state, statusLabel: vector.statusLabel,
+                                                          busy: vector.busy ?? false,
+                                                          disabled: vector.disabled ?? false).text(zh),
+                           expected, vector.id)
+            XCTAssertEqual(FlareRedPacketCardRules.faded(state), vector.dimmed, vector.id)
+            let card = RedPacketCardView(blessing: "Hello", state: state, disabled: vector.disabled ?? false,
+                                         busy: vector.busy ?? false, statusLabel: vector.statusLabel, onOpen: {})
             XCTAssertEqual(card.canOpen, vector.tappable, vector.id)
+        }
+        // The card copy of the shared table is the kit's.
+        let copy: [(String, String)] = [(zh.packetTapToClaim, "领取红包"), (zh.packetView, "查看红包"),
+                                        (zh.packetStateClaimed, "已领取"), (zh.packetFinished, "已被领完"),
+                                        (zh.packetStateExpired, "已过期"), (zh.packetRefunded, "已退回"),
+                                        (zh.packetBusy, "处理中…"), (zh.packetUnavailable, "暂不可用")]
+        for (kit, table) in copy { XCTAssertEqual(kit, table) }
+        // And the English preset matches the shared table's English.
+        let english = try XCTUnwrap(try vectors().cardCopy["en"])
+        let englishCopy: [(String, String?)] = [
+            (en.packetTapToClaim, english["tapToOpen"]), (en.packetView, english["view"]),
+            (en.packetStateClaimed, english["claimed"]), (en.packetFinished, english["finished"]),
+            (en.packetStateExpired, english["expired"]), (en.packetRefunded, english["refunded"]),
+            (en.packetBusy, english["busy"]), (en.packetUnavailable, english["unavailable"]),
+        ]
+        for (kit, table) in englishCopy { XCTAssertEqual(kit, table) }
+    }
+
+    @MainActor
+    func testTheCardNeverShowsAnAmountAndCarriesTheBadgeAndTheRecipient() throws {
+        let table = try vectors().cardBadge
+        XCTAssertGreaterThanOrEqual(table.count, 5)
+        for vector in table {
+            let kind = try XCTUnwrap(FlareRedPacketKind(rawValue: vector.kind), vector.id)
+            XCTAssertEqual(FlareRedPacketCardRules.badge(kind, strings: zh), vector.zh, vector.id)
+            XCTAssertEqual(FlareRedPacketCardRules.recipient(kind, name: vector.recipientName, strings: zh),
+                           vector.recipient?.zh, vector.id)
+            XCTAssertEqual(FlareRedPacketCardRules.badge(kind, strings: en), vector.en, "\(vector.id) en")
+            XCTAssertEqual(FlareRedPacketCardRules.recipient(kind, name: vector.recipientName, strings: en),
+                           vector.recipient?.en, "\(vector.id) en")
+            let tree = try RedPacketCardView(blessing: "恭喜发财", kind: kind, recipientName: vector.recipientName,
+                                             state: .claimed, onOpen: {}).inspect()
+            if let badge = vector.zh { XCTAssertNoThrow(try tree.find(text: badge), vector.id) }
+            if let recipient = vector.recipient?.zh { XCTAssertNoThrow(try tree.find(text: recipient), vector.id) }
+            // No digit, no currency: the card has no amount to draw.
+            let texts = tree.findAll(ViewType.Text.self).compactMap { try? $0.string() }
+            XCTAssertFalse(texts.contains { $0.contains("¥") || $0.rangeOfCharacter(from: .decimalDigits) != nil },
+                           "\(vector.id): \(texts)")
+        }
+    }
+
+    func testAmountsFormatFromMinorUnitsAsTheSharedTableSays() throws {
+        let table = try vectors().amount
+        XCTAssertEqual(table.symbols, FlareRedPacketMoney.symbols)
+        XCTAssertGreaterThanOrEqual(table.cases.count, 12)
+        for vector in table.cases {
+            XCTAssertEqual(FlareRedPacketMoney.text(minor: vector.minor, exponent: vector.exponent), vector.text,
+                           vector.minor)
+            XCTAssertEqual(FlareRedPacketMoney.money(minor: vector.minor, exponent: vector.exponent,
+                                                     currency: vector.currency), vector.money, vector.minor)
         }
     }
 
@@ -193,21 +313,22 @@ final class RedPacketComponentsTests: XCTestCase {
         XCTAssertEqual(RedPacketInput.countText(12), "12")
     }
 
-    func testOnlyAnUnopenedCardKeepsItsFullColour() {
-        XCTAssertFalse(RedPacketCardView.faded(.unopened))
-        for state in [FlareRedPacketState.claimed, .finished, .expired] {
-            XCTAssertTrue(RedPacketCardView.faded(state), "\(state)")
+    func testOnlyAnUnopenedOrViewableCardKeepsItsFullColour() {
+        XCTAssertFalse(FlareRedPacketCardRules.faded(.unopened))
+        XCTAssertFalse(FlareRedPacketCardRules.faded(.viewable))
+        for state in [FlareRedPacketCardState.claimed, .finished, .expired, .refunded] {
+            XCTAssertTrue(FlareRedPacketCardRules.faded(state), "\(state)")
         }
     }
 
     @MainActor
     func testEveryCardStateOpensButBusyDisabledAndUnhandledDoNot() throws {
-        var opened: [FlareRedPacketState] = []
-        for state in FlareRedPacketState.allCases {
+        var opened: [FlareRedPacketCardState] = []
+        for state in FlareRedPacketCardState.allCases {
             try RedPacketCardView(blessing: "Hello", state: state, onOpen: { opened.append(state) })
                 .inspect().find(ViewType.Button.self).tap()
         }
-        XCTAssertEqual(opened, FlareRedPacketState.allCases)
+        XCTAssertEqual(opened, FlareRedPacketCardState.allCases)
         for card in [
             RedPacketCardView(blessing: "Hello", state: .finished, busy: true, onOpen: { opened.append(.finished) }),
             RedPacketCardView(blessing: "Hello", state: .expired, disabled: true, onOpen: { opened.append(.expired) }),
@@ -217,19 +338,23 @@ final class RedPacketComponentsTests: XCTestCase {
             XCTAssertTrue(button.isDisabled())
             XCTAssertThrowsError(try button.tap())
         }
-        XCTAssertEqual(opened.count, FlareRedPacketState.allCases.count)
+        XCTAssertEqual(opened.count, FlareRedPacketCardState.allCases.count)
     }
 
     @MainActor
     func testCardShowsTheKindOnTheBrandRowAndNamesItForVoiceOver() throws {
-        let card = RedPacketCardView(blessing: "Hello", kindLabel: "Lucky", state: .expired, onOpen: {})
+        let card = RedPacketCardView(blessing: "Hello", kind: .exclusive, recipientName: "Bob", state: .expired,
+                                     onOpen: {})
         let view = try card.inspect()
-        XCTAssertNoThrow(try view.find(text: "Lucky"))
+        XCTAssertNoThrow(try view.find(text: zh.packetBadgeExclusive))
+        XCTAssertNoThrow(try view.find(text: "给 Bob"))
         XCTAssertNoThrow(try view.find(text: zh.packetBrand))
         XCTAssertNoThrow(try view.find(text: zh.packetStateExpired))
         let button = try view.find(ViewType.Button.self)
-        XCTAssertEqual(try button.accessibilityLabel().string(), "Hello, Lucky")
+        XCTAssertEqual(try button.accessibilityLabel().string(), "Hello, \(zh.packetBadgeExclusive), 给 Bob")
         XCTAssertEqual(try button.accessibilityValue().string(), zh.packetStateExpired)
+        XCTAssertThrowsError(try RedPacketCardView(blessing: "Hello", kind: .normal).inspect()
+            .find(text: zh.packetBadgeLucky), "a normal packet has no badge")
     }
 
     // MARK: Open sheet
@@ -261,8 +386,19 @@ final class RedPacketComponentsTests: XCTestCase {
 
         let withButton = FlareRedPacketOpenState.allCases.filter(RedPacketOpenSheet.showsOpenButton)
         XCTAssertEqual(withButton, [.ready, .opening, .error])
-        let withDetails = FlareRedPacketOpenState.allCases.filter(RedPacketOpenSheet.showsDetails)
-        XCTAssertEqual(withDetails, [.finished, .expired, .notEligible])
+        let withDetails = FlareRedPacketOpenState.allCases.filter { RedPacketOpenSheet.showsDetails($0) }
+        XCTAssertEqual(withDetails, [.finished, .expired], "a viewer the packet is not for gets no details")
+    }
+
+    func testOpenSheetKeysFollowTheSharedTable() throws {
+        let table = try vectors().openSheet
+        XCTAssertGreaterThanOrEqual(table.count, 8)
+        for vector in table {
+            let state = try XCTUnwrap(FlareRedPacketOpenState(rawValue: vector.state), vector.id)
+            XCTAssertEqual(RedPacketOpenSheet.showsOpenButton(state), vector.coin, vector.id)
+            XCTAssertEqual(RedPacketOpenSheet.showsDetails(state, canViewDetails: vector.canViewDetails ?? true),
+                           vector.details, vector.id)
+        }
     }
 
     func testEnvelopeKeepsAGutterOnNarrowWindows() {
@@ -302,21 +438,27 @@ final class RedPacketComponentsTests: XCTestCase {
     }
 
     @MainActor
-    func testUnavailableSheetsExplainAndLeadToTheDetails() throws {
-        let cases: [(FlareRedPacketOpenState, String)] = [
-            (.finished, zh.packetMissed), (.expired, zh.packetExpiredNotice), (.notEligible, "Only Bo"),
+    func testUnavailableSheetsExplainAndLeadToTheDetailsOnlyWhenTheViewerMayLook() throws {
+        let cases: [(FlareRedPacketOpenState, String, Bool, Bool)] = [
+            (.finished, zh.packetMissed, true, true), (.expired, zh.packetExpiredNotice, true, true),
+            (.finished, zh.packetMissed, false, false), (.notEligible, "仅 Bo 可领取", true, false),
         ]
-        for (state, copy) in cases {
+        for (state, copy, canViewDetails, offersDetails) in cases {
             var details = 0
             let sheet = RedPacketOpenSheet(senderName: "Ann", blessing: "Wish", state: state,
-                                           message: state == .notEligible ? "Only Bo" : nil,
+                                           message: state == .notEligible ? "仅 Bo 可领取" : nil,
+                                           canViewDetails: canViewDetails,
                                            onOpen: {}, onViewDetails: { details += 1 }, onClose: {})
             let view = try sheet.inspect()
             XCTAssertNoThrow(try view.find(text: copy), "\(state)")
             XCTAssertThrowsError(try view.find(text: "Wish"), "\(state) replaces the blessing")
             XCTAssertThrowsError(try view.find(button: zh.packetOpenAction), "\(state) has nothing to open")
-            try view.find(button: zh.packetViewDetails).tap()
-            XCTAssertEqual(details, 1, "\(state)")
+            if offersDetails {
+                try view.find(button: zh.packetViewDetails).tap()
+                XCTAssertEqual(details, 1, "\(state)")
+            } else {
+                XCTAssertThrowsError(try view.find(button: zh.packetViewDetails), "\(state) offers no details")
+            }
         }
     }
 
@@ -338,17 +480,60 @@ final class RedPacketComponentsTests: XCTestCase {
 
     // MARK: Details
 
+    func testDetailsFollowTheSharedTableForEveryRoleAndStatus() throws {
+        let table = try vectors().detail
+        XCTAssertGreaterThanOrEqual(table.cases.count, 15)
+        for vector in table.cases {
+            let shown = FlareRedPacketDetailRules.presentation(vector.details, designatedName: vector.designatedName,
+                                                               nowMs: table.nowMs, strings: zh,
+                                                               utcOffsetMinutes: table.utcOffsetMinutes)
+            XCTAssertEqual(shown.amount, vector.expect.amount, "\(vector.id) amount")
+            XCTAssertEqual(shown.deposited, vector.expect.deposited, "\(vector.id) deposited")
+            XCTAssertEqual(shown.headline, vector.expect.headline, "\(vector.id) headline")
+            XCTAssertEqual(shown.summary, vector.expect.summary, "\(vector.id) summary")
+            XCTAssertEqual(shown.claims, vector.expect.claims, "\(vector.id) claims")
+            XCTAssertEqual(shown.note, vector.expect.note, "\(vector.id) note")
+        }
+    }
+
+    func testClaimRowsFormatTheirAmountAndTimeAsTheSharedTableSays() throws {
+        let table = try vectors()
+        XCTAssertGreaterThanOrEqual(table.detail.claimRows.count, 3)
+        for vector in table.detail.claimRows {
+            let claim = FlareRedPacketClaim(id: vector.claim.id, name: vector.claim.name, amountMinor: vector.claim.amountMinor,
+                                            claimedAtMs: vector.claim.claimedAtMs, best: vector.claim.best)
+            let row = FlareRedPacketDetailRules.claimRow(claim, currency: vector.currency, exponent: vector.currencyExponent,
+                                                         nowMs: table.detail.nowMs, strings: zh,
+                                                         utcOffsetMinutes: table.detail.utcOffsetMinutes)
+            XCTAssertEqual(row.amount, vector.expect.amount, vector.claim.id)
+            XCTAssertEqual(row.time, vector.expect.time, vector.claim.id)
+            XCTAssertEqual(claim.best, vector.expect.best)
+        }
+    }
+
+    private func detailCase(_ id: String) throws -> (FlareRedPacketDetailsView, String?, PluginViewClock) {
+        let table = try vectors().detail
+        let vector = try XCTUnwrap(table.cases.first { $0.id == id }, id)
+        return (vector.details, vector.designatedName, PluginViewClock(nowMs: table.nowMs, utcOffsetMinutes: table.utcOffsetMinutes))
+    }
+
     @MainActor
-    func testDetailsShowTheViewersAmountAndMarkTheBestClaim() throws {
+    private func detailPage(_ id: String, claims: [FlareRedPacketClaim] = [], title: String? = nil,
+                            onBack: (() -> Void)? = nil) throws -> RedPacketDetailView {
+        let (details, name, clock) = try detailCase(id)
+        return RedPacketDetailView(senderName: "Cy", senderAvatar: nil, details: details, designatedName: name,
+                                   claims: claims, title: title, onBack: onBack, clock: clock)
+    }
+
+    @MainActor
+    func testTheClaimersPageShowsTheirAmountTheClaimsAndTheBestLuck() throws {
         let claims = [
-            FlareRedPacketClaim(id: "u1", name: "Ann", time: "10:01", amount: "0.88"),
-            FlareRedPacketClaim(id: "u2", name: "Bo", time: "10:02", amount: "1.20", best: true),
+            FlareRedPacketClaim(id: "u1", name: "Ann", amountMinor: "230", claimedAtMs: 1_792_632_660_000),
+            FlareRedPacketClaim(id: "u2", name: "Bo", amountMinor: "412", claimedAtMs: 1_792_632_700_000, best: true),
         ]
-        let view = try RedPacketDetailView(senderName: "Cy", blessing: "Wish", kindLabel: "Lucky", amount: "0.88",
-                                           amountNote: "In wallet", summary: "2/2 opened", claims: claims,
-                                           note: "Refunds after 24 hours").inspect()
-        for text in [zh.packetFromSender("Cy"), "Lucky", "Wish", "In wallet", "2/2 opened", "Ann", "Bo", "10:02",
-                     "1.20", "Refunds after 24 hours"] {
+        let view = try detailPage("claimer-completed", claims: claims).inspect()
+        for text in [zh.packetFromSender("Cy"), zh.packetBadgeLucky, "恭喜发财，大吉大利", "¥2.30", zh.packetDeposited,
+                     "已领取 5/5 个", "Ann", "Bo", "09:31", "¥4.12"] {
             XCTAssertNoThrow(try view.find(text: text), text)
         }
         XCTAssertEqual(view.findAll(ViewType.Text.self, where: { try $0.string() == self.zh.packetBestLuck }).count, 1)
@@ -356,24 +541,34 @@ final class RedPacketComponentsTests: XCTestCase {
     }
 
     @MainActor
-    func testDetailsWithoutClaimsSaySo() throws {
-        let view = try RedPacketDetailView(senderName: "Cy", blessing: "Wish", summary: "0/3 opened").inspect()
-        XCTAssertNoThrow(try view.find(text: zh.packetNoClaims))
-        XCTAssertThrowsError(try view.find(text: zh.packetBestLuck))
+    func testANonDesignatedViewerSeesOnlyWhoMayOpenIt() throws {
+        let claims = [FlareRedPacketClaim(id: "u1", name: "Ann", amountMinor: "230", claimedAtMs: 1_792_632_660_000)]
+        let view = try detailPage("ineligible-named", claims: claims).inspect()
+        XCTAssertNoThrow(try view.find(text: "仅 Bob 可领取"))
+        XCTAssertThrowsError(try view.find(text: "Ann"), "no claim list unless the server lists it")
+        XCTAssertThrowsError(try view.find(text: zh.packetDeposited))
+        let texts = view.findAll(ViewType.Text.self).compactMap { try? $0.string() }
+        XCTAssertFalse(texts.contains { $0.contains("¥") }, "no amount reached this viewer: \(texts)")
+    }
+
+    @MainActor
+    func testTheSendersPageShowsTheTotalsAndTheRefundLine() throws {
+        let view = try detailPage("sender-expired").inspect()
+        XCTAssertNoThrow(try view.find(text: "已领取 2/5 个，共 ¥3.88/¥10.00"))
+        XCTAssertNoThrow(try view.find(text: "已退回 ¥6.12 · 09:00"))
+        XCTAssertNoThrow(try view.find(text: zh.packetNoClaims), "a listed but empty claim list says so")
     }
 
     @MainActor
     func testDetailsDrawTheirOwnTitleBarOnlyWithAWayBack() throws {
         var backs = 0
-        let plain = try RedPacketDetailView(senderName: "Cy", blessing: "Wish", summary: "0/1 opened").inspect()
+        let plain = try detailPage("sender-open").inspect()
         XCTAssertThrowsError(try plain.find(text: zh.packetDetailTitle))
-        let barred = try RedPacketDetailView(senderName: "Cy", blessing: "Wish", summary: "0/1 opened",
-                                             onBack: { backs += 1 }).inspect()
+        let barred = try detailPage("sender-open", onBack: { backs += 1 }).inspect()
         XCTAssertNoThrow(try barred.find(text: zh.packetDetailTitle))
         try barred.find(ViewType.Button.self, where: { (try? $0.accessibilityLabel().string()) == self.zh.back }).tap()
         XCTAssertEqual(backs, 1)
-        let titled = try RedPacketDetailView(senderName: "Cy", blessing: "Wish", summary: "0/1 opened", title: "Details",
-                                             onBack: {}).inspect()
+        let titled = try detailPage("sender-open", title: "Details", onBack: {}).inspect()
         XCTAssertNoThrow(try titled.find(text: "Details"))
     }
 
@@ -537,6 +732,9 @@ final class RedPacketComponentsTests: XCTestCase {
             (zh.packetViewDetails, en.packetViewDetails), (zh.packetBestLuck, en.packetBestLuck),
             (zh.packetNoClaims, en.packetNoClaims), (zh.packetFieldEach, en.packetFieldEach),
             (zh.packetDefaultGreeting, en.packetDefaultGreeting), (zh.packetPayTitle, en.packetPayTitle),
+            (zh.packetView, en.packetView), (zh.packetRefunded, en.packetRefunded),
+            (zh.packetBadgeLucky, en.packetBadgeLucky), (zh.packetBadgeExclusive, en.packetBadgeExclusive),
+            (zh.packetDeposited, en.packetDeposited), (zh.packetSummaryCount, en.packetSummaryCount),
         ]
         for (chinese, english) in pairs { XCTAssertNotEqual(chinese, english) }
     }
@@ -546,11 +744,11 @@ final class RedPacketComponentsTests: XCTestCase {
 
     @MainActor
     func testCardsRenderEveryStateInsideTheCardWidth() throws {
-        var images: [FlareRedPacketState: Data] = [:]
-        for state in FlareRedPacketState.allCases {
+        var images: [FlareRedPacketCardState: Data] = [:]
+        for state in FlareRedPacketCardState.allCases {
             for scheme in [ColorScheme.light, .dark] {
-                let view = RedPacketCardView(blessing: String(repeating: "恭喜发财 ", count: 8), kindLabel: "拼手气红包",
-                                             state: state, amount: "¥0.88", onOpen: {})
+                let view = RedPacketCardView(blessing: String(repeating: "恭喜发财 ", count: 8), kind: .exclusive,
+                                             recipientName: "Bob", state: state, onOpen: {})
                     .frame(width: 390).environment(\.colorScheme, scheme)
                 let renderer = ImageRenderer(content: view)
                 renderer.scale = 1
@@ -576,9 +774,10 @@ final class RedPacketComponentsTests: XCTestCase {
                        try pixels(RedPacketCardView(blessing: "Hello", statusLabel: zh.packetUnavailable, onOpen: {})))
     }
 
-    /// A type listed as bare draws without the bubble's padding; an unlisted custom type keeps it.
+    /// A type registered as a card draws its own shell with nothing around it; an unregistered unknown type keeps the
+    /// bubble's padding; a custom body is a card without registering.
     @MainActor
-    func testABareCustomBodyLosesTheBubbleAndAFramedOneKeepsIt() throws {
+    func testARegisteredCardBodyLosesTheBubbleAndAnUnregisteredOneKeepsIt() throws {
         final class Edges { var left: [String: CGFloat] = [:] }
         let edges = Edges()
         let body: FlareContentBuilder = { content, _ in
@@ -588,20 +787,22 @@ final class RedPacketComponentsTests: XCTestCase {
                 Color.red
             }.frame(width: 120, height: 60))
         }
-        func bubble(_ label: String) -> MessageBubbleView {
+        func bubble(_ label: String, type: String = "redpacket") -> MessageBubbleView {
             MessageBubbleView(message: FlareMessageData(id: label, senderId: "u1", senderName: "Ann",
-                                                        content: FlareGenericContent(contentType: "redpacket", label: label)),
+                                                        content: FlareGenericContent(contentType: type, label: label)),
                               currentUserId: "me")
         }
         let page = VStack(spacing: 0) {
-            bubble("bare").flareContentRenderers(["redpacket": body], bare: ["redpacket"])
+            bubble("card").flareContentRenderers(["redpacket": body], surfaces: ["redpacket": .card])
             bubble("framed").flareContentRenderers(["redpacket": body])
+            bubble("custom", type: "custom").flareContentRenderers(["custom": body])
         }.frame(width: 390)
         _ = ImageRenderer(content: page).cgImage
-        let bare = try XCTUnwrap(edges.left["bare"]), framed = try XCTUnwrap(edges.left["framed"])
-        XCTAssertEqual(framed - bare, FlareSizes.componentBubblePaddingX, accuracy: 0.5)
-        XCTAssertTrue(MessageBubbleView.isChromeless(bubbleMessage("x"), bareTypes: ["redpacket"]))
-        XCTAssertFalse(MessageBubbleView.isChromeless(bubbleMessage("x")))
+        let card = try XCTUnwrap(edges.left["card"]), framed = try XCTUnwrap(edges.left["framed"])
+        XCTAssertEqual(framed - card, FlareSizes.componentBubblePaddingX, accuracy: 0.5)
+        XCTAssertEqual(try XCTUnwrap(edges.left["custom"]), card, accuracy: 0.5, "a custom body is a card")
+        XCTAssertEqual(bubbleMessage("x").surface(registry: ["redpacket": .card]), .card)
+        XCTAssertEqual(bubbleMessage("x").surface(), .bubble)
     }
 
     /// A custom renderer in a list hears the message's core id (the server's before the client's) and the conversation.

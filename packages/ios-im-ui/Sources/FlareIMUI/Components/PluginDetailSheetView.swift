@@ -27,6 +27,9 @@ struct PluginDetailPaging: Equatable, Sendable {
 /// `loading`; with `error` the host's text and the retry key (`onRetry`); otherwise the view without a card shell or
 /// title row, whose blocks, actions and forms behave as on the card.
 ///
+/// `viewerId` goes to the embedded view: the viewer's entries in a grouped list carry the "我" tag. The view's menu
+/// actions are keys after its footer actions (the sheet has no title row of the view's).
+///
 /// Actions run from the detail: `busyActionId`, `actionError` (the view's error), `formErrors`, `members` and
 /// `settleToken` go to the embedded ``PluginView`` unchanged, so such an action spins, fails, collects its form and
 /// settles inside the sheet. The host keeps them apart from the card's own busy and error, so a failure in the
@@ -42,6 +45,7 @@ public struct PluginDetailSheetView: View {
     private let loading: Bool
     private let error: String?
     private let resolveUser: (@Sendable (String) async -> PluginUser?)?
+    private let viewerId: String?
     private let busyActionId: String?
     private let actionError: String?
     private let formErrors: [PluginFormError]
@@ -59,13 +63,14 @@ public struct PluginDetailSheetView: View {
     @Environment(\.flareStrings) private var strings
 
     public init(title: String? = nil, view: PluginViewModel? = nil, loading: Bool = false, error: String? = nil,
-                resolveUser: (@Sendable (String) async -> PluginUser?)? = nil, busyActionId: String? = nil,
+                resolveUser: (@Sendable (String) async -> PluginUser?)? = nil, viewerId: String? = nil,
+                busyActionId: String? = nil,
                 actionError: String? = nil, formErrors: [PluginFormError] = [], members: [PluginMember] = [],
                 settleToken: Int = 0, loadingMore: Bool = false,
                 onRetry: (() -> Void)? = nil, onAction: ((String, PluginActionPayload) -> Void)? = nil,
                 onLoadMore: ((String) -> Void)? = nil) {
         self.title = title; self.view = view; self.loading = loading; self.error = error
-        self.resolveUser = resolveUser; self.busyActionId = busyActionId
+        self.resolveUser = resolveUser; self.viewerId = viewerId; self.busyActionId = busyActionId
         self.actionError = actionError; self.formErrors = formErrors; self.members = members
         self.settleToken = settleToken; self.loadingMore = loadingMore
         self.onRetry = onRetry; self.onAction = onAction; self.onLoadMore = onLoadMore
@@ -130,7 +135,8 @@ public struct PluginDetailSheetView: View {
             case .loaded:
                 if let view {
                     VStack(spacing: FlareSizes.spacingMd) {
-                        PluginView(view: view, busyActionId: busyActionId, error: actionError, embedded: true,
+                        PluginView(view: view, viewerId: viewerId, busyActionId: busyActionId, error: actionError,
+                                   embedded: true,
                                    resolveUser: resolveUser, members: members, formErrors: formErrors,
                                    settleToken: settleToken, onAction: onAction)
                         loadMoreKey(paging.key(cursor: view.nextCursor, loadingMore: loadingMore))

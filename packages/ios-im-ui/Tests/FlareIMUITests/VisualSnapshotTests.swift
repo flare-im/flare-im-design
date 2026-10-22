@@ -50,7 +50,7 @@ final class VisualSnapshotTests: XCTestCase {
 
     @MainActor
     func testMessageMetadataSnapshot() throws {
-        let states: [FlareMessageDeliveryStatus] = [.pending, .sending, .sent, .delivered, .read, .failed, .retrying]
+        let states = FlareMessageDeliveryStatus.allCases
         let view = HStack(spacing: 20) {
             ForEach(Array(states.enumerated()), id: \.offset) { _, state in
                 MessageStatusView(status: state)

@@ -35,8 +35,10 @@ public struct FlareMessageLifecycle: Sendable {
         if send == .failed || transfer == .failed { return .failed }
         if send == .draft || transfer == .queued { return .pending }
         if send == .sending || transfer == .transferring || transfer == .paused { return .sending }
+        // Delivery has no glyph of its own: a single check is "the server has it", a double check "read"
+        // (spec/message-receipt-vectors.json). The delivery dimension stays in the lifecycle for hosts that
+        // need it; it never changes what the row draws.
         if read == .read { return .read }
-        if delivery == .delivered || delivery == .partiallyDelivered { return .delivered }
         return .sent
     }
 }

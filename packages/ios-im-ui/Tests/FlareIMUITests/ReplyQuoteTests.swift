@@ -42,10 +42,12 @@ final class ReplyQuoteTests: XCTestCase {
 
     func testQuotingMediaKeepsTheBubbleChrome() {
         let image = FlareImageContent(url: "https://example.com/a.png")
-        XCTAssertTrue(MessageBubbleView.isChromeless(message("1", content: image)))
-        XCTAssertFalse(MessageBubbleView.isChromeless(message("2", replyTo: quoted, content: image)))
-        XCTAssertFalse(MessageBubbleView.isChromeless(message("3", replyTo: quoted, content: FlareStickerContent(url: ""))))
-        XCTAssertFalse(MessageBubbleView.isChromeless(message("4")))
+        XCTAssertEqual(message("1", content: image).surface(), .bareMedia)
+        XCTAssertEqual(message("2", replyTo: quoted, content: image).surface(), .bubble)
+        XCTAssertEqual(message("3", replyTo: quoted, content: FlareStickerContent(url: "")).surface(), .bubble)
+        XCTAssertEqual(message("4").surface(), .bubble)
+        XCTAssertEqual(message("5", replyTo: quoted, content: FlareLocationContent(name: "西湖")).surface(), .card,
+                       "a quoting card stays a card: the quote goes inside its shell")
     }
 
     func testListScrollsToLoadedQuotesAndAsksTheHostForOthers() {

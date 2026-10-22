@@ -41,10 +41,4 @@ final class InteractionStateTests: XCTestCase {
         XCTAssertEqual(resolveDesktopShortcut("f", scope: .conversation), .forward)
         XCTAssertEqual(resolveDesktopShortcut("t", scope: .conversation), .openThread)
     }
-
-    func testActionPresentationStaysDownstreamOfAvailability() {
-        let actions = resolveMessageActions(.init(lifecycle: .init(), own: false), presentation: .hoverToolbar)
-        XCTAssertTrue(actions.first(where: { $0.id == .reply })?.promoted == true)
-        XCTAssertEqual(actions.first(where: { $0.id == .report })?.group, .destructive)
-    }
 }

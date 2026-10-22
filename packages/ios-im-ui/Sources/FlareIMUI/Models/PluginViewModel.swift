@@ -191,41 +191,70 @@ public struct PluginChoicesBlock: Codable, Equatable, Sendable {
     public var selection: [Int] { options.filter(\.selected).map(\.index).sorted() }
 }
 
-/// One entry of an entries block; `index` is its position in the data, from 1.
+/// The group an entry opens in a grouped entries block: its key, the label (data, not translated) and the counts
+/// the header writes ("火锅 · 3 票 · 38%"); count, total and percent are absent when the plugin gave none.
+public struct PluginEntryGroup: Codable, Equatable, Sendable {
+    public let key: String
+    public let label: String
+    public let count: Int?
+    public let total: Int?
+    public let percent: Int?
+    public init(key: String, label: String, count: Int? = nil, total: Int? = nil, percent: Int? = nil) {
+        self.key = key; self.label = label; self.count = count; self.total = total; self.percent = percent
+    }
+    private enum CodingKeys: String, CodingKey { case key, label, count, total, percent }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        key = c.lenient(String.self, .key) ?? c.lenient(Int.self, .key).map(String.init) ?? ""
+        label = c.lenient(String.self, .label) ?? ""
+        count = c.lenient(Int.self, .count)
+        total = c.lenient(Int.self, .total)
+        percent = c.lenient(Int.self, .percent)
+    }
+}
+
+/// One entry of an entries block; `index` is its position in the data, from 1 (from 1 in each group of a grouped
+/// block). `group` is set on the first entry of each group of a grouped block: a header row goes before it.
 public struct PluginEntry: Codable, Equatable, Sendable {
     public let index: Int
     public let text: String
     public let name: String?
     public let userId: String?
-    public init(index: Int, text: String, name: String? = nil, userId: String? = nil) {
-        self.index = index; self.text = text; self.name = name; self.userId = userId
+    public let group: PluginEntryGroup?
+    public init(index: Int, text: String, name: String? = nil, userId: String? = nil, group: PluginEntryGroup? = nil) {
+        self.index = index; self.text = text; self.name = name; self.userId = userId; self.group = group
     }
-    private enum CodingKeys: String, CodingKey { case index, text, name, userId }
+    private enum CodingKeys: String, CodingKey { case index, text, name, userId, group }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         index = c.lenient(Int.self, .index) ?? 0
         text = c.lenient(String.self, .text) ?? ""
         name = c.lenient(String.self, .name)
         userId = c.lenient(String.self, .userId)
+        group = c.lenient(PluginEntryGroup.self, .group)
     }
 }
 
-/// `entries`: a numbered list (a sign-up chain); `more` offers "see all" (the detail view).
+/// `entries`: a numbered list (a sign-up chain); `more` offers "see all" (the detail view). `grouped` lists draw a
+/// header row before each entry that carries a `group` (a poll's voters by option).
 public struct PluginEntriesBlock: Codable, Equatable, Sendable {
     public let items: [PluginEntry]
     public let numbered: Bool
+    public let grouped: Bool
     public let total: Int
     public let more: Bool
     public let emptyText: String?
-    public init(items: [PluginEntry], numbered: Bool = true, total: Int? = nil, more: Bool = false, emptyText: String? = nil) {
-        self.items = items; self.numbered = numbered; self.total = total ?? items.count; self.more = more
-        self.emptyText = emptyText
+    public init(items: [PluginEntry], numbered: Bool = true, grouped: Bool = false, total: Int? = nil, more: Bool = false,
+                emptyText: String? = nil) {
+        self.items = items; self.numbered = numbered; self.grouped = grouped; self.total = total ?? items.count
+        self.more = more; self.emptyText = emptyText
     }
-    private enum CodingKeys: String, CodingKey { case items, numbered, total, more, emptyText }
+    private enum CodingKeys: String, CodingKey { case items, numbered, grouped, total, more, emptyText }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         items = try c.decode([PluginEntry].self, forKey: .items)
         numbered = c.lenient(Bool.self, .numbered) ?? true
+        grouped = c.lenient(Bool.self, .grouped) ?? false
         total = c.lenient(Int.self, .total) ?? items.count
         more = c.lenient(Bool.self, .more) ?? false
         emptyText = c.lenient(String.self, .emptyText)
@@ -495,6 +524,18 @@ public struct PluginActionPayload: Codable, Equatable, Sendable {
     public static let empty = PluginActionPayload()
 }
 
+/// Why a view is unavailable or read-only (`ResolvedPluginView.unavailableReason`, snake_case on the wire).
+public enum PluginUnavailableReason: String, Codable, Sendable, CaseIterable {
+    case disabled
+    case notInstalled = "not_installed"
+    case noPermission = "no_permission"
+    case unsupportedPlatform = "unsupported_platform"
+    case incompatibleVersion = "incompatible_version"
+    case catalogUnreachable = "catalog_unreachable"
+    /// A forged or forwarded copy of a card: drawn read-only (the core SDK has already stripped its actions).
+    case unboundCopy = "unbound_copy"
+}
+
 /// A resolved plugin view (core SDK `ResolvedPluginView`). v1 cards (title, fields, actions) decode unchanged.
 public struct PluginViewModel: Codable, Equatable, Sendable {
     /// False: only the title shows (a disabled plugin, history).
@@ -512,14 +553,25 @@ public struct PluginViewModel: Codable, Equatable, Sendable {
     /// A detail view's next page: the cursor the host asks the core SDK for (``PluginDetailSheetView`` draws "load
     /// more" with it); nil (or blank) on the last page and on cards.
     public let nextCursor: String?
+    /// Actions the plugin placed in the card's ⋯ menu, in order (`placement: "menu"`); run like the footer actions.
+    public let menuActions: [PluginViewAction]
+    /// Why the view is unavailable (`available` false) or a read-only copy (``PluginUnavailableReason/unboundCopy``).
+    public let unavailableReason: PluginUnavailableReason?
 
     public init(available: Bool, title: String, fields: [PluginViewField] = [], actions: [PluginViewAction] = [],
-                blocks: [PluginBlock] = [], inputs: [PluginInput] = [], detail: Bool = false, nextCursor: String? = nil) {
+                blocks: [PluginBlock] = [], inputs: [PluginInput] = [], detail: Bool = false, nextCursor: String? = nil,
+                menuActions: [PluginViewAction] = [], unavailableReason: PluginUnavailableReason? = nil) {
         self.available = available; self.title = title; self.fields = fields; self.actions = actions
         self.blocks = blocks; self.inputs = inputs; self.detail = detail; self.nextCursor = nextCursor
+        self.menuActions = menuActions; self.unavailableReason = unavailableReason
     }
 
-    private enum CodingKeys: String, CodingKey { case available, title, fields, actions, blocks, inputs, detail, nextCursor }
+    /// A forwarded or forged copy: its content draws, nothing on it acts.
+    public var readOnly: Bool { unavailableReason == .unboundCopy }
+
+    private enum CodingKeys: String, CodingKey {
+        case available, title, fields, actions, blocks, inputs, detail, nextCursor, menuActions, unavailableReason
+    }
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -534,6 +586,8 @@ public struct PluginViewModel: Codable, Equatable, Sendable {
         nextCursor = c.lenient(String.self, .nextCursor).flatMap {
             $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0
         }
+        menuActions = (c.lenient([PluginLossy<PluginViewAction>].self, .menuActions) ?? []).compactMap(\.value)
+        unavailableReason = c.lenient(PluginUnavailableReason.self, .unavailableReason)
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -546,6 +600,8 @@ public struct PluginViewModel: Codable, Equatable, Sendable {
         if !inputs.isEmpty { try c.encode(inputs, forKey: .inputs) }
         if detail { try c.encode(detail, forKey: .detail) }
         try c.encodeIfPresent(nextCursor, forKey: .nextCursor)
+        if !menuActions.isEmpty { try c.encode(menuActions, forKey: .menuActions) }
+        try c.encodeIfPresent(unavailableReason, forKey: .unavailableReason)
     }
 
     /// The inputs an action's form collects, in the order of `action.form`; ids the view does not hold are dropped.

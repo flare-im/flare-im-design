@@ -31,7 +31,12 @@ public struct FlareMessageData: Identifiable {
     public let content: FlareMessageContent
     public let timeLabel: String
     public let sentAtMs: Int64
+    /// The SDK's receipt status (`MessageReceiptView.status`): five states, no delivered one.
     public let status: FlareMessageDeliveryStatus
+    /// The SDK's group read summary of the viewer's own message (`MessageReceiptView.readSummary`); nil in single
+    /// chats, on incoming messages, above the large-group threshold and while there is no data — the kit never
+    /// makes a number up.
+    public let readSummary: FlareMessageReadSummary?
     public let lifecycle: FlareMessageLifecycle?
     public let edited: Bool
     /// Aggregated reactions shown under the bubble; empty shows none.
@@ -49,6 +54,7 @@ public struct FlareMessageData: Identifiable {
         timeLabel: String = "",
         sentAtMs: Int64 = 0,
         status: FlareMessageDeliveryStatus = .sent,
+        readSummary: FlareMessageReadSummary? = nil,
         lifecycle: FlareMessageLifecycle? = nil,
         edited: Bool = false,
         reactions: [ReactionGroup] = [],
@@ -63,6 +69,7 @@ public struct FlareMessageData: Identifiable {
         self.timeLabel = timeLabel
         self.sentAtMs = sentAtMs
         self.status = status
+        self.readSummary = readSummary
         self.lifecycle = lifecycle
         self.edited = edited
         self.reactions = reactions
@@ -74,6 +81,12 @@ public struct FlareMessageData: Identifiable {
 
     /// A recalled message renders as a notice in place of its content (lifecycle mutation outranks everything).
     public var isRecalled: Bool { lifecycle?.mutation == .recalled }
+
+    /// A deleted message renders as the centred "消息已删除" notice in place of its content.
+    public var isDeleted: Bool { lifecycle?.mutation == .deleted }
+
+    /// The receipt status the row draws: the lifecycle's projection when there is one, else ``status``.
+    public var receiptStatus: FlareMessageDeliveryStatus { lifecycle?.visualStatus ?? status }
 }
 
 /// One pinned message shown in ``PinnedMessageBarView``.

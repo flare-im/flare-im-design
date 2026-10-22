@@ -132,29 +132,6 @@ public func resolveMessageCapabilities(_ input: FlareMessageCapabilityInput) -> 
     return result
 }
 
-public enum FlareMessageActionGroup: String, Sendable { case primary, organize, message, destructive }
-public enum FlareMessageActionPresentation: String, Sendable { case contextMenu, hoverToolbar, commandPalette, actionSheet, bottomSheet }
-public struct FlareMessageAction: Sendable {
-    public let id: FlareMessageCapability
-    public let group: FlareMessageActionGroup
-    public let destructive: Bool
-    public let promoted: Bool
-}
-
-public func resolveMessageActions(_ input: FlareMessageCapabilityInput, presentation: FlareMessageActionPresentation) -> [FlareMessageAction] {
-    let primary: Set<FlareMessageCapability> = [.reply, .reaction, .copy, .forward, .openThread]
-    let organize: Set<FlareMessageCapability> = [.pin, .unpin, .save, .translate, .multiSelect, .mergeForward]
-    let destructive: Set<FlareMessageCapability> = [.recall, .delete, .report]
-    return resolveMessageCapabilities(input).map { id in
-        FlareMessageAction(
-            id: id,
-            group: destructive.contains(id) ? .destructive : organize.contains(id) ? .organize : primary.contains(id) ? .primary : .message,
-            destructive: destructive.contains(id),
-            promoted: presentation == .hoverToolbar && primary.contains(id)
-        )
-    }
-}
-
 public struct FlareSelectionState: Sendable {
     public let selectedIds: Set<String>
     public let anchorId: String?

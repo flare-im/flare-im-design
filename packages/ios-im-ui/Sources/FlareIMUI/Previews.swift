@@ -35,10 +35,8 @@ struct FlareMessageStatus_Previews: PreviewProvider {
             MessageStatusView(status: .pending)
             MessageStatusView(status: .sending)
             MessageStatusView(status: .sent)
-            MessageStatusView(status: .delivered)
             MessageStatusView(status: .read)
             MessageStatusView(status: .failed)
-            MessageStatusView(status: .retrying)
         }.padding()
     }
 }
@@ -478,3 +476,14 @@ struct FlareCommandPalette_Previews: PreviewProvider {
     }
 }
 #endif
+
+struct FlarePluginPage_Previews: PreviewProvider {
+    static var previews: some View {
+        FlarePluginPage(
+            view: PluginViewModel(available: true, title: "钱包",
+                                  fields: [PluginViewField(label: "CNY", value: "¥128.00")],
+                                  blocks: [.note(PluginNoteBlock(text: "当前生效的规则：单个红包上限 ¥200.00"))],
+                                  nextCursor: "next"),
+            onBack: {}, onRefresh: {}, onLoadMore: { _ in })
+    }
+}

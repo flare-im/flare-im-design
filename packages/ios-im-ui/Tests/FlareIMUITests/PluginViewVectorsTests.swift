@@ -42,11 +42,19 @@ final class PluginViewVectorsTests: XCTestCase {
 
     @MainActor
     private func card(_ view: PluginViewModel, table: PluginJSONValue, busyActionId: String? = nil,
+                      embedded: Bool = false, displayName: String? = nil, viewerId: String? = nil,
                       onAction: ((String, PluginActionPayload) -> Void)? = { _, _ in },
                       onOpenDetail: (() -> Void)? = nil) throws -> PluginView {
-        PluginView(view: view, icon: "poll", busy: false, busyActionId: busyActionId, error: nil, embedded: false,
+        PluginView(view: view, icon: "poll", displayName: displayName, viewerId: viewerId, busy: false,
+                   busyActionId: busyActionId, error: nil, embedded: embedded,
                    resolveUser: nil, members: [], formErrors: [], onAction: onAction, onOpenDetail: onOpenDetail,
                    clock: PluginViewClock(nowMs: nowMs(table), utcOffsetMinutes: offset(table)), users: try users(table))
+    }
+
+    /// The table's per-view host facts: embedded, the viewer, the envelope's display name.
+    private func host(_ table: PluginJSONValue, _ id: String) -> (embedded: Bool, viewerId: String?, displayName: String?) {
+        let entry = (table["views"]?.arrayValue ?? []).first { $0["id"]?.stringValue == id }
+        return (entry?["embedded"]?.boolValue ?? false, entry?["viewerId"]?.stringValue, entry?["displayName"]?.stringValue)
     }
 
     private func string(_ value: PluginJSONValue?) -> String? { value?.stringValue }
@@ -70,15 +78,18 @@ final class PluginViewVectorsTests: XCTestCase {
         let now = nowMs(table)
         let zone = offset(table)
         for (id, (view, expect)) in try views(table) {
+            let host = host(table, id)
             XCTAssertEqual(view.title, string(expect["title"]), id)
             let hidden = expect["bodyHidden"]?.boolValue ?? false
             XCTAssertEqual(!view.available, hidden, id)
             let blocks = hidden ? [] : view.blocks
             let facts = expect["blocks"]?.arrayValue ?? []
             XCTAssertEqual(blocks.map(\.kind), facts.compactMap { string($0["kind"]) }, "\(id) blocks")
-            var shown: [String] = [view.title]
+            // An embedded view has no title row (the sheet or the page carries the title).
+            var shown: [String] = host.embedded && view.available ? [] : [view.title]
             for (index, (block, fact)) in zip(blocks, facts).enumerated() {
-                shown += try check(block, at: index, fact, users: users, nowMs: now, zone: zone, id: "\(id)#\(index)")
+                shown += try check(block, at: index, fact, users: users, viewerId: host.viewerId, nowMs: now, zone: zone,
+                                   id: "\(id)#\(index)")
             }
             let fields = hidden ? [] : view.fields
             XCTAssertEqual(fields, try decode([PluginViewField].self, expect["fields"] ?? []), "\(id) fields")
@@ -86,6 +97,31 @@ final class PluginViewVectorsTests: XCTestCase {
             let actions = hidden ? [] : view.actions
             let actionFacts = expect["actions"]?.arrayValue ?? []
             XCTAssertEqual(actions.map(\.id), actionFacts.compactMap { string($0["id"]) }, "\(id) actions")
+            // Menu actions: the ⋯ key on a card, keys after the footer actions on an embedded view.
+            let menuFacts = expect["menu"]?.arrayValue ?? []
+            XCTAssertEqual((hidden ? [] : view.menuActions).map(\.id), menuFacts.compactMap { string($0["id"]) },
+                           "\(id) menu")
+            if !menuFacts.isEmpty {
+                let keys = expect["menuPresentation"]?.stringValue == "keys"
+                XCTAssertEqual(keys, host.embedded, "\(id) menu presentation")
+                XCTAssertEqual(PluginView.showsMenuKey(view, embedded: host.embedded), !keys, "\(id) ⋯ key")
+                XCTAssertEqual(PluginView.actionRow(view, embedded: host.embedded).map(\.id),
+                               view.actions.map(\.id) + (keys ? view.menuActions.map(\.id) : []), "\(id) action row")
+                XCTAssertEqual(PluginView.menuItems(view).map(\.danger),
+                               menuFacts.map { $0["variant"]?.stringValue == "danger" }, "\(id) menu danger")
+                if keys { shown += view.menuActions.map(\.label) }
+            } else {
+                XCTAssertFalse(PluginView.showsMenuKey(view, embedded: host.embedded), "\(id) no ⋯ key")
+            }
+            for (action, fact) in zip(view.menuActions, menuFacts) {
+                XCTAssertEqual(action.label, string(fact["label"]), id)
+                XCTAssertEqual(action.confirm, string(fact["confirm"]), "\(id) \(action.id) confirm")
+                XCTAssertEqual(!(action.form ?? []).isEmpty, fact["form"]?.boolValue, "\(id) \(action.id) form")
+            }
+            // The reason line.
+            let reason = PluginViewFormat.reasonLine(view, displayName: host.displayName, s)
+            XCTAssertEqual(reason, string(expect["reason"]), "\(id) reason")
+            if let reason { shown.append(reason) }
             for (action, fact) in zip(actions, actionFacts) {
                 XCTAssertEqual(action.label, string(fact["label"]), id)
                 let variant: String
@@ -105,7 +141,8 @@ final class PluginViewVectorsTests: XCTestCase {
             }
 
             // The drawn card shows every fact, and nothing of a hidden body.
-            let tree = try card(view, table: table).inspect()
+            let tree = try card(view, table: table, embedded: host.embedded, displayName: host.displayName,
+                                viewerId: host.viewerId).inspect()
             for text in Set(shown) where !text.isEmpty {
                 XCTAssertNoThrow(try tree.find(text: text), "\(id) draws \(text)")
             }
@@ -119,7 +156,7 @@ final class PluginViewVectorsTests: XCTestCase {
 
     /// Checks one block's facts and returns the texts the card must draw for it.
     private func check(_ block: PluginBlock, at index: Int, _ fact: PluginJSONValue, users: [String: PluginUser],
-                       nowMs: Int64, zone: Int, id: String) throws -> [String] {
+                       viewerId: String? = nil, nowMs: Int64, zone: Int, id: String) throws -> [String] {
         var shown: [String] = []
         switch block {
         case .text(let text):
@@ -160,12 +197,19 @@ final class PluginViewVectorsTests: XCTestCase {
             let rows = fact["rows"]?.arrayValue ?? []
             XCTAssertEqual(entries.items.count, rows.count, id)
             for (entry, row) in zip(entries.items, rows) {
-                XCTAssertEqual(String(entry.index), string(row["number"]), id)
+                let number = PluginViewFormat.entryNumber(entry, block: entries)
+                XCTAssertEqual(number, string(row["number"]), id)
                 let name = PluginViewFormat.entryName(entry, resolved: users)
                 XCTAssertEqual(name, string(row["name"]), "\(id) entry \(entry.index) name")
                 XCTAssertEqual(entry.text, string(row["text"]), id)
                 XCTAssertEqual(entry.userId, string(row["userId"]), id)
-                shown += ["\(entry.index).", entry.text] + [name].compactMap { $0 }
+                let header = entry.group.map { PluginViewFormat.groupHeader($0, s) }
+                if row.objectValue?.keys.contains("group") == true {
+                    XCTAssertEqual(header, string(row["group"]), "\(id) entry \(entry.index) group")
+                }
+                let me = PluginViewFormat.isMe(entry, viewerId: viewerId)
+                if let want = row["me"]?.boolValue { XCTAssertEqual(me, want, "\(id) entry \(entry.index) me") }
+                shown += [number.map { "\($0)." }, entry.text, name, header, me ? s.pluginViewMe : nil].compactMap { $0 }
             }
             let seeAll = entries.more ? PluginViewFormat.seeAll(entries.total, s) : nil
             XCTAssertEqual(seeAll, string(fact["seeAll"]), "\(id) see all")

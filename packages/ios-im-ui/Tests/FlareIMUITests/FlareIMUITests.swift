@@ -89,8 +89,12 @@ final class FlareIMUITests: XCTestCase {
         XCTAssertEqual(FlareTextContent("x").type, "text")
         XCTAssertEqual(FlareImageContent(url: "u").type, "image")
         XCTAssertEqual(FlareGenericContent(contentType: "vote", label: "l").type, "vote")
-        XCTAssertTrue(MessageBubbleView.isBareMedia(FlareImageContent(url: "u")))
-        XCTAssertFalse(MessageBubbleView.isBareMedia(FlareTextContent("x")))
+        func surface(_ content: FlareMessageContent) -> FlareMessageSurface {
+            FlareMessageData(id: "m", senderId: "u", senderName: "U", content: content).surface()
+        }
+        XCTAssertEqual(surface(FlareImageContent(url: "u")), .bareMedia)
+        XCTAssertEqual(surface(FlareTextContent("x")), .bubble)
+        XCTAssertEqual(surface(FlareGenericContent(contentType: "custom", label: "l")), .card)
     }
 
     func testContentHelpers() {

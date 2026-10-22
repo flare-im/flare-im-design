@@ -9,6 +9,25 @@ import SwiftUI
 private struct MessageBodyForegroundKey: EnvironmentKey {
     static let defaultValue: Color? = nil
 }
+
+/// The room a text keeps at the end of its last line for the meta drawn over it (the inline placement of
+/// `spec/message-meta-placement-vectors.json`): the meta's words at the meta's size, drawn clear.
+struct FlareTextTrailingReservation: Equatable {
+    let text: String
+    let size: CGFloat
+}
+
+private struct FlareTextTrailingReservationKey: EnvironmentKey {
+    static let defaultValue: FlareTextTrailingReservation? = nil
+}
+
+extension EnvironmentValues {
+    var flareTextTrailingReservation: FlareTextTrailingReservation? {
+        get { self[FlareTextTrailingReservationKey.self] }
+        set { self[FlareTextTrailingReservationKey.self] = newValue }
+    }
+}
+
 extension EnvironmentValues {
     var flareMessageBodyForeground: Color? {
         get { self[MessageBodyForegroundKey.self] }
@@ -119,6 +138,7 @@ public struct TextMessageView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareMessageBodyForeground) private var bodyForeground
+    @Environment(\.flareTextTrailingReservation) private var reservation
     @ObservedObject private var emojiCatalog = FlareEmojiStickerCatalog.shared
     public init(text: String, isSelf: Bool = false, selectable: Bool = false,
                 mentions: [FlareTextMentionSpan] = [], onLinkTap: ((String) -> Void)? = nil) {
@@ -140,7 +160,8 @@ public struct TextMessageView: View {
             textContent(segments, colors: colors, fontSize: messageSize)
                 .font(.system(size: messageSize))
                 .lineSpacing(4)
-                .foregroundColor(isSelf ? colors.messageOutgoingForeground : colors.messageIncomingForeground)
+                // The bubble's foreground when a row sets one (a failed message's failure surface), else the side's.
+                .foregroundColor(bodyForeground ?? (isSelf ? colors.messageOutgoingForeground : colors.messageIncomingForeground))
                 .textSelectableIf(selectable)
                 .environment(\.openURL, OpenURLAction { url in
                     switch Self.linkTap(url.absoluteString, hostHandles: onLinkTap != nil) {
@@ -175,29 +196,35 @@ public struct TextMessageView: View {
         return .system(parsed)
     }
 
+    /// The clear run that keeps the meta's room after the last line; empty outside an inline meta.
+    private var reserved: Text {
+        guard let reservation else { return Text(verbatim: "") }
+        return Text(verbatim: reservation.text).font(.system(size: reservation.size)).foregroundColor(.clear)
+    }
+
     @ViewBuilder
     private func textContent(_ segments: [Segment], colors: FlareColors, fontSize: CGFloat) -> some View {
-        let linkColor = isSelf ? colors.messageOutgoingForeground : colors.primary
+        let linkColor = isSelf ? (bodyForeground ?? colors.messageOutgoingForeground) : colors.primary
         let inlineEmoji = flareHasInlineEmoji(text)
         if !segments.contains(where: { $0.mention != nil }) {
-            Self.plainText(text, linkColor: linkColor, fontSize: fontSize)
+            Self.plainText(text, linkColor: linkColor, fontSize: fontSize) + reserved
         } else if Self.drawsRoundedHighlight(segments, outgoing: isSelf) {
             if #available(iOS 18.0, macOS 15.0, *) {
-                Self.highlightedText(segments, colors: colors, fontSize: fontSize, linkColor: linkColor)
+                (Self.highlightedText(segments, colors: colors, fontSize: fontSize, linkColor: linkColor) + reserved)
                     .textRenderer(FlareMentionHighlightRenderer(fill: colors.bgSelected))
             } else if inlineEmoji {
                 Self.runsText(segments, outgoing: isSelf, colors: colors, fontSize: fontSize,
-                              linkColor: linkColor, flatHighlight: true)
+                              linkColor: linkColor, flatHighlight: true) + reserved
             } else {
                 Text(Self.attributed(segments, outgoing: isSelf, colors: colors, fontSize: fontSize,
-                                     linkColor: linkColor, flatHighlight: true))
+                                     linkColor: linkColor, flatHighlight: true)) + reserved
             }
         } else if inlineEmoji {
             Self.runsText(segments, outgoing: isSelf, colors: colors, fontSize: fontSize,
-                          linkColor: linkColor, flatHighlight: false)
+                          linkColor: linkColor, flatHighlight: false) + reserved
         } else {
             Text(Self.attributed(segments, outgoing: isSelf, colors: colors, fontSize: fontSize,
-                                 linkColor: linkColor, flatHighlight: false))
+                                 linkColor: linkColor, flatHighlight: false)) + reserved
         }
     }
 
@@ -348,6 +375,9 @@ public struct ImageMessageView: View {
     private let alt: String?
     private let onTap: (() -> Void)?
     private let allowLocalFile: Bool
+    /// The picture failed to load; the next tap loads it again instead of opening it.
+    @State private var failed = false
+    @State private var attempt = 0
     @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
@@ -358,18 +388,58 @@ public struct ImageMessageView: View {
         self.src = src; self.width = width; self.height = height; self.alt = alt; self.onTap = onTap
         self.allowLocalFile = allowLocalFile
     }
+
+    /// What a tap does: retry a failed load, else the host's tap.
+    static func tap(failed: Bool, retry: @escaping () -> Void, onTap: (() -> Void)?) -> (() -> Void)? {
+        failed ? retry : onTap
+    }
+
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        NetImage(url: src, local: allowLocalFile) {
-            colors.bgTertiary.overlay(
-                Image(systemName: "photo").font(.system(size: 26 * textScale)).foregroundColor(bodyForeground ?? colors.textTertiary))
+        picture(colors)
+            .frame(width: width, height: height)
+            .clipped()
+            .clipShape(RoundedRectangle(cornerRadius: FlareSizes.radiusCard, style: .continuous))
+            .accessibilityElement(children: .ignore)
+            .onTapIf(Self.tap(failed: failed, retry: { failed = false; attempt += 1 }, onTap: onTap))
+            .accessibilityLabel(failed ? "\(strings.imageLoadFailed) · \(strings.retry)"
+                                : (alt?.isEmpty == false ? alt! : strings.messageImage))
+            .onChange(of: src) { _ in failed = false; attempt = 0 }
+    }
+
+    @ViewBuilder private func picture(_ colors: FlareColors) -> some View {
+        if let url = flarePictureURL(src, local: allowLocalFile) {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let image): image.resizable().scaledToFill()
+                case .failure: failure(colors).onAppear { failed = true }
+                default: placeholder(colors)
+                }
+            }
+            // A new attempt is a new load.
+            .id(attempt)
+        } else {
+            placeholder(colors)
         }
-        .frame(width: width, height: height)
-        .clipped()
-        .clipShape(RoundedRectangle(cornerRadius: FlareSizes.radiusCard, style: .continuous))
-        .accessibilityElement(children: .ignore)
-        .onTapIf(onTap)
-        .accessibilityLabel(alt?.isEmpty == false ? alt! : strings.messageImage)
+    }
+
+    private func placeholder(_ colors: FlareColors) -> some View {
+        colors.bgTertiary.overlay(
+            Image(systemName: "photo").font(.system(size: 26 * textScale)).foregroundColor(bodyForeground ?? colors.textTertiary))
+    }
+
+    /// The failure placeholder (Vue FlareImageMessage): the broken picture and "图片加载失败 · 重试".
+    private func failure(_ colors: FlareColors) -> some View {
+        colors.bgTertiary.overlay(
+            VStack(spacing: FlareSizes.spacingXs) {
+                Image(systemName: "exclamationmark.triangle").font(.system(size: 20 * textScale))
+                Text("\(strings.imageLoadFailed) · \(strings.retry)")
+                    .font(.system(size: FlareSizes.fontSizeXs * textScale))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+            }
+            .foregroundColor(colors.textSecondary)
+            .padding(FlareSizes.spacingSm))
     }
 }
 
@@ -689,6 +759,7 @@ public struct LocationMessageView: View {
     @Environment(\.flareMessageBodyForeground) private var bodyForeground
     @Environment(\.flareStrings) private var strings
     @Environment(\.openURL) private var openURL
+    @Environment(\.flareInMessageCardShell) private var inCardShell
 
     /// The card's width and its map's height.
     static let width: CGFloat = 264
@@ -740,7 +811,9 @@ public struct LocationMessageView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, FlareSizes.spacingMd).padding(.vertical, FlareSizes.spacingSm)
         }
-        .frame(width: Self.width)
+        // In the kit card shell the card takes the shell's width; on its own it keeps its width.
+        .frame(width: inCardShell ? nil : Self.width)
+        .frame(maxWidth: inCardShell ? .infinity : nil)
         .contentShape(Rectangle())
         if let tap {
             Button(action: tap) { card }

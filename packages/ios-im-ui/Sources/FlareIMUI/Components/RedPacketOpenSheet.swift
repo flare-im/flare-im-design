@@ -3,8 +3,8 @@ import SwiftUI
 /// What the open-packet layer shows. Spec: RedPacketOpenSheet `state`.
 ///
 /// `ready` offers the gold open button; `opening` flips it while the claim runs and takes no second tap;
-/// `finished`, `expired` and `notEligible` say why there is nothing to open and offer the details; `error`
-/// keeps the button for another try.
+/// `finished`, `expired` and `notEligible` say why there is nothing to open — the first two offer the details when
+/// the viewer may look (`canViewDetails`), `notEligible` never does; `error` keeps the button for another try.
 public enum FlareRedPacketOpenState: String, Sendable, CaseIterable {
     case ready, opening, finished, expired, notEligible, error
 }
@@ -22,6 +22,9 @@ public enum FlareRedPacketOpenState: String, Sendable, CaseIterable {
 /// - Motion: while `opening` the button turns about its vertical axis. With Reduce Motion it does not turn and
 ///   says the claim is in progress instead.
 /// - The host formats names and passes the avatar URL; the layer requests nothing.
+/// - Keys per state (`spec/red-packet-vectors.json` openSheet): 開 while ready, opening or error; the details key only
+///   for finished / expired with `canViewDetails` (from the personal layer); never for notEligible — the server
+///   returns no amount or records to a viewer the packet is not for.
 public struct RedPacketOpenSheet: View {
     private let senderName: String
     private let senderAvatar: String?
@@ -29,6 +32,7 @@ public struct RedPacketOpenSheet: View {
     private let kindLabel: String?
     private let state: FlareRedPacketOpenState
     private let message: String?
+    private let canViewDetails: Bool
     private let onOpen: (() -> Void)?
     private let onViewDetails: (() -> Void)?
     private let onClose: () -> Void
@@ -40,11 +44,11 @@ public struct RedPacketOpenSheet: View {
     @Environment(\.flareStrings) private var strings
 
     public init(senderName: String, senderAvatar: String? = nil, blessing: String, kindLabel: String? = nil,
-                state: FlareRedPacketOpenState = .ready, message: String? = nil,
+                state: FlareRedPacketOpenState = .ready, message: String? = nil, canViewDetails: Bool = true,
                 onOpen: (() -> Void)? = nil, onViewDetails: (() -> Void)? = nil,
                 onClose: @escaping () -> Void) {
         self.senderName = senderName; self.senderAvatar = senderAvatar; self.blessing = blessing
-        self.kindLabel = kindLabel; self.state = state; self.message = message
+        self.kindLabel = kindLabel; self.state = state; self.message = message; self.canViewDetails = canViewDetails
         self.onOpen = onOpen; self.onViewDetails = onViewDetails; self.onClose = onClose
     }
 
@@ -95,13 +99,11 @@ public struct RedPacketOpenSheet: View {
     }
 
     /// The open button is there while there is something to open.
-    static func showsOpenButton(_ state: FlareRedPacketOpenState) -> Bool {
-        state == .ready || state == .opening || state == .error
-    }
+    static func showsOpenButton(_ state: FlareRedPacketOpenState) -> Bool { FlareRedPacketOpenRules.showsCoin(state) }
 
-    /// The states that explain why nothing can be opened lead to the details.
-    static func showsDetails(_ state: FlareRedPacketOpenState) -> Bool {
-        state == .finished || state == .expired || state == .notEligible
+    /// A finished or expired packet leads to the details when the viewer may look; notEligible never does.
+    static func showsDetails(_ state: FlareRedPacketOpenState, canViewDetails: Bool = true) -> Bool {
+        FlareRedPacketOpenRules.showsDetails(state, canViewDetails: canViewDetails)
     }
 
     private func layer(width: CGFloat) -> some View {
@@ -173,7 +175,7 @@ public struct RedPacketOpenSheet: View {
             )
             .alignmentGuide(.redPacketFlapEdge) { $0[.bottom] }
             ZStack {
-                if Self.showsDetails(state), onViewDetails != nil { detailsLink }
+                if Self.showsDetails(state, canViewDetails: canViewDetails), onViewDetails != nil { detailsLink }
             }
             .padding(.top, showsCoin ? coin / 2 : 0)
             .padding(.bottom, FlareSizes.spacingLg)

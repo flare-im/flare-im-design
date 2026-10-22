@@ -272,6 +272,9 @@ public struct FlareLinkCardContent: FlareMessageContent {
 
 public struct FlareGenericContent: FlareMessageContent {
     public let contentType: String
+    /// The custom body's own type (a plugin card's `flare.plugin.message.v1`): a host registration under
+    /// `contentType:subtype` wins over one under `contentType` (renderers and surfaces alike).
+    public let subtype: String?
     public let label: String
     /// How many items the type carries — a merged forward's messages, an album's images; 0 when it
     /// carries none. Its one-line summary counts them (`[多图] 4 张`). Same name and meaning as
@@ -279,9 +282,10 @@ public struct FlareGenericContent: FlareMessageContent {
     public let itemCount: Int
     /// Opaque data for a registered renderer. The kit never evaluates it.
     public let payloadJson: String?
-    public init(contentType: String, label: String, itemCount: Int = 0, payloadJson: String? = nil) {
+    public init(contentType: String, label: String, itemCount: Int = 0, payloadJson: String? = nil,
+                subtype: String? = nil) {
         self.contentType = contentType; self.label = label; self.itemCount = itemCount
-        self.payloadJson = payloadJson
+        self.payloadJson = payloadJson; self.subtype = subtype
     }
     public var type: String { contentType }
 }
