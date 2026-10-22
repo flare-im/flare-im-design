@@ -326,7 +326,14 @@ class _FlareTextMessageState extends State<FlareTextMessage> {
 }
 
 /// image — a rounded thumbnail; emits `onTap`.
-class FlareImageMessage extends StatelessWidget {
+///
+/// Three states, the Vue `FlareImageMessage` rule: while the picture loads —
+/// or while the message has no address for it yet — the tertiary placeholder
+/// with the image glyph (never "unsupported message"); once it fails the
+/// failure placeholder ([failedKey], named `imageLoadFailed`), and a tap there
+/// loads it again instead of opening it; then the picture, whose tap is
+/// [onTap].
+class FlareImageMessage extends StatefulWidget {
   const FlareImageMessage({
     super.key,
     this.src,
@@ -347,35 +354,114 @@ class FlareImageMessage extends StatelessWidget {
   /// while it uploads (see `flareMediaImageProvider`).
   final bool allowLocalFile;
 
+  /// The failure placeholder (tap to retry).
+  static const Key failedKey = ValueKey('flare-image-message-failed');
+
+  @override
+  State<FlareImageMessage> createState() => _FlareImageMessageState();
+}
+
+class _FlareImageMessageState extends State<FlareImageMessage> {
+  /// Bumped by a retry: a new image element asks for the picture again.
+  int _attempt = 0;
+  bool _failed = false;
+
+  @override
+  void didUpdateWidget(FlareImageMessage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.src != widget.src) _failed = false;
+  }
+
+  void _retry(ImageProvider provider) {
+    _evict(provider);
+    setState(() {
+      _failed = false;
+      _attempt += 1;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = FlareColors.of(context);
+    final strings = FlareStrings.of(context);
+    final provider = flareMediaImageProvider(
+      widget.src,
+      allowLocalFile: widget.allowLocalFile,
+    );
+    final loading = ColoredBox(
+      color: c.bgTertiary,
+      child: Icon(Icons.image_outlined, color: c.textTertiary, size: 26),
+    );
+    Widget failed(ImageProvider provider) => Semantics(
+      container: true,
+      button: true,
+      label: strings.imageLoadFailed,
+      hint: strings.retry,
+      child: GestureDetector(
+        key: FlareImageMessage.failedKey,
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _retry(provider),
+        child: ColoredBox(
+          color: c.bgTertiary,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.refresh_rounded, color: c.textTertiary, size: 22),
+              const SizedBox(height: FlareSizes.spacingXs),
+              Text(
+                strings.retry,
+                style: TextStyle(
+                  color: c.textTertiary,
+                  fontSize: FlareSizes.fontSizeXs,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    final Widget picture;
+    if (provider == null) {
+      picture = loading;
+    } else if (_failed) {
+      picture = failed(provider);
+    } else {
+      picture = Image(
+        key: ValueKey(_attempt),
+        image: provider,
+        fit: BoxFit.cover,
+        gaplessPlayback: true,
+        frameBuilder: (_, child, frame, wasSynchronouslyLoaded) =>
+            wasSynchronouslyLoaded || frame != null ? child : loading,
+        errorBuilder: (_, _, _) {
+          // Remember the failure so a tap retries rather than opens.
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && !_failed) setState(() => _failed = true);
+          });
+          return failed(provider);
+        },
+      );
+    }
     return _tap(
-      onTap,
+      provider == null || _failed ? null : widget.onTap,
       Semantics(
-        label: alt,
+        label: widget.alt,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(FlareSizes.radiusCard),
           child: SizedBox(
-            width: width,
-            height: height,
-            child: _netImage(
-              src,
-              allowLocalFile: allowLocalFile,
-              placeholder: ColoredBox(
-                color: c.bgTertiary,
-                child: Icon(
-                  Icons.image_outlined,
-                  color: c.textTertiary,
-                  size: 26,
-                ),
-              ),
-            ),
+            width: widget.width,
+            height: widget.height,
+            child: picture,
           ),
         ),
       ),
     );
   }
+}
+
+/// Drops [provider] from the image cache so the next load asks again.
+void _evict(ImageProvider provider) {
+  provider.evict().ignore();
 }
 
 /// video — a thumbnail with a play disc and duration badge; emits `onPlay`.

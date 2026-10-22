@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/plugin_view.dart' show flarePluginNowMs;
 import '../models/red_packet.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
@@ -9,49 +10,53 @@ import 'flare_icon_button.dart';
 
 /// Red packet details — the body of an ordinary page, not an overlay: the host
 /// pushes it onto its navigation stack inside a `FlareScreen`, which owns the
-/// scrolling. A red arched header, the sender with the kind badge, the
-/// blessing, the viewer's own amount drawn large with its note, the summary
-/// line and the claim list, with "best luck" on the row the plugin marked.
-/// Spec: Message/RedPacketDetail (`FlareRedPacketDetail`).
+/// scrolling. Spec: Message/RedPacketDetail (`FlareRedPacketDetail`); red
+/// packet v5 §2.
+///
+/// It draws the plugin's [details] for this viewer and nothing else
+/// ([flareRedPacketDetailPresentation], `spec/red-packet-vectors.json` →
+/// detail): the viewer's own amount large with "已存入钱包" when the server
+/// returned it; a headline for the eligible who came too late ("手慢了，红包派完
+/// 了" / "红包已过期") and for a viewer the packet is not meant for ("仅
+/// [designatedName] 可领取"); the summary line, with totals only when the
+/// server sent them (to the sender); the claim list only when
+/// [FlareRedPacketDetailsView.claimsListed], with "best luck" on the row the
+/// server marked; the sender's refund note. An amount the server did not send
+/// is never drawn. Amounts are formatted from minor units with the
+/// currency's exponent ([flareRedPacketMoney]); times read [nowMs] (the plugin
+/// view clock, `flarePluginNowMs`, by default).
 class FlareRedPacketDetail extends StatelessWidget {
   const FlareRedPacketDetail({
     super.key,
     required this.senderName,
     this.senderAvatar,
-    required this.blessing,
-    this.kindLabel,
-    this.amount,
-    this.amountNote,
-    required this.summary,
+    required this.details,
+    this.designatedName,
     this.claims = const [],
-    this.note,
     this.title,
+    this.nowMs,
     this.onBack,
   });
 
   final String senderName;
   final String? senderAvatar;
-  final String blessing;
 
-  /// Short kind badge beside the sender, e.g. "拼".
-  final String? kindLabel;
+  /// The plugin's details result for this viewer.
+  final FlareRedPacketDetailsView details;
 
-  /// What the viewer received, drawn large (host formats it).
-  final String? amount;
+  /// Exclusive packets: the designated member's name, for "仅 某某 可领取".
+  final String? designatedName;
 
-  /// Line under the amount, e.g. "已存入钱包".
-  final String? amountNote;
-
-  /// Progress line above the list, e.g. "已领取 3/5 个，共 2.10/5.00 元".
-  final String summary;
+  /// Claim rows, names and avatars from the host's directory; drawn only when
+  /// the server lists them.
   final List<FlareRedPacketClaim> claims;
-
-  /// Closing explanation, e.g. a refund notice after expiry.
-  final String? note;
 
   /// Title of the red bar drawn when [onBack] is set; defaults to the strings
   /// table's `packetDetailTitle`.
   final String? title;
+
+  /// The clock times are read against; null reads `flarePluginNowMs`.
+  final int? nowMs;
 
   /// With it the page draws its own red title bar — back key and [title],
   /// light on the deep red, reaching up under the status bar and running into
@@ -62,7 +67,19 @@ class FlareRedPacketDetail extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
     final strings = FlareStrings.of(context);
-    final title = strings.packetFromSender(senderName);
+    final now = nowMs ?? flarePluginNowMs();
+    final view = flareRedPacketDetailPresentation(
+      details,
+      strings: strings,
+      nowMs: now,
+      designatedName: designatedName,
+    );
+    final heading = strings.packetFromSender(senderName);
+    final badge = flareRedPacketCardBadge(strings, kind: details.kind).badge;
+    final amount = view.amount;
+    final headline = view.headline;
+    final summary = view.summary;
+    final note = view.note;
     return ColoredBox(
       color: colors.bgPrimary,
       child: Column(
@@ -97,7 +114,7 @@ class FlareRedPacketDetail extends StatelessWidget {
                       child: Semantics(
                         header: true,
                         child: Text(
-                          title,
+                          heading,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -108,25 +125,42 @@ class FlareRedPacketDetail extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (kindLabel != null) ...[
+                    if (badge != null) ...[
                       const SizedBox(width: FlareSizes.spacingSm),
-                      _kindBadge(colors, kindLabel!),
+                      _kindBadge(colors, badge),
                     ],
                   ],
                 ),
                 const SizedBox(height: FlareSizes.spacingSm),
                 Text(
-                  blessing,
+                  details.greeting,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: colors.textSecondary,
                     fontSize: FlareSizes.fontSizeLg,
                   ),
                 ),
+                if (headline != null) ...[
+                  const SizedBox(height: FlareSizes.spacingMd),
+                  Semantics(
+                    liveRegion: true,
+                    child: Text(
+                      headline,
+                      key: headlineKey,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: colors.textPrimary,
+                        fontSize: FlareSizes.fontSizeXl,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
                 if (amount != null) ...[
                   const SizedBox(height: FlareSizes.spacingMd),
                   Text(
-                    amount!,
+                    amount,
+                    key: amountKey,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: colors.textPrimary,
@@ -136,11 +170,9 @@ class FlareRedPacketDetail extends StatelessWidget {
                       fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
-                ],
-                if (amountNote != null) ...[
                   const SizedBox(height: FlareSizes.spacingSm),
                   Text(
-                    amountNote!,
+                    strings.packetDeposited,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: colors.warningText,
@@ -151,48 +183,55 @@ class FlareRedPacketDetail extends StatelessWidget {
               ],
             ),
           ),
-          Container(height: 1, color: colors.borderPrimary),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: FlareSizes.spacingLg,
-              vertical: FlareSizes.spacingMd,
-            ),
-            child: Text(
-              summary,
-              style: TextStyle(
-                color: colors.textTertiary,
-                fontSize: FlareSizes.fontSizeMd,
-              ),
-            ),
-          ),
-          Container(height: 1, color: colors.borderPrimary),
-          if (claims.isEmpty)
+          if (summary != null || view.claims)
+            Container(height: 1, color: colors.borderPrimary),
+          if (summary != null) ...[
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: FlareSizes.spacingLg,
-                vertical: FlareSizes.spacingXl,
+                vertical: FlareSizes.spacingMd,
               ),
               child: Text(
-                strings.packetNoClaims,
-                textAlign: TextAlign.center,
+                summary,
+                key: summaryKey,
                 style: TextStyle(
                   color: colors.textTertiary,
                   fontSize: FlareSizes.fontSizeMd,
                 ),
               ),
-            )
-          else
-            Semantics(
-              label: strings.packetClaims,
-              explicitChildNodes: true,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (final claim in claims) _row(colors, strings, claim),
-                ],
-              ),
             ),
+            Container(height: 1, color: colors.borderPrimary),
+          ],
+          if (view.claims)
+            if (claims.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: FlareSizes.spacingLg,
+                  vertical: FlareSizes.spacingXl,
+                ),
+                child: Text(
+                  strings.packetNoClaims,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: colors.textTertiary,
+                    fontSize: FlareSizes.fontSizeMd,
+                  ),
+                ),
+              )
+            else
+              Semantics(
+                key: claimsKey,
+                label: strings.packetClaims,
+                explicitChildNodes: true,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (final claim in claims)
+                      _row(colors, strings, claim, now),
+                  ],
+                ),
+              ),
           if (note != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(
@@ -202,7 +241,8 @@ class FlareRedPacketDetail extends StatelessWidget {
                 FlareSizes.spacingXl,
               ),
               child: Text(
-                note!,
+                note,
+                key: noteKey,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: colors.textTertiary,
@@ -214,6 +254,21 @@ class FlareRedPacketDetail extends StatelessWidget {
       ),
     );
   }
+
+  /// The viewer's own amount (tests).
+  static const Key amountKey = ValueKey('flare-red-packet-detail-amount');
+
+  /// The headline (tests).
+  static const Key headlineKey = ValueKey('flare-red-packet-detail-headline');
+
+  /// The summary line (tests).
+  static const Key summaryKey = ValueKey('flare-red-packet-detail-summary');
+
+  /// The claim list (tests).
+  static const Key claimsKey = ValueKey('flare-red-packet-detail-claims');
+
+  /// The refund note (tests).
+  static const Key noteKey = ValueKey('flare-red-packet-detail-note');
 
   /// The page's own title bar: the deep red keeps the light title and back
   /// key above 4.5:1, and it reaches up under the status bar.
@@ -306,7 +361,20 @@ class FlareRedPacketDetail extends StatelessWidget {
     ),
   );
 
-  Widget _row(FlareColors colors, FlareStrings strings, FlareRedPacketClaim c) {
+  Widget _row(
+    FlareColors colors,
+    FlareStrings strings,
+    FlareRedPacketClaim c,
+    int now,
+  ) {
+    final amount =
+        flareRedPacketMoney(
+          c.amountMinor,
+          details.currencyExponent,
+          details.currency,
+        ) ??
+        '';
+    final time = flareRedPacketTime(c.claimedAtMs, now, strings);
     return MergeSemantics(
       child: Container(
         constraints: const BoxConstraints(
@@ -346,7 +414,7 @@ class FlareRedPacketDetail extends StatelessWidget {
                   ),
                   const SizedBox(height: FlareSizes.spacing3xs),
                   Text(
-                    c.time,
+                    time,
                     style: TextStyle(
                       color: colors.textTertiary,
                       fontSize: FlareSizes.fontSizeSm,
@@ -361,7 +429,7 @@ class FlareRedPacketDetail extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  c.amount,
+                  amount,
                   style: TextStyle(
                     color: colors.textPrimary,
                     fontSize: FlareSizes.fontSizeXl,

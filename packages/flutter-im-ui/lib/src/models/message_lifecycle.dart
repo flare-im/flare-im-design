@@ -47,12 +47,10 @@ class FlareMessageLifecycle {
         transfer == FlareTransferState.paused) {
       return FlareMessageDeliveryStatus.sending;
     }
+    // Delivery is not a visual state: the server has it (one check) until it
+    // is read (two checks).
     if (read == FlareMessageReadState.read)
       return FlareMessageDeliveryStatus.read;
-    if (delivery == FlareMessageLifecycleDeliveryState.delivered ||
-        delivery == FlareMessageLifecycleDeliveryState.partiallyDelivered) {
-      return FlareMessageDeliveryStatus.delivered;
-    }
     return FlareMessageDeliveryStatus.sent;
   }
 }

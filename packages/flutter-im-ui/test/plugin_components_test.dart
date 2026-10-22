@@ -26,7 +26,7 @@ void main() {
       Widget card({
         bool disabled = false,
         bool busy = false,
-        FlareRedPacketState state = FlareRedPacketState.unopened,
+        FlareRedPacketCardState state = FlareRedPacketCardState.unopened,
         bool handler = true,
       }) => FlareRedPacketCard(
         blessing: 'Hello',
@@ -43,7 +43,9 @@ void main() {
       await tester.sendKeyEvent(LogicalKeyboardKey.enter);
       expect(calls, 2);
       // A spent packet still opens: that is how the viewer reaches the details.
-      await tester.pumpWidget(host(card(state: FlareRedPacketState.finished)));
+      await tester.pumpWidget(
+        host(card(state: FlareRedPacketCardState.finished)),
+      );
       await tester.tap(find.byType(FlareRedPacketCard));
       expect(calls, 3);
       for (final mode in [0, 1, 2]) {
@@ -73,17 +75,17 @@ void main() {
           (
             const FlareRedPacketCard(
               blessing: 'Hello',
-              state: FlareRedPacketState.finished,
+              state: FlareRedPacketCardState.finished,
             ),
             'All claimed',
           ),
+          // The card never shows an amount, not even the viewer's own.
           (
             const FlareRedPacketCard(
               blessing: 'Hello',
-              state: FlareRedPacketState.claimed,
-              amount: '1.00 CNY',
+              state: FlareRedPacketCardState.claimed,
             ),
-            'Opened · 1.00 CNY',
+            'Opened',
           ),
           (
             const FlareRedPacketCard(

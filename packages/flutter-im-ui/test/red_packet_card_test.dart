@@ -87,24 +87,112 @@ void main() {
     final other => throw StateError('unknown token $other'),
   };
 
-  FlareRedPacketState stateOf(String name) =>
-      FlareRedPacketState.values.byName(name);
+  FlareRedPacketCardState stateOf(String name) =>
+      FlareRedPacketCardState.values.byName(name);
+
+  // The vectors' copy names, resolved from the kit strings (zh defaults).
+  String copyOf(String name, FlareStrings s) => switch (name) {
+    'busy' => s.packetBusy,
+    'claimed' => s.packetStateClaimed,
+    'finished' => s.packetFinished,
+    'expired' => s.packetStateExpired,
+    'refunded' => s.packetRefunded,
+    'view' => s.packetView,
+    'unavailable' => s.packetUnavailable,
+    'tapToOpen' => s.packetTapToClaim,
+    final other => throw StateError('unknown status $other'),
+  };
 
   String expected(Map<String, dynamic> v, FlareStrings s) =>
-      switch (v['status'] as String) {
-        'busy' => s.packetBusy,
-        'statusLabel' => v['statusLabel'] as String,
-        'claimedAmount' => s.packetClaimed(v['amount'] as String),
-        'claimed' => s.packetStateClaimed,
-        'finished' => s.packetFinished,
-        'expired' => s.packetStateExpired,
-        'unavailable' => s.packetUnavailable,
-        'tapToOpen' => s.packetTapToClaim,
-        final other => throw StateError('unknown status $other'),
-      };
+      v['status'] == 'statusLabel'
+      ? v['statusLabel'] as String
+      : copyOf(v['status'] as String, s);
 
   test('the table still carries its cases', () {
     expect(cases.length, greaterThanOrEqualTo(8));
+  });
+
+  test('cardState: public layer and personal layer → card state', () {
+    for (final v in (table['cardState'] as List).cast<Map<String, dynamic>>()) {
+      final view = v['view'] as Map<String, dynamic>;
+      expect(
+        flareRedPacketCardState(
+          status: FlareRedPacketStatus.values.byName(view['status'] as String),
+          claimedByMe: view['claimedByMe'] as bool? ?? false,
+          tapAction: view['tapAction'] == null
+              ? null
+              : FlareRedPacketTapAction.values.byName(
+                  view['tapAction'] as String,
+                ),
+        ),
+        stateOf(v['state'] as String),
+        reason: v['id'] as String,
+      );
+    }
+  });
+
+  test('cardCopy: the zh copy is the kit default', () {
+    final zh = (table['cardCopy'] as Map<String, dynamic>)['zh'] as Map;
+    for (final entry in zh.entries) {
+      expect(
+        copyOf(entry.key as String, const FlareStrings()),
+        entry.value,
+        reason: entry.key as String,
+      );
+    }
+  });
+
+  test('cardBadge: kind badge and the exclusive recipient line', () {
+    const zh = FlareStrings();
+    for (final v in (table['cardBadge'] as List).cast<Map<String, dynamic>>()) {
+      final got = flareRedPacketCardBadge(
+        zh,
+        kind: FlareRedPacketKind.values.byName(v['kind'] as String),
+        recipientName: v['recipientName'] as String?,
+      );
+      expect(got.badge, v['zh'], reason: v['id'] as String);
+      expect(
+        got.recipient,
+        (v['recipient'] as Map<String, dynamic>?)?['zh'],
+        reason: v['id'] as String,
+      );
+    }
+  });
+
+  test('openSheet: which keys each state offers', () {
+    for (final v in (table['openSheet'] as List).cast<Map<String, dynamic>>()) {
+      final keys = flareRedPacketOpenSheetKeys(
+        FlareRedPacketOpenState.values.byName(v['state'] as String),
+        canViewDetails: v['canViewDetails'] as bool? ?? true,
+      );
+      expect(keys.coin, v['coin'], reason: v['id'] as String);
+      expect(keys.details, v['details'], reason: v['id'] as String);
+    }
+  });
+
+  test('amount: minor units and the currency exponent, integer arithmetic', () {
+    final amount = table['amount'] as Map<String, dynamic>;
+    expect(
+      flareRedPacketCurrencySymbols,
+      (amount['symbols'] as Map).cast<String, String>(),
+    );
+    for (final v in (amount['cases'] as List).cast<Map<String, dynamic>>()) {
+      final reason = '${v['minor']} e${v['exponent']}';
+      expect(
+        flareRedPacketMinorText(v['minor'] as String, v['exponent'] as int),
+        v['text'],
+        reason: reason,
+      );
+      expect(
+        flareRedPacketMoney(
+          v['minor'] as String,
+          v['exponent'] as int,
+          v['currency'] as String,
+        ),
+        v['money'],
+        reason: reason,
+      );
+    }
   });
 
   for (final v in cases) {
@@ -114,21 +202,19 @@ void main() {
       final card = FlareRedPacketCard(
         blessing: 'Hello',
         state: stateOf(v['state'] as String),
-        amount: v['amount'] as String?,
         busy: v['busy'] as bool? ?? false,
         disabled: v['disabled'] as bool? ?? false,
         statusLabel: v['statusLabel'] as String?,
         onOpen: () => taps++,
       );
       await tester.pumpWidget(
-        MaterialApp(
-          home: FlareStringsScope(
-            strings: flareStringsEnglish,
-            child: Scaffold(body: Center(child: card)),
-          ),
-        ),
+        MaterialApp(home: Scaffold(body: Center(child: card))),
       );
-      expect(find.text(expected(v, flareStringsEnglish)), findsOneWidget);
+      expect(find.text(expected(v, const FlareStrings())), findsOneWidget);
+      expect(
+        card.statusFor(const FlareStrings()),
+        expected(v, const FlareStrings()),
+      );
       final colors = FlareColors.light;
       expect(
         faceOf(tester).first,
@@ -141,7 +227,7 @@ void main() {
     });
   }
 
-  testWidgets('kind label shares the brand line without displacing the brand', (
+  testWidgets('the kind badge and recipient share the brand line; no amount', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -150,20 +236,40 @@ void main() {
           body: Center(
             child: FlareRedPacketCard(
               blessing: '恭喜发财',
-              kindLabel: '拼手气红包',
-              state: FlareRedPacketState.expired,
+              kind: FlareRedPacketKind.exclusive,
+              recipientName: 'Bob',
+              state: FlareRedPacketCardState.expired,
             ),
           ),
         ),
       ),
     );
-    expect(find.text('拼手气红包'), findsOneWidget);
+    expect(find.text('专属 · 给 Bob'), findsOneWidget);
     expect(find.text('Flare 红包'), findsOneWidget);
     expect(find.text('已过期'), findsOneWidget);
-    final kind = tester.getRect(find.text('拼手气红包'));
+    final kind = tester.getRect(find.text('专属 · 给 Bob'));
     final brand = tester.getRect(find.text('Flare 红包'));
     expect(kind.right, lessThanOrEqualTo(brand.left));
     expect((kind.center.dy - brand.center.dy).abs(), lessThan(2));
+    // Nothing on the card looks like money.
+    final texts = tester
+        .widgetList<Text>(find.byType(Text))
+        .map((t) => t.data ?? '')
+        .join(' ');
+    expect(texts, isNot(matches(RegExp(r'[¥$€£]|\d+\.\d{2}'))));
+  });
+
+  testWidgets('a normal packet draws no badge', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: Center(child: FlareRedPacketCard(blessing: '恭喜发财')),
+        ),
+      ),
+    );
+    expect(find.text('拼手气'), findsNothing);
+    expect(find.text('专属'), findsNothing);
+    expect(find.text('领取红包'), findsOneWidget);
   });
 
   group('faded face follows spec/red-packet-vectors.json → faded', () {
@@ -230,8 +336,7 @@ void main() {
                 body: Center(
                   child: FlareRedPacketCard(
                     blessing: '恭喜发财',
-                    state: FlareRedPacketState.claimed,
-                    amount: '0.88 元',
+                    state: FlareRedPacketCardState.claimed,
                   ),
                 ),
               ),
@@ -251,7 +356,7 @@ void main() {
             colors.redPacketFadedInk,
           );
           expect(
-            tester.widget<Text>(find.text('已领取 · 0.88 元')).style!.color,
+            tester.widget<Text>(find.text('已领取')).style!.color,
             colors.redPacketFadedInk,
           );
           // The envelope glyph is painted from the same mixed colours.

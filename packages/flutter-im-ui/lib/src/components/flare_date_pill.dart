@@ -5,9 +5,11 @@ import '../tokens/flare_tokens.dart';
 /// Timeline date separator — a small centered chip labelling a day (or a
 /// floating scroll hint). Spec: Message/DatePill (`FlareDatePill`).
 ///
-/// In the timeline it is a quiet day marker on the secondary ground, with no
-/// border, shadow or blur: the messages outrank it. Only a [floating] pill,
-/// which sits over scrolled messages, gets a surface of its own.
+/// In the timeline it is a quiet day marker with no border, shadow or blur:
+/// the messages outrank it. Its ground is the tertiary tone, which differs
+/// from the timeline canvas (secondary) so the pill reads as a pill
+/// (`spec/message-grouping-vectors.json` rules.datePill). Only a [floating]
+/// pill, which sits over scrolled messages, gets a surface of its own.
 class FlareDatePill extends StatelessWidget {
   const FlareDatePill({super.key, required this.label, this.floating = false});
 
@@ -40,7 +42,7 @@ class FlareDatePill extends StatelessWidget {
                 ],
               )
             : BoxDecoration(
-                color: colors.bgSecondary,
+                color: colors.bgTertiary,
                 borderRadius: BorderRadius.circular(FlareSizes.radiusFull),
               ),
         child: Text(

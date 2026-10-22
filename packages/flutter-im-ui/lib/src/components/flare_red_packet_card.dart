@@ -2,44 +2,52 @@ import 'package:flutter/material.dart';
 import '../models/red_packet.dart';
 import '../tokens/flare_tokens.dart';
 import '../tokens/flare_strings.dart';
+import 'flare_message_card_shell.dart';
 import 'red_packet_tint.dart';
 
 /// Red-packet (lucky-money) message card — a tappable envelope with a gold
-/// wax seal, blessing text, a claim status line and a brand line.
-/// Spec: Message/RedPacketCard (`FlareRedPacketCard`).
+/// wax seal, the greeting, one status line and a brand line.
+/// Spec: Message/RedPacketCard (`FlareRedPacketCard`); red packet v5
+/// (docs/design/red-packet-v5-roles-and-wallet.md §1).
 ///
-/// [state] is what the current viewer sees: [FlareRedPacketState.unopened] is
-/// the saturated envelope; claimed, finished and expired are the same envelope,
-/// quieter — every colour mixed with `redPacketFadedMixTarget` (white in light
-/// mode, a deep red in dark mode) by the shared ratio
+/// The card never shows an amount, not even the viewer's own. The brand line
+/// carries the [kind] badge (拼手气, 专属; a normal packet has none) and, on an
+/// exclusive packet, "给 [recipientName]". [state] comes from the plugin's
+/// public layer and the viewer's personal layer ([flareRedPacketCardState]):
+/// [FlareRedPacketCardState.unopened] and [FlareRedPacketCardState.viewable]
+/// are the saturated envelope; claimed, finished, expired and refunded are the
+/// same envelope, quieter — every colour mixed with `redPacketFadedMixTarget`
+/// (white in light mode, a deep red in dark mode) by the shared ratio
 /// (`FlareSizes.componentRedPacketFadedMix`), the words in `redPacketFadedInk`
 /// because white on the light face is under 3:1. Busy and disabled cards keep
-/// the unopened face and white words; only the status line changes. Finished and expired cards stay tappable —
-/// that is how the viewer reaches the claim details. Only [disabled], [busy]
-/// or a missing [onOpen] make the card inert. Status precedence
-/// (`spec/red-packet-vectors.json` → card): busy, [statusLabel], received
-/// amount, claimed, finished, expired, unavailable, tap to open.
+/// the unopened face; only the status line changes. Every state but busy and
+/// disabled stays tappable: the host routes the tap by the personal layer's
+/// tapAction (the open sheet, the details, or the not-eligible notice).
+/// Status precedence (`spec/red-packet-vectors.json` → card): busy,
+/// [statusLabel], then the state's copy ([flareRedPacketCardStatus]).
+///
+/// The card is the message's card surface: the timeline draws no bubble
+/// around it, and a quoted reply ([FlareCardQuote]) sits inside the envelope.
 class FlareRedPacketCard extends StatelessWidget {
   const FlareRedPacketCard({
     super.key,
     required this.blessing,
-    this.kindLabel,
-    this.state = FlareRedPacketState.unopened,
-    this.amount,
+    this.kind = FlareRedPacketKind.normal,
+    this.recipientName,
+    this.state = FlareRedPacketCardState.unopened,
     this.disabled = false,
     this.busy = false,
     this.statusLabel,
     this.onOpen,
   });
 
+  /// The greeting.
   final String blessing;
+  final FlareRedPacketKind kind;
 
-  /// Packet kind on the brand line, e.g. "拼手气红包".
-  final String? kindLabel;
-  final FlareRedPacketState state;
-
-  /// What the viewer received (host formats it); shown on a claimed card.
-  final String? amount;
+  /// Exclusive packets: the designated member's name (from the IM directory).
+  final String? recipientName;
+  final FlareRedPacketCardState state;
   final bool disabled;
   final bool busy;
   final String? statusLabel;
@@ -49,35 +57,32 @@ class FlareRedPacketCard extends StatelessWidget {
   static const Key glyphKey = Key('flare-red-packet-card-glyph');
 
   /// The status line this card shows for [strings].
-  String statusFor(FlareStrings strings) {
-    if (busy) return strings.packetBusy;
-    final label = statusLabel;
-    if (label != null) return label;
-    return switch (state) {
-      FlareRedPacketState.claimed =>
-        amount != null
-            ? strings.packetClaimed(amount!)
-            : strings.packetStateClaimed,
-      FlareRedPacketState.finished => strings.packetFinished,
-      FlareRedPacketState.expired => strings.packetStateExpired,
-      FlareRedPacketState.unopened =>
-        disabled ? strings.packetUnavailable : strings.packetTapToClaim,
-    };
-  }
+  String statusFor(FlareStrings strings) => flareRedPacketCardStatus(
+    strings,
+    state: state,
+    busy: busy,
+    disabled: disabled,
+    statusLabel: statusLabel,
+  );
 
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
     final strings = FlareStrings.of(context);
     final status = statusFor(strings);
-    final dimmed = state != FlareRedPacketState.unopened;
-    final receivedAmount =
-        !busy &&
-        statusLabel == null &&
-        state == FlareRedPacketState.claimed &&
-        amount != null;
+    final dimmed = flareRedPacketCardDimmed(state);
+    final badge = flareRedPacketCardBadge(
+      strings,
+      kind: kind,
+      recipientName: recipientName,
+    );
     final canOpen = !disabled && !busy && onOpen != null;
     final palette = _Palette(colors, faded: dimmed);
+    final quote = FlareCardQuote.maybeOf(context);
+    final kindLine = [
+      ?badge.badge,
+      ?badge.recipient,
+    ].join(' · ');
     final card = Container(
       width: FlareSizes.componentRedPacketCardWidth,
       decoration: BoxDecoration(
@@ -104,6 +109,10 @@ class FlareRedPacketCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (quote != null) ...[
+              quote,
+              const SizedBox(height: FlareSizes.spacingSm),
+            ],
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -129,9 +138,7 @@ class FlareRedPacketCard extends StatelessWidget {
                         status,
                         softWrap: true,
                         style: TextStyle(
-                          color: receivedAmount
-                              ? palette.amount
-                              : palette.status,
+                          color: palette.status,
                           fontSize: FlareSizes.fontSizeSm,
                         ),
                       ),
@@ -143,7 +150,7 @@ class FlareRedPacketCard extends StatelessWidget {
             const SizedBox(height: FlareSizes.spacingMd),
             Container(height: 1, color: palette.rule),
             const SizedBox(height: FlareSizes.spacingSm),
-            if (kindLabel == null)
+            if (kindLine.isEmpty)
               Align(
                 alignment: AlignmentDirectional.centerEnd,
                 child: Text(strings.packetBrand, style: _brandStyle(palette)),
@@ -153,21 +160,18 @@ class FlareRedPacketCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      kindLabel!,
+                      kindLine,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: _brandStyle(palette),
                     ),
                   ),
                   const SizedBox(width: FlareSizes.spacingSm),
-                  Expanded(
-                    child: Text(
-                      strings.packetBrand,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.end,
-                      style: _brandStyle(palette),
-                    ),
+                  Text(
+                    strings.packetBrand,
+                    maxLines: 1,
+                    textAlign: TextAlign.end,
+                    style: _brandStyle(palette),
                   ),
                 ],
               ),
@@ -181,7 +185,7 @@ class FlareRedPacketCard extends StatelessWidget {
       enabled: canOpen,
       label: blessing,
       value: status,
-      hint: kindLabel,
+      hint: kindLine.isEmpty ? null : kindLine,
       liveRegion: busy,
       onTap: canOpen ? onOpen : null,
       child: ExcludeSemantics(
@@ -232,7 +236,6 @@ class _Palette {
       goldDeep = _tone(colors.redPacketGoldDeep, colors, faded),
       text = faded ? colors.redPacketFadedInk : Colors.white,
       status = faded ? colors.redPacketFadedInk : colors.redPacketOnSurface,
-      amount = faded ? colors.redPacketFadedInk : colors.redPacketGold,
       soft = faded
           ? colors.redPacketFadedInk.withValues(alpha: 0.72)
           : colors.redPacketOnSurface.withValues(alpha: 0.6),
@@ -248,7 +251,6 @@ class _Palette {
   final Color goldDeep;
   final Color text;
   final Color status;
-  final Color amount;
   final Color soft;
   final Color rule;
   final Color flapShadow;

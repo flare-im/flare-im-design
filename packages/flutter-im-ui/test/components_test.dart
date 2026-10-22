@@ -120,13 +120,20 @@ void main() {
       );
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
       expect(
-        find.bySemanticsLabel(
-          '${const FlareStrings().messageFailed}, ${const FlareStrings().retry}',
-        ),
+        find.bySemanticsLabel(const FlareStrings().messageSendFailedRetry),
         findsOneWidget,
       );
       await tester.tap(find.byIcon(Icons.error_outline));
       expect(resent, 1);
+      // Standalone, the retry control takes its full touch target.
+      final target = tester.getSize(find.byKey(FlareMessageStatus.retryKey));
+      expect(target.width, greaterThanOrEqualTo(FlareSizes.touchTarget));
+      expect(target.height, greaterThanOrEqualTo(FlareSizes.touchTarget));
+      await tester.tapAt(
+        tester.getTopLeft(find.byKey(FlareMessageStatus.retryKey)) +
+            const Offset(2, 2),
+      );
+      expect(resent, 2);
     });
 
     testWidgets('without onResend the failed glyph is inert', (tester) async {
@@ -166,7 +173,7 @@ void main() {
             timestamp: '14:32',
             edited: true,
             ephemeral: FlareMessageEphemeralState.burnAfterRead,
-            status: FlareMessageDeliveryStatus.delivered,
+            status: FlareMessageDeliveryStatus.read,
           ),
         ),
       );

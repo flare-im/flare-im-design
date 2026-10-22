@@ -102,8 +102,7 @@ void main() {
 
   for (final entry in [
     (FlareRedPacketOpenState.finished, '手慢了，红包派完了'),
-    (FlareRedPacketOpenState.expired, '该红包已超过 24 小时'),
-    (FlareRedPacketOpenState.notEligible, '你不能领取这个红包'),
+    (FlareRedPacketOpenState.expired, '红包已过期'),
   ]) {
     testWidgets('${entry.$1.name} says why and links to the details', (
       tester,
@@ -115,7 +114,37 @@ void main() {
       await tester.tap(find.text('查看领取详情'));
       expect(events, ['viewDetails']);
     });
+
+    testWidgets('${entry.$1.name} without canViewDetails has no details key', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          FlareRedPacketOpenSheet(
+            senderName: '小明',
+            blessing: '恭喜发财，大吉大利',
+            state: entry.$1,
+            canViewDetails: false,
+            onViewDetails: () => events.add('viewDetails'),
+          ),
+        ),
+      );
+      expect(find.text(entry.$2), findsOneWidget);
+      expect(find.text('查看领取详情'), findsNothing);
+    });
   }
+
+  testWidgets('notEligible says why and never offers the details', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(sheet(state: FlareRedPacketOpenState.notEligible)),
+    );
+    expect(coin, findsNothing);
+    expect(find.text('你不能领取这个红包'), findsOneWidget);
+    // The server returns no amounts or records to a non-designated viewer.
+    expect(find.text('查看领取详情'), findsNothing);
+  });
 
   testWidgets('a host notice replaces the default copy', (tester) async {
     await tester.pumpWidget(

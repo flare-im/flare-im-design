@@ -17,6 +17,34 @@ enum FlarePluginTone { neutral, info, success, warning, danger }
 /// How an action key is drawn; secondary when absent.
 enum FlarePluginActionStyle { primary, danger }
 
+/// Why a resolved view is unavailable or read-only
+/// (ResolvedPluginView.unavailableReason; the wire writes it snake_case).
+/// [unboundCopy] is a forged or forwarded copy of a card: the core SDK keeps
+/// it available but strips every action, so it draws read-only.
+enum FlarePluginUnavailableReason {
+  disabled,
+  notInstalled,
+  noPermission,
+  unsupportedPlatform,
+  incompatibleVersion,
+  catalogUnreachable,
+  unboundCopy,
+}
+
+/// The wire name of [reason] (`not_installed` …).
+String flarePluginUnavailableReasonName(FlarePluginUnavailableReason reason) =>
+    reason.name.replaceAllMapped(
+      RegExp('[A-Z]'),
+      (m) => '_${m[0]!.toLowerCase()}',
+    );
+
+FlarePluginUnavailableReason? _reasonOf(Object? wire) {
+  for (final reason in FlarePluginUnavailableReason.values) {
+    if (flarePluginUnavailableReasonName(reason) == wire) return reason;
+  }
+  return null;
+}
+
 /// Where a `FlarePluginView` sits (spec PluginViewInset, rules.inset): none
 /// (the host's surface pads it); [sheet] — straight in a kit sheet, spacing md
 /// on top, lg at the sides and xl at the bottom, the same as
@@ -174,9 +202,15 @@ sealed class FlarePluginBlock {
                 text: _string(e['text']),
                 name: _optString(e['name']),
                 userId: _optString(e['userId']),
+                group: e['group'] is Map
+                    ? FlarePluginEntryGroup.fromJson(
+                        (e['group'] as Map).cast<String, Object?>(),
+                      )
+                    : null,
               ),
           ],
           numbered: json['numbered'] != false,
+          grouped: _bool(json['grouped']),
           total: _int(json['total']),
           more: _bool(json['more']),
           emptyText: _optString(json['emptyText']),
@@ -293,6 +327,34 @@ final class FlarePluginChoicesBlock extends FlarePluginBlock {
   final FlarePluginAction? action;
 }
 
+/// The group an entry opens in a grouped list (a poll option with its votes):
+/// the kit draws a header row "label · N 票 · P%" before that entry.
+@immutable
+class FlarePluginEntryGroup {
+  const FlarePluginEntryGroup({
+    required this.key,
+    required this.label,
+    this.count,
+    this.total,
+    this.percent,
+  });
+  factory FlarePluginEntryGroup.fromJson(Map<String, Object?> json) =>
+      FlarePluginEntryGroup(
+        key: _string(json['key']),
+        label: _string(json['label']),
+        count: _optInt(json['count']),
+        total: _optInt(json['total']),
+        percent: _optInt(json['percent']),
+      );
+  final String key;
+
+  /// Data, not translated.
+  final String label;
+  final int? count;
+  final int? total;
+  final int? percent;
+}
+
 @immutable
 class FlarePluginEntry {
   const FlarePluginEntry({
@@ -300,26 +362,33 @@ class FlarePluginEntry {
     required this.text,
     this.name,
     this.userId,
+    this.group,
   });
 
-  /// 1-based position in the data.
+  /// 1-based position in the data (within its group in a grouped list).
   final int index;
   final String text;
   final String? name;
   final String? userId;
+
+  /// Set on the first entry of each group of a grouped list.
+  final FlarePluginEntryGroup? group;
 }
 
-/// Numbered entries; [more] offers "see all".
+/// Entries — sign-ups, voters; [more] offers "see all". A [grouped] list is
+/// one flat list whose entries that carry a group open it with a header row.
 final class FlarePluginEntriesBlock extends FlarePluginBlock {
   const FlarePluginEntriesBlock({
     required this.items,
     this.numbered = true,
+    this.grouped = false,
     this.total = 0,
     this.more = false,
     this.emptyText,
   });
   final List<FlarePluginEntry> items;
   final bool numbered;
+  final bool grouped;
   final int total;
   final bool more;
   final String? emptyText;
@@ -551,6 +620,8 @@ class FlarePluginViewModel {
     this.inputs = const [],
     this.detail = false,
     this.nextCursor,
+    this.menuActions = const [],
+    this.unavailableReason,
   }) : _source = null;
 
   FlarePluginViewModel._json({
@@ -562,6 +633,8 @@ class FlarePluginViewModel {
     required this.inputs,
     required this.detail,
     required this.nextCursor,
+    required this.menuActions,
+    required this.unavailableReason,
     required String source,
   }) : _source = source;
 
@@ -585,6 +658,11 @@ class FlarePluginViewModel {
         ],
         detail: _bool(json['detail']),
         nextCursor: _optString(json['nextCursor']),
+        menuActions: [
+          for (final a in _maps(json['menuActions']))
+            FlarePluginAction.fromJson(a),
+        ],
+        unavailableReason: _reasonOf(json['unavailableReason']),
         source: jsonEncode(json),
       );
 
@@ -594,6 +672,13 @@ class FlarePluginViewModel {
 
   /// Footer actions; actions a block owns are not here.
   final List<FlarePluginAction> actions;
+
+  /// Actions the plugin placed in the card's ⋯ menu (placement menu), in
+  /// order; they run like [actions].
+  final List<FlarePluginAction> menuActions;
+
+  /// Why the view is unavailable, or read-only ([FlarePluginUnavailableReason.unboundCopy]).
+  final FlarePluginUnavailableReason? unavailableReason;
   final List<FlarePluginBlock> blocks;
 
   /// Every input of the document; an action's form names the ones it collects.
@@ -776,6 +861,61 @@ bool flarePluginShowsDetailKey(
     view.available &&
     !embedded &&
     !view.blocks.any((b) => b is FlarePluginEntriesBlock && b.more);
+
+/// The words for [reason] (`spec/plugin-view-vectors.json` → unavailableReasons).
+String flarePluginUnavailableReasonText(
+  FlarePluginUnavailableReason reason,
+  FlareStrings strings,
+) => switch (reason) {
+  FlarePluginUnavailableReason.disabled => strings.pluginViewUnavailableDisabled,
+  FlarePluginUnavailableReason.notInstalled =>
+    strings.pluginViewUnavailableNotInstalled,
+  FlarePluginUnavailableReason.noPermission =>
+    strings.pluginViewUnavailableNoPermission,
+  FlarePluginUnavailableReason.unsupportedPlatform =>
+    strings.pluginViewUnavailableUnsupportedPlatform,
+  FlarePluginUnavailableReason.incompatibleVersion =>
+    strings.pluginViewUnavailableIncompatibleVersion,
+  FlarePluginUnavailableReason.catalogUnreachable =>
+    strings.pluginViewUnavailableCatalogUnreachable,
+  FlarePluginUnavailableReason.unboundCopy =>
+    strings.pluginViewUnavailableUnboundCopy,
+};
+
+/// The reason line of a view (rules.unavailableReason): an unavailable view
+/// says why, led by the envelope's [displayName] and " · " when there is one
+/// ("投票 · 插件已停用"); a read-only copy closes with "副本，仅供查看"; a view
+/// without a reason has no line.
+String? flarePluginReasonLine(
+  FlarePluginViewModel view,
+  FlareStrings strings, {
+  String? displayName,
+}) {
+  final reason = view.unavailableReason;
+  if (reason == null) return null;
+  final text = flarePluginUnavailableReasonText(reason, strings);
+  if (reason == FlarePluginUnavailableReason.unboundCopy) return text;
+  if (view.available) return null;
+  final name = displayName?.trim() ?? '';
+  return name.isEmpty ? text : '$name · $text';
+}
+
+/// Whether the view is a read-only copy (unbound_copy).
+bool flarePluginReadOnly(FlarePluginViewModel view) =>
+    view.unavailableReason == FlarePluginUnavailableReason.unboundCopy;
+
+/// The header row of a group in a grouped entries list (rules.entriesGrouped):
+/// the label, then "N 票" when the count is known and "P%" when the percent
+/// is, joined with " · ".
+String flarePluginEntryGroupHeader(
+  FlarePluginEntryGroup group,
+  FlareStrings strings,
+) => [
+  group.label,
+  if (group.count != null)
+    strings.pluginViewVotes.replaceAll('{count}', '${group.count}'),
+  if (group.percent != null) '${group.percent}%',
+].join(' · ');
 
 /// The name drawn for a user id the host could not resolve: its last 4
 /// characters.

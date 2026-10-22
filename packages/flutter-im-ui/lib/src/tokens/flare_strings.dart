@@ -62,10 +62,12 @@ class FlareStrings {
     this.messagePending = '等待发送',
     this.messageSending = '发送中',
     this.messageSent = '已发送',
-    this.messageDelivered = '已送达',
     this.messageRead = '已读',
     this.messageFailed = '发送失败',
-    this.messageRetrying = '正在重试',
+    this.messageReadSummaryUnread = '{count} 人未读',
+    this.messageReadSummaryAllRead = '全部已读',
+    this.messageSendFailedRetry = '发送失败，重试',
+    this.messageDeleted = '消息已删除',
     this.messageEdited = '已编辑',
     this.messageReadOnce = '仅可查看一次',
     this.messageBurnAfterRead = '阅后即焚',
@@ -113,9 +115,8 @@ class FlareStrings {
     this.collapse = '收起',
     this.expand = '展开',
     // 红包
-    this.packetClaimed = _packetClaimed,
     this.packetFinished = '已被领完',
-    this.packetTapToClaim = '点击领取',
+    this.packetTapToClaim = '领取红包',
     this.packetBrand = 'Flare 红包',
     this.packetBusy = '处理中…',
     this.packetUnavailable = '暂不可用',
@@ -128,7 +129,7 @@ class FlareStrings {
     this.packetFromSender = _packetFromSender,
     this.packetOpenAction = '開',
     this.packetMissed = '手慢了，红包派完了',
-    this.packetExpiredNotice = '该红包已超过 24 小时',
+    this.packetExpiredNotice = '红包已过期',
     this.packetNotEligible = '你不能领取这个红包',
     this.packetOpenFailed = '领取失败，请重试',
     this.packetViewDetails = '查看领取详情',
@@ -136,6 +137,22 @@ class FlareStrings {
     this.packetNoClaims = '暂无人领取',
     this.packetClaims = '领取记录',
     this.packetDetailTitle = '红包详情',
+    this.packetView = '查看红包',
+    this.packetRefunded = '已退回',
+    this.packetBadgeLucky = '拼手气',
+    this.packetBadgeExclusive = '专属',
+    this.packetForRecipient = '给 {name}',
+    this.packetNotEligibleName = '仅 {name} 可领取',
+    this.packetDeposited = '已存入钱包',
+    this.packetSummarySender = '已领取 {claimed}/{shares} 个，共 {claimedMoney}/{totalMoney}',
+    this.packetSummaryCompleted = '{shares} 个红包共 {totalMoney}，{duration}被抢光',
+    this.packetSummaryCount = '已领取 {claimed}/{shares} 个',
+    this.packetRefundAt = '未领取部分将于 {time} 退回',
+    this.packetRefundedNote = '已退回 {money} · {time}',
+    this.packetDurationSeconds = '{n} 秒',
+    this.packetDurationMinutes = '{n} 分钟',
+    this.packetDurationHours = '{n} 小时',
+    this.packetDurationDays = '{n} 天',
     // 位置选点与名片选择
     this.locationTitle = '位置',
     this.locationSend = '发送',
@@ -160,6 +177,16 @@ class FlareStrings {
     this.pluginViewDeadlinePassed = '已截止',
     this.pluginViewSeeAll = '查看全部（{count}）',
     this.pluginViewDetail = '查看详情',
+    this.pluginViewMore = '更多操作',
+    this.pluginViewMe = '我',
+    this.pluginViewUnavailableDisabled = '插件已停用',
+    this.pluginViewUnavailableNotInstalled = '插件未安装',
+    this.pluginViewUnavailableNoPermission = '没有使用该插件的权限',
+    this.pluginViewUnavailableUnsupportedPlatform = '该插件不支持此设备',
+    this.pluginViewUnavailableIncompatibleVersion = '请更新应用后查看',
+    this.pluginViewUnavailableCatalogUnreachable = '暂时无法加载，请稍后再试',
+    this.pluginViewUnavailableUnboundCopy = '副本，仅供查看',
+    this.pluginPageRefresh = '刷新',
     this.pluginViewVotes = '{count} 票',
     this.pluginViewRemaining = '剩余 {time}',
     this.pluginViewDateTimeFormat = 'M月d日 HH:mm',
@@ -811,10 +838,12 @@ class FlareStrings {
   final String messagePending;
   final String messageSending;
   final String messageSent;
-  final String messageDelivered;
   final String messageRead;
   final String messageFailed;
-  final String messageRetrying;
+  final String messageReadSummaryUnread;
+  final String messageReadSummaryAllRead;
+  final String messageSendFailedRetry;
+  final String messageDeleted;
   final String messageEdited;
   final String messageReadOnce;
   final String messageBurnAfterRead;
@@ -866,7 +895,6 @@ class FlareStrings {
   final String collapse;
   final String expand;
   // 红包
-  final String Function(String amount) packetClaimed;
   final String packetFinished;
   final String packetTapToClaim;
   final String packetBrand;
@@ -889,6 +917,22 @@ class FlareStrings {
   final String packetNoClaims;
   final String packetClaims;
   final String packetDetailTitle;
+  final String packetView;
+  final String packetRefunded;
+  final String packetBadgeLucky;
+  final String packetBadgeExclusive;
+  final String packetForRecipient;
+  final String packetNotEligibleName;
+  final String packetDeposited;
+  final String packetSummarySender;
+  final String packetSummaryCompleted;
+  final String packetSummaryCount;
+  final String packetRefundAt;
+  final String packetRefundedNote;
+  final String packetDurationSeconds;
+  final String packetDurationMinutes;
+  final String packetDurationHours;
+  final String packetDurationDays;
 
   // 位置选点（FlareLocationPicker、FlareLocationMessage）与名片选择（FlareContactPicker）
   final String locationTitle;
@@ -917,6 +961,16 @@ class FlareStrings {
 
   /// The card's key to the detail view when no entries block offers "see all".
   final String pluginViewDetail;
+  final String pluginViewMore;
+  final String pluginViewMe;
+  final String pluginViewUnavailableDisabled;
+  final String pluginViewUnavailableNotInstalled;
+  final String pluginViewUnavailableNoPermission;
+  final String pluginViewUnavailableUnsupportedPlatform;
+  final String pluginViewUnavailableIncompatibleVersion;
+  final String pluginViewUnavailableCatalogUnreachable;
+  final String pluginViewUnavailableUnboundCopy;
+  final String pluginPageRefresh;
   final String pluginViewVotes;
   final String pluginViewRemaining;
 
@@ -1596,10 +1650,12 @@ class FlareStrings {
     String? messagePending,
     String? messageSending,
     String? messageSent,
-    String? messageDelivered,
     String? messageRead,
     String? messageFailed,
-    String? messageRetrying,
+    String? messageReadSummaryUnread,
+    String? messageReadSummaryAllRead,
+    String? messageSendFailedRetry,
+    String? messageDeleted,
     String? messageEdited,
     String? messageReadOnce,
     String? messageBurnAfterRead,
@@ -1639,7 +1695,6 @@ class FlareStrings {
     String? groupAnnouncement,
     String? collapse,
     String? expand,
-    String Function(String amount)? packetClaimed,
     String? packetFinished,
     String? packetTapToClaim,
     String? packetBrand,
@@ -1662,6 +1717,22 @@ class FlareStrings {
     String? packetNoClaims,
     String? packetClaims,
     String? packetDetailTitle,
+    String? packetView,
+    String? packetRefunded,
+    String? packetBadgeLucky,
+    String? packetBadgeExclusive,
+    String? packetForRecipient,
+    String? packetNotEligibleName,
+    String? packetDeposited,
+    String? packetSummarySender,
+    String? packetSummaryCompleted,
+    String? packetSummaryCount,
+    String? packetRefundAt,
+    String? packetRefundedNote,
+    String? packetDurationSeconds,
+    String? packetDurationMinutes,
+    String? packetDurationHours,
+    String? packetDurationDays,
     String? locationTitle,
     String? locationSend,
     String? locationLocateMe,
@@ -1684,6 +1755,16 @@ class FlareStrings {
     String? pluginViewDeadlinePassed,
     String? pluginViewSeeAll,
     String? pluginViewDetail,
+    String? pluginViewMore,
+    String? pluginViewMe,
+    String? pluginViewUnavailableDisabled,
+    String? pluginViewUnavailableNotInstalled,
+    String? pluginViewUnavailableNoPermission,
+    String? pluginViewUnavailableUnsupportedPlatform,
+    String? pluginViewUnavailableIncompatibleVersion,
+    String? pluginViewUnavailableCatalogUnreachable,
+    String? pluginViewUnavailableUnboundCopy,
+    String? pluginPageRefresh,
     String? pluginViewVotes,
     String? pluginViewRemaining,
     String? pluginViewDateTimeFormat,
@@ -2267,10 +2348,12 @@ class FlareStrings {
       messagePending: messagePending ?? this.messagePending,
       messageSending: messageSending ?? this.messageSending,
       messageSent: messageSent ?? this.messageSent,
-      messageDelivered: messageDelivered ?? this.messageDelivered,
       messageRead: messageRead ?? this.messageRead,
       messageFailed: messageFailed ?? this.messageFailed,
-      messageRetrying: messageRetrying ?? this.messageRetrying,
+      messageReadSummaryUnread: messageReadSummaryUnread ?? this.messageReadSummaryUnread,
+      messageReadSummaryAllRead: messageReadSummaryAllRead ?? this.messageReadSummaryAllRead,
+      messageSendFailedRetry: messageSendFailedRetry ?? this.messageSendFailedRetry,
+      messageDeleted: messageDeleted ?? this.messageDeleted,
       messageEdited: messageEdited ?? this.messageEdited,
       messageReadOnce: messageReadOnce ?? this.messageReadOnce,
       messageBurnAfterRead: messageBurnAfterRead ?? this.messageBurnAfterRead,
@@ -2311,7 +2394,6 @@ class FlareStrings {
       groupAnnouncement: groupAnnouncement ?? this.groupAnnouncement,
       collapse: collapse ?? this.collapse,
       expand: expand ?? this.expand,
-      packetClaimed: packetClaimed ?? this.packetClaimed,
       packetFinished: packetFinished ?? this.packetFinished,
       packetTapToClaim: packetTapToClaim ?? this.packetTapToClaim,
       packetBrand: packetBrand ?? this.packetBrand,
@@ -2334,6 +2416,22 @@ class FlareStrings {
       packetNoClaims: packetNoClaims ?? this.packetNoClaims,
       packetClaims: packetClaims ?? this.packetClaims,
       packetDetailTitle: packetDetailTitle ?? this.packetDetailTitle,
+      packetView: packetView ?? this.packetView,
+      packetRefunded: packetRefunded ?? this.packetRefunded,
+      packetBadgeLucky: packetBadgeLucky ?? this.packetBadgeLucky,
+      packetBadgeExclusive: packetBadgeExclusive ?? this.packetBadgeExclusive,
+      packetForRecipient: packetForRecipient ?? this.packetForRecipient,
+      packetNotEligibleName: packetNotEligibleName ?? this.packetNotEligibleName,
+      packetDeposited: packetDeposited ?? this.packetDeposited,
+      packetSummarySender: packetSummarySender ?? this.packetSummarySender,
+      packetSummaryCompleted: packetSummaryCompleted ?? this.packetSummaryCompleted,
+      packetSummaryCount: packetSummaryCount ?? this.packetSummaryCount,
+      packetRefundAt: packetRefundAt ?? this.packetRefundAt,
+      packetRefundedNote: packetRefundedNote ?? this.packetRefundedNote,
+      packetDurationSeconds: packetDurationSeconds ?? this.packetDurationSeconds,
+      packetDurationMinutes: packetDurationMinutes ?? this.packetDurationMinutes,
+      packetDurationHours: packetDurationHours ?? this.packetDurationHours,
+      packetDurationDays: packetDurationDays ?? this.packetDurationDays,
       locationTitle: locationTitle ?? this.locationTitle,
       locationSend: locationSend ?? this.locationSend,
       locationLocateMe: locationLocateMe ?? this.locationLocateMe,
@@ -2356,6 +2454,16 @@ class FlareStrings {
       pluginViewDeadlinePassed: pluginViewDeadlinePassed ?? this.pluginViewDeadlinePassed,
       pluginViewSeeAll: pluginViewSeeAll ?? this.pluginViewSeeAll,
       pluginViewDetail: pluginViewDetail ?? this.pluginViewDetail,
+      pluginViewMore: pluginViewMore ?? this.pluginViewMore,
+      pluginViewMe: pluginViewMe ?? this.pluginViewMe,
+      pluginViewUnavailableDisabled: pluginViewUnavailableDisabled ?? this.pluginViewUnavailableDisabled,
+      pluginViewUnavailableNotInstalled: pluginViewUnavailableNotInstalled ?? this.pluginViewUnavailableNotInstalled,
+      pluginViewUnavailableNoPermission: pluginViewUnavailableNoPermission ?? this.pluginViewUnavailableNoPermission,
+      pluginViewUnavailableUnsupportedPlatform: pluginViewUnavailableUnsupportedPlatform ?? this.pluginViewUnavailableUnsupportedPlatform,
+      pluginViewUnavailableIncompatibleVersion: pluginViewUnavailableIncompatibleVersion ?? this.pluginViewUnavailableIncompatibleVersion,
+      pluginViewUnavailableCatalogUnreachable: pluginViewUnavailableCatalogUnreachable ?? this.pluginViewUnavailableCatalogUnreachable,
+      pluginViewUnavailableUnboundCopy: pluginViewUnavailableUnboundCopy ?? this.pluginViewUnavailableUnboundCopy,
+      pluginPageRefresh: pluginPageRefresh ?? this.pluginPageRefresh,
       pluginViewVotes: pluginViewVotes ?? this.pluginViewVotes,
       pluginViewRemaining: pluginViewRemaining ?? this.pluginViewRemaining,
       pluginViewDateTimeFormat: pluginViewDateTimeFormat ?? this.pluginViewDateTimeFormat,
@@ -3168,7 +3276,6 @@ class FlareStrings {
       '$count 人已加入 · $status';
   static String _selfSuffix(String name) => '$name（我）';
   static String _selectedCount(int count) => '已选 $count';
-  static String _packetClaimed(String amount) => '已领取 · $amount';
   static String _packetFromSender(String name) => '$name的红包';
   static String _translatedBy(String provider) => '由 $provider 翻译';
   static String _pollOptionHint(int index) => '选项 $index';

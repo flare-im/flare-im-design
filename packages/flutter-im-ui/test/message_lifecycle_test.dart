@@ -25,11 +25,17 @@ void main() {
       ).visualStatus,
       FlareMessageDeliveryStatus.sending,
     );
+    // Delivery is not a visual state (spec/message-receipt-vectors.json):
+    // one check until it is read.
     expect(
       const FlareMessageLifecycle(
         delivery: FlareMessageLifecycleDeliveryState.delivered,
       ).visualStatus,
-      FlareMessageDeliveryStatus.delivered,
+      FlareMessageDeliveryStatus.sent,
+    );
+    expect(
+      FlareMessageDeliveryStatus.values.map((s) => s.name),
+      ['pending', 'sending', 'sent', 'read', 'failed'],
     );
   });
 }

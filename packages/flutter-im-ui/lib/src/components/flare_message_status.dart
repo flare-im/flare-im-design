@@ -1,23 +1,20 @@
 import 'package:flutter/material.dart';
 
 import '../models/message_lifecycle.dart';
+import '../models/message_surface.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
+import 'flare_hit_slop.dart';
 
-/// Final visual projection of the orthogonal message lifecycle.
-enum FlareMessageDeliveryStatus {
-  pending,
-  sending,
-  sent,
-  delivered,
-  read,
-  failed,
-  retrying,
-}
+/// The receipt status a bubble draws (the core SDK's MessageReceiptView
+/// status, or the visual projection of the lifecycle): five states, with no
+/// delivered one — a single check means the server has the message, a double
+/// check that it was read (`spec/message-receipt-vectors.json`).
+enum FlareMessageDeliveryStatus { pending, sending, sent, read, failed }
 
 enum FlareMessageStatusVariant { tick, compact }
 
-/// One compact double-check silhouette shared by delivered and read receipts.
+/// The double-check silhouette of a read receipt.
 class _MessageDoubleCheck extends StatelessWidget {
   const _MessageDoubleCheck({super.key, required this.color, this.size = 16});
 
@@ -76,9 +73,17 @@ class _MessageCheckPainter extends CustomPainter {
       oldDelegate.color != color || oldDelegate.doubleCheck != doubleCheck;
 }
 
+/// One receipt glyph (spec MessageStatus, `spec/message-receipt-vectors.json`):
+/// pending clock, sending spinner (static under reduced motion), sent single
+/// check, read double check in `status.read`, failed alert. With [onResend] a
+/// failed glyph is the retry control: its touch target is at least
+/// `layout.touchTarget` square ([FlareHitSlop]) while the glyph keeps its size.
 class FlareMessageStatus extends StatelessWidget {
-  /// Locates the shared delivered / read double-check glyph (tests, golden hooks).
+  /// Locates the read double-check glyph (tests, golden hooks).
   static const Key doubleCheckKey = ValueKey('flare-message-double-check');
+
+  /// Locates the retry control of a failed glyph.
+  static const Key retryKey = ValueKey('flare-message-status-retry');
 
   const FlareMessageStatus({
     super.key,
@@ -95,17 +100,6 @@ class FlareMessageStatus extends StatelessWidget {
   final Color? tint;
   final VoidCallback? onResend;
 
-  String _label(FlareStrings strings, FlareMessageDeliveryStatus state) =>
-      switch (state) {
-        FlareMessageDeliveryStatus.pending => strings.messagePending,
-        FlareMessageDeliveryStatus.sending => strings.messageSending,
-        FlareMessageDeliveryStatus.sent => strings.messageSent,
-        FlareMessageDeliveryStatus.delivered => strings.messageDelivered,
-        FlareMessageDeliveryStatus.read => strings.messageRead,
-        FlareMessageDeliveryStatus.failed => strings.messageFailed,
-        FlareMessageDeliveryStatus.retrying => strings.messageRetrying,
-      };
-
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
@@ -114,19 +108,22 @@ class FlareMessageStatus extends StatelessWidget {
     final reduceMotion =
         MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     final dim = variant == FlareMessageStatusVariant.compact ? 12.0 : 16.0;
-    final label = _label(strings, effectiveStatus);
+    final label = flareMessageStatusLabel(effectiveStatus, strings);
     final glyph = _glyph(colors, effectiveStatus, dim, reduceMotion);
 
     if (effectiveStatus == FlareMessageDeliveryStatus.failed &&
         onResend != null) {
       return Semantics(
         button: true,
-        label: '$label, ${strings.retry}',
+        label: strings.messageSendFailedRetry,
         excludeSemantics: true,
-        child: GestureDetector(
-          onTap: onResend,
-          behavior: HitTestBehavior.opaque,
-          child: glyph,
+        child: FlareHitSlop(
+          key: retryKey,
+          child: GestureDetector(
+            onTap: onResend,
+            behavior: HitTestBehavior.opaque,
+            child: glyph,
+          ),
         ),
       );
     }
@@ -144,7 +141,6 @@ class FlareMessageStatus extends StatelessWidget {
       case FlareMessageDeliveryStatus.pending:
         return Icon(Icons.schedule_outlined, size: dim, color: pendingColor);
       case FlareMessageDeliveryStatus.sending:
-      case FlareMessageDeliveryStatus.retrying:
         if (reduceMotion)
           return Icon(Icons.schedule_outlined, size: dim, color: pendingColor);
         return SizedBox.square(
@@ -161,12 +157,6 @@ class FlareMessageStatus extends StatelessWidget {
             color: tint ?? colors.messageStatusSent,
             doubleCheck: false,
           ),
-        );
-      case FlareMessageDeliveryStatus.delivered:
-        return _MessageDoubleCheck(
-          key: FlareMessageStatus.doubleCheckKey,
-          color: tint ?? colors.messageStatusDelivered,
-          size: dim,
         );
       case FlareMessageDeliveryStatus.read:
         return _MessageDoubleCheck(

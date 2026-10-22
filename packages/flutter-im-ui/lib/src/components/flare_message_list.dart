@@ -13,6 +13,7 @@ import '../models/haptics.dart';
 import '../models/locate_highlight.dart';
 import '../models/message_grouping.dart';
 import '../models/message_preview.dart';
+import '../models/message_surface.dart';
 import '../models/swipe_reply.dart';
 import '../models/time_format.dart';
 import '../tokens/flare_strings.dart';
@@ -22,6 +23,7 @@ import 'flare_icon.dart';
 import 'flare_locate_highlight_scope.dart';
 import 'flare_media_controller.dart';
 import 'flare_message_bubble.dart';
+import 'flare_message_content_view.dart';
 import 'flare_scroll_to_latest.dart';
 import 'flare_unread_divider.dart';
 
@@ -86,7 +88,10 @@ class FlareMessageList extends StatefulWidget {
     this.onResend,
     this.onToggleSelect,
     this.onSwipeReply,
+    this.onReply,
     this.onReact,
+    this.onReadReceiptOpen,
+    this.onContextMenu,
     this.onLocateMessage,
     this.emptyPlaceholder,
     this.footer,
@@ -186,8 +191,23 @@ class FlareMessageList extends StatefulWidget {
   final void Function(FlareMessageData message)? onToggleSelect;
   final void Function(FlareMessageData message)? onSwipeReply;
 
-  /// Reaction pill tap (toggle the current user's reaction).
+  /// The reply intent from the desktop hover toolbar and the row's reply
+  /// action for screen readers; defaults to [onSwipeReply], the same intent.
+  final void Function(FlareMessageData message)? onReply;
+
+  /// Reaction pill tap (toggle the current user's reaction), and the hover
+  /// toolbar's quick reactions.
   final void Function(FlareMessageData message, String emoji)? onReact;
+
+  /// The read summary of the viewer's own group message was tapped: the host
+  /// fills the read receipt sheet for it.
+  final void Function(FlareMessageData message)? onReadReceiptOpen;
+
+  /// A secondary click on a row (fine pointers) or the hover toolbar's more
+  /// key, with where the menu opens (`FlareMessageActionSheet.show`'s
+  /// `position`). Without it both raise [onMessageLongPress], the same menu.
+  final void Function(FlareMessageData message, Offset globalPosition)?
+  onContextMenu;
 
   /// A quote was tapped whose message is not in [messages] (the host may load
   /// older history to reach it, then show it with
@@ -428,73 +448,54 @@ class _FlareMessageListState extends State<FlareMessageList>
   List<FlareMessageData>? _timelineMessages;
   String? _timelineUnreadId;
   String? _timelineUserId;
+  int _timelineDependencies = -1;
+
+  /// Bumped when an inherited dependency (the content scope's surfaces)
+  /// changes: the surfaces are read again.
+  int _dependencies = 0;
+
+  /// The surface of each row, as grouping and the bubbles read it.
+  List<FlareMessageSurface> _surfaces = const [];
+  List<FlareTimelineItem> _items = const [];
 
   /// Rows that open a local calendar day.
   Set<int> _dayStarts = const {};
+  Set<int> _breaksBefore = const {};
   int _unreadIndex = -1;
   int _unreadCount = 0;
 
-  /// Day starts and the unread row, recomputed only when the host hands over
-  /// a new list: one numeric calendar comparison per message, no formatting.
+  /// Surfaces, day starts and the unread row, recomputed only when the host
+  /// hands over a new list (`spec/message-grouping-vectors.json`): one
+  /// numeric calendar comparison per message, no formatting.
   void _indexTimeline() {
     final messages = widget.messages;
     if (identical(_timelineMessages, messages) &&
         _timelineUnreadId == widget.unreadFromId &&
-        _timelineUserId == widget.currentUserId) {
+        _timelineUserId == widget.currentUserId &&
+        _timelineDependencies == _dependencies) {
       return;
     }
     _timelineMessages = messages;
     _timelineUnreadId = widget.unreadFromId;
     _timelineUserId = widget.currentUserId;
-    final starts = <int>{};
-    var previousDay = 0;
-    for (var i = 0; i < messages.length; i++) {
-      final sentAt = messages[i].sentAtMs;
-      if (sentAt <= 0) continue;
-      final time = DateTime.fromMillisecondsSinceEpoch(sentAt);
-      final day = time.year * 10000 + time.month * 100 + time.day;
-      if (day != previousDay) starts.add(i);
-      previousDay = day;
-    }
-    _dayStarts = starts;
-    final unreadId = widget.unreadFromId;
-    _unreadIndex = unreadId == null ? -1 : _indexes[unreadId] ?? -1;
-    var count = 0;
-    if (_unreadIndex >= 0) {
-      for (var i = _unreadIndex; i < messages.length; i++) {
-        if (messages[i].senderId != widget.currentUserId) count++;
-      }
-    }
-    _unreadCount = count;
-  }
-
-  /// Whether a separator — a date pill or the unread divider — is drawn right
-  /// above row [index]. The first row's date pill has no run above it.
-  bool _dividerBefore(int index) =>
-      index == _unreadIndex || (index > 0 && _dayStarts.contains(index));
-
-  /// A separator ends a sender run: the row above it closes the run and the
-  /// row below it opens a new one.
-  FlareMessageGroupPosition _breakRunAtDividers(
-    FlareMessageGroupPosition position,
-    int index,
-  ) {
-    var next = position;
-    if (_dividerBefore(index)) {
-      next = switch (next) {
-        FlareMessageGroupPosition.middle => FlareMessageGroupPosition.first,
-        FlareMessageGroupPosition.last => FlareMessageGroupPosition.single,
-        _ => next,
-      };
-    }
-    if (_dividerBefore(index + 1)) {
-      next = switch (next) {
-        FlareMessageGroupPosition.middle => FlareMessageGroupPosition.last,
-        FlareMessageGroupPosition.first => FlareMessageGroupPosition.single,
-        _ => next,
-      };
-    }
-    return next;
+    _timelineDependencies = _dependencies;
+    _surfaces = [
+      for (final message in messages)
+        FlareContentScope.surfaceOf(context, message),
+    ];
+    _items = [
+      for (var i = 0; i < messages.length; i++)
+        FlareTimelineItem.of(messages[i], _surfaces[i]),
+    ];
+    final layout = flareTimelineLayout(
+      _items,
+      currentUserId: widget.currentUserId,
+      unreadFromId: widget.unreadFromId,
+    );
+    _dayStarts = layout.dayStarts;
+    _breaksBefore = layout.breaksBefore;
+    _unreadIndex = layout.unreadIndex;
+    _unreadCount = layout.unreadCount;
   }
 
   String _dayLabel(FlareMessageData message) {
@@ -696,6 +697,7 @@ class _FlareMessageListState extends State<FlareMessageList>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _dependencies += 1;
     // Tickers stop when another screen covers this one: so does voice.
     final onScreen = TickerMode.valuesOf(context).enabled;
     if (_onScreen && !onScreen) unawaited(_media.stopVoice());
@@ -770,12 +772,14 @@ class _FlareMessageListState extends State<FlareMessageList>
     _indexTimeline();
     final msg = widget.messages[i];
     final quotedId = msg.replyTo?.messageId;
-    final groupPosition = _breakRunAtDividers(
-      flareMessageGroupPosition(widget.messages, i),
+    final surface = _surfaces[i];
+    final groupPosition = flareMessageGroupPosition(
+      _items,
       i,
+      breaksBefore: _breaksBefore,
     );
     final presentation = flareMessageRowPresentation(
-      message: msg,
+      item: _items[i],
       position: groupPosition,
       currentUserId: widget.currentUserId,
       groupConversation: widget.conversationKind == FlareConversationKind.group,
@@ -790,10 +794,13 @@ class _FlareMessageListState extends State<FlareMessageList>
       conversationId: widget.conversationId,
       groupPosition: groupPosition,
       rowPresentation: presentation,
+      surface: surface,
+      locale: widget.locale,
       multiSelectMode: widget.multiSelectMode,
       selected: widget.selectedIds.contains(msg.id),
       mediaState: widget.mediaDownloadStates[msg.id],
       onLongPress: widget.onMessageLongPress,
+      onContextMenu: widget.onContextMenu,
       onAvatarTap: widget.onAvatarTap,
       onMediaAction: widget.onMediaAction,
       onOpenFile: widget.onOpenFile,
@@ -807,6 +814,8 @@ class _FlareMessageListState extends State<FlareMessageList>
       onResend: widget.onResend,
       onToggleSelect: widget.onToggleSelect,
       onReact: widget.onReact,
+      onReply: widget.onReply ?? widget.onSwipeReply,
+      onReadReceiptOpen: widget.onReadReceiptOpen,
       // Loaded quotes scroll here; others go to the host when it can load them.
       onLocateMessage:
           quotedId != null &&
@@ -819,8 +828,7 @@ class _FlareMessageListState extends State<FlareMessageList>
     // bubble itself wires no long-press for them.
     if (widget.onSwipeReply != null &&
         !widget.multiSelectMode &&
-        !msg.isSystem &&
-        !msg.isRecalled) {
+        surface != FlareMessageSurface.centered) {
       bubble = _SwipeReplyRow(
         key: ValueKey('swipe-reply-${msg.id}'),
         onReply: () => widget.onSwipeReply!(msg),
@@ -856,6 +864,7 @@ class _FlareMessageListState extends State<FlareMessageList>
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
+    _indexTimeline();
     // The rows a host handle answers for are this build's rows.
     _handle._attach(this, _locatable);
     final pivot = _pivotId == null ? null : _indexes[_pivotId];

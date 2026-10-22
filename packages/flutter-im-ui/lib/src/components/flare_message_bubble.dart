@@ -3,14 +3,23 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import '../models/directory_data.dart' show FlareControlSize;
 import '../models/message_content.dart';
 import '../models/message_data.dart';
 import '../models/locate_highlight.dart';
 import '../models/message_lifecycle.dart';
 import '../models/message_grouping.dart';
+import '../models/message_preview.dart';
+import '../models/message_surface.dart';
+import '../platform/flare_platform.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
+import 'flare_action_menu.dart';
 import 'flare_avatar.dart';
+import 'flare_hit_slop.dart';
+import 'flare_icon_button.dart';
+import 'flare_message_action_sheet.dart' show flareQuickReactions;
+import 'flare_message_card_shell.dart';
 import 'flare_message_content_view.dart';
 import 'flare_locate_highlight_scope.dart';
 import 'flare_message_meta.dart';
@@ -23,14 +32,39 @@ import 'flare_reaction_summary.dart';
 /// join the three that were always here, so a header never needs words of its own.
 enum FlareConversationKind { single, group, channel, ai, system }
 
-/// One message in a thread — content, sender, grouping, delivery status.
+/// One message in a thread — content, sender, grouping, receipt.
 /// Spec: Message/MessageBubble (`FlareMessageBubble`). Pure/presentational:
-/// status comes from host-owned lifecycle state (optimistic), never a network wait.
+/// status comes from host-owned state (the core SDK's receipt projection),
+/// never a network wait.
 ///
-/// The body sits on the sender's side, but the meta row (time and delivery
-/// status) always sits on the trailing edge: at the bottom right of a framed
-/// bubble, and under bare media aligned to its right edge — for everyone's
-/// messages, not only the current user's.
+/// The row draws its content on one surface (`spec/message-surface-vectors.json`,
+/// [surface], derived from the content when absent): a coloured [bubble], bare
+/// media, a card — the content's own shell, with no background, border,
+/// padding or tail drawn around it, so a plugin card, red packet, location or
+/// contact card is one container — or a centred notice (system lines, recall
+/// and delete notices).
+///
+/// The meta row (time and receipt) follows
+/// `spec/message-meta-placement-vectors.json`: after the last line of a text
+/// (or in its own row when the line is full), in its own row inside other
+/// bubbles, and under bare media and cards at the trailing edge in the default
+/// palette, where a failure is the key "发送失败，重试". In a group the
+/// viewer's own message shows the SDK's [FlareMessageData.readSummary] ("N
+/// 人未读" / "全部已读"); with [onReadReceiptOpen] it is a key. The retry and
+/// summary keys answer a tap anywhere in their `layout.touchTarget` square.
+///
+/// The bubble is at most the pane's width (the space the row is given) times
+/// the compact or regular ratio, capped by `layout.bubbleMaxWidth`; cards keep
+/// their own width (`richCardWidth`).
+///
+/// In [multiSelectMode] the content is inert and a tap anywhere on the row
+/// toggles its selection. With a fine pointer (desktop, web) a secondary click
+/// opens the message menu ([onContextMenu], else [onLongPress]) and hovering
+/// shows a toolbar — react, reply and more.
+///
+/// The row is one reading unit for screen readers: sender, content summary,
+/// time and status or read summary, with custom actions for reply, the menu
+/// and retry while failed.
 class FlareMessageBubble extends StatelessWidget {
   const FlareMessageBubble({
     super.key,
@@ -40,10 +74,13 @@ class FlareMessageBubble extends StatelessWidget {
     this.conversationId,
     this.groupPosition = FlareMessageGroupPosition.single,
     this.rowPresentation = const FlareMessageRowPresentation(),
+    this.surface,
     this.selected = false,
     this.multiSelectMode = false,
     this.mediaState,
+    this.locale,
     this.onLongPress,
+    this.onContextMenu,
     this.onAvatarTap,
     this.onMediaAction,
     this.onOpenFile,
@@ -51,6 +88,8 @@ class FlareMessageBubble extends StatelessWidget {
     this.onResend,
     this.onToggleSelect,
     this.onReact,
+    this.onReply,
+    this.onReadReceiptOpen,
     this.onLocateMessage,
     this.onVote,
     this.onTaskToggle,
@@ -69,11 +108,26 @@ class FlareMessageBubble extends StatelessWidget {
   final String? conversationId;
   final FlareMessageGroupPosition groupPosition;
   final FlareMessageRowPresentation rowPresentation;
+
+  /// The surface the row draws its content on; null derives it from the
+  /// content, the quote, the recall / delete state and the content registry
+  /// (`FlareContentScope.surfaceOf`). [FlareMessageList] passes the one it
+  /// grouped by.
+  final FlareMessageSurface? surface;
   final bool selected;
   final bool multiSelectMode;
   final FlareMediaDownloadState? mediaState;
 
+  /// Language tag of the row's reading unit (its list separator); defaults to
+  /// the app's [Localizations] locale.
+  final String? locale;
+
   final void Function(FlareMessageData message)? onLongPress;
+
+  /// A secondary click (fine pointers) or the hover toolbar's more key, with
+  /// where the menu should open. Without it both raise [onLongPress].
+  final void Function(FlareMessageData message, Offset globalPosition)?
+  onContextMenu;
   final void Function(FlareMessageData message)? onAvatarTap;
 
   /// Takes every media tap. Without it the kit opens images and videos in its
@@ -95,8 +149,17 @@ class FlareMessageBubble extends StatelessWidget {
   final void Function(FlareMessageData message)? onToggleSelect;
 
   /// Tapping a reaction pill toggles the current user's reaction; without it
-  /// the pills are display-only.
+  /// the pills are display-only. The hover toolbar's react key picks one of
+  /// the quick reactions through it too.
   final void Function(FlareMessageData message, String emoji)? onReact;
+
+  /// The hover toolbar's reply key and the row's reply action for screen
+  /// readers; without it neither is offered.
+  final void Function(FlareMessageData message)? onReply;
+
+  /// The read summary was tapped: the host opens the read receipt sheet for
+  /// the message. Without it the summary is plain text.
+  final void Function(FlareMessageData message)? onReadReceiptOpen;
 
   /// A tapped poll option, by its index; without it, or in multi-select mode
   /// (the body ignores taps then), the poll is read-only.
@@ -130,59 +193,126 @@ class FlareMessageBubble extends StatelessWidget {
   /// selecting, the quote is plain text rather than a control.
   final ValueChanged<String>? onLocateMessage;
 
+  /// The hover toolbar (tests).
+  static const Key hoverToolbarKey = ValueKey('flare-message-hover-toolbar');
+
+  /// The surface a bubble-surface row paints (tests).
+  static const Key bubbleSurfaceKey = ValueKey('flare-message-bubble-surface');
+
   bool get _self => message.senderId == currentUserId;
 
   @override
   Widget build(BuildContext context) {
-    if (message.isSystem) {
-      return _NoticeLine((message.content as FlareNotificationContent).text);
+    final surface =
+        this.surface ?? FlareContentScope.surfaceOf(context, message);
+    if (surface == FlareMessageSurface.centered) {
+      return _NoticeLine(_noticeText(context));
     }
-    // A recalled message shows only who recalled it: no content, status,
-    // avatar or selection.
+    return _FlareMessageRow(bubble: this, surface: surface);
+  }
+
+  /// The words of a centred row: who recalled it, that it was deleted, or the
+  /// system line itself.
+  String _noticeText(BuildContext context) {
+    final strings = FlareStrings.of(context);
     if (message.isRecalled) {
-      final strings = FlareStrings.of(context);
-      return _NoticeLine(
-        _self
-            ? strings.messageRecalledSelf
-            : conversationKind == FlareConversationKind.group
-            ? strings.messageRecalledGroupOther(message.senderName)
-            : strings.messageRecalledPeer,
-      );
+      return _self
+          ? strings.messageRecalledSelf
+          : conversationKind == FlareConversationKind.group
+          ? strings.messageRecalledGroupOther(message.senderName)
+          : strings.messageRecalledPeer;
     }
+    if (message.isDeleted) return strings.messageDeleted;
+    return switch (message.content) {
+      FlareNotificationContent c => c.text,
+      FlareGenericContent c when c.label.trim().isNotEmpty => c.label,
+      final content => flareMessageReplySummary(content, strings),
+    };
+  }
+}
 
+/// A message row with its hover state (fine pointers).
+class _FlareMessageRow extends StatefulWidget {
+  const _FlareMessageRow({required this.bubble, required this.surface});
+
+  final FlareMessageBubble bubble;
+  final FlareMessageSurface surface;
+
+  @override
+  State<_FlareMessageRow> createState() => _FlareMessageRowState();
+}
+
+class _FlareMessageRowState extends State<_FlareMessageRow> {
+  bool _hovered = false;
+
+  FlareMessageBubble get b => widget.bubble;
+  FlareMessageData get message => b.message;
+  bool get _self => b._self;
+  bool get _group => b.conversationKind == FlareConversationKind.group;
+
+  /// What the receipt shows: the lifecycle's projection outranks the status.
+  FlareMessageDeliveryStatus get _status =>
+      message.lifecycle?.visualStatus ?? message.status;
+
+  void _openMenuAt(Offset position) {
+    final contextMenu = b.onContextMenu;
+    if (contextMenu != null) {
+      contextMenu(message, position);
+    } else {
+      b.onLongPress?.call(message);
+    }
+  }
+
+  bool get _hasMenu => b.onContextMenu != null || b.onLongPress != null;
+
+  @override
+  Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
+    final strings = FlareStrings.of(context);
+    final capabilities = flareCapabilitiesOf(context);
     final self = _self;
-    final showAvatar = rowPresentation.showAvatar;
-    final showName = rowPresentation.showSenderName;
+    final presentation = b.rowPresentation;
     final groupStart =
-        groupPosition == FlareMessageGroupPosition.single ||
-        groupPosition == FlareMessageGroupPosition.first;
+        b.groupPosition == FlareMessageGroupPosition.single ||
+        b.groupPosition == FlareMessageGroupPosition.first;
     final groupEnd =
-        groupPosition == FlareMessageGroupPosition.single ||
-        groupPosition == FlareMessageGroupPosition.last;
+        b.groupPosition == FlareMessageGroupPosition.single ||
+        b.groupPosition == FlareMessageGroupPosition.last;
 
-    final row = Row(
-      mainAxisAlignment: self ? MainAxisAlignment.end : MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (!self && rowPresentation.reserveAvatarSpace)
-          _leadingAvatar(showAvatar),
-        Flexible(child: _bubbleColumn(context, colors, self, showName)),
-        if (self && rowPresentation.reserveAvatarSpace)
-          _trailingAvatar(showAvatar),
-      ],
+    final row = LayoutBuilder(
+      builder: (context, constraints) {
+        // The pane: the width this row is given (the timeline column), not
+        // the screen — a two-pane window must not size bubbles by the screen.
+        final pane = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : MediaQuery.sizeOf(context).width;
+        return Row(
+          mainAxisAlignment: self
+              ? MainAxisAlignment.end
+              : MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (!self && presentation.reserveAvatarSpace)
+              _leadingAvatar(presentation.showAvatar),
+            Flexible(child: _column(context, colors, pane)),
+            if (self && presentation.reserveAvatarSpace)
+              _trailingAvatar(presentation.showAvatar),
+          ],
+        );
+      },
     );
 
-    final content = multiSelectMode
+    final selecting = b.multiSelectMode;
+    final content = selecting
         ? Row(
             children: [
               Padding(
                 padding: const EdgeInsets.only(right: FlareSizes.spacingSm),
                 child: Icon(
-                  selected
+                  b.selected
                       ? Icons.check_circle_rounded
                       : Icons.radio_button_unchecked,
-                  color: selected ? colors.primary : colors.textTertiary,
+                  color: b.selected ? colors.primary : colors.textTertiary,
                   size: 22,
                 ),
               ),
@@ -191,31 +321,134 @@ class FlareMessageBubble extends StatelessWidget {
           )
         : row;
 
-    return InkWell(
-      onTap: multiSelectMode ? () => onToggleSelect?.call(message) : null,
-      onLongPress: multiSelectMode ? null : () => onLongPress?.call(message),
-      child: Container(
-        color: selected ? colors.messageSelectedBackground : Colors.transparent,
-        padding: EdgeInsets.only(
-          left: FlareSizes.spacingMd,
-          right: FlareSizes.spacingMd,
-          top: groupStart ? FlareSizes.spacingSm : 2,
-          bottom: groupEnd ? FlareSizes.spacingSm : 2,
-        ),
-        child: content,
+    final pointerMenu = capabilities.contextMenu && !selecting && _hasMenu;
+    final hoverBar =
+        capabilities.hover &&
+        !selecting &&
+        _hovered &&
+        (b.onReact != null || b.onReply != null || _hasMenu);
+
+    Widget body = Container(
+      color: b.selected ? colors.messageSelectedBackground : Colors.transparent,
+      padding: EdgeInsets.only(
+        left: FlareSizes.spacingMd,
+        right: FlareSizes.spacingMd,
+        top: groupStart ? FlareSizes.spacingSm : 2,
+        bottom: groupEnd ? FlareSizes.spacingSm : 2,
       ),
+      child: content,
+    );
+    if (hoverBar) {
+      body = Stack(
+        children: [
+          body,
+          PositionedDirectional(
+            top: 0,
+            start: self ? FlareSizes.spacingMd : null,
+            end: self ? null : FlareSizes.spacingMd,
+            child: _HoverToolbar(
+              key: FlareMessageBubble.hoverToolbarKey,
+              onReact: b.onReact == null
+                  ? null
+                  : (emoji) => b.onReact!(message, emoji),
+              onReply: b.onReply == null ? null : () => b.onReply!(message),
+              onMore: _hasMenu ? _openMenuAt : null,
+            ),
+          ),
+        ],
+      );
+    }
+
+    Widget gestures = InkWell(
+      onTap: selecting ? () => b.onToggleSelect?.call(message) : null,
+      onLongPress: selecting || b.onLongPress == null
+          ? null
+          : () => b.onLongPress!(message),
+      onSecondaryTapUp: pointerMenu
+          ? (details) => _openMenuAt(details.globalPosition)
+          : null,
+      child: FlareHitSlopRegion(child: body),
+    );
+    if (capabilities.hover) {
+      gestures = MouseRegion(
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        child: gestures,
+      );
+    }
+    return _semantics(context, strings, gestures);
+  }
+
+  /// One reading unit (receipt vectors → accessibility): sender, summary,
+  /// time and the receipt, with reply, menu, retry and the read receipt as
+  /// custom actions. The sender name and the meta row are in the label, so
+  /// they are not read again; the content keeps its own nodes (links, the
+  /// quote, a card's controls, an image's description), inert in multi-select.
+  Widget _semantics(BuildContext context, FlareStrings strings, Widget child) {
+    final locale =
+        b.locale ?? Localizations.maybeLocaleOf(context)?.toLanguageTag();
+    final label = flareMessageAccessibilityLabel(
+      sender: message.senderName,
+      preview: flareMessageReplySummary(
+        message.content,
+        strings,
+        locale: locale,
+      ),
+      time: message.timeLabel,
+      self: _self,
+      status: _status,
+      strings: strings,
+      locale: locale,
+      group: _group,
+      readSummary: message.readSummary,
+    );
+    final selecting = b.multiSelectMode;
+    final receipt = flareMessageReceiptPresentation(
+      self: _self,
+      status: _status,
+      group: _group,
+      readSummary: message.readSummary,
+    );
+    final actions = <CustomSemanticsAction, VoidCallback>{
+      if (!selecting && b.onReply != null)
+        CustomSemanticsAction(label: strings.messageActionReply): () =>
+            b.onReply!(message),
+      if (!selecting && b.onLongPress != null)
+        CustomSemanticsAction(label: strings.messageActionSheetLabel): () =>
+            b.onLongPress!(message),
+      if (!selecting &&
+          _self &&
+          _status == FlareMessageDeliveryStatus.failed &&
+          b.onResend != null)
+        CustomSemanticsAction(label: strings.messageSendFailedRetry): () =>
+            b.onResend!(message),
+      if (!selecting && receipt.summary != null && b.onReadReceiptOpen != null)
+        CustomSemanticsAction(label: receipt.summary!.text(strings)): () =>
+            b.onReadReceiptOpen!(message),
+    };
+    return Semantics(
+      container: true,
+      explicitChildNodes: true,
+      label: label,
+      selected: selecting ? b.selected : null,
+      customSemanticsActions: actions.isEmpty ? null : actions,
+      onTap: selecting && b.onToggleSelect != null
+          ? () => b.onToggleSelect!(message)
+          : null,
+      child: child,
     );
   }
 
   Widget _leadingAvatar(bool show) {
-    if (!show)
+    if (!show) {
       return const SizedBox(
         width: FlareSizes.componentMessageAvatarSize + FlareSizes.spacingSm,
       );
+    }
     return Padding(
       padding: const EdgeInsets.only(right: FlareSizes.spacingSm),
       child: GestureDetector(
-        onTap: () => onAvatarTap?.call(message),
+        onTap: b.multiSelectMode ? null : () => b.onAvatarTap?.call(message),
         child: FlareAvatar(
           userId: message.senderId,
           displayName: message.senderName,
@@ -227,10 +460,11 @@ class FlareMessageBubble extends StatelessWidget {
   }
 
   Widget _trailingAvatar(bool show) {
-    if (!show)
+    if (!show) {
       return const SizedBox(
         width: FlareSizes.componentMessageAvatarSize + FlareSizes.spacingSm,
       );
+    }
     return Padding(
       padding: const EdgeInsets.only(left: FlareSizes.spacingSm),
       child: FlareAvatar(
@@ -242,30 +476,29 @@ class FlareMessageBubble extends StatelessWidget {
     );
   }
 
-  Widget _bubbleColumn(
-    BuildContext context,
-    FlareColors colors,
-    bool self,
-    bool showName,
-  ) {
+  Widget _column(BuildContext context, FlareColors colors, double pane) {
+    final self = _self;
     return Column(
       crossAxisAlignment: self
           ? CrossAxisAlignment.end
           : CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (showName)
+        if (b.rowPresentation.showSenderName)
           Padding(
             padding: const EdgeInsets.only(bottom: 2, left: 2),
-            child: Text(
-              message.senderName,
-              style: TextStyle(
-                color: colors.textTertiary,
-                fontSize: FlareSizes.fontSizeSm,
+            // Read in the row's label.
+            child: ExcludeSemantics(
+              child: Text(
+                message.senderName,
+                style: TextStyle(
+                  color: colors.textTertiary,
+                  fontSize: FlareSizes.fontSizeSm,
+                ),
               ),
             ),
           ),
-        _bubble(context, colors, self),
+        _surface(context, colors, pane),
         if (message.reactions.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: FlareSizes.spacingXs),
@@ -273,83 +506,176 @@ class FlareMessageBubble extends StatelessWidget {
               reactions: message.reactions,
               hideAdd: true,
               // Multi-select taps select the row; pills toggle only outside it.
-              onToggle: onReact == null || multiSelectMode
+              onToggle: b.onReact == null || b.multiSelectMode
                   ? null
-                  : (emoji) => onReact!(message, emoji),
+                  : (emoji) => b.onReact!(message, emoji),
             ),
           ),
       ],
     );
   }
 
-  Widget _bubble(BuildContext context, FlareColors colors, bool self) {
-    // 气泡最大宽 = 可用宽 × 比例,再被 layout.bubbleMaxWidth 封顶。四端同一条规则:
-    // 以前 iOS 完全不设上限、Android 固定 320dp、这里取屏宽(不是窗格宽)的 72%、
-    // web 是 min(62%, 640) —— 同一条长消息在四端是四种宽度。
-    final available = MediaQuery.of(context).size.width;
-    final ratio = available < FlareSizes.navigationRailMinWidth
+  FlareMessageContentView _content(FlareMessageSurface surface) {
+    final self = _self;
+    return FlareMessageContentView(
+      content: message.content,
+      self: self,
+      surface: surface,
+      failed: self && _status == FlareMessageDeliveryStatus.failed,
+      selectionMode: b.multiSelectMode,
+      uploading: message.uploadProgress != null,
+      senderName: message.senderName,
+      messageId: message.id,
+      rendererMessageId: message.serverId ?? message.id,
+      conversationId: b.conversationId,
+      mediaState: b.mediaState,
+      onMediaAction: b.onMediaAction == null
+          ? null
+          : (c) => b.onMediaAction!(message, c),
+      onOpenFile: b.onOpenFile == null
+          ? null
+          : (file) => b.onOpenFile!(message, file),
+      onOpenLink: b.onOpenLink == null
+          ? null
+          : (url) => b.onOpenLink!(message, url),
+      onVote: b.onVote == null ? null : (index) => b.onVote!(message, index),
+      onTaskToggle: b.onTaskToggle == null
+          ? null
+          : (done) => b.onTaskToggle!(message, done),
+      onCardOpen: b.onCardOpen == null
+          ? null
+          : (userId) => b.onCardOpen!(message, userId),
+      onLocationOpen: b.onLocationOpen == null
+          ? null
+          : (location) => b.onLocationOpen!(message, location),
+      onMediaDownload: b.onMediaDownload == null
+          ? null
+          : (content) => b.onMediaDownload!(message, content),
+      onMediaReveal: b.onMediaReveal == null
+          ? null
+          : (content) => b.onMediaReveal!(message, content),
+    );
+  }
+
+  /// The meta row for [layout].
+  Widget _meta(FlareColors colors, FlareMessageMetaLayout layout) {
+    final self = _self;
+    final onBubble = layout.tone == FlareMessageMetaTone.onOutgoing;
+    // Read in the row's label; its keys are the row's custom actions.
+    return ExcludeSemantics(
+      child: FlareMessageMeta(
+        timestamp: message.timeLabel,
+        edited: message.edited,
+        status: self ? message.status : null,
+        lifecycle: self ? message.lifecycle : null,
+        ephemeral:
+            message.lifecycle?.ephemeral ?? FlareMessageEphemeralState.none,
+        placement: layout.placement,
+        readSummary: self && _group ? message.readSummary : null,
+        tint: onBubble ? colors.messageStatusOnOutgoing : null,
+        readTint: onBubble ? colors.messageStatusReadOnOutgoing : null,
+        onResend: b.onResend == null || b.multiSelectMode
+            ? null
+            : () => b.onResend!(message),
+        onReadReceiptOpen: b.onReadReceiptOpen == null || b.multiSelectMode
+            ? null
+            : () => b.onReadReceiptOpen!(message),
+      ),
+    );
+  }
+
+  /// Room under a below-the-surface meta that holds a key (the retry text or
+  /// the read summary), so the key's `layout.touchTarget` square stays inside
+  /// this row — under the last row of a run there is only the row's own
+  /// padding, and a square must not reach into the next message.
+  double _belowKeyRoom(FlareMessageMetaLayout layout) {
+    final retry =
+        layout.retry == FlareMessageRetryKind.text && b.onResend != null;
+    final summary =
+        b.onReadReceiptOpen != null &&
+        flareMessageReceiptPresentation(
+              self: _self,
+              status: _status,
+              group: _group,
+              readSummary: message.readSummary,
+            ).summary !=
+            null;
+    if (b.multiSelectMode || (!retry && !summary)) return 0;
+    final groupEnd =
+        b.groupPosition == FlareMessageGroupPosition.single ||
+        b.groupPosition == FlareMessageGroupPosition.last;
+    final rowPadding = groupEnd ? FlareSizes.spacingSm : 2.0;
+    return math.max(
+      0,
+      (FlareSizes.touchTarget - FlareSizes.iconSizeSm) / 2 - rowPadding,
+    );
+  }
+
+  Widget _surface(BuildContext context, FlareColors colors, double pane) {
+    final self = _self;
+    final surface = widget.surface;
+    final ratio = pane < FlareSizes.navigationRailMinWidth
         ? FlareSizes.componentBubbleMaxWidthRatioCompact
         : FlareSizes.componentBubbleMaxWidthRatioRegular;
-    final maxWidth = (available * ratio).clamp(0.0, FlareSizes.bubbleMaxWidth);
+    final maxWidth = (pane * ratio).clamp(0.0, FlareSizes.bubbleMaxWidth);
     final quote = message.replyTo;
-    // A quote keeps the bubble frame even around media: it needs an edge to
-    // sit in.
-    // So does a custom type its builder registered as bare: it brings its
-    // own surface (a red packet card), and the row keeps everything else.
-    final bare =
-        quote == null &&
-        (_isBareMedia(message.content) ||
-            FlareContentScope.isBare(context, message.content.type));
-
-    // While selecting, a tap anywhere on the row selects it: media do not
-    // open and voice does not play.
-    final body = IgnorePointer(
-      ignoring: multiSelectMode,
-      child: FlareMessageContentView(
-        content: message.content,
-        self: self,
-        uploading: message.uploadProgress != null,
-        senderName: message.senderName,
-        messageId: message.id,
-        rendererMessageId: message.serverId ?? message.id,
-        conversationId: conversationId,
-        mediaState: mediaState,
-        onMediaAction: onMediaAction == null
-            ? null
-            : (c) => onMediaAction!(message, c),
-        onOpenFile: onOpenFile == null
-            ? null
-            : (file) => onOpenFile!(message, file),
-        onOpenLink: onOpenLink == null
-            ? null
-            : (url) => onOpenLink!(message, url),
-        onVote: onVote == null ? null : (index) => onVote!(message, index),
-        onTaskToggle: onTaskToggle == null
-            ? null
-            : (done) => onTaskToggle!(message, done),
-        onCardOpen: onCardOpen == null
-            ? null
-            : (userId) => onCardOpen!(message, userId),
-        onLocationOpen: onLocationOpen == null
-            ? null
-            : (location) => onLocationOpen!(message, location),
-        onMediaDownload: onMediaDownload == null
-            ? null
-            : (content) => onMediaDownload!(message, content),
-        onMediaReveal: onMediaReveal == null
-            ? null
-            : (content) => onMediaReveal!(message, content),
-      ),
+    final key = flareMessageContentKey(message.content);
+    final layout = flareMessageMetaPlacement(
+      surface: surface,
+      contentType: key.contentType,
+      self: self,
+      status: _status,
     );
     final hasMeta =
         message.timeLabel.isNotEmpty ||
         message.edited ||
         message.lifecycle != null ||
         self;
+    final body = _content(surface);
 
-    // Bare media (image / sticker / emoji / video) carries its own frame; the
-    // meta row under it lines up with its trailing edge.
-    if (bare) {
+    if (surface == FlareMessageSurface.card) {
+      // The content's shell is the surface: nothing is drawn around it. A
+      // quote goes into the shell's quote slot.
+      final card = quote == null
+          ? body
+          : FlareCardQuote(
+              quote: _quote(context, colors, quote, onCard: true),
+              child: body,
+            );
+      return ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: math.max(
+            maxWidth,
+            math.min(pane, FlareSizes.componentRichCardWidth),
+          ),
+        ),
+        child: _BubbleColumn(
+          end: self,
+          trailingLast: hasMeta,
+          textDirection: Directionality.of(context),
+          children: [
+            _locateMark(
+              context,
+              colors,
+              BorderRadius.circular(FlareSizes.radiusLg),
+              card,
+            ),
+            if (hasMeta)
+              Padding(
+                padding: EdgeInsets.only(
+                  top: FlareSizes.spacingXs,
+                  bottom: _belowKeyRoom(layout),
+                ),
+                child: _meta(colors, layout),
+              ),
+          ],
+        ),
+      );
+    }
+
+    if (surface == FlareMessageSurface.bareMedia) {
+      // Bare media carries its own frame; the meta row under it lines up with
+      // its trailing edge.
       return ConstrainedBox(
         constraints: BoxConstraints(maxWidth: maxWidth),
         child: _BubbleColumn(
@@ -357,39 +683,36 @@ class FlareMessageBubble extends StatelessWidget {
           trailingLast: hasMeta,
           textDirection: Directionality.of(context),
           children: [
-            if (message.uploadProgress == null)
-              body
-            else
-              Stack(
-                children: [
-                  body,
-                  Positioned(
-                    left: FlareSizes.spacingSm,
-                    right: FlareSizes.spacingSm,
-                    bottom: FlareSizes.spacingSm,
-                    child: IgnorePointer(
-                      child: FlareUploadProgress(
-                        percent: message.uploadProgress!,
-                        overlay: true,
-                      ),
+            _locateMark(
+              context,
+              colors,
+              BorderRadius.circular(FlareSizes.radiusCard),
+              message.uploadProgress == null
+                  ? body
+                  : Stack(
+                      children: [
+                        body,
+                        Positioned(
+                          left: FlareSizes.spacingSm,
+                          right: FlareSizes.spacingSm,
+                          bottom: FlareSizes.spacingSm,
+                          child: IgnorePointer(
+                            child: FlareUploadProgress(
+                              percent: message.uploadProgress!,
+                              overlay: true,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
+            ),
             if (hasMeta)
               Padding(
-                padding: const EdgeInsets.only(top: FlareSizes.spacingXs),
-                child: FlareMessageMeta(
-                  timestamp: message.timeLabel,
-                  edited: message.edited,
-                  status: self ? message.status : null,
-                  lifecycle: self ? message.lifecycle : null,
-                  ephemeral:
-                      message.lifecycle?.ephemeral ??
-                      FlareMessageEphemeralState.none,
-                  tint: null,
-                  onResend: onResend == null ? null : () => onResend!(message),
+                padding: EdgeInsets.only(
+                  top: FlareSizes.spacingXs,
+                  bottom: _belowKeyRoom(layout),
                 ),
+                child: _meta(colors, layout),
               ),
           ],
         ),
@@ -397,12 +720,12 @@ class FlareMessageBubble extends StatelessWidget {
     }
 
     // Flare thread bubble grammar (from the reference app): radius 16 with a
-    // 4px tail toward the sender, snug 14/9 padding, inline time meta.
+    // 4px tail toward the sender on the last of a run, snug 14/9 padding.
     const radius = Radius.circular(16);
     const tail = Radius.circular(4);
     final groupEnd =
-        groupPosition == FlareMessageGroupPosition.single ||
-        groupPosition == FlareMessageGroupPosition.last;
+        b.groupPosition == FlareMessageGroupPosition.single ||
+        b.groupPosition == FlareMessageGroupPosition.last;
     final shape = BorderRadius.only(
       topLeft: radius,
       topRight: radius,
@@ -413,7 +736,7 @@ class FlareMessageBubble extends StatelessWidget {
       horizontal: FlareSizes.componentBubblePaddingX,
       vertical: FlareSizes.componentBubblePaddingY,
     );
-
+    final failed = self && _status == FlareMessageDeliveryStatus.failed;
     final rows = <Widget>[
       body,
       if (message.uploadProgress != null)
@@ -421,56 +744,47 @@ class FlareMessageBubble extends StatelessWidget {
           padding: const EdgeInsets.only(top: 7),
           child: FlareUploadProgress(
             percent: message.uploadProgress!,
-            color: self ? colors.messageStatusOnOutgoing : null,
+            color: self && !failed ? colors.messageStatusOnOutgoing : null,
           ),
         ),
-      // Inline meta: time + (self) delivery status, kept inside the bubble at
-      // its bottom right.
-      if (hasMeta)
-        Padding(
-          padding: const EdgeInsets.only(top: 3),
-          child: FlareMessageMeta(
-            timestamp: message.timeLabel,
-            edited: message.edited,
-            status: self ? message.status : null,
-            lifecycle: self ? message.lifecycle : null,
-            ephemeral:
-                message.lifecycle?.ephemeral ?? FlareMessageEphemeralState.none,
-            tint: self
-                ? (message.status == FlareMessageDeliveryStatus.read
-                      ? colors.messageStatusReadOnOutgoing
-                      : colors.messageStatusOnOutgoing)
-                : null,
-            onResend: onResend == null ? null : () => onResend!(message),
-          ),
-        ),
+      if (hasMeta) _meta(colors, layout),
     ];
+    final inline =
+        layout.placement == FlareMessageMetaPlacement.inline &&
+        hasMeta &&
+        message.uploadProgress == null;
     final content = _BubbleColumn(
       end: self,
       quote: quote != null,
       trailingLast: hasMeta,
+      inlineMeta: inline,
+      metaGap: hasMeta ? 3 : 0,
       textDirection: Directionality.of(context),
       children: [if (quote != null) _quote(context, colors, quote), ...rows],
     );
-
+    // A failed bubble keeps its red edge (status has meaning); the others are
+    // drawn by their fill alone, the incoming one on a tertiary tone the chat
+    // canvas never uses.
+    final decoration = BoxDecoration(
+      color: failed
+          ? colors.messageFailedBackground
+          : self
+          ? colors.messageOutgoingBackground
+          : colors.messageIncomingBackground,
+      borderRadius: shape,
+      border: failed ? Border.all(color: colors.messageFailedBorder) : null,
+    );
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: maxWidth),
-      // Both message surfaces follow the shared theme.
       child: _locateMark(
         context,
         colors,
         shape,
-        self
-            ? _selfBubble(context, colors, shape, padding, content)
-            : DecoratedBox(
-                // Fill only: the incoming surface is a tertiary tone the chat canvas never uses,
-                // so the bubble has an edge without an outline drawn around it.
-                decoration: BoxDecoration(
-                  color: colors.messageIncomingBackground,
-                  borderRadius: shape,
-                ),
-                child: Padding(padding: padding, child: content),
-              ),
+        DecoratedBox(
+          key: FlareMessageBubble.bubbleSurfaceKey,
+          decoration: decoration,
+          child: Padding(padding: padding, child: content),
+        ),
       ),
     );
   }
@@ -512,31 +826,15 @@ class FlareMessageBubble extends StatelessWidget {
     );
   }
 
-  /// Flat brand fill keeps the message text in focus.
-  Widget _selfBubble(
-    BuildContext context,
-    FlareColors colors,
-    BorderRadius shape,
-    EdgeInsets padding,
-    Widget content,
-  ) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: shape,
-        color: colors.messageOutgoingBackground,
-      ),
-      child: Padding(padding: padding, child: content),
-    );
-  }
-
-  /// The quoted message on top of the bubble: an accent bar, who said it and
-  /// one line of what was said. A button that locates the original when the
-  /// host can; otherwise plain grouped text.
+  /// The quoted message on top of the bubble (or inside a card's shell): an
+  /// accent bar, who said it and one line of what was said. A button that
+  /// locates the original when the host can; otherwise plain grouped text.
   Widget _quote(
     BuildContext context,
     FlareColors colors,
-    FlareReplyTarget quote,
-  ) {
+    FlareReplyTarget quote, {
+    bool onCard = false,
+  }) {
     final decoration = BoxDecoration(
       color: colors.messageReplyBackground,
       borderRadius: BorderRadius.circular(FlareSizes.radiusSm),
@@ -584,56 +882,118 @@ class FlareMessageBubble extends StatelessWidget {
       ),
     );
     final id = quote.messageId;
-    final locate = onLocateMessage;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: FlareSizes.spacingXs),
-      child: id == null || locate == null || multiSelectMode
-          ? MergeSemantics(
-              child: DecoratedBox(decoration: decoration, child: lines),
-            )
-          : Semantics(
-              container: true,
-              button: true,
-              label: FlareStrings.of(
-                context,
-              ).quotedMessage(quote.senderName, quote.summary),
-              onTap: () => locate(id),
-              excludeSemantics: true,
-              // Ink on a surface of its own, so the pressed state shows above
-              // the bubble fill instead of under it.
-              child: Material(
-                type: MaterialType.transparency,
-                child: Ink(
-                  decoration: decoration,
-                  child: InkWell(
-                    onTap: () => locate(id),
-                    borderRadius: BorderRadius.circular(FlareSizes.radiusSm),
-                    hoverColor: colors.bgHover,
-                    highlightColor: colors.bgHover,
-                    focusColor: colors.focusRing,
-                    child: lines,
-                  ),
+    final locate = b.onLocateMessage;
+    final strip = id == null || locate == null || b.multiSelectMode
+        ? MergeSemantics(
+            child: DecoratedBox(decoration: decoration, child: lines),
+          )
+        : Semantics(
+            container: true,
+            button: true,
+            label: FlareStrings.of(
+              context,
+            ).quotedMessage(quote.senderName, quote.summary),
+            onTap: () => locate(id),
+            excludeSemantics: true,
+            // Ink on a surface of its own, so the pressed state shows above
+            // the bubble fill instead of under it.
+            child: Material(
+              type: MaterialType.transparency,
+              child: Ink(
+                decoration: decoration,
+                child: InkWell(
+                  onTap: () => locate(id),
+                  borderRadius: BorderRadius.circular(FlareSizes.radiusSm),
+                  hoverColor: colors.bgHover,
+                  highlightColor: colors.bgHover,
+                  focusColor: colors.focusRing,
+                  child: lines,
                 ),
               ),
             ),
+          );
+    if (onCard) return strip;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: FlareSizes.spacingXs),
+      child: strip,
     );
-  }
-
-  static bool _isBareMedia(FlareMessageContent content) {
-    return content is FlareImageContent ||
-        content is FlareVideoContent ||
-        content is FlareStickerContent ||
-        content is FlareEmojiContent ||
-        (content is FlareTextContent &&
-            content.mentions.isEmpty &&
-            flareIsStandaloneEmojiMessage(content.text)) ||
-        (content is FlareRichTextContent &&
-            content.title.trim().isEmpty &&
-            flareIsStandaloneEmojiMessage(content.plainText));
   }
 }
 
-/// Centred notice pill for system lines and recalled messages.
+/// The desktop hover toolbar of a message row: react (the quick reactions),
+/// reply and more (the message menu), the Vue kit's set.
+class _HoverToolbar extends StatelessWidget {
+  const _HoverToolbar({super.key, this.onReact, this.onReply, this.onMore});
+
+  final ValueChanged<String>? onReact;
+  final VoidCallback? onReply;
+  final ValueChanged<Offset>? onMore;
+
+  static Offset _anchorOf(BuildContext context) {
+    final box = context.findRenderObject();
+    if (box is! RenderBox || !box.hasSize) return Offset.zero;
+    return box.localToGlobal(box.size.bottomLeft(Offset.zero));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = FlareColors.of(context);
+    final strings = FlareStrings.of(context);
+    Widget key(String icon, String label, void Function(BuildContext) onTap) =>
+        Builder(
+          builder: (context) => FlareIconButton(
+            icon: icon,
+            semanticLabel: label,
+            size: FlareControlSize.sm,
+            onPressed: () => onTap(context),
+          ),
+        );
+    return Material(
+      type: MaterialType.transparency,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: colors.bgElevated,
+          borderRadius: BorderRadius.circular(FlareSizes.radiusMd),
+          border: Border.all(color: colors.borderSecondary),
+          boxShadow: FlareShadows.of(Theme.of(context).brightness).card,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (onReact != null)
+              key('emoji', strings.addReaction, (context) async {
+                final box = context.findRenderObject() as RenderBox?;
+                final picked = await FlareActionMenu.show(
+                  context,
+                  label: strings.addReaction,
+                  anchor: box == null || !box.hasSize
+                      ? null
+                      : box.localToGlobal(Offset.zero) & box.size,
+                  presentation: FlareActionMenuPresentation.anchored,
+                  items: [
+                    for (final emoji in flareQuickReactions)
+                      FlareActionItem(id: emoji, label: emoji),
+                  ],
+                );
+                if (picked != null) onReact!(picked);
+              }),
+            if (onReply != null)
+              key('reply', strings.messageActionReply, (_) => onReply!()),
+            if (onMore != null)
+              key(
+                'more',
+                strings.more,
+                (context) => onMore!(_anchorOf(context)),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Centred notice line for system lines, recall and delete notices: no
+/// avatar, name, status, menu or selection.
 class _NoticeLine extends StatelessWidget {
   const _NoticeLine(this.text);
 
@@ -671,16 +1031,25 @@ class _NoticeLine extends StatelessWidget {
 /// sender's edge — the end for the current user's messages ([end]), the start
 /// for everyone else's — and with [trailingLast] the last row (the meta row)
 /// sits on the trailing edge for everyone, so every message's time lines up on
-/// the same side. With [quote] the first row is a quote that stretches to the
-/// width of the others, or widens the bubble up to its limit. Laid out without
-/// intrinsic measuring, which content renderers (host-registered ones
-/// included) are not required to support.
+/// the same side, [metaGap] under the row above it. With [quote] the first row
+/// is a quote that stretches to the width of the others, or widens the bubble
+/// up to its limit.
+///
+/// With [inlineMeta] (a text bubble, `spec/message-meta-placement-vectors.json`
+/// `inline`) the meta row tries the end of the text's last line first: when
+/// the line leaves room for it the meta sits there, bottom-aligned and never
+/// over the text, and the bubble grows to fit up to its limit; otherwise it
+/// drops to its own trailing row (`bubbleFooter`). Laid out without intrinsic
+/// measuring, which content renderers (host-registered ones included) are not
+/// required to support.
 class _BubbleColumn extends MultiChildRenderObjectWidget {
   const _BubbleColumn({
     required this.end,
     required this.textDirection,
     this.quote = false,
     this.trailingLast = false,
+    this.inlineMeta = false,
+    this.metaGap = 0,
     required super.children,
   });
 
@@ -694,12 +1063,20 @@ class _BubbleColumn extends MultiChildRenderObjectWidget {
   /// The last row sits on the trailing edge whatever [end] says.
   final bool trailingLast;
 
+  /// The last row is the meta of a text: put it after the last line if it fits.
+  final bool inlineMeta;
+
+  /// Space above the meta row when it has a row of its own.
+  final double metaGap;
+
   @override
   _RenderBubbleColumn createRenderObject(BuildContext context) =>
       _RenderBubbleColumn(
         end: end,
         quote: quote,
         trailingLast: trailingLast,
+        inlineMeta: inlineMeta,
+        metaGap: metaGap,
         textDirection: textDirection,
       );
 
@@ -712,6 +1089,8 @@ class _BubbleColumn extends MultiChildRenderObjectWidget {
       ..end = end
       ..quote = quote
       ..trailingLast = trailingLast
+      ..inlineMeta = inlineMeta
+      ..metaGap = metaGap
       ..textDirection = textDirection;
   }
 }
@@ -726,10 +1105,14 @@ class _RenderBubbleColumn extends RenderBox
     required bool end,
     required bool quote,
     required bool trailingLast,
+    required bool inlineMeta,
+    required double metaGap,
     required TextDirection textDirection,
   }) : _end = end,
        _quote = quote,
        _trailingLast = trailingLast,
+       _inlineMeta = inlineMeta,
+       _metaGap = metaGap,
        _textDirection = textDirection;
 
   bool _end;
@@ -753,6 +1136,20 @@ class _RenderBubbleColumn extends RenderBox
     markNeedsLayout();
   }
 
+  bool _inlineMeta;
+  set inlineMeta(bool value) {
+    if (value == _inlineMeta) return;
+    _inlineMeta = value;
+    markNeedsLayout();
+  }
+
+  double _metaGap;
+  set metaGap(double value) {
+    if (value == _metaGap) return;
+    _metaGap = value;
+    markNeedsLayout();
+  }
+
   TextDirection _textDirection;
   set textDirection(TextDirection value) {
     if (value == _textDirection) return;
@@ -760,11 +1157,51 @@ class _RenderBubbleColumn extends RenderBox
     markNeedsLayout();
   }
 
+  /// Whether the last layout put the meta after the text's last line (tests).
+  bool debugMetaInline = false;
+
+  /// Space between the end of the text and an inline meta.
+  static const double _inlineGap = FlareSizes.spacingSm;
+
   @override
   void setupParentData(RenderBox child) {
     if (child.parentData is! _BubbleColumnParentData) {
       child.parentData = _BubbleColumnParentData();
     }
+  }
+
+  /// The last paragraph drawn in [root], depth first: the text whose last
+  /// line an inline meta follows.
+  static RenderParagraph? _lastParagraph(RenderObject root) {
+    RenderParagraph? found;
+    void visit(RenderObject node) {
+      if (node is RenderParagraph) found = node;
+      node.visitChildren(visit);
+    }
+
+    visit(root);
+    return found;
+  }
+
+  /// Where the text in [body] ends: the end of its last line and the top of
+  /// that line, in [body]'s coordinates; null when there is no plain
+  /// paragraph to read (a selectable text, a custom renderer) or the text
+  /// runs right to left.
+  ({double x, double lineTop})? _textEnd(RenderBox body) {
+    if (_textDirection != TextDirection.ltr) return null;
+    final paragraph = _lastParagraph(body);
+    if (paragraph == null || !paragraph.hasSize) return null;
+    if (paragraph.textDirection != TextDirection.ltr) return null;
+    final length = paragraph.text
+        .toPlainText(includeSemanticsLabels: false)
+        .length;
+    final caret = paragraph.getOffsetForCaret(
+      TextPosition(offset: length),
+      Rect.zero,
+    );
+    final transform = paragraph.getTransformTo(body);
+    final point = MatrixUtils.transformPoint(transform, caret);
+    return (x: point.dx, lineTop: point.dy);
   }
 
   /// Sizes every child and, unless [dry], positions it.
@@ -790,6 +1227,26 @@ class _RenderBubbleColumn extends RenderBox
       rows.add((row, size));
       width = math.max(width, size.width);
     }
+
+    // An inline meta: after the last line of the text when there is room.
+    var inline = false;
+    if (!dry && _inlineMeta && _trailingLast && rows.length == 2) {
+      final (body, bodySize) = rows[0];
+      final (_, metaSize) = rows[1];
+      final textEnd = _textEnd(body);
+      if (textEnd != null) {
+        final needed = textEnd.x + _inlineGap + metaSize.width;
+        final lineHeight = bodySize.height - textEnd.lineTop;
+        if (needed <= maxWidth && metaSize.height <= lineHeight + 0.5) {
+          inline = true;
+          width = math.max(width, needed);
+          // Without a quote the bubble is no wider than the text and its meta.
+          if (quote == null) width = math.max(bodySize.width, needed);
+        }
+      }
+    }
+    debugMetaInline = inline;
+
     var top = 0.0;
     if (quote != null) {
       final quoteSize = measure(
@@ -802,13 +1259,28 @@ class _RenderBubbleColumn extends RenderBox
         (quote.parentData! as _BubbleColumnParentData).offset = Offset.zero;
       }
     }
-    final height = rows.fold(top, (sum, row) => sum + row.$2.height);
+    final gap = _trailingLast && rows.length > 1 && !inline ? _metaGap : 0.0;
+    final height = inline
+        ? top + rows[0].$2.height
+        : rows.fold(top, (sum, row) => sum + row.$2.height) + gap;
     final size = constraints.constrain(Size(width, height));
     if (dry) return size;
     final ltr = _textDirection == TextDirection.ltr;
+    if (inline) {
+      final (body, bodySize) = rows[0];
+      final (meta, metaSize) = rows[1];
+      // The text reads from the start edge; the meta closes its last line.
+      (body.parentData! as _BubbleColumnParentData).offset = Offset(0, top);
+      (meta.parentData! as _BubbleColumnParentData).offset = Offset(
+        size.width - metaSize.width,
+        top + bodySize.height - metaSize.height,
+      );
+      return size;
+    }
     for (var i = 0; i < rows.length; i++) {
       final (row, rowSize) = rows[i];
       final trailing = _trailingLast && i == rows.length - 1;
+      if (trailing && i > 0) top += gap;
       // The end edge is the right in a left-to-right layout.
       final right = (trailing || _end) == ltr;
       (row.parentData! as _BubbleColumnParentData).offset = Offset(

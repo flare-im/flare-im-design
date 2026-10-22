@@ -173,17 +173,25 @@ void main() {
         final view = FlarePluginViewModel.fromJson(
           (vector['view'] as Map).cast<String, Object?>(),
         );
+        final embedded = vector['embedded'] == true;
         await tester.pumpWidget(
           host(
             FlarePluginView(
               view: view,
+              embedded: embedded,
+              viewerId: vector['viewerId'] as String?,
+              displayName: vector['displayName'] as String?,
               resolveUser: resolveUser,
               onAction: (_, _) {},
             ),
           ),
         );
         final facts = vector['expect'] as Map<String, dynamic>;
-        expect(find.text(facts['title'] as String), findsWidgets);
+        // An embedded view has no title row (only an unavailable one names
+        // itself).
+        if (!embedded || !view.available) {
+          expect(find.text(facts['title'] as String), findsWidgets);
+        }
         for (final f in facts['fields'] as List) {
           expect(find.text((f as Map)['value'] as String), findsOneWidget);
         }
@@ -293,12 +301,29 @@ void main() {
                 fact['footer'],
               );
             case 'entries':
-              for (final r in fact['rows'] as List) {
-                final row = r as Map<String, dynamic>;
+              final rows = fact['rows'] as List;
+              for (var r = 0; r < rows.length; r += 1) {
+                final row = rows[r] as Map<String, dynamic>;
                 expect(texts, contains(row['text']));
                 if (row['name'] != null) expect(texts, contains(row['name']));
                 if (row['number'] != null)
                   expect(texts, contains('${row['number']}.'));
+                // Grouped lists: the header before the group's first row,
+                // and the viewer's own rows tagged "我".
+                if (row['group'] != null) {
+                  expect(texts, contains(row['group']));
+                }
+                if (row.containsKey('me')) {
+                  expect(
+                    find.byKey(ValueKey('flare-plugin-entry-me-$r')),
+                    row['me'] == true ? findsOneWidget : findsNothing,
+                    reason: '${vector['id']} row $r me',
+                  );
+                }
+              }
+              if ((view.blocks[i] as FlarePluginEntriesBlock).numbered ==
+                  false) {
+                expect(texts.where((t) => RegExp(r'^\d+\.$').hasMatch(t)), isEmpty);
               }
               if (fact['seeAll'] != null)
                 expect(texts, contains(fact['seeAll']));
@@ -386,8 +411,134 @@ void main() {
         }
         if (facts['bodyHidden'] == true)
           expect(find.byType(FlareButton), findsNothing);
+        // The reason line (rules.unavailableReason).
+        final reason = facts['reason'] as String?;
+        final reasonLine = find.byKey(FlarePluginView.reasonKey);
+        if (reason == null) {
+          expect(reasonLine, findsNothing);
+        } else {
+          expect(tester.widget<Text>(reasonLine).data, reason);
+        }
+        // The card's ⋯ menu (rules.menuActions): a key in the title row, or
+        // keys after the actions when embedded.
+        final menu = (facts['menu'] as List? ?? const [])
+            .cast<Map<String, dynamic>>();
+        if (menu.isEmpty || embedded) {
+          expect(find.byKey(FlarePluginView.menuKey), findsNothing);
+        }
+        if (menu.isNotEmpty && embedded) {
+          expect(facts['menuPresentation'], 'keys');
+          for (final item in menu) {
+            final key = tester.widget<FlareButton>(
+              find.byKey(ValueKey('flare-plugin-action-${item['id']}')),
+            );
+            expect(key.label, item['label']);
+            expect(key.variant.name, item['variant']);
+          }
+        } else if (menu.isNotEmpty) {
+          await tester.tap(find.byKey(FlarePluginView.menuKey));
+          await tester.pumpAndSettle();
+          for (final item in menu) {
+            expect(find.text(item['label'] as String), findsOneWidget);
+          }
+        }
       });
     }
+  });
+
+  group('protocol v2 rules', () {
+    test('unavailable reasons: the seven copies', () {
+      for (final v in (vectors['unavailableReasons'] as List)
+          .cast<Map<String, dynamic>>()) {
+        final reason = FlarePluginUnavailableReason.values.firstWhere(
+          (r) => flarePluginUnavailableReasonName(r) == v['reason'],
+        );
+        expect(flarePluginUnavailableReasonText(reason, zh), v['zh']);
+      }
+      expect(
+        (vectors['unavailableReasons'] as List).length,
+        FlarePluginUnavailableReason.values.length,
+      );
+    });
+
+    test('entry group headers: label · N 票 · P%', () {
+      for (final v in (vectors['entryGroupHeaders'] as List)
+          .cast<Map<String, dynamic>>()) {
+        final group = FlarePluginEntryGroup.fromJson(
+          (v['group'] as Map).cast<String, Object?>(),
+        );
+        expect(flarePluginEntryGroupHeader(group, zh), v['zh']);
+        expect(flarePluginEntryGroupHeader(group, flareStringsEnglish), v['en']);
+      }
+    });
+
+    testWidgets('a menu action runs like a button: confirm, then action', (
+      tester,
+    ) async {
+      final calls = <String>[];
+      await tester.pumpWidget(
+        host(
+          FlarePluginView(
+            view: viewOf('poll-v2-menu'),
+            onAction: (id, _) => calls.add(id),
+          ),
+        ),
+      );
+      await tester.tap(find.byKey(FlarePluginView.menuKey));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('结束投票'));
+      await tester.pumpAndSettle();
+      // The danger confirm comes first.
+      expect(calls, isEmpty);
+      expect(find.text('结束后不能再投票，确定结束吗？'), findsOneWidget);
+      await tester.tap(find.widgetWithText(FlareButton, '结束投票').last);
+      await tester.pumpAndSettle();
+      expect(calls, ['close']);
+    });
+
+    testWidgets('busy disables the ⋯ key', (tester) async {
+      await tester.pumpWidget(
+        host(
+          FlarePluginView(
+            view: viewOf('poll-v2-menu'),
+            busy: true,
+            onAction: (_, _) {},
+          ),
+        ),
+      );
+      expect(
+        tester.widget<FlareIconButton>(find.byKey(FlarePluginView.menuKey))
+            .disabled,
+        isTrue,
+      );
+    });
+
+    testWidgets('a read-only copy draws its content and no controls', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          FlarePluginView(
+            view: viewOf('unbound-copy'),
+            onAction: (_, _) {},
+            onOpenDetail: () {},
+          ),
+        ),
+      );
+      expect(find.text('桌游'), findsOneWidget);
+      expect(find.byType(FlareButton), findsNothing);
+      expect(find.byKey(FlarePluginView.menuKey), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('flare-plugin-option-1')),
+          matching: find.byType(InkWell),
+        ),
+        findsNothing,
+      );
+      final line = tester.widget<Text>(find.byKey(FlarePluginView.reasonKey));
+      expect(line.data, '副本，仅供查看');
+      expect(line.style!.color, FlareColors.light.textTertiary);
+    });
   });
 
   group('optimistic choices', () {

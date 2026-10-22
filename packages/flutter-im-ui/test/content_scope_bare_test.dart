@@ -2,8 +2,10 @@ import 'package:flare_im_ui/flare_im_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// A custom content builder can ask to be drawn without a bubble (`bare`),
-/// and every builder learns which message and conversation it draws.
+/// A host registers the surface of a content key the kit does not know
+/// (`spec/message-surface-vectors.json` rules.registration); custom and plugin
+/// content is a card without registering anything. Every builder learns which
+/// message and conversation it draws.
 void main() {
   const bubblePadding = EdgeInsets.symmetric(
     horizontal: FlareSizes.componentBubblePaddingX,
@@ -13,16 +15,16 @@ void main() {
     (w) => w is Padding && w.padding == bubblePadding,
   );
 
-  FlareMessageData message({String? serverId = 'server-1'}) => FlareMessageData(
+  FlareMessageData message({
+    String? serverId = 'server-1',
+    String type = 'packet',
+  }) => FlareMessageData(
     id: 'client-1',
     serverId: serverId,
     senderId: 'ivy',
     senderName: 'Ivy',
     timeLabel: '10:02',
-    content: const FlareGenericContent(
-      contentType: 'packet',
-      label: 'Red packet',
-    ),
+    content: FlareGenericContent(contentType: type, label: 'Red packet'),
   );
 
   FlareContentContext? seen;
@@ -41,14 +43,14 @@ void main() {
 
   setUp(() => seen = null);
 
-  testWidgets('a builder registered bare loses the bubble and keeps the time', (
+  testWidgets('a key registered as a card loses the bubble and keeps the time', (
     tester,
   ) async {
     await tester.pumpWidget(
       host(
         FlareContentScope(
           builders: {'packet': probe},
-          bareTypes: const {'packet'},
+          surfaces: const {'packet': FlareMessageSurface.card},
           child: FlareMessageBubble(
             message: message(),
             currentUserId: 'me',
@@ -60,9 +62,31 @@ void main() {
     expect(find.byKey(const Key('probe')), findsOneWidget);
     expect(framed, findsNothing);
     expect(find.text('10:02'), findsOneWidget);
+    expect(seen?.surface, FlareMessageSurface.card);
   });
 
-  testWidgets('a builder without bare keeps the bubble', (tester) async {
+  testWidgets('a custom subtype is a card without registering anything', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        FlareContentScope(
+          builders: {'custom': probe},
+          child: FlareMessageBubble(
+            message: message(type: 'custom:flare.plugin.message.v1'),
+            currentUserId: 'me',
+          ),
+        ),
+      ),
+    );
+    expect(find.byKey(const Key('probe')), findsOneWidget);
+    expect(framed, findsNothing);
+    expect(find.byKey(FlareMessageBubble.bubbleSurfaceKey), findsNothing);
+  });
+
+  testWidgets('an unknown key without a registration keeps the bubble', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       host(
         FlareContentScope(
@@ -75,22 +99,35 @@ void main() {
     expect(framed, findsOneWidget);
   });
 
-  testWidgets('the global registry takes bare too, and unregister clears it', (
+  testWidgets('the global registry takes a surface too, and unregister clears it', (
     tester,
   ) async {
-    FlareContentRegistry.register('packet', probe, bare: true);
+    FlareContentRegistry.register(
+      'packet',
+      probe,
+      surface: FlareMessageSurface.bareMedia,
+    );
     addTearDown(() => FlareContentRegistry.unregister('packet'));
     await tester.pumpWidget(
       host(FlareMessageBubble(message: message(), currentUserId: 'me')),
     );
     expect(framed, findsNothing);
-    expect(FlareContentRegistry.isBare('packet'), isTrue);
+    expect(
+      FlareContentRegistry.surfaceOf('packet'),
+      FlareMessageSurface.bareMedia,
+    );
     FlareContentRegistry.unregister('packet');
-    expect(FlareContentRegistry.isBare('packet'), isFalse);
+    expect(FlareContentRegistry.surfaceOf('packet'), isNull);
   });
 
-  testWidgets('a scope builder decides over a bare global one', (tester) async {
-    FlareContentRegistry.register('packet', probe, bare: true);
+  testWidgets('a scope builder decides over a global registration', (
+    tester,
+  ) async {
+    FlareContentRegistry.register(
+      'packet',
+      probe,
+      surface: FlareMessageSurface.bareMedia,
+    );
     addTearDown(() => FlareContentRegistry.unregister('packet'));
     await tester.pumpWidget(
       host(
@@ -101,6 +138,33 @@ void main() {
       ),
     );
     expect(framed, findsOneWidget);
+  });
+
+  testWidgets('a registered bare media with a quote goes back in a bubble', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        FlareContentScope(
+          builders: {'custom': probe},
+          surfaces: const {'custom:acme.gif': FlareMessageSurface.bareMedia},
+          child: FlareMessageBubble(
+            message: FlareMessageData(
+              id: 'q',
+              senderId: 'ivy',
+              senderName: 'Ivy',
+              content: const FlareGenericContent(
+                contentType: 'custom:acme.gif',
+                label: 'gif',
+              ),
+              replyTo: const FlareReplyTarget(senderName: 'Bo', summary: 'hi'),
+            ),
+            currentUserId: 'me',
+          ),
+        ),
+      ),
+    );
+    expect(find.byKey(FlareMessageBubble.bubbleSurfaceKey), findsOneWidget);
   });
 
   testWidgets('builders receive the server id and the conversation', (

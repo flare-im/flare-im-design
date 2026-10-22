@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:video_player/video_player.dart';
 
+import 'hanging_http.dart';
+
 // FR-078: without a host media handler, a received image opens in the kit
 // preview, a video in the kit player and a voice message plays in its bubble,
 // one at a time. A host handler takes every media tap instead.
@@ -123,6 +125,9 @@ Finder _voiceAt(WidgetTester tester, int index) =>
     find.byWidget(_voices(tester)[index]);
 
 void main() {
+  // A tap on a picture that failed to load retries it; these tests are about
+  // what a tap on a loading picture opens.
+  installHangingHttp(setUpAll, tearDownAll);
   late List<_FakePlayer> players;
   late Set<String> failing;
 

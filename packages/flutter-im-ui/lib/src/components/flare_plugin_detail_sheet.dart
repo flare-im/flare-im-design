@@ -7,6 +7,7 @@ import '../tokens/flare_tokens.dart';
 import 'flare_bottom_sheet.dart';
 import 'flare_button.dart';
 import 'flare_plugin_view.dart';
+import 'plugin_paging.dart';
 
 /// "See all" of a plugin card (spec Overlay/PluginDetailSheet): the detail
 /// view (core SDK plugin_detail) as an embedded [FlarePluginView], a spinner
@@ -37,6 +38,7 @@ class FlarePluginDetailSheet extends StatefulWidget {
     this.loading = false,
     this.error,
     this.resolveUser,
+    this.viewerId,
     this.busyActionId,
     this.actionError,
     this.formErrors = const [],
@@ -56,6 +58,9 @@ class FlarePluginDetailSheet extends StatefulWidget {
   /// Loading failed: the host's text, with a retry key.
   final String? error;
   final FlarePluginResolveUser? resolveUser;
+
+  /// The viewer's user id, for the "我" tag in grouped entries.
+  final String? viewerId;
   final String? busyActionId;
 
   /// Failure of an action run from the detail, shown inside the sheet under
@@ -104,29 +109,30 @@ class FlarePluginDetailSheet extends StatefulWidget {
 class _FlarePluginDetailSheetState extends State<FlarePluginDetailSheet> {
   /// The cursor the sheet last asked for: while it is still the view's, that
   /// page is on its way.
-  String? _asked;
+  final _cursor = FlarePluginPageCursor();
 
   @override
   void didUpdateWidget(FlarePluginDetailSheet old) {
     super.didUpdateWidget(old);
     // A retry is allowed once the host is done, settles, or reports a failure.
-    final failed =
-        (widget.actionError ?? '').isNotEmpty &&
-        widget.actionError != old.actionError;
-    if ((old.loadingMore && !widget.loadingMore) ||
-        widget.settleToken != old.settleToken ||
-        failed) {
-      _asked = null;
-    }
+    _cursor.update(
+      wasLoadingMore: old.loadingMore,
+      loadingMore: widget.loadingMore,
+      oldSettleToken: old.settleToken,
+      settleToken: widget.settleToken,
+      oldError: old.actionError,
+      error: widget.actionError,
+    );
   }
 
   void _loadMore(String cursor) {
-    if (_pageBusy(cursor)) return;
-    setState(() => _asked = cursor);
+    if (!_cursor.ask(cursor, loadingMore: widget.loadingMore)) return;
+    setState(() {});
     widget.onLoadMore?.call(cursor);
   }
 
-  bool _pageBusy(String cursor) => widget.loadingMore || _asked == cursor;
+  bool _pageBusy(String cursor) =>
+      _cursor.busy(cursor, loadingMore: widget.loadingMore);
 
   @override
   Widget build(BuildContext context) {
@@ -180,6 +186,7 @@ class _FlarePluginDetailSheetState extends State<FlarePluginDetailSheet> {
         view: view!,
         embedded: true,
         resolveUser: widget.resolveUser,
+        viewerId: widget.viewerId,
         busyActionId: widget.busyActionId,
         error: widget.actionError,
         formErrors: widget.formErrors,

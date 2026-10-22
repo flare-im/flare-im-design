@@ -20,8 +20,11 @@ import 'flare_overlay.dart';
 /// the host claims and sets [FlareRedPacketOpenState.opening], which flips the
 /// coin (a progress label instead when the platform asks for reduced motion)
 /// and blocks a second press. Finished, expired and not-eligible packets say
-/// why (the host's [message] replaces the default copy) and offer
-/// [onViewDetails].
+/// why (the host's [message] replaces the default copy). The details key
+/// ([onViewDetails]) shows only for a finished or expired packet whose
+/// personal layer lets the viewer see them ([canViewDetails]); a not-eligible
+/// viewer never gets one — the server returns no amounts or records to them
+/// (`spec/red-packet-vectors.json` → openSheet).
 ///
 /// The widget fills its parent and paints the scrim itself, so a host can lay
 /// it over a page in a [Stack]; [FlareRedPacketOpenSheet.show] puts it on its
@@ -36,6 +39,7 @@ class FlareRedPacketOpenSheet extends StatefulWidget {
     this.kindLabel,
     this.state = FlareRedPacketOpenState.ready,
     this.message,
+    this.canViewDetails = true,
     this.onOpen,
     this.onViewDetails,
     this.onClose,
@@ -51,6 +55,10 @@ class FlareRedPacketOpenSheet extends StatefulWidget {
 
   /// Host notice that replaces the default copy of a non-ready state.
   final String? message;
+
+  /// From the personal layer: a finished or expired sheet offers the details
+  /// key only when true. [FlareRedPacketOpenState.notEligible] never does.
+  final bool canViewDetails;
   final VoidCallback? onOpen;
   final VoidCallback? onViewDetails;
   final VoidCallback? onClose;
@@ -95,15 +103,12 @@ class _FlareRedPacketOpenSheetState extends State<FlareRedPacketOpenSheet>
 
   bool get _opening => widget.state == FlareRedPacketOpenState.opening;
 
-  bool get _showsCoin =>
-      widget.state == FlareRedPacketOpenState.ready ||
-      widget.state == FlareRedPacketOpenState.opening ||
-      widget.state == FlareRedPacketOpenState.error;
+  bool get _showsCoin => flareRedPacketOpenSheetKeys(widget.state).coin;
 
-  bool get _showsDetails =>
-      widget.state == FlareRedPacketOpenState.finished ||
-      widget.state == FlareRedPacketOpenState.expired ||
-      widget.state == FlareRedPacketOpenState.notEligible;
+  bool get _showsDetails => flareRedPacketOpenSheetKeys(
+    widget.state,
+    canViewDetails: widget.canViewDetails,
+  ).details;
 
   @override
   void didChangeDependencies() {

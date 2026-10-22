@@ -92,14 +92,22 @@ void main() {
   });
 
   test('message grouping covers sender, time and system boundaries', () {
-    final messages = [
+    // The rows the list groups: each message on the surface it draws on.
+    List<FlareTimelineItem> items(List<FlareMessageData> messages) => [
+      for (final m in messages)
+        FlareTimelineItem.of(
+          m,
+          flareMessageSurface(flareMessageSurfaceInputOf(m)),
+        ),
+    ];
+    final messages = items([
       message('1', 'ivy', 1000),
       message('2', 'ivy', 2000),
       message('3', 'ivy', 400000),
       message('4', 'system', 401000, system: true),
       message('5', 'ivy', 402000),
       message('6', 'me', 403000),
-    ];
+    ]);
     expect(
       flareMessageGroupPosition(messages, 0),
       FlareMessageGroupPosition.first,
@@ -122,7 +130,7 @@ void main() {
     );
 
     // A recalled message is a notice: it stands alone and ends the sender's run.
-    final recalledRun = [
+    final recalledRun = items([
       message('r1', 'ivy', 1000),
       message('r2', 'ivy', 2000),
       FlareMessageData(
@@ -136,7 +144,7 @@ void main() {
         ),
       ),
       message('r4', 'ivy', 4000),
-    ];
+    ]);
     expect(
       [
         for (var i = 0; i < recalledRun.length; i++)
@@ -151,13 +159,13 @@ void main() {
     );
 
     final incoming = flareMessageRowPresentation(
-      message: messages.first,
+      item: messages.first,
       position: FlareMessageGroupPosition.first,
       currentUserId: 'me',
       groupConversation: true,
     );
     final outgoing = flareMessageRowPresentation(
-      message: messages.last,
+      item: messages.last,
       position: FlareMessageGroupPosition.single,
       currentUserId: 'me',
       groupConversation: true,

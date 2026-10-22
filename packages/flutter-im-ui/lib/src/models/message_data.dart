@@ -2,6 +2,7 @@ import '../components/flare_message_status.dart';
 import 'directory_data.dart' show FlareReactionGroup;
 import 'message_content.dart';
 import 'message_lifecycle.dart';
+import 'message_surface.dart' show FlareMessageReadSummary;
 
 /// What a message replies to: the composer's reply strip before sending, the
 /// quote at the top of a sent bubble after. [messageId] is the quoted
@@ -38,6 +39,7 @@ class FlareMessageData {
     this.reactions = const [],
     this.replyTo,
     this.uploadProgress,
+    this.readSummary,
   });
 
   final String id;
@@ -57,7 +59,9 @@ class FlareMessageData {
   final String timeLabel;
   final int sentAtMs;
 
-  /// Delivery status; only surfaced on the current user's own messages.
+  /// Receipt status (the core SDK's MessageReceiptView.status); only surfaced
+  /// on the current user's own messages. Five states: there is no delivered
+  /// one (`spec/message-receipt-vectors.json`).
   final FlareMessageDeliveryStatus status;
   final FlareMessageLifecycle? lifecycle;
   final bool edited;
@@ -74,6 +78,12 @@ class FlareMessageData {
   /// `localState.uploadProgress`.
   final int? uploadProgress;
 
+  /// The core SDK's group read summary of the viewer's own message
+  /// (MessageReceiptView.readSummary): with status sent or read it replaces
+  /// the check with "N 人未读" / "全部已读". Null in single chats, in groups
+  /// above the large-group threshold and before the data exists.
+  final FlareMessageReadSummary? readSummary;
+
   /// System/notification lines render centred, without a bubble.
   bool get isSystem => content is FlareNotificationContent;
 
@@ -81,4 +91,8 @@ class FlareMessageData {
   /// mutation outranks everything).
   bool get isRecalled =>
       lifecycle?.mutation == FlareMessageMutationState.recalled;
+
+  /// A deleted message renders as the centred "消息已删除" notice.
+  bool get isDeleted =>
+      lifecycle?.mutation == FlareMessageMutationState.deleted;
 }

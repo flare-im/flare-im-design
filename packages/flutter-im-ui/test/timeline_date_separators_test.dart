@@ -289,7 +289,10 @@ void main() {
       );
       final colors = FlareColors.resolve(Brightness.light);
       final quiet = decoration(false);
-      expect(quiet.color, colors.bgSecondary);
+      // Its ground differs from the timeline canvas (bgSecondary), so it reads
+      // as a pill (spec/message-grouping-vectors.json rules.datePill).
+      expect(quiet.color, colors.bgTertiary);
+      expect(quiet.color, isNot(colors.bgSecondary));
       expect(quiet.border, isNull);
       expect(quiet.boxShadow, isNull);
       final floating = decoration(true);

@@ -12,6 +12,9 @@ import '../models/location.dart';
 import '../platform/flare_platform.dart';
 import '../models/message_content.dart';
 import 'flare_media_image.dart';
+import 'flare_message_card_shell.dart';
+import '../models/message_data.dart';
+import '../models/message_surface.dart';
 import '../models/url_safety.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_unknown_message.dart';
@@ -28,10 +31,22 @@ class FlareContentContext {
     this.onMediaAction,
     this.onOpenLink,
     this.onLocate,
+    this.selectionMode = false,
+    this.surface,
   });
 
   final bool self;
   final bool previewMode;
+
+  /// The row is in multi-select: every control in the content is inert and a
+  /// tap goes to the row (spec MessageContentView `selectionMode`). The kit
+  /// already ignores pointers then; a builder uses it to draw its controls
+  /// disabled.
+  final bool selectionMode;
+
+  /// The surface the row draws the content on; a card builder's shell is the
+  /// card surface itself (nothing is drawn around it).
+  final FlareMessageSurface? surface;
   final String? senderName;
 
   /// The message being drawn: its server id when it has one (what the SDK and
@@ -68,71 +83,110 @@ typedef FlareContentBuilder =
 
 /// Extension callback ownership follows the widget tree and its session.
 ///
-/// A type in [bareTypes] is drawn without a bubble — no bubble surface and no
-/// bubble padding, the way a lone picture is — while its row keeps the avatar,
-/// name, time, selection and menu. Use it for content that brings its own
-/// surface (a red packet card).
+/// [surfaces] registers the surface of a content key the kit does not know
+/// (`spec/message-surface-vectors.json` rules.registration): `card` or
+/// `bareMedia`. Every custom and plugin content (`custom`, `custom:<subtype>`)
+/// is already a card by default — red packets and all plugin cards — so a host
+/// registers only a new kind of content, such as a bare animated picture. A
+/// key is the content type with its subtype (`custom:acme.gif`) or the type
+/// alone (`custom`); the longer key wins.
 class FlareContentScope extends InheritedWidget {
   const FlareContentScope({
     super.key,
     required this.builders,
-    this.bareTypes = const <String>{},
+    this.surfaces = const <String, FlareMessageSurface>{},
     required super.child,
   });
   final Map<String, FlareContentBuilder> builders;
-  final Set<String> bareTypes;
+  final Map<String, FlareMessageSurface> surfaces;
   static FlareContentBuilder? lookup(BuildContext context, String type) =>
       context
           .dependOnInheritedWidgetOfExactType<FlareContentScope>()
           ?.builders[type];
 
-  /// Whether the builder that draws [type] — from the nearest scope, else the
-  /// global [FlareContentRegistry] — asked to be drawn without a bubble.
-  static bool isBare(BuildContext context, String type) {
+  /// The builder that draws [type]: its full key first (`custom:acme.poll`),
+  /// then the content type before `:` (`custom`); for each key the nearest
+  /// scope, then the global [FlareContentRegistry].
+  static FlareContentBuilder? builderFor(BuildContext context, String type) {
+    final colon = type.indexOf(':');
+    for (final key in [type, if (colon > 0) type.substring(0, colon)]) {
+      final builder = lookup(context, key) ?? FlareContentRegistry.lookup(key);
+      if (builder != null) return builder;
+    }
+    return null;
+  }
+
+  /// The surface registered for [type]: its full key first, then the content
+  /// type before `:`; for each key the nearest scope that knows it decides,
+  /// then the global [FlareContentRegistry].
+  static FlareMessageSurface? surfaceFor(BuildContext context, String type) {
     final scope = context
         .dependOnInheritedWidgetOfExactType<FlareContentScope>();
-    if (scope != null && scope.builders.containsKey(type)) {
-      return scope.bareTypes.contains(type);
+    final colon = type.indexOf(':');
+    for (final key in [type, if (colon > 0) type.substring(0, colon)]) {
+      if (scope != null &&
+          (scope.surfaces.containsKey(key) ||
+              scope.builders.containsKey(key))) {
+        return scope.surfaces[key];
+      }
+      if (FlareContentRegistry._knows(key)) {
+        return FlareContentRegistry.surfaceOf(key);
+      }
     }
-    return FlareContentRegistry.isBare(type);
+    return null;
   }
+
+  /// The surface [message] is drawn on (`flareMessageSurface` with the
+  /// registration for its content).
+  static FlareMessageSurface surfaceOf(
+    BuildContext context,
+    FlareMessageData message,
+  ) => flareMessageSurface(
+    flareMessageSurfaceInputOf(
+      message,
+      registered: surfaceFor(context, message.content.type),
+    ),
+  );
 
   @override
   bool updateShouldNotify(FlareContentScope oldWidget) =>
       builders != oldWidget.builders ||
-      !setEquals(bareTypes, oldWidget.bareTypes);
+      !mapEquals(surfaces, oldWidget.surfaces);
 }
 
 /// Registry for product content types (`vote`, `task`, …). Built-in types are
 /// rendered directly by [FlareMessageContentView]; register a builder to add or
-/// override a type, with [bare] to draw it without a bubble.
+/// override a type, with [surface] for a new kind of content that is not a
+/// card (see [FlareContentScope.surfaces]).
 abstract final class FlareContentRegistry {
   static final Map<String, FlareContentBuilder> _builders = {};
-  static final Set<String> _bare = {};
+  static final Map<String, FlareMessageSurface> _surfaces = {};
 
   static void register(
     String type,
     FlareContentBuilder builder, {
-    bool bare = false,
+    FlareMessageSurface? surface,
   }) {
     _builders[type] = builder;
-    if (bare) {
-      _bare.add(type);
+    if (surface != null) {
+      _surfaces[type] = surface;
     } else {
-      _bare.remove(type);
+      _surfaces.remove(type);
     }
   }
 
   static void unregister(String type) {
     _builders.remove(type);
-    _bare.remove(type);
+    _surfaces.remove(type);
   }
 
   static FlareContentBuilder? lookup(String type) => _builders[type];
 
-  /// Whether a builder is registered for [type] with `bare: true`.
-  static bool isBare(String type) =>
-      _builders.containsKey(type) && _bare.contains(type);
+  /// The surface registered with the builder for [type].
+  static FlareMessageSurface? surfaceOf(String type) => _surfaces[type];
+
+  static bool _knows(String type) =>
+      _builders.containsKey(type) || _surfaces.containsKey(type);
 }
 
 /// Content-type dispatcher — renders a message body by type. Spec:
@@ -174,9 +228,26 @@ class FlareMessageContentView extends StatelessWidget {
     this.onMediaDownload,
     this.onMediaReveal,
     this.uploading = false,
+    this.surface,
+    this.failed = false,
+    this.selectionMode = false,
   });
 
   final FlareMessageContent content;
+
+  /// The surface the content is drawn on (`spec/message-surface-vectors.json`).
+  /// Only a [FlareMessageSurface.bubble] takes the bubble's text colours; a
+  /// built-in card body gets the kit card shell ([FlareMessageCardShell]) as
+  /// its surface. Null derives it from the content alone.
+  final FlareMessageSurface? surface;
+
+  /// The viewer's own message failed: on a bubble the text takes the failed
+  /// colours (`message.failed.*`).
+  final bool failed;
+
+  /// The row is in multi-select: the content is inert and a tap goes to the
+  /// row, which toggles its selection.
+  final bool selectionMode;
 
   /// This device's own message whose media is still uploading
   /// (`FlareMessageData.uploadProgress`). Its pictures may then come from the
@@ -240,8 +311,25 @@ class FlareMessageContentView extends StatelessWidget {
   /// download again. Without it a saved media has no key.
   final ValueChanged<FlareMessageContent>? onMediaReveal;
 
+  /// The surface when none is given: the content alone, as if unquoted.
+  FlareMessageSurface _surface(BuildContext context) {
+    final given = surface;
+    if (given != null) return given;
+    final key = flareMessageContentKey(content);
+    final loneEmoji = flareIsLoneEmojiContent(content);
+    return flareMessageSurface(
+      FlareMessageSurfaceInput(
+        contentType: loneEmoji ? 'text' : key.contentType,
+        subtype: key.subtype,
+        loneEmoji: loneEmoji,
+        registered: FlareContentScope.surfaceFor(context, content.type),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final surface = _surface(context);
     final ctx = FlareContentContext(
       self: self,
       previewMode: previewMode,
@@ -252,32 +340,57 @@ class FlareMessageContentView extends StatelessWidget {
       onMediaAction: onMediaAction,
       onOpenLink: onOpenLink,
       onLocate: onLocate,
+      selectionMode: selectionMode,
+      surface: surface,
     );
 
-    final custom =
-        FlareContentScope.lookup(context, content.type) ??
-        FlareContentRegistry.lookup(content.type);
-    if (custom != null) return custom(context, content, ctx);
+    final custom = FlareContentScope.builderFor(context, content.type);
+    if (custom != null) {
+      return IgnorePointer(
+        ignoring: selectionMode,
+        child: custom(context, content, ctx),
+      );
+    }
 
     final colors = FlareColors.of(context);
-    // The same content bodies serve standalone previews and runtime bubbles.
-    // Outgoing foregrounds are scoped here; bodies never own a second surface.
-    final foreground = self
-        ? colors.messageOutgoingForeground
-        : colors.messageIncomingForeground;
-    return FlareTheme(
-      colors: colors.copyWith(
-        textPrimary: foreground,
-        textSecondary: foreground,
-        textTertiary: foreground.withValues(alpha: 0.8),
-        primary: self ? foreground : colors.primaryText,
-      ),
-      child: IconTheme(
-        data: IconThemeData(color: foreground, size: FlareSizes.iconSizeMd),
-        child: _body(context),
-      ),
-    );
+    Widget body = _body(context, surface);
+    if (surface == FlareMessageSurface.bubble) {
+      // The same content bodies serve standalone previews and runtime
+      // bubbles. Only a bubble scopes its foreground here; on a card or bare
+      // media the body keeps the neutral palette of its own surface.
+      final foreground = failed
+          ? colors.messageFailedForeground
+          : self
+          ? colors.messageOutgoingForeground
+          : colors.messageIncomingForeground;
+      body = FlareTheme(
+        colors: colors.copyWith(
+          textPrimary: foreground,
+          textSecondary: foreground,
+          textTertiary: foreground.withValues(alpha: 0.8),
+          primary: self && !failed ? foreground : colors.primaryText,
+        ),
+        child: IconTheme(
+          data: IconThemeData(color: foreground, size: FlareSizes.iconSizeMd),
+          child: body,
+        ),
+      );
+    } else if (surface == FlareMessageSurface.card && _needsCardShell) {
+      body = FlareMessageCardShell(child: body);
+    }
+    return IgnorePointer(ignoring: selectionMode, child: body);
   }
+
+  /// Built-in card bodies that have no shell of their own: the kit card shell
+  /// is their surface. A location card and a red packet bring their own.
+  bool get _needsCardShell => switch (content) {
+    FlareLocationContent() => false,
+    FlareImageContent() ||
+    FlareVideoContent() ||
+    FlareStickerContent() ||
+    FlareEmojiContent() => false,
+    _ => true,
+  };
 
   /// Reports a tapped link to the host, but only an address the chat may open
   /// (`safeExternalUrl`): `javascript:` and friends never leave the kit.
@@ -335,7 +448,9 @@ class FlareMessageContentView extends StatelessWidget {
     return state == null ? null : _FixedDownloadState(state);
   }
 
-  Widget _body(BuildContext context) {
+  Widget _body(BuildContext context, FlareMessageSurface surface) {
+    // A lone emoji is bare media; quoted it is a line of text in a bubble.
+    final bare = surface != FlareMessageSurface.bubble;
     VoidCallback? action(FlareMessageContent value) =>
         onMediaAction == null ? null : () => onMediaAction!(value);
     if (uploading) {
@@ -345,7 +460,9 @@ class FlareMessageContentView extends StatelessWidget {
     final media = FlareMediaScope.maybeOf(context);
     final body = switch (content) {
       FlareTextContent c
-          when c.mentions.isEmpty && flareIsStandaloneEmojiMessage(c.text) =>
+          when bare &&
+              c.mentions.isEmpty &&
+              flareIsStandaloneEmojiMessage(c.text) =>
         FlareEmojiMessage(emoji: c.text.trim()),
       FlareTextContent c => FlareTextMessage(
         text: c.text,
@@ -354,7 +471,8 @@ class FlareMessageContentView extends StatelessWidget {
         onLinkTap: _openLink,
       ),
       FlareRichTextContent c
-          when c.title.trim().isEmpty &&
+          when bare &&
+              c.title.trim().isEmpty &&
               flareIsStandaloneEmojiMessage(c.plainText) =>
         FlareEmojiMessage(emoji: c.plainText.trim()),
       FlareRichTextContent c => FlareRichTextMessage(
@@ -417,8 +535,10 @@ class FlareMessageContentView extends StatelessWidget {
       FlareVideoContent c => FlareVideoMessage(
         poster: c.poster,
         duration: _duration(c.durationSec),
-        onPlay:
-            action(c) ??
+        // No address yet (the media is still being resolved): nothing plays.
+        onPlay: c.url.trim().isEmpty
+            ? action(c)
+            : action(c) ??
             () {
               // A video and a voice message never talk over each other.
               if (media != null) unawaited(media.stopVoice());
