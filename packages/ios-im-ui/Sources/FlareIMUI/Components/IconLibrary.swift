@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Ordered list of the 107 semantic icon names supported by `IconView`.
+/// Ordered list of the 108 semantic icon names supported by `IconView`.
 public let flareIconNames: [String] = [
     "search", "send", "more", "back", "close",
     "check", "add", "remove", "edit", "delete",
@@ -32,6 +32,8 @@ public let flareIconNames: [String] = [
     "chevron-up", "chevron-left", "keyboard", "mini-app",
     "pin-self", "diagnostics", "card", "id", "join-request", "storage",
     "red-packet", "plugin",
+    // The location picker's "use current location" key.
+    "locate",
 ]
 
 /// Maps each semantic icon name to the closest SF Symbol name. Every symbol is in the SF Symbols
@@ -159,6 +161,8 @@ public let flareIconMap: [String: String] = [
     "red-packet": "envelope",
     // The generic plugin glyph: a "+" tile whose icon is not a registry name draws it.
     "plugin": "puzzlepiece.extension",
+    // A crosshair, not the map pin `location` draws.
+    "locate": "scope",
 ]
 
 /// The names the kit draws itself rather than with an SF Symbol: ``FlareIconImage`` draws them, and the symbol in

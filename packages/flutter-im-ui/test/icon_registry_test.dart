@@ -6,9 +6,9 @@ import 'package:flutter_test/flutter_test.dart';
 // The semantic icon registry: one fixed vocabulary, the same names in the same
 // order on Vue / Flutter / SwiftUI / Compose, each name drawn by one glyph.
 void main() {
-  test('the registry holds 107 unique names, each with a glyph, in order', () {
-    expect(flareIconNames, hasLength(107));
-    expect(flareIconNames.toSet(), hasLength(107));
+  test('the registry holds 108 unique names, each with a glyph, in order', () {
+    expect(flareIconNames, hasLength(108));
+    expect(flareIconNames.toSet(), hasLength(108));
     expect(flareIconMap.keys.toList(), flareIconNames);
     // The shared prefix of the contract order: chats and moments follow comment.
     expect(flareIconNames.sublist(0, 15), [
@@ -127,10 +127,16 @@ void main() {
     expect(glyph.fontPackage, 'flare_im_ui');
   });
 
-  test('plugin, the generic plugin glyph, closes the registry', () {
-    expect(flareIconNames.last, 'plugin');
+  test('plugin, the generic plugin glyph, comes before locate', () {
+    expect(flareIconNames[flareIconNames.length - 2], 'plugin');
     expect(flareIconMap['plugin'], Icons.extension_outlined);
     expect(flareIconGlyph('plugin'), Icons.extension_outlined);
+  });
+
+  test('locate, the picker\'s current-location key, closes the registry', () {
+    expect(flareIconNames.last, 'locate');
+    expect(flareIconMap['locate'], Icons.my_location_outlined);
+    expect(flareIconMap['locate'], isNot(flareIconMap['location']));
   });
 
   test('names that used to share a glyph now draw different ones', () {

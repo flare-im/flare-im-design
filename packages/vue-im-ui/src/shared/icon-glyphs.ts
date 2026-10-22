@@ -82,6 +82,7 @@ import {
   List as LuList,
   ListChecks as LuListChecks,
   ListOrdered as LuListOrdered,
+  LocateFixed as LuLocateFixed,
   Lock as LuLock,
   LogIn as LuLogIn,
   LogOut as LuLogOut,
@@ -226,6 +227,7 @@ const REGISTRY: Record<string, Component> = {
   List: LuList,
   ListChecks: LuListChecks,
   ListOrdered: LuListOrdered,
+  LocateFixed: LuLocateFixed,
   Lock: LuLock,
   LogIn: LuLogIn,
   LogOut: LuLogOut,
@@ -458,3 +460,4 @@ export const HashOutline = /*#__PURE__*/ glyph("Hash");
 export const IdCardOutline = /*#__PURE__*/ glyph("Contact");
 export const ServerOutline = /*#__PURE__*/ glyph("HardDrive");
 export const ExtensionPuzzleOutline = /*#__PURE__*/ glyph("Puzzle");
+export const LocateOutline = /*#__PURE__*/ glyph("LocateFixed");

@@ -13,7 +13,7 @@
 
 ---
 
-## 一、语义名（107 个，四端一致）
+## 一、语义名（108 个，四端一致）
 
 ```
 通用      search send more back close check add remove edit delete
@@ -32,6 +32,7 @@
 概念补充  pin-self diagnostics card id join-request storage
 自绘      red-packet
 插件      plugin
+位置选点  locate
 ```
 
 - 这份清单是跨端契约：四端的 `flareIconNames`（Vue 为 `flareIcons` 的键）**名字、数量、顺序**完全一致，每个名字在每端都有字形。`npm run check` 的 `icon registry parity` 一项（`node tooling/check-icon-registry.mjs`）检查这一点，改动必须四端同一次提交。
@@ -56,6 +57,7 @@
 | `pin` / `pin-self` | 为所有人置顶 / 只为自己置顶 | 互换（两者在同一个消息菜单里并列） |
 | `person` / `card` | 人、个人资料 / 发送名片 | 互换 |
 | `plugin` | 插件入口的通用图标：插件声明的图标名不在注册表里时的回退 | 内置功能项、`mini-app`（小程序入口） |
+| `location` / `locate` | 位置、发送位置（地图钉） / 选点页的「定位到当前位置」（准星） | 互换 |
 | `tag` / `id` | 标签、群名 / 公开账号 ID | 互换 |
 | `person-add` / `join-request` | 自己添加一个人 / 别人申请入群 | 互换 |
 | `folder` / `storage` | 文件夹 / 本机存储 | 互换 |
@@ -277,6 +279,7 @@ packages/vue-im-ui/src/shared/icon-glyphs.ts   （由 scripts/gen-icon-shim.mjs 
 | `storage` | `HardDrive` | `storage_outlined` | `internaldrive` | `Outlined.Storage` |
 | `red-packet` | Kit 自绘 `RedPacketOutline`（`icon-custom.ts`） | Kit 图标字体 `FlareKitIcons` U+E000 | Kit 自绘 | Kit 自绘 |
 | `plugin` | `Puzzle` | `extension_outlined` | `puzzlepiece.extension` | `Outlined.Extension` |
+| `locate` | `LocateFixed` | `my_location_outlined` | `scope` | `Outlined.MyLocation` |
 
 ### 已接受的平台差异
 
@@ -351,6 +354,6 @@ const navigation: FlareNavigationGroup[] = [
 
 ## 参考
 
-- 在线画廊（全部 107 个图标）：文档站 `Components → Icon`。
+- 在线画廊（全部 108 个图标）：文档站 `Components → Icon`。
 - 注册表对齐门禁与映射表：`tooling/check-icon-registry.mjs`（`--table`）。
 - 规则：`docs/design/icon-guidelines.md`；审计与决策：`docs/design/icon-inventory.md`、`docs/design/icon-coverage.md`。

@@ -77,6 +77,8 @@ const MAP = {
   BugOutline: ["Bug"], HashOutline: ["Hash"], IdCardOutline: ["Contact"], ServerOutline: ["HardDrive"],
   // The generic plugin glyph: a plugin's "+" tile whose icon is not a registry name draws it.
   ExtensionPuzzleOutline: ["Puzzle"],
+  // The location picker's "use current location" key.
+  LocateOutline: ["LocateFixed"],
 };
 
 function walk(dir) {

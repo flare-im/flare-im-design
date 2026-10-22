@@ -37,6 +37,7 @@ import androidx.compose.material.icons.outlined.MarkChatUnread
 import androidx.compose.material.icons.outlined.Merge
 import androidx.compose.material.icons.outlined.MicOff
 import androidx.compose.material.icons.outlined.MoveToInbox
+import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material.icons.outlined.OpenInFull
 import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material.icons.outlined.PersonRemove
@@ -53,11 +54,12 @@ import androidx.compose.material.icons.outlined.ZoomIn
 import androidx.compose.material.icons.outlined.ZoomOut
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/** The icon registry contract: the same 107 kebab-case names, in the same order, as the other three kits. */
+/** The icon registry contract: the same 108 kebab-case names, in the same order, as the other three kits. */
 class IconLibraryTest {
     private val canonical = listOf(
         "search", "send", "more", "back", "close", "check", "add", "remove", "edit", "delete",
@@ -71,11 +73,11 @@ class IconLibraryTest {
         "end-call", "switch-camera", "screen-share", "play", "pause", "expand", "collapse", "zoom-in", "zoom-out", "rotate",
         "group", "admin", "remove-member", "transfer-owner", "silence", "report", "chevron-up", "chevron-left", "keyboard", "mini-app",
         "pin-self", "diagnostics", "card", "id", "join-request", "storage",
-        "red-packet", "plugin",
+        "red-packet", "plugin", "locate",
     )
 
     @Test fun kebabCaseNamesInCanonicalOrder() {
-        assertEquals(107, flareIconNames.size)
+        assertEquals(108, flareIconNames.size)
         assertEquals(canonical, flareIconNames)
         assertEquals(flareIconNames.size, flareIconNames.toSet().size, "names are unique")
         for (name in flareIconNames) assertTrue(Regex("^[a-z]+(-[a-z]+)*$").matches(name), "$name is kebab-case")
@@ -121,10 +123,17 @@ class IconLibraryTest {
         )
     }
 
-    /** `plugin` is the last name: the generic plugin glyph a plugin's "+" tile draws when its icon is not a registry name. */
-    @Test fun pluginIsTheLastNameAndAPuzzlePiece() {
-        assertEquals("plugin", flareIconNames.last())
+    /** `plugin` is the generic plugin glyph a plugin's "+" tile draws when its icon is not a registry name. */
+    @Test fun pluginIsAPuzzlePiece() {
+        assertEquals("plugin", flareIconNames[flareIconNames.size - 2])
         assertEquals(Icons.Outlined.Extension, flareIconVector("plugin"))
+    }
+
+    /** `locate` is the last name: the location picker's "use current location" key, a crosshair unlike the `location` pin. */
+    @Test fun locateIsTheLastNameAndACrosshair() {
+        assertEquals("locate", flareIconNames.last())
+        assertEquals(Icons.Outlined.MyLocation, flareIconVector("locate"))
+        assertNotEquals(flareIconVector("location"), flareIconVector("locate"))
     }
 
     @Test fun errorIsTheExclamationCircleNotCancel() {

@@ -110,6 +110,7 @@ import {
   FileTrayOutline,
   ServerOutline,
   ExtensionPuzzleOutline,
+  LocateOutline,
 } from "./icon-glyphs";
 import { RedPacketOutline } from "./icon-custom";
 
@@ -225,6 +226,8 @@ export const flareIcons = {
   "red-packet": RedPacketOutline,
   // The generic plugin glyph: a plugin's "+" tile whose icon is not a registry name falls back to it.
   plugin: ExtensionPuzzleOutline,
+  // The location picker's "use current location" key: a crosshair, not the map pin `location` draws.
+  locate: LocateOutline,
 } satisfies Record<string, Component>;
 
 export type FlareIconName = keyof typeof flareIcons;

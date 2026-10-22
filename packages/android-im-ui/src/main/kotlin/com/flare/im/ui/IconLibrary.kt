@@ -78,6 +78,7 @@ import androidx.compose.material.icons.outlined.Merge
 import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.MicOff
 import androidx.compose.material.icons.outlined.MoreHoriz
+import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.NotificationsOff
 import androidx.compose.material.icons.outlined.OpenInFull
@@ -184,7 +185,7 @@ internal val FlareRichTextGlyph: ImageVector =
         .build()
 
 /**
- * Cross-platform icon-library composable. Maps a fixed set of 107 semantic
+ * Cross-platform icon-library composable. Maps a fixed set of 108 semantic
  * names to the closest Material [ImageVector]s so every Flare platform can
  * share one naming contract. Outlined where Material has an outlined glyph;
  * the auto-mirrored variant wherever Material ships one, so the glyph follows
@@ -303,9 +304,11 @@ private val flareIconMap: Map<String, ImageVector> = mapOf(
     "red-packet" to FlareRedPacketGlyph,
     // The generic plugin glyph: a "+" tile whose icon is not a registry name draws it.
     "plugin" to Icons.Outlined.Extension,
+    // The location picker's "use current location" key: a crosshair, not the map pin `location` draws.
+    "locate" to Icons.Outlined.MyLocation,
 )
 
-/** The 107 semantic icon names, in canonical order (the order of the Vue registry). */
+/** The 108 semantic icon names, in canonical order (the order of the Vue registry). */
 val flareIconNames: List<String> = listOf(
     "search", "send", "more", "back", "close", "check", "add", "remove",
     "edit", "delete", "heart", "comment", "chats", "moments", "share", "camera",
@@ -326,7 +329,7 @@ val flareIconNames: List<String> = listOf(
     "group", "admin", "remove-member", "transfer-owner", "silence", "report",
     "chevron-up", "chevron-left", "keyboard", "mini-app",
     "pin-self", "diagnostics", "card", "id", "join-request", "storage",
-    "red-packet", "plugin",
+    "red-packet", "plugin", "locate",
 )
 
 /**
@@ -349,7 +352,7 @@ private fun warnUnknownIconName(name: String) {
     }
 }
 
-private const val ICON_NAME_COUNT = 107
+private const val ICON_NAME_COUNT = 108
 
 /** The glyph for a semantic icon [name], or null when the library does not know the name. */
 internal fun flareIconVectorOrNull(name: String): ImageVector? = flareIconMap[name]

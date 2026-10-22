@@ -2,19 +2,25 @@ import { describe, expect, it } from "vitest";
 import { flareIconNames, flareIcons, type FlareIconName } from "./icons";
 
 describe("semantic icon registry", () => {
-  it("holds the 107-name contract shared by the four kits", () => {
-    expect(flareIconNames).toHaveLength(107);
+  it("holds the 108-name contract shared by the four kits", () => {
+    expect(flareIconNames).toHaveLength(108);
     for (const name of ["recall", "unpin", "merge-forward", "multi-select", "read", "mark-unread", "clear-history", "end-call", "remove-member", "transfer-owner", "silence", "report", "mini-app"] as FlareIconName[]) {
       expect(flareIconNames).toContain(name);
     }
     expect(flareIconNames).not.toContain("heart-filled" as FlareIconName);
     expect(flareIconNames).not.toContain("bookmark" as FlareIconName);
-    expect(flareIconNames.slice(99)).toEqual(["pin-self", "diagnostics", "card", "id", "join-request", "storage", "red-packet", "plugin"]);
+    expect(flareIconNames.slice(99)).toEqual(["pin-self", "diagnostics", "card", "id", "join-request", "storage", "red-packet", "plugin", "locate"]);
   });
 
-  it("ends with the generic plugin glyph, a line puzzle piece", () => {
-    expect(flareIconNames.at(-1)).toBe("plugin");
+  it("has the generic plugin glyph, a line puzzle piece", () => {
+    expect(flareIconNames.at(-2)).toBe("plugin");
     expect((flareIcons.plugin as { displayName?: string }).displayName).toBe("Puzzle");
+  });
+
+  it("ends with the picker's locate key, a crosshair unlike the location pin", () => {
+    expect(flareIconNames.at(-1)).toBe("locate");
+    expect((flareIcons.locate as { displayName?: string }).displayName).toBe("LocateFixed");
+    expect(flareIcons.locate).not.toBe(flareIcons.location);
   });
 
   it("draws the kit's own red packet glyph, which no icon library has", () => {
