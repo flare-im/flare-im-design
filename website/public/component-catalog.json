@@ -42,9 +42,9 @@
     "supportsDensity": "The component takes a density of its own (its prop says what the values mean); the kit has no global density scale."
   },
   "counts": {
-    "total": 173,
-    "stable": 173,
-    "general": 54,
+    "total": 175,
+    "stable": 175,
+    "general": 56,
     "im": 114
   },
   "specializedMessageGroups": {
@@ -17161,6 +17161,111 @@
       "searchText": "screen layout general-ui stable layout default back supportsconfiguration page scaffold — large title, optional back, three surfaces (canvas / surface / brand) and a scrollable body every business page composes on. 页面骨架 —— 大标题 + 可选返回 + 三种表面（canvas / surface / brand）+ 可滚动正文，所有业务页在此之上组合。"
     },
     {
+      "name": "AuthShell",
+      "slug": "auth-shell",
+      "category": "Layout",
+      "layer": "general-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "responsive",
+      "previewViewports": [
+        "desktop",
+        "mobile"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": false,
+        "states": true,
+        "interaction": true,
+        "responsive": true,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [],
+        "states": [
+          "default"
+        ]
+      },
+      "summary": {
+        "en": "Sign-in scaffold — the brand panel beside the form on wide windows, the brand above the form on narrow ones, an optional back key and the page heading; the host's sign-in or sign-up form goes in the body.",
+        "zh": "登录页骨架 —— 宽窗口时品牌面板在表单旁，窄窗口时品牌在表单上方，可选返回键与页面标题；宿主的登录或注册表单放在正文里。"
+      },
+      "aliases": [
+        "sign in",
+        "sign up",
+        "login page",
+        "auth layout",
+        "登录页",
+        "注册页",
+        "登录",
+        "认证",
+        "Layout",
+        "default",
+        "back"
+      ],
+      "states": [
+        "default"
+      ],
+      "interactions": [
+        "back"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareAuthShell"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareAuthShell"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlareAuthShell"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "FlareAuthShell"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/layout/FlareAuthShell.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_auth_shell.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/FlareAuthShell.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/FlareAuthShell.swift"
+      },
+      "docs": {
+        "zh": "website/components/auth-shell.md",
+        "en": "website/en/components/auth-shell.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#AuthShell",
+      "searchText": "authshell layout general-ui stable sign in sign up login page auth layout 登录页 注册页 登录 认证 layout default back supportsconfiguration sign-in scaffold — the brand panel beside the form on wide windows, the brand above the form on narrow ones, an optional back key and the page heading; the host's sign-in or sign-up form goes in the body. 登录页骨架 —— 宽窗口时品牌面板在表单旁，窄窗口时品牌在表单上方，可选返回键与页面标题；宿主的登录或注册表单放在正文里。"
+    },
+    {
       "name": "BottomSheet",
       "slug": "bottom-sheet",
       "category": "Overlay",
@@ -18594,6 +18699,104 @@
       },
       "sourceOfTruth": "spec/components.json#FilterBar",
       "searchText": "filterbar form general-ui stable query form filters search form advanced search 查询条件 筛选 查询表单 高级搜索 form default loading expanded search reset update:expanded supportsconfiguration supportsslots supportsresponsive filter bar — the query form above a console list: labelled fields in a grid that wraps by its own width, search and reset keys, and less used fields folded behind \"more filters\". 查询条件栏 —— 控制台列表上方的查询表单：带标签的字段放进按自身宽度换行的网格，查询与重置键，不常用的字段收进「更多条件」。"
+    },
+    {
+      "name": "SchemaForm",
+      "slug": "schema-form",
+      "category": "Form",
+      "layer": "general-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": false,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [],
+        "states": [
+          "default",
+          "disabled"
+        ]
+      },
+      "summary": {
+        "en": "Schema form — fields drawn from a JSON Schema object: an enum of strings as a select, integer as a whole-number input within minimum and maximum, boolean as a switch, string as a text input; title labels a field, description explains it.",
+        "zh": "Schema 表单 —— 按 JSON Schema 对象画字段：字符串枚举画成下拉，integer 画成在 minimum 与 maximum 之间的整数输入，boolean 画成开关，string 画成文本框；title 作字段标签，description 作说明。"
+      },
+      "aliases": [
+        "json schema",
+        "dynamic form",
+        "plugin settings",
+        "settings form",
+        "动态表单",
+        "插件配置",
+        "配置表单",
+        "表单生成",
+        "Form",
+        "default",
+        "disabled",
+        "update:modelValue"
+      ],
+      "states": [
+        "default",
+        "disabled"
+      ],
+      "interactions": [
+        "update:modelValue"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareSchemaForm"
+        },
+        "flutter": {
+          "support": "not-applicable"
+        },
+        "compose": {
+          "support": "not-applicable"
+        },
+        "ios": {
+          "support": "not-applicable"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/form/FlareSchemaForm.vue"
+      },
+      "docs": {
+        "zh": "website/components/schema-form.md",
+        "en": "website/en/components/schema-form.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#SchemaForm",
+      "searchText": "schemaform form general-ui stable json schema dynamic form plugin settings settings form 动态表单 插件配置 配置表单 表单生成 form default disabled update:modelvalue supportsconfiguration schema form — fields drawn from a json schema object: an enum of strings as a select, integer as a whole-number input within minimum and maximum, boolean as a switch, string as a text input; title labels a field, description explains it. schema 表单 —— 按 json schema 对象画字段：字符串枚举画成下拉，integer 画成在 minimum 与 maximum 之间的整数输入，boolean 画成开关，string 画成文本框；title 作字段标签，description 作说明。"
     },
     {
       "name": "DescriptionList",

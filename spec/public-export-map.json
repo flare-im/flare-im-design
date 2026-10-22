@@ -4067,6 +4067,32 @@
       }
     },
     {
+      "name": "AuthShell",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareAuthShell",
+          "sourcePath": "packages/vue-im-ui/src/components/layout/FlareAuthShell.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareAuthShell",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_auth_shell.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlareAuthShell",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/FlareAuthShell.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "FlareAuthShell",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/FlareAuthShell.swift"
+        }
+      }
+    },
+    {
       "name": "BottomSheet",
       "status": "stable",
       "platforms": {
@@ -4295,6 +4321,17 @@
           "package": "@flare-im/vue-ui",
           "symbol": "FlareFilterBar",
           "sourcePath": "packages/vue-im-ui/src/components/general/FlareFilterBar.vue"
+        }
+      }
+    },
+    {
+      "name": "SchemaForm",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareSchemaForm",
+          "sourcePath": "packages/vue-im-ui/src/components/form/FlareSchemaForm.vue"
         }
       }
     },

@@ -22317,6 +22317,123 @@
       }
     },
     {
+      "name": "AuthShell",
+      "category": "Layout",
+      "summary": {
+        "en": "Sign-in scaffold — the brand panel beside the form on wide windows, the brand above the form on narrow ones, an optional back key and the page heading; the host's sign-in or sign-up form goes in the body.",
+        "zh": "登录页骨架 —— 宽窗口时品牌面板在表单旁，窄窗口时品牌在表单上方，可选返回键与页面标题；宿主的登录或注册表单放在正文里。"
+      },
+      "dataSource": {
+        "en": "passed in by you (localized copy); the form and its validation are the host's",
+        "zh": "由你传入（本地化文案）；表单与校验由宿主负责"
+      },
+      "props": [
+        {
+          "name": "product",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Product name in the brand lockup.",
+            "zh": "品牌区的产品名。"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Page heading above the form (\"Sign in\"); the page's only heading.",
+            "zh": "表单上方的页面标题（「登录」）；页面里唯一的标题。"
+          }
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "One line under the heading: what this step asks for.",
+            "zh": "标题下的一行：这一步需要什么。"
+          }
+        },
+        {
+          "name": "tagline",
+          "type": "string",
+          "description": {
+            "en": "Short line under the product name; omitted when not passed.",
+            "zh": "产品名下的短句；不传则不画。"
+          }
+        },
+        {
+          "name": "headline",
+          "type": "string",
+          "description": {
+            "en": "Headline of the brand panel; wide windows only.",
+            "zh": "品牌面板的大标题；只在宽窗口显示。"
+          }
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "description": {
+            "en": "Paragraph under the headline; wide windows only.",
+            "zh": "大标题下的说明段落；只在宽窗口显示。"
+          }
+        },
+        {
+          "name": "backLabel",
+          "type": "string",
+          "description": {
+            "en": "Draws a back key with this label above the heading (emits back). Native kits draw it only when onBack is set as well.",
+            "zh": "在标题上方画一个带此文案的返回键（发出 back）。原生端还需同时传 onBack 才画。"
+          }
+        }
+      ],
+      "states": [
+        "default"
+      ],
+      "events": [
+        "back"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareAuthShell"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareAuthShell"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "FlareAuthShell"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlareAuthShell"
+        }
+      },
+      "accessibility": {
+        "role": "main",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab visits the back key, then the host's form controls in visual order"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "No motion: the layout switches at the width breakpoint without a transition.",
+        "screenReaderSemantics": "The title is the page heading and names the form region; the back key is named by backLabel. The brand panel repeats the product copy and is hidden from assistive technology."
+      },
+      "notes": {
+        "en": "The layout follows the shell's own width: at `appShellCompactMinWidth` (900) and wider the brand panel sits beside the form; below it the brand lockup moves above the heading and the headline and description are not drawn. Vue passes the form in the default slot, Flutter as `child`, SwiftUI and Compose as `content`. The kit owns the composition and the heading hierarchy only; fields, validation and submission stay in the app.",
+        "zh": "布局按骨架自身宽度切换：`appShellCompactMinWidth`（900）及以上品牌面板在表单旁；以下品牌标识移到标题上方，不画大标题与说明。表单在 Vue 走默认插槽，Flutter 走 `child`，SwiftUI 与 Compose 走 `content`。组件库只负责版式与标题层级；字段、校验与提交留在应用里。"
+      }
+    },
+    {
       "name": "BottomSheet",
       "category": "Overlay",
       "summary": {
@@ -24022,6 +24139,85 @@
         },
         "reducedMotionBehavior": "The folded fields appear and leave without a transition.",
         "screenReaderSemantics": "A named search landmark described by its hint. Each field is a labelled FormField. The disclosure exposes aria-expanded and, while open, aria-controls on the folded fields; its name says how many folded fields hold a value. The Search key is aria-busy while the host runs the query."
+      }
+    },
+    {
+      "name": "SchemaForm",
+      "category": "Form",
+      "summary": {
+        "en": "Schema form — fields drawn from a JSON Schema object: an enum of strings as a select, integer as a whole-number input within minimum and maximum, boolean as a switch, string as a text input; title labels a field, description explains it.",
+        "zh": "Schema 表单 —— 按 JSON Schema 对象画字段：字符串枚举画成下拉，integer 画成在 minimum 与 maximum 之间的整数输入，boolean 画成开关，string 画成文本框；title 作字段标签，description 作说明。"
+      },
+      "dataSource": {
+        "en": "a JSON Schema the host passes (a plugin's settings schema) and the host-owned values (v-model)",
+        "zh": "宿主传入的 JSON Schema（插件的配置 schema）与宿主持有的值（v-model）"
+      },
+      "props": [
+        {
+          "name": "schema",
+          "type": "Record<string, unknown>",
+          "required": true,
+          "description": {
+            "en": "A JSON Schema object. Its first 32 `properties` of type string, integer or boolean become fields, in order; a property may `$ref` a `#/$defs/` entry. Anything else is skipped, never evaluated.",
+            "zh": "JSON Schema 对象。`properties` 中前 32 个 string、integer、boolean 类型的属性按顺序画成字段；属性可以 `$ref` 到 `#/$defs/` 条目。其余一律跳过，从不求值。"
+          }
+        },
+        {
+          "name": "modelValue",
+          "type": "Record<string, unknown>",
+          "required": true,
+          "description": {
+            "en": "The values by property name (v-model). Every edit emits a new object; the form never mutates the one passed in.",
+            "zh": "按属性名的取值（v-model）。每次修改发出一个新对象；表单从不改动传入的对象。"
+          }
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "Lock every field.",
+            "zh": "锁定所有字段。"
+          }
+        }
+      ],
+      "states": [
+        "default",
+        "disabled"
+      ],
+      "events": [
+        "update:modelValue"
+      ],
+      "model": {
+        "prop": "modelValue",
+        "event": "update:modelValue"
+      },
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareSchemaForm"
+        }
+      },
+      "accessibility": {
+        "role": "group",
+        "labelRequired": false,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab visits the fields in schema order",
+          "Each field keeps its control's own keys (arrows in the select and the number input, Space on the switch)"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "No motion beyond the kit controls.",
+        "screenReaderSemantics": "Each field is named by its title (the property name when it has none); the description is the field's feedback line."
+      },
+      "notes": {
+        "en": "Vue only: native N/A. It renders a plugin's raw settings schema on a web console page; native apps draw plugin inputs the core SDK has already resolved with PluginForm. An enum longer than 100 values, a non-integer bound and every other type are skipped; strings are capped at 4096 characters.",
+        "zh": "仅 Vue，原生端 N/A：它在 Web 控制台页面上渲染插件的原始配置 schema；原生 App 用 PluginForm 渲染核心 SDK 解析好的插件输入。超过 100 项的枚举、非整数边界与其他类型一律跳过；字符串最长 4096 个字符。"
       }
     },
     {

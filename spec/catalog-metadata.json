@@ -193,6 +193,26 @@
       "标签",
       "状态标签",
       "徽标"
+    ],
+    "AuthShell": [
+      "sign in",
+      "sign up",
+      "login page",
+      "auth layout",
+      "登录页",
+      "注册页",
+      "登录",
+      "认证"
+    ],
+    "SchemaForm": [
+      "json schema",
+      "dynamic form",
+      "plugin settings",
+      "settings form",
+      "动态表单",
+      "插件配置",
+      "配置表单",
+      "表单生成"
     ]
   },
   "overrides": {
@@ -246,6 +266,7 @@
       "FormSheet",
       "ActionMenu",
       "DataTable",
+      "AuthShell",
       "FilterBar",
       "DescriptionList"
     ],

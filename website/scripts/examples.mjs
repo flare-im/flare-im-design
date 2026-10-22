@@ -664,6 +664,69 @@ FlareComposerActionPanel(actions = myActions, onAction = ::pick)`,
     },
   ],
 
+  SchemaForm: [
+    {
+      title: { en: "A plugin's settings page", zh: "插件配置页" },
+      description: { en: "The plugin declares the schema; the host owns the values and saves them. Every edit emits a new object, so the host can compare it with what it loaded and enable Save only when something changed.", zh: "插件声明 schema；值由宿主持有并负责保存。每次修改发出新对象，宿主可以与加载时的值比较，有改动才启用保存。" },
+      vue: `<FlareSchemaForm
+  v-model="settings"
+  :schema="plugin.settingsSchema"
+  :disabled="saving"
+/>
+<FlareButton :label="t('common.save')" :loading="saving" :disabled="!changed" @click="save" />`,
+    },
+  ],
+
+  AuthShell: [
+    {
+      title: { en: "Sign-in page", zh: "登录页" },
+      description: { en: "The kit draws the brand panel, the heading and the back key; the form, its validation and the submit stay in the app. Copy comes from the app's own strings.", zh: "组件库画品牌面板、标题与返回键；表单、校验与提交留在应用里。文案来自应用自己的字符串表。" },
+      vue: `<FlareAuthShell
+  :product="t('auth.product')"
+  :tagline="t('auth.tagline')"
+  :headline="t('auth.headline')"
+  :description="t('auth.description')"
+  :title="t('auth.signIn')"
+  :subtitle="t('auth.signInHint')"
+>
+  <form @submit.prevent="submit">
+    <FlareFormField :label="t('auth.account')" required>
+      <FlareInput v-model="account" autocomplete="username" @submit="submit" />
+    </FlareFormField>
+    <FlareFormField :label="t('auth.password')" required>
+      <FlareInput v-model="password" secure revealable autocomplete="current-password" @submit="submit" />
+    </FlareFormField>
+    <FlareButton block :label="t('auth.signIn')" :loading="busy" @click="submit" />
+  </form>
+</FlareAuthShell>`,
+      flutter: `FlareAuthShell(
+  product: strings.product,
+  title: strings.signIn,
+  subtitle: strings.signInHint,
+  tagline: strings.tagline,
+  backLabel: strings.back,
+  onBack: () => Navigator.of(context).pop(),
+  child: SignInForm(onSubmit: submit),
+)`,
+      ios: `FlareAuthShell(
+    product: strings.product,
+    title: strings.signIn,
+    subtitle: strings.signInHint,
+    tagline: strings.tagline
+) {
+    SignInForm(onSubmit: submit)
+}`,
+      compose: `FlareAuthShell(
+    product = strings.product,
+    title = strings.signIn,
+    subtitle = strings.signInHint,
+    tagline = strings.tagline,
+) {
+    SignInForm(onSubmit = ::submit)
+}`,
+    },
+  ],
+
   DescriptionList: [
     {
       title: { en: "A message's facts in a detail drawer", zh: "详情抽屉里一条消息的各项事实" },

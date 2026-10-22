@@ -112,6 +112,7 @@ Execution: none of the non-KEEP decisions is executed in the 2.0 RC. Each one ch
 | ScreenHeader | Large-title screen header — the quiet top bar for a tab surface, with an actions slot; distinct from ChatHeader. | web, tauri, flutter | vue | - | KEEP | Friction: FR-039 |
 | ConversationWorkspace | Conversation workspace — composes ResponsiveLayout and resolves loading / empty / failure for the list, chat and detail panes in one place, plus a cross-pane banner. | tauri | - | - | KEEP | - |
 | Screen | Page scaffold — large title, optional back, three surfaces (canvas / surface / brand) and a scrollable body every business page composes on. | web, tauri, flutter, ios, android | vue | - | KEEP | Friction: FR-005 |
+| AuthShell | Sign-in scaffold — brand panel beside the form on wide windows, brand above the heading on narrow ones, optional back key; the host's form in the body. | web, tauri, flutter, ios, android | - | - | KEEP | Contract added 2026-10-22; it had been exported on four platforms since 2026-09-24 without one. |
 
 ### Navigation
 
@@ -244,6 +245,7 @@ Execution: none of the non-KEEP decisions is executed in the 2.0 RC. Each one ch
 | DatePicker | DatePicker — adaptive: anchored month-calendar popover on PC, bottom sheet on App/H5; v-model as "YYYY-MM-DD", min/max supported. | - | - | SearchDateRangeFilter | KEEP | Composition part of SearchDateRangeFilter. |
 | SearchDateRangeFilter | Search time-range filter: host-supplied preset chips plus a custom start/end pair built from the shared DatePicker, emitting one inclusive epoch-millisecond FlareSearchTimeRange. | tauri | - | - | KEEP | - |
 | FilterBar | Filter bar — the query form above a console list: labelled fields in a grid that wraps by its own width, Search / Reset, folded "More filters" that say how many hold a value, Enter in a one-line field searches. Vue only. | - | - | - | KEEP | Added 2026-10-11 for the admin console (SaaS v4 R5-3); consumer: the query bar of every console list (R5-4). |
+| SchemaForm | Schema form — fields from a JSON Schema object (string enum, integer, boolean, string). Vue only. | - | - | - | KEEP | Contract added 2026-10-22 for plugin settings pages on the web console; exported from `./components` and `./admin` since 2026-10-21. |
 
 ### Feedback
 

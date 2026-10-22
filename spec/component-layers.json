@@ -204,6 +204,7 @@
     "ScreenShare": "im-ui",
     "CommandPalette": "general-ui",
     "Screen": "general-ui",
+    "AuthShell": "general-ui",
     "BottomSheet": "general-ui",
     "Drawer": "general-ui",
     "Modal": "general-ui",
@@ -216,6 +217,7 @@
     "DataTable": "general-ui",
     "PermissionTree": "general-ui",
     "FilterBar": "general-ui",
+    "SchemaForm": "general-ui",
     "DescriptionList": "general-ui",
     "CodeBlock": "general-ui",
     "Tag": "general-ui"
