@@ -23,6 +23,11 @@ export interface FlarePluginAction {
 }
 
 export interface FlarePluginField { label: string; value: string }
+/**
+ * An entry's or a row's enumerated value as words and a tone (the plugin's valueLabels), such as a ledger line's
+ * kind; drawn as the kit Tag. The tone may come from a newer protocol: draw it through flarePluginBadgeTone.
+ */
+export interface FlarePluginBadge { text: string; tone: FlarePluginTone }
 
 export interface FlarePluginTextBlock { kind: "text"; text: string; maxLines?: number; style?: "body" | "title" | "secondary" }
 export interface FlarePluginFieldsBlock { kind: "fields"; fields: ReadonlyArray<FlarePluginField> }
@@ -36,12 +41,22 @@ export interface FlarePluginChoicesBlock {
   showResults: boolean;
   total?: number;
   inputName: string;
+  /** A multiple choice's cap (1..=option count): options outside the draft are disabled once it is full. */
+  maxSelections?: number;
   /** The block's submit action, present while the viewer can choose. */
   action?: FlarePluginAction;
 }
 /** The group an entry opens in a grouped list (the first item of each group carries it). */
 export interface FlarePluginEntryGroup { key: string; label: string; count?: number; total?: number; percent?: number }
-export interface FlarePluginEntry { index: number; text: string; name?: string; userId?: string; group?: FlarePluginEntryGroup }
+export interface FlarePluginEntry {
+  index: number;
+  text: string;
+  name?: string;
+  userId?: string;
+  group?: FlarePluginEntryGroup;
+  /** Drawn after the name and the me tag, before the text. */
+  badge?: FlarePluginBadge;
+}
 export interface FlarePluginEntriesBlock {
   kind: "entries";
   items: ReadonlyArray<FlarePluginEntry>;
@@ -65,8 +80,13 @@ export interface FlarePluginRow {
   cells: ReadonlyArray<FlarePluginRowCell>;
   actions: ReadonlyArray<{ id: string; input: unknown }>;
   detailInput?: unknown;
+  /** Leads the row: the first line of a list item, the first cell of a table row. */
+  badge?: FlarePluginBadge;
 }
-/** Admin pages only (Vue). */
+/**
+ * Rows: a plugin page's list (every kit; they page with the page, so nextCursor is absent there) or a Vue console
+ * table (FlarePluginRowsLayout).
+ */
 export interface FlarePluginRowsBlock {
   kind: "rows";
   source: string;
@@ -125,9 +145,11 @@ export interface FlarePluginActionPayload {
   selection?: number[];
   /** Submitted form values by input id. */
   formValues?: Record<string, unknown>;
-  /** The row of a rows action (admin pages). */
+  /** The row of a rows action. */
   row?: { key: string; input: unknown };
 }
+/** How a Vue PluginView draws a rows block: the kit DataTable (console admin lists) or a list (plugin pages). */
+export type FlarePluginRowsLayout = "table" | "list";
 
 /** Why a view is unavailable, or (unbound_copy) read-only (ResolvedPluginView.unavailableReason). */
 export type FlarePluginUnavailableReason =
@@ -157,6 +179,31 @@ export interface FlarePluginViewModel {
    * fetches that page and passes back the merged view (the core SDK appends pages).
    */
   nextCursor?: string;
+}
+
+/** The page a PluginPage shows, as invokePageAction names it. */
+export interface FlarePluginPageRef { pluginId: string; page: string }
+/**
+ * A resolved plugin page (the core SDK's pluginPage result): a view plus `data`, what the page was resolved against
+ * (the first page's source result, or a source-less page's arguments; only while available). An unavailable page is
+ * `{available: false, title: "", unavailableReason}`.
+ */
+export interface FlarePluginPageViewModel extends FlarePluginViewModel {
+  data?: Record<string, unknown>;
+}
+/** What PluginPage's action(id, payload) carries: the request invokePageAction takes, without platform and gesture. */
+export interface FlarePluginPageActionPayload extends FlarePluginActionPayload {
+  page: FlarePluginPageRef;
+  /** view.data, when the view has it. */
+  data?: Record<string, unknown>;
+}
+/** A page's state (spec rules.page). */
+export type FlarePluginPageState = "loading" | "error" | "unavailable" | "loaded";
+/** One select filter of a page (spec rules.pageFilters): its tabs, all first (value null), and the selected value. */
+export interface FlarePluginPageFilter {
+  input: FlarePluginInput;
+  tabs: ReadonlyArray<{ value: string | null; label: string }>;
+  selected: string | null;
 }
 
 /** The copy the pure rules need; the components fill it from the active locale. */
@@ -315,6 +362,99 @@ export function flarePluginReasonLine(reasonText: string, displayName?: string):
 /** The name drawn for a user id the host could not resolve: its last 4 characters. */
 export function flarePluginFallbackName(userId: string): string {
   return userId.length > 4 ? userId.slice(-4) : userId;
+}
+
+// ── badges and the choices limit ─────────────────────────────────────────────
+
+const TONES: ReadonlySet<string> = new Set<FlarePluginTone>(["neutral", "info", "success", "warning", "danger"]);
+/** A badge's tone as drawn: one of PluginTone, anything else neutral (spec rules.badge). */
+export function flarePluginBadgeTone(tone: unknown): FlarePluginTone {
+  return typeof tone === "string" && TONES.has(tone) ? (tone as FlarePluginTone) : "neutral";
+}
+
+/** A multiple choice's cap, or undefined (single choice, absent or not a positive count). */
+export function flarePluginChoiceCap(block: FlarePluginChoicesBlock): number | undefined {
+  const max = block.maxSelections;
+  return block.multiple && typeof max === "number" && Number.isInteger(max) && max > 0 ? max : undefined;
+}
+
+/** Whether option `index` is disabled by the cap: the draft is full and does not hold it (spec rules.maxSelections). */
+export function flarePluginChoiceCapped(block: FlarePluginChoicesBlock, draft: ReadonlyArray<number>, index: number): boolean {
+  const cap = flarePluginChoiceCap(block);
+  return cap !== undefined && draft.length >= cap && !draft.includes(index);
+}
+
+/** Whether a draft fits the cap (always without one). */
+export function flarePluginWithinCap(block: FlarePluginChoicesBlock, draft: ReadonlyArray<number>): boolean {
+  const cap = flarePluginChoiceCap(block);
+  return cap === undefined || draft.length <= cap;
+}
+
+// ── plugin pages ─────────────────────────────────────────────────────────────
+
+/** The rows to draw: in order, each key once, the first kept (spec rules.pageRows). */
+export function flarePluginRowsOnce(rows: ReadonlyArray<FlarePluginRow>): FlarePluginRow[] {
+  const seen = new Set<string>();
+  return rows.filter((row) => (seen.has(row.key) ? false : (seen.add(row.key), true)));
+}
+
+/**
+ * A list item's two lines (spec rules.pageRows): the first cell, and the other cells in column order (time columns
+ * formatted as in `time`, blank cells skipped) joined with " · ", or null when none is left.
+ */
+export function flarePluginRowLines(
+  block: Pick<FlarePluginRowsBlock, "columns">,
+  row: FlarePluginRow,
+  nowMs: number,
+  strings: Pick<FlarePluginStrings, "dateTime" | "dateTimeYear">,
+  utcOffsetMinutes?: number,
+): { primary: string; secondary: string | null } {
+  const texts = block.columns.map((column, index) => {
+    const cell = row.cells[index];
+    if (column.format === "time" && typeof cell?.timeMs === "number") return flarePluginDateTime(cell.timeMs, nowMs, strings, utcOffsetMinutes);
+    return cell?.text ?? "";
+  });
+  const rest = texts.slice(1).filter((text) => text.trim());
+  return { primary: texts[0] ?? "", secondary: rest.length ? rest.join(" · ") : null };
+}
+
+/** A page's state from what the host passes (spec rules.page). */
+export function flarePluginPageState(view: FlarePluginViewModel | undefined, loading: boolean, error: string | undefined): FlarePluginPageState {
+  if (view) return view.available ? "loaded" : "unavailable";
+  return error && !loading ? "error" : "loading";
+}
+
+/**
+ * A page's select filters (spec rules.pageFilters): with a rows block, the filter inputs of kind select, each with
+ * all (value null, labelled `all`) and its choices; selected is the host's value when it is a choice, else null.
+ */
+export function flarePluginPageFilters(view: FlarePluginViewModel, filters: Record<string, unknown> | undefined, all: string): FlarePluginPageFilter[] {
+  if (!(view.blocks ?? []).some((block) => block.kind === "rows")) return [];
+  return flarePluginFilterInputs(view)
+    .filter((input) => input.kind === "select" && input.choices?.length)
+    .map((input) => {
+      const choices = input.choices ?? [];
+      const value = filters?.[input.id];
+      const selected = typeof value === "string" && choices.some((choice) => choice.value === value) ? value : null;
+      return { input, tabs: [{ value: null, label: all }, ...choices.map((choice) => ({ value: choice.value, label: choice.label }))], selected };
+    });
+}
+
+/** The host's filters with one input set to `value`, or without it for all (null). */
+export function flarePluginPageFilterValues(filters: Record<string, unknown> | undefined, inputId: string, value: string | null): Record<string, unknown> {
+  const next = { ...(filters ?? {}) };
+  if (value === null) delete next[inputId];
+  else next[inputId] = value;
+  return next;
+}
+
+/** The payload of an action run on a page: the page, the view's data when it has one, and what the action carries. */
+export function flarePluginPagePayload(
+  page: FlarePluginPageRef,
+  view: FlarePluginPageViewModel | undefined,
+  payload: FlarePluginActionPayload,
+): FlarePluginPageActionPayload {
+  return { page: { pluginId: page.pluginId, page: page.page }, ...(view?.data ? { data: view.data } : {}), ...payload };
 }
 
 // ── forms ──────────────────────────────────────────────────────────────────

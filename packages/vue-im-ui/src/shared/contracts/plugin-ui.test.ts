@@ -3,6 +3,12 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { flareMessages } from "../i18n/messages";
 import {
+  flarePluginBadgeTone,
+  flarePluginChoiceCap,
+  flarePluginChoiceCapped,
+  flarePluginPageState,
+  flarePluginRowsOnce,
+  flarePluginWithinCap,
   flarePluginCheckForm,
   flarePluginCountdown,
   flarePluginDraft,
@@ -12,7 +18,9 @@ import {
   flarePluginNextCursor,
   flarePluginIssueText,
   flarePluginTimeText,
+  type FlarePluginChoicesBlock,
   type FlarePluginFormError,
+  type FlarePluginRow,
   type FlarePluginInput,
   type FlarePluginStrings,
   type FlarePluginViewModel,
@@ -92,5 +100,36 @@ describe("admin filters and detail paging (spec/plugin-view-vectors.json filterI
     expect(flarePluginNextCursor({ ...view, nextCursor: "  " })).toBeUndefined();
     expect(flarePluginNextCursor({ ...view, nextCursor: "page-2" })).toBe("page-2");
     expect(flarePluginNextCursor(undefined)).toBeUndefined();
+  });
+});
+
+describe("badges, the choices cap and pages", () => {
+  it("draws a badge tone it does not know as neutral", () => {
+    expect(["neutral", "info", "success", "warning", "danger"].map(flarePluginBadgeTone)).toEqual(["neutral", "info", "success", "warning", "danger"]);
+    expect([undefined, "accent", 3].map(flarePluginBadgeTone)).toEqual(["neutral", "neutral", "neutral"]);
+  });
+  it("caps only a multiple choice with a positive whole limit", () => {
+    const block = (multiple: boolean, maxSelections?: number) =>
+      ({ kind: "choices", options: [], multiple, voted: false, closed: false, showResults: false, inputName: "s", maxSelections }) as FlarePluginChoicesBlock;
+    expect([block(true, 2), block(false, 2), block(true, 0), block(true, 1.5), block(true)].map(flarePluginChoiceCap)).toEqual([2, undefined, undefined, undefined, undefined]);
+    expect(flarePluginChoiceCapped(block(true, 2), [0, 1], 2)).toBe(true);
+    expect(flarePluginChoiceCapped(block(true, 2), [0, 1], 1)).toBe(false);
+    expect(flarePluginChoiceCapped(block(true, 2), [0], 2)).toBe(false);
+    expect(flarePluginChoiceCapped(block(false, 2), [0, 1], 2)).toBe(false);
+    expect(flarePluginWithinCap(block(true, 2), [0, 1, 2])).toBe(false);
+    expect(flarePluginWithinCap(block(true), [0, 1, 2])).toBe(true);
+  });
+  it("keeps the first row of a repeated key", () => {
+    const row = (key: string, text: string) => ({ key, cells: [{ text }], actions: [] }) as FlarePluginRow;
+    expect(flarePluginRowsOnce([row("a", "1"), row("b", "2"), row("a", "3")]).map((r) => r.cells[0].text)).toEqual(["1", "2"]);
+  });
+  it("tells a page's state from what the host passes", () => {
+    const view = { available: true, title: "", fields: [], actions: [] } as FlarePluginViewModel;
+    expect(flarePluginPageState(undefined, true, undefined)).toBe("loading");
+    expect(flarePluginPageState(undefined, false, undefined)).toBe("loading");
+    expect(flarePluginPageState(undefined, true, "x")).toBe("loading");
+    expect(flarePluginPageState(undefined, false, "x")).toBe("error");
+    expect(flarePluginPageState(view, false, "x")).toBe("loaded");
+    expect(flarePluginPageState({ ...view, available: false }, false, undefined)).toBe("unavailable");
   });
 });

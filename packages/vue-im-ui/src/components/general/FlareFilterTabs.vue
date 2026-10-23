@@ -38,7 +38,12 @@ const props = withDefaults(defineProps<{
    * 所以容器要给 ::after 留出高度(见样式),否则撑出去的部分会被它自己裁掉。
    */
   size?: "md" | "sm";
-}>(), { layout: "scroll", columns: 4, ariaLabel: undefined, appearance: "filled", size: "md" });
+  /**
+   * false while what the tabs filter is loading: the row dims to the disabled opacity and takes no picks until it is
+   * enabled again (a plugin page's filters while it refreshes or loads more).
+   */
+  enabled?: boolean;
+}>(), { layout: "scroll", columns: 4, ariaLabel: undefined, appearance: "filled", size: "md", enabled: true });
 const { t } = useFlareI18nOptional();
 const active = defineModel<string>({ default: "" });
 const emit = defineEmits<{ (e: "change", value: string): void }>();
@@ -48,6 +53,7 @@ const layoutStyle = computed<CSSProperties>(() => ({
 } as CSSProperties));
 
 function select(value: string): void {
+  if (!props.enabled) return;
   active.value = value;
   emit("change", value);
 }
@@ -56,7 +62,7 @@ function select(value: string): void {
 <template>
   <div
     class="flare-filter-tabs"
-    :class="[`flare-filter-tabs--${layout}`, `flare-filter-tabs--${appearance}`, `flare-filter-tabs--size-${size}`]"
+    :class="[`flare-filter-tabs--${layout}`, `flare-filter-tabs--${appearance}`, `flare-filter-tabs--size-${size}`, { 'is-disabled': !enabled }]"
     :style="layoutStyle"
     role="tablist"
     :aria-label="ariaLabel ?? t('common.filters')"
@@ -69,6 +75,7 @@ function select(value: string): void {
       class="flare-filter-tab"
       :class="{ 'flare-filter-tab--active': active === option.value }"
       :aria-selected="active === option.value"
+      :disabled="!enabled"
       @click="select(option.value)"
     >
       <component :is="option.icon" v-if="option.icon" class="flare-filter-tab__icon" />
@@ -186,25 +193,17 @@ function select(value: string): void {
   box-shadow: var(--flare-shadow-sm);
 }
 
-@media (pointer: coarse) {
-  .flare-filter-tab {
-    min-height: var(--flare-size-layout-touch-target);
-  }
+/* A filled row's pills keep the height they are drawn at; each one's hit area reaches the touch target around it
+   (::after, the same as FlareButton). The row is its own scroll container (overflow-x: auto makes overflow-y auto),
+   so it carries the room the hit areas need as padding and takes it back with a negative margin: the layout still
+   holds the pill plus 2px, nothing is clipped and the row never scrolls vertically. The grid and quiet rows draw a
+   surface or a rule of their own and grow to the touch target on coarse pointers instead. */
+.flare-filter-tabs--filled:not(.flare-filter-tabs--grid) {
+  padding-block: var(--flare-size-spacing-2sm);
+  margin-block: calc(var(--flare-size-spacing-3xs) - var(--flare-size-spacing-2sm));
 }
-
-/* ── sm:辅助条件用的紧凑胶囊 ────────────────────────────────────────────────
-   视觉 30 高、12px 字、10px 内距,一排放得下更多条件,结果也能早一百多像素出现。
-   触达区不缩:::after 把命中区撑到触达区大小,和 FlareButton 同一套 —— 所以这里要
-   显式写 min-height 压过上面那条 (pointer: coarse) 的 44 地板,否则盒子又被顶回去。 */
-.flare-filter-tabs--size-sm .flare-filter-tab {
-  position: relative;
-  min-height: 30px;
-  padding: 0 var(--flare-size-spacing-sm);
-  font-size: var(--flare-size-font-size-sm);
-  font-weight: 500;
-  line-height: 30px;
-}
-.flare-filter-tabs--size-sm .flare-filter-tab::after {
+.flare-filter-tabs--filled:not(.flare-filter-tabs--grid) .flare-filter-tab { position: relative; }
+.flare-filter-tabs--filled:not(.flare-filter-tabs--grid) .flare-filter-tab::after {
   content: "";
   position: absolute;
   top: 50%;
@@ -213,13 +212,28 @@ function select(value: string): void {
   width: max(100%, var(--flare-size-layout-touch-target));
   height: max(100%, var(--flare-size-layout-touch-target));
 }
-/* 这一排自己就是滚动容器(overflow-x:auto 让 overflow-y 也算成 auto),标签画到盒外的东西会被它裁掉:
-   ::after 上下各撑出去的 8px 上面被裁、下面变成 6px 的纵向滚动 —— 实际触达只有 36,还能上下拖。
-   所以把触达区要的高度给容器本身,再用负外距收回来:48 的内距盒装得下 48 的 ::after,版面仍只占 36。
-   grid 形态自己画着一块带边框的面,不能这么撑。 */
-.flare-filter-tabs--size-sm:not(.flare-filter-tabs--grid) {
-  padding-block: var(--flare-size-spacing-sm);
-  margin-block: calc(2px - var(--flare-size-spacing-sm));
+@media (pointer: coarse) {
+  .flare-filter-tabs--grid .flare-filter-tab,
+  .flare-filter-tabs--quiet .flare-filter-tab {
+    min-height: var(--flare-size-layout-touch-target);
+  }
+  /* Overrides the kit's coarse-pointer floor on buttons, which would grow the pill itself. */
+  .flare-filter-tabs--filled:not(.flare-filter-tabs--grid) .flare-filter-tab { min-height: auto; }
+}
+.flare-filter-tabs.is-disabled { opacity: var(--flare-opacity-disabled); }
+.flare-filter-tabs.is-disabled .flare-filter-tab { cursor: default; }
+
+/* ── sm:辅助条件用的紧凑胶囊 ────────────────────────────────────────────────
+   视觉 30 高、12px 字、10px 内距,一排放得下更多条件,结果也能早一百多像素出现。
+   触达区不缩:与 md 相同,::after 把命中区撑到触达区大小(见上面 filled 那一段),
+   容器的内距与负外距让版面仍只占 36。这里要显式写 min-height 压过 (pointer: coarse) 的地板。 */
+.flare-filter-tabs--size-sm .flare-filter-tab {
+  position: relative;
+  min-height: 30px;
+  padding: 0 var(--flare-size-spacing-sm);
+  font-size: var(--flare-size-font-size-sm);
+  font-weight: 500;
+  line-height: 30px;
 }
 @media (pointer: coarse) {
   .flare-filter-tabs--size-sm .flare-filter-tab { min-height: 30px; }

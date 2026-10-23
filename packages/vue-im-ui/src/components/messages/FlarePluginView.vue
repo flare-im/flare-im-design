@@ -20,10 +20,12 @@ import { useFlareContentSelection, useFlareMessageQuote } from "../../shared/mes
 import MessageCardQuote from "./MessageCardQuote.vue";
 import type { FlareActionItem } from "../../shared/contracts/action-menu";
 import {
+  flarePluginChoiceCapped,
   flarePluginFallbackName,
   flarePluginReasonLine,
   flarePluginShowsDetailKey,
   flarePluginUnavailableKey,
+  flarePluginWithinCap,
   type FlarePluginAction,
   type FlarePluginActionPayload,
   type FlarePluginBlock,
@@ -33,6 +35,7 @@ import {
   type FlarePluginMember,
   type FlarePluginResolveUser,
   type FlarePluginRow,
+  type FlarePluginRowsLayout,
   type FlarePluginStrings,
   type FlarePluginUser,
   type FlarePluginViewInset,
@@ -67,6 +70,8 @@ const props = withDefaults(
      * PluginForm). Pads every state: the embedded body, available or not, and a card shell kept in a sheet.
      */
     inset?: FlarePluginViewInset;
+    /** How a rows block draws: the kit DataTable (console admin lists) or one item per row (plugin pages). */
+    rowsLayout?: FlarePluginRowsLayout;
     resolveUser?: FlarePluginResolveUser;
     /** Candidates for members inputs in action forms. */
     members?: FlarePluginMember[];
@@ -80,7 +85,7 @@ const props = withDefaults(
   }>(),
   {
     icon: undefined, displayName: undefined, viewerId: undefined, busy: false, busyActionId: undefined, error: undefined, embedded: false, inset: "none",
-    resolveUser: undefined, members: () => [], formErrors: () => [], settleToken: 0,
+    rowsLayout: "table", resolveUser: undefined, members: () => [], formErrors: () => [], settleToken: 0,
   },
 );
 const emit = defineEmits<{
@@ -192,11 +197,18 @@ function shownSelection(block: FlarePluginChoicesBlock, index: number): number[]
 }
 function submitEnabled(block: FlarePluginChoicesBlock, index: number): boolean {
   const draft = drafts.get(index) ?? viewSelection(block);
-  return draft.length > 0 && !sameSet(draft, viewSelection(block));
+  return draft.length > 0 && !sameSet(draft, viewSelection(block)) && flarePluginWithinCap(block, draft);
+}
+/** Options the cap holds back (spec rules.maxSelections): the multiple draft is full and does not hold them. */
+function cappedOptions(block: FlarePluginChoicesBlock, index: number): number[] {
+  if (!block.multiple || pending.value?.block === index) return [];
+  const draft = drafts.get(index) ?? viewSelection(block);
+  return block.options.map((o) => o.index).filter((option) => flarePluginChoiceCapped(block, draft, option));
 }
 function pick(block: FlarePluginChoicesBlock, index: number, option: number): void {
   if (!choicesInteractive(block, index) || !block.action) return;
   if (block.multiple) {
+    if (cappedOptions(block, index).includes(option)) return;
     const draft = new Set(drafts.get(index) ?? viewSelection(block));
     if (draft.has(option)) draft.delete(option); else draft.add(option);
     drafts.set(index, [...draft].sort((a, b) => a - b));
@@ -234,6 +246,13 @@ const formInputs = computed<FlarePluginInput[]>(() => {
   return action.form.map((id) => props.view.inputs?.find((input) => input.id === id)).filter((input): input is FlarePluginInput => Boolean(input));
 });
 const formBusy = computed(() => props.busy || (Boolean(formAction.value) && props.busyActionId === formAction.value?.id));
+// The row whose action went out last: only its key spins for busyActionId (spec rules.pageRows); the other rows
+// offering the same action wait without spinning.
+const rowInFlight = ref<string | null>(null);
+function send(actionId: string, payload: FlarePluginActionPayload): void {
+  rowInFlight.value = payload.row?.key ?? null;
+  emit("action", actionId, payload);
+}
 
 /** Confirm, then collect the form, then hand the action over (`before` runs right before it goes out). */
 function run(action: FlarePluginAction, payload: FlarePluginActionPayload, before?: () => void): void {
@@ -246,7 +265,7 @@ function run(action: FlarePluginAction, payload: FlarePluginActionPayload, befor
       return;
     }
     before?.();
-    emit("action", action.id, payload);
+    send(action.id, payload);
   };
   if (action.confirm) confirming.value = { action, proceed };
   else proceed();
@@ -262,7 +281,7 @@ function submitForm(values: Record<string, unknown>): void {
   formSubmitted.value = true;
   const carry = formCarry.value;
   carry?.before?.();
-  emit("action", action.id, { ...(carry?.payload ?? {}), formValues: values });
+  send(action.id, { ...(carry?.payload ?? {}), formValues: values });
 }
 function closeForm(): void {
   if (formBusy.value) return;
@@ -347,6 +366,7 @@ const variantOf = (action: FlarePluginAction) => (action.style === "danger" ? "d
           :interactive="choicesInteractive(block, index)"
           :submit-enabled="submitEnabled(block, index)"
           :submit-loading="Boolean(block.action) && busyActionId === block.action?.id"
+          :capped="cappedOptions(block, index)"
           data-block="choices"
           @pick="(option: number) => pick(block, index, option)"
           @submit="submitChoices(block, index, drafts.get(index) ?? [])"
@@ -360,6 +380,8 @@ const variantOf = (action: FlarePluginAction) => (action.style === "danger" ? "d
           :strings="strings"
           :busy="locked"
           :busy-action-id="busyActionId"
+          :busy-row="rowInFlight"
+          :layout="rowsLayout"
           data-block="rows"
           @row-action="rowAction"
           @open-row="(row: FlarePluginRow) => emit('openDetail', { key: row.key, input: row.detailInput })"

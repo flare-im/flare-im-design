@@ -9,6 +9,19 @@ const options = [
 ];
 
 describe("FlareFilterTabs", () => {
+  it("waits while it is not enabled: dimmed, every tab disabled, no pick reported", async () => {
+    const tabs = mount(FlareFilterTabs, { props: { options, modelValue: "all", enabled: false } });
+    expect(tabs.classes()).toContain("is-disabled");
+    const buttons = tabs.findAll(".flare-filter-tab");
+    expect(buttons.every((b) => b.attributes("disabled") !== undefined)).toBe(true);
+    await buttons[1].trigger("click");
+    expect(tabs.emitted("change")).toBeUndefined();
+    await tabs.setProps({ enabled: true });
+    await tabs.findAll(".flare-filter-tab")[1].trigger("click");
+    expect(tabs.emitted("change")).toEqual([["unread"]]);
+    tabs.unmount();
+  });
+
   it("reports the picked value through the model and the change event", async () => {
     const tabs = mount(FlareFilterTabs, { props: { options, modelValue: "all" } });
     const buttons = tabs.findAll(".flare-filter-tab");

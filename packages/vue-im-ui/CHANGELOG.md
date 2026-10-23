@@ -9,6 +9,23 @@
   - **无障碍**：消息行的读屏名改为「发送者，内容摘要，时间，状态或已读摘要」（`flareMessageAccessibilityLabel`）。已删除的消息（lifecycle mutation deleted）显示居中「消息已删除」。
   - **插件卡片**：`FlarePluginView` 渲染 `view.menuActions`（标题行末尾的 ⋯ 键，用 `FlareActionMenu`；embedded 时作为按钮排在动作之后）、分组 entries（组头「选项 · N 票 · P%」，新增 `flarePluginEntryGroupHeader`，`viewerId` 那一行带「我」）、`view.unavailableReason` 的七种原因文案（`pluginView.unavailable.*`，新增 `displayName` 作为前缀），unbound_copy 只读并注明「副本，仅供查看」。`FlarePluginDetailSheet` 新增 `viewerId`。
   - **新组件 `FlarePluginPage`**：插件 page 贡献的通用页面宿主（钱包等）：Screen 页头与返回、触屏下拉刷新、指针设备刷新键、内嵌 PluginView、「加载更多」（同一游标只请求一次），有文档页与 demo。
+  - **插件页面的数据与动作**（`spec/plugin-view-vectors.json` 的 `rules.page`、`pageRows`、`pagePaging`、`pageFilters` 与同名四段）：
+    - `FlarePluginPage` 新增必填的 `page: FlarePluginPageRef`（`{pluginId, page}`）；`view` 改为 `FlarePluginPageViewModel`，带 `data`。
+    - 页面里执行的每个动作都发出 `action(id, FlarePluginPageActionPayload)`，载荷为 `{page, data?, row?, selection?, formValues?}`，在确认与表单之后。它就是 `invokePageAction` 的请求。
+    - 新增 `filters` 与 `filter(values)`：rows 块列出的 select 输入画成 FilterTabs，「全部」在前。
+    - 不可用的页面显示原因空态，只有 catalog_unreachable 带重试；页头保留宿主标题。
+    - **删除** `openDetail`，页面视图没有详情。
+  - **rows 的列表画法**：`FlarePluginView` 新增 `rowsLayout`（`table` 为默认，用于控制台；`list` 用于插件页面）。
+    - 列表的每一项是徽标加第一格，其下是其余单元格（以「 · 」连接），行尾是动作键。
+    - 两种画法都按 key 去重，保留第一次出现的行。
+  - **收尾（四端对齐）**：
+    - 刷新结束（`refreshing` 由真变假）也会忘掉已请求的游标，刷新回第一页拿到同一游标时「加载更多」不会一直转圈。
+    - 行动作只有发起的那一行转圈，同一动作 id 的其余行禁用但不转。
+    - `FlareFilterTabs` 新增 `enabled`（默认 true）：为假时整行变淡、每个标签禁用、不报告选择；页面筛选改用它，不再包 fieldset。
+    - `FlareFilterTabs` 的 filled 行（md 与 sm）保持胶囊画出来的高度，命中区用 `::after` 补到 `layout.touchTarget`，滚动行以内距给出空间、负外距收回，版面不变高；粗指针下不再把胶囊撑到 48。grid 与 quiet 行不变。
+  - **徽标**：entries 的条目与 rows 的行支持 `badge {text, tone}`，用 `FlareTag` 画；未知 tone 按 neutral（`flarePluginBadgeTone`）。
+  - **多选上限**：choices 支持 `maxSelections`。草稿选满后，草稿以外的选项 `aria-disabled` 且变灰；提交要求不超过上限；页脚显示「最多选 {n} 项」。新增 `flarePluginChoiceCap`、`flarePluginChoiceCapped`、`flarePluginWithinCap`。
+  - 新增纯函数 `flarePluginRowsOnce`、`flarePluginRowLines`、`flarePluginPageState`、`flarePluginPageFilters`、`flarePluginPageFilterValues`、`flarePluginPagePayload`，以及文案 `pluginView.all`、`pluginView.maxSelections`。
   - **红包第五版**：`FlareRedPacketCard` **删除** `amount` 与 `kindLabel`，新增 `kind`（拼手气、专属角标）与 `recipientName`（「给 某某」），`state` 改为 `FlareRedPacketCardState`（unopened / viewable / claimed / finished / expired / refunded；`flareRedPacketCardState` 由公开层与本人层得出），卡片永不显示金额。`FlareRedPacketOpenSheet` 新增 `canViewDetails`，notEligible 永不给详情入口。`FlareRedPacketDetail` 改为按 `viewerRole` 渲染服务端结果：新增 `details: FlareRedPacketDetailsView` 与 `designatedName`，**删除** `blessing`、`kindLabel`、`amount`、`amountNote`、`summary`、`note`；`FlareRedPacketClaim` 改为 `{id, name, avatar?, amountMinor, claimedAtMs, best}`。新增 `flareRedPacketAmountText` / `flareRedPacketMoney`（按 `currencyExponent` 整数运算）、`flareRedPacketDetailTexts`、`flareRedPacketTime` 等纯函数，规则见 `spec/red-packet-vectors.json`。
 - 第七轮 Kit 小缺口（app 接线反馈）：
   - `FlareContactDetail` 新增 `primaryActionBusy`：宿主执行主操作（如发送好友申请）期间，主按钮以转圈代替图标、禁用并带 `aria-busy`，颜色不变；发消息、通话、资料行和页脚照常可用。`busy` 仍禁用全部。

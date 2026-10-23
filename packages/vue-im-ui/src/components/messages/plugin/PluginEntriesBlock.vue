@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import FlareAvatar from "../../conversation/FlareAvatar.vue";
+import FlareTag from "../../general/FlareTag.vue";
 import { useFlareI18nOptional } from "../../../shared/i18n/useFlareI18n";
 import {
+  flarePluginBadgeTone,
   flarePluginEntryGroupHeader,
   type FlarePluginEntriesBlock,
   type FlarePluginEntry,
@@ -11,7 +13,7 @@ import {
 // Entries (a sign-up list, a poll's voters): number, avatar, name and text per row; "see all (total)" when the
 // card shows fewer than there are, which hands over to the detail view. A grouped list is one flat list with a
 // header row ("火锅 · 3 票 · 60%") before the first item of each group (spec rules.entriesGrouped); the viewer's
-// own row carries the "me" tag.
+// own row carries the "me" tag, and an item's badge (a ledger line's kind) comes before its text (rules.badge).
 const props = defineProps<{
   block: FlarePluginEntriesBlock;
   /** The resolved (or fallback) user of an id. */
@@ -52,6 +54,13 @@ function nameOf(entry: FlarePluginEntry): string | undefined {
         <span class="flare-plugin-entries__line">
           <b v-if="nameOf(entry)" class="flare-plugin-entries__name" data-entry-name="true">{{ nameOf(entry) }}</b>
           <span v-if="viewerId && entry.userId === viewerId" class="flare-plugin-entries__me" data-entry-me="true">{{ t("pluginView.me") }}</span>
+          <FlareTag
+            v-if="entry.badge"
+            class="flare-plugin-entries__badge"
+            :label="entry.badge.text"
+            :tone="flarePluginBadgeTone(entry.badge.tone)"
+            data-entry-badge="true"
+          />
           <span class="flare-plugin-entries__text" data-entry-text="true">{{ entry.text }}</span>
         </span>
       </li>
@@ -70,7 +79,8 @@ function nameOf(entry: FlarePluginEntry): string | undefined {
 .flare-plugin-entries__row { display: flex; align-items: center; gap: var(--flare-size-spacing-sm); min-width: 0; font-size: var(--flare-size-font-size-md); }
 .flare-plugin-entries__number { flex: none; min-width: 2ch; color: var(--flare-color-text-tertiary); font-variant-numeric: tabular-nums; }
 .flare-plugin-entries__avatar { flex: none; }
-.flare-plugin-entries__line { flex: 1; display: flex; gap: var(--flare-size-spacing-xs); min-width: 0; }
+.flare-plugin-entries__line { flex: 1; display: flex; align-items: baseline; gap: var(--flare-size-spacing-xs); min-width: 0; }
+.flare-plugin-entries__badge { flex: none; max-width: 40%; }
 .flare-plugin-entries__name { flex: none; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: var(--flare-size-font-weight-medium); color: var(--flare-color-text-primary); }
 .flare-plugin-entries__text { min-width: 0; overflow-wrap: anywhere; color: var(--flare-color-text-primary); }
 .flare-plugin-entries__group {

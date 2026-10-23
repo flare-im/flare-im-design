@@ -64,6 +64,15 @@ type DetailKeyCase = {
   expect: { key: { label: string; enabled: boolean } | null; seeAll?: string | null; opens?: boolean };
 };
 type InsetSides = { top: string | null; sides: string | null; bottom: string | null };
+type CapStep = {
+  tap?: number;
+  toggle?: number;
+  submit?: boolean;
+  emit?: { actionId: string; payload: FlarePluginActionPayload };
+  selected?: number[];
+  enabled?: boolean[];
+  submitEnabled?: boolean;
+};
 const vectors = JSON.parse(readFileSync(resolve(__dirname, "../../../../../spec/plugin-view-vectors.json"), "utf8")) as {
   nowMs: number;
   users: Record<string, FlarePluginUser>;
@@ -71,6 +80,7 @@ const vectors = JSON.parse(readFileSync(resolve(__dirname, "../../../../../spec/
   optimistic: Array<{ name: string; view: string; steps: Step[] }>;
   detailKey: DetailKeyCase[];
   insets: Record<string, InsetSides>;
+  maxSelections: Array<{ name: string; platforms: string[]; view: string; embedded?: boolean; steps: CapStep[] }>;
 };
 const viewOf = (id: string) => vectors.views.find((v) => v.id === id)!.view;
 const zh = (flareMessages["zh-CN"] as unknown as { pluginView: { dateTime: string; dateTimeYear: string } }).pluginView;
@@ -112,12 +122,13 @@ function expectBlock(_wrapper: VueWrapper, node: ReturnType<VueWrapper["find"]>,
       break;
     case "choices": {
       const options = node.findAll("[data-option-index]");
-      const facts = fact.options as Array<{ label: string; selected: boolean; percentText: string | null; votesText: string | null; bar: number | null }>;
+      const facts = fact.options as Array<{ label: string; selected: boolean; enabled?: boolean; percentText: string | null; votesText: string | null; bar: number | null }>;
       expect(options.map((o) => o.get(".flare-plugin-choices__label").text())).toEqual(facts.map((f) => f.label));
       facts.forEach((f, i) => {
         const option = options[i];
         expect(option.classes().includes("is-selected"), `${f.label} selected`).toBe(f.selected);
         expect(option.element.tagName === "BUTTON", `${f.label} tappable`).toBe(fact.interactive);
+        if (f.enabled !== undefined) expect(option.attributes("aria-disabled") !== "true", `${f.label} enabled`).toBe(f.enabled);
         expect(option.find("[data-choice-percent]").exists() ? option.get("[data-choice-percent]").text() : null).toBe(f.percentText);
         expect(option.find("[data-choice-votes]").exists() ? option.get("[data-choice-votes]").text() : null).toBe(f.votesText);
         const bar = option.find("[data-choice-bar]");
@@ -135,7 +146,23 @@ function expectBlock(_wrapper: VueWrapper, node: ReturnType<VueWrapper["find"]>,
       break;
     }
     case "entries": {
-      const rows = fact.rows as Array<{ number: string | null; name: string | null; text: string; group?: string | null; me?: boolean }>;
+      const rows = fact.rows as Array<{
+        number: string | null; name: string | null; text: string; group?: string | null; me?: boolean;
+        badge?: { text: string; tone: string } | null; order?: string[];
+      }>;
+      if (rows.some((r) => r.badge !== undefined)) {
+        // Badges: the kit tag in the tone, after the name and the me tag, before the text.
+        const items = node.findAll("[data-entry-index]");
+        rows.forEach((r, i) => {
+          const badge = items[i].find("[data-entry-badge]");
+          expect(badge.exists() ? { text: badge.text(), tone: badge.attributes("data-tone") } : null, `row ${i} badge`).toEqual(r.badge ?? null);
+          if (r.order) {
+            const parts = items[i].get(".flare-plugin-entries__line").element.children;
+            const order = [...parts].map((el) => (el.hasAttribute("data-entry-name") ? "name" : el.hasAttribute("data-entry-me") ? "me" : el.hasAttribute("data-entry-badge") ? "badge" : "text"));
+            expect(order, `row ${i} order`).toEqual(r.order);
+          }
+        });
+      }
       if (rows.some((r) => r.group !== undefined)) {
         // Grouped: a header row precedes each item that opens a group; the viewer's row carries the me tag.
         const items = node.findAll("li");
@@ -346,6 +373,31 @@ describe("FlarePluginView v2 (spec/plugin-view-vectors.json)", () => {
       if (step.interactive !== undefined) expect(wrapper.get("[data-option-index]").element.tagName === "BUTTON").toBe(step.interactive);
       if (step.submitEnabled !== undefined) expect(wrapper.get("[data-choices-submit]").attributes("disabled") === undefined).toBe(step.submitEnabled);
     }
+  });
+
+  it.each(vectors.maxSelections.filter((c) => c.platforms.includes("vue")).map((c) => [c.name, c] as const))("caps a multiple choice: %s", async (_, scenario) => {
+    const { wrapper, actions } = render({ view: viewOf(scenario.view), embedded: Boolean(scenario.embedded) });
+    await nextTick();
+    for (const step of scenario.steps) {
+      if (step.tap !== undefined || step.toggle !== undefined) await wrapper.get(`[data-option-index="${step.tap ?? step.toggle}"]`).trigger("click");
+      if (step.submit) await wrapper.get("[data-choices-submit]").trigger("click");
+      const options = wrapper.findAll("[data-option-index]");
+      if (step.emit) expect(actions.at(-1)).toEqual([step.emit.actionId, step.emit.payload]);
+      if (step.selected) expect(options.filter((o) => o.classes().includes("is-selected")).map((o) => Number(o.attributes("data-option-index")))).toEqual(step.selected);
+      if (step.enabled) expect(options.map((o) => o.attributes("aria-disabled") !== "true")).toEqual(step.enabled);
+      if (step.submitEnabled !== undefined) expect(wrapper.get("[data-choices-submit]").attributes("disabled") === undefined).toBe(step.submitEnabled);
+    }
+  });
+
+  it("shows the cap's hint only while the block can be chosen", async () => {
+    const view = viewOf("poll-max-selections");
+    const { wrapper, state } = render({ view });
+    await nextTick();
+    expect(wrapper.get("[data-choices-footer]").text()).toBe("最多选 2 项");
+    const block = view.blocks![0] as Extract<NonNullable<FlarePluginViewModel["blocks"]>[number], { kind: "choices" }>;
+    state.view = { ...view, blocks: [{ ...block, closed: true, action: undefined }] };
+    await nextTick();
+    expect(wrapper.get("[data-choices-footer]").text()).toBe("已结束");
   });
 
   it("asks first when the action has a confirmation, and sends nothing on cancel", async () => {
