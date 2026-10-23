@@ -17,17 +17,20 @@ public struct FlareFilterTabOption: Identifiable, Sendable {
 }
 
 /// Horizontal, scrollable filter tablist. Spec: General/FilterTabs (`FilterTabsView`).
-/// A row of pill buttons; the selected pill is surfaced in the brand `primary` tint.
+/// A row of pill buttons; the selected pill is surfaced in the brand `primary` tint. Each pill keeps the size it is
+/// drawn at and sits centred in a cell at least `FlareSizes.touchTarget` square, which takes the taps.
+/// `enabled` false (what the tabs filter is loading) dims the row and disables every tab.
 public struct FilterTabsView: View {
     private let options: [FlareFilterTabOption]
     @Binding private var selection: String
+    private let enabled: Bool
     private let onChange: ((String) -> Void)?
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
 
-    public init(options: [FlareFilterTabOption], selection: Binding<String>,
+    public init(options: [FlareFilterTabOption], selection: Binding<String>, enabled: Bool = true,
                 onChange: ((String) -> Void)? = nil) {
-        self.options = options; self._selection = selection; self.onChange = onChange
+        self.options = options; self._selection = selection; self.enabled = enabled; self.onChange = onChange
     }
 
     public var body: some View {
@@ -64,12 +67,17 @@ public struct FilterTabsView: View {
                         .overlay(
                             Capsule().stroke(active ? colors.primary.opacity(0.26) : Color.clear, lineWidth: 1)
                         )
+                        .frame(minWidth: FlareSizes.touchTarget, minHeight: FlareSizes.touchTarget)
+                        .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
+                    .disabled(!enabled)
+                    .accessibilityAddTraits(active ? .isSelected : [])
                 }
             }
             .padding(2)
         }
+        .opacity(enabled ? 1 : FlareOpacity.disabled)
         .animation(.easeOut(duration: 0.15), value: selection)
     }
 }

@@ -17,7 +17,12 @@ import SwiftUI
 ///   `onAction(id, {formValues})`.
 /// - Choices: a single choice submits on tap; a multiple choice toggles a draft submitted by a key named after the
 ///   block's action. The submitted options show at once and revert when `error` turns non-empty; a new `view`
-///   settles them.
+///   settles them. A multiple choice with `maxSelections` holds back every other option once the draft is full (the
+///   ticked ones still untick), submits only a draft within the limit and leads its footer with "最多选 n 项".
+/// - Badges: an entry or a row with a `badge` draws it as a kit tag in its tone (entries: after the name and the me
+///   tag, before the text; rows: before the first cell).
+/// - Rows (a plugin page's list): one item per key — the badge and the first cell, the other cells joined with
+///   " · ", and the row's action keys, which run like the footer keys and carry the row (`onAction(id, {row})`).
 /// - Settling: the host increments `settleToken` once per finished action, after setting that result's `error` and
 ///   `formErrors`. A clean result closes the submitted form and keeps an optimistic choice marked until the new
 ///   view; an error reverts the choice (an open form stays and shows it); form errors keep the form open with them
@@ -74,6 +79,8 @@ public struct PluginView: View {
     @State private var confirming: PluginActionRun?
     @State private var formRun: PluginActionRun?
     @State private var formSubmitted = false
+    /// The row whose key last went out: `busyActionId` spins that row's key, not every row's.
+    @State private var activeRow: String?
     /// The host's signals as last seen, so a change is compared whole.
     @State private var host: PluginHostSignal
     @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
@@ -288,6 +295,7 @@ public struct PluginView: View {
             PluginChoicesBlockView(
                 block: choices,
                 shown: interaction.shown(choices, at: index),
+                capped: Set(choices.options.map(\.index).filter { interaction.capped(choices, at: index, option: $0) }),
                 interactive: onAction != nil && !view.readOnly && interaction.isInteractive(choices, at: index, locked: locked),
                 submitEnabled: interaction.submitEnabled(choices, at: index),
                 submitLoading: choices.action.map { $0.id == busyActionId } ?? false,
@@ -303,6 +311,11 @@ public struct PluginView: View {
         case .time(let time): PluginTimeBlockView(block: time, clock: clock)
         case .divider: PluginDivider()
         case .note(let note): PluginNoteBlockView(block: note)
+        case .rows(let rows):
+            PluginRowsBlockView(block: rows, clock: clock, busyActionId: busyActionId, activeRow: activeRow,
+                                enabled: onAction != nil && !view.readOnly && !locked) { key, row in
+                run(key.action, PluginActionPayload(row: PluginRowRef(key: row.key, input: key.input)))
+            }
         }
     }
 
@@ -351,11 +364,11 @@ public struct PluginView: View {
     private func run(_ action: PluginViewAction, _ payload: PluginActionPayload, block: Int? = nil) {
         guard !locked, onAction != nil else { return }
         let request = PluginActionRun(action: action, payload: payload, block: block)
-        if let confirm = action.confirm, !confirm.isEmpty { confirming = request } else { proceed(request) }
+        if case .confirm = PluginActionFlow.start(action) { confirming = request } else { proceed(request) }
     }
 
     private func proceed(_ request: PluginActionRun) {
-        if let form = request.action.form, !form.isEmpty {
+        if case .form = PluginActionFlow.confirmed(request.action) {
             formSubmitted = false
             formRun = request
             return
@@ -364,11 +377,11 @@ public struct PluginView: View {
     }
 
     private func emit(_ request: PluginActionRun, formValues: [String: PluginJSONValue]?) {
-        var payload = request.payload
-        if let formValues { payload.formValues = formValues }
+        let payload = PluginActionFlow.payload(request.payload, formValues: formValues)
         if let block = request.block, let selection = payload.selection {
             interaction.submitted(block: block, actionId: request.action.id, selection: selection)
         }
+        activeRow = payload.row?.key
         onAction?(request.action.id, payload)
     }
 
@@ -502,10 +515,12 @@ struct PluginTextBlockView: View {
     }
 }
 
-/// The options of a choices block, their results and the multiple submit key.
+/// The options of a choices block, their results and the multiple submit key. Options the limit holds back (`capped`)
+/// stay listed, dimmed and not tappable.
 struct PluginChoicesBlockView: View {
     let block: PluginChoicesBlock
     let shown: [Int]
+    var capped: Set<Int> = []
     let interactive: Bool
     let submitEnabled: Bool
     let submitLoading: Bool
@@ -538,6 +553,7 @@ struct PluginChoicesBlockView: View {
         let percent = PluginViewFormat.percentText(option, showResults: block.showResults)
         let votes = PluginViewFormat.votesText(option, showResults: block.showResults, strings)
         let shape = RoundedRectangle(cornerRadius: FlareSizes.radiusMd, style: .continuous)
+        let held = interactive && capped.contains(option.index)
         return Button { onPick(option.index) } label: {
             HStack(spacing: FlareSizes.spacingSm) {
                 if block.multiple && interactive {
@@ -576,7 +592,8 @@ struct PluginChoicesBlockView: View {
             .contentShape(shape)
         }
         .buttonStyle(.plain)
-        .disabled(!interactive)
+        .disabled(!interactive || held)
+        .opacity(held ? FlareOpacity.disabled : 1)
         .accessibilityElement(children: .combine)
         .accessibilityLabel([option.label, percent, votes].compactMap { $0 }.joined(separator: ", "))
         .accessibilityAddTraits(selected ? .isSelected : [])
@@ -605,7 +622,8 @@ struct PluginCheckBox: View {
 }
 
 /// A numbered list of entries, its empty text and "see all". A grouped list draws a header row before each entry
-/// that opens a group, and an entry of the viewer carries the "我" tag.
+/// that opens a group, and an entry of the viewer carries the "我" tag. An entry's parts go number, avatar, name, me,
+/// badge, text.
 struct PluginEntriesBlockView: View {
     let block: PluginEntriesBlock
     let users: [String: PluginUser]
@@ -682,12 +700,133 @@ struct PluginEntriesBlockView: View {
                     .padding(.vertical, FlareSizes.spacing3xs)
                     .background(Capsule().fill(colors.bgSelected))
             }
+            if let badge = entry.badge {
+                PluginBadgeView(badge: badge)
+            }
             Text(entry.text).font(.system(size: FlareSizes.fontSizeLg * textScale))
                 .foregroundColor(colors.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
+    }
+}
+
+/// The ground of a badge: a 6% tint of the tone over the primary surface; neutral is the tertiary background.
+func pluginBadgeGround(_ tone: PluginTone, _ colors: FlareColors) -> Color {
+    switch tone {
+    case .neutral: return colors.bgTertiary
+    case .info: return colors.info.opacity(0.06)
+    case .success: return colors.success.opacity(0.06)
+    case .warning: return colors.warning.opacity(0.06)
+    case .danger: return colors.error.opacity(0.06)
+    }
+}
+
+/// An entry's or a row's badge as the kit tag (spec rules.badge): the tone's ink on its faint tint over the primary
+/// surface (neutral: secondary text on the tertiary background), caption size, one line, a hairline of the ink. It is
+/// words, never a control: it reads as part of its item.
+struct PluginBadgeView: View {
+    let badge: PluginBadge
+    @ScaledMetric(relativeTo: .caption) private var textScale: CGFloat = 1
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareBrandTheme) private var flareBrandTheme
+
+    var body: some View {
+        let colors = FlareColors.of(scheme, brand: flareBrandTheme)
+        let ink = pluginToneText(badge.tone, colors)
+        let shape = RoundedRectangle(cornerRadius: FlareSizes.radiusSm, style: .continuous)
+        Text(badge.text)
+            .font(.system(size: FlareTextRoles.caption.fontSize * textScale, weight: .medium))
+            .foregroundColor(ink)
+            .lineLimit(1)
+            .padding(.horizontal, FlareSizes.spacing2xs)
+            .padding(.vertical, FlareSizes.spacing3xs)
+            .background(ZStack {
+                shape.fill(colors.bgPrimary)
+                shape.fill(pluginBadgeGround(badge.tone, colors))
+            })
+            // Decoration only: the edge must not take a tap meant for the row around it.
+            .overlay(shape.stroke(ink.opacity(0.18), lineWidth: 1).allowsHitTesting(false))
+    }
+}
+
+/// A rows block as a list (spec rules.pageRows): one item per key, the first kept — the badge and the first cell,
+/// then the other cells joined with " · " — and the row's keys (the block actions it offers) at the item's end. No
+/// rows: the block's empty text, else the kit's. The rows page with their page: no load more of their own.
+struct PluginRowsBlockView: View {
+    let block: PluginRowsBlock
+    let clock: PluginViewClock
+    let busyActionId: String?
+    /// The row whose key last went out: its key spins while `busyActionId` is that action.
+    let activeRow: String?
+    let enabled: Bool
+    let onKey: (PluginRowKey, PluginRow) -> Void
+    @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareBrandTheme) private var flareBrandTheme
+    @Environment(\.flareStrings) private var strings
+
+    var body: some View {
+        let colors = FlareColors.of(scheme, brand: flareBrandTheme)
+        let rows = PluginViewFormat.rowsOnce(block.rows)
+        if rows.isEmpty {
+            let empty = block.emptyText.flatMap { $0.isEmpty ? nil : $0 } ?? strings.pluginViewEmpty
+            Text(empty)
+                .font(.system(size: FlareSizes.fontSizeMd * textScale))
+                .foregroundColor(colors.textTertiary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+            let now = clock.now()
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(Array(rows.enumerated()), id: \.element.key) { position, row in
+                    if position > 0 { PluginDivider() }
+                    item(row, lines: PluginViewFormat.rowLines(block, row, nowMs: now, strings,
+                                                               utcOffsetMinutes: clock.utcOffsetMinutes), colors)
+                        .padding(.top, position == 0 ? 0 : FlareSizes.spacingSm)
+                        .padding(.bottom, position == rows.count - 1 ? 0 : FlareSizes.spacingSm)
+                }
+            }
+        }
+    }
+
+    /// A row key spins while its action is busy and it is the row that ran it: several rows share an action id.
+    static func spins(_ key: PluginRowKey, row: PluginRow, busyActionId: String?, activeRow: String?) -> Bool {
+        busyActionId == key.action.id && activeRow == row.key
+    }
+
+    private func item(_ row: PluginRow, lines: PluginRowLines, _ colors: FlareColors) -> some View {
+        let keys = PluginViewFormat.rowKeys(block, row)
+        return HStack(spacing: FlareSizes.spacingSm) {
+            VStack(alignment: .leading, spacing: FlareSizes.spacingXs) {
+                HStack(alignment: .firstTextBaseline, spacing: FlareSizes.spacingXs) {
+                    if let badge = row.badge { PluginBadgeView(badge: badge) }
+                    Text(lines.primary)
+                        .font(.system(size: FlareSizes.fontSizeMd * textScale).monospacedDigit())
+                        .foregroundColor(colors.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                if let secondary = lines.secondary {
+                    Text(secondary)
+                        .font(.system(size: FlareSizes.fontSizeSm * textScale))
+                        .foregroundColor(colors.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            // The badge and the cells read as one item, in drawing order; the keys stay their own controls.
+            .accessibilityElement(children: .combine)
+            if !keys.isEmpty {
+                HStack(spacing: FlareSizes.spacingXs) {
+                    ForEach(Array(keys.enumerated()), id: \.offset) { _, key in
+                        let spinning = Self.spins(key, row: row, busyActionId: busyActionId, activeRow: activeRow)
+                        ButtonView(label: key.action.label, variant: PluginViewFormat.variant(key.action), size: .sm,
+                                   loading: spinning, disabled: !enabled && !spinning) { onKey(key, row) }
+                    }
+                }
+                .fixedSize()
+            }
+        }
     }
 }
 

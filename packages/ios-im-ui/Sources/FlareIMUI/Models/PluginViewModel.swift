@@ -169,13 +169,19 @@ public struct PluginChoicesBlock: Codable, Equatable, Sendable {
     public let showResults: Bool
     public let total: Int?
     public let inputName: String
+    /// A multiple choice's limit (1 up to the option count): once the draft holds that many, the other options wait.
+    public let maxSelections: Int?
     public let action: PluginViewAction?
     public init(options: [PluginChoice], multiple: Bool = false, voted: Bool = false, closed: Bool = false,
-                showResults: Bool = false, total: Int? = nil, inputName: String = "selection", action: PluginViewAction? = nil) {
+                showResults: Bool = false, total: Int? = nil, inputName: String = "selection",
+                maxSelections: Int? = nil, action: PluginViewAction? = nil) {
         self.options = options; self.multiple = multiple; self.voted = voted; self.closed = closed
-        self.showResults = showResults; self.total = total; self.inputName = inputName; self.action = action
+        self.showResults = showResults; self.total = total; self.inputName = inputName
+        self.maxSelections = maxSelections; self.action = action
     }
-    private enum CodingKeys: String, CodingKey { case options, multiple, voted, closed, showResults, total, inputName, action }
+    private enum CodingKeys: String, CodingKey {
+        case options, multiple, voted, closed, showResults, total, inputName, maxSelections, action
+    }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         options = try c.decode([PluginChoice].self, forKey: .options)
@@ -185,10 +191,30 @@ public struct PluginChoicesBlock: Codable, Equatable, Sendable {
         showResults = c.lenient(Bool.self, .showResults) ?? false
         total = c.lenient(Int.self, .total)
         inputName = c.lenient(String.self, .inputName) ?? "selection"
+        maxSelections = c.lenient(Int.self, .maxSelections)
         action = c.lenient(PluginViewAction.self, .action)
     }
     /// The indices the view says the viewer chose, ascending.
     public var selection: [Int] { options.filter(\.selected).map(\.index).sorted() }
+    /// The limit that applies: a multiple choice's positive `maxSelections`; nil for a single choice or no limit.
+    public var cap: Int? {
+        guard multiple, let maxSelections, maxSelections > 0 else { return nil }
+        return maxSelections
+    }
+}
+
+/// An entry's or a row's enumerated value as words and a tone (the plugin's `valueLabels`, already translated; an
+/// unmapped value arrives as its raw text, neutral). A tone the kit does not know draws neutral.
+public struct PluginBadge: Codable, Equatable, Sendable {
+    public let text: String
+    public let tone: PluginTone
+    public init(text: String, tone: PluginTone = .neutral) { self.text = text; self.tone = tone }
+    private enum CodingKeys: String, CodingKey { case text, tone }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        text = c.lenient(String.self, .text) ?? ""
+        tone = c.lenient(PluginTone.self, .tone) ?? .neutral
+    }
 }
 
 /// The group an entry opens in a grouped entries block: its key, the label (data, not translated) and the counts
@@ -214,17 +240,21 @@ public struct PluginEntryGroup: Codable, Equatable, Sendable {
 }
 
 /// One entry of an entries block; `index` is its position in the data, from 1 (from 1 in each group of a grouped
-/// block). `group` is set on the first entry of each group of a grouped block: a header row goes before it.
+/// block). `group` is set on the first entry of each group of a grouped block: a header row goes before it. `badge`
+/// (a ledger line's kind) draws after the name and the me tag, before the text.
 public struct PluginEntry: Codable, Equatable, Sendable {
     public let index: Int
     public let text: String
     public let name: String?
     public let userId: String?
     public let group: PluginEntryGroup?
-    public init(index: Int, text: String, name: String? = nil, userId: String? = nil, group: PluginEntryGroup? = nil) {
+    public let badge: PluginBadge?
+    public init(index: Int, text: String, name: String? = nil, userId: String? = nil, group: PluginEntryGroup? = nil,
+                badge: PluginBadge? = nil) {
         self.index = index; self.text = text; self.name = name; self.userId = userId; self.group = group
+        self.badge = badge
     }
-    private enum CodingKeys: String, CodingKey { case index, text, name, userId, group }
+    private enum CodingKeys: String, CodingKey { case index, text, name, userId, group, badge }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         index = c.lenient(Int.self, .index) ?? 0
@@ -232,6 +262,7 @@ public struct PluginEntry: Codable, Equatable, Sendable {
         name = c.lenient(String.self, .name)
         userId = c.lenient(String.self, .userId)
         group = c.lenient(PluginEntryGroup.self, .group)
+        badge = c.lenient(PluginBadge.self, .badge)
     }
 }
 
@@ -356,8 +387,97 @@ public struct PluginNoteBlock: Codable, Equatable, Sendable {
     }
 }
 
-/// One display block, tagged by `kind`. `rows` (admin tables) is the Vue kit's only; a native kit skips it with any
-/// kind it does not know.
+/// How a rows column writes its cells: text as given, time as an instant in the device zone.
+public enum PluginRowsColumnFormat: String, Codable, Sendable {
+    case text, time
+    public init(from decoder: Decoder) throws {
+        self = PluginRowsColumnFormat(rawValue: (try? decoder.singleValueContainer().decode(String.self)) ?? "") ?? .text
+    }
+}
+
+public struct PluginRowsColumn: Codable, Equatable, Sendable {
+    public let label: String
+    public let format: PluginRowsColumnFormat
+    public init(label: String, format: PluginRowsColumnFormat = .text) { self.label = label; self.format = format }
+    private enum CodingKeys: String, CodingKey { case label, format }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        label = c.lenient(String.self, .label) ?? ""
+        format = c.lenient(PluginRowsColumnFormat.self, .format) ?? .text
+    }
+}
+
+/// One cell: its text, and the instant of a time column.
+public struct PluginRowCell: Codable, Equatable, Sendable {
+    public let text: String
+    public let timeMs: Int64?
+    public init(text: String, timeMs: Int64? = nil) { self.text = text; self.timeMs = timeMs }
+    private enum CodingKeys: String, CodingKey { case text, timeMs }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        text = c.lenient(String.self, .text) ?? ""
+        timeMs = c.lenient(Double.self, .timeMs).map { Int64($0) }
+    }
+}
+
+/// A block action a row offers, with the input the core bound for that row: it goes back as the action's `row`.
+public struct PluginRowAction: Codable, Equatable, Sendable {
+    public let id: String
+    public let input: [String: PluginJSONValue]
+    public init(id: String, input: [String: PluginJSONValue] = [:]) { self.id = id; self.input = input }
+    private enum CodingKeys: String, CodingKey { case id, input }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        input = c.lenient([String: PluginJSONValue].self, .input) ?? [:]
+    }
+}
+
+/// One row: its key (unique in the block), a cell per column, the actions it offers and its badge.
+public struct PluginRow: Codable, Equatable, Identifiable, Sendable {
+    public let key: String
+    public let cells: [PluginRowCell]
+    public let actions: [PluginRowAction]
+    public let badge: PluginBadge?
+    public var id: String { key }
+    public init(key: String, cells: [PluginRowCell], actions: [PluginRowAction] = [], badge: PluginBadge? = nil) {
+        self.key = key; self.cells = cells; self.actions = actions; self.badge = badge
+    }
+    private enum CodingKeys: String, CodingKey { case key, cells, actions, badge }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        key = try c.decode(String.self, forKey: .key)
+        cells = c.lenient([PluginRowCell].self, .cells) ?? []
+        actions = (c.lenient([PluginLossy<PluginRowAction>].self, .actions) ?? []).compactMap(\.value)
+        badge = c.lenient(PluginBadge.self, .badge)
+    }
+}
+
+/// `rows`: a plugin page's list (a wallet's ledger). The rows page with the page; `actions` are the block's actions
+/// a row offers by id; `filters` names the view inputs the page shows as its filters (absent: every input).
+public struct PluginRowsBlock: Codable, Equatable, Sendable {
+    public let columns: [PluginRowsColumn]
+    public let rows: [PluginRow]
+    public let actions: [PluginViewAction]
+    public let emptyText: String?
+    public let filters: [String]?
+    public init(columns: [PluginRowsColumn], rows: [PluginRow], actions: [PluginViewAction] = [],
+                emptyText: String? = nil, filters: [String]? = nil) {
+        self.columns = columns; self.rows = rows; self.actions = actions; self.emptyText = emptyText
+        self.filters = filters
+    }
+    private enum CodingKeys: String, CodingKey { case columns, rows, actions, emptyText, filters }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        columns = c.lenient([PluginRowsColumn].self, .columns) ?? []
+        rows = (c.lenient([PluginLossy<PluginRow>].self, .rows) ?? []).compactMap(\.value)
+        actions = (c.lenient([PluginLossy<PluginViewAction>].self, .actions) ?? []).compactMap(\.value)
+        emptyText = c.lenient(String.self, .emptyText)
+        filters = c.lenient([String].self, .filters)
+    }
+}
+
+/// One display block, tagged by `kind`; a kind the kit does not know is skipped.
 public enum PluginBlock: Codable, Equatable, Sendable {
     case text(PluginTextBlock)
     case fields(PluginFieldsBlock)
@@ -369,6 +489,7 @@ public enum PluginBlock: Codable, Equatable, Sendable {
     case time(PluginTimeBlock)
     case divider
     case note(PluginNoteBlock)
+    case rows(PluginRowsBlock)
 
     public var kind: String {
         switch self {
@@ -382,6 +503,7 @@ public enum PluginBlock: Codable, Equatable, Sendable {
         case .time: return "time"
         case .divider: return "divider"
         case .note: return "note"
+        case .rows: return "rows"
         }
     }
 
@@ -400,6 +522,7 @@ public enum PluginBlock: Codable, Equatable, Sendable {
         case "time": self = .time(try PluginTimeBlock(from: decoder))
         case "divider": self = .divider
         case "note": self = .note(try PluginNoteBlock(from: decoder))
+        case "rows": self = .rows(try PluginRowsBlock(from: decoder))
         default:
             throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: "block kind \(kind)"))
         }
@@ -419,6 +542,7 @@ public enum PluginBlock: Codable, Equatable, Sendable {
         case .time(let block): try block.encode(to: encoder)
         case .divider: break
         case .note(let block): try block.encode(to: encoder)
+        case .rows(let block): try block.encode(to: encoder)
         }
     }
 }
@@ -514,14 +638,80 @@ public struct PluginMember: Codable, Equatable, Identifiable, Sendable {
     }
 }
 
-/// What `onAction(id, payload)` carries: the chosen option indices (ascending) or the form's values by input id.
+/// The row a rows action ran on: its key and the input the view bound for that action (`rows[].actions[].input`).
+public struct PluginRowRef: Codable, Equatable, Sendable {
+    public let key: String
+    public let input: [String: PluginJSONValue]
+    public init(key: String, input: [String: PluginJSONValue] = [:]) { self.key = key; self.input = input }
+}
+
+/// What `onAction(id, payload)` carries: the chosen option indices (ascending), the form's values by input id, and
+/// the row of a rows action.
 public struct PluginActionPayload: Codable, Equatable, Sendable {
     public var selection: [Int]?
     public var formValues: [String: PluginJSONValue]?
-    public init(selection: [Int]? = nil, formValues: [String: PluginJSONValue]? = nil) {
-        self.selection = selection; self.formValues = formValues
+    public var row: PluginRowRef?
+    public init(selection: [Int]? = nil, formValues: [String: PluginJSONValue]? = nil, row: PluginRowRef? = nil) {
+        self.selection = selection; self.formValues = formValues; self.row = row
     }
     public static let empty = PluginActionPayload()
+}
+
+/// The page a ``FlarePluginPage`` shows, as the core SDK's page action request names it.
+public struct PluginPageRef: Codable, Equatable, Hashable, Sendable {
+    public let pluginId: String
+    public let page: String
+    public init(pluginId: String, page: String) { self.pluginId = pluginId; self.page = page }
+}
+
+/// A resolved plugin page (the core SDK's `pluginPage` result): the view, plus `data`, what the page was resolved
+/// against (the first page's source result, or the arguments of a page without a source). The view's fields read
+/// straight through (`page.title`, `page.nextCursor`). An unavailable page is `{available: false, title: "",
+/// unavailableReason}` and has no data.
+@dynamicMemberLookup
+public struct PluginPageViewModel: Codable, Equatable, Sendable {
+    public let view: PluginViewModel
+    /// Passed back as is by every action run on the page; the kit reads nothing in it.
+    public let data: PluginJSONValue?
+
+    public init(view: PluginViewModel, data: PluginJSONValue? = nil) { self.view = view; self.data = data }
+
+    public subscript<T>(dynamicMember keyPath: KeyPath<PluginViewModel, T>) -> T { view[keyPath: keyPath] }
+
+    private enum CodingKeys: String, CodingKey { case data }
+
+    public init(from decoder: Decoder) throws {
+        view = try PluginViewModel(from: decoder)
+        data = try decoder.container(keyedBy: CodingKeys.self).lenient(PluginJSONValue.self, .data)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        try view.encode(to: encoder)
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encodeIfPresent(data, forKey: .data)
+    }
+}
+
+/// What ``FlarePluginPage``'s `onAction(id, payload)` carries: the core SDK's page action request without the platform
+/// and the gesture, so the host passes it to `invokePageAction` as it is.
+public struct PluginPageActionPayload: Codable, Equatable, Sendable {
+    public var page: PluginPageRef
+    /// The view's `data`, when it has some.
+    public var data: PluginJSONValue?
+    public var row: PluginRowRef?
+    public var selection: [Int]?
+    public var formValues: [String: PluginJSONValue]?
+
+    public init(page: PluginPageRef, data: PluginJSONValue? = nil, row: PluginRowRef? = nil, selection: [Int]? = nil,
+                formValues: [String: PluginJSONValue]? = nil) {
+        self.page = page; self.data = data; self.row = row; self.selection = selection; self.formValues = formValues
+    }
+
+    /// An action run on `page`'s view: the page, the view's data and what the action carries.
+    public init(page: PluginPageRef, view: PluginPageViewModel?, payload: PluginActionPayload) {
+        self.init(page: page, data: view?.data, row: payload.row, selection: payload.selection,
+                  formValues: payload.formValues)
+    }
 }
 
 /// Why a view is unavailable or read-only (`ResolvedPluginView.unavailableReason`, snake_case on the wire).
@@ -550,8 +740,8 @@ public struct PluginViewModel: Codable, Equatable, Sendable {
     public let inputs: [PluginInput]
     /// The contribution has a detail view ("see all").
     public let detail: Bool
-    /// A detail view's next page: the cursor the host asks the core SDK for (``PluginDetailSheetView`` draws "load
-    /// more" with it); nil (or blank) on the last page and on cards.
+    /// A detail or page view's next page: the cursor the host asks the core SDK for (``PluginDetailSheetView`` and
+    /// ``FlarePluginPage`` draw "load more" with it); nil (or blank) on the last page and on cards.
     public let nextCursor: String?
     /// Actions the plugin placed in the card's ⋯ menu, in order (`placement: "menu"`); run like the footer actions.
     public let menuActions: [PluginViewAction]
@@ -607,6 +797,12 @@ public struct PluginViewModel: Codable, Equatable, Sendable {
     /// The inputs an action's form collects, in the order of `action.form`; ids the view does not hold are dropped.
     public func formInputs(for action: PluginViewAction) -> [PluginInput] {
         (action.form ?? []).compactMap { id in inputs.first { $0.id == id } }
+    }
+
+    /// The view's rows block, if it has one (a plugin page holds at most one).
+    public var rowsBlock: PluginRowsBlock? {
+        for block in blocks { if case .rows(let rows) = block { return rows } }
+        return nil
     }
 }
 

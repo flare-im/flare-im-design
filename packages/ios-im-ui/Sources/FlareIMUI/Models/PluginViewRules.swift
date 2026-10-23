@@ -71,10 +71,19 @@ enum PluginViewFormat {
     }
 
     /// Whether a card draws its own view details key (spec rules.detailKey): the view has a detail, is available and is
-    /// not embedded, and no entries block shows its see all. The card also needs an `onOpenDetail`.
+    /// not embedded, no entries block shows its see all and it has no rows block. The card also needs an `onOpenDetail`.
     static func showsDetailKey(_ view: PluginViewModel, embedded: Bool) -> Bool {
-        guard view.detail, view.available, !view.readOnly, !embedded else { return false }
+        guard view.detail, view.available, !view.readOnly, !embedded, view.rowsBlock == nil else { return false }
         return !view.blocks.contains { if case .entries(let entries) = $0 { return entries.more }; return false }
+    }
+
+    /// The inputs a page shows as its filters (spec rules.rows, filterInputs), in the view's input order: the ones its
+    /// rows block lists in `filters` (unknown ids ignored), or every input when the block lists none; the others
+    /// belong to action forms.
+    static func filterInputs(_ view: PluginViewModel) -> [PluginInput] {
+        guard let listed = view.rowsBlock?.filters else { return view.inputs }
+        let ids = Set(listed)
+        return view.inputs.filter { ids.contains($0.id) }
     }
 
     /// A grouped entries block's header row (spec rules.entriesGrouped): the label, "N 票" when the group has a count
@@ -120,9 +129,13 @@ enum PluginViewFormat {
         return name.isEmpty ? reasonText(reason, strings) : "\(name) · \(reasonText(reason, strings))"
     }
 
-    /// The line under a choices block: ended, and the total while results show.
+    /// The line under a choices block: the limit while it can be chosen ("最多选 2 项"), ended, and the total while
+    /// results show.
     static func choicesFooter(_ block: PluginChoicesBlock, _ strings: FlareStrings) -> String? {
         var parts: [String] = []
+        if let cap = block.cap, block.action != nil, !block.closed {
+            parts.append(strings.pluginViewMaxSelections.replacingOccurrences(of: "{n}", with: String(cap)))
+        }
         if block.closed { parts.append(strings.pluginViewEnded) }
         if block.showResults, let total = block.total { parts.append(votes(total, strings)) }
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
@@ -249,6 +262,132 @@ enum PluginViewFormat {
         let step: Int64 = r < 3_600_000 ? 1000 : 60_000
         return r % step + 1
     }
+
+    // MARK: Rows
+
+    /// The rows to draw (spec rules.pageRows): in order, each key once, the first kept.
+    static func rowsOnce(_ rows: [PluginRow]) -> [PluginRow] {
+        var seen = Set<String>()
+        return rows.filter { seen.insert($0.key).inserted }
+    }
+
+    /// A row item's two lines: the first cell, then the other cells in column order (a time column's instant as the
+    /// time blocks write it, blank cells skipped) joined with " · ", or nil when none is left.
+    static func rowLines(_ block: PluginRowsBlock, _ row: PluginRow, nowMs: Int64, _ strings: FlareStrings,
+                         utcOffsetMinutes: Int?) -> PluginRowLines {
+        let texts = block.columns.indices.map { index -> String in
+            guard row.cells.indices.contains(index) else { return "" }
+            let cell = row.cells[index]
+            if block.columns[index].format == .time, let at = cell.timeMs {
+                return dateTime(at, nowMs: nowMs, strings, utcOffsetMinutes: utcOffsetMinutes)
+            }
+            return cell.text
+        }
+        let rest = texts.dropFirst().filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        return PluginRowLines(primary: texts.first ?? "", secondary: rest.isEmpty ? nil : rest.joined(separator: " · "))
+    }
+
+    /// The keys of a row: the block actions it offers, in the row's order, each with the input the view bound for it.
+    static func rowKeys(_ block: PluginRowsBlock, _ row: PluginRow) -> [PluginRowKey] {
+        row.actions.compactMap { offered in
+            block.actions.first { $0.id == offered.id }.map { PluginRowKey(action: $0, input: offered.input) }
+        }
+    }
+}
+
+/// A row item's lines: the first cell, and the other cells joined (nil when none is left).
+struct PluginRowLines: Equatable, Sendable {
+    let primary: String
+    let secondary: String?
+}
+
+/// A key at a row's end: the block action and the input bound for that row.
+struct PluginRowKey: Equatable, Sendable {
+    let action: PluginViewAction
+    let input: [String: PluginJSONValue]
+}
+
+// MARK: - Running an action
+
+/// What running an action asks for next: the kit DangerConfirm with its text, the form of those inputs, or nothing
+/// more (the action goes out).
+enum PluginActionStep: Equatable, Sendable {
+    case confirm(String)
+    case form([String])
+    case emit
+}
+
+/// One way for every action on a view — a key, a menu item, a choices submit, a row key: confirm first, then the
+/// form, then out.
+enum PluginActionFlow {
+    static func start(_ action: PluginViewAction) -> PluginActionStep {
+        if let confirm = action.confirm, !confirm.isEmpty { return .confirm(confirm) }
+        return confirmed(action)
+    }
+
+    /// The confirmation was accepted (or there was none): the form, or out.
+    static func confirmed(_ action: PluginViewAction) -> PluginActionStep {
+        if let form = action.form, !form.isEmpty { return .form(form) }
+        return .emit
+    }
+
+    /// What goes out: the action's payload, with the form's values when a form collected them.
+    static func payload(_ payload: PluginActionPayload, formValues: [String: PluginJSONValue]?) -> PluginActionPayload {
+        var out = payload
+        if let formValues { out.formValues = formValues }
+        return out
+    }
+}
+
+// MARK: - Plugin pages
+
+/// One select filter of a page (spec rules.pageFilters): its input, the tabs (all, then the input's choices) and the
+/// value the host's filters select (nil: all).
+struct PluginPageFilter: Equatable, Identifiable, Sendable {
+    struct Tab: Equatable, Sendable {
+        /// nil is all.
+        let value: String?
+        let label: String
+    }
+
+    let input: PluginInput
+    let tabs: [Tab]
+    let selected: String?
+    var id: String { input.id }
+}
+
+enum PluginPageRules {
+    /// A page with a rows block shows the select inputs among its filter inputs, in input order; each starts with all.
+    /// The selected tab is the host's value when it is one of the choices, else all.
+    static func filters(_ view: PluginViewModel, values: [String: PluginJSONValue], all: String) -> [PluginPageFilter] {
+        guard view.rowsBlock != nil else { return [] }
+        return PluginViewFormat.filterInputs(view).compactMap { input in
+            guard input.kind == .select, let choices = input.choices, !choices.isEmpty else { return nil }
+            let value = values[input.id]?.stringValue
+            let selected = choices.contains { $0.value == value } ? value : nil
+            return PluginPageFilter(input: input,
+                                    tabs: [.init(value: nil, label: all)] + choices.map { .init(value: $0.value, label: $0.label) },
+                                    selected: selected)
+        }
+    }
+
+    /// The host's filters after choosing `value` (nil: all) on `filter`: that input set, or removed for all; nil when
+    /// the chosen tab is already the selected one (nothing to ask for).
+    static func choose(_ filter: PluginPageFilter, value: String?,
+                       in values: [String: PluginJSONValue]) -> [String: PluginJSONValue]? {
+        guard value != filter.selected else { return nil }
+        var next = values
+        if let value { next[filter.input.id] = .string(value) } else { next[filter.input.id] = nil }
+        return next
+    }
+
+    /// An unavailable page's words: the reason's copy, or the empty text when it names none.
+    static func unavailableText(_ view: PluginViewModel, _ strings: FlareStrings) -> String {
+        view.unavailableReason.map { PluginViewFormat.reasonText($0, strings) } ?? strings.pluginViewEmpty
+    }
+
+    /// Only an unreachable catalog is worth asking again.
+    static func unavailableRetry(_ view: PluginViewModel) -> Bool { view.unavailableReason == .catalogUnreachable }
 }
 
 // MARK: - Choices
@@ -279,17 +418,26 @@ struct PluginChoicesInteraction: Equatable, Sendable {
         return block.selection
     }
 
-    /// The multiple submit key: a non-empty draft that differs from the view's selection.
+    /// The multiple submit key: a non-empty draft that differs from the view's selection and is within the limit.
     func submitEnabled(_ block: PluginChoicesBlock, at index: Int) -> Bool {
         let draft = drafts[index] ?? block.selection
-        return !draft.isEmpty && Set(draft) != Set(block.selection)
+        return !draft.isEmpty && Set(draft) != Set(block.selection) && draft.count <= (block.cap ?? .max)
+    }
+
+    /// An option held back by the limit (spec rules.maxSelections): the draft is full and does not hold it. The ones in
+    /// the draft stay tappable, so unticking one frees the rest; a selection above a lowered limit can only shrink.
+    func capped(_ block: PluginChoicesBlock, at index: Int, option: Int) -> Bool {
+        guard let cap = block.cap else { return false }
+        let draft = shown(block, at: index)
+        return draft.count >= cap && !draft.contains(option)
     }
 
     /// A tap on an option. Single choice: the selection to submit (nil for the only selected option). Multiple: the
-    /// draft toggles and nothing is submitted.
+    /// draft toggles (an option the limit holds back does nothing) and nothing is submitted.
     mutating func tap(_ block: PluginChoicesBlock, at index: Int, option: Int, locked: Bool) -> [Int]? {
         guard isInteractive(block, at: index, locked: locked) else { return nil }
         if block.multiple {
+            guard !capped(block, at: index, option: option) else { return nil }
             var draft = Set(drafts[index] ?? block.selection)
             if draft.contains(option) { draft.remove(option) } else { draft.insert(option) }
             drafts[index] = draft.sorted()

@@ -480,10 +480,22 @@ struct FlareCommandPalette_Previews: PreviewProvider {
 struct FlarePluginPage_Previews: PreviewProvider {
     static var previews: some View {
         FlarePluginPage(
-            view: PluginViewModel(available: true, title: "钱包",
-                                  fields: [PluginViewField(label: "CNY", value: "¥128.00")],
-                                  blocks: [.note(PluginNoteBlock(text: "当前生效的规则：单个红包上限 ¥200.00"))],
-                                  nextCursor: "next"),
-            onBack: {}, onRefresh: {}, onLoadMore: { _ in })
+            page: PluginPageRef(pluginId: "flare.redpacket", page: "flare.redpacket.wallet"),
+            view: PluginPageViewModel(view: PluginViewModel(
+                available: true, title: "钱包",
+                fields: [PluginViewField(label: "可用余额", value: "¥128.50")],
+                blocks: [.rows(PluginRowsBlock(
+                    columns: [PluginRowsColumn(label: "金额"), PluginRowsColumn(label: "对方")],
+                    rows: [PluginRow(key: "l1", cells: [PluginRowCell(text: "+¥1.00"), PluginRowCell(text: "Alice")],
+                                     actions: [PluginRowAction(id: "open")],
+                                     badge: PluginBadge(text: "收到红包", tone: .success)),
+                           PluginRow(key: "l2", cells: [PluginRowCell(text: "-¥5.00"), PluginRowCell(text: "")],
+                                     badge: PluginBadge(text: "发出红包"))],
+                    actions: [PluginViewAction(id: "open", label: "查看")], filters: ["kind"]))],
+                inputs: [PluginInput(id: "kind", kind: .select, label: "类型",
+                                     choices: [PluginInputChoice(value: "send", label: "发出"),
+                                               PluginInputChoice(value: "claim", label: "收到")])],
+                nextCursor: "next")),
+            onBack: {}, onRefresh: {}, onLoadMore: { _ in }, onFilter: { _ in })
     }
 }

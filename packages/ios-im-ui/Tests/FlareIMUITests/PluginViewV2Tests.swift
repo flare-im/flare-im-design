@@ -122,22 +122,25 @@ final class PluginViewV2Tests: XCTestCase {
     func testThePluginPageLoadsFailsAndShowsTheEmbeddedView() throws {
         XCTAssertEqual(FlarePluginPage.phase(loading: true, error: nil, view: nil), .loading)
         XCTAssertEqual(FlarePluginPage.phase(loading: false, error: "x", view: nil), .error)
+        XCTAssertEqual(FlarePluginPage.phase(loading: true, error: "x", view: nil), .loading, "a retry is running")
         XCTAssertEqual(FlarePluginPage.phase(loading: false, error: nil, view: nil), .loading)
-        let wallet = PluginViewModel(available: true, title: "钱包",
-                                     fields: [PluginViewField(label: "CNY", value: "¥12.00")], nextCursor: "c2")
+        let wallet = PluginPageViewModel(view: PluginViewModel(available: true, title: "钱包",
+                                                               fields: [PluginViewField(label: "CNY", value: "¥12.00")],
+                                                               nextCursor: "c2"))
         XCTAssertEqual(FlarePluginPage.phase(loading: true, error: "x", view: wallet), .loaded, "a view stays while refreshing")
         XCTAssertEqual(FlarePluginPage.heading(view: wallet, title: "页面"), "钱包")
         XCTAssertEqual(FlarePluginPage.heading(view: nil, title: "页面"), "页面")
+        let ref = PluginPageRef(pluginId: "flare.redpacket", page: "flare.redpacket.wallet")
 
         var retries = 0
-        let failed = try FlarePluginPage(title: "钱包", error: "加载失败", onRetry: { retries += 1 }).inspect()
+        let failed = try FlarePluginPage(page: ref, title: "钱包", error: "加载失败", onRetry: { retries += 1 }).inspect()
         XCTAssertNoThrow(try failed.find(text: "加载失败"))
         try failed.find(button: s.retry).tap()
         XCTAssertEqual(retries, 1)
 
         var asked: [String] = []
         var backs = 0
-        let page = try FlarePluginPage(view: wallet, onBack: { backs += 1 }, onRefresh: {},
+        let page = try FlarePluginPage(page: ref, view: wallet, onBack: { backs += 1 }, onRefresh: {},
                                        onLoadMore: { asked.append($0) }).inspect()
         XCTAssertNoThrow(try page.find(text: "¥12.00"))
         XCTAssertNoThrow(try page.find(text: "钱包"), "the view's title heads the page")

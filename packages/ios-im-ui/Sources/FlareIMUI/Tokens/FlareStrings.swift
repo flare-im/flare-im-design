@@ -900,6 +900,12 @@ public struct FlareStrings: Sendable {
     public var pluginViewUnavailableUnboundCopy: String
     /// The refresh key in a plugin page's header on a pointer device.
     public var pluginPageRefresh: String
+    /// A multiple choice's limit, leading its footer (`{n}`).
+    public var pluginViewMaxSelections: String
+    /// The first tab of a plugin page's filter: no filter.
+    public var pluginViewAll: String
+    /// A plugin page with no rows (and no text of its own), or unavailable without a reason.
+    public var pluginViewEmpty: String
     // Red packet v5: the card's status, kind badge and recipient, and the details page. `{name}`, `{claimed}`, `{shares}`, `{claimedMoney}`, `{totalMoney}`, `{duration}`, `{time}`, `{money}` and `{n}` are replaced by the component.
     public var packetView: String
     public var packetRefunded: String
@@ -1616,6 +1622,9 @@ public struct FlareStrings: Sendable {
         pluginViewUnavailableCatalogUnreachable: String = "暂时无法加载，请稍后再试",
         pluginViewUnavailableUnboundCopy: String = "副本，仅供查看",
         pluginPageRefresh: String = "刷新",
+        pluginViewMaxSelections: String = "最多选 {n} 项",
+        pluginViewAll: String = "全部",
+        pluginViewEmpty: String = "暂无数据",
         packetView: String = "查看红包",
         packetRefunded: String = "已退回",
         packetBadgeLucky: String = "拼手气",
@@ -2292,6 +2301,9 @@ public struct FlareStrings: Sendable {
         self.pluginViewUnavailableCatalogUnreachable = pluginViewUnavailableCatalogUnreachable
         self.pluginViewUnavailableUnboundCopy = pluginViewUnavailableUnboundCopy
         self.pluginPageRefresh = pluginPageRefresh
+        self.pluginViewMaxSelections = pluginViewMaxSelections
+        self.pluginViewAll = pluginViewAll
+        self.pluginViewEmpty = pluginViewEmpty
         self.packetView = packetView
         self.packetRefunded = packetRefunded
         self.packetBadgeLucky = packetBadgeLucky

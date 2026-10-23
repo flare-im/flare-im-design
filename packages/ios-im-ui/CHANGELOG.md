@@ -1,5 +1,13 @@
 ## 未发布
 
+- 插件页面的数据与动作、行级徽标、多选上限（`spec/plugin-view-vectors.json` rules.page / pageRows / pagePaging / pageFilters / badge / maxSelections）：
+  - `FlarePluginPage`：新增必填 `page`（`PluginPageRef`），`view` 改为 `PluginPageViewModel`（核心 SDK `pluginPage` 的结果：视图加 `data`，视图字段可直接读），新增 `filters` 与 `onFilter`；`onAction` 改为 `(String, PluginPageActionPayload)`，载荷即 `invokePageAction` 的请求（page、data、row、selection、formValues）。删除 `onOpenDetail`（页面没有详情）。状态加 unavailable：Kit 空态显示原因文案，只有 catalog_unreachable 带重试，不画刷新、筛选、加载更多和动作；有视图时的 `error` 画成视图上方的危险横幅。筛选：rows 块列出的 select 输入（不列时为全部输入）各是一行 `FilterTabsView`，「全部」在前，选中项来自宿主的 `filters`，选另一项发出改好的值（保留宿主的其他筛选值），刷新或加载更多时禁用。加载更多在刷新结束时也释放已请求的游标。
+  - `PluginViewModel` 的 rows 块现在解码（`PluginBlock.rows`、`PluginRowsBlock`、`PluginRow`、`PluginRowCell`、`PluginRowAction`、`PluginRowsColumn`），四端一致画成列表：徽标与第一格、其余单元格以「 · 」连接（时间列按设备时区）、行末紧凑动作键（确认与表单照常，载荷带 `row`），同一 key 只画第一次；没有行时显示 emptyText，否则「暂无数据」。同一动作的多个行键只有发起的那一行转圈。带 rows 块的视图不画「查看详情」键。
+  - 徽标：entries 条目与 rows 行的 `badge`（`PluginBadge`），Kit 标签样式（语义色文字、6% 底色、caption 字号、单行），顺序为名字 → 我 → 徽标 → 正文；未知 tone 按 neutral。
+  - 多选上限：`PluginChoicesBlock.maxSelections` 与 `cap`；选满后其余选项禁用（已选的仍可取消），上限调低后只能减选，提交须在上限内，可选时页脚以「最多选 n 项」开头；卡片、详情、页面一致。
+  - `PluginActionPayload` 新增 `row`（`PluginRowRef`）。`FilterTabsView` 选中项带 `isSelected` 读屏特征。
+  - `FilterTabsView` 新增 `enabled`（默认 true）：为假时整行降到禁用透明度、每个标签禁用；`FlarePluginPage` 的筛选改用它。胶囊保持原尺寸，放在至少 `FlareSizes.touchTarget` 见方、居中的格子里接收点击（矩形 contentShape），行的版面因此增高到触达区。
+  - `FlareStrings` 新增 pluginViewMaxSelections / pluginViewAll / pluginViewEmpty。
 - 第八轮：消息表面、元信息、回执与插件第二版（docs/design/message-surface-and-meta.md、red-packet-v5-roles-and-wallet.md §1–§3、poll-v2-permissions-anonymity.md §6、plugin-platform-v2-trust-lifecycle-admin.md §4）：
   - 表面：新增 `FlareMessageSurface`（bubble / bareMedia / card / centered）、`FlareMessageSurfaceInput` 与纯函数 `flareMessageSurface(_:)`、`FlareMessageData.surface(registry:)`。插件卡片、红包、位置、名片、链接卡、旧投票、任务、日程、公告、小程序、合并转发、话题都是 card：`MessageBubbleView` 不再画底色、边框、内边距和尾角，卡片外壳就是表面；Kit 自己的卡片内容画在 Kit 卡片外壳里（radius lg、主背景、发丝线、宽 ≤ `componentRichCardWidth`），引用条画在外壳内顶部（`FlareMessageCardQuoteSlot`，`PluginView` 已放）。`MessageBubbleView` 新增 `surface`。
   - 宿主登记：删除 `flareContentRenderers(_:bare:)` 与 `flareBareContentTypes`，改为 `flareContentRenderers(_:surfaces:)`（`FlareMessageRegisteredSurface`：card / bareMedia，键为 `type:subtype` 或 `type`）；`FlareGenericContent` 新增 `subtype`，渲染器与表面都先查 `type:subtype`。自定义内容默认就是 card，不用登记。
