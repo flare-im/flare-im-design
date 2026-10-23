@@ -564,7 +564,7 @@ title: Data Types
 
 > A resolved plugin view (core SDK ResolvedPluginView).
 
-**Used by: **[PluginView](/en/components/plugin-view) · [PluginDetailSheet](/en/components/plugin-detail-sheet) · [PluginPage](/en/components/plugin-page)
+**Used by: **[PluginView](/en/components/plugin-view) · [PluginDetailSheet](/en/components/plugin-detail-sheet)
 
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
@@ -575,7 +575,7 @@ title: Data Types
 | `blocks` | [`PluginBlock[]`](/en/reference/data-types#plugin-block) |  | Display blocks, in order; unknown kinds are skipped. |
 | `inputs` | [`PluginInput[]`](/en/reference/data-types#plugin-input) |  | Every input of the document; an action's form names the ones it collects. |
 | `detail` | `boolean` |  | The contribution has a detail view ("see all"). |
-| `nextCursor` | `string` |  | Detail views only: the cursor of the next page (core SDK detail paging, a non-blank scalar of at most 256 bytes). While it is set PluginDetailSheet offers load more; the host fetches that page and passes back the merged view. |
+| `nextCursor` | `string` |  | Detail and page views: the cursor of the next page (core SDK paging, a non-blank scalar of at most 256 bytes). While it is set PluginDetailSheet and PluginPage offer load more; the host fetches that page and passes back the merged view. |
 | `menuActions` | [`PluginAction[]`](/en/reference/data-types#plugin-action) |  | Actions in the card's ⋯ menu (placement menu), in order; absent when empty. |
 | `unavailableReason` | `'disabled' \| 'not_installed' \| 'no_permission' \| 'unsupported_platform' \| 'incompatible_version' \| 'catalog_unreachable' \| 'unbound_copy'` |  | Why the view is unavailable or read-only. |
 
@@ -601,17 +601,17 @@ title: Data Types
 
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
-| `kind` | `'text' \| 'fields' \| 'choices' \| 'entries' \| 'people' \| 'status' \| 'progress' \| 'time' \| 'divider' \| 'note' \| 'rows'` | ✓ | Block kind; rows only on admin pages (Vue). |
+| `kind` | `'text' \| 'fields' \| 'choices' \| 'entries' \| 'people' \| 'status' \| 'progress' \| 'time' \| 'divider' \| 'note' \| 'rows'` | ✓ | Block kind; rows on plugin pages (a list on every kit) and in the Vue console (a table). |
 | `text` | `{text, maxLines?, style: 'body' \| 'title' \| 'secondary'}` |  | Collapsible text with expand. |
 | `fields` | `{fields: {label, value}[]}` |  | Label/value rows. |
-| `choices` | `{options: PluginChoice[], multiple, voted, closed, showResults, total?, inputName, action?: PluginAction}` |  | Options; action is the block's submit action. |
-| `entries` | `{items: {index, text, name?, userId?, group?: {key, label, count?, total?, percent?}}[], numbered, grouped?, total, more, emptyText?}` |  | A list (sign-ups, voters); grouped lists put a header before each item with group. |
+| `choices` | `{options: PluginChoice[], multiple, voted, closed, showResults, total?, inputName, maxSelections?, action?: PluginAction}` |  | Options; action is the block's submit action. maxSelections (multiple only, 1..=options) caps the draft: options outside it are disabled once it is full. |
+| `entries` | `{items: {index, text, name?, userId?, group?: {key, label, count?, total?, percent?}, badge?: PluginBadge}[], numbered, grouped?, total, more, emptyText?}` |  | A list (sign-ups, voters, a ledger); grouped lists put a header before each item with group; an item's badge draws before its text. |
 | `people` | `{groups: {label, userIds, count, tone?}[]}` |  | Avatar stacks with a count per group. |
 | `status` | `{label?, text, tone}` |  | A badge. |
 | `progress` | `{label?, value, total, percent}` |  | A bar with value/total. |
 | `time` | `{label?, atMs, endMs?, countdown}` |  | An instant or range, optionally counting down. |
 | `note` | `{text, tone?}` |  | A tinted note. |
-| `rows` | `{source, columns: {label, format}[], rows: {key, cells: {text, timeMs?}[], actions: {id, input}[], detailInput?}[], nextCursor?, actions: PluginAction[], emptyText?, filters?: string[]}` |  | Admin table (Vue only). filters lists the ids of the view's inputs shown as the page's filters (absent: every input); the other inputs belong to row action forms (flarePluginFilterInputs). |
+| `rows` | `{source, columns: {label, format}[], rows: {key, cells: {text, timeMs?}[], actions: {id, input}[], detailInput?, badge?: PluginBadge}[], nextCursor?, actions: PluginAction[], emptyText?, filters?: string[]}` |  | Rows of a plugin page (a list on every kit: badge and first cell, the other cells, action keys; once per key; they page with the page) or of a Vue console table. filters lists the ids of the view's inputs shown as the page's filters (absent: every input); the other inputs belong to action forms (flarePluginFilterInputs). |
 
 ### PluginChoice {#plugin-choice}
 
@@ -692,11 +692,91 @@ title: Data Types
 
 > What action(id, payload) carries.
 
+**Native symbols: **
+
+- Flutter: `FlarePluginActionPayload` — row: FlarePluginRowInput, a record typedef ({String key, Object? input}).
+- SwiftUI: `PluginActionPayload` — row: PluginRowRef {key, input: [String: PluginJSONValue]}.
+- Compose: `PluginActionPayload` — row: PluginActionRow(key, input).
+
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
 | `selection` | `number[]` |  | Chosen option indices (choices), ascending. |
 | `formValues` | `Record<string, unknown>` |  | Submitted form values by input id. |
-| `row` | `{key, input}` |  | The row of a rows action (Vue). |
+| `row` | `{key, input}` |  | The row of a rows action. |
+
+### PluginBadge {#plugin-badge}
+
+`FlarePluginBadge`
+
+> An entry's or a row's enumerated value as words and a tone (the plugin's valueLabels), such as a ledger line's kind.
+
+**Native symbols: **
+
+- Flutter: `FlarePluginBadge`
+- SwiftUI: `PluginBadge`
+- Compose: `PluginBadge`
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `text` | `string` | ✓ | The words, translated; an unmapped value as sent. |
+| `tone` | [`PluginTone`](/en/reference/data-types#plugin-tone) | ✓ | Semantic colour of the kit tag; an unknown tone draws neutral. |
+
+### PluginPageRef {#plugin-page-ref}
+
+`FlarePluginPageRef`
+
+> The page a PluginPage shows, as invokePageAction names it.
+
+**Used by: **[PluginPage](/en/components/plugin-page)
+
+**Native symbols: **
+
+- Flutter: `FlarePluginPageRef`
+- SwiftUI: `PluginPageRef`
+- Compose: `PluginPageRef`
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `pluginId` | `string` | ✓ | The plugin's id. |
+| `page` | `string` | ✓ | The page contribution's id. |
+
+### PluginPageViewModel {#plugin-page-view-model}
+
+`FlarePluginPageViewModel`
+
+> A resolved plugin page (the core SDK's pluginPage result): every PluginViewModel field (nextCursor is the page's next page; rows and entries page with it) plus data. An unavailable page is {available: false, title: "", unavailableReason}.
+
+**Used by: **[PluginPage](/en/components/plugin-page)
+
+**Native symbols: **
+
+- Flutter: `FlarePluginPageViewModel` — Extends FlarePluginViewModel with data.
+- SwiftUI: `PluginPageViewModel` — A wrapper {view: PluginViewModel, data: PluginJSONValue?}; @dynamicMemberLookup reads the view's fields.
+- Compose: `PluginPageViewModel` — A wrapper data class {view: PluginViewModel, data: Map<String, Any?>?} with fromJson / fromMap (a Kotlin data class cannot extend one).
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `data` | `Record<string, unknown>` |  | What the page was resolved against (the first page's source result, or the arguments of a page without a source); only while available. Page actions carry it back. |
+
+### PluginPageActionPayload {#plugin-page-action-payload}
+
+`FlarePluginPageActionPayload`
+
+> What PluginPage's action(id, payload) carries: the request invokePageAction takes, without the platform and the gesture.
+
+**Native symbols: **
+
+- Flutter: `FlarePluginPageActionPayload` — Extends FlarePluginActionPayload; toJson() is the request.
+- SwiftUI: `PluginPageActionPayload` — Encodes to the request; init(page:view:payload:).
+- Compose: `PluginPageActionPayload` — toJson() is the request; of(page, view, payload).
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `page` | [`PluginPageRef`](/en/reference/data-types#plugin-page-ref) | ✓ | The page, from the page prop. |
+| `data` | `Record<string, unknown>` |  | view.data, when the view has it. |
+| `row` | `{key, input}` |  | A row action's row: its key and the input the view bound for that action (rows[].actions[].input). |
+| `selection` | `number[]` |  | A choices submit's option indices, ascending. |
+| `formValues` | `Record<string, unknown>` |  | The values of the action's form, when it collected one. |
 
 ### MessageReadSummary {#message-read-summary}
 
@@ -905,6 +985,22 @@ title: Data Types
 **Used by: **[PluginView](/en/components/plugin-view)
 
 `none` · `sheet` · `sheetTop`
+
+### PluginRowsLayout {#plugin-rows-layout}
+
+`FlarePluginRowsLayout`
+
+> How a Vue PluginView draws a rows block: table (the kit DataTable, console admin lists) or list (one item per row, plugin pages).
+
+**Used by: **[PluginView](/en/components/plugin-view)
+
+**Native symbols: **
+
+- Flutter: none — Not needed: rows always draw as the list.
+- SwiftUI: none — Not needed: rows always draw as the list.
+- Compose: none — Not needed: rows always draw as the list.
+
+`table` · `list`
 
 ### MessageSurface {#message-surface}
 

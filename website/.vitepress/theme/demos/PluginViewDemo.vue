@@ -66,6 +66,26 @@ const samples = {
 };
 // Protocol v2: end and cancel live in the card's ⋯ menu; a stopped plugin says why; a forwarded copy is read-only.
 samples["菜单"] = { ...poll(false), actions: [], menuActions: [op("close", "结束投票", { style: "danger", confirm: "结束后不能再投票，确定结束吗？", placement: "menu" }), op("cancel", "取消投票", { style: "danger", confirm: "取消后投票作废，确定取消吗？", placement: "menu" })] };
+// A multiple choice capped at two: once two are ticked the others wait; a ledger's lines carry their kind as a badge.
+samples["多选上限"] = {
+  available: true, title: "周末活动（最多两项）", fields: [], actions: [],
+  blocks: [{
+    kind: "choices",
+    options: [{ index: 0, label: "爬山", selected: false }, { index: 1, label: "看展", selected: false }, { index: 2, label: "露营", selected: false }, { index: 3, label: "桌游", selected: false }],
+    multiple: true, voted: false, closed: false, showResults: false, inputName: "selection", maxSelections: 2, action: op("vote", "投票"),
+  }],
+};
+samples["徽标"] = {
+  available: true, title: "红包明细", fields: [], actions: [],
+  blocks: [{
+    kind: "entries", numbered: false, total: 3, more: false,
+    items: [
+      { index: 1, text: "+¥2.30", userId: "u1", badge: { text: "收到红包", tone: "success" } },
+      { index: 2, text: "-¥10.00", userId: "u2", badge: { text: "发出红包", tone: "neutral" } },
+      { index: 3, text: "+¥3.00", badge: { text: "红包退回", tone: "warning" } },
+    ],
+  }],
+};
 samples["已停用"] = { available: false, unavailableReason: "disabled", title: "周五团建去哪儿？", fields: [], actions: [] };
 samples["副本"] = { ...poll(true), actions: [], unavailableReason: "unbound_copy", blocks: poll(true).blocks.map((block) => (block.kind === "choices" ? { ...block, action: undefined } : block)) };
 const names = Object.keys(samples);

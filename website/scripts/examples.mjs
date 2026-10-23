@@ -818,22 +818,26 @@ await confirm({
   PluginPage: [
     {
       title: { en: "A plugin's page (the wallet)", zh: "插件页面（钱包）" },
-      description: { en: "The host resolves the plugin's page contribution to a view and fetches again on refresh and loadMore; the kit draws the view with the same renderer as the detail sheet and calls nothing.", zh: "宿主把插件的 page 贡献解析成视图，在 refresh 与 loadMore 时重新取数；Kit 用与详情面板相同的渲染器画视图，自己不调用任何接口。" },
+      description: { en: "The host reads the page with the core SDK (session.page) and passes its view, data included; loadMore asks for the merged next page and filter re-reads the first page. Every action arrives as the page action request, so it goes straight to invokePageAction.", zh: "宿主用核心 SDK 读页面（session.page），把带 data 的视图传进来；loadMore 请求合并好的下一页，filter 重读第一页。每个动作到达时就是页面动作请求，直接交给 invokePageAction。" },
       vue: `<FlarePluginPage
+  :page="{ pluginId: 'flare.redpacket', page: 'flare.redpacket.wallet' }"
   :title="t('me.wallet')"
   back
   :view="page.view"
+  :filters="page.filters"
   :loading="page.loading"
   :error="page.error"
   :refreshing="page.refreshing"
   :loading-more="page.loadingMore"
+  :busy-action-id="page.busyActionId"
   :resolve-user="directory.user"
   :viewer-id="me.id"
   @back="router.back()"
   @refresh="page.reload()"
   @retry="page.reload()"
   @load-more="(cursor) => page.next(cursor)"
-  @action="(id, payload) => page.invoke(id, payload)"
+  @filter="(values) => page.reload(values)"
+  @action="(id, request) => session.invokePageAction(request.page.pluginId, request.page.page, id, { ...request, userGesture: true })"
 />`,
     },
   ],

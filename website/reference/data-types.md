@@ -564,7 +564,7 @@ title: 数据类型
 
 > 解析后的插件视图（核心 SDK 的 ResolvedPluginView）。
 
-**被使用于：**[PluginView](/components/plugin-view) · [PluginDetailSheet](/components/plugin-detail-sheet) · [PluginPage](/components/plugin-page)
+**被使用于：**[PluginView](/components/plugin-view) · [PluginDetailSheet](/components/plugin-detail-sheet)
 
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
@@ -575,7 +575,7 @@ title: 数据类型
 | `blocks` | [`PluginBlock[]`](/reference/data-types#plugin-block) |  | 展示块，按顺序；不认识的 kind 跳过。 |
 | `inputs` | [`PluginInput[]`](/reference/data-types#plugin-input) |  | 文档的全部输入；动作的 form 列出它要收集的。 |
 | `detail` | `boolean` |  | 贡献声明了 detail 视图（「查看全部」）。 |
-| `nextCursor` | `string` |  | 只用于 detail 视图：下一页的游标（核心 SDK 的 detail 分页，非空、不超过 256 字节）。有值时 PluginDetailSheet 显示「加载更多」，宿主取下一页后把合并好的视图传回。 |
+| `nextCursor` | `string` |  | 详情与页面视图：下一页的游标（核心 SDK 分页，非空标量，至多 256 字节）。有值时 PluginDetailSheet 与 PluginPage 提供「加载更多」；宿主取下一页并把合并好的视图传回。 |
 | `menuActions` | [`PluginAction[]`](/reference/data-types#plugin-action) |  | 卡片 ⋯ 菜单里的动作（placement menu），按顺序；为空时不出现。 |
 | `unavailableReason` | `'disabled' \| 'not_installed' \| 'no_permission' \| 'unsupported_platform' \| 'incompatible_version' \| 'catalog_unreachable' \| 'unbound_copy'` |  | 视图不可用或只读的原因。 |
 
@@ -601,17 +601,17 @@ title: 数据类型
 
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
-| `kind` | `'text' \| 'fields' \| 'choices' \| 'entries' \| 'people' \| 'status' \| 'progress' \| 'time' \| 'divider' \| 'note' \| 'rows'` | ✓ | 块类型；rows 只用于管理页（Vue）。 |
+| `kind` | `'text' \| 'fields' \| 'choices' \| 'entries' \| 'people' \| 'status' \| 'progress' \| 'time' \| 'divider' \| 'note' \| 'rows'` | ✓ | 块类型；rows 用于插件页面（四端都是列表）和 Vue 控制台（表格）。 |
 | `text` | `{text, maxLines?, style: 'body' \| 'title' \| 'secondary'}` |  | 可折叠文本，带「展开」。 |
 | `fields` | `{fields: {label, value}[]}` |  | 键值行。 |
-| `choices` | `{options: PluginChoice[], multiple, voted, closed, showResults, total?, inputName, action?: PluginAction}` |  | 选项列表；action 是块持有的提交动作。 |
-| `entries` | `{items: {index, text, name?, userId?, group?: {key, label, count?, total?, percent?}}[], numbered, grouped?, total, more, emptyText?}` |  | 名单（接龙、投票人）；分组名单在带 group 的条目前插组头。 |
+| `choices` | `{options: PluginChoice[], multiple, voted, closed, showResults, total?, inputName, maxSelections?, action?: PluginAction}` |  | 选项列表；action 是块持有的提交动作。maxSelections（只在多选，1..=选项数）限制草稿：选满后草稿以外的选项禁用。 |
+| `entries` | `{items: {index, text, name?, userId?, group?: {key, label, count?, total?, percent?}, badge?: PluginBadge}[], numbered, grouped?, total, more, emptyText?}` |  | 名单（接龙、投票人、账单）；分组名单在带 group 的条目前插组头；条目的 badge 画在正文之前。 |
 | `people` | `{groups: {label, userIds, count, tone?}[]}` |  | 每组一行头像叠加计数。 |
 | `status` | `{label?, text, tone}` |  | 徽标。 |
 | `progress` | `{label?, value, total, percent}` |  | 进度条加 value/total。 |
 | `time` | `{label?, atMs, endMs?, countdown}` |  | 时间点或区间，可倒计时。 |
 | `note` | `{text, tone?}` |  | 带色调的提示。 |
-| `rows` | `{source, columns: {label, format}[], rows: {key, cells: {text, timeMs?}[], actions: {id, input}[], detailInput?}[], nextCursor?, actions: PluginAction[], emptyText?, filters?: string[]}` |  | 管理表格（只在 Vue）。filters 列出作为页面筛选项的输入 id（不带时为全部输入）；其余输入归行动作的表单（flarePluginFilterInputs）。 |
+| `rows` | `{source, columns: {label, format}[], rows: {key, cells: {text, timeMs?}[], actions: {id, input}[], detailInput?, badge?: PluginBadge}[], nextCursor?, actions: PluginAction[], emptyText?, filters?: string[]}` |  | 插件页面的行（四端都是列表：徽标与第一格、其余单元格、动作键；同一 key 只画一次；随页分页）或 Vue 控制台表格的行。filters 列出作为页面筛选项的输入 id（不带时为全部输入）；其余输入归动作表单（flarePluginFilterInputs）。 |
 
 ### PluginChoice {#plugin-choice}
 
@@ -692,11 +692,91 @@ title: 数据类型
 
 > action(id, payload) 携带的内容。
 
+**原生符号：**
+
+- Flutter: `FlarePluginActionPayload` — row 为 FlarePluginRowInput，record typedef ({String key, Object? input})。
+- SwiftUI: `PluginActionPayload` — row 为 PluginRowRef {key, input: [String: PluginJSONValue]}。
+- Compose: `PluginActionPayload` — row 为 PluginActionRow(key, input)。
+
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
 | `selection` | `number[]` |  | 选中的选项下标（choices），升序。 |
 | `formValues` | `Record<string, unknown>` |  | 按输入 id 的表单提交值。 |
-| `row` | `{key, input}` |  | rows 行动作所在的行（Vue）。 |
+| `row` | `{key, input}` |  | 行动作所在的行。 |
+
+### PluginBadge {#plugin-badge}
+
+`FlarePluginBadge`
+
+> 条目或行的枚举值对应的文字与语义色（插件的 valueLabels），如账单行的类型。
+
+**原生符号：**
+
+- Flutter: `FlarePluginBadge`
+- SwiftUI: `PluginBadge`
+- Compose: `PluginBadge`
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `text` | `string` | ✓ | 文字，已翻译；未映射的值原样显示。 |
+| `tone` | [`PluginTone`](/reference/data-types#plugin-tone) | ✓ | Kit 标签的语义色；未知值按 neutral 画。 |
+
+### PluginPageRef {#plugin-page-ref}
+
+`FlarePluginPageRef`
+
+> PluginPage 显示的页面，与 invokePageAction 的写法一致。
+
+**被使用于：**[PluginPage](/components/plugin-page)
+
+**原生符号：**
+
+- Flutter: `FlarePluginPageRef`
+- SwiftUI: `PluginPageRef`
+- Compose: `PluginPageRef`
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `pluginId` | `string` | ✓ | 插件 id。 |
+| `page` | `string` | ✓ | page 贡献的 id。 |
+
+### PluginPageViewModel {#plugin-page-view-model}
+
+`FlarePluginPageViewModel`
+
+> 解析后的插件页面（核心 SDK pluginPage 的结果）：PluginViewModel 的全部字段（nextCursor 是页面的下一页，rows 与 entries 随页分页）加 data。不可用的页面为 {available: false, title: "", unavailableReason}。
+
+**被使用于：**[PluginPage](/components/plugin-page)
+
+**原生符号：**
+
+- Flutter: `FlarePluginPageViewModel` — 继承 FlarePluginViewModel，多一个 data。
+- SwiftUI: `PluginPageViewModel` — 包装形 {view: PluginViewModel, data: PluginJSONValue?}；@dynamicMemberLookup 直接读视图字段。
+- Compose: `PluginPageViewModel` — 包装形 data class {view: PluginViewModel, data: Map<String, Any?>?}，带 fromJson / fromMap（Kotlin data class 不能继承）。
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `data` | `Record<string, unknown>` |  | 页面解析所依据的数据（第一页的数据源结果，没有数据源时为页面参数）；只在可用时有。页面动作原样带回。 |
+
+### PluginPageActionPayload {#plugin-page-action-payload}
+
+`FlarePluginPageActionPayload`
+
+> PluginPage 的 action(id, payload) 携带的内容：即 invokePageAction 的请求，不含平台与手势。
+
+**原生符号：**
+
+- Flutter: `FlarePluginPageActionPayload` — 继承 FlarePluginActionPayload；toJson() 即请求。
+- SwiftUI: `PluginPageActionPayload` — 编码结果即请求；有 init(page:view:payload:)。
+- Compose: `PluginPageActionPayload` — toJson() 即请求；有 of(page, view, payload)。
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `page` | [`PluginPageRef`](/reference/data-types#plugin-page-ref) | ✓ | 页面，来自 page 属性。 |
+| `data` | `Record<string, unknown>` |  | view.data（视图有时）。 |
+| `row` | `{key, input}` |  | 行动作所在的行：key 与视图为该动作绑定的入参（rows[].actions[].input）。 |
+| `selection` | `number[]` |  | choices 提交的选项下标，升序。 |
+| `formValues` | `Record<string, unknown>` |  | 动作表单收集到的值（有表单时）。 |
 
 ### MessageReadSummary {#message-read-summary}
 
@@ -905,6 +985,22 @@ title: 数据类型
 **被使用于：**[PluginView](/components/plugin-view)
 
 `none` · `sheet` · `sheetTop`
+
+### PluginRowsLayout {#plugin-rows-layout}
+
+`FlarePluginRowsLayout`
+
+> Vue PluginView 画 rows 块的方式：table（Kit DataTable，控制台管理列表）或 list（每行一项，插件页面）。
+
+**被使用于：**[PluginView](/components/plugin-view)
+
+**原生符号：**
+
+- Flutter: 无 — 不需要：rows 一律画成列表。
+- SwiftUI: 无 — 不需要：rows 一律画成列表。
+- Compose: 无 — 不需要：rows 一律画成列表。
+
+`table` · `list`
 
 ### MessageSurface {#message-surface}
 

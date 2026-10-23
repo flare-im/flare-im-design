@@ -6122,7 +6122,8 @@
         ],
         "states": [
           "default",
-          "active"
+          "active",
+          "disabled"
         ]
       },
       "summary": {
@@ -6133,12 +6134,14 @@
         "Navigation",
         "default",
         "active",
+        "disabled",
         "change",
         "update:modelValue"
       ],
       "states": [
         "default",
-        "active"
+        "active",
+        "disabled"
       ],
       "interactions": [
         "change",
@@ -6184,7 +6187,7 @@
         "gallery": true
       },
       "sourceOfTruth": "spec/components.json#FilterTabs",
-      "searchText": "filtertabs navigation general-ui stable navigation default active change update:modelvalue supportsconfiguration scrollable filter tablist ({value,label,badge?}) with a v-model active value and a change event. 可横滚筛选标签（{value,label,badge?}）—— v-model 绑定当前值 + change 事件。"
+      "searchText": "filtertabs navigation general-ui stable navigation default active disabled change update:modelvalue supportsconfiguration scrollable filter tablist ({value,label,badge?}) with a v-model active value and a change event. 可横滚筛选标签（{value,label,badge?}）—— v-model 绑定当前值 + change 事件。"
     },
     {
       "name": "ContactList",
@@ -10390,6 +10393,7 @@
         "states": [
           "loading",
           "error",
+          "unavailable",
           "loaded",
           "refreshing",
           "loadingMore"
@@ -10409,6 +10413,7 @@
         "Message",
         "loading",
         "error",
+        "unavailable",
         "loaded",
         "refreshing",
         "loadingMore",
@@ -10416,12 +10421,13 @@
         "refresh",
         "retry",
         "loadMore",
-        "action",
-        "openDetail"
+        "filter",
+        "action"
       ],
       "states": [
         "loading",
         "error",
+        "unavailable",
         "loaded",
         "refreshing",
         "loadingMore"
@@ -10431,8 +10437,8 @@
         "refresh",
         "retry",
         "loadMore",
-        "action",
-        "openDetail"
+        "filter",
+        "action"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -10474,7 +10480,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#PluginPage",
-      "searchText": "pluginpage message im-ui stable plugin page wallet plugin screen 钱包 插件页面 钱包页 message loading error loaded refreshing loadingmore back refresh retry loadmore action opendetail supportsconfiguration plugin page host — a full-screen page for a plugin's page contribution (a wallet, a list): header with back, pull to refresh, the resolved view drawn by the pluginview document renderer, load more. 插件页面宿主 —— 插件 page 贡献（钱包、列表）的全屏页面：带返回的页头、下拉刷新、由 pluginview 文档渲染器画出的解析视图、加载更多。"
+      "searchText": "pluginpage message im-ui stable plugin page wallet plugin screen 钱包 插件页面 钱包页 message loading error unavailable loaded refreshing loadingmore back refresh retry loadmore filter action supportsconfiguration plugin page host — a full-screen page for a plugin's page contribution (a wallet, a list): header with back, pull to refresh, the resolved view drawn by the pluginview document renderer, load more. 插件页面宿主 —— 插件 page 贡献（钱包、列表）的全屏页面：带返回的页头、下拉刷新、由 pluginview 文档渲染器画出的解析视图、加载更多。"
     },
     {
       "name": "SlashCommandMenu",

@@ -44,7 +44,7 @@ const UI = {
     freeCompose: "自由组合（用 parts 自己拼）", noRequired: "无必填 props",
     refTitle: "数据类型",
     refLead: "组件 props 里用到的共享数据结构。从你自己的数据源把这些对象喂给组件即可——组件不耦合 SDK。",
-    fieldsH: "字段", valuesH: "取值", usedByH: "被使用于",
+    fieldsH: "字段", valuesH: "取值", usedByH: "被使用于", nativeH: "原生符号", noSymbol: "无",
     interfacesH: "接口", enumsH: "枚举 / 联合类型",
   },
   en: {
@@ -57,7 +57,7 @@ const UI = {
     freeCompose: "Free composition (assemble from parts)", noRequired: "no required props",
     refTitle: "Data Types",
     refLead: "Shared data structures used by component props. Feed these objects to the components from your own data source — the components carry no SDK coupling.",
-    fieldsH: "Fields", valuesH: "Values", usedByH: "Used by",
+    fieldsH: "Fields", valuesH: "Values", usedByH: "Used by", nativeH: "Native symbols", noSymbol: "none",
     interfacesH: "Interfaces", enumsH: "Enums / unions",
   },
 };
@@ -317,11 +317,22 @@ function dataTypesPage(loc) {
     return `\n**${t.usedByH}${loc === "zh" ? "：" : ": "}**` +
       list.map((n) => `[${n}](${compBase}/${slug(n)})`).join(" · ") + "\n";
   };
+  // A type the native kits name or shape differently: one line per platform (platformSymbols).
+  const nativeSymbols = (dt) => {
+    const entries = Object.entries(dt.platformSymbols ?? {});
+    if (!entries.length) return "";
+    const names = { flutter: "Flutter", ios: "SwiftUI", compose: "Compose" };
+    return `\n**${t.nativeH}${loc === "zh" ? "：" : ": "}**\n\n` + entries.map(([platform, entry]) => {
+      const symbol = entry.symbol ? `\`${esc(entry.symbol)}\`` : t.noSymbol;
+      const note = entry.note ? ` — ${esc(pick(entry.note, loc))}` : "";
+      return `- ${names[platform] ?? platform}: ${symbol}${note}`;
+    }).join("\n") + "\n";
+  };
   let out = `---\ntitle: ${t.refTitle}\n---\n\n# ${t.refTitle}\n\n> ${t.refLead}\n`;
   if (interfaces.length) {
     out += `\n## ${t.interfacesH}\n`;
     for (const dt of interfaces) {
-      out += `\n### ${dt.name} {#${slug(dt.name)}}\n\n\`${dt.symbol}\`\n\n> ${pick(dt.summary, loc)}\n${usedBy(dt)}\n`;
+      out += `\n### ${dt.name} {#${slug(dt.name)}}\n\n\`${dt.symbol}\`\n\n> ${pick(dt.summary, loc)}\n${usedBy(dt)}${nativeSymbols(dt)}\n`;
       out += `| ${t.name} | ${t.type} | ${t.required} | ${t.desc} |\n|---|---|:---:|---|\n`;
       for (const fld of dt.fields ?? [])
         out += `| \`${esc(fld.name)}\` | ${typeCell(fld.type, loc)} | ${fld.required ? "✓" : ""} | ${esc(pick(fld.description, loc)) || "—"} |\n`;
@@ -330,7 +341,7 @@ function dataTypesPage(loc) {
   if (enums.length) {
     out += `\n## ${t.enumsH}\n`;
     for (const dt of enums) {
-      out += `\n### ${dt.name} {#${slug(dt.name)}}\n\n\`${dt.symbol}\`\n\n> ${pick(dt.summary, loc)}\n${usedBy(dt)}\n`;
+      out += `\n### ${dt.name} {#${slug(dt.name)}}\n\n\`${dt.symbol}\`\n\n> ${pick(dt.summary, loc)}\n${usedBy(dt)}${nativeSymbols(dt)}\n`;
       out += (dt.values ?? []).map((v) => `\`${esc(v)}\``).join(" · ") + "\n";
     }
   }

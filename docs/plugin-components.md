@@ -91,17 +91,19 @@
   - text：按 `maxLines` 截断，溢出时显示「展开」。
   - fields：键值对。
   - choices：单选点一项立即提交；多选勾选后点提交键，键名取块持有的动作 label。显示结果时每项有票数条、百分比和「{count} 票」，选中项打勾；`closed` 时只读，底部显示「已结束」。
+    - 多选上限 `maxSelections`（只在多选，1..=选项数）：草稿选满后，草稿以外的选项变灰、`aria-disabled`、点击无效；已选的仍可取消，取消后其余恢复。提交键除了「非空且与已选不同」，还要求不超过上限：插件把上限调低后，已有的选择只能减到上限以内才能提交。可选时页脚以「最多选 {n} 项」开头。单选、没有该字段时不限。卡片、详情面板、插件页面一致。规则见 `rules.maxSelections`，步骤见 `maxSelections`。
   - entries：带序号；`more` 时显示「查看全部（total）」，触发 `openDetail`。`grouped` 时是一个扁平列表：带 `group` 的条目前插一行组头「选项 · N 票 · P%」（缺的段省略），组内从 1 编号，`numbered: false` 不编号；`viewerId`（宿主传入的当前用户）那一行带「我」。规则见 `rules.entriesGrouped` 与 `entryGroupHeaders`。
+    - 徽标 `badge {text, tone}`：插件 `valueLabels` 把条目里的枚举值（如账单行的类型）映射成文字与语义色，核心 SDK 已翻译，未映射的值原样、neutral。Kit 用 Tag 画，顺序为序号、头像、名字、「我」、徽标、正文；未知 tone 按 neutral。没有徽标不留空位。规则见 `rules.badge`。
   - people：每组一行，头像叠加计数，颜色用 tone 对应的 *Text 令牌。
   - status：徽标。
   - progress：进度条加「value/total」。
   - time：按设备时区，用 `pluginViewDateTimeFormat` 格式化；`countdown` 时剩余不到 1 小时每秒刷新，否则每分钟刷新，到点显示「已截止」。
   - divider、note。
-  - rows：只在 Vue，用于控制台管理页，基于 Kit DataTable，有行动作、点行打开详情、「加载更多」和空态。
+  - rows：插件页面上四端都画成列表（见下文「插件页面」）；Vue 的 PluginView 另有 `rowsLayout: "table"`（默认），给控制台管理列表用 Kit DataTable，有行动作、点行打开详情、「加载更多」和空态，行的徽标画在第一格里。两种画法都按 key 去重，只保留第一次出现的行。
 - **动作**：
   - `style` 为 danger 用危险键，primary 用主键，其余为次要键。
   - 有 `confirm` 先弹 Kit DangerConfirm；有 `form` 在 Kit 底部面板里打开 PluginForm。
-  - 回调是 `action(actionId, {selection?, formValues?})`（Vue 的 rows 另有 `row`）。
+  - 回调是 `action(actionId, {selection?, formValues?, row?})`，`row` 只出现在行动作上。
   - 状态：`busyActionId` 让对应按钮转圈、其他控件等待；`error` 显示在卡片底部。
 - **查看详情**：`view.detail` 为真、但没有 entries 块在显示「查看全部」时（投票、日程、任务、公告这类没有 entries 或 entries 没超出的卡片），卡片在动作区下方画一个整宽的 quiet 文字按钮「查看详情」（`pluginViewDetail`，Vue 为 `pluginView.detail`，size sm），点击发出不带 row 的 `openDetail`，与「查看全部」相同。
   - 不显示的情况：视图不可用、`embedded`（详情面板、管理页、面板里的前言）、有 rows 块（管理页从行打开详情）、宿主没处理 `openDetail`（原生没传 `onOpenDetail`，Vue 没监听）。
@@ -144,7 +146,30 @@
 
 ## 插件页面 `PluginPage`
 
-插件的 `page` 贡献（钱包等）用 Kit 的通用页面宿主渲染（`docs/design/red-packet-v5-roles-and-wallet.md` §3.2），五个 app 不再自写钱包页：Kit Screen（标题、返回键），视图由内嵌 PluginView 画（与详情面板同一套文档渲染器），触屏下拉刷新、指针设备页头有刷新键，`view.nextCursor` 非空时视图下方有「加载更多」（同一游标只请求一次）。首次加载转圈；首次失败显示文案和重试键；刷新失败时在视图上方显示横幅。取数由宿主负责：`refresh`、`retry`、`loadMore` 都是请求，Kit 不调用接口；视图没声明的东西不画，不放占位按钮。Vue 为 `FlarePluginPage`，原生三端按 `spec/components.json` 的 PluginPage 契约实现。
+插件的 `page` 贡献（钱包、明细等）用 Kit 的通用页面宿主渲染（`docs/design/red-packet-v5-roles-and-wallet.md` §3.2），五个 app 不再自写钱包页。四端都是 `FlarePluginPage`，按 `spec/components.json` 的 PluginPage 契约实现；渲染事实见 `spec/plugin-view-vectors.json` 的 `rules.page`、`pageRows`、`pagePaging`、`pageFilters` 与 `pageViews`、`pageActions`、`pagePaging`、`pageFilters` 四段。
+
+- **数据来源**：宿主用核心 SDK 读页面（TS `PluginUiSession.page(pluginId, page, {args, filters, page, refresh})`，bindings `capability.plugin_page`），把结果原样作为 `view` 传入。它是详情同形的视图加 `data`（页面解析所依据的数据）。宿主同时传 `page: {pluginId, page}`。
+- **页头**：标题取 `view.title`，没有时取宿主的 `title`。不可用的页面标题为空，所以保留宿主标题。返回键与平台返回一致。
+- **状态**：
+  - 首次加载转圈。
+  - 首次失败：宿主文案加重试键（`retry`）。
+  - 刷新失败：视图上方显示危险色横幅。
+  - 不可用（`view.available` 为假）：Kit 空态显示原因文案（disabled「插件已停用」等七种，没有原因时「暂无数据」）。只有 catalog_unreachable 带重试键；不画刷新、筛选、加载更多和动作。
+- **动作**：页面里执行的每个动作都发出 `action(id, {page, data?, row?, selection?, formValues?})`，在确认与表单之后。这里的动作包括视图动作、作为按钮排列的菜单动作、choices 提交和行动作。这个载荷就是 `invokePageAction` 的请求，宿主原样转交即可。`data` 取 `view.data`，视图没有时省略；`row` 是行动作所在行的 `{key, input}`。结果由宿主处理：page 目标用结果的 payload 作为参数打开下一页，表单错误经 `formErrors` 回到表单。`busyActionId`、`actionError`、`formErrors`、`members`、`settleToken` 与详情面板相同。
+- **行（rows）**：页面上画成列表，四端一致，不画表格，也不画列标题。
+  - 每行一项：第一行是徽标加第一格；第二行是其余单元格，按列顺序排列，time 列按设备时区格式化，空格跳过，以「 · 」连接，一格不剩时省略。
+  - 行动作是行尾的紧凑按钮，style、confirm、form 照常生效。动作执行中只有发起的那一行转圈，同一动作 id 的其余行禁用但不转。
+  - 同一个 key 只画第一次出现的行，因为列表的 key 必须唯一。
+  - 没有行时显示 `emptyText`，没有时显示「暂无数据」。
+  - 页面上的 rows 随页面分页，没有自己的「加载更多」。
+- **分页**：`view.nextCursor` 非空时视图下方有整宽的「加载更多」，同一游标只请求一次，规则同详情面板；另外刷新结束（`refreshing` 由真变假）也会忘掉已请求的游标，因为刷新回第一页可能拿到同一个游标。宿主请求下一页时把当前视图作为 `previous` 传给 SDK，然后把合并好的视图传回：新页的 rows 与 entries 接在后面，已显示的行 key 丢弃，`data` 保持第一页的。Kit 不合并。
+- **筛选**：页面带 rows 块时，rows 块 `filters` 列出的输入（不列时为全部输入）里，kind 为 select 的每个画成一行 Kit FilterTabs：「全部」在前，其后是选项，读屏名取输入的 label；其他类型的输入不做页面筛选。
+  - 选中项由宿主的 `filters` 决定。值不是选项之一时视为「全部」。
+  - 选中另一项时发出 `filter(values)`：值是宿主的 filters 改动这一项之后的结果，选「全部」时去掉这一项。宿主据此重读第一页，期间设 `refreshing`。
+  - 点已选中的项不发出。刷新或加载更多期间筛选禁用（FilterTabs 的 `enabled`）。
+  - FilterTabs 的胶囊保持画出来的高度（约 30），命中区在周围补到 `layout.touchTarget`。
+- **刷新**：触屏下拉刷新，指针设备页头有刷新键。
+- **取数由宿主负责**：`refresh`、`retry`、`loadMore`、`filter` 都是请求，Kit 不调用接口；视图没声明的东西不画，不放占位按钮。页面视图没有详情，所以 PluginPage 没有 `openDetail`。
 
 ## 业务与生命周期
 
