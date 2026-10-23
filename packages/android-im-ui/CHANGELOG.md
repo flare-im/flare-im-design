@@ -1,5 +1,18 @@
 ## 未发布
 
+- 第八轮波 3：插件页面的数据与动作、行级徽标、多选上限（spec/plugin-view-vectors.json rules.page、pageRows、pagePaging、pageFilters、badge、maxSelections）：
+  - **破坏性**：`FlarePluginPage` 新增必填 `page: PluginPageRef`，`view` 改为 `PluginPageViewModel`（视图 + `data`，`fromJson` / `fromMap` 读核心 SDK 的 pluginPage 结果），`onAction` 改为 `(String, PluginPageActionPayload)`（page、data、row、selection、formValues，即页面动作请求，`toJson()` 原样交给核心）；删除 `onOpenDetail`（页面没有详情）。新增 `filters` 与 `onFilter`。
+  - 页面状态四种：首次加载、无视图失败（加载停止后才显示，带重试）、不可用（Kit 空态写原因文案，没有原因用 `pluginViewEmpty`，只有 `catalog_unreachable` 带重试；不画刷新、筛选、加载更多与动作）、已加载（刷新失败时顶部危险横幅）。页面改为懒列表：横幅、筛选、视图各部分（同一张主色面板）、加载更多都是列表项，长明细不再一次性组合全部行。
+  - 筛选：rows 块列出的 select 输入（不列为全部输入）各画一行 `FilterTabs`，「全部」在前；选中项由宿主的 `filters` 决定，选另一项发出 `onFilter`（宿主其他筛选值保留），选当前项不发；刷新或加载更多时禁用。
+  - rows 块：`PluginViewModel` 读 `rows`（`PluginRowsBlock`、`PluginRow`、`PluginRowCell`、`PluginRowsColumn`、`PluginRowsFormat`、`PluginRowAction`），四端画成列表：徽标 + 第一格、其余单元格（时间列按 `time` 格式、空格跳过）以 「 · 」相连、行末动作键；同一 key 只画第一行（在数据层去重，懒列表 key 不会重复）；无行时 `emptyText`，否则 `pluginViewEmpty`。行动作经确认与表单后发出 `PluginActionPayload.row`（`PluginActionRow(key, input)`），只有被点的那一行的键转圈。
+  - 徽标：新增 `PluginBadge(text, tone)`，`PluginEntry.badge`、`PluginRow.badge`；按 Kit 标签画（tone 的 `*Text` 字色、6% 底色、caption 字号、单行），未知 tone 按 neutral；条目顺序为编号、头像、名字、「我」、徽标、正文。
+  - 多选上限：`PluginChoicesBlock.maxSelections` 与 `cap`；选满后草稿以外的选项禁用（`flareDimmed` 半透明，不可点），已选可取消，上限调低后只能减到上限内才能提交，单选不受影响；页脚以「最多选 n 项」开头；卡片、详情与页面一致。
+  - `FilterTabs` 新增 `enabled`（禁用时半透明、不接受点击）与 `label`（标签列表的读屏名）；每个标签是 Tab 角色并读出选中状态。胶囊保持原尺寸，放在至少 `FlareSizes.touchTarget` 见方、居中的格子里接收点击，按压反馈仍画在胶囊上；行的版面因此增高到触达区。
+  - 页面刷新结束（`refreshing` 由真变假）也释放已请求的游标，刷新回第一页后同一游标可以再请求（rules.pagePaging）。
+  - `PluginActionPayload` 新增 `row`；查看详情键在带 rows 块的视图上不画。
+  - `FlareStrings` 新增 `pluginViewMaxSelections`、`pluginViewAll`、`pluginViewEmpty`（中文默认，键名与 `strings/en.json` 一致）。
+  - 测试：新增 `PluginPageVectorsTest`（pageViews、pageActions、pagePaging、pageFilters、filterInputs），`PluginViewVectorsTest` 读 entries-badges、poll-max-selections 三例与 maxSelections 段；androidTest 新增 `PluginPageInteractionTest`。
+
 - 第八轮：消息表面与元信息、回执投影、插件协议 v2、红包第五版（docs/design/message-surface-and-meta.md、red-packet-v5-roles-and-wallet.md §1–§3、poll-v2-permissions-anonymity.md §6、plugin-platform-v2-trust-lifecycle-admin.md §4）：
   - 消息表面：新增 `FlareMessageSurface`（bubble / bareMedia / card / centered）与纯函数 `flareMessageSurface`、`flareMessageContentType`（按 `spec/message-surface-vectors.json`）。`MessageBubble` 新增 `surface`；card 表面不画气泡底色、边框、内边距、尾角和阴影，内容组件的外壳就是表面：插件卡片、红包、位置、名片、链接、旧投票、任务、日程、公告、小程序、合并转发与话题都是卡片，引用画在外壳内顶部（`PluginView` 新增 `quote` 插槽，卡片行自动传入）。**破坏性**：`FlareContentScope` 的 `bareTypes` 换成 `surfaces: Map<String, FlareMessageSurface>`（按 `contentType:subtype`、内容键、类型查找；custom 与插件内容默认就是 card，不必登记）；删除 `isBareMedia`、`messageBubbleChromeless`、`flareContentBare`。`FlareGenericContent` 新增 `subtype`，`custom.<subtype>` 的线上类型名同样识别。
   - 元信息：新增 `FlareMessageMetaPlacement`（inline / bubbleFooter / below / none）、`flareMessageMetaPlacement`、`flareMessageMetaTone`、`flareMessageRetryControl`（按 `spec/message-meta-placement-vectors.json`）。文本气泡的时间与回执跟在最后一行行尾，放不下时降为气泡内单独一行；裸媒体与卡片放在表面下方 `spacing.xs`、靠尾侧、默认色板，失败时显示「发送失败，重试」文字键。失败重试（文字键与气泡内图标）命中区都不小于 `touchTarget`，气泡失败时保留红边。`MessageMeta` 新增 `placement`、`outgoing`、`readSummary`、`onReadReceiptOpen`，去掉 `tint`。

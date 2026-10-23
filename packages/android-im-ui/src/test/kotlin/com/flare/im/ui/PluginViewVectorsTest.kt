@@ -47,22 +47,32 @@ class PluginViewVectorsTest {
     private fun views(table: Map<*, *>): Map<String, Pair<PluginViewModel, Map<*, *>>> = cases(table)
         .mapValues { (_, case) -> PluginViewModel.fromMap(case.map("view")) to case.map("expect") }
 
-    /** The view cases this kit runs, whole (viewerId, displayName and embedded beside the view and its facts). */
+    /** Every view of the table as this kit reads it, the Vue console tables included (a case may name one). */
+    private fun allViews(table: Map<*, *>): Map<String, PluginViewModel> = table.list("views")
+        .map { it as Map<*, *> }
+        .associate { it.str("id")!! to PluginViewModel.fromMap(it.map("view")) }
+
+    /**
+     * The view cases this kit runs, whole (viewerId, displayName and embedded beside the view and its facts): every case
+     * but the Vue console's tables, whose facts are a table's (columns, a row's detail, the rows' own load more). The
+     * natives draw rows only as a page's list, whose facts are `pageViews`.
+     */
     private fun cases(table: Map<*, *>): Map<String, Map<*, *>> = table.list("views")
         .map { it as Map<*, *> }
-        .filter { "compose" in it.list("platforms") }
+        .filter { "compose" in it.list("platforms") || it.str("id") !in VUE_TABLES }
         .associateBy { it.str("id")!! }
 
     // ── view details key (detailKey) and insets ──
 
     @Test fun theViewDetailsKeyFollowsTheTable() {
         val table = table()
-        val views = views(table)
-        val cases = table.list("detailKey").map { it as Map<*, *> }.filter { "compose" in it.list("platforms") }
-        assertTrue(cases.size >= 8, "the shared table lost detailKey cases")
+        val views = allViews(table)
+        // Every case, the admin page's too: a view with rows draws no details key.
+        val cases = table.list("detailKey").map { it as Map<*, *> }
+        assertTrue(cases.size >= 9, "the shared table lost detailKey cases")
         for (case in cases) {
             val name = case.str("name")!!
-            val base = views.getValue(case.str("view")!!).first
+            val base = views.getValue(case.str("view")!!)
             val view = case.bool("detail")?.let { base.copy(detail = it) } ?: base
             val enabled = PluginViewFormat.detailKey(
                 view = view,
@@ -109,10 +119,11 @@ class PluginViewVectorsTest {
     @Test fun theTableCoversTheNativeViews() {
         val views = views(table())
         for (id in listOf("poll-open-single", "poll-open-multi", "poll-voted-single", "poll-voted-multi", "poll-closed",
-            "solitaire-more", "task", "schedule", "announcement", "blocks-misc", "v1", "unavailable")) {
+            "solitaire-more", "task", "schedule", "announcement", "blocks-misc", "v1", "unavailable", "entries-badges",
+            "poll-max-selections", "poll-max-selections-voted", "poll-max-selections-over")) {
             assertNotNull(views[id], "the shared table lost $id")
         }
-        assertNull(views["admin-rows"], "rows are the Vue kit's only")
+        assertNull(views["admin-rows"], "a console table is the Vue kit's; natives draw rows as a page list")
     }
 
     @Test fun everyViewMatchesItsRenderFacts() {
@@ -225,6 +236,7 @@ class PluginViewVectorsTest {
                 val chosen = state.shown(block, index).toSet()
                 for ((option, f) in block.options.zip(options)) {
                     assertEquals(f.bool("selected"), option.index in chosen, "$id ${option.label} selected")
+                    f.bool("enabled")?.let { assertEquals(it, state.optionEnabled(block, index, option.index, locked = false), "$id ${option.label} enabled") }
                     assertEquals(f.str("percentText"), PluginViewFormat.percentText(option, block.showResults), "$id ${option.label} percent")
                     assertEquals(f.str("votesText"), PluginViewFormat.votesText(option, block.showResults, s), "$id ${option.label} votes")
                     assertEquals(f.int("bar"), if (block.showResults) option.percent else null, "$id ${option.label} bar")
@@ -241,6 +253,13 @@ class PluginViewVectorsTest {
                     assertEquals(row.str("name"), PluginViewFormat.entryName(entry, users), "$id entry ${entry.index} name")
                     assertEquals(row.str("text"), entry.text, id)
                     assertEquals(row.str("userId"), entry.userId, id)
+                    if (row.containsKey("badge")) assertEquals(badge(row["badge"]), entry.badge, "$id entry ${entry.index} badge")
+                    // The words the table orders (number and avatar have their own facts).
+                    if (row.containsKey("order")) assertEquals(
+                        row.list("order"),
+                        PluginViewFormat.entryParts(block, entry, users, viewerId).filter { it in ORDERED_WORDS }.map { it.name.lowercase() },
+                        "$id entry ${entry.index} order",
+                    )
                 }
                 assertEquals(fact.str("seeAll"), if (block.more) PluginViewFormat.seeAll(block.total, s) else null, "$id see all")
                 assertEquals(fact.str("empty"), if (block.items.isEmpty()) block.emptyText else null, "$id empty")
@@ -278,8 +297,75 @@ class PluginViewVectorsTest {
                 assertEquals(fact.str("text"), block.text, id)
                 assertEquals(fact.str("tone"), (block.tone ?: PluginTone.Neutral).wire, id)
             }
+            is PluginRowsBlock -> error("$id: rows facts are a page's (pageViews)")
         }
     }
+
+    // ── the cap of a multiple choice (maxSelections) ──
+
+    @Test fun theCapFollowsTheTable() {
+        val table = table()
+        val views = allViews(table)
+        val cases = table.list("maxSelections").map { it as Map<*, *> }
+        assertTrue(cases.size >= 5, "the shared table lost maxSelections cases")
+        for (case in cases) {
+            val name = case.str("name")!!
+            val view = views.getValue(case.str("view")!!)
+            val (index, block) = view.blocks.withIndex().first { it.value is PluginChoicesBlock }.let { it.index to it.value as PluginChoicesBlock }
+            // The same rules run a card, the detail sheet and a page: embedded changes nothing here.
+            var state = PluginChoicesInteraction()
+            case.list("steps").forEachIndexed { number, raw ->
+                val step = raw as Map<*, *>
+                val label = "$name step ${number + 1}"
+                var emitted: Pair<String, List<Int>>? = null
+                (step.int("toggle") ?: step.int("tap"))?.let { option ->
+                    val (next, selection) = state.tap(block, index, option, locked = false)
+                    state = next
+                    if (selection != null) emitted = block.action!!.id to selection
+                }
+                if (step.bool("submit") == true) {
+                    state.submission(block, index, locked = false)?.let { emitted = block.action!!.id to it }
+                }
+                val emit = step["emit"] as? Map<*, *>
+                if (emit != null) {
+                    assertEquals(emit.str("actionId"), emitted?.first, label)
+                    assertEquals(emit.map("payload").list("selection").map { (it as Number).toInt() }, emitted?.second, label)
+                } else {
+                    assertNull(emitted, "$label emits nothing")
+                }
+                (step["selected"] as? List<*>)?.let { selected ->
+                    assertEquals(selected.map { (it as Number).toInt() }, state.shown(block, index), "$label selected")
+                }
+                (step["enabled"] as? List<*>)?.let { enabled ->
+                    assertEquals(enabled, block.options.map { state.optionEnabled(block, index, it.index, locked = false) }, "$label enabled")
+                }
+                step.bool("submitEnabled")?.let { assertEquals(it, state.submitEnabled(block, index), "$label submit") }
+            }
+        }
+        assertEquals(SpecTables.copy("pluginViewMaxSelections", "zh"), s.pluginViewMaxSelections)
+        // A single choice, a cap that is not positive and a closed block show no hint.
+        val capped = views.getValue("poll-max-selections").blocks.filterIsInstance<PluginChoicesBlock>().first()
+        assertEquals("最多选 2 项", PluginViewFormat.choicesFooter(capped, s))
+        assertNull(PluginViewFormat.choicesFooter(capped.copy(multiple = false), s))
+        assertNull(PluginViewFormat.choicesFooter(capped.copy(maxSelections = 0), s))
+        assertEquals(s.pluginViewEnded, PluginViewFormat.choicesFooter(capped.copy(closed = true), s))
+        assertEquals("最多选 2 项 · 3 票", PluginViewFormat.choicesFooter(capped.copy(showResults = true, total = 3), s), "the hint leads the votes")
+    }
+
+    @Test fun badgesReadTheirToneAndAnUnknownOneIsNeutral() {
+        val entries = allViews(table()).getValue("entries-badges").blocks.filterIsInstance<PluginEntriesBlock>().first()
+        assertEquals(
+            listOf(PluginTone.Success, PluginTone.Neutral, PluginTone.Warning, PluginTone.Neutral, null),
+            entries.items.map { it.badge?.tone },
+        )
+        val blank = PluginViewModel.fromJson(
+            """{"available":true,"title":"","blocks":[{"kind":"entries","numbered":false,"total":1,"more":false,
+               "items":[{"index":1,"text":"x","badge":{"text":"","tone":"info"}}]}]}""",
+        )
+        assertNull((blank.blocks.single() as PluginEntriesBlock).items.single().badge, "no words, no badge")
+    }
+
+    private fun badge(raw: Any?): PluginBadge? = (raw as? Map<*, *>)?.let { PluginBadge(it.str("text")!!, PluginTone.fromWire(it.str("tone"))!!) }
 
     @Test fun unknownBlocksAndInputsAreSkippedAndPayloadsWriteTheCoresJson() {
         val view = PluginViewModel.fromJson(
@@ -287,7 +373,8 @@ class PluginViewVectorsTest {
                "blocks":[{"kind":"chart","series":[]},{"kind":"divider"},{"kind":"rows","source":"list","columns":[],"rows":[],"actions":[]}],
                "inputs":[{"id":"x","kind":"color","label":"X"},{"id":"y","kind":"text","label":"Y"}],"detail":true}""",
         )
-        assertEquals(listOf<PluginBlock>(PluginDividerBlock), view.blocks, "a kind the kit does not know (and rows) is skipped")
+        assertEquals(listOf<PluginBlock>(PluginDividerBlock, PluginRowsBlock("list", emptyList(), emptyList())), view.blocks,
+            "a kind the kit does not know is skipped; rows read")
         assertEquals(listOf("y"), view.inputs.map { it.id })
         assertEquals(listOf(PluginViewAction("a", "A")), view.actions)
         assertTrue(view.detail)
@@ -298,6 +385,8 @@ class PluginViewVectorsTest {
             PluginActionPayload(formValues = linkedMapOf("title" to "团建", "deadline" to 1792836000000.0, "anonymous" to true,
                 "options" to listOf("a", "b\"c"))).toJson())
         assertEquals("{}", PluginActionPayload.Empty.toJson())
+        assertEquals("""{"formValues":{"title":"x"},"row":{"key":"t1","input":{"taskId":"t1"}}}""",
+            PluginActionPayload(formValues = mapOf("title" to "x"), row = PluginActionRow("t1", mapOf("taskId" to "t1"))).toJson())
         assertEquals(listOf(PluginFormError("limit", PluginFormIssue.OutOfRange), PluginFormError("x", PluginFormIssue.InvalidType)),
             PluginFormError.listFromJson("""[{"input":"limit","issue":"outOfRange"},{"input":"x","issue":"brandNew"}]"""))
     }
@@ -592,3 +681,9 @@ class PluginViewVectorsTest {
         assertNull(locationMapAttribution(FlareLocationProvider.Amap, true, s), "never for amap")
     }
 }
+
+/** The Vue console's table views: rows as a DataTable with a row's detail and their own load more. */
+private val VUE_TABLES = setOf("admin-rows", "admin-rows-empty")
+
+/** The parts of an entry the table's `order` lists. */
+private val ORDERED_WORDS = setOf(PluginEntryPart.Name, PluginEntryPart.Me, PluginEntryPart.Badge, PluginEntryPart.Text)

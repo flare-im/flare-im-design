@@ -50,6 +50,12 @@ enum class PluginTextStyle(val wire: String) {
     }
 }
 
+/**
+ * An entry's or a row's enumerated value as words and a tone (the plugin's `valueLabels`, already translated), such as
+ * a ledger line's kind. Drawn as the kit tag; a tone the kit does not know reads as [PluginTone.Neutral].
+ */
+data class PluginBadge(val text: String, val tone: PluginTone = PluginTone.Neutral)
+
 /** One option of a choices block; [count] and [percent] only while results show. */
 data class PluginChoice(
     val index: Int,
@@ -59,7 +65,7 @@ data class PluginChoice(
     val percent: Int? = null,
 )
 
-/** One display block, by `kind`. `rows` (admin tables) is the Vue kit's only; a native kit skips it with any kind it does not know. */
+/** One display block, by `kind`. A kind the kit does not know is skipped when reading. */
 sealed interface PluginBlock {
     val kind: String
 }
@@ -73,7 +79,10 @@ data class PluginFieldsBlock(val fields: List<PluginViewField>) : PluginBlock {
     override val kind: String get() = "fields"
 }
 
-/** `choices`: a poll or an RSVP. [action] is the block's own submit action (never among the footer actions). */
+/**
+ * `choices`: a poll or an RSVP. [action] is the block's own submit action (never among the footer actions).
+ * [maxSelections] caps a multiple choice's draft (1..=option count): once the draft is full the other options wait.
+ */
 data class PluginChoicesBlock(
     val options: List<PluginChoice>,
     val multiple: Boolean = false,
@@ -83,11 +92,15 @@ data class PluginChoicesBlock(
     val total: Int? = null,
     val inputName: String = "selection",
     val action: PluginViewAction? = null,
+    val maxSelections: Int? = null,
 ) : PluginBlock {
     override val kind: String get() = "choices"
 
     /** The indices the view says the viewer chose, ascending. */
     val selection: List<Int> get() = options.filter { it.selected }.map { it.index }.sorted()
+
+    /** The cap a multiple choice keeps; none for a single choice or without a positive [maxSelections]. */
+    val cap: Int? get() = maxSelections?.takeIf { multiple && it > 0 }
 }
 
 /**
@@ -104,7 +117,8 @@ data class PluginEntryGroup(
 
 /**
  * One entry of an entries block; [index] is its position in the data, from 1 (from 1 in each group of a grouped
- * block). [group] is set on the first entry of each group.
+ * block). [group] is set on the first entry of each group. [badge] draws after the name and the "me" tag, before the
+ * text.
  */
 data class PluginEntry(
     val index: Int,
@@ -112,6 +126,7 @@ data class PluginEntry(
     val name: String? = null,
     val userId: String? = null,
     val group: PluginEntryGroup? = null,
+    val badge: PluginBadge? = null,
 )
 
 /**
@@ -158,6 +173,47 @@ data object PluginDividerBlock : PluginBlock {
 /** `note`: a tinted note. */
 data class PluginNoteBlock(val text: String, val tone: PluginTone? = null) : PluginBlock {
     override val kind: String get() = "note"
+}
+
+/** How a rows column writes its cells: as sent, or a time (`timeMs`) in the device zone. */
+enum class PluginRowsFormat(val wire: String) {
+    Text("text"), Time("time");
+
+    companion object {
+        fun fromWire(value: String?): PluginRowsFormat = entries.firstOrNull { it.wire == value } ?: Text
+    }
+}
+
+data class PluginRowsColumn(val label: String, val format: PluginRowsFormat = PluginRowsFormat.Text)
+
+/** One cell of a row; a time column's cell carries [timeMs]. */
+data class PluginRowCell(val text: String, val timeMs: Long? = null)
+
+/** A row's action: the id of one of the block's actions and the input the view bound for it, handed back as is. */
+data class PluginRowAction(val id: String, val input: Any? = null)
+
+/** One row, identified by [key]; [badge] leads its first line. */
+data class PluginRow(
+    val key: String,
+    val cells: List<PluginRowCell>,
+    val actions: List<PluginRowAction> = emptyList(),
+    val badge: PluginBadge? = null,
+)
+
+/**
+ * `rows`: a plugin page's list (one per page; the rows page with the page). Every kit draws it as a list — the badge
+ * and the first cell, the other cells, the row's action keys — and draws a key once (the first). [filters] names the
+ * view inputs the page shows as its filters; null means every input, an empty list none.
+ */
+data class PluginRowsBlock(
+    val source: String,
+    val columns: List<PluginRowsColumn>,
+    val rows: List<PluginRow>,
+    val actions: List<PluginViewAction> = emptyList(),
+    val emptyText: String? = null,
+    val filters: List<String>? = null,
+) : PluginBlock {
+    override val kind: String get() = "rows"
 }
 
 /** Form input kinds (UiInput). */
@@ -221,18 +277,80 @@ data class PluginUser(val name: String, val avatarUrl: String? = null)
 /** A candidate for a members input. */
 data class PluginMember(val userId: String, val name: String, val avatarUrl: String? = null)
 
+/** The row a rows action runs on: its key and the input the view bound for that action (`rows[].actions[].input`). */
+data class PluginActionRow(val key: String, val input: Any? = null)
+
 /**
- * What `onAction(id, payload)` carries: the chosen option indices (ascending) or the form's values by input id
- * (String, Double, Boolean or a List of String). [toJson] writes it for the core SDK.
+ * What `onAction(id, payload)` carries: the chosen option indices (ascending), the form's values by input id (String,
+ * Double, Boolean or a List of String) and, for a rows action, its [row]. [toJson] writes it for the core SDK.
  */
-data class PluginActionPayload(val selection: List<Int>? = null, val formValues: Map<String, Any?>? = null) {
+data class PluginActionPayload(
+    val selection: List<Int>? = null,
+    val formValues: Map<String, Any?>? = null,
+    val row: PluginActionRow? = null,
+) {
     fun toJson(): String = pluginJson(buildMap {
+        selection?.let { put("selection", it) }
+        formValues?.let { put("formValues", it) }
+        row?.let { put("row", it.toMap()) }
+    })
+
+    companion object {
+        val Empty = PluginActionPayload()
+    }
+}
+
+private fun PluginActionRow.toMap(): Map<String, Any?> = linkedMapOf("key" to key, "input" to input)
+
+/** The page a [FlarePluginPage] shows, as the core SDK's page action request names it. */
+data class PluginPageRef(val pluginId: String, val page: String)
+
+/**
+ * A resolved plugin page (the core SDK's `pluginPage` result): the page's [view] — a detail-shaped view whose
+ * `nextCursor` is the page's next page (rows and entries page with it) — and [data], what the page was resolved
+ * against, which every page action carries back. An unavailable page is `{available: false, title: "",
+ * unavailableReason}` and has no data.
+ */
+data class PluginPageViewModel(val view: PluginViewModel, val data: Map<String, Any?>? = null) {
+    companion object {
+        /** Reads the core's page JSON; throws [IllegalArgumentException] on malformed JSON. */
+        fun fromJson(json: String): PluginPageViewModel {
+            val root = FlareJson.parse(json) as? Map<*, *> ?: throw IllegalArgumentException("a plugin page is an object")
+            return fromMap(root)
+        }
+
+        /** Reads a parsed page (objects as maps, arrays as lists). */
+        fun fromMap(map: Map<*, *>): PluginPageViewModel = PluginPageViewModel(
+            view = PluginViewModel.fromMap(map),
+            data = (map["data"] as? Map<*, *>)?.entries?.associate { (k, v) -> k.toString() to v },
+        )
+    }
+}
+
+/**
+ * What [FlarePluginPage]'s `onAction(id, payload)` carries: the core SDK's page action request without the platform
+ * and the gesture — the [page], the view's [data] when it has one, the [row] of a rows action, the [selection] of a
+ * choices submit and the [formValues] of a collected form. The host passes it to the core as it is.
+ */
+data class PluginPageActionPayload(
+    val page: PluginPageRef,
+    val data: Map<String, Any?>? = null,
+    val row: PluginActionRow? = null,
+    val selection: List<Int>? = null,
+    val formValues: Map<String, Any?>? = null,
+) {
+    fun toJson(): String = pluginJson(buildMap {
+        put("page", linkedMapOf("pluginId" to page.pluginId, "page" to page.page))
+        data?.let { put("data", it) }
+        row?.let { put("row", it.toMap()) }
         selection?.let { put("selection", it) }
         formValues?.let { put("formValues", it) }
     })
 
     companion object {
-        val Empty = PluginActionPayload()
+        /** An action run on [page]: the page, [view]'s data when it has one, and what the action itself carries. */
+        fun of(page: PluginPageRef, view: PluginPageViewModel?, payload: PluginActionPayload): PluginPageActionPayload =
+            PluginPageActionPayload(page, view?.data, payload.row, payload.selection, payload.formValues)
     }
 }
 
@@ -269,8 +387,8 @@ data class PluginViewModel(
     /** The contribution has a detail view ("see all"). */
     val detail: Boolean = false,
     /**
-     * A detail view's next page: the cursor the host asks the core SDK for ([PluginDetailSheet] draws "load more" with
-     * it); null (or blank) on the last page and on cards.
+     * A detail or page view's next page: the cursor the host asks the core SDK for ([PluginDetailSheet] and
+     * [FlarePluginPage] draw "load more" with it); null (or blank) on the last page and on cards.
      */
     val nextCursor: String? = null,
     /** The actions the plugin placed in the card's ⋯ menu (`placement: "menu"`), in order; run like [actions]. */
@@ -337,7 +455,7 @@ private fun Map<*, *>.block(): PluginBlock? = when (string("kind")) {
         }
         PluginChoicesBlock(options, bool("multiple") ?: false, bool("voted") ?: false, bool("closed") ?: false,
             bool("showResults") ?: false, int("total"), string("inputName") ?: "selection",
-            (this["action"] as? Map<*, *>)?.action())
+            (this["action"] as? Map<*, *>)?.action(), int("maxSelections"))
     }
     "entries" -> {
         val items = list("items").mapNotNull { raw ->
@@ -346,7 +464,7 @@ private fun Map<*, *>.block(): PluginBlock? = when (string("kind")) {
                 val key = g.string("key") ?: return@let null
                 PluginEntryGroup(key, g.string("label") ?: "", g.int("count"), g.int("total"), g.int("percent"))
             }
-            PluginEntry(e.int("index") ?: 0, e.string("text") ?: "", e.string("name"), e.string("userId"), group)
+            PluginEntry(e.int("index") ?: 0, e.string("text") ?: "", e.string("name"), e.string("userId"), group, e.badge())
         }
         PluginEntriesBlock(items, bool("numbered") ?: true, int("total") ?: items.size, bool("more") ?: false, string("emptyText"),
             bool("grouped") ?: false)
@@ -365,7 +483,37 @@ private fun Map<*, *>.block(): PluginBlock? = when (string("kind")) {
     "time" -> double("atMs")?.let { PluginTimeBlock(string("label"), it.toLong(), double("endMs")?.toLong(), bool("countdown") ?: false) }
     "divider" -> PluginDividerBlock
     "note" -> string("text")?.let { PluginNoteBlock(it, PluginTone.fromWire(string("tone"))) }
+    "rows" -> PluginRowsBlock(
+        source = string("source") ?: "",
+        columns = list("columns").mapNotNull { raw ->
+            val c = raw as? Map<*, *> ?: return@mapNotNull null
+            PluginRowsColumn(c.string("label") ?: "", PluginRowsFormat.fromWire(c.string("format")))
+        },
+        rows = list("rows").mapNotNull { raw ->
+            val r = raw as? Map<*, *> ?: return@mapNotNull null
+            val key = r.string("key") ?: return@mapNotNull null
+            PluginRow(
+                key = key,
+                cells = r.list("cells").map { cell ->
+                    val c = cell as? Map<*, *>
+                    PluginRowCell(c?.string("text") ?: "", (c?.get("timeMs") as? Number)?.toLong())
+                },
+                actions = r.list("actions").mapNotNull { a -> (a as? Map<*, *>)?.let { m -> m.string("id")?.let { PluginRowAction(it, m["input"]) } } },
+                badge = r.badge(),
+            )
+        },
+        actions = list("actions").mapNotNull { (it as? Map<*, *>)?.action() },
+        emptyText = string("emptyText"),
+        filters = (this["filters"] as? List<*>)?.filterIsInstance<String>(),
+    )
     else -> null
+}
+
+/** An entry's or a row's `badge`; none without words. A tone the kit does not know draws neutral. */
+private fun Map<*, *>.badge(): PluginBadge? {
+    val badge = this["badge"] as? Map<*, *> ?: return null
+    val text = badge.string("text")?.takeIf { it.isNotEmpty() } ?: return null
+    return PluginBadge(text, PluginTone.fromWire(badge.string("tone")) ?: PluginTone.Neutral)
 }
 
 private fun Map<*, *>.input(): PluginInput? {
@@ -431,6 +579,12 @@ internal data class PluginCountdown(val text: String, val refreshMs: Int?)
 /** One local calendar minute. */
 internal data class PluginWallClock(val year: Int, val month: Int, val day: Int, val hour: Int, val minute: Int)
 
+/** What an entry row draws, in drawing order. */
+internal enum class PluginEntryPart { Number, Avatar, Name, Me, Badge, Text }
+
+/** A row's first line (after its badge) and second line (the other cells), as a list item draws them. */
+internal data class PluginRowLines(val primary: String, val secondary: String?)
+
 internal object PluginViewFormat {
     private val MONTHS = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 
@@ -483,6 +637,61 @@ internal object PluginViewFormat {
     /** The viewer's own row carries the "me" tag. */
     fun isMe(entry: PluginEntry, viewerId: String?): Boolean = !viewerId.isNullOrEmpty() && entry.userId == viewerId
 
+    /**
+     * What an entry draws, in drawing order (spec rules.badge): number, avatar, name, the "me" tag, the badge, then the
+     * text; a part it does not have is left out, so no gap is left for it.
+     */
+    fun entryParts(block: PluginEntriesBlock, entry: PluginEntry, resolved: Map<String, PluginUser>, viewerId: String?): List<PluginEntryPart> =
+        buildList {
+            if (entryNumber(block, entry) != null) add(PluginEntryPart.Number)
+            if (!entry.userId.isNullOrEmpty()) add(PluginEntryPart.Avatar)
+            if (entryName(entry, resolved) != null) add(PluginEntryPart.Name)
+            if (isMe(entry, viewerId)) add(PluginEntryPart.Me)
+            if (entry.badge != null) add(PluginEntryPart.Badge)
+            add(PluginEntryPart.Text)
+        }
+
+    /** The rows a list draws: in order, each key once — the first stays (spec rules.pageRows). */
+    fun rowsOnce(rows: List<PluginRow>): List<PluginRow> {
+        val seen = HashSet<String>()
+        return rows.filter { seen.add(it.key) }
+    }
+
+    /**
+     * A row's two lines (spec rules.pageRows): the first cell, and the other cells in column order — time columns
+     * written as in `time`, blank cells skipped — joined with " · ", or none when nothing is left.
+     */
+    fun rowLines(block: PluginRowsBlock, row: PluginRow, nowMs: Long, strings: FlareStrings, utcOffsetMinutes: Int?): PluginRowLines {
+        val texts = block.columns.mapIndexed { index, column ->
+            val cell = row.cells.getOrNull(index)
+            val at = cell?.timeMs
+            if (column.format == PluginRowsFormat.Time && at != null) dateTime(at, nowMs, strings, utcOffsetMinutes) else cell?.text.orEmpty()
+        }
+        val rest = texts.drop(1).filter { it.isNotBlank() }
+        return PluginRowLines(texts.firstOrNull().orEmpty(), rest.takeIf { it.isNotEmpty() }?.joinToString(" · "))
+    }
+
+    /** A row's action keys: the block actions it lists, each with the input the view bound for it. */
+    fun rowActions(block: PluginRowsBlock, row: PluginRow): List<Pair<PluginViewAction, PluginRowAction>> =
+        row.actions.mapNotNull { bound -> block.actions.firstOrNull { it.id == bound.id }?.let { it to bound } }
+
+    /** A rows block without rows says so: its own text, else the kit's. */
+    fun rowsEmpty(block: PluginRowsBlock, strings: FlareStrings): String? =
+        if (block.rows.isNotEmpty()) null else block.emptyText?.takeIf { it.isNotEmpty() } ?: strings.pluginViewEmpty
+
+    /**
+     * The view's inputs a page shows as filters, in input order (spec rules.rows, filterInputs): the ones its rows block
+     * lists, or every input when it lists none; an empty list, none.
+     */
+    fun filterInputs(view: PluginViewModel): List<PluginInput> {
+        val listed = view.blocks.firstNotNullOfOrNull { it as? PluginRowsBlock }?.filters ?: return view.inputs
+        return view.inputs.filter { it.id in listed }
+    }
+
+    /** The action keys a view draws: its actions, and on an embedded view (no title row, no ⋯ key) its menu actions after them. */
+    fun keys(view: PluginViewModel, embedded: Boolean): List<PluginViewAction> =
+        if (embedded) view.actions + menuActions(view) else view.actions
+
     /** The words for an unavailable reason (spec/plugin-view-vectors.json `unavailableReasons`). */
     fun reasonText(reason: PluginUnavailableReason, strings: FlareStrings): String = when (reason) {
         PluginUnavailableReason.Disabled -> strings.pluginViewUnavailableDisabled
@@ -517,10 +726,10 @@ internal object PluginViewFormat {
 
     /**
      * Whether a card draws its own view details key (spec rules.detailKey): the view has a detail, is available and is
-     * not embedded, and no entries block shows its see all.
+     * not embedded, no entries block shows its see all and it has no rows.
      */
     fun showsDetailKey(view: PluginViewModel, embedded: Boolean): Boolean =
-        view.detail && view.available && !embedded && view.blocks.none { it is PluginEntriesBlock && it.more }
+        view.detail && view.available && !embedded && view.blocks.none { it is PluginRowsBlock || (it is PluginEntriesBlock && it.more) }
 
     /**
      * The card's view details key: null when it draws none (also without a host [handled] openDetail), else whether
@@ -533,9 +742,14 @@ internal object PluginViewFormat {
     fun unavailableLine(view: PluginViewModel, embedded: Boolean): String? =
         view.title.takeIf { embedded && !view.available && it.isNotEmpty() }
 
-    /** The line under a choices block: ended, and the total while results show. */
+    /**
+     * The line under a choices block: the cap while the block can be chosen ("最多选 2 项"), ended, and the total while
+     * results show.
+     */
     fun choicesFooter(block: PluginChoicesBlock, strings: FlareStrings): String? {
         val parts = buildList {
+            val cap = block.cap
+            if (cap != null && block.action != null && !block.closed) add(strings.pluginViewMaxSelections.replace("{n}", cap.toString()))
             if (block.closed) add(strings.pluginViewEnded)
             if (block.showResults && block.total != null) add(votes(block.total, strings))
         }
@@ -670,18 +884,36 @@ internal data class PluginChoicesInteraction(
         return block.selection
     }
 
-    /** The multiple submit key: a non-empty draft that differs from the view's selection. */
+    /**
+     * The multiple submit key: a non-empty draft that differs from the view's selection and fits the cap (a selection
+     * above a lowered cap has to shrink first).
+     */
     fun submitEnabled(block: PluginChoicesBlock, index: Int): Boolean {
         val draft = drafts[index] ?: block.selection
-        return draft.isNotEmpty() && draft.toSet() != block.selection.toSet()
+        val cap = block.cap
+        return draft.isNotEmpty() && draft.toSet() != block.selection.toSet() && (cap == null || draft.size <= cap)
     }
 
     /**
+     * Whether the cap holds [option] back (spec rules.maxSelections): the draft is full and does not hold it. The
+     * options in the draft stay tappable, so unticking one frees the rest.
+     */
+    fun capped(block: PluginChoicesBlock, index: Int, option: Int): Boolean {
+        val cap = block.cap ?: return false
+        val draft = shown(block, index)
+        return draft.size >= cap && option !in draft
+    }
+
+    /** Whether [option] takes a tap: the block can be chosen and the cap does not hold the option back. */
+    fun optionEnabled(block: PluginChoicesBlock, index: Int, option: Int, locked: Boolean): Boolean =
+        isInteractive(block, index, locked) && !capped(block, index, option)
+
+    /**
      * A tap on an option: the next state and, for a single choice, the selection to submit (none for the only selected
-     * option). A multiple choice toggles its draft.
+     * option). A multiple choice toggles its draft; an option the cap holds back ignores the tap.
      */
     fun tap(block: PluginChoicesBlock, index: Int, option: Int, locked: Boolean): Pair<PluginChoicesInteraction, List<Int>?> {
-        if (!isInteractive(block, index, locked)) return this to null
+        if (!optionEnabled(block, index, option, locked)) return this to null
         if (block.multiple) {
             val draft = (drafts[index] ?: block.selection).toMutableSet()
             if (!draft.remove(option)) draft.add(option)

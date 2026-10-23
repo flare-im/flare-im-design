@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -18,6 +19,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,16 +41,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.progressBarRangeInfo
-import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 
@@ -65,7 +74,9 @@ import kotlinx.coroutines.delay
  *   [DangerConfirm] first; `form` collects [PluginForm] in the kit [BottomSheet], whose submit emits
  *   `onAction(id, PluginActionPayload(formValues = …))`.
  * - Choices: a single choice submits on tap; a multiple choice toggles a draft submitted by a key named after the block's
- *   action. The submitted options show at once and revert when [error] turns non-empty; a new [view] settles them.
+ *   action. `maxSelections` caps the draft: once it is full the other options are dimmed and take no taps, the chosen
+ *   ones stay tappable, and the footer opens with "最多选 n 项"; a selection above a lowered cap can only shrink. The
+ *   submitted options show at once and revert when [error] turns non-empty; a new [view] settles them.
  * - Settling: the host increments [settleToken] once per finished action, after setting that result's [error] and
  *   [formErrors]. A clean result closes the submitted form and keeps an optimistic choice marked until the new view; an
  *   error reverts the choice (an open form stays and shows it); form errors keep the form open with them (a choice it
@@ -76,6 +87,10 @@ import kotlinx.coroutines.delay
  *   id's last 4 characters. "See all" (entries with more) calls [onOpenDetail]; the host opens [PluginDetailSheet]. A
  *   view with a detail that no entries block offers gets a full-width quiet "view details" key under the action keys
  *   (not embedded, and only with [onOpenDetail]), disabled while busy.
+ * - Badges (an entry's or a row's `badge`) draw as the kit tag in their tone: an entry reads number, avatar, name, "me",
+ *   badge, text; a row leads its first line with it.
+ * - Rows (a plugin page's list): one item per key — the badge and the first cell, the other cells joined with " · ", the
+ *   row's action keys — whose actions emit `onAction(id, PluginActionPayload(row = …))` after their confirm and form.
  * - Time is formatted in the device zone (`pluginViewDateTimeFormat`); a countdown redraws every second under an hour and
  *   every minute otherwise.
  * - Protocol v2 (spec/plugin-view-vectors.json rules.menuActions, entriesGrouped, unavailableReason, shell): the view's
@@ -110,6 +125,43 @@ fun PluginView(
     quote: (@Composable () -> Unit)? = LocalFlareCardQuote.current,
     onAction: ((String, PluginActionPayload) -> Unit)? = null,
     onOpenDetail: (() -> Unit)? = null,
+) = PluginViewContent(
+    view = view, icon = icon, busy = busy, busyActionId = busyActionId, error = error, embedded = embedded, inset = inset,
+    resolveUser = resolveUser, members = members, formErrors = formErrors, settleToken = settleToken, displayName = displayName,
+    viewerId = viewerId, quote = quote, onAction = onAction, onOpenDetail = onOpenDetail, list = null,
+)
+
+/**
+ * A plugin page's lazy list around an embedded view: the page's own items before ([header]) and after ([footer]) the
+ * view, which draws its parts on one primary panel between them.
+ */
+internal class PluginViewList(
+    val state: LazyListState,
+    val contentPadding: PaddingValues,
+    val header: LazyListScope.() -> Unit,
+    val footer: LazyListScope.() -> Unit,
+)
+
+/** [PluginView]; with [list] the view's parts are items of a lazy list (a plugin page) instead of a column. */
+@Composable
+internal fun PluginViewContent(
+    view: PluginViewModel,
+    icon: String?,
+    busy: Boolean,
+    busyActionId: String?,
+    error: String?,
+    embedded: Boolean,
+    inset: PluginViewInset,
+    resolveUser: (suspend (String) -> PluginUser?)?,
+    members: List<PluginMember>,
+    formErrors: List<PluginFormError>,
+    settleToken: Int,
+    displayName: String?,
+    viewerId: String?,
+    quote: (@Composable () -> Unit)?,
+    onAction: ((String, PluginActionPayload) -> Unit)?,
+    onOpenDetail: (() -> Unit)?,
+    list: PluginViewList?,
 ) {
     // A read-only copy acts on nothing, whatever the host passed.
     val onAction = onAction.takeUnless { PluginViewFormat.readOnly(view) }
@@ -124,10 +176,14 @@ fun PluginView(
     var confirming by remember { mutableStateOf<PluginActionRun?>(null) }
     var formRun by remember { mutableStateOf<PluginActionRun?>(null) }
     var formSubmitted by remember { mutableStateOf(false) }
+    // The rows action last handed over, as (action id, row key): only that row's key spins while the action runs.
+    var rowRun by remember { mutableStateOf<Pair<String, String>?>(null) }
     val locked = busy || busyActionId != null
     val failure = error?.takeIf { it.isNotEmpty() }
     val formPending = formRun?.let { busy || busyActionId == it.action.id } ?: false
     val emitAction by rememberUpdatedState(onAction)
+    // Rows write their times against the moment the view arrived (the year shows only outside the current one).
+    val nowMs = remember(view) { System.currentTimeMillis() }
 
     // A new view is the truth.
     PluginOnChange(view) { _, _ -> interaction = interaction.viewChanged() }
@@ -148,50 +204,44 @@ fun PluginView(
         if (found.isNotEmpty()) users = users + found
     }
 
-    fun emit(request: PluginActionRun, formValues: Map<String, Any?>?) {
-        val payload = if (formValues != null) request.payload.copy(formValues = formValues) else request.payload
+    fun emit(request: PluginActionRun, payload: PluginActionPayload) {
         val selection = payload.selection
         if (request.block != null && selection != null) {
             interaction = interaction.submitted(request.block, request.action.id, selection)
         }
+        payload.row?.let { rowRun = request.action.id to it.key }
         emitAction?.invoke(request.action.id, payload)
     }
 
-    fun proceed(request: PluginActionRun) {
-        if (!request.action.form.isNullOrEmpty()) {
-            formSubmitted = false
-            formRun = request
-        } else {
-            emit(request, null)
+    fun advance(step: PluginActionStep) {
+        when (step) {
+            is PluginActionStep.Confirm -> confirming = step.run
+            is PluginActionStep.Form -> {
+                formSubmitted = false
+                formRun = step.run
+            }
+            is PluginActionStep.Emit -> emit(step.run, step.payload)
         }
     }
 
     /** Confirm, then collect the form, then hand the action over. */
     fun run(action: PluginViewAction, payload: PluginActionPayload, block: Int? = null) {
         if (locked || emitAction == null) return
-        val request = PluginActionRun(action, payload, block)
-        if (!action.confirm.isNullOrEmpty()) confirming = request else proceed(request)
+        advance(PluginActionRun(action, payload, block).start())
     }
 
-    val shape = RoundedCornerShape(FlareSizes.radiusLg)
-    // Every state takes the inset; a card shell kept in a sheet takes it around the shell.
-    val shell = if (embedded) Modifier.fillMaxWidth().padding(pluginViewInsetPadding(inset)) else Modifier
-        .padding(pluginViewInsetPadding(inset))
-        .widthIn(max = FlareSizes.componentRichCardWidth)
-        .fillMaxWidth()
-        .shadow(flareShadowElevation(flareShadows().card), shape, clip = false)
-        .clip(shape)
-        .background(colors.bgPrimary)
-        .border(1.dp, colors.borderSecondary, shape)
-        .padding(FlareSizes.spacingMd)
-    Column(
-        shell,
-        verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd),
-    ) {
-        // The quote slot: a reply's quote sits inside the shell, above the title row; nothing nested inherits it.
-        if (!embedded && quote != null) quote()
-        if (!embedded) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
+    val keys = PluginViewFormat.keys(view, embedded)
+    val detailKey = PluginViewFormat.detailKey(view, embedded, onOpenDetail != null, busy, busyActionId)
+    val parts = pluginViewParts(view, embedded, quote != null, reasonLine, keys, detailKey, failure, strings)
+
+    val drawPart: @Composable (PluginViewPart) -> Unit = { part ->
+        when (part) {
+            // The quote slot: a reply's quote sits inside the shell, above the title row; nothing nested inherits it.
+            PluginViewPart.Quote -> quote?.invoke()
+            PluginViewPart.TitleRow -> Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs),
+            ) {
                 if (icon != null && icon in flareIconNames) FlareIcon(icon, size = FlareSizes.iconSizeSm, tint = colors.primaryText)
                 Text(view.title, color = colors.textPrimary, fontSize = FlareSizes.fontSizeXl, fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f, fill = false).semantics { heading() })
@@ -216,21 +266,23 @@ fun PluginView(
                     }
                 }
             }
-        }
-        // No title row: an unavailable embedded view still says what it was.
-        PluginViewFormat.unavailableLine(view, embedded)?.let { Text(it, color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd) }
-        // Why it is unavailable, under the title.
-        if (!view.available && reasonLine != null) Text(reasonLine, color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd)
-        if (view.available) {
-            if (view.fields.isNotEmpty()) PluginFieldRows(view.fields)
-            view.blocks.forEachIndexed { index, block ->
-                when (block) {
-                    is PluginTextBlock -> PluginTextBlockView(block)
-                    is PluginFieldsBlock -> PluginFieldRows(block.fields)
-                    is PluginChoicesBlock -> PluginChoicesBlockView(
+            is PluginViewPart.Line -> Text(
+                part.text,
+                color = if (part.quiet) colors.textTertiary else colors.textSecondary,
+                fontSize = if (part.quiet) FlareSizes.fontSizeSm else FlareSizes.fontSizeMd,
+            )
+            is PluginViewPart.Fields -> PluginFieldRows(part.fields)
+            is PluginViewPart.Block -> when (val block = part.block) {
+                is PluginTextBlock -> PluginTextBlockView(block)
+                is PluginFieldsBlock -> PluginFieldRows(block.fields)
+                is PluginChoicesBlock -> {
+                    val index = part.index
+                    val interactive = onAction != null && interaction.isInteractive(block, index, locked)
+                    PluginChoicesBlockView(
                         block = block,
                         shown = interaction.shown(block, index),
-                        interactive = onAction != null && interaction.isInteractive(block, index, locked),
+                        interactive = interactive,
+                        held = if (interactive) block.options.filter { interaction.capped(block, index, it.index) }.map { it.index }.toSet() else emptySet(),
                         submitEnabled = interaction.submitEnabled(block, index),
                         submitLoading = block.action != null && block.action.id == busyActionId,
                         onPick = { option ->
@@ -247,19 +299,29 @@ fun PluginView(
                             if (action != null && selection != null) run(action, PluginActionPayload(selection = selection), index)
                         },
                     )
-                    is PluginEntriesBlock -> PluginEntriesBlockView(block, users, viewerId, onOpenDetail)
-                    is PluginPeopleBlock -> PluginPeopleBlockView(block, users)
-                    is PluginStatusBlock -> PluginStatusBlockView(block)
-                    is PluginProgressBlock -> PluginProgressBlockView(block)
-                    is PluginTimeBlock -> PluginTimeBlockView(block)
-                    is PluginDividerBlock -> Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderSecondary))
-                    is PluginNoteBlock -> PluginNoteBlockView(block)
                 }
+                is PluginEntriesBlock -> PluginEntriesBlockView(block, users, viewerId, onOpenDetail)
+                is PluginPeopleBlock -> PluginPeopleBlockView(block, users)
+                is PluginStatusBlock -> PluginStatusBlockView(block)
+                is PluginProgressBlock -> PluginProgressBlockView(block)
+                is PluginTimeBlock -> PluginTimeBlockView(block)
+                is PluginDividerBlock -> Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderSecondary))
+                is PluginNoteBlock -> PluginNoteBlockView(block)
+                // Rows are drawn row by row (PluginViewPart.Row).
+                is PluginRowsBlock -> Unit
             }
-            // Embedded (the detail sheet, a plugin page): no title row, so the menu actions are keys after the others.
-            val keys = if (embedded) view.actions + menuActions else view.actions
-            if (keys.isNotEmpty()) {
-                val key: @Composable (PluginViewAction, Modifier) -> Unit = { action, modifier ->
+            is PluginViewPart.Row -> PluginRowItem(
+                block = part.rows,
+                row = part.row,
+                divided = !part.first,
+                nowMs = nowMs,
+                spinning = { action -> busyActionId == action.id && rowRun == (action.id to part.row.key) },
+                disabled = locked || onAction == null,
+                onRun = { action, bound -> run(action, PluginActionPayload(row = PluginActionRow(part.row.key, bound.input))) },
+            )
+            is PluginViewPart.RowsEmpty -> Text(part.text, color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd)
+            is PluginViewPart.Keys -> {
+                val actionKey: @Composable (PluginViewAction, Modifier) -> Unit = { action, modifier ->
                     Box(modifier) {
                         Button(
                             label = action.label, variant = PluginViewFormat.variant(action), loading = busyActionId == action.id,
@@ -268,34 +330,61 @@ fun PluginView(
                         )
                     }
                 }
-                if (keys.size > 2) {
+                if (part.actions.size > 2) {
                     Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
-                        keys.forEach { key(it, Modifier.fillMaxWidth()) }
+                        part.actions.forEach { actionKey(it, Modifier.fillMaxWidth()) }
                     }
                 } else {
                     Row(horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
-                        keys.forEach { key(it, Modifier.weight(1f)) }
+                        part.actions.forEach { actionKey(it, Modifier.weight(1f)) }
                     }
                 }
             }
-            val detailEnabled = PluginViewFormat.detailKey(view, embedded, onOpenDetail != null, busy, busyActionId)
-            if (detailEnabled != null && onOpenDetail != null) {
-                Button(
-                    label = flareStrings().pluginViewDetail, variant = FlareButtonVariant.Quiet, size = FlareControlSize.Sm,
-                    disabled = !detailEnabled, block = true, onClick = onOpenDetail,
-                )
+            is PluginViewPart.DetailKey -> Button(
+                label = strings.pluginViewDetail, variant = FlareButtonVariant.Quiet, size = FlareControlSize.Sm,
+                disabled = !part.enabled, block = true, onClick = onOpenDetail,
+            )
+            is PluginViewPart.Error -> StatusBanner(text = part.text, tone = FlareStatusTone.Danger)
+        }
+    }
+
+    if (list == null) {
+        val shape = RoundedCornerShape(FlareSizes.radiusLg)
+        // Every state takes the inset; a card shell kept in a sheet takes it around the shell.
+        val shell = if (embedded) Modifier.fillMaxWidth().padding(pluginViewInsetPadding(inset)) else Modifier
+            .padding(pluginViewInsetPadding(inset))
+            .widthIn(max = FlareSizes.componentRichCardWidth)
+            .fillMaxWidth()
+            .shadow(flareShadowElevation(flareShadows().card), shape, clip = false)
+            .clip(shape)
+            .background(colors.bgPrimary)
+            .border(1.dp, colors.borderSecondary, shape)
+            .padding(FlareSizes.spacingMd)
+        Column(shell) {
+            parts.forEachIndexed { i, part ->
+                key(part.key) {
+                    Box(Modifier.fillMaxWidth().padding(top = pluginPartGap(parts.getOrNull(i - 1), part))) { drawPart(part) }
+                }
             }
         }
-        // A read-only copy closes with why nothing on it acts.
-        if (view.available && reasonLine != null) Text(reasonLine, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm)
-        if (failure != null) StatusBanner(text = failure, tone = FlareStatusTone.Danger)
+    } else {
+        LazyColumn(Modifier.fillMaxSize(), state = list.state, contentPadding = list.contentPadding) {
+            list.header(this)
+            // Keys come from the parts, whose rows are each drawn once: a lazy list rejects a repeated key.
+            itemsIndexed(parts, key = { _, part -> part.key }) { i, part ->
+                Box(Modifier.fillMaxWidth().pluginPanel(colors.bgPrimary, i == 0, i == parts.lastIndex, pluginPartGap(parts.getOrNull(i - 1), part))) {
+                    drawPart(part)
+                }
+            }
+            list.footer(this)
+        }
     }
 
     confirming?.let { request ->
         DangerConfirm(
             title = request.action.label, description = request.action.confirm.orEmpty(), target = "",
             confirmText = request.action.label,
-            onConfirm = { confirming = null; proceed(request) },
+            onConfirm = { confirming = null; advance(request.confirmed()) },
             onCancel = { confirming = null },
         )
     }
@@ -312,7 +401,7 @@ fun PluginView(
                     busy = formPending,
                     error = if (formSubmitted) failure else null,
                     members = members,
-                    onSubmit = { values -> formSubmitted = true; emit(request, values) },
+                    onSubmit = { values -> formSubmitted = true; advance(request.submitted(values)) },
                     onCancel = { if (!formPending) { formRun = null; formSubmitted = false } },
                 )
             }
@@ -338,7 +427,113 @@ internal fun pluginViewInsetPadding(inset: PluginViewInset): PaddingValues = whe
 }
 
 /** An action on its way out: confirmation and form come first; [block] marks a choices submit. */
-internal data class PluginActionRun(val action: PluginViewAction, val payload: PluginActionPayload, val block: Int?)
+internal data class PluginActionRun(val action: PluginViewAction, val payload: PluginActionPayload, val block: Int?) {
+    /** The first step: the confirmation when the action asks one, else what follows it. */
+    fun start(): PluginActionStep = if (!action.confirm.isNullOrEmpty()) PluginActionStep.Confirm(this) else confirmed()
+
+    /** Past the confirmation: the form when the action collects one, else out as it is. */
+    fun confirmed(): PluginActionStep =
+        if (!action.form.isNullOrEmpty()) PluginActionStep.Form(this) else PluginActionStep.Emit(this, payload)
+
+    /** The form was submitted: out with its values beside what the action already carries (a row, a selection). */
+    fun submitted(values: Map<String, Any?>): PluginActionStep = PluginActionStep.Emit(this, payload.copy(formValues = values))
+}
+
+/** Where an action run stands: asking, collecting its form, or handed over with its payload. */
+internal sealed interface PluginActionStep {
+    data class Confirm(val run: PluginActionRun) : PluginActionStep
+    data class Form(val run: PluginActionRun) : PluginActionStep
+    data class Emit(val run: PluginActionRun, val payload: PluginActionPayload) : PluginActionStep
+}
+
+/** One thing a view draws, in order, with a key that is unique within the view (rows are drawn once per key). */
+internal sealed interface PluginViewPart {
+    val key: String
+
+    data object Quote : PluginViewPart { override val key: String get() = "quote" }
+    data object TitleRow : PluginViewPart { override val key: String get() = "title" }
+
+    /** A line of words: the unavailable title or reason (secondary), or a read-only copy's closing line ([quiet]). */
+    data class Line(override val key: String, val text: String, val quiet: Boolean) : PluginViewPart
+
+    data class Fields(val fields: List<PluginViewField>) : PluginViewPart { override val key: String get() = "fields" }
+
+    data class Block(val index: Int, val block: PluginBlock) : PluginViewPart { override val key: String get() = "b$index" }
+
+    /** One row of the rows block at [index]; [first] draws no divider above it. */
+    data class Row(val index: Int, val rows: PluginRowsBlock, val row: PluginRow, val first: Boolean) : PluginViewPart {
+        override val key: String get() = "r$index:${row.key}"
+    }
+
+    data class RowsEmpty(val index: Int, val text: String) : PluginViewPart { override val key: String get() = "e$index" }
+
+    data class Keys(val actions: List<PluginViewAction>) : PluginViewPart { override val key: String get() = "keys" }
+
+    data class DetailKey(val enabled: Boolean) : PluginViewPart { override val key: String get() = "detail" }
+
+    data class Error(val text: String) : PluginViewPart { override val key: String get() = "error" }
+}
+
+/**
+ * What a view draws, in order: on a card the quote and the title row; an unavailable view's title and reason; then the
+ * fields, the blocks (a rows block as one part per row, each key once, or its empty line), the action [keys] and the
+ * [detailKey]; a read-only copy's closing line; the failure.
+ */
+internal fun pluginViewParts(
+    view: PluginViewModel,
+    embedded: Boolean,
+    quote: Boolean,
+    reasonLine: String?,
+    keys: List<PluginViewAction>,
+    detailKey: Boolean?,
+    failure: String?,
+    strings: FlareStrings,
+): List<PluginViewPart> = buildList {
+    if (!embedded && quote) add(PluginViewPart.Quote)
+    if (!embedded) add(PluginViewPart.TitleRow)
+    // No title row: an unavailable embedded view still says what it was.
+    PluginViewFormat.unavailableLine(view, embedded)?.let { add(PluginViewPart.Line("unavailable", it, quiet = false)) }
+    // Why it is unavailable, under the title.
+    if (!view.available && reasonLine != null) add(PluginViewPart.Line("reason", reasonLine, quiet = false))
+    if (view.available) {
+        if (view.fields.isNotEmpty()) add(PluginViewPart.Fields(view.fields))
+        view.blocks.forEachIndexed { index, block ->
+            if (block is PluginRowsBlock) {
+                val rows = PluginViewFormat.rowsOnce(block.rows)
+                if (rows.isEmpty()) PluginViewFormat.rowsEmpty(block, strings)?.let { add(PluginViewPart.RowsEmpty(index, it)) }
+                rows.forEachIndexed { position, row -> add(PluginViewPart.Row(index, block, row, first = position == 0)) }
+            } else {
+                add(PluginViewPart.Block(index, block))
+            }
+        }
+        if (keys.isNotEmpty()) add(PluginViewPart.Keys(keys))
+        if (detailKey != null) add(PluginViewPart.DetailKey(detailKey))
+    }
+    // A read-only copy closes with why nothing on it acts.
+    if (view.available && reasonLine != null) add(PluginViewPart.Line("readonly", reasonLine, quiet = true))
+    if (failure != null) add(PluginViewPart.Error(failure))
+}
+
+/** The space above a part: none for the first, none between the rows of one block (a hairline divides them), md otherwise. */
+internal fun pluginPartGap(previous: PluginViewPart?, part: PluginViewPart): Dp = when {
+    previous == null -> 0.dp
+    part is PluginViewPart.Row && !part.first -> 0.dp
+    else -> FlareSizes.spacingMd
+}
+
+/**
+ * One segment of the primary panel a page draws its view on: the first rounds the top and pads md above, the last rounds
+ * the bottom and pads md below, the ones between keep [gap] above, so the segments read as one card.
+ */
+private fun Modifier.pluginPanel(surface: Color, first: Boolean, last: Boolean, gap: Dp): Modifier {
+    val top = if (first) FlareSizes.radiusLg else 0.dp
+    val bottom = if (last) FlareSizes.radiusLg else 0.dp
+    return background(surface, RoundedCornerShape(topStart = top, topEnd = top, bottomStart = bottom, bottomEnd = bottom))
+        .padding(
+            start = FlareSizes.spacingMd, end = FlareSizes.spacingMd,
+            top = if (first) FlareSizes.spacingMd else gap, bottom = if (last) FlareSizes.spacingMd else 0.dp,
+        )
+}
 
 /** The host's answers for the ids not known yet; an id it cannot answer keeps the fallback. */
 internal suspend fun pluginResolvedUsers(
@@ -374,7 +569,7 @@ internal fun <T> PluginOnChange(value: T, onChange: (old: T, new: T) -> Unit) {
 
 /** The semantic colour of a tone as text (`*Text` tokens; neutral is the secondary text). */
 @Composable
-internal fun pluginToneText(tone: PluginTone?): androidx.compose.ui.graphics.Color {
+internal fun pluginToneText(tone: PluginTone?): Color {
     val colors = flareColors()
     return when (tone ?: PluginTone.Neutral) {
         PluginTone.Neutral -> colors.textSecondary
@@ -387,7 +582,7 @@ internal fun pluginToneText(tone: PluginTone?): androidx.compose.ui.graphics.Col
 
 /** The ground a tone tints (the fill of the pair, faint). */
 @Composable
-internal fun pluginToneGround(tone: PluginTone?): androidx.compose.ui.graphics.Color {
+internal fun pluginToneGround(tone: PluginTone?): Color {
     val colors = flareColors()
     return when (tone ?: PluginTone.Neutral) {
         PluginTone.Neutral -> colors.bgTertiary
@@ -396,6 +591,34 @@ internal fun pluginToneGround(tone: PluginTone?): androidx.compose.ui.graphics.C
         PluginTone.Warning -> colors.warning.copy(alpha = 0.12f)
         PluginTone.Danger -> colors.error.copy(alpha = 0.12f)
     }
+}
+
+// The kit tag's mix (Vue FlareTag): the tone at 6% over the primary surface, and an edge of its ink at 18%.
+private const val BADGE_TINT = 0.06f
+private const val BADGE_EDGE = 0.18f
+
+/**
+ * A badge as the kit tag (spec rules.badge): the tone's `*Text` ink on a faint tint of the tone over the primary surface
+ * (neutral: secondary text on the tertiary background), caption size, one line. It is words, never a control.
+ */
+@Composable
+internal fun PluginBadgeTag(badge: PluginBadge, modifier: Modifier = Modifier) {
+    val colors = flareColors()
+    val ink = pluginToneText(badge.tone)
+    val surface = when (badge.tone) {
+        PluginTone.Neutral -> colors.bgTertiary
+        PluginTone.Info -> colors.info.copy(alpha = BADGE_TINT).compositeOver(colors.bgPrimary)
+        PluginTone.Success -> colors.success.copy(alpha = BADGE_TINT).compositeOver(colors.bgPrimary)
+        PluginTone.Warning -> colors.warning.copy(alpha = BADGE_TINT).compositeOver(colors.bgPrimary)
+        PluginTone.Danger -> colors.error.copy(alpha = BADGE_TINT).compositeOver(colors.bgPrimary)
+    }
+    val shape = RoundedCornerShape(FlareSizes.radiusSm)
+    Text(
+        badge.text, color = ink, fontSize = FlareTextRoles.Caption.fontSize, fontWeight = FontWeight.Medium,
+        lineHeight = FlareTextRoles.Caption.fontSize * FlareTextRoles.Caption.lineHeight, maxLines = 1, overflow = TextOverflow.Ellipsis,
+        modifier = modifier.clip(shape).background(surface).border(1.dp, ink.copy(alpha = BADGE_EDGE), shape)
+            .padding(horizontal = FlareSizes.spacing2xs),
+    )
 }
 
 @Composable
@@ -446,6 +669,8 @@ private fun PluginChoicesBlockView(
     block: PluginChoicesBlock,
     shown: List<Int>,
     interactive: Boolean,
+    /** Options the cap holds back while the block can be chosen: dimmed, not tappable, still in the list. */
+    held: Set<Int>,
     submitEnabled: Boolean,
     submitLoading: Boolean,
     onPick: (Int) -> Unit,
@@ -457,14 +682,18 @@ private fun PluginChoicesBlockView(
     Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
         block.options.forEach { option ->
             val selected = option.index in chosen
+            val waiting = option.index in held
             val percent = PluginViewFormat.percentText(option, block.showResults)
             val votes = PluginViewFormat.votesText(option, block.showResults, strings)
             val shape = RoundedCornerShape(FlareSizes.radiusMd)
             Box(
-                Modifier.fillMaxWidth().heightIn(min = FlareSizes.touchTargetMin).clip(shape)
+                Modifier.fillMaxWidth().heightIn(min = FlareSizes.touchTargetMin)
+                    // A held option keeps its layer and only changes its alpha (no layer dropped when it frees up).
+                    .flareDimmed(if (waiting) FlareOpacity.disabled else 1f)
+                    .clip(shape)
                     .background(colors.bgSecondary)
                     .border(1.dp, if (selected) colors.borderSelected else colors.borderPrimary, shape)
-                    .clickable(enabled = interactive, role = if (block.multiple) Role.Checkbox else Role.Button) { onPick(option.index) }
+                    .clickable(enabled = interactive && !waiting, role = if (block.multiple) Role.Checkbox else Role.Button) { onPick(option.index) }
                     .semantics(mergeDescendants = true) {
                         this.selected = selected
                         contentDescription = listOfNotNull(option.label, percent, votes).joinToString(", ")
@@ -513,7 +742,7 @@ private fun PluginCheckBox(on: Boolean) {
             .border(1.5.dp, if (on) colors.primary else colors.borderHover, shape),
         contentAlignment = Alignment.Center,
     ) {
-        if (on) FlareIcon("check", size = 12.dp, tint = androidx.compose.ui.graphics.Color.White)
+        if (on) FlareIcon("check", size = 12.dp, tint = Color.White)
     }
 }
 
@@ -534,28 +763,29 @@ private fun PluginEntriesBlockView(block: PluginEntriesBlock, users: Map<String,
                 )
             }
             val name = PluginViewFormat.entryName(entry, users)
-            val me = PluginViewFormat.isMe(entry, viewerId)
+            // One reading in drawing order: number, avatar, name, me, badge, text.
             Row(
                 Modifier.fillMaxWidth().semantics(mergeDescendants = true) {},
                 verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
             ) {
-                PluginViewFormat.entryNumber(block, entry)?.let { number ->
-                    Text("$number.", color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd, modifier = Modifier.widthIn(min = 20.dp))
-                }
-                val userId = entry.userId
-                if (!userId.isNullOrEmpty()) Avatar(userId = userId, displayName = name.orEmpty(), size = 20.dp, avatarUrl = users[userId]?.avatarUrl)
-                if (name != null) {
-                    Text(name, color = colors.textSecondary, fontSize = FlareSizes.fontSizeLg, fontWeight = FontWeight.SemiBold, maxLines = 1)
-                }
-                if (me) {
-                    Text(
+                for (part in PluginViewFormat.entryParts(block, entry, users, viewerId)) when (part) {
+                    PluginEntryPart.Number -> Text("${PluginViewFormat.entryNumber(block, entry)}.", color = colors.textTertiary,
+                        fontSize = FlareSizes.fontSizeMd, modifier = Modifier.widthIn(min = 20.dp))
+                    PluginEntryPart.Avatar -> {
+                        val userId = entry.userId.orEmpty()
+                        Avatar(userId = userId, displayName = name.orEmpty(), size = 20.dp, avatarUrl = users[userId]?.avatarUrl)
+                    }
+                    PluginEntryPart.Name -> Text(name.orEmpty(), color = colors.textSecondary, fontSize = FlareSizes.fontSizeLg,
+                        fontWeight = FontWeight.SemiBold, maxLines = 1)
+                    PluginEntryPart.Me -> Text(
                         strings.pluginViewMe, color = colors.primaryText, fontSize = FlareSizes.fontSizeXs, fontWeight = FontWeight.Medium,
                         modifier = Modifier.clip(RoundedCornerShape(FlareSizes.radiusXs)).background(colors.primary.copy(alpha = FlareOpacity.tintWeak))
                             .padding(horizontal = FlareSizes.spacingXs),
                     )
+                    PluginEntryPart.Badge -> entry.badge?.let { PluginBadgeTag(it) }
+                    PluginEntryPart.Text -> Text(entry.text, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg, modifier = Modifier.weight(1f))
                 }
-                Text(entry.text, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg, modifier = Modifier.weight(1f))
             }
         }
         if (block.more) {
@@ -567,6 +797,54 @@ private fun PluginEntriesBlockView(block: PluginEntriesBlock, users: Map<String,
             ) {
                 Text(PluginViewFormat.seeAll(block.total, strings), color = colors.primaryText, fontSize = FlareSizes.fontSizeMd, fontWeight = FontWeight.Medium)
                 FlareIcon("chevron-right", size = FlareSizes.iconSizeSm, tint = colors.primaryText)
+            }
+        }
+    }
+}
+
+/**
+ * One row of a page's list (spec rules.pageRows): the badge and the first cell, under them the other cells, and the
+ * row's action keys at its end. The words read as one item; each key is its own control.
+ */
+@Composable
+private fun PluginRowItem(
+    block: PluginRowsBlock,
+    row: PluginRow,
+    divided: Boolean,
+    nowMs: Long,
+    spinning: (PluginViewAction) -> Boolean,
+    disabled: Boolean,
+    onRun: (PluginViewAction, PluginRowAction) -> Unit,
+) {
+    val colors = flareColors()
+    val strings = flareStrings()
+    val lines = PluginViewFormat.rowLines(block, row, nowMs, strings, null)
+    val actions = PluginViewFormat.rowActions(block, row)
+    Column(Modifier.fillMaxWidth()) {
+        if (divided) Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderSecondary))
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = FlareSizes.touchTargetMin).padding(vertical = FlareSizes.spacingSm),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
+        ) {
+            Column(
+                Modifier.weight(1f).semantics(mergeDescendants = true) {},
+                verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing3xs),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
+                    row.badge?.let { PluginBadgeTag(it) }
+                    Text(lines.primary, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg, fontWeight = FontWeight.Medium,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                }
+                lines.secondary?.let {
+                    Text(it, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+            }
+            actions.forEach { (action, bound) ->
+                Button(
+                    label = action.label, variant = PluginViewFormat.variant(action), size = FlareControlSize.Sm,
+                    loading = spinning(action), disabled = disabled, onClick = { onRun(action, bound) },
+                )
             }
         }
     }

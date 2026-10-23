@@ -1533,6 +1533,15 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
     // 分组名单里当前用户的标识
     val pluginViewMe: String
         get() = (overrides["pluginViewMe"] as? String) ?: "我"
+    // 多选上限提示，排在 choices 页脚最前；{n} 为上限（spec/plugin-view-vectors.json rules.maxSelections）
+    val pluginViewMaxSelections: String
+        get() = (overrides["pluginViewMaxSelections"] as? String) ?: "最多选 {n} 项"
+    // 插件页面筛选标签的第一项（rules.pageFilters）
+    val pluginViewAll: String
+        get() = (overrides["pluginViewAll"] as? String) ?: "全部"
+    // 插件页面行列表的空态、没有原因的不可用页面（rules.pageRows、rules.page）
+    val pluginViewEmpty: String
+        get() = (overrides["pluginViewEmpty"] as? String) ?: "暂无数据"
     // ResolvedPluginView.unavailableReason 的文案（spec/plugin-view-vectors.json unavailableReasons）
     val pluginViewUnavailableDisabled: String
         get() = (overrides["pluginViewUnavailableDisabled"] as? String) ?: "插件已停用"
@@ -4186,6 +4195,18 @@ class FlareStringsBuilder internal constructor() {
     var pluginViewMe: String
         get() = (values["pluginViewMe"] as? String) ?: "我"
         set(value) { values["pluginViewMe"] = value }
+    // 多选上限提示；{n} 为上限
+    var pluginViewMaxSelections: String
+        get() = (values["pluginViewMaxSelections"] as? String) ?: "最多选 {n} 项"
+        set(value) { values["pluginViewMaxSelections"] = value }
+    // 插件页面筛选标签的第一项
+    var pluginViewAll: String
+        get() = (values["pluginViewAll"] as? String) ?: "全部"
+        set(value) { values["pluginViewAll"] = value }
+    // 插件页面行列表的空态、没有原因的不可用页面
+    var pluginViewEmpty: String
+        get() = (values["pluginViewEmpty"] as? String) ?: "暂无数据"
+        set(value) { values["pluginViewEmpty"] = value }
     // ResolvedPluginView.unavailableReason 的文案（spec/plugin-view-vectors.json unavailableReasons）
     var pluginViewUnavailableDisabled: String
         get() = (values["pluginViewUnavailableDisabled"] as? String) ?: "插件已停用"
