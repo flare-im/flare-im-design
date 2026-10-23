@@ -187,6 +187,9 @@ class FlareStrings {
     this.pluginViewUnavailableCatalogUnreachable = '暂时无法加载，请稍后再试',
     this.pluginViewUnavailableUnboundCopy = '副本，仅供查看',
     this.pluginPageRefresh = '刷新',
+    this.pluginViewMaxSelections = '最多选 {n} 项',
+    this.pluginViewAll = '全部',
+    this.pluginViewEmpty = '暂无数据',
     this.pluginViewVotes = '{count} 票',
     this.pluginViewRemaining = '剩余 {time}',
     this.pluginViewDateTimeFormat = 'M月d日 HH:mm',
@@ -971,6 +974,15 @@ class FlareStrings {
   final String pluginViewUnavailableCatalogUnreachable;
   final String pluginViewUnavailableUnboundCopy;
   final String pluginPageRefresh;
+
+  /// The hint that leads a capped multiple choice's footer; {n} is the cap.
+  final String pluginViewMaxSelections;
+
+  /// The first tab of a plugin page's filter: no filter.
+  final String pluginViewAll;
+
+  /// A plugin page with nothing to show: rows without their own empty text, an unavailable page without a reason.
+  final String pluginViewEmpty;
   final String pluginViewVotes;
   final String pluginViewRemaining;
 
@@ -1765,6 +1777,9 @@ class FlareStrings {
     String? pluginViewUnavailableCatalogUnreachable,
     String? pluginViewUnavailableUnboundCopy,
     String? pluginPageRefresh,
+    String? pluginViewMaxSelections,
+    String? pluginViewAll,
+    String? pluginViewEmpty,
     String? pluginViewVotes,
     String? pluginViewRemaining,
     String? pluginViewDateTimeFormat,
@@ -2464,6 +2479,9 @@ class FlareStrings {
       pluginViewUnavailableCatalogUnreachable: pluginViewUnavailableCatalogUnreachable ?? this.pluginViewUnavailableCatalogUnreachable,
       pluginViewUnavailableUnboundCopy: pluginViewUnavailableUnboundCopy ?? this.pluginViewUnavailableUnboundCopy,
       pluginPageRefresh: pluginPageRefresh ?? this.pluginPageRefresh,
+      pluginViewMaxSelections: pluginViewMaxSelections ?? this.pluginViewMaxSelections,
+      pluginViewAll: pluginViewAll ?? this.pluginViewAll,
+      pluginViewEmpty: pluginViewEmpty ?? this.pluginViewEmpty,
       pluginViewVotes: pluginViewVotes ?? this.pluginViewVotes,
       pluginViewRemaining: pluginViewRemaining ?? this.pluginViewRemaining,
       pluginViewDateTimeFormat: pluginViewDateTimeFormat ?? this.pluginViewDateTimeFormat,

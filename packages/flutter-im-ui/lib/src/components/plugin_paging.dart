@@ -1,8 +1,9 @@
 /// The load-more guard shared by `FlarePluginDetailSheet` and
-/// `FlarePluginPage` (spec/plugin-view-vectors.json rules.detail): the cursor
-/// the kit last asked for, so a page is never asked for twice. It is
-/// forgotten — a retry allowed — when the host stops loading, settles, or
-/// reports a failure.
+/// `FlarePluginPage` (spec/plugin-view-vectors.json rules.detail,
+/// rules.pagePaging): the cursor the kit last asked for, so a page is never
+/// asked for twice. It is forgotten — a retry allowed — when the host stops
+/// loading, settles, or reports a failure, and on a page when a refresh ends
+/// (it may bring the same cursor back).
 class FlarePluginPageCursor {
   String? _asked;
 
@@ -17,6 +18,9 @@ class FlarePluginPageCursor {
     _asked = cursor;
     return true;
   }
+
+  /// Forgets the asked cursor: a page's refresh ended.
+  void release() => _asked = null;
 
   /// The host's update: loading finished, an action settled, or a new error.
   void update({

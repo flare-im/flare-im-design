@@ -285,6 +285,44 @@ void main() {
       expect(picked, 'mention');
     });
 
+    testWidgets(
+      'a filled pill keeps its size and takes taps over a touch-target cell',
+      (tester) async {
+        String? picked;
+        await tester.pumpWidget(
+          _host(
+            FlareFilterTabs(
+              options: options,
+              selected: 'all',
+              onSelect: (value) => picked = value,
+            ),
+          ),
+        );
+        final pill = tester.getRect(
+          find
+              .ancestor(
+                of: find.text('Mentions'),
+                matching: find.byType(Container),
+              )
+              .first,
+        );
+        final cell = tester.getRect(
+          find
+              .ancestor(
+                of: find.text('Mentions'),
+                matching: find.byType(GestureDetector),
+              )
+              .first,
+        );
+        expect(pill.height, lessThan(36));
+        expect(cell.height, greaterThanOrEqualTo(FlareSizes.touchTarget));
+        expect(cell.width, greaterThanOrEqualTo(FlareSizes.touchTarget));
+        // Above the pill, inside the cell: still the tab.
+        await tester.tapAt(Offset(pill.center.dx, cell.top + 2));
+        expect(picked, 'mention');
+      },
+    );
+
     testWidgets('honours a custom content padding', (tester) async {
       await tester.pumpWidget(
         _host(

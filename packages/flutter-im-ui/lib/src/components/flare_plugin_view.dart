@@ -42,6 +42,14 @@ import 'flare_status_banner.dart';
 /// "副本，仅供查看". The card shell is the message's card surface — nothing is
 /// drawn around it — and a quoted reply ([FlareCardQuote]) sits inside it,
 /// above the title row.
+///
+/// Entries and rows draw their badge as the kit tag in its tone (rules.badge).
+/// A multiple choice with maxSelections disables the options outside a full
+/// draft, submits only a draft within the cap and leads its footer with
+/// "最多选 n 项" (rules.maxSelections). A rows block (a plugin page) is a list:
+/// each key once, the badge and the first cell, the other cells, and the
+/// row's action keys, which run like buttons and carry the row
+/// (rules.pageRows).
 class FlarePluginView extends StatefulWidget {
   const FlarePluginView({
     super.key,
@@ -125,6 +133,16 @@ class FlarePluginView extends StatefulWidget {
   /// The reason line of an unavailable view or a read-only copy.
   static const Key reasonKey = ValueKey('flare-plugin-reason');
 
+  /// The list item of the row [key] in a rows block (a test hook).
+  static Key rowKey(String key) => ValueKey('flare-plugin-row:$key');
+
+  /// The key of [actionId] on the row [key] (a test hook).
+  static Key rowActionKey(String key, String actionId) =>
+      ValueKey('flare-plugin-row-action:$key:$actionId');
+
+  /// The empty text of a rows block without rows.
+  static const Key rowsEmptyKey = ValueKey('flare-plugin-rows-empty');
+
   @override
   State<FlarePluginView> createState() => _FlarePluginViewState();
 }
@@ -147,6 +165,10 @@ class _FlarePluginViewState extends State<FlarePluginView> {
   final Map<String, FlarePluginUser?> _users = {};
   final Map<int, List<int>> _drafts = {};
   _Pending? _pending;
+
+  /// The row whose action was run last: its key spins while that action is
+  /// in flight.
+  String? _rowInFlight;
 
   FlarePluginAction? _formAction;
   // What the action carried when its form opened (a choices selection and its
@@ -262,13 +284,29 @@ class _FlarePluginViewState extends State<FlarePluginView> {
     return _viewSelection(block);
   }
 
+  List<int> _draft(FlarePluginChoicesBlock block, int index) =>
+      _drafts[index] ?? _viewSelection(block);
+
   bool _submitEnabled(FlarePluginChoicesBlock block, int index) {
-    final draft = _drafts[index] ?? _viewSelection(block);
-    return draft.isNotEmpty && !_sameSet(draft, _viewSelection(block));
+    final draft = _draft(block, index);
+    return draft.isNotEmpty &&
+        !_sameSet(draft, _viewSelection(block)) &&
+        flarePluginWithinCap(block, draft);
+  }
+
+  /// The options the cap holds back while the block can be chosen.
+  Set<int> _capped(FlarePluginChoicesBlock block, int index) {
+    if (!_interactive(block, index)) return const {};
+    final draft = _draft(block, index);
+    return {
+      for (final option in block.options)
+        if (flarePluginChoiceCapped(block, draft, option.index)) option.index,
+    };
   }
 
   void _pick(FlarePluginChoicesBlock block, int index, int option) {
     if (!_interactive(block, index)) return;
+    if (flarePluginChoiceCapped(block, _draft(block, index), option)) return;
     if (block.multiple) {
       final draft = {...(_drafts[index] ?? _viewSelection(block))};
       if (!draft.remove(option)) draft.add(option);
@@ -295,6 +333,13 @@ class _FlarePluginViewState extends State<FlarePluginView> {
           setState(() => _pending = _Pending(index, action.id, sorted)),
     );
   }
+
+  void _runRow(FlarePluginAction action, FlarePluginRow row, Object? input) =>
+      _run(
+        action,
+        FlarePluginActionPayload(row: (key: row.key, input: input)),
+        before: () => setState(() => _rowInFlight = row.key),
+      );
 
   void _revert() {
     final pending = _pending;
@@ -401,6 +446,7 @@ class _FlarePluginViewState extends State<FlarePluginView> {
                 action.id,
                 FlarePluginActionPayload(
                   selection: _formCarry.selection,
+                  row: _formCarry.row,
                   formValues: values,
                 ),
               );
@@ -499,6 +545,7 @@ class _FlarePluginViewState extends State<FlarePluginView> {
                 block: block,
                 selected: _shown(block, i),
                 interactive: _interactive(block, i),
+                capped: _capped(block, i),
                 submitEnabled: _submitEnabled(block, i),
                 submitLoading:
                     block.action != null &&
@@ -526,6 +573,14 @@ class _FlarePluginViewState extends State<FlarePluginView> {
                 color: colors.borderSecondary,
               ),
               FlarePluginNoteBlock() => _NoteBlock(block: block),
+              FlarePluginRowsBlock() => _RowsBlock(
+                block: block,
+                readOnly: readOnly,
+                locked: _locked || widget.onAction == null,
+                busyActionId: widget.busyActionId,
+                rowInFlight: _rowInFlight,
+                onAction: (action, row, input) => _runRow(action, row, input),
+              ),
             },
           ),
         );
@@ -545,12 +600,7 @@ class _FlarePluginViewState extends State<FlarePluginView> {
                 FlareButton(
                   key: ValueKey('flare-plugin-action-${action.id}'),
                   label: action.label,
-                  variant: switch (action.style) {
-                    FlarePluginActionStyle.danger => FlareButtonVariant.danger,
-                    FlarePluginActionStyle.primary =>
-                      FlareButtonVariant.primary,
-                    null => FlareButtonVariant.secondary,
-                  },
+                  variant: _variantOf(action),
                   loading: widget.busyActionId == action.id,
                   disabled: _locked || widget.onAction == null,
                   onPressed: () =>
@@ -649,15 +699,18 @@ class _FlarePluginViewState extends State<FlarePluginView> {
 
   /// The reason line: secondary under the title of an unavailable view,
   /// tertiary closing a read-only copy.
-  Widget _reasonLine(FlareColors colors, String text, {required bool secondary}) =>
-      Text(
-        text,
-        key: FlarePluginView.reasonKey,
-        style: TextStyle(
-          fontSize: FlareSizes.fontSizeMd,
-          color: secondary ? colors.textSecondary : colors.textTertiary,
-        ),
-      );
+  Widget _reasonLine(
+    FlareColors colors,
+    String text, {
+    required bool secondary,
+  }) => Text(
+    text,
+    key: FlarePluginView.reasonKey,
+    style: TextStyle(
+      fontSize: FlareSizes.fontSizeMd,
+      color: secondary ? colors.textSecondary : colors.textTertiary,
+    ),
+  );
 
   /// The card's ⋯ menu: one item per menu action, danger tone for a danger
   /// action; the chosen one runs like a button.
@@ -941,6 +994,7 @@ class _ChoicesBlock extends StatelessWidget {
     required this.block,
     required this.selected,
     required this.interactive,
+    this.capped = const {},
     required this.submitEnabled,
     required this.submitLoading,
     required this.onPick,
@@ -949,6 +1003,9 @@ class _ChoicesBlock extends StatelessWidget {
   final FlarePluginChoicesBlock block;
   final List<int> selected;
   final bool interactive;
+
+  /// Options the cap holds back: listed, dimmed and not tappable.
+  final Set<int> capped;
   final bool submitEnabled;
   final bool submitLoading;
   final ValueChanged<int> onPick;
@@ -960,6 +1017,7 @@ class _ChoicesBlock extends StatelessWidget {
     final strings = FlareStrings.of(context);
     final chosen = selected.toSet();
     final footer = [
+      ?flarePluginChoiceCapHint(block, strings),
       if (block.closed) strings.pluginViewEnded,
       if (block.showResults && block.total != null)
         strings.pluginViewVotes.replaceAll('{count}', '${block.total}'),
@@ -976,7 +1034,10 @@ class _ChoicesBlock extends StatelessWidget {
             showResults: block.showResults,
             selected: chosen.contains(option.index),
             box: boxes,
-            onTap: interactive ? () => onPick(option.index) : null,
+            capped: interactive && capped.contains(option.index),
+            onTap: interactive && !capped.contains(option.index)
+                ? () => onPick(option.index)
+                : null,
           ),
           const SizedBox(height: FlareSizes.spacingXs),
         ],
@@ -1016,12 +1077,16 @@ class _ChoiceRow extends StatelessWidget {
     required this.showResults,
     required this.selected,
     required this.box,
+    this.capped = false,
     this.onTap,
   });
   final FlarePluginChoice option;
   final bool showResults;
   final bool selected;
   final bool box;
+
+  /// Held back by the cap: drawn at the disabled opacity, read as disabled.
+  final bool capped;
   final VoidCallback? onTap;
 
   @override
@@ -1152,9 +1217,10 @@ class _ChoiceRow extends StatelessWidget {
       button: onTap != null && !box,
       checked: box ? selected : null,
       selected: selected,
+      enabled: capped ? false : null,
       value: value,
       child: onTap == null
-          ? row
+          ? (capped ? Opacity(opacity: FlareOpacity.disabled, child: row) : row)
           : Material(
               type: MaterialType.transparency,
               child: InkWell(onTap: onTap, borderRadius: radius, child: row),
@@ -1290,6 +1356,7 @@ class _EntriesBlock extends StatelessWidget {
               ),
               child: Text(
                 name,
+                key: ValueKey('flare-plugin-entry-name-$position'),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
@@ -1322,9 +1389,19 @@ class _EntriesBlock extends StatelessWidget {
             ),
             const SizedBox(width: FlareSizes.spacingXs),
           ],
+          if (entry.badge case final badge?) ...[
+            _ToneTag(
+              key: ValueKey('flare-plugin-entry-badge-$position'),
+              text: badge.text,
+              tone: badge.tone,
+              maxWidth: FlareSizes.componentRichCardCompactWidth / 2,
+            ),
+            const SizedBox(width: FlareSizes.spacingXs),
+          ],
           Expanded(
             child: Text(
               entry.text,
+              key: ValueKey('flare-plugin-entry-text-$position'),
               style: TextStyle(
                 fontSize: FlareSizes.fontSizeMd,
                 color: colors.textPrimary,
@@ -1336,6 +1413,182 @@ class _EntriesBlock extends StatelessWidget {
     );
   }
 }
+
+/// A rows block on a plugin page (rules.pageRows): a list, one item per key
+/// (the first kept) — the badge and the first cell, then the other cells
+/// joined with " · ", and the row's action keys at the item's end. No rows:
+/// the block's empty text, else pluginViewEmpty.
+class _RowsBlock extends StatelessWidget {
+  const _RowsBlock({
+    required this.block,
+    required this.readOnly,
+    required this.locked,
+    this.busyActionId,
+    this.rowInFlight,
+    required this.onAction,
+  });
+  final FlarePluginRowsBlock block;
+  final bool readOnly;
+
+  /// Busy, an action in flight, or no host for actions: the keys wait.
+  final bool locked;
+  final String? busyActionId;
+
+  /// The row whose action ran last: its key spins while that action is in
+  /// flight.
+  final String? rowInFlight;
+  final void Function(
+    FlarePluginAction action,
+    FlarePluginRow row,
+    Object? input,
+  )
+  onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = FlareColors.of(context);
+    final strings = FlareStrings.of(context);
+    final rows = flarePluginRowsOnce(block.rows);
+    if (rows.isEmpty) {
+      return Text(
+        block.emptyText ?? strings.pluginViewEmpty,
+        key: FlarePluginView.rowsEmptyKey,
+        style: TextStyle(
+          fontSize: FlareSizes.fontSizeMd,
+          color: colors.textTertiary,
+        ),
+      );
+    }
+    final nowMs = flarePluginNowMs();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var i = 0; i < rows.length; i += 1) ...[
+          if (i > 0)
+            Divider(height: 1, thickness: 1, color: colors.borderSecondary),
+          _item(
+            colors,
+            strings,
+            rows[i],
+            nowMs,
+            first: i == 0,
+            last: i == rows.length - 1,
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _item(
+    FlareColors colors,
+    FlareStrings strings,
+    FlarePluginRow row,
+    int nowMs, {
+    required bool first,
+    required bool last,
+  }) {
+    final lines = flarePluginRowLines(block, row, nowMs, strings);
+    final keys = readOnly
+        ? const <(FlarePluginAction, Object?)>[]
+        : [
+            for (final offered in row.actions)
+              for (final action
+                  in block.actions.where((a) => a.id == offered.id).take(1))
+                (action, offered.input),
+          ];
+    final badge = row.badge;
+    final secondary = lines.secondary;
+    return Padding(
+      key: FlarePluginView.rowKey(row.key),
+      padding: EdgeInsets.only(
+        top: first ? 0 : FlareSizes.spacingSm,
+        bottom: last ? 0 : FlareSizes.spacingSm,
+      ),
+      child: Semantics(
+        container: true,
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      if (badge != null) ...[
+                        _ToneTag(
+                          key: ValueKey('flare-plugin-row-badge:${row.key}'),
+                          text: badge.text,
+                          tone: badge.tone,
+                          maxWidth:
+                              FlareSizes.componentRichCardCompactWidth / 2,
+                        ),
+                        const SizedBox(width: FlareSizes.spacingXs),
+                      ],
+                      Flexible(
+                        child: Text(
+                          lines.primary,
+                          key: ValueKey('flare-plugin-row-primary:${row.key}'),
+                          style: TextStyle(
+                            fontSize: FlareSizes.fontSizeMd,
+                            color: colors.textPrimary,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (secondary != null)
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        top: FlareSizes.spacing2xs,
+                      ),
+                      child: Text(
+                        secondary,
+                        key: ValueKey('flare-plugin-row-secondary:${row.key}'),
+                        style: TextStyle(
+                          fontSize: FlareSizes.fontSizeSm,
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            if (keys.isNotEmpty) ...[
+              const SizedBox(width: FlareSizes.spacingSm),
+              Wrap(
+                spacing: FlareSizes.spacingXs,
+                runSpacing: FlareSizes.spacingXs,
+                children: [
+                  for (final (action, input) in keys)
+                    FlareButton(
+                      key: FlarePluginView.rowActionKey(row.key, action.id),
+                      label: action.label,
+                      size: FlareControlSize.sm,
+                      variant: _variantOf(action),
+                      loading:
+                          busyActionId == action.id && rowInFlight == row.key,
+                      disabled: locked,
+                      onPressed: () => onAction(action, row, input),
+                    ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+FlareButtonVariant _variantOf(FlarePluginAction action) =>
+    switch (action.style) {
+      FlarePluginActionStyle.danger => FlareButtonVariant.danger,
+      FlarePluginActionStyle.primary => FlareButtonVariant.primary,
+      null => FlareButtonVariant.secondary,
+    };
 
 Color _toneInk(FlareColors colors, FlarePluginTone? tone) =>
     switch (tone ?? FlarePluginTone.neutral) {
@@ -1453,32 +1706,65 @@ class _StatusBlock extends StatelessWidget {
           ),
           const SizedBox(width: FlareSizes.spacingSm),
         ],
-        DecoratedBox(
+        _ToneTag(
           key: const ValueKey('flare-plugin-status'),
-          decoration: BoxDecoration(
-            color: _toneSurface(colors, block.tone),
-            borderRadius: BorderRadius.circular(FlareSizes.radiusSm),
-            border: Border.all(
-              color: _toneInk(colors, block.tone).withValues(alpha: 0.18),
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: FlareSizes.spacing2xs,
-            ),
-            child: Text(
-              block.text,
-              style: TextStyle(
-                fontSize: FlareSizes.fontSizeSm,
-                fontWeight: FontWeight.w500,
-                height: FlareSizes.lineHeightNormal,
-                color: _toneInk(colors, block.tone),
-              ),
-            ),
-          ),
+          text: block.text,
+          tone: block.tone,
         ),
       ],
     );
+  }
+}
+
+/// The kit tag in a plugin tone — a status block's badge and an entry's or a
+/// row's badge (rules.badge): the tone's ink on a 6% tint of the tone in the
+/// primary surface (neutral: secondary text on the tertiary background) with
+/// a hairline of the ink, caption size, one line, never a control.
+class _ToneTag extends StatelessWidget {
+  const _ToneTag({
+    super.key,
+    required this.text,
+    required this.tone,
+    this.maxWidth,
+  });
+  final String text;
+  final FlarePluginTone tone;
+
+  /// Cut with an ellipsis past this width (a badge beside other words).
+  final double? maxWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = FlareColors.of(context);
+    final ink = _toneInk(colors, tone);
+    final tag = DecoratedBox(
+      decoration: BoxDecoration(
+        color: _toneSurface(colors, tone),
+        borderRadius: BorderRadius.circular(FlareSizes.radiusSm),
+        border: Border.all(color: ink.withValues(alpha: 0.18)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: FlareSizes.spacing2xs),
+        child: Text(
+          text,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: FlareSizes.fontSizeSm,
+            fontWeight: FontWeight.w500,
+            height: FlareSizes.lineHeightNormal,
+            color: ink,
+          ),
+        ),
+      ),
+    );
+    final max = maxWidth;
+    return max == null
+        ? tag
+        : ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: max),
+            child: tag,
+          );
   }
 }
 

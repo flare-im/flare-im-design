@@ -47,6 +47,71 @@ List<FlarePluginInput> formInputs() => [
     FlarePluginInput.fromJson((i as Map).cast<String, Object?>())!,
 ];
 
+/// The views this kit draws: every one but the Vue console's tables
+/// (rules.rows); a rows block elsewhere is a page's list (plugin_page_test).
+bool drawnHere(Map<String, dynamic> vector) =>
+    !((vector['expect'] as Map)['blocks'] as List).any(
+      (b) => (b as Map)['kind'] == 'rows',
+    );
+
+/// The kit tag's ink of a tone (rules.badge), in the light theme.
+Color toneInk(String tone) => switch (tone) {
+  'info' => FlareColors.light.infoText,
+  'success' => FlareColors.light.successText,
+  'warning' => FlareColors.light.warningText,
+  'danger' => FlareColors.light.errorText,
+  _ => FlareColors.light.textSecondary,
+};
+
+/// The words and the ink of the tag under [scope].
+(String, Color?) tagOf(WidgetTester tester, Finder scope) {
+  final text = tester.widget<Text>(
+    find.descendant(of: scope, matching: find.byType(Text)),
+  );
+  return (text.data!, text.style?.color);
+}
+
+/// The option indices a choices block draws as chosen: the ticked boxes of
+/// an interactive multiple choice, the check marks otherwise.
+List<int> shownOptions(WidgetTester tester, FlarePluginChoicesBlock choices) {
+  final multi =
+      choices.multiple &&
+      find
+          .byKey(const ValueKey('flare-plugin-choices-submit'))
+          .evaluate()
+          .isNotEmpty;
+  bool ticked(int index) {
+    final row = find.byKey(ValueKey('flare-plugin-option-$index'));
+    if (!multi) {
+      return find
+          .descendant(
+            of: row,
+            matching: find.byKey(const ValueKey('flare-plugin-option-check')),
+          )
+          .evaluate()
+          .isNotEmpty;
+    }
+    final box = tester.widget<Container>(
+      find.descendant(of: row, matching: find.byType(Container)).first,
+    );
+    return (box.decoration as BoxDecoration).color != null;
+  }
+
+  return [
+    for (final o in choices.options)
+      if (ticked(o.index)) o.index,
+  ];
+}
+
+/// Whether option [index] takes a tap.
+bool optionTappable(WidgetTester tester, int index) => find
+    .descendant(
+      of: find.byKey(ValueKey('flare-plugin-option-$index')),
+      matching: find.byType(InkWell),
+    )
+    .evaluate()
+    .isNotEmpty;
+
 /// Texts under a finder, in order.
 List<String> textsIn(WidgetTester tester, Finder scope) => [
   for (final t in tester.widgetList<Text>(
@@ -166,9 +231,7 @@ void main() {
   });
 
   group('render facts', () {
-    for (final vector in views.where(
-      (v) => (v['platforms'] as List).contains('flutter'),
-    )) {
+    for (final vector in views.where(drawnHere)) {
       testWidgets('renders ${vector['id']}', (tester) async {
         final view = FlarePluginViewModel.fromJson(
           (vector['view'] as Map).cast<String, Object?>(),
@@ -236,13 +299,18 @@ void main() {
                     reason: '${of['label']} selected',
                   );
                 }
+                // An option the cap holds back (rules.maxSelections) stays
+                // listed, dimmed and not tappable.
+                final enabled = of['enabled'] as bool? ?? true;
                 expect(
-                  find
-                      .descendant(of: row, matching: find.byType(InkWell))
-                      .evaluate()
-                      .isNotEmpty,
-                  fact['interactive'],
+                  optionTappable(tester, source[o].index),
+                  fact['interactive'] == true && enabled,
                   reason: '${of['label']} tappable',
+                );
+                expect(
+                  find.descendant(of: row, matching: find.byType(Opacity)),
+                  enabled ? findsNothing : findsOneWidget,
+                  reason: '${of['label']} dimmed',
                 );
                 if (of['percentText'] != null) {
                   expect(
@@ -320,10 +388,55 @@ void main() {
                     reason: '${vector['id']} row $r me',
                   );
                 }
+                // The badge: the kit tag in its tone, an unknown tone
+                // neutral (rules.badge).
+                final badgeKey = find.byKey(
+                  ValueKey('flare-plugin-entry-badge-$r'),
+                );
+                final badge = row['badge'] as Map<String, dynamic>?;
+                if (badge == null) {
+                  expect(badgeKey, findsNothing);
+                } else {
+                  expect(tagOf(tester, badgeKey), (
+                    badge['text'],
+                    toneInk(badge['tone'] as String),
+                  ), reason: '${vector['id']} row $r badge');
+                }
+                // Drawing order: name, me, badge, text.
+                final order = row['order'] as List?;
+                if (order != null) {
+                  final parts = {
+                    'name': 'flare-plugin-entry-name-$r',
+                    'me': 'flare-plugin-entry-me-$r',
+                    'badge': 'flare-plugin-entry-badge-$r',
+                    'text': 'flare-plugin-entry-text-$r',
+                  };
+                  final drawn = [
+                    for (final part in parts.entries)
+                      if (find
+                          .byKey(ValueKey(part.value))
+                          .evaluate()
+                          .isNotEmpty)
+                        (
+                          part.key,
+                          tester
+                              .getTopLeft(find.byKey(ValueKey(part.value)))
+                              .dx,
+                        ),
+                  ]..sort((a, b) => a.$2.compareTo(b.$2));
+                  expect(
+                    [for (final d in drawn) d.$1],
+                    order,
+                    reason: '${vector['id']} row $r order',
+                  );
+                }
               }
               if ((view.blocks[i] as FlarePluginEntriesBlock).numbered ==
                   false) {
-                expect(texts.where((t) => RegExp(r'^\d+\.$').hasMatch(t)), isEmpty);
+                expect(
+                  texts.where((t) => RegExp(r'^\d+\.$').hasMatch(t)),
+                  isEmpty,
+                );
               }
               if (fact['seeAll'] != null)
                 expect(texts, contains(fact['seeAll']));
@@ -448,8 +561,9 @@ void main() {
 
   group('protocol v2 rules', () {
     test('unavailable reasons: the seven copies', () {
-      for (final v in (vectors['unavailableReasons'] as List)
-          .cast<Map<String, dynamic>>()) {
+      for (final v
+          in (vectors['unavailableReasons'] as List)
+              .cast<Map<String, dynamic>>()) {
         final reason = FlarePluginUnavailableReason.values.firstWhere(
           (r) => flarePluginUnavailableReasonName(r) == v['reason'],
         );
@@ -462,13 +576,17 @@ void main() {
     });
 
     test('entry group headers: label · N 票 · P%', () {
-      for (final v in (vectors['entryGroupHeaders'] as List)
-          .cast<Map<String, dynamic>>()) {
+      for (final v
+          in (vectors['entryGroupHeaders'] as List)
+              .cast<Map<String, dynamic>>()) {
         final group = FlarePluginEntryGroup.fromJson(
           (v['group'] as Map).cast<String, Object?>(),
         );
         expect(flarePluginEntryGroupHeader(group, zh), v['zh']);
-        expect(flarePluginEntryGroupHeader(group, flareStringsEnglish), v['en']);
+        expect(
+          flarePluginEntryGroupHeader(group, flareStringsEnglish),
+          v['en'],
+        );
       }
     });
 
@@ -507,7 +625,8 @@ void main() {
         ),
       );
       expect(
-        tester.widget<FlareIconButton>(find.byKey(FlarePluginView.menuKey))
+        tester
+            .widget<FlareIconButton>(find.byKey(FlarePluginView.menuKey))
             .disabled,
         isTrue,
       );
@@ -541,6 +660,187 @@ void main() {
     });
   });
 
+  group('badges and the choices cap', () {
+    test('a badge tone outside PluginTone draws neutral', () {
+      expect(flarePluginBadgeTone('success'), FlarePluginTone.success);
+      expect(flarePluginBadgeTone('accent'), FlarePluginTone.neutral);
+      expect(flarePluginBadgeTone(null), FlarePluginTone.neutral);
+      expect(
+        FlarePluginBadge.fromJson({'text': '奖励'})!.tone,
+        FlarePluginTone.neutral,
+      );
+    });
+
+    test('the cap is a positive count on a multiple choice only', () {
+      FlarePluginChoicesBlock block(Map<String, Object?> extra) =>
+          FlarePluginBlock.fromJson({
+                'kind': 'choices',
+                'options': const <Object?>[],
+                ...extra,
+              })
+              as FlarePluginChoicesBlock;
+      expect(
+        flarePluginChoiceCap(block({'multiple': true, 'maxSelections': 2})),
+        2,
+      );
+      expect(flarePluginChoiceCap(block({'maxSelections': 2})), isNull);
+      expect(
+        flarePluginChoiceCap(block({'multiple': true, 'maxSelections': 0})),
+        isNull,
+      );
+      expect(flarePluginChoiceCap(block({'multiple': true})), isNull);
+    });
+
+    test('filter inputs (filterInputs)', () {
+      final f = vectors['filterInputs'] as Map<String, dynamic>;
+      for (final v in f['cases'] as List) {
+        final c = v as Map<String, dynamic>;
+        final view = FlarePluginViewModel.fromJson({
+          'available': true,
+          'title': 'admin',
+          'inputs': [
+            for (final id in f['inputs'] as List)
+              {'id': id, 'kind': 'text', 'label': id},
+          ],
+          'blocks': [
+            {
+              'kind': 'rows',
+              'source': 'x.list',
+              'columns': const <Object?>[],
+              'rows': const <Object?>[],
+              'actions': const <Object?>[],
+              'filters': ?c['filters'],
+            },
+          ],
+        });
+        expect(
+          [for (final input in flarePluginFilterInputs(view)) input.id],
+          c['expect'],
+          reason: c['name'] as String,
+        );
+      }
+    });
+
+    for (final scenario in vectors['maxSelections'] as List) {
+      final s = scenario as Map<String, dynamic>;
+      testWidgets('maxSelections: ${s['name']}', (tester) async {
+        final calls = <(String, FlarePluginActionPayload)>[];
+        final view = viewOf(s['view'] as String);
+        await tester.pumpWidget(
+          host(
+            FlarePluginView(
+              view: view,
+              embedded: s['embedded'] == true,
+              onAction: (id, payload) => calls.add((id, payload)),
+            ),
+          ),
+        );
+        final choices = view.blocks.whereType<FlarePluginChoicesBlock>().first;
+        var seen = 0;
+        for (final st in s['steps'] as List) {
+          final step = st as Map<String, dynamic>;
+          final tap = step['tap'] ?? step['toggle'];
+          if (tap != null) {
+            await tester.tap(find.byKey(ValueKey('flare-plugin-option-$tap')));
+            await tester.pump();
+          }
+          if (step['submit'] == true) {
+            await tester.tap(
+              find.byKey(const ValueKey('flare-plugin-choices-submit')),
+            );
+            await tester.pump();
+          }
+          final reason = jsonEncode(step);
+          if (step['selected'] != null) {
+            expect(
+              shownOptions(tester, choices),
+              step['selected'],
+              reason: reason,
+            );
+          }
+          if (step['enabled'] != null) {
+            expect(
+              [
+                for (final o in choices.options)
+                  optionTappable(tester, o.index),
+              ],
+              step['enabled'],
+              reason: reason,
+            );
+          }
+          if (step['submitEnabled'] != null) {
+            expect(
+              tester
+                  .widget<FlareButton>(
+                    find.byKey(const ValueKey('flare-plugin-choices-submit')),
+                  )
+                  .disabled,
+              !(step['submitEnabled'] as bool),
+              reason: reason,
+            );
+          }
+          if (step.containsKey('emit')) {
+            final emit = step['emit'] as Map<String, dynamic>?;
+            if (emit == null) {
+              expect(calls.length, seen, reason: reason);
+            } else {
+              expect(calls.length, seen + 1, reason: reason);
+              expect(calls.last.$1, emit['actionId']);
+              expect(calls.last.$2.toJson(), emit['payload']);
+            }
+          } else {
+            expect(calls.length, seen, reason: reason);
+          }
+          seen = calls.length;
+        }
+      });
+    }
+
+    testWidgets('the cap hint leads the footer of an embedded view and of '
+        'the detail sheet', (tester) async {
+      String? footer() {
+        final f = find.byKey(const ValueKey('flare-plugin-choices-footer'));
+        return f.evaluate().isEmpty ? null : tester.widget<Text>(f).data;
+      }
+
+      await tester.pumpWidget(
+        host(
+          FlarePluginView(
+            view: viewOf('poll-max-selections'),
+            embedded: true,
+            onAction: (_, _) {},
+          ),
+        ),
+      );
+      expect(footer(), '最多选 2 项');
+      await tester.pumpWidget(
+        host(
+          FlarePluginDetailSheet(
+            view: viewOf('poll-max-selections-voted'),
+            onAction: (_, _) {},
+          ),
+        ),
+      );
+      expect(footer(), '最多选 2 项');
+      expect(optionTappable(tester, 1), isFalse);
+      await tester.tap(find.byKey(const ValueKey('flare-plugin-option-0')));
+      await tester.pump();
+      expect(optionTappable(tester, 1), isTrue);
+      // A closed poll has no hint: it cannot be chosen.
+      final closed = Map<String, Object?>.of(viewJson('poll-max-selections'));
+      closed['blocks'] = [
+        {
+          ...((closed['blocks'] as List).first as Map).cast<String, Object?>(),
+          'closed': true,
+        },
+      ];
+      await tester.pumpWidget(
+        host(FlarePluginView(view: FlarePluginViewModel.fromJson(closed))),
+      );
+      expect(footer(), '已结束');
+    });
+  });
+
   group('optimistic choices', () {
     for (final scenario in vectors['optimistic'] as List) {
       final s = scenario as Map<String, dynamic>;
@@ -568,47 +868,7 @@ void main() {
           ),
         );
         final choices = view.blocks.whereType<FlarePluginChoicesBlock>().first;
-        List<int> shown() {
-          final multi =
-              choices.multiple &&
-              find
-                  .byKey(const ValueKey('flare-plugin-choices-submit'))
-                  .evaluate()
-                  .isNotEmpty;
-          return [
-            for (final o in choices.options)
-              if (multi
-                  ? (tester
-                                    .widget<Container>(
-                                      find
-                                          .descendant(
-                                            of: find.byKey(
-                                              ValueKey(
-                                                'flare-plugin-option-${o.index}',
-                                              ),
-                                            ),
-                                            matching: find.byType(Container),
-                                          )
-                                          .first,
-                                    )
-                                    .decoration
-                                as BoxDecoration)
-                            .color !=
-                        null
-                  : find
-                        .descendant(
-                          of: find.byKey(
-                            ValueKey('flare-plugin-option-${o.index}'),
-                          ),
-                          matching: find.byKey(
-                            const ValueKey('flare-plugin-option-check'),
-                          ),
-                        )
-                        .evaluate()
-                        .isNotEmpty)
-                o.index,
-          ];
-        }
+        List<int> shown() => shownOptions(tester, choices);
 
         for (final st in s['steps'] as List) {
           final step = st as Map<String, dynamic>;

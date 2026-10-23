@@ -149,8 +149,34 @@ class FlarePluginAction {
   final List<String> form;
 }
 
-/// One display block of a resolved view; kinds the kit does not know (and
-/// `rows`, which only admin pages on the web draw) are skipped.
+/// An entry's or a row's enumerated value as words and a tone (the plugin's
+/// valueLabels), such as a ledger line's kind; drawn as the kit tag
+/// (spec/plugin-view-vectors.json rules.badge).
+@immutable
+class FlarePluginBadge {
+  const FlarePluginBadge({
+    required this.text,
+    this.tone = FlarePluginTone.neutral,
+  });
+  static FlarePluginBadge? fromJson(Object? json) => json is Map
+      ? FlarePluginBadge(
+          text: _string(json['text']),
+          tone: flarePluginBadgeTone(json['tone']),
+        )
+      : null;
+
+  /// The words, translated; an unmapped value as the plugin sent it.
+  final String text;
+  final FlarePluginTone tone;
+}
+
+/// A badge's tone as drawn: one of [FlarePluginTone], anything else neutral
+/// (a tone from a newer protocol).
+FlarePluginTone flarePluginBadgeTone(Object? tone) =>
+    _enum(FlarePluginTone.values, tone) ?? FlarePluginTone.neutral;
+
+/// One display block of a resolved view; kinds the kit does not know are
+/// skipped.
 sealed class FlarePluginBlock {
   const FlarePluginBlock();
 
@@ -189,6 +215,7 @@ sealed class FlarePluginBlock {
           showResults: _bool(json['showResults']),
           total: _optInt(json['total']),
           inputName: _string(json['inputName']),
+          maxSelections: _optInt(json['maxSelections']),
           action: action is Map
               ? FlarePluginAction.fromJson(action.cast<String, Object?>())
               : null,
@@ -207,6 +234,7 @@ sealed class FlarePluginBlock {
                         (e['group'] as Map).cast<String, Object?>(),
                       )
                     : null,
+                badge: FlarePluginBadge.fromJson(e['badge']),
               ),
           ],
           numbered: json['numbered'] != false,
@@ -262,6 +290,49 @@ sealed class FlarePluginBlock {
           text: _string(json['text']),
           tone: _enum(FlarePluginTone.values, json['tone']),
         );
+      case 'rows':
+        final filters = json['filters'];
+        return FlarePluginRowsBlock(
+          source: _string(json['source']),
+          columns: [
+            for (final c in _maps(json['columns']))
+              FlarePluginColumn(
+                label: _string(c['label']),
+                format:
+                    _enum(FlarePluginColumnFormat.values, c['format']) ??
+                    FlarePluginColumnFormat.text,
+              ),
+          ],
+          rows: [
+            for (final r in _maps(json['rows']))
+              FlarePluginRow(
+                key: _string(r['key']),
+                cells: [
+                  for (final cell in _maps(r['cells']))
+                    FlarePluginRowCell(
+                      text: _string(cell['text']),
+                      timeMs: _optInt(cell['timeMs']),
+                    ),
+                ],
+                actions: [
+                  for (final a in _maps(r['actions']))
+                    (id: _string(a['id']), input: a['input']),
+                ],
+                badge: FlarePluginBadge.fromJson(r['badge']),
+              ),
+          ],
+          actions: [
+            for (final a in _maps(json['actions']))
+              FlarePluginAction.fromJson(a),
+          ],
+          emptyText: _optString(json['emptyText']),
+          filters: filters is List
+              ? [
+                  for (final id in filters)
+                    if (id is String) id,
+                ]
+              : null,
+        );
     }
     return null;
   }
@@ -315,6 +386,7 @@ final class FlarePluginChoicesBlock extends FlarePluginBlock {
     this.showResults = false,
     this.total,
     this.inputName = 'selection',
+    this.maxSelections,
     this.action,
   });
   final List<FlarePluginChoice> options;
@@ -324,6 +396,10 @@ final class FlarePluginChoicesBlock extends FlarePluginBlock {
   final bool showResults;
   final int? total;
   final String inputName;
+
+  /// A multiple choice's cap (1..=options): once the draft holds this many,
+  /// the other options are disabled. Read it through [flarePluginChoiceCap].
+  final int? maxSelections;
   final FlarePluginAction? action;
 }
 
@@ -363,6 +439,7 @@ class FlarePluginEntry {
     this.name,
     this.userId,
     this.group,
+    this.badge,
   });
 
   /// 1-based position in the data (within its group in a grouped list).
@@ -373,6 +450,9 @@ class FlarePluginEntry {
 
   /// Set on the first entry of each group of a grouped list.
   final FlarePluginEntryGroup? group;
+
+  /// Drawn after the name and the "我" tag, before [text].
+  final FlarePluginBadge? badge;
 }
 
 /// Entries — sign-ups, voters; [more] offers "see all". A [grouped] list is
@@ -465,6 +545,81 @@ final class FlarePluginNoteBlock extends FlarePluginBlock {
   const FlarePluginNoteBlock({required this.text, this.tone});
   final String text;
   final FlarePluginTone? tone;
+}
+
+/// How a rows column formats its cells: [time] cells carry an instant.
+enum FlarePluginColumnFormat { text, time }
+
+@immutable
+class FlarePluginColumn {
+  const FlarePluginColumn({
+    required this.label,
+    this.format = FlarePluginColumnFormat.text,
+  });
+  final String label;
+  final FlarePluginColumnFormat format;
+}
+
+@immutable
+class FlarePluginRowCell {
+  const FlarePluginRowCell({required this.text, this.timeMs});
+  final String text;
+
+  /// Set in a time column: the instant, drawn in the device zone.
+  final int? timeMs;
+}
+
+/// What a row action carries: the row's key and the input the view bound for
+/// that action (`rows[].actions[].input`), handed back unchanged.
+typedef FlarePluginRowInput = ({String key, Object? input});
+
+/// One row of a rows block.
+@immutable
+class FlarePluginRow {
+  const FlarePluginRow({
+    required this.key,
+    this.cells = const [],
+    this.actions = const [],
+    this.badge,
+  });
+  final String key;
+
+  /// One per column, in column order.
+  final List<FlarePluginRowCell> cells;
+
+  /// The block actions this row offers, each with its bound input.
+  final List<({String id, Object? input})> actions;
+
+  /// Leads the row's first line.
+  final FlarePluginBadge? badge;
+}
+
+/// Rows of a plugin page (`spec/plugin-view-vectors.json` rules.pageRows):
+/// drawn as a list, one item per key — the badge and the first cell, then the
+/// other cells, then the row's action keys. They page with the page (the
+/// view's nextCursor), so the block has no load more of its own.
+final class FlarePluginRowsBlock extends FlarePluginBlock {
+  const FlarePluginRowsBlock({
+    this.source = '',
+    this.columns = const [],
+    this.rows = const [],
+    this.actions = const [],
+    this.emptyText,
+    this.filters,
+  });
+
+  /// The query operation the rows come from.
+  final String source;
+  final List<FlarePluginColumn> columns;
+  final List<FlarePluginRow> rows;
+
+  /// The actions rows may offer (style, confirm and form apply).
+  final List<FlarePluginAction> actions;
+  final String? emptyText;
+
+  /// Ids of the view's inputs the page shows as its filters; null: every
+  /// input ([flarePluginFilterInputs]).
+  final List<String>? filters;
 }
 
 /// A resolved form input (UiInput).
@@ -571,7 +726,7 @@ class FlarePluginMember {
 /// What `onAction` carries.
 @immutable
 class FlarePluginActionPayload {
-  const FlarePluginActionPayload({this.selection, this.formValues});
+  const FlarePluginActionPayload({this.selection, this.formValues, this.row});
 
   /// Chosen option indices of a choices block, ascending.
   final List<int>? selection;
@@ -579,7 +734,11 @@ class FlarePluginActionPayload {
   /// Submitted form values by input id.
   final Map<String, Object?>? formValues;
 
+  /// The row of a rows action.
+  final FlarePluginRowInput? row;
+
   Map<String, Object?> toJson() => {
+    if (row != null) 'row': {'key': row!.key, 'input': row!.input},
     if (selection != null) 'selection': selection,
     if (formValues != null) 'formValues': formValues,
   };
@@ -705,12 +864,131 @@ class FlarePluginViewModel {
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is FlarePluginViewModel &&
+          other.runtimeType == runtimeType &&
           _source != null &&
           other._source == _source);
 
   @override
   int get hashCode => _source?.hashCode ?? identityHashCode(this);
 }
+
+/// The page a `FlarePluginPage` shows, as invokePageAction names it.
+@immutable
+class FlarePluginPageRef {
+  const FlarePluginPageRef({required this.pluginId, required this.page});
+
+  /// The plugin's id.
+  final String pluginId;
+
+  /// The page contribution's id.
+  final String page;
+
+  Map<String, Object?> toJson() => {'pluginId': pluginId, 'page': page};
+
+  @override
+  bool operator ==(Object other) =>
+      other is FlarePluginPageRef &&
+      other.pluginId == pluginId &&
+      other.page == page;
+
+  @override
+  int get hashCode => Object.hash(pluginId, page);
+
+  @override
+  String toString() => 'FlarePluginPageRef($pluginId, $page)';
+}
+
+/// A resolved plugin page (the core SDK's pluginPage result): every
+/// [FlarePluginViewModel] field — its nextCursor is the page's next page, and
+/// rows and entries page with it — plus [data]. An unavailable page is
+/// `{available: false, title: "", unavailableReason}`.
+///
+/// Equality works as on [FlarePluginViewModel].
+@immutable
+class FlarePluginPageViewModel extends FlarePluginViewModel {
+  const FlarePluginPageViewModel({
+    required super.available,
+    required super.title,
+    super.fields,
+    super.actions,
+    super.blocks,
+    super.inputs,
+    super.nextCursor,
+    super.menuActions,
+    super.unavailableReason,
+    this.data,
+  });
+
+  FlarePluginPageViewModel._json({
+    required super.available,
+    required super.title,
+    required super.fields,
+    required super.actions,
+    required super.blocks,
+    required super.inputs,
+    required super.nextCursor,
+    required super.menuActions,
+    required super.unavailableReason,
+    required this.data,
+    required super.source,
+  }) : super._json(detail: false);
+
+  factory FlarePluginPageViewModel.fromJson(Map<String, Object?> json) {
+    final view = FlarePluginViewModel.fromJson(json);
+    final data = json['data'];
+    return FlarePluginPageViewModel._json(
+      available: view.available,
+      title: view.title,
+      fields: view.fields,
+      actions: view.actions,
+      blocks: view.blocks,
+      inputs: view.inputs,
+      nextCursor: view.nextCursor,
+      menuActions: view.menuActions,
+      unavailableReason: view.unavailableReason,
+      data: data is Map ? data.cast<String, Object?>() : null,
+      source: jsonEncode(json),
+    );
+  }
+
+  /// What the page was resolved against (the first page's source result, or
+  /// the arguments of a page without a source); only while available. Page
+  /// actions carry it back unchanged.
+  final Map<String, Object?>? data;
+}
+
+/// What `FlarePluginPage`'s onAction carries: the request invokePageAction
+/// takes, without the platform and the gesture.
+@immutable
+class FlarePluginPageActionPayload extends FlarePluginActionPayload {
+  const FlarePluginPageActionPayload({
+    required this.page,
+    this.data,
+    super.row,
+    super.selection,
+    super.formValues,
+  });
+
+  /// The page, from the page's reference.
+  final FlarePluginPageRef page;
+
+  /// The view's data, when it has one.
+  final Map<String, Object?>? data;
+
+  @override
+  Map<String, Object?> toJson() => {
+    'page': page.toJson(),
+    if (data != null) 'data': data,
+    ...super.toJson(),
+  };
+
+  @override
+  String toString() => 'FlarePluginPageActionPayload(${jsonEncode(toJson())})';
+}
+
+/// An action run on a plugin page, as the page action request.
+typedef FlarePluginPageActionCallback =
+    void Function(String actionId, FlarePluginPageActionPayload payload);
 
 // ── pure rules (spec/plugin-view-vectors.json → rules) ──────────────────────
 
@@ -851,8 +1129,9 @@ String flarePluginTimeText(
 }
 
 /// Whether a card draws its own view details key (spec rules.detailKey): the
-/// view has a detail, is available and is not [embedded], and no entries
-/// block shows its see all. The card also needs an `onOpenDetail`.
+/// view has a detail, is available and is not [embedded], no entries block
+/// shows its see all and it has no rows block. The card also needs an
+/// `onOpenDetail`.
 bool flarePluginShowsDetailKey(
   FlarePluginViewModel view, {
   required bool embedded,
@@ -860,14 +1139,220 @@ bool flarePluginShowsDetailKey(
     view.detail &&
     view.available &&
     !embedded &&
-    !view.blocks.any((b) => b is FlarePluginEntriesBlock && b.more);
+    !view.blocks.any(
+      (b) =>
+          b is FlarePluginRowsBlock || (b is FlarePluginEntriesBlock && b.more),
+    );
+
+// ── the choices cap (rules.maxSelections) ──────────────────────────────────
+
+/// A multiple choice's cap, or null (a single choice, absent or not a
+/// positive count).
+int? flarePluginChoiceCap(FlarePluginChoicesBlock block) {
+  final max = block.maxSelections;
+  return block.multiple && max != null && max > 0 ? max : null;
+}
+
+/// Whether option [index] is held back by the cap: the [draft] is full and
+/// does not hold it. Ticked options always stay tappable, so unticking one
+/// frees the rest.
+bool flarePluginChoiceCapped(
+  FlarePluginChoicesBlock block,
+  List<int> draft,
+  int index,
+) {
+  final cap = flarePluginChoiceCap(block);
+  return cap != null && draft.length >= cap && !draft.contains(index);
+}
+
+/// Whether [draft] fits the cap (always without one). A selection above a
+/// lowered cap does not, so its submit waits until the draft shrinks.
+bool flarePluginWithinCap(FlarePluginChoicesBlock block, List<int> draft) {
+  final cap = flarePluginChoiceCap(block);
+  return cap == null || draft.length <= cap;
+}
+
+/// The hint that leads a capped block's footer while it can be chosen
+/// ("最多选 2 项"), or null.
+String? flarePluginChoiceCapHint(
+  FlarePluginChoicesBlock block,
+  FlareStrings strings,
+) {
+  final cap = flarePluginChoiceCap(block);
+  return cap != null && block.action != null && !block.closed
+      ? strings.pluginViewMaxSelections.replaceAll('{n}', '$cap')
+      : null;
+}
+
+// ── rows and plugin pages (rules.pageRows, page, pageFilters) ──────────────
+
+/// A page's filter inputs, in the view's input order: the ones its rows block
+/// lists in `filters`, or every input when the block lists none; the other
+/// inputs belong to row action forms (`spec/plugin-view-vectors.json`
+/// filterInputs).
+List<FlarePluginInput> flarePluginFilterInputs(FlarePluginViewModel view) {
+  final rows = view.blocks.whereType<FlarePluginRowsBlock>().firstOrNull;
+  final listed = rows?.filters;
+  if (listed == null) return List.of(view.inputs);
+  return [
+    for (final input in view.inputs)
+      if (listed.contains(input.id)) input,
+  ];
+}
+
+/// The rows to draw: in order, each key once, the first kept.
+List<FlarePluginRow> flarePluginRowsOnce(List<FlarePluginRow> rows) {
+  final seen = <String>{};
+  return [
+    for (final row in rows)
+      if (seen.add(row.key)) row,
+  ];
+}
+
+/// A list item's two lines: the first cell, and the other cells in column
+/// order (time columns formatted as plugin time blocks are, blank cells
+/// skipped) joined with " · ", or null when none is left.
+({String primary, String? secondary}) flarePluginRowLines(
+  FlarePluginRowsBlock block,
+  FlarePluginRow row,
+  int nowMs,
+  FlareStrings strings, {
+  int? utcOffsetMinutes,
+}) {
+  final texts = [
+    for (var i = 0; i < block.columns.length; i += 1)
+      switch ((
+        block.columns[i].format,
+        i < row.cells.length ? row.cells[i] : null,
+      )) {
+        (FlarePluginColumnFormat.time, FlarePluginRowCell(:final timeMs?)) =>
+          flarePluginDateTime(
+            timeMs,
+            nowMs,
+            strings,
+            utcOffsetMinutes: utcOffsetMinutes,
+          ),
+        (_, final cell) => cell?.text ?? '',
+      },
+  ];
+  final rest = texts.skip(1).where((text) => text.trim().isNotEmpty).toList();
+  return (
+    primary: texts.isEmpty ? '' : texts.first,
+    secondary: rest.isEmpty ? null : rest.join(' · '),
+  );
+}
+
+/// What a plugin page shows (spec PluginPage states).
+enum FlarePluginPageState { loading, error, unavailable, loaded }
+
+/// A page's state from what the host passes (rules.page): a view is loaded or
+/// unavailable; without one, a failure that is not being retried is the
+/// error, anything else is loading.
+FlarePluginPageState flarePluginPageState(
+  FlarePluginViewModel? view, {
+  required bool loading,
+  required String? error,
+}) {
+  if (view != null) {
+    return view.available
+        ? FlarePluginPageState.loaded
+        : FlarePluginPageState.unavailable;
+  }
+  return (error ?? '').isNotEmpty && !loading
+      ? FlarePluginPageState.error
+      : FlarePluginPageState.loading;
+}
+
+/// The empty state of an unavailable page: the reason's copy, or
+/// pluginViewEmpty when the view names none.
+String flarePluginPageUnavailableText(
+  FlarePluginViewModel view,
+  FlareStrings strings,
+) => switch (view.unavailableReason) {
+  final reason? => flarePluginUnavailableReasonText(reason, strings),
+  null => strings.pluginViewEmpty,
+};
+
+/// One select filter of a page: its tabs, all (value null) first, and the
+/// selected choice's value (null: all).
+@immutable
+class FlarePluginPageFilter {
+  const FlarePluginPageFilter({
+    required this.input,
+    required this.tabs,
+    this.selected,
+  });
+  final FlarePluginInput input;
+  final List<({String? value, String label})> tabs;
+  final String? selected;
+}
+
+/// A page's select filters: with a rows block, the [flarePluginFilterInputs]
+/// of kind select, each with [all] and then its choices; selected is the
+/// host's value in [filters] when it is one of the choices, else all.
+List<FlarePluginPageFilter> flarePluginPageFilters(
+  FlarePluginViewModel view,
+  Map<String, Object?> filters,
+  String all,
+) {
+  if (!view.blocks.any((b) => b is FlarePluginRowsBlock)) return const [];
+  return [
+    for (final input in flarePluginFilterInputs(view))
+      if (input.kind == FlarePluginInputKind.select && input.choices.isNotEmpty)
+        FlarePluginPageFilter(
+          input: input,
+          tabs: [
+            (value: null, label: all),
+            for (final choice in input.choices)
+              (value: choice.value, label: choice.label),
+          ],
+          selected: switch (filters[input.id]) {
+            final String value
+                when input.choices.any((c) => c.value == value) =>
+              value,
+            _ => null,
+          },
+        ),
+  ];
+}
+
+/// The host's [filters] with [inputId] set to [value], or without it for all
+/// (null).
+Map<String, Object?> flarePluginPageFilterValues(
+  Map<String, Object?> filters,
+  String inputId,
+  String? value,
+) {
+  final next = Map<String, Object?>.of(filters);
+  if (value == null) {
+    next.remove(inputId);
+  } else {
+    next[inputId] = value;
+  }
+  return next;
+}
+
+/// The payload of an action run on a page: the page, the view's data when it
+/// has one, and what the action carries.
+FlarePluginPageActionPayload flarePluginPagePayload(
+  FlarePluginPageRef page,
+  FlarePluginViewModel? view,
+  FlarePluginActionPayload payload,
+) => FlarePluginPageActionPayload(
+  page: page,
+  data: view is FlarePluginPageViewModel ? view.data : null,
+  row: payload.row,
+  selection: payload.selection,
+  formValues: payload.formValues,
+);
 
 /// The words for [reason] (`spec/plugin-view-vectors.json` → unavailableReasons).
 String flarePluginUnavailableReasonText(
   FlarePluginUnavailableReason reason,
   FlareStrings strings,
 ) => switch (reason) {
-  FlarePluginUnavailableReason.disabled => strings.pluginViewUnavailableDisabled,
+  FlarePluginUnavailableReason.disabled =>
+    strings.pluginViewUnavailableDisabled,
   FlarePluginUnavailableReason.notInstalled =>
     strings.pluginViewUnavailableNotInstalled,
   FlarePluginUnavailableReason.noPermission =>
