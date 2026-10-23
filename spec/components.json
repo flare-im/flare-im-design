@@ -2411,8 +2411,8 @@
           "type": "string",
           "required": false,
           "description": {
-            "en": "Detail views only: the cursor of the next page (core SDK detail paging, a non-blank scalar of at most 256 bytes). While it is set PluginDetailSheet offers load more; the host fetches that page and passes back the merged view.",
-            "zh": "只用于 detail 视图：下一页的游标（核心 SDK 的 detail 分页，非空、不超过 256 字节）。有值时 PluginDetailSheet 显示「加载更多」，宿主取下一页后把合并好的视图传回。"
+            "en": "Detail and page views: the cursor of the next page (core SDK paging, a non-blank scalar of at most 256 bytes). While it is set PluginDetailSheet and PluginPage offer load more; the host fetches that page and passes back the merged view.",
+            "zh": "详情与页面视图：下一页的游标（核心 SDK 分页，非空标量，至多 256 字节）。有值时 PluginDetailSheet 与 PluginPage 提供「加载更多」；宿主取下一页并把合并好的视图传回。"
           }
         },
         {
@@ -2534,8 +2534,8 @@
           "type": "'text' | 'fields' | 'choices' | 'entries' | 'people' | 'status' | 'progress' | 'time' | 'divider' | 'note' | 'rows'",
           "required": true,
           "description": {
-            "en": "Block kind; rows only on admin pages (Vue).",
-            "zh": "块类型；rows 只用于管理页（Vue）。"
+            "en": "Block kind; rows on plugin pages (a list on every kit) and in the Vue console (a table).",
+            "zh": "块类型；rows 用于插件页面（四端都是列表）和 Vue 控制台（表格）。"
           }
         },
         {
@@ -2558,20 +2558,20 @@
         },
         {
           "name": "choices",
-          "type": "{options: PluginChoice[], multiple, voted, closed, showResults, total?, inputName, action?: PluginAction}",
+          "type": "{options: PluginChoice[], multiple, voted, closed, showResults, total?, inputName, maxSelections?, action?: PluginAction}",
           "required": false,
           "description": {
-            "en": "Options; action is the block's submit action.",
-            "zh": "选项列表；action 是块持有的提交动作。"
+            "en": "Options; action is the block's submit action. maxSelections (multiple only, 1..=options) caps the draft: options outside it are disabled once it is full.",
+            "zh": "选项列表；action 是块持有的提交动作。maxSelections（只在多选，1..=选项数）限制草稿：选满后草稿以外的选项禁用。"
           }
         },
         {
           "name": "entries",
-          "type": "{items: {index, text, name?, userId?, group?: {key, label, count?, total?, percent?}}[], numbered, grouped?, total, more, emptyText?}",
+          "type": "{items: {index, text, name?, userId?, group?: {key, label, count?, total?, percent?}, badge?: PluginBadge}[], numbered, grouped?, total, more, emptyText?}",
           "required": false,
           "description": {
-            "en": "A list (sign-ups, voters); grouped lists put a header before each item with group.",
-            "zh": "名单（接龙、投票人）；分组名单在带 group 的条目前插组头。"
+            "en": "A list (sign-ups, voters, a ledger); grouped lists put a header before each item with group; an item's badge draws before its text.",
+            "zh": "名单（接龙、投票人、账单）；分组名单在带 group 的条目前插组头；条目的 badge 画在正文之前。"
           }
         },
         {
@@ -2621,11 +2621,11 @@
         },
         {
           "name": "rows",
-          "type": "{source, columns: {label, format}[], rows: {key, cells: {text, timeMs?}[], actions: {id, input}[], detailInput?}[], nextCursor?, actions: PluginAction[], emptyText?, filters?: string[]}",
+          "type": "{source, columns: {label, format}[], rows: {key, cells: {text, timeMs?}[], actions: {id, input}[], detailInput?, badge?: PluginBadge}[], nextCursor?, actions: PluginAction[], emptyText?, filters?: string[]}",
           "required": false,
           "description": {
-            "en": "Admin table (Vue only). filters lists the ids of the view's inputs shown as the page's filters (absent: every input); the other inputs belong to row action forms (flarePluginFilterInputs).",
-            "zh": "管理表格（只在 Vue）。filters 列出作为页面筛选项的输入 id（不带时为全部输入）；其余输入归行动作的表单（flarePluginFilterInputs）。"
+            "en": "Rows of a plugin page (a list on every kit: badge and first cell, the other cells, action keys; once per key; they page with the page) or of a Vue console table. filters lists the ids of the view's inputs shown as the page's filters (absent: every input); the other inputs belong to action forms (flarePluginFilterInputs).",
+            "zh": "插件页面的行（四端都是列表：徽标与第一格、其余单元格、动作键；同一 key 只画一次；随页分页）或 Vue 控制台表格的行。filters 列出作为页面筛选项的输入 id（不带时为全部输入）；其余输入归动作表单（flarePluginFilterInputs）。"
           }
         }
       ]
@@ -2955,11 +2955,34 @@
           "type": "{key, input}",
           "required": false,
           "description": {
-            "en": "The row of a rows action (Vue).",
-            "zh": "rows 行动作所在的行（Vue）。"
+            "en": "The row of a rows action.",
+            "zh": "行动作所在的行。"
           }
         }
-      ]
+      ],
+      "platformSymbols": {
+        "flutter": {
+          "symbol": "FlarePluginActionPayload",
+          "note": {
+            "en": "row: FlarePluginRowInput, a record typedef ({String key, Object? input}).",
+            "zh": "row 为 FlarePluginRowInput，record typedef ({String key, Object? input})。"
+          }
+        },
+        "ios": {
+          "symbol": "PluginActionPayload",
+          "note": {
+            "en": "row: PluginRowRef {key, input: [String: PluginJSONValue]}.",
+            "zh": "row 为 PluginRowRef {key, input: [String: PluginJSONValue]}。"
+          }
+        },
+        "compose": {
+          "symbol": "PluginActionPayload",
+          "note": {
+            "en": "row: PluginActionRow(key, input).",
+            "zh": "row 为 PluginActionRow(key, input)。"
+          }
+        }
+      }
     },
     {
       "name": "PluginViewInset",
@@ -2974,6 +2997,244 @@
         "sheet",
         "sheetTop"
       ]
+    },
+    {
+      "name": "PluginBadge",
+      "symbol": "FlarePluginBadge",
+      "kind": "interface",
+      "summary": {
+        "en": "An entry's or a row's enumerated value as words and a tone (the plugin's valueLabels), such as a ledger line's kind.",
+        "zh": "条目或行的枚举值对应的文字与语义色（插件的 valueLabels），如账单行的类型。"
+      },
+      "fields": [
+        {
+          "name": "text",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "The words, translated; an unmapped value as sent.",
+            "zh": "文字，已翻译；未映射的值原样显示。"
+          }
+        },
+        {
+          "name": "tone",
+          "type": "PluginTone",
+          "required": true,
+          "description": {
+            "en": "Semantic colour of the kit tag; an unknown tone draws neutral.",
+            "zh": "Kit 标签的语义色；未知值按 neutral 画。"
+          }
+        }
+      ],
+      "platformSymbols": {
+        "flutter": {
+          "symbol": "FlarePluginBadge"
+        },
+        "ios": {
+          "symbol": "PluginBadge"
+        },
+        "compose": {
+          "symbol": "PluginBadge"
+        }
+      }
+    },
+    {
+      "name": "PluginRowsLayout",
+      "symbol": "FlarePluginRowsLayout",
+      "kind": "enum",
+      "summary": {
+        "en": "How a Vue PluginView draws a rows block: table (the kit DataTable, console admin lists) or list (one item per row, plugin pages).",
+        "zh": "Vue PluginView 画 rows 块的方式：table（Kit DataTable，控制台管理列表）或 list（每行一项，插件页面）。"
+      },
+      "values": [
+        "table",
+        "list"
+      ],
+      "platformSymbols": {
+        "flutter": {
+          "symbol": null,
+          "note": {
+            "en": "Not needed: rows always draw as the list.",
+            "zh": "不需要：rows 一律画成列表。"
+          }
+        },
+        "ios": {
+          "symbol": null,
+          "note": {
+            "en": "Not needed: rows always draw as the list.",
+            "zh": "不需要：rows 一律画成列表。"
+          }
+        },
+        "compose": {
+          "symbol": null,
+          "note": {
+            "en": "Not needed: rows always draw as the list.",
+            "zh": "不需要：rows 一律画成列表。"
+          }
+        }
+      }
+    },
+    {
+      "name": "PluginPageRef",
+      "symbol": "FlarePluginPageRef",
+      "kind": "interface",
+      "summary": {
+        "en": "The page a PluginPage shows, as invokePageAction names it.",
+        "zh": "PluginPage 显示的页面，与 invokePageAction 的写法一致。"
+      },
+      "fields": [
+        {
+          "name": "pluginId",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "The plugin's id.",
+            "zh": "插件 id。"
+          }
+        },
+        {
+          "name": "page",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "The page contribution's id.",
+            "zh": "page 贡献的 id。"
+          }
+        }
+      ],
+      "platformSymbols": {
+        "flutter": {
+          "symbol": "FlarePluginPageRef"
+        },
+        "ios": {
+          "symbol": "PluginPageRef"
+        },
+        "compose": {
+          "symbol": "PluginPageRef"
+        }
+      }
+    },
+    {
+      "name": "PluginPageViewModel",
+      "symbol": "FlarePluginPageViewModel",
+      "kind": "interface",
+      "summary": {
+        "en": "A resolved plugin page (the core SDK's pluginPage result): every PluginViewModel field (nextCursor is the page's next page; rows and entries page with it) plus data. An unavailable page is {available: false, title: \"\", unavailableReason}.",
+        "zh": "解析后的插件页面（核心 SDK pluginPage 的结果）：PluginViewModel 的全部字段（nextCursor 是页面的下一页，rows 与 entries 随页分页）加 data。不可用的页面为 {available: false, title: \"\", unavailableReason}。"
+      },
+      "fields": [
+        {
+          "name": "data",
+          "type": "Record<string, unknown>",
+          "required": false,
+          "description": {
+            "en": "What the page was resolved against (the first page's source result, or the arguments of a page without a source); only while available. Page actions carry it back.",
+            "zh": "页面解析所依据的数据（第一页的数据源结果，没有数据源时为页面参数）；只在可用时有。页面动作原样带回。"
+          }
+        }
+      ],
+      "platformSymbols": {
+        "flutter": {
+          "symbol": "FlarePluginPageViewModel",
+          "note": {
+            "en": "Extends FlarePluginViewModel with data.",
+            "zh": "继承 FlarePluginViewModel，多一个 data。"
+          }
+        },
+        "ios": {
+          "symbol": "PluginPageViewModel",
+          "note": {
+            "en": "A wrapper {view: PluginViewModel, data: PluginJSONValue?}; @dynamicMemberLookup reads the view's fields.",
+            "zh": "包装形 {view: PluginViewModel, data: PluginJSONValue?}；@dynamicMemberLookup 直接读视图字段。"
+          }
+        },
+        "compose": {
+          "symbol": "PluginPageViewModel",
+          "note": {
+            "en": "A wrapper data class {view: PluginViewModel, data: Map<String, Any?>?} with fromJson / fromMap (a Kotlin data class cannot extend one).",
+            "zh": "包装形 data class {view: PluginViewModel, data: Map<String, Any?>?}，带 fromJson / fromMap（Kotlin data class 不能继承）。"
+          }
+        }
+      }
+    },
+    {
+      "name": "PluginPageActionPayload",
+      "symbol": "FlarePluginPageActionPayload",
+      "kind": "interface",
+      "summary": {
+        "en": "What PluginPage's action(id, payload) carries: the request invokePageAction takes, without the platform and the gesture.",
+        "zh": "PluginPage 的 action(id, payload) 携带的内容：即 invokePageAction 的请求，不含平台与手势。"
+      },
+      "fields": [
+        {
+          "name": "page",
+          "type": "PluginPageRef",
+          "required": true,
+          "description": {
+            "en": "The page, from the page prop.",
+            "zh": "页面，来自 page 属性。"
+          }
+        },
+        {
+          "name": "data",
+          "type": "Record<string, unknown>",
+          "required": false,
+          "description": {
+            "en": "view.data, when the view has it.",
+            "zh": "view.data（视图有时）。"
+          }
+        },
+        {
+          "name": "row",
+          "type": "{key, input}",
+          "required": false,
+          "description": {
+            "en": "A row action's row: its key and the input the view bound for that action (rows[].actions[].input).",
+            "zh": "行动作所在的行：key 与视图为该动作绑定的入参（rows[].actions[].input）。"
+          }
+        },
+        {
+          "name": "selection",
+          "type": "number[]",
+          "required": false,
+          "description": {
+            "en": "A choices submit's option indices, ascending.",
+            "zh": "choices 提交的选项下标，升序。"
+          }
+        },
+        {
+          "name": "formValues",
+          "type": "Record<string, unknown>",
+          "required": false,
+          "description": {
+            "en": "The values of the action's form, when it collected one.",
+            "zh": "动作表单收集到的值（有表单时）。"
+          }
+        }
+      ],
+      "platformSymbols": {
+        "flutter": {
+          "symbol": "FlarePluginPageActionPayload",
+          "note": {
+            "en": "Extends FlarePluginActionPayload; toJson() is the request.",
+            "zh": "继承 FlarePluginActionPayload；toJson() 即请求。"
+          }
+        },
+        "ios": {
+          "symbol": "PluginPageActionPayload",
+          "note": {
+            "en": "Encodes to the request; init(page:view:payload:).",
+            "zh": "编码结果即请求；有 init(page:view:payload:)。"
+          }
+        },
+        "compose": {
+          "symbol": "PluginPageActionPayload",
+          "note": {
+            "en": "toJson() is the request; of(page, view, payload).",
+            "zh": "toJson() 即请求；有 of(page, view, payload)。"
+          }
+        }
+      }
     },
     {
       "name": "MessageSurface",
@@ -10633,11 +10894,35 @@
             "en": "The active tab value.",
             "zh": "当前选中的标签值。"
           }
+        },
+        {
+          "name": "enabled",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": {
+            "en": "false while what the tabs filter is loading: the row dims to the disabled opacity, every tab is disabled and no pick is reported until it is enabled again (a plugin page's filters while it refreshes or loads more).",
+            "zh": "被筛选的内容加载中时为 false：整行降到禁用透明度，每个标签禁用，重新启用之前不报告选择（插件页面刷新或加载更多时的筛选）。"
+          }
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "The tab list's accessible name (what it filters). Flutter and SwiftUI name the row from the host's Semantics / accessibilityLabel around it.",
+            "zh": "标签列表的读屏名（它筛选什么）。Flutter 与 SwiftUI 由宿主在外层用 Semantics / accessibilityLabel 命名。"
+          },
+          "platforms": [
+            "vue",
+            "compose"
+          ]
         }
       ],
       "states": [
         "default",
-        "active"
+        "active",
+        "disabled"
       ],
       "events": [
         "change",
@@ -10682,6 +10967,17 @@
         },
         "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
         "screenReaderSemantics": "Expose localized name, role, value/state, availability, and progress. Decorative imagery is hidden."
+      },
+      "platformAliases": {
+        "compose": {
+          "props": {
+            "ariaLabel": "label"
+          }
+        }
+      },
+      "notes": {
+        "en": "Hit area: every tab keeps the pill it is drawn at (about 30 high) and takes taps over at least layout.touchTarget in both directions around it. Vue reaches past the pill with ::after and gives the scroll row the room as padding it takes back with a negative margin, so the row's layout does not grow; Flutter (opaque gesture, ConstrainedBox, Align), SwiftUI (frame minWidth/minHeight with a rectangular content shape) and Compose (sizeIn around the pill) give each tab a touch-target cell with the pill centred in it. The Vue grid and quiet rows grow to the touch target on coarse pointers instead. enabled false dims the row and disables every tab.",
+        "zh": "命中区：每个标签保持画出来的胶囊（约 30 高），命中区在它周围两个方向都不小于 layout.touchTarget。Vue 用 ::after 越过胶囊，滚动行以内距给出空间、再用负外距收回，版面不变高；Flutter（opaque 手势、ConstrainedBox、Align）、SwiftUI（frame minWidth/minHeight 加矩形 contentShape）与 Compose（胶囊外 sizeIn）给每个标签一个触达区大小的格子，胶囊居中。Vue 的 grid 与 quiet 行在粗指针下改为长到触达区。enabled 为 false 时整行变淡、每个标签禁用。"
       }
     },
     {
@@ -14483,6 +14779,19 @@
           }
         },
         {
+          "name": "rowsLayout",
+          "type": "FlarePluginRowsLayout",
+          "required": false,
+          "default": "\"table\"",
+          "description": {
+            "en": "How a rows block draws: table — the kit DataTable (the console's admin lists); list — one item per row with its badge, cells and action keys, at most once per key (PluginPage passes it). Vue only: the native kits draw rows as the list.",
+            "zh": "rows 块的画法：table —— Kit DataTable（控制台管理列表）；list —— 每行一项，带徽标、单元格与动作键，同一个 key 只画一次（PluginPage 传它）。只在 Vue：原生三端的 rows 就是列表。"
+          },
+          "platforms": [
+            "vue"
+          ]
+        },
+        {
           "name": "resolveUser",
           "type": "(userId: string) => FlarePluginUser | Promise<FlarePluginUser | undefined> | undefined",
           "required": false,
@@ -14576,8 +14885,8 @@
         "screenReaderSemantics": "A group named by the title. Options are buttons (single) or checkboxes (multiple) that read their label, selected state, percentage and votes; progress reads value of total; the countdown is not a live region (it is read on focus); the error is an alert."
       },
       "notes": {
-        "en": "Render facts follow spec/plugin-view-vectors.json (views, optimistic, time, countdown). Shell: the business card of the kit — width sizes.component.richCardWidth (constrained by the parent), radius lg, a hairline border and the card shadow; the title row carries the icon. Actions: style danger → danger key, primary → primary key, otherwise secondary; confirm → the kit DangerConfirm first; form → the kit bottom sheet with PluginForm, whose submit emits action(id, {formValues}). Choices: single submits on tap; multiple toggles a draft and submits from a key labelled with the block's action. The kit marks the submitted options at once and reverts when error becomes non-empty (or busyActionId clears with an error); a new view settles it. Payload: {selection?, formValues?} (Vue rows add row: {key, input}). openDetail comes from \"see all\" (Vue rows: from a row, with {key, input}) or from the card's view details key, and the host opens PluginDetailSheet. View details: when view.detail is true and no entries block shows its see all, an available card that is not embedded and has no rows block draws a full-width quiet text key (size sm, pluginViewDetail / Vue pluginView.detail) under the action keys; it emits openDetail with no row, waits while busy or busyActionId is set, and needs a host that handles openDetail (spec/plugin-view-vectors.json rules.detailKey, detailKey). Time is formatted in the device zone with pluginViewDateTimeFormat; countdown refreshes every second under an hour and every minute otherwise. Rows (admin pages) are Vue only: FlareDataTable with row actions, a row click for the detail, load more (loadMore(cursor, source)) and the empty text. Settling: the explicit signal is settleToken (the host increments it once per finished action, after setting that result's error / formErrors); busyActionId leaving the action is the fallback, and a host that sets and clears busyActionId within one frame settles only through the token (spec/plugin-view-vectors.json optimistic, rules.settle). Inset: sheet pads the view with spacing md / lg / xl (top / sides / bottom) like PluginForm, for a view placed straight into the kit BottomSheet; sheetTop pads md / lg / 0 for a view with more of the sheet under it (a preface above PluginForm), so the two meet at the form's own md and not at xl + md. Both pad every state — the embedded body, available or not (an unavailable embedded view shows its title as one secondary line), and a card shell a host keeps in a sheet (spec/plugin-view-vectors.json rules.inset, insets). Admin filters (Vue): a rows block's filters names the view inputs the page shows as its filter bar, every input when absent; the other inputs are only collected by row actions' forms. flarePluginFilterInputs(view) returns them in document order (spec/plugin-view-vectors.json filterInputs). Protocol v2 shape (W1-PROTO-SDK §2): view.menuActions open from a kit ⋯ key at the end of the title row (embedded: keys after view.actions) and run like buttons; grouped entries draw a header row \"label · N votes · P%\" before the first item of each group, number within the group and tag the viewer's row \"me\"; view.unavailableReason (disabled, not_installed, no_permission, unsupported_platform, incompatible_version, catalog_unreachable, unbound_copy) adds its localized line after the title, led by displayName; unbound_copy stays readable and read-only. The card shell is the message's card surface: the timeline draws no bubble around it, and a quoted reply goes in the shell's quote slot. Facts in spec/plugin-view-vectors.json (menuActions, entriesGrouped, unavailableReason, shell).",
-        "zh": "渲染事实以 spec/plugin-view-vectors.json 为准（views、optimistic、time、countdown）。外壳与 Kit 业务卡片一致：宽度 sizes.component.richCardWidth（服从父约束）、圆角 lg、细边框和卡片阴影，标题行带图标位。动作：style 为 danger 用危险键，primary 用主键，其余为次要键；有 confirm 先弹 Kit 的 DangerConfirm；有 form 打开 Kit 底部面板里的 PluginForm，提交时发出 action(id, {formValues})。choices：单选点一项立即提交；多选勾选后点提交键，键名取块持有的动作 label。Kit 先乐观标记提交的选项，error 变为非空（或 busyActionId 清空时带着 error）时撤回，新视图到达即结算。payload 为 {selection?, formValues?}（Vue 的 rows 另有 row: {key, input}）。「查看全部」或卡片的「查看详情」发出 openDetail（Vue 的 rows 点行时带 {key, input}），宿主打开 PluginDetailSheet。查看详情：view.detail 为真且没有 entries 块在显示「查看全部」时，可用、非 embedded、没有 rows 块的卡片在动作区下方画一个整宽的 quiet 文字按钮（size sm，pluginViewDetail / Vue 的 pluginView.detail），点击发出不带 row 的 openDetail；busy 或 busyActionId 时禁用；宿主要处理 openDetail 才显示（spec/plugin-view-vectors.json 的 rules.detailKey 与 detailKey）。时间按设备时区用 pluginViewDateTimeFormat 格式化；倒计时剩余不到 1 小时每秒刷新，否则每分钟刷新。rows（管理页）只在 Vue：FlareDataTable 加行动作、点行打开详情、加载更多（loadMore(cursor, source)）和空态。结算：显式信号是 settleToken（宿主每完成一次动作加 1，并且先设好这次结果的 error / formErrors）；busyActionId 离开该动作是兜底；宿主在同一帧里设上又清掉 busyActionId 时，只能靠令牌结算（spec/plugin-view-vectors.json 的 optimistic 与 rules.settle）。内边距：inset 为 sheet 时按 PluginForm 的 md / lg / xl（上 / 左右 / 下）留白，供直接放进 Kit BottomSheet 的视图使用；sheetTop 留 md / lg / 0，供下面还有面板内容的视图（PluginForm 上方的前言），两者之间只剩表单自己的 md，不再是 xl + md。两者作用于所有状态 —— embedded 的内容，可用或不可用（不可用的 embedded 视图把标题显示为一行次要文字），以及宿主留在面板里的卡片外壳（spec/plugin-view-vectors.json 的 rules.inset 与 insets）。管理页筛选（Vue）：rows 块的 filters 列出页面筛选栏要显示的视图输入，不带时为全部输入；其余输入只由行动作的表单收集。flarePluginFilterInputs(view) 按文档顺序返回它们（spec/plugin-view-vectors.json 的 filterInputs）。协议 v2 形状（W1-PROTO-SDK §2）：view.menuActions 由标题行末尾的 Kit ⋯ 键打开（内嵌时排在 view.actions 之后作为按钮），执行方式与按钮相同；分组 entries 在每组第一条前插组头行「选项 · N 票 · P%」，组内编号，当前用户那行带「我」；view.unavailableReason（disabled、not_installed、no_permission、unsupported_platform、incompatible_version、catalog_unreachable、unbound_copy）在标题后加一行本地化原因，前面是 displayName；unbound_copy 照常显示但只读。卡片外壳就是消息的 card 表面：时间线不在外面再套气泡，引用回复画在外壳的 quote 插槽里。事实见 spec/plugin-view-vectors.json（menuActions、entriesGrouped、unavailableReason、shell）。"
+        "en": "Render facts follow spec/plugin-view-vectors.json (views, optimistic, time, countdown). Shell: the business card of the kit — width sizes.component.richCardWidth (constrained by the parent), radius lg, a hairline border and the card shadow; the title row carries the icon. Actions: style danger → danger key, primary → primary key, otherwise secondary; confirm → the kit DangerConfirm first; form → the kit bottom sheet with PluginForm, whose submit emits action(id, {formValues}). Choices: single submits on tap; multiple toggles a draft and submits from a key labelled with the block's action. The kit marks the submitted options at once and reverts when error becomes non-empty (or busyActionId clears with an error); a new view settles it. Payload: {selection?, formValues?} (Vue rows add row: {key, input}). openDetail comes from \"see all\" (Vue rows: from a row, with {key, input}) or from the card's view details key, and the host opens PluginDetailSheet. View details: when view.detail is true and no entries block shows its see all, an available card that is not embedded and has no rows block draws a full-width quiet text key (size sm, pluginViewDetail / Vue pluginView.detail) under the action keys; it emits openDetail with no row, waits while busy or busyActionId is set, and needs a host that handles openDetail (spec/plugin-view-vectors.json rules.detailKey, detailKey). Time is formatted in the device zone with pluginViewDateTimeFormat; countdown refreshes every second under an hour and every minute otherwise. Rows: on a plugin page a list on every kit (rowsLayout list, rules.pageRows); in the Vue console (rowsLayout table) FlareDataTable with row actions, a row click for the detail, load more (loadMore(cursor, source)) and the empty text. Settling: the explicit signal is settleToken (the host increments it once per finished action, after setting that result's error / formErrors); busyActionId leaving the action is the fallback, and a host that sets and clears busyActionId within one frame settles only through the token (spec/plugin-view-vectors.json optimistic, rules.settle). Inset: sheet pads the view with spacing md / lg / xl (top / sides / bottom) like PluginForm, for a view placed straight into the kit BottomSheet; sheetTop pads md / lg / 0 for a view with more of the sheet under it (a preface above PluginForm), so the two meet at the form's own md and not at xl + md. Both pad every state — the embedded body, available or not (an unavailable embedded view shows its title as one secondary line), and a card shell a host keeps in a sheet (spec/plugin-view-vectors.json rules.inset, insets). Admin filters (Vue): a rows block's filters names the view inputs the page shows as its filter bar, every input when absent; the other inputs are only collected by row actions' forms. flarePluginFilterInputs(view) returns them in document order (spec/plugin-view-vectors.json filterInputs). Protocol v2 shape (W1-PROTO-SDK §2): view.menuActions open from a kit ⋯ key at the end of the title row (embedded: keys after view.actions) and run like buttons; grouped entries draw a header row \"label · N votes · P%\" before the first item of each group, number within the group and tag the viewer's row \"me\"; view.unavailableReason (disabled, not_installed, no_permission, unsupported_platform, incompatible_version, catalog_unreachable, unbound_copy) adds its localized line after the title, led by displayName; unbound_copy stays readable and read-only. The card shell is the message's card surface: the timeline draws no bubble around it, and a quoted reply goes in the shell's quote slot. Facts in spec/plugin-view-vectors.json (menuActions, entriesGrouped, unavailableReason, shell). Badges: an entry or a row with badge {text, tone} draws it as the kit tag in the tone (entries: after the name and me tag, before the text; list rows: before the first cell; table rows: in the first cell); an unknown tone is neutral (rules.badge). Choices limit: a multiple choice with maxSelections disables every option outside the draft once the draft holds that many (ticked ones still untick), submits only a draft within the cap and leads the footer with \"Choose up to {n}\" while it can be chosen (rules.maxSelections, maxSelections).",
+        "zh": "渲染事实以 spec/plugin-view-vectors.json 为准（views、optimistic、time、countdown）。外壳与 Kit 业务卡片一致：宽度 sizes.component.richCardWidth（服从父约束）、圆角 lg、细边框和卡片阴影，标题行带图标位。动作：style 为 danger 用危险键，primary 用主键，其余为次要键；有 confirm 先弹 Kit 的 DangerConfirm；有 form 打开 Kit 底部面板里的 PluginForm，提交时发出 action(id, {formValues})。choices：单选点一项立即提交；多选勾选后点提交键，键名取块持有的动作 label。Kit 先乐观标记提交的选项，error 变为非空（或 busyActionId 清空时带着 error）时撤回，新视图到达即结算。payload 为 {selection?, formValues?}（Vue 的 rows 另有 row: {key, input}）。「查看全部」或卡片的「查看详情」发出 openDetail（Vue 的 rows 点行时带 {key, input}），宿主打开 PluginDetailSheet。查看详情：view.detail 为真且没有 entries 块在显示「查看全部」时，可用、非 embedded、没有 rows 块的卡片在动作区下方画一个整宽的 quiet 文字按钮（size sm，pluginViewDetail / Vue 的 pluginView.detail），点击发出不带 row 的 openDetail；busy 或 busyActionId 时禁用；宿主要处理 openDetail 才显示（spec/plugin-view-vectors.json 的 rules.detailKey 与 detailKey）。时间按设备时区用 pluginViewDateTimeFormat 格式化；倒计时剩余不到 1 小时每秒刷新，否则每分钟刷新。rows（管理页）只在 Vue：FlareDataTable 加行动作、点行打开详情、加载更多（loadMore(cursor, source)）和空态。结算：显式信号是 settleToken（宿主每完成一次动作加 1，并且先设好这次结果的 error / formErrors）；busyActionId 离开该动作是兜底；宿主在同一帧里设上又清掉 busyActionId 时，只能靠令牌结算（spec/plugin-view-vectors.json 的 optimistic 与 rules.settle）。内边距：inset 为 sheet 时按 PluginForm 的 md / lg / xl（上 / 左右 / 下）留白，供直接放进 Kit BottomSheet 的视图使用；sheetTop 留 md / lg / 0，供下面还有面板内容的视图（PluginForm 上方的前言），两者之间只剩表单自己的 md，不再是 xl + md。两者作用于所有状态 —— embedded 的内容，可用或不可用（不可用的 embedded 视图把标题显示为一行次要文字），以及宿主留在面板里的卡片外壳（spec/plugin-view-vectors.json 的 rules.inset 与 insets）。管理页筛选（Vue）：rows 块的 filters 列出页面筛选栏要显示的视图输入，不带时为全部输入；其余输入只由行动作的表单收集。flarePluginFilterInputs(view) 按文档顺序返回它们（spec/plugin-view-vectors.json 的 filterInputs）。协议 v2 形状（W1-PROTO-SDK §2）：view.menuActions 由标题行末尾的 Kit ⋯ 键打开（内嵌时排在 view.actions 之后作为按钮），执行方式与按钮相同；分组 entries 在每组第一条前插组头行「选项 · N 票 · P%」，组内编号，当前用户那行带「我」；view.unavailableReason（disabled、not_installed、no_permission、unsupported_platform、incompatible_version、catalog_unreachable、unbound_copy）在标题后加一行本地化原因，前面是 displayName；unbound_copy 照常显示但只读。卡片外壳就是消息的 card 表面：时间线不在外面再套气泡，引用回复画在外壳的 quote 插槽里。事实见 spec/plugin-view-vectors.json（menuActions、entriesGrouped、unavailableReason、shell）。 徽标：带 badge {text, tone} 的条目或行，用对应语义色的 Kit 标签画出（entries 在名字与「我」之后、正文之前；列表形式的行在第一格之前；表格形式在第一格内）；未知 tone 按 neutral（rules.badge）。多选上限：带 maxSelections 的多选在草稿达到上限后禁用草稿以外的选项（已选的仍可取消），只提交不超过上限的草稿，可选时页脚以「最多选 {n} 项」开头（rules.maxSelections、maxSelections）。"
       },
       "slots": [
         "quote"
@@ -14925,6 +15234,15 @@
       },
       "props": [
         {
+          "name": "page",
+          "type": "FlarePluginPageRef",
+          "required": true,
+          "description": {
+            "en": "The page shown: {pluginId, page}. Every page action carries it, so the host passes the payload straight to invokePageAction.",
+            "zh": "当前页面：{pluginId, page}。每个页面动作都带上它，宿主把载荷原样交给 invokePageAction。"
+          }
+        },
+        {
           "name": "title",
           "type": "string",
           "required": false,
@@ -14935,12 +15253,22 @@
         },
         {
           "name": "view",
-          "type": "FlarePluginViewModel",
+          "type": "FlarePluginPageViewModel",
           "required": false,
           "description": {
-            "en": "The resolved page view; absent while the first load runs.",
-            "zh": "解析后的页面视图；首次加载时没有。"
+            "en": "The resolved page view (the core SDK's pluginPage result, with data); absent while the first load runs. Pass the merged view after loadMore and the re-read one after a refresh or a filter change.",
+            "zh": "解析后的页面视图（核心 SDK pluginPage 的结果，带 data）；首次加载时没有。loadMore 之后传合并好的视图，刷新或切换筛选之后传重读的视图。"
           }
+        },
+        {
+          "name": "filters",
+          "type": "Record<string, unknown>",
+          "required": false,
+          "description": {
+            "en": "The page's applied filter values by input id (what the host passed to pluginPage as filters); the filter tabs show them. Absent: none applied. Flutter Map<String, Object?>, SwiftUI [String: PluginJSONValue], Compose Map<String, Any?>.",
+            "zh": "页面当前生效的筛选值，按输入 id（宿主作为 filters 传给 pluginPage 的值）；筛选标签据此显示选中项。不传为未筛选。Flutter 为 Map<String, Object?>，SwiftUI 为 [String: PluginJSONValue]，Compose 为 Map<String, Any?>。"
+          },
+          "default": "{}"
         },
         {
           "name": "loading",
@@ -15062,6 +15390,7 @@
       "states": [
         "loading",
         "error",
+        "unavailable",
         "loaded",
         "refreshing",
         "loadingMore"
@@ -15071,12 +15400,12 @@
         "refresh",
         "retry",
         "loadMore",
-        "action",
-        "openDetail"
+        "filter",
+        "action"
       ],
       "notes": {
-        "en": "The page host for red packet v5's wallet and any plugin `page` contribution (docs/design/red-packet-v5-roles-and-wallet.md §3.2): the kit Screen with the title and back key, the view drawn by PluginView embedded (same document renderer as the detail sheet, so blocks, menu actions, forms and settling behave the same), pull to refresh on touch and a refresh key in the header on pointer devices, and a full-width load-more key under the view while view.nextCursor is non-blank (asked once per cursor, as in PluginDetailSheet). The host fetches: refresh, retry and loadMore are requests; the kit calls nothing. No placeholder buttons: whatever the view does not declare is not drawn.",
-        "zh": "红包第五版钱包页和任何插件 page 贡献的页面宿主（docs/design/red-packet-v5-roles-and-wallet.md §3.2）：Kit 的 Screen（标题、返回键），视图由内嵌 PluginView 绘制（与详情面板同一套文档渲染器，块、菜单动作、表单与结算行为一致），触屏下拉刷新、指针设备页头有刷新键，view.nextCursor 非空时视图下方有整宽的「加载更多」（同一游标只请求一次，同 PluginDetailSheet）。取数由宿主负责：refresh、retry、loadMore 都是请求，Kit 不调用任何接口。不放占位按钮：视图没声明的东西不画。"
+        "en": "The page host for any plugin `page` contribution — the red packet wallet and its history (docs/design/red-packet-v5-roles-and-wallet.md §3.2). The kit Screen with the heading (view.title, else the host's title: an unavailable page keeps the host's) and back key, then the filter tabs, the view drawn by PluginView embedded (the detail sheet's document renderer: blocks, menu actions as keys, forms and settling behave the same; rows draw as a list with their badges, at most once per key, and only the row that ran an action spins) and a full-width load-more key while view.nextCursor is non-blank (asked once per cursor, as in PluginDetailSheet; the end of a refresh also forgets the asked cursor). Pull to refresh on touch and a refresh key in the header on pointer devices. Data and actions: view.data is what the page was resolved against; every action run on the page — a view action, a menu action, a choices submit, a row action, after its confirm and form — emits action(id, {page, data?, row?, selection?, formValues?}), the request invokePageAction takes, so the host passes it through and routes the outcome (a page target opens the next page with its payload as the arguments). Paging: loadMore(cursor) asks for the next page; the host passes back the merged view from the core SDK (new rows and entries after the shown ones, shown row keys dropped, data kept). Filters: the select inputs the rows block lists (every input when it lists none) are FilterTabs rows, all first; choosing a tab emits filter(values) with the host's filters updated, and the host re-reads the first page. Unavailable (view.available false): the kit empty state with the reason's copy, a retry key only for catalog_unreachable, nothing else. The host fetches: refresh, retry, loadMore and filter are requests; the kit calls nothing and draws nothing the view does not declare. A page has no openDetail (a page view has no detail). Facts in spec/plugin-view-vectors.json (rules.page, pageRows, pagePaging, pageFilters; pageViews, pageActions, pagePaging, pageFilters).",
+        "zh": "任何插件 page 贡献的页面宿主 —— 红包钱包与明细（docs/design/red-packet-v5-roles-and-wallet.md §3.2）。Kit 的 Screen：页头标题取 view.title，没有时取宿主标题（不可用的页面保留宿主标题），带返回键；其下是筛选标签、由内嵌 PluginView 画的视图（与详情面板同一套文档渲染器：块、作为按钮排列的菜单动作、表单与结算行为一致；rows 画成带徽标的列表，同一个 key 只画一次，只有发起动作的那一行转圈），view.nextCursor 非空时视图下方是整宽的「加载更多」（同一游标只请求一次，同 PluginDetailSheet；刷新结束也会忘掉已请求的游标）。触屏下拉刷新，指针设备页头有刷新键。数据与动作：view.data 是页面解析所依据的数据；页面里执行的每个动作 —— 视图动作、菜单动作、choices 提交、行动作，在确认与表单之后 —— 发出 action(id, {page, data?, row?, selection?, formValues?})，即 invokePageAction 的请求，宿主原样转交并处理结果（page 目标用结果的 payload 作为参数打开下一页）。分页：loadMore(cursor) 请求下一页；宿主把核心 SDK 合并好的视图传回（新页的 rows 与 entries 接在已显示的后面，已显示的行 key 丢弃，data 保持）。筛选：rows 块列出的 select 输入（不列时为全部输入）各是一行 FilterTabs，「全部」在前；选中一项发出 filter(values)（宿主的 filters 改好之后的值），宿主重读第一页。不可用（view.available 为假）：Kit 空态显示原因文案，只有 catalog_unreachable 带重试键，其余都不画。取数由宿主负责：refresh、retry、loadMore、filter 都是请求，Kit 不调用任何接口，视图没声明的东西不画。页面没有 openDetail（页面视图没有详情）。事实见 spec/plugin-view-vectors.json（rules.page、pageRows、pagePaging、pageFilters；pageViews、pageActions、pagePaging、pageFilters）。"
       },
       "platforms": {
         "vue": {
@@ -15101,7 +15430,7 @@
         "labelRequired": true,
         "focusable": "descendants",
         "keyboardBehavior": [
-          "Tab reaches the back key, the refresh key and the view's controls",
+          "Tab reaches the back key, the refresh key, the filter tabs and the view's controls",
           "Enter or Space activates them",
           "The platform back acts as the back key"
         ],
@@ -15112,7 +15441,7 @@
           "appliesTo": "interactiveTargets"
         },
         "reducedMotionBehavior": "The pull indicator follows the finger without easing; the spinner is static under reduced motion.",
-        "screenReaderSemantics": "Region named by the title; the refresh indicator is a status that announces refreshing; load more is a button named by its label."
+        "screenReaderSemantics": "Region named by the heading; each filter row is a tab list named by its input's label; the refresh indicator is a status that announces refreshing; an unavailable page reads its reason; load more is a button named by its label."
       }
     },
     {

@@ -1,5 +1,5 @@
 {
-  "$comment": "PluginView v2 render facts, read by the Vue, Flutter, SwiftUI and Compose kit tests. Views are core SDK ResolvedPluginView JSON (flare-plugin-protocol ui.rs, blocks.rs, inputs.rs); the kit renders that shape and reads no paths. Facts use the Chinese defaults; `time` and `countdown` also give English. Every fact follows `rules`; change the rules and the facts together.",
+  "$comment": "PluginView v2 and PluginPage render facts, read by the Vue, Flutter, SwiftUI and Compose kit tests. Views are core SDK ResolvedPluginView JSON (flare-plugin-protocol ui.rs, blocks.rs, inputs.rs); a page view is the core SDK's pluginPage result (the same shape plus `data`). The kit renders that shape and reads no paths. Facts use the Chinese defaults; `time` and `countdown` also give English. Every fact follows `rules`; change the rules and the facts together. A case lists the kits that run it in `platforms`.",
   "version": 1,
   "nowMs": 1792634400000,
   "utcOffsetMinutes": 480,
@@ -17,7 +17,7 @@
     "countdown": "r = atMs - now. r <= 0: pluginViewDeadlinePassed, no refresh. r < 1 h: pluginViewRemaining with mm:ss, refresh every 1000 ms. r < 1 d: hours plus minutes (minutes omitted when 0), every 60000 ms. Otherwise days plus hours (hours omitted when 0), every 60000 ms. Units are myInviteUnitHours / myInviteUnitMinutes / myInviteUnitDays joined by a space.",
     "unavailable": "available false: only the title shows — in the title row on the card, and on an embedded view (which has no title row) as one line of secondary text inside the inset; fields, blocks, actions and the view details key are hidden.",
     "unknownBlocks": "A block kind the kit does not know is skipped.",
-    "rows": "Vue only (admin pages). Columns, then one row per entry: time cells format timeMs as in `time`; a row's actions are the block actions it lists (style, confirm and form apply) and emit action(id, {row: {key, input}}); a row with detailInput opens the detail (openDetail({key, input})); nextCursor shows pluginViewLoadMore, which emits loadMore(nextCursor, source); no rows: emptyText, else the kit's empty text. Filters: the page's filter bar shows the view inputs a rows block lists in filters, in the view's input order (unknown ids are ignored), or every input when filters is absent; the others belong to row action forms (flarePluginFilterInputs). Vue only.",
+    "rows": "Rows in a table (Vue PluginView with rowsLayout table, the console's admin lists): columns, then one row per entry: time cells format timeMs as in `time`; a row's badge (rules.badge) leads its first cell; a row's actions are the block actions it lists (style, confirm and form apply) and emit action(id, {row: {key, input}}) (only the row that ran the action spins, as in rules.pageRows); a row with detailInput opens the detail (openDetail({key, input})); nextCursor shows pluginViewLoadMore, which emits loadMore(nextCursor, source); no rows: emptyText, else the kit's empty text. Filters: the page's filter bar shows the view inputs a rows block lists in filters, in the view's input order (unknown ids are ignored), or every input when filters is absent; the others belong to row action forms (flarePluginFilterInputs). Vue only. On a plugin page rows draw as a list on every kit (rules.pageRows).",
     "form": "Draft: values[id], else input.default; options without one start with max(min, 1) empty rows, members empty, toggle false. Client check (shown for an input once it was edited, and for every input after a submit attempt; one issue per input): text/textarea required → trimmed non-empty, tooLong → trimmed length in Unicode code points > maxLength (default 256 / 2000); number/datetime/select/members required → a value; options required → at least one non-empty item, tooLong → an item over maxLength (default 100). Submit runs the check; with no issue it emits submit(values): text and textarea trimmed (omitted when blank), number and datetime when set, toggle always, select when chosen, options trimmed with empty rows removed (omitted when none), members when any. Host errors (UiFormError) win: shown under their input until that input is edited; the first error per input shows. Options rows: add while rows < max (default 50), remove while rows > max(min, 1). Text and textarea show \"{length}/{maxLength}\". members with max 1 picks one; candidates come from the host's members.",
     "issueText": "required pluginFormRequired, tooLong pluginFormTooLong, outOfRange pluginFormOutOfRange, tooFewItems pluginFormTooFewItems with n = min (1 when absent), tooManyItems pluginFormTooManyItems with n = max (options 50, members 500 when absent), duplicateItem pluginFormDuplicateItem, anything else pluginFormInvalid.",
     "detail": "PluginDetailSheet: loading → a spinner (accessible name: loading); error → the host's text and the retry key (retry); otherwise an embedded PluginView of the detail view. Title: view.title, else the host's title. Actions run from the detail: busyActionId, actionError (the view's error), formErrors, members and settleToken go to the embedded view unchanged, so their failure shows inside the sheet. Paging: a non-blank view.nextCursor shows a full-width load-more key under the embedded view (Vue pluginView.loadMore, natives myInviteLoadMore), which emits loadMore(nextCursor); a blank or absent nextCursor is the last page (no key). The key spins and is disabled while loadingMore is true or while the cursor the kit last asked for equals view.nextCursor (no page is asked for twice); a view with another cursor is tappable again. The asked cursor is forgotten (a retry allowed) when loadingMore goes from true to false, settleToken changes or actionError becomes non-empty. The host passes back the merged view (the core SDK appends pages; the kit merges nothing).",
@@ -27,7 +27,13 @@
     "menuActions": "view.menuActions (actions the plugin placed in the card's overflow menu): when non-empty the card's title row ends with a kit icon key (ellipsis, accessible name pluginViewMore) that opens the kit action menu (Vue FlareActionMenu; natives their ActionMenu / action sheet) with one item per menu action in order, label = action label, danger tone for style danger. Choosing an item runs the action exactly like a button (confirm, then form, then action(id, {})); busy or busyActionId disables the key. Embedded views (detail sheet, plugin page) have no title row: there the menu actions are drawn as keys after view.actions, in the same action row. No menuActions or an empty list: no key.",
     "entriesGrouped": "entries with grouped true: one flat list; an item that carries `group` is preceded by a group header row reading groupHeader = [group.label, pluginViewVotes(count) when count is present, \"{percent}%\" when percent is present] joined with \" · \" (\"火锅 · 3 票 · 38%\"). Items keep their order; index restarts at 1 in each group; numbered false shows no numbers. A row whose userId equals the host's viewerId carries the \"me\" tag (pluginViewMe, \"我\" / \"Me\") after its name. Header facts in `entryGroupHeaders`.",
     "unavailableReason": "view.unavailableReason, one of disabled, not_installed, no_permission, unsupported_platform, incompatible_version, catalog_unreachable, unbound_copy. available false: the title row (view.title) and one reason line in secondary text: the reason's copy (`unavailableReasons`), prefixed by the envelope's displayName and \" · \" when the host passes displayName (\"投票 · 插件已停用\"). No reason: no reason line (the old unavailable card). unbound_copy keeps available true (the core SDK has already stripped actions, menuActions, inputs, detail, the choices submit and entries' more): the content draws read-only and the reason line (pluginViewUnavailableUnboundCopy) closes the card in tertiary text.",
-    "shell": "The card shell (title row, padding md, radius lg, primary background, secondary border) is the message's card surface (spec/message-surface-vectors.json): the timeline draws no bubble around it, so there is one container. An embedded view draws no shell. The quote slot of a card shell sits inside it, above the title row."
+    "shell": "The card shell (title row, padding md, radius lg, primary background, secondary border) is the message's card surface (spec/message-surface-vectors.json): the timeline draws no bubble around it, so there is one container. An embedded view draws no shell. The quote slot of a card shell sits inside it, above the title row.",
+    "badge": "entries items and rows may carry badge {text, tone}: the plugin's valueLabels, already translated (an unmapped value arrives as its raw text with tone neutral). Drawn as the kit tag: the tone's *Text ink on a 6% tint of the tone in the primary surface (neutral: secondary text on the tertiary background), caption size, one line, never a control. Tones are PluginTone (neutral, info, success, warning, danger); any other tone draws neutral. Entries: after the name and the me tag, before the text (order: number, avatar, name, me, badge, text). Rows on a page: leading the item's first line, before the first cell. Rows in a Vue table: leading the first cell. No badge: nothing is drawn and no gap is left. Screen readers read the badge as part of the item, in drawing order. Facts: view entries-badges, pageViews.",
+    "maxSelections": "choices.maxSelections (present only on a multiple choice, 1..=option count) caps the draft. While the draft holds maxSelections options or more, every option outside the draft is disabled (not tappable, aria-disabled, drawn at the disabled opacity) and the ones in the draft stay tappable, so unticking one re-enables the rest. The submit rule is unchanged (the draft is non-empty and differs from the selection) plus the draft must be within the cap: a view whose selection is already above the cap (the plugin lowered it) starts disabled-but-shrinkable and its submit stays disabled until the draft is within the cap. While the block can be chosen (block.action present and not closed) the hint pluginViewMaxSelections (\"最多选 {n} 项\" / \"Choose up to {n}\") leads the footer, before pluginViewVotes(total) when results show. A single choice, or a block without maxSelections: no cap and no hint. The same in a card and in an embedded view (detail sheet, page). Steps in `maxSelections`.",
+    "page": "PluginPage draws one plugin page (a page contribution, such as a wallet): the core SDK's pluginPage result is the view, a detail-shaped view plus `data` (what the page was resolved against). The host also passes the page reference {pluginId, page}. Heading: view.title, else the host's title (an unavailable page has an empty title, so the host's title stays). States: loading (no view, and loading or no error) → the spinner; error (no view, error, not loading) → the host's text and the retry key (retry); unavailable (view.available false) → the kit empty state titled with the reason's copy (`unavailableReasons`; pluginViewEmpty when the view names no reason), plus the retry key (retry) only for catalog_unreachable, and no refresh, filters, load more or actions; loaded → filters (rules.pageFilters), then the view drawn by PluginView embedded (fields, blocks, actions and menu actions as keys, rows as a list), then load more; a refresh that failed (error while a view shows) is a danger banner above it. Every action run on the page — a view action, a menu action, a choices submit or a row action, after its confirm and form — emits action(id, payload) with payload {page: the host's page reference, data: view.data when the view has it, row: {key, input} for a row action, selection for a choices submit, formValues when a form was collected}: the request invokePageAction takes, so the host passes it through and handles the outcome (a page target opens the next page with the outcome's payload as its arguments). busyActionId, actionError, formErrors, members and settleToken work as on PluginDetailSheet. Facts in pageViews and pageActions.",
+    "pageRows": "A rows block on a page draws as a list on every kit (no table, no column labels): one item per row in order and at most once per key — a key already drawn is skipped and the first stays (the core SDK appends pages without repeating keys; the kit guarantees it because list identity needs unique keys). An item: the first line is the badge (rules.badge) then the first cell; the second line is the other cells in column order, time columns formatted as in `time` (device zone; facts hold at utcOffsetMinutes), blank cells skipped, joined with \" · \", and absent when nothing is left; the row's actions are compact keys at the item's end (the block action's label; style, confirm and form apply) and emit the page action with row {key, input}. While busyActionId names a row action only the key of the row that ran it spins; the same action's keys on the other rows (and every other key) are disabled without spinning. The kit remembers that row from the action it sent; an action the kit did not send spins no row key. No rows: emptyText, else pluginViewEmpty. A page's rows have no load more of their own (rows.nextCursor is absent: rows page with the page). Facts in pageViews.",
+    "pagePaging": "A non-blank view.nextCursor shows the page's full-width load-more key under the view (Vue pluginView.loadMore, natives myInviteLoadMore) with the asked-once rule of rules.detail (`detailPaging`): loadMore(cursor), spinning and disabled while loadingMore or while the asked cursor is still view.nextCursor. Besides loadingMore ending, settleToken changing and actionError becoming non-empty, the end of a refresh (refreshing true → false) also forgets the asked cursor: a refresh reads the first page again and may bring the same cursor back, which would otherwise spin for good. The host asks the core SDK for the next page with previous = the shown view and passes back the merged view: the new rows and entries follow the shown ones (a row whose key is shown is dropped), and data stays the first page's. The kit merges nothing and keeps nothing between views except the asked cursor. Steps in `pagePaging`.",
+    "pageFilters": "A page whose view has a rows block shows its select filters above the view: the inputs flarePluginFilterInputs(view) returns (the rows block's filters, every input when absent) whose kind is select, in input order; other kinds are not page filters. Each is a kit FilterTabs row named by the input's label: pluginViewAll first, then the input's choices in order. The selected tab is the host's filters[input.id] when it is one of the choices, else all; the host owns it (props filters). Choosing another tab emits filter(values): the host's filters with that input set to the choice's value, or without it for all; choosing the selected tab emits nothing. The host then reads the first page with those filters (a refresh: it sets refreshing until the view arrives) and passes back the view and the filters. The tabs are disabled while refreshing or loadingMore. No rows block, or no select filter: no filter row. Steps in `pageFilters`."
   },
   "users": {
     "u_alice01": {
@@ -2182,6 +2188,498 @@
         "reason": "该插件不支持此设备",
         "menu": []
       }
+    },
+    {
+      "id": "entries-badges",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "viewerId": "u_alice01",
+      "view": {
+        "available": true,
+        "title": "红包明细",
+        "fields": [],
+        "actions": [],
+        "blocks": [
+          {
+            "kind": "entries",
+            "numbered": false,
+            "total": 5,
+            "more": false,
+            "items": [
+              {
+                "index": 1,
+                "text": "+¥1.00",
+                "userId": "u_alice01",
+                "badge": {
+                  "text": "收到红包",
+                  "tone": "success"
+                }
+              },
+              {
+                "index": 2,
+                "text": "-¥5.00",
+                "userId": "u_bob0002",
+                "badge": {
+                  "text": "发出红包",
+                  "tone": "neutral"
+                }
+              },
+              {
+                "index": 3,
+                "text": "+¥3.00",
+                "badge": {
+                  "text": "红包退回",
+                  "tone": "warning"
+                }
+              },
+              {
+                "index": 4,
+                "text": "+¥0.50",
+                "badge": {
+                  "text": "奖励",
+                  "tone": "accent"
+                }
+              },
+              {
+                "index": 5,
+                "text": "-¥2.00",
+                "userId": "u_carol003"
+              }
+            ]
+          }
+        ]
+      },
+      "expect": {
+        "title": "红包明细",
+        "bodyHidden": false,
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "entries",
+            "seeAll": null,
+            "empty": null,
+            "rows": [
+              {
+                "number": null,
+                "name": "Alice",
+                "text": "+¥1.00",
+                "userId": "u_alice01",
+                "me": true,
+                "badge": {
+                  "text": "收到红包",
+                  "tone": "success"
+                },
+                "order": [
+                  "name",
+                  "me",
+                  "badge",
+                  "text"
+                ]
+              },
+              {
+                "number": null,
+                "name": "Bob",
+                "text": "-¥5.00",
+                "userId": "u_bob0002",
+                "me": false,
+                "badge": {
+                  "text": "发出红包",
+                  "tone": "neutral"
+                },
+                "order": [
+                  "name",
+                  "badge",
+                  "text"
+                ]
+              },
+              {
+                "number": null,
+                "name": null,
+                "text": "+¥3.00",
+                "me": false,
+                "badge": {
+                  "text": "红包退回",
+                  "tone": "warning"
+                },
+                "order": [
+                  "badge",
+                  "text"
+                ]
+              },
+              {
+                "number": null,
+                "name": null,
+                "text": "+¥0.50",
+                "me": false,
+                "badge": {
+                  "text": "奖励",
+                  "tone": "neutral"
+                },
+                "order": [
+                  "badge",
+                  "text"
+                ]
+              },
+              {
+                "number": null,
+                "name": "Carol",
+                "text": "-¥2.00",
+                "userId": "u_carol003",
+                "me": false,
+                "badge": null,
+                "order": [
+                  "name",
+                  "text"
+                ]
+              }
+            ]
+          }
+        ],
+        "actions": [],
+        "seeAllOpensDetail": false,
+        "menu": [],
+        "reason": null
+      }
+    },
+    {
+      "id": "poll-max-selections",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "available": true,
+        "title": "周末去哪儿？",
+        "fields": [],
+        "actions": [],
+        "blocks": [
+          {
+            "kind": "choices",
+            "options": [
+              {
+                "index": 0,
+                "label": "爬山",
+                "selected": false
+              },
+              {
+                "index": 1,
+                "label": "看展",
+                "selected": false
+              },
+              {
+                "index": 2,
+                "label": "露营",
+                "selected": false
+              },
+              {
+                "index": 3,
+                "label": "桌游",
+                "selected": false
+              }
+            ],
+            "multiple": true,
+            "voted": false,
+            "closed": false,
+            "showResults": false,
+            "inputName": "selection",
+            "maxSelections": 2,
+            "action": {
+              "id": "vote",
+              "label": "投票",
+              "target": {
+                "kind": "operation",
+                "operation": "vote"
+              },
+              "input": {}
+            }
+          }
+        ]
+      },
+      "expect": {
+        "title": "周末去哪儿？",
+        "bodyHidden": false,
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "choices",
+            "interactive": true,
+            "multiple": true,
+            "submit": {
+              "label": "投票",
+              "enabled": false
+            },
+            "options": [
+              {
+                "label": "爬山",
+                "selected": false,
+                "enabled": true,
+                "percentText": null,
+                "votesText": null,
+                "bar": null
+              },
+              {
+                "label": "看展",
+                "selected": false,
+                "enabled": true,
+                "percentText": null,
+                "votesText": null,
+                "bar": null
+              },
+              {
+                "label": "露营",
+                "selected": false,
+                "enabled": true,
+                "percentText": null,
+                "votesText": null,
+                "bar": null
+              },
+              {
+                "label": "桌游",
+                "selected": false,
+                "enabled": true,
+                "percentText": null,
+                "votesText": null,
+                "bar": null
+              }
+            ],
+            "footer": "最多选 2 项"
+          }
+        ],
+        "actions": [],
+        "seeAllOpensDetail": false,
+        "menu": [],
+        "reason": null
+      }
+    },
+    {
+      "id": "poll-max-selections-voted",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "available": true,
+        "title": "周末去哪儿？",
+        "fields": [],
+        "actions": [],
+        "blocks": [
+          {
+            "kind": "choices",
+            "options": [
+              {
+                "index": 0,
+                "label": "爬山",
+                "selected": true
+              },
+              {
+                "index": 1,
+                "label": "看展",
+                "selected": false
+              },
+              {
+                "index": 2,
+                "label": "露营",
+                "selected": true
+              },
+              {
+                "index": 3,
+                "label": "桌游",
+                "selected": false
+              }
+            ],
+            "multiple": true,
+            "voted": true,
+            "closed": false,
+            "showResults": false,
+            "inputName": "selection",
+            "maxSelections": 2,
+            "action": {
+              "id": "vote",
+              "label": "投票",
+              "target": {
+                "kind": "operation",
+                "operation": "vote"
+              },
+              "input": {}
+            }
+          }
+        ]
+      },
+      "expect": {
+        "title": "周末去哪儿？",
+        "bodyHidden": false,
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "choices",
+            "interactive": true,
+            "multiple": true,
+            "submit": {
+              "label": "投票",
+              "enabled": false
+            },
+            "options": [
+              {
+                "label": "爬山",
+                "selected": true,
+                "enabled": true,
+                "percentText": null,
+                "votesText": null,
+                "bar": null
+              },
+              {
+                "label": "看展",
+                "selected": false,
+                "enabled": false,
+                "percentText": null,
+                "votesText": null,
+                "bar": null
+              },
+              {
+                "label": "露营",
+                "selected": true,
+                "enabled": true,
+                "percentText": null,
+                "votesText": null,
+                "bar": null
+              },
+              {
+                "label": "桌游",
+                "selected": false,
+                "enabled": false,
+                "percentText": null,
+                "votesText": null,
+                "bar": null
+              }
+            ],
+            "footer": "最多选 2 项"
+          }
+        ],
+        "actions": [],
+        "seeAllOpensDetail": false,
+        "menu": [],
+        "reason": null
+      }
+    },
+    {
+      "id": "poll-max-selections-over",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "available": true,
+        "title": "周末去哪儿？",
+        "fields": [],
+        "actions": [],
+        "blocks": [
+          {
+            "kind": "choices",
+            "options": [
+              {
+                "index": 0,
+                "label": "爬山",
+                "selected": true
+              },
+              {
+                "index": 1,
+                "label": "看展",
+                "selected": true
+              },
+              {
+                "index": 2,
+                "label": "露营",
+                "selected": true
+              },
+              {
+                "index": 3,
+                "label": "桌游",
+                "selected": false
+              }
+            ],
+            "multiple": true,
+            "voted": true,
+            "closed": false,
+            "showResults": false,
+            "inputName": "selection",
+            "maxSelections": 2,
+            "action": {
+              "id": "vote",
+              "label": "投票",
+              "target": {
+                "kind": "operation",
+                "operation": "vote"
+              },
+              "input": {}
+            }
+          }
+        ]
+      },
+      "expect": {
+        "title": "周末去哪儿？",
+        "bodyHidden": false,
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "choices",
+            "interactive": true,
+            "multiple": true,
+            "submit": {
+              "label": "投票",
+              "enabled": false
+            },
+            "options": [
+              {
+                "label": "爬山",
+                "selected": true,
+                "enabled": true,
+                "percentText": null,
+                "votesText": null,
+                "bar": null
+              },
+              {
+                "label": "看展",
+                "selected": true,
+                "enabled": true,
+                "percentText": null,
+                "votesText": null,
+                "bar": null
+              },
+              {
+                "label": "露营",
+                "selected": true,
+                "enabled": true,
+                "percentText": null,
+                "votesText": null,
+                "bar": null
+              },
+              {
+                "label": "桌游",
+                "selected": false,
+                "enabled": false,
+                "percentText": null,
+                "votesText": null,
+                "bar": null
+              }
+            ],
+            "footer": "最多选 2 项"
+          }
+        ],
+        "actions": [],
+        "seeAllOpensDetail": false,
+        "menu": [],
+        "reason": null
+      }
     }
   ],
   "optimistic": [
@@ -3278,7 +3776,10 @@
     {
       "name": "an admin page opens the detail from its rows: no key",
       "platforms": [
-        "vue"
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
       ],
       "view": "admin-rows",
       "detail": true,
@@ -3289,7 +3790,10 @@
   ],
   "filterInputs": {
     "platforms": [
-      "vue"
+      "vue",
+      "flutter",
+      "ios",
+      "compose"
     ],
     "inputs": [
       "status",
@@ -3428,6 +3932,2439 @@
       },
       "zh": "桌游 · 0 票 · 0%",
       "en": "桌游 · 0 votes · 0%"
+    }
+  ],
+  "maxSelections": [
+    {
+      "name": "ticks stop at the limit and an untick frees the rest",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "poll-max-selections",
+      "steps": [
+        {
+          "toggle": 0,
+          "selected": [
+            0
+          ],
+          "enabled": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "submitEnabled": true
+        },
+        {
+          "toggle": 2,
+          "selected": [
+            0,
+            2
+          ],
+          "enabled": [
+            true,
+            false,
+            true,
+            false
+          ],
+          "submitEnabled": true
+        },
+        {
+          "toggle": 1,
+          "selected": [
+            0,
+            2
+          ],
+          "enabled": [
+            true,
+            false,
+            true,
+            false
+          ]
+        },
+        {
+          "toggle": 0,
+          "selected": [
+            2
+          ],
+          "enabled": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "toggle": 3,
+          "selected": [
+            2,
+            3
+          ],
+          "enabled": [
+            false,
+            false,
+            true,
+            true
+          ],
+          "submitEnabled": true
+        },
+        {
+          "submit": true,
+          "emit": {
+            "actionId": "vote",
+            "payload": {
+              "selection": [
+                2,
+                3
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "a vote at the limit starts with the rest disabled",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "poll-max-selections-voted",
+      "steps": [
+        {
+          "selected": [
+            0,
+            2
+          ],
+          "enabled": [
+            true,
+            false,
+            true,
+            false
+          ],
+          "submitEnabled": false
+        },
+        {
+          "toggle": 2,
+          "selected": [
+            0
+          ],
+          "enabled": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "submitEnabled": true
+        },
+        {
+          "toggle": 1,
+          "selected": [
+            0,
+            1
+          ],
+          "enabled": [
+            true,
+            true,
+            false,
+            false
+          ],
+          "submitEnabled": true
+        },
+        {
+          "submit": true,
+          "emit": {
+            "actionId": "vote",
+            "payload": {
+              "selection": [
+                0,
+                1
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "a selection above a lowered limit can only shrink",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "poll-max-selections-over",
+      "steps": [
+        {
+          "selected": [
+            0,
+            1,
+            2
+          ],
+          "enabled": [
+            true,
+            true,
+            true,
+            false
+          ],
+          "submitEnabled": false
+        },
+        {
+          "toggle": 3,
+          "selected": [
+            0,
+            1,
+            2
+          ],
+          "enabled": [
+            true,
+            true,
+            true,
+            false
+          ],
+          "submitEnabled": false
+        },
+        {
+          "toggle": 1,
+          "selected": [
+            0,
+            2
+          ],
+          "enabled": [
+            true,
+            false,
+            true,
+            false
+          ],
+          "submitEnabled": true
+        }
+      ]
+    },
+    {
+      "name": "an embedded view keeps the limit",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "poll-max-selections",
+      "embedded": true,
+      "steps": [
+        {
+          "toggle": 1,
+          "selected": [
+            1
+          ],
+          "enabled": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "toggle": 3,
+          "selected": [
+            1,
+            3
+          ],
+          "enabled": [
+            false,
+            true,
+            false,
+            true
+          ],
+          "submitEnabled": true
+        }
+      ]
+    },
+    {
+      "name": "a single choice has no limit",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "poll-open-single",
+      "steps": [
+        {
+          "enabled": [
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "tap": 1,
+          "emit": {
+            "actionId": "vote",
+            "payload": {
+              "selection": [
+                1
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "pageViews": [
+    {
+      "id": "wallet",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "title": "钱包",
+      "page": {
+        "pluginId": "flare.redpacket",
+        "page": "flare.redpacket.wallet"
+      },
+      "filters": {},
+      "view": {
+        "available": true,
+        "title": "钱包",
+        "fields": [
+          {
+            "label": "可用余额",
+            "value": "¥128.50"
+          },
+          {
+            "label": "托管中",
+            "value": "¥20.00"
+          }
+        ],
+        "actions": [
+          {
+            "id": "history",
+            "label": "全部明细",
+            "target": {
+              "kind": "page",
+              "page": "flare.redpacket.history"
+            }
+          }
+        ],
+        "blocks": [
+          {
+            "kind": "note",
+            "text": "托管中的金额在红包领完或退回后结算。",
+            "tone": "info"
+          },
+          {
+            "kind": "rows",
+            "source": "flare.redpacket.wallet",
+            "columns": [
+              {
+                "label": "金额",
+                "format": "text"
+              },
+              {
+                "label": "对方",
+                "format": "text"
+              },
+              {
+                "label": "时间",
+                "format": "time"
+              }
+            ],
+            "rows": [
+              {
+                "key": "l1",
+                "cells": [
+                  {
+                    "text": "+¥1.00"
+                  },
+                  {
+                    "text": "Alice"
+                  },
+                  {
+                    "text": "1792546200000",
+                    "timeMs": 1792546200000
+                  }
+                ],
+                "actions": [
+                  {
+                    "id": "open",
+                    "input": {
+                      "packetId": "p1"
+                    }
+                  }
+                ],
+                "badge": {
+                  "text": "收到红包",
+                  "tone": "success"
+                }
+              },
+              {
+                "key": "l2",
+                "cells": [
+                  {
+                    "text": "-¥5.00"
+                  },
+                  {
+                    "text": ""
+                  },
+                  {
+                    "text": "1792459800000",
+                    "timeMs": 1792459800000
+                  }
+                ],
+                "actions": [
+                  {
+                    "id": "open",
+                    "input": {
+                      "packetId": "p2"
+                    }
+                  }
+                ],
+                "badge": {
+                  "text": "发出红包",
+                  "tone": "neutral"
+                }
+              },
+              {
+                "key": "l3",
+                "cells": [
+                  {
+                    "text": "+¥3.00"
+                  },
+                  {
+                    "text": ""
+                  },
+                  {
+                    "text": ""
+                  }
+                ],
+                "actions": [],
+                "badge": {
+                  "text": "红包退回",
+                  "tone": "warning"
+                }
+              },
+              {
+                "key": "l4",
+                "cells": [
+                  {
+                    "text": "+¥20.00"
+                  },
+                  {
+                    "text": ""
+                  },
+                  {
+                    "text": ""
+                  }
+                ],
+                "actions": [],
+                "badge": {
+                  "text": "入账",
+                  "tone": "info"
+                }
+              },
+              {
+                "key": "l5",
+                "cells": [
+                  {
+                    "text": "+¥0.50"
+                  },
+                  {
+                    "text": ""
+                  },
+                  {
+                    "text": ""
+                  }
+                ],
+                "actions": []
+              }
+            ],
+            "actions": [
+              {
+                "id": "open",
+                "label": "查看",
+                "target": {
+                  "kind": "page",
+                  "page": "flare.redpacket.packet"
+                },
+                "input": {
+                  "packetId": "/packetId"
+                }
+              }
+            ],
+            "filters": [
+              "kind"
+            ],
+            "emptyText": "还没有明细"
+          }
+        ],
+        "inputs": [
+          {
+            "id": "kind",
+            "kind": "select",
+            "label": "类型",
+            "choices": [
+              {
+                "value": "send",
+                "label": "发出"
+              },
+              {
+                "value": "claim",
+                "label": "收到"
+              },
+              {
+                "value": "refund",
+                "label": "退回"
+              },
+              {
+                "value": "deposit",
+                "label": "入账"
+              }
+            ]
+          }
+        ],
+        "nextCursor": "c2",
+        "data": {
+          "balanceText": "¥128.50",
+          "escrowText": "¥20.00",
+          "currency": "CNY"
+        }
+      },
+      "expect": {
+        "heading": "钱包",
+        "state": "loaded",
+        "fields": [
+          {
+            "label": "可用余额",
+            "value": "¥128.50"
+          },
+          {
+            "label": "托管中",
+            "value": "¥20.00"
+          }
+        ],
+        "blocks": [
+          {
+            "kind": "note",
+            "text": "托管中的金额在红包领完或退回后结算。",
+            "tone": "info"
+          },
+          {
+            "kind": "rows",
+            "layout": "list",
+            "items": [
+              {
+                "key": "l1",
+                "badge": {
+                  "text": "收到红包",
+                  "tone": "success"
+                },
+                "primary": "+¥1.00",
+                "secondary": "Alice · 10月21日 09:30",
+                "actions": [
+                  {
+                    "id": "open",
+                    "label": "查看",
+                    "variant": "secondary"
+                  }
+                ]
+              },
+              {
+                "key": "l2",
+                "badge": {
+                  "text": "发出红包",
+                  "tone": "neutral"
+                },
+                "primary": "-¥5.00",
+                "secondary": "10月20日 09:30",
+                "actions": [
+                  {
+                    "id": "open",
+                    "label": "查看",
+                    "variant": "secondary"
+                  }
+                ]
+              },
+              {
+                "key": "l3",
+                "badge": {
+                  "text": "红包退回",
+                  "tone": "warning"
+                },
+                "primary": "+¥3.00",
+                "secondary": null,
+                "actions": []
+              },
+              {
+                "key": "l4",
+                "badge": {
+                  "text": "入账",
+                  "tone": "info"
+                },
+                "primary": "+¥20.00",
+                "secondary": null,
+                "actions": []
+              },
+              {
+                "key": "l5",
+                "badge": null,
+                "primary": "+¥0.50",
+                "secondary": null,
+                "actions": []
+              }
+            ],
+            "empty": null
+          }
+        ],
+        "actions": [
+          {
+            "id": "history",
+            "label": "全部明细",
+            "variant": "secondary",
+            "confirm": null,
+            "form": false
+          }
+        ],
+        "filters": [
+          {
+            "input": "kind",
+            "label": "类型",
+            "tabs": [
+              "全部",
+              "发出",
+              "收到",
+              "退回",
+              "入账"
+            ],
+            "selected": "全部"
+          }
+        ],
+        "loadMore": true,
+        "refresh": true,
+        "empty": null,
+        "retry": false
+      }
+    },
+    {
+      "id": "wallet-empty",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "title": "钱包",
+      "page": {
+        "pluginId": "flare.redpacket",
+        "page": "flare.redpacket.wallet"
+      },
+      "filters": {
+        "kind": "claim"
+      },
+      "view": {
+        "available": true,
+        "title": "钱包",
+        "fields": [
+          {
+            "label": "可用余额",
+            "value": "¥128.50"
+          },
+          {
+            "label": "托管中",
+            "value": "¥20.00"
+          }
+        ],
+        "actions": [
+          {
+            "id": "history",
+            "label": "全部明细",
+            "target": {
+              "kind": "page",
+              "page": "flare.redpacket.history"
+            }
+          }
+        ],
+        "blocks": [
+          {
+            "kind": "rows",
+            "source": "flare.redpacket.wallet",
+            "columns": [
+              {
+                "label": "金额",
+                "format": "text"
+              },
+              {
+                "label": "对方",
+                "format": "text"
+              },
+              {
+                "label": "时间",
+                "format": "time"
+              }
+            ],
+            "rows": [],
+            "actions": [
+              {
+                "id": "open",
+                "label": "查看",
+                "target": {
+                  "kind": "page",
+                  "page": "flare.redpacket.packet"
+                },
+                "input": {
+                  "packetId": "/packetId"
+                }
+              }
+            ],
+            "filters": [
+              "kind"
+            ]
+          }
+        ],
+        "inputs": [
+          {
+            "id": "kind",
+            "kind": "select",
+            "label": "类型",
+            "choices": [
+              {
+                "value": "send",
+                "label": "发出"
+              },
+              {
+                "value": "claim",
+                "label": "收到"
+              },
+              {
+                "value": "refund",
+                "label": "退回"
+              },
+              {
+                "value": "deposit",
+                "label": "入账"
+              }
+            ]
+          }
+        ]
+      },
+      "expect": {
+        "heading": "钱包",
+        "state": "loaded",
+        "fields": [
+          {
+            "label": "可用余额",
+            "value": "¥128.50"
+          },
+          {
+            "label": "托管中",
+            "value": "¥20.00"
+          }
+        ],
+        "blocks": [
+          {
+            "kind": "rows",
+            "layout": "list",
+            "items": [],
+            "empty": "暂无数据"
+          }
+        ],
+        "actions": [
+          {
+            "id": "history",
+            "label": "全部明细",
+            "variant": "secondary",
+            "confirm": null,
+            "form": false
+          }
+        ],
+        "filters": [
+          {
+            "input": "kind",
+            "label": "类型",
+            "tabs": [
+              "全部",
+              "发出",
+              "收到",
+              "退回",
+              "入账"
+            ],
+            "selected": "收到"
+          }
+        ],
+        "loadMore": false,
+        "refresh": true,
+        "empty": null,
+        "retry": false
+      }
+    },
+    {
+      "id": "history",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "title": "明细",
+      "page": {
+        "pluginId": "flare.redpacket",
+        "page": "flare.redpacket.history"
+      },
+      "filters": {
+        "kind": "send",
+        "keyword": "团建"
+      },
+      "view": {
+        "available": true,
+        "title": "红包明细",
+        "fields": [],
+        "actions": [],
+        "blocks": [
+          {
+            "kind": "rows",
+            "source": "flare.redpacket.history",
+            "columns": [
+              {
+                "label": "金额",
+                "format": "text"
+              },
+              {
+                "label": "对方",
+                "format": "text"
+              },
+              {
+                "label": "时间",
+                "format": "time"
+              }
+            ],
+            "rows": [
+              {
+                "key": "l1",
+                "cells": [
+                  {
+                    "text": "+¥1.00"
+                  },
+                  {
+                    "text": "Alice"
+                  },
+                  {
+                    "text": "1792546200000",
+                    "timeMs": 1792546200000
+                  }
+                ],
+                "actions": [
+                  {
+                    "id": "open",
+                    "input": {
+                      "packetId": "p1"
+                    }
+                  }
+                ],
+                "badge": {
+                  "text": "收到红包",
+                  "tone": "success"
+                }
+              },
+              {
+                "key": "l2",
+                "cells": [
+                  {
+                    "text": "-¥5.00"
+                  },
+                  {
+                    "text": ""
+                  },
+                  {
+                    "text": "1792459800000",
+                    "timeMs": 1792459800000
+                  }
+                ],
+                "actions": [
+                  {
+                    "id": "open",
+                    "input": {
+                      "packetId": "p2"
+                    }
+                  }
+                ],
+                "badge": {
+                  "text": "发出红包",
+                  "tone": "neutral"
+                }
+              }
+            ],
+            "actions": [
+              {
+                "id": "open",
+                "label": "查看",
+                "target": {
+                  "kind": "page",
+                  "page": "flare.redpacket.packet"
+                },
+                "input": {
+                  "packetId": "/packetId"
+                }
+              }
+            ],
+            "filters": [
+              "keyword",
+              "kind"
+            ],
+            "emptyText": "还没有明细"
+          }
+        ],
+        "inputs": [
+          {
+            "id": "keyword",
+            "kind": "text",
+            "label": "备注",
+            "placeholder": "搜索备注"
+          },
+          {
+            "id": "kind",
+            "kind": "select",
+            "label": "类型",
+            "choices": [
+              {
+                "value": "send",
+                "label": "发出"
+              },
+              {
+                "value": "claim",
+                "label": "收到"
+              },
+              {
+                "value": "refund",
+                "label": "退回"
+              },
+              {
+                "value": "deposit",
+                "label": "入账"
+              }
+            ]
+          }
+        ],
+        "nextCursor": "h2",
+        "data": {
+          "currency": "CNY"
+        }
+      },
+      "expect": {
+        "heading": "红包明细",
+        "state": "loaded",
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "rows",
+            "layout": "list",
+            "items": [
+              {
+                "key": "l1",
+                "badge": {
+                  "text": "收到红包",
+                  "tone": "success"
+                },
+                "primary": "+¥1.00",
+                "secondary": "Alice · 10月21日 09:30",
+                "actions": [
+                  {
+                    "id": "open",
+                    "label": "查看",
+                    "variant": "secondary"
+                  }
+                ]
+              },
+              {
+                "key": "l2",
+                "badge": {
+                  "text": "发出红包",
+                  "tone": "neutral"
+                },
+                "primary": "-¥5.00",
+                "secondary": "10月20日 09:30",
+                "actions": [
+                  {
+                    "id": "open",
+                    "label": "查看",
+                    "variant": "secondary"
+                  }
+                ]
+              }
+            ],
+            "empty": null
+          }
+        ],
+        "actions": [],
+        "filters": [
+          {
+            "input": "kind",
+            "label": "类型",
+            "tabs": [
+              "全部",
+              "发出",
+              "收到",
+              "退回",
+              "入账"
+            ],
+            "selected": "发出"
+          }
+        ],
+        "loadMore": true,
+        "refresh": true,
+        "empty": null,
+        "retry": false
+      }
+    },
+    {
+      "id": "tasks",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "title": "任务",
+      "page": {
+        "pluginId": "x.tasks",
+        "page": "x.tasks.mine"
+      },
+      "filters": {},
+      "view": {
+        "available": true,
+        "title": "我的任务",
+        "fields": [],
+        "actions": [
+          {
+            "id": "new",
+            "label": "新建任务",
+            "style": "primary",
+            "form": [
+              "title"
+            ],
+            "target": {
+              "kind": "operation",
+              "operation": "x.tasks.create"
+            }
+          }
+        ],
+        "menuActions": [
+          {
+            "id": "clear",
+            "label": "清空已完成",
+            "style": "danger",
+            "confirm": "清空后不能恢复，确定清空吗？",
+            "placement": "menu",
+            "target": {
+              "kind": "operation",
+              "operation": "x.tasks.clear"
+            }
+          }
+        ],
+        "blocks": [
+          {
+            "kind": "rows",
+            "source": "x.tasks.list",
+            "columns": [
+              {
+                "label": "任务",
+                "format": "text"
+              },
+              {
+                "label": "截止",
+                "format": "time"
+              }
+            ],
+            "rows": [
+              {
+                "key": "t1",
+                "cells": [
+                  {
+                    "text": "写周报"
+                  },
+                  {
+                    "text": "1792546200000",
+                    "timeMs": 1792546200000
+                  }
+                ],
+                "actions": [
+                  {
+                    "id": "rename",
+                    "input": {
+                      "taskId": "t1"
+                    }
+                  },
+                  {
+                    "id": "remove",
+                    "input": {
+                      "taskId": "t1"
+                    }
+                  }
+                ],
+                "badge": {
+                  "text": "进行中",
+                  "tone": "info"
+                }
+              },
+              {
+                "key": "t2",
+                "cells": [
+                  {
+                    "text": "订会议室"
+                  },
+                  {
+                    "text": ""
+                  }
+                ],
+                "actions": [
+                  {
+                    "id": "remove",
+                    "input": {
+                      "taskId": "t2"
+                    }
+                  }
+                ],
+                "badge": {
+                  "text": "已完成",
+                  "tone": "success"
+                }
+              }
+            ],
+            "actions": [
+              {
+                "id": "rename",
+                "label": "改名",
+                "form": [
+                  "title"
+                ],
+                "target": {
+                  "kind": "operation",
+                  "operation": "x.tasks.rename"
+                },
+                "input": {
+                  "taskId": "/taskId"
+                }
+              },
+              {
+                "id": "remove",
+                "label": "删除",
+                "style": "danger",
+                "confirm": "确定删除这个任务吗？",
+                "target": {
+                  "kind": "operation",
+                  "operation": "x.tasks.remove"
+                },
+                "input": {
+                  "taskId": "/taskId"
+                }
+              }
+            ],
+            "filters": []
+          }
+        ],
+        "inputs": [
+          {
+            "id": "title",
+            "kind": "text",
+            "label": "标题",
+            "required": true,
+            "maxLength": 40
+          }
+        ],
+        "data": {
+          "owner": "u_bob0002"
+        }
+      },
+      "expect": {
+        "heading": "我的任务",
+        "state": "loaded",
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "rows",
+            "layout": "list",
+            "empty": null,
+            "items": [
+              {
+                "key": "t1",
+                "badge": {
+                  "text": "进行中",
+                  "tone": "info"
+                },
+                "primary": "写周报",
+                "secondary": "10月21日 09:30",
+                "actions": [
+                  {
+                    "id": "rename",
+                    "label": "改名",
+                    "variant": "secondary"
+                  },
+                  {
+                    "id": "remove",
+                    "label": "删除",
+                    "variant": "danger"
+                  }
+                ]
+              },
+              {
+                "key": "t2",
+                "badge": {
+                  "text": "已完成",
+                  "tone": "success"
+                },
+                "primary": "订会议室",
+                "secondary": null,
+                "actions": [
+                  {
+                    "id": "remove",
+                    "label": "删除",
+                    "variant": "danger"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "id": "new",
+            "label": "新建任务",
+            "variant": "primary",
+            "confirm": null,
+            "form": true
+          },
+          {
+            "id": "clear",
+            "label": "清空已完成",
+            "variant": "danger",
+            "confirm": "清空后不能恢复，确定清空吗？",
+            "form": false
+          }
+        ],
+        "filters": [],
+        "loadMore": false,
+        "refresh": true,
+        "empty": null,
+        "retry": false
+      }
+    },
+    {
+      "id": "unavailable-disabled",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "title": "钱包",
+      "page": {
+        "pluginId": "flare.redpacket",
+        "page": "flare.redpacket.wallet"
+      },
+      "filters": {},
+      "view": {
+        "available": false,
+        "title": "",
+        "fields": [],
+        "actions": [],
+        "unavailableReason": "disabled"
+      },
+      "expect": {
+        "heading": "钱包",
+        "state": "unavailable",
+        "fields": [],
+        "blocks": [],
+        "actions": [],
+        "filters": [],
+        "loadMore": false,
+        "refresh": false,
+        "empty": "插件已停用",
+        "retry": false
+      }
+    },
+    {
+      "id": "unavailable-no-permission",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "title": "钱包",
+      "page": {
+        "pluginId": "flare.redpacket",
+        "page": "flare.redpacket.wallet"
+      },
+      "filters": {},
+      "view": {
+        "available": false,
+        "title": "",
+        "fields": [],
+        "actions": [],
+        "unavailableReason": "no_permission"
+      },
+      "expect": {
+        "heading": "钱包",
+        "state": "unavailable",
+        "fields": [],
+        "blocks": [],
+        "actions": [],
+        "filters": [],
+        "loadMore": false,
+        "refresh": false,
+        "empty": "没有使用该插件的权限",
+        "retry": false
+      }
+    },
+    {
+      "id": "unavailable-catalog-unreachable",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "title": "钱包",
+      "page": {
+        "pluginId": "flare.redpacket",
+        "page": "flare.redpacket.wallet"
+      },
+      "filters": {},
+      "view": {
+        "available": false,
+        "title": "",
+        "fields": [],
+        "actions": [],
+        "unavailableReason": "catalog_unreachable"
+      },
+      "expect": {
+        "heading": "钱包",
+        "state": "unavailable",
+        "fields": [],
+        "blocks": [],
+        "actions": [],
+        "filters": [],
+        "loadMore": false,
+        "refresh": false,
+        "empty": "暂时无法加载，请稍后再试",
+        "retry": true
+      }
+    },
+    {
+      "id": "unavailable-no-reason",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "title": "钱包",
+      "page": {
+        "pluginId": "flare.redpacket",
+        "page": "flare.redpacket.wallet"
+      },
+      "filters": {},
+      "view": {
+        "available": false,
+        "title": "",
+        "fields": [],
+        "actions": []
+      },
+      "expect": {
+        "heading": "钱包",
+        "state": "unavailable",
+        "fields": [],
+        "blocks": [],
+        "actions": [],
+        "filters": [],
+        "loadMore": false,
+        "refresh": false,
+        "empty": "暂无数据",
+        "retry": false
+      }
+    }
+  ],
+  "pageActions": [
+    {
+      "name": "a view action carries the page and its data",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "wallet",
+      "steps": [
+        {
+          "tap": {
+            "action": "history"
+          },
+          "emit": {
+            "actionId": "history",
+            "payload": {
+              "page": {
+                "pluginId": "flare.redpacket",
+                "page": "flare.redpacket.wallet"
+              },
+              "data": {
+                "balanceText": "¥128.50",
+                "escrowText": "¥20.00",
+                "currency": "CNY"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "a row action carries its row",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "wallet",
+      "steps": [
+        {
+          "tap": {
+            "row": "l2",
+            "action": "open"
+          },
+          "emit": {
+            "actionId": "open",
+            "payload": {
+              "page": {
+                "pluginId": "flare.redpacket",
+                "page": "flare.redpacket.wallet"
+              },
+              "data": {
+                "balanceText": "¥128.50",
+                "escrowText": "¥20.00",
+                "currency": "CNY"
+              },
+              "row": {
+                "key": "l2",
+                "input": {
+                  "packetId": "p2"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "a view without data sends none",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "wallet-empty",
+      "steps": [
+        {
+          "tap": {
+            "action": "history"
+          },
+          "emit": {
+            "actionId": "history",
+            "payload": {
+              "page": {
+                "pluginId": "flare.redpacket",
+                "page": "flare.redpacket.wallet"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "a row action with a confirmation asks first",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "tasks",
+      "steps": [
+        {
+          "tap": {
+            "row": "t2",
+            "action": "remove"
+          },
+          "confirm": "确定删除这个任务吗？",
+          "emit": null
+        },
+        {
+          "confirm": true,
+          "emit": {
+            "actionId": "remove",
+            "payload": {
+              "page": {
+                "pluginId": "x.tasks",
+                "page": "x.tasks.mine"
+              },
+              "data": {
+                "owner": "u_bob0002"
+              },
+              "row": {
+                "key": "t2",
+                "input": {
+                  "taskId": "t2"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "a cancelled confirmation sends nothing",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "tasks",
+      "steps": [
+        {
+          "tap": {
+            "action": "clear"
+          },
+          "confirm": "清空后不能恢复，确定清空吗？",
+          "emit": null
+        },
+        {
+          "cancel": true,
+          "emit": null
+        }
+      ]
+    },
+    {
+      "name": "a row action with a form adds the values to its row",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "tasks",
+      "steps": [
+        {
+          "tap": {
+            "row": "t1",
+            "action": "rename"
+          },
+          "form": [
+            "标题"
+          ],
+          "emit": null
+        },
+        {
+          "fill": {
+            "title": "  周报（终稿） "
+          },
+          "submit": true,
+          "emit": {
+            "actionId": "rename",
+            "payload": {
+              "page": {
+                "pluginId": "x.tasks",
+                "page": "x.tasks.mine"
+              },
+              "data": {
+                "owner": "u_bob0002"
+              },
+              "row": {
+                "key": "t1",
+                "input": {
+                  "taskId": "t1"
+                }
+              },
+              "formValues": {
+                "title": "周报（终稿）"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "a view action with a form",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "tasks",
+      "steps": [
+        {
+          "tap": {
+            "action": "new"
+          },
+          "form": [
+            "标题"
+          ],
+          "emit": null
+        },
+        {
+          "fill": {
+            "title": "订机票"
+          },
+          "submit": true,
+          "emit": {
+            "actionId": "new",
+            "payload": {
+              "page": {
+                "pluginId": "x.tasks",
+                "page": "x.tasks.mine"
+              },
+              "data": {
+                "owner": "u_bob0002"
+              },
+              "formValues": {
+                "title": "订机票"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "a menu action is a key after the actions and asks first",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "tasks",
+      "steps": [
+        {
+          "tap": {
+            "action": "clear"
+          },
+          "confirm": "清空后不能恢复，确定清空吗？",
+          "emit": null
+        },
+        {
+          "confirm": true,
+          "emit": {
+            "actionId": "clear",
+            "payload": {
+              "page": {
+                "pluginId": "x.tasks",
+                "page": "x.tasks.mine"
+              },
+              "data": {
+                "owner": "u_bob0002"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "only the row that ran an action spins; the same action waits on the other rows",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "wallet",
+      "steps": [
+        {
+          "tap": {
+            "row": "l2",
+            "action": "open"
+          },
+          "emit": {
+            "actionId": "open",
+            "payload": {
+              "page": {
+                "pluginId": "flare.redpacket",
+                "page": "flare.redpacket.wallet"
+              },
+              "data": {
+                "balanceText": "¥128.50",
+                "escrowText": "¥20.00",
+                "currency": "CNY"
+              },
+              "row": {
+                "key": "l2",
+                "input": {
+                  "packetId": "p2"
+                }
+              }
+            }
+          }
+        },
+        {
+          "host": {
+            "busyActionId": "open"
+          },
+          "spinningRows": [
+            "l2"
+          ],
+          "rowKeysEnabled": false
+        },
+        {
+          "host": {
+            "busyActionId": null
+          },
+          "spinningRows": [],
+          "rowKeysEnabled": true
+        }
+      ]
+    }
+  ],
+  "pagePaging": [
+    {
+      "name": "the next page is asked once and the merged view follows the shown rows",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "wallet",
+      "steps": [
+        {
+          "tap": "loadMore",
+          "emit": "c2",
+          "spinning": true,
+          "enabled": false
+        },
+        {
+          "tap": "loadMore",
+          "emit": null
+        },
+        {
+          "host": {
+            "view": {
+              "available": true,
+              "title": "钱包",
+              "fields": [
+                {
+                  "label": "可用余额",
+                  "value": "¥128.50"
+                },
+                {
+                  "label": "托管中",
+                  "value": "¥20.00"
+                }
+              ],
+              "actions": [
+                {
+                  "id": "history",
+                  "label": "全部明细",
+                  "target": {
+                    "kind": "page",
+                    "page": "flare.redpacket.history"
+                  }
+                }
+              ],
+              "blocks": [
+                {
+                  "kind": "note",
+                  "text": "托管中的金额在红包领完或退回后结算。",
+                  "tone": "info"
+                },
+                {
+                  "kind": "rows",
+                  "source": "flare.redpacket.wallet",
+                  "columns": [
+                    {
+                      "label": "金额",
+                      "format": "text"
+                    },
+                    {
+                      "label": "对方",
+                      "format": "text"
+                    },
+                    {
+                      "label": "时间",
+                      "format": "time"
+                    }
+                  ],
+                  "rows": [
+                    {
+                      "key": "l1",
+                      "cells": [
+                        {
+                          "text": "+¥1.00"
+                        },
+                        {
+                          "text": "Alice"
+                        },
+                        {
+                          "text": "1792546200000",
+                          "timeMs": 1792546200000
+                        }
+                      ],
+                      "actions": [
+                        {
+                          "id": "open",
+                          "input": {
+                            "packetId": "p1"
+                          }
+                        }
+                      ],
+                      "badge": {
+                        "text": "收到红包",
+                        "tone": "success"
+                      }
+                    },
+                    {
+                      "key": "l2",
+                      "cells": [
+                        {
+                          "text": "-¥5.00"
+                        },
+                        {
+                          "text": ""
+                        },
+                        {
+                          "text": "1792459800000",
+                          "timeMs": 1792459800000
+                        }
+                      ],
+                      "actions": [
+                        {
+                          "id": "open",
+                          "input": {
+                            "packetId": "p2"
+                          }
+                        }
+                      ],
+                      "badge": {
+                        "text": "发出红包",
+                        "tone": "neutral"
+                      }
+                    },
+                    {
+                      "key": "l3",
+                      "cells": [
+                        {
+                          "text": "+¥3.00"
+                        },
+                        {
+                          "text": ""
+                        },
+                        {
+                          "text": ""
+                        }
+                      ],
+                      "actions": [],
+                      "badge": {
+                        "text": "红包退回",
+                        "tone": "warning"
+                      }
+                    },
+                    {
+                      "key": "l4",
+                      "cells": [
+                        {
+                          "text": "+¥20.00"
+                        },
+                        {
+                          "text": ""
+                        },
+                        {
+                          "text": ""
+                        }
+                      ],
+                      "actions": [],
+                      "badge": {
+                        "text": "入账",
+                        "tone": "info"
+                      }
+                    },
+                    {
+                      "key": "l5",
+                      "cells": [
+                        {
+                          "text": "+¥0.50"
+                        },
+                        {
+                          "text": ""
+                        },
+                        {
+                          "text": ""
+                        }
+                      ],
+                      "actions": []
+                    },
+                    {
+                      "key": "l6",
+                      "cells": [
+                        {
+                          "text": "-¥2.00"
+                        },
+                        {
+                          "text": "Bob"
+                        },
+                        {
+                          "text": "1792373400000",
+                          "timeMs": 1792373400000
+                        }
+                      ],
+                      "actions": [
+                        {
+                          "id": "open",
+                          "input": {
+                            "packetId": "p6"
+                          }
+                        }
+                      ],
+                      "badge": {
+                        "text": "发出红包",
+                        "tone": "neutral"
+                      }
+                    }
+                  ],
+                  "actions": [
+                    {
+                      "id": "open",
+                      "label": "查看",
+                      "target": {
+                        "kind": "page",
+                        "page": "flare.redpacket.packet"
+                      },
+                      "input": {
+                        "packetId": "/packetId"
+                      }
+                    }
+                  ],
+                  "filters": [
+                    "kind"
+                  ],
+                  "emptyText": "还没有明细"
+                }
+              ],
+              "inputs": [
+                {
+                  "id": "kind",
+                  "kind": "select",
+                  "label": "类型",
+                  "choices": [
+                    {
+                      "value": "send",
+                      "label": "发出"
+                    },
+                    {
+                      "value": "claim",
+                      "label": "收到"
+                    },
+                    {
+                      "value": "refund",
+                      "label": "退回"
+                    },
+                    {
+                      "value": "deposit",
+                      "label": "入账"
+                    }
+                  ]
+                }
+              ],
+              "data": {
+                "balanceText": "¥128.50",
+                "escrowText": "¥20.00",
+                "currency": "CNY"
+              }
+            }
+          },
+          "rowKeys": [
+            "l1",
+            "l2",
+            "l3",
+            "l4",
+            "l5",
+            "l6"
+          ],
+          "loadMore": false
+        },
+        {
+          "tap": {
+            "row": "l6",
+            "action": "open"
+          },
+          "emit": {
+            "actionId": "open",
+            "payload": {
+              "page": {
+                "pluginId": "flare.redpacket",
+                "page": "flare.redpacket.wallet"
+              },
+              "data": {
+                "balanceText": "¥128.50",
+                "escrowText": "¥20.00",
+                "currency": "CNY"
+              },
+              "row": {
+                "key": "l6",
+                "input": {
+                  "packetId": "p6"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "a failed page can be asked again",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "wallet",
+      "steps": [
+        {
+          "tap": "loadMore",
+          "emit": "c2",
+          "spinning": true
+        },
+        {
+          "host": {
+            "actionError": "加载失败，请重试"
+          },
+          "spinning": false,
+          "enabled": true
+        },
+        {
+          "tap": "loadMore",
+          "emit": "c2"
+        }
+      ]
+    },
+    {
+      "name": "the end of a refresh forgets the asked cursor, so the same cursor can be asked again",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "wallet",
+      "steps": [
+        {
+          "tap": "loadMore",
+          "emit": "c2",
+          "spinning": true,
+          "enabled": false
+        },
+        {
+          "host": {
+            "refreshing": true
+          },
+          "spinning": true
+        },
+        {
+          "host": {
+            "refreshing": false
+          },
+          "spinning": false,
+          "enabled": true
+        },
+        {
+          "tap": "loadMore",
+          "emit": "c2",
+          "spinning": true
+        }
+      ]
+    },
+    {
+      "name": "a key already drawn is skipped and the first stays",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "wallet",
+      "steps": [
+        {
+          "host": {
+            "view": {
+              "available": true,
+              "title": "钱包",
+              "fields": [
+                {
+                  "label": "可用余额",
+                  "value": "¥128.50"
+                },
+                {
+                  "label": "托管中",
+                  "value": "¥20.00"
+                }
+              ],
+              "actions": [
+                {
+                  "id": "history",
+                  "label": "全部明细",
+                  "target": {
+                    "kind": "page",
+                    "page": "flare.redpacket.history"
+                  }
+                }
+              ],
+              "blocks": [
+                {
+                  "kind": "note",
+                  "text": "托管中的金额在红包领完或退回后结算。",
+                  "tone": "info"
+                },
+                {
+                  "kind": "rows",
+                  "source": "flare.redpacket.wallet",
+                  "columns": [
+                    {
+                      "label": "金额",
+                      "format": "text"
+                    },
+                    {
+                      "label": "对方",
+                      "format": "text"
+                    },
+                    {
+                      "label": "时间",
+                      "format": "time"
+                    }
+                  ],
+                  "rows": [
+                    {
+                      "key": "l1",
+                      "cells": [
+                        {
+                          "text": "+¥1.00"
+                        },
+                        {
+                          "text": "Alice"
+                        },
+                        {
+                          "text": "1792546200000",
+                          "timeMs": 1792546200000
+                        }
+                      ],
+                      "actions": [
+                        {
+                          "id": "open",
+                          "input": {
+                            "packetId": "p1"
+                          }
+                        }
+                      ],
+                      "badge": {
+                        "text": "收到红包",
+                        "tone": "success"
+                      }
+                    },
+                    {
+                      "key": "l2",
+                      "cells": [
+                        {
+                          "text": "-¥5.00"
+                        },
+                        {
+                          "text": ""
+                        },
+                        {
+                          "text": "1792459800000",
+                          "timeMs": 1792459800000
+                        }
+                      ],
+                      "actions": [
+                        {
+                          "id": "open",
+                          "input": {
+                            "packetId": "p2"
+                          }
+                        }
+                      ],
+                      "badge": {
+                        "text": "发出红包",
+                        "tone": "neutral"
+                      }
+                    },
+                    {
+                      "key": "l1",
+                      "cells": [
+                        {
+                          "text": "+¥9.99"
+                        },
+                        {
+                          "text": ""
+                        },
+                        {
+                          "text": ""
+                        }
+                      ],
+                      "actions": []
+                    }
+                  ],
+                  "actions": [
+                    {
+                      "id": "open",
+                      "label": "查看",
+                      "target": {
+                        "kind": "page",
+                        "page": "flare.redpacket.packet"
+                      },
+                      "input": {
+                        "packetId": "/packetId"
+                      }
+                    }
+                  ],
+                  "filters": [
+                    "kind"
+                  ],
+                  "emptyText": "还没有明细"
+                }
+              ],
+              "inputs": [
+                {
+                  "id": "kind",
+                  "kind": "select",
+                  "label": "类型",
+                  "choices": [
+                    {
+                      "value": "send",
+                      "label": "发出"
+                    },
+                    {
+                      "value": "claim",
+                      "label": "收到"
+                    },
+                    {
+                      "value": "refund",
+                      "label": "退回"
+                    },
+                    {
+                      "value": "deposit",
+                      "label": "入账"
+                    }
+                  ]
+                }
+              ],
+              "nextCursor": "c2",
+              "data": {
+                "balanceText": "¥128.50",
+                "escrowText": "¥20.00",
+                "currency": "CNY"
+              }
+            }
+          },
+          "rowKeys": [
+            "l1",
+            "l2"
+          ],
+          "primaries": [
+            "+¥1.00",
+            "-¥5.00"
+          ],
+          "loadMore": true
+        }
+      ]
+    }
+  ],
+  "pageFilters": [
+    {
+      "name": "all first, then the choices; a choice sets the filter",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "wallet",
+      "filters": {},
+      "steps": [
+        {
+          "tabs": {
+            "kind": [
+              "全部",
+              "发出",
+              "收到",
+              "退回",
+              "入账"
+            ]
+          },
+          "selected": {
+            "kind": "全部"
+          }
+        },
+        {
+          "choose": {
+            "input": "kind",
+            "tab": "收到"
+          },
+          "emit": {
+            "kind": "claim"
+          }
+        },
+        {
+          "host": {
+            "filters": {
+              "kind": "claim"
+            }
+          },
+          "selected": {
+            "kind": "收到"
+          }
+        },
+        {
+          "choose": {
+            "input": "kind",
+            "tab": "收到"
+          },
+          "emit": null
+        },
+        {
+          "choose": {
+            "input": "kind",
+            "tab": "全部"
+          },
+          "emit": {}
+        }
+      ]
+    },
+    {
+      "name": "a value that is not a choice shows all",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "wallet",
+      "filters": {
+        "kind": "gift"
+      },
+      "steps": [
+        {
+          "selected": {
+            "kind": "全部"
+          }
+        },
+        {
+          "choose": {
+            "input": "kind",
+            "tab": "退回"
+          },
+          "emit": {
+            "kind": "refund"
+          }
+        }
+      ]
+    },
+    {
+      "name": "the tabs wait while the page refreshes or loads more",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "wallet",
+      "filters": {},
+      "steps": [
+        {
+          "host": {
+            "refreshing": true
+          },
+          "enabled": false
+        },
+        {
+          "host": {
+            "refreshing": false
+          },
+          "enabled": true
+        },
+        {
+          "host": {
+            "loadingMore": true
+          },
+          "enabled": false
+        }
+      ]
+    },
+    {
+      "name": "only select inputs are page filters, and the others the host holds stay",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "history",
+      "filters": {
+        "kind": "send",
+        "keyword": "团建"
+      },
+      "steps": [
+        {
+          "tabs": {
+            "kind": [
+              "全部",
+              "发出",
+              "收到",
+              "退回",
+              "入账"
+            ]
+          },
+          "selected": {
+            "kind": "发出"
+          }
+        },
+        {
+          "choose": {
+            "input": "kind",
+            "tab": "全部"
+          },
+          "emit": {
+            "keyword": "团建"
+          }
+        },
+        {
+          "choose": {
+            "input": "kind",
+            "tab": "入账"
+          },
+          "emit": {
+            "kind": "deposit",
+            "keyword": "团建"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a rows block that lists no filters has no filter row",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": "tasks",
+      "filters": {},
+      "steps": [
+        {
+          "tabs": {}
+        }
+      ]
     }
   ]
 }
