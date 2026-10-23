@@ -6250,6 +6250,33 @@
     ],
     "zh": "副本，仅供查看"
   },
+  "pluginViewMaxSelections": {
+    "en": "Choose up to {n}",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "最多选 {n} 项"
+  },
+  "pluginViewAll": {
+    "en": "All",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "全部"
+  },
+  "pluginViewEmpty": {
+    "en": "No data yet",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "暂无数据"
+  },
   "pluginPageRefresh": {
     "en": "Refresh",
     "kits": [
