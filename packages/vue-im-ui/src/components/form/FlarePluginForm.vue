@@ -8,6 +8,7 @@ import FlareFormField from "./FlareFormField.vue";
 import FlareTextarea from "./FlareTextarea.vue";
 import FlareSwitch from "./FlareSwitch.vue";
 import FlareRadioGroup from "./FlareRadioGroup.vue";
+import FlareSelect from "./FlareSelect.vue";
 import FlareDatePicker from "./FlareDatePicker.vue";
 import FlareTimePicker from "./FlareTimePicker.vue";
 import FlareContactPicker from "../composer/FlareContactPicker.vue";
@@ -41,13 +42,16 @@ const props = withDefaults(
     /** The host's errors (UiFormError). */
     errors?: FlarePluginFormError[];
     submitLabel?: string;
+    cancelLabel?: string;
+    /** Same typed inputs/validation; compact query presentation for administrative filters. */
+    presentation?: "form" | "filters";
     busy?: boolean;
     /** A failure line above the keys. */
     error?: string;
     /** Candidates for members inputs. */
     members?: FlarePluginMember[];
   }>(),
-  { values: undefined, errors: () => [], submitLabel: undefined, busy: false, error: undefined, members: () => [] },
+  { values: undefined, errors: () => [], submitLabel: undefined, presentation: "form", busy: false, error: undefined, members: () => [] },
 );
 const emit = defineEmits<{ (e: "submit", values: Record<string, unknown>): void; (e: "cancel"): void }>();
 const { t } = useFlareI18nOptional();
@@ -176,7 +180,7 @@ defineExpose({ submit });
 </script>
 
 <template>
-  <form class="flare-plugin-form" :aria-busy="busy" novalidate @submit.prevent="submit">
+  <form class="flare-plugin-form" :class="{ 'flare-plugin-form--filters': presentation === 'filters' }" :aria-busy="busy" novalidate @submit.prevent="submit">
     <fieldset class="flare-plugin-form__fields" :disabled="busy">
       <template v-for="input in inputs" :key="input.id">
         <FlareFormField
@@ -184,10 +188,11 @@ defineExpose({ submit });
           :label="input.label"
           :required="input.required"
           :error="errorText(input)"
-          :hint="flarePluginCounter(input, draft[input.id]) ?? undefined"
+          :hint="presentation === 'filters' ? undefined : flarePluginCounter(input, draft[input.id]) ?? undefined"
           :data-input-id="input.id"
         >
           <FlareInput
+            :size="presentation === 'filters' ? 'sm' : undefined"
             :model-value="String(draft[input.id] ?? '')"
             :placeholder="input.placeholder"
             :disabled="busy"
@@ -238,7 +243,18 @@ defineExpose({ submit });
           :error="errorText(input)"
           :data-input-id="input.id"
         >
+          <FlareSelect
+            v-if="presentation === 'filters'"
+            :model-value="String(draft[input.id] ?? '')"
+            :options="input.required ? choicesOf(input) : [{ value: '', label: t('pluginView.all') }, ...choicesOf(input)]"
+            :placeholder="input.placeholder || input.label"
+            :title="input.label"
+            :disabled="busy"
+            size="sm"
+            @update:model-value="(v: string) => set(input.id, v)"
+          />
           <FlareRadioGroup
+            v-else
             :model-value="String(draft[input.id] ?? '')"
             :options="choicesOf(input)"
             vertical
@@ -326,8 +342,8 @@ defineExpose({ submit });
     </fieldset>
     <p v-if="error" class="flare-plugin-form__error" role="alert">{{ error }}</p>
     <footer class="flare-plugin-form__actions">
-      <FlareButton variant="secondary" :label="t('pluginForm.cancel')" :disabled="busy" data-form-cancel="true" @click="cancel" />
-      <FlareButton :label="submitLabel ?? t('pluginView.submit')" :loading="busy" :disabled="busy" data-form-submit="true" @click="submit" />
+      <FlareButton variant="secondary" :size="presentation === 'filters' ? 'sm' : undefined" :appearance="presentation === 'filters' ? 'text' : 'default'" :label="cancelLabel ?? t('pluginForm.cancel')" :disabled="busy" data-form-cancel="true" @click="cancel" />
+      <FlareButton :size="presentation === 'filters' ? 'sm' : undefined" :label="submitLabel ?? t('pluginView.submit')" :loading="busy" :disabled="busy" data-form-submit="true" @click="submit" />
     </footer>
     <!-- fill: the picker takes the sheet's height and brings its own header, so the sheet's title is its name only. -->
     <FlareBottomSheet :open="Boolean(picking)" :title="picking?.label" fill max-height="min(80vh, 600px)" @close="picking = null">
@@ -356,4 +372,23 @@ defineExpose({ submit });
 .flare-plugin-form__error { margin: 0; font-size: var(--flare-size-font-size-sm); color: var(--flare-color-error-text); }
 .flare-plugin-form__actions { display: flex; gap: var(--flare-size-spacing-md); }
 .flare-plugin-form__actions > * { flex: 1; }
+.flare-plugin-form--filters {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  padding: var(--flare-size-spacing-md) 0;
+  gap: var(--flare-size-spacing-md);
+}
+.flare-plugin-form--filters .flare-plugin-form__fields {
+  flex: 1 1 320px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+}
+.flare-plugin-form--filters .flare-plugin-form__actions {
+  align-self: flex-end;
+  flex-wrap: wrap;
+  gap: var(--flare-size-spacing-sm);
+}
+.flare-plugin-form--filters .flare-plugin-form__actions > * { flex: none; }
+.flare-plugin-form--filters .flare-plugin-form__error { flex-basis: 100%; }
 </style>

@@ -6,12 +6,13 @@
  * a tri-state selection that spans pages and surfaces a batch toolbar, and a column chooser
  * whose choice the host keeps. Nothing in here knows what the rows are.
  *
- * Narrow containers do not scroll sideways: each row stacks into labelled lines, the header
+ * By default narrow containers stack rows into labelled lines, the header
  * stays in the accessibility tree as plain titles, and sorting and select-all move into the bar
  * and the batch toolbar (a control inside a visually hidden header would be focusable but
  * invisible). The stacking is a container query; the controls follow the same width, measured
  * once the table is mounted. The roles are explicit on every table element because the stacked
  * form changes their `display`, and an engine drops a table's implicit semantics with it.
+ * Operational lists can explicitly keep a table and scroll inside its own region instead.
  */
 import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref, useId, useSlots } from "vue";
 import { NPopover } from "naive-ui";
@@ -87,6 +88,10 @@ const props = withDefaults(
     fill?: boolean;
     /** Row height: `comfortable` for reading, `compact` for scanning. */
     density?: "comfortable" | "compact";
+    /** Keep a tabular list at every width, or use the default labelled stack on narrow containers. */
+    responsive?: "stack" | "scroll";
+    /** Pin the action column while the table scrolls; ignored for stacked rows. */
+    stickyActions?: boolean;
   }>(),
   {
     rowKey: "id",
@@ -102,6 +107,8 @@ const props = withDefaults(
     stickyHeader: false,
     fill: false,
     density: "comfortable",
+    responsive: "stack",
+    stickyActions: false,
   },
 );
 /** Keys of the selected rows, across pages. */
@@ -139,13 +146,13 @@ const hasToolbar = computed(() => Boolean(slots.toolbar));
 // leave with it, so the measurement and the query must agree.
 const NARROW_MAX_WIDTH = 599;
 const root = ref<HTMLElement | null>(null);
-const narrow = ref(false);
+const measuredWidth = ref(0);
+const narrow = computed(() => props.responsive === "stack" && measuredWidth.value > 0 && measuredWidth.value <= NARROW_MAX_WIDTH);
 let observer: ResizeObserver | null = null;
 onMounted(() => {
   if (!root.value || typeof ResizeObserver === "undefined") return;
   observer = new ResizeObserver((entries) => {
-    const width = entries[0]?.contentRect.width ?? 0;
-    narrow.value = width > 0 && width <= NARROW_MAX_WIDTH;
+    measuredWidth.value = entries[0]?.contentRect.width ?? 0;
   });
   observer.observe(root.value);
 });
@@ -303,7 +310,7 @@ function onRowKeydown(event: KeyboardEvent, row: FlareDataTableRow, index: numbe
   <div
     ref="root"
     class="flare-data-table"
-    :class="[`flare-data-table--${density}`, { 'is-fill': fill, 'is-sticky': stickyHeader, 'is-interactive': interactive, 'is-selecting': selecting, 'is-narrow': narrow }]"
+    :class="[`flare-data-table--${density}`, `flare-data-table--${responsive}`, { 'is-fill': fill, 'is-sticky': stickyHeader, 'is-sticky-actions': stickyActions && !narrow, 'is-interactive': interactive, 'is-selecting': selecting, 'is-narrow': narrow }]"
     :aria-busy="loading || undefined"
   >
     <div v-if="showBar" class="flare-data-table__bar">
@@ -413,7 +420,7 @@ function onRowKeydown(event: KeyboardEvent, row: FlareDataTableRow, index: numbe
       />
     </div>
 
-    <div class="flare-data-table__scroll">
+    <div class="flare-data-table__scroll" :role="responsive === 'scroll' ? 'region' : undefined" :aria-label="responsive === 'scroll' ? tableLabel : undefined" :tabindex="responsive === 'scroll' ? 0 : undefined">
       <table class="flare-data-table__table" role="table" :aria-label="tableLabel" :aria-rowcount="rowCount">
         <thead role="rowgroup" class="flare-data-table__head">
           <tr role="row">
@@ -740,6 +747,24 @@ function onRowKeydown(event: KeyboardEvent, row: FlareDataTableRow, index: numbe
   .is-interactive .flare-data-table__row.is-selected:hover .flare-data-table__td { background: var(--flare-color-bg-selected); }
 }
 .flare-data-table__td--actions { white-space: nowrap; }
+.is-sticky-actions .flare-data-table__td--actions {
+  position: sticky;
+  inset-inline-end: 0;
+  z-index: 1;
+  background: var(--flare-color-bg-primary);
+  border-inline-start: 1px solid var(--flare-color-border-secondary);
+}
+.is-sticky-actions .flare-data-table__th--actions {
+  position: sticky;
+  inset-inline-end: 0;
+  z-index: 3;
+  border-inline-start: 1px solid var(--flare-color-border-secondary);
+}
+.is-sticky-actions.is-sticky .flare-data-table__th:not(.flare-data-table__th--actions) { z-index: 2; }
+.flare-data-table__scroll:focus-visible {
+  outline: 2px solid var(--flare-color-border-selected);
+  outline-offset: -2px;
+}
 .flare-data-table__row-actions {
   display: inline-flex;
   align-items: center;
@@ -796,13 +821,13 @@ function onRowKeydown(event: KeyboardEvent, row: FlareDataTableRow, index: numbe
    Nothing can overflow sideways any more, so the scroll box stops clipping — a checkbox's hit halo
    in the first row reaches above the row. */
 @container flare-data-table (max-width: 599px) {
-  .flare-data-table__range { flex-basis: 100%; }
-  .flare-data-table__pager { margin-inline-start: auto; }
-  .flare-data-table__scroll {
+  .flare-data-table--stack .flare-data-table__range { flex-basis: 100%; }
+  .flare-data-table--stack .flare-data-table__pager { margin-inline-start: auto; }
+  .flare-data-table--stack .flare-data-table__scroll {
     max-height: none;
     overflow: visible;
   }
-  .flare-data-table__head {
+  .flare-data-table--stack .flare-data-table__head {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -813,23 +838,23 @@ function onRowKeydown(event: KeyboardEvent, row: FlareDataTableRow, index: numbe
     white-space: nowrap;
     border: 0;
   }
-  .flare-data-table__table,
-  .flare-data-table__body,
-  .flare-data-table__row,
-  .flare-data-table__state-row {
+  .flare-data-table--stack .flare-data-table__table,
+  .flare-data-table--stack .flare-data-table__body,
+  .flare-data-table--stack .flare-data-table__row,
+  .flare-data-table--stack .flare-data-table__state-row {
     display: block;
     width: 100%;
   }
-  .flare-data-table__row {
+  .flare-data-table--stack .flare-data-table__row {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     gap: 0 var(--flare-size-spacing-sm);
     padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-md);
     border-bottom: 1px solid var(--flare-color-border-secondary);
   }
-  .flare-data-table__row:last-child { border-bottom: none; }
-  .flare-data-table__row.is-selected { background: var(--flare-color-bg-selected); }
-  .flare-data-table__td {
+  .flare-data-table--stack .flare-data-table__row:last-child { border-bottom: none; }
+  .flare-data-table--stack .flare-data-table__row.is-selected { background: var(--flare-color-bg-selected); }
+  .flare-data-table--stack .flare-data-table__td {
     display: flex;
     grid-column: 2;
     gap: var(--flare-size-spacing-sm);
@@ -842,7 +867,7 @@ function onRowKeydown(event: KeyboardEvent, row: FlareDataTableRow, index: numbe
     background: transparent;
     text-align: start;
   }
-  .flare-data-table__td[data-label]::before {
+  .flare-data-table--stack .flare-data-table__td[data-label]::before {
     content: attr(data-label);
     flex: 0 0 38%;
     color: var(--flare-color-text-secondary);
@@ -850,22 +875,22 @@ function onRowKeydown(event: KeyboardEvent, row: FlareDataTableRow, index: numbe
   }
   /* The checkbox sits beside the whole stack; the span covers any column count (empty implicit rows have
      no height). Its padding keeps the 48px hit halo clear of the row above and of the first line of text. */
-  .flare-data-table__td--select {
+  .flare-data-table--stack .flare-data-table__td--select {
     grid-column: 1;
     grid-row: 1 / span 99;
     align-self: start;
     padding: var(--flare-size-spacing-xs) var(--flare-size-spacing-md) var(--flare-size-spacing-xs) 0;
   }
-  .flare-data-table__td.is-ellipsis {
+  .flare-data-table--stack .flare-data-table__td.is-ellipsis {
     max-width: none;
     white-space: normal;
   }
-  .flare-data-table__td--actions { white-space: normal; }
-  .flare-data-table__row.is-selected .flare-data-table__td { background: transparent; }
+  .flare-data-table--stack .flare-data-table__td--actions { white-space: normal; }
+  .flare-data-table--stack .flare-data-table__row.is-selected .flare-data-table__td { background: transparent; }
   @media (hover: hover) {
-    .is-interactive .flare-data-table__row:hover .flare-data-table__td { background: transparent; }
+    .flare-data-table--stack.is-interactive .flare-data-table__row:hover .flare-data-table__td { background: transparent; }
   }
-  .flare-data-table__state { display: block; grid-column: 1 / -1; }
+  .flare-data-table--stack .flare-data-table__state { display: block; grid-column: 1 / -1; }
 }
 @media (prefers-reduced-motion: reduce) {
   .flare-data-table__sort-icon { transition: none; }

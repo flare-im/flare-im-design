@@ -54,9 +54,10 @@ fun FlareScreen(
     val colors = flareColors()
     val base = if (surface == FlareScreenSurface.Surface) colors.bgPrimary else colors.bgSecondary
     val hasHeader = title != null || onBack != null || actions != null
-    FlareNativeBackEffect(enabled = onBack != null) { onBack?.invoke() }
+    FlareNativeBackEffect(enabled = onBack != null && LocalFlareSheetHeader.current?.handlesBack != true) { onBack?.invoke() }
     // A page with a way back is not its destination's root: a shell hides its phone navigation under it.
     FlareDestinationDepth(active = onBack != null)
+    if (onBack != null) FlareSheetOwnHeader(back = onBack)
 
     val bg = if (surface == FlareScreenSurface.Brand) {
         Modifier.background(Brush.verticalGradient(listOf(lerp(colors.primary, base, 0.84f), base, base)))

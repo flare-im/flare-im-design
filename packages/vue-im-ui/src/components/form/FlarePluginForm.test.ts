@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
 import type { FlarePluginFormError, FlarePluginInput } from "../../shared/contracts/plugin-ui";
 import FlarePluginForm from "./FlarePluginForm.vue";
+import FlareSelect from "./FlareSelect.vue";
 
 enableAutoUnmount(afterEach);
 afterEach(() => { document.body.innerHTML = ""; });
@@ -50,6 +51,42 @@ const errorOf = (wrapper: ReturnType<typeof render>["wrapper"], id: string) => {
 };
 
 describe("FlarePluginForm (spec/plugin-view-vectors.json → form)", () => {
+  it("compact filters preserve validation, typed values and the host-owned reset", async () => {
+    const { wrapper, submits, cancels } = render({
+      presentation: "filters", cancelLabel: "重置", submitLabel: "筛选",
+      inputs: [
+        { id: "status", kind: "select", label: "状态", choices: [{ value: "active", label: "进行中" }, { value: "ended", label: "已结束" }] },
+        { id: "query", kind: "text", label: "查询", maxLength: 3 },
+      ],
+    });
+    expect(wrapper.findAll("input[type=radio]")).toHaveLength(0);
+    const select = wrapper.findComponent(FlareSelect);
+    expect(select.props("options")[0]).toEqual({ value: "", label: "全部" });
+    select.vm.$emit("update:modelValue", "active");
+    await field(wrapper, "query").get("input").setValue("four");
+    await wrapper.get("[data-form-submit]").trigger("click");
+    expect(submits).toEqual([]);
+    expect(errorOf(wrapper, "query")).toBe("超出长度");
+    await field(wrapper, "query").get("input").setValue("abc");
+    await wrapper.get("[data-form-submit]").trigger("click");
+    expect(submits).toEqual([{ status: "active", query: "abc" }]);
+    expect(wrapper.get("[data-form-cancel]").text()).toBe("重置");
+    await wrapper.get("[data-form-cancel]").trigger("click");
+    expect(cancels()).toBe(1);
+  });
+
+  it("compact filters keep native controls and submit/reset disabled during a request", async () => {
+    const { wrapper, submits, cancels } = render({
+      presentation: "filters", busy: true,
+      inputs: [{ id: "status", kind: "select", label: "状态", choices: [{ value: "active", label: "进行中" }] }],
+    });
+    expect(wrapper.findComponent(FlareSelect).props("disabled")).toBe(true);
+    await wrapper.get("[data-form-submit]").trigger("click");
+    await wrapper.get("[data-form-cancel]").trigger("click");
+    expect(submits).toEqual([]);
+    expect(cancels()).toBe(0);
+  });
+
   it("draws every input kind, with counters and the option rows' limits", () => {
     const { wrapper } = render();
     for (const input of inputs) expect(wrapper.find(`[data-input-id="${input.id}"]`).exists()).toBe(true);

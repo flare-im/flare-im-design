@@ -87,6 +87,7 @@ public struct FlareScreen<Content: View>: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         // A page with a way back is not its destination's root: a shell hides its phone navigation under it.
         .flareDestinationDepth(onBack != nil)
+        .modifier(FlareSurfaceHeaderDeclaration(back: onBack))
         .background(
             ZStack {
                 base
@@ -108,4 +109,35 @@ public extension FlareSizes {
     /// has to clear the header without reserving layout space, and guessing that height in the
     /// host is how it ends up sitting on top of the title.
     static var screenHeaderHeight: CGFloat { touchTarget + spacingSm * 2 }
+}
+
+/// The visible page's own way back, consumed by a drawer before its outer close action.
+struct FlareSurfaceHeaderClaim: Equatable {
+    let id: UUID
+    let back: () -> Void
+    static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
+}
+
+struct FlareSurfaceHeaderKey: PreferenceKey {
+    static var defaultValue: FlareSurfaceHeaderClaim? { nil }
+    static func reduce(value: inout FlareSurfaceHeaderClaim?, nextValue: () -> FlareSurfaceHeaderClaim?) {
+        if let next = nextValue() { value = next }
+    }
+}
+
+private final class FlareSurfaceBackAction {
+    let id = UUID()
+    var back: (() -> Void)?
+}
+
+private struct FlareSurfaceHeaderDeclaration: ViewModifier {
+    let back: (() -> Void)?
+    @State private var action = FlareSurfaceBackAction()
+    func body(content: Content) -> some View {
+        // Update the non-observable relay without changing preference identity on every render.
+        // A drawer retaining the claim must always invoke the currently rendered page callback.
+        action.back = back
+        return content.preference(key: FlareSurfaceHeaderKey.self,
+                                  value: back == nil ? nil : FlareSurfaceHeaderClaim(id: action.id, back: { action.back?() }))
+    }
 }

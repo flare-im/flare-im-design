@@ -15,7 +15,8 @@ import SwiftUI
 ///   `showClose` is false (page content that brings its own header). `footer` sits under the content.
 /// - `navigable` wraps the content in a `NavigationStack` (it pushes with `navigationDestination` and titles
 ///   itself with `navigationTitle`); the kit header is not drawn and close is the root page's primary action.
-/// - Escape and the VoiceOver escape gesture step back (`onBack`) while `showBack`, else close; the scrim and the
+/// - Escape and the VoiceOver escape gesture first use a visible `FlareScreen`'s back action; otherwise they step
+///   back (`onBack`) while `showBack`, else close. A screen with back owns the header; the scrim and the
 ///   close button close — all only while `dismissible` and no content raised
 ///   ``SwiftUI/View/flareLayerDismissDisabled(_:)``. There is no drag to dismiss (it would fight the navigation
 ///   stack's own swipe back).
@@ -36,6 +37,7 @@ public struct DrawerView<Content: View>: View {
     private let onClose: () -> Void
     private let content: Content
     @State private var locked = false
+    @State private var pageHeader: FlareSurfaceHeaderClaim?
     @Environment(\.flareLayerVisible) private var visible
     @Environment(\.flareLayerChromeless) private var chromeless
     @Environment(\.layoutDirection) private var layoutDirection
@@ -75,6 +77,7 @@ public struct DrawerView<Content: View>: View {
             }
         }
         .onPreferenceChange(FlareLayerDismissDisabledKey.self) { locked = $0 }
+        .onPreferenceChange(FlareSurfaceHeaderKey.self) { pageHeader = $0 }
         .interactiveDismissDisabled(!dismissAllowed)
     }
 
@@ -82,7 +85,7 @@ public struct DrawerView<Content: View>: View {
         FlareOverlayRules.dismissAllowed(dismissible: dismissible, busy: false, locked: locked)
     }
 
-    private var backOffered: Bool { showBack && onBack != nil }
+    private var backOffered: Bool { pageHeader != nil || (showBack && onBack != nil) }
 
     private var escape: FlareLayerEscape {
         FlareOverlayRules.escape(showBack: backOffered, dismissAllowed: dismissAllowed)
@@ -95,7 +98,7 @@ public struct DrawerView<Content: View>: View {
 
     private func performEscape() {
         switch escape {
-        case .back: onBack?()
+        case .back: (pageHeader?.back ?? onBack)?()
         case .close: onClose()
         case .none: break
         }
@@ -120,7 +123,7 @@ public struct DrawerView<Content: View>: View {
                         }
                 }
             } else {
-                if FlareOverlayRules.showsHeader(visibleTitle: visibleTitle != nil, hasActions: actions != nil,
+                if pageHeader == nil && FlareOverlayRules.showsHeader(visibleTitle: visibleTitle != nil, hasActions: actions != nil,
                                                  showBack: backOffered, showClose: showClose) {
                     FlareOverlayHeader(title: visibleTitle, showBack: backOffered, showClose: showClose,
                                        actions: actions, enabled: dismissAllowed, onBack: onBack, onClose: onClose)

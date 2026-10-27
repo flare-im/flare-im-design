@@ -257,6 +257,109 @@ final class DrawerModalViewTests: XCTestCase {
     }
 
     @MainActor
+    func testEscapeStepsThroughTheVisiblePageBeforeClosingTheDrawer() {
+        final class Model: ObservableObject { @Published var depth = 2; var closes = 0 }
+        struct Host: View {
+            @ObservedObject var model: Model
+            var body: some View {
+                DrawerView(title: "Outer", onClose: { model.closes += 1 }) {
+                    FlareScreen(title: "Page", onBack: model.depth > 0 ? { model.depth -= 1 } : nil) {
+                        Text("Depth \(model.depth)")
+                    }
+                }
+            }
+        }
+        let model = Model()
+        let window = render(Host(model: model), size: CGSize(width: 1024, height: 700))
+        defer { window.close() }
+        escape(window)
+        XCTAssertEqual(model.depth, 1)
+        XCTAssertEqual(model.closes, 0)
+        escape(window)
+        XCTAssertEqual(model.depth, 0)
+        XCTAssertEqual(model.closes, 0)
+        escape(window)
+        XCTAssertEqual(model.closes, 1)
+    }
+
+    @MainActor
+    func testEscapeInANavigableDrawerPopsTheDestination() {
+        final class Model: ObservableObject { @Published var pushed = false; var closes = 0 }
+        struct Page: View {
+            @Environment(\.dismiss) private var dismiss
+            var body: some View {
+                FlareScreen(title: "Plugin page", onBack: { dismiss() }) { Text("Wallet") }
+            }
+        }
+        struct Host: View {
+            @ObservedObject var model: Model
+            var body: some View {
+                DrawerView(navigable: true, onClose: { model.closes += 1 }) {
+                    Text("Root").navigationDestination(isPresented: $model.pushed) { Page() }
+                }
+            }
+        }
+        let model = Model()
+        let window = render(Host(model: model), size: CGSize(width: 1024, height: 700))
+        defer { window.close() }
+        model.pushed = true
+        RunLoop.main.run(until: Date().addingTimeInterval(0.4))
+        escape(window)
+        XCTAssertFalse(model.pushed, "the destination's dismiss pops it")
+        XCTAssertEqual(model.closes, 0)
+        escape(window)
+        XCTAssertEqual(model.closes, 1)
+    }
+
+    @MainActor
+    func testDrawerUsesTheLatestPageBackCallback() {
+        final class Model: ObservableObject { @Published var alternate = false; var first = 0; var second = 0 }
+        struct Host: View {
+            @ObservedObject var model: Model
+            var body: some View {
+                DrawerView(onClose: {}) {
+                    FlareScreen(title: "Page", onBack: model.alternate ? { model.second += 1 } : { model.first += 1 }) {
+                        Text("Body")
+                    }
+                }
+            }
+        }
+        let model = Model()
+        let window = render(Host(model: model), size: CGSize(width: 1024, height: 700))
+        defer { window.close() }
+        escape(window)
+        model.alternate = true
+        RunLoop.main.run(until: Date().addingTimeInterval(0.2))
+        escape(window)
+        XCTAssertEqual(model.first, 1)
+        XCTAssertEqual(model.second, 1)
+    }
+
+    @MainActor
+    func testLockedDrawerDoesNotDispatchPageBackOnEscape() {
+        let seen = Seen()
+        let window = render(DrawerView(dismissible: false, onClose: { seen.hits += 100 }) {
+            FlareScreen(title: "Saving", onBack: { seen.hits += 1 }) { Text("Form") }
+        }, size: CGSize(width: 1024, height: 700))
+        defer { window.close() }
+        escape(window)
+        XCTAssertEqual(seen.hits, 0)
+    }
+
+    @MainActor
+    private func escape(_ window: NSWindow) {
+        window.makeKeyAndOrderFront(nil)
+        if let event = NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: [],
+                                       timestamp: ProcessInfo.processInfo.systemUptime,
+                                       windowNumber: window.windowNumber, context: nil,
+                                       characters: "\u{1b}", charactersIgnoringModifiers: "\u{1b}",
+                                       isARepeat: false, keyCode: 53) {
+            if !window.performKeyEquivalent(with: event) { window.sendEvent(event) }
+        }
+        RunLoop.main.run(until: Date().addingTimeInterval(0.2))
+    }
+
+    @MainActor
     private func click(_ window: NSWindow, at point: CGPoint) {
         guard let view = window.contentView else { return }
         // AppKit window coordinates start at the bottom left.

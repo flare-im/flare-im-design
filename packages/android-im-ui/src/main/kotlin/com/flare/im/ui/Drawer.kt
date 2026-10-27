@@ -22,6 +22,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,8 +51,9 @@ enum class FlareDrawerPlacement { End, Start }
  * page (a FlareScreen) does not pad for them again.
  *
  * The header row is `[back?] title … [actions] [close?]`; there is none when there is no visible title, no
- * [actions], no back and no close — page content that brings its own header passes [label] for the name and
- * `showClose = false`. [content] always gets the bounded remaining height and owns its scrolling; [footer] sticks
+ * [actions], no back and no close. A [FlareScreen] with back declares [FlareSheetOwnHeader]: the drawer
+ * then hides its header and routes Escape/system back to the page first. Other page content can declare the
+ * same ownership, or pass [label] for the name and `showClose = false`. [content] always gets the bounded remaining height and owns its scrolling; [footer] sticks
  * to the bottom. With [showBack] the host steps its own pages inside [content]: the back control, system back and
  * Escape run [onBack] instead of closing, and focus moves to the panel whenever the back state or the title
  * changes. While not [dismissible], the scrim, back, Escape and the header controls do nothing (the controls stay,
@@ -86,54 +89,57 @@ fun Drawer(
     }
     val depth = flareShadowElevation(flareShadows().xl)
     // Without an onBack the back control has nowhere to step to, so back closes as it would without it.
-    val step: (() -> Unit)? = if (showBack) onBack else null
-    FlareOverlayScaffold(
-        kind = FlareOverlaySurfaceKind.Drawer,
-        onClose = onClose,
-        dismissible = dismissible,
-        scrim = colors.scrim,
-        scrimLabel = if (flareScrimAnnounced(dismissible, showClose)) strings.close else null,
-        contentAlignment = if (end) Alignment.CenterEnd else Alignment.CenterStart,
-        enter = if (reducedMotion) EnterTransition.None
-        else slideInHorizontally(tween(FlareMotion.slow, easing = FlareMotion.slowEasing)) { it * sign },
-        exit = if (reducedMotion) ExitTransition.None
-        else slideOutHorizontally(tween(FlareMotion.normal, easing = FlareMotion.normalEasing)) { it * sign },
-        onBack = step,
-        // The panel runs under the status bar: its icons must read on the panel's surface.
-        lightStatusBars = colors.bgPrimary.luminance() > 0.5f,
-        focusKey = showBack to title,
-    ) { close, bounds ->
-        // Read in the drawer's own dialog window: the bars on the side it docks to, and the keyboard it raises.
-        val insets = WindowInsets.safeDrawing.only(
-            WindowInsetsSides.Vertical + if (end) WindowInsetsSides.End else WindowInsetsSides.Start,
-        )
-        Column(
-            modifier.fillMaxHeight()
-                .width(flareDrawerWidth(width, bounds.width))
-                .shadow(depth, shape, clip = false)
-                .clip(shape)
-                .background(colors.bgPrimary)
-                // A tap on the panel itself never reaches the scrim behind it.
-                .pointerInput(Unit) { detectTapGestures {} }
-                .semantics { paneTitle = flareOverlayPaneTitle(title, label, strings.drawerLabel) }
-                // Consumed here, so a hosted page does not pad for the bars again.
-                .windowInsetsPadding(insets),
-        ) {
-            if (flareOverlayHeaderVisible(title, titleHidden, actions != null, showClose, showBack)) {
-                FlareOverlayHeader(
-                    title = title,
-                    titleHidden = titleHidden,
-                    showBack = showBack,
-                    showClose = showClose,
-                    enabled = dismissible,
-                    onBack = { (step ?: close)() },
-                    onClose = close,
-                    actions = actions,
-                )
-            }
-            Column(Modifier.fillMaxWidth().weight(1f)) { content() }
-            if (footer != null) {
-                Box(Modifier.fillMaxWidth().padding(FlareSizes.spacingLg)) { footer() }
+    val header = remember { FlareSheetHeaderSlot(true, handlesBack = true) }
+    val step: (() -> Unit)? = header.back ?: if (showBack) onBack else null
+    CompositionLocalProvider(LocalFlareSheetHeader provides header) {
+        FlareOverlayScaffold(
+            kind = FlareOverlaySurfaceKind.Drawer,
+            onClose = onClose,
+            dismissible = dismissible,
+            scrim = colors.scrim,
+            scrimLabel = if (flareScrimAnnounced(dismissible, showClose)) strings.close else null,
+            contentAlignment = if (end) Alignment.CenterEnd else Alignment.CenterStart,
+            enter = if (reducedMotion) EnterTransition.None
+            else slideInHorizontally(tween(FlareMotion.slow, easing = FlareMotion.slowEasing)) { it * sign },
+            exit = if (reducedMotion) ExitTransition.None
+            else slideOutHorizontally(tween(FlareMotion.normal, easing = FlareMotion.normalEasing)) { it * sign },
+            onBack = step,
+            // The panel runs under the status bar: its icons must read on the panel's surface.
+            lightStatusBars = colors.bgPrimary.luminance() > 0.5f,
+            focusKey = showBack to title,
+        ) { close, bounds ->
+            // Read in the drawer's own dialog window: the bars on the side it docks to, and the keyboard it raises.
+            val insets = WindowInsets.safeDrawing.only(
+                WindowInsetsSides.Vertical + if (end) WindowInsetsSides.End else WindowInsetsSides.Start,
+            )
+            Column(
+                modifier.fillMaxHeight()
+                    .width(flareDrawerWidth(width, bounds.width))
+                    .shadow(depth, shape, clip = false)
+                    .clip(shape)
+                    .background(colors.bgPrimary)
+                    // A tap on the panel itself never reaches the scrim behind it.
+                    .pointerInput(Unit) { detectTapGestures {} }
+                    .semantics { paneTitle = flareOverlayPaneTitle(title, label, strings.drawerLabel) }
+                    // Consumed here, so a hosted page does not pad for the bars again.
+                    .windowInsetsPadding(insets),
+            ) {
+                if (!header.owned && flareOverlayHeaderVisible(title, titleHidden, actions != null, showClose, showBack)) {
+                    FlareOverlayHeader(
+                        title = title,
+                        titleHidden = titleHidden,
+                        showBack = showBack,
+                        showClose = showClose,
+                        enabled = dismissible,
+                        onBack = { (step ?: close)() },
+                        onClose = close,
+                        actions = actions,
+                    )
+                }
+                Column(Modifier.fillMaxWidth().weight(1f)) { content() }
+                if (footer != null) {
+                    Box(Modifier.fillMaxWidth().padding(FlareSizes.spacingLg)) { footer() }
+                }
             }
         }
     }

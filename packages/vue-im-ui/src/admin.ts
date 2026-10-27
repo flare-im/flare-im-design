@@ -46,3 +46,5 @@ export type {
   FlarePluginViewModel,
 } from "./shared/contracts/plugin-ui";
 export { flarePluginFilterInputs } from "./shared/contracts/plugin-ui";
+
+export { default as FlareAdminSection } from "./components/data/FlareAdminSection.vue";

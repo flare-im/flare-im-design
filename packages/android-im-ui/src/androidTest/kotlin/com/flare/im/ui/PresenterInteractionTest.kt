@@ -91,6 +91,45 @@ class PresenterInteractionTest {
         assertEquals(0, closes)
     }
 
+    @Test fun drawerEscapeAndSystemBackUseThePagesHeaderBeforeClosing() {
+        compose.setContent { MaterialTheme {
+            var open by remember { mutableStateOf(true) }
+            var depth by remember { mutableStateOf(2) }
+            if (open) Drawer(title = "Outer header", onClose = { closes++; open = false }) {
+                FlareScreen(title = "Page $depth", onBack = if (depth > 0) ({ depth-- }) else null) { Text("Page body") }
+            }
+        } }
+        compose.waitForIdle()
+        compose.onNodeWithText("Outer header").assertDoesNotExist()
+        InstrumentationRegistry.getInstrumentation().sendKeyDownUpSync(KeyEvent.KEYCODE_ESCAPE)
+        compose.waitForIdle()
+        compose.onNodeWithText("Page 1").assertIsDisplayed()
+        assertEquals(0, closes)
+        pressSystemBack()
+        compose.waitForIdle()
+        compose.onNodeWithText("Page 0").assertIsDisplayed()
+        InstrumentationRegistry.getInstrumentation().sendKeyDownUpSync(KeyEvent.KEYCODE_ESCAPE)
+        compose.waitForIdle()
+        compose.onNode(isDialog()).assertDoesNotExist()
+        assertEquals(1, closes)
+    }
+
+    @Test fun lockedDrawerSwallowsEscapeBeforeThePagesBack() {
+        var backs = 0
+        compose.setContent { MaterialTheme {
+            Drawer(title = "Saving", dismissible = false, onClose = { closes++ }) {
+                FlareScreen(title = "Page", onBack = { backs++ }) { Text("Form") }
+            }
+        } }
+        compose.waitForIdle()
+        InstrumentationRegistry.getInstrumentation().sendKeyDownUpSync(KeyEvent.KEYCODE_ESCAPE)
+        compose.waitForIdle()
+        pressSystemBack()
+        compose.waitForIdle()
+        assertEquals(0, backs)
+        assertEquals(0, closes)
+    }
+
     @Test fun toastsStackUpToThreeInAPoliteLiveRegion() {
         val toasts = FlareToastState()
         compose.setContent { MaterialTheme { FlareToastHost(state = toasts) { Box(Modifier.fillMaxSize()) } } }

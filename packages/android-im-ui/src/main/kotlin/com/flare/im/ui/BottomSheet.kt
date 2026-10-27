@@ -28,6 +28,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -191,9 +193,11 @@ internal fun flareSheetDrawsTitle(title: String?, titleHidden: Boolean, fill: Bo
 
 /** What the content of one [BottomSheet] declares to it: how many parts of it draw their own header row. */
 @Stable
-internal class FlareSheetHeaderSlot(val fill: Boolean) {
+internal class FlareSheetHeaderSlot(val fill: Boolean, val handlesBack: Boolean = false) {
     var owners by mutableIntStateOf(0)
     val owned: Boolean get() = owners > 0
+    val backs = mutableStateListOf<Pair<Any, () -> Unit>>()
+    val back: (() -> Unit)? get() = backs.lastOrNull()?.second
 }
 
 /** The enclosing kit sheet's slot; null outside a [BottomSheet]. */
@@ -207,14 +211,21 @@ internal fun flareSheetFills(): Boolean = LocalFlareSheetHeader.current?.fill ==
  * Declares that the content of the enclosing kit [BottomSheet] draws its own header row (a title with Cancel), as
  * [LocationPicker] and [ContactPicker] do. With the sheet's `fill` it then draws no visible title and keeps its title
  * as the accessible name only, so the two never repeat each other; without `fill`, or outside a sheet, it changes
- * nothing. Call it once from the content's composition; leaving the composition withdraws it. Spec:
+ * nothing. A [Drawer] also consumes this declaration and invokes [back] before closing on Escape/system back.
+ * Call it once from the content's composition; leaving the composition withdraws it. Spec:
  * Overlay/BottomSheet.
  */
 @Composable
-fun FlareSheetOwnHeader() {
+fun FlareSheetOwnHeader(back: (() -> Unit)? = null) {
     val slot = LocalFlareSheetHeader.current ?: return
-    DisposableEffect(slot) {
+    val currentBack by rememberUpdatedState(back)
+    val token = remember { Any() }
+    DisposableEffect(slot, back != null) {
         slot.owners += 1
-        onDispose { slot.owners -= 1 }
+        if (back != null) slot.backs.add(token to { currentBack?.invoke() })
+        onDispose {
+            slot.owners -= 1
+            slot.backs.removeAll { it.first === token }
+        }
     }
 }

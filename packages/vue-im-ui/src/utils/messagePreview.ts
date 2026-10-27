@@ -136,12 +136,17 @@ export type MessagePreviewVisual =
   | { kind: "emoji"; key: string; label: string }
   | { kind: "sticker"; label: string; packageId?: string; stickerId?: string; url?: string };
 
-export function displayTextFromStoredPreview(raw?: string | null, locale?: string): string {
+export interface StoredPreviewOptions {
+  /** Product-owned system message catalog; generic previews stay in the Kit. */
+  resolveSystemText?: (key: string, params: Record<string, string | number | boolean | null | undefined>, fallback: string) => string;
+}
+
+export function displayTextFromStoredPreview(raw?: string | null, locale?: string, options?: StoredPreviewOptions): string {
   const text = raw?.trim() ?? "";
   if (!text) return "";
   const payload = parseStoredPreview(text);
   if (!payload) return formatPreviewText(text, locale);
-  return formatPreviewText(storedPreviewPayloadText(payload, locale) || text, locale);
+  return formatPreviewText(storedPreviewPayloadText(payload, locale, options) || text, locale);
 }
 
 export function previewVisualFromStoredPreview(raw?: string | null, locale?: string): MessagePreviewVisual | null {
@@ -193,15 +198,15 @@ function parseStoredPreview(text: string): StoredPreviewPayload | null {
   }
 }
 
-function storedPreviewPayloadText(payload: StoredPreviewPayload, locale?: string): string {
-  const visual = storedPreviewPayloadVisual(payload, locale);
+function storedPreviewPayloadText(payload: StoredPreviewPayload, locale?: string, options?: StoredPreviewOptions): string {
+  const visual = storedPreviewPayloadVisual(payload, locale, options);
   if (visual?.kind === "emoji") return visual.label;
   if (visual?.kind === "sticker") return `[${visual.label}]`;
   if (visual?.kind === "text") return visual.text;
   return "";
 }
 
-function storedPreviewPayloadVisual(payload: StoredPreviewPayload, locale?: string): MessagePreviewVisual | null {
+function storedPreviewPayloadVisual(payload: StoredPreviewPayload, locale?: string, options?: StoredPreviewOptions): MessagePreviewVisual | null {
   const key = typeof payload.k === "string" ? payload.k : "";
   const args = asRecord(payload.a);
   switch (key) {
@@ -234,7 +239,7 @@ function storedPreviewPayloadVisual(payload: StoredPreviewPayload, locale?: stri
     case "im.preview.emoji":
       return emojiPreviewVisual(args, locale);
     case "im.preview.quote":
-      return textPreview(storedPreviewPayloadText(asRecord(args.inner) as StoredPreviewPayload, locale) || resolveFlareMessage(locale, "preview.quote"));
+      return textPreview(storedPreviewPayloadText(asRecord(args.inner) as StoredPreviewPayload, locale, options) || resolveFlareMessage(locale, "preview.quote"));
     case "im.preview.link":
       return textPreview(readString(args, "t") || resolveFlareMessage(locale, "preview.link"));
     case "im.preview.forward_empty":
@@ -251,13 +256,15 @@ function storedPreviewPayloadVisual(payload: StoredPreviewPayload, locale?: stri
       return textPreview(resolveFlareMessage(locale, "preview.imageGroup"));
     case "im.preview.system":
       return textPreview(
-        readString(args, "fb", "t", "body", "title")
+        resolveProductSystemText(args, options)
+          || readString(args, "fb", "t", "body", "title")
           || resolveSystemEventText(args, locale)
           || resolveFlareMessage(locale, "preview.system"),
       );
     case "im.preview.notification":
       return textPreview(
-        readString(args, "fb", "body", "title")
+        resolveProductSystemText(args, options)
+          || readString(args, "fb", "body", "title")
           || resolveSystemEventText(args, locale)
           || resolveFlareMessage(locale, "preview.notification"),
       );
@@ -291,6 +298,16 @@ function textPreview(text: string): MessagePreviewVisual | null {
  * Returns "" when the event is unknown so callers fall back to the generic system/notification label
  * instead of leaking the raw internal key.
  */
+function resolveProductSystemText(args: Record<string, unknown>, options?: StoredPreviewOptions): string {
+  const key = readString(args, "ik", "ek");
+  if (!key || !options?.resolveSystemText) return "";
+  const params: Record<string, string | number | boolean | null | undefined> = {};
+  for (const [name, value] of Object.entries(asRecord(args.p))) {
+    if (value == null || typeof value === "string" || typeof value === "number" || typeof value === "boolean") params[name] = value;
+  }
+  return options.resolveSystemText(key, params, readString(args, "fb", "t", "body", "title"));
+}
+
 function resolveSystemEventText(args: Record<string, unknown>, locale?: string): string {
   const ek = readString(args, "ek").trim();
   if (!ek) return "";

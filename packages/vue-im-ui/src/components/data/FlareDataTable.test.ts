@@ -411,6 +411,49 @@ describe("FlareDataTable", () => {
     }
   });
 
+  it("keeps table controls in a narrow scrolling list and preserves row identity, selection and events across modes", async () => {
+    const original = globalThis.ResizeObserver;
+    let report: ((entries: { contentRect: { width: number } }[]) => void) | null = null;
+    class FakeResizeObserver {
+      constructor(callback: (entries: { contentRect: { width: number } }[]) => void) { report = callback; }
+      observe() {}
+      disconnect() { report = null; }
+    }
+    globalThis.ResizeObserver = FakeResizeObserver as unknown as typeof ResizeObserver;
+    const opened: unknown[] = [];
+    const acted: string[] = [];
+    try {
+      const { host, table, set } = mountTable({ responsive: "scroll", stickyActions: true, selectable: true,
+        selectedKeys: ["u2"], onRowClick: (row: unknown) => opened.push(row) }, {
+        "row-actions": ({ row }: { row: { id: string } }) => h("button", { onClick: () => acted.push(row.id) }, "Manage"),
+      });
+      report!([{ contentRect: { width: 390 } }]);
+      await nextTick();
+      const firstRow = table.get("tbody tr").element;
+      expect(table.find("thead button").exists()).toBe(true);
+      expect(table.find("thead [role=checkbox]").exists()).toBe(true);
+      expect(table.find(".flare-data-table__sort-menu").exists()).toBe(false);
+      expect(table.get('[role="region"]').attributes("tabindex")).toBe("0");
+      await table.get("thead .flare-data-table__sort").trigger("click");
+      expect(emitted(table, "update:sort")).toEqual([[{ key: "name", order: "asc" }]]);
+      await table.get("tbody tr .flare-data-table__td--actions button").trigger("click");
+      expect(acted).toEqual(["u1"]);
+      expect(opened).toEqual([]);
+      await set({ responsive: "stack" });
+      expect(table.find("thead button").exists()).toBe(false);
+      expect(table.findAll("tbody tr")[1].attributes("aria-selected")).toBe("true");
+      await set({ responsive: "scroll" });
+      expect(table.get("tbody tr").element).toBe(firstRow);
+      expect(table.find("thead button").exists()).toBe(true);
+      await table.get("tbody tr").trigger("keydown", { key: "Enter" });
+      expect(opened).toEqual([rows[0]]);
+      expect(emitted(table, "update:selectedKeys")).toBeUndefined();
+      host.unmount();
+    } finally {
+      globalThis.ResizeObserver = original;
+    }
+  });
+
   it("speaks the kit's Chinese under a Chinese kit", () => {
     const { host, table } = mountTable({ selectable: true, selectedKeys: ["u1"], pagination: { page: 1, pageSize: 25, total: 3 } }, {}, "zh-CN");
     expect(table.get("table").attributes("aria-label")).toBe("数据表格");
