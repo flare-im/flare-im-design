@@ -56,7 +56,8 @@ describe("group call tiles", () => {
     const asked: string[] = [];
     const tile = ({ participant }: { participant: { id: string } }) => {
       asked.push(participant.id);
-      return h("video", { class: "stream" });
+      // No stream for c yet: an empty answer, so the kit shows the avatar.
+      return participant.id === "a" ? h("video", { class: "stream" }) : [];
     };
     const view = mountIn(
       FlareGroupCallView as Component,
@@ -64,14 +65,36 @@ describe("group call tiles", () => {
         mode: "video",
         state: "connected",
         participants: [
-          { id: "a", name: "A" },
+          { id: "a", name: "A", speaking: true, muted: true },
           { id: "b", name: "B", cameraOff: true },
+          { id: "c", name: "C" },
         ],
       },
       { tile },
     );
-    expect(asked).toEqual(["a"]);
+    expect(asked).toEqual(["a", "c"]);
     expect(view.findAll(".flare-group-call__stream .stream")).toHaveLength(1);
+    expect(view.findAll(".flare-group-call__stream .im-avatar")).toHaveLength(2);
+    // The video tile keeps its chrome: the speaking ring, the mute badge and the name over the stream.
+    const streaming = view.findAll(".flare-group-call__tile")[0]!;
+    expect(streaming.classes()).toContain("is-speaking");
+    expect(streaming.find(".flare-group-call__mic").exists()).toBe(true);
+    expect(streaming.get(".flare-group-call__pname").text()).toBe("A");
+    view.unmount();
+  });
+
+  it("never ask the host in an audio call", () => {
+    const asked: string[] = [];
+    const tile = ({ participant }: { participant: { id: string } }) => {
+      asked.push(participant.id);
+      return h("video", { class: "stream" });
+    };
+    const view = mountIn(
+      FlareGroupCallView as Component,
+      { mode: "audio", state: "connected", participants: [{ id: "a", name: "A" }] },
+      { tile },
+    );
+    expect(asked).toEqual([]);
     expect(view.findAll(".flare-group-call__stream .im-avatar")).toHaveLength(1);
     view.unmount();
   });

@@ -18,8 +18,10 @@ const props = withDefaults(
     cameraOn?: boolean;
     speakerOn?: boolean;
     encrypted?: boolean;
+    /** Show the "switch to video" control in an audio call; it emits `startVideo`. */
+    canStartVideo?: boolean;
   }>(),
-  { title: "", muted: false, cameraOn: true, speakerOn: false, encrypted: false },
+  { title: "", muted: false, cameraOn: true, speakerOn: false, encrypted: false, canStartVideo: false },
 );
 const emit = defineEmits<{
   (e: "hangup"): void;
@@ -28,6 +30,7 @@ const emit = defineEmits<{
   (e: "toggleSpeaker"): void;
   (e: "switchCamera"): void;
   (e: "addMember"): void;
+  (e: "startVideo"): void;
   (e: "minimize"): void;
   (e: "selectParticipant", id: string): void;
 }>();
@@ -99,11 +102,13 @@ const statusText = computed(() => {
         :speaker-on="speakerOn"
         :mode="mode"
         show-add-member
+        :can-start-video="canStartVideo"
         @toggle-mute="emit('toggleMute')"
         @toggle-camera="emit('toggleCamera')"
         @toggle-speaker="emit('toggleSpeaker')"
         @switch-camera="emit('switchCamera')"
         @add-member="emit('addMember')"
+        @start-video="emit('startVideo')"
         @hangup="emit('hangup')"
       />
     </div>

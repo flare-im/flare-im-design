@@ -34,6 +34,7 @@ class FlareGroupCallView extends StatelessWidget {
     this.onMinimize,
     this.onAddMember,
     this.tileBuilder,
+    this.onStartVideo,
   });
 
   final List<FlareCallParticipant> participants;
@@ -58,6 +59,10 @@ class FlareGroupCallView extends StatelessWidget {
 
   /// Invite-to-call; forwarded to the control bar when supplied.
   final VoidCallback? onAddMember;
+
+  /// Asks the host to turn the audio call into a video call; forwarded to the
+  /// control bar, which draws its "switch to video" key in an audio call.
+  final VoidCallback? onStartVideo;
 
   /// Host renders a participant's video. Asked only for a tile that shows
   /// video (a video call, the camera on); that tile, when this returns null,
@@ -171,6 +176,7 @@ class FlareGroupCallView extends StatelessWidget {
                   onSwitchCamera: onSwitchCamera,
                   onHangup: onHangup,
                   onAddMember: onAddMember,
+                  onStartVideo: onStartVideo,
                 ),
               ),
             ],

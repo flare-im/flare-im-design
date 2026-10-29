@@ -85,6 +85,8 @@ internal fun callViewPeerMarks(
  * [peerMuted] draws the [GroupCallView] tile's mic-off badge beside the peer's name; [peerSpeaking] draws the tile's
  * green as a ring round the peer's avatar. [localVideoContent] is the host's own camera, drawn as a 3:4
  * picture-in-picture at the top end corner in video mode.
+ *
+ * [onStartVideo] draws the control bar's "switch to video" key in an audio call; the host turns the call into video.
  */
 @Composable
 fun CallView(
@@ -109,6 +111,7 @@ fun CallView(
     recoveryText: String? = null,
     onRecover: (() -> Unit)? = null,
     onMinimize: (() -> Unit)? = null,
+    onStartVideo: (() -> Unit)? = null,
 ) {
     val marks = callViewPeerMarks(flareStrings(), mode, hasVideo = videoContent != null,
         hasLocalVideo = localVideoContent != null, peerMuted = peerMuted, peerSpeaking = peerSpeaking)
@@ -174,6 +177,7 @@ fun CallView(
                 muted = muted, cameraOn = cameraOn, speakerOn = speakerOn, mode = mode,
                 onToggleMute = onToggleMute, onToggleCamera = onToggleCamera,
                 onToggleSpeaker = onToggleSpeaker, onSwitchCamera = onSwitchCamera, onHangup = onHangup,
+                onStartVideo = onStartVideo,
             )
         }
         if (marks.localPreview && localVideoContent != null) {

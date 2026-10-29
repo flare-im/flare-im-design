@@ -38,6 +38,7 @@ class FlareStrings {
     this.callReturn = '返回通话', // en: Return to call
     this.callMinimize = '最小化', // en: Minimize
     this.callPeerMuted = '对方已静音', // en: Peer muted
+    this.callSwitchToVideo = '切换到视频', // en: Switch to video
     // 输入区
     this.send = '发送',
     this.cancelReply = '取消回复',
@@ -833,6 +834,10 @@ class FlareStrings {
 
   /// The peer's mic-off badge on [FlareCallView], read by screen readers.
   final String callPeerMuted;
+
+  /// The call keys' "switch to video" key, drawn in an audio call when the
+  /// host can turn it into a video call.
+  final String callSwitchToVideo;
   // 输入区
   final String send;
   final String cancelReply;
@@ -1695,6 +1700,7 @@ class FlareStrings {
     String? callReturn,
     String? callMinimize,
     String? callPeerMuted,
+    String? callSwitchToVideo,
     String? send,
     String? cancelReply,
     String? noContacts,
@@ -2420,6 +2426,7 @@ class FlareStrings {
       callReturn: callReturn ?? this.callReturn,
       callMinimize: callMinimize ?? this.callMinimize,
       callPeerMuted: callPeerMuted ?? this.callPeerMuted,
+      callSwitchToVideo: callSwitchToVideo ?? this.callSwitchToVideo,
       send: send ?? this.send,
       cancelReply: cancelReply ?? this.cancelReply,
       noContacts: noContacts ?? this.noContacts,

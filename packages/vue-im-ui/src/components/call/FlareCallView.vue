@@ -25,8 +25,10 @@ const props = withDefaults(
     peerMuted?: boolean;
     /** The peer is speaking: the speaking ring around the avatar (never while peerMuted). */
     peerSpeaking?: boolean;
+    /** Show the "switch to video" control in an audio call; it emits `startVideo`. */
+    canStartVideo?: boolean;
   }>(),
-  { muted: false, cameraOn: true, speakerOn: false, encrypted: false, peerMuted: false, peerSpeaking: false },
+  { muted: false, cameraOn: true, speakerOn: false, encrypted: false, peerMuted: false, peerSpeaking: false, canStartVideo: false },
 );
 const emit = defineEmits<{
   (e: "hangup"): void;
@@ -35,6 +37,7 @@ const emit = defineEmits<{
   (e: "toggleCamera"): void;
   (e: "toggleSpeaker"): void;
   (e: "switchCamera"): void;
+  (e: "startVideo"): void;
   (e: "minimize"): void;
 }>();
 
@@ -91,10 +94,12 @@ const hasPreview = computed(() => props.mode === "video" && !!slots.localVideo);
         :camera-on="cameraOn"
         :speaker-on="speakerOn"
         :mode="mode"
+        :can-start-video="canStartVideo"
         @toggle-mute="emit('toggleMute')"
         @toggle-camera="emit('toggleCamera')"
         @toggle-speaker="emit('toggleSpeaker')"
         @switch-camera="emit('switchCamera')"
+        @start-video="emit('startVideo')"
         @hangup="emit('hangup')"
       />
     </div>

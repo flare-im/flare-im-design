@@ -10,6 +10,9 @@ enum FlareCallMode { audio, video }
 /// Call control bar — microphone, camera, speaker, flip, hang up (adapts to
 /// audio/video). Each device key is named by its device and announced as on
 /// while the device is on. Spec: Call/CallControls (`FlareCallControls`).
+///
+/// Order: microphone, then camera and flip (video) or speaker and "switch to
+/// video" (audio), then add member, then hang up.
 class FlareCallControls extends StatelessWidget {
   const FlareCallControls({
     super.key,
@@ -23,6 +26,7 @@ class FlareCallControls extends StatelessWidget {
     this.onSwitchCamera,
     this.onHangup,
     this.onAddMember,
+    this.onStartVideo,
   });
 
   final bool muted;
@@ -37,6 +41,10 @@ class FlareCallControls extends StatelessWidget {
 
   /// Invite-to-call key; rendered before hang-up only when the host supplies it.
   final VoidCallback? onAddMember;
+
+  /// "Switch to video" key: asks the host to turn the audio call into a video
+  /// call. Rendered after the speaker in an audio call, only when supplied.
+  final VoidCallback? onStartVideo;
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +74,7 @@ class FlareCallControls extends StatelessWidget {
             deviceOn: cameraOn,
           ),
           _ctrl('switch-camera', strings.flipCamera, onSwitchCamera),
-        ] else
+        ] else ...[
           _ctrl(
             speakerOn ? 'speaker' : 'speaker-off',
             strings.speaker,
@@ -74,6 +82,9 @@ class FlareCallControls extends StatelessWidget {
             active: speakerOn,
             deviceOn: speakerOn,
           ),
+          if (onStartVideo != null)
+            _ctrl('video', strings.callSwitchToVideo, onStartVideo),
+        ],
         if (onAddMember != null)
           _ctrl('person-add', strings.addMember, onAddMember),
         _hangup(strings.hangUp),

@@ -528,6 +528,7 @@ public extension FlareStrings {
             scrollToLatest: "Jump to latest messages",
             callMinimize: "Minimize call",
             callPeerMuted: "Peer muted",
+            callSwitchToVideo: "Switch to video",
             callDeviceOn: "On",
             callDeviceOff: "Off",
             callReturn: "Back to call",

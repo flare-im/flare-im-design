@@ -6,6 +6,10 @@ public enum FlareCallMode: Sendable { case audio, video }
 public enum FlareCallState: Sendable { case calling, ringing, connected, reconnecting, failed }
 
 /// Call control bar. Spec: Call/CallControls (`CallControlsView`).
+///
+/// Order: microphone, then camera and flip (video) or speaker and "switch to video" (audio), then add member, then
+/// hang up. `onAddMember` and `onStartVideo` draw their keys only when the host passes them; "switch to video" is
+/// drawn in an audio call only and asks the host to turn the call into a video call.
 public struct CallControlsView: View {
     private let muted: Bool
     private let cameraOn: Bool
@@ -17,14 +21,17 @@ public struct CallControlsView: View {
     private let onSwitchCamera: (() -> Void)?
     private let onHangup: (() -> Void)?
     private let onAddMember: (() -> Void)?
+    private let onStartVideo: (() -> Void)?
     @Environment(\.flareStrings) private var strings
 
     public init(muted: Bool = false, cameraOn: Bool = true, speakerOn: Bool = false, mode: FlareCallMode = .video,
                 onToggleMute: (() -> Void)? = nil, onToggleCamera: (() -> Void)? = nil, onToggleSpeaker: (() -> Void)? = nil,
-                onSwitchCamera: (() -> Void)? = nil, onHangup: (() -> Void)? = nil, onAddMember: (() -> Void)? = nil) {
+                onSwitchCamera: (() -> Void)? = nil, onHangup: (() -> Void)? = nil, onAddMember: (() -> Void)? = nil,
+                onStartVideo: (() -> Void)? = nil) {
         self.muted = muted; self.cameraOn = cameraOn; self.speakerOn = speakerOn; self.mode = mode
         self.onToggleMute = onToggleMute; self.onToggleCamera = onToggleCamera; self.onToggleSpeaker = onToggleSpeaker
         self.onSwitchCamera = onSwitchCamera; self.onHangup = onHangup; self.onAddMember = onAddMember
+        self.onStartVideo = onStartVideo
     }
 
     public var body: some View {
@@ -38,6 +45,9 @@ public struct CallControlsView: View {
             } else {
                 ctrl(speakerOn ? "speaker" : "speaker-off", strings.speaker, speakerOn, onToggleSpeaker,
                      state: Self.deviceState(on: speakerOn, strings))
+                if let onStartVideo {
+                    ctrl("video", strings.callSwitchToVideo, false, onStartVideo)
+                }
             }
             if let onAddMember {
                 ctrl("person-add", strings.addMember, false, onAddMember)
@@ -91,6 +101,8 @@ public struct CallControlsView: View {
 /// `peerMuted` draws the ``GroupCallView`` tile's mic-off badge beside the peer's name; `peerSpeaking` draws the
 /// tile's green as a ring round the peer's avatar. `localVideo` is the host's own camera, drawn as a 3:4
 /// picture-in-picture at the top trailing corner in video mode.
+///
+/// `onStartVideo` draws the control bar's "switch to video" key in an audio call; the host turns the call into video.
 public struct CallView: View {
     private let peerName: String
     private let mode: FlareCallMode
@@ -113,6 +125,7 @@ public struct CallView: View {
     private let peerMuted: Bool
     private let peerSpeaking: Bool
     private let localVideo: AnyView?
+    private let onStartVideo: (() -> Void)?
     @Environment(\.flareStrings) private var strings
 
     public init(peerName: String, mode: FlareCallMode, state: FlareCallState, durationLabel: String? = nil,
@@ -121,7 +134,7 @@ public struct CallView: View {
                 onToggleCamera: (() -> Void)? = nil, onToggleSpeaker: (() -> Void)? = nil, onSwitchCamera: (() -> Void)? = nil,
                 statusDetail: String? = nil, recoveryText: String? = nil, onRecover: (() -> Void)? = nil,
                 onMinimize: (() -> Void)? = nil, peerMuted: Bool = false, peerSpeaking: Bool = false,
-                localVideo: AnyView? = nil) {
+                localVideo: AnyView? = nil, onStartVideo: (() -> Void)? = nil) {
         self.statusDetail = statusDetail; self.recoveryText = recoveryText; self.onRecover = onRecover
         self.onMinimize = onMinimize
         self.peerName = peerName; self.mode = mode; self.state = state; self.durationLabel = durationLabel
@@ -129,6 +142,7 @@ public struct CallView: View {
         self.video = video; self.onHangup = onHangup; self.onToggleMute = onToggleMute
         self.onToggleCamera = onToggleCamera; self.onToggleSpeaker = onToggleSpeaker; self.onSwitchCamera = onSwitchCamera
         self.peerMuted = peerMuted; self.peerSpeaking = peerSpeaking; self.localVideo = localVideo
+        self.onStartVideo = onStartVideo
     }
 
     /// Whether the speaking ring goes round the peer's avatar: the peer speaks and is not muted. The avatar, and so
@@ -182,7 +196,7 @@ public struct CallView: View {
                     }
                     CallControlsView(muted: muted, cameraOn: cameraOn, speakerOn: speakerOn, mode: mode,
                                      onToggleMute: onToggleMute, onToggleCamera: onToggleCamera, onToggleSpeaker: onToggleSpeaker,
-                                     onSwitchCamera: onSwitchCamera, onHangup: onHangup)
+                                     onSwitchCamera: onSwitchCamera, onHangup: onHangup, onStartVideo: onStartVideo)
                         .padding(.top, 32)
                 }.padding(.horizontal, 16).padding(.top, Self.peerTopInset(localPreview: mode == .video && localVideo != nil))
                 .padding(.bottom, 48)

@@ -26,7 +26,9 @@ enum class FlareCallMode { Audio, Video }
 /**
  * The keys of a [CallControls] bar, in display order. Microphone, camera and speaker are switches
  * whose state is the device's (on = capturing, or playing out loud) and whose glyph follows it; flip,
- * add member and hang up are buttons. Hang up draws the end-call glyph, never a rotated handset.
+ * switch to video, add member and hang up are buttons. Switch to video follows the speaker in an audio
+ * call when the host can start video ([canStartVideo]). Hang up draws the end-call glyph, never a
+ * rotated handset.
  */
 internal fun callControlKeys(
     strings: FlareStrings,
@@ -35,6 +37,7 @@ internal fun callControlKeys(
     speakerOn: Boolean,
     mode: FlareCallMode,
     canAddMember: Boolean,
+    canStartVideo: Boolean = false,
 ): List<FlareIconControlSpec> = buildList {
     add(FlareIconControlSpec("microphone", if (muted) "mic-off" else "mic", strings.microphone, checked = !muted))
     if (mode == FlareCallMode.Video) {
@@ -42,6 +45,7 @@ internal fun callControlKeys(
         add(FlareIconControlSpec("flipCamera", "switch-camera", strings.flipCamera))
     } else {
         add(FlareIconControlSpec("speaker", if (speakerOn) "speaker" else "speaker-off", strings.speaker, checked = speakerOn))
+        if (canStartVideo) add(FlareIconControlSpec("startVideo", "video", strings.callSwitchToVideo))
     }
     if (canAddMember) add(FlareIconControlSpec("addMember", "person-add", strings.addMember))
     add(FlareIconControlSpec("hangUp", "end-call", strings.hangUp))
@@ -50,6 +54,9 @@ internal fun callControlKeys(
 /**
  * Call control bar — mute, camera, speaker, flip, hang up (adapts to
  * audio/video). Spec: Call/CallControls (`CallControls`).
+ *
+ * [onAddMember] and [onStartVideo] draw their keys only when the host passes them; "switch to video" is
+ * drawn in an audio call only and asks the host to turn the call into a video call.
  */
 @Composable
 @OptIn(ExperimentalLayoutApi::class)
@@ -64,19 +71,22 @@ fun CallControls(
     onSwitchCamera: (() -> Unit)? = null,
     onHangup: (() -> Unit)? = null,
     onAddMember: (() -> Unit)? = null,
+    onStartVideo: (() -> Unit)? = null,
 ) {
     val strings = flareStrings()
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingLg, Alignment.CenterHorizontally),
         verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingLg),
     ) {
-        callControlKeys(strings, muted, cameraOn, speakerOn, mode, canAddMember = onAddMember != null).forEach { key ->
+        callControlKeys(strings, muted, cameraOn, speakerOn, mode, canAddMember = onAddMember != null,
+            canStartVideo = onStartVideo != null).forEach { key ->
             when (key.id) {
                 // The white disc marks the state that departs from a normal call: muted, camera off, speaker on.
                 "microphone" -> CallKey(key, highlighted = muted, onToggleMute)
                 "camera" -> CallKey(key, highlighted = !cameraOn, onToggleCamera)
                 "flipCamera" -> CallKey(key, highlighted = false, onSwitchCamera)
                 "speaker" -> CallKey(key, highlighted = speakerOn, onToggleSpeaker)
+                "startVideo" -> CallKey(key, highlighted = false, onStartVideo)
                 "addMember" -> CallKey(key, highlighted = false, onAddMember)
                 "hangUp" -> HangUpKey(key, onHangup)
             }

@@ -44,6 +44,9 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
     // The peer's mic-off badge on CallView, read by TalkBack.
     val callPeerMuted: String
         get() = (overrides["callPeerMuted"] as? (String)) ?: "对方已静音"
+    // The call controls' key that asks the host to turn an audio call into a video call.
+    val callSwitchToVideo: String
+        get() = (overrides["callSwitchToVideo"] as? (String)) ?: "切换到视频"
     val callReturn: String
         get() = (overrides["callReturn"] as? (String)) ?: "返回通话"
     val callWaitingAnswer: String
@@ -1673,6 +1676,10 @@ class FlareStringsBuilder internal constructor() {
     var callPeerMuted: String
         get() = (values["callPeerMuted"] as? (String)) ?: "对方已静音"
         set(value) { values["callPeerMuted"] = value }
+
+    var callSwitchToVideo: String
+        get() = (values["callSwitchToVideo"] as? (String)) ?: "切换到视频"
+        set(value) { values["callSwitchToVideo"] = value }
 
     var callReturn: String
         get() = (values["callReturn"] as? (String)) ?: "返回通话"

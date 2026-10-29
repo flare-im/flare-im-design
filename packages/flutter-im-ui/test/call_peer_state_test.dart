@@ -103,19 +103,49 @@ void main() {
           mode: FlareCallMode.video,
           state: FlareCallState.connected,
           participants: const [
-            FlareCallParticipant(id: 'a', name: 'A'),
+            FlareCallParticipant(id: 'a', name: 'A', muted: true),
             FlareCallParticipant(id: 'b', name: 'B', cameraOff: true),
             FlareCallParticipant(id: 'c', name: 'C'),
           ],
           tileBuilder: (p) {
             asked.add(p.id);
             // No stream for c yet: the kit shows the avatar.
-            return p.id == 'a' ? const ColoredBox(color: Colors.red) : null;
+            return p.id == 'a'
+                ? const ColoredBox(key: Key('stream-a'), color: Colors.red)
+                : null;
           },
         ),
       ),
     );
     expect(asked, ['a', 'c']);
     expect(find.byType(FlareAvatar), findsNWidgets(2));
+    // The stream fills its tile and the name tag stays drawn over it.
+    final stream = tester.getRect(find.byKey(const Key('stream-a')));
+    expect(
+      stream.contains(tester.getCenter(find.text('A'))),
+      isTrue,
+      reason: 'the name sits on the video',
+    );
+  });
+
+  testWidgets('group tiles never ask for video in an audio call', (
+    tester,
+  ) async {
+    final asked = <String>[];
+    await tester.pumpWidget(
+      _host(
+        FlareGroupCallView(
+          mode: FlareCallMode.audio,
+          state: FlareCallState.connected,
+          participants: const [FlareCallParticipant(id: 'a', name: 'A')],
+          tileBuilder: (p) {
+            asked.add(p.id);
+            return const ColoredBox(color: Colors.red);
+          },
+        ),
+      ),
+    );
+    expect(asked, isEmpty);
+    expect(find.byType(FlareAvatar), findsOneWidget);
   });
 }

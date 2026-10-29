@@ -12107,6 +12107,19 @@
             "en": "The peer is speaking: the speaking ring (the GroupCallView tile's green) around the peer's avatar. Not drawn while peerMuted, nor while the peer's video covers the avatar.",
             "zh": "对端正在说话：对端头像外圈显示说话环（与 GroupCallView 格子同一绿色）。peerMuted 时不画；对端画面盖住头像时也不画。"
           }
+        },
+        {
+          "name": "canStartVideo",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "en": "Vue: draw the \"switch to video\" key in an audio call; pressing it emits startVideo. The native kits draw the key when the host passes onStartVideo.",
+            "zh": "Vue：音频通话时显示「切换到视频」键，点击发出 startVideo。原生端在宿主传入 onStartVideo 时显示该键。"
+          },
+          "platforms": [
+            "vue"
+          ]
         }
       ],
       "states": [
@@ -12123,11 +12136,12 @@
         "toggleSpeaker",
         "switchCamera",
         "recover",
-        "minimize"
+        "minimize",
+        "startVideo"
       ],
       "notes": {
-        "en": "Video track uses a host-injected render slot (video); the host's own camera goes in localVideo, which the kit draws as a picture-in-picture at the top trailing corner (component token callPreviewWidth, 3:4, radius card) in video mode only. The control bar is CallControls. minimize asks the host to shrink the call into its CallDock: Vue always draws the control; the native kits draw it only when the host passes onMinimize.",
-        "zh": "视频轨道用宿主注入的渲染 slot（video）；宿主本端摄像头放进 localVideo，由组件库画成右上角（行尾）画中画小窗（组件 token callPreviewWidth，3:4，圆角 card），只在视频模式显示。控制条为 CallControls。minimize 请宿主把通话收进 CallDock：Vue 始终绘制该控制；原生端只在宿主传入 onMinimize 时绘制。"
+        "en": "Video track uses a host-injected render slot (video); the host's own camera goes in localVideo, which the kit draws as a picture-in-picture at the top trailing corner (component token callPreviewWidth, 3:4, radius card) in video mode only. The control bar is CallControls. minimize asks the host to shrink the call into its CallDock: Vue always draws the control; the native kits draw it only when the host passes onMinimize. startVideo is forwarded from the control bar's \"switch to video\" key, drawn in audio mode only (Vue canStartVideo, natives onStartVideo); the host upgrades the call and switches mode to video.",
+        "zh": "视频轨道用宿主注入的渲染 slot（video）；宿主本端摄像头放进 localVideo，由组件库画成右上角（行尾）画中画小窗（组件 token callPreviewWidth，3:4，圆角 card），只在视频模式显示。控制条为 CallControls。minimize 请宿主把通话收进 CallDock：Vue 始终绘制该控制；原生端只在宿主传入 onMinimize 时绘制。startVideo 来自控制条的「切换到视频」键，只在音频模式显示（Vue canStartVideo，原生 onStartVideo）；宿主升级通话后把 mode 切到 video。"
       },
       "platforms": {
         "vue": {
@@ -12269,8 +12283,8 @@
       "name": "CallControls",
       "category": "Call",
       "summary": {
-        "en": "Call control bar — mute, camera, speaker, flip camera, hang up (adapts to audio/video).",
-        "zh": "通话控制条 —— 静音、摄像头、扬声器、翻转摄像头、挂断（音 / 视频自适应）。"
+        "en": "Call control bar — mute, camera, speaker, flip camera, switch to video, hang up (adapts to audio/video).",
+        "zh": "通话控制条 —— 静音、摄像头、扬声器、翻转摄像头、切换到视频、挂断（音 / 视频自适应）。"
       },
       "dataSource": {
         "en": "local RTC device state",
@@ -12306,9 +12320,22 @@
           "type": "'audio' | 'video'",
           "default": "video",
           "description": {
-            "en": "Audio hides camera/flip; video hides speaker.",
-            "zh": "音频隐藏摄像头 / 翻转；视频隐藏扬声器。"
+            "en": "Audio hides camera/flip; video hides speaker and switch to video.",
+            "zh": "音频隐藏摄像头 / 翻转；视频隐藏扬声器与切换到视频。"
           }
+        },
+        {
+          "name": "canStartVideo",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "en": "Vue: draw the \"switch to video\" key in an audio call, right after the speaker; pressing it emits startVideo. The native kits draw the key when the host passes onStartVideo.",
+            "zh": "Vue：音频通话时在扬声器键之后显示「切换到视频」键，点击发出 startVideo。原生端在宿主传入 onStartVideo 时显示该键。"
+          },
+          "platforms": [
+            "vue"
+          ]
         }
       ],
       "states": [
@@ -12321,7 +12348,8 @@
         "toggleSpeaker",
         "switchCamera",
         "hangup",
-        "addMember"
+        "addMember",
+        "startVideo"
       ],
       "platforms": {
         "vue": {
@@ -12342,8 +12370,8 @@
         }
       },
       "notes": {
-        "zh": "四端都在挂断键前渲染「加人」键，前提是宿主提供了回调（Vue showAddMember，原生 onAddMember）；GroupCallView 把自己的 onAddMember 转发给控件条。",
-        "en": "addMember renders an invite key before hang-up on every platform when the host supplies it (Vue showAddMember, natives onAddMember); GroupCallView forwards its own onAddMember to the control bar."
+        "zh": "四端都在挂断键前渲染「加人」键，前提是宿主提供了回调（Vue showAddMember，原生 onAddMember）；GroupCallView 把自己的 onAddMember 转发给控件条。startVideo 请宿主把音频通话升级为视频通话（服务端 flare.call.update_media）：四端都只在音频模式、且宿主提供了回调时（Vue canStartVideo，原生 onStartVideo）在扬声器键之后渲染「切换到视频」键（视频图标，文案 callSwitchToVideo），顺序为 麦克风、扬声器、切换到视频、加人、挂断；视频模式从不显示。它是普通按钮，不是设备开关。",
+        "en": "addMember renders an invite key before hang-up on every platform when the host supplies it (Vue showAddMember, natives onAddMember); GroupCallView forwards its own onAddMember to the control bar. startVideo asks the host to turn the audio call into a video call (server op flare.call.update_media): every platform renders a \"switch to video\" key (the video icon, string callSwitchToVideo) right after the speaker, only in audio mode and only when the host supplies it (Vue canStartVideo, natives onStartVideo), so the audio order is microphone, speaker, switch to video, add member, hang up; video mode never shows it. It is a plain button, not a device switch."
       },
       "eventPlatforms": {
         "addMember": [
@@ -12580,6 +12608,19 @@
           "platforms": [
             "vue"
           ]
+        },
+        {
+          "name": "canStartVideo",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "en": "Vue: draw the \"switch to video\" key in an audio call; pressing it emits startVideo. The native kits draw the key when the host passes onStartVideo.",
+            "zh": "Vue：音频通话时显示「切换到视频」键，点击发出 startVideo。原生端在宿主传入 onStartVideo 时显示该键。"
+          },
+          "platforms": [
+            "vue"
+          ]
         }
       ],
       "states": [
@@ -12597,6 +12638,7 @@
         "switchCamera",
         "addMember",
         "minimize",
+        "startVideo",
         "selectParticipant"
       ],
       "platforms": {
@@ -12648,25 +12690,21 @@
       "slots": [
         "tile"
       ],
-      "slotPlatforms": {
-        "tile": [
-          "vue",
-          "flutter"
-        ]
-      },
-      "slotReasons": {
-        "tile": "A participant's video tile exists where a call plugin renders video: the Vue and Flutter kits. The SwiftUI and Compose group views draw avatars only until a native call client needs video tiles; nothing on those kits renders a call stream yet."
-      },
       "platformAliases": {
         "flutter": {
           "slots": {
             "tile": "tileBuilder"
           }
+        },
+        "compose": {
+          "slots": {
+            "tile": "tileContent"
+          }
         }
       },
       "notes": {
-        "en": "tile renders one participant's video and is asked only for a tile that shows video (a video call with the camera on); every other tile, and a tile the host leaves empty, shows the kit's avatar.",
-        "zh": "tile 渲染一位参与者的画面，只在格子显示画面时（视频通话且摄像头开着）才向宿主要；其余格子，以及宿主没给内容的格子，显示组件库的头像。"
+        "en": "tile renders one participant's video and is asked only for a tile that shows video (a video call with the camera on); every other tile, and a tile the host leaves empty (Vue: an empty slot; Flutter tileBuilder, SwiftUI tile, Compose tileContent: null), shows the kit's avatar. The tile keeps its chrome over the video on every platform: the speaking ring, the mute or camera-off badge and the name. startVideo is forwarded from the control bar's \"switch to video\" key, drawn in audio mode only (Vue canStartVideo, natives onStartVideo).",
+        "zh": "tile 渲染一位参与者的画面，只在格子显示画面时（视频通话且摄像头开着）才向宿主要；其余格子，以及宿主没给内容的格子（Vue 空插槽；Flutter tileBuilder、SwiftUI tile、Compose tileContent 返回 null），显示组件库的头像。四端格子的装饰都画在画面之上：说话环、静音或关摄像头角标、名字。startVideo 来自控制条的「切换到视频」键，只在音频模式显示（Vue canStartVideo，原生 onStartVideo）。"
       }
     },
     {

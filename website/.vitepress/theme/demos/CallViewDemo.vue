@@ -18,7 +18,7 @@ const ended = ref(0);
     <p>本地状态演示，不建立 RTC 通话。挂断 {{ ended }} 次</p>
     <div class="stage">
       <FlareCallView peer-name="Ivy Chen" :mode="mode" :state="state" duration-label="03:24" :camera-on="true"
-        :peer-muted="peerMuted" :peer-speaking="peerSpeaking"
+        :peer-muted="peerMuted" :peer-speaking="peerSpeaking" can-start-video @start-video="mode = 'video'"
         :status-detail="state === 'reconnecting' ? '网络不稳定，正在恢复媒体连接' : undefined" recovery-text="重新连接" @recover="state = 'reconnecting'" @hangup="ended++">
         <template #localVideo>
           <div class="self-preview" role="img" aria-label="本端画面" />

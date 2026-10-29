@@ -7248,7 +7248,8 @@
         "toggleSpeaker",
         "switchCamera",
         "recover",
-        "minimize"
+        "minimize",
+        "startVideo"
       ],
       "states": [
         "calling",
@@ -7264,7 +7265,8 @@
         "toggleSpeaker",
         "switchCamera",
         "recover",
-        "minimize"
+        "minimize",
+        "startVideo"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -7306,7 +7308,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#CallView",
-      "searchText": "callview call im-ui stable call calling ringing connected reconnecting failed hangup togglemute togglecamera togglespeaker switchcamera recover minimize supportsconfiguration supportsresponsive in-call surface — peer video/avatar, state, duration, with an overlaid control bar. video render is host-injected. 音视频通话中界面 —— 对端画面 / 头像、状态、时长，叠加控制条。视频渲染由宿主注入。"
+      "searchText": "callview call im-ui stable call calling ringing connected reconnecting failed hangup togglemute togglecamera togglespeaker switchcamera recover minimize startvideo supportsconfiguration supportsresponsive in-call surface — peer video/avatar, state, duration, with an overlaid control bar. video render is host-injected. 音视频通话中界面 —— 对端画面 / 头像、状态、时长，叠加控制条。视频渲染由宿主注入。"
     },
     {
       "name": "IncomingCall",
@@ -7464,8 +7466,8 @@
         ]
       },
       "summary": {
-        "en": "Call control bar — mute, camera, speaker, flip camera, hang up (adapts to audio/video).",
-        "zh": "通话控制条 —— 静音、摄像头、扬声器、翻转摄像头、挂断（音 / 视频自适应）。"
+        "en": "Call control bar — mute, camera, speaker, flip camera, switch to video, hang up (adapts to audio/video).",
+        "zh": "通话控制条 —— 静音、摄像头、扬声器、翻转摄像头、切换到视频、挂断（音 / 视频自适应）。"
       },
       "aliases": [
         "Call",
@@ -7476,7 +7478,8 @@
         "toggleSpeaker",
         "switchCamera",
         "hangup",
-        "addMember"
+        "addMember",
+        "startVideo"
       ],
       "states": [
         "audio",
@@ -7488,7 +7491,8 @@
         "toggleSpeaker",
         "switchCamera",
         "hangup",
-        "addMember"
+        "addMember",
+        "startVideo"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -7530,7 +7534,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#CallControls",
-      "searchText": "callcontrols call im-ui stable call audio video togglemute togglecamera togglespeaker switchcamera hangup addmember supportsconfiguration supportscustomactions supportscapabilities call control bar — mute, camera, speaker, flip camera, hang up (adapts to audio/video). 通话控制条 —— 静音、摄像头、扬声器、翻转摄像头、挂断（音 / 视频自适应）。"
+      "searchText": "callcontrols call im-ui stable call audio video togglemute togglecamera togglespeaker switchcamera hangup addmember startvideo supportsconfiguration supportscustomactions supportscapabilities call control bar — mute, camera, speaker, flip camera, switch to video, hang up (adapts to audio/video). 通话控制条 —— 静音、摄像头、扬声器、翻转摄像头、切换到视频、挂断（音 / 视频自适应）。"
     },
     {
       "name": "ResponsiveLayout",
@@ -7708,6 +7712,7 @@
         "switchCamera",
         "addMember",
         "minimize",
+        "startVideo",
         "selectParticipant"
       ],
       "states": [
@@ -7725,6 +7730,7 @@
         "switchCamera",
         "addMember",
         "minimize",
+        "startVideo",
         "selectParticipant"
       ],
       "accessibility": "accessibility-contract",
@@ -7767,7 +7773,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#GroupCallView",
-      "searchText": "groupcallview call im-ui stable call calling ringing connected reconnecting failed hangup togglemute togglecamera togglespeaker switchcamera addmember minimize selectparticipant supportsconfiguration supportsresponsive group (multi-party) call — participant grid, speaking highlight, mute/camera badges, add member. 群聊多人通话 —— 参与者网格、说话高亮、静音/关摄像头角标、加人。"
+      "searchText": "groupcallview call im-ui stable call calling ringing connected reconnecting failed hangup togglemute togglecamera togglespeaker switchcamera addmember minimize startvideo selectparticipant supportsconfiguration supportsresponsive group (multi-party) call — participant grid, speaking highlight, mute/camera badges, add member. 群聊多人通话 —— 参与者网格、说话高亮、静音/关摄像头角标、加人。"
     },
     {
       "name": "CallRecordCard",

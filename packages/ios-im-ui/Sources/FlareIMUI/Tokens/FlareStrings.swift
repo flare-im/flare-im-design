@@ -701,6 +701,8 @@ public struct FlareStrings: Sendable {
     public var callMinimize: String
     /// The peer's mic-off badge on ``CallView``, read by VoiceOver.
     public var callPeerMuted: String
+    /// en: "Switch to video" — the call controls' key that asks the host to turn an audio call into a video call.
+    public var callSwitchToVideo: String
     /// en: "On" — the value of a call device toggle (microphone, camera, speaker) whose device is on.
     public var callDeviceOn: String
     /// en: "Off" — the value of a call device toggle whose device is off (a muted microphone is off).
@@ -1542,6 +1544,7 @@ public struct FlareStrings: Sendable {
         scrollToLatest: String = "回到最新消息",
         callMinimize: String = "收起通话",
         callPeerMuted: String = "对方已静音",
+        callSwitchToVideo: String = "切换到视频",
         callDeviceOn: String = "已开启",
         callDeviceOff: String = "已关闭",
         callReturn: String = "返回通话",
@@ -2245,6 +2248,7 @@ public struct FlareStrings: Sendable {
         self.scrollToLatest = scrollToLatest
         self.callMinimize = callMinimize
         self.callPeerMuted = callPeerMuted
+        self.callSwitchToVideo = callSwitchToVideo
         self.callDeviceOn = callDeviceOn
         self.callDeviceOff = callDeviceOff
         self.callReturn = callReturn

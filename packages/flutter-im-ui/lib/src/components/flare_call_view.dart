@@ -42,6 +42,7 @@ class FlareCallView extends StatelessWidget {
     this.onToggleSpeaker,
     this.onSwitchCamera,
     this.onMinimize,
+    this.onStartVideo,
   });
 
   final String peerName;
@@ -75,6 +76,10 @@ class FlareCallView extends StatelessWidget {
 
   /// Shrinks the call into the host's dock; null hides the control.
   final VoidCallback? onMinimize;
+
+  /// Asks the host to turn the audio call into a video call; the "switch to
+  /// video" key is drawn in an audio call only when this is supplied.
+  final VoidCallback? onStartVideo;
 
   /// The minimize disc, inside a full touch target.
   static const double _disc = 36;
@@ -218,6 +223,7 @@ class FlareCallView extends StatelessWidget {
                       onToggleSpeaker: onToggleSpeaker,
                       onSwitchCamera: onSwitchCamera,
                       onHangup: onHangup,
+                      onStartVideo: onStartVideo,
                     ),
                   ],
                 ),

@@ -317,6 +317,15 @@
     ],
     "zh": "响铃中…"
   },
+  "callSwitchToVideo": {
+    "en": "Switch to video",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "切换到视频"
+  },
   "callWaitingAnswer": {
     "en": "Waiting for an answer…",
     "kits": [

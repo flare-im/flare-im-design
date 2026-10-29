@@ -12,8 +12,10 @@ const props = withDefaults(
     mode?: "audio" | "video";
     /** Show the "add participant" button (group calls). */
     showAddMember?: boolean;
+    /** Show the "switch to video" button in an audio call; it emits `startVideo` and the host turns the call into video. */
+    canStartVideo?: boolean;
   }>(),
-  { muted: false, cameraOn: true, speakerOn: false, mode: "video", showAddMember: false },
+  { muted: false, cameraOn: true, speakerOn: false, mode: "video", showAddMember: false, canStartVideo: false },
 );
 const emit = defineEmits<{
   (e: "toggleMute"): void;
@@ -21,6 +23,7 @@ const emit = defineEmits<{
   (e: "toggleSpeaker"): void;
   (e: "switchCamera"): void;
   (e: "addMember"): void;
+  (e: "startVideo"): void;
   (e: "hangup"): void;
 }>();
 
@@ -48,10 +51,16 @@ const speakerIcon = computed(() => (props.speakerOn ? flareIcons.speaker : flare
       </button>
     </template>
 
-    <button v-else type="button" class="flare-call-controls__btn" role="switch" :aria-checked="speakerOn" @click="emit('toggleSpeaker')">
-      <span class="ico" :class="{ 'ico--active': speakerOn }"><n-icon aria-hidden="true" :size="24" :component="speakerIcon" /></span>
-      <span class="lbl">{{ t("call.speaker") }}</span>
-    </button>
+    <template v-else>
+      <button type="button" class="flare-call-controls__btn" role="switch" :aria-checked="speakerOn" @click="emit('toggleSpeaker')">
+        <span class="ico" :class="{ 'ico--active': speakerOn }"><n-icon aria-hidden="true" :size="24" :component="speakerIcon" /></span>
+        <span class="lbl">{{ t("call.speaker") }}</span>
+      </button>
+      <button v-if="canStartVideo" type="button" class="flare-call-controls__btn" @click="emit('startVideo')">
+        <span class="ico"><n-icon aria-hidden="true" :size="24" :component="flareIcons.video" /></span>
+        <span class="lbl">{{ t("call.switchToVideo") }}</span>
+      </button>
+    </template>
 
     <button v-if="showAddMember" type="button" class="flare-call-controls__btn" @click="emit('addMember')">
       <span class="ico"><n-icon aria-hidden="true" :size="24" :component="flareIcons['person-add']" /></span>

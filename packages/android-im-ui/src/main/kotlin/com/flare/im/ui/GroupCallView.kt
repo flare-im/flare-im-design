@@ -34,7 +34,27 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 
-/** Group (multi-party) call — participant grid + controls. Spec: Call/GroupCallView. [state] is the same [FlareCallState] as [CallView]. */
+/**
+ * The host's video for [participant]'s tile. [tileContent] is asked only when the tile shows video — a video call with
+ * the participant's camera on; null (no [tileContent], or no stream yet) leaves the avatar.
+ */
+internal fun callTileVideo(
+    participant: CallParticipant,
+    mode: FlareCallMode,
+    tileContent: ((CallParticipant) -> (@Composable () -> Unit)?)?,
+): (@Composable () -> Unit)? =
+    if (mode == FlareCallMode.Video && !participant.cameraOff) tileContent?.invoke(participant) else null
+
+/**
+ * Group (multi-party) call — participant grid + controls. Spec: Call/GroupCallView. [state] is the same [FlareCallState]
+ * as [CallView].
+ *
+ * [tileContent] renders a participant's video. It is asked only for a tile that shows video (a video call with the
+ * participant's camera on); that tile when it returns null, and every other tile, show the avatar. The tile keeps its
+ * chrome over the video: the speaking ring, the mute or camera-off badge and the name.
+ *
+ * [onStartVideo] draws the control bar's "switch to video" key in an audio call; the host turns the call into video.
+ */
 @Composable
 fun GroupCallView(
     participants: List<CallParticipant>,
@@ -52,6 +72,8 @@ fun GroupCallView(
     onSwitchCamera: (() -> Unit)? = null,
     onMinimize: (() -> Unit)? = null,
     onAddMember: (() -> Unit)? = null,
+    onStartVideo: (() -> Unit)? = null,
+    tileContent: ((CallParticipant) -> (@Composable () -> Unit)?)? = null,
 ) {
     val cols = when {
         participants.size <= 1 -> 1
@@ -93,18 +115,18 @@ fun GroupCallView(
             contentPadding = PaddingValues(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingXs),
             modifier = Modifier.weight(1f),
         ) {
-            items(participants, key = { it.id }) { p -> callTile(p, mode) }
+            items(participants, key = { it.id }) { p -> callTile(p, mode, callTileVideo(p, mode, tileContent)) }
         }
         Box(Modifier.fillMaxWidth().padding(top = FlareSizes.spacingXl, bottom = 36.dp), contentAlignment = Alignment.Center) {
             CallControls(muted = muted, cameraOn = cameraOn, speakerOn = speakerOn, mode = mode,
                 onToggleMute = onToggleMute, onToggleCamera = onToggleCamera, onToggleSpeaker = onToggleSpeaker,
-                onSwitchCamera = onSwitchCamera, onHangup = onHangup, onAddMember = onAddMember)
+                onSwitchCamera = onSwitchCamera, onHangup = onHangup, onAddMember = onAddMember, onStartVideo = onStartVideo)
         }
     }
 }
 
 @Composable
-private fun callTile(p: CallParticipant, mode: FlareCallMode) {
+private fun callTile(p: CallParticipant, mode: FlareCallMode, video: (@Composable () -> Unit)?) {
     val colors = flareColors()
     Box(
         Modifier.aspectRatio(0.86f).clip(RoundedCornerShape(FlareSizes.radiusBubble))
@@ -112,12 +134,17 @@ private fun callTile(p: CallParticipant, mode: FlareCallMode) {
             .border(2.dp, if (p.speaking) Color(0xFF34D17F) else Color.Transparent, RoundedCornerShape(FlareSizes.radiusBubble)),
         contentAlignment = Alignment.Center,
     ) {
-        Avatar(
-            userId = p.id, displayName = p.name, size = 56.dp,
-            image = p.avatarUrl?.let { url ->
-                { AsyncImage(model = url, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop) }
-            },
-        )
+        if (video != null) {
+            // The video fills the tile; the speaking border is drawn over the content, the name tag after it.
+            Box(Modifier.fillMaxSize()) { video() }
+        } else {
+            Avatar(
+                userId = p.id, displayName = p.name, size = 56.dp,
+                image = p.avatarUrl?.let { url ->
+                    { AsyncImage(model = url, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop) }
+                },
+            )
+        }
         Row(Modifier.align(Alignment.BottomStart).padding(FlareSizes.spacingSm), verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             if (p.muted) {

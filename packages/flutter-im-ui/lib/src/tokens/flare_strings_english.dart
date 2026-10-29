@@ -66,6 +66,7 @@ const FlareStrings flareStringsEnglish = FlareStrings(
   callRecordWaitingAnswer: 'Waiting for answer',
   callReturn: 'Back to call',
   callRinging: 'Ringing…',
+  callSwitchToVideo: 'Switch to video',
   callWaitingAnswer: 'Waiting for an answer…',
   camera: 'Camera',
   cancel: 'Cancel',

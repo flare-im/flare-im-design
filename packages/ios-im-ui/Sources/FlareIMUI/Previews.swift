@@ -315,6 +315,20 @@ struct FlareCallView_Previews: PreviewProvider {
                  localVideo: AnyView(Color.gray))
         CallView(peerName: "Ivy Chen", mode: .audio, state: .connected, durationLabel: "03:24", peerSpeaking: true)
         CallView(peerName: "Ivy Chen", mode: .audio, state: .connected, durationLabel: "03:24", peerMuted: true)
+        CallView(peerName: "Ivy Chen", mode: .audio, state: .connected, durationLabel: "03:24", onStartVideo: {})
+    }
+}
+
+struct FlareGroupCallView_Previews: PreviewProvider {
+    static let participants = [CallParticipant(id: "ivy", name: "Ivy Chen", speaking: true),
+                               CallParticipant(id: "leo", name: "Leo Wang", muted: true),
+                               CallParticipant(id: "mia", name: "Mia Zhao", cameraOff: true),
+                               CallParticipant(id: "me", name: "我", isSelf: true)]
+    static var previews: some View {
+        GroupCallView(participants: participants, mode: .video, state: .connected, durationLabel: "12:07",
+                      tile: { p in p.id == "me" ? nil : AnyView(Color.gray) })
+        GroupCallView(participants: participants, mode: .audio, state: .connected, durationLabel: "12:07",
+                      onAddMember: {}, onStartVideo: {})
     }
 }
 

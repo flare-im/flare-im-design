@@ -256,6 +256,29 @@ private fun CallViewPeerMutedPreview() = CallView(peerName = "Ivy Chen", mode = 
 
 @Preview(showBackground = true)
 @Composable
+private fun CallViewStartVideoPreview() = CallView(peerName = "Ivy Chen", mode = FlareCallMode.Audio,
+    state = FlareCallState.Connected, durationLabel = "03:24", onStartVideo = {})
+
+private val previewCallParticipants = listOf(
+    CallParticipant(id = "ivy", name = "Ivy Chen", speaking = true),
+    CallParticipant(id = "leo", name = "Leo Wang", muted = true),
+    CallParticipant(id = "mia", name = "Mia Zhao", cameraOff = true),
+    CallParticipant(id = "me", name = "我", isSelf = true),
+)
+
+@Preview(showBackground = true)
+@Composable
+private fun GroupCallViewVideoTilesPreview() = GroupCallView(participants = previewCallParticipants,
+    mode = FlareCallMode.Video, state = FlareCallState.Connected, durationLabel = "12:07",
+    tileContent = { p -> if (p.isSelf) null else { { Box(Modifier.fillMaxSize().background(Color.DarkGray)) } } })
+
+@Preview(showBackground = true)
+@Composable
+private fun GroupCallViewAudioPreview() = GroupCallView(participants = previewCallParticipants,
+    mode = FlareCallMode.Audio, state = FlareCallState.Connected, durationLabel = "12:07", onAddMember = {}, onStartVideo = {})
+
+@Preview(showBackground = true)
+@Composable
 private fun CallRecordCardPreview() = Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
     CallRecordCard(media = FlareCallMode.Audio, scope = FlareCallRecordScope.Single, state = FlareCallRecordState.Ended,
         viewerIsInitiator = true, canJoin = false, canCallBack = true, endReason = FlareCallEndReason.Completed,
