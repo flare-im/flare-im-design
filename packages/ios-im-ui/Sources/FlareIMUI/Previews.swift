@@ -310,7 +310,30 @@ struct FlareCall_Previews: PreviewProvider {
 }
 
 struct FlareCallView_Previews: PreviewProvider {
-    static var previews: some View { CallView(peerName: "Ivy Chen", mode: .video, state: .connected, durationLabel: "03:24") }
+    static var previews: some View {
+        CallView(peerName: "Ivy Chen", mode: .video, state: .connected, durationLabel: "03:24", onMinimize: {})
+    }
+}
+
+struct FlareCallRecordCard_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            CallRecordCardView(media: .audio, scope: .single, state: .ended, endReason: .completed, durationSeconds: 192,
+                               viewerIsInitiator: true, canJoin: false, canCallBack: true, onCallBack: {})
+            CallRecordCardView(media: .video, scope: .single, state: .ended, endReason: .missed,
+                               viewerIsInitiator: false, canJoin: false, canCallBack: true, onCallBack: {})
+            CallRecordCardView(media: .audio, scope: .single, state: .ringing, viewerIsInitiator: true,
+                               canJoin: false, canCallBack: false)
+            CallRecordCardView(media: .video, scope: .group, state: .ongoing, joinedCount: 3, viewerIsInitiator: false,
+                               canJoin: true, canCallBack: false, onJoin: {})
+            CallRecordCardView(media: .audio, scope: .group, state: .ongoing, joinedCount: 3, viewerIsInitiator: false,
+                               canJoin: true, canCallBack: false, busy: true, onJoin: {})
+            CallRecordCardView(media: .audio, scope: .group, state: .ended, endReason: .completed, durationSeconds: 754,
+                               viewerIsInitiator: false, canJoin: false, canCallBack: false, disabled: true)
+        }
+        .padding()
+        .previewDisplayName("Call record card")
+    }
 }
 
 // MARK: Form controls

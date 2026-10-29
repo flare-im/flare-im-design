@@ -1,5 +1,6 @@
 ## 未发布
 
+- 通话：新增 `CallRecordCardView` 与 `FlareCallRecordRules`（`FlareCallRecordScope`、`FlareCallRecordState`、`FlareCallEndReason`，`spec/call-record-vectors.json`），`FlareStrings` 新增 `callRecord*`；`CallView` 新增 `onMinimize`（传入才绘制收起按钮）。
 - 插件页面的数据与动作、行级徽标、多选上限（`spec/plugin-view-vectors.json` rules.page / pageRows / pagePaging / pageFilters / badge / maxSelections）：
   - `FlarePluginPage`：新增必填 `page`（`PluginPageRef`），`view` 改为 `PluginPageViewModel`（核心 SDK `pluginPage` 的结果：视图加 `data`，视图字段可直接读），新增 `filters` 与 `onFilter`；`onAction` 改为 `(String, PluginPageActionPayload)`，载荷即 `invokePageAction` 的请求（page、data、row、selection、formValues）。删除 `onOpenDetail`（页面没有详情）。状态加 unavailable：Kit 空态显示原因文案，只有 catalog_unreachable 带重试，不画刷新、筛选、加载更多和动作；有视图时的 `error` 画成视图上方的危险横幅。筛选：rows 块列出的 select 输入（不列时为全部输入）各是一行 `FilterTabsView`，「全部」在前，选中项来自宿主的 `filters`，选另一项发出改好的值（保留宿主的其他筛选值），刷新或加载更多时禁用。加载更多在刷新结束时也释放已请求的游标。
   - `PluginViewModel` 的 rows 块现在解码（`PluginBlock.rows`、`PluginRowsBlock`、`PluginRow`、`PluginRowCell`、`PluginRowAction`、`PluginRowsColumn`），四端一致画成列表：徽标与第一格、其余单元格以「 · 」连接（时间列按设备时区）、行末紧凑动作键（确认与表单照常，载荷带 `row`），同一 key 只画第一次；没有行时显示 emptyText，否则「暂无数据」。同一动作的多个行键只有发起的那一行转圈。带 rows 块的视图不画「查看详情」键。
