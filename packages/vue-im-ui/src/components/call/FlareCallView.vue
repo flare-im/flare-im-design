@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, useSlots } from "vue";
 import type { FlareCallState } from "../../shared/contracts/call";
 import { NIcon } from "naive-ui";
 import { flareIcons } from "../../shared/icons";
@@ -21,8 +21,12 @@ const props = withDefaults(
     speakerOn?: boolean;
     /** Show the end-to-end-encrypted hint under the status. */
     encrypted?: boolean;
+    /** The peer muted their microphone: a mic-off badge beside the name. */
+    peerMuted?: boolean;
+    /** The peer is speaking: the speaking ring around the avatar (never while peerMuted). */
+    peerSpeaking?: boolean;
   }>(),
-  { muted: false, cameraOn: true, speakerOn: false, encrypted: false },
+  { muted: false, cameraOn: true, speakerOn: false, encrypted: false, peerMuted: false, peerSpeaking: false },
 );
 const emit = defineEmits<{
   (e: "hangup"): void;
@@ -43,12 +47,19 @@ const statusText = computed(() => {
   return props.mode === "video" ? t("call.waitingAnswer") : t("call.calling");
 });
 const pulsing = computed(() => props.state === "calling" || props.state === "ringing");
+const speaking = computed(() => props.peerSpeaking && !props.peerMuted);
+const slots = useSlots();
+const hasPreview = computed(() => props.mode === "video" && !!slots.localVideo);
 </script>
 
 <template>
-  <div class="flare-call-view" :class="`flare-call-view--${state}`">
+  <div class="flare-call-view" :class="[`flare-call-view--${state}`, { 'flare-call-view--preview': hasPreview }]">
     <div v-if="mode === 'video'" class="flare-call-view__video">
       <slot name="video" />
+    </div>
+    <!-- The host's own camera, as a picture-in-picture at the top trailing corner. -->
+    <div v-if="hasPreview" class="flare-call-view__local">
+      <slot name="localVideo" />
     </div>
 
     <button type="button" class="flare-call-view__minimize" :aria-label="t('call.minimize')" @click="emit('minimize')">
@@ -56,10 +67,15 @@ const pulsing = computed(() => props.state === "calling" || props.state === "rin
     </button>
 
     <div class="flare-call-view__peer">
-      <div v-if="mode === 'audio' || !$slots.video" class="flare-call-view__avatar" :class="{ 'is-pulsing': pulsing }">
+      <div v-if="mode === 'audio' || !$slots.video" class="flare-call-view__avatar" :class="{ 'is-pulsing': pulsing, 'is-speaking': speaking }">
         <FlareAvatar :user-id="peerName" :display-name="peerName" :avatar-url="peerAvatarUrl" :size="104" />
       </div>
-      <div class="flare-call-view__name">{{ peerName }}</div>
+      <div class="flare-call-view__name">
+        <span>{{ peerName }}</span>
+        <span v-if="peerMuted" class="flare-call-view__muted" role="img" :aria-label="t('call.peerMuted')">
+          <n-icon aria-hidden="true" :size="12" :component="flareIcons['mic-off']" />
+        </span>
+      </div>
       <div class="flare-call-view__status" role="status">{{ statusText }}</div>
       <div v-if="statusDetail" class="flare-call-view__status">{{ statusDetail }}</div>
       <button v-if="state === 'failed' && recoveryText" type="button" class="flare-call-view__recover" @click="emit('recover')">{{ recoveryText }}</button>
@@ -100,6 +116,10 @@ const pulsing = computed(() => props.state === "calling" || props.state === "rin
   overflow: auto;
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--flare-color-primary) 20%, #18181b), #101012 58%);
+}
+/* The peer block starts below the corner preview, so the two never overlap. */
+.flare-call-view--preview {
+  padding-top: calc(env(safe-area-inset-top) + var(--flare-size-spacing-lg) * 2 + var(--flare-size-component-call-preview-width) * 4 / 3);
 }
 .flare-call-view__video {
   position: absolute;
@@ -154,6 +174,11 @@ const pulsing = computed(() => props.state === "calling" || props.state === "rin
   0% { transform: scale(1); opacity: 0.7; }
   100% { transform: scale(1.5); opacity: 0; }
 }
+/* Speaking — the GroupCallView tile's green, as a ring around the avatar. */
+.flare-call-view__avatar.is-speaking {
+  box-shadow: 0 0 0 3px #34d17f, 0 0 0 8px rgba(52, 209, 127, 0.28), 0 18px 44px rgba(0, 0, 0, 0.42);
+  transition: box-shadow var(--flare-transition-fast);
+}
 @media (prefers-reduced-motion: reduce) {
   .flare-call-view__avatar.is-pulsing::before,
   .flare-call-view__avatar.is-pulsing::after { animation: none; }
@@ -161,9 +186,42 @@ const pulsing = computed(() => props.state === "calling" || props.state === "rin
 /* 通话对象的名字取 4xl(20)—— iOS CallViews / Flutter flare_call_view 都是这个台阶,
    web 这边原本写死 24px,是通话屏上最大的那个元素在四端里唯一不一致的地方。 */
 .flare-call-view__name {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--flare-size-spacing-sm);
   font-size: var(--flare-size-font-size-4xl);
   font-weight: var(--flare-size-font-weight-semibold);
   letter-spacing: 0.01em;
+}
+/* The GroupCallView tile's mute badge. */
+.flare-call-view__muted {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: var(--flare-size-icon-size-md);
+  height: var(--flare-size-icon-size-md);
+  border-radius: var(--flare-size-radius-sm);
+  background: rgba(0, 0, 0, 0.42);
+}
+.flare-call-view__local {
+  position: absolute;
+  z-index: 2;
+  top: calc(env(safe-area-inset-top) + var(--flare-size-spacing-lg));
+  inset-inline-end: var(--flare-size-spacing-lg);
+  width: var(--flare-size-component-call-preview-width);
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: var(--flare-size-radius-card);
+  background: #000;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.36);
+}
+.flare-call-view__local :deep(video),
+.flare-call-view__local :deep(img) {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .flare-call-view__status {
   color: rgba(255, 255, 255, 0.72);

@@ -12087,6 +12087,26 @@
             "en": "Recovery button label; only shown in failed state. Host owns retry.",
             "zh": "仅失败状态显示恢复操作文案，重试由宿主执行。"
           }
+        },
+        {
+          "name": "peerMuted",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "en": "The peer muted their microphone: a mic-off badge beside the peer's name, named for screen readers.",
+            "zh": "对端关了麦克风：对端名字旁显示静音标记，读屏会读出。"
+          }
+        },
+        {
+          "name": "peerSpeaking",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "en": "The peer is speaking: the speaking ring (the GroupCallView tile's green) around the peer's avatar. Not drawn while peerMuted, nor while the peer's video covers the avatar.",
+            "zh": "对端正在说话：对端头像外圈显示说话环（与 GroupCallView 格子同一绿色）。peerMuted 时不画；对端画面盖住头像时也不画。"
+          }
         }
       ],
       "states": [
@@ -12106,8 +12126,8 @@
         "minimize"
       ],
       "notes": {
-        "en": "Video track uses a host-injected render slot; the control bar is CallControls. minimize asks the host to shrink the call into its CallDock: Vue always draws the control; the native kits draw it only when the host passes onMinimize.",
-        "zh": "视频轨道用宿主注入的渲染 slot；控制条为 CallControls。minimize 请宿主把通话收进 CallDock：Vue 始终绘制该控制；原生端只在宿主传入 onMinimize 时绘制。"
+        "en": "Video track uses a host-injected render slot (video); the host's own camera goes in localVideo, which the kit draws as a picture-in-picture at the top trailing corner (component token callPreviewWidth, 3:4, radius card) in video mode only. The control bar is CallControls. minimize asks the host to shrink the call into its CallDock: Vue always draws the control; the native kits draw it only when the host passes onMinimize.",
+        "zh": "视频轨道用宿主注入的渲染 slot（video）；宿主本端摄像头放进 localVideo，由组件库画成右上角（行尾）画中画小窗（组件 token callPreviewWidth，3:4，圆角 card），只在视频模式显示。控制条为 CallControls。minimize 请宿主把通话收进 CallDock：Vue 始终绘制该控制；原生端只在宿主传入 onMinimize 时绘制。"
       },
       "platforms": {
         "vue": {
@@ -12143,6 +12163,24 @@
         },
         "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
         "screenReaderSemantics": "Expose a named group and meaningful descendant roles, values, states, availability, and progress. Decorative imagery is hidden."
+      },
+      "slots": [
+        "video",
+        "localVideo"
+      ],
+      "platformAliases": {
+        "flutter": {
+          "slots": {
+            "video": "videoContent",
+            "localVideo": "localVideoContent"
+          }
+        },
+        "compose": {
+          "slots": {
+            "video": "videoContent",
+            "localVideo": "localVideoContent"
+          }
+        }
       }
     },
     {
@@ -12606,6 +12644,29 @@
         },
         "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
         "screenReaderSemantics": "Expose a named group and meaningful descendant roles, values, states, availability, and progress. Decorative imagery is hidden."
+      },
+      "slots": [
+        "tile"
+      ],
+      "slotPlatforms": {
+        "tile": [
+          "vue",
+          "flutter"
+        ]
+      },
+      "slotReasons": {
+        "tile": "A participant's video tile exists where a call plugin renders video: the Vue and Flutter kits. The SwiftUI and Compose group views draw avatars only until a native call client needs video tiles; nothing on those kits renders a call stream yet."
+      },
+      "platformAliases": {
+        "flutter": {
+          "slots": {
+            "tile": "tileBuilder"
+          }
+        }
+      },
+      "notes": {
+        "en": "tile renders one participant's video and is asked only for a tile that shows video (a video call with the camera on); every other tile, and a tile the host leaves empty, shows the kit's avatar.",
+        "zh": "tile 渲染一位参与者的画面，只在格子显示画面时（视频通话且摄像头开着）才向宿主要；其余格子，以及宿主没给内容的格子，显示组件库的头像。"
       }
     },
     {

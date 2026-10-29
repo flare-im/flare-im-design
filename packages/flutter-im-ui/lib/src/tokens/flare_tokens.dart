@@ -1468,6 +1468,7 @@ abstract final class FlareSizes {
   static const double componentRedPacketAmountFontSize = 44.0;
   static const double componentRedPacketDetailHeaderHeight = 72.0;
   static const double componentRedPacketFadedMix = 0.4;
+  static const double componentCallPreviewWidth = 112.0;
 }
 
 /// Const palette for const widget and ThemeData declarations.

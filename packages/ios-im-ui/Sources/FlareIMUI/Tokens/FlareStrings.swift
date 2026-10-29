@@ -699,6 +699,8 @@ public struct FlareStrings: Sendable {
     public var scrollToLatest: String
     /// en: "Minimize call"
     public var callMinimize: String
+    /// The peer's mic-off badge on ``CallView``, read by VoiceOver.
+    public var callPeerMuted: String
     /// en: "On" — the value of a call device toggle (microphone, camera, speaker) whose device is on.
     public var callDeviceOn: String
     /// en: "Off" — the value of a call device toggle whose device is off (a muted microphone is off).
@@ -1539,6 +1541,7 @@ public struct FlareStrings: Sendable {
         exitMultiSelect: String = "退出多选",
         scrollToLatest: String = "回到最新消息",
         callMinimize: String = "收起通话",
+        callPeerMuted: String = "对方已静音",
         callDeviceOn: String = "已开启",
         callDeviceOff: String = "已关闭",
         callReturn: String = "返回通话",
@@ -2241,6 +2244,7 @@ public struct FlareStrings: Sendable {
         self.exitMultiSelect = exitMultiSelect
         self.scrollToLatest = scrollToLatest
         self.callMinimize = callMinimize
+        self.callPeerMuted = callPeerMuted
         self.callDeviceOn = callDeviceOn
         self.callDeviceOff = callDeviceOff
         self.callReturn = callReturn

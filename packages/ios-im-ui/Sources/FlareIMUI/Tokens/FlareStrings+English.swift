@@ -527,6 +527,7 @@ public extension FlareStrings {
             exitMultiSelect: "Exit multi-select",
             scrollToLatest: "Jump to latest messages",
             callMinimize: "Minimize call",
+            callPeerMuted: "Peer muted",
             callDeviceOn: "On",
             callDeviceOff: "Off",
             callReturn: "Back to call",

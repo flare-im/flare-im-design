@@ -78,16 +78,11 @@ const statusText = computed(() => {
         @click="emit('selectParticipant', p.id)"
       >
         <div class="flare-group-call__stream">
-          <!-- Host injects each participant's video track here; falls back to the avatar. -->
-          <slot name="tile" :participant="p">
-            <FlareAvatar
-              v-if="mode === 'audio' || p.cameraOff"
-              :user-id="p.id"
-              :display-name="p.name"
-              :avatar-url="p.avatarUrl"
-              :size="64"
-            />
+          <!-- The host renders the video of a tile that shows video; an empty slot and every other tile show the avatar. -->
+          <slot v-if="mode === 'video' && !p.cameraOff" name="tile" :participant="p">
+            <FlareAvatar :user-id="p.id" :display-name="p.name" :avatar-url="p.avatarUrl" :size="64" />
           </slot>
+          <FlareAvatar v-else :user-id="p.id" :display-name="p.name" :avatar-url="p.avatarUrl" :size="64" />
         </div>
         <div class="flare-group-call__tag">
           <span v-if="p.muted" class="flare-group-call__mic"><n-icon aria-hidden="true" :size="12" :component="flareIcons['mic-off']" /></span>

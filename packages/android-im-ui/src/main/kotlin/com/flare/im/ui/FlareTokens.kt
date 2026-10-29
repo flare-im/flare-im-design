@@ -1232,6 +1232,7 @@ object FlareSizes {
     val componentRedPacketAmountFontSize: Dp = 44.dp
     val componentRedPacketDetailHeaderHeight: Dp = 72.dp
     const val componentRedPacketFadedMix: Float = 0.4f
+    val componentCallPreviewWidth: Dp = 112.dp
 }
 
 /** Opacity tokens (disabled / muted / tint overlays). */

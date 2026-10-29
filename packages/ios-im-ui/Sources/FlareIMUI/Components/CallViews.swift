@@ -87,6 +87,10 @@ public struct CallControlsView: View {
 ///
 /// `onMinimize` draws the collapse control at the top leading corner (the same 36-point disc as ``GroupCallView``);
 /// the host shrinks the call into its ``CallDockView``. Without it the control is not drawn.
+///
+/// `peerMuted` draws the ``GroupCallView`` tile's mic-off badge beside the peer's name; `peerSpeaking` draws the
+/// tile's green as a ring round the peer's avatar. `localVideo` is the host's own camera, drawn as a 3:4
+/// picture-in-picture at the top trailing corner in video mode.
 public struct CallView: View {
     private let peerName: String
     private let mode: FlareCallMode
@@ -106,6 +110,9 @@ public struct CallView: View {
     private let onToggleSpeaker: (() -> Void)?
     private let onSwitchCamera: (() -> Void)?
     private let onMinimize: (() -> Void)?
+    private let peerMuted: Bool
+    private let peerSpeaking: Bool
+    private let localVideo: AnyView?
     @Environment(\.flareStrings) private var strings
 
     public init(peerName: String, mode: FlareCallMode, state: FlareCallState, durationLabel: String? = nil,
@@ -113,13 +120,27 @@ public struct CallView: View {
                 video: AnyView? = nil, onHangup: (() -> Void)? = nil, onToggleMute: (() -> Void)? = nil,
                 onToggleCamera: (() -> Void)? = nil, onToggleSpeaker: (() -> Void)? = nil, onSwitchCamera: (() -> Void)? = nil,
                 statusDetail: String? = nil, recoveryText: String? = nil, onRecover: (() -> Void)? = nil,
-                onMinimize: (() -> Void)? = nil) {
+                onMinimize: (() -> Void)? = nil, peerMuted: Bool = false, peerSpeaking: Bool = false,
+                localVideo: AnyView? = nil) {
         self.statusDetail = statusDetail; self.recoveryText = recoveryText; self.onRecover = onRecover
         self.onMinimize = onMinimize
         self.peerName = peerName; self.mode = mode; self.state = state; self.durationLabel = durationLabel
         self.peerAvatarURL = peerAvatarURL; self.muted = muted; self.cameraOn = cameraOn; self.speakerOn = speakerOn
         self.video = video; self.onHangup = onHangup; self.onToggleMute = onToggleMute
         self.onToggleCamera = onToggleCamera; self.onToggleSpeaker = onToggleSpeaker; self.onSwitchCamera = onSwitchCamera
+        self.peerMuted = peerMuted; self.peerSpeaking = peerSpeaking; self.localVideo = localVideo
+    }
+
+    /// Whether the speaking ring goes round the peer's avatar: the peer speaks and is not muted. The avatar, and so
+    /// the ring, is not drawn while the peer's video covers it.
+    static func showsSpeakingRing(speaking: Bool, muted: Bool) -> Bool {
+        speaking && !muted
+    }
+
+    /// The peer block's top inset inside the safe area: below the corner preview while it is drawn, so the preview
+    /// never covers the avatar on a narrow screen; 72 otherwise.
+    static func peerTopInset(localPreview: Bool) -> CGFloat {
+        localPreview ? FlareSizes.spacingLg * 2 + FlareSizes.componentCallPreviewWidth * 4 / 3 : 72
     }
 
     private var statusText: String {
@@ -140,8 +161,18 @@ public struct CallView: View {
                 VStack(spacing: FlareSizes.spacingSm) {
                     if mode == .audio || video == nil {
                         AvatarView(userId: peerName, displayName: peerName, avatarURL: peerAvatarURL, size: 96)
+                            .overlay {
+                                // Just outside the avatar; an overlay leaves the layout where it was.
+                                if Self.showsSpeakingRing(speaking: peerSpeaking, muted: peerMuted) {
+                                    Circle().strokeBorder(Color(.sRGB, red: 0.204, green: 0.82, blue: 0.498, opacity: 1), lineWidth: 3)
+                                        .padding(-3)
+                                }
+                            }
                     }
-                    Text(peerName).font(.title).foregroundColor(.white).multilineTextAlignment(.center)
+                    HStack(spacing: FlareSizes.spacingSm) {
+                        Text(peerName).font(.title).foregroundColor(.white).multilineTextAlignment(.center)
+                        if peerMuted { peerMutedBadge }
+                    }
                     Text(statusText).font(.body).foregroundColor(.white.opacity(0.7))
                     if let statusDetail { Text(statusDetail).foregroundColor(.white).multilineTextAlignment(.center) }
                     if state == .failed, let recoveryText {
@@ -153,7 +184,22 @@ public struct CallView: View {
                                      onToggleMute: onToggleMute, onToggleCamera: onToggleCamera, onToggleSpeaker: onToggleSpeaker,
                                      onSwitchCamera: onSwitchCamera, onHangup: onHangup)
                         .padding(.top, 32)
-                }.padding(.horizontal, 16).padding(.top, 72).padding(.bottom, 48)
+                }.padding(.horizontal, 16).padding(.top, Self.peerTopInset(localPreview: mode == .video && localVideo != nil))
+                .padding(.bottom, 48)
+            }
+            if mode == .video, let localVideo {
+                // The host's own camera: a 3:4 picture-in-picture at the top trailing corner, inside the safe area.
+                VStack {
+                    HStack {
+                        Spacer()
+                        localVideo
+                            .frame(width: FlareSizes.componentCallPreviewWidth, height: FlareSizes.componentCallPreviewWidth * 4 / 3)
+                            .background(Color.black)
+                            .clipShape(RoundedRectangle(cornerRadius: FlareSizes.radiusCard))
+                    }
+                    Spacer()
+                }
+                .padding(.trailing, FlareSizes.spacingLg).padding(.top, FlareSizes.spacingLg)
             }
             if let onMinimize {
                 VStack {
@@ -173,6 +219,14 @@ public struct CallView: View {
                 .padding(.leading, FlareSizes.spacingLg).padding(.top, FlareSizes.spacingLg)
             }
         }
+    }
+
+    /// The peer's mic-off badge: the ``GroupCallView`` tile's mute badge, named for VoiceOver.
+    private var peerMutedBadge: some View {
+        Image(systemName: flareIconSymbol("mic-off")).font(.system(size: FlareSizes.fontSize2xs)).foregroundColor(.white)
+            .frame(width: FlareSizes.iconSizeMd, height: FlareSizes.iconSizeMd)
+            .background(RoundedRectangle(cornerRadius: FlareSizes.radiusSm).fill(Color.black.opacity(0.42)))
+            .accessibilityLabel(strings.callPeerMuted)
     }
 }
 

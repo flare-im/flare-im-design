@@ -37,6 +37,7 @@ fun flareStringsEnglish(): FlareStrings = FlareStrings {
     callConnected = "Connected"
     callFailed = "Call failed"
     callMinimize = "Minimize call"
+    callPeerMuted = "Peer muted"
     callReconnecting = "Reconnecting…"
     callRecordCallBack = "Call back"
     callRecordCancelledByCaller = "Caller cancelled"

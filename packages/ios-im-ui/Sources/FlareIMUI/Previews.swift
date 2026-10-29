@@ -311,7 +311,10 @@ struct FlareCall_Previews: PreviewProvider {
 
 struct FlareCallView_Previews: PreviewProvider {
     static var previews: some View {
-        CallView(peerName: "Ivy Chen", mode: .video, state: .connected, durationLabel: "03:24", onMinimize: {})
+        CallView(peerName: "Ivy Chen", mode: .video, state: .connected, durationLabel: "03:24", onMinimize: {},
+                 localVideo: AnyView(Color.gray))
+        CallView(peerName: "Ivy Chen", mode: .audio, state: .connected, durationLabel: "03:24", peerSpeaking: true)
+        CallView(peerName: "Ivy Chen", mode: .audio, state: .connected, durationLabel: "03:24", peerMuted: true)
     }
 }
 

@@ -37,6 +37,7 @@ class FlareStrings {
     this.callFailed = '通话连接失败',
     this.callReturn = '返回通话', // en: Return to call
     this.callMinimize = '最小化', // en: Minimize
+    this.callPeerMuted = '对方已静音', // en: Peer muted
     // 输入区
     this.send = '发送',
     this.cancelReply = '取消回复',
@@ -829,6 +830,9 @@ class FlareStrings {
 
   /// The group call's minimize control.
   final String callMinimize;
+
+  /// The peer's mic-off badge on [FlareCallView], read by screen readers.
+  final String callPeerMuted;
   // 输入区
   final String send;
   final String cancelReply;
@@ -1690,6 +1694,7 @@ class FlareStrings {
     String? callFailed,
     String? callReturn,
     String? callMinimize,
+    String? callPeerMuted,
     String? send,
     String? cancelReply,
     String? noContacts,
@@ -2414,6 +2419,7 @@ class FlareStrings {
       callFailed: callFailed ?? this.callFailed,
       callReturn: callReturn ?? this.callReturn,
       callMinimize: callMinimize ?? this.callMinimize,
+      callPeerMuted: callPeerMuted ?? this.callPeerMuted,
       send: send ?? this.send,
       cancelReply: cancelReply ?? this.cancelReply,
       noContacts: noContacts ?? this.noContacts,

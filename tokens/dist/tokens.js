@@ -359,7 +359,8 @@ export const flareDesignTokens = {
       "redPacketOpenButtonSize": "96px",
       "redPacketAmountFontSize": "44px",
       "redPacketDetailHeaderHeight": "72px",
-      "redPacketFadedMix": "0.4"
+      "redPacketFadedMix": "0.4",
+      "callPreviewWidth": "112px"
     },
     "textRole": {
       "title": {

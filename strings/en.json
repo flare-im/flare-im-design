@@ -281,6 +281,15 @@
     ],
     "zh": "收起通话"
   },
+  "callPeerMuted": {
+    "en": "Peer muted",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "对方已静音"
+  },
   "callReconnecting": {
     "en": "Reconnecting…",
     "kits": [

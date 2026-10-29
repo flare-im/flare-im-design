@@ -59,8 +59,10 @@ class FlareGroupCallView extends StatelessWidget {
   /// Invite-to-call; forwarded to the control bar when supplied.
   final VoidCallback? onAddMember;
 
-  /// Host injects each participant's video track; falls back to the avatar.
-  final Widget Function(FlareCallParticipant participant)? tileBuilder;
+  /// Host renders a participant's video. Asked only for a tile that shows
+  /// video (a video call, the camera on); that tile, when this returns null,
+  /// and every other tile show the avatar.
+  final Widget? Function(FlareCallParticipant participant)? tileBuilder;
 
   int get _cols {
     final n = participants.length;
@@ -183,16 +185,19 @@ class FlareGroupCallView extends StatelessWidget {
     FlareStrings strings,
     FlareColors colors,
   ) {
-    final content = tileBuilder != null
-        ? tileBuilder!(p)
-        : Center(
-            child: FlareAvatar(
-              userId: p.id,
-              displayName: p.name,
-              avatarUrl: p.avatarUrl,
-              size: 56,
-            ),
-          );
+    final video = mode == FlareCallMode.video && !p.cameraOff
+        ? tileBuilder?.call(p)
+        : null;
+    final content =
+        video ??
+        Center(
+          child: FlareAvatar(
+            userId: p.id,
+            displayName: p.name,
+            avatarUrl: p.avatarUrl,
+            size: 56,
+          ),
+        );
     return Container(
       clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(

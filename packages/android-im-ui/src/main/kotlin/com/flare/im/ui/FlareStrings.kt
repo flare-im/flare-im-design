@@ -41,6 +41,9 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
     // 通话窗口的图标按钮；en: "Minimize call" / "Return to call"
     val callMinimize: String
         get() = (overrides["callMinimize"] as? (String)) ?: "最小化通话"
+    // The peer's mic-off badge on CallView, read by TalkBack.
+    val callPeerMuted: String
+        get() = (overrides["callPeerMuted"] as? (String)) ?: "对方已静音"
     val callReturn: String
         get() = (overrides["callReturn"] as? (String)) ?: "返回通话"
     val callWaitingAnswer: String
@@ -1666,6 +1669,10 @@ class FlareStringsBuilder internal constructor() {
     var callMinimize: String
         get() = (values["callMinimize"] as? (String)) ?: "最小化通话"
         set(value) { values["callMinimize"] = value }
+
+    var callPeerMuted: String
+        get() = (values["callPeerMuted"] as? (String)) ?: "对方已静音"
+        set(value) { values["callPeerMuted"] = value }
 
     var callReturn: String
         get() = (values["callReturn"] as? (String)) ?: "返回通话"

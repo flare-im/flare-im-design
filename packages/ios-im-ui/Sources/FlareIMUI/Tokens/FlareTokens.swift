@@ -1569,6 +1569,7 @@ public enum FlareSizes {
     public static let componentRedPacketAmountFontSize: CGFloat = 44.0
     public static let componentRedPacketDetailHeaderHeight: CGFloat = 72.0
     public static let componentRedPacketFadedMix: CGFloat = 0.4
+    public static let componentCallPreviewWidth: CGFloat = 112.0
 }
 
 /// Opacity tokens (disabled / muted / tint overlays).
