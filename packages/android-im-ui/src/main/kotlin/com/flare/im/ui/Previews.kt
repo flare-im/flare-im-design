@@ -237,7 +237,27 @@ private fun CallPreview() = Column(Modifier.padding(12.dp), verticalArrangement 
 
 @Preview(showBackground = true)
 @Composable
-private fun CallViewPreview() = CallView(peerName = "Ivy Chen", mode = FlareCallMode.Video, state = FlareCallState.Connected, durationLabel = "03:24")
+private fun CallViewPreview() = CallView(peerName = "Ivy Chen", mode = FlareCallMode.Video, state = FlareCallState.Connected,
+    durationLabel = "03:24", onMinimize = {})
+
+@Preview(showBackground = true)
+@Composable
+private fun CallRecordCardPreview() = Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    CallRecordCard(media = FlareCallMode.Audio, scope = FlareCallRecordScope.Single, state = FlareCallRecordState.Ended,
+        viewerIsInitiator = true, canJoin = false, canCallBack = true, endReason = FlareCallEndReason.Completed,
+        durationSeconds = 192, onCallBack = {})
+    CallRecordCard(media = FlareCallMode.Video, scope = FlareCallRecordScope.Single, state = FlareCallRecordState.Ended,
+        viewerIsInitiator = false, canJoin = false, canCallBack = true, endReason = FlareCallEndReason.Missed, onCallBack = {})
+    CallRecordCard(media = FlareCallMode.Audio, scope = FlareCallRecordScope.Single, state = FlareCallRecordState.Ringing,
+        viewerIsInitiator = true, canJoin = false, canCallBack = false)
+    CallRecordCard(media = FlareCallMode.Video, scope = FlareCallRecordScope.Group, state = FlareCallRecordState.Ongoing,
+        viewerIsInitiator = false, canJoin = true, canCallBack = false, joinedCount = 3, onJoin = {})
+    CallRecordCard(media = FlareCallMode.Audio, scope = FlareCallRecordScope.Group, state = FlareCallRecordState.Ongoing,
+        viewerIsInitiator = false, canJoin = true, canCallBack = false, joinedCount = 3, busy = true, onJoin = {})
+    CallRecordCard(media = FlareCallMode.Audio, scope = FlareCallRecordScope.Group, state = FlareCallRecordState.Ended,
+        viewerIsInitiator = false, canJoin = false, canCallBack = false, endReason = FlareCallEndReason.Completed,
+        durationSeconds = 754, disabled = true)
+}
 
 @Preview(showBackground = true)
 @Composable

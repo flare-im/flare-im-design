@@ -1,5 +1,6 @@
 ## 未发布
 
+- 通话：新增 `CallRecordCard` 与 `flareCallRecordStatus` / `flareCallRecordAction` 等规则（`FlareCallRecordScope`、`FlareCallRecordState`、`FlareCallEndReason`，`spec/call-record-vectors.json`），`FlareStrings` 新增 `callRecord*`；`CallView` 新增 `onMinimize`（传入才绘制收起按钮）。**破坏性**：`GroupCallView(state:)` 由 `String` 改为 `FlareCallState`。
 - 第八轮波 3：插件页面的数据与动作、行级徽标、多选上限（spec/plugin-view-vectors.json rules.page、pageRows、pagePaging、pageFilters、badge、maxSelections）：
   - **破坏性**：`FlarePluginPage` 新增必填 `page: PluginPageRef`，`view` 改为 `PluginPageViewModel`（视图 + `data`，`fromJson` / `fromMap` 读核心 SDK 的 pluginPage 结果），`onAction` 改为 `(String, PluginPageActionPayload)`（page、data、row、selection、formValues，即页面动作请求，`toJson()` 原样交给核心）；删除 `onOpenDetail`（页面没有详情）。新增 `filters` 与 `onFilter`。
   - 页面状态四种：首次加载、无视图失败（加载停止后才显示，带重试）、不可用（Kit 空态写原因文案，没有原因用 `pluginViewEmpty`，只有 `catalog_unreachable` 带重试；不画刷新、筛选、加载更多与动作）、已加载（刷新失败时顶部危险横幅）。页面改为懒列表：横幅、筛选、视图各部分（同一张主色面板）、加载更多都是列表项，长明细不再一次性组合全部行。
