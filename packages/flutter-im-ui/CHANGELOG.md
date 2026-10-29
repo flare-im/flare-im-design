@@ -1,5 +1,6 @@
 ## 未发布
 
+- 通话：新增 `FlareCallRecordCard` 与 `models/call_record.dart`（`FlareCallRecordScope`、`FlareCallRecordState`、`FlareCallEndReason`、`flareCallRecordStatus` 等，`spec/call-record-vectors.json`），`FlareStrings` 新增 `callRecord*`；`FlareCallView` 新增 `onMinimize`（传入才绘制收起按钮）。**破坏性**：`FlareGroupCallView.state` 由 `String` 改为 `FlareCallState`。
 - 第八轮：消息表面与元信息、回执投影、红包第五版、插件协议 v2（docs/design/message-surface-and-meta.md、red-packet-v5-roles-and-wallet.md、poll-v2-permissions-anonymity.md §6、plugin-platform-v2-trust-lifecycle-admin.md §4）：
   - 新增 `models/message_surface.dart`：`FlareMessageSurface`（bubble / bareMedia / card / centered）与 `flareMessageSurface`、`flareMessageContentKey`、`flareMessageSurfaceInputOf`；`FlareMessageMetaPlacement` 与 `flareMessageMetaPlacement`；`FlareMessageReadSummary`、`flareMessageReceiptPresentation`、`flareMessageAccessibilityLabel`。规则读 `spec/message-surface-vectors.json`、`message-meta-placement-vectors.json`、`message-receipt-vectors.json`。
   - **破坏性**：`FlareContentScope.bareTypes` 与 `FlareContentRegistry.register(bare:)` 删除，改为 `surfaces` / `register(surface:)`，只为 Kit 不认识的内容键登记 `card` 或 `bareMedia`；custom 与全部插件卡片默认就是 card。builder 查找先完整键（`custom:<subtype>`）再 `custom`。
