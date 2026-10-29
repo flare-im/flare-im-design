@@ -153,6 +153,30 @@ class FlareStrings {
     this.packetDurationMinutes = '{n} 分钟',
     this.packetDurationHours = '{n} 小时',
     this.packetDurationDays = '{n} 天',
+    // 通话记录卡片（FlareCallRecordCard）
+    this.callRecordVoice = '语音通话',
+    this.callRecordVideo = '视频通话',
+    this.callRecordWaitingAnswer = '等待对方接听',
+    this.callRecordIncoming = '邀请你通话',
+    this.callRecordGroupRinging = '群通话呼叫中',
+    this.callRecordInCall = '通话中',
+    this.callRecordGroupOngoing = '群通话进行中 · {n} 人',
+    this.callRecordGroupInProgress = '群通话进行中',
+    this.callRecordDuration = '通话时长 {duration}',
+    this.callRecordGroupEndedDuration = '群通话已结束 · 时长 {duration}',
+    this.callRecordGroupEnded = '群通话已结束',
+    this.callRecordCancelledByYou = '已取消',
+    this.callRecordCancelledByCaller = '对方已取消',
+    this.callRecordDeclinedByPeer = '对方已拒绝',
+    this.callRecordDeclinedByYou = '已拒绝',
+    this.callRecordNoAnswer = '对方未接听',
+    this.callRecordMissed = '未接听',
+    this.callRecordPeerBusy = '对方忙线中',
+    this.callRecordMissedBusy = '忙线未接听',
+    this.callRecordUnavailable = '通话不可用',
+    this.callRecordFailed = '通话失败',
+    this.callRecordJoin = '加入',
+    this.callRecordCallBack = '回拨',
     // 位置选点与名片选择
     this.locationTitle = '位置',
     this.locationSend = '发送',
@@ -936,6 +960,31 @@ class FlareStrings {
   final String packetDurationMinutes;
   final String packetDurationHours;
   final String packetDurationDays;
+
+  // 通话记录卡片（FlareCallRecordCard）
+  final String callRecordVoice;
+  final String callRecordVideo;
+  final String callRecordWaitingAnswer;
+  final String callRecordIncoming;
+  final String callRecordGroupRinging;
+  final String callRecordInCall;
+  final String callRecordGroupOngoing;
+  final String callRecordGroupInProgress;
+  final String callRecordDuration;
+  final String callRecordGroupEndedDuration;
+  final String callRecordGroupEnded;
+  final String callRecordCancelledByYou;
+  final String callRecordCancelledByCaller;
+  final String callRecordDeclinedByPeer;
+  final String callRecordDeclinedByYou;
+  final String callRecordNoAnswer;
+  final String callRecordMissed;
+  final String callRecordPeerBusy;
+  final String callRecordMissedBusy;
+  final String callRecordUnavailable;
+  final String callRecordFailed;
+  final String callRecordJoin;
+  final String callRecordCallBack;
 
   // 位置选点（FlareLocationPicker、FlareLocationMessage）与名片选择（FlareContactPicker）
   final String locationTitle;
@@ -1745,6 +1794,29 @@ class FlareStrings {
     String? packetDurationMinutes,
     String? packetDurationHours,
     String? packetDurationDays,
+    String? callRecordVoice,
+    String? callRecordVideo,
+    String? callRecordWaitingAnswer,
+    String? callRecordIncoming,
+    String? callRecordGroupRinging,
+    String? callRecordInCall,
+    String? callRecordGroupOngoing,
+    String? callRecordGroupInProgress,
+    String? callRecordDuration,
+    String? callRecordGroupEndedDuration,
+    String? callRecordGroupEnded,
+    String? callRecordCancelledByYou,
+    String? callRecordCancelledByCaller,
+    String? callRecordDeclinedByPeer,
+    String? callRecordDeclinedByYou,
+    String? callRecordNoAnswer,
+    String? callRecordMissed,
+    String? callRecordPeerBusy,
+    String? callRecordMissedBusy,
+    String? callRecordUnavailable,
+    String? callRecordFailed,
+    String? callRecordJoin,
+    String? callRecordCallBack,
     String? locationTitle,
     String? locationSend,
     String? locationLocateMe,
@@ -2447,6 +2519,29 @@ class FlareStrings {
       packetDurationMinutes: packetDurationMinutes ?? this.packetDurationMinutes,
       packetDurationHours: packetDurationHours ?? this.packetDurationHours,
       packetDurationDays: packetDurationDays ?? this.packetDurationDays,
+      callRecordVoice: callRecordVoice ?? this.callRecordVoice,
+      callRecordVideo: callRecordVideo ?? this.callRecordVideo,
+      callRecordWaitingAnswer: callRecordWaitingAnswer ?? this.callRecordWaitingAnswer,
+      callRecordIncoming: callRecordIncoming ?? this.callRecordIncoming,
+      callRecordGroupRinging: callRecordGroupRinging ?? this.callRecordGroupRinging,
+      callRecordInCall: callRecordInCall ?? this.callRecordInCall,
+      callRecordGroupOngoing: callRecordGroupOngoing ?? this.callRecordGroupOngoing,
+      callRecordGroupInProgress: callRecordGroupInProgress ?? this.callRecordGroupInProgress,
+      callRecordDuration: callRecordDuration ?? this.callRecordDuration,
+      callRecordGroupEndedDuration: callRecordGroupEndedDuration ?? this.callRecordGroupEndedDuration,
+      callRecordGroupEnded: callRecordGroupEnded ?? this.callRecordGroupEnded,
+      callRecordCancelledByYou: callRecordCancelledByYou ?? this.callRecordCancelledByYou,
+      callRecordCancelledByCaller: callRecordCancelledByCaller ?? this.callRecordCancelledByCaller,
+      callRecordDeclinedByPeer: callRecordDeclinedByPeer ?? this.callRecordDeclinedByPeer,
+      callRecordDeclinedByYou: callRecordDeclinedByYou ?? this.callRecordDeclinedByYou,
+      callRecordNoAnswer: callRecordNoAnswer ?? this.callRecordNoAnswer,
+      callRecordMissed: callRecordMissed ?? this.callRecordMissed,
+      callRecordPeerBusy: callRecordPeerBusy ?? this.callRecordPeerBusy,
+      callRecordMissedBusy: callRecordMissedBusy ?? this.callRecordMissedBusy,
+      callRecordUnavailable: callRecordUnavailable ?? this.callRecordUnavailable,
+      callRecordFailed: callRecordFailed ?? this.callRecordFailed,
+      callRecordJoin: callRecordJoin ?? this.callRecordJoin,
+      callRecordCallBack: callRecordCallBack ?? this.callRecordCallBack,
       locationTitle: locationTitle ?? this.locationTitle,
       locationSend: locationSend ?? this.locationSend,
       locationLocateMe: locationLocateMe ?? this.locationLocateMe,

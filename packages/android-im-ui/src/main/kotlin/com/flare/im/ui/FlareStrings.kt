@@ -1590,6 +1590,53 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["packetDurationHours"] as? String) ?: "{n} 小时"
     val packetDurationDays: String
         get() = (overrides["packetDurationDays"] as? String) ?: "{n} 天"
+    // Call record card (CallRecordCard)
+    val callRecordVoice: String
+        get() = (overrides["callRecordVoice"] as? String) ?: "语音通话"
+    val callRecordVideo: String
+        get() = (overrides["callRecordVideo"] as? String) ?: "视频通话"
+    val callRecordWaitingAnswer: String
+        get() = (overrides["callRecordWaitingAnswer"] as? String) ?: "等待对方接听"
+    val callRecordIncoming: String
+        get() = (overrides["callRecordIncoming"] as? String) ?: "邀请你通话"
+    val callRecordGroupRinging: String
+        get() = (overrides["callRecordGroupRinging"] as? String) ?: "群通话呼叫中"
+    val callRecordInCall: String
+        get() = (overrides["callRecordInCall"] as? String) ?: "通话中"
+    val callRecordGroupOngoing: String
+        get() = (overrides["callRecordGroupOngoing"] as? String) ?: "群通话进行中 · {n} 人"
+    val callRecordGroupInProgress: String
+        get() = (overrides["callRecordGroupInProgress"] as? String) ?: "群通话进行中"
+    val callRecordDuration: String
+        get() = (overrides["callRecordDuration"] as? String) ?: "通话时长 {duration}"
+    val callRecordGroupEndedDuration: String
+        get() = (overrides["callRecordGroupEndedDuration"] as? String) ?: "群通话已结束 · 时长 {duration}"
+    val callRecordGroupEnded: String
+        get() = (overrides["callRecordGroupEnded"] as? String) ?: "群通话已结束"
+    val callRecordCancelledByYou: String
+        get() = (overrides["callRecordCancelledByYou"] as? String) ?: "已取消"
+    val callRecordCancelledByCaller: String
+        get() = (overrides["callRecordCancelledByCaller"] as? String) ?: "对方已取消"
+    val callRecordDeclinedByPeer: String
+        get() = (overrides["callRecordDeclinedByPeer"] as? String) ?: "对方已拒绝"
+    val callRecordDeclinedByYou: String
+        get() = (overrides["callRecordDeclinedByYou"] as? String) ?: "已拒绝"
+    val callRecordNoAnswer: String
+        get() = (overrides["callRecordNoAnswer"] as? String) ?: "对方未接听"
+    val callRecordMissed: String
+        get() = (overrides["callRecordMissed"] as? String) ?: "未接听"
+    val callRecordPeerBusy: String
+        get() = (overrides["callRecordPeerBusy"] as? String) ?: "对方忙线中"
+    val callRecordMissedBusy: String
+        get() = (overrides["callRecordMissedBusy"] as? String) ?: "忙线未接听"
+    val callRecordUnavailable: String
+        get() = (overrides["callRecordUnavailable"] as? String) ?: "通话不可用"
+    val callRecordFailed: String
+        get() = (overrides["callRecordFailed"] as? String) ?: "通话失败"
+    val callRecordJoin: String
+        get() = (overrides["callRecordJoin"] as? String) ?: "加入"
+    val callRecordCallBack: String
+        get() = (overrides["callRecordCallBack"] as? String) ?: "回拨"
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -4278,6 +4325,75 @@ class FlareStringsBuilder internal constructor() {
     var packetDurationDays: String
         get() = (values["packetDurationDays"] as? String) ?: "{n} 天"
         set(value) { values["packetDurationDays"] = value }
+    var callRecordVoice: String
+        get() = (values["callRecordVoice"] as? String) ?: "语音通话"
+        set(value) { values["callRecordVoice"] = value }
+    var callRecordVideo: String
+        get() = (values["callRecordVideo"] as? String) ?: "视频通话"
+        set(value) { values["callRecordVideo"] = value }
+    var callRecordWaitingAnswer: String
+        get() = (values["callRecordWaitingAnswer"] as? String) ?: "等待对方接听"
+        set(value) { values["callRecordWaitingAnswer"] = value }
+    var callRecordIncoming: String
+        get() = (values["callRecordIncoming"] as? String) ?: "邀请你通话"
+        set(value) { values["callRecordIncoming"] = value }
+    var callRecordGroupRinging: String
+        get() = (values["callRecordGroupRinging"] as? String) ?: "群通话呼叫中"
+        set(value) { values["callRecordGroupRinging"] = value }
+    var callRecordInCall: String
+        get() = (values["callRecordInCall"] as? String) ?: "通话中"
+        set(value) { values["callRecordInCall"] = value }
+    var callRecordGroupOngoing: String
+        get() = (values["callRecordGroupOngoing"] as? String) ?: "群通话进行中 · {n} 人"
+        set(value) { values["callRecordGroupOngoing"] = value }
+    var callRecordGroupInProgress: String
+        get() = (values["callRecordGroupInProgress"] as? String) ?: "群通话进行中"
+        set(value) { values["callRecordGroupInProgress"] = value }
+    var callRecordDuration: String
+        get() = (values["callRecordDuration"] as? String) ?: "通话时长 {duration}"
+        set(value) { values["callRecordDuration"] = value }
+    var callRecordGroupEndedDuration: String
+        get() = (values["callRecordGroupEndedDuration"] as? String) ?: "群通话已结束 · 时长 {duration}"
+        set(value) { values["callRecordGroupEndedDuration"] = value }
+    var callRecordGroupEnded: String
+        get() = (values["callRecordGroupEnded"] as? String) ?: "群通话已结束"
+        set(value) { values["callRecordGroupEnded"] = value }
+    var callRecordCancelledByYou: String
+        get() = (values["callRecordCancelledByYou"] as? String) ?: "已取消"
+        set(value) { values["callRecordCancelledByYou"] = value }
+    var callRecordCancelledByCaller: String
+        get() = (values["callRecordCancelledByCaller"] as? String) ?: "对方已取消"
+        set(value) { values["callRecordCancelledByCaller"] = value }
+    var callRecordDeclinedByPeer: String
+        get() = (values["callRecordDeclinedByPeer"] as? String) ?: "对方已拒绝"
+        set(value) { values["callRecordDeclinedByPeer"] = value }
+    var callRecordDeclinedByYou: String
+        get() = (values["callRecordDeclinedByYou"] as? String) ?: "已拒绝"
+        set(value) { values["callRecordDeclinedByYou"] = value }
+    var callRecordNoAnswer: String
+        get() = (values["callRecordNoAnswer"] as? String) ?: "对方未接听"
+        set(value) { values["callRecordNoAnswer"] = value }
+    var callRecordMissed: String
+        get() = (values["callRecordMissed"] as? String) ?: "未接听"
+        set(value) { values["callRecordMissed"] = value }
+    var callRecordPeerBusy: String
+        get() = (values["callRecordPeerBusy"] as? String) ?: "对方忙线中"
+        set(value) { values["callRecordPeerBusy"] = value }
+    var callRecordMissedBusy: String
+        get() = (values["callRecordMissedBusy"] as? String) ?: "忙线未接听"
+        set(value) { values["callRecordMissedBusy"] = value }
+    var callRecordUnavailable: String
+        get() = (values["callRecordUnavailable"] as? String) ?: "通话不可用"
+        set(value) { values["callRecordUnavailable"] = value }
+    var callRecordFailed: String
+        get() = (values["callRecordFailed"] as? String) ?: "通话失败"
+        set(value) { values["callRecordFailed"] = value }
+    var callRecordJoin: String
+        get() = (values["callRecordJoin"] as? String) ?: "加入"
+        set(value) { values["callRecordJoin"] = value }
+    var callRecordCallBack: String
+        get() = (values["callRecordCallBack"] as? String) ?: "回拨"
+        set(value) { values["callRecordCallBack"] = value }
 }
 
 

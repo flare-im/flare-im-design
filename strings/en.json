@@ -6412,5 +6412,212 @@
       "ios"
     ],
     "zh": "© OpenStreetMap contributors"
+  },
+  "callRecordVoice": {
+    "en": "Voice call",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "语音通话"
+  },
+  "callRecordVideo": {
+    "en": "Video call",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "视频通话"
+  },
+  "callRecordWaitingAnswer": {
+    "en": "Waiting for answer",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "等待对方接听"
+  },
+  "callRecordIncoming": {
+    "en": "Calling you",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "邀请你通话"
+  },
+  "callRecordGroupRinging": {
+    "en": "Group call ringing",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "群通话呼叫中"
+  },
+  "callRecordInCall": {
+    "en": "In call",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "通话中"
+  },
+  "callRecordGroupOngoing": {
+    "en": "Group call · {n} joined",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "群通话进行中 · {n} 人"
+  },
+  "callRecordGroupInProgress": {
+    "en": "Group call in progress",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "群通话进行中"
+  },
+  "callRecordDuration": {
+    "en": "Duration {duration}",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "通话时长 {duration}"
+  },
+  "callRecordGroupEndedDuration": {
+    "en": "Group call ended · {duration}",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "群通话已结束 · 时长 {duration}"
+  },
+  "callRecordGroupEnded": {
+    "en": "Group call ended",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "群通话已结束"
+  },
+  "callRecordCancelledByYou": {
+    "en": "Cancelled",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已取消"
+  },
+  "callRecordCancelledByCaller": {
+    "en": "Caller cancelled",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "对方已取消"
+  },
+  "callRecordDeclinedByPeer": {
+    "en": "Declined",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "对方已拒绝"
+  },
+  "callRecordDeclinedByYou": {
+    "en": "You declined",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已拒绝"
+  },
+  "callRecordNoAnswer": {
+    "en": "No answer",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "对方未接听"
+  },
+  "callRecordMissed": {
+    "en": "Missed call",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "未接听"
+  },
+  "callRecordPeerBusy": {
+    "en": "Busy",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "对方忙线中"
+  },
+  "callRecordMissedBusy": {
+    "en": "Missed (busy)",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "忙线未接听"
+  },
+  "callRecordUnavailable": {
+    "en": "Calls unavailable",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "通话不可用"
+  },
+  "callRecordFailed": {
+    "en": "Call failed",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "通话失败"
+  },
+  "callRecordJoin": {
+    "en": "Join",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "加入"
+  },
+  "callRecordCallBack": {
+    "en": "Call back",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "回拨"
   }
 }

@@ -1,0 +1,820 @@
+{
+  "$comment": "Call record card (FlareCallRecordCard, docs/design/call-plugin-and-feature-toggles.md Kit): the status line, its tone and the one action a viewer sees, as pure rules the Vue, Flutter, SwiftUI and Compose kits run against these cases. Every input is viewer-relative and comes from the host (the call plugin's record card and the viewer's own facts); the card never computes canJoin or canCallBack itself. Change the rules and the cases together.",
+  "schemaVersion": 1,
+  "rules": {
+    "status": "First match wins. ringing: group -> groupRinging; viewerIsInitiator -> waitingAnswer; else incoming. ongoing: single -> inCall; group with joinedCount >= 1 -> groupOngoing, else groupInProgress. ended (a missing endReason reads completed): group -> completed with durationSeconds -> groupEndedDuration, completed without it -> groupEnded, unavailable -> unavailable, failed -> failed, any other reason -> groupEnded. single -> completed -> duration (durationSeconds, 0 when missing); cancelled -> cancelledByYou (initiator) / cancelledByCaller; declined -> declinedByPeer (initiator) / declinedByYou; missed -> noAnswer (initiator) / missed; busy -> peerBusy (initiator) / missedBusy; unavailable -> unavailable; failed -> failed.",
+    "tone": "danger for missed (a call the viewer did not pick up); neutral for everything else.",
+    "action": "disabled -> none. group and state is not ended and canJoin -> join. single and state is ended and canCallBack -> callBack. Otherwise none. busy keeps the action visible but not actionable (actionEnabled false, with a progress indicator).",
+    "duration": "Whole seconds, floored, negative read as 0. Under an hour: mm:ss with both parts two digits. From an hour: h:mm:ss, hours unpadded.",
+    "icon": "The kit icon phone for audio, video for video. The icon set has no outgoing / incoming variants, so direction is carried by the copy alone."
+  },
+  "duration": [
+    {
+      "seconds": 0,
+      "label": "00:00"
+    },
+    {
+      "seconds": 5,
+      "label": "00:05"
+    },
+    {
+      "seconds": 59,
+      "label": "00:59"
+    },
+    {
+      "seconds": 60,
+      "label": "01:00"
+    },
+    {
+      "seconds": 192,
+      "label": "03:12"
+    },
+    {
+      "seconds": 3599,
+      "label": "59:59"
+    },
+    {
+      "seconds": 3600,
+      "label": "1:00:00"
+    },
+    {
+      "seconds": 3725,
+      "label": "1:02:05"
+    },
+    {
+      "seconds": 86399,
+      "label": "23:59:59"
+    },
+    {
+      "seconds": 90000,
+      "label": "25:00:00"
+    },
+    {
+      "seconds": -4,
+      "label": "00:00"
+    }
+  ],
+  "cases": [
+    {
+      "id": "ringing-single-initiator",
+      "input": {
+        "media": "audio",
+        "scope": "single",
+        "viewerIsInitiator": true,
+        "canJoin": false,
+        "canCallBack": false,
+        "state": "ringing"
+      },
+      "status": "waitingAnswer",
+      "tone": "neutral",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "等待对方接听",
+        "en": "Waiting for answer"
+      }
+    },
+    {
+      "id": "ringing-single-callee",
+      "input": {
+        "media": "video",
+        "scope": "single",
+        "viewerIsInitiator": false,
+        "canJoin": false,
+        "canCallBack": false,
+        "state": "ringing"
+      },
+      "status": "incoming",
+      "tone": "neutral",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "邀请你通话",
+        "en": "Calling you"
+      }
+    },
+    {
+      "id": "ringing-single-callee-no-call-back",
+      "input": {
+        "media": "audio",
+        "scope": "single",
+        "viewerIsInitiator": false,
+        "canJoin": false,
+        "canCallBack": true,
+        "state": "ringing"
+      },
+      "status": "incoming",
+      "tone": "neutral",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "邀请你通话",
+        "en": "Calling you"
+      }
+    },
+    {
+      "id": "ringing-group-initiator",
+      "input": {
+        "media": "audio",
+        "scope": "group",
+        "viewerIsInitiator": true,
+        "canJoin": false,
+        "canCallBack": false,
+        "state": "ringing"
+      },
+      "status": "groupRinging",
+      "tone": "neutral",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "群通话呼叫中",
+        "en": "Group call ringing"
+      }
+    },
+    {
+      "id": "ringing-group-member-can-join",
+      "input": {
+        "media": "audio",
+        "scope": "group",
+        "viewerIsInitiator": false,
+        "canJoin": true,
+        "canCallBack": false,
+        "state": "ringing"
+      },
+      "status": "groupRinging",
+      "tone": "neutral",
+      "action": "join",
+      "actionEnabled": true,
+      "text": {
+        "zh": "群通话呼叫中",
+        "en": "Group call ringing"
+      }
+    },
+    {
+      "id": "ongoing-single",
+      "input": {
+        "media": "video",
+        "scope": "single",
+        "viewerIsInitiator": true,
+        "canJoin": false,
+        "canCallBack": false,
+        "state": "ongoing"
+      },
+      "status": "inCall",
+      "tone": "neutral",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "通话中",
+        "en": "In call"
+      }
+    },
+    {
+      "id": "ongoing-single-ignores-join",
+      "input": {
+        "media": "audio",
+        "scope": "single",
+        "viewerIsInitiator": true,
+        "canJoin": true,
+        "canCallBack": false,
+        "state": "ongoing"
+      },
+      "status": "inCall",
+      "tone": "neutral",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "通话中",
+        "en": "In call"
+      }
+    },
+    {
+      "id": "ongoing-group-can-join",
+      "input": {
+        "media": "audio",
+        "scope": "group",
+        "viewerIsInitiator": false,
+        "canJoin": true,
+        "canCallBack": false,
+        "state": "ongoing",
+        "joinedCount": 3
+      },
+      "status": "groupOngoing",
+      "tone": "neutral",
+      "action": "join",
+      "actionEnabled": true,
+      "text": {
+        "zh": "群通话进行中 · 3 人",
+        "en": "Group call · 3 joined"
+      }
+    },
+    {
+      "id": "ongoing-group-viewer-in-call",
+      "input": {
+        "media": "audio",
+        "scope": "group",
+        "viewerIsInitiator": true,
+        "canJoin": false,
+        "canCallBack": false,
+        "state": "ongoing",
+        "joinedCount": 12
+      },
+      "status": "groupOngoing",
+      "tone": "neutral",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "群通话进行中 · 12 人",
+        "en": "Group call · 12 joined"
+      }
+    },
+    {
+      "id": "ongoing-group-no-count",
+      "input": {
+        "media": "audio",
+        "scope": "group",
+        "viewerIsInitiator": false,
+        "canJoin": true,
+        "canCallBack": false,
+        "state": "ongoing"
+      },
+      "status": "groupInProgress",
+      "tone": "neutral",
+      "action": "join",
+      "actionEnabled": true,
+      "text": {
+        "zh": "群通话进行中",
+        "en": "Group call in progress"
+      }
+    },
+    {
+      "id": "ongoing-group-zero-count",
+      "input": {
+        "media": "audio",
+        "scope": "group",
+        "viewerIsInitiator": true,
+        "canJoin": false,
+        "canCallBack": false,
+        "state": "ongoing",
+        "joinedCount": 0
+      },
+      "status": "groupInProgress",
+      "tone": "neutral",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "群通话进行中",
+        "en": "Group call in progress"
+      }
+    },
+    {
+      "id": "ongoing-group-disabled",
+      "input": {
+        "media": "audio",
+        "scope": "group",
+        "viewerIsInitiator": false,
+        "canJoin": true,
+        "canCallBack": false,
+        "state": "ongoing",
+        "joinedCount": 2,
+        "disabled": true
+      },
+      "status": "groupOngoing",
+      "tone": "neutral",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "群通话进行中 · 2 人",
+        "en": "Group call · 2 joined"
+      }
+    },
+    {
+      "id": "ongoing-group-busy",
+      "input": {
+        "media": "audio",
+        "scope": "group",
+        "viewerIsInitiator": false,
+        "canJoin": true,
+        "canCallBack": false,
+        "state": "ongoing",
+        "joinedCount": 2,
+        "busy": true
+      },
+      "status": "groupOngoing",
+      "tone": "neutral",
+      "action": "join",
+      "actionEnabled": false,
+      "text": {
+        "zh": "群通话进行中 · 2 人",
+        "en": "Group call · 2 joined"
+      }
+    },
+    {
+      "id": "ended-completed",
+      "input": {
+        "media": "audio",
+        "scope": "single",
+        "viewerIsInitiator": true,
+        "canJoin": false,
+        "canCallBack": true,
+        "state": "ended",
+        "endReason": "completed",
+        "durationSeconds": 192
+      },
+      "status": "duration",
+      "tone": "neutral",
+      "action": "callBack",
+      "actionEnabled": true,
+      "text": {
+        "zh": "通话时长 03:12",
+        "en": "Duration 03:12"
+      }
+    },
+    {
+      "id": "ended-completed-hours",
+      "input": {
+        "media": "video",
+        "scope": "single",
+        "viewerIsInitiator": false,
+        "canJoin": false,
+        "canCallBack": false,
+        "state": "ended",
+        "endReason": "completed",
+        "durationSeconds": 3725
+      },
+      "status": "duration",
+      "tone": "neutral",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "通话时长 1:02:05",
+        "en": "Duration 1:02:05"
+      }
+    },
+    {
+      "id": "ended-completed-no-duration",
+      "input": {
+        "media": "audio",
+        "scope": "single",
+        "viewerIsInitiator": true,
+        "canJoin": false,
+        "canCallBack": false,
+        "state": "ended",
+        "endReason": "completed"
+      },
+      "status": "duration",
+      "tone": "neutral",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "通话时长 00:00",
+        "en": "Duration 00:00"
+      }
+    },
+    {
+      "id": "ended-no-reason-reads-completed",
+      "input": {
+        "media": "audio",
+        "scope": "single",
+        "viewerIsInitiator": true,
+        "canJoin": false,
+        "canCallBack": false,
+        "state": "ended",
+        "durationSeconds": 30
+      },
+      "status": "duration",
+      "tone": "neutral",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "通话时长 00:30",
+        "en": "Duration 00:30"
+      }
+    },
+    {
+      "id": "ended-cancelled-initiator",
+      "input": {
+        "media": "audio",
+        "scope": "single",
+        "viewerIsInitiator": true,
+        "canJoin": false,
+        "canCallBack": true,
+        "state": "ended",
+        "endReason": "cancelled"
+      },
+      "status": "cancelledByYou",
+      "tone": "neutral",
+      "action": "callBack",
+      "actionEnabled": true,
+      "text": {
+        "zh": "已取消",
+        "en": "Cancelled"
+      }
+    },
+    {
+      "id": "ended-cancelled-callee",
+      "input": {
+        "media": "audio",
+        "scope": "single",
+        "viewerIsInitiator": false,
+        "canJoin": false,
+        "canCallBack": true,
+        "state": "ended",
+        "endReason": "cancelled"
+      },
+      "status": "cancelledByCaller",
+      "tone": "neutral",
+      "action": "callBack",
+      "actionEnabled": true,
+      "text": {
+        "zh": "对方已取消",
+        "en": "Caller cancelled"
+      }
+    },
+    {
+      "id": "ended-declined-initiator",
+      "input": {
+        "media": "audio",
+        "scope": "single",
+        "viewerIsInitiator": true,
+        "canJoin": false,
+        "canCallBack": false,
+        "state": "ended",
+        "endReason": "declined"
+      },
+      "status": "declinedByPeer",
+      "tone": "neutral",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "对方已拒绝",
+        "en": "Declined"
+      }
+    },
+    {
+      "id": "ended-declined-callee",
+      "input": {
+        "media": "audio",
+        "scope": "single",
+        "viewerIsInitiator": false,
+        "canJoin": false,
+        "canCallBack": false,
+        "state": "ended",
+        "endReason": "declined"
+      },
+      "status": "declinedByYou",
+      "tone": "neutral",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "已拒绝",
+        "en": "You declined"
+      }
+    },
+    {
+      "id": "ended-missed-initiator",
+      "input": {
+        "media": "audio",
+        "scope": "single",
+        "viewerIsInitiator": true,
+        "canJoin": false,
+        "canCallBack": true,
+        "state": "ended",
+        "endReason": "missed"
+      },
+      "status": "noAnswer",
+      "tone": "neutral",
+      "action": "callBack",
+      "actionEnabled": true,
+      "text": {
+        "zh": "对方未接听",
+        "en": "No answer"
+      }
+    },
+    {
+      "id": "ended-missed-callee",
+      "input": {
+        "media": "video",
+        "scope": "single",
+        "viewerIsInitiator": false,
+        "canJoin": false,
+        "canCallBack": true,
+        "state": "ended",
+        "endReason": "missed"
+      },
+      "status": "missed",
+      "tone": "danger",
+      "action": "callBack",
+      "actionEnabled": true,
+      "text": {
+        "zh": "未接听",
+        "en": "Missed call"
+      }
+    },
+    {
+      "id": "ended-busy-initiator",
+      "input": {
+        "media": "audio",
+        "scope": "single",
+        "viewerIsInitiator": true,
+        "canJoin": false,
+        "canCallBack": false,
+        "state": "ended",
+        "endReason": "busy"
+      },
+      "status": "peerBusy",
+      "tone": "neutral",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "对方忙线中",
+        "en": "Busy"
+      }
+    },
+    {
+      "id": "ended-busy-callee",
+      "input": {
+        "media": "audio",
+        "scope": "single",
+        "viewerIsInitiator": false,
+        "canJoin": false,
+        "canCallBack": false,
+        "state": "ended",
+        "endReason": "busy"
+      },
+      "status": "missedBusy",
+      "tone": "neutral",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "忙线未接听",
+        "en": "Missed (busy)"
+      }
+    },
+    {
+      "id": "ended-unavailable",
+      "input": {
+        "media": "audio",
+        "scope": "single",
+        "viewerIsInitiator": false,
+        "canJoin": false,
+        "canCallBack": false,
+        "state": "ended",
+        "endReason": "unavailable"
+      },
+      "status": "unavailable",
+      "tone": "neutral",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "通话不可用",
+        "en": "Calls unavailable"
+      }
+    },
+    {
+      "id": "ended-failed",
+      "input": {
+        "media": "audio",
+        "scope": "single",
+        "viewerIsInitiator": true,
+        "canJoin": false,
+        "canCallBack": true,
+        "state": "ended",
+        "endReason": "failed"
+      },
+      "status": "failed",
+      "tone": "neutral",
+      "action": "callBack",
+      "actionEnabled": true,
+      "text": {
+        "zh": "通话失败",
+        "en": "Call failed"
+      }
+    },
+    {
+      "id": "ended-call-back-disabled",
+      "input": {
+        "media": "audio",
+        "scope": "single",
+        "viewerIsInitiator": false,
+        "canJoin": false,
+        "canCallBack": true,
+        "state": "ended",
+        "endReason": "missed",
+        "disabled": true
+      },
+      "status": "missed",
+      "tone": "danger",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "未接听",
+        "en": "Missed call"
+      }
+    },
+    {
+      "id": "ended-call-back-busy",
+      "input": {
+        "media": "audio",
+        "scope": "single",
+        "viewerIsInitiator": true,
+        "canJoin": false,
+        "canCallBack": true,
+        "state": "ended",
+        "endReason": "completed",
+        "durationSeconds": 61,
+        "busy": true
+      },
+      "status": "duration",
+      "tone": "neutral",
+      "action": "callBack",
+      "actionEnabled": false,
+      "text": {
+        "zh": "通话时长 01:01",
+        "en": "Duration 01:01"
+      }
+    },
+    {
+      "id": "ended-ignores-join",
+      "input": {
+        "media": "audio",
+        "scope": "single",
+        "viewerIsInitiator": true,
+        "canJoin": true,
+        "canCallBack": false,
+        "state": "ended",
+        "endReason": "completed",
+        "durationSeconds": 5
+      },
+      "status": "duration",
+      "tone": "neutral",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "通话时长 00:05",
+        "en": "Duration 00:05"
+      }
+    },
+    {
+      "id": "group-ended-completed",
+      "input": {
+        "media": "audio",
+        "scope": "group",
+        "viewerIsInitiator": true,
+        "canJoin": true,
+        "canCallBack": true,
+        "state": "ended",
+        "endReason": "completed",
+        "durationSeconds": 754
+      },
+      "status": "groupEndedDuration",
+      "tone": "neutral",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "群通话已结束 · 时长 12:34",
+        "en": "Group call ended · 12:34"
+      }
+    },
+    {
+      "id": "group-ended-completed-no-duration",
+      "input": {
+        "media": "audio",
+        "scope": "group",
+        "viewerIsInitiator": true,
+        "canJoin": false,
+        "canCallBack": false,
+        "state": "ended",
+        "endReason": "completed"
+      },
+      "status": "groupEnded",
+      "tone": "neutral",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "群通话已结束",
+        "en": "Group call ended"
+      }
+    },
+    {
+      "id": "group-ended-cancelled",
+      "input": {
+        "media": "audio",
+        "scope": "group",
+        "viewerIsInitiator": true,
+        "canJoin": false,
+        "canCallBack": false,
+        "state": "ended",
+        "endReason": "cancelled"
+      },
+      "status": "groupEnded",
+      "tone": "neutral",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "群通话已结束",
+        "en": "Group call ended"
+      }
+    },
+    {
+      "id": "group-ended-missed-member",
+      "input": {
+        "media": "audio",
+        "scope": "group",
+        "viewerIsInitiator": false,
+        "canJoin": false,
+        "canCallBack": false,
+        "state": "ended",
+        "endReason": "missed"
+      },
+      "status": "groupEnded",
+      "tone": "neutral",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "群通话已结束",
+        "en": "Group call ended"
+      }
+    },
+    {
+      "id": "group-ended-declined",
+      "input": {
+        "media": "video",
+        "scope": "group",
+        "viewerIsInitiator": true,
+        "canJoin": false,
+        "canCallBack": false,
+        "state": "ended",
+        "endReason": "declined"
+      },
+      "status": "groupEnded",
+      "tone": "neutral",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "群通话已结束",
+        "en": "Group call ended"
+      }
+    },
+    {
+      "id": "group-ended-busy",
+      "input": {
+        "media": "audio",
+        "scope": "group",
+        "viewerIsInitiator": false,
+        "canJoin": false,
+        "canCallBack": false,
+        "state": "ended",
+        "endReason": "busy"
+      },
+      "status": "groupEnded",
+      "tone": "neutral",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "群通话已结束",
+        "en": "Group call ended"
+      }
+    },
+    {
+      "id": "group-ended-unavailable",
+      "input": {
+        "media": "audio",
+        "scope": "group",
+        "viewerIsInitiator": true,
+        "canJoin": false,
+        "canCallBack": false,
+        "state": "ended",
+        "endReason": "unavailable"
+      },
+      "status": "unavailable",
+      "tone": "neutral",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "通话不可用",
+        "en": "Calls unavailable"
+      }
+    },
+    {
+      "id": "group-ended-failed",
+      "input": {
+        "media": "audio",
+        "scope": "group",
+        "viewerIsInitiator": true,
+        "canJoin": false,
+        "canCallBack": false,
+        "state": "ended",
+        "endReason": "failed"
+      },
+      "status": "failed",
+      "tone": "neutral",
+      "action": null,
+      "actionEnabled": false,
+      "text": {
+        "zh": "通话失败",
+        "en": "Call failed"
+      }
+    }
+  ]
+}

@@ -923,6 +923,30 @@ public struct FlareStrings: Sendable {
     public var packetDurationMinutes: String
     public var packetDurationHours: String
     public var packetDurationDays: String
+    // Call record card (CallRecordCardView)
+    public var callRecordVoice: String
+    public var callRecordVideo: String
+    public var callRecordWaitingAnswer: String
+    public var callRecordIncoming: String
+    public var callRecordGroupRinging: String
+    public var callRecordInCall: String
+    public var callRecordGroupOngoing: String
+    public var callRecordGroupInProgress: String
+    public var callRecordDuration: String
+    public var callRecordGroupEndedDuration: String
+    public var callRecordGroupEnded: String
+    public var callRecordCancelledByYou: String
+    public var callRecordCancelledByCaller: String
+    public var callRecordDeclinedByPeer: String
+    public var callRecordDeclinedByYou: String
+    public var callRecordNoAnswer: String
+    public var callRecordMissed: String
+    public var callRecordPeerBusy: String
+    public var callRecordMissedBusy: String
+    public var callRecordUnavailable: String
+    public var callRecordFailed: String
+    public var callRecordJoin: String
+    public var callRecordCallBack: String
 
     public init(
         microphone: String = "麦克风",
@@ -1640,7 +1664,30 @@ public struct FlareStrings: Sendable {
         packetDurationSeconds: String = "{n} 秒",
         packetDurationMinutes: String = "{n} 分钟",
         packetDurationHours: String = "{n} 小时",
-        packetDurationDays: String = "{n} 天"
+        packetDurationDays: String = "{n} 天",
+        callRecordVoice: String = "语音通话",
+        callRecordVideo: String = "视频通话",
+        callRecordWaitingAnswer: String = "等待对方接听",
+        callRecordIncoming: String = "邀请你通话",
+        callRecordGroupRinging: String = "群通话呼叫中",
+        callRecordInCall: String = "通话中",
+        callRecordGroupOngoing: String = "群通话进行中 · {n} 人",
+        callRecordGroupInProgress: String = "群通话进行中",
+        callRecordDuration: String = "通话时长 {duration}",
+        callRecordGroupEndedDuration: String = "群通话已结束 · 时长 {duration}",
+        callRecordGroupEnded: String = "群通话已结束",
+        callRecordCancelledByYou: String = "已取消",
+        callRecordCancelledByCaller: String = "对方已取消",
+        callRecordDeclinedByPeer: String = "对方已拒绝",
+        callRecordDeclinedByYou: String = "已拒绝",
+        callRecordNoAnswer: String = "对方未接听",
+        callRecordMissed: String = "未接听",
+        callRecordPeerBusy: String = "对方忙线中",
+        callRecordMissedBusy: String = "忙线未接听",
+        callRecordUnavailable: String = "通话不可用",
+        callRecordFailed: String = "通话失败",
+        callRecordJoin: String = "加入",
+        callRecordCallBack: String = "回拨"
     ) {
         self.microphone = microphone
         self.camera = camera
@@ -2320,6 +2367,29 @@ public struct FlareStrings: Sendable {
         self.packetDurationMinutes = packetDurationMinutes
         self.packetDurationHours = packetDurationHours
         self.packetDurationDays = packetDurationDays
+        self.callRecordVoice = callRecordVoice
+        self.callRecordVideo = callRecordVideo
+        self.callRecordWaitingAnswer = callRecordWaitingAnswer
+        self.callRecordIncoming = callRecordIncoming
+        self.callRecordGroupRinging = callRecordGroupRinging
+        self.callRecordInCall = callRecordInCall
+        self.callRecordGroupOngoing = callRecordGroupOngoing
+        self.callRecordGroupInProgress = callRecordGroupInProgress
+        self.callRecordDuration = callRecordDuration
+        self.callRecordGroupEndedDuration = callRecordGroupEndedDuration
+        self.callRecordGroupEnded = callRecordGroupEnded
+        self.callRecordCancelledByYou = callRecordCancelledByYou
+        self.callRecordCancelledByCaller = callRecordCancelledByCaller
+        self.callRecordDeclinedByPeer = callRecordDeclinedByPeer
+        self.callRecordDeclinedByYou = callRecordDeclinedByYou
+        self.callRecordNoAnswer = callRecordNoAnswer
+        self.callRecordMissed = callRecordMissed
+        self.callRecordPeerBusy = callRecordPeerBusy
+        self.callRecordMissedBusy = callRecordMissedBusy
+        self.callRecordUnavailable = callRecordUnavailable
+        self.callRecordFailed = callRecordFailed
+        self.callRecordJoin = callRecordJoin
+        self.callRecordCallBack = callRecordCallBack
     }
 }
 

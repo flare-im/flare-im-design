@@ -640,7 +640,30 @@ public extension FlareStrings {
             packetDurationSeconds: "{n}s",
             packetDurationMinutes: "{n} min",
             packetDurationHours: "{n} h",
-            packetDurationDays: "{n} d"
+            packetDurationDays: "{n} d",
+            callRecordVoice: "Voice call",
+            callRecordVideo: "Video call",
+            callRecordWaitingAnswer: "Waiting for answer",
+            callRecordIncoming: "Calling you",
+            callRecordGroupRinging: "Group call ringing",
+            callRecordInCall: "In call",
+            callRecordGroupOngoing: "Group call · {n} joined",
+            callRecordGroupInProgress: "Group call in progress",
+            callRecordDuration: "Duration {duration}",
+            callRecordGroupEndedDuration: "Group call ended · {duration}",
+            callRecordGroupEnded: "Group call ended",
+            callRecordCancelledByYou: "Cancelled",
+            callRecordCancelledByCaller: "Caller cancelled",
+            callRecordDeclinedByPeer: "Declined",
+            callRecordDeclinedByYou: "You declined",
+            callRecordNoAnswer: "No answer",
+            callRecordMissed: "Missed call",
+            callRecordPeerBusy: "Busy",
+            callRecordMissedBusy: "Missed (busy)",
+            callRecordUnavailable: "Calls unavailable",
+            callRecordFailed: "Call failed",
+            callRecordJoin: "Join",
+            callRecordCallBack: "Call back"
         )
     }
 }
