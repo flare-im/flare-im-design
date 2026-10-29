@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -164,8 +163,8 @@ const val CALL_RECORD_ACTION_TAG = "flare-call-record-action"
  * (calls available for this conversation) are the host's decisions; [disabled] (the plugin is unavailable) keeps the
  * record and drops the action, and [busy] shows the action in progress without taking another tap.
  *
- * The card is the message's card surface (the kit card shell at the compact card width): the timeline draws no bubble
- * around it.
+ * The card is the message's card surface (the kit card shell, at most `componentRichCardWidth` like every card): the
+ * timeline draws no bubble around it.
  */
 @Composable
 fun CallRecordCard(
@@ -193,7 +192,7 @@ fun CallRecordCard(
     val mediaText = if (media == FlareCallMode.Video) strings.callRecordVideo else strings.callRecordVoice
     val accent = if (danger) colors.error else colors.primary
     val ink = if (danger) colors.errorText else colors.primaryText
-    Box(modifier.widthIn(max = FlareSizes.componentRichCardCompactWidth)) {
+    Box(modifier) {
         FlareMessageCardShell(card = true, quote = null) { fill ->
             Row(fill, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
                 Box(

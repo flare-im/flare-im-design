@@ -11,8 +11,8 @@ import SwiftUI
 /// (calls available for this conversation) are the host's decisions; `disabled` (the plugin is unavailable) keeps
 /// the record and drops the action, and `busy` shows the action in progress without taking another tap.
 ///
-/// The card is the message's card surface (the kit card shell at the compact card width): the timeline draws no
-/// bubble around it, and a quoted reply sits inside the shell.
+/// The card is the message's card surface (the kit card shell, at most `richCardWidth` like every card): the
+/// timeline draws no bubble around it, and a quoted reply sits inside the shell.
 public struct CallRecordCardView: View {
     private let media: FlareCallMode
     private let scope: FlareCallRecordScope
@@ -95,7 +95,6 @@ public struct CallRecordCardView: View {
                 }
             }
         }
-        .frame(maxWidth: FlareSizes.componentRichCardCompactWidth, alignment: .leading)
         .accessibilityElement(children: .contain)
     }
 }

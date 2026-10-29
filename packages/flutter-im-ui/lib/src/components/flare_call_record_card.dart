@@ -23,9 +23,9 @@ import 'flare_message_card_shell.dart';
 /// drops the action, and [busy] shows the action in progress without taking
 /// another tap.
 ///
-/// The card is the message's card surface ([FlareMessageCardShell] at the
-/// compact card width): the timeline draws no bubble around it, and a quoted
-/// reply ([FlareCardQuote]) sits inside the shell.
+/// The card is the message's card surface ([FlareMessageCardShell], at most
+/// `richCardWidth` like every card): the timeline draws no bubble around it,
+/// and a quoted reply ([FlareCardQuote]) sits inside the shell.
 class FlareCallRecordCard extends StatelessWidget {
   const FlareCallRecordCard({
     super.key,
@@ -114,77 +114,74 @@ class FlareCallRecordCard extends StatelessWidget {
       container: true,
       label: mediaText,
       value: text,
-      child: SizedBox(
-        width: FlareSizes.componentRichCardCompactWidth,
-        child: FlareMessageCardShell(
-          child: Row(
-            children: [
-              ExcludeSemantics(
-                child: Container(
-                  key: iconKey,
-                  width: FlareSizes.controlHeightMd,
-                  height: FlareSizes.controlHeightMd,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: FlareOpacity.tintWeak),
-                    shape: BoxShape.circle,
-                  ),
-                  child: FlareIcon(
-                    media == FlareCallMode.video ? 'video' : 'phone',
-                    size: FlareSizes.iconSizeMd,
-                    color: ink,
-                  ),
+      child: FlareMessageCardShell(
+        child: Row(
+          children: [
+            ExcludeSemantics(
+              child: Container(
+                key: iconKey,
+                width: FlareSizes.controlHeightMd,
+                height: FlareSizes.controlHeightMd,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: FlareOpacity.tintWeak),
+                  shape: BoxShape.circle,
+                ),
+                child: FlareIcon(
+                  media == FlareCallMode.video ? 'video' : 'phone',
+                  size: FlareSizes.iconSizeMd,
+                  color: ink,
                 ),
               ),
+            ),
+            const SizedBox(width: FlareSizes.spacingMd),
+            Expanded(
+              child: ExcludeSemantics(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      text,
+                      softWrap: true,
+                      style: TextStyle(
+                        color: danger ? colors.errorText : colors.textPrimary,
+                        fontSize: FlareSizes.fontSizeLg,
+                        fontWeight: FontWeight.w500,
+                        height: FlareSizes.lineHeightSnug,
+                      ),
+                    ),
+                    const SizedBox(height: FlareSizes.spacing3xs),
+                    Text(
+                      mediaText,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: colors.textTertiary,
+                        fontSize: FlareSizes.fontSizeSm,
+                        height: FlareSizes.lineHeightSnug,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (action != null) ...[
               const SizedBox(width: FlareSizes.spacingMd),
-              Expanded(
-                child: ExcludeSemantics(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        text,
-                        softWrap: true,
-                        style: TextStyle(
-                          color: danger ? colors.errorText : colors.textPrimary,
-                          fontSize: FlareSizes.fontSizeLg,
-                          fontWeight: FontWeight.w500,
-                          height: FlareSizes.lineHeightSnug,
-                        ),
-                      ),
-                      const SizedBox(height: FlareSizes.spacing3xs),
-                      Text(
-                        mediaText,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: colors.textTertiary,
-                          fontSize: FlareSizes.fontSizeSm,
-                          height: FlareSizes.lineHeightSnug,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              FlareButton(
+                key: actionKey,
+                label: action == FlareCallRecordAction.join
+                    ? strings.callRecordJoin
+                    : strings.callRecordCallBack,
+                variant: FlareButtonVariant.secondary,
+                size: FlareControlSize.sm,
+                loading: busy,
+                onPressed: action == FlareCallRecordAction.join
+                    ? onJoin
+                    : onCallBack,
               ),
-              if (action != null) ...[
-                const SizedBox(width: FlareSizes.spacingMd),
-                FlareButton(
-                  key: actionKey,
-                  label: action == FlareCallRecordAction.join
-                      ? strings.callRecordJoin
-                      : strings.callRecordCallBack,
-                  variant: FlareButtonVariant.secondary,
-                  size: FlareControlSize.sm,
-                  loading: busy,
-                  onPressed: action == FlareCallRecordAction.join
-                      ? onJoin
-                      : onCallBack,
-                ),
-              ],
             ],
-          ),
+          ],
         ),
       ),
     );

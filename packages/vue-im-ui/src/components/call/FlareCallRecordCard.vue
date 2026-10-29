@@ -119,14 +119,14 @@ function onAction() {
 </template>
 
 <style scoped>
-/* The kit card shell (spec/message-surface-vectors.json rules.cardShell) at the compact card width: the primary
+/* The kit card shell (spec/message-surface-vectors.json rules.cardShell): richCardWidth like every card, the primary
    ground, a hairline and radius lg. Outgoing and incoming records differ by alignment only. */
 .flare-call-record {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: var(--flare-size-spacing-md);
-  width: var(--flare-size-component-rich-card-compact-width);
+  width: var(--flare-size-component-rich-card-width);
   max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
