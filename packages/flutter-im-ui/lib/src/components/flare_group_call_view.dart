@@ -100,86 +100,91 @@ class FlareGroupCallView extends StatelessWidget {
       ),
       // Header on top, the call keys at the bottom, the participant grid in
       // between. When large text leaves the grid less than a usable height,
-      // the whole view scrolls instead of overflowing.
-      child: LayoutBuilder(
-        builder: (context, viewport) => SingleChildScrollView(
-          child: _GroupCallLayout(
-            viewportHeight: viewport.maxHeight,
-            minGridHeight: participants.isEmpty ? 0 : _minGridHeight,
-            children: [
-              Padding(
-                // The minimize control is a full touch target around its
-                // 36-point disc; the padding gives the difference back so the
-                // disc stays put.
-                padding: const EdgeInsets.fromLTRB(
-                  FlareSizes.spacing2md - _targetInset,
-                  FlareSizes.spacing2md - _targetInset,
-                  FlareSizes.spacing2md,
-                  FlareSizes.spacingXs,
-                ),
-                child: Row(
-                  children: [
-                    _circleBtn('collapse', strings.callMinimize, onMinimize),
-                    const SizedBox(width: FlareSizes.spacingMd - _targetInset),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            title ?? strings.groupCall,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          Text(
-                            joinedText?.call(participants.length, status) ??
-                                strings.joinedCount(
-                                  participants.length,
-                                  status,
-                                ),
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.62),
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
+      // the whole view scrolls instead of overflowing. The backdrop runs
+      // under the system bars; the content stays inside them.
+      child: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, viewport) => SingleChildScrollView(
+            child: _GroupCallLayout(
+              viewportHeight: viewport.maxHeight,
+              minGridHeight: participants.isEmpty ? 0 : _minGridHeight,
+              children: [
+                Padding(
+                  // The minimize control is a full touch target around its
+                  // 36-point disc; the padding gives the difference back so the
+                  // disc stays put.
+                  padding: const EdgeInsets.fromLTRB(
+                    FlareSizes.spacing2md - _targetInset,
+                    FlareSizes.spacing2md - _targetInset,
+                    FlareSizes.spacing2md,
+                    FlareSizes.spacingXs,
+                  ),
+                  child: Row(
+                    children: [
+                      _circleBtn('collapse', strings.callMinimize, onMinimize),
+                      const SizedBox(
+                        width: FlareSizes.spacingMd - _targetInset,
                       ),
-                    ),
-                  ],
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              title ?? strings.groupCall,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              joinedText?.call(participants.length, status) ??
+                                  strings.joinedCount(
+                                    participants.length,
+                                    status,
+                                  ),
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.62),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              GridView.count(
-                crossAxisCount: _cols,
-                padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
-                childAspectRatio: 0.86,
-                children: participants
-                    .map((p) => _tile(p, strings, colors))
-                    .toList(),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 36),
-                child: FlareCallControls(
-                  muted: muted,
-                  cameraOn: cameraOn,
-                  speakerOn: speakerOn,
-                  mode: mode,
-                  onToggleMute: onToggleMute,
-                  onToggleCamera: onToggleCamera,
-                  onToggleSpeaker: onToggleSpeaker,
-                  onSwitchCamera: onSwitchCamera,
-                  onHangup: onHangup,
-                  onAddMember: onAddMember,
-                  onStartVideo: onStartVideo,
+                GridView.count(
+                  crossAxisCount: _cols,
+                  padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
+                  mainAxisSpacing: 8,
+                  crossAxisSpacing: 8,
+                  childAspectRatio: 0.86,
+                  children: participants
+                      .map((p) => _tile(p, strings, colors))
+                      .toList(),
                 ),
-              ),
-            ],
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 36),
+                  child: FlareCallControls(
+                    muted: muted,
+                    cameraOn: cameraOn,
+                    speakerOn: speakerOn,
+                    mode: mode,
+                    onToggleMute: onToggleMute,
+                    onToggleCamera: onToggleCamera,
+                    onToggleSpeaker: onToggleSpeaker,
+                    onSwitchCamera: onSwitchCamera,
+                    onHangup: onHangup,
+                    onAddMember: onAddMember,
+                    onStartVideo: onStartVideo,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

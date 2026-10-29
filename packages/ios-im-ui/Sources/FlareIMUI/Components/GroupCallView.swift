@@ -101,6 +101,8 @@ public struct GroupCallView: View {
                                     Color(.sRGB, red: 0.063, green: 0.063, blue: 0.071, opacity: 1),
                                     Color(.sRGB, red: 0.035, green: 0.035, blue: 0.043, opacity: 1)],
                            startPoint: .top, endPoint: .bottom)
+                // The backdrop runs under the system bars; the content stays inside them.
+                .ignoresSafeArea()
         )
     }
 

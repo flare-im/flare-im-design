@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -91,7 +93,9 @@ fun GroupCallView(
     }
     Column(
         Modifier.fillMaxWidth().background(
-            Brush.verticalGradient(listOf(Color(0xFF18181B), Color(0xFF101012), Color(0xFF09090B)))),
+            Brush.verticalGradient(listOf(Color(0xFF18181B), Color(0xFF101012), Color(0xFF09090B))))
+            // The backdrop runs under the system bars; the header starts below the status bar.
+            .statusBarsPadding(),
     ) {
         // The minimize disc is drawn at 36 dp inside a 48 dp touch target; the start and top padding
         // and the gap give back the 6 dp a side the target adds, so the header keeps its layout.
@@ -117,7 +121,8 @@ fun GroupCallView(
         ) {
             items(participants, key = { it.id }) { p -> callTile(p, mode, callTileVideo(p, mode, tileContent)) }
         }
-        Box(Modifier.fillMaxWidth().padding(top = FlareSizes.spacingXl, bottom = 36.dp), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxWidth().navigationBarsPadding().padding(top = FlareSizes.spacingXl, bottom = 36.dp),
+            contentAlignment = Alignment.Center) {
             CallControls(muted = muted, cameraOn = cameraOn, speakerOn = speakerOn, mode = mode,
                 onToggleMute = onToggleMute, onToggleCamera = onToggleCamera, onToggleSpeaker = onToggleSpeaker,
                 onSwitchCamera = onSwitchCamera, onHangup = onHangup, onAddMember = onAddMember, onStartVideo = onStartVideo)
