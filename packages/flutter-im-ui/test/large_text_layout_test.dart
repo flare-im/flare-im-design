@@ -86,7 +86,7 @@ void main() {
             child: FlareGroupCallView(
               participants: _people(count),
               mode: FlareCallMode.video,
-              state: 'connected',
+              state: FlareCallState.connected,
               onMinimize: () {},
               onHangup: () {},
             ),
@@ -111,7 +111,7 @@ void main() {
           home: FlareGroupCallView(
             participants: _people(4),
             mode: FlareCallMode.audio,
-            state: 'connected',
+            state: FlareCallState.connected,
             onHangup: () {},
           ),
         ),

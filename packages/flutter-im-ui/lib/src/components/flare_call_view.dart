@@ -4,6 +4,8 @@ import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_avatar.dart';
 import 'flare_call_controls.dart';
+import 'flare_icon.dart';
+import 'icon_control.dart';
 
 /// Call state — spec union `'calling' | 'ringing' | 'connected' | 'reconnecting' | 'failed'`.
 enum FlareCallState { calling, ringing, connected, reconnecting, failed }
@@ -11,6 +13,10 @@ enum FlareCallState { calling, ringing, connected, reconnecting, failed }
 /// In-call screen — peer video/avatar, state, duration, with an overlaid
 /// [FlareCallControls]. Spec: Call/CallView (`FlareCallView`). Video rendering is
 /// injected by the host via [videoContent].
+///
+/// [onMinimize] draws the collapse control at the top leading corner (the
+/// same disc as [FlareGroupCallView]); the host shrinks the call into its
+/// [FlareCallDock]. Without it the control is not drawn.
 class FlareCallView extends StatelessWidget {
   const FlareCallView({
     super.key,
@@ -31,6 +37,7 @@ class FlareCallView extends StatelessWidget {
     this.onToggleCamera,
     this.onToggleSpeaker,
     this.onSwitchCamera,
+    this.onMinimize,
   });
 
   final String peerName;
@@ -50,6 +57,13 @@ class FlareCallView extends StatelessWidget {
   final VoidCallback? onToggleCamera;
   final VoidCallback? onToggleSpeaker;
   final VoidCallback? onSwitchCamera;
+
+  /// Shrinks the call into the host's dock; null hides the control.
+  final VoidCallback? onMinimize;
+
+  /// The minimize disc, inside a full touch target.
+  static const double _disc = 36;
+  static const double _targetInset = (FlareSizes.touchTarget - _disc) / 2;
 
   String _statusText(FlareStrings strings) {
     switch (state) {
@@ -146,6 +160,37 @@ class FlareCallView extends StatelessWidget {
               ),
             ),
           ),
+          if (onMinimize != null)
+            SafeArea(
+              child: Padding(
+                // The touch target reaches past the disc; the padding gives
+                // the difference back so the disc sits spacingLg from the edges.
+                padding: const EdgeInsetsDirectional.only(
+                  start: FlareSizes.spacingLg - _targetInset,
+                  top: FlareSizes.spacingLg - _targetInset,
+                ),
+                child: Align(
+                  alignment: AlignmentDirectional.topStart,
+                  child: FlareIconControl(
+                    label: FlareStrings.of(context).callMinimize,
+                    onTap: onMinimize,
+                    child: Container(
+                      width: _disc,
+                      height: _disc,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const FlareIcon(
+                        'collapse',
+                        color: Colors.white,
+                        size: FlareSizes.iconSizeMd,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );

@@ -84,6 +84,9 @@ public struct CallControlsView: View {
 }
 
 /// In-call screen. Spec: Call/CallView (`CallView`). Video track injected by host.
+///
+/// `onMinimize` draws the collapse control at the top leading corner (the same 36-point disc as ``GroupCallView``);
+/// the host shrinks the call into its ``CallDockView``. Without it the control is not drawn.
 public struct CallView: View {
     private let peerName: String
     private let mode: FlareCallMode
@@ -102,14 +105,17 @@ public struct CallView: View {
     private let onToggleCamera: (() -> Void)?
     private let onToggleSpeaker: (() -> Void)?
     private let onSwitchCamera: (() -> Void)?
+    private let onMinimize: (() -> Void)?
     @Environment(\.flareStrings) private var strings
 
     public init(peerName: String, mode: FlareCallMode, state: FlareCallState, durationLabel: String? = nil,
                 peerAvatarURL: String? = nil, muted: Bool = false, cameraOn: Bool = true, speakerOn: Bool = false,
                 video: AnyView? = nil, onHangup: (() -> Void)? = nil, onToggleMute: (() -> Void)? = nil,
                 onToggleCamera: (() -> Void)? = nil, onToggleSpeaker: (() -> Void)? = nil, onSwitchCamera: (() -> Void)? = nil,
-                statusDetail: String? = nil, recoveryText: String? = nil, onRecover: (() -> Void)? = nil) {
+                statusDetail: String? = nil, recoveryText: String? = nil, onRecover: (() -> Void)? = nil,
+                onMinimize: (() -> Void)? = nil) {
         self.statusDetail = statusDetail; self.recoveryText = recoveryText; self.onRecover = onRecover
+        self.onMinimize = onMinimize
         self.peerName = peerName; self.mode = mode; self.state = state; self.durationLabel = durationLabel
         self.peerAvatarURL = peerAvatarURL; self.muted = muted; self.cameraOn = cameraOn; self.speakerOn = speakerOn
         self.video = video; self.onHangup = onHangup; self.onToggleMute = onToggleMute
@@ -148,6 +154,23 @@ public struct CallView: View {
                                      onSwitchCamera: onSwitchCamera, onHangup: onHangup)
                         .padding(.top, 32)
                 }.padding(.horizontal, 16).padding(.top, 72).padding(.bottom, 48)
+            }
+            if let onMinimize {
+                VStack {
+                    HStack {
+                        Button { onMinimize() } label: {
+                            Image(systemName: flareIconSymbol("collapse")).font(.system(size: FlareSizes.iconSizeMd)).foregroundColor(.white)
+                                .frame(width: 36, height: 36).background(Circle().fill(Color.white.opacity(0.12)))
+                                .flareTouchTarget()
+                        }
+                        .buttonStyle(.plain)
+                        .flareCompactLayout(width: 36, height: 36)
+                        .accessibilityLabel(strings.callMinimize)
+                        Spacer()
+                    }
+                    Spacer()
+                }
+                .padding(.leading, FlareSizes.spacingLg).padding(.top, FlareSizes.spacingLg)
             }
         }
     }

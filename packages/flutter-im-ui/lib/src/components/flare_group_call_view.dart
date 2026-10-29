@@ -8,6 +8,7 @@ import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_avatar.dart';
 import 'flare_call_controls.dart';
+import 'flare_call_view.dart';
 import 'flare_icon.dart';
 import 'icon_control.dart';
 
@@ -38,8 +39,8 @@ class FlareGroupCallView extends StatelessWidget {
   final List<FlareCallParticipant> participants;
   final FlareCallMode mode;
 
-  /// 'calling' | 'ringing' | 'connected' | 'reconnecting' | 'failed'
-  final String state;
+  /// The call's state — the same [FlareCallState] as [FlareCallView].
+  final FlareCallState state;
   final String? title;
   final String? durationLabel;
 
@@ -69,13 +70,13 @@ class FlareGroupCallView extends StatelessWidget {
     return 4;
   }
 
-  String _statusOf(FlareStrings strings) {
-    if (state == 'reconnecting') return strings.callReconnecting;
-    if (state == 'failed') return strings.callFailed;
-    if (state == 'connected') return durationLabel ?? strings.callConnected;
-    if (state == 'ringing') return strings.callRinging;
-    return strings.callCalling;
-  }
+  String _statusOf(FlareStrings strings) => switch (state) {
+    FlareCallState.reconnecting => strings.callReconnecting,
+    FlareCallState.failed => strings.callFailed,
+    FlareCallState.connected => durationLabel ?? strings.callConnected,
+    FlareCallState.ringing => strings.callRinging,
+    FlareCallState.calling => strings.callCalling,
+  };
 
   @override
   Widget build(BuildContext context) {

@@ -34,12 +34,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 
-/** Group (multi-party) call — participant grid + controls. Spec: Call/GroupCallView. */
+/** Group (multi-party) call — participant grid + controls. Spec: Call/GroupCallView. [state] is the same [FlareCallState] as [CallView]. */
 @Composable
 fun GroupCallView(
     participants: List<CallParticipant>,
     mode: FlareCallMode,
-    state: String,
+    state: FlareCallState,
     title: String? = null,
     durationLabel: String? = null,
     muted: Boolean = false,
@@ -61,11 +61,11 @@ fun GroupCallView(
     }
     val strings = flareStrings()
     val status = when (state) {
-        "reconnecting" -> strings.callReconnecting
-        "failed" -> strings.callFailed
-        "connected" -> durationLabel ?: strings.callConnected
-        "ringing" -> strings.callRinging
-        else -> strings.callCalling
+        FlareCallState.Reconnecting -> strings.callReconnecting
+        FlareCallState.Failed -> strings.callFailed
+        FlareCallState.Connected -> durationLabel ?: strings.callConnected
+        FlareCallState.Ringing -> strings.callRinging
+        FlareCallState.Calling -> strings.callCalling
     }
     Column(
         Modifier.fillMaxWidth().background(

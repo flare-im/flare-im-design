@@ -278,7 +278,7 @@ void main() {
           FlareGroupCallView(
             participants: const [],
             mode: FlareCallMode.audio,
-            state: 'connected',
+            state: FlareCallState.connected,
             onMinimize: () => minimized++,
           ),
         ),

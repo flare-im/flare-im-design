@@ -126,7 +126,7 @@ void main() {
         FlareGroupCallView(
           participants: const [],
           mode: FlareCallMode.video,
-          state: 'connected',
+          state: FlareCallState.connected,
           onAddMember: () => invited++,
         ),
       ),

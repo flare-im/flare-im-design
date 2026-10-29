@@ -5,6 +5,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.TextButton
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.Text
@@ -34,6 +36,9 @@ enum class FlareCallState { Calling, Ringing, Connected, Reconnecting, Failed }
  * In-call screen — peer video/avatar, state, duration, with an overlaid
  * [CallControls]. Spec: Call/CallView (`CallView`). Video rendering is injected
  * by the host via [videoContent] (the package bundles no RTC engine).
+ *
+ * [onMinimize] draws the collapse control at the top start corner (the same 36 dp disc as [GroupCallView]); the
+ * host shrinks the call into its [CallDock]. Without it the control is not drawn.
  */
 @Composable
 fun CallView(
@@ -54,6 +59,7 @@ fun CallView(
     statusDetail: String? = null,
     recoveryText: String? = null,
     onRecover: (() -> Unit)? = null,
+    onMinimize: (() -> Unit)? = null,
 ) {
     Box(Modifier.fillMaxSize().background(Color(0xFF111318))) {
         if (mode == FlareCallMode.Video && videoContent != null) {
@@ -96,6 +102,16 @@ fun CallView(
                 onToggleMute = onToggleMute, onToggleCamera = onToggleCamera,
                 onToggleSpeaker = onToggleSpeaker, onSwitchCamera = onSwitchCamera, onHangup = onHangup,
             )
+        }
+        if (onMinimize != null) {
+            // The disc is drawn at 36 dp inside a 48 dp touch target; the padding gives back the 6 dp a side the
+            // target adds, so the disc sits spacingLg from the edges.
+            Box(Modifier.align(Alignment.TopStart).statusBarsPadding().padding(start = FlareSizes.spacing2sm, top = FlareSizes.spacing2sm)) {
+                FlareIconControl(label = flareStrings().callMinimize, onClick = onMinimize) {
+                    Box(Modifier.size(36.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.12f)))
+                    Icon(flareIconVector("collapse"), contentDescription = null, tint = Color.White, modifier = Modifier.size(FlareSizes.iconSizeMd))
+                }
+            }
         }
     }
 }
