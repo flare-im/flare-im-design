@@ -1,4 +1,16 @@
-export type { FlareCallMode, FlareCallState, FlareCallParticipant } from "./call";
+export type {
+  FlareCallMode,
+  FlareCallState,
+  FlareCallParticipant,
+  FlareCallRecordScope,
+  FlareCallRecordState,
+  FlareCallEndReason,
+  FlareCallRecordStatus,
+  FlareCallRecordTone,
+  FlareCallRecordAction,
+  FlareCallRecordFacts,
+} from "./call";
+export { flareCallRecordStatus, flareCallRecordTone, flareCallRecordAction, flareCallDurationLabel } from "./call";
 export * from "./application";
 export type {
   FlareConversationRowModel,

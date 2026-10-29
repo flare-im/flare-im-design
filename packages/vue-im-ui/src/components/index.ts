@@ -65,6 +65,7 @@ export { default as FlareCallView } from "./call/FlareCallView.vue";
 export { default as FlareGroupCallView } from "./call/FlareGroupCallView.vue";
 export { default as FlareIncomingCall } from "./call/FlareIncomingCall.vue";
 export { default as FlareCallControls } from "./call/FlareCallControls.vue";
+export { default as FlareCallRecordCard } from "./call/FlareCallRecordCard.vue";
 export { default as FlareTypingIndicator } from "./messages/FlareTypingIndicator.vue";
 export { default as FlareUnreadDivider } from "./messages/FlareUnreadDivider.vue";
 export { default as FlareScrollToLatest } from "./messages/FlareScrollToLatest.vue";
@@ -133,7 +134,18 @@ export { default as FlareEmojiPicker } from "./composer/FlareEmojiPicker.vue";
 export { default as FlareStickerPanel } from "./composer/FlareStickerPanel.vue";
 export type { FlareEmojiCategory, FlareStickerItem, FlareStickerPack } from "../shared/contracts";
 
-export type { FlareCallMode, FlareCallState, FlareCallParticipant } from "../shared/contracts";
+export type {
+  FlareCallMode,
+  FlareCallState,
+  FlareCallParticipant,
+  FlareCallRecordScope,
+  FlareCallRecordState,
+  FlareCallEndReason,
+  FlareCallRecordStatus,
+  FlareCallRecordTone,
+  FlareCallRecordAction,
+  FlareCallRecordFacts,
+} from "../shared/contracts";
 export { default as FlareResponsiveLayout } from "./layout/FlareResponsiveLayout.vue";
 export { default as FlareScreenHeader } from "./layout/FlareScreenHeader.vue";
 export { default as FlareScreen } from "./layout/FlareScreen.vue";
