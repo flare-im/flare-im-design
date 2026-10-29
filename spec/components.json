@@ -3514,6 +3514,51 @@
           }
         }
       ]
+    },
+    {
+      "name": "CallRecordScope",
+      "symbol": "FlareCallRecordScope",
+      "kind": "enum",
+      "summary": {
+        "en": "A call record's conversation kind.",
+        "zh": "通话记录所属的会话类型。"
+      },
+      "values": [
+        "single",
+        "group"
+      ]
+    },
+    {
+      "name": "CallRecordState",
+      "symbol": "FlareCallRecordState",
+      "kind": "enum",
+      "summary": {
+        "en": "Where a recorded call is.",
+        "zh": "通话记录对应通话所处的阶段。"
+      },
+      "values": [
+        "ringing",
+        "ongoing",
+        "ended"
+      ]
+    },
+    {
+      "name": "CallEndReason",
+      "symbol": "FlareCallEndReason",
+      "kind": "enum",
+      "summary": {
+        "en": "Why an ended call ended (spec/call-record-vectors.json rules.status).",
+        "zh": "已结束通话的结束原因（spec/call-record-vectors.json rules.status）。"
+      },
+      "values": [
+        "completed",
+        "cancelled",
+        "declined",
+        "missed",
+        "busy",
+        "unavailable",
+        "failed"
+      ]
     }
   ],
   "components": [
@@ -12061,8 +12106,8 @@
         "minimize"
       ],
       "notes": {
-        "en": "Video track uses a host-injected render slot; the control bar is CallControls. minimize is Vue-only (desktop picture-in-picture); on the natives, minimising belongs to the host navigation layer, so the component raises nothing.",
-        "zh": "视频轨道用宿主注入的渲染 slot；控制条为 CallControls。 minimize 是 Vue 专有(桌面端收进小窗),原生端最小化由宿主的导航层负责,组件不外抛。"
+        "en": "Video track uses a host-injected render slot; the control bar is CallControls. minimize asks the host to shrink the call into its CallDock: Vue always draws the control; the native kits draw it only when the host passes onMinimize.",
+        "zh": "视频轨道用宿主注入的渲染 slot；控制条为 CallControls。minimize 请宿主把通话收进 CallDock：Vue 始终绘制该控制；原生端只在宿主传入 onMinimize 时绘制。"
       },
       "platforms": {
         "vue": {
@@ -12081,11 +12126,6 @@
           "package": "com.flare.im:im-ui-compose",
           "symbol": "CallView"
         }
-      },
-      "eventPlatforms": {
-        "minimize": [
-          "vue"
-        ]
       },
       "accessibility": {
         "role": "group",
@@ -12434,7 +12474,7 @@
         },
         {
           "name": "state",
-          "type": "'calling' | 'ringing' | 'connected' | 'reconnecting' | 'failed'",
+          "type": "FlareCallState",
           "required": true,
           "description": {
             "zh": "通话状态，驱动状态文案",
@@ -12566,6 +12606,172 @@
         },
         "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
         "screenReaderSemantics": "Expose a named group and meaningful descendant roles, values, states, availability, and progress. Decorative imagery is hidden."
+      }
+    },
+    {
+      "name": "CallRecordCard",
+      "category": "Call",
+      "summary": {
+        "en": "Call record in the chat timeline — the media icon, one viewer-relative status line, the media name, and Join (a group call in progress) or Call back (an ended 1:1 call).",
+        "zh": "会话时间线里的通话记录 —— 媒体图标、一行按查看者视角的状态、媒体名称，以及「加入」（进行中的群通话）或「回拨」（已结束的单聊通话）。"
+      },
+      "dataSource": {
+        "en": "The call plugin's record card (flare.call.record) and the viewer's own facts, mapped by the host",
+        "zh": "通话插件的记录卡片（flare.call.record）与查看者自身的事实，由宿主映射"
+      },
+      "props": [
+        {
+          "name": "media",
+          "type": "FlareCallMode",
+          "required": true,
+          "description": {
+            "en": "Audio or video — picks the phone or video icon and the media name.",
+            "zh": "音频或视频 —— 决定电话或视频图标与媒体名称。"
+          }
+        },
+        {
+          "name": "scope",
+          "type": "FlareCallRecordScope",
+          "required": true,
+          "description": {
+            "en": "single or group — group records read the group copy and may offer Join.",
+            "zh": "single 或 group —— 群通话用群文案，可提供「加入」。"
+          }
+        },
+        {
+          "name": "state",
+          "type": "FlareCallRecordState",
+          "required": true,
+          "description": {
+            "en": "ringing, ongoing or ended.",
+            "zh": "ringing、ongoing 或 ended。"
+          }
+        },
+        {
+          "name": "endReason",
+          "type": "FlareCallEndReason",
+          "required": false,
+          "description": {
+            "en": "Why an ended call ended: completed, cancelled, declined, missed, busy, unavailable, failed. A missing reason reads completed.",
+            "zh": "已结束通话的原因：completed、cancelled、declined、missed、busy、unavailable、failed。缺省按 completed。"
+          }
+        },
+        {
+          "name": "durationSeconds",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "Talk time of a completed call in seconds; shown as mm:ss, or h:mm:ss from an hour.",
+            "zh": "已完成通话的时长（秒）；显示为 mm:ss，满一小时为 h:mm:ss。"
+          }
+        },
+        {
+          "name": "joinedCount",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "People in a group call in progress (\"Group call · N joined\"); without it the line reads \"Group call in progress\".",
+            "zh": "进行中群通话的人数（「群通话进行中 · N 人」）；缺省时显示「群通话进行中」。"
+          }
+        },
+        {
+          "name": "viewerIsInitiator",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "The viewer started the call; turns the copy viewer-relative (\"Declined\" for the caller, \"You declined\" for the callee).",
+            "zh": "查看者是发起人；文案按查看者视角（主叫看到「对方已拒绝」，被叫看到「已拒绝」）。"
+          }
+        },
+        {
+          "name": "canJoin",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "Host-decided: a group call in progress the viewer is not in. Shows Join while the group call is ringing or ongoing.",
+            "zh": "由宿主判定：查看者未在其中的进行中群通话。群通话振铃或进行中时显示「加入」。"
+          }
+        },
+        {
+          "name": "canCallBack",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "Host-decided: calls are available for this conversation. Shows Call back on an ended 1:1 call.",
+            "zh": "由宿主判定：该会话可以发起通话。已结束的单聊通话显示「回拨」。"
+          }
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "The call plugin is unavailable: the record stays, the action is not drawn.",
+            "zh": "通话插件不可用：记录保留，不绘制操作。"
+          },
+          "default": "false"
+        },
+        {
+          "name": "busy",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "The viewer's join or call back is in flight: the action shows progress and takes no tap.",
+            "zh": "查看者的加入或回拨正在处理：操作显示进度且不响应点击。"
+          },
+          "default": "false"
+        }
+      ],
+      "states": [
+        "ringing",
+        "ongoing",
+        "ended",
+        "missed",
+        "disabled",
+        "busy"
+      ],
+      "events": [
+        "join",
+        "callBack"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareCallRecordCard"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareCallRecordCard"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "CallRecordCardView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "CallRecordCard"
+        }
+      },
+      "accessibility": {
+        "role": "group",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab focuses the action when one is shown",
+          "Enter or Space activates it"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "No motion; a busy action shows the button's progress indicator only.",
+        "screenReaderSemantics": "One named element carries the media name and the status line (the icon is decorative); the action is a separate button named by its text."
+      },
+      "notes": {
+        "en": "Rules: spec/call-record-vectors.json (status, tone, action, duration), run by all four kits. Status: ringing — group \"Group call ringing\", caller \"Waiting for answer\", callee \"Calling you\"; ongoing — 1:1 \"In call\", group \"Group call · N joined\"; ended — completed \"Duration mm:ss\" (group \"Group call ended · mm:ss\"), cancelled \"Cancelled\" / \"Caller cancelled\", declined \"Declined\" / \"You declined\", missed \"No answer\" / \"Missed call\" (the callee's missed call takes the danger tone), busy \"Busy\" / \"Missed (busy)\", unavailable, failed; a group call that ended otherwise reads \"Group call ended\". Action: none while disabled; Join for a group call that has not ended when canJoin; Call back for an ended 1:1 call when canCallBack. The icon set has no outgoing / incoming variants, so the copy carries direction. The card is the message's card surface (the kit card shell, richCardWidth like every card): no bubble around it; outgoing and incoming records differ by alignment only.",
+        "zh": "规则：spec/call-record-vectors.json（状态、语气、操作、时长），四端共跑。状态：振铃 —— 群聊「群通话呼叫中」，主叫「等待对方接听」，被叫「邀请你通话」；进行中 —— 单聊「通话中」，群聊「群通话进行中 · N 人」；已结束 —— 完成「通话时长 mm:ss」（群聊「群通话已结束 · 时长 mm:ss」），取消「已取消」/「对方已取消」，拒绝「对方已拒绝」/「已拒绝」，未接「对方未接听」/「未接听」（被叫的未接来电用危险色），忙线「对方忙线中」/「忙线未接听」，不可用、失败；群通话以其他原因结束时显示「群通话已结束」。操作：disabled 时无；群通话未结束且 canJoin 时「加入」；单聊已结束且 canCallBack 时「回拨」。图标集没有呼出 / 呼入变体，方向由文案表达。卡片就是消息的 card 表面（kit 卡片外壳，与其他卡片同为 richCardWidth），外面不套气泡；收发两侧只靠对齐区分。"
       }
     },
     {

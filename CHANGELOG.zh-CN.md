@@ -6,6 +6,7 @@
 
 ### 设计系统与跨端组件
 
+- **通话记录卡片与通话页一致性**（契约与四端 Kit）。新增 `CallRecordCard`（Vue / Flutter `FlareCallRecordCard`、SwiftUI `CallRecordCardView`、Compose `CallRecordCard`）：媒体图标、一行按查看者视角的状态、媒体名称，以及「加入」（进行中的群通话，`canJoin`）或「回拨」（已结束的单聊，`canCallBack`）；`disabled` 去掉操作，`busy` 显示处理中。规则是新的共享向量 `spec/call-record-vectors.json`（状态、被叫未接的危险色、操作、mm:ss / h:mm:ss 时长），四端共跑；中英文案（Vue `callRecord.*`，原生 `FlareStrings` 的 `callRecord*` 与 `strings/en.json`）。1:1 `CallView` 在 Flutter、SwiftUI、Compose 上支持最小化（`onMinimize`，宿主传入才绘制）。**破坏性**：Flutter `FlareGroupCallView.state` 与 Compose `GroupCallView(state:)` 改为 `FlareCallState` 枚举，不再接受字符串。
 - **消息表面、元信息位置、回执与分组成为共享契约；插件卡片脱离气泡；红包第五版与插件页面宿主**（契约与四端 Kit；Flutter 另有 `reply` 与桌面右键 `contextMenu(message, position)`，Compose 有 `avatarTap`，SwiftUI 的 MessageList 接收 `contextMenu` 菜单模型）。新增 `spec/message-surface-vectors.json`、`spec/message-meta-placement-vectors.json`、`spec/message-receipt-vectors.json`、`spec/message-grouping-vectors.json`，扩充 `spec/plugin-view-vectors.json`（⋯ 菜单、分组名单、七种不可用原因、只读副本）与 `spec/red-packet-vectors.json`（卡片不显示金额、角标与「给 某某」、已退回、浮层入口、按 `currencyExponent` 格式化金额、按 `viewerRole` 的详情）。新组件 `PluginPage`。不兼容改动（无别名）：渲染器登记 `bare` 改为 `surface`，`MessageStatusState` 删除 delivered 与 retrying，`FlareRedPacketCard` 删除 `amount` / `kindLabel`，`FlareRedPacketDetail` 改收 `details`。
 - **插件页面读取数据并发出页面动作；徽标与多选上限**（契约与 Vue；原生三端按同一份向量跟进）。
   - `spec/plugin-view-vectors.json` 新增徽标、多选上限与插件页面的规则，以及 `maxSelections`、`pageViews`、`pageActions`、`pagePaging`、`pageFilters` 五段。

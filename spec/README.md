@@ -48,7 +48,7 @@ Top-level tables shared by every component:
 <!-- CATALOG:START -->
 ## Component catalog
 
-**176 components / 17 categories** (source in [`components.json`](./components.json);
+**177 components / 17 categories** (source in [`components.json`](./components.json);
 props/events extracted and calibrated from the `@flare-im/vue-ui` source).
 
 > This section is generated from the contract by `gen-readme-catalog.mjs`; do not edit by hand — a hand-written catalog rots as the contract grows.
@@ -67,14 +67,14 @@ props/events extracted and calibrated from the `@flare-im/vue-ui` source).
   `DeviceSessions` · `MyInvitePanel` · `NotificationPreferences` · `ProfileCard` · `ProfileEditor` · `ProfilePanel` · `QRCard` · `SettingsList` · `SettingsRow` · `StorageUsage`
 - **Layout** — 9
   `AppLayout` · `AuthShell` · `ChatWorkspace` · `ConversationWorkspace` · `DesktopAppShell` · `MobileAppShell` · `ResponsiveLayout` · `Screen` · `ScreenHeader`
+- **Call** — 8
+  `CallControls` · `CallDevicePicker` · `CallDock` · `CallRecordCard` · `CallView` · `GroupCallView` · `IncomingCall` · `ScreenShare`
 - **Conversation** — 8
   `ChatWallpaperPicker` · `ConversationActionSheet` · `ConversationBatchToolbar` · `ConversationDetails` · `ConversationList` · `ConversationRow` · `ForwardPicker` · `StartConversationDialog`
 - **Feedback** — 8
   `AnnouncementReadBar` · `CapabilityBoundary` · `EmptyState` · `PermissionPrompt` · `SearchResults` · `Skeleton` · `StatusBanner` · `Toast`
 - **Moments** — 8
   `CommentThread` · `MomentActionPopover` · `MomentAudienceSheet` · `MomentCard` · `MomentComposer` · `MomentsCoverHeader` · `MomentsVisibilityRuleList` · `TopicChip`
-- **Call** — 7
-  `CallControls` · `CallDevicePicker` · `CallDock` · `CallView` · `GroupCallView` · `IncomingCall` · `ScreenShare`
 - **Overlay** — 7
   `ActionMenu` · `BottomSheet` · `DangerConfirm` · `Drawer` · `FormSheet` · `Modal` · `SearchPanel`
 - **Media** — 6

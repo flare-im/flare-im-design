@@ -42,10 +42,10 @@
     "supportsDensity": "The component takes a density of its own (its prop says what the values mean); the kit has no global density scale."
   },
   "counts": {
-    "total": 176,
-    "stable": 176,
+    "total": 177,
+    "stable": 177,
     "general": 56,
-    "im": 115
+    "im": 116
   },
   "specializedMessageGroups": {
     "Text": [
@@ -7671,7 +7671,7 @@
       "previewOpener": null,
       "docsSections": {
         "configuration": true,
-        "variants": true,
+        "variants": false,
         "states": true,
         "interaction": true,
         "responsive": true,
@@ -7681,18 +7681,7 @@
         "customization": false
       },
       "docExamples": {
-        "variants": [
-          {
-            "name": "state",
-            "values": [
-              "calling",
-              "ringing",
-              "connected",
-              "reconnecting",
-              "failed"
-            ]
-          }
-        ],
+        "variants": [],
         "states": [
           "calling",
           "ringing",
@@ -7779,6 +7768,119 @@
       },
       "sourceOfTruth": "spec/components.json#GroupCallView",
       "searchText": "groupcallview call im-ui stable call calling ringing connected reconnecting failed hangup togglemute togglecamera togglespeaker switchcamera addmember minimize selectparticipant supportsconfiguration supportsresponsive group (multi-party) call — participant grid, speaking highlight, mute/camera badges, add member. 群聊多人通话 —— 参与者网格、说话高亮、静音/关摄像头角标、加人。"
+    },
+    {
+      "name": "CallRecordCard",
+      "slug": "call-record-card",
+      "category": "Call",
+      "layer": "im-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "chat",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": false,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [],
+        "states": [
+          "ringing",
+          "ongoing",
+          "ended",
+          "missed",
+          "disabled",
+          "busy"
+        ]
+      },
+      "summary": {
+        "en": "Call record in the chat timeline — the media icon, one viewer-relative status line, the media name, and Join (a group call in progress) or Call back (an ended 1:1 call).",
+        "zh": "会话时间线里的通话记录 —— 媒体图标、一行按查看者视角的状态、媒体名称，以及「加入」（进行中的群通话）或「回拨」（已结束的单聊通话）。"
+      },
+      "aliases": [
+        "Call",
+        "ringing",
+        "ongoing",
+        "ended",
+        "missed",
+        "disabled",
+        "busy",
+        "join",
+        "callBack"
+      ],
+      "states": [
+        "ringing",
+        "ongoing",
+        "ended",
+        "missed",
+        "disabled",
+        "busy"
+      ],
+      "interactions": [
+        "join",
+        "callBack"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareCallRecordCard"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareCallRecordCard"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "CallRecordCard"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "CallRecordCardView"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/call/FlareCallRecordCard.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_call_record_card.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/CallRecordCard.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/CallRecordCardView.swift"
+      },
+      "docs": {
+        "zh": "website/components/call-record-card.md",
+        "en": "website/en/components/call-record-card.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#CallRecordCard",
+      "searchText": "callrecordcard call im-ui stable call ringing ongoing ended missed disabled busy join callback supportsconfiguration call record in the chat timeline — the media icon, one viewer-relative status line, the media name, and join (a group call in progress) or call back (an ended 1:1 call). 会话时间线里的通话记录 —— 媒体图标、一行按查看者视角的状态、媒体名称，以及「加入」（进行中的群通话）或「回拨」（已结束的单聊通话）。"
     },
     {
       "name": "TypingIndicator",

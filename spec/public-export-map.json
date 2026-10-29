@@ -1757,6 +1757,32 @@
       }
     },
     {
+      "name": "CallRecordCard",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareCallRecordCard",
+          "sourcePath": "packages/vue-im-ui/src/components/call/FlareCallRecordCard.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareCallRecordCard",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_call_record_card.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "CallRecordCard",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/CallRecordCard.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "CallRecordCardView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/CallRecordCardView.swift"
+        }
+      }
+    },
+    {
       "name": "TypingIndicator",
       "status": "stable",
       "platforms": {

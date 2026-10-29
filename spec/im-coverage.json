@@ -167,6 +167,7 @@
         "CallControls",
         "GroupCallView",
         "CallDock",
+        "CallRecordCard",
         "PermissionPrompt",
         "ScreenShare"
       ],

@@ -1047,3 +1047,33 @@ title: Data Types
 > Who is looking at the details, as the server decided.
 
 `sender` · `claimer` · `eligible` · `ineligible`
+
+### CallRecordScope {#call-record-scope}
+
+`FlareCallRecordScope`
+
+> A call record's conversation kind.
+
+**Used by: **[CallRecordCard](/en/components/call-record-card)
+
+`single` · `group`
+
+### CallRecordState {#call-record-state}
+
+`FlareCallRecordState`
+
+> Where a recorded call is.
+
+**Used by: **[CallRecordCard](/en/components/call-record-card)
+
+`ringing` · `ongoing` · `ended`
+
+### CallEndReason {#call-end-reason}
+
+`FlareCallEndReason`
+
+> Why an ended call ended (spec/call-record-vectors.json rules.status).
+
+**Used by: **[CallRecordCard](/en/components/call-record-card)
+
+`completed` · `cancelled` · `declined` · `missed` · `busy` · `unavailable` · `failed`

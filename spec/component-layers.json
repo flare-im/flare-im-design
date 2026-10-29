@@ -114,6 +114,7 @@
     "CallControls": "im-ui",
     "ResponsiveLayout": "general-ui",
     "GroupCallView": "im-ui",
+    "CallRecordCard": "im-ui",
     "TypingIndicator": "im-ui",
     "UnreadDivider": "im-ui",
     "ScrollToLatest": "im-ui",

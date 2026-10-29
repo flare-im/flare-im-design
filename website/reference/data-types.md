@@ -1047,3 +1047,33 @@ title: 数据类型
 > 服务端判定的详情查看者角色。
 
 `sender` · `claimer` · `eligible` · `ineligible`
+
+### CallRecordScope {#call-record-scope}
+
+`FlareCallRecordScope`
+
+> 通话记录所属的会话类型。
+
+**被使用于：**[CallRecordCard](/components/call-record-card)
+
+`single` · `group`
+
+### CallRecordState {#call-record-state}
+
+`FlareCallRecordState`
+
+> 通话记录对应通话所处的阶段。
+
+**被使用于：**[CallRecordCard](/components/call-record-card)
+
+`ringing` · `ongoing` · `ended`
+
+### CallEndReason {#call-end-reason}
+
+`FlareCallEndReason`
+
+> 已结束通话的结束原因（spec/call-record-vectors.json rules.status）。
+
+**被使用于：**[CallRecordCard](/components/call-record-card)
+
+`completed` · `cancelled` · `declined` · `missed` · `busy` · `unavailable` · `failed`
