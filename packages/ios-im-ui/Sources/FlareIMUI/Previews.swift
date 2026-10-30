@@ -515,6 +515,99 @@ struct FlareCommandPalette_Previews: PreviewProvider {
         CommandPaletteDemo().preferredColorScheme(.dark)
     }
 }
+
+// MARK: Read list, forward record, 我 menu, red packet amounts, message menu
+
+struct FlareReadReceiptSheet_Previews: PreviewProvider {
+    static let readers = (1...6).map { Contact(id: "r\($0)", name: "已读成员 \($0)") }
+    static let unread = (1...3).map { Contact(id: "u\($0)", name: "未读成员 \($0)") }
+    static var previews: some View {
+        Group {
+            // The first page of 30 readers, with the summary counts and a next page.
+            ReadReceiptSheetView(readers: readers, unread: unread, readCount: 30, unreadCount: 12, readHasMore: true,
+                                 dismissible: true, onClose: {})
+            ReadReceiptSheetView(readers: readers, unread: unread, readCount: 30, unreadCount: 12, readHasMore: true,
+                                 loadingMore: .read)
+            ReadReceiptSheetView(readers: readers, unread: unread, unreadHasMore: true, loadMoreFailed: .unread,
+                                 initialTab: .unread)
+            ReadReceiptSheetView(readers: [], unread: [], readCount: 5, unreadCount: 7, state: .loading)
+            ReadReceiptSheetView(readers: [], unread: [], state: .error, onRetry: {})
+            ReadReceiptSheetView(readers: [], unread: [], state: .unavailable)
+            // In a kit sheet: no shell, its own header, the rows take the height.
+            BottomSheetView(title: "已读回执", fill: true) {
+                ReadReceiptSheetView(readers: readers, unread: unread, readCount: 30, unreadCount: 12, readHasMore: true)
+            }
+            .frame(height: 420)
+        }
+        .padding()
+    }
+}
+
+struct FlareForwardMessage_Previews: PreviewProvider {
+    static let items = [
+        FlareForwardItem(senderName: "林夏", sentAtMs: 1_761_100_000_000, plainText: "今晚七点见"),
+        FlareForwardItem(senderName: "周屿", sentAtMs: 1_761_100_060_000, plainText: "",
+                         content: FlareImageContent(url: "https://example.invalid/a.png")),
+        FlareForwardItem(senderName: "", sentAtMs: 1_761_100_120_000, plainText: "好的"),
+        FlareForwardItem(senderName: "林夏", sentAtMs: 1_761_100_180_000, plainText: "到了说一声"),
+    ]
+    static var previews: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            MessageContentView(content: FlareForwardContent(title: "林夏和周屿的聊天记录", mode: .merged, items: items))
+            MessageContentView(content: FlareForwardContent(mode: .merged, items: Array(items.prefix(1))))
+            MessageContentView(content: FlareForwardContent(items: Array(items.prefix(1))))
+            MessageContentView(content: FlareForwardContent(mode: .merged))
+            MessageContentView(content: FlareForwardContent(mode: .merged, items: items), selectionMode: true)
+        }
+        .padding()
+    }
+}
+
+struct FlareMeMenu_Previews: PreviewProvider {
+    static let menu = FlareMeMenu(items: [
+        FlareMeMenuItem(kind: .builtin, id: "moments", icon: "moments", order: 10),
+        FlareMeMenuItem(kind: .builtin, id: "reports", icon: "report", order: 20),
+        FlareMeMenuItem(kind: .builtin, id: "invite", icon: "person-add", order: 30),
+        FlareMeMenuItem(kind: .plugin, id: "plugin:flare.redpacket.wallet-entry", icon: "wallet", title: "钱包", order: 100),
+        FlareMeMenuItem(kind: .plugin, id: "plugin:acme.points", icon: "coins-stack", title: " ", order: 110),
+        FlareMeMenuItem(kind: .builtin, id: "settings", icon: "settings", order: Int(Int32.max)),
+    ])
+    static var previews: some View {
+        SettingsListView(sections: flareMeMenuSections(menu, summaries: ["plugin:flare.redpacket.wallet-entry": "¥12.00"]))
+    }
+}
+
+struct FlareRedPacketAmounts_Previews: PreviewProvider {
+    static var previews: some View {
+        Group {
+            // A whole-number currency (JPY): no decimal point, "0" as the placeholder.
+            RedPacketComposerView(kinds: [.lucky, .normal], kind: .lucky, amount: "", currencyExponent: 0, count: 3,
+                                  total: "¥0") { EmptyView() }
+            RedPacketComposerView(kinds: [.normal], kind: .normal, amount: "", currencyExponent: 3,
+                                  total: "KWD 0.000") { EmptyView() }
+            RedPacketOpenSheet(senderName: "Ann", blessing: "恭喜发财", state: .refunded, onViewDetails: {}, onClose: {})
+        }
+    }
+}
+
+struct FlareMessageMenu_Previews: PreviewProvider {
+    static let messages = [
+        FlareMessageData(id: "1", senderId: "u1", senderName: "Ivy", content: FlareTextContent("右键或长按这条消息"),
+                         timeLabel: "14:30"),
+        FlareMessageData(id: "2", senderId: "u2", senderName: "Kai", content: FlareTextContent("这条的可用性还在读取"),
+                         timeLabel: "14:31"),
+    ]
+    static var previews: some View {
+        MessageListView(messages: messages, currentUserId: "me", conversationKind: .group, menu: FlareMessageMenuSource(
+            availability: { $0.id == "1" ? FlareMessageActionAvailability(canReply: true, canForward: true, canCopy: true,
+                                                                          canDelete: true, canReact: true) : nil },
+            extraActions: { message in
+                message.senderId == "me" ? [] : [FlareMessageMenuEntry(id: "report", label: "举报", icon: "report",
+                                                                       group: .destructive)]
+            },
+            perform: { _, _ in }))
+    }
+}
 #endif
 
 struct FlarePluginPage_Previews: PreviewProvider {

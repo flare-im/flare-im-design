@@ -88,7 +88,8 @@ final class ActionMenuTests: XCTestCase {
         XCTAssertEqual(ActionMenuRules.symbol(plain), "magnifyingglass", "icons are semantic kit names")
         XCTAssertEqual(ActionMenuRules.traits(plain), [])
         XCTAssertNil(ActionMenuRules.symbol(FlareActionItem(id: "t", label: "Text only")))
-        XCTAssertEqual(ActionMenuRules.symbol(FlareActionItem(id: "u", label: "Unknown", icon: "no-such-icon")), "questionmark")
+        XCTAssertEqual(ActionMenuRules.symbol(FlareActionItem(id: "u", label: "Unknown", icon: "no-such-icon")),
+                       flareIconMap["plugin"], "an unknown name draws the plugin glyph")
 
         // The badge is compact trailing text on the title line.
         XCTAssertEqual(ActionMenuRules.title(FlareActionItem(id: "r", label: "Requests", badge: "3")), "Requests  3")

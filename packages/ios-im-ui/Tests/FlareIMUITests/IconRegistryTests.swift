@@ -14,8 +14,9 @@ final class IconRegistryTests: XCTestCase {
         "mini-app",
     ]
 
-    func testTheRegistryHas108NamesAndEveryNameResolves() {
-        XCTAssertEqual(flareIconNames.count, 108)
+    func testTheRegistryHas109NamesAndEveryNameResolves() {
+        XCTAssertEqual(flareIconNames.count, 109)
+        XCTAssertEqual(flareIconNames.suffix(2), ["locate", "wallet"], "wallet follows locate on every kit")
         XCTAssertEqual(Set(flareIconNames).count, flareIconNames.count, "names are unique")
         XCTAssertEqual(Set(flareIconMap.keys), Set(flareIconNames), "every name has exactly one symbol")
         XCTAssertEqual(added.count, 40)
@@ -53,7 +54,7 @@ final class IconRegistryTests: XCTestCase {
     func testConceptsDrawnUnderAnotherNameGotTheirOwn() {
         let expected = ["pin-self": "bookmark", "diagnostics": "ladybug", "card": "person.crop.rectangle",
                         "id": "number", "join-request": "tray.and.arrow.down", "storage": "internaldrive"]
-        XCTAssertEqual(Array(flareIconNames.suffix(9).dropLast(3)),
+        XCTAssertEqual(Array(flareIconNames.suffix(10).dropLast(4)),
                        ["pin-self", "diagnostics", "card", "id", "join-request", "storage"])
         for (name, symbol) in expected { XCTAssertEqual(flareIconMap[name], symbol, name) }
         for (name, before) in [("pin-self", "pin"), ("card", "person"), ("id", "info"), ("id", "tag"),
@@ -75,15 +76,26 @@ final class IconRegistryTests: XCTestCase {
         func iOSVersion(_ year: String) -> [Int] { (releases[year]?["iOS"] ?? "99").split(separator: ".").compactMap { Int($0) } }
         for (name, symbol) in flareIconMap {
             let year = try XCTUnwrap(symbols[symbol], "\(name): \(symbol) is not an SF Symbol")
+            if let floor = flareIconFloorSymbols[name] {
+                // A newer symbol has a floor symbol that every supported system has.
+                let floorYear = try XCTUnwrap(symbols[floor], "\(name): \(floor) is not an SF Symbol")
+                XCTAssertTrue(iOSVersion(floorYear).lexicographicallyPrecedes([16, 1]), "\(name): \(floor) needs iOS \(iOSVersion(floorYear))")
+                XCTAssertTrue(iOSVersion(year).lexicographicallyPrecedes([18, 1]), "\(name): \(symbol) is drawn from iOS 18")
+                continue
+            }
             XCTAssertTrue(iOSVersion(year).lexicographicallyPrecedes([16, 1]), "\(name): \(symbol) needs iOS \(iOSVersion(year))")
         }
+        XCTAssertEqual(Set(flareIconFloorSymbols.keys).subtracting(flareIconMap.keys), [], "a floor symbol for a registry name")
+        XCTAssertEqual(flareIconMap["wallet"], "wallet.bifold")
+        if #available(macOS 15.0, *) { XCTAssertEqual(flareIconSymbol("wallet"), "wallet.bifold") }
     }
 
     func testIconViewDrawsTheRegistrySymbolAndHidesDecorativeIcons() throws {
         let image = try IconView("end-call").inspect().image()
         XCTAssertEqual(try image.actualImage().name(), "phone.down")
         XCTAssertTrue(try image.accessibilityHidden())
-        XCTAssertEqual(try IconView("no-such-icon").inspect().image().actualImage().name(), "questionmark")
+        XCTAssertEqual(try IconView("no-such-icon").inspect().image().actualImage().name(), flareIconMap["plugin"])
+        XCTAssertThrowsError(try IconView("").inspect().image(), "an empty name draws nothing")
     }
 
     // MARK: Header action aliases
@@ -98,7 +110,7 @@ final class IconRegistryTests: XCTestCase {
         XCTAssertEqual(symbol("details"), flareIconMap["info"])
         XCTAssertEqual(symbol("search"), flareIconMap["search"], "an id that is a kit name draws that name")
         XCTAssertEqual(symbol("videoCall", icon: "share"), flareIconMap["share"], "an explicit icon wins")
-        XCTAssertEqual(symbol("export"), "questionmark", "an unknown id draws the unknown glyph")
+        XCTAssertEqual(symbol("export"), flareIconMap["plugin"], "an unknown id draws the plugin glyph")
         for id in ["audioCall", "videoCall", "addMember", "details", "export"] {
             XCTAssertNotEqual(symbol(id), flareIconMap["more"], "\(id) never draws more")
         }
@@ -162,7 +174,7 @@ final class IconRegistryTests: XCTestCase {
     /// the name falls back to the envelope.
     @MainActor
     func testRedPacketIsTheKitsOwnGlyph() throws {
-        XCTAssertEqual(Array(flareIconNames.suffix(3)), ["red-packet", "plugin", "locate"])
+        XCTAssertEqual(Array(flareIconNames.suffix(4)), ["red-packet", "plugin", "locate", "wallet"])
         XCTAssertEqual(flareIconMap["red-packet"], "envelope")
         XCTAssertTrue(flareKitGlyphNames.contains("red-packet"))
         XCTAssertNoThrow(try IconView("red-packet").inspect().find(FlareRedPacketIcon.self))
@@ -175,16 +187,16 @@ final class IconRegistryTests: XCTestCase {
     /// `plugin` is the generic plugin glyph, a single-colour puzzle piece, which a plugin's "+" tile draws when its
     /// icon is not a registry name.
     func testPluginIsAPuzzlePiece() throws {
-        XCTAssertEqual(flareIconNames.dropLast().last, "plugin")
+        XCTAssertEqual(flareIconNames.dropLast(2).last, "plugin")
         XCTAssertEqual(flareIconMap["plugin"], "puzzlepiece.extension")
         XCTAssertFalse(flareKitGlyphNames.contains("plugin"), "SF Symbols has the concept")
         XCTAssertEqual(try IconView("plugin").inspect().image().actualImage().name(), "puzzlepiece.extension")
     }
 
-    /// `locate` is the last name: the location picker's "use current location" key, a crosshair unlike the
-    /// `location` pin.
+    /// `locate` is the location picker's "use current location" key, a crosshair unlike the `location` pin; only
+    /// `wallet` follows it.
     func testLocateIsTheLastNameAndACrosshair() throws {
-        XCTAssertEqual(flareIconNames.last, "locate")
+        XCTAssertEqual(flareIconNames.dropLast().last, "locate")
         XCTAssertEqual(flareIconMap["locate"], "scope")
         XCTAssertNotEqual(flareIconMap["locate"], flareIconMap["location"])
         XCTAssertEqual(try IconView("locate").inspect().image().actualImage().name(), "scope")

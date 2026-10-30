@@ -135,6 +135,7 @@ public struct StorageUsageView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
+    @Environment(\.locale) private var environmentLocale
 
     public init(categories: [FlareStorageCategory],
                 totalBytes: Double? = nil,
@@ -174,9 +175,17 @@ public struct StorageUsageView: View {
         formatBytes(bytes, locale: locale) ?? copy.unknownText
     }
 
+    /// "N 个文件" / "1 file": the plural form follows `locale` when the host passes one, else the environment's.
+    /// A host's own `fileCountText` is used for every count.
     public func fileCountLabel(_ count: Int?) -> String? {
         guard let count, count >= 0 else { return nil }
-        return copy.fileCountText.replacingOccurrences(of: "{count}", with: "\(count)")
+        return Self.fileCountText(count, copy: copy, locale: locale.map(Locale.init(identifier:)) ?? environmentLocale)
+    }
+
+    /// "N 个文件" in the plural form of `locale`.
+    static func fileCountText(_ count: Int, copy: Copy, locale: Locale) -> String {
+        flarePlural(count, one: copy.fileCountOneText, other: copy.fileCountText, locale: locale)
+            .replacingOccurrences(of: "{count}", with: "\(count)")
     }
 
     /// The sum is only a floor when this view computed it and something is unmeasured.
@@ -195,6 +204,7 @@ public struct StorageUsageView: View {
         let clearingText, totalText, deviceFreeText, reloadText: String
         let retryText, dismissErrorText, loadingText, emptyText: String
         let fileCountText: String
+        let fileCountOneText: String
     }
     func resolveCopy(_ strings: FlareStrings) -> Copy {
         Copy(
@@ -210,7 +220,8 @@ public struct StorageUsageView: View {
             dismissErrorText: dismissErrorText ?? strings.storageUsageDismissError,
             loadingText: loadingText ?? strings.storageUsageLoading,
             emptyText: emptyText ?? strings.storageUsageEmpty,
-            fileCountText: fileCountText ?? strings.storageUsageFileCount
+            fileCountText: fileCountText ?? strings.storageUsageFileCount,
+            fileCountOneText: fileCountText ?? strings.storageUsageFileCountOne
         )
     }
     private var copy: Copy { resolveCopy(strings) }

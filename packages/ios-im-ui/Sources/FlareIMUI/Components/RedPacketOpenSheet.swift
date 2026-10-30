@@ -3,10 +3,11 @@ import SwiftUI
 /// What the open-packet layer shows. Spec: RedPacketOpenSheet `state`.
 ///
 /// `ready` offers the gold open button; `opening` flips it while the claim runs and takes no second tap;
-/// `finished`, `expired` and `notEligible` say why there is nothing to open — the first two offer the details when
-/// the viewer may look (`canViewDetails`), `notEligible` never does; `error` keeps the button for another try.
+/// `finished`, `expired`, `refunded` and `notEligible` say why there is nothing to open — the first three offer the
+/// details when the viewer may look (`canViewDetails`), `notEligible` never does; `error` keeps the button for another
+/// try. A host maps a claim refused with `PACKET_REFUNDED`, or a public layer whose status is refunded, to `refunded`.
 public enum FlareRedPacketOpenState: String, Sendable, CaseIterable {
-    case ready, opening, finished, expired, notEligible, error
+    case ready, opening, finished, expired, refunded, notEligible, error
 }
 
 /// The open-packet layer: a red envelope centred over the scrim, with the sender, the blessing and the gold
@@ -16,14 +17,14 @@ public enum FlareRedPacketOpenState: String, Sendable, CaseIterable {
 /// cover on iOS 16.4+, a system sheet elsewhere) or draw it over the page yourself. The scrim, Escape, the
 /// VoiceOver escape gesture and the close button call `onClose`; the host clears the presentation there.
 ///
-/// - Copy: `finished` says the packet ran out, `expired` that it is past its lifetime, `notEligible` that this
-///   viewer cannot open it; the host's `message` (for instance "only they can open it") replaces each. Under
+/// - Copy: `finished` says the packet ran out, `expired` that it is past its lifetime, `refunded` that what was left
+///   went back to the sender, `notEligible` that this viewer cannot open it; the host's `message` (for instance "only they can open it") replaces each. Under
 ///   `error` the message, or the kit's retry copy, shows under the blessing.
 /// - Motion: while `opening` the button turns about its vertical axis. With Reduce Motion it does not turn and
 ///   says the claim is in progress instead.
 /// - The host formats names and passes the avatar URL; the layer requests nothing.
 /// - Keys per state (`spec/red-packet-vectors.json` openSheet): 開 while ready, opening or error; the details key only
-///   for finished / expired with `canViewDetails` (from the personal layer); never for notEligible — the server
+///   for finished / expired / refunded with `canViewDetails` (from the personal layer); never for notEligible — the server
 ///   returns no amount or records to a viewer the packet is not for.
 public struct RedPacketOpenSheet: View {
     private let senderName: String
@@ -82,6 +83,7 @@ public struct RedPacketOpenSheet: View {
         case .ready, .opening, .error: return blessing
         case .finished: return custom ?? strings.packetMissed
         case .expired: return custom ?? strings.packetExpiredNotice
+        case .refunded: return custom ?? strings.packetRefundedNotice
         case .notEligible: return custom ?? strings.packetNotEligible
         }
     }
@@ -101,7 +103,7 @@ public struct RedPacketOpenSheet: View {
     /// The open button is there while there is something to open.
     static func showsOpenButton(_ state: FlareRedPacketOpenState) -> Bool { FlareRedPacketOpenRules.showsCoin(state) }
 
-    /// A finished or expired packet leads to the details when the viewer may look; notEligible never does.
+    /// A finished, expired or refunded packet leads to the details when the viewer may look; notEligible never does.
     static func showsDetails(_ state: FlareRedPacketOpenState, canViewDetails: Bool = true) -> Bool {
         FlareRedPacketOpenRules.showsDetails(state, canViewDetails: canViewDetails)
     }

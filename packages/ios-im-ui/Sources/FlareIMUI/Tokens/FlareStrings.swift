@@ -909,6 +909,21 @@ public struct FlareStrings: Sendable {
     /// The first tab of a plugin page's filter: no filter.
     public var pluginViewAll: String
     /// A plugin page with no rows (and no text of its own), or unavailable without a reason.
+    public var accountTransactions: String
+    public var accountEmpty: String
+    public var accountEmptyDescription: String
+    public var accountInformation: String
+    public var accountEntryDetails: String
+    public var accountEntryId: String
+    public var accountType: String
+    public var accountToday: String
+    public var accountYesterday: String
+    public var accountOtherEntries: String
+    public var accountShowBalance: String
+    public var accountHideBalance: String
+    public var accountBalanceHidden: String
+    public var accountDayFormat: String
+    public var accountDayYearFormat: String
     public var pluginViewEmpty: String
     // Red packet v5: the card's status, kind badge and recipient, and the details page. `{name}`, `{claimed}`, `{shares}`, `{claimedMoney}`, `{totalMoney}`, `{duration}`, `{time}`, `{money}` and `{n}` are replaced by the component.
     public var packetView: String
@@ -951,6 +966,38 @@ public struct FlareStrings: Sendable {
     public var callRecordFailed: String
     public var callRecordJoin: String
     public var callRecordCallBack: String
+    // The read list's plain tab labels (no summary count), its states and paging.
+    public var readReceiptRead: String
+    public var readReceiptUnread: String
+    public var readReceiptLoadFailed: String
+    public var readReceiptUnavailable: String
+    public var readReceiptLoadMore: String
+    public var readReceiptLoadMoreFailed: String
+    /// The open sheet's notice for a refunded red packet.
+    public var packetRefundedNotice: String
+    // The 我 page menu (flareMeMenuSections): built-in items and a plugin item without a title.
+    public var meMenuMoments: String
+    public var meMenuReports: String
+    public var meMenuInvite: String
+    public var meMenuSettings: String
+    public var meMenuPluginFallback: String
+    // Merged-forward record. `{count}`, `{title}` and `{subtitle}` are replaced by the component; the *One fields are the plural one forms (flarePlural).
+    public var forwardRecordTitle: String
+    public var forwardRecordTotal: String
+    public var forwardRecordTotalOne: String
+    public var forwardRecordMore: String
+    public var forwardRecordMoreOne: String
+    public var forwardRecordViewDetails: String
+    public var forwardRecordUnknownSender: String
+    public var forwardRecordEmpty: String
+    public var forwardRecordCountSuffix: String
+    public var forwardRecordCardLabel: String
+    // Plural one forms of count copy (flarePlural picks them by the locale's CLDR rule).
+    public var pluginViewVotesOne: String
+    public var myInviteCountOnlyOne: String
+    public var storageUsageFileCountOne: String
+    /// The pointer menu's only item while the message's availability is still being read.
+    public var messageMenuLoading: String
 
     public init(
         microphone: String = "麦克风",
@@ -1654,6 +1701,21 @@ public struct FlareStrings: Sendable {
         pluginPageRefresh: String = "刷新",
         pluginViewMaxSelections: String = "最多选 {n} 项",
         pluginViewAll: String = "全部",
+        accountTransactions: String = "交易记录",
+        accountEmpty: String = "暂无交易记录",
+        accountEmptyDescription: String = "收支明细会显示在这里",
+        accountInformation: String = "账户说明与规则",
+        accountEntryDetails: String = "交易详情",
+        accountEntryId: String = "记录编号",
+        accountType: String = "类型",
+        accountToday: String = "今天",
+        accountYesterday: String = "昨天",
+        accountOtherEntries: String = "其他记录",
+        accountShowBalance: String = "显示余额",
+        accountHideBalance: String = "隐藏余额",
+        accountBalanceHidden: String = "余额已隐藏",
+        accountDayFormat: String = "M月d日",
+        accountDayYearFormat: String = "y年M月d日",
         pluginViewEmpty: String = "暂无数据",
         packetView: String = "查看红包",
         packetRefunded: String = "已退回",
@@ -1693,7 +1755,33 @@ public struct FlareStrings: Sendable {
         callRecordUnavailable: String = "通话不可用",
         callRecordFailed: String = "通话失败",
         callRecordJoin: String = "加入",
-        callRecordCallBack: String = "回拨"
+        callRecordCallBack: String = "回拨",
+        readReceiptRead: String = "已读",
+        readReceiptUnread: String = "未读",
+        readReceiptLoadFailed: String = "名单读取失败",
+        readReceiptUnavailable: String = "这条消息的已读名单不可查看",
+        readReceiptLoadMore: String = "加载更多",
+        readReceiptLoadMoreFailed: String = "加载失败，点按重试",
+        packetRefundedNotice: String = "红包已退回",
+        meMenuMoments: String = "圈子",
+        meMenuReports: String = "我的举报",
+        meMenuInvite: String = "我的邀请",
+        meMenuSettings: String = "设置",
+        meMenuPluginFallback: String = "插件",
+        forwardRecordTitle: String = "合并转发",
+        forwardRecordTotal: String = "共 {count} 条消息",
+        forwardRecordTotalOne: String = "共 {count} 条消息",
+        forwardRecordMore: String = "还有 {count} 条消息…",
+        forwardRecordMoreOne: String = "还有 {count} 条消息…",
+        forwardRecordViewDetails: String = "点击查看详情",
+        forwardRecordUnknownSender: String = "未知发送者",
+        forwardRecordEmpty: String = "暂无转发内容",
+        forwardRecordCountSuffix: String = "（{count} 条）",
+        forwardRecordCardLabel: String = "{title}，{subtitle}",
+        pluginViewVotesOne: String = "{count} 票",
+        myInviteCountOnlyOne: String = "{count} 人",
+        storageUsageFileCountOne: String = "{count} 个文件",
+        messageMenuLoading: String = "正在读取…"
     ) {
         self.microphone = microphone
         self.camera = camera
@@ -2358,6 +2446,21 @@ public struct FlareStrings: Sendable {
         self.pluginPageRefresh = pluginPageRefresh
         self.pluginViewMaxSelections = pluginViewMaxSelections
         self.pluginViewAll = pluginViewAll
+        self.accountTransactions = accountTransactions
+        self.accountEmpty = accountEmpty
+        self.accountEmptyDescription = accountEmptyDescription
+        self.accountInformation = accountInformation
+        self.accountEntryDetails = accountEntryDetails
+        self.accountEntryId = accountEntryId
+        self.accountType = accountType
+        self.accountToday = accountToday
+        self.accountYesterday = accountYesterday
+        self.accountOtherEntries = accountOtherEntries
+        self.accountShowBalance = accountShowBalance
+        self.accountHideBalance = accountHideBalance
+        self.accountBalanceHidden = accountBalanceHidden
+        self.accountDayFormat = accountDayFormat
+        self.accountDayYearFormat = accountDayYearFormat
         self.pluginViewEmpty = pluginViewEmpty
         self.packetView = packetView
         self.packetRefunded = packetRefunded
@@ -2398,6 +2501,32 @@ public struct FlareStrings: Sendable {
         self.callRecordFailed = callRecordFailed
         self.callRecordJoin = callRecordJoin
         self.callRecordCallBack = callRecordCallBack
+        self.readReceiptRead = readReceiptRead
+        self.readReceiptUnread = readReceiptUnread
+        self.readReceiptLoadFailed = readReceiptLoadFailed
+        self.readReceiptUnavailable = readReceiptUnavailable
+        self.readReceiptLoadMore = readReceiptLoadMore
+        self.readReceiptLoadMoreFailed = readReceiptLoadMoreFailed
+        self.packetRefundedNotice = packetRefundedNotice
+        self.meMenuMoments = meMenuMoments
+        self.meMenuReports = meMenuReports
+        self.meMenuInvite = meMenuInvite
+        self.meMenuSettings = meMenuSettings
+        self.meMenuPluginFallback = meMenuPluginFallback
+        self.forwardRecordTitle = forwardRecordTitle
+        self.forwardRecordTotal = forwardRecordTotal
+        self.forwardRecordTotalOne = forwardRecordTotalOne
+        self.forwardRecordMore = forwardRecordMore
+        self.forwardRecordMoreOne = forwardRecordMoreOne
+        self.forwardRecordViewDetails = forwardRecordViewDetails
+        self.forwardRecordUnknownSender = forwardRecordUnknownSender
+        self.forwardRecordEmpty = forwardRecordEmpty
+        self.forwardRecordCountSuffix = forwardRecordCountSuffix
+        self.forwardRecordCardLabel = forwardRecordCardLabel
+        self.pluginViewVotesOne = pluginViewVotesOne
+        self.myInviteCountOnlyOne = myInviteCountOnlyOne
+        self.storageUsageFileCountOne = storageUsageFileCountOne
+        self.messageMenuLoading = messageMenuLoading
     }
 }
 

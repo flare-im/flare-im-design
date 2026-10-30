@@ -128,7 +128,7 @@ public struct FlareComposerAction: Identifiable {
     /// The icon the tile draws: its own name, or for a name not in the registry (a plugin's old manifest, a name
     /// from a newer kit or menu) the generic `plugin` glyph — a tile never draws the unknown-name question mark.
     public var resolvedIcon: String {
-        flareIconMap[icon] == nil ? "plugin" : icon
+        flareIconNameOrFallback(icon) ?? "plugin"
     }
 }
 

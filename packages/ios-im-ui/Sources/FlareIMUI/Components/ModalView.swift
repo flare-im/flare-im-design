@@ -99,6 +99,7 @@ public struct ModalView<Content: View>: View {
                                    enabled: dismissAllowed, onBack: nil, onClose: onClose)
             }
             modalBody(filled: fill || cap == nil)
+                .environment(\.flareInOverlaySurface, true)
             if let footer {
                 footer
                     .frame(maxWidth: .infinity, alignment: .trailing)

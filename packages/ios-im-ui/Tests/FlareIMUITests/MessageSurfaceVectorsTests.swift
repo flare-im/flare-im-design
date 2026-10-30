@@ -356,6 +356,29 @@ final class MessageSurfaceVectorsTests: XCTestCase {
         XCTAssertEqual(seen.contexts.map(\.surface), [.card])
     }
 
+    /// A custom renderer knows who sent the message: the sender's id, and the host's display name trimmed — nil when
+    /// blank, never the id in its place.
+    @MainActor
+    func testACustomRendererHearsTheSender() {
+        final class Seen { var contexts: [FlareContentContext] = [] }
+        let seen = Seen()
+        let body: FlareContentBuilder = { _, ctx in seen.contexts.append(ctx); return AnyView(Text("Card")) }
+        let rows = VStack {
+            MessageBubbleView(message: FlareMessageData(id: "a", senderId: "u1", senderName: "  Ann ",
+                                                        content: FlareGenericContent(contentType: "custom", label: "P")),
+                              currentUserId: "me")
+            MessageBubbleView(message: FlareMessageData(id: "b", senderId: "u2", senderName: "   ",
+                                                        content: FlareGenericContent(contentType: "custom", label: "P")),
+                              currentUserId: "me")
+        }
+        .flareContentRenderers(["custom": body])
+        _ = ImageRenderer(content: rows.frame(width: 390)).cgImage
+        XCTAssertEqual(seen.contexts.map(\.senderId), ["u1", "u2"])
+        XCTAssertEqual(seen.contexts.map(\.senderName), ["Ann", nil])
+        XCTAssertNil(FlareContentContext(isSelf: false, senderName: "").senderName)
+        XCTAssertNil(FlareContentContext(isSelf: false).senderId, "outside a message row there is no sender")
+    }
+
     /// The failed glyph sits on the failure surface, never on the outgoing fill: at least 3:1 (WCAG 1.4.11) in every
     /// brand and mode. On the outgoing fill it was about 1.5:1.
     func testTheFailedGlyphKeepsItsContrastOnTheFailureSurface() {
@@ -368,26 +391,6 @@ final class MessageSurfaceVectorsTests: XCTestCase {
                                             4.5, "\(brand) \(scheme) text")
             }
         }
-    }
-
-    func testThePointerMenuIsTheLongPressSheetsMenu() {
-        let entries = messageMenuActions(FlareMessageActionAvailability(canReply: true, canForward: true, canDelete: true,
-                                                                        canPin: true), strings: zh)
-        let sections = FlareMessageContextMenu.sections(entries)
-        XCTAssertEqual(sections.map { $0.map(\.id) }, messageMenuGroups(entries).map { $0.map(\.id) },
-                       "the same entries, groups and order as the sheet")
-        XCTAssertEqual(sections.last?.map(\.id), ["delete"])
-        XCTAssertEqual(FlareMessageContextMenu.role(sections.last![0]), .destructive)
-        XCTAssertNil(FlareMessageContextMenu.role(sections[0][0]))
-        #if os(macOS)
-        XCTAssertTrue(FlareMessageContextMenu.pointerIdiom, "macOS is a pointer")
-        #endif
-        XCTAssertFalse(FlareMessageContextMenu.longPressOpensSheet(pointerMenu: true), "the pointer menu takes the long press")
-        XCTAssertTrue(FlareMessageContextMenu.longPressOpensSheet(pointerMenu: false))
-        var chosen: [String] = []
-        let menu = FlareMessageContextMenu(entries: { _ in entries }, perform: { _, id in chosen.append(id) })
-        menu.perform(FlareMessageData(id: "m", senderId: "u", senderName: "U", content: FlareTextContent("x")), "reply")
-        XCTAssertEqual(chosen, ["reply"])
     }
 
     #if os(macOS)

@@ -32,6 +32,9 @@ struct FlareLocationPickerModel: Equatable {
     private(set) var nearby: [FlareLocationPlace]?
     private(set) var query = ""
     /// The places for `query`; nil while the search runs.
+    private(set) var searchUnavailable = false
+    private(set) var nearbyUnavailable = false
+    var lookupUnavailable: Bool { isSearching ? searchUnavailable : nearbyUnavailable }
     private(set) var results: [FlareLocationPlace]?
     private(set) var selected: FlareLocationPlace?
     /// The point the map shows and the image for it; `mapUnavailable` once the host had no image for it.
@@ -91,18 +94,40 @@ struct FlareLocationPickerModel: Equatable {
     mutating func nearbyLoaded(_ places: [FlareLocationPlace], for point: FlareLocationCoordinate?) {
         guard current?.coordinate == point else { return }
         nearby = places.filter { $0.id != FlareLocationPlace.currentId }
+        nearbyUnavailable = false
+    }
+
+    mutating func nearbyStarted() { nearbyUnavailable = false }
+
+    mutating func nearbyFailed(for point: FlareLocationCoordinate?) {
+        guard current?.coordinate == point else { return }
+        nearbyUnavailable = true
     }
 
     /// The user typed: a blank query goes back to the nearby list, any other starts its search.
     mutating func queryChanged(_ text: String) {
         query = text
+        searchUnavailable = false
         results = isSearching ? nil : []
     }
 
-    /// The places for `text`; dropped unless it is still the query. A failed search has no results.
+    mutating func searchStarted(_ text: String) {
+        guard text == searchQuery else { return }
+        results = nil
+        searchUnavailable = false
+    }
+
+    mutating func searchFailed(_ text: String) {
+        guard text == searchQuery else { return }
+        results = []
+        searchUnavailable = true
+    }
+
+    /// The successful places for `text`; dropped unless it is still the query.
     mutating func searchFinished(_ text: String, _ places: [FlareLocationPlace]) {
         guard text == searchQuery else { return }
         results = places
+        searchUnavailable = false
     }
 
     mutating func select(_ place: FlareLocationPlace) { selected = place }
@@ -145,8 +170,8 @@ struct FlareLocationPickerModel: Equatable {
         case .denied: out.insert(.denied)
         }
         if isSearching && results == nil { out.insert(.searching) }
-        if isSearching, let results, results.isEmpty { out.insert(.noResults) }
-        if mapUnavailable { out.insert(.mapUnavailable) }
+        if isSearching, !searchUnavailable, let results, results.isEmpty { out.insert(.noResults) }
+        if mapUnavailable || lookupUnavailable { out.insert(.mapUnavailable) }
         return out
     }
 
@@ -248,6 +273,8 @@ public struct LocationPickerView: View {
     @State private var model: FlareLocationPickerModel
     /// Bumped by the locate key: each value runs one locate.
     @State private var locateRun = 0
+    @State private var lookupRun = 0
+    @State private var previewRun = 0
     @State private var mapWidth: CGFloat = 0
     @Environment(\.displayScale) private var displayScale
     @Environment(\.colorScheme) private var scheme
@@ -321,8 +348,9 @@ public struct LocationPickerView: View {
         .background(colors.bgPrimary)
         .flareSheetOwnHeader()
         .task(id: locateRun) { await locate(select: locateRun > 0) }
-        .task(id: model.current?.coordinate) { await loadNearby() }
-        .task(id: model.query) { await search() }
+        .task(id: LookupRequest(query: model.query, center: model.current?.coordinate, run: lookupRun)) {
+            if model.isSearching { await search() } else { await loadNearby() }
+        }
         .task(id: previewRequest) { await loadPreview(previewRequest) }
     }
 
@@ -330,7 +358,7 @@ public struct LocationPickerView: View {
     private var previewRequest: PreviewRequest {
         let pixels = FlareLocationFormat.previewPixels(width: Double(mapWidth), height: Double(Self.mapHeight),
                                                        scale: Double(displayScale))
-        return PreviewRequest(center: model.mapCenter, width: pixels.width, height: pixels.height)
+        return PreviewRequest(center: model.mapCenter, width: pixels.width, height: pixels.height, run: previewRun)
     }
 
     // MARK: Parts
@@ -364,9 +392,10 @@ public struct LocationPickerView: View {
                         Text(address).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
                             .lineLimit(2).multilineTextAlignment(.center)
                     }
+                    ButtonView(label: strings.retry, variant: .text, size: .sm) { previewRun += 1 }
                 }
                 .padding(.horizontal, FlareSizes.spacingLg)
-                .accessibilityElement(children: .combine)
+                .accessibilityElement(children: .contain)
             } else {
                 FlareMapSnapshot(url: model.snapshotUrl, attribution: FlareMapSnapshot.attribution(provider, strings),
                                  pin: false)
@@ -398,6 +427,10 @@ public struct LocationPickerView: View {
         let rows = model.rows
         ScrollView {
             LazyVStack(spacing: 0) {
+                if model.lookupUnavailable {
+                    EmptyStateView(title: strings.locationMapUnavailable, actionText: strings.retry,
+                                   icon: "location", tone: .error, onAction: { lookupRun += 1 })
+                }
                 if model.waitingForRows {
                     locatingRow(colors)
                     SkeletonView(variant: .text, rows: 3).padding(.horizontal, FlareSizes.spacingLg)
@@ -488,18 +521,32 @@ public struct LocationPickerView: View {
 
     private func loadNearby() async {
         guard let searchNearby, let point = model.current?.coordinate else { return }
-        let places = (try? await searchNearby(point.latitude, point.longitude, "")) ?? []
-        model.nearbyLoaded(places, for: point)
+        model.nearbyStarted()
+        do {
+            let places = try await searchNearby(point.latitude, point.longitude, "")
+            guard !Task.isCancelled else { return }
+            model.nearbyLoaded(places, for: point)
+        } catch {
+            guard !Task.isCancelled else { return }
+            model.nearbyFailed(for: point)
+        }
     }
 
     private func search() async {
         let text = model.query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
+        model.searchStarted(text)
         try? await Task.sleep(nanoseconds: UInt64(Self.searchDelayMs) * 1_000_000)
         guard !Task.isCancelled else { return }
         let point = model.current?.coordinate
-        let places = (try? await searchNearby?(point?.latitude, point?.longitude, text)) ?? []
-        model.searchFinished(text, places)
+        do {
+            let places = try await searchNearby?(point?.latitude, point?.longitude, text) ?? []
+            guard !Task.isCancelled else { return }
+            model.searchFinished(text, places)
+        } catch {
+            guard !Task.isCancelled else { return }
+            model.searchFailed(text)
+        }
     }
 
     private func loadPreview(_ request: PreviewRequest) async {
@@ -507,15 +554,23 @@ public struct LocationPickerView: View {
         model.previewStarted(point)
         guard let previewUrl else { model.previewLoaded(nil, for: point); return }
         let url = try? await previewUrl(point.latitude, point.longitude, zoom, request.width, request.height)
+        guard !Task.isCancelled else { return }
         model.previewLoaded(url ?? nil, for: point)
     }
 }
 
 /// What the map asks the host for: a point at a size in device pixels. A new value runs a new request.
+private struct LookupRequest: Equatable {
+    let query: String
+    let center: FlareLocationCoordinate?
+    let run: Int
+}
+
 private struct PreviewRequest: Equatable {
     let center: FlareLocationCoordinate?
     let width: Int
     let height: Int
+    let run: Int
 }
 
 private struct FlareMapWidthKey: PreferenceKey {

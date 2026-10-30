@@ -74,6 +74,10 @@ public func flareMessagePreviewText(_ content: FlareMessageContent?, strings s: 
         return fallback(c.text, s.previewNotification)
     case let c as FlarePlaceholderContent:
         return fallback(c.label, s.previewPlaceholder)
+    case let c as FlareForwardContent:
+        // A record of several messages says how many; one names itself by its title.
+        if c.items.count > 1 { return s.previewForwardCount(c.items.count) }
+        return fallback(c.title, s.previewForward)
     case let c as FlareGenericContent:
         return genericPreview(c, s)
     default:

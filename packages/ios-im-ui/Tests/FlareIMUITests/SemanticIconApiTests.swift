@@ -20,7 +20,7 @@ final class SemanticIconApiTests: XCTestCase {
         XCTAssertFalse(names.isEmpty)
         for name in names {
             XCTAssertTrue(flareIconNames.contains(name), "\(name) is not a kit icon name")
-            XCTAssertNotEqual(flareIconSymbol(name), "questionmark", name)
+            XCTAssertEqual(flareIconNameOrFallback(name), name, "\(name) resolves to itself, not the fallback")
         }
     }
 
@@ -60,11 +60,11 @@ final class SemanticIconApiTests: XCTestCase {
     @MainActor
     func testAnUnknownNameDrawsTheFallbackAndNothingElse() throws {
         // An SF Symbol name passed where a kit name belongs is exactly the mistake this catches.
-        XCTAssertEqual(flareIconSymbol("person.2"), "questionmark")
-        XCTAssertEqual(flareIconSymbol(""), "questionmark")
+        XCTAssertEqual(flareIconSymbol("person.2"), flareIconMap["plugin"])
+        XCTAssertNil(flareIconNameOrFallback(""), "an empty name has no icon")
         let row = FlareSettingsRow(item: FlareSettingsItem(key: "k", label: "设置", icon: "not-a-name"))
         XCTAssertNoThrow(try row.inspect().find(ViewType.Image.self, where: {
-            try $0.actualImage().name() == "questionmark"
+            try $0.actualImage().name() == flareIconMap["plugin"]
         }), "an unknown name draws the fallback")
         // No text is drawn for the name, and the view still renders.
         XCTAssertThrowsError(try row.inspect().find(text: "not-a-name"))

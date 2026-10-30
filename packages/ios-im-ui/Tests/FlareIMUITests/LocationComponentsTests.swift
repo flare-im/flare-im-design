@@ -274,6 +274,54 @@ final class LocationComponentsTests: XCTestCase {
         XCTAssertEqual(model.statuses, [.located])
     }
 
+    func testLookupFailureIsNotAnEmptyResultAndCanRecover() {
+        var model = FlareLocationPickerModel()
+        model.locateFailed()
+        model.queryChanged("coffee")
+        model.searchFailed("coffee")
+        XCTAssertTrue(model.lookupUnavailable)
+        XCTAssertTrue(model.statuses.contains(.mapUnavailable))
+        XCTAssertFalse(model.statuses.contains(.noResults))
+        model.searchStarted("coffee")
+        XCTAssertTrue(model.statuses.contains(.searching))
+        model.searchFinished("coffee", [poi("c")])
+        XCTAssertFalse(model.lookupUnavailable)
+        XCTAssertEqual(model.rows.map(\.id), ["c"])
+        model.queryChanged("new query")
+        model.searchFailed("coffee")
+        XCTAssertFalse(model.lookupUnavailable, "late errors must not overwrite a newer query")
+    }
+
+    func testNearbyFailureKeepsCoordinatesAndDoesNotEraseSearchFailure() {
+        var model = FlareLocationPickerModel()
+        model.located(here)
+        model.nearbyLoaded([poi("a")], for: here)
+        model.nearbyFailed(for: here)
+        XCTAssertTrue(model.lookupUnavailable)
+        XCTAssertEqual(model.rows.map(\.id), [FlareLocationPlace.currentId, "a"])
+        XCTAssertNotNil(model.sendable(fallbackTitle: s.locationCurrent))
+        model.queryChanged("coffee")
+        model.searchFailed("coffee")
+        model.nearbyLoaded([poi("b")], for: here)
+        XCTAssertTrue(model.lookupUnavailable)
+        model.queryChanged("")
+        XCTAssertFalse(model.lookupUnavailable)
+        model.nearbyFailed(for: last.coordinate)
+        XCTAssertFalse(model.lookupUnavailable, "a stale position cannot fail the current nearby list")
+    }
+
+    @MainActor
+    func testLookupFailureDrawsRetryAndNotNoResults() throws {
+        var model = FlareLocationPickerModel()
+        model.locateFailed()
+        model.queryChanged("coffee")
+        model.searchFailed("coffee")
+        let view = try picker(model).inspect()
+        XCTAssertNoThrow(try view.find(text: s.locationMapUnavailable))
+        XCTAssertNoThrow(try view.find(ViewType.Button.self, where: { (try? $0.labelView().find(text: self.s.retry)) != nil }))
+        XCTAssertThrowsError(try view.find(text: s.locationNoResults))
+    }
+
     func testSelectingAPlaceMovesTheMapAndAMissingImageIsMapUnavailable() {
         var model = FlareLocationPickerModel()
         model.located(here)

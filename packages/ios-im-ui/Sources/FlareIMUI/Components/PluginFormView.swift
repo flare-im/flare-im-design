@@ -99,15 +99,25 @@ public struct PluginFormView: View {
             FormFieldView(label: input.label, required: input.required,
                           hint: PluginFormRules.counter(input, form.draft[input.id]), error: errorText(input)) {
                 InputView(text: text(input), placeholder: input.placeholder ?? "", disabled: busy)
+                    .accessibilityLabel(input.label)
+                    .accessibilityIdentifier("plugin.form.\(input.id)")
+                    #if os(iOS)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    #endif
             }
         case .textarea:
             FormFieldView(label: input.label, required: input.required,
                           hint: PluginFormRules.counter(input, form.draft[input.id]), error: errorText(input)) {
                 TextareaView(text: text(input), placeholder: input.placeholder ?? "", rows: 3, maxRows: 6, disabled: busy)
+                    .accessibilityLabel(input.label)
+                    .accessibilityIdentifier("plugin.form.\(input.id)")
             }
         case .number:
             FormFieldView(label: input.label, required: input.required, error: errorText(input)) {
                 InputView(text: number(input), placeholder: input.placeholder ?? "", disabled: busy)
+                    .accessibilityLabel(input.label)
+                    .accessibilityIdentifier("plugin.form.\(input.id)")
                     #if os(iOS)
                     .keyboardType(.decimalPad)
                     #endif

@@ -62,8 +62,9 @@ enum PluginViewFormat {
         return ids
     }
 
-    static func votes(_ count: Int, _ strings: FlareStrings) -> String {
-        strings.pluginViewVotes.replacingOccurrences(of: "{count}", with: String(count))
+    /// "N 票" for an option or a group, in the locale's plural form ("1 vote").
+    static func votes(_ count: Int, _ strings: FlareStrings, locale: Locale = .current) -> String {
+        strings.pluginViewVotesText(count, locale: locale)
     }
 
     static func seeAll(_ total: Int, _ strings: FlareStrings) -> String {
@@ -88,9 +89,9 @@ enum PluginViewFormat {
 
     /// A grouped entries block's header row (spec rules.entriesGrouped): the label, "N 票" when the group has a count
     /// and "P%" when it has a percent, joined with " · ".
-    static func groupHeader(_ group: PluginEntryGroup, _ strings: FlareStrings) -> String {
+    static func groupHeader(_ group: PluginEntryGroup, _ strings: FlareStrings, locale: Locale = .current) -> String {
         var parts = [group.label]
-        if let count = group.count { parts.append(votes(count, strings)) }
+        if let count = group.count { parts.append(votes(count, strings, locale: locale)) }
         if let percent = group.percent { parts.append("\(percent)%") }
         return parts.joined(separator: " · ")
     }
@@ -129,15 +130,15 @@ enum PluginViewFormat {
         return name.isEmpty ? reasonText(reason, strings) : "\(name) · \(reasonText(reason, strings))"
     }
 
-    /// The line under a choices block: the limit while it can be chosen ("最多选 2 项"), ended, and the total while
-    /// results show.
+    /// The line under a choices block: the limit while it can be chosen ("最多选 2 项"), then ended. The block's
+    /// `total` is only the denominator of the shares (a voter count or the sum of the counts): the kit cannot tell
+    /// people from votes, so it never draws it; "N 票" is for options, and how many took part is the plugin's to say.
     static func choicesFooter(_ block: PluginChoicesBlock, _ strings: FlareStrings) -> String? {
         var parts: [String] = []
         if let cap = block.cap, block.action != nil, !block.closed {
             parts.append(strings.pluginViewMaxSelections.replacingOccurrences(of: "{n}", with: String(cap)))
         }
         if block.closed { parts.append(strings.pluginViewEnded) }
-        if block.showResults, let total = block.total { parts.append(votes(total, strings)) }
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 
@@ -146,9 +147,10 @@ enum PluginViewFormat {
         return "\(percent)%"
     }
 
-    static func votesText(_ option: PluginChoice, showResults: Bool, _ strings: FlareStrings) -> String? {
+    static func votesText(_ option: PluginChoice, showResults: Bool, _ strings: FlareStrings,
+                          locale: Locale = .current) -> String? {
         guard showResults, let count = option.count else { return nil }
-        return votes(count, strings)
+        return votes(count, strings, locale: locale)
     }
 
     /// A number as a progress block writes it: whole numbers without a fraction.

@@ -4,6 +4,10 @@ import SwiftUI
 /// client id it was sent with) and `conversationId` the conversation the list shows; both are nil where the body is
 /// drawn outside a message (a preview, a standalone body without them).
 ///
+/// `senderId` is the id of the message's sender (nil outside a message row). `senderName` is the host's display name
+/// for that message, trimmed, and nil when blank: it never falls back to the id or a placeholder word, so a renderer
+/// decides itself how to write a sender without a name.
+///
 /// `selectionMode` is true while the row is in multi-select: the content is inert (the kit also stops it taking
 /// taps) and a tap anywhere on the row toggles its selection. `surface` is the surface the row draws the body on;
 /// on ``FlareMessageSurface/card`` the renderer's own shell is the surface and nothing is drawn around it.
@@ -11,6 +15,7 @@ public struct FlareContentContext {
     public let isSelf: Bool
     public let previewMode: Bool
     public let senderName: String?
+    public let senderId: String?
     public let mediaState: FlareMediaDownloadState?
     public let onMediaAction: ((FlareMessageContent) -> Void)?
     public let messageId: String?
@@ -22,6 +27,7 @@ public struct FlareContentContext {
         isSelf: Bool,
         previewMode: Bool = false,
         senderName: String? = nil,
+        senderId: String? = nil,
         mediaState: FlareMediaDownloadState? = nil,
         onMediaAction: ((FlareMessageContent) -> Void)? = nil,
         messageId: String? = nil,
@@ -31,7 +37,9 @@ public struct FlareContentContext {
     ) {
         self.isSelf = isSelf
         self.previewMode = previewMode
-        self.senderName = senderName
+        let name = senderName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        self.senderName = name.isEmpty ? nil : name
+        self.senderId = senderId
         self.mediaState = mediaState
         self.onMediaAction = onMediaAction
         self.messageId = messageId
@@ -43,7 +51,8 @@ public struct FlareContentContext {
     /// The same context with some fields replaced.
     func with(messageId: String?? = nil, conversationId: String?? = nil, selectionMode: Bool? = nil,
               surface: FlareMessageSurface?? = nil) -> FlareContentContext {
-        FlareContentContext(isSelf: isSelf, previewMode: previewMode, senderName: senderName, mediaState: mediaState,
+        FlareContentContext(isSelf: isSelf, previewMode: previewMode, senderName: senderName, senderId: senderId,
+                            mediaState: mediaState,
                             onMediaAction: (selectionMode ?? self.selectionMode) ? nil : onMediaAction,
                             messageId: messageId ?? self.messageId, conversationId: conversationId ?? self.conversationId,
                             selectionMode: selectionMode ?? self.selectionMode, surface: surface ?? self.surface)
@@ -216,6 +225,7 @@ public struct MessageContentView: View {
         isSelf: Bool = false,
         previewMode: Bool = false,
         senderName: String? = nil,
+        senderId: String? = nil,
         mediaState: FlareMediaDownloadState? = nil,
         onMediaAction: ((FlareMessageContent) -> Void)? = nil,
         onMediaDownload: ((FlareMessageContent) -> Void)? = nil,
@@ -233,7 +243,7 @@ public struct MessageContentView: View {
         self.content = content
         // In multi-select nothing in the body acts: the row's tap selects it.
         self.ctx = FlareContentContext(
-            isSelf: isSelf, previewMode: previewMode, senderName: senderName,
+            isSelf: isSelf, previewMode: previewMode, senderName: senderName, senderId: senderId,
             mediaState: mediaState, onMediaAction: selectionMode ? nil : onMediaAction,
             messageId: messageId, conversationId: conversationId, selectionMode: selectionMode)
         self.selectionMode = selectionMode
@@ -273,8 +283,9 @@ public struct MessageContentView: View {
     }
 
     /// Whether the kit draws this body in its card shell: one of its own card bodies on a card surface.
+    /// A forward record draws its own shell everywhere (``FlareForwardMessageView``).
     static func drawsCardShell(_ content: FlareMessageContent, surface: FlareMessageSurface?, custom: Bool) -> Bool {
-        surface == .card && !custom
+        surface == .card && !custom && !(content is FlareForwardContent)
     }
 
     /// The kit card bodies that have no inner padding of their own.
@@ -399,6 +410,8 @@ public struct MessageContentView: View {
 
     @ViewBuilder private func canonicalBody(_ session: FlareMediaSession?) -> some View {
         switch content {
+        case let c as FlareForwardContent:
+            FlareForwardMessageView(content: c, isSelf: ctx.isSelf, selectionMode: selectionMode)
         case let c as FlareTextContent:
             if surface == .bareMedia, c.mentions.isEmpty, flareLoneEmojiPackKey(c.text) == nil,
                let emoji = flareSingleEmoji(c.text) {

@@ -8,6 +8,8 @@ struct FlareFlowLayout: Layout {
     var spacing: CGFloat = 0
     var lineSpacing: CGFloat = 2
     var alignment: Alignment = .leading
+    var trailingLast = false
+    var constrainSubviews = false
 
     /// The subview indices on each line, for subviews of `widths` in a line at most `maxWidth` wide.
     static func lines(_ widths: [CGFloat], maxWidth: CGFloat, spacing: CGFloat) -> [[Int]] {
@@ -28,8 +30,8 @@ struct FlareFlowLayout: Layout {
     }
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) -> CGSize {
-        let sizes = subviews.map { $0.sizeThatFits(.unspecified) }
         let maxWidth = proposal.width ?? .infinity
+        let sizes = subviews.map { $0.sizeThatFits(constrainSubviews ? ProposedViewSize(width: proposal.width, height: nil) : .unspecified) }
         let lines = Self.lines(sizes.map(\.width), maxWidth: maxWidth, spacing: spacing)
         var width: CGFloat = 0
         var height: CGFloat = 0
@@ -38,11 +40,11 @@ struct FlareFlowLayout: Layout {
             height += line.map { sizes[$0].height }.max() ?? 0
             if number > 0 { height += lineSpacing }
         }
-        return CGSize(width: min(width, maxWidth), height: height)
+        return CGSize(width: trailingLast && maxWidth.isFinite ? maxWidth : min(width, maxWidth), height: height)
     }
 
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) {
-        let sizes = subviews.map { $0.sizeThatFits(.unspecified) }
+        let sizes = subviews.map { $0.sizeThatFits(constrainSubviews ? ProposedViewSize(width: bounds.width, height: nil) : .unspecified) }
         var y = bounds.minY
         for line in Self.lines(sizes.map(\.width), maxWidth: bounds.width, spacing: spacing) {
             let lineWidth = line.map { sizes[$0].width }.reduce(0, +) + spacing * CGFloat(line.count - 1)
@@ -50,6 +52,7 @@ struct FlareFlowLayout: Layout {
             var x = alignment == .trailing ? bounds.maxX - lineWidth : bounds.minX
             for index in line {
                 let size = sizes[index]
+                if trailingLast && index == subviews.count - 1 { x = max(x, bounds.maxX - size.width) }
                 subviews[index].place(at: CGPoint(x: x, y: y + (lineHeight - size.height) / 2),
                                       anchor: .topLeading, proposal: ProposedViewSize(size))
                 x += size.width + spacing

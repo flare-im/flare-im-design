@@ -20,8 +20,11 @@ private extension FlareControlSize {
 /// General-purpose button. Spec: Form/Button (`ButtonView`).
 /// Five variants (`primary` brand fill, `secondary` outline, `ghost` tinted outline,
 /// `danger` error fill, `text` link), three sizes, plus loading / disabled / block / icon.
+public enum FlareButtonAppearance: Sendable { case standard, text }
+
 public struct ButtonView: View {
     private let label: String?
+    private let appearance: FlareButtonAppearance
     private let variant: FlareButtonVariant
     private let size: FlareControlSize
     private let loading: Bool
@@ -30,18 +33,23 @@ public struct ButtonView: View {
     /// Semantic kit icon name (``flareIconNames``) before the label; nil draws none.
     private let icon: String?
     private let action: (() -> Void)?
+    @FocusState private var focused: Bool
+    @Environment(\.colorSchemeContrast) private var contrast
     @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
 
     public init(label: String? = nil, variant: FlareButtonVariant = .primary,
                 size: FlareControlSize = .md, loading: Bool = false, disabled: Bool = false,
-                block: Bool = false, icon: String? = nil, action: (() -> Void)? = nil) {
-        self.label = label; self.variant = variant; self.size = size; self.loading = loading
+                block: Bool = false, icon: String? = nil, appearance: FlareButtonAppearance = .standard, action: (() -> Void)? = nil) {
+        self.appearance = appearance; self.label = label; self.variant = variant; self.size = size; self.loading = loading
         self.disabled = disabled; self.block = block; self.icon = icon; self.action = action
     }
 
     private func fill(_ colors: FlareColors) -> Color {
+        if appearance == .text {
+            return focused && !disabled && !loading && action != nil ? fg(colors).opacity(0.1) : .clear
+        }
         switch variant {
         case .primary: return colors.primary
         case .danger: return colors.error
@@ -51,6 +59,9 @@ public struct ButtonView: View {
     }
 
     private func stroke(_ colors: FlareColors) -> Color {
+        if appearance == .text {
+            return focused && contrast == .increased ? fg(colors) : .clear
+        }
         switch variant {
         case .secondary: return colors.borderPrimary
         case .ghost: return colors.primary.opacity(0.4)
@@ -59,6 +70,13 @@ public struct ButtonView: View {
     }
 
     private func fg(_ colors: FlareColors) -> Color {
+        if appearance == .text {
+            switch variant {
+            case .primary, .text, .ghost: return colors.primaryText
+            case .danger: return colors.errorText
+            default: return colors.textSecondary
+            }
+        }
         // ghost / text 的**文字**要取 primaryText 而不是 primary。两者是一对的两半:
         // 浅色下同为 #7047D6 所以看不出来,暗色下 primary 不变(在 #20232B 上 2.66:1,
         // AA 正文要 4.5)而 primaryText 提亮成 #A78BFA(5.77:1)。描边仍用 primary —— 描边是填充。
@@ -72,7 +90,7 @@ public struct ButtonView: View {
 
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        let solid = variant == .primary || variant == .danger
+        let solid = appearance != .text && (variant == .primary || variant == .danger)
         Button { action?() } label: {
             HStack(spacing: FlareSizes.spacingSm) {
                 if loading {
@@ -81,14 +99,17 @@ public struct ButtonView: View {
                     FlareIconImage(name: icon, size: size.font + 4, weight: .semibold)
                 }
                 if let label {
-                    Text(label).font(.system(size: size.font * textScale, weight: .semibold))
+                    Text(label).font(.system(size: size.font * textScale, weight: appearance == .text && focused ? .bold : .semibold))
+                        .underline(false)
                 }
             }
             .foregroundColor(fg(colors))
             .frame(maxWidth: block ? .infinity : nil)
             .frame(minHeight: size.height)
             .padding(.vertical, FlareSizes.spacing2xs)
-            .padding(.horizontal, size.hPadding)
+            .padding(.horizontal, appearance == .text ? 0 : size.hPadding)
+            .frame(minWidth: appearance == .text ? FlareSizes.touchTarget : nil,
+                   minHeight: appearance == .text ? FlareSizes.touchTarget : nil)
             .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(fill(colors)))
             .overlay(
                 RoundedRectangle(cornerRadius: FlareSizes.radiusLg)
@@ -96,6 +117,7 @@ public struct ButtonView: View {
             )
         }
         .buttonStyle(.plain)
+        .focused($focused)
         .disabled(disabled || loading || action == nil)
         .opacity(disabled ? 0.5 : 1)
     }

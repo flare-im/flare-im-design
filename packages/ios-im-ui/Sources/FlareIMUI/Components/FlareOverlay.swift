@@ -230,6 +230,20 @@ extension EnvironmentValues {
     }
 }
 
+private struct FlareOverlaySurfaceKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+public extension EnvironmentValues {
+    /// True inside the content of a kit overlay surface (``BottomSheetView``, ``ModalView``, and so every kit bottom
+    /// sheet in either form). A component that draws its own card shell elsewhere (``ReadReceiptSheetView``) draws
+    /// none here and fills the surface: the surface is the shell.
+    var flareInOverlaySurface: Bool {
+        get { self[FlareOverlaySurfaceKey.self] }
+        set { self[FlareOverlaySurfaceKey.self] = newValue }
+    }
+}
+
 // MARK: - Presentation engine
 
 /// How long the presenter waits for UIKit to report a presentation before it gives the layer up.

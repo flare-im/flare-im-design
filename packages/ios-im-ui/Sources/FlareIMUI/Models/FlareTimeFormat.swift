@@ -24,6 +24,14 @@ public enum FlareTimeFormat {
         return formatter(pattern(template, locale), locale).string(from: date)
     }
 
+    /// A moment in a list of messages from several days (the merged-forward drawer): the clock on the same local
+    /// day as `now`, else the locale's month and day ("10月22日", "Oct 22") and the clock.
+    public static func dateTime(_ date: Date, locale: Locale = .current, now: Date = Date()) -> String {
+        let zone = TimeZone.current
+        if localDay(date, zone) == localDay(now, zone) { return messageTime(date, locale: locale) }
+        return formatter(pattern("MMMd", locale), locale).string(from: date) + " " + messageTime(date, locale: locale)
+    }
+
     /// The label of a timeline date separator. Every bubble already shows its own time, so separators
     /// mark days only: `today` and `yesterday` (the host's words) for those days, then the locale's
     /// numeric month and day within the current year, and its year, month and day before it. Absolute,

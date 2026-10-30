@@ -120,6 +120,15 @@ public func messageMenuActions(_ availability: FlareMessageActionAvailability, s
     }
 }
 
+/// The entries of the message menu, the one function both the long-press sheet (``MessageActionSheetView``) and the
+/// pointer menu of ``MessageListView`` draw: the standard actions `availability` allows (``messageMenuActions(_:strings:hidden:content:)``,
+/// less `hidden`), then the host's `extra` entries (a report action, say) in their groups.
+public func messageMenuEntries(_ availability: FlareMessageActionAvailability, strings: FlareStrings,
+                               hidden: Set<String> = [], extra: [FlareMessageMenuEntry] = [],
+                               content: FlareMessageContent? = nil) -> [FlareMessageMenuEntry] {
+    messageMenuActions(availability, strings: strings, hidden: hidden, content: content) + extra
+}
+
 /// The message long-press action sheet — a reaction strip plus grouped actions
 /// (primary / organize / destructive, destructive in red). Spec:
 /// Message/MessageActionSheet (`MessageActionSheetView`). The host passes the core's
@@ -160,7 +169,7 @@ public struct MessageActionSheetView: View {
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         let groups = messageMenuGroups(
-            messageMenuActions(availability, strings: strings, hidden: hiddenActions, content: content) + actions)
+            messageMenuEntries(availability, strings: strings, hidden: hiddenActions, extra: actions, content: content))
         // A host list is gated by canReact too: no reaction strip on a message that cannot take one.
         let strip = availability.canReact ? (reactions ?? flareQuickReactions) : []
         VStack(alignment: .leading, spacing: FlareSizes.spacingSm) {

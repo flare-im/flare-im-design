@@ -390,7 +390,8 @@ public struct FlareSettingsRow: View {
     }
 
     @ViewBuilder private func rowIcon(_ colors: FlareColors) -> some View {
-        if let icon = item.icon {
+        // A name outside the registry draws the plugin glyph; an empty one draws no icon.
+        if let icon = flareIconNameOrFallback(item.icon) {
             IconView(icon, size: FlareSizes.iconSizeSm, color: colors.textSecondary)
         }
     }

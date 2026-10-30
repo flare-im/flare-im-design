@@ -1,5 +1,8 @@
 import Foundation
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 // Layer 5 — Platform Contract (shared truth: spec/platform-contract.json).
 // One capability record, one adapter interface and one error model. The host
@@ -55,6 +58,19 @@ public struct FlarePlatformCapabilities: Equatable, Sendable {
             bottomSheet: width < 600, nativeBack: false, safeArea: true
         )
     }
+}
+
+/// Whether this device takes a pointer as the primary way to a context menu: macOS, iPad and a Mac running the iPad
+/// app; an iPhone is touch-first. Read through ``FlareMessageMenuSource/pointerIdiom``.
+func flareDeviceIsPointerFirst() -> Bool {
+    #if os(macOS)
+    return true
+    #elseif canImport(UIKit)
+    let idiom = UIDevice.current.userInterfaceIdiom
+    return idiom == .pad || idiom == .mac
+    #else
+    return false
+    #endif
 }
 
 /// The contract's error model; `cause` keeps the original error.

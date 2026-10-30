@@ -11,20 +11,25 @@ public enum FlareRedPacketKind: String, Sendable, CaseIterable {
 /// What the composer's fields accept (`spec/red-packet-vectors.json`). Format only: ranges, balances and limits
 /// are the host's to check.
 enum RedPacketInput {
-    /// Digits (full-width ones folded) and one decimal point (`.`, `．` or `。`), at most two digits after it;
-    /// a leading point gains a zero and leading zeros fold away.
-    static func amount(_ text: String) -> String {
+    /// The currency exponent the composer works with: the host's value held to 0...12.
+    static func exponent(_ value: Int) -> Int { min(max(value, 0), 12) }
+
+    /// Digits (full-width ones folded) and one decimal point (`.`, `．` or `。`), at most `exponent` digits after
+    /// it (the currency's ISO 4217 exponent; at 0 every point is dropped and the field takes whole numbers); a
+    /// leading point gains a zero and leading zeros fold away.
+    static func amount(_ text: String, exponent: Int = 2) -> String {
+        let places = Self.exponent(exponent)
         var out = ""
         var point = false
         var decimals = 0
         for ch in text {
             if let digit = asciiDigit(ch) {
                 if point {
-                    guard decimals < 2 else { continue }
+                    guard decimals < places else { continue }
                     decimals += 1
                 }
                 out.append(digit)
-            } else if decimalPoints.contains(ch), !point {
+            } else if decimalPoints.contains(ch), !point, places > 0 {
                 point = true
                 out += out.isEmpty ? "0." : "."
             }
@@ -66,8 +71,10 @@ enum RedPacketInput {
 /// button. Spec: RedPacketComposer (`RedPacketComposerView`).
 ///
 /// - Values come in and changes go out through the `on…Change` callbacks; the host owns the form. The amount
-///   field takes digits and two decimals, the count field digits (0 while empty), as `spec/red-packet-vectors.json`
-///   fixes for every kit; the filtered text is written back to the field.
+///   field takes digits and `currencyExponent` decimals (the currency's ISO 4217 exponent from the plugin's limits:
+///   0 for JPY, 2 by default, 3 for KWD; its placeholder has as many), the count field digits (0 while empty), as
+///   `spec/red-packet-vectors.json` fixes for every kit; the filtered text is written back to the field.
+///   ``flareRedPacketAmountMinor(_:exponent:)`` turns the field's text into minor units.
 /// - The switch shows only when the host offers more than one kind; a `kind` outside `kinds` shows as the first.
 ///   The amount's label follows the kind: the total for `lucky`, each share's amount for `normal`, the amount
 ///   for `exclusive`. The count row is there for `lucky` and `normal`, the recipient row (the host's member
@@ -83,6 +90,7 @@ public struct RedPacketComposerView<Recipient: View>: View {
     private let kinds: [FlareRedPacketKind]
     private let kind: FlareRedPacketKind
     private let amount: String
+    private let currencyExponent: Int
     private let count: Int
     private let greeting: String
     private let total: String
@@ -105,8 +113,8 @@ public struct RedPacketComposerView<Recipient: View>: View {
 
     private enum Field: Hashable { case amount, count, greeting }
 
-    public init(kinds: [FlareRedPacketKind], kind: FlareRedPacketKind, amount: String, count: Int = 0,
-                greeting: String = "", total: String, error: String? = nil, busy: Bool = false,
+    public init(kinds: [FlareRedPacketKind], kind: FlareRedPacketKind, amount: String, currencyExponent: Int = 2,
+                count: Int = 0, greeting: String = "", total: String, error: String? = nil, busy: Bool = false,
                 locked: Bool = false, submitLabel: String? = nil,
                 onKindChange: ((FlareRedPacketKind) -> Void)? = nil,
                 onAmountChange: ((String) -> Void)? = nil,
@@ -114,12 +122,19 @@ public struct RedPacketComposerView<Recipient: View>: View {
                 onGreetingChange: ((String) -> Void)? = nil,
                 onSubmit: (() -> Void)? = nil,
                 @ViewBuilder recipient: () -> Recipient) {
-        self.kinds = kinds; self.kind = kind; self.amount = amount; self.count = count; self.greeting = greeting
+        self.kinds = kinds; self.kind = kind; self.amount = amount
+        self.currencyExponent = RedPacketInput.exponent(currencyExponent)
+        self.count = count; self.greeting = greeting
         self.total = total; self.error = error; self.busy = busy; self.locked = locked; self.submitLabel = submitLabel
         self.onKindChange = onKindChange; self.onAmountChange = onAmountChange; self.onCountChange = onCountChange
         self.onGreetingChange = onGreetingChange; self.onSubmit = onSubmit; self.recipient = recipient()
         _amountText = State(initialValue: amount)
         _countText = State(initialValue: RedPacketInput.countText(count))
+    }
+
+    /// The amount field's placeholder: zero with the currency's decimals ("0", "0.00", "0.000").
+    static func amountPlaceholder(_ exponent: Int) -> String {
+        FlareRedPacketMoney.text(minor: "0", exponent: RedPacketInput.exponent(exponent)) ?? "0"
     }
 
     /// The kind the form shows: `kind`, or the first offered one when `kind` is not offered.
@@ -170,9 +185,10 @@ public struct RedPacketComposerView<Recipient: View>: View {
             }
             group(colors) {
                 fieldRow(amountLabel, field: .amount, colors) {
-                    editor(text: $amountText, placeholder: "0.00", label: amountLabel, field: .amount, colors)
+                    editor(text: $amountText, placeholder: Self.amountPlaceholder(currencyExponent), label: amountLabel,
+                           field: .amount, colors)
                     #if os(iOS)
-                        .keyboardType(.decimalPad)
+                        .keyboardType(currencyExponent == 0 ? .numberPad : .decimalPad)
                     #endif
                 }
                 if Self.showsCount(kind: shown, kinds: kinds) {
@@ -214,7 +230,7 @@ public struct RedPacketComposerView<Recipient: View>: View {
         .frame(maxWidth: .infinity)
         .disabled(busy || locked)
         .onChange(of: amountText) { next in
-            let clean = RedPacketInput.amount(next)
+            let clean = RedPacketInput.amount(next, exponent: currencyExponent)
             if clean != next { amountText = clean; return }
             if clean != amount { onAmountChange?(clean) }
         }

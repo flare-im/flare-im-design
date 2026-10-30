@@ -727,7 +727,14 @@ public enum PluginUnavailableReason: String, Codable, Sendable, CaseIterable {
 }
 
 /// A resolved plugin view (core SDK `ResolvedPluginView`). v1 cards (title, fields, actions) decode unchanged.
+public struct PluginPresentation: Codable, Equatable, Sendable {
+    public let renderer: String
+    public let props: [String: PluginJSONValue]
+    public let actions: [String: String]
+}
+
 public struct PluginViewModel: Codable, Equatable, Sendable {
+    public let presentation: PluginPresentation?
     /// False: only the title shows (a disabled plugin, history).
     public let available: Bool
     public let title: String
@@ -750,7 +757,8 @@ public struct PluginViewModel: Codable, Equatable, Sendable {
 
     public init(available: Bool, title: String, fields: [PluginViewField] = [], actions: [PluginViewAction] = [],
                 blocks: [PluginBlock] = [], inputs: [PluginInput] = [], detail: Bool = false, nextCursor: String? = nil,
-                menuActions: [PluginViewAction] = [], unavailableReason: PluginUnavailableReason? = nil) {
+                menuActions: [PluginViewAction] = [], unavailableReason: PluginUnavailableReason? = nil, presentation: PluginPresentation? = nil) {
+        self.presentation = presentation
         self.available = available; self.title = title; self.fields = fields; self.actions = actions
         self.blocks = blocks; self.inputs = inputs; self.detail = detail; self.nextCursor = nextCursor
         self.menuActions = menuActions; self.unavailableReason = unavailableReason
@@ -760,11 +768,12 @@ public struct PluginViewModel: Codable, Equatable, Sendable {
     public var readOnly: Bool { unavailableReason == .unboundCopy }
 
     private enum CodingKeys: String, CodingKey {
-        case available, title, fields, actions, blocks, inputs, detail, nextCursor, menuActions, unavailableReason
+        case available, title, fields, actions, blocks, inputs, detail, nextCursor, menuActions, unavailableReason, presentation
     }
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
+        presentation = c.lenient(PluginPresentation.self, .presentation)
         available = c.lenient(Bool.self, .available) ?? false
         title = c.lenient(String.self, .title) ?? ""
         fields = c.lenient([PluginViewField].self, .fields) ?? []
@@ -791,6 +800,7 @@ public struct PluginViewModel: Codable, Equatable, Sendable {
         if detail { try c.encode(detail, forKey: .detail) }
         try c.encodeIfPresent(nextCursor, forKey: .nextCursor)
         if !menuActions.isEmpty { try c.encode(menuActions, forKey: .menuActions) }
+        try c.encodeIfPresent(presentation, forKey: .presentation)
         try c.encodeIfPresent(unavailableReason, forKey: .unavailableReason)
     }
 

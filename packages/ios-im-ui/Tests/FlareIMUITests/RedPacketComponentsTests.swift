@@ -387,7 +387,7 @@ final class RedPacketComponentsTests: XCTestCase {
         let withButton = FlareRedPacketOpenState.allCases.filter(RedPacketOpenSheet.showsOpenButton)
         XCTAssertEqual(withButton, [.ready, .opening, .error])
         let withDetails = FlareRedPacketOpenState.allCases.filter { RedPacketOpenSheet.showsDetails($0) }
-        XCTAssertEqual(withDetails, [.finished, .expired], "a viewer the packet is not for gets no details")
+        XCTAssertEqual(withDetails, [.finished, .expired, .refunded], "a viewer the packet is not for gets no details")
     }
 
     func testOpenSheetKeysFollowTheSharedTable() throws {

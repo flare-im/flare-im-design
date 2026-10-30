@@ -579,7 +579,7 @@ final class PluginPageVectorsTests: XCTestCase {
         let vote = PluginViewAction(id: "vote", label: "投票")
         XCTAssertEqual(PluginViewFormat.choicesFooter(PluginChoicesBlock(options: options, multiple: true, showResults: true,
                                                                          total: 4, maxSelections: 2, action: vote), s),
-                       "最多选 2 项 · 4 票", "the hint leads the total")
+                       "最多选 2 项", "the hint, and never the total (it is only the shares' denominator)")
         XCTAssertEqual(PluginViewFormat.choicesFooter(PluginChoicesBlock(options: options, multiple: true, closed: true,
                                                                          maxSelections: 2, action: vote), s),
                        s.pluginViewEnded, "a closed poll has no hint")

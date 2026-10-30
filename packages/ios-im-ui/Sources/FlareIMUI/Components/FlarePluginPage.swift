@@ -49,6 +49,7 @@ public struct FlarePluginPage: View {
     private let onLoadMore: ((String) -> Void)?
     private let onFilter: (([String: PluginJSONValue]) -> Void)?
     private let onAction: ((String, PluginPageActionPayload) -> Void)?
+    private var appearance: FlarePluginPageAppearance = .document
     private let clock: PluginViewClock
     /// The cursor asked for and not answered yet.
     @State private var paging = PluginDetailPaging()
@@ -72,12 +73,14 @@ public struct FlarePluginPage: View {
                 members: [PluginMember] = [], settleToken: Int = 0,
                 onBack: (() -> Void)? = nil, onRefresh: (() -> Void)? = nil, onRetry: (() -> Void)? = nil,
                 onLoadMore: ((String) -> Void)? = nil, onFilter: (([String: PluginJSONValue]) -> Void)? = nil,
-                onAction: ((String, PluginPageActionPayload) -> Void)? = nil) {
+                onAction: ((String, PluginPageActionPayload) -> Void)? = nil,
+                appearance: FlarePluginPageAppearance = .document) {
         self.init(page: page, title: title, view: view, filters: filters, loading: loading, error: error,
                   refreshing: refreshing, loadingMore: loadingMore, resolveUser: resolveUser, viewerId: viewerId,
                   busyActionId: busyActionId, actionError: actionError, formErrors: formErrors, members: members,
                   settleToken: settleToken, onBack: onBack, onRefresh: onRefresh, onRetry: onRetry,
                   onLoadMore: onLoadMore, onFilter: onFilter, onAction: onAction, clock: .system)
+        self.appearance = appearance
     }
 
     /// The page at a fixed clock — how the tests pin `now` and the zone of the rows' time cells.
@@ -114,7 +117,7 @@ public struct FlarePluginPage: View {
     }
 
     /// The refresh key belongs to the header on a pointer; touch pulls to refresh.
-    static var refreshKeyInHeader: Bool { FlareMessageContextMenu.pointerIdiom }
+    static var refreshKeyInHeader: Bool { FlareMessageMenuSource.pointerIdiom }
 
     private var phase: Phase { Self.phase(loading: loading, error: error, view: view) }
 
@@ -201,10 +204,16 @@ public struct FlarePluginPage: View {
                         StatusBannerView(text: error, tone: .danger)
                     }
                     filterRows(view.view)
+                    if appearance == .account || view.view.presentation?.renderer == "account" {
+                        FlareAccountView(view: view.view, busyActionId: busyActionId, error: actionError,
+                                         formErrors: formErrors, members: members, settleToken: settleToken,
+                                         onAction: pageAction(view))
+                    } else {
                     PluginView(view: view.view, icon: nil, viewerId: viewerId, busy: false, busyActionId: busyActionId,
                                error: actionError, embedded: true, resolveUser: resolveUser, members: members,
                                formErrors: formErrors, settleToken: settleToken, onAction: pageAction(view),
                                onOpenDetail: nil, clock: clock, users: [:])
+                    }
                     loadMoreKey(paging.key(cursor: view.nextCursor, loadingMore: loadingMore))
                 }
                 .padding(.horizontal, FlareSizes.spacingLg)

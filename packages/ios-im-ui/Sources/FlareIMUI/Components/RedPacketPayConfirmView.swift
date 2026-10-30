@@ -14,6 +14,7 @@ import SwiftUI
 public struct RedPacketPayConfirmView: View {
     private let amount: String
     private let methodLabel: String
+    private let confirmLabel: String?
     private let insufficient: Bool
     private let busy: Bool
     private let onConfirm: (() -> Void)?
@@ -23,7 +24,8 @@ public struct RedPacketPayConfirmView: View {
     @Environment(\.flareStrings) private var strings
 
     public init(amount: String, methodLabel: String, insufficient: Bool = false, busy: Bool = false,
-                onConfirm: (() -> Void)? = nil, onCancel: (() -> Void)? = nil) {
+                onConfirm: (() -> Void)? = nil, onCancel: (() -> Void)? = nil, confirmLabel: String? = nil) {
+        self.confirmLabel = confirmLabel
         self.amount = amount; self.methodLabel = methodLabel; self.insufficient = insufficient; self.busy = busy
         self.onConfirm = onConfirm; self.onCancel = onCancel
     }
@@ -69,7 +71,7 @@ public struct RedPacketPayConfirmView: View {
             }
             VStack(spacing: FlareSizes.spacingSm) {
                 // `loading` already holds the button while busy; `disabled` would also dim the progress.
-                RedPacketActionButton(label: strings.packetPayConfirm, loading: busy, disabled: insufficient,
+                RedPacketActionButton(label: confirmLabel ?? strings.packetPayConfirm, loading: busy, disabled: insufficient,
                                       action: onConfirm)
                     .accessibilityHint(insufficient ? strings.packetInsufficient : "")
                 ButtonView(label: strings.cancel, variant: .quiet, size: .lg, disabled: busy, block: true,

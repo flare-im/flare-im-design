@@ -10,7 +10,10 @@ public extension FlareStrings {
     /// ```
     ///
     /// The defaults on `FlareStrings` stay Chinese; this is the second language,
-    /// not a replacement. Fields the source does not cover keep their default.
+    /// not a replacement. Fields the source does not cover keep their default. The
+    /// fields that are functions of a count, a name or a kind come from
+    /// `englishFormats()` (FlareStrings+EnglishFormats.swift, checked against
+    /// strings/en-formats.json).
     static var english: FlareStrings {
         FlareStrings(
             microphone: "Microphone",
@@ -626,6 +629,21 @@ public extension FlareStrings {
             pluginPageRefresh: "Refresh",
             pluginViewMaxSelections: "Choose up to {n}",
             pluginViewAll: "All",
+            accountTransactions: "Transactions",
+            accountEmpty: "No transactions yet",
+            accountEmptyDescription: "Account entries will appear here",
+            accountInformation: "Account information and rules",
+            accountEntryDetails: "Transaction details",
+            accountEntryId: "Record ID",
+            accountType: "Type",
+            accountToday: "Today",
+            accountYesterday: "Yesterday",
+            accountOtherEntries: "Other entries",
+            accountShowBalance: "Show balance",
+            accountHideBalance: "Hide balance",
+            accountBalanceHidden: "Balance hidden",
+            accountDayFormat: "MMM d",
+            accountDayYearFormat: "MMM d, y",
             pluginViewEmpty: "No data yet",
             packetView: "View",
             packetRefunded: "Returned",
@@ -665,7 +683,33 @@ public extension FlareStrings {
             callRecordUnavailable: "Calls unavailable",
             callRecordFailed: "Call failed",
             callRecordJoin: "Join",
-            callRecordCallBack: "Call back"
-        )
+            callRecordCallBack: "Call back",
+            readReceiptRead: "Read",
+            readReceiptUnread: "Unread",
+            readReceiptLoadFailed: "Couldn't load the list",
+            readReceiptUnavailable: "This message's read list isn't available",
+            readReceiptLoadMore: "Load more",
+            readReceiptLoadMoreFailed: "Couldn't load more. Tap to retry",
+            packetRefundedNotice: "This red packet has been refunded",
+            meMenuMoments: "Moments",
+            meMenuReports: "My reports",
+            meMenuInvite: "My invites",
+            meMenuSettings: "Settings",
+            meMenuPluginFallback: "Plugin",
+            forwardRecordTitle: "Merged forward",
+            forwardRecordTotal: "{count} messages in total",
+            forwardRecordTotalOne: "{count} message in total",
+            forwardRecordMore: "{count} more messages…",
+            forwardRecordMoreOne: "{count} more message…",
+            forwardRecordViewDetails: "View details",
+            forwardRecordUnknownSender: "Unknown sender",
+            forwardRecordEmpty: "No forwarded content",
+            forwardRecordCountSuffix: " · {count}",
+            forwardRecordCardLabel: "{title}, {subtitle}",
+            pluginViewVotesOne: "{count} vote",
+            myInviteCountOnlyOne: "{count} person",
+            storageUsageFileCountOne: "{count} file",
+            messageMenuLoading: "Loading…"
+        ).englishFormats()
     }
 }

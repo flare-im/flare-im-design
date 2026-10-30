@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Ordered list of the 108 semantic icon names supported by `IconView`.
+/// Ordered list of the 109 semantic icon names supported by `IconView`.
 public let flareIconNames: [String] = [
     "search", "send", "more", "back", "close",
     "check", "add", "remove", "edit", "delete",
@@ -34,6 +34,8 @@ public let flareIconNames: [String] = [
     "red-packet", "plugin",
     // The location picker's "use current location" key.
     "locate",
+    // The wallet entry of the 我 page (a plugin's account entry).
+    "wallet",
 ]
 
 /// Maps each semantic icon name to the closest SF Symbol name. Every symbol is in the SF Symbols
@@ -163,6 +165,14 @@ public let flareIconMap: [String: String] = [
     "plugin": "puzzlepiece.extension",
     // A crosshair, not the map pin `location` draws.
     "locate": "scope",
+    // iOS 18 / macOS 15 (SF Symbols 6); below that the symbol in ``flareIconFloorSymbols`` is drawn.
+    "wallet": "wallet.bifold",
+]
+
+/// Symbols for the names whose ``flareIconMap`` symbol is newer than the package's iOS 16 / macOS 13 floor: what
+/// ``flareIconSymbol(_:)`` draws on an older system.
+let flareIconFloorSymbols: [String: String] = [
+    "wallet": "creditcard",
 ]
 
 /// The names the kit draws itself rather than with an SF Symbol: ``FlareIconImage`` draws them, and the symbol in
@@ -279,19 +289,35 @@ private struct FlareRedPacketIconSeal: Shape {
     }
 }
 
-/// The SF Symbol drawn for a semantic icon name; an unknown name draws `questionmark`. The one
-/// resolution every kit icon name goes through (``IconView``, header actions, ``ActionMenuView`` items,
-/// and every `icon:` the kit's models take).
-///
-/// A name that is not in the registry draws the fallback and says so once in a debug build — an SF
-/// Symbol name passed where a kit name belongs (`"person.2"` for `people`) is not a compile error and
-/// would otherwise be a silent question mark in the product.
-func flareIconSymbol(_ name: String) -> String {
-    if let symbol = flareIconMap[name] { return symbol }
+/// The registry name an icon name from data resolves to (a plugin's manifest, the social SDK, a host's
+/// configuration): the name trimmed; a registry name is itself, an empty name is nil (no icon is drawn), and any
+/// other name is `plugin`, the neutral extension glyph — never a question mark, a blank or the name drawn as text.
+/// A debug build says so once per unknown name. The same function on every kit (spec/me-menu-vectors.json
+/// `iconFallback`).
+public func flareIconNameOrFallback(_ name: String?) -> String? {
+    let trimmed = (name ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+    if trimmed.isEmpty { return nil }
+    if flareIconMap[trimmed] != nil { return trimmed }
     #if DEBUG
-    flareWarnUnknownIcon(name)
+    flareWarnUnknownIcon(trimmed)
     #endif
-    return "questionmark"
+    return "plugin"
+}
+
+/// The SF Symbol drawn for a semantic icon name, through ``flareIconNameOrFallback(_:)``: an unknown name draws the
+/// `plugin` glyph. The one resolution every kit icon name goes through (``IconView``, header actions,
+/// ``ActionMenuView`` items, and every `icon:` the kit's models take). A caller that may hold an empty name
+/// checks ``flareIconNameOrFallback(_:)`` first; here an empty name draws the fallback too.
+///
+/// A name that is not in the registry says so once in a debug build — an SF Symbol name passed where a kit name
+/// belongs (`"person.2"` for `people`) is not a compile error and would otherwise be a silent wrong glyph.
+func flareIconSymbol(_ name: String) -> String {
+    let resolved = flareIconNameOrFallback(name) ?? "plugin"
+    if let floor = flareIconFloorSymbols[resolved] {
+        if #available(iOS 18.0, macOS 15.0, *) { return flareIconMap[resolved] ?? floor }
+        return floor
+    }
+    return flareIconMap[resolved] ?? "puzzlepiece.extension"
 }
 
 #if DEBUG
@@ -318,7 +344,7 @@ let flareActionIconAliases: [String: String] = [
 ]
 
 /// The SF Symbol for an action's icon name: an alias in ``flareActionIconAliases`` first, then the
-/// kit vocabulary; an unknown name draws `questionmark`, never `more`.
+/// kit vocabulary; an unknown name draws the `plugin` glyph, never `more`.
 func flareActionSymbol(_ name: String) -> String {
     flareIconSymbol(flareActionIconAliases[name] ?? name)
 }
@@ -330,7 +356,8 @@ func flareActionIdNamesIcon(_ id: String) -> Bool {
 
 /// Renders a Flare semantic icon as an SF Symbol.
 ///
-/// Unknown names fall back to `questionmark`. The default colour is the
+/// A name outside the registry draws the `plugin` glyph and an empty name draws
+/// nothing (``flareIconNameOrFallback(_:)``). The default colour is the
 /// theme-aware `textSecondary` token.
 public struct IconView: View {
     private let name: String
@@ -353,12 +380,12 @@ public struct IconView: View {
 
     public var body: some View {
         let tint = color ?? FlareColors.of(scheme, brand: flareBrandTheme).textSecondary
-        if flareKitGlyphNames.contains(name) {
+        if let name = flareIconNameOrFallback(name), flareKitGlyphNames.contains(name) {
             FlareIconImage(name: name, size: size)
                 .foregroundColor(tint)
                 .accessibilityLabel(accessibilityLabel ?? "")
                 .accessibilityHidden(accessibilityLabel == nil)
-        } else {
+        } else if let name = flareIconNameOrFallback(name) {
             Image(systemName: flareIconSymbol(name))
                 .font(.system(size: size))
                 .foregroundColor(tint)

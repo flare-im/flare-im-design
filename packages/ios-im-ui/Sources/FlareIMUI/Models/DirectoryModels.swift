@@ -100,8 +100,8 @@ public struct FlareSettingsItem: Identifiable, Sendable {
     public var id: String { key }
     public let key: String
     public let label: String
-    /// Semantic kit icon name (``flareIconNames``), drawn through the registry; an unknown name draws
-    /// the registry's fallback glyph.
+    /// Semantic kit icon name (``flareIconNames``), drawn through ``flareIconNameOrFallback(_:)``: an unknown
+    /// name draws the `plugin` glyph, an empty one no icon.
     public let icon: String?
     public let kind: FlareSettingKind
     public var value: Bool

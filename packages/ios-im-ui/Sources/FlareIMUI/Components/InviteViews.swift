@@ -340,6 +340,7 @@ public struct MyInvitePanelView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
+    @Environment(\.locale) private var locale
     // The cooldown is a clock reading; re-read it every half minute so the control re-enables on its
     // own once the server's deadline passes.
     @State private var now = Int64(Date().timeIntervalSince1970 * 1000)
@@ -433,7 +434,7 @@ public struct MyInvitePanelView: View {
             VStack(alignment: .leading, spacing: FlareSizes.spacingSm) {
                 Text(strings.myInviteInviteesTitle).font(.system(size: FlareSizes.fontSizeMd, weight: .medium)).foregroundColor(colors.textSecondary)
                 if !showProfiles {
-                    Text(strings.myInviteCountOnly.replacingOccurrences(of: "{count}", with: String(inviteeCount)))
+                    Text(strings.myInviteCountOnlyText(inviteeCount, locale: locale))
                         .font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textPrimary)
                 } else if showSkeleton {
                     ForEach(0..<3, id: \.self) { _ in

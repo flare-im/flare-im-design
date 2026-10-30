@@ -58,8 +58,9 @@ public struct BottomSheetView<Content: View>: View {
             }
             if fill {
                 content.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .environment(\.flareInOverlaySurface, true)
             } else {
-                content
+                content.environment(\.flareInOverlaySurface, true)
             }
         }
         .onPreferenceChange(FlareSheetOwnHeaderKey.self) { ownHeader = $0 }

@@ -129,7 +129,7 @@ public enum FlareRedPacketMoney {
     /// `minor` (ASCII digits) as a decimal with exactly `exponent` fraction digits, leading zeros folded, no
     /// grouping; nil for an empty or non-digit string.
     public static func text(minor: String, exponent: Int) -> String? {
-        guard !minor.isEmpty, minor.unicodeScalars.allSatisfy({ $0.value >= 48 && $0.value <= 57 }) else { return nil }
+        guard exponent >= 0, exponent <= 12, !minor.isEmpty, minor.unicodeScalars.allSatisfy({ $0.value >= 48 && $0.value <= 57 }) else { return nil }
         let digits = max(0, exponent)
         var raw = String(minor.drop { $0 == "0" })
         if raw.count <= digits { raw = String(repeating: "0", count: digits - raw.count + 1) + raw }
@@ -144,6 +144,25 @@ public enum FlareRedPacketMoney {
         if let symbol = symbols[currency.uppercased()] { return symbol + text }
         return "\(currency) \(text)"
     }
+}
+
+/// The composer's amount text in minor units, as an integer string worked out without floating point
+/// (`spec/red-packet-vectors.json` amountMinor): "8.8" at exponent 2 is "880", "8." is "800", "0.05" is "5", "12" at
+/// 0 is "12". Leading zeros fold ("0" when every digit is zero). Nil while the text is not an amount yet: empty, a lone
+/// point, more decimals than `exponent` (any decimal at 0), or anything but ASCII digits and one point.
+public func flareRedPacketAmountMinor(_ input: String, exponent: Int) -> String? {
+    let places = min(max(exponent, 0), 12)
+    let parts = input.split(separator: ".", omittingEmptySubsequences: false)
+    guard parts.count <= 2 else { return nil }
+    let whole = String(parts[0])
+    let fraction = parts.count == 2 ? String(parts[1]) : ""
+    let isDigits: (String) -> Bool = { $0.unicodeScalars.allSatisfy { $0.value >= 48 && $0.value <= 57 } }
+    guard isDigits(whole), isDigits(fraction), !(whole.isEmpty && fraction.isEmpty), fraction.count <= places else {
+        return nil
+    }
+    let digits = whole + fraction + String(repeating: "0", count: places - fraction.count)
+    let folded = String(digits.drop { $0 == "0" })
+    return folded.isEmpty ? "0" : folded
 }
 
 // MARK: - Details
@@ -313,9 +332,9 @@ public enum FlareRedPacketOpenRules {
         state == .ready || state == .opening || state == .error
     }
 
-    /// The details key: a finished or expired packet the viewer may look into (`canViewDetails`, from the personal
-    /// layer); never for a viewer it is not for.
+    /// The details key: a finished, expired or refunded packet the viewer may look into (`canViewDetails`, from the
+    /// personal layer); never for a viewer it is not for.
     public static func showsDetails(_ state: FlareRedPacketOpenState, canViewDetails: Bool) -> Bool {
-        (state == .finished || state == .expired) && canViewDetails
+        (state == .finished || state == .expired || state == .refunded) && canViewDetails
     }
 }

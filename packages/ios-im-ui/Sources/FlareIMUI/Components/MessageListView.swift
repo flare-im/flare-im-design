@@ -81,9 +81,15 @@ public struct MessageListView: View {
     private let footer: AnyView?
     private let controller: FlareMessageListController?
     private let onReadReceiptOpen: ((FlareMessageData) -> Void)?
-    private let contextMenu: FlareMessageContextMenu?
+    private let menu: FlareMessageMenuSource?
     /// The timeline's media defaults: the full-screen viewer and one voice message at a time.
     @StateObject private var mediaSession = FlareMediaSession()
+    /// Rows without a menu snapshot that came on screen, asked for in one call per turn of the run loop.
+    @StateObject private var menuPrefetcher = FlareMessageMenuPrefetcher()
+    /// The message the long-press sheet is open for.
+    @State private var menuTarget: FlareMessageMenuTarget?
+    /// A long-pressed message whose snapshot the host is still reading: its sheet opens once the snapshot is there.
+    @State private var pendingMenuId: String?
 
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
@@ -137,9 +143,11 @@ public struct MessageListView: View {
     ///     can finish the jump instead of asking for a second tap.
     ///   - onReadReceiptOpen: A tap on the read summary of the viewer's own group message ("N 人未读"); the host
     ///     fills its read receipt list from the SDK. Without it the summary is plain text.
-    ///   - contextMenu: The message menu (the same entries the long-press sheet shows) as a context menu on a
-    ///     pointer: a secondary click on macOS, and on iPad, where it also takes the long press. iPhone keeps
-    ///     `onMessageLongPress`.
+    ///   - menu: One source for the message menu (``FlareMessageMenuSource``): the kit opens the long-press sheet
+    ///     (``MessageActionSheetView``, reactions to `onReact`) and, on a pointer, draws the context menu — a secondary
+    ///     click on macOS, and on iPad, where it also takes the long press — from the same entries, and both send
+    ///     the chosen action to `perform`. Rows coming on screen without a snapshot are prefetched. With a `menu`,
+    ///     `onMessageLongPress` is not called; without one the long press calls it as before.
     ///
     /// Each row is one VoiceOver element — sender, content summary, time and status — with the actions reply
     /// (`onSwipeReply`), the message menu (`onMessageLongPress`) and, while failed, retry (`onResend`).
@@ -182,7 +190,7 @@ public struct MessageListView: View {
         /// scrolled up must not be told someone is typing at a row they are not looking at.
         footer: AnyView? = nil,
         onReadReceiptOpen: ((FlareMessageData) -> Void)? = nil,
-        contextMenu: FlareMessageContextMenu? = nil
+        menu: FlareMessageMenuSource? = nil
     ) {
         self.hasOlder = hasOlder; self.olderError = olderError; self.loadOlderText = loadOlderText
         self.onLoadOlder = onLoadOlder; self.conversationId = conversationId
@@ -218,13 +226,58 @@ public struct MessageListView: View {
         self.controller = controller
         self.footer = footer
         self.onReadReceiptOpen = onReadReceiptOpen
-        self.contextMenu = contextMenu
+        self.menu = menu
     }
 
     /// Long-press opens the message action sheet only outside multi-select mode
     /// (Flutter parity: `onLongPress: multiSelectMode ? null : ...`).
-    static func longPressEnabled(multiSelectMode: Bool, onMessageLongPress: ((FlareMessageData) -> Void)?) -> Bool {
-        !multiSelectMode && onMessageLongPress != nil
+    static func longPressEnabled(multiSelectMode: Bool, onMessageLongPress: ((FlareMessageData) -> Void)?,
+                                 menu: FlareMessageMenuSource? = nil) -> Bool {
+        !multiSelectMode && (onMessageLongPress != nil || menu != nil)
+    }
+
+    /// A long press or the menu accessibility action on `message`: with a menu source the kit's sheet (now, or once
+    /// the host has read the snapshot), else the host's `onMessageLongPress`.
+    private func openMenu(_ message: FlareMessageData) {
+        guard let menu else { onMessageLongPress?(message); return }
+        if menu.availability(message) != nil {
+            pendingMenuId = nil
+            menuTarget = FlareMessageMenuTarget(message: message)
+            return
+        }
+        pendingMenuId = message.id
+        menuPrefetcher.settle(message.id)
+        menuPrefetcher.request(message.id, menu.prefetch)
+        // A snapshot that never comes does not open a sheet much later.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+            if pendingMenuId == message.id { pendingMenuId = nil }
+        }
+    }
+
+    /// The long-pressed message waiting for its snapshot, once the snapshot is there.
+    private var pendingMenuReady: String? {
+        guard let id = pendingMenuId, let menu, let message = messages.first(where: { $0.id == id }),
+              menu.availability(message) != nil else { return nil }
+        return id
+    }
+
+    /// The long-press sheet for `target`, from the menu source.
+    @ViewBuilder private func menuSheet(_ target: FlareMessageMenuTarget) -> some View {
+        if let menu {
+            Self.menuSheet(messages.first(where: { $0.id == target.id }) ?? target.message, menu: menu,
+                           onReact: onReact, done: { menuTarget = nil })
+        }
+    }
+
+    /// The long-press sheet of `message`: the menu source's entries (the pointer menu's too), the chosen action to
+    /// `perform` and a reaction to `onReact`, each after `done` closes the sheet.
+    static func menuSheet(_ message: FlareMessageData, menu: FlareMessageMenuSource,
+                          onReact: ((FlareMessageData, String) -> Void)?, done: @escaping () -> Void) -> MessageActionSheetView {
+        MessageActionSheetView(
+            availability: menu.availability(message) ?? FlareMessageActionAvailability(), content: message.content,
+            hiddenActions: menu.hiddenActions, actions: menu.extraActions(message),
+            onAction: { id in done(); menu.perform(message, id) },
+            onReact: onReact.map { react in { emoji in done(); react(message, emoji) } })
     }
 
     /// Notices (system lines, recalled and deleted messages) carry no message actions:
@@ -349,6 +402,13 @@ public struct MessageListView: View {
             timelineBody(colors)
                 .environment(\.flareBubbleMaxWidth, flareBubbleMaxWidth(paneWidth: proxy.size.width))
         }
+        // The menu source's long-press sheet, outside the timeline's own layout.
+        .modifier(MenuSheetHost(enabled: menu != nil, target: $menuTarget, title: strings.messageActionSheetLabel,
+                                pendingReady: pendingMenuReady, sheet: menuSheet) { id in
+            guard let message = messages.first(where: { $0.id == id }) else { return }
+            pendingMenuId = nil
+            menuTarget = FlareMessageMenuTarget(message: message)
+        })
     }
 
     @ViewBuilder
@@ -616,7 +676,7 @@ public struct MessageListView: View {
                                                  showGroupSenderName: showGroupSenderName),
             surfaces: contentSurfaces)
         let now = Date()
-        let pointerMenu = contextMenu != nil && FlareMessageContextMenu.pointerIdiom
+        let pointerMenu = menu != nil && FlareMessageMenuSource.pointerIdiom
         return LazyVStack(spacing: 0) {
             ForEach(Array(messages.enumerated()), id: \.element.id) { index, msg in
                 let layout = layouts[index]
@@ -651,18 +711,28 @@ public struct MessageListView: View {
                         .environment(\.flareMessageConversationId, conversationId)
                         .accessibilityFocused($readingCursor, equals: msg.id)
                         .contentShape(Rectangle())
-                        .modifier(RowLongPress(enabled: actionable && FlareMessageContextMenu.longPressOpensSheet(pointerMenu: pointerMenu)
-                                               && Self.longPressEnabled(multiSelectMode: multiSelectMode, onMessageLongPress: onMessageLongPress)) {
-                            onMessageLongPress?(msg)
+                        .modifier(RowLongPress(enabled: actionable && FlareMessageMenuSource.longPressOpensSheet(pointerMenu: pointerMenu)
+                                               && Self.longPressEnabled(multiSelectMode: multiSelectMode,
+                                                                        onMessageLongPress: onMessageLongPress, menu: menu)) {
+                            openMenu(msg)
                         })
-                        .modifier(RowContextMenu(message: msg, menu: actionable && !multiSelectMode && pointerMenu ? contextMenu : nil))
+                        .modifier(RowPointerMenu(message: msg, menu: actionable && !multiSelectMode && pointerMenu ? menu : nil,
+                                                 prefetcher: menuPrefetcher))
+                        .onAppear {
+                            // A row coming on screen without a snapshot is read ahead of its menu.
+                            guard actionable, let menu else { return }
+                            if menu.availability(msg) == nil { menuPrefetcher.request(msg.id, menu.prefetch) }
+                            else { menuPrefetcher.settle(msg.id) }
+                        }
                         .modifier(RowSwipeReply(enabled: actionable && !multiSelectMode && onSwipeReply != nil) {
                             onSwipeReply?(msg)
                         })
                         .modifier(RowAccessibilityActions(
                             actions: actionable && !multiSelectMode
                                 ? Self.accessibilityActions(msg, currentUserId: currentUserId, strings: strings,
-                                                            reply: onSwipeReply, menu: onMessageLongPress, resend: onResend)
+                                                            reply: onSwipeReply,
+                                                            menu: menu != nil || onMessageLongPress != nil ? openMenu : nil,
+                                                            resend: onResend)
                                 : []))
                 }
                 .id(msg.id)
@@ -846,63 +916,20 @@ private struct RowSwipeReply: ViewModifier {
     }
 }
 
-/// The message menu as a context menu on pointer devices: the same ``FlareMessageMenuEntry`` model the long-press
-/// ``MessageActionSheetView`` draws (``messageMenuActions(_:strings:hidden:content:)``), in its groups and order,
-/// destructive entries in the destructive role. `entries` answers for a message when the menu opens; `perform`
-/// gets the chosen entry's id, as the sheet's `onAction` does.
-public struct FlareMessageContextMenu {
-    public let entries: (FlareMessageData) -> [FlareMessageMenuEntry]
-    public let perform: (FlareMessageData, String) -> Void
-
-    public init(entries: @escaping (FlareMessageData) -> [FlareMessageMenuEntry],
-                perform: @escaping (FlareMessageData, String) -> Void) {
-        self.entries = entries; self.perform = perform
-    }
-
-    /// The menu's sections: the sheet's groups in its order (primary, organize, destructive).
-    static func sections(_ entries: [FlareMessageMenuEntry]) -> [[FlareMessageMenuEntry]] { messageMenuGroups(entries) }
-
-    /// A destructive entry takes the destructive role.
-    static func role(_ entry: FlareMessageMenuEntry) -> ButtonRole? { entry.group == .destructive ? .destructive : nil }
-
-    /// Whether a row's long press opens the host's sheet: not where the pointer menu takes the long press.
-    static func longPressOpensSheet(pointerMenu: Bool) -> Bool { !pointerMenu }
-
-    /// A pointer is the primary way to the menu: macOS, iPad (where the context menu also takes the long press)
-    /// and a Mac running the iPad app. iPhone keeps the long-press sheet.
-    static var pointerIdiom: Bool {
-        #if os(macOS)
-        return true
-        #elseif canImport(UIKit)
-        let idiom = UIDevice.current.userInterfaceIdiom
-        return idiom == .pad || idiom == .mac
-        #else
-        return false
-        #endif
-    }
-}
-
-/// The row's context menu: the message menu entries in their groups, separated by dividers.
-private struct RowContextMenu: ViewModifier {
-    let message: FlareMessageData
-    let menu: FlareMessageContextMenu?
+/// The list's long-press sheet, only for a list with a menu source: a list without one presents nothing of its own.
+private struct MenuSheetHost<Sheet: View>: ViewModifier {
+    let enabled: Bool
+    @Binding var target: FlareMessageMenuTarget?
+    let title: String
+    let pendingReady: String?
+    let sheet: (FlareMessageMenuTarget) -> Sheet
+    let opened: (String) -> Void
 
     func body(content: Content) -> some View {
-        if let menu {
-            content.contextMenu {
-                let groups = FlareMessageContextMenu.sections(menu.entries(message))
-                ForEach(Array(groups.enumerated()), id: \.offset) { index, group in
-                    if index > 0 { Divider() }
-                    ForEach(group) { entry in
-                        Button(role: FlareMessageContextMenu.role(entry)) {
-                            menu.perform(message, entry.id)
-                        } label: {
-                            Label(entry.label, systemImage: flareIconSymbol(entry.icon))
-                        }
-                        .disabled(!entry.enabled)
-                    }
-                }
-            }
+        if enabled {
+            content
+                .flareBottomSheet(item: $target, title: title, titleHidden: true) { sheet($0) }
+                .onChange(of: pendingReady) { id in if let id { opened(id) } }
         } else {
             content
         }

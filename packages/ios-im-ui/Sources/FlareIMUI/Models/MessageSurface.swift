@@ -154,6 +154,7 @@ extension FlareMessageContent {
         case is FlareMiniAppContent: return "miniProgram"
         case is FlareAnnouncementContent: return "announcement"
         case is FlareLinkCardContent: return "linkCard"
+        case is FlareForwardContent: return "forward"
         default: return flareSpecContentType(type)
         }
     }

@@ -165,8 +165,9 @@ public struct PluginView: View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         let reason = PluginViewFormat.reasonLine(view, displayName: displayName, strings)
         let keys = Self.actionRow(view, embedded: embedded)
+        let special = flareHasResolvedPresentation(view)
         let content = VStack(alignment: .leading, spacing: FlareSizes.spacingMd) {
-            if !embedded {
+            if !embedded && !special {
                 header(colors)
             } else if !view.available, !view.title.isEmpty {
                 // No title row: an unavailable view still says what it was.
@@ -181,15 +182,28 @@ public struct PluginView: View {
                     .foregroundColor(colors.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            if view.available {
+            if special {
+                ResolvedPresentationView(view: view, busy: locked, error: error, formErrors: formErrors, members: members,
+                    settleToken: settleToken, resolveUser: resolveUser, onAction: locked ? nil : onAction,
+                    onRequest: { id in if let action = view.actions.first(where: { $0.id == id }) { run(action, PluginActionPayload()) } })
+                if view.readOnly, let reason { Text(reason).foregroundColor(colors.textTertiary) }
+            } else if view.available {
                 if !view.fields.isEmpty { PluginFieldRows(fields: view.fields) }
                 ForEach(Array(view.blocks.enumerated()), id: \.offset) { index, block in
                     blockView(block, at: index)
                 }
-                if !keys.isEmpty { actionKeys(keys) }
-                if let onOpenDetail, PluginViewFormat.showsDetailKey(view, embedded: embedded) {
-                    ButtonView(label: strings.pluginViewDetail, variant: .quiet, size: .sm, disabled: locked,
-                               block: true, action: onOpenDetail)
+                if !keys.isEmpty {
+                    VStack(spacing: FlareSizes.spacing2xs) {
+                        if !embedded { Rectangle().fill(colors.borderSecondary).frame(height: 1) }
+                        FlareFlowLayout(spacing: FlareSizes.spacingMd, lineSpacing: FlareSizes.spacingSm,
+                                        trailingLast: onOpenDetail != nil && PluginViewFormat.showsDetailKey(view, embedded: embedded),
+                                        constrainSubviews: true) {
+                            actionKeys(keys)
+                            if let onOpenDetail, PluginViewFormat.showsDetailKey(view, embedded: embedded) {
+                                detailKey(onOpenDetail)
+                            }
+                        }
+                    }
                 }
                 if view.readOnly, let reason {
                     Text(reason)
@@ -204,7 +218,7 @@ public struct PluginView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         Group {
-            if embedded {
+            if embedded || special {
                 content
             } else {
                 let shape = RoundedRectangle(cornerRadius: FlareSizes.radiusLg, style: .continuous)
@@ -217,8 +231,7 @@ public struct PluginView: View {
                 .frame(maxWidth: FlareSizes.componentRichCardWidth, alignment: .leading)
                 .background(shape.fill(colors.bgPrimary))
                 // Decoration only: the hairline must not take the taps meant for the card's keys.
-                .overlay(shape.stroke(colors.borderSecondary, lineWidth: 1).allowsHitTesting(false))
-                .flareShadow(FlareShadows.of(scheme).card)
+                .overlay(shape.stroke(colors.borderSecondary.opacity(0.6), lineWidth: 1).allowsHitTesting(false))
             }
         }
         // Every state takes the inset; a card shell kept in a sheet takes it around the shell.
@@ -252,10 +265,15 @@ public struct PluginView: View {
                     .accessibilityHidden(true)
             }
             Text(view.title)
-                .font(.system(size: FlareSizes.fontSizeXl * textScale, weight: .semibold))
-                .foregroundColor(colors.textPrimary)
+                .font(.system(size: FlareSizes.fontSizeSm * textScale, weight: .medium))
+                .foregroundColor(colors.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
+            if let onOpenDetail, Self.actionRow(view, embedded: embedded).isEmpty,
+               PluginViewFormat.showsDetailKey(view, embedded: embedded) {
+                Spacer(minLength: FlareSizes.spacingSm)
+                detailKey(onOpenDetail)
+            }
             if Self.showsMenuKey(view, embedded: embedded) {
                 Spacer(minLength: FlareSizes.spacingSm)
                 menuKey(colors)
@@ -319,18 +337,17 @@ public struct PluginView: View {
         }
     }
 
-    @ViewBuilder private func actionKeys(_ actions: [PluginViewAction]) -> some View {
-        let keys = ForEach(actions) { action in
+    private func detailKey(_ open: @escaping () -> Void) -> some View {
+        ButtonView(label: strings.pluginViewDetail, variant: .quiet, size: .sm, disabled: locked,
+                   appearance: .text, action: open)
+    }
+
+    private func actionKeys(_ actions: [PluginViewAction]) -> some View {
+        ForEach(actions) { action in
             ButtonView(label: action.label, variant: PluginViewFormat.variant(action),
-                       loading: busyActionId == action.id,
-                       disabled: (locked && busyActionId != action.id) || onAction == nil, block: true) {
-                run(action, .empty)
-            }
-        }
-        if actions.count > 2 {
-            VStack(spacing: FlareSizes.spacingSm) { keys }
-        } else {
-            HStack(spacing: FlareSizes.spacingSm) { keys }
+                       size: .sm, loading: busyActionId == action.id,
+                       disabled: (locked && busyActionId != action.id) || onAction == nil,
+                       appearance: .text) { run(action, .empty) }
         }
     }
 
@@ -530,6 +547,7 @@ struct PluginChoicesBlockView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
+    @Environment(\.locale) private var locale
 
     var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
@@ -551,7 +569,7 @@ struct PluginChoicesBlockView: View {
 
     private func row(_ option: PluginChoice, selected: Bool, _ colors: FlareColors) -> some View {
         let percent = PluginViewFormat.percentText(option, showResults: block.showResults)
-        let votes = PluginViewFormat.votesText(option, showResults: block.showResults, strings)
+        let votes = PluginViewFormat.votesText(option, showResults: block.showResults, strings, locale: locale)
         let shape = RoundedRectangle(cornerRadius: FlareSizes.radiusMd, style: .continuous)
         let held = interactive && capped.contains(option.index)
         return Button { onPick(option.index) } label: {
@@ -633,6 +651,7 @@ struct PluginEntriesBlockView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
+    @Environment(\.locale) private var locale
 
     var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
@@ -645,7 +664,7 @@ struct PluginEntriesBlockView: View {
                 // Positions, not indices: a grouped list numbers each group from 1, so an index repeats.
                 ForEach(Array(block.items.enumerated()), id: \.offset) { _, entry in
                     if let group = entry.group {
-                        Text(PluginViewFormat.groupHeader(group, strings))
+                        Text(PluginViewFormat.groupHeader(group, strings, locale: locale))
                             .font(.system(size: FlareSizes.fontSizeMd * textScale, weight: .semibold))
                             .foregroundColor(colors.textSecondary)
                             .padding(.top, FlareSizes.spacingXs)

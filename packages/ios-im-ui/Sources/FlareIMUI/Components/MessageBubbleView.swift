@@ -245,7 +245,7 @@ public struct MessageBubbleView: View {
     /// The message body, with this message's media handlers and the timeline's media defaults.
     private var content: MessageContentView {
         MessageContentView(
-            content: message.content, isSelf: isSelf, senderName: message.senderName,
+            content: message.content, isSelf: isSelf, senderName: message.senderName, senderId: message.senderId,
             mediaState: mediaState,
             onMediaAction: onMediaAction == nil ? nil : { onMediaAction?(message, $0) },
             onMediaDownload: onMediaDownload == nil ? nil : { onMediaDownload?(message, $0) },
