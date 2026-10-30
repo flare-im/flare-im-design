@@ -37,7 +37,13 @@ final class VisualSnapshotTests: XCTestCase {
     @MainActor
     private func nativeSnapshot<Content: View>(_ view: Content, size: NSSize, name: String) throws -> Data {
         _ = NSApplication.shared
-        let host = NSHostingView(rootView: view)
+        // Two host settings change the drawing, so the snapshot fixes both. Reduce Motion turns the sending
+        // spinner into a clock (CI runners have it on). The system's preferred language picks the glyph of
+        // East Asian ambiguous punctuation: a zh-Hans system draws the meta row's "·" from the CJK font, wider
+        // than an en-US system's. The baselines are drawn with motion on, typeset as zh-Hans.
+        let host = NSHostingView(rootView: view
+            .environment(\._accessibilityReduceMotion, false)
+            .typesettingLanguage(Locale.Language(identifier: "zh-Hans")))
         let window = NSWindow(contentRect: NSRect(origin: .zero, size: size),
                               styleMask: .borderless, backing: .buffered, defer: false)
         window.colorSpace = .sRGB
