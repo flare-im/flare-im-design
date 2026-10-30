@@ -159,9 +159,12 @@ jobs:
           disable-animations: true
           working-directory: packages/android-im-ui
           # The instrumented tests are laid out for the pinned AVD (tests/visual/manifest.json compose.scope):
-          # a Pixel 9 at 420 dpi, not the emulator's default small screen.
-          profile: pixel_9
+          # a Pixel 9 screen, 1080 x 2424 at 420 dpi, not the emulator's default small screen. The runner's
+          # device catalog has no pixel_9 profile, so the screen is written into the AVD before it boots.
           cores: 4
+          pre-emulator-launch-script: |
+            sed -i -E '/^hw\.lcd\.(width|height|density)=/d' ~/.android/avd/test.avd/config.ini
+            printf 'hw.lcd.width=1080\nhw.lcd.height=2424\nhw.lcd.density=420\n' >> ~/.android/avd/test.avd/config.ini
           script: ./gradlew --no-daemon connectedDebugAndroidTest
       - uses: actions/upload-artifact@v4
         if: always()
