@@ -158,6 +158,10 @@ jobs:
           arch: x86_64
           disable-animations: true
           working-directory: packages/android-im-ui
+          # The instrumented tests are laid out for the pinned AVD (tests/visual/manifest.json compose.scope):
+          # a Pixel 9 at 420 dpi, not the emulator's default small screen.
+          profile: pixel_9
+          cores: 4
           script: ./gradlew --no-daemon connectedDebugAndroidTest
       - uses: actions/upload-artifact@v4
         if: always()
@@ -181,9 +185,17 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: bash assets/emoji-sticker/fetch-assets.sh
         working-directory: .
+      # The SwiftUI snapshots are renderings of one SDK: the runner's default Xcode moves with the image, so
+      # it is pinned to the Xcode the baselines are drawn with.
+      - run: sudo xcode-select -s /Applications/Xcode_26.4.app && xcodebuild -version
       - run: swift package resolve
       - run: ./sync-resources.sh
       - run: swift test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: swiftui-snapshots
+          path: packages/ios-im-ui/.build/flare-snapshots/
       - run: swift build
       - run: xcodebuild -scheme FlareIMUI -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/flare-ui-ios" build CODE_SIGNING_ALLOWED=NO
 

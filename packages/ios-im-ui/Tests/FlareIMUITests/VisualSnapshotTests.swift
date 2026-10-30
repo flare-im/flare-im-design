@@ -55,7 +55,10 @@ final class VisualSnapshotTests: XCTestCase {
         bitmap.size = host.bounds.size
         host.cacheDisplay(in: host.bounds, to: bitmap)
         let png = try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
-        let observed = FileManager.default.temporaryDirectory.appendingPathComponent("flare-native-ui-snapshots")
+        // What this machine drew, next to the build (CI uploads it when a snapshot differs).
+        var observed = URL(fileURLWithPath: #filePath)
+        for _ in 0..<3 { observed.deleteLastPathComponent() }
+        observed.appendPathComponent(".build/flare-snapshots")
         try FileManager.default.createDirectory(at: observed, withIntermediateDirectories: true)
         try png.write(to: observed.appendingPathComponent("\(name).png"))
         return png
