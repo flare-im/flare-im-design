@@ -1,3 +1,6 @@
+#if os(macOS)
+import AppKit
+#endif
 import SwiftUI
 import ViewInspector
 import XCTest
@@ -190,6 +193,102 @@ final class MessageMenuSourceTests: XCTestCase {
         model.messages = [message("a")]
         settle()
         XCTAssertEqual(calls, [["a"], ["a"]], "back on screen after the snapshot lapsed: asked for again")
+    }
+
+    /// The titles an open menu shows, a disabled one marked, separators left out.
+    private static func titles(_ menu: NSMenu) -> [String] {
+        menu.items.filter { !$0.isSeparatorItem }.map { $0.title + ($0.isEnabled ? "" : " (off)") }
+    }
+
+    /// The titles the pointer menu of `message` should show under `menu`.
+    private func expectedTitles(_ menu: FlareMessageMenuSource, _ message: FlareMessageData) -> [String] {
+        menu.pointerSections(for: message, strings: zh).flatMap { $0 }.map { item -> String in
+            switch item {
+            case .loading: return zh.messageMenuLoading + " (off)"
+            case .entry(let entry): return entry.label + (entry.enabled ? "" : " (off)")
+            }
+        }
+    }
+
+    /// Laid out for real and opened with a secondary click: while the pointer menu is open, the snapshot arriving turns
+    /// its loading entry into the entries, and a later snapshot narrows them, in the menu that is already open — it is
+    /// not closed and opened again.
+    @MainActor
+    func testAnOpenPointerMenuFollowsTheSnapshot() throws {
+        _ = NSApplication.shared
+        let model = MenuHostModel()
+        let report = report
+        let source: ([String: FlareMessageActionAvailability]) -> FlareMessageMenuSource = { snapshots in
+            FlareMessageMenuSource(availability: { snapshots[$0.id] }, prefetch: { _ in },
+                                   extraActions: { _ in [report] }, perform: { _, _ in })
+        }
+        let screen = MenuHostScreen(model: model, menu: source)
+        let size = NSSize(width: 400, height: 300)
+        let host = NSHostingView(rootView: screen.frame(width: size.width, height: size.height))
+        let window = NSWindow(contentRect: NSRect(origin: .zero, size: size), styleMask: .borderless,
+                              backing: .buffered, defer: false)
+        window.contentView = host
+        host.setFrameSize(size)
+        window.orderFront(nil)
+        defer { window.orderOut(nil) }
+        model.messages = [message("a")]
+        host.layoutSubtreeIfNeeded()
+        RunLoop.main.run(until: Date().addingTimeInterval(0.5))
+
+        let snapshot = snapshot
+        let narrowed = FlareMessageActionAvailability(canReply: true, canCopy: true)
+        var seen: [[String]] = []
+        var opened: [ObjectIdentifier] = []
+        func after(_ seconds: TimeInterval, _ run: @escaping () -> Void) {
+            RunLoop.main.add(Timer(timeInterval: seconds, repeats: false) { _ in run() }, forMode: .common)
+        }
+        let observer = NotificationCenter.default.addObserver(
+            forName: NSMenu.didBeginTrackingNotification, object: nil, queue: nil
+        ) { note in
+            guard let menu = note.object as? NSMenu else { return }
+            opened.append(ObjectIdentifier(menu))
+            guard opened.count == 1 else { return }
+            seen.append(Self.titles(menu))
+            after(0.3) {
+                model.snapshots = ["a": snapshot]
+                after(0.5) {
+                    seen.append(Self.titles(menu))
+                    model.snapshots = ["a": narrowed]
+                    after(0.5) {
+                        seen.append(Self.titles(menu))
+                        menu.cancelTracking()
+                    }
+                }
+            }
+        }
+        defer { NotificationCenter.default.removeObserver(observer) }
+
+        // The row is at the bottom of the viewport, where the timeline opens: click up from there until it answers.
+        var y: CGFloat = 8
+        while opened.isEmpty && y < size.height {
+            for type in [NSEvent.EventType.rightMouseDown, .rightMouseUp] {
+                let event = try XCTUnwrap(NSEvent.mouseEvent(
+                    with: type, location: NSPoint(x: 120, y: y), modifierFlags: [],
+                    timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: window.windowNumber, context: nil,
+                    eventNumber: 0, clickCount: 1, pressure: 1))
+                window.sendEvent(event)
+            }
+            RunLoop.main.run(until: Date().addingTimeInterval(0.1))
+            y += 12
+        }
+        let deadline = Date().addingTimeInterval(3)
+        while seen.count < 3 && Date() < deadline { RunLoop.main.run(until: Date().addingTimeInterval(0.05)) }
+
+        XCTAssertEqual(opened.count, 1, "one menu, opened once and never reopened")
+        XCTAssertEqual(seen.count, 3)
+        guard seen.count == 3 else { return }
+        XCTAssertEqual(seen[0], [zh.messageMenuLoading + " (off)"], "without a snapshot: the loading entry")
+        XCTAssertEqual(seen[1], expectedTitles(source(["a": snapshot]), message("a")),
+                       "the snapshot arrived while the menu was open: its entries, in the open menu")
+        XCTAssertEqual(seen[2], expectedTitles(source(["a": narrowed]), message("a")),
+                       "a narrower snapshot: the actions the core no longer allows leave the open menu")
+        XCTAssertFalse(seen[2].contains(zh.messageActionDelete), "delete left")
+        XCTAssertTrue(seen[2].contains(zh.messageActionReply))
     }
     #endif
 }

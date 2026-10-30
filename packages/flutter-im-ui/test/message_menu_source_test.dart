@@ -31,10 +31,16 @@ const _report = FlareMessageMenuEntry(
 );
 
 class _Host extends StatefulWidget {
-  const _Host({required this.log, this.snapshots = const {}});
+  const _Host({
+    super.key,
+    required this.log,
+    this.snapshots = const {},
+    this.observers = const [],
+  });
 
   final List<String> log;
   final Map<String, FlareMessageActionAvailability> snapshots;
+  final List<NavigatorObserver> observers;
 
   @override
   State<_Host> createState() => _HostState();
@@ -47,8 +53,12 @@ class _HostState extends State<_Host> {
 
   void arrive(String id) => setState(() => snapshots[id] = _snapshot);
 
+  void change(String id, FlareMessageActionAvailability snapshot) =>
+      setState(() => snapshots[id] = snapshot);
+
   @override
   Widget build(BuildContext context) => MaterialApp(
+    navigatorObservers: widget.observers,
     home: Scaffold(
       body: FlareMessageList(
         currentUserId: 'me',
@@ -65,6 +75,19 @@ class _HostState extends State<_Host> {
     ),
   );
 }
+
+/// Counts the routes that leave: an open menu that follows its snapshot never
+/// closes to do it.
+class _Pops extends NavigatorObserver {
+  int count = 0;
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) => count++;
+}
+
+Finder get _pointerMenu => find.byWidgetPredicate(
+  (widget) => widget.runtimeType.toString() == '_ActionMenuPanel',
+);
 
 void main() {
   const strings = FlareStrings();
@@ -251,6 +274,97 @@ void main() {
         );
         await tester.pumpAndSettle();
         expect(log, ['prefetch m2']);
+      },
+    );
+
+    testWidgets(
+      'an open menu turns into the entries when the snapshot arrives, in place',
+      variant: desktop,
+      (tester) async {
+        final log = <String>[];
+        final host = GlobalKey<_HostState>();
+        final pops = _Pops();
+        await tester.pumpWidget(_Host(key: host, log: log, observers: [pops]));
+        await tester.pump();
+        log.clear();
+        await tester.tapAt(
+          tester.getCenter(find.text('two')),
+          buttons: kSecondaryButton,
+        );
+        await tester.pumpAndSettle();
+        expect(find.text(strings.messageMenuLoading), findsOneWidget);
+        final route = ModalRoute.of(tester.element(_pointerMenu));
+        final edge = tester.getTopRight(_pointerMenu).dx;
+
+        host.currentState!.arrive('m2');
+        // The list rebuilds with the snapshot, then the open menu.
+        await tester.pump();
+        await tester.pump();
+        expect(find.text(strings.messageMenuLoading), findsNothing);
+        expect(find.text(strings.messageActionReply), findsOneWidget);
+        expect(find.text(strings.messageActionDelete), findsOneWidget);
+        expect(find.text('举报'), findsOneWidget, reason: 'the host entry');
+        expect(
+          find.text(strings.messageActionForward),
+          findsNothing,
+          reason: 'hidden by the host',
+        );
+        expect(pops.count, 0, reason: 'the menu did not close to refresh');
+        expect(ModalRoute.of(tester.element(_pointerMenu)), same(route));
+        // Still where the click landed: its end edge stays at the anchor (it may
+        // open upwards now that it is taller).
+        expect(tester.getTopRight(_pointerMenu).dx, edge);
+
+        await tester.tap(find.text(strings.messageActionReply));
+        await tester.pumpAndSettle();
+        expect(log, ['prefetch m2', 'perform m2 reply']);
+      },
+    );
+
+    testWidgets(
+      'a snapshot that changes while the menu is open narrows it in place',
+      variant: desktop,
+      (tester) async {
+        final log = <String>[];
+        final host = GlobalKey<_HostState>();
+        final pops = _Pops();
+        await tester.pumpWidget(
+          _Host(
+            key: host,
+            log: log,
+            snapshots: const {'m1': _snapshot},
+            observers: [pops],
+          ),
+        );
+        await tester.pump();
+        await tester.tapAt(
+          tester.getCenter(find.text('one')),
+          buttons: kSecondaryButton,
+        );
+        await tester.pumpAndSettle();
+        expect(find.text(strings.messageActionDelete), findsOneWidget);
+        expect(find.text(strings.messageActionCopy), findsOneWidget);
+
+        host.currentState!.change(
+          'm1',
+          const FlareMessageActionAvailability(
+            canReply: true,
+            canForward: true,
+            canCopy: true,
+            canReact: true,
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+        expect(
+          find.text(strings.messageActionDelete),
+          findsNothing,
+          reason: 'an action the core no longer allows leaves the menu',
+        );
+        expect(find.text(strings.messageActionCopy), findsOneWidget);
+        expect(find.text(strings.messageActionReply), findsOneWidget);
+        expect(pops.count, 0);
+        expect(_pointerMenu, findsOneWidget);
       },
     );
 

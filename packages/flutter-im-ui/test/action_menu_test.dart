@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' show SemanticsRole;
 
 import 'package:flare_im_ui/flare_im_ui.dart';
@@ -177,6 +178,111 @@ void main() {
     await tester.pumpAndSettle();
     expect(_menu, findsNothing);
     expect(await back, isNull);
+  });
+
+  testWidgets('an open menu with updates replaces its items in place', (
+    tester,
+  ) async {
+    late BuildContext trigger;
+    await tester.pumpWidget(
+      _host(items: const [], onTriggerBuilt: (context) => trigger = context),
+    );
+    final updates = ValueNotifier<List<FlareActionItem>>(const [
+      FlareActionItem(id: 'loading', label: 'Loading', enabled: false),
+    ]);
+    addTearDown(updates.dispose);
+    final picked = FlareActionMenu.show(
+      trigger,
+      items: updates.value,
+      label: 'Menu',
+      updates: updates,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Loading'), findsOneWidget);
+    final panel = tester.getTopRight(_menu);
+    final route = ModalRoute.of(tester.element(_menu));
+
+    updates.value = const [
+      FlareActionItem(id: 'pin', label: 'Pin'),
+      FlareActionItem(id: 'mute', label: 'Mute'),
+      FlareActionItem(id: 'hide', label: 'Hide', visible: false),
+    ];
+    // One frame: the items change with no fade out and in.
+    await tester.pump();
+    expect(find.text('Loading'), findsNothing);
+    expect(find.text('Pin'), findsOneWidget);
+    expect(find.text('Mute'), findsOneWidget);
+    expect(find.text('Hide'), findsNothing);
+    expect(ModalRoute.of(tester.element(_menu)), same(route));
+    expect(
+      tester.getTopRight(_menu),
+      panel,
+      reason: "the anchored corner stays put",
+    );
+
+    // The first enabled item takes focus once there is one; keyboard focus
+    // then stays on its item across an update that keeps it.
+    expect(_focusedItem, 'FlareActionMenu pin');
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pump();
+    expect(_focusedItem, 'FlareActionMenu mute');
+    updates.value = const [
+      FlareActionItem(id: 'mute', label: 'Mute'),
+      FlareActionItem(id: 'pin', label: 'Pin', enabled: false),
+    ];
+    await tester.pump();
+    expect(_focusedItem, 'FlareActionMenu mute');
+    expect(
+      tester.widget<Text>(find.text('Pin')).style?.color,
+      colors.textDisabled,
+      reason: 'an item the update disables is drawn disabled',
+    );
+
+    await tester.tap(find.text('Mute'));
+    await tester.pumpAndSettle();
+    expect(await picked, 'mute');
+  });
+
+  testWidgets('an update that leaves nothing visible closes the menu', (
+    tester,
+  ) async {
+    late BuildContext trigger;
+    await tester.pumpWidget(
+      _host(items: const [], onTriggerBuilt: (context) => trigger = context),
+    );
+    final updates = ValueNotifier<List<FlareActionItem>>(const [
+      FlareActionItem(id: 'pin', label: 'Pin'),
+    ]);
+    addTearDown(updates.dispose);
+    final picked = FlareActionMenu.show(
+      trigger,
+      items: updates.value,
+      label: 'Menu',
+      updates: updates,
+    );
+    await tester.pumpAndSettle();
+    expect(_menu, findsOneWidget);
+    updates.value = const [];
+    await tester.pumpAndSettle();
+    expect(_menu, findsNothing);
+    expect(await picked, isNull);
+  });
+
+  testWidgets('without updates the items are the ones it opened with', (
+    tester,
+  ) async {
+    late BuildContext trigger;
+    await tester.pumpWidget(
+      _host(items: const [], onTriggerBuilt: (context) => trigger = context),
+    );
+    final items = [const FlareActionItem(id: 'pin', label: 'Pin')];
+    unawaited(FlareActionMenu.show(trigger, items: items, label: 'Menu'));
+    await tester.pumpAndSettle();
+    items.add(const FlareActionItem(id: 'mute', label: 'Mute'));
+    await tester.pump();
+    expect(find.text('Mute'), findsNothing);
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
   });
 
   testWidgets('a menu with no visible item never opens', (tester) async {

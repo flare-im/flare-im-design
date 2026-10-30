@@ -146,6 +146,7 @@ FlareMessageList(
 
 - `availability` is a synchronous read of the host's snapshot of `message.action_availability`; the host refreshes it asynchronously and redraws the list. The list calls `prefetch` with the ids of rows coming on screen that have no snapshot.
 - Without a snapshot the right-click menu holds one disabled entry, "正在读取…" (`messageMenuLoading`), and asks for that message; a long press asks for it and opens the sheet once the snapshot arrives.
+- A right-click menu that is open follows the snapshot: when the host redraws the list with it, the loading entry becomes the entries, an action the core no longer allows leaves, and a host entry it disables is drawn disabled — in the menu that is open, which neither closes nor leaves the pointer. On Vue the same holds when `menuConfig.availability` reads reactive state or the host passes a new `menuConfig`. A host that keeps its snapshots outside what redraws the list gets the new entries only the next time the menu opens.
 - `extraActions` is asked per message, as Vue's `MessageMenuExtension.available` is, so an entry can depend on it; both menus draw the same answer.
 - With `menu` the list no longer calls `onMessageLongPress`. Read `FlareMessageMenuSource.pointerIdiom` (Flutter `pointerIdiom(context)`) instead of repeating the platform check.
 

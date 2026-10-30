@@ -748,6 +748,7 @@ class _FlareMessageListState extends State<FlareMessageList>
     _rowKeys.removeWhere((id, _) => !surviving.contains(id));
     _publishDownloadStates();
     _openPendingSheet();
+    _refreshPointerMenu();
     if (oldWidget.loadingOlder && !widget.loadingOlder ||
         oldWidget.messages.firstOrNull?.id != widget.messages.firstOrNull?.id ||
         oldWidget.olderError != widget.olderError)
@@ -814,6 +815,14 @@ class _FlareMessageListState extends State<FlareMessageList>
     }
   }
 
+  /// The items of the open pointer menu, and the message it is open for: the
+  /// host's snapshot can arrive or change while the menu is open, and the menu
+  /// follows it in place (see [_refreshPointerMenu]).
+  final ValueNotifier<List<FlareActionItem>> _pointerItems = ValueNotifier(
+    const [],
+  );
+  FlareMessageData? _pointerMessage;
+
   /// The pointer menu where the secondary click landed: the same entries as
   /// the sheet, or one disabled "loading" entry while there is no snapshot.
   void _openPointerMenu(FlareMessageData message, Offset position) {
@@ -822,22 +831,56 @@ class _FlareMessageListState extends State<FlareMessageList>
     final strings = FlareStrings.of(context);
     final entries = menu.entriesFor(message, strings);
     if (entries == null) menu.prefetch?.call([message.id]);
+    final items = flareMessagePointerMenuItems(entries, strings);
+    _pointerMessage = message;
+    _pointerItems.value = items;
     unawaited(
       FlareActionMenu.show(
         context,
         label: strings.messageActionSheetLabel,
         anchor: Rect.fromLTWH(position.dx, position.dy, 0, 0),
         presentation: FlareActionMenuPresentation.anchored,
-        items: flareMessagePointerMenuItems(entries, strings),
+        items: items,
+        updates: _pointerItems,
       ).then((picked) {
+        // The message as the menu last drew it: the host may have replaced it.
+        final current = _pointerMessage ?? message;
+        if (_pointerMessage?.id == message.id) _pointerMessage = null;
         if (picked == null ||
             picked == FlareMessageMenuSource.loadingEntryId ||
             !mounted) {
           return;
         }
-        widget.menu?.perform(message, picked);
+        widget.menu?.perform(current, picked);
       }),
     );
+  }
+
+  /// The open pointer menu follows the host: when the snapshot of its message
+  /// arrives or changes, its items become that snapshot's entries in place
+  /// (the loading entry gives way to the entries; an action the core no longer
+  /// allows leaves; a host entry it disables is drawn disabled), without
+  /// closing or moving the menu.
+  void _refreshPointerMenu() {
+    final open = _pointerMessage;
+    final menu = widget.menu;
+    if (open == null || menu == null) return;
+    final message =
+        widget.messages.where((m) => m.id == open.id).firstOrNull ?? open;
+    _pointerMessage = message;
+    final strings = FlareStrings.of(context);
+    final items = flareMessagePointerMenuItems(
+      menu.entriesFor(message, strings),
+      strings,
+    );
+    if (listEquals(items, _pointerItems.value)) return;
+    // The menu is a route of its own, outside this subtree: it rebuilds on the
+    // next frame rather than in the middle of this one.
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _pointerMessage?.id == open.id) {
+        _pointerItems.value = items;
+      }
+    });
   }
 
   /// Opens the sheet a long press asked for once its snapshot is there.
@@ -875,6 +918,7 @@ class _FlareMessageListState extends State<FlareMessageList>
     if (hostMedia != null) unawaited(hostMedia.stopVoice());
     _ownMedia?.dispose();
     _downloadStates.dispose();
+    _pointerItems.dispose();
     super.dispose();
   }
 

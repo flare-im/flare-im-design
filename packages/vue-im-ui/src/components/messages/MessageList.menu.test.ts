@@ -8,6 +8,8 @@ import MessageBubble from "./MessageBubble.vue";
 import MessageList from "./MessageList.vue";
 import MessageMenu from "./MessageMenu.vue";
 import FlareActionMenu from "../general/FlareActionMenu.vue";
+import type { MessageMenuConfig } from "../../shared/config/messageMenu";
+import type { MessageActionAvailability } from "../../utils/messageActionAvailability";
 
 const message: MessageLike = {
   serverId: "server-1", clientMsgId: "client-1", senderId: "ivy", senderDisplayName: "Ivy",
@@ -84,6 +86,68 @@ describe("MessageList menu intents", () => {
     expect(host.findComponent(FlareActionMenu).props("open")).toBe(true);
     expect(host.findComponent(FlareActionMenu).props("items").map((item: { id: string }) => item.id))
       .toEqual(expect.arrayContaining(["edit", "forward", "pin"]));
+    host.unmount();
+  });
+});
+
+describe("MessageList menu and the core's snapshot", () => {
+  const forwardIds = (host: ReturnType<typeof mount>) =>
+    host.findComponent(FlareActionMenu).props("items").map((item: { id: string }) => item.id);
+
+  function mountWith(menuConfig: () => MessageMenuConfig) {
+    return mount(FlareUiProvider, {
+      props: { themeMode: "light", locale: "en-US", layoutMode: "pc" },
+      slots: {
+        default: () => h(MessageList, {
+          messages: [message],
+          currentUserId: "me",
+          hasOlder: false,
+          menuConfig: menuConfig(),
+          onReply: () => {},
+          onForward: () => {},
+        }),
+      },
+    });
+  }
+
+  async function openMenu(host: ReturnType<typeof mount>) {
+    const menu = host.findComponent(MessageMenu);
+    (menu.vm as unknown as { openMenu(): void }).openMenu();
+    await flushPromises();
+    return menu.vm.$.uid;
+  }
+
+  it("narrows an open menu in place when the snapshot it reads arrives", async () => {
+    const snapshots = ref<Record<string, Partial<MessageActionAvailability>>>({});
+    const host = mountWith(() => ({ availability: (row) => snapshots.value[row.clientMsgId ?? ""] }));
+    const menu = await openMenu(host);
+    expect(forwardIds(host)).toEqual(expect.arrayContaining(["reply", "forward"]));
+
+    snapshots.value = { "client-1": { canForward: false } };
+    await flushPromises();
+    expect(host.findComponent(FlareActionMenu).props("open")).toBe(true);
+    expect(host.findComponent(MessageMenu).vm.$.uid).toBe(menu);
+    expect(forwardIds(host)).not.toContain("forward");
+    expect(forwardIds(host)).toContain("reply");
+    host.unmount();
+  });
+
+  it("narrows an open menu in place when the host hands it a new config", async () => {
+    const config = ref<MessageMenuConfig>({});
+    const host = mountWith(() => config.value);
+    const menu = await openMenu(host);
+    expect(forwardIds(host)).toContain("forward");
+
+    config.value = { availability: () => ({ canForward: false }) };
+    await flushPromises();
+    expect(host.findComponent(FlareActionMenu).props("open")).toBe(true);
+    expect(host.findComponent(MessageMenu).vm.$.uid).toBe(menu);
+    expect(forwardIds(host)).not.toContain("forward");
+
+    config.value = {};
+    await flushPromises();
+    expect(forwardIds(host)).toContain("forward");
+    expect(host.findComponent(FlareActionMenu).props("open")).toBe(true);
     host.unmount();
   });
 });

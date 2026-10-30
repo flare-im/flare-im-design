@@ -1,7 +1,9 @@
 import 'dart:math' as math;
 import 'dart:ui' show SemanticsRole;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
 import '../platform/flare_platform.dart';
@@ -146,19 +148,34 @@ class FlareActionMenu extends StatelessWidget {
   ///
   /// Without an `anchor` the menu anchors to [context]'s own box. When no item
   /// is visible nothing is shown and the future completes with null at once.
-  /// The items are read once, when the menu opens.
+  ///
+  /// The menu opens with [items]. Without [updates] those are its items until
+  /// it closes. With [updates] the open menu follows it: each new list
+  /// replaces the items in place, so the menu neither closes nor moves, and
+  /// keyboard focus stays on the item it was on while that item is still
+  /// there. A list with no visible item closes the menu, as a dismissal does.
   static Future<String?> show(
     BuildContext context, {
     required List<FlareActionItem> items,
     required String label,
     Rect? anchor,
     FlareActionMenuPresentation presentation = FlareActionMenuPresentation.auto,
+    ValueListenable<List<FlareActionItem>>? updates,
   }) {
-    final visible = [
-      for (final item in items)
+    List<FlareActionItem> visibleOf(List<FlareActionItem> all) => [
+      for (final item in all)
         if (item.visible) item,
     ];
+    final visible = visibleOf(items);
     if (visible.isEmpty) return Future<String?>.value();
+    // The items the panel draws now: the opening list, then each update.
+    Widget live(Widget Function(List<FlareActionItem> items) panel) =>
+        updates == null
+        ? panel(visible)
+        : ValueListenableBuilder<List<FlareActionItem>>(
+            valueListenable: updates,
+            builder: (_, all, _) => panel(visibleOf(all)),
+          );
     final capabilities = flareCapabilitiesOf(context);
     final sheet = switch (presentation) {
       FlareActionMenuPresentation.sheet => true,
@@ -188,12 +205,14 @@ class FlareActionMenu extends StatelessWidget {
         title: label,
         presentation: FlareSheetPresentation.sheet,
         builder: (_) => themed(
-          _ActionMenuPanel(
-            items: visible,
-            label: label,
-            sheet: true,
-            touch: true,
-            byKeyboard: byKeyboard,
+          live(
+            (items) => _ActionMenuPanel(
+              items: items,
+              label: label,
+              sheet: true,
+              touch: true,
+              byKeyboard: byKeyboard,
+            ),
           ),
         ),
       );
@@ -207,12 +226,14 @@ class FlareActionMenu extends StatelessWidget {
         reduceMotion: MediaQuery.maybeDisableAnimationsOf(context) ?? false,
         builder: (_) => themes.wrap(
           themed(
-            _ActionMenuPanel(
-              items: visible,
-              label: label,
-              sheet: false,
-              touch: capabilities.pointer != FlarePointerKind.fine,
-              byKeyboard: byKeyboard,
+            live(
+              (items) => _ActionMenuPanel(
+                items: items,
+                label: label,
+                sheet: false,
+                touch: capabilities.pointer != FlarePointerKind.fine,
+                byKeyboard: byKeyboard,
+              ),
             ),
           ),
         ),
@@ -422,7 +443,8 @@ class _ActionMenuPanel extends StatefulWidget {
     required this.byKeyboard,
   });
 
-  /// The visible items, in host order.
+  /// The visible items, in host order; a menu that follows its host's
+  /// updates is given a new list in place.
   final List<FlareActionItem> items;
   final String label;
   final bool sheet;
@@ -441,22 +463,64 @@ class _ActionMenuPanelState extends State<_ActionMenuPanel> {
   /// Whether focus is drawn: from a keyboard open, or the first key press.
   late bool _keyboard = widget.byKeyboard;
 
-  late final List<FocusNode> _nodes = [
-    for (final item in widget.items)
-      FocusNode(
-        debugLabel: 'FlareActionMenu ${item.id}',
-        canRequestFocus: item.enabled,
-        skipTraversal: !item.enabled,
-      ),
-  ];
+  /// One focus node per item id, so an item that stays across an update keeps
+  /// its node, and with it keyboard focus.
+  final Map<String, FocusNode> _nodes = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _syncNodes();
+  }
+
+  @override
+  void didUpdateWidget(_ActionMenuPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _syncNodes();
+    if (widget.items.isEmpty && oldWidget.items.isNotEmpty) {
+      // Nothing is left to choose: close as a dismissal would.
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (mounted && ModalRoute.isCurrentOf(context) == true) {
+          Navigator.of(context).pop();
+        }
+      });
+    }
+  }
+
+  void _syncNodes() {
+    final ids = {for (final item in widget.items) item.id};
+    final gone = [
+      for (final entry in _nodes.entries)
+        if (!ids.contains(entry.key)) entry.value,
+    ];
+    _nodes.removeWhere((id, _) => !ids.contains(id));
+    // The rows that held these nodes leave the tree in this frame's build.
+    if (gone.isNotEmpty) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        for (final node in gone) {
+          node.dispose();
+        }
+      });
+    }
+    for (final item in widget.items) {
+      _nodes.putIfAbsent(
+          item.id,
+          () => FocusNode(debugLabel: 'FlareActionMenu ${item.id}'),
+        )
+        ..canRequestFocus = item.enabled
+        ..skipTraversal = !item.enabled;
+    }
+  }
 
   @override
   void dispose() {
-    for (final node in _nodes) {
+    for (final node in _nodes.values) {
       node.dispose();
     }
     super.dispose();
   }
+
+  FocusNode _nodeAt(int index) => _nodes[widget.items[index].id]!;
 
   List<int> get _enabled => [
     for (var i = 0; i < widget.items.length; i++)
@@ -464,7 +528,7 @@ class _ActionMenuPanelState extends State<_ActionMenuPanel> {
   ];
 
   void _focus(int index, {required bool forward}) {
-    final node = _nodes[index];
+    final node = _nodeAt(index);
     node.requestFocus();
     final itemContext = node.context;
     if (itemContext == null) return;
@@ -479,7 +543,7 @@ class _ActionMenuPanelState extends State<_ActionMenuPanel> {
   void _step(int delta) {
     final enabled = _enabled;
     if (enabled.isEmpty) return;
-    final at = enabled.indexWhere((index) => _nodes[index].hasPrimaryFocus);
+    final at = enabled.indexWhere((index) => _nodeAt(index).hasPrimaryFocus);
     final next = at < 0
         ? (delta > 0 ? 0 : enabled.length - 1)
         : (at + delta) % enabled.length;
@@ -516,8 +580,10 @@ class _ActionMenuPanelState extends State<_ActionMenuPanel> {
       }
       entries.add(
         _ActionMenuRow(
+          // An update keeps each row's hover and press with its item.
+          key: ValueKey(item.id),
           item: item,
-          focusNode: _nodes[i],
+          focusNode: _nodeAt(i),
           autofocus: i == firstEnabled,
           iconColumn: iconColumn,
           sheet: widget.sheet,
@@ -606,6 +672,7 @@ class _ActionMenuPanelState extends State<_ActionMenuPanel> {
 
 class _ActionMenuRow extends StatefulWidget {
   const _ActionMenuRow({
+    super.key,
     required this.item,
     required this.focusNode,
     required this.autofocus,
