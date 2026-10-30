@@ -147,10 +147,15 @@ class MediaDefaultsInteractionTest {
         var localPath by mutableStateOf<String?>(copy.absolutePath)
         compose.setContent {
             FlareThemeProvider {
-                MessageList(
-                    messages = listOf(message("i1", FlareImageContent("https://example.invalid/a.png", alt = "照片", localPath = localPath))),
-                    currentUserId = "me",
-                )
+                // On the page a host gives the list: FlareScreen keeps it out of the system bars. The test window is
+                // edge to edge, so a list filling it puts its newest row under the navigation bar, and with three-button
+                // navigation the bar's translucent scrim covers the picture whose pixels this test reads.
+                FlareScreen(scroll = false) {
+                    MessageList(
+                        messages = listOf(message("i1", FlareImageContent("https://example.invalid/a.png", alt = "照片", localPath = localPath))),
+                        currentUserId = "me",
+                    )
+                }
             }
         }
         // What the bubble showed last, for the failure message: its centre colour, or why it could not be read.
