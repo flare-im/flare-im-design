@@ -65,7 +65,16 @@ for (const stray of pngsIn("tests/visual/vue/baselines") ?? []) {
 if (!readFileSync(join(root, "website/playwright.config.ts"), "utf8").includes("{platform}")) {
   errors.push("website/playwright.config.ts: snapshotPathTemplate must carry {platform}, or every platform overwrites the same baselines");
 }
-declaredBaselines += inventory("flutter", "packages/flutter-im-ui/test/goldens/baselines", manifest.platforms.flutter.baselineFiles ?? []);
+// Flutter goldens are renderings too: one folder per Platform.operatingSystem, nothing at the root.
+const flutterRoot = "packages/flutter-im-ui/test/goldens/baselines";
+const flutterPlatforms = manifest.platforms.flutter.platforms ?? {};
+if (!Object.keys(flutterPlatforms).length) errors.push("flutter: no platform has any golden");
+for (const [platform, files] of Object.entries(flutterPlatforms)) {
+  declaredBaselines += inventory(`flutter/${platform}`, `${flutterRoot}/${platform}`, files);
+}
+for (const stray of pngsIn(flutterRoot) ?? []) {
+  errors.push(`flutter: ${stray} sits outside a platform folder`);
+}
 declaredBaselines += inventory("ios", "tests/visual/ios/baselines", manifest.platforms.ios.baselineFiles ?? []);
 declaredBaselines += inventory("compose", "packages/android-im-ui/src/androidTest/assets/goldens", manifest.platforms.compose.baselineFiles ?? []);
 

@@ -141,14 +141,14 @@
     "flutter": {
       "status": "active",
       "test": "packages/flutter-im-ui/test/goldens/core_components_golden_test.dart",
-      "baseline": "packages/flutter-im-ui/test/goldens/baselines/core_components.png",
-      "additionalBaselines": [
-        "packages/flutter-im-ui/test/goldens/baselines/message_status.png"
-      ],
-      "baselineFiles": [
-        "core_components.png",
-        "message_status.png"
-      ]
+      "baseline": "packages/flutter-im-ui/test/goldens/baselines/macos",
+      "baselineNote": "A golden is a rendering: the test engine does not rasterise curves and edges identically on macOS and Linux, so goldens live under packages/flutter-im-ui/test/goldens/baselines/<Platform.operatingSystem>/. linux/ is rendered on the CI runner image with the pinned Flutter version (docs/release/visual-baselines.md).",
+      "platforms": {
+        "macos": [
+          "core_components.png",
+          "message_status.png"
+        ]
+      }
     },
     "compose": {
       "status": "active",

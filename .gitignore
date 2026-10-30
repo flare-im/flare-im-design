@@ -14,6 +14,8 @@ website/playwright-report/
 
 # Flutter
 **/.dart_tool/
+# A failed golden run's output (the master, test and diff images), not a baseline.
+packages/flutter-im-ui/test/goldens/failures/
 **/.flutter-plugins
 **/.flutter-plugins-dependencies
 **/*.iml

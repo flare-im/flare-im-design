@@ -1,6 +1,16 @@
+import 'dart:io';
+
 import 'package:flare_im_ui/flare_im_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+/// A golden of this machine's platform. A golden is a rendering, and the test
+/// engine does not rasterise curves and edges identically on macOS and Linux:
+/// one shared file failed CI's Linux run by a percent on every case. Each
+/// platform keeps its own set (`baselines/macos/`, `baselines/linux/`), as the
+/// website's Playwright baselines do; Linux's come from the CI runner image
+/// (docs/release/visual-baselines.md).
+String _golden(String name) => 'baselines/${Platform.operatingSystem}/$name';
 
 void main() {
   testWidgets('core General components remain visually stable', (tester) async {
@@ -67,7 +77,7 @@ void main() {
     await tester.pumpAndSettle();
     await expectLater(
       find.byType(RepaintBoundary).first,
-      matchesGoldenFile('baselines/core_components.png'),
+      matchesGoldenFile(_golden('core_components.png')),
     );
   });
 
@@ -103,7 +113,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
       await expectLater(
         find.byType(RepaintBoundary).first,
-        matchesGoldenFile('baselines/message_status.png'),
+        matchesGoldenFile(_golden('message_status.png')),
       );
     },
   );
