@@ -544,9 +544,14 @@ public struct MessageListView: View {
                             scrollToEnd(proxy, tailId: followRows.last?.id)
                         }
                         .onChange(of: locateGeneration) { _ in
-                            // Match the modern path: let this update finish before asking the
-                            // proxy to move. In the legacy path an onAppear/end-restoration scroll
-                            // can otherwise run later in the same pass and pull the reader back.
+                            // Match the modern path: a row scrolled to by the proxy is not the bound
+                            // position. Where the system keeps one (BottomVisibleRow), it still names
+                            // the end this list was sent to, and the located row's mark changing the
+                            // content would pull the reader back there.
+                            legacyVisibleId = nil
+                            // Let this update finish before asking the proxy to move. In the legacy
+                            // path an onAppear/end-restoration scroll can otherwise run later in the
+                            // same pass and pull the reader back.
                             DispatchQueue.main.async { scrollToLocated(proxy) }
                         }
                         .onPreferenceChange(TimelineRowFrames.self) { rowFrames = $0 }
