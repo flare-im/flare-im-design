@@ -241,6 +241,23 @@ export const FLARE_ICON_FALLBACK: FlareIconName = "plugin";
 
 const warnedIconNames = new Set<string>();
 
+// Only the build mode, typed here so the kit does not lean on a host's Node typings.
+declare const process: { env: { NODE_ENV?: string } };
+
+/**
+ * Whether this is a development build. Bundlers write the build mode over `process.env.NODE_ENV` in the source they
+ * compile (Vite in dev and build, webpack, esbuild) and a test runner or SSR process has a real one; source loaded as
+ * a plain script has neither, and is not a development build. `import.meta` is not used: it is a syntax error in a
+ * script.
+ */
+function flareDevelopmentBuild(): boolean {
+  try {
+    return process.env.NODE_ENV !== "production";
+  } catch {
+    return false;
+  }
+}
+
 /**
  * A registry name for an icon name that came in as data (a plugin, the SDK, host configuration): the name itself
  * when the registry has it, `plugin` for any other name (a development build warns once per name), null for none
@@ -250,7 +267,7 @@ export function flareIconNameOrFallback(name: string | null | undefined): FlareI
   const trimmed = typeof name === "string" ? name.trim() : "";
   if (!trimmed) return null;
   if (Object.prototype.hasOwnProperty.call(flareIcons, trimmed)) return trimmed as FlareIconName;
-  if (import.meta.env?.DEV && !warnedIconNames.has(trimmed)) {
+  if (!warnedIconNames.has(trimmed) && flareDevelopmentBuild()) {
     warnedIconNames.add(trimmed);
     console.warn(`[flare-im] "${trimmed}" is not a Flare icon name; drawing the "${FLARE_ICON_FALLBACK}" glyph`);
   }
