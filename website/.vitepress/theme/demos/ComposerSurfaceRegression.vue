@@ -3,7 +3,7 @@ import { nextTick, onMounted, ref } from "vue";
 import { FlareComposer } from "@flare-im/vue-ui/components";
 import DemoStage from "./DemoStage.vue";
 
-const focused = ref<{ focusInput: () => void } | null>(null);
+const focused = ref<{ focus: () => void } | null>(null);
 const draft = ref("");
 const richMode = ref(false);
 // The expanded preset shows its voice shortcut only when a recording has somewhere to go.
@@ -15,7 +15,7 @@ const uploadItems = [
 ];
 
 onMounted(() => {
-  void nextTick(() => focused.value?.focusInput());
+  void nextTick(() => focused.value?.focus());
 });
 </script>
 

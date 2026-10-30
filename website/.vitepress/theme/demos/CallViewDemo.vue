@@ -30,7 +30,7 @@ const ended = ref(0);
 </template>
 <style scoped>
 .stage { width: 100%; max-width: 400px; }
-select { min-height:48px; }
+select { min-width: 48px; min-height: 48px; }
 label { display: inline-flex; align-items: center; gap: 6px; min-height: 48px; margin-inline-end: 12px; }
 .self-preview { width: 100%; height: 100%; background: linear-gradient(160deg, #3a4a63, #1c2230); }
 </style>

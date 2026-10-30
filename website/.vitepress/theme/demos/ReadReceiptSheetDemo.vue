@@ -13,7 +13,8 @@ const unread = ref(page("u", 0));
 const loadingMore = ref(null);
 const failedOnce = ref(false);
 const loadMoreFailed = ref(null);
-const hasMore = (list) => list.value.length < names.length;
+// The template hands the arrays over unwrapped (`readers`, not `readers.value`).
+const hasMore = (list) => list.length < names.length;
 function loadMore(column) {
   const list = column === "read" ? readers : unread;
   loadingMore.value = column;

@@ -44,7 +44,7 @@ const streams = new Set(["ivy", "leo", "me"]);
 
 <style scoped>
 .mode { display: inline-flex; align-items: center; gap: 6px; min-height: 48px; }
-select { min-height: 48px; }
+select { min-width: 48px; min-height: 48px; }
 .stage {
   width: 100%;
   max-width: 420px;
