@@ -40,10 +40,12 @@ final class VisualSnapshotTests: XCTestCase {
         // Two host settings change the drawing, so the snapshot fixes both. Reduce Motion turns the sending
         // spinner into a clock (CI runners have it on). The system's preferred language picks the glyph of
         // East Asian ambiguous punctuation: a zh-Hans system draws the meta row's "·" from the CJK font, wider
-        // than an en-US system's. The baselines are drawn with motion on, typeset as zh-Hans.
+        // than an en-US system's. Typeset as en-US, both systems draw the narrow one (a zh-Hans typesetting
+        // language does not bring the CJK glyph back on an en-US system), so the baselines are drawn with
+        // motion on, typeset as en-US.
         let host = NSHostingView(rootView: view
             .environment(\._accessibilityReduceMotion, false)
-            .typesettingLanguage(Locale.Language(identifier: "zh-Hans")))
+            .typesettingLanguage(Locale.Language(identifier: "en-US")))
         let window = NSWindow(contentRect: NSRect(origin: .zero, size: size),
                               styleMask: .borderless, backing: .buffered, defer: false)
         window.colorSpace = .sRGB
