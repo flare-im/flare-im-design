@@ -1,5 +1,9 @@
 ## 未发布
 
+- **失败气泡改为失败面**：失败底色 `messageFailedBackground`、正文 `messageFailedForeground`、1px `messageFailedBorder` 红边，与 Vue、SwiftUI、Flutter 一致。原来是发出底色加红边、白字，失败图标落在紫色底上。新增 `FlareMessageBubbleTone`、`flareMessageBubbleTone`、`FlareMessageBubblePalette`、`flareMessageBubblePalette`（`spec/message-surface-vectors.json` `palette`），`MessageBubble` 与 `MessageContentView` 都按它取色。
+- `MessageList`：关闭动画（系统「移除动画」）时，定位到某条消息（点引用或宿主 `scrollToMessage`）不再被拉回最新消息。原来瞬时跳转被当作布局变化处理，正在跟随底部的列表会被重新放回末尾。
+- `PluginViewModels` 去掉源码里字面的 BOM 与不换行空格，改用转义（lint `ByteOrderMark` 报错）。
+
 - 批量工具条转发可用性：`MessageBatchToolbar` 新增 `unforwardableIds: Set<String>`（默认空）：逐条转发至少 1 个、合并转发至少 2 个可转发 id，这两个动作只上报可转发 id；有不可转发项时计数下方显示 `messageBatchUnforwardable`（`messageBatchUnforwardableOne` 为英文单数）。新增 `messageBatchActionIds`、`messageBatchUnforwardableCount`、`MessageBatchAction.forwards`，`messageBatchActionsAvailable` 新增可选参数（`spec/message-batch-vectors.json` 的 forward）。
 
 - 通话：新增 `CallRecordCard` 与 `flareCallRecordStatus` / `flareCallRecordAction` 等规则（`FlareCallRecordScope`、`FlareCallRecordState`、`FlareCallEndReason`，`spec/call-record-vectors.json`），`FlareStrings` 新增 `callRecord*`；`CallView` 新增 `onMinimize`（传入才绘制收起按钮）。**破坏性**：`GroupCallView(state:)` 由 `String` 改为 `FlareCallState`。

@@ -1,5 +1,11 @@
 ## 未发布
 
+- 气泡色板函数、iOS 16 滚动路径的定位、快照与指针菜单：
+  - 新增 `FlareMessageBubbleTone`、`flareMessageBubbleTone(isSelf:status:)`、`FlareMessageBubblePalette`、`flareMessageBubblePalette(_:colors:)`（`spec/message-surface-vectors.json` `palette`），`MessageBubbleView` 按它画底色与红边。外观不变。
+  - `MessageListView` 的 iOS 16 滚动路径：定位到某条消息时清掉绑定的可见位置，与新路径一致。系统保留绑定位置时（macOS 14 / iOS 17 起），被定位行的标记一改动内容，列表就会被拉回末尾。
+  - 指针菜单打开期间，宿主带着新快照重画列表，菜单就地更新：「正在读取…」换成条目，核心不再允许的动作移除。macOS 上补了托管窗口测试锁住。
+  - 视觉快照固定按 2x 渲染，与显示器缩放无关；同时固定「减弱动态效果」为关、排版语言为 en-US（宿主开着减弱动态时，发送中的转圈会画成时钟；系统偏好语言决定「·」取哪种字形，按 en-US 排版时 zh-Hans 与 en-US 系统画得一样）。两张基线按 b0cee27 的回执五态、实心失败图标、内联元信息重建。
+
 - 批量工具条转发可用性、合并转发条目色板、富文本前景、消息菜单预读：
   - `MessageBatchToolbarView` 新增 `unforwardableIds: Set<String>`（默认空）：逐条转发至少 1 个、合并转发至少 2 个可转发 id，这两个动作只上报可转发 id；有不可转发项时计数下方显示 `messageBatchUnforwardable`（`messageBatchUnforwardableOne` 为英文单数）。新增 `messageBatchActionIds`、`messageBatchUnforwardableCount`、`MessageBatchAction.forwards`，`messageBatchActionsAvailable` 新增可选参数（`spec/message-batch-vectors.json` 的 forward）。
   - 合并转发的条目（单条内联与抽屉里每一行）按别人的消息画，不再继承本人气泡的白色前景；`RichTextMessageView` 读所在表面给的前景（失败消息的失败底色、转发记录的中性色板），与 `TextMessageView` 一致。

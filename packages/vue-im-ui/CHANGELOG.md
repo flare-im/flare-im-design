@@ -1,5 +1,12 @@
 ## 未发布
 
+- 失败气泡外观、打开着的消息菜单、几处触控与可及性回归：
+  - 新增 `flareMessageBubbleTone(self, status)`（`spec/message-surface-vectors.json` 新增 `palette`）：失败面（失败底色、失败前景、1px 红边）只属于本人失败的消息；别人的消息即使带 failed 状态，也按来件色板画。外观本身不变，由四端同一张表锁住。
+  - 打开着的消息菜单就地跟随快照：`menuConfig.availability` 读的是响应式状态时快照一变，或宿主换了 `menuConfig`，菜单就地收窄，不关闭。行为原本如此，这次补测试锁住。
+  - 窄屏输入行最小高度由 44 改为 46，与原生三端窄屏的 46 带一致；原来展开键与发送键的命中区上下叠了 3px。
+  - `FlareSchemaForm` 的 integer 字段不再显示步进键（naive-ui 的步进键没有可及名称），仍是带标签的 spinbutton，方向键照常步进。
+  - `FlareReadReceiptSheet` 表头右内边距由 xs 改为 `spacing.sm`，关闭键的命中区不再被卡片圆角裁掉。
+
 - 批量工具条与消息菜单的转发可用性、身份占位头像、合并转发条目色板、开发构建探测：
   - `FlareMessageBatchToolbar` 新增 `unforwardableIds`（已选中但核心判定不可转发的 id，默认空）：逐条转发需要至少 1 个、合并转发至少 2 个可转发 id，这两个动作只上报可转发 id（保持选择顺序）；选择里有不可转发项时计数下方显示 `batch.unforwardable`（「N 条不支持转发」，英文分单复数）。`./contracts` 新增 `messageBatchActionIds`、`messageBatchUnforwardableCount`、`messageBatchForwardActions`，`messageBatchActionsAvailable` 新增可选参数 `unforwardableIds`（`spec/message-batch-vectors.json` 的 forward）。
   - `MessageMenuConfig` 新增 `availability(message)`：宿主手里核心 `MessageActionAvailability` 的快照（与原生 `MessageMenuSource.availability` 同语义），为 false 的标志关掉对应菜单项、不会打开任何项；多层配置逐层收窄。新增 `narrowMessageActionAvailability`，`./utils` 导出 `MessageMenuAvailability` 与 `MessageActionAvailability` 类型。

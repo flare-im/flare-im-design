@@ -1,5 +1,11 @@
 ## 未发布
 
+- 打开着的指针菜单跟随快照、气泡色板函数、金样按平台分目录：
+  - `FlareActionMenu.show` 新增 `updates`（`ValueListenable<List<FlareActionItem>>`）：菜单打开期间，每来一组新条目就原地替换。菜单不关闭、锚定的一边不动，键盘焦点留在仍存在的那一项上；可见条目为空时按关闭处理。不传时与原来一样，只读打开那一刻的条目。
+  - `FlareMessageList` 的指针菜单打开期间，宿主带着新快照重建列表，菜单就地更新：「正在读取…」换成条目，核心不再允许的动作移除，宿主停用的条目置灰。
+  - 新增 `FlareMessageBubbleTone`、`flareMessageBubbleTone`、`FlareMessageBubblePalette`、`flareMessageBubblePalette`（`spec/message-surface-vectors.json` `palette`），气泡按它取底色、前景与边。外观不变。
+  - 金样按 `Platform.operatingSystem` 分目录（`test/goldens/baselines/macos/`、`linux/`），Linux 那套由 CI 镜像生成；误入库的 `test/goldens/failures/` 已删除并忽略。
+
 - 批量工具条转发可用性、合并转发条目色板、失败气泡前景：
   - `FlareMessageBatchToolbar` 新增 `unforwardableIds`（`Set<String>`，默认空）：逐条转发至少 1 个、合并转发至少 2 个可转发 id，这两个动作只上报可转发 id；有不可转发项时计数下方显示 `messageBatchUnforwardable`（`messageBatchUnforwardableOne` 为英文单数，`FlareStrings.messageBatchUnforwardableCount`）。新增 `messageBatchActionIds`、`messageBatchUnforwardableCount`、`FlareMessageBatchAction.forwards`，`messageBatchActionsAvailable` 新增可选参数（`spec/message-batch-vectors.json` 的 forward）。
   - 合并转发只有一条时内联画的条目按别人的消息画，不再用本人气泡的白色前景（`spec/message-forward-vectors.json` rules.palette）。
