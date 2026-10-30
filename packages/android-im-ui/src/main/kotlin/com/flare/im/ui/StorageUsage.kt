@@ -153,9 +153,9 @@ fun canClearStorage(category: FlareStorageCategory?): Boolean {
 }
 
 /** `{count}` is replaced with the category's file count; a missing count renders nothing. */
-internal fun storageFileCountLabel(template: String, count: Int?): String? {
+internal fun storageFileCountLabel(template: String, count: Int?, one: String = template, locale: java.util.Locale = java.util.Locale.ROOT): String? {
     if (count == null || count < 0) return null
-    return template.replace("{count}", count.toString())
+    return flarePlural(count.toLong(), one, template, locale)
 }
 
 /** The sum is only a floor when this panel computed it and something is unmeasured. */
@@ -218,7 +218,10 @@ fun StorageUsage(
     val dismissErrorText = dismissErrorText ?: strings.storageUsageDismissError
     val loadingText = loadingText ?: strings.storageUsageLoading
     val emptyText = emptyText ?: strings.storageUsageEmpty
+    // The kit's own copy takes the plural form for each count; a host's text is used as given.
+    val fileCountOne = fileCountText ?: strings.storageUsageFileCountOne
     val fileCountText = fileCountText ?: strings.storageUsageFileCount
+    val pluralLocale = flareLocale()
     val colors = flareColors()
     val totals = storageTotals(categories, totalBytes)
     fun sizeText(bytes: Double?): String = formatBytes(bytes, locale) ?: unknownText
@@ -355,7 +358,7 @@ fun StorageUsage(
                         category = category,
                         share = storageShare(category.bytes, totals.total),
                         sizeText = sizeText(category.bytes),
-                        files = storageFileCountLabel(fileCountText, category.fileCount),
+                        files = storageFileCountLabel(fileCountText, category.fileCount, fileCountOne, pluralLocale),
                         canClear = canClearStorage(category) && onClear != null,
                         colors = colors,
                         clearText = clearText,

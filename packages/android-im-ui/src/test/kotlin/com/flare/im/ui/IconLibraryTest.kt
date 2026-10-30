@@ -1,13 +1,13 @@
 package com.flare.im.ui
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.automirrored.outlined.RotateRight
 import androidx.compose.material.icons.automirrored.outlined.ScreenShare
 import androidx.compose.material.icons.automirrored.outlined.Undo
 import androidx.compose.material.icons.automirrored.outlined.VolumeOff
 import androidx.compose.material.icons.automirrored.outlined.VolumeUp
 import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.AddReaction
 import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.AlternateEmail
@@ -59,7 +59,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/** The icon registry contract: the same 108 kebab-case names, in the same order, as the other three kits. */
+/** The icon registry contract: the same 109 kebab-case names, in the same order, as the other three kits. */
 class IconLibraryTest {
     private val canonical = listOf(
         "search", "send", "more", "back", "close", "check", "add", "remove", "edit", "delete",
@@ -73,11 +73,11 @@ class IconLibraryTest {
         "end-call", "switch-camera", "screen-share", "play", "pause", "expand", "collapse", "zoom-in", "zoom-out", "rotate",
         "group", "admin", "remove-member", "transfer-owner", "silence", "report", "chevron-up", "chevron-left", "keyboard", "mini-app",
         "pin-self", "diagnostics", "card", "id", "join-request", "storage",
-        "red-packet", "plugin", "locate",
+        "red-packet", "plugin", "locate", "wallet",
     )
 
     @Test fun kebabCaseNamesInCanonicalOrder() {
-        assertEquals(108, flareIconNames.size)
+        assertEquals(109, flareIconNames.size)
         assertEquals(canonical, flareIconNames)
         assertEquals(flareIconNames.size, flareIconNames.toSet().size, "names are unique")
         for (name in flareIconNames) assertTrue(Regex("^[a-z]+(-[a-z]+)*$").matches(name), "$name is kebab-case")
@@ -88,7 +88,8 @@ class IconLibraryTest {
         assertNull(flareIconVectorOrNull("heart-filled"), "heart-filled was removed")
         assertNull(flareIconVectorOrNull("bookmark"), "bookmark was removed")
         assertNull(flareIconVectorOrNull("videoCall"), "header aliases are not registry names")
-        assertEquals(Icons.AutoMirrored.Outlined.HelpOutline, flareIconVector("no-such-icon"))
+        // A name outside the registry draws the shared fallback, the plugin glyph — never a question mark.
+        assertEquals(Icons.Outlined.Extension, flareIconVector("no-such-icon"))
     }
 
     @Test fun redPacketIsTheKitsOwnLineGlyph() {
@@ -125,15 +126,21 @@ class IconLibraryTest {
 
     /** `plugin` is the generic plugin glyph a plugin's "+" tile draws when its icon is not a registry name. */
     @Test fun pluginIsAPuzzlePiece() {
-        assertEquals("plugin", flareIconNames[flareIconNames.size - 2])
+        assertEquals("plugin", flareIconNames[flareIconNames.size - 3])
         assertEquals(Icons.Outlined.Extension, flareIconVector("plugin"))
     }
 
-    /** `locate` is the last name: the location picker's "use current location" key, a crosshair unlike the `location` pin. */
-    @Test fun locateIsTheLastNameAndACrosshair() {
-        assertEquals("locate", flareIconNames.last())
+    /** `locate`: the location picker's "use current location" key, a crosshair unlike the `location` pin. */
+    @Test fun locateIsACrosshair() {
+        assertEquals("locate", flareIconNames[flareIconNames.size - 2])
         assertEquals(Icons.Outlined.MyLocation, flareIconVector("locate"))
         assertNotEquals(flareIconVector("location"), flareIconVector("locate"))
+    }
+
+    /** `wallet` is the last name: the 我 page's wallet entry. */
+    @Test fun walletIsTheLastName() {
+        assertEquals("wallet", flareIconNames.last())
+        assertEquals(Icons.Outlined.AccountBalanceWallet, flareIconVector("wallet"))
     }
 
     @Test fun errorIsTheExclamationCircleNotCancel() {

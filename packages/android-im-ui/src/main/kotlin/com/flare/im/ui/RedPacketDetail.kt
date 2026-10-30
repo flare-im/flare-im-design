@@ -91,7 +91,7 @@ private val redPacketCurrencySymbols = mapOf("CNY" to "¥", "JPY" to "¥", "USD"
  * arithmetic, never floating point (spec/red-packet-vectors.json `amount.rule`). Null for anything but ASCII digits.
  */
 fun flareRedPacketAmountText(minor: String?, exponent: Int): String? {
-    if (minor.isNullOrEmpty() || minor.any { it !in '0'..'9' } || exponent < 0) return null
+    if (minor.isNullOrEmpty() || minor.any { it !in '0'..'9' } || exponent < 0 || exponent > 12) return null
     val digits = minor.trimStart('0')
     if (exponent == 0) return digits.ifEmpty { "0" }
     val padded = digits.padStart(exponent + 1, '0')
@@ -184,7 +184,7 @@ internal object RedPacketDetailFormat {
             ended && refunded != null -> {
                 val text = strings.packetRefundedNote.replace("{money}", money(refunded).orEmpty())
                 details.refundedAtMs?.let { text.replace("{time}", time(it, nowMs, strings, utcOffsetMinutes)) }
-                    ?: text.replace(Regex("\\s*·\\s*\\{time}"), "").replace("{time}", "")
+                    ?: text.replace(Regex("\\s*·\\s*\\{time\\}"), "").replace("{time}", "")
             }
             else -> null
         }

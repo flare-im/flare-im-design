@@ -16,6 +16,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,12 +58,16 @@ private fun redPacketDigit(ch: Char): Char? = when (ch) {
     else -> null
 }
 
+/** A currency exponent as the composer uses it: a whole number of decimals, 0..12. */
+fun flareRedPacketExponent(exponent: Int): Int = exponent.coerceIn(0, 12)
+
 /**
- * The amount field's format (`spec/red-packet-vectors.json`): digits (full-width ones folded) and one decimal point
- * (`.`, `．` or `。`), at most two digits after it; a leading point gains a zero and leading zeros fold away.
- * Ranges are the host's.
+ * The amount field's format (`spec/red-packet-vectors.json` amountInput, amountInputExponent): digits (full-width ones
+ * folded) and one decimal point (`.`, `．` or `。`), at most [exponent] digits after it — none at all, the point dropped,
+ * for a currency without a minor unit; a leading point gains a zero and leading zeros fold away. Ranges are the host's.
  */
-internal fun sanitizeRedPacketAmount(text: String): String {
+internal fun sanitizeRedPacketAmount(text: String, exponent: Int = 2): String {
+    val scale = flareRedPacketExponent(exponent)
     val out = StringBuilder()
     var point = false
     var decimals = 0
@@ -70,11 +75,11 @@ internal fun sanitizeRedPacketAmount(text: String): String {
         val digit = redPacketDigit(ch)
         if (digit != null) {
             if (point) {
-                if (decimals >= 2) continue
+                if (decimals >= scale) continue
                 decimals++
             }
             out.append(digit)
-        } else if (ch in redPacketDecimalPoints && !point) {
+        } else if (ch in redPacketDecimalPoints && !point && scale > 0) {
             point = true
             out.append(if (out.isEmpty()) "0." else ".")
         }
@@ -82,6 +87,23 @@ internal fun sanitizeRedPacketAmount(text: String): String {
     // Leading zeros before another digit go: "007" is 7, "00.50" is 0.50.
     while (out.length > 1 && out[0] == '0' && out[1].isDigit()) out.deleteCharAt(0)
     return out.toString()
+}
+
+/**
+ * The composer's amount text in minor units — a string of digits, by integer arithmetic, never floating point ("8.8", 2 →
+ * "880"; spec/red-packet-vectors.json amountMinor). Null while the text is not an amount: empty, a lone point, more
+ * decimals than [exponent] allows, or anything but ASCII digits and one point.
+ */
+fun flareRedPacketAmountMinor(text: String, exponent: Int): String? {
+    val scale = flareRedPacketExponent(exponent)
+    val match = Regex("^([0-9]*)(?:\\.([0-9]*))?$").matchEntire(text.trim()) ?: return null
+    val whole = match.groupValues[1]
+    val hasPoint = match.groups[2] != null
+    val fraction = match.groups[2]?.value.orEmpty()
+    if (hasPoint && scale == 0) return null
+    if (whole.isEmpty() && fraction.isEmpty()) return null
+    if (fraction.length > scale) return null
+    return (whole + fraction.padEnd(scale, '0')).trimStart('0').ifEmpty { "0" }
 }
 
 /** The count field's format: digits only (full-width folded), at most three after leading zeros; empty is 0. */
@@ -132,8 +154,10 @@ internal fun redPacketKindLabel(kind: FlareRedPacketKind, strings: FlareStrings)
  * Spec: RedPacketComposer (`RedPacketComposer`).
  *
  * - Values come in and changes go out through the `on…Change` callbacks; the host owns the form. The amount field
- *   takes digits and two decimals ([sanitizeRedPacketAmount]), the count field digits ([count] is 0 while empty),
- *   as `spec/red-packet-vectors.json` fixes for every kit.
+ *   takes digits and at most [currencyExponent] decimals (whole numbers at 0, with a number keyboard; the placeholder
+ *   has that many decimals) through [sanitizeRedPacketAmount], the count field digits ([count] is 0 while empty), as
+ *   `spec/red-packet-vectors.json` fixes for every kit. The host turns the amount into minor units with
+ *   [flareRedPacketAmountMinor]; a currency with fewer decimals trims what was typed.
  * - The switch shows only when the host offers more than one kind; a [kind] outside [kinds] shows as the first.
  *   The amount's label follows the kind ([redPacketAmountLabel]). The count row is there for lucky and normal, the
  *   recipient row (the host's member picker) for exclusive. A direct chat ([kinds] exactly normal) sends one share:
@@ -158,6 +182,8 @@ fun RedPacketComposer(
     busy: Boolean = false,
     locked: Boolean = false,
     submitLabel: String? = null,
+    /** The currency's ISO 4217 exponent from the plugin's limits (0 JPY, 2 CNY, 3 KWD). */
+    currencyExponent: Int = 2,
     onKindChange: ((FlareRedPacketKind) -> Unit)? = null,
     onAmountChange: ((String) -> Unit)? = null,
     onCountChange: ((Int) -> Unit)? = null,
@@ -169,6 +195,12 @@ fun RedPacketComposer(
     val strings = flareStrings()
     val shown = redPacketShownKind(kind, kinds)
     val editable = !busy && !locked
+    val exponent = flareRedPacketExponent(currencyExponent)
+    // A currency with fewer decimals (the host switched currency) trims what was typed for the old one.
+    LaunchedEffect(exponent) {
+        val next = sanitizeRedPacketAmount(amount, exponent)
+        if (next != amount) onAmountChange?.invoke(next)
+    }
     Column(
         modifier.fillMaxWidth().padding(FlareSizes.spacingLg),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -211,10 +243,10 @@ fun RedPacketComposer(
             RedPacketFieldRow(
                 label = redPacketAmountLabel(shown, kinds, strings),
                 value = amount,
-                placeholder = "0.00",
-                keyboardType = KeyboardType.Decimal,
+                placeholder = flareRedPacketAmountText("0", exponent) ?: "0",
+                keyboardType = if (exponent > 0) KeyboardType.Decimal else KeyboardType.Number,
                 enabled = editable,
-                onValueChange = { onAmountChange?.invoke(sanitizeRedPacketAmount(it)) },
+                onValueChange = { onAmountChange?.invoke(sanitizeRedPacketAmount(it, exponent)) },
             )
             if (redPacketShowsCount(shown, kinds)) {
                 RedPacketFieldDivider()

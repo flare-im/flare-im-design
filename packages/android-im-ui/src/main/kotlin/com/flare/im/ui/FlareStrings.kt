@@ -1546,6 +1546,36 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
     val pluginViewAll: String
         get() = (overrides["pluginViewAll"] as? String) ?: "全部"
     // 插件页面行列表的空态、没有原因的不可用页面（rules.pageRows、rules.page）
+    val accountTransactions: String
+        get() = (overrides["accountTransactions"] as? String) ?: "交易记录"
+    val accountEmpty: String
+        get() = (overrides["accountEmpty"] as? String) ?: "暂无交易记录"
+    val accountEmptyDescription: String
+        get() = (overrides["accountEmptyDescription"] as? String) ?: "收支明细会显示在这里"
+    val accountInformation: String
+        get() = (overrides["accountInformation"] as? String) ?: "账户说明与规则"
+    val accountEntryDetails: String
+        get() = (overrides["accountEntryDetails"] as? String) ?: "交易详情"
+    val accountEntryId: String
+        get() = (overrides["accountEntryId"] as? String) ?: "记录编号"
+    val accountType: String
+        get() = (overrides["accountType"] as? String) ?: "类型"
+    val accountToday: String
+        get() = (overrides["accountToday"] as? String) ?: "今天"
+    val accountYesterday: String
+        get() = (overrides["accountYesterday"] as? String) ?: "昨天"
+    val accountOtherEntries: String
+        get() = (overrides["accountOtherEntries"] as? String) ?: "其他记录"
+    val accountShowBalance: String
+        get() = (overrides["accountShowBalance"] as? String) ?: "显示余额"
+    val accountHideBalance: String
+        get() = (overrides["accountHideBalance"] as? String) ?: "隐藏余额"
+    val accountBalanceHidden: String
+        get() = (overrides["accountBalanceHidden"] as? String) ?: "余额已隐藏"
+    val accountDayFormat: String
+        get() = (overrides["accountDayFormat"] as? String) ?: "M月d日"
+    val accountDayYearFormat: String
+        get() = (overrides["accountDayYearFormat"] as? String) ?: "y年M月d日"
     val pluginViewEmpty: String
         get() = (overrides["pluginViewEmpty"] as? String) ?: "暂无数据"
     // ResolvedPluginView.unavailableReason 的文案（spec/plugin-view-vectors.json unavailableReasons）
@@ -1643,6 +1673,61 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["callRecordJoin"] as? String) ?: "加入"
     val callRecordCallBack: String
         get() = (overrides["callRecordCallBack"] as? String) ?: "回拨"
+    // 已读名单（ReadReceiptSheet，spec/read-receipt-vectors.json）：读取失败、不可用、分页末尾键、没有摘要数字时的标签
+    val readReceiptLoadFailed: String
+        get() = (overrides["readReceiptLoadFailed"] as? String) ?: "名单读取失败"
+    val readReceiptUnavailable: String
+        get() = (overrides["readReceiptUnavailable"] as? String) ?: "这条消息的已读名单不可查看"
+    val readReceiptLoadMore: String
+        get() = (overrides["readReceiptLoadMore"] as? String) ?: "加载更多"
+    val readReceiptLoadMoreFailed: String
+        get() = (overrides["readReceiptLoadMoreFailed"] as? String) ?: "加载失败，点按重试"
+    val readReceiptRead: String
+        get() = (overrides["readReceiptRead"] as? String) ?: "已读"
+    val readReceiptUnread: String
+        get() = (overrides["readReceiptUnread"] as? String) ?: "未读"
+    // 红包浮层的「已退回」（RedPacketOpenSheet refunded）
+    val packetRefundedNotice: String
+        get() = (overrides["packetRefundedNotice"] as? String) ?: "红包已退回"
+    // 「我」页菜单的内置项与插件项回落标题（flareMeMenuSections）
+    val meMenuMoments: String
+        get() = (overrides["meMenuMoments"] as? String) ?: "圈子"
+    val meMenuReports: String
+        get() = (overrides["meMenuReports"] as? String) ?: "我的举报"
+    val meMenuInvite: String
+        get() = (overrides["meMenuInvite"] as? String) ?: "我的邀请"
+    val meMenuSettings: String
+        get() = (overrides["meMenuSettings"] as? String) ?: "设置"
+    val meMenuPluginFallback: String
+        get() = (overrides["meMenuPluginFallback"] as? String) ?: "插件"
+    // 合并转发记录（ForwardRecordMessage，spec/message-forward-vectors.json）；*One 是英文等语言的单数形态
+    val forwardRecordTitle: String
+        get() = (overrides["forwardRecordTitle"] as? String) ?: "合并转发"
+    val forwardRecordTotal: String
+        get() = (overrides["forwardRecordTotal"] as? String) ?: "共 {count} 条消息"
+    val forwardRecordTotalOne: String
+        get() = (overrides["forwardRecordTotalOne"] as? String) ?: "共 {count} 条消息"
+    val forwardRecordMore: String
+        get() = (overrides["forwardRecordMore"] as? String) ?: "还有 {count} 条消息…"
+    val forwardRecordMoreOne: String
+        get() = (overrides["forwardRecordMoreOne"] as? String) ?: "还有 {count} 条消息…"
+    val forwardRecordViewDetails: String
+        get() = (overrides["forwardRecordViewDetails"] as? String) ?: "点击查看详情"
+    val forwardRecordUnknownSender: String
+        get() = (overrides["forwardRecordUnknownSender"] as? String) ?: "未知发送者"
+    val forwardRecordEmpty: String
+        get() = (overrides["forwardRecordEmpty"] as? String) ?: "暂无转发内容"
+    val forwardRecordCountSuffix: String
+        get() = (overrides["forwardRecordCountSuffix"] as? String) ?: "（{count} 条）"
+    val forwardRecordCardLabel: String
+        get() = (overrides["forwardRecordCardLabel"] as? String) ?: "{title}，{subtitle}"
+    // 计数文案的单数形态（flarePlural，spec/plural-vectors.json）：count 落在 one 类别时用它，中文与复数形态相同
+    val pluginViewVotesOne: String
+        get() = (overrides["pluginViewVotesOne"] as? String) ?: "{count} 票"
+    val storageUsageFileCountOne: String
+        get() = (overrides["storageUsageFileCountOne"] as? String) ?: "{count} 个文件"
+    val myInviteCountOnlyOne: String
+        get() = (overrides["myInviteCountOnlyOne"] as? String) ?: "{count} 人"
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -4265,6 +4350,51 @@ class FlareStringsBuilder internal constructor() {
         get() = (values["pluginViewAll"] as? String) ?: "全部"
         set(value) { values["pluginViewAll"] = value }
     // 插件页面行列表的空态、没有原因的不可用页面
+    var accountTransactions: String
+        get() = (values["accountTransactions"] as? String) ?: "交易记录"
+        set(value) { values["accountTransactions"] = value }
+    var accountEmpty: String
+        get() = (values["accountEmpty"] as? String) ?: "暂无交易记录"
+        set(value) { values["accountEmpty"] = value }
+    var accountEmptyDescription: String
+        get() = (values["accountEmptyDescription"] as? String) ?: "收支明细会显示在这里"
+        set(value) { values["accountEmptyDescription"] = value }
+    var accountInformation: String
+        get() = (values["accountInformation"] as? String) ?: "账户说明与规则"
+        set(value) { values["accountInformation"] = value }
+    var accountEntryDetails: String
+        get() = (values["accountEntryDetails"] as? String) ?: "交易详情"
+        set(value) { values["accountEntryDetails"] = value }
+    var accountEntryId: String
+        get() = (values["accountEntryId"] as? String) ?: "记录编号"
+        set(value) { values["accountEntryId"] = value }
+    var accountType: String
+        get() = (values["accountType"] as? String) ?: "类型"
+        set(value) { values["accountType"] = value }
+    var accountToday: String
+        get() = (values["accountToday"] as? String) ?: "今天"
+        set(value) { values["accountToday"] = value }
+    var accountYesterday: String
+        get() = (values["accountYesterday"] as? String) ?: "昨天"
+        set(value) { values["accountYesterday"] = value }
+    var accountOtherEntries: String
+        get() = (values["accountOtherEntries"] as? String) ?: "其他记录"
+        set(value) { values["accountOtherEntries"] = value }
+    var accountShowBalance: String
+        get() = (values["accountShowBalance"] as? String) ?: "显示余额"
+        set(value) { values["accountShowBalance"] = value }
+    var accountHideBalance: String
+        get() = (values["accountHideBalance"] as? String) ?: "隐藏余额"
+        set(value) { values["accountHideBalance"] = value }
+    var accountBalanceHidden: String
+        get() = (values["accountBalanceHidden"] as? String) ?: "余额已隐藏"
+        set(value) { values["accountBalanceHidden"] = value }
+    var accountDayFormat: String
+        get() = (values["accountDayFormat"] as? String) ?: "M月d日"
+        set(value) { values["accountDayFormat"] = value }
+    var accountDayYearFormat: String
+        get() = (values["accountDayYearFormat"] as? String) ?: "y年M月d日"
+        set(value) { values["accountDayYearFormat"] = value }
     var pluginViewEmpty: String
         get() = (values["pluginViewEmpty"] as? String) ?: "暂无数据"
         set(value) { values["pluginViewEmpty"] = value }
@@ -4408,6 +4538,86 @@ class FlareStringsBuilder internal constructor() {
     var callRecordCallBack: String
         get() = (values["callRecordCallBack"] as? String) ?: "回拨"
         set(value) { values["callRecordCallBack"] = value }
+    // 已读名单（ReadReceiptSheet，spec/read-receipt-vectors.json）：读取失败、不可用、分页末尾键、没有摘要数字时的标签
+    var readReceiptLoadFailed: String
+        get() = (values["readReceiptLoadFailed"] as? String) ?: "名单读取失败"
+        set(value) { values["readReceiptLoadFailed"] = value }
+    var readReceiptUnavailable: String
+        get() = (values["readReceiptUnavailable"] as? String) ?: "这条消息的已读名单不可查看"
+        set(value) { values["readReceiptUnavailable"] = value }
+    var readReceiptLoadMore: String
+        get() = (values["readReceiptLoadMore"] as? String) ?: "加载更多"
+        set(value) { values["readReceiptLoadMore"] = value }
+    var readReceiptLoadMoreFailed: String
+        get() = (values["readReceiptLoadMoreFailed"] as? String) ?: "加载失败，点按重试"
+        set(value) { values["readReceiptLoadMoreFailed"] = value }
+    var readReceiptRead: String
+        get() = (values["readReceiptRead"] as? String) ?: "已读"
+        set(value) { values["readReceiptRead"] = value }
+    var readReceiptUnread: String
+        get() = (values["readReceiptUnread"] as? String) ?: "未读"
+        set(value) { values["readReceiptUnread"] = value }
+    // 红包浮层的「已退回」（RedPacketOpenSheet refunded）
+    var packetRefundedNotice: String
+        get() = (values["packetRefundedNotice"] as? String) ?: "红包已退回"
+        set(value) { values["packetRefundedNotice"] = value }
+    // 「我」页菜单的内置项与插件项回落标题（flareMeMenuSections）
+    var meMenuMoments: String
+        get() = (values["meMenuMoments"] as? String) ?: "圈子"
+        set(value) { values["meMenuMoments"] = value }
+    var meMenuReports: String
+        get() = (values["meMenuReports"] as? String) ?: "我的举报"
+        set(value) { values["meMenuReports"] = value }
+    var meMenuInvite: String
+        get() = (values["meMenuInvite"] as? String) ?: "我的邀请"
+        set(value) { values["meMenuInvite"] = value }
+    var meMenuSettings: String
+        get() = (values["meMenuSettings"] as? String) ?: "设置"
+        set(value) { values["meMenuSettings"] = value }
+    var meMenuPluginFallback: String
+        get() = (values["meMenuPluginFallback"] as? String) ?: "插件"
+        set(value) { values["meMenuPluginFallback"] = value }
+    // 合并转发记录（ForwardRecordMessage，spec/message-forward-vectors.json）；*One 是英文等语言的单数形态
+    var forwardRecordTitle: String
+        get() = (values["forwardRecordTitle"] as? String) ?: "合并转发"
+        set(value) { values["forwardRecordTitle"] = value }
+    var forwardRecordTotal: String
+        get() = (values["forwardRecordTotal"] as? String) ?: "共 {count} 条消息"
+        set(value) { values["forwardRecordTotal"] = value }
+    var forwardRecordTotalOne: String
+        get() = (values["forwardRecordTotalOne"] as? String) ?: "共 {count} 条消息"
+        set(value) { values["forwardRecordTotalOne"] = value }
+    var forwardRecordMore: String
+        get() = (values["forwardRecordMore"] as? String) ?: "还有 {count} 条消息…"
+        set(value) { values["forwardRecordMore"] = value }
+    var forwardRecordMoreOne: String
+        get() = (values["forwardRecordMoreOne"] as? String) ?: "还有 {count} 条消息…"
+        set(value) { values["forwardRecordMoreOne"] = value }
+    var forwardRecordViewDetails: String
+        get() = (values["forwardRecordViewDetails"] as? String) ?: "点击查看详情"
+        set(value) { values["forwardRecordViewDetails"] = value }
+    var forwardRecordUnknownSender: String
+        get() = (values["forwardRecordUnknownSender"] as? String) ?: "未知发送者"
+        set(value) { values["forwardRecordUnknownSender"] = value }
+    var forwardRecordEmpty: String
+        get() = (values["forwardRecordEmpty"] as? String) ?: "暂无转发内容"
+        set(value) { values["forwardRecordEmpty"] = value }
+    var forwardRecordCountSuffix: String
+        get() = (values["forwardRecordCountSuffix"] as? String) ?: "（{count} 条）"
+        set(value) { values["forwardRecordCountSuffix"] = value }
+    var forwardRecordCardLabel: String
+        get() = (values["forwardRecordCardLabel"] as? String) ?: "{title}，{subtitle}"
+        set(value) { values["forwardRecordCardLabel"] = value }
+    // 计数文案的单数形态（flarePlural，spec/plural-vectors.json）：count 落在 one 类别时用它，中文与复数形态相同
+    var pluginViewVotesOne: String
+        get() = (values["pluginViewVotesOne"] as? String) ?: "{count} 票"
+        set(value) { values["pluginViewVotesOne"] = value }
+    var storageUsageFileCountOne: String
+        get() = (values["storageUsageFileCountOne"] as? String) ?: "{count} 个文件"
+        set(value) { values["storageUsageFileCountOne"] = value }
+    var myInviteCountOnlyOne: String
+        get() = (values["myInviteCountOnlyOne"] as? String) ?: "{count} 人"
+        set(value) { values["myInviteCountOnlyOne"] = value }
 }
 
 

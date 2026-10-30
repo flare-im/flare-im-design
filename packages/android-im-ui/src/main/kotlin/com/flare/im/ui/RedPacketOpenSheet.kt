@@ -54,10 +54,11 @@ import androidx.compose.ui.unit.sp
  * What the open-packet layer shows. Spec: RedPacketOpenSheet `state`.
  *
  * [Ready] offers the gold open button; [Opening] flips it while the claim runs and takes no second tap; [Finished],
- * [Expired] and [NotEligible] say why there is nothing to open — the first two offer the details when the viewer may
- * see them, [NotEligible] never does; [Error] keeps the button for another try.
+ * [Expired], [Refunded] and [NotEligible] say why there is nothing to open — the first three offer the details when the
+ * viewer may see them, [NotEligible] never does; [Error] keeps the button for another try. [Refunded] is a packet that
+ * went back to its sender (PACKET_REFUNDED, or the public status refunded), not an expired one.
  */
-enum class FlareRedPacketOpenState { Ready, Opening, Finished, Expired, NotEligible, Error }
+enum class FlareRedPacketOpenState { Ready, Opening, Finished, Expired, Refunded, NotEligible, Error }
 
 /**
  * The large line on the flap: the blessing while there is something to open, otherwise why not (the host's
@@ -74,6 +75,7 @@ internal fun redPacketOpenHeadline(
         FlareRedPacketOpenState.Ready, FlareRedPacketOpenState.Opening, FlareRedPacketOpenState.Error -> blessing
         FlareRedPacketOpenState.Finished -> custom ?: strings.packetMissed
         FlareRedPacketOpenState.Expired -> custom ?: strings.packetExpiredNotice
+        FlareRedPacketOpenState.Refunded -> custom ?: strings.packetRefundedNotice
         FlareRedPacketOpenState.NotEligible -> custom ?: strings.packetNotEligible
     }
 }
@@ -88,12 +90,13 @@ internal fun redPacketOpenShowsButton(state: FlareRedPacketOpenState): Boolean =
         state == FlareRedPacketOpenState.Error
 
 /**
- * The details key (spec/red-packet-vectors.json `openSheet`): a finished or expired packet leads to its details when the
- * personal layer says the viewer may see them ([canViewDetails]); a not-eligible viewer never gets one — the server
- * returns them no amounts or records.
+ * The details key (spec/red-packet-vectors.json `openSheet`, `openSheetRefunded`): a finished, expired or refunded
+ * packet leads to its details when the personal layer says the viewer may see them ([canViewDetails]); a not-eligible
+ * viewer never gets one — the server returns them no amounts or records.
  */
 internal fun redPacketOpenShowsDetails(state: FlareRedPacketOpenState, canViewDetails: Boolean = true): Boolean =
-    canViewDetails && (state == FlareRedPacketOpenState.Finished || state == FlareRedPacketOpenState.Expired)
+    canViewDetails && (state == FlareRedPacketOpenState.Finished || state == FlareRedPacketOpenState.Expired ||
+        state == FlareRedPacketOpenState.Refunded)
 
 /** The envelope's width: the token, never closer than an extra-large gutter to the window's sides. */
 internal fun redPacketEnvelopeWidth(window: Dp): Dp =
@@ -108,7 +111,8 @@ internal fun redPacketEnvelopeWidth(window: Dp): Dp =
  * motion).
  *
  * - Copy: [FlareRedPacketOpenState.Finished] says the packet ran out, [FlareRedPacketOpenState.Expired] that it is
- *   past its lifetime, [FlareRedPacketOpenState.NotEligible] that this viewer cannot open it; the host's [message]
+ *   past its lifetime, [FlareRedPacketOpenState.Refunded] that it went back to its sender,
+ *   [FlareRedPacketOpenState.NotEligible] that this viewer cannot open it; the host's [message]
  *   (for instance "only they can open it") replaces each. Under [FlareRedPacketOpenState.Error] the message, or the
  *   kit's retry copy, shows under the blessing.
  * - Motion: while opening the button turns about its vertical axis. With animations removed (animator duration

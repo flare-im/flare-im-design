@@ -61,6 +61,8 @@ fun flareMessagePreviewText(content: FlareMessageContent?, strings: FlareStrings
     is FlareNotificationContent -> content.text.trim().ifEmpty { strings.previewSystem }
     is FlarePlaceholderContent -> content.label.trim().ifEmpty { strings.previewPlaceholder }
     is FlareGenericContent -> genericPreviewText(content, strings)
+    // A merged record says how many messages it carries; a lone forwarded message is a forward.
+    is FlareForwardContent -> if (content.items.size > 1) strings.previewForwardCount(content.items.size) else strings.previewForward
     else -> ""
 }
 

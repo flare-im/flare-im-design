@@ -40,8 +40,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.unit.constrainHeight
+import androidx.compose.ui.unit.constrainWidth
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.Role
@@ -85,7 +87,7 @@ import kotlinx.coroutines.delay
  * - [busy] disables everything; [busyActionId] too, and spins that action's key. [error] shows at the card's foot.
  * - People and entries name users through [resolveUser]; without an answer the avatar draws initials and the name is the
  *   id's last 4 characters. "See all" (entries with more) calls [onOpenDetail]; the host opens [PluginDetailSheet]. A
- *   view with a detail that no entries block offers gets a full-width quiet "view details" key under the action keys
+ *   view with a detail that no entries block offers gets a quiet text key beside its actions (or in its header)
  *   (not embedded, and only with [onOpenDetail]), disabled while busy.
  * - Badges (an entry's or a row's `badge`) draw as the kit tag in their tone: an entry reads number, avatar, name, "me",
  *   badge, text; a row leads its first line with it.
@@ -143,6 +145,7 @@ internal class PluginViewList(
 )
 
 /** [PluginView]; with [list] the view's parts are items of a lazy list (a plugin page) instead of a column. */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 internal fun PluginViewContent(
     view: PluginViewModel,
@@ -233,20 +236,29 @@ internal fun PluginViewContent(
     val keys = PluginViewFormat.keys(view, embedded)
     val detailKey = PluginViewFormat.detailKey(view, embedded, onOpenDetail != null, busy, busyActionId)
     val parts = pluginViewParts(view, embedded, quote != null, reasonLine, keys, detailKey, failure, strings)
+        .filterNot { it is PluginViewPart.DetailKey }
+    val detail: @Composable () -> Unit = {
+        Button(label = strings.pluginViewDetail, variant = FlareButtonVariant.Quiet, size = FlareControlSize.Sm,
+            disabled = detailKey != true, appearance = FlareButtonAppearance.Text, onClick = onOpenDetail)
+    }
 
     val drawPart: @Composable (PluginViewPart) -> Unit = { part ->
         when (part) {
             // The quote slot: a reply's quote sits inside the shell, above the title row; nothing nested inherits it.
             PluginViewPart.Quote -> quote?.invoke()
+            // The row spans the card and the title takes what the icon and the ⋯ key leave, so the key sits at the
+            // trailing edge whatever the title's length (spec rules.menuActions). Two weights here would split the
+            // spare width between the title and a spacer and leave the key in the middle.
             PluginViewPart.TitleRow -> Row(
+                Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs),
             ) {
                 if (icon != null && icon in flareIconNames) FlareIcon(icon, size = FlareSizes.iconSizeSm, tint = colors.primaryText)
-                Text(view.title, color = colors.textPrimary, fontSize = FlareSizes.fontSizeXl, fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.weight(1f, fill = false).semantics { heading() })
+                Text(view.title, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm, fontWeight = FontWeight.Medium,
+                    modifier = Modifier.weight(1f).semantics { heading() })
+                if (keys.isEmpty() && detailKey != null) detail()
                 if (menuActions.isNotEmpty()) {
-                    Spacer(Modifier.weight(1f))
                     // The ⋯ key keeps the title row's height; its touch target reaches past the glyph.
                     Box(Modifier.flareTouchTargetBeyond(FlareSizes.iconSizeMd)) {
                         FlareIconControl(
@@ -320,45 +332,48 @@ internal fun PluginViewContent(
                 onRun = { action, bound -> run(action, PluginActionPayload(row = PluginActionRow(part.row.key, bound.input))) },
             )
             is PluginViewPart.RowsEmpty -> Text(part.text, color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd)
-            is PluginViewPart.Keys -> {
-                val actionKey: @Composable (PluginViewAction, Modifier) -> Unit = { action, modifier ->
-                    Box(modifier) {
-                        Button(
-                            label = action.label, variant = PluginViewFormat.variant(action), loading = busyActionId == action.id,
-                            disabled = (locked && busyActionId != action.id) || onAction == null, block = true,
-                            onClick = { run(action, PluginActionPayload.Empty) },
-                        )
+            is PluginViewPart.Keys -> Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs)) {
+                if (!embedded) Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderSecondary))
+                PluginActionFooter(trailingDetail = detailKey != null) {
+                    part.actions.forEach { action ->
+                        Button(label = action.label, variant = PluginViewFormat.variant(action),
+                            loading = busyActionId == action.id,
+                            disabled = (locked && busyActionId != action.id) || onAction == null,
+                            size = FlareControlSize.Sm, appearance = FlareButtonAppearance.Text,
+                            onClick = { run(action, PluginActionPayload.Empty) })
                     }
-                }
-                if (part.actions.size > 2) {
-                    Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
-                        part.actions.forEach { actionKey(it, Modifier.fillMaxWidth()) }
-                    }
-                } else {
-                    Row(horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
-                        part.actions.forEach { actionKey(it, Modifier.weight(1f)) }
-                    }
+                    if (detailKey != null) detail()
                 }
             }
-            is PluginViewPart.DetailKey -> Button(
-                label = strings.pluginViewDetail, variant = FlareButtonVariant.Quiet, size = FlareControlSize.Sm,
-                disabled = !part.enabled, block = true, onClick = onOpenDetail,
-            )
+            // Detail is drawn beside the action keys, or in the header without actions.
+            is PluginViewPart.DetailKey -> Unit
             is PluginViewPart.Error -> StatusBanner(text = part.text, tone = FlareStatusTone.Danger)
         }
     }
 
-    if (list == null) {
+    if (hasResolvedPresentation(view)) {
+        val content: @Composable () -> Unit = {
+            quote?.invoke()
+            ResolvedPresentation(view, locked, failure, formErrors, members, settleToken, resolveUser,
+                onAction.takeUnless { locked }, { id -> view.actions.firstOrNull { it.id == id }?.let { run(it, PluginActionPayload.Empty) } })
+            if (PluginViewFormat.readOnly(view) && reasonLine != null) Text(reasonLine, color = colors.textTertiary)
+        }
+        if (list == null) Column(Modifier.fillMaxWidth().padding(pluginViewInsetPadding(inset))) { content() }
+        else LazyColumn(Modifier.fillMaxSize(), state = list.state, contentPadding = list.contentPadding) {
+            list.header(this)
+            item(key = "presentation") { content() }
+            list.footer(this)
+        }
+    } else if (list == null) {
         val shape = RoundedCornerShape(FlareSizes.radiusLg)
         // Every state takes the inset; a card shell kept in a sheet takes it around the shell.
         val shell = if (embedded) Modifier.fillMaxWidth().padding(pluginViewInsetPadding(inset)) else Modifier
             .padding(pluginViewInsetPadding(inset))
             .widthIn(max = FlareSizes.componentRichCardWidth)
             .fillMaxWidth()
-            .shadow(flareShadowElevation(flareShadows().card), shape, clip = false)
             .clip(shape)
             .background(colors.bgPrimary)
-            .border(1.dp, colors.borderSecondary, shape)
+            .border(1.dp, colors.borderSecondary.copy(alpha = colors.borderSecondary.alpha * 0.6f), shape)
             .padding(FlareSizes.spacingMd)
         Column(shell) {
             parts.forEachIndexed { i, part ->
@@ -512,6 +527,36 @@ internal fun pluginViewParts(
     // A read-only copy closes with why nothing on it acts.
     if (view.available && reasonLine != null) add(PluginViewPart.Line("readonly", reasonLine, quiet = true))
     if (failure != null) add(PluginViewPart.Error(failure))
+}
+
+/** Wrapping text actions; the optional final details key stays at the trailing edge of its row. */
+@Composable
+private fun PluginActionFooter(trailingDetail: Boolean, content: @Composable () -> Unit) {
+    Layout(content = content, modifier = Modifier.fillMaxWidth()) { measurables, constraints ->
+        val gap = FlareSizes.spacingMd.roundToPx()
+        val lineGap = FlareSizes.spacingSm.roundToPx()
+        val items = measurables.map { it.measure(constraints.copy(minWidth = 0, minHeight = 0)) }
+        val width = constraints.constrainWidth(if (constraints.hasBoundedWidth) constraints.maxWidth
+            else items.sumOf { it.width } + gap * (items.size - 1).coerceAtLeast(0))
+        val positions = mutableListOf<Pair<Int, Int>>()
+        var x = 0
+        var y = 0
+        var rowHeight = 0
+        items.forEachIndexed { index, item ->
+            if (x > 0 && x + item.width > width) {
+                x = 0
+                y += rowHeight + lineGap
+                rowHeight = 0
+            }
+            val itemX = if (trailingDetail && index == items.lastIndex) maxOf(x, width - item.width) else x
+            positions += itemX to y
+            x += item.width + gap
+            rowHeight = maxOf(rowHeight, item.height)
+        }
+        layout(width, constraints.constrainHeight(y + rowHeight)) {
+            items.forEachIndexed { index, item -> item.placeRelative(positions[index].first, positions[index].second) }
+        }
+    }
 }
 
 /** The space above a part: none for the first, none between the rows of one block (a hairline divides them), md otherwise. */
@@ -684,7 +729,7 @@ private fun PluginChoicesBlockView(
             val selected = option.index in chosen
             val waiting = option.index in held
             val percent = PluginViewFormat.percentText(option, block.showResults)
-            val votes = PluginViewFormat.votesText(option, block.showResults, strings)
+            val votes = PluginViewFormat.votesText(option, block.showResults, strings, flareLocale())
             val shape = RoundedCornerShape(FlareSizes.radiusMd)
             Box(
                 Modifier.fillMaxWidth().heightIn(min = FlareSizes.touchTargetMin)
@@ -756,7 +801,7 @@ private fun PluginEntriesBlockView(block: PluginEntriesBlock, users: Map<String,
         }
         block.items.forEachIndexed { position, entry ->
             // A grouped block opens each group with its header row.
-            PluginViewFormat.entryGroupHeader(block, entry, strings)?.let { header ->
+            PluginViewFormat.entryGroupHeader(block, entry, strings, flareLocale())?.let { header ->
                 Text(
                     header, color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd, fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.fillMaxWidth().padding(top = if (position > 0) FlareSizes.spacingXs else 0.dp).semantics { heading() },

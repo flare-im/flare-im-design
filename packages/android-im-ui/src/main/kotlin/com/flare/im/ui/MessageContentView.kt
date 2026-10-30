@@ -49,6 +49,10 @@ import java.util.Locale
 data class FlareContentContext(
     val isSelf: Boolean,
     val previewMode: Boolean = false,
+    /**
+     * The display name the host gave the message's sender, trimmed; null when it gave none — never the id or a
+     * placeholder, so a renderer writes "X 的红包" without looking the sender up by message id (spec MessageRenderContext).
+     */
     val senderName: String? = null,
     val mediaState: FlareMediaDownloadState? = null,
     val onMediaAction: ((FlareMessageContent) -> Unit)? = null,
@@ -66,6 +70,8 @@ data class FlareContentContext(
      * by itself; a renderer that draws another shell places it there.
      */
     val quote: (@Composable () -> Unit)? = null,
+    /** The message's sender id; null outside a message row. */
+    val senderId: String? = null,
 )
 
 typealias FlareContentBuilder = @Composable (FlareMessageContent, FlareContentContext) -> Unit
@@ -178,6 +184,8 @@ fun MessageContentView(
     onLocationOpen: ((FlareLocationContent) -> Unit)? = null,
     /** The row is in multi-select: the body is read-only and its taps belong to the row. */
     selectionMode: Boolean = false,
+    /** The sender's id, for a custom renderer ([FlareContentContext.senderId]); a message row fills it. */
+    senderId: String? = null,
 ) {
     val surface = LocalFlareMessageSurface.current
     val cardQuote = LocalFlareCardQuote.current
@@ -191,9 +199,9 @@ fun MessageContentView(
     val onCardOpen = onCardOpen.takeUnless { selectionMode }
     val onLocationOpen = onLocationOpen.takeUnless { selectionMode }
     val ctx = FlareContentContext(
-        isSelf, senderName = senderName, mediaState = mediaState, onMediaAction = onMediaAction,
+        isSelf, senderName = senderName?.trim()?.takeIf { it.isNotEmpty() }, mediaState = mediaState, onMediaAction = onMediaAction,
         messageId = messageId, conversationId = conversationId, selectionMode = selectionMode,
-        surface = surface, quote = cardQuote,
+        surface = surface, quote = cardQuote, senderId = senderId?.takeIf { it.isNotEmpty() },
     )
     val custom = LocalFlareContentBuilders.current[content.type] ?: FlareContentRegistry.lookup(content.type)
     if (custom != null) { custom(content, ctx); return }
@@ -337,6 +345,7 @@ fun MessageContentView(
                         descriptionMaxLines = Int.MAX_VALUE, onOpen = action,
                         icon = { Icon(Icons.AutoMirrored.Outlined.Announcement, null, tint = foreground) }, modifier = fill)
                 }
+                is FlareForwardContent -> ForwardRecordMessage(content, card = card, quote = cardQuote, selectionMode = selectionMode)
                 is FlareNotificationContent -> SystemMessage(content.text)
                 is FlarePlaceholderContent -> SystemMessage(content.label)
                 // A picture or a video whose address is missing waits or failed: its placeholder, never "unsupported".

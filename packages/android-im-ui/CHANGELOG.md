@@ -1,7 +1,27 @@
 ## 未发布
 
 - 通话：新增 `CallRecordCard` 与 `flareCallRecordStatus` / `flareCallRecordAction` 等规则（`FlareCallRecordScope`、`FlareCallRecordState`、`FlareCallEndReason`，`spec/call-record-vectors.json`），`FlareStrings` 新增 `callRecord*`；`CallView` 新增 `onMinimize`（传入才绘制收起按钮）。**破坏性**：`GroupCallView(state:)` 由 `String` 改为 `FlareCallState`。
-- 第八轮波 3：插件页面的数据与动作、行级徽标、多选上限（spec/plugin-view-vectors.json rules.page、pageRows、pagePaging、pageFilters、badge、maxSelections）：
+
+- `Drawer` 消费 `FlareSheetOwnHeader(back)`（带返回的 `FlareScreen` 自动声明）：隐藏重复页头，Escape / 系统返回先退当前页，忙碌锁定时两者均不分发页面返回。
+
+- 已读名单分页状态、函数式文案的英文、「我」页内置项副标题、合并转发条目文字与抽屉头像：
+  - **已读名单分页状态**：新增 `FlareReadReceiptListState`、`rememberFlareReadReceiptListState(key, page)`、`FlareReadReceiptPages` / `FlareReadReceiptMembers` 与取页函数类型 `FlareReadReceiptPageLoader`（按 `spec/read-receipt-list-vectors.json`，与 Vue `useFlareReadReceiptList` 同名同语义）：打开即两栏并发取第一页，任一不可查看为 unavailable、任一失败为 error；按栏翻页、去重、失败标记、换消息时丢弃在途结果都在 Kit。新增重载 `ReadReceiptSheet(list, readCount, unreadCount, …)`。
+  - **英文预设**：函数式文案（计数、名字、权限种类）全部有英文与单复数（新 `FlareStringsEnglishFormats.kt`，由生成的 `flareStringsEnglish()` 调用；用例表 `strings/en-formats.json`，测试要求每个函数式字段都有用例）。英文下会话预览「[Forward] 3 messages」、未读分隔「1 new message」等不再是中文。另补 `messageEdited`、`messageReadOnce`、`messageBurnAfterRead`、`messageExpired` 的英文。
+  - **「我」页菜单**：`flareMeMenuSections` 的 `summaries` 按项 id 对内置项同样生效（宿主给「我的邀请」的副标题）。
+  - **合并转发**：条目 `plainText` 是核心给的可读文字，按正文摘要的读法画（Markdown 转纯文本、表情包键按读者语言）；抽屉头像首字取发送者名字，没有名字画「?」（原来取「未知发送者」的「未」），新增 `flareForwardSenderInitial`。
+
+- 已读名单分页、渲染上下文的发送者、红包已退回与币种小数位、「我」页菜单、图标回落、合并转发记录与复数（契约与向量四端共用）：
+  - **已读名单**：`ReadReceiptSheet` 新增 `readCount` / `unreadCount`（标签数字只取摘要人数，不取名单长度；不传时用纯文案 `readReceiptRead` / `readReceiptUnread`）、`state: FlareReadReceiptState`（Ready / Loading / Error / Unavailable）、两栏各自分页（`readHasMore` / `unreadHasMore`、`loadingMore` / `loadMoreFailed: FlareReadReceiptColumn?`、`onLoadMore(column)`）、`onRetry`、`initialTab`、`modifier`；名单改为懒列表，行、标签与关闭键命中区不小于 `touchTarget`。宽度随容器（不在 Kit 浮层里时自画卡片、最宽 320）；放进 `BottomSheet` 时不画卡片外壳并调用 `FlareSheetOwnHeader()`，`fill` 模式下面板不再画第二遍标题、名单占满剩余高度。新增纯函数 `flareReadReceiptPresentation`（`spec/read-receipt-vectors.json`）。
+  - **渲染上下文**：`FlareContentContext` 新增 `senderId`；`senderName` 去空白、空串为 null。`MessageContentView` 新增 `senderId`，`MessageBubble` 传入。
+  - **红包**：`FlareRedPacketOpenState` 新增 `Refunded`（`packetRefundedNotice`「红包已退回」，按 `canViewDetails` 给详情键）；`RedPacketComposer` 新增 `currencyExponent`（默认 2）：金额最多保留这么多位小数（0 位时不收小数点、数字键盘），占位按小数位写，币种小数位变少时裁掉多余小数。新增 `flareRedPacketAmountMinor`、`flareRedPacketExponent`。
+  - **「我」页菜单**：新增 `flareMeMenuSections(menu, labels, summaries, strings)`、`FlareMeMenu`（`parse(json)` 读社交 SDK 的结果）、`FlareMeMenuItem`、`FlareMeMenuBuiltin`；文案 `meMenuMoments` / `Reports` / `Invite` / `Settings` / `PluginFallback`。
+  - **图标**：注册表追加 `wallet`（`Icons.Outlined.AccountBalanceWallet`，109 个）。不认识的图标名改画 `plugin` 字形（原为问号），日志按名字告警一次；新增 `flareIconNameOrFallback` 与 `FLARE_ICON_FALLBACK`。
+  - **合并转发记录**：新增内容模型 `FlareForwardContent` / `FlareForwardItem` / `FlareForwardMode`（类型 `forward`，card 表面）与纯函数 `flareForwardRecordView`；`MessageContentView` 画聊天记录卡片（标题、「共 N 条消息」、前三条「发送者: 摘要」、「还有 N 条消息…」、「点击查看详情」），点卡打开 Kit `Drawer` 列出全部消息，单条非合并时直接画那一条；会话预览读作「[转发] N 条消息」。文案 `forwardRecord*`。
+  - **复数**：新增 `flarePluralIsOne`、`flarePluralForm`、`flarePlural`（按 `spec/plural-vectors.json` 的 CLDR 规则表），计数文案新增单数字段 `pluginViewVotesOne`、`storageUsageFileCountOne`、`myInviteCountOnlyOne`、`forwardRecordTotalOne`、`forwardRecordMoreOne`；投票票数、分组组头、存储文件数、邀请人数按 Kit locale 取形态。
+  - **插件卡片**：标题行占满卡片、标题取剩余宽度，⋯ 键贴行尾（原来两处 weight 平分空间，⋯ 停在行中间）。choices 页脚不再画 total，只有多选上限提示与「已结束」。
+  - 测试：新增 `ReadReceiptVectorsTest`、`MeMenuVectorsTest`、`ForwardRecordVectorsTest`、`PluralVectorsTest`，`RedPacketComponentsTest` 读 openSheetRefunded、amountInputExponent、amountMinor、amountPlaceholder。
+
+- 插件页面的数据与动作、行级徽标、多选上限（spec/plugin-view-vectors.json rules.page、pageRows、pagePaging、pageFilters、badge、maxSelections）：
   - **破坏性**：`FlarePluginPage` 新增必填 `page: PluginPageRef`，`view` 改为 `PluginPageViewModel`（视图 + `data`，`fromJson` / `fromMap` 读核心 SDK 的 pluginPage 结果），`onAction` 改为 `(String, PluginPageActionPayload)`（page、data、row、selection、formValues，即页面动作请求，`toJson()` 原样交给核心）；删除 `onOpenDetail`（页面没有详情）。新增 `filters` 与 `onFilter`。
   - 页面状态四种：首次加载、无视图失败（加载停止后才显示，带重试）、不可用（Kit 空态写原因文案，没有原因用 `pluginViewEmpty`，只有 `catalog_unreachable` 带重试；不画刷新、筛选、加载更多与动作）、已加载（刷新失败时顶部危险横幅）。页面改为懒列表：横幅、筛选、视图各部分（同一张主色面板）、加载更多都是列表项，长明细不再一次性组合全部行。
   - 筛选：rows 块列出的 select 输入（不列为全部输入）各画一行 `FilterTabs`，「全部」在前；选中项由宿主的 `filters` 决定，选另一项发出 `onFilter`（宿主其他筛选值保留），选当前项不发；刷新或加载更多时禁用。

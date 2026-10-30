@@ -43,6 +43,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -70,6 +71,8 @@ internal data class FlareLocationPickerModel(
     val query: String = "",
     /** The places for [query]; null while the search runs. */
     val results: List<FlareLocationPlace>? = emptyList(),
+    val searchUnavailable: Boolean = false,
+    val nearbyUnavailable: Boolean = false,
     val selected: FlareLocationPlace? = null,
     /** The point the map shows and the image for it; [mapUnavailable] once the host had no image for it. */
     val previewing: FlareLocationCoordinate? = null,
@@ -80,6 +83,7 @@ internal data class FlareLocationPickerModel(
 
     private val searchQuery: String get() = query.trim()
     val isSearching: Boolean get() = searchQuery.isNotEmpty()
+    val lookupUnavailable: Boolean get() = if (isSearching) searchUnavailable else nearbyUnavailable
 
     // Position
 
@@ -119,18 +123,29 @@ internal data class FlareLocationPickerModel(
     /** The places around [point]; dropped when the first row has moved on. A place that repeats the first row's id is left out. */
     fun nearbyLoaded(places: List<FlareLocationPlace>, point: FlareLocationCoordinate?): FlareLocationPickerModel {
         if (current?.coordinate != point) return this
-        return copy(nearby = places.filter { it.id != FlareLocationPlace.CURRENT_ID })
+        return copy(nearby = places.filter { it.id != FlareLocationPlace.CURRENT_ID }, nearbyUnavailable = false)
     }
+
+    fun nearbyStarted() = copy(nearbyUnavailable = false)
+
+    fun nearbyFailed(point: FlareLocationCoordinate?): FlareLocationPickerModel =
+        if (current?.coordinate == point) copy(nearbyUnavailable = true) else this
 
     /** The user typed: a blank query goes back to the nearby list, any other starts its search. */
     fun queryChanged(text: String): FlareLocationPickerModel {
         val next = copy(query = text)
-        return next.copy(results = if (next.isSearching) null else emptyList())
+        return next.copy(results = if (next.isSearching) null else emptyList(), searchUnavailable = false)
     }
 
-    /** The places for [text]; dropped unless it is still the query. A failed search has no results. */
+    fun searchStarted(text: String): FlareLocationPickerModel =
+        if (text == searchQuery) copy(results = null, searchUnavailable = false) else this
+
+    fun searchFailed(text: String): FlareLocationPickerModel =
+        if (text == searchQuery) copy(results = emptyList(), searchUnavailable = true) else this
+
+    /** The successful places for [text]; dropped unless it is still the query. */
     fun searchFinished(text: String, places: List<FlareLocationPlace>): FlareLocationPickerModel =
-        if (text == searchQuery) copy(results = places) else this
+        if (text == searchQuery) copy(results = places, searchUnavailable = false) else this
 
     fun select(place: FlareLocationPlace) = copy(selected = place)
 
@@ -168,8 +183,8 @@ internal data class FlareLocationPickerModel(
                 },
             )
             if (isSearching && results == null) add(FlareLocationPickerStatus.Searching)
-            if (isSearching && results?.isEmpty() == true) add(FlareLocationPickerStatus.NoResults)
-            if (mapUnavailable) add(FlareLocationPickerStatus.MapUnavailable)
+            if (isSearching && !searchUnavailable && results?.isEmpty() == true) add(FlareLocationPickerStatus.NoResults)
+            if (mapUnavailable || lookupUnavailable) add(FlareLocationPickerStatus.MapUnavailable)
         }
 
     /** [statuses] with the host's send in flight (`sending`). */
@@ -301,6 +316,8 @@ fun LocationPicker(
     val strings = flareStrings()
     var model by remember { mutableStateOf(FlareLocationPickerModel.initial(initialLocation)) }
     var locateRun by remember { mutableIntStateOf(0) }
+    var lookupRun by remember { mutableIntStateOf(0) }
+    var previewRun by remember { mutableIntStateOf(0) }
     // The map's width in dp; the request is in device pixels.
     var mapWidth by remember { mutableFloatStateOf(0f) }
     val density = LocalDensity.current.density
@@ -326,23 +343,31 @@ fun LocationPicker(
         val address = geocode?.let { runCatching { it(point.latitude, point.longitude) }.getOrNull() } ?: return@LaunchedEffect
         model = model.geocoded(address, point)
     }
-    LaunchedEffect(model.current?.coordinate) {
-        val point = model.current?.coordinate ?: return@LaunchedEffect
-        val nearby = search ?: return@LaunchedEffect
-        val places = runCatching { nearby(point.latitude, point.longitude, "") }.getOrNull().orEmpty()
-        model = model.nearbyLoaded(places, point)
-    }
-    LaunchedEffect(model.query) {
+    LaunchedEffect(model.query, model.current?.coordinate, lookupRun) {
         val text = model.query.trim()
-        if (text.isEmpty()) return@LaunchedEffect
-        delay(LOCATION_PICKER_SEARCH_DELAY_MS)
+        val host = search ?: return@LaunchedEffect
         val point = model.current?.coordinate
-        val places = search?.let { runCatching { it(point?.latitude, point?.longitude, text) }.getOrNull() }.orEmpty()
-        model = model.searchFinished(text, places)
+        if (text.isEmpty()) {
+            if (point == null) return@LaunchedEffect
+            model = model.nearbyStarted()
+        } else {
+            model = model.searchStarted(text)
+            delay(LOCATION_PICKER_SEARCH_DELAY_MS)
+        }
+        try {
+            val places = host(point?.latitude, point?.longitude, text)
+            currentCoroutineContext().ensureActive()
+            model = if (text.isEmpty()) model.nearbyLoaded(places, point) else model.searchFinished(text, places)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            currentCoroutineContext().ensureActive()
+            model = if (text.isEmpty()) model.nearbyFailed(point) else model.searchFailed(text)
+        }
     }
     val (previewWidth, previewHeight) =
         FlareLocationFormat.previewPixels(mapWidth.toDouble(), LOCATION_PICKER_MAP_HEIGHT.value.toDouble(), density.toDouble())
-    LaunchedEffect(model.mapCenter, previewWidth, previewHeight) {
+    LaunchedEffect(model.mapCenter, previewWidth, previewHeight, previewRun) {
         val point = model.mapCenter ?: return@LaunchedEffect
         if (previewWidth <= 0) return@LaunchedEffect
         model = model.previewStarted(point)
@@ -350,6 +375,7 @@ fun LocationPicker(
         val url = host?.let {
             runCatching { it(point.latitude, point.longitude, zoom, previewWidth, previewHeight) }.getOrNull()
         }
+        currentCoroutineContext().ensureActive()
         model = model.previewLoaded(url, point)
     }
 
@@ -386,6 +412,8 @@ fun LocationPicker(
                         Text(it, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm, maxLines = 2,
                             overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
                     }
+                    Button(label = strings.retry, variant = FlareButtonVariant.Text, size = FlareControlSize.Sm,
+                           onClick = { previewRun += 1 })
                 }
             } else {
                 FlareMapSnapshot(model.snapshotUrl, provider, Modifier.matchParentSize(), pin = false)
@@ -426,6 +454,10 @@ fun LocationPicker(
                 CircularProgressIndicator(Modifier.size(FlareSizes.iconSizeMd), strokeWidth = 2.dp, color = colors.primaryText)
             }
             else -> LazyColumn(listModifier) {
+                if (model.lookupUnavailable) item {
+                    EmptyState(title = strings.locationMapUnavailable, actionText = strings.retry,
+                               icon = "location", tone = FlareEmptyStateTone.Error, onAction = { lookupRun += 1 })
+                }
                 items(model.rows, key = { it.id }) { place ->
                     LocationPlaceRow(
                         place = place, selected = model.selected?.id == place.id,

@@ -198,7 +198,7 @@ fun MyInvitePanel(
         Spacer(Modifier.height(FlareSizes.spacingSm))
         when {
             !showProfiles -> Text(
-                strings.myInviteCountOnly.replace("{count}", inviteeCount.toString()),
+                flarePlural(inviteeCount.toLong(), strings.myInviteCountOnlyOne, strings.myInviteCountOnly, flareLocale()),
                 color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp,
             )
             showSkeleton -> repeat(3) {

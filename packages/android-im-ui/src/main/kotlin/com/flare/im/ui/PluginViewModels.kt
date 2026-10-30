@@ -395,6 +395,7 @@ data class PluginViewModel(
     val menuActions: List<PluginViewAction> = emptyList(),
     /** Why the view is unavailable, or read-only ([PluginUnavailableReason.UnboundCopy]); null otherwise. */
     val unavailableReason: PluginUnavailableReason? = null,
+    val presentation: Map<String, Any?>? = null,
 ) {
     /** The inputs an action's form collects, in the order of `action.form`; ids the view does not hold are dropped. */
     fun formInputs(action: PluginViewAction): List<PluginInput> =
@@ -420,6 +421,7 @@ data class PluginViewModel(
             nextCursor = (map["nextCursor"] as? String)?.takeIf { it.isNotBlank() },
             menuActions = map.list("menuActions").mapNotNull { (it as? Map<*, *>)?.action() },
             unavailableReason = PluginUnavailableReason.fromWire(map["unavailableReason"] as? String),
+            presentation = (map["presentation"] as? Map<*, *>)?.entries?.filter { it.key is String }?.associate { it.key as String to it.value },
         )
     }
 }
@@ -615,7 +617,9 @@ internal object PluginViewFormat {
         return ids.toList()
     }
 
-    fun votes(count: Int, strings: FlareStrings): String = strings.pluginViewVotes.replace("{count}", count.toString())
+    /** "{count} 票" in the plural form [locale] takes for [count] (spec/plural-vectors.json). */
+    fun votes(count: Int, strings: FlareStrings, locale: java.util.Locale = java.util.Locale.ROOT): String =
+        flarePlural(count.toLong(), strings.pluginViewVotesOne, strings.pluginViewVotes, locale)
 
     /** An entry's number: its index in a numbered block, none in a block with `numbered` false. */
     fun entryNumber(block: PluginEntriesBlock, entry: PluginEntry): String? = if (block.numbered) entry.index.toString() else null
@@ -624,15 +628,19 @@ internal object PluginViewFormat {
      * The header a group opens with (spec/plugin-view-vectors.json `entryGroupHeaders`): the label, the votes when the
      * count is there, the percent when it is there, joined by " · ".
      */
-    fun groupHeader(group: PluginEntryGroup, strings: FlareStrings): String = buildList {
+    fun groupHeader(group: PluginEntryGroup, strings: FlareStrings, locale: java.util.Locale = java.util.Locale.ROOT): String = buildList {
         add(group.label)
-        group.count?.let { add(votes(it, strings)) }
+        group.count?.let { add(votes(it, strings, locale)) }
         group.percent?.let { add("$it%") }
     }.joinToString(" · ")
 
     /** The header drawn before [entry] in [block]: only grouped blocks have them, on the entries that open a group. */
-    fun entryGroupHeader(block: PluginEntriesBlock, entry: PluginEntry, strings: FlareStrings): String? =
-        entry.group?.takeIf { block.grouped }?.let { groupHeader(it, strings) }
+    fun entryGroupHeader(
+        block: PluginEntriesBlock,
+        entry: PluginEntry,
+        strings: FlareStrings,
+        locale: java.util.Locale = java.util.Locale.ROOT,
+    ): String? = entry.group?.takeIf { block.grouped }?.let { groupHeader(it, strings, locale) }
 
     /** The viewer's own row carries the "me" tag. */
     fun isMe(entry: PluginEntry, viewerId: String?): Boolean = !viewerId.isNullOrEmpty() && entry.userId == viewerId
@@ -743,15 +751,15 @@ internal object PluginViewFormat {
         view.title.takeIf { embedded && !view.available && it.isNotEmpty() }
 
     /**
-     * The line under a choices block: the cap while the block can be chosen ("最多选 2 项"), ended, and the total while
-     * results show.
+     * The line under a choices block: the cap while the block can be chosen ("最多选 2 项"), then ended. The block's
+     * total is only the denominator of the shares — a voter count or the sum of the counts — so it is never drawn: "N 票"
+     * belongs to the options, and how many took part is the plugin's own row (spec rules.choices).
      */
     fun choicesFooter(block: PluginChoicesBlock, strings: FlareStrings): String? {
         val parts = buildList {
             val cap = block.cap
             if (cap != null && block.action != null && !block.closed) add(strings.pluginViewMaxSelections.replace("{n}", cap.toString()))
             if (block.closed) add(strings.pluginViewEnded)
-            if (block.showResults && block.total != null) add(votes(block.total, strings))
         }
         return parts.takeIf { it.isNotEmpty() }?.joinToString(" · ")
     }
@@ -759,8 +767,8 @@ internal object PluginViewFormat {
     fun percentText(option: PluginChoice, showResults: Boolean): String? =
         if (showResults && option.percent != null) "${option.percent}%" else null
 
-    fun votesText(option: PluginChoice, showResults: Boolean, strings: FlareStrings): String? =
-        if (showResults && option.count != null) votes(option.count, strings) else null
+    fun votesText(option: PluginChoice, showResults: Boolean, strings: FlareStrings, locale: java.util.Locale = java.util.Locale.ROOT): String? =
+        if (showResults && option.count != null) votes(option.count, strings, locale) else null
 
     /** A number as a progress block writes it: whole numbers without a fraction. */
     fun number(value: Double): String {

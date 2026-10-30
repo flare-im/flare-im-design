@@ -19,6 +19,9 @@ internal object SpecTables {
 
     fun table(name: String): Map<*, *> = FlareJson.parse(find("spec/$name").readText()) as Map<*, *>
 
+    /** A table of the shared copy source (`strings/<name>`), such as the function fields' `en-formats.json`. */
+    fun strings(name: String): Map<*, *> = FlareJson.parse(find("strings/$name").readText()) as Map<*, *>
+
     private val shared: Map<*, *> by lazy { FlareJson.parse(find("strings/en.json").readText()) as Map<*, *> }
 
     /** One field of the shared copy source in [language] ("zh" or "en"). */

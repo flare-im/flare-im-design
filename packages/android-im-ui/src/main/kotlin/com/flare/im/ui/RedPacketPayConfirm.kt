@@ -42,6 +42,7 @@ fun RedPacketPayConfirm(
     onCancel: () -> Unit,
     insufficient: Boolean = false,
     busy: Boolean = false,
+    confirmLabel: String? = null,
 ) {
     val strings = flareStrings()
     BottomSheet(
@@ -51,7 +52,7 @@ fun RedPacketPayConfirm(
         titleHidden = true,
         dismissible = !busy,
     ) {
-        RedPacketPayConfirmBody(amount, methodLabel, insufficient, busy, onConfirm, onCancel)
+        RedPacketPayConfirmBody(amount, methodLabel, insufficient, busy, onConfirm, onCancel, confirmLabel)
     }
 }
 
@@ -63,6 +64,7 @@ internal fun RedPacketPayConfirmBody(
     busy: Boolean,
     onConfirm: () -> Unit,
     onCancel: () -> Unit,
+    confirmLabel: String? = null,
 ) {
     val colors = flareColors()
     val strings = flareStrings()
@@ -107,7 +109,7 @@ internal fun RedPacketPayConfirmBody(
             // The family's red action. `loading` already holds it while busy; `disabled` would also dim the progress.
             RedPacketMoneyTint {
                 Button(
-                    label = strings.packetPayConfirm, variant = FlareButtonVariant.Primary, size = FlareControlSize.Lg,
+                    label = confirmLabel ?: strings.packetPayConfirm, variant = FlareButtonVariant.Primary, size = FlareControlSize.Lg,
                     loading = busy, disabled = insufficient, block = true, onClick = onConfirm,
                 )
             }

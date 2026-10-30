@@ -152,6 +152,7 @@ fun FlarePluginPage(
     onLoadMore: ((String) -> Unit)? = null,
     /** A filter tab was chosen: the host's filters updated; the host reads the first page with them. */
     onFilter: ((Map<String, Any?>) -> Unit)? = null,
+    appearance: FlarePluginPageAppearance = FlarePluginPageAppearance.Document,
     onAction: ((String, PluginPageActionPayload) -> Unit)? = null,
 ) {
     val colors = flareColors()
@@ -246,6 +247,12 @@ fun FlarePluginPage(
                             },
                         )
                         val actions = pluginDetailActionState(busyActionId, actionError, formErrors, members, settleToken)
+                        if (appearance == FlarePluginPageAppearance.Account || loaded.view.presentation?.get("renderer") == "account") {
+                            AccountViewContent(loaded.view, actions.busyActionId, actions.error, actions.formErrors,
+                                actions.members, actions.settleToken, onAction?.let { emit ->
+                                    { id, payload -> emit(id, PluginPageActionPayload.of(page, loaded, payload)) }
+                                }, list)
+                        } else
                         PluginViewContent(
                             view = loaded.view, icon = null, busy = false, busyActionId = actions.busyActionId, error = actions.error,
                             embedded = true, inset = PluginViewInset.None, resolveUser = resolveUser, members = actions.members,

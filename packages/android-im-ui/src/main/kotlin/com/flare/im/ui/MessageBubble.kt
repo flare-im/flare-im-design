@@ -465,6 +465,7 @@ private fun MessageSurfaceBody(
                 onCardOpen = intents.cardOpen,
                 onLocationOpen = intents.locationOpen,
                 selectionMode = selectionMode,
+                senderId = message.senderId,
             )
         }
     }

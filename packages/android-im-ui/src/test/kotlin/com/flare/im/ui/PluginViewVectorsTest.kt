@@ -349,7 +349,8 @@ class PluginViewVectorsTest {
         assertNull(PluginViewFormat.choicesFooter(capped.copy(multiple = false), s))
         assertNull(PluginViewFormat.choicesFooter(capped.copy(maxSelections = 0), s))
         assertEquals(s.pluginViewEnded, PluginViewFormat.choicesFooter(capped.copy(closed = true), s))
-        assertEquals("最多选 2 项 · 3 票", PluginViewFormat.choicesFooter(capped.copy(showResults = true, total = 3), s), "the hint leads the votes")
+        // The total is only the shares' denominator (voters or the sum of the counts): never drawn.
+        assertEquals("最多选 2 项", PluginViewFormat.choicesFooter(capped.copy(showResults = true, total = 3), s), "no total after the hint")
     }
 
     @Test fun badgesReadTheirToneAndAnUnknownOneIsNeutral() {

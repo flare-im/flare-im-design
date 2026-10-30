@@ -1,7 +1,6 @@
 package com.flare.im.ui
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -46,12 +45,13 @@ class SemanticIconApiTest {
     }
 
     @Test fun anUnknownNameDrawsTheFallbackAndNeverCrashes() {
-        // Drawn, not thrown, and never the word itself.
-        assertEquals(Icons.AutoMirrored.Outlined.HelpOutline, flareIconVector("not-a-registry-name"))
-        assertEquals(Icons.AutoMirrored.Outlined.HelpOutline, flareIconVector(""))
+        // Drawn, not thrown, never the word itself and never a question mark: the shared plugin glyph.
+        val fallback = flareIconVector(FLARE_ICON_FALLBACK)
+        assertEquals(fallback, flareIconVector("not-a-registry-name"))
+        assertEquals(fallback, flareIconVector(""))
         // A typo an app might make (a Material glyph name, an SF Symbol) resolves to the same fallback.
         for (typo in listOf("MoreVert", "person.crop.circle", "chat_bubble_outline", "person add")) {
-            assertEquals(Icons.AutoMirrored.Outlined.HelpOutline, flareIconVector(typo), typo)
+            assertEquals(fallback, flareIconVector(typo), typo)
             assertNull(flareIconVectorOrNull(typo), typo)
         }
     }

@@ -1,6 +1,8 @@
 package com.flare.im.ui
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -52,6 +54,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -76,6 +79,8 @@ private fun selectHPad(size: FlareControlSize) = when (size) {
 
 // MARK: - Button
 
+enum class FlareButtonAppearance { Standard, Text }
+
 /** Foundation button — variant × size. Spec: General/Button. */
 @Composable
 fun Button(
@@ -88,6 +93,7 @@ fun Button(
     /** A semantic icon name from the registry (`docs/ICON-LIBRARY.md`), not a platform glyph. */
     icon: String? = null,
     onClick: (() -> Unit)? = null,
+    appearance: FlareButtonAppearance = FlareButtonAppearance.Standard,
     content: (@Composable () -> Unit)? = null,
 ) {
     val colors = flareColors()
@@ -99,7 +105,11 @@ fun Button(
     // ghost / text 的**文字**取 primaryText 而不是 primary:两者是一对的两半,浅色下同为
     // #7047D6 所以看不出来,暗色下 primary 不变(在 #20232B 上 2.66:1,AA 正文要 4.5)而
     // primaryText 提亮成 #A78BFA(5.77:1)。ghost 的描边仍用 primary —— 描边是填充不是文字。
-    val (fill, fg, borderColor) = when (variant) {
+    val (fill, fg, borderColor) = if (appearance == FlareButtonAppearance.Text) Triple(Color.Transparent, when (variant) {
+        FlareButtonVariant.Primary, FlareButtonVariant.Text, FlareButtonVariant.Ghost -> colors.primaryText
+        FlareButtonVariant.Danger -> colors.errorText
+        else -> colors.textSecondary
+    }, Color.Transparent) else when (variant) {
         FlareButtonVariant.Primary -> Triple(colors.primary, Color.White, Color.Transparent)
         FlareButtonVariant.Secondary -> Triple(colors.bgSecondary, colors.textPrimary, colors.borderPrimary)
         FlareButtonVariant.Ghost -> Triple(Color.Transparent, colors.primaryText, colors.primary.copy(alpha = 0.4f))
@@ -108,13 +118,19 @@ fun Button(
         FlareButtonVariant.Quiet -> Triple(Color.Transparent, colors.textSecondary, Color.Transparent)
     }
 
+    val interactionSource = remember { MutableInteractionSource() }
+    val focused by interactionSource.collectIsFocusedAsState()
+    val textFocus = appearance == FlareButtonAppearance.Text && focused && !off
+    val background = if (textFocus) fg.copy(alpha = 0.1f) else fill
+
     var m = Modifier
         .then(if (block) Modifier.fillMaxWidth() else Modifier)
-        .defaultMinSize(minHeight = spec.height.dp).clip(shape).background(fill)
+        .defaultMinSize(minHeight = if (appearance == FlareButtonAppearance.Text) FlareSizes.touchTarget else spec.height.dp, minWidth = if (appearance == FlareButtonAppearance.Text) FlareSizes.touchTarget else 0.dp).clip(shape).background(background)
         .border(1.dp, borderColor, shape)
         .flareDimmed(if (disabled || onClick == null) 0.5f else 1f)
-    m = m.clickable(enabled = !off, role = androidx.compose.ui.semantics.Role.Button) { onClick?.invoke() }
-    m = m.padding(horizontal = spec.hPad.dp, vertical = FlareSizes.spacingSm)
+    m = m.clickable(interactionSource = interactionSource, indication = androidx.compose.foundation.LocalIndication.current,
+        enabled = !off, role = androidx.compose.ui.semantics.Role.Button) { onClick?.invoke() }
+    m = m.padding(horizontal = if (appearance == FlareButtonAppearance.Text) 0.dp else spec.hPad.dp, vertical = FlareSizes.spacingSm)
 
     // A block button centres its label across the width, as on iOS and the web; a hugging one has no slack to place.
     Row(
@@ -131,7 +147,8 @@ fun Button(
             Text(
                 label,
                 color = fg,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = if (textFocus) FontWeight.Bold else FontWeight.SemiBold,
+                textDecoration = TextDecoration.None,
                 fontSize = spec.font.sp,
                 maxLines = if (largeText) 2 else 1,
                 overflow = TextOverflow.Ellipsis,

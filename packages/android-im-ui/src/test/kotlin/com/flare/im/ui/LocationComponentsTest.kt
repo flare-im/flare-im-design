@@ -6,6 +6,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlinx.coroutines.runBlocking
@@ -215,6 +216,33 @@ class LocationComponentsTest {
         model = model.queryChanged("  ")
         assertEquals(listOf(FlareLocationPlace.CURRENT_ID, "a"), model.rows.map { it.id }, "a blank query is the nearby list")
         assertEquals(setOf(FlareLocationPickerStatus.Located), model.statuses)
+    }
+
+    @Test fun lookupFailureIsNotAnEmptyResultAndCanRecover() {
+        var model = FlareLocationPickerModel.initial(null).locateFailed().queryChanged("coffee").searchFailed("coffee")
+        assertTrue(model.lookupUnavailable)
+        assertTrue(FlareLocationPickerStatus.MapUnavailable in model.statuses)
+        assertFalse(FlareLocationPickerStatus.NoResults in model.statuses)
+        model = model.searchStarted("coffee")
+        assertTrue(FlareLocationPickerStatus.Searching in model.statuses)
+        model = model.searchFinished("coffee", listOf(poi("c")))
+        assertFalse(model.lookupUnavailable)
+        assertEquals(listOf("c"), model.rows.map { it.id })
+        model = model.queryChanged("new query").searchFailed("coffee")
+        assertFalse(model.lookupUnavailable, "late errors must not overwrite a newer query")
+    }
+
+    @Test fun nearbyFailureKeepsCoordinatesAndDoesNotEraseSearchFailure() {
+        var model = FlareLocationPickerModel.initial(null).located(here).nearbyLoaded(listOf(poi("a")), here).nearbyFailed(here)
+        assertTrue(model.lookupUnavailable)
+        assertEquals(listOf(FlareLocationPlace.CURRENT_ID, "a"), model.rows.map { it.id })
+        assertNotNull(model.sendable(s.locationCurrent))
+        model = model.queryChanged("coffee").searchFailed("coffee").nearbyLoaded(listOf(poi("b")), here)
+        assertTrue(model.lookupUnavailable)
+        model = model.queryChanged("")
+        assertFalse(model.lookupUnavailable)
+        model = model.nearbyFailed(last.coordinate)
+        assertFalse(model.lookupUnavailable, "a stale position cannot fail the current nearby list")
     }
 
     @Test fun selectingAPlaceMovesTheMapAndAMissingImageIsMapUnavailable() {

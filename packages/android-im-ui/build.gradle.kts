@@ -110,6 +110,10 @@ tasks.withType<Test>().configureEach {
     inputs.dir(rootProject.layout.projectDirectory.dir("../../spec"))
         .withPathSensitivity(PathSensitivity.RELATIVE)
         .withPropertyName("flareSpecTables")
+    // The English copy tables (strings/en.json, strings/en-formats.json) are read the same way.
+    inputs.dir(rootProject.layout.projectDirectory.dir("../../strings"))
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+        .withPropertyName("flareStringTables")
 }
 
 dependencies {

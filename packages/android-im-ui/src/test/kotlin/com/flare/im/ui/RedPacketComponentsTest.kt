@@ -107,6 +107,36 @@ class RedPacketComponentsTest {
         }
     }
 
+    @Test fun aRefundedPacketSaysSoAndOffersItsDetails() {
+        val cases = vectors().items("openSheetRefunded").filter { (it["platforms"] as List<*>).contains("compose") }
+        assertTrue(cases.isNotEmpty())
+        for (case in cases) {
+            val id = case.str("id")!!
+            val state = FlareRedPacketOpenState.entries.first { it.name.equals(case.str("state"), ignoreCase = true) }
+            assertEquals(case.bool("coin"), redPacketOpenShowsButton(state), "$id coin")
+            assertEquals(case.bool("details"), redPacketOpenShowsDetails(state, case.bool("canViewDetails") ?: true), "$id details")
+            assertEquals(case.obj("headline")!!.str("zh"), redPacketOpenHeadline(state, "Wish", null, zh), "$id zh")
+            assertEquals(case.obj("headline")!!.str("en"), redPacketOpenHeadline(state, "Wish", null, en), "$id en")
+        }
+        assertEquals("Gone back", redPacketOpenHeadline(FlareRedPacketOpenState.Refunded, "Wish", "Gone back", zh))
+    }
+
+    @Test fun theAmountFieldKeepsTheCurrencysDecimals() {
+        val table = vectors()
+        val cases = table.items("amountInputExponent").filter { (it["platforms"] as List<*>).contains("compose") }
+        assertTrue(cases.isNotEmpty())
+        for (case in cases) assertEquals(case.str("output"), sanitizeRedPacketAmount(case.str("input")!!, case.int("exponent")!!), case.str("id"))
+        val minor = table.items("amountMinor").filter { (it["platforms"] as List<*>).contains("compose") }
+        assertTrue(minor.isNotEmpty())
+        for (case in minor) assertEquals(case.str("minor"), flareRedPacketAmountMinor(case.str("input")!!, case.int("exponent")!!), case.str("id"))
+        for (case in table.obj("amountPlaceholder")!!.items("cases")) {
+            assertEquals(case.str("placeholder"), flareRedPacketAmountText("0", flareRedPacketExponent(case.int("exponent")!!)), "placeholder ${case.int("exponent")}")
+        }
+        assertEquals(9, flareRedPacketExponent(9))
+        assertEquals(12, flareRedPacketExponent(99))
+        assertEquals(0, flareRedPacketExponent(-1))
+    }
+
     @Test fun amountsFormatFromMinorUnits() {
         val table = vectors().obj("amount")!!
         val symbols = table.obj("symbols")!!
@@ -306,7 +336,7 @@ class RedPacketComponentsTest {
             FlareRedPacketOpenState.entries.filter(::redPacketOpenShowsButton),
         )
         assertEquals(
-            listOf(FlareRedPacketOpenState.Finished, FlareRedPacketOpenState.Expired),
+            listOf(FlareRedPacketOpenState.Finished, FlareRedPacketOpenState.Expired, FlareRedPacketOpenState.Refunded),
             FlareRedPacketOpenState.entries.filter { redPacketOpenShowsDetails(it) },
             "a not-eligible viewer never gets the details",
         )

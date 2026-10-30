@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Forward
-import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.automirrored.outlined.Label
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.automirrored.outlined.Reply
@@ -15,6 +14,7 @@ import androidx.compose.material.icons.automirrored.outlined.Undo
 import androidx.compose.material.icons.automirrored.outlined.VolumeOff
 import androidx.compose.material.icons.automirrored.outlined.VolumeUp
 import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AddReaction
 import androidx.compose.material.icons.outlined.AdminPanelSettings
@@ -306,9 +306,11 @@ private val flareIconMap: Map<String, ImageVector> = mapOf(
     "plugin" to Icons.Outlined.Extension,
     // The location picker's "use current location" key: a crosshair, not the map pin `location` draws.
     "locate" to Icons.Outlined.MyLocation,
+    // The 我 page's wallet entry (the red packet plugin's account-entry).
+    "wallet" to Icons.Outlined.AccountBalanceWallet,
 )
 
-/** The 108 semantic icon names, in canonical order (the order of the Vue registry). */
+/** The 109 semantic icon names, in canonical order (the order of the Vue registry). */
 val flareIconNames: List<String> = listOf(
     "search", "send", "more", "back", "close", "check", "add", "remove",
     "edit", "delete", "heart", "comment", "chats", "moments", "share", "camera",
@@ -329,16 +331,32 @@ val flareIconNames: List<String> = listOf(
     "group", "admin", "remove-member", "transfer-owner", "silence", "report",
     "chevron-up", "chevron-left", "keyboard", "mini-app",
     "pin-self", "diagnostics", "card", "id", "join-request", "storage",
-    "red-packet", "plugin", "locate",
+    "red-packet", "plugin", "locate", "wallet",
 )
 
+/** The glyph a name outside the registry draws: the neutral extension glyph, never a question mark or a blank. */
+const val FLARE_ICON_FALLBACK = "plugin"
+
 /**
- * Resolve a semantic icon [name] to a Material [ImageVector]; a name the registry does not have draws the
- * fallback glyph (HelpOutline) — visible, never blank, never the word itself — and is reported once in the
- * log so the typo is findable. A component never crashes over an icon name.
+ * A registry name for an icon name that came in as data (a plugin, the SDK, host configuration): the name trimmed when
+ * the registry has it, [FLARE_ICON_FALLBACK] for any other name (reported once in the log), null for none
+ * (spec/me-menu-vectors.json `iconFallback`).
+ */
+fun flareIconNameOrFallback(name: String?): String? {
+    val trimmed = name?.trim().orEmpty()
+    if (trimmed.isEmpty()) return null
+    if (trimmed in flareIconMap) return trimmed
+    warnUnknownIconName(trimmed)
+    return FLARE_ICON_FALLBACK
+}
+
+/**
+ * Resolve a semantic icon [name] to a Material [ImageVector]; a name the registry does not have draws the shared
+ * fallback glyph (`plugin`, as on every kit) — visible, never blank, never the word itself — and is reported once in
+ * the log so the typo is findable. A component never crashes over an icon name.
  */
 fun flareIconVector(name: String): ImageVector =
-    flareIconMap[name] ?: run { warnUnknownIconName(name); Icons.AutoMirrored.Outlined.HelpOutline }
+    flareIconMap[name.trim()] ?: flareIconMap.getValue(flareIconNameOrFallback(name) ?: FLARE_ICON_FALLBACK)
 
 /** Names already reported: one line per typo, not one per frame. */
 private val reportedUnknownIconNames = java.util.Collections.synchronizedSet(HashSet<String>())
@@ -352,7 +370,7 @@ private fun warnUnknownIconName(name: String) {
     }
 }
 
-private const val ICON_NAME_COUNT = 108
+private const val ICON_NAME_COUNT = 109
 
 /** The glyph for a semantic icon [name], or null when the library does not know the name. */
 internal fun flareIconVectorOrNull(name: String): ImageVector? = flareIconMap[name]
