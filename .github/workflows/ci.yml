@@ -5,6 +5,13 @@ on:
     branches: [main, dev]
   pull_request:
   workflow_dispatch:
+    inputs:
+      baselines:
+        description: >-
+          Render the Linux visual baselines (Playwright screenshots and Flutter goldens) on this runner image and
+          upload them for review instead of comparing (docs/release/visual-baselines.md)
+        type: boolean
+        default: false
 
 jobs:
   quality:
@@ -66,6 +73,18 @@ jobs:
       - run: npm --prefix website run build
       - run: npx --prefix website playwright install --with-deps chromium
       - run: npm --prefix website run test:visual
+        if: ${{ !inputs.baselines }}
+      # Linux screenshots are renderings of this image: they are made here, reviewed, then committed.
+      - name: Render the Linux baselines
+        if: ${{ inputs.baselines }}
+        run: npm --prefix website run test:visual -- --update-snapshots=all
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() && (inputs.baselines || failure()) }}
+        with:
+          name: website-visual
+          path: |
+            tests/visual/vue/baselines/linux/
+            website/test-results/
 
   flutter:
     name: Flutter package
@@ -80,13 +99,26 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: bash assets/emoji-sticker/fetch-assets.sh
         working-directory: .
+      # Pinned: goldens are renderings of one engine, and a floating channel moves them under the baselines.
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: 3.44.1
           cache: true
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
+        if: ${{ !inputs.baselines }}
+      - name: Render the Linux goldens
+        if: ${{ inputs.baselines }}
+        run: flutter test --update-goldens test/goldens
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() && (inputs.baselines || failure()) }}
+        with:
+          name: flutter-goldens
+          path: |
+            packages/flutter-im-ui/test/goldens/baselines/linux/
+            packages/flutter-im-ui/test/goldens/failures/
       - run: dart pub publish --dry-run
       - run: flutter pub get
         working-directory: examples/flutter
@@ -112,6 +144,13 @@ jobs:
           java-version: "17"
       - uses: gradle/actions/setup-gradle@v4
       - run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug
+      # Without /dev/kvm the emulator falls back to software emulation and the instrumentation process dies
+      # before its first test ("Process crashed", 0 tests).
+      - name: Enable KVM for the emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
       - name: Emulator interaction regression
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -127,6 +166,7 @@ jobs:
           path: |
             packages/android-im-ui/build/reports/
             packages/android-im-ui/build/outputs/aar/
+            packages/android-im-ui/build/outputs/androidTest-results/
 
   swift:
     name: SwiftUI package
