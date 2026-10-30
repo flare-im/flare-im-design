@@ -763,17 +763,19 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
       textDirection: Directionality.of(context),
       children: [if (quote != null) _quote(context, colors, quote), ...rows],
     );
-    // A failed bubble keeps its red edge (status has meaning); the others are
-    // drawn by their fill alone, the incoming one on a tertiary tone the chat
-    // canvas never uses.
+    // A failed bubble is the failure surface with its red edge (status has
+    // meaning); the others are drawn by their fill alone, the incoming one on
+    // a tertiary tone the chat canvas never uses
+    // (spec/message-surface-vectors.json palette).
+    final palette = flareMessageBubblePalette(
+      flareMessageBubbleTone(self: self, status: _status),
+      colors,
+    );
+    final edge = palette.edge;
     final decoration = BoxDecoration(
-      color: failed
-          ? colors.messageFailedBackground
-          : self
-          ? colors.messageOutgoingBackground
-          : colors.messageIncomingBackground,
+      color: palette.background,
       borderRadius: shape,
-      border: failed ? Border.all(color: colors.messageFailedBorder) : null,
+      border: edge == null ? null : Border.all(color: edge),
     );
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: maxWidth),

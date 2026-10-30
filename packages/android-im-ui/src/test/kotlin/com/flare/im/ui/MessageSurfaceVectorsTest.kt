@@ -182,6 +182,43 @@ class MessageSurfaceVectorsTest {
         assertEquals(SpecTables.copy("messageSendFailedRetry", "zh"), zh.messageSendFailedRetry)
     }
 
+    // ── bubble palette ──
+
+    /** A token path of the shared table in [colors]. */
+    private fun token(path: String?, colors: FlareColors): androidx.compose.ui.graphics.Color? = when (path) {
+        null -> null
+        "message.incoming.background" -> colors.messageIncomingBackground
+        "message.incoming.foreground" -> colors.messageIncomingForeground
+        "message.outgoing.background" -> colors.messageOutgoingBackground
+        "message.outgoing.foreground" -> colors.messageOutgoingForeground
+        "message.failed.background" -> colors.messageFailedBackground
+        "message.failed.foreground" -> colors.messageFailedForeground
+        "message.failed.border" -> colors.messageFailedBorder
+        else -> error("unknown token $path")
+    }
+
+    @Test fun theBubblePaletteFollowsTheTable() {
+        val palette = SpecTables.table("message-surface-vectors.json").obj("palette")!!
+        val tones = palette.obj("tones")!!
+        assertEquals(FlareMessageBubbleTone.entries.map { it.wire }.toSet(), tones.keys)
+        val cases = palette.items("cases")
+        assertTrue(cases.size >= 8, "the shared table lost cases: ${cases.size}")
+        for (case in cases) {
+            val id = case.str("id")!!
+            val tone = flareMessageBubbleTone(case.bool("self")!!, status(case.str("status")))
+            assertEquals(case.str("tone"), tone.wire, id)
+        }
+        for (colors in listOf(FlareColors.Light, FlareColors.Dark, FlareColors.resolve(FlareBrandTheme.Ocean, false))) {
+            for (tone in FlareMessageBubbleTone.entries) {
+                val expected = tones.obj(tone.wire)!!
+                val got = flareMessageBubblePalette(tone, colors)
+                assertEquals(token(expected.str("background"), colors), got.background, "${tone.wire} background")
+                assertEquals(token(expected.str("foreground"), colors), got.foreground, "${tone.wire} foreground")
+                assertEquals(token(expected.str("edge"), colors), got.edge, "${tone.wire} edge")
+            }
+        }
+    }
+
     // ── C3 receipt ──
 
     private fun readSummary(raw: Map<*, *>?): FlareMessageReadSummary? =

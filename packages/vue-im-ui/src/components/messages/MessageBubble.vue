@@ -36,6 +36,7 @@ import { provideFlareMessageQuote, useFlareMessageRenderers } from "../../shared
 import MessageCardQuote from "./MessageCardQuote.vue";
 import { resolveMessageStatus } from "../../utils/messageStatus";
 import {
+  flareMessageBubbleTone,
   flareMessageMetaPlacement,
   flareMessageMetaTone,
   type FlareMessageSurface,
@@ -182,7 +183,8 @@ provideFlareMessageQuote({
 });
 // The id a custom renderer is handed: the server id the SDK and plugins key by, else the client id.
 const rendererMessageId = computed(() => props.message.serverId || props.message.clientMsgId);
-const isFailed = computed(() => deliveryStatus.value === "failed");
+// The failure surface is the viewer's own failed message (spec/message-surface-vectors.json palette).
+const isFailed = computed(() => flareMessageBubbleTone(Boolean(props.self), deliveryStatus.value) === "failed");
 const messagePinned = computed(() => isPinned(props.message));
 const isEdited = computed(() =>
   Boolean(

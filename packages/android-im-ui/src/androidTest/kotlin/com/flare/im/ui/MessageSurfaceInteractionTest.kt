@@ -7,8 +7,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.SemanticsNodeInteraction
+import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.click
@@ -120,6 +123,45 @@ class MessageSurfaceInteractionTest {
         assertTrue("glyph key $gw × $gh", gw >= FlareSizes.touchTarget && gh >= FlareSizes.touchTarget)
         glyph.performClick()
         compose.runOnIdle { assertEquals(2, resent) }
+    }
+
+    /** How many pixels of [tag]'s capture are [color], within [tolerance] per channel. */
+    private fun count(tag: String, color: androidx.compose.ui.graphics.Color, tolerance: Int = 2): Int {
+        val bitmap = compose.onNodeWithTag(tag).captureToImage().asAndroidBitmap()
+            .copy(android.graphics.Bitmap.Config.ARGB_8888, false)
+        val pixels = IntArray(bitmap.width * bitmap.height)
+        bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+        val target = color.toArgb()
+        fun channel(argb: Int, shift: Int) = (argb shr shift) and 0xFF
+        return pixels.count { p -> listOf(16, 8, 0).all { kotlin.math.abs(channel(p, it) - channel(target, it)) <= tolerance } }
+    }
+
+    /**
+     * A failed outgoing bubble is the failure surface (spec/message-surface-vectors.json `palette`): the failure fill
+     * with its text in the failure foreground, never the outgoing fill with white text; a sent one keeps the outgoing
+     * palette.
+     */
+    @Test fun aFailedBubbleIsTheFailureSurface() {
+        val colors = FlareColors.Light
+        fun text(id: String, status: FlareMessageDeliveryStatus) = FlareMessageData(
+            id = id, senderId = "me", senderName = "我", content = FlareTextContent("MMMMMMMMMMMM WWWWWWWWWW"),
+            timeLabel = "09:31", status = status,
+        )
+        compose.setContent {
+            FlareThemeProvider(colors = colors) {
+                Column(Modifier.width(400.dp)) {
+                    Box(Modifier.testTag("failed")) { MessageBubble(message = text("f", FlareMessageDeliveryStatus.Failed), currentUserId = "me") }
+                    Box(Modifier.testTag("sent")) { MessageBubble(message = text("s", FlareMessageDeliveryStatus.Sent), currentUserId = "me") }
+                }
+            }
+        }
+        compose.waitForIdle()
+        assertTrue("the failure fill", count("failed", colors.messageFailedBackground) > 2_000)
+        assertEquals("no outgoing fill on a failed bubble", 0, count("failed", colors.messageOutgoingBackground))
+        assertTrue("its text in the failure foreground", count("failed", colors.messageFailedForeground, tolerance = 24) > 50)
+        assertTrue("its red edge", count("failed", colors.messageFailedBorder, tolerance = 6) > 100)
+        assertTrue("a sent bubble keeps the outgoing fill", count("sent", colors.messageOutgoingBackground) > 2_000)
+        assertEquals("and no failure fill", 0, count("sent", colors.messageFailedBackground))
     }
 
     /** C3: a group's own message shows "N unread" as a key that opens the read list with the message's core id. */

@@ -122,7 +122,7 @@ internal fun messageSurfaceChrome(surface: FlareMessageSurface, tail: Boolean): 
  * Meta (spec/message-meta-placement-vectors.json): a text bubble ends its last line with the time and receipt and moves
  * them to their own row when they do not fit; other bubbles keep them in a footer row; bare media and cards have them
  * under the surface at the trailing edge in the default palette, where a failed message reads "Failed to send. Retry".
- * The retry — that key, or the failed glyph inside a bubble, whose bubble keeps a red edge — takes [onResend] with a hit
+ * The retry — that key, or the failed glyph inside a bubble, which is then the failure surface with its red edge — takes [onResend] with a hit
  * area of at least the touch target. The receipt is the SDK's (spec/message-receipt-vectors.json): five states, no
  * delivered, and in a group the viewer's own messages show [FlareMessageData.readSummary] as "N unread" / "Read by all",
  * a key that hands the message's core id to [onReadReceiptOpen].
@@ -438,6 +438,7 @@ private fun MessageSurfaceBody(
     onReadReceiptOpen: (() -> Unit)?,
 ) {
     val quote = message.replyTo
+    val tone = flareMessageBubbleTone(self, status)
     val conversationId = LocalFlareConversationId.current
     val contentType = flareMessageContentType(message.content).first
     val placement = flareMessageMetaPlacement(surface, contentType)
@@ -448,6 +449,7 @@ private fun MessageSurfaceBody(
         CompositionLocalProvider(
             LocalFlareMessageKey provides message.id,
             LocalFlareMessageSurface provides surface,
+            LocalFlareMessageBubbleTone provides tone,
             LocalFlareCardQuote provides (if (surface == FlareMessageSurface.Card) quoteView else null),
         ) {
             MessageContentView(
@@ -502,14 +504,15 @@ private fun MessageSurfaceBody(
     }
 
     // Flare thread grammar: radius 16 with a 4dp tail on the last of a run; received = a tertiary surface with a
-    // restrained lift, no outline; outgoing uses message semantics; a failed outgoing bubble keeps a red edge.
+    // restrained lift, no outline; outgoing uses message semantics; a failed outgoing bubble is the failure surface
+    // with its red edge (spec/message-surface-vectors.json `palette`).
     val chrome = messageSurfaceChrome(surface, tail)
     val shape = RoundedCornerShape(
         topStart = FlareSizes.radiusBubble, topEnd = FlareSizes.radiusBubble,
         bottomStart = if (self || !chrome.tail) FlareSizes.radiusBubble else FlareSizes.radiusBubbleTail,
         bottomEnd = if (!self || !chrome.tail) FlareSizes.radiusBubble else FlareSizes.radiusBubbleTail,
     )
-    val failed = self && status == FlareMessageDeliveryStatus.Failed
+    val palette = flareMessageBubblePalette(tone, colors)
     val quotedBody: @Composable () -> Unit = {
         if (quoteView == null) body() else QuotedBody(quote = quoteView, body = body, alignEnd = self)
     }
@@ -530,9 +533,9 @@ private fun MessageSurfaceBody(
             .then(if (!self && chrome.shadow) Modifier.shadow(2.dp, shape, clip = false) else Modifier)
             .clip(shape)
             // Fill only: the incoming surface is a tertiary tone the chat canvas never uses, so the bubble reads as its
-            // own surface without a hairline around it.
-            .background(if (self) colors.messageOutgoingBackground else colors.messageIncomingBackground)
-            .then(if (failed) Modifier.border(1.dp, colors.messageFailedBorder, shape) else Modifier)
+            // own surface without a hairline around it. The failure surface alone keeps an edge.
+            .background(palette.background)
+            .then(palette.edge?.let { Modifier.border(1.dp, it, shape) } ?: Modifier)
             .padding(horizontal = FlareSizes.componentBubblePaddingX, vertical = FlareSizes.componentBubblePaddingY),
     ) { inner() }
 }

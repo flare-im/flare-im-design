@@ -59,7 +59,7 @@ Severity follows the program rule: P0 blocks the task or is inaccessible, P1 is 
 | Kicked and expired sessions were dead ends; Tauri said it would reconnect | P1 | Fixed: kit connection notice with 重新登录 above every tab |
 | Load failures looked like empty lists; failed writes closed as if done | P1 | Fixed in all apps: kit error states with 重试, dialogs stay open with the error |
 | System and recall notices were bold bordered pills | P2 MEDIUM | Fixed: quiet chip, matching the native notice line |
-| A failed bubble turns all its text red on pink | P2 MEDIUM | Open: the natives already use a normal bubble with a meta-row mark, but a red mark on an outgoing bubble fails contrast; the mark moves beside the bubble on four kits together |
+| A failed bubble turns all its text red on pink | P2 MEDIUM | Decided (2026-10): one look on four kits, the failure surface — `message.failed.background`, text in `message.failed.foreground` (at least 4.5:1, checked by the token build), a 1px red edge — with the failed glyph as the retry key in the meta row. A red glyph on the outgoing fill is about 1.5:1, and a mark beside the bubble would change the meta placement contract. Locked by `spec/message-surface-vectors.json` `palette` on all four kits |
 | Moments "举报" sits outside the card | P2 | Open: MomentCard has no host action slot |
 | 600 px voice bubble label overlaps the waveform | P2 | Open |
 

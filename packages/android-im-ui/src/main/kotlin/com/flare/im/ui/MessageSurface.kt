@@ -1,5 +1,6 @@
 package com.flare.im.ui
 
+import androidx.compose.ui.graphics.Color
 import java.util.Locale
 
 // The message row's surface, the place its time and receipt take, and the receipt it draws
@@ -261,6 +262,32 @@ fun flareMessageMetaPlacement(surface: FlareMessageSurface, contentType: String)
     FlareMessageSurface.Bubble -> if (contentType == "text") FlareMessageMetaPlacement.Inline else FlareMessageMetaPlacement.BubbleFooter
     FlareMessageSurface.BareMedia, FlareMessageSurface.Card -> FlareMessageMetaPlacement.Below
     FlareMessageSurface.Centered -> FlareMessageMetaPlacement.None
+}
+
+/**
+ * How a bubble surface is painted (spec/message-surface-vectors.json `palette`): the incoming or outgoing palette by side,
+ * and the failure surface for a failed outgoing message.
+ */
+enum class FlareMessageBubbleTone(val wire: String) {
+    Incoming("incoming"), Outgoing("outgoing"), Failed("failed");
+}
+
+/** The tone of a bubble: [FlareMessageBubbleTone.Failed] only for an outgoing message that failed. */
+fun flareMessageBubbleTone(self: Boolean, status: FlareMessageDeliveryStatus?): FlareMessageBubbleTone = when {
+    !self -> FlareMessageBubbleTone.Incoming
+    status == FlareMessageDeliveryStatus.Failed -> FlareMessageBubbleTone.Failed
+    else -> FlareMessageBubbleTone.Outgoing
+}
+
+/** A bubble's fill, the foreground of its body, and its edge, which only the failure surface has. */
+data class FlareMessageBubblePalette(val background: Color, val foreground: Color, val edge: Color?)
+
+/** [tone] in [colors]: the message.incoming, message.outgoing or message.failed tokens. */
+fun flareMessageBubblePalette(tone: FlareMessageBubbleTone, colors: FlareColors): FlareMessageBubblePalette = when (tone) {
+    FlareMessageBubbleTone.Incoming -> FlareMessageBubblePalette(colors.messageIncomingBackground, colors.messageIncomingForeground, null)
+    FlareMessageBubbleTone.Outgoing -> FlareMessageBubblePalette(colors.messageOutgoingBackground, colors.messageOutgoingForeground, null)
+    FlareMessageBubbleTone.Failed ->
+        FlareMessageBubblePalette(colors.messageFailedBackground, colors.messageFailedForeground, colors.messageFailedBorder)
 }
 
 /** The outgoing palette only inside an outgoing bubble that has not failed; everything else is the default palette. */

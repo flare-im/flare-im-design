@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart' show Color;
 
 import '../components/flare_message_status.dart';
 import '../tokens/flare_strings.dart';
+import '../tokens/flare_tokens.dart';
 import 'message_content.dart';
 import 'message_data.dart';
 
@@ -152,14 +154,13 @@ const Map<String, String> _specTypeOf = {
 /// text with no mentions that is one emoji, or a rich text with no title
 /// whose whole text is one — older Core records carry a picked pack emoji
 /// that way (`[smile]`), and it is the same one emoji, not formatted text.
-bool flareIsLoneEmojiContent(FlareMessageContent content) =>
-    switch (content) {
-      FlareTextContent c =>
-        c.mentions.isEmpty && flareIsStandaloneEmojiMessage(c.text),
-      FlareRichTextContent c =>
-        c.title.trim().isEmpty && flareIsStandaloneEmojiMessage(c.plainText),
-      _ => false,
-    };
+bool flareIsLoneEmojiContent(FlareMessageContent content) => switch (content) {
+  FlareTextContent c =>
+    c.mentions.isEmpty && flareIsStandaloneEmojiMessage(c.text),
+  FlareRichTextContent c =>
+    c.title.trim().isEmpty && flareIsStandaloneEmojiMessage(c.plainText),
+  _ => false,
+};
 
 /// The surface input of [message]; [registered] is what the host registered
 /// for its content key (`FlareContentScope` / `FlareContentRegistry`).
@@ -246,6 +247,60 @@ FlareMessageMetaLayout flareMessageMetaPlacement({
         : null,
   );
 }
+
+// ── bubble palette (spec/message-surface-vectors.json `palette`) ─────────────
+
+/// How a bubble surface is painted: the [incoming] or [outgoing] palette by
+/// side, and the [failed] surface for a failed outgoing message.
+enum FlareMessageBubbleTone { incoming, outgoing, failed }
+
+/// The tone of a bubble: [FlareMessageBubbleTone.failed] only for the viewer's
+/// own message that failed; a failed status on someone else's message keeps
+/// the incoming palette.
+FlareMessageBubbleTone flareMessageBubbleTone({
+  required bool self,
+  required FlareMessageDeliveryStatus? status,
+}) {
+  if (!self) return FlareMessageBubbleTone.incoming;
+  return status == FlareMessageDeliveryStatus.failed
+      ? FlareMessageBubbleTone.failed
+      : FlareMessageBubbleTone.outgoing;
+}
+
+/// A bubble's fill, the foreground of its body, and its edge, which only the
+/// failure surface has.
+@immutable
+class FlareMessageBubblePalette {
+  const FlareMessageBubblePalette({
+    required this.background,
+    required this.foreground,
+    this.edge,
+  });
+  final Color background;
+  final Color foreground;
+  final Color? edge;
+}
+
+/// [tone] in [colors]: the message.incoming, message.outgoing or
+/// message.failed tokens.
+FlareMessageBubblePalette flareMessageBubblePalette(
+  FlareMessageBubbleTone tone,
+  FlareColors colors,
+) => switch (tone) {
+  FlareMessageBubbleTone.incoming => FlareMessageBubblePalette(
+    background: colors.messageIncomingBackground,
+    foreground: colors.messageIncomingForeground,
+  ),
+  FlareMessageBubbleTone.outgoing => FlareMessageBubblePalette(
+    background: colors.messageOutgoingBackground,
+    foreground: colors.messageOutgoingForeground,
+  ),
+  FlareMessageBubbleTone.failed => FlareMessageBubblePalette(
+    background: colors.messageFailedBackground,
+    foreground: colors.messageFailedForeground,
+    edge: colors.messageFailedBorder,
+  ),
+};
 
 // ── receipt (spec/message-receipt-vectors.json) ────────────────────────────
 

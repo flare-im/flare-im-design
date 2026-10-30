@@ -69,6 +69,18 @@ export function flareMessageMetaPlacement(surface: FlareMessageSurface, contentT
   return flareSpecContentType(contentType) === "text" ? "inline" : "bubbleFooter";
 }
 
+/** How a bubble surface is painted (spec/message-surface-vectors.json palette). */
+export type FlareMessageBubbleTone = "incoming" | "outgoing" | "failed";
+
+/**
+ * The bubble's tone: the side's palette, and the failure surface (fill, foreground and the red edge) only for an
+ * outgoing message that failed (spec/message-surface-vectors.json palette).
+ */
+export function flareMessageBubbleTone(self: boolean, status: MessageStatusState | undefined): FlareMessageBubbleTone {
+  if (!self) return "incoming";
+  return status === "failed" ? "failed" : "outgoing";
+}
+
 /** The meta palette: onOutgoing only inside an outgoing bubble that has not failed (rules.tone). */
 export function flareMessageMetaTone(
   placement: FlareMessageMetaPlacement,

@@ -18,6 +18,24 @@
     "bareMedia": "bareMedia: the media is the surface; no bubble background, padding or tail.",
     "centered": "centered: one centred notice line; no avatar, name, status, menu or selection."
   },
+  "palette": {
+    "rule": "How a bubble surface is painted, by side and delivery status. A bubble is drawn by its fill alone (no outline): incoming takes message.incoming.background with message.incoming.foreground, outgoing takes message.outgoing.background with message.outgoing.foreground. A failed outgoing bubble takes the failure surface instead: message.failed.background, message.failed.foreground for its text, and a 1px message.failed.border edge, the only edge a bubble has (the red edge carries the failure; the failed glyph in status.failed then sits on a light fill rather than the brand fill). Every other status (pending, sending, sent, read) keeps the side's palette. A failed status on someone else's message does not exist; a kit given one keeps the incoming palette. Cards and bare media are not bubbles: they keep their own surface and show a failure with the retry text key below (message-meta-placement-vectors.json rules.failed).",
+    "tones": {
+      "incoming": { "background": "message.incoming.background", "foreground": "message.incoming.foreground", "edge": null },
+      "outgoing": { "background": "message.outgoing.background", "foreground": "message.outgoing.foreground", "edge": null },
+      "failed": { "background": "message.failed.background", "foreground": "message.failed.foreground", "edge": "message.failed.border" }
+    },
+    "cases": [
+      { "id": "incoming-sent", "self": false, "status": "sent", "tone": "incoming" },
+      { "id": "incoming-read", "self": false, "status": "read", "tone": "incoming" },
+      { "id": "incoming-failed-is-not-a-state", "self": false, "status": "failed", "tone": "incoming" },
+      { "id": "outgoing-pending", "self": true, "status": "pending", "tone": "outgoing" },
+      { "id": "outgoing-sending", "self": true, "status": "sending", "tone": "outgoing" },
+      { "id": "outgoing-sent", "self": true, "status": "sent", "tone": "outgoing" },
+      { "id": "outgoing-read", "self": true, "status": "read", "tone": "outgoing" },
+      { "id": "outgoing-failed", "self": true, "status": "failed", "tone": "failed" }
+    ]
+  },
   "cases": [
     { "id": "text", "input": { "contentType": "text" }, "surface": "bubble" },
     { "id": "text-lone-emoji", "input": { "contentType": "text", "loneEmoji": true }, "surface": "bareMedia" },

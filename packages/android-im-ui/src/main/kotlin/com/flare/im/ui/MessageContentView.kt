@@ -83,6 +83,9 @@ private val LocalFlareContentSurfaces = staticCompositionLocalOf<Map<String, Fla
 internal val LocalFlareMessageSurface = staticCompositionLocalOf<FlareMessageSurface?> { null }
 internal val LocalFlareCardQuote = staticCompositionLocalOf<(@Composable () -> Unit)?> { null }
 
+/** The tone of the bubble a body is drawn in (set by [MessageBubble]); without one the body's side decides. */
+internal val LocalFlareMessageBubbleTone = staticCompositionLocalOf<FlareMessageBubbleTone?> { null }
+
 /**
  * Scope extension callbacks to one session/view tree, never a global tenant.
  *
@@ -239,11 +242,17 @@ fun MessageContentView(
     val colors = flareColors()
     // Only a bubble's own surface recolours the body: a card's shell and bare media sit on the default palette.
     val onBubble = surface == null || surface == FlareMessageSurface.Bubble
-    val outgoing = isSelf && onBubble
-    val foreground = if (outgoing) colors.messageOutgoingForeground else colors.messageIncomingForeground
+    // The bubble's tone: a failed outgoing message is the failure surface, whose body takes the failure foreground.
+    val tone = LocalFlareMessageBubbleTone.current
+        ?: if (isSelf) FlareMessageBubbleTone.Outgoing else FlareMessageBubbleTone.Incoming
+    val outgoing = onBubble && tone == FlareMessageBubbleTone.Outgoing
+    val foreground = flareMessageBubblePalette(tone, colors).foreground
     val palette = if (!onBubble) colors else colors.copy(
         textPrimary = foreground, textSecondary = foreground,
         textTertiary = foreground.copy(alpha = 0.8f),
+        // Text and rich text read their side's foreground: inside the bubble both sides are the bubble's, so the
+        // failure surface reaches them too.
+        messageOutgoingForeground = foreground, messageIncomingForeground = foreground,
         primary = if (outgoing) foreground else colors.primary,
         // An accent glyph (a file's icon, a voice's play key) on the outgoing surface is its foreground: the accent
         // text colour on the accent bubble drew nothing.

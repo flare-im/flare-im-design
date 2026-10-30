@@ -101,6 +101,16 @@ describe("media message metadata", () => {
     expect(onResend).toHaveBeenCalledWith("client-1");
   });
 
+  it("draws the failure surface only for the viewer's own failed bubble", () => {
+    const own = setup({ contentType: "text", text: { text: "Hello" } }, true, "pc", { status: "failed" });
+    expect(own.find(".message-row--failed .message-bubble-self").exists()).toBe(true);
+    const sent = setup({ contentType: "text", text: { text: "Hello" } }, true, "pc", { status: "sent" });
+    expect(sent.find(".message-row--failed").exists()).toBe(false);
+    // A failed status on someone else's message is not a state the core reports: it keeps the incoming palette.
+    const peer = setup({ contentType: "text", text: { text: "Hello" } }, false, "pc", { status: "failed" });
+    expect(peer.find(".message-row--failed").exists()).toBe(false);
+  });
+
   it("keeps the failed glyph as the retry key inside a bubble, and inert without a listener", async () => {
     const onResend = vi.fn();
     const framed = setup({ contentType: "text", text: { text: "Hello" } }, true, "pc", { status: "failed" }, { onResend });

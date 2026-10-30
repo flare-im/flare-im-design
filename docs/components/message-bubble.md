@@ -15,6 +15,8 @@ sender, content, metadata, lifecycle, reactions, action affordance. Regions use 
 ## Surface
 The kit picks the surface from the content (`spec/message-surface-vectors.json`, `surface` prop to override): `bubble` (text, rich text, voice, file, album, captioned video, quoted content), `bareMedia` (picture, uncaptioned video, sticker, emoji, a lone emoji), `card` (every plugin card including red packets and polls, location, contact card, link card, task, schedule, announcement, mini program, merged forward, thread) and `centered` (system notices, recall and delete notices). A card is never put inside a bubble: the card's own shell is the surface and the bubble draws no background, border, padding, tail or shadow around it. Outgoing and incoming cards differ by alignment only. Hosts register a surface (`card` or `bareMedia`) only for a content type the kit does not know.
 
+A bubble is drawn by its fill, never by an outline (`palette` in the same table): incoming takes `message.incoming.background` with `message.incoming.foreground`, outgoing `message.outgoing.background` with `message.outgoing.foreground`. The viewer's own failed message is the failure surface: `message.failed.background`, its text in `message.failed.foreground`, and a 1px `message.failed.border` edge — the one edge a bubble has, because there it carries the failure. Its failed glyph is the retry key. Every other status keeps the side's palette, and a failed card or picture keeps its own surface with the retry text key below it.
+
 ## Variants
 self, other, system, content-type. Choose one variant from task priority, not decoration.
 

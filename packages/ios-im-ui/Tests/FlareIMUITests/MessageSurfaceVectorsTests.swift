@@ -112,6 +112,44 @@ final class MessageSurfaceVectorsTests: XCTestCase {
         XCTAssertEqual(zh.messageSendFailedRetry, "发送失败，重试")
     }
 
+    // MARK: Bubble palette
+
+    func testTheBubblePaletteFollowsTheSharedTable() throws {
+        let palette = try XCTUnwrap(try table("message-surface-vectors.json")["palette"])
+        let tones = palette["tones"] ?? .null
+        let cases = palette["cases"]?.arrayValue ?? []
+        XCTAssertGreaterThanOrEqual(cases.count, 8)
+        for vector in cases {
+            let id = string(vector["id"]) ?? "?"
+            let status = try XCTUnwrap(FlareMessageDeliveryStatus(rawValue: string(vector["status"]) ?? ""), id)
+            XCTAssertEqual(flareMessageBubbleTone(isSelf: bool(vector["self"]), status: status).rawValue,
+                           string(vector["tone"]), id)
+        }
+        func token(_ path: String?, _ colors: FlareColors) -> Color? {
+            switch path {
+            case nil: return nil
+            case "message.incoming.background": return colors.messageIncomingBackground
+            case "message.incoming.foreground": return colors.messageIncomingForeground
+            case "message.outgoing.background": return colors.messageOutgoingBackground
+            case "message.outgoing.foreground": return colors.messageOutgoingForeground
+            case "message.failed.background": return colors.messageFailedBackground
+            case "message.failed.foreground": return colors.messageFailedForeground
+            case "message.failed.border": return colors.messageFailedBorder
+            default: XCTFail("unknown token \(path ?? "")"); return nil
+            }
+        }
+        for scheme in [ColorScheme.light, .dark] {
+            let colors = FlareColors.of(scheme)
+            for tone in FlareMessageBubbleTone.allCases {
+                let expected = tones[tone.rawValue] ?? .null
+                let got = flareMessageBubblePalette(tone, colors: colors)
+                XCTAssertEqual(got.background, token(string(expected["background"]), colors), "\(tone) background")
+                XCTAssertEqual(got.foreground, token(string(expected["foreground"]), colors), "\(tone) foreground")
+                XCTAssertEqual(got.edge, token(string(expected["edge"]), colors), "\(tone) edge")
+            }
+        }
+    }
+
     // MARK: Receipt (C3)
 
     func testReceiptFollowsTheSharedTable() throws {

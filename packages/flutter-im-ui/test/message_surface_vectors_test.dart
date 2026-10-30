@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flare_im_ui/flare_im_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// The message surface, meta placement and receipt rules against the shared
@@ -33,14 +34,71 @@ FlareMessageDeliveryStatus statusOf(String name) =>
     FlareMessageDeliveryStatus.values.byName(name);
 
 void main() {
+  group('bubble palette', () {
+    final palette =
+        _read('message-surface-vectors.json')['palette']
+            as Map<String, dynamic>;
+    final tones = palette['tones'] as Map<String, dynamic>;
+
+    Color? token(String? path, FlareColors colors) => switch (path) {
+      null => null,
+      'message.incoming.background' => colors.messageIncomingBackground,
+      'message.incoming.foreground' => colors.messageIncomingForeground,
+      'message.outgoing.background' => colors.messageOutgoingBackground,
+      'message.outgoing.foreground' => colors.messageOutgoingForeground,
+      'message.failed.background' => colors.messageFailedBackground,
+      'message.failed.foreground' => colors.messageFailedForeground,
+      'message.failed.border' => colors.messageFailedBorder,
+      _ => throw StateError('unknown token $path'),
+    };
+
+    test('the tones are the kit\'s', () {
+      expect(
+        tones.keys.toSet(),
+        FlareMessageBubbleTone.values.map((tone) => tone.name).toSet(),
+      );
+    });
+
+    for (final raw in palette['cases'] as List<dynamic>) {
+      final c = raw as Map<String, dynamic>;
+      test('${c['id']} → ${c['tone']}', () {
+        expect(
+          flareMessageBubbleTone(
+            self: c['self'] as bool,
+            status: statusOf(c['status'] as String),
+          ).name,
+          c['tone'],
+        );
+      });
+    }
+
+    test('each tone paints the table\'s tokens', () {
+      for (final colors in [
+        FlareColors.resolve(Brightness.light),
+        FlareColors.resolve(Brightness.dark),
+      ]) {
+        for (final tone in FlareMessageBubbleTone.values) {
+          final expected = tones[tone.name] as Map<String, dynamic>;
+          final got = flareMessageBubblePalette(tone, colors);
+          expect(
+            got.background,
+            token(expected['background'] as String?, colors),
+          );
+          expect(
+            got.foreground,
+            token(expected['foreground'] as String?, colors),
+          );
+          expect(got.edge, token(expected['edge'] as String?, colors));
+        }
+      }
+    });
+  });
+
   group('message-surface-vectors', () {
     final table = _read('message-surface-vectors.json');
 
     test('the surfaces and the defaults table are the kit\'s', () {
-      expect(
-        FlareMessageSurface.values.map((s) => s.name),
-        table['surfaces'],
-      );
+      expect(FlareMessageSurface.values.map((s) => s.name), table['surfaces']);
       final defaults = table['defaults'] as Map<String, dynamic>;
       for (final entry in defaults.entries) {
         expect(
@@ -147,7 +205,9 @@ void main() {
         final expected = v['expect'] as Map<String, dynamic>;
         expect(got.placement.name, expected['placement']);
         expect(
-          got.tone == FlareMessageMetaTone.onOutgoing ? 'onOutgoing' : 'default',
+          got.tone == FlareMessageMetaTone.onOutgoing
+              ? 'onOutgoing'
+              : 'default',
           expected['tone'],
         );
         expect(got.retry?.name, expected['retry']);
@@ -166,10 +226,7 @@ void main() {
       );
       final glyphs = table['glyphs'] as Map<String, dynamic>;
       for (final entry in glyphs.entries) {
-        expect(
-          flareMessageReceiptGlyph(statusOf(entry.key)).name,
-          entry.value,
-        );
+        expect(flareMessageReceiptGlyph(statusOf(entry.key)).name, entry.value);
       }
     });
 
@@ -203,8 +260,8 @@ void main() {
       });
     }
 
-    for (final v in (table['accessibility'] as List)
-        .cast<Map<String, dynamic>>()) {
+    for (final v
+        in (table['accessibility'] as List).cast<Map<String, dynamic>>()) {
       test('reading unit ${v['id']}', () {
         final locale = v['locale'] as String;
         final summary = v['readSummary'] as Map<String, dynamic>?;

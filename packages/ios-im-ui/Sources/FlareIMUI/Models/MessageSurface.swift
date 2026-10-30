@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 // Which surface a timeline row draws its content on, and where its time and receipt sit
 // (docs/design/message-surface-and-meta.md C1 / C2). Pure rules, run against
@@ -111,6 +112,39 @@ public func flareMessageMetaPlacement(surface: FlareMessageSurface, contentType:
     case .centered: return .none
     case .bareMedia, .card: return .below
     case .bubble: return flareSpecContentType(contentType) == "text" ? .inline : .bubbleFooter
+    }
+}
+
+/// How a bubble surface is painted (spec/message-surface-vectors.json `palette`): the incoming or outgoing palette by
+/// side, and the failure surface for a failed outgoing message.
+public enum FlareMessageBubbleTone: String, CaseIterable, Sendable { case incoming, outgoing, failed }
+
+/// The tone of a bubble: `.failed` only for the viewer's own message that failed; a failed status on someone else's
+/// message keeps the incoming palette.
+public func flareMessageBubbleTone(isSelf: Bool, status: FlareMessageDeliveryStatus?) -> FlareMessageBubbleTone {
+    guard isSelf else { return .incoming }
+    return status == .failed ? .failed : .outgoing
+}
+
+/// A bubble's fill, the foreground of its body, and its edge, which only the failure surface has.
+public struct FlareMessageBubblePalette: Equatable, Sendable {
+    public let background: Color
+    public let foreground: Color
+    public let edge: Color?
+}
+
+/// `tone` in `colors`: the message.incoming, message.outgoing or message.failed tokens.
+public func flareMessageBubblePalette(_ tone: FlareMessageBubbleTone, colors: FlareColors) -> FlareMessageBubblePalette {
+    switch tone {
+    case .incoming:
+        return FlareMessageBubblePalette(background: colors.messageIncomingBackground,
+                                         foreground: colors.messageIncomingForeground, edge: nil)
+    case .outgoing:
+        return FlareMessageBubblePalette(background: colors.messageOutgoingBackground,
+                                         foreground: colors.messageOutgoingForeground, edge: nil)
+    case .failed:
+        return FlareMessageBubblePalette(background: colors.messageFailedBackground,
+                                         foreground: colors.messageFailedForeground, edge: colors.messageFailedBorder)
     }
 }
 
