@@ -56,6 +56,31 @@ Widget _host(Widget child, {double width = 390}) => MaterialApp(
   ),
 );
 
+/// The colour [words] are painted in: the style of the span that holds them,
+/// else the nearest enclosing span's.
+Color? _drawnColor(WidgetTester tester, String words) {
+  for (final rich in tester.widgetList<RichText>(find.byType(RichText))) {
+    Color? found;
+    var hit = false;
+    void visit(InlineSpan span, Color? inherited) {
+      if (hit || span is! TextSpan) return;
+      final color = span.style?.color ?? inherited;
+      if ((span.text ?? '').contains(words)) {
+        found = color;
+        hit = true;
+        return;
+      }
+      for (final child in span.children ?? const <InlineSpan>[]) {
+        visit(child, color);
+      }
+    }
+
+    visit(rich.text, null);
+    if (hit) return found;
+  }
+  return null;
+}
+
 /// Every box drawn with a fill or an edge between [of] and the root of the
 /// row: what would show as a container around the card.
 List<BoxDecoration> _framesAround(WidgetTester tester, Finder of) => [
@@ -295,6 +320,32 @@ void main() {
         rect.center.translate(0, FlareSizes.touchTarget / 2 - 2),
       );
       expect(resent, 1);
+    });
+
+    testWidgets('a failed bubble scopes its failure foreground to text and '
+        'rich text bodies', (tester) async {
+      for (final content in const <FlareMessageContent>[
+        FlareTextContent('没发出去'),
+        FlareRichTextContent(docJson: '', plainText: '没发出去'),
+      ]) {
+        await tester.pumpWidget(
+          _host(
+            FlareMessageBubble(
+              message: _msg(
+                sender: 'me',
+                content: content,
+                status: FlareMessageDeliveryStatus.failed,
+              ),
+              currentUserId: 'me',
+            ),
+          ),
+        );
+        expect(
+          _drawnColor(tester, '没发出去'),
+          FlareColors.light.messageFailedForeground,
+          reason: '${content.type} on the failure surface',
+        );
+      }
     });
 
     testWidgets('a failed bubble keeps its red edge; the glyph retries at 48', (

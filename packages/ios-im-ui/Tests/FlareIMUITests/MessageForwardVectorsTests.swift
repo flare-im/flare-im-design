@@ -125,6 +125,42 @@ final class MessageForwardVectorsTests: XCTestCase {
         XCTAssertFalse(ForwardRecordDetails.drawsContent(FlareForwardItem(plainText: "收到")))
     }
 
+    /// `rules.palette`: a record's items are someone else's messages whoever forwarded it. A rich text item — the one
+    /// item drawn inline in a record the viewer forwarded, and a row of the drawer — takes the neutral palette, never
+    /// the outgoing bubble's white.
+    @MainActor
+    func testRecordItemsTakeTheNeutralPaletteWhoeverForwardedThem() throws {
+        let colors = FlareColors.of(.light, brand: .violet)
+        XCTAssertNotEqual(colors.messageOutgoingForeground, colors.messageIncomingForeground)
+        let rich = FlareRichTextContent(docJson: #"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"周报"}]}]}"#,
+                                        plainText: "周报")
+        let single = FlareForwardContent(mode: .single, items: [FlareForwardItem(senderName: "林夏", content: rich)])
+        let inline = try FlareForwardMessageView(content: single, isSelf: true).inspect()
+            .find(RichTextMessageView.self).vStack().foregroundColor()
+        XCTAssertEqual(inline, colors.messageIncomingForeground, "the inline item of a record the viewer forwarded")
+        let merged = FlareForwardContent(mode: .merged, items: [FlareForwardItem(senderName: "林夏", content: rich),
+                                                                 FlareForwardItem(senderName: "周屿", plainText: "收到")])
+        let row = try ForwardRecordDetails(content: merged).inspect().find(RichTextMessageView.self).vStack().foregroundColor()
+        XCTAssertEqual(row, colors.messageIncomingForeground, "a drawer row")
+    }
+
+    /// The surface's foreground reaches a rich text body as it reaches a text body: the failure surface and a forward
+    /// record set it; without one the body takes its side's.
+    func testARichTextBodyTakesTheSurfacesForeground() {
+        let colors = FlareColors.of(.light, brand: .violet)
+        func paint(_ isSelf: Bool, _ surface: Color?) -> RichTextMessageView.Paint {
+            RichTextMessageView.Paint(colors: colors, isSelf: isSelf, size: 15, strings: FlareStrings(), revealed: false,
+                                      bodyForeground: surface)
+        }
+        XCTAssertEqual(paint(true, nil).foreground, colors.messageOutgoingForeground)
+        XCTAssertEqual(paint(false, nil).foreground, colors.messageIncomingForeground)
+        XCTAssertEqual(paint(true, colors.messageFailedForeground).foreground, colors.messageFailedForeground,
+                       "a failed message's failure surface")
+        XCTAssertEqual(paint(true, colors.messageFailedForeground).link, colors.messageFailedForeground)
+        XCTAssertEqual(paint(false, colors.textPrimary).foreground, colors.textPrimary, "a forward record's palette")
+        XCTAssertEqual(paint(false, colors.textPrimary).link, colors.primary)
+    }
+
     func testTheDrawerTimeIsTheClockTodayElseTheDateAndClock() {
         let zh = Locale(identifier: "zh_CN")
         let now = Date(timeIntervalSince1970: 1_761_100_000)

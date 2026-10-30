@@ -56,9 +56,10 @@ public struct FlareForwardMessageView: View {
                 .foregroundColor(colors.textTertiary)
         case .single:
             let item = content.items[0]
-            MessageContentView(content: item.content ?? FlareTextContent(item.plainText), isSelf: isSelf,
+            // Drawn in the record's shell, as someone else's message whoever forwarded it: the neutral palette, never
+            // the forwarder's bubble colours.
+            MessageContentView(content: item.content ?? FlareTextContent(item.plainText), isSelf: false,
                                senderName: item.senderName, selectionMode: selectionMode)
-                // Drawn in the record's shell: the neutral palette, not a bubble's.
                 .onSurface(.bareMedia)
                 .environment(\.flareMessageBodyForeground, colors.textPrimary)
         case .card:
@@ -102,15 +103,15 @@ public struct FlareForwardMessageView: View {
         .accessibilityAddTraits(.isButton)
         .accessibilityIdentifier(Self.cardID)
         .flareDrawer(isPresented: $showsDetails, title: record.drawerTitle) {
-            ForwardRecordDetails(content: content, isSelf: isSelf)
+            ForwardRecordDetails(content: content)
         }
     }
 }
 
-/// The drawer's list: every forwarded item.
+/// The drawer's list: every forwarded item, each drawn as someone else's message whoever forwarded the record — the
+/// drawer's neutral palette, never the forwarder's bubble colours (`spec/message-forward-vectors.json` rules.palette).
 struct ForwardRecordDetails: View {
     let content: FlareForwardContent
-    let isSelf: Bool
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
@@ -156,7 +157,7 @@ struct ForwardRecordDetails: View {
                                 .foregroundColor(colors.textSecondary)
                                 .lineLimit(1)
                             if Self.drawsContent(item), let body = item.content {
-                                MessageContentView(content: body, isSelf: isSelf, senderName: item.senderName)
+                                MessageContentView(content: body, isSelf: false, senderName: item.senderName)
                                     .onSurface(.bareMedia)
                                     .environment(\.flareMessageBodyForeground, colors.textPrimary)
                                     .padding(.top, FlareSizes.spacingXs)

@@ -219,6 +219,63 @@ void main() {
     );
   });
 
+  // rules.palette: a record's items are someone else's messages whoever
+  // forwarded it — inline and in the drawer, never the outgoing white.
+  testWidgets('a record the viewer forwarded draws its items in the neutral '
+      'palette', (tester) async {
+    const rich = FlareRichTextContent(docJson: '', plainText: '周报');
+    Color? colorOf(Finder body) {
+      final text = tester.widget<Text>(
+        find.descendant(of: body, matching: find.text('周报')),
+      );
+      return text.style?.color;
+    }
+
+    await tester.pumpWidget(
+      _host(
+        const FlareMessageContentView(
+          self: true,
+          content: FlareForwardContent(
+            mode: FlareForwardMode.single,
+            items: [FlareForwardItem(senderName: '林夏', content: rich)],
+          ),
+        ),
+      ),
+    );
+    expect(
+      colorOf(find.byType(FlareRichTextMessage)),
+      FlareColors.light.messageIncomingForeground,
+      reason: 'the one item drawn inline',
+    );
+
+    await tester.pumpWidget(
+      _host(
+        const FlareMessageContentView(
+          self: true,
+          content: FlareForwardContent(
+            mode: FlareForwardMode.merged,
+            items: [
+              FlareForwardItem(senderName: '林夏', content: rich),
+              FlareForwardItem(senderName: '周屿', plainText: '收到'),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(FlareForwardMessage.cardKey));
+    await tester.pumpAndSettle();
+    expect(
+      colorOf(
+        find.descendant(
+          of: find.byKey(FlareForwardMessage.itemKey(0)),
+          matching: find.byType(FlareRichTextMessage),
+        ),
+      ),
+      FlareColors.light.messageIncomingForeground,
+      reason: 'a drawer row',
+    );
+  });
+
   test('the record previews as its one message, or a count', () {
     const s = FlareStrings();
     const one = FlareForwardContent(

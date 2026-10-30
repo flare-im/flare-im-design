@@ -39,7 +39,9 @@ class FlareForwardMessage extends StatelessWidget {
 
   final FlareForwardContent record;
 
-  /// The viewer sent the forward; an inline single item draws as theirs.
+  /// The viewer sent the forward. It never colours the items: they are
+  /// someone else's messages whoever forwarded them, drawn in the record's
+  /// neutral palette (`rules.palette`).
   final bool self;
 
   /// The row is in multi-select: the card is inert.
@@ -83,10 +85,10 @@ class FlareForwardMessage extends StatelessWidget {
           ),
         );
         // The row is a card: what a bubble would carry sits on the card
-        // shell instead, so it keeps the neutral palette.
+        // shell instead, so it keeps the neutral palette — as someone else's
+        // message, whoever forwarded it.
         return FlareMessageContentView(
           content: content,
-          self: self,
           selectionMode: selectionMode,
           surface: natural == FlareMessageSurface.bubble
               ? FlareMessageSurface.card

@@ -377,7 +377,10 @@ class FlareMessageContentView extends StatelessWidget {
     if (surface == FlareMessageSurface.bubble) {
       // The same content bodies serve standalone previews and runtime
       // bubbles. Only a bubble scopes its foreground here; on a card or bare
-      // media the body keeps the neutral palette of its own surface.
+      // media the body keeps the neutral palette of its own surface. Text and
+      // rich text read their side's foreground, so inside the bubble both
+      // sides are the bubble's: a failed message's failure surface reaches
+      // them too.
       final foreground = failed
           ? colors.messageFailedForeground
           : self
@@ -388,6 +391,8 @@ class FlareMessageContentView extends StatelessWidget {
           textPrimary: foreground,
           textSecondary: foreground,
           textTertiary: foreground.withValues(alpha: 0.8),
+          messageOutgoingForeground: foreground,
+          messageIncomingForeground: foreground,
           primary: self && !failed ? foreground : colors.primaryText,
         ),
         child: IconTheme(

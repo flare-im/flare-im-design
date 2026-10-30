@@ -7,7 +7,8 @@ import SwiftUI
 ///
 /// A link opens only when ``safeExternalURL(_:)`` accepts it — through `onLinkTap` when the host takes links,
 /// else through the platform opener — and a refused link keeps its words. A spoiler stays covered, and is
-/// named for VoiceOver, until the reader taps it. Colours follow ``TextMessageView``.
+/// named for VoiceOver, until the reader taps it. Colours follow ``TextMessageView``: the surface's foreground when the
+/// row or its container sets one, else the side's.
 public struct RichTextMessageView: View {
     private let blocks: [FlareRichBlock]?
     private let plainText: String
@@ -21,6 +22,7 @@ public struct RichTextMessageView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
+    @Environment(\.flareMessageBodyForeground) private var bodyForeground
 
     /// The address a covered spoiler's run links to: tapping it reveals, it never leaves the kit.
     static let spoilerURL = URL(string: "flare-spoiler:reveal")!
@@ -39,7 +41,7 @@ public struct RichTextMessageView: View {
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         let paint = Paint(colors: colors, isSelf: isSelf, size: FlareSizes.fontSizeXl * textScale,
-                          strings: strings, revealed: revealed)
+                          strings: strings, revealed: revealed, bodyForeground: bodyForeground)
         VStack(alignment: .leading, spacing: FlareSizes.spacing2xs) {
             let heading = title.trimmingCharacters(in: .whitespacesAndNewlines)
             if !heading.isEmpty {
@@ -92,8 +94,13 @@ public struct RichTextMessageView: View {
         let size: CGFloat
         let strings: FlareStrings
         let revealed: Bool
-        var foreground: Color { isSelf ? colors.messageOutgoingForeground : colors.messageIncomingForeground }
-        var link: Color { isSelf ? colors.messageOutgoingForeground : colors.primary }
+        /// The foreground of the surface the body is drawn on, when the row or its container sets one (a failed
+        /// message's failure surface, a forward record's neutral palette); else the side's.
+        var bodyForeground: Color? = nil
+        var foreground: Color {
+            bodyForeground ?? (isSelf ? colors.messageOutgoingForeground : colors.messageIncomingForeground)
+        }
+        var link: Color { isSelf ? (bodyForeground ?? colors.messageOutgoingForeground) : colors.primary }
     }
 
     static func block(_ block: FlareRichBlock, paint: Paint) -> AnyView {

@@ -3,14 +3,15 @@
     {{ t("forward.empty") }}
   </div>
 
-  <!-- Single item: render inline through the content pipeline (recursive) -->
+  <!-- Single item: render inline through the content pipeline (recursive). The items are someone else's messages
+       whoever forwarded the record (spec rules.palette), here and in the drawer. -->
   <div
     v-else-if="record.layout === 'single'"
     class="im-fwd-single"
     role="article"
     :aria-label="ariaSingleLabel"
   >
-    <ContentView :content="singleItemContent" :is-self="isSelf" class="im-fwd-single__body" />
+    <ContentView :content="singleItemContent" :is-self="false" class="im-fwd-single__body" />
   </div>
 
   <!-- Merged forward: compact card in the thread + drawer with the full nested list -->
@@ -97,11 +98,12 @@ import FlareDrawer from "../../../general/FlareDrawer.vue";
 import ContentView from "../ContentView.vue";
 import PlainTextEmojiRich from "../../../shared/PlainTextEmojiRich.vue";
 
-// The dispatcher binds shared view props (messageExtra/senderName/…) that this
-// view doesn't consume; keep them off the DOM root.
+// The dispatcher binds shared view props (isSelf/messageExtra/senderName/…) that
+// this view doesn't consume — who forwarded the record never colours its items;
+// keep them off the DOM root.
 defineOptions({ inheritAttrs: false });
 
-const props = defineProps<{ content: ContentElem; isSelf: boolean }>();
+const props = defineProps<{ content: ContentElem }>();
 
 const { t, locale } = useFlareI18n();
 // In multi-select the card is inert: a tap belongs to the row.

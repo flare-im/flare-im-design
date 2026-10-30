@@ -96,3 +96,45 @@ describe("ForwardView merged record", () => {
     expect(handlers).toHaveLength(0);
   });
 });
+
+// rules.palette: the items are someone else's messages whoever forwarded the record — inline and in the drawer they
+// are never drawn as the viewer's own.
+describe("ForwardView items", () => {
+  const rich = { contentType: "rich_text", rich_text: { plainText: "周报", docJson: "" } };
+  it("draws the one inline item of a record the viewer forwarded as someone else's message", () => {
+    host = mount(defineComponent({
+      setup() {
+        useFlareI18nProvider("zh-CN");
+        return () => h(ForwardView, {
+          content: { contentType: "forward", forward: { mode: 1, items: [{ sourceSenderName: "林夏", content: rich }] } } as unknown as ContentElem,
+          isSelf: true,
+        });
+      },
+    }));
+    expect(host.text()).toContain("周报");
+    expect(host.find(".im-content-view").exists()).toBe(true);
+    expect(host.find(".im-content-view--self").exists()).toBe(false);
+    expect(host.find(".fm-rich").classes()).not.toContain("is-self");
+  });
+
+  it("draws the drawer rows of a record the viewer forwarded as someone else's messages", async () => {
+    host = mount(defineComponent({
+      setup() {
+        useFlareI18nProvider("zh-CN");
+        return () => h(ForwardView, {
+          content: { contentType: "forward", forward: { mode: 2, items: [
+            { sourceSenderName: "林夏", content: rich },
+            { sourceSenderName: "周屿", plainText: "收到" },
+          ] } } as unknown as ContentElem,
+          isSelf: true,
+        });
+      },
+    }), { attachTo: document.body });
+    await host.get("button.im-fwd-card").trigger("click");
+    await nextTick();
+    const embed = drawer()!.querySelector(".im-fwd-item__embed")!;
+    expect(embed.querySelector(".im-content-view")).not.toBeNull();
+    expect(embed.querySelector(".im-content-view--self")).toBeNull();
+    expect(embed.querySelector(".fm-rich.is-self")).toBeNull();
+  });
+});
