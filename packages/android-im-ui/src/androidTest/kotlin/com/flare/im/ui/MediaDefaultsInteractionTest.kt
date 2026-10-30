@@ -36,8 +36,12 @@ import androidx.test.platform.app.InstrumentationRegistry
 import java.io.File
 import java.time.LocalDate
 import java.time.ZoneId
+import coil.Coil
+import coil.ImageLoader
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -49,6 +53,20 @@ import org.junit.Test
 class MediaDefaultsInteractionTest {
     @get:Rule val compose = createComposeRule()
     private val strings = FlareStrings()
+
+    /**
+     * Pictures decode into software bitmaps here. A hardware bitmap lives in the GPU, and on an emulator whose GPU is
+     * itself emulated (CI's swiftshader) it is drawn as nothing in a captured frame, so a test that reads a picture's
+     * pixels would fail on the emulator and not on the kit. The picture drawn is the same either way.
+     */
+    @Before fun softwareBitmaps() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        Coil.setImageLoader(ImageLoader.Builder(context).allowHardware(false).build())
+    }
+
+    @After fun resetImageLoader() {
+        Coil.reset()
+    }
 
     private fun message(id: String, content: FlareMessageContent, sentAtMs: Long = 0) =
         FlareMessageData(id = id, senderId = "ann", senderName = "Ann", content = content, sentAtMs = sentAtMs)
