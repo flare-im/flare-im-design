@@ -1,5 +1,7 @@
 ## 未发布
 
+- 批量工具条转发可用性：`MessageBatchToolbar` 新增 `unforwardableIds: Set<String>`（默认空）：逐条转发至少 1 个、合并转发至少 2 个可转发 id，这两个动作只上报可转发 id；有不可转发项时计数下方显示 `messageBatchUnforwardable`（`messageBatchUnforwardableOne` 为英文单数）。新增 `messageBatchActionIds`、`messageBatchUnforwardableCount`、`MessageBatchAction.forwards`，`messageBatchActionsAvailable` 新增可选参数（`spec/message-batch-vectors.json` 的 forward）。
+
 - 通话：新增 `CallRecordCard` 与 `flareCallRecordStatus` / `flareCallRecordAction` 等规则（`FlareCallRecordScope`、`FlareCallRecordState`、`FlareCallEndReason`，`spec/call-record-vectors.json`），`FlareStrings` 新增 `callRecord*`；`CallView` 新增 `onMinimize`（传入才绘制收起按钮）。**破坏性**：`GroupCallView(state:)` 由 `String` 改为 `FlareCallState`。
 
 - `Drawer` 消费 `FlareSheetOwnHeader(back)`（带返回的 `FlareScreen` 自动声明）：隐藏重复页头，Escape / 系统返回先退当前页，忙碌锁定时两者均不分发页面返回。

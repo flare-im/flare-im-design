@@ -1,5 +1,12 @@
 ## 未发布
 
+- 批量工具条与消息菜单的转发可用性、身份占位头像、合并转发条目色板、开发构建探测：
+  - `FlareMessageBatchToolbar` 新增 `unforwardableIds`（已选中但核心判定不可转发的 id，默认空）：逐条转发需要至少 1 个、合并转发至少 2 个可转发 id，这两个动作只上报可转发 id（保持选择顺序）；选择里有不可转发项时计数下方显示 `batch.unforwardable`（「N 条不支持转发」，英文分单复数）。`./contracts` 新增 `messageBatchActionIds`、`messageBatchUnforwardableCount`、`messageBatchForwardActions`，`messageBatchActionsAvailable` 新增可选参数 `unforwardableIds`（`spec/message-batch-vectors.json` 的 forward）。
+  - `MessageMenuConfig` 新增 `availability(message)`：宿主手里核心 `MessageActionAvailability` 的快照（与原生 `MessageMenuSource.availability` 同语义），为 false 的标志关掉对应菜单项、不会打开任何项；多层配置逐层收窄。新增 `narrowMessageActionAvailability`，`./utils` 导出 `MessageMenuAvailability` 与 `MessageActionAvailability` 类型。
+  - `FlareUserIdentity` 在 loading / unavailable 时画中性头像（人形图标），不再取提示文字的首字。
+  - 合并转发只有一条时内联画的条目按别人的消息画（`spec/message-forward-vectors.json` rules.palette），不再沿用转发者本人的样式。
+  - `flareIconNameOrFallback` 的开发构建判断不再用 `import.meta`（按 `process.env.NODE_ENV` 由打包器替换），以脚本方式加载源码时不再语法错误；Vite 开发 / 构建与测试下的行为不变。
+
 - 通话记录卡片：新增 `FlareCallRecordCard`（props `media`、`scope`、`state`、`endReason`、`durationSeconds`、`joinedCount`、`viewerIsInitiator`、`canJoin`、`canCallBack`、`disabled`、`busy`；事件 `join`、`callBack`），`./contracts` 新增 `FlareCallRecordScope`、`FlareCallRecordState`、`FlareCallEndReason`、`FlareCallRecordStatus` 与 `flareCallRecordStatus` / `flareCallRecordTone` / `flareCallRecordAction` / `flareCallDurationLabel`（`spec/call-record-vectors.json`），i18n 新增 `callRecord.*`。
 
 - `displayTextFromStoredPreview` 可注入 `StoredPreviewOptions.resolveSystemText` 解析产品自己的系统消息键、参数与回退文案；通用预览与引用的解码继续由 Kit 提供。

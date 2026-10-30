@@ -1,5 +1,10 @@
 ## 未发布
 
+- 批量工具条转发可用性、合并转发条目色板、富文本前景、消息菜单预读：
+  - `MessageBatchToolbarView` 新增 `unforwardableIds: Set<String>`（默认空）：逐条转发至少 1 个、合并转发至少 2 个可转发 id，这两个动作只上报可转发 id；有不可转发项时计数下方显示 `messageBatchUnforwardable`（`messageBatchUnforwardableOne` 为英文单数）。新增 `messageBatchActionIds`、`messageBatchUnforwardableCount`、`MessageBatchAction.forwards`，`messageBatchActionsAvailable` 新增可选参数（`spec/message-batch-vectors.json` 的 forward）。
+  - 合并转发的条目（单条内联与抽屉里每一行）按别人的消息画，不再继承本人气泡的白色前景；`RichTextMessageView` 读所在表面给的前景（失败消息的失败底色、转发记录的中性色板），与 `TextMessageView` 一致。
+  - 消息菜单：行的快照到达时即结清预读记录，快照之后失效时会再次读取；指针菜单的「正在读取…」与长按一样每次都发起读取，不再被去重吞掉（`FlareMessageMenuPrefetcher.ask`）。
+
 - 通话：新增 `CallRecordCardView` 与 `FlareCallRecordRules`（`FlareCallRecordScope`、`FlareCallRecordState`、`FlareCallEndReason`，`spec/call-record-vectors.json`），`FlareStrings` 新增 `callRecord*`；`CallView` 新增 `onMinimize`（传入才绘制收起按钮）。
 
 - 抽屉优先使用内部 `FlareScreen` 的返回：Escape 与辅助功能返回逐页退回，栈底才关闭；自带返回页头时不重复画抽屉页头，忙碌锁定与遮罩关闭保持一致。

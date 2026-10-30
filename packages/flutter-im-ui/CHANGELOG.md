@@ -1,5 +1,10 @@
 ## 未发布
 
+- 批量工具条转发可用性、合并转发条目色板、失败气泡前景：
+  - `FlareMessageBatchToolbar` 新增 `unforwardableIds`（`Set<String>`，默认空）：逐条转发至少 1 个、合并转发至少 2 个可转发 id，这两个动作只上报可转发 id；有不可转发项时计数下方显示 `messageBatchUnforwardable`（`messageBatchUnforwardableOne` 为英文单数，`FlareStrings.messageBatchUnforwardableCount`）。新增 `messageBatchActionIds`、`messageBatchUnforwardableCount`、`FlareMessageBatchAction.forwards`，`messageBatchActionsAvailable` 新增可选参数（`spec/message-batch-vectors.json` 的 forward）。
+  - 合并转发只有一条时内联画的条目按别人的消息画，不再用本人气泡的白色前景（`spec/message-forward-vectors.json` rules.palette）。
+  - 气泡把自己的前景同时给到两侧的 `messageOutgoingForeground` / `messageIncomingForeground`：失败消息的文本与富文本改用失败前景，不再是失败浅底上的白字。
+
 - 通话：新增 `FlareCallRecordCard` 与 `models/call_record.dart`（`FlareCallRecordScope`、`FlareCallRecordState`、`FlareCallEndReason`、`flareCallRecordStatus` 等，`spec/call-record-vectors.json`），`FlareStrings` 新增 `callRecord*`；`FlareCallView` 新增 `onMinimize`（传入才绘制收起按钮）。**破坏性**：`FlareGroupCallView.state` 由 `String` 改为 `FlareCallState`。
 - 第八轮：消息表面与元信息、回执投影、红包第五版、插件协议 v2（docs/design/message-surface-and-meta.md、red-packet-v5-roles-and-wallet.md、poll-v2-permissions-anonymity.md §6、plugin-platform-v2-trust-lifecycle-admin.md §4）：
   - 新增 `models/message_surface.dart`：`FlareMessageSurface`（bubble / bareMedia / card / centered）与 `flareMessageSurface`、`flareMessageContentKey`、`flareMessageSurfaceInputOf`；`FlareMessageMetaPlacement` 与 `flareMessageMetaPlacement`；`FlareMessageReadSummary`、`flareMessageReceiptPresentation`、`flareMessageAccessibilityLabel`。规则读 `spec/message-surface-vectors.json`、`message-meta-placement-vectors.json`、`message-receipt-vectors.json`。
