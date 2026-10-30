@@ -14042,6 +14042,15 @@
           }
         },
         {
+          "name": "unforwardableIds",
+          "type": "string[]",
+          "required": false,
+          "description": {
+            "zh": "已选中、但核心判定不可转发（canForward 为 false，例如未声明可转发的插件卡）的消息 id；默认为空。原生端为 Set<String>",
+            "en": "Selected ids the core answers canForward false for (a plugin card that does not declare forwardable); empty by default. A Set<String> on the native kits"
+          }
+        },
+        {
           "name": "busy",
           "type": "boolean",
           "required": false,
@@ -14070,6 +14079,10 @@
         "clearSelection",
         "exit"
       ],
+      "notes": {
+        "en": "The forward keys count and report only the forwardable ids (the selection minus unforwardableIds, in selection order): forwardEach needs one, forwardMerged two; every other action counts and reports the whole selection (spec/message-batch-vectors.json forward). While the selection holds unforwardable ids the count gets a second line, messageBatchUnforwardable(count) (Vue batch.unforwardable), one form for 1 in English.",
+        "zh": "转发键只计入并上报可转发的 id（选择减去 unforwardableIds，保持选择顺序）：逐条转发至少 1 个，合并转发至少 2 个；其余动作计入并上报整个选择（spec/message-batch-vectors.json 的 forward）。选择里有不可转发项时，计数下方多一行 messageBatchUnforwardable(count)（Vue 为 batch.unforwardable），英文 1 条用单数。"
+      },
       "platforms": {
         "vue": {
           "package": "@flare-im/vue-ui",

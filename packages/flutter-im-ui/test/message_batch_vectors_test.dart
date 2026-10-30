@@ -42,13 +42,20 @@ void main() {
           as Map<String, dynamic>;
   final cases = (vectors['cases'] as List).cast<Map<String, dynamic>>();
 
+  List<String> selection(Map<String, dynamic> c) =>
+      (c['selectedIds'] as List?)?.cast<String>() ?? _ids(c['selected'] as int);
+  Set<String> unforwardable(Map<String, dynamic> c) =>
+      ((c['unforwardable'] as List?) ?? const []).cast<String>().toSet();
+
   test('availability matches the shared table', () {
-    expect(cases.length, greaterThanOrEqualTo(8));
+    expect(cases.length, greaterThanOrEqualTo(14));
     for (final c in cases) {
+      expect(selection(c).length, c['selected'], reason: c['id'] as String);
       final available = messageBatchActionsAvailable(
-        _ids(c['selected'] as int),
+        selection(c),
         _capabilities((c['capabilities'] as List).cast<String>()),
         c['busy'] as bool,
+        unforwardable(c),
       );
       expect(
         available.map((a) => a.name).toList(),
@@ -56,6 +63,98 @@ void main() {
         reason: c['id'] as String,
       );
     }
+  });
+
+  test('the reported ids and the unforwardable count are the table\'s', () {
+    final forward = cases.where((c) => c['reports'] != null).toList();
+    expect(forward.length, greaterThanOrEqualTo(6));
+    for (final c in forward) {
+      for (final entry in (c['reports'] as Map).cast<String, List>().entries) {
+        final action = FlareMessageBatchAction.values.byName(entry.key);
+        expect(
+          messageBatchActionIds(action, selection(c), unforwardable(c)),
+          entry.value.cast<String>(),
+          reason: '${c['id']} ${entry.key}',
+        );
+      }
+      expect(
+        messageBatchUnforwardableCount(selection(c), unforwardable(c)),
+        c['unforwardableCount'],
+        reason: c['id'] as String,
+      );
+    }
+    expect(
+      FlareMessageBatchAction.values
+          .where((a) => a.forwards)
+          .map((a) => a.name)
+          .toList(),
+      ((vectors['forward'] as Map)['actions'] as List).cast<String>(),
+    );
+  });
+
+  testWidgets('the forward keys leave the unforwardable ids out and the meta '
+      'says how many', (tester) async {
+    final reported = <String>[];
+    await tester.pumpWidget(
+      _host(
+        FlareMessageBatchToolbar(
+          selectedIds: const ['c', 'a', 'b'],
+          unforwardableIds: const {'a', 'z'},
+          total: 5,
+          capabilities: const FlareMessageBatchCapabilities(
+            forwardEach: true,
+            forwardMerged: true,
+            delete: true,
+          ),
+          onAction: (action, ids) =>
+              reported.add('${action.name}:${ids.join(",")}'),
+        ),
+      ),
+    );
+    expect(
+      tester
+          .widget<Text>(find.byKey(FlareMessageBatchToolbar.unforwardableKey))
+          .data,
+      '1 条不支持转发',
+    );
+    await tester.tap(find.text(_strings.forwardEach));
+    await tester.tap(find.text(_strings.forwardMerged));
+    await tester.tap(find.text(_strings.delete));
+    await tester.pump();
+    expect(reported, ['forwardEach:c,b', 'forwardMerged:c,b', 'delete:c,a,b']);
+
+    reported.clear();
+    await tester.pumpWidget(
+      _host(
+        FlareMessageBatchToolbar(
+          selectedIds: const ['a', 'b'],
+          unforwardableIds: const {'a'},
+          total: 5,
+          capabilities: const FlareMessageBatchCapabilities(
+            forwardEach: true,
+            forwardMerged: true,
+          ),
+          onAction: (action, ids) => reported.add(action.name),
+        ),
+      ),
+    );
+    await tester.tap(find.text(_strings.forwardMerged));
+    await tester.tap(find.text(_strings.forwardEach));
+    await tester.pump();
+    expect(reported, [
+      'forwardEach',
+    ], reason: 'one forwardable id cannot merge');
+
+    await tester.pumpWidget(
+      _host(
+        FlareMessageBatchToolbar(
+          selectedIds: const ['a', 'b'],
+          total: 5,
+          capabilities: const FlareMessageBatchCapabilities(forwardEach: true),
+        ),
+      ),
+    );
+    expect(find.byKey(FlareMessageBatchToolbar.unforwardableKey), findsNothing);
   });
 
   test('the declared order and minimums are the table\'s', () {

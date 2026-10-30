@@ -376,6 +376,8 @@ const FlareStrings flareStringsEnglish = FlareStrings(
   messageBatchExit: 'Done',
   messageBatchPin: 'Pin',
   messageBatchPinSelf: 'Pin for me only',
+  messageBatchUnforwardable: '{count} messages can\'t be forwarded',
+  messageBatchUnforwardableOne: '{count} message can\'t be forwarded',
   messageBurnAfterRead: 'Disappears after reading',
   messageDeleted: 'Message deleted',
   messageEdited: 'Edited',

@@ -45,6 +45,7 @@ class PluralVectorsTest {
                 "forwardRecordTotal" -> strings.forwardRecordTotalOne to strings.forwardRecordTotal
                 "myInviteCountOnly" -> strings.myInviteCountOnlyOne to strings.myInviteCountOnly
                 "storageUsageFileCount" -> strings.storageUsageFileCountOne to strings.storageUsageFileCount
+                "messageBatchUnforwardable" -> strings.messageBatchUnforwardableOne to strings.messageBatchUnforwardable
                 else -> error("no field ${form.str("native")}")
             }
             assertEquals(form.str("text"), flarePlural(form.long("count")!!, one, other, locale), "${form.str("native")} ${form.long("count")}")

@@ -78,6 +78,12 @@ public extension FlareStrings {
             .replacingOccurrences(of: "{count}", with: String(count))
     }
 
+    /// The batch toolbar's "N 条不支持转发" (`messageBatchUnforwardable` / `messageBatchUnforwardableOne`).
+    func messageBatchUnforwardableText(_ count: Int, locale: Locale) -> String {
+        flarePlural(count, one: messageBatchUnforwardableOne, other: messageBatchUnforwardable, locale: locale)
+            .replacingOccurrences(of: "{count}", with: String(count))
+    }
+
     /// The merged-forward card's "还有 N 条消息…" (`forwardRecordMore` / `forwardRecordMoreOne`).
     func forwardRecordMoreText(_ count: Int, locale: Locale) -> String {
         flarePlural(count, one: forwardRecordMoreOne, other: forwardRecordMore, locale: locale)

@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -53,21 +54,49 @@ data class MessageBatchCapabilities(
 /** What an action needs to mean anything: merging messages into one card needs two. */
 val flareMessageBatchMinimumSelection: Map<MessageBatchAction, Int> = mapOf(MessageBatchAction.ForwardMerged to 2)
 
+/** The actions that forward the selection: they count and report only its forwardable ids. */
+val MessageBatchAction.forwards: Boolean
+    get() = this == MessageBatchAction.ForwardEach || this == MessageBatchAction.ForwardMerged
+
+/**
+ * The ids an action works on (`spec/message-batch-vectors.json` forward): for a forward action the selection minus
+ * [unforwardableIds] — the ids the core answers canForward false for — in selection order; for any other action the
+ * whole selection.
+ */
+fun messageBatchActionIds(
+    action: MessageBatchAction,
+    selectedIds: List<String>,
+    unforwardableIds: Set<String> = emptySet(),
+): List<String> =
+    if (!action.forwards || unforwardableIds.isEmpty()) selectedIds.toList()
+    else selectedIds.filter { it !in unforwardableIds }
+
+/** How many of the selected ids cannot be forwarded: the count the toolbar's hint shows. */
+fun messageBatchUnforwardableCount(selectedIds: List<String>, unforwardableIds: Set<String> = emptySet()): Int =
+    selectedIds.toSet().count { it in unforwardableIds }
+
 /**
  * Actions the toolbar may offer right now (`spec/message-batch-vectors.json`, the same table on four
  * kits): empty while busy or with nothing selected; otherwise the capability-enabled actions in
- * canonical order, minus those the selection is too small for.
+ * canonical order, minus those too few ids are left for — a forward action counts only the forwardable
+ * ids (the selection minus [unforwardableIds]), every other action the whole selection.
  */
 fun messageBatchActionsAvailable(
     selectedIds: List<String>,
     capabilities: MessageBatchCapabilities?,
     busy: Boolean,
+    unforwardableIds: Set<String> = emptySet(),
 ): List<MessageBatchAction> {
     if (busy || selectedIds.isEmpty() || capabilities == null) return emptyList()
     return MessageBatchAction.entries.filter {
-        capabilities.allows(it) && selectedIds.size >= (flareMessageBatchMinimumSelection[it] ?: 1)
+        capabilities.allows(it) &&
+            messageBatchActionIds(it, selectedIds, unforwardableIds).size >= (flareMessageBatchMinimumSelection[it] ?: 1)
     }
 }
+
+/** The toolbar's "N 条不支持转发" for [count] selected messages the forward keys leave out, in the kit locale's plural. */
+internal fun messageBatchUnforwardableText(count: Int, strings: FlareStrings, locale: java.util.Locale): String =
+    flarePlural(count.toLong(), strings.messageBatchUnforwardableOne, strings.messageBatchUnforwardable, locale)
 
 internal fun messageBatchActionIcon(action: MessageBatchAction): String = when (action) {
     MessageBatchAction.ForwardEach -> "forward"
@@ -96,8 +125,9 @@ internal fun messageBatchToolbarControls(
     total: Int,
     capabilities: MessageBatchCapabilities,
     busy: Boolean,
+    unforwardableIds: Set<String> = emptySet(),
 ): List<FlareIconControlSpec> {
-    val available = messageBatchActionsAvailable(selectedIds, capabilities, busy)
+    val available = messageBatchActionsAvailable(selectedIds, capabilities, busy, unforwardableIds)
     return buildList {
         add(FlareIconControlSpec("selectAll", "check", strings.selectAll, total > 0 && !busy))
         add(FlareIconControlSpec("clearSelection", "close", strings.messageBatchClear, selectedIds.isNotEmpty() && !busy))
@@ -111,6 +141,9 @@ internal fun messageBatchToolbarControls(
 /**
  * Multi-select toolbar for batch message actions. Spec: Message/MessageBatchToolbar.
  *
+ * [unforwardableIds] are selected ids the core answers canForward false for (a plugin card that is not forwardable):
+ * the forward keys leave them out, report only the forwardable ids, and the count says how many were left out.
+ *
  * The keys wrap onto a second line when the bar is too narrow for them all — a phone is: on a 412 dp screen the five
  * keys need about 404 dp beside the count, and a row that cannot wrap squeezed the last one, exit, to nothing.
  */
@@ -121,6 +154,7 @@ fun MessageBatchToolbar(
     total: Int,
     capabilities: MessageBatchCapabilities,
     busy: Boolean = false,
+    unforwardableIds: Set<String> = emptySet(),
     onAction: ((MessageBatchAction, List<String>) -> Unit)? = null,
     onSelectAll: (() -> Unit)? = null,
     onClearSelection: (() -> Unit)? = null,
@@ -145,9 +179,18 @@ fun MessageBatchToolbar(
             .padding(horizontal = FlareSizes.spacing2md, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("$count", color = colors.primaryText, fontWeight = FontWeight.Bold, fontSize = FlareSizes.fontSizeLg.value.sp)
-            Text(" / $total · ${strings.selectedSuffix}", color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm.value.sp)
+        val unforwardable = messageBatchUnforwardableCount(selectedIds, unforwardableIds)
+        val locale = flareLocale()
+        Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing3xs)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("$count", color = colors.primaryText, fontWeight = FontWeight.Bold, fontSize = FlareSizes.fontSizeLg.value.sp)
+                Text(" / $total · ${strings.selectedSuffix}", color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm.value.sp)
+            }
+            // The forward keys leave these out: say how many.
+            if (unforwardable > 0) {
+                Text(messageBatchUnforwardableText(unforwardable, strings, locale), color = colors.textTertiary,
+                    fontSize = FlareSizes.fontSizeXs.value.sp)
+            }
         }
         Spacer(Modifier.width(FlareSizes.spacingMd))
         FlowRow(
@@ -155,7 +198,7 @@ fun MessageBatchToolbar(
             horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm, Alignment.End),
             verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs, Alignment.CenterVertically),
         ) {
-            messageBatchToolbarControls(strings, selectedIds, total, capabilities, busy).forEach { control ->
+            messageBatchToolbarControls(strings, selectedIds, total, capabilities, busy, unforwardableIds).forEach { control ->
                 when (control.id) {
                     "selectAll" -> MessageBatchButton(colors, control, onSelectAll)
                     "clearSelection" -> MessageBatchButton(colors, control, onClearSelection)
@@ -163,7 +206,7 @@ fun MessageBatchToolbar(
                     else -> {
                         val action = MessageBatchAction.valueOf(control.id)
                         MessageBatchButton(
-                            colors, control, { onAction?.invoke(action, selectedIds.toList()) },
+                            colors, control, { onAction?.invoke(action, messageBatchActionIds(action, selectedIds, unforwardableIds)) },
                             tint = if (action == MessageBatchAction.Delete) colors.errorText else null,
                         )
                     }

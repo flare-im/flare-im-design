@@ -47,6 +47,26 @@ describe("FlareMessageBatchToolbar", () => {
     expect(wrapper.emitted("pin")).toBeUndefined();
   });
 
+  it("leaves the unforwardable ids out of the forward keys and says how many there are", async () => {
+    const wrapper = setup({ selectedIds: ["c", "a", "b"], unforwardableIds: ["a", "z"], total: 4, capabilities: everything });
+    expect(wrapper.get(".flare-batch-toolbar__meta .flare-batch-toolbar__hint").text()).toBe("1 条不支持转发");
+    await wrapper.get('[aria-label="逐条转发"]').trigger("click");
+    await wrapper.get('[aria-label="合并转发"]').trigger("click");
+    await wrapper.get('[aria-label="删除"]').trigger("click");
+    expect(wrapper.emitted("action")).toEqual([
+      [{ action: "forwardEach", ids: ["c", "b"] }],
+      [{ action: "forwardMerged", ids: ["c", "b"] }],
+      [{ action: "delete", ids: ["c", "a", "b"] }],
+    ]);
+
+    const one = setup({ selectedIds: ["a", "b"], unforwardableIds: ["a"], total: 4, capabilities: everything });
+    expect(one.get('[aria-label="合并转发"]').attributes("disabled")).toBeDefined();
+    expect(one.get('[aria-label="逐条转发"]').attributes("disabled")).toBeUndefined();
+
+    const none = setup({ selectedIds: ["a", "b"], total: 4, capabilities: everything });
+    expect(none.find(".flare-batch-toolbar__hint").exists()).toBe(false);
+  });
+
   it("keeps selecting and clearing the selection separate from the actions", async () => {
     const wrapper = setup({ selectedIds: ["a"], total: 4, capabilities: everything });
     await wrapper.get('[aria-label="全选"]').trigger("click");

@@ -3,8 +3,10 @@ import { computed, getCurrentInstance, ref } from "vue";
 import { NIcon } from "naive-ui";
 import { flareIcons } from "../../shared/icons";
 import {
+  messageBatchActionIds,
   messageBatchActions,
   messageBatchActionsAvailable,
+  messageBatchUnforwardableCount,
   type MessageBatchAction,
   type MessageBatchCapabilities,
 } from "../../shared/contracts/message-batch";
@@ -26,10 +28,15 @@ const props = withDefaults(
     selectedIds: string[];
     total: number;
     capabilities: MessageBatchCapabilities;
+    /**
+     * Selected ids the core answers canForward false for (a plugin card that is not forwardable): the forward
+     * actions leave them out, and the meta counts them.
+     */
+    unforwardableIds?: string[];
     busy?: boolean;
     floating?: boolean;
   }>(),
-  { busy: false, floating: false },
+  { unforwardableIds: () => [], busy: false, floating: false },
 );
 const emit = defineEmits<{
   action: [value: { action: MessageBatchAction; ids: string[] }];
@@ -43,7 +50,10 @@ const instance = getCurrentInstance();
 const root = ref<HTMLElement | null>(null);
 const actions = ref<HTMLElement | null>(null);
 const count = computed(() => props.selectedIds.length);
-const available = computed(() => messageBatchActionsAvailable(props.selectedIds, props.capabilities, props.busy));
+const available = computed(() =>
+  messageBatchActionsAvailable(props.selectedIds, props.capabilities, props.busy, props.unforwardableIds),
+);
+const unforwardableCount = computed(() => messageBatchUnforwardableCount(props.selectedIds, props.unforwardableIds));
 const visibleActions = computed(() => messageBatchActions.filter((action) => props.capabilities?.[action] === true));
 const icons: Record<MessageBatchAction, keyof typeof flareIcons> = {
   forwardEach: "forward",
@@ -72,8 +82,13 @@ const edges = useFlareScrollEdges(actions, () => props.floating);
     :aria-label="t('batch.title')"
   >
     <div class="flare-batch-toolbar__meta" aria-live="polite" aria-atomic="true">
-      <strong>{{ count }}</strong>
-      <span>/ {{ total }} · {{ t("batch.selected") }}</span>
+      <span class="flare-batch-toolbar__count">
+        <strong>{{ count }}</strong>
+        <span>/ {{ total }} · {{ t("batch.selected") }}</span>
+      </span>
+      <span v-if="unforwardableCount > 0" class="flare-batch-toolbar__hint">
+        {{ t("batch.unforwardable", { count: unforwardableCount }) }}
+      </span>
     </div>
     <div ref="actions" class="flare-batch-toolbar__actions" :data-scroll-end="edges.end.value ? 'true' : undefined">
       <button
@@ -106,7 +121,7 @@ const edges = useFlareScrollEdges(actions, () => props.floating);
         :aria-label="t(`batch.${action}`)"
         :title="t(`batch.${action}`)"
         :disabled="!available.includes(action)"
-        @click="emit('action', { action, ids: [...selectedIds] })"
+        @click="emit('action', { action, ids: messageBatchActionIds(action, selectedIds, unforwardableIds) })"
       >
         <n-icon aria-hidden="true" :size="16" :component="flareIcons[icons[action]]" />
         <span>{{ t(`batch.${action}`) }}</span>
@@ -155,11 +170,21 @@ const edges = useFlareScrollEdges(actions, () => props.floating);
 }
 .flare-batch-toolbar__meta {
   display: inline-flex;
-  align-items: baseline;
+  flex-direction: column;
   flex: none;
-  gap: 5px;
+  gap: var(--flare-size-spacing-3xs);
   font-size: 13px;
   color: var(--flare-color-text-secondary);
+}
+.flare-batch-toolbar__count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+}
+/* The selection holds messages the forward keys leave out: a second line under the count says how many. */
+.flare-batch-toolbar__hint {
+  font-size: var(--flare-size-font-size-xs);
+  color: var(--flare-color-text-tertiary);
 }
 .flare-batch-toolbar__meta strong {
   font-size: 16px;

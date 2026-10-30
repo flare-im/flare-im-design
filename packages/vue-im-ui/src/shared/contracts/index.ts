@@ -157,7 +157,7 @@ export * from "./permission-prompt";
 export { actionMenuEntries, type FlareActionIntent, type FlareActionItem, type FlareActionMenuEntry, type FlareActionMenuPresentation } from "./action-menu";
 export { conversationActions, type FlareConversationAction, type ConversationActionSnapshot, type ConversationActionCapabilities, type ConversationActionEntry, type ConversationActionPayload } from "./conversation-actions";
 export { batchActionsAvailable, batchSelectionExceeded, conversationBatchActions, summarizeBatchResult, type ConversationBatchAction, type ConversationBatchCapabilities, type ConversationBatchFailure, type ConversationBatchResult, type ConversationBatchSummary } from "./conversation-batch";
-export { messageBatchActions, messageBatchActionsAvailable, messageBatchMinimumSelection, type MessageBatchAction, type MessageBatchCapabilities } from "./message-batch";
+export { messageBatchActionIds, messageBatchActions, messageBatchActionsAvailable, messageBatchForwardActions, messageBatchMinimumSelection, messageBatchUnforwardableCount, type MessageBatchAction, type MessageBatchCapabilities } from "./message-batch";
 
 export { unknownMessagePresentation, type UnknownMessageInput, type UnknownMessagePresentation } from "./unknown-message";
 

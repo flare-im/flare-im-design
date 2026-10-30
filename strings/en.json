@@ -3308,6 +3308,25 @@
     ],
     "zh": "仅自己置顶"
   },
+  "messageBatchUnforwardable": {
+    "en": "{count} messages can't be forwarded",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "{count} 条不支持转发"
+  },
+  "messageBatchUnforwardableOne": {
+    "en": "{count} message can't be forwarded",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "{count} 条不支持转发",
+    "pluralOf": "messageBatchUnforwardable"
+  },
   "messageBurnAfterRead": {
     "en": "Disappears after reading",
     "kits": [

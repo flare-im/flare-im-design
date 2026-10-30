@@ -13,12 +13,18 @@ final class MessageBatchVectorsTests: XCTestCase {
         struct Case: Decodable {
             let id: String
             let selected: Int
+            let selectedIds: [String]?
+            let unforwardable: [String]?
             let capabilities: [String]
             let busy: Bool
             let available: [String]
+            let reports: [String: [String]]?
+            let unforwardableCount: Int?
         }
+        struct Forward: Decodable { let actions: [String] }
         let order: [String]
         let minimumSelection: [String: Int]
+        let forward: Forward
         let cases: [Case]
     }
 
@@ -37,13 +43,59 @@ final class MessageBatchVectorsTests: XCTestCase {
 
     private func ids(_ count: Int) -> [String] { (0..<count).map { "m\($0)" } }
 
+    private func selection(_ c: Table.Case) -> [String] { c.selectedIds ?? ids(c.selected) }
+
     func testAvailabilityMatchesTheSharedTable() throws {
         let table = try table()
-        XCTAssertGreaterThanOrEqual(table.cases.count, 8)
+        XCTAssertGreaterThanOrEqual(table.cases.count, 14)
         for c in table.cases {
-            let available = messageBatchActionsAvailable(ids(c.selected), capabilities(c.capabilities), c.busy)
+            XCTAssertEqual(selection(c).count, c.selected, c.id)
+            let available = messageBatchActionsAvailable(selection(c), capabilities(c.capabilities), c.busy,
+                                                         Set(c.unforwardable ?? []))
             XCTAssertEqual(available.map(\.rawValue), c.available, c.id)
         }
+    }
+
+    func testTheReportedIdsAndTheUnforwardableCountAreTheTables() throws {
+        let table = try table()
+        let cases = table.cases.filter { $0.reports != nil }
+        XCTAssertGreaterThanOrEqual(cases.count, 6)
+        for c in cases {
+            let unforwardable = Set(c.unforwardable ?? [])
+            for (name, reported) in c.reports ?? [:] {
+                let action = try XCTUnwrap(MessageBatchAction(rawValue: name), name)
+                XCTAssertEqual(messageBatchActionIds(action, selection(c), unforwardable), reported, "\(c.id) \(name)")
+            }
+            XCTAssertEqual(messageBatchUnforwardableCount(selection(c), unforwardable), c.unforwardableCount, c.id)
+        }
+        XCTAssertEqual(MessageBatchAction.allCases.filter(\.forwards).map(\.rawValue), table.forward.actions)
+    }
+
+    /// The forward keys report only the forwardable ids, merging turns off with one left, and the count names the rest.
+    @MainActor
+    func testTheToolbarLeavesTheUnforwardableIdsOutOfTheForwardKeys() throws {
+        var reported: [String] = []
+        let bar = MessageBatchToolbarView(
+            selectedIds: ["c", "a", "b"], total: 5,
+            capabilities: MessageBatchCapabilities(forwardEach: true, forwardMerged: true, delete: true),
+            unforwardableIds: ["a", "z"],
+            onAction: { action, ids in reported.append("\(action.rawValue):\(ids.joined(separator: ","))") })
+        try bar.inspect().find(button: s.forwardEach).tap()
+        try bar.inspect().find(button: s.forwardMerged).tap()
+        try bar.inspect().find(button: s.delete).tap()
+        XCTAssertEqual(reported, ["forwardEach:c,b", "forwardMerged:c,b", "delete:c,a,b"])
+        XCTAssertNoThrow(try bar.inspect().find(text: "1 条不支持转发"))
+
+        let one = MessageBatchToolbarView(selectedIds: ["a", "b"], total: 5,
+                                          capabilities: MessageBatchCapabilities(forwardEach: true, forwardMerged: true),
+                                          unforwardableIds: ["a"])
+        XCTAssertTrue(try one.inspect().find(button: s.forwardMerged).isDisabled(), "one forwardable id cannot merge")
+        XCTAssertFalse(try one.inspect().find(button: s.forwardEach).isDisabled())
+        let none = MessageBatchToolbarView(selectedIds: ["a", "b"], total: 5,
+                                           capabilities: MessageBatchCapabilities(forwardEach: true))
+        XCTAssertThrowsError(try none.inspect().find(text: "0 条不支持转发"))
+        XCTAssertEqual(FlareStrings.english.messageBatchUnforwardableText(1, locale: Locale(identifier: "en_US")),
+                       "1 message can't be forwarded")
     }
 
     func testTheDeclaredOrderAndMinimumsAreTheTables() throws {

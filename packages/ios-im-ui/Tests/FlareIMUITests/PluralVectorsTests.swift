@@ -54,6 +54,7 @@ final class PluralVectorsTests: XCTestCase {
             case "forwardRecordTotal": text = strings.forwardRecordTotalText(count, locale: locale)
             case "forwardRecordMore": text = strings.forwardRecordMoreText(count, locale: locale)
             case "myInviteCountOnly": text = strings.myInviteCountOnlyText(count, locale: locale)
+            case "messageBatchUnforwardable": text = strings.messageBatchUnforwardableText(count, locale: locale)
             case "storageUsageFileCount":
                 let view = StorageUsageView(categories: [], locale: language)
                 text = StorageUsageView.fileCountText(count, copy: view.resolveCopy(strings), locale: locale)

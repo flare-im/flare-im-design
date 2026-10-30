@@ -311,6 +311,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       pinSelf: "仅自己置顶",
       delete: "删除",
       exit: "退出多选",
+      unforwardable: "{count} 条不支持转发",
     },
     search: {
       viewAll: "查看全部 {count} 条",
@@ -1777,6 +1778,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       pinSelf: "Pin for me",
       delete: "Delete",
       exit: "Exit selection",
+      unforwardable: { one: "{count} message can't be forwarded", other: "{count} messages can't be forwarded" },
     },
     search: {
       viewAll: "View all {count}",

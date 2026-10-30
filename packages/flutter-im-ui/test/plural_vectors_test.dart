@@ -74,6 +74,10 @@ void main() {
         'forwardRecordTotal' => strings.forwardRecordTotalCount(count, locale),
         'forwardRecordMore' => strings.forwardRecordMoreCount(count, locale),
         'myInviteCountOnly' => strings.myInviteCountOnlyCount(count, locale),
+        'messageBatchUnforwardable' => strings.messageBatchUnforwardableCount(
+          count,
+          locale,
+        ),
         // Flutter's storage count is a function of the count, not a pair of
         // template forms.
         'storageUsageFileCount' => null,

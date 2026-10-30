@@ -1,5 +1,5 @@
 {
-  "note": "Which batch actions a message multi-select toolbar may offer right now. The same table runs on four kits (FR-034): the toolbar mirrors ConversationBatchToolbar — the host declares capabilities and the toolbar reports one action with the selected ids.",
+  "note": "Which batch actions a message multi-select toolbar may offer right now, and the ids each one reports. The same table runs on four kits (FR-034): the toolbar mirrors ConversationBatchToolbar — the host declares capabilities and the toolbar reports one action with the selected ids.",
   "order": [
     "forwardEach",
     "forwardMerged",
@@ -9,6 +9,14 @@
   ],
   "minimumSelection": {
     "forwardMerged": 2
+  },
+  "forward": {
+    "actions": [
+      "forwardEach",
+      "forwardMerged"
+    ],
+    "rule": "unforwardableIds (optional, empty by default) are selected ids the core's message.action_availability answers canForward false for — a plugin card that does not declare forwardable. The forward actions count only the forwardable ids (the selection minus unforwardableIds): forwardEach needs at least 1, forwardMerged at least minimumSelection.forwardMerged; each reports only the forwardable ids, in selection order. Every other action counts and reports the whole selection. An id in unforwardableIds that is not selected counts for nothing.",
+    "hint": "While the selection holds unforwardable ids the toolbar's meta shows messageBatchUnforwardable(count) (Vue batch.unforwardable): count = the selected ids in unforwardableIds, one form for 1 in English (plural-vectors.json)."
   },
   "cases": [
     {
@@ -115,6 +123,178 @@
       "capabilities": [],
       "busy": false,
       "available": []
+    },
+    {
+      "id": "unforwardable.leaves.forward.to.the.rest",
+      "selected": 3,
+      "unforwardable": [
+        "m1"
+      ],
+      "capabilities": [
+        "forwardEach",
+        "forwardMerged",
+        "delete"
+      ],
+      "busy": false,
+      "available": [
+        "forwardEach",
+        "forwardMerged",
+        "delete"
+      ],
+      "reports": {
+        "forwardEach": [
+          "m0",
+          "m2"
+        ],
+        "forwardMerged": [
+          "m0",
+          "m2"
+        ],
+        "delete": [
+          "m0",
+          "m1",
+          "m2"
+        ]
+      },
+      "unforwardableCount": 1
+    },
+    {
+      "id": "one.forwardable.cannot.merge",
+      "selected": 2,
+      "unforwardable": [
+        "m0"
+      ],
+      "capabilities": [
+        "forwardEach",
+        "forwardMerged",
+        "delete"
+      ],
+      "busy": false,
+      "available": [
+        "forwardEach",
+        "delete"
+      ],
+      "reports": {
+        "forwardEach": [
+          "m1"
+        ],
+        "delete": [
+          "m0",
+          "m1"
+        ]
+      },
+      "unforwardableCount": 1
+    },
+    {
+      "id": "nothing.forwardable",
+      "selected": 2,
+      "unforwardable": [
+        "m0",
+        "m1"
+      ],
+      "capabilities": [
+        "forwardEach",
+        "forwardMerged",
+        "pin",
+        "delete"
+      ],
+      "busy": false,
+      "available": [
+        "pin",
+        "delete"
+      ],
+      "reports": {
+        "pin": [
+          "m0",
+          "m1"
+        ],
+        "delete": [
+          "m0",
+          "m1"
+        ]
+      },
+      "unforwardableCount": 2
+    },
+    {
+      "id": "unselected.unforwardable.counts.for.nothing",
+      "selected": 2,
+      "unforwardable": [
+        "m9"
+      ],
+      "capabilities": [
+        "forwardEach",
+        "forwardMerged",
+        "delete"
+      ],
+      "busy": false,
+      "available": [
+        "forwardEach",
+        "forwardMerged",
+        "delete"
+      ],
+      "reports": {
+        "forwardEach": [
+          "m0",
+          "m1"
+        ],
+        "forwardMerged": [
+          "m0",
+          "m1"
+        ],
+        "delete": [
+          "m0",
+          "m1"
+        ]
+      },
+      "unforwardableCount": 0
+    },
+    {
+      "id": "forward.keeps.the.selection.order",
+      "selected": 3,
+      "selectedIds": [
+        "m2",
+        "m0",
+        "m1"
+      ],
+      "unforwardable": [
+        "m0"
+      ],
+      "capabilities": [
+        "forwardEach",
+        "forwardMerged"
+      ],
+      "busy": false,
+      "available": [
+        "forwardEach",
+        "forwardMerged"
+      ],
+      "reports": {
+        "forwardEach": [
+          "m2",
+          "m1"
+        ],
+        "forwardMerged": [
+          "m2",
+          "m1"
+        ]
+      },
+      "unforwardableCount": 1
+    },
+    {
+      "id": "busy.with.unforwardable.hides.everything",
+      "selected": 3,
+      "unforwardable": [
+        "m1"
+      ],
+      "capabilities": [
+        "forwardEach",
+        "forwardMerged",
+        "delete"
+      ],
+      "busy": true,
+      "available": [],
+      "reports": {},
+      "unforwardableCount": 1
     }
   ]
 }

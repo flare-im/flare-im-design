@@ -67,6 +67,8 @@ public extension FlareStrings {
             messageBatchPin: "Pin",
             messageBatchPinSelf: "Pin for me only",
             messageBatchClear: "Clear selection",
+            messageBatchUnforwardable: "{count} messages can't be forwarded",
+            messageBatchUnforwardableOne: "{count} message can't be forwarded",
             searchMembers: "Search members",
             everyone: "Everyone",
             notifyEveryone: "Notify everyone",

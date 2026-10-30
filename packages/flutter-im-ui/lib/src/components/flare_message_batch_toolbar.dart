@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../models/plural.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'action_icon.dart';
@@ -42,20 +43,59 @@ const Map<FlareMessageBatchAction, int> flareMessageBatchMinimumSelection = {
   FlareMessageBatchAction.forwardMerged: 2,
 };
 
+/// The actions that forward the selection: they count and report only its
+/// forwardable ids.
+extension FlareMessageBatchForward on FlareMessageBatchAction {
+  bool get forwards =>
+      this == FlareMessageBatchAction.forwardEach ||
+      this == FlareMessageBatchAction.forwardMerged;
+}
+
+/// The ids an action works on (`spec/message-batch-vectors.json` forward): for
+/// a forward action the selection minus [unforwardableIds] — the ids the core
+/// answers canForward false for — in selection order; for any other action the
+/// whole selection.
+List<String> messageBatchActionIds(
+  FlareMessageBatchAction action,
+  List<String> selectedIds, [
+  Set<String> unforwardableIds = const {},
+]) {
+  if (!action.forwards || unforwardableIds.isEmpty) {
+    return List<String>.from(selectedIds);
+  }
+  return selectedIds
+      .where((id) => !unforwardableIds.contains(id))
+      .toList(growable: false);
+}
+
+/// How many of the selected ids cannot be forwarded: the count the toolbar's
+/// hint shows.
+int messageBatchUnforwardableCount(
+  List<String> selectedIds, [
+  Set<String> unforwardableIds = const {},
+]) => selectedIds.toSet().intersection(unforwardableIds).length;
+
 /// Actions the toolbar may offer right now (`spec/message-batch-vectors.json`, the same
 /// table on four kits): empty while busy or with nothing selected; otherwise the
-/// capability-enabled actions in canonical order, minus those the selection is too small for.
+/// capability-enabled actions in canonical order, minus those too few ids are left for —
+/// a forward action counts only the forwardable ids (the selection minus
+/// [unforwardableIds]), every other action the whole selection.
 List<FlareMessageBatchAction> messageBatchActionsAvailable(
   List<String> selectedIds,
   FlareMessageBatchCapabilities? capabilities,
-  bool busy,
-) {
+  bool busy, [
+  Set<String> unforwardableIds = const {},
+]) {
   if (busy || selectedIds.isEmpty || capabilities == null) return const [];
   return FlareMessageBatchAction.values
       .where(
         (action) =>
             capabilities.allows(action) &&
-            selectedIds.length >=
+            messageBatchActionIds(
+                  action,
+                  selectedIds,
+                  unforwardableIds,
+                ).length >=
                 (flareMessageBatchMinimumSelection[action] ?? 1),
       )
       .toList(growable: false);
@@ -65,6 +105,8 @@ List<FlareMessageBatchAction> messageBatchActionsAvailable(
 /// [FlareConversationBatchToolbar] (FR-034): the host declares what it can do over the
 /// selection and the toolbar reports one action with the ids; selecting all and clearing
 /// the selection stay their own callbacks, because they change the selection, not the world.
+/// [unforwardableIds] are selected ids the core answers canForward false for: the forward
+/// keys leave them out, and the count says how many there are.
 /// Spec: Message/MessageBatchToolbar (`FlareMessageBatchToolbar`).
 class FlareMessageBatchToolbar extends StatelessWidget {
   const FlareMessageBatchToolbar({
@@ -72,6 +114,7 @@ class FlareMessageBatchToolbar extends StatelessWidget {
     required this.selectedIds,
     required this.total,
     required this.capabilities,
+    this.unforwardableIds = const {},
     this.busy = false,
     this.onAction,
     this.onSelectAll,
@@ -82,12 +125,19 @@ class FlareMessageBatchToolbar extends StatelessWidget {
   final List<String> selectedIds;
   final int total;
   final FlareMessageBatchCapabilities capabilities;
+
+  /// Selected ids the core answers canForward false for (a plugin card that is
+  /// not forwardable).
+  final Set<String> unforwardableIds;
   final bool busy;
   final void Function(FlareMessageBatchAction action, List<String> ids)?
   onAction;
   final VoidCallback? onSelectAll;
   final VoidCallback? onClearSelection;
   final VoidCallback? onExit;
+
+  /// The meta's count of selected messages the forward keys leave out.
+  static const Key unforwardableKey = ValueKey('flare-batch-unforwardable');
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +148,13 @@ class FlareMessageBatchToolbar extends StatelessWidget {
       selectedIds,
       capabilities,
       busy,
+      unforwardableIds,
     );
+    final unforwardable = messageBatchUnforwardableCount(
+      selectedIds,
+      unforwardableIds,
+    );
+    final locale = flareCopyLocaleOf(context);
     final visible = FlareMessageBatchAction.values
         .where(capabilities.allows)
         .toList(growable: false);
@@ -131,23 +187,43 @@ class FlareMessageBatchToolbar extends StatelessWidget {
           children: [
             // At large text sizes the count wraps instead of starving the keys.
             Flexible(
-              child: Text.rich(
-                TextSpan(
-                  children: [
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: FlareSizes.spacing3xs,
+                children: [
+                  Text.rich(
                     TextSpan(
-                      text: '$count',
+                      children: [
+                        TextSpan(
+                          text: '$count',
+                          style: TextStyle(
+                            color: colors.primaryText,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        TextSpan(
+                          text: ' / $total · ${strings.selectedSuffix}',
+                          style: TextStyle(color: colors.textSecondary),
+                        ),
+                      ],
+                    ),
+                    style: const TextStyle(fontSize: FlareSizes.fontSizeMd),
+                  ),
+                  // The forward keys leave these out: say how many.
+                  if (unforwardable > 0)
+                    Text(
+                      strings.messageBatchUnforwardableCount(
+                        unforwardable,
+                        locale,
+                      ),
+                      key: unforwardableKey,
                       style: TextStyle(
-                        color: colors.primaryText,
-                        fontWeight: FontWeight.w700,
+                        color: colors.textTertiary,
+                        fontSize: FlareSizes.fontSizeXs,
                       ),
                     ),
-                    TextSpan(
-                      text: ' / $total · ${strings.selectedSuffix}',
-                      style: TextStyle(color: colors.textSecondary),
-                    ),
-                  ],
-                ),
-                style: const TextStyle(fontSize: FlareSizes.fontSizeMd),
+                ],
               ),
             ),
             const SizedBox(width: FlareSizes.spacingMd),
@@ -182,7 +258,11 @@ class FlareMessageBatchToolbar extends StatelessWidget {
                       disabled: !available.contains(action),
                       onTap: () => onAction?.call(
                         action,
-                        List<String>.from(selectedIds),
+                        messageBatchActionIds(
+                          action,
+                          selectedIds,
+                          unforwardableIds,
+                        ),
                       ),
                     ),
                   _exitButton(colors, strings.messageBatchExit),

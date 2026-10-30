@@ -122,6 +122,11 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["messageBatchPinSelf"] as? (String)) ?: "仅自己置顶"
     val messageBatchClear: String
         get() = (overrides["messageBatchClear"] as? (String)) ?: "清除选择"
+    // 多选工具条里转发键略过的条数（{count}）；en: "{count} messages can't be forwarded"
+    val messageBatchUnforwardable: String
+        get() = (overrides["messageBatchUnforwardable"] as? (String)) ?: "{count} 条不支持转发"
+    val messageBatchUnforwardableOne: String
+        get() = (overrides["messageBatchUnforwardableOne"] as? (String)) ?: "{count} 条不支持转发"
     // 多选工具条的退出按钮；en: "Exit multi-select"
     val exitMultiSelect: String
         get() = (overrides["exitMultiSelect"] as? (String)) ?: "退出多选"
@@ -1888,6 +1893,14 @@ class FlareStringsBuilder internal constructor() {
     var messageBatchClear: String
         get() = (values["messageBatchClear"] as? (String)) ?: "清除选择"
         set(value) { values["messageBatchClear"] = value }
+
+    var messageBatchUnforwardable: String
+        get() = (values["messageBatchUnforwardable"] as? (String)) ?: "{count} 条不支持转发"
+        set(value) { values["messageBatchUnforwardable"] = value }
+
+    var messageBatchUnforwardableOne: String
+        get() = (values["messageBatchUnforwardableOne"] as? (String)) ?: "{count} 条不支持转发"
+        set(value) { values["messageBatchUnforwardableOne"] = value }
 
     var exitMultiSelect: String
         get() = (values["exitMultiSelect"] as? (String)) ?: "退出多选"

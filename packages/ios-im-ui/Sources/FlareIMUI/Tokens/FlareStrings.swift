@@ -77,6 +77,9 @@ public struct FlareStrings: Sendable {
     public var messageBatchPin: String
     public var messageBatchPinSelf: String
     public var messageBatchClear: String
+    /// The batch toolbar's count of selected messages the forward keys leave out ("{count}" is the count).
+    public var messageBatchUnforwardable: String
+    public var messageBatchUnforwardableOne: String
     // Mentions
     public var searchMembers: String
     public var everyone: String
@@ -1053,6 +1056,8 @@ public struct FlareStrings: Sendable {
         messageBatchPin: String = "置顶",
         messageBatchPinSelf: String = "仅自己置顶",
         messageBatchClear: String = "清除选择",
+        messageBatchUnforwardable: String = "{count} 条不支持转发",
+        messageBatchUnforwardableOne: String = "{count} 条不支持转发",
         searchMembers: String = "搜索成员",
         everyone: String = "所有人",
         notifyEveryone: String = "通知全体成员",
@@ -1836,6 +1841,8 @@ public struct FlareStrings: Sendable {
         self.messageBatchPin = messageBatchPin
         self.messageBatchPinSelf = messageBatchPinSelf
         self.messageBatchClear = messageBatchClear
+        self.messageBatchUnforwardable = messageBatchUnforwardable
+        self.messageBatchUnforwardableOne = messageBatchUnforwardableOne
         self.searchMembers = searchMembers
         self.everyone = everyone
         self.notifyEveryone = notifyEveryone

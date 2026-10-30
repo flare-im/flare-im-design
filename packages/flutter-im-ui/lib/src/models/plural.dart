@@ -62,6 +62,16 @@ extension FlarePluralStrings on FlareStrings {
   /// "还有 N 条消息…" / "1 more message…" — a merged forward's overflow line.
   String forwardRecordMoreCount(int count, String? locale) =>
       flarePlural(count, forwardRecordMoreOne, forwardRecordMore, locale);
+
+  /// "N 条不支持转发" / "1 message can't be forwarded" — the batch toolbar's
+  /// count of selected messages the forward keys leave out.
+  String messageBatchUnforwardableCount(int count, String? locale) =>
+      flarePlural(
+        count,
+        messageBatchUnforwardableOne,
+        messageBatchUnforwardable,
+        locale,
+      );
 }
 
 enum _FlarePluralFamily { none, is1, is0or1, mod10is1 }

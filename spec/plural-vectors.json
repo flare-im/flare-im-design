@@ -1248,6 +1248,45 @@
       "locale": "en",
       "count": 1,
       "text": "1 file"
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "vue": "batch.unforwardable",
+      "native": "messageBatchUnforwardable",
+      "locale": "en",
+      "count": 1,
+      "text": "1 message can't be forwarded"
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "vue": "batch.unforwardable",
+      "native": "messageBatchUnforwardable",
+      "locale": "en",
+      "count": 3,
+      "text": "3 messages can't be forwarded"
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "vue": "batch.unforwardable",
+      "native": "messageBatchUnforwardable",
+      "locale": "zh",
+      "count": 1,
+      "text": "1 条不支持转发"
     }
   ]
 }

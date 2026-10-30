@@ -87,6 +87,8 @@ class FlareStrings {
     this.messageBatchPin = '置顶', // en: Pin
     this.messageBatchPinSelf = '仅自己置顶', // en: Pin for me
     this.messageBatchClear = '清除选择', // en: Clear selection
+    this.messageBatchUnforwardable = '{count} 条不支持转发', // en: {count} messages can't be forwarded
+    this.messageBatchUnforwardableOne = '{count} 条不支持转发', // en: {count} message can't be forwarded
     this.messageBatchExit = '退出多选', // en: Exit multi-select
     // 提及
     this.searchMembers = '搜索成员',
@@ -938,6 +940,10 @@ class FlareStrings {
   final String messageBatchPin;
   final String messageBatchPinSelf;
   final String messageBatchClear;
+  /// The batch toolbar's count of selected messages the forward keys leave
+  /// out (`{count}`), and its one form.
+  final String messageBatchUnforwardable;
+  final String messageBatchUnforwardableOne;
   final String messageBatchExit;
   // 提及
   final String searchMembers;
@@ -1824,6 +1830,8 @@ class FlareStrings {
     String? messageBatchPin,
     String? messageBatchPinSelf,
     String? messageBatchClear,
+    String? messageBatchUnforwardable,
+    String? messageBatchUnforwardableOne,
     String? messageBatchExit,
     String? searchMembers,
     String? everyone,
@@ -2588,6 +2596,8 @@ class FlareStrings {
       messageBatchPin: messageBatchPin ?? this.messageBatchPin,
       messageBatchPinSelf: messageBatchPinSelf ?? this.messageBatchPinSelf,
       messageBatchClear: messageBatchClear ?? this.messageBatchClear,
+      messageBatchUnforwardable: messageBatchUnforwardable ?? this.messageBatchUnforwardable,
+      messageBatchUnforwardableOne: messageBatchUnforwardableOne ?? this.messageBatchUnforwardableOne,
       messageBatchExit: messageBatchExit ?? this.messageBatchExit,
       searchMembers: searchMembers ?? this.searchMembers,
       everyone: everyone ?? this.everyone,
