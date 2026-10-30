@@ -70,7 +70,7 @@ const { nextCursor, pageBusy, loadMore } = usePluginPaging({
 </script>
 
 <template>
-  <FlareBottomSheet :open="open" :title="heading" max-height="80vh" @close="emit('close')">
+  <FlareBottomSheet show-close :open="open" :title="heading" max-height="80vh" @close="emit('close')">
     <div class="flare-plugin-detail" :data-state="state" :aria-busy="state === 'loading'">
       <FlareEmptyState v-if="state === 'loading'" :title="t('pluginView.loading')" loading />
       <div v-else-if="state === 'error'" class="flare-plugin-detail__error">
@@ -102,12 +102,14 @@ const { nextCursor, pageBusy, loadMore } = usePluginPaging({
           @click="loadMore"
         />
       </div>
+      <footer v-if="state === 'loaded' && $slots.footer" class="flare-plugin-detail__footer"><slot name="footer" /></footer>
     </div>
   </FlareBottomSheet>
 </template>
 
 <style scoped>
 .flare-plugin-detail { box-sizing: border-box; width: 100%; min-height: 0; padding: var(--flare-size-spacing-md) var(--flare-size-spacing-lg) var(--flare-size-spacing-xl); overflow-y: auto; }
+.flare-plugin-detail__footer { position: sticky; bottom: 0; padding-block: var(--flare-size-spacing-md); background: var(--flare-color-bg-primary); border-top: 1px solid var(--flare-color-border-secondary); }
 .flare-plugin-detail__more { padding-top: var(--flare-size-spacing-md); }
 .flare-plugin-detail__error { display: grid; justify-items: center; gap: var(--flare-size-spacing-md); padding: var(--flare-size-spacing-xl) 0; text-align: center; }
 .flare-plugin-detail__error p { margin: 0; font-size: var(--flare-size-font-size-lg); color: var(--flare-color-text-secondary); }

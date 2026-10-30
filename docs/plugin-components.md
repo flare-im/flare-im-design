@@ -37,11 +37,11 @@
 
 ### 开红包浮层 `RedPacketOpenSheet`
 
-`senderName`、`senderAvatar?`、`blessing`、`kindLabel?`、`state`（`ready` / `opening` / `finished` / `expired` / `notEligible` / `error`）、`message?`、`canViewDetails?`（默认真）；回调 `open`、`viewDetails`、`close`。Vue 另有可见性 `open`（与 FlareModal 一致），`@open` 是点了「開」。
+`senderName`、`senderAvatar?`、`blessing`、`kindLabel?`、`state`（`ready` / `opening` / `finished` / `expired` / `refunded` / `notEligible` / `error`）、`message?`、`canViewDetails?`（默认真）；回调 `open`、`viewDetails`、`close`。Vue 另有可见性 `open`（与 FlareModal 一致），`@open` 是点了「開」。
 
 - 居中红色信封：弧形封盖上是发送人头像、「X的红包」、种类和大字祝福语，金色「開」压在封盖接缝上，关闭键在信封下方（仍在焦点陷阱内）。
 - `opening` 时「開」绕 Y 轴翻转循环且不可重复点；系统减少动态效果时不翻转，「開」换成进度文案。
-- `finished` 显示「手慢了，红包派完了」，`expired` 显示「红包已过期」；二者在 `canViewDetails`（本人层）为真时给「查看领取详情」。`notEligible` 显示宿主的 `message`（如「仅 某某 可领取」），**永远不给**详情入口：服务端对非指定人不返回金额和记录（vectors → `openSheet`）。`error` 保留「開」供重试。
+- `finished` 显示「手慢了，红包派完了」，`expired` 显示「红包已过期」，`refunded`（领取被拒 `PACKET_REFUNDED`，或公开层 status 为 refunded）显示「红包已退回」；三者在 `canViewDetails`（本人层）为真时给「查看领取详情」（vectors → `openSheetRefunded`）。`notEligible` 显示宿主的 `message`（如「仅 某某 可领取」），**永远不给**详情入口：服务端对非指定人不返回金额和记录（vectors → `openSheet`）。`error` 保留「開」供重试。
 - 遮罩点击、关闭键、Escape 和平台返回键都触发 `close`。
 
 ### 红包详情 `RedPacketDetail`
@@ -58,7 +58,7 @@
 
 - 种类用 Kit 分段控件切换，`kinds` 只有一项时不显示分段；`kind` 不在 `kinds` 中时取第一项。金额标签随种类变化：拼手气「总金额」、群聊普通红包「单个金额」、专属「金额」。个数只在群聊的拼手气和普通红包显示；专属显示「发给谁」和宿主的成员选择器。
 - `kinds` 恰为 `[normal]` 表示单聊：不显示分段和「红包个数」，金额标签为「金额」（vectors → `composer`）。
-- 只做格式限制：金额只收数字和最多两位小数，个数只收数字（最多三位），过滤后的文字回写输入框。范围、余额和 `total` 由宿主计算。
+- 只做格式限制：金额只收数字和最多 `currencyExponent`（默认 2，取插件 limits 的币种小数位）位小数，0 位时不收小数点、用数字键盘；占位按小数位写（「0」「0.00」「0.000」）；个数只收数字（最多三位），过滤后的文字回写输入框。换成小数位更少的币种时裁掉已输入的多余小数。范围、余额和 `total` 由宿主计算，金额换成最小单位用 `flareRedPacketAmountMinor(text, exponent)`（整数运算，不经浮点；vectors → `amountInputExponent`、`amountMinor`、`amountPlaceholder`）。
 - 提交按钮是 Kit Button，只把 primary 改为 `redPacket.end`，文案默认「塞钱进红包」。`busy` 锁定所有字段和按钮并在按钮上显示进度。字段里按 Enter 不提交。
 - `locked`：原命令结果未知、等待核对。所有输入和种类切换只读（读屏标为只读），提交按钮不可点，但不显示加载动画；宿主通常在表单上方用 StatusBanner 说明原因。
 - 种类切换的选中项用 `redPacket.accent`（浅色 #C8291F，深色 #FF7B6B，在深色分段底上 6.2:1），经 Kit 分段控件新增的可选参数 `accent` 传入，其他页面的分段控件不受影响。
@@ -85,12 +85,12 @@
 投票、接龙、任务、日程、群公告不写客户端代码：核心 SDK 把插件的 UiDocument 和两层状态解析成 ResolvedPluginView，Kit 只渲染这个形状，不读路径、不求值。四端接口以 `spec/components.json` 的 PluginView、PluginForm、PluginDetailSheet 为准，渲染事实以 `spec/plugin-view-vectors.json` 为准（views、optimistic、time、countdown、form），四端测试读同一份。
 
 - **卡片**：外壳与 Kit 业务卡片一致，宽度 `sizes.component.richCardWidth`（服从父约束）、圆角 lg、细边框、卡片阴影；标题行有图标位（`icon`，Kit 图标名）。外壳就是消息的 card 表面：时间线不在外面再套气泡，引用回复画在外壳的 `quote` 插槽里（Vue）。`embedded` 去掉外壳和标题行，详情面板、插件页面和控制台管理页用它。`available` 为假时只显示标题；embedded 没有标题行，就把标题显示为一行次要文字，仍说明它是什么。
-- **⋯ 菜单 `menuActions`**：插件把动作标成 `placement: "menu"`（结束投票、取消投票）时，它们在 `view.menuActions` 里，卡片标题行末尾出现 Kit ⋯ 键（读屏名「更多操作」），用 Kit ActionMenu 列出，danger 用危险色；选中后与按钮相同：先确认、再表单、再 `action(id, {})`。`busy` 或 `busyActionId` 时禁用。embedded 没有标题行，这些动作作为按钮排在 `actions` 之后。规则见 `rules.menuActions`。
+- **⋯ 菜单 `menuActions`**：插件把动作标成 `placement: "menu"`（结束投票、取消投票）时，它们在 `view.menuActions` 里，卡片标题行末尾出现 Kit ⋯ 键（读屏名「更多操作」；标题行占满卡片内宽，标题取剩余宽度，⋯ 贴在行尾），用 Kit ActionMenu 列出，danger 用危险色；选中后与按钮相同：先确认、再表单、再 `action(id, {})`。`busy` 或 `busyActionId` 时禁用。embedded 没有标题行，这些动作作为按钮排在 `actions` 之后。规则见 `rules.menuActions`。
 - **不可用原因 `unavailableReason`**：disabled「插件已停用」、not_installed「插件未安装」、no_permission「没有使用该插件的权限」、unsupported_platform「该插件不支持此设备」、incompatible_version「请更新应用后查看」、catalog_unreachable「暂时无法加载，请稍后再试」、unbound_copy「副本，仅供查看」。不可用时标题下加一行原因，宿主传了信封的 `displayName` 时写成「投票 · 插件已停用」。unbound_copy（转发或伪造的副本）仍可读：核心 SDK 已去掉动作、菜单、输入、详情与选项提交，卡片只读，末尾一行「副本，仅供查看」。规则见 `rules.unavailableReason` 与 `unavailableReasons`。
 - **块**：
   - text：按 `maxLines` 截断，溢出时显示「展开」。
   - fields：键值对。
-  - choices：单选点一项立即提交；多选勾选后点提交键，键名取块持有的动作 label。显示结果时每项有票数条、百分比和「{count} 票」，选中项打勾；`closed` 时只读，底部显示「已结束」。
+  - choices：单选点一项立即提交；多选勾选后点提交键，键名取块持有的动作 label。显示结果时每项有票数条、百分比和「{count} 票」（英文按复数写「1 vote」），选中项打勾；`closed` 时只读，底部显示「已结束」。块的 `total` 只是百分比的分母（可能是人数，也可能是票数之和），Kit 不画它：「N 票」只用于选项，参与人数由插件自己的行给出（投票第二版 §6）。
     - 多选上限 `maxSelections`（只在多选，1..=选项数）：草稿选满后，草稿以外的选项变灰、`aria-disabled`、点击无效；已选的仍可取消，取消后其余恢复。提交键除了「非空且与已选不同」，还要求不超过上限：插件把上限调低后，已有的选择只能减到上限以内才能提交。可选时页脚以「最多选 {n} 项」开头。单选、没有该字段时不限。卡片、详情面板、插件页面一致。规则见 `rules.maxSelections`，步骤见 `maxSelections`。
   - entries：带序号；`more` 时显示「查看全部（total）」，触发 `openDetail`。`grouped` 时是一个扁平列表：带 `group` 的条目前插一行组头「选项 · N 票 · P%」（缺的段省略），组内从 1 编号，`numbered: false` 不编号；`viewerId`（宿主传入的当前用户）那一行带「我」。规则见 `rules.entriesGrouped` 与 `entryGroupHeaders`。
     - 徽标 `badge {text, tone}`：插件 `valueLabels` 把条目里的枚举值（如账单行的类型）映射成文字与语义色，核心 SDK 已翻译，未映射的值原样、neutral。Kit 用 Tag 画，顺序为序号、头像、名字、「我」、徽标、正文；未知 tone 按 neutral。没有徽标不留空位。规则见 `rules.badge`。
@@ -125,6 +125,7 @@
   - 校验：客户端只查必填和长度（按 Unicode 码点）；最终以核心 SDK `validate_form` 返回的 `errors` 为准，显示在对应输入下方，直到该输入被修改。
   - 卡片动作的表单在结算（`settleToken` 变化，或兜底的 `busyActionId` 清空）且没有 `formErrors` 和 `error` 时关闭。
 - **详情 PluginDetailSheet**：
+  - Vue 支持可选的 `footer` 插槽，用于宿主已有授权动作的审核区；仅详情成功加载后显示。组件不请求权限、不声明审核操作，也不执行资金业务。控制台在宿主中核对原行参数、当前版本与角色权限，再复用已有命令和理由确认。
   - Kit 底部面板，分 loading（转圈）、error（宿主文案加重试）和 embedded PluginView 三种状态；标题取视图标题，没有视图时取卡片标题。
   - 详情里的动作：`busyActionId`、`actionError`（作为视图的 error）、`formErrors`、`members`、`settleToken` 原样交给内嵌视图，转圈、出错、收表单和结算都在面板内。
   - 宿主要把这些和卡片自己的 busy、error 分开，详情里的失败不落到面板下面的卡片上。已有的 `error` 仍表示加载失败。
@@ -191,3 +192,27 @@ python3 scripts/verify-plugin-apple-ui.py
 Apple 消费者使用 Kit 原测试文件的符号链接，创建并清理自己的临时项目，只编译依赖库和插件测试，不把依赖包的全部测试拉入。iOS 模拟器用 Xcode 对同一组件测试执行补验。Android 交互源码编译不代表设备执行；需要设备后运行 `connectedDebugAndroidTest`，可以按类筛选 `PluginComponentsInteractionTest`。
 
 浏览器隔离入口：Web 示例目录执行 `node scripts/preview-plugin-kit.mjs`，只监听 `127.0.0.1:5198`，`/mobile` 使用 390px iframe。它组合真实 SDK/Kit 与显式内存沙箱，没有业务 API、真实钱包或支付。最终边界及证据见工作区的插件 UI 验证报告。
+
+## 控制台插件工作区的紧凑查询
+
+`FlarePluginForm`可显式传入`presentation="filters"`，以同行、自动换行的小尺寸输入和操作呈现原有类型字段；可选枚举使用共享选择器的“全部”项。`cancelLabel`可将原cancel事件标记为“重置”。字段校验、类型、busy锁及submit/cancel事件保持一致，默认表单外观不受影响。
+
+插件rows的table布局保留首列阅读空间，其余长值采用共享DataTable省略与完整title；管理table显式采用共享DataTable的`responsive="scroll"`与固定表头／操作列；窄内容区也保留横向列结构，仅在表格内部滚动，避免一条业务记录展开成大块详情。默认DataTable仍为`responsive="stack"`，其他列表和插件list布局不受影响。详情、游标与操作不变。
+
+## 控制台详情与配置布局
+
+`FlareSchemaForm :columns="2"`只在自身容器至少600px时使用两列，窄容器单列；默认一列。分组、顺序、精确金额字符串、空值、未知JSON键、secret输入和disabled语义仍由原schema契约决定，布局不改变数据。
+
+动态目录选择使用 `selections: Record<string, SchemaSelection>`，键为包含数组下标的绝对 JSON Pointer，例如 `/fundingAssets/0/assetId`。每项提供 `options`、`loading`、`error`、`invalid`、`disabled`、`hasMore` 和可选的 `emptyOptionLabel`。`selectionLabels` 由宿主提供本地化文本。表单复用 `FlareAdminEntitySelect`，不会退回任意文本输入；搜索、分页和重试分别发出 `selection-search(path, text)`、`selection-more(path)`、`selection-retry(path)`。宿主负责权限、目录请求、关联校验和旧请求隔离，组件不访问服务或理解钱包规则。
+
+选择器只接受可用选项，失效的已保存值以禁用项显示；必填字段不提供清空入口；可选字段的空选项移除覆盖值，不保存空字符串 ID。有 `emptyOptionLabel` 时使用选择器内的默认项，不再重复展示字段重置链接。复杂对象和对象数组占满网格行，嵌套表单继承列数、字段顺序与 `groupLabels`，包括对象数组中的分组标题；容器不足 600px 时保持单列。红包配置页通过这些能力展示资金与钱包名称，并由宿主在引用失效或目录不可用时禁止保存。
+
+管理表格的`stickyActions`仅在表格布局时固定操作列；滚动区域具有可访问名称，可用键盘聚焦并横向浏览。改变响应式模式不重建数据行、不触发业务请求、不改写排序或选择状态。
+
+## 管理端插件操作的目录选择与记录编辑
+
+`FlarePluginForm` 的 `selections` 以输入 id 为键复用 `SchemaSelection`，支持单个文本引用与 `options` 数组引用。组件使用 `FlareAdminEntitySelect`；`remote=false` 用于完整且有界的本地目录。`selectionLabels` 由宿主本地化，搜索、重试和续页分别发出 `selection-search`、`selection-retry`、`selection-more`。目录加载、错误、停用或缺失引用会阻止提交，目录响应更新不清除用户已编辑的其他字段，精确金额始终保留字符串。新建的目录数组不使用文本列表的空白占位项。
+
+`FlarePluginView` 通过 `formInitialValues(actionId, row)` 在用户打开某个操作时捕获初值，使用原有类型表单提交，不读取业务服务或解析声明路径。`formSelections`、`selectionLabels` 和选择器事件沿用上述契约。`formChangeActions` 可指定必须有实际修改才允许提交的操作 id；底层 `FlarePluginForm.requireChange` 对比清理后的类型值，默认关闭。
+
+这些是 Vue 宿主的管理端组合能力，不改变插件 wire 的表单类型或其他平台合同。Console 的钱包适配层负责有界目录分页、名称映射、权限撤回和应用切换隔离；钱包服务负责生成草稿编号、记录目标基准版本、双人发布和并发决定，组件不拥有这些业务规则。

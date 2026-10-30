@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from "vue";
+import FlareAdminEntitySelect from "./FlareAdminEntitySelect.vue";
+import type { SchemaSelection, SchemaSelectionLabels } from "./schema-selections";
 import FlareButton from "../general/FlareButton.vue";
 import FlareBottomSheet from "../general/FlareBottomSheet.vue";
 import FlareIconButton from "../general/FlareIconButton.vue";
@@ -37,6 +39,9 @@ import {
 const props = withDefaults(
   defineProps<{
     inputs: FlarePluginInput[];
+    /** Host-owned directory choices keyed by input id; never enables free-text IDs. */
+    selections?: Record<string, SchemaSelection>;
+    selectionLabels?: SchemaSelectionLabels;
     /** Initial values by input id; an input without one starts from its default. */
     values?: Record<string, unknown>;
     /** The host's errors (UiFormError). */
@@ -46,6 +51,8 @@ const props = withDefaults(
     /** Same typed inputs/validation; compact query presentation for administrative filters. */
     presentation?: "form" | "filters";
     busy?: boolean;
+    /** Editing an existing record may require an actual typed value change. */
+    requireChange?: boolean;
     /** A failure line above the keys. */
     error?: string;
     /** Candidates for members inputs. */
@@ -53,7 +60,7 @@ const props = withDefaults(
   }>(),
   { values: undefined, errors: () => [], submitLabel: undefined, presentation: "form", busy: false, error: undefined, members: () => [] },
 );
-const emit = defineEmits<{ (e: "submit", values: Record<string, unknown>): void; (e: "cancel"): void }>();
+const emit = defineEmits<{ (e: "submit", values: Record<string, unknown>): void; (e: "cancel"): void; (e: "selection-search", id: string, query: string): void; (e: "selection-retry", id: string): void; (e: "selection-more", id: string): void }>();
 const { t } = useFlareI18nOptional();
 
 const strings = computed<FlarePluginStrings>(() => ({
@@ -78,6 +85,8 @@ const edited = reactive(new Set<string>());
 /** Inputs edited since the host's errors arrived: their host error no longer applies. */
 const editedSinceErrors = reactive(new Set<string>());
 const attempted = ref(false);
+const initialValues = ref("");
+const unchanged = computed(() => props.requireChange && JSON.stringify(flarePluginFormValues(props.inputs, draft)) === initialValues.value);
 const numberText = reactive<Record<string, string>>({});
 const dateParts = reactive<Record<string, { date: string; time: string }>>({});
 const pad2 = (n: number) => String(n).padStart(2, "0");
@@ -86,6 +95,7 @@ function reset(): void {
   for (const key of Object.keys(draft)) delete draft[key];
   Object.assign(draft, flarePluginDraft(props.inputs, props.values));
   for (const input of props.inputs) {
+    if (props.selections?.[input.id] && Array.isArray(draft[input.id])) draft[input.id] = (draft[input.id] as unknown[]).filter(value => value !== "");
     const value = draft[input.id];
     if (input.kind === "number") numberText[input.id] = typeof value === "number" ? String(value) : "";
     if (input.kind === "datetime") {
@@ -95,6 +105,7 @@ function reset(): void {
         : { date: "", time: "" };
     }
   }
+  initialValues.value = JSON.stringify(flarePluginFormValues(props.inputs, draft));
   edited.clear();
   editedSinceErrors.clear();
   attempted.value = false;
@@ -114,19 +125,37 @@ function errorText(input: FlarePluginInput): string | undefined {
     const host = props.errors.find((e) => e.input === input.id);
     if (host) return flarePluginIssueText(host.issue, input, strings.value);
   }
+  const directory = props.selections?.[input.id];
+  if (directory?.error || directory?.invalid) return directory.error || directory.invalid;
   if (!attempted.value && !edited.has(input.id)) return undefined;
+  if (directory && !directory.loading && !validSelection(input)) return props.selectionLabels?.unavailable || strings.value.invalid;
   const issue = flarePluginCheckInput(input, draft[input.id]);
   return issue ? flarePluginIssueText(issue, input, strings.value) : undefined;
 }
 
 function submit(): void {
-  if (props.busy) return;
+  if (props.busy || unchanged.value) return;
   attempted.value = true;
-  if (props.inputs.some((input) => flarePluginCheckInput(input, draft[input.id]))) return;
+  if (props.inputs.some((input) => flarePluginCheckInput(input, draft[input.id]) || !validSelection(input))) return;
   emit("submit", flarePluginFormValues(props.inputs, draft));
 }
 function cancel(): void {
   if (!props.busy) emit("cancel");
+}
+
+function validSelection(input: FlarePluginInput): boolean {
+  const selection = props.selections?.[input.id];
+  if (!selection) return true;
+  if (selection.loading || selection.error || selection.invalid || selection.disabled) return false;
+  const values = Array.isArray(draft[input.id]) ? draft[input.id] as unknown[] : draft[input.id] ? [draft[input.id]] : [];
+  return values.every(value => selection.options.some(option => option.value === value && !option.disabled));
+}
+function directoryOptions(input: FlarePluginInput) {
+  const selection = props.selections?.[input.id];
+  const options = [...(selection?.options ?? [])];
+  const values = Array.isArray(draft[input.id]) ? draft[input.id] as unknown[] : draft[input.id] ? [draft[input.id]] : [];
+  for (const value of values) if (typeof value === "string" && !options.some(option => option.value === value)) options.push({value,label:props.selectionLabels?.unavailable || input.label,disabled:true});
+  return options;
 }
 
 // ── number ──
@@ -183,8 +212,22 @@ defineExpose({ submit });
   <form class="flare-plugin-form" :class="{ 'flare-plugin-form--filters': presentation === 'filters' }" :aria-busy="busy" novalidate @submit.prevent="submit">
     <fieldset class="flare-plugin-form__fields" :disabled="busy">
       <template v-for="input in inputs" :key="input.id">
+        <FlareFormField v-if="selections?.[input.id]" :label="input.label" :required="input.required" :error="errorText(input)" :data-input-id="input.id">
+          <FlareAdminEntitySelect
+            :label="input.label" :multiple="input.kind === 'options' || input.kind === 'members'"
+            :value="typeof draft[input.id] === 'string' ? draft[input.id] as string : ''"
+            :values="Array.isArray(draft[input.id]) ? draft[input.id] as string[] : []"
+            :options="directoryOptions(input)" :remote="selections[input.id].remote ?? true" :clearable="!input.required"
+            :max="flarePluginMaxItems(input)" :loading="selections[input.id].loading"
+            :disabled="busy || selections[input.id].disabled" :error="selections[input.id].error || selections[input.id].invalid"
+            :has-more="selections[input.id].hasMore"
+            :placeholder="selectionLabels?.placeholder || input.label" :empty-text="selectionLabels?.empty || ''" :more-text="selectionLabels?.more || ''" :retry-text="selectionLabels?.retry || ''"
+            @update:value="set(input.id, $event)" @update:values="set(input.id, $event)"
+            @search="emit('selection-search',input.id,$event)" @retry="emit('selection-retry',input.id)" @more="emit('selection-more',input.id)"
+          />
+        </FlareFormField>
         <FlareFormField
-          v-if="input.kind === 'text'"
+          v-else-if="input.kind === 'text'"
           :label="input.label"
           :required="input.required"
           :error="errorText(input)"
@@ -343,7 +386,7 @@ defineExpose({ submit });
     <p v-if="error" class="flare-plugin-form__error" role="alert">{{ error }}</p>
     <footer class="flare-plugin-form__actions">
       <FlareButton variant="secondary" :size="presentation === 'filters' ? 'sm' : undefined" :appearance="presentation === 'filters' ? 'text' : 'default'" :label="cancelLabel ?? t('pluginForm.cancel')" :disabled="busy" data-form-cancel="true" @click="cancel" />
-      <FlareButton :size="presentation === 'filters' ? 'sm' : undefined" :label="submitLabel ?? t('pluginView.submit')" :loading="busy" :disabled="busy" data-form-submit="true" @click="submit" />
+      <FlareButton :size="presentation === 'filters' ? 'sm' : undefined" :label="submitLabel ?? t('pluginView.submit')" :loading="busy" :disabled="busy || unchanged" data-form-submit="true" @click="submit" />
     </footer>
     <!-- fill: the picker takes the sheet's height and brings its own header, so the sheet's title is its name only. -->
     <FlareBottomSheet :open="Boolean(picking)" :title="picking?.label" fill max-height="min(80vh, 600px)" @close="picking = null">

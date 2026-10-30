@@ -440,6 +440,14 @@ for (const c of spec.components) {
       if (!members) errors.push(`composerActions [${platform}]: no FlareComposerActionKind enum (${composer.kinds?.join(" | ")})`);
       else if ([...new Set(members)].sort().join() !== wantKinds) errors.push(`composerActions [${platform}]: FlareComposerActionKind is ${members.join(", ")}; the contract is ${composer.kinds?.join(", ")}`);
     }
+
+    // 工具条工具名单：每端的 FlareComposerCapabilities 都要带 availableToolIds（SwiftUI 写作 IDs）。
+    for (const platform of Object.keys(ENUM_ROOTS)) {
+      const text = sources[platform].find((source) => /\b(?:interface|class|struct)\s+FlareComposerCapabilities\b/.test(source));
+      if (!text) { errors.push(`composerActions [${platform}]: no FlareComposerCapabilities type`); continue; }
+      const at = text.search(/\b(?:interface|class|struct)\s+FlareComposerCapabilities\b/);
+      if (!/\bavailableToolI[dD]s\b/.test(text.slice(at, at + 2000))) errors.push(`composerActions [${platform}]: FlareComposerCapabilities has no availableToolIds (toolIds ${composer.toolIds?.join(", ")})`);
+    }
   }
 }
 

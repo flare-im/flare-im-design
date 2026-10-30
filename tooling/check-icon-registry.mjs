@@ -78,7 +78,27 @@ for (const name of canonical) {
 const duplicates = canonical.filter((name, index) => canonical.indexOf(name) !== index);
 if (duplicates.length) failures.push(`vue: duplicate names ${duplicates.join(", ")}`);
 
+// Names a kit adds before the others catch up: `tooling/icon-registry-pending.json` maps a name to the platforms
+// that already have it and why the rest do not yet. Elsewhere such a name may be missing (and the order is
+// compared without it); once every platform has it, the entry is deleted.
+const pending = JSON.parse(readFileSync(join(root, "tooling/icon-registry-pending.json"), "utf8"));
+for (const [name, entry] of Object.entries(pending)) {
+  if (!canonical.includes(name)) failures.push(`pending "${name}": not in the Vue registry`);
+  if (!entry.reason?.trim()) failures.push(`pending "${name}": no reason`);
+  const done = Object.keys(registries).filter((platform) => registries[platform].names.includes(name));
+  if (done.length === Object.keys(registries).length) failures.push(`pending "${name}": every platform has it now — delete the entry`);
+  const claimed = entry.platforms ?? [];
+  const unclaimed = done.filter((platform) => !claimed.includes(platform));
+  const absent = claimed.filter((platform) => !done.includes(platform));
+  if (unclaimed.length) failures.push(`pending "${name}": ${unclaimed.join(", ")} already have it — add them to its platforms`);
+  if (absent.length) failures.push(`pending "${name}": listed for ${absent.join(", ")}, which do not have it`);
+}
+const pendingFor = (platform) => Object.entries(pending)
+  .filter(([, entry]) => !(entry.platforms ?? []).includes(platform)).map(([name]) => name);
+
 for (const [platform, registry] of Object.entries(registries)) {
+  const waiting = pendingFor(platform);
+  const canonical = registries.vue.names.filter((name) => !waiting.includes(name));
   const missing = canonical.filter((name) => !registry.names.includes(name));
   const extra = registry.names.filter((name) => !canonical.includes(name));
   if (missing.length) failures.push(`${platform}: names missing from the registry: ${missing.join(", ")}`);

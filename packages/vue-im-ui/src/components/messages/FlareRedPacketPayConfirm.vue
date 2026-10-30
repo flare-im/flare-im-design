@@ -15,6 +15,7 @@ const props = withDefaults(
     amount: string;
     /** The paying account, e.g. "钱包（余额 ¥12.00）". */
     methodLabel: string;
+    confirmLabel?: string;
     insufficient?: boolean;
     busy?: boolean;
   }>(),
@@ -47,7 +48,7 @@ function requestCancel(): void {
           <FlareButton
             block
             size="lg"
-            :label="t('redPacket.pay.confirm')"
+            :label="confirmLabel ?? t('redPacket.pay.confirm')"
             :loading="busy"
             :disabled="insufficient"
             @click="requestConfirm"

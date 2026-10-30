@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import FlareUserIdentity from "../../data/FlareUserIdentity.vue";
 import FlareDataTable from "../../data/FlareDataTable.vue";
 import FlareButton from "../../general/FlareButton.vue";
 import FlareTag from "../../general/FlareTag.vue";
@@ -52,7 +53,7 @@ const rowActions = (row: FlarePluginRow) => row.actions.flatMap((ra) => {
 const items = computed(() => rows.value.map((row) => ({ row, ...flarePluginRowLines(props.block, row, nowMs, props.strings), actions: rowActions(row) })));
 
 // ── table ────────────────────────────────────────────────────────────────
-const columns = computed(() => props.block.columns.map((column, index) => ({ key: `c${index}`, title: column.label })));
+const columns = computed(() => props.block.columns.map((column, index) => ({ key: `c${index}`, title: column.label, minWidth: index === 0 ? 180 : column.format === "time" ? 136 : rows.value.some(row => row.cells[index]?.user) ? 200 : 120, ellipsis: false })));
 const tableRows = computed(() => rows.value.map((row) => {
   const record: Record<string, unknown> = { id: row.key };
   props.block.columns.forEach((column, index) => {
@@ -65,7 +66,6 @@ const tableRows = computed(() => rows.value.map((row) => {
 }));
 const byKey = computed(() => new Map(rows.value.map((row) => [row.key, row])));
 const hasActions = computed(() => rows.value.some((row) => row.actions.length));
-const hasBadges = computed(() => rows.value.some((row) => row.badge));
 const opens = computed(() => rows.value.some((row) => row.detailInput !== undefined));
 // The table is a row-click target only when some row opens a detail (it draws rows as controls then).
 const rowListeners = computed(() => (opens.value ? { rowClick: onRowClick } : {}));
@@ -115,23 +115,33 @@ function onRowClick(record: Record<string, unknown>): void {
       :rows="tableRows"
       :empty-text="block.emptyText"
       density="compact"
+      responsive="scroll"
+      sticky-header
+      sticky-actions
       v-on="rowListeners"
     >
-      <template v-if="hasBadges" #cell-c0="{ row, value }">
+      <template v-for="(_column, index) in block.columns" :key="index" #[`cell-c${index}`]="{ row, value }">
         <span class="flare-plugin-rows__cell">
-          <FlareTag
-            v-if="byKey.get(String(row.id))?.badge"
-            :label="byKey.get(String(row.id))!.badge!.text"
-            :tone="flarePluginBadgeTone(byKey.get(String(row.id))!.badge!.tone)"
-            data-row-badge="true"
-          />
-          <span>{{ value }}</span>
+          <FlareTag v-if="index === 0 && byKey.get(String(row.id))?.badge" :label="byKey.get(String(row.id))!.badge!.text" :tone="flarePluginBadgeTone(byKey.get(String(row.id))!.badge!.tone)" data-row-badge="true" />
+          <FlareUserIdentity v-if="byKey.get(String(row.id))?.cells[index]?.user" :user="byKey.get(String(row.id))!.cells[index]!.user!" />
+          <span v-else>{{ value }}</span>
         </span>
       </template>
-      <template v-if="hasActions" #row-actions="{ row }">
+      <template v-if="hasActions || opens" #row-actions="{ row }">
+        <FlareButton
+          v-if="byKey.get(String(row.id))?.detailInput !== undefined"
+          size="sm"
+          appearance="text"
+          variant="secondary"
+          :label="t('pluginView.detail')"
+          :disabled="busy"
+          data-row-detail="true"
+          @click="onRowClick(row)"
+        />
         <template v-for="entry in rowActions(byKey.get(String(row.id))!)" :key="entry.action.id">
           <FlareButton
             size="sm"
+            appearance="text"
             :variant="variantOf(entry.action)"
             :label="entry.action.label"
             :loading="spins(byKey.get(String(row.id))!, entry.action)"
@@ -157,7 +167,7 @@ function onRowClick(record: Record<string, unknown>): void {
 <style scoped>
 .flare-plugin-rows { display: grid; gap: var(--flare-size-spacing-md); justify-items: center; min-width: 0; }
 .flare-plugin-rows > :first-child { width: 100%; }
-.flare-plugin-rows__cell { display: inline-flex; align-items: baseline; gap: var(--flare-size-spacing-xs); min-width: 0; }
+.flare-plugin-rows__cell { display: inline-flex; flex-wrap: wrap; overflow-wrap: anywhere; white-space: normal; align-items: center; gap: var(--flare-size-spacing-xs); min-width: 0; }
 .flare-plugin-rows--list { display: block; }
 .flare-plugin-rows__list { display: grid; width: 100%; margin: 0; padding: 0; list-style: none; }
 .flare-plugin-rows__item {

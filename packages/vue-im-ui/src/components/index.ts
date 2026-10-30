@@ -189,7 +189,7 @@ export type { FlareSheetPresentation } from "./general/FlareBottomSheet.vue";
 export { default as FlareModal } from "./general/FlareModal.vue";
 export { default as FlareDrawer } from "./general/FlareDrawer.vue";
 export type { FlareDrawerPlacement } from "./general/FlareDrawer.vue";
-export { flareIcons, flareIconNames, type FlareIconName } from "../shared/icons";
+export { flareIcons, flareIconNames, flareIconNameOrFallback, FLARE_ICON_FALLBACK, type FlareIconName } from "../shared/icons";
 export { default as FlareFormField } from "./form/FlareFormField.vue";
 export { default as FlareInviteCodeField } from "./form/FlareInviteCodeField.vue";
 export { default as FlareSwitch } from "./form/FlareSwitch.vue";
@@ -291,3 +291,8 @@ export { default as FlarePluginDetailSheet } from "./messages/FlarePluginDetailS
 export { default as FlarePluginPage } from "./messages/FlarePluginPage.vue";
 export { default as FlarePluginForm } from "./form/FlarePluginForm.vue";
 export { default as FlareSchemaForm } from "./form/FlareSchemaForm.vue";
+
+export { default as FlareAccountView } from "./messages/account/FlareAccountView.vue";
+
+export { default as FlareUserIdentity } from "./data/FlareUserIdentity.vue";
+export type { FlareUserIdentityValue } from "./data/FlareUserIdentity.vue";

@@ -14,10 +14,12 @@ const props = withDefaults(
     disabled?: boolean;
     /** Full-width. */
     block?: boolean;
+    /** A text-only presentation that preserves the variant's semantic color, loading and focus behavior. */
+    appearance?: "default" | "text";
     /** Optional leading glyph. */
     icon?: Component;
   }>(),
-  { variant: "primary", loading: false, disabled: false, block: false },
+  { variant: "primary", loading: false, disabled: false, block: false, appearance: "default" },
 );
 const emit = defineEmits<{ (e: "click"): void }>();
 const config = useFlareConfig();
@@ -28,7 +30,7 @@ const rsize = computed(() => props.size ?? config.size.value);
   <button
     type="button"
     class="flare-button"
-    :class="[`flare-button--${variant}`, `flare-button--${rsize}`, { 'is-block': block, 'is-loading': loading }]"
+    :class="[`flare-button--${variant}`, `flare-button--${rsize}`, { 'is-block': block, 'is-loading': loading, 'is-text': appearance === 'text', 'has-label': Boolean(label || $slots.default) }]"
     :disabled="disabled || loading"
     :aria-busy="loading"
     @click="emit('click')"
@@ -120,6 +122,31 @@ const rsize = computed(() => props.size ?? config.size.value);
   color: var(--flare-color-text-secondary);
 }
 .flare-button--quiet:hover:not(:disabled) { color: var(--flare-color-text-primary); background: var(--flare-color-bg-secondary); }
+
+.flare-button.is-text {
+  min-width: var(--flare-size-layout-touch-target);
+  padding-inline: 0;
+  background: transparent;
+  border-color: transparent;
+  font-weight: var(--flare-size-font-weight-medium);
+}
+.flare-button--primary.is-text { color: var(--flare-color-primary-text); font-weight: var(--flare-size-font-weight-semibold); }
+.flare-button--danger.is-text { color: var(--flare-color-error-text); }
+.flare-button--secondary.is-text { color: var(--flare-color-text-secondary); }
+/* Text actions never inherit the filled secondary button's hover border. */
+.flare-button.is-text:hover:not(:disabled) { background: transparent; border-color: transparent; filter: none; }
+/* Keep text actions undecorated. Keyboard focus uses a semantic tint and weight;
+   icon-only controls keep the standard focus outline. */
+.flare-button.is-text .flare-button__label { text-decoration: none; }
+.flare-button.is-text.has-label:focus-visible {
+  outline: none;
+  outline-offset: 0;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  font-weight: var(--flare-size-font-weight-bold);
+}
+@media (forced-colors: active) {
+  .flare-button.is-text.has-label:focus-visible { outline: 2px solid Highlight; outline-offset: 2px; }
+}
 
 .flare-button__spinner {
   width: 15px;

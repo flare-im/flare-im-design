@@ -1,11 +1,11 @@
 <template>
-  <div v-if="totalCount === 0" class="im-fwd-empty" role="status">
+  <div v-if="record.layout === 'empty'" class="im-fwd-empty" role="status">
     {{ t("forward.empty") }}
   </div>
 
   <!-- Single item: render inline through the content pipeline (recursive) -->
   <div
-    v-else-if="singleInlineMode"
+    v-else-if="record.layout === 'single'"
     class="im-fwd-single"
     role="article"
     :aria-label="ariaSingleLabel"
@@ -18,40 +18,39 @@
     <button
       type="button"
       class="im-fwd-card"
-      :aria-label="ariaCardLabel"
+      :aria-label="record.label"
+      :disabled="selecting() || undefined"
       @click="drawerOpen = true"
     >
       <span class="im-fwd-card__accent" aria-hidden="true" />
       <div class="im-fwd-card__body">
         <div class="im-fwd-card__headline">
-          <span class="im-fwd-card__title">{{ headerTitle }}</span>
-          <span v-if="subtitleLine" class="im-fwd-card__sub">{{ subtitleLine }}</span>
+          <span class="im-fwd-card__title">{{ record.title }}</span>
+          <span v-if="record.subtitle" class="im-fwd-card__sub">{{ record.subtitle }}</span>
         </div>
         <ul class="im-fwd-card__previews">
           <li
-            v-for="(it, i) in compactPreviewItems"
-            :key="itemKey(it, i)"
+            v-for="(line, i) in record.previews"
+            :key="itemKey(record.items[i] ?? {}, i)"
             class="im-fwd-card__line"
           >
-            <span class="im-fwd-card__sender">{{ senderLabel(it) }}:</span>
+            <span class="im-fwd-card__sender">{{ line.sender }}:</span>
             <span class="im-fwd-card__snippet">
-              <PlainTextEmojiRich :text="truncateOneLine(itemPreviewLine(it), 56)" />
+              <PlainTextEmojiRich :text="truncateOneLine(line.text, 56)" />
             </span>
           </li>
         </ul>
-        <p v-if="totalCount > compactPreviewLimit" class="im-fwd-card__ellipsis">
-          {{ t("forward.moreMessages", { count: totalCount - compactPreviewLimit }) }}
-        </p>
-        <span class="im-fwd-card__hint">{{ t("forward.viewDetail") }}</span>
+        <p v-if="record.more" class="im-fwd-card__ellipsis">{{ record.more }}</p>
+        <span class="im-fwd-card__hint">{{ record.hint }}</span>
       </div>
     </button>
 
     <!-- 合并转发的完整列表:kit 自己的侧边抽屉(遮罩、焦点、Escape 与平台返回键都由它负责),
          宽度取 sheetWidth token。 -->
-    <FlareDrawer :open="drawerOpen" :title="drawerTitle" @close="drawerOpen = false">
+    <FlareDrawer :open="drawerOpen" :title="record.drawerTitle" @close="drawerOpen = false">
       <div class="im-fwd-drawer">
         <ol class="im-fwd-list">
-          <li v-for="(it, i) in allItems" :key="itemKey(it, i)" class="im-fwd-item">
+          <li v-for="(it, i) in record.items" :key="itemKey(it, i)" class="im-fwd-item">
             <div class="im-fwd-item__top">
               <div
                 class="im-fwd-item__avatar"
@@ -68,10 +67,10 @@
               </div>
             </div>
             <p class="im-fwd-item__preview">
-              <PlainTextEmojiRich :text="itemPreviewLine(it)" />
+              <PlainTextEmojiRich :text="previewLine(it)" />
             </p>
             <div v-if="shouldShowContentEmbed(it)" class="im-fwd-item__embed">
-              <ContentView :content="itemContent(it)" :is-self="false" />
+              <ContentView :content="flareForwardItemContent(it)" :is-self="false" />
             </div>
           </li>
         </ol>
@@ -83,15 +82,20 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import type { ContentElem } from "../../../../utils/contentElem";
-import { pickNestedPayload } from "../../../../utils/contentElem";
-import { asRecord, readArray, readNumber, readString } from "../../../../utils/contentData";
-import { getContentDecodedPreview } from "../../../../utils/messagePreview";
+import { asRecord, readNumber, readString } from "../../../../utils/contentData";
+import {
+  flareForwardItemContent,
+  flareForwardPreviewLine,
+  flareForwardRecordView,
+  flareForwardSender,
+  flareForwardSenderInitial,
+  type FlareForwardItemRecord,
+} from "../../../../utils/forwardRecord";
 import { useFlareI18n } from "../../../../shared/i18n/useFlareI18n";
+import { useFlareContentSelection } from "../../../../shared/message-renderers";
 import FlareDrawer from "../../../general/FlareDrawer.vue";
 import ContentView from "../ContentView.vue";
 import PlainTextEmojiRich from "../../../shared/PlainTextEmojiRich.vue";
-
-type ForwardItem = Record<string, unknown>;
 
 // The dispatcher binds shared view props (messageExtra/senderName/…) that this
 // view doesn't consume; keep them off the DOM root.
@@ -99,66 +103,23 @@ defineOptions({ inheritAttrs: false });
 
 const props = defineProps<{ content: ContentElem; isSelf: boolean }>();
 
-const { t } = useFlareI18n();
+const { t, locale } = useFlareI18n();
+// In multi-select the card is inert: a tap belongs to the row.
+const selecting = useFlareContentSelection();
 
 // 平台返回键由 FlareDrawer 自己认领(它听得到这里的 @close),这里不再另外认领一次。
 const drawerOpen = ref(false);
-const compactPreviewLimit = 3;
 
-// Accept both the nested `forward` payload and a serde-flattened root carrying
-// `items` / `mode` / `title`.
-const payload = computed(() => {
-  const nested = pickNestedPayload(props.content, "forward");
-  return Object.keys(nested).length ? nested : (props.content as Record<string, unknown>);
-});
+// The record's shape and copy (spec/message-forward-vectors.json), shared with the native kits.
+const record = computed(() => flareForwardRecordView(props.content, locale.value));
 
-const allItems = computed<ForwardItem[]>(() => readArray(payload.value, "items").map(asRecord));
-const totalCount = computed(() => allItems.value.length);
-const compactPreviewItems = computed(() => allItems.value.slice(0, compactPreviewLimit));
-const mode = computed(() => readNumber(payload.value, 0, "mode"));
-// `title` is the merged record's own title (for example "林夏和周屿的聊天记录"), not a note from the sender.
-const recordTitle = computed(() => readString(payload.value, "title").trim());
+const singleItemContent = computed<ContentElem>(() => flareForwardItemContent(record.value.items[0] ?? {}));
+const ariaSingleLabel = computed(() => previewLine(record.value.items[0] ?? {}));
 
-// ForwardMode: 1 SINGLE | 2 MERGED (0 unspecified → infer from count)
-const singleInlineMode = computed(() => totalCount.value === 1 && mode.value !== 2);
+const senderLabel = (it: FlareForwardItemRecord) => flareForwardSender(it, locale.value);
+const previewLine = (it: FlareForwardItemRecord) => flareForwardPreviewLine(it, locale.value);
 
-const headerTitle = computed(() => {
-  if (totalCount.value <= 1 && mode.value !== 2) return t("forward.defaultTitle");
-  return recordTitle.value || t("forward.merged");
-});
-
-const subtitleLine = computed(() =>
-  totalCount.value > 1 ? t("forward.totalMessages", { count: totalCount.value }) : "",
-);
-
-const drawerTitle = computed(() =>
-  totalCount.value > 0
-    ? `${headerTitle.value}${t("forward.countSuffix", { count: totalCount.value })}`
-    : headerTitle.value,
-);
-
-function itemContent(it: ForwardItem): ContentElem {
-  const c = asRecord(it.content);
-  if (readString(c, "contentType").trim()) return c as ContentElem;
-  const plain = readString(it, "plainText").trim();
-  if (plain) return { contentType: "text", text: { text: plain, mentions: [] } } as ContentElem;
-  return { contentType: "text", text: { text: "", mentions: [] } } as ContentElem;
-}
-
-const singleItemContent = computed<ContentElem>(() => itemContent(allItems.value[0] ?? {}));
-
-function itemPreviewLine(it: ForwardItem): string {
-  const plain = readString(it, "plainText").trim();
-  if (plain) return plain;
-  const c = asRecord(it.content);
-  if (readString(c, "contentType").trim()) {
-    const fromContent = getContentDecodedPreview(c as ContentElem).trim();
-    if (fromContent) return fromContent;
-  }
-  return t("preview.forward");
-}
-
-function shouldShowContentEmbed(it: ForwardItem): boolean {
+function shouldShowContentEmbed(it: FlareForwardItemRecord): boolean {
   const c = asRecord(it.content);
   const type = readString(c, "contentType").trim();
   if (!type) return false;
@@ -166,14 +127,7 @@ function shouldShowContentEmbed(it: ForwardItem): boolean {
   return type !== "text";
 }
 
-function senderLabel(it: ForwardItem): string {
-  const name = readString(it, "sourceSenderName").trim();
-  if (name) return name;
-  // Without a name the sender stays unnamed: an account id is internal and never shown.
-  return t("forward.unknownSender");
-}
-
-function formatItemTime(it: ForwardItem): string {
+function formatItemTime(it: FlareForwardItemRecord): string {
   const ms = readNumber(it, 0, "sourceMessageTimeMs");
   if (!Number.isFinite(ms) || ms <= 0) return "";
   const d = new Date(ms);
@@ -186,7 +140,7 @@ function formatItemTime(it: ForwardItem): string {
   const opts: Intl.DateTimeFormatOptions = sameDay
     ? { hour: "2-digit", minute: "2-digit" }
     : { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" };
-  return new Intl.DateTimeFormat(undefined, opts).format(d);
+  return new Intl.DateTimeFormat(locale.value, opts).format(d);
 }
 
 function truncateOneLine(s: string, maxChars: number): string {
@@ -195,29 +149,20 @@ function truncateOneLine(s: string, maxChars: number): string {
   return `${trimmed.slice(0, Math.max(0, maxChars - 1))}…`;
 }
 
-function avatarInitial(it: ForwardItem): string {
-  const ch = senderLabel(it).trim().charAt(0);
-  return ch ? ch.toUpperCase() : "?";
-}
+const avatarInitial = (it: FlareForwardItemRecord) => flareForwardSenderInitial(it);
 
-function avatarHue(it: ForwardItem): number {
+function avatarHue(it: FlareForwardItemRecord): number {
   const key = readString(it, "sourceSenderId") || senderLabel(it);
   let h = 0;
   for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
   return h % 360;
 }
 
-function itemKey(it: ForwardItem, index: number): string {
+function itemKey(it: FlareForwardItemRecord, index: number): string {
   const sid = readString(it, "sourceMessageId").trim();
   if (sid) return sid;
   return `${index}-${readNumber(it, 0, "sourceMessageTimeMs")}-${senderLabel(it)}`;
 }
-
-const ariaSingleLabel = computed(() => itemPreviewLine(allItems.value[0] ?? {}));
-
-const ariaCardLabel = computed(() =>
-  subtitleLine.value ? `${headerTitle.value}, ${subtitleLine.value}` : headerTitle.value,
-);
 </script>
 
 <style scoped>

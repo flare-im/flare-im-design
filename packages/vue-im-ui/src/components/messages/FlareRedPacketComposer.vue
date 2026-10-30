@@ -1,12 +1,15 @@
 <script setup lang="ts">
 // 发红包表单 —— 种类分段、金额、个数(拼手气 / 普通)、收款人插槽(专属)、祝福语、大字总额和「塞钱进红包」。
 //
-// 组件只做格式限制:金额只收数字和最多两位小数,个数只收数字(spec/red-packet-vectors.json)。
+// 组件只做格式限制:金额只收数字和币种小数位以内的小数(currencyExponent,0 位时不收小数点),个数只收数字
+// (spec/red-packet-vectors.json)。
 // 上下限、余额和总额都由宿主算好再传回来;专属红包的收款人由宿主用成员选择组件填进 `recipient` 插槽。
 import { computed, useId, watch } from "vue";
 import FlareButton from "../general/FlareButton.vue";
 import FlareSegmentedControl from "../general/FlareSegmentedControl.vue";
 import {
+  flareRedPacketAmountText,
+  flareRedPacketExponent,
   sanitizeRedPacketAmount,
   sanitizeRedPacketCount,
   type FlareRedPacketKind,
@@ -28,8 +31,14 @@ const props = withDefaults(
      */
     locked?: boolean;
     submitLabel?: string;
+    /**
+     * The currency's ISO 4217 exponent from the plugin's limits (0 JPY, 2 CNY, 3 KWD): the amount field keeps at
+     * most that many decimals (whole numbers at 0) and its placeholder has that many. The host turns the text into
+     * minor units with `flareRedPacketAmountMinor(amount, currencyExponent)`.
+     */
+    currencyExponent?: number;
   }>(),
-  { busy: false, locked: false },
+  { busy: false, locked: false, currencyExponent: 2 },
 );
 const kind = defineModel<FlareRedPacketKind>("kind", { default: "lucky" });
 const amount = defineModel<string>("amount", { default: "" });
@@ -79,6 +88,16 @@ const amountLabel = computed(() =>
 const showsCount = computed(() => activeKind.value !== "exclusive" && !direct.value);
 const showsRecipient = computed(() => activeKind.value === "exclusive");
 const countText = computed(() => ((count.value ?? 0) > 0 ? String(count.value) : ""));
+const exponent = computed(() => flareRedPacketExponent(props.currencyExponent));
+// "0", "0.00", "0.000": the amount the field asks for, in the currency's decimals.
+const amountPlaceholder = computed(() => flareRedPacketAmountText("0", exponent.value) ?? "0");
+
+// A currency with fewer decimals (the host switched currency) trims what was typed for the old one.
+watch(exponent, (scale) => {
+  const current = amount.value ?? "";
+  const next = sanitizeRedPacketAmount(current, scale);
+  if (next !== current) amount.value = next;
+});
 
 function selectKind(index: number): void {
   const next = props.kinds[index];
@@ -88,7 +107,7 @@ function selectKind(index: number): void {
 // (a letter typed after "8.88"), Vue has nothing to re-render and the letter would stay on screen.
 function onAmountInput(event: Event): void {
   const el = event.target as HTMLInputElement;
-  const next = sanitizeRedPacketAmount(el.value);
+  const next = sanitizeRedPacketAmount(el.value, exponent.value);
   if (el.value !== next) el.value = next;
   amount.value = next;
 }
@@ -132,9 +151,9 @@ function requestSubmit(): void {
             :id="amountId"
             class="flare-rp-composer__input"
             type="text"
-            inputmode="decimal"
+            :inputmode="exponent > 0 ? 'decimal' : 'numeric'"
             autocomplete="off"
-            placeholder="0.00"
+            :placeholder="amountPlaceholder"
             :readonly="locked"
             :value="amount"
             :aria-invalid="error ? true : undefined"

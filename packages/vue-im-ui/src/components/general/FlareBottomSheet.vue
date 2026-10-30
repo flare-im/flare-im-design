@@ -8,6 +8,9 @@
 // 实现为所有模态面共用。底部面板那一支在这里登记自己的面;交给 FlareModal 时由它登记,
 // 这里不再重复登记(否则栈、锁计数与返回键认领都会翻倍)。
 import { computed, getCurrentInstance, ref, watch } from "vue";
+import FlareIconButton from "./FlareIconButton.vue";
+import { flareIcons } from "../../shared/icons";
+import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 import FlareModal from "./FlareModal.vue";
 import { useFlareModalSurface } from "../../shared/useModalSurface";
 import { useFlarePlatformSafe } from "../../shared/platform/useFlarePlatform";
@@ -21,6 +24,8 @@ const props = withDefaults(
     open: boolean;
     /** Prevent closing while an operation owns the draft. */
     dismissible?: boolean;
+    /** Optional explicit dismissal control; useful for content/detail sheets. */
+    showClose?: boolean;
     /** Optional header: centered on a sheet, leading when handed to FlareModal. */
     title?: string;
     /**
@@ -47,9 +52,10 @@ const props = withDefaults(
     dialogWidth?: string;
     presentation?: FlareSheetPresentation;
   }>(),
-  { maxHeight: "72vh", dismissible: true, presentation: "auto", titleHidden: false, fill: false },
+  { maxHeight: "72vh", dismissible: true, showClose: false, presentation: "auto", titleHidden: false, fill: false },
 );
 const emit = defineEmits<{ (e: "close"): void }>();
+const { t } = useFlareI18nOptional();
 const instance = getCurrentInstance();
 const platform = useFlarePlatformSafe();
 const sheetEl = ref<HTMLElement | null>(null);
@@ -105,7 +111,7 @@ const { overlayContainer } = useFlareModalSurface({
     :width="dialogWidth"
     :fill="fill"
     :scrollable="!fill"
-    :show-close="false"
+    :show-close="showClose"
     v-bind="modalListeners()"
   >
     <div v-if="fill" class="flare-sheet__fill"><slot /></div>
@@ -127,7 +133,11 @@ const { overlayContainer } = useFlareModalSurface({
           @click.stop
         >
           <div class="flare-sheet__grip" aria-hidden="true" />
-          <div v-if="title && !headingHidden" class="flare-sheet__title">{{ title }}</div>
+          <div v-if="showClose" class="flare-sheet__header">
+            <div v-if="title && !headingHidden" class="flare-sheet__title">{{ title }}</div>
+            <FlareIconButton class="flare-sheet__close" :icon="flareIcons.close" :ariaLabel="t('common.close')" size="sm" :disabled="!dismissible" @click="emit('close')" />
+          </div>
+          <div v-else-if="title && !headingHidden" class="flare-sheet__title">{{ title }}</div>
           <div v-if="fill" class="flare-sheet__fill"><slot /></div>
           <slot v-else />
         </div>
@@ -169,6 +179,9 @@ const { overlayContainer } = useFlareModalSurface({
 .flare-sheet__fill { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; }
 .flare-sheet__fill > :deep(*) { flex: 1 1 auto; min-height: 0; }
 .flare-sheet__grip { width: 36px; height: 4px; border-radius: 999px; background: var(--flare-color-border-primary); margin: 6px auto 8px; flex: 0 0 auto; }
+.flare-sheet__header { display: flex; align-items: center; padding-inline: var(--flare-size-spacing-sm); }
+.flare-sheet__close { margin-inline-start: auto; }
+.flare-sheet__header .flare-sheet__title { flex: 1; padding-inline-start: var(--flare-size-layout-control-height-sm); }
 .flare-sheet__title { padding: var(--flare-size-spacing-xs) var(--flare-size-spacing-md) var(--flare-size-spacing-sm); font-size: var(--flare-size-font-size-md); font-weight: 500; color: var(--flare-color-text-tertiary); text-align: center; }
 
 /* 面的升起跟着遮罩的过渡类走:嵌套的 <transition> 在外层 v-if 离场时不会播放自己的 leave,

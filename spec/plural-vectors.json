@@ -1,0 +1,1253 @@
+{
+  "schemaVersion": 1,
+  "note": "Plural forms of the kit's count copy. Strings carry the CLDR `one` and `other` forms (Vue: a message value {one?, other, …}; native: a <field>One sibling field of the `other` field, pluralOf in strings/en.json). The kit picks `one` when the locale's CLDR cardinal category for the non-negative integer count is one, else `other` (few, many, two and zero fall back to other in the natives; a Vue tree may carry them). Vue reads the category from Intl.PluralRules and its test checks that table against it; the natives implement the table below as a pure function.",
+  "rules": {
+    "families": {
+      "none": "never one",
+      "is1": "one when n = 1",
+      "is0or1": "one when n is 0 or 1",
+      "mod10is1": "one when n % 10 = 1 and n % 100 ≠ 11"
+    },
+    "languages": {
+      "none": [
+        "zh",
+        "ja",
+        "ko",
+        "th",
+        "vi",
+        "id",
+        "ms",
+        "yue",
+        "lo",
+        "my",
+        "km"
+      ],
+      "is1": [
+        "en",
+        "de",
+        "nl",
+        "sv",
+        "da",
+        "nb",
+        "nn",
+        "no",
+        "fi",
+        "et",
+        "it",
+        "es",
+        "ca",
+        "el",
+        "hu",
+        "tr",
+        "pl",
+        "cs",
+        "sk",
+        "he",
+        "ar",
+        "bg",
+        "ro",
+        "sw",
+        "ur",
+        "af",
+        "eu",
+        "gl",
+        "sq",
+        "az",
+        "kk",
+        "ka",
+        "ky",
+        "mn",
+        "uz",
+        "ta",
+        "te",
+        "ml",
+        "mr",
+        "ne"
+      ],
+      "is0or1": [
+        "fr",
+        "pt",
+        "hi",
+        "bn",
+        "fa",
+        "gu",
+        "kn",
+        "am",
+        "zu"
+      ],
+      "mod10is1": [
+        "ru",
+        "uk",
+        "be",
+        "hr",
+        "sr",
+        "bs"
+      ]
+    },
+    "region": "pt-PT is is1 (Portugal); pt and any other pt region is is0or1. Only the language subtag counts otherwise.",
+    "default": "is1"
+  },
+  "cases": [
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "zh-CN",
+      "count": 0,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "zh-CN",
+      "count": 1,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "zh-CN",
+      "count": 2,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "zh-CN",
+      "count": 5,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "zh-CN",
+      "count": 11,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "zh-CN",
+      "count": 21,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "zh-CN",
+      "count": 101,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "zh-CN",
+      "count": 111,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "ja",
+      "count": 0,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "ja",
+      "count": 1,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "ja",
+      "count": 2,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "ja",
+      "count": 5,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "ja",
+      "count": 11,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "ja",
+      "count": 21,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "ja",
+      "count": 101,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "ja",
+      "count": 111,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "en-US",
+      "count": 0,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "en-US",
+      "count": 1,
+      "one": true
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "en-US",
+      "count": 2,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "en-US",
+      "count": 5,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "en-US",
+      "count": 11,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "en-US",
+      "count": 21,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "en-US",
+      "count": 101,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "en-US",
+      "count": 111,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "de",
+      "count": 0,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "de",
+      "count": 1,
+      "one": true
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "de",
+      "count": 2,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "de",
+      "count": 5,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "de",
+      "count": 11,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "de",
+      "count": 21,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "de",
+      "count": 101,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "de",
+      "count": 111,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "es",
+      "count": 0,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "es",
+      "count": 1,
+      "one": true
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "es",
+      "count": 2,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "es",
+      "count": 5,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "es",
+      "count": 11,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "es",
+      "count": 21,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "es",
+      "count": 101,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "es",
+      "count": 111,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "pl",
+      "count": 0,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "pl",
+      "count": 1,
+      "one": true
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "pl",
+      "count": 2,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "pl",
+      "count": 5,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "pl",
+      "count": 11,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "pl",
+      "count": 21,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "pl",
+      "count": 101,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "pl",
+      "count": 111,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "ar",
+      "count": 0,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "ar",
+      "count": 1,
+      "one": true
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "ar",
+      "count": 2,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "ar",
+      "count": 5,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "ar",
+      "count": 11,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "ar",
+      "count": 21,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "ar",
+      "count": 101,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "ar",
+      "count": 111,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "fr",
+      "count": 0,
+      "one": true
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "fr",
+      "count": 1,
+      "one": true
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "fr",
+      "count": 2,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "fr",
+      "count": 5,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "fr",
+      "count": 11,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "fr",
+      "count": 21,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "fr",
+      "count": 101,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "fr",
+      "count": 111,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "pt-BR",
+      "count": 0,
+      "one": true
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "pt-BR",
+      "count": 1,
+      "one": true
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "pt-BR",
+      "count": 2,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "pt-BR",
+      "count": 5,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "pt-BR",
+      "count": 11,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "pt-BR",
+      "count": 21,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "pt-BR",
+      "count": 101,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "pt-BR",
+      "count": 111,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "pt-PT",
+      "count": 0,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "pt-PT",
+      "count": 1,
+      "one": true
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "pt-PT",
+      "count": 2,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "pt-PT",
+      "count": 5,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "pt-PT",
+      "count": 11,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "pt-PT",
+      "count": 21,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "pt-PT",
+      "count": 101,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "pt-PT",
+      "count": 111,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "ru",
+      "count": 0,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "ru",
+      "count": 1,
+      "one": true
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "ru",
+      "count": 2,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "ru",
+      "count": 5,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "ru",
+      "count": 11,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "ru",
+      "count": 21,
+      "one": true
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "ru",
+      "count": 101,
+      "one": true
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "ru",
+      "count": 111,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "xx",
+      "count": 0,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "xx",
+      "count": 1,
+      "one": true
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "xx",
+      "count": 2,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "xx",
+      "count": 5,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "xx",
+      "count": 11,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "xx",
+      "count": 21,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "xx",
+      "count": 101,
+      "one": false
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "xx",
+      "count": 111,
+      "one": false
+    }
+  ],
+  "forms": [
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "vue": "pluginView.votes",
+      "native": "pluginViewVotes",
+      "locale": "en",
+      "count": 1,
+      "text": "1 vote"
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "vue": "pluginView.votes",
+      "native": "pluginViewVotes",
+      "locale": "en",
+      "count": 0,
+      "text": "0 votes"
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "vue": "pluginView.votes",
+      "native": "pluginViewVotes",
+      "locale": "en",
+      "count": 2,
+      "text": "2 votes"
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "vue": "pluginView.votes",
+      "native": "pluginViewVotes",
+      "locale": "zh",
+      "count": 1,
+      "text": "1 票"
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "vue": "forward.moreMessages",
+      "native": "forwardRecordMore",
+      "locale": "en",
+      "count": 1,
+      "text": "1 more message…"
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "vue": "forward.totalMessages",
+      "native": "forwardRecordTotal",
+      "locale": "en",
+      "count": 21,
+      "text": "21 messages in total"
+    },
+    {
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "vue": "myInvite.countOnly",
+      "native": "myInviteCountOnly",
+      "locale": "en",
+      "count": 1,
+      "text": "1 person"
+    },
+    {
+      "platforms": [
+        "vue",
+        "ios",
+        "compose"
+      ],
+      "vue": "storageUsage.fileCount",
+      "native": "storageUsageFileCount",
+      "locale": "en",
+      "count": 1,
+      "text": "1 file"
+    }
+  ]
+}

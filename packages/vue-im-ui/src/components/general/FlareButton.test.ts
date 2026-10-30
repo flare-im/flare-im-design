@@ -32,4 +32,18 @@ describe("FlareButton variants", () => {
     quiet.unmount();
     text.unmount();
   });
+  it("keeps destructive semantics and a disabled loading state in text appearance", async () => {
+    const button = mount(FlareButton, { props: { label: "结束接龙", variant: "danger", appearance: "text", size: "sm" } });
+    expect(button.classes()).toContain("flare-button--danger");
+    expect(button.classes()).toContain("is-text");
+    await button.trigger("click");
+    expect(button.emitted("click")).toHaveLength(1);
+    await button.setProps({ loading: true });
+    expect(button.attributes("disabled")).toBeDefined();
+    expect(button.attributes("aria-busy")).toBe("true");
+    await button.trigger("click");
+    expect(button.emitted("click")).toHaveLength(1);
+    button.unmount();
+  });
+
 });

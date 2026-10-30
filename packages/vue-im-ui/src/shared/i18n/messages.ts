@@ -15,6 +15,8 @@ export const FLARE_DEFAULT_LOCALE: FlareLocale = "zh-CN";
 
 export const flareMessages: Record<string, FlareMessageTree> = {
   "zh-CN": {
+    userIdentity: { loading: "正在加载用户资料", unavailable: "用户资料不可用", accountUnavailable: "暂无账号资料" },
+    account: { transactions: "交易记录", empty: "暂无交易记录", emptyDescription: "收支明细会显示在这里", information: "账户说明与规则", entryDetails: "交易详情", entryId: "记录编号", type: "类型", today: "今天", yesterday: "昨天", otherEntries: "其他记录", showBalance: "显示余额", hideBalance: "隐藏余额", balanceHidden: "余额已隐藏" },
     input: { clear: "清空输入", reveal: "显示密码", hide: "隐藏密码" },
     // Fallback labels for structured system-event keys supplied by a host.
     systemEvent: {
@@ -215,7 +217,8 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       unmute: "解除禁言",
       transferOwner: "转让群主",
       removeMember: "移出群聊",
-      transferConfirm: "确定把群主转让给「{name}」吗？转让后你将变为普通成员，此操作不可撤销。",
+      transferConfirm:
+        "确定把群主转让给「{name}」吗？转让后你将变为普通成员，此操作不可撤销。",
       invite: "邀请成员",
       inviteEmpty: "没有可邀请的好友。",
       noRequests: "暂无待处理的入群申请。",
@@ -280,9 +283,16 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       title: "消息回执",
       read: "已读",
       unread: "未读",
+      readTab: "已读 {count}",
+      unreadTab: "未读 {count}",
       close: "关闭",
       emptyRead: "还没有人已读",
       emptyUnread: "全部成员已读",
+      loadFailed: "名单读取失败",
+      unavailable: "这条消息的已读名单不可查看",
+      loadMore: "加载更多",
+      loadMoreFailed: "加载失败，点按重试",
+      loading: "正在读取名单",
     },
     mention: {
       search: "搜索成员",
@@ -323,7 +333,8 @@ export const flareMessages: Record<string, FlareMessageTree> = {
     chartCard: {
       empty: "暂无数据",
       loading: "正在加载",
-      summary: "{title}，{count} 个数据点，从 {first} 到 {last}。最小 {min}，最大 {max}，最新 {latest}。",
+      summary:
+        "{title}，{count} 个数据点，从 {first} 到 {last}。最小 {min}，最大 {max}，最新 {latest}。",
       summaryOne: "{title}，1 个数据点：{label} {value}。",
       label: "项目",
       value: "数值",
@@ -499,6 +510,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       openAction: "開",
       missed: "手慢了，红包派完了",
       expiredNotice: "红包已过期",
+      refundedNotice: "红包已退回",
       notEligible: "你不能领取这个红包",
       notEligibleName: "仅 {name} 可领取",
       deposited: "已存入钱包",
@@ -673,6 +685,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       totalMessages: "共 {count} 条消息",
       unknownSender: "未知发送者",
       countSuffix: "（{count} 条）",
+      cardLabel: "{title}，{subtitle}",
     },
     placeholder: {
       burned: "消息已焚毁",
@@ -687,11 +700,19 @@ export const flareMessages: Record<string, FlareMessageTree> = {
        */
       jumpedTo: "已跳转到 {sender} 的消息：{summary}",
     },
+    meMenu: {
+      moments: "圈子",
+      reports: "我的举报",
+      invite: "我的邀请",
+      settings: "设置",
+      pluginFallback: "插件",
+    },
     profilePanel: {
       favorites: "收藏",
       moments: "圈子",
       settings: "设置",
       editProfile: "{name}，编辑资料",
+      menuIncomplete: "部分入口暂时未能加载，请重试。",
     },
     navigation: {
       chats: "消息",
@@ -853,7 +874,8 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       opPin: "置顶",
       opUnpin: "取消置顶",
       opPinSelf: "仅自己置顶",
-      batchPartial: "{action}完成 {succeeded}/{total}，失败 {failed} 项：{reason}",
+      batchPartial:
+        "{action}完成 {succeeded}/{total}，失败 {failed} 项：{reason}",
       batchSuccess: "{action}成功 {succeeded}/{total}",
       downloaded: "已下载",
       noDownloadUrl: "没有可下载地址",
@@ -1029,7 +1051,8 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       spoilerReveal: "剧透内容，点按显示",
       imageGroupLabel: "{count} 张图片",
       imageGroupItem: "第 {index} 张图片，共 {count} 张",
-      imageGroupItemMore: "第 {index} 张图片，共 {count} 张，另有 {more} 张未显示",
+      imageGroupItemMore:
+        "第 {index} 张图片，共 {count} 张，另有 {more} 张未显示",
       toolbarAria: "消息快捷操作",
       reactAria: "表情回应",
       replyAria: "回复",
@@ -1456,7 +1479,13 @@ export const flareMessages: Record<string, FlareMessageTree> = {
     },
   },
   "en-US": {
-    input: { clear: "Clear input", reveal: "Show password", hide: "Hide password" },
+    userIdentity: { loading: "Loading user profile", unavailable: "User profile unavailable", accountUnavailable: "Account unavailable" },
+    account: { transactions: "Transactions", empty: "No transactions yet", emptyDescription: "Account entries will appear here", information: "Account information and rules", entryDetails: "Transaction details", entryId: "Record ID", type: "Type", today: "Today", yesterday: "Yesterday", otherEntries: "Other entries", showBalance: "Show balance", hideBalance: "Hide balance", balanceHidden: "Balance hidden" },
+    input: {
+      clear: "Clear input",
+      reveal: "Show password",
+      hide: "Hide password",
+    },
     systemEvent: {
       group: {
         created: "Group created",
@@ -1494,7 +1523,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       quote: "[Quote]",
       link: "[Link]",
       forward: "[Forward]",
-      forwardCount: "[Forward] {count} messages",
+      forwardCount: { one: "[Forward] {count} message", other: "[Forward] {count} messages" },
       thread: "[Thread]",
       miniProgram: "[Mini Program]",
       imageGroup: "[Album]",
@@ -1613,7 +1642,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       admin: "Admin",
       addMember: "Add",
       members: "Members",
-      memberCount: "{count} members",
+      memberCount: { one: "{count} member", other: "{count} members" },
       membersTitle: "Members ({count})",
       searchMembers: "Search members",
       noMatchingMembers: "No matching members",
@@ -1654,7 +1683,8 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       unmute: "Unmute",
       transferOwner: "Transfer ownership",
       removeMember: "Remove from group",
-      transferConfirm: "Transfer ownership to “{name}”? You will become a regular member. This cannot be undone.",
+      transferConfirm:
+        "Transfer ownership to “{name}”? You will become a regular member. This cannot be undone.",
       invite: "Invite members",
       inviteEmpty: "No friends to invite.",
       noRequests: "No pending join requests.",
@@ -1719,9 +1749,16 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       title: "Read receipt",
       read: "Read",
       unread: "Unread",
+      readTab: "Read {count}",
+      unreadTab: "Unread {count}",
       close: "Close",
       emptyRead: "No one has read this yet",
       emptyUnread: "Everyone has read this",
+      loadFailed: "Couldn't load the list",
+      unavailable: "This message's read list isn't available",
+      loadMore: "Load more",
+      loadMoreFailed: "Couldn't load more. Tap to retry",
+      loading: "Loading the list",
     },
     mention: {
       search: "Search members",
@@ -1762,7 +1799,8 @@ export const flareMessages: Record<string, FlareMessageTree> = {
     chartCard: {
       empty: "No data yet",
       loading: "Loading",
-      summary: "{title}, {count} points from {first} to {last}. Lowest {min}, highest {max}, latest {latest}.",
+      summary:
+        "{title}, {count} points from {first} to {last}. Lowest {min}, highest {max}, latest {latest}.",
       summaryOne: "{title}, 1 point: {label} {value}.",
       label: "Label",
       value: "Value",
@@ -1863,7 +1901,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       deadlinePassed: "Closed",
       seeAll: "See all ({count})",
       detail: "View details",
-      votes: "{count} votes",
+      votes: { one: "{count} vote", other: "{count} votes" },
       remaining: "{time} left",
       dateTime: "MMM d, HH:mm",
       dateTimeYear: "MMM d, y, HH:mm",
@@ -1938,6 +1976,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       openAction: "Open",
       missed: "Too late, all claimed",
       expiredNotice: "This red packet has expired",
+      refundedNotice: "This red packet has been refunded",
       notEligible: "You can't open this packet",
       notEligibleName: "Only {name} can open this",
       deposited: "Saved to your wallet",
@@ -2100,18 +2139,20 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       item: "Sticker {id}",
       empty: "No stickers in this pack",
     },
-    forwardSourceMissing: "Forward failed: message {id} is not in the local timeline; sync this conversation first",
+    forwardSourceMissing:
+      "Forward failed: message {id} is not in the local timeline; sync this conversation first",
     forward: {
       defaultTitle: "Forwarded messages",
-      chatHistoryCount: "Chat history · {count} messages",
+      chatHistoryCount: { one: "Chat history · {count} message", other: "Chat history · {count} messages" },
       merged: "Merged forward",
       remark: "Note",
       empty: "No forwarded content",
       viewDetail: "View details",
-      moreMessages: "{count} more messages…",
-      totalMessages: "{count} messages in total",
+      moreMessages: { one: "{count} more message…", other: "{count} more messages…" },
+      totalMessages: { one: "{count} message in total", other: "{count} messages in total" },
       unknownSender: "Unknown sender",
       countSuffix: " · {count}",
+      cardLabel: "{title}, {subtitle}",
     },
     placeholder: {
       burned: "Message burned",
@@ -2121,11 +2162,19 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       originalMessage: "Original message",
       jumpedTo: "Jumped to {sender}'s message: {summary}",
     },
+    meMenu: {
+      moments: "Moments",
+      reports: "My reports",
+      invite: "My invites",
+      settings: "Settings",
+      pluginFallback: "Plugin",
+    },
     profilePanel: {
       favorites: "Favorites",
       moments: "Moments",
       settings: "Settings",
       editProfile: "{name}, edit profile",
+      menuIncomplete: "Some entries could not be loaded. Try again.",
     },
     navigation: {
       chats: "Chats",
@@ -2169,7 +2218,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       delete: "Delete conversation",
       pinned: "Pinned",
       muted: "Muted",
-      members: "{count} members",
+      members: { one: "{count} member", other: "{count} members" },
       assistant: "Assistant",
       status: "Conversation status",
       conversationId: "Conversation ID",
@@ -2181,7 +2230,8 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       filesAndMedia: "Files & media",
       plugins: "Conversation plugins",
       diagnostics: "Technical details",
-      emptyHint: "Conversation info, members, media and extensions appear here.",
+      emptyHint:
+        "Conversation info, members, media and extensions appear here.",
     },
     startConversation: {
       title: "Start conversation",
@@ -2200,8 +2250,10 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       openConversation: "Open conversation",
       memberIdLabel: "Member ID",
       userIdLabel: "User ID",
-      groupHint: "The host creates or opens a group conversation from the member list",
-      directHint: "The host creates or opens a direct conversation from the user ID",
+      groupHint:
+        "The host creates or opens a group conversation from the member list",
+      directHint:
+        "The host creates or opens a direct conversation from the user ID",
       typeDirect: "Direct",
       typeGroup: "Group",
     },
@@ -2266,7 +2318,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       online: "Online",
       busy: "Busy",
       offline: "Offline",
-      members: "{count} members",
+      members: { one: "{count} member", other: "{count} members" },
       aiAssistant: "AI assistant",
       multiSelect: "{count} selected",
       contentTabsAria: "Chat content switcher",
@@ -2287,7 +2339,8 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       opPin: "Pin",
       opUnpin: "Unpin",
       opPinSelf: "Pin for me",
-      batchPartial: "{action}: {succeeded}/{total} done, {failed} failed — {reason}",
+      batchPartial:
+        "{action}: {succeeded}/{total} done, {failed} failed — {reason}",
       batchSuccess: "{action}: {succeeded}/{total} done",
       downloaded: "Downloaded",
       noDownloadUrl: "No download URL",
@@ -2318,11 +2371,12 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       videoCall: "Start video call",
       addMember: "Add member",
       share: "Share conversation",
-      members: "{count} members",
+      members: { one: "{count} member", other: "{count} members" },
     },
     composer: {
       recordingUnavailable: "Recording is unavailable in this environment",
-      microphoneUnavailable: "Cannot access the microphone. Check microphone permission.",
+      microphoneUnavailable:
+        "Cannot access the microphone. Check microphone permission.",
       sendToTarget: "Message {name}",
       messagePlaceholder: "Message",
       paragraph: "Paragraph",
@@ -2363,7 +2417,8 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       pauseRecording: "Pause recording",
       resumeRecording: "Resume recording",
       previewRecording: "Play / pause preview",
-      voicePreviewFailed: "Preview unavailable. You can resume recording or send.",
+      voicePreviewFailed:
+        "Preview unavailable. You can resume recording or send.",
       startRecording: "Start recording",
       stopRecording: "Stop recording",
       discardRecording: "Discard recording",
@@ -2451,7 +2506,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       recalledGroupOther: "{name} recalled a message",
       edited: "Edited",
       pinnedTitle: "Pinned messages",
-      pinnedCount: "{count} items",
+      pinnedCount: { one: "{count} item", other: "{count} items" },
       pinnedFallback: "Pinned message",
       selectMessage: "Select the message from {label}",
       failed: "Send failed",
@@ -2460,7 +2515,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       burned: "Burn after read",
       menuAria: "Message actions",
       spoilerReveal: "Spoiler, select to reveal",
-      imageGroupLabel: "{count} images",
+      imageGroupLabel: { one: "{count} image", other: "{count} images" },
       imageGroupItem: "Image {index} of {count}",
       imageGroupItemMore: "Image {index} of {count}, {more} more not shown",
       toolbarAria: "Quick message actions",
@@ -2519,8 +2574,8 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       location: "Location",
       participants: "Participants",
       options: "Options",
-      optionCount: "{count} options",
-      voteCount: "{count} votes",
+      optionCount: { one: "{count} option", other: "{count} options" },
+      voteCount: { one: "{count} vote", other: "{count} votes" },
       viewDetail: "View details",
       expand: "Expand",
       collapse: "Collapse",
@@ -2596,7 +2651,8 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       onlyAdminCanPin: "Only admins can pin messages",
       onlyAdminCanPinDescription: "Limit who can pin messages in this group",
       shareCardPermission: "Allow sharing the group card",
-      shareCardPermissionDescription: "Members cannot share this group while off",
+      shareCardPermissionDescription:
+        "Members cannot share this group while off",
       on: "On",
       off: "Off",
       busy: "Saving",
@@ -2786,7 +2842,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       loadMore: "Load more",
       loading: "Loading invite details",
       joined: "Joined {date}",
-      countOnly: "{count} people",
+      countOnly: { one: "{count} person", other: "{count} people" },
     },
     storageUsage: {
       title: "Storage",
@@ -2801,7 +2857,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       dismissError: "Dismiss error",
       loading: "Calculating storage usage",
       empty: "No storage categories to show",
-      fileCount: "{count} files",
+      fileCount: { one: "{count} file", other: "{count} files" },
     },
     searchDateRangeFilter: {
       title: "Time range",
@@ -2890,20 +2946,84 @@ export const flareMessages: Record<string, FlareMessageTree> = {
   },
 };
 
-function lookupMessage(tree: Record<string, unknown>, key: string): string | undefined {
+/** The CLDR plural categories a message value may carry forms for. */
+export type FlarePluralCategory = "zero" | "one" | "two" | "few" | "many" | "other";
+/** A message with plural forms: `other` always, any other CLDR category the language needs. */
+export type FlarePluralMessage = Partial<Record<FlarePluralCategory, string>> & { other: string };
+
+const PLURAL_CATEGORIES: ReadonlySet<string> = new Set(["zero", "one", "two", "few", "many", "other"]);
+
+/** Whether a message tree value is a set of plural forms rather than a namespace. */
+export function isFlarePluralMessage(value: unknown): value is FlarePluralMessage {
+  if (!value || typeof value !== "object") return false;
+  const entries = Object.entries(value);
+  return typeof (value as { other?: unknown }).other === "string"
+    && entries.every(([category, form]) => PLURAL_CATEGORIES.has(category) && typeof form === "string");
+}
+
+const pluralRules = new Map<string, Intl.PluralRules>();
+/**
+ * The CLDR cardinal category of `count` in `locale` (spec/plural-vectors.json), from the platform's
+ * Intl.PluralRules. A tag the runtime cannot read counts as the default locale.
+ */
+export function flarePluralCategory(locale: FlareLocale | string, count: number): FlarePluralCategory {
+  const tag = String(locale || FLARE_DEFAULT_LOCALE);
+  let rules = pluralRules.get(tag);
+  if (!rules) {
+    try {
+      rules = new Intl.PluralRules(tag);
+    } catch {
+      rules = new Intl.PluralRules(FLARE_DEFAULT_LOCALE);
+    }
+    pluralRules.set(tag, rules);
+  }
+  return rules.select(count) as FlarePluralCategory;
+}
+
+/** The form of a plural message for `count`; a category the message has no form for reads `other`. */
+export function flarePluralForm(message: FlarePluralMessage, locale: FlareLocale | string, count: number): string {
+  return message[flarePluralCategory(locale, count)] ?? message.other;
+}
+
+function lookupMessage(
+  tree: Record<string, unknown>,
+  key: string,
+): string | FlarePluralMessage | undefined {
   let cursor: unknown = tree;
   for (const part of key.split(".")) {
-    if (!cursor || typeof cursor !== "object" || !(part in (cursor as Record<string, unknown>))) {
+    if (
+      !cursor ||
+      typeof cursor !== "object" ||
+      !(part in (cursor as Record<string, unknown>))
+    ) {
       return undefined;
     }
     cursor = (cursor as Record<string, unknown>)[part];
   }
-  return typeof cursor === "string" ? cursor : undefined;
+  return typeof cursor === "string" || isFlarePluralMessage(cursor) ? cursor : undefined;
 }
 
-function interpolateMessage(template: string, params?: Record<string, string | number>): string {
+/**
+ * A plural message's form for the count it is given (`count`, else `n`; not a number reads `other`).
+ */
+function selectPluralForm(
+  hit: string | FlarePluralMessage,
+  locale: FlareLocale,
+  params?: Record<string, string | number>,
+): string {
+  if (typeof hit === "string") return hit;
+  const count = Number(params?.count ?? params?.n);
+  return Number.isFinite(count) ? flarePluralForm(hit, locale, Math.abs(count)) : hit.other;
+}
+
+function interpolateMessage(
+  template: string,
+  params?: Record<string, string | number>,
+): string {
   if (!params) return template;
-  return template.replace(/\{(\w+)\}/g, (_, name: string) => String(params[name] ?? `{${name}}`));
+  return template.replace(/\{(\w+)\}/g, (_, name: string) =>
+    String(params[name] ?? `{${name}}`),
+  );
 }
 
 /**
@@ -2915,7 +3035,8 @@ function mergeTree(target: FlareMessageTree, patch: FlareMessageTree): void {
   for (const [key, value] of Object.entries(patch)) {
     const existing = target[key];
     if (typeof value === "string") target[key] = value;
-    else if (typeof existing !== "object" || existing == null) target[key] = structuredClone(value);
+    // Plural forms are one message: a host's set replaces the kit's whole, never mixes with it.
+    else if (typeof existing !== "object" || existing == null || isFlarePluralMessage(value)) target[key] = structuredClone(value);
     else mergeTree(existing, value);
   }
 }
@@ -2926,7 +3047,10 @@ function mergeTree(target: FlareMessageTree, patch: FlareMessageTree): void {
  * few keys of a built-in one. Lookups for a registered locale still fall back
  * to {@link FLARE_DEFAULT_LOCALE} for keys the host has not translated.
  */
-export function registerFlareMessages(locale: FlareLocale, tree: FlareMessageTree): void {
+export function registerFlareMessages(
+  locale: FlareLocale,
+  tree: FlareMessageTree,
+): void {
   const existing = flareMessages[locale];
   if (existing) mergeTree(existing, tree);
   else flareMessages[locale] = structuredClone(tree);
@@ -2942,12 +3066,16 @@ export function listFlareLocales(): FlareLocale[] {
  * registered locale sharing the language subtag ("en-GB" → "en-US"), then the
  * default locale.
  */
-export function resolveFlareLocale(locale: FlareLocale | string | undefined): FlareLocale {
+export function resolveFlareLocale(
+  locale: FlareLocale | string | undefined,
+): FlareLocale {
   const wanted = String(locale ?? "").trim();
   if (!wanted) return FLARE_DEFAULT_LOCALE;
   if (flareMessages[wanted]) return wanted;
   const lang = wanted.toLowerCase().split(/[-_]/)[0];
-  const sibling = Object.keys(flareMessages).find((tag) => tag.toLowerCase().split(/[-_]/)[0] === lang);
+  const sibling = Object.keys(flareMessages).find(
+    (tag) => tag.toLowerCase().split(/[-_]/)[0] === lang,
+  );
   return sibling ?? FLARE_DEFAULT_LOCALE;
 }
 
@@ -2962,9 +3090,12 @@ export function resolveFlareMessage(
   params?: Record<string, string | number>,
 ): string {
   const loc = resolveFlareLocale(locale);
-  const hit = lookupMessage(flareMessages[loc] as Record<string, unknown>, key)
-    ?? lookupMessage(flareMessages[FLARE_DEFAULT_LOCALE] as Record<string, unknown>, key);
-  return interpolateMessage(hit ?? key, params);
+  const own = lookupMessage(flareMessages[loc] as Record<string, unknown>, key);
+  // A plural message picks its form by the rules of the language it is written in.
+  const [hit, language] = own !== undefined
+    ? [own, loc]
+    : [lookupMessage(flareMessages[FLARE_DEFAULT_LOCALE] as Record<string, unknown>, key), FLARE_DEFAULT_LOCALE];
+  return interpolateMessage(hit === undefined ? key : selectPluralForm(hit, language, params), params);
 }
 
 // Runtime locale mirror, kept in sync by the i18n provider's setLocale so plain
@@ -2981,6 +3112,9 @@ export function currentFlareRuntimeLocale(): FlareLocale {
 }
 
 /** Translate against the current runtime locale (see {@link setFlareRuntimeLocale}). */
-export function translateFlare(key: string, params?: Record<string, string | number>): string {
+export function translateFlare(
+  key: string,
+  params?: Record<string, string | number>,
+): string {
   return resolveFlareMessage(runtimeLocale, key, params);
 }

@@ -1,6 +1,28 @@
 ## 未发布
 
 - 通话记录卡片：新增 `FlareCallRecordCard`（props `media`、`scope`、`state`、`endReason`、`durationSeconds`、`joinedCount`、`viewerIsInitiator`、`canJoin`、`canCallBack`、`disabled`、`busy`；事件 `join`、`callBack`），`./contracts` 新增 `FlareCallRecordScope`、`FlareCallRecordState`、`FlareCallEndReason`、`FlareCallRecordStatus` 与 `flareCallRecordStatus` / `flareCallRecordTone` / `flareCallRecordAction` / `flareCallDurationLabel`（`spec/call-record-vectors.json`），i18n 新增 `callRecord.*`。
+
+- `displayTextFromStoredPreview` 可注入 `StoredPreviewOptions.resolveSystemText` 解析产品自己的系统消息键、参数与回退文案；通用预览与引用的解码继续由 Kit 提供。
+
+- 已读名单的分页持有者与抽屉里自带页头的页面：
+  - 新增 `useFlareReadReceiptList(key, page)`（`./composables`）：宿主只给按栏取一页的 `page(column, cursor?)`（名单不开放时返回 null），两栏第一页、按栏翻页、整张名单的状态与每栏的忙 / 失败标记都由 Kit 持有；`sheet` 直接 `v-bind` 给 `FlareReadReceiptSheet`，标签数字仍由宿主传这条消息当前的摘要。规则与步骤向量见 `spec/read-receipt-list-vectors.json`，四端同名。
+  - `FlareDrawer` 认得自带页头的页面：带返回键的 `FlareScreen`（如 `FlarePluginPage`）推进抽屉时声明自带页头，抽屉不再画页头行（`title` 只作可及名称），Escape 与平台返回先在那一页里退一页，里面没有能返回的页时才关抽屉。`useFlareSheetOwnHeader` 新增可选的 `{ active, back }`。
+
+- 「我」页内置项副标题、合并转发条目文字与抽屉头像：
+  - `flareMeMenuSections` 的 `summaries` 按项 id 对内置项同样生效（宿主给「我的邀请」的副标题）。
+  - 合并转发条目的 `plainText` 是核心给的可读文字，按正文摘要的读法画（Markdown 转纯文本、表情包键按读者语言）；抽屉头像首字取发送者名字，没有名字画「?」（原来取「未知发送者」的「未」），新增 `flareForwardSenderInitial`。
+
+- 已读名单分页、渲染器拿到发送者、红包已退回与币种小数位、「我」页菜单、图标回落、合并转发记录与复数（契约与向量四端共用）：
+  - **已读名单**：`FlareReadReceiptSheet` 新增 `readCount` / `unreadCount`（标签数字只取宿主传的摘要人数，不再取名单长度；不传时标签不带数字）、`state`（ready / loading / error / unavailable：读取中转圈，失败可重试并发 `retry`，不可查看只给提示）、两栏各自分页（`readHasMore` / `unreadHasMore`、`loadingMore`、`loadMoreFailed`，名单末尾「加载更多」或「加载失败，点按重试」发 `loadMore(column)`）与 `initialTab`。宽度随容器：不在 Kit 浮层里时自画卡片，最宽 320；放进 `FlareBottomSheet` 时不画外壳并声明自带标题，宿主用 `fill` 打开，面板标题不再重复。新增 `./contracts` 的 `flareReadReceiptPresentation`（`spec/read-receipt-vectors.json`）与内部的 `useFlareInsideSheet`。
+  - **自定义渲染器拿得到发送者**：渲染器 props 新增 `senderId` 与 `senderName`（宿主给的显示名，去空白，没有就不传，不回落到 id）；`FlareMessageContentView` 新增 `senderId`、`senderDisplayName`，`FlareMessageBubble` 自动传入。
+  - **红包**：`FlareRedPacketOpenSheet` 的 `state` 新增 `refunded`（「红包已退回」，与 expired 一样按 `canViewDetails` 给详情键）；`FlareRedPacketComposer` 新增 `currencyExponent`（默认 2）：金额框最多保留这么多位小数（0 位时不收小数点、数字键盘），占位按小数位写，换成小数位更少的币种时裁掉已输入的多余小数。`sanitizeRedPacketAmount(raw, exponent = 2)`，新增 `flareRedPacketAmountMinor(text, exponent)`（输入换成最小单位整数字符串，不经浮点）与 `flareRedPacketExponent`。
+  - **「我」页菜单**：新增 `flareMeMenuSections(menu, labels?, summaries?, locale?)`（`./utils`）：社交 SDK `features.meMenu` 的结果原样传入，内置项文案（`meMenu.*`）、插件项标题与回落、图标回落、插件副标题、设置单独成组都由 Kit 给出（`spec/me-menu-vectors.json`）。
+  - **图标**：注册表追加 `wallet`（109 个）。不认识的图标名四端统一画 `plugin` 字形（开发构建每个名字告警一次），不再留空；新增 `flareIconNameOrFallback` 与 `FLARE_ICON_FALLBACK`，`FlareGlyph` 经它解析（emoji 与单个字符仍原样画）。
+  - **合并转发记录**：`ForwardView` 的标题、条数、预览、「还有 N 条」与抽屉标题由新的 `utils/forwardRecord.ts`（`flareForwardRecordView`）给出，原生三端照同一份 `spec/message-forward-vectors.json` 实现；卡片读屏名中文用「，」（`forward.cardLabel`），多选时卡片不可点，抽屉里的时间跟 Kit locale。
+  - **复数**：消息树的值可以是复数形态 `{one?, other, …}`，`t(key, {count})` 按 `Intl.PluralRules` 选形态，缺的形态用 other；宿主注册的语言可带任意 CLDR 形态，注册时整组替换。英文计数文案补上单数（投票「1 vote」、合并转发、成员数、选项数、图片数、置顶条数、邀请人数、文件数）。新增 `flarePluralCategory`、`flarePluralForm`、`isFlarePluralMessage`；`flarePluginEntryGroupHeader` 的第二个参数改为 `(count) => string`（破坏性）。
+  - **投票卡片不再重复**：choices 块的页脚不再画 total（它只是百分比的分母，可能是人数也可能是票数之和）：页脚只有多选上限提示与「已结束」，「N 票」只用于选项；参与人数由插件自己的行给出。
+  - `useFlareContentSelection` 从公共入口（composables）导出。
+
 - 第八轮消息表面与插件体验（`docs/design/message-surface-and-meta.md`、投票第二版 §6、红包第五版 §1–§3、插件平台第二版 §4）：
   - **消息表面**：`./contracts` 新增 `FlareMessageSurface`（bubble / bareMedia / card / centered）与 `flareMessageSurface(input)`，`./utils` 新增 `messageSurfaceOf(message, registry)`（规则见 `spec/message-surface-vectors.json`）。一切 custom / 插件内容（含红包、投票、`custom:flare.plugin.message.v1`）默认是 card：`FlareMessageBubble` 不在外面画底色、边框、内边距、尾角和阴影，卡片外壳就是表面；引用回复的卡片仍是卡片，引用画在外壳顶部（`FlarePluginView` 新增 `quote` 插槽，时间线经注入自动放进去；其余卡片由行画同一条引用）。`FlareMessageBubble` 新增 `surface`（MessageList 传入它分组用的表面）。**删除**内容渲染器登记的 `bare`，改为 `surface: "card" | "bareMedia"`，只给 Kit 不认识的内容类型用；删除 `utils/messageBubbleChromeless`（`isChromelessMediaBubble` / `isChromelessCardBubble`）。
   - **元信息位置**：`FlareMessageMeta` 新增 `placement`（inline / bubbleFooter / below / none，`spec/message-meta-placement-vectors.json`）。**删除** `overlay` 叠加胶囊：卡片与图片的时间都在表面下方、尾侧、默认色板；失败时在下方显示「发送失败，重试」文字键，气泡内仍是失败图标即重试键，命中区都不小于 `layout.touchTarget`；没有 resend 监听时不可点。

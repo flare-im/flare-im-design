@@ -1,0 +1,472 @@
+{
+  "schemaVersion": 1,
+  "note": "ReadReceiptSheet: the read list of one of the viewer's group messages, two columns that page on their own. Input `readers` / `unread` are counts of the members loaded so far (tests build r1..rN and u1..uN). `tabs` is null when the tabs are not drawn, else the two tabs in order with the number each shows (null: no number). `body`: spinner (loading), error (load failed, with a retry key), unavailable (no list for this message, no retry), list (the active column's rows), empty (the active column has no rows and no next page). `rows` is the number of member rows drawn. `tail` is the last row of a list: none, busy (a spinner, not a control), loadMore (the load-more key), retry (the load-more-failed key). `taps` are steps: tap `tail`, `retry` or `tab:<column>` and the events it emits, in order.",
+  "rules": {
+    "counts": "A tab's number is the summary count the host passes (readCount / unreadCount, from receipt.readSummary). Without one the tab has no number; the number is never the length of the loaded list, which may be one page.",
+    "states": "state loading: the title row, both tabs (with the summary counts when given) and a spinner as the body. error: the title row and an error notice (readReceiptLoadFailed) with a retry key that emits retry; no tabs. unavailable: the title row and the notice readReceiptUnavailable; no tabs, no retry (the host uses it for NOT_FOUND and available:false). ready: the tabs and the active column.",
+    "paging": "In ready, after the rows of the active column: loadingMore equal to the column → busy; else loadMoreFailed equal to the column → retry key (readReceiptLoadMoreFailed) emitting loadMore(column); else hasMore of the column → load-more key (readReceiptLoadMore) emitting loadMore(column); else nothing. A native list may also emit loadMore when the key scrolls into view. A column never asks twice while it is loading more; the other column pages on its own. A column with no rows and no next page draws its empty notice; with a next page it draws no notice, only the key.",
+    "tabs": "Switching tabs emits nothing and keeps both columns (the host holds them). initialTab picks the column shown first (read by default).",
+    "shell": "The sheet takes its container's width. Outside a kit overlay it draws its own card shell (radius xl, hairline border, lg shadow) at most 320 wide, shrinking with a narrower container, and its rows scroll within 320. Inside a kit BottomSheet or Modal it draws no shell, fills the surface width and declares its own header (Vue useFlareSheetOwnHeader, Compose FlareSheetOwnHeader, the same mechanism on SwiftUI / Flutter); the host opens it with the sheet's fill mode so the sheet's title is the accessible name only and the rows take the remaining height."
+  },
+  "strings": {
+    "zh": {
+      "readReceiptLoadFailed": "名单读取失败",
+      "readReceiptUnavailable": "这条消息的已读名单不可查看",
+      "readReceiptLoadMore": "加载更多",
+      "readReceiptLoadMoreFailed": "加载失败，点按重试"
+    },
+    "en": {
+      "readReceiptLoadFailed": "Couldn't load the list",
+      "readReceiptUnavailable": "This message's read list isn't available",
+      "readReceiptLoadMore": "Load more",
+      "readReceiptLoadMoreFailed": "Couldn't load more. Tap to retry"
+    }
+  },
+  "cases": [
+    {
+      "id": "summary-counts-not-list-length",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": {
+        "state": "ready",
+        "readers": 2,
+        "unread": 1,
+        "readCount": 30,
+        "unreadCount": 12,
+        "readHasMore": true,
+        "unreadHasMore": true
+      },
+      "expect": {
+        "tabs": [
+          {
+            "value": "read",
+            "count": 30
+          },
+          {
+            "value": "unread",
+            "count": 12
+          }
+        ],
+        "body": "list",
+        "rows": 2,
+        "tail": "loadMore"
+      },
+      "taps": [
+        {
+          "tap": "tail",
+          "emits": [
+            [
+              "loadMore",
+              "read"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "no-summary-no-number",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": {
+        "state": "ready",
+        "readers": 3,
+        "unread": 2
+      },
+      "expect": {
+        "tabs": [
+          {
+            "value": "read",
+            "count": null
+          },
+          {
+            "value": "unread",
+            "count": null
+          }
+        ],
+        "body": "list",
+        "rows": 3,
+        "tail": "none"
+      }
+    },
+    {
+      "id": "loading-with-summary",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": {
+        "state": "loading",
+        "readers": 0,
+        "unread": 0,
+        "readCount": 5,
+        "unreadCount": 7
+      },
+      "expect": {
+        "tabs": [
+          {
+            "value": "read",
+            "count": 5
+          },
+          {
+            "value": "unread",
+            "count": 7
+          }
+        ],
+        "body": "spinner",
+        "rows": 0,
+        "tail": "none"
+      }
+    },
+    {
+      "id": "loading-without-summary",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": {
+        "state": "loading",
+        "readers": 0,
+        "unread": 0
+      },
+      "expect": {
+        "tabs": [
+          {
+            "value": "read",
+            "count": null
+          },
+          {
+            "value": "unread",
+            "count": null
+          }
+        ],
+        "body": "spinner",
+        "rows": 0,
+        "tail": "none"
+      }
+    },
+    {
+      "id": "error-retries",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": {
+        "state": "error",
+        "readers": 0,
+        "unread": 0,
+        "readCount": 5,
+        "unreadCount": 7
+      },
+      "expect": {
+        "tabs": null,
+        "body": "error",
+        "rows": 0,
+        "tail": "none"
+      },
+      "taps": [
+        {
+          "tap": "retry",
+          "emits": [
+            [
+              "retry"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "unavailable-has-no-retry",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": {
+        "state": "unavailable",
+        "readers": 0,
+        "unread": 0
+      },
+      "expect": {
+        "tabs": null,
+        "body": "unavailable",
+        "rows": 0,
+        "tail": "none"
+      }
+    },
+    {
+      "id": "loading-more-is-not-a-control",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": {
+        "state": "ready",
+        "readers": 4,
+        "unread": 0,
+        "readCount": 9,
+        "unreadCount": 0,
+        "readHasMore": true,
+        "loadingMore": "read"
+      },
+      "expect": {
+        "tabs": [
+          {
+            "value": "read",
+            "count": 9
+          },
+          {
+            "value": "unread",
+            "count": 0
+          }
+        ],
+        "body": "list",
+        "rows": 4,
+        "tail": "busy"
+      },
+      "taps": [
+        {
+          "tap": "tail",
+          "emits": []
+        }
+      ]
+    },
+    {
+      "id": "load-more-failed-retries-that-column",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": {
+        "state": "ready",
+        "readers": 1,
+        "unread": 2,
+        "unreadHasMore": true,
+        "loadMoreFailed": "unread",
+        "initialTab": "unread"
+      },
+      "expect": {
+        "tabs": [
+          {
+            "value": "read",
+            "count": null
+          },
+          {
+            "value": "unread",
+            "count": null
+          }
+        ],
+        "body": "list",
+        "rows": 2,
+        "tail": "retry"
+      },
+      "taps": [
+        {
+          "tap": "tail",
+          "emits": [
+            [
+              "loadMore",
+              "unread"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the-other-column-pages-on-its-own",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": {
+        "state": "ready",
+        "readers": 2,
+        "unread": 2,
+        "readHasMore": true,
+        "unreadHasMore": true,
+        "loadingMore": "read",
+        "initialTab": "unread"
+      },
+      "expect": {
+        "tabs": [
+          {
+            "value": "read",
+            "count": null
+          },
+          {
+            "value": "unread",
+            "count": null
+          }
+        ],
+        "body": "list",
+        "rows": 2,
+        "tail": "loadMore"
+      },
+      "taps": [
+        {
+          "tap": "tail",
+          "emits": [
+            [
+              "loadMore",
+              "unread"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "empty-read-column",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": {
+        "state": "ready",
+        "readers": 0,
+        "unread": 3,
+        "readCount": 0,
+        "unreadCount": 3
+      },
+      "expect": {
+        "tabs": [
+          {
+            "value": "read",
+            "count": 0
+          },
+          {
+            "value": "unread",
+            "count": 3
+          }
+        ],
+        "body": "empty",
+        "empty": "read",
+        "rows": 0,
+        "tail": "none"
+      }
+    },
+    {
+      "id": "empty-unread-column",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": {
+        "state": "ready",
+        "readers": 3,
+        "unread": 0,
+        "initialTab": "unread"
+      },
+      "expect": {
+        "tabs": [
+          {
+            "value": "read",
+            "count": null
+          },
+          {
+            "value": "unread",
+            "count": null
+          }
+        ],
+        "body": "empty",
+        "empty": "unread",
+        "rows": 0,
+        "tail": "none"
+      }
+    },
+    {
+      "id": "no-rows-yet-but-more",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": {
+        "state": "ready",
+        "readers": 0,
+        "unread": 0,
+        "readHasMore": true
+      },
+      "expect": {
+        "tabs": [
+          {
+            "value": "read",
+            "count": null
+          },
+          {
+            "value": "unread",
+            "count": null
+          }
+        ],
+        "body": "list",
+        "rows": 0,
+        "tail": "loadMore"
+      }
+    },
+    {
+      "id": "switching-tabs-emits-nothing",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": {
+        "state": "ready",
+        "readers": 2,
+        "unread": 1,
+        "readHasMore": true
+      },
+      "expect": {
+        "tabs": [
+          {
+            "value": "read",
+            "count": null
+          },
+          {
+            "value": "unread",
+            "count": null
+          }
+        ],
+        "body": "list",
+        "rows": 2,
+        "tail": "loadMore"
+      },
+      "taps": [
+        {
+          "tap": "tab:unread",
+          "emits": [],
+          "then": {
+            "body": "list",
+            "rows": 1,
+            "tail": "none"
+          }
+        }
+      ]
+    }
+  ]
+}

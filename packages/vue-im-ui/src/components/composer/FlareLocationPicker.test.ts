@@ -126,6 +126,60 @@ describe("FlareLocationPicker", () => {
     expect(picker.sends).toEqual([CAFE]);
   });
 
+  it("shows a lookup failure distinctly and retries the same query after recovery", async () => {
+    let unavailable = true;
+    const searchNearby = vi.fn(async (_lat: number | null, _lng: number | null, query: string) => {
+      if (unavailable) throw new Error("503 GEO_PROVIDER_UNAVAILABLE");
+      return query ? [CAFE] : [];
+    });
+    const picker = render({ requestCurrentLocation: async () => { throw new Error("denied"); }, searchNearby });
+    await flushPromises();
+    await picker.wrapper.get(".flare-location-picker__search input").setValue("coffee");
+    await picker.wrapper.get(".flare-location-picker__search input").trigger("keydown", { key: "Enter" });
+    await flushPromises();
+    expect(picker.root().attributes("data-state")).toBe("mapUnavailable");
+    expect(picker.wrapper.text()).toContain("地图暂不可用");
+    expect(picker.wrapper.text()).not.toContain("附近没有找到地点");
+    unavailable = false;
+    await picker.wrapper.get("[data-lookup-unavailable] button").trigger("click");
+    await flushPromises();
+    expect(searchNearby.mock.calls.at(-1)?.[2]).toBe("coffee");
+    expect(picker.wrapper.find("[data-lookup-unavailable]").exists()).toBe(false);
+    await picker.wrapper.get('[data-place-id="p1"]').trigger("click");
+    await picker.wrapper.get(".flare-location-picker__foot button").trigger("click");
+    expect(picker.sends).toEqual([CAFE]);
+  });
+
+  it("retains a usable coordinate when nearby lookup fails and retry recovers", async () => {
+    let unavailable = true;
+    const picker = render({
+      requestCurrentLocation: async () => HERE,
+      searchNearby: async () => { if (unavailable) throw new Error("503"); return [CAFE]; },
+    });
+    await flushPromises();
+    expect(picker.wrapper.get("[data-lookup-unavailable]").text()).toContain("地图暂不可用");
+    expect(rowIds(picker.wrapper)).toEqual(["current"]);
+    expect(picker.wrapper.get(".flare-location-picker__foot button").attributes("disabled")).toBeUndefined();
+    unavailable = false;
+    await picker.wrapper.get("[data-lookup-unavailable] button").trigger("click");
+    await flushPromises();
+    expect(rowIds(picker.wrapper)).toEqual(["current", "p1"]);
+    expect(picker.wrapper.find("[data-lookup-unavailable]").exists()).toBe(false);
+  });
+
+  it("retries a failed static preview without requiring a new position", async () => {
+    let unavailable = true;
+    const previewUrl = vi.fn(async () => unavailable ? null : "https://geo.example/recovered.png");
+    const picker = render({ requestCurrentLocation: async () => HERE, previewUrl });
+    await flushPromises();
+    unavailable = false;
+    await picker.wrapper.get("[data-map-unavailable] button").trigger("click");
+    await flushPromises();
+    expect(picker.wrapper.get("img").attributes("src")).toBe("https://geo.example/recovered.png");
+    expect(picker.wrapper.find("[data-map-unavailable]").exists()).toBe(false);
+    expect(picker.wrapper.get('[data-place-id="current"]').attributes("aria-checked")).toBe("true");
+  });
+
   it("says when a search finds nothing", async () => {
     const picker = render({ requestCurrentLocation: async () => HERE });
     await flushPromises();

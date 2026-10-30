@@ -64,12 +64,12 @@ watch(() => props.block.text, () => { expanded.value = false; void nextTick(meas
   max-width: 100%;
   white-space: pre-line;
   overflow-wrap: anywhere;
-  font-size: var(--flare-size-font-size-lg);
+  font-size: var(--flare-plugin-body-size, var(--flare-size-font-size-lg));
   line-height: var(--flare-size-line-height-normal);
   color: var(--flare-color-text-primary);
 }
 .flare-plugin-text__body[data-clamped] { display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
-.flare-plugin-text__body.is-title { font-size: var(--flare-size-font-size-2xl); font-weight: var(--flare-size-font-weight-semibold); line-height: var(--flare-size-line-height-snug); }
+.flare-plugin-text__body.is-title { font-size: var(--flare-plugin-title-size, var(--flare-size-font-size-2xl)); font-weight: var(--flare-size-font-weight-semibold); line-height: var(--flare-size-line-height-snug); }
 .flare-plugin-text__body.is-secondary { font-size: var(--flare-size-font-size-md); color: var(--flare-color-text-secondary); }
 .flare-plugin-text__toggle {
   position: relative;

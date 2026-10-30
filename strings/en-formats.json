@@ -1,0 +1,1031 @@
+{
+  "schemaVersion": 1,
+  "note": "The FlareStrings fields that are functions (of a count, a name, a kind) and their English and Chinese copy for given arguments — what strings/en.json, which holds plain strings, cannot. `zh` is the kit default, `en` the English preset (Compose flareStringsEnglish, SwiftUI FlareStrings.english, Flutter flareStringsEnglish). An argument is a number, a string, {kind} (FlarePermissionKind, lower camel case) or {state} (FlarePermissionState). A count takes the English one form at 1 (spec/plural-vectors.json). `kits` lists the kits whose English preset covers the field; a kit's test checks every case it is listed in, and that every function field it declares has a case.",
+  "cases": [
+    {
+      "field": "readTab",
+      "args": [
+        3
+      ],
+      "en": "Read (3)",
+      "zh": "已读 (3)",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "unreadTab",
+      "args": [
+        0
+      ],
+      "en": "Unread (0)",
+      "zh": "未读 (0)",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "viewAll",
+      "args": [
+        12
+      ],
+      "en": "View all 12",
+      "zh": "查看全部 12",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "typingOne",
+      "args": [
+        "林夏"
+      ],
+      "en": "林夏 is typing…",
+      "zh": "林夏 正在输入…",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "typingMany",
+      "args": [
+        3
+      ],
+      "en": "3 people typing…",
+      "zh": "3 人正在输入…",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "typingMany",
+      "args": [
+        1
+      ],
+      "en": "1 person typing…",
+      "zh": "1 人正在输入…",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "newMessages",
+      "args": [
+        5
+      ],
+      "en": "5 new messages",
+      "zh": "5 条新消息",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "newMessages",
+      "args": [
+        1
+      ],
+      "en": "1 new message",
+      "zh": "1 条新消息",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "newMessages",
+      "args": [
+        0
+      ],
+      "en": "New messages",
+      "zh": "新消息",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "joinedCount",
+      "args": [
+        4,
+        "进行中"
+      ],
+      "en": "4 joined · 进行中",
+      "zh": "4 人已加入 · 进行中",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "selfSuffix",
+      "args": [
+        "林夏"
+      ],
+      "en": "林夏 (me)",
+      "zh": "林夏（我）",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "selectedCount",
+      "args": [
+        2
+      ],
+      "en": "2 selected",
+      "zh": "已选 2",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "packetFromSender",
+      "args": [
+        "Bob"
+      ],
+      "en": "Red packet from Bob",
+      "zh": "Bob的红包",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "translatedBy",
+      "args": [
+        "DeepL"
+      ],
+      "en": "Translated by DeepL",
+      "zh": "由 DeepL 翻译",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "pollOptionHint",
+      "args": [
+        3
+      ],
+      "en": "Option 3",
+      "zh": "选项 3",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "yearMonth",
+      "args": [
+        2026,
+        10
+      ],
+      "en": "October 2026",
+      "zh": "2026年10月",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "confirmCount",
+      "args": [
+        2
+      ],
+      "en": "Confirm (2)",
+      "zh": "确定 (2)",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "memberCount",
+      "args": [
+        1
+      ],
+      "en": "1 member",
+      "zh": "1 名成员",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "memberCount",
+      "args": [
+        8
+      ],
+      "en": "8 members",
+      "zh": "8 名成员",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "wordCharCount",
+      "args": [
+        1,
+        12
+      ],
+      "en": "1 word · 12 characters",
+      "zh": "1 个词 · 12 字符",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "imagePreviewPosition",
+      "args": [
+        2,
+        5
+      ],
+      "en": "2 of 5",
+      "zh": "第 2 张，共 5 张",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "voiceDuration",
+      "args": [
+        1
+      ],
+      "en": "1 second",
+      "zh": "1 秒",
+      "kits": [
+        "android"
+      ]
+    },
+    {
+      "field": "voiceDuration",
+      "args": [
+        42
+      ],
+      "en": "42 seconds",
+      "zh": "42 秒",
+      "kits": [
+        "android"
+      ]
+    },
+    {
+      "field": "permissionNoun",
+      "args": [
+        {
+          "kind": "microphone"
+        }
+      ],
+      "en": "microphone",
+      "zh": "麦克风",
+      "kits": [
+        "android",
+        "ios"
+      ]
+    },
+    {
+      "field": "permissionNoun",
+      "args": [
+        {
+          "kind": "screen"
+        }
+      ],
+      "en": "screen recording",
+      "zh": "屏幕录制",
+      "kits": [
+        "android",
+        "ios"
+      ]
+    },
+    {
+      "field": "permissionVerb",
+      "args": [
+        {
+          "kind": "photos"
+        }
+      ],
+      "en": "access your photos",
+      "zh": "访问相册",
+      "kits": [
+        "android",
+        "ios"
+      ]
+    },
+    {
+      "field": "permissionVerb",
+      "args": [
+        {
+          "kind": "location"
+        }
+      ],
+      "en": "use your location",
+      "zh": "获取位置信息",
+      "kits": [
+        "android",
+        "ios"
+      ]
+    },
+    {
+      "field": "permissionTitle",
+      "args": [
+        "microphone"
+      ],
+      "en": "Allow microphone access",
+      "zh": "需要microphone权限",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "permissionUndeterminedBody",
+      "args": [
+        "Voice messages",
+        "use the microphone"
+      ],
+      "en": "Voice messages needs to use the microphone. Allow it to continue.",
+      "zh": "Voice messages需要use the microphone，请允许后继续。",
+      "kits": [
+        "android",
+        "ios"
+      ]
+    },
+    {
+      "field": "permissionDeniedBody",
+      "args": [
+        "Voice messages",
+        "use the microphone"
+      ],
+      "en": "Permission to use the microphone was denied, so Voice messages can't be used. Turn it on in system settings.",
+      "zh": "use the microphone的权限已被拒绝，Voice messages无法使用。请前往系统设置开启。",
+      "kits": [
+        "android",
+        "ios"
+      ]
+    },
+    {
+      "field": "permissionRestrictedBody",
+      "args": [
+        "Voice messages",
+        "use the microphone"
+      ],
+      "en": "Permission to use the microphone is restricted by this device or your organization, so Voice messages isn't available.",
+      "zh": "use the microphone的权限受设备或组织策略限制，Voice messages暂不可用。",
+      "kits": [
+        "android",
+        "ios"
+      ]
+    },
+    {
+      "field": "permissionUnavailableBody",
+      "args": [
+        "Voice messages",
+        "use the microphone"
+      ],
+      "en": "This device can't use the microphone here, so Voice messages isn't available.",
+      "zh": "当前设备或运行环境不支持use the microphone，Voice messages暂不可用。",
+      "kits": [
+        "android",
+        "ios"
+      ]
+    },
+    {
+      "field": "permissionStateLabel",
+      "args": [
+        {
+          "state": "undetermined"
+        }
+      ],
+      "en": "Not granted",
+      "zh": "未授权",
+      "kits": [
+        "android",
+        "ios"
+      ]
+    },
+    {
+      "field": "permissionStateLabel",
+      "args": [
+        {
+          "state": "denied"
+        }
+      ],
+      "en": "Denied",
+      "zh": "已拒绝",
+      "kits": [
+        "android",
+        "ios"
+      ]
+    },
+    {
+      "field": "messageImageGroupLabel",
+      "args": [
+        1
+      ],
+      "en": "1 image",
+      "zh": "1 张图片",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "messageImageGroupLabel",
+      "args": [
+        4
+      ],
+      "en": "4 images",
+      "zh": "4 张图片",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "messageImageGroupItem",
+      "args": [
+        2,
+        4
+      ],
+      "en": "Image 2 of 4",
+      "zh": "第 2 张图片，共 4 张",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "messageImageGroupItemMore",
+      "args": [
+        9,
+        12,
+        3
+      ],
+      "en": "Image 9 of 12, 3 more not shown",
+      "zh": "第 9 张图片，共 12 张，另有 3 张未显示",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "messageRecalledGroupOther",
+      "args": [
+        "林夏"
+      ],
+      "en": "林夏 recalled a message",
+      "zh": "林夏 撤回了一条消息",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "messageQuoteLabel",
+      "args": [
+        "林夏",
+        "好的"
+      ],
+      "en": "Quoted 林夏: 好的",
+      "zh": "引用 林夏：好的",
+      "kits": [
+        "android",
+        "ios"
+      ]
+    },
+    {
+      "field": "messageQuoteLabel",
+      "args": [
+        "",
+        "好的"
+      ],
+      "en": "Quoted: 好的",
+      "zh": "引用：好的",
+      "kits": [
+        "android",
+        "ios"
+      ]
+    },
+    {
+      "field": "jumpedToMessage",
+      "args": [
+        "林夏",
+        "好的"
+      ],
+      "en": "Jumped to 林夏's message: 好的",
+      "zh": "已跳转到 林夏 的消息：好的",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "previewImageNamed",
+      "args": [
+        "海边"
+      ],
+      "en": "[Image] 海边",
+      "zh": "[图片] 海边",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "previewFileNamed",
+      "args": [
+        "report.pdf"
+      ],
+      "en": "[File] report.pdf",
+      "zh": "[文件] report.pdf",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "previewLocationNamed",
+      "args": [
+        "西站"
+      ],
+      "en": "[Location] 西站",
+      "zh": "[位置] 西站",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "previewCardNamed",
+      "args": [
+        "林夏"
+      ],
+      "en": "[Contact] 林夏",
+      "zh": "[名片] 林夏",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "previewForwardCount",
+      "args": [
+        1
+      ],
+      "en": "[Forward] 1 message",
+      "zh": "[转发] 1 条消息",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "previewForwardCount",
+      "args": [
+        3
+      ],
+      "en": "[Forward] 3 messages",
+      "zh": "[转发] 3 条消息",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "previewImageGroupCount",
+      "args": [
+        4
+      ],
+      "en": "[Album] 4",
+      "zh": "[多图] 4 张",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "conversationHeaderIdentityLabel",
+      "args": [
+        "林夏",
+        "查看资料"
+      ],
+      "en": "林夏, 查看资料",
+      "zh": "林夏，查看资料",
+      "kits": [
+        "android",
+        "ios"
+      ]
+    },
+    {
+      "field": "momentAudienceSheetSelected",
+      "args": [
+        1
+      ],
+      "en": "1 person selected",
+      "zh": "已选 1 人",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "momentAudienceSheetSelected",
+      "args": [
+        3
+      ],
+      "en": "3 people selected",
+      "zh": "已选 3 人",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "announcementReadBarReadCount",
+      "args": [
+        3,
+        8
+      ],
+      "en": "3/8 read",
+      "zh": "3/8 人已读",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "connectionDisconnectedReason",
+      "args": [
+        "timeout"
+      ],
+      "en": "Disconnected: timeout",
+      "zh": "连接已断开：timeout",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "groupDetailMembersTitle",
+      "args": [
+        12
+      ],
+      "en": "Members (12)",
+      "zh": "群成员（12）",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "conversationHeaderMemberCount",
+      "args": [
+        1
+      ],
+      "en": "1 member",
+      "zh": "1 位成员",
+      "kits": [
+        "android",
+        "flutter"
+      ]
+    },
+    {
+      "field": "conversationHeaderMemberCount",
+      "args": [
+        6
+      ],
+      "en": "6 members",
+      "zh": "6 位成员",
+      "kits": [
+        "android",
+        "flutter"
+      ]
+    },
+    {
+      "field": "profilePanelEditProfile",
+      "args": [
+        "林夏"
+      ],
+      "en": "林夏, edit profile",
+      "zh": "林夏，编辑资料",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "momentReplyToComment",
+      "args": [
+        "林夏",
+        "好的"
+      ],
+      "en": "Reply to 林夏: 好的",
+      "zh": "回复 林夏：好的",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "ratingStars",
+      "args": [
+        1
+      ],
+      "en": "1 star",
+      "zh": "1 星",
+      "kits": [
+        "flutter"
+      ]
+    },
+    {
+      "field": "ratingStars",
+      "args": [
+        4
+      ],
+      "en": "4 stars",
+      "zh": "4 星",
+      "kits": [
+        "flutter"
+      ]
+    },
+    {
+      "field": "permissionUndeterminedDescription",
+      "args": [
+        "语音消息",
+        "use the microphone"
+      ],
+      "en": "语音消息 needs to use the microphone. Allow it to continue.",
+      "zh": "语音消息需要use the microphone，请允许后继续。",
+      "kits": [
+        "flutter"
+      ]
+    },
+    {
+      "field": "permissionDeniedDescription",
+      "args": [
+        "语音消息",
+        "use the microphone"
+      ],
+      "en": "Permission to use the microphone was denied, so 语音消息 can't be used. Turn it on in system settings.",
+      "zh": "use the microphone的权限已被拒绝，语音消息无法使用。请前往系统设置开启。",
+      "kits": [
+        "flutter"
+      ]
+    },
+    {
+      "field": "permissionRestrictedDescription",
+      "args": [
+        "语音消息",
+        "use the microphone"
+      ],
+      "en": "Permission to use the microphone is restricted by this device or your organization, so 语音消息 isn't available.",
+      "zh": "use the microphone的权限受设备或组织策略限制，语音消息暂不可用。",
+      "kits": [
+        "flutter"
+      ]
+    },
+    {
+      "field": "permissionUnavailableDescription",
+      "args": [
+        "语音消息",
+        "use the microphone"
+      ],
+      "en": "This device can't use the microphone here, so 语音消息 isn't available.",
+      "zh": "当前设备或运行环境不支持use the microphone，语音消息暂不可用。",
+      "kits": [
+        "flutter"
+      ]
+    },
+    {
+      "field": "quotedMessage",
+      "args": [
+        "林夏",
+        "好的"
+      ],
+      "en": "Quoted 林夏: 好的",
+      "zh": "引用 林夏：好的",
+      "kits": [
+        "flutter"
+      ]
+    },
+    {
+      "field": "quotedMessage",
+      "args": [
+        "",
+        "好的"
+      ],
+      "en": "Quoted: 好的",
+      "zh": "引用：好的",
+      "kits": [
+        "flutter"
+      ]
+    },
+    {
+      "field": "groupDetailMemberCount",
+      "args": [
+        1
+      ],
+      "en": "1 member",
+      "zh": "1 位成员",
+      "kits": [
+        "flutter"
+      ]
+    },
+    {
+      "field": "groupDetailMemberCount",
+      "args": [
+        9
+      ],
+      "en": "9 members",
+      "zh": "9 位成员",
+      "kits": [
+        "flutter"
+      ]
+    },
+    {
+      "field": "groupDetailInviteConfirm",
+      "args": [
+        3
+      ],
+      "en": "Invite (3)",
+      "zh": "邀请 (3)",
+      "kits": [
+        "flutter"
+      ]
+    },
+    {
+      "field": "groupDetailTransferConfirm",
+      "args": [
+        "林夏"
+      ],
+      "en": "Transfer group ownership to \"林夏\"? You'll become a regular member. This can't be undone.",
+      "zh": "确定把群主转让给「林夏」？转让后你将成为普通成员，此操作不可撤销。",
+      "kits": [
+        "flutter"
+      ]
+    },
+    {
+      "field": "conversationBatchToolbarSucceededSummary",
+      "args": [
+        3
+      ],
+      "en": "3 succeeded",
+      "zh": "成功 3 项",
+      "kits": [
+        "flutter"
+      ]
+    },
+    {
+      "field": "conversationBatchToolbarFailedSummary",
+      "args": [
+        2
+      ],
+      "en": "2 failed",
+      "zh": "2 项失败",
+      "kits": [
+        "flutter"
+      ]
+    },
+    {
+      "field": "conversationBatchToolbarMaxSelection",
+      "args": [
+        1
+      ],
+      "en": "Select up to 1 item",
+      "zh": "最多可选 1 项",
+      "kits": [
+        "flutter"
+      ]
+    },
+    {
+      "field": "conversationBatchToolbarMaxSelection",
+      "args": [
+        50
+      ],
+      "en": "Select up to 50 items",
+      "zh": "最多可选 50 项",
+      "kits": [
+        "flutter"
+      ]
+    },
+    {
+      "field": "storageUsageFileCount",
+      "args": [
+        1
+      ],
+      "en": "1 file",
+      "zh": "1 个文件",
+      "kits": [
+        "flutter"
+      ]
+    },
+    {
+      "field": "storageUsageFileCount",
+      "args": [
+        12
+      ],
+      "en": "12 files",
+      "zh": "12 个文件",
+      "kits": [
+        "flutter"
+      ]
+    },
+    {
+      "field": "voiceSeconds",
+      "args": [
+        1
+      ],
+      "en": "1 second",
+      "zh": "1 秒",
+      "kits": [
+        "ios"
+      ]
+    },
+    {
+      "field": "voiceSeconds",
+      "args": [
+        42
+      ],
+      "en": "42 seconds",
+      "zh": "42 秒",
+      "kits": [
+        "ios"
+      ]
+    },
+    {
+      "field": "ratingStar",
+      "args": [
+        1
+      ],
+      "en": "1 star",
+      "zh": "1 星",
+      "kits": [
+        "ios"
+      ]
+    },
+    {
+      "field": "ratingStar",
+      "args": [
+        4
+      ],
+      "en": "4 stars",
+      "zh": "4 星",
+      "kits": [
+        "ios"
+      ]
+    }
+  ]
+}

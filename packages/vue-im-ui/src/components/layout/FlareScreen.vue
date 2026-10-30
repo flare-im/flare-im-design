@@ -22,6 +22,7 @@ import { useFlareNativeBack } from "../../shared/platform/useFlareNativeBack";
 import { dismissTopFlareContextualLayer } from "../../shared/useContextualLayer";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 import { useFlareDestinationDepth } from "../../composables/useFlareShell";
+import { useFlareSheetOwnHeader } from "../../shared/sheetHeader";
 
 const props = withDefaults(
   defineProps<{
@@ -60,8 +61,12 @@ function goBack(): void {
   if (dismissTopFlareContextualLayer(root.value)) return;
   emit("back");
 }
+const hasBackKey = () => Boolean(props.back && instance?.vnode.props?.onBack);
 // The platform back does what the back button does.
-useFlareNativeBack(() => Boolean(props.back && instance?.vnode.props?.onBack), goBack);
+useFlareNativeBack(hasBackKey, goBack);
+// A page with its own way back, pushed into a kit surface (a drawer's page stack), brings its own header: the surface
+// draws none, and its Escape and platform back go back one page here before they close it.
+useFlareSheetOwnHeader({ active: hasBackKey, back: goBack });
 // A page with a way back is not its destination's root: a shell hides its phone navigation under it.
 useFlareDestinationDepth(() => props.back);
 

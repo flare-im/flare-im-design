@@ -141,6 +141,7 @@
     "PluginForm": "im-ui",
     "PluginDetailSheet": "im-ui",
     "PluginPage": "im-ui",
+    "AccountView": "im-ui",
     "SlashCommandMenu": "im-ui",
     "TranslationView": "im-ui",
     "QRCard": "im-ui",
@@ -222,6 +223,7 @@
     "SchemaForm": "general-ui",
     "DescriptionList": "general-ui",
     "CodeBlock": "general-ui",
-    "Tag": "general-ui"
+    "Tag": "general-ui",
+    "UserIdentity": "general-ui"
   }
 }

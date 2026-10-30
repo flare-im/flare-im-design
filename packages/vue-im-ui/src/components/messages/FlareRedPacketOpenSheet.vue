@@ -25,12 +25,15 @@ const props = withDefaults(
     blessing: string;
     /** Packet kind under the sender, e.g. "拼手气红包". */
     kindLabel?: string;
-    /** `ready` offers 開; `opening` flips it while the host claims; the others say why nothing opens. */
+    /**
+     * `ready` offers 開; `opening` flips it while the host claims; the others say why nothing opens (`refunded` for
+     * PACKET_REFUNDED or the public status refunded — not `expired`).
+     */
     state?: FlareRedPacketOpenState;
     /** Host notice that replaces the default copy of a non-ready state, e.g. "仅 TA 可领取". */
     message?: string;
     /**
-     * From the viewer's personal layer: a finished or expired sheet offers the details key only when true. A
+     * From the viewer's personal layer: a finished, expired or refunded sheet offers the details key only when true. A
      * notEligible sheet never offers it — the server returns nothing to a non-designated viewer.
      */
     canViewDetails?: boolean;
@@ -60,6 +63,8 @@ const headline = computed(() => {
       return props.message || t("redPacket.missed");
     case "expired":
       return props.message || t("redPacket.expiredNotice");
+    case "refunded":
+      return props.message || t("redPacket.refundedNotice");
     case "notEligible":
       return props.message || t("redPacket.notEligible");
     default:

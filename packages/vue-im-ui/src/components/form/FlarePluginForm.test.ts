@@ -8,6 +8,7 @@ import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
 import type { FlarePluginFormError, FlarePluginInput } from "../../shared/contracts/plugin-ui";
 import FlarePluginForm from "./FlarePluginForm.vue";
 import FlareSelect from "./FlareSelect.vue";
+import FlareAdminEntitySelect from "./FlareAdminEntitySelect.vue";
 
 enableAutoUnmount(afterEach);
 afterEach(() => { document.body.innerHTML = ""; });
@@ -51,6 +52,41 @@ const errorOf = (wrapper: ReturnType<typeof render>["wrapper"], id: string) => {
 };
 
 describe("FlarePluginForm (spec/plugin-view-vectors.json → form)", () => {
+  it("record editing blocks unchanged submissions and preserves exact money text", async () => {
+    const {wrapper,submits}=render({inputs:[{id:"amount",kind:"text",label:"额度"}],values:{amount:"900719925474099301"},requireChange:true});
+    expect(wrapper.get("[data-form-submit]").attributes("disabled")).toBeDefined();
+    await field(wrapper,"amount").get("input").setValue("900719925474099302");
+    await wrapper.get("[data-form-submit]").trigger("click");
+    expect(submits).toEqual([{amount:"900719925474099302"}]);
+  });
+  it("directory inputs keep typed drafts through loading and reject missing or withdrawn references", async () => {
+    const { wrapper, state, submits } = render({
+      inputs: [{id:"assets",kind:"options",label:"资金",min:1,max:32,required:true},{id:"amount",kind:"text",label:"金额"}],
+      values: {assets:["cash"],amount:"900719925474099301"},
+      selections: {assets:{options:[],loading:true,remote:false}},
+    });
+    expect(field(wrapper,"assets").findAll("[data-option-row]")).toHaveLength(0);
+    await wrapper.get("[data-form-submit]").trigger("click");
+    expect(submits).toHaveLength(0);
+    state.selections={assets:{options:[{value:"cash",label:"余额 · CNY"}],loading:false,remote:false}};
+    await flushPromises();
+    await wrapper.get("[data-form-submit]").trigger("click");
+    expect(submits).toEqual([{assets:["cash"],amount:"900719925474099301"}]);
+    expect(wrapper.findComponent(FlareAdminEntitySelect).props("remote")).toBe(false);
+    state.selections={assets:{options:[{value:"cash",label:"已停用",disabled:true}],loading:false}};
+    await flushPromises();
+    await wrapper.get("[data-form-submit]").trigger("click");
+    expect(submits).toHaveLength(1);
+  });
+  it("a new required directory array starts empty instead of carrying an unremovable text placeholder", async () => {
+    const {wrapper,submits}=render({inputs:[{id:"assets",kind:"options",label:"资金",min:1,max:32,required:true,default:[]}],selections:{assets:{options:[{value:"cash",label:"余额"}],remote:false}}});
+    const select=wrapper.findComponent(FlareAdminEntitySelect);
+    expect(select.props("values")).toEqual([]);
+    select.vm.$emit("update:values",["cash"]);
+    await flushPromises();
+    await wrapper.get("[data-form-submit]").trigger("click");
+    expect(submits).toEqual([{assets:["cash"]}]);
+  });
   it("compact filters preserve validation, typed values and the host-owned reset", async () => {
     const { wrapper, submits, cancels } = render({
       presentation: "filters", cancelLabel: "重置", submitLabel: "筛选",

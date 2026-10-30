@@ -1,0 +1,725 @@
+{
+  "schemaVersion": 1,
+  "note": "flareMeMenuSections(menu, labels, summaries): the social SDK's features.meMenu result as settings sections. `menu` is the SDK JSON as given; `labels` overrides the built-in items' copy by id; `summaries` maps item ids — built-in or plugin — to their subtitle (a plugin item's meMenuSummary text, a built-in item's host copy). Expected items are {key, label, icon, detail?}; every item is a navigation row. `locale` picks the kit copy (zh: the Chinese defaults, en: strings/en.json).",
+  "rules": {
+    "order": "The SDK orders the menu (built-ins, then plugin entries, settings last); the kit never re-sorts by `order`. Section one holds every item but settings, in the given order; settings alone is section two, last. An empty section is left out.",
+    "builtin": "A built-in item's label is labels[id], else the kit copy meMenuMoments / meMenuReports / meMenuInvite / meMenuSettings. A built-in id the kit does not know is dropped. detail is summaries[id] trimmed when not empty: the host's subtitle for its own page (what 我的邀请 holds), by the item id.",
+    "plugin": "A plugin item's label is its title trimmed, else meMenuPluginFallback. detail is summaries[id] trimmed when not empty (its meMenuSummary).",
+    "icon": "icon = flareIconNameOrFallback(item.icon): a registry name (trimmed) as is; any other name, or none, → `plugin` (the shared fallback, iconFallback).",
+    "drop": "An item whose kind is neither builtin nor plugin is dropped; of two items with one id the first is kept."
+  },
+  "copy": {
+    "zh": {
+      "moments": "圈子",
+      "reports": "我的举报",
+      "invite": "我的邀请",
+      "settings": "设置",
+      "pluginFallback": "插件"
+    },
+    "en": {
+      "moments": "Moments",
+      "reports": "My reports",
+      "invite": "My invites",
+      "settings": "Settings",
+      "pluginFallback": "Plugin"
+    }
+  },
+  "cases": [
+    {
+      "id": "full-menu",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "zh",
+      "menu": {
+        "items": [
+          {
+            "kind": "builtin",
+            "id": "moments",
+            "icon": "moments",
+            "order": 10,
+            "target": {
+              "route": "moments"
+            }
+          },
+          {
+            "kind": "builtin",
+            "id": "reports",
+            "icon": "report",
+            "order": 20,
+            "target": {
+              "route": "reports"
+            }
+          },
+          {
+            "kind": "builtin",
+            "id": "invite",
+            "icon": "person-add",
+            "order": 30,
+            "target": {
+              "route": "invite"
+            }
+          },
+          {
+            "kind": "plugin",
+            "id": "plugin:flare.redpacket.wallet-entry",
+            "contributionId": "flare.redpacket.wallet-entry",
+            "title": "钱包",
+            "icon": "wallet",
+            "order": 100,
+            "target": {
+              "pluginId": "flare.redpacket",
+              "page": "wallet"
+            },
+            "summary": {
+              "operation": "flare.redpacket.wallet",
+              "path": "/balanceText"
+            }
+          },
+          {
+            "kind": "builtin",
+            "id": "settings",
+            "icon": "settings",
+            "order": 2147483647,
+            "target": {
+              "route": "settings"
+            }
+          }
+        ],
+        "complete": true
+      },
+      "summaries": {
+        "plugin:flare.redpacket.wallet-entry": "¥12.00"
+      },
+      "expect": [
+        {
+          "items": [
+            {
+              "key": "moments",
+              "label": "圈子",
+              "icon": "moments"
+            },
+            {
+              "key": "reports",
+              "label": "我的举报",
+              "icon": "report"
+            },
+            {
+              "key": "invite",
+              "label": "我的邀请",
+              "icon": "person-add"
+            },
+            {
+              "key": "plugin:flare.redpacket.wallet-entry",
+              "label": "钱包",
+              "icon": "wallet",
+              "detail": "¥12.00"
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "key": "settings",
+              "label": "设置",
+              "icon": "settings"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "settings-only",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "zh",
+      "menu": {
+        "items": [
+          {
+            "kind": "builtin",
+            "id": "settings",
+            "icon": "settings",
+            "order": 2147483647,
+            "target": {
+              "route": "settings"
+            }
+          }
+        ],
+        "complete": false
+      },
+      "expect": [
+        {
+          "items": [
+            {
+              "key": "settings",
+              "label": "设置",
+              "icon": "settings"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "plugin-fallbacks",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "zh",
+      "menu": {
+        "items": [
+          {
+            "kind": "plugin",
+            "id": "plugin:acme.points",
+            "contributionId": "acme.points",
+            "title": "  ",
+            "icon": "coins-stack",
+            "order": 100,
+            "target": {
+              "pluginId": "acme",
+              "page": "points"
+            }
+          },
+          {
+            "kind": "plugin",
+            "id": "plugin:acme.noicon",
+            "contributionId": "acme.noicon",
+            "title": "积分商城",
+            "order": 110,
+            "target": {
+              "pluginId": "acme",
+              "page": "shop"
+            }
+          },
+          {
+            "kind": "builtin",
+            "id": "settings",
+            "icon": "settings",
+            "order": 2147483647,
+            "target": {
+              "route": "settings"
+            }
+          }
+        ],
+        "complete": true
+      },
+      "summaries": {
+        "plugin:acme.points": "   ",
+        "plugin:acme.noicon": " 120 分 "
+      },
+      "expect": [
+        {
+          "items": [
+            {
+              "key": "plugin:acme.points",
+              "label": "插件",
+              "icon": "plugin"
+            },
+            {
+              "key": "plugin:acme.noicon",
+              "label": "积分商城",
+              "icon": "plugin",
+              "detail": "120 分"
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "key": "settings",
+              "label": "设置",
+              "icon": "settings"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "host-labels",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "zh",
+      "menu": {
+        "items": [
+          {
+            "kind": "builtin",
+            "id": "invite",
+            "icon": "person-add",
+            "order": 30,
+            "target": {
+              "route": "invite"
+            }
+          },
+          {
+            "kind": "builtin",
+            "id": "settings",
+            "icon": "settings",
+            "order": 2147483647,
+            "target": {
+              "route": "settings"
+            }
+          }
+        ],
+        "complete": true
+      },
+      "labels": {
+        "invite": "邀请码",
+        "settings": "更多设置"
+      },
+      "expect": [
+        {
+          "items": [
+            {
+              "key": "invite",
+              "label": "邀请码",
+              "icon": "person-add"
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "key": "settings",
+              "label": "更多设置",
+              "icon": "settings"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "builtin-summaries",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "zh",
+      "menu": {
+        "items": [
+          {
+            "kind": "builtin",
+            "id": "invite",
+            "icon": "person-add",
+            "order": 30,
+            "target": {
+              "route": "invite"
+            }
+          },
+          {
+            "kind": "plugin",
+            "id": "plugin:flare.redpacket.wallet-entry",
+            "icon": "wallet",
+            "title": "钱包",
+            "order": 1000,
+            "target": {
+              "pluginId": "flare.redpacket",
+              "page": "wallet"
+            }
+          },
+          {
+            "kind": "builtin",
+            "id": "settings",
+            "icon": "settings",
+            "order": 2147483647,
+            "target": {
+              "route": "settings"
+            }
+          }
+        ],
+        "complete": true
+      },
+      "summaries": {
+        "invite": " 邀请码、团队人数与我邀请的人 ",
+        "plugin:flare.redpacket.wallet-entry": "¥12.00",
+        "settings": "  "
+      },
+      "expect": [
+        {
+          "items": [
+            {
+              "key": "invite",
+              "label": "我的邀请",
+              "icon": "person-add",
+              "detail": "邀请码、团队人数与我邀请的人"
+            },
+            {
+              "key": "plugin:flare.redpacket.wallet-entry",
+              "label": "钱包",
+              "icon": "wallet",
+              "detail": "¥12.00"
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "key": "settings",
+              "label": "设置",
+              "icon": "settings"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "drops-unknown-and-duplicates",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "zh",
+      "menu": {
+        "items": [
+          {
+            "kind": "builtin",
+            "id": "moments",
+            "icon": "moments",
+            "order": 10,
+            "target": {
+              "route": "moments"
+            }
+          },
+          {
+            "kind": "builtin",
+            "id": "favorites",
+            "icon": "star",
+            "order": 15,
+            "target": {
+              "route": "favorites"
+            }
+          },
+          {
+            "kind": "shortcut",
+            "id": "x",
+            "icon": "link",
+            "order": 16
+          },
+          {
+            "kind": "builtin",
+            "id": "moments",
+            "icon": "moments",
+            "order": 17,
+            "target": {
+              "route": "moments"
+            }
+          },
+          {
+            "kind": "plugin",
+            "id": "plugin:flare.redpacket.wallet-entry",
+            "contributionId": "flare.redpacket.wallet-entry",
+            "title": "钱包",
+            "icon": "wallet",
+            "order": 100,
+            "target": {
+              "pluginId": "flare.redpacket",
+              "page": "wallet"
+            },
+            "summary": {
+              "operation": "flare.redpacket.wallet",
+              "path": "/balanceText"
+            }
+          },
+          {
+            "kind": "plugin",
+            "id": "plugin:flare.redpacket.wallet-entry",
+            "contributionId": "flare.redpacket.wallet-entry",
+            "title": "第二个钱包",
+            "icon": "wallet",
+            "order": 100,
+            "target": {
+              "pluginId": "flare.redpacket",
+              "page": "wallet"
+            },
+            "summary": {
+              "operation": "flare.redpacket.wallet",
+              "path": "/balanceText"
+            }
+          }
+        ],
+        "complete": true
+      },
+      "expect": [
+        {
+          "items": [
+            {
+              "key": "moments",
+              "label": "圈子",
+              "icon": "moments"
+            },
+            {
+              "key": "plugin:flare.redpacket.wallet-entry",
+              "label": "钱包",
+              "icon": "wallet"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "keeps-the-sdk-order",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "zh",
+      "menu": {
+        "items": [
+          {
+            "kind": "builtin",
+            "id": "reports",
+            "icon": "report",
+            "order": 20,
+            "target": {
+              "route": "reports"
+            }
+          },
+          {
+            "kind": "builtin",
+            "id": "moments",
+            "icon": "moments",
+            "order": 10,
+            "target": {
+              "route": "moments"
+            }
+          },
+          {
+            "kind": "builtin",
+            "id": "settings",
+            "icon": "settings",
+            "order": 2147483647,
+            "target": {
+              "route": "settings"
+            }
+          }
+        ],
+        "complete": true
+      },
+      "expect": [
+        {
+          "items": [
+            {
+              "key": "reports",
+              "label": "我的举报",
+              "icon": "report"
+            },
+            {
+              "key": "moments",
+              "label": "圈子",
+              "icon": "moments"
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "key": "settings",
+              "label": "设置",
+              "icon": "settings"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "english-copy",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "en",
+      "menu": {
+        "items": [
+          {
+            "kind": "builtin",
+            "id": "moments",
+            "icon": "moments",
+            "order": 10,
+            "target": {
+              "route": "moments"
+            }
+          },
+          {
+            "kind": "builtin",
+            "id": "reports",
+            "icon": "report",
+            "order": 20,
+            "target": {
+              "route": "reports"
+            }
+          },
+          {
+            "kind": "builtin",
+            "id": "invite",
+            "icon": "person-add",
+            "order": 30,
+            "target": {
+              "route": "invite"
+            }
+          },
+          {
+            "kind": "plugin",
+            "id": "plugin:flare.redpacket.wallet-entry",
+            "contributionId": "flare.redpacket.wallet-entry",
+            "title": "Wallet",
+            "icon": "wallet",
+            "order": 100,
+            "target": {
+              "pluginId": "flare.redpacket",
+              "page": "wallet"
+            },
+            "summary": {
+              "operation": "flare.redpacket.wallet",
+              "path": "/balanceText"
+            }
+          },
+          {
+            "kind": "builtin",
+            "id": "settings",
+            "icon": "settings",
+            "order": 2147483647,
+            "target": {
+              "route": "settings"
+            }
+          }
+        ],
+        "complete": true
+      },
+      "expect": [
+        {
+          "items": [
+            {
+              "key": "moments",
+              "label": "Moments",
+              "icon": "moments"
+            },
+            {
+              "key": "reports",
+              "label": "My reports",
+              "icon": "report"
+            },
+            {
+              "key": "invite",
+              "label": "My invites",
+              "icon": "person-add"
+            },
+            {
+              "key": "plugin:flare.redpacket.wallet-entry",
+              "label": "Wallet",
+              "icon": "wallet"
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "key": "settings",
+              "label": "Settings",
+              "icon": "settings"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "empty-menu",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "zh",
+      "menu": {
+        "items": [],
+        "complete": false
+      },
+      "expect": []
+    }
+  ],
+  "iconFallback": {
+    "rule": "flareIconNameOrFallback(name): the name trimmed; a registry name → itself; empty → none (no icon); any other name → `plugin`, and a debug build warns once per name. Never a question mark, never a blank, never the name drawn as text.",
+    "cases": [
+      {
+        "platforms": [
+          "vue",
+          "flutter",
+          "ios",
+          "compose"
+        ],
+        "name": "wallet",
+        "expect": "wallet"
+      },
+      {
+        "platforms": [
+          "vue",
+          "flutter",
+          "ios",
+          "compose"
+        ],
+        "name": " settings ",
+        "expect": "settings"
+      },
+      {
+        "platforms": [
+          "vue",
+          "flutter",
+          "ios",
+          "compose"
+        ],
+        "name": "red-packet",
+        "expect": "red-packet"
+      },
+      {
+        "platforms": [
+          "vue",
+          "flutter",
+          "ios",
+          "compose"
+        ],
+        "name": "coins-stack",
+        "expect": "plugin"
+      },
+      {
+        "platforms": [
+          "vue",
+          "flutter",
+          "ios",
+          "compose"
+        ],
+        "name": "Wallet",
+        "expect": "plugin"
+      },
+      {
+        "platforms": [
+          "vue",
+          "flutter",
+          "ios",
+          "compose"
+        ],
+        "name": "",
+        "expect": null
+      }
+    ]
+  }
+}

@@ -3,6 +3,8 @@
   "companionExports": {
     "flareIcons": "Semantic icon-name → glyph table of FlareIcon (the same names natives resolve to SF Symbols / Material Icons).",
     "flareIconNames": "The ordered icon-name list of FlareIcon, for pickers and docs.",
+    "flareIconNameOrFallback": "FlareIcon's resolver for an icon name that arrives as data (a plugin, the SDK, host configuration): the name itself when the table has it, `plugin` for any other name (a development build warns once per name), null for none (spec/me-menu-vectors.json iconFallback).",
+    "FLARE_ICON_FALLBACK": "The glyph name FlareIcon draws for a name outside the table (`plugin`).",
     "FlareIconName": "Type of the icon names above."
   },
   "pendingMerge": [],

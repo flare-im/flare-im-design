@@ -2,7 +2,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { flareMessages } from "./messages";
+import { flareMessages, isFlarePluralMessage } from "./messages";
 
 const srcRoot = fileURLToPath(new URL("../..", import.meta.url));
 
@@ -26,7 +26,8 @@ describe("message catalog", () => {
     for (const file of sourceFiles(srcRoot)) {
       for (const match of readFileSync(file, "utf8").matchAll(/\bt\(\s*["'`]([a-zA-Z]\w*(?:\.\w+)+)["'`]/g)) {
         for (const locale of ["zh-CN", "en-US"]) {
-          if (typeof lookup(flareMessages[locale], match[1]) !== "string") missing.push(`${locale} ${match[1]} (${relative(srcRoot, file)})`);
+          const value = lookup(flareMessages[locale], match[1]);
+          if (typeof value !== "string" && !isFlarePluralMessage(value)) missing.push(`${locale} ${match[1]} (${relative(srcRoot, file)})`);
         }
       }
     }

@@ -111,6 +111,7 @@ import {
   ServerOutline,
   ExtensionPuzzleOutline,
   LocateOutline,
+  WalletOutline,
 } from "./icon-glyphs";
 import { RedPacketOutline } from "./icon-custom";
 
@@ -228,7 +229,30 @@ export const flareIcons = {
   plugin: ExtensionPuzzleOutline,
   // The location picker's "use current location" key: a crosshair, not the map pin `location` draws.
   locate: LocateOutline,
+  // The 我 page's wallet entry (the red packet plugin's account-entry).
+  wallet: WalletOutline,
 } satisfies Record<string, Component>;
 
 export type FlareIconName = keyof typeof flareIcons;
 export const flareIconNames = Object.keys(flareIcons) as FlareIconName[];
+
+/** The glyph a name outside the registry draws: the neutral extension glyph, never a question mark or a blank. */
+export const FLARE_ICON_FALLBACK: FlareIconName = "plugin";
+
+const warnedIconNames = new Set<string>();
+
+/**
+ * A registry name for an icon name that came in as data (a plugin, the SDK, host configuration): the name itself
+ * when the registry has it, `plugin` for any other name (a development build warns once per name), null for none
+ * (spec/me-menu-vectors.json iconFallback).
+ */
+export function flareIconNameOrFallback(name: string | null | undefined): FlareIconName | null {
+  const trimmed = typeof name === "string" ? name.trim() : "";
+  if (!trimmed) return null;
+  if (Object.prototype.hasOwnProperty.call(flareIcons, trimmed)) return trimmed as FlareIconName;
+  if (import.meta.env?.DEV && !warnedIconNames.has(trimmed)) {
+    warnedIconNames.add(trimmed);
+    console.warn(`[flare-im] "${trimmed}" is not a Flare icon name; drawing the "${FLARE_ICON_FALLBACK}" glyph`);
+  }
+  return FLARE_ICON_FALLBACK;
+}

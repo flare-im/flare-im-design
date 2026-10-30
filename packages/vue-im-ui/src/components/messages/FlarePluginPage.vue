@@ -13,6 +13,7 @@ import FlareFilterTabs from "../general/FlareFilterTabs.vue";
 import FlareIconButton from "../general/FlareIconButton.vue";
 import FlareStatusBanner from "../general/FlareStatusBanner.vue";
 import FlareScreen from "../layout/FlareScreen.vue";
+import FlareAccountView from "./account/FlareAccountView.vue";
 import FlarePluginView from "./FlarePluginView.vue";
 import { usePluginPaging } from "./plugin/pluginPaging";
 import { flareIcons } from "../../shared/icons";
@@ -31,6 +32,7 @@ import {
   type FlarePluginPageFilter,
   type FlarePluginPageRef,
   type FlarePluginPageViewModel,
+  type FlarePluginPageAppearance,
   type FlarePluginResolveUser,
 } from "../../shared/contracts/plugin-ui";
 
@@ -38,6 +40,7 @@ const props = withDefaults(
   defineProps<{
     /** The page shown: every page action carries it. */
     page: FlarePluginPageRef;
+    appearance?: FlarePluginPageAppearance;
     /** Page title while there is no view (or the view has none); the view's title wins. */
     title?: string;
     /** The resolved page view (pluginPage's result, with data); absent while the first load runs. */
@@ -66,7 +69,7 @@ const props = withDefaults(
     settleToken?: number;
   }>(),
   {
-    title: "", view: undefined, filters: () => ({}), loading: false, error: undefined, refreshing: false, loadingMore: false, back: false,
+    appearance: "document", title: "", view: undefined, filters: () => ({}), loading: false, error: undefined, refreshing: false, loadingMore: false, back: false,
     resolveUser: undefined, viewerId: undefined, busyActionId: undefined, actionError: undefined, formErrors: () => [],
     members: () => [], settleToken: 0,
   },
@@ -166,6 +169,7 @@ function choose(filter: FlarePluginPageFilter, key: string): void {
   <FlareScreen
     class="flare-plugin-page"
     :title="heading"
+    :class="{ 'is-account': appearance === 'account' }"
     :back="back"
     :scroll="false"
     :aria-label="heading || undefined"
@@ -225,7 +229,14 @@ function choose(filter: FlarePluginPageFilter, key: string): void {
           />
         </div>
         <div class="flare-plugin-page__body">
+          <FlareAccountView
+            v-if="appearance === 'account' || view.presentation?.renderer === 'account'"
+            :view="view" :resolve-user="resolveUser" :viewer-id="viewerId"
+            :busy-action-id="busyActionId" :error="actionError" :form-errors="formErrors"
+            :members="members" :settle-token="settleToken" @action="runAction"
+          />
           <FlarePluginView
+            v-else
             :view="view"
             embedded
             rows-layout="list"
@@ -266,6 +277,8 @@ function choose(filter: FlarePluginPageFilter, key: string): void {
   padding: 0 var(--flare-size-spacing-lg) max(var(--flare-size-spacing-xl), env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
+.flare-plugin-page.is-account .flare-plugin-page__scroll { max-width: 760px; width: 100%; margin-inline: auto; padding-top: var(--flare-size-spacing-lg); }
+.flare-plugin-page.is-account .flare-plugin-page__body { padding: 0; background: transparent; border-radius: 0; }
 .flare-plugin-page__pull {
   display: flex;
   align-items: flex-end;

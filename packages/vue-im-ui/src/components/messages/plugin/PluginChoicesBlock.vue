@@ -29,7 +29,8 @@ const footer = computed(() => {
   const cap = flarePluginChoiceCap(props.block);
   if (cap !== undefined && props.block.action && !props.block.closed) parts.push(t("pluginView.maxSelections", { n: cap }));
   if (props.block.closed) parts.push(t("pluginView.ended"));
-  if (props.block.showResults && props.block.total !== undefined) parts.push(t("pluginView.votes", { count: props.block.total }));
+  // `total` is only the denominator of the shares — a voter count or the sum of the counts — so it is never drawn:
+  // "N 票" belongs to the options, and how many took part is the plugin's own row (poll v2 §6).
   return parts.join(" · ");
 });
 const percentOf = (percent: number | undefined) => Math.min(100, Math.max(0, percent ?? 0));
@@ -86,7 +87,8 @@ const percentOf = (percent: number | undefined) => Math.min(100, Math.max(0, per
       class="flare-plugin-choices__submit"
       :label="block.action.label"
       :variant="block.action.style === 'danger' ? 'danger' : 'primary'"
-      block
+      size="sm"
+      appearance="text"
       :loading="submitLoading"
       :disabled="!submitEnabled || submitLoading"
       data-choices-submit="true"
@@ -160,7 +162,7 @@ const percentOf = (percent: number | undefined) => Math.min(100, Math.max(0, per
   font-variant-numeric: tabular-nums;
 }
 .flare-plugin-choices__spoken { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.flare-plugin-choices__submit { margin-top: var(--flare-size-spacing-xs); }
+.flare-plugin-choices__submit { justify-self: start; margin-top: var(--flare-size-spacing-xs); }
 .flare-plugin-choices__footer { margin: 0; font-size: var(--flare-size-font-size-sm); color: var(--flare-color-text-tertiary); }
 @media (prefers-reduced-motion: reduce) {
   .flare-plugin-choices__bar { transition: none; }

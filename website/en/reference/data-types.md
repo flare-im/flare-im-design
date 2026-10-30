@@ -564,10 +564,11 @@ title: Data Types
 
 > A resolved plugin view (core SDK ResolvedPluginView).
 
-**Used by: **[PluginView](/en/components/plugin-view) · [PluginDetailSheet](/en/components/plugin-detail-sheet)
+**Used by: **[PluginView](/en/components/plugin-view) · [PluginDetailSheet](/en/components/plugin-detail-sheet) · [AccountView](/en/components/account-view)
 
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
+| `presentation` | `{renderer: string, props: Record<string, unknown>, actions: Record<string, string>}` |  | Optional compiled-in Kit composition with bounded resolved display values and references to visible declared actions. Unknown renderers use the document. No network or authorization semantics. |
 | `available` | `boolean` | ✓ | False: only the title shows (disabled plugin, history). |
 | `title` | `string` | ✓ | Card title. |
 | `fields` | `{label, value}[]` | ✓ | Label/value rows (v1). |
@@ -654,7 +655,7 @@ title: Data Types
 
 > One problem with a submitted value (UiFormError).
 
-**Used by: **[PluginView](/en/components/plugin-view) · [PluginForm](/en/components/plugin-form) · [PluginDetailSheet](/en/components/plugin-detail-sheet) · [PluginPage](/en/components/plugin-page)
+**Used by: **[PluginView](/en/components/plugin-view) · [PluginForm](/en/components/plugin-form) · [PluginDetailSheet](/en/components/plugin-detail-sheet) · [PluginPage](/en/components/plugin-page) · [AccountView](/en/components/account-view)
 
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
@@ -678,7 +679,7 @@ title: Data Types
 
 > A candidate for a members input.
 
-**Used by: **[PluginView](/en/components/plugin-view) · [PluginForm](/en/components/plugin-form) · [PluginDetailSheet](/en/components/plugin-detail-sheet) · [PluginPage](/en/components/plugin-page)
+**Used by: **[PluginView](/en/components/plugin-view) · [PluginForm](/en/components/plugin-form) · [PluginDetailSheet](/en/components/plugin-detail-sheet) · [PluginPage](/en/components/plugin-page) · [AccountView](/en/components/account-view)
 
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
@@ -820,6 +821,138 @@ title: Data Types
 | `refundedAtMs` | `number` |  | Returned at. |
 | `claimsListed` | `boolean` | ✓ | The viewer may see the claim list. |
 
+### MessageRenderContext {#message-render-context}
+
+`FlareContentContext`
+
+> What a registered content renderer is told about the message it draws (Vue: the renderer's props).
+
+**Native symbols: **
+
+- Flutter: `FlareContentContext`
+- SwiftUI: `FlareContentContext`
+- Compose: `FlareContentContext`
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `messageId` | `string` |  | The message's id in the core: the server id, else the client id. Absent outside a message row. |
+| `conversationId` | `string` |  | The conversation the message is in. |
+| `senderId` | `string` |  | The sender's id. |
+| `senderName` | `string` |  | The display name the host gave the message's sender, trimmed; absent when empty. Never the id or a placeholder word: the renderer chooses its own fallback. |
+| `self` | `boolean` | ✓ | The viewer sent the message (Vue isSelf). |
+| `selectionMode` | `boolean` |  | The row is in multi-select: the content's controls do not respond. |
+| `surface` | [`FlareMessageSurface`](/en/reference/data-types#message-surface) |  | The surface the row draws the content on. |
+
+### MeMenuItem {#me-menu-item}
+
+`FlareMeMenuItem`
+
+> One item of the social SDK's features.meMenu, as the kit reads it.
+
+**Native symbols: **
+
+- Flutter: `FlareMeMenuItem`
+- SwiftUI: `FlareMeMenuItem`
+- Compose: `FlareMeMenuItem`
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `kind` | `"builtin" \| "plugin"` | ✓ | A built-in destination or a plugin page entry; other kinds are dropped. |
+| `id` | `string` | ✓ | moments / reports / invite / settings for a built-in item; `plugin:<contributionId>` for a plugin item. |
+| `icon` | `string` |  | A kit icon name; another name falls back to plugin. |
+| `title` | `string` |  | A plugin item's title. |
+| `order` | `number` |  | The SDK's sort key; the kit keeps the given order and does not re-sort. |
+
+### MeMenu {#me-menu}
+
+`FlareMeMenu`
+
+> The social SDK's features.meMenu result; flareMeMenuSections(menu, labels, summaries) turns it into SettingsList sections (spec/me-menu-vectors.json).
+
+**Native symbols: **
+
+- Flutter: `FlareMeMenu`
+- SwiftUI: `FlareMeMenu`
+- Compose: `FlareMeMenu` — FlareMeMenu.parse(json) reads the SDK's JSON.
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `items` | [`MeMenuItem[]`](/en/reference/data-types#me-menu-item) | ✓ | The items in the SDK's order. |
+| `complete` | `boolean` | ✓ | False when the switches or the plugin catalog were not read: the host reads again later. |
+
+### ForwardItem {#forward-item}
+
+`FlareForwardItem`
+
+> One message of a merged-forward record.
+
+**Native symbols: **
+
+- Flutter: `FlareForwardItem`
+- SwiftUI: `FlareForwardItem`
+- Compose: `FlareForwardItem`
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `senderName` | `string` |  | The original sender's name (core sourceSenderName); blank reads as forwardRecordUnknownSender. |
+| `sentAtMs` | `number` |  | When the original was sent (core sourceMessageTimeMs). |
+| `plainText` | `string` |  | The original's plain text, the preview line when present. |
+| `content` | `MessageContent` |  | The original content, mapped by the host like any message content. |
+
+### ForwardContent {#forward-content}
+
+`FlareForwardContent`
+
+> A merged-forward record (content type forward, card surface), drawn as Vue ForwardView draws it (spec/message-forward-vectors.json). Vue reads the core payload directly.
+
+**Native symbols: **
+
+- Flutter: `FlareForwardContent`
+- SwiftUI: `FlareForwardContent`
+- Compose: `FlareForwardContent`
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `title` | `string` |  | The record's own title; blank reads as forwardRecordTitle. |
+| `mode` | `"unspecified" \| "single" \| "merged"` |  | The core's ForwardMode (0, 1, 2). One item that is not merged draws inline. |
+| `items` | [`ForwardItem[]`](/en/reference/data-types#forward-item) | ✓ | The forwarded messages in order. |
+
+### MessageMenuSource {#message-menu-source}
+
+`FlareMessageMenuSource`
+
+> What MessageList builds the long-press sheet and the pointer menu from (native kits).
+
+**Used by: **[MessageList](/en/components/message-list)
+
+**Native symbols: **
+
+- Flutter: `FlareMessageMenuSource`
+- SwiftUI: `FlareMessageMenuSource`
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `availability` | `(message) => MessageActionAvailability \| null` | ✓ | The host's current snapshot for the message (synchronous). |
+| `prefetch` | `(messageIds: string[]) => void` |  | Rows coming on screen: read their availability ahead of a menu. |
+| `hiddenActions` | `Set<string>` |  | As MessageActionSheet. |
+| `extraActions` | `(message) => MessageMenuEntry[]` |  | The host's entries for this message, in both menus (a report action only on someone else's message; Vue's MessageMenuExtension.available). |
+| `perform` | `(message, actionId: string) => void` | ✓ | The chosen entry, from either menu. |
+
+### UserIdentityValue {#user-identity-value}
+
+`FlareUserIdentityValue`
+
+> Presentation-only summary of one person for console surfaces: no internal ID, contact data or runtime lookup.
+
+**Used by: **[UserIdentity](/en/components/user-identity)
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `name` | `string` |  | Nickname, shown in full. |
+| `account` | `string` |  | One account name (a username or one configured sign-in account), never the internal user id. |
+| `avatarUrl` | `string` |  | Avatar image; a failed load keeps the initial avatar. |
+| `state` | `"ready" \| "loading" \| "unavailable"` |  | Lookup state; absent means ready. |
+
 ## Enums / unions
 
 ### MessageGroupPosition {#message-group-position}
@@ -922,7 +1055,7 @@ title: Data Types
 
 **Used by: **[RedPacketOpenSheet](/en/components/red-packet-open-sheet)
 
-`ready` · `opening` · `finished` · `expired` · `notEligible` · `error`
+`ready` · `opening` · `finished` · `expired` · `refunded` · `notEligible` · `error`
 
 ### RedPacketKind {#red-packet-kind}
 
@@ -1047,6 +1180,26 @@ title: Data Types
 > Who is looking at the details, as the server decided.
 
 `sender` · `claimer` · `eligible` · `ineligible`
+
+### ReadReceiptState {#read-receipt-state}
+
+`FlareReadReceiptState`
+
+> State of the read list (spec/read-receipt-vectors.json).
+
+**Used by: **[ReadReceiptSheet](/en/components/read-receipt-sheet)
+
+`ready` · `loading` · `error` · `unavailable`
+
+### ReadReceiptColumn {#read-receipt-column}
+
+`FlareReadReceiptColumn`
+
+> A column of the read list.
+
+**Used by: **[ReadReceiptSheet](/en/components/read-receipt-sheet)
+
+`read` · `unread`
 
 ### CallRecordScope {#call-record-scope}
 

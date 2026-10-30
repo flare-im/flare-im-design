@@ -8,6 +8,141 @@
     ],
     "zh": "接听"
   },
+  "accountBalanceHidden": {
+    "en": "Balance hidden",
+    "zh": "余额已隐藏",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "accountDayFormat": {
+    "en": "MMM d",
+    "zh": "M月d日",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "accountDayYearFormat": {
+    "en": "MMM d, y",
+    "zh": "y年M月d日",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "accountEmpty": {
+    "en": "No transactions yet",
+    "zh": "暂无交易记录",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "accountEmptyDescription": {
+    "en": "Account entries will appear here",
+    "zh": "收支明细会显示在这里",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "accountEntryDetails": {
+    "en": "Transaction details",
+    "zh": "交易详情",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "accountEntryId": {
+    "en": "Record ID",
+    "zh": "记录编号",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "accountHideBalance": {
+    "en": "Hide balance",
+    "zh": "隐藏余额",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "accountInformation": {
+    "en": "Account information and rules",
+    "zh": "账户说明与规则",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "accountOtherEntries": {
+    "en": "Other entries",
+    "zh": "其他记录",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "accountShowBalance": {
+    "en": "Show balance",
+    "zh": "显示余额",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "accountToday": {
+    "en": "Today",
+    "zh": "今天",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "accountTransactions": {
+    "en": "Transactions",
+    "zh": "交易记录",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "accountType": {
+    "en": "Type",
+    "zh": "类型",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "accountYesterday": {
+    "en": "Yesterday",
+    "zh": "昨天",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
   "actionAnnouncement": {
     "en": "Announcement",
     "kits": [
@@ -1568,6 +1703,98 @@
     ],
     "zh": "合并转发"
   },
+  "forwardRecordCardLabel": {
+    "en": "{title}, {subtitle}",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "{title}，{subtitle}"
+  },
+  "forwardRecordCountSuffix": {
+    "en": " · {count}",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "（{count} 条）"
+  },
+  "forwardRecordEmpty": {
+    "en": "No forwarded content",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "暂无转发内容"
+  },
+  "forwardRecordMore": {
+    "en": "{count} more messages…",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "还有 {count} 条消息…"
+  },
+  "forwardRecordMoreOne": {
+    "en": "{count} more message…",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "还有 {count} 条消息…",
+    "pluralOf": "forwardRecordMore"
+  },
+  "forwardRecordTitle": {
+    "en": "Merged forward",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "合并转发"
+  },
+  "forwardRecordTotal": {
+    "en": "{count} messages in total",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "共 {count} 条消息"
+  },
+  "forwardRecordTotalOne": {
+    "en": "{count} message in total",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "共 {count} 条消息",
+    "pluralOf": "forwardRecordTotal"
+  },
+  "forwardRecordUnknownSender": {
+    "en": "Unknown sender",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "未知发送者"
+  },
+  "forwardRecordViewDetails": {
+    "en": "View details",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "点击查看详情"
+  },
   "forwardTo": {
     "en": "Forward to",
     "kits": [
@@ -2759,6 +2986,51 @@
     ],
     "zh": "管理"
   },
+  "meMenuInvite": {
+    "en": "My invites",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "我的邀请"
+  },
+  "meMenuMoments": {
+    "en": "Moments",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "圈子"
+  },
+  "meMenuPluginFallback": {
+    "en": "Plugin",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "插件"
+  },
+  "meMenuReports": {
+    "en": "My reports",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "我的举报"
+  },
+  "meMenuSettings": {
+    "en": "Settings",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "设置"
+  },
   "memberRoleSheetDangerGroup": {
     "en": "Careful",
     "kits": [
@@ -3039,6 +3311,7 @@
   "messageBurnAfterRead": {
     "en": "Disappears after reading",
     "kits": [
+      "android",
       "flutter",
       "ios"
     ],
@@ -3047,6 +3320,7 @@
   "messageEdited": {
     "en": "Edited",
     "kits": [
+      "android",
       "flutter",
       "ios"
     ],
@@ -3055,6 +3329,7 @@
   "messageExpired": {
     "en": "Expired",
     "kits": [
+      "android",
       "flutter",
       "ios"
     ],
@@ -3093,6 +3368,14 @@
     ],
     "zh": "加载更早消息"
   },
+  "messageMenuLoading": {
+    "en": "Loading…",
+    "kits": [
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在读取…"
+  },
   "messagePending": {
     "en": "Waiting to send",
     "kits": [
@@ -3114,6 +3397,7 @@
   "messageReadOnce": {
     "en": "Can be opened once",
     "kits": [
+      "android",
       "flutter",
       "ios"
     ],
@@ -3540,6 +3824,16 @@
       "ios"
     ],
     "zh": "{count} 人"
+  },
+  "myInviteCountOnlyOne": {
+    "en": "{count} person",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "{count} 人",
+    "pluralOf": "myInviteCountOnly"
   },
   "myInviteDirect": {
     "en": "Direct",
@@ -4583,19 +4877,59 @@
     ],
     "zh": "已读回执"
   },
-  "readReceiptSheetReadEmpty": {
-    "en": "No one has opened this yet",
+  "readReceiptLoadFailed": {
+    "en": "Couldn't load the list",
     "kits": [
-      "flutter"
+      "android",
+      "flutter",
+      "ios"
     ],
-    "zh": "还没有人查看"
+    "zh": "名单读取失败"
   },
-  "readReceiptSheetUnreadEmpty": {
-    "en": "Everyone has opened this",
+  "readReceiptLoadMore": {
+    "en": "Load more",
     "kits": [
-      "flutter"
+      "android",
+      "flutter",
+      "ios"
     ],
-    "zh": "所有人都已查看"
+    "zh": "加载更多"
+  },
+  "readReceiptLoadMoreFailed": {
+    "en": "Couldn't load more. Tap to retry",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "加载失败，点按重试"
+  },
+  "readReceiptRead": {
+    "en": "Read",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已读"
+  },
+  "readReceiptUnavailable": {
+    "en": "This message's read list isn't available",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "这条消息的已读名单不可查看"
+  },
+  "readReceiptUnread": {
+    "en": "Unread",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "未读"
   },
   "recent": {
     "en": "Recent",
@@ -5201,6 +5535,15 @@
       "ios"
     ],
     "zh": "{count} 个文件"
+  },
+  "storageUsageFileCountOne": {
+    "en": "{count} file",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "{count} 个文件",
+    "pluralOf": "storageUsageFileCount"
   },
   "storageUsageLoading": {
     "en": "Measuring storage",
@@ -5953,6 +6296,15 @@
     ],
     "zh": "已退回 {money} · {time}"
   },
+  "packetRefundedNotice": {
+    "en": "This red packet has been refunded",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "红包已退回"
+  },
   "packetDurationSeconds": {
     "en": "{n}s",
     "kits": [
@@ -6186,6 +6538,16 @@
       "ios"
     ],
     "zh": "{count} 票"
+  },
+  "pluginViewVotesOne": {
+    "en": "{count} vote",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "{count} 票",
+    "pluralOf": "pluginViewVotes"
   },
   "pluginViewMore": {
     "en": "More actions",

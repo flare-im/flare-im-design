@@ -20,6 +20,8 @@ export { default as FlareDangerConfirm } from "./components/scenes/FlareDangerCo
 export { default as FlareInput } from "./components/general/FlareInput.vue";
 export { default as FlareFormField } from "./components/form/FlareFormField.vue";
 export { default as FlareCheckbox } from "./components/form/FlareCheckbox.vue";
+export { default as FlareAdminEntitySelect } from "./components/form/FlareAdminEntitySelect.vue";
+export type { FlareAdminEntityOption } from "./components/form/FlareAdminEntitySelect.vue";
 
 export { default as FlareSchemaForm } from "./components/form/FlareSchemaForm.vue";
 
@@ -29,6 +31,8 @@ export { default as FlarePluginView } from "./components/messages/FlarePluginVie
 export { default as FlarePluginForm } from "./components/form/FlarePluginForm.vue";
 export { default as FlarePluginDetailSheet } from "./components/messages/FlarePluginDetailSheet.vue";
 export type {
+  FlarePluginField,
+  FlarePluginRowCell,
   FlarePluginAction,
   FlarePluginActionPayload,
   FlarePluginActionStyle,
@@ -48,3 +52,7 @@ export type {
 export { flarePluginFilterInputs } from "./shared/contracts/plugin-ui";
 
 export { default as FlareAdminSection } from "./components/data/FlareAdminSection.vue";
+export type { SchemaSelection, SchemaSelectionLabels } from "./components/form/schema-selections";
+
+export { default as FlareUserIdentity } from "./components/data/FlareUserIdentity.vue";
+export type { FlareUserIdentityValue } from "./components/data/FlareUserIdentity.vue";

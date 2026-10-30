@@ -65,6 +65,31 @@ describe("FlareBottomSheet presentation", () => {
     expect(surface().parentElement!.classList).toContain("flare-overlay-scrim");
   });
 
+  it("offers the opt-in close control on phones and desktops, honoring the dismissal lock", async () => {
+    for (const bottomSheet of [true, false]) {
+      let closed = 0;
+      mountSheet({ showClose: true, onClose: () => closed++ }, bottomSheet);
+      await nextTick();
+      const close = surface().querySelector('button[aria-label="关闭"]') as HTMLButtonElement;
+      expect(close).not.toBeNull();
+      close.click();
+      expect(closed).toBe(1);
+      reset();
+      mountSheet({ showClose: true, dismissible: false, onClose: () => closed++ }, bottomSheet);
+      await nextTick();
+      const locked = surface().querySelector('button[aria-label="关闭"]') as HTMLButtonElement;
+      expect(locked.disabled).toBe(true);
+      locked.click();
+      expect(closed).toBe(1);
+      reset();
+      mountSheet({ showClose: true, titleHidden: true }, bottomSheet);
+      await nextTick();
+      expect(surface().querySelector('button[aria-label="关闭"]')).not.toBeNull();
+      expect(surface().querySelector(".flare-sheet__title,.flare-modal__title")).toBeNull();
+      reset();
+    }
+  });
+
   it("honours an explicit sheet presentation on a pointer device, with the height cap", async () => {
     mountSheet({ presentation: "sheet", maxHeight: "40vh" }, false);
     await nextTick();

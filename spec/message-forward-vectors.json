@@ -1,0 +1,543 @@
+{
+  "schemaVersion": 1,
+  "note": "Merged-forward record (chat history card), drawn as Vue ForwardView draws it. Input is the core's forward content: {contentType: \"forward\", forward: {mode, title, items: [{sourceSenderName, sourceMessageTimeMs, plainText, content?}]}}; native hosts map it to FlareForwardContent {title, mode, items: [{senderName, sentAtMs, plainText, content}]}. mode 0 unspecified, 1 single, 2 merged. Preview text is given before visual truncation (one line, ellipsis).",
+  "rules": {
+    "layout": "No items → empty (forwardRecordEmpty). Exactly one item and mode not merged → single: the item's content drawn inline (its plainText as text when it has no content). Otherwise → card.",
+    "card": "title = forward.title trimmed, else forwardRecordTitle. subtitle = forwardRecordTotal(count) when count > 1, else none. previews = the first 3 items as {sender, text}: sender = senderName trimmed, else forwardRecordUnknownSender; text = plainText read the way a text body's summary is read (trimmed, Markdown to plain text, emoji-pack keys in the reader's language), else the kit's one-line summary of the content, else previewForward. plainText is the words of the message that read the same in every language — the core writes it when it builds the record, with the conversation list's rules (a plugin card as \"[plugin name] summary\", never its data) and leaves it empty when only a word for the type would say what the message is; the kit never decodes it. more = forwardRecordMore(count − 3) when count > 3, else none. hint = forwardRecordViewDetails. The whole card is one button named \"{title}, {subtitle}\" (just the title without a subtitle). The card surface is `card`; in selectionMode it does not respond.",
+    "drawer": "A tap opens the kit side drawer titled \"{title}{forwardRecordCountSuffix(count)}\" listing every item: the sender's initial (senderInitials: the first character of the sender's name, upper-cased; \"?\" without a name — never the first character of forwardRecordUnknownSender), the sender, the time (HH:mm on the same local day, else the month-day date and HH:mm, in the kit locale), the summary line, and for a content other than text the content drawn under it.",
+    "plural": "forwardRecordTotal and forwardRecordMore take the plural one form in English (plural-vectors.json)."
+  },
+  "cases": [
+    {
+      "id": "empty",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": {
+        "contentType": "forward",
+        "forward": {
+          "mode": 2,
+          "title": "",
+          "items": []
+        }
+      },
+      "expect": {
+        "layout": "empty",
+        "text": {
+          "zh": "暂无转发内容",
+          "en": "No forwarded content"
+        }
+      }
+    },
+    {
+      "id": "single-inline",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": {
+        "contentType": "forward",
+        "forward": {
+          "mode": 0,
+          "title": "",
+          "items": [
+            {
+              "sourceSenderName": "林夏",
+              "sourceMessageTimeMs": 1761100000000,
+              "plainText": "今晚七点见"
+            }
+          ]
+        }
+      },
+      "expect": {
+        "layout": "single",
+        "text": {
+          "zh": "今晚七点见",
+          "en": "今晚七点见"
+        }
+      }
+    },
+    {
+      "id": "one-item-merged",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": {
+        "contentType": "forward",
+        "forward": {
+          "mode": 2,
+          "title": "",
+          "items": [
+            {
+              "sourceSenderName": "林夏",
+              "sourceMessageTimeMs": 1761100000000,
+              "plainText": "今晚七点见"
+            }
+          ]
+        }
+      },
+      "expect": {
+        "layout": "card",
+        "zh": {
+          "title": "合并转发",
+          "subtitle": null,
+          "previews": [
+            {
+              "sender": "林夏",
+              "text": "今晚七点见"
+            }
+          ],
+          "more": null,
+          "hint": "点击查看详情",
+          "label": "合并转发",
+          "drawerTitle": "合并转发（1 条）"
+        },
+        "en": {
+          "title": "Merged forward",
+          "subtitle": null,
+          "previews": [
+            {
+              "sender": "林夏",
+              "text": "今晚七点见"
+            }
+          ],
+          "more": null,
+          "hint": "View details",
+          "label": "Merged forward",
+          "drawerTitle": "Merged forward · 1"
+        }
+      }
+    },
+    {
+      "id": "two-items-titled",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": {
+        "contentType": "forward",
+        "forward": {
+          "mode": 2,
+          "title": " 林夏和周屿的聊天记录 ",
+          "items": [
+            {
+              "sourceSenderName": "林夏",
+              "sourceMessageTimeMs": 1761100000000,
+              "plainText": "今晚七点见"
+            },
+            {
+              "sourceSenderName": "周屿",
+              "sourceMessageTimeMs": 1761100000000,
+              "plainText": "好的"
+            }
+          ]
+        }
+      },
+      "expect": {
+        "layout": "card",
+        "zh": {
+          "title": "林夏和周屿的聊天记录",
+          "subtitle": "共 2 条消息",
+          "previews": [
+            {
+              "sender": "林夏",
+              "text": "今晚七点见"
+            },
+            {
+              "sender": "周屿",
+              "text": "好的"
+            }
+          ],
+          "more": null,
+          "hint": "点击查看详情",
+          "label": "林夏和周屿的聊天记录，共 2 条消息",
+          "drawerTitle": "林夏和周屿的聊天记录（2 条）"
+        },
+        "en": {
+          "title": "林夏和周屿的聊天记录",
+          "subtitle": "2 messages in total",
+          "previews": [
+            {
+              "sender": "林夏",
+              "text": "今晚七点见"
+            },
+            {
+              "sender": "周屿",
+              "text": "好的"
+            }
+          ],
+          "more": null,
+          "hint": "View details",
+          "label": "林夏和周屿的聊天记录, 2 messages in total",
+          "drawerTitle": "林夏和周屿的聊天记录 · 2"
+        }
+      }
+    },
+    {
+      "id": "four-items-one-more",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": {
+        "contentType": "forward",
+        "forward": {
+          "mode": 2,
+          "title": "",
+          "items": [
+            {
+              "sourceSenderName": "林夏",
+              "sourceMessageTimeMs": 1761100000000,
+              "plainText": "一"
+            },
+            {
+              "sourceSenderName": "",
+              "sourceMessageTimeMs": 1761100000000,
+              "plainText": "二"
+            },
+            {
+              "sourceSenderName": "周屿",
+              "sourceMessageTimeMs": 1761100000000,
+              "plainText": ""
+            },
+            {
+              "sourceSenderName": "林夏",
+              "sourceMessageTimeMs": 1761100000000,
+              "plainText": "四"
+            }
+          ]
+        }
+      },
+      "expect": {
+        "layout": "card",
+        "zh": {
+          "title": "合并转发",
+          "subtitle": "共 4 条消息",
+          "previews": [
+            {
+              "sender": "林夏",
+              "text": "一"
+            },
+            {
+              "sender": "未知发送者",
+              "text": "二"
+            },
+            {
+              "sender": "周屿",
+              "text": "[转发]"
+            }
+          ],
+          "more": "还有 1 条消息…",
+          "hint": "点击查看详情",
+          "label": "合并转发，共 4 条消息",
+          "drawerTitle": "合并转发（4 条）"
+        },
+        "en": {
+          "title": "Merged forward",
+          "subtitle": "4 messages in total",
+          "previews": [
+            {
+              "sender": "林夏",
+              "text": "一"
+            },
+            {
+              "sender": "Unknown sender",
+              "text": "二"
+            },
+            {
+              "sender": "周屿",
+              "text": "[Forward]"
+            }
+          ],
+          "more": "1 more message…",
+          "hint": "View details",
+          "label": "Merged forward, 4 messages in total",
+          "drawerTitle": "Merged forward · 4"
+        }
+      }
+    },
+    {
+      "id": "five-items-two-more",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": {
+        "contentType": "forward",
+        "forward": {
+          "mode": 0,
+          "title": "",
+          "items": [
+            {
+              "sourceSenderName": "A",
+              "sourceMessageTimeMs": 1761100000000,
+              "plainText": "1"
+            },
+            {
+              "sourceSenderName": "B",
+              "sourceMessageTimeMs": 1761100000000,
+              "plainText": "2"
+            },
+            {
+              "sourceSenderName": "C",
+              "sourceMessageTimeMs": 1761100000000,
+              "plainText": "3"
+            },
+            {
+              "sourceSenderName": "D",
+              "sourceMessageTimeMs": 1761100000000,
+              "plainText": "4"
+            },
+            {
+              "sourceSenderName": "E",
+              "sourceMessageTimeMs": 1761100000000,
+              "plainText": "5"
+            }
+          ]
+        }
+      },
+      "expect": {
+        "layout": "card",
+        "zh": {
+          "title": "合并转发",
+          "subtitle": "共 5 条消息",
+          "previews": [
+            {
+              "sender": "A",
+              "text": "1"
+            },
+            {
+              "sender": "B",
+              "text": "2"
+            },
+            {
+              "sender": "C",
+              "text": "3"
+            }
+          ],
+          "more": "还有 2 条消息…",
+          "hint": "点击查看详情",
+          "label": "合并转发，共 5 条消息",
+          "drawerTitle": "合并转发（5 条）"
+        },
+        "en": {
+          "title": "Merged forward",
+          "subtitle": "5 messages in total",
+          "previews": [
+            {
+              "sender": "A",
+              "text": "1"
+            },
+            {
+              "sender": "B",
+              "text": "2"
+            },
+            {
+              "sender": "C",
+              "text": "3"
+            }
+          ],
+          "more": "2 more messages…",
+          "hint": "View details",
+          "label": "Merged forward, 5 messages in total",
+          "drawerTitle": "Merged forward · 5"
+        }
+      }
+    },
+    {
+      "id": "content-summary-when-no-plain-text",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": {
+        "contentType": "forward",
+        "forward": {
+          "mode": 2,
+          "title": "",
+          "items": [
+            {
+              "sourceSenderName": "林夏",
+              "sourceMessageTimeMs": 1761100000000,
+              "plainText": "",
+              "content": {
+                "contentType": "image",
+                "image": {
+                  "url": "https://example.invalid/a.png"
+                }
+              }
+            },
+            {
+              "sourceSenderName": "周屿",
+              "sourceMessageTimeMs": 1761100000000,
+              "plainText": "",
+              "content": {
+                "contentType": "text",
+                "text": {
+                  "text": "收到",
+                  "mentions": []
+                }
+              }
+            }
+          ]
+        }
+      },
+      "expect": {
+        "layout": "card",
+        "zh": {
+          "title": "合并转发",
+          "subtitle": "共 2 条消息",
+          "previews": [
+            {
+              "sender": "林夏",
+              "text": "[图片]"
+            },
+            {
+              "sender": "周屿",
+              "text": "收到"
+            }
+          ],
+          "more": null,
+          "hint": "点击查看详情",
+          "label": "合并转发，共 2 条消息",
+          "drawerTitle": "合并转发（2 条）"
+        },
+        "en": {
+          "title": "Merged forward",
+          "subtitle": "2 messages in total",
+          "previews": [
+            {
+              "sender": "林夏",
+              "text": "[Image]"
+            },
+            {
+              "sender": "周屿",
+              "text": "收到"
+            }
+          ],
+          "more": null,
+          "hint": "View details",
+          "label": "Merged forward, 2 messages in total",
+          "drawerTitle": "Merged forward · 2"
+        }
+      }
+    },
+    {
+      "id": "plain-text-reads-as-a-text-summary",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": {
+        "contentType": "forward",
+        "forward": {
+          "mode": 2,
+          "title": "",
+          "items": [
+            {
+              "sourceSenderName": "林夏",
+              "sourceMessageTimeMs": 1761100000000,
+              "plainText": "**今晚** 七点见"
+            },
+            {
+              "sourceSenderName": "周屿",
+              "sourceMessageTimeMs": 1761100000000,
+              "plainText": "[Flare Poll] LunchPoll",
+              "content": {
+                "contentType": "custom",
+                "custom": {
+                  "type": "flare.plugin.message.v1",
+                  "description": ""
+                }
+              }
+            }
+          ]
+        }
+      },
+      "expect": {
+        "layout": "card",
+        "zh": {
+          "title": "合并转发",
+          "subtitle": "共 2 条消息",
+          "previews": [
+            {
+              "sender": "林夏",
+              "text": "今晚 七点见"
+            },
+            {
+              "sender": "周屿",
+              "text": "[Flare Poll] LunchPoll"
+            }
+          ],
+          "more": null,
+          "hint": "点击查看详情",
+          "label": "合并转发，共 2 条消息",
+          "drawerTitle": "合并转发（2 条）"
+        },
+        "en": {
+          "title": "Merged forward",
+          "subtitle": "2 messages in total",
+          "previews": [
+            {
+              "sender": "林夏",
+              "text": "今晚 七点见"
+            },
+            {
+              "sender": "周屿",
+              "text": "[Flare Poll] LunchPoll"
+            }
+          ],
+          "more": null,
+          "hint": "View details",
+          "label": "Merged forward, 2 messages in total",
+          "drawerTitle": "Merged forward · 2"
+        }
+      }
+    }
+  ],
+  "senderInitials": {
+    "note": "The drawer avatar's initial from an item's sourceSenderName (native senderName).",
+    "platforms": [
+      "vue",
+      "flutter",
+      "ios",
+      "compose"
+    ],
+    "cases": [
+      {
+        "senderName": "林夏",
+        "initial": "林"
+      },
+      {
+        "senderName": " lab bob ",
+        "initial": "L"
+      },
+      {
+        "senderName": "",
+        "initial": "?"
+      },
+      {
+        "senderName": "   ",
+        "initial": "?"
+      }
+    ]
+  }
+}

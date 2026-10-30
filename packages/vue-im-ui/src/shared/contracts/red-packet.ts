@@ -21,8 +21,11 @@ export type FlareRedPacketTapAction = "open" | "details" | "notEligible";
 /** Who is looking at the details, as the server decided. */
 export type FlareRedPacketViewerRole = "sender" | "claimer" | "eligible" | "ineligible";
 
-/** Phase of the open sheet. `opening` flips the 開 coin; the last four say why nothing opens. */
-export type FlareRedPacketOpenState = "ready" | "opening" | "finished" | "expired" | "notEligible" | "error";
+/**
+ * Phase of the open sheet. `opening` flips the 開 coin; the others say why nothing opens (`refunded`: the packet went
+ * back to its sender — PACKET_REFUNDED, or the public status refunded).
+ */
+export type FlareRedPacketOpenState = "ready" | "opening" | "finished" | "expired" | "refunded" | "notEligible" | "error";
 
 /** Packet kinds a host can offer in the composer; a 1:1 conversation only has `normal`. */
 export type FlareRedPacketKind = "lucky" | "normal" | "exclusive";
@@ -114,11 +117,14 @@ export function flareRedPacketCardBadge(kind: FlareRedPacketKind, recipientName?
   return { badge: null, recipient: null };
 }
 
-/** Which keys the open sheet offers (spec openSheet): 開 while it can open; details only for finished / expired. */
+/**
+ * Which keys the open sheet offers (spec openSheet, openSheetRefunded): 開 while it can open; details only for
+ * finished, expired and refunded, and only when the viewer may see them.
+ */
 export function flareRedPacketOpenSheetKeys(state: FlareRedPacketOpenState, canViewDetails = true): { coin: boolean; details: boolean } {
   return {
     coin: state === "ready" || state === "opening" || state === "error",
-    details: (state === "finished" || state === "expired") && canViewDetails,
+    details: (state === "finished" || state === "expired" || state === "refunded") && canViewDetails,
   };
 }
 
@@ -131,7 +137,7 @@ const SYMBOLS: Readonly<Record<string, string>> = { CNY: "¥", JPY: "¥", USD: "
  * grouping): "888", 2 → "8.88". Anything but ASCII digits is no amount (null). spec/red-packet-vectors.json amount.
  */
 export function flareRedPacketAmountText(minor: string | null | undefined, exponent: number): string | null {
-  if (typeof minor !== "string" || !/^\d+$/.test(minor)) return null;
+  if (typeof minor !== "string" || !/^\d+$/.test(minor) || !Number.isInteger(exponent) || exponent < 0 || exponent > 12) return null;
   const digits = minor.replace(/^0+(?=\d)/, "");
   const scale = Math.max(0, Math.floor(exponent));
   if (scale === 0) return digits;
@@ -291,12 +297,19 @@ function asciiDigit(ch: string): string | null {
   return null;
 }
 
+/** A currency exponent as the composer uses it: a whole number of decimals, 0..12 (anything else is 2). */
+export function flareRedPacketExponent(exponent: number | null | undefined): number {
+  return typeof exponent === "number" && Number.isFinite(exponent) ? Math.min(12, Math.max(0, Math.floor(exponent))) : 2;
+}
+
 /**
- * Format-only filter for the composer's amount field: digits and one decimal point with at most two
- * decimals, leading zeros folded (`spec/red-packet-vectors.json` → amountInput). Whether the value is in
- * range is the host's call.
+ * Format-only filter for the composer's amount field: digits and one decimal point with at most `exponent`
+ * decimals (none at all, the point dropped, when the currency has no minor unit), leading zeros folded
+ * (`spec/red-packet-vectors.json` → amountInput, amountInputExponent). Whether the value is in range is the
+ * host's call.
  */
-export function sanitizeRedPacketAmount(raw: string): string {
+export function sanitizeRedPacketAmount(raw: string, exponent = 2): string {
+  const scale = flareRedPacketExponent(exponent);
   let out = "";
   let point = false;
   let decimals = 0;
@@ -304,16 +317,34 @@ export function sanitizeRedPacketAmount(raw: string): string {
     const digit = asciiDigit(ch);
     if (digit != null) {
       if (point) {
-        if (decimals >= 2) continue;
+        if (decimals >= scale) continue;
         decimals += 1;
       }
       out += digit;
-    } else if (DECIMAL_POINTS.has(ch) && !point) {
+    } else if (DECIMAL_POINTS.has(ch) && !point && scale > 0) {
       point = true;
       out += out ? "." : "0.";
     }
   }
   return out.replace(/^0+(?=\d)/, "");
+}
+
+/**
+ * The composer's amount text in minor units — a string of digits, by integer arithmetic, never floating point
+ * ("8.8", 2 → "880"; spec amountMinor). Null while the text is not an amount: empty, a lone point, more decimals
+ * than the exponent allows, or anything but ASCII digits and one point.
+ */
+export function flareRedPacketAmountMinor(text: string, exponent: number): string | null {
+  const scale = flareRedPacketExponent(exponent);
+  const match = /^(\d*)(?:\.(\d*))?$/.exec(text.trim());
+  if (!match) return null;
+  const whole = match[1] ?? "";
+  const fraction = match[2];
+  if (fraction !== undefined && scale === 0) return null;
+  if (!whole && !fraction) return null;
+  if ((fraction ?? "").length > scale) return null;
+  const digits = `${whole}${(fraction ?? "").padEnd(scale, "0")}`.replace(/^0+(?=\d)/, "");
+  return digits || "0";
 }
 
 /** Digits only, at most three, as a number; empty is 0 (`spec/red-packet-vectors.json` → countInput). */

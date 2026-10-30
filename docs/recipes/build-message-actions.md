@@ -6,7 +6,7 @@ Long-press or right-click a message to react, reply, forward, copy, recall or de
 
 | Surface | Vue | Flutter | iOS | Compose |
 |---|---|---|---|---|
-| Menu, hover toolbar and reaction picker | built into `FlareMessageList` | — | — | — |
+| Menu, hover toolbar and reaction picker | built into `FlareMessageList` | `menu` on `FlareMessageList` (long press and right click) | `menu` on `MessageListView` (long press and the pointer context menu) | — |
 | Long-press action sheet | `FlareMessageActionSheet` (phones, built in) | `FlareMessageActionSheet.show` | `MessageActionSheetView` in `.sheet` | `MessageActionSheet` in `Dialog` |
 | Reaction pills under the bubble | built into the bubble | built into the bubble (`onReact`) | built into the bubble (`onReact`) | built into the bubble (`onReact`) |
 | App actions (report, translate) | `actions` plus `@action` on `FlareMessageList` | `actions` on the sheet | `actions` on the sheet | `actions` on the sheet |
@@ -109,6 +109,45 @@ actionTarget?.let { (msg, availability) ->
 ```
 
 `actionAvailability` calls `message.action_availability` with `{ messageId, multiSelectMode, isPending, isFailed, isPinned, isConnected }` and reads the result with `FlareMessageActionAvailability.fromJson`. iOS (`SocialSession.actionAvailability`, `FlareMessageActionAvailability(json:)`) and Flutter (`BaseSocialClient.actionAvailability`) do the same.
+
+## Native: one menu source on the list (Flutter, SwiftUI)
+
+Instead of opening the sheet from `onMessageLongPress`, a Flutter or SwiftUI screen can hand the list one menu source (`FlareMessageMenuSource`). The list then opens the long-press sheet itself and, on a pointer (Flutter on macOS, Windows, Linux and the web; SwiftUI on macOS and an iPad with a pointer), draws the right-click menu where the pointer is — both from the sheet's entry function (`messageMenuEntries`), so the two can never differ.
+
+```swift
+// iOS: the snapshot cache the screen already keeps, read synchronously.
+MessageListView(
+    messages: rows, currentUserId: uid, conversationKind: .group,
+    onReact: { msg, emoji in toggleReaction(msg, emoji) },
+    menu: FlareMessageMenuSource(
+        availability: { availabilityCache[$0.id] },          // nil while it is being read
+        prefetch: { ids in Task { await readAvailability(ids) } }, // rows coming on screen without a snapshot
+        hiddenActions: unwiredMessageActions,
+        // Asked per message: report someone else's message only.
+        extraActions: { msg in msg.senderId == uid ? [] : [reportEntry] },
+        perform: { msg, id in handleMessageAction(msg, id) }))
+```
+
+```dart
+// Flutter: the same source; reactions go to the list's onReact.
+FlareMessageList(
+  messages: rows,
+  currentUserId: uid,
+  onReact: toggleReaction,
+  menu: FlareMessageMenuSource(
+    availability: (m) => availabilityCache[m.id],
+    prefetch: readAvailability,
+    hiddenActions: unwiredMessageActions,
+    extraActions: (m) => m.senderId == uid ? const [] : [reportEntry],
+    perform: handleMessageAction,
+  ),
+)
+```
+
+- `availability` is a synchronous read of the host's snapshot of `message.action_availability`; the host refreshes it asynchronously and redraws the list. The list calls `prefetch` with the ids of rows coming on screen that have no snapshot.
+- Without a snapshot the right-click menu holds one disabled entry, "正在读取…" (`messageMenuLoading`), and asks for that message; a long press asks for it and opens the sheet once the snapshot arrives.
+- `extraActions` is asked per message, as Vue's `MessageMenuExtension.available` is, so an entry can depend on it; both menus draw the same answer.
+- With `menu` the list no longer calls `onMessageLongPress`. Read `FlareMessageMenuSource.pointerIdiom` (Flutter `pointerIdiom(context)`) instead of repeating the platform check.
 
 ## Rules
 

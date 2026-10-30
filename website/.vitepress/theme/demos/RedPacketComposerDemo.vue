@@ -1,10 +1,15 @@
 <script setup>
 import { computed, ref } from "vue";
 import { FlareRedPacketComposer, FlareRedPacketPayConfirm, FlareSegmentedControl, FlareStatusBanner } from "@flare-im/vue-ui/components";
+import { flareRedPacketAmountMinor, flareRedPacketMoney } from "@flare-im/vue-ui";
 import DemoStage from "./DemoStage.vue";
 // 群聊默认拼手气；单聊只给 normal，表单不显示种类和个数，金额标签为「金额」。
 // 总额、上限和错误由宿主计算，组件只限制输入格式。原命令结果待核对时 locked：只读、按钮不可点、不转圈。
 const conversation = ref(0);
+// 币种的小数位来自插件 limits（currencyExponent）：人民币 2 位、日元 0 位、科威特第纳尔 3 位。
+const CURRENCIES = [{ code: "CNY", exponent: 2 }, { code: "JPY", exponent: 0 }, { code: "KWD", exponent: 3 }];
+const currencyIndex = ref(0);
+const currency = computed(() => CURRENCIES[currencyIndex.value]);
 const kinds = computed(() => (conversation.value === 1 ? ["normal"] : ["lucky", "normal", "exclusive"]));
 const locked = computed(() => conversation.value === 2);
 const kind = ref("lucky");
@@ -12,16 +17,19 @@ const amount = ref("");
 const count = ref(0);
 const greeting = ref("");
 const paying = ref(false);
+// 宿主用整数最小单位算总额，不经浮点。
 const total = computed(() => {
   const perShare = kind.value === "normal" && kinds.value.length > 1;
-  const value = Number(amount.value || 0) * (perShare ? Math.max(count.value, 1) : 1);
-  return `¥${value.toFixed(2)}`;
+  const minor = BigInt(flareRedPacketAmountMinor(amount.value, currency.value.exponent) ?? "0");
+  const shares = BigInt(perShare ? Math.max(count.value, 1) : 1);
+  return flareRedPacketMoney(String(minor * shares), currency.value.exponent, currency.value.code) ?? "";
 });
 const error = computed(() => (Number(amount.value) > 200 ? "单个红包金额不可超过 200 元" : ""));
 </script>
 <template>
   <DemoStage>
     <FlareSegmentedControl v-model="conversation" class="switch" :options="['群聊', '单聊', '待核对']" />
+    <FlareSegmentedControl v-model="currencyIndex" class="switch" :options="CURRENCIES.map((c) => c.code)" />
     <div class="frame">
       <FlareStatusBanner v-if="locked" text="上一个红包的结果还在核对，完成前不能再发。" tone="warning" />
       <FlareRedPacketComposer
@@ -30,6 +38,7 @@ const error = computed(() => (Number(amount.value) > 200 ? "单个红包金额�
         v-model:count="count"
         v-model:greeting="greeting"
         :kinds="kinds"
+        :currency-exponent="currency.exponent"
         :locked="locked"
         :total="total"
         :error="error || undefined"

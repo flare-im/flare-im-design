@@ -8,7 +8,12 @@ export {
   translateFlare,
   setFlareRuntimeLocale,
   currentFlareRuntimeLocale,
+  flarePluralCategory,
+  flarePluralForm,
+  isFlarePluralMessage,
   type FlareBuiltinLocale,
+  type FlarePluralCategory,
+  type FlarePluralMessage,
   type FlareLocale,
   type FlareMessageTree,
 } from "./messages";

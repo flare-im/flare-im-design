@@ -255,6 +255,7 @@ export type {
   FlarePluginPageRef,
   FlarePluginPageState,
   FlarePluginPageViewModel,
+  FlarePluginPageAppearance,
   FlarePluginPeopleBlock,
   FlarePluginPeopleGroup,
   FlarePluginProgressBlock,
@@ -312,7 +313,15 @@ export type {
   FlareRedPacketTapAction,
   FlareRedPacketViewerRole,
 } from "./red-packet";
+export type {
+  FlareReadReceiptColumn,
+  FlareReadReceiptInput,
+  FlareReadReceiptPresentation,
+  FlareReadReceiptState,
+} from "./read-receipt";
+export { flareReadReceiptPresentation } from "./read-receipt";
 export {
+  flareRedPacketAmountMinor,
   flareRedPacketAmountText,
   flareRedPacketCardBadge,
   flareRedPacketCardDimmed,
@@ -321,6 +330,7 @@ export {
   flareRedPacketClaimTexts,
   flareRedPacketDetailTexts,
   flareRedPacketDuration,
+  flareRedPacketExponent,
   flareRedPacketMoney,
   flareRedPacketOpenSheetKeys,
   flareRedPacketTime,

@@ -53,6 +53,13 @@ const props = withDefaults(
     conversationId?: string;
     messageExtra?: Record<string, unknown>;
     senderName?: string;
+    /** The sender's id, for custom renderers (`senderId`). */
+    senderId?: string;
+    /**
+     * The display name the host gave the sender, for custom renderers (`senderName`). `senderName` above is the
+     * row's label, which falls back to the id; a renderer gets only a real name. Defaults to `senderName`.
+     */
+    senderDisplayName?: string;
     mediaAction?: "download" | "openFolder" | null;
     mediaState?: MessageMediaDownloadUiState | null;
     /** The row is in multi-select: the content's controls do not respond. */
@@ -116,7 +123,16 @@ const customRenderer = computed(
 const customRendererProps = computed(() => {
   const messageId = props.rendererMessageId || props.messageId || undefined;
   const conversationId = props.conversationId || listConversationId() || undefined;
-  return { ...viewProps.value, messageId, conversationId, ...(props.selectionMode ? { selectionMode: true } : {}) };
+  const senderId = props.senderId?.trim() || undefined;
+  const senderName = (props.senderDisplayName ?? props.senderName).trim() || undefined;
+  return {
+    ...viewProps.value,
+    messageId,
+    conversationId,
+    senderId,
+    senderName,
+    ...(props.selectionMode ? { selectionMode: true } : {}),
+  };
 });
 
 const extraStrings = computed(() => messageExtraAsStrings(props.messageExtra));

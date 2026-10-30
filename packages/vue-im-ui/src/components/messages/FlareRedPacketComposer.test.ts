@@ -5,6 +5,7 @@ import { mount } from "@vue/test-utils";
 import { defineComponent, h, nextTick, reactive } from "vue";
 import { describe, expect, it } from "vitest";
 import {
+  flareRedPacketAmountMinor,
   sanitizeRedPacketAmount,
   sanitizeRedPacketCount,
   type FlareRedPacketKind,
@@ -22,6 +23,9 @@ interface ComposerVector {
 }
 const vectors = JSON.parse(readFileSync(resolve(__dirname, "../../../../../spec/red-packet-vectors.json"), "utf8")) as {
   amountInput: { id: string; input: string; output: string }[];
+  amountInputExponent: { id: string; exponent: number; input: string; output: string }[];
+  amountMinor: { id: string; input: string; exponent: number; minor: string | null }[];
+  amountPlaceholder: { cases: { exponent: number; placeholder: string }[] };
   countInput: { id: string; input: string; output: number }[];
   composer: ComposerVector[];
 };
@@ -37,6 +41,7 @@ interface ComposerModel {
   busy?: boolean;
   locked?: boolean;
   submitLabel?: string;
+  currencyExponent?: number;
 }
 
 function mountComposer(initial: Partial<ComposerModel> = {}, locale: "zh-CN" | "en-US" = "zh-CN") {
@@ -60,6 +65,7 @@ function mountComposer(initial: Partial<ComposerModel> = {}, locale: "zh-CN" | "
         busy: model.busy,
         locked: model.locked,
         submitLabel: model.submitLabel,
+        ...(model.currencyExponent === undefined ? {} : { currencyExponent: model.currencyExponent }),
         kind: model.kind,
         "onUpdate:kind": (v: FlareRedPacketKind) => { model.kind = v; },
         amount: model.amount,
@@ -83,6 +89,52 @@ describe("red packet input filters", () => {
   });
   it.each(vectors.countInput.map((v) => [v.id, v] as const))("count %s", (_id, v) => {
     expect(sanitizeRedPacketCount(v.input)).toBe(v.output);
+  });
+  it.each(vectors.amountInputExponent.map((v) => [v.id, v] as const))("amount with the currency exponent %s", (_id, v) => {
+    expect(sanitizeRedPacketAmount(v.input, v.exponent)).toBe(v.output);
+  });
+  it.each(vectors.amountMinor.map((v) => [v.id, v] as const))("amount in minor units %s", (_id, v) => {
+    expect(flareRedPacketAmountMinor(v.input, v.exponent)).toBe(v.minor);
+  });
+});
+
+describe("FlareRedPacketComposer currencyExponent", () => {
+  it.each(vectors.amountPlaceholder.cases.map((v) => [v.exponent, v] as const))(
+    "asks for the currency's decimals at exponent %s",
+    async (_exponent, v) => {
+      const { wrapper } = mountComposer({ currencyExponent: v.exponent });
+      await nextTick();
+      const input = wrapper.get(".flare-rp-composer__input");
+      expect(input.attributes("placeholder")).toBe(v.placeholder);
+      expect(input.attributes("inputmode")).toBe(v.exponent === 0 ? "numeric" : "decimal");
+    },
+  );
+
+  it("keeps whole numbers for a currency without a minor unit and three decimals for one with three", async () => {
+    const { wrapper, model } = mountComposer({ currencyExponent: 0 });
+    await nextTick();
+    const input = wrapper.get<HTMLInputElement>(".flare-rp-composer__input");
+    input.element.value = "12.5";
+    await input.trigger("input");
+    expect(model.amount).toBe("125");
+    expect(input.element.value).toBe("125");
+
+    model.currencyExponent = 3;
+    await nextTick();
+    input.element.value = "1.23456";
+    await input.trigger("input");
+    expect(model.amount).toBe("1.234");
+  });
+
+  it("trims what was typed when the currency changes to fewer decimals", async () => {
+    const { model } = mountComposer({ currencyExponent: 3, amount: "1.234" });
+    await nextTick();
+    model.currencyExponent = 2;
+    await nextTick();
+    expect(model.amount).toBe("1.23");
+    model.currencyExponent = 0;
+    await nextTick();
+    expect(model.amount).toBe("123");
   });
 });
 

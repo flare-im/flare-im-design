@@ -1956,6 +1956,7 @@
         "opening",
         "finished",
         "expired",
+        "refunded",
         "notEligible",
         "error"
       ]
@@ -2343,6 +2344,15 @@
         "zh": "解析后的插件视图（核心 SDK 的 ResolvedPluginView）。"
       },
       "fields": [
+        {
+          "name": "presentation",
+          "type": "{renderer: string, props: Record<string, unknown>, actions: Record<string, string>}",
+          "required": false,
+          "description": {
+            "en": "Optional compiled-in Kit composition with bounded resolved display values and references to visible declared actions. Unknown renderers use the document. No network or authorization semantics.",
+            "zh": "可选的内置 Kit 组合，包含有界的已解析展示值和可见声明动作引用。未知 renderer 使用文档。无网络或权限语义。"
+          }
+        },
         {
           "name": "available",
           "type": "boolean",
@@ -3516,6 +3526,398 @@
       ]
     },
     {
+      "name": "ReadReceiptState",
+      "symbol": "FlareReadReceiptState",
+      "kind": "enum",
+      "summary": {
+        "en": "State of the read list (spec/read-receipt-vectors.json).",
+        "zh": "已读名单的状态（spec/read-receipt-vectors.json）。"
+      },
+      "values": [
+        "ready",
+        "loading",
+        "error",
+        "unavailable"
+      ]
+    },
+    {
+      "name": "ReadReceiptColumn",
+      "symbol": "FlareReadReceiptColumn",
+      "kind": "enum",
+      "summary": {
+        "en": "A column of the read list.",
+        "zh": "已读名单的一栏。"
+      },
+      "values": [
+        "read",
+        "unread"
+      ]
+    },
+    {
+      "name": "MessageRenderContext",
+      "symbol": "FlareContentContext",
+      "kind": "interface",
+      "summary": {
+        "en": "What a registered content renderer is told about the message it draws (Vue: the renderer's props).",
+        "zh": "注册的内容渲染器拿到的消息信息（Vue 为渲染器的 props）。"
+      },
+      "fields": [
+        {
+          "name": "messageId",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "The message's id in the core: the server id, else the client id. Absent outside a message row.",
+            "zh": "消息在核心里的 id：有服务端 id 用它，否则客户端 id。行外渲染时没有。"
+          }
+        },
+        {
+          "name": "conversationId",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "The conversation the message is in.",
+            "zh": "消息所在会话。"
+          }
+        },
+        {
+          "name": "senderId",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "The sender's id.",
+            "zh": "发送者 id。"
+          }
+        },
+        {
+          "name": "senderName",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "The display name the host gave the message's sender, trimmed; absent when empty. Never the id or a placeholder word: the renderer chooses its own fallback.",
+            "zh": "宿主给这条消息发送者的显示名，去首尾空白，空则没有。不回落到 id 或占位词，没名字时由渲染器自己决定写法。"
+          }
+        },
+        {
+          "name": "self",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "The viewer sent the message (Vue isSelf).",
+            "zh": "消息是本人发的（Vue 为 isSelf）。"
+          }
+        },
+        {
+          "name": "selectionMode",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "The row is in multi-select: the content's controls do not respond.",
+            "zh": "该行处于多选：内容里的控件不响应。"
+          }
+        },
+        {
+          "name": "surface",
+          "type": "FlareMessageSurface",
+          "required": false,
+          "description": {
+            "en": "The surface the row draws the content on.",
+            "zh": "该行绘制内容所用的表面。"
+          }
+        }
+      ],
+      "platformSymbols": {
+        "flutter": {
+          "symbol": "FlareContentContext"
+        },
+        "ios": {
+          "symbol": "FlareContentContext"
+        },
+        "compose": {
+          "symbol": "FlareContentContext"
+        }
+      }
+    },
+    {
+      "name": "MeMenuItem",
+      "symbol": "FlareMeMenuItem",
+      "kind": "interface",
+      "summary": {
+        "en": "One item of the social SDK's features.meMenu, as the kit reads it.",
+        "zh": "社交 SDK features.meMenu 的一项，Kit 按此读取。"
+      },
+      "fields": [
+        {
+          "name": "kind",
+          "type": "\"builtin\" | \"plugin\"",
+          "required": true,
+          "description": {
+            "en": "A built-in destination or a plugin page entry; other kinds are dropped.",
+            "zh": "内置入口或插件页面入口；其他 kind 丢掉。"
+          }
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "moments / reports / invite / settings for a built-in item; `plugin:<contributionId>` for a plugin item.",
+            "zh": "内置项为 moments / reports / invite / settings；插件项为 `plugin:<contributionId>`。"
+          }
+        },
+        {
+          "name": "icon",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "A kit icon name; another name falls back to plugin.",
+            "zh": "Kit 图标名；不认识的回落到 plugin。"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "A plugin item's title.",
+            "zh": "插件项标题。"
+          }
+        },
+        {
+          "name": "order",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "The SDK's sort key; the kit keeps the given order and does not re-sort.",
+            "zh": "SDK 的排序键；Kit 保持给定顺序、不重排。"
+          }
+        }
+      ],
+      "platformSymbols": {
+        "flutter": {
+          "symbol": "FlareMeMenuItem"
+        },
+        "ios": {
+          "symbol": "FlareMeMenuItem"
+        },
+        "compose": {
+          "symbol": "FlareMeMenuItem"
+        }
+      }
+    },
+    {
+      "name": "MeMenu",
+      "symbol": "FlareMeMenu",
+      "kind": "interface",
+      "summary": {
+        "en": "The social SDK's features.meMenu result; flareMeMenuSections(menu, labels, summaries) turns it into SettingsList sections (spec/me-menu-vectors.json).",
+        "zh": "社交 SDK features.meMenu 的结果；flareMeMenuSections(menu, labels, summaries) 把它变成 SettingsList 的分组（spec/me-menu-vectors.json）。"
+      },
+      "fields": [
+        {
+          "name": "items",
+          "type": "MeMenuItem[]",
+          "required": true,
+          "description": {
+            "en": "The items in the SDK's order.",
+            "zh": "按 SDK 顺序的各项。"
+          }
+        },
+        {
+          "name": "complete",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "False when the switches or the plugin catalog were not read: the host reads again later.",
+            "zh": "开关或插件目录这次没读到时为 false，宿主稍后重读。"
+          }
+        }
+      ],
+      "platformSymbols": {
+        "flutter": {
+          "symbol": "FlareMeMenu"
+        },
+        "ios": {
+          "symbol": "FlareMeMenu"
+        },
+        "compose": {
+          "symbol": "FlareMeMenu",
+          "note": "FlareMeMenu.parse(json) reads the SDK's JSON."
+        }
+      }
+    },
+    {
+      "name": "ForwardItem",
+      "symbol": "FlareForwardItem",
+      "kind": "interface",
+      "summary": {
+        "en": "One message of a merged-forward record.",
+        "zh": "合并转发记录里的一条消息。"
+      },
+      "fields": [
+        {
+          "name": "senderName",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "The original sender's name (core sourceSenderName); blank reads as forwardRecordUnknownSender.",
+            "zh": "原发送者名字（核心 sourceSenderName）；为空写「未知发送者」。"
+          }
+        },
+        {
+          "name": "sentAtMs",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "When the original was sent (core sourceMessageTimeMs).",
+            "zh": "原消息发送时间（核心 sourceMessageTimeMs）。"
+          }
+        },
+        {
+          "name": "plainText",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "The original's plain text, the preview line when present.",
+            "zh": "原消息纯文本，有则作摘要行。"
+          }
+        },
+        {
+          "name": "content",
+          "type": "MessageContent",
+          "required": false,
+          "description": {
+            "en": "The original content, mapped by the host like any message content.",
+            "zh": "原消息内容，宿主按普通消息内容映射。"
+          }
+        }
+      ],
+      "platformSymbols": {
+        "flutter": {
+          "symbol": "FlareForwardItem"
+        },
+        "ios": {
+          "symbol": "FlareForwardItem"
+        },
+        "compose": {
+          "symbol": "FlareForwardItem"
+        }
+      }
+    },
+    {
+      "name": "ForwardContent",
+      "symbol": "FlareForwardContent",
+      "kind": "interface",
+      "summary": {
+        "en": "A merged-forward record (content type forward, card surface), drawn as Vue ForwardView draws it (spec/message-forward-vectors.json). Vue reads the core payload directly.",
+        "zh": "合并转发记录（内容类型 forward，card 表面），按 Vue ForwardView 的形态绘制（spec/message-forward-vectors.json）。Vue 直接读核心载荷。"
+      },
+      "fields": [
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "The record's own title; blank reads as forwardRecordTitle.",
+            "zh": "记录自己的标题；为空写「合并转发」。"
+          }
+        },
+        {
+          "name": "mode",
+          "type": "\"unspecified\" | \"single\" | \"merged\"",
+          "required": false,
+          "description": {
+            "en": "The core's ForwardMode (0, 1, 2). One item that is not merged draws inline.",
+            "zh": "核心 ForwardMode（0、1、2）。只有一条且不是 merged 时直接按那一条渲染。"
+          }
+        },
+        {
+          "name": "items",
+          "type": "ForwardItem[]",
+          "required": true,
+          "description": {
+            "en": "The forwarded messages in order.",
+            "zh": "按顺序的被转发消息。"
+          }
+        }
+      ],
+      "platformSymbols": {
+        "flutter": {
+          "symbol": "FlareForwardContent"
+        },
+        "ios": {
+          "symbol": "FlareForwardContent"
+        },
+        "compose": {
+          "symbol": "FlareForwardContent"
+        }
+      }
+    },
+    {
+      "name": "MessageMenuSource",
+      "symbol": "FlareMessageMenuSource",
+      "kind": "interface",
+      "summary": {
+        "en": "What MessageList builds the long-press sheet and the pointer menu from (native kits).",
+        "zh": "MessageList 构建长按面板与指针菜单所用的输入（原生 Kit）。"
+      },
+      "fields": [
+        {
+          "name": "availability",
+          "type": "(message) => MessageActionAvailability | null",
+          "required": true,
+          "description": {
+            "en": "The host's current snapshot for the message (synchronous).",
+            "zh": "宿主手里这条消息的当前快照（同步）。"
+          }
+        },
+        {
+          "name": "prefetch",
+          "type": "(messageIds: string[]) => void",
+          "required": false,
+          "description": {
+            "en": "Rows coming on screen: read their availability ahead of a menu.",
+            "zh": "行进入视口：提前读它们的可用性。"
+          }
+        },
+        {
+          "name": "hiddenActions",
+          "type": "Set<string>",
+          "required": false,
+          "description": {
+            "en": "As MessageActionSheet.",
+            "zh": "与 MessageActionSheet 相同。"
+          }
+        },
+        {
+          "name": "extraActions",
+          "type": "(message) => MessageMenuEntry[]",
+          "required": false,
+          "description": {
+            "en": "The host's entries for this message, in both menus (a report action only on someone else's message; Vue's MessageMenuExtension.available).",
+            "zh": "宿主按这条消息给出的条目，两处共用（例如「举报」只出现在别人的消息上；对应 Vue MessageMenuExtension 的 available）。"
+          }
+        },
+        {
+          "name": "perform",
+          "type": "(message, actionId: string) => void",
+          "required": true,
+          "description": {
+            "en": "The chosen entry, from either menu.",
+            "zh": "两处选中的条目。"
+          }
+        }
+      ],
+      "platformSymbols": {
+        "flutter": {
+          "symbol": "FlareMessageMenuSource"
+        },
+        "ios": {
+          "symbol": "FlareMessageMenuSource"
+        }
+      }
+    },
+    {
       "name": "CallRecordScope",
       "symbol": "FlareCallRecordScope",
       "kind": "enum",
@@ -3558,6 +3960,49 @@
         "busy",
         "unavailable",
         "failed"
+      ]
+    },
+    {
+      "name": "UserIdentityValue",
+      "symbol": "FlareUserIdentityValue",
+      "kind": "interface",
+      "summary": {
+        "en": "Presentation-only summary of one person for console surfaces: no internal ID, contact data or runtime lookup.",
+        "zh": "控制台界面用的单个用户展示摘要：不含内部 ID、联系方式或运行时查询。"
+      },
+      "fields": [
+        {
+          "name": "name",
+          "type": "string",
+          "description": {
+            "en": "Nickname, shown in full.",
+            "zh": "昵称，完整显示。"
+          }
+        },
+        {
+          "name": "account",
+          "type": "string",
+          "description": {
+            "en": "One account name (a username or one configured sign-in account), never the internal user id.",
+            "zh": "一个账号（用户名或一个已配置的登录账号），绝不是内部用户 id。"
+          }
+        },
+        {
+          "name": "avatarUrl",
+          "type": "string",
+          "description": {
+            "en": "Avatar image; a failed load keeps the initial avatar.",
+            "zh": "头像图片；加载失败时保留首字头像。"
+          }
+        },
+        {
+          "name": "state",
+          "type": "\"ready\" | \"loading\" | \"unavailable\"",
+          "description": {
+            "en": "Lookup state; absent means ready.",
+            "zh": "查询状态；缺省为 ready。"
+          }
+        }
       ]
     }
   ],
@@ -5477,8 +5922,8 @@
         "contextMenu"
       ],
       "notes": {
-        "en": "Optimistic: semantic status comes from host-owned lifecycle state, never a network wait. A recalled message (lifecycle mutation recalled) renders a notice in place of its content on every platform, with no status, avatar, actions or selection. Reactions render under the bubble; a pill toggles the viewer's reaction through react only when the host handles it, and never in multi-select mode. A reply renders its quote (sender and one-line summary) at the top of the bubble on every platform; the quote is a button that raises locateMessage only when the host handles it and multi-select is off, and a quoting message keeps its bubble chrome. toggle-select exists only on Vue and Flutter (onToggleSelect); iOS and Compose do not offer it yet. forward / multiSelect / recall are Vue-only on the bubble: native bubbles raise onLongPress and the host opens MessageActionSheet, whose onAction dispatches those. Vue host actions (`actions`) join the menu and raise action; copy reports whether the clipboard took the text. Surface and meta (docs/design/message-surface-and-meta.md): the surface comes from spec/message-surface-vectors.json and the time / receipt placement from spec/message-meta-placement-vectors.json — inline after a text's last line, bubbleFooter inside other bubbles, below (spacing.xs, trailing edge, default palette) for bareMedia and card, none for centered rows; nothing is drawn over media or cards. A failed outgoing card or picture shows the text key \"Failed to send. Retry\" below it, a failed bubble keeps its red edge and its glyph is the retry key; both hit areas are at least layout.touchTarget. The receipt is the SDK's MessageReceiptView (spec/message-receipt-vectors.json): five states with no delivered glyph, and in groups the viewer's own messages show \"N unread\" / \"Read by all\" from message.readSummary, a key that emits readReceiptOpen(messageId) when the host listens. In multi-select the content is inert and a tap anywhere on the row toggles its selection. The row's accessible name is sender, content summary, time and status / read summary in that order. Desktop context menu (C5): one menu model on every kit, opened where the pointer is. Vue draws it itself — on pointer devices (`useMessageMenuInteraction` profile `enableContextMenu`) a right click on a message opens MessageMenu's dropdown at the pointer and each entry raises its own event (reply, forward, recall, …), so Vue has no contextMenu event. Flutter (macOS, Windows, Linux, web) raises contextMenu(message, position) and the host opens its menu there. SwiftUI's MessageList takes the menu model (`contextMenu: FlareMessageContextMenu`) and draws the system context menu on macOS and on an iPad with a pointer. Compose has none yet.",
-        "zh": "乐观：语义状态来自宿主持有的生命周期，绝不等待网络。已撤回消息（生命周期 mutation 为 recalled）在各端都以提示行替代原内容，不显示状态、头像、操作与选择。表情回应显示在气泡下方；只有宿主处理 react 时，点击回应才切换当前用户的回应，多选模式下不切换。回复消息在各端气泡顶部显示引用（发送者与一行摘要）；只有宿主处理 locateMessage 且不在多选模式时引用才是按钮，带引用的消息保留气泡外框。toggle-select 目前只有 Vue 与 Flutter(onToggleSelect),iOS/Compose 尚未提供。forward / multiSelect / recall 在气泡上是 Vue 专有:原生端气泡只抛 onLongPress,由宿主打开 MessageActionSheet 后经其 onAction 分发。Vue 宿主操作(`actions`)进入菜单并抛出 action;copy 回报剪贴板是否写入成功。表面与元信息（docs/design/message-surface-and-meta.md）：表面取自 spec/message-surface-vectors.json，时间与回执的位置取自 spec/message-meta-placement-vectors.json —— 文本跟在最后一行行尾（inline），其他气泡在气泡内右下（bubbleFooter），bareMedia 与 card 在表面下方（spacing.xs、尾侧、默认色板），centered 不显示；不在媒体或卡片上叠任何东西。发送失败的卡片或图片在下方显示「发送失败，重试」文字键，失败的气泡保留红边、图标即重试键；两者命中区都不小于 layout.touchTarget。回执是 SDK 给出的 MessageReceiptView（spec/message-receipt-vectors.json）：五态，没有「已送达」图形；群聊里本人消息按 message.readSummary 显示「N 人未读 / 全部已读」，宿主监听时它是按钮，点按发出 readReceiptOpen(messageId)。多选态下内容不响应，点整行任意处切换选中。行的读屏名依次是发送者、内容摘要、时间、状态或已读摘要。桌面右键菜单（C5）：各端同一份菜单模型，在指针处打开。Vue 自己画——指针设备上（`useMessageMenuInteraction` 的 `enableContextMenu`）右键消息在指针处打开 MessageMenu 下拉，每一项各自发出事件（reply、forward、recall…），所以 Vue 没有 contextMenu 事件。Flutter（macOS、Windows、Linux、Web）发出 contextMenu(message, position)，由宿主在该处打开菜单。SwiftUI 的 MessageList 接收菜单模型（`contextMenu: FlareMessageContextMenu`），在 macOS 与带指针的 iPad 上画系统右键菜单。Compose 暂无。"
+        "en": "Optimistic: semantic status comes from host-owned lifecycle state, never a network wait. A recalled message (lifecycle mutation recalled) renders a notice in place of its content on every platform, with no status, avatar, actions or selection. Reactions render under the bubble; a pill toggles the viewer's reaction through react only when the host handles it, and never in multi-select mode. A reply renders its quote (sender and one-line summary) at the top of the bubble on every platform; the quote is a button that raises locateMessage only when the host handles it and multi-select is off, and a quoting message keeps its bubble chrome. toggle-select exists only on Vue and Flutter (onToggleSelect); iOS and Compose do not offer it yet. forward / multiSelect / recall are Vue-only on the bubble: native bubbles raise onLongPress and the host opens MessageActionSheet, whose onAction dispatches those. Vue host actions (`actions`) join the menu and raise action; copy reports whether the clipboard took the text. Surface and meta (docs/design/message-surface-and-meta.md): the surface comes from spec/message-surface-vectors.json and the time / receipt placement from spec/message-meta-placement-vectors.json — inline after a text's last line, bubbleFooter inside other bubbles, below (spacing.xs, trailing edge, default palette) for bareMedia and card, none for centered rows; nothing is drawn over media or cards. A failed outgoing card or picture shows the text key \"Failed to send. Retry\" below it, a failed bubble keeps its red edge and its glyph is the retry key; both hit areas are at least layout.touchTarget. The receipt is the SDK's MessageReceiptView (spec/message-receipt-vectors.json): five states with no delivered glyph, and in groups the viewer's own messages show \"N unread\" / \"Read by all\" from message.readSummary, a key that emits readReceiptOpen(messageId) when the host listens. In multi-select the content is inert and a tap anywhere on the row toggles its selection. The row's accessible name is sender, content summary, time and status / read summary in that order. Desktop context menu (C5): one menu model on every kit, opened where the pointer is. Vue draws it itself — on pointer devices (`useMessageMenuInteraction` profile `enableContextMenu`) a right click on a message opens MessageMenu's dropdown at the pointer and each entry raises its own event (reply, forward, recall, …), so Vue has no contextMenu event. Flutter (macOS, Windows, Linux, web) and SwiftUI (macOS, an iPad with a pointer) take MessageList's `menu` (FlareMessageMenuSource) and draw the pointer menu where the pointer is from the entries the long-press sheet draws; Flutter's MessageBubble still raises contextMenu(message, position) for a host that draws a bubble on its own. Compose has none yet.",
+        "zh": "乐观：语义状态来自宿主持有的生命周期，绝不等待网络。已撤回消息（生命周期 mutation 为 recalled）在各端都以提示行替代原内容，不显示状态、头像、操作与选择。表情回应显示在气泡下方；只有宿主处理 react 时，点击回应才切换当前用户的回应，多选模式下不切换。回复消息在各端气泡顶部显示引用（发送者与一行摘要）；只有宿主处理 locateMessage 且不在多选模式时引用才是按钮，带引用的消息保留气泡外框。toggle-select 目前只有 Vue 与 Flutter(onToggleSelect),iOS/Compose 尚未提供。forward / multiSelect / recall 在气泡上是 Vue 专有:原生端气泡只抛 onLongPress,由宿主打开 MessageActionSheet 后经其 onAction 分发。Vue 宿主操作(`actions`)进入菜单并抛出 action;copy 回报剪贴板是否写入成功。表面与元信息（docs/design/message-surface-and-meta.md）：表面取自 spec/message-surface-vectors.json，时间与回执的位置取自 spec/message-meta-placement-vectors.json —— 文本跟在最后一行行尾（inline），其他气泡在气泡内右下（bubbleFooter），bareMedia 与 card 在表面下方（spacing.xs、尾侧、默认色板），centered 不显示；不在媒体或卡片上叠任何东西。发送失败的卡片或图片在下方显示「发送失败，重试」文字键，失败的气泡保留红边、图标即重试键；两者命中区都不小于 layout.touchTarget。回执是 SDK 给出的 MessageReceiptView（spec/message-receipt-vectors.json）：五态，没有「已送达」图形；群聊里本人消息按 message.readSummary 显示「N 人未读 / 全部已读」，宿主监听时它是按钮，点按发出 readReceiptOpen(messageId)。多选态下内容不响应，点整行任意处切换选中。行的读屏名依次是发送者、内容摘要、时间、状态或已读摘要。桌面右键菜单（C5）：各端同一份菜单模型，在指针处打开。Vue 自己画——指针设备上（`useMessageMenuInteraction` 的 `enableContextMenu`）右键消息在指针处打开 MessageMenu 下拉，每一项各自发出事件（reply、forward、recall…），所以 Vue 没有 contextMenu 事件。Flutter（macOS、Windows、Linux、Web）与 SwiftUI（macOS、带指针的 iPad）由 MessageList 的 `menu`（FlareMessageMenuSource）在指针处画右键菜单，条目与长按面板同一份；Flutter 的 MessageBubble 仍发出 contextMenu(message, position)，给单独画气泡的宿主用。Compose 暂无。"
       },
       "platforms": {
         "vue": {
@@ -5802,14 +6247,15 @@
           ]
         },
         {
-          "name": "contextMenu",
-          "type": "FlareMessageContextMenu",
+          "name": "menu",
+          "type": "FlareMessageMenuSource",
           "required": false,
           "description": {
-            "en": "SwiftUI: the menu model (the same entries as MessageActionSheet) the list draws as the system context menu on a pointer (macOS, iPad with a pointer); iPhone keeps the long-press sheet.",
-            "zh": "SwiftUI：列表在指针设备（macOS、带指针的 iPad）上画成系统右键菜单的菜单模型（条目与 MessageActionSheet 相同）；iPhone 仍用长按面板。"
+            "en": "One source for the long-press sheet and the pointer (right-click) menu: availability(message) reads the host's snapshot of the core's MessageActionAvailability, prefetch(ids) is called for rows coming on screen, hiddenActions as MessageActionSheet, extraActions(message) the host's entries for that message (MessageActionSheet's actions; a report action only on someone else's message), perform(message, actionId) for both. The kit builds both menus with the MessageActionSheet entry function; without a snapshot the pointer menu shows one disabled messageMenuLoading entry and prefetches. Replaces the SwiftUI contextMenu entries closure. Vue drives the same from menuConfig + actions.",
+            "zh": "长按面板与指针（右键）菜单的同一个来源：availability(message) 同步读宿主手里核心 MessageActionAvailability 的快照，prefetch(ids) 在行进入视口时调用，hiddenActions 与 MessageActionSheet 同义，extraActions(message) 按这条消息给出宿主的条目（即 MessageActionSheet 的 actions，例如「举报」只出现在别人的消息上），perform(message, actionId) 两处共用。Kit 用 MessageActionSheet 的条目函数画两处；还没有快照时右键菜单只有一条不可点的「正在读取…」并触发预读。取代 SwiftUI 的 contextMenu entries 闭包。Vue 由 menuConfig + actions 同源驱动。"
           },
           "platforms": [
+            "flutter",
             "ios"
           ]
         }
@@ -5858,12 +6304,11 @@
         "taskToggle",
         "cardOpen",
         "locationOpen",
-        "readReceiptOpen",
-        "contextMenu"
+        "readReceiptOpen"
       ],
       "notes": {
-        "en": "60fps virtualised; O(visible); scroll anchoring on append/prepend. toggle-select exists only on Vue and Flutter (onToggleSelect); iOS and Compose do not offer it yet. locateMessage: every list scrolls to a loaded quoted message itself and raises onLocateMessage only for one that is not loaded; the host pages it in and then asks the list to show it — `scrollToMessage(id)`, which answers whether the list had that message. Vue exposes that method on the component instance; the three native kits take a host-held handle (`controller`, Compose `state`). Two rules the handle carries: a row answers to two ids — the one it is drawn with and the core's id for it (`serverId`) — so the host hands `scrollToMessage` exactly what `onLocateMessage` gave it and translates nothing; and the handle answers for the pass the list last drew, so the host yields one of its own builds before asking. A quote always names the quoted message by the core's id for it, which is the id every other client knows it by. The trip itself is the kit's too: `flareLocateMessage` / `FlareLocate.run` asks the list, reads a page of older history through the host's callback, lets the list draw and asks again — 24 pages at most, then six more asks — and ends as shown, notInHistory or cancelled (`spec/locate-orchestration-vectors.json`). A host supplies how a page is read and the words for a miss, not the loop. The row a jump lands on is then marked for one window so the reader can see which row it was: `spec/locate-highlight-vectors.json` holds the window (1600 ms) and the three stops of the ring the four kits draw behind the bubble, one row marked at a time, and a second jump moves the mark rather than adding one. Reduce Motion holds the ring still instead of removing it — a reader who asked for less motion still has to be told where the jump landed. The mark is the sighted half of the answer; the other half is spoken. When a jump lands, the list announces which row it reached — the sender and the same one line a reply strip would show (`flareLocatedAnnouncement`) — through each platform's own announcement channel. Where a platform can move the reading cursor without changing how everyone else navigates, the jump takes the reader there too — Vue through the timeline's roving tabindex, SwiftUI through `@AccessibilityFocusState`; Flutter and Compose announce only, because moving the cursor there would mean making every row focusable. The return is each platform's idiom for the same answer: sync on Flutter and SwiftUI, `Promise<boolean>` on Vue, `suspend` on Compose. swipeReply: dragging a row towards the trailing edge starts a reply to it (leading edge under RTL). One rule on the three native kits, shared as `spec/swipe-reply-vectors.json`: only that direction counts, the list's own vertical scrolling wins any drag whose horizontal travel is under 1.25 times its vertical travel, the row follows the finger to 56 and then resists at 0.35 and stops at 72, and 56 is where the gesture arms — the reply affordance reaches full strength exactly there, so the reader knows before letting go, and dragging back below it cancels. A notice, a recalled message and multi-select mode carry no swipe. The gesture is never the only way to reply: the message menu raises the same intent, and the host builds the same quote for both. Vue has no swipe — the web timeline is pointer-first and a horizontal touch drag there fights the list's own scrolling. Vue: `unreadFromId` draws UnreadDivider (which also starts a new sender run), and the header, footer, empty and unread-divider slots keep typing rows and states inside the timeline. Grouping, row presentation and date pills follow spec/message-grouping-vectors.json: a run is one sender within 5 minutes, broken by centered rows (system, recall, delete), a switch between card and the other surfaces, date pills and the unread divider; only bubbles draw a tail; date pills mark local days only (today / yesterday / date). Desktop context menu (C5): one menu model on every kit, opened where the pointer is. Vue draws it itself — on pointer devices (`useMessageMenuInteraction` profile `enableContextMenu`) a right click on a message opens MessageMenu's dropdown at the pointer and each entry raises its own event (reply, forward, recall, …), so Vue has no contextMenu event. Flutter (macOS, Windows, Linux, web) raises contextMenu(message, position) and the host opens its menu there. SwiftUI's MessageList takes the menu model (`contextMenu: FlareMessageContextMenu`) and draws the system context menu on macOS and on an iPad with a pointer. Compose has none yet.",
-        "zh": "60fps 虚拟化；O(visible)；追加 / 前插时锚定滚动位。toggle-select 目前只有 Vue 与 Flutter(onToggleSelect),iOS/Compose 尚未提供。locateMessage:四端列表都自己滚到已加载的被引用消息,只有未加载时才抛 onLocateMessage;宿主翻到那条之后请列表把它显示出来——`scrollToMessage(id)`,按列表画出来的行 id 回答有没有这条。Vue 把这个方法暴露在组件实例上,三个原生 kit 用宿主持有的句柄(`controller`,Compose 为 `state`)。两条规则:一行认两个 id——它被画出来时用的那个,和核心给它的那个(`serverId`),所以宿主把 `onLocateMessage` 给的 id 原样传回 `scrollToMessage`,不做任何换算;句柄按列表最近画的那一遍回答,所以宿主要先让自己的一次构建过去再问。引用永远用核心 id 指向被引用消息——那是别的客户端唯一认得的 id。这趟路本身也归 kit:`flareLocateMessage` / `FlareLocate.run` 先问列表,再经宿主回调翻一页历史,让列表画一遍再问——最多 24 页,之后再问六次——结局是 shown / notInHistory / cancelled(`spec/locate-orchestration-vectors.json`)。宿主提供「怎么翻一页」和「找不到时说什么」,不提供循环。落点那一行随后会被标记一个窗口,让读者看见跳到的是哪一条:`spec/locate-highlight-vectors.json` 规定窗口(1600 ms)与四端在气泡后面画的那一圈的三个停靠点;同一时刻只标记一行,再跳一次是把标记挪过去,不是多亮一行。Reduce Motion 下这一圈静止而不是消失——要求减少动效的读者同样需要知道跳到了哪里。标记是这个答案看得见的那一半,另一半是说出来的:落地时列表会播报跳到了哪一行——发送者,加上回复条会显示的那一句摘要(`flareLocatedAnnouncement`),各端走自己的播报通道。在能够「移动读屏光标又不改变其他人导航方式」的平台上,跳转还会把读者带过去——Vue 借时间线已有的 roving tabindex,SwiftUI 用 `@AccessibilityFocusState`;Flutter 与 Compose 只播报,因为在那两端移动光标意味着把每一行都变成可聚焦的。返回值按各端习惯:Flutter 与 SwiftUI 同步,Vue 是 Promise,Compose 是挂起函数。swipeReply:把一行往尾边方向拖动开始回复它(RTL 下是前边)。三个原生 kit 同一条规则,共享表是 `spec/swipe-reply-vectors.json`:只认这一个方向;横向位移不足竖向 1.25 倍时让位给列表自己的滚动;行跟手到 56,之后按 0.35 阻尼、最多 72;56 是上膛点——回复图标正好在这里到达满强度,所以松手前读者就知道会触发,拖回去则取消。系统提示行、已撤回消息、多选模式都没有侧滑。侧滑永远不是唯一的回复入口:消息菜单抛的是同一个意图,宿主为两者构造同一条引用。Vue 没有侧滑——网页时间线以指针为先,横向触摸拖拽会和列表自身的滚动打架。Vue:`unreadFromId` 画出 UnreadDivider(同时开启新的发送者分组),header、footer、empty、unread-divider 插槽让输入中行与各状态留在时间线里。分组、行呈现和日期胶囊按 spec/message-grouping-vectors.json：同一发送者 5 分钟内为一组，居中行（系统、撤回、删除）、卡片与其他表面之间的切换、日期胶囊和未读分隔线都会断开；只有气泡画尾角；日期胶囊只标本地自然日（今天 / 昨天 / 日期）。桌面右键菜单（C5）：各端同一份菜单模型，在指针处打开。Vue 自己画——指针设备上（`useMessageMenuInteraction` 的 `enableContextMenu`）右键消息在指针处打开 MessageMenu 下拉，每一项各自发出事件（reply、forward、recall…），所以 Vue 没有 contextMenu 事件。Flutter（macOS、Windows、Linux、Web）发出 contextMenu(message, position)，由宿主在该处打开菜单。SwiftUI 的 MessageList 接收菜单模型（`contextMenu: FlareMessageContextMenu`），在 macOS 与带指针的 iPad 上画系统右键菜单。Compose 暂无。"
+        "en": "60fps virtualised; O(visible); scroll anchoring on append/prepend. toggle-select exists only on Vue and Flutter (onToggleSelect); iOS and Compose do not offer it yet. locateMessage: every list scrolls to a loaded quoted message itself and raises onLocateMessage only for one that is not loaded; the host pages it in and then asks the list to show it — `scrollToMessage(id)`, which answers whether the list had that message. Vue exposes that method on the component instance; the three native kits take a host-held handle (`controller`, Compose `state`). Two rules the handle carries: a row answers to two ids — the one it is drawn with and the core's id for it (`serverId`) — so the host hands `scrollToMessage` exactly what `onLocateMessage` gave it and translates nothing; and the handle answers for the pass the list last drew, so the host yields one of its own builds before asking. A quote always names the quoted message by the core's id for it, which is the id every other client knows it by. The trip itself is the kit's too: `flareLocateMessage` / `FlareLocate.run` asks the list, reads a page of older history through the host's callback, lets the list draw and asks again — 24 pages at most, then six more asks — and ends as shown, notInHistory or cancelled (`spec/locate-orchestration-vectors.json`). A host supplies how a page is read and the words for a miss, not the loop. The row a jump lands on is then marked for one window so the reader can see which row it was: `spec/locate-highlight-vectors.json` holds the window (1600 ms) and the three stops of the ring the four kits draw behind the bubble, one row marked at a time, and a second jump moves the mark rather than adding one. Reduce Motion holds the ring still instead of removing it — a reader who asked for less motion still has to be told where the jump landed. The mark is the sighted half of the answer; the other half is spoken. When a jump lands, the list announces which row it reached — the sender and the same one line a reply strip would show (`flareLocatedAnnouncement`) — through each platform's own announcement channel. Where a platform can move the reading cursor without changing how everyone else navigates, the jump takes the reader there too — Vue through the timeline's roving tabindex, SwiftUI through `@AccessibilityFocusState`; Flutter and Compose announce only, because moving the cursor there would mean making every row focusable. The return is each platform's idiom for the same answer: sync on Flutter and SwiftUI, `Promise<boolean>` on Vue, `suspend` on Compose. swipeReply: dragging a row towards the trailing edge starts a reply to it (leading edge under RTL). One rule on the three native kits, shared as `spec/swipe-reply-vectors.json`: only that direction counts, the list's own vertical scrolling wins any drag whose horizontal travel is under 1.25 times its vertical travel, the row follows the finger to 56 and then resists at 0.35 and stops at 72, and 56 is where the gesture arms — the reply affordance reaches full strength exactly there, so the reader knows before letting go, and dragging back below it cancels. A notice, a recalled message and multi-select mode carry no swipe. The gesture is never the only way to reply: the message menu raises the same intent, and the host builds the same quote for both. Vue has no swipe — the web timeline is pointer-first and a horizontal touch drag there fights the list's own scrolling. Vue: `unreadFromId` draws UnreadDivider (which also starts a new sender run), and the header, footer, empty and unread-divider slots keep typing rows and states inside the timeline. Grouping, row presentation and date pills follow spec/message-grouping-vectors.json: a run is one sender within 5 minutes, broken by centered rows (system, recall, delete), a switch between card and the other surfaces, date pills and the unread divider; only bubbles draw a tail; date pills mark local days only (today / yesterday / date). Desktop context menu (C5): one menu model on every kit, opened where the pointer is. Vue draws it itself — on pointer devices (`useMessageMenuInteraction` profile `enableContextMenu`) a right click on a message opens MessageMenu's dropdown at the pointer and each entry raises its own event (reply, forward, recall, …), so Vue has no contextMenu event. Flutter (macOS, Windows, Linux, web) and SwiftUI (macOS, an iPad with a pointer) take MessageList's `menu` (FlareMessageMenuSource) and draw the pointer menu where the pointer is from the entries the long-press sheet draws; Flutter's MessageBubble still raises contextMenu(message, position) for a host that draws a bubble on its own. Compose has none yet.",
+        "zh": "60fps 虚拟化；O(visible)；追加 / 前插时锚定滚动位。toggle-select 目前只有 Vue 与 Flutter(onToggleSelect),iOS/Compose 尚未提供。locateMessage:四端列表都自己滚到已加载的被引用消息,只有未加载时才抛 onLocateMessage;宿主翻到那条之后请列表把它显示出来——`scrollToMessage(id)`,按列表画出来的行 id 回答有没有这条。Vue 把这个方法暴露在组件实例上,三个原生 kit 用宿主持有的句柄(`controller`,Compose 为 `state`)。两条规则:一行认两个 id——它被画出来时用的那个,和核心给它的那个(`serverId`),所以宿主把 `onLocateMessage` 给的 id 原样传回 `scrollToMessage`,不做任何换算;句柄按列表最近画的那一遍回答,所以宿主要先让自己的一次构建过去再问。引用永远用核心 id 指向被引用消息——那是别的客户端唯一认得的 id。这趟路本身也归 kit:`flareLocateMessage` / `FlareLocate.run` 先问列表,再经宿主回调翻一页历史,让列表画一遍再问——最多 24 页,之后再问六次——结局是 shown / notInHistory / cancelled(`spec/locate-orchestration-vectors.json`)。宿主提供「怎么翻一页」和「找不到时说什么」,不提供循环。落点那一行随后会被标记一个窗口,让读者看见跳到的是哪一条:`spec/locate-highlight-vectors.json` 规定窗口(1600 ms)与四端在气泡后面画的那一圈的三个停靠点;同一时刻只标记一行,再跳一次是把标记挪过去,不是多亮一行。Reduce Motion 下这一圈静止而不是消失——要求减少动效的读者同样需要知道跳到了哪里。标记是这个答案看得见的那一半,另一半是说出来的:落地时列表会播报跳到了哪一行——发送者,加上回复条会显示的那一句摘要(`flareLocatedAnnouncement`),各端走自己的播报通道。在能够「移动读屏光标又不改变其他人导航方式」的平台上,跳转还会把读者带过去——Vue 借时间线已有的 roving tabindex,SwiftUI 用 `@AccessibilityFocusState`;Flutter 与 Compose 只播报,因为在那两端移动光标意味着把每一行都变成可聚焦的。返回值按各端习惯:Flutter 与 SwiftUI 同步,Vue 是 Promise,Compose 是挂起函数。swipeReply:把一行往尾边方向拖动开始回复它(RTL 下是前边)。三个原生 kit 同一条规则,共享表是 `spec/swipe-reply-vectors.json`:只认这一个方向;横向位移不足竖向 1.25 倍时让位给列表自己的滚动;行跟手到 56,之后按 0.35 阻尼、最多 72;56 是上膛点——回复图标正好在这里到达满强度,所以松手前读者就知道会触发,拖回去则取消。系统提示行、已撤回消息、多选模式都没有侧滑。侧滑永远不是唯一的回复入口:消息菜单抛的是同一个意图,宿主为两者构造同一条引用。Vue 没有侧滑——网页时间线以指针为先,横向触摸拖拽会和列表自身的滚动打架。Vue:`unreadFromId` 画出 UnreadDivider(同时开启新的发送者分组),header、footer、empty、unread-divider 插槽让输入中行与各状态留在时间线里。分组、行呈现和日期胶囊按 spec/message-grouping-vectors.json：同一发送者 5 分钟内为一组，居中行（系统、撤回、删除）、卡片与其他表面之间的切换、日期胶囊和未读分隔线都会断开；只有气泡画尾角；日期胶囊只标本地自然日（今天 / 昨天 / 日期）。桌面右键菜单（C5）：各端同一份菜单模型，在指针处打开。Vue 自己画——指针设备上（`useMessageMenuInteraction` 的 `enableContextMenu`）右键消息在指针处打开 MessageMenu 下拉，每一项各自发出事件（reply、forward、recall…），所以 Vue 没有 contextMenu 事件。Flutter（macOS、Windows、Linux、Web）与 SwiftUI（macOS、带指针的 iPad）由 MessageList 的 `menu`（FlareMessageMenuSource）在指针处画右键菜单，条目与长按面板同一份；Flutter 的 MessageBubble 仍发出 contextMenu(message, position)，给单独画气泡的宿主用。Compose 暂无。"
       },
       "platforms": {
         "vue": {
@@ -5966,9 +6411,6 @@
           "flutter",
           "ios",
           "compose"
-        ],
-        "contextMenu": [
-          "flutter"
         ]
       },
       "accessibility": {
@@ -6467,6 +6909,21 @@
             "en": "Sender name, used by some content types (e.g. cards).",
             "zh": "发送者名，部分内容类型会用（如名片）。"
           }
+        },
+        {
+          "name": "senderId",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "The sender's id, handed to a custom renderer as senderId (MessageRenderContext).",
+            "zh": "发送者 id，作为 senderId 交给自定义渲染器（MessageRenderContext）。"
+          },
+          "platforms": [
+            "vue",
+            "flutter",
+            "ios",
+            "compose"
+          ]
         },
         {
           "name": "mediaState",
@@ -12015,6 +12472,10 @@
         },
         "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
         "screenReaderSemantics": "Expose a named group and meaningful descendant roles, values, states, availability, and progress. Decorative imagery is hidden."
+      },
+      "notes": {
+        "en": "The 我 page: flareMeMenuSections(menu, labels?, summaries?) turns the social SDK's features.meMenu result into sections — everything but settings in the SDK's order, then settings alone; built-in labels from the kit (meMenuMoments / Reports / Invite / Settings) unless overridden, plugin titles (meMenuPluginFallback when blank), icons through flareIconNameOrFallback, the subtitle the host gives by item id (summaries: a plugin item's meMenuSummary, a built-in page's own copy) as its detail (spec/me-menu-vectors.json). Row icons outside the registry draw the plugin glyph, never a question mark.",
+        "zh": "「我」页：flareMeMenuSections(menu, labels?, summaries?) 把社交 SDK 的 features.meMenu 结果变成分组 —— 除设置外按 SDK 顺序，设置单独成组在最后；内置项文案取 Kit（meMenuMoments / Reports / Invite / Settings）或宿主覆盖，插件项取标题（为空时 meMenuPluginFallback），图标经 flareIconNameOrFallback，宿主按项 id 给的副标题（summaries：插件项的 meMenuSummary、内置页自己的文案）作为副标题（spec/me-menu-vectors.json）。行图标不在注册表里时画 plugin 字形，不画问号。"
       }
     },
     {
@@ -13317,8 +13778,8 @@
       "name": "ReadReceiptSheet",
       "category": "Message",
       "summary": {
-        "zh": "群消息回执 —— 已读/未读分页 + 成员头像列表。",
-        "en": "Group read receipt — read/unread tabs + member avatars."
+        "en": "Group read list — read / unread tabs that page on their own, with loading, error and unavailable states.",
+        "zh": "群消息已读名单 —— 已读 / 未读两栏各自分页，带加载、失败、不可用三态。"
       },
       "dataSource": {
         "zh": "由你传入",
@@ -13330,8 +13791,8 @@
           "type": "FlareContact[]",
           "required": true,
           "description": {
-            "zh": "已读成员列表",
-            "en": "Members who have read the message"
+            "en": "Members of the read column loaded so far (one page or more)",
+            "zh": "已读栏已经取到的成员（可以只是第一页）"
           }
         },
         {
@@ -13339,9 +13800,129 @@
           "type": "FlareContact[]",
           "required": true,
           "description": {
-            "zh": "未读成员列表",
-            "en": "Members who have not read the message"
+            "en": "Members of the unread column loaded so far (one page or more)",
+            "zh": "未读栏已经取到的成员（可以只是第一页）"
           }
+        },
+        {
+          "name": "readCount",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "The read count of the summary (receipt.readSummary.readCount): the read tab's number. Absent: the tab has no number — never the length of the loaded list.",
+            "zh": "摘要里的已读人数（receipt.readSummary.readCount），即已读标签上的数字。不传时标签不带数字，永不取已加载列表的长度。"
+          },
+          "platforms": [
+            "vue",
+            "flutter",
+            "ios",
+            "compose"
+          ]
+        },
+        {
+          "name": "unreadCount",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "The unread count of the summary: the unread tab's number, as readCount.",
+            "zh": "摘要里的未读人数，即未读标签上的数字，规则同 readCount。"
+          },
+          "platforms": [
+            "vue",
+            "flutter",
+            "ios",
+            "compose"
+          ]
+        },
+        {
+          "name": "state",
+          "type": "FlareReadReceiptState",
+          "required": false,
+          "description": {
+            "en": "ready (default), loading (a spinner under the tabs), error (a notice with a retry key; no tabs) or unavailable (a notice, no retry; for NOT_FOUND or available:false).",
+            "zh": "ready（默认）、loading（标签下一个转圈）、error（提示加重试键，不画标签）或 unavailable（提示，无重试；用于 NOT_FOUND 或 available:false）。"
+          },
+          "platforms": [
+            "vue",
+            "flutter",
+            "ios",
+            "compose"
+          ]
+        },
+        {
+          "name": "readHasMore",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "The read column has a next page: its list ends with the load-more key.",
+            "zh": "已读栏还有下一页：列表末尾是「加载更多」键。"
+          },
+          "platforms": [
+            "vue",
+            "flutter",
+            "ios",
+            "compose"
+          ]
+        },
+        {
+          "name": "unreadHasMore",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "The unread column has a next page.",
+            "zh": "未读栏还有下一页。"
+          },
+          "platforms": [
+            "vue",
+            "flutter",
+            "ios",
+            "compose"
+          ]
+        },
+        {
+          "name": "loadingMore",
+          "type": "FlareReadReceiptColumn",
+          "required": false,
+          "description": {
+            "en": "The column whose next page is being read: its list ends with a spinner and asks for nothing.",
+            "zh": "正在取下一页的那一栏：列表末尾是转圈，不再请求。"
+          },
+          "platforms": [
+            "vue",
+            "flutter",
+            "ios",
+            "compose"
+          ]
+        },
+        {
+          "name": "loadMoreFailed",
+          "type": "FlareReadReceiptColumn",
+          "required": false,
+          "description": {
+            "en": "The column whose last next-page read failed: its list ends with a retry key that emits loadMore again.",
+            "zh": "上一次取下一页失败的那一栏：列表末尾是重试键，点了再发 loadMore。"
+          },
+          "platforms": [
+            "vue",
+            "flutter",
+            "ios",
+            "compose"
+          ]
+        },
+        {
+          "name": "initialTab",
+          "type": "FlareReadReceiptColumn",
+          "required": false,
+          "description": {
+            "en": "The column shown first (read by default).",
+            "zh": "打开时停在哪一栏（默认已读）。"
+          },
+          "platforms": [
+            "vue",
+            "flutter",
+            "ios",
+            "compose"
+          ]
         },
         {
           "name": "dismissible",
@@ -13355,11 +13936,17 @@
       ],
       "states": [
         "read",
-        "unread"
+        "unread",
+        "loading",
+        "error",
+        "unavailable",
+        "loadingMore"
       ],
       "events": [
         "select",
-        "close"
+        "close",
+        "loadMore",
+        "retry"
       ],
       "platforms": {
         "vue": {
@@ -13395,6 +13982,24 @@
         },
         "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
         "screenReaderSemantics": "Expose a named group and meaningful descendant roles, values, states, availability, and progress. Decorative imagery is hidden."
+      },
+      "eventPlatforms": {
+        "loadMore": [
+          "vue",
+          "flutter",
+          "ios",
+          "compose"
+        ],
+        "retry": [
+          "vue",
+          "flutter",
+          "ios",
+          "compose"
+        ]
+      },
+      "notes": {
+        "en": "spec/read-receipt-vectors.json. The tab numbers are the summary counts the host passes, never list lengths. Each column pages on its own (loadMore(column), one request at a time per column). The paging state is the kit's holder, not the host's: Vue useFlareReadReceiptList(key, page), Compose rememberFlareReadReceiptListState(key, page), the same names on SwiftUI and Flutter; the host gives one loader page(column, cursor?) that names a page or answers null when the list is not offered (spec/read-receipt-list-vectors.json). The sheet takes its container's width: outside a kit overlay it draws its own card shell, at most 320 wide; inside a kit BottomSheet or Modal it draws no shell and declares its own header, and the host opens it with the sheet's fill mode so the title is not drawn twice.",
+        "zh": "spec/read-receipt-vectors.json。标签上的数字取宿主传的摘要人数，不取列表长度。两栏各自分页（loadMore(column)，每栏同时只请求一次）。分页状态在 Kit 的持有者里、不在宿主：Vue useFlareReadReceiptList(key, page)，Compose rememberFlareReadReceiptListState(key, page)，SwiftUI / Flutter 同名；宿主只给一个按栏取页的 page(column, cursor?)，取不到名单（不开放）时返回 null（spec/read-receipt-list-vectors.json）。宽度随容器：不在 Kit 浮层里时自画卡片外壳，最宽 320；在 Kit BottomSheet / Modal 里不画外壳并声明自带标题，宿主用面板的 fill 模式打开，标题不重复。"
       }
     },
     {
@@ -14512,6 +15117,7 @@
         "opening",
         "finished",
         "expired",
+        "refunded",
         "notEligible",
         "error"
       ],
@@ -14558,8 +15164,8 @@
         "screenReaderSemantics": "Dialog named \"Red packet from X\"; the headline is a polite live region; the coin is a button named 開 and busy while opening; the avatar is hidden."
       },
       "notes": {
-        "en": "Draws only, never decides eligibility: the host prefetches details, maps canClaim to state, sets opening on 開 and calls claim. Scrim tap, the close control under the envelope, Escape and the platform back all emit close. Flutter paints its own scrim: lay it in a Stack or present it with FlareRedPacketOpenSheet.show. The notEligible notice and the error line use the body line height (lineHeight.normal) and stop at three lines. Keys per state in spec/red-packet-vectors.json → openSheet: 開 while ready, opening or error; the details key only for finished / expired with canViewDetails; never for notEligible (the server returns no amount or records to a non-designated viewer).",
-        "zh": "只画，不判断资格：宿主调 details 预取后按 canClaim 给出 state，点「開」时置为 opening 并调 claim。遮罩点击、关闭键（信封下方）、Escape 和返回键都触发 close。Flutter 组件自绘遮罩，可放进 Stack，也可用 FlareRedPacketOpenSheet.show 推一条路由。 notEligible 的提示和 error 的说明用正文行高（lineHeight.normal），最多 3 行，超出省略。各状态给哪些键见 spec/red-packet-vectors.json → openSheet：ready、opening、error 显示「開」；只有 finished / expired 且 canViewDetails 时给「查看领取详情」；notEligible 永远不给（服务端对非指定人不返回金额和记录）。"
+        "en": "Draws only, never decides eligibility: the host prefetches details, maps canClaim to state, sets opening on 開 and calls claim. Scrim tap, the close control under the envelope, Escape and the platform back all emit close. Flutter paints its own scrim: lay it in a Stack or present it with FlareRedPacketOpenSheet.show. The notEligible notice and the error line use the body line height (lineHeight.normal) and stop at three lines. Keys per state in spec/red-packet-vectors.json → openSheet: 開 while ready, opening or error; the details key only for finished / expired with canViewDetails; never for notEligible (the server returns no amount or records to a non-designated viewer). refunded (PACKET_REFUNDED, or the public status refunded) says redPacket.refundedNotice / packetRefundedNotice; like expired it has no 開 and offers the details only with canViewDetails (spec/red-packet-vectors.json openSheetRefunded).",
+        "zh": "只画，不判断资格：宿主调 details 预取后按 canClaim 给出 state，点「開」时置为 opening 并调 claim。遮罩点击、关闭键（信封下方）、Escape 和返回键都触发 close。Flutter 组件自绘遮罩，可放进 Stack，也可用 FlareRedPacketOpenSheet.show 推一条路由。 notEligible 的提示和 error 的说明用正文行高（lineHeight.normal），最多 3 行，超出省略。各状态给哪些键见 spec/red-packet-vectors.json → openSheet：ready、opening、error 显示「開」；只有 finished / expired 且 canViewDetails 时给「查看领取详情」；notEligible 永远不给（服务端对非指定人不返回金额和记录）。refunded（领取被拒 PACKET_REFUNDED，或公开层 status 为 refunded）显示「红包已退回」（redPacket.refundedNotice / packetRefundedNotice）；与 expired 一样没有「開」，只在 canViewDetails 时给「查看详情」（spec/red-packet-vectors.json openSheetRefunded）。"
       }
     },
     {
@@ -14720,6 +15326,22 @@
             "en": "Amount text (two-way): total for lucky, each for a group's normal, amount for exclusive and 1:1; digits with at most two decimals"
           },
           "default": "\"\""
+        },
+        {
+          "name": "currencyExponent",
+          "type": "number",
+          "required": false,
+          "default": "2",
+          "description": {
+            "en": "The currency's ISO 4217 exponent from the plugin's limits (0 JPY, 2 CNY, 3 KWD): the amount field keeps at most that many decimals (none at 0) and its placeholder has that many. flareRedPacketAmountMinor(text, exponent) turns the field into minor units (spec/red-packet-vectors.json amountInputExponent, amountMinor, amountPlaceholder).",
+            "zh": "币种的 ISO 4217 小数位（插件 limits 给出；JPY 0、CNY 2、KWD 3）：金额框最多保留这么多位小数（0 时不收小数点），占位也按它写。flareRedPacketAmountMinor(text, exponent) 把输入换成最小单位（spec/red-packet-vectors.json amountInputExponent、amountMinor、amountPlaceholder）。"
+          },
+          "platforms": [
+            "vue",
+            "flutter",
+            "ios",
+            "compose"
+          ]
         },
         {
           "name": "count",
@@ -14935,6 +15557,15 @@
             "en": "Payment in flight: both buttons and every way out are locked"
           },
           "default": "false"
+        },
+        {
+          "name": "confirmLabel",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "确认按钮文案；宿主区分付款和资金授权，默认沿用确认支付。",
+            "en": "Confirm label; lets the host distinguish payment from authorizing funds. Defaults to Confirm payment."
+          }
         }
       ],
       "states": [
@@ -15147,10 +15778,22 @@
       "events": [
         "action",
         "openDetail",
-        "loadMore"
+        "loadMore",
+        "selectionSearch",
+        "selectionRetry",
+        "selectionMore"
       ],
       "eventPlatforms": {
         "loadMore": [
+          "vue"
+        ],
+        "selectionSearch": [
+          "vue"
+        ],
+        "selectionRetry": [
+          "vue"
+        ],
+        "selectionMore": [
           "vue"
         ]
       },
@@ -15190,8 +15833,8 @@
         "screenReaderSemantics": "A group named by the title. Options are buttons (single) or checkboxes (multiple) that read their label, selected state, percentage and votes; progress reads value of total; the countdown is not a live region (it is read on focus); the error is an alert."
       },
       "notes": {
-        "en": "Render facts follow spec/plugin-view-vectors.json (views, optimistic, time, countdown). Shell: the business card of the kit — width sizes.component.richCardWidth (constrained by the parent), radius lg, a hairline border and the card shadow; the title row carries the icon. Actions: style danger → danger key, primary → primary key, otherwise secondary; confirm → the kit DangerConfirm first; form → the kit bottom sheet with PluginForm, whose submit emits action(id, {formValues}). Choices: single submits on tap; multiple toggles a draft and submits from a key labelled with the block's action. The kit marks the submitted options at once and reverts when error becomes non-empty (or busyActionId clears with an error); a new view settles it. Payload: {selection?, formValues?} (Vue rows add row: {key, input}). openDetail comes from \"see all\" (Vue rows: from a row, with {key, input}) or from the card's view details key, and the host opens PluginDetailSheet. View details: when view.detail is true and no entries block shows its see all, an available card that is not embedded and has no rows block draws a full-width quiet text key (size sm, pluginViewDetail / Vue pluginView.detail) under the action keys; it emits openDetail with no row, waits while busy or busyActionId is set, and needs a host that handles openDetail (spec/plugin-view-vectors.json rules.detailKey, detailKey). Time is formatted in the device zone with pluginViewDateTimeFormat; countdown refreshes every second under an hour and every minute otherwise. Rows: on a plugin page a list on every kit (rowsLayout list, rules.pageRows); in the Vue console (rowsLayout table) FlareDataTable with row actions, a row click for the detail, load more (loadMore(cursor, source)) and the empty text. Settling: the explicit signal is settleToken (the host increments it once per finished action, after setting that result's error / formErrors); busyActionId leaving the action is the fallback, and a host that sets and clears busyActionId within one frame settles only through the token (spec/plugin-view-vectors.json optimistic, rules.settle). Inset: sheet pads the view with spacing md / lg / xl (top / sides / bottom) like PluginForm, for a view placed straight into the kit BottomSheet; sheetTop pads md / lg / 0 for a view with more of the sheet under it (a preface above PluginForm), so the two meet at the form's own md and not at xl + md. Both pad every state — the embedded body, available or not (an unavailable embedded view shows its title as one secondary line), and a card shell a host keeps in a sheet (spec/plugin-view-vectors.json rules.inset, insets). Admin filters (Vue): a rows block's filters names the view inputs the page shows as its filter bar, every input when absent; the other inputs are only collected by row actions' forms. flarePluginFilterInputs(view) returns them in document order (spec/plugin-view-vectors.json filterInputs). Protocol v2 shape (W1-PROTO-SDK §2): view.menuActions open from a kit ⋯ key at the end of the title row (embedded: keys after view.actions) and run like buttons; grouped entries draw a header row \"label · N votes · P%\" before the first item of each group, number within the group and tag the viewer's row \"me\"; view.unavailableReason (disabled, not_installed, no_permission, unsupported_platform, incompatible_version, catalog_unreachable, unbound_copy) adds its localized line after the title, led by displayName; unbound_copy stays readable and read-only. The card shell is the message's card surface: the timeline draws no bubble around it, and a quoted reply goes in the shell's quote slot. Facts in spec/plugin-view-vectors.json (menuActions, entriesGrouped, unavailableReason, shell). Badges: an entry or a row with badge {text, tone} draws it as the kit tag in the tone (entries: after the name and me tag, before the text; list rows: before the first cell; table rows: in the first cell); an unknown tone is neutral (rules.badge). Choices limit: a multiple choice with maxSelections disables every option outside the draft once the draft holds that many (ticked ones still untick), submits only a draft within the cap and leads the footer with \"Choose up to {n}\" while it can be chosen (rules.maxSelections, maxSelections).",
-        "zh": "渲染事实以 spec/plugin-view-vectors.json 为准（views、optimistic、time、countdown）。外壳与 Kit 业务卡片一致：宽度 sizes.component.richCardWidth（服从父约束）、圆角 lg、细边框和卡片阴影，标题行带图标位。动作：style 为 danger 用危险键，primary 用主键，其余为次要键；有 confirm 先弹 Kit 的 DangerConfirm；有 form 打开 Kit 底部面板里的 PluginForm，提交时发出 action(id, {formValues})。choices：单选点一项立即提交；多选勾选后点提交键，键名取块持有的动作 label。Kit 先乐观标记提交的选项，error 变为非空（或 busyActionId 清空时带着 error）时撤回，新视图到达即结算。payload 为 {selection?, formValues?}（Vue 的 rows 另有 row: {key, input}）。「查看全部」或卡片的「查看详情」发出 openDetail（Vue 的 rows 点行时带 {key, input}），宿主打开 PluginDetailSheet。查看详情：view.detail 为真且没有 entries 块在显示「查看全部」时，可用、非 embedded、没有 rows 块的卡片在动作区下方画一个整宽的 quiet 文字按钮（size sm，pluginViewDetail / Vue 的 pluginView.detail），点击发出不带 row 的 openDetail；busy 或 busyActionId 时禁用；宿主要处理 openDetail 才显示（spec/plugin-view-vectors.json 的 rules.detailKey 与 detailKey）。时间按设备时区用 pluginViewDateTimeFormat 格式化；倒计时剩余不到 1 小时每秒刷新，否则每分钟刷新。rows（管理页）只在 Vue：FlareDataTable 加行动作、点行打开详情、加载更多（loadMore(cursor, source)）和空态。结算：显式信号是 settleToken（宿主每完成一次动作加 1，并且先设好这次结果的 error / formErrors）；busyActionId 离开该动作是兜底；宿主在同一帧里设上又清掉 busyActionId 时，只能靠令牌结算（spec/plugin-view-vectors.json 的 optimistic 与 rules.settle）。内边距：inset 为 sheet 时按 PluginForm 的 md / lg / xl（上 / 左右 / 下）留白，供直接放进 Kit BottomSheet 的视图使用；sheetTop 留 md / lg / 0，供下面还有面板内容的视图（PluginForm 上方的前言），两者之间只剩表单自己的 md，不再是 xl + md。两者作用于所有状态 —— embedded 的内容，可用或不可用（不可用的 embedded 视图把标题显示为一行次要文字），以及宿主留在面板里的卡片外壳（spec/plugin-view-vectors.json 的 rules.inset 与 insets）。管理页筛选（Vue）：rows 块的 filters 列出页面筛选栏要显示的视图输入，不带时为全部输入；其余输入只由行动作的表单收集。flarePluginFilterInputs(view) 按文档顺序返回它们（spec/plugin-view-vectors.json 的 filterInputs）。协议 v2 形状（W1-PROTO-SDK §2）：view.menuActions 由标题行末尾的 Kit ⋯ 键打开（内嵌时排在 view.actions 之后作为按钮），执行方式与按钮相同；分组 entries 在每组第一条前插组头行「选项 · N 票 · P%」，组内编号，当前用户那行带「我」；view.unavailableReason（disabled、not_installed、no_permission、unsupported_platform、incompatible_version、catalog_unreachable、unbound_copy）在标题后加一行本地化原因，前面是 displayName；unbound_copy 照常显示但只读。卡片外壳就是消息的 card 表面：时间线不在外面再套气泡，引用回复画在外壳的 quote 插槽里。事实见 spec/plugin-view-vectors.json（menuActions、entriesGrouped、unavailableReason、shell）。 徽标：带 badge {text, tone} 的条目或行，用对应语义色的 Kit 标签画出（entries 在名字与「我」之后、正文之前；列表形式的行在第一格之前；表格形式在第一格内）；未知 tone 按 neutral（rules.badge）。多选上限：带 maxSelections 的多选在草稿达到上限后禁用草稿以外的选项（已选的仍可取消），只提交不超过上限的草稿，可选时页脚以「最多选 {n} 项」开头（rules.maxSelections、maxSelections）。"
+        "en": "Render facts follow spec/plugin-view-vectors.json (views, optimistic, time, countdown). Shell: the business card of the kit — width sizes.component.richCardWidth (constrained by the parent), radius lg, a hairline border and the card shadow; the title row carries the icon. Actions: style danger → danger key, primary → primary key, otherwise secondary; confirm → the kit DangerConfirm first; form → the kit bottom sheet with PluginForm, whose submit emits action(id, {formValues}). Choices: single submits on tap; multiple toggles a draft and submits from a key labelled with the block's action. The kit marks the submitted options at once and reverts when error becomes non-empty (or busyActionId clears with an error); a new view settles it. Payload: {selection?, formValues?} (Vue rows add row: {key, input}). openDetail comes from \"see all\" (Vue rows: from a row, with {key, input}) or from the card's view details key, and the host opens PluginDetailSheet. View details: when view.detail is true and no entries block shows its see all, an available card that is not embedded and has no rows block draws a full-width quiet text key (size sm, pluginViewDetail / Vue pluginView.detail) under the action keys; it emits openDetail with no row, waits while busy or busyActionId is set, and needs a host that handles openDetail (spec/plugin-view-vectors.json rules.detailKey, detailKey). Time is formatted in the device zone with pluginViewDateTimeFormat; countdown refreshes every second under an hour and every minute otherwise. Rows: on a plugin page a list on every kit (rowsLayout list, rules.pageRows); in the Vue console (rowsLayout table) FlareDataTable with row actions, a row click for the detail, load more (loadMore(cursor, source)) and the empty text. Settling: the explicit signal is settleToken (the host increments it once per finished action, after setting that result's error / formErrors); busyActionId leaving the action is the fallback, and a host that sets and clears busyActionId within one frame settles only through the token (spec/plugin-view-vectors.json optimistic, rules.settle). Inset: sheet pads the view with spacing md / lg / xl (top / sides / bottom) like PluginForm, for a view placed straight into the kit BottomSheet; sheetTop pads md / lg / 0 for a view with more of the sheet under it (a preface above PluginForm), so the two meet at the form's own md and not at xl + md. Both pad every state — the embedded body, available or not (an unavailable embedded view shows its title as one secondary line), and a card shell a host keeps in a sheet (spec/plugin-view-vectors.json rules.inset, insets). Admin filters (Vue): a rows block's filters names the view inputs the page shows as its filter bar, every input when absent; the other inputs are only collected by row actions' forms. flarePluginFilterInputs(view) returns them in document order (spec/plugin-view-vectors.json filterInputs). Protocol v2 shape (W1-PROTO-SDK §2): view.menuActions open from a kit ⋯ key at the end of the title row (embedded: keys after view.actions) and run like buttons; grouped entries draw a header row \"label · N votes · P%\" before the first item of each group, number within the group and tag the viewer's row \"me\"; view.unavailableReason (disabled, not_installed, no_permission, unsupported_platform, incompatible_version, catalog_unreachable, unbound_copy) adds its localized line after the title, led by displayName; unbound_copy stays readable and read-only. The card shell is the message's card surface: the timeline draws no bubble around it, and a quoted reply goes in the shell's quote slot. Facts in spec/plugin-view-vectors.json (menuActions, entriesGrouped, unavailableReason, shell). Badges: an entry or a row with badge {text, tone} draws it as the kit tag in the tone (entries: after the name and me tag, before the text; list rows: before the first cell; table rows: in the first cell); an unknown tone is neutral (rules.badge). Choices limit: a multiple choice with maxSelections disables every option outside the draft once the draft holds that many (ticked ones still untick), submits only a draft within the cap and leads the footer with \"Choose up to {n}\" while it can be chosen (rules.maxSelections, maxSelections). The ⋯ key of menuActions sits at the trailing edge of the title row, which spans the card's inner width. A choices block never draws its total (only the shares' denominator): its footer is the maxSelections hint and Ended.",
+        "zh": "渲染事实以 spec/plugin-view-vectors.json 为准（views、optimistic、time、countdown）。外壳与 Kit 业务卡片一致：宽度 sizes.component.richCardWidth（服从父约束）、圆角 lg、细边框和卡片阴影，标题行带图标位。动作：style 为 danger 用危险键，primary 用主键，其余为次要键；有 confirm 先弹 Kit 的 DangerConfirm；有 form 打开 Kit 底部面板里的 PluginForm，提交时发出 action(id, {formValues})。choices：单选点一项立即提交；多选勾选后点提交键，键名取块持有的动作 label。Kit 先乐观标记提交的选项，error 变为非空（或 busyActionId 清空时带着 error）时撤回，新视图到达即结算。payload 为 {selection?, formValues?}（Vue 的 rows 另有 row: {key, input}）。「查看全部」或卡片的「查看详情」发出 openDetail（Vue 的 rows 点行时带 {key, input}），宿主打开 PluginDetailSheet。查看详情：view.detail 为真且没有 entries 块在显示「查看全部」时，可用、非 embedded、没有 rows 块的卡片在动作区下方画一个整宽的 quiet 文字按钮（size sm，pluginViewDetail / Vue 的 pluginView.detail），点击发出不带 row 的 openDetail；busy 或 busyActionId 时禁用；宿主要处理 openDetail 才显示（spec/plugin-view-vectors.json 的 rules.detailKey 与 detailKey）。时间按设备时区用 pluginViewDateTimeFormat 格式化；倒计时剩余不到 1 小时每秒刷新，否则每分钟刷新。rows（管理页）只在 Vue：FlareDataTable 加行动作、点行打开详情、加载更多（loadMore(cursor, source)）和空态。结算：显式信号是 settleToken（宿主每完成一次动作加 1，并且先设好这次结果的 error / formErrors）；busyActionId 离开该动作是兜底；宿主在同一帧里设上又清掉 busyActionId 时，只能靠令牌结算（spec/plugin-view-vectors.json 的 optimistic 与 rules.settle）。内边距：inset 为 sheet 时按 PluginForm 的 md / lg / xl（上 / 左右 / 下）留白，供直接放进 Kit BottomSheet 的视图使用；sheetTop 留 md / lg / 0，供下面还有面板内容的视图（PluginForm 上方的前言），两者之间只剩表单自己的 md，不再是 xl + md。两者作用于所有状态 —— embedded 的内容，可用或不可用（不可用的 embedded 视图把标题显示为一行次要文字），以及宿主留在面板里的卡片外壳（spec/plugin-view-vectors.json 的 rules.inset 与 insets）。管理页筛选（Vue）：rows 块的 filters 列出页面筛选栏要显示的视图输入，不带时为全部输入；其余输入只由行动作的表单收集。flarePluginFilterInputs(view) 按文档顺序返回它们（spec/plugin-view-vectors.json 的 filterInputs）。协议 v2 形状（W1-PROTO-SDK §2）：view.menuActions 由标题行末尾的 Kit ⋯ 键打开（内嵌时排在 view.actions 之后作为按钮），执行方式与按钮相同；分组 entries 在每组第一条前插组头行「选项 · N 票 · P%」，组内编号，当前用户那行带「我」；view.unavailableReason（disabled、not_installed、no_permission、unsupported_platform、incompatible_version、catalog_unreachable、unbound_copy）在标题后加一行本地化原因，前面是 displayName；unbound_copy 照常显示但只读。卡片外壳就是消息的 card 表面：时间线不在外面再套气泡，引用回复画在外壳的 quote 插槽里。事实见 spec/plugin-view-vectors.json（menuActions、entriesGrouped、unavailableReason、shell）。 徽标：带 badge {text, tone} 的条目或行，用对应语义色的 Kit 标签画出（entries 在名字与「我」之后、正文之前；列表形式的行在第一格之前；表格形式在第一格内）；未知 tone 按 neutral（rules.badge）。多选上限：带 maxSelections 的多选在草稿达到上限后禁用草稿以外的选项（已选的仍可取消），只提交不超过上限的草稿，可选时页脚以「最多选 {n} 项」开头（rules.maxSelections、maxSelections）。menuActions 的 ⋯ 键贴在标题行尾，标题行占满卡片内宽。choices 块不画 total（它只是百分比的分母）：页脚只有多选上限提示与「已结束」。"
       },
       "slots": [
         "quote"
@@ -15291,8 +15934,22 @@
       ],
       "events": [
         "submit",
-        "cancel"
+        "cancel",
+        "selectionSearch",
+        "selectionRetry",
+        "selectionMore"
       ],
+      "eventPlatforms": {
+        "selectionSearch": [
+          "vue"
+        ],
+        "selectionRetry": [
+          "vue"
+        ],
+        "selectionMore": [
+          "vue"
+        ]
+      },
       "platforms": {
         "vue": {
           "package": "@flare-im/vue-ui",
@@ -15747,6 +16404,149 @@
         },
         "reducedMotionBehavior": "The pull indicator follows the finger without easing; the spinner is static under reduced motion.",
         "screenReaderSemantics": "Region named by the heading; each filter row is a tab list named by its input's label; the refresh indicator is a status that announces refreshing; an unavailable page reads its reason; load more is a button named by its label."
+      }
+    },
+    {
+      "name": "AccountView",
+      "category": "Message",
+      "summary": {
+        "en": "Account view — the account presentation of a plugin page: a headline balance with secondary statistics that can all be hidden, a ledger grouped by date, and local entry details whose actions reuse PluginView.",
+        "zh": "账户视图 —— 插件页面的账户呈现：首要余额与可整体隐藏的次级统计、按日期分组的账单，以及复用 PluginView 动作的本地交易详情。"
+      },
+      "dataSource": {
+        "en": "the core SDK's resolved page view (`PluginViewModel`); every amount is server-formatted text the kit shows unchanged, and row actions keep their bound input",
+        "zh": "核心 SDK 解析后的页面视图（`PluginViewModel`）；所有金额都是服务端格式化好的文字，Kit 原样显示，行动作保留绑定的输入"
+      },
+      "states": [
+        "loaded",
+        "empty",
+        "hidden",
+        "busy",
+        "error"
+      ],
+      "events": [
+        "action"
+      ],
+      "props": [
+        {
+          "name": "view",
+          "type": "FlarePluginViewModel",
+          "required": true,
+          "description": {
+            "en": "The resolved page view: the first field is the headline, the remaining fields are statistics, and in rows blocks cell zero is the amount, the badge the entry type and a time column the date group. The kit derives no totals and combines no currencies.",
+            "zh": "解析后的页面视图：第一个 field 是首要余额，其余 fields 是统计；rows 块里第 0 格是金额、角标是交易类型、时间列决定日期分组。Kit 不推算合计、不合并币种。"
+          }
+        },
+        {
+          "name": "busyActionId",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "The action in flight: its key (or the choices submit key) shows the spinner and every other control is disabled. Leaving the action settles it as a fallback (settleToken is the explicit signal).",
+            "zh": "执行中的动作：它的按钮（或 choices 的提交键）转圈，其他控件禁用。离开该动作时作为兜底结算（显式信号是 settleToken）。"
+          }
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Failure text from the host, shown at the bottom of the card (and in an open form); a new non-empty value reverts an optimistic choice.",
+            "zh": "宿主传入的失败文案，显示在卡片底部（打开的表单里也显示）；变为非空时撤回乐观选中。"
+          }
+        },
+        {
+          "name": "formErrors",
+          "type": "FlarePluginFormError[]",
+          "required": false,
+          "description": {
+            "en": "The host's validation errors (core SDK validate_form) for the open action form, shown under their inputs.",
+            "zh": "宿主（核心 SDK 的 validate_form）返回的表单错误，显示在对应输入下方。"
+          }
+        },
+        {
+          "name": "members",
+          "type": "FlarePluginMember[]",
+          "required": false,
+          "description": {
+            "en": "Candidates for members inputs in an action's form (the conversation's members).",
+            "zh": "动作表单里 members 输入的候选成员（会话成员）。"
+          }
+        },
+        {
+          "name": "settleToken",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "description": {
+            "en": "The host's settle signal: an integer it increments once every time an action it ran has finished (after setting error / formErrors for that result). Each change settles the card: no error and no formErrors → a submitted form closes and an optimistic choice stays marked until the new view arrives; error → the optimistic choice reverts (an open form stays and shows it); formErrors → the form stays open with them (a choice it carries reverts). busyActionId leaving the action still settles as a fallback, but a host that sets and clears busyActionId in one frame settles only through this token.",
+            "zh": "宿主的结算信号：一个整数，宿主每完成一次动作（并把这次结果的 error / formErrors 设好之后）就加 1。每次变化都结算卡片：没有 error 和 formErrors → 关闭已提交的表单面板，乐观选中保留到新视图到达；有 error → 撤回乐观选中（打开的表单留着并显示它）；有 formErrors → 表单留着并显示错误（表单携带的选中一并撤回）。busyActionId 离开该动作仍作为兜底结算；宿主在同一帧里设上又清掉 busyActionId 时，只能靠这个令牌结算。"
+          }
+        },
+        {
+          "name": "resolveUser",
+          "type": "(userId: string) => FlarePluginUser | Promise<FlarePluginUser | undefined> | undefined",
+          "required": false,
+          "description": {
+            "en": "Name and avatar of a user id in people and entries; may answer from a cache or later. Without an answer the avatar draws initials and the name is the id's last 4 characters.",
+            "zh": "people 和 entries 里 userId 的名字和头像；可以同步返回缓存，也可以异步。取不到时显示首字母头像，名字用 userId 的末 4 位。"
+          },
+          "platforms": [
+            "vue"
+          ]
+        },
+        {
+          "name": "viewerId",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "The viewer's user id: entries rows of that user carry the me tag.",
+            "zh": "当前用户 id：entries 里属于该用户的行带「我」标识。"
+          },
+          "platforms": [
+            "vue"
+          ]
+        }
+      ],
+      "notes": {
+        "en": "Shared facts follow spec/account-view-vectors.json. PluginPage draws it when appearance is account (or a resolved presentation.renderer is account); hosts normally reach it through PluginPage, which keeps loading, unavailable reasons, refresh, filters and cursor pagination. The eye control hides every overview value (and row amounts when presentation.props.maskRowAmounts is set) and announces the hidden state. Each entry opens local details with its original columns, type, amount and row key; only actions both declared by the block and bound by the row are offered, and confirms, forms, busy and error signals are PluginView's. Rows are deduplicated by block and row key, keeping the first. See docs/account-page-ui.md.",
+        "zh": "共同事实见 spec/account-view-vectors.json。PluginPage 在 appearance 为 account（或解析出的 presentation.renderer 为 account）时绘制它；宿主一般经 PluginPage 使用，加载、不可用原因、刷新、筛选与游标分页仍归 PluginPage。眼睛按钮隐藏全部概览金额（presentation.props.maskRowAmounts 为真时连行金额一起隐藏），并播报隐藏状态。每条记录打开本地详情，显示原始列、类型、金额与行键；只提供块声明且该行绑定的动作，确认、表单、忙碌与错误信号沿用 PluginView。行按块与行键去重，保留第一条。见 docs/account-page-ui.md。"
+      },
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareAccountView"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareAccountView"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "FlareAccountView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlareAccountView"
+        }
+      },
+      "accessibility": {
+        "role": "group",
+        "labelRequired": false,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab reaches the hide-balance key, the page actions, each ledger entry and the account information disclosure in reading order",
+          "Enter or Space activates them; entries are disabled while an action is busy",
+          "Escape and the platform back close an open entry's details sheet"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "No motion of its own; the details sheet follows the kit bottom sheet.",
+        "screenReaderSemantics": "The overview is named by the headline label and the ledger by its section title. While hidden the headline reads as hidden and the eye key's name switches between show and hide. Each entry is a button carrying its type, description, amount and time. Warning and danger notices stay visible; the account rules sit behind a disclosure."
       }
     },
     {
@@ -23962,8 +24762,8 @@
         "screenReaderSemantics": "Announce the title or label as the dialog name (aria-modal, isModal, paneTitle, scopesRoute); everything behind the scrim is inert while it is open."
       },
       "notes": {
-        "en": "Long-lived secondary content beside the main view: on wide layouts a Drawer, on the phone form factor a page (the host's single-pane layout fact wins). The scrim is the token colors.scrim; the width is sizes.component.sheetWidth. Header row: [back?] title … [actions] [close?]; there is no header row when there is no title, no actions and showClose is false (page content that brings its own header). Vue renders it from `open` through the shared modal-surface stack and is full width on the phone form factor. Flutter presents it with `FlareDrawer.show<T>(context, title:, label:, placement:, width:, dismissible:, showClose:, navigable:, builder:)` — a nested Navigator on the root navigator, where the scrim closes the whole stack and Escape/back pop one page — and `FlareDrawer.showAdaptive<T>(context, asPage:, …)`, which pushes a page on the phone form factor and pushes inside an enclosing drawer. iOS presents `DrawerView` with `.flareDrawer(isPresented:|item:, …, navigable:, compactFallback: .none|.push)` (iOS 16.4+ full-screen cover with a clear background; a sheet on earlier iOS and on macOS). Compose composes `Drawer(onClose, …) { }` as a dialog window with a token scrim; hosts choose page or drawer with `flareCompactOverlays()`.",
-        "zh": "放在主视图旁边的长驻次级内容：宽布局用 Drawer，手机形态用页面（宿主的单栏布局事实优先）。遮罩为 token colors.scrim，宽度为 sizes.component.sheetWidth。头部行：[返回?] 标题 … [actions] [关闭?]；没有标题、没有 actions 且 showClose 为 false 时不画头部行（自带页头的页面内容）。Vue 由 `open` 经共用模态栈呈现，手机形态为全宽。Flutter 用 `FlareDrawer.show<T>(context, title:, label:, placement:, width:, dismissible:, showClose:, navigable:, builder:)` 呈现 —— 根导航器上的嵌套 Navigator，遮罩关闭整栈，Escape / 返回键逐页返回 —— 以及 `FlareDrawer.showAdaptive<T>(context, asPage:, …)`：手机形态推一页，已在抽屉内则在抽屉里推。iOS 用 `.flareDrawer(isPresented:|item:, …, navigable:, compactFallback: .none|.push)` 呈现 `DrawerView`（iOS 16.4+ 为透明背景的全屏覆盖；更早的 iOS 与 macOS 退为面板）。Compose 组合 `Drawer(onClose, …) { }`，它是带 token 遮罩的对话框窗口；宿主用 `flareCompactOverlays()` 在页面与抽屉之间选择。"
+        "en": "Long-lived secondary content beside the main view: on wide layouts a Drawer, on the phone form factor a page (the host's single-pane layout fact wins). The scrim is the token colors.scrim; the width is sizes.component.sheetWidth. Header row: [back?] title … [actions] [close?]; there is no header row when there is no title, no actions and showClose is false. A page pushed into the drawer that brings its own header with a way back (a Screen with back, such as PluginPage) declares it (Vue useFlareSheetOwnHeader and Compose FlareSheetOwnHeader(back); a FlareScreen with a back key declares it automatically on Vue, SwiftUI and Compose): the drawer then draws no header row (the title stays its accessible name), and Escape and the platform back go back one page in that page first; only when no page inside has a way back do they close the drawer, as the scrim always does. Vue renders it from `open` through the shared modal-surface stack and is full width on the phone form factor. Flutter presents it with `FlareDrawer.show<T>(context, title:, label:, placement:, width:, dismissible:, showClose:, navigable:, builder:)` — a nested Navigator on the root navigator, where the scrim closes the whole stack and Escape/back pop one page — and `FlareDrawer.showAdaptive<T>(context, asPage:, …)`, which pushes a page on the phone form factor and pushes inside an enclosing drawer. iOS presents `DrawerView` with `.flareDrawer(isPresented:|item:, …, navigable:, compactFallback: .none|.push)` (iOS 16.4+ full-screen cover with a clear background; a sheet on earlier iOS and on macOS). Compose composes `Drawer(onClose, …) { }` as a dialog window with a token scrim; hosts choose page or drawer with `flareCompactOverlays()`.",
+        "zh": "放在主视图旁边的长驻次级内容：宽布局用 Drawer，手机形态用页面（宿主的单栏布局事实优先）。遮罩为 token colors.scrim，宽度为 sizes.component.sheetWidth。头部行：[返回?] 标题 … [actions] [关闭?]；没有标题、没有 actions 且 showClose 为 false 时不画头部行。推进抽屉、自带页头和返回的页面（带返回的 Screen，如 PluginPage）声明自带页头（Vue useFlareSheetOwnHeader、Compose FlareSheetOwnHeader(back)；Vue / SwiftUI / Compose 带返回键的 FlareScreen 自动声明）：抽屉不画头部行（标题只作可及名称），Escape 与平台返回先在那一页里退一页，里面没有能返回的页时才关抽屉；遮罩照旧关掉整个抽屉。Vue 由 `open` 经共用模态栈呈现，手机形态为全宽。Flutter 用 `FlareDrawer.show<T>(context, title:, label:, placement:, width:, dismissible:, showClose:, navigable:, builder:)` 呈现 —— 根导航器上的嵌套 Navigator，遮罩关闭整栈，Escape / 返回键逐页返回 —— 以及 `FlareDrawer.showAdaptive<T>(context, asPage:, …)`：手机形态推一页，已在抽屉内则在抽屉里推。iOS 用 `.flareDrawer(isPresented:|item:, …, navigable:, compactFallback: .none|.push)` 呈现 `DrawerView`（iOS 16.4+ 为透明背景的全屏覆盖；更早的 iOS 与 macOS 退为面板）。Compose 组合 `Drawer(onClose, …) { }`，它是带 token 遮罩的对话框窗口；宿主用 `flareCompactOverlays()` 在页面与抽屉之间选择。"
       }
     },
     {
@@ -25400,7 +26200,10 @@
         "disabled"
       ],
       "events": [
-        "update:modelValue"
+        "update:modelValue",
+        "selectionSearch",
+        "selectionRetry",
+        "selectionMore"
       ],
       "model": {
         "prop": "modelValue",
@@ -25699,6 +26502,59 @@
         },
         "reducedMotionBehavior": "No motion.",
         "screenReaderSemantics": "Plain text: a screen reader reads the label; the tone colour and the dot are not announced, so the label carries the meaning on its own."
+      }
+    },
+    {
+      "name": "UserIdentity",
+      "category": "General",
+      "summary": {
+        "en": "User identity — one person in a console table cell or detail line: avatar, full nickname and one account name, with loading and unavailable states that never fall back to an internal ID.",
+        "zh": "用户身份 —— 控制台表格单元格或详情行里的一个人：头像、完整昵称和一个账号，加载中与不可用状态绝不回落成内部 ID。"
+      },
+      "dataSource": {
+        "en": "host-owned `user` summary (`UserIdentityValue`): a nickname, one account and an avatar URL already projected by the host; the component reads no service, role or tenant state",
+        "zh": "宿主持有的 `user` 摘要（`UserIdentityValue`）：宿主已投影好的昵称、一个账号和头像地址；组件不读取服务、角色或租户状态"
+      },
+      "states": [
+        "default",
+        "loading",
+        "unavailable"
+      ],
+      "events": [],
+      "props": [
+        {
+          "name": "user",
+          "type": "UserIdentityValue",
+          "required": true,
+          "description": {
+            "en": "The person to show. `state` `loading` or `unavailable` replaces the name and account with a label and drops the avatar image (the initial avatar stays); stale details are never shown.",
+            "zh": "要展示的人。`state` 为 `loading` 或 `unavailable` 时昵称与账号换成提示文字、不显示头像图片（保留首字头像）；不显示旧资料。"
+          }
+        }
+      ],
+      "notes": {
+        "en": "Not a control: no hover, focus or click. Name and account wrap in full instead of being truncated. Vue only: native N/A. It is a console component (wallet and red-packet admin tables and detail drawers, exported from both `@flare-im/vue-ui` and `@flare-im/vue-ui/admin`); no Flutter, SwiftUI or Compose app ships an admin console. See docs/admin-identity-and-icons.md.",
+        "zh": "不是控件：没有悬停、焦点与点击。昵称与账号完整换行，不截断。仅 Vue，原生端 N/A：这是控制台组件（钱包、红包管理表格与详情抽屉，`@flare-im/vue-ui` 与 `@flare-im/vue-ui/admin` 都导出）；Flutter、SwiftUI、Compose 端没有任何 App 提供管理控制台。见 docs/admin-identity-and-icons.md。"
+      },
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareUserIdentity"
+        }
+      },
+      "accessibility": {
+        "role": "text",
+        "labelRequired": false,
+        "focusable": "none",
+        "keyboardBehavior": [],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "No motion.",
+        "screenReaderSemantics": "Plain text: the nickname, then the account. The avatar is hidden from assistive technology because the name is already read; while loading the element is marked busy."
       }
     }
   ],

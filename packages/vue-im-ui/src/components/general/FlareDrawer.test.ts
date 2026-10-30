@@ -6,6 +6,7 @@ import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
 import { useFlarePlatformProvider } from "../../shared/platform/useFlarePlatform";
 import FlareDrawer from "./FlareDrawer.vue";
 import FlareSelect from "../form/FlareSelect.vue";
+import FlareScreen from "../layout/FlareScreen.vue";
 
 let host: ReturnType<typeof mount> | undefined;
 afterEach(() => {
@@ -27,7 +28,10 @@ interface MountOptions {
   nativeBack?: boolean;
 }
 
-function mountDrawer(props: Record<string, unknown>, options: MountOptions = {}) {
+function mountDrawer(
+  props: Record<string, unknown>,
+  options: MountOptions = {},
+) {
   const state = reactive<Record<string, unknown>>({ open: true, ...props });
   const events: string[] = [];
   const handlers: Array<() => boolean> = [];
@@ -37,28 +41,52 @@ function mountDrawer(props: Record<string, unknown>, options: MountOptions = {})
       return () => handlers.splice(handlers.indexOf(handler), 1);
     },
   };
-  host = mount(defineComponent({
-    setup() {
-      useFlareI18nProvider("en-US");
-      useFlarePlatformProvider({ adapter, capabilities: { nativeBack: options.nativeBack ?? false, bottomSheet: options.bottomSheet ?? false } });
-      return () => h(FlareDrawer as Component, {
-        ...state,
-        onClose: () => events.push("close"),
-        onBack: () => events.push("back"),
-      }, {
-        default: () => h("button", { class: "row" }, "Row"),
-        ...options.slots,
-      });
-    },
-  }), { attachTo: document.body });
+  host = mount(
+    defineComponent({
+      setup() {
+        useFlareI18nProvider("en-US");
+        useFlarePlatformProvider({
+          adapter,
+          capabilities: {
+            nativeBack: options.nativeBack ?? false,
+            bottomSheet: options.bottomSheet ?? false,
+          },
+        });
+        return () =>
+          h(
+            FlareDrawer as Component,
+            {
+              ...state,
+              onClose: () => events.push("close"),
+              onBack: () => events.push("back"),
+            },
+            {
+              default: () => h("button", { class: "row" }, "Row"),
+              ...options.slots,
+            },
+          );
+      },
+    }),
+    { attachTo: document.body },
+  );
   return { state, events, handlers };
 }
 
-const surface = () => document.body.querySelector('[role="dialog"]') as HTMLElement;
-const button = (label: string) => surface().querySelector<HTMLButtonElement>(`[aria-label="${label}"]`);
-const escape = () => document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+const surface = () =>
+  document.body.querySelector('[role="dialog"]') as HTMLElement;
+const button = (label: string) =>
+  surface().querySelector<HTMLButtonElement>(`[aria-label="${label}"]`);
+const escape = () =>
+  document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
 // 真键盘事件从获得焦点的元素出发、冒泡到 document,并且可取消 —— 捕获阶段的监听才先于冒泡的那些,preventDefault 才留得下痕迹。
-const pressEscape = (from: Element) => from.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
+const pressEscape = (from: Element) =>
+  from.dispatchEvent(
+    new KeyboardEvent("keydown", {
+      key: "Escape",
+      bubbles: true,
+      cancelable: true,
+    }),
+  );
 
 describe("FlareDrawer DOM contract", () => {
   it("is a named, modal dialog surface stamped drawer, docked to the inline end over the shared scrim", async () => {
@@ -80,7 +108,9 @@ describe("FlareDrawer DOM contract", () => {
     await nextTick();
     expect(surface().dataset.flarePlacement).toBe("start");
     expect(surface().classList).toContain("flare-drawer--start");
-    expect(surface().parentElement!.classList).toContain("flare-drawer-scrim--start");
+    expect(surface().parentElement!.classList).toContain(
+      "flare-drawer-scrim--start",
+    );
   });
 
   it("names itself from label, then a localized fallback", async () => {
@@ -98,7 +128,9 @@ describe("FlareDrawer DOM contract", () => {
   it("takes a per-instance width through its own style and is full width on the phone form factor", async () => {
     mountDrawer({ title: "A", width: "360px" });
     await nextTick();
-    expect(surface().style.getPropertyValue("--flare-drawer-width")).toBe("360px");
+    expect(surface().style.getPropertyValue("--flare-drawer-width")).toBe(
+      "360px",
+    );
     expect(surface().classList).not.toContain("flare-drawer--compact");
     reset();
     mountDrawer({ title: "A" }, { bottomSheet: true });
@@ -107,15 +139,22 @@ describe("FlareDrawer DOM contract", () => {
   });
 
   it("draws header actions as chrome and a sticky footer after the body", async () => {
-    mountDrawer({ title: "Profile" }, {
-      slots: {
-        actions: () => h("button", { class: "edit" }, "Edit"),
-        footer: () => h("button", { class: "save" }, "Save"),
+    mountDrawer(
+      { title: "Profile" },
+      {
+        slots: {
+          actions: () => h("button", { class: "edit" }, "Edit"),
+          footer: () => h("button", { class: "save" }, "Save"),
+        },
       },
-    });
+    );
     await nextTick();
-    expect(surface().querySelector(".edit")!.closest("[data-flare-overlay-chrome]")).not.toBeNull();
-    expect(surface().querySelector("footer.flare-drawer__footer .save")).not.toBeNull();
+    expect(
+      surface().querySelector(".edit")!.closest("[data-flare-overlay-chrome]"),
+    ).not.toBeNull();
+    expect(
+      surface().querySelector("footer.flare-drawer__footer .save"),
+    ).not.toBeNull();
   });
 
   it("gives initial focus to the content, not to the header buttons", async () => {
@@ -139,7 +178,10 @@ describe("FlareDrawer navigation and closing", () => {
   });
 
   it("with showBack, the back button, Escape and the platform back go back one page; the scrim still closes", async () => {
-    const { events, handlers } = mountDrawer({ title: "Members", showBack: true }, { nativeBack: true });
+    const { events, handlers } = mountDrawer(
+      { title: "Members", showBack: true },
+      { nativeBack: true },
+    );
     await nextTick();
     expect(handlers).toHaveLength(1);
     button("Back")!.click();
@@ -153,17 +195,26 @@ describe("FlareDrawer navigation and closing", () => {
   });
 
   it("leaves an Escape that closes an inner Select popover to the Select: no back, and the next Escape goes back", async () => {
-    const { events } = mountDrawer({ title: "Privacy", showBack: true }, {
-      slots: {
-        default: () => h(FlareSelect as Component, {
-          title: "Profile visibility",
-          options: [{ value: "all", label: "Everyone" }, { value: "friends", label: "Friends" }],
-          modelValue: "all",
-        }),
+    const { events } = mountDrawer(
+      { title: "Privacy", showBack: true },
+      {
+        slots: {
+          default: () =>
+            h(FlareSelect as Component, {
+              title: "Profile visibility",
+              options: [
+                { value: "all", label: "Everyone" },
+                { value: "friends", label: "Friends" },
+              ],
+              modelValue: "all",
+            }),
+        },
       },
-    });
+    );
     await nextTick();
-    const trigger = surface().querySelector<HTMLButtonElement>("button.flare-select__trigger")!;
+    const trigger = surface().querySelector<HTMLButtonElement>(
+      "button.flare-select__trigger",
+    )!;
     trigger.click();
     await nextTick();
     expect(trigger.getAttribute("aria-expanded")).toBe("true");
@@ -177,7 +228,10 @@ describe("FlareDrawer navigation and closing", () => {
   });
 
   it("follows showBack as it changes while open: the platform back closes on the root page", async () => {
-    const { state, events, handlers } = mountDrawer({ title: "Settings" }, { nativeBack: true });
+    const { state, events, handlers } = mountDrawer(
+      { title: "Settings" },
+      { nativeBack: true },
+    );
     await nextTick();
     handlers.at(-1)!();
     expect(events).toEqual(["close"]);
@@ -188,7 +242,10 @@ describe("FlareDrawer navigation and closing", () => {
   });
 
   it("blocks every way out while not dismissible and disables the header buttons", async () => {
-    const { state, events, handlers } = mountDrawer({ title: "Saving", showBack: true, dismissible: false }, { nativeBack: true });
+    const { state, events, handlers } = mountDrawer(
+      { title: "Saving", showBack: true, dismissible: false },
+      { nativeBack: true },
+    );
     await nextTick();
     expect(button("Back")!.disabled).toBe(true);
     expect(button("Close")!.disabled).toBe(true);
@@ -238,5 +295,76 @@ describe("FlareDrawer navigation and closing", () => {
     state.open = false;
     await nextTick();
     expect(document.body.style.overflow).toBe("");
+  });
+});
+
+describe("FlareDrawer with a page that brings its own header", () => {
+  // The host's page stack inside the drawer: the root has no way back, every pushed page is a kit screen with a back key
+  // that pops one page (a plugin page, which also pops its own pages first).
+  async function mountStack(depth: number, options: MountOptions = {}) {
+    const stack = reactive({ depth });
+    const Pages = defineComponent({
+      setup() {
+        return () =>
+          stack.depth === 0
+            ? h("button", { class: "row" }, "Root")
+            : h(
+                FlareScreen as Component,
+                { key: stack.depth, title: `Page ${stack.depth}`, back: true, onBack: () => { stack.depth -= 1; } },
+                () => h("p", "Body"),
+              );
+      },
+    });
+    const mounted = mountDrawer(
+      { title: "Settings", showClose: true },
+      { ...options, slots: { default: () => h(Pages) } },
+    );
+    await nextTick();
+    return { ...mounted, stack };
+  }
+
+  it("draws no header row of its own while the page has one; the title stays its accessible name", async () => {
+    const { stack } = await mountStack(1);
+    expect(surface().querySelector(".flare-drawer__header")).toBeNull();
+    expect(surface().getAttribute("aria-label")).toBe("Settings");
+    expect(surface().querySelector(".flare-screen__title")?.textContent).toBe("Page 1");
+    stack.depth = 0;
+    await nextTick();
+    expect(surface().querySelector(".flare-drawer__header h2")?.textContent).toBe("Settings");
+    expect(button("Close")).not.toBeNull();
+  });
+
+  it("goes back one page on Escape, and closes only once no page inside has a way back", async () => {
+    const { stack, events } = await mountStack(2);
+    escape();
+    await nextTick();
+    expect(stack.depth).toBe(1);
+    expect(events).toEqual([]);
+    escape();
+    await nextTick();
+    expect(stack.depth).toBe(0);
+    expect(events).toEqual([]);
+    escape();
+    await nextTick();
+    expect(events).toEqual(["close"]);
+  });
+
+  it("goes back one page on the platform back, then closes on the root", async () => {
+    const { stack, events, handlers } = await mountStack(1, { nativeBack: true });
+    handlers.at(-1)!();
+    await nextTick();
+    expect(stack.depth).toBe(0);
+    expect(events).toEqual([]);
+    handlers.at(-1)!();
+    await nextTick();
+    expect(events).toEqual(["close"]);
+  });
+
+  it("still closes from the scrim on a page with its own header", async () => {
+    const { stack, events } = await mountStack(1);
+    surface().parentElement!.click();
+    await nextTick();
+    expect(events).toEqual(["close"]);
+    expect(stack.depth).toBe(1);
   });
 });

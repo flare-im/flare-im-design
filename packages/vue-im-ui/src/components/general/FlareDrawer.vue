@@ -7,14 +7,26 @@
 // 平台返回键发出 `back` 而不是 `close`,只有遮罩和关闭键关掉整个抽屉。换页后焦点回到
 // 标题(或面本身),Tab 陷阱在焦点丢失时也会把它拉回来(useFlareModalSurface)。
 //
+// 推进来的页面自带页头和返回键(带返回的 FlareScreen,如 FlarePluginPage)时,它用
+// useFlareSheetOwnHeader 声明:抽屉不再画页头行(title 只作可及名称),Escape 与平台返回键
+// 先交给这一页退一页(它退自己的页栈,或告诉宿主),里面没有能返回的页时才关抽屉。
+//
 // DOM 契约同 FlareModal:role="dialog"、aria-modal、aria-label(title → label → 兜底
 // 「侧边面板」)、data-flare-presentation="drawer",遮罩带共用类 `flare-overlay-scrim`。
-import { computed, getCurrentInstance, nextTick, ref, useSlots, watch } from "vue";
+import {
+  computed,
+  getCurrentInstance,
+  nextTick,
+  ref,
+  useSlots,
+  watch,
+} from "vue";
 import FlareIconButton from "./FlareIconButton.vue";
 import { flareIcons } from "../../shared/icons";
 import { useFlareModalSurface } from "../../shared/useModalSurface";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 import { useFlarePlatformSafe } from "../../shared/platform/useFlarePlatform";
+import { provideFlareSurfaceHeader } from "../../shared/sheetHeader";
 
 /** Edge the drawer docks to, in inline (RTL-aware) terms. */
 export type FlareDrawerPlacement = "end" | "start";
@@ -38,7 +50,13 @@ const props = withDefaults(
     /** Draw a leading back button; Escape and platform back then emit `back` instead of `close`. */
     showBack?: boolean;
   }>(),
-  { titleHidden: false, placement: "end", dismissible: true, showClose: true, showBack: false },
+  {
+    titleHidden: false,
+    placement: "end",
+    dismissible: true,
+    showClose: true,
+    showBack: false,
+  },
 );
 const emit = defineEmits<{ (e: "close"): void; (e: "back"): void }>();
 const slots = useSlots();
@@ -48,13 +66,26 @@ const platform = useFlarePlatformSafe();
 const surfaceEl = ref<HTMLElement | null>(null);
 const headingEl = ref<HTMLElement | null>(null);
 
-const accessibleName = computed(() => props.title || props.label || t("common.drawerLabel"));
+const accessibleName = computed(
+  () => props.title || props.label || t("common.drawerLabel"),
+);
+// 里面的页自带页头:不画这一行,返回与关闭都归那一页的页头和遮罩。
+const page = provideFlareSurfaceHeader();
 const showTitle = computed(() => Boolean(props.title) && !props.titleHidden);
-const hasHeader = computed(() => showTitle.value || props.showBack || props.showClose || Boolean(slots.actions));
+const hasHeader = computed(
+  () =>
+    !page.ownsHeader.value &&
+    (showTitle.value ||
+      props.showBack ||
+      props.showClose ||
+      Boolean(slots.actions)),
+);
 // 手机形态下抽屉占满整宽:应用不必自己去算「现在是不是手机」。
 const compact = computed(() => platform.capabilities.value.bottomSheet);
 
-const surfaceStyle = computed(() => (props.width ? { "--flare-drawer-width": props.width } : {}));
+const surfaceStyle = computed(() =>
+  props.width ? { "--flare-drawer-width": props.width } : {},
+);
 
 function requestClose(): void {
   if (props.dismissible) emit("close");
@@ -68,8 +99,13 @@ const { overlayContainer } = useFlareModalSurface({
   open: () => props.open,
   surface: surfaceEl,
   dismissible: () => props.dismissible,
-  nativeBack: () => Boolean(instance?.vnode.props?.onClose || instance?.vnode.props?.onBack),
-  onRequestClose: () => (props.showBack ? emit("back") : emit("close")),
+  nativeBack: () =>
+    Boolean(instance?.vnode.props?.onClose || instance?.vnode.props?.onBack),
+  onRequestClose: () => {
+    if (page.back()) return;
+    if (props.showBack) emit("back");
+    else emit("close");
+  },
 });
 
 // 宿主在抽屉里换了一页:返回键出现或消失时总把焦点送回标题;只换了标题时,仅在焦点跟着
@@ -81,7 +117,8 @@ watch(
     void nextTick(() => {
       const surface = surfaceEl.value;
       if (!surface) return;
-      if (back === previousBack && surface.contains(document.activeElement)) return;
+      if (back === previousBack && surface.contains(document.activeElement))
+        return;
       (headingEl.value ?? surface).focus({ preventScroll: true });
     });
   },
@@ -100,7 +137,10 @@ watch(
         <div
           ref="surfaceEl"
           class="flare-drawer"
-          :class="[`flare-drawer--${placement}`, { 'flare-drawer--compact': compact }]"
+          :class="[
+            `flare-drawer--${placement}`,
+            { 'flare-drawer--compact': compact },
+          ]"
           :style="surfaceStyle"
           role="dialog"
           aria-modal="true"
@@ -111,7 +151,11 @@ watch(
           @click.stop
         >
           <!-- 页头控件标成 overlay chrome:打开时初始焦点先给内容,不落在返回或关闭键上。 -->
-          <header v-if="hasHeader" class="flare-drawer__header" data-flare-overlay-chrome>
+          <header
+            v-if="hasHeader"
+            class="flare-drawer__header"
+            data-flare-overlay-chrome
+          >
             <FlareIconButton
               v-if="showBack"
               class="flare-drawer__back"
@@ -120,9 +164,18 @@ watch(
               :disabled="!dismissible"
               @click="requestBack"
             />
-            <h2 v-if="showTitle" ref="headingEl" class="flare-drawer__title" tabindex="-1">{{ title }}</h2>
+            <h2
+              v-if="showTitle"
+              ref="headingEl"
+              class="flare-drawer__title"
+              tabindex="-1"
+            >
+              {{ title }}
+            </h2>
             <span v-else class="flare-drawer__spacer" aria-hidden="true" />
-            <div v-if="$slots.actions" class="flare-drawer__actions"><slot name="actions" /></div>
+            <div v-if="$slots.actions" class="flare-drawer__actions">
+              <slot name="actions" />
+            </div>
             <FlareIconButton
               v-if="showClose"
               class="flare-drawer__close"
@@ -132,7 +185,10 @@ watch(
               @click="requestClose"
             />
           </header>
-          <div class="flare-drawer__body" :class="{ 'flare-drawer__body--last': !$slots.footer }">
+          <div
+            class="flare-drawer__body"
+            :class="{ 'flare-drawer__body--last': !$slots.footer }"
+          >
             <slot />
           </div>
           <footer v-if="$slots.footer" class="flare-drawer__footer">
@@ -153,8 +209,12 @@ watch(
   align-items: stretch;
   background: var(--flare-color-scrim);
 }
-.flare-drawer-scrim--end { justify-content: flex-end; }
-.flare-drawer-scrim--start { justify-content: flex-start; }
+.flare-drawer-scrim--end {
+  justify-content: flex-end;
+}
+.flare-drawer-scrim--start {
+  justify-content: flex-start;
+}
 .flare-drawer {
   box-sizing: border-box;
   display: flex;
@@ -163,7 +223,16 @@ watch(
   height: 100%;
   /* 实例宽度(width prop)优先;否则是组件令牌 --flare-component-sheet-width,默认即 sheetWidth 尺寸令牌。
      无论给多宽,总留一条触达尺寸宽的遮罩可点。 */
-  width: min(var(--flare-drawer-width, var(--flare-component-sheet-width, var(--flare-size-component-sheet-width))), calc(100% - var(--flare-size-layout-touch-target)));
+  width: min(
+    var(
+      --flare-drawer-width,
+      var(
+        --flare-component-sheet-width,
+        var(--flare-size-component-sheet-width)
+      )
+    ),
+    calc(100% - var(--flare-size-layout-touch-target))
+  );
   padding-top: env(safe-area-inset-top, 0px);
   padding-left: env(safe-area-inset-left, 0px);
   padding-right: env(safe-area-inset-right, 0px);
@@ -202,7 +271,9 @@ watch(
   overflow-wrap: anywhere;
   outline: none;
 }
-.flare-drawer__spacer { flex: 1 1 auto; }
+.flare-drawer__spacer {
+  flex: 1 1 auto;
+}
 .flare-drawer__actions {
   flex: 0 0 auto;
   display: flex;
@@ -210,7 +281,9 @@ watch(
   gap: var(--flare-size-spacing-xs);
 }
 .flare-drawer__back,
-.flare-drawer__close { flex: 0 0 auto; }
+.flare-drawer__close {
+  flex: 0 0 auto;
+}
 .flare-drawer__body {
   flex: 1 1 auto;
   min-height: 0;
@@ -219,37 +292,56 @@ watch(
   overflow-y: auto;
   overscroll-behavior: contain;
 }
-.flare-drawer__body--last { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.flare-drawer__body--last {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
 .flare-drawer__footer {
   flex: 0 0 auto;
   display: flex;
   justify-content: flex-end;
   gap: var(--flare-size-spacing-sm);
-  padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-md) calc(var(--flare-size-spacing-sm) + env(safe-area-inset-bottom, 0px));
+  padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-md)
+    calc(var(--flare-size-spacing-sm) + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--flare-color-border-primary);
 }
 
 /* 面的出场跟着遮罩的过渡类走:嵌套的 <transition> 在外层 v-if 离场时不会播放自己的 leave,
    抽屉就会一下子消失。两者用同一时长,Vue 按遮罩的过渡结束移除节点。 */
 .flare-drawer-fade-enter-active,
-.flare-drawer-fade-leave-active { transition: opacity var(--flare-transition-normal); }
+.flare-drawer-fade-leave-active {
+  transition: opacity var(--flare-transition-normal);
+}
 .flare-drawer-fade-enter-from,
-.flare-drawer-fade-leave-to { opacity: 0; }
+.flare-drawer-fade-leave-to {
+  opacity: 0;
+}
 .flare-drawer-fade-enter-active .flare-drawer,
-.flare-drawer-fade-leave-active .flare-drawer { transition: transform var(--flare-transition-normal); }
+.flare-drawer-fade-leave-active .flare-drawer {
+  transition: transform var(--flare-transition-normal);
+}
 .flare-drawer-fade-enter-from .flare-drawer--end,
-.flare-drawer-fade-leave-to .flare-drawer--end { transform: translateX(100%); }
+.flare-drawer-fade-leave-to .flare-drawer--end {
+  transform: translateX(100%);
+}
 .flare-drawer-fade-enter-from .flare-drawer--start,
-.flare-drawer-fade-leave-to .flare-drawer--start { transform: translateX(-100%); }
+.flare-drawer-fade-leave-to .flare-drawer--start {
+  transform: translateX(-100%);
+}
 .flare-drawer-fade-enter-from .flare-drawer--end:dir(rtl),
-.flare-drawer-fade-leave-to .flare-drawer--end:dir(rtl) { transform: translateX(-100%); }
+.flare-drawer-fade-leave-to .flare-drawer--end:dir(rtl) {
+  transform: translateX(-100%);
+}
 .flare-drawer-fade-enter-from .flare-drawer--start:dir(rtl),
-.flare-drawer-fade-leave-to .flare-drawer--start:dir(rtl) { transform: translateX(100%); }
+.flare-drawer-fade-leave-to .flare-drawer--start:dir(rtl) {
+  transform: translateX(100%);
+}
 /* 减少动态效果:不滑、遮罩也瞬间出现。 */
 @media (prefers-reduced-motion: reduce) {
   .flare-drawer-fade-enter-active,
   .flare-drawer-fade-leave-active,
   .flare-drawer-fade-enter-active .flare-drawer,
-  .flare-drawer-fade-leave-active .flare-drawer { transition: none; }
+  .flare-drawer-fade-leave-active .flare-drawer {
+    transition: none;
+  }
 }
 </style>

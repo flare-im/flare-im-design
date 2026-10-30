@@ -40,7 +40,7 @@ function nameOf(entry: FlarePluginEntry): string | undefined {
         class="flare-plugin-entries__group"
         role="presentation"
         data-entry-group="true"
-      >{{ flarePluginEntryGroupHeader(entry.group, t("pluginView.votes")) }}</li>
+      >{{ flarePluginEntryGroupHeader(entry.group, (count) => t("pluginView.votes", { count })) }}</li>
       <li class="flare-plugin-entries__row" :data-entry-index="entry.index">
         <span v-if="block.numbered" class="flare-plugin-entries__number" data-entry-number="true">{{ entry.index }}.</span>
         <FlareAvatar
@@ -76,7 +76,7 @@ function nameOf(entry: FlarePluginEntry): string | undefined {
 <style scoped>
 .flare-plugin-entries { display: grid; justify-items: start; gap: var(--flare-size-spacing-xs); min-width: 0; }
 .flare-plugin-entries__list { display: grid; gap: var(--flare-size-spacing-xs); width: 100%; margin: 0; padding: 0; list-style: none; }
-.flare-plugin-entries__row { display: flex; align-items: center; gap: var(--flare-size-spacing-sm); min-width: 0; font-size: var(--flare-size-font-size-md); }
+.flare-plugin-entries__row { display: flex; align-items: center; gap: var(--flare-size-spacing-sm); min-width: 0; font-size: var(--flare-plugin-meta-size, var(--flare-size-font-size-md)); }
 .flare-plugin-entries__number { flex: none; min-width: 2ch; color: var(--flare-color-text-tertiary); font-variant-numeric: tabular-nums; }
 .flare-plugin-entries__avatar { flex: none; }
 .flare-plugin-entries__line { flex: 1; display: flex; align-items: baseline; gap: var(--flare-size-spacing-xs); min-width: 0; }
@@ -99,14 +99,14 @@ function nameOf(entry: FlarePluginEntry): string | undefined {
   line-height: var(--flare-size-line-height-snug);
   color: var(--flare-color-primary-text);
 }
-.flare-plugin-entries__empty { margin: 0; font-size: var(--flare-size-font-size-md); color: var(--flare-color-text-tertiary); }
+.flare-plugin-entries__empty { margin: 0; font-size: var(--flare-plugin-meta-size, var(--flare-size-font-size-md)); color: var(--flare-color-text-tertiary); }
 .flare-plugin-entries__all {
   position: relative;
   padding: 0;
   border: 0;
   background: none;
   font: inherit;
-  font-size: var(--flare-size-font-size-md);
+  font-size: var(--flare-plugin-meta-size, var(--flare-size-font-size-md));
   color: var(--flare-color-primary-text);
   cursor: pointer;
 }

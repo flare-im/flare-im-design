@@ -22,7 +22,7 @@ export interface FlarePluginAction {
   placement?: "menu";
 }
 
-export interface FlarePluginField { label: string; value: string }
+export interface FlarePluginField { label: string; value: string; user?: import("./user-identity").FlareUserIdentityValue }
 /**
  * An entry's or a row's enumerated value as words and a tone (the plugin's valueLabels), such as a ledger line's
  * kind; drawn as the kit Tag. The tone may come from a newer protocol: draw it through flarePluginBadgeTone.
@@ -74,7 +74,11 @@ export interface FlarePluginProgressBlock { kind: "progress"; label?: string; va
 export interface FlarePluginTimeBlock { kind: "time"; label?: string; atMs: number; endMs?: number; countdown: boolean }
 export interface FlarePluginDividerBlock { kind: "divider" }
 export interface FlarePluginNoteBlock { kind: "note"; text: string; tone?: FlarePluginTone }
-export interface FlarePluginRowCell { text: string; timeMs?: number }
+export interface FlarePluginRowCell {
+  text: string; timeMs?: number;
+  /** Optional host-owned identity presentation; never sent back as plugin command input. */
+  user?: import("./user-identity").FlareUserIdentityValue;
+}
 export interface FlarePluginRow {
   key: string;
   cells: ReadonlyArray<FlarePluginRowCell>;
@@ -149,6 +153,8 @@ export interface FlarePluginActionPayload {
   row?: { key: string; input: unknown };
 }
 /** How a Vue PluginView draws a rows block: the kit DataTable (console admin lists) or a list (plugin pages). */
+/** Presentation chosen by the host, never guessed from translated labels. Account: first field is the balance; rows start with a display amount. */
+export type FlarePluginPageAppearance = "document" | "account";
 export type FlarePluginRowsLayout = "table" | "list";
 
 /** Why a view is unavailable, or (unbound_copy) read-only (ResolvedPluginView.unavailableReason). */
@@ -161,7 +167,14 @@ export type FlarePluginUnavailableReason =
   | "catalog_unreachable"
   | "unbound_copy";
 
+export interface FlarePluginPresentation {
+  renderer: string;
+  props: Record<string, unknown>;
+  actions: Record<string, string>;
+}
+
 export interface FlarePluginViewModel {
+  presentation?: FlarePluginPresentation;
   available: boolean;
   /** Why it is unavailable; unbound_copy keeps it available but read-only (a forwarded or forged copy). */
   unavailableReason?: FlarePluginUnavailableReason;
@@ -338,12 +351,12 @@ export function flarePluginNextCursor(view: FlarePluginViewModel | undefined): s
 }
 
 /**
- * A grouped list's header row (spec rules.entriesGrouped, entryGroupHeaders): the label, then "{count} votes" and
- * "{percent}%" when present, joined with " · ".
+ * A grouped list's header row (spec rules.entriesGrouped, entryGroupHeaders): the label, then the votes ("{count}
+ * votes", in the plural form for the count) and "{percent}%" when present, joined with " · ".
  */
-export function flarePluginEntryGroupHeader(group: FlarePluginEntryGroup, votes: string): string {
+export function flarePluginEntryGroupHeader(group: FlarePluginEntryGroup, votes: (count: number) => string): string {
   const parts = [group.label];
-  if (typeof group.count === "number") parts.push(votes.replace("{count}", String(group.count)));
+  if (typeof group.count === "number") parts.push(votes(group.count));
   if (typeof group.percent === "number") parts.push(`${group.percent}%`);
   return parts.join(" · ");
 }

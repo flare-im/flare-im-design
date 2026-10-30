@@ -1,0 +1,250 @@
+{
+  "version": 1,
+  "nowMs": 1793008800000,
+  "utcOffsetMinutes": 480,
+  "rules": {
+    "appearance": "Host explicitly selects account; first field is the headline and first row cell the server-formatted amount. No totals are derived from visible rows. Row actions keep their bound input. Unknown dates remain unknown; dedupe only by row key per block."
+  },
+  "view": {
+    "available": true,
+    "title": "钱包",
+    "fields": [
+      {
+        "label": "可用余额",
+        "value": "¥1,288.66"
+      },
+      {
+        "label": "红包托管中",
+        "value": "¥68.00"
+      },
+      {
+        "label": "发出红包",
+        "value": "¥620.00"
+      },
+      {
+        "label": "收到红包",
+        "value": "¥908.66"
+      }
+    ],
+    "blocks": [
+      {
+        "kind": "rows",
+        "source": "example.wallet",
+        "columns": [
+          {
+            "label": "金额",
+            "format": "text"
+          },
+          {
+            "label": "备注",
+            "format": "text"
+          },
+          {
+            "label": "交易时间",
+            "format": "time"
+          }
+        ],
+        "rows": [
+          {
+            "key": "tx-01",
+            "badge": {
+              "text": "收到红包",
+              "tone": "success"
+            },
+            "cells": [
+              {
+                "text": "+¥88.88"
+              },
+              {
+                "text": "周五快乐"
+              },
+              {
+                "text": "",
+                "timeMs": 1793001900000
+              }
+            ],
+            "actions": [
+              {
+                "id": "open",
+                "input": {
+                  "packetId": "packet-01"
+                }
+              }
+            ]
+          },
+          {
+            "key": "tx-02",
+            "badge": {
+              "text": "发出红包",
+              "tone": "neutral"
+            },
+            "cells": [
+              {
+                "text": "-¥52.00"
+              },
+              {
+                "text": "谢谢大家的帮忙"
+              },
+              {
+                "text": "",
+                "timeMs": 1792999800000
+              }
+            ],
+            "actions": [
+              {
+                "id": "open",
+                "input": {
+                  "packetId": "packet-02"
+                }
+              }
+            ]
+          },
+          {
+            "key": "tx-03",
+            "badge": {
+              "text": "红包退回",
+              "tone": "warning"
+            },
+            "cells": [
+              {
+                "text": "+¥3.00"
+              },
+              {
+                "text": "未领取的红包已退回"
+              },
+              {
+                "text": "",
+                "timeMs": 1792919400000
+              }
+            ],
+            "actions": [
+              {
+                "id": "open",
+                "input": {
+                  "packetId": "packet-03"
+                }
+              }
+            ]
+          },
+          {
+            "key": "tx-04",
+            "badge": {
+              "text": "入账",
+              "tone": "info"
+            },
+            "cells": [
+              {
+                "text": "+¥200.00"
+              },
+              {
+                "text": "已接入渠道的入账记录示例"
+              },
+              {
+                "text": "",
+                "timeMs": 1792901100000
+              }
+            ],
+            "actions": []
+          },
+          {
+            "key": "tx-05",
+            "badge": {
+              "text": "收到红包",
+              "tone": "success"
+            },
+            "cells": [
+              {
+                "text": "+$0.88"
+              },
+              {
+                "text": "另一币种单独显示，不合并计算"
+              },
+              {
+                "text": "",
+                "timeMs": 1792818000000
+              }
+            ],
+            "actions": [
+              {
+                "id": "open",
+                "input": {
+                  "packetId": "packet-05"
+                }
+              }
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "id": "open",
+            "label": "查看红包"
+          }
+        ],
+        "emptyText": "暂无明细"
+      },
+      {
+        "kind": "note",
+        "text": "当前页面为虚构示例，不会操作真实资金。",
+        "tone": "info"
+      },
+      {
+        "kind": "text",
+        "text": "当前规则",
+        "style": "secondary"
+      },
+      {
+        "kind": "fields",
+        "fields": [
+          {
+            "label": "币种",
+            "value": "CNY"
+          },
+          {
+            "label": "单个红包上限",
+            "value": "¥50.00"
+          },
+          {
+            "label": "份数上限",
+            "value": "3"
+          }
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id": "history",
+        "label": "全部账单"
+      },
+      {
+        "id": "sent",
+        "label": "我发出的"
+      },
+      {
+        "id": "received",
+        "label": "我收到的"
+      }
+    ]
+  },
+  "expect": {
+    "amounts": [
+      "+¥88.88",
+      "-¥52.00",
+      "+¥3.00",
+      "+¥200.00",
+      "+$0.88"
+    ],
+    "entryKeys": [
+      "example.wallet/tx-01",
+      "example.wallet/tx-02",
+      "example.wallet/tx-03",
+      "example.wallet/tx-04",
+      "example.wallet/tx-05"
+    ],
+    "groups": 3,
+    "actions": [
+      "history",
+      "sent",
+      "received"
+    ]
+  }
+}

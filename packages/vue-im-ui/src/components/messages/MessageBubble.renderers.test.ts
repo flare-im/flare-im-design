@@ -15,9 +15,15 @@ import FlarePluginView from "./FlarePluginView.vue";
 
 /** A custom renderer that writes what it was told about its message into the DOM. */
 const Probe = defineComponent({
-  props: { messageId: String, conversationId: String },
+  props: { messageId: String, conversationId: String, senderId: String, senderName: String },
   setup(props) {
-    return () => h("div", { class: "probe", "data-message": props.messageId ?? "", "data-conversation": props.conversationId ?? "" }, "card");
+    return () => h("div", {
+      class: "probe",
+      "data-message": props.messageId ?? "",
+      "data-conversation": props.conversationId ?? "",
+      "data-sender": props.senderId ?? "",
+      "data-sender-name": props.senderName ?? "<none>",
+    }, "card");
   },
 });
 
@@ -128,6 +134,18 @@ describe("custom content renderers", () => {
     const probe = setup({ "custom:packet": Probe }, { conversationId: "conv-9" }).get(".probe");
     expect(probe.attributes("data-message")).toBe("server-1");
     expect(probe.attributes("data-conversation")).toBe("conv-9");
+  });
+
+  it("tells the renderer who sent the message, by id and by the name the host gave", () => {
+    const probe = setup({ "custom:packet": Probe }, { senderId: "ivy", senderDisplayName: "  Ivy Chen " }).find(".probe");
+    expect(probe.attributes("data-sender")).toBe("ivy");
+    expect(probe.attributes("data-sender-name")).toBe("Ivy Chen");
+  });
+
+  it("gives the renderer no name rather than the id when the host has none", () => {
+    const probe = setup({ "custom:packet": Probe }, { senderId: "u-42", senderDisplayName: "" }).find(".probe");
+    expect(probe.attributes("data-sender")).toBe("u-42");
+    expect(probe.attributes("data-sender-name")).toBe("<none>");
   });
 
   it("falls back to the client id, and to the list's conversation", () => {

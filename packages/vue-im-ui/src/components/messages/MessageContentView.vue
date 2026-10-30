@@ -15,6 +15,10 @@ const props = defineProps<{
   conversationId?: string;
   messageExtra?: Record<string, unknown>;
   senderName?: string;
+  /** The sender's id, handed to a custom renderer as `senderId`. */
+  senderId?: string;
+  /** The display name the host gave the sender (no fallback), handed to a custom renderer as `senderName`. */
+  senderDisplayName?: string;
   mediaAction?: "download" | "openFolder" | null;
   mediaState?: MessageMediaDownloadUiState | null;
   /** The row is in multi-select: every control in the content is inert and a tap selects the row. */
@@ -52,6 +56,8 @@ const intentListeners = computed(() => (props.selectionMode ? {} : {
     :conversation-id="conversationId"
     :message-extra="messageExtra"
     :sender-name="senderName"
+    :sender-id="senderId"
+    :sender-display-name="senderDisplayName"
     :media-action="mediaAction"
     :media-state="mediaState"
     :selection-mode="selectionMode"

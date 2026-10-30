@@ -20,7 +20,7 @@ const detail: FlarePluginViewModel = {
   blocks: [{ kind: "entries", items: [{ index: 1, text: "《三体》", userId: "u_alice01" }], numbered: true, total: 1, more: false }],
 };
 
-function render(props: Record<string, unknown>) {
+function render(props: Record<string, unknown>, footer?: () => ReturnType<typeof h>) {
   const state = reactive<Record<string, unknown>>({ open: true, title: "周末读书会报名", ...props });
   let retries = 0;
   let closes = 0;
@@ -33,7 +33,7 @@ function render(props: Record<string, unknown>) {
         onRetry: () => { retries += 1; },
         onClose: () => { closes += 1; },
         onLoadMore: (cursor: string) => pages.push(cursor),
-      });
+      }, footer ? { footer } : undefined);
     },
   }), { attachTo: document.body });
   return { wrapper, state, pages, retries: () => retries, closes: () => closes };
@@ -47,6 +47,16 @@ describe("FlarePluginDetailSheet", () => {
     expect(root().dataset.state).toBe("loading");
     expect(document.body.textContent).toContain("周末读书会报名");
     expect(document.body.textContent).toContain("加载中");
+  });
+
+  it("offers an explicit close control without changing the view", async () => {
+    const sheet = render({ view: detail });
+    await flushPromises();
+    const close = document.body.querySelector('button[aria-label="关闭"]') as HTMLButtonElement;
+    expect(close).not.toBeNull();
+    close.click();
+    expect(sheet.closes()).toBe(1);
+    expect(sheet.state.view).toEqual(detail);
   });
 
   it("shows the host's error with a retry key", async () => {
@@ -67,6 +77,25 @@ describe("FlarePluginDetailSheet", () => {
     expect(root().querySelector(".flare-plugin-view")!.classList).toContain("is-embedded");
     expect(root().textContent).toContain("《三体》");
     expect(document.body.textContent).toContain("接龙全部条目");
+  });
+
+  it("shows the host's review controls only after a successful detail read", async () => {
+    const sheet = render({ loading: true }, () => h('button', '审核配置'));
+    await flushPromises();
+    expect(root().querySelector('footer')).toBeNull();
+    sheet.state.loading = false;
+    sheet.state.view = detail;
+    await flushPromises();
+    expect(root().querySelector('footer')?.textContent).toBe('审核配置');
+    sheet.state.error = '读取失败';
+    await flushPromises();
+    expect(root().querySelector('footer')).toBeNull();
+  });
+
+  it("does not add an empty review footer to read-only details", async () => {
+    render({ view: detail });
+    await flushPromises();
+    expect(root().querySelector('footer')).toBeNull();
   });
 
   it("hands the detail's action error, form errors, members and settle token to the embedded view", async () => {

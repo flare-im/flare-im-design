@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FlareUserIdentity from "../data/FlareUserIdentity.vue";
 import { computed, getCurrentInstance, reactive, ref, shallowReactive, watch } from "vue";
 import FlareActionMenu from "../general/FlareActionMenu.vue";
 import FlareButton from "../general/FlareButton.vue";
@@ -6,6 +7,7 @@ import FlareBottomSheet from "../general/FlareBottomSheet.vue";
 import FlareIcon from "../general/FlareIcon.vue";
 import FlareStatusBanner from "../general/FlareStatusBanner.vue";
 import FlareDangerConfirm from "../scenes/FlareDangerConfirm.vue";
+import type { SchemaSelection, SchemaSelectionLabels } from "../form/schema-selections";
 import FlarePluginForm from "../form/FlarePluginForm.vue";
 import PluginChoicesBlock from "./plugin/PluginChoicesBlock.vue";
 import PluginEntriesBlock from "./plugin/PluginEntriesBlock.vue";
@@ -18,6 +20,7 @@ import { flareIcons, type FlareIconName } from "../../shared/icons";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 import { useFlareContentSelection, useFlareMessageQuote } from "../../shared/message-renderers";
 import MessageCardQuote from "./MessageCardQuote.vue";
+import FlareResolvedPresentation from "./presentation/FlareResolvedPresentation.vue";
 import type { FlareActionItem } from "../../shared/contracts/action-menu";
 import {
   flarePluginChoiceCapped,
@@ -77,6 +80,11 @@ const props = withDefaults(
     members?: FlarePluginMember[];
     /** The host's validation errors for the open action form. */
     formErrors?: FlarePluginFormError[];
+    /** Initial values for the action/row selected by the user; captured once when opening. */
+    formInitialValues?: (actionId: string, row?: {key: string; input: unknown}) => Record<string, unknown> | undefined;
+    formSelections?: Record<string, SchemaSelection>;
+    formChangeActions?: ReadonlyArray<string>;
+    selectionLabels?: SchemaSelectionLabels;
     /**
      * The host's settle signal: incremented once per finished action, after that result's `error` / `formErrors`
      * are set. Each change settles the optimistic choice and a submitted form (spec rules.settle).
@@ -94,6 +102,9 @@ const emit = defineEmits<{
   openDetail: [row?: { key: string; input: unknown }];
   /** Admin tables: the next page from `cursor` of operation `source`. */
   loadMore: [cursor: string, source: string];
+  selectionSearch: [id: string, query: string];
+  selectionRetry: [id: string];
+  selectionMore: [id: string];
 }>();
 const { t } = useFlareI18nOptional();
 
@@ -123,6 +134,8 @@ const rowQuote = useFlareMessageQuote();
 if (rowQuote && !props.embedded) rowQuote.claim();
 const quoteShown = computed(() => (!props.embedded && rowQuote?.active() ? rowQuote : null));
 // In a selecting timeline row the card is inert: a tap selects the row.
+const specialPresentation = computed(() => props.view.available && ['redPacket.card','redPacket.composer','redPacket.pay','payment.confirm','redPacket.detail'].includes(props.view.presentation?.renderer ?? '') && (props.view.presentation?.renderer !== 'redPacket.detail' || Boolean(props.view.presentation.props.details)));
+function presentationRequest(id: string): void { const action = props.view.actions.find(a => a.id === id); if (action) run(action, {}); }
 const selecting = useFlareContentSelection();
 const locked = computed(() => props.busy || Boolean(props.busyActionId) || selecting());
 // The reason line (spec rules.unavailableReason): the reason's copy, led by the envelope's displayName.
@@ -240,6 +253,7 @@ const formAction = ref<FlarePluginAction | null>(null);
 // the form adds its values to it, so every platform sends both.
 const formCarry = ref<{ payload: FlarePluginActionPayload; before?: () => void } | null>(null);
 const formSubmitted = ref(false);
+const formValues = ref<Record<string, unknown> | undefined>();
 const formInputs = computed<FlarePluginInput[]>(() => {
   const action = formAction.value;
   if (!action?.form) return [];
@@ -260,6 +274,7 @@ function run(action: FlarePluginAction, payload: FlarePluginActionPayload, befor
   const proceed = () => {
     if (action.form?.length) {
       formSubmitted.value = false;
+      formValues.value = props.formInitialValues?.(action.id, payload.row);
       formCarry.value = { payload, before };
       formAction.value = action;
       return;
@@ -320,7 +335,7 @@ const variantOf = (action: FlarePluginAction) => (action.style === "danger" ? "d
 <template>
   <section
     class="flare-plugin-view"
-    :class="{ 'is-embedded': embedded, 'is-inset-sheet': inset === 'sheet', 'is-inset-sheet-top': inset === 'sheetTop', 'is-unavailable': !view.available }"
+    :class="{ 'is-presentation': specialPresentation, 'is-embedded': embedded, 'is-inset-sheet': inset === 'sheet', 'is-inset-sheet-top': inset === 'sheetTop', 'is-unavailable': !view.available }"
     :aria-label="view.title || undefined"
     :aria-busy="busy || Boolean(busyActionId)"
   >
@@ -328,9 +343,22 @@ const variantOf = (action: FlarePluginAction) => (action.style === "danger" ? "d
     <div v-if="($slots.quote || quoteShown) && !embedded" class="flare-plugin-view__quote" data-plugin-quote="true">
       <slot name="quote"><MessageCardQuote v-if="quoteShown" :preview="quoteShown.preview()" :locate="quoteShown.locate()" /></slot>
     </div>
-    <header v-if="!embedded" class="flare-plugin-view__head">
+    <header v-if="!embedded && !specialPresentation" class="flare-plugin-view__head">
       <FlareIcon v-if="titleIcon" class="flare-plugin-view__icon" :name="titleIcon" :size="18" />
       <strong class="flare-plugin-view__title">{{ view.title }}</strong>
+      <FlareButton
+        v-if="detailKey() && !footerActions.length"
+        class="flare-plugin-view__detail"
+        variant="quiet"
+        size="sm"
+        appearance="text"
+        :disabled="locked"
+        data-detail-key="true"
+        @click="emit('openDetail')"
+      >
+        <span>{{ t('pluginView.detail') }}</span>
+        <FlareIcon name="chevron-right" :size="14" aria-hidden="true" />
+      </FlareButton>
       <FlareActionMenu
         v-if="menuItems.length"
         :items="menuItems"
@@ -353,9 +381,11 @@ const variantOf = (action: FlarePluginAction) => (action.style === "danger" ? "d
     <!-- Embedded there is no title row: an unavailable view still says what it was. -->
     <p v-else-if="!view.available && view.title" class="flare-plugin-view__unavailable" data-unavailable-title="true">{{ view.title }}</p>
     <p v-if="!view.available && reasonLine" class="flare-plugin-view__reason" data-unavailable-reason="true">{{ reasonLine }}</p>
-    <template v-if="view.available">
+    <FlareResolvedPresentation v-if="specialPresentation" :view="view" :busy="locked" :error="error" :form-errors="formErrors" :settle-token="settleToken" :resolve-user="resolveUser" :members="members" @request="presentationRequest" @action="send" />
+    <p v-if="specialPresentation && reasonLine" class="flare-plugin-view__reason" data-unavailable-reason="true">{{ reasonLine }}</p>
+    <template v-if="view.available && !specialPresentation">
       <dl v-if="view.fields.length" class="flare-plugin-view__fields">
-        <div v-for="(field, index) in view.fields" :key="index"><dt>{{ field.label }}</dt><dd>{{ field.value }}</dd></div>
+        <div v-for="(field, index) in view.fields" :key="index"><dt>{{ field.label }}</dt><dd><FlareUserIdentity v-if="field.user" :user="field.user" /><template v-else>{{ field.value }}</template></dd></div>
       </dl>
       <template v-for="(block, index) in blocks" :key="index">
         <PluginTextBlock v-if="block.kind === 'text'" :block="block" data-block="text" />
@@ -393,29 +423,35 @@ const variantOf = (action: FlarePluginAction) => (action.style === "danger" ? "d
           :data-block="block.kind"
         />
       </template>
-      <div v-if="footerActions.length" class="flare-plugin-view__actions">
+      <footer v-if="footerActions.length" class="flare-plugin-view__footer">
+        <div v-if="footerActions.length" class="flare-plugin-view__actions">
+          <FlareButton
+            v-for="action in footerActions"
+            :key="action.id"
+            :label="action.label"
+            :variant="variantOf(action)"
+            size="sm"
+            appearance="text"
+            :loading="busyActionId === action.id"
+            :disabled="locked"
+            :data-action-id="action.id"
+            @click="run(action, {})"
+          />
+        </div>
         <FlareButton
-          v-for="action in footerActions"
-          :key="action.id"
-          :label="action.label"
-          :variant="variantOf(action)"
-          :loading="busyActionId === action.id"
+          v-if="detailKey()"
+          class="flare-plugin-view__detail"
+          variant="quiet"
+          size="sm"
+          appearance="text"
           :disabled="locked"
-          :data-action-id="action.id"
-          @click="run(action, {})"
-        />
-      </div>
-      <FlareButton
-        v-if="detailKey()"
-        class="flare-plugin-view__detail"
-        variant="quiet"
-        size="sm"
-        block
-        :label="t('pluginView.detail')"
-        :disabled="locked"
-        data-detail-key="true"
-        @click="emit('openDetail')"
-      />
+          data-detail-key="true"
+          @click="emit('openDetail')"
+        >
+          <span>{{ t('pluginView.detail') }}</span>
+          <FlareIcon name="chevron-right" :size="14" aria-hidden="true" />
+        </FlareButton>
+      </footer>
       <!-- A forwarded or forged copy (unbound_copy): readable, read-only, and it says so. -->
       <p v-if="reasonLine" class="flare-plugin-view__reason flare-plugin-view__reason--copy" data-unavailable-reason="true">{{ reasonLine }}</p>
     </template>
@@ -433,6 +469,13 @@ const variantOf = (action: FlarePluginAction) => (action.style === "danger" ? "d
     <FlareBottomSheet v-if="formAction" :open="Boolean(formAction)" :title="formAction?.label" :dismissible="!formBusy" @close="closeForm">
       <FlarePluginForm
         :inputs="formInputs"
+        :values="formValues"
+        :require-change="formAction ? formChangeActions?.includes(formAction.id) : false"
+        :selections="formSelections"
+        :selection-labels="selectionLabels"
+        @selection-search="(id: string, query: string) => emit('selectionSearch',id,query)"
+        @selection-retry="(id: string) => emit('selectionRetry',id)"
+        @selection-more="(id: string) => emit('selectionMore',id)"
         :errors="formSubmitted ? formErrors : []"
         :busy="formBusy"
         :error="formSubmitted ? error : undefined"
@@ -447,20 +490,24 @@ const variantOf = (action: FlarePluginAction) => (action.style === "danger" ? "d
 <style scoped>
 .flare-plugin-view {
   display: grid;
-  gap: var(--flare-size-spacing-md);
+  gap: var(--flare-size-spacing-2sm);
+  --flare-plugin-title-size: var(--flare-size-font-size-xl);
+  --flare-plugin-body-size: var(--flare-size-font-size-lg);
+  --flare-plugin-meta-size: var(--flare-size-font-size-sm);
   width: var(--flare-component-rich-card-width);
   max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
   padding: var(--flare-size-spacing-md);
-  border: 1px solid var(--flare-color-border-secondary);
+  border: 1px solid color-mix(in srgb, var(--flare-color-border-secondary) 60%, transparent);
   border-radius: var(--flare-size-radius-lg);
   background: var(--flare-color-bg-primary);
-  box-shadow: var(--flare-component-bubble-shadow);
+  box-shadow: none;
   color: var(--flare-color-text-primary);
   overflow-wrap: anywhere;
 }
-.flare-plugin-view.is-embedded { width: auto; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.flare-plugin-view.is-presentation { width: auto; padding: 0; border: 0; background: transparent; box-shadow: none; }
+.flare-plugin-view.is-embedded { --flare-plugin-title-size: var(--flare-size-font-size-2xl); --flare-plugin-body-size: var(--flare-size-font-size-lg); --flare-plugin-meta-size: var(--flare-size-font-size-md); width: auto; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
 /* Straight into a bottom sheet: the sheet's insets, the same as PluginForm; sheetTop leaves the bottom one to what follows. */
 .flare-plugin-view.is-embedded.is-inset-sheet { padding: var(--flare-size-spacing-md) var(--flare-size-spacing-lg) var(--flare-size-spacing-xl); }
 .flare-plugin-view.is-embedded.is-inset-sheet-top { padding: var(--flare-size-spacing-md) var(--flare-size-spacing-lg) 0; }
@@ -507,11 +554,34 @@ const variantOf = (action: FlarePluginAction) => (action.style === "danger" ? "d
 .flare-plugin-view__reason--copy { color: var(--flare-color-text-tertiary); }
 .flare-plugin-view__quote { min-width: 0; }
 .flare-plugin-view__icon { flex: none; color: var(--flare-color-primary-text); }
-.flare-plugin-view__title { min-width: 0; font-size: var(--flare-size-font-size-xl); font-weight: var(--flare-size-font-weight-semibold); line-height: var(--flare-size-line-height-snug); }
+.flare-plugin-view__title { min-width: 0; font-size: var(--flare-size-font-size-sm); font-weight: var(--flare-size-font-weight-medium); line-height: var(--flare-size-line-height-snug); color: var(--flare-color-text-secondary); }
 .flare-plugin-view__fields { display: grid; gap: var(--flare-size-spacing-xs); margin: 0; font-size: var(--flare-size-font-size-md); }
 .flare-plugin-view__fields > div { display: grid; grid-template-columns: minmax(4em, 1fr) minmax(0, 2fr); gap: var(--flare-size-spacing-md); }
 .flare-plugin-view__fields dt { color: var(--flare-color-text-secondary); }
 .flare-plugin-view__fields dd { margin: 0; }
-.flare-plugin-view__actions { display: flex; flex-wrap: wrap; gap: var(--flare-size-spacing-sm); }
-.flare-plugin-view__actions > * { flex: 1 1 auto; }
+.flare-plugin-view__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--flare-size-spacing-sm);
+  row-gap: var(--flare-size-spacing-2sm);
+  min-width: 0;
+  padding-block-start: var(--flare-size-spacing-2xs);
+  border-top: 1px solid var(--flare-color-border-secondary);
+}
+.flare-plugin-view__actions { display: flex; flex-wrap: wrap; gap: var(--flare-size-spacing-md); min-width: 0; }
+.flare-plugin-view__actions > * { flex: 0 1 auto; max-width: 100%; white-space: normal; height: auto; }
+.flare-plugin-view__detail {
+  flex: none;
+  margin-inline-start: auto;
+  padding-inline: var(--flare-size-spacing-2xs);
+  font-size: var(--flare-size-font-size-sm);
+  font-weight: var(--flare-size-font-weight-medium);
+}
+.flare-plugin-view__detail :deep(.flare-button__label) { display: inline-flex; align-items: center; gap: var(--flare-size-spacing-3xs); }
+.flare-plugin-view.is-embedded .flare-plugin-view__footer { border-top: 0; padding-block-start: 0; }
+@media (pointer: coarse) {
+  .flare-plugin-view__footer { row-gap: var(--flare-size-spacing-md); }
+}
+
 </style>

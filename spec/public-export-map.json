@@ -2459,6 +2459,32 @@
       }
     },
     {
+      "name": "AccountView",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareAccountView",
+          "sourcePath": "packages/vue-im-ui/src/components/messages/account/FlareAccountView.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareAccountView",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_account_view.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlareAccountView",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/AccountView.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "FlareAccountView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/FlareAccountView.swift"
+        }
+      }
+    },
+    {
       "name": "SlashCommandMenu",
       "status": "stable",
       "platforms": {
@@ -4417,6 +4443,17 @@
           "package": "@flare-im/vue-ui",
           "symbol": "FlareTag",
           "sourcePath": "packages/vue-im-ui/src/components/general/FlareTag.vue"
+        }
+      }
+    },
+    {
+      "name": "UserIdentity",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareUserIdentity",
+          "sourcePath": "packages/vue-im-ui/src/components/data/FlareUserIdentity.vue"
         }
       }
     }

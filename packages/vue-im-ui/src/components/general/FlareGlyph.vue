@@ -1,31 +1,22 @@
 <script setup lang="ts">
 /**
- * Lenient icon renderer for host-supplied `icon` strings. If the value is a
- * canonical Flare semantic name it renders the crisp line glyph via FlareIcon;
- * otherwise it falls back to rendering the string as-is (emoji / single char)
- * for back-compat. Use this wherever a component accepts an open `icon?: string`.
+ * Lenient icon renderer for host-supplied `icon` strings. A canonical Flare semantic name renders its line glyph via
+ * FlareIcon; any other word renders the shared fallback glyph (`plugin`), with a development warning once per name —
+ * never the word itself, never a blank (spec/me-menu-vectors.json iconFallback). An emoji or a single character still
+ * renders as given, hidden from assistive technology like every icon.
  */
 import { computed } from "vue";
 import FlareIcon from "./FlareIcon.vue";
-import { flareIcons, type FlareIconName } from "../../shared/icons";
+import { flareIconNameOrFallback } from "../../shared/icons";
 
 const props = withDefaults(defineProps<{ icon?: string; size?: number }>(), { size: 20 });
-const semantic = computed(() => (props.icon && props.icon in flareIcons ? (props.icon as FlareIconName) : null));
-// A word that is not an icon name ("bell") is a host mistake: showing it would put the word
-// on screen and into the control's accessible name. Emoji and single characters still render,
-// hidden from assistive technology like every icon.
-const fallback = computed(() => {
-  const value = props.icon?.trim() ?? "";
-  if (!value || semantic.value) return "";
-  if (/^[A-Za-z][A-Za-z0-9-]*$/.test(value)) {
-    if (import.meta.env?.DEV) console.warn(`[flare-im] "${value}" is not a Flare icon name`);
-    return "";
-  }
-  return value;
-});
+const value = computed(() => props.icon?.trim() ?? "");
+// A word-like value is meant as an icon name: the registry's glyph, or the fallback for a name it does not have.
+const semantic = computed(() => (/^[A-Za-z][A-Za-z0-9-]*$/.test(value.value) ? flareIconNameOrFallback(value.value) : null));
+const literal = computed(() => (value.value && !semantic.value ? value.value : ""));
 </script>
 
 <template>
   <FlareIcon v-if="semantic" :name="semantic" :size="size" />
-  <span v-else-if="fallback" aria-hidden="true">{{ fallback }}</span>
+  <span v-else-if="literal" aria-hidden="true">{{ literal }}</span>
 </template>

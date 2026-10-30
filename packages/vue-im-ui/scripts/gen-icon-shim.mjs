@@ -79,6 +79,8 @@ const MAP = {
   ExtensionPuzzleOutline: ["Puzzle"],
   // The location picker's "use current location" key.
   LocateOutline: ["LocateFixed"],
+  // The 我 page's wallet entry (the red packet account-entry).
+  WalletOutline: ["Wallet"],
 };
 
 function walk(dir) {

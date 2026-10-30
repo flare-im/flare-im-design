@@ -564,10 +564,11 @@ title: 数据类型
 
 > 解析后的插件视图（核心 SDK 的 ResolvedPluginView）。
 
-**被使用于：**[PluginView](/components/plugin-view) · [PluginDetailSheet](/components/plugin-detail-sheet)
+**被使用于：**[PluginView](/components/plugin-view) · [PluginDetailSheet](/components/plugin-detail-sheet) · [AccountView](/components/account-view)
 
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
+| `presentation` | `{renderer: string, props: Record<string, unknown>, actions: Record<string, string>}` |  | 可选的内置 Kit 组合，包含有界的已解析展示值和可见声明动作引用。未知 renderer 使用文档。无网络或权限语义。 |
 | `available` | `boolean` | ✓ | 为假时只显示标题（插件停用、历史卡片）。 |
 | `title` | `string` | ✓ | 卡片标题。 |
 | `fields` | `{label, value}[]` | ✓ | 键值行（v1）。 |
@@ -654,7 +655,7 @@ title: 数据类型
 
 > 提交值的一个问题（UiFormError）。
 
-**被使用于：**[PluginView](/components/plugin-view) · [PluginForm](/components/plugin-form) · [PluginDetailSheet](/components/plugin-detail-sheet) · [PluginPage](/components/plugin-page)
+**被使用于：**[PluginView](/components/plugin-view) · [PluginForm](/components/plugin-form) · [PluginDetailSheet](/components/plugin-detail-sheet) · [PluginPage](/components/plugin-page) · [AccountView](/components/account-view)
 
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
@@ -678,7 +679,7 @@ title: 数据类型
 
 > members 输入的候选成员。
 
-**被使用于：**[PluginView](/components/plugin-view) · [PluginForm](/components/plugin-form) · [PluginDetailSheet](/components/plugin-detail-sheet) · [PluginPage](/components/plugin-page)
+**被使用于：**[PluginView](/components/plugin-view) · [PluginForm](/components/plugin-form) · [PluginDetailSheet](/components/plugin-detail-sheet) · [PluginPage](/components/plugin-page) · [AccountView](/components/account-view)
 
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
@@ -820,6 +821,138 @@ title: 数据类型
 | `refundedAtMs` | `number` |  | 退回时间。 |
 | `claimsListed` | `boolean` | ✓ | 查看者可以看领取记录。 |
 
+### MessageRenderContext {#message-render-context}
+
+`FlareContentContext`
+
+> 注册的内容渲染器拿到的消息信息（Vue 为渲染器的 props）。
+
+**原生符号：**
+
+- Flutter: `FlareContentContext`
+- SwiftUI: `FlareContentContext`
+- Compose: `FlareContentContext`
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `messageId` | `string` |  | 消息在核心里的 id：有服务端 id 用它，否则客户端 id。行外渲染时没有。 |
+| `conversationId` | `string` |  | 消息所在会话。 |
+| `senderId` | `string` |  | 发送者 id。 |
+| `senderName` | `string` |  | 宿主给这条消息发送者的显示名，去首尾空白，空则没有。不回落到 id 或占位词，没名字时由渲染器自己决定写法。 |
+| `self` | `boolean` | ✓ | 消息是本人发的（Vue 为 isSelf）。 |
+| `selectionMode` | `boolean` |  | 该行处于多选：内容里的控件不响应。 |
+| `surface` | [`FlareMessageSurface`](/reference/data-types#message-surface) |  | 该行绘制内容所用的表面。 |
+
+### MeMenuItem {#me-menu-item}
+
+`FlareMeMenuItem`
+
+> 社交 SDK features.meMenu 的一项，Kit 按此读取。
+
+**原生符号：**
+
+- Flutter: `FlareMeMenuItem`
+- SwiftUI: `FlareMeMenuItem`
+- Compose: `FlareMeMenuItem`
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `kind` | `"builtin" \| "plugin"` | ✓ | 内置入口或插件页面入口；其他 kind 丢掉。 |
+| `id` | `string` | ✓ | 内置项为 moments / reports / invite / settings；插件项为 `plugin:<contributionId>`。 |
+| `icon` | `string` |  | Kit 图标名；不认识的回落到 plugin。 |
+| `title` | `string` |  | 插件项标题。 |
+| `order` | `number` |  | SDK 的排序键；Kit 保持给定顺序、不重排。 |
+
+### MeMenu {#me-menu}
+
+`FlareMeMenu`
+
+> 社交 SDK features.meMenu 的结果；flareMeMenuSections(menu, labels, summaries) 把它变成 SettingsList 的分组（spec/me-menu-vectors.json）。
+
+**原生符号：**
+
+- Flutter: `FlareMeMenu`
+- SwiftUI: `FlareMeMenu`
+- Compose: `FlareMeMenu` — FlareMeMenu.parse(json) reads the SDK's JSON.
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `items` | [`MeMenuItem[]`](/reference/data-types#me-menu-item) | ✓ | 按 SDK 顺序的各项。 |
+| `complete` | `boolean` | ✓ | 开关或插件目录这次没读到时为 false，宿主稍后重读。 |
+
+### ForwardItem {#forward-item}
+
+`FlareForwardItem`
+
+> 合并转发记录里的一条消息。
+
+**原生符号：**
+
+- Flutter: `FlareForwardItem`
+- SwiftUI: `FlareForwardItem`
+- Compose: `FlareForwardItem`
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `senderName` | `string` |  | 原发送者名字（核心 sourceSenderName）；为空写「未知发送者」。 |
+| `sentAtMs` | `number` |  | 原消息发送时间（核心 sourceMessageTimeMs）。 |
+| `plainText` | `string` |  | 原消息纯文本，有则作摘要行。 |
+| `content` | `MessageContent` |  | 原消息内容，宿主按普通消息内容映射。 |
+
+### ForwardContent {#forward-content}
+
+`FlareForwardContent`
+
+> 合并转发记录（内容类型 forward，card 表面），按 Vue ForwardView 的形态绘制（spec/message-forward-vectors.json）。Vue 直接读核心载荷。
+
+**原生符号：**
+
+- Flutter: `FlareForwardContent`
+- SwiftUI: `FlareForwardContent`
+- Compose: `FlareForwardContent`
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `title` | `string` |  | 记录自己的标题；为空写「合并转发」。 |
+| `mode` | `"unspecified" \| "single" \| "merged"` |  | 核心 ForwardMode（0、1、2）。只有一条且不是 merged 时直接按那一条渲染。 |
+| `items` | [`ForwardItem[]`](/reference/data-types#forward-item) | ✓ | 按顺序的被转发消息。 |
+
+### MessageMenuSource {#message-menu-source}
+
+`FlareMessageMenuSource`
+
+> MessageList 构建长按面板与指针菜单所用的输入（原生 Kit）。
+
+**被使用于：**[MessageList](/components/message-list)
+
+**原生符号：**
+
+- Flutter: `FlareMessageMenuSource`
+- SwiftUI: `FlareMessageMenuSource`
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `availability` | `(message) => MessageActionAvailability \| null` | ✓ | 宿主手里这条消息的当前快照（同步）。 |
+| `prefetch` | `(messageIds: string[]) => void` |  | 行进入视口：提前读它们的可用性。 |
+| `hiddenActions` | `Set<string>` |  | 与 MessageActionSheet 相同。 |
+| `extraActions` | `(message) => MessageMenuEntry[]` |  | 宿主按这条消息给出的条目，两处共用（例如「举报」只出现在别人的消息上；对应 Vue MessageMenuExtension 的 available）。 |
+| `perform` | `(message, actionId: string) => void` | ✓ | 两处选中的条目。 |
+
+### UserIdentityValue {#user-identity-value}
+
+`FlareUserIdentityValue`
+
+> 控制台界面用的单个用户展示摘要：不含内部 ID、联系方式或运行时查询。
+
+**被使用于：**[UserIdentity](/components/user-identity)
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `name` | `string` |  | 昵称，完整显示。 |
+| `account` | `string` |  | 一个账号（用户名或一个已配置的登录账号），绝不是内部用户 id。 |
+| `avatarUrl` | `string` |  | 头像图片；加载失败时保留首字头像。 |
+| `state` | `"ready" \| "loading" \| "unavailable"` |  | 查询状态；缺省为 ready。 |
+
 ## 枚举 / 联合类型
 
 ### MessageGroupPosition {#message-group-position}
@@ -922,7 +1055,7 @@ title: 数据类型
 
 **被使用于：**[RedPacketOpenSheet](/components/red-packet-open-sheet)
 
-`ready` · `opening` · `finished` · `expired` · `notEligible` · `error`
+`ready` · `opening` · `finished` · `expired` · `refunded` · `notEligible` · `error`
 
 ### RedPacketKind {#red-packet-kind}
 
@@ -1047,6 +1180,26 @@ title: 数据类型
 > 服务端判定的详情查看者角色。
 
 `sender` · `claimer` · `eligible` · `ineligible`
+
+### ReadReceiptState {#read-receipt-state}
+
+`FlareReadReceiptState`
+
+> 已读名单的状态（spec/read-receipt-vectors.json）。
+
+**被使用于：**[ReadReceiptSheet](/components/read-receipt-sheet)
+
+`ready` · `loading` · `error` · `unavailable`
+
+### ReadReceiptColumn {#read-receipt-column}
+
+`FlareReadReceiptColumn`
+
+> 已读名单的一栏。
+
+**被使用于：**[ReadReceiptSheet](/components/read-receipt-sheet)
+
+`read` · `unread`
 
 ### CallRecordScope {#call-record-scope}
 

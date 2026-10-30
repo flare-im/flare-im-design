@@ -42,10 +42,10 @@
     "supportsDensity": "The component takes a density of its own (its prop says what the values mean); the kit has no global density scale."
   },
   "counts": {
-    "total": 177,
-    "stable": 177,
-    "general": 56,
-    "im": 116
+    "total": 179,
+    "stable": 179,
+    "general": 57,
+    "im": 117
   },
   "specializedMessageGroups": {
     "Text": [
@@ -2114,8 +2114,7 @@
         "taskToggle",
         "cardOpen",
         "locationOpen",
-        "readReceiptOpen",
-        "contextMenu"
+        "readReceiptOpen"
       ],
       "states": [
         "loading",
@@ -2155,8 +2154,7 @@
         "taskToggle",
         "cardOpen",
         "locationOpen",
-        "readReceiptOpen",
-        "contextMenu"
+        "readReceiptOpen"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -2198,7 +2196,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#MessageList",
-      "searchText": "messagelist message im-ui stable message loading empty loadingolder atbottom multiselect oldererror atbottomchange react reply edit delete recall forward pin mark preview resend mediaaction multiselect loadolder toggleselect messagelongpress avatartap locatemessage swipereply action copy openfile mediadownload mediareveal openlink vote tasktoggle cardopen locationopen readreceiptopen contextmenu supportsconfiguration supportscustomcontent supportsslots supportsresponsive the virtualised message thread — grouping, load-older, multi-select, per-message actions, media state. 虚拟化消息线程 —— 分组、加载更早、多选、逐条操作、媒体状态。"
+      "searchText": "messagelist message im-ui stable message loading empty loadingolder atbottom multiselect oldererror atbottomchange react reply edit delete recall forward pin mark preview resend mediaaction multiselect loadolder toggleselect messagelongpress avatartap locatemessage swipereply action copy openfile mediadownload mediareveal openlink vote tasktoggle cardopen locationopen readreceiptopen supportsconfiguration supportscustomcontent supportsslots supportsresponsive the virtualised message thread — grouping, load-older, multi-select, per-message actions, media state. 虚拟化消息线程 —— 分组、加载更早、多选、逐条操作、媒体状态。"
     },
     {
       "name": "ConversationHeader",
@@ -8492,12 +8490,16 @@
         "variants": [],
         "states": [
           "read",
-          "unread"
+          "unread",
+          "loading",
+          "error",
+          "unavailable",
+          "loadingMore"
         ]
       },
       "summary": {
-        "zh": "群消息回执 —— 已读/未读分页 + 成员头像列表。",
-        "en": "Group read receipt — read/unread tabs + member avatars."
+        "en": "Group read list — read / unread tabs that page on their own, with loading, error and unavailable states.",
+        "zh": "群消息已读名单 —— 已读 / 未读两栏各自分页，带加载、失败、不可用三态。"
       },
       "aliases": [
         "read receipt",
@@ -8506,16 +8508,28 @@
         "Message",
         "read",
         "unread",
+        "loading",
+        "error",
+        "unavailable",
+        "loadingMore",
         "select",
-        "close"
+        "close",
+        "loadMore",
+        "retry"
       ],
       "states": [
         "read",
-        "unread"
+        "unread",
+        "loading",
+        "error",
+        "unavailable",
+        "loadingMore"
       ],
       "interactions": [
         "select",
-        "close"
+        "close",
+        "loadMore",
+        "retry"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -8557,7 +8571,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#ReadReceiptSheet",
-      "searchText": "readreceiptsheet message im-ui stable read receipt read by 已读回执 message read unread select close supportsconfiguration supportsresponsive group read receipt — read/unread tabs + member avatars. 群消息回执 —— 已读/未读分页 + 成员头像列表。"
+      "searchText": "readreceiptsheet message im-ui stable read receipt read by 已读回执 message read unread loading error unavailable loadingmore select close loadmore retry supportsconfiguration supportsresponsive group read list — read / unread tabs that page on their own, with loading, error and unavailable states. 群消息已读名单 —— 已读 / 未读两栏各自分页，带加载、失败、不可用三态。"
     },
     {
       "name": "MessageBatchToolbar",
@@ -9691,6 +9705,7 @@
           "opening",
           "finished",
           "expired",
+          "refunded",
           "notEligible",
           "error"
         ]
@@ -9705,6 +9720,7 @@
         "opening",
         "finished",
         "expired",
+        "refunded",
         "notEligible",
         "error",
         "open",
@@ -9716,6 +9732,7 @@
         "opening",
         "finished",
         "expired",
+        "refunded",
         "notEligible",
         "error"
       ],
@@ -9764,7 +9781,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#RedPacketOpenSheet",
-      "searchText": "redpacketopensheet message im-ui stable message ready opening finished expired noteligible error open viewdetails close supportsconfiguration open-a-packet layer — a red envelope over the scrim: arched flap, sender, blessing and the gold 開 coin on the seam. 开红包浮层 —— 遮罩上的红色信封：弧形封盖、发送人、祝福语和接缝上的金色「開」。"
+      "searchText": "redpacketopensheet message im-ui stable message ready opening finished expired refunded noteligible error open viewdetails close supportsconfiguration open-a-packet layer — a red envelope over the scrim: arched flap, sender, blessing and the gold 開 coin on the seam. 开红包浮层 —— 遮罩上的红色信封：弧形封盖、发送人、祝福语和接缝上的金色「開」。"
     },
     {
       "name": "RedPacketDetail",
@@ -10169,7 +10186,10 @@
         "menu",
         "action",
         "openDetail",
-        "loadMore"
+        "loadMore",
+        "selectionSearch",
+        "selectionRetry",
+        "selectionMore"
       ],
       "states": [
         "unavailable",
@@ -10184,7 +10204,10 @@
       "interactions": [
         "action",
         "openDetail",
-        "loadMore"
+        "loadMore",
+        "selectionSearch",
+        "selectionRetry",
+        "selectionMore"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -10226,7 +10249,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#PluginView",
-      "searchText": "pluginview message im-ui stable message unavailable readonly busy error voted closed embedded menu action opendetail loadmore supportsconfiguration generic plugin card — the core sdk's resolved view drawn as a kit business card: blocks (text, fields, choices, entries, people, status, progress, time, divider, note; rows on vue admin pages), then the action keys. 通用插件卡片 —— 把核心 sdk 解析好的视图画成 kit 业务卡片：展示块（文本、键值、选项、条目、人员、状态、进度、时间、分隔、提示；vue 管理页另有 rows），再是底部动作。"
+      "searchText": "pluginview message im-ui stable message unavailable readonly busy error voted closed embedded menu action opendetail loadmore selectionsearch selectionretry selectionmore supportsconfiguration generic plugin card — the core sdk's resolved view drawn as a kit business card: blocks (text, fields, choices, entries, people, status, progress, time, divider, note; rows on vue admin pages), then the action keys. 通用插件卡片 —— 把核心 sdk 解析好的视图画成 kit 业务卡片：展示块（文本、键值、选项、条目、人员、状态、进度、时间、分隔、提示；vue 管理页另有 rows），再是底部动作。"
     },
     {
       "name": "PluginForm",
@@ -10281,7 +10304,10 @@
         "busy",
         "error",
         "submit",
-        "cancel"
+        "cancel",
+        "selectionSearch",
+        "selectionRetry",
+        "selectionMore"
       ],
       "states": [
         "editing",
@@ -10291,7 +10317,10 @@
       ],
       "interactions": [
         "submit",
-        "cancel"
+        "cancel",
+        "selectionSearch",
+        "selectionRetry",
+        "selectionMore"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -10333,7 +10362,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#PluginForm",
-      "searchText": "pluginform message im-ui stable message editing invalid busy error submit cancel supportsconfiguration plugin form — the resolved inputs of a plugin action (text, textarea, number, toggle, select, datetime, options, members) with light client checks and the host's errors; put it in the kit bottom sheet. 插件表单 —— 插件动作的解析后输入（文本、多行、数字、开关、单选、日期时间、选项列表、成员），客户端轻校验加宿主错误；放进 kit 底部面板。"
+      "searchText": "pluginform message im-ui stable message editing invalid busy error submit cancel selectionsearch selectionretry selectionmore supportsconfiguration plugin form — the resolved inputs of a plugin action (text, textarea, number, toggle, select, datetime, options, members) with light client checks and the host's errors; put it in the kit bottom sheet. 插件表单 —— 插件动作的解析后输入（文本、多行、数字、开关、单选、日期时间、选项列表、成员），客户端轻校验加宿主错误；放进 kit 底部面板。"
     },
     {
       "name": "PluginDetailSheet",
@@ -10589,6 +10618,124 @@
       },
       "sourceOfTruth": "spec/components.json#PluginPage",
       "searchText": "pluginpage message im-ui stable plugin page wallet plugin screen 钱包 插件页面 钱包页 message loading error unavailable loaded refreshing loadingmore back refresh retry loadmore filter action supportsconfiguration plugin page host — a full-screen page for a plugin's page contribution (a wallet, a list): header with back, pull to refresh, the resolved view drawn by the pluginview document renderer, load more. 插件页面宿主 —— 插件 page 贡献（钱包、列表）的全屏页面：带返回的页头、下拉刷新、由 pluginview 文档渲染器画出的解析视图、加载更多。"
+    },
+    {
+      "name": "AccountView",
+      "slug": "account-view",
+      "category": "Message",
+      "layer": "im-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": true,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [
+          {
+            "name": "resolveUser",
+            "values": [
+              "(userId: string) => FlarePluginUser",
+              "Promise<FlarePluginUser",
+              "undefined>",
+              "undefined"
+            ]
+          }
+        ],
+        "states": [
+          "loaded",
+          "empty",
+          "hidden",
+          "busy",
+          "error"
+        ]
+      },
+      "summary": {
+        "en": "Account view — the account presentation of a plugin page: a headline balance with secondary statistics that can all be hidden, a ledger grouped by date, and local entry details whose actions reuse PluginView.",
+        "zh": "账户视图 —— 插件页面的账户呈现：首要余额与可整体隐藏的次级统计、按日期分组的账单，以及复用 PluginView 动作的本地交易详情。"
+      },
+      "aliases": [
+        "Message",
+        "loaded",
+        "empty",
+        "hidden",
+        "busy",
+        "error",
+        "action"
+      ],
+      "states": [
+        "loaded",
+        "empty",
+        "hidden",
+        "busy",
+        "error"
+      ],
+      "interactions": [
+        "action"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareAccountView"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareAccountView"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlareAccountView"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "FlareAccountView"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/messages/account/FlareAccountView.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_account_view.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/AccountView.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/FlareAccountView.swift"
+      },
+      "docs": {
+        "zh": "website/components/account-view.md",
+        "en": "website/en/components/account-view.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#AccountView",
+      "searchText": "accountview message im-ui stable message loaded empty hidden busy error action supportsconfiguration account view — the account presentation of a plugin page: a headline balance with secondary statistics that can all be hidden, a ledger grouped by date, and local entry details whose actions reuse pluginview. 账户视图 —— 插件页面的账户呈现：首要余额与可整体隐藏的次级统计、按日期分组的账单，以及复用 pluginview 动作的本地交易详情。"
     },
     {
       "name": "SlashCommandMenu",
@@ -19033,14 +19180,20 @@
         "Form",
         "default",
         "disabled",
-        "update:modelValue"
+        "update:modelValue",
+        "selectionSearch",
+        "selectionRetry",
+        "selectionMore"
       ],
       "states": [
         "default",
         "disabled"
       ],
       "interactions": [
-        "update:modelValue"
+        "update:modelValue",
+        "selectionSearch",
+        "selectionRetry",
+        "selectionMore"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -19073,7 +19226,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#SchemaForm",
-      "searchText": "schemaform form general-ui stable json schema dynamic form plugin settings settings form 动态表单 插件配置 配置表单 表单生成 form default disabled update:modelvalue supportsconfiguration schema form — fields drawn from a json schema object: an enum of strings as a select, integer as a whole-number input within minimum and maximum, boolean as a switch, string as a text input; title labels a field, description explains it. schema 表单 —— 按 json schema 对象画字段：字符串枚举画成下拉，integer 画成在 minimum 与 maximum 之间的整数输入，boolean 画成开关，string 画成文本框；title 作字段标签，description 作说明。"
+      "searchText": "schemaform form general-ui stable json schema dynamic form plugin settings settings form 动态表单 插件配置 配置表单 表单生成 form default disabled update:modelvalue selectionsearch selectionretry selectionmore supportsconfiguration schema form — fields drawn from a json schema object: an enum of strings as a select, integer as a whole-number input within minimum and maximum, boolean as a switch, string as a text input; title labels a field, description explains it. schema 表单 —— 按 json schema 对象画字段：字符串枚举画成下拉，integer 画成在 minimum 与 maximum 之间的整数输入，boolean 画成开关，string 画成文本框；title 作字段标签，description 作说明。"
     },
     {
       "name": "DescriptionList",
@@ -19374,6 +19527,96 @@
       },
       "sourceOfTruth": "spec/components.json#Tag",
       "searchText": "tag general general-ui stable badge status tag label chip 标签 状态标签 徽标 general default supportsconfiguration tag — a short status or category label on a table row or a detail line, coloured by a semantic tone that only repeats what the words say. 标签 —— 表格行或详情行上一个简短的状态或类别标签，语义色调只是重复文字已经表达的含义。"
+    },
+    {
+      "name": "UserIdentity",
+      "slug": "user-identity",
+      "category": "General",
+      "layer": "general-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": false,
+        "states": true,
+        "interaction": false,
+        "responsive": false,
+        "keyboard": false,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [],
+        "states": [
+          "default",
+          "loading",
+          "unavailable"
+        ]
+      },
+      "summary": {
+        "en": "User identity — one person in a console table cell or detail line: avatar, full nickname and one account name, with loading and unavailable states that never fall back to an internal ID.",
+        "zh": "用户身份 —— 控制台表格单元格或详情行里的一个人：头像、完整昵称和一个账号，加载中与不可用状态绝不回落成内部 ID。"
+      },
+      "aliases": [
+        "General",
+        "default",
+        "loading",
+        "unavailable"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "unavailable"
+      ],
+      "interactions": [],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareUserIdentity"
+        },
+        "flutter": {
+          "support": "not-applicable"
+        },
+        "compose": {
+          "support": "not-applicable"
+        },
+        "ios": {
+          "support": "not-applicable"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/data/FlareUserIdentity.vue"
+      },
+      "docs": {
+        "zh": "website/components/user-identity.md",
+        "en": "website/en/components/user-identity.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#UserIdentity",
+      "searchText": "useridentity general general-ui stable general default loading unavailable supportsconfiguration user identity — one person in a console table cell or detail line: avatar, full nickname and one account name, with loading and unavailable states that never fall back to an internal id. 用户身份 —— 控制台表格单元格或详情行里的一个人：头像、完整昵称和一个账号，加载中与不可用状态绝不回落成内部 id。"
     }
   ]
 }

@@ -1,0 +1,227 @@
+{
+  "schemaVersion": 1,
+  "note": "The read list's paging without UI: the state a host keeps for ReadReceiptSheet (read-receipt-vectors.json draws it). The host gives one loader, page(column, cursor?) -> members | null; the kit holder reads the first pages, the next pages and keeps the state. Vue useFlareReadReceiptList(key, page); Compose rememberFlareReadReceiptListState(key, page) -> FlareReadReceiptListState; SwiftUI and Flutter the same names. SwiftUI has no remember: the host owns a @StateObject FlareReadReceiptListState() and keeps it on the key with the view modifier .flareReadReceiptList(list, key:, page:) (a new key reads again, the newest loader is the one asked), which is what rememberFlareReadReceiptListState(key, page) does on Compose; ReadReceiptSheetView(list:readCount:unreadCount:) draws it. A case is a sequence of steps against a holder whose key is \"m1\" unless a step names another. `do`: open (set the key, default \"m1\"), close (clear the key), retry, loadMore:<column>, settle:<column> (settle that column's oldest unsettled call). Each loader call the step makes is listed in `asks` as [column, cursor or null], in order; `answer` (one call) or `answers` (by column, for open and retry) settle them in the same step: a members page, null (not offered), \"throw\" (failed), or \"pending\" (left in flight). A members page is {people: [ids], nextCursor?}; tests build a contact per id. `expect` is the holder's pages once the step's settled calls have landed (null: no list).",
+  "rules": {
+    "model": "FlareReadReceiptPages {state: ready|loading|error|unavailable, read: FlareReadReceiptMembers, unread: FlareReadReceiptMembers, loadingMore: column?, loadMoreFailed: column?}; FlareReadReceiptMembers {people: Contact[], nextCursor?}. A column has a next page exactly while it has nextCursor (the sheet's readHasMore / unreadHasMore). The tab numbers are not in the model: the host passes the message's current receipt.readSummary, which follows the read receipts as they arrive.",
+    "loader": "page(column, cursor?) reads one page of one column (cursor absent: the first). It names the user ids (the host's directory) and answers null when the message's list is not offered (the SDK's NOT_FOUND or available:false); any other failure throws.",
+    "open": "A non-empty key: state loading with both columns empty, then the first page of both columns at once. Any null: unavailable. Any failure: error. Otherwise ready with each column's people and cursor.",
+    "key": "A new key reads both first pages again; clearing it drops the list (pages null). Answers to calls made under an earlier key, or before a close, are dropped.",
+    "loadMore": "Only while ready, for a column with a next page that is not already reading one; otherwise nothing is asked. Starting: loadingMore is the column, and its own loadMoreFailed clears (the other column's stays). Answered: the page's people follow the column's, someone already listed kept once, and the column's cursor becomes the page's (absent: no more). Null: the column ends (cursor cleared, people kept). Failed: loadMoreFailed is the column, its people kept. loadingMore clears when the column it names settles. The other column pages on its own meanwhile: loadingMore names the column asked last, and neither column asks twice while it reads.",
+    "retry": "Reads the list again from both first pages, whatever its state."
+  },
+  "cases": [
+    {
+      "id": "open-reads-both-first-pages",
+      "platforms": ["vue", "compose", "flutter", "ios"],
+      "steps": [
+        {
+          "do": "open",
+          "asks": [["read", null], ["unread", null]],
+          "answers": { "read": "pending", "unread": "pending" },
+          "expect": { "state": "loading", "read": { "people": [] }, "unread": { "people": [] }, "loadingMore": null, "loadMoreFailed": null }
+        },
+        {
+          "do": "settle:read",
+          "answer": { "people": ["r1", "r2"], "nextCursor": "rc1" },
+          "expect": { "state": "loading", "read": { "people": [] }, "unread": { "people": [] }, "loadingMore": null, "loadMoreFailed": null }
+        },
+        {
+          "do": "settle:unread",
+          "answer": { "people": ["u1"] },
+          "expect": { "state": "ready", "read": { "people": ["r1", "r2"], "nextCursor": "rc1" }, "unread": { "people": ["u1"] }, "loadingMore": null, "loadMoreFailed": null }
+        }
+      ]
+    },
+    {
+      "id": "not-offered-is-unavailable",
+      "platforms": ["vue", "compose", "flutter", "ios"],
+      "steps": [
+        {
+          "do": "open",
+          "asks": [["read", null], ["unread", null]],
+          "answers": { "read": { "people": ["r1"] }, "unread": null },
+          "expect": { "state": "unavailable", "read": { "people": [] }, "unread": { "people": [] }, "loadingMore": null, "loadMoreFailed": null }
+        },
+        { "do": "loadMore:read", "asks": [], "expect": { "state": "unavailable", "read": { "people": [] }, "unread": { "people": [] }, "loadingMore": null, "loadMoreFailed": null } }
+      ]
+    },
+    {
+      "id": "failure-is-error-and-retry-reads-again",
+      "platforms": ["vue", "compose", "flutter", "ios"],
+      "steps": [
+        {
+          "do": "open",
+          "asks": [["read", null], ["unread", null]],
+          "answers": { "read": "throw", "unread": { "people": ["u1"] } },
+          "expect": { "state": "error", "read": { "people": [] }, "unread": { "people": [] }, "loadingMore": null, "loadMoreFailed": null }
+        },
+        {
+          "do": "retry",
+          "asks": [["read", null], ["unread", null]],
+          "answers": { "read": { "people": ["r1"] }, "unread": { "people": ["u1"], "nextCursor": "uc1" } },
+          "expect": { "state": "ready", "read": { "people": ["r1"] }, "unread": { "people": ["u1"], "nextCursor": "uc1" }, "loadingMore": null, "loadMoreFailed": null }
+        }
+      ]
+    },
+    {
+      "id": "next-page-appends-once-and-takes-its-cursor",
+      "platforms": ["vue", "compose", "flutter", "ios"],
+      "steps": [
+        {
+          "do": "open",
+          "asks": [["read", null], ["unread", null]],
+          "answers": { "read": { "people": ["r1", "r2"], "nextCursor": "rc1" }, "unread": { "people": [] } },
+          "expect": { "state": "ready", "read": { "people": ["r1", "r2"], "nextCursor": "rc1" }, "unread": { "people": [] }, "loadingMore": null, "loadMoreFailed": null }
+        },
+        {
+          "do": "loadMore:read",
+          "asks": [["read", "rc1"]],
+          "answer": "pending",
+          "expect": { "state": "ready", "read": { "people": ["r1", "r2"], "nextCursor": "rc1" }, "unread": { "people": [] }, "loadingMore": "read", "loadMoreFailed": null }
+        },
+        { "do": "loadMore:read", "asks": [], "expect": { "state": "ready", "read": { "people": ["r1", "r2"], "nextCursor": "rc1" }, "unread": { "people": [] }, "loadingMore": "read", "loadMoreFailed": null } },
+        {
+          "do": "settle:read",
+          "answer": { "people": ["r2", "r3"], "nextCursor": "rc2" },
+          "expect": { "state": "ready", "read": { "people": ["r1", "r2", "r3"], "nextCursor": "rc2" }, "unread": { "people": [] }, "loadingMore": null, "loadMoreFailed": null }
+        },
+        {
+          "do": "loadMore:read",
+          "asks": [["read", "rc2"]],
+          "answer": { "people": ["r4"] },
+          "expect": { "state": "ready", "read": { "people": ["r1", "r2", "r3", "r4"] }, "unread": { "people": [] }, "loadingMore": null, "loadMoreFailed": null }
+        },
+        { "do": "loadMore:read", "asks": [], "expect": { "state": "ready", "read": { "people": ["r1", "r2", "r3", "r4"] }, "unread": { "people": [] }, "loadingMore": null, "loadMoreFailed": null } },
+        { "do": "loadMore:unread", "asks": [], "expect": { "state": "ready", "read": { "people": ["r1", "r2", "r3", "r4"] }, "unread": { "people": [] }, "loadingMore": null, "loadMoreFailed": null } }
+      ]
+    },
+    {
+      "id": "next-page-failure-marks-its-column-and-clears-on-asking-again",
+      "platforms": ["vue", "compose", "flutter", "ios"],
+      "steps": [
+        {
+          "do": "open",
+          "asks": [["read", null], ["unread", null]],
+          "answers": { "read": { "people": ["r1"], "nextCursor": "rc1" }, "unread": { "people": ["u1"], "nextCursor": "uc1" } },
+          "expect": { "state": "ready", "read": { "people": ["r1"], "nextCursor": "rc1" }, "unread": { "people": ["u1"], "nextCursor": "uc1" }, "loadingMore": null, "loadMoreFailed": null }
+        },
+        {
+          "do": "loadMore:unread",
+          "asks": [["unread", "uc1"]],
+          "answer": "throw",
+          "expect": { "state": "ready", "read": { "people": ["r1"], "nextCursor": "rc1" }, "unread": { "people": ["u1"], "nextCursor": "uc1" }, "loadingMore": null, "loadMoreFailed": "unread" }
+        },
+        {
+          "do": "loadMore:read",
+          "asks": [["read", "rc1"]],
+          "answer": { "people": ["r2"] },
+          "expect": { "state": "ready", "read": { "people": ["r1", "r2"] }, "unread": { "people": ["u1"], "nextCursor": "uc1" }, "loadingMore": null, "loadMoreFailed": "unread" }
+        },
+        {
+          "do": "loadMore:unread",
+          "asks": [["unread", "uc1"]],
+          "answer": "pending",
+          "expect": { "state": "ready", "read": { "people": ["r1", "r2"] }, "unread": { "people": ["u1"], "nextCursor": "uc1" }, "loadingMore": "unread", "loadMoreFailed": null }
+        },
+        {
+          "do": "settle:unread",
+          "answer": { "people": ["u2"] },
+          "expect": { "state": "ready", "read": { "people": ["r1", "r2"] }, "unread": { "people": ["u1", "u2"] }, "loadingMore": null, "loadMoreFailed": null }
+        }
+      ]
+    },
+    {
+      "id": "columns-page-on-their-own",
+      "platforms": ["vue", "compose", "flutter", "ios"],
+      "steps": [
+        {
+          "do": "open",
+          "asks": [["read", null], ["unread", null]],
+          "answers": { "read": { "people": ["r1"], "nextCursor": "rc1" }, "unread": { "people": ["u1"], "nextCursor": "uc1" } },
+          "expect": { "state": "ready", "read": { "people": ["r1"], "nextCursor": "rc1" }, "unread": { "people": ["u1"], "nextCursor": "uc1" }, "loadingMore": null, "loadMoreFailed": null }
+        },
+        {
+          "do": "loadMore:read",
+          "asks": [["read", "rc1"]],
+          "answer": "pending",
+          "expect": { "state": "ready", "read": { "people": ["r1"], "nextCursor": "rc1" }, "unread": { "people": ["u1"], "nextCursor": "uc1" }, "loadingMore": "read", "loadMoreFailed": null }
+        },
+        {
+          "do": "loadMore:unread",
+          "asks": [["unread", "uc1"]],
+          "answer": "pending",
+          "expect": { "state": "ready", "read": { "people": ["r1"], "nextCursor": "rc1" }, "unread": { "people": ["u1"], "nextCursor": "uc1" }, "loadingMore": "unread", "loadMoreFailed": null }
+        },
+        { "do": "loadMore:read", "asks": [], "expect": { "state": "ready", "read": { "people": ["r1"], "nextCursor": "rc1" }, "unread": { "people": ["u1"], "nextCursor": "uc1" }, "loadingMore": "unread", "loadMoreFailed": null } },
+        {
+          "do": "settle:read",
+          "answer": { "people": ["r2"] },
+          "expect": { "state": "ready", "read": { "people": ["r1", "r2"] }, "unread": { "people": ["u1"], "nextCursor": "uc1" }, "loadingMore": "unread", "loadMoreFailed": null }
+        },
+        {
+          "do": "settle:unread",
+          "answer": "throw",
+          "expect": { "state": "ready", "read": { "people": ["r1", "r2"] }, "unread": { "people": ["u1"], "nextCursor": "uc1" }, "loadingMore": null, "loadMoreFailed": "unread" }
+        }
+      ]
+    },
+    {
+      "id": "next-page-not-offered-ends-its-column",
+      "platforms": ["vue", "compose", "flutter", "ios"],
+      "steps": [
+        {
+          "do": "open",
+          "asks": [["read", null], ["unread", null]],
+          "answers": { "read": { "people": ["r1"], "nextCursor": "rc1" }, "unread": { "people": [] } },
+          "expect": { "state": "ready", "read": { "people": ["r1"], "nextCursor": "rc1" }, "unread": { "people": [] }, "loadingMore": null, "loadMoreFailed": null }
+        },
+        {
+          "do": "loadMore:read",
+          "asks": [["read", "rc1"]],
+          "answer": null,
+          "expect": { "state": "ready", "read": { "people": ["r1"] }, "unread": { "people": [] }, "loadingMore": null, "loadMoreFailed": null }
+        }
+      ]
+    },
+    {
+      "id": "close-and-a-new-key-drop-answers-in-flight",
+      "platforms": ["vue", "compose", "flutter", "ios"],
+      "steps": [
+        {
+          "do": "open",
+          "asks": [["read", null], ["unread", null]],
+          "answers": { "read": "pending", "unread": "pending" },
+          "expect": { "state": "loading", "read": { "people": [] }, "unread": { "people": [] }, "loadingMore": null, "loadMoreFailed": null }
+        },
+        { "do": "close", "asks": [], "expect": null },
+        { "do": "settle:read", "answer": { "people": ["r1"] }, "expect": null },
+        { "do": "settle:unread", "answer": { "people": ["u1"] }, "expect": null },
+        {
+          "do": "open",
+          "key": "m1",
+          "asks": [["read", null], ["unread", null]],
+          "answers": { "read": { "people": ["r1"], "nextCursor": "rc1" }, "unread": { "people": ["u1"] } },
+          "expect": { "state": "ready", "read": { "people": ["r1"], "nextCursor": "rc1" }, "unread": { "people": ["u1"] }, "loadingMore": null, "loadMoreFailed": null }
+        },
+        {
+          "do": "loadMore:read",
+          "asks": [["read", "rc1"]],
+          "answer": "pending",
+          "expect": { "state": "ready", "read": { "people": ["r1"], "nextCursor": "rc1" }, "unread": { "people": ["u1"] }, "loadingMore": "read", "loadMoreFailed": null }
+        },
+        {
+          "do": "open",
+          "key": "m2",
+          "asks": [["read", null], ["unread", null]],
+          "answers": { "read": { "people": ["r9"] }, "unread": { "people": [] } },
+          "expect": { "state": "ready", "read": { "people": ["r9"] }, "unread": { "people": [] }, "loadingMore": null, "loadMoreFailed": null }
+        },
+        {
+          "do": "settle:read",
+          "answer": { "people": ["r2"] },
+          "expect": { "state": "ready", "read": { "people": ["r9"] }, "unread": { "people": [] }, "loadingMore": null, "loadMoreFailed": null }
+        }
+      ]
+    }
+  ]
+}

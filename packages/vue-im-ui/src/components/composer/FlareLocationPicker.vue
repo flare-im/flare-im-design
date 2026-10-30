@@ -74,7 +74,7 @@ const { t } = useFlareI18n();
 useFlareSheetOwnHeader();
 
 type LocateState = "locating" | "located" | "denied";
-type ListState = "idle" | "searching" | "ready" | "noResults";
+type ListState = "idle" | "searching" | "ready" | "noResults" | "failed";
 type MapState = "loading" | "ready" | "unavailable";
 
 const locateState = ref<LocateState>("locating");
@@ -136,6 +136,7 @@ const state = computed(() => {
   if (locateState.value === "locating" && !here.value) return "locating";
   if (searching.value && listState.value === "searching") return "searching";
   if (searching.value && listState.value === "noResults") return "noResults";
+  if (listState.value === "failed") return "mapUnavailable";
   if (locateState.value === "denied") return "denied";
   if (mapState.value === "unavailable") return "mapUnavailable";
   return "located";
@@ -179,8 +180,7 @@ async function loadNearby(): Promise<void> {
     listState.value = "ready";
   } catch {
     if (disposed || token !== listToken || searching.value) return;
-    nearby.value = [];
-    listState.value = "ready";
+    listState.value = "failed";
   }
 }
 
@@ -205,8 +205,13 @@ async function runSearch(text: string): Promise<void> {
   } catch {
     if (disposed || token !== listToken) return;
     results.value = [];
-    listState.value = "noResults";
+    listState.value = "failed";
   }
+}
+
+function retryLookup(): void {
+  if (searching.value) void runSearch(query.value);
+  else void loadNearby();
 }
 
 async function describeHere(): Promise<void> {
@@ -331,7 +336,7 @@ const locateIcon = flareIcons.locate;
       <span class="flare-location-picker__head-end" aria-hidden="true" />
     </header>
 
-    <div ref="mapEl" class="flare-location-picker__map" role="img" :aria-label="[t('location.map'), mapCoordinate?.title].filter(Boolean).join(' · ')">
+    <div ref="mapEl" class="flare-location-picker__map" role="group" :aria-label="[t('location.map'), mapCoordinate?.title].filter(Boolean).join(' · ')">
       <LocationMapSurface
         class="flare-location-picker__surface"
         :src="mapState !== 'unavailable' ? mapUrl || undefined : undefined"
@@ -339,10 +344,11 @@ const locateIcon = flareIcons.locate;
         :attribution="provider === 'osm' ? t('location.osmAttribution') : undefined"
         @error="mapState = 'unavailable'"
       />
-      <p v-if="mapState === 'unavailable' && mapCoordinate" class="flare-location-picker__map-note" data-map-unavailable="true">
+      <div v-if="mapState === 'unavailable' && mapCoordinate" class="flare-location-picker__map-note" data-map-unavailable="true">
         <span>{{ t("location.mapUnavailable") }}</span>
         <span v-if="coordinateLine" class="flare-location-picker__coordinate">{{ coordinateLine }}</span>
-      </p>
+        <FlareButton :label="t('common.retry')" size="sm" @click="refreshMap" />
+      </div>
       <FlareIconButton
         class="flare-location-picker__locate"
         :icon="locateIcon"
@@ -373,6 +379,15 @@ const locateIcon = flareIcons.locate;
       <FlareSkeleton v-if="listState === 'searching' && !rows.length" variant="text" :rows="4" class="flare-location-picker__skeleton" />
       <FlareEmptyState v-else-if="listState === 'noResults'" :title="t('location.noResults')" icon="location" />
       <template v-else>
+        <FlareEmptyState
+          v-if="listState === 'failed'"
+          :title="t('location.mapUnavailable')"
+          icon="location"
+          :actionText="t('common.retry')"
+          data-lookup-unavailable="true"
+          role="status"
+          @action="retryLookup"
+        />
         <button
           v-for="place in rows"
           :key="place.id"

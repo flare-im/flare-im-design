@@ -172,7 +172,7 @@ for (const [app, file, wired, forbidden] of [
 // of the five were: the core op has existed since the beginning and only the web app ever called it.
 for (const [app, file, wired] of [
   ['flare-social-web-app', 'src/social/sdk.ts', /conversations\.updateDraft\(/],
-  ['flare-social-tauri-app', 'src/flare-sdk/api/conversation.ts', /sdkConversationUpdateDraft/],
+  ['flare-social-tauri-app', 'src/host/chat/composables/useSessionDrafts.ts', /social\.conversations\.updateDraft\(/],
   ['flare-social-flutter-app', 'lib/sdk/base_social_client.dart', /conversations\.updateDraft\(/],
   ['flare-social-ios-app', 'Sources/FlareSocialApp/SocialSession.swift', /sdk\.conversations\.updateDraft\(/],
   ['flare-social-android-app', 'app/src/main/kotlin/com/flare/social/app/SocialSession.kt', /sdk\.conversations\.updateDraft\(/],

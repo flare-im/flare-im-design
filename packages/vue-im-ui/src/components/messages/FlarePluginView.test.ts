@@ -250,6 +250,21 @@ function expectBlock(_wrapper: VueWrapper, node: ReturnType<VueWrapper["find"]>,
 }
 
 describe("FlarePluginView v2 (spec/plugin-view-vectors.json)", () => {
+  it("row editing captures host initial values once and emits only the declared typed form", async () => {
+    let initial = {name:"旅行钱包",amount:"900719925474099301"};
+    const view: FlarePluginViewModel = {available:true,title:"模板",fields:[],actions:[],inputs:[{id:"name",kind:"text",label:"名称",required:true},{id:"amount",kind:"text",label:"额度"}],blocks:[{kind:"rows",source:"read",columns:[{label:"名称",format:"text"}],rows:[{key:"travel",cells:[{text:"旅行钱包"}],actions:[{id:"edit",input:{id:"travel"}}]}],actions:[{id:"edit",label:"编辑",form:["name","amount"]}]}]};
+    const {wrapper,actions}=render({view,embedded:true,formInitialValues:()=>initial});
+    await wrapper.get("[data-row-action]").trigger("click");
+    await flushPromises();
+    const fields=Array.from(document.body.querySelectorAll(".flare-plugin-form input")) as HTMLInputElement[];
+    expect(fields.map(field=>field.value)).toEqual(["旅行钱包","900719925474099301"]);
+    initial={name:"迟到的数据",amount:"0"};
+    fields[0].value="储蓄钱包";fields[0].dispatchEvent(new Event("input"));
+    await flushPromises();
+    (document.body.querySelector("[data-form-submit]") as HTMLButtonElement).click();
+    await flushPromises();
+    expect(actions).toEqual([["edit",{row:{key:"travel",input:{id:"travel"}},formValues:{name:"储蓄钱包",amount:"900719925474099301"}}]]);
+  });
   it.each(vectors.views.map((v) => [v.id, v] as const))("renders %s", async (_, vector) => {
     vi.useFakeTimers({ now: vectors.nowMs });
     const { wrapper } = render({
@@ -588,7 +603,7 @@ describe("FlarePluginView v2 (spec/plugin-view-vectors.json)", () => {
       if (scenario.expect.key) {
         expect(key.text()).toBe(scenario.expect.key.label);
         expect(key.attributes("disabled") === undefined).toBe(scenario.expect.key.enabled);
-        expect(key.classes()).toEqual(expect.arrayContaining(["flare-button--quiet", "flare-button--sm", "is-block"]));
+        expect(key.classes()).toEqual(expect.arrayContaining(["flare-button--quiet", "flare-button--sm"]));
         // Under the action keys.
         const actions = wrapper.find(".flare-plugin-view__actions");
         if (actions.exists()) expect(actions.element.compareDocumentPosition(key.element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
@@ -651,6 +666,10 @@ describe("FlarePluginView v2 (spec/plugin-view-vectors.json)", () => {
     expect(card.details).toEqual([undefined]);
     const admin = render({ view: viewOf("admin-rows") });
     await flushPromises();
+    // Dense secondary cells still expose their complete value; row detail and actions stay intact.
+    const cells = admin.wrapper.findAll("tbody tr.flare-data-table__row")[0].findAll("td");
+    expect(cells[1].classes()).not.toContain("is-ellipsis");
+    expect(cells[1].text()).toBe("Alice");
     await admin.wrapper.findAll("tbody tr.flare-data-table__row")[0].trigger("click");
     expect(admin.details).toEqual([{ key: "p1", input: { pollId: "p1" } }]);
     await admin.wrapper.get("[data-rows-load-more]").trigger("click");
@@ -661,6 +680,14 @@ describe("FlarePluginView v2 (spec/plugin-view-vectors.json)", () => {
     confirm.click();
     await flushPromises();
     expect(admin.actions).toEqual([["close", { row: { key: "p1", input: { pollId: "p1" } } }]]);
+  });
+
+  it("opens an admin row through its explicit detail key without running a command", async () => {
+    const admin = render({ view: viewOf("admin-rows") });
+    await flushPromises();
+    await admin.wrapper.get("[data-row-detail]").trigger("click");
+    expect(admin.details).toEqual([{ key: "p1", input: { pollId: "p1" } }]);
+    expect(admin.actions).toEqual([]);
   });
 
   it("expands collapsed text", async () => {
@@ -676,6 +703,26 @@ describe("FlarePluginView v2 (spec/plugin-view-vectors.json)", () => {
     const { wrapper } = render({ view: viewOf("task"), embedded: true });
     expect(wrapper.get(".flare-plugin-view").classes()).toContain("is-embedded");
     expect(wrapper.find(".flare-plugin-view__title").exists()).toBe(false);
+  });
+
+  it("puts a detail-only card's link in its header without an empty footer", async () => {
+    const { wrapper, details } = render({ view: { ...viewOf("task"), actions: [], detail: true } });
+    expect(wrapper.find(".flare-plugin-view__footer").exists()).toBe(false);
+    await wrapper.get(".flare-plugin-view__head [data-detail-key]").trigger("click");
+    expect(details).toHaveLength(1);
+  });
+
+  it("keeps text actions and details in one compact footer with semantic colors", () => {
+    const { wrapper } = render({ view: { ...viewOf("task"), actions: [
+      { id: "complete", label: "完成", style: "primary" },
+      { id: "end", label: "结束", style: "danger", confirm: "确定结束？" },
+    ], detail: true } });
+    const footer = wrapper.get(".flare-plugin-view__footer");
+    expect(footer.find("[data-detail-key]").exists()).toBe(true);
+    expect(footer.find("[data-detail-key]").classes()).not.toContain("is-block");
+    expect(footer.get('[data-action-id="complete"]').classes()).toContain("flare-button--sm");
+    expect(footer.get('[data-action-id="end"]').classes()).toContain("is-text");
+    expect(footer.get('[data-action-id="end"]').classes()).toContain("flare-button--danger");
   });
 
   it("shows the plugin icon in the title row", () => {

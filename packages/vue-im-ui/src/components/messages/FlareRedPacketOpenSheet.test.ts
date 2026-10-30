@@ -10,6 +10,14 @@ import { resolve } from "node:path";
 
 const vectors = JSON.parse(readFileSync(resolve(__dirname, "../../../../../spec/red-packet-vectors.json"), "utf8")) as {
   openSheet: Array<{ id: string; state: FlareRedPacketOpenState; canViewDetails?: boolean; coin: boolean; details: boolean }>;
+  openSheetRefunded: Array<{
+    id: string;
+    state: FlareRedPacketOpenState;
+    canViewDetails?: boolean;
+    coin: boolean;
+    details: boolean;
+    headline: { zh: string; en: string };
+  }>;
 };
 
 let host: ReturnType<typeof mount> | undefined;
@@ -111,6 +119,18 @@ describe("FlareRedPacketOpenSheet", () => {
     expect(coin() !== null).toBe(vector.coin);
     expect(details() !== null).toBe(vector.details);
   });
+
+  it.each(vectors.openSheetRefunded.flatMap((v) => (["zh-CN", "en-US"] as const).map((locale) => [v.id, locale, v] as const)))(
+    "follows the shared refunded vector %s in %s",
+    async (_id, locale, vector) => {
+      mountSheet({ state: vector.state, ...(vector.canViewDetails === undefined ? {} : { canViewDetails: vector.canViewDetails }) }, locale);
+      await nextTick();
+      expect(coin() !== null).toBe(vector.coin);
+      expect(details() !== null).toBe(vector.details);
+      expect(headline()).toBe(locale === "zh-CN" ? vector.headline.zh : vector.headline.en);
+      expect(surface().dataset.state).toBe("refunded");
+    },
+  );
 
   it("lets the host notice replace the default copy, spaced like body text and capped at three lines", async () => {
     mountSheet({ state: "notEligible", message: "仅 TA 可领取" });

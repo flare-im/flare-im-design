@@ -148,6 +148,7 @@ import {
   Volume2 as LuVolume2,
   VolumeX as LuVolumeX,
   Vote as LuVote,
+  Wallet as LuWallet,
   Wifi as LuWifi,
   X as LuX,
   Zap as LuZap,
@@ -293,6 +294,7 @@ const REGISTRY: Record<string, Component> = {
   Volume2: LuVolume2,
   VolumeX: LuVolumeX,
   Vote: LuVote,
+  Wallet: LuWallet,
   Wifi: LuWifi,
   X: LuX,
   Zap: LuZap,
@@ -461,3 +463,4 @@ export const IdCardOutline = /*#__PURE__*/ glyph("Contact");
 export const ServerOutline = /*#__PURE__*/ glyph("HardDrive");
 export const ExtensionPuzzleOutline = /*#__PURE__*/ glyph("Puzzle");
 export const LocateOutline = /*#__PURE__*/ glyph("LocateFixed");
+export const WalletOutline = /*#__PURE__*/ glyph("Wallet");

@@ -24,6 +24,7 @@ function claim() {
       <FlareButton label="可领取" @click="show('ready')" />
       <FlareButton label="已领完" variant="secondary" @click="show('finished')" />
       <FlareButton label="已过期" variant="secondary" @click="show('expired')" />
+      <FlareButton label="已退回" variant="secondary" @click="show('refunded')" />
       <FlareButton label="专属他人" variant="secondary" @click="show('notEligible')" />
     </div>
     <FlareRedPacketOpenSheet

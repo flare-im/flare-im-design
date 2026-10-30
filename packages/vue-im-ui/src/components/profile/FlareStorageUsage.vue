@@ -102,7 +102,10 @@ const deviceFreeLabel = computed(() => formatBytes(props.deviceFreeBytes, props.
 
 function fileCountLabel(count: number | undefined): string | null {
   if (typeof count !== "number" || !Number.isFinite(count) || count < 0) return null;
-  return strings.value.fileCountText.replace("{count}", String(Math.round(count)));
+  const rounded = Math.round(count);
+  // The kit's own copy takes the plural form for the count; a host's text is used as given.
+  const template = props.fileCountText ?? t("storageUsage.fileCount", { count: rounded });
+  return template.replace("{count}", String(rounded));
 }
 
 const rows = computed(() =>

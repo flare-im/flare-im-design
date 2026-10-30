@@ -58,3 +58,10 @@ export {
   resolveEmojiPackPreviewUrlByKey,
 } from "../components/composer/ComposerEmojiStickerPopover/composerEmojiAssets";
 export { connectionNotice, type FlareConnectionNotice, type FlareConnectionPhase, type FlareConnectionRecovery } from "./connectionNotice";
+export {
+  flareMeMenuSections,
+  type FlareMeMenu,
+  type FlareMeMenuBuiltinId,
+  type FlareMeMenuItem,
+  type FlareMeMenuSummaries,
+} from "./meMenu";

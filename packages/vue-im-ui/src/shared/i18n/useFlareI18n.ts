@@ -11,6 +11,7 @@ import { enUS, dateEnUS, zhCN, dateZhCN } from "naive-ui";
 import {
   FLARE_DEFAULT_LOCALE,
   flareMessages,
+  isFlarePluralMessage,
   resolveFlareLocale,
   resolveFlareMessage,
   setFlareRuntimeLocale,
@@ -65,7 +66,7 @@ function hasMessage(locale: FlareLocale, key: string): boolean {
     }
     cursor = (cursor as Record<string, unknown>)[part];
   }
-  return typeof cursor === "string";
+  return typeof cursor === "string" || isFlarePluralMessage(cursor);
 }
 
 export function useFlareI18nProvider(initialLocale?: FlareLocale): FlareI18nContext {
@@ -155,7 +156,8 @@ export function listI18nKeys(locale: FlareLocale = FLARE_DEFAULT_LOCALE): string
   function walk(node: Record<string, unknown>, prefix = ""): void {
     for (const [key, value] of Object.entries(node)) {
       const path = prefix ? `${prefix}.${key}` : key;
-      if (typeof value === "string") {
+      // A set of plural forms is one message.
+      if (typeof value === "string" || isFlarePluralMessage(value)) {
         keys.push(path);
       } else if (value && typeof value === "object") {
         walk(value as Record<string, unknown>, path);

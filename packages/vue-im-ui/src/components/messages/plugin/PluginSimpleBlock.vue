@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FlareUserIdentity from "../../data/FlareUserIdentity.vue";
 import FlareTag from "../../general/FlareTag.vue";
 import type {
   FlarePluginDividerBlock,
@@ -18,7 +19,7 @@ const clamp = (n: number) => Math.min(100, Math.max(0, n));
   <dl v-if="block.kind === 'fields'" class="flare-plugin-fields">
     <div v-for="(field, index) in block.fields" :key="index" class="flare-plugin-fields__row">
       <dt>{{ field.label }}</dt>
-      <dd>{{ field.value }}</dd>
+      <dd><FlareUserIdentity v-if="field.user" :user="field.user" /><template v-else>{{ field.value }}</template></dd>
     </div>
   </dl>
   <div v-else-if="block.kind === 'status'" class="flare-plugin-status">

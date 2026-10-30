@@ -14,8 +14,10 @@ export interface FlareMessageRendererEntry {
 /**
  * Renderers by content key (`contentType:subtype`, `contentType`, or the view key). A value is the
  * component itself or a {@link FlareMessageRendererEntry}. The renderer receives the content view's
- * props plus `messageId` (the server id, else the client id), `conversationId` when known, and
- * `selectionMode: true` while its row is in multi-select (its controls must not respond then).
+ * props plus `messageId` (the server id, else the client id), `conversationId` when known, `senderId`
+ * and `senderName` (the display name the host gave the sender, trimmed; absent when it gave none — never
+ * the id or a placeholder, so "X 的红包" needs no lookup by message id), and `selectionMode: true` while
+ * its row is in multi-select (its controls must not respond then). spec dataTypes MessageRenderContext.
  */
 export type FlareMessageRendererRegistry = Readonly<Record<string, Component | FlareMessageRendererEntry>>;
 
@@ -55,6 +57,10 @@ export function provideFlareContentSelection(selecting: () => boolean): void {
   provide(flareContentSelectionKey, selecting);
 }
 
+/**
+ * Inside a content renderer: whether its row is in multi-select right now (false outside a message row). A host
+ * renderer that draws its own controls reads it to keep them inert; the `selectionMode` prop says the same.
+ */
 export function useFlareContentSelection(): () => boolean {
   return inject(flareContentSelectionKey, () => false);
 }

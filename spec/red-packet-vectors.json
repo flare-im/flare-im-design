@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "note": "Shared red packet presentation rules for the four kits (docs/design/red-packet-v5-roles-and-wallet.md). `amountInput` / `countInput` are the composer's format-only filters (range checks stay with the host). `cardState` maps the plugin's public layer (status) and the viewer's personal layer (claimedByMe, tapAction) to the card state; `card` is the status line precedence and tap rule of RedPacketCard; `status` names the copy, which each kit resolves from its own strings: busy, statusLabel (the host text as given), tapToOpen, view, claimed, finished, expired, refunded, unavailable. The card never shows an amount, not even the viewer's own. `cardBadge` is the kind badge and the exclusive recipient line. `openSheet` is which keys the open sheet offers per state. `amount` is the integer-only amount text from a minor-unit string and the ISO 4217 exponent the contract gives (currencyExponent), plus the currency symbol table. `detail` is what RedPacketDetail draws for each viewerRole and status, from the fields the server returned (an absent amount is never drawn). `faded` is how a claimed / finished / expired / refunded card fades: each colour of the card mixed in sRGB with `targetToken` (white in light mode, a deep red in dark mode), the target taking `mixToken` (lerp(colour, target, mix)); the text on it is `inkToken`, which must keep `minTextContrast` on every faded stop the text sits on. Top-level `target` / `ink` / `stops` are light mode; `dark` holds the dark-mode values. Busy and disabled cards are never faded: they keep the unopened face and white text and change only the status line. `composer` is which amount label and rows the composer shows for the kinds a host offers: amountLabel names the copy (total, each, amount).",
+  "note": "Shared red packet presentation rules for the four kits (docs/design/red-packet-v5-roles-and-wallet.md). `amountInput` / `countInput` are the composer's format-only filters (range checks stay with the host). `cardState` maps the plugin's public layer (status) and the viewer's personal layer (claimedByMe, tapAction) to the card state; `card` is the status line precedence and tap rule of RedPacketCard; `status` names the copy, which each kit resolves from its own strings: busy, statusLabel (the host text as given), tapToOpen, view, claimed, finished, expired, refunded, unavailable. The card never shows an amount, not even the viewer's own. `cardBadge` is the kind badge and the exclusive recipient line. `openSheet` is which keys the open sheet offers per state. `amount` is the integer-only amount text from a minor-unit string and the ISO 4217 exponent the contract gives (currencyExponent), plus the currency symbol table. `detail` is what RedPacketDetail draws for each viewerRole and status, from the fields the server returned (an absent amount is never drawn). `faded` is how a claimed / finished / expired / refunded card fades: each colour of the card mixed in sRGB with `targetToken` (white in light mode, a deep red in dark mode), the target taking `mixToken` (lerp(colour, target, mix)); the text on it is `inkToken`, which must keep `minTextContrast` on every faded stop the text sits on. Top-level `target` / `ink` / `stops` are light mode; `dark` holds the dark-mode values. Busy and disabled cards are never faded: they keep the unopened face and white text and change only the status line. `composer` is which amount label and rows the composer shows for the kinds a host offers: amountLabel names the copy (total, each, amount). `openSheetRefunded` adds the refunded state to openSheet (like expired: no 開, details by canViewDetails). `amountInputExponent` is amountInput with the currency's exponent (0: no decimal point at all, 3: three decimals); the cases of `amountInput` are exponent 2. `amountMinor` turns the composer's text into a minor-unit integer string by integer arithmetic (null: not an amount yet).",
   "amountInput": [
     {
       "id": "amount-empty",
@@ -504,6 +504,27 @@
         "minor": "1.5",
         "exponent": 2,
         "currency": "CNY",
+        "text": null,
+        "money": null
+      },
+      {
+        "minor": "1",
+        "exponent": 8,
+        "currency": "BTC",
+        "text": "0.00000001",
+        "money": "BTC 0.00000001"
+      },
+      {
+        "minor": "123456789012",
+        "exponent": 12,
+        "currency": "UNIT",
+        "text": "0.123456789012",
+        "money": "UNIT 0.123456789012"
+      },
+      {
+        "minor": "1",
+        "exponent": 1000000,
+        "currency": "UNIT",
         "text": null,
         "money": null
       }
@@ -1148,5 +1169,415 @@
     "lucky": "packetBadgeLucky",
     "exclusive": "packetBadgeExclusive",
     "recipient": "packetForRecipient"
-  }
+  },
+  "openSheetRefunded": [
+    {
+      "id": "refunded",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "state": "refunded",
+      "coin": false,
+      "details": true,
+      "headline": {
+        "zh": "红包已退回",
+        "en": "This red packet has been refunded"
+      }
+    },
+    {
+      "id": "refunded-no-details",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "state": "refunded",
+      "canViewDetails": false,
+      "coin": false,
+      "details": false,
+      "headline": {
+        "zh": "红包已退回",
+        "en": "This red packet has been refunded"
+      }
+    }
+  ],
+  "amountInputExponent": [
+    {
+      "id": "exp0-integer",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "exponent": 0,
+      "input": "88",
+      "output": "88"
+    },
+    {
+      "id": "exp0-point-dropped",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "exponent": 0,
+      "input": "8.8",
+      "output": "88"
+    },
+    {
+      "id": "exp0-leading-point",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "exponent": 0,
+      "input": ".5",
+      "output": "5"
+    },
+    {
+      "id": "exp0-full-width",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "exponent": 0,
+      "input": "１２．３",
+      "output": "123"
+    },
+    {
+      "id": "exp0-leading-zeros",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "exponent": 0,
+      "input": "007",
+      "output": "7"
+    },
+    {
+      "id": "exp2-default",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "exponent": 2,
+      "input": "8.888",
+      "output": "8.88"
+    },
+    {
+      "id": "exp3-three-decimals",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "exponent": 3,
+      "input": "1.2345",
+      "output": "1.234"
+    },
+    {
+      "id": "exp3-leading-point",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "exponent": 3,
+      "input": ".005",
+      "output": "0.005"
+    },
+    {
+      "id": "exp3-trailing-point",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "exponent": 3,
+      "input": "6.",
+      "output": "6."
+    },
+    {
+      "id": "exp8-wallet-unit",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "exponent": 8,
+      "input": "1.123456789",
+      "output": "1.12345678"
+    },
+    {
+      "id": "exp12-wallet-unit",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "exponent": 12,
+      "input": "0.1234567890123",
+      "output": "0.123456789012"
+    }
+  ],
+  "amountPlaceholder": {
+    "rule": "The amount field's placeholder is flareRedPacketAmountText(\"0\", exponent); with exponent 0 the field asks for whole numbers (a numeric keyboard).",
+    "cases": [
+      {
+        "platforms": [
+          "vue",
+          "flutter",
+          "ios",
+          "compose"
+        ],
+        "exponent": 0,
+        "placeholder": "0"
+      },
+      {
+        "platforms": [
+          "vue",
+          "flutter",
+          "ios",
+          "compose"
+        ],
+        "exponent": 2,
+        "placeholder": "0.00"
+      },
+      {
+        "platforms": [
+          "vue",
+          "flutter",
+          "ios",
+          "compose"
+        ],
+        "exponent": 3,
+        "placeholder": "0.000"
+      }
+    ]
+  },
+  "amountMinor": [
+    {
+      "id": "two-decimals",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": "8.88",
+      "exponent": 2,
+      "minor": "888"
+    },
+    {
+      "id": "one-decimal-padded",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": "8.8",
+      "exponent": 2,
+      "minor": "880"
+    },
+    {
+      "id": "trailing-point",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": "8.",
+      "exponent": 2,
+      "minor": "800"
+    },
+    {
+      "id": "cents-only",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": "0.05",
+      "exponent": 2,
+      "minor": "5"
+    },
+    {
+      "id": "zero",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": "0.00",
+      "exponent": 2,
+      "minor": "0"
+    },
+    {
+      "id": "leading-zeros",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": "007",
+      "exponent": 2,
+      "minor": "700"
+    },
+    {
+      "id": "yen",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": "12",
+      "exponent": 0,
+      "minor": "12"
+    },
+    {
+      "id": "three-decimals",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": "1.234",
+      "exponent": 3,
+      "minor": "1234"
+    },
+    {
+      "id": "three-decimals-padded",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": "1.2",
+      "exponent": 3,
+      "minor": "1200"
+    },
+    {
+      "id": "large",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": "123456789012.34",
+      "exponent": 2,
+      "minor": "12345678901234"
+    },
+    {
+      "id": "empty",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": "",
+      "exponent": 2,
+      "minor": null
+    },
+    {
+      "id": "point-only",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": ".",
+      "exponent": 2,
+      "minor": null
+    },
+    {
+      "id": "too-many-decimals",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": "1.234",
+      "exponent": 2,
+      "minor": null
+    },
+    {
+      "id": "point-at-exponent-0",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": "1.5",
+      "exponent": 0,
+      "minor": null
+    },
+    {
+      "id": "not-digits",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "input": "1a",
+      "exponent": 2,
+      "minor": null
+    },
+    {
+      "id": "wallet-unit-eight-decimals",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "exponent": 8,
+      "input": "0.00000001",
+      "minor": "1"
+    },
+    {
+      "id": "wallet-unit-twelve-decimals",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "exponent": 12,
+      "input": "0.123456789012",
+      "minor": "123456789012"
+    }
+  ]
 }
