@@ -253,7 +253,8 @@ final class ImageGalleryHostedTests: XCTestCase {
         let now = Int64(Date().timeIntervalSince1970 * 1000)
         let messages = (1...2).map { i in
             FlareMessageData(id: "m\(i)", senderId: "me", senderName: "Me",
-                             content: FlareImageContent(url: "https://invalid.invalid/\(i).jpg", alt: "海边 \(i)"),
+                             content: FlareImageContent(url: "https://invalid.invalid/\(i).jpg", alt: "海边 \(i)",
+                                                                localPath: TestPicture.path(i)),
                              sentAtMs: now + Int64(i))
         }
         let list = MessageListView(messages: messages, currentUserId: "me",
@@ -269,17 +270,21 @@ final class ImageGalleryHostedTests: XCTestCase {
         let deadline = Date().addingTimeInterval(1.5)
         while window.sheets.isEmpty && Date() < deadline { Self.spin(0.05) }
         let sheet = try XCTUnwrap(window.sheets.first, "the kit viewer is presented")
-        // The macOS test host presents the viewer as a sheet sized to its content; give it room for its keys.
+        // The macOS test host presents the viewer as a sheet sized to its content; give it room for its keys. A loaded
+        // picture is that content, so the sheet takes each page's size as it loads: pin the size before every click.
         let size = CGSize(width: 360, height: 480)
-        sheet.setContentSize(size)
-        sheet.contentView?.layoutSubtreeIfNeeded()
-        Self.spin(0.3)
+        func click(_ point: CGPoint) throws {
+            sheet.setContentSize(size)
+            sheet.contentView?.layoutSubtreeIfNeeded()
+            Self.spin(0.3)
+            try Self.click(sheet, point)
+        }
 
-        try Self.click(sheet, Self.download(size))
-        try Self.click(sheet, Self.previous(size))
-        try Self.click(sheet, Self.download(size))
-        try Self.click(sheet, Self.previous(size))
-        try Self.click(sheet, Self.download(size))
+        try click(Self.download(size))
+        try click(Self.previous(size))
+        try click(Self.download(size))
+        try click(Self.previous(size))
+        try click(Self.download(size))
         XCTAssertEqual(log.entries, ["m2", "m1", "m1"],
                        "the gallery opens at the clicked picture, pages to the one before it and stops at the first")
     }

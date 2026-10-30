@@ -6,6 +6,7 @@ import XCTest
 
 /// End to end on a hosted view: clicking an image body with no host media handler presents the kit
 /// viewer (a sheet on the macOS host, the full-screen cover on iOS — the same presentation state).
+/// The pictures are ``TestPicture``: one that has loaded, so the click opens it rather than retrying a load.
 final class MediaPresentationHostedTests: XCTestCase {
     /// Hosts `view` in a titled window, clicks `at` (from the top left; the centre by default), and returns
     /// how many sheets the window shows.
@@ -46,7 +47,7 @@ final class MediaPresentationHostedTests: XCTestCase {
 
     @MainActor
     func testClickingAnImageBodyPresentsTheKitViewer() throws {
-        let image = FlareImageContent(url: "https://invalid.invalid/full.jpg", alt: "海边")
+        let image = FlareImageContent(url: "https://invalid.invalid/full.jpg", alt: "海边", localPath: TestPicture.path())
         XCTAssertEqual(try sheetsAfterClicking(MessageContentView(content: image)), 1, "the kit viewer is presented")
     }
 
@@ -56,7 +57,7 @@ final class MediaPresentationHostedTests: XCTestCase {
         // pill — and at the *bottom* of the viewport, because the timeline opens at the newest message
         // (K1), not at the top.
         let message = FlareMessageData(id: "m1", senderId: "me", senderName: "Me",
-                                       content: FlareImageContent(url: "https://invalid.invalid/full.jpg", alt: "海边"),
+                                       content: FlareImageContent(url: "https://invalid.invalid/full.jpg", alt: "海边", localPath: TestPicture.path()),
                                        sentAtMs: Int64(Date().timeIntervalSince1970 * 1000))
         let list = MessageListView(messages: [message], currentUserId: "me")
         XCTAssertEqual(try sheetsAfterClicking(list, size: NSSize(width: 320, height: 600), at: CGPoint(x: 188, y: 480)), 1)
@@ -66,7 +67,7 @@ final class MediaPresentationHostedTests: XCTestCase {
     func testClickingAnImageBodyWithAHostHandlerPresentsNothing() throws {
         final class Counter { var taps = 0 }
         let counter = Counter()
-        let image = FlareImageContent(url: "https://invalid.invalid/full.jpg", alt: "海边")
+        let image = FlareImageContent(url: "https://invalid.invalid/full.jpg", alt: "海边", localPath: TestPicture.path())
         let view = MessageContentView(content: image, onMediaAction: { _ in counter.taps += 1 })
         XCTAssertEqual(try sheetsAfterClicking(view), 0, "the host handler keeps control")
         XCTAssertEqual(counter.taps, 1)

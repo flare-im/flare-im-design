@@ -461,7 +461,8 @@ final class MediaDownloadRevealHostedTests: XCTestCase {
         let log = Log()
         let model = States()
         let message = FlareMessageData(id: "m1", senderId: "me", senderName: "Me",
-                                       content: FlareImageContent(url: "https://invalid.invalid/1.jpg", alt: "海边"),
+                                       content: FlareImageContent(url: "https://invalid.invalid/1.jpg", alt: "海边",
+                                                                  localPath: TestPicture.path()),
                                        sentAtMs: Int64(Date().timeIntervalSince1970 * 1000))
         _ = NSApplication.shared
         let size = NSSize(width: 320, height: 600)
