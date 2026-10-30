@@ -28,6 +28,11 @@ final class VisualSnapshotTests: XCTestCase {
         XCTAssertEqual(expected.2, actual.2, message, file: file, line: line)
     }
 
+    /// Device pixels per point in every snapshot. The baselines are drawn at 2x; a window's own caching
+    /// bitmap takes the scale of whatever display the machine has (1x on a CI runner or an external
+    /// monitor, 2x on a laptop panel), so the same view came out at two sizes on two machines.
+    static let snapshotScale: CGFloat = 2
+
     // ImageRenderer does not render AppKit-backed TextEditor controls.
     @MainActor
     private func nativeSnapshot<Content: View>(_ view: Content, size: NSSize, name: String) throws -> Data {
@@ -39,7 +44,15 @@ final class VisualSnapshotTests: XCTestCase {
         window.contentView = host
         host.setFrameSize(size)
         host.layoutSubtreeIfNeeded()
-        let bitmap = try XCTUnwrap(host.bitmapImageRepForCachingDisplay(in: host.bounds))
+        let display = try XCTUnwrap(host.bitmapImageRepForCachingDisplay(in: host.bounds))
+        let bitmap = try XCTUnwrap(NSBitmapImageRep(
+            bitmapDataPlanes: nil,
+            pixelsWide: Int((size.width * Self.snapshotScale).rounded()),
+            pixelsHigh: Int((size.height * Self.snapshotScale).rounded()),
+            bitsPerSample: display.bitsPerSample, samplesPerPixel: display.samplesPerPixel,
+            hasAlpha: display.hasAlpha, isPlanar: false, colorSpaceName: display.colorSpaceName,
+            bytesPerRow: 0, bitsPerPixel: 0)?.retagging(with: display.colorSpace))
+        bitmap.size = host.bounds.size
         host.cacheDisplay(in: host.bounds, to: bitmap)
         let png = try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
         let observed = FileManager.default.temporaryDirectory.appendingPathComponent("flare-native-ui-snapshots")
