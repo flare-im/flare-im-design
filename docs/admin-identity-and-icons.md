@@ -4,7 +4,7 @@
 
 ## 用户身份
 
-`FlareUserIdentity` 的 `user` 接收 `name`、`account`、`avatarUrl` 和可选 `state`（ready/loading/unavailable）。复用 FlareAvatar，加载失败保留首字头像。昵称与账号完整换行；组件不接收也不会生成内部 ID。loading/unavailable 不显示旧身份资料。宿主负责作用域、真实查询、最小字段投影和失效处理。
+`FlareUserIdentity` 的 `user` 接收 `name`、`account`、`avatarUrl` 和可选 `state`（ready/loading/unavailable）。复用 FlareAvatar，加载失败保留首字头像；loading/unavailable 显示中性头像，不取提示文字的首字。昵称与账号完整换行；组件不接收也不会生成内部 ID。loading/unavailable 不显示旧身份资料。宿主负责作用域、真实查询、最小字段投影和失效处理。
 
 插件行单元格 `FlarePluginRowCell.user` 与详情字段 `FlarePluginField.user` 可附加同一展示值。通用插件表格完整展示并换行；小屏在表格容器内横向滚动。宿主仅在展示副本附加 user，原始行操作 input 和详情 previous 不携带这些展示字段。
 

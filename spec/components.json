@@ -26527,8 +26527,8 @@
           "type": "UserIdentityValue",
           "required": true,
           "description": {
-            "en": "The person to show. `state` `loading` or `unavailable` replaces the name and account with a label and drops the avatar image (the initial avatar stays); stale details are never shown.",
-            "zh": "要展示的人。`state` 为 `loading` 或 `unavailable` 时昵称与账号换成提示文字、不显示头像图片（保留首字头像）；不显示旧资料。"
+            "en": "The person to show. `state` `loading` or `unavailable` replaces the name and account with a label and the avatar with a neutral one (never the label's first character, never the avatar image); stale details are never shown.",
+            "zh": "要展示的人。`state` 为 `loading` 或 `unavailable` 时昵称与账号换成提示文字，头像换成中性头像（不取提示文字的首字，也不显示头像图片）；不显示旧资料。"
           }
         }
       ],
