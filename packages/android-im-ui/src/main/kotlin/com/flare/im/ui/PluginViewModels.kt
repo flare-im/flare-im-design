@@ -1036,7 +1036,7 @@ internal object PluginFormRules {
     fun length(text: String): Int = text.codePointCount(0, text.length)
 
     /** JavaScript's `trim`: whitespace and line terminators at both ends. */
-    fun trimmed(text: String): String = text.trim { it.isWhitespace() || it == '﻿' || it == ' ' }
+    fun trimmed(text: String): String = text.trim { it.isWhitespace() || it == '\uFEFF' || it == '\u00A0' }
 
     private fun text(value: Any?): String = when (value) {
         is String -> value
