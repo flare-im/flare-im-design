@@ -1,10 +1,23 @@
 import { expect, test } from "@playwright/test";
+import tokens from "../../tokens/tokens.json" with { type: "json" };
+
+// The timeline gathers its rows into one centred reading column this wide (message-workspace.css).
+const TIMELINE_COLUMN_MAX = Number.parseFloat(tokens.sizes.layout.messageTimelineContentMaxWidth);
+
+// A timeline that opens at its first message shows "没有更多消息了" for 2.4 s and then lets the first date
+// separator show again (MessageList HISTORY_START_HINT_MS). Whether a capture fell inside that window
+// depended on machine load, so the captures are of the settled timeline.
+async function settleTimelines(page: import("@playwright/test").Page) {
+  await page.clock.fastForward(3000);
+  await expect(page.locator(".message-list-history-end")).toHaveCount(0);
+}
 
 async function ready(page: import("@playwright/test").Page) {
   await page.clock.install({ time: new Date("2025-01-15T06:32:00.000Z") });
   await page.goto("/resources/visual-regression");
   await page.locator('[data-vr-ready="true"]').waitFor();
   await page.evaluate(async () => { await document.fonts.ready; });
+  await settleTimelines(page);
 }
 
 test("RC fixture light", async ({ page }) => {
@@ -51,6 +64,7 @@ async function readyThemeShowcase(page: import("@playwright/test").Page, mode: "
   const stage = page.locator(".showcase .window");
   await stage.waitFor();
   await page.evaluate(async () => { await document.fonts.ready; });
+  await settleTimelines(page);
   return stage;
 }
 
@@ -131,9 +145,11 @@ for (const mode of ["light", "dark"] as const) {
       await expect.poll(() => workspace.locator(".message-list").evaluate(list =>
         Math.abs(list.getBoundingClientRect().width - (list.parentElement as HTMLElement).clientWidth),
       )).toBeLessThan(1);
+      // Up to the reading column's width the timeline fills the pane; past it the column stops growing
+      // and is centred (`layout.messageTimelineContentMaxWidth`), so the gutter is measured inside it.
       await expect.poll(() => workspace.locator(".message-list").evaluate(list =>
         Math.round(list.getBoundingClientRect().width),
-      )).toBe(width - 32);
+      )).toBe(Math.min(width - 32, TIMELINE_COLUMN_MAX));
       await expect.poll(() => workspace.locator(".message-list").evaluate(list => {
         const content = list.querySelector(".message-list-content")!.getBoundingClientRect();
         return Math.abs(content.width - list.clientWidth);
@@ -210,27 +226,28 @@ for (const mode of ["light", "dark"] as const) {
   }
 }
 
-test("composer surface owns one continuous border and a light visible focus state", async ({ page }) => {
+// The input area is one flat surface (composer-studio.css, "四周不要有外面包裹"): the bar owns the only edge — one
+// hairline between it and the timeline — and the field inside it draws no border, radius, fill or shadow. Focus
+// changes nothing on the surface: the caret is the text field's focus indicator, the keys keep their own rings.
+test("composer is one flat surface with a single top hairline, and focus leaves it unchanged", async ({ page }) => {
   const fixture = await readyComposerSurface(page);
   const focused = fixture.locator('[data-composer-state="focused"]');
   const surface = focused.locator('[data-flare-surface-owner="composer"]');
-  await fixture.locator('[data-composer-state="default"] textarea').focus();
-  await surface.evaluate(node => Promise.all(node.getAnimations().map(animation => animation.finished)));
-  const unfocusedBorder = await surface.evaluate(node => getComputedStyle(node).borderColor);
-  await focused.locator("textarea").focus();
-  await surface.evaluate(node => Promise.all(node.getAnimations().map(animation => animation.finished)));
-
-  const geometry = await focused.locator('[data-flare-surface-owner="composer"]').evaluate((surface) => {
-    const style = getComputedStyle(surface);
-    const input = getComputedStyle(surface.querySelector(".composer-input-row")!);
-    const toolbar = getComputedStyle(surface.querySelector(".composer-toolbar")!);
-    const pseudo = getComputedStyle(surface.querySelector(".composer-input-row")!, "::before");
+  const read = () => surface.evaluate((field) => {
+    const style = getComputedStyle(field);
+    const bar = getComputedStyle(field.closest(".composer")!);
+    const input = getComputedStyle(field.querySelector(".composer-input-row")!);
+    const toolbar = getComputedStyle(field.querySelector(".composer-toolbar")!);
+    const pseudo = getComputedStyle(field.querySelector(".composer-input-row")!, "::before");
     return {
-      borderWidths: [style.borderTopWidth, style.borderRightWidth, style.borderBottomWidth, style.borderLeftWidth],
-      radius: style.borderRadius,
-      background: style.backgroundColor,
-      shadow: style.boxShadow,
-      borderColor: style.borderColor,
+      barBorders: [bar.borderTopWidth, bar.borderRightWidth, bar.borderBottomWidth, bar.borderLeftWidth],
+      barBorderColor: bar.borderTopColor,
+      barRadius: bar.borderTopLeftRadius,
+      barBackground: bar.backgroundColor,
+      fieldBorders: [style.borderTopWidth, style.borderRightWidth, style.borderBottomWidth, style.borderLeftWidth],
+      fieldRadius: style.borderRadius,
+      fieldBackground: style.backgroundColor,
+      fieldShadow: style.boxShadow,
       inputBackground: input.backgroundColor,
       inputBorder: input.borderStyle,
       toolbarBackground: toolbar.backgroundColor,
@@ -238,17 +255,27 @@ test("composer surface owns one continuous border and a light visible focus stat
       partialFocusContent: pseudo.content,
     };
   });
+  await fixture.locator('[data-composer-state="default"] textarea').focus();
+  await surface.evaluate(node => Promise.all(node.getAnimations().map(animation => animation.finished)));
+  const unfocused = await read();
+  await focused.locator("textarea").focus();
+  await expect(focused.locator("textarea")).toBeFocused();
+  await surface.evaluate(node => Promise.all(node.getAnimations().map(animation => animation.finished)));
+  const geometry = await read();
 
-  expect(geometry.borderWidths).toEqual(["1px", "1px", "1px", "1px"]);
-  expect(geometry.radius).not.toBe("0px");
-  expect(geometry.background).not.toBe("rgba(0, 0, 0, 0)");
-  expect(geometry.shadow).toBe("none");
-  expect(geometry.borderColor).not.toBe(unfocusedBorder);
+  expect(geometry.barBorders).toEqual(["1px", "0px", "0px", "0px"]);
+  expect(geometry.barRadius).toBe("0px");
+  expect(geometry.barBackground).not.toBe("rgba(0, 0, 0, 0)");
+  expect(geometry.fieldBorders).toEqual(["0px", "0px", "0px", "0px"]);
+  expect(geometry.fieldRadius).toBe("0px");
+  expect(geometry.fieldBackground).toBe("rgba(0, 0, 0, 0)");
+  expect(geometry.fieldShadow).toBe("none");
   expect(geometry.inputBackground).toBe("rgba(0, 0, 0, 0)");
   expect(geometry.inputBorder).toBe("none");
   expect(geometry.toolbarBackground).toBe("rgba(0, 0, 0, 0)");
   expect(geometry.toolbarBorder).toBe("none");
   expect(["none", "normal"]).toContain(geometry.partialFocusContent);
+  expect(geometry).toEqual(unfocused);
 });
 
 for (const mode of ["light", "dark"] as const) {
@@ -394,12 +421,17 @@ for (const deviceScaleFactor of [1, 1.25, 1.5, 2] as const) {
         (node as HTMLElement).style.zoom = String(nextZoom);
       }, zoom);
 
+      // The one edge of the input area is the bar's top hairline; it has to survive every scale as a
+      // single device line, and the field inside the bar stays borderless.
       const integrity = await surface.evaluate((node) => {
         const style = getComputedStyle(node);
+        const bar = getComputedStyle(node.closest(".composer")!);
         const bounds = node.getBoundingClientRect();
         const toolbarBounds = node.querySelector(".composer-toolbar")!.getBoundingClientRect();
         return {
-          borderWidths: [style.borderTopWidth, style.borderRightWidth, style.borderBottomWidth, style.borderLeftWidth]
+          hairline: Number.parseFloat(bar.borderTopWidth),
+          barSides: [bar.borderRightWidth, bar.borderBottomWidth, bar.borderLeftWidth].map(Number.parseFloat),
+          fieldBorders: [style.borderTopWidth, style.borderRightWidth, style.borderBottomWidth, style.borderLeftWidth]
             .map(Number.parseFloat),
           radius: style.borderRadius,
           toolbarInside:
@@ -410,10 +442,11 @@ for (const deviceScaleFactor of [1, 1.25, 1.5, 2] as const) {
         };
       });
 
-      expect(new Set(integrity.borderWidths).size).toBe(1);
-      expect(integrity.borderWidths[0]).toBeGreaterThanOrEqual(0.75);
-      expect(integrity.borderWidths[0]).toBeLessThanOrEqual(1.2);
-      expect(integrity.radius).not.toBe("0px");
+      expect(integrity.hairline).toBeGreaterThanOrEqual(0.75);
+      expect(integrity.hairline).toBeLessThanOrEqual(1.2);
+      expect(integrity.barSides).toEqual([0, 0, 0]);
+      expect(integrity.fieldBorders).toEqual([0, 0, 0, 0]);
+      expect(integrity.radius).toBe("0px");
       expect(integrity.toolbarInside).toBe(true);
       expect(integrity.noHorizontalOverflow).toBe(true);
     }

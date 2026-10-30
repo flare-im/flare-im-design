@@ -68,10 +68,11 @@ test("responsive Composer Desktop and Mobile use one default action contract", a
   const live = previewFrame(preview);
   const more = live.locator("button[aria-expanded]").last();
   await more.click();
-  // The preview has no voice handler, so the voice tile is not offered (voice needs somewhere to go).
-  await expect(live.locator(".flare-action-panel__tile")).toHaveCount(4);
+  // The built-in "+" set (spec/components.json composerActions.defaults: image, camera, video, file, voice,
+  // location, card). The preview has no voice handler, so the voice tile is not offered (voice needs somewhere to go).
+  await expect(live.locator(".flare-action-panel__tile")).toHaveCount(6);
   expect(await live.locator(".flare-action-panel__tile").evaluateAll((nodes) => nodes.map((node) => node.textContent?.trim()))).toEqual([
-    "Image", "File", "Location", "Contact card",
+    "Image", "Camera", "Video", "File", "Location", "Contact card",
   ]);
   await expect(live.locator(".composer-more-surface")).toHaveCSS("position", "absolute");
 
@@ -80,7 +81,7 @@ test("responsive Composer Desktop and Mobile use one default action contract", a
   await expect(viewport).toHaveClass(/is-mobile/);
   expect(await viewport.evaluate((node) => (node as HTMLElement).offsetWidth)).toBeLessThanOrEqual(390);
   await more.click();
-  await expect(live.locator(".flare-action-panel__tile")).toHaveCount(4);
+  await expect(live.locator(".flare-action-panel__tile")).toHaveCount(6);
   await expect(live.locator(".composer-more-surface")).toHaveCSS("position", "relative");
 });
 
@@ -126,13 +127,14 @@ test("ChatWorkspace keeps Context, Header, top-anchored Timeline and Composer in
   await expect(workspace.locator('[data-message-id="1"] .message-avatar')).toBeVisible();
   await expect(workspace.locator('[data-message-id="1"] .message-meta__name')).toContainText("Ivy Chen");
   await expect(workspace.getByRole("textbox")).toBeVisible();
+  // The base tools are one row at every width (EnhancedComposer: `expanded` no longer decides how many there
+  // are): emoji, @, image, rich text, "+" and send. Voice needs a recording handler, which this demo has not.
   const toolbar = workspace.locator(".composer-toolbar");
-  await expect(toolbar.getByRole("button")).toHaveCount(3);
-  await expect(toolbar.getByRole("button", { name: "Emoji" })).toBeVisible();
-  await expect(toolbar.getByRole("button", { name: "More" })).toBeVisible();
-  await expect(toolbar.getByRole("button", { name: "Send" })).toBeVisible();
+  await expect(toolbar.getByRole("button")).toHaveCount(6);
+  for (const name of ["Emoji", "@", "Image", "Rich text", "More", "Send"]) {
+    await expect(toolbar.getByRole("button", { name, exact: true })).toBeVisible();
+  }
   await expect(toolbar.getByRole("button", { name: "Voice" })).toHaveCount(0);
-  await expect(toolbar.getByRole("button", { name: "Image" })).toHaveCount(0);
 
   const order = await workspace.locator(":scope > div").evaluateAll((nodes) => nodes.map((node) => node.className));
   expect(order.slice(0, 4)).toEqual([

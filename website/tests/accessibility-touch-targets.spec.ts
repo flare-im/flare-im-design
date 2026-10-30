@@ -54,6 +54,27 @@ test("@a11y every touch target on a phone is at least 44 by 44", async ({ page }
         if (rect.width >= (min as number) && rect.height >= (min as number)) return [];
         const cx = rect.left + rect.width / 2;
         const cy = rect.top + rect.height / 2;
+        // Behind an open modal (a sheet or dialog that does not contain the control) nothing on the page is a
+        // target: the tap lands on the modal by design, and the control is not small, it is covered.
+        const atCentre = document.elementFromPoint(cx, cy);
+        const modal = atCentre?.closest('[aria-modal="true"]');
+        if (modal && !modal.contains(node)) return [];
+        // The part of the control its scrolling ancestors show. A tab half scrolled out of a strip is cut by
+        // the strip, the way the frame cuts a control at the page edge; a finger reaches the rest after a scroll.
+        let shown = { left: 0, top: 0, right: innerWidth, bottom: innerHeight };
+        for (let cursor = node.parentElement; cursor && cursor !== document.body; cursor = cursor.parentElement) {
+          const style = getComputedStyle(cursor);
+          if (style.overflowX === "visible" && style.overflowY === "visible") continue;
+          const box = cursor.getBoundingClientRect();
+          shown = {
+            left: Math.max(shown.left, box.left + cursor.clientLeft),
+            top: Math.max(shown.top, box.top + cursor.clientTop),
+            right: Math.min(shown.right, box.left + cursor.clientLeft + cursor.clientWidth),
+            bottom: Math.min(shown.bottom, box.top + cursor.clientTop + cursor.clientHeight),
+          };
+        }
+        const cut = rect.left < shown.left - 0.5 || rect.right > shown.right + 0.5
+          || rect.top < shown.top - 0.5 || rect.bottom > shown.bottom + 0.5;
         const half = (min as number) / 2 - 1;
         const corners: [number, number][] = [
           [cx - half, cy - half], [cx + half, cy - half],
@@ -61,6 +82,7 @@ test("@a11y every touch target on a phone is at least 44 by 44", async ({ page }
         ];
         const misses = corners.filter(([x, y]) => {
           if (x < 0 || y < 0 || x > innerWidth || y > innerHeight) return false; // clipped by the frame, not by the control
+          if (cut && (x < shown.left || x > shown.right || y < shown.top || y > shown.bottom)) return false; // clipped by a scroller, not by the control
           const hit = document.elementFromPoint(x, y);
           return !(hit && (hit === node || node.contains(hit) || hit.closest(selector as string) === node));
         });

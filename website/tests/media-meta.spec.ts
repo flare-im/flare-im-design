@@ -86,12 +86,18 @@ for (const mode of ["light", "dark"] as const) {
       const target = fixture.locator('[data-media-case="sticker"] .message-row--self');
       const initialHeight = (await target.boundingBox())!.height;
       const picker = fixture.getByLabel("Delivery state");
-      for (const state of ["pending", "sending", "sent", "read", "failed"]) {
+      for (const state of ["pending", "sending", "sent", "read"]) {
         await picker.selectOption(state);
         await expect(target.locator(`.message-status--${state}`)).toBeVisible();
         expect((await target.boundingBox())!.height).toBeCloseTo(initialHeight, 1);
       }
-      const retry = target.getByRole("button", { name: "发送失败，点击重试" });
+      // Below a picture or a card a failure is the text key "发送失败，重试" in place of the receipt glyph, before
+      // the time (spec/message-meta-placement-vectors.json rules.failed): there is no glyph to read it from.
+      await picker.selectOption("failed");
+      const retry = target.getByRole("button", { name: "发送失败，重试", exact: true });
+      await expect(retry).toBeVisible();
+      await expect(target.locator(".message-status")).toHaveCount(0);
+      expect((await target.boundingBox())!.height).toBeCloseTo(initialHeight, 1);
       await retry.focus();
       await retry.press("Enter");
       await expect(fixture).toHaveAttribute("data-retries", "1");

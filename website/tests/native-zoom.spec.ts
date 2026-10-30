@@ -67,30 +67,37 @@ for (const mode of ["light", "dark"] as const) {
         }, zoom);
         expect(actualZoom).toBeCloseTo(zoom, 3);
         await expect.poll(() => page.evaluate(() => devicePixelRatio)).toBeCloseTo(zoom, 3);
-        await page.locator('[data-composer-state="default"] textarea').focus();
+        // One flat surface at every zoom (composer-studio.css): the bar's top hairline is the only edge, the
+        // field draws none, and focusing the field changes nothing on the surface (the caret is its indicator).
         const surface = focused.locator('[data-flare-surface-owner="composer"]');
-        await surface.evaluate(node => Promise.all(node.getAnimations().map(animation => animation.finished)));
-        const unfocusedBorder = await surface.evaluate(node => getComputedStyle(node).borderColor);
-        await focused.locator("textarea").focus();
-        await surface.evaluate(node => Promise.all(node.getAnimations().map(animation => animation.finished)));
-        const geometry = await focused.locator('[data-flare-surface-owner="composer"]').evaluate((node) => {
+        const read = () => surface.evaluate((node) => {
           const style = getComputedStyle(node);
+          const bar = getComputedStyle(node.closest(".composer")!);
           const rect = node.getBoundingClientRect();
           const toolbar = node.querySelector(".composer-toolbar")!.getBoundingClientRect();
           return {
+            hairline: Number.parseFloat(bar.borderTopWidth),
+            barColor: bar.borderTopColor,
             widths: [style.borderTopWidth, style.borderRightWidth, style.borderBottomWidth, style.borderLeftWidth],
             radius: style.borderRadius,
             focus: style.boxShadow,
-            borderColor: style.borderColor,
+            background: style.backgroundColor,
             childrenInside: toolbar.left >= rect.left && toolbar.right <= rect.right + 1 && toolbar.bottom <= rect.bottom + 1,
             noHorizontalOverflow: node.scrollWidth <= node.clientWidth + 1,
           };
         });
-        expect(new Set(geometry.widths).size).toBe(1);
-        expect(Number.parseFloat(geometry.widths[0])).toBeGreaterThan(0);
-        expect(geometry.radius).not.toBe("0px");
+        await page.locator('[data-composer-state="default"] textarea').focus();
+        await surface.evaluate(node => Promise.all(node.getAnimations().map(animation => animation.finished)));
+        const unfocused = await read();
+        await focused.locator("textarea").focus();
+        await surface.evaluate(node => Promise.all(node.getAnimations().map(animation => animation.finished)));
+        const geometry = await read();
+        expect(geometry.hairline).toBeGreaterThan(0);
+        expect(new Set(geometry.widths)).toEqual(new Set(["0px"]));
+        expect(geometry.radius).toBe("0px");
         expect(geometry.focus).toBe("none");
-        expect(geometry.borderColor).not.toBe(unfocusedBorder);
+        expect(geometry.background).toBe("rgba(0, 0, 0, 0)");
+        expect(geometry).toEqual(unfocused);
         expect(geometry.childrenInside).toBe(true);
         expect(geometry.noHorizontalOverflow).toBe(true);
         await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

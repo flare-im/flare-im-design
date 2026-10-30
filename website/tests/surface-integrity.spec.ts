@@ -13,8 +13,28 @@ for (const width of [1280, 390]) {
       }, mode);
       const fixture = page.locator("#surface-integrity-fixture");
       await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      // A focused search field draws its own edge in border-selected and no outer glow (FlareSearchBar: the
+      // 2px focus-ring halo around a full-width field made the frame the heaviest thing on screen).
+      const search = page.locator(".flare-search");
+      const idleEdge = await search.evaluate(node => getComputedStyle(node).borderTopColor);
+      const selected = await search.evaluate(node => {
+        const probe = document.createElement("span");
+        probe.style.color = "var(--flare-color-border-selected)";
+        node.append(probe);
+        const color = getComputedStyle(probe).color;
+        probe.remove();
+        return color;
+      });
+      expect(selected).not.toBe(idleEdge);
       await page.getByRole("searchbox", { name: "Search messages" }).focus();
-      expect(await page.locator(".flare-search").evaluate(node => getComputedStyle(node).boxShadow)).not.toBe("none");
+      // Reduced motion still runs a near-zero transition, so the edge is read once it has settled.
+      await expect.poll(() => search.evaluate(node => getComputedStyle(node).borderTopColor)).toBe(selected);
+      const focusEdge = await search.evaluate(node => {
+        const style = getComputedStyle(node);
+        return { width: style.borderTopWidth, shadow: style.boxShadow };
+      });
+      expect(Number.parseFloat(focusEdge.width)).toBeGreaterThan(0);
+      expect(focusEdge.shadow).toBe("none");
       const textarea = page.locator(".flare-textarea").first();
       const bounds = await textarea.evaluate(node => {
         const field = node.querySelector("textarea")!.getBoundingClientRect();
@@ -33,7 +53,9 @@ for (const width of [1280, 390]) {
       expect(await option.evaluate(node => getComputedStyle(node).outlineStyle)).toBe("solid");
       await option.click();
       await page.getByRole("button", { name: "Attachment preview" }).click();
-      const preview = page.locator(".media-composer-preview");
+      // FlareComposerMediaPreview is a kit sheet now (FlareBottomSheet; a FlareModal at desktop width), so it is
+      // found the way a person finds it: the dialog named after its title.
+      const preview = page.getByRole("dialog", { name: "发送附件" });
       await expect(preview).toBeVisible();
       const modalBounds = await preview.boundingBox();
       expect(modalBounds!.x).toBeGreaterThanOrEqual(0);
