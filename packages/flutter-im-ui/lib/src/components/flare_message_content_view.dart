@@ -18,12 +18,15 @@ import '../models/message_surface.dart';
 import '../models/url_safety.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_unknown_message.dart';
+import 'flare_forward_message.dart';
+import '../models/forward_record.dart';
 
 /// Context passed to every content renderer.
 class FlareContentContext {
   const FlareContentContext({
     required this.self,
     this.previewMode = false,
+    this.senderId,
     this.senderName,
     this.messageId,
     this.conversationId,
@@ -47,6 +50,13 @@ class FlareContentContext {
   /// The surface the row draws the content on; a card builder's shell is the
   /// card surface itself (nothing is drawn around it).
   final FlareMessageSurface? surface;
+
+  /// The message's sender id. Null outside a message row.
+  final String? senderId;
+
+  /// The display name the host gave the message's sender, trimmed; null when
+  /// empty. Never the id or a placeholder word: a builder chooses its own
+  /// wording when there is no name.
   final String? senderName;
 
   /// The message being drawn: its server id when it has one (what the SDK and
@@ -212,6 +222,7 @@ class FlareMessageContentView extends StatelessWidget {
     required this.content,
     this.self = false,
     this.previewMode = false,
+    this.senderId,
     this.senderName,
     this.messageId,
     this.rendererMessageId,
@@ -256,6 +267,13 @@ class FlareMessageContentView extends StatelessWidget {
   final bool uploading;
   final bool self;
   final bool previewMode;
+
+  /// The sender's id, handed to a custom builder as
+  /// `FlareContentContext.senderId`.
+  final String? senderId;
+
+  /// The sender's display name; a custom builder gets it trimmed, and null
+  /// when empty (`FlareContentContext.senderName`).
   final String? senderName;
 
   /// The message [content] belongs to; keeps a voice message's playback
@@ -330,10 +348,12 @@ class FlareMessageContentView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final surface = _surface(context);
+    final name = senderName?.trim() ?? '';
     final ctx = FlareContentContext(
       self: self,
       previewMode: previewMode,
-      senderName: senderName,
+      senderId: senderId,
+      senderName: name.isEmpty ? null : name,
       messageId: rendererMessageId ?? messageId,
       conversationId: conversationId,
       mediaState: mediaState,
@@ -385,6 +405,8 @@ class FlareMessageContentView extends StatelessWidget {
   /// is their surface. A location card and a red packet bring their own.
   bool get _needsCardShell => switch (content) {
     FlareLocationContent() => false,
+    // A forward record draws its own: the card, or the one item inline.
+    FlareForwardContent() => false,
     FlareImageContent() ||
     FlareVideoContent() ||
     FlareStickerContent() ||
@@ -629,6 +651,11 @@ class FlareMessageContentView extends StatelessWidget {
       ),
       FlareNotificationContent c => FlareSystemMessage(text: c.text),
       FlarePlaceholderContent c => FlareSystemMessage(text: c.label),
+      FlareForwardContent c => FlareForwardMessage(
+        record: c,
+        self: self,
+        selectionMode: selectionMode,
+      ),
       FlareGenericContent c => FlareUnknownMessage(
         contentType: c.contentType,
         summary: '[${c.label}]',

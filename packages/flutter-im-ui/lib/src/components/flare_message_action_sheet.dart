@@ -179,6 +179,26 @@ List<FlareMessageMenuEntry> messageMenuActions(
   ];
 }
 
+/// Every entry a message's menu offers: the standard actions
+/// ([messageMenuActions], less [hidden]) then the host's [extra] entries. The
+/// one entry list behind the long-press sheet and the pointer menu, so the two
+/// never differ.
+List<FlareMessageMenuEntry> messageMenuEntries(
+  FlareMessageActionAvailability availability,
+  FlareStrings strings, {
+  Set<String> hidden = const {},
+  List<FlareMessageMenuEntry> extra = const [],
+  FlareMessageContent? content,
+}) => [
+  ...messageMenuActions(
+    availability,
+    strings,
+    hidden: hidden,
+    content: content,
+  ),
+  ...extra,
+];
+
 @immutable
 class FlareMessageMenuSelection {
   const FlareMessageMenuSelection.action(this.actionId) : reaction = null;
@@ -268,15 +288,13 @@ class FlareMessageActionSheet extends StatelessWidget {
     final strings = FlareStrings.of(context);
     final label = this.label ?? strings.messageActionSheetLabel;
     final emptyText = this.emptyText ?? strings.messageActionSheetEmpty;
-    final entries = [
-      ...messageMenuActions(
-        availability,
-        strings,
-        hidden: hiddenActions,
-        content: content,
-      ),
-      ...actions,
-    ];
+    final entries = messageMenuEntries(
+      availability,
+      strings,
+      hidden: hiddenActions,
+      extra: actions,
+      content: content,
+    );
     // A host list is gated by canReact too: no strip on a message that cannot take one.
     final strip = availability.canReact
         ? (reactions ?? flareQuickReactions)

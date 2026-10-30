@@ -19,9 +19,10 @@ import 'flare_overlay.dart';
 /// plugin's answer; the host turns it into [state]. [onOpen] is the 開 press —
 /// the host claims and sets [FlareRedPacketOpenState.opening], which flips the
 /// coin (a progress label instead when the platform asks for reduced motion)
-/// and blocks a second press. Finished, expired and not-eligible packets say
-/// why (the host's [message] replaces the default copy). The details key
-/// ([onViewDetails]) shows only for a finished or expired packet whose
+/// and blocks a second press. Finished, expired, refunded and not-eligible
+/// packets say why (the host's [message] replaces the default copy). The
+/// details key ([onViewDetails]) shows only for a finished, expired or
+/// refunded packet whose
 /// personal layer lets the viewer see them ([canViewDetails]); a not-eligible
 /// viewer never gets one — the server returns no amounts or records to them
 /// (`spec/red-packet-vectors.json` → openSheet).
@@ -56,8 +57,8 @@ class FlareRedPacketOpenSheet extends StatefulWidget {
   /// Host notice that replaces the default copy of a non-ready state.
   final String? message;
 
-  /// From the personal layer: a finished or expired sheet offers the details
-  /// key only when true. [FlareRedPacketOpenState.notEligible] never does.
+  /// From the personal layer: a finished, expired or refunded sheet offers the
+  /// details key only when true. [FlareRedPacketOpenState.notEligible] never does.
   final bool canViewDetails;
   final VoidCallback? onOpen;
   final VoidCallback? onViewDetails;
@@ -158,6 +159,8 @@ class _FlareRedPacketOpenSheetState extends State<FlareRedPacketOpenSheet>
     return switch (widget.state) {
       FlareRedPacketOpenState.finished => custom ?? strings.packetMissed,
       FlareRedPacketOpenState.expired => custom ?? strings.packetExpiredNotice,
+      FlareRedPacketOpenState.refunded =>
+        custom ?? strings.packetRefundedNotice,
       FlareRedPacketOpenState.notEligible =>
         custom ?? strings.packetNotEligible,
       _ => widget.blessing,

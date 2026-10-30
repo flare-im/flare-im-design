@@ -170,6 +170,23 @@ void main() {
     }
   });
 
+  test('openSheetRefunded: a refunded packet offers no 開, details by flag', () {
+    final cases = (table['openSheetRefunded'] as List)
+        .cast<Map<String, dynamic>>();
+    expect(cases, isNotEmpty);
+    for (final v in cases) {
+      final keys = flareRedPacketOpenSheetKeys(
+        FlareRedPacketOpenState.values.byName(v['state'] as String),
+        canViewDetails: v['canViewDetails'] as bool? ?? true,
+      );
+      expect(keys.coin, v['coin'], reason: v['id'] as String);
+      expect(keys.details, v['details'], reason: v['id'] as String);
+    }
+    // refunded sits right after expired.
+    final names = FlareRedPacketOpenState.values.map((s) => s.name).toList();
+    expect(names.indexOf('refunded'), names.indexOf('expired') + 1);
+  });
+
   test('amount: minor units and the currency exponent, integer arithmetic', () {
     final amount = table['amount'] as Map<String, dynamic>;
     expect(

@@ -632,6 +632,32 @@ void main() {
       );
     });
 
+    testWidgets('the ⋯ key sits at the trailing edge of the title row, '
+        'whatever the title', (tester) async {
+      final json = viewJson('poll-v2-menu');
+      for (final title in ['', '投', '一个很长很长很长很长很长很长很长很长很长的投票标题']) {
+        await tester.pumpWidget(
+          host(
+            FlarePluginView(
+              view: FlarePluginViewModel.fromJson({...json, 'title': title}),
+              onAction: (_, _) {},
+            ),
+          ),
+        );
+        final card = tester.getRect(
+          find.byKey(const ValueKey('flare-plugin-card')),
+        );
+        final key = tester.getRect(find.byKey(FlarePluginView.menuKey));
+        // The card's inner edge: its spacing.md padding (and the hairline).
+        expect(
+          key.right,
+          closeTo(card.right - FlareSizes.spacingMd - 1, 1.01),
+          reason: '"$title"',
+        );
+        expect(tester.takeException(), isNull);
+      }
+    });
+
     testWidgets('a read-only copy draws its content and no controls', (
       tester,
     ) async {
@@ -1065,6 +1091,7 @@ void main() {
           ),
         ),
       );
+      await tester.ensureVisible(find.byKey(const ValueKey('flare-plugin-action-join')));
       await tester.tap(find.byKey(const ValueKey('flare-plugin-action-join')));
       await tester.pumpAndSettle();
       expect(find.byType(FlarePluginForm), findsOneWidget);
@@ -1124,6 +1151,7 @@ void main() {
       if (before != null) {
         await before();
       } else {
+        await tester.ensureVisible(find.byKey(ValueKey('flare-plugin-action-$action')));
         await tester.tap(find.byKey(ValueKey('flare-plugin-action-$action')));
       }
       await tester.pumpAndSettle();
@@ -1174,6 +1202,24 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(FlarePluginForm), findsOneWidget);
       expect(find.text('不能重复'), findsOneWidget);
+    });
+
+    testWidgets('settling a form preserves the next page already pushed by the host', (
+      tester,
+    ) async {
+      final host = await submitted(tester);
+      final navigator = Navigator.of(host.context);
+      navigator.push(MaterialPageRoute<void>(
+        builder: (_) => const Scaffold(body: Text('Wallet authorization')),
+      ));
+      host.update(() => host.settle += 1);
+      await tester.pumpAndSettle();
+      expect(find.text('Wallet authorization'), findsOneWidget);
+      expect(find.byType(FlarePluginForm, skipOffstage: false), findsNothing);
+      navigator.pop();
+      await tester.pumpAndSettle();
+      expect(find.byType(FlarePluginView), findsOneWidget);
+      expect(find.byType(FlarePluginForm), findsNothing);
     });
 
     testWidgets(
@@ -1418,20 +1464,13 @@ void main() {
           expect(button.disabled, !(fact['enabled'] as bool));
           expect(button.variant, FlareButtonVariant.quiet);
           expect(button.size, FlareControlSize.sm);
-          expect(button.block, isTrue);
-          // Under the action keys.
+          expect(button.block, isFalse);
+          expect(button.appearance, FlareButtonAppearance.text);
+          // The key shares the footer, or sits in the header without actions.
           final view = FlarePluginViewModel.fromJson(json);
           for (final action in view.actions) {
-            expect(
-              tester.getTopLeft(key).dy,
-              greaterThan(
-                tester
-                    .getTopLeft(
-                      find.byKey(ValueKey('flare-plugin-action-${action.id}')),
-                    )
-                    .dy,
-              ),
-            );
+            expect(tester.getRect(key).overlaps(tester.getRect(
+              find.byKey(ValueKey('flare-plugin-action-${action.id}')))), isFalse);
           }
         }
         if (expected.containsKey('seeAll')) {

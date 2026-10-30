@@ -16,9 +16,11 @@ import 'red_packet_tint.dart';
 ///
 /// Every value is the host's: [kind], [amount], [count] and [greeting] come in
 /// and each edit goes out through its `on…Change` callback. The form only
-/// restricts the format — digits with at most two decimals for the amount,
-/// digits for the count (`spec/red-packet-vectors.json`); ranges, the balance
-/// and [total] are computed by the host. The amount label follows the kind:
+/// restricts the format — digits with at most [currencyExponent] decimals for
+/// the amount (none at 0, with a digits-only keyboard), digits for the count
+/// (`spec/red-packet-vectors.json`); ranges, the balance and [total] are
+/// computed by the host, which turns the amount into minor units with
+/// [flareRedPacketAmountMinor]. The amount label follows the kind:
 /// total for lucky, amount each for normal, amount for exclusive. While [busy]
 /// every field and the button are locked.
 class FlareRedPacketComposer extends StatefulWidget {
@@ -27,6 +29,7 @@ class FlareRedPacketComposer extends StatefulWidget {
     required this.kinds,
     this.kind = FlareRedPacketKind.lucky,
     this.amount = '',
+    this.currencyExponent = 2,
     this.count = 0,
     this.greeting = '',
     this.recipient,
@@ -48,6 +51,11 @@ class FlareRedPacketComposer extends StatefulWidget {
   final List<FlareRedPacketKind> kinds;
   final FlareRedPacketKind kind;
   final String amount;
+
+  /// The currency's ISO 4217 exponent from the plugin's limits (0 JPY, 2 CNY,
+  /// 3 KWD), rounded and held to 0..12: the amount field keeps at most that
+  /// many decimals and its placeholder shows that many.
+  final int currencyExponent;
 
   /// Share count for lucky / normal packets in a group; 0 while the field is
   /// empty.
@@ -151,6 +159,7 @@ class _FlareRedPacketComposerState extends State<FlareRedPacketComposer> {
     final strings = FlareStrings.of(context);
     final kind = _kind;
     final error = widget.error;
+    final exponent = flareRedPacketExponent(widget.currencyExponent);
     return Padding(
       padding: const EdgeInsets.all(FlareSizes.spacingLg),
       child: Column(
@@ -183,11 +192,11 @@ class _FlareRedPacketComposerState extends State<FlareRedPacketComposer> {
               colors,
               label: _amountLabel(strings),
               controller: _amount,
-              placeholder: '0.00',
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              formatter: const FlareRedPacketAmountFormatter(),
+              placeholder: flareRedPacketAmountPlaceholder(exponent),
+              keyboardType: exponent == 0
+                  ? TextInputType.number
+                  : const TextInputType.numberWithOptions(decimal: true),
+              formatter: FlareRedPacketAmountFormatter(exponent: exponent),
               onChanged: (value) => widget.onAmountChange?.call(value),
             ),
             if (kind != FlareRedPacketKind.exclusive && !_direct)

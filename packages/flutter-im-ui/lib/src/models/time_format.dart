@@ -70,6 +70,26 @@ abstract final class FlareTimeFormat {
         : style.date(local.year, local.month, local.day);
   }
 
+  /// A moment in a list of messages from several days (a merged-forward
+  /// record): the clock on the same calendar day as [now], else numeric month
+  /// and day with the clock within the year, numeric year, month and day with
+  /// the clock before it.
+  static String dateTime(
+    DateTime time, {
+    required String locale,
+    DateTime? now,
+  }) {
+    final local = time.toLocal();
+    final current = (now ?? DateTime.now()).toLocal();
+    final clock = messageTime(local, locale: locale);
+    if (sameDay(local, current)) return clock;
+    final style = _LocaleStyle.of(locale);
+    final day = local.year == current.year
+        ? style.monthDay(local.month, local.day)
+        : style.date(local.year, local.month, local.day);
+    return '$day $clock';
+  }
+
   /// Whether [a] and [b] fall on the same local calendar day, compared on
   /// numeric fields.
   static bool sameDay(DateTime a, DateTime b) {

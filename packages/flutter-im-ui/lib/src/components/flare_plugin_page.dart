@@ -8,6 +8,7 @@ import '../models/plugin_view.dart';
 import '../platform/flare_platform.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
+import 'flare_account_view.dart';
 import 'flare_button.dart';
 import 'flare_empty_state.dart';
 import 'flare_filter_tabs.dart';
@@ -46,6 +47,7 @@ class FlarePluginPage extends StatefulWidget {
     super.key,
     required this.page,
     this.title,
+    this.appearance = FlarePluginPageAppearance.document,
     this.view,
     this.filters = const {},
     this.loading = false,
@@ -73,6 +75,7 @@ class FlarePluginPage extends StatefulWidget {
   /// Page title while there is no view (or the view has none, as an
   /// unavailable one); the view's title wins.
   final String? title;
+  final FlarePluginPageAppearance appearance;
 
   /// The resolved page view (the core SDK's pluginPage result, with data);
   /// null while the first load runs. Pass the merged view after load more and
@@ -373,7 +376,12 @@ class _FlarePluginPageState extends State<FlarePluginPage> {
           const SizedBox(height: FlareSizes.spacingXs),
         ],
         if (filters.isNotEmpty) const SizedBox(height: FlareSizes.spacingSm),
-        FlarePluginView(
+        if (widget.appearance == FlarePluginPageAppearance.account || view.presentation?['renderer'] == 'account')
+          FlareAccountView(view: view, busyActionId: widget.busyActionId,
+            error: widget.actionError, formErrors: widget.formErrors,
+            members: widget.members, settleToken: widget.settleToken,
+            onAction: widget.onAction == null ? null : _runAction)
+        else FlarePluginView(
           view: view,
           embedded: true,
           resolveUser: widget.resolveUser,

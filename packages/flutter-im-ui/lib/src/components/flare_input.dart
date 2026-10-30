@@ -13,6 +13,7 @@ class FlareInput extends StatefulWidget {
     super.key,
     this.controller,
     this.placeholder,
+    this.semanticLabel,
     this.multiline = false,
     this.secure = false,
     this.revealable = false,
@@ -31,6 +32,9 @@ class FlareInput extends StatefulWidget {
 
   final TextEditingController? controller;
   final String? placeholder;
+
+  /// Accessible field name when the visual label is drawn outside the input.
+  final String? semanticLabel;
   final bool multiline;
 
   /// Optional leading widget rendered inside the field (e.g. a search icon).
@@ -160,41 +164,47 @@ class _FlareInputState extends State<FlareInput> {
                     child: widget.prefix!,
                   ),
                 Expanded(
-                  child: TextField(
-                    obscureText:
-                        widget.secure && !widget.multiline && !_revealed,
-                    controller: _controller,
-                    focusNode: _focus,
-                    autofocus: widget.autofocus,
-                    keyboardType: widget.keyboardType,
-                    autofillHints: widget.autofillHints,
-                    inputFormatters: widget.inputFormatters,
-                    enabled: !widget.disabled,
-                    minLines: 1,
-                    maxLines: widget.multiline ? 6 : 1,
-                    maxLength: widget.maxLength,
-                    onSubmitted: widget.onSubmitted,
-                    buildCounter:
-                        (
-                          _, {
-                          required currentLength,
-                          maxLength,
-                          required isFocused,
-                        }) => null,
-                    style: TextStyle(
-                      color: colors.textPrimary,
-                      fontSize: FlareSizes.fontSizeLg,
-                      fontFamily: widget.monospace ? 'monospace' : null,
-                      fontFamilyFallback: widget.monospace
-                          ? const ['Menlo', 'Roboto Mono', 'Courier New']
-                          : null,
-                      letterSpacing: widget.monospace ? 1.2 : null,
-                    ),
-                    decoration: InputDecoration(
-                      isCollapsed: true,
-                      border: InputBorder.none,
-                      hintText: widget.placeholder,
-                      hintStyle: TextStyle(color: colors.textTertiary),
+                  child: MergeSemantics(
+                    child: Semantics(
+                      label: widget.semanticLabel ?? widget.placeholder,
+                      identifier: widget.semanticLabel,
+                      child: TextField(
+                        obscureText:
+                            widget.secure && !widget.multiline && !_revealed,
+                        controller: _controller,
+                        focusNode: _focus,
+                        autofocus: widget.autofocus,
+                        keyboardType: widget.keyboardType,
+                        autofillHints: widget.autofillHints,
+                        inputFormatters: widget.inputFormatters,
+                        enabled: !widget.disabled,
+                        minLines: 1,
+                        maxLines: widget.multiline ? 6 : 1,
+                        maxLength: widget.maxLength,
+                        onSubmitted: widget.onSubmitted,
+                        buildCounter:
+                            (
+                              _, {
+                              required currentLength,
+                              maxLength,
+                              required isFocused,
+                            }) => null,
+                        style: TextStyle(
+                          color: colors.textPrimary,
+                          fontSize: FlareSizes.fontSizeLg,
+                          fontFamily: widget.monospace ? 'monospace' : null,
+                          fontFamilyFallback: widget.monospace
+                              ? const ['Menlo', 'Roboto Mono', 'Courier New']
+                              : null,
+                          letterSpacing: widget.monospace ? 1.2 : null,
+                        ),
+                        decoration: InputDecoration(
+                          isCollapsed: true,
+                          border: InputBorder.none,
+                          hintText: widget.placeholder,
+                          hintStyle: TextStyle(color: colors.textTertiary),
+                        ),
+                      ),
                     ),
                   ),
                 ),

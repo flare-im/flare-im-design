@@ -23,6 +23,7 @@ class FlareRedPacketPayConfirm extends StatelessWidget {
     super.key,
     required this.amount,
     required this.methodLabel,
+    this.confirmLabel,
     this.insufficient = false,
     this.busy = false,
     this.onConfirm,
@@ -34,6 +35,7 @@ class FlareRedPacketPayConfirm extends StatelessWidget {
 
   /// The paying account, e.g. "钱包（余额 ¥12.00）".
   final String methodLabel;
+  final String? confirmLabel;
   final bool insufficient;
   final bool busy;
   final VoidCallback? onConfirm;
@@ -136,7 +138,7 @@ class FlareRedPacketPayConfirm extends StatelessWidget {
             child: FlareButton(
               block: true,
               size: FlareControlSize.lg,
-              label: strings.packetPayConfirm,
+              label: confirmLabel ?? strings.packetPayConfirm,
               loading: busy,
               disabled: insufficient,
               onPressed: onConfirm,

@@ -22,9 +22,11 @@ class _Harness extends StatefulWidget {
     this.locked = false,
     this.error,
     this.onSubmit,
+    this.exponent = 2,
   });
 
   final List<FlareRedPacketKind> kinds;
+  final int exponent;
   final FlareRedPacketKind kind;
   final bool busy;
   final bool locked;
@@ -48,6 +50,7 @@ class _HarnessState extends State<_Harness> {
     kinds: widget.kinds,
     kind: kind,
     amount: amount,
+    currencyExponent: widget.exponent,
     count: count,
     greeting: greeting,
     total: '¥$amount',
@@ -81,6 +84,44 @@ void main() {
         expect(flareRedPacketCount(v['input'] as String), v['output']);
       });
     }
+    for (final v
+        in (table['amountInputExponent'] as List)
+            .cast<Map<String, dynamic>>()) {
+      test('amount ${v['id']}', () {
+        expect(
+          flareRedPacketAmount(v['input'] as String, v['exponent'] as int),
+          v['output'],
+        );
+      });
+    }
+    for (final v
+        in (table['amountMinor'] as List).cast<Map<String, dynamic>>()) {
+      test('minor ${v['id']}', () {
+        expect(
+          flareRedPacketAmountMinor(v['input'] as String, v['exponent'] as int),
+          v['minor'],
+        );
+      });
+    }
+    test('placeholders by exponent', () {
+      final cases = ((table['amountPlaceholder'] as Map)['cases'] as List)
+          .cast<Map<String, dynamic>>();
+      expect(cases, isNotEmpty);
+      for (final v in cases) {
+        expect(
+          flareRedPacketAmountPlaceholder(v['exponent'] as int),
+          v['placeholder'],
+        );
+      }
+    });
+    test('the exponent is rounded and held to 0..12', () {
+      expect(flareRedPacketExponent(-1), 0);
+      expect(flareRedPacketExponent(2.4), 2);
+      expect(flareRedPacketExponent(9), 9);
+      expect(flareRedPacketExponent(99), 12);
+      expect(flareRedPacketAmount('1.2345678', 9), '1.2345678');
+      expect(flareRedPacketAmount('1.1234567890123', 99), '1.123456789012');
+    });
   });
 
   final state = find.byType(_Harness);
@@ -184,6 +225,34 @@ void main() {
     expect(find.text('0.00'), findsOneWidget);
     expect(find.text('填写个数'), findsOneWidget);
     expect(find.text('恭喜发财，大吉大利'), findsOneWidget);
+  });
+
+  testWidgets('currencyExponent sets the decimals, placeholder and keyboard', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host(const _Harness(exponent: 0)));
+    expect(find.text('0'), findsOneWidget);
+    expect(
+      tester.widget<TextField>(field(0)).keyboardType,
+      TextInputType.number,
+    );
+    await tester.enterText(field(0), '8.8');
+    await tester.pump();
+    expect(harness(tester).amount, '88');
+
+    await tester.pumpWidget(host(const _Harness(exponent: 3)));
+    await tester.pump();
+    harness(tester).reset();
+    await tester.pump();
+    expect(find.text('0.000'), findsOneWidget);
+    expect(
+      tester.widget<TextField>(field(0)).keyboardType,
+      const TextInputType.numberWithOptions(decimal: true),
+    );
+    await tester.enterText(field(0), '1.2345');
+    await tester.pump();
+    expect(harness(tester).amount, '1.234');
+    expect(flareRedPacketAmountMinor(harness(tester).amount, 3), '1234');
   });
 
   testWidgets('a host value replaces the field text', (tester) async {

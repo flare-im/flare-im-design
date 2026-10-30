@@ -126,7 +126,7 @@ void main() {
     expect(find.byIcon(_glyph('search')), findsOneWidget);
   });
 
-  testWidgets('an unknown name draws the fallback, never the name as text', (
+  testWidgets('unknown names draw the plugin glyph, not the name as text', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -155,6 +155,7 @@ void main() {
     );
     expect(tester.takeException(), isNull);
     expect(find.text(_unknown), findsNothing);
-    expect(find.byIcon(Icons.help_outline), findsNWidgets(4));
+    expect(find.byIcon(Icons.help_outline), findsNothing);
+    expect(find.byIcon(flareIconMap['plugin']!), findsNWidgets(4));
   });
 }

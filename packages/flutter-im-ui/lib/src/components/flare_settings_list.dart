@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/directory_data.dart';
 import '../tokens/flare_tokens.dart';
-import 'action_icon.dart';
+import 'flare_icon.dart';
 
 /// Settings list — grouped toggle / navigation / value rows. A generic settings
 /// container. Spec: Profile/SettingsList (`FlareSettingsList`).
@@ -145,6 +145,8 @@ class FlareSettingsRow extends StatelessWidget {
         !readOnly &&
         (isToggle ? onToggle != null : onSelect != null);
     final stacked = stacks(item);
+    // A name outside the registry draws the plugin glyph; an empty one none.
+    final icon = flareIconNameOrFallback(item.icon);
     final label = Text(
       item.label,
       style: TextStyle(
@@ -195,11 +197,8 @@ class FlareSettingsRow extends StatelessWidget {
             ? Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (item.icon != null) ...[
-                    Icon(
-                      flareIconGlyph(item.icon!),
-                      color: colors.textSecondary,
-                    ),
+                  if (icon != null) ...[
+                    Icon(flareIconMap[icon], color: colors.textSecondary),
                     const SizedBox(width: FlareSizes.spacingMd),
                   ],
                   Expanded(
@@ -235,11 +234,8 @@ class FlareSettingsRow extends StatelessWidget {
             : LayoutBuilder(
                 builder: (context, constraints) => Row(
                   children: [
-                    if (item.icon != null) ...[
-                      Icon(
-                        flareIconGlyph(item.icon!),
-                        color: colors.textSecondary,
-                      ),
+                    if (icon != null) ...[
+                      Icon(flareIconMap[icon], color: colors.textSecondary),
                       const SizedBox(width: FlareSizes.spacingMd),
                     ],
                     Expanded(child: label),

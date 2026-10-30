@@ -179,6 +179,32 @@ class FlareStrings {
     this.callRecordFailed = '通话失败',
     this.callRecordJoin = '加入',
     this.callRecordCallBack = '回拨',
+    // 已读名单的纯文字标签（无摘要人数）、状态与分页；红包已退回；「我」页菜单；合并转发记录（*One 是复数 one 形态，flarePlural 选用）；指针菜单读取中
+    this.readReceiptRead = '已读',
+    this.readReceiptUnread = '未读',
+    this.readReceiptLoadFailed = '名单读取失败',
+    this.readReceiptUnavailable = '这条消息的已读名单不可查看',
+    this.readReceiptLoadMore = '加载更多',
+    this.readReceiptLoadMoreFailed = '加载失败，点按重试',
+    this.packetRefundedNotice = '红包已退回',
+    this.meMenuMoments = '圈子',
+    this.meMenuReports = '我的举报',
+    this.meMenuInvite = '我的邀请',
+    this.meMenuSettings = '设置',
+    this.meMenuPluginFallback = '插件',
+    this.forwardRecordTitle = '合并转发',
+    this.forwardRecordTotal = '共 {count} 条消息',
+    this.forwardRecordTotalOne = '共 {count} 条消息',
+    this.forwardRecordMore = '还有 {count} 条消息…',
+    this.forwardRecordMoreOne = '还有 {count} 条消息…',
+    this.forwardRecordViewDetails = '点击查看详情',
+    this.forwardRecordUnknownSender = '未知发送者',
+    this.forwardRecordEmpty = '暂无转发内容',
+    this.forwardRecordCountSuffix = '（{count} 条）',
+    this.forwardRecordCardLabel = '{title}，{subtitle}',
+    this.pluginViewVotesOne = '{count} 票',
+    this.myInviteCountOnlyOne = '{count} 人',
+    this.messageMenuLoading = '正在读取…',
     // 位置选点与名片选择
     this.locationTitle = '位置',
     this.locationSend = '发送',
@@ -215,6 +241,21 @@ class FlareStrings {
     this.pluginPageRefresh = '刷新',
     this.pluginViewMaxSelections = '最多选 {n} 项',
     this.pluginViewAll = '全部',
+    this.accountTransactions = '交易记录',
+    this.accountEmpty = '暂无交易记录',
+    this.accountEmptyDescription = '收支明细会显示在这里',
+    this.accountInformation = '账户说明与规则',
+    this.accountEntryDetails = '交易详情',
+    this.accountEntryId = '记录编号',
+    this.accountType = '类型',
+    this.accountToday = '今天',
+    this.accountYesterday = '昨天',
+    this.accountOtherEntries = '其他记录',
+    this.accountShowBalance = '显示余额',
+    this.accountHideBalance = '隐藏余额',
+    this.accountBalanceHidden = '余额已隐藏',
+    this.accountDayFormat = 'M月d日',
+    this.accountDayYearFormat = 'y年M月d日',
     this.pluginViewEmpty = '暂无数据',
     this.pluginViewVotes = '{count} 票',
     this.pluginViewRemaining = '剩余 {time}',
@@ -466,9 +507,7 @@ class FlareStrings {
     this.quickPhrasesTitle = '常用语',
     this.qrCardHint = '扫一扫，加我为好友',
     this.qrCardUnavailable = '二维码暂不可用',
-    // ReadReceiptSheet / AnnouncementReadBar
-    this.readReceiptSheetReadEmpty = '还没有人查看',
-    this.readReceiptSheetUnreadEmpty = '所有人都已查看',
+    // AnnouncementReadBar
     this.announcementReadBarConfirmRead = '已读',
     this.announcementReadBarViewUnread = '查看未读',
     this.announcementReadBarReadCount = _announcementReadBarReadCount,
@@ -995,6 +1034,34 @@ class FlareStrings {
   final String callRecordJoin;
   final String callRecordCallBack;
 
+  // 已读名单状态与分页、红包已退回、「我」页菜单（flareMeMenuSections）、合并转发记录。
+  // `{count}`、`{title}`、`{subtitle}` 由组件替换；*One 字段是复数 one 形态（flarePlural）。
+  final String readReceiptRead;
+  final String readReceiptUnread;
+  final String readReceiptLoadFailed;
+  final String readReceiptUnavailable;
+  final String readReceiptLoadMore;
+  final String readReceiptLoadMoreFailed;
+  final String packetRefundedNotice;
+  final String meMenuMoments;
+  final String meMenuReports;
+  final String meMenuInvite;
+  final String meMenuSettings;
+  final String meMenuPluginFallback;
+  final String forwardRecordTitle;
+  final String forwardRecordTotal;
+  final String forwardRecordTotalOne;
+  final String forwardRecordMore;
+  final String forwardRecordMoreOne;
+  final String forwardRecordViewDetails;
+  final String forwardRecordUnknownSender;
+  final String forwardRecordEmpty;
+  final String forwardRecordCountSuffix;
+  final String forwardRecordCardLabel;
+  final String pluginViewVotesOne;
+  final String myInviteCountOnlyOne;
+  final String messageMenuLoading;
+
   // 位置选点（FlareLocationPicker、FlareLocationMessage）与名片选择（FlareContactPicker）
   final String locationTitle;
   final String locationSend;
@@ -1040,6 +1107,21 @@ class FlareStrings {
   final String pluginViewAll;
 
   /// A plugin page with nothing to show: rows without their own empty text, an unavailable page without a reason.
+  final String accountTransactions;
+  final String accountEmpty;
+  final String accountEmptyDescription;
+  final String accountInformation;
+  final String accountEntryDetails;
+  final String accountEntryId;
+  final String accountType;
+  final String accountToday;
+  final String accountYesterday;
+  final String accountOtherEntries;
+  final String accountShowBalance;
+  final String accountHideBalance;
+  final String accountBalanceHidden;
+  final String accountDayFormat;
+  final String accountDayYearFormat;
   final String pluginViewEmpty;
   final String pluginViewVotes;
   final String pluginViewRemaining;
@@ -1327,9 +1409,7 @@ class FlareStrings {
 
   /// FlareQRCard frame without a code (en: "QR code unavailable").
   final String qrCardUnavailable;
-  // ReadReceiptSheet / AnnouncementReadBar
-  final String readReceiptSheetReadEmpty;
-  final String readReceiptSheetUnreadEmpty;
+  // AnnouncementReadBar
   final String announcementReadBarConfirmRead;
   final String announcementReadBarViewUnread;
   final String Function(int read, int total) announcementReadBarReadCount;
@@ -1828,6 +1908,31 @@ class FlareStrings {
     String? callRecordFailed,
     String? callRecordJoin,
     String? callRecordCallBack,
+    String? readReceiptRead,
+    String? readReceiptUnread,
+    String? readReceiptLoadFailed,
+    String? readReceiptUnavailable,
+    String? readReceiptLoadMore,
+    String? readReceiptLoadMoreFailed,
+    String? packetRefundedNotice,
+    String? meMenuMoments,
+    String? meMenuReports,
+    String? meMenuInvite,
+    String? meMenuSettings,
+    String? meMenuPluginFallback,
+    String? forwardRecordTitle,
+    String? forwardRecordTotal,
+    String? forwardRecordTotalOne,
+    String? forwardRecordMore,
+    String? forwardRecordMoreOne,
+    String? forwardRecordViewDetails,
+    String? forwardRecordUnknownSender,
+    String? forwardRecordEmpty,
+    String? forwardRecordCountSuffix,
+    String? forwardRecordCardLabel,
+    String? pluginViewVotesOne,
+    String? myInviteCountOnlyOne,
+    String? messageMenuLoading,
     String? locationTitle,
     String? locationSend,
     String? locationLocateMe,
@@ -1862,6 +1967,21 @@ class FlareStrings {
     String? pluginPageRefresh,
     String? pluginViewMaxSelections,
     String? pluginViewAll,
+    String? accountTransactions,
+    String? accountEmpty,
+    String? accountEmptyDescription,
+    String? accountInformation,
+    String? accountEntryDetails,
+    String? accountEntryId,
+    String? accountType,
+    String? accountToday,
+    String? accountYesterday,
+    String? accountOtherEntries,
+    String? accountShowBalance,
+    String? accountHideBalance,
+    String? accountBalanceHidden,
+    String? accountDayFormat,
+    String? accountDayYearFormat,
     String? pluginViewEmpty,
     String? pluginViewVotes,
     String? pluginViewRemaining,
@@ -2098,8 +2218,6 @@ class FlareStrings {
     String? quickPhrasesTitle,
     String? qrCardHint,
     String? qrCardUnavailable,
-    String? readReceiptSheetReadEmpty,
-    String? readReceiptSheetUnreadEmpty,
     String? announcementReadBarConfirmRead,
     String? announcementReadBarViewUnread,
     String Function(int read, int total)? announcementReadBarReadCount,
@@ -2555,6 +2673,31 @@ class FlareStrings {
       callRecordFailed: callRecordFailed ?? this.callRecordFailed,
       callRecordJoin: callRecordJoin ?? this.callRecordJoin,
       callRecordCallBack: callRecordCallBack ?? this.callRecordCallBack,
+      readReceiptRead: readReceiptRead ?? this.readReceiptRead,
+      readReceiptUnread: readReceiptUnread ?? this.readReceiptUnread,
+      readReceiptLoadFailed: readReceiptLoadFailed ?? this.readReceiptLoadFailed,
+      readReceiptUnavailable: readReceiptUnavailable ?? this.readReceiptUnavailable,
+      readReceiptLoadMore: readReceiptLoadMore ?? this.readReceiptLoadMore,
+      readReceiptLoadMoreFailed: readReceiptLoadMoreFailed ?? this.readReceiptLoadMoreFailed,
+      packetRefundedNotice: packetRefundedNotice ?? this.packetRefundedNotice,
+      meMenuMoments: meMenuMoments ?? this.meMenuMoments,
+      meMenuReports: meMenuReports ?? this.meMenuReports,
+      meMenuInvite: meMenuInvite ?? this.meMenuInvite,
+      meMenuSettings: meMenuSettings ?? this.meMenuSettings,
+      meMenuPluginFallback: meMenuPluginFallback ?? this.meMenuPluginFallback,
+      forwardRecordTitle: forwardRecordTitle ?? this.forwardRecordTitle,
+      forwardRecordTotal: forwardRecordTotal ?? this.forwardRecordTotal,
+      forwardRecordTotalOne: forwardRecordTotalOne ?? this.forwardRecordTotalOne,
+      forwardRecordMore: forwardRecordMore ?? this.forwardRecordMore,
+      forwardRecordMoreOne: forwardRecordMoreOne ?? this.forwardRecordMoreOne,
+      forwardRecordViewDetails: forwardRecordViewDetails ?? this.forwardRecordViewDetails,
+      forwardRecordUnknownSender: forwardRecordUnknownSender ?? this.forwardRecordUnknownSender,
+      forwardRecordEmpty: forwardRecordEmpty ?? this.forwardRecordEmpty,
+      forwardRecordCountSuffix: forwardRecordCountSuffix ?? this.forwardRecordCountSuffix,
+      forwardRecordCardLabel: forwardRecordCardLabel ?? this.forwardRecordCardLabel,
+      pluginViewVotesOne: pluginViewVotesOne ?? this.pluginViewVotesOne,
+      myInviteCountOnlyOne: myInviteCountOnlyOne ?? this.myInviteCountOnlyOne,
+      messageMenuLoading: messageMenuLoading ?? this.messageMenuLoading,
       locationTitle: locationTitle ?? this.locationTitle,
       locationSend: locationSend ?? this.locationSend,
       locationLocateMe: locationLocateMe ?? this.locationLocateMe,
@@ -2589,6 +2732,21 @@ class FlareStrings {
       pluginPageRefresh: pluginPageRefresh ?? this.pluginPageRefresh,
       pluginViewMaxSelections: pluginViewMaxSelections ?? this.pluginViewMaxSelections,
       pluginViewAll: pluginViewAll ?? this.pluginViewAll,
+      accountTransactions: accountTransactions ?? this.accountTransactions,
+      accountEmpty: accountEmpty ?? this.accountEmpty,
+      accountEmptyDescription: accountEmptyDescription ?? this.accountEmptyDescription,
+      accountInformation: accountInformation ?? this.accountInformation,
+      accountEntryDetails: accountEntryDetails ?? this.accountEntryDetails,
+      accountEntryId: accountEntryId ?? this.accountEntryId,
+      accountType: accountType ?? this.accountType,
+      accountToday: accountToday ?? this.accountToday,
+      accountYesterday: accountYesterday ?? this.accountYesterday,
+      accountOtherEntries: accountOtherEntries ?? this.accountOtherEntries,
+      accountShowBalance: accountShowBalance ?? this.accountShowBalance,
+      accountHideBalance: accountHideBalance ?? this.accountHideBalance,
+      accountBalanceHidden: accountBalanceHidden ?? this.accountBalanceHidden,
+      accountDayFormat: accountDayFormat ?? this.accountDayFormat,
+      accountDayYearFormat: accountDayYearFormat ?? this.accountDayYearFormat,
       pluginViewEmpty: pluginViewEmpty ?? this.pluginViewEmpty,
       pluginViewVotes: pluginViewVotes ?? this.pluginViewVotes,
       pluginViewRemaining: pluginViewRemaining ?? this.pluginViewRemaining,
@@ -2852,10 +3010,6 @@ class FlareStrings {
       quickPhrasesTitle: quickPhrasesTitle ?? this.quickPhrasesTitle,
       qrCardHint: qrCardHint ?? this.qrCardHint,
       qrCardUnavailable: qrCardUnavailable ?? this.qrCardUnavailable,
-      readReceiptSheetReadEmpty:
-          readReceiptSheetReadEmpty ?? this.readReceiptSheetReadEmpty,
-      readReceiptSheetUnreadEmpty:
-          readReceiptSheetUnreadEmpty ?? this.readReceiptSheetUnreadEmpty,
       announcementReadBarConfirmRead:
           announcementReadBarConfirmRead ?? this.announcementReadBarConfirmRead,
       announcementReadBarViewUnread:

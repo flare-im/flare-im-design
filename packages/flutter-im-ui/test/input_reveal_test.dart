@@ -21,6 +21,38 @@ EditableText _field(WidgetTester tester) =>
     tester.widget<EditableText>(find.byType(EditableText));
 
 void main() {
+  testWidgets('credential inputs expose distinct accessible field names', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    final account = TextEditingController();
+    final password = TextEditingController();
+    await tester.pumpWidget(
+      _host(
+        Column(
+          children: [
+            FlareInput(controller: account, semanticLabel: 'Account'),
+            FlareInput(
+              controller: password,
+              semanticLabel: 'Password',
+              secure: true,
+            ),
+          ],
+        ),
+      ),
+    );
+    expect(find.bySemanticsLabel('Account'), findsOneWidget);
+    expect(find.bySemanticsLabel('Password'), findsOneWidget);
+    await tester.enterText(find.byType(TextField).at(0), 'sandbox-user');
+    await tester.enterText(find.byType(TextField).at(1), 'test-password');
+    expect(account.text, 'sandbox-user');
+    expect(password.text, 'test-password');
+    expect(
+      tester.widget<EditableText>(find.byType(EditableText).at(1)).obscureText,
+      isTrue,
+    );
+    semantics.dispose();
+  });
   testWidgets('the key unmasks the value and renames itself', (tester) async {
     await tester.pumpWidget(
       _host(

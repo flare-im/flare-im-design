@@ -524,6 +524,7 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
       failed: self && _status == FlareMessageDeliveryStatus.failed,
       selectionMode: b.multiSelectMode,
       uploading: message.uploadProgress != null,
+      senderId: message.senderId,
       senderName: message.senderName,
       messageId: message.id,
       rendererMessageId: message.serverId ?? message.id,

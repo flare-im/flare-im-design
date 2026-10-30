@@ -241,7 +241,8 @@ class FlareSettingsItem {
   final String key;
   final String label;
 
-  /// A semantic icon name from `flareIconNames`; null draws no icon.
+  /// A semantic icon name from `flareIconNames`; null or empty draws no icon,
+  /// any other name the `plugin` glyph (`flareIconNameOrFallback`).
   final String? icon;
   final FlareSettingKind kind;
   final bool value;

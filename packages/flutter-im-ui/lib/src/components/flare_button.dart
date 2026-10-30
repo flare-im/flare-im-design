@@ -5,6 +5,8 @@ import '../models/directory_data.dart';
 import '../tokens/flare_tokens.dart';
 import 'action_icon.dart';
 
+enum FlareButtonAppearance { standard, text }
+
 /// A general-purpose pill action button with five [FlareButtonVariant]s and
 /// three [FlareControlSize]s. Custom-built from Flare tokens (not a Material
 /// button). Spec: General/Button.
@@ -14,6 +16,7 @@ class FlareButton extends StatefulWidget {
     this.label,
     this.variant = FlareButtonVariant.primary,
     this.size = FlareControlSize.md,
+    this.appearance = FlareButtonAppearance.standard,
     this.loading = false,
     this.disabled = false,
     this.block = false,
@@ -26,6 +29,7 @@ class FlareButton extends StatefulWidget {
   final String? label;
   final FlareButtonVariant variant;
   final FlareControlSize size;
+  final FlareButtonAppearance appearance;
   final bool loading;
   final bool disabled;
   final bool block;
@@ -108,13 +112,37 @@ class _FlareButtonState extends State<FlareButton> {
             : colors.textSecondary;
     }
 
+    final textAction = widget.appearance == FlareButtonAppearance.text;
+    final labelledTextAction =
+        textAction && (widget.label != null || widget.child != null);
+    final focusTint = labelledTextAction && _focused && !off;
+    if (textAction) {
+      background = Colors.transparent;
+      borderColor = Colors.transparent;
+      foreground = switch (widget.variant) {
+        FlareButtonVariant.primary ||
+        FlareButtonVariant.text ||
+        FlareButtonVariant.ghost => colors.primaryText,
+        FlareButtonVariant.danger => colors.errorText,
+        _ => colors.textSecondary,
+      };
+    }
+
+    if (focusTint) background = foreground.withValues(alpha: 0.1);
+    final focusBorder =
+        _focused &&
+        !off &&
+        (!labelledTextAction ||
+            (MediaQuery.maybeOf(context)?.highContrast ?? false));
+
     Widget label;
     if (widget.child != null) {
       label = DefaultTextStyle.merge(
         style: TextStyle(
           color: foreground,
           fontSize: _fontSize,
-          fontWeight: FontWeight.w600,
+          fontWeight: focusTint ? FontWeight.w700 : FontWeight.w600,
+          decoration: textAction ? TextDecoration.none : null,
         ),
         child: IconTheme.merge(
           data: IconThemeData(color: foreground),
@@ -127,7 +155,8 @@ class _FlareButtonState extends State<FlareButton> {
         style: TextStyle(
           color: foreground,
           fontSize: _fontSize,
-          fontWeight: FontWeight.w600,
+          fontWeight: focusTint ? FontWeight.w700 : FontWeight.w600,
+          decoration: textAction ? TextDecoration.none : null,
         ),
       );
     }
@@ -186,22 +215,30 @@ class _FlareButtonState extends State<FlareButton> {
               onTap: off ? null : widget.onPressed,
               child: AnimatedContainer(
                 duration: reduceMotion ? Duration.zero : FlareMotion.fast,
-                constraints: BoxConstraints(minHeight: _height),
+                constraints: BoxConstraints(
+                  minHeight: widget.appearance == FlareButtonAppearance.text
+                      ? FlareSizes.touchTarget
+                      : _height,
+                  minWidth: widget.appearance == FlareButtonAppearance.text
+                      ? FlareSizes.touchTarget
+                      : 0,
+                ),
                 width: widget.block ? double.infinity : null,
                 padding:
                     widget.contentPadding ??
                     EdgeInsets.symmetric(
-                      horizontal: _hPad,
+                      horizontal:
+                          widget.appearance == FlareButtonAppearance.text
+                          ? 0
+                          : _hPad,
                       vertical: FlareSizes.spacingSm,
                     ),
                 decoration: BoxDecoration(
                   color: background,
                   borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
                   border: Border.all(
-                    color: _focused && !off
-                        ? colors.borderSelected
-                        : borderColor,
-                    width: _focused && !off ? 2 : 1,
+                    color: focusBorder ? colors.borderSelected : borderColor,
+                    width: focusBorder ? 2 : 1,
                   ),
                 ),
                 child: row,

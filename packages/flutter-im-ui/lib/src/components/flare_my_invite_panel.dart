@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../models/directory_data.dart';
 import '../models/invite_data.dart';
+import '../models/plural.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_avatar.dart';
@@ -316,7 +317,10 @@ class _FlareMyInvitePanelState extends State<FlareMyInvitePanel> {
             const SizedBox(height: FlareSizes.spacingSm),
             if (!widget.showProfiles)
               Text(
-                s.myInviteCountOnly.replaceAll('{count}', '$inviteeCount'),
+                s.myInviteCountOnlyCount(
+                  inviteeCount,
+                  flareCopyLocaleOf(context),
+                ),
                 style: TextStyle(
                   fontSize: FlareSizes.fontSizeLg,
                   color: colors.textPrimary,

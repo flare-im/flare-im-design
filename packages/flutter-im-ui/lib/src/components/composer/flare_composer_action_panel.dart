@@ -96,8 +96,17 @@ class FlareComposerAction {
 
 /// Business availability supplied by the host. An omitted set allows all ids.
 class FlareComposerCapabilities {
-  const FlareComposerCapabilities({this.availableActionIds});
+  const FlareComposerCapabilities({
+    this.availableActionIds,
+    this.availableToolIds,
+  });
   final Set<String>? availableActionIds;
+
+  /// Host-owned availability, not an authorization decision. Null keeps the
+  /// default toolbar; IDs: emoji, mention, voice, image, richText, attachments.
+  final Set<String>? availableToolIds;
+
+  bool allowsTool(String id) => availableToolIds?.contains(id) ?? true;
 }
 
 /// Defaults -> capabilities -> host list. A host list is a full replacement.

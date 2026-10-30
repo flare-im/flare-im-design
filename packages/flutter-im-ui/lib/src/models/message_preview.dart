@@ -14,6 +14,7 @@ import 'dart:ui' show PlatformDispatcher;
 
 import '../emoji_sticker/flare_emoji_sticker_catalog.dart';
 import '../tokens/flare_strings.dart';
+import 'forward_record.dart';
 import 'markdown_preview.dart';
 import 'message_content.dart';
 import 'message_data.dart';
@@ -114,6 +115,14 @@ String flareMessagePreviewText(
       return _or(c.text, strings.previewSystem);
     case FlarePlaceholderContent c:
       return _or(c.label, strings.previewPlaceholder);
+    case FlareForwardContent c:
+      // A bundle of one reads as that one message; several as a count.
+      if (c.items.length > 1) {
+        return strings.previewForwardCount(c.items.length);
+      }
+      return c.items.isEmpty
+          ? strings.previewForward
+          : flareForwardPreviewLine(c.items.first, strings, locale: locale);
     case FlareGenericContent c:
       return _genericPreview(c, strings);
     // A product content type the kit does not know: nothing readable to show.

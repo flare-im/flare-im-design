@@ -24,6 +24,9 @@ import 'flare_locate_highlight_scope.dart';
 import 'flare_media_controller.dart';
 import 'flare_message_bubble.dart';
 import 'flare_message_content_view.dart';
+import 'flare_action_menu.dart';
+import 'flare_message_action_sheet.dart';
+import 'flare_message_menu.dart';
 import 'flare_scroll_to_latest.dart';
 import 'flare_unread_divider.dart';
 
@@ -91,7 +94,7 @@ class FlareMessageList extends StatefulWidget {
     this.onReply,
     this.onReact,
     this.onReadReceiptOpen,
-    this.onContextMenu,
+    this.menu,
     this.onLocateMessage,
     this.emptyPlaceholder,
     this.footer,
@@ -203,11 +206,18 @@ class FlareMessageList extends StatefulWidget {
   /// fills the read receipt sheet for it.
   final void Function(FlareMessageData message)? onReadReceiptOpen;
 
-  /// A secondary click on a row (fine pointers) or the hover toolbar's more
-  /// key, with where the menu opens (`FlareMessageActionSheet.show`'s
-  /// `position`). Without it both raise [onMessageLongPress], the same menu.
-  final void Function(FlareMessageData message, Offset globalPosition)?
-  onContextMenu;
+  /// One source for a message's long-press sheet and its pointer menu (the
+  /// secondary click on a fine pointer, and the hover toolbar's more key):
+  /// the list reads the host's availability snapshot, builds both menus from
+  /// the same entries ([messageMenuEntries]) and hands the chosen entry to
+  /// [FlareMessageMenuSource.perform] (a reaction from the sheet goes to
+  /// [onReact]). It asks the host to prefetch the rows coming on screen.
+  /// Without a snapshot the pointer menu shows one disabled "loading" entry
+  /// and prefetches; a long press waits for the snapshot, then opens the
+  /// sheet. With [menu] the list owns the menus and [onMessageLongPress] is
+  /// not called; without it a long press and a secondary click both raise
+  /// [onMessageLongPress].
+  final FlareMessageMenuSource? menu;
 
   /// A quote was tapped whose message is not in [messages] (the host may load
   /// older history to reach it, then show it with
@@ -737,10 +747,121 @@ class _FlareMessageListState extends State<FlareMessageList>
     }
     _rowKeys.removeWhere((id, _) => !surviving.contains(id));
     _publishDownloadStates();
+    _openPendingSheet();
     if (oldWidget.loadingOlder && !widget.loadingOlder ||
         oldWidget.messages.firstOrNull?.id != widget.messages.firstOrNull?.id ||
         oldWidget.olderError != widget.olderError)
       _requested = false;
+  }
+
+  /// Ids of rows that came on screen this frame, handed to the host's
+  /// prefetch together after the frame.
+  final Set<String> _prefetchQueue = {};
+  bool _prefetchScheduled = false;
+
+  /// A long press that found no snapshot: the sheet opens when the host's
+  /// snapshot for this row arrives, if it does soon.
+  ({String id, DateTime at})? _pendingSheet;
+  static const _pendingSheetWindow = Duration(seconds: 5);
+
+  void _requestPrefetch(String id) {
+    _prefetchQueue.add(id);
+    if (_prefetchScheduled) return;
+    _prefetchScheduled = true;
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _prefetchScheduled = false;
+      if (!mounted || _prefetchQueue.isEmpty) return;
+      final ids = _prefetchQueue.toList();
+      _prefetchQueue.clear();
+      widget.menu?.prefetch?.call(ids);
+    });
+  }
+
+  /// The long-press sheet, from the menu source's entries.
+  void _openMenuSheet(FlareMessageData message) {
+    final menu = widget.menu;
+    if (menu == null) return;
+    final availability = menu.availability(message);
+    if (availability == null) {
+      // The host reads, then the sheet opens (didUpdateWidget).
+      _pendingSheet = (id: message.id, at: DateTime.now());
+      menu.prefetch?.call([message.id]);
+      return;
+    }
+    _pendingSheet = null;
+    unawaited(_showMenuSheet(menu, message, availability));
+  }
+
+  Future<void> _showMenuSheet(
+    FlareMessageMenuSource menu,
+    FlareMessageData message,
+    FlareMessageActionAvailability availability,
+  ) async {
+    final selection = await FlareMessageActionSheet.show(
+      context,
+      availability: availability,
+      content: message.content,
+      hiddenActions: menu.hiddenActions,
+      actions: menu.extraActionsFor(message),
+    );
+    if (selection == null || !mounted) return;
+    final actionId = selection.actionId;
+    final reaction = selection.reaction;
+    if (actionId != null) {
+      widget.menu?.perform(message, actionId);
+    } else if (reaction != null) {
+      widget.onReact?.call(message, reaction);
+    }
+  }
+
+  /// The pointer menu where the secondary click landed: the same entries as
+  /// the sheet, or one disabled "loading" entry while there is no snapshot.
+  void _openPointerMenu(FlareMessageData message, Offset position) {
+    final menu = widget.menu;
+    if (menu == null) return;
+    final strings = FlareStrings.of(context);
+    final entries = menu.entriesFor(message, strings);
+    if (entries == null) menu.prefetch?.call([message.id]);
+    unawaited(
+      FlareActionMenu.show(
+        context,
+        label: strings.messageActionSheetLabel,
+        anchor: Rect.fromLTWH(position.dx, position.dy, 0, 0),
+        presentation: FlareActionMenuPresentation.anchored,
+        items: flareMessagePointerMenuItems(entries, strings),
+      ).then((picked) {
+        if (picked == null ||
+            picked == FlareMessageMenuSource.loadingEntryId ||
+            !mounted) {
+          return;
+        }
+        widget.menu?.perform(message, picked);
+      }),
+    );
+  }
+
+  /// Opens the sheet a long press asked for once its snapshot is there.
+  void _openPendingSheet() {
+    final pending = _pendingSheet;
+    final menu = widget.menu;
+    if (pending == null || menu == null) return;
+    if (DateTime.now().difference(pending.at) > _pendingSheetWindow) {
+      _pendingSheet = null;
+      return;
+    }
+    final message = widget.messages
+        .where((m) => m.id == pending.id)
+        .firstOrNull;
+    if (message == null) {
+      _pendingSheet = null;
+      return;
+    }
+    final availability = menu.availability(message);
+    if (availability == null) return;
+    _pendingSheet = null;
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(_showMenuSheet(menu, message, availability));
+    });
   }
 
   @override
@@ -799,8 +920,10 @@ class _FlareMessageListState extends State<FlareMessageList>
       multiSelectMode: widget.multiSelectMode,
       selected: widget.selectedIds.contains(msg.id),
       mediaState: widget.mediaDownloadStates[msg.id],
-      onLongPress: widget.onMessageLongPress,
-      onContextMenu: widget.onContextMenu,
+      onLongPress: widget.menu == null
+          ? widget.onMessageLongPress
+          : _openMenuSheet,
+      onContextMenu: widget.menu == null ? null : _openPointerMenu,
       onAvatarTap: widget.onAvatarTap,
       onMediaAction: widget.onMediaAction,
       onOpenFile: widget.onOpenFile,
@@ -838,6 +961,13 @@ class _FlareMessageListState extends State<FlareMessageList>
     // The day comes first, then where the unread messages start inside it.
     // Both belong to the message's row, so a row stays one message for
     // scrolling and anchoring.
+    if (widget.menu?.prefetch != null &&
+        surface != FlareMessageSurface.centered) {
+      bubble = _OnScreen(
+        onMounted: () => _requestPrefetch(msg.id),
+        child: bubble,
+      );
+    }
     return KeyedSubtree(
       key: ValueKey(msg.id),
       child: SizedBox(
@@ -1302,4 +1432,28 @@ class _SwipeReplyRowState extends State<_SwipeReplyRow> {
       ),
     );
   }
+}
+
+/// Calls [onMounted] once each time its row is built into the list's
+/// viewport (or its cache), not on every rebuild: a row scrolled away and
+/// back counts again.
+class _OnScreen extends StatefulWidget {
+  const _OnScreen({required this.onMounted, required this.child});
+
+  final VoidCallback onMounted;
+  final Widget child;
+
+  @override
+  State<_OnScreen> createState() => _OnScreenState();
+}
+
+class _OnScreenState extends State<_OnScreen> {
+  @override
+  void initState() {
+    super.initState();
+    widget.onMounted();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

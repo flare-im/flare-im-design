@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 
 import '../models/directory_data.dart';
 import '../models/plugin_view.dart';
+import '../models/plural.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_action_menu.dart';
+import 'flare_resolved_presentation.dart';
 import 'flare_avatar.dart';
 import 'flare_bottom_sheet.dart';
 import 'flare_button.dart';
@@ -473,14 +475,27 @@ class _FlarePluginViewState extends State<FlarePluginView> {
     _formBefore = null;
     _formSubmitted = false;
     if (sheet != null && sheet.mounted) {
+      final route = ModalRoute.of(sheet);
+      final navigator = Navigator.of(sheet);
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (sheet.mounted) Navigator.of(sheet).pop();
+        // A successful action may already have pushed its next page. Remove
+        // this form's route specifically instead of popping that new page.
+        if (navigator.mounted && route != null && route.isActive) {
+          navigator.removeRoute(route);
+        }
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (flareHasResolvedPresentation(widget.view)) {
+      return FlareResolvedPresentation(view: widget.view, busy: _locked, error: widget.error,
+        formErrors: widget.formErrors, settleToken: widget.settleToken, members: widget.members,
+        resolveUser: widget.resolveUser, onAction: _locked ? null : widget.onAction,
+        onRequest: (id) { final action = widget.view.actions.where((a) => a.id == id).firstOrNull;
+          if (action != null) _run(action, const FlarePluginActionPayload()); });
+    }
     final colors = FlareColors.of(context);
     final view = widget.view;
     final children = <Widget>[];
@@ -495,11 +510,38 @@ class _FlarePluginViewState extends State<FlarePluginView> {
     final menuActions = view.available && !readOnly
         ? view.menuActions
         : const <FlarePluginAction>[];
+    final keys = view.available && !readOnly
+        ? [...view.actions, if (widget.embedded) ...menuActions]
+        : <FlarePluginAction>[];
+    final openDetail = widget.onOpenDetail;
+    final detail =
+        openDetail != null &&
+            !readOnly &&
+            flarePluginShowsDetailKey(view, embedded: widget.embedded)
+        ? FlareButton(
+            key: FlarePluginView.detailKey,
+            label: strings.pluginViewDetail,
+            variant: FlareButtonVariant.quiet,
+            size: FlareControlSize.sm,
+            appearance: FlareButtonAppearance.text,
+            disabled: _locked,
+            onPressed: openDetail,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(strings.pluginViewDetail),
+                const SizedBox(width: FlareSizes.spacing3xs),
+                const FlareIcon('chevron-right', size: 14),
+              ],
+            ),
+          )
+        : null;
     if (!widget.embedded) {
       children.add(
         _TitleRow(
           title: view.title,
           icon: widget.icon,
+          detail: keys.isEmpty ? detail : null,
           menu: menuActions.isEmpty
               ? null
               : Builder(
@@ -585,44 +627,46 @@ class _FlarePluginViewState extends State<FlarePluginView> {
           ),
         );
       }
-      // Embedded (no title row): the menu actions are keys after the actions.
-      final keys = [
-        if (!readOnly) ...view.actions,
-        if (widget.embedded) ...menuActions,
-      ];
       if (keys.isNotEmpty) {
         children.add(
-          Wrap(
-            spacing: FlareSizes.spacingSm,
-            runSpacing: FlareSizes.spacingSm,
-            children: [
-              for (final action in keys)
-                FlareButton(
-                  key: ValueKey('flare-plugin-action-${action.id}'),
-                  label: action.label,
-                  variant: _variantOf(action),
-                  loading: widget.busyActionId == action.id,
-                  disabled: _locked || widget.onAction == null,
-                  onPressed: () =>
-                      _run(action, const FlarePluginActionPayload()),
-                ),
-            ],
-          ),
-        );
-      }
-      final openDetail = widget.onOpenDetail;
-      if (openDetail != null &&
-          !readOnly &&
-          flarePluginShowsDetailKey(view, embedded: widget.embedded)) {
-        children.add(
-          FlareButton(
-            key: FlarePluginView.detailKey,
-            label: FlareStrings.of(context).pluginViewDetail,
-            variant: FlareButtonVariant.quiet,
-            size: FlareControlSize.sm,
-            block: true,
-            disabled: _locked,
-            onPressed: openDetail,
+          DecoratedBox(
+            decoration: BoxDecoration(
+              border: widget.embedded
+                  ? null
+                  : Border(top: BorderSide(color: colors.borderSecondary)),
+            ),
+            child: Padding(
+              padding: EdgeInsets.only(
+                top: widget.embedded ? 0 : FlareSizes.spacing2xs,
+              ),
+              child: OverflowBar(
+                spacing: FlareSizes.spacingSm,
+                overflowSpacing: FlareSizes.spacingSm,
+                alignment: MainAxisAlignment.spaceBetween,
+                overflowAlignment: OverflowBarAlignment.end,
+                children: [
+                  Wrap(
+                    spacing: FlareSizes.spacingMd,
+                    runSpacing: FlareSizes.spacingSm,
+                    children: [
+                      for (final action in keys)
+                        FlareButton(
+                          key: ValueKey('flare-plugin-action-${action.id}'),
+                          label: action.label,
+                          variant: _variantOf(action),
+                          size: FlareControlSize.sm,
+                          appearance: FlareButtonAppearance.text,
+                          loading: widget.busyActionId == action.id,
+                          disabled: _locked || widget.onAction == null,
+                          onPressed: () =>
+                              _run(action, const FlarePluginActionPayload()),
+                        ),
+                    ],
+                  ),
+                  if (detail != null) detail,
+                ],
+              ),
+            ),
           ),
         );
       }
@@ -670,8 +714,11 @@ class _FlarePluginViewState extends State<FlarePluginView> {
             decoration: BoxDecoration(
               color: colors.bgPrimary,
               borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
-              border: Border.all(color: colors.borderSecondary),
-              boxShadow: FlareShadows.of(Theme.of(context).brightness).card,
+              border: Border.all(
+                color: colors.borderSecondary.withValues(
+                  alpha: colors.borderSecondary.a * 0.6,
+                ),
+              ),
             ),
             child: Padding(
               padding: const EdgeInsets.all(FlareSizes.spacingMd),
@@ -778,12 +825,13 @@ EdgeInsets flarePluginViewInsetPadding(FlarePluginViewInset inset) =>
     };
 
 class _TitleRow extends StatelessWidget {
-  const _TitleRow({required this.title, this.icon, this.menu});
+  const _TitleRow({required this.title, this.icon, this.menu, this.detail});
   final String title;
   final String? icon;
 
   /// The ⋯ key of the menu actions, at the end of the row.
   final Widget? menu;
+  final Widget? detail;
 
   @override
   Widget build(BuildContext context) {
@@ -804,13 +852,14 @@ class _TitleRow extends StatelessWidget {
           child: Text(
             title,
             style: TextStyle(
-              fontSize: FlareSizes.fontSizeXl,
-              fontWeight: FontWeight.w600,
+              fontSize: FlareSizes.fontSizeSm,
+              fontWeight: FontWeight.w500,
               height: FlareSizes.lineHeightSnug,
-              color: colors.textPrimary,
+              color: colors.textSecondary,
             ),
           ),
         ),
+        if (detail != null) detail!,
         if (menu != null) ...[
           const SizedBox(width: FlareSizes.spacingXs),
           menu!,
@@ -1016,11 +1065,12 @@ class _ChoicesBlock extends StatelessWidget {
     final colors = FlareColors.of(context);
     final strings = FlareStrings.of(context);
     final chosen = selected.toSet();
+    // The block's total is only the denominator of the shares (a voter count
+    // or the sum of the counts): the kit cannot tell people from votes, so it
+    // never draws it. How many took part is the plugin's to say.
     final footer = [
       ?flarePluginChoiceCapHint(block, strings),
       if (block.closed) strings.pluginViewEnded,
-      if (block.showResults && block.total != null)
-        strings.pluginViewVotes.replaceAll('{count}', '${block.total}'),
     ].join(' · ');
     final boxes = block.multiple && interactive;
     return Column(
@@ -1094,9 +1144,9 @@ class _ChoiceRow extends StatelessWidget {
     final colors = FlareColors.of(context);
     final strings = FlareStrings.of(context);
     final percent = (option.percent ?? 0).clamp(0, 100);
-    final votes = strings.pluginViewVotes.replaceAll(
-      '{count}',
-      '${option.count ?? 0}',
+    final votes = strings.pluginViewVotesCount(
+      option.count ?? 0,
+      flareCopyLocaleOf(context),
     );
     final radius = BorderRadius.circular(FlareSizes.radiusMd);
     final row = ConstrainedBox(
@@ -1268,7 +1318,11 @@ class _EntriesBlock extends StatelessWidget {
               child: Semantics(
                 header: true,
                 child: Text(
-                  flarePluginEntryGroupHeader(block.items[i].group!, strings),
+                  flarePluginEntryGroupHeader(
+                    block.items[i].group!,
+                    strings,
+                    locale: flareCopyLocaleOf(context),
+                  ),
                   style: TextStyle(
                     fontSize: FlareSizes.fontSizeSm,
                     fontWeight: FontWeight.w600,

@@ -34,13 +34,16 @@ enum FlareRedPacketTapAction { open, details, notEligible }
 enum FlareRedPacketViewerRole { sender, claimer, eligible, ineligible }
 
 /// Phase of `FlareRedPacketOpenSheet` (spec RedPacketOpenSheet `state`).
-/// [opening] flips the 開 coin while the host claims; [finished], [expired]
-/// and [notEligible] say why nothing opens; [error] offers 開 again.
+/// [opening] flips the 開 coin while the host claims; [finished], [expired],
+/// [refunded] and [notEligible] say why nothing opens; [error] offers 開
+/// again. A host maps a claim refused with PACKET_REFUNDED, or a public layer
+/// whose status is refunded, to [refunded].
 enum FlareRedPacketOpenState {
   ready,
   opening,
   finished,
   expired,
+  refunded,
   notEligible,
   error,
 }
@@ -130,10 +133,10 @@ bool flareRedPacketCardDimmed(FlareRedPacketCardState state) =>
   };
 }
 
-/// Which keys the open sheet offers (vectors → openSheet): 開 while ready,
-/// opening or failed; the details key only for a finished or expired packet
-/// the personal layer lets the viewer see ([canViewDetails]); never for
-/// [FlareRedPacketOpenState.notEligible].
+/// Which keys the open sheet offers (vectors → openSheet, openSheetRefunded):
+/// 開 while ready, opening or failed; the details key only for a finished,
+/// expired or refunded packet the personal layer lets the viewer see
+/// ([canViewDetails]); never for [FlareRedPacketOpenState.notEligible].
 ({bool coin, bool details}) flareRedPacketOpenSheetKeys(
   FlareRedPacketOpenState state, {
   bool canViewDetails = true,
@@ -142,7 +145,8 @@ bool flareRedPacketCardDimmed(FlareRedPacketCardState state) =>
   FlareRedPacketOpenState.opening ||
   FlareRedPacketOpenState.error => (coin: true, details: false),
   FlareRedPacketOpenState.finished ||
-  FlareRedPacketOpenState.expired => (coin: false, details: canViewDetails),
+  FlareRedPacketOpenState.expired ||
+  FlareRedPacketOpenState.refunded => (coin: false, details: canViewDetails),
   FlareRedPacketOpenState.notEligible => (coin: false, details: false),
 };
 
@@ -167,7 +171,7 @@ final RegExp _asciiDigits = RegExp(r'^[0-9]+$');
 /// floating point. Null for anything that is not digits.
 String? flareRedPacketMinorText(String? minor, int exponent) {
   final raw = minor ?? '';
-  if (!_asciiDigits.hasMatch(raw) || exponent < 0) return null;
+  if (!_asciiDigits.hasMatch(raw) || exponent < 0 || exponent > 12) return null;
   var digits = raw.replaceFirst(RegExp(r'^0+'), '');
   if (digits.length <= exponent) {
     digits = digits.padLeft(exponent + 1, '0');
@@ -485,10 +489,19 @@ String? _asciiDigit(String ch) {
   return null;
 }
 
+/// The amount field's currency exponent: [exponent] rounded and held to
+/// 0..12, matching dynamic wallet units.
+int flareRedPacketExponent(num exponent) => exponent.round().clamp(0, 12);
+
 /// Format-only filter for the composer's amount field: digits and one decimal
-/// point with at most two decimals, leading zeros folded
-/// (`spec/red-packet-vectors.json` → amountInput). Range checks are the host's.
-String flareRedPacketAmount(String raw) {
+/// point with at most [exponent] decimals (the currency's ISO 4217 exponent,
+/// default 2), leading zeros folded (`spec/red-packet-vectors.json` →
+/// amountInput, amountInputExponent). With exponent 0 every decimal point is
+/// dropped and only whole numbers go in. Full-width digits and 「．」「。」
+/// count; a second point is dropped; a trailing point stays. Range checks are
+/// the host's.
+String flareRedPacketAmount(String raw, [int exponent = 2]) {
+  final places = flareRedPacketExponent(exponent);
   final out = StringBuffer();
   var point = false;
   var decimals = 0;
@@ -497,17 +510,47 @@ String flareRedPacketAmount(String raw) {
     final digit = _asciiDigit(ch);
     if (digit != null) {
       if (point) {
-        if (decimals >= 2) continue;
+        if (decimals >= places) continue;
         decimals += 1;
       }
       out.write(digit);
-    } else if (_decimalPoints.contains(ch) && !point) {
+    } else if (_decimalPoints.contains(ch) && !point && places > 0) {
       point = true;
       out.write(out.isEmpty ? '0.' : '.');
     }
   }
   return out.toString().replaceFirst(RegExp(r'^0+(?=\d)'), '');
 }
+
+/// The composer's amount text as a minor-unit integer string for
+/// [exponent] decimals, by integer string arithmetic — never floating point
+/// ("8.8", 2 → "880"; "8.", 2 → "800"; "12", 0 → "12"). Leading zeros fold;
+/// all zeros is "0". Null while the text is not an amount yet: empty, a point
+/// alone, more decimals than [exponent], anything but ASCII digits and one
+/// point (`spec/red-packet-vectors.json` → amountMinor).
+String? flareRedPacketAmountMinor(String input, int exponent) {
+  final places = flareRedPacketExponent(exponent);
+  final parts = input.split('.');
+  if (parts.length > 2) return null;
+  final whole = parts[0];
+  final fraction = parts.length == 2 ? parts[1] : '';
+  if (whole.isEmpty && fraction.isEmpty) return null;
+  final digitsOnly = RegExp(r'^[0-9]*$');
+  if (!digitsOnly.hasMatch(whole) || !digitsOnly.hasMatch(fraction)) {
+    return null;
+  }
+  if (fraction.length > places) return null;
+  final minor = '$whole${fraction.padRight(places, '0')}'.replaceFirst(
+    RegExp(r'^0+'),
+    '',
+  );
+  return minor.isEmpty ? '0' : minor;
+}
+
+/// The amount field's placeholder: zero written with [exponent] decimals
+/// ("0", "0.00", "0.000").
+String flareRedPacketAmountPlaceholder(int exponent) =>
+    flareRedPacketMinorText('0', flareRedPacketExponent(exponent))!;
 
 /// Digits only, at most three, as a number; empty is 0
 /// (`spec/red-packet-vectors.json` → countInput).
@@ -530,13 +573,16 @@ int flareRedPacketCount(String raw) {
 /// the filtered text: it is a short numeric field, and a filtered edit has no
 /// stable position to keep.
 class FlareRedPacketAmountFormatter extends TextInputFormatter {
-  const FlareRedPacketAmountFormatter();
+  const FlareRedPacketAmountFormatter({this.exponent = 2});
+
+  /// The currency's exponent: how many decimals the field keeps.
+  final int exponent;
 
   @override
   TextEditingValue formatEditUpdate(
     TextEditingValue oldValue,
     TextEditingValue newValue,
-  ) => _filtered(newValue, flareRedPacketAmount(newValue.text));
+  ) => _filtered(newValue, flareRedPacketAmount(newValue.text, exponent));
 }
 
 /// [flareRedPacketCount] as a field formatter; zero shows as an empty field.

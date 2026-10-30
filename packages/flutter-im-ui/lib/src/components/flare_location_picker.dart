@@ -16,7 +16,8 @@ import 'flare_skeleton.dart';
 
 /// The device position; throwing (permission denied, no fix) turns the picker
 /// to manual search.
-typedef FlareRequestCurrentLocation = Future<FlareLocationCoordinate> Function();
+typedef FlareRequestCurrentLocation =
+    Future<FlareLocationCoordinate> Function();
 
 /// The name and address of a coordinate, for the current-location row.
 typedef FlareReverseGeocode =
@@ -126,13 +127,15 @@ class FlareLocationPicker extends StatefulWidget
 
 enum _Locate { locating, located, denied }
 
-enum _List { idle, searching, ready, noResults }
+enum _List { idle, searching, ready, noResults, failed }
 
 enum _Map { loading, ready, unavailable }
 
 class _FlareLocationPickerState extends State<FlareLocationPicker> {
   _Locate _locate = _Locate.locating;
-  late _List _list = widget.initialLocation == null ? _List.searching : _List.idle;
+  late _List _list = widget.initialLocation == null
+      ? _List.searching
+      : _List.idle;
   _Map _map = _Map.loading;
   String? _mapUrl;
   FlareLocationCoordinate? _here;
@@ -206,7 +209,12 @@ class _FlareLocationPickerState extends State<FlareLocationPicker> {
   }
 
   FlareLocationPlace? _selected(FlareStrings strings) {
-    for (final place in [..._rows(strings), ?_currentPlace(strings), ..._nearby, ..._results]) {
+    for (final place in [
+      ..._rows(strings),
+      ?_currentPlace(strings),
+      ..._nearby,
+      ..._results,
+    ]) {
       if (place.id == _selectedId) return place;
     }
     return null;
@@ -222,8 +230,10 @@ class _FlareLocationPickerState extends State<FlareLocationPicker> {
     if (_searching && _list == _List.noResults) {
       return FlareLocationPickerState.noResults;
     }
+    if (_list == _List.failed) return FlareLocationPickerState.mapUnavailable;
     if (_locate == _Locate.denied) return FlareLocationPickerState.denied;
-    if (_map == _Map.unavailable) return FlareLocationPickerState.mapUnavailable;
+    if (_map == _Map.unavailable)
+      return FlareLocationPickerState.mapUnavailable;
     return FlareLocationPickerState.located;
   }
 
@@ -271,10 +281,16 @@ class _FlareLocationPickerState extends State<FlareLocationPicker> {
     final token = ++_listToken;
     final here = _here;
     if (!_searching) {
-      setState(() => _list = _nearby.isNotEmpty ? _List.ready : _List.searching);
+      setState(
+        () => _list = _nearby.isNotEmpty ? _List.ready : _List.searching,
+      );
     }
     try {
-      final places = await widget.searchNearby(here?.latitude, here?.longitude, '');
+      final places = await widget.searchNearby(
+        here?.latitude,
+        here?.longitude,
+        '',
+      );
       if (!mounted || token != _listToken || _searching) return;
       setState(() {
         _nearby = places;
@@ -282,10 +298,8 @@ class _FlareLocationPickerState extends State<FlareLocationPicker> {
       });
     } catch (_) {
       if (!mounted || token != _listToken || _searching) return;
-      setState(() {
-        _nearby = const [];
-        _list = _List.ready;
-      });
+      // Keep any known coordinate and places usable; an outage is not an empty result.
+      setState(() => _list = _List.failed);
     }
   }
 
@@ -309,7 +323,11 @@ class _FlareLocationPickerState extends State<FlareLocationPicker> {
     final centre = _selected(strings) ?? _currentPlace(strings);
     setState(() => _list = _List.searching);
     try {
-      final places = await widget.searchNearby(centre?.latitude, centre?.longitude, value);
+      final places = await widget.searchNearby(
+        centre?.latitude,
+        centre?.longitude,
+        value,
+      );
       if (!mounted || token != _listToken) return;
       setState(() {
         _results = places;
@@ -319,7 +337,7 @@ class _FlareLocationPickerState extends State<FlareLocationPicker> {
       if (!mounted || token != _listToken) return;
       setState(() {
         _results = const [];
-        _list = _List.noResults;
+        _list = _List.failed;
       });
     }
   }
@@ -327,7 +345,10 @@ class _FlareLocationPickerState extends State<FlareLocationPicker> {
   void _onQueryChanged(String text) {
     _debounce?.cancel();
     setState(() {});
-    _debounce = Timer(const Duration(milliseconds: 300), () => _runSearch(text));
+    _debounce = Timer(
+      const Duration(milliseconds: 300),
+      () => _runSearch(text),
+    );
   }
 
   Future<void> _describeHere() async {
@@ -376,11 +397,18 @@ class _FlareLocationPickerState extends State<FlareLocationPicker> {
         return;
       }
     }
-    final request = Future<FlareLocationCoordinate>.sync(widget.requestCurrentLocation);
-    final timer = _locateTimer = Timer(Duration(milliseconds: widget.locateTimeoutMs), () {
-      if (!mounted || token != _locateToken) return;
-      setState(() => _locate = _here != null ? _Locate.located : _Locate.denied);
-    });
+    final request = Future<FlareLocationCoordinate>.sync(
+      widget.requestCurrentLocation,
+    );
+    final timer = _locateTimer = Timer(
+      Duration(milliseconds: widget.locateTimeoutMs),
+      () {
+        if (!mounted || token != _locateToken) return;
+        setState(
+          () => _locate = _here != null ? _Locate.located : _Locate.denied,
+        );
+      },
+    );
     try {
       final point = await request;
       timer.cancel();
@@ -395,7 +423,9 @@ class _FlareLocationPickerState extends State<FlareLocationPicker> {
 
   void _arrive(FlareLocationCoordinate point) {
     if (!isValidFlareLocation(point.latitude, point.longitude)) {
-      setState(() => _locate = _here != null ? _Locate.located : _Locate.denied);
+      setState(
+        () => _locate = _here != null ? _Locate.located : _Locate.denied,
+      );
       return;
     }
     setState(() {
@@ -444,8 +474,38 @@ class _FlareLocationPickerState extends State<FlareLocationPicker> {
         ),
         child: FlareSkeleton(variant: FlareSkeletonVariant.text),
       );
+    } else if (_list == _List.failed) {
+      list = ListView.builder(
+        padding: EdgeInsets.zero,
+        itemCount: rows.length + 1,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return Semantics(
+              liveRegion: true,
+              child: FlareEmptyState(
+                title: strings.locationMapUnavailable,
+                icon: 'location',
+                tone: FlareEmptyStateTone.error,
+                actionText: strings.retry,
+                onAction: () => unawaited(
+                  _searching ? _runSearch(_query.text) : _loadNearby(),
+                ),
+              ),
+            );
+          }
+          final place = rows[index - 1];
+          return _PlaceRow(
+            place: place,
+            selected: place.id == _selectedId,
+            onTap: () => _choose(place),
+          );
+        },
+      );
     } else if (_searching && _list == _List.noResults) {
-      list = FlareEmptyState(title: strings.locationNoResults, icon: 'location');
+      list = FlareEmptyState(
+        title: strings.locationNoResults,
+        icon: 'location',
+      );
     } else {
       list = ListView.builder(
         padding: EdgeInsets.zero,
@@ -471,7 +531,9 @@ class _FlareLocationPickerState extends State<FlareLocationPicker> {
               SizedBox(
                 height: FlareSizes.controlHeightLg,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: FlareSizes.spacingMd),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: FlareSizes.spacingMd,
+                  ),
                   child: Row(
                     children: [
                       Expanded(
@@ -481,8 +543,13 @@ class _FlareLocationPickerState extends State<FlareLocationPicker> {
                             onPressed: widget.onCancel,
                             style: TextButton.styleFrom(
                               foregroundColor: colors.textSecondary,
-                              minimumSize: const Size(FlareSizes.touchTargetMin, FlareSizes.touchTargetMin),
-                              textStyle: const TextStyle(fontSize: FlareSizes.fontSizeXl),
+                              minimumSize: const Size(
+                                FlareSizes.touchTargetMin,
+                                FlareSizes.touchTargetMin,
+                              ),
+                              textStyle: const TextStyle(
+                                fontSize: FlareSizes.fontSizeXl,
+                              ),
                             ),
                             child: Text(strings.cancel),
                           ),
@@ -509,7 +576,9 @@ class _FlareLocationPickerState extends State<FlareLocationPicker> {
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     _mapBox = Size(
-                      constraints.maxWidth.isFinite ? constraints.maxWidth : 360,
+                      constraints.maxWidth.isFinite
+                          ? constraints.maxWidth
+                          : 360,
                       FlareLocationPicker.mapHeight,
                     );
                     return Stack(
@@ -517,7 +586,10 @@ class _FlareLocationPickerState extends State<FlareLocationPicker> {
                       children: [
                         Semantics(
                           image: true,
-                          label: [strings.locationTitle, ?mapPlace?.title].join(' · '),
+                          label: [
+                            strings.locationTitle,
+                            ?mapPlace?.title,
+                          ].join(' · '),
                           child: FlareLocationMapSurface(
                             src: _map == _Map.unavailable ? null : _mapUrl,
                             attribution:
@@ -525,7 +597,8 @@ class _FlareLocationPickerState extends State<FlareLocationPicker> {
                                 ? strings.locationOsmAttribution
                                 : null,
                             onError: () {
-                              if (mounted) setState(() => _map = _Map.unavailable);
+                              if (mounted)
+                                setState(() => _map = _Map.unavailable);
                             },
                           ),
                         ),
@@ -537,10 +610,14 @@ class _FlareLocationPickerState extends State<FlareLocationPicker> {
                             child: Align(
                               alignment: AlignmentDirectional.bottomStart,
                               child: DecoratedBox(
-                                key: const ValueKey('flare-location-map-unavailable'),
+                                key: const ValueKey(
+                                  'flare-location-map-unavailable',
+                                ),
                                 decoration: BoxDecoration(
                                   color: colors.bgElevated,
-                                  borderRadius: BorderRadius.circular(FlareSizes.radiusMd),
+                                  borderRadius: BorderRadius.circular(
+                                    FlareSizes.radiusMd,
+                                  ),
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
@@ -549,7 +626,8 @@ class _FlareLocationPickerState extends State<FlareLocationPicker> {
                                   ),
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         strings.locationMapUnavailable,
@@ -564,7 +642,9 @@ class _FlareLocationPickerState extends State<FlareLocationPicker> {
                                           style: TextStyle(
                                             fontSize: FlareSizes.fontSizeSm,
                                             color: colors.textTertiary,
-                                            fontFeatures: const [FontFeature.tabularFigures()],
+                                            fontFeatures: const [
+                                              FontFeature.tabularFigures(),
+                                            ],
                                           ),
                                         ),
                                     ],
@@ -633,7 +713,11 @@ class _FlareLocationPickerState extends State<FlareLocationPicker> {
                     liveRegion: true,
                     child: Row(
                       children: [
-                        FlareIcon('locate', size: FlareSizes.iconSizeSm, color: colors.textSecondary),
+                        FlareIcon(
+                          'locate',
+                          size: FlareSizes.iconSizeSm,
+                          color: colors.textSecondary,
+                        ),
                         const SizedBox(width: FlareSizes.spacingXs),
                         Text(
                           strings.locationLocating,
@@ -649,7 +733,9 @@ class _FlareLocationPickerState extends State<FlareLocationPicker> {
               Expanded(child: list),
               DecoratedBox(
                 decoration: BoxDecoration(
-                  border: Border(top: BorderSide(color: colors.borderSecondary)),
+                  border: Border(
+                    top: BorderSide(color: colors.borderSecondary),
+                  ),
                 ),
                 child: SafeArea(
                   top: false,
@@ -730,8 +816,12 @@ class _PlaceRow extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: FlareSizes.fontSizeXl,
-                        fontWeight: selected ? FontWeight.w500 : FontWeight.w400,
-                        color: selected ? colors.primaryText : colors.textPrimary,
+                        fontWeight: selected
+                            ? FontWeight.w500
+                            : FontWeight.w400,
+                        color: selected
+                            ? colors.primaryText
+                            : colors.textPrimary,
                       ),
                     ),
                     if (place.address.isNotEmpty)
@@ -762,7 +852,11 @@ class _PlaceRow extends StatelessWidget {
               SizedBox(
                 width: FlareSizes.iconSizeSm,
                 child: selected
-                    ? FlareIcon('check', size: FlareSizes.iconSizeSm, color: colors.primaryText)
+                    ? FlareIcon(
+                        'check',
+                        size: FlareSizes.iconSizeSm,
+                        color: colors.primaryText,
+                      )
                     : null,
               ),
             ],

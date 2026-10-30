@@ -293,6 +293,7 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
         return wrap(
           FlareInput(
             controller: _text[input.id],
+            semanticLabel: input.label,
             placeholder: input.placeholder,
             disabled: disabled,
             onChanged: (v) => _set(input.id, v),
@@ -312,6 +313,7 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
         return wrap(
           FlareInput(
             controller: _text[input.id],
+            semanticLabel: input.label,
             placeholder: input.placeholder,
             keyboardType: const TextInputType.numberWithOptions(
               decimal: true,
@@ -403,6 +405,7 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
                       Expanded(
                         child: FlareInput(
                           controller: rows[i],
+                          semanticLabel: '${input.label} ${i + 1}',
                           placeholder: input.placeholder,
                           disabled: disabled,
                           onChanged: (_) => _set(input.id, _rowTexts(input.id)),

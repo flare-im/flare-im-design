@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../tokens/flare_tokens.dart';
-import 'action_icon.dart';
 
-/// The 108 semantic icon names exposed by [FlareIcon], in canonical order.
+/// The 109 semantic icon names exposed by [FlareIcon], in canonical order.
 ///
 /// Kept in lock-step with the cross-platform icon-library contract so every
 /// platform ships the same fixed vocabulary of glyphs.
@@ -121,6 +120,8 @@ const List<String> flareIconNames = <String>[
   // The location picker's "use current location" key: a crosshair, not the
   // map pin `location` draws.
   'locate',
+  // The wallet entry of the 我 page (the red packet plugin's account entry).
+  'wallet',
 ];
 
 /// Maps each semantic name in [flareIconNames] to the closest Material glyph.
@@ -242,6 +243,7 @@ const Map<String, IconData> flareIconMap = <String, IconData>{
   'red-packet': flareKitRedPacket,
   'plugin': Icons.extension_outlined,
   'locate': Icons.my_location_outlined,
+  'wallet': Icons.account_balance_wallet_outlined,
 };
 
 /// The red packet as a line glyph — the card's small envelope (rounded body,
@@ -264,12 +266,36 @@ const IconData flareKitRichText = IconData(
   fontPackage: 'flare_im_ui',
 );
 
+/// The registry name an icon [name] from data (a plugin, the SDK, host
+/// configuration) draws: the name trimmed when it is in [flareIconNames]; null
+/// for an empty name (no icon); any other name → `plugin`, the neutral
+/// extension glyph — never a question mark, never a blank, never the name as
+/// text. A debug build says so once per name on the console.
+String? flareIconNameOrFallback(String? name) {
+  final trimmed = name?.trim() ?? '';
+  if (trimmed.isEmpty) return null;
+  if (flareIconMap.containsKey(trimmed)) return trimmed;
+  assert(() {
+    if (_flareIconWarned.add(trimmed)) {
+      debugPrint(
+        'FlareIcon: "$trimmed" is not one of the ${flareIconNames.length} '
+        'semantic icon names; drawing the plugin glyph.',
+      );
+    }
+    return true;
+  }());
+  return 'plugin';
+}
+
+/// Names already warned about, so a name in a rebuilt list warns once.
+final Set<String> _flareIconWarned = <String>{};
+
 /// A cross-platform icon rendered from a fixed semantic [name].
 ///
-/// Unknown names fall back to [Icons.help_outline] so a missing mapping is
-/// visible rather than silently blank, and say so on the debug console (never
-/// a crash and never the name as text). When [color] is omitted the icon uses
-/// the kit's secondary text colour for the current brightness.
+/// The name goes through [flareIconNameOrFallback]: an unknown name draws the
+/// `plugin` glyph (and says so once on the debug console), an empty name draws
+/// nothing. When [color] is omitted the icon uses the kit's secondary text
+/// colour for the current brightness.
 class FlareIcon extends StatelessWidget {
   const FlareIcon(
     this.name, {
@@ -295,8 +321,10 @@ class FlareIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final resolved = flareIconNameOrFallback(name);
+    if (resolved == null) return const SizedBox.shrink();
     return Icon(
-      flareIconGlyph(name),
+      flareIconMap[resolved],
       size: size,
       color: color ?? FlareColors.of(context).textSecondary,
       semanticLabel: semanticLabel,

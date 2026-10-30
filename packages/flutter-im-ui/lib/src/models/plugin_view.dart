@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
 import '../tokens/flare_strings.dart';
+import 'plural.dart';
 
 /// Plugin view contracts (spec PluginView / PluginForm / PluginDetailSheet):
 /// the core SDK's resolved view (ResolvedPluginView of flare-plugin-protocol)
@@ -781,6 +782,7 @@ class FlarePluginViewModel {
     this.nextCursor,
     this.menuActions = const [],
     this.unavailableReason,
+    this.presentation,
   }) : _source = null;
 
   FlarePluginViewModel._json({
@@ -794,6 +796,7 @@ class FlarePluginViewModel {
     required this.nextCursor,
     required this.menuActions,
     required this.unavailableReason,
+    required this.presentation,
     required String source,
   }) : _source = source;
 
@@ -822,10 +825,12 @@ class FlarePluginViewModel {
             FlarePluginAction.fromJson(a),
         ],
         unavailableReason: _reasonOf(json['unavailableReason']),
+        presentation: json['presentation'] is Map ? Map<String, Object?>.from(json['presentation'] as Map) : null,
         source: jsonEncode(json),
       );
 
   final bool available;
+  final Map<String, Object?>? presentation;
   final String title;
   final List<FlarePluginField> fields;
 
@@ -916,6 +921,7 @@ class FlarePluginPageViewModel extends FlarePluginViewModel {
     super.nextCursor,
     super.menuActions,
     super.unavailableReason,
+    super.presentation,
     this.data,
   });
 
@@ -929,6 +935,7 @@ class FlarePluginPageViewModel extends FlarePluginViewModel {
     required super.nextCursor,
     required super.menuActions,
     required super.unavailableReason,
+    required super.presentation,
     required this.data,
     required super.source,
   }) : super._json(detail: false);
@@ -946,6 +953,7 @@ class FlarePluginPageViewModel extends FlarePluginViewModel {
       nextCursor: view.nextCursor,
       menuActions: view.menuActions,
       unavailableReason: view.unavailableReason,
+      presentation: view.presentation,
       data: data is Map ? data.cast<String, Object?>() : null,
       source: jsonEncode(json),
     );
@@ -1390,15 +1398,15 @@ bool flarePluginReadOnly(FlarePluginViewModel view) =>
     view.unavailableReason == FlarePluginUnavailableReason.unboundCopy;
 
 /// The header row of a group in a grouped entries list (rules.entriesGrouped):
-/// the label, then "N 票" when the count is known and "P%" when the percent
-/// is, joined with " · ".
+/// the label, then "N 票" when the count is known (plural by [locale]) and
+/// "P%" when the percent is, joined with " · ".
 String flarePluginEntryGroupHeader(
   FlarePluginEntryGroup group,
-  FlareStrings strings,
-) => [
+  FlareStrings strings, {
+  String? locale,
+}) => [
   group.label,
-  if (group.count != null)
-    strings.pluginViewVotes.replaceAll('{count}', '${group.count}'),
+  if (group.count != null) strings.pluginViewVotesCount(group.count!, locale),
   if (group.percent != null) '${group.percent}%',
 ].join(' · ');
 

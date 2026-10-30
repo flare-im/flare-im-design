@@ -360,15 +360,9 @@ class _Gallery extends StatelessWidget {
                 SizedBox(width: 16),
                 FlareMessageStatus(status: FlareMessageDeliveryStatus.sent),
                 SizedBox(width: 16),
-                FlareMessageStatus(
-                  status: FlareMessageDeliveryStatus.delivered,
-                ),
-                SizedBox(width: 16),
                 FlareMessageStatus(status: FlareMessageDeliveryStatus.read),
                 SizedBox(width: 16),
                 FlareMessageStatus(status: FlareMessageDeliveryStatus.failed),
-                SizedBox(width: 16),
-                FlareMessageStatus(status: FlareMessageDeliveryStatus.retrying),
               ],
             ),
           ),
@@ -634,6 +628,152 @@ class _Gallery extends StatelessWidget {
                 ],
                 currentUserId: 'me',
                 conversationKind: FlareConversationKind.group,
+              ),
+            ),
+          ),
+          _Section(
+            'MessageList (menu)',
+            SizedBox(
+              height: 160,
+              child: FlareMessageList(
+                messages: [
+                  _msg('menu-1', 'Ivy Chen', '长按或右键这条消息'),
+                  _msg('menu-2', 'Me', '两处是同一份菜单', self: true),
+                ],
+                currentUserId: 'me',
+                menu: FlareMessageMenuSource(
+                  availability: (_) => const FlareMessageActionAvailability(
+                    canReply: true,
+                    canForward: true,
+                    canCopy: true,
+                    canDelete: true,
+                    canReact: true,
+                  ),
+                  // Report only on someone else's message.
+                  extraActions: (m) => m.senderId == 'me'
+                      ? const []
+                      : const [
+                          FlareMessageMenuEntry(
+                            id: 'report',
+                            label: '举报',
+                            icon: 'report',
+                            group: FlareMessageMenuGroup.destructive,
+                          ),
+                        ],
+                  perform: (_, _) {},
+                ),
+              ),
+            ),
+          ),
+          _Section(
+            'ReadReceiptSheet',
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                FlareReadReceiptSheet(
+                  readers: const [
+                    FlareContact(id: 'r1', name: 'Ivy Chen'),
+                    FlareContact(id: 'r2', name: 'Kai'),
+                  ],
+                  unread: const [FlareContact(id: 'u1', name: 'Mia')],
+                  readCount: 12,
+                  unreadCount: 3,
+                  readHasMore: true,
+                  onLoadMore: (_) {},
+                ),
+                const SizedBox(height: 12),
+                FlareReadReceiptSheet(
+                  readers: const [],
+                  unread: const [],
+                  state: FlareReadReceiptState.error,
+                  onRetry: () {},
+                ),
+                const SizedBox(height: 12),
+                const FlareReadReceiptSheet(
+                  readers: [],
+                  unread: [],
+                  state: FlareReadReceiptState.unavailable,
+                ),
+              ],
+            ),
+          ),
+          _Section(
+            'ForwardMessage',
+            FlareMessageContentView(
+              content: FlareForwardContent(
+                title: '林夏和周屿的聊天记录',
+                mode: FlareForwardMode.merged,
+                items: [
+                  FlareForwardItem(senderName: '林夏', plainText: '今晚七点见'),
+                  FlareForwardItem(senderName: '周屿', plainText: '好的'),
+                  FlareForwardItem(
+                    senderName: '林夏',
+                    content: FlareFileContent(name: '方案.pdf', url: ''),
+                  ),
+                  FlareForwardItem(senderName: '周屿', plainText: '收到'),
+                ],
+              ),
+            ),
+          ),
+          _Section(
+            'Me menu (flareMeMenuSections)',
+            FlareSettingsList(
+              shrinkWrap: true,
+              sections: flareMeMenuSections(
+                const FlareMeMenu(
+                  items: [
+                    FlareMeMenuItem(
+                      kind: FlareMeMenuItemKind.builtin,
+                      id: 'moments',
+                      icon: 'moments',
+                    ),
+                    FlareMeMenuItem(
+                      kind: FlareMeMenuItemKind.plugin,
+                      id: 'plugin:flare.redpacket.wallet-entry',
+                      icon: 'wallet',
+                      title: '钱包',
+                    ),
+                    FlareMeMenuItem(
+                      kind: FlareMeMenuItemKind.plugin,
+                      id: 'plugin:acme.points',
+                      icon: 'coins-stack',
+                      title: '积分',
+                    ),
+                    FlareMeMenuItem(
+                      kind: FlareMeMenuItemKind.builtin,
+                      id: 'settings',
+                      icon: 'settings',
+                    ),
+                  ],
+                ),
+                summaries: const {
+                  'plugin:flare.redpacket.wallet-entry': '¥12.00',
+                },
+              ),
+              onSelect: (_) {},
+            ),
+          ),
+          _Section(
+            'RedPacketComposer (JPY, exponent 0)',
+            FlareRedPacketComposer(
+              kinds: const [
+                FlareRedPacketKind.lucky,
+                FlareRedPacketKind.normal,
+              ],
+              currencyExponent: 0,
+              total: '¥0',
+            ),
+          ),
+          _Section(
+            'RedPacketOpenSheet (refunded)',
+            SizedBox(
+              height: 560,
+              child: FlareRedPacketOpenSheet(
+                senderName: 'Ivy Chen',
+                blessing: '恭喜发财，大吉大利',
+                state: FlareRedPacketOpenState.refunded,
+                onViewDetails: () {},
+                onClose: () {},
               ),
             ),
           ),

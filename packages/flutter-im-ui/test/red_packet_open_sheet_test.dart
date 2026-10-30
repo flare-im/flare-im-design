@@ -103,6 +103,7 @@ void main() {
   for (final entry in [
     (FlareRedPacketOpenState.finished, '手慢了，红包派完了'),
     (FlareRedPacketOpenState.expired, '红包已过期'),
+    (FlareRedPacketOpenState.refunded, '红包已退回'),
   ]) {
     testWidgets('${entry.$1.name} says why and links to the details', (
       tester,
@@ -133,6 +134,24 @@ void main() {
       expect(find.text('查看领取详情'), findsNothing);
     });
   }
+
+  testWidgets(
+    'refunded reads the refunded notice in English, or the host text',
+    (tester) async {
+      await tester.pumpWidget(
+        host(
+          sheet(state: FlareRedPacketOpenState.refunded),
+          strings: flareStringsEnglish,
+        ),
+      );
+      expect(find.text('This red packet has been refunded'), findsOneWidget);
+      expect(coin, findsNothing);
+      await tester.pumpWidget(
+        host(sheet(state: FlareRedPacketOpenState.refunded, message: '已退回钱包')),
+      );
+      expect(find.text('已退回钱包'), findsOneWidget);
+    },
+  );
 
   testWidgets('notEligible says why and never offers the details', (
     tester,

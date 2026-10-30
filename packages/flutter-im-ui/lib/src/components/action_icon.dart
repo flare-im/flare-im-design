@@ -5,27 +5,13 @@ import 'flare_icon.dart';
 /// The registry glyph for a semantic icon [name] — how a kit component that
 /// builds or hands on an [IconData] (an icon table, an `IconButton`, a menu
 /// entry) draws a name from [flareIconNames] instead of naming a Material glyph.
-/// An unknown name draws the same visible fallback as [FlareIcon] and, in a
-/// debug build, says so once on the console: a typo is a developer mistake, not
-/// something a reader should see as an error. Internal: not exported from the
-/// package.
-IconData flareIconGlyph(String name) {
-  final glyph = flareIconMap[name];
-  if (glyph != null) return glyph;
-  assert(() {
-    if (_warned.add(name)) {
-      debugPrint(
-        'FlareIcon: "$name" is not one of the ${flareIconNames.length} '
-        'semantic icon names; drawing the fallback glyph.',
-      );
-    }
-    return true;
-  }());
-  return Icons.help_outline;
-}
-
-/// Names already warned about, so a name in a rebuilt list warns once.
-final Set<String> _warned = <String>{};
+/// The name goes through [flareIconNameOrFallback]: an unknown (or empty) name
+/// draws the `plugin` glyph, as [FlareIcon] does, and a debug build says so
+/// once on the console. Callers that may hold an empty name and must then draw
+/// nothing resolve it with [flareIconNameOrFallback] first. Internal: not
+/// exported from the package.
+IconData flareIconGlyph(String name) =>
+    flareIconMap[flareIconNameOrFallback(name) ?? 'plugin']!;
 
 /// The glyph for an action's semantic icon name — the one map behind the
 /// conversation header's buttons and every `FlareActionMenu` row, so a name

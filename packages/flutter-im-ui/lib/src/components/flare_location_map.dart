@@ -155,6 +155,7 @@ class _MapTexturePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    canvas.clipRect(Offset.zero & size);
     canvas.drawRect(Offset.zero & size, Paint()..color = ground);
     final grid = Paint()
       ..color = block

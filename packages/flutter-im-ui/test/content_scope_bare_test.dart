@@ -18,11 +18,12 @@ void main() {
   FlareMessageData message({
     String? serverId = 'server-1',
     String type = 'packet',
+    String senderName = 'Ivy',
   }) => FlareMessageData(
     id: 'client-1',
     serverId: serverId,
     senderId: 'ivy',
-    senderName: 'Ivy',
+    senderName: senderName,
     timeLabel: '10:02',
     content: FlareGenericContent(contentType: type, label: 'Red packet'),
   );
@@ -42,6 +43,30 @@ void main() {
   );
 
   setUp(() => seen = null);
+
+  testWidgets('a builder learns the sender: its id, and its name trimmed or '
+      'none', (tester) async {
+    for (final (name, expected) in [
+      ('  Ivy  ', 'Ivy'),
+      ('   ', null),
+      ('', null),
+    ]) {
+      await tester.pumpWidget(
+        host(
+          FlareContentScope(
+            builders: {'packet': probe},
+            child: FlareMessageBubble(
+              message: message(senderName: name),
+              currentUserId: 'me',
+            ),
+          ),
+        ),
+      );
+      expect(seen?.senderId, 'ivy');
+      // Never the id or a placeholder word in place of a missing name.
+      expect(seen?.senderName, expected, reason: '"$name"');
+    }
+  });
 
   testWidgets('a key registered as a card loses the bubble and keeps the time', (
     tester,
