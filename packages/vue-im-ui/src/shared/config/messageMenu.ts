@@ -1,4 +1,5 @@
 import type { MessageLike } from "../contracts/messageRow";
+import type { MessageActionAvailability } from "../../utils/messageActionAvailability";
 
 export type MessageMenuActionId =
   | "react"
@@ -45,12 +46,22 @@ export interface MessageMenuResolveContext {
   hasDownloadableMedia: boolean;
 }
 
+/**
+ * The host's snapshot of the core's action availability for a message (message.action_availability, what the native
+ * kits' FlareMessageMenuSource.availability reads), or null/undefined while the host has none. A field it gives can
+ * only switch an action off: the menu offers an action when the kit's own rule and the snapshot both allow it, so a
+ * plugin card the core will not forward has no "forward". A field it leaves out keeps the kit's rule.
+ */
+export type MessageMenuAvailability = (message: MessageLike) => Partial<MessageActionAvailability> | null | undefined;
+
 export interface MessageMenuConfig {
   actions?: MessageMenuActionsConfig;
   resolveVisible?: (ctx: MessageMenuResolveContext) => MessageMenuActionsConfig | void;
   resolveMediaAction?: (
     ctx: MessageMenuResolveContext,
   ) => MessageMenuMediaAction | null | void;
+  /** The core's availability for a message ({@link MessageMenuAvailability}). */
+  availability?: MessageMenuAvailability;
 }
 
 export const DEFAULT_MESSAGE_MENU_ACTIONS: Record<MessageMenuActionId, boolean> = {
@@ -75,6 +86,7 @@ export const DEFAULT_MESSAGE_MENU_ACTIONS: Record<MessageMenuActionId, boolean> 
 export function mergeMessageMenuConfig(...layers: Array<MessageMenuConfig | undefined | null>): MessageMenuConfig {
   const actions: MessageMenuActionsConfig = { ...DEFAULT_MESSAGE_MENU_ACTIONS };
   const resolveVisibleList: NonNullable<MessageMenuConfig["resolveVisible"]>[] = [];
+  const availabilityList: MessageMenuAvailability[] = [];
   let resolveMediaAction: MessageMenuConfig["resolveMediaAction"];
 
   for (const layer of layers) {
@@ -82,7 +94,27 @@ export function mergeMessageMenuConfig(...layers: Array<MessageMenuConfig | unde
     if (layer.actions) Object.assign(actions, layer.actions);
     if (layer.resolveVisible) resolveVisibleList.push(layer.resolveVisible);
     if (layer.resolveMediaAction) resolveMediaAction = layer.resolveMediaAction;
+    if (layer.availability) availabilityList.push(layer.availability);
   }
+
+  // Every layer's snapshot narrows: an action one of them switches off stays off.
+  const availability: MessageMenuAvailability | undefined =
+    availabilityList.length === 0
+      ? undefined
+      : availabilityList.length === 1
+        ? availabilityList[0]
+        : (message) => {
+            let merged: Partial<MessageActionAvailability> | undefined;
+            for (const fn of availabilityList) {
+              const snapshot = fn(message);
+              if (!snapshot) continue;
+              merged ??= {};
+              for (const [key, allowed] of Object.entries(snapshot) as [keyof MessageActionAvailability, boolean][]) {
+                if (typeof allowed === "boolean") merged[key] = (merged[key] ?? true) && allowed;
+              }
+            }
+            return merged;
+          };
 
   const resolveVisible =
     resolveVisibleList.length === 0
@@ -96,7 +128,23 @@ export function mergeMessageMenuConfig(...layers: Array<MessageMenuConfig | unde
           return Object.keys(merged).length > 0 ? merged : undefined;
         };
 
-  return { actions, resolveVisible, resolveMediaAction };
+  return { actions, resolveVisible, resolveMediaAction, availability };
+}
+
+/**
+ * The kit's own availability narrowed by a host snapshot: each field the snapshot gives as false switches that action
+ * off; nothing switches an action on that the kit's rule leaves off. Never mutates its inputs.
+ */
+export function narrowMessageActionAvailability(
+  own: MessageActionAvailability,
+  snapshot: Partial<MessageActionAvailability> | null | undefined,
+): MessageActionAvailability {
+  if (!snapshot) return own;
+  const narrowed = { ...own };
+  for (const key of Object.keys(narrowed) as (keyof MessageActionAvailability)[]) {
+    if (snapshot[key] === false) narrowed[key] = false;
+  }
+  return narrowed;
 }
 
 export function isMessageMenuActionEnabled(

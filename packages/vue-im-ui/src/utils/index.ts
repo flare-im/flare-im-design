@@ -7,9 +7,11 @@ export { configureMediaProxy, mediaProxyFields } from "../shared/config/mediaPro
 export type {
   MessageMenuActionId,
   MessageMenuActionsConfig,
+  MessageMenuAvailability,
   MessageMenuConfig,
   MessageMenuResolveContext,
 } from "../shared/config/messageMenu";
+export type { MessageActionAvailability } from "./messageActionAvailability";
 export * from "./contentData";
 export * from "./contentElem";
 export * from "./messagePreview";

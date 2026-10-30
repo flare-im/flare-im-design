@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { MessageLike } from "../shared/contracts/messageRow";
-import { buildMessageMenuItems, resolveMessageMenuAction, type MessageMenuExtension } from "./buildMessageMenuOptions";
+import { buildMessageContextSheetModel, buildMessageMenuItems, resolveMessageMenuAction, type MessageMenuExtension } from "./buildMessageMenuOptions";
+import { mergeMessageMenuConfig, narrowMessageActionAvailability } from "../shared/config/messageMenu";
+import { messageActionAvailability } from "./messageActionAvailability";
 import { actionMenuEntries } from "../shared/contracts/action-menu";
 
 const message: MessageLike = {
@@ -40,5 +42,45 @@ describe("buildMessageMenuItems", () => {
     const own = buildMessageMenuItems(message, "ivy", withDelete, undefined, [], actions).map((item) => item.id);
     expect(own).not.toContain("action:report");
     expect(resolveMessageMenuAction(message, "action:translate")).toEqual({ type: "emit", event: "action", payload: { id: "client-1", actionId: "translate" } });
+  });
+});
+
+// The host's snapshot of the core's availability (what FlareMessageMenuSource.availability reads on the native kits)
+// narrows the kit's own rule: a plugin card the core will not forward has no single "forward", in the menu or the sheet.
+describe("the core's availability snapshot", () => {
+  const card: MessageLike = {
+    ...message,
+    serverId: "server-card",
+    clientMsgId: "client-card",
+    messageType: 0,
+    content: { contentType: "custom", data: { subtype: "flare.plugin.message.v1", text: "红包" } },
+  };
+  const snapshot = (m: MessageLike) => (m.serverId === "server-card" ? { canForward: false } : undefined);
+
+  it("switches forward off for the message the core says cannot be forwarded, and nothing else", () => {
+    const withSnapshot = { actions: { reply: true, forward: true }, availability: snapshot };
+    expect(buildMessageMenuItems(card, "me", config).map((item) => item.id)).toContain("forward");
+    const items = buildMessageMenuItems(card, "me", withSnapshot).map((item) => item.id);
+    expect(items).not.toContain("forward");
+    expect(items).toContain("reply");
+    expect(buildMessageMenuItems(message, "me", withSnapshot).map((item) => item.id)).toContain("forward");
+    expect(buildMessageContextSheetModel(card, "me", withSnapshot).quickActions.map((item) => item.key)).not.toContain("forward");
+  });
+
+  it("can only switch an action off, never on", () => {
+    const pending = { ...message, status: "sending" } as MessageLike;
+    const items = buildMessageMenuItems(pending, "me", { actions: { forward: true }, availability: () => ({ canForward: true }) });
+    expect(items.map((item) => item.id)).not.toContain("forward");
+    const own = messageActionAvailability(message, {
+      currentUserId: "me", isConnected: true, isPending: false, isPinned: false, isFailed: false, multiSelectMode: false,
+    });
+    expect(narrowMessageActionAvailability(own, { canForward: false, canCopy: true })).toEqual({ ...own, canForward: false });
+    expect(narrowMessageActionAvailability(own, null)).toBe(own);
+  });
+
+  it("narrows across config layers", () => {
+    const merged = mergeMessageMenuConfig({ availability: () => ({ canForward: true, canPin: false }) }, { availability: snapshot });
+    expect(merged.availability?.(card)).toEqual({ canForward: false, canPin: false });
+    expect(merged.availability?.(message)).toEqual({ canForward: true, canPin: false });
   });
 });

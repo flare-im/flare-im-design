@@ -5855,8 +5855,8 @@
           "name": "menuConfig",
           "type": "MessageMenuConfig",
           "description": {
-            "en": "Which long-press actions are enabled for this message.",
-            "zh": "该消息长按可用的操作集合。"
+            "en": "Which long-press actions are enabled for this message. `availability(message)` is the host's snapshot of the core's MessageActionAvailability (what the native MessageMenuSource.availability reads; null while it has none): a false flag switches that action off, nothing switches one on — a plugin card the core will not forward has no forward.",
+            "zh": "该消息长按可用的操作集合。`availability(message)` 是宿主手里核心 MessageActionAvailability 的快照（即原生 MessageMenuSource.availability 读的那份；没有时为 null）：为 false 的标志关掉对应动作，不会打开任何动作——核心不允许转发的插件卡没有「转发」。"
           },
           "platforms": [
             "vue"
@@ -6134,8 +6134,8 @@
           "name": "menuConfig",
           "type": "MessageMenuConfig",
           "description": {
-            "en": "Enabled long-press actions across the list.",
-            "zh": "整表可用的长按操作集合。"
+            "en": "Enabled long-press actions across the list. `availability(message)` is the host's snapshot of the core's MessageActionAvailability (what the native MessageMenuSource.availability reads; null while it has none): a false flag switches that action off, nothing switches one on — a plugin card the core will not forward has no forward.",
+            "zh": "整表可用的长按操作集合。`availability(message)` 是宿主手里核心 MessageActionAvailability 的快照（即原生 MessageMenuSource.availability 读的那份；没有时为 null）：为 false 的标志关掉对应动作，不会打开任何动作——核心不允许转发的插件卡没有「转发」。"
           },
           "platforms": [
             "vue"

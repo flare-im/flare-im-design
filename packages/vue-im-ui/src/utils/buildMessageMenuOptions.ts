@@ -3,6 +3,7 @@ import {
   DEFAULT_MESSAGE_MENU_ACTIONS,
   isMessageMenuActionEnabled,
   mergeMessageMenuConfig,
+  narrowMessageActionAvailability,
   type MessageMenuActionId,
   type MessageMenuConfig,
   type MessageMenuResolveContext,
@@ -174,14 +175,19 @@ export function buildMessageContextSheetModel(
   // Availability is resolved by the package-owned presentation policy and
   // pinned by spec/scenarios/message-action-availability.json.
   // menuConfig 仍可**关掉**某个动作（宿主定制），但不能打开规则不允许的动作。
-  const can = messageActionAvailability(message, {
-    currentUserId,
-    isConnected: true,
-    isPending: ["pending", "sending"].includes(resolveMessageStatus(message)),
-    isPinned: ctx.isPinned,
-    isFailed: ctx.isFailed,
-    multiSelectMode: false,
-  });
+  // The host's snapshot of the core's availability narrows it the same way: a
+  // plugin card the core will not forward offers no "forward".
+  const can = narrowMessageActionAvailability(
+    messageActionAvailability(message, {
+      currentUserId,
+      isConnected: true,
+      isPending: ["pending", "sending"].includes(resolveMessageStatus(message)),
+      isPinned: ctx.isPinned,
+      isFailed: ctx.isFailed,
+      multiSelectMode: false,
+    }),
+    merged.availability?.(message),
+  );
 
   if (can.canReply && enabled(merged, "reply", ctx)) pushQuick("reply");
   if (can.canForward && enabled(merged, "forward", ctx)) pushQuick("forward");
