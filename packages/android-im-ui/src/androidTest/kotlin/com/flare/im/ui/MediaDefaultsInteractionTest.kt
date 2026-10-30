@@ -171,13 +171,22 @@ class MediaDefaultsInteractionTest {
                 )
             }
         }
-        compose.waitUntil(timeoutMillis = 10_000) {
-            runCatching {
-                val bubble = compose.onNodeWithContentDescription("照片").captureToImage().asAndroidBitmap()
-                val centre = Color(bubble.getPixel(bubble.width / 2, bubble.height / 2))
-                centre.red > 0.8f && centre.green < 0.2f && centre.blue < 0.2f
-            }.getOrDefault(false)
+        // What the bubble showed last, for the failure message: its centre colour, or why it could not be read.
+        var seen = "nothing yet"
+        val drawn = runCatching {
+            compose.waitUntil(timeoutMillis = 10_000) {
+                runCatching {
+                    val bubble = compose.onNodeWithContentDescription("照片").captureToImage().asAndroidBitmap()
+                    val centre = Color(bubble.getPixel(bubble.width / 2, bubble.height / 2))
+                    seen = "a ${bubble.width}x${bubble.height} capture, centre $centre"
+                    centre.red > 0.8f && centre.green < 0.2f && centre.blue < 0.2f
+                }.onFailure { seen = it.toString().take(300) }.getOrDefault(false)
+            }
         }
+        val loading = compose.onAllNodes(hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate), useUnmergedTree = true)
+            .fetchSemanticsNodes().size
+        val failed = compose.onAllNodesWithText(strings.imageLoadFailed, useUnmergedTree = true).fetchSemanticsNodes().size
+        assertTrue("the local copy is drawn in the bubble; saw $seen, $loading loading, $failed failed", drawn.isSuccess)
         compose.onNodeWithContentDescription("照片").performClick()
         waitForImageLoads()
         compose.onNodeWithText(strings.imageLoadFailed).assertDoesNotExist()
