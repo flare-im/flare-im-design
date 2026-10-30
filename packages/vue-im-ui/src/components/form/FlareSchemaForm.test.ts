@@ -374,3 +374,18 @@ it("required references cannot be cleared and default wallet selection has no du
   );
   wrapper.unmount();
 });
+it("an integer field has no unnamed step buttons, and stays a labelled spinbutton", () => {
+  const wrapper = mount(FlareSchemaForm, {
+    props: {
+      schema: { properties: { rate: { type: "integer", title: "Rate", minimum: 1, maximum: 600 } } },
+      modelValue: { rate: 5 },
+    },
+  });
+  // naive-ui's step buttons carry no text and no label (axe button-name, critical).
+  const unnamed = wrapper
+    .findAll("button")
+    .filter((b) => !b.text().trim() && !b.attributes("aria-label") && !b.attributes("title"));
+  expect(unnamed).toHaveLength(0);
+  expect(wrapper.find("input").attributes("aria-label")).toBe("Rate");
+  wrapper.unmount();
+});

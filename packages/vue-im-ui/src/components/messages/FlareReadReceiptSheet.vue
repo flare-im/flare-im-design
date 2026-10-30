@@ -208,7 +208,9 @@ function pressTail(): void {
   justify-content: space-between;
   gap: var(--flare-size-spacing-sm);
   min-height: var(--flare-size-layout-touch-target);
-  padding: var(--flare-size-spacing-xs) var(--flare-size-spacing-xs) var(--flare-size-spacing-xs) var(--flare-size-spacing-lg);
+  /* 右侧留 spacing.sm,与下面名单行的内缩对齐:只留 xs 时关闭键(40,命中区 48)挤进卡片的圆角,
+     卡片的 overflow: hidden 把命中区的右上角裁掉,粗指针下点关闭键的右上沿会落空。 */
+  padding: var(--flare-size-spacing-xs) var(--flare-size-spacing-sm) var(--flare-size-spacing-xs) var(--flare-size-spacing-lg);
 }
 .flare-read-receipt__title {
   display: inline-flex;

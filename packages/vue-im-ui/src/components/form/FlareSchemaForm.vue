@@ -250,8 +250,11 @@ function removeRow(field: SchemaField, index: number) {
               :disabled="disabled"
               @update:value="set(field, $event)"
             />
+            <!-- No step buttons: naive-ui draws them as unlabeled, unfocusable <button>s (axe button-name,
+                 critical). The field is still a spinbutton; the arrow keys step it within minimum and maximum. -->
             <NInputNumber
               v-else-if="field.type === 'integer'"
+              :show-button="false"
               :input-props="{
                 id: `${fieldPrefix}-${field.id}`,
                 'aria-label': field.title,

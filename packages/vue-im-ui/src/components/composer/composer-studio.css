@@ -108,7 +108,11 @@
   align-items: center;
   min-width: 0;
   width: 100%;
-  min-height: 44px;
+  /* 窄屏输入行是 46 的一条带(一行 24 的字上下各留 11),与 Flutter / SwiftUI / Compose 窄屏的
+     46 带同一个数(原来是 44)。这 2px 也是触达区要的:行角的展开键在粗指针下 44 见方(top 1px),
+     下面工具条的键画 40、上下各补 2px 到 44;行只有 44 时两块命中区上下叠了 3px,
+     点发送键的上沿会落到展开键上。 */
+  min-height: 46px;
   height: auto;
   max-height: none;
   padding: var(--flare-size-spacing-2sm) 48px var(--flare-size-spacing-2sm) var(--flare-size-spacing-2md);
