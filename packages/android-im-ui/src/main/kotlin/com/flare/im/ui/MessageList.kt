@@ -295,6 +295,10 @@ internal data class MessageListViewport(
     fun atBottom(slackPx: Int): Boolean = totalRows == 0 || (lastIndex == totalRows - 1 && lastEnd <= viewportEnd + slackPx)
 }
 
+/** The first row moved between two layouts. */
+internal fun messageListViewportMoved(previous: MessageListViewport?, current: MessageListViewport): Boolean =
+    previous != null && (previous.firstKey != current.firstKey || previous.firstOffset != current.firstOffset)
+
 internal fun messageListViewport(info: LazyListLayoutInfo, scrolling: Boolean): MessageListViewport {
     val first = info.visibleItemsInfo.firstOrNull()
     val last = info.visibleItemsInfo.lastOrNull()
@@ -326,12 +330,20 @@ internal enum class MessageListTailAction {
 /**
  * The action for the layout [current] after [previous]. A scroll the reader makes (the first row moved while a
  * scroll is in progress) decides between following and browsing; the kit's own jumps move without a scroll in
- * progress and decide nothing. A change of the list's size, its rows or its last row keeps a following reader at
- * the end; the reader letting go of a scroll does not.
+ * progress and decide nothing. A jump to a [located] message is the reader's move all the same: animated it is a
+ * scroll in progress, but with animations off it lands at once, and it must still leave the bottom rather than be
+ * pulled back to it. A change of the list's size, its rows or its last row keeps a following reader at the end;
+ * the reader letting go of a scroll does not.
  */
-internal fun messageListTailAction(previous: MessageListViewport?, current: MessageListViewport, followTail: Boolean, slackPx: Int): MessageListTailAction {
-    val moved = previous != null && (previous.firstKey != current.firstKey || previous.firstOffset != current.firstOffset)
-    if (moved && current.scrolling) return if (current.atBottom(slackPx)) MessageListTailAction.Follow else MessageListTailAction.Browse
+internal fun messageListTailAction(
+    previous: MessageListViewport?,
+    current: MessageListViewport,
+    followTail: Boolean,
+    slackPx: Int,
+    located: Boolean = false,
+): MessageListTailAction {
+    val moved = messageListViewportMoved(previous, current)
+    if (moved && (current.scrolling || located)) return if (current.atBottom(slackPx)) MessageListTailAction.Follow else MessageListTailAction.Browse
     val resized = previous == null || previous.totalRows != current.totalRows || previous.viewportSize != current.viewportSize ||
         previous.lastKey != current.lastKey || previous.lastSize != current.lastSize
     return if (resized && followTail && !current.atEnd && !current.scrolling) MessageListTailAction.SettleAtEnd else MessageListTailAction.None
@@ -365,6 +377,9 @@ internal class MessageListTail {
 
     /** The reader asked for older messages (the kit's load-older control); the next prepend keeps their place. */
     var olderRequested = false
+
+    /** The list is about to jump to a located message; the move that lands it decides like the reader's scroll. */
+    var located = false
 
     /** Pixels to scroll back once the list has [shiftRows] rows: an anchor that sat below the viewport's top. */
     var shift = 0
@@ -554,7 +569,10 @@ fun MessageList(
             locatedRowId = null
         }
     }
+    // Reading position: decide what this change of the messages does before the new rows are measured.
+    val tail = remember(conversationId) { MessageListTail() }
     val markLocatedRow: (Int) -> Unit = { index ->
+        tail.located = true
         (rows.getOrNull(index) as? MessageTimelineRow.Message)?.let { markLocated(it.key) }
     }
     SideEffect { state.attach(handleOwner, rowIndexById, reducedMotion, markLocatedRow) }
@@ -563,8 +581,6 @@ fun MessageList(
     var requested by remember(conversationId) { mutableStateOf(false) }
     LaunchedEffect(loadingOlder, messages.firstOrNull()?.id, olderError) { if (!loadingOlder) requested = false }
 
-    // Reading position: decide what this change of the messages does before the new rows are measured.
-    val tail = remember(conversationId) { MessageListTail() }
     val density = LocalDensity.current
     val slackPx = with(density) { MessageListBottomSlack.roundToPx() }
     SideEffect {
@@ -606,7 +622,9 @@ fun MessageList(
                 listState.scrollBy(-shift.toFloat())
                 return@collect
             }
-            when (messageListTailAction(last, viewport, tail.followTail, slackPx)) {
+            val located = tail.located
+            if (located && messageListViewportMoved(last, viewport)) tail.located = false
+            when (messageListTailAction(last, viewport, tail.followTail, slackPx, located)) {
                 MessageListTailAction.Follow -> tail.follow()
                 MessageListTailAction.Browse -> tail.browse(currentMessages.lastOrNull()?.id)
                 MessageListTailAction.SettleAtEnd -> listState.scrollToMessageListEnd(viewport.totalRows)

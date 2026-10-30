@@ -126,6 +126,11 @@ class MessageListTailTest {
         val bottom = viewport()
         // The first row moved without a scroll in progress (the kit jumped): the reading position is unchanged.
         assertEquals(MessageListTailAction.None, messageListTailAction(bottom, up, followTail = false, slackPx = 80))
+        // The same jump to a located message is the reader's move: it leaves the bottom, animated or not.
+        assertEquals(MessageListTailAction.Browse, messageListTailAction(bottom, up, followTail = true, slackPx = 80, located = true))
+        // A located message at the end keeps the reader following.
+        val endAgain = viewport(firstOffset = -10)
+        assertEquals(MessageListTailAction.Follow, messageListTailAction(up, endAgain, followTail = false, slackPx = 80, located = true))
         // An empty list is "at the end" and asks for nothing.
         val empty = viewport(firstKey = null, lastIndex = -1, lastKey = null, lastEnd = 0, lastSize = 0, totalRows = 0)
         assertTrue(empty.atEnd)
