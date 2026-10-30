@@ -63,7 +63,8 @@ public struct FlareMessageMenuSource {
 }
 
 /// Gathers the rows that came on screen within one turn of the run loop into one `prefetch` call, and asks for a
-/// message once while it waits for its snapshot.
+/// message once while it waits for its snapshot. The list settles a message once its snapshot arrives, so a snapshot
+/// that lapses later is asked for again; a menu asked for without a snapshot always asks (``ask(_:_:)``).
 final class FlareMessageMenuPrefetcher: ObservableObject {
     private var pending: [String] = []
     private var asked: Set<String> = []
@@ -84,8 +85,21 @@ final class FlareMessageMenuPrefetcher: ObservableObject {
         }
     }
 
-    /// The snapshot for `id` arrived (or the row went away): a later miss may ask again.
+    /// A menu was asked for and there is no snapshot: asks for `id` even while an earlier request waits — that one
+    /// may have failed, or its snapshot lapsed since. A long press and the pointer menu's loading entry ask this way.
+    func ask(_ id: String, _ prefetch: @escaping ([String]) -> Void) {
+        settle(id)
+        request(id, prefetch)
+    }
+
+    /// The snapshot for `id` arrived: a later miss may ask again.
     func settle(_ id: String) { asked.remove(id) }
+
+    /// Settles every message asked for that `settled` answers true for: its snapshot arrived, or it left the list.
+    func settleArrived(_ settled: (String) -> Bool) {
+        guard !asked.isEmpty else { return }
+        asked = asked.filter { !settled($0) }
+    }
 }
 
 /// The message the long-press sheet is open for.
@@ -112,7 +126,7 @@ struct RowPointerMenu: ViewModifier {
                         case .loading:
                             Button(strings.messageMenuLoading) {}
                                 .disabled(true)
-                                .onAppear { prefetcher.request(message.id, menu.prefetch) }
+                                .onAppear { prefetcher.ask(message.id, menu.prefetch) }
                         case .entry(let entry):
                             Button(role: FlareMessageMenuSource.role(entry)) {
                                 menu.perform(message, entry.id)

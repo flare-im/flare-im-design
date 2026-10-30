@@ -246,11 +246,19 @@ public struct MessageListView: View {
             return
         }
         pendingMenuId = message.id
-        menuPrefetcher.settle(message.id)
-        menuPrefetcher.request(message.id, menu.prefetch)
+        menuPrefetcher.ask(message.id, menu.prefetch)
         // A snapshot that never comes does not open a sheet much later.
         DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
             if pendingMenuId == message.id { pendingMenuId = nil }
+        }
+    }
+
+    /// Settles the rows whose snapshot has arrived since they were asked for (and the ones no longer in the list).
+    private func settleArrivedMenuSnapshots() {
+        guard let menu else { return }
+        menuPrefetcher.settleArrived { id in
+            guard let message = messages.first(where: { $0.id == id }) else { return true }
+            return menu.availability(message) != nil
         }
     }
 
@@ -396,6 +404,9 @@ public struct MessageListView: View {
         // The host's handle learns the rows this pass draws before the pass draws them, so
         // `scrollToMessage` never answers from the previous set of messages.
         let _ = attachController()
+        // The rows asked for whose snapshot has arrived are settled, so a snapshot that lapses later is asked for
+        // again rather than swallowed as a repeat of the request it answered.
+        let _ = settleArrivedMenuSnapshots()
         // 量一次窗格宽,经环境值下发给每一行 —— 气泡最大宽 = 可用宽 × 比例,再被
         // layout.bubbleMaxWidth 封顶,与另外三端同一条规则。
         GeometryReader { proxy in

@@ -99,6 +99,37 @@ final class MessageMenuSourceTests: XCTestCase {
         XCTAssertEqual(calls, [["a", "b"], ["a"]])
     }
 
+    /// A menu asked for without a snapshot asks again even while an earlier request waits: that request may have
+    /// failed, or its snapshot lapsed since. A row coming on screen still asks once.
+    func testAMenuAskedForWithoutASnapshotAlwaysAsks() {
+        var calls: [[String]] = []
+        let prefetcher = FlareMessageMenuPrefetcher()
+        let record: ([String]) -> Void = { calls.append($0) }
+        prefetcher.request("a", record)
+        RunLoop.main.run(until: Date().addingTimeInterval(0.05))
+        prefetcher.ask("a", record)
+        RunLoop.main.run(until: Date().addingTimeInterval(0.05))
+        XCTAssertEqual(calls, [["a"], ["a"]], "the menu's ask is not swallowed as a repeat")
+        prefetcher.request("a", record)
+        RunLoop.main.run(until: Date().addingTimeInterval(0.05))
+        XCTAssertEqual(calls.count, 2, "a row coming on screen still waits for the asked snapshot")
+    }
+
+    /// Messages whose snapshot arrived are settled; the ones still waiting stay asked for.
+    func testArrivedSnapshotsSettleTheirRequests() {
+        var calls: [[String]] = []
+        let prefetcher = FlareMessageMenuPrefetcher()
+        let record: ([String]) -> Void = { calls.append($0) }
+        prefetcher.request("a", record)
+        prefetcher.request("b", record)
+        RunLoop.main.run(until: Date().addingTimeInterval(0.05))
+        prefetcher.settleArrived { $0 == "a" }
+        prefetcher.request("a", record)
+        prefetcher.request("b", record)
+        RunLoop.main.run(until: Date().addingTimeInterval(0.05))
+        XCTAssertEqual(calls, [["a", "b"], ["a"]])
+    }
+
     #if os(macOS)
     /// Laid out for real: the rows on screen without a snapshot are asked for in one call, the one with a snapshot is
     /// not, and a notice row never is.
@@ -122,5 +153,59 @@ final class MessageMenuSourceTests: XCTestCase {
         XCTAssertEqual(calls.flatMap { $0 }.sorted(), ["a"])
         XCTAssertEqual(calls.count, 1)
     }
+
+    /// Laid out for real: a row whose snapshot arrived is settled when the list redraws with it, so once the snapshot
+    /// lapses and the row comes back without one it is asked for again instead of being swallowed as a repeat.
+    @MainActor
+    func testARowWhoseSnapshotArrivedIsAskedForAgainAfterItLapses() {
+        _ = NSApplication.shared
+        var calls: [[String]] = []
+        let model = MenuHostModel()
+        let report = report
+        let screen = MenuHostScreen(model: model) { snapshots in
+            FlareMessageMenuSource(availability: { snapshots[$0.id] }, prefetch: { calls.append($0) },
+                                   extraActions: { _ in [report] }, perform: { _, _ in })
+        }
+        let size = NSSize(width: 400, height: 600)
+        let host = NSHostingView(rootView: screen.frame(width: size.width, height: size.height))
+        let window = NSWindow(contentRect: NSRect(origin: .zero, size: size), styleMask: .borderless,
+                              backing: .buffered, defer: false)
+        window.contentView = host
+        host.setFrameSize(size)
+        window.orderFront(nil)
+        defer { window.orderOut(nil) }
+        func settle() {
+            host.layoutSubtreeIfNeeded()
+            RunLoop.main.run(until: Date().addingTimeInterval(0.4))
+            host.layoutSubtreeIfNeeded()
+        }
+        model.messages = [message("a")]
+        settle()
+        XCTAssertEqual(calls, [["a"]], "on screen without a snapshot: asked for")
+        model.snapshots = ["a": snapshot]
+        settle()
+        model.snapshots = [:]
+        model.messages = []
+        settle()
+        model.messages = [message("a")]
+        settle()
+        XCTAssertEqual(calls, [["a"], ["a"]], "back on screen after the snapshot lapsed: asked for again")
+    }
     #endif
 }
+
+#if os(macOS)
+/// A host that redraws its list when its snapshots or messages change.
+private final class MenuHostModel: ObservableObject {
+    @Published var snapshots: [String: FlareMessageActionAvailability] = [:]
+    @Published var messages: [FlareMessageData] = []
+}
+
+private struct MenuHostScreen: View {
+    @ObservedObject var model: MenuHostModel
+    let menu: ([String: FlareMessageActionAvailability]) -> FlareMessageMenuSource
+    var body: some View {
+        MessageListView(messages: model.messages, currentUserId: "me", menu: menu(model.snapshots))
+    }
+}
+#endif
