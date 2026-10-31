@@ -1136,6 +1136,26 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["previewPlaceholder"] as? (String)) ?: "[占位]"
     val previewUnknown: String
         get() = (overrides["previewUnknown"] as? (String)) ?: "[未知]"
+    val systemEventGroupCreated: String
+        get() = (overrides["systemEventGroupCreated"] as? (String)) ?: "群聊已创建"
+    val systemEventGroupMemberJoined: String
+        get() = (overrides["systemEventGroupMemberJoined"] as? (String)) ?: "新成员加入了群聊"
+    val systemEventGroupMemberRemoved: String
+        get() = (overrides["systemEventGroupMemberRemoved"] as? (String)) ?: "有成员被移出群聊"
+    val systemEventGroupMemberLeft: String
+        get() = (overrides["systemEventGroupMemberLeft"] as? (String)) ?: "有成员退出了群聊"
+    val systemEventGroupMemberMuted: String
+        get() = (overrides["systemEventGroupMemberMuted"] as? (String)) ?: "有成员被禁言"
+    val systemEventGroupMemberUnmuted: String
+        get() = (overrides["systemEventGroupMemberUnmuted"] as? (String)) ?: "有成员被解除禁言"
+    val systemEventGroupOwnerTransferred: String
+        get() = (overrides["systemEventGroupOwnerTransferred"] as? (String)) ?: "群主已转让"
+    val systemEventGroupDissolved: String
+        get() = (overrides["systemEventGroupDissolved"] as? (String)) ?: "群聊已解散"
+    val systemEventGroupAnnouncementUpdated: String
+        get() = (overrides["systemEventGroupAnnouncementUpdated"] as? (String)) ?: "群公告已更新"
+    val systemEventFriendshipEstablished: String
+        get() = (overrides["systemEventFriendshipEstablished"] as? (String)) ?: "你们已成为好友，可以开始聊天了"
 
     // 会话头身份区作为按钮时的名字（标题 + 动作）；en: "{title}, {action}"
     val conversationHeaderIdentityLabel: (String, String) -> String
@@ -3633,6 +3653,46 @@ class FlareStringsBuilder internal constructor() {
     var previewUnknown: String
         get() = (values["previewUnknown"] as? (String)) ?: "[未知]"
         set(value) { values["previewUnknown"] = value }
+
+    var systemEventGroupCreated: String
+        get() = (values["systemEventGroupCreated"] as? (String)) ?: "群聊已创建"
+        set(value) { values["systemEventGroupCreated"] = value }
+
+    var systemEventGroupMemberJoined: String
+        get() = (values["systemEventGroupMemberJoined"] as? (String)) ?: "新成员加入了群聊"
+        set(value) { values["systemEventGroupMemberJoined"] = value }
+
+    var systemEventGroupMemberRemoved: String
+        get() = (values["systemEventGroupMemberRemoved"] as? (String)) ?: "有成员被移出群聊"
+        set(value) { values["systemEventGroupMemberRemoved"] = value }
+
+    var systemEventGroupMemberLeft: String
+        get() = (values["systemEventGroupMemberLeft"] as? (String)) ?: "有成员退出了群聊"
+        set(value) { values["systemEventGroupMemberLeft"] = value }
+
+    var systemEventGroupMemberMuted: String
+        get() = (values["systemEventGroupMemberMuted"] as? (String)) ?: "有成员被禁言"
+        set(value) { values["systemEventGroupMemberMuted"] = value }
+
+    var systemEventGroupMemberUnmuted: String
+        get() = (values["systemEventGroupMemberUnmuted"] as? (String)) ?: "有成员被解除禁言"
+        set(value) { values["systemEventGroupMemberUnmuted"] = value }
+
+    var systemEventGroupOwnerTransferred: String
+        get() = (values["systemEventGroupOwnerTransferred"] as? (String)) ?: "群主已转让"
+        set(value) { values["systemEventGroupOwnerTransferred"] = value }
+
+    var systemEventGroupDissolved: String
+        get() = (values["systemEventGroupDissolved"] as? (String)) ?: "群聊已解散"
+        set(value) { values["systemEventGroupDissolved"] = value }
+
+    var systemEventGroupAnnouncementUpdated: String
+        get() = (values["systemEventGroupAnnouncementUpdated"] as? (String)) ?: "群公告已更新"
+        set(value) { values["systemEventGroupAnnouncementUpdated"] = value }
+
+    var systemEventFriendshipEstablished: String
+        get() = (values["systemEventFriendshipEstablished"] as? (String)) ?: "你们已成为好友，可以开始聊天了"
+        set(value) { values["systemEventFriendshipEstablished"] = value }
 
     var conversationHeaderIdentityLabel: (String, String) -> String
         get() = (values["conversationHeaderIdentityLabel"] as? ((String, String) -> String)) ?: { title, action -> "$title，$action" }

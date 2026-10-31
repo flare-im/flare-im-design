@@ -486,6 +486,7 @@ class FlareStrings {
     this.previewQuote = '[引用]', // en: [Quote]
     this.previewLink = '[链接]', // en: [Link]
     this.previewForward = '[转发]', // en: [Forward]
+    this.previewThread = '[话题]', // en: [Thread]
     this.previewForwardCount =
         _previewForwardCount, // en: [Forward] {count} messages
     this.previewMiniProgram = '[小程序]', // en: [Mini Program]
@@ -501,6 +502,16 @@ class FlareStrings {
     this.previewCustom = '[自定义]', // en: [Custom]
     this.previewPlaceholder = '[占位]', // en: [Placeholder]
     this.previewUnknown = '[未知]', // en: [Unknown]
+    this.systemEventGroupCreated = '群聊已创建', // en: Group created
+    this.systemEventGroupMemberJoined = '新成员加入了群聊', // en: A new member joined the group
+    this.systemEventGroupMemberRemoved = '有成员被移出群聊', // en: A member was removed from the group
+    this.systemEventGroupMemberLeft = '有成员退出了群聊', // en: A member left the group
+    this.systemEventGroupMemberMuted = '有成员被禁言', // en: A member was muted
+    this.systemEventGroupMemberUnmuted = '有成员被解除禁言', // en: A member was unmuted
+    this.systemEventGroupOwnerTransferred = '群主已转让', // en: Group ownership was transferred
+    this.systemEventGroupDissolved = '群聊已解散', // en: The group was dissolved
+    this.systemEventGroupAnnouncementUpdated = '群公告已更新', // en: Group announcement updated
+    this.systemEventFriendshipEstablished = '你们已成为好友，可以开始聊天了', // en: You are now friends. Say hi!
     this.unknownMessageHint = '当前版本无法显示这条消息',
     this.unknownMessageUnsupported = '不支持的消息类型',
     this.unknownMessageDiagnostic = '消息类型',
@@ -1390,6 +1401,7 @@ class FlareStrings {
   final String previewQuote;
   final String previewLink;
   final String previewForward;
+  final String previewThread;
   final String Function(int count) previewForwardCount;
   final String previewMiniProgram;
 
@@ -1405,6 +1417,16 @@ class FlareStrings {
   final String previewCustom;
   final String previewPlaceholder;
   final String previewUnknown;
+  final String systemEventGroupCreated;
+  final String systemEventGroupMemberJoined;
+  final String systemEventGroupMemberRemoved;
+  final String systemEventGroupMemberLeft;
+  final String systemEventGroupMemberMuted;
+  final String systemEventGroupMemberUnmuted;
+  final String systemEventGroupOwnerTransferred;
+  final String systemEventGroupDissolved;
+  final String systemEventGroupAnnouncementUpdated;
+  final String systemEventFriendshipEstablished;
   final String unknownMessageHint;
   final String unknownMessageUnsupported;
   final String unknownMessageDiagnostic;
@@ -2205,6 +2227,7 @@ class FlareStrings {
     String? previewQuote,
     String? previewLink,
     String? previewForward,
+    String? previewThread,
     String Function(int count)? previewForwardCount,
     String? previewMiniProgram,
     String? previewImageGroup,
@@ -2218,6 +2241,16 @@ class FlareStrings {
     String? previewCustom,
     String? previewPlaceholder,
     String? previewUnknown,
+    String? systemEventGroupCreated,
+    String? systemEventGroupMemberJoined,
+    String? systemEventGroupMemberRemoved,
+    String? systemEventGroupMemberLeft,
+    String? systemEventGroupMemberMuted,
+    String? systemEventGroupMemberUnmuted,
+    String? systemEventGroupOwnerTransferred,
+    String? systemEventGroupDissolved,
+    String? systemEventGroupAnnouncementUpdated,
+    String? systemEventFriendshipEstablished,
     String? unknownMessageHint,
     String? unknownMessageUnsupported,
     String? unknownMessageDiagnostic,
@@ -2996,6 +3029,7 @@ class FlareStrings {
       previewQuote: previewQuote ?? this.previewQuote,
       previewLink: previewLink ?? this.previewLink,
       previewForward: previewForward ?? this.previewForward,
+      previewThread: previewThread ?? this.previewThread,
       previewForwardCount: previewForwardCount ?? this.previewForwardCount,
       previewMiniProgram: previewMiniProgram ?? this.previewMiniProgram,
       previewImageGroup: previewImageGroup ?? this.previewImageGroup,
@@ -3010,6 +3044,16 @@ class FlareStrings {
       previewCustom: previewCustom ?? this.previewCustom,
       previewPlaceholder: previewPlaceholder ?? this.previewPlaceholder,
       previewUnknown: previewUnknown ?? this.previewUnknown,
+      systemEventGroupCreated: systemEventGroupCreated ?? this.systemEventGroupCreated,
+      systemEventGroupMemberJoined: systemEventGroupMemberJoined ?? this.systemEventGroupMemberJoined,
+      systemEventGroupMemberRemoved: systemEventGroupMemberRemoved ?? this.systemEventGroupMemberRemoved,
+      systemEventGroupMemberLeft: systemEventGroupMemberLeft ?? this.systemEventGroupMemberLeft,
+      systemEventGroupMemberMuted: systemEventGroupMemberMuted ?? this.systemEventGroupMemberMuted,
+      systemEventGroupMemberUnmuted: systemEventGroupMemberUnmuted ?? this.systemEventGroupMemberUnmuted,
+      systemEventGroupOwnerTransferred: systemEventGroupOwnerTransferred ?? this.systemEventGroupOwnerTransferred,
+      systemEventGroupDissolved: systemEventGroupDissolved ?? this.systemEventGroupDissolved,
+      systemEventGroupAnnouncementUpdated: systemEventGroupAnnouncementUpdated ?? this.systemEventGroupAnnouncementUpdated,
+      systemEventFriendshipEstablished: systemEventFriendshipEstablished ?? this.systemEventFriendshipEstablished,
       unknownMessageHint: unknownMessageHint ?? this.unknownMessageHint,
       unknownMessageUnsupported:
           unknownMessageUnsupported ?? this.unknownMessageUnsupported,

@@ -6,6 +6,11 @@ This is the target Stable release, not a published version. Package metadata rem
 
 ### Design System And Packages
 
+- **The core's stored message summaries read the same in all four kits** (contract and all four kits).
+  - `spec/message-preview-vectors.json` adds `stored`: the token the core keeps instead of a message on a conversation row, a quote and a search hit (`{"k":"im.preview.image"}`, flare-im-core-sdk `preview_storage.rs`), each exactly as the core serializes it, and the line it reads as in both languages. All four kits run it.
+  - SwiftUI and Compose add `flareStoredPreviewText(raw, strings, locale, systemEventText)`, the rule Vue's `displayTextFromStoredPreview` and Flutter's `flareStoredPreviewText` already had. Hosts that read the token themselves only knew `fb` / `t` / `body` / `title` / `d`, so a picture, a voice message, a file, a location, an emoji or a quote of one left the conversation row blank.
+  - A system line without words of its own is named by its event key from the kit's words (`systemEvent*` on the native `FlareStrings`, Vue's `systemEvent.*`), after any name the host gives it.
+  - Flutter read an emoji token's pack key from the wrong field and called a thread a message; Vue showed a token's raw JSON when it had no words (an empty text, a kind it does not know). Both now follow the table. Flutter `FlareStrings` adds `previewThread`.
 - **An open pointer menu asks again for a snapshot the host drops** (contract, Flutter and SwiftUI).
   - When the host drops the snapshot of the message an open right-click menu shows (the message was pinned, recalled or sent, the connection moved, or the snapshot grew old) and redraws, the menu shows its loading entry and the list calls `prefetch` with that id itself: once until a snapshot is back, however often the host redraws meanwhile. Before, a Flutter menu stayed on its loading entry unless the host read the message again on its own.
   - Asking again is the kit's job: the host drops snapshots that no longer hold and answers `prefetch`. The MessageList `menu` contract, `FlareMessageMenuSource` and the message actions recipe say so.

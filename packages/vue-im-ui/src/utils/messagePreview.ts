@@ -141,12 +141,17 @@ export interface StoredPreviewOptions {
   resolveSystemText?: (key: string, params: Record<string, string | number | boolean | null | undefined>, fallback: string) => string;
 }
 
+/**
+ * The one line a stored preview token reads as (`spec/message-preview-vectors.json`, `stored`). Text that is
+ * not a token is history from before the tokens and reads as it is; a token this kit does not know, or one
+ * with no words where words are the whole message, reads as nothing rather than its raw JSON.
+ */
 export function displayTextFromStoredPreview(raw?: string | null, locale?: string, options?: StoredPreviewOptions): string {
   const text = raw?.trim() ?? "";
   if (!text) return "";
   const payload = parseStoredPreview(text);
   if (!payload) return formatPreviewText(text, locale);
-  return formatPreviewText(storedPreviewPayloadText(payload, locale, options) || text, locale);
+  return formatPreviewText(storedPreviewPayloadText(payload, locale, options), locale).trim();
 }
 
 export function previewVisualFromStoredPreview(raw?: string | null, locale?: string): MessagePreviewVisual | null {

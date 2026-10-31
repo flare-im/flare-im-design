@@ -1,5 +1,7 @@
 ## 未发布
 
+- 新增 `flareStoredPreviewText(raw, strings, locale, systemEventText)`：按共享表 `stored`（`spec/message-preview-vectors.json`）读核心存在会话行、引用与搜索结果上的摘要 token，与 Vue、Flutter、SwiftUI 同一规则。`FlareStrings` 新增 `systemEvent*`，没有自带文字的系统消息按事件键取这些文案。宿主不必再自己解 token。
+
 - **失败气泡改为失败面**：失败底色 `messageFailedBackground`、正文 `messageFailedForeground`、1px `messageFailedBorder` 红边，与 Vue、SwiftUI、Flutter 一致。原来是发出底色加红边、白字，失败图标落在紫色底上。新增 `FlareMessageBubbleTone`、`flareMessageBubbleTone`、`FlareMessageBubblePalette`、`flareMessageBubblePalette`（`spec/message-surface-vectors.json` `palette`），`MessageBubble` 与 `MessageContentView` 都按它取色。
 - `MessageList`：关闭动画（系统「移除动画」）时，定位到某条消息（点引用或宿主 `scrollToMessage`）不再被拉回最新消息。原来瞬时跳转被当作布局变化处理，正在跟随底部的列表会被重新放回末尾。
 - `PluginViewModels` 去掉源码里字面的 BOM 与不换行空格，改用转义（lint `ByteOrderMark` 报错）。

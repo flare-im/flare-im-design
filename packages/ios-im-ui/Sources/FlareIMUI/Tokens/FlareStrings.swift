@@ -861,6 +861,26 @@ public struct FlareStrings: Sendable {
     public var previewPlaceholder: String
     /// en: "[Unknown]"
     public var previewUnknown: String
+    /// en: "Group created"
+    public var systemEventGroupCreated: String
+    /// en: "A new member joined the group"
+    public var systemEventGroupMemberJoined: String
+    /// en: "A member was removed from the group"
+    public var systemEventGroupMemberRemoved: String
+    /// en: "A member left the group"
+    public var systemEventGroupMemberLeft: String
+    /// en: "A member was muted"
+    public var systemEventGroupMemberMuted: String
+    /// en: "A member was unmuted"
+    public var systemEventGroupMemberUnmuted: String
+    /// en: "Group ownership was transferred"
+    public var systemEventGroupOwnerTransferred: String
+    /// en: "The group was dissolved"
+    public var systemEventGroupDissolved: String
+    /// en: "Group announcement updated"
+    public var systemEventGroupAnnouncementUpdated: String
+    /// en: "You are now friends. Say hi!"
+    public var systemEventFriendshipEstablished: String
     // Plugin views, forms and their detail sheet (`PluginView`, `PluginFormView`, `PluginDetailSheetView`).
     // `{count}`, `{time}` and `{n}` are replaced by the component.
     public var pluginViewSubmit: String
@@ -1672,6 +1692,16 @@ public struct FlareStrings: Sendable {
         previewCustom: String = "[自定义]",
         previewPlaceholder: String = "[占位]",
         previewUnknown: String = "[未知]",
+        systemEventGroupCreated: String = "群聊已创建",
+        systemEventGroupMemberJoined: String = "新成员加入了群聊",
+        systemEventGroupMemberRemoved: String = "有成员被移出群聊",
+        systemEventGroupMemberLeft: String = "有成员退出了群聊",
+        systemEventGroupMemberMuted: String = "有成员被禁言",
+        systemEventGroupMemberUnmuted: String = "有成员被解除禁言",
+        systemEventGroupOwnerTransferred: String = "群主已转让",
+        systemEventGroupDissolved: String = "群聊已解散",
+        systemEventGroupAnnouncementUpdated: String = "群公告已更新",
+        systemEventFriendshipEstablished: String = "你们已成为好友，可以开始聊天了",
         pluginViewSubmit: String = "提交",
         pluginViewEnded: String = "已结束",
         pluginViewDeadlinePassed: String = "已截止",
@@ -2419,6 +2449,16 @@ public struct FlareStrings: Sendable {
         self.previewCustom = previewCustom
         self.previewPlaceholder = previewPlaceholder
         self.previewUnknown = previewUnknown
+        self.systemEventGroupCreated = systemEventGroupCreated
+        self.systemEventGroupMemberJoined = systemEventGroupMemberJoined
+        self.systemEventGroupMemberRemoved = systemEventGroupMemberRemoved
+        self.systemEventGroupMemberLeft = systemEventGroupMemberLeft
+        self.systemEventGroupMemberMuted = systemEventGroupMemberMuted
+        self.systemEventGroupMemberUnmuted = systemEventGroupMemberUnmuted
+        self.systemEventGroupOwnerTransferred = systemEventGroupOwnerTransferred
+        self.systemEventGroupDissolved = systemEventGroupDissolved
+        self.systemEventGroupAnnouncementUpdated = systemEventGroupAnnouncementUpdated
+        self.systemEventFriendshipEstablished = systemEventFriendshipEstablished
         self.pluginViewSubmit = pluginViewSubmit
         self.pluginViewEnded = pluginViewEnded
         self.pluginViewDeadlinePassed = pluginViewDeadlinePassed

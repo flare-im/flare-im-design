@@ -1,5 +1,7 @@
 ## 未发布
 
+- `displayTextFromStoredPreview` 按共享表 `stored`（`spec/message-preview-vectors.json`）读核心存的摘要 token：没有文字的 token（空正文、不认识的类型）读作空串，不再显示原始 JSON。新增测试逐条跑这张表。
+
 - 失败气泡外观、打开着的消息菜单、几处触控与可及性回归：
   - 新增 `flareMessageBubbleTone(self, status)`（`spec/message-surface-vectors.json` 新增 `palette`）：失败面（失败底色、失败前景、1px 红边）只属于本人失败的消息；别人的消息即使带 failed 状态，也按来件色板画。外观本身不变，由四端同一张表锁住。
   - 打开着的消息菜单就地跟随快照：`menuConfig.availability` 读的是响应式状态时快照一变，或宿主换了 `menuConfig`，菜单就地收窄，不关闭。行为原本如此，这次补测试锁住。

@@ -352,14 +352,15 @@ Three components, one rule each:
 - The words belong to the kit's strings table (`preview.*`), never to an app. Four apps writing `[图片]` in four places is how the same image ends up described three different ways.
 - A summary can be empty, and a conversation row may then show nothing. A reply strip and a quote never show a blank line: they fall back to `preview.message`.
 - The **sender** computes the summary and sends it with the reply (`quotedTextPreview`), so a receiver that never loaded the quoted message still reads the same line.
+- The core keeps a stored token, not display text, for a conversation's last message, a quote and a search hit (`{"k":"im.preview.image"}`). The kit reads it by the same rule: the token's own words when it has them, else the type's word, and a system line without words by the kit's name for its event key. A token the kit does not know reads as nothing, never as its raw JSON. An app does not decode the token itself.
 
 **Rules (markdown).** A preview is text, not a renderer: marks are stripped and never interpreted. `**周报**已发出` reads as 周报已发出, a link keeps its words and loses its target, an image becomes the `preview.image` term with its alt text, and a fenced block keeps the code inside it. The pass runs over every text preview, which is why `user_id_value` has to survive it. Markdown first, pack keys second, so a line that is both marked up and full of pack tokens reads the same everywhere (`spec/markdown-preview-vectors.json`).
 
 **Rules (emoji packs).** A pack message reads as the pack's name in the reader's language, never as its key: 一百分, not `hundred_points`. A key the shipped table does not know falls back to the key itself, and a body with no key at all falls back to the `preview.emoji` term. The same pass runs over a plain line that carries `[pack_key]` tokens — a conversation row, a reply strip, the core's own preview string — because those places are text, not pictures; the bubble draws the image instead.
 
-**API.** Vue `previewTextFromMessageContent` / `displayTextFromStoredPreview` (`./utils`) and the `preview.*` keys; the three native kits implement the same rule over their own content models. The shared table is `spec/message-preview-vectors.json` (31 cases), read by all four kits' tests; the emoji cases are the only ones whose expectation differs by language, which is what holds the column rule. The pack names come from `emoji-locales.json`, the same file in all four kits, through `emojiLabel` / `localizePackKeysInText`. Each summary takes an optional locale and otherwise reads the device's.
+**API.** Vue `previewTextFromMessageContent` / `displayTextFromStoredPreview` (`./utils`) and the `preview.*` keys; the three native kits implement the same rule over their own content models, and read the stored token with `flareStoredPreviewText`. The shared table is `spec/message-preview-vectors.json` (31 cases, and 44 stored tokens under `stored`), read by all four kits' tests; the emoji cases are the only ones whose expectation differs by language, which is what holds the column rule. The pack names come from `emoji-locales.json`, the same file in all four kits, through `emojiLabel` / `localizePackKeysInText`. Each summary takes an optional locale and otherwise reads the device's.
 
-**Used by.** Reply strips and quotes on five apps; conversation rows on web and Tauri.
+**Used by.** Reply strips and quotes on five apps; conversation rows and search hits on all five.
 
 ## 26. Tapping a quote goes back to the message
 

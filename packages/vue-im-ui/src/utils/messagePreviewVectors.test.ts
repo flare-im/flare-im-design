@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import vectors from "../../../../spec/message-preview-vectors.json";
-import { previewTextFromMessageContent } from "./messagePreview";
+import { displayTextFromStoredPreview, previewTextFromMessageContent } from "./messagePreview";
 import { resolveFlareMessage } from "../shared/i18n/messages";
 
 /**
@@ -50,6 +50,25 @@ describe("shared message preview vectors", () => {
         expect(previewTextFromMessageContent(content, locale)).toBe(vector.expected[locale]);
         const reply = vector.replyExpected?.[locale] ?? vector.expected[locale];
         expect(replySummary(content, locale)).toBe(reply);
+      });
+    }
+  }
+});
+
+/**
+ * `stored` is the same table for the token the core keeps instead of a message (a conversation's last message, a
+ * quote, a search hit): each token exactly as `preview_storage.rs` serializes it, and the line it reads as.
+ */
+type StoredVector = { id: string; token: string; expected: Record<string, string> };
+
+describe("shared stored preview vectors", () => {
+  it("covers the tokens the core writes", () => {
+    expect((vectors.stored as StoredVector[]).length).toBeGreaterThanOrEqual(40);
+  });
+  for (const vector of vectors.stored as StoredVector[]) {
+    for (const locale of ["zh-CN", "en-US"]) {
+      it(`${vector.id} reads the same in ${locale}`, () => {
+        expect(displayTextFromStoredPreview(vector.token, locale)).toBe(vector.expected[locale]);
       });
     }
   }

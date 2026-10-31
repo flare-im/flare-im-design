@@ -15,8 +15,8 @@ import Foundation
 ///   show nothing. Callers that must not show a blank line (a reply strip, a quote) fall back to
 ///   ``FlareStrings/previewMessage`` — ``FlareReplyTarget/init(replyingTo:strings:)`` does that for you.
 ///
-/// Stored preview tokens (`{k:"im.preview.…"}`) are the core's wire format and are decoded by the
-/// host's SDK adapter, not here; what the decoded result is *called* still comes from this table.
+/// The core's stored summary of a message (a `{k:"im.preview.…"}` token on a conversation row, a quote or a
+/// search hit) is read by ``flareStoredPreviewText(_:strings:locale:systemEventText:)``, in the same words.
 public func flareMessagePreviewText(_ content: FlareMessageContent?, strings s: FlareStrings, locale: String? = nil) -> String {
     guard let content else { return "" }
     switch content {

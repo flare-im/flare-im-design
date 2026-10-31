@@ -1,5 +1,7 @@
 ## 未发布
 
+- `flareStoredPreviewText` 按共享表 `stored`（`spec/message-preview-vectors.json`）读核心存的摘要 token：表情 token 的包键改读核心写的 `e`；话题读作新增的 `previewThread`；没有文字的系统消息先用宿主的 `systemEventText`，再用 Kit 新增的 `systemEvent*` 文案；结果与正文摘要一样把包键读成名字。通知不再读 `t`。
+
 - 打开着的指针菜单自己重新预读：宿主作废了菜单那条消息的快照（`availability` 返回 null）并重建列表时，`FlareMessageList` 的菜单回到「正在读取…」，并自己对这条消息调用一次 `prefetch`；快照回来前不再重复请求，回来后就地换成新条目。宿主不必再为打开着的菜单自己重读。
 
 - 打开着的指针菜单跟随快照、气泡色板函数、金样按平台分目录：

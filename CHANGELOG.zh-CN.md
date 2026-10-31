@@ -6,6 +6,11 @@
 
 ### 设计系统与跨端组件
 
+- **核心存的消息摘要四端读法一致**（契约与四端 Kit）。
+  - `spec/message-preview-vectors.json` 新增 `stored`：核心在会话行、引用和搜索结果上存的不是消息本身，而是摘要 token（`{"k":"im.preview.image"}`，flare-im-core-sdk `preview_storage.rs`）。表里每条 token 都与核心序列化的结果逐字一致，并给出中英文读法，四端共跑。
+  - SwiftUI 与 Compose 新增 `flareStoredPreviewText(raw, strings, locale, systemEventText)`，规则与 Vue 的 `displayTextFromStoredPreview`、Flutter 的 `flareStoredPreviewText` 相同。宿主自己解 token 时只认 `fb` / `t` / `body` / `title` / `d`，图片、语音、文件、位置、表情及引用这些消息时，会话行是空的。
+  - 没有自带文字的系统消息按事件键取 Kit 的文案（原生 `FlareStrings` 的 `systemEvent*`、Vue 的 `systemEvent.*`），宿主给了名称时先用宿主的。
+  - Flutter 从错误的字段读表情 token 的包键，并把话题读成「消息」；Vue 遇到没有文字的 token（空正文、不认识的类型）会显示原始 JSON。两者都按表改正。Flutter `FlareStrings` 新增 `previewThread`。
 - **打开着的指针菜单在宿主作废快照后自己重新预读**（契约、Flutter 与 SwiftUI）。
   - 宿主作废了打开着的右键菜单那条消息的快照（消息被置顶、撤回、发送有了结果、连接变化，或快照放久了）并重画列表时，菜单显示「正在读取…」，列表自己对这条消息调用 `prefetch`：快照回来前只请求一次，宿主期间重画多少次都不重复。此前 Flutter 的菜单会一直停在「正在读取…」，除非宿主自己再读一次。
   - 重新预读是 Kit 的职责，宿主只负责作废不再作数的快照并回应 `prefetch`。MessageList `menu` 契约、`FlareMessageMenuSource` 与消息操作 recipe 都写明了。

@@ -4748,6 +4748,7 @@
     "en": "[Thread]",
     "kits": [
       "android",
+      "flutter",
       "ios"
     ],
     "zh": "[话题]"
@@ -7018,5 +7019,95 @@
       "ios"
     ],
     "zh": "回拨"
+  },
+  "systemEventGroupCreated": {
+    "en": "Group created",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "群聊已创建"
+  },
+  "systemEventGroupMemberJoined": {
+    "en": "A new member joined the group",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "新成员加入了群聊"
+  },
+  "systemEventGroupMemberRemoved": {
+    "en": "A member was removed from the group",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "有成员被移出群聊"
+  },
+  "systemEventGroupMemberLeft": {
+    "en": "A member left the group",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "有成员退出了群聊"
+  },
+  "systemEventGroupMemberMuted": {
+    "en": "A member was muted",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "有成员被禁言"
+  },
+  "systemEventGroupMemberUnmuted": {
+    "en": "A member was unmuted",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "有成员被解除禁言"
+  },
+  "systemEventGroupOwnerTransferred": {
+    "en": "Group ownership was transferred",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "群主已转让"
+  },
+  "systemEventGroupDissolved": {
+    "en": "The group was dissolved",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "群聊已解散"
+  },
+  "systemEventGroupAnnouncementUpdated": {
+    "en": "Group announcement updated",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "群公告已更新"
+  },
+  "systemEventFriendshipEstablished": {
+    "en": "You are now friends. Say hi!",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "你们已成为好友，可以开始聊天了"
   }
 }

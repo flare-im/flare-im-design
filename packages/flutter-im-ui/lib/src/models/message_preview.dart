@@ -150,6 +150,8 @@ String _genericPreview(FlareGenericContent content, FlareStrings strings) {
     case 'mini_program':
     case 'miniProgram':
       return _or(content.label, strings.previewMiniProgram);
+    case 'thread':
+      return _or(content.label, strings.previewThread);
     case 'custom':
       return _or(content.label, strings.previewCustom);
     default:
@@ -224,19 +226,22 @@ String _or(String? value, String fallback) {
 }
 
 /// The one-line summary the core stored for a conversation's last message (or a
-/// quote), in the host's words.
+/// quote, or a search hit), in the host's words.
 ///
 /// The core stores a stable token, not display text:
 /// `{"k":"im.preview.image","a":{"d":"说明","m":true}}` (`preview_storage.rs`).
 /// Plain text — history written before the tokens — is shown as it is. The
-/// mapping is Vue's `displayTextFromStoredPreview`: a token with its own words
-/// (a caption, a file name, a system line's fallback) shows them, the rest their
-/// `preview*` term. A token the kit does not know shows nothing rather than its
-/// raw JSON.
+/// rule is the shared table's `stored` list (`spec/message-preview-vectors.json`,
+/// Vue's `displayTextFromStoredPreview`): a token with its own words (a caption,
+/// a file name, a system line's fallback) shows them, the rest their `preview*`
+/// term. A token the kit does not know, or one with no words where words are the
+/// whole message, shows nothing rather than its raw JSON. Markdown reads as
+/// plain text and pack keys as their names, as in [flareMessagePreviewText].
 ///
-/// [systemEventText] names a system / notification event (`ek`, e.g.
-/// `group.member_kicked`) whose token carries no fallback text; without one, or
-/// when it returns '', the line reads [FlareStrings.previewSystem].
+/// A system or notification line without words of its own is named by its
+/// event key (`ek`, e.g. `group.member_left`): [systemEventText] first, when the
+/// host names events of its own, then the kit's `systemEvent*` words, else
+/// [FlareStrings.previewSystem] / [FlareStrings.previewNotification].
 String flareStoredPreviewText(
   String? raw,
   FlareStrings strings, {
@@ -246,17 +251,52 @@ String flareStoredPreviewText(
   final text = raw?.trim() ?? '';
   if (text.isEmpty) return '';
   final token = _storedPreviewToken(text);
-  if (token == null) return flareMarkdownToPlainText(text, strings).trim();
-  return flareMarkdownToPlainText(
-    _storedPreviewTokenText(
-      token.$1,
-      token.$2,
-      strings,
-      locale: locale,
-      systemEventText: systemEventText,
-    ),
-    strings,
-  ).trim();
+  final words = token == null
+      ? text
+      : _storedPreviewTokenText(
+          token.$1,
+          token.$2,
+          strings,
+          locale: locale,
+          systemEventText: systemEventText,
+        );
+  // Markdown first, then the pack keys — the order Vue reads a preview in.
+  return FlareEmojiStickerCatalog.instance
+      .localizePackKeysInText(
+        flareMarkdownToPlainText(words, strings),
+        locale: locale ?? PlatformDispatcher.instance.locale.toLanguageTag(),
+      )
+      .trim();
+}
+
+/// The kit's words for a system event key (`spec/message-preview-vectors.json`,
+/// Vue's `systemEvent.*`), or '' for a key it does not name.
+String _kitSystemEventText(String eventKey, FlareStrings strings) {
+  switch (eventKey) {
+    case 'group.created':
+      return strings.systemEventGroupCreated;
+    case 'group.member_joined':
+      return strings.systemEventGroupMemberJoined;
+    case 'group.member_kicked':
+    case 'group.member_removed':
+      return strings.systemEventGroupMemberRemoved;
+    case 'group.member_left':
+      return strings.systemEventGroupMemberLeft;
+    case 'group.member_muted':
+      return strings.systemEventGroupMemberMuted;
+    case 'group.member_unmuted':
+      return strings.systemEventGroupMemberUnmuted;
+    case 'group.owner_transferred':
+      return strings.systemEventGroupOwnerTransferred;
+    case 'group.dissolved':
+      return strings.systemEventGroupDissolved;
+    case 'group.announcement_updated':
+      return strings.systemEventGroupAnnouncementUpdated;
+    case 'relation.friendship_established':
+      return strings.systemEventFriendshipEstablished;
+    default:
+      return '';
+  }
 }
 
 (String, Map<String, Object?>)? _storedPreviewToken(String text) {
@@ -291,14 +331,16 @@ String _storedPreviewTokenText(
   String? locale,
   String Function(String eventKey)? systemEventText,
 }) {
-  String event(String fallback) {
-    final words = _arg(args, const ['fb', 't', 'body', 'title']);
+  String event(List<String> wordArgs, String fallback) {
+    final words = _arg(args, wordArgs);
     if (words.isNotEmpty) return words;
     final eventKey = _arg(args, const ['ek']);
-    final named = eventKey.isEmpty
-        ? ''
-        : (systemEventText?.call(eventKey) ?? '');
-    return _or(named, fallback);
+    if (eventKey.isEmpty) return fallback;
+    final named = systemEventText?.call(eventKey).trim() ?? '';
+    return _or(
+      named.isEmpty ? _kitSystemEventText(eventKey, strings) : named,
+      fallback,
+    );
   }
 
   switch (key) {
@@ -341,7 +383,7 @@ String _storedPreviewTokenText(
     case 'im.preview.sticker':
       return strings.previewSticker;
     case 'im.preview.emoji':
-      final packKey = _arg(args, const ['ek', 'k', 'key', 'emoji']);
+      final packKey = _arg(args, const ['e', 'emoji', 'key']);
       final label = packKey.isEmpty
           ? ''
           : FlareEmojiStickerCatalog.instance.emojiLabel(
@@ -376,15 +418,15 @@ String _storedPreviewTokenText(
           ? strings.previewForwardCount(count.toInt())
           : strings.previewForward;
     case 'im.preview.thread':
-      return _or(_arg(args, const ['t']), strings.previewMessage);
+      return _or(_arg(args, const ['t']), strings.previewThread);
     case 'im.preview.mini_program':
       return _or(_arg(args, const ['t']), strings.previewMiniProgram);
     case 'im.preview.image_group':
       return strings.previewImageGroup;
     case 'im.preview.system':
-      return event(strings.previewSystem);
+      return event(const ['fb', 't', 'body', 'title'], strings.previewSystem);
     case 'im.preview.notification':
-      return event(strings.previewNotification);
+      return event(const ['fb', 'body', 'title'], strings.previewNotification);
     case 'im.preview.vote':
       return strings.previewVote;
     case 'im.preview.task':
