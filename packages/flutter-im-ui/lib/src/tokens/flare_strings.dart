@@ -376,6 +376,9 @@ class FlareStrings {
     this.downloaded = '已下载', // en: Downloaded
     this.voicePlaybackFailed = '播放失败', // en: Playback failed
     this.videoLoadFailed = '视频无法播放', // en: This video can't be played
+    this.mediaUnavailableImage = '图片暂时无法加载', // en: Image isn't available right now
+    this.mediaUnavailableVideo = '视频暂时无法加载', // en: Video isn't available right now
+    this.mediaUnavailableAudio = '语音暂时无法加载', // en: Voice message isn't available right now
     // 权限提示（名词 / 动词短语 / 状态 / 说明）
     this.permissionNotifications = '通知',
     this.permissionStorage = '存储空间',
@@ -1282,6 +1285,9 @@ class FlareStrings {
 
   /// The video player's failed state, shown above its retry and close keys.
   final String videoLoadFailed;
+  final String mediaUnavailableImage;
+  final String mediaUnavailableVideo;
+  final String mediaUnavailableAudio;
   // 权限提示（名词 / 动词短语 / 状态 / 说明）
   final String permissionNotifications;
   final String permissionStorage;
@@ -2122,6 +2128,9 @@ class FlareStrings {
     String? downloaded,
     String? voicePlaybackFailed,
     String? videoLoadFailed,
+    String? mediaUnavailableImage,
+    String? mediaUnavailableVideo,
+    String? mediaUnavailableAudio,
     String? permissionNotifications,
     String? permissionStorage,
     String? permissionPhotos,
@@ -2903,6 +2912,9 @@ class FlareStrings {
       downloaded: downloaded ?? this.downloaded,
       voicePlaybackFailed: voicePlaybackFailed ?? this.voicePlaybackFailed,
       videoLoadFailed: videoLoadFailed ?? this.videoLoadFailed,
+      mediaUnavailableImage: mediaUnavailableImage ?? this.mediaUnavailableImage,
+      mediaUnavailableVideo: mediaUnavailableVideo ?? this.mediaUnavailableVideo,
+      mediaUnavailableAudio: mediaUnavailableAudio ?? this.mediaUnavailableAudio,
       permissionNotifications:
           permissionNotifications ?? this.permissionNotifications,
       permissionStorage: permissionStorage ?? this.permissionStorage,

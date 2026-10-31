@@ -508,6 +508,12 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["voicePlaybackFailed"] as? (String)) ?: "播放失败"
     val videoLoadFailed: String
         get() = (overrides["videoLoadFailed"] as? (String)) ?: "视频无法播放"
+    val mediaUnavailableImage: String
+        get() = (overrides["mediaUnavailableImage"] as? (String)) ?: "图片暂时无法加载"
+    val mediaUnavailableVideo: String
+        get() = (overrides["mediaUnavailableVideo"] as? (String)) ?: "视频暂时无法加载"
+    val mediaUnavailableAudio: String
+        get() = (overrides["mediaUnavailableAudio"] as? (String)) ?: "语音暂时无法加载"
     val imageLoadFailed: String
         get() = (overrides["imageLoadFailed"] as? (String)) ?: "图片加载失败"
 
@@ -2545,6 +2551,18 @@ class FlareStringsBuilder internal constructor() {
     var videoLoadFailed: String
         get() = (values["videoLoadFailed"] as? (String)) ?: "视频无法播放"
         set(value) { values["videoLoadFailed"] = value }
+
+    var mediaUnavailableImage: String
+        get() = (values["mediaUnavailableImage"] as? (String)) ?: "图片暂时无法加载"
+        set(value) { values["mediaUnavailableImage"] = value }
+
+    var mediaUnavailableVideo: String
+        get() = (values["mediaUnavailableVideo"] as? (String)) ?: "视频暂时无法加载"
+        set(value) { values["mediaUnavailableVideo"] = value }
+
+    var mediaUnavailableAudio: String
+        get() = (values["mediaUnavailableAudio"] as? (String)) ?: "语音暂时无法加载"
+        set(value) { values["mediaUnavailableAudio"] = value }
 
     var imageLoadFailed: String
         get() = (values["imageLoadFailed"] as? (String)) ?: "图片加载失败"

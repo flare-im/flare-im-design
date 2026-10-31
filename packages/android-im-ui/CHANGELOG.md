@@ -1,5 +1,7 @@
 ## 未发布
 
+- 宿主按媒体线上类型传入的 `FlareGenericContent`（`image` / `video` / `audio`）画成「图片暂时无法加载」等（`FlareStrings.mediaUnavailableImage` / `Video` / `Audio`）。原来语音画「不支持的消息类型」，图片与视频只画一个空框。
+
 - 新增 `flareStoredPreviewText(raw, strings, locale, systemEventText)`：按共享表 `stored`（`spec/message-preview-vectors.json`）读核心存在会话行、引用与搜索结果上的摘要 token，与 Vue、Flutter、SwiftUI 同一规则。`FlareStrings` 新增 `systemEvent*`，没有自带文字的系统消息按事件键取这些文案。宿主不必再自己解 token。
 
 - **失败气泡改为失败面**：失败底色 `messageFailedBackground`、正文 `messageFailedForeground`、1px `messageFailedBorder` 红边，与 Vue、SwiftUI、Flutter 一致。原来是发出底色加红边、白字，失败图标落在紫色底上。新增 `FlareMessageBubbleTone`、`flareMessageBubbleTone`、`FlareMessageBubblePalette`、`flareMessageBubblePalette`（`spec/message-surface-vectors.json` `palette`），`MessageBubble` 与 `MessageContentView` 都按它取色。

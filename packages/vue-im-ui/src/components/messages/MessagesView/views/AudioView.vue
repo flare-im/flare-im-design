@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from "vue";
 import FlareVoiceMessage from "../../standalone/FlareVoiceMessage.vue";
+import MediaUnavailableView from "./MediaUnavailableView.vue";
 import type { ContentElem } from "../../../../utils/contentElem";
 import { pickNestedPayload } from "../../../../utils/contentElem";
 import { asRecord, readNumber, readString } from "../../../../utils/contentData";
@@ -67,6 +68,8 @@ const sourceRequest = computed(() =>
 );
 const resolvedAudio = useResolvedMediaUrl(sourceRequest);
 const audioUrl = computed(() => resolvedAudio.url.value);
+// Nothing to play and nothing still resolving: the voice message says it is not available rather than a dead player.
+const unavailable = computed(() => !audioUrl.value && !resolvedAudio.loading.value);
 const progressRatio = computed(() => {
   if (!durationSeconds.value) return 0;
   return Math.min(1, Math.max(0, currentSeconds.value / durationSeconds.value));
@@ -117,7 +120,9 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="im-audio">
+    <MediaUnavailableView v-if="unavailable" kind="audio" />
     <FlareVoiceMessage
+      v-else
       embedded
       :outbound="isSelf"
       :seconds="durationSeconds"

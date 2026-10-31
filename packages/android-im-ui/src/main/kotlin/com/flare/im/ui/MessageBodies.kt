@@ -376,6 +376,37 @@ internal fun ImageMessageBody(
     }
 }
 
+/**
+ * The word for a picture, a video or a voice message the host has no address for, and the icon it is drawn with:
+ * still that kind of message, never "unsupported". Null for any other wire type.
+ */
+internal fun mediaUnavailableLine(wireType: String, strings: FlareStrings): Pair<String, String>? = when (wireType) {
+    "image" -> "image" to strings.mediaUnavailableImage
+    "video" -> "video" to strings.mediaUnavailableVideo
+    "audio", "voice" -> "mic" to strings.mediaUnavailableAudio
+    else -> null
+}
+
+/**
+ * A picture, a video or a voice message with no address to load (the host passes it as [FlareGenericContent] under
+ * its wire type): its icon and the kit's words for why it is not there, on the media's tertiary ground. Nothing to
+ * tap — there is nothing to retry from here — and a screen reader hears the same line.
+ */
+@Composable
+internal fun MediaUnavailableMessage(icon: String, text: String) {
+    val colors = flareColors()
+    Row(
+        Modifier.clip(RoundedCornerShape(FlareSizes.radiusCard)).background(colors.bgTertiary)
+            .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingSm)
+            .clearAndSetSemantics { contentDescription = text },
+        horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        FlareIcon(icon, size = FlareSizes.iconSizeSm, tint = colors.textTertiary)
+        Text(text, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm)
+    }
+}
+
 /** How wide a video thumbnail is when no poster slot sizes it: an image body's width, so the two read as one family. */
 private val VideoThumbnailWidth = 240.dp
 

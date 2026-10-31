@@ -10,6 +10,7 @@ import { useResolvedMediaUrl } from "../../../../composables/useMediaResolver";
 import { useFlareI18n } from "../../../../shared/i18n/useFlareI18n";
 import ImagePreviewModal from "../../../message-preview/ImagePreviewModal.vue";
 import FlareImageMessage from "../../standalone/FlareImageMessage.vue";
+import MediaUnavailableView from "./MediaUnavailableView.vue";
 import type { MessageMediaDownloadUiState } from "../../MessageBubble.vue";
 import { injectTimelineImageGallery } from "../../timelineImageGallery";
 
@@ -54,6 +55,8 @@ const resolvedFull = useResolvedMediaUrl(sourceRequest);
 const thumbUrl = computed(() => resolvedThumb.url.value || resolvedFull.url.value);
 const fullUrl = computed(() => resolvedFull.url.value || resolvedThumb.url.value);
 const resolving = computed(() => !thumbUrl.value && (resolvedThumb.loading.value || resolvedFull.loading.value));
+// Nothing to load and nothing still loading: the picture says it is not available rather than waiting forever.
+const unavailable = computed(() => !thumbUrl.value && !resolving.value);
 
 const description = computed(() => readString(payload.value, "description", "caption", "title"));
 const isMotion = computed(() => imageInfoIsMotion(payload.value as { animated?: boolean; format?: number; mimeType?: string }));
@@ -82,7 +85,9 @@ function openPreview(): void {
 
 <template>
   <div class="im-image">
+    <MediaUnavailableView v-if="unavailable" kind="image" />
     <FlareImageMessage
+      v-else
       :src="thumbUrl"
       :alt="description"
       :badge="badge"

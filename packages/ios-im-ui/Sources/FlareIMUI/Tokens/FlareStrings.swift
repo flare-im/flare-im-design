@@ -730,6 +730,12 @@ public struct FlareStrings: Sendable {
     public var imageLoadFailed: String
     /// en: "Video failed to load" — the video player when the video cannot load.
     public var videoLoadFailed: String
+    /// en: "Image isn't available right now"
+    public var mediaUnavailableImage: String
+    /// en: "Video isn't available right now"
+    public var mediaUnavailableVideo: String
+    /// en: "Voice message isn't available right now"
+    public var mediaUnavailableAudio: String
     /// en: "Dismiss announcement"
     public var announcementBannerDismiss: String
     /// en: "Remove image"
@@ -1629,6 +1635,9 @@ public struct FlareStrings: Sendable {
         voicePlaybackFailed: String = "播放失败",
         imageLoadFailed: String = "图片加载失败",
         videoLoadFailed: String = "视频加载失败",
+        mediaUnavailableImage: String = "图片暂时无法加载",
+        mediaUnavailableVideo: String = "视频暂时无法加载",
+        mediaUnavailableAudio: String = "语音暂时无法加载",
         announcementBannerDismiss: String = "关闭公告",
         removeImage: String = "移除图片",
         momentActions: String = "动态操作",
@@ -2386,6 +2395,9 @@ public struct FlareStrings: Sendable {
         self.voicePlaybackFailed = voicePlaybackFailed
         self.imageLoadFailed = imageLoadFailed
         self.videoLoadFailed = videoLoadFailed
+        self.mediaUnavailableImage = mediaUnavailableImage
+        self.mediaUnavailableVideo = mediaUnavailableVideo
+        self.mediaUnavailableAudio = mediaUnavailableAudio
         self.announcementBannerDismiss = announcementBannerDismiss
         self.removeImage = removeImage
         self.momentActions = momentActions

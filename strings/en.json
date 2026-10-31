@@ -7109,5 +7109,32 @@
       "ios"
     ],
     "zh": "你们已成为好友，可以开始聊天了"
+  },
+  "mediaUnavailableImage": {
+    "en": "Image isn't available right now",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "图片暂时无法加载"
+  },
+  "mediaUnavailableVideo": {
+    "en": "Video isn't available right now",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "视频暂时无法加载"
+  },
+  "mediaUnavailableAudio": {
+    "en": "Voice message isn't available right now",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "语音暂时无法加载"
   }
 }

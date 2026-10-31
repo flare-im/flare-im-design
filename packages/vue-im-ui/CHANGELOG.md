@@ -1,5 +1,7 @@
 ## 未发布
 
+- 图片、视频、语音的地址解析为空（且不在解析中）时，时间线画「图片暂时无法加载」等（`mediaMessage.unavailableImage` / `unavailableVideo` / `unavailableAudio`），不再画不能播放的播放器；与原生三端 Kit 同一画法。
+
 - `displayTextFromStoredPreview` 按共享表 `stored`（`spec/message-preview-vectors.json`）读核心存的摘要 token：没有文字的 token（空正文、不认识的类型）读作空串，不再显示原始 JSON。新增测试逐条跑这张表。
 
 - 失败气泡外观、打开着的消息菜单、几处触控与可及性回归：

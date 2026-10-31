@@ -1081,6 +1081,41 @@ public struct EmojiMessageView: View {
 }
 
 /// notification / system — a centered pill.
+/// A picture, a video or a voice message with no address to load (the host passes it as ``FlareGenericContent``
+/// under its wire type): still that kind of message — its icon and the kit's words for why it is not there, on
+/// the media's tertiary ground — never "unsupported". Nothing to tap, since there is nothing to retry from here;
+/// VoiceOver reads the same line.
+struct MediaUnavailableView: View {
+    /// The words and the icon for `wireType`, or nil for a type that is not a picture, a video or a voice message.
+    static func line(_ wireType: String, strings: FlareStrings) -> (icon: String, text: String)? {
+        switch wireType {
+        case "image": return ("image", strings.mediaUnavailableImage)
+        case "video": return ("video", strings.mediaUnavailableVideo)
+        case "audio", "voice": return ("mic", strings.mediaUnavailableAudio)
+        default: return nil
+        }
+    }
+
+    let icon: String
+    let text: String
+    @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareBrandTheme) private var flareBrandTheme
+
+    var body: some View {
+        let colors = FlareColors.of(scheme, brand: flareBrandTheme)
+        HStack(spacing: FlareSizes.spacingXs) {
+            IconView(icon, size: FlareSizes.iconSizeSm * textScale, color: colors.textTertiary)
+            Text(text).font(.system(size: FlareSizes.fontSizeSm * textScale)).foregroundColor(colors.textTertiary)
+        }
+        .padding(.horizontal, FlareSizes.spacingMd).padding(.vertical, FlareSizes.spacingSm)
+        .background(colors.bgTertiary)
+        .clipShape(RoundedRectangle(cornerRadius: FlareSizes.radiusCard, style: .continuous))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(text)
+    }
+}
+
 public struct SystemMessageView: View {
     private let text: String
     @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1

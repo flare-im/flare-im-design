@@ -6,6 +6,10 @@
 
 ### 设计系统与跨端组件
 
+- **没有可加载地址的图片、视频、语音如实说明**（四端 Kit）。
+  - 宿主拿不到图片、视频或语音的地址时，时间线仍按这类消息画：它的图标加「图片暂时无法加载」等文字（原生 `FlareStrings` 的 `mediaUnavailableImage` / `Video` / `Audio`，Vue 的 `mediaMessage.unavailable*`），不可点击。原生宿主按媒体的线上类型传 `FlareGenericContent`；Vue 在地址解析为空时画。
+  - 此前 SwiftUI 与 Flutter 把这类消息都画成「不支持的消息类型」，Compose 对语音如此、对图片和视频只画一个空框，Vue 画一个不能播放的播放器。
+  - Flutter `FlareUnknownMessage` 的提示、标题与诊断标签在宿主不传时取 `FlareStrings`，原来是写死的中文。
 - **核心存的消息摘要四端读法一致**（契约与四端 Kit）。
   - `spec/message-preview-vectors.json` 新增 `stored`：核心在会话行、引用和搜索结果上存的不是消息本身，而是摘要 token（`{"k":"im.preview.image"}`，flare-im-core-sdk `preview_storage.rs`）。表里每条 token 都与核心序列化的结果逐字一致，并给出中英文读法，四端共跑。
   - SwiftUI 与 Compose 新增 `flareStoredPreviewText(raw, strings, locale, systemEventText)`，规则与 Vue 的 `displayTextFromStoredPreview`、Flutter 的 `flareStoredPreviewText` 相同。宿主自己解 token 时只认 `fb` / `t` / `body` / `title` / `d`，图片、语音、文件、位置、表情及引用这些消息时，会话行是空的。

@@ -16,7 +16,9 @@ import 'flare_message_card_shell.dart';
 import '../models/message_data.dart';
 import '../models/message_surface.dart';
 import '../models/url_safety.dart';
+import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
+import 'flare_icon.dart';
 import 'flare_unknown_message.dart';
 import 'flare_forward_message.dart';
 import '../models/forward_record.dart';
@@ -661,6 +663,15 @@ class FlareMessageContentView extends StatelessWidget {
         self: self,
         selectionMode: selectionMode,
       ),
+      // A picture, a video or a voice message whose address is missing is
+      // still that kind of message: it says it cannot be loaded right now,
+      // never "unsupported" (the same in all four kits).
+      FlareGenericContent c
+          when _mediaUnavailableLine(c.contentType, FlareStrings.of(context)) !=
+              null =>
+        _MediaUnavailable(
+          line: _mediaUnavailableLine(c.contentType, FlareStrings.of(context))!,
+        ),
       FlareGenericContent c => FlareUnknownMessage(
         contentType: c.contentType,
         summary: '[${c.label}]',
@@ -730,6 +741,72 @@ class FlareMessageContentView extends StatelessWidget {
 
 /// A download state that does not change: a standalone body's snapshot for
 /// the viewer it opens.
+/// The words for a picture, a video or a voice message the host has no
+/// address for, and the icon it is drawn with: still that kind of message,
+/// never "unsupported". Null for any other wire type.
+({String icon, String text})? _mediaUnavailableLine(
+  String wireType,
+  FlareStrings strings,
+) => switch (wireType) {
+  'image' => (icon: 'image', text: strings.mediaUnavailableImage),
+  'video' => (icon: 'video', text: strings.mediaUnavailableVideo),
+  'audio' || 'voice' => (icon: 'mic', text: strings.mediaUnavailableAudio),
+  _ => null,
+};
+
+/// A picture, a video or a voice message with no address to load (the host
+/// passes it as [FlareGenericContent] under its wire type): its icon and the
+/// kit's words for why it is not there, on the media's tertiary ground.
+/// Nothing to tap — there is nothing to retry from here — and a screen reader
+/// hears the same line.
+class _MediaUnavailable extends StatelessWidget {
+  const _MediaUnavailable({required this.line});
+
+  final ({String icon, String text}) line;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = FlareColors.of(context);
+    return Semantics(
+      container: true,
+      label: line.text,
+      excludeSemantics: true,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: colors.bgTertiary,
+          borderRadius: BorderRadius.circular(FlareSizes.radiusCard),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: FlareSizes.spacingMd,
+            vertical: FlareSizes.spacingSm,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FlareIcon(
+                line.icon,
+                size: FlareSizes.iconSizeSm,
+                color: colors.textTertiary,
+              ),
+              const SizedBox(width: FlareSizes.spacingXs),
+              Flexible(
+                child: Text(
+                  line.text,
+                  style: TextStyle(
+                    color: colors.textTertiary,
+                    fontSize: FlareSizes.fontSizeSm,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _FixedDownloadState implements ValueListenable<FlareMediaDownloadState?> {
   const _FixedDownloadState(this.value);
 

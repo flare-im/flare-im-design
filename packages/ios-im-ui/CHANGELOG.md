@@ -1,5 +1,7 @@
 ## 未发布
 
+- 宿主按媒体线上类型传入的 `FlareGenericContent`（`image` / `video` / `audio`）画成「图片暂时无法加载」等（`FlareStrings.mediaUnavailableImage` / `Video` / `Audio`），不再画 `UnknownMessageView`。
+
 - 新增 `flareStoredPreviewText(_:strings:locale:systemEventText:)`：按共享表 `stored`（`spec/message-preview-vectors.json`）读核心存在会话行、引用与搜索结果上的摘要 token，与 Vue、Flutter、Compose 同一规则。`FlareStrings` 新增 `systemEvent*`，没有自带文字的系统消息按事件键取这些文案。宿主不必再自己解 token。
 
 - 打开着的指针菜单在宿主作废快照后自己重新预读：macOS 上，宿主作废了菜单那条消息的快照并重画列表时，菜单里出现的「正在读取…」会请求这条消息，宿主期间重画不会重复请求；新的托管窗口测试锁住这一点（去掉这次请求即失败）。宿主不必再为打开着的菜单自己重读。

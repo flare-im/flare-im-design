@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_icon.dart';
 
@@ -67,9 +68,9 @@ class FlareUnknownMessage extends StatelessWidget {
     this.isSelf = false,
     this.actionText = '',
     this.onAction,
-    this.hint = '当前版本无法显示这条消息',
-    this.unsupportedText = '不支持的消息类型',
-    this.diagnosticLabel = '消息类型',
+    this.hint,
+    this.unsupportedText,
+    this.diagnosticLabel,
   });
 
   /// Raw wire content type, e.g. `flare.poll.v2`.
@@ -85,19 +86,24 @@ class FlareUnknownMessage extends StatelessWidget {
   /// Host action label; without [onAction] no button is rendered.
   final String actionText;
   final VoidCallback? onAction;
-  final String hint;
-  final String unsupportedText;
-  final String diagnosticLabel;
+
+  /// The generic hint, title and diagnostic label; null reads the kit's words
+  /// ([FlareStrings.unknownMessageHint], [FlareStrings.unknownMessageUnsupported],
+  /// [FlareStrings.unknownMessageDiagnostic]) in the host's language.
+  final String? hint;
+  final String? unsupportedText;
+  final String? diagnosticLabel;
 
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
+    final strings = FlareStrings.of(context);
     final p = unknownMessagePresentation(
       contentType: contentType,
       label: label,
       summary: summary,
-      hint: hint,
-      unsupportedText: unsupportedText,
+      hint: hint ?? strings.unknownMessageHint,
+      unsupportedText: unsupportedText ?? strings.unknownMessageUnsupported,
     );
     // No handler (or no label) means the host cannot act, so no button is offered.
     final showsAction = onAction != null && actionText.trim().isNotEmpty;
@@ -140,7 +146,7 @@ class FlareUnknownMessage extends StatelessWidget {
             spacing: 6,
             children: [
               Text(
-                diagnosticLabel,
+                diagnosticLabel ?? strings.unknownMessageDiagnostic,
                 style: TextStyle(
                   fontSize: FlareSizes.fontSizeSm,
                   color: tertiary,

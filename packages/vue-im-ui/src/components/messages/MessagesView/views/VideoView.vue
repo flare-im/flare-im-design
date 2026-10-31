@@ -8,6 +8,7 @@ import { buildMediaResolveRequest, readMediaLocalPath } from "../../../../utils/
 import { useResolvedMediaUrl } from "../../../../composables/useMediaResolver";
 import { useFlareI18n } from "../../../../shared/i18n/useFlareI18n";
 import FlareVideoMessage from "../../standalone/FlareVideoMessage.vue";
+import MediaUnavailableView from "./MediaUnavailableView.vue";
 import type { MessageMediaDownloadUiState } from "../../MessageBubble.vue";
 
 // Timeline adapter: video payload → source / poster resolution (with a poster
@@ -81,6 +82,8 @@ const coverRequest = computed(() =>
 const resolvedVideo = useResolvedMediaUrl(videoRequest);
 const resolvedPoster = useResolvedMediaUrl(coverRequest);
 const videoUrl = computed(() => resolvedVideo.url.value);
+// Nothing to play and nothing still resolving: the video says it is not available rather than a dead play key.
+const unavailable = computed(() => !videoUrl.value && !resolvedVideo.loading.value);
 const posterUrl = computed(() => resolvedPoster.url.value);
 const displayPosterUrl = computed(() => posterUrl.value || generatedPosterUrl.value);
 const description = computed(() => readString(payload.value, "description", "caption"));
@@ -197,7 +200,9 @@ watch(
 
 <template>
   <div class="im-video">
+    <MediaUnavailableView v-if="unavailable" kind="video" />
     <FlareVideoMessage
+      v-else
       :poster="displayPosterUrl"
       :duration="durationLabel"
       :alt="title"

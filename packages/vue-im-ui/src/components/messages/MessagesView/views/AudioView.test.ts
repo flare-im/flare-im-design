@@ -38,16 +38,17 @@ describe("AudioView", () => {
     expect(wrapper.text()).not.toContain("Voice message");
   });
 
-  it("keeps unavailable media visible and explicitly disabled", async () => {
+  it("a voice message with nothing to load says so instead of a dead player", async () => {
     const wrapper = mountAudio({
       contentType: "audio",
       audio: { durationMs: 4000 },
     });
     await flushPromises();
 
-    const voice = wrapper.findComponent(FlareVoiceMessage);
-    expect(voice.props("disabled")).toBe(true);
-    expect(voice.find("button").attributes("disabled")).toBeDefined();
-    expect(voice.attributes("aria-label")).toContain("4\"");
+    expect(wrapper.findComponent(FlareVoiceMessage).exists()).toBe(false);
+    const unavailable = wrapper.get(".im-media-unavailable");
+    expect(unavailable.attributes("aria-label")).toBe("语音暂时无法加载");
+    expect(unavailable.text()).toBe("语音暂时无法加载");
+    expect(wrapper.find("button").exists()).toBe(false);
   });
 });

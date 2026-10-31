@@ -6,6 +6,10 @@ This is the target Stable release, not a published version. Package metadata rem
 
 ### Design System And Packages
 
+- **A picture, a video or a voice message with nothing to load says so** (all four kits).
+  - When the host has no address for a picture, a video or a voice message, the timeline draws that kind of message as not available right now — its icon and "图片暂时无法加载" / "Image isn't available right now" (`mediaUnavailableImage` / `Video` / `Audio` on the native `FlareStrings`, `mediaMessage.unavailable*` in Vue) — with nothing to tap. Native hosts hand it over as `FlareGenericContent` under the media's wire type; Vue draws it when the address resolves to nothing.
+  - Before, SwiftUI and Flutter drew every such message as "不支持的消息类型", Compose did so for a voice message and drew a bare frame for the rest, and Vue drew a player that could not play.
+  - Flutter `FlareUnknownMessage` reads its hint, title and diagnostic label from `FlareStrings` when the host passes none; its Chinese defaults were hard-coded.
 - **The core's stored message summaries read the same in all four kits** (contract and all four kits).
   - `spec/message-preview-vectors.json` adds `stored`: the token the core keeps instead of a message on a conversation row, a quote and a search hit (`{"k":"im.preview.image"}`, flare-im-core-sdk `preview_storage.rs`), each exactly as the core serializes it, and the line it reads as in both languages. All four kits run it.
   - SwiftUI and Compose add `flareStoredPreviewText(raw, strings, locale, systemEventText)`, the rule Vue's `displayTextFromStoredPreview` and Flutter's `flareStoredPreviewText` already had. Hosts that read the token themselves only knew `fb` / `t` / `body` / `title` / `d`, so a picture, a voice message, a file, a location, an emoji or a quote of one left the conversation row blank.

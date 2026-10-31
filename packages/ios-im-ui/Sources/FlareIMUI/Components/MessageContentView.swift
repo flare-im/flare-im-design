@@ -487,9 +487,15 @@ public struct MessageContentView: View {
         case let c as FlarePlaceholderContent:
             SystemMessageView(text: c.label)
         case let c as FlareGenericContent:
-            // The kit's own one-line summary: the body's label when it has one, else the word for
-            // its wire type. Wrapping the label in brackets drew a literal "[]" for a body without one.
-            UnknownMessageView(contentType: c.type, summary: flareMessagePreviewText(c, strings: strings), isSelf: ctx.isSelf)
+            // A picture, a video or a voice message whose address is missing is still that kind of message: it says
+            // it cannot be loaded right now, never "unsupported" (the same in all four kits).
+            if let unavailable = MediaUnavailableView.line(c.contentType, strings: strings) {
+                MediaUnavailableView(icon: unavailable.icon, text: unavailable.text)
+            } else {
+                // The kit's own one-line summary: the body's label when it has one, else the word for
+                // its wire type. Wrapping the label in brackets drew a literal "[]" for a body without one.
+                UnknownMessageView(contentType: c.type, summary: flareMessagePreviewText(c, strings: strings), isSelf: ctx.isSelf)
+            }
         default:
             UnknownMessageView(contentType: content.type, isSelf: ctx.isSelf)
         }

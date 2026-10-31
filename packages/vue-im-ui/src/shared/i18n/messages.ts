@@ -592,6 +592,10 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       coverFailed: "封面加载失败",
       savedToDevice: "已保存到本机",
       noDownloadUrl: "暂无可下载地址",
+      /** A picture, a video or a voice message with no address to load: still that kind of message, never "unsupported". */
+      unavailableImage: "图片暂时无法加载",
+      unavailableVideo: "视频暂时无法加载",
+      unavailableAudio: "语音暂时无法加载",
     },
     voicePlayer: {
       voice: "语音",
@@ -2059,6 +2063,9 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       coverFailed: "Cover failed to load",
       savedToDevice: "Saved to device",
       noDownloadUrl: "No download URL",
+      unavailableImage: "Image isn't available right now",
+      unavailableVideo: "Video isn't available right now",
+      unavailableAudio: "Voice message isn't available right now",
     },
     voicePlayer: {
       voice: "Voice message",

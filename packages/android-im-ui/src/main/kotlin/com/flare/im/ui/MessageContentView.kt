@@ -357,15 +357,15 @@ fun MessageContentView(
                 is FlareForwardContent -> ForwardRecordMessage(content, card = card, quote = cardQuote, selectionMode = selectionMode)
                 is FlareNotificationContent -> SystemMessage(content.text)
                 is FlarePlaceholderContent -> SystemMessage(content.label)
-                // A picture or a video whose address is missing waits or failed: its placeholder, never "unsupported".
-                is FlareGenericContent -> when (flareMessageContentType(content).first) {
-                    "image" -> ImageMessageBody(model = null, alt = content.label.takeIf { it.isNotEmpty() })
-                    "video" -> VideoMessage(alt = content.label.takeIf { it.isNotEmpty() })
-                    // The kit's own one-line summary: the body's label when it has one, else the word for its
-                    // wire type. Wrapping the label in brackets drew a literal "[]" for a body without one.
-                    else -> FlareMessageCardShell(card, cardQuote) { _ ->
+                // A picture, a video or a voice message whose address is missing is still that kind of message: it
+                // says it cannot be loaded right now, never "unsupported" (the same in all four kits).
+                is FlareGenericContent -> when (val unavailable = mediaUnavailableLine(flareMessageContentType(content).first, strings)) {
+                    null -> FlareMessageCardShell(card, cardQuote) { _ ->
+                        // The kit's own one-line summary: the body's label when it has one, else the word for its
+                        // wire type. Wrapping the label in brackets drew a literal "[]" for a body without one.
                         UnknownMessage(contentType = content.type, summary = flareMessagePreviewText(content, strings), isSelf = outgoing)
                     }
+                    else -> MediaUnavailableMessage(icon = unavailable.first, text = unavailable.second)
                 }
                 else -> UnknownMessage(contentType = content.type, isSelf = outgoing)
             }
