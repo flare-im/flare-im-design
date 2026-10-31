@@ -132,6 +132,26 @@ describe("MessageList menu and the core's snapshot", () => {
     host.unmount();
   });
 
+  it("keeps an open menu on the kit's own rule while the host has dropped its snapshot, then narrows it again", async () => {
+    // Vue has no loading entry and no prefetch: a dropped snapshot leaves the kit's rule, and the menu stays open.
+    const snapshots = ref<Record<string, Partial<MessageActionAvailability>>>({ "client-1": { canForward: false } });
+    const host = mountWith(() => ({ availability: (row) => snapshots.value[row.clientMsgId ?? ""] }));
+    const menu = await openMenu(host);
+    expect(forwardIds(host)).not.toContain("forward");
+
+    snapshots.value = {};
+    await flushPromises();
+    expect(host.findComponent(FlareActionMenu).props("open")).toBe(true);
+    expect(host.findComponent(MessageMenu).vm.$.uid).toBe(menu);
+    expect(forwardIds(host)).toEqual(expect.arrayContaining(["reply", "forward"]));
+
+    snapshots.value = { "client-1": { canForward: false } };
+    await flushPromises();
+    expect(host.findComponent(FlareActionMenu).props("open")).toBe(true);
+    expect(forwardIds(host)).not.toContain("forward");
+    host.unmount();
+  });
+
   it("narrows an open menu in place when the host hands it a new config", async () => {
     const config = ref<MessageMenuConfig>({});
     const host = mountWith(() => config.value);

@@ -3867,8 +3867,8 @@
           "type": "(message) => MessageActionAvailability | null",
           "required": true,
           "description": {
-            "en": "The host's current snapshot for the message (synchronous).",
-            "zh": "宿主手里这条消息的当前快照（同步）。"
+            "en": "The host's current snapshot for the message (synchronous); null while it has none, and once it no longer holds (the host drops it and redraws the list).",
+            "zh": "宿主手里这条消息的当前快照（同步）；还没有时为 null，快照不再作数时也返回 null（宿主作废它并重画列表）。"
           }
         },
         {
@@ -3876,8 +3876,8 @@
           "type": "(messageIds: string[]) => void",
           "required": false,
           "description": {
-            "en": "Rows coming on screen: read their availability ahead of a menu.",
-            "zh": "行进入视口：提前读它们的可用性。"
+            "en": "Rows coming on screen, a menu asked for without a snapshot, and the message an open pointer menu shows once the host drops its snapshot (the kit asks again itself, once until a snapshot is back): read their availability ahead of a menu.",
+            "zh": "行进入视口、没有快照时打开的菜单，以及宿主作废了打开着的右键菜单那条消息的快照时（Kit 自己再请求一次，快照回来前不重复）：提前读它们的可用性。"
           }
         },
         {
@@ -5855,8 +5855,8 @@
           "name": "menuConfig",
           "type": "MessageMenuConfig",
           "description": {
-            "en": "Which long-press actions are enabled for this message. `availability(message)` is the host's snapshot of the core's MessageActionAvailability (what the native MessageMenuSource.availability reads; null while it has none): a false flag switches that action off, nothing switches one on — a plugin card the core will not forward has no forward. The menu reads it reactively: an open menu narrows in place when the snapshot it reads changes or the host passes a new menuConfig.",
-            "zh": "该消息长按可用的操作集合。`availability(message)` 是宿主手里核心 MessageActionAvailability 的快照（即原生 MessageMenuSource.availability 读的那份；没有时为 null）：为 false 的标志关掉对应动作，不会打开任何动作——核心不允许转发的插件卡没有「转发」。菜单以响应式读取它：所读的快照变了，或宿主换了 menuConfig，打开着的菜单就地收窄。"
+            "en": "Which long-press actions are enabled for this message. `availability(message)` is the host's snapshot of the core's MessageActionAvailability (what the native MessageMenuSource.availability reads; null while it has none): a false flag switches that action off, nothing switches one on — a plugin card the core will not forward has no forward. The menu reads it reactively: an open menu narrows in place when the snapshot it reads changes or the host passes a new menuConfig. There is no loading entry and no prefetch: while the snapshot is null (none yet, or dropped because it no longer holds) the kit's own rule decides.",
+            "zh": "该消息长按可用的操作集合。`availability(message)` 是宿主手里核心 MessageActionAvailability 的快照（即原生 MessageMenuSource.availability 读的那份；没有时为 null）：为 false 的标志关掉对应动作，不会打开任何动作——核心不允许转发的插件卡没有「转发」。菜单以响应式读取它：所读的快照变了，或宿主换了 menuConfig，打开着的菜单就地收窄。Vue 没有「正在读取…」也没有 prefetch：快照为 null（还没有，或因不再作数被作废）时按 Kit 自己的规则。"
           },
           "platforms": [
             "vue"
@@ -6134,8 +6134,8 @@
           "name": "menuConfig",
           "type": "MessageMenuConfig",
           "description": {
-            "en": "Enabled long-press actions across the list. `availability(message)` is the host's snapshot of the core's MessageActionAvailability (what the native MessageMenuSource.availability reads; null while it has none): a false flag switches that action off, nothing switches one on — a plugin card the core will not forward has no forward. The menu reads it reactively: an open menu narrows in place when the snapshot it reads changes or the host passes a new menuConfig.",
-            "zh": "整表可用的长按操作集合。`availability(message)` 是宿主手里核心 MessageActionAvailability 的快照（即原生 MessageMenuSource.availability 读的那份；没有时为 null）：为 false 的标志关掉对应动作，不会打开任何动作——核心不允许转发的插件卡没有「转发」。菜单以响应式读取它：所读的快照变了，或宿主换了 menuConfig，打开着的菜单就地收窄。"
+            "en": "Enabled long-press actions across the list. `availability(message)` is the host's snapshot of the core's MessageActionAvailability (what the native MessageMenuSource.availability reads; null while it has none): a false flag switches that action off, nothing switches one on — a plugin card the core will not forward has no forward. The menu reads it reactively: an open menu narrows in place when the snapshot it reads changes or the host passes a new menuConfig. There is no loading entry and no prefetch: while the snapshot is null (none yet, or dropped because it no longer holds) the kit's own rule decides.",
+            "zh": "整表可用的长按操作集合。`availability(message)` 是宿主手里核心 MessageActionAvailability 的快照（即原生 MessageMenuSource.availability 读的那份；没有时为 null）：为 false 的标志关掉对应动作，不会打开任何动作——核心不允许转发的插件卡没有「转发」。菜单以响应式读取它：所读的快照变了，或宿主换了 menuConfig，打开着的菜单就地收窄。Vue 没有「正在读取…」也没有 prefetch：快照为 null（还没有，或因不再作数被作废）时按 Kit 自己的规则。"
           },
           "platforms": [
             "vue"
@@ -6251,8 +6251,8 @@
           "type": "FlareMessageMenuSource",
           "required": false,
           "description": {
-            "en": "One source for the long-press sheet and the pointer (right-click) menu: availability(message) reads the host's snapshot of the core's MessageActionAvailability, prefetch(ids) is called for rows coming on screen, hiddenActions as MessageActionSheet, extraActions(message) the host's entries for that message (MessageActionSheet's actions; a report action only on someone else's message), perform(message, actionId) for both. The kit builds both menus with the MessageActionSheet entry function; without a snapshot the pointer menu shows one disabled messageMenuLoading entry and prefetches. An open pointer menu follows the snapshot the host redraws the list with: the loading entry becomes the entries, an action the core no longer allows leaves, a host entry it disables is drawn disabled, all in the menu that is open (it does not close, and its anchored edge stays at the pointer). Replaces the SwiftUI contextMenu entries closure. Vue drives the same from menuConfig + actions.",
-            "zh": "长按面板与指针（右键）菜单的同一个来源：availability(message) 同步读宿主手里核心 MessageActionAvailability 的快照，prefetch(ids) 在行进入视口时调用，hiddenActions 与 MessageActionSheet 同义，extraActions(message) 按这条消息给出宿主的条目（即 MessageActionSheet 的 actions，例如「举报」只出现在别人的消息上），perform(message, actionId) 两处共用。Kit 用 MessageActionSheet 的条目函数画两处；还没有快照时右键菜单只有一条不可点的「正在读取…」并触发预读。右键菜单打开期间，宿主带着新快照重画列表时，菜单就地跟随：「正在读取…」换成条目，核心不再允许的动作移除，宿主停用的条目置灰；菜单不关闭，锚定的一边仍在指针处。取代 SwiftUI 的 contextMenu entries 闭包。Vue 由 menuConfig + actions 同源驱动。"
+            "en": "One source for the long-press sheet and the pointer (right-click) menu: availability(message) reads the host's snapshot of the core's MessageActionAvailability, prefetch(ids) is called for rows coming on screen, hiddenActions as MessageActionSheet, extraActions(message) the host's entries for that message (MessageActionSheet's actions; a report action only on someone else's message), perform(message, actionId) for both. The kit builds both menus with the MessageActionSheet entry function; without a snapshot the pointer menu shows one disabled messageMenuLoading entry and prefetches. An open pointer menu follows the snapshot the host redraws the list with: the loading entry becomes the entries, an action the core no longer allows leaves, a host entry it disables is drawn disabled, all in the menu that is open (it does not close, and its anchored edge stays at the pointer). When the host drops the open menu's snapshot (the message was pinned, recalled or sent, the connection moved, or the snapshot grew old) and redraws, the menu shows the loading entry again and the kit calls prefetch for that message itself, once until a snapshot is back: asking again is the kit's job, the host only drops snapshots that no longer hold and answers prefetch. Replaces the SwiftUI contextMenu entries closure. Vue drives the same from menuConfig + actions.",
+            "zh": "长按面板与指针（右键）菜单的同一个来源：availability(message) 同步读宿主手里核心 MessageActionAvailability 的快照，prefetch(ids) 在行进入视口时调用，hiddenActions 与 MessageActionSheet 同义，extraActions(message) 按这条消息给出宿主的条目（即 MessageActionSheet 的 actions，例如「举报」只出现在别人的消息上），perform(message, actionId) 两处共用。Kit 用 MessageActionSheet 的条目函数画两处；还没有快照时右键菜单只有一条不可点的「正在读取…」并触发预读。右键菜单打开期间，宿主带着新快照重画列表时，菜单就地跟随：「正在读取…」换成条目，核心不再允许的动作移除，宿主停用的条目置灰；菜单不关闭，锚定的一边仍在指针处。宿主作废了打开着的菜单那条消息的快照（消息被置顶、撤回、发送有了结果、连接变化，或快照放久了）并重画列表时，菜单回到「正在读取…」，Kit 自己对这条消息调一次 prefetch，快照回来前不重复请求：重新预读是 Kit 的职责，宿主只负责作废不再作数的快照并回应 prefetch。取代 SwiftUI 的 contextMenu entries 闭包。Vue 由 menuConfig + actions 同源驱动。"
           },
           "platforms": [
             "flutter",

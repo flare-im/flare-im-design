@@ -16,8 +16,11 @@ import 'flare_message_action_sheet.dart';
 ///   availability for a message, synchronously; null while the host has none.
 ///   The host refreshes its snapshots asynchronously and rebuilds the list.
 /// - [prefetch] is called with the ids ([FlareMessageData.id]) of rows coming
-///   on screen, and of a row whose menu was asked for without a snapshot: the
-///   host reads their availability ahead of a menu.
+///   on screen, of a row whose menu was asked for without a snapshot, and of
+///   the message an open pointer menu is showing when the host drops its
+///   snapshot: the host reads their availability ahead of a menu. Asking again
+///   for the open menu is the list's job; the host drops a snapshot that no
+///   longer holds and answers prefetch, nothing more.
 /// - [hiddenActions] is that of [FlareMessageActionSheet]; [extraActions]
 ///   gives the host's own entries for a message (the sheet's `actions`), so an
 ///   entry can depend on the message — "report" only on someone else's. Both
@@ -25,8 +28,10 @@ import 'flare_message_action_sheet.dart';
 /// - [perform] receives the chosen entry from either menu.
 ///
 /// Without a snapshot the pointer menu shows one disabled entry,
-/// messageMenuLoading, and prefetches the row; the long-press sheet opens once
-/// the host's snapshot arrives (the host reads, then the sheet opens).
+/// messageMenuLoading, and prefetches the row, once each time it is left
+/// without one (when it opens, or when the host drops the snapshot while it is
+/// open); the long-press sheet opens once the host's snapshot arrives (the
+/// host reads, then the sheet opens).
 @immutable
 class FlareMessageMenuSource {
   const FlareMessageMenuSource({

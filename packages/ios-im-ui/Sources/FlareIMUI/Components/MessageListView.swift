@@ -146,8 +146,9 @@ public struct MessageListView: View {
     ///   - menu: One source for the message menu (``FlareMessageMenuSource``): the kit opens the long-press sheet
     ///     (``MessageActionSheetView``, reactions to `onReact`) and, on a pointer, draws the context menu — a secondary
     ///     click on macOS, and on iPad, where it also takes the long press — from the same entries, and both send
-    ///     the chosen action to `perform`. Rows coming on screen without a snapshot are prefetched. With a `menu`,
-    ///     `onMessageLongPress` is not called; without one the long press calls it as before.
+    ///     the chosen action to `perform`. Rows coming on screen without a snapshot are prefetched, and so is the
+    ///     message of an open pointer menu once the host drops its snapshot. With a `menu`, `onMessageLongPress` is
+    ///     not called; without one the long press calls it as before.
     ///
     /// Each row is one VoiceOver element — sender, content summary, time and status — with the actions reply
     /// (`onSwipeReply`), the message menu (`onMessageLongPress`) and, while failed, retry (`onResend`).

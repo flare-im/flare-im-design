@@ -290,6 +290,116 @@ final class MessageMenuSourceTests: XCTestCase {
         XCTAssertFalse(seen[2].contains(zh.messageActionDelete), "delete left")
         XCTAssertTrue(seen[2].contains(zh.messageActionReply))
     }
+
+    /// Laid out for real and opened with a secondary click: the host drops the open menu's snapshot (the message
+    /// moved, or the snapshot grew old) and only redraws. The open menu turns to its loading entry and the list asks
+    /// for that message itself — once, however often the host redraws meanwhile — and the answer changes the menu in
+    /// place. A snapshot dropped again is asked for again; a closed menu asks for nothing.
+    @MainActor
+    func testAnOpenPointerMenuAsksAgainForASnapshotTheHostDrops() throws {
+        _ = NSApplication.shared
+        let model = MenuHostModel()
+        let report = report
+        var calls: [[String]] = []
+        let source: ([String: FlareMessageActionAvailability]) -> FlareMessageMenuSource = { snapshots in
+            FlareMessageMenuSource(availability: { snapshots[$0.id] }, prefetch: { calls.append($0) },
+                                   extraActions: { _ in [report] }, perform: { _, _ in })
+        }
+        let screen = MenuHostScreen(model: model, menu: source)
+        let size = NSSize(width: 400, height: 300)
+        let host = NSHostingView(rootView: screen.frame(width: size.width, height: size.height))
+        let window = NSWindow(contentRect: NSRect(origin: .zero, size: size), styleMask: .borderless,
+                              backing: .buffered, defer: false)
+        window.contentView = host
+        host.setFrameSize(size)
+        window.orderFront(nil)
+        defer { window.orderOut(nil) }
+        let snapshot = snapshot
+        model.snapshots = ["a": snapshot]
+        model.messages = [message("a")]
+        host.layoutSubtreeIfNeeded()
+        RunLoop.main.run(until: Date().addingTimeInterval(0.5))
+        XCTAssertEqual(calls, [], "on screen with a snapshot: nothing to ask")
+
+        let unpinnable = FlareMessageActionAvailability(canReply: true, canCopy: true, canUnpin: true)
+        var seen: [[String]] = []
+        var asked: [[[String]]] = []
+        var opened: [ObjectIdentifier] = []
+        func after(_ seconds: TimeInterval, _ run: @escaping () -> Void) {
+            RunLoop.main.add(Timer(timeInterval: seconds, repeats: false) { _ in run() }, forMode: .common)
+        }
+        let observer = NotificationCenter.default.addObserver(
+            forName: NSMenu.didBeginTrackingNotification, object: nil, queue: nil
+        ) { note in
+            guard let menu = note.object as? NSMenu else { return }
+            opened.append(ObjectIdentifier(menu))
+            guard opened.count == 1 else { return }
+            seen.append(Self.titles(menu))
+            after(0.3) {
+                // Pinned elsewhere: the host's snapshot no longer holds, so it drops it and redraws.
+                model.snapshots = [:]
+                after(0.5) {
+                    seen.append(Self.titles(menu))
+                    asked.append(calls)
+                    // Redraws while the answer is on its way.
+                    model.messages = [self.message("a")]
+                    model.redraws += 1
+                    after(0.3) {
+                        model.redraws += 1
+                        after(0.3) {
+                            asked.append(calls)
+                            model.snapshots = ["a": unpinnable]
+                            after(0.5) {
+                                seen.append(Self.titles(menu))
+                                model.snapshots = [:]
+                                after(0.5) {
+                                    asked.append(calls)
+                                    menu.cancelTracking()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        defer { NotificationCenter.default.removeObserver(observer) }
+
+        // The row is at the bottom of the viewport, where the timeline opens: click up from there until it answers.
+        var y: CGFloat = 8
+        while opened.isEmpty && y < size.height {
+            for type in [NSEvent.EventType.rightMouseDown, .rightMouseUp] {
+                let event = try XCTUnwrap(NSEvent.mouseEvent(
+                    with: type, location: NSPoint(x: 120, y: y), modifierFlags: [],
+                    timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: window.windowNumber, context: nil,
+                    eventNumber: 0, clickCount: 1, pressure: 1))
+                window.sendEvent(event)
+            }
+            RunLoop.main.run(until: Date().addingTimeInterval(0.1))
+            y += 12
+        }
+        let deadline = Date().addingTimeInterval(6)
+        while asked.count < 3 && Date() < deadline { RunLoop.main.run(until: Date().addingTimeInterval(0.05)) }
+        RunLoop.main.run(until: Date().addingTimeInterval(0.3))
+        let closed = calls
+        model.redraws += 1
+        host.layoutSubtreeIfNeeded()
+        RunLoop.main.run(until: Date().addingTimeInterval(0.4))
+
+        XCTAssertEqual(opened.count, 1, "one menu, opened once and never reopened")
+        XCTAssertEqual(seen.count, 3)
+        XCTAssertEqual(asked.count, 3)
+        guard seen.count == 3, asked.count == 3 else { return }
+        XCTAssertEqual(seen[0], expectedTitles(source(["a": snapshot]), message("a")), "the snapshot's entries")
+        XCTAssertEqual(seen[1], [zh.messageMenuLoading + " (off)"], "the snapshot dropped: the loading entry")
+        XCTAssertEqual(asked[0], [["a"]], "the list asked for the open menu's message itself")
+        XCTAssertEqual(asked[1], [["a"]], "redraws while it waits do not ask again")
+        XCTAssertEqual(seen[2], expectedTitles(source(["a": unpinnable]), message("a")),
+                       "the answer changes the open menu in place")
+        XCTAssertTrue(seen[2].contains(zh.messageActionUnpin))
+        XCTAssertFalse(seen[2].contains(zh.messageActionDelete))
+        XCTAssertEqual(asked[2], [["a"], ["a"]], "dropped again: asked for again, once")
+        XCTAssertEqual(calls, closed, "a closed menu asks for nothing")
+    }
     #endif
 }
 
@@ -298,12 +408,15 @@ final class MessageMenuSourceTests: XCTestCase {
 private final class MenuHostModel: ObservableObject {
     @Published var snapshots: [String: FlareMessageActionAvailability] = [:]
     @Published var messages: [FlareMessageData] = []
+    /// Bumped for a redraw that changes nothing the menu reads.
+    @Published var redraws = 0
 }
 
 private struct MenuHostScreen: View {
     @ObservedObject var model: MenuHostModel
     let menu: ([String: FlareMessageActionAvailability]) -> FlareMessageMenuSource
     var body: some View {
+        let _ = model.redraws
         MessageListView(messages: model.messages, currentUserId: "me", menu: menu(model.snapshots))
     }
 }

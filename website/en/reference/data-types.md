@@ -932,8 +932,8 @@ title: Data Types
 
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
-| `availability` | `(message) => MessageActionAvailability \| null` | ✓ | The host's current snapshot for the message (synchronous). |
-| `prefetch` | `(messageIds: string[]) => void` |  | Rows coming on screen: read their availability ahead of a menu. |
+| `availability` | `(message) => MessageActionAvailability \| null` | ✓ | The host's current snapshot for the message (synchronous); null while it has none, and once it no longer holds (the host drops it and redraws the list). |
+| `prefetch` | `(messageIds: string[]) => void` |  | Rows coming on screen, a menu asked for without a snapshot, and the message an open pointer menu shows once the host drops its snapshot (the kit asks again itself, once until a snapshot is back): read their availability ahead of a menu. |
 | `hiddenActions` | `Set<string>` |  | As MessageActionSheet. |
 | `extraActions` | `(message) => MessageMenuEntry[]` |  | The host's entries for this message, in both menus (a report action only on someone else's message; Vue's MessageMenuExtension.available). |
 | `perform` | `(message, actionId: string) => void` | ✓ | The chosen entry, from either menu. |

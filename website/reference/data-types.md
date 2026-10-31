@@ -932,8 +932,8 @@ title: 数据类型
 
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
-| `availability` | `(message) => MessageActionAvailability \| null` | ✓ | 宿主手里这条消息的当前快照（同步）。 |
-| `prefetch` | `(messageIds: string[]) => void` |  | 行进入视口：提前读它们的可用性。 |
+| `availability` | `(message) => MessageActionAvailability \| null` | ✓ | 宿主手里这条消息的当前快照（同步）；还没有时为 null，快照不再作数时也返回 null（宿主作废它并重画列表）。 |
+| `prefetch` | `(messageIds: string[]) => void` |  | 行进入视口、没有快照时打开的菜单，以及宿主作废了打开着的右键菜单那条消息的快照时（Kit 自己再请求一次，快照回来前不重复）：提前读它们的可用性。 |
 | `hiddenActions` | `Set<string>` |  | 与 MessageActionSheet 相同。 |
 | `extraActions` | `(message) => MessageMenuEntry[]` |  | 宿主按这条消息给出的条目，两处共用（例如「举报」只出现在别人的消息上；对应 Vue MessageMenuExtension 的 available）。 |
 | `perform` | `(message, actionId: string) => void` | ✓ | 两处选中的条目。 |

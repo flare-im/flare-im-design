@@ -1,5 +1,7 @@
 ## 未发布
 
+- 打开着的指针菜单在宿主作废快照后自己重新预读：macOS 上，宿主作废了菜单那条消息的快照并重画列表时，菜单里出现的「正在读取…」会请求这条消息，宿主期间重画不会重复请求；新的托管窗口测试锁住这一点（去掉这次请求即失败）。宿主不必再为打开着的菜单自己重读。
+
 - 气泡色板函数、iOS 16 滚动路径的定位、快照与指针菜单：
   - 新增 `FlareMessageBubbleTone`、`flareMessageBubbleTone(isSelf:status:)`、`FlareMessageBubblePalette`、`flareMessageBubblePalette(_:colors:)`（`spec/message-surface-vectors.json` `palette`），`MessageBubbleView` 按它画底色与红边。外观不变。
   - `MessageListView` 的 iOS 16 滚动路径：定位到某条消息时清掉绑定的可见位置，与新路径一致。系统保留绑定位置时（macOS 14 / iOS 17 起），被定位行的标记一改动内容，列表就会被拉回末尾。

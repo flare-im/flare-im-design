@@ -56,6 +56,13 @@ class _HostState extends State<_Host> {
   void change(String id, FlareMessageActionAvailability snapshot) =>
       setState(() => snapshots[id] = snapshot);
 
+  /// The host drops a snapshot that no longer holds (the message moved, or the
+  /// snapshot grew old) and redraws.
+  void drop(String id) => setState(() => snapshots.remove(id));
+
+  /// A redraw that changes nothing the menu reads.
+  void redraw() => setState(() {});
+
   @override
   Widget build(BuildContext context) => MaterialApp(
     navigatorObservers: widget.observers,
@@ -365,6 +372,83 @@ void main() {
         expect(find.text(strings.messageActionReply), findsOneWidget);
         expect(pops.count, 0);
         expect(_pointerMenu, findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'a snapshot the host drops while the menu is open is asked for again by '
+      'the list, once, and the answer changes the menu in place',
+      variant: desktop,
+      (tester) async {
+        final log = <String>[];
+        final host = GlobalKey<_HostState>();
+        final pops = _Pops();
+        await tester.pumpWidget(
+          _Host(
+            key: host,
+            log: log,
+            snapshots: const {'m1': _snapshot},
+            observers: [pops],
+          ),
+        );
+        await tester.pump();
+        log.clear();
+        await tester.tapAt(
+          tester.getCenter(find.text('one')),
+          buttons: kSecondaryButton,
+        );
+        await tester.pumpAndSettle();
+        expect(find.text(strings.messageActionDelete), findsOneWidget);
+        expect(log, isEmpty, reason: 'a snapshot was there: nothing to ask');
+        final route = ModalRoute.of(tester.element(_pointerMenu));
+
+        // Pinned elsewhere: the host's snapshot no longer holds, so it drops
+        // it and redraws — and does nothing more.
+        host.currentState!.drop('m1');
+        await tester.pump();
+        await tester.pump();
+        expect(find.text(strings.messageMenuLoading), findsOneWidget);
+        expect(find.text(strings.messageActionDelete), findsNothing);
+        expect(log, ['prefetch m1'], reason: 'the list asks for it itself');
+
+        // Redraws while the answer is on its way do not ask again.
+        host.currentState!.redraw();
+        await tester.pump();
+        host.currentState!.redraw();
+        await tester.pump();
+        await tester.pump();
+        expect(log, ['prefetch m1']);
+
+        // The core's new answer: 取消置顶 in place of 置顶, in the same menu.
+        host.currentState!.change(
+          'm1',
+          const FlareMessageActionAvailability(
+            canReply: true,
+            canCopy: true,
+            canUnpin: true,
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+        expect(find.text(strings.messageMenuLoading), findsNothing);
+        expect(find.text(strings.messageActionUnpin), findsOneWidget);
+        expect(find.text(strings.messageActionDelete), findsNothing);
+        expect(pops.count, 0, reason: 'the menu did not close to refresh');
+        expect(ModalRoute.of(tester.element(_pointerMenu)), same(route));
+
+        // Dropped again later: asked for again, once more.
+        host.currentState!.drop('m1');
+        await tester.pump();
+        await tester.pump();
+        expect(log, ['prefetch m1', 'prefetch m1']);
+
+        await tester.tapAt(const Offset(4, 4));
+        await tester.pumpAndSettle();
+        expect(_pointerMenu, findsNothing);
+        host.currentState!.redraw();
+        await tester.pump();
+        await tester.pump();
+        expect(log, hasLength(2), reason: 'a closed menu asks for nothing');
       },
     );
 

@@ -213,10 +213,11 @@ class FlareMessageList extends StatefulWidget {
   /// [FlareMessageMenuSource.perform] (a reaction from the sheet goes to
   /// [onReact]). It asks the host to prefetch the rows coming on screen.
   /// Without a snapshot the pointer menu shows one disabled "loading" entry
-  /// and prefetches; a long press waits for the snapshot, then opens the
-  /// sheet. With [menu] the list owns the menus and [onMessageLongPress] is
-  /// not called; without it a long press and a secondary click both raise
-  /// [onMessageLongPress].
+  /// and prefetches, also when the host drops the snapshot while the menu is
+  /// open (the list asks again itself); a long press waits for the snapshot,
+  /// then opens the sheet. With [menu] the list owns the menus and
+  /// [onMessageLongPress] is not called; without it a long press and a
+  /// secondary click both raise [onMessageLongPress].
   final FlareMessageMenuSource? menu;
 
   /// A quote was tapped whose message is not in [messages] (the host may load
@@ -823,6 +824,11 @@ class _FlareMessageListState extends State<FlareMessageList>
   );
   FlareMessageData? _pointerMessage;
 
+  /// Whether the open pointer menu has asked the host for its message's
+  /// snapshot since it last showed entries: it asks once each time it is left
+  /// without one, and not again on every rebuild that still finds none.
+  bool _pointerAsked = false;
+
   /// The pointer menu where the secondary click landed: the same entries as
   /// the sheet, or one disabled "loading" entry while there is no snapshot.
   void _openPointerMenu(FlareMessageData message, Offset position) {
@@ -833,6 +839,7 @@ class _FlareMessageListState extends State<FlareMessageList>
     if (entries == null) menu.prefetch?.call([message.id]);
     final items = flareMessagePointerMenuItems(entries, strings);
     _pointerMessage = message;
+    _pointerAsked = entries == null;
     _pointerItems.value = items;
     unawaited(
       FlareActionMenu.show(
@@ -845,7 +852,10 @@ class _FlareMessageListState extends State<FlareMessageList>
       ).then((picked) {
         // The message as the menu last drew it: the host may have replaced it.
         final current = _pointerMessage ?? message;
-        if (_pointerMessage?.id == message.id) _pointerMessage = null;
+        if (_pointerMessage?.id == message.id) {
+          _pointerMessage = null;
+          _pointerAsked = false;
+        }
         if (picked == null ||
             picked == FlareMessageMenuSource.loadingEntryId ||
             !mounted) {
@@ -861,18 +871,27 @@ class _FlareMessageListState extends State<FlareMessageList>
   /// (the loading entry gives way to the entries; an action the core no longer
   /// allows leaves; a host entry it disables is drawn disabled), without
   /// closing or moving the menu.
+  ///
+  /// When the host drops that snapshot while the menu is open (the message
+  /// moved, or the snapshot grew old), the menu shows the loading entry and the
+  /// list asks the host for the message again — once, until a snapshot is
+  /// back; the host only drops snapshots and answers prefetch.
   void _refreshPointerMenu() {
     final open = _pointerMessage;
     final menu = widget.menu;
     if (open == null || menu == null) return;
-    final message =
-        widget.messages.where((m) => m.id == open.id).firstOrNull ?? open;
+    final listed = widget.messages.where((m) => m.id == open.id).firstOrNull;
+    final message = listed ?? open;
     _pointerMessage = message;
     final strings = FlareStrings.of(context);
-    final items = flareMessagePointerMenuItems(
-      menu.entriesFor(message, strings),
-      strings,
-    );
+    final entries = menu.entriesFor(message, strings);
+    if (entries != null) {
+      _pointerAsked = false;
+    } else if (!_pointerAsked && listed != null) {
+      _pointerAsked = true;
+      _requestPrefetch(message.id);
+    }
+    final items = flareMessagePointerMenuItems(entries, strings);
     if (listEquals(items, _pointerItems.value)) return;
     // The menu is a route of its own, outside this subtree: it rebuilds on the
     // next frame rather than in the middle of this one.

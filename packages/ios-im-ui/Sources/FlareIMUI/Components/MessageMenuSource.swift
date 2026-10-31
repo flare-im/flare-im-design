@@ -6,14 +6,18 @@ import SwiftUI
 ///
 /// - `availability` reads the host's snapshot of the core's action availability for a message, synchronously; nil
 ///   while the host has none yet. The host refreshes its snapshot asynchronously and redraws the list.
-/// - `prefetch` is called with the ids of rows coming on screen that have no snapshot, so the host reads them ahead
-///   of the menu.
+/// - `prefetch` is called with the ids of rows coming on screen that have no snapshot, of a menu asked for without
+///   one, and of the message an open pointer menu shows once the host drops its snapshot, so the host reads them
+///   ahead of the menu. Asking again for the open menu is the list's job; the host drops a snapshot that no longer
+///   holds (returns nil) and answers `prefetch`, nothing more.
 /// - `hiddenActions` means what it means on ``MessageActionSheetView``; `extraActions` gives the host's own entries for
 ///   a message (its `actions` there), so an entry can depend on the message — "report" only on someone else's.
 /// - `perform` gets the chosen entry's id from either menu.
 ///
 /// Without a snapshot the pointer menu holds one disabled entry, "正在读取…" (`messageMenuLoading`), and asks for
-/// that message; a long press asks for it and opens the sheet once the snapshot is there.
+/// that message each time the entry comes up — when the menu opens, and when the host drops the snapshot while it is
+/// open — not again on redraws while it stays; a long press asks for it and opens the sheet once the snapshot is
+/// there.
 public struct FlareMessageMenuSource {
     public let availability: (FlareMessageData) -> FlareMessageActionAvailability?
     public let prefetch: ([String]) -> Void
@@ -124,6 +128,8 @@ struct RowPointerMenu: ViewModifier {
                     ForEach(Array(section.enumerated()), id: \.offset) { _, item in
                         switch item {
                         case .loading:
+                            // Comes up when the menu opens without a snapshot, and in the open menu when the host
+                            // drops its snapshot: either way the list asks for the message itself.
                             Button(strings.messageMenuLoading) {}
                                 .disabled(true)
                                 .onAppear { prefetcher.ask(message.id, menu.prefetch) }

@@ -6,6 +6,12 @@ This is the target Stable release, not a published version. Package metadata rem
 
 ### Design System And Packages
 
+- **An open pointer menu asks again for a snapshot the host drops** (contract, Flutter and SwiftUI).
+  - When the host drops the snapshot of the message an open right-click menu shows (the message was pinned, recalled or sent, the connection moved, or the snapshot grew old) and redraws, the menu shows its loading entry and the list calls `prefetch` with that id itself: once until a snapshot is back, however often the host redraws meanwhile. Before, a Flutter menu stayed on its loading entry unless the host read the message again on its own.
+  - Asking again is the kit's job: the host drops snapshots that no longer hold and answers `prefetch`. The MessageList `menu` contract, `FlareMessageMenuSource` and the message actions recipe say so.
+    - Flutter: `FlareMessageList` asks when its open pointer menu is left without entries.
+    - SwiftUI: the loading entry already asked when it came up in the open menu on macOS; a hosted window test now locks it.
+    - Vue has no loading entry and no prefetch: while its snapshot is null the kit's own rule decides, in the menu that stays open, and a test now locks it. Compose has no pointer menu.
 - **One failed-bubble look, open pointer menus that follow the snapshot, and CI that runs every platform again** (contracts and all four kits).
   - `spec/message-surface-vectors.json` adds `palette`. A bubble is drawn by its fill alone, and the viewer's own failed message is the failure surface: `message.failed.background`, text in `message.failed.foreground`, and a 1px `message.failed.border` edge, the only edge a bubble has.
     - Compose drew the outgoing fill with white text and a red edge. It now matches the other kits.
