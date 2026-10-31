@@ -5,6 +5,7 @@ import FlareDataTable from "../../data/FlareDataTable.vue";
 import FlareButton from "../../general/FlareButton.vue";
 import FlareTag from "../../general/FlareTag.vue";
 import { useFlareI18nOptional } from "../../../shared/i18n/useFlareI18n";
+import { flareServerNowMs } from "../../../shared/server-clock";
 import {
   flarePluginBadgeTone,
   flarePluginDateTime,
@@ -38,7 +39,7 @@ const emit = defineEmits<{
 }>();
 const { t } = useFlareI18nOptional();
 
-const nowMs = Date.now();
+const nowMs = flareServerNowMs();
 const rows = computed(() => flarePluginRowsOnce(props.block.rows));
 const actionOf = (id: string) => props.block.actions.find((action) => action.id === id);
 const spins = (row: FlarePluginRow, action: FlarePluginAction) => props.busyActionId === action.id && props.busyRow === row.key;

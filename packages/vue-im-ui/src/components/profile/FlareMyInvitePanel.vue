@@ -15,6 +15,7 @@ import {
   type FlareReferralStats,
 } from "../../shared/contracts/invite";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
+import { flareServerNowMs } from "../../shared/server-clock";
 
 const props = withDefaults(
   defineProps<{
@@ -66,12 +67,13 @@ const { t } = useFlareI18nOptional();
 const title = computed(() => props.title ?? t("myInvite.title"));
 
 // The cooldown is a clock reading; re-read it every half minute so the control
-// re-enables on its own once the server's deadline passes.
-const now = ref(Date.now());
+// re-enables on its own once the server's deadline passes. The deadline is the
+// server's clock, so the reading is too (spec/server-clock-vectors.json).
+const now = ref(flareServerNowMs());
 let ticker: ReturnType<typeof setInterval> | null = null;
 onMounted(() => {
-  now.value = Date.now();
-  ticker = setInterval(() => { now.value = Date.now(); }, 30_000);
+  now.value = flareServerNowMs();
+  ticker = setInterval(() => { now.value = flareServerNowMs(); }, 30_000);
 });
 onBeforeUnmount(() => { if (ticker !== null) clearInterval(ticker); });
 

@@ -1,5 +1,7 @@
 ## 未发布
 
+- 服务端时钟 `FlareServerClock`（`setOffsetMs`、`offsetMs`、`nowMs()`、纯函数 `now(deviceNowMs, offsetMs)`，`spec/server-clock-vectors.json`）：宿主交进核心 SDK 的估计（`connection.getServerClock` 的 `offsetMs`）后，`PluginView` 的时间块倒计时与「已截止」、行的时间、`RedPacketDetail` 的时间与 `MyInvitePanel` 的重新生成冷却按服务端时间算；没交时为本机时钟。
+
 - 宿主按媒体线上类型传入的 `FlareGenericContent`（`image` / `video` / `audio`）画成「图片暂时无法加载」等（`FlareStrings.mediaUnavailableImage` / `Video` / `Audio`）。原来语音画「不支持的消息类型」，图片与视频只画一个空框。
 
 - 新增 `flareStoredPreviewText(raw, strings, locale, systemEventText)`：按共享表 `stored`（`spec/message-preview-vectors.json`）读核心存在会话行、引用与搜索结果上的摘要 token，与 Vue、Flutter、SwiftUI 同一规则。`FlareStrings` 新增 `systemEvent*`，没有自带文字的系统消息按事件键取这些文案。宿主不必再自己解 token。

@@ -185,8 +185,9 @@ internal fun PluginViewContent(
     val failure = error?.takeIf { it.isNotEmpty() }
     val formPending = formRun?.let { busy || busyActionId == it.action.id } ?: false
     val emitAction by rememberUpdatedState(onAction)
-    // Rows write their times against the moment the view arrived (the year shows only outside the current one).
-    val nowMs = remember(view) { System.currentTimeMillis() }
+    // Rows write their times against the moment the view arrived (the year shows only outside the current one), on the
+    // server's clock like every other plugin time (spec/server-clock-vectors.json).
+    val nowMs = remember(view) { FlareServerClock.nowMs() }
 
     // A new view is the truth.
     PluginOnChange(view) { _, _ -> interaction = interaction.viewChanged() }
@@ -969,11 +970,12 @@ private fun PluginProgressBlockView(block: PluginProgressBlock) {
 private fun PluginTimeBlockView(block: PluginTimeBlock) {
     val colors = flareColors()
     val strings = flareStrings()
-    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    // `atMs` is the server's clock, so now is the server's too (spec/server-clock-vectors.json).
+    var now by remember { mutableLongStateOf(FlareServerClock.nowMs()) }
     LaunchedEffect(block) {
         if (!block.countdown) return@LaunchedEffect
         while (true) {
-            now = System.currentTimeMillis()
+            now = FlareServerClock.nowMs()
             val wait = PluginViewFormat.countdownDelay(block.atMs, now) ?: break
             delay(wait)
         }

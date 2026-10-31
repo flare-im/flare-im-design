@@ -6,6 +6,7 @@ import FlareBottomSheet from "../../general/FlareBottomSheet.vue";
 import FlareEmptyState from "../../general/FlareEmptyState.vue";
 import FlarePluginView from "../FlarePluginView.vue";
 import { flareIcons } from "../../../shared/icons";
+import { flareServerNowMs } from "../../../shared/server-clock";
 import { useFlareI18nOptional, useFlareLocaleOptional } from "../../../shared/i18n/useFlareI18n";
 import { flarePluginDateTime, type FlarePluginActionPayload, type FlarePluginFormError, type FlarePluginMember, type FlarePluginResolveUser, type FlarePluginViewModel } from "../../../shared/contracts/plugin-ui";
 import { flareAccountDayKey, flareAccountEntries, type AccountEntry } from "./account";
@@ -50,7 +51,7 @@ const detailView = computed<FlarePluginViewModel | undefined>(() => {
   if (!entry) return undefined;
   return { ...props.view, title: "", blocks: [], detail: false, menuActions: [], fields: [
     ...(entry.row.badge ? [{ label: t("account.type"), value: entry.row.badge.text }] : []),
-    ...entry.block.columns.slice(1).map((column, offset) => { const index = offset + 1; const cell = entry.row.cells[index]; return { label: column.label, value: column.format === "time" && cell?.timeMs !== undefined ? flarePluginDateTime(cell.timeMs, Date.now(), { dateTime: t("pluginView.dateTime"), dateTimeYear: t("pluginView.dateTimeYear") }) : cell?.text ?? "" }; }),
+    ...entry.block.columns.slice(1).map((column, offset) => { const index = offset + 1; const cell = entry.row.cells[index]; return { label: column.label, value: column.format === "time" && cell?.timeMs !== undefined ? flarePluginDateTime(cell.timeMs, flareServerNowMs(), { dateTime: t("pluginView.dateTime"), dateTimeYear: t("pluginView.dateTimeYear") }) : cell?.text ?? "" }; }),
     { label: String(presentation.value.rowKeyLabel ?? t("account.entryId")), value: entry.row.key },
   ], actions: entry.row.actions.flatMap(bound => { const action = entry.block.actions.find(action => action.id === bound.id); return action ? [action] : []; }) };
 });

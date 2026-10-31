@@ -18,6 +18,7 @@ import {
 } from "../../shared/contracts/red-packet";
 import { flareIcons } from "../../shared/icons";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
+import { flareServerNowMs } from "../../shared/server-clock";
 
 const props = withDefaults(
   defineProps<{
@@ -64,7 +65,7 @@ const strings = computed<FlareRedPacketDetailStrings>(() => ({
   dateTime: t("pluginView.dateTime"),
   dateTimeYear: t("pluginView.dateTimeYear"),
 }));
-const now = computed(() => props.nowMs ?? Date.now());
+const now = computed(() => props.nowMs ?? flareServerNowMs());
 const texts = computed(() => flareRedPacketDetailTexts(props.details, { designatedName: props.designatedName, nowMs: now.value }, strings.value));
 const rows = computed(() => (texts.value.claims ? props.claims : []).map((claim) => ({
   claim,

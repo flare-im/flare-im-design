@@ -6,6 +6,10 @@ This is the target Stable release, not a published version. Package metadata rem
 
 ### Design System And Packages
 
+- **Server-issued instants are judged on the server's clock** (contract and all four kits).
+  - `spec/server-clock-vectors.json`: server now is the device clock plus the host's offset (the core SDK's `connection.getServerClock` estimate, server clock minus device clock); without one it is the device clock. The plugin countdown and the invite cooldown rules re-run at that now, and each case says what the device clock alone would show. All four kits run it.
+  - Vue `setFlareServerClockOffset` / `flareServerNowMs` (`./utils`); Compose, SwiftUI and Flutter `FlareServerClock` (`setOffsetMs`, `nowMs()`).
+  - Plugin time blocks (countdown and "closed"), plugin rows, account and red packet times, the invite regenerate cooldown and Vue's `formatRelativeTime` default read it. Before, a device clock five minutes fast closed a vote five minutes early and lifted a cooldown before the server would accept a regenerate. Timeline and conversation day labels keep the device's calendar.
 - **A picture, a video or a voice message with nothing to load says so** (all four kits).
   - When the host has no address for a picture, a video or a voice message, the timeline draws that kind of message as not available right now — its icon and "图片暂时无法加载" / "Image isn't available right now" (`mediaUnavailableImage` / `Video` / `Audio` on the native `FlareStrings`, `mediaMessage.unavailable*` in Vue) — with nothing to tap. Native hosts hand it over as `FlareGenericContent` under the media's wire type; Vue draws it when the address resolves to nothing.
   - Before, SwiftUI and Flutter drew every such message as "不支持的消息类型", Compose did so for a voice message and drew a bare frame for the rest, and Vue drew a player that could not play.

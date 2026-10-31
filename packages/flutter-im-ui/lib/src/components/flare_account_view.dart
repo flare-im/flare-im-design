@@ -241,7 +241,7 @@ class _FlareAccountViewState extends State<FlareAccountView> {
                               entry.row.cells[i].timeMs != null
                           ? flarePluginDateTime(
                               entry.row.cells[i].timeMs!,
-                              DateTime.now().millisecondsSinceEpoch,
+                              flarePluginNowMs(),
                               strings,
                             )
                           : entry.row.cells[i].text,

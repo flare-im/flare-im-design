@@ -221,7 +221,7 @@ fun RedPacketDetail(
 ) {
     val colors = flareColors()
     val strings = flareStrings()
-    val now = remember(details) { System.currentTimeMillis() }
+    val now = remember(details) { FlareServerClock.nowMs() }
     val shown = RedPacketDetailFormat.presentation(details, designatedName, now, strings)
     val badge = redPacketCardBadge(details.kind, null, strings).badge
     FlareNativeBackEffect(enabled = onBack != null) { onBack?.invoke() }

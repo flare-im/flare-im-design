@@ -1,5 +1,7 @@
 ## 未发布
 
+- 服务端时钟 `FlareServerClock`（`setOffsetMs`、`offsetMs`、`nowMs()`、纯函数 `now(deviceNowMs, offsetMs)`，`spec/server-clock-vectors.json`）：`flarePluginNowMs` 默认改读它，宿主交进核心 SDK 的估计（`connection.getServerClock` 的 `offsetMs`）后，插件时间块倒计时与「已截止」、行、账户明细、红包详情的时间与 `FlareMyInvitePanel` 的重新生成冷却按服务端时间算；没交时为本机时钟。
+
 - 宿主按媒体线上类型传入的 `FlareGenericContent`（`image` / `video` / `audio`）画成「图片暂时无法加载」等（`FlareStrings.mediaUnavailableImage` / `Video` / `Audio`），不再画「不支持的消息类型」。`FlareUnknownMessage` 的 `hint` / `unsupportedText` / `diagnosticLabel` 改为可空，不传时取 `FlareStrings`，原来的中文默认值是写死的。
 
 - `flareStoredPreviewText` 按共享表 `stored`（`spec/message-preview-vectors.json`）读核心存的摘要 token：表情 token 的包键改读核心写的 `e`；话题读作新增的 `previewThread`；没有文字的系统消息先用宿主的 `systemEventText`，再用 Kit 新增的 `systemEvent*` 文案；结果与正文摘要一样把包键读成名字。通知不再读 `t`。

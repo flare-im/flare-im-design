@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../models/directory_data.dart';
 import '../models/invite_data.dart';
 import '../models/plural.dart';
+import '../models/server_clock.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_avatar.dart';
@@ -91,7 +92,9 @@ class _FlareMyInvitePanelState extends State<FlareMyInvitePanel> {
   void initState() {
     super.initState();
     // The cooldown is a clock reading; re-read it every half minute so the
-    // control re-enables on its own once the server's deadline passes.
+    // control re-enables on its own once the server's deadline passes. The
+    // deadline is the server's clock, so the reading is too
+    // (spec/server-clock-vectors.json).
     _ticker = Timer.periodic(const Duration(seconds: 30), (_) {
       if (mounted) setState(() {});
     });
@@ -133,7 +136,7 @@ class _FlareMyInvitePanelState extends State<FlareMyInvitePanel> {
     final regenerate = regenerateAvailability(
       widget.canRegenerate,
       widget.regenerateAvailableAt,
-      DateTime.now().millisecondsSinceEpoch,
+      FlareServerClock.nowMs(),
     );
     final rows = referralDepthRows(widget.stats, widget.maxDepthShown);
     final inviteeCount = widget.stats?.direct ?? widget.invitees.length;

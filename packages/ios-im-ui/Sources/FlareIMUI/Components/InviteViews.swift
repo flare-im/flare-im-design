@@ -342,8 +342,9 @@ public struct MyInvitePanelView: View {
     @Environment(\.flareStrings) private var strings
     @Environment(\.locale) private var locale
     // The cooldown is a clock reading; re-read it every half minute so the control re-enables on its
-    // own once the server's deadline passes.
-    @State private var now = Int64(Date().timeIntervalSince1970 * 1000)
+    // own once the server's deadline passes. The deadline is the server's clock, so the reading is too
+    // (spec/server-clock-vectors.json).
+    @State private var now = FlareServerClock.nowMs()
     private let clock = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
 
     public init(code: String, shareURL: String? = nil, stats: FlareReferralStats? = nil, maxDepthShown: Int = 3,
@@ -465,7 +466,7 @@ public struct MyInvitePanelView: View {
             .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).stroke(colors.borderPrimary, lineWidth: 1)))
         .accessibilityElement(children: .contain)
         .accessibilityLabel(heading)
-        .onReceive(clock) { _ in now = Int64(Date().timeIntervalSince1970 * 1000) }
+        .onReceive(clock) { _ in now = FlareServerClock.nowMs() }
     }
 
     @ViewBuilder

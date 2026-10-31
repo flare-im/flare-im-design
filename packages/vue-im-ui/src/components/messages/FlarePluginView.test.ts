@@ -5,6 +5,7 @@ import { enableAutoUnmount, flushPromises, mount, type VueWrapper } from "@vue/t
 import { defineComponent, h, nextTick, reactive } from "vue";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
+import { setFlareServerClockOffset } from "../../shared/server-clock";
 import { flareMessages } from "../../shared/i18n/messages";
 import {
   flarePluginDateTime,
@@ -19,6 +20,7 @@ import FlareActionMenu from "../general/FlareActionMenu.vue";
 enableAutoUnmount(afterEach);
 afterEach(() => {
   vi.useRealTimers();
+  setFlareServerClockOffset(null);
   document.body.innerHTML = "";
 });
 
@@ -658,6 +660,21 @@ describe("FlarePluginView v2 (spec/plugin-view-vectors.json)", () => {
     await nextTick();
     expect(countdown()).toBe("已截止");
     expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("counts down on the server clock the host handed in, not the device clock", async () => {
+    // The card closes 30 minutes after the server's now; this device runs 5 minutes fast.
+    vi.useFakeTimers({ now: vectors.nowMs + 300_000 });
+    const view: FlarePluginViewModel = { available: true, title: "t", fields: [], actions: [], blocks: [{ kind: "time", atMs: vectors.nowMs + 1_800_000, countdown: true }] };
+    setFlareServerClockOffset(-300_000);
+    const { wrapper } = render({ view });
+    await nextTick();
+    expect(wrapper.get("[data-time-countdown]").text()).toBe("剩余 30:00");
+    // Two minutes left on the server are still two minutes on a device that thinks they are gone.
+    const closing: FlarePluginViewModel = { ...view, blocks: [{ kind: "time", atMs: vectors.nowMs + 120_000, countdown: true }] };
+    expect(render({ view: closing }).wrapper.get("[data-time-countdown]").text()).toBe("剩余 02:00");
+    setFlareServerClockOffset(null);
+    expect(render({ view: closing }).wrapper.get("[data-time-countdown]").text()).toBe("已截止");
   });
 
   it("opens the detail from see all and from an admin row, and pages admin rows", async () => {

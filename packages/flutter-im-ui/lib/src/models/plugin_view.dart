@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 
 import '../tokens/flare_strings.dart';
 import 'plural.dart';
+import 'server_clock.dart';
 
 /// Plugin view contracts (spec PluginView / PluginForm / PluginDetailSheet):
 /// the core SDK's resolved view (ResolvedPluginView of flare-plugin-protocol)
@@ -1000,9 +1001,10 @@ typedef FlarePluginPageActionCallback =
 
 // ── pure rules (spec/plugin-view-vectors.json → rules) ──────────────────────
 
-/// The clock plugin time blocks read (epoch milliseconds). The device clock;
-/// tests pin it.
-int Function() flarePluginNowMs = () => DateTime.now().millisecondsSinceEpoch;
+/// The clock plugin time blocks read (epoch milliseconds). Plugin times are the
+/// server's clock, so this is the server's now ([FlareServerClock]); tests pin
+/// it.
+int Function() flarePluginNowMs = FlareServerClock.nowMs;
 
 const List<String> _months = [
   'Jan',

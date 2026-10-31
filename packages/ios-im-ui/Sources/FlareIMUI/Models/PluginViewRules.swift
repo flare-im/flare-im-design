@@ -4,14 +4,15 @@ import Foundation
 // unresolved users, the copy of choices, time and countdowns, the optimistic choices state and the form's light
 // check. Pure, so the vectors run against them directly; the views only draw what these return.
 
-/// What the plugin view formats time against: now, and the zone (nil: the device zone at each instant).
+/// What the plugin view formats time against: now, and the zone (nil: the device zone at each instant). Plugin times
+/// are the server's clock, so the running now is the server's too (``FlareServerClock``); tests pin `nowMs`.
 struct PluginViewClock: Equatable, Sendable {
     var nowMs: Int64?
     var utcOffsetMinutes: Int?
 
     static let system = PluginViewClock(nowMs: nil, utcOffsetMinutes: nil)
 
-    func now() -> Int64 { nowMs ?? Int64((Date().timeIntervalSince1970 * 1000).rounded(.down)) }
+    func now() -> Int64 { nowMs ?? FlareServerClock.nowMs() }
 }
 
 /// A countdown's text and when to draw it again (nil once the moment has passed).

@@ -1,3 +1,5 @@
+import { flareServerNowMs } from "./server-clock";
+
 /**
  * Locale-aware time labels shared by the timeline, the message bubble, the
  * conversation row and host lists. Every label follows the given locale's own
@@ -57,9 +59,11 @@ export function formatConversationTime(timestamp: number, locale: string, yester
 
 /**
  * How long ago, for feeds such as moments and comments: seconds read as "now", then
- * minutes, hours and days up to a week, then the date.
+ * minutes, hours and days up to a week, then the date. The timestamp is the server's,
+ * so `now` defaults to the server's clock (spec/server-clock-vectors.json): a device
+ * running five minutes fast would otherwise call a post made a moment ago "5 min. ago".
  */
-export function formatRelativeTime(timestamp: number, locale: string, now: number = Date.now()): string {
+export function formatRelativeTime(timestamp: number, locale: string, now: number = flareServerNowMs()): string {
   const elapsed = Math.max(0, now - timestamp);
   const relative = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
   if (elapsed < 60_000) return relative.format(0, "second");

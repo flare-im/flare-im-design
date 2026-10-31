@@ -85,12 +85,13 @@ fun MyInvitePanel(
     val showSkeleton = loading && !hasCode
 
     // The cooldown is a clock reading; re-read it every half minute so the control re-enables on
-    // its own once the server's deadline passes.
-    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    // its own once the server's deadline passes. The deadline is the server's clock, so the reading
+    // is too (spec/server-clock-vectors.json).
+    var now by remember { mutableLongStateOf(FlareServerClock.nowMs()) }
     LaunchedEffect(regenerateAvailableAt) {
         while (regenerateAvailableAt != null && regenerateAvailableAt > now) {
             delay(30_000)
-            now = System.currentTimeMillis()
+            now = FlareServerClock.nowMs()
         }
     }
     val regenerate = regenerateAvailability(canRegenerate, regenerateAvailableAt, now)

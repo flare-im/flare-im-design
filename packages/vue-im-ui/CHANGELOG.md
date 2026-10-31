@@ -1,5 +1,7 @@
 ## 未发布
 
+- 服务端时钟：`./utils` 新增 `setFlareServerClockOffset(offsetMs)`、`flareServerClockOffset()`、`flareServerNowMs()` 与纯函数 `flareServerNow(deviceNowMs, offsetMs)`（`spec/server-clock-vectors.json`）。宿主把核心 SDK 的估计（`connection.getServerClock` 的 `offsetMs`）交进来后，插件时间块的倒计时与「已截止」、插件行与账户明细的时间、红包详情的时间、邀请码的重新生成冷却，以及 `formatRelativeTime` 的默认「现在」，都按服务端时间算；没交时为本机时钟。此前设备时钟快几分钟，投票会提前显示已截止、冷却会提前解除。
+
 - 图片、视频、语音的地址解析为空（且不在解析中）时，时间线画「图片暂时无法加载」等（`mediaMessage.unavailableImage` / `unavailableVideo` / `unavailableAudio`），不再画不能播放的播放器；与原生三端 Kit 同一画法。
 
 - `displayTextFromStoredPreview` 按共享表 `stored`（`spec/message-preview-vectors.json`）读核心存的摘要 token：没有文字的 token（空正文、不认识的类型）读作空串，不再显示原始 JSON。新增测试逐条跑这张表。

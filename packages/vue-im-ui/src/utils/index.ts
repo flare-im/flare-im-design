@@ -34,6 +34,7 @@ export * from "./messageRows";
 export * from "./mediaResolveRequest";
 export * from "./messageMedia";
 export { formatConversationTime, formatMessageTime, formatRelativeTime, timelineDateLabel } from "../shared/timeline-label";
+export { flareServerClockOffset, flareServerNow, flareServerNowMs, setFlareServerClockOffset } from "../shared/server-clock";
 export type { ComposerStickerAssetRegistration, ComposerStickerItem, ComposerStickerPack, ComposerStickerPackRegistration } from "../components/composer/ComposerEmojiStickerPopover/composerStickers";
 export {
   CLASSIC_STICKER_PACKAGE_ID,

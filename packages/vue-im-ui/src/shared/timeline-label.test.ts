@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { setFlareServerClockOffset } from "./server-clock";
 import { formatConversationTime, formatMessageTime, formatRelativeTime, startsTimelineDay, timelineDateLabel } from "./timeline-label";
 
 const now = new Date(2026, 8, 14, 15, 0).getTime();
@@ -48,5 +49,19 @@ describe("message and conversation times", () => {
     expect(formatRelativeTime(now - 3 * 3_600_000, "zh-CN", now)).toBe("3小时前");
     expect(formatRelativeTime(now - 86_400_000, "en-US", now)).toBe("yesterday");
     expect(formatRelativeTime(now - 30 * 86_400_000, "en-US", now)).toBe("8/15");
+  });
+
+  it("reads the server clock by default: a post made a moment ago is now on a device running fast", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(now + 5 * 60_000);
+    setFlareServerClockOffset(-5 * 60_000);
+    try {
+      expect(formatRelativeTime(now - 20_000, "en-US")).toBe("now");
+      setFlareServerClockOffset(null);
+      expect(formatRelativeTime(now - 20_000, "en-US")).toBe("5 minutes ago");
+    } finally {
+      setFlareServerClockOffset(null);
+      vi.useRealTimers();
+    }
   });
 });

@@ -4,6 +4,7 @@ import { defineComponent, h, nextTick, ref } from "vue";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
 import { setFlareRuntimeLocale } from "../../shared/i18n/messages";
+import { setFlareServerClockOffset } from "../../shared/server-clock";
 import FlareMyInvitePanel from "./FlareMyInvitePanel.vue";
 
 type Props = Partial<InstanceType<typeof FlareMyInvitePanel>["$props"]>;
@@ -38,7 +39,7 @@ function mountPanel(initial: Props = {}) {
 
 describe("FlareMyInvitePanel", () => {
   beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(NOW); });
-  afterEach(() => { vi.useRealTimers(); });
+  afterEach(() => { vi.useRealTimers(); setFlareServerClockOffset(null); });
 
   it("shows the code, the share link, and dispatches copy / share / select without touching the clipboard", async () => {
     const { host, events, button } = mountPanel({ shareUrl: "https://flare.example/r/t1/AB12CD" });
@@ -87,6 +88,16 @@ describe("FlareMyInvitePanel", () => {
     await nextTick();
     expect(host.find(".flare-my-invite__ghost--code").exists()).toBe(false);
     expect(host.get(".flare-my-invite__empty").text()).toBe("No one has joined with your code yet");
+  });
+
+  it("judges the cooldown on the server clock the host handed in", async () => {
+    // Ten minutes of cooldown left on the server; this device runs 15 minutes fast.
+    vi.setSystemTime(NOW + 15 * 60_000);
+    setFlareServerClockOffset(-15 * 60_000);
+    const { host, button } = mountPanel({ canRegenerate: true, regenerateAvailableAt: NOW + 10 * 60_000 });
+    expect(button("Regenerate")!.attributes("disabled")).toBeDefined();
+    expect(host.get(".flare-my-invite__cooldown").text()).toBe("You can regenerate in 10 min");
+    setFlareServerClockOffset(null);
   });
 
   it("offers regenerate only when allowed, disables it while cooling down and says how long", async () => {

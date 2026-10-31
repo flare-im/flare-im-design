@@ -1,0 +1,125 @@
+{
+  "$comment": "The server clock the kits read wherever they compare now with an instant the server issued: plugin time blocks and their countdowns, the plugin rows, account and red packet times, invite cooldowns and relative feed times. Server now = device now + offsetMs, the host's estimate of the server clock minus the device clock (the core SDK's connection.getServerClock); without one (null) it is the device clock. countdown re-runs the plugin countdown rule (plugin-view-vectors rules.countdown) and regenerate the invite cooldown rule (invite-vectors regenerate) at server now; deviceClockZh / deviceClockEnabled are what the device clock alone gives, so each case shows what the offset changes.",
+  "now": [
+    {
+      "id": "n.unset",
+      "deviceNowMs": 1792634400000,
+      "offsetMs": null,
+      "expected": 1792634400000
+    },
+    {
+      "id": "n.zero",
+      "deviceNowMs": 1792634400000,
+      "offsetMs": 0,
+      "expected": 1792634400000
+    },
+    {
+      "id": "n.deviceAhead",
+      "deviceNowMs": 1792634700000,
+      "offsetMs": -300000,
+      "expected": 1792634400000
+    },
+    {
+      "id": "n.deviceBehind",
+      "deviceNowMs": 1792634220000,
+      "offsetMs": 180000,
+      "expected": 1792634400000
+    },
+    {
+      "id": "n.deviceDaysAhead",
+      "deviceNowMs": 1792807200000,
+      "offsetMs": -172800000,
+      "expected": 1792634400000
+    }
+  ],
+  "countdown": [
+    {
+      "id": "cd.unset",
+      "note": "No estimate yet: the device clock.",
+      "atMs": 1792636200000,
+      "deviceNowMs": 1792634400000,
+      "offsetMs": null,
+      "zh": "剩余 30:00",
+      "en": "30:00 left",
+      "refreshMs": 1000,
+      "deviceClockZh": "剩余 30:00"
+    },
+    {
+      "id": "cd.deviceAhead5m",
+      "note": "Closes 30 minutes after the server's now; a device 5 minutes fast still shows 30:00.",
+      "atMs": 1792636200000,
+      "deviceNowMs": 1792634700000,
+      "offsetMs": -300000,
+      "zh": "剩余 30:00",
+      "en": "30:00 left",
+      "refreshMs": 1000,
+      "deviceClockZh": "剩余 25:00"
+    },
+    {
+      "id": "cd.deviceBehind5m",
+      "note": "The same card on a device 5 minutes slow.",
+      "atMs": 1792636200000,
+      "deviceNowMs": 1792634100000,
+      "offsetMs": 300000,
+      "zh": "剩余 30:00",
+      "en": "30:00 left",
+      "refreshMs": 1000,
+      "deviceClockZh": "剩余 35:00"
+    },
+    {
+      "id": "cd.deviceAheadNotClosed",
+      "note": "Two minutes left on the server; the device clock alone has already passed it.",
+      "atMs": 1792634520000,
+      "deviceNowMs": 1792634700000,
+      "offsetMs": -300000,
+      "zh": "剩余 02:00",
+      "en": "02:00 left",
+      "refreshMs": 1000,
+      "deviceClockZh": "已截止"
+    },
+    {
+      "id": "cd.deviceBehindClosed",
+      "note": "Closed a minute ago on the server; the device clock alone still counts down.",
+      "atMs": 1792634340000,
+      "deviceNowMs": 1792634100000,
+      "offsetMs": 300000,
+      "zh": "已截止",
+      "en": "Closed",
+      "refreshMs": null,
+      "deviceClockZh": "剩余 04:00"
+    }
+  ],
+  "regenerate": [
+    {
+      "id": "rg.deviceAheadStillCooling",
+      "note": "Ten minutes of cooldown left on the server; a device 15 minutes fast would offer regenerating now.",
+      "canRegenerate": true,
+      "availableAt": 1792635000000,
+      "deviceNowMs": 1792635300000,
+      "offsetMs": -900000,
+      "expected": {
+        "shown": true,
+        "enabled": false,
+        "remaining": {
+          "unit": "minute",
+          "count": 10
+        }
+      },
+      "deviceClockEnabled": true
+    },
+    {
+      "id": "rg.deviceBehindOver",
+      "note": "The cooldown ended a minute ago; a device 10 minutes slow would still say 9 minutes.",
+      "canRegenerate": true,
+      "availableAt": 1792634340000,
+      "deviceNowMs": 1792633800000,
+      "offsetMs": 600000,
+      "expected": {
+        "shown": true,
+        "enabled": true,
+        "remaining": null
+      },
+      "deviceClockEnabled": false
+    }
+  ]
+}

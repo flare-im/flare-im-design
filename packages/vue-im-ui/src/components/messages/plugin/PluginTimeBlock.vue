@@ -6,13 +6,14 @@ import {
   type FlarePluginStrings,
   type FlarePluginTimeBlock,
 } from "../../../shared/contracts/plugin-ui";
+import { flareServerNowMs } from "../../../shared/server-clock";
 
 // An instant or a range in the device's zone, optionally counting down to `atMs`: every second under an
 // hour, every minute otherwise, and "closed" once it has passed (spec/plugin-view-vectors.json → time,
-// countdown).
+// countdown). `atMs` is the server's clock, so now is the server's too (spec/server-clock-vectors.json).
 const props = defineProps<{ block: FlarePluginTimeBlock; strings: FlarePluginStrings }>();
 
-const now = ref(Date.now());
+const now = ref(flareServerNowMs());
 const text = computed(() => flarePluginTimeText(props.block.atMs, props.block.endMs, now.value, props.strings));
 const countdown = computed(() => (props.block.countdown ? flarePluginCountdown(props.block.atMs, now.value, props.strings) : null));
 
@@ -21,9 +22,9 @@ function schedule(): void {
   clearTimeout(timer);
   timer = undefined;
   const next = countdown.value?.refreshMs;
-  if (next) timer = setTimeout(() => { now.value = Date.now(); schedule(); }, next);
+  if (next) timer = setTimeout(() => { now.value = flareServerNowMs(); schedule(); }, next);
 }
-watch(() => [props.block.atMs, props.block.countdown], () => { now.value = Date.now(); schedule(); }, { immediate: true });
+watch(() => [props.block.atMs, props.block.countdown], () => { now.value = flareServerNowMs(); schedule(); }, { immediate: true });
 onBeforeUnmount(() => clearTimeout(timer));
 </script>
 
