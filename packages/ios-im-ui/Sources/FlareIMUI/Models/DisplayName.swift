@@ -11,7 +11,8 @@ public enum FlareDisplayNameEntity: String, Codable, Sendable, CaseIterable {
 }
 
 /// A name as the core SDK projects it — a conversation's `title` and `lastSender`, a message's `sender`, a
-/// participant's or a contact's `name` — camelCase JSON on the wire, which `Codable` reads and writes. Decoding never
+/// participant's or a contact's `name` — camelCase JSON on the wire, which `Codable` reads and writes and
+/// ``init(json:)`` reads from JSON a host already decoded (a dictionary off an SDK bridge). Decoding never
 /// fails: an unknown `entity` reads as `.person`, and an unknown `kind`, a form missing its text or a value that is not
 /// an object as an unnamed person without an id tail (`displayNameUnknownUser`), so a core newer than the kit still
 /// draws something sensible. The SDKs carry no copy: a name that is not known stays structured and every kit writes it with the same table
@@ -46,6 +47,39 @@ public enum FlareDisplayName: Equatable, Hashable, Sendable, Codable {
         default:
             self = unknownUser
         }
+    }
+
+    /// Reads a name a host holds as decoded JSON — the dictionaries, arrays, strings and numbers of `JSONSerialization`,
+    /// or the same built in Swift — by the rules of the `Codable` decoding: an unknown `entity` reads as `.person`; an
+    /// unknown `kind`, a `named` value without text or a value that is not an object as an unnamed person without an id
+    /// tail; an unknown `source` is dropped; `members` keeps its string names and its `total` truncated to a whole
+    /// number. Nil only when there is no value (nil or `NSNull`), so a host can tell a name the SDK left out from one it
+    /// sent.
+    public init?(json value: Any?) {
+        guard let value, !(value is NSNull) else { return nil }
+        let unknownUser = FlareDisplayName.unnamed(entity: .person, idTail: "")
+        guard let json = value as? [String: Any] else { self = unknownUser; return }
+        func text(_ key: CodingKeys) -> String? { json[key.rawValue] as? String }
+        switch text(.kind) {
+        case "named":
+            guard let name = text(.text) else { self = unknownUser; return }
+            self = .named(text: name, source: text(.source).flatMap(FlareDisplayNameSource.init(rawValue:)))
+        case "members":
+            let names = (json[CodingKeys.names.rawValue] as? [Any])?.compactMap { $0 as? String }
+            self = .members(names: names ?? [], total: Self.wholeNumber(json[CodingKeys.total.rawValue]) ?? 0)
+        case "unnamed":
+            self = .unnamed(entity: text(.entity).flatMap(FlareDisplayNameEntity.init(rawValue:)) ?? .person,
+                            idTail: text(.idTail) ?? "")
+        default:
+            self = unknownUser
+        }
+    }
+
+    /// A JSON number truncated to a whole number, as `Codable` reads `total`; nil for anything else (a boolean, text).
+    private static func wholeNumber(_ value: Any?) -> Int? {
+        guard let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() else { return nil }
+        let total = number.doubleValue
+        return total.magnitude < 1e15 ? Int(total) : nil
     }
 
     public func encode(to encoder: Encoder) throws {

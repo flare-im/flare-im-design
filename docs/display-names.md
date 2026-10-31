@@ -22,11 +22,11 @@ wire 为 camelCase JSON，三种形态：
 | 端 | 类型 | 渲染 | id 末四位 | 读 wire |
 | --- | --- | --- | --- | --- |
 | Vue | `FlareDisplayName`（`./contracts`，联合类型就是 wire 形状） | `flareDisplayNameText(name, strings?)`（`./utils`） | `flareIdTail(id)`（`./contracts`） | 直接用 JSON 对象 |
-| SwiftUI | `FlareDisplayName`（`Codable` 枚举：`.named` / `.members` / `.unnamed`） | `flareDisplayNameText(_:strings:)` | `flareIdTail(_:)` | `JSONDecoder` |
+| SwiftUI | `FlareDisplayName`（`Codable` 枚举：`.named` / `.members` / `.unnamed`） | `flareDisplayNameText(_:strings:)` | `flareIdTail(_:)` | `JSONDecoder`；已解码的 JSON 用 `FlareDisplayName(json:)` |
 | Compose | `FlareDisplayName`（sealed：`Named` / `Members` / `Unnamed`） | `flareDisplayNameText(name, strings)` | `flareIdTail(id)` | `FlareDisplayName.fromMap` / `fromJson` |
 | Flutter | `FlareDisplayName`（sealed：`FlareNamedDisplayName` / `FlareMembersDisplayName` / `FlareUnnamedDisplayName`） | `flareDisplayNameText(name, strings)` | `flareIdTail(id)` | `FlareDisplayName.fromJson` / `toJson` |
 
-枚举四端同名：`FlareDisplayNameSource`、`FlareDisplayNameEntity`。读 wire 四端都不失败（核心比 Kit 新时会遇到不认识的值）：不认识的 `entity` 按 `person` 读；不认识的 `kind`、缺 `text` 的 `named`、不是对象的值，按 `idTail` 为空的无名的人读，渲染为「未知用户」。Compose `fromMap` / `fromJson` 与 Flutter `fromJson` 返回非空值，SwiftUI 的 `Codable` 不抛错，Vue 用 `flareDisplayNameFrom(value)` 做同样的整理，`flareDisplayNameText` 也先经它。
+枚举四端同名：`FlareDisplayNameSource`、`FlareDisplayNameEntity`。读 wire 四端都不失败（核心比 Kit 新时会遇到不认识的值）：不认识的 `entity` 按 `person` 读；不认识的 `kind`、缺 `text` 的 `named`、不是对象的值，按 `idTail` 为空的无名的人读，渲染为「未知用户」。Compose `fromMap` / `fromJson` 与 Flutter `fromJson` 返回非空值，SwiftUI 的 `Codable` 不抛错，`FlareDisplayName(json:)` 按同样的规则读已解码的 JSON（字典、数组、字符串、数字），只有没有值（nil 或 `NSNull`）时为 nil，Vue 用 `flareDisplayNameFrom(value)` 做同样的整理，`flareDisplayNameText` 也先经它。
 
 Vue 的 `strings` 可以是 `useFlareI18n().t`（宿主覆盖的 `displayName.*` 生效），也可以是 locale 字符串；不传时用运行时语言。原生端传 `FlareStrings`（Compose `flareStrings()`、SwiftUI 环境里的 `flareStrings`、Flutter `FlareStrings.of(context)`）。
 
@@ -103,4 +103,4 @@ val title = flareDisplayNameText(conversation.title, flareStrings())
 final title = flareDisplayNameText(conversation.title, FlareStrings.of(context));
 ```
 
-社交包与核心生成包把 wire 读成各自的类型后，原生宿主在接线处转成 Kit 类型：Compose 用 `FlareDisplayName.fromMap`，Flutter 用 `FlareDisplayName.fromJson`，SwiftUI 直接 `JSONDecoder().decode(FlareDisplayName.self, …)`，Vue 的 wire 对象就是 `FlareDisplayName`。
+社交包与核心生成包把 wire 读成各自的类型后，原生宿主在接线处转成 Kit 类型：Compose 用 `FlareDisplayName.fromMap`，Flutter 用 `FlareDisplayName.fromJson`，SwiftUI 读 JSON 文本用 `JSONDecoder().decode(FlareDisplayName.self, …)`，读桥上已解码的字典用 `FlareDisplayName(json: row["title"])`（字段缺省时为 nil，宿主据此退回旧字段），Vue 的 wire 对象就是 `FlareDisplayName`。

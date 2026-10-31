@@ -17,7 +17,7 @@
 - **投影出来的名字四端读成同一段文字**（契约与四端 Kit）。
   - `FlareDisplayName` 就是核心 SDK 的 `DisplayName`，wire 为 camelCase：`named`（`text`、`source`）、`members`（`names`、`total`）、`unnamed`（`entity`、`idTail`），配 `FlareDisplayNameSource` 与 `FlareDisplayNameEntity`。`flareDisplayNameText(name, strings)` 把它写成文字：有名字照原文；成员拼接（「张三、李四」），成员多于名字数加本人时加后缀，两种语言各按自己的读法计数：中文「等 N 人」的 N 是含本人的总数（「张三、李四、王五等 12 人」），英文「and N others」的 N 是名字以外、不含本人的其他成员（「and 8 others」，1 时为「and 1 other」）；无名的人「用户 9876」，没有 id 末四位时「未知用户」；未命名群「群聊」，系统会话「系统通知」，其余类型为 AI 助手、客服、频道、广播、临时会话。
   - 原生 `FlareStrings` 新增 `displayNameUser(idTail)`、`displayNameUnknownUser`、`displayNameGroup`、`displayNameSystem`、`displayNameAi`、`displayNameCustomer`、`displayNameChannel`、`displayNameBroadcast`、`displayNameTemp`、`displayNameSeparator`、`displayNameMembersMore(names, total, others)`，中文默认值与英文预设都有；Vue 在 zh-CN、en-US 新增 `displayName.*`。
-  - 读 wire 遇到不认识的值不失败：不认识的 `entity` 按 `person` 读，不认识的 `kind`（或缺 `text` 的 `named`）读作「未知用户」/「Unknown user」。Vue 新增 `flareDisplayNameFrom(value)` 做同样的整理。
+  - 读 wire 遇到不认识的值不失败：不认识的 `entity` 按 `person` 读，不认识的 `kind`（或缺 `text` 的 `named`）读作「未知用户」/「Unknown user」。Vue 新增 `flareDisplayNameFrom(value)` 做同样的整理；SwiftUI 新增 `FlareDisplayName(json:)`，按 `Codable` 的规则读宿主已解码的 JSON（SDK 桥上的字典），只有没有值时为 nil。
   - `flareIdTail(id)`：id 去首尾空白后的末 4 个 Unicode 标量（不按 UTF-16 码元，也不按字形簇）。四端 `flarePluginFallbackName`（原生 `PluginViewFormat.fallbackName`）改为调用它，首尾有空白或以 emoji 结尾的 id 各端截出来不再不一样。
   - `spec/display-name-vectors.json` 收录 id 末四位与每种形态的中英文字，四端都跑。组件属性仍是字符串，宿主在接线处调用 `flareDisplayNameText`（`docs/display-names.md`）。
 - **位置卡不再画空白行**（契约与四端 Kit）。

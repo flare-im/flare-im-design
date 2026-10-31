@@ -57,6 +57,53 @@ final class DisplayNameVectorsTests: XCTestCase {
                        [unknownUser, .named(text: "A")])
     }
 
+    /// A name a host holds as decoded JSON (a dictionary off an SDK bridge) reads exactly as `Codable` reads the same
+    /// text: every name in the shared table, and the values a core newer than the kit or a broken bridge can hand over.
+    func testDecodedJSONReadsAsCodableReadsTheWire() throws {
+        let decoder = JSONDecoder()
+        func both(_ json: String) throws -> (codable: FlareDisplayName, dictionary: FlareDisplayName?) {
+            let data = Data(json.utf8)
+            return (try decoder.decode(FlareDisplayName.self, from: data),
+                    FlareDisplayName(json: try JSONSerialization.jsonObject(with: data, options: .fragmentsAllowed)))
+        }
+        var root = URL(fileURLWithPath: #filePath).resolvingSymlinksInPath()
+        for _ in 0..<5 { root.deleteLastPathComponent() }
+        let table = try JSONSerialization.jsonObject(
+            with: Data(contentsOf: root.appendingPathComponent("spec/display-name-vectors.json"))) as? [String: Any]
+        let rows = try XCTUnwrap(table?["text"] as? [[String: Any]])
+        XCTAssertGreaterThanOrEqual(rows.count, 30, "the shared table lost cases")
+        for row in rows {
+            let name = try XCTUnwrap(row["name"])
+            let wire = String(decoding: try JSONSerialization.data(withJSONObject: name, options: .fragmentsAllowed),
+                              as: UTF8.self)
+            let read = try both(wire)
+            XCTAssertEqual(read.dictionary, read.codable, "\(row["id"] ?? "?")")
+        }
+        for json in [#"{"kind":"named","text":"Alice","source":"alias"}"#, #"{"kind":"named","text":"0401","source":"nickname"}"#,
+                     #"{"kind":"named","text":5}"#, #"{"kind":"named"}"#, #"{"kind":"nickname","text":"x"}"#, #"{"kind":1}"#,
+                     #"{"kind":null}"#, #"{}"#, #""named""#, #"[1]"#, #"12"#,
+                     #"{"kind":"members","names":["张三",1,null,"李四"],"total":12.9}"#,
+                     #"{"kind":"members","names":"张三","total":-3}"#, #"{"kind":"members","total":"12"}"#,
+                     #"{"kind":"members","names":["A"],"total":true}"#, #"{"kind":"members","names":["A"],"total":1e20}"#,
+                     #"{"kind":"unnamed","entity":"robot","idTail":"9876"}"#, #"{"kind":"unnamed","idTail":9876}"#,
+                     #"{"kind":"unnamed"}"#] {
+            let read = try both(json)
+            XCTAssertEqual(read.dictionary, read.codable, json)
+        }
+        XCTAssertEqual(try both(#"{"kind":"members","names":["张三",1,"李四"],"total":12.9}"#).dictionary,
+                       .members(names: ["张三", "李四"], total: 12))
+    }
+
+    func testOnlyAMissingNameReadsAsNone() {
+        XCTAssertNil(FlareDisplayName(json: nil))
+        XCTAssertNil(FlareDisplayName(json: NSNull()))
+        XCTAssertEqual(FlareDisplayName(json: ["kind": "members", "names": ["张三", "李四"], "total": 12] as [String: Any]),
+                       .members(names: ["张三", "李四"], total: 12), "built in Swift")
+        XCTAssertEqual(FlareDisplayName(json: ["kind": "unnamed", "entity": "group", "idTail": ""] as [String: Any]),
+                       .unnamed(entity: .group))
+        XCTAssertEqual(FlareDisplayName(json: "Alice"), .unnamed(entity: .person), "text is not a name the SDK projected")
+    }
+
     func testAHostsOwnWordsWin() {
         var strings = FlareStrings()
         strings.displayNameUser = { "访客 \($0)" }
