@@ -213,31 +213,6 @@ List<FlareNavigationItem> resolveFlareNavigationItems(
   return indexed.map((entry) => entry.$2).toList(growable: false);
 }
 
-class FlareGroupCapabilities {
-  const FlareGroupCapabilities({
-    this.invite = false,
-    this.remove = false,
-    this.promote = false,
-    this.demote = false,
-    this.mute = false,
-    this.leave = false,
-    this.dismiss = false,
-    this.rename = false,
-    this.changeAvatar = false,
-    this.editAnnouncement = false,
-  });
-  final bool invite,
-      remove,
-      promote,
-      demote,
-      mute,
-      leave,
-      dismiss,
-      rename,
-      changeAvatar,
-      editAnnouncement;
-}
-
 class FlareConversationCapabilities {
   const FlareConversationCapabilities({
     this.message = false,

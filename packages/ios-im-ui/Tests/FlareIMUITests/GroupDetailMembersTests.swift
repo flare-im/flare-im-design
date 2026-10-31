@@ -10,10 +10,10 @@ final class GroupDetailMembersTests: XCTestCase {
 
     func testThePreviewHoldsTwentyCellsWithTheAddTileCounted() {
         XCTAssertEqual(FlareGroupDetail.memberPreviewCells, 20)
-        XCTAssertEqual(FlareGroupDetail.previewMembers(members, canManage: true).map(\.id), (1...19).map { "u\($0)" },
+        XCTAssertEqual(FlareGroupDetail.previewMembers(members, addTile: true).map(\.id), (1...19).map { "u\($0)" },
                        "19 people and the add tile")
-        XCTAssertEqual(FlareGroupDetail.previewMembers(members, canManage: false).count, 20)
-        XCTAssertEqual(FlareGroupDetail.previewMembers(Array(members.prefix(5)), canManage: true).count, 5)
+        XCTAssertEqual(FlareGroupDetail.previewMembers(members, addTile: false).count, 20)
+        XCTAssertEqual(FlareGroupDetail.previewMembers(Array(members.prefix(5)), addTile: true).count, 5)
     }
 
     func testSearchMatchesNamesInAnyCaseAndBlankShowsEveryone() {
@@ -50,7 +50,7 @@ final class GroupDetailMembersTests: XCTestCase {
     @MainActor
     func testTheGridDrawsThePreviewAndTheHeaderCountsTheWholeGroup() throws {
         let model = FlareGroupDetailModel(groupId: "g1", name: "Design", memberCount: 30, members: members,
-                                          ownerId: "u1", canManage: true, isOwner: true)
+                                          ownerId: "u1", capabilities: FlareGroupCapabilities(canInvite: true))
         let grid = try FlareGroupDetail(model: model).inspect().find(GroupMemberGridView.self)
         let names = grid.findAll(ViewType.Text.self).compactMap { try? $0.string() }
         XCTAssertTrue(names.contains("成员19"), "\(names)")

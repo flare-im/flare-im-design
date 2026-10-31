@@ -51,8 +51,9 @@ final class GroupDetailJoinPolicyTests: XCTestCase {
         func texts(_ policy: FlareGroupJoinPolicy?) throws -> [String] {
             // Announcement and nickname are set, so "not set" can only come from the join policy row.
             let detail = FlareGroupDetail(
-                model: FlareGroupDetailModel(groupId: "g1", name: "Design", announcement: "Hello", canManage: true,
-                                             isOwner: true, myNickname: "Me", joinPolicy: policy),
+                model: FlareGroupDetailModel(groupId: "g1", name: "Design", announcement: "Hello",
+                                             capabilities: FlareGroupCapabilities(canManageInfo: true, canManageJoinSettings: true, canManageJoinRequests: true, canInvite: true, canDissolve: true),
+                                             myNickname: "Me", joinPolicy: policy),
                 onSetJoinPolicy: { _ in })
             return try detail.inspect().findAll(ViewType.Text.self).map { try $0.string() }
         }

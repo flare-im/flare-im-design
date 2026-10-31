@@ -51,6 +51,7 @@ export 'src/models/contact_option.dart';
 export 'src/models/call_record.dart';
 export 'src/models/red_packet.dart';
 export 'src/models/directory_data.dart';
+export 'src/models/group_management.dart';
 export 'src/application/application_composition.dart';
 
 // Moments (社交圈子 / social feed)

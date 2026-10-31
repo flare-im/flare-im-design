@@ -61,15 +61,19 @@ public struct FlareGroupPermissionRow: Equatable, Sendable {
 
 /// The rows to render, in canonical order — same rule set as the other platforms.
 ///
-/// `editable` carries permission only (`canManage`), so a read-only panel keeps
-/// showing values instead of disabled controls; `busy` and `error` are per key,
-/// so one failed setting neither hides nor reverts the ones that succeeded. An
-/// unknown `joinPolicy` stays nil rather than misreporting the group's real state.
+/// `editable` carries permission only, so a read-only row keeps showing its value
+/// instead of a disabled control. A row is editable exactly when
+/// ``groupManagementEntries(_:)`` offers its key: the join policy follows
+/// `canManageJoinSettings`, the four switches `canManageInfo`. `busy` and `error`
+/// are per key, so one failed setting neither hides nor reverts the ones that
+/// succeeded. An unknown `joinPolicy` stays nil rather than misreporting the
+/// group's real state.
 public func groupPermissionRows(_ settings: FlareGroupPermissionSettings,
-                                canManage: Bool,
+                                capabilities: FlareGroupCapabilities?,
                                 busyKeys: [String] = [],
                                 errors: [String: String] = [:]) -> [FlareGroupPermissionRow] {
     let busy = Set(busyKeys)
+    let offered = Set(groupManagementEntries(capabilities).map(\.rawValue))
     return FlareGroupPermissionKey.allCases.map { key in
         let value: FlareGroupPermissionValue
         switch key {
@@ -83,7 +87,7 @@ public func groupPermissionRows(_ settings: FlareGroupPermissionSettings,
             key: key,
             kind: key == .joinPolicy ? .choice : .toggle,
             value: value,
-            editable: canManage,
+            editable: offered.contains(key.rawValue),
             busy: busy.contains(key.rawValue),
             error: errors[key.rawValue]
         )
@@ -98,7 +102,7 @@ public func groupPermissionRows(_ settings: FlareGroupPermissionSettings,
 /// that succeeded. Spec: Contacts/GroupPermissionMatrix.
 public struct GroupPermissionMatrixView: View {
     let settings: FlareGroupPermissionSettings
-    let canManage: Bool
+    let capabilities: FlareGroupCapabilities?
     let busyKeys: [String]
     let errors: [String: String]
     let title, readOnlyHintText: String?
@@ -119,8 +123,10 @@ public struct GroupPermissionMatrixView: View {
     /// intent. Not optimistic state: the rendered value stays the host's.
     @State private var lastAttempt: [FlareGroupPermissionKey: FlareGroupPermissionValue] = [:]
 
+    /// `capabilities` is what the host's permission source answered for the viewer: the join policy follows
+    /// `canManageJoinSettings`, the four switches `canManageInfo`; a row the viewer cannot change reads as a value.
     public init(settings: FlareGroupPermissionSettings,
-                canManage: Bool = false,
+                capabilities: FlareGroupCapabilities? = nil,
                 busyKeys: [String] = [],
                 errors: [String: String] = [:],
                 title: String? = nil,
@@ -146,7 +152,7 @@ public struct GroupPermissionMatrixView: View {
                 dismissErrorText: String? = nil,
                 onChange: ((FlareGroupPermissionKey, FlareGroupPermissionValue) -> Void)? = nil,
                 onDismissError: ((FlareGroupPermissionKey) -> Void)? = nil) {
-        self.settings = settings; self.canManage = canManage; self.busyKeys = busyKeys
+        self.settings = settings; self.capabilities = capabilities; self.busyKeys = busyKeys
         self.errors = errors; self.title = title; self.readOnlyHintText = readOnlyHintText
         self.joinPolicyLabel = joinPolicyLabel; self.joinPolicyDescription = joinPolicyDescription
         self.joinInviteText = joinInviteText; self.joinApprovalText = joinApprovalText
@@ -163,8 +169,16 @@ public struct GroupPermissionMatrixView: View {
         self.onChange = onChange; self.onDismissError = onDismissError
     }
 
-    /// Editing needs both the permission and a host callback to honour it.
-    var canEdit: Bool { canManage && onChange != nil }
+    /// Editing needs both the permission and a host callback to honour it: without `onChange` nothing is editable.
+    var effectiveCapabilities: FlareGroupCapabilities? { onChange == nil ? nil : capabilities }
+
+    /// The rows as drawn, the host callback included.
+    var rows: [FlareGroupPermissionRow] {
+        groupPermissionRows(settings, capabilities: effectiveCapabilities, busyKeys: busyKeys, errors: errors)
+    }
+
+    /// Whether any row can be changed; the read-only hint shows when none can.
+    var canEdit: Bool { rows.contains(where: \.editable) }
 
     public func labelFor(_ key: FlareGroupPermissionKey) -> String {
         switch key {
@@ -213,7 +227,7 @@ public struct GroupPermissionMatrixView: View {
     }
 
     private func dispatch(_ row: FlareGroupPermissionRow, _ value: FlareGroupPermissionValue) {
-        guard canEdit, !row.busy else { return }
+        guard row.editable, !row.busy else { return }
         lastAttempt[row.key] = value
         onChange?(row.key, value)
     }
@@ -263,7 +277,7 @@ public struct GroupPermissionMatrixView: View {
 
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        let rows = groupPermissionRows(settings, canManage: canEdit, busyKeys: busyKeys, errors: errors)
+        let rows = self.rows
         VStack(alignment: .leading, spacing: 0) {
             head(colors)
             ForEach(Array(rows.enumerated()), id: \.element.key) { index, row in

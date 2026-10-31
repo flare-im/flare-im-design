@@ -1,10 +1,13 @@
 <script setup lang="ts">
 /**
  * Group detail / management — hero, member grid, and Feishu-style settings:
- * 群信息 / 我在本群 / 群管理 / 群权限 (owner-admin gated), plus member actions,
- * join-request approval, invite picker and invite link. Purely presentational —
- * it renders the `model` and emits intents; the host performs social.group.*
- * writes and refreshes the model.
+ * 群信息 / 我在本群 / 群管理 / 群权限, plus member actions, join-request approval,
+ * invite picker and invite link. Purely presentational — it renders the `model`
+ * and emits intents; the host performs social.group.* writes and refreshes the model.
+ *
+ * Every management entry follows the host's answer: `model.capabilities` through
+ * `groupManagementEntries`, and each member's sheet through `model.memberActions`
+ * (`groupDetailMemberActions`). The kit reads no role or owner rule of its own.
  */
 import { flareIcons } from "../../shared/icons";
 import { computed, getCurrentInstance, ref, watch } from "vue";
@@ -29,7 +32,14 @@ import type {
   FlareSettingsItem,
   FlareSettingsSection,
 } from "../../shared/contracts";
-import { groupJoinPolicies, type FlareGroupJoinPolicy } from "../../shared/contracts/group-permissions";
+import {
+  groupDetailMemberActions,
+  groupJoinPolicies,
+  groupManagementEntries,
+  type FlareGroupJoinPolicy,
+  type GroupManagementEntry,
+  type MemberRoleActionId,
+} from "../../shared/contracts/group-permissions";
 
 const props = defineProps<{
   model: FlareGroupDetailModel | null;
@@ -86,7 +96,10 @@ const hasHostMemberSearch = computed(() => Boolean(instance?.vnode.props?.onSear
 // My nickname is editable when the host persists it, through `submitEdit` or the `updateMyNickname` event.
 const canEditNickname = (): boolean => Boolean(props.submitEdit || instance?.vnode.props?.onUpdateMyNickname);
 const model = computed(() => props.model);
-const canManage = computed(() => model.value?.canManage ?? false);
+/** The management entries the host's capabilities name; nothing else is offered. */
+const entries = computed(() => new Set<GroupManagementEntry>(groupManagementEntries(model.value?.capabilities)));
+const can = (entry: GroupManagementEntry): boolean => entries.value.has(entry);
+const canRename = computed(() => can("editName"));
 const groupName = computed(() => model.value?.name || t("group.title"));
 const requests = computed(() => props.joinRequests ?? []);
 
@@ -111,7 +124,7 @@ const settingsSections = computed<FlareSettingsSection[]>(() => {
         // 群名称与群成员不在这里：它们已经分别由 hero 的标题和成员栅格的头部承担 ——
         // 名字在同一屏上写两遍、人数在同一屏上写两遍，是同一件事说两次，不是两条信息。
         // Rows the viewer can change open their editor and carry a chevron; the rest read as values.
-        { key: "announcement", label: t("group.announcement"), icon: "announcement", kind: m.canManage ? "navigation" : "value", detail: m.announcement || t("group.notSet") },
+        { key: "announcement", label: t("group.announcement"), icon: "announcement", kind: can("editAnnouncement") ? "navigation" : "value", detail: m.announcement || t("group.notSet") },
       ],
     },
     {
@@ -128,26 +141,21 @@ const settingsSections = computed<FlareSettingsSection[]>(() => {
       ],
     },
   ];
-  if (m.canManage) {
-    sections.push({
-      title: t("group.manage"),
-      items: [
-        { key: "discoverable", label: t("group.discoverable"), icon: "search", kind: "toggle", value: m.discoverable },
-        { key: "joinPolicy", label: t("group.joinMode"), icon: "lock", kind: "navigation", detail: joinPolicyLabel.value },
-        { key: "joinRequests", label: t("group.joinRequests"), icon: "join-request", kind: "navigation", badge: requests.value.length || undefined },
-        { key: "muteAll", label: t("group.muteAll"), icon: "silence", kind: "toggle", value: m.muteAll },
-        { key: "inviteLink", label: t("group.inviteLink"), icon: "link", kind: "navigation" },
-      ],
-    });
-    sections.push({
-      title: t("group.perms"),
-      items: [
-        { key: "atAll", label: t("group.onlyAdminAtAll"), icon: "mention", kind: "toggle", value: m.onlyAdminCanAtAll },
-        { key: "pinPerm", label: t("group.onlyAdminPin"), icon: "pin", kind: "toggle", value: m.onlyAdminCanPin },
-        { key: "shareCard", label: t("group.shareCard"), icon: "share", kind: "toggle", value: m.shareCardPermission },
-      ],
-    });
-  }
+  // Each row shows only when the host's capabilities name it; an empty section is not drawn.
+  const manage: FlareSettingsItem[] = [
+    ...(can("discoverable") ? [{ key: "discoverable", label: t("group.discoverable"), icon: "search", kind: "toggle", value: m.discoverable } as const] : []),
+    ...(can("joinPolicy") ? [{ key: "joinPolicy", label: t("group.joinMode"), icon: "lock", kind: "navigation", detail: joinPolicyLabel.value } as const] : []),
+    ...(can("joinRequests") ? [{ key: "joinRequests", label: t("group.joinRequests"), icon: "join-request", kind: "navigation", badge: requests.value.length || undefined } as const] : []),
+    ...(can("muteAll") ? [{ key: "muteAll", label: t("group.muteAll"), icon: "silence", kind: "toggle", value: m.muteAll } as const] : []),
+    ...(can("inviteLink") ? [{ key: "inviteLink", label: t("group.inviteLink"), icon: "link", kind: "navigation" } as const] : []),
+  ];
+  if (manage.length) sections.push({ title: t("group.manage"), items: manage });
+  const perms: FlareSettingsItem[] = [
+    ...(can("onlyAdminCanAtAll") ? [{ key: "atAll", label: t("group.onlyAdminAtAll"), icon: "mention", kind: "toggle", value: m.onlyAdminCanAtAll } as const] : []),
+    ...(can("onlyAdminCanPin") ? [{ key: "pinPerm", label: t("group.onlyAdminPin"), icon: "pin", kind: "toggle", value: m.onlyAdminCanPin } as const] : []),
+    ...(can("shareCardPermission") ? [{ key: "shareCard", label: t("group.shareCard"), icon: "share", kind: "toggle", value: m.shareCardPermission } as const] : []),
+  ];
+  if (perms.length) sections.push({ title: t("group.perms"), items: perms });
   return sections;
 });
 
@@ -190,7 +198,7 @@ function openRoster() {
 }
 /** 改群名 —— 从 hero 的标题进去（原来是设置列表里的「群名称」行）。 */
 function openRename() {
-  if (!canManage.value) return;
+  if (!canRename.value) return;
   editKind.value = "name";
   editDraft.value = model.value?.name || "";
 }
@@ -202,17 +210,16 @@ function onSettingSelect(item: FlareSettingsItem) {
     editDraft.value = model.value?.myNickname || "";
     return;
   }
-  if (!canManage.value) return;
-  if (item.key === "announcement") {
+  if (item.key === "announcement" && can("editAnnouncement")) {
     editKind.value = "announcement";
     editDraft.value = model.value?.announcement || "";
-  } else if (item.key === "joinPolicy") {
+  } else if (item.key === "joinPolicy" && can("joinPolicy")) {
     policyDraft.value = model.value?.joinPolicy ?? "";
     policyOpen.value = true;
-  } else if (item.key === "joinRequests") {
+  } else if (item.key === "joinRequests" && can("joinRequests")) {
     emit("loadJoinRequests");
     requestsOpen.value = true;
-  } else if (item.key === "inviteLink") {
+  } else if (item.key === "inviteLink" && can("inviteLink")) {
     emit("ensureInviteLink");
     inviteLinkOpen.value = true;
   }
@@ -220,12 +227,11 @@ function onSettingSelect(item: FlareSettingsItem) {
 function onSettingToggle(item: FlareSettingsItem, value: boolean) {
   if (item.key === "notif") return emit("toggleMyMuted", value);
   if (item.key === "pin") return emit("toggleMyPinned", value);
-  if (!canManage.value) return;
-  if (item.key === "discoverable") emit("toggleDiscoverable", value);
-  else if (item.key === "muteAll") emit("toggleMuteAll", value);
-  else if (item.key === "atAll") emit("setFlag", "onlyAdminCanAtAll", value);
-  else if (item.key === "pinPerm") emit("setFlag", "onlyAdminCanPin", value);
-  else if (item.key === "shareCard") emit("setFlag", "shareCardPermission", value);
+  if (item.key === "discoverable" && can("discoverable")) emit("toggleDiscoverable", value);
+  else if (item.key === "muteAll" && can("muteAll")) emit("toggleMuteAll", value);
+  else if (item.key === "atAll" && can("onlyAdminCanAtAll")) emit("setFlag", "onlyAdminCanAtAll", value);
+  else if (item.key === "pinPerm" && can("onlyAdminCanPin")) emit("setFlag", "onlyAdminCanPin", value);
+  else if (item.key === "shareCard" && can("shareCardPermission")) emit("setFlag", "shareCardPermission", value);
 }
 
 // ── Join policy ─────────────────────────────────────────────────────────────
@@ -261,9 +267,19 @@ async function copyInviteCode() {
 const memberSheet = ref<string | null>(null);
 const memberIsAdmin = (id: string) => model.value?.adminIds.includes(id) ?? false;
 const memberIsMuted = (id: string) => model.value?.mutedIds.includes(id) ?? false;
+/** What the host lets the viewer do to `id`; a member with nothing to do opens no sheet. */
+const actionsFor = (id: string) => (model.value ? groupDetailMemberActions(model.value, id) : []);
+const sheetActions = computed(() => (memberSheet.value ? actionsFor(memberSheet.value) : []));
+const sheetLabels = computed<Record<MemberRoleActionId, string>>(() => ({
+  promote: t("group.setAdmin"),
+  demote: t("group.unsetAdmin"),
+  mute: t("group.mute"),
+  unmute: t("group.unmute"),
+  transferOwner: t("group.transferOwner"),
+  remove: t("group.removeMember"),
+}));
 function onMemberSelect(id: string) {
-  if (!canManage.value) return;
-  if (id === model.value?.ownerId) return;
+  if (!actionsFor(id).length) return;
   memberSheet.value = id;
 }
 
@@ -272,7 +288,7 @@ function onMemberSelect(id: string) {
 const MEMBER_PREVIEW_CELLS = 20;
 const previewMembers = computed(() => {
   const members = model.value?.members ?? [];
-  return members.slice(0, canManage.value ? MEMBER_PREVIEW_CELLS - 1 : MEMBER_PREVIEW_CELLS);
+  return members.slice(0, can("inviteMembers") ? MEMBER_PREVIEW_CELLS - 1 : MEMBER_PREVIEW_CELLS);
 });
 const membersOpen = ref(false);
 const memberQuery = ref("");
@@ -286,7 +302,7 @@ const matchingMembers = computed(() => {
   return query ? members.filter((member) => member.name.toLocaleLowerCase().includes(query)) : members;
 });
 function onMemberListSelect(member: FlareContact) {
-  if (!canManage.value || member.id === model.value?.ownerId) return;
+  if (!actionsFor(member.id).length) return;
   membersOpen.value = false;
   memberSheet.value = member.id;
 }
@@ -311,6 +327,12 @@ const transferName = computed(() => model.value?.members.find((m) => m.id === tr
 function askTransfer() {
   transferTarget.value = memberSheet.value;
   memberSheet.value = null;
+}
+function runSheetAction(action: MemberRoleActionId) {
+  if (action === "promote" || action === "demote") actRole();
+  else if (action === "mute" || action === "unmute") actMute();
+  else if (action === "transferOwner") askTransfer();
+  else actRemove();
 }
 function confirmTransfer() {
   if (transferTarget.value) emit("transferOwner", transferTarget.value);
@@ -357,19 +379,19 @@ function submitInvite() {
         <FlareAvatar :user-id="model.groupId" :display-name="groupName" :avatar-url="model.avatarUrl || undefined" :size="72" />
         <!-- 标题本身就是改名入口（管理员）。原来标题下面还有一行「群名称 Team ›」，
              同一个名字在同一屏上写两遍；现在名字只有这一处，改名从它进去。 -->
-        <div class="flare-group-detail__title" :class="{ 'is-interactive': canManage }">
+        <div class="flare-group-detail__title" :class="{ 'is-interactive': canRename }">
           <!-- 名字是这个按钮的名字 —— 外层不挂 aria-label,群名现在只有这一处,
                顶掉就等于读屏里再也读不到这个群叫什么。改名的用途挂在旁边的铅笔上。 -->
           <component
-            :is="canManage ? 'button' : 'span'"
-            :type="canManage ? 'button' : undefined"
+            :is="canRename ? 'button' : 'span'"
+            :type="canRename ? 'button' : undefined"
             class="flare-group-detail__title-text"
-            @click="canManage && openRename()"
+            @click="canRename && openRename()"
           >{{ groupName }}</component>
           <!-- 铅笔是自己的控件,不再是标题按钮里的一张图:它的点击到这里就结束(.stop),
                不会再冒泡给任何包着标题的入口 —— 窄屏上曾经点到铅笔却打开了成员名单。 -->
           <button
-            v-if="canManage"
+            v-if="canRename"
             type="button"
             class="flare-group-detail__title-edit"
             :aria-label="t('group.editName')"
@@ -385,7 +407,7 @@ function submitInvite() {
         :total="model.memberCount"
         :owner-id="model.ownerId"
         :admin-ids="model.adminIds"
-        :show-add="canManage"
+        :show-add="can('inviteMembers')"
         @select="onMemberSelect"
         @add-member="openInvite"
         @view-all="openRoster"
@@ -413,7 +435,7 @@ function submitInvite() {
           @click="emit('extraAction', action.id)"
         >{{ action.label }}</FlareButton>
         <FlareButton variant="danger" block @click="emit('leave')">
-          {{ model.isOwner ? t("group.dissolve") : t("group.leave") }}
+          {{ can("dissolve") ? t("group.dissolve") : t("group.leave") }}
         </FlareButton>
       </div>
       <div v-if="$slots.footer" class="flare-group-detail__footer">
@@ -432,14 +454,13 @@ function submitInvite() {
     <!-- Member management -->
     <FlareBottomSheet :open="memberSheet !== null" :title="t('group.memberManage')" @close="memberSheet = null">
       <div class="flare-group-detail__sheet flare-group-detail__member-actions">
-        <FlareButton variant="secondary" block @click="actRole">
-          {{ memberSheet && memberIsAdmin(memberSheet) ? t("group.unsetAdmin") : t("group.setAdmin") }}
-        </FlareButton>
-        <FlareButton variant="secondary" block @click="actMute">
-          {{ memberSheet && memberIsMuted(memberSheet) ? t("group.unmute") : t("group.mute") }}
-        </FlareButton>
-        <FlareButton v-if="model?.isOwner" variant="secondary" block @click="askTransfer">{{ t("group.transferOwner") }}</FlareButton>
-        <FlareButton variant="danger" block @click="actRemove">{{ t("group.removeMember") }}</FlareButton>
+        <FlareButton
+          v-for="entry in sheetActions"
+          :key="entry.action"
+          :variant="entry.action === 'remove' ? 'danger' : 'secondary'"
+          block
+          @click="runSheetAction(entry.action)"
+        >{{ sheetLabels[entry.action] }}</FlareButton>
       </div>
     </FlareBottomSheet>
 

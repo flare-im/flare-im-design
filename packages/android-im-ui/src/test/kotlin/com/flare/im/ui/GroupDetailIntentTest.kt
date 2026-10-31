@@ -19,7 +19,7 @@ class GroupDetailIntentTest {
         ownerId = "me",
         adminIds = listOf("ann"),
         mutedIds = listOf("bob"),
-        canManage = true,
+        capabilities = FlareGroupCapabilities(canManageInfo = true, canInvite = true),
     )
 
     @Test fun theRoleActionAsksForTheOppositeOfTheCurrentRole() {
@@ -47,11 +47,24 @@ class GroupDetailIntentTest {
         assertEquals(FlareStrings().groupDetailDiscoverable, flareGroupDetailLabels(FlareStrings()).discoverable)
     }
 
-    @Test fun theGridPreviewsTwentyCellsWithTheAddTileWhenManaging() {
+    @Test fun theGridPreviewsTwentyCellsWithTheAddTileWhenInviting() {
         val members = (1..500).map { Contact("u$it", "成员$it") }
-        assertEquals(19, groupPreviewMembers(members, canManage = true).size)
-        assertEquals(20, groupPreviewMembers(members, canManage = false).size)
-        assertEquals(listOf("u1", "u2"), groupPreviewMembers(members.take(2), canManage = true).map { it.id })
+        assertEquals(19, groupPreviewMembers(members, showAdd = true).size)
+        assertEquals(20, groupPreviewMembers(members, showAdd = false).size)
+        assertEquals(listOf("u1", "u2"), groupPreviewMembers(members.take(2), showAdd = true).map { it.id })
+    }
+
+    @Test fun theModelSaysNothingUntilTheHostAnswers() {
+        val bare = FlareGroupDetailModel(groupId = "g", name = "g")
+        assertEquals(FlareGroupCapabilities.none, bare.capabilities)
+        assertEquals(emptyList(), groupManagementEntries(bare.capabilities))
+        assertEquals(emptyList(), groupDetailMemberActions(bare, "anyone"))
+        // The add tile and dissolving follow their own capabilities only.
+        assertEquals(
+            listOf(FlareGroupManagementEntry.InviteLink, FlareGroupManagementEntry.InviteMembers),
+            groupManagementEntries(FlareGroupCapabilities(canInvite = true)),
+        )
+        assertEquals(listOf(FlareGroupManagementEntry.Dissolve), groupManagementEntries(FlareGroupCapabilities(canDissolve = true)))
     }
 
     @Test fun theMembersSheetSearchMatchesNamesIgnoringCase() {

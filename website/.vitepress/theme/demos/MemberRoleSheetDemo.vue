@@ -8,8 +8,9 @@ const preview = inject(previewContextKey, null);
 const mobile = computed(() => preview?.viewport.value === "mobile");
 const initialMember = { id: "u-member", name: "王强", role: "member", muted: false };
 const member = ref({ ...initialMember });
-const viewerRole = ref("owner");
-const capabilities = { promote: true, demote: true, mute: true, unmute: true, remove: true, transferOwner: true };
+// The demo stands in for the host: while the viewer owns the group its permission source allows everything on this member.
+const viewerOwns = ref(true);
+const actions = computed(() => (viewerOwns.value ? { canRemove: true, canMute: true, canChangeRole: true, canTransferOwner: true } : {}));
 const durations = [{ id: "10m", label: "10 分钟" }, { id: "1h", label: "1 小时" }, { id: "1d", label: "1 天" }];
 const open = ref(true);
 const pending = ref(null);
@@ -20,7 +21,7 @@ function apply({ action }) {
   open.value = false;
 }
 function confirm() {
-  if (pending.value === "transferOwner") { member.value.role = "owner"; viewerRole.value = "member"; }
+  if (pending.value === "transferOwner") { member.value.role = "owner"; viewerOwns.value = false; }
   if (pending.value === "remove") member.value = null;
   pending.value = null;
 }
@@ -29,15 +30,15 @@ function confirm() {
 <template>
   <DemoStage>
     <div v-if="!mobile" class="mrs-demo__popover" data-preview-platform="desktop">
-      <FlareMemberRoleSheet v-if="member" :member="member" :viewer-role="viewerRole" :capabilities="capabilities" :mute-durations="durations" @action="apply" />
+      <FlareMemberRoleSheet v-if="member" :member="member" :actions="actions" :mute-durations="durations" @action="apply" />
     </div>
     <div v-else data-preview-platform="mobile">
       <FlareSettingsRow v-if="member" :item="{ id: member.id, label: member.name, kind: 'navigation', detail: member.muted ? '已禁言' : '成员' }" @select="open = true" />
       <FlareBottomSheet :open="open" @close="open = false">
-        <FlareMemberRoleSheet v-if="member" :member="member" :viewer-role="viewerRole" :capabilities="capabilities" :mute-durations="durations" @action="apply" @close="open = false" />
+        <FlareMemberRoleSheet v-if="member" :member="member" :actions="actions" :mute-durations="durations" @action="apply" @close="open = false" />
       </FlareBottomSheet>
     </div>
-    <FlareEmptyState v-if="!member" title="成员已移出" action-text="恢复示例" @action="member = { ...initialMember }; viewerRole = 'owner'; open = true" />
+    <FlareEmptyState v-if="!member" title="成员已移出" action-text="恢复示例" @action="member = { ...initialMember }; viewerOwns = true; open = true" />
     <FlareDangerConfirm :open="pending !== null" :title="pending === 'remove' ? '移出群聊？' : '转让群主？'" :target="member?.name" @confirm="confirm" @cancel="pending = null" />
   </DemoStage>
 </template>

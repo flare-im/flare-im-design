@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/directory_data.dart';
+import '../models/group_management.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'action_icon.dart';
@@ -76,14 +77,16 @@ class FlareGroupPermissionRow {
 
 /// The rows to render, in canonical order — same rule set as the other platforms.
 ///
-/// [FlareGroupPermissionRow.editable] carries permission only (`canManage`), so a
-/// read-only panel keeps showing values instead of disabled controls; `busy` and
-/// `error` are per key, so one failed setting neither hides nor reverts the ones
-/// that succeeded. An unknown `joinPolicy` stays null rather than a guessed
-/// policy misreporting the group's real state.
+/// [FlareGroupPermissionRow.editable] carries permission only, so a read-only
+/// row keeps showing its value instead of a disabled control. Each row is
+/// editable exactly when [groupManagementEntries] offers its key: the join
+/// policy follows `canManageJoinSettings`, the four switches `canManageInfo`.
+/// `busy` and `error` are per key, so one failed setting neither hides nor
+/// reverts the ones that succeeded. An unknown `joinPolicy` stays null rather
+/// than a guessed policy misreporting the group's real state.
 List<FlareGroupPermissionRow> groupPermissionRows(
   FlareGroupPermissionSettings settings,
-  bool canManage, [
+  FlareGroupCapabilities? capabilities, [
   List<String> busyKeys = const <String>[],
   Map<String, String> errors = const <String, String>{},
 ]) {
@@ -94,6 +97,9 @@ List<FlareGroupPermissionRow> groupPermissionRows(
     FlareGroupPermissionKey.onlyAdminCanPin => settings.onlyAdminCanPin,
     FlareGroupPermissionKey.shareCardPermission => settings.shareCardPermission,
   };
+  final offered = {
+    for (final entry in groupManagementEntries(capabilities)) entry.id,
+  };
   return [
     for (final key in FlareGroupPermissionKey.values)
       FlareGroupPermissionRow(
@@ -102,7 +108,7 @@ List<FlareGroupPermissionRow> groupPermissionRows(
             ? FlareGroupPermissionRowKind.choice
             : FlareGroupPermissionRowKind.toggle,
         value: valueOf(key),
-        editable: canManage,
+        editable: offered.contains(key.name),
         busy: busyKeys.contains(key.name),
         error: errors[key.name],
       ),
@@ -119,7 +125,7 @@ class FlareGroupPermissionMatrix extends StatefulWidget {
   const FlareGroupPermissionMatrix({
     super.key,
     required this.settings,
-    this.canManage = false,
+    this.capabilities = FlareGroupCapabilities.none,
     this.busyKeys = const <String>[],
     this.errors = const <String, String>{},
     this.title,
@@ -149,8 +155,11 @@ class FlareGroupPermissionMatrix extends StatefulWidget {
 
   final FlareGroupPermissionSettings settings;
 
-  /// Viewer may edit; false renders read-only value rows, never dead switches.
-  final bool canManage;
+  /// What the viewer may change, as the host's permission source answers it:
+  /// the join policy follows `canManageJoinSettings`, the four switches
+  /// `canManageInfo`. A row the viewer cannot change renders as a read-only
+  /// value, never a dead switch.
+  final FlareGroupCapabilities capabilities;
 
   /// Keys whose command is in flight — the host sets this before dispatching.
   final List<String> busyKeys;
@@ -258,7 +267,10 @@ class _FlareGroupPermissionMatrixState
   /// Not optimistic state: the rendered value stays the host's.
   final Map<FlareGroupPermissionKey, Object> _lastAttempt = {};
 
-  bool get _canEdit => widget.canManage && widget.onChange != null;
+  /// Without [FlareGroupPermissionMatrix.onChange] nothing can be changed.
+  FlareGroupCapabilities get _editable => widget.onChange == null
+      ? FlareGroupCapabilities.none
+      : widget.capabilities;
 
   String _labelFor(FlareGroupPermissionKey key) => switch (key) {
     FlareGroupPermissionKey.joinPolicy => _joinPolicyLabel,
@@ -298,7 +310,7 @@ class _FlareGroupPermissionMatrixState
       policy == null ? _unknownJoinPolicyText : _joinChoiceLabel(policy);
 
   void _dispatch(FlareGroupPermissionRow row, Object value) {
-    if (!_canEdit || row.busy) return;
+    if (!row.editable || row.busy || widget.onChange == null) return;
     setState(() => _lastAttempt[row.key] = value);
     widget.onChange!(row.key, value);
   }
@@ -318,10 +330,12 @@ class _FlareGroupPermissionMatrixState
     final colors = FlareColors.of(context);
     final rows = groupPermissionRows(
       widget.settings,
-      _canEdit,
+      _editable,
       widget.busyKeys,
       widget.errors,
     );
+    // The read-only hint shows when the viewer can change none of the rows.
+    final readOnly = rows.every((row) => !row.editable);
     return Semantics(
       container: true,
       label: _title,
@@ -336,7 +350,7 @@ class _FlareGroupPermissionMatrixState
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            _head(colors),
+            _head(colors, readOnly: readOnly),
             for (var i = 0; i < rows.length; i++) ...[
               if (i > 0) Divider(height: 1, color: colors.borderSecondary),
               _row(rows[i], colors),
@@ -347,7 +361,7 @@ class _FlareGroupPermissionMatrixState
     );
   }
 
-  Widget _head(FlareColors colors) {
+  Widget _head(FlareColors colors, {required bool readOnly}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: FlareSizes.spacingSm),
       child: Row(
@@ -363,7 +377,7 @@ class _FlareGroupPermissionMatrixState
               ),
             ),
           ),
-          if (!_canEdit)
+          if (readOnly)
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [

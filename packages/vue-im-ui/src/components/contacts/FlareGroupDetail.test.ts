@@ -11,6 +11,9 @@ import FlareGroupMemberGrid from "./FlareGroupMemberGrid.vue";
 import FlareButton from "../general/FlareButton.vue";
 import FlareRadioGroup from "../form/FlareRadioGroup.vue";
 let host: ReturnType<typeof mount>;
+/** What a group owner may manage, as the host's permission source answers it. */
+const OWNER = { canManageInfo: true, canManageJoinSettings: true, canManageJoinRequests: true, canInvite: true, canDissolve: true };
+const EVERY_ACTION = { canRemove: true, canMute: true, canChangeRole: true, canTransferOwner: true };
 afterEach(() => { host?.unmount(); document.body.innerHTML = ""; });
 it("keeps failed group edits, blocks empty names, and awaits a successful retry", async () => {
   let resolveSave: () => void = () => {};
@@ -20,7 +23,7 @@ it("keeps failed group edits, blocks empty names, and awaits a successful retry"
     useFlareI18nProvider("zh-CN");
     return () => h(FlareGroupDetail as Component, {
       submitEdit, model: { groupId: "g", name: "Team", members: [], memberCount: 0,
-        ownerId: "me", adminIds: [], mutedIds: [], canManage: true, isOwner: true, discoverable: false },
+        ownerId: "me", adminIds: [], mutedIds: [], capabilities: OWNER, memberActions: {}, discoverable: false },
     });
   } }), { attachTo: document.body });
   // 改名从 hero 的标题进去:「群名称」那一行已经去掉了(名字在同一屏上不写两遍)。
@@ -55,7 +58,7 @@ it("emits openChat with positional (userIds, name) like the native onOpenChat", 
     useFlareI18nProvider("zh-CN");
     return () => h(FlareGroupDetail as Component, {
       model: { groupId: "g", name: "Team", members: [{ id: "a", name: "A" }, { id: "b", name: "B" }], memberCount: 2,
-        ownerId: "a", adminIds: [], mutedIds: [], canManage: false, isOwner: false, discoverable: false },
+        ownerId: "a", adminIds: [], mutedIds: [], capabilities: {}, memberActions: {}, discoverable: false },
       onOpenChat: () => {},
     });
   } }), { attachTo: document.body });
@@ -69,7 +72,7 @@ it("picks invitees through checkbox rows and invites exactly the picked ids", as
     useFlareI18nProvider("zh-CN");
     return () => h(FlareGroupDetail as Component, {
       model: { groupId: "g", name: "Team", members: [{ id: "a", name: "A" }], memberCount: 1,
-        ownerId: "a", adminIds: [], mutedIds: [], canManage: true, isOwner: true, discoverable: false },
+        ownerId: "a", adminIds: [], mutedIds: [], capabilities: OWNER, memberActions: {}, discoverable: false },
       invitableContacts: [{ id: "a", name: "A" }, { id: "b", name: "Bea" }, { id: "c", name: "Cai" }],
     });
   } }), { attachTo: document.body });
@@ -94,7 +97,7 @@ it("names the target role and mute state in member intents", async () => {
   host = mount(defineComponent({ setup() {
     useFlareI18nProvider("en-US");
     return () => h(FlareGroupDetail as Component, {
-      model: { groupId: "g", name: "Team", memberCount: 2, ownerId: "me", adminIds: ["ivy"], mutedIds: [], canManage: true, isOwner: true, discoverable: false,
+      model: { groupId: "g", name: "Team", memberCount: 2, ownerId: "me", adminIds: ["ivy"], mutedIds: [], capabilities: OWNER, memberActions: { ivy: EVERY_ACTION }, discoverable: false,
         members: [{ id: "me", name: "Me" }, { id: "ivy", name: "Ivy" }] },
     });
   } }), { attachTo: document.body });
@@ -115,7 +118,7 @@ it("names the target role and mute state in member intents", async () => {
 
 it("offers the message button only to a host that opens the chat, and places host content in its slots", async () => {
   const model = { groupId: "g", name: "Team", members: [{ id: "a", name: "A" }], memberCount: 1,
-    ownerId: "a", adminIds: [], mutedIds: [], canManage: false, isOwner: false, discoverable: false, joinPolicy: null };
+    ownerId: "a", adminIds: [], mutedIds: [], capabilities: {}, memberActions: {}, discoverable: false, joinPolicy: null };
   host = mount(defineComponent({ setup() {
     useFlareI18nProvider("zh-CN");
     return () => h(FlareGroupDetail as Component, { model }, {
@@ -142,7 +145,7 @@ it("reads an unknown join policy as not set and only saves a picked one", async 
     useFlareI18nProvider("zh-CN");
     return () => h(FlareGroupDetail as Component, {
       model: { groupId: "g", name: "Team", members: [], memberCount: 0, ownerId: "me", adminIds: [], mutedIds: [],
-        canManage: true, isOwner: true, discoverable: false, joinPolicy: null },
+        capabilities: OWNER, memberActions: {}, discoverable: false, joinPolicy: null },
     });
   } }), { attachTo: document.body });
   await flushPromises();
@@ -168,7 +171,7 @@ it("emits the requested public-search state from the discoverability switch", as
     useFlareI18nProvider("zh-CN");
     return () => h(FlareGroupDetail as Component, {
       model: { groupId: "g", name: "Team", members: [], memberCount: 1, ownerId: "me", adminIds: [], mutedIds: [],
-        canManage: true, isOwner: true, discoverable: false },
+        capabilities: OWNER, memberActions: {}, discoverable: false },
     });
   } }), { attachTo: document.body });
   const list = host.findComponent(FlareSettingsList);
@@ -180,7 +183,7 @@ it("emits the requested public-search state from the discoverability switch", as
 });
 it("previews the first members and opens everyone, searchable, from the grid header", async () => {
   const members = Array.from({ length: 30 }, (_, index) => ({ id: `u${index}`, name: index === 25 ? "林夏" : `成员${index}` }));
-  const bigGroup = { groupId: "g", name: "Big team", members, memberCount: 30, ownerId: "u0", adminIds: [], mutedIds: [], canManage: true, isOwner: true, discoverable: false };
+  const bigGroup = { groupId: "g", name: "Big team", members, memberCount: 30, ownerId: "u0", adminIds: [], mutedIds: [], capabilities: OWNER, memberActions: {}, discoverable: false };
   host = mount(defineComponent({ setup() {
     useFlareI18nProvider("zh-CN");
     return () => h(FlareGroupDetail as Component, { model: bigGroup });
@@ -210,7 +213,7 @@ it("emits host-backed member searches without filtering the loaded rows locally"
     useFlareI18nProvider("zh-CN");
     return () => h(FlareGroupDetail as Component, {
       model: { groupId: "g", name: "Team", members: [{ id: "a", name: "Alice" }], memberCount: 20,
-        ownerId: "a", adminIds: [], mutedIds: [], canManage: true, isOwner: true, discoverable: false },
+        ownerId: "a", adminIds: [], mutedIds: [], capabilities: OWNER, memberActions: {}, discoverable: false },
       onSearchMembers: searchMembers,
     });
   } }), { attachTo: document.body });
@@ -228,7 +231,7 @@ it("counts the whole group in the preview grid header and keeps long names insid
   const members = Array.from({ length: 30 }, (_, index) => ({ id: `u${index}`, name: index === 1 ? "产品体验与用户研究中心华东区负责人" : `成员${index}` }));
   host = mount(defineComponent({ setup() {
     useFlareI18nProvider("zh-CN");
-    return () => h(FlareGroupDetail as Component, { model: { groupId: "g", name: "Big team", members, memberCount: 30, ownerId: "u0", adminIds: [], mutedIds: [], canManage: false, isOwner: false, discoverable: false } });
+    return () => h(FlareGroupDetail as Component, { model: { groupId: "g", name: "Big team", members, memberCount: 30, ownerId: "u0", adminIds: [], mutedIds: [], capabilities: {}, memberActions: {}, discoverable: false } });
   } }), { attachTo: document.body });
   const grid = host.findComponent(FlareGroupMemberGrid);
   expect(grid.get(".flare-member-grid__count").text()).toBe("30 名成员");
@@ -247,7 +250,7 @@ it("shows a loading state until the model arrives, and the unavailable state onl
 });
 it("gives the rows the viewer can change a chevron and leaves the rest as values", async () => {
   const model = { groupId: "g", name: "Team", announcement: "", members: [], memberCount: 3,
-    ownerId: "a", adminIds: [], mutedIds: [], canManage: false, isOwner: false, discoverable: false, myNickname: "" };
+    ownerId: "a", adminIds: [], mutedIds: [], capabilities: {}, memberActions: {}, discoverable: false, myNickname: "" };
   const chevrons = () => Object.fromEntries(host.findAll(".flare-settings__row")
     .map((row) => [row.get(".flare-settings__label").text(), row.find(".flare-settings__chev").exists()]));
   host = mount(defineComponent({ setup() {
@@ -267,7 +270,7 @@ it("gives the rows the viewer can change a chevron and leaves the rest as values
 
   host = mount(defineComponent({ setup() {
     useFlareI18nProvider("zh-CN");
-    return () => h(FlareGroupDetail as Component, { model: { ...model, canManage: true }, onUpdateMyNickname: () => {} });
+    return () => h(FlareGroupDetail as Component, { model: { ...model, capabilities: OWNER }, onUpdateMyNickname: () => {} });
   } }), { attachTo: document.body });
   expect(chevrons()).toMatchObject({ 群公告: true, 我的群昵称: true, 进群方式: true });
   // 能管理的人,标题就是改名入口 —— 那一行删掉了,功能没有跟着删掉。
@@ -299,7 +302,7 @@ it("claims no state for my notification and pin settings when they could not be 
     return () => h(FlareGroupDetail as Component, {
       onToggleMyMuted,
       model: { groupId: "g", name: "Team", members: [], memberCount: 3, ownerId: "o", adminIds: [], mutedIds: [],
-        canManage: false, isOwner: false, discoverable: false, myMuted: null, myPinned: null },
+        capabilities: {}, memberActions: {}, discoverable: false, myMuted: null, myPinned: null },
     });
   } }), { attachTo: document.body });
   await flushPromises();
@@ -317,7 +320,7 @@ it("opens the rename editor, never the member roster, from the pencil next to th
     useFlareI18nProvider("zh-CN");
     return () => h("div", { onClick: hostClick }, [h(FlareGroupDetail as Component, {
       model: { groupId: "g", name: "Team", memberCount: 30, ownerId: "me", adminIds: [], mutedIds: [],
-        canManage: true, isOwner: true, discoverable: false,
+        capabilities: OWNER, memberActions: {}, discoverable: false,
         members: Array.from({ length: 30 }, (_, index) => ({ id: `u${index}`, name: `成员${index}` })) },
     })]);
   } }), { attachTo: document.body });
@@ -343,4 +346,60 @@ it("opens the rename editor, never the member roster, from the pencil next to th
   await flushPromises();
   expect(form.props("open")).toBe(true);
   expect(document.body.querySelector(".flare-group-detail__members")).toBeNull();
+});
+it("offers each member only the actions the host allows for that member", async () => {
+  const emitted: unknown[][] = [];
+  host = mount(defineComponent({ setup() {
+    useFlareI18nProvider("en-US");
+    return () => h(FlareGroupDetail as Component, {
+      // An admin who may only mute: the host answered mute for the plain member and nothing for the peer admin.
+      model: { groupId: "g", name: "Team", memberCount: 3, ownerId: "own", adminIds: ["me", "peer"], mutedIds: [],
+        capabilities: {}, memberActions: { kim: { canMute: true }, peer: {} }, discoverable: false,
+        members: [{ id: "own", name: "Owner" }, { id: "peer", name: "Peer" }, { id: "kim", name: "Kim" }] },
+      onMuteMember: (...args: unknown[]) => emitted.push(args),
+    });
+  } }), { attachTo: document.body });
+  const grid = host.findComponent(FlareGroupMemberGrid);
+  const sheetLabels = () => [...document.body.querySelectorAll(".flare-group-detail__member-actions button")].map((b) => b.textContent?.trim());
+  grid.vm.$emit("select", "kim");
+  await flushPromises();
+  expect(sheetLabels()).toEqual(["Mute"]);
+  const mute = host.findAllComponents(FlareButton).find((b) => b.text() === "Mute");
+  await mute!.trigger("click");
+  expect(emitted).toEqual([["kim", true]]);
+  // The peer admin and the owner have no answer that allows anything: no sheet opens.
+  for (const id of ["peer", "own"]) {
+    grid.vm.$emit("select", id);
+    await flushPromises();
+    expect(sheetLabels(), id).toEqual([]);
+  }
+});
+
+it("shows each management row only for the capability that names it", async () => {
+  const rowsFor = (capabilities: Record<string, boolean>) => {
+    host?.unmount();
+    host = mount(defineComponent({ setup() {
+      useFlareI18nProvider("en-US");
+      return () => h(FlareGroupDetail as Component, {
+        model: { groupId: "g", name: "Team", memberCount: 1, ownerId: "own", adminIds: [], mutedIds: [], capabilities, memberActions: {},
+          discoverable: false, members: [{ id: "own", name: "Owner" }] },
+      });
+    } }), { attachTo: document.body });
+    const sections = host.findComponent(FlareSettingsList).props("sections") as { title: string; items: { key: string }[] }[];
+    return {
+      rows: sections.slice(2).flatMap((section) => section.items.map((item) => item.key)),
+      add: host.findComponent(FlareGroupMemberGrid).props("showAdd"),
+      leave: host.findAllComponents(FlareButton).at(-1)?.text(),
+    };
+  };
+  // An admin with the join permission alone sees the join requests and nothing else to manage.
+  expect(rowsFor({ canManageJoinRequests: true })).toEqual({ rows: ["joinRequests"], add: false, leave: "Leave group" });
+  // A member of a group that lets members share its card may invite: the invite link and the add tile.
+  expect(rowsFor({ canInvite: true })).toEqual({ rows: ["inviteLink"], add: true, leave: "Leave group" });
+  // The info permission edits the switches but not the join policy or discoverability.
+  expect(rowsFor({ canManageInfo: true }).rows).toEqual(["muteAll", "atAll", "pinPerm", "shareCard"]);
+  expect(rowsFor({ canManageJoinSettings: true }).rows).toEqual(["discoverable", "joinPolicy"]);
+  // Only the capability to dissolve turns leaving into dissolving.
+  expect(rowsFor({ canDissolve: true }).leave).toBe("Dissolve group");
+  expect(rowsFor({}).rows).toEqual([]);
 });

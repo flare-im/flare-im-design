@@ -62,9 +62,16 @@ data class FlareGroupDetailModel(
     val adminIds: List<String> = emptyList(),
     /** Muted member ids — drives the per-member mute action label. */
     val mutedIds: List<String> = emptyList(),
-    /** Viewer owns or administers the group (gates the management sections). */
-    val canManage: Boolean = false,
-    val isOwner: Boolean = false,
+    /**
+     * What the viewer may manage, as the host's permission source answers it: each field shows the entries it
+     * names ([groupManagementEntries]). The kit derives nothing from roles or [ownerId].
+     */
+    val capabilities: FlareGroupCapabilities = FlareGroupCapabilities.none,
+    /**
+     * What the viewer may do to each member, keyed by member id ([groupDetailMemberActions]). A member without
+     * an entry gets no member sheet; the host fills it for every member it shows, search results included.
+     */
+    val memberActions: Map<String, FlareMemberActions> = emptyMap(),
     /** Viewer's own nickname in this group. */
     val myNickname: String? = null,
     /**
@@ -247,9 +254,9 @@ internal fun groupJoinPolicyLabel(policy: FlareGroupJoinPolicy?, labels: FlareGr
 /** Cells in the member preview grid, the add tile included: four rows of five (Vue `MEMBER_PREVIEW_CELLS`). */
 internal const val GROUP_MEMBER_PREVIEW_CELLS = 20
 
-/** The members the grid previews: the first 19 and the add tile when the viewer manages, otherwise the first 20. */
-internal fun groupPreviewMembers(members: List<Contact>, canManage: Boolean): List<Contact> =
-    members.take(if (canManage) GROUP_MEMBER_PREVIEW_CELLS - 1 else GROUP_MEMBER_PREVIEW_CELLS)
+/** The members the grid previews: the first 19 and the add tile when the viewer may invite, otherwise the first 20. */
+internal fun groupPreviewMembers(members: List<Contact>, showAdd: Boolean): List<Contact> =
+    members.take(if (showAdd) GROUP_MEMBER_PREVIEW_CELLS - 1 else GROUP_MEMBER_PREVIEW_CELLS)
 
 /** The members whose name contains [query] (case-insensitive); every member for a blank query. */
 internal fun groupMembersMatching(members: List<Contact>, query: String): List<Contact> {
@@ -329,12 +336,16 @@ internal fun groupMemberMuteTarget(model: FlareGroupDetailModel, userId: String)
 
 /**
  * Group detail / management — a full presentational screen: header, hero, member grid,
- * and Feishu-style settings (群信息 / 我在本群 / 群管理 / 群权限, owner-admin gated), plus the
- * member action sheet, join-request approval, invite picker and invite link. The grid previews the
- * first 20 cells (19 members and the add tile when the viewer manages); the 群成员 row opens a sheet of
- * every member with a search field, where choosing a member opens the same member actions. It owns its
- * editing dialogs / sheets and reuses the kit [GroupMemberGrid] and [SettingsRow]. Purely
- * presentational — NO SDK / session: it renders [model] and emits intents.
+ * and Feishu-style settings (群信息 / 我在本群 / 群管理 / 群权限), plus the member action sheet,
+ * join-request approval, invite picker and invite link. The grid previews the first 20 cells (19 members
+ * and the add tile when the viewer may invite); the 群成员 row opens a sheet of every member with a search
+ * field, where choosing a member opens the same member actions. It owns its editing dialogs / sheets and
+ * reuses the kit [GroupMemberGrid] and [SettingsRow]. Purely presentational — NO SDK / session: it renders
+ * [model] and emits intents.
+ *
+ * Every management entry follows the host's answer: [FlareGroupDetailModel.capabilities] through
+ * [groupManagementEntries], and each member's sheet through [FlareGroupDetailModel.memberActions]
+ * ([groupDetailMemberActions]); an empty section is not drawn. The kit reads no role or owner rule of its own.
  *
  * The name, announcement and nickname rows open an editor on the current value. With [submitEdit] the editor waits
  * for the host's write: busy while it runs, open with the draft and the error when it throws, closed when it returns.
@@ -439,6 +450,15 @@ fun FlareGroupDetail(
     var memberSheet by remember { mutableStateOf<String?>(null) }
     var membersOpen by remember { mutableStateOf(false) }
     var transferTarget by remember { mutableStateOf<String?>(null) }
+    // The member sheet draws what the host allows for that member and the host can act on; nothing opens no sheet.
+    fun sheetEntries(m: FlareGroupDetailModel, id: String): List<FlareMemberRoleActionEntry> =
+        groupDetailMemberActions(m, id).filter { entry ->
+            when (entry.action) {
+                FlareMemberRoleAction.Promote, FlareMemberRoleAction.Demote -> onPromoteMember != null
+                FlareMemberRoleAction.Mute, FlareMemberRoleAction.Unmute -> onMuteMember != null
+                FlareMemberRoleAction.TransferOwner, FlareMemberRoleAction.Remove -> true
+            }
+        }
 
     Column(modifier.fillMaxSize().background(colors.bgSecondary)) {
         Row(
@@ -471,6 +491,8 @@ fun FlareGroupDetail(
 
         val m = model
         val groupName = m.name.ifEmpty { labels.fallbackTitle }
+        val offered = groupManagementEntries(m.capabilities).toSet()
+        fun can(entry: FlareGroupManagementEntry) = entry in offered
 
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
             // Hero
@@ -483,13 +505,14 @@ fun FlareGroupDetail(
                 Text(groupName, color = colors.textPrimary, fontWeight = FontWeight.SemiBold, fontSize = FlareSizes.fontSize3xl.value.sp)
             }
 
+            val showAdd = can(FlareGroupManagementEntry.InviteMembers)
             GroupMemberGrid(
-                members = groupPreviewMembers(m.members, m.canManage),
+                members = groupPreviewMembers(m.members, showAdd),
                 total = m.memberCount,
                 ownerId = m.ownerId,
                 adminIds = m.adminIds,
-                showAdd = m.canManage,
-                onSelect = { id -> if (m.canManage && id != m.ownerId) memberSheet = id },
+                showAdd = showAdd,
+                onSelect = { id -> if (sheetEntries(m, id).isNotEmpty()) memberSheet = id },
                 onAddMember = { onLoadContacts(); inviteMembersOpen = true },
             )
 
@@ -499,15 +522,17 @@ fun FlareGroupDetail(
             // 群信息
             SectionTitle(labels.infoSection)
             FlareGroupedCard {
+                val canRename = can(FlareGroupManagementEntry.EditName)
+                val canEditAnnouncement = can(FlareGroupManagementEntry.EditAnnouncement)
                 SettingsRow(
                     // A row the viewer can change opens its editor and carries a chevron; the rest read as values.
-                    item = SettingsItem("name", labels.name, icon = "tag", kind = if (m.canManage) FlareSettingKind.Navigation else FlareSettingKind.Value, detail = m.name.ifEmpty { "-" }),
-                    onSelect = { if (m.canManage) edit(FlareGroupDetailEditKind.Name) },
+                    item = SettingsItem("name", labels.name, icon = "tag", kind = if (canRename) FlareSettingKind.Navigation else FlareSettingKind.Value, detail = m.name.ifEmpty { "-" }),
+                    onSelect = { if (canRename) edit(FlareGroupDetailEditKind.Name) },
                 )
                 FlareGroupedCardDivider()
                 SettingsRow(
-                    item = SettingsItem("announcement", labels.announcement, icon = "announcement", kind = if (m.canManage) FlareSettingKind.Navigation else FlareSettingKind.Value, detail = m.announcement?.ifEmpty { null } ?: labels.notSet),
-                    onSelect = { if (m.canManage) edit(FlareGroupDetailEditKind.Announcement) },
+                    item = SettingsItem("announcement", labels.announcement, icon = "announcement", kind = if (canEditAnnouncement) FlareSettingKind.Navigation else FlareSettingKind.Value, detail = m.announcement?.ifEmpty { null } ?: labels.notSet),
+                    onSelect = { if (canEditAnnouncement) edit(FlareGroupDetailEditKind.Announcement) },
                 )
                 FlareGroupedCardDivider()
                 SettingsRow(
@@ -543,53 +568,76 @@ fun FlareGroupDetail(
                 )
             }
 
-            // 群管理 (owner/admin only)
-            if (m.canManage) {
-                SectionTitle(labels.manageSection)
-                FlareGroupedCard {
+            // 群管理 and 群权限: each row only for the capability that names it; an empty section is not drawn.
+            val manageRows = buildList<@Composable () -> Unit> {
+                if (can(FlareGroupManagementEntry.Discoverable)) add {
                     SettingsRow(
                         item = SettingsItem("discoverable", labels.discoverable, icon = "search", kind = FlareSettingKind.Toggle, value = m.discoverable),
                         onToggle = { _, v -> onToggleDiscoverable(v) },
                     )
-                    FlareGroupedCardDivider()
+                }
+                if (can(FlareGroupManagementEntry.JoinPolicy)) add {
                     SettingsRow(
                         item = SettingsItem("joinPolicy", labels.joinMode, icon = "lock", kind = if (onSetJoinPolicy != null) FlareSettingKind.Navigation else FlareSettingKind.Value, detail = groupJoinPolicyLabel(m.joinPolicy, labels)),
                         onSelect = if (onSetJoinPolicy != null) ({ joinModeOpen = true }) else null,
                     )
-                    FlareGroupedCardDivider()
+                }
+                if (can(FlareGroupManagementEntry.JoinRequests)) add {
                     SettingsRow(
                         item = SettingsItem("joinRequests", labels.joinRequests, icon = "join-request", kind = FlareSettingKind.Navigation, detail = joinRequests.size.takeIf { it > 0 }?.toString()),
                         onSelect = { onLoadJoinRequests(); joinRequestsOpen = true },
                     )
-                    FlareGroupedCardDivider()
+                }
+                if (can(FlareGroupManagementEntry.MuteAll)) add {
                     SettingsRow(
                         item = SettingsItem("muteAll", labels.muteAll, icon = "silence", kind = FlareSettingKind.Toggle, value = m.muteAll),
                         onToggle = { _, v -> onToggleMuteAll(v) },
                     )
-                    FlareGroupedCardDivider()
+                }
+                if (can(FlareGroupManagementEntry.InviteLink)) add {
                     SettingsRow(
                         item = SettingsItem("inviteLink", labels.inviteLink, icon = "link", kind = FlareSettingKind.Navigation),
                         onSelect = { onEnsureInviteLink(); inviteLinkOpen = true },
                     )
                 }
-
-                // 群权限 (owner/admin only)
-                SectionTitle(labels.permsSection)
+            }
+            if (manageRows.isNotEmpty()) {
+                SectionTitle(labels.manageSection)
                 FlareGroupedCard {
+                    manageRows.forEachIndexed { index, row ->
+                        if (index > 0) FlareGroupedCardDivider()
+                        row()
+                    }
+                }
+            }
+
+            val permRows = buildList<@Composable () -> Unit> {
+                if (can(FlareGroupManagementEntry.OnlyAdminCanAtAll)) add {
                     SettingsRow(
                         item = SettingsItem("onlyAdminAtAll", labels.onlyAdminAtAll, icon = "mention", kind = FlareSettingKind.Toggle, value = m.onlyAdminCanAtAll),
                         onToggle = { _, v -> onSetFlag("onlyAdminCanAtAll", v) },
                     )
-                    FlareGroupedCardDivider()
+                }
+                if (can(FlareGroupManagementEntry.OnlyAdminCanPin)) add {
                     SettingsRow(
                         item = SettingsItem("onlyAdminPin", labels.onlyAdminPin, icon = "pin", kind = FlareSettingKind.Toggle, value = m.onlyAdminCanPin),
                         onToggle = { _, v -> onSetFlag("onlyAdminCanPin", v) },
                     )
-                    FlareGroupedCardDivider()
+                }
+                if (can(FlareGroupManagementEntry.ShareCardPermission)) add {
                     SettingsRow(
                         item = SettingsItem("shareCard", labels.shareCard, icon = "share", kind = FlareSettingKind.Toggle, value = m.shareCardPermission),
                         onToggle = { _, v -> onSetFlag("shareCardPermission", v) },
                     )
+                }
+            }
+            if (permRows.isNotEmpty()) {
+                SectionTitle(labels.permsSection)
+                FlareGroupedCard {
+                    permRows.forEachIndexed { index, row ->
+                        if (index > 0) FlareGroupedCardDivider()
+                        row()
+                    }
                 }
             }
 
@@ -617,7 +665,7 @@ fun FlareGroupDetail(
                         )
                     }
                 }
-                DangerBlockButton(text = if (m.isOwner) labels.dissolve else labels.leave, onClick = onLeave)
+                DangerBlockButton(text = if (can(FlareGroupManagementEntry.Dissolve)) labels.dissolve else labels.leave, onClick = onLeave)
                 footer?.invoke()
             }
         }
@@ -672,8 +720,10 @@ fun FlareGroupDetail(
                     ContactList(
                         items = matching,
                         indexed = false,
-                        // The same member actions as the grid: managers act on anyone but the owner.
-                        onSelect = if (m.canManage) ({ member -> if (member.id != m.ownerId) { membersOpen = false; memberSheet = member.id } }) else null,
+                        // The same member actions as the grid: a member opens the sheet only with something to do to them.
+                        onSelect = if (m.memberActions.isEmpty()) null else ({ member ->
+                            if (sheetEntries(m, member.id).isNotEmpty()) { membersOpen = false; memberSheet = member.id }
+                        }),
                     )
                 }
             }
@@ -685,30 +735,32 @@ fun FlareGroupDetail(
     if (selected != null && model != null) {
         val m = model
         val member = m.members.firstOrNull { it.id == selected }
-        val isAdmin = m.adminIds.contains(selected)
-        val isMuted = m.mutedIds.contains(selected)
         BottomSheet(onClose = { memberSheet = null }, title = member?.name ?: labels.memberManage) {
             Column(
                 Modifier.fillMaxWidth().weight(1f, fill = false).verticalScroll(rememberScrollState())
                     .padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingSm),
                 verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
             ) {
-                onPromoteMember?.let { promote ->
-                    SecondaryBlockButton(text = if (isAdmin) labels.unsetAdmin else labels.setAdmin) {
-                        memberSheet = null
-                        promote(selected, groupMemberAdminTarget(m, selected))
+                for (entry in sheetEntries(m, selected)) {
+                    when (entry.action) {
+                        FlareMemberRoleAction.Promote, FlareMemberRoleAction.Demote -> onPromoteMember?.let { promote ->
+                            SecondaryBlockButton(text = if (entry.action == FlareMemberRoleAction.Demote) labels.unsetAdmin else labels.setAdmin) {
+                                memberSheet = null
+                                promote(selected, groupMemberAdminTarget(m, selected))
+                            }
+                        }
+                        FlareMemberRoleAction.Mute, FlareMemberRoleAction.Unmute -> onMuteMember?.let { mute ->
+                            SecondaryBlockButton(text = if (entry.action == FlareMemberRoleAction.Unmute) labels.unmute else labels.mute) {
+                                memberSheet = null
+                                mute(selected, groupMemberMuteTarget(m, selected))
+                            }
+                        }
+                        FlareMemberRoleAction.TransferOwner ->
+                            SecondaryBlockButton(text = labels.transferOwner) { transferTarget = selected; memberSheet = null }
+                        FlareMemberRoleAction.Remove ->
+                            DangerBlockButton(text = labels.removeMember) { memberSheet = null; onRemoveMember(selected) }
                     }
                 }
-                onMuteMember?.let { mute ->
-                    SecondaryBlockButton(text = if (isMuted) labels.unmute else labels.mute) {
-                        memberSheet = null
-                        mute(selected, groupMemberMuteTarget(m, selected))
-                    }
-                }
-                if (m.isOwner) {
-                    SecondaryBlockButton(text = labels.transferOwner) { transferTarget = selected; memberSheet = null }
-                }
-                DangerBlockButton(text = labels.removeMember) { memberSheet = null; onRemoveMember(selected) }
             }
         }
     }

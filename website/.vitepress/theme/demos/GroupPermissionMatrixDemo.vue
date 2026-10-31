@@ -10,7 +10,10 @@ const settings = ref({
   shareCardPermission: true,
   joinPolicy: "approval",
 });
-const canManage = ref(true);
+// What the host's permission source answered for the viewer: the join policy and the four switches are separate rights.
+const canManageJoinSettings = ref(true);
+const canManageInfo = ref(true);
+const capabilities = computed(() => ({ canManageJoinSettings: canManageJoinSettings.value, canManageInfo: canManageInfo.value }));
 const busyKeys = ref([]);
 const errors = ref({});
 // Demo switch: the host pretends the next muteAll write fails, to show partial failure.
@@ -45,7 +48,8 @@ function reset() {
     shareCardPermission: true,
     joinPolicy: "approval",
   };
-  canManage.value = true;
+  canManageJoinSettings.value = true;
+  canManageInfo.value = true;
   busyKeys.value = [];
   errors.value = {};
   failMuteAll.value = false;
@@ -69,7 +73,7 @@ const summary = computed(() => {
     <div class="gpm-demo">
       <FlareGroupPermissionMatrix
         :settings="settings"
-        :can-manage="canManage"
+        :capabilities="capabilities"
         :busy-keys="busyKeys"
         :errors="errors"
         @change="apply"
@@ -77,7 +81,8 @@ const summary = computed(() => {
       />
 
       <div class="gpm-demo__controls">
-        <label><input v-model="canManage" type="checkbox" /> canManage（管理员视角）</label>
+        <label><input v-model="canManageJoinSettings" type="checkbox" /> canManageJoinSettings（可改加群方式）</label>
+        <label><input v-model="canManageInfo" type="checkbox" /> canManageInfo（可改四个开关）</label>
         <label><input v-model="failMuteAll" type="checkbox" /> 让「全员禁言」提交失败</label>
         <button type="button" @click="settings = { ...settings, joinPolicy: null }">宿主不知道加群方式</button>
         <button type="button" @click="reset">重置演示</button>

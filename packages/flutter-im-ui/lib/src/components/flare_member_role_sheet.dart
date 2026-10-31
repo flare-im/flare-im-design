@@ -1,24 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../models/group_management.dart';
 import '../tokens/flare_tokens.dart';
 import 'action_icon.dart';
 import 'flare_avatar.dart';
 import 'flare_icon.dart';
-
-/// A member's role in the group.
-enum FlareGroupMemberRole { owner, admin, member }
-
-/// Management actions a [FlareMemberRoleSheet] can emit; names match the
-/// cross-platform contract (Vue `action` payload / SwiftUI / Compose enums).
-enum FlareMemberRoleAction {
-  promote,
-  demote,
-  mute,
-  unmute,
-  transferOwner,
-  remove,
-}
 
 /// The member the sheet acts on; [id] must be stable and is echoed in the callback.
 @immutable
@@ -37,20 +24,6 @@ class FlareGroupMemberSnapshot {
   final bool muted;
 }
 
-/// Host-declared capabilities. `false` → the action is not rendered.
-@immutable
-class FlareMemberRoleCapabilities {
-  const FlareMemberRoleCapabilities({
-    this.promote = false,
-    this.demote = false,
-    this.mute = false,
-    this.unmute = false,
-    this.remove = false,
-    this.transferOwner = false,
-  });
-  final bool promote, demote, mute, unmute, remove, transferOwner;
-}
-
 /// One host-supplied mute duration option; the kit ships no durations of its own.
 @immutable
 class FlareMemberMuteDuration {
@@ -59,80 +32,19 @@ class FlareMemberMuteDuration {
   final String label;
 }
 
-/// One displayable action; [danger] entries render in the trailing danger group.
-@immutable
-class FlareMemberRoleActionEntry {
-  const FlareMemberRoleActionEntry(this.action, {this.danger = false});
-  final FlareMemberRoleAction action;
-  final bool danger;
-}
-
-/// Ordered management actions for [member] as seen by [viewerRole] — the same
-/// rule set as the other platforms. Rank rules come first, capabilities only
-/// narrow further:
-///
-///  - the owner is untouchable — no promote / demote / mute / remove / transfer;
-///  - a plain member sees nothing (the sheet then says it has no rights);
-///  - an admin cannot act on a peer admin and can never transfer ownership;
-///  - only the owner can transfer ownership;
-///  - promote only applies to a member, demote only to an admin;
-///  - mute / unmute are mutually exclusive by `member.muted`.
-///
-/// `mute` still needs host-supplied durations — a sheet with none hides the row.
-List<FlareMemberRoleActionEntry> memberRoleActions(
-  FlareGroupMemberSnapshot member,
-  FlareGroupMemberRole viewerRole,
-  FlareMemberRoleCapabilities capabilities,
-) {
-  if (member.role == FlareGroupMemberRole.owner) return const [];
-  if (viewerRole == FlareGroupMemberRole.member) return const [];
-  if (viewerRole == FlareGroupMemberRole.admin &&
-      member.role == FlareGroupMemberRole.admin) {
-    return const [];
-  }
-  final out = <FlareMemberRoleActionEntry>[];
-  if (capabilities.promote && member.role == FlareGroupMemberRole.member) {
-    out.add(const FlareMemberRoleActionEntry(FlareMemberRoleAction.promote));
-  }
-  if (capabilities.demote && member.role == FlareGroupMemberRole.admin) {
-    out.add(const FlareMemberRoleActionEntry(FlareMemberRoleAction.demote));
-  }
-  if (capabilities.mute && !member.muted) {
-    out.add(const FlareMemberRoleActionEntry(FlareMemberRoleAction.mute));
-  }
-  if (capabilities.unmute && member.muted) {
-    out.add(const FlareMemberRoleActionEntry(FlareMemberRoleAction.unmute));
-  }
-  if (capabilities.transferOwner && viewerRole == FlareGroupMemberRole.owner) {
-    out.add(
-      const FlareMemberRoleActionEntry(
-        FlareMemberRoleAction.transferOwner,
-        danger: true,
-      ),
-    );
-  }
-  if (capabilities.remove) {
-    out.add(
-      const FlareMemberRoleActionEntry(
-        FlareMemberRoleAction.remove,
-        danger: true,
-      ),
-    );
-  }
-  return out;
-}
-
 /// Management menu for ONE group member: change role, mute, remove, transfer
 /// ownership. Owns no positioning — present it with `FlareBottomSheet.show` or
-/// in a popover. It only emits intent: the second confirmation for remove /
-/// transferOwner is the host's job (FlareDangerConfirm), and mute durations
-/// come from the host. Spec: Contacts/MemberRoleSheet.
+/// in a popover. Which actions exist comes from the host's answer for this
+/// member ([actions], the social SDK's `memberActions` entry); the shared
+/// [memberRoleActions] contract only picks each action's label and order. It
+/// only emits intent: the second confirmation for remove / transferOwner is the
+/// host's job (FlareDangerConfirm), and mute durations come from the host.
+/// Spec: Contacts/MemberRoleSheet.
 class FlareMemberRoleSheet extends StatefulWidget {
   const FlareMemberRoleSheet({
     super.key,
     required this.member,
-    required this.viewerRole,
-    this.capabilities = const FlareMemberRoleCapabilities(),
+    this.actions,
     this.muteDurations = const <FlareMemberMuteDuration>[],
     this.busy = false,
     this.ownerRoleText = '群主',
@@ -154,9 +66,8 @@ class FlareMemberRoleSheet extends StatefulWidget {
 
   final FlareGroupMemberSnapshot member;
 
-  /// The viewer's own role in this group — rank rules come before capabilities.
-  final FlareGroupMemberRole viewerRole;
-  final FlareMemberRoleCapabilities capabilities;
+  /// What the host lets the viewer do to this member; null or false hides the action.
+  final FlareMemberActions? actions;
 
   /// Host-supplied mute durations; empty hides mute — the kit invents no durations.
   final List<FlareMemberMuteDuration> muteDurations;
@@ -245,7 +156,11 @@ class _FlareMemberRoleSheetState extends State<FlareMemberRoleSheet> {
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
     final entries =
-        memberRoleActions(widget.member, widget.viewerRole, widget.capabilities)
+        memberRoleActions(
+              widget.member.role,
+              widget.member.muted,
+              widget.actions,
+            )
             // mute needs host durations; with none supplied the row is not offered.
             .where(
               (e) =>

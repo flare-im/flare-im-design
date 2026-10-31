@@ -8,6 +8,21 @@ import 'package:flutter_test/flutter_test.dart';
 const _labels = FlareGroupDetailLabels();
 const _strings = FlareStrings();
 
+/// What the owner may manage, and do to each member, as the host answers it.
+const _ownerCaps = FlareGroupCapabilities(
+  canManageInfo: true,
+  canManageJoinSettings: true,
+  canManageJoinRequests: true,
+  canInvite: true,
+  canDissolve: true,
+);
+const _everything = FlareMemberActions(
+  canRemove: true,
+  canMute: true,
+  canChangeRole: true,
+  canTransferOwner: true,
+);
+
 FlareGroupDetailModel _model(int count, {bool canManage = true}) =>
     FlareGroupDetailModel(
       groupId: 'g1',
@@ -19,8 +34,11 @@ FlareGroupDetailModel _model(int count, {bool canManage = true}) =>
           FlareContact(id: 'u$i', name: 'Member $i'),
       ],
       ownerId: 'owner',
-      canManage: canManage,
-      isOwner: canManage,
+      capabilities: canManage ? _ownerCaps : FlareGroupCapabilities.none,
+      memberActions: {
+        if (canManage)
+          for (var i = 1; i < count; i++) 'u$i': _everything,
+      },
     );
 
 Future<List<(String, String, bool)>> _pump(

@@ -15,8 +15,21 @@ const _model = FlareGroupDetailModel(
     FlareContact(id: 'u2', name: 'Bob'),
   ],
   ownerId: 'owner',
-  canManage: true,
-  isOwner: true,
+  capabilities: FlareGroupCapabilities(
+    canManageInfo: true,
+    canManageJoinSettings: true,
+    canManageJoinRequests: true,
+    canInvite: true,
+    canDissolve: true,
+  ),
+  memberActions: {
+    'u2': FlareMemberActions(
+      canRemove: true,
+      canMute: true,
+      canChangeRole: true,
+      canTransferOwner: true,
+    ),
+  },
 );
 
 Widget _host(FlareGroupDetail detail) =>

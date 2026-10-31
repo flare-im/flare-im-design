@@ -1,6 +1,7 @@
 ## 未发布
 
 - 服务端时钟 `FlareServerClock`（`setOffsetMs(_:)`、`offsetMs`、`nowMs()`、纯函数 `now(deviceNowMs:offsetMs:)`，`spec/server-clock-vectors.json`）：宿主交进核心 SDK 的估计（`connection.getServerClock` 的 `offsetMs`）后，插件视图的时钟（时间块倒计时与「已截止」、行、账户明细、红包详情）与 `MyInvitePanelView` 的重新生成冷却按服务端时间算；没交时为本机时钟。
+- 群管理入口只跟宿主权限来源的答案走（`spec/group-management-vectors.json`，与 Vue、Flutter、Compose 同一张表）：`FlareGroupDetailModel` 去掉 `canManage`、`isOwner`，改收 `capabilities: FlareGroupCapabilities`（canManageInfo、canManageJoinSettings、canManageJoinRequests、canInvite、canDissolve）与按成员 id 的 `memberActions: [String: FlareMemberActions]`（canRemove、canMute、canChangeRole、canTransferOwner）；新增 `FlareGroupManagementEntry`、`groupManagementEntries(_:)`、`groupDetailMemberActions(model:memberId:)`。`memberRoleActions(role:muted:actions:)` 不再带身份等级规则；`MemberRoleSheetView` 的 `viewerRole` 与 `capabilities` 换成 `actions`，删掉 `FlareMemberRoleCapabilities`；`GroupPermissionMatrixView` 与 `groupPermissionRows` 的 `canManage` 换成 `capabilities`（进群方式看 canManageJoinSettings，四个开关看 canManageInfo，一行都改不了才显示只读提示）。`FlareGroupDetail.previewMembers` 的参数改名 `addTile`。
 
 - 宿主按媒体线上类型传入的 `FlareGenericContent`（`image` / `video` / `audio`）画成「图片暂时无法加载」等（`FlareStrings.mediaUnavailableImage` / `Video` / `Audio`），不再画 `UnknownMessageView`。
 

@@ -15,6 +15,10 @@ class GroupPermissionMatrixTest {
         joinPolicy = FlareGroupJoinPolicy.Approval,
     )
 
+    private val owner = FlareGroupCapabilities(
+        canManageInfo = true, canManageJoinSettings = true, canManageJoinRequests = true, canInvite = true, canDissolve = true,
+    )
+
     private fun row(rows: List<FlareGroupPermissionRow>, key: FlareGroupPermissionKey) =
         rows.first { it.key == key }
 
@@ -27,12 +31,12 @@ class GroupPermissionMatrixTest {
                 FlareGroupPermissionKey.OnlyAdminCanPin,
                 FlareGroupPermissionKey.ShareCardPermission,
             ),
-            groupPermissionRows(settings, true).map { it.key },
+            groupPermissionRows(settings, owner).map { it.key },
         )
     }
 
     @Test fun joinPolicyIsTheOnlyChoiceRowAndValuesCarryThrough() {
-        val rows = groupPermissionRows(settings, true)
+        val rows = groupPermissionRows(settings, owner)
         assertEquals(
             listOf(FlareGroupPermissionKey.JoinPolicy),
             rows.filter { it.kind == FlareGroupPermissionRowKind.Choice }.map { it.key },
@@ -43,16 +47,32 @@ class GroupPermissionMatrixTest {
         assertTrue(row(rows, FlareGroupPermissionKey.ShareCardPermission).boolValue)
     }
 
-    @Test fun editableFollowsCanManageOnly() {
-        assertTrue(groupPermissionRows(settings, false).none { it.editable })
+    @Test fun anInfoAdminSwitchesTheFourFlagsButNotTheJoinPolicy() {
+        assertEquals(
+            listOf(
+                FlareGroupPermissionKey.MuteAll,
+                FlareGroupPermissionKey.OnlyAdminCanAtAll,
+                FlareGroupPermissionKey.OnlyAdminCanPin,
+                FlareGroupPermissionKey.ShareCardPermission,
+            ),
+            groupPermissionRows(settings, FlareGroupCapabilities(canManageInfo = true)).filter { it.editable }.map { it.key },
+        )
+        assertEquals(
+            listOf(FlareGroupPermissionKey.JoinPolicy),
+            groupPermissionRows(settings, FlareGroupCapabilities(canManageJoinSettings = true)).filter { it.editable }.map { it.key },
+        )
+    }
+
+    @Test fun editableFollowsTheCapabilitiesOnly() {
+        assertTrue(groupPermissionRows(settings, null).none { it.editable })
         assertTrue(
-            groupPermissionRows(settings, true, listOf("muteAll"), mapOf("muteAll" to "网络错误"))
+            groupPermissionRows(settings, owner, listOf("muteAll"), mapOf("muteAll" to "网络错误"))
                 .all { it.editable },
         )
     }
 
     @Test fun busyAndErrorArePerKey() {
-        val rows = groupPermissionRows(settings, true, listOf("muteAll"), mapOf("onlyAdminCanPin" to "权限不足"))
+        val rows = groupPermissionRows(settings, owner, listOf("muteAll"), mapOf("onlyAdminCanPin" to "权限不足"))
         assertEquals(listOf(FlareGroupPermissionKey.MuteAll), rows.filter { it.busy }.map { it.key })
         assertEquals(
             listOf(FlareGroupPermissionKey.OnlyAdminCanPin),
@@ -62,14 +82,14 @@ class GroupPermissionMatrixTest {
     }
 
     @Test fun ignoresUnknownBusyKeysAndEmptyInputs() {
-        val rows = groupPermissionRows(settings, true, listOf("nope", "muteAll", "muteAll"))
+        val rows = groupPermissionRows(settings, owner, listOf("nope", "muteAll", "muteAll"))
         assertEquals(listOf(FlareGroupPermissionKey.MuteAll), rows.filter { it.busy }.map { it.key })
-        assertTrue(groupPermissionRows(settings, true).all { !it.busy && it.error == null })
+        assertTrue(groupPermissionRows(settings, owner).all { !it.busy && it.error == null })
     }
 
     @Test fun keepsErrorVisibleOnReadOnlyPanel() {
         val row = row(
-            groupPermissionRows(settings, false, emptyList(), mapOf("muteAll" to "你已不是管理员")),
+            groupPermissionRows(settings, null, emptyList(), mapOf("muteAll" to "你已不是管理员")),
             FlareGroupPermissionKey.MuteAll,
         )
         assertFalse(row.editable)
@@ -77,7 +97,7 @@ class GroupPermissionMatrixTest {
     }
 
     @Test fun anUnknownJoinPolicyStaysUnknownAndIsNeverGuessed() {
-        val join = row(groupPermissionRows(settings.copy(joinPolicy = null), true), FlareGroupPermissionKey.JoinPolicy)
+        val join = row(groupPermissionRows(settings.copy(joinPolicy = null), owner), FlareGroupPermissionKey.JoinPolicy)
         assertEquals(FlareGroupPermissionRowKind.Choice, join.kind)
         assertNull(join.value)
         assertNull(join.joinPolicyValue)
@@ -90,12 +110,12 @@ class GroupPermissionMatrixTest {
             FlareGroupJoinPolicy.entries,
         )
         for (policy in FlareGroupJoinPolicy.entries) {
-            val join = row(groupPermissionRows(settings.copy(joinPolicy = policy), false), FlareGroupPermissionKey.JoinPolicy)
+            val join = row(groupPermissionRows(settings.copy(joinPolicy = policy), null), FlareGroupPermissionKey.JoinPolicy)
             assertEquals(policy, join.joinPolicyValue)
             assertFalse(join.boolValue)
         }
         // A toggle row carries no policy.
-        assertNull(row(groupPermissionRows(settings, true), FlareGroupPermissionKey.MuteAll).joinPolicyValue)
+        assertNull(row(groupPermissionRows(settings, owner), FlareGroupPermissionKey.MuteAll).joinPolicyValue)
     }
 
     @Test fun wireKeysMatchTheCrossPlatformContract() {
@@ -103,7 +123,7 @@ class GroupPermissionMatrixTest {
             listOf("joinPolicy", "muteAll", "onlyAdminCanAtAll", "onlyAdminCanPin", "shareCardPermission"),
             FlareGroupPermissionKey.entries.map { it.wire },
         )
-        assertNull(groupPermissionRows(settings, true).first { it.key == FlareGroupPermissionKey.JoinPolicy }.error)
+        assertNull(groupPermissionRows(settings, owner).first { it.key == FlareGroupPermissionKey.JoinPolicy }.error)
     }
 
     @Test fun muteAllIsSilenceAndEveryRowDrawsARegistryGlyph() {

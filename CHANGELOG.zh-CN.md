@@ -6,6 +6,11 @@
 
 ### 设计系统与跨端组件
 
+- **群管理入口只跟宿主的权限答案走**（契约与四端 Kit）。
+  - `FlareGroupDetailModel` 去掉 `canManage`、`isOwner`，改收 `capabilities`（`canManageInfo`、`canManageJoinSettings`、`canManageJoinRequests`、`canInvite`、`canDissolve`）与按成员 id 的 `memberActions`（`canRemove`、`canMute`、`canChangeRole`、`canTransferOwner`）。每个设置行、改名与公告编辑、添加成员格、解散都经 `groupManagementEntries` 对应到一项能力；成员面板只画该成员条目允许的动作（`groupDetailMemberActions`），没有条目的成员不打开面板。
+  - 以前群主和所有管理员不看权限位，都能看到对除群主外每个成员的设管理员、禁言、移出，以及进群方式、入群申请、邀请链接；服务端对只有部分权限位的管理员会拒绝其中大部分，对管理员之间的操作一律拒绝。
+  - `MemberRoleSheet` 去掉 `viewerRole` 与身份等级规则，改收该成员的 `actions`；`GroupPermissionMatrix` 用 `capabilities` 代替 `canManage`（进群方式看 `canManageJoinSettings`，四个开关看 `canManageInfo`）。Vue 与 Flutter 应用层未被使用的旧 `FlareGroupCapabilities` 删除，这个名字归本契约。
+  - 共用用例在 `spec/group-management-vectors.json`，四端都跑。
 - **没有可加载地址的图片、视频、语音如实说明**（四端 Kit）。
   - 宿主拿不到图片、视频或语音的地址时，时间线仍按这类消息画：它的图标加「图片暂时无法加载」等文字（原生 `FlareStrings` 的 `mediaUnavailableImage` / `Video` / `Audio`，Vue 的 `mediaMessage.unavailable*`），不可点击。原生宿主按媒体的线上类型传 `FlareGenericContent`；Vue 在地址解析为空时画。
   - 此前 SwiftUI 与 Flutter 把这类消息都画成「不支持的消息类型」，Compose 对语音如此、对图片和视频只画一个空框，Vue 画一个不能播放的播放器。

@@ -7,7 +7,9 @@ import UIKit
 
 /// The full data model for ``FlareGroupDetail`` — a group's settings / management page.
 /// Mirrors the Vue kit's `FlareGroupDetailModel`. Purely a view input: the host resolves it
-/// from the SDK and refreshes it after each emitted intent.
+/// from the SDK and refreshes it after each emitted intent. What the viewer may manage comes
+/// from the host's permission source (`capabilities`, `memberActions`); the kit derives nothing
+/// from roles or `ownerId`.
 public struct FlareGroupDetailModel: Sendable {
     public var groupId: String
     public var name: String
@@ -19,9 +21,12 @@ public struct FlareGroupDetailModel: Sendable {
     public var adminIds: [String]
     /// Muted member ids — drives the per-member mute action label.
     public var mutedIds: [String]
-    /// Viewer owns or administers the group (gates the 群管理 / 群权限 sections).
-    public var canManage: Bool
-    public var isOwner: Bool
+    /// What the viewer may manage, as the host's permission source answers it: each field shows the
+    /// entries it names (``groupManagementEntries(_:)``).
+    public var capabilities: FlareGroupCapabilities
+    /// What the viewer may do to each member, keyed by member id. A member without an entry gets no
+    /// member sheet; the host fills it for every member it shows, search results included.
+    public var memberActions: [String: FlareMemberActions]
     /// Viewer's own nickname in this group ("" = not set).
     public var myNickname: String
     /// Viewer's per-group notification / pin preference.
@@ -40,8 +45,10 @@ public struct FlareGroupDetailModel: Sendable {
 
     public init(groupId: String, name: String, avatarURL: String? = nil, memberCount: Int = 0,
                 announcement: String = "", members: [Contact] = [], ownerId: String = "",
-                adminIds: [String] = [], mutedIds: [String] = [], canManage: Bool = false,
-                isOwner: Bool = false, myNickname: String = "", myMuted: Bool? = nil,
+                adminIds: [String] = [], mutedIds: [String] = [],
+                capabilities: FlareGroupCapabilities = .none,
+                memberActions: [String: FlareMemberActions] = [:],
+                myNickname: String = "", myMuted: Bool? = nil,
                 myPinned: Bool? = nil, discoverable: Bool = false,
                 joinPolicy: FlareGroupJoinPolicy? = nil, muteAll: Bool = false,
                 onlyAdminCanAtAll: Bool = false, onlyAdminCanPin: Bool = false,
@@ -49,7 +56,7 @@ public struct FlareGroupDetailModel: Sendable {
         self.groupId = groupId; self.name = name; self.avatarURL = avatarURL
         self.memberCount = memberCount; self.announcement = announcement; self.members = members
         self.ownerId = ownerId; self.adminIds = adminIds; self.mutedIds = mutedIds
-        self.canManage = canManage; self.isOwner = isOwner; self.myNickname = myNickname
+        self.capabilities = capabilities; self.memberActions = memberActions; self.myNickname = myNickname
         self.myMuted = myMuted; self.myPinned = myPinned; self.discoverable = discoverable
         self.joinPolicy = joinPolicy
         self.muteAll = muteAll; self.onlyAdminCanAtAll = onlyAdminCanAtAll
@@ -368,8 +375,12 @@ public extension FlareGroupDetailLabels {
 // MARK: - FlareGroupDetail
 
 /// Group detail / management — hero, member grid, and Feishu-style settings sections
-/// (群信息 / 我在本群 / 群管理 / 群权限, the latter two owner-admin gated), plus member actions,
-/// join-request approval, invite picker and invite link, with the 发消息 / 退群 footer.
+/// (群信息 / 我在本群 / 群管理 / 群权限), plus member actions, join-request approval, invite picker
+/// and invite link, with the 发消息 / 退群 footer.
+///
+/// Every management entry follows the host's answer: `model.capabilities` through
+/// ``groupManagementEntries(_:)``, and each member's sheet through `model.memberActions`
+/// (``groupDetailMemberActions(model:memberId:)``). The kit reads no role or owner rule of its own.
 ///
 /// Hosts place their own content in two slots that scroll with the page at its horizontal inset:
 /// `afterInfo` after the group information section and `footer` after the message and leave
@@ -497,10 +508,10 @@ public struct FlareGroupDetail: View {
     /// Cells in the member preview, the add tile included: four rows of five (Vue `MEMBER_PREVIEW_CELLS`).
     static let memberPreviewCells = 20
 
-    /// The members the grid previews: the first 19 with the add tile when the viewer manages the group,
+    /// The members the grid previews: the first 19 with the add tile when the viewer may invite,
     /// else the first 20. The 群成员 row lists everyone.
-    static func previewMembers(_ members: [Contact], canManage: Bool) -> [Contact] {
-        Array(members.prefix(canManage ? memberPreviewCells - 1 : memberPreviewCells))
+    static func previewMembers(_ members: [Contact], addTile: Bool) -> [Contact] {
+        Array(members.prefix(addTile ? memberPreviewCells - 1 : memberPreviewCells))
     }
 
     /// The members whose name contains `query` (trimmed, any case); everyone for an empty query.
@@ -515,7 +526,15 @@ public struct FlareGroupDetail: View {
         remoteEnabled ? (searched ?? matchingMembers(members, query: query)) : matchingMembers(members, query: query)
     }
 
-    private var canManage: Bool { model?.canManage ?? false }
+    /// The management entries the host's capabilities name; nothing else is offered.
+    private var entries: Set<FlareGroupManagementEntry> { Set(groupManagementEntries(model?.capabilities)) }
+    private func can(_ entry: FlareGroupManagementEntry) -> Bool { entries.contains(entry) }
+
+    /// What the host lets the viewer do to `memberId`; a member with nothing to do opens no sheet.
+    private func actions(for memberId: String) -> [FlareMemberRoleActionEntry] {
+        guard let model else { return [] }
+        return groupDetailMemberActions(model: model, memberId: memberId)
+    }
 
     /// The states a member's admin and mute buttons offer, read from the model at tap time: the
     /// opposite of what the member has now (the button reads "unset admin" for an admin).
@@ -634,10 +653,10 @@ public struct FlareGroupDetail: View {
             VStack(spacing: FlareSizes.spacingLg) {
                 hero(colors, m)
                 GroupMemberGridView(
-                    members: Self.previewMembers(m.members, canManage: canManage), ownerId: m.ownerId,
-                    adminIds: m.adminIds, showAdd: canManage,
+                    members: Self.previewMembers(m.members, addTile: can(.inviteMembers)), ownerId: m.ownerId,
+                    adminIds: m.adminIds, showAdd: can(.inviteMembers),
                     onSelect: { uid in
-                        guard canManage, uid != m.ownerId else { return }
+                        guard !actions(for: uid).isEmpty else { return }
                         memberAction = m.members.first { $0.id == uid }
                     },
                     onAddMember: { onLoadContacts?(); showInvite = true },
@@ -646,8 +665,11 @@ public struct FlareGroupDetail: View {
                 infoCard(colors, m)
                 if let afterInfo { afterInfo.padding(.horizontal, FlareSizes.spacingMd) }
                 myInGroupCard(colors, m)
-                if canManage { manageCard(colors, m) }
-                if canManage { permsCard(colors, m) }
+                // Each row shows only when the host's capabilities name it; an empty section is not drawn.
+                let manage = manageItems(m)
+                if !manage.isEmpty { card(copy.sectionManage, manage, colors) }
+                let perms = permsItems(m)
+                if !perms.isEmpty { card(copy.sectionPerms, perms, colors) }
                 bottomActions(colors, m)
                 if let footer { footer.padding(.horizontal, FlareSizes.spacingLg) }
             }
@@ -690,9 +712,9 @@ public struct FlareGroupDetail: View {
     private func infoCard(_ colors: FlareColors, _ m: FlareGroupDetailModel) -> some View {
         card(copy.sectionInfo, [
             FlareSettingsItem(key: "name", label: copy.groupName, icon: "tag",
-                              kind: canManage ? .navigation : .value, detail: m.name.isEmpty ? "-" : m.name),
+                              kind: can(.editName) ? .navigation : .value, detail: m.name.isEmpty ? "-" : m.name),
             FlareSettingsItem(key: "announcement", label: copy.announcement, icon: "announcement",
-                              kind: canManage ? .navigation : .value,
+                              kind: can(.editAnnouncement) ? .navigation : .value,
                               detail: m.announcement.isEmpty ? copy.notSet : m.announcement),
             // Everyone, with search, in the members sheet.
             FlareSettingsItem(key: "members", label: copy.members, icon: "people",
@@ -716,29 +738,47 @@ public struct FlareGroupDetail: View {
         ], colors)
     }
 
-    private func manageCard(_ colors: FlareColors, _ m: FlareGroupDetailModel) -> some View {
-        card(copy.sectionManage, [
-            FlareSettingsItem(key: "discoverable", label: copy.discoverable, icon: "search",
-                              kind: .toggle, value: m.discoverable),
-            FlareSettingsItem(key: "joinPolicy", label: copy.joinMode, icon: "lock",
-                              kind: .navigation, detail: Self.joinPolicyLabel(m.joinPolicy, copy: copy)),
-            FlareSettingsItem(key: "joinRequests", label: copy.joinRequests, icon: "join-request",
-                              kind: .navigation, detail: joinRequests.isEmpty ? "" : "\(joinRequests.count)"),
-            FlareSettingsItem(key: "muteAll", label: copy.muteAll, icon: "silence",
-                              kind: .toggle, value: m.muteAll),
-            FlareSettingsItem(key: "inviteLink", label: copy.inviteLink, icon: "link", kind: .navigation),
-        ], colors)
+    /// The 群管理 rows the viewer's capabilities name, in display order.
+    func manageItems(_ m: FlareGroupDetailModel) -> [FlareSettingsItem] {
+        var items: [FlareSettingsItem] = []
+        if can(.discoverable) {
+            items.append(FlareSettingsItem(key: "discoverable", label: copy.discoverable, icon: "search",
+                                           kind: .toggle, value: m.discoverable))
+        }
+        if can(.joinPolicy) {
+            items.append(FlareSettingsItem(key: "joinPolicy", label: copy.joinMode, icon: "lock",
+                                           kind: .navigation, detail: Self.joinPolicyLabel(m.joinPolicy, copy: copy)))
+        }
+        if can(.joinRequests) {
+            items.append(FlareSettingsItem(key: "joinRequests", label: copy.joinRequests, icon: "join-request",
+                                           kind: .navigation, detail: joinRequests.isEmpty ? "" : "\(joinRequests.count)"))
+        }
+        if can(.muteAll) {
+            items.append(FlareSettingsItem(key: "muteAll", label: copy.muteAll, icon: "silence",
+                                           kind: .toggle, value: m.muteAll))
+        }
+        if can(.inviteLink) {
+            items.append(FlareSettingsItem(key: "inviteLink", label: copy.inviteLink, icon: "link", kind: .navigation))
+        }
+        return items
     }
 
-    private func permsCard(_ colors: FlareColors, _ m: FlareGroupDetailModel) -> some View {
-        card(copy.sectionPerms, [
-            FlareSettingsItem(key: "atAll", label: copy.onlyAdminAtAll, icon: "mention",
-                              kind: .toggle, value: m.onlyAdminCanAtAll),
-            FlareSettingsItem(key: "pinPerm", label: copy.onlyAdminPin, icon: "pin",
-                              kind: .toggle, value: m.onlyAdminCanPin),
-            FlareSettingsItem(key: "shareCard", label: copy.shareCard, icon: "share",
-                              kind: .toggle, value: m.shareCardPermission),
-        ], colors)
+    /// The 群权限 rows the viewer's capabilities name, in display order.
+    func permsItems(_ m: FlareGroupDetailModel) -> [FlareSettingsItem] {
+        var items: [FlareSettingsItem] = []
+        if can(.onlyAdminCanAtAll) {
+            items.append(FlareSettingsItem(key: "atAll", label: copy.onlyAdminAtAll, icon: "mention",
+                                           kind: .toggle, value: m.onlyAdminCanAtAll))
+        }
+        if can(.onlyAdminCanPin) {
+            items.append(FlareSettingsItem(key: "pinPerm", label: copy.onlyAdminPin, icon: "pin",
+                                           kind: .toggle, value: m.onlyAdminCanPin))
+        }
+        if can(.shareCardPermission) {
+            items.append(FlareSettingsItem(key: "shareCard", label: copy.shareCard, icon: "share",
+                                           kind: .toggle, value: m.shareCardPermission))
+        }
+        return items
     }
 
     private func onRowSelect(_ item: FlareSettingsItem) {
@@ -747,15 +787,15 @@ public struct FlareGroupDetail: View {
             memberQuery = ""; showMembers = true
         case "myNickname":
             editDraft = model?.myNickname ?? ""; editKind = .nickname
-        case "name" where canManage:
+        case "name" where can(.editName):
             editDraft = model?.name ?? ""; editKind = .name
-        case "announcement" where canManage:
+        case "announcement" where can(.editAnnouncement):
             editDraft = model?.announcement ?? ""; editKind = .announcement
-        case "joinPolicy" where canManage:
+        case "joinPolicy" where can(.joinPolicy):
             joinPolicyPicker = .shown
-        case "joinRequests" where canManage:
+        case "joinRequests" where can(.joinRequests):
             onLoadJoinRequests?(); showJoinRequests = true
-        case "inviteLink" where canManage:
+        case "inviteLink" where can(.inviteLink):
             onEnsureInviteLink?(); showInviteLink = true
         default:
             break
@@ -764,13 +804,13 @@ public struct FlareGroupDetail: View {
 
     private func onRowToggle(_ item: FlareSettingsItem, _ on: Bool) {
         switch item.key {
-        case "discoverable" where canManage: onToggleDiscoverable?(on)
+        case "discoverable" where can(.discoverable): onToggleDiscoverable?(on)
         case "myMuted": onToggleMyMuted?(on)
         case "myPinned": onToggleMyPinned?(on)
-        case "muteAll" where canManage: onToggleMuteAll?(on)
-        case "atAll" where canManage: onSetFlag?(.onlyAdminCanAtAll, on)
-        case "pinPerm" where canManage: onSetFlag?(.onlyAdminCanPin, on)
-        case "shareCard" where canManage: onSetFlag?(.shareCardPermission, on)
+        case "muteAll" where can(.muteAll): onToggleMuteAll?(on)
+        case "atAll" where can(.onlyAdminCanAtAll): onSetFlag?(.onlyAdminCanAtAll, on)
+        case "pinPerm" where can(.onlyAdminCanPin): onSetFlag?(.onlyAdminCanPin, on)
+        case "shareCard" where can(.shareCardPermission): onSetFlag?(.shareCardPermission, on)
         default: break
         }
     }
@@ -792,7 +832,7 @@ public struct FlareGroupDetail: View {
                 }
             }
             // Leaving is the host's to confirm: the tap is the intent.
-            ButtonView(label: m.isOwner ? copy.dissolve : copy.leave, variant: .danger, block: true) {
+            ButtonView(label: can(.dissolve) ? copy.dissolve : copy.leave, variant: .danger, block: true) {
                 onLeave?()
             }
         }
@@ -802,18 +842,29 @@ public struct FlareGroupDetail: View {
 
     // MARK: - Member action buttons
 
-    /// The member sheet's buttons for `member` (the one whose sheet is open).
+    /// The member sheet's buttons for `member` (the one whose sheet is open): exactly the actions the host
+    /// allows for that member (``groupDetailMemberActions(model:memberId:)``), then cancel.
     @ViewBuilder func memberActionButtons(for member: Contact?) -> some View {
-        if let mem = member, let m = model, canManage, mem.id != m.ownerId {
+        if let mem = member, let m = model {
             // Each intent carries the state its label offers.
             let target = Self.memberIntentTargets(mem.id, in: m)
-            Button(target.admin ? copy.setAdmin : copy.unsetAdmin) { onPromoteMember?(mem.id, target.admin); memberAction = nil }
-            Button(target.muted ? copy.mute : copy.unmute) { onMuteMember?(mem.id, target.muted); memberAction = nil }
-            if m.isOwner {
-                Button(copy.transferOwner) { memberAction = nil; confirmTransfer(mem) }
+            ForEach(actions(for: mem.id), id: \.action) { entry in
+                switch entry.action {
+                case .promote, .demote:
+                    Button(entry.action == .promote ? copy.setAdmin : copy.unsetAdmin) {
+                        onPromoteMember?(mem.id, target.admin); memberAction = nil
+                    }
+                case .mute, .unmute:
+                    Button(entry.action == .mute ? copy.mute : copy.unmute) {
+                        onMuteMember?(mem.id, target.muted); memberAction = nil
+                    }
+                case .transferOwner:
+                    Button(copy.transferOwner) { memberAction = nil; confirmTransfer(mem) }
+                case .remove:
+                    // Removing is the host's to confirm: the tap is the intent.
+                    Button(copy.removeMember, role: .destructive) { memberAction = nil; onRemoveMember?(mem.id) }
+                }
             }
-            // Removing is the host's to confirm: the tap is the intent.
-            Button(copy.removeMember, role: .destructive) { memberAction = nil; onRemoveMember?(mem.id) }
             Button(copy.cancel, role: .cancel) { memberAction = nil }
         } else {
             Button(copy.cancel, role: .cancel) { memberAction = nil }
@@ -952,9 +1003,9 @@ public struct FlareGroupDetail: View {
         }
     }
 
-    /// Whether choosing `member` offers anything: the viewer manages the group and the member is not its owner.
+    /// Whether choosing `member` offers anything: the host allows at least one action on them.
     private func memberSelectable(_ member: Contact) -> Bool {
-        canManage && member.id != model?.ownerId
+        !actions(for: member.id).isEmpty
     }
 
     private func chooseListedMember(_ member: Contact) {

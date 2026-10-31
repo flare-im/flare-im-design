@@ -1,0 +1,237 @@
+{
+  "$comment": "Shared table for the group management entries on four platforms (GroupDetail, GroupPermissionMatrix, MemberRoleSheet). The kit decides nothing about who may manage what: the host passes what its permission source answered — the viewer's capabilities (canManageInfo, canManageJoinSettings, canManageJoinRequests, canInvite, canDissolve; the social SDK's memberCapabilities) and, per member, the member actions (canRemove, canMute, canChangeRole, canTransferOwner; the social SDK's memberActions) — and the kit maps each answer to the entries it names. entries: capabilities → groupManagementEntries, in display order; without dissolve the page offers leaving. memberActions: a member's role and muted state plus its actions → memberRoleActions (label and danger group). detailSheet: GroupDetail's member sheet for memberId → groupDetailMemberActions (role from ownerId / adminIds, muted from mutedIds, actions from memberActions; no entry opens no sheet). The permission matrix row of a key is editable exactly when entries offers that key. Each platform's test runs every vector by id.",
+  "entryOrder": ["editName", "editAnnouncement", "discoverable", "joinPolicy", "joinRequests", "muteAll", "inviteLink", "onlyAdminCanAtAll", "onlyAdminCanPin", "shareCardPermission", "inviteMembers", "dissolve"],
+  "entries": [
+    {
+      "id": "e.none",
+      "capabilities": {},
+      "expected": []
+    },
+    {
+      "id": "e.allFalse",
+      "capabilities": { "canManageInfo": false, "canManageJoinSettings": false, "canManageJoinRequests": false, "canInvite": false, "canDissolve": false },
+      "expected": []
+    },
+    {
+      "id": "e.owner",
+      "capabilities": { "canManageInfo": true, "canManageJoinSettings": true, "canManageJoinRequests": true, "canInvite": true, "canDissolve": true },
+      "expected": ["editName", "editAnnouncement", "discoverable", "joinPolicy", "joinRequests", "muteAll", "inviteLink", "onlyAdminCanAtAll", "onlyAdminCanPin", "shareCardPermission", "inviteMembers", "dissolve"]
+    },
+    {
+      "id": "e.fullAdmin",
+      "capabilities": { "canManageInfo": true, "canManageJoinRequests": true, "canInvite": true },
+      "expected": ["editName", "editAnnouncement", "joinRequests", "muteAll", "inviteLink", "onlyAdminCanAtAll", "onlyAdminCanPin", "shareCardPermission", "inviteMembers"]
+    },
+    {
+      "id": "e.infoOnly",
+      "capabilities": { "canManageInfo": true },
+      "expected": ["editName", "editAnnouncement", "muteAll", "onlyAdminCanAtAll", "onlyAdminCanPin", "shareCardPermission"]
+    },
+    {
+      "id": "e.joinSettingsOnly",
+      "capabilities": { "canManageJoinSettings": true },
+      "expected": ["discoverable", "joinPolicy"]
+    },
+    {
+      "id": "e.joinRequestsOnly",
+      "capabilities": { "canManageJoinRequests": true },
+      "expected": ["joinRequests"]
+    },
+    {
+      "id": "e.inviteOnly",
+      "capabilities": { "canInvite": true },
+      "expected": ["inviteLink", "inviteMembers"]
+    },
+    {
+      "id": "e.dissolveOnly",
+      "capabilities": { "canDissolve": true },
+      "expected": ["dissolve"]
+    },
+    {
+      "id": "e.fieldsTheKitDoesNotReadGrantNothing",
+      "capabilities": { "canManage": true, "canManageMembers": true, "canManageMute": true, "canTransferOwner": true },
+      "expected": []
+    }
+  ],
+  "memberActions": [
+    {
+      "id": "m.noAnswer",
+      "member": { "role": "member", "muted": false },
+      "actions": null,
+      "expected": []
+    },
+    {
+      "id": "m.allFalse",
+      "member": { "role": "member", "muted": false },
+      "actions": { "canRemove": false, "canMute": false, "canChangeRole": false, "canTransferOwner": false },
+      "expected": []
+    },
+    {
+      "id": "m.everythingOnAMember",
+      "member": { "role": "member", "muted": false },
+      "actions": { "canRemove": true, "canMute": true, "canChangeRole": true, "canTransferOwner": true },
+      "expected": [
+        { "action": "promote", "danger": false },
+        { "action": "mute", "danger": false },
+        { "action": "transferOwner", "danger": true },
+        { "action": "remove", "danger": true }
+      ]
+    },
+    {
+      "id": "m.everythingOnAMutedAdmin",
+      "member": { "role": "admin", "muted": true },
+      "actions": { "canRemove": true, "canMute": true, "canChangeRole": true, "canTransferOwner": true },
+      "expected": [
+        { "action": "demote", "danger": false },
+        { "action": "unmute", "danger": false },
+        { "action": "transferOwner", "danger": true },
+        { "action": "remove", "danger": true }
+      ]
+    },
+    {
+      "id": "m.removeOnly",
+      "member": { "role": "member", "muted": false },
+      "actions": { "canRemove": true },
+      "expected": [{ "action": "remove", "danger": true }]
+    },
+    {
+      "id": "m.muteOnly",
+      "member": { "role": "member", "muted": false },
+      "actions": { "canMute": true },
+      "expected": [{ "action": "mute", "danger": false }]
+    },
+    {
+      "id": "m.unmuteOnly",
+      "member": { "role": "member", "muted": true },
+      "actions": { "canMute": true },
+      "expected": [{ "action": "unmute", "danger": false }]
+    },
+    {
+      "id": "m.roleChangeOnAMember",
+      "member": { "role": "member", "muted": false },
+      "actions": { "canChangeRole": true },
+      "expected": [{ "action": "promote", "danger": false }]
+    },
+    {
+      "id": "m.roleChangeOnAnAdmin",
+      "member": { "role": "admin", "muted": false },
+      "actions": { "canChangeRole": true },
+      "expected": [{ "action": "demote", "danger": false }]
+    },
+    {
+      "id": "m.roleChangeHasNoLabelForTheOwner",
+      "member": { "role": "owner", "muted": false },
+      "actions": { "canChangeRole": true },
+      "expected": []
+    },
+    {
+      "id": "m.transferOnly",
+      "member": { "role": "admin", "muted": false },
+      "actions": { "canTransferOwner": true },
+      "expected": [{ "action": "transferOwner", "danger": true }]
+    }
+  ],
+  "detailSheet": [
+    {
+      "id": "d.adminReadsDemote",
+      "model": {
+        "ownerId": "u-owner",
+        "adminIds": ["u-admin"],
+        "mutedIds": ["u-muted"],
+        "memberActions": {
+          "u-admin": { "canRemove": true, "canMute": true, "canChangeRole": true, "canTransferOwner": true },
+          "u-muted": { "canRemove": false, "canMute": true, "canChangeRole": false, "canTransferOwner": false },
+          "u-member": { "canRemove": true, "canMute": false, "canChangeRole": false, "canTransferOwner": false },
+          "u-nothing": { "canRemove": false, "canMute": false, "canChangeRole": false, "canTransferOwner": false }
+        }
+      },
+      "memberId": "u-admin",
+      "expected": [
+        { "action": "demote", "danger": false },
+        { "action": "mute", "danger": false },
+        { "action": "transferOwner", "danger": true },
+        { "action": "remove", "danger": true }
+      ]
+    },
+    {
+      "id": "d.mutedReadsUnmute",
+      "model": {
+        "ownerId": "u-owner",
+        "adminIds": ["u-admin"],
+        "mutedIds": ["u-muted"],
+        "memberActions": {
+          "u-admin": { "canRemove": true, "canMute": true, "canChangeRole": true, "canTransferOwner": true },
+          "u-muted": { "canRemove": false, "canMute": true, "canChangeRole": false, "canTransferOwner": false },
+          "u-member": { "canRemove": true, "canMute": false, "canChangeRole": false, "canTransferOwner": false },
+          "u-nothing": { "canRemove": false, "canMute": false, "canChangeRole": false, "canTransferOwner": false }
+        }
+      },
+      "memberId": "u-muted",
+      "expected": [{ "action": "unmute", "danger": false }]
+    },
+    {
+      "id": "d.memberRemoveOnly",
+      "model": {
+        "ownerId": "u-owner",
+        "adminIds": ["u-admin"],
+        "mutedIds": ["u-muted"],
+        "memberActions": {
+          "u-admin": { "canRemove": true, "canMute": true, "canChangeRole": true, "canTransferOwner": true },
+          "u-muted": { "canRemove": false, "canMute": true, "canChangeRole": false, "canTransferOwner": false },
+          "u-member": { "canRemove": true, "canMute": false, "canChangeRole": false, "canTransferOwner": false },
+          "u-nothing": { "canRemove": false, "canMute": false, "canChangeRole": false, "canTransferOwner": false }
+        }
+      },
+      "memberId": "u-member",
+      "expected": [{ "action": "remove", "danger": true }]
+    },
+    {
+      "id": "d.nothingOpensNoSheet",
+      "model": {
+        "ownerId": "u-owner",
+        "adminIds": ["u-admin"],
+        "mutedIds": ["u-muted"],
+        "memberActions": {
+          "u-admin": { "canRemove": true, "canMute": true, "canChangeRole": true, "canTransferOwner": true },
+          "u-muted": { "canRemove": false, "canMute": true, "canChangeRole": false, "canTransferOwner": false },
+          "u-member": { "canRemove": true, "canMute": false, "canChangeRole": false, "canTransferOwner": false },
+          "u-nothing": { "canRemove": false, "canMute": false, "canChangeRole": false, "canTransferOwner": false }
+        }
+      },
+      "memberId": "u-nothing",
+      "expected": []
+    },
+    {
+      "id": "d.noEntryOpensNoSheet",
+      "model": {
+        "ownerId": "u-owner",
+        "adminIds": ["u-admin"],
+        "mutedIds": ["u-muted"],
+        "memberActions": {
+          "u-admin": { "canRemove": true, "canMute": true, "canChangeRole": true, "canTransferOwner": true },
+          "u-muted": { "canRemove": false, "canMute": true, "canChangeRole": false, "canTransferOwner": false },
+          "u-member": { "canRemove": true, "canMute": false, "canChangeRole": false, "canTransferOwner": false },
+          "u-nothing": { "canRemove": false, "canMute": false, "canChangeRole": false, "canTransferOwner": false }
+        }
+      },
+      "memberId": "u-stranger",
+      "expected": []
+    },
+    {
+      "id": "d.ownerWithoutEntryOpensNoSheet",
+      "model": {
+        "ownerId": "u-owner",
+        "adminIds": ["u-admin"],
+        "mutedIds": ["u-muted"],
+        "memberActions": {
+          "u-admin": { "canRemove": true, "canMute": true, "canChangeRole": true, "canTransferOwner": true },
+          "u-muted": { "canRemove": false, "canMute": true, "canChangeRole": false, "canTransferOwner": false },
+          "u-member": { "canRemove": true, "canMute": false, "canChangeRole": false, "canTransferOwner": false },
+          "u-nothing": { "canRemove": false, "canMute": false, "canChangeRole": false, "canTransferOwner": false }
+        }
+      },
+      "memberId": "u-owner",
+      "expected": []
+    }
+  ]
+}

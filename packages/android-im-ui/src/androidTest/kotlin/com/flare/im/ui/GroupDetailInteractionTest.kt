@@ -53,8 +53,13 @@ class GroupDetailInteractionTest {
         ownerId = "me",
         adminIds = listOf("ann"),
         mutedIds = listOf("bob"),
-        canManage = true,
-        isOwner = true,
+        // What the host's permission source answered for the owner, and for each member it shows.
+        capabilities = FlareGroupCapabilities(
+            canManageInfo = true, canManageJoinSettings = true, canManageJoinRequests = true, canInvite = true, canDissolve = true,
+        ),
+        memberActions = (listOf("ann", "bob") + (1..27).map { "m$it" }).associateWith {
+            FlareMemberActions(canRemove = true, canMute = true, canChangeRole = true, canTransferOwner = true)
+        },
     )
 
     @Test fun memberIntentsCarryTheStateTheirActionOffered() {
@@ -266,5 +271,26 @@ class GroupDetailInteractionTest {
         compose.waitForIdle()
         compose.onNode(isDialog()).assertDoesNotExist()
         compose.runOnIdle { assertEquals(listOf("主持人"), nicknames) }
+    }
+
+    @Test fun aMemberOpensOnlyTheActionsTheHostAllowsAndNoSheetWithoutThem() {
+        // An admin who may only mute: mute for Bob, nothing for the peer admin Ann.
+        val admin = model.copy(
+            capabilities = FlareGroupCapabilities.none,
+            memberActions = mapOf("bob" to FlareMemberActions(canMute = true), "ann" to FlareMemberActions()),
+        )
+        val mutes = mutableListOf<Pair<String, Boolean>>()
+        compose.setContent { MaterialTheme { FlareGroupDetail(model = admin, onMuteMember = { id, muted -> mutes += id to muted }) } }
+        compose.onNodeWithText("Ann").performClick()
+        compose.onAllNodesWithText(labels.removeMember).assertCountEquals(0)
+        compose.onNodeWithText("Bob").performClick()
+        compose.onAllNodesWithText(labels.removeMember).assertCountEquals(0)
+        compose.onAllNodesWithText(labels.setAdmin).assertCountEquals(0)
+        compose.onNodeWithText(labels.unmute).performClick()
+        compose.runOnIdle { assertEquals(listOf("bob" to false), mutes) }
+        // No capability: no management section, and leaving instead of dissolving.
+        compose.onAllNodesWithText(labels.manageSection).assertCountEquals(0)
+        compose.onAllNodesWithText(labels.permsSection).assertCountEquals(0)
+        compose.onNodeWithText(labels.leave).performScrollTo().assertIsDisplayed()
     }
 }

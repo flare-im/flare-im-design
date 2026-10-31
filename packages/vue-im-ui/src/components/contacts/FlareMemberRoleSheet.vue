@@ -2,23 +2,24 @@
 // Management menu for ONE group member: change role, mute, remove, transfer
 // ownership. It owns no positioning — hosts place it inside FlareBottomSheet
 // (app) or a popover (desktop), exactly like FlareConversationActionSheet.
-// Which actions exist is decided by the shared `memberRoleActions` contract, so
-// all four platforms agree on set, order and danger grouping. The component
-// only emits intent: the second confirmation for remove / transferOwner is the
-// host's job (FlareDangerConfirm), and mute durations come from the host.
+// Which actions exist comes from the host's answer for this member (`actions`, the
+// social SDK's `memberActions` entry); the shared `memberRoleActions` contract only
+// picks each action's label and order, so all four platforms agree on set, order and
+// danger grouping. The component only emits intent: the second confirmation for
+// remove / transferOwner is the host's job (FlareDangerConfirm), and mute durations
+// come from the host.
 import { computed, ref, watch } from "vue";
 import { NIcon } from "naive-ui";
 import FlareAvatar from "../conversation/FlareAvatar.vue";
 import { flareIcons } from "../../shared/icons";
 import {
   memberRoleActions,
-  type GroupMemberRole,
+  type FlareMemberActions,
   type GroupMemberSnapshot,
   type MemberMuteDuration,
   type MemberRoleActionEntry,
   type MemberRoleActionId,
   type MemberRoleActionPayload,
-  type MemberRoleCapabilities,
 } from "../../shared/contracts/group-permissions";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 import { useFlareAdaptiveSafe } from "../../composables/useAdaptiveMode";
@@ -26,9 +27,8 @@ import { useFlareAdaptiveSafe } from "../../composables/useAdaptiveMode";
 const props = withDefaults(
   defineProps<{
     member: GroupMemberSnapshot;
-    /** The viewer's own role in this group — rank rules come before capabilities. */
-    viewerRole: GroupMemberRole;
-    capabilities?: MemberRoleCapabilities;
+    /** What the host lets the viewer do to this member; absent or false hides the action. */
+    actions?: FlareMemberActions | null;
     /** Host-supplied mute durations; empty hides mute — the kit invents no durations. */
     muteDurations?: MemberMuteDuration[];
     /** Host sets this synchronously before dispatching; disables every action. */
@@ -48,7 +48,7 @@ const props = withDefaults(
     ownerProtectedText?: string;
   }>(),
   {
-    capabilities: () => ({}),
+    actions: null,
     muteDurations: () => [],
     busy: false,
   },
@@ -76,14 +76,14 @@ const emit = defineEmits<{
   (event: "close"): void;
 }>();
 
-const entries = computed(() => memberRoleActions(props.member, props.viewerRole, props.capabilities));
+const entries = computed(() => memberRoleActions(props.member, props.actions));
 /** mute needs host durations; with none supplied the row is not offered at all. */
 const visible = computed(() =>
   entries.value.filter((e) => e.action !== "mute" || props.muteDurations.length > 0),
 );
 const primary = computed(() => visible.value.filter((e) => !e.danger));
 const danger = computed(() => visible.value.filter((e) => e.danger));
-/** The owner is protected by rank, not by missing capabilities — say which it is. */
+/** Nothing to offer for the owner reads as protection, not as missing rights — say which it is. */
 const emptyReason = computed(() =>
   props.member.role === "owner" ? strings.value.ownerProtectedText : strings.value.emptyText,
 );

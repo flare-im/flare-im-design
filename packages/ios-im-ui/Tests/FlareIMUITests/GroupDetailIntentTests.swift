@@ -10,10 +10,17 @@ final class GroupDetailIntentTests: XCTestCase {
     private let ann = Contact(id: "u2", name: "Ann")
     private let bob = Contact(id: "u3", name: "Bob")
 
-    private func model(isOwner: Bool = true) -> FlareGroupDetailModel {
+    private let everything = FlareMemberActions(canRemove: true, canMute: true, canChangeRole: true, canTransferOwner: true)
+
+    /// The viewer owns the group: the host's permission source answered everything for both members.
+    private func model() -> FlareGroupDetailModel {
         FlareGroupDetailModel(groupId: "g1", name: "Design", memberCount: 3,
-                              members: [Contact(id: "me", name: "Me"), ann, bob], ownerId: isOwner ? "me" : "u9",
-                              adminIds: ["u2"], mutedIds: ["u3"], canManage: true, isOwner: isOwner)
+                              members: [Contact(id: "me", name: "Me"), ann, bob], ownerId: "me",
+                              adminIds: ["u2"], mutedIds: ["u3"],
+                              capabilities: FlareGroupCapabilities(canManageInfo: true, canManageJoinSettings: true,
+                                                                   canManageJoinRequests: true, canInvite: true,
+                                                                   canDissolve: true),
+                              memberActions: ["u2": everything, "u3": everything])
     }
 
     func testMemberIntentsOfferTheOppositeOfTheCurrentState() {

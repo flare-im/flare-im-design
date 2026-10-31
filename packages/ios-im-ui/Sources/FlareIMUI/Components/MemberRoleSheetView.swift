@@ -26,16 +26,6 @@ public struct FlareGroupMemberSnapshot: Sendable {
     }
 }
 
-/// Host-declared capabilities. `false` → the action is not rendered.
-public struct FlareMemberRoleCapabilities: Sendable {
-    public let promote, demote, mute, unmute, remove, transferOwner: Bool
-    public init(promote: Bool = false, demote: Bool = false, mute: Bool = false,
-                unmute: Bool = false, remove: Bool = false, transferOwner: Bool = false) {
-        self.promote = promote; self.demote = demote; self.mute = mute
-        self.unmute = unmute; self.remove = remove; self.transferOwner = transferOwner
-    }
-}
-
 /// One host-supplied mute duration option; the kit ships no durations of its own.
 public struct FlareMemberMuteDuration: Identifiable, Sendable {
     public let id: String
@@ -52,43 +42,39 @@ public struct FlareMemberRoleActionEntry: Equatable, Sendable {
     }
 }
 
-/// Ordered management actions for `member` as seen by `viewerRole` — the same
-/// rule set as the other platforms. Rank rules come first, capabilities only
-/// narrow further:
+/// Ordered management actions for a member with `role` and `muted`, from what the host says the viewer may
+/// do to that member (`actions`) — the same mapping as the other platforms. The kit decides nothing about who
+/// may act on whom: the owner's protection, admins not managing each other and the owner-only actions all come
+/// from the host's answer. It only picks the label each answer needs:
 ///
-///  - the owner is untouchable — no promote / demote / mute / remove / transfer;
-///  - a plain member sees nothing (the sheet then says it has no rights);
-///  - an admin cannot act on a peer admin and can never transfer ownership;
-///  - only the owner can transfer ownership;
-///  - promote only applies to a member, demote only to an admin;
-///  - mute / unmute are mutually exclusive by `member.muted`.
+///  - `canChangeRole` offers promote for a member and demote for an admin;
+///  - `canMute` offers mute or unmute by `muted`;
+///  - `canTransferOwner` and `canRemove` form the trailing danger group.
 ///
-/// `mute` still needs host-supplied durations — a sheet with none hides the row.
-public func memberRoleActions(_ member: FlareGroupMemberSnapshot,
-                              viewerRole: FlareGroupMemberRole,
-                              capabilities: FlareMemberRoleCapabilities) -> [FlareMemberRoleActionEntry] {
-    if member.role == .owner { return [] }
-    if viewerRole == .member { return [] }
-    if viewerRole == .admin && member.role == .admin { return [] }
+/// `mute` still needs host-supplied durations in ``MemberRoleSheetView`` — a sheet with none hides the row.
+public func memberRoleActions(role: FlareGroupMemberRole, muted: Bool,
+                              actions: FlareMemberActions?) -> [FlareMemberRoleActionEntry] {
+    let can = actions ?? .none
     var out: [FlareMemberRoleActionEntry] = []
-    if capabilities.promote && member.role == .member { out.append(.init(.promote)) }
-    if capabilities.demote && member.role == .admin { out.append(.init(.demote)) }
-    if capabilities.mute && !member.muted { out.append(.init(.mute)) }
-    if capabilities.unmute && member.muted { out.append(.init(.unmute)) }
-    if capabilities.transferOwner && viewerRole == .owner { out.append(.init(.transferOwner, danger: true)) }
-    if capabilities.remove { out.append(.init(.remove, danger: true)) }
+    if can.canChangeRole && role == .member { out.append(.init(.promote)) }
+    if can.canChangeRole && role == .admin { out.append(.init(.demote)) }
+    if can.canMute && !muted { out.append(.init(.mute)) }
+    if can.canMute && muted { out.append(.init(.unmute)) }
+    if can.canTransferOwner { out.append(.init(.transferOwner, danger: true)) }
+    if can.canRemove { out.append(.init(.remove, danger: true)) }
     return out
 }
 
 /// Management menu for ONE group member: change role, mute, remove, transfer
 /// ownership. Owns no positioning — place it in `.sheet` or a popover, exactly
-/// like ``ConversationActionSheetView``. It only emits intent: the second
-/// confirmation for remove / transferOwner is the host's job (DangerConfirm),
-/// and mute durations come from the host. Spec: Contacts/MemberRoleSheet.
+/// like ``ConversationActionSheetView``. Which actions exist comes from the host's
+/// answer for this member (`actions`, the social SDK's `memberActions` entry). It
+/// only emits intent: the second confirmation for remove / transferOwner is the
+/// host's job (DangerConfirm), and mute durations come from the host.
+/// Spec: Contacts/MemberRoleSheet.
 public struct MemberRoleSheetView: View {
     let member: FlareGroupMemberSnapshot
-    let viewerRole: FlareGroupMemberRole
-    let capabilities: FlareMemberRoleCapabilities
+    let actions: FlareMemberActions?
     let muteDurations: [FlareMemberMuteDuration]
     let busy: Bool
     let ownerRoleText, adminRoleText, memberRoleText, mutedText: String?
@@ -104,8 +90,7 @@ public struct MemberRoleSheetView: View {
     @State private var muteOpen = false
 
     public init(member: FlareGroupMemberSnapshot,
-                viewerRole: FlareGroupMemberRole,
-                capabilities: FlareMemberRoleCapabilities = .init(),
+                actions: FlareMemberActions? = nil,
                 muteDurations: [FlareMemberMuteDuration] = [],
                 busy: Bool = false,
                 ownerRoleText: String? = nil,
@@ -123,7 +108,7 @@ public struct MemberRoleSheetView: View {
                 ownerProtectedText: String? = nil,
                 onAction: ((String, FlareMemberRoleAction, String?) -> Void)? = nil,
                 onClose: (() -> Void)? = nil) {
-        self.member = member; self.viewerRole = viewerRole; self.capabilities = capabilities
+        self.member = member; self.actions = actions
         self.muteDurations = muteDurations; self.busy = busy
         self.ownerRoleText = ownerRoleText; self.adminRoleText = adminRoleText
         self.memberRoleText = memberRoleText; self.mutedText = mutedText
@@ -159,11 +144,11 @@ public struct MemberRoleSheetView: View {
 
     /// mute needs host durations; with none supplied the row is not offered at all.
     public var visibleEntries: [FlareMemberRoleActionEntry] {
-        memberRoleActions(member, viewerRole: viewerRole, capabilities: capabilities)
+        memberRoleActions(role: member.role, muted: member.muted, actions: actions)
             .filter { $0.action != .mute || !muteDurations.isEmpty }
     }
 
-    /// The owner is protected by rank, not by missing capabilities — say which it is.
+    /// Nothing to offer for the owner reads as protection, not as missing rights — say which it is.
     public var emptyReason: String { member.role == .owner ? copy.ownerProtectedText : copy.emptyText }
 
     var roleText: String {

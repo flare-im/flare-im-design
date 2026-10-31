@@ -19,8 +19,27 @@ FlareGroupDetailModel _model({
   ownerId: 'owner',
   adminIds: adminIds,
   mutedIds: mutedIds,
-  canManage: true,
-  isOwner: true,
+  capabilities: const FlareGroupCapabilities(
+    canManageInfo: true,
+    canManageJoinSettings: true,
+    canManageJoinRequests: true,
+    canInvite: true,
+    canDissolve: true,
+  ),
+  memberActions: const {
+    'u2': FlareMemberActions(
+      canRemove: true,
+      canMute: true,
+      canChangeRole: true,
+      canTransferOwner: true,
+    ),
+    'u3': FlareMemberActions(
+      canRemove: true,
+      canMute: true,
+      canChangeRole: true,
+      canTransferOwner: true,
+    ),
+  },
 );
 
 Widget _host(FlareGroupDetailModel model, List<(String, String, bool)> log) =>
@@ -144,5 +163,123 @@ void main() {
     await tester.tap(find.text(_labels.setAdmin));
     await tester.pumpAndSettle();
     expect(log, [('promote', 'u2', true)]);
+  });
+
+  testWidgets('each member offers only the actions the host allows on it', (
+    tester,
+  ) async {
+    // An admin who may only mute: the host answered mute for the plain member
+    // and nothing for the peer admin or the owner.
+    final log = <(String, String, bool)>[];
+    const model = FlareGroupDetailModel(
+      groupId: 'g1',
+      name: 'Team',
+      memberCount: 3,
+      members: [
+        FlareContact(id: 'owner', name: 'Olivia'),
+        FlareContact(id: 'peer', name: 'Pat'),
+        FlareContact(id: 'kim', name: 'Kim'),
+      ],
+      ownerId: 'owner',
+      adminIds: ['me', 'peer'],
+      memberActions: {
+        'kim': FlareMemberActions(canMute: true),
+        'peer': FlareMemberActions(),
+      },
+    );
+    await tester.pumpWidget(_host(model, log));
+    await tester.tap(find.text('Kim'));
+    await tester.pumpAndSettle();
+    expect(find.text(_labels.memberManage), findsOneWidget);
+    expect(find.text(_labels.mute), findsOneWidget);
+    for (final label in [
+      _labels.setAdmin,
+      _labels.unsetAdmin,
+      _labels.transferOwner,
+      _labels.removeMember,
+    ]) {
+      expect(find.text(label), findsNothing, reason: label);
+    }
+    await tester.tap(find.text(_labels.mute));
+    await tester.pumpAndSettle();
+    expect(log, [('mute', 'kim', true)]);
+
+    for (final name in ['Pat', 'Olivia']) {
+      await tester.tap(find.text(name));
+      await tester.pumpAndSettle();
+      expect(find.text(_labels.memberManage), findsNothing, reason: name);
+    }
+  });
+
+  testWidgets('each management row shows only for the capability naming it', (
+    tester,
+  ) async {
+    Future<(List<String>, bool, bool)> rowsFor(
+      FlareGroupCapabilities capabilities,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FlareGroupDetail(
+              model: FlareGroupDetailModel(
+                groupId: 'g1',
+                name: 'Team',
+                memberCount: 1,
+                members: const [FlareContact(id: 'owner', name: 'Olivia')],
+                ownerId: 'owner',
+                capabilities: capabilities,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final lists = tester.widgetList<FlareSettingsList>(
+        find.byType(FlareSettingsList),
+      );
+      final keys = [
+        for (final list in lists)
+          for (final section in list.sections.skip(2))
+            for (final item in section.items) item.key,
+      ];
+      final grid = tester.widget<FlareGroupMemberGrid>(
+        find.byType(FlareGroupMemberGrid),
+      );
+      final dissolve = find
+          .widgetWithText(FlareButton, _labels.dissolve, skipOffstage: false)
+          .evaluate()
+          .isNotEmpty;
+      return (keys, grid.showAdd, dissolve);
+    }
+
+    // An admin with the join permission alone sees join requests, nothing else.
+    final join = await rowsFor(
+      const FlareGroupCapabilities(canManageJoinRequests: true),
+    );
+    expect(join.$1, ['joinRequests']);
+    expect((join.$2, join.$3), (false, false));
+    // A member of a group that lets members share its card may invite.
+    final invite = await rowsFor(const FlareGroupCapabilities(canInvite: true));
+    expect(invite.$1, ['inviteLink']);
+    expect((invite.$2, invite.$3), (true, false));
+    // The info permission edits the switches, not the join policy.
+    expect(
+      (await rowsFor(const FlareGroupCapabilities(canManageInfo: true))).$1,
+      ['muteAll', 'atAll', 'pinPerm', 'shareCard'],
+    );
+    expect(
+      (await rowsFor(
+        const FlareGroupCapabilities(canManageJoinSettings: true),
+      )).$1,
+      ['discoverable', 'joinPolicy'],
+    );
+    // Only the capability to dissolve turns leaving into dissolving.
+    expect(
+      (await rowsFor(const FlareGroupCapabilities(canDissolve: true))).$3,
+      isTrue,
+    );
+    final none = await rowsFor(FlareGroupCapabilities.none);
+    expect(none.$1, isEmpty);
+    expect((none.$2, none.$3), (false, false));
   });
 }

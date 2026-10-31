@@ -1,4 +1,5 @@
 import '../components/flare_avatar.dart' show FlarePresence;
+import 'group_management.dart';
 
 /// A directory contact.
 class FlareContact {
@@ -130,8 +131,8 @@ class FlareGroupDetailModel {
     required this.ownerId,
     this.adminIds = const [],
     this.mutedIds = const [],
-    this.canManage = false,
-    this.isOwner = false,
+    this.capabilities = FlareGroupCapabilities.none,
+    this.memberActions = const {},
     this.myNickname,
     this.myMuted,
     this.myPinned,
@@ -155,9 +156,15 @@ class FlareGroupDetailModel {
   /// Muted member ids — drives the per-member mute action label.
   final List<String> mutedIds;
 
-  /// Viewer owns or administers the group (gates the management sections).
-  final bool canManage;
-  final bool isOwner;
+  /// What the viewer may manage, as the host's permission source answers it:
+  /// each field shows the entries it names ([groupManagementEntries]). The kit
+  /// derives nothing from roles or [ownerId].
+  final FlareGroupCapabilities capabilities;
+
+  /// What the viewer may do to each member, keyed by member id. A member
+  /// without an entry gets no member sheet; the host fills it for every member
+  /// it shows, search results included.
+  final Map<String, FlareMemberActions> memberActions;
 
   /// Viewer's own nickname in this group.
   final String? myNickname;

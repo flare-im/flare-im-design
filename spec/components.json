@@ -11895,8 +11895,8 @@
         "zh": "群详情 / 管理 —— 群信息 / 我在本群 / 群管理 / 群权限 + 成员网格 + 成员操作 + 入群审批 + 邀请链接。"
       },
       "dataSource": {
-        "en": "a group's FlareGroupDetailModel + join requests / invite code; the component emits intents and the host performs social.group.* writes.",
-        "zh": "群的 FlareGroupDetailModel + 入群申请 / 邀请码；组件发意图，宿主执行 social.group.* 写。"
+        "en": "a group's FlareGroupDetailModel + join requests / invite code. The model carries what the host's permission source answered: `capabilities` (canManageInfo, canManageJoinSettings, canManageJoinRequests, canInvite, canDissolve) and `memberActions` per member id (canRemove, canMute, canChangeRole, canTransferOwner); the component emits intents and the host performs social.group.* writes.",
+        "zh": "群的 FlareGroupDetailModel + 入群申请 / 邀请码。模型带宿主权限来源的答案：`capabilities`（canManageInfo、canManageJoinSettings、canManageJoinRequests、canInvite、canDissolve）与按成员 id 的 `memberActions`（canRemove、canMute、canChangeRole、canTransferOwner）；组件发意图，宿主执行 social.group.* 写。"
       },
       "props": [
         {
@@ -11904,8 +11904,8 @@
           "type": "FlareGroupDetailModel",
           "required": true,
           "description": {
-            "en": "The group detail/management model.",
-            "zh": "群详情 / 管理数据模型。"
+            "en": "The group detail/management model, including the viewer's `capabilities` and the per-member `memberActions` the host's permission source answered.",
+            "zh": "群详情 / 管理数据模型，含宿主权限来源给出的本人 `capabilities` 与按成员的 `memberActions`。"
           }
         },
         {
@@ -11985,7 +11985,7 @@
       ],
       "states": [
         "default",
-        "canManage"
+        "manage"
       ],
       "events": [
         "back",
@@ -12013,8 +12013,8 @@
         "extraAction"
       ],
       "notes": {
-        "en": "Member intents carry the state the host should write: promoteMember(userId, admin) and muteMember(userId, muted), computed from the model when tapped, so the host never recomputes a toggle. One confirmation rule on every platform: transferring ownership is confirmed inside the component; removing a member and leaving (or dissolving) are emitted as tapped and the host confirms them with its presenter (Vue useFlareConfirm, Flutter FlareDangerConfirm.show, iOS FlareFeedback.confirm, Compose DangerConfirm), which also owns busy, error and retry for the write. Compose takes headerActions for host actions at the end of its header. The join policy is `FlareGroupJoinPolicy` (open, approval, invite); an unknown policy reads as not set and the picker opens with nothing selected, and `setJoinPolicy` carries the picked policy. The message button exists only when the host handles `openChat`.",
-        "zh": "成员意图携带宿主应写入的目标状态：promoteMember(userId, admin) 与 muteMember(userId, muted)，在点击时由模型算出，宿主不再自行推算开关方向。各端同一条确认规则：转让群主在组件内确认；移除成员与退出（或解散）按点击直接发出，由宿主用自己的呈现器确认（Vue useFlareConfirm、Flutter FlareDangerConfirm.show、iOS FlareFeedback.confirm、Compose DangerConfirm），写操作的忙碌、错误与重试也由它负责。Compose 通过 headerActions 在头部末端放置宿主操作。 进群方式为 `FlareGroupJoinPolicy`（open、approval、invite）；未知时显示「未设置」，选择器打开时不选中任何项，`setJoinPolicy` 携带所选方式。只有宿主处理 `openChat` 时才有发消息按钮。"
+        "en": "Member intents carry the state the host should write: promoteMember(userId, admin) and muteMember(userId, muted), computed from the model when tapped, so the host never recomputes a toggle. One confirmation rule on every platform: transferring ownership is confirmed inside the component; removing a member and leaving (or dissolving) are emitted as tapped and the host confirms them with its presenter (Vue useFlareConfirm, Flutter FlareDangerConfirm.show, iOS FlareFeedback.confirm, Compose DangerConfirm), which also owns busy, error and retry for the write. Compose takes headerActions for host actions at the end of its header. The join policy is `FlareGroupJoinPolicy` (open, approval, invite); an unknown policy reads as not set and the picker opens with nothing selected, and `setJoinPolicy` carries the picked policy. The message button exists only when the host handles `openChat`. Every management entry follows the model's answers and nothing else: each row, the rename and announcement editors, the add tile and dissolving (instead of leaving) through `groupManagementEntries(capabilities)`, and a member's sheet through `groupDetailMemberActions` — a member without an entry in `memberActions` opens no sheet. The kit reads no role, owner or permission-bit rule; the shared cases are `spec/group-management-vectors.json`.",
+        "zh": "成员意图携带宿主应写入的目标状态：promoteMember(userId, admin) 与 muteMember(userId, muted)，在点击时由模型算出，宿主不再自行推算开关方向。各端同一条确认规则：转让群主在组件内确认；移除成员与退出（或解散）按点击直接发出，由宿主用自己的呈现器确认（Vue useFlareConfirm、Flutter FlareDangerConfirm.show、iOS FlareFeedback.confirm、Compose DangerConfirm），写操作的忙碌、错误与重试也由它负责。Compose 通过 headerActions 在头部末端放置宿主操作。 进群方式为 `FlareGroupJoinPolicy`（open、approval、invite）；未知时显示「未设置」，选择器打开时不选中任何项，`setJoinPolicy` 携带所选方式。只有宿主处理 `openChat` 时才有发消息按钮。 每个管理入口只跟模型里的答案走：各设置行、改名与公告编辑、添加成员格、解散（代替退出）走 `groupManagementEntries(capabilities)`，成员操作面板走 `groupDetailMemberActions`；`memberActions` 里没有条目的成员不打开面板。套件不含任何角色、群主或权限位规则；共用用例在 `spec/group-management-vectors.json`。"
       },
       "platforms": {
         "vue": {
@@ -22781,12 +22781,12 @@
       "name": "GroupPermissionMatrix",
       "category": "Contacts",
       "summary": {
-        "en": "Group settings panel over the real group permission fields, with per-row busy, per-row failure and read-only rendering when the viewer cannot manage.",
-        "zh": "群权限设置面板，覆盖群模型真实权限字段；逐项 busy、逐项失败，无管理权限时渲染只读值行。"
+        "en": "Group settings panel over the real group permission fields, with per-row busy, per-row failure and read-only rendering for the rows the viewer cannot change.",
+        "zh": "群权限设置面板，覆盖群模型真实权限字段；逐项 busy、逐项失败，查看者不能改的行渲染为只读值。"
       },
       "dataSource": {
-        "en": "Host-owned group settings, canManage flag, in-flight keys and per-key failure reasons; the component computes rows via groupPermissionRows().",
-        "zh": "宿主提供群设置、canManage、进行中的键与逐键失败原因；组件用 groupPermissionRows() 计算行。"
+        "en": "Host-owned group settings, the viewer's capabilities, in-flight keys and per-key failure reasons; the component computes rows via groupPermissionRows().",
+        "zh": "宿主提供群设置、本人能力、进行中的键与逐键失败原因；组件用 groupPermissionRows() 计算行。"
       },
       "props": [
         {
@@ -22799,11 +22799,11 @@
           }
         },
         {
-          "name": "canManage",
-          "type": "boolean",
+          "name": "capabilities",
+          "type": "{ canManageInfo?, canManageJoinSettings? }",
           "description": {
-            "en": "Viewer may edit; false renders read-only value rows instead of disabled switches.",
-            "zh": "可修改；false 渲染只读值行，而不是禁用开关。"
+            "en": "What the viewer may change, as the host's permission source answers it: the join policy follows canManageJoinSettings, the four switches canManageInfo. A row the viewer cannot change renders as a read-only value, never a disabled switch.",
+            "zh": "宿主权限来源给出的本人能力：进群方式看 canManageJoinSettings，四个开关看 canManageInfo。不能改的行渲染为只读值，而不是禁用开关。"
           }
         },
         {
@@ -23042,12 +23042,12 @@
       "name": "MemberRoleSheet",
       "category": "Contacts",
       "summary": {
-        "en": "Per-member management menu (role, mute, remove, transfer ownership) with rank rules before capabilities and a trailing danger group.",
-        "zh": "单个群成员的管理菜单（角色、禁言、移出、转让群主），身份等级先于能力开关，危险动作单独分组置底。"
+        "en": "Per-member management menu (role, mute, remove, transfer ownership) showing exactly the actions the host allows for that member, with a trailing danger group.",
+        "zh": "单个群成员的管理菜单（角色、禁言、移出、转让群主），只显示宿主对该成员允许的动作，危险动作单独分组置底。"
       },
       "dataSource": {
-        "en": "Host-owned member snapshot, viewer role, capabilities and mute durations; the component computes displayable actions via memberRoleActions().",
-        "zh": "宿主提供成员快照、自己的角色、能力与禁言时长；组件用 memberRoleActions() 计算可显示动作。"
+        "en": "Host-owned member snapshot, the actions the host's permission source allows on that member, and mute durations; the component labels them via memberRoleActions().",
+        "zh": "宿主提供成员快照、权限来源对该成员允许的动作与禁言时长；组件用 memberRoleActions() 给动作定标签与顺序。"
       },
       "props": [
         {
@@ -23060,20 +23060,11 @@
           }
         },
         {
-          "name": "viewerRole",
-          "type": "'owner' | 'admin' | 'member'",
-          "required": true,
+          "name": "actions",
+          "type": "{ canRemove?, canMute?, canChangeRole?, canTransferOwner? }",
           "description": {
-            "en": "The viewer's own role — rank rules apply before capabilities and cannot be overridden by them.",
-            "zh": "查看者自己的角色；身份等级规则先于能力开关，且不可被能力开关绕过。"
-          }
-        },
-        {
-          "name": "capabilities",
-          "type": "{ promote?, demote?, mute?, unmute?, remove?, transferOwner? }",
-          "description": {
-            "en": "Boolean switches the host can honour; absent or false hides the action.",
-            "zh": "宿主可承接的能力开关；缺省或 false 不显示该动作。"
+            "en": "What the host lets the viewer do to this member (the social SDK's memberActions entry); absent or false hides the action. canChangeRole reads as promote for a member and demote for an admin, canMute as mute or unmute by the member's state. The kit applies no rank rule of its own.",
+            "zh": "宿主允许查看者对该成员做的动作（社交 SDK memberActions 的一项）；缺省或 false 不显示。canChangeRole 对普通成员显示设为管理员、对管理员显示取消管理员，canMute 按成员是否已禁言显示禁言或解除禁言。套件不再自带身份等级规则。"
           }
         },
         {

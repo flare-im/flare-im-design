@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flare_im_ui/src/components/flare_group_permission_matrix.dart';
 import 'package:flare_im_ui/src/components/flare_switch.dart';
 import 'package:flare_im_ui/src/models/directory_data.dart';
+import 'package:flare_im_ui/src/models/group_management.dart';
 import 'package:flare_im_ui/src/tokens/flare_strings.dart';
 
 void main() {
@@ -13,6 +14,13 @@ void main() {
     shareCardPermission: true,
     joinPolicy: FlareGroupJoinPolicy.approval,
   );
+  const owner = FlareGroupCapabilities(
+    canManageInfo: true,
+    canManageJoinSettings: true,
+    canManageJoinRequests: true,
+    canInvite: true,
+    canDissolve: true,
+  );
   FlareGroupPermissionRow rowFor(
     List<FlareGroupPermissionRow> rows,
     FlareGroupPermissionKey key,
@@ -20,7 +28,7 @@ void main() {
 
   group('groupPermissionRows', () {
     test('returns the five real backend keys in canonical order', () {
-      expect(groupPermissionRows(settings, true).map((r) => r.key).toList(), [
+      expect(groupPermissionRows(settings, owner).map((r) => r.key).toList(), [
         FlareGroupPermissionKey.joinPolicy,
         FlareGroupPermissionKey.muteAll,
         FlareGroupPermissionKey.onlyAdminCanAtAll,
@@ -30,7 +38,7 @@ void main() {
     });
 
     test('joinPolicy is the only choice row and values carry through', () {
-      final rows = groupPermissionRows(settings, true);
+      final rows = groupPermissionRows(settings, owner);
       expect(
         rows
             .where((r) => r.kind == FlareGroupPermissionRowKind.choice)
@@ -53,26 +61,50 @@ void main() {
       );
     });
 
-    test('editable follows canManage only — never busy, never an error', () {
-      expect(
-        groupPermissionRows(settings, false).every((r) => !r.editable),
-        isTrue,
-      );
-      final rows = groupPermissionRows(
-        settings,
-        true,
-        ['muteAll'],
-        {'muteAll': '网络错误'},
-      );
-      expect(rows.every((r) => r.editable), isTrue);
-    });
+    test(
+      'lets the info right switch the four flags but not the join policy',
+      () {
+        List<FlareGroupPermissionKey> editable(FlareGroupCapabilities c) =>
+            groupPermissionRows(
+              settings,
+              c,
+            ).where((r) => r.editable).map((r) => r.key).toList();
+        expect(editable(const FlareGroupCapabilities(canManageInfo: true)), [
+          FlareGroupPermissionKey.muteAll,
+          FlareGroupPermissionKey.onlyAdminCanAtAll,
+          FlareGroupPermissionKey.onlyAdminCanPin,
+          FlareGroupPermissionKey.shareCardPermission,
+        ]);
+        expect(
+          editable(const FlareGroupCapabilities(canManageJoinSettings: true)),
+          [FlareGroupPermissionKey.joinPolicy],
+        );
+      },
+    );
+
+    test(
+      'editable follows the capabilities only — never busy, never an error',
+      () {
+        expect(
+          groupPermissionRows(settings, null).every((r) => !r.editable),
+          isTrue,
+        );
+        final rows = groupPermissionRows(
+          settings,
+          owner,
+          ['muteAll'],
+          {'muteAll': '网络错误'},
+        );
+        expect(rows.every((r) => r.editable), isTrue);
+      },
+    );
 
     test(
       'busy and error are per key, so a failure keeps its siblings usable',
       () {
         final rows = groupPermissionRows(
           settings,
-          true,
+          owner,
           ['muteAll'],
           {'onlyAdminCanPin': '权限不足'},
         );
@@ -90,7 +122,7 @@ void main() {
     );
 
     test('ignores unknown busy keys and empty inputs', () {
-      final rows = groupPermissionRows(settings, true, [
+      final rows = groupPermissionRows(settings, owner, [
         'nope',
         'muteAll',
         'muteAll',
@@ -101,7 +133,7 @@ void main() {
       expect(
         groupPermissionRows(
           settings,
-          true,
+          owner,
         ).every((r) => !r.busy && r.error == null),
         isTrue,
       );
@@ -109,7 +141,7 @@ void main() {
 
     test('keeps an error visible on a read-only panel', () {
       final row = rowFor(
-        groupPermissionRows(settings, false, const [], {'muteAll': '你已不是管理员'}),
+        groupPermissionRows(settings, null, const [], {'muteAll': '你已不是管理员'}),
         FlareGroupPermissionKey.muteAll,
       );
       expect(row.editable, isFalse);
@@ -119,7 +151,7 @@ void main() {
     test('an unknown joinPolicy stays unknown rather than a guessed one', () {
       expect(const FlareGroupPermissionSettings().joinPolicy, isNull);
       final row = rowFor(
-        groupPermissionRows(const FlareGroupPermissionSettings(), true),
+        groupPermissionRows(const FlareGroupPermissionSettings(), owner),
         FlareGroupPermissionKey.joinPolicy,
       );
       expect(row.kind, FlareGroupPermissionRowKind.choice);
@@ -128,7 +160,7 @@ void main() {
       // A toggle row never reads as a policy.
       expect(
         rowFor(
-          groupPermissionRows(settings, true),
+          groupPermissionRows(settings, owner),
           FlareGroupPermissionKey.muteAll,
         ).joinPolicyValue,
         isNull,
@@ -146,7 +178,7 @@ void main() {
           body: SingleChildScrollView(
             child: FlareGroupPermissionMatrix(
               settings: settings,
-              canManage: true,
+              capabilities: owner,
               onChange: (key, value) => changes.add('${key.name}=$value'),
             ),
           ),
@@ -169,10 +201,7 @@ void main() {
       const MaterialApp(
         home: Scaffold(
           body: SingleChildScrollView(
-            child: FlareGroupPermissionMatrix(
-              settings: settings,
-              canManage: false,
-            ),
+            child: FlareGroupPermissionMatrix(settings: settings),
           ),
         ),
       ),
@@ -193,7 +222,7 @@ void main() {
             body: SingleChildScrollView(
               child: FlareGroupPermissionMatrix(
                 settings: settings,
-                canManage: true,
+                capabilities: owner,
                 busyKeys: const ['onlyAdminCanPin'],
                 errors: const {'muteAll': '网络错误，请重试'},
                 onChange: (key, value) => changes.add('${key.name}=$value'),
@@ -218,19 +247,20 @@ void main() {
       final semantics = tester.ensureSemantics();
       const strings = FlareStrings();
       final changes = <Object>[];
-      Widget matrix({required bool canManage}) => MaterialApp(
-        home: Scaffold(
-          body: SingleChildScrollView(
-            child: FlareGroupPermissionMatrix(
-              settings: const FlareGroupPermissionSettings(),
-              canManage: canManage,
-              onChange: (key, value) => changes.add(value),
+      Widget matrix({required FlareGroupCapabilities capabilities}) =>
+          MaterialApp(
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: FlareGroupPermissionMatrix(
+                  settings: const FlareGroupPermissionSettings(),
+                  capabilities: capabilities,
+                  onChange: (key, value) => changes.add(value),
+                ),
+              ),
             ),
-          ),
-        ),
-      );
+          );
 
-      await tester.pumpWidget(matrix(canManage: true));
+      await tester.pumpWidget(matrix(capabilities: owner));
       final choices = [
         strings.groupPermissionMatrixJoinOpen,
         strings.groupPermissionMatrixJoinApproval,
@@ -256,7 +286,9 @@ void main() {
       expect(changes, [FlareGroupJoinPolicy.invite]);
 
       // Read-only, the unknown policy is said, not guessed.
-      await tester.pumpWidget(matrix(canManage: false));
+      await tester.pumpWidget(
+        matrix(capabilities: FlareGroupCapabilities.none),
+      );
       expect(
         find.text(strings.groupPermissionMatrixUnknownJoinPolicy),
         findsOneWidget,
@@ -267,4 +299,27 @@ void main() {
       semantics.dispose();
     },
   );
+
+  testWidgets('a row the viewer cannot change reads as a value while the '
+      'others stay switches', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: FlareGroupPermissionMatrix(
+              settings: settings,
+              capabilities: const FlareGroupCapabilities(canManageInfo: true),
+              onChange: (key, value) {},
+            ),
+          ),
+        ),
+      ),
+    );
+    // Four switches; the join policy reads as its value, not as choices.
+    expect(find.byType(FlareSwitch), findsNWidgets(4));
+    expect(find.text('需管理员审批'), findsOneWidget);
+    expect(find.text('允许直接加入'), findsNothing);
+    // Something is editable, so the panel does not claim to be read-only.
+    expect(find.text('仅群主和管理员可修改'), findsNothing);
+  });
 }

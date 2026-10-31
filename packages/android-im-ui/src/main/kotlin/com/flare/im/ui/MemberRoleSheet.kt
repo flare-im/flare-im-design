@@ -54,16 +54,6 @@ data class FlareGroupMemberSnapshot(
     val muted: Boolean = false,
 )
 
-/** Host-declared capabilities. `false` → the action is not rendered. */
-data class FlareMemberRoleCapabilities(
-    val promote: Boolean = false,
-    val demote: Boolean = false,
-    val mute: Boolean = false,
-    val unmute: Boolean = false,
-    val remove: Boolean = false,
-    val transferOwner: Boolean = false,
-)
-
 /** One host-supplied mute duration option; the kit ships no durations of its own. */
 data class FlareMemberMuteDuration(val id: String, val label: String)
 
@@ -74,42 +64,37 @@ data class FlareMemberRoleActionEntry(
 )
 
 /**
- * Ordered management actions for [member] as seen by [viewerRole] — the same
- * rule set as the other platforms. Rank rules come first, capabilities only
- * narrow further:
+ * Ordered management actions for a member with [role] and [muted], from what the host says the viewer
+ * may do to that member ([actions]) — the same rule set as the other platforms (Vue `memberRoleActions`).
+ * The kit decides nothing about who may act on whom: the owner's protection, admins not managing each
+ * other and the owner-only actions all come from the host's answer. It only picks the label each answer
+ * needs:
  *
- *  - the owner is untouchable — no promote / demote / mute / remove / transfer;
- *  - a plain member sees nothing (the sheet then says it has no rights);
- *  - an admin cannot act on a peer admin and can never transfer ownership;
- *  - only the owner can transfer ownership;
- *  - promote only applies to a member, demote only to an admin;
- *  - mute / unmute are mutually exclusive by `member.muted`.
+ *  - `canChangeRole` offers promote for a member and demote for an admin;
+ *  - `canMute` offers mute or unmute by [muted];
+ *  - `canTransferOwner` and `canRemove` form the trailing danger group.
  *
- * `mute` still needs host-supplied durations — a sheet with none hides the row.
+ * In [MemberRoleSheet] `mute` still needs host-supplied durations — a sheet with none hides the row.
  */
 fun memberRoleActions(
-    member: FlareGroupMemberSnapshot,
-    viewerRole: FlareGroupMemberRole,
-    capabilities: FlareMemberRoleCapabilities,
+    role: FlareGroupMemberRole,
+    muted: Boolean,
+    actions: FlareMemberActions?,
 ): List<FlareMemberRoleActionEntry> {
-    if (member.role == FlareGroupMemberRole.Owner) return emptyList()
-    if (viewerRole == FlareGroupMemberRole.Member) return emptyList()
-    if (viewerRole == FlareGroupMemberRole.Admin && member.role == FlareGroupMemberRole.Admin) return emptyList()
+    val can = actions ?: return emptyList()
     return buildList {
-        if (capabilities.promote && member.role == FlareGroupMemberRole.Member) {
-            add(FlareMemberRoleActionEntry(FlareMemberRoleAction.Promote))
-        }
-        if (capabilities.demote && member.role == FlareGroupMemberRole.Admin) {
-            add(FlareMemberRoleActionEntry(FlareMemberRoleAction.Demote))
-        }
-        if (capabilities.mute && !member.muted) add(FlareMemberRoleActionEntry(FlareMemberRoleAction.Mute))
-        if (capabilities.unmute && member.muted) add(FlareMemberRoleActionEntry(FlareMemberRoleAction.Unmute))
-        if (capabilities.transferOwner && viewerRole == FlareGroupMemberRole.Owner) {
-            add(FlareMemberRoleActionEntry(FlareMemberRoleAction.TransferOwner, danger = true))
-        }
-        if (capabilities.remove) add(FlareMemberRoleActionEntry(FlareMemberRoleAction.Remove, danger = true))
+        if (can.canChangeRole && role == FlareGroupMemberRole.Member) add(FlareMemberRoleActionEntry(FlareMemberRoleAction.Promote))
+        if (can.canChangeRole && role == FlareGroupMemberRole.Admin) add(FlareMemberRoleActionEntry(FlareMemberRoleAction.Demote))
+        if (can.canMute && !muted) add(FlareMemberRoleActionEntry(FlareMemberRoleAction.Mute))
+        if (can.canMute && muted) add(FlareMemberRoleActionEntry(FlareMemberRoleAction.Unmute))
+        if (can.canTransferOwner) add(FlareMemberRoleActionEntry(FlareMemberRoleAction.TransferOwner, danger = true))
+        if (can.canRemove) add(FlareMemberRoleActionEntry(FlareMemberRoleAction.Remove, danger = true))
     }
 }
+
+/** [memberRoleActions] for a [FlareGroupMemberSnapshot]. */
+fun memberRoleActions(member: FlareGroupMemberSnapshot, actions: FlareMemberActions?): List<FlareMemberRoleActionEntry> =
+    memberRoleActions(member.role, member.muted, actions)
 
 /**
  * Registry icon per member action. Promote and demote share `admin`; mute and unmute share `silence`
@@ -128,18 +113,19 @@ private fun iconFor(action: FlareMemberRoleAction): ImageVector = flareIconVecto
 /**
  * Management menu for ONE group member: change role, mute, remove, transfer
  * ownership. Owns no positioning — present it in [BottomSheet] or a popup,
- * exactly like [ConversationActionSheet]. It only emits intent: the second
- * confirmation for remove / transferOwner is the host's job (DangerConfirm),
- * and mute durations come from the host.
+ * exactly like [ConversationActionSheet]. Which actions exist comes from the
+ * host's answer for this member ([actions], the social SDK's `memberActions`
+ * entry); [memberRoleActions] only picks their labels and order. It only emits
+ * intent: the second confirmation for remove / transferOwner is the host's job
+ * (DangerConfirm), and mute durations come from the host.
  * Spec: Contacts/MemberRoleSheet (`MemberRoleSheet`).
  */
 @Suppress("NAME_SHADOWING")
 @Composable
 fun MemberRoleSheet(
     member: FlareGroupMemberSnapshot,
-    /** The viewer's own role in this group — rank rules come before capabilities. */
-    viewerRole: FlareGroupMemberRole,
-    capabilities: FlareMemberRoleCapabilities = FlareMemberRoleCapabilities(),
+    /** What the host lets the viewer do to this member; null or false hides the action. */
+    actions: FlareMemberActions? = null,
     /** Host-supplied mute durations; empty hides mute — the kit invents no durations. */
     muteDurations: List<FlareMemberMuteDuration> = emptyList(),
     /** Host sets this synchronously before dispatching; disables every action. */
@@ -176,12 +162,12 @@ fun MemberRoleSheet(
     val ownerProtectedText = ownerProtectedText ?: strings.memberRoleSheetOwnerProtected
     val colors = flareColors()
     var muteOpen by remember(member.id, busy) { mutableStateOf(false) }
-    val entries = memberRoleActions(member, viewerRole, capabilities)
+    val entries = memberRoleActions(member, actions)
         // mute needs host durations; with none supplied the row is not offered.
         .filter { it.action != FlareMemberRoleAction.Mute || muteDurations.isNotEmpty() }
     val primary = entries.filter { !it.danger }
     val danger = entries.filter { it.danger }
-    // The owner is protected by rank, not by missing capabilities — say which it is.
+    // Nothing to offer for the owner reads as protection, not as missing rights — say which it is.
     val emptyReason = if (member.role == FlareGroupMemberRole.Owner) ownerProtectedText else emptyText
     val roleText = when (member.role) {
         FlareGroupMemberRole.Owner -> ownerRoleText

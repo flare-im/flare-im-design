@@ -18,8 +18,13 @@ const _model = FlareGroupDetailModel(
   memberCount: 1,
   members: [FlareContact(id: 'me', name: 'Me')],
   ownerId: 'me',
-  canManage: true,
-  isOwner: true,
+  capabilities: FlareGroupCapabilities(
+    canManageInfo: true,
+    canManageJoinSettings: true,
+    canManageJoinRequests: true,
+    canInvite: true,
+    canDissolve: true,
+  ),
   myNickname: 'Captain',
 );
 

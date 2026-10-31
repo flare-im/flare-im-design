@@ -16,8 +16,13 @@ const model = {
   ownerId: "ivy",
   adminIds: ["leo"],
   mutedIds: [],
-  canManage: true,
-  isOwner: true,
+  // What the host's permission source answered for the viewer (the owner) and for each member.
+  capabilities: { canManageInfo: true, canManageJoinSettings: true, canManageJoinRequests: true, canInvite: true, canDissolve: true },
+  memberActions: {
+    leo: { canRemove: true, canMute: true, canChangeRole: true, canTransferOwner: true },
+    mia: { canRemove: true, canMute: true, canChangeRole: true, canTransferOwner: true },
+    sam: { canRemove: true, canMute: true, canChangeRole: true, canTransferOwner: true },
+  },
   myNickname: "",
   myMuted: false,
   myPinned: false,

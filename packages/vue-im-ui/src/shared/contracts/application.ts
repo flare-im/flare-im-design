@@ -110,19 +110,6 @@ export interface FlareCapabilitySet {
   enabled: readonly string[];
 }
 
-export interface FlareGroupCapabilities {
-  invite?: boolean;
-  remove?: boolean;
-  promote?: boolean;
-  demote?: boolean;
-  mute?: boolean;
-  leave?: boolean;
-  dismiss?: boolean;
-  rename?: boolean;
-  changeAvatar?: boolean;
-  editAnnouncement?: boolean;
-}
-
 export interface FlareConversationCapabilities {
   message?: boolean;
   call?: boolean;

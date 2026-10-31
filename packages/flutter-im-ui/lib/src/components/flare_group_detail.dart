@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../models/directory_data.dart';
+import '../models/group_management.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_avatar.dart';
@@ -19,11 +20,16 @@ import 'flare_search_bar.dart';
 import 'flare_settings_list.dart';
 
 /// Group detail / management — hero, member grid and Feishu-style settings:
-/// 群信息 / 我在本群 / 群管理 / 群权限 (owner-admin gated), plus member actions,
-/// join-request approval, invite picker, join policy and invite link. Purely
-/// presentational — it renders [model] and raises intents; the host performs the
-/// social.group.* writes and refreshes the model. It owns its editing sheets and
-/// dialogs, and reuses [FlareGroupMemberGrid].
+/// 群信息 / 我在本群 / 群管理 / 群权限, plus member actions, join-request
+/// approval, invite picker, join policy and invite link. Purely presentational —
+/// it renders [model] and raises intents; the host performs the social.group.*
+/// writes and refreshes the model. It owns its editing sheets and dialogs, and
+/// reuses [FlareGroupMemberGrid].
+///
+/// Every management entry follows the host's answer: `model.capabilities`
+/// through [groupManagementEntries], and each member's sheet through
+/// `model.memberActions` ([groupDetailMemberActions]). The kit reads no role or
+/// owner rule of its own.
 ///
 /// Transferring ownership is confirmed here, inside the member sheet it starts
 /// from. Removing a member and leaving / dissolving are emitted as tapped: the
@@ -31,7 +37,7 @@ import 'flare_settings_list.dart';
 /// owns the busy and error states of the write.
 ///
 /// The member grid previews the first [previewMemberCells] cells (the add
-/// tile included when the viewer can manage); the 群成员 row opens a sheet of
+/// tile included when the viewer may invite); the 群成员 row opens a sheet of
 /// every member with a search field, where choosing a member opens the same
 /// member actions as the grid.
 ///
@@ -166,7 +172,12 @@ class FlareGroupDetail extends StatefulWidget {
 
 class _FlareGroupDetailState extends State<FlareGroupDetail> {
   FlareGroupDetailModel? get _m => widget.model;
-  bool get _canManage => _m?.canManage ?? false;
+
+  /// The management entries the host's capabilities name; nothing else is
+  /// offered (Vue `groupManagementEntries`).
+  Set<FlareGroupManagementEntry> get _entries =>
+      groupManagementEntries(_m?.capabilities).toSet();
+  bool _can(FlareGroupManagementEntry entry) => _entries.contains(entry);
 
   /// My group nickname is editable when the host persists it.
   bool get _canEditNickname =>
@@ -183,19 +194,48 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
   /// of their own and do not rebuild with it.
   late final _model = ValueNotifier<FlareGroupDetailModel?>(widget.model);
 
+  /// The invite link the host is fetching for the open sheet: the code arrives
+  /// after the sheet opened, so the sheet follows these props instead of
+  /// reading them once.
+  late final _invite = ValueNotifier<(String?, bool)>((
+    widget.inviteCode,
+    widget.loadingInviteLink,
+  ));
+
+  /// The join requests for the open sheet: the host loads them after the
+  /// sheet opened and reloads them after each answer, so the sheet follows
+  /// these props instead of copying them once.
+  late final _joinRequests =
+      ValueNotifier<(List<FlareGroupJoinRequestView>, bool)>((
+        widget.joinRequests,
+        widget.loadingJoinRequests,
+      ));
+
   @override
   void didUpdateWidget(covariant FlareGroupDetail oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (identical(widget.model, oldWidget.model)) return;
+    final invite = (widget.inviteCode, widget.loadingInviteLink);
+    final modelChanged = !identical(widget.model, oldWidget.model);
+    final joinChanged =
+        !identical(widget.joinRequests, oldWidget.joinRequests) ||
+        widget.loadingJoinRequests != oldWidget.loadingJoinRequests;
+    if (!modelChanged && !joinChanged && invite == _invite.value) return;
     // The listeners are outside this subtree; tell them after this build.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _model.value = widget.model;
+      if (!mounted) return;
+      if (modelChanged) _model.value = widget.model;
+      _invite.value = (widget.inviteCode, widget.loadingInviteLink);
+      if (joinChanged) {
+        _joinRequests.value = (widget.joinRequests, widget.loadingJoinRequests);
+      }
     });
   }
 
   @override
   void dispose() {
     _model.dispose();
+    _invite.dispose();
+    _joinRequests.dispose();
     super.dispose();
   }
 
@@ -219,7 +259,7 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
             icon: 'tag',
             // Rows the viewer can change open their editor and carry a
             // chevron; the rest read as values, not as buttons.
-            kind: _canManage
+            kind: _can(FlareGroupManagementEntry.editName)
                 ? FlareSettingKind.navigation
                 : FlareSettingKind.value,
             detail: m.name,
@@ -228,7 +268,7 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
             key: 'announcement',
             label: _l.announcement,
             icon: 'announcement',
-            kind: _canManage
+            kind: _can(FlareGroupManagementEntry.editAnnouncement)
                 ? FlareSettingKind.navigation
                 : FlareSettingKind.value,
             detail: (m.announcement?.isNotEmpty ?? false)
@@ -295,87 +335,90 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
         ],
       ),
     ];
-    if (m.canManage) {
-      sections.add(
-        FlareSettingsSection(
-          title: _l.manage,
-          items: [
-            FlareSettingsItem(
-              key: 'discoverable',
-              label:
-                  _l.discoverable == FlareStrings.groupDetailDiscoverableDefault
-                  ? FlareStrings.of(context).groupDetailDiscoverable
-                  : _l.discoverable,
-              icon: 'search',
-              kind: FlareSettingKind.toggle,
-              value: m.discoverable,
-            ),
-            FlareSettingsItem(
-              key: 'joinPolicy',
-              label: _l.joinMode,
-              icon: 'lock',
-              // Only a manager reaches this section, and the row opens the
-              // picker.
-              kind: FlareSettingKind.navigation,
-              // An unknown policy is shown as not set, never as a guess.
-              detail: switch (m.joinPolicy) {
-                final policy? => _joinPolicyLabel(policy),
-                null => _l.notSet,
-              },
-            ),
-            FlareSettingsItem(
-              key: 'joinRequests',
-              label: _l.joinRequests,
-              icon: 'join-request',
-              kind: FlareSettingKind.navigation,
-              detail: widget.joinRequests.isNotEmpty
-                  ? '${widget.joinRequests.length}'
-                  : null,
-            ),
-            FlareSettingsItem(
-              key: 'muteAll',
-              label: _l.muteAll,
-              icon: 'silence',
-              kind: FlareSettingKind.toggle,
-              value: m.muteAll,
-            ),
-            FlareSettingsItem(
-              key: 'inviteLink',
-              label: _l.inviteLink,
-              icon: 'link',
-              kind: FlareSettingKind.navigation,
-            ),
-          ],
+    // Each row shows only when the host's capabilities name it; an empty
+    // section is not drawn.
+    final manage = [
+      if (_can(FlareGroupManagementEntry.discoverable))
+        FlareSettingsItem(
+          key: 'discoverable',
+          label: _l.discoverable == FlareStrings.groupDetailDiscoverableDefault
+              ? FlareStrings.of(context).groupDetailDiscoverable
+              : _l.discoverable,
+          icon: 'search',
+          kind: FlareSettingKind.toggle,
+          value: m.discoverable,
         ),
-      );
-      sections.add(
-        FlareSettingsSection(
-          title: _l.perms,
-          items: [
-            FlareSettingsItem(
-              key: 'atAll',
-              label: _l.onlyAdminAtAll,
-              icon: 'mention',
-              kind: FlareSettingKind.toggle,
-              value: m.onlyAdminCanAtAll,
-            ),
-            FlareSettingsItem(
-              key: 'pinPerm',
-              label: _l.onlyAdminPin,
-              icon: 'pin',
-              kind: FlareSettingKind.toggle,
-              value: m.onlyAdminCanPin,
-            ),
-            FlareSettingsItem(
-              key: 'shareCard',
-              label: _l.shareCard,
-              icon: 'share',
-              kind: FlareSettingKind.toggle,
-              value: m.shareCardPermission,
-            ),
-          ],
+      if (_can(FlareGroupManagementEntry.joinPolicy))
+        FlareSettingsItem(
+          key: 'joinPolicy',
+          label: _l.joinMode,
+          icon: 'lock',
+          // The row is shown only to a viewer who may change it, and it
+          // opens the picker.
+          kind: FlareSettingKind.navigation,
+          // An unknown policy is shown as not set, never as a guess.
+          detail: switch (m.joinPolicy) {
+            final policy? => _joinPolicyLabel(policy),
+            null => _l.notSet,
+          },
         ),
-      );
+      if (_can(FlareGroupManagementEntry.joinRequests))
+        FlareSettingsItem(
+          key: 'joinRequests',
+          label: _l.joinRequests,
+          icon: 'join-request',
+          kind: FlareSettingKind.navigation,
+          detail: widget.joinRequests.isNotEmpty
+              ? '${widget.joinRequests.length}'
+              : null,
+        ),
+      if (_can(FlareGroupManagementEntry.muteAll))
+        FlareSettingsItem(
+          key: 'muteAll',
+          label: _l.muteAll,
+          icon: 'silence',
+          kind: FlareSettingKind.toggle,
+          value: m.muteAll,
+        ),
+      if (_can(FlareGroupManagementEntry.inviteLink))
+        FlareSettingsItem(
+          key: 'inviteLink',
+          label: _l.inviteLink,
+          icon: 'link',
+          kind: FlareSettingKind.navigation,
+        ),
+    ];
+    if (manage.isNotEmpty) {
+      sections.add(FlareSettingsSection(title: _l.manage, items: manage));
+    }
+    final perms = [
+      if (_can(FlareGroupManagementEntry.onlyAdminCanAtAll))
+        FlareSettingsItem(
+          key: 'atAll',
+          label: _l.onlyAdminAtAll,
+          icon: 'mention',
+          kind: FlareSettingKind.toggle,
+          value: m.onlyAdminCanAtAll,
+        ),
+      if (_can(FlareGroupManagementEntry.onlyAdminCanPin))
+        FlareSettingsItem(
+          key: 'pinPerm',
+          label: _l.onlyAdminPin,
+          icon: 'pin',
+          kind: FlareSettingKind.toggle,
+          value: m.onlyAdminCanPin,
+        ),
+      if (_can(FlareGroupManagementEntry.shareCardPermission))
+        FlareSettingsItem(
+          key: 'shareCard',
+          label: _l.shareCard,
+          icon: 'share',
+          kind: FlareSettingKind.toggle,
+          value: m.shareCardPermission,
+        ),
+    ];
+    if (perms.isNotEmpty) {
+      sections.add(FlareSettingsSection(title: _l.perms, items: perms));
     }
     return sections;
   }
@@ -389,34 +432,46 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
       case 'myNickname':
         if (_canEditNickname) _editNickname();
       case 'name':
-        if (_canManage) _editName();
+        if (_can(FlareGroupManagementEntry.editName)) _editName();
       case 'announcement':
-        if (_canManage) _editAnnouncement();
+        if (_can(FlareGroupManagementEntry.editAnnouncement)) {
+          _editAnnouncement();
+        }
       case 'joinPolicy':
-        if (_canManage) _pickJoinPolicy();
+        if (_can(FlareGroupManagementEntry.joinPolicy)) _pickJoinPolicy();
       case 'joinRequests':
-        if (_canManage) _showJoinRequests();
+        if (_can(FlareGroupManagementEntry.joinRequests)) _showJoinRequests();
       case 'inviteLink':
-        if (_canManage) _showInviteLink();
+        if (_can(FlareGroupManagementEntry.inviteLink)) _showInviteLink();
     }
   }
 
   void _onToggle(FlareSettingsItem item, bool value) {
     switch (item.key) {
       case 'discoverable':
-        if (_canManage) widget.onToggleDiscoverable?.call(value);
+        if (_can(FlareGroupManagementEntry.discoverable)) {
+          widget.onToggleDiscoverable?.call(value);
+        }
       case 'notif':
         widget.onToggleMyMuted?.call(value);
       case 'pin':
         widget.onToggleMyPinned?.call(value);
       case 'muteAll':
-        if (_canManage) widget.onToggleMuteAll?.call(value);
+        if (_can(FlareGroupManagementEntry.muteAll)) {
+          widget.onToggleMuteAll?.call(value);
+        }
       case 'atAll':
-        if (_canManage) widget.onSetFlag?.call('onlyAdminCanAtAll', value);
+        if (_can(FlareGroupManagementEntry.onlyAdminCanAtAll)) {
+          widget.onSetFlag?.call('onlyAdminCanAtAll', value);
+        }
       case 'pinPerm':
-        if (_canManage) widget.onSetFlag?.call('onlyAdminCanPin', value);
+        if (_can(FlareGroupManagementEntry.onlyAdminCanPin)) {
+          widget.onSetFlag?.call('onlyAdminCanPin', value);
+        }
       case 'shareCard':
-        if (_canManage) widget.onSetFlag?.call('shareCardPermission', value);
+        if (_can(FlareGroupManagementEntry.shareCardPermission)) {
+          widget.onSetFlag?.call('shareCardPermission', value);
+        }
     }
   }
 
@@ -539,75 +594,83 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
   // ── Join requests ─────────────────────────────────────────────────────────────
   Future<void> _showJoinRequests() async {
     widget.onLoadJoinRequests?.call();
-    final local = [...widget.joinRequests];
+    // A request the viewer just answered keeps its row, with its buttons off,
+    // until the host's list changes: the host's reload drops it once the
+    // answer landed, and a failed answer comes back usable.
+    final answered = <String>{};
+    List<FlareGroupJoinRequestView>? seen;
     await FlareBottomSheet.show<void>(
       context,
       title: _l.joinRequests,
       builder: (c) => StatefulBuilder(
-        builder: (c, setSheet) => Column(
-          children: [
-            Expanded(
-              child: widget.loadingJoinRequests
-                  ? Center(child: Text(_l.loading))
-                  : local.isEmpty
-                  ? Center(child: Text(_l.noRequests))
-                  : ListView(
-                      children: local
-                          .map(
-                            (r) => ListTile(
-                              leading: FlareAvatar(
-                                userId: r.applicantId,
-                                displayName: r.applicantName,
-                                avatarUrl: r.avatarUrl,
-                                size: 44,
-                              ),
-                              title: Text(r.applicantName),
-                              subtitle: (r.message?.isNotEmpty ?? false)
-                                  ? Text(r.message!)
-                                  : null,
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  FlareButton(
-                                    label: _l.reject,
-                                    size: FlareControlSize.sm,
-                                    variant: FlareButtonVariant.secondary,
-                                    onPressed: () {
-                                      widget.onRespondRequest?.call(
-                                        r.requestId,
-                                        false,
-                                      );
-                                      setSheet(
-                                        () => local.removeWhere(
-                                          (x) => x.requestId == r.requestId,
-                                        ),
-                                      );
-                                    },
+        builder: (c, setSheet) => ValueListenableBuilder(
+          valueListenable: _joinRequests,
+          builder: (c, state, _) {
+            final (requests, loading) = state;
+            if (!identical(requests, seen)) {
+              seen = requests;
+              answered.clear();
+            }
+            void answer(FlareGroupJoinRequestView r, bool accept) {
+              if (answered.contains(r.requestId)) return;
+              setSheet(() => answered.add(r.requestId));
+              widget.onRespondRequest?.call(r.requestId, accept);
+            }
+
+            return Column(
+              children: [
+                Expanded(
+                  child: loading
+                      ? Center(child: Text(_l.loading))
+                      : requests.isEmpty
+                      ? Center(child: Text(_l.noRequests))
+                      : ListView(
+                          children: requests
+                              .map(
+                                (r) => ListTile(
+                                  leading: FlareAvatar(
+                                    userId: r.applicantId,
+                                    displayName: r.applicantName,
+                                    avatarUrl: r.avatarUrl,
+                                    size: 44,
                                   ),
-                                  const SizedBox(width: FlareSizes.spacingSm),
-                                  FlareButton(
-                                    label: _l.approve,
-                                    size: FlareControlSize.sm,
-                                    onPressed: () {
-                                      widget.onRespondRequest?.call(
-                                        r.requestId,
-                                        true,
-                                      );
-                                      setSheet(
-                                        () => local.removeWhere(
-                                          (x) => x.requestId == r.requestId,
+                                  title: Text(r.applicantName),
+                                  subtitle: (r.message?.isNotEmpty ?? false)
+                                      ? Text(r.message!)
+                                      : null,
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      FlareButton(
+                                        label: _l.reject,
+                                        size: FlareControlSize.sm,
+                                        variant: FlareButtonVariant.secondary,
+                                        disabled: answered.contains(
+                                          r.requestId,
                                         ),
-                                      );
-                                    },
+                                        onPressed: () => answer(r, false),
+                                      ),
+                                      const SizedBox(
+                                        width: FlareSizes.spacingSm,
+                                      ),
+                                      FlareButton(
+                                        label: _l.approve,
+                                        size: FlareControlSize.sm,
+                                        disabled: answered.contains(
+                                          r.requestId,
+                                        ),
+                                        onPressed: () => answer(r, true),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            ),
-                          )
-                          .toList(),
-                    ),
-            ),
-          ],
+                                ),
+                              )
+                              .toList(),
+                        ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -621,60 +684,64 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
       title: _l.inviteLink,
       builder: (c) => SingleChildScrollView(
         padding: const EdgeInsets.all(FlareSizes.spacingXl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              _l.inviteLinkHint,
-              style: TextStyle(
-                color: FlareColors.of(c).textSecondary,
-                fontSize: FlareSizes.fontSizeLg,
-              ),
-            ),
-            const SizedBox(height: FlareSizes.spacingLg),
-            if (widget.loadingInviteLink)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else if (widget.inviteCode?.isNotEmpty ?? false) ...[
-              Container(
-                padding: const EdgeInsets.all(FlareSizes.spacingLg),
-                decoration: BoxDecoration(
-                  color: FlareColors.of(c).bgSecondary,
-                  borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
-                ),
-                child: SelectableText(
-                  widget.inviteCode!,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1.2,
+        child: ValueListenableBuilder(
+          valueListenable: _invite,
+          builder: (c, invite, _) {
+            final (code, loading) = invite;
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  _l.inviteLinkHint,
+                  style: TextStyle(
+                    color: FlareColors.of(c).textSecondary,
+                    fontSize: FlareSizes.fontSizeLg,
                   ),
                 ),
-              ),
-              const SizedBox(height: FlareSizes.spacingLg),
-              FlareButton(
-                block: true,
-                label: _l.copyCode,
-                icon: 'copy',
-                onPressed: () async {
-                  await Clipboard.setData(
-                    ClipboardData(text: widget.inviteCode!),
-                  );
-                  if (c.mounted) Navigator.pop(c);
-                },
-              ),
-            ] else
-              Text(
-                _l.cannotGenerate,
-                style: TextStyle(color: FlareColors.of(c).textTertiary),
-              ),
-          ],
+                const SizedBox(height: FlareSizes.spacingLg),
+                if (loading)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: CircularProgressIndicator(),
+                    ),
+                  )
+                else if (code != null && code.isNotEmpty) ...[
+                  Container(
+                    padding: const EdgeInsets.all(FlareSizes.spacingLg),
+                    decoration: BoxDecoration(
+                      color: FlareColors.of(c).bgSecondary,
+                      borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
+                    ),
+                    child: SelectableText(
+                      code,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: FlareSizes.spacingLg),
+                  FlareButton(
+                    block: true,
+                    label: _l.copyCode,
+                    icon: 'copy',
+                    onPressed: () async {
+                      await Clipboard.setData(ClipboardData(text: code));
+                      if (c.mounted) Navigator.pop(c);
+                    },
+                  ),
+                ] else
+                  Text(
+                    _l.cannotGenerate,
+                    style: TextStyle(color: FlareColors.of(c).textTertiary),
+                  ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -682,7 +749,7 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
 
   // ── Members ────────────────────────────────────────────────────────────────────
   /// Every member, searchable by name. Choosing one opens the member actions
-  /// when the viewer can manage them, once the sheet has closed.
+  /// when the host allows any on that member, once the sheet has closed.
   Future<void> _showMembers() async {
     final strings = FlareStrings.of(context);
     final count = _m?.memberCount ?? _m?.members.length ?? 0;
@@ -695,7 +762,9 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
           model: m,
           onSearchMembers: widget.onSearchMembers,
           onSelect: (member) {
-            if (m == null || !m.canManage || member.id == m.ownerId) return;
+            if (m == null || groupDetailMemberActions(m, member.id).isEmpty) {
+              return;
+            }
             Navigator.pop(c, member.id);
           },
         ),
@@ -705,9 +774,10 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
   }
 
   // ── Member actions ─────────────────────────────────────────────────────────────
+  /// A member the host allows nothing on opens no sheet.
   void _onMemberSelect(String id) {
     final m = _m;
-    if (m == null || !_canManage || id == m.ownerId) return;
+    if (m == null || groupDetailMemberActions(m, id).isEmpty) return;
     _memberActions(id);
   }
 
@@ -732,54 +802,54 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
     String id,
     FlareGroupDetailModel? m,
   ) {
-    final isAdmin = m?.adminIds.contains(id) ?? false;
-    final isMuted = m?.mutedIds.contains(id) ?? false;
+    // Exactly what the host allows on this member, labelled by its current
+    // state (Vue `groupDetailMemberActions`).
+    final entries = m == null
+        ? const <FlareMemberRoleActionEntry>[]
+        : groupDetailMemberActions(m, id);
+    final buttons = <Widget>[];
+    for (final entry in entries) {
+      if (buttons.isNotEmpty) {
+        buttons.add(const SizedBox(height: FlareSizes.spacingSm));
+      }
+      buttons.add(
+        FlareButton(
+          block: true,
+          variant: entry.action == FlareMemberRoleAction.remove
+              ? FlareButtonVariant.danger
+              : FlareButtonVariant.secondary,
+          label: switch (entry.action) {
+            FlareMemberRoleAction.promote => _l.setAdmin,
+            FlareMemberRoleAction.demote => _l.unsetAdmin,
+            FlareMemberRoleAction.mute => _l.mute,
+            FlareMemberRoleAction.unmute => _l.unmute,
+            FlareMemberRoleAction.transferOwner => _l.transferOwner,
+            FlareMemberRoleAction.remove => _l.removeMember,
+          },
+          onPressed: () {
+            Navigator.pop(c);
+            switch (entry.action) {
+              case FlareMemberRoleAction.promote:
+                widget.onPromoteMember?.call(id, true);
+              case FlareMemberRoleAction.demote:
+                widget.onPromoteMember?.call(id, false);
+              case FlareMemberRoleAction.mute:
+                widget.onMuteMember?.call(id, true);
+              case FlareMemberRoleAction.unmute:
+                widget.onMuteMember?.call(id, false);
+              case FlareMemberRoleAction.transferOwner:
+                _confirmTransfer(id);
+              case FlareMemberRoleAction.remove:
+                widget.onRemoveMember?.call(id);
+            }
+          },
+        ),
+      );
+    }
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        FlareButton(
-          block: true,
-          variant: FlareButtonVariant.secondary,
-          label: isAdmin ? _l.unsetAdmin : _l.setAdmin,
-          onPressed: () {
-            Navigator.pop(c);
-            widget.onPromoteMember?.call(id, !isAdmin);
-          },
-        ),
-        const SizedBox(height: FlareSizes.spacingSm),
-        FlareButton(
-          block: true,
-          variant: FlareButtonVariant.secondary,
-          label: isMuted ? _l.unmute : _l.mute,
-          onPressed: () {
-            Navigator.pop(c);
-            widget.onMuteMember?.call(id, !isMuted);
-          },
-        ),
-        if (m?.isOwner ?? false) ...[
-          const SizedBox(height: FlareSizes.spacingSm),
-          FlareButton(
-            block: true,
-            variant: FlareButtonVariant.secondary,
-            label: _l.transferOwner,
-            onPressed: () {
-              Navigator.pop(c);
-              _confirmTransfer(id);
-            },
-          ),
-        ],
-        const SizedBox(height: FlareSizes.spacingSm),
-        FlareButton(
-          block: true,
-          variant: FlareButtonVariant.danger,
-          label: _l.removeMember,
-          onPressed: () {
-            Navigator.pop(c);
-            widget.onRemoveMember?.call(id);
-          },
-        ),
-      ],
+      children: buttons,
     );
   }
 
@@ -914,7 +984,7 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
           // A preview: a 500-member group does not draw 500 avatars here.
           members: m.members
               .take(
-                _canManage
+                _can(FlareGroupManagementEntry.inviteMembers)
                     ? FlareGroupDetail.previewMemberCells - 1
                     : FlareGroupDetail.previewMemberCells,
               )
@@ -922,7 +992,7 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
           total: m.memberCount,
           ownerId: m.ownerId,
           adminIds: m.adminIds,
-          showAdd: _canManage,
+          showAdd: _can(FlareGroupManagementEntry.inviteMembers),
           onSelect: _onMemberSelect,
           onAddMember: _openInvite,
         ),
@@ -978,7 +1048,9 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
                 block: true,
                 size: FlareControlSize.lg,
                 variant: FlareButtonVariant.danger,
-                label: m.isOwner ? _l.dissolve : _l.leave,
+                label: _can(FlareGroupManagementEntry.dissolve)
+                    ? _l.dissolve
+                    : _l.leave,
                 // Leaving is the host's to confirm: the tap is the intent.
                 onPressed: () => widget.onLeave?.call(),
               ),

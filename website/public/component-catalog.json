@@ -6552,7 +6552,7 @@
         ],
         "states": [
           "default",
-          "canManage"
+          "manage"
         ]
       },
       "summary": {
@@ -6562,7 +6562,7 @@
       "aliases": [
         "Contacts",
         "default",
-        "canManage",
+        "manage",
         "back",
         "openChat",
         "updateName",
@@ -6589,7 +6589,7 @@
       ],
       "states": [
         "default",
-        "canManage"
+        "manage"
       ],
       "interactions": [
         "back",
@@ -6656,7 +6656,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#GroupDetail",
-      "searchText": "groupdetail contacts im-ui stable contacts default canmanage back openchat updatename updateannouncement updatemynickname setjoinpolicy togglediscoverable togglemuteall setflag togglemymuted togglemypinned loadjoinrequests respondrequest ensureinvitelink promotemember mutemember transferowner removemember loadcontacts invitemembers leave searchmembers extraaction supportsconfiguration supportscapabilities supportsresponsive group detail/management — info / my settings / management / permissions, member grid, member actions, join approval, invite link. 群详情 / 管理 —— 群信息 / 我在本群 / 群管理 / 群权限 + 成员网格 + 成员操作 + 入群审批 + 邀请链接。"
+      "searchText": "groupdetail contacts im-ui stable contacts default manage back openchat updatename updateannouncement updatemynickname setjoinpolicy togglediscoverable togglemuteall setflag togglemymuted togglemypinned loadjoinrequests respondrequest ensureinvitelink promotemember mutemember transferowner removemember loadcontacts invitemembers leave searchmembers extraaction supportsconfiguration supportscapabilities supportsresponsive group detail/management — info / my settings / management / permissions, member grid, member actions, join approval, invite link. 群详情 / 管理 —— 群信息 / 我在本群 / 群管理 / 群权限 + 成员网格 + 成员操作 + 入群审批 + 邀请链接。"
     },
     {
       "name": "NewFriendRequests",
@@ -16475,8 +16475,8 @@
         ]
       },
       "summary": {
-        "en": "Group settings panel over the real group permission fields, with per-row busy, per-row failure and read-only rendering when the viewer cannot manage.",
-        "zh": "群权限设置面板，覆盖群模型真实权限字段；逐项 busy、逐项失败，无管理权限时渲染只读值行。"
+        "en": "Group settings panel over the real group permission fields, with per-row busy, per-row failure and read-only rendering for the rows the viewer cannot change.",
+        "zh": "群权限设置面板，覆盖群模型真实权限字段；逐项 busy、逐项失败，查看者不能改的行渲染为只读值。"
       },
       "aliases": [
         "Contacts",
@@ -16539,7 +16539,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#GroupPermissionMatrix",
-      "searchText": "grouppermissionmatrix contacts im-ui stable contacts default readonly busy failure partialfailure change dismisserror supportsconfiguration supportscapabilities group settings panel over the real group permission fields, with per-row busy, per-row failure and read-only rendering when the viewer cannot manage. 群权限设置面板，覆盖群模型真实权限字段；逐项 busy、逐项失败，无管理权限时渲染只读值行。"
+      "searchText": "grouppermissionmatrix contacts im-ui stable contacts default readonly busy failure partialfailure change dismisserror supportsconfiguration supportscapabilities group settings panel over the real group permission fields, with per-row busy, per-row failure and read-only rendering for the rows the viewer cannot change. 群权限设置面板，覆盖群模型真实权限字段；逐项 busy、逐项失败，查看者不能改的行渲染为只读值。"
     },
     {
       "name": "MemberRoleSheet",
@@ -16584,14 +16584,6 @@
               "admin",
               "member', muted }"
             ]
-          },
-          {
-            "name": "viewerRole",
-            "values": [
-              "owner",
-              "admin",
-              "member"
-            ]
           }
         ],
         "states": [
@@ -16601,8 +16593,8 @@
         ]
       },
       "summary": {
-        "en": "Per-member management menu (role, mute, remove, transfer ownership) with rank rules before capabilities and a trailing danger group.",
-        "zh": "单个群成员的管理菜单（角色、禁言、移出、转让群主），身份等级先于能力开关，危险动作单独分组置底。"
+        "en": "Per-member management menu (role, mute, remove, transfer ownership) showing exactly the actions the host allows for that member, with a trailing danger group.",
+        "zh": "单个群成员的管理菜单（角色、禁言、移出、转让群主），只显示宿主对该成员允许的动作，危险动作单独分组置底。"
       },
       "aliases": [
         "Contacts",
@@ -16661,7 +16653,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#MemberRoleSheet",
-      "searchText": "memberrolesheet contacts im-ui stable contacts default empty busy action close supportsconfiguration supportscustomactions supportscapabilities per-member management menu (role, mute, remove, transfer ownership) with rank rules before capabilities and a trailing danger group. 单个群成员的管理菜单（角色、禁言、移出、转让群主），身份等级先于能力开关，危险动作单独分组置底。"
+      "searchText": "memberrolesheet contacts im-ui stable contacts default empty busy action close supportsconfiguration supportscustomactions supportscapabilities per-member management menu (role, mute, remove, transfer ownership) showing exactly the actions the host allows for that member, with a trailing danger group. 单个群成员的管理菜单（角色、禁言、移出、转让群主），只显示宿主对该成员允许的动作，危险动作单独分组置底。"
     },
     {
       "name": "DeviceSessions",

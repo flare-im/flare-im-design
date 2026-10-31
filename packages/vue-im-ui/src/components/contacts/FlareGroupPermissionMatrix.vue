@@ -11,6 +11,7 @@ import { flareIcons } from "../../shared/icons";
 import {
   groupJoinPolicies,
   groupPermissionRows,
+  type FlareGroupCapabilities,
   type FlareGroupJoinPolicy,
   type GroupPermissionChangePayload,
   type GroupPermissionKey,
@@ -22,8 +23,12 @@ import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 const props = withDefaults(
   defineProps<{
     settings: GroupPermissionSettings;
-    /** Viewer may edit; false renders read-only value rows, never dead switches. */
-    canManage?: boolean;
+    /**
+     * What the viewer may change, as the host's permission source answers it: the join policy
+     * follows `canManageJoinSettings`, the four switches `canManageInfo`. A row the viewer cannot
+     * change renders as a read-only value, never a dead switch.
+     */
+    capabilities?: FlareGroupCapabilities | null;
     /** Keys whose command is in flight — the host sets this before dispatching. */
     busyKeys?: string[];
     /** Per-key failure reason, kept on screen until the host dismisses it. */
@@ -51,7 +56,7 @@ const props = withDefaults(
     dismissErrorText?: string;
   }>(),
   {
-    canManage: false,
+    capabilities: null,
     busyKeys: () => [],
     errors: () => ({}),
   },
@@ -87,8 +92,10 @@ const emit = defineEmits<{
 }>();
 
 const rows = computed(() =>
-  groupPermissionRows(props.settings, props.canManage, props.busyKeys, props.errors),
+  groupPermissionRows(props.settings, props.capabilities, props.busyKeys, props.errors),
 );
+/** The read-only hint shows when the viewer can change none of the rows. */
+const readOnly = computed(() => rows.value.every((row) => !row.editable));
 
 const glyphs: Record<GroupPermissionKey, unknown> = {
   joinPolicy: flareIcons.lock,
@@ -155,7 +162,7 @@ function retry(row: GroupPermissionRow): void {
   <section class="flare-gpm" :aria-label="strings.title">
     <header class="flare-gpm__head">
       <h3 class="flare-gpm__title">{{ strings.title }}</h3>
-      <p v-if="!canManage" class="flare-gpm__hint">
+      <p v-if="readOnly" class="flare-gpm__hint">
         <n-icon :size="14" :component="flareIcons.lock" aria-hidden="true" />
         <span>{{ strings.readOnlyHintText }}</span>
       </p>

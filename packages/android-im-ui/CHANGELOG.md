@@ -1,6 +1,7 @@
 ## 未发布
 
 - 服务端时钟 `FlareServerClock`（`setOffsetMs`、`offsetMs`、`nowMs()`、纯函数 `now(deviceNowMs, offsetMs)`，`spec/server-clock-vectors.json`）：宿主交进核心 SDK 的估计（`connection.getServerClock` 的 `offsetMs`）后，`PluginView` 的时间块倒计时与「已截止」、行的时间、`RedPacketDetail` 的时间与 `MyInvitePanel` 的重新生成冷却按服务端时间算；没交时为本机时钟。
+- 群管理入口只跟宿主权限来源的答案走：`FlareGroupDetailModel` 去掉 `canManage`、`isOwner`，改收 `capabilities: FlareGroupCapabilities`（canManageInfo、canManageJoinSettings、canManageJoinRequests、canInvite、canDissolve）与按成员 id 的 `memberActions: Map<String, FlareMemberActions>`（canRemove、canMute、canChangeRole、canTransferOwner）。每个设置行、改名与公告编辑、添加成员格、解散（代替退出）走 `groupManagementEntries`，成员面板走 `groupDetailMemberActions`，没有条目的成员不打开面板，空分区不画。`MemberRoleSheet` 去掉 `viewerRole` 与 `FlareMemberRoleCapabilities`，改收 `actions: FlareMemberActions?`，`memberRoleActions` 不再自带身份等级规则；`GroupPermissionMatrix` / `groupPermissionRows` 的 `canManage` 换成 `capabilities`，进群方式看 canManageJoinSettings、四个开关看 canManageInfo。共用用例 `spec/group-management-vectors.json`，与 Vue、SwiftUI、Flutter 同一张表。
 
 - 宿主按媒体线上类型传入的 `FlareGenericContent`（`image` / `video` / `audio`）画成「图片暂时无法加载」等（`FlareStrings.mediaUnavailableImage` / `Video` / `Audio`）。原来语音画「不支持的消息类型」，图片与视频只画一个空框。
 

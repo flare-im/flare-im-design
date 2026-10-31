@@ -1,166 +1,89 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flare_im_ui/src/components/flare_member_role_sheet.dart';
+import 'package:flare_im_ui/flare_im_ui.dart';
 
 void main() {
-  const all = FlareMemberRoleCapabilities(
-    promote: true,
-    demote: true,
-    mute: true,
-    unmute: true,
-    remove: true,
-    transferOwner: true,
-  );
-  FlareGroupMemberSnapshot member(
-    FlareGroupMemberRole role, {
-    bool muted = false,
-  }) => FlareGroupMemberSnapshot(
-    id: 'u-${role.name}',
-    name: role.name,
-    role: role,
-    muted: muted,
+  const all = FlareMemberActions(
+    canRemove: true,
+    canMute: true,
+    canChangeRole: true,
+    canTransferOwner: true,
   );
   List<FlareMemberRoleAction> ids(
-    FlareGroupMemberSnapshot m,
-    FlareGroupMemberRole viewer, [
-    FlareMemberRoleCapabilities caps = all,
-  ]) => memberRoleActions(m, viewer, caps).map((e) => e.action).toList();
+    FlareGroupMemberRole role, [
+    FlareMemberActions? actions = all,
+    bool muted = false,
+  ]) => memberRoleActions(role, muted, actions).map((e) => e.action).toList();
 
   group('memberRoleActions', () {
-    test('never offers an action against the owner, whoever is looking', () {
-      for (final viewer in FlareGroupMemberRole.values) {
-        expect(ids(member(FlareGroupMemberRole.owner), viewer), isEmpty);
-        expect(
-          ids(member(FlareGroupMemberRole.owner, muted: true), viewer),
-          isEmpty,
-        );
-      }
-    });
-
-    test('gives a plain member no management action at all', () {
+    test('offers nothing the host did not answer for this member', () {
+      expect(ids(FlareGroupMemberRole.member, null), isEmpty);
       expect(
-        ids(member(FlareGroupMemberRole.member), FlareGroupMemberRole.member),
-        isEmpty,
-      );
-      expect(
-        ids(member(FlareGroupMemberRole.admin), FlareGroupMemberRole.member),
+        ids(FlareGroupMemberRole.member, FlareMemberActions.none),
         isEmpty,
       );
     });
 
-    test(
-      'stops an admin at a peer admin and never lets one transfer ownership',
-      () {
-        expect(
-          ids(member(FlareGroupMemberRole.admin), FlareGroupMemberRole.admin),
-          isEmpty,
-        );
-        expect(
-          ids(member(FlareGroupMemberRole.member), FlareGroupMemberRole.admin),
-          [
-            FlareMemberRoleAction.promote,
-            FlareMemberRoleAction.mute,
-            FlareMemberRoleAction.remove,
-          ],
-        );
-      },
-    );
-
-    test('lets the owner manage members and admins, transfer included', () {
-      expect(
-        ids(member(FlareGroupMemberRole.member), FlareGroupMemberRole.owner),
-        [
-          FlareMemberRoleAction.promote,
-          FlareMemberRoleAction.mute,
-          FlareMemberRoleAction.transferOwner,
-          FlareMemberRoleAction.remove,
-        ],
-      );
-      expect(
-        ids(member(FlareGroupMemberRole.admin), FlareGroupMemberRole.owner),
-        [
-          FlareMemberRoleAction.demote,
-          FlareMemberRoleAction.mute,
-          FlareMemberRoleAction.transferOwner,
-          FlareMemberRoleAction.remove,
-        ],
-      );
+    test('decides nothing by rank: what the host allows is offered', () {
+      // The owner's protection and admins not managing each other come from
+      // the host's answer, not from the kit.
+      expect(ids(FlareGroupMemberRole.admin), [
+        FlareMemberRoleAction.demote,
+        FlareMemberRoleAction.mute,
+        FlareMemberRoleAction.transferOwner,
+        FlareMemberRoleAction.remove,
+      ]);
+      expect(ids(FlareGroupMemberRole.member), [
+        FlareMemberRoleAction.promote,
+        FlareMemberRoleAction.mute,
+        FlareMemberRoleAction.transferOwner,
+        FlareMemberRoleAction.remove,
+      ]);
     });
 
-    test('promote only for a member, demote only for an admin', () {
-      const caps = FlareMemberRoleCapabilities(promote: true, demote: true);
-      expect(
-        ids(
-          member(FlareGroupMemberRole.member),
-          FlareGroupMemberRole.owner,
-          caps,
-        ),
-        [FlareMemberRoleAction.promote],
-      );
-      expect(
-        ids(
-          member(FlareGroupMemberRole.admin),
-          FlareGroupMemberRole.owner,
-          caps,
-        ),
-        [FlareMemberRoleAction.demote],
-      );
+    test('promote only for a member, demote only for an admin, neither for '
+        'the owner', () {
+      const role = FlareMemberActions(canChangeRole: true);
+      expect(ids(FlareGroupMemberRole.member, role), [
+        FlareMemberRoleAction.promote,
+      ]);
+      expect(ids(FlareGroupMemberRole.admin, role), [
+        FlareMemberRoleAction.demote,
+      ]);
+      expect(ids(FlareGroupMemberRole.owner, role), isEmpty);
     });
 
     test('mute and unmute are mutually exclusive by state', () {
-      const caps = FlareMemberRoleCapabilities(mute: true, unmute: true);
+      const mute = FlareMemberActions(canMute: true);
+      expect(ids(FlareGroupMemberRole.member, mute), [
+        FlareMemberRoleAction.mute,
+      ]);
+      expect(ids(FlareGroupMemberRole.member, mute, true), [
+        FlareMemberRoleAction.unmute,
+      ]);
+    });
+
+    test('each answer reveals exactly its action', () {
       expect(
         ids(
-          member(FlareGroupMemberRole.member),
-          FlareGroupMemberRole.owner,
-          caps,
+          FlareGroupMemberRole.member,
+          const FlareMemberActions(canRemove: true),
         ),
-        [FlareMemberRoleAction.mute],
+        [FlareMemberRoleAction.remove],
       );
       expect(
         ids(
-          member(FlareGroupMemberRole.member, muted: true),
-          FlareGroupMemberRole.owner,
-          caps,
+          FlareGroupMemberRole.member,
+          const FlareMemberActions(canTransferOwner: true),
         ),
-        [FlareMemberRoleAction.unmute],
+        [FlareMemberRoleAction.transferOwner],
       );
     });
 
-    test(
-      'nothing without capabilities; each switch reveals exactly its action',
-      () {
-        expect(
-          ids(
-            member(FlareGroupMemberRole.member),
-            FlareGroupMemberRole.owner,
-            const FlareMemberRoleCapabilities(),
-          ),
-          isEmpty,
-        );
-        expect(
-          ids(
-            member(FlareGroupMemberRole.member),
-            FlareGroupMemberRole.owner,
-            const FlareMemberRoleCapabilities(remove: true),
-          ),
-          [FlareMemberRoleAction.remove],
-        );
-        expect(
-          ids(
-            member(FlareGroupMemberRole.member),
-            FlareGroupMemberRole.owner,
-            const FlareMemberRoleCapabilities(transferOwner: true),
-          ),
-          [FlareMemberRoleAction.transferOwner],
-        );
-      },
-    );
-
     test('transferOwner and remove are the trailing danger group', () {
       final entries = memberRoleActions(
-        member(FlareGroupMemberRole.member),
-        FlareGroupMemberRole.owner,
+        FlareGroupMemberRole.member,
+        false,
         all,
       );
       expect(entries.where((e) => e.danger).map((e) => e.action).toList(), [
@@ -184,8 +107,7 @@ void main() {
               name: '李雷',
               role: FlareGroupMemberRole.member,
             ),
-            viewerRole: FlareGroupMemberRole.owner,
-            capabilities: all,
+            actions: all,
             muteDurations: const [
               FlareMemberMuteDuration(id: '1h', label: '1 小时'),
               FlareMemberMuteDuration(id: '1d', label: '1 天'),
@@ -218,8 +140,7 @@ void main() {
               name: '李雷',
               role: FlareGroupMemberRole.member,
             ),
-            viewerRole: FlareGroupMemberRole.owner,
-            capabilities: all,
+            actions: all,
             onAction: (id, action, duration) {},
           ),
         ),
@@ -231,7 +152,7 @@ void main() {
   });
 
   testWidgets(
-    'busy blocks every action; a member viewer gets the empty reason',
+    'busy blocks every action; nothing allowed reads as the empty reason',
     (tester) async {
       final received = <String>[];
       await tester.pumpWidget(
@@ -243,8 +164,7 @@ void main() {
                 name: '李雷',
                 role: FlareGroupMemberRole.member,
               ),
-              viewerRole: FlareGroupMemberRole.owner,
-              capabilities: all,
+              actions: all,
               busy: true,
               onAction: (id, action, duration) => received.add(action.name),
             ),
@@ -264,8 +184,8 @@ void main() {
                 name: '李雷',
                 role: FlareGroupMemberRole.member,
               ),
-              viewerRole: FlareGroupMemberRole.member,
-              capabilities: all,
+              // A viewer the host allows nothing on this member.
+              actions: FlareMemberActions.none,
               onAction: (id, action, duration) {},
             ),
           ),
@@ -282,8 +202,7 @@ void main() {
                 name: '张三',
                 role: FlareGroupMemberRole.owner,
               ),
-              viewerRole: FlareGroupMemberRole.owner,
-              capabilities: all,
+              actions: FlareMemberActions.none,
               onAction: (id, action, duration) {},
             ),
           ),

@@ -11,8 +11,13 @@ FlareGroupDetailModel _model(FlareGroupJoinPolicy? joinPolicy) =>
       memberCount: 1,
       members: const [FlareContact(id: 'owner', name: 'Olivia')],
       ownerId: 'owner',
-      canManage: true,
-      isOwner: true,
+      capabilities: const FlareGroupCapabilities(
+        canManageInfo: true,
+        canManageJoinSettings: true,
+        canManageJoinRequests: true,
+        canInvite: true,
+        canDissolve: true,
+      ),
       joinPolicy: joinPolicy,
     );
 

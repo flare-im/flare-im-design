@@ -8,7 +8,8 @@ final class GroupDetailSlotsTests: XCTestCase {
     private let copy = FlareGroupDetailLabels().resolve(FlareStrings())
     private let model = FlareGroupDetailModel(groupId: "g1", name: "Design", memberCount: 2,
                                               members: [Contact(id: "me", name: "Me"), Contact(id: "u2", name: "Ann")],
-                                              ownerId: "me", canManage: true, isOwner: false)
+                                              ownerId: "me",
+                                              capabilities: FlareGroupCapabilities(canManageInfo: true, canInvite: true))
 
     private func texts(_ detail: FlareGroupDetail) throws -> [String] {
         try detail.inspect().findAll(ViewType.Text.self).map { try $0.string() }

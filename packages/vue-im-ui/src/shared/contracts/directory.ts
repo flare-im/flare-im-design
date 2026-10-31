@@ -1,5 +1,5 @@
 import type { RelationState } from "./relation";
-import type { FlareGroupJoinPolicy } from "./group-permissions";
+import type { FlareGroupCapabilities, FlareGroupJoinPolicy, FlareMemberActions } from "./group-permissions";
 // Contacts / Profile / Layout data contracts (Phase C additions).
 
 export interface FlareContact {
@@ -118,9 +118,16 @@ export interface FlareGroupDetailModel {
   adminIds: string[];
   /** Muted member ids — drives the per-member mute action label. */
   mutedIds: string[];
-  /** Viewer owns or administers the group (gates the management sections). */
-  canManage: boolean;
-  isOwner: boolean;
+  /**
+   * What the viewer may manage, as the host's permission source answers it: each field shows the
+   * entries it names (`groupManagementEntries`). The kit derives nothing from roles or `ownerId`.
+   */
+  capabilities: FlareGroupCapabilities;
+  /**
+   * What the viewer may do to each member, keyed by member id. A member without an entry gets no
+   * member sheet; the host fills it for every member it shows, search results included.
+   */
+  memberActions: Record<string, FlareMemberActions>;
   /** Viewer's own nickname in this group. */
   myNickname?: string;
   /** Viewer's per-group notification/pin preference. */

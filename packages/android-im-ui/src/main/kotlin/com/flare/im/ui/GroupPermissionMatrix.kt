@@ -95,19 +95,22 @@ data class FlareGroupPermissionRow(
 /**
  * The rows to render, in canonical order — same rule set as the other platforms.
  *
- * [FlareGroupPermissionRow.editable] carries permission only (`canManage`), so a
- * read-only panel keeps showing values instead of disabled controls; `busy` and
- * `error` are per key, so one failed setting neither hides nor reverts the ones
- * that succeeded. An unknown (null) `joinPolicy` is passed through as null rather
+ * [FlareGroupPermissionRow.editable] carries permission only, so a read-only row
+ * keeps showing its value instead of a disabled control. Each row is editable
+ * exactly when [groupManagementEntries] offers its key: the join policy follows
+ * `canManageJoinSettings`, the four switches `canManageInfo`. `busy` and `error`
+ * are per key, so one failed setting neither hides nor reverts the ones that
+ * succeeded. An unknown (null) `joinPolicy` is passed through as null rather
  * than misreporting the group's real state.
  */
 fun groupPermissionRows(
     settings: FlareGroupPermissionSettings,
-    canManage: Boolean,
+    capabilities: FlareGroupCapabilities?,
     busyKeys: List<String> = emptyList(),
     errors: Map<String, String> = emptyMap(),
 ): List<FlareGroupPermissionRow> {
     val busy = busyKeys.toSet()
+    val offered = groupManagementEntries(capabilities).map { it.wire }.toSet()
     return FlareGroupPermissionKey.entries.map { key ->
         val value: Any? = when (key) {
             FlareGroupPermissionKey.JoinPolicy -> settings.joinPolicy
@@ -121,7 +124,7 @@ fun groupPermissionRows(
             kind = if (key == FlareGroupPermissionKey.JoinPolicy) FlareGroupPermissionRowKind.Choice
             else FlareGroupPermissionRowKind.Toggle,
             value = value,
-            editable = canManage,
+            editable = key.wire in offered,
             busy = busy.contains(key.wire),
             error = errors[key.wire],
         )
@@ -151,8 +154,12 @@ private fun iconFor(key: FlareGroupPermissionKey): ImageVector = flareIconVector
 @Composable
 fun GroupPermissionMatrix(
     settings: FlareGroupPermissionSettings,
-    /** Viewer may edit; false renders read-only value rows, never dead switches. */
-    canManage: Boolean = false,
+    /**
+     * What the viewer may change, as the host's permission source answers it: the join policy follows
+     * `canManageJoinSettings`, the four switches `canManageInfo`. A row the viewer cannot change renders
+     * as a read-only value, never a dead switch.
+     */
+    capabilities: FlareGroupCapabilities? = null,
     /** Keys whose command is in flight — the host sets this before dispatching. */
     busyKeys: List<String> = emptyList(),
     /** Per-key failure reason, kept on screen until the host dismisses it. */
@@ -206,8 +213,9 @@ fun GroupPermissionMatrix(
     val dismissErrorText = dismissErrorText ?: strings.groupPermissionMatrixDismissError
     val colors = flareColors()
     // Editing needs both the permission and a host callback to honour it.
-    val canEdit = canManage && onChange != null
-    val rows = groupPermissionRows(settings, canEdit, busyKeys, errors)
+    val rows = groupPermissionRows(settings, capabilities.takeIf { onChange != null }, busyKeys, errors)
+    // The read-only hint shows when the viewer can change none of the rows.
+    val canEdit = rows.any { it.editable }
     // What this panel last asked for, per key, so "retry" resends the same intent.
     // Not optimistic state: the rendered value stays the host's.
     val lastAttempt = remember { mutableStateMapOf<FlareGroupPermissionKey, Any>() }
@@ -236,7 +244,7 @@ fun GroupPermissionMatrix(
     fun joinPolicyText(policy: FlareGroupJoinPolicy?) = policy?.let(::joinChoiceText) ?: unknownJoinPolicyText
 
     fun dispatch(row: FlareGroupPermissionRow, value: Any) {
-        if (!canEdit || row.busy) return
+        if (!row.editable || row.busy) return
         lastAttempt[row.key] = value
         onChange?.invoke(row.key, value)
     }

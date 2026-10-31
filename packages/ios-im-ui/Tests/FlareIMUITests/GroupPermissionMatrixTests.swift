@@ -6,17 +6,20 @@ final class GroupPermissionMatrixTests: XCTestCase {
         muteAll: false, onlyAdminCanAtAll: true, onlyAdminCanPin: false,
         shareCardPermission: true, joinPolicy: .approval)
 
+    /// What a group owner may change, as the host's permission source answers it.
+    private let owner = FlareGroupCapabilities(canManageInfo: true, canManageJoinSettings: true, canManageJoinRequests: true, canInvite: true, canDissolve: true)
+
     private func row(_ rows: [FlareGroupPermissionRow], _ key: FlareGroupPermissionKey) -> FlareGroupPermissionRow? {
         rows.first { $0.key == key }
     }
 
     func testCanonicalOrderOfRealBackendKeys() {
-        XCTAssertEqual(groupPermissionRows(settings, canManage: true).map(\.key),
+        XCTAssertEqual(groupPermissionRows(settings, capabilities: owner).map(\.key),
                        [.joinPolicy, .muteAll, .onlyAdminCanAtAll, .onlyAdminCanPin, .shareCardPermission])
     }
 
     func testJoinPolicyIsTheOnlyChoiceRowAndValuesCarryThrough() {
-        let rows = groupPermissionRows(settings, canManage: true)
+        let rows = groupPermissionRows(settings, capabilities: owner)
         XCTAssertEqual(rows.filter { $0.kind == .choice }.map(\.key), [.joinPolicy])
         XCTAssertEqual(row(rows, .joinPolicy)?.value, .policy(.approval))
         XCTAssertEqual(row(rows, .joinPolicy)?.value.policyValue, .approval)
@@ -25,14 +28,25 @@ final class GroupPermissionMatrixTests: XCTestCase {
         XCTAssertEqual(row(rows, .shareCardPermission)?.value, .flag(true))
     }
 
-    func testEditableFollowsCanManageOnly() {
-        XCTAssertTrue(groupPermissionRows(settings, canManage: false).allSatisfy { !$0.editable })
-        let rows = groupPermissionRows(settings, canManage: true, busyKeys: ["muteAll"], errors: ["muteAll": "网络错误"])
+    func testEditableFollowsTheCapabilitiesOnly() {
+        XCTAssertTrue(groupPermissionRows(settings, capabilities: nil).allSatisfy { !$0.editable })
+        let rows = groupPermissionRows(settings, capabilities: owner, busyKeys: ["muteAll"], errors: ["muteAll": "网络错误"])
         XCTAssertTrue(rows.allSatisfy(\.editable))
     }
 
+    func testInfoRightsEditTheFourSwitchesButNotTheJoinPolicy() {
+        let info = groupPermissionRows(settings, capabilities: FlareGroupCapabilities(canManageInfo: true))
+        XCTAssertEqual(info.filter(\.editable).map(\.key), [.muteAll, .onlyAdminCanAtAll, .onlyAdminCanPin, .shareCardPermission])
+        let join = groupPermissionRows(settings, capabilities: FlareGroupCapabilities(canManageJoinSettings: true))
+        XCTAssertEqual(join.filter(\.editable).map(\.key), [.joinPolicy])
+        // A panel where nothing can be changed shows the read-only hint; one editable row is enough to drop it.
+        XCTAssertFalse(GroupPermissionMatrixView(settings: settings, capabilities: .none, onChange: { _, _ in }).canEdit)
+        XCTAssertTrue(GroupPermissionMatrixView(settings: settings, capabilities: FlareGroupCapabilities(canManageJoinSettings: true),
+                                                onChange: { _, _ in }).canEdit)
+    }
+
     func testBusyAndErrorArePerKey() {
-        let rows = groupPermissionRows(settings, canManage: true,
+        let rows = groupPermissionRows(settings, capabilities: owner,
                                        busyKeys: ["muteAll"], errors: ["onlyAdminCanPin": "权限不足"])
         XCTAssertEqual(rows.filter(\.busy).map(\.key), [.muteAll])
         XCTAssertEqual(rows.filter { $0.error != nil }.map(\.key), [.onlyAdminCanPin])
@@ -40,13 +54,13 @@ final class GroupPermissionMatrixTests: XCTestCase {
     }
 
     func testIgnoresUnknownBusyKeysAndEmptyInputs() {
-        let rows = groupPermissionRows(settings, canManage: true, busyKeys: ["nope", "muteAll", "muteAll"])
+        let rows = groupPermissionRows(settings, capabilities: owner, busyKeys: ["nope", "muteAll", "muteAll"])
         XCTAssertEqual(rows.filter(\.busy).map(\.key), [.muteAll])
-        XCTAssertTrue(groupPermissionRows(settings, canManage: true).allSatisfy { !$0.busy && $0.error == nil })
+        XCTAssertTrue(groupPermissionRows(settings, capabilities: owner).allSatisfy { !$0.busy && $0.error == nil })
     }
 
     func testKeepsErrorVisibleOnReadOnlyPanel() {
-        let rows = groupPermissionRows(settings, canManage: false, errors: ["muteAll": "你已不是管理员"])
+        let rows = groupPermissionRows(settings, capabilities: nil, errors: ["muteAll": "你已不是管理员"])
         XCTAssertEqual(row(rows, .muteAll)?.editable, false)
         XCTAssertEqual(row(rows, .muteAll)?.error, "你已不是管理员")
     }
@@ -54,14 +68,14 @@ final class GroupPermissionMatrixTests: XCTestCase {
     func testUnknownJoinPolicyStaysUnknown() {
         // The host does not know the policy: the row carries nil, never a guessed default.
         XCTAssertNil(FlareGroupPermissionSettings().joinPolicy)
-        let rows = groupPermissionRows(FlareGroupPermissionSettings(joinPolicy: nil), canManage: true)
+        let rows = groupPermissionRows(FlareGroupPermissionSettings(joinPolicy: nil), capabilities: owner)
         XCTAssertEqual(row(rows, .joinPolicy)?.value, .policy(nil))
         XCTAssertNil(row(rows, .joinPolicy)?.value.policyValue)
         XCTAssertNil(FlareGroupPermissionValue.flag(true).policyValue, "a flag carries no policy")
     }
 
     func testJoinChoicesAreInDisplayOrder() {
-        let view = GroupPermissionMatrixView(settings: settings, canManage: true, onChange: { _, _ in })
+        let view = GroupPermissionMatrixView(settings: settings, capabilities: owner, onChange: { _, _ in })
         XCTAssertEqual(FlareGroupJoinPolicy.allCases, [.open, .approval, .invite])
         XCTAssertEqual(view.joinOptions.map(\.value), [.open, .approval, .invite])
         let strings = FlareStrings()
@@ -74,7 +88,7 @@ final class GroupPermissionMatrixTests: XCTestCase {
     func testChoosingAPolicyReportsTheEnum() throws {
         var changes: [(FlareGroupPermissionKey, FlareGroupPermissionValue)] = []
         let strings = FlareStrings()
-        let view = GroupPermissionMatrixView(settings: FlareGroupPermissionSettings(joinPolicy: nil), canManage: true,
+        let view = GroupPermissionMatrixView(settings: FlareGroupPermissionSettings(joinPolicy: nil), capabilities: owner,
                                              onChange: { changes.append(($0, $1)) })
         // An unknown policy is said so under the choices, and choosing one reports the enum.
         XCTAssertNoThrow(try view.inspect().find(text: strings.groupPermissionMatrixUnknownJoinPolicy))
@@ -86,15 +100,15 @@ final class GroupPermissionMatrixTests: XCTestCase {
     @MainActor
     func testAReadOnlyPanelShowsThePolicyOrThatItIsUnknown() throws {
         let strings = FlareStrings()
-        let unknown = GroupPermissionMatrixView(settings: FlareGroupPermissionSettings(joinPolicy: nil), canManage: false)
+        let unknown = GroupPermissionMatrixView(settings: FlareGroupPermissionSettings(joinPolicy: nil), capabilities: nil)
         XCTAssertNoThrow(try unknown.inspect().find(text: strings.groupPermissionMatrixUnknownJoinPolicy))
-        let known = GroupPermissionMatrixView(settings: FlareGroupPermissionSettings(joinPolicy: .approval), canManage: false)
+        let known = GroupPermissionMatrixView(settings: FlareGroupPermissionSettings(joinPolicy: .approval), capabilities: nil)
         XCTAssertNoThrow(try known.inspect().find(text: strings.groupPermissionMatrixJoinApproval))
         XCTAssertThrowsError(try known.inspect().find(text: strings.groupPermissionMatrixUnknownJoinPolicy))
     }
 
     func testLabelsAndPolicyTextFollowTextProps() {
-        let view = GroupPermissionMatrixView(settings: settings, canManage: true,
+        let view = GroupPermissionMatrixView(settings: settings, capabilities: owner,
                                              joinOpenText: "Open", muteAllLabel: "Mute everyone")
         XCTAssertEqual(view.labelFor(.muteAll), "Mute everyone")
         XCTAssertEqual(view.labelFor(.onlyAdminCanPin), "仅管理员可置顶消息")
@@ -103,15 +117,15 @@ final class GroupPermissionMatrixTests: XCTestCase {
     }
 
     func testWithoutAChangeCallbackThePanelIsReadOnly() {
-        let readOnly = GroupPermissionMatrixView(settings: settings, canManage: true)
+        let readOnly = GroupPermissionMatrixView(settings: settings, capabilities: owner)
         XCTAssertFalse(readOnly.canEdit)
-        let editable = GroupPermissionMatrixView(settings: settings, canManage: true, onChange: { _, _ in })
+        let editable = GroupPermissionMatrixView(settings: settings, capabilities: owner, onChange: { _, _ in })
         XCTAssertTrue(editable.canEdit)
     }
 
     func testRetryFallsBackToFlippingAToggleAndNothingForAChoice() {
-        let view = GroupPermissionMatrixView(settings: settings, canManage: true, onChange: { _, _ in })
-        let rows = groupPermissionRows(settings, canManage: true, errors: ["muteAll": "e", "joinPolicy": "e"])
+        let view = GroupPermissionMatrixView(settings: settings, capabilities: owner, onChange: { _, _ in })
+        let rows = groupPermissionRows(settings, capabilities: owner, errors: ["muteAll": "e", "joinPolicy": "e"])
         XCTAssertEqual(view.retryValue(row(rows, .muteAll)!), .flag(true))
         XCTAssertNil(view.retryValue(row(rows, .joinPolicy)!))
     }

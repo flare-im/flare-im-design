@@ -29,9 +29,9 @@ function onRemoveMember(memberId: string) {
     action: () => removeGroupMember(props.groupId, memberId),
   });
 }
-// The owner dissolves; everyone else leaves. Both are irreversible for the viewer.
+// The kit offers dissolving exactly when the model says the viewer may dissolve; everyone else leaves.
 function onLeave() {
-  const owner = Boolean(model.value?.isOwner);
+  const owner = Boolean(model.value?.capabilities.canDissolve);
   void confirm({
     title: owner ? "解散群聊" : "退出群聊",
     description: owner ? "解散后所有成员都会被移出，群聊无法恢复。" : "退出后不再接收这个群的消息。",
@@ -70,13 +70,26 @@ function onLeave() {
 </template>
 ```
 
-The reference app builds the model from its directory store: members are `FlareContact` rows (`id`, `name`), with `ownerId`, `adminIds`, `mutedIds`, `canManage` and `isOwner`.
+The reference app builds the model from its directory store: members are `FlareContact` rows (`id`, `name`), with `ownerId`, `adminIds`, `mutedIds`, the viewer's `capabilities` and the per-member `memberActions`.
 
 `promoteMember` and `muteMember` carry the state the viewer asked for, the one the member sheet's button named (`admin` true sets admin, false revokes it). Write that state; don't recompute the direction from your own copy of the member list, which may have changed since the sheet opened.
 
 ## The model is the permission source
 
-`FlareGroupDetailModel` carries the viewer's role (`canManage`, `isOwner`, `ownerId`, `adminIds`) and each member's state (`mutedIds`). The kit gates the management sections on those fields, so the app must fill them from the server, not assume them. The viewer's own settings (`myNickname`, `myMuted`, `myPinned`) are always editable.
+The kit decides nothing about who may manage what. `FlareGroupDetailModel` carries two answers from the host's permission source, and every management entry follows them:
+
+| Model field | Entries it shows |
+|---|---|
+| `capabilities.canManageInfo` | rename, announcement editor, mute-all and the three group permission switches |
+| `capabilities.canManageJoinSettings` | join policy and discoverability |
+| `capabilities.canManageJoinRequests` | the join requests row |
+| `capabilities.canInvite` | the invite link row and the add tile in the member grid |
+| `capabilities.canDissolve` | dissolving instead of leaving |
+| `memberActions[memberId]` | that member's sheet: `canChangeRole` (set or revoke admin, by `adminIds`), `canMute` (mute or unmute, by `mutedIds`), `canTransferOwner`, `canRemove`; no entry, no sheet |
+
+`groupManagementEntries(capabilities)` and `groupDetailMemberActions(model, memberId)` are the mapping (all four kits, shared cases in `spec/group-management-vectors.json`). The kit holds no role, owner or permission-bit rule, so the app fills both fields from the social SDK: `memberCapabilities` for the viewer and `memberActions` for every member it shows, member search results included. Their rule lives in the SDK's Rust core and matches the server; the server still authorizes every write. The viewer's own settings (`myNickname`, `myMuted`, `myPinned`) are always editable.
+
+Read join requests only when `canManageJoinRequests` is true, and create an invite link only when the SDK's `canManageMembers` is true: a member of a group that lets members share its card may read the link but not create one.
 
 ## Presentation by width
 
