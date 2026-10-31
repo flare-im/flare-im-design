@@ -4,6 +4,7 @@ import type { ContentElem } from "../../../../utils/contentElem";
 import { pickNestedPayload } from "../../../../utils/contentElem";
 import { readString } from "../../../../utils/contentData";
 import { displayTextFromStoredPreview, getContentDecodedPreview } from "../../../../utils/messagePreview";
+import { useFlareLocaleOptional } from "../../../../shared/i18n/useFlareI18n";
 import FlareSystemMessage from "../../standalone/FlareSystemMessage.vue";
 
 // Timeline adapter: resolves the system text from the content elem / stored preview and
@@ -15,6 +16,9 @@ const props = defineProps<{
   messageExtra?: Record<string, unknown>;
 }>();
 
+// The fallback words for an event without the server's own are the reader's language, not the default.
+const locale = useFlareLocaleOptional();
+
 const body = computed(() => {
   const nested = pickNestedPayload(props.content, "system");
   const direct = readString(nested, "body", "text");
@@ -24,8 +28,8 @@ const body = computed(() => {
   // (`{ k: "im.preview.system", a: { fb } }`, exposed as `message.textPreview`), not in the content
   // elem. Resolve it before the generic "系统消息" fallback.
   const raw = props.messageExtra?.textPreview;
-  const fromPreview = typeof raw === "string" ? displayTextFromStoredPreview(raw) : "";
-  return fromPreview || getContentDecodedPreview(props.content);
+  const fromPreview = typeof raw === "string" ? displayTextFromStoredPreview(raw, locale.value) : "";
+  return fromPreview || getContentDecodedPreview(props.content, locale.value);
 });
 </script>
 

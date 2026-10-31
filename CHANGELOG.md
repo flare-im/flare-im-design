@@ -6,6 +6,11 @@ This is the target Stable release, not a published version. Package metadata rem
 
 ### Design System And Packages
 
+- **A group system line without the server's words is named in all four kits** (contract and all four kits).
+  - The kits name events by the `SystemContent.event_kind` the social server writes. Added: `group.profile_updated` (the group was renamed, with the new name the event carries: 群名称已改为「周末徒步群」, else 群名称已更新), `group.member_roles_changed`, `group.muted` and `group.unmuted` (all-member mute on and off). The announcement event is `group.announcement`, which the kits had as `group.announcement_updated` — a key the server never writes — so an announcement line without words read as [System]. The unused `group.member_removed` alias is gone; the server writes `group.member_kicked`.
+  - Native `FlareStrings` add `systemEventGroupProfileUpdated`, `systemEventGroupProfileUpdatedNamed(name)`, `systemEventGroupMemberRolesChanged`, `systemEventGroupMuted` and `systemEventGroupUnmuted`; Vue `systemEvent.group.*` adds the same events, `systemEvent.group.announcement_updated` / `member_removed` become `announcement`, and `systemEventNamed.group.profile_updated` is the named form.
+  - `spec/message-preview-vectors.json` `stored` adds each new event with and without the server's `fb`; the server's words still win. All four kits run it.
+  - Vue's timeline `SystemView` and `NotificationView` read the stored token in the reader's language; they read it in Chinese whatever the provider's locale was.
 - **Server-issued instants are judged on the server's clock** (contract and all four kits).
   - `spec/server-clock-vectors.json`: server now is the device clock plus the host's offset (the core SDK's `connection.getServerClock` estimate, server clock minus device clock); without one it is the device clock. The plugin countdown and the invite cooldown rules re-run at that now, and each case says what the device clock alone would show. All four kits run it.
   - Vue `setFlareServerClockOffset` / `flareServerNowMs` (`./utils`); Compose, SwiftUI and Flutter `FlareServerClock` (`setOffsetMs`, `nowMs()`).

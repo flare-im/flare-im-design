@@ -7110,6 +7110,42 @@
     ],
     "zh": "你们已成为好友，可以开始聊天了"
   },
+  "systemEventGroupProfileUpdated": {
+    "en": "Group name updated",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "群名称已更新"
+  },
+  "systemEventGroupMemberRolesChanged": {
+    "en": "A member's group role was changed",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "有成员的群角色已变更"
+  },
+  "systemEventGroupMuted": {
+    "en": "All members were muted",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已开启全员禁言"
+  },
+  "systemEventGroupUnmuted": {
+    "en": "All members were unmuted",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已解除全员禁言"
+  },
   "mediaUnavailableImage": {
     "en": "Image isn't available right now",
     "kits": [

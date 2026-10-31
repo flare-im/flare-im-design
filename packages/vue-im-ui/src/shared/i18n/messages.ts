@@ -18,22 +18,32 @@ export const flareMessages: Record<string, FlareMessageTree> = {
     userIdentity: { loading: "正在加载用户资料", unavailable: "用户资料不可用", accountUnavailable: "暂无账号资料" },
     account: { transactions: "交易记录", empty: "暂无交易记录", emptyDescription: "收支明细会显示在这里", information: "账户说明与规则", entryDetails: "交易详情", entryId: "记录编号", type: "类型", today: "今天", yesterday: "昨天", otherEntries: "其他记录", showBalance: "显示余额", hideBalance: "隐藏余额", balanceHidden: "余额已隐藏" },
     input: { clear: "清空输入", reveal: "显示密码", hide: "隐藏密码" },
-    // Fallback labels for structured system-event keys supplied by a host.
+    // Fallback labels for a system line without words of its own, keyed by its event key (`ek`): the
+    // `SystemContent.event_kind` values the social server writes.
     systemEvent: {
       group: {
         created: "群聊已创建",
         member_joined: "新成员加入了群聊",
         member_kicked: "有成员被移出群聊",
-        member_removed: "有成员被移出群聊",
         member_left: "有成员退出了群聊",
         member_muted: "有成员被禁言",
         member_unmuted: "有成员被解除禁言",
         owner_transferred: "群主已转让",
         dissolved: "群聊已解散",
-        announcement_updated: "群公告已更新",
+        announcement: "群公告已更新",
+        profile_updated: "群名称已更新",
+        member_roles_changed: "有成员的群角色已变更",
+        muted: "已开启全员禁言",
+        unmuted: "已解除全员禁言",
       },
       relation: {
         friendship_established: "你们已成为好友，可以开始聊天了",
+      },
+    },
+    // The same line when the event's parameters carry a name (`p.display_name`, else `p.name`).
+    systemEventNamed: {
+      group: {
+        profile_updated: "群名称已改为「{name}」",
       },
     },
     preview: {
@@ -1496,16 +1506,24 @@ export const flareMessages: Record<string, FlareMessageTree> = {
         created: "Group created",
         member_joined: "A new member joined the group",
         member_kicked: "A member was removed from the group",
-        member_removed: "A member was removed from the group",
         member_left: "A member left the group",
         member_muted: "A member was muted",
         member_unmuted: "A member was unmuted",
         owner_transferred: "Group ownership was transferred",
         dissolved: "The group was dissolved",
-        announcement_updated: "Group announcement updated",
+        announcement: "Group announcement updated",
+        profile_updated: "Group name updated",
+        member_roles_changed: "A member's group role was changed",
+        muted: "All members were muted",
+        unmuted: "All members were unmuted",
       },
       relation: {
         friendship_established: "You are now friends. Say hi!",
+      },
+    },
+    systemEventNamed: {
+      group: {
+        profile_updated: "Group renamed to {name}",
       },
     },
     preview: {

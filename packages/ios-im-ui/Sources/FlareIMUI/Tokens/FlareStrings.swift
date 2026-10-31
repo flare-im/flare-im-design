@@ -887,6 +887,16 @@ public struct FlareStrings: Sendable {
     public var systemEventGroupAnnouncementUpdated: String
     /// en: "You are now friends. Say hi!"
     public var systemEventFriendshipEstablished: String
+    /// en: "Group name updated"
+    public var systemEventGroupProfileUpdated: String
+    /// en: "Group renamed to \(name)"
+    public var systemEventGroupProfileUpdatedNamed: @Sendable (String) -> String
+    /// en: "A member's group role was changed"
+    public var systemEventGroupMemberRolesChanged: String
+    /// en: "All members were muted"
+    public var systemEventGroupMuted: String
+    /// en: "All members were unmuted"
+    public var systemEventGroupUnmuted: String
     // Plugin views, forms and their detail sheet (`PluginView`, `PluginFormView`, `PluginDetailSheetView`).
     // `{count}`, `{time}` and `{n}` are replaced by the component.
     public var pluginViewSubmit: String
@@ -1711,6 +1721,11 @@ public struct FlareStrings: Sendable {
         systemEventGroupDissolved: String = "群聊已解散",
         systemEventGroupAnnouncementUpdated: String = "群公告已更新",
         systemEventFriendshipEstablished: String = "你们已成为好友，可以开始聊天了",
+        systemEventGroupProfileUpdated: String = "群名称已更新",
+        systemEventGroupProfileUpdatedNamed: @escaping @Sendable (String) -> String = { "群名称已改为「\($0)」" },
+        systemEventGroupMemberRolesChanged: String = "有成员的群角色已变更",
+        systemEventGroupMuted: String = "已开启全员禁言",
+        systemEventGroupUnmuted: String = "已解除全员禁言",
         pluginViewSubmit: String = "提交",
         pluginViewEnded: String = "已结束",
         pluginViewDeadlinePassed: String = "已截止",
@@ -2471,6 +2486,11 @@ public struct FlareStrings: Sendable {
         self.systemEventGroupDissolved = systemEventGroupDissolved
         self.systemEventGroupAnnouncementUpdated = systemEventGroupAnnouncementUpdated
         self.systemEventFriendshipEstablished = systemEventFriendshipEstablished
+        self.systemEventGroupProfileUpdated = systemEventGroupProfileUpdated
+        self.systemEventGroupProfileUpdatedNamed = systemEventGroupProfileUpdatedNamed
+        self.systemEventGroupMemberRolesChanged = systemEventGroupMemberRolesChanged
+        self.systemEventGroupMuted = systemEventGroupMuted
+        self.systemEventGroupUnmuted = systemEventGroupUnmuted
         self.pluginViewSubmit = pluginViewSubmit
         self.pluginViewEnded = pluginViewEnded
         self.pluginViewDeadlinePassed = pluginViewDeadlinePassed

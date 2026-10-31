@@ -58,7 +58,7 @@ private fun storedTokenText(
         val eventKey = arg("ek")
         if (eventKey.isEmpty()) return word
         val hosted = systemEventText?.invoke(eventKey)?.trim().orEmpty()
-        return hosted.ifEmpty { kitSystemEventText(eventKey, s) }.ifEmpty { word }
+        return hosted.ifEmpty { kitSystemEventText(eventKey, eventName(args), s) }.ifEmpty { word }
     }
 
     return when (kind) {
@@ -100,17 +100,31 @@ private fun storedTokenText(
     }
 }
 
-/** The kit's words for a system event key (Vue's `systemEvent.*`), or "" for a key it does not name. */
-private fun kitSystemEventText(eventKey: String, s: FlareStrings): String = when (eventKey) {
+/**
+ * The kit's words for a system event key (Vue's `systemEvent.*`), or "" for a key it does not name. The keys are the
+ * `SystemContent.event_kind` values the social server writes; [name] is the name the event's parameters carry, for
+ * the events whose words include one.
+ */
+private fun kitSystemEventText(eventKey: String, name: String, s: FlareStrings): String = when (eventKey) {
     "group.created" -> s.systemEventGroupCreated
     "group.member_joined" -> s.systemEventGroupMemberJoined
-    "group.member_kicked", "group.member_removed" -> s.systemEventGroupMemberRemoved
+    "group.member_kicked" -> s.systemEventGroupMemberRemoved
     "group.member_left" -> s.systemEventGroupMemberLeft
     "group.member_muted" -> s.systemEventGroupMemberMuted
     "group.member_unmuted" -> s.systemEventGroupMemberUnmuted
     "group.owner_transferred" -> s.systemEventGroupOwnerTransferred
     "group.dissolved" -> s.systemEventGroupDissolved
-    "group.announcement_updated" -> s.systemEventGroupAnnouncementUpdated
+    "group.announcement" -> s.systemEventGroupAnnouncementUpdated
+    "group.profile_updated" -> if (name.isEmpty()) s.systemEventGroupProfileUpdated else s.systemEventGroupProfileUpdatedNamed(name)
+    "group.member_roles_changed" -> s.systemEventGroupMemberRolesChanged
+    "group.muted" -> s.systemEventGroupMuted
+    "group.unmuted" -> s.systemEventGroupUnmuted
     "relation.friendship_established" -> s.systemEventFriendshipEstablished
     else -> ""
+}
+
+/** The name a system event's parameters (`p`) carry: a group's new display name, else its name. */
+private fun eventName(args: Map<*, *>): String {
+    val params = args["p"] as? Map<*, *> ?: return ""
+    return listOf("display_name", "name").firstNotNullOfOrNull { (params[it] as? String)?.trim()?.takeIf(String::isNotEmpty) }.orEmpty()
 }

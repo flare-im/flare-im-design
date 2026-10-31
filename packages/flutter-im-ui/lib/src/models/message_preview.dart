@@ -270,15 +270,20 @@ String flareStoredPreviewText(
 }
 
 /// The kit's words for a system event key (`spec/message-preview-vectors.json`,
-/// Vue's `systemEvent.*`), or '' for a key it does not name.
-String _kitSystemEventText(String eventKey, FlareStrings strings) {
+/// Vue's `systemEvent.*`), or '' for a key it does not name. The keys are the
+/// `SystemContent.event_kind` values the social server writes; [name] is the
+/// name the event's parameters carry, for the events whose words include one.
+String _kitSystemEventText(
+  String eventKey,
+  String name,
+  FlareStrings strings,
+) {
   switch (eventKey) {
     case 'group.created':
       return strings.systemEventGroupCreated;
     case 'group.member_joined':
       return strings.systemEventGroupMemberJoined;
     case 'group.member_kicked':
-    case 'group.member_removed':
       return strings.systemEventGroupMemberRemoved;
     case 'group.member_left':
       return strings.systemEventGroupMemberLeft;
@@ -290,13 +295,34 @@ String _kitSystemEventText(String eventKey, FlareStrings strings) {
       return strings.systemEventGroupOwnerTransferred;
     case 'group.dissolved':
       return strings.systemEventGroupDissolved;
-    case 'group.announcement_updated':
+    case 'group.announcement':
       return strings.systemEventGroupAnnouncementUpdated;
+    case 'group.profile_updated':
+      return name.isEmpty
+          ? strings.systemEventGroupProfileUpdated
+          : strings.systemEventGroupProfileUpdatedNamed(name);
+    case 'group.member_roles_changed':
+      return strings.systemEventGroupMemberRolesChanged;
+    case 'group.muted':
+      return strings.systemEventGroupMuted;
+    case 'group.unmuted':
+      return strings.systemEventGroupUnmuted;
     case 'relation.friendship_established':
       return strings.systemEventFriendshipEstablished;
     default:
       return '';
   }
+}
+
+/// The name a system event's parameters (`p`) carry: a group's new display
+/// name, else its name.
+String _storedEventName(Map<String, Object?> args) {
+  final params = args['p'];
+  if (params is! Map) return '';
+  return _arg(params.map((k, v) => MapEntry('$k', v)), const [
+    'display_name',
+    'name',
+  ]);
 }
 
 (String, Map<String, Object?>)? _storedPreviewToken(String text) {
@@ -338,7 +364,9 @@ String _storedPreviewTokenText(
     if (eventKey.isEmpty) return fallback;
     final named = systemEventText?.call(eventKey).trim() ?? '';
     return _or(
-      named.isEmpty ? _kitSystemEventText(eventKey, strings) : named,
+      named.isEmpty
+          ? _kitSystemEventText(eventKey, _storedEventName(args), strings)
+          : named,
       fallback,
     );
   }

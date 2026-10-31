@@ -70,6 +70,7 @@ final class EnglishFormatsTests: XCTestCase {
         case "previewCardNamed": return s.previewCardNamed(a.text(0))
         case "previewForwardCount": return s.previewForwardCount(a.int(0))
         case "previewImageGroupCount": return s.previewImageGroupCount(a.int(0))
+        case "systemEventGroupProfileUpdatedNamed": return s.systemEventGroupProfileUpdatedNamed(a.text(0))
         default: return nil
         }
     }

@@ -1,5 +1,7 @@
 ## 未发布
 
+- 系统消息事件名按社交服务端写的 `SystemContent.event_kind` 补齐：`systemEvent.group` 新增 `profile_updated`、`member_roles_changed`、`muted`、`unmuted`，`announcement_updated` 改为服务端实际发的 `announcement`，去掉没人发的 `member_removed`；新增 `systemEventNamed.group.profile_updated`（「群名称已改为「{name}」」），事件参数 `p.display_name` / `p.name` 带名字时用它（`spec/message-preview-vectors.json` `stored`）。`SystemView`、`NotificationView` 读摘要 token 时传入读者语言，英文界面不再读出中文回落文案。
+
 - 服务端时钟：`./utils` 新增 `setFlareServerClockOffset(offsetMs)`、`flareServerClockOffset()`、`flareServerNowMs()` 与纯函数 `flareServerNow(deviceNowMs, offsetMs)`（`spec/server-clock-vectors.json`）。宿主把核心 SDK 的估计（`connection.getServerClock` 的 `offsetMs`）交进来后，插件时间块的倒计时与「已截止」、插件行与账户明细的时间、红包详情的时间、邀请码的重新生成冷却，以及 `formatRelativeTime` 的默认「现在」，都按服务端时间算；没交时为本机时钟。此前设备时钟快几分钟，投票会提前显示已截止、冷却会提前解除。
 
 - 群管理入口只跟宿主权限来源的答案走：`FlareGroupDetailModel` 去掉 `canManage`、`isOwner`，改收 `capabilities: FlareGroupCapabilities` 与按成员 id 的 `memberActions: Record<string, FlareMemberActions>`；`FlareGroupDetail` 的设置行、改名与公告编辑、添加成员格、解散走 `groupManagementEntries`，成员面板走 `groupDetailMemberActions`，没有条目的成员不打开面板，空分区不画。`FlareMemberRoleSheet` 去掉 `viewerRole`、`capabilities` 与身份等级规则，改收 `actions`；`FlareGroupPermissionMatrix` 的 `canManage` 换成 `capabilities`。`contracts/application.ts` 里未被使用的旧 `FlareGroupCapabilities` 删除。共用用例 `spec/group-management-vectors.json`。

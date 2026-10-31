@@ -4,6 +4,7 @@ import type { ContentElem } from "../../../../utils/contentElem";
 import { pickNestedPayload } from "../../../../utils/contentElem";
 import { asRecord, readString } from "../../../../utils/contentData";
 import { displayTextFromStoredPreview, getContentDecodedPreview } from "../../../../utils/messagePreview";
+import { useFlareLocaleOptional } from "../../../../shared/i18n/useFlareI18n";
 import {
   useFlareNotificationResolver,
   type FlareNotificationPayload,
@@ -21,6 +22,7 @@ const props = defineProps<{
 }>();
 
 const nested = computed(() => pickNestedPayload(props.content, "notification"));
+const locale = useFlareLocaleOptional();
 
 const title = computed(() => readString(nested.value, "title"));
 const body = computed(() => {
@@ -29,8 +31,8 @@ const body = computed(() => {
   // Same as SystemView: social notifications carry their text only in the stored preview token
   // (`message.textPreview`), not in the content elem — resolve it before the generic fallback.
   const raw = props.messageExtra?.textPreview;
-  const fromPreview = typeof raw === "string" ? displayTextFromStoredPreview(raw) : "";
-  return fromPreview || getContentDecodedPreview(props.content);
+  const fromPreview = typeof raw === "string" ? displayTextFromStoredPreview(raw, locale.value) : "";
+  return fromPreview || getContentDecodedPreview(props.content, locale.value);
 });
 
 // Normalized payload for host renderers (call-signal tiles, custom cards, …).

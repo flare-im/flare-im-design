@@ -66,7 +66,7 @@ private func storedTokenText(
         let eventKey = arg("ek")
         guard !eventKey.isEmpty else { return word }
         let hosted = storedTrimmed(systemEventText?(eventKey))
-        return or(hosted.isEmpty ? kitSystemEventText(eventKey, s) : hosted, word)
+        return or(hosted.isEmpty ? kitSystemEventText(eventKey, name: storedEventName(args), s) : hosted, word)
     }
 
     switch kind {
@@ -138,21 +138,38 @@ private func storedTokenText(
     }
 }
 
-/// The kit's words for a system event key (Vue's `systemEvent.*`), or "" for a key it does not name.
-private func kitSystemEventText(_ eventKey: String, _ s: FlareStrings) -> String {
+/// The kit's words for a system event key (Vue's `systemEvent.*`), or "" for a key it does not name. The keys are
+/// the `SystemContent.event_kind` values the social server writes; `name` is the name the event's parameters carry,
+/// for the events whose words include one.
+private func kitSystemEventText(_ eventKey: String, name: String, _ s: FlareStrings) -> String {
     switch eventKey {
     case "group.created": return s.systemEventGroupCreated
     case "group.member_joined": return s.systemEventGroupMemberJoined
-    case "group.member_kicked", "group.member_removed": return s.systemEventGroupMemberRemoved
+    case "group.member_kicked": return s.systemEventGroupMemberRemoved
     case "group.member_left": return s.systemEventGroupMemberLeft
     case "group.member_muted": return s.systemEventGroupMemberMuted
     case "group.member_unmuted": return s.systemEventGroupMemberUnmuted
     case "group.owner_transferred": return s.systemEventGroupOwnerTransferred
     case "group.dissolved": return s.systemEventGroupDissolved
-    case "group.announcement_updated": return s.systemEventGroupAnnouncementUpdated
+    case "group.announcement": return s.systemEventGroupAnnouncementUpdated
+    case "group.profile_updated":
+        return name.isEmpty ? s.systemEventGroupProfileUpdated : s.systemEventGroupProfileUpdatedNamed(name)
+    case "group.member_roles_changed": return s.systemEventGroupMemberRolesChanged
+    case "group.muted": return s.systemEventGroupMuted
+    case "group.unmuted": return s.systemEventGroupUnmuted
     case "relation.friendship_established": return s.systemEventFriendshipEstablished
     default: return ""
     }
+}
+
+/// The name a system event's parameters (`p`) carry: a group's new display name, else its name.
+private func storedEventName(_ args: [String: Any]) -> String {
+    guard let params = args["p"] as? [String: Any] else { return "" }
+    for key in ["display_name", "name"] {
+        let value = storedTrimmed(params[key] as? String)
+        if !value.isEmpty { return value }
+    }
+    return ""
 }
 
 private func storedTrimmed(_ text: String?) -> String {

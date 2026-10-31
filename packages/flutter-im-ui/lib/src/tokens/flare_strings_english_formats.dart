@@ -78,6 +78,8 @@ String _previewCardNamedEnglish(String label) => '[Contact] $label';
 String _previewForwardCountEnglish(int count) =>
     _english(count, '[Forward] {count} message', '[Forward] {count} messages');
 String _previewImageGroupCountEnglish(int count) => '[Album] $count';
+String _systemEventGroupProfileUpdatedNamedEnglish(String name) =>
+    'Group renamed to $name';
 String _announcementReadBarReadCountEnglish(int read, int total) =>
     '$read/$total read';
 String _groupDetailMemberCountEnglish(int count) =>

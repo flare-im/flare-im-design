@@ -6,6 +6,11 @@
 
 ### 设计系统与跨端组件
 
+- **没有服务端文案的群系统消息四端都能说清**（契约与四端 Kit）。
+  - 事件名以社交服务端写的 `SystemContent.event_kind` 为准。新增 `group.profile_updated`（改群名，带事件参数里的新群名：群名称已改为「周末徒步群」，参数里没有名字时为「群名称已更新」）、`group.member_roles_changed`、`group.muted` 与 `group.unmuted`（开启、解除全员禁言）。群公告的事件名是 `group.announcement`，Kit 原来写成服务端从不发的 `group.announcement_updated`，没有文案的公告消息读成「[系统消息]」。去掉没人发的 `group.member_removed` 别名，服务端发的是 `group.member_kicked`。
+  - 原生 `FlareStrings` 新增 `systemEventGroupProfileUpdated`、`systemEventGroupProfileUpdatedNamed(name)`、`systemEventGroupMemberRolesChanged`、`systemEventGroupMuted`、`systemEventGroupUnmuted`；Vue `systemEvent.group.*` 补齐同一组事件，`announcement_updated` / `member_removed` 改为 `announcement`，带名字的写法在 `systemEventNamed.group.profile_updated`。
+  - `spec/message-preview-vectors.json` 的 `stored` 给每个新事件加带 `fb` 与不带 `fb` 两条用例，服务端文案仍然优先。四端都跑。
+  - Vue 时间线的 `SystemView`、`NotificationView` 按读者语言读摘要 token；原来不管宿主是什么语言都读中文。
 - **群管理入口只跟宿主的权限答案走**（契约与四端 Kit）。
   - `FlareGroupDetailModel` 去掉 `canManage`、`isOwner`，改收 `capabilities`（`canManageInfo`、`canManageJoinSettings`、`canManageJoinRequests`、`canInvite`、`canDissolve`）与按成员 id 的 `memberActions`（`canRemove`、`canMute`、`canChangeRole`、`canTransferOwner`）。每个设置行、改名与公告编辑、添加成员格、解散都经 `groupManagementEntries` 对应到一项能力；成员面板只画该成员条目允许的动作（`groupDetailMemberActions`），没有条目的成员不打开面板。
   - 以前群主和所有管理员不看权限位，都能看到对除群主外每个成员的设管理员、禁言、移出，以及进群方式、入群申请、邀请链接；服务端对只有部分权限位的管理员会拒绝其中大部分，对管理员之间的操作一律拒绝。

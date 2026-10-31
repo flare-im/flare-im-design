@@ -1162,6 +1162,17 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["systemEventGroupAnnouncementUpdated"] as? (String)) ?: "群公告已更新"
     val systemEventFriendshipEstablished: String
         get() = (overrides["systemEventFriendshipEstablished"] as? (String)) ?: "你们已成为好友，可以开始聊天了"
+    val systemEventGroupProfileUpdated: String
+        get() = (overrides["systemEventGroupProfileUpdated"] as? (String)) ?: "群名称已更新"
+    // en: "Group renamed to {name}"
+    val systemEventGroupProfileUpdatedNamed: (String) -> String
+        get() = (overrides["systemEventGroupProfileUpdatedNamed"] as? ((String) -> String)) ?: { "群名称已改为「$it」" }
+    val systemEventGroupMemberRolesChanged: String
+        get() = (overrides["systemEventGroupMemberRolesChanged"] as? (String)) ?: "有成员的群角色已变更"
+    val systemEventGroupMuted: String
+        get() = (overrides["systemEventGroupMuted"] as? (String)) ?: "已开启全员禁言"
+    val systemEventGroupUnmuted: String
+        get() = (overrides["systemEventGroupUnmuted"] as? (String)) ?: "已解除全员禁言"
 
     // 会话头身份区作为按钮时的名字（标题 + 动作）；en: "{title}, {action}"
     val conversationHeaderIdentityLabel: (String, String) -> String
@@ -3711,6 +3722,26 @@ class FlareStringsBuilder internal constructor() {
     var systemEventFriendshipEstablished: String
         get() = (values["systemEventFriendshipEstablished"] as? (String)) ?: "你们已成为好友，可以开始聊天了"
         set(value) { values["systemEventFriendshipEstablished"] = value }
+
+    var systemEventGroupProfileUpdated: String
+        get() = (values["systemEventGroupProfileUpdated"] as? (String)) ?: "群名称已更新"
+        set(value) { values["systemEventGroupProfileUpdated"] = value }
+
+    var systemEventGroupProfileUpdatedNamed: (String) -> String
+        get() = (values["systemEventGroupProfileUpdatedNamed"] as? ((String) -> String)) ?: { "群名称已改为「$it」" }
+        set(value) { values["systemEventGroupProfileUpdatedNamed"] = value }
+
+    var systemEventGroupMemberRolesChanged: String
+        get() = (values["systemEventGroupMemberRolesChanged"] as? (String)) ?: "有成员的群角色已变更"
+        set(value) { values["systemEventGroupMemberRolesChanged"] = value }
+
+    var systemEventGroupMuted: String
+        get() = (values["systemEventGroupMuted"] as? (String)) ?: "已开启全员禁言"
+        set(value) { values["systemEventGroupMuted"] = value }
+
+    var systemEventGroupUnmuted: String
+        get() = (values["systemEventGroupUnmuted"] as? (String)) ?: "已解除全员禁言"
+        set(value) { values["systemEventGroupUnmuted"] = value }
 
     var conversationHeaderIdentityLabel: (String, String) -> String
         get() = (values["conversationHeaderIdentityLabel"] as? ((String, String) -> String)) ?: { title, action -> "$title，$action" }

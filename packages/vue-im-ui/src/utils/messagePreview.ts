@@ -313,9 +313,20 @@ function resolveProductSystemText(args: Record<string, unknown>, options?: Store
   return options.resolveSystemText(key, params, readString(args, "fb", "t", "body", "title"));
 }
 
+/**
+ * The kit's label for a system line's event key (`ek`, the `SystemContent.event_kind` the social server writes), or
+ * "" for a key it does not name. An event whose parameters carry a name (`p.display_name`, else `p.name`) reads its
+ * `systemEventNamed.<ek>` label when it has one.
+ */
 function resolveSystemEventText(args: Record<string, unknown>, locale?: string): string {
   const ek = readString(args, "ek").trim();
   if (!ek) return "";
+  const name = readString(asRecord(args.p), "display_name", "name").trim();
+  if (name) {
+    const namedKey = `systemEventNamed.${ek}`;
+    const named = resolveFlareMessage(locale, namedKey, { name });
+    if (named !== namedKey) return named;
+  }
   const key = `systemEvent.${ek}`;
   const resolved = resolveFlareMessage(locale, key);
   return resolved === key ? "" : resolved;

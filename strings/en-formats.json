@@ -650,6 +650,19 @@
       ]
     },
     {
+      "field": "systemEventGroupProfileUpdatedNamed",
+      "args": [
+        "周末徒步群"
+      ],
+      "en": "Group renamed to 周末徒步群",
+      "zh": "群名称已改为「周末徒步群」",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
       "field": "conversationHeaderIdentityLabel",
       "args": [
         "林夏",

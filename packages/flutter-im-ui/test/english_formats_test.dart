@@ -58,6 +58,8 @@ final Map<String, _Call> _calls = {
   'previewCardNamed': (s, a) => s.previewCardNamed(_s(a[0])),
   'previewForwardCount': (s, a) => s.previewForwardCount(_i(a[0])),
   'previewImageGroupCount': (s, a) => s.previewImageGroupCount(_i(a[0])),
+  'systemEventGroupProfileUpdatedNamed': (s, a) =>
+      s.systemEventGroupProfileUpdatedNamed(_s(a[0])),
   'announcementReadBarReadCount': (s, a) =>
       s.announcementReadBarReadCount(_i(a[0]), _i(a[1])),
   'groupDetailMemberCount': (s, a) => s.groupDetailMemberCount(_i(a[0])),

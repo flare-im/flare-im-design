@@ -515,6 +515,12 @@ class FlareStrings {
     this.systemEventGroupDissolved = '群聊已解散', // en: The group was dissolved
     this.systemEventGroupAnnouncementUpdated = '群公告已更新', // en: Group announcement updated
     this.systemEventFriendshipEstablished = '你们已成为好友，可以开始聊天了', // en: You are now friends. Say hi!
+    this.systemEventGroupProfileUpdated = '群名称已更新', // en: Group name updated
+    this.systemEventGroupProfileUpdatedNamed =
+        _systemEventGroupProfileUpdatedNamed, // en: Group renamed to {name}
+    this.systemEventGroupMemberRolesChanged = '有成员的群角色已变更', // en: A member's group role was changed
+    this.systemEventGroupMuted = '已开启全员禁言', // en: All members were muted
+    this.systemEventGroupUnmuted = '已解除全员禁言', // en: All members were unmuted
     this.unknownMessageHint = '当前版本无法显示这条消息',
     this.unknownMessageUnsupported = '不支持的消息类型',
     this.unknownMessageDiagnostic = '消息类型',
@@ -1433,6 +1439,11 @@ class FlareStrings {
   final String systemEventGroupDissolved;
   final String systemEventGroupAnnouncementUpdated;
   final String systemEventFriendshipEstablished;
+  final String systemEventGroupProfileUpdated;
+  final String Function(String name) systemEventGroupProfileUpdatedNamed;
+  final String systemEventGroupMemberRolesChanged;
+  final String systemEventGroupMuted;
+  final String systemEventGroupUnmuted;
   final String unknownMessageHint;
   final String unknownMessageUnsupported;
   final String unknownMessageDiagnostic;
@@ -2260,6 +2271,11 @@ class FlareStrings {
     String? systemEventGroupDissolved,
     String? systemEventGroupAnnouncementUpdated,
     String? systemEventFriendshipEstablished,
+    String? systemEventGroupProfileUpdated,
+    String Function(String name)? systemEventGroupProfileUpdatedNamed,
+    String? systemEventGroupMemberRolesChanged,
+    String? systemEventGroupMuted,
+    String? systemEventGroupUnmuted,
     String? unknownMessageHint,
     String? unknownMessageUnsupported,
     String? unknownMessageDiagnostic,
@@ -3066,6 +3082,12 @@ class FlareStrings {
       systemEventGroupDissolved: systemEventGroupDissolved ?? this.systemEventGroupDissolved,
       systemEventGroupAnnouncementUpdated: systemEventGroupAnnouncementUpdated ?? this.systemEventGroupAnnouncementUpdated,
       systemEventFriendshipEstablished: systemEventFriendshipEstablished ?? this.systemEventFriendshipEstablished,
+      systemEventGroupProfileUpdated: systemEventGroupProfileUpdated ?? this.systemEventGroupProfileUpdated,
+      systemEventGroupProfileUpdatedNamed:
+          systemEventGroupProfileUpdatedNamed ?? this.systemEventGroupProfileUpdatedNamed,
+      systemEventGroupMemberRolesChanged: systemEventGroupMemberRolesChanged ?? this.systemEventGroupMemberRolesChanged,
+      systemEventGroupMuted: systemEventGroupMuted ?? this.systemEventGroupMuted,
+      systemEventGroupUnmuted: systemEventGroupUnmuted ?? this.systemEventGroupUnmuted,
       unknownMessageHint: unknownMessageHint ?? this.unknownMessageHint,
       unknownMessageUnsupported:
           unknownMessageUnsupported ?? this.unknownMessageUnsupported,
@@ -3654,6 +3676,8 @@ class FlareStrings {
   static String _previewCardNamed(String label) => '[名片] $label';
   static String _previewForwardCount(int count) => '[转发] $count 条消息';
   static String _previewImageGroupCount(int count) => '[多图] $count 张';
+  static String _systemEventGroupProfileUpdatedNamed(String name) =>
+      '群名称已改为「$name」';
   static String _messageImageGroupLabel(int count) => '$count 张图片';
   static String _imagePreviewPosition(int index, int count) =>
       '第 $index 张，共 $count 张';
